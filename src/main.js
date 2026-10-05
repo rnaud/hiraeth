@@ -19,6 +19,7 @@ import { WindStreaks } from './wind.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFlora } from './physics.js';
 import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
+import { LodManager, lodView } from './lod.js';
 import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
@@ -28,7 +29,7 @@ import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
 import { spawnNPCs, pooledNPC, registerNPCTargets } from './npc.js';
-import { Crowd } from './crowd.js';
+import { Crowd, CROWD_DIST_CELL } from './crowd.js';
 import { Journal, Relics, Story, Errands } from './quest.js';
 import { CONTENT, ERRANDS } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
@@ -55,6 +56,8 @@ import { isolate, restore } from './story/portrait-bg.js';
 import { badgeLine } from './prompt-keys.js';
 import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
+import { Waters, BreathMeter } from './water.js';
+import { waterShared } from './water-shader.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -183,6 +186,8 @@ const t0 = performance.now();
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null);
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 level.init?.(physics);
+// every body of water: its look (bed maps, ripples) and swimming in it (src/water.js, src/swim.js)
+const waters = new Waters(scene, { physics });
 // trees and shrubs that landed inside a house or a rock are left out (src/physics.js; window.clipAudit lists the rest)
 const buriedFlora = dropBuriedFlora(scene, physics);
 if (buriedFlora) console.info(`flora: ${buriedFlora} buried instances left out`);
@@ -205,7 +210,7 @@ if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => pro
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, spawn: level.spawn, spawnHeading: level.spawnHeading,
-  gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic,
+  gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
   onHurt: (k) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; },
@@ -332,6 +337,11 @@ rig.constrain = level.constrainCamera;
 
 // ------------------------------------------------------------------ sound, weather, people, story
 const sound = new Sound(levelId);
+waters.sound = sound;
+player.onSwim = (kind, info) => waters.event(kind, info);   // splashes, strokes, a gasp
+// hoverbikes and skiffs skim over any water (bike.js groundAt)
+for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y, z) => waters.floorAt(x, y, z);
+const breathMeter = new BreathMeter();
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
 tool.powerTrails(trails);   // the hover trails run in the fluid's tones
@@ -374,6 +384,7 @@ const showToast = (text) => ship.cinema.toast(text);   // queued, and held while
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: humanT, toast: showToast, tool,
+  ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
 for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
@@ -394,7 +405,8 @@ const itemFx = createItemEffects({ player, tool, level, sound, toast: showToast,
 journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null }));   // Select / View opens on your gear
 journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
-const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length });
+const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
+  failed: Object.entries(game.data.flags).filter(([k, v]) => k.startsWith('failed.') && v).map(([, v]) => v) });   // (quests that went wrong: src/story/quests.js)
 journal.sections.unshift(() => chargeJournalHtml(charge()));
 let chargeKept = null;   // a keepsake just earned: the HUD says what the charge gained, for a while
 game.on('keepsake', (k) => { chargeKept = { name: k.name, until: performance.now() + 9000 }; });
@@ -466,6 +478,7 @@ window.addEventListener('beforeunload', () => { if (!player.riding && !ship.play
 // footsteps: prints in the sand + a sound
 const onStepPrint = player.onStep;
 player.onStep = (p, heading, up, i) => {
+  if (waters.step(p)) return;   // in the water: a splash, no print
   onStepPrint?.(p, heading, up, i);
   sound.step(Math.hypot(player.vel.x, player.vel.z));
 };
@@ -605,6 +618,7 @@ function applyDetail() {
   sharedUniforms.uCloudShadows.value = preset.cloudShadows && !low ? baseCloudSh : 0;
   sharedUniforms.uShadowTaps.value = preset.taps;
   U.uPostLite.value = preset.postLite ? 1 : 0;
+  waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
   for (const n of npcs) n.lowDetail = low;
   if (crowd) {
     const mid = preset.crowdMid ?? crowdRange.midIn;
@@ -947,6 +961,10 @@ function glowCasters() {
 const shadowCull = new ShadowCuller(scene);
 const smallCull = new SmallCuller(scene);
 let roomCull = null;
+// levels of detail (lod.js): distant static meshes drawn coarser, by no more than the preset's
+// lodPx pixels; never the terrain (dug into at runtime) or anything that moves with a person
+let lod = null;
+const movers = () => [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object), ...(crowd?.pool ?? []).map((e) => e.npc?.object)];
 const shadowDir = new THREE.Vector3();
 const frameStats = { calls: 0, tris: 0, n: 0, culled: 0 };
 renderer.info.autoReset = false;   // one frame's draw calls over all its passes (the F readout)
@@ -973,11 +991,15 @@ function renderFrame() {
   // a pixel or two on screen, rooms off the map while the camera is elsewhere
   camera.updateMatrixWorld();
   const frameHidden = [];
-  flora?.update(camera, preset.floraFar ?? 1);   // each species draws the plants in view near enough
+  const pxPerRad = gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+  flora?.update(camera, preset.floraFar ?? 1, { pxPerRad, px: preset.lodPx ?? 0 });   // each species draws the plants in view near enough (the far ones coarser)
   blades.grass?.update(camera);
   cullFar(tiled.small, camera, preset.propFar, frameHidden);
-  smallCull.hide(camera, gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)), preset.propPx, frameHidden);
+  smallCull.hide(camera, pxPerRad, preset.propPx, frameHidden);
   (roomCull ??= new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] })).hide(camera, frameHidden);
+  lodView.pxPerRad = pxPerRad; lodView.px = preset.lodPx ?? 0;
+  (lod ??= new LodManager(scene, { keep: [...movers(), terrain?.mesh] })).update(camera, pxPerRad, preset.lodPx ?? 0);
+  if (crowd) crowd.range.dist = preset.lodPx ? (CROWD_DIST_CELL * pxPerRad) / preset.lodPx : Infinity;   // the crowd's distant figure, by the same rule
 
   // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
   // steps); when it turns, every cascade refreshes together so their hand-over stays seamless.
@@ -996,7 +1018,9 @@ function renderFrame() {
   if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0)) {
     const small = tiled.small.filter((o) => o.visible);
     for (const o of small) o.visible = false;   // pebbles and bushes don't need km-wide shadows
+    if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
     shadowPass(cascades.far, camera.far);
+    lod.viewPass();
     for (const o of small) o.visible = true;
   }
   frameNo++;
@@ -1020,6 +1044,7 @@ function renderFrame() {
   renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);
+  waters.renderOver(renderer, camera, { tNormal: gbuffer.textures[1], tAlbedo: gbuffer.textures[0], target: composeRT, toon: U.uToon.value });   // the sun's sparkle; under water, the tint and haze
 
   // 4. wind-blown sand and drifting motes, drawn on top (depth-tested against the G-buffer)
   // (not in a portrait shot: just the person against a flat colour)
@@ -1260,6 +1285,10 @@ function frame() {
   sharedUniforms.uTime.value = t;
   U.uTime.value = t;
   U.uDebug.value = params.debug;
+  // the water: its rings and splashes, its bed maps; the camera kept off its surface
+  waters.update(dt, t, { player, vehicles: player.vehicles, things: wildlife.creatures, globs: tool.globs, sky: U });
+  waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
+  breathMeter.update(player.breath, !!player.swim && (player.swim.under || player.breath < 0.999) && !busy());
 
   gpuTimer.begin();
   renderFrame();
@@ -1355,5 +1384,5 @@ window.clipAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatAudit(r));
   return r;
 };
-Object.assign(window, { flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame });
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod });

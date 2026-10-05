@@ -29,6 +29,8 @@ const SPIRE_RING = 48;
 // the story's corners (src/story/incal.js): the Upward Shrine and the call-lamp on the bottom
 // terrace (world angles), Nima's corner a little way along the high terrace
 const SHRINE_A = 3.155, LAMP_A = 3.2, NIMA_DA = 0.045;
+// the old goods hoist on the bottom terrace, a little way past Pip (quest incal.ration): its angle, and how far it stands in from the edge
+export const HOIST = { a: SHRINE_A - 0.075, inset: 1.3, reach: 4.0, height: 4.8 };
 
 const TAU = Math.PI * 2;
 
@@ -639,8 +641,67 @@ export function createIncal(scene) {
     sign.userData.noCollide = true;
     post.add(sign);
     places.lampHead = { mesh: head, mat: lampMat, signMat: sign.material };
-    // keep the trees off the shrine and the lamp
-    for (const t of trees) for (const [c, r] of [[S, 9], [L, 3], [places.nima, 4]]) if (Math.abs(t[1] - c.y) < 1 && Math.hypot(t[0] - c.x, t[2] - c.z) < r) t[3] = 0;
+    // the old goods hoist (src/story/incal.js turns it): an iron post at the edge, an arm on a sleeve
+    // that swings round it, a basket hanging off the long end out over the void (Pip's mum hangs the
+    // day's ration tin in it, out of the rats' reach), a weight on the short end to walk it round by,
+    // and a rusted pin through the collar that holds it. Local +x points out over the void.
+    {
+      const H = HOIST, hp = P3(H.a, low.r0 + H.inset, low.y);
+      const rust = makeMaterial({ color: '#b9603e', flat: true, metal: 'iron' }), wicker = makeMaterial({ color: '#a8743f', flat: true });
+      const tinM = makeMaterial({ color: '#dfe4ea', flat: true }), labelM = makeMaterial({ color: '#d9784f', flat: true });
+      const one = (list) => mergeGeometries(list.map((g) => { g = g.index ? g.toNonIndexed() : g; g.deleteAttribute('uv'); return g; }));
+      const group = new THREE.Group();
+      group.position.copy(hp); group.rotation.y = Math.PI - H.a;
+      group.add(new THREE.Mesh(one([
+        new THREE.BoxGeometry(0.9, 0.18, 0.9).translate(0, 0.09, 0),
+        new THREE.CylinderGeometry(0.14, 0.2, H.height, 8).translate(0, H.height / 2, 0),
+        new THREE.CylinderGeometry(0.3, 0.3, 0.26, 10).translate(0, H.height - 1.63, 0),   // the collar the arm's sleeve sits on
+      ]), ink));
+      // the pin: through the collar, its ring head toward the terrace's length
+      const pin = new THREE.Mesh(one([new THREE.CylinderGeometry(0.075, 0.075, 1.0, 6).rotateX(Math.PI / 2), new THREE.TorusGeometry(0.17, 0.05, 5, 10).translate(0, 0, 0.62)]), rust);
+      pin.position.set(0, H.height - 1.63, 0);
+      group.add(pin);
+      // the arm, on its sleeve: rotation.y 0 = out over the void, π = in over the terrace
+      const arm = new THREE.Group();
+      arm.position.y = H.height;
+      const brace = Math.hypot(H.reach * 0.65, 1.25);
+      arm.add(new THREE.Mesh(one([
+        new THREE.CylinderGeometry(0.26, 0.26, 1.5, 10).translate(0, -0.75, 0),
+        new THREE.BoxGeometry(H.reach + 1.9, 0.2, 0.2).translate((H.reach - 1.9) / 2 + 0.1, 0, 0),
+        new THREE.CylinderGeometry(0.05, 0.05, brace, 5).rotateZ(-Math.atan2(H.reach * 0.65, 1.25)).translate(H.reach * 0.325, -0.65, 0),
+        new THREE.TorusGeometry(0.22, 0.05, 5, 12).translate(H.reach, -0.12, 0),
+        new THREE.CylinderGeometry(0.03, 0.03, 1.1, 4).translate(-1.4, -0.55, 0),
+      ]), ink));
+      // the weight on the short end
+      const weight = new THREE.Mesh(one([new THREE.BoxGeometry(0.75, 0.8, 0.75), new THREE.BoxGeometry(0.82, 0.1, 0.82).translate(0, 0.3, 0)]), rust);
+      weight.position.set(-1.4, -1.5, 0);
+      arm.add(weight);
+      // the basket on its cable, hanging from the pulley (a group, so it can sway)
+      const hang = new THREE.Group();
+      hang.position.set(H.reach, -0.34, 0);
+      hang.add(new THREE.Mesh(one([
+        new THREE.CylinderGeometry(0.02, 0.02, 2.34, 4).translate(0, -1.17, 0),
+        new THREE.TorusGeometry(0.45, 0.03, 4, 14, Math.PI).translate(0, -2.79, 0),   // the handle
+      ]), ink));
+      hang.add(new THREE.Mesh(one([
+        new THREE.CylinderGeometry(0.5, 0.4, 0.42, 12, 1, true).translate(0, -3.0, 0),
+        new THREE.CylinderGeometry(0.4, 0.4, 0.04, 12).translate(0, -3.2, 0),
+        new THREE.TorusGeometry(0.5, 0.04, 4, 14).rotateX(Math.PI / 2).translate(0, -2.79, 0),
+      ]), wicker));
+      const tin = new THREE.Group();
+      tin.add(new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.46, 12).translate(0, -2.95, 0), tinM));
+      tin.add(new THREE.Mesh(new THREE.CylinderGeometry(0.185, 0.185, 0.12, 12).translate(0, -2.8, 0), labelM));   // the label, above the rim
+      hang.add(tin);
+      arm.add(hang);
+      group.add(arm);
+      group.traverse((o) => { o.userData.noCollide = true; });
+      shrineG.add(group);
+      places.hoist = hp;
+      places.hoistIn = P3(H.a, low.r0 + H.inset + H.reach, low.y);   // where the basket hangs, swung in
+      places.hoistRig = { group, arm, pin, weight, hang, tin, pinRest: pin.position.clone() };
+    }
+    // keep the trees off the shrine, the lamp and the hoist
+    for (const t of trees) for (const [c, r] of [[S, 9], [L, 3], [places.nima, 4], [places.hoist, 6]]) if (Math.abs(t[1] - c.y) < 1 && Math.hypot(t[0] - c.x, t[2] - c.z) < r) t[3] = 0;
   }
 
   // trees on the rim around the spawn
@@ -879,7 +940,7 @@ export function createIncal(scene) {
       const zoneOf = (y) => (y >= TOP - 1 ? 'rim' : y >= LEVELS[1] - 1 ? 'upper' : y >= LEVELS[4] - 1 ? 'middle' : 'lower');
       for (const s of [...groups, ...walks, ...edges]) { s.id = zoneOf(s.at?.y ?? s.path[0].y); s.lines = LINES[s.id]; }
       // the story's places stay clear: the shrine and its keeper, the call-lamp, the sweeper's corner
-      const keep = [[places.shrine, 3.6], [places.ossa, 1.6], [places.pip, 1.2], [places.lamp, 1.2], [places.wren, 1.4], [places.nima, 2.5]];
+      const keep = [[places.shrine, 3.6], [places.ossa, 1.6], [places.pip, 1.2], [places.lamp, 1.2], [places.wren, 1.4], [places.nima, 2.5], [places.hoist, 2.2], [places.hoistIn, 1.4]];
       for (const [p, rr] of keep) avoid.push({ x: p.x, y: p.y, z: p.z, r: rr });
       return { groups, walks, edges, avoid, farMax: 600, costume: 'incal', clear: [{ x: spawn.x, y: TOP, z: spawn.z, r: 4 }, ...keep.map(([p, rr]) => ({ x: p.x, y: p.y, z: p.z, r: rr + 1 }))] };
     },

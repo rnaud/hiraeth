@@ -70,7 +70,7 @@ const reachable = (() => {
 
 test('the swamp’s people and places stand on walkable or wadeable ground', () => {
   assert.equal(CONTENT.perdide, PERDIDE_CONTENT);
-  assert.deepEqual(CONTENT.perdide.npcs.map((n) => n.id), ['wendel', 'sedge', 'ivo']);
+  assert.deepEqual(CONTENT.perdide.npcs.map((n) => n.id), ['wendel', 'sedge', 'ivo.perdide']);
   for (const n of npcs) for (const p of n.route) stand(p, n.def.name);
   for (const id of ['saba', 'corm', 'ysse']) { const n = W.people[id]; for (const p of n.route) stand(p, n.def.name); }
   stand(W.places.heart, 'the cave’s heart');

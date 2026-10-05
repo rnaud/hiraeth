@@ -55,7 +55,7 @@ export class Physics {
     const geos = [];
     scene.traverse((obj) => {
       if (!obj.isMesh || isExcluded(obj)) return;
-      const src = obj.geometry;
+      const src = obj.geometry.userData.lodSource ?? obj.geometry;   // a level of detail (lod.js) bakes as its full mesh
       const base = new THREE.BufferGeometry();
       base.setAttribute('position', src.attributes.position);
       if (src.index) base.setIndex(src.index);
@@ -84,9 +84,10 @@ export class Physics {
     const geos = [];
     object.traverse((obj) => {
       if (!obj.isMesh || isExcluded(obj)) return;
+      const src = obj.geometry.userData.lodSource ?? obj.geometry;
       const g = new THREE.BufferGeometry();
-      g.setAttribute('position', obj.geometry.attributes.position);
-      if (obj.geometry.index) g.setIndex(obj.geometry.index);
+      g.setAttribute('position', src.attributes.position);
+      if (src.index) g.setIndex(src.index);
       const w = g.clone().applyMatrix4(obj.matrixWorld);   // (clone: the attributes belong to the visible mesh)
       geos.push(w.index ? w.toNonIndexed() : w);
     });

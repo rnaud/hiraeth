@@ -231,7 +231,7 @@ Grouped by area. Checked items are done; the changelog says when.
 
 ## Quests and story
 
-- [ ] Fewer pure fetch quests: add more to each, like pushing something with the
+- [x] Fewer pure fetch quests: add more to each, like pushing something with the
   gun or lighting something, with a small puzzle.
 - [x] Story: the hero listens to recordings of their parents made before they
   died, and the parents weren't happy with them. The recordings don't always
@@ -263,7 +263,7 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Quick fixes
 
-- [ ] The night lantern on the backpack's frame stays floating beside your back when the tank goes
+- [x] The night lantern on the backpack's frame stays floating beside your back when the tank goes
   into the hoverbike's socket.
 - [x] The traveller's face inside the helmet is the plain male face the people use, and reads gaunt and
   older: give them their own, younger face. (A white star shape also pokes above the helmet in some
@@ -310,8 +310,11 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Performance
 
-- [ ] LOD: distant structures cost as much as near ones. Add levels of detail (simpler meshes
+- [x] LOD: distant structures cost as much as near ones. Add levels of detail (simpler meshes
   and no outlines far away, impostors for the farthest) for buildings, rocks and flora.
+
+- [ ] Simpler far versions of people's bodies (about 12.5k triangles each, often 5–10 in view): the
+  next big triangle saving.
 
 ## Materials
 
@@ -325,16 +328,16 @@ To start after the current work lands. Ordered from easiest to most complex.
 
 ## Water
 
-- [ ] Better water shaders, and swimming.
+- [x] Better water shaders, and swimming.
 
 ## Home level
 
-- [ ] Make it nicer: pay homage at the tomb, real cloth physics for the hanging cloths, a
+- [x] Make it nicer: pay homage at the tomb, real cloth physics for the hanging cloths, a
   little garden, and a home you can enter. The traveller has a daughter and a dog.
 
 ## Story
 
-- [ ] A major quest you fail despite trying, and the attempt harms the local people. They
+- [x] A major quest you fail despite trying, and the attempt harms the local people. They
   blame you; you say sorry; they accept it, and you have to move on.
 
 ## Temples
@@ -346,3 +349,20 @@ To start after the current work lands. Ordered from easiest to most complex.
     fine if it's a robot).
   - Beating it changes something in the world: the temple covered in plants, crops growing
     again, the grove pulsing with light…
+
+---
+
+# Unity port (proof of concept, 2026-10-05)
+
+The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
+`scripts/unity-export/`, the ink look ported, the opening quest playable. See `unity/README.md`.
+
+- [x] Export, the ink look, the traveller's controller and camera, climbing, people, dialogue, quests,
+  the father's charge, the chest, the bike, the burning tree, health and falls, title screen.
+- [ ] The traveller's run, jump and climb clips; the helmet, face, creases and tank.
+- [ ] People's costumes, capes, hair and faces; seated people; an instanced far crowd.
+- [ ] The fluid tool's other modes; the box opening scene; the star box.
+- [ ] The ship (prologue, interior, map), wildlife, footprints, smoke, embers, weather, sound, saves.
+- [ ] FXAA, the game's own shadows; the cave's lighting.
+- [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
+  blocks registering unknown MCP servers in Claude Code).

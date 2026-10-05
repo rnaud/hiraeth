@@ -19,6 +19,7 @@ import { starShape, BOX_COLORS } from './model.js';
 //   fx.update(dt, t)   per frame
 
 const BASE = { charges: 3, delay: 5 };
+const LANTERN_AT = new THREE.Vector3(0.28, 0.6, -0.3);   // the lantern on the tank's left rail, in the chest anchor's frame
 /** The star on the traveller's helmet liner (head-anchor frame: the skull's centre), facing up and out. */
 export const TRAVELLER_STAR = { at: new THREE.Vector3(0, 0.102, 0.079), tilt: -0.9, scale: 0.7 };
 
@@ -42,7 +43,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     grp.add(new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8).scale(1, 1.25, 1), paper));
     grp.add(new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.025, 0.016, 8).translate(0, 0.07, 0), makeMaterial({ color: '#2b211f', flat: true })));
     grp.add(new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.07, 4).translate(0, 0.11, 0), makeMaterial({ color: '#c8483a', flat: true })));
-    grp.position.set(0.28, 0.6, -0.3);   // hung off the tank's left rail, below the cap (chest-anchor frame)
+    grp.position.copy(LANTERN_AT);   // hung off the tank's left rail, below the cap (chest-anchor frame)
     grp.traverse((o) => { o.userData.noCollide = true; });
     grp.visible = false;
     H.chestAnchor.add(grp);
@@ -88,6 +89,14 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       const hasLantern = items.has('lantern');
       const night = hasLantern && isNight();
       if (lantern) {
+        // hung on the tank itself, so it goes with it into a vehicle's socket (it was left floating by
+        // your back); moved over only while the tank is on the back, where the two frames agree
+        const tank = tool?.tank?.group;
+        if (tank && lantern.grp.parent !== tank && (tool.where ?? 'back') === 'back' && tank.parent === H.chestAnchor) {
+          H.chestAnchor.add(lantern.grp); lantern.grp.position.copy(LANTERN_AT);
+          H.chestAnchor.updateWorldMatrix(true, true);
+          tank.attach(lantern.grp);
+        }
         lantern.grp.visible = hasLantern && player?.object?.visible !== false;
         lantern.paper.uniforms.uGlow.value = night ? 0.9 + 0.1 * Math.sin(t * 7) : 0.2;
         lantern.grp.rotation.z = Math.sin(t * 2.3) * 0.15;

@@ -21,6 +21,7 @@ import { setupEdena } from './edena.js';
 import { setupSpheres } from './spheres.js';
 import { setupIncal } from './incal.js';
 import { setupBazaar } from './bazaar.js';
+import { setupHome } from './home.js';
 import { setupTempleStory } from '../temples/index.js';
 
 // The story runtime for a world: quests, conversations, the objective
@@ -50,6 +51,7 @@ const WORLDS = {
   spheres: setupSpheres,
   incal: setupIncal,
   bazaar: setupBazaar,
+  home: setupHome,
 };
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _eyes = new THREE.Vector3();
@@ -181,7 +183,7 @@ export function createStory(o) {
   const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
   const rt = {
     quests, dialogue, marker, world, temple, portrait, prompt: null, promptAt: null,
-    busy: () => dialogue.open,
+    busy: () => dialogue.open || !!world?.busy?.(),   // (a world's own scene: home's quiet moments)
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {
       const ob = quests.objective();

@@ -3,6 +3,41 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.51', date: '2026-10-05', items: [
+    'Viridel: help Esk water her tea terraces. You’ll do your best, and it won’t be enough. What happens stays happened.',
+    'Quests can now fail: the sketchbook files them under “Failed”, and your father’s charge remembers what you could not mend.',
+    'Teo’s drum is pinned under the ribcage by a knuckle of bone: shove it from the side and the drum rolls out like a wheel.',
+    'The sleeping mask’s eyes are drifted shut with sand: wash both clear before the wind fills them again, and it looks at you.',
+    'City-Shaft: Pip’s ration tin hangs in an old goods hoist over the void. Shoot out its rusted pin and push the weight round to swing it in.',
+    'Vael II: Ondine answers Ysolde’s letter with the tower’s signal lamp. Light it, turn it to the carved bell, and watch the cliff answer. The bell’s clapper lies under roof tiles that fell up with it: shove them off.',
+    'Buried Machine: Dun’s key hangs from a crane swung out over the drop. Free its rusted collar, then push the jib round click by click.',
+    'Lorn II: Pim’s door still sticks with moss: wake the moss lamp over it, then push it shut. And Fen asks you to bring his skiff home: light his berth lamp and nudge it in.',
+    'Viridel: the brass gear from the Hangar goes on Mira’s water clock. Fit it, then fill the leaking bowl fast enough to ring the bell.',
+    'Story fixes: every world now remembers the singing light the same way, the night your ship was struck, climbing away. Ilen’s message is thirty years old. Odile and Talo’s journey is told one way everywhere. People who share a name are no longer mixed up in the credits.',
+  ] },
+  { v: '0.50', date: '2026-10-05', items: [
+    'Home is bigger: walk into your parents’ round house, dark and still with its memories, and into your own small house across the yard, warm and lit.',
+    'Your daughter Lou lives in the small house with Aunt Tove. She runs to meet you every time you come home and wants to know what you brought, and her drawings of every world you wrote to her from are on the wall.',
+    'Moustache the dog follows you everywhere, barks at the bird and the drone, and loves to be petted.',
+    'A little garden in the front yard: vegetable beds, a bench, and flowers you can pick.',
+    'Pay your respects at your parents’ stone: kneel, lay a flower or what you have found since, and stay a moment.',
+    'At the ending Lou comes to the stone with you and leaves a drawing of her own.',
+    'The washing, the bunting, the flag and the curtains are real cloth now: they blow in the wind and move aside when you walk into them.',
+  ] },
+  { v: '0.49', date: '2026-10-05', items: [
+    'Water has a new hand-drawn look in every world: pale shallows over deeper colour, foam where it meets the shore and the rocks, ripples that drift with the wind, the sky in the far water, and the sun glittering on it.',
+    'Ripples ring out round anything that touches the water, from you, creatures and vehicles to splashes.',
+    'You can swim: wade into any lake, pool or swamp channel and you float once it’s deep. Sprint for a front crawl.',
+    'Dive and swim where you look under water, and come up for air before your breath bubbles run out.',
+    'Climb out by swimming into a low ledge; higher walls can be climbed straight from the water.',
+    'Jumping or falling into deep water no longer hurts, however high you jump from.',
+    'Under water the world turns blue-green and the sound goes muffled; splashes and strokes have their own sounds.',
+    'The hoverbike skims across water everywhere, and getting off over deep water drops you in for a swim.',
+    'In Lorn and the Garden of Spheres, deep water no longer sends you back to the shore.',
+    'The Lab has a swimming pool with a beach, a deep end and a diving tower.',
+    'Distant buildings, rocks, plants and crowds are drawn with simpler shapes wherever the difference is too small to see, so wide views cost less, most of all on the Handheld setting.',
+    'The ship’s smoke, flame and dust no longer cost anything while there are none.',
+  ] },
   { v: '0.48', date: '2026-10-05', items: [
     'The traveller looks their age now: a younger, warmer face with a few freckles, and a tousled fringe under the helmet.',
     'The enamel star from the makers’ boxes sits on the helmet liner, inside the glass, instead of poking out through the top.',
@@ -11,6 +46,7 @@ export const CHANGELOG = [
     'On the recordings, your father has his short brown hair and beard, and your mother her long dark hair down.',
     'Faces speak with their words: people look happy, sad, angry or surprised as they say a line, their mouths move with each syllable, and their faces relax when they have finished.',
     'The traveller’s face answers too: it follows what they say, and in a conversation they look the other person in the eye. The villager whose speech balloon is up near you says it with their face as well.',
+    'The night lantern now rides with the tank into the hoverbike’s socket instead of floating beside your back.',
   ] },
   { v: '0.47', date: '2026-10-05', items: [
     'Metal now looks like metal: chrome, steel, brass, copper, iron and painted metal reflect the sky and the ground in flat bands and catch the sun in a crisp highlight. You’ll see it on the ship, the hoverbike, the taxi, your backpack, the Hangar’s machines, the listening stones, the bell and the market’s brass.',

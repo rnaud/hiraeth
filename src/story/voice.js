@@ -146,6 +146,7 @@ export const CALL_VOICES = {
   mother: { id: 'mother', voice: 1.02, kind: 'f', title: 'at home' },
   you: { id: 'you', voice: 1.0, kind: 'm' },
   ship: { id: 'ship', voice: 1.0, kind: 'f' },
+  lou: { id: 'lou', voice: 1.6, kind: 'f', age: 'child', scale: 0.72 },   // your daughter, there beside you (home)
 };
 export const PLAYER_VOICE = CALL_VOICES.you;
 
@@ -314,7 +315,7 @@ export function speakLine(line) {
   if (!who) return;   // stage directions: silent
   const lang = line.who === 'ship' ? 'ship' : 'home';
   const plan = planLine(line.tone ? { text: line.text, tone: line.tone } : line.text, { voice: voiceOf(who), lang });
-  OUT.speak?.(plan, { channel: 'call', radio: line.who !== 'you' ? 0.55 : 0 });
+  OUT.speak?.(plan, { channel: 'call', radio: line.who !== 'you' && line.who !== 'lou' ? 0.55 : 0 });   // (Lou is there: no radio)
 }
 
 /**

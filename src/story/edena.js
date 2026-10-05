@@ -5,6 +5,8 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
+import { setupTerraces } from './terraces.js';
+import { setupWaterClock } from './water-clock.js';
 
 // Viridel's story, alive (edena-data.js has the words).
 //
@@ -12,6 +14,8 @@ import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
 //   the ruins       Oro, who grows pyramids from seeds
 //   the trees       Lio, who climbs; the tallest tree, with Talo's lookout
 //                   on its floating crown (a boost from the upper canopy)
+//   the terraces    Esk's tea terraces and the builders' gate: the quest that
+//                   fails (src/story/terraces.js)
 //   the ship        Vey among the vines; the hatch, the cabin, the log at the
 //                   cockpit panel; the veil of flowers over the scorch on the
 //                   flank, which parts when you water it (shoot), never when
@@ -41,7 +45,7 @@ export function setupEdena(ctx) {
 
   // ---------------------------------------------------------------- the people
   const people = {};
-  for (const id of ['mira', 'sol', 'oro', 'lio']) { const n = npcs.find((m) => m.def?.id === id); if (n) people[id] = n; }
+  for (const id of ['mira', 'sol', 'oro', 'lio']) { const n = npcs.find((m) => m.def?.id === (PEOPLE[id]?.id ?? id)); if (n) people[id] = n; }
   // Vey walks slowly up and down the flank, by the hatch
   const out = V(Math.sin(S.hatchHeading), 0, Math.cos(S.hatchHeading)), side = V(out.z, 0, -out.x);
   const veyAt = (a, b) => onGround(S.hatch.x + out.x * a + side.x * b, S.hatch.z + out.z * a + side.z * b);
@@ -147,6 +151,12 @@ export function setupEdena(ctx) {
       return true;
     } });
 
+  // ---------------------------------------------------------------- the tea terraces (the quest that fails)
+  const terraces = setupTerraces(ctx);
+  people.esk = terraces.esk;
+  // ---------------------------------------------------------------- Mira's water clock (the Hangar's errand ends here)
+  const clock = setupWaterClock(ctx);
+
   // ---------------------------------------------------------------- the end of the main quest
   quests.def(Q).onDone = () => {
     game.set('world.edena.done', true);
@@ -193,7 +203,9 @@ export function setupEdena(ctx) {
     st.crown = onCrown;
     petals.update(dt);
     pollen.update(dt);
+    terraces.update(dt, t);
+    clock.update(dt, t);
   };
 
-  return { people, update, state: st, seedAt, sproutAt, veilLook };
+  return { people, update, state: st, seedAt, sproutAt, veilLook, terraces, clock };
 }

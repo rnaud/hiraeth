@@ -248,7 +248,9 @@ export class Sound {
     // the world's sound (music, effects, voices and their room) on one bus, hushed under a menu
     this.world = ctx.createGain();
     this.world.gain.value = this.menuOn ? MENU_HUSH : 1;
-    this.world.connect(this.master);
+    // (under water everything goes through a low-pass: underwater())
+    this.muffle = ctx.createBiquadFilter(); this.muffle.type = 'lowpass'; this.muffle.frequency.value = 22000; this.muffle.Q.value = 0.5;
+    this.world.connect(this.muffle).connect(this.master);
 
     // reverb: a generated decaying-noise impulse
     this.reverb = ctx.createConvolver();
@@ -655,6 +657,64 @@ export class Sound {
     [0, 2, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.12, 0.12, 'sine', this.fx));
   }
 
+  /** A dog's bark (home's Moustache): a short rough "wuf", falling. */
+  bark() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+    o.type = 'sawtooth';
+    const f0 = 330 + Math.random() * 60;
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 0.55, t + 0.16);
+    f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.2;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22 * this.fxVol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    o.connect(f).connect(g).connect(this.fx);
+    o.start(t); o.stop(t + 0.22);
+    this.burst(t, { dur: 0.12, type: 'bandpass', freq: 1400, q: 1, vol: 0.08 });
+  }
+
+  /**
+   * A quiet tune at the parents' stone (home): the home melody, slow, on a celesta over a soft
+   * pad, from `pos`; the score and the bands step back under it (a solo). Returns its length (s).
+   */
+  homage(pos) {
+    if (!this.ctx) return 0;
+    if (!this.bands) this.makeBands();
+    this.bands = this.bands.filter((b) => !b.solo);
+    const ctx = this.ctx, t0 = ctx.currentTime + 0.3, spb = 0.62;
+    const input = ctx.createGain(), gain = ctx.createGain();
+    gain.gain.value = 0;
+    input.connect(gain).connect(this.world);
+    const send = ctx.createGain(); send.gain.value = 0.8; gain.connect(send).connect(this.reverb);
+    let t = t0;
+    for (const [deg, beats] of this.voice.melody) {
+      if (deg !== null) this.instrument('celesta', this.freq(deg, 1), t, beats * spb * 1.1, 0.12, input);
+      t += beats * spb;
+    }
+    for (const [i, d] of [0, 3, 4, 0].entries()) this.pad(this.freq(d, -1), t0 + i * (t - t0) / 4, (t - t0) / 4 + 0.5);
+    const len = t - t0 + 1.5;
+    this.bands.push({ id: 'solo', solo: true, pos, radius: 60, parts: [], vol: 1, duck: 1, input, gain, pan: null, level: 0, mode: 'play', phrase: 0, until: t0 + len });
+    return len;
+  }
+
+  /** A quest that went wrong (src/story/quests.js fail): three soft notes going down, not up. */
+  fail() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [4, 2, -1].forEach((d, i) => this.pluck(this.freq(d, 1), t + i * 0.24, 0.1, 'sine', this.fx));
+  }
+
+  /** Water and earth letting go (Viridel's terraces): a long low roar that swells and dies away. */
+  rumble(dur = 5, vol = 0.45) {
+    if (!this.ctx || !this.noiseBuf) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.loop = true; src.playbackRate.value = 0.35;
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 260; f.Q.value = 0.6;
+    const g = ctx.createGain();
+    src.connect(f).connect(g).connect(this.fx);
+    g.gain.setValueAtTime(0.0005, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.6); g.gain.setValueAtTime(vol, t + dur * 0.45);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    src.start(t); src.stop(t + dur + 0.1);
+  }
+
   // ------------------------------------------------------------------ the singing spheres (Garden of Spheres)
   /** Where a sound at `pos` sits for the listener (the camera, from listen): { gain 0..1 by distance, pan -1..1 }. */
   placeAt(pos, reach = 140) {
@@ -1007,6 +1067,55 @@ export class Sound {
     const t = this.ctx.currentTime;
     this.sweep(t, 300, 180, 0.08, 0.06, 'square');
     this.burst(t + 0.03, { dur: 0.06, type: 'bandpass', freq: 900, q: 2, vol: 0.06 });
+  }
+
+  // ------------------------------------------------------------------ water (src/water.js)
+  /** Going in, coming out, a big drop: a wet slap and a falling hiss, bigger with k (0..2). */
+  splash(k = 1) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, K = Math.min(k, 2);
+    this.burst(t, { dur: 0.12 + 0.2 * K, type: 'lowpass', freq: 900 + 500 * K, q: 0.6, vol: 0.1 + 0.12 * K, rate: 0.7 });
+    this.burst(t + 0.03, { dur: 0.25 + 0.4 * K, type: 'highpass', freq: 2400, q: 0.5, vol: 0.03 + 0.05 * K, rate: 1.3 });
+    if (K > 0.8) this.sweep(t, 180, 70, 0.18 + 0.1 * K, 0.06 * K);
+  }
+
+  /** A swimming stroke: a soft wash (the crawl's is quicker, brighter). */
+  stroke(crawl = 0) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.22 - 0.08 * crawl, type: 'bandpass', freq: 700 + 500 * crawl + Math.random() * 200, q: 0.8, vol: 0.06 + 0.03 * crawl, rate: 0.8 });
+  }
+
+  /** A step in shallow water: a slosh, deeper in deeper water (deep 0..1). */
+  wade(deep = 0.5) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.1 + 0.12 * deep, type: 'lowpass', freq: 1500 - 600 * deep + Math.random() * 300, q: 0.9, vol: 0.06 + 0.07 * deep, rate: 0.9 });
+  }
+
+  /** Bubbles: a few rising blips (diving, a stroke under water, out of air). */
+  bubbles(k = 1) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, n = Math.round(2 + 3 * k);
+    for (let i = 0; i < n; i++) {
+      const f = 380 + Math.random() * 520;
+      this.sweep(t + i * (0.05 + Math.random() * 0.06), f, f * 1.9, 0.05, 0.025 * k, 'sine');
+    }
+  }
+
+  /** Breaking the surface after a long time under: a gasp. */
+  gasp() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.32, type: 'bandpass', freq: 1300, q: 1.4, vol: 0.07, rate: 1.1 });
+  }
+
+  /** Under water (k 1) the world's sound goes dull and close; back out (k 0), bright again. */
+  underwater(k = 0) {
+    if (!this.ctx || !this.muffle || this._under === k) return;
+    this._under = k;
+    const t = this.ctx.currentTime;
+    this.muffle.frequency.setTargetAtTime(k ? 520 : 22000, t, k ? 0.06 : 0.15);
   }
 
   // ------------------------------------------------------------------ musicians in the world

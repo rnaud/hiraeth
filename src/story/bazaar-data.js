@@ -132,18 +132,18 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Where did it come from?', goto: 'origin' }],
         },
         name: {
-          say: ['~sad~ No. It wasn’t, was it. *Ilen*. Every message is to somebody’s child, love. This one went looking for its child for forty years, and the one it found was you.'],
+          say: ['~sad~ No. It wasn’t, was it. *Ilen*. Every message is to somebody’s child, love. This one went looking for its child for thirty years, and the one it found was you.'],
           choices: [{ text: '~curious~ Where did it come from?', goto: 'origin' }],
         },
         still: { say: ['~whisper~ All right. Sit with it a while. I’ll talk, you listen. It’s what this square is for.'], choices: [{ text: '~neutral~ (listen)', goto: 'origin' }] },
         origin: {
           say: ['~curious~ Here’s the strange part. The header on the recording says where it was sent from: a system nobody in this market has ever traded with.',
-            '~surprised~ I looked it up while you stood there. It’s the same mark that’s stamped on your ship’s registry plate. It came from your home.'],
+            '~surprised~ I looked it up while you stood there. It’s the same home port that’s stamped on your ship’s registry plate. It came from your home.'],
           do: { set: { 'clue.bazaar.home': true } },
           choices: [{ text: '~sad~ From home.', goto: 'home' }],
         },
         home: {
-          say: ['~solemn~ From home. Forty years on the way, to tell somebody they’re not alone. And look: everybody heard it.',
+          say: ['~solemn~ From home. Thirty years on the way, to tell somebody they’re not alone. And look: everybody heard it.',
             '~solemn~ (Across the square the signs have stopped selling. Every one of them says the same thing.)'],
           do: { advance: [Q, 'sel2'] },
           choices: [{ text: '~happy~ Thank you, Sel.', end: true }],
@@ -218,7 +218,7 @@ export const PEOPLE = {
         },
         tuned: {
           say: [{ if: { not: ON_AIR }, text: '~happy~ Listen to that hum. That’s a tuned antenna. That’s the whole dark sky, ready to talk. *The console’s right there*: have you got something to play?' },
-            { if: ON_AIR, text: '~happy~ Forty years old, that message, and it came in clear as a bell. Good antenna. Good, good antenna.' }],
+            { if: ON_AIR, text: '~happy~ Thirty years old, that message, and it came in clear as a bell. Good antenna. Good, good antenna.' }],
           choices: [{ text: '~happy~ Thanks, Ferro.', end: true }],
         },
       },
@@ -386,7 +386,7 @@ export const THINGS = {
         say: [
           '~solemn~ (The screens on the tower go white, every one of them at once. The square falls quiet under them. A hiss like rain on a roof, and then a voice fills the whole market: warm, a little hoarse, much younger than you have ever heard it.)',
           '~solemn~ *Ilen. If this reaches you, you are further out than anyone from home has ever gone. The relay says it will take years to get there. So I am talking to someone older than the child who left.*',
-          '~sad~ *I said things at the port that I want back. I told you to make us proud. I told you to bring back something worth the trip.*',
+          '~sad~ *I said things at the port that I want back. I told you to make us proud. I told you to bring back something of value.*',
           '~happy~ *Forget all that. Don’t bring anything. Nothing out there is worth more than you, walking back in through our door on your own two feet.*',
           '~whisper~ *And if it is dark where you are, and quiet, and nobody there knows your name: you are not alone. Someone is listening for you. I am. Every night, I am.*',
           '~whisper~ (A pause, and the long hiss of a very long way. Then, more quietly:) *Come home when you’re ready, Ilen. Not before.*',
@@ -404,7 +404,7 @@ export const LINES = {
   market: ['~shout~ Fruit from seven moons! Pick one.', '~neutral~ Hail a cab if your feet get tired.', '~curious~ Nobody remembers who drew the first advertisement.', '~whisper~ The quiet ones listen with their whole heads.', '~shout~ Noodles! Noodles that remember you!', '~curious~ Have you seen *Madame Sel*? She sits under the quiet tower.'],
   square: ['~sad~ The tower used to talk, you know.', '~playful~ One tower’s silent. Imagine that, here.', '~neutral~ Sel’s waiting for somebody to climb it.', '~curious~ Did the sky ring where you come from too?', '~sad~ The last broadcast is still up there, somewhere.'],
   bridge: ['~neutral~ Mind the gap, it’s a long way down.', '~neutral~ Kip runs these bridges faster than the cabs.', '~happy~ Best view of the signs is from up here.', '~playful~ Don’t look down. Or do; it’s pretty.'],
-  onAir: ['~surprised~ Did you hear it?', '~sad~ Somebody’s child…', '~solemn~ The tower told the truth again.', '~solemn~ You are not alone. It said that. To all of us.', '~happy~ I’m going to call my mother.', '~surprised~ Forty years on the way!'],
+  onAir: ['~surprised~ Did you hear it?', '~sad~ Somebody’s child…', '~solemn~ The tower told the truth again.', '~solemn~ You are not alone. It said that. To all of us.', '~happy~ I’m going to call my mother.', '~surprised~ Thirty years on the way!'],
   shout: ['~shout~ Listen!', '~shout~ The tower!', '~shout~ It’s talking!', '~whisper~ Shh! Listen!'],
 };
 

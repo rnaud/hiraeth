@@ -64,7 +64,7 @@ export function setupPerdide(ctx) {
 
   // ---------------------------------------------------------------- the people
   const people = {};
-  for (const n of npcs) if (n.def?.id && ['wendel', 'sedge', 'ivo'].includes(n.def.id)) people[n.def.id] = n;
+  for (const n of npcs) { const key = n.def?.id?.split('.')[0]; if (key && ['wendel', 'sedge', 'ivo'].includes(key)) people[key] = n; }   // (Ivo's id is 'ivo.perdide': the Spheres have an Ivo too)
   const sabaAt = foot(23, -2);
   people.saba = spawn(PEOPLE.saba, { route: [sabaAt.clone()], seat: 0.45, heading: Math.atan2(toLanding.x, toLanding.z) + Math.PI * 0.85 });
   const corm = V(BED.x + 8.5, 0, BED.z + 2.5);

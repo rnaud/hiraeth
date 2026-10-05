@@ -15,7 +15,7 @@ import { ROOMS } from './lab-rooms.js';
 //
 //   the materials row  pedestals along -z, each with a sphere, a cube and a knot
 //                      in one surface (LAB_MATERIALS), its name cut in the plinth;
-//                      a water pool and a cloud at the end of the row
+//                      a swimming pool and a cloud at the ends of the row
 //   the faces row      giant villagers (4x) in a ring along +z, standing still,
 //                      so the faces' ink can be studied close up (content.js)
 //   the doors          an arc of little doorways behind the faces, one per world,
@@ -138,17 +138,43 @@ export function createLab(scene) {
   // the dissolve sample comes apart and back, over and over
   movers.push((t) => { for (const m of dissolving) m.uniforms.uDissolve.value.set(0.5 + 0.5 * Math.sin(t * 0.7), 0.09, 0.6, 2.6); });
 
-  // ---- water: a pool at the end of the row
+  // ---- water: a swimming pool at the end of the row (src/water.js, src/swim.js). A ramp up to
+  // its rim, a beach to wade in at the near end, 3.8 m of water at the far end, a rock breaking the
+  // surface and one just under it, a low wall to climb out over and a high one to climb, and a
+  // tower in the deep corner to jump from (a 10 m drop into the deep end)
   {
-    const endX = ((LAB_MATERIALS.length + 1) / 2) * SPACING + 4;
-    const rim = new THREE.Mesh(new THREE.CylinderGeometry(6.4, 6.6, 0.5, 40).translate(0, 0.25, 0), stone);
-    rim.position.set(endX, 0, -24);
-    const water = new THREE.Mesh(new THREE.CircleGeometry(6, 40).rotateX(-Math.PI / 2), makeMaterial({ color: '#4c8fb0', color2: '#8fc7d9', mode: MODE_WATER, key: 'lab.water' }));
-    water.position.set(endX, 0.42, -24);
+    const PX = 86, PZ = -30, HW = 14, HD = 10, WY = 4.0;
+    const box = (w, h, d, x, y, z, rz = 0, mat = stone) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      m.position.set(x, y, z); m.rotation.z = rz;
+      hub.add(m);
+      return m;
+    };
+    const x0 = PX - HW, x1 = PX + HW, z0 = PZ - HD, z1 = PZ + HD;
+    box(x1 - x0 + 2, 0.2, z1 - z0 + 2, PX, 0.1, PZ);                       // the floor
+    box(x1 - x0 + 2, 5.6, 1, PX, 2.8, z0 - 0.5);                           // the far wall: too high to pull out over
+    box(x1 - x0 + 2, 4.4, 1, PX, 2.2, z1 + 0.5);                           // the near wall: low, climb out over it
+    box(1, 4.2, z1 - z0 + 2, x1 + 0.5, 2.1, PZ);                           // the deep end
+    // the beach, inside the near end: from the rim down to the floor
+    const bl = Math.hypot(10.5, 4.0), ba = Math.atan2(4.0, 10.5);
+    box(bl, 0.5, z1 - z0, x0 + 5.25, 2.1 - 0.25 / Math.cos(ba), PZ, -ba);
+    box(2, 4.2, z1 - z0 + 2, x0 - 1, 2.1, PZ);                             // the rim at the top of the beach
+    // and the ramp up to it from the hub's floor
+    const rl = Math.hypot(12, 4.2), ra = Math.atan2(4.2, 12);
+    box(rl, 0.5, 6, x0 - 2 - 6, 2.1 - 0.25 / Math.cos(ra), PZ, ra);
+    // a rock breaking the surface, one just under it (stand on it), a tower to jump from
+    const rock = (r, x, y, z) => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 0), stone); m.position.set(x, y, z); m.rotation.set(0.4, x, 0.2); hub.add(m); };
+    rock(1.7, PX + 5, WY - 0.6, PZ - 4);
+    rock(1.3, PX - 1, WY - 1.5, PZ + 4);
+    box(1.6, 14, 1.6, x1 - 2.5, 7, z0 + 2.5);
+    box(3.6, 0.4, 3.6, x1 - 3.5, 14.2, z0 + 3.5);
+    const water = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0).rotateX(-Math.PI / 2), makeMaterial({ color: '#4c8fb0', color2: '#8fc7d9', mode: MODE_WATER, key: 'lab.water' }));
+    water.position.set(PX, WY, PZ);
     water.userData.noCollide = true;
-    hub.add(rim, water);
+    hub.add(water);
     const label = new THREE.Mesh(textGeometry('water', { width: 3.2, depth: 0.03 }), ink);
-    label.position.set(endX, 0.3, -24 + 6.7);
+    label.position.set(x0 - 1, 4.25, PZ + 4.5);
+    label.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);   // (read from the ramp)
     hub.add(label);
   }
   // ---- grass: a meadow beyond the pool, its blades round the camera (src/flora-grass.js)

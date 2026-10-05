@@ -232,8 +232,8 @@ The reference pages for the four v0.30 worlds are in `references/`
   - crystal forests and egg clutches that glow;
   - carnivorous plants that snap when you get close;
   - a crystal cave lit from within;
-  - wading into deep water puts you back on dry ground; **E** whistles for
-    the hover-skiff.
+  - wade into the deep water and swim (or **E** whistles for the
+    hover-skiff).
 
 **Climbing works everywhere:**
 - push into a steep wall to grab it;
@@ -1236,6 +1236,93 @@ lies there, and once it is up they walk back to their spot. The instanced crowd
 further off keeps its cheap stumble. Nobody seated or in conversation is
 knocked over.
 
+## Water and swimming
+
+Every body of water in every world is drawn by one water look and can be swum in.
+
+**The look** (`src/water-shader.js`, compiled into the surface shader for every
+`MODE_WATER` material: the `WATER` define, hooked into `materials.js` in four places).
+Like the rest it only writes the G-buffer; post.js prints it:
+- **Depth bands**: three flat tones by the water column under each point (pale
+  shallows `color2`, the water `color`, a deeper saturated tone), inked by post.js
+  like contour lines. In the shallowest band the bed shows through (`o.bed`, by
+  default the shallows' tone gone sandy), with a faint wobbling caustic net close up.
+- **The shoreline**: a pale foam band about 30 cm wide wherever the water meets
+  anything (its width is measured in metres from the depth's slope, so it is as
+  crisp on a beach as on a wall), and a broken lapping line a metre out that
+  breathes in and out.
+- **Ripples**: short pen dashes along wave crests across the wind (`uWind`),
+  drifting downwind, at two scales; and rings spreading round whatever touches the
+  water (`uWaterRings`, a ring buffer of 12).
+- **The sky**: at grazing angles the sky's horizon and zenith colours (post.js's
+  `uSkyHorizon` / `uSkyTop`) in two flat steps.
+- **Sparkle**: horizontal dashes of sun toward the sun, twinkling, only where the
+  water is lit. They are not drawn in the G-buffer (post.js would ink round each
+  one: black specks): the shader marks them in the length of the normal it writes
+  (`WATER_MARK`: water's normals are 1.012 long, plus 0.05 at a glint; post.js only
+  uses directions), and `Waters.renderOver` paints them white over the finished page.
+- **From below** the surface is a pale bright ceiling with its ripples (water is
+  drawn from both sides).
+- `waterPrint: true` (the Garden's mirrored shore) is a flat printed shape lying on
+  the water: its own colour with the ripples, no depth, not swimmable.
+- The handheld's low detail (`uWaterLite`, main.js `applyDetail`) keeps one scale
+  of waves and drops the caustics and the sparkle.
+
+**The bodies** (`src/water.js`, `Waters`, one per level, main.js). At load it finds
+every `MODE_WATER` mesh (and any mesh with `userData.water = true`: the desert
+cave's magic pool, which keeps its fluid look; `userData.waterMoves` refreshes its
+box as it rises). Each gets its own copy of the material, drawn from both sides.
+- `surfaceAt(x, z, y)`: the water there for something at height y (the lowest
+  surface above y - 0.6, else the highest one under it): `{ y, body }` or null.
+  Streams slope: it raycasts the water mesh itself. `floorAt(x, y, z)`: the highest
+  surface under y; hoverbikes and skiffs skim on it (`bike.js` `surface`).
+- **Bed maps**: the depth bands and the foam come from a half-float map of the bed
+  under each body, baked from the collision world (`physics.groundAt` from 1.5 m
+  over the surface, so rocks and walls standing in the water count and bridges
+  overhead don't), a few rows a frame (`BED.budget` ms), nearest body first,
+  from the middle rows outward. Texels down to 0.3 m on small pools, 256 a side at
+  most. Bodies wider than `BED.huge` (Lorn's swamp) get a 300 m map round the player,
+  baked again once you are 70 m off its centre. A 256² map is ~25 ms of rays in all.
+- **Rings and splashes**: the player wading (each step: a ring, a few drops, a slosh,
+  no footprint) and swimming, the strokes, going in and out (bigger the faster you
+  fall), vehicles skimming, creatures standing in water, the fluid tool's globs
+  going in. White drops are instanced and inked like everything else.
+- **Under water**: the camera is kept 22 cm off the surface (never a half-and-half
+  lens: `keepCamera`, after the rig); under it, `renderOver` sinks the page into
+  the water's colour in three flat bands with distance, with slow light shafts
+  looking up, and the sound goes through a low-pass (`audio.js underwater`).
+
+**Swimming** (`src/swim.js`, `swimFrame` called by `player.update` before walking;
+`SWIM` holds the numbers):
+- Water over the feet slows the walk (to half at the chest). Where it is 1.3 m deep
+  you float: the feet hang `SWIM.ride` under the surface, the head above it.
+- Swim camera-relative (2.5 m/s, slow to start and stop); Shift / L3 sprints on
+  stamina in a front crawl (4.6 m/s). Treading water when still, a breaststroke
+  when moving: procedural poses on the rig (`swimPose`; the clip library has no
+  swim), the body lifted so its back breaks the opaque surface.
+- **Diving**: hold Z or Ctrl, or swim forward looking down (a pad has no button
+  spare); under water you swim where you look, Space / A rises, letting go floats
+  you back up.
+- **Breath** (`player.breath`, bubbles under the health bar): 22 s of air under
+  water, back in ~2 s at the surface. Out of air you are pushed up and can't dive
+  again until you have breathed, and every 1.2 s a small hurt (`player.hurt`,
+  'drown') that never takes the last 10 % of the bar.
+- **Climbing out**: push into a ledge at the surface and the mantle pulls you out
+  (`tryMantle`, up to ~1.5 m over the water); a higher wall, you climb it. Space at
+  the surface: up onto a ledge in front, else a kick up out of the water (then the
+  jets and the wings work again; never in the water). The fluid tool works at the
+  surface.
+- Where the bed rises to 1.1 m under the surface you stand up and wade out.
+- **Falls**: water 1.6 m deep or more breaks any fall (`player.cushioned`): no
+  tumble, no hurt. The levels' old "unsafe" deep water (Lorn, the Garden) no
+  longer sends you back to dry ground while you are in water.
+- Getting off a vehicle over deep water drops you in: you swim.
+- The Lab's water sample at the end of the materials row is a swimming pool: a ramp
+  up to the rim, a beach, 3.8 m at the deep end, a rock through the surface and one
+  just under it, a low wall to climb out over and a high one, and a 10 m tower to
+  jump from. `tests/swim.test.js` covers the states, the breath, climbing out,
+  falls, the bed maps and the bike.
+
 ## The Lab (v0.39)
 
 In the Lab, `[` and `]` (L3 and R3 on a pad) call `level.jump(∓1)`: a fade, then the
@@ -1781,6 +1868,90 @@ To repeat (`scripts/handheld-perf/`): enable USB debugging on the device, then
 place) or `node scripts/handheld-perf/bench.mjs <place> [base,noNear,...]`. `ANDROID_SERIAL`
 picks the device. The tab keeps its own storage (not the app's saves). Afterwards
 `adb reverse --remove-all` and `adb forward --remove-all`.
+
+### Levels of detail far away (`src/lod.js`, `src/lod-core.js`)
+A distant building, rock or plant is drawn with a coarser copy of itself, never coarser than the
+Graphics preset allows on screen (`lodPx` in `QUALITY_PRESETS`: 1 px for Auto, Medium and High,
+1.5 for Low, 2 for Handheld; High's 1.5× resolution makes it finer, dynamic resolution coarser).
+- **The copies** (`simplify`; the clustering itself, on plain arrays, in `lod-core.js`): vertex
+  clustering on a grid. Every vertex in a cell moves to one point, where it best fits the planes
+  of the triangles round it (a quadric: corners and edges stay put); a triangle left with two
+  corners in one cell goes. So that nothing shows: nothing merges across separate pieces (a
+  decal stays on the ground, a bench's legs under its seat); normals (26 directions), colours
+  and the shaders' own attributes are never blended; a point where two colours meet keeps its
+  place (colour edges are inked); a face that would turn over keeps its corners; long thin parts
+  (poles, cables, antennas, limbs) only thin out along their length, by cell and by eighths round
+  their own centre, both ends kept; the tiles of one mesh (`tileScene`) keep their shared border.
+  The error stays under a cell, so a level whose cell is under `lodPx` pixels looks the same,
+  outline included.
+- **Choosing** (`LodManager`, `pickLevel`): every static mesh worth it (merged blocks and kits,
+  rocks, instanced props; never the terrain, which is dug into, nor people, vehicles or anything
+  that moves) has levels whose cells double, 2^j of its own units. Each frame, before the passes,
+  its distance (to its bounding sphere) gives the cell that fits and the mesh swaps its geometry
+  for the coarsest ready level under it: no extra objects or draw calls; instances, materials,
+  visibility and bounds untouched. A level holds until the distance is ~10 % past its band either
+  way (no flicker on the edge). It is built the first time it is wanted, in a web worker
+  (`lod-worker.js`, 7 kB), two at a time; until then the finer one draws. A level that would keep
+  more than 80 % of the triangles isn't kept.
+- **Shadows**: in the far cascade's pass each mesh goes at least down to the map's texel (1.1 m):
+  what the map can't resolve it doesn't need (`shadowPass` / `viewPass`).
+- **Sets that sort their own instances**: flora draws its far cells from a second mesh with a
+  coarser copy of the plant (`farLevel`, at most 55 % of the triangles); the crowd's far figures,
+  past the same rule, become a distant figure simplified to 0.1 m (cape and robe, which the
+  shader shapes, as they are); the desert's smoke column swaps its puffs for 80-face ones once
+  their facets are under `lodPx` (`sphereError`). The ship's smoke, flame and dust pools (490
+  balls of 180 triangles, drawn in every world) are hidden while none is alive.
+- **Collision is untouched**: the physics was baked from the full meshes at load, and a level
+  points back at its source (`userData.lodSource`), which `physics.js` bakes instead.
+
+Measured in headless Chrome (Metal, 1600×900 at render scale 1) from four fixed views per world:
+at the spawn, 12 m up looking back, 120 m up over the widest vista, 400 m up looking down on the
+world. Millions of triangles summed over the four views, before (build `4d23384`) and after:
+
+| World | Medium, all passes | Medium, the view | Handheld, all passes | Handheld, the view | Handheld, the view from 400 m up | Draw calls, Handheld |
+|---|---|---|---|---|---|---|
+| Desert | 4.07 → 3.75 (−8 %) | 2.50 → 2.23 (−11 %) | 3.00 → 2.66 (−11 %) | 2.38 → 2.09 (−12 %) | 0.44 → 0.37 (−17 %) | 1780 → 1772 |
+| City-Shaft | 9.61 → 8.66 (−10 %) | 5.03 → 4.39 (−13 %) | 5.69 → 4.73 (−17 %) | 3.99 → 3.31 (−17 %) | 1.83 → 1.51 (−18 %) | 3104 → 3093 |
+| Hangar | 2.43 → 1.92 (−21 %) | 1.18 → 0.78 (−34 %) | 1.60 → 1.10 (−31 %) | 1.15 → 0.73 (−36 %) | 0.35 → 0.21 (−40 %) | 1375 → 1365 |
+| Vael | 2.46 → 2.06 (−16 %) | 1.39 → 1.02 (−26 %) | 1.73 → 1.33 (−23 %) | 1.33 → 0.96 (−28 %) | 0.30 → 0.20 (−34 %) | 1350 → 1338 |
+| Vael II | 3.87 → 3.42 (−12 %) | 2.14 → 1.75 (−18 %) | 2.47 → 1.99 (−19 %) | 1.88 → 1.44 (−23 %) | 0.44 → 0.32 (−28 %) | 1318 → 1306 |
+| Viridel | 3.24 → 2.81 (−13 %) | 1.68 → 1.31 (−22 %) | 2.19 → 1.77 (−19 %) | 1.63 → 1.25 (−23 %) | 0.38 → 0.27 (−29 %) | 1565 → 1553 |
+| Lorn | 2.92 → 2.50 (−15 %) | 1.47 → 1.09 (−26 %) | 1.98 → 1.56 (−21 %) | 1.43 → 1.04 (−27 %) | 0.32 → 0.20 (−36 %) | 1624 → 1613 |
+| Lorn II | 7.38 → 6.93 (−6 %) | 2.39 → 2.02 (−16 %) | 3.57 → 3.13 (−12 %) | 2.04 → 1.66 (−19 %) | 0.48 → 0.37 (−23 %) | 1220 → 1201 |
+| Buried Machine | 3.76 → 3.30 (−12 %) | 2.09 → 1.70 (−18 %) | 2.70 → 2.25 (−17 %) | 2.06 → 1.66 (−19 %) | 0.54 → 0.41 (−23 %) | 1348 → 1336 |
+| Spheres | 5.17 → 4.71 (−9 %) | 2.53 → 2.15 (−15 %) | 2.92 → 2.48 (−15 %) | 2.04 → 1.65 (−19 %) | 0.41 → 0.31 (−25 %) | 1505 → 1488 |
+| Bazaar | 3.83 → 3.13 (−18 %) | 2.35 → 1.81 (−23 %) | 2.28 → 1.63 (−28 %) | 1.78 → 1.24 (−30 %) | 0.49 → 0.32 (−36 %) | 1303 → 1284 |
+| All | 48.72 → 43.18 (−11 %) | 24.75 → 20.27 (−18 %) | 30.11 → 24.64 (−18 %) | 21.72 → 17.04 (−22 %) | | |
+
+Of that, the idle puff pools are about 0.35 M per world (88 k in every view); the levels
+themselves, measured in one page with `lodPx` off and on, take 4 % (Medium) to 6 % (Handheld) of
+all triangles, 7 to 10 % in the widest views, up to 17 % in the Bazaar and 11 % in the Hangar and
+City-Shaft. Most of what's left far away is already as plain as it can be at a pixel or two
+(boxes, long extruded rings, the people's 12.5 k-triangle skinned bodies, which are not touched).
+Draw calls don't change (the puffs: three fewer).
+
+Frame time on this Mac doesn't move (the same-page A/B is within ±0.5 ms): it is bound by draw
+calls and fill, not triangles. Where vertices do cost it shows: in SwiftShader (software
+rendering, so vertex work is CPU time; 480×360, Handheld) the City-Shaft from 400 m up went from
+467–496 to 347–373 ms a frame, the Hangar from 110–129 to 66–72, the Bazaar from 99–132 to 71–81,
+the desert vista from 119–135 to 109–115 (two runs each; nearer views gain 5–20 %). The handheld's
+GPU sits between the two (the near shadow map was 7 of 29 ms on the City-Shaft's bottom terrace,
+1.6 M triangles), so the Retroid should gain on the wide views; not yet measured there.
+Screenshots of every view with the levels off and on differ in at most 0.10 % of the pixels on
+Handheld and 0.07 % on Medium: single pixels of distant people and thin lines; no holes, no
+popping (the tests check bounds, outline rays, closed shapes staying closed, no turned faces,
+rods and seams, hysteresis, and that the collision is the same).
+
+Tried and left out, for not paying:
+- **Merged shadow casters** (every static caster of a 96 m region drawn as one mesh in the near
+  and far passes): the City-Shaft's high view went from 767 to 564 draw calls in the near pass and
+  412 to 222 in the far one, but the frame time didn't move (shadow draws share one material and
+  are cheap), and at ground level the regions drew more triangles than the culled members did.
+- **Cheaper far shading**: switching every material's drawn detail off (glyphs, grids, patterns,
+  creases, folds, scrub, ripples) everywhere saved 0–0.3 ms, within the noise; far objects cover
+  few pixels, so far-only would save less still.
+- **Impostors** for the farthest landmarks: what's left far away is draw calls and the ink pass,
+  which a card wouldn't remove, and a card can't keep the ink outline steady as the view turns.
 
 ### The galactic map and the route (v0.38)
 - **The route** (`src/story/route.js`, `knownWorlds`): the worlds open up in `ORDER`. The
@@ -2359,3 +2530,161 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   13 m and ~2 k tufts (about 18 k triangles).
 - **The Lab** shows them all: the materials row has steel, brushed, chrome, brass, copper, iron,
   painted, the carved inscriptions and a lamp beside the glow, and a meadow past the water pool.
+
+## The desert in Unity (a proof of concept)
+`unity/Memento` is a Unity 6 (URP) port of the desert, built from this game rather than
+beside it (the details, how to run it and what is missing: `unity/README.md`).
+- **Export** (`scripts/unity-export/export-desert.mjs`): the desert is built headlessly as
+  `main.js` builds it (the level, the ship, the story's people, the boxes, the bike, the
+  flora; `build-world.mjs`, with the tests' DOM stub) and written out: static surfaces merged
+  by material and 256 m tile, the `makeMaterial` options read back from each shader's
+  uniforms, the terrain heightfield, the collision `physics.js` bakes, the moving things, the
+  time-of-day palette and the "Moebius print" preset, the story's places, portals, people,
+  crowd and procession, and `desert-data.js` as `story.json`. Unity's frame mirrors x; the
+  shaders mirror it back before every pattern, so the page lands where it does here.
+- **The look**: a URP renderer feature draws the same G-buffer (albedo + light, normal +
+  depth, hatching + flags) and one ink composite, `materials.js`, `ground-ink.js`,
+  `biome.js` and `post.js` ported to HLSL; side-by-side shots match the web closely.
+- **The play**: the traveller (glTFast, his own clips), walk / run / jump / climb / mantle,
+  the camera rig, the people and the procession (Quaternius bodies in their palettes, UAL
+  clips), conversations with tones and at most three answers, quests and the journal, the
+  father's charge, the makers' chest on the ledge, the rib, the pool and the jar, the
+  hoverbike under the tarp, the burning tree's fire and its burn, falls and knock-downs.
+  `scripts/unity-export/unity-batch.sh Play` plays the opening quest end to end in batch mode.
+- The project carries the Unity side of MCP for Unity (CoplayDev) so an MCP client can drive
+  the editor; see `unity/README.md`.
+
+### Home: two houses you walk into, a garden, Lou, Tove and the dog
+- **The place** (`src/levels/home.js`, `home-houses.js`, `home-garden.js`, `home-drawings.js`):
+  the round house (the parents') now has a doorway cut through its dome (`domeShell` drops the
+  shell's triangles in the opening; a terracotta arch tunnel frames it, the painted band breaks
+  for it) and a dark, dusty, still room inside: the father's chair turned to the round window
+  with his cap on the arm, the mother's scarf on the coat stand, the photo on the side table,
+  the recorder under the mast with its spindle bare, her lamp under the window, dust sheets, and
+  dust specks hanging in the light (one instanced draw). Its door is shut until you push it
+  (`doorLeaf`: not solid; a shut door holds you in its tunnel). Across the yard, the small house
+  (the traveller's own, where Lou and Tove live): a drum of wall blocks with open door and
+  windows, a terracotta dome roof, the lamp and the hearth lit; a kitchen table, the hearth and
+  the dog's basket, two beds behind a curtain, Lou's shelf (a copy of every keepsake, from
+  `tokenModel`, as they are collected: `level.home.furnish`), her crayon drawings by the door
+  (one canvas-painted sheet per world you wrote to her from), a window seat. Both rooms are
+  real geometry inside the walls you see, not portals. The garden: three raised beds (cabbages,
+  carrots and a bean teepee, squashes, built with the flora kit and swaying with the wind), a
+  border of flowers you can pick (instanced per kind; a picked one is scaled away, back next
+  visit), a picket fence with two gates, stepping stones, a bench, a watering can. A swing
+  hangs from the umbrella tree; home has its own flora on the hill (`SPECIES.home`, the yard
+  kept clear by `floraAvoid`).
+- **Indoors** (`level.indoorAt`): both houses register with the shelter (`addIndoors`), so no rain
+  or sand is drawn in them, and the level sets `CameraRig.indoor` while you are in one (the
+  ship's over-the-shoulder camera), and lets go when you step out.
+- **Cloth that hangs** (`src/hanging-cloth.js`): the capes' Verlet cloth with its top edge
+  pinned in the world (all of the top row, pegs, or any `(row, col)` rule: the flag on the
+  landing ring's mast is pinned along its pole edge). The wind pushes along each point's normal
+  (face-on billows, edge-on barely stirs) with a flutter running across it and the gusts; it
+  collides with the traveller's capsules (`Humanoid.capsules`) when you are near, and with a
+  floor; `pleats` presses folds into a curtain at rest. `Cloths` simulates only those near the
+  camera and lets the rest sleep. Home has the washing (five pieces on pegs), Lou's bunting
+  between the two houses, the flag, the curtain in front of the beds and the scarf (both
+  indoors: a breath of wind at most, until you brush past).
+- **Lou, Tove and Moustache** (`src/story/home.js`, `home-data.js`, `src/dog.js`): Lou is a full
+  NPC with a child's proportions (`LOU_MORPH`, `LOU_FACE`: morph.js on the people's body, scale
+  0.72, a dotted dress). Once a visit she runs to meet you and asks what you brought; what she
+  says follows how many keepsakes you have (`keepsakeBand`) and the newest world you wrote to
+  her from (`DRAWING_LINES`); she sees a flower in your hand. Then she goes about her day (the
+  border, the swing, the stone, her door). Tove sits on the garden bench. Moustache, a scruffy
+  medium dog built like the wildlife (one painted geometry per moving part), follows you
+  everywhere a couple of metres off your shoulder (trot, gallop to catch up, into the houses),
+  noses about and sits when you stand still, barks at the bird and the scout drone, and E pets
+  him. NPCs have a `hush` flag now: no balloons over a scene.
+- **Paying your respects** (`Moment` in `src/story/home.js`): E at the stone. You are set in front
+  of it and kneel (`kneelPose`, laid over the clip through `player.overlay`, a hook run before
+  the humanoid follows the rig; the feet stay where the pose puts them), the bars come down, a
+  low shot frames you and the slab, a short tune plays (`sound.homage`), and: you lay the flower
+  you picked (kept on the stone: `home.flowers`, the newest nine), or after the ending set down
+  what you have found since (the slab makes room and each goes to its place, the way the ending
+  set everything down: `home.stone`, `laidTokens` / `unlaidTokens` / `layTokens`), or rest your
+  hand on it. A quiet line, a word to them, and you rise. Esc hurries it. The window seat is the
+  same kind of moment, sitting (`sitPose`), looking out at the ring.
+- **The ending, with Lou** (`src/ship/homecoming.js`, `tombLines(tokens, { lou })`): she runs down
+  the path to meet you, waits for you there, walks with you to the stone and stands at your
+  left; she leaves her drawing against the headstone (kept: `home.lou.drawing`), and after the
+  oldest recording asks "Was that you? The little one, waving?". Her lines are subtitled LOU and
+  voiced as a child, close by (`CALL_VOICES.lou`, no radio). The credits name Lou, Tove and
+  Moustache "in the small house". `tests/home.test.js`, `tests/home-family.test.js`.
+
+### A quest that fails, fewer fetch quests, and the lore made one story
+
+- **Quests can fail** (`src/story/quests.js`): `quests.fail(id)` ends a quest as `'failed'`
+  (its flag `quest.<id>`; also `failed.<id>` = its title, for the charge). A failed quest is
+  over like a finished one (not active, never tracked, `isEnded`), can't be restarted or
+  retried, runs `onFail` instead of `onDone`, toasts "Failed: …" with three falling notes
+  (`sound.fail`), and the sketchbook files it under its own **Failed** heading with a dashed
+  earth-brown rule, a crossed **✗ Failed** stamp and its `failOutro`. Dialogue can test it
+  (`{ quest, failed: true }`) and do it (`{ fail: id }`). A quest marked `major` toasts as
+  "Quest" and wears ◆ like a main one. The father's charge card lists failed quests under
+  "What you could not mend" (`chargeState({ failed })`, fed by main.js from the flags).
+- **Viridel's tea terraces** (`src/story/terraces.js`, quest `edena.terraces`, Esk in
+  `edena-data.js`; LORE.md, "The quest that fails", says why Viridel): four terraces on the
+  white builders' steps down into the dry hollow south-east of the landing (`TERRACES` in
+  `src/levels/edena.js`; flora and grass keep off them), Esk's tea bushes in rows (instanced),
+  the builders' cistern on the rise with its gate and wheel. The steps are built from the ground
+  up (`terraceLayout`: each step's top is level along x and at least 1.2 m over the one below),
+  white walls with the makers' inscriptions, earth tops, a stone ramp up each wall at the north
+  end; they collide through `physics.addCollider`, in three parts: the sides, the lane (the
+  middle the flood takes) and the gate. The quest: push three clods out of the runnels, top
+  first (a lower one slumps back); at Esk's asking water the roots on the gate's wheel (shoot),
+  then one shove (push). The flood is scripted, ten seconds: the gate tears loose, a white sheet
+  of water runs down the lane (a strip revealed by `drawRange`), each step of the lane sinks and
+  goes as the front passes (its collider dropped), the lane's bushes are swept down into the
+  hollow, the mud fan grows, the cistern empties (`sound.rumble`). What is left is built from the
+  start and shown after: the mud lane with a stream, the fan and a muddy pond, the gate's slab
+  and wheel and broken wall blocks in the mud (colliding), uprooted bushes. `edena.terraces.flooded`
+  rebuilds it like that on every visit (and a save that stopped mid-flood comes back flooded).
+  Then Esk blames you, you say sorry, she says it belongs to the ground now, and it fails. Mira,
+  Sol and Vey each say a word about it once; a recording afterwards has the father on breaking
+  things (`calls.js` beat `broke`), and Viridel's own recording gets a different answer
+  (`REEL.edena.youAfter`). `tests/story-terraces.test.js` runs it end to end and reloads it.
+- **Hands-on steps in the fetch quests** (each one solvable with a plain shot and push; ember
+  shots work where lighting fits; existing stage ids kept, so old saves carry on):
+  - - *Teo's drum* (desert, `src/story/desert-errands.js`): it stands on its rim under the ribcage,
+    pinned against a rib's foot by a knuckle of spine; shoved toward the rib the knuckle only
+    jams tighter, shoved from the side it rolls off and the drum rolls out like a wheel (by
+    hand before the backpack). Stage `free`; flag `desert.drum.freed`.
+  - *The mask in the sand*: sand has drifted over its eyes like lids; a splash washes one clear
+    but the wind sifts it back in seven seconds: clear both at once and it looks at you. Stage
+    `eyes`; flag `desert.mask.eyes`.
+  - *A ration for the guard* (City-Shaft, `src/story/incal.js`, the prop in `src/levels/incal.js`):
+    the tin hangs in an old goods hoist's basket out over the void; shoot out the rusted pin,
+    then push the weight round the post (along the arm it only rocks). Stage `hoist`; flags
+    `incal.hoist.pin`, `incal.hoist.in`.
+  - *A letter across the aqueduct* (Vael II, `src/story/arzach2.js`): Ondine answers with the
+    tower's old signal lamp: light it (shoot), turn its tiller notch by notch (push from the side)
+    until it faces the carved bell toward the rose cliff, and a light answers from Ysolde's
+    window. Stage `lamp`. *The bell's clapper* lies under tiles that fell up with it: push them off.
+  - *The keeper's key* (Buried Machine, `src/story/buried.js`): the crane's jib hangs out over
+    the drop; free its rusted collar with a splash, then ratchet it round with side-on pushes
+    (the pawl only turns one way) until the hook is over the platform. Stage `swing`.
+  - *The moss-dome latch* (Lorn II, `src/story/perdide2.js`): with the latch back, moss in the
+    frame keeps Pim's door from shutting: wake the moss lamp over it (shoot), then push the door
+    shut. Stage `shut`. *Whose skiff?*: Fen asks you to bring the skiff home once: light the lamp
+    on his berth post, step off on his landing and nudge the empty skiff in. Stage `home`.
+  - *Mira's water clock* (Viridel, `src/story/water-clock.js`): the Hangar's errand of a brass
+    gear now ends on the clock: fit it (E), then fill its leaking bowl with three quick splashes
+    so it tips and rings (quest `edena.clock`).
+  - Left as they were, already hands-on: the bird's feathers and the stone hand, the cairn,
+    the machines and Pip's ball, the gauges, the seed (watered), the pools, the fireflies, the
+    plants, the spheres and the pebble, the crates and the oldest sign. The other between-world
+    errands stay light parcels (a greeting gives, a greeting takes), on purpose.
+- **The lore, one story** (LORE.md, section 10, has every decision): the light passed every
+  world the same night, the night the ship was struck, and climbed away; Ilen's message is
+  thirty years on the way; recording 4 is an old one made for him at ten; Odile and Talo were
+  struck twice and went on across the swamp; the spheres came down out of the sky and the
+  white builders copied them; the Hangar's board and Lorn II's Welcome draw the ∩; the bell
+  whistle is clay, not a second bone whistle; the Atelier no longer claims an unlock; Ivo's
+  Footprint points at the chest that exists; a few wrong directions are put right.
+- **People who share a name have ids of their own** (`hask.buried`, `ossa.buried`,
+  `pip.garage`, `lio.edena`, `hollin.perdide2`, `pim.perdide2`, `aube.spheres`, `ivo.perdide`;
+  Clemence's old id `malvina` is `clemence`), so meeting one no longer marks the other in the
+  credits or the mother's "who did you meet". `src/save-migrate.js` brings old saves up once
+  (flag `save.migrated`): a "met" carries over to the renamed person if the save has been to
+  their world; Clemence's flags move outright. `tests/save-migrate.test.js`.

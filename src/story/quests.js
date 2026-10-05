@@ -20,6 +20,7 @@ import * as THREE from 'three';
 //   quests.set('desert.power', 'cave')      // jump to a stage
 //   quests.stage(id) / isActive(id) / isDone(id)
 //   quests.give('drum') / has('drum') / take('drum')   // items (flags item.<id>)
+//   quests.fail('edena.terraces')           // → 'failed': it ended, and it went wrong (no retry)
 //   quests.locate('teo', () => npc.pos)     // named places for markers and 'talk' objectives
 //   quests.objective(player) → { id, label, position } of the tracked quest, for the scout
 //
@@ -32,9 +33,16 @@ import * as THREE from 'three';
 // `optional: true` is not shown as the tracked objective.
 //
 // Events (game.emit): 'quest' { id, stage, prev }. Flags: quest.<id> = stage
-// id or 'done'; quest.tracked = the id shown on the HUD and pinged by Q.
+// id, 'done' or 'failed'; quest.tracked = the id shown on the HUD and pinged by Q;
+// failed.<id> = the title of a quest that failed (the father's charge lists them,
+// src/story/charge.js, whatever world you are in).
+//
+// A failed quest has ended like a finished one (not active, never tracked), but it
+// went wrong: the journal files it under its own heading with a ✗ stamp and its
+// `failOutro`; `onFail` runs instead of `onDone`. It can't be retried.
 
 const DONE = 'done';
+export const FAILED = 'failed';
 
 export class Quests {
   constructor({ game, toast = () => {}, sound = null } = {}) {
@@ -58,12 +66,15 @@ export class Quests {
   stage(id) { return this.game.flag(`quest.${id}`); }
   isStarted(id) { return this.stage(id) !== undefined; }
   isDone(id) { return this.stage(id) === DONE; }
-  isActive(id) { const s = this.stage(id); return s !== undefined && s !== DONE; }
+  isFailed(id) { return this.stage(id) === FAILED; }
+  /** Over, one way or the other. */
+  isEnded(id) { const s = this.stage(id); return s === DONE || s === FAILED; }
+  isActive(id) { const s = this.stage(id); return s !== undefined && s !== DONE && s !== FAILED; }
   /** True if the quest has reached `stage` (or finished): stage order is the definition's. */
   reached(id, stage) {
     const d = this.def(id), s = this.stage(id);
     if (!d || s === undefined) return false;
-    if (s === DONE) return true;
+    if (s === DONE || s === FAILED) return true;
     const i = d.stages.findIndex((x) => x.id === s), j = d.stages.findIndex((x) => x.id === stage);
     return i >= 0 && j >= 0 && i >= j;
   }
@@ -86,21 +97,25 @@ export class Quests {
   }
 
   complete(id) { return this.set(id, DONE); }
+  fail(id) { return this.set(id, FAILED); }
 
   set(id, stage) {
     const d = this.def(id);
     if (!d) throw new Error(`no quest ${id}`);
-    if (stage !== DONE && !d.stages.some((x) => x.id === stage)) throw new Error(`quest ${id} has no stage ${stage}`);
+    const end = stage === DONE || stage === FAILED;
+    if (!end && !d.stages.some((x) => x.id === stage)) throw new Error(`quest ${id} has no stage ${stage}`);
     const prev = this.stage(id);
     if (prev === stage) return false;
+    if (prev === FAILED) return false;   // (a failed quest stays failed)
     this.game.set(`quest.${id}`, stage);
-    if (stage !== DONE) this.track(id);
-    else if (this.tracked() === id) this.game.set('quest.tracked', this.active().find((q) => q.main)?.id ?? this.active()[0]?.id ?? null);
+    if (!end) this.track(id);
+    else if (this.game.flag('quest.tracked') === id) this.game.set('quest.tracked', this.active().find((q) => q.main)?.id ?? this.active()[0]?.id ?? null);
     const st = d.stages.find((x) => x.id === stage);
     if (stage === DONE) { this.toast(`${d.main ? 'Completed' : 'Done'}: ${d.title}`); d.onDone?.(this); }
-    else if (prev === undefined) this.toast(`${d.main ? 'Quest' : 'New errand'}: ${d.title} · ${st.text}`);
+    else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`Failed: ${d.title}`); d.onFail?.(this); }
+    else if (prev === undefined) this.toast(`${d.main || d.major ? 'Quest' : 'New errand'}: ${d.title} · ${st.text}`);
     else this.toast(`${d.title}: ${st.text}`);
-    this.sound?.chime?.();
+    if (stage === FAILED) this.sound?.fail?.(); else this.sound?.chime?.();
     st?.onEnter?.(this);
     d.onStage?.(stage, this, prev);
     this.game.emit('quest', { id, stage, prev });
@@ -114,6 +129,7 @@ export class Quests {
 
   active() { return [...this.defs.values()].filter((d) => this.isActive(d.id)); }
   finished() { return [...this.defs.values()].filter((d) => this.isDone(d.id)); }
+  failed() { return [...this.defs.values()].filter((d) => this.isFailed(d.id)); }
 
   // ------------------------------------------------------------ items
   itemName(item) { return this.itemNames?.[item] ?? item; }
@@ -182,20 +198,26 @@ export class Quests {
     const list = [...this.defs.values()].filter((d) => (!world || d.world === world) && this.isStarted(d.id));
     if (!list.length) return '';
     const tracked = this.tracked();
-    const act = list.filter((d) => this.isActive(d.id)), fin = list.filter((d) => this.isDone(d.id));
+    const act = list.filter((d) => this.isActive(d.id)), fin = list.filter((d) => this.isDone(d.id)), lost = list.filter((d) => this.isFailed(d.id));
+    const mark = (d) => (d.main || d.major ? '◆ ' : '◇ ');
     const row = (d) => {
       const done = this.isDone(d.id), st = this.current(d.id);
+      // failed: its own stamp, and how it went wrong
+      if (this.isFailed(d.id)) return `<div class="quest finished failed" data-quest="${d.id}">
+        <h3>${mark(d)}${d.title}<b class="stamp failed">✗ Failed</b></h3>
+        <ul><li class="outro">${d.failOutro ?? 'It went wrong.'}</li></ul></div>`;
       const steps = d.stages.filter((s) => this.reached(d.id, s.id) && s !== st && !s.secret).map((s) => `<li class="done">${s.text}</li>`).join('');
       // finished: a stamp, and only how it ended (its steps are history)
       if (done) return `<div class="quest finished" data-quest="${d.id}">
-        <h3>${d.main ? '◆ ' : '◇ '}${d.title}<b class="stamp">✓ Complete</b></h3>
+        <h3>${mark(d)}${d.title}<b class="stamp">✓ Complete</b></h3>
         <ul><li class="outro">${d.outro ?? 'Done.'}</li></ul></div>`;
       return `<div class="quest${d.id === tracked ? ' tracked' : ''}" data-quest="${d.id}">
-        <h3>${d.main ? '◆ ' : '◇ '}${d.title}${d.id === tracked ? ' <span>tracked</span>' : ''}</h3>
+        <h3>${mark(d)}${d.title}${d.id === tracked ? ' <span>tracked</span>' : ''}</h3>
         <ul>${steps}<li class="now">${st?.text ?? ''}</li></ul></div>`;
     };
     return `<section class="quests"><h2>Quests <span>${fin.length}/${list.length} complete</span></h2>${act.map(row).join('')}`
       + (fin.length ? `<h4 class="qgroup">Completed</h4>${fin.map(row).join('')}` : '')
+      + (lost.length ? `<h4 class="qgroup failed">Failed</h4>${lost.map(row).join('')}` : '')
       + `<p class="qhint">choose a quest to track it</p></section>`;
   }
 }

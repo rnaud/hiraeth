@@ -86,7 +86,7 @@ export const LEVELS = [
     id: 'atelier', create: createAtelier, hidden: true,
     title: TITLES.atelier, source: 'the last page',
     blurb: 'A blank page where every world you crossed is sketched in pencil. Someone is still drawing. Pale paper-like growths stir when you look at them.',
-    moves: 'unlocked by finishing every world',
+    moves: 'off the route: a page for the curious',
   },
   {
     // a developer's world: the game's surfaces and giant faces side by side (in the worlds list, L, for testing; never on the route)

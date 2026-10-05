@@ -69,7 +69,7 @@ export const ITEMS = {
   },
   bell: {
     name: 'Bell-note whistle', kind: 'charm',
-    text: 'A bone whistle that plays one clear bell note, the same note in every world. The makers’ chests know it.',
+    text: 'A little whistle of blue-glazed clay, shaped like a bell with a star on its side, that plays one clear bell note, the same note in every world. The makers’ chests know it.',
     use: 'Press V (on a controller, click the right stick, R3) to sound it. Unopened boxes nearby answer with a chime from where they hide.',
   },
   resin: {

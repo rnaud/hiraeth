@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { lodView, sphereError } from '../lod.js';
 import { makeMaterial } from '../materials.js';
 
 // Stylised fire: tongues of flat colour bands that lick, sway and flicker.
@@ -563,6 +564,9 @@ export class SmokeColumn {
     this.material = mat;
     this.mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), mat, count);
     this.mesh.name = 'Smoke column';
+    // far away, puffs with fewer faces (80 instead of 180) once that is under the preset's lodPx on screen (lod.js)
+    this.detail = { full: this.mesh.geometry, low: new THREE.IcosahedronGeometry(1, 1) };
+    this.detail.err = sphereError(this.detail.low);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.mesh.userData.noCollide = true;
     this.mesh.userData.dynamic = true;
@@ -637,7 +641,7 @@ export class SmokeColumn {
     if (this.tintB && A !== B) this.tint.copy(this.tintA).lerp(this.tintB, smooth(0, 4, this.mixT));
   }
 
-  update(dt, t, wind = null) {
+  update(dt, t, wind = null, camera = null) {
     if (wind && (wind.x || wind.z)) {
       const l = Math.hypot(wind.x, wind.z), e = 1 - Math.exp(-dt / 25);
       this.wind.lerp(_p.set(wind.x / l, 0, wind.z / l), e).normalize();
@@ -649,6 +653,8 @@ export class SmokeColumn {
       this.colour();
     }
     const yaw = Math.atan2(this.wind.x, this.wind.z), cy = Math.cos(yaw), sy = Math.sin(yaw);
+    const cam = camera?.position;
+    let near = 0;   // the largest puff's angular radius
     for (let i = 0; i < this.items.length; i++) {
       const it = this.items[i];
       it.u += dt / this.period;
@@ -665,11 +671,18 @@ export class SmokeColumn {
       _p.z += -across * sy + along * cy;
       _p.y += it.oc * sc * it.spread * (0.45 - 0.35 * pl);
       _s.set(r * (1 - 0.1 * pl), r * (0.85 - 0.5 * pl), r * (1 + 1.6 * pl));
+      if (cam) near = Math.max(near, (r * (1 + 1.6 * pl)) / Math.max(cam.distanceTo(_p), 1));
       _q.setFromEuler(_e.set(0, yaw, 0));
       this.mesh.setMatrixAt(i, _m.compose(_p, _q, _s));
       this.mesh.setColorAt(i, _a.copy(it.c).lerp(this.tint, 0.5 * (1 - smooth(0.01, 0.13, s))));
     }
     this.mesh.instanceMatrix.needsUpdate = true;
     this.mesh.instanceColor.needsUpdate = true;
+    if (cam) {
+      // the coarser puffs once their flat faces are under lodPx pixels (switching back 10 % sooner)
+      const D = this.detail, px = lodView.px > 0 && lodView.pxPerRad > 0 ? (near * D.err * lodView.pxPerRad) / lodView.px : Infinity;
+      const low = this.mesh.geometry === D.low ? px < 1.1 : px < 1 / 1.1;
+      this.mesh.geometry = low ? D.low : D.full;
+    }
   }
 }

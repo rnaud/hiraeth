@@ -27,10 +27,10 @@ const _ac = new THREE.Vector3(), _bq = new THREE.Vector3();
 //
 // Conditions: { flag, is? } · { not } · { all: [] } · { any: [] } · { has: item }
 //   · { quest, stage: s | [s] } · { quest, active } · { quest, done } · { quest, started }
-//   · { quest, reached: stage } · (ctx) => bool
+//   · { quest, reached: stage } · { quest, failed } · (ctx) => bool
 // Effects (a single one or a list): { set: { flag: value } } · { start: id } · { advance: id | [id, fromStage] }
 //   · { stage: [id, stage] } · { give: item } · { take: item } · { keepsake: {...} } · { emit: [event, payload] }
-//   · { track: id } · (ctx) => {}
+//   · { track: id } · { fail: id } · (ctx) => {}
 // Text: {glyph} is the recurring three-dots-over-an-arc mark, *words* are highlighted: the places
 // to go and the things to do (a span of more than eight words is a quotation: a letter, a recording).
 // A node without choices ends with "(leave)"; `next: id` continues with another node.
@@ -65,6 +65,7 @@ export function check(cond, ctx) {
     if ('stage' in cond) return Array.isArray(cond.stage) ? cond.stage.includes(s) : s === cond.stage;
     if ('active' in cond) return quests.isActive(q) === !!cond.active;
     if ('done' in cond) return quests.isDone(q) === !!cond.done;
+    if ('failed' in cond) return !!quests.isFailed?.(q) === !!cond.failed;
     if ('started' in cond) return quests.isStarted(q) === !!cond.started;
     if ('reached' in cond) return quests.reached(q, cond.reached);
     return quests.isActive(q);
@@ -85,6 +86,7 @@ export function apply(effects, ctx) {
     if (e.give) { quests.give(e.give); ctx.onGive?.(e.give); }
     if (e.take) quests.take(e.take);
     if (e.track) quests.track(e.track);
+    if (e.fail) quests.fail(e.fail);
     if (e.keepsake) { if (game.addKeepsake(e.keepsake)) ctx.onKeepsake?.(e.keepsake); }
     if (e.emit) game.emit(e.emit[0], e.emit[1]);
   }

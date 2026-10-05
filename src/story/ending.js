@@ -8,8 +8,10 @@
 //    the jump the ship reads out the hold: every keepsake and every one of the
 //    makers' small gifts (tokenList) goes down. The ship lands by the house; the
 //    lamp in its window is dark. The parents are dead: their stone stands in the
-//    front yard. The traveller sets the tokens on it one by one (tombLines: a short
-//    line for each), last the reel, which plays its oldest recording
+//    front yard. Lou, his daughter, runs down from the small house across the yard
+//    and goes to the stone with him (src/story/home.js). The traveller sets the
+//    tokens on it one by one (tombLines: a short line for each); Lou leaves her
+//    drawing; last the reel, which plays its oldest recording
 //    (FINAL_RECORDING, as a hologram over the stone). The closing line, an end
 //    card, then the credits: a paper page of the worlds, the people met, and what
 //    was left on the stone (src/ship/homecoming.js plays it all).
@@ -33,6 +35,7 @@ import * as perdide from './perdide-data.js';
 import * as perdide2 from './perdide2-data.js';
 import * as bazaar from './bazaar-data.js';
 import { spoken } from './tone.js';
+import { LOU_AT_STONE } from './home-data.js';
 import { ITEMS } from '../items.js';
 
 /** How many worlds must be done before home is on the map. */
@@ -48,7 +51,7 @@ export function homeEntry({ unlocked, current }) {
   return {
     id: HOME_ID, title: 'Home', home: true, current: current === HOME_ID, visited: true, done: false,
     source: 'where the route begins',
-    blurb: 'A small round house on a small round hill, and two moons over it. Nobody lives there now. There is a stone in the yard.',
+    blurb: 'A small round house on a small round hill, and two moons over it. Nobody lives in the round house now; there is a stone in its yard. Across the yard, a smaller house with its lamp lit.',
   };
 }
 
@@ -130,6 +133,7 @@ export function quoteOf(k) {
 
 // each line carries its tone ('~sad~ …': src/story/tone.js), read off by spoken()
 const F = (text) => spoken('father', text), M = (text) => spoken('mother', text), S = (text, extra) => spoken('scene', text, extra), YOU = (text) => spoken('you', text);
+const LOU = (text, extra) => spoken('lou', text, extra);
 
 /**
  * The oldest recording of all: the one he never searched for. It plays by itself when he
@@ -152,7 +156,8 @@ export const CLOSING = S('~solemn~ Something of value. You brought it home on yo
 /**
  * Everything at the stone, in order. Lines that set a token down carry it (`token`); the
  * line that sets the reel down carries `reel: true`; FINAL_RECORDING follows it.
- * @param tokens tokenList() · ctx { ilenTold: the mother's recording about Ilen was heard }
+ * @param tokens tokenList() · ctx { ilenTold: the mother's recording about Ilen was heard, lou: Lou is there with you
+ *   (she leaves her drawing: the line carries `drawing: true`; and asks about the recording after it) }
  */
 export function tombLines(tokens = [], ctx = {}) {
   const lines = [S('~solemn~ (Two rings carved on the stone, overlapping like the two moons. Their names under them.)')];
@@ -162,8 +167,11 @@ export function tombLines(tokens = [], ctx = {}) {
   } else lines.push(S('~sad~ (Your hands are empty. You hold them up, so the stone can see.)'));
   if (ctx.ilenTold) lines.push(YOU('~whisper~ And this space is for Ilen, wherever she is.'));
   lines.push(YOU('~whisper~ It isn’t what you asked for. It’s what I have.'));
+  if (ctx.lou) lines.push(LOU(LOU_AT_STONE.bring), S(LOU_AT_STONE.drawing, { drawing: true }));
   lines.push(S('~solemn~ (Last, you set the reel down on the stone. It plays by itself.)', { reel: true }));
-  lines.push(...FINAL_RECORDING, CLOSING);
+  lines.push(...FINAL_RECORDING);
+  if (ctx.lou) lines.push(LOU(LOU_AT_STONE.after), YOU(LOU_AT_STONE.you));
+  lines.push(CLOSING);
   return lines;
 }
 
@@ -205,6 +213,7 @@ export function credits({ order = Object.keys(WORLD_DATA), titles = {}, storyTit
   const home = [];
   if (flag('bird.promise')) home.push('the bird, who keeps her promises');
   home.push('your mother and your father, on the hill');
+  home.push('Lou, who drew every world, and Aunt Tove, and Moustache, in the small house');
   if (flag('calls.ilen.told')) home.push('and Ilen, wherever she is');
   return { title: 'SOMETHING OF VALUE', worlds, home, keepsake, tokens: tokens.map((t) => t.name) };
 }
