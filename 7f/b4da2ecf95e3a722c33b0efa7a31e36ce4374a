@@ -1,0 +1,463 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_4dca250363d142 20,56-58,74-76,79-103,118-133,174-176,180,205,236-237,253,280-291,294-297,388-392,425-427,479-483,529,532,540-542,553-556,564,572-575,581-639,647,649,673-674,702,709-712,717-726,734,766-767,772-774,780-782,789-790,795-810,825,830-831,834-940,943,945-952
+README.md
+  s_1fd8d0e7b02dcf::t_aa8e41436bb5d5 235-236,1239-1325,1872-1955,2533-2690
+TODO.md
+  s_1fd8d0e7b02dcf::t_3e7811bfd4567e 234,266,313,316-318,331,335,340,352-368
+changelog.md
+  s_1fd8d0e7b02dcf::t_b9a5c13e6939c7 5-42,52
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_948d0c51c039e9 171,230-235,307-314,316-325,333-335,383,390-391,398-403,407-408
+index.html
+  s_1fd8d0e7b02dcf::t_8317d190f0df0b 282-287
+scripts/unity-export/build-world.mjs
+  s_1fd8d0e7b02dcf::t_e8248fd0fc2bf7 1-54
+scripts/unity-export/census.mjs
+  s_1fd8d0e7b02dcf::t_49c7f9e78c498c 1-28
+scripts/unity-export/export-desert.mjs
+  s_1fd8d0e7b02dcf::t_ef8552fe81d07c 1-340
+scripts/unity-export/shim.mjs
+  s_1fd8d0e7b02dcf::t_0415e0efe4aee4 1-15
+scripts/unity-export/unity-batch.sh
+  s_1fd8d0e7b02dcf::t_edad09c9f89a33 1-17
+scripts/unity-export/views.mjs
+  s_1fd8d0e7b02dcf::t_607698018bb6b7 1-23
+scripts/unity-export/web-shots.mjs
+  s_1fd8d0e7b02dcf::t_fd0ae86e70a645 1-35
+src/audio.js
+  s_1fd8d0e7b02dcf::t_721bef7bdcab95 251-253,660-717,1072-1120
+src/bike.js
+  s_1fd8d0e7b02dcf::t_0dc7b08394287c 200-201
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_c7b2d32665170c 22,46,92-99
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_2aa77de4ef2cb4 6-40,49
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_0c496a360148e0 11,23-25,42-43,585-589,599,603,730-731,735-737,740,749,1077
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_862c4cbf147ad3 774,840
+src/desert-sites.js
+  s_1fd8d0e7b02dcf::t_7def6fe7c30253 34
+src/dog.js
+  s_1fd8d0e7b02dcf::t_b0e3be8f298f7b 1-243
+src/flora-species.js
+  s_1fd8d0e7b02dcf::t_8b2570664f495c 513-546
+src/flora.js
+  s_1fd8d0e7b02dcf::t_603618717c0bd6 8,49-50,300-302,350-368,390,395-396,398,405,409,413-419,425-426
+src/game-state.js
+  s_1fd8d0e7b02dcf::t_da8641c0a2e6d7 57,68,96
+src/hanging-cloth.js
+  s_1fd8d0e7b02dcf::t_cbea1124a5c05b 1-209
+src/items.js
+  s_1fd8d0e7b02dcf::t_a967d8796d0d8a 72
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_77397bec1e4bda 67
+src/levels/atelier.js
+  s_1fd8d0e7b02dcf::t_ae3be8f2d09fc8 7-10
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_d98e5b1919fe18 572-573,584-588,598,954-955
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_d1be4fad8d346d 131,226
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_ced62f912f05f4 66-73,577
+src/levels/home-drawings.js
+  s_1fd8d0e7b02dcf::t_7a55ce16464670 1-176
+src/levels/home-garden.js
+  s_1fd8d0e7b02dcf::t_e72d40e8de1107 1-220
+src/levels/home-houses.js
+  s_1fd8d0e7b02dcf::t_5a06166b5943df 1-428
+src/levels/home.js
+  s_1fd8d0e7b02dcf::t_70116b369cd61b 10-14,24-38,52-54,78,153,158-192,224-227,230-235,237,247-267,286-289,292,307-328,349-358,368-374,376,379-380,383-413,415-432,434-440,442,457-459,474-480,488,494-496,515-530,532
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_f72349e4e500b2 32-33,644-704,943
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_d20ffc615717b2 89
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_3a20a08dbcc930 18,141-144,146-172,174,176-177
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_75ea30ab06297a 13-14,18
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_e888dfa1909647 19
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_5488abf4d82c46 825
+src/lod-core.js
+  s_1fd8d0e7b02dcf::t_f5726efd9523ad 1-346
+src/lod-worker.js
+  s_1fd8d0e7b02dcf::t_f38d04a231c96b 1-9
+src/lod.js
+  s_1fd8d0e7b02dcf::t_aa99c46b07750c 1-412
+src/main.js
+  s_1fd8d0e7b02dcf::t_01fa886faf24fa 22,32,59-60,189-190,213,340-344,387,408-409,481,621,964-967,994-995,998,1000-1002,1021,1023,1047,1288-1291,1387-1388
+src/materials.js
+  s_1fd8d0e7b02dcf::t_23a2984271f27a 10,873-875,1050-1052,1117-1119,1123,1174-1176,1184-1186,1224-1228,1420
+src/npc.js
+  s_1fd8d0e7b02dcf::t_f0dded10e5ca9f 462
+src/perf.js
+  s_1fd8d0e7b02dcf::t_b4f146847742ef 250-251,253,258,260
+src/physics.js
+  s_1fd8d0e7b02dcf::t_a4c2fe417984a1 58,87,89-90
+src/player.js
+  s_1fd8d0e7b02dcf::t_be2151a9142301 9,14-15,391-398,421-424,537-538,580,671,692,885-887,898,993,1071,1157-1160,1164,1168,1494
+src/save-migrate.js
+  s_1fd8d0e7b02dcf::t_11f1bf2ded6c2f 1-64
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_220e5b396a55cc 256
+src/ship/fx.js
+  s_1fd8d0e7b02dcf::t_4e3f368e586774 6-7,33,45,67
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_54708465635cae 10,12-13,28-31,221,309,345-352,356-357,387-400,414,438,454,508-510,518,588
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_c4fecfdf02c2a5 23-25,58-59,84,105-109,204,228,245-247,249-256,274-297
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_fd09b218f62da8 4-6,15-16,19-22,33-35,96-245,256,258-304,312,314,454,457-459,464-488,527
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_fb6c307df3cfde 135,141,146,221,389,407
+src/story/bazaar.js
+  s_1fd8d0e7b02dcf::t_b2f9c25be9f0f6 190
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_d61e1c3906e57c 49-51,147,167,226-229,265,379-390
+src/story/buried.js
+  s_1fd8d0e7b02dcf::t_3728590dcfd4a7 17-19,30-31,41-43,73,81,89-90,267-301,307-308,310,312-345,349,353-354,415-423
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_ea6fc5380f51ef 103-105,150-151,153-156,163,268,313-322,467-468
+src/story/charge.js
+  s_1fd8d0e7b02dcf::t_b128d4accd52b4 10-13,37,41,72,77
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_5dc7466bd62f57 64-66,80,102-103,173,377,501,585-605,662,678-679
+src/story/desert-errands.js
+  s_1fd8d0e7b02dcf::t_50968de820fcc3 1-287
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_7ea033b0cf545d 13,48-50,214-217,601-602,606
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_d7b5ca24be1b9d 30,33,68,89
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_7f6cff2bd9ab31 7-8,18-26,28-31,64-86,105-106,113-127,171,188-191,193-203,211,214,219,250,267,292,296,309,337-426,432,438,440,442
+src/story/edena.js
+  s_1fd8d0e7b02dcf::t_bec84c94801e86 8-9,17-18,48,154-159,206-207,210
+src/story/ending.js
+  s_1fd8d0e7b02dcf::t_4921492698680c 11-14,38,54,136,159-160,170,172-174,216
+src/story/flames.js
+  s_1fd8d0e7b02dcf::t_b11fdacaaaafd6 2,567-569,644,656-657,674,681-686
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_c8afc0ffbcc951 96,157,159,178,217,290,302
+src/story/home-data.js
+  s_1fd8d0e7b02dcf::t_d74b2380f745fb 1-235
+src/story/home.js
+  s_1fd8d0e7b02dcf::t_50d4a55323b38a 1-356
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_1f9b5e16bfd8b9 23,46-47,192,235,252-254,256,259-262,439-453
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_f9dba27154baca 125-227,404-405,421
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_d2b8b8385b5666 24,54,186
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_77453f4dc05701 179,191,298,312-321,364
+src/story/perdide.js
+  s_1fd8d0e7b02dcf::t_039a48194a61c0 67
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_7851bb9e2f8686 4-11,17-21,23-25,52,60,73,92,109,125,147,152,173-175,177-186,212,216-217,262,272,280,286-296,298-299,313
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_36f11e40c8850d 14-16,18-19,30-32,39,53,107-108,211-434,449-450,514-515,519
+src/story/quests.js
+  s_1fd8d0e7b02dcf::t_9e32d35cc48c1f 23,36-42,45,69-72,77,100,105-106,109,111-112,115-116,118,132,201-202,205-208,212,215,220
+src/story/spheres-data.js
+  s_1fd8d0e7b02dcf::t_f7763aab40292e 70,158,162,227
+src/story/spheres.js
+  s_1fd8d0e7b02dcf::t_e2921448209e9e 47
+src/story/terraces.js
+  s_1fd8d0e7b02dcf::t_bc2e028821c942 1-471
+src/story/voice.js
+  s_1fd8d0e7b02dcf::t_6ff966bd247138 149,318
+src/story/water-clock.js
+  s_1fd8d0e7b02dcf::t_d9a77f6c918d90 1-98
+src/swim.js
+  s_1fd8d0e7b02dcf::t_f228f7e58b58ab 1-360
+src/ui.js
+  s_1fd8d0e7b02dcf::t_f862c93a901a7d 54,110
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_38da0befe22d49 1-218
+src/water.js
+  s_1fd8d0e7b02dcf::t_6cb8270feb016f 1-556
+tests/desert-errands.test.js
+  s_1fd8d0e7b02dcf::t_e13caccb28f5a3 1-220
+tests/desert-story.test.js
+  s_1fd8d0e7b02dcf::t_79ca09a16a1e5b 432-442,472-475
+tests/ending.test.js
+  s_1fd8d0e7b02dcf::t_6781799593c286 70-72
+tests/fetch-puzzles-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_294b1ea0b2e3f1 1-81
+tests/home-family.test.js
+  s_1fd8d0e7b02dcf::t_013b143bb3ea0b 1-200
+tests/home.test.js
+  s_1fd8d0e7b02dcf::t_2f3e31285be972 1-132
+tests/incal-hoist-save.test.js
+  s_1fd8d0e7b02dcf::t_caa900a7669261 1-71
+tests/incal-hoist.test.js
+  s_1fd8d0e7b02dcf::t_c3d891a031c55f 1-134
+tests/lod.test.js
+  s_1fd8d0e7b02dcf::t_52919acdde175f 1-309
+tests/save-migrate.test.js
+  s_1fd8d0e7b02dcf::t_503eaeca604eee 1-57
+tests/story-arzach2.test.js
+  s_1fd8d0e7b02dcf::t_5c5adb99358d63 17-18,65,128-138,176-218,220-222,246-270
+tests/story-buried.test.js
+  s_1fd8d0e7b02dcf::t_bdac56f27a6587 16,18,158-204,207-210,263-277
+tests/story-edena.test.js
+  s_1fd8d0e7b02dcf::t_66ab44ddb27738 68
+tests/story-incal.test.js
+  s_1fd8d0e7b02dcf::t_984bff62d63276 202-214
+tests/story-perdide.test.js
+  s_1fd8d0e7b02dcf::t_b1cd9d9f123b94 73
+tests/story-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_bc76e7d93358ef 70,102-131,133-134,137,197,199-254
+tests/story-terraces.test.js
+  s_1fd8d0e7b02dcf::t_21e4eb047e81a4 1-215
+tests/swim.test.js
+  s_1fd8d0e7b02dcf::t_be4086a08f4999 1-246
+unity/.gitignore
+  s_1fd8d0e7b02dcf::t_1e6f8887399d67 1-25
+unity/Memento/Assets/InputSystem_Actions.inputactions
+  s_1fd8d0e7b02dcf::t_9c83ccaa5c6c19 1-1057
+unity/Memento/Assets/InputSystem_Actions.inputactions.meta
+  s_1fd8d0e7b02dcf::t_0c7d27919a3255 1-14
+unity/Memento/Assets/Memento.meta
+  s_1fd8d0e7b02dcf::t_2dbfd545792794 1-8
+unity/Memento/Assets/Memento/Editor.meta
+  s_1fd8d0e7b02dcf::t_a9399c4f7b1eb3 1-8
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_9938de88f40694 1-190
+unity/Memento/Assets/Memento/Editor/Batch.cs.meta
+  s_1fd8d0e7b02dcf::t_06eebb5506397c 1-2
+unity/Memento/Assets/Memento/Editor/Tests.meta
+  s_1fd8d0e7b02dcf::t_d4f30050a06e19 1-8
+unity/Memento/Assets/Memento/Editor/Tests/StoryTests.cs
+  s_1fd8d0e7b02dcf::t_6a858751c36697 1-110
+unity/Memento/Assets/Memento/Editor/Tests/StoryTests.cs.meta
+  s_1fd8d0e7b02dcf::t_514be847973057 1-2
+unity/Memento/Assets/Memento/Rendering.meta
+  s_1fd8d0e7b02dcf::t_3b74aae3a0b5e4 1-8
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_1fd8d0e7b02dcf::t_f325da20ead495 1-126
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs.meta
+  s_1fd8d0e7b02dcf::t_8f26833ad7615c 1-2
+unity/Memento/Assets/Memento/Runtime.meta
+  s_1fd8d0e7b02dcf::t_808953c47b8646 1-8
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_4c69a976bbe024 1-205
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs.meta
+  s_1fd8d0e7b02dcf::t_5b201c6be2e784 1-2
+unity/Memento/Assets/Memento/Runtime/Bike.cs
+  s_1fd8d0e7b02dcf::t_9dce754b806b2e 1-133
+unity/Memento/Assets/Memento/Runtime/Bike.cs.meta
+  s_1fd8d0e7b02dcf::t_29f21a70be96af 1-2
+unity/Memento/Assets/Memento/Runtime/CameraRig.cs
+  s_1fd8d0e7b02dcf::t_1176d67b493c6b 1-65
+unity/Memento/Assets/Memento/Runtime/CameraRig.cs.meta
+  s_1fd8d0e7b02dcf::t_4a11280dd71789 1-2
+unity/Memento/Assets/Memento/Runtime/Characters.cs
+  s_1fd8d0e7b02dcf::t_831786e191861b 1-160
+unity/Memento/Assets/Memento/Runtime/Characters.cs.meta
+  s_1fd8d0e7b02dcf::t_b994b8908c3d2c 1-2
+unity/Memento/Assets/Memento/Runtime/Crowd.cs
+  s_1fd8d0e7b02dcf::t_6097c4ca37241e 1-84
+unity/Memento/Assets/Memento/Runtime/Crowd.cs.meta
+  s_1fd8d0e7b02dcf::t_b748c91bd1a837 1-2
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_1fd8d0e7b02dcf::t_e9f7f537281f87 1-351
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs.meta
+  s_1fd8d0e7b02dcf::t_f357df2270fb5b 1-2
+unity/Memento/Assets/Memento/Runtime/Flame.cs
+  s_1fd8d0e7b02dcf::t_d20c6dddf93de4 1-83
+unity/Memento/Assets/Memento/Runtime/Flame.cs.meta
+  s_1fd8d0e7b02dcf::t_e0bdc7aba59ef2 1-2
+unity/Memento/Assets/Memento/Runtime/Game.cs
+  s_1fd8d0e7b02dcf::t_9b429ec83f60ac 1-91
+unity/Memento/Assets/Memento/Runtime/Game.cs.meta
+  s_1fd8d0e7b02dcf::t_c48442ba223442 1-2
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_1fd8d0e7b02dcf::t_90feda36753d15 1-224
+unity/Memento/Assets/Memento/Runtime/Hud.cs.meta
+  s_1fd8d0e7b02dcf::t_24013a7e9b97ac 1-2
+unity/Memento/Assets/Memento/Runtime/Interact.cs
+  s_1fd8d0e7b02dcf::t_d2d197f5500ff5 1-40
+unity/Memento/Assets/Memento/Runtime/Interact.cs.meta
+  s_1fd8d0e7b02dcf::t_8e8482088f4d82 1-2
+unity/Memento/Assets/Memento/Runtime/Json.cs
+  s_1fd8d0e7b02dcf::t_37df8549f070f5 1-106
+unity/Memento/Assets/Memento/Runtime/Json.cs.meta
+  s_1fd8d0e7b02dcf::t_1a7b7024e842da 1-2
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_508d74060d0366 1-143
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs.meta
+  s_1fd8d0e7b02dcf::t_cba63191d5361a 1-2
+unity/Memento/Assets/Memento/Runtime/Npc.cs
+  s_1fd8d0e7b02dcf::t_4bcd82a3666f7f 1-115
+unity/Memento/Assets/Memento/Runtime/Npc.cs.meta
+  s_1fd8d0e7b02dcf::t_d1c7388a84723f 1-2
+unity/Memento/Assets/Memento/Runtime/Pad.cs
+  s_1fd8d0e7b02dcf::t_e517a770b3f371 1-71
+unity/Memento/Assets/Memento/Runtime/Pad.cs.meta
+  s_1fd8d0e7b02dcf::t_e90ff3a08a5e42 1-2
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_55e71cb18f2d58 1-110
+unity/Memento/Assets/Memento/Runtime/Play.cs.meta
+  s_1fd8d0e7b02dcf::t_f9375b38eda881 1-2
+unity/Memento/Assets/Memento/Runtime/Player.cs
+  s_1fd8d0e7b02dcf::t_52f89ad04b0c94 1-234
+unity/Memento/Assets/Memento/Runtime/Player.cs.meta
+  s_1fd8d0e7b02dcf::t_b50e81426783c7 1-2
+unity/Memento/Assets/Memento/Runtime/Story.cs
+  s_1fd8d0e7b02dcf::t_cda5e26270a97d 1-276
+unity/Memento/Assets/Memento/Runtime/Story.cs.meta
+  s_1fd8d0e7b02dcf::t_05eeaeb62db7f1 1-2
+unity/Memento/Assets/Memento/Runtime/TitleScreen.cs
+  s_1fd8d0e7b02dcf::t_0040ddb9e75e7c 1-31
+unity/Memento/Assets/Memento/Runtime/TitleScreen.cs.meta
+  s_1fd8d0e7b02dcf::t_7cb8c0674a39dc 1-2
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_41f0e0961204f1 1-194
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs.meta
+  s_1fd8d0e7b02dcf::t_eec17881126709 1-2
+unity/Memento/Assets/Memento/Scenes.meta
+  s_1fd8d0e7b02dcf::t_88c2e16429f1e5 1-8
+unity/Memento/Assets/Memento/Scenes/Desert.unity
+  s_1fd8d0e7b02dcf::t_276f3ee8619ec2 1-181
+unity/Memento/Assets/Memento/Scenes/Desert.unity.meta
+  s_1fd8d0e7b02dcf::t_17e0f98306d368 1-7
+unity/Memento/Assets/Memento/Scenes/Title.unity
+  s_1fd8d0e7b02dcf::t_f63132206d522e 1-170
+unity/Memento/Assets/Memento/Scenes/Title.unity.meta
+  s_1fd8d0e7b02dcf::t_339136ed14ca37 1-7
+unity/Memento/Assets/Memento/Shaders.meta
+  s_1fd8d0e7b02dcf::t_71c8d302334ae4 1-8
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_3fcc859fc3661f 1-411
+unity/Memento/Assets/Memento/Shaders/Composite.shader.meta
+  s_1fd8d0e7b02dcf::t_26279f4e1329c9 1-9
+unity/Memento/Assets/Memento/Shaders/Flame.shader
+  s_1fd8d0e7b02dcf::t_87bf27a2dea3c5 1-68
+unity/Memento/Assets/Memento/Shaders/Flame.shader.meta
+  s_1fd8d0e7b02dcf::t_77ad8387b7213c 1-9
+unity/Memento/Assets/Memento/Shaders/MementoCommon.hlsl
+  s_1fd8d0e7b02dcf::t_8e45b6ffee94a8 1-340
+unity/Memento/Assets/Memento/Shaders/MementoCommon.hlsl.meta
+  s_1fd8d0e7b02dcf::t_9071e34c334edf 1-7
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_2ce4b1ca5a41e9 1-376
+unity/Memento/Assets/Memento/Shaders/Surface.shader.meta
+  s_1fd8d0e7b02dcf::t_c4221d141706da 1-9
+unity/Memento/Assets/Scenes.meta
+  s_1fd8d0e7b02dcf::t_87b6c56fc0e359 1-8
+unity/Memento/Assets/Scenes/SampleScene.unity
+  s_1fd8d0e7b02dcf::t_1fecaf3ead8330 1-432
+unity/Memento/Assets/Scenes/SampleScene.unity.meta
+  s_1fd8d0e7b02dcf::t_4b5cddf6bfb304 1-7
+unity/Memento/Assets/Settings.meta
+  s_1fd8d0e7b02dcf::t_279a9c3f065d77 1-8
+unity/Memento/Assets/Settings/DefaultVolumeProfile.asset
+  s_1fd8d0e7b02dcf::t_9305b3b4c5fb98 1-983
+unity/Memento/Assets/Settings/DefaultVolumeProfile.asset.meta
+  s_1fd8d0e7b02dcf::t_5eb3f9e9ab191d 1-8
+unity/Memento/Assets/Settings/Mobile_RPAsset.asset
+  s_1fd8d0e7b02dcf::t_20922add490a25 1-144
+unity/Memento/Assets/Settings/Mobile_RPAsset.asset.meta
+  s_1fd8d0e7b02dcf::t_9db565bdef1ed4 1-8
+unity/Memento/Assets/Settings/Mobile_Renderer.asset
+  s_1fd8d0e7b02dcf::t_d35a9b589058a8 1-52
+unity/Memento/Assets/Settings/Mobile_Renderer.asset.meta
+  s_1fd8d0e7b02dcf::t_18bacf467050b4 1-8
+unity/Memento/Assets/Settings/PC_RPAsset.asset
+  s_1fd8d0e7b02dcf::t_0805ccbab4ff02 1-148
+unity/Memento/Assets/Settings/PC_RPAsset.asset.meta
+  s_1fd8d0e7b02dcf::t_0617141ccf9a53 1-8
+unity/Memento/Assets/Settings/PC_Renderer.asset
+  s_1fd8d0e7b02dcf::t_6583e14b0fc7a2 1-98
+unity/Memento/Assets/Settings/PC_Renderer.asset.meta
+  s_1fd8d0e7b02dcf::t_b20d22a4dd288d 1-8
+unity/Memento/Assets/Settings/SampleSceneProfile.asset
+  s_1fd8d0e7b02dcf::t_091b66520ee29e 1-159
+unity/Memento/Assets/Settings/SampleSceneProfile.asset.meta
+  s_1fd8d0e7b02dcf::t_de10424e5a81be 1-8
+unity/Memento/Assets/Settings/UniversalRenderPipelineGlobalSettings.asset
+  s_1fd8d0e7b02dcf::t_4868868562f124 1-484
+unity/Memento/Assets/Settings/UniversalRenderPipelineGlobalSettings.asset.meta
+  s_1fd8d0e7b02dcf::t_0a8f5a1fff608f 1-8
+unity/Memento/Assets/StreamingAssets.meta
+  s_1fd8d0e7b02dcf::t_71fae87677bcd0 1-8
+unity/Memento/Packages/manifest.json
+  s_1fd8d0e7b02dcf::t_52169e6cd353fd 1-49
+unity/Memento/Packages/packages-lock.json
+  s_1fd8d0e7b02dcf::t_d390ed14ede2a6 1-495
+unity/Memento/ProjectSettings/AudioManager.asset
+  s_1fd8d0e7b02dcf::t_23ce308c3d72c0 1-19
+unity/Memento/ProjectSettings/ClusterInputManager.asset
+  s_1fd8d0e7b02dcf::t_e2f4d51c4e3bba 1-6
+unity/Memento/ProjectSettings/DynamicsManager.asset
+  s_1fd8d0e7b02dcf::t_9b06a893d59162 1-45
+unity/Memento/ProjectSettings/EditorBuildSettings.asset
+  s_1fd8d0e7b02dcf::t_9f09ab21228144 1-15
+unity/Memento/ProjectSettings/EditorSettings.asset
+  s_1fd8d0e7b02dcf::t_608c976d62f545 1-53
+unity/Memento/ProjectSettings/GraphicsSettings.asset
+  s_1fd8d0e7b02dcf::t_a7341700460dd1 1-82
+unity/Memento/ProjectSettings/InputManager.asset
+  s_1fd8d0e7b02dcf::t_fb13fde4646467 1-487
+unity/Memento/ProjectSettings/MemorySettings.asset
+  s_1fd8d0e7b02dcf::t_0876ba1b97591b 1-35
+unity/Memento/ProjectSettings/MultiplayerManager.asset
+  s_1fd8d0e7b02dcf::t_d9681ceaaef17b 1-7
+unity/Memento/ProjectSettings/NavMeshAreas.asset
+  s_1fd8d0e7b02dcf::t_895ffb80d31111 1-91
+unity/Memento/ProjectSettings/PackageManagerSettings.asset
+  s_1fd8d0e7b02dcf::t_ba664464e6deb8 1-44
+unity/Memento/ProjectSettings/Physics2DSettings.asset
+  s_1fd8d0e7b02dcf::t_b09b172d80c576 1-56
+unity/Memento/ProjectSettings/PhysicsCoreProjectSettings2D.asset
+  s_1fd8d0e7b02dcf::t_3bd48781519d66 1-6
+unity/Memento/ProjectSettings/PresetManager.asset
+  s_1fd8d0e7b02dcf::t_2f3ef6b7d1c337 1-7
+unity/Memento/ProjectSettings/ProjectAuditorSettings.asset
+  s_1fd8d0e7b02dcf::t_eb182b720d6039 1-36
+unity/Memento/ProjectSettings/ProjectSettings.asset
+  s_1fd8d0e7b02dcf::t_c155860c984724 1-954
+unity/Memento/ProjectSettings/ProjectVersion.txt
+  s_1fd8d0e7b02dcf::t_dd72782b6718bc 1-2
+unity/Memento/ProjectSettings/QualitySettings.asset
+  s_1fd8d0e7b02dcf::t_10a96f8b7b16ba 1-137
+unity/Memento/ProjectSettings/SceneTemplateSettings.json
+  s_1fd8d0e7b02dcf::t_79e25c83818435 1-121
+unity/Memento/ProjectSettings/ShaderGraphSettings.asset
+  s_1fd8d0e7b02dcf::t_e5ec663f902949 1-19
+unity/Memento/ProjectSettings/TagManager.asset
+  s_1fd8d0e7b02dcf::t_9f17374869dfe8 1-76
+unity/Memento/ProjectSettings/TimeManager.asset
+  s_1fd8d0e7b02dcf::t_339c3dc04a30dc 1-9
+unity/Memento/ProjectSettings/URPProjectSettings.asset
+  s_1fd8d0e7b02dcf::t_bf71742b3169ef 1-15
+unity/Memento/ProjectSettings/UnityConnectSettings.asset
+  s_1fd8d0e7b02dcf::t_7b8481e83700d1 1-42
+unity/Memento/ProjectSettings/VFXManager.asset
+  s_1fd8d0e7b02dcf::t_b8dcc12cd3fd9b 1-12
+unity/Memento/ProjectSettings/VersionControlSettings.asset
+  s_1fd8d0e7b02dcf::t_5f1fbfba1fc301 1-8
+unity/Memento/ProjectSettings/XRSettings.asset
+  s_1fd8d0e7b02dcf::t_73c1f80bbc1ee1 1-10
+unity/README.md
+  s_1fd8d0e7b02dcf::t_718318a6a17b6d 1-252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7fb4da2ecf95e3a722c33b0efa7a31e36ce4374a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
