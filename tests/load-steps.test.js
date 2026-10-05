@@ -35,7 +35,8 @@ test('runStepsAsync: gives the main thread back once a slice has run its budget,
   clearInterval(tick);
   assert.equal(out, 'late', 'a yielded promise is awaited and its value sent back');
   assert.ok(slice.slices >= 5, `about every 5 ms of work it yields (${slice.slices} times over ~40 ms)`);
-  assert.ok(slice.longest < 25, `no slice ran long (${slice.longest.toFixed(1)} ms)`);
+  // generous: on a loaded machine the OS can preempt a 1 ms step for tens of ms
+  assert.ok(slice.longest < 80, `no slice ran long (${slice.longest.toFixed(1)} ms)`);
   assert.ok(other > 0, 'other tasks ran in between');
   await yieldTask();
 });

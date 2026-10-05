@@ -62,7 +62,7 @@ letters.
 `src/story/scripts.js` writes a line in the speaker's script; the dialogue panel shows
 each word in it as it is said and turns it into English a moment later
 (`revealHtml` in `src/story/dialogue.js`: a word turns `LAG` letters after it is said,
-its English fading in under its glyphs over `FADE` more).
+its English fading in under its glyphs over `FADE` more; 5 and 5, docs/systems/conversations.md).
 - **One script a world** (`SCRIPTS`, by tongue): Qanati, a cursive abjad joined along the
   baseline, right to left (the desert); runes with dots between words (City-Shaft); a
   bird's track a word, a dot for each word the voice leaves out (Vael); an abugida
@@ -113,8 +113,8 @@ distances and heights, and over the shoulder as a last resort. Each is scored by
 the heightfield, a ball test for an eye pressed into a wall, bystanders' capsules (NPCs and
 crowd people near you) and the two people's own bodies (the traveller's back must not hide
 the other face or the thing); every step away from the ideal framing costs a little. The
-cheapest wins. `Dialogue.frameCamera` asks again every 0.6 s (people walk into shots), eases
-to the new pick, and pulls the camera in along a line it was scored on if something still
+cheapest wins. `Dialogue.frameCamera` asks again every 0.6 s (people walk into shots); a small
+change is eased, a new angle is a cut (never a swing round the pair; docs/systems/conversations.md), and pulls the camera in along a line it was scored on if something still
 cuts it. A thing whose `at` is only where you stand (the foot of the stone hand) passes the
 part to look at as `dialogue.start(def, null, at, look)`. While a conversation is open
 `player.faceToward` turns the traveller to the person or the thing.
