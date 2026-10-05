@@ -1,0 +1,69 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_c11b644ca3c3f4 67-72
+changelog.md
+  s_1fd8d0e7b02dcf::t_34c9a1aa6a4f78 5-15
+docs/systems/boss-hints.md
+  s_1fd8d0e7b02dcf::t_b17815607a08c5 1-29
+docs/systems/scout.md
+  s_1fd8d0e7b02dcf::t_219a4729c7b6ab 43-44
+docs/systems/ui.md
+  s_1fd8d0e7b02dcf::t_43f235f8dfef94 136-137,149-151
+index.html
+  s_1fd8d0e7b02dcf::t_3502cdbb66e180 376,470,486
+src/audio.js
+  s_1fd8d0e7b02dcf::t_6da12eea5b2222 1080-1081,1087
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_dc22f233243c8c 5-7,9-18,613-615
+src/main.js
+  s_1fd8d0e7b02dcf::t_ba7f1fcba25344 9-10,12,483-485,844,945-948,951,954-955,957-958
+src/prompt-keys.js
+  s_1fd8d0e7b02dcf::t_1cb7656ef12b86 9-29
+src/quest.js
+  s_1fd8d0e7b02dcf::t_1b85f0f0ad7b7e 4,54-56
+src/scout.js
+  s_1fd8d0e7b02dcf::t_ec5fd65adc8e2d 12-16,26-34,130,133-135,139-141,145,151-152,154-155,157,159,186,193-194,196,204-212,224-226,231,316,393-397,434,440-441,478,480,482,486,491,497,501-502,504
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_bc820844d098ae 14-15,60-61,304
+src/story/moment.js
+  s_1fd8d0e7b02dcf::t_607bb2c0099148 3,192
+src/temples/boss.js
+  s_1fd8d0e7b02dcf::t_8a484be3908258 11-12,14-15,30,44-54,313-314
+src/temples/edena.js
+  s_1fd8d0e7b02dcf::t_ec3f9b4fefd385 107-109
+src/temples/guardians.js
+  s_1fd8d0e7b02dcf::t_61ca9e543c6a52 563-572,589,607-612
+src/temples/hints.js
+  s_1fd8d0e7b02dcf::t_0eb158f0060284 1-188
+src/temples/incal.js
+  s_1fd8d0e7b02dcf::t_208d2239e30750 9,83-84,362-372
+src/temples/runtime.js
+  s_1fd8d0e7b02dcf::t_05da75d64c4ec9 8,199-201,210,212,215,219,227
+src/ui.js
+  s_1fd8d0e7b02dcf::t_8d6ba6ad9df522 92,233-236,269,360-366,372,377,380,388,400-402,404,411-412
+tests/bosses.test.js
+  s_1fd8d0e7b02dcf::t_0689990a605013 1-130
+tests/hud.test.js
+  s_1fd8d0e7b02dcf::t_c79b82bc1627e6 80-81,83,85-94
+tests/menus.test.js
+  s_1fd8d0e7b02dcf::t_7738e3fa429ee4 56-80
+tests/scout.test.js
+  s_1fd8d0e7b02dcf::t_ef0a4af3663181 4,56-57,59-60,64,69-70,90,189,193-194,197-247
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_c6eee5acd21021 26,1385-1388,1396-1398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9419992023197bd602c11da2fe578085006ba13e",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
