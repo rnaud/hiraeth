@@ -1,0 +1,35 @@
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_57b124d3696300 129
+unity/Memento/Assets/Memento/Runtime/Ambient.cs
+  s_1fd8d0e7b02dcf::t_9972006d7b4653 32-33,70-80,181-199
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_dbde2f6751e3bf 41-42,113
+unity/Memento/Assets/Memento/Shaders/Mote.shader.meta
+  s_1fd8d0e7b02dcf::t_b60416789a5eb6 1-9
+unity/Memento/Assets/Memento/Shaders/Mote.shader
+  s_e8dbbd96348ca3::t_e7e55133806a33 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ac5d1caa4f494caca6dbf87237a9532adcef69a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e8dbbd96348ca3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a29adbe5d4f84ffb4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
