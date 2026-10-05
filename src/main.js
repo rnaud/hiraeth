@@ -33,6 +33,7 @@ import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
 import { spawnNPCsSteps, pooledNPC, registerNPCTargets } from './npc.js';
+import { spawnAliens, alienSpots } from './aliens/index.js';
 import { Crowd, CROWD_DIST_CELL, CROWD_BUDGET, buildPeopleSteps } from './crowd.js';
 import { Journal, Relics, Story, Errands } from './quest.js';
 import { CONTENT, ERRANDS } from './levels/content.js';
@@ -420,7 +421,7 @@ const npcs = await runStepsAsync(spawnNPCsSteps(scene, physics, content.npcs, { 
 await slice();
 // city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
 const crowdSpots = level.crowdSpots ? { lines: level.crowdLines, ...level.crowdSpots() } : null;
-const crowdClear = content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 }));
+const crowdClear = [...content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })), ...alienSpots(levelId)];   // (and the aliens' places: src/aliens/)
 const crowdT0 = performance.now();
 const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear }), slice) : null;
 // (the near tier's bodies one at a time: each is a person built and dressed)
@@ -434,6 +435,7 @@ const crowd = level.crowdSpots ? new Crowd(scene, physics, {
 if (crowd && mhPeople) mhPeople.then((p) => p?.warm());   // (the crowd's MakeHuman bodies made ahead, while idle)
 if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${(performance.now() - crowdT0).toFixed(0)} ms`); }
 registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
+npcs.push(...spawnAliens(scene, physics, levelId));   // the world's non-humanoid people (src/aliens/: their own targets, talkable by their def.talk)
 await slice();
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });

@@ -78,7 +78,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 - [ ] Robes still fly through people until I get close.
 - [ ] Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves…
-- [ ] Alien species on the planets: non-humanoid characters (people, not animals).
+- [x] Alien species on the planets: non-humanoid characters (people, not animals). (Four peoples with procedural bodies, no skeleton: drifters in the Garden of Spheres, stilt-walkers in Vael, shellbacks in Lorn II, murmurs in the Signal Market, three or four each. Each has its own idle and movement, voice and script, tones shown as glow and gesture, a portrait and two-shot, listen-only talk with quest hints, its own reaction to the fluid tool, levels of detail and shadows. docs/systems/aliens.md)
 
 ## The app
 

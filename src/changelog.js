@@ -19,6 +19,11 @@ export const CHANGELOG = [
     'The traveller has a new look: tousled dark hair, a loose coral overshirt, cream trousers rolled above worn ankle boots, a beige scarf and a round satchel. His sleeves are rolled up and his face is uncovered.',
     'The glass backpack is smaller, with green fittings, faded turquoise and lavender cloth ties, and a dark wrist tool. The makers’ star sits on his lapel and the lantern hangs below the scout’s dock.',
     'The character studio can show the complete fluid backpack and wrist tool while you inspect an outfit or animation.',
+    'Not everyone out there is built like you. In the Garden of Spheres, old drifters float over the grass: pale ribbed bells with a glowing heart and long threads.',
+    'In Vael, tall stilt-walkers pace the plain on three long legs, with a lantern for a head. In Lorn II, shellbacks glide along the lit path, carrying their spiral houses. In the Signal Market, murmurs, five small pale bulbs who speak as one, hop through the crowd together.',
+    'You can talk to all of them. Each people has its own voice and its own writing, which the translator turns into your words. They have no faces, so a line’s mood shows in how they glow and move: a brighter heart, a lowered lantern, drooping eye stalks, a huddle.',
+    'Some of them know what you are looking for. They give hints while your quest is at that step, and they have news once a world’s story is done.',
+    'They react to your fluid in their own ways. Push a drifter and it floats away and drifts back; a stilt-walker totters and steps to keep its balance; a shellback pulls into its shell and rolls; the murmurs scatter and hop back together.',
   ] },
   { v: '0.62', date: '2026-10-05', items: [
     'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',

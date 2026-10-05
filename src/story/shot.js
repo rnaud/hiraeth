@@ -150,13 +150,15 @@ const portraitPull =(aspect) => THREE.MathUtils.clamp(1.25 / (aspect || 1.6), 1,
  */
 export function pickTwoShot({ a, b, faceA = null, faceB = null, up = UPY, aspect = 1.6, from = null, sight = null, people = [], prefer = null }) {
   const fa = faceA ?? a.clone().addScaledVector(up, 1.55), fb = faceB ?? b.clone().addScaledVector(up, 1.55);
-  const mid = a.clone().lerp(b, 0.5).addScaledVector(up, 1.45);
+  // (someone much taller, a stilt-walker's lantern 4 m up: the shot rises and steps back to hold both faces; people are unchanged)
+  const ha = _d.subVectors(fa, a).dot(up), hb = _d.subVectors(fb, b).dot(up);
+  const mid = a.clone().lerp(b, 0.5).addScaledVector(up, Math.max(1.45, (ha + hb) / 2 - 0.1));
   const across = new THREE.Vector3().subVectors(b, a); across.addScaledVector(up, -across.dot(up));
   const sep = Math.max(across.length(), 0.8);
   if (across.lengthSq() < 1e-6) across.set(1, 0, 0);
   across.normalize();
   const side = new THREE.Vector3().crossVectors(up, across).normalize();
-  const dist = (2.0 + sep * 1.0) * portraitPull(aspect);
+  const dist = (2.0 + sep * 1.0 + Math.max(0, Math.abs(hb - ha) - 0.6)) * portraitPull(aspect);
   const phi0 = Math.atan2(sep * 0.3, dist);
   const here = from && side.dot(_d.subVectors(from, mid)) < 0 ? -1 : 1;
   const look = () => mid.clone().addScaledVector(across, 0.06 * sep).addScaledVector(up, -0.75);
