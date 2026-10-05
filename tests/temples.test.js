@@ -23,7 +23,7 @@ import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
 import { VOLLEY } from '../src/temples/garage.js';
 import { SITE as SITE_EDENA } from '../src/temples/edena.js';
-import { modeFor } from '../src/targets.js';
+import { modeFor, allTargets, hitTarget } from '../src/targets.js';
 import { createEchoShell } from '../src/echo-shell.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -1382,7 +1382,10 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
   wait(0.5);
   assert.equal(rt.logic.isOpen('d4'), false, 'the bud shuts behind you');
   P.opts.health = false;
-  G.hit('body', 'bloom');
+  // a glob as the tool fires it: through the guardian's own target (it takes fire and stilling as theirs; bloom arrives as fluid, its mode in info)
+  const glob = (mode) => { const t = allTargets().find((x) => x.kind === 'guardian' && x.enabled() && x.position().distanceTo(G.model.pos) < 12 && x.position().distanceTo(G.model.mouth) > 0.5); assert.ok(t, 'its body is a target'); hitTarget({ target: t, point: t.position() }, mode, V(0, 0, 1)); };
+  for (let i = 0; i < 6 / DT && G.state !== 'fight'; i++) frame();   // (awake and fighting: its targets take globs)
+  glob('bloom');
   assert.equal(G.meter, 0, 'its back first: it shakes the flowers off');
   for (const [i, b] of ['bed1', 'bed2', 'bed3', 'bed4'].entries()) { rt.piece(b).hit('bloom'); assert.ok(Math.abs(G.meter - (i + 1) * 0.1) < 1e-6, `a tenth for each bed (${G.meter})`); }
   for (let n = 0; n < 10 && G.state !== 'weary'; n++) {
@@ -1390,9 +1393,9 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `it kneels (${n})`);
     const before = G.meter;
-    if (n === 0) { G.hit('body', 'shoot'); assert.equal(G.meter, before, 'water does not calm it'); }
-    G.hit('body', 'bloom');
-    assert.ok(G.meter > before, `bloomed (${n}: ${G.meter.toFixed(2)})`);
+    if (n === 0) { glob('shoot'); assert.equal(G.meter, before, 'water does not calm it'); }
+    glob('bloom');
+    assert.ok(G.meter > before, `bloomed (${n}: ${G.meter.toFixed(2)}), by a bloom glob as the tool fires it`);
   }
   assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
   for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();

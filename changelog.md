@@ -4,6 +4,14 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.63 — 2026-10-05
 
+- On a controller the sketchbook, what’s new and the other panels no longer say “J to close”: they name the controller’s own back button (B on a Retroid), and that button closes them. In the menu, B closes it from any page, Quests and Controls too, and the sketchbook opened over a conversation closes before the conversation does.
+- The skip tags of the game’s little scenes name the controller’s back button too, the one printed B on your handheld.
+- No more row of pills for the tank beside the traveller or under the crosshair: the tank on your backpack shows how full it is. Only an empty tank still says “empty”, for a moment.
+- The drone no longer carries a second pointer: no lit beak, no beam on a find. It flies out the way to go, faces what it found and drops its flare there. It also really faces it now (it used to look the way it was flying).
+- A guardian’s bar is what is left of it: full when the fight starts, going down as it goes your way. A machine’s is its health; a living guardian’s is its unrest, since it is calmed, never hurt. The bar sits above the line at the bottom of the screen.
+- The warden in the Warden’s Well: once it shuts its sides, the hatch on its crown visibly swings up and a column of its glow rises out of it every time it opens, so you can see from the floor that it is still opening, and it says so. In its first phase a shot into any of its side vents counts, not only the one in front.
+- In a guardian’s fight, ping the drone (Q, Y / △, or ping on a touch screen) for a hint: it chirps, rises over your shoulder, turns its lens on the weak point or the thing to use with a short beam, and the line at the bottom says what to do. Ping again and it says it more plainly. Every guardian has its own hints, the gentle way first.
+- The Gardener in the Builders’ Greenhouse can be calmed again: a bloom shot on its bare back used to count as plain water.
 - The desert’s sky is clear now, as in its drawings: no bank of clouds on the horizon, and the far dunes fade into a pale warm band.
 - Steep dune faces in shade are hatched again with dense strokes, while flat sand in shade stays a calm tone.
 - The City-Shaft is drawn with fewer hatch strokes and a clean sky, and its houses have fewer, smaller windows.

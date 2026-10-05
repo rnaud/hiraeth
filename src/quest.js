@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { slotStorage } from './save-slots.js';
+import { closeHint } from './prompt-keys.js';
 
 // Story, collectibles and the sketchbook journal (worlds are reached by the ship: src/ship/).
 //  - Story: one quiet goal per level, marked by a beacon. A first visit and
@@ -50,6 +51,9 @@ export class Journal {
   toggle(on = !this.open) {
     this.open = on;
     if (on) { this.render(); document.exitPointerLock?.(); }
+    // how to close it, for the hands on the game (a controller's back button, not the J key)
+    const hint = on && this.el.querySelector('header .hint');
+    if (hint) hint.textContent = closeHint('J or Esc');
     this.el.classList.toggle('open', on);
   }
 

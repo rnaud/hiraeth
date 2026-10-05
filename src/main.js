@@ -6,8 +6,10 @@ import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
-import { Scout, nextObjective, findText, roughDistance } from './scout.js';
+import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
+import { guardianHint } from './temples/hints.js';
 import { cueText, Cue, PlaceName, Fader, questsPageHtml } from './hud.js';
+import { closeHint, inputKind } from './prompt-keys.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
@@ -478,6 +480,9 @@ const scout = new Scout({ scene, player, physics, sound,
   getTarget: () => nextObjective({ player, expedition, story, ship: level.ship, level, quest: () => storyRt.objective() }),
   onFind: (target, d) => { scoutSays(`◆ ${findText(target, d)}`, 5); storyRt.marker.reveal(); },
   onShrug: () => scoutSays('Nothing to find here', 2.5),
+  // in a guardian's fight the ping is a hint: the lens on the weak point, the line on the cue (src/temples/hints.js)
+  getHint: () => guardianHint(level.temple),
+  onHint: (line) => scoutSays(`◇ ${line}`, HINT.say),
 });
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
@@ -836,7 +841,7 @@ picker.querySelector('.cards').innerHTML = pickable.map((l, i) => false ? `
 function showPicker(on) {
   if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
-  if (on) document.exitPointerLock?.();
+  if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'press a number · L to toggle this screen' : closeHint(''); }
 }
 showPicker(query.get('worlds') === '1');   // (the title's and the Start menu's Debug entry) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
@@ -937,17 +942,20 @@ document.body.appendChild(controllerHint);
 // what a controller press goes to: the topmost thing open (a story page sits over a conversation)
 const pageEl = document.getElementById('page');
 const pageUp = () => pageEl.classList.contains('open');
-const menuRoot = () => restartOpen ? restartEl : boxes.busy() && boxes.card.el ? boxes.card.el : menu.open ? menu.el : changelog.open ? changelog.el : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : journal.open ? journal.el : picker.classList.contains('open') ? picker : pageEl;
+// (in the order they stack on the screen: what's new, the Start menu, the sketchbook over a box's card, the
+// worlds, a story page, a conversation; B / ○ closes the one on top, so the sketchbook opened over a
+// conversation or a moment closes first)
+const menuRoot = () => restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl;
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
-  if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
-  else if (boxes.busy()) boxes.skip();
+  if (changelog.open) changelog.toggle(false);
   else if (menu.open) menu.back();
-  else if (changelog.open) changelog.toggle(false);
+  else if (journal.open) journal.toggle(false);
+  else if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
+  else if (boxes.busy()) boxes.skip();
+  else if (picker.classList.contains('open')) showPicker(false);
   else if (pageUp()) pageEl.click();
   else if (storyRt.dialogue.open) storyRt.dialogue.close();
-  else if (journal.open) journal.toggle(false);
-  else if (picker.classList.contains('open')) showPicker(false);
   else pageEl.click();
 };
 const controller = new Controller({

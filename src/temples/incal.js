@@ -6,6 +6,7 @@ import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
 import { Door, Plate, Ball, Switch, Platform, Mark, Pit } from './pieces.js';
 import { sentinelModel } from './guardians.js';
 import { items } from '../items.js';
+import { registerTarget } from '../targets.js';
 
 // The City-Shaft's temple: the Warden's Well, the makers' tower on the rim,
 // round from the ship. Nobody in the city goes in: the rim calls it a folly,
@@ -79,7 +80,8 @@ export const WARDEN = {
   resolved: 'The warden sags on its legs. Its eye goes dark, and the hum in the walls stops. Then, far below, a sound like breathing.',
   phases: [
     { to: 0.5, attacks: ['beam', 'mortar'], pause: 1.6, hint: 'Its eye sweeps the floor: keep out of its line. When its side vents open, shoot them.' },
-    { to: 1.0, attacks: ['slam', 'beam', 'mortar'], pause: 1.3, hint: 'It shuts its sides. Only the vent on its crown is open now: get above it, and shoot down.' },
+    { to: 1.0, attacks: ['slam', 'beam', 'mortar'], pause: 1.3, hint: 'It shuts its sides. Only the vent on its crown is open now: get above it, and shoot down.',
+      openHint: 'The hatch on its crown swings up, glowing: its sides stay shut. Get above it, and shoot down into it.' },
   ],
   attacks: {
     beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 0.22, knock: 10, recover: 0.8, open: 2.8 },
@@ -357,4 +359,15 @@ export const INCAL_TEMPLE = {
   arrivalLine: 'The jets the makers left for this city are in their tower on the rim, round from the ship.',
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Far below the rim, by the Upward Shrine, the shaft has begun to breathe again.', 'resolved.out'); },
+  // its side vents: each a target while they are open in the first phase (the guardian's own weak point is
+  // the one at its front: a shot into one round its side or back counts the same)
+  onConnect(rt) {
+    const G = rt.guardian;
+    if (!G?.model.vent) return;
+    for (let i = 0; i < 3; i++) {
+      const at = V();
+      rt.offs.push(registerTarget({ kind: 'sentinel', radius: 0.8, position: () => G.model.vent(i, at), enabled: () => G.state === 'open' && G.phaseIndex === 0,
+        onHit: (mode, point, dir, info) => G.hit('mouth', mode, dir, info) }));
+    }
+  },
 };

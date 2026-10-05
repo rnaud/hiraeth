@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { talkFaces } from '../talk-face.js';
+import { backKey } from '../native-pad.js';
 
 // A moment: a short cinematic of its own (6–12 s) for a first time that deserves one, drawn
 // like a page of a comic: a few shots ("panels", each a camera move or a hold), the letterbox,
@@ -188,7 +189,7 @@ export class Moment {
 /** The label of the skip tag (the pad's B, the keyboard's Esc, a tap). */
 export function skipLabel(doc = typeof document !== 'undefined' ? document : null) {
   const b = doc?.body?.classList;
-  if (b?.contains?.('controller')) return 'B / ○ skip';
+  if (b?.contains?.('controller')) return `${backKey()} skip`;   // (the button printed B: on a Retroid, the bottom one)
   if (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) return 'tap to skip';
   return 'Esc skip';
 }
