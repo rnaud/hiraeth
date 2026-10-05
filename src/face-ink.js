@@ -51,6 +51,22 @@ export function noseSide(toward, prev = 1) {
   return toward > 0 ? -1 : 1;
 }
 
+/**
+ * How young a face reads (0 a grown face .. 1 a child's), for the ink (uMood2.z): an explicit
+ * `face.young`, else from the face's proportions, the way a child's differ: a short lower face,
+ * big eyes, a small nose, a soft brow and chin, a big head (the body morph's headSize); age lines
+ * take it back. The traveller (about 26) comes out a little over half: little hatching, no folds.
+ */
+export function faceYouth(face = {}, headSize = 1) {
+  const f = face ?? {};
+  if (Number.isFinite(f.young)) return Math.min(1, Math.max(0, f.young));
+  const v = (k, d) => (Number.isFinite(f[k]) ? f[k] : d);
+  const y = Math.max(0, (1 - v('faceLength', 1)) / 0.15) * 0.3 + Math.max(0, (v('eyeSize', 1) - 1) / 0.4) * 0.3
+    + Math.max(0, (1 - v('noseLength', 1)) / 0.5) * 0.2 + Math.max(0, -v('browRidge', 0)) * 0.1 + Math.max(0, -v('chin', 0)) * 0.1
+    + Math.max(0, (headSize - 1) / 0.3) * 0.3;
+  return Math.min(1, Math.max(0, y - Math.max(0, v('lines', 1) - 1) * 0.5));
+}
+
 /** Where the ears sit (bind z of their centre, m), per body. */
 export const EAR_Z = { m: -0.016, f: -0.025 };
 
@@ -129,6 +145,9 @@ export const FACE_INK_GLSL = /* glsl */ `
     float smile = uMood.x, gape = uMood.y, brow = uMood.z, squint = uMood.w, tilt = uMood2.x;
     float lines = uFaceKit.x, es = uFaceKit2.x, nw = uFaceKit2.y, cheeks = uFaceKit2.z;
     float fs = max(smile, 0.0), sad = max(-smile, 0.0);
+    // youth (uMood2.z, faceYouth): a child's face is all but bare, a young one keeps a little
+    float young = uMood2.z, old = 1.0 - young;
+    lines *= old;
     // the side the nose line goes on: the shade's (uMood2.y: +1 the +x side; Humanoid.updateEyes)
     float sx = vBind.x < 0.0 ? -1.0 : 1.0;
     float shadeSide = smoothstep(-0.4, 0.4, sx * uMood2.y);
@@ -146,17 +165,17 @@ export const FACE_INK_GLSL = /* glsl */ `
     float lift = 0.0025 * fs + 0.002 * squint;    // a smile or a squint pushes the lower lid up
     float lidDrop = 0.0032 * squint - 0.0012 * max(brow, 0.0);
     // the crease over the lid: a fine arch, lowered by a squint, lifted with the brow
-    m = max(m, fkArc(q, E + vec2(0.0006, 0.0098 * es - lidDrop), 0.0128 * es, -0.0046 * es, -0.05, 0.7 * W * uFaceKit.w, 0.15, fwq) * lod2 * 0.9);
+    m = max(m, fkArc(q, E + vec2(0.0006, 0.0098 * es - lidDrop), 0.0128 * es, -0.0046 * es, -0.05, 0.7 * W * uFaceKit.w, 0.15, fwq) * lod2 * 0.9 * (1.0 - 0.7 * young));
     // the flick at the outer corner, out and a little down
     vec2 oc = E + vec2(0.0118 * es, 0.0006 - lidDrop * 0.3);
-    m = max(m, fkSeg(q, oc, oc + vec2(0.0042, -0.0016) * es, 1.25 * W * uFaceKit.w, 0.2 * W, fwq) * lod1);
+    m = max(m, fkSeg(q, oc, oc + vec2(0.0042, -0.0016) * es, 1.25 * W * uFaceKit.w * (1.0 - 0.35 * young), 0.2 * W, fwq) * lod1 * (1.0 - 0.3 * young));
     // the lower lid: a tick under its outer half; the tear duct
-    m = max(m, fkArc(q, E + vec2(0.0042 * es, -0.0072 * es + lift), 0.0062 * es, 0.0016, 0.12, 0.65 * W, 0.1, fwq) * lod2 * 0.85);
-    m = max(m, fkSeg(q, E + vec2(-0.0118 * es, 0.0004), E + vec2(-0.0142 * es, -0.0012), 0.7 * W, 0.2 * W, fwq) * lod2 * 0.8);
+    m = max(m, fkArc(q, E + vec2(0.0042 * es, -0.0072 * es + lift), 0.0062 * es, 0.0016, 0.12, 0.65 * W, 0.1, fwq) * lod2 * 0.85 * (1.0 - 0.75 * young));
+    m = max(m, fkSeg(q, E + vec2(-0.0118 * es, 0.0004), E + vec2(-0.0142 * es, -0.0012), 0.7 * W, 0.2 * W, fwq) * lod2 * 0.8 * (1.0 - 0.6 * young));
     // age: bags under the eyes, crow's feet at the outer corners (squinting and smiling deepen both)
     float age = clamp(lines - 0.5, 0.0, 1.5);
-    m = max(m, fkArc(q, E + vec2(0.0035, -0.0118 * es + lift), 0.0085 * es, 0.0022, 0.1, 0.55 * W, 0.1, fwq) * lod3 * min(0.35 * lines + 0.35 * fs + 0.3 * squint, 1.0));
-    float crow = min(age * 0.6 + fs * 0.5 + squint * 0.5, 1.0) * lod3;
+    m = max(m, fkArc(q, E + vec2(0.0035, -0.0118 * es + lift), 0.0085 * es, 0.0022, 0.1, 0.55 * W, 0.1, fwq) * lod3 * min(0.35 * lines + 0.35 * fs + 0.3 * squint, 1.0) * old);
+    float crow = min(age * 0.6 + fs * 0.5 + squint * 0.5, 1.0) * lod3 * old * old;
     vec2 cf = E + vec2(0.0185 * es, 0.0002);
     m = max(m, fkStroke(q, cf + vec2(0.0, 0.0006), cf + vec2(0.0068, 0.0036), 0.55 * W, fwq) * crow);
     m = max(m, fkStroke(q, cf + vec2(0.0006, -0.0006), cf + vec2(0.0074, -0.0012), 0.5 * W, fwq) * crow * 0.8);
@@ -166,61 +185,63 @@ export const FACE_INK_GLSL = /* glsl */ `
     // the line down the shadow side of the bridge, from under the brow to the wing
     float bridge = fkSeg(n, vec2(0.0085, 0.38 * ny), vec2(0.0112, 0.76 * ny), 0.15 * W, 0.8 * W, fwq);
     bridge = max(bridge, fkSeg(n, vec2(0.0112, 0.76 * ny), vec2(0.0142, ny + 0.0008), 0.8 * W, 1.0 * W, fwq));
-    m = max(m, bridge * shadeSide * lod2);
+    m = max(m, bridge * shadeSide * lod2 * old);
     // the hook round the wing, into the nostril (the lit side's lighter and shorter)
-    vec2 wing = vec2(0.0152, ny - 0.0052);
-    m = max(m, fkCurl(n, wing, vec2(0.0052, 0.0056), -2.5, mix(0.35, 1.45, shadeSide), 1.1 * W, fwq) * mix(0.6, 1.0, shadeSide) * lod1);
+    float nk = 1.0 - 0.4 * young;   // (a child's: a tiny hook)
+    vec2 wing = vec2(0.0152 - 0.0045 * young, ny - 0.0052 * nk);
+    m = max(m, fkCurl(n, wing, vec2(0.0052, 0.0056) * nk, -2.5, mix(0.35, mix(1.45, 0.6, young), shadeSide), 1.1 * W * (1.0 - 0.3 * young), fwq) * mix(0.6, 1.0, shadeSide) * lod1);
     // the nostrils: two small dark commas
-    vec2 nd = n - vec2(0.0074, ny - 0.0104);
-    nd = mat2(0.94, 0.34, -0.34, 0.94) * nd / vec2(0.0029, 0.0012);
-    float nAA = fwq / 0.0012;
-    m = max(m, (1.0 - smoothstep(1.0 - nAA, 1.0 + nAA, length(nd))) * mix(0.75, 1.0, shadeSide) * lod2);
+    vec2 nd = n - vec2(0.0074 - 0.002 * young, ny - 0.0104 * nk);
+    nd = mat2(0.94, 0.34, -0.34, 0.94) * nd / (vec2(0.0029, 0.0012) * nk);
+    float nAA = fwq / (0.0012 * nk);
+    m = max(m, (1.0 - smoothstep(1.0 - nAA, 1.0 + nAA, length(nd))) * mix(0.75, 1.0, shadeSide) * lod2 * (1.0 - 0.45 * young));
 
     // ---- the mouth: one line whose corners rise with a smile (drop when sad), opening into a dark shape
     float my = ny + (cy - ny) * 0.42;
-    float hw = 0.019 * uFaceKit.y * (1.0 + 0.1 * smile);
+    float hw = 0.019 * uFaceKit.y * (1.0 + 0.1 * smile) * (1.0 - 0.2 * young);
     float mu = min(q.x / hw, 1.0), bend = smile * 0.0075;
     float mSlope = (0.002 + 2.0 * bend * mu) / hw;
     vec2 mEnd = vec2(hw, my + 0.002 + bend);
     float dMouth = q.x < hw ? abs(q.y - (my + 0.002 * mu + bend * mu * mu - 0.0006 * (1.0 - smoothstep(0.0, 0.3, mu)))) / sqrt(1.0 + mSlope * mSlope) : length(q - mEnd);
-    m = max(m, inkLine(dMouth / fwq, (1.25 - 0.5 * mu * mu) * (1.0 + 0.35 * abs(smile)) * W) * lod1);
+    m = max(m, inkLine(dMouth / fwq, (1.25 - 0.5 * mu * mu) * (1.0 + 0.35 * abs(smile)) * W * (1.0 - 0.3 * young)) * lod1 * (1.0 - 0.2 * young));
     // the corners: a short tick, down at rest, up with a smile
-    m = max(m, fkSeg(q, mEnd - vec2(0.0004, 0.0), mEnd + vec2(0.0024, -0.0018 + 0.0042 * fs - 0.0016 * sad), 0.8 * W, 0.2 * W, fwq) * lod2);
+    m = max(m, fkSeg(q, mEnd - vec2(0.0004, 0.0), mEnd + vec2(0.0024, -0.0018 + 0.0042 * fs - 0.0016 * sad), 0.8 * W, 0.2 * W, fwq) * lod2 * (1.0 - 0.75 * young));
     float oh = gape * 0.0085;
     if (gape > 0.001) {
       vec2 o = (q - vec2(0.0, my + smile * 0.0012 - oh * 0.85)) / vec2(hw * (0.78 - 0.18 * gape), oh);
       m = max(m, 1.0 - smoothstep(1.0 - fwq / oh, 1.0 + fwq / oh, length(o)));
     }
     // the lower lip: a short arc under the middle of the mouth
-    m = max(m, fkArc(q, vec2(0.0, my - 0.0078 - oh * 1.8), 0.0066 * uFaceKit.y, 0.0013, 0.0, 0.8 * W, 0.12, fwq) * lod2 * 0.85);
+    m = max(m, fkArc(q, vec2(0.0, my - 0.0078 - oh * 1.8), 0.0066 * uFaceKit.y, 0.0013, 0.0, 0.8 * W, 0.12, fwq) * lod2 * 0.85 * (1.0 - 0.6 * young));
     // over the chin
-    m = max(m, fkArc(q, vec2(0.0, cy + 0.0125), 0.0072, 0.0011, 0.0, 0.6 * W, 0.15, fwq) * lod3 * (0.35 + 0.35 * min(lines, 1.0)));
+    m = max(m, fkArc(q, vec2(0.0, cy + 0.0125), 0.0072, 0.0011, 0.0, 0.6 * W, 0.15, fwq) * lod3 * (0.35 + 0.35 * min(lines, 1.0)) * old);
     // the folds from the nose to the mouth (age, a smile)
-    m = max(m, fkStroke(q, vec2(0.0205 + 0.002 * fs, ny - 0.0025), vec2(0.0335 + 0.006 * fs, ny - 0.038 + 0.006 * fs), 0.8 * W, fwq) * lod2 * min(0.75 * max(lines - 0.4, 0.0) + 0.5 * fs, 1.0));
+    m = max(m, fkStroke(q, vec2(0.0205 + 0.002 * fs, ny - 0.0025), vec2(0.0335 + 0.006 * fs, ny - 0.038 + 0.006 * fs), 0.8 * W, fwq) * lod2 * min(0.75 * max(lines - 0.4, 0.0) + 0.5 * fs, 1.0) * old * old);
     // the cheekbone (a lined face)
     m = max(m, fkStroke(q, vec2(0.044, -0.019), vec2(0.062, -0.034), 0.75 * W, fwq) * lod3 * min(age * 0.7, 1.0));
 
     // ---- the brow: frown creases between the brows; lines across the forehead when raised or worried
     float fur = max(-brow, 0.0) + max(-tilt, 0.0) * 0.5;
-    m = max(m, fkStroke(q, vec2(0.0068, 0.012), vec2(0.0045, 0.030), 0.8 * W, fwq) * min(fur * 1.2, 1.0) * lod2);
+    m = max(m, fkStroke(q, vec2(0.0068, 0.012), vec2(0.0045, 0.030), 0.8 * W, fwq) * min(fur * 1.2, 1.0) * lod2 * (1.0 - 0.85 * young));
     float up = max(brow, 0.0) + max(tilt, 0.0) * 0.6;
     for (int i = 0; i < 3; i++) {
       float wd = 0.034 - float(i) * 0.005 - max(tilt, 0.0) * 0.012;
-      m = max(m, fkArc(q, vec2(0.0, 0.045 + float(i) * 0.0075), wd, -0.003, 0.0, 0.7 * W, 0.1, fwq) * min(up * (1.2 - float(i) * 0.3), 1.0) * lod2 * 0.8);
+      m = max(m, fkArc(q, vec2(0.0, 0.045 + float(i) * 0.0075), wd, -0.003, 0.0, 0.7 * W, 0.1, fwq) * min(up * (1.2 - float(i) * 0.3), 1.0) * lod2 * 0.8 * old * old);
     }
 
     // ---- hatching that follows the face (the deep shade itself stays flat), and freckles: up close only
     float shade = smoothstep(0.02, 0.2, dark);
     if (lod3 > 0.0) {
+    float hk = lod3 * old * old;   // (a young face: little hatching; a child's none)
     // the inner socket, between the eye and the bridge
-    m = max(m, fkHatch(q, vec2(0.0158, -0.0015), vec2(0.0048, 0.0075), 1.25, 0.0017, 0.55 * W, 0.35 + 0.25 * lines + 0.5 * shade, fwq) * lod3 * 0.75);
+    m = max(m, fkHatch(q, vec2(0.0158, -0.0015), vec2(0.0048, 0.0075), 1.25, 0.0017, 0.55 * W, 0.3 + 0.25 * lines + 0.35 * shade, fwq) * hk * 0.75);
     // under the outer end of the brow
-    m = max(m, fkHatch(q, vec2(e + 0.006, 0.0098), vec2(0.0062, 0.0028), -0.75, 0.0017, 0.5 * W, 0.15 + 0.2 * lines + 0.6 * shade, fwq) * lod3 * 0.7);
+    m = max(m, fkHatch(q, vec2(e + 0.006, 0.0098), vec2(0.0062, 0.0028), -0.75, 0.0017, 0.5 * W, 0.15 + 0.2 * lines + 0.6 * shade, fwq) * hk * 0.7);
     // the hollow under the cheekbone (hollow cheeks: more)
     float hollow = clamp(0.35 - 0.45 * cheeks, 0.0, 1.0);
-    m = max(m, fkHatch(q, vec2(0.0505, -0.056), vec2(0.0105, 0.0165), -1.0, 0.0026, 0.5 * W, 0.15 * lines + 0.45 * hollow + 0.6 * shade, fwq) * lod3 * 0.6);
+    m = max(m, fkHatch(q, vec2(0.0505, -0.056), vec2(0.0105, 0.0165), -1.0, 0.0026, 0.5 * W, 0.15 * lines + 0.45 * hollow + 0.6 * shade, fwq) * hk * 0.6);
     // under the lower lip
-    m = max(m, fkHatch(q, vec2(0.0, my - 0.0125 - oh * 1.8), vec2(0.008, 0.0028), 0.0, 0.0015, 0.5 * W, 0.4 + 0.5 * shade, fwq) * lod3 * 0.6);
+    m = max(m, fkHatch(q, vec2(0.0, my - 0.0125 - oh * 1.8), vec2(0.008, 0.0028), 0.0, 0.0015, 0.5 * W, 0.4 + 0.5 * shade, fwq) * hk * 0.6);
 
     // freckles: a dusting of dots over the cheeks and the bridge of the nose (seeded by the real x: not mirrored)
     if (uFaceKit.z > 0.0) {
@@ -228,14 +249,16 @@ export const FACE_INK_GLSL = /* glsl */ `
       float h = fract(sin(dot(id, vec2(12.9898, 78.233))) * 43758.5453);
       vec2 jit = vec2(fract(h * 17.0), fract(h * 31.0)) - 0.5;
       float region = exp(-pow((q.x - 0.043) / 0.022, 2.0) - pow((q.y + 0.017) / 0.012, 2.0)) + 0.7 * exp(-pow(q.x / 0.01, 2.0) - pow((q.y + 0.014) / 0.01, 2.0));
-      float dotK = 1.0 - smoothstep(0.1, 0.1 + max(fwq / 0.0042, 0.05), length(fr - jit * 0.5));
-      m = max(m, dotK * step(1.0 - uFaceKit.z * min(region, 1.0) * 0.8, h) * lod3 * 0.6);
+      float dr = 0.1 - 0.035 * young;
+      float dotK = 1.0 - smoothstep(dr, dr + max(fwq / 0.0042, 0.05), length(fr - jit * 0.5));
+      m = max(m, dotK * step(1.0 - uFaceKit.z * (1.0 - 0.5 * young) * min(region, 1.0) * 0.8, h) * lod3 * 0.5 * (1.0 - 0.4 * young));
     }
     }
     m *= frontal;
 
     // a few strokes along the shadow's edge, over the whole head (deeper in, the shade is flat)
-    float edge = smoothstep(0.02, 0.07, dark) * (1.0 - smoothstep(0.14, 0.24, dark));
+    // (a narrow band at the terminator: a face turned from the light is flat, not hatched all over)
+    float edge = smoothstep(0.02, 0.05, dark) * (1.0 - smoothstep(0.08, 0.12, dark)) * old * old;
     if (lod3 * edge > 0.0) m = max(m, fkDashes(vec2(vBind.x, q.y), 0.62, 0.0028, 0.012, 0.5 * W, 0.55, fwq) * edge * lod3 * 0.7);
 
     // ---- the ear: a curl round the rim, a smaller one inside (on the side of the head)
@@ -244,7 +267,7 @@ export const FACE_INK_GLSL = /* glsl */ `
       vec2 ep = vec2(vBind.z - uFaceKit2.w, q.y + 0.007);
       float ear = fkCurl(ep, vec2(-0.001, 0.0), vec2(0.0115, 0.021), 1.15, 4.55, 1.0 * W, fwq);
       ear = max(ear, fkCurl(ep, vec2(0.0015, -0.002), vec2(0.006, 0.011), 1.7, 4.4, 0.75 * W, fwq) * 0.85);
-      m = max(m, ear * earK);
+      m = max(m, ear * earK * (1.0 - 0.4 * young));
     }
     return m;
   }

@@ -84,6 +84,7 @@ test('the studio finds the story people of a world and dresses them as the game 
 });
 
 test('every world\'s faces: the traveller and a story person of each world, a close-up view, all in the URL', async () => {
+  assert.match(readFileSync(new URL('../studio.html', import.meta.url), 'utf8'), /<link rel="icon"[^>]*icons\/icon-192\.png/, 'its own icon: no 404 for /favicon.ico');
   const s = decodeState(encodeState({ lineup: 'faces', view: 'close', seed: 2 }));
   assert.equal(s.lineup, 'faces');
   assert.equal(s.view, 'close');
