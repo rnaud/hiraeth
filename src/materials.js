@@ -95,7 +95,7 @@ export const sharedUniforms = {
 };
 
 // ---------------------------------------------------------------------------
-// The shade's tone, per pixel (README "Shade and hatching by surface"). post.js used to shade every
+// The shade's tone, per pixel (docs/systems/materials.md, "Shade and hatching by surface"). post.js used to shade every
 // surface with albedo × the world's one shadow tint. A material now says how its shade differs
 // (makeMaterial({ shade, shadeHue, hatch })) and the surface shader adds the light's geometry:
 //   lift   0..1, how far the shade is lifted toward the lit colour: the material's own (bone, a
@@ -107,8 +107,13 @@ export const sharedUniforms = {
 // They travel to post.js packed in the hatch channels (gHatch.r += 2 × (1 + hue step), gHatch.g
 // += 2 × lift step: the strokes themselves stay in 0..1); a pixel with nothing packed (other
 // shaders, grass) takes the world's defaults. Hatching thins as the shade is lifted.
+//   flat   0..1, a shade printed flat in the world's shadow colour at the surface's value, whatever
+//          its hue (post.js uShadowFlat, the world's; makeMaterial({ shadeFlat }) a material's own:
+//          Vael II's cream, peach and rose rock all go one grey-blue in shade, its flowers don't).
+//          Packed in the hue's steps past the hues (hue steps 1 + hues + 1 … + flats: a material
+//          says its flat print or its hue, not both)
 // ---------------------------------------------------------------------------
-export const SHADE = { lifts: 15, hues: 8, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
+export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * A material's shade: [lift, hue (-1: the world's), hatch amount, strata strokes]. Metal keeps its own
  * tones and few strokes; sand (terrain with ripples or wind strokes) is shaded in fewer strokes; rock
@@ -117,18 +122,21 @@ export const SHADE = { lifts: 15, hues: 8, band: 0.42, warm: [1.06, 0.98, 0.9], 
 export function shadeOf(o) {
   const metal = !!o.metal, sand = (o.mode ?? MODE_PLAIN) === MODE_TERRAIN && (o.ripples || o.sandInk);
   const strata = (o.mode ?? MODE_PLAIN) === MODE_STRATA;
-  return [o.shade ?? 0, o.shadeHue ?? (metal ? 0.5 : sand ? 0.55 : -1), o.hatch ?? (metal ? 0.35 : sand ? 0.55 : 1), o.strataHatch ?? (strata ? 0.5 : 0)];
+  // (the second: the hue kept, 0..1, -1 the world's; or 2 + its own flat print, 0..1)
+  const hue = o.shadeFlat !== undefined ? 2 + Math.min(Math.max(o.shadeFlat, 0), 1) : o.shadeHue ?? (metal ? 0.5 : sand ? 0.55 : -1);
+  return [o.shade ?? 0, hue, o.hatch ?? (metal ? 0.35 : sand ? 0.55 : 1), o.strataHatch ?? (strata ? 0.5 : 0)];
 }
-/** The packing (mirrors the GLSL): strokes h1, h2 in 0..1 with a lift and a hue (or -1) → gHatch.r, g. */
+/** The hue step packed (mirrors the GLSL): 0 the world's, 1 … hues + 1 a hue kept, then the flat prints. */
+const hueStep = (hue) => (hue < 0 ? 0 : hue >= 2 ? SHADE.hues + 2 + Math.round(Math.min(hue - 2, 1) * SHADE.flats) : 1 + Math.round(Math.min(hue, 1) * SHADE.hues));
+/** The packing (mirrors the GLSL): strokes h1, h2 in 0..1 with a lift and a hue (-1, or 2 + a flat print) → gHatch.r, g. */
 export function packShade(h1, h2, lift, hue) {
   const lq = Math.round(Math.min(Math.max(lift, 0), 1) * SHADE.lifts);
-  const hq = hue < 0 ? 0 : 1 + Math.round(Math.min(hue, 1) * SHADE.hues);
-  return [h1 + 2 * hq, h2 + 2 * lq];
+  return [h1 + 2 * hueStep(hue), h2 + 2 * lq];
 }
-/** post.js' unpacking: [h1, h2, lift, hue (-1: the world's)]. */
+/** post.js' unpacking: [h1, h2, lift, hue (-1: the world's), flat print (-1: the world's)]. */
 export function unpackShade(r, g) {
-  const hq = Math.floor(r * 0.5), lq = Math.floor(g * 0.5);
-  return [r - 2 * hq, g - 2 * lq, lq / SHADE.lifts, hq > 0 ? (hq - 1) / SHADE.hues : -1];
+  const hq = Math.floor(r * 0.5), lq = Math.floor(g * 0.5), flat = hq > SHADE.hues + 1;
+  return [r - 2 * hq, g - 2 * lq, lq / SHADE.lifts, hq > 0 && !flat ? (hq - 1) / SHADE.hues : -1, flat ? (hq - SHADE.hues - 2) / SHADE.flats : -1];
 }
 
 // ---------------------------------------------------------------------------
@@ -1086,6 +1094,55 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uDissolveColor;   // the burning edge
   #endif
 
+  #ifdef MAKERS_BOX
+  // A makers' box (src/boxes/model.js; makeMaterial({ makersBox })): one smooth shell with no
+  // edges, the pale four-point star painted on its top and a compass (a ring round a small star)
+  // on each side, and a thin ray of light that travels across it, pass after pass, a short trail behind.
+  // Inked by its outline only (the soft-ink flag, post.js): no lines inside it, no hatching.
+  uniform vec4 uBoxA;    // x the ray's strength 0..1 · y the marks' glow 0..1 · z (unused) · w the ray's clock (in passes)
+  uniform vec4 uBoxB;    // the shell's half size (m, as drawn) xyz · w the height of its centre over its foot (m)
+  uniform vec3 uBoxMark; // the star and the compasses
+  uniform vec3 uBoxLight;// the ray
+  float boxAA(float v, float fw) { return 1.0 - smoothstep(-fw, fw, v); }
+  /** A four-point star with concave sides (an astroid), its points along the axes: < 0 inside. */
+  float boxStar(vec2 q) { return pow(abs(q.x) + 1e-4, 0.6667) + pow(abs(q.y) + 1e-4, 0.6667) - 1.0; }
+  /**
+   * The makers' marks: x the pale star on the top, y a compass on each side (a thin ring round a
+   * small star, the reference drawing's medallion), painted on in a paler blue.
+   */
+  vec2 boxMarks(vec3 p, vec3 on) {
+    vec3 a = abs(on);
+    float l = max(length(on), 1e-4);
+    vec2 sq = p.xz / (min(uBoxB.x, uBoxB.z) * 0.8);
+    float st = boxStar(sq);
+    float star = boxAA(st, fwidth(st)) * smoothstep(0.55, 0.8, on.y / l);
+    vec2 uv = (a.z > a.x ? vec2(p.x, p.y - uBoxB.w) : vec2(p.z, p.y - uBoxB.w)) / (uBoxB.y * 0.5);
+    float side = smoothstep(0.62, 0.85, max(a.x, a.z) / l);
+    float fw = max(fwidth(uv.x), fwidth(uv.y)) * 1.2;
+    float ring = abs(length(uv) - 1.0) - 0.035;
+    float small = boxStar(uv / 0.78);
+    float comp = max(boxAA(ring, fw), boxAA(small, fwidth(small)));
+    return vec2(star, comp * side);
+  }
+  /** The ray: a thin bright line crossing the shell, a short trail fading behind it. x the line, y its glow, z the trail. */
+  vec3 boxRay(vec3 p) {
+    float c = uBoxA.w, pass = floor(c), u = fract(c);
+    // each pass crosses another way (golden-angle turns), tilted up or down a little
+    float ang = pass * 2.39996 + 0.7;
+    vec3 D = normalize(vec3(cos(ang), 0.55 * sin(pass * 1.7 + 0.4), sin(ang)));
+    float R = dot(abs(D), uBoxB.xyz);   // (how far the shell reaches that way: s is -1 .. 1 from corner to corner)
+    float s = dot(p, D) / R;
+    float head = mix(-1.05, 1.05, clamp(u / 0.8, 0.0, 1.0));   // (it crosses in the first 80% of a pass, then a rest)
+    float d = s - head;
+    // a wobble along it, so it reads as drawn light rather than a ruled line
+    d += 0.01 * sin(dot(p, vec3(9.0, 12.0, 7.0)) + pass * 1.3);
+    float line = exp(-d * d / 0.00035);
+    float glow = exp(-d * d / 0.003);
+    float trail = d < 0.0 ? exp(d * 9.0) * (1.0 - smoothstep(0.8, 1.0, u)) : 0.0;
+    return vec3(line, glow, trail) * uBoxA.x;
+  }
+  #endif
+
   #ifdef FLUID
   // The traveller's magical fluid (fluid-tool.js; makeMaterial({ fluid })): a
   // lava lamp in flat print tones. Only materials made with o.fluid compile this.
@@ -1207,7 +1264,8 @@ const fragmentShader = /* glsl */ `
     #endif
     // stroke coordinates + derivatives first, in uniform control flow
     vec3 on = uFlat > 0.5 ? cross(dFdx(vObjRel), dFdy(vObjRel)) : vObjNormal;
-    vec3 tw = pow(abs(normalize(on)), vec3(3.0));
+    // (rock: sharper hand-overs between the projections, or a smooth underside's strokes curl into wood grain)
+    vec3 tw = pow(abs(normalize(on)), vec3(uMode == ${MODE_STRATA} ? 8.0 : 3.0));
     tw /= (tw.x + tw.y + tw.z);
     if (uFlat > 0.5) {
       // a facet takes one projection, as an inker would do: blending them multiplies any
@@ -1216,7 +1274,9 @@ const fragmentShader = /* glsl */ `
       tw = a.x > a.y && a.x > a.z ? vec3(1.0, 0.0, 0.0) : (a.y > a.z ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0));
     }
     if (uMode == ${MODE_TERRAIN}) tw = vec3(0.0, 1.0, 0.0);
-    vec2 ce1 = strokeCoord(tw, vec2(0.766, 0.643));
+    // rock in strata is hatched down its faces (a cliff's, a needle's strokes run with the fall of the
+    // rock, as the reference sheets draw them); everything else on the diagonal
+    vec2 ce1 = strokeCoord(tw, uMode == ${MODE_STRATA} ? vec2(0.99, 0.14) : vec2(0.766, 0.643));
     vec2 ce2 = strokeCoord(tw, vec2(0.83, -0.56));
     float fw1 = fwidth(ce1.x), fw2 = fwidth(ce2.x);
     // form-following strokes: height contours (terrain slopes) / rings round objects
@@ -1395,6 +1455,21 @@ const fragmentShader = /* glsl */ `
     if (uWeather > 0.0 && abs(n.y) < 0.55) patInk = max(patInk, weatherInk(wq, wfq, albedo) * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
     #endif
     albedo *= instColor;
+    #ifdef MAKERS_BOX
+    {
+      vec3 bp = vObjPos - vec3(0.0, uBoxB.w, 0.0);
+      vec2 mark = boxMarks(vObjPos, vObjNormal);
+      vec3 ray = boxRay(bp);
+      // a tone of its own over the form (no hatching on it): paler where it turns up, deeper underneath
+      albedo *= mix(0.72, 1.1, smoothstep(-0.7, 0.85, vObjNormal.y / max(length(vObjNormal), 1e-4)));
+      albedo = mix(albedo, uBoxMark, mark.x);
+      albedo = mix(albedo, mix(albedo, uBoxMark, 0.45 + 0.4 * uBoxA.y), mark.y);   // (the compasses paler than the star)
+      albedo = mix(albedo, uBoxLight, clamp(ray.x + 0.45 * ray.y + 0.25 * ray.z, 0.0, 1.0));
+      // (the star and the ray are lights: they keep their colour in shade, and bloom)
+      emit = max(emit, max(mark.x * uBoxA.y, mark.y * uBoxA.y * 0.6));
+      emit = max(emit, max(ray.x * 0.97, max(ray.y * 0.75, ray.z * 0.4)));
+    }
+    #endif
     #ifdef S_PLATES
     float plateInk = 0.0;
     if (uPlates > 0.5) {
@@ -1639,7 +1714,8 @@ const fragmentShader = /* glsl */ `
       }
       float h2 = 0.0;
       if (dark > 0.5) {
-        bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN};
+        // (on upright faces: under a cap or an overhang the height's contours wander into wood grain)
+        bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN} && abs(n.y) < 0.6;
         // smooth objects: cross-hatch as rings round the form (trunks, ribs, domes)
         h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, dark))
                     : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
@@ -1676,13 +1752,18 @@ const fragmentShader = /* glsl */ `
       // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)
       float hatchK = uMode == ${MODE_TERRAIN} ? mix(uShade.z, 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : uShade.z;
       gHatch.rg *= hatchK * vec2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
-      float hq = uShade.y < 0.0 ? 0.0 : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
+      float hq = uShade.y < 0.0 ? 0.0 : uShade.y >= 2.0 ? ${SHADE.hues + 2}.0 + floor((uShade.y - 2.0) * ${SHADE.flats}.0 + 0.5) : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
       gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));
     }
     #ifdef GRASS
       // blades: no hatching, no drawn detail; soft ink (post.js draws their edges as a darker green,
       // thin), r a pen line's share (a few tufts near by), g the outline's fade with distance
       gHatch.rgb = vec3(vGrassLook.x, vGrassLook.y, 0.0);
+      gHatch.a += 8.0;
+    #endif
+    #ifdef MAKERS_BOX
+      // a box with no edges: soft ink with a full pen line (post.js draws its outline only), no hatching
+      gHatch.rgb = vec3(1.0, 0.0, 0.0);
       gHatch.a += 8.0;
     #endif
   }
@@ -1708,6 +1789,8 @@ const cache = new Map();
  *                              patches gone from the plaster (0..1; on for façades; never metal or the makers')
  * @param {number}  [o.shade]   0..1: this surface's shade lifted toward its lit colour (SHADE)
  * @param {number}  [o.shadeHue] 0..1: how much of its own hue its shade keeps (default: the world's, uShadeKeep)
+ * @param {number}  [o.shadeFlat] 0..1: its shade printed flat in the world's shadow colour at its value (default:
+ *                              the world's, uShadowFlat; a material saying it keeps the world's hue)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
  * @param {boolean|number} [o.glyphs] the makers' carved inscriptions (src/glyphs.js) on upright faces, in
@@ -1738,6 +1821,9 @@ const cache = new Map();
  *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
  * @param {string[]} [o.fluidTones] the six tones (uFluidTones; the tool rewrites them as colours are added)
+ * @param {object}  [o.makersBox] a makers' box's shell (src/boxes/model.js; compiles the MAKERS_BOX block): { half: [x, y, z]
+ *                              (m, as drawn), center (m over its foot), mark, light (colours), ray, glow (0..1) }. The star and
+ *                              the compasses painted on, a ray of light travelling across it (uBoxA.w its clock), outline-only ink
  * @param {boolean|string} [o.dissolve] compile the DISSOLVE block: uDissolve (amount, edge, bottom y, top y in
  *                              world space) eats the surface from the top down with a bright edge (o.dissolve: its colour)
  */
@@ -1833,6 +1919,14 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
+  if (o.makersBox) {
+    const B = o.makersBox;
+    mat.defines = { ...mat.defines, MAKERS_BOX: 1 };
+    mat.uniforms.uBoxA = { value: new THREE.Vector4(B.ray ?? 0.6, B.glow ?? 0.35, 0, 0) };
+    mat.uniforms.uBoxB = { value: new THREE.Vector4(...(B.half ?? [0.5, 0.5, 0.5]), B.center ?? 0.5) };
+    mat.uniforms.uBoxMark = { value: new THREE.Color(B.mark ?? '#dcecf2') };
+    mat.uniforms.uBoxLight = { value: new THREE.Color(B.light ?? '#fffbea') };
+  }
   if (o.dissolve) {
     mat.defines = { ...mat.defines, DISSOLVE: 1 };
     mat.uniforms.uDissolve = { value: new THREE.Vector4(0, 0.08, 0, 1) };

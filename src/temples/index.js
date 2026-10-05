@@ -30,8 +30,8 @@ import { runSteps } from '../load-steps.js';
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
 // found half-way that is the key to the rest, and a guardian at the end
 // (calmed if it lives, stopped if it is a machine), whose resolution changes
-// the world outside. LORE.md, "Temples", has the design; README "The
-// makers' temples" the system.
+// the world outside. LORE.md, "Temples", has the design; docs/systems/temples.md
+// the system.
 //
 // Two hooks bring them into the game:
 //   attachTemple(levelId, scene, level)   at level build (src/levels/index.js wraps every create):
@@ -161,6 +161,9 @@ export function setupTempleStory(ctx) {
     stages: [
       { id: 'find', text: Q.find, label: T.def.name, flag: `temple.${id}.entered`, at: `temple.${id}.door` },
       { id: 'gadget', text: Q.gadget, label: 'Inside the house', when: () => rt.logic.gadget, at: `temple.${id}.next` },
+      // (a gadget whose first use is not plain to see, the City-Shaft's jets: a step that says what to do with it,
+      // done once it has been used to go on: T.def.used)
+      ...(Q.use ? [{ id: 'use', text: Q.use.text, label: Q.use.label, when: () => !!T.def.used?.(rt) || rt.logic.resolved, at: `temple.${id}.next` }] : []),
       { id: 'keeper', text: Q.keeper, label: 'The heart of the house', flag: `temple.${id}.done`, at: `temple.${id}.next` },
     ],
   });

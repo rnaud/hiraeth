@@ -23,7 +23,8 @@ import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
 import { VOLLEY } from '../src/temples/garage.js';
 import { SITE as SITE_EDENA } from '../src/temples/edena.js';
-import { modeFor } from '../src/targets.js';
+import { modeFor, allTargets, hitTarget } from '../src/targets.js';
+import { JETS_NEXT, jetsUsed } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -506,9 +507,22 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   assert.ok(rt.kit.local(P.pos).y < 16, 'without the jets you cannot go up');
   items.grant('jetpack'); game.emit('box:opened', { id: 'incal.temple.jetpack' });
   assert.equal(rt.logic.gadget, true);
+  // what they are for, at once: a line a moment after the chest, the drone sent up, rings rising through the oculus
+  const pings = [], offPing = game.on('scout:ping', (e) => pings.push(e));
+  wait(1.5);
+  assert.ok(notes.includes(JETS_NEXT), `the jets' next step is said (${notes.at(-1)})`);
+  assert.match(JETS_NEXT, /RT \/ R2/);
+  assert.equal(pings.length, 1, 'the drone flies up to show where');
+  offPing?.();
+  const guide = rt.pieces.find((p) => p.constructor.name === 'JetGuide');
+  assert.ok(guide?.root.visible, 'the way up shows');
+  assert.equal(jetsUsed(rt), false);
   assert.equal(walk(L(0, 11, 81), { tol: 1.2 }), true);
   assert.equal(fly(36.5, [0, 81 - 8]), true, `up through the oculus to the gallery floor (${where()})`);
   assert.ok(Math.abs(rt.kit.local(P.pos).y - 34.6) < 0.4, `standing in the gallery (${where()})`);
+  assert.equal(jetsUsed(rt), true, 'up: the jets were the way');
+  wait(1.2);
+  assert.equal(guide.root.visible, false, 'the rings fade once you are up');
   // the eyes are hidden from the floor: no line to them; you fly up level with each to splash it
   for (const id of ['s2', 's3', 's4']) {
     const eye = rt.piece(id);
@@ -1382,7 +1396,10 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
   wait(0.5);
   assert.equal(rt.logic.isOpen('d4'), false, 'the bud shuts behind you');
   P.opts.health = false;
-  G.hit('body', 'bloom');
+  // a glob as the tool fires it: through the guardian's own target (it takes fire and stilling as theirs; bloom arrives as fluid, its mode in info)
+  const glob = (mode) => { const t = allTargets().find((x) => x.kind === 'guardian' && x.enabled() && x.position().distanceTo(G.model.pos) < 12 && x.position().distanceTo(G.model.mouth) > 0.5); assert.ok(t, 'its body is a target'); hitTarget({ target: t, point: t.position() }, mode, V(0, 0, 1)); };
+  for (let i = 0; i < 6 / DT && G.state !== 'fight'; i++) frame();   // (awake and fighting: its targets take globs)
+  glob('bloom');
   assert.equal(G.meter, 0, 'its back first: it shakes the flowers off');
   for (const [i, b] of ['bed1', 'bed2', 'bed3', 'bed4'].entries()) { rt.piece(b).hit('bloom'); assert.ok(Math.abs(G.meter - (i + 1) * 0.1) < 1e-6, `a tenth for each bed (${G.meter})`); }
   for (let n = 0; n < 10 && G.state !== 'weary'; n++) {
@@ -1390,9 +1407,9 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `it kneels (${n})`);
     const before = G.meter;
-    if (n === 0) { G.hit('body', 'shoot'); assert.equal(G.meter, before, 'water does not calm it'); }
-    G.hit('body', 'bloom');
-    assert.ok(G.meter > before, `bloomed (${n}: ${G.meter.toFixed(2)})`);
+    if (n === 0) { glob('shoot'); assert.equal(G.meter, before, 'water does not calm it'); }
+    glob('bloom');
+    assert.ok(G.meter > before, `bloomed (${n}: ${G.meter.toFixed(2)}), by a bloom glob as the tool fires it`);
   }
   assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
   for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();

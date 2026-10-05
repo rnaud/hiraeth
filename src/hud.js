@@ -1,4 +1,4 @@
-// The screen while you play holds nothing at rest (README "Nothing on the screen"). What used
+// The screen while you play holds nothing at rest (docs/systems/ui.md, "Nothing on the screen"). What used
 // to sit in the status box comes only when it matters, then fades:
 //   - the cue (index.html #cue): one short line at the bottom for what the use button does
 //     right here when it has no person or thing to float over (the ship's hatch and console, a

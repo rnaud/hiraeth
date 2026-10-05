@@ -1,4 +1,4 @@
-// The Lab's fixed viewpoints timed on the GPU (README, "Faster surfaces"): headless Chrome on ANGLE
+// The Lab's fixed viewpoints timed on the GPU (docs/systems/materials.md, "Faster surfaces"): headless Chrome on ANGLE
 // Metal (the renderer string is checked: never SwiftShader), muted, no vsync or frame-rate limit.
 // Per view: the frame interval (median, 95th percentile), the main thread's share, the GPU time of
 // the frame (one EXT_disjoint_timer_query around each animation frame) and the frame's throughput

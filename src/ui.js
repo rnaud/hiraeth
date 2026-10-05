@@ -58,7 +58,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
   return {
     keyboard: [
       ['Move · run', 'WASD · SHIFT'], ['Look', 'mouse (click the game to capture it) · wheel zooms'],
-      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets / wings (once found)', 'hold SPACE in the air, or left click without aiming (WASD flies)'],
+      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets / wings (once found)', 'hold SPACE in the air · or hold left click without aiming: WASD flies where you look (look down to dive), no keys hovers, SPACE climbs'],
       ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off)'],
       ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
       ['Push · gun mode', 'C or middle click · X'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
@@ -68,7 +68,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1'],
       ['Jump · boost · wings', 'A / × · again in the air · hold'], ['Use, talk, get on', 'B / ○'],
       ['Call your mount or a taxi', 'X / □'], ['The scout finds your objective', 'Y / △ (riding too)'],
-      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'RT / R2 without aiming (A / × held hovers)'],
+      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'hold RT / R2 without aiming: the left stick flies where you look (look down to dive, up to climb), the stick at rest hovers · A / × held climbs'],
       ['Push · gun mode', 'RB / R1 · D-pad left / right'], ['Photo mode · worlds', 'D-pad down · D-pad up'],
       ['Gear and sketchbook · menu', 'View · Menu'],
       ['Riding', 'RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off'],
@@ -89,7 +89,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
  * Controls, what's new and Quit to title (with where you are: the save, the world, the time
  * played); on the right the page: the settings (where it opens), the quest log (o.quests():
  * the journal's quest-log section, main.js; choosing an active quest tracks it: o.onTrack(id)),
- * or every control (H opens it there). B / ○ or Esc on a page goes back to the settings, then out.
+ * or every control (H opens it there). B / ○ or Esc closes it, from any page.
  * main.js pauses the game and plays the menu music while it is open.
  * The title screen (src/title.js) shows the same settings on its own element: { el, title: true }
  * (no game entries, no keys of its own; Controls is there too).
@@ -230,11 +230,13 @@ export class SettingsMenu {
     p.innerHTML = `<h1>QUESTS</h1>${html || '<p class="none">Nothing asked of you yet.</p>'}`;
     for (const q of p.querySelectorAll('.quest[data-quest]:not(.finished)')) { q.tabIndex = 0; q.dataset.nav = ''; }
   }
-  /** Back (B / ○, Esc): first out of the "start over?" question, then from a page to the settings, then out of the menu. */
+  /**
+   * Back (B / ○, Esc): first out of the "start over?" question, then out of the menu, whatever
+   * page it shows (the pages are side by side, not one inside another: B closes the menu).
+   */
   back() {
     const ask = this.el.querySelector('.ask');
     if (ask && !ask.hidden) this.askReset(false);
-    else if (this.current !== 'settings') { const from = this.current; this.page('settings'); this.el.querySelector(`.menu-nav [data-page="${from}"]`)?.focus({ preventScroll: true }); }
     else this.toggle(false);
   }
   /** Open (on a page: 'settings' unless asked) or close. */
@@ -264,7 +266,7 @@ export function controlsHtml(list = controlsList(), first = 'keyboard') {
   const order = [first, ...['pad', 'keyboard', 'touch'].filter((k) => k !== first)];
   return `<h1>CONTROLS</h1>
     ${order.map((k) => `<h2>${names[k]}</h2><ul class="ctl">${rows(list[k])}</ul>`).join('\n    ')}
-    <p class="keys">Nothing stays on the screen while you play: the health, the stamina and the tank show when they change, and the use button's prompt when something is near.</p>`;
+    <p class="keys">Nothing stays on the screen while you play: the health and the stamina show when they change, and the use button's prompt when something is near. The tank on your backpack shows how full it is.</p>`;
 }
 
 /**
@@ -355,30 +357,27 @@ export class TouchControls {
 }
 
 /**
- * The fluid tool's HUD while aiming: a small inked crosshair at the centre of
- * the screen, and under it the three charges as pips in the fluid's tones
- * (with the seconds to the refill when some are spent). The crosshair opens
- * when it sits on something the tool can touch and kicks on a hit; it
- * shakes when the tank is empty. The label says the gun mode (fluid,
- * stilling, ember) in its colour, and shows for a moment on a switch even
- * when not aiming. Without the backpack the body gets .no-tool (index.html
- * hides the tool's buttons and hints); with two modes or more, .modes.
+ * The fluid tool's HUD while aiming: a small inked crosshair at the centre of the screen and, under
+ * it, the gun mode's name (fluid, stilling, ember) in its colour. No charge pips: the tank on the
+ * backpack shows how full it is. The crosshair opens when it sits on something the tool can touch
+ * and kicks on a hit; it is dashed and shakes when the tank is empty. The mode's name shows for a
+ * moment on a switch even when not aiming, and "empty" for a moment when the tank runs dry (the
+ * only time the tank says anything off the backpack). Without the backpack the body gets .no-tool
+ * (index.html hides the tool's buttons and hints); with two modes or more, .modes.
  */
 export class ToolHud {
   constructor(el = document.getElementById('tool')) {
     this.el = el;
     if (!el) return;
-    el.innerHTML = '<div class="cross"><i></i><i></i><i></i><i></i></div><div class="mode"><b>fluid</b><span class="pips"><u></u><u></u><u></u></span><span class="wait"></span></div>';
-    this.pips = [...el.querySelectorAll('.pips u')];
-    this.wait = el.querySelector('.wait');
+    el.innerHTML = '<div class="cross"><i></i><i></i><i></i><i></i></div><div class="mode"><b>fluid</b></div>';
     this.cross = el.querySelector('.cross');
     this.name = el.querySelector('.mode b');
     this.last = ''; this.lastBody = '';
   }
-  update({ on, charges = 3, max = 3, level = charges, refillIn = 0, ready, aimKind, hit, tones = [], owned = true, mode = 'shoot', modeName = 'fluid', modes = 1, modeFlash = 0, jets = false, dry = false, now = performance.now() / 1000 }) {
+  update({ on, charges = 3, ready, aimKind, hit, owned = true, mode = 'shoot', modeName = 'fluid', modes = 1, modeFlash = 0, dry = false, now = performance.now() / 1000 }) {
     if (!this.el) return;
     const flash = modeFlash > 0 && !on;
-    const gauge = !on && !flash && this.gaugeShown({ owned, level, max, jets, dry, now });
+    const gauge = !on && !flash && this.gaugeShown({ owned, dry, now });
     const bodyKey = `${on}|${owned}|${modes > 1}|${flash}|${gauge}`;
     if (bodyKey !== this.lastBody) {
       this.lastBody = bodyKey;
@@ -386,26 +385,11 @@ export class ToolHud {
       b.toggle('aiming', on); b.toggle('no-tool', !owned); b.toggle('modes', modes > 1); b.toggle('modeflash', flash); b.toggle('tool-gauge', gauge);
     }
     if (!on && !flash && !gauge) return;
-    const secs = charges < max ? Math.ceil(refillIn) : 0;
-    // the jets burn part of a charge: the pip being burnt shows how much of it is left
-    const part = Math.round((level - Math.floor(level + 1e-6)) * 10);
-    const key = `${charges}|${max}|${secs}|${ready}|${aimKind}|${tones.join()}|${mode}|${part}`;
+    const key = `${charges > 0}|${ready}|${aimKind}|${mode}|${modeName}`;
     if (key !== this.last) {
-      // one pip per charge the tank holds (four with the Fourth chamber)
-      if (this.pips.length !== max) {
-        const row = this.el.querySelector('.pips');
-        row.innerHTML = '<u></u>'.repeat(max);
-        this.pips = [...row.querySelectorAll('u')];
-      }
       this.last = key;
       if (this.name) this.name.textContent = modeName;
       this.el.className = `fluid m-${mode}${ready ? '' : ' wait'}${aimKind === 'target' ? ' lock' : ''}${charges ? '' : ' empty'}`;
-      this.pips.forEach((u, i) => {
-        const tone = tones[i % tones.length] ?? '';
-        u.style.background = i < charges ? tone : i === charges && part > 0 && tone ? `linear-gradient(to top, ${tone} ${part * 10}%, transparent ${part * 10}%)` : '';
-        u.classList.toggle('on', i < charges);
-      });
-      this.wait.textContent = secs ? `${secs}s` : '';
     }
     if (on && (hit === 'target' || hit === 'empty')) {
       const c = this.cross;
@@ -413,20 +397,19 @@ export class ToolHud {
     }
   }
   /**
-   * The tank's gauge, when not aiming: while the jets burn and while the tank is short (after a
-   * shot, a boost or a burn, until it refills), and a moment after (GAUGE_LINGER); an empty tank
-   * that waits for magical water says so for a few seconds, then goes. A full tank shows nothing.
+   * The empty tank's notice, when not aiming: the tank running dry (waiting for magical water) says
+   * "empty" beside the traveller for GAUGE_DRY seconds, then goes. Nothing else: a short tank, a
+   * refill or the jets burning show on the backpack's own tank, not on the screen.
    */
-  gaugeShown({ owned, level, max, jets, dry, now }) {
+  gaugeShown({ owned, dry, now }) {
     if (!owned) { this.gaugeUntil = 0; this.wasDry = dry; return false; }
-    if (jets || (!dry && level < max - 1e-3)) this.gaugeUntil = Math.max(this.gaugeUntil ?? 0, now + GAUGE_LINGER);
     if (dry && !this.wasDry) this.gaugeUntil = now + GAUGE_DRY;
     this.wasDry = dry;
     return now < (this.gaugeUntil ?? 0);
   }
 }
-/** s the tank's gauge stays after the tank is full again (or the jets stop); an empty tank's notice (s). */
-export const GAUGE_LINGER = 1.2, GAUGE_DRY = 3;
+/** s the empty tank's notice stays. */
+export const GAUGE_DRY = 3;
 
 // ---------------------------------------------------------------------------
 

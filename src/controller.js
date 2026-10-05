@@ -1,6 +1,6 @@
 // Gamepads (Standard Gamepad mapping: Xbox / PlayStation / compatible controllers, and
 // the Android handhelds through native-pad.js). The layout is by position, so the same
-// thumb does the same thing on every pad (README "The controller layout"):
+// thumb does the same thing on every pad (docs/systems/controls.md, "Controller"):
 //
 //   walking   bottom jump (again in the air: boost) · right interact, talk, get on
 //             · left call the mount (whistle it, hail a taxi) · top: the scout finds the objective

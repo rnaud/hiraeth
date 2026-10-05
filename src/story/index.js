@@ -3,6 +3,8 @@ import { game } from '../game-state.js';
 import { Quests, QuestMarker } from './quests.js';
 import { Dialogue } from './dialogue.js';
 import { sightOf } from './shot.js';
+import { talkSpace, stepBack, gapOf } from './spacing.js';
+import { CAPSULE } from '../player.js';
 import { MomentStage } from './moment.js';
 import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
 import { NPC, registerNPCTargets } from '../npc.js';
@@ -67,6 +69,7 @@ export function createStory(o) {
     portrait: (person, npc) => npc && capture ? portrait(npc, person) : null,
     onOpen: (person, npc) => {
       talking = { person, npc, at: dialogue.at, look: dialogue.look };
+      if (npc) makeRoom(npc);   // (before the camera cuts to the two-shot: nobody sees the step)
       if (npc) npc.talkTo = { speaking: true };
       world?.onTalk?.(person, npc, true);
       if (typeof document !== 'undefined') document.body.classList.add('talking');
@@ -186,12 +189,42 @@ export function createStory(o) {
     return out;
   };
 
+  /**
+   * Too close to start talking: the traveller steps back to a comfortable gap (src/story/spacing.js),
+   * or, his back to a wall, the other does; then he faces them. Done as the camera cuts in, so
+   * the step is never seen. On ordinary ground only (not riding, swimming, climbing or upside down).
+   */
+  function makeRoom(npc) {
+    const up = player.frame?.up ?? UP;
+    if (!npc.pos || up.y < 0.999 || player.ride || player.swim || player.climbing || player.gliding || player.down || player.onGround === false) return null;
+    const { want, min } = talkSpace(npc);
+    let moved = null;
+    if (gapOf(player.pos, npc.pos) < min) {
+      const others = bystanders();
+      const facing = player.frame?.dir ? player.frame.dir(player.heading, _fw) : null;
+      const to = stepBack({ a: player.pos, b: npc.pos, want, min, physics, radius: CAPSULE.radius, height: CAPSULE.height, others, facing });
+      if (to) { player.pos.copy(to); player.vel?.set(0, 0, 0); moved = 'traveller'; }
+      else if (!npc.seat && !npc.person && !npc.down) {
+        // (a crowd person's place is the crowd's, a seated one stays on their seat)
+        const s = npc.object?.scale?.y ?? 1;
+        const there = stepBack({ a: npc.pos, b: player.pos, want, min, physics, radius: 0.35 * s, height: 1.9 * s, others });
+        if (there) { npc.pos.copy(there); npc.object?.position.copy(there); moved = 'them'; }
+      }
+    }
+    // turned to them already when the shot opens (rather than seen turning on the spot)
+    if (player.frame?.headingOf) {
+      _d.subVectors(npc.pos, player.pos); _d.addScaledVector(up, -_d.dot(up));
+      if (_d.lengthSq() > 0.09) player.heading = player.frame.headingOf(_d);
+    }
+    return moved;
+  }
+
   const promptEl = typeof document !== 'undefined' ? document.getElementById('prompt') : null;
   // (looked up when needed: the touch controls are built after the story)
   let useBtn = null;
   const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
   const rt = {
-    quests, dialogue, marker, world, temple, portrait, moments, prompt: null, promptAt: null,
+    quests, dialogue, marker, world, temple, portrait, moments, makeRoom, prompt: null, promptAt: null,
     busy: () => dialogue.open || moments.playing || !!world?.busy?.(),   // (a world's own scene: home's quiet moments, a first time filmed)
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {
