@@ -78,9 +78,11 @@ export function pack(geo, lock = null) {
 }
 
 /**
- * The vertices of line-like parts: connected pieces (vertices joined by triangles or by sharing a
- * position) longer than `cell` whose mean thickness (area / (pi * length)) is under it and under a
- * quarter of their length. Null if none.
+ * Line-like parts: connected pieces (vertices joined by triangles or by sharing a position)
+ * longer than `cell` but thinner than it across (their vertices' spread round their long axis).
+ * Returns null if none, else { rod: Int32Array (each vertex's rod, -1 for the rest),
+ * axes: Float64Array (per rod: mean xyz, long axis xyz, two cross axes xyz), end: Uint8Array
+ * (the vertices at either end of a rod) }.
  */
 export function thinParts(P, T, cell) {
   const nV = P.length / 3, nTri = T.length / 3;
@@ -118,11 +120,23 @@ export function thinParts(P, T, cell) {
     M[m]++; M[m + 1] += x; M[m + 2] += y; M[m + 3] += z;
     M[m + 4] += x * x; M[m + 5] += x * y; M[m + 6] += x * z; M[m + 7] += y * y; M[m + 8] += y * z; M[m + 9] += z * z;
   }
-  const lineLike = new Uint8Array(nP);
+  // and its thickness: twice its volume over its area (a cylinder's radius, give or take; the
+  // volume of the cones from its centre to its faces, so open tubes count too)
+  const AV = new Float64Array(nP * 2);
+  for (let t = 0; t < nTri; t++) {
+    const p = root[T[t * 3]], m = p * 10, n = M[m] || 1, cx = M[m + 1] / n, cy = M[m + 2] / n, cz = M[m + 3] / n;
+    const i = T[t * 3] * 3, j = T[t * 3 + 1] * 3, k = T[t * 3 + 2] * 3;
+    const ax = P[i] - cx, ay = P[i + 1] - cy, az = P[i + 2] - cz, bx = P[j] - cx, by = P[j + 1] - cy, bz = P[j + 2] - cz, qx = P[k] - cx, qy = P[k + 1] - cy, qz = P[k + 2] - cz;
+    const ux = bx - ax, uy = by - ay, uz = bz - az, wx = qx - ax, wy = qy - ay, wz = qz - az;
+    AV[p * 2] += 0.5 * Math.hypot(uy * wz - uz * wy, uz * wx - ux * wz, ux * wy - uy * wx);
+    AV[p * 2 + 1] += (ax * (by * qz - bz * qy) + ay * (bz * qx - bx * qz) + az * (bx * qy - by * qx)) / 6;
+  }
+  const lineLike = new Int32Array(nP).fill(-1), axes = [];
   let any = false;
   for (let p = 0; p < nP; p++) {
     const m = p * 10, n = M[m];
     if (n < 4) continue;
+    const thick = AV[p * 2] > 0 ? (2 * Math.abs(AV[p * 2 + 1])) / AV[p * 2] : 0;
     const mx = M[m + 1] / n, my = M[m + 2] / n, mz = M[m + 3] / n;
     const cxx = M[m + 4] / n - mx * mx, cxy = M[m + 5] / n - mx * my, cxz = M[m + 6] / n - mx * mz;
     const cyy = M[m + 7] / n - my * my, cyz = M[m + 8] / n - my * mz, czz = M[m + 9] / n - mz * mz;
@@ -137,12 +151,39 @@ export function thinParts(P, T, cell) {
       ax = bx / l1; ay = by / l1; az = bz / l1;
     }
     const across = Math.sqrt(Math.max(tr - l1, 0)), along = Math.sqrt(l1);   // ~ its radius; ~ its length / 3.5
-    if (along * 3.4 > cell && across * 2 < cell && along > across * 2.5) { lineLike[p] = 1; any = true; }
+    if (!(along * 3.4 > cell && thick * 2 < cell && along > across * 2.5)) continue;
+    // two axes across it
+    let ux = Math.abs(ax) < 0.9 ? 1 : 0, uy = ux ? 0 : 1, uz = 0;
+    const d = ux * ax + uy * ay;
+    ux -= d * ax; uy -= d * ay; uz -= d * az;
+    const ul = Math.hypot(ux, uy, uz); ux /= ul; uy /= ul; uz /= ul;
+    const wx = ay * uz - az * uy, wy = az * ux - ax * uz, wz = ax * uy - ay * ux;
+    lineLike[p] = axes.length / 12;
+    axes.push(mx, my, mz, ax, ay, az, ux, uy, uz, wx, wy, wz);
+    any = true;
   }
   if (!any) return null;
-  const out = new Uint8Array(nV);
-  for (let v = 0; v < nV; v++) out[v] = lineLike[root[v]];
-  return out;
+  const rod = new Int32Array(nV), A = Float64Array.from(axes), nR = A.length / 12;
+  for (let v = 0; v < nV; v++) rod[v] = lineLike[root[v]];
+  // each rod's two ends along its axis (they keep their place: it keeps its length)
+  const ends = new Float64Array(nR * 2).fill(Infinity);
+  for (let r = 0; r < nR; r++) ends[r * 2 + 1] = -Infinity;
+  const along = (v, a) => (P[v * 3] - A[a]) * A[a + 3] + (P[v * 3 + 1] - A[a + 1]) * A[a + 4] + (P[v * 3 + 2] - A[a + 2]) * A[a + 5];
+  for (let v = 0; v < nV; v++) {
+    const r = rod[v];
+    if (r < 0) continue;
+    const t = along(v, r * 12);
+    if (t < ends[r * 2]) ends[r * 2] = t;
+    if (t > ends[r * 2 + 1]) ends[r * 2 + 1] = t;
+  }
+  const end = new Uint8Array(nV);
+  for (let v = 0; v < nV; v++) {
+    const r = rod[v];
+    if (r < 0) continue;
+    const t = along(v, r * 12), e = (ends[r * 2 + 1] - ends[r * 2]) * 1e-4 + 1e-6;
+    if (t <= ends[r * 2] + e || t >= ends[r * 2 + 1] - e) end[v] = 1;
+  }
+  return { rod, axes: A, end };
 }
 
 /**
@@ -153,24 +194,51 @@ export function cluster({ pos: P, tri: T, attrs, lock }, cell, minRatio = 1) {
   const nV = P.length / 3, nTri = T.length / 3;
   if (!(cell > 0) || nTri < 1) return null;
   const inv = 1 / cell;
-  // 0. poles, cables, antennas, limbs: parts thinner than a cell but longer stay as they are
-  //    (clustered, they would fold into a line and vanish, and the ink draws them)
+  // 0. poles, cables, antennas, limbs: parts thinner than a cell but longer are only simplified
+  //    along their length, never across (clustered on the grid they would fold into a line and
+  //    vanish, and the ink draws them): cells along the rod's axis and eight sectors round it
   const thin = thinParts(P, T, cell);
-  if (thin) { if (lock) for (let v = 0; v < nV; v++) thin[v] |= lock[v]; lock = thin; }
   const N = attrs.find((a) => a.name === 'normal' && a.itemSize === 3)?.array ?? null;
   const others = attrs.filter((a) => a.name !== 'normal');
 
+  // (a rod's slices along its axis, and each slice's centre: the sectors turn round that, so a
+  // sagging cable keeps its whole cross-section all along)
+  let slice = null, sliceC = null;
+  if (thin) {
+    slice = new Int32Array(nV); sliceC = new Map();
+    const A = thin.axes;
+    for (let v = 0; v < nV; v++) {
+      const r = thin.rod[v];
+      if (r < 0) continue;
+      const a = r * 12, b = Math.floor(((P[v * 3] - A[a]) * A[a + 3] + (P[v * 3 + 1] - A[a + 1]) * A[a + 4] + (P[v * 3 + 2] - A[a + 2]) * A[a + 5]) * inv + GRID_OFF);
+      slice[v] = b;
+      const k = r * 4194304 + b;
+      let c = sliceC.get(k);
+      if (!c) sliceC.set(k, (c = [0, 0, 0, 0]));
+      c[0] += P[v * 3]; c[1] += P[v * 3 + 1]; c[2] += P[v * 3 + 2]; c[3]++;
+    }
+  }
   // 1. each vertex's cell (locked ones: a cell of their own), through an open-addressed hash of (ix, iy, iz)
   const cellOf = new Int32Array(nV);
   let size = 1024; while (size < nV * 2) size *= 2;
   const mask = size - 1, slot = new Int32Array(size).fill(-1), KX = new Int32Array(nV), KY = new Int32Array(nV), KZ = new Int32Array(nV);
   let nCells = 0;
   for (let v = 0; v < nV; v++) {
-    if (lock && lock[v]) { KX[nCells] = 0x7fffffff; cellOf[v] = nCells++; continue; }
-    // (the grid is offset by an odd fraction: modelled coordinates (0, whole and half metres) never sit on a cell edge,
-    // where float noise would split coincident vertices into two cells and open a seam)
-    const ix = Math.floor(P[v * 3] * inv + GRID_OFF), iy = Math.floor(P[v * 3 + 1] * inv + GRID_OFF), iz = Math.floor(P[v * 3 + 2] * inv + GRID_OFF);
-    if (Math.abs(ix) > 1e9 || Math.abs(iy) > 1e9 || Math.abs(iz) > 1e9 || !Number.isFinite(ix + iy + iz)) return null;
+    if ((lock && lock[v]) || (thin && thin.end[v])) { KX[nCells] = 0x7fffffff; cellOf[v] = nCells++; continue; }
+    let ix, iy, iz;
+    const r = thin ? thin.rod[v] : -1;
+    if (r >= 0) {
+      const A = thin.axes, a = r * 12, c = sliceC.get(r * 4194304 + slice[v]);
+      const ox = P[v * 3] - c[0] / c[3], oy = P[v * 3 + 1] - c[1] / c[3], oz = P[v * 3 + 2] - c[2] / c[3];
+      ix = 0x40000000 + r;
+      iy = slice[v];
+      iz = Math.floor((Math.atan2(ox * A[a + 9] + oy * A[a + 10] + oz * A[a + 11], ox * A[a + 6] + oy * A[a + 7] + oz * A[a + 8]) / (Math.PI * 2) + 1) * 8 + GRID_OFF) % 8;
+    } else {
+      // (the grid is offset by an odd fraction: modelled coordinates (0, whole and half metres) never sit on a cell edge,
+      // where float noise would split coincident vertices into two cells and open a seam)
+      ix = Math.floor(P[v * 3] * inv + GRID_OFF); iy = Math.floor(P[v * 3 + 1] * inv + GRID_OFF); iz = Math.floor(P[v * 3 + 2] * inv + GRID_OFF);
+      if (Math.abs(ix) > 1e9 || Math.abs(iy) > 1e9 || Math.abs(iz) > 1e9 || !Number.isFinite(ix + iy + iz)) return null;
+    }
     let h = (Math.imul(ix, 73856093) ^ Math.imul(iy, 19349663) ^ Math.imul(iz, 83492791)) & mask, c;
     for (;;) {
       c = slot[h];

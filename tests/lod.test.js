@@ -100,6 +100,29 @@ test('simplify keeps closed shapes closed and its attributes (normals, colours) 
   assert.deepEqual(bb.max.toArray().map((v) => +v.toFixed(5)), [2, 2, 2]);
 });
 
+test('thin rods (poles, cables, antennas) thin out along their length but never vanish', () => {
+  const pole = new THREE.CylinderGeometry(0.1, 0.1, 6, 12, 24, true).rotateZ(0.6);
+  const s = simplify(pole, 1);
+  assert.ok(s, 'a level');
+  assert.ok(triCount(s) < triCount(pole) / 3, `fewer rings along it (${triCount(s)} of ${triCount(pole)})`);
+  const a = posBounds(pole), b = posBounds(s);
+  assert.ok(b.getSize(new THREE.Vector3()).distanceTo(a.getSize(new THREE.Vector3())) < 0.05, 'the same length and lean');
+  // seen across it, still as wide as it was (eight sides at least)
+  const ray = new THREE.Raycaster(), mesh = new THREE.Mesh(s, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+  let hits = 0;
+  for (let t = -2; t <= 2; t += 0.25) {
+    const c = new THREE.Vector3(0, t, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), 0.6);
+    ray.set(c.clone().add(new THREE.Vector3(0, 0, 5)), new THREE.Vector3(0, 0, -1));
+    if (ray.intersectObject(mesh).length) hits++;
+  }
+  assert.equal(hits, 17, 'no gaps along it');
+  // a cable (a tube along a curve) keeps its curve
+  const cable = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0, 10, 0), new THREE.Vector3(20, 6, 0), new THREE.Vector3(40, 10, 0)]), 64, 0.05, 5);
+  const c = simplify(cable, 2);
+  assert.ok(triCount(c) < triCount(cable) / 2);
+  assert.ok(posBounds(c).min.y < 6.3, 'it still sags');
+});
+
 test('locked vertices keep their place: the seams between tiles of one mesh, the crowd\'s cape parameters', () => {
   // one mesh tiled in two (perf.js tileScene): both tiles simplified, their shared border stays put
   const scene = new THREE.Scene();
