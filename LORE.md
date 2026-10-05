@@ -1018,8 +1018,9 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
 ## 11. Temples (the makers' houses, their keepers, and the gifts inside)
 
 *Built in this pass (`src/temples/`); decided while the author was away, change
-freely. Four worlds have theirs (the desert, the City-Shaft, Vael II, the Garden
-of Spheres); the rest are designed below and wait their turn. Section 9's "A Makers' temple in every
+freely. Five worlds have theirs (the desert, the City-Shaft, Vael II, the
+Buried Machine, the Garden of Spheres); the rest are designed below and wait
+their turn. Section 9's "A Makers' temple in every
 world" and the "Makers' temples with bosses" note above are what this answers.*
 
 ### What a temple is
@@ -1081,19 +1082,19 @@ then the world's box stays as it was):
 | Vael | Fluid wings (from Vael II's stack) | Hush-cloth (new: steps the wildlife doesn't hear; on the spire now) | hush-cloth built; temple planned |
 | Vael II | Bell-note whistle (moved from Vael's spire: it belongs to the bell world) | Fluid wings for now (on the balanced stack); the Updraft feather (new: the wings sink slower) once the wings move to Vael's temple | **built** |
 | Hangar | Quick coil | Brass level (new: shows which way down is, in the ring) | planned |
-| Buried Machine | Fourth chamber (from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | resin built |
+| Buried Machine | Fourth chamber (moved from Lorn II) | Climber's resin (new, on the chimney ring: climbing tires you half as fast) | **built** |
 | Viridel | Bloom mode (new gun mode: a seed glob grows a climbable vine) | Seed pouch (new); the lantern moves to Lorn II | planned |
 | Spheres | Glyph lens | Listening shell (new, on the grove's canopy: the makers' unopened boxes near you hum back now and then) | **built** |
 | Lorn | Stilling mode | Bog boots (new: wade at a walk) | planned |
-| Lorn II | Lantern charm (from Viridel) | Glow-moss pin (new) | planned |
+| Lorn II | Lantern charm (from Viridel) | Glow-moss pin (new, on the first root arch now: a soft light round your feet after dusk) | glow-moss built; temple planned |
 | Signal Market | Echo shell (new: records a note, plays it back) | (the market has no chest) | planned |
 
 What moved for players already on their way: whoever owns ember mode, the jets,
-the bell-note whistle or the glyph lens finds that temple's chest open and
-counted as found (`src/temples/migrate.js`); the Buried Machine's chimney ring,
-the City-Shaft's pillar, Vael's spire and the Spheres' grove canopy now hold the
-resin, the soles, the hush-cloth and the listening shell, new boxes for
-everyone. (This also settles a loose end of section 10: the bell-note
+the bell-note whistle, the fourth chamber or the glyph lens finds that temple's
+chest open and counted as found (`src/temples/migrate.js`); the Buried
+Machine's chimney ring, the City-Shaft's pillar, Vael's spire, Lorn II's first
+root arch and the Spheres' grove canopy now hold the resin, the soles, the
+hush-cloth, the glow-moss pin and the listening shell, new boxes for everyone. (This also settles a loose end of section 10: the bell-note
 whistle is found in the bell world now, and Vael has only the rider's bone
 whistle.)
 Ember mode now comes in the first world, which suits it: the desert's camp
@@ -1193,6 +1194,33 @@ every evening "like a bell with nothing to ring it".
   stones settling onto what lies under them or into the cloud, and the stones
   round the belfry onto its gallery.
 
+### The Engine-House (the Buried Machine)
+A drum of rust-red iron as tall as the oculus, standing out of the dunes west
+of the domes, banded in blue-grey, a ring window high on its face, pipe elbows
+going into the sand round its foot, a teal cap; its oval door looks toward the
+start hollow. The dome people say the wheel's engine is inside, and the machine
+that minds it: it used to turn the wheel a tooth a day, not a tooth a year, and
+the pipe-cart ran down the canyon to the oculus and back.
+- **The local: Brann**, who greases the Engine-House door every Tooth Day the
+  way his father did ("A door wants grease anyway"). Afterwards: the pipe-cart
+  lifting out of the sand "like it had been asleep"; Pim rode it nine times and
+  says he is ten teeth old now, from the excitement.
+- **Inside**: the Threshold; the Piston Hall (three pistons that rise and fall
+  out of step, still until you splash the valve's eye: ride them up to the
+  gantry; its face can also be climbed); the Counterweight (a stone ball onto its
+  plate); the Fourth Chamber (**the fourth chamber**; the door on is ringed by a
+  bank of four eyes that wake only together, inside one breath: four shots, and
+  the tank holds three without it); the Furnace (a chasm over embers; a second
+  bank of four on the far wall raises the bridge); the Tooth-Warden's Hall.
+- **The Tooth-Warden** (robot): the makers' machine that minds the engine, on
+  four legs, four vents round its drum, a lamp-eye; jammed since the night the
+  sky rang. It beams, drops shots where you stand and slams; when all four vents
+  open at once, hit all four inside a breath (two or three count for nothing).
+  Stopped, it locks up, every joint at once, and the engine catches and runs.
+- **After**: the pipe-cart rides the canyon again, a round iron floor with a
+  brass rail, from the start hollow down the sand ramp to the oculus and back,
+  a pause at each end.
+
 ### The Footprint (the Garden of Spheres)
 The one Ivo speaks of, which the garden never had until now (this settles that
 loose end of section 10): north of the umbrella grove the meadow carries an
@@ -1229,9 +1257,6 @@ pale sphere, half sunk, with a round-headed door toward the grove.
   (doors that want three shots inside three seconds). Its keeper: the Clockwork
   Foreman (robot), wound wrong; break it, or set it to the right time. After:
   the stopped machines run in rhythm and the signal board reads clearly.
-- **Buried Machine**: the Wheel's Undercroft; key: the fourth chamber (sockets
-  that want four shots in one breath). Its keeper: the Tooth-Warden (robot).
-  After: a stair lowers from the Other Half.
 - **Viridel**: the Builders' Greenhouse in the android wood; key: bloom mode.
   Its keeper: the Gardener, a vast moss creature gone wild (calm it by blooming
   flowers round it). After: the white ruins flower. (Clear of the tea terraces
