@@ -493,6 +493,9 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 
 # Dialogue (2026-10-05)
 
+- [ ] The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: the chip is a blank
+  yellow disc).
+
 - [x] The choice numbers (1, 2, 3) overlap the answers' text (seen on the Retroid). (The mark's span went to
   font-size 0 for the controller/touch mark, so its em width collapsed and the mark sat on the first letters;
   now each answer is a flex row with the mark in its own column, and a controller shows the confirm button.)
