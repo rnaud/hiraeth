@@ -1656,6 +1656,29 @@ covers the URL state, the build entry, the morphs, the expressions and the hair.
   The two-shot keeps its last good line between you when you stand too close for
   one. `tests/close-contact.test.js` and `tests/cape.test.js` cover them.
 
+## Seated capes fall onto the seat
+
+Seated people's capes used to fan out round them like wings: the cloth's floor was a plane at
+the seat's height, as wide as the world, and the bends that give a standing cape its long
+vertical folds held the cloth out flat like a board, so the lower half lay spread round them
+(Nour's ~1.2 m out, its hem level with her shoulders).
+- **The ground round the seat** (`groundField` in `src/cape.js`): once for each seat, heights
+  on a grid round the hips (±0.96 m, 12 cm, probed with `Physics.groundAt` from just above the
+  seat, in the body's frame). The cloth rests on the bench top beside and behind the hips and
+  falls over its edges to the ground. At a step (an edge) the grid is a set of columns: a point
+  well under a column's top is beside it and goes out sideways, not up onto it (cloth hanging
+  down a bench's side climbed onto it). A ledge or a kerb is the same field: the cloth lies on it.
+- **No bends seated** (`Cape.seatedK`): the cloth folds where it meets the seat and the ground.
+  Standing and walking capes keep their bends and the plain floor under the feet.
+- **Who:** story people with a `seat` (`NPC.seatField`), the crowd's sitters (poses 3 and 4,
+  `updatePuppet`), and the studio's stool. The shared drape key carries the field's shape
+  (`drapeKey(pose, field)`: `sig`, to 5 cm), so people on one kind of seat share a drape and
+  others bake their own. A person's first frame puts them on their seat at once (the drape is
+  baked then). Probing costs ~0.2 ms a seat, the cloth's step no more than standing.
+- `tests/cape.test.js` measures seated capes (Nour on her bench, Sel on a stool the physics
+  doesn't see, Hask on a broad ledge): the spread from the body's axis, cloth standing up over
+  the seat, how far the hem hangs below the collar, near and far.
+
 ## Android (offline APK)
 The game is also packaged as an Android app, for handhelds such as the Retroid
 Pocket. Their built-in controls work through the Gamepad API.

@@ -129,3 +129,108 @@ test('a villager with a cape walking 100 m off wears it (it used to stay in the 
   assert.equal(npc.cape.hung, false);
   assert.equal(npc.cape.ready, true);
 });
+
+// Seated people's capes fanned out round them like wings: the cloth fell onto a floor at the seat's
+// height, as wide as the world, and its bends (stiff downward, for long standing folds) held it out
+// flat like a board. Now a seated cape falls onto the seat and the ground round it (groundField,
+// probed under the hips: the bench top, its edges, the ground beyond) and folds where it lands.
+const { loadAssets } = await import('./gait-sim.js');
+const { groundField } = await import('../src/cape.js');
+const { PEOPLE: DESERT } = await import('../src/story/desert-data.js');
+const { PEOPLE: BAZAAR } = await import('../src/story/bazaar-data.js');
+const { PEOPLE: BURIED } = await import('../src/story/buried-data.js');
+
+/** A seated story person settled on their seat (boxes: [w, h, d, z] under them), and how their cape lies near and far. */
+async function seatedCape(def, world, { seat, boxes = [] }) {
+  resetDrapes();
+  const { lib, human } = await loadAssets();
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(600, 600).rotateX(-Math.PI / 2)));
+  let top = 0;
+  for (const [w, h, d, z = 0] of boxes) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d)); b.position.set(0, h / 2, z); scene.add(b); top = Math.max(top, h); }
+  scene.updateMatrixWorld(true);
+  const npc = new NPC(scene, new Physics(scene), { route: [V(0, top, 0)], seat, def, kind: def.kind, cape: def.cape, palette: def.palette, head: def.head, look: def.look, world, lines: def.lines, lib, human: human[def.kind] });
+  npc.heading = 0;
+  const player = { pos: V(0, 0, 8), vel: V(), riding: false, ride: null, wind: V() };
+  const camera = new THREE.PerspectiveCamera();
+  camera.position.set(0, 1.6, 6);
+  for (let f = 0; f < 240; f++) npc.update(1 / 60, player, camera);
+  const near = lies(npc);
+  // you walk away: far off it hangs in its baked drape
+  player.pos.set(0, 0, 200); camera.position.set(0, 1.6, 200);
+  for (let f = 0; f < 90; f++) npc.update(1 / 60, player, camera);
+  return { npc, near, far: lies(npc) };
+}
+
+/** spread: the farthest cloth from the body's axis; wing: the same for cloth standing up over the seat (25 cm); hem: how far the hem hangs below the collar. */
+function lies(npc) {
+  npc.object.updateMatrixWorld(true);
+  const c = npc.cape, m = c.hung ? c.mesh.matrixWorld : new THREE.Matrix4(), o = npc.object.position, seatY = npc.pos.y;
+  const collar = (npc.char.capeAnchor ?? npc.char.torso).localToWorld(V(0, c.local[1], 0)), p = V();
+  let spread = 0, wing = 0, hem = 0, lowest = Infinity;
+  for (let i = 0; i < c.p.length; i += 3) {
+    p.set(c.p[i], c.p[i + 1], c.p[i + 2]).applyMatrix4(m);
+    const d = Math.hypot(p.x - o.x, p.z - o.z);
+    spread = Math.max(spread, d);
+    if (p.y > seatY + 0.25) wing = Math.max(wing, d);
+    if (i >= (c.rows - 1) * c.cols * 3) hem += (collar.y - p.y) / c.cols;
+    lowest = Math.min(lowest, p.y - seatY);
+  }
+  return { spread, wing, hem, lowest, hung: c.hung };
+}
+const fmt = (r) => `spread ${r.spread.toFixed(2)} m, wing ${r.wing.toFixed(2)} m, hem ${r.hem.toFixed(2)} m under the collar, lowest ${r.lowest.toFixed(2)} m`;
+
+test('a seated cape falls down the back and over the bench, not out like wings (Nour on her bench)', async () => {
+  // Qanat's stone bench: 1.5 x 0.42 x 0.5 m; she sits on its cushion, a little behind its middle
+  const { npc, near, far } = await seatedCape(DESERT.nour, 'desert', { seat: 0.02, boxes: [[1.5, 0.42, 0.5]] });
+  console.log(`  nour: near ${fmt(near)}; far ${fmt(far)}`);
+  assert.ok(npc.clothState({ wind: V() }, 0).field, 'seated: the cloth knows the seat');
+  for (const [r, when] of [[near, 'simulated'], [far, 'its drape']]) {
+    assert.ok(r.spread < 0.9, `${when}: close round her (${fmt(r)}; it spread ~1.2 m)`);
+    assert.ok(r.wing < 0.6, `${when}: nothing stands out over the seat (${fmt(r)})`);
+    assert.ok(r.hem > 0.45, `${when}: the hem hangs well below the shoulders (${fmt(r)}; it was level with them)`);
+    assert.ok(r.lowest < -0.15, `${when}: some of it hangs over the bench's edge (${fmt(r)})`);
+  }
+  assert.ok(far.hung, 'far off it hangs');
+});
+
+test('other seated people: on a stool the cloth falls past, and on a wide ledge', async () => {
+  // Sel (the Bazaar): 0.45 m up on a seat the physics doesn't see (a stool, a crate): the cloth falls to the ground
+  const sel = await seatedCape(BAZAAR.sel, 'bazaar', { seat: 0.45 });
+  // Hask (the Buried City): on a broad ledge, the cloth lies on it round him
+  const hask = await seatedCape(BURIED.hask, 'buried', { seat: 0.02, boxes: [[3, 0.5, 3, -1.2]] });
+  for (const [who, { near, far }] of [['sel', sel], ['hask', hask]]) {
+    console.log(`  ${who}: near ${fmt(near)}; far ${fmt(far)}`);
+    for (const r of [near, far]) {
+      assert.ok(r.spread < 0.9 && r.wing < 0.65, `${who}: close round them (${fmt(r)})`);
+      assert.ok(r.hem > 0.3, `${who}: hanging down, not out (${fmt(r)})`);
+    }
+  }
+  assert.ok(sel.near.lowest < -0.3, `Sel: down to the ground (${fmt(sel.near)})`);
+  assert.ok(hask.near.lowest > -0.1, `Hask: on the ledge (${fmt(hask.near)})`);
+});
+
+test('the ground round a seat: the bench top under the hips, the ground past its edges', () => {
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(50, 50).rotateX(-Math.PI / 2)));
+  const b = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.42, 0.5)); b.position.set(0, 0.21, 0); scene.add(b);
+  const b2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 1.5)); b2.position.set(10, 0.21, 0); scene.add(b2);
+  scene.updateMatrixWorld(true);
+  const physics = new Physics(scene), groundAt = (x, y, z, d) => physics.groundAt(x, y, z, d);
+  const F = groundField(groundAt, V(0, 0.44, -0.1), 0);
+  const at = (u, v) => F.h[Math.round((v + F.half) / F.step) * F.n + Math.round((u + F.half) / F.step)];
+  assert.ok(Math.abs(at(0, 0) + 0.02) < 0.01, 'under the hips: the bench top');
+  assert.ok(Math.abs(at(0, -0.36) + 0.44) < 0.01, 'behind: the ground');
+  assert.ok(Math.abs(at(0.6, 0.1) + 0.02) < 0.01 && Math.abs(at(0.96, 0.1) + 0.44) < 0.01, 'along the bench, then past its end');
+  // the same seat turned round: the same shape (a drape is shared between people on one kind of seat)
+  assert.equal(groundField(groundAt, V(9.9, 0.44, 0), Math.PI / 2).sig, F.sig);
+});
+
+test('standing, the cloth is as it was: the plain ground under the feet, the standing drape', () => {
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(50, 50).rotateX(-Math.PI / 2)));
+  scene.updateMatrixWorld(true);
+  const npc = new NPC(scene, new Physics(scene), { route: [V(0, 0, 0)], cape: 1.2, lines: ['~neutral~ …'], world: 'desert' });
+  assert.equal(npc.clothState({ wind: V() }, 0).field, null);
+  assert.equal(npc.drapeKey(), 'rig/0');
+});

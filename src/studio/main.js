@@ -120,9 +120,9 @@ console.info(`studio: people loaded in ${(performance.now() - t0).toFixed(0)} ms
 let ROOMS = [];
 const roomsReady = import('../levels/lab-rooms.js').then((m) => { ROOMS = m.ROOMS; applyLight(); }).catch((e) => console.warn('no world skies', e));
 
-// a flat world for the people: the ground at y = 0 (feet planting, cloth)
+// a flat world for the people: the ground at y = 0 (feet planting, cloth), and the stool's top for a seated cape
 const physics = {
-  groundAt: () => 0, pushCapsule() {}, heightAbove: (p) => p.y,
+  groundAt: (x, y, z) => (stool.visible && y >= 0.45 && Math.hypot(x - stool.position.x, z - stool.position.z) < 0.22 ? 0.45 : 0), pushCapsule() {}, heightAbove: (p) => p.y,
   groundNormal: (x, y, z, out = new THREE.Vector3()) => out.set(0, 1, 0),
 };
 const wind = new THREE.Vector3();
@@ -334,10 +334,12 @@ function animate(p, dt, t) {
     a.update(dtA, { speed: state.paused ? speed : speed, onGround: true, mode: state.anim === 'game:talk' ? 'talk' : 'ground', walkAt: N.walk * 1.3, jogAt: N.jog, sprintAt: N.sprint * 1.2, strideScale: 1.05 });
   }
   a.apply(root, { legScale: 1.04 });
+  if (p.npc && !seated) p.npc.seat = null;
   if (seated && p.npc) {
     p.npc.time = t;
     p.npc.object = root;
-    p.npc.pos.copy(p.pos);
+    p.npc.pos.copy(p.pos).setY(0.45);   // (on the stool: the cape drapes over it, NPC.seatField)
+    p.npc.seat = 0.45;
     p.npc.posture(dtA, { pose: 4 });
     const s = root.scale.y;
     root.position.set(p.pos.x, 0.45 + (0.05 - 0.95) * s, p.pos.z - 0.12 * s);
@@ -375,11 +377,11 @@ function animate(p, dt, t) {
       p.npc.vel.set(Math.sin(p.heading) * speed, 0, Math.cos(p.heading) * speed);
       root.updateMatrixWorld(true);
       const s = p.npc.clothState(fakePlayer, state.move ? speed : 0);
-      if (!cape.drape && !cape.ready) cape.bake({ ...s, capsules: p.npc.clothCapsules(null) }, { key: p.npc.drapeKey(seated ? 4 : 0) });
+      if (!cape.drape && !cape.ready) cape.bake({ ...s, capsules: p.npc.clothCapsules(null) }, { key: p.npc.drapeKey(seated ? 4 : 0, s.field) });
       if (dt > 1e-4) cape.update(Math.min(dt, 1 / 20), s);   // (a cloth step of 0 s divides by it)
     } else {
       root.updateMatrixWorld(true);
-      if (!cape.drape) cape.bake(p.npc.clothState(fakePlayer, 0), { key: p.npc.drapeKey(seated ? 4 : 0), force: true });
+      if (!cape.drape) { const s = p.npc.clothState(fakePlayer, 0); cape.bake(s, { key: p.npc.drapeKey(seated ? 4 : 0, s.field), force: true }); }
       cape.rest(dt);
     }
   }
