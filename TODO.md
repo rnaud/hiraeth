@@ -511,3 +511,27 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   about their world, a brush-off ("get lost"), or something funny; then the talk ends. (`talk: { listen }`:
   every bystander and crowd person in seven worlds, a different entry each talk, news after the temple and
   the main quest.)
+
+---
+
+# Feel and look (2026-10-05, web)
+
+- [ ] Plants move too much when you walk past: a light brush as you pass, not a big shove.
+- [ ] Most structures cast shadows.
+- [ ] Grass pops in: in the distance it should fade into something smaller and cheaper, not appear at a line.
+- [ ] Jump animation by phase: take-off, the top, falling back down (it looks static through the whole jump).
+- [ ] The gun's blob impact follows the surface it hits, not a flat decal floating in front of it.
+- [ ] Hands are stiff and flat: give them the natural arc of a relaxed hand, and let them move.
+- [ ] The faces in the dialogue box's portrait are badly aliased.
+- [ ] The alien text in the dialogue box lacks variety: it should look like a real written language
+  (each world its own script) before it turns into English.
+- [ ] One stamina bar shared by running and climbing; running a little faster.
+- [ ] Flowers that open shouldn't clip into walls and other things.
+- [ ] Make it clear when you hit an invisible wall (the traveller just stutters as you push on).
+- [ ] Each world's music more thematic.
+
+# References level (2026-10-05)
+
+- [ ] A level called "references" that recreates the reference images' scenes exactly, to check the
+  shaders against the intended look; `[` and `]` (L3 / R3 on device) switch between them. First
+  `references/The Desert/environement/IMG_3775.JPG` (six panels), then stop and review.
