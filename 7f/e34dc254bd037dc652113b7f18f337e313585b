@@ -1,0 +1,213 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_1a187848968265 359-364,484,510-512,521,523-525,528,534-539,551,582,613,644,735,760,788
+TODO.md
+  s_1fd8d0e7b02dcf::t_021d0cee9df0ca 52-55,59-66,70-80,84-89,93-105,109,115-118
+android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+  s_1fd8d0e7b02dcf::t_77ae223339387a 2,4,6-7
+android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+  s_1fd8d0e7b02dcf::t_fd545680ae3983 2,4,6-7
+changelog.md
+  s_1fd8d0e7b02dcf::t_4a5c9c9a920d09 5-50
+docs/README.md
+  s_1fd8d0e7b02dcf::t_fd87e25a1a8147 51
+docs/game-brief.md
+  s_1fd8d0e7b02dcf::t_c76921b97f5f1a 126,131
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_604784c99c2d1d 50-55,123-129,200,207-213,217-228,230-233,235,248,260,271,285,293,302
+docs/systems/app-icon.md
+  s_1fd8d0e7b02dcf::t_a9e81ce6a3b363 1-48
+docs/systems/boss-hints.md
+  s_1fd8d0e7b02dcf::t_6d416ffe2e6d9f 1-29
+docs/systems/boxes.md
+  s_1fd8d0e7b02dcf::t_92f031f3da88f9 1-52
+docs/systems/capes-at-every-distance.md
+  s_1fd8d0e7b02dcf::t_38d8d1dc170dc9 1-42
+docs/systems/characters.md
+  s_1fd8d0e7b02dcf::t_fb478faa616eee 41-43
+docs/systems/controls.md
+  s_1fd8d0e7b02dcf::t_343f476783f907 95-101
+docs/systems/items.md
+  s_1fd8d0e7b02dcf::t_68b46ec5592a92 9-11
+docs/systems/movement-and-camera.md
+  s_1fd8d0e7b02dcf::t_d5b32daf8a417a 1-62
+docs/systems/platforms.md
+  s_1fd8d0e7b02dcf::t_995313c3d1c349 15-16
+docs/systems/progression.md
+  s_1fd8d0e7b02dcf::t_dc3a23f160e053 1-57
+docs/systems/scout.md
+  s_1fd8d0e7b02dcf::t_916c22b24fe822 43-45,47-48
+docs/systems/traveller-kit.md
+  s_1fd8d0e7b02dcf::t_8a40188aba2bb0 1-34
+docs/systems/ui.md
+  s_1fd8d0e7b02dcf::t_1bfcd42e9aa12f 136-137,149-151
+docs/systems/worlds.md
+  s_1fd8d0e7b02dcf::t_06ef3709708c08 16-25,32,53,60
+index.html
+  s_1fd8d0e7b02dcf::t_e82fecd0e1b879 13,377,471,487
+lore/characters/traveller-design.md
+  s_1fd8d0e7b02dcf::t_9d024822ea40b8 10-14,23-29,38-39,41-51,55-56,64-78,80-84,86-88
+public/manifest.webmanifest
+  s_1fd8d0e7b02dcf::t_fdb4bdffbe17b4 13-16
+scripts/icons.mjs
+  s_1fd8d0e7b02dcf::t_b74bd7ede712f4 1-289
+src/audio.js
+  s_1fd8d0e7b02dcf::t_cf82d4e55a3bd2 811-819,975-985,1135-1136,1142
+src/bird.js
+  s_1fd8d0e7b02dcf::t_03d6647bb0f5d1 11-13,19-22,127-131,163,172,183,260,263,265-267,269-271,273,312-347,350-353,355,364-376,380-382
+src/boxes/effects.js
+  s_1fd8d0e7b02dcf::t_c1cfa3385263a3 36
+src/boxes/index.js
+  s_1fd8d0e7b02dcf::t_29a9fedfe4842f 5,11-13,15-21,30,44-52,223,260-261,277,282,301,332,348,358-363
+src/boxes/model.js
+  s_1fd8d0e7b02dcf::t_13c7c7b97cee93 2,10-14,16-17,19-22,27-29,33-35,53-55,57-62,64-72,74-76,80-86,89-91,93
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_75431937dc4857 17-18,30-33,35
+src/boxes/scene.js
+  s_1fd8d0e7b02dcf::t_e71975febb4259 4-6,10-13,27-39,44,47,112,121-126,181,187-197,199-210,213,215,217-227
+src/cape.js
+  s_1fd8d0e7b02dcf::t_1b63ba5f523ed4 24-32,205-207,213,217-218,227-279,281-282,286-287,289,293-294,299,305-307,332-340,401,421,435,442-469,471-479,481-482,484-489,493,496-497,499
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_a8c5fd58a2d840 5-7,9-51,646-648
+src/crowd-shader.js
+  s_1fd8d0e7b02dcf::t_ce9bb92259780d 41-55,81-86,204-206,208-211,213,215-216,218,220-248,257
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_8d9885e564e110 45-46,115-120,122,206,229
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_77da0efa35f447 198-200,385-387,447-452,454,458,460,464,467-470,472-473,475,477,491,493-528,530-532,540,543-545
+src/fluid-tool.js
+  s_1fd8d0e7b02dcf::t_ec96db114e9cb2 481-484,486-487,490-492,494,505,509-512,514-515,533,537-538,550,555-558,561-563,707,740,774,1124-1125
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_5355b6011c877c 314-319,327,329,588-593,747,755,760,774,841-842,1332-1333,1338,1342-1371,1379
+src/items.js
+  s_1fd8d0e7b02dcf::t_b77f90b16715e2 18-19,33,131-136,170,182
+src/jump-shadow.js
+  s_1fd8d0e7b02dcf::t_b647195d7258b6 1-101
+src/levels/arzach.js
+  s_1fd8d0e7b02dcf::t_6c665d81207e72 144-146,148-168
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_747e0469419f2a 186-187,196
+src/levels/index.js
+  s_1fd8d0e7b02dcf::t_38d1ce5c8eb5c7 29-30,35-36
+src/levels/names.js
+  s_1fd8d0e7b02dcf::t_196f07f996a8b2 21-26
+src/main.js
+  s_1fd8d0e7b02dcf::t_3ce3a25adfe5f0 9-10,12,34,59,245,366-367,487-489,491-492,850,951-954,957,960-961,963-964,1296,1313
+src/materials.js
+  s_1fd8d0e7b02dcf::t_342965ee335763 1097-1145,1458-1472,1764-1768,1824-1826,1922-1929
+src/npc.js
+  s_1fd8d0e7b02dcf::t_af2d017011eb7b 583-586,588-589,662-663,666,668,796-799
+src/player.js
+  s_1fd8d0e7b02dcf::t_75ac6c46edd87a 29-38,40-68,258,678-680,772,907,923,926,1018-1019,1026-1032,1039-1042,1046-1047,1054-1056,1087-1092,1267-1274,1664,1711,1718-1721,1723-1730,1820,2071-2073,2076,2171-2174,2353-2355,2358-2360
+src/prompt-keys.js
+  s_1fd8d0e7b02dcf::t_af8850d94c8229 9-29
+src/quest.js
+  s_1fd8d0e7b02dcf::t_ec081b71db7a07 4,54-56
+src/ragdoll.js
+  s_1fd8d0e7b02dcf::t_11592c1d5927cd 28,78-80,106,126-131,137,194,197,201-205,392-398,429-430
+src/scout.js
+  s_1fd8d0e7b02dcf::t_e4370f804a3fef 12-16,26-34,130,133-135,139-141,145,151-152,154-155,157,159,186,193-194,196,204-212,224-226,231,316,364,393-397,434,440-441,478,480,482,486,491,497,501-502,504
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_cf75def6a8de3a 14-15,60-61,304
+src/story/arzach-data.js
+  s_1fd8d0e7b02dcf::t_db13258adb7b22 3-16,24-28,32-40,48-49,51-52,87,95,107,118-119,122-123,127,145
+src/story/arzach.js
+  s_1fd8d0e7b02dcf::t_63aad7ddef9be1 7,11-13,15-19,26-27,44-109,122-133,178-240,314,405,407-408,414-420,422-426,436-437,454,473,527-528,531
+src/story/desert-data.js
+  s_1fd8d0e7b02dcf::t_f2c50bfad99470 846-847
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_42a26e5250b540 18-20,26-27,31-37,61-70,415-419,422-442,456-459
+src/story/incal.js
+  s_1fd8d0e7b02dcf::t_07c2f6331a1b24 8,24-27,91,231-235,246-248
+src/story/moment.js
+  s_1fd8d0e7b02dcf::t_6d78ac77f66965 3,193
+src/story/route.js
+  s_1fd8d0e7b02dcf::t_a95aee4740d3f4 11-16,25-27,37,39,45-46
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_f52b194784571c 352
+src/taxi.js
+  s_1fd8d0e7b02dcf::t_99e65781f79e7b 7,17-21,159-166,170-175,180,182,185,214-228,230
+src/temples/arzach.js
+  s_1fd8d0e7b02dcf::t_10e03d32bb7f56 8,314-316
+src/temples/boss.js
+  s_1fd8d0e7b02dcf::t_933f417e96223f 11-12,14-15,30,44-54,313-314
+src/temples/edena.js
+  s_1fd8d0e7b02dcf::t_3c9a3e4b90852d 107-109
+src/temples/guardians.js
+  s_1fd8d0e7b02dcf::t_e9927b400a7476 563-572,589,607-612
+src/temples/hints.js
+  s_1fd8d0e7b02dcf::t_4351078eb89b70 1-188
+src/temples/incal-data.js
+  s_1fd8d0e7b02dcf::t_253e3cf2470ec4 10-11
+src/temples/incal.js
+  s_1fd8d0e7b02dcf::t_784dd989bdd73f 9,83-84,106-161,217-218,418,421-431
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_a9f2414fd80c2e 164-166
+src/temples/runtime.js
+  s_1fd8d0e7b02dcf::t_2994e17e28f54c 8,199-201,210,212,215,219,227
+src/traveller-style.js
+  s_1fd8d0e7b02dcf::t_674c9dd2b14ab3 4,7-8,12,16
+src/traveller.js
+  s_1fd8d0e7b02dcf::t_1f3308d8c65acf 3,7-12,19,22-28,232-233,235-262,265-292,294-344,346-362,381,401-403,409-419,421-423,425,427,430-432,434-438,440-441,444,446,450-455,457,462,509-513,516,520-521,556-561
+src/ui.js
+  s_1fd8d0e7b02dcf::t_7c6f9e39ce3429 61,71,92,233-236,269,360-366,372,377,380,388,400-402,404,411-412
+tests/abilities.test.js
+  s_1fd8d0e7b02dcf::t_98aa8e9f78c368 62,66,84,314,316-317,328,346
+tests/bazaar.test.js
+  s_1fd8d0e7b02dcf::t_9b76f5d71eb6ef 23
+tests/birds.test.js
+  s_1fd8d0e7b02dcf::t_f3bde083a413ac 5,30-66
+tests/bosses.test.js
+  s_1fd8d0e7b02dcf::t_e293fb881868b9 1-130
+tests/boxes.test.js
+  s_1fd8d0e7b02dcf::t_8c2d493b51242e 12,14-16,75-76,106,113-114,117-118,129,144-145,150-151,153-157,159-161,163,165-169,188,208-211,213-215,218-222,232,275,340,354-457
+tests/camera.test.js
+  s_1fd8d0e7b02dcf::t_b0e85dffb149b0 5,118-141
+tests/clip-audit.test.js
+  s_1fd8d0e7b02dcf::t_46e806574fd924 7,76-78
+tests/controls.test.js
+  s_1fd8d0e7b02dcf::t_1682c8618012e8 10-11,19,21-22,24,26-31,34,36,39,44,46-55,57-64,71-72,75-76,78-96
+tests/drone.test.js
+  s_1fd8d0e7b02dcf::t_1c33e262652fa0 138,140,142-145,149-154,157,163,165-169,177,265,280
+tests/hud.test.js
+  s_1fd8d0e7b02dcf::t_76f92c2afab6ec 80-81,83,85-94
+tests/icons.test.js
+  s_1fd8d0e7b02dcf::t_764542e6f3c583 1-60
+tests/jump-shadow.test.js
+  s_1fd8d0e7b02dcf::t_86a0e8486c124b 1-72
+tests/menus.test.js
+  s_1fd8d0e7b02dcf::t_c72eaea820d709 56-80
+tests/ragdoll.test.js
+  s_1fd8d0e7b02dcf::t_36a6afeaf8323e 158-206
+tests/robes.test.js
+  s_1fd8d0e7b02dcf::t_d003b0e3ab3ad7 1-270
+tests/route.test.js
+  s_1fd8d0e7b02dcf::t_d357ad3f0f7f1a 2,4,15,17-21,23,33-52,56-57,59,61-63,70-71,75-76,114-115,117,130,142
+tests/scout.test.js
+  s_1fd8d0e7b02dcf::t_c23a55f57cc232 4,56-57,59-60,64,69-70,90,189,193-194,197-247
+tests/story-arzach.test.js
+  s_1fd8d0e7b02dcf::t_94f0eeed07ca8c 16-17,110,114-124,128-132,134,136-143,146-149,152,154-158,163,170-199,232
+tests/story-incal.test.js
+  s_1fd8d0e7b02dcf::t_3fb49947a1f3dd 236-285
+tests/taxi.test.js
+  s_1fd8d0e7b02dcf::t_9008d76eef6188 8-9,48,72-97
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_1660742d5a3b04 26-27,510-519,523-525,1399-1402,1410-1412
+tests/traveller.test.js
+  s_1fd8d0e7b02dcf::t_3a665f0fe1dda5 13-14,132-135,146-150,203,264-267,340-411
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7fe34dc254bd037dc652113b7f18f337e313585b",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
