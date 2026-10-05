@@ -1,0 +1,33 @@
+src/desert-hearth.js
+  s_1fd8d0e7b02dcf::t_46c37a3cdff6a4 120,137-139
+src/dev-menu.js
+  s_1fd8d0e7b02dcf::t_436a2f26d4afe3 115
+src/game-state.js
+  s_1fd8d0e7b02dcf::t_b91d58646c191e 34-37,39-41,57
+src/story/desert-spark.js
+  s_1fd8d0e7b02dcf::t_8445e73330dc7d 74
+src/story/desert.js
+  s_1fd8d0e7b02dcf::t_855051998a8267 264-267,347-349,353-354,358,366,372-373,731,738-741,772-774,780
+src/temples/desert-data.js
+  s_1fd8d0e7b02dcf::t_63d63d483fa68b 51-52
+tests/desert-spark.test.js
+  s_1fd8d0e7b02dcf::t_54f149e4230136 1-188
+tests/fluid-tool.test.js
+  s_1fd8d0e7b02dcf::t_b64879cecd3cce 123-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a7103e63d96cdd2cfb1edea11ba3d534cafa83da",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
