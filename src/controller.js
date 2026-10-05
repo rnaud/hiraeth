@@ -3,7 +3,7 @@
 // thumb does the same thing on every pad (README "The controller layout"):
 //
 //   walking   bottom jump (again in the air: boost) · right interact, talk, get on
-//             · left call the mount (whistle it, hail a taxi) · top ping
+//             · left call the mount (whistle it, hail a taxi) · top: the scout finds the objective
 //             · LT aim · RT shoots while LT is held, and fires the jets without it
 //             (hover; the stick flies you that way, bottom held climbs) · RB push
 //             · L3 (click the left stick) run until you stop
@@ -13,6 +13,7 @@
 //   riding    RT throttle (analog) · LT brake / reverse · left stick steer, and on
 //             flyers dive (forward) / climb (back) · left hop / flap / rise
 //             · RB or L3 boost · bottom jump off (a hop; its speed carries you) · right get off
+//             · top: the scout finds the objective, as on foot
 //   menus     the button printed A confirms, B goes back (Xbox: bottom / right; a
 //             Retroid, letters Nintendo-style: right / bottom) · View, Menu close
 //   talking   as menus; the interact button also goes on (so on Xbox, B talks and
@@ -131,8 +132,9 @@ export class Controller {
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
         h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
         if (press(WEST)) this.action('call');
-        if (press(NORTH)) this.action('ping');
       }
+      // the top button sends the scout to find the objective, on foot and riding (flying too)
+      if (ctx !== 'photo' && press(NORTH)) this.action('ping');
       if (ctx !== 'photo') {
         if (press(R3)) this.action('bell');   // the bell-note whistle, once found (V on the keyboard)
         if (press(MENU)) this.action('settings');
@@ -180,7 +182,8 @@ export function mergeControls(keyboard, gamepad) {
 }
 
 export function menuNavigate(root, x, y) {
-  const elements = [...root.querySelectorAll('button, a[href], input, select')].filter(e => !e.disabled && e.getClientRects().length);
+  // (and anything marked data-nav: the quests in the menu's quest log, chosen to track one)
+  const elements = [...root.querySelectorAll('button, a[href], input, select, [data-nav]')].filter(e => !e.disabled && e.getClientRects().length);
   if (!elements.length) return;
   const current = document.activeElement;
   if (x && root.contains(current) && (current.type === 'range' || current.tagName === 'SELECT')) {

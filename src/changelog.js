@@ -3,6 +3,13 @@
 // Add an entry at the top for every release.
 
 export const CHANGELOG = [
+  { v: '0.62', date: '2026-10-05', items: [
+    'Nothing stays on the screen while you play any more: the box in the corner with the place, the objective and the relics is gone. Your health shows while you are hurt or healing, the stamina wheel while you are tired, the tank beside you while it refills or the jets burn, and each fades away after. A short line at the bottom says what the use button does when there is something to use, and a region’s name as you cross into it.',
+    'To find where to go, send your drone: Q, Y / △ on a controller (riding and flying too), or ping on a touch screen. It flies a little way towards your objective, points its lens beam at it, drops a flare there that you can see from far away, chirps, says what it found and how far, and comes back to your pack. With nothing to find, it shrugs.',
+    'The menu has a Quests page: where to go now, your father’s charge, and every quest with the steps you have done struck through, the finished ones and the failed ones. Choose a quest there to track it. Every control, for the controller, the keyboard and touch, is on its new Controls page (H opens it).',
+    'The floating diamond over your objective only shows for a while after the drone has found it. A makers’ box offered when you arrive no longer takes the drone away from the quest you are on, and the drone no longer points at relics: they are yours to find.',
+    'The frame-rate readout is off unless you turn it on (F, or in the settings). On a touch screen the menu button is a small, faint ⚙ in the corner; with a keyboard or a controller there is none (O, Esc or Menu open the menu).',
+  ] },
   { v: '0.61', date: '2026-10-05', items: [
     'Plants no longer get shoved aside as you walk past: they lean a little away from you, as if brushed, and spring back with a small wobble, more the closer and the faster you pass. Grass parts round your feet the same way.',
     'Grass no longer pops in or stops at a line: the blades fade out tuft by tuft with distance, shorter and in the colour of the ground, and sparse low tufts carry the meadow about twice as far before it melts into the ground. Turning the camera no longer makes the grass in front of you jump.',

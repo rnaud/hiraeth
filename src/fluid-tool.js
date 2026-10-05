@@ -927,7 +927,8 @@ export class FluidTool {
     this.updateWorn(dt);
     const dry = this.dry;
     this.hud?.update({ on: this.k > 0.5 && this.camK > 0.3, charges: this.reserve.charges, max: this.reserve.max, refillIn: dry ? 0 : this.reserve.refillIn, ready: this.cooldown === 0 && this.reserve.charges > 0, aimKind: this.aimKind, hit: this.lastHit, tones: this.modeTones,
-      owned: this.owned, mode: this.mode, modeName: dry ? 'empty' : this.modeName, modes: this.modes.length, modeFlash: this.modeFlash });
+      owned: this.owned, mode: this.mode, modeName: dry ? 'empty' : this.modeName, modes: this.modes.length, modeFlash: this.modeFlash,
+      level: this.reserve.level, jets: !!p?.thrusting && this.canJet, dry });
     this.lastHit = null;
   }
 

@@ -630,3 +630,24 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   gutter and spreading over the basin, his face, to the world's motif; the empty tank filling in
   three colours, the bracer's rings, a first glob, his face, to the father's theme, then the
   controls. README, "Moments: first times, filmed".*
+
+# HUD (2026-10-05, web)
+
+- [x] No persistent icon or text on the screen: the status box (place, objective, distance,
+  relics, gauges) is gone. Health shows while hurt or healing, stamina while not full, the tank's
+  pips beside the traveller while aiming, shooting, using the jets, refilling or switching mode,
+  each fading after; the FPS readout is off by default (a setting, F, `?fps=1`); the gear only on
+  touch, small and faint; the keyboard help is the menu's Controls page. Prompts only near
+  something usable (the cue line for the ones with nothing to float over), toasts as before.
+  *Done: `src/hud.js`, README "Nothing on the screen; the scout finds the objective".*
+- [x] The drone finds the quest: Q / Y / △ / touch ping (on foot, riding, flying) sends the scout
+  a little way towards the objective (or over it when near); it hovers, points its lens beam at
+  it, drops a flare there for a few seconds, chirps, names it and the distance on the cue, then
+  docks. Nothing to find: a shrug, "Nothing to find here". *Done: `Scout.ping` / `FIND`,
+  `Flare`; it finds the tracked or main quest's step, the observatory, the story goal, the ship.*
+- [x] The quest log in the menu: a Quests page (where to go, the father's charge, current quests
+  and their steps, done ones struck through, failed ones marked), reachable by controller, a
+  quest chosen there tracked. The sketchbook is unchanged. *Done: `SettingsMenu.page('quests')`.*
+- [x] The world's beacon: kept (it is in the world, a landmark, and the only sign of a goal in a
+  world without step-by-step quests); the cyan quest marker, which did hang in the air, now shows
+  only for a while after the drone has found the objective (`QuestMarker.reveal`).
