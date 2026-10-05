@@ -317,3 +317,12 @@ test("The Hangar's people are MakeHuman bodies: Pip a child of nine, Ambroise's 
   assert.ok(pip.height > 1.05 && pip.height < 1.45, `Pip ${pip.height.toFixed(2)} m`);
   assert.equal(onBody('garage', PEOPLE.ambroise).look.mask, 'monocle');
 });
+
+test("The Buried Machine's people are MakeHuman bodies: Pim a small boy, Hask under a hard hat", async () => {
+  assert.ok(MH_WORLDS.has('buried'));
+  const { PEOPLE } = await import('../src/story/buried-data.js');
+  assert.equal(ageClassOf({ def: PEOPLE.pim }), 'child', 'Pim was drawn as an elder: his face');
+  const pim = onBody('buried', PEOPLE.pim);
+  assert.ok(pim.height > 1.0 && pim.height < 1.3, `Pim ${pim.height.toFixed(2)} m`);
+  assert.equal(onBody('buried', Object.values(PEOPLE).find((d) => d.id === 'hask.buried')).look.head, 'helmet');
+});

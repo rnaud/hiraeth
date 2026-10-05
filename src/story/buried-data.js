@@ -145,7 +145,7 @@ export const PEOPLE = {
 
   hask: {
     id: 'hask.buried', name: 'Hask', title: 'keeper of the Wick', color: '#7f93a3', voice: 0.7, kind: 'm', scale: 0.96,
-    palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#4a3a2a', hat: '#e9dcc0', hair: '#e8dcc0' }, head: 'hat', cape: 1.3, look: { prop: 'lantern' },
+    palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#4a3a2a', hat: '#e9dcc0', hair: '#e8dcc0' }, head: 'hat', cape: 1.3, look: { prop: 'lantern', head: 'helmet' },
     lines: ['~tired~ Mm.', '~tired~ Fifty-two Tooth Days.', '~neutral~ (he watches the sky)'],
     talk: {
       entry: [
@@ -239,7 +239,8 @@ export const PEOPLE = {
   },
 
   pim: {
-    id: 'pim', name: 'Pim', title: 'nine teeth old', color: '#e9c9a8', voice: 1.7, kind: 'm', scale: 0.72,
+    // (a small boy: nine teeth old is about six)
+    id: 'pim', name: 'Pim', title: 'nine teeth old', color: '#e9c9a8', voice: 1.7, kind: 'm', scale: 0.72, age: 'child', years: 6,
     palette: { cloak: '#e9c9a8', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#c8643f', hair: '#4a3226' }, head: 'hair', cape: 0.4,
     lines: ["~neutral~ The domes are chimneys. Most of the machine is beneath us.", "~neutral~ Follow the sandy ramp. Those canyon walls are pipes.", '~shout~ I’m nine teeth old!'],
     talk: { listen: [
