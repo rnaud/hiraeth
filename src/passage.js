@@ -187,6 +187,9 @@ export class WarmDraw {
     H.children = todo;
     try {
       for (const pass of this.passes) {
+        // (a pass may take only some: the G-buffer only what writes all its targets)
+        H.children = pass.accepts ? todo.filter(pass.accepts) : todo;
+        if (!H.children.length) continue;
         H.overrideMaterial = pass.override ?? null;
         R.setRenderTarget(pass.target);
         R.render(H, pass.camera);
@@ -205,6 +208,17 @@ export class WarmDraw {
   }
 }
 
+/**
+ * Does this mesh's material write every target of the G-buffer (materials.js: gAlbedoLight,
+ * gNormalDepth, gHatch)? A hidden helper (a collision stand-in, a picking proxy) wears a plain
+ * MeshBasicMaterial with one output: drawn into the three targets it is a GL error (glDrawArrays:
+ * "active draw buffers with missing fragment shader outputs"), and the real passes never draw it.
+ */
+export function writesGBuffer(o) {
+  const ms = Array.isArray(o.material) ? o.material : [o.material];
+  return ms.every((m) => m?.isShaderMaterial && /location\s*=\s*2\s*\)/.test(m.fragmentShader ?? ''));
+}
+
 /** The passes a WarmDraw needs for the game's pipeline: a 4 × 4 G-buffer and a 4 × 4 shadow map. */
 export function warmPasses({ makeGBuffer, shadowOverride }) {
   const gb = makeGBuffer();
@@ -213,7 +227,7 @@ export function warmPasses({ makeGBuffer, shadowOverride }) {
   depthTexture.compareFunction = THREE.LessEqualCompare;
   const sh = new THREE.WebGLRenderTarget(4, 4, { format: THREE.RedFormat, depthBuffer: true, depthTexture });
   return [
-    { target: gb, camera: new THREE.PerspectiveCamera(55, 1, 0.3, 5000) },
+    { target: gb, camera: new THREE.PerspectiveCamera(55, 1, 0.3, 5000), accepts: writesGBuffer },
     { target: sh, camera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), override: shadowOverride },
   ];
 }

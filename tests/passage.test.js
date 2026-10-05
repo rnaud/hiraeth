@@ -9,7 +9,8 @@ import * as THREE from 'three';
 // the unseen draw itself, and main.js / the Lab / the Hangar going through it.
 
 globalThis.window ??= { addEventListener() {} };
-const { passageTransform, carryAcross, Passage, WarmDraw, PASSAGE, sheetPath } = await import('../src/passage.js');
+const { passageTransform, carryAcross, Passage, WarmDraw, PASSAGE, sheetPath, writesGBuffer, warmPasses } = await import('../src/passage.js');
+const { makeMaterial } = await import('../src/materials.js');
 const { Player, CameraRig } = await import('../src/player.js');
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -224,4 +225,21 @@ test('main.js, the Lab and the Hangar hand over through the passage; it is warme
   assert.match(lab, /P\.go\(\{ to, heading, speed/);
   const garage = readFileSync(new URL('../src/levels/garage.js', import.meta.url), 'utf8');
   assert.match(garage, /P\.go\(\{ to: po\.to, up: po\.toUp, fwd: po\.toFwd/);
+});
+
+test('WarmDraw: the G-buffer pass takes only what writes all three targets (a hidden collision stand-in is a GL error there)', () => {
+  const gbuf = new THREE.Mesh(new THREE.BoxGeometry(), makeMaterial({ color: '#c8483a', flat: true }));
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry().toNonIndexed(), new THREE.MeshBasicMaterial()); proxy.visible = false;
+  assert.equal(writesGBuffer(gbuf), true, 'a surface of materials.js');
+  assert.equal(writesGBuffer(proxy), false, 'a plain MeshBasicMaterial');
+  const passes = warmPasses({ makeGBuffer: () => new THREE.WebGLRenderTarget(1, 1, { count: 3 }), shadowOverride: new THREE.MeshBasicMaterial() });
+  assert.equal(passes[0].accepts, writesGBuffer, 'the G-buffer pass filters');
+  assert.equal(passes[1].accepts, undefined, 'the shadow pass (one depth material for all) takes everything');
+  const scene = new THREE.Scene(); scene.add(gbuf, proxy); scene.updateMatrixWorld();
+  const seen = [];
+  const renderer = { t: null, getRenderTarget() { return this.t; }, setRenderTarget(t) { this.t = t; }, render(sc) { seen.push([this.t, sc.children.slice()]); } };
+  new WarmDraw(renderer, scene, { passes }).draw([gbuf, proxy]);
+  assert.deepEqual(seen[0][1], [gbuf], 'into the G-buffer: only the surface');
+  assert.deepEqual(new Set(seen[1][1]), new Set([gbuf, proxy]), 'into the shadow map: both');
+  assert.equal(proxy.visible, false, 'the stand-in hidden again');
 });
