@@ -88,7 +88,10 @@ two Lou came home to the hill with her father, who left her with Tove in the
 small house and went back out. She knew her grandparents: the mother crossed
 the yard every morning to do her hair; the father pretended he didn't watch
 from the round window, and kept her drawings down the side of his chair. She
-was five when the house went quiet. She does the flowers on their stone every
+was five when the house went quiet. The reel has her twice, never by name ("the
+little one"): the mother, four years ago, "She has your hands, love"; the father,
+in the last recording, "The little one puts you in all her drawings. Somewhere at
+the edge, waving." She does the flowers on their stone every
 Sunday. She draws every world her father writes to her from and makes a copy of
 every keepsake he tells her about, in clay and paper, for her shelf. She wants
 to be a traveller, "the kind that comes back every Sunday".
@@ -178,8 +181,8 @@ prologue's recording is 0, then `AGE[1..5]`, then the last one at
 2. The exams he missed; the Orrin boy came home with a reactor core; "mend the fence". He: the fence came down years ago. Screen: WORN.
 3. The mother joins ("Is it recording? Oh. Hello, love."). A child's voice behind them: "Is that for me?" It is his. "I remember that day. I was seven." LOGGED 19 YEARS AGO.
 4. An old one, made for him at ten, the summer he was sent to his grandfather's: "You have been at your grandfather's a week and we have not had one word." "Report, then. Like a pilot." The tape is worn; a few words go under the hiss: "…when you are older, you will understand why I…" "Keep it short. These spools cost." He: "I know what it says. I just want to hear it." LOGGED 16 YEARS AGO ("You were ten, and away for the summer").
-5. The mother found his old drawings. "Your father says I shouldn't make these. He says you never listen to them. I think one day you will." He: "I am." LOGGED 4 YEARS AGO.
-6. (After six worlds) **The last recording on the reel.** Both of them. "I have been thinking about what I asked of you. Something of value. I never said what." "Come home." "Bring whatever you have. Or nothing at all. Just come." Ship: "Logged two years ago, eleven days before the house went quiet." Home appears on the map.
+5. The mother found his old drawings. "The little one sat with me and looked at every one. She has your hands, love." (Lou, three and a half, on the hill a year and a half; never named on the reel.) "Your father says I shouldn't make these. He says you never listen to them. I think one day you will." He: "I am." LOGGED 4 YEARS AGO.
+6. (After six worlds) **The last recording on the reel.** Both of them. "I have been thinking about what I asked of you. Something of value. I never said what." The father: "The little one puts you in all her drawings. Somewhere at the edge, waving." "Come home." "Bring whatever you have. Or nothing at all. Just come." Ship: "Logged two years ago, eleven days before the house went quiet." Home appears on the map.
 7. Afterwards: **the oldest side** of the reel, from when he was small and they were happier (a bird as big as the house; asleep in the cockpit chair under the father's cap; "I'm going to bring you back a star"; first day of school; fifth birthday).
 
 From the third on the mother asks "Who did you meet today?" and he answers with
@@ -636,7 +639,7 @@ Tea keeps."), Vey ("You put it back in the world, and the world had to deal
 with it… and it is. Go and look at the mud in a month."); Esk's balloons go
 quiet ("The sides held."). The next recording finds the father on breaking
 things (section 3), and Viridel's own recording lands differently. It doesn't
-touch the main quest, the route, the ending or the stone.
+touch the main quest or the route; at the stone the traveller names it (section 7).
 
 ### 8. The Garden of Spheres: "What the Spheres Remember"
 Umbrella trees over white pyramids; giant pale spheres half sunk in the grass
@@ -776,8 +779,10 @@ sets the tokens on the slab one by one, each with a short line (a song: "You
 can hum it now without thinking"; a word: the words; a person: "Someone out
 there is waiting for you to come back"; the pale star: "a small light, a long
 way from home"). "I brought everything." If he knows about Ilen: "And this
-space is for Ilen, wherever she is." "It isn't what you asked for. It's what I
-have." Lou: "I brought something too. It's for them." She props her drawing
+space is for Ilen, wherever she is." If Esk's hill came down in Viridel (the
+quest that fails): "And Esk's hill, in the garden, which I could not mend. I said
+sorry, and I meant it, and then I went." (his father's own advice, from the
+reel). "It isn't what you asked for. It's what I have." Lou: "I brought something too. It's for them." She props her drawing
 against the stone: the round house, the two of them, and the two of you,
 holding hands. (It stays there.)
 
@@ -911,42 +916,68 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   back." (Clemence says he went to see the wheel.)
 - **A failable quest that harms locals**: built (Viridel's tea terraces,
   section 6). The recordings and the charge card both know of it.
+- **A daughter and a dog at home** (decided while the author was away; change
+  freely). The round house stays dark and empty ("Nobody lives in the round
+  house now"); Lou (seven and a half, mother Maren, a relay pilot who went back
+  out) lives in the small house across the yard with Aunt Tove (the mother's
+  sister) and the dog, Moustache, while the traveller travels; he came back once,
+  at night, to leave her there, and did not knock on his parents' door. She was
+  on the hill the whole journey; he writes her a card from every world. She comes
+  to the stone at the ending and leaves a drawing. (`src/story/home-data.js`,
+  `src/story/ending.js` tombLines, `src/levels/home.js`.)
+- **Lou on the reel**: the parents knew her three years, and two late
+  recordings say so, understated and never by name ("the little one", so she is
+  still first met at home): recording 5, logged four years ago, the mother after
+  his old drawings, "The little one sat with me and looked at every one. She has
+  your hands, love." (it answers the oldest recording at the stone: "Look at his
+  hands"); the last recording, the father just before "Come home", "The little
+  one puts you in all her drawings. Somewhere at the edge, waving." (her
+  drawings on the wall, and the ones in his chair, have a small figure in a
+  hood, waving). Tove at home now says "They knew her, you know. Not just about
+  her." (`src/story/calls.js` AGE[5] and the last recording.)
+- **The tea terraces at the stone**: if Esk's hill came down
+  (`edena.terraces.flooded`), the traveller says at the stone, after the space
+  for Ilen: "And Esk's hill, in the garden, which I could not mend. I said sorry,
+  and I meant it, and then I went." (his father's advice from the reel, kept).
+  (`tombLines(tokens, { broke })`.)
+- **Home in the docs**: the story bible's ending and the game brief now describe
+  home as built (the dark round house, the small lit house with Lou, Tove and
+  Moustache, paying respects at the stone, the failed quest's line there). The
+  brief's prologue "call" is now the recording, and its open questions are
+  answered or pointed here. Both list the makers' temples as planned.
+- **The bible's template**: "one witness per world" is now "at least one, often
+  several"; "two side quests" is now "two or more"; Oum's knotted cord is an
+  item (her thanks at the fire), not a keepsake, and she tells the rumour before
+  the walk; Oïa "hardly speaks" (three words); the bazaar's lantern band is
+  listed as planned, not built; the glyph's witnesses saw a singing light (not a
+  falling one).
+- **The words for the arc**: kept as they are. The docs and the ship say "arc";
+  the locals say "three dots over a curve". The shape is ∩ everywhere.
+- **Names that look alike**: Wick (a Lorn II keeper) and the Buried Machine's
+  Wick (a lamp); Ferro (market) and Ferrol (Hangar). Different names, kept.
+- **How one light crossed worlds a journey apart in one night** is not
+  explained, on purpose.
 
 ### Still open
 - **Home after six worlds, eleven worlds on the route**: recordings 7 to 11
   come from the oldest side; the arc's "last recording" lands mid-journey.
   Intended, but worth a look once there are temples.
-- **The bazaar's lantern colour band** (bible: "the bazaar's lantern sun" adds
-  a band) is not built.
-- **The words for the arc** vary ("arc", "curve", "arch"); the shape is always ∩.
-- **Wick** is a Lorn II keeper and the Buried Machine's lamp; **Ferro** (market)
-  and **Ferrol** (Hangar): different names, kept.
-- **"One witness per world"** (bible): most worlds have several. **Two side
-  quests per world** (bible template): most have more now. The Spheres' unused
-  stillness timer is still in `spheres.js`.
-- **Oum's knotted cord** is a *thing* keepsake in the bible but only an item in
-  the game; she tells her rumour before the walk, not after.
-- **Oïa "doesn't speak"** (bible) but says three words; the Vael feather
-  errand's giver talks freely in a silent world.
+- **The bazaar's lantern colour band** is not built (the bible lists it as
+  planned): it needs a source in the market.
+- **The Spheres' unused stillness timer** is still in `spheres.js`.
+- **The Vael feather errand's giver** talks freely in a silent world (Oïa says
+  three words).
 - **Vael II**: the stones "fell up long ago" / "since my mother's day", older
   than the thirty-year silence the monks blame. (Calix's fallback line "Nobody
   goes there", about the plain where Ondine lives, is now "Only Ondine lives out
   there, and nobody goes to see her".)
 - **The City-Shaft's Lodestar** dims "since the night the sky rang", but Nima
   says it was brighter when she was a girl. Soft.
-- **How one light crossed worlds a journey apart in one night** is not
-  explained, on purpose.
-- **The game brief still describes a live call** from the father and a prologue
-  "call"; the build plays recordings.
 
 ### Planned additions that touch the existing story
-- **A daughter and a dog at home: settled** (decided while the author was away; change freely). The round house stays dark and empty ("Nobody lives in the round house now"); Lou (seven and a half, mother Maren, a relay pilot who went back out) lives in the small house across the yard with Aunt Tove (the mother's sister) and the dog, Moustache, while the traveller travels; he came back once, at night, to leave her there, and did not knock on his parents' door. She was on the hill the whole journey; he writes her a card from every world. She comes to the stone at the ending and leaves a drawing. (`src/story/home-data.js`, `src/story/ending.js` tombLines, `src/levels/home.js`.) Still open: **the recordings never mention Lou**, although the parents knew her for three years (the mother did her hair every morning); one late recording could ("She has your hands"). And the bible's ending text and the game brief still describe an empty house.
 - **Coloured busts** replace the full-length teal holograms (`src/ship/hologram.js`); the stone scene's hologram of "the three of them" over the stone would become busts too.
 - **Makers' temples with bosses**: the makers are gentle in every world so far
   (gifts, water, a fire that hurts nobody); a boss needs a reason that fits (a
   guardian, a gift gone wrong, something the singing light woke). The builders'
   gate in Viridel is a small precedent: a makers'-era thing that does harm only
   because it is opened after a thousand years.
-- **The tea terraces at the stone**: the ending does not mention them; a line
-  at the stone ("and Esk's hill, which I could not mend") would be for the
-  ending's own pass.

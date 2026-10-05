@@ -24,6 +24,9 @@
 //    once said something about such things (FATHER_ON), more tersely as the
 //    quiet keepsakes outnumber the things; once the truth about Ilen is told,
 //    what he said later, sorrier.
+//  - Lou, his daughter (home, src/story/home-data.js), is on the late recordings twice, never
+//    by name ("the little one"): the mother, four years ago, "She has your hands"; the father,
+//    in the last recording, her drawings with him in them, waving.
 //  - The mother speaks from the third on. She asks who he met; he answers with
 //    their names. She cannot hear him.
 //  - Ilen. Once the broadcast is heard (`clue.bazaar.home` or
@@ -166,6 +169,8 @@ export const AGE = {
     open: [
       M('~playful~ He is here. He just does not want to start.'),
       M('~happy~ I found your old drawings in the hall cupboard. The round ship, and the three of us, holding hands.'),
+      // Lou, three and a half, a year and a half on the hill (LORE.md §2): never named on the reel
+      M('~whisper~ The little one sat with me and looked at every one. She has your hands, love.'),
     ],
     close: (f) => [
       F(f.shifted ? '~sad~ Come back to us.' : '~angry~ Think about it.'),
@@ -502,6 +507,8 @@ export function callLines(n, ctx = {}) {
     F('~solemn~ I have been thinking about what I asked of you. Something of value. I never said what.'),
     ...(k ? [YOU(`~whisper~ (You hold ${nameIn(k)} up to them.)`)] : []),
     ...(f.ilenTold ? [F('~sad~ I asked your sister for the same thing. I would have taken her back with empty hands.')] : []),
+    // Lou, five, across the yard: the drawings he keeps in his chair (src/story/home-data.js), not said
+    F('~sad~ The little one puts you in all her drawings. Somewhere at the edge, waving.'),
     F('~solemn~ Come home.'),
     M('~happy~ Bring whatever you have. Or nothing at all. Just come.'),
     S('~solemn~ (The picture holds on the two of them a moment, then folds away.)'),

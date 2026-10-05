@@ -20,8 +20,8 @@ Each level should advance this story through its inhabitants, quests, and discov
 The opening plays inside the game engine and leads directly into gameplay.
 
 1. The traveller wakes aboard a large, spherical spaceship.
-2. They enter the cockpit and receive a call from their father, who asks them to make the family proud and return with something valuable.
-3. Something strikes the ship, interrupting the call.
+2. They enter the cockpit and play a message from their father, who asks them to make the family proud and return with something of value. The player takes it for a call from home; it is a recording, made the day the traveller left (built: there are no live calls, see working decision 1).
+3. Something strikes the ship, interrupting the recording.
 4. With its power depleted, the ship makes a forced landing in the desert.
 5. The traveller steps outside. Their first objective is to find a new source of power.
 
@@ -36,6 +36,11 @@ Restoring the ship opens the wider journey. Each world should offer:
 - A clue or consequence that links it to another world.
 
 Proposed emotional arc: the traveller begins by seeking their parents’ approval, then gradually develops their own understanding of what is worth bringing home.
+
+Built: eleven worlds on the route; one quest in Viridel fails whatever you do (the tea terraces), and the world stays changed. Planned: a makers’ temple in every world, with a guardian and a gadget at its heart (being built; LORE.md, “Planned additions”).
+
+### Home (built)
+A small round hill under two moons, with two houses on it. The parents’ round house is dark and still: they died two years ago, and their stone stands in the yard. Across the yard, the small lit house where the traveller’s daughter **Lou** (seven and a half) lives with **Aunt Tove**, the mother’s sister, and **Moustache**, the dog; he left her there at two and went back out. At the ending Lou runs to meet him and walks with him to the stone, where he sets down everything he brought (and, if it failed, names the tea terraces he could not mend) and the reel plays its oldest recording. Afterwards he can come home any time, walk into both houses, and pay his respects at the stone. (docs/story-bible.md, “The ending”; LORE.md, sections 2 and 7.)
 
 ## Core gameplay loop
 Arrive → meet people → follow clues → explore and experiment → make a discovery → return to the ship → choose the next destination.
@@ -99,11 +104,12 @@ Every level should express the same underlying principle: the world notices you.
 Reactions should vary in intensity, leaving room for quiet and mystery.
 
 ## Decisions still to make
-- Are the parents openly disappointed from the beginning, or does that emerge through later calls?
-- What struck the ship, and how does it connect to the wider story?
-- Does the desert’s magical water power the ship, refill the backpack, or both?
-- Do shooting, jumping, and pushing use the same three-charge reserve?
-- What does the traveller ultimately choose to bring home?
+(Answered so far in the working decisions below; kept for the record.)
+- Are the parents openly disappointed from the beginning, or does that emerge through later recordings? (Decision 1: from the beginning, softening as they age.)
+- What struck the ship, and how does it connect to the wider story? (Decision 2: still a mystery; the singing light, LORE.md section 4.)
+- Does the desert’s magical water power the ship, refill the backpack, or both? (Decision 3: both.)
+- Do shooting, jumping, and pushing use the same three-charge reserve? (Decision 4: yes.)
+- What does the traveller ultimately choose to bring home? (Decision 5: everything, set on his parents’ stone.)
 
 ---
 
@@ -116,7 +122,7 @@ These were chosen to unblock building. Each is a single constant or data entry w
 3. **The magical water** does **both**: in the desert it fills a vessel that restarts the ship, and wading into it fully refills the backpack and permanently tints the fluid with a new colour band.
 4. **Charges.** Shoot, boost and push all share **one reserve of three charges**. Five seconds after the last use, all three refill at once. The tank shows the fill level as three stacked colour bands; the hand attachment shows three lit rings.
    Built (`src/fluid-tool.js`): boost is **jump again in the air** (a fresh press, not the jump itself); keep holding and the wings still open once you fall (with the glider), and with the tank empty a press just glides as before. With the jets, holding jump thrusts and a **quick double tap** boosts. Push is C / middle click / B (○); shoot is G / left click / RT while aiming.
-5. **What the traveller brings home.** Each world's discovery is collected as a **keepsake** (a thing, a song, a memory, a person's words). Built: after six worlds Home is on the galactic map; the traveller brings everything home, the keepsakes and the makers' small gifts, little tokens of having grown up, and sets them one by one on his parents' grave on the hill; the reel plays its oldest recording, and an end card follows (src/story/ending.js, src/ship/homecoming.js).
+5. **What the traveller brings home.** Each world's discovery is collected as a **keepsake** (a thing, a song, a memory, a person's words). Built: after six worlds Home is on the galactic map; the traveller brings everything home, the keepsakes and the makers' small gifts, little tokens of having grown up, and sets them one by one on his parents' grave on the hill, with his daughter Lou beside him (she lives in the small house across the yard with Aunt Tove and the dog); she leaves a drawing, the reel plays its oldest recording, and an end card follows. Home stays open after that: both houses to walk into, the stone to pay respects at (src/story/ending.js, src/ship/homecoming.js, src/story/home.js, src/levels/home.js).
 6. **Travel.** The ship replaces walking gates between worlds as the main way to travel once it is powered: enter it, take the cockpit, pick a world on the galactic map. The ship lands at each world's arrival point. The walking gates are gone; the worlds open up one or two at a time as you finish them (`src/story/route.js`).
 7. **Everything runs on the backpack.** The traveller's abilities are items (`src/items.js`), found in boxes and through quests; without the backpack there is no tool, no jets, no wings, and powered vehicles won't start ("It needs power."). Built (`src/fluid-tool.js`, `src/fluid-kit.js`, `src/player.js`):
    - **Fluid jets** (item `jetpack`): two nozzles clipped under the tank spit coloured fluid flames. They work in any world once owned (a level's `features.jetpack` only says it wants them). **Fuel rule:** thrust burns the same reserve as a smooth gauge, 0.3 charge a second (a full tank is ten seconds of flight); a shot, push or boost needs a whole charge left. After a burn the refill clock waits until you land, then the usual five seconds refill everything. The tank's level and the HUD's `jets` gauge show it.

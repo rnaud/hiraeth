@@ -2,15 +2,18 @@
 
 Companion to `game-brief.md`. One page per world: the local story, the people,
 the quests, the discovery (a **keepsake**), and the **clue** that links it to
-another world. Written to be built: each world gets one main quest, two side
-quests, a handful of named NPCs with conversations, and one keepsake.
+another world. Written to be built: each world gets one main quest, two or more
+side quests, a handful of named NPCs with conversations, and at least one
+keepsake. (LORE.md gathers the story as built; where this page is short, it
+follows the build.)
 
 ## The thread
 
 The traveller is sent out to bring back "something of value". Their father
 means something impressive: power, rare matter, a prize. Every world offers
 one, and every world also offers something quieter. Keepsakes record both,
-and the player decides at the end what they bring home.
+and at the end he brings them all home and sets them, one by one, on his
+parents' stone.
 
 **Keepsake kinds** (vary them across worlds): *thing* (an object), *song*,
 *word* (something a person said), *person* (someone who asks to come along, or
@@ -21,7 +24,9 @@ the impact. It recurs on the reactive scenery's three apertures in every world,
 on the giants' bones, on the Lodestar's facets, on the Major's machine, on the
 android ruins of Viridel and on the oldest market sign. Locals each have a
 different name and story for it. Nobody knows what struck the ship; in each
-world one person has seen "a falling light that sang" around the same time.
+world at least one person (often several) saw a singing light pass over on the
+night the ship was struck: it dipped low, turned "like it was looking for
+something", and climbed away. It never fell.
 
 **The signature** (src/story/signature.js; LORE.md, "The strike's signature"):
 the scar is magnetised, and its field beats slowly in threes. The ship charts
@@ -59,8 +64,9 @@ wings, its lenses and rings, little charms. Each gift waits in a chest:
   the chests opened for Ilen.
 
 **The colours**: the backpack fluid starts two-tone (cyan and violet). Each
-world that has a "source" (desert water, Lorn crystal, the bazaar's lantern
-sun, the buried machine's oil-light) can add a colour band. By the end the
+world that has a "source" (desert water, Lorn crystal, the buried machine's
+oil-light; a band from the bazaar's lantern sun is planned, not built) can add a
+colour band. By the end the
 tank holds the colours of every world: the tool itself becomes a record of the
 journey.
 
@@ -161,9 +167,10 @@ the settings.
   `migrateDesertQuest`; src/boxes/index.js `migrateSave` marks the shrine's
   box open for anyone who already carries the backpack).
 - **Keepsakes**: *knowing*: "What the giants left" (main quest); *song*: "Teo's
-  walking rhythm" (his drum, found under the ribcage); *thing*: Oum's knotted
-  cord (walk her back to the fire and she tells the rumour of the singing
-  light).
+  walking rhythm" (his drum, found under the ribcage). Oum's knotted cord is
+  an item, not a keepsake: she tells the rumour of the singing light when you
+  find her, and gives you the cord, one knot for every circuit, once you have
+  walked her back to the fire.
 - **Lore**: the giants carried the water from the swamp of lights and lay down
   where they could go no further; the water pooled in their hearts. The tree
   grows from this giant's heart and Qanat was built round it.
@@ -319,11 +326,14 @@ follow, and the last is n = `ENDING_WORLDS`):
    "Report, then. Like a pilot." The tape is wearing: a word is lost. "When you
    are older you will understand." The traveller: "I know what it says. I just
    want to hear it." Logged sixteen years ago.
-5. The mother alone at the end of one: "Your father says I shouldn't make
-   these. He says you never listen to them. I think one day you will." Logged
-   four years ago.
-6. (After `ENDING_WORLDS` worlds) the last recording on the reel: both of them,
-   "Come home." The ship: "That was the last recording on the reel. Logged two
+5. The mother has found his old drawings: "The little one sat with me and
+   looked at every one. She has your hands, love." (Lou, his daughter, on the
+   hill a year and a half by then; the reel never names her.) At the end: "Your
+   father says I shouldn't make these. He says you never listen to them. I think
+   one day you will." Logged four years ago.
+6. (After `ENDING_WORLDS` worlds) the last recording on the reel: both of them.
+   The father, just before "Come home.": "The little one puts you in all her
+   drawings. Somewhere at the edge, waving." The ship: "That was the last recording on the reel. Logged two
    years ago, eleven days before the house went quiet." Home is on the map.
 
 Before that, a few recordings answer what happened in a way the traveller
@@ -356,32 +366,71 @@ said to her."
 **After the ending** the reel plays its oldest side, from when he was small;
 they are happier, and he sometimes answers them.
 
-## The ending (built: src/story/ending.js, src/ship/homecoming.js, src/levels/home.js)
+## The ending (built: src/story/ending.js, src/ship/homecoming.js, src/levels/home.js, src/story/home.js)
 After `ENDING_WORLDS` (6) worlds, the last recording asks the traveller home
-and the galactic map shows **Home** just under its centre ("Nobody lives there
-now. There is a stone on the hill."). Choosing it flies there. Out of the jump
-the ship reads out the hold: every keepsake and every one of the makers' small
-gifts (the charms, the lenses, the star; not the backpack and its wings and
-jets, which he wears) goes down with him. The ship lands on the ring by the
-small round house at dusk: the lamp in the round window is dark, the door is
-shut. He walks past the door to the **stone** in the front yard, a round-topped
-headstone over a low slab with two rings carved on it, overlapping like the
-two moons. He sets the tokens on the slab one by one, each with a short line
-of what it was ("Teo's walking rhythm. You can hum it now without thinking.";
-for words, the words). Last he sets the reel down, and it plays by itself the
+and the galactic map shows **Home** at its centre, where the route begins ("A
+small round house on a small round hill, and two moons over it. Nobody lives in
+the round house now; there is a stone in its yard. Across the yard, a smaller
+house with its lamp lit."). Choosing it flies there. Out of the jump the ship
+reads out the hold: every keepsake and every one of the makers' small gifts
+(the charms, the lenses, the star; not the backpack and its wings and jets,
+which he wears) goes down with him.
+
+**Home.** Two houses on the hill. The parents' **round house** (a cream dome,
+the round window, the mast the recorder sent through) is dark, dusty and still:
+the father's chair turned to the window, his cap on the arm and, down the side
+of the cushion, a child's drawings; the mother's scarf on the stand by the door;
+the photo of the two of them with him at seven; the recorder, its spindle bare;
+her lamp under the window, its wick black. Its door sticks ("Push, then lift").
+Across the yard, **the small house**, the one he and his father started the
+summer he was fifteen and he left half done; Aunt Tove finished it. It is warm
+and lit, the door open: **Lou**, his daughter (seven and a half; he left her
+with Tove at two, at night, and did not knock on his parents' door), **Aunt
+Tove** (the mother's younger sister) and **Moustache**, the dog, live there.
+Lou's drawings of every world he wrote to her from are on the wall, a copy of
+every keepsake on her shelf. Between them, the garden (the yellow flowers were
+the mother's favourite), a bench, a washing line, Lou's swing in the umbrella
+tree, her bunting from chimney to mast.
+
+**At the stone.** The ship lands on the ring at dusk: the lamp in the round
+window is dark, the door is shut. Lou runs down the path from the small house
+("You came! Tove! He came!"), the dog at her heels, and walks with him to the
+**stone** in the front yard, a round-topped headstone over a low slab with two
+rings carved on it, overlapping like the two moons; she stands at his left. He
+sets the tokens on the slab one by one, each with a short line of what it was
+("Teo's walking rhythm. You can hum it now without thinking."; for words, the
+words). If he knows about Ilen: "And this space is for Ilen, wherever she is."
+If Esk's hill came down in Viridel (the quest that fails): "And Esk's hill, in
+the garden, which I could not mend. I said sorry, and I meant it, and then I
+went." "It isn't what you asked for. It's what I have." Lou props her drawing
+against the stone (the round house, the two of them, and the two of you, holding
+hands; it stays there). Last he sets the reel down, and it plays by itself the
 one recording he never searched for, the oldest: the parents young, a small
 child between them waving at the recorder. "You don't have to bring us
-anything. We are proud of you already." He says goodbye. The closing line
-("Something of value. You brought it home on your own two feet."), an end
-card, then the credits: the worlds and their people, and what he left on the
-stone. Flags: `ending.done`; `ending.keepsake` is `all` (saves that chose one
-keepsake before keep theirs). The stone keeps its tokens when you come back.
+anything. We are proud of you already. Look at him. Look at his hands." He says
+goodbye. Lou: "Was that you? The little one, waving?" "That was me." The closing
+line ("Something of value. You brought it home on your own two feet."), an end
+card, then the credits: the worlds and their people, "At home" (the bird if she
+promised, the parents on the hill, Lou, Aunt Tove and Moustache in the small
+house, Ilen if told), and what he left on the stone. Flags: `ending.done`;
+`ending.keepsake` is `all` (saves that chose one keepsake before keep theirs).
+
+**Coming back.** The game goes on; the stone keeps its tokens, the reel plays
+its oldest side. Lou runs to meet him once a visit and asks what he brought (her
+answer follows how many keepsakes, and the newest world he wrote from); Tove is
+on the garden bench; the dog follows him. He can walk into both houses. At the
+stone he can **pay his respects**: kneel, lay a flower picked in the garden, or
+set down what he has found since; a quiet line, a word to them, and he rises.
+
+**Planned: the makers' temples.** A temple in every world, with a guardian and a
+gadget at its heart (LORE.md, "Planned additions"); being built. Nothing at home
+depends on them.
 
 ## Local names (as built)
 | World | The glyph | The singing light | The makers' boxes |
 |---|---|---|---|
 | Desert | the mark between the giant's eyes; the Givers' mark (the keepers) | the singing light that turned (Oum); the chest hummed back to it all night (Nour) | the Givers' chest (Nour, Hessa) |
-| Vael | the bird's track (Oïa) | heard in the stones (Senn) | a square with a star, drawn in the sand (Oïa, who doesn't speak) |
+| Vael | the bird's track (Oïa) | heard in the stones (Senn) | a square with a star, drawn in the sand (Oïa, who hardly speaks: three words) |
 | Vael II | the Three Notes (Calix) | the bell hummed by itself for it | a bell-chest: it hummed back too (Calix) |
 | Hangar | the maker's rivets (Ottla), the Major's thumbprint (Clemence) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
 | Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) | thumb-boxes (Wen) |
@@ -422,4 +471,4 @@ bring back something of value. She never came home, and nobody found out why.
 The broadcast is the message he sent after her every night for a year, until
 the mother asked him to stop. The last thing that came back from Ilen's ship
 was not a voice but a sound like singing: the parents heard the singing light
-too. At the stone, the traveller leaves the last token for her.
+too. At the stone, the traveller leaves a space for her among the tokens.
