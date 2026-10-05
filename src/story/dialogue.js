@@ -3,6 +3,8 @@ import { parseLine, stripTone } from './tone.js';
 import { pickTwoShot, pickLookShot, pullIn } from './shot.js';
 import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote } from './voice.js';
 import { syllableOpen, syllableEnvelope } from '../talk-face.js';
+import { confirmKey } from '../native-pad.js';
+import { keyBadge } from '../prompt-keys.js';
 const _ac = new THREE.Vector3(), _bq = new THREE.Vector3();
 
 // Conversations. People are data:
@@ -150,6 +152,19 @@ export class DialogueRunner {
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * One answer as a button: its mark in a column of its own, then its words (index.html
+ * #dialogue .dlg-choices). The column holds all three marks, and the body's input class
+ * shows one: the keyboard's number, a plain › for touch, and with a controller the
+ * confirm button's badge on the focused answer (› on the others). Each answer has the
+ * same three, so the column is as wide on every one, and the words, a flex item of their
+ * own, wrap beside it and never under or over it.
+ */
+export function choiceHtml(c, k, key = confirmKey()) {
+  return `<button data-i="${c.index}"><span class="dlg-key" aria-hidden="true"><b class="dlg-num">${k + 1}</b><b class="dlg-mark">›</b>${keyBadge(key)}</span>`
+    + `<span class="dlg-say">${formatText(c.text)}</span></button>`;
+}
 
 const REVEAL = REVEAL_CPS;   // letters per second at an even pace (each line's voice and tone scale it)
 const FRESH = 3;             // letters at the caret still in the alien script (the translator catching up)
@@ -321,7 +336,7 @@ export class Dialogue {
     const done = this.revealed >= full.length;
     const choices = done ? r.choices() : [];
     const box = this.q('.dlg-choices');
-    const html = choices.map((c, k) => `<button data-i="${c.index}"><span>${k + 1}</span>${formatText(c.text)}</button>`).join('');
+    const html = choices.map((c, k) => choiceHtml(c, k)).join('');
     if (box.dataset.html !== html) {
       box.innerHTML = html; box.dataset.html = html;
       if (choices.length && document.body.classList.contains('controller')) box.querySelector('button')?.focus();
