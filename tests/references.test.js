@@ -210,3 +210,28 @@ test('the Buried Machine\'s sheets after Vael II\'s, panel by panel, framed and 
   const { WORLD_LOOKS } = await import('../src/levels/references.js');
   assert.ok(WORLD_LOOKS.buried.look.uSpot, '?look=buried');
 });
+
+test('the Garden of Spheres\' sheets after the Buried Machine\'s, panel by panel; the world\'s own look', async () => {
+  const counts = { IMG_3793: 4, IMG_3794: 6, IMG_3795: 6, IMG_3796: 6 };
+  for (const [s, n] of Object.entries(counts)) {
+    const views = REFERENCE_VIEWS.filter((v) => v.sheet === s);
+    assert.equal(views.length, n, `${s}: ${n} panels`);
+    assert.deepEqual(views.map((v) => v.panel), Array.from({ length: n }, (_, i) => i + 1));
+    assert.ok(REFERENCE_SHEETS[s].name.startsWith('The Garden of Spheres / '));
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const [ax, ay, aw, ah] = views[i].crop, [bx, by, bw, bh] = views[j].crop;
+      assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);
+    }
+  }
+  const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
+  assert.deepEqual([...new Set(world)].slice(0, 5), ['The Desert', 'The City-Shaft', 'Vael II, the Sky Stones', 'The Buried Machine', 'The Garden of Spheres']);
+  const garden = REFERENCE_VIEWS.filter((v, i) => world[i] === 'The Garden of Spheres');
+  assert.equal(garden.length, 22);
+  const { SPHERES_LOOK } = await import('../src/levels/spheres.js');
+  assert.ok(SPHERES_LOOK.uBounce === 0 && SPHERES_LOOK.uSpotTone[1] > SPHERES_LOOK.uSpotTone[0], 'dark canopy undersides, green spot blacks');
+  for (const v of garden) assert.equal(v.look.uSpotTone, SPHERES_LOOK.uSpotTone, `${v.id}: the world's look`);
+  const { level } = refs();
+  for (const v of level.views.filter((x) => garden.includes(x.def))) assert.ok(v.group.children.length > 1, `${v.def.id}: something stands in it`);
+  const { WORLD_LOOKS } = await import('../src/levels/references.js');
+  assert.ok(WORLD_LOOKS.spheres, '?look=spheres');
+});

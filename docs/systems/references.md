@@ -162,3 +162,25 @@ the narrowest creases.
 - **Left, scene level**: the trench's pipe mass (IMG_3789 p1), the city's towers hanging in
   clusters, the drum's interior machinery and arcades, the oval tunnel's interior (IMG_3791 p4),
   the cave with the moon (IMG_3792 p3), the rock ledge of IMG_3792 p5 are all sketches.
+
+## The Garden of Spheres' sheets (IMG_3793–3796)
+
+- **The views** (`src/levels/reference-spheres.js`, `GARDEN_VIEWS`): IMG_3793 (4 panels), IMG_3794
+  (6), IMG_3795 (6), IMG_3796 (6), views 104–125 after the Buried Machine's. One scene builder
+  (`gardenScene`): umbrella trees (a lime canopy over a deep green underside, 44 thin branches fanned
+  under it: the recess the spot blacks fill), stepped and smooth white pyramids, giant spheres and
+  sphere-arches, the white hill's terraces with boulders, cave doors and shrubs, white ruins and the
+  robot statue, olives, cypresses, round trees, the ringed plaza, lakes, paths, pink clouds. Foliage
+  is welded before its normals (three's polyhedra are unindexed: they shaded faceted). The views draw
+  in the world's own look (`GARDEN_LOOK` = `SPHERES_LOOK` and a clean sky); `?look=spheres`.
+- **On the world** (`spheres.js` `SPHERES_LOOK`): no bounce lifting the canopies' undersides and the
+  thickets, no warm grey kept in the white stone's shade (the sheets' pale blue), the spot blacks in a
+  deep green (`uSpotTone`). Uniforms only: no cost. The real umbrella trees already carry branches under
+  their canopies, so no greebles were added there.
+- **Left, shader level**: the sheets draw the canopies' undersides as dense radiating branch lines
+  over the dark green, and foliage as clusters of small inked leaf masses; ours are smooth lumps with
+  the `leaves` pattern. The white stone's shade on the sheets is a flat pale blue with almost no
+  strokes (ours keeps a few). Spheres print a crescent of pale blue on the sheets whatever the sun;
+  ours follow the view's sun. The lakes' reflections (the world has them, the views don't).
+- **Left, scene level**: the white hill's sculpted rock, the ruins' arcades, the robot statue, the
+  hedges' fruit, the avenue's grasses, the plaza's paving pattern are sketches.

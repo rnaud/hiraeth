@@ -658,3 +658,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
 - The Buried Machine (IMG_3789–3792: 5 + 6 + 6 + 5 panels) are views 82–103 (`reference-buried.js`):
   huts, pipes, oval walls and doorways, tanks, machinery, the drum, the hanging city, the ring, derricks,
   cloud. `?look=buried`.
+- The Garden of Spheres (IMG_3793–3796: 4 + 6 + 6 + 6 panels) are views 104–125 (`reference-spheres.js`):
+  umbrella trees with branches under their canopies (greebles for the spot blacks), pyramids, spheres and
+  arches, the white hill, ruins, olives, cypresses, the plaza, lakes. On the world (`SPHERES_LOOK`): no bounce
+  under the canopies, the white stone's shade the pale blue, green spot blacks. `?look=spheres`.

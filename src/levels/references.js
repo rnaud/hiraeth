@@ -8,6 +8,7 @@ import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { DESERT_LOOK } from '../desert-sites.js';
 import { SKY_STONES_DAY, SKY_STONES_LOOK, SKY_STONES_FLAT } from './arzach2.js';
 import { BURIED_DAY, BURIED_SPOTS } from './buried.js';
+import { SPHERES_DAY, SPHERES_LOOK } from './spheres.js';
 
 // ---------------------------------------------------------------------------
 // The references: a developer's level (?level=references, or the worlds list, L)
@@ -160,6 +161,7 @@ export const WORLD_LOOKS = {
   desert: { sky: DESERT_SKY, look: DESERT_LOOK },
   vael2: { sky: SKY_STONES_DAY, look: { ...SKY_STONES_LOOK, uShadowFlat: SKY_STONES_FLAT } },
   buried: { sky: BURIED_DAY, look: { ...BURIED_SPOTS } },
+  spheres: { sky: SPHERES_DAY, look: { ...SPHERES_LOOK } },
 };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)

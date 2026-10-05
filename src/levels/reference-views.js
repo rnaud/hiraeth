@@ -9,6 +9,7 @@ import { DESERT_SHEETS, DESERT_VIEWS } from './reference-desert.js';
 import { SHAFT_SHEETS, SHAFT_VIEWS } from './reference-shaft.js';
 import { VAEL2_SHEETS, VAEL2_VIEWS } from './reference-vael2.js';
 import { BURIED_SHEETS, BURIED_VIEWS } from './reference-buried.js';
+import { GARDEN_SHEETS, GARDEN_VIEWS } from './reference-spheres.js';
 
 // ---------------------------------------------------------------------------
 // The references' views (src/levels/references.js): one per panel of a reference
@@ -48,6 +49,8 @@ export const REFERENCE_SHEETS = {
   ...VAEL2_SHEETS,
   // the Buried Machine's (reference-buried.js)
   ...BURIED_SHEETS,
+  // the Garden of Spheres' (reference-spheres.js)
+  ...GARDEN_SHEETS,
 };
 
 // ===========================================================================
@@ -472,4 +475,6 @@ export const REFERENCE_VIEWS = [
   ...VAEL2_VIEWS,
   // the Buried Machine's sheets, IMG_3789 … IMG_3792 (reference-buried.js)
   ...BURIED_VIEWS,
+  // the Garden of Spheres' sheets, IMG_3793 … IMG_3796 (reference-spheres.js)
+  ...GARDEN_VIEWS,
 ];
