@@ -1,0 +1,21 @@
+src/costumes.js
+  s_1fd8d0e7b02dcf::t_126d83847399ef 556-558
+src/studio/people.js
+  s_1fd8d0e7b02dcf::t_6ff0a4df74d2b5 85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "309717619e9d71c4cb95dc7b2a3103e473db971f",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
