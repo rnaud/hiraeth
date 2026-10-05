@@ -1,0 +1,51 @@
+src/boxes/model.js
+  s_1fd8d0e7b02dcf::t_bd1ca2e5da00ce 372-401,405
+src/boxes/placements.js
+  s_1fd8d0e7b02dcf::t_b254d974729b21 110-113
+src/items.js
+  s_1fd8d0e7b02dcf::t_d3d492ff2d474b 49-53,133
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_b5fae4fca97ecd 8,316,326,377-378,573-574,578,608
+src/temples/edena.js
+  s_1fd8d0e7b02dcf::t_671a784abe57f8 1-375
+src/temples/guardians.js
+  s_1fd8d0e7b02dcf::t_4b21fc8de731a4 17,712-805
+src/temples/index.js
+  s_1fd8d0e7b02dcf::t_dd24dd539a4cd4 23-24,55,72
+src/temples/migrate.js
+  s_1fd8d0e7b02dcf::t_939ba5135b993c 20
+src/temples/pieces.js
+  s_1fd8d0e7b02dcf::t_327655335da01b 862,915
+tests/abilities.test.js
+  s_1fd8d0e7b02dcf::t_6a94ff7b79028d 13,427-456
+tests/story-edena.test.js
+  s_1fd8d0e7b02dcf::t_3264cfe3996772 85,114
+tests/temples.test.js
+  s_1fd8d0e7b02dcf::t_86f94229cbc0a9 25-26,1283-1419
+src/temples/edena-data.js
+  s_e8d6446c0b0169::t_2ea09d164ecd55 1-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "575b7f4ba5d2eb11eb127fb25a6b66cda2928d84",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e8d6446c0b0169": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ada574234a7b3f27c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
