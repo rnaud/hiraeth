@@ -5,6 +5,8 @@ import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
 import { GROUND_GLSL } from './ground-ink.js';
+import { GLYPH_GLSL } from './glyphs.js';
+import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -71,7 +73,99 @@ export const sharedUniforms = {
   uFormHatch: { value: 1 },      // strokes follow slopes / wrap round objects
   uDots: { value: 0 },           // pen dotting on the ground (print style)
   uCloudShadows: { value: 1 },
+  // the sky, shared with post.js (timeofday.js writes them every frame): metals reflect it,
+  // windows light up at night
+  uSkyTop: { value: new THREE.Color('#8ccfd2') },
+  uSkyHorizon: { value: new THREE.Color('#f7ecd2') },
+  uNight: { value: 0 },
+  // what a metal sees below the horizon: the world's ground colour (setEnvGround, per level)
+  uEnvGround: { value: new THREE.Color('#b9a98c') },
 };
+
+// ---------------------------------------------------------------------------
+// Metals (makeMaterial({ metal })): ligne-claire metal, drawn as flat shapes.
+//  - the reflection: the view reflected off the surface looks at the sky, the bright horizon
+//    or the ground, and each is one flat tone (chrome also has the dark band just under the
+//    horizon that makes a chrome bumper read as chrome)
+//  - coloured metals (brass, copper) tint every tone with their own colour
+//  - the sun's highlight is one crisp shape, near white; post.js inks its edge like any colour edge
+//  - brushed metal: fine streaks along an axis, and the highlight stretched across them
+// kind: the shader's branch; refl: how much of the world it shows; hl: the highlight's size (rad).
+// ---------------------------------------------------------------------------
+export const METALS = {
+  painted: { kind: 0, color: '#c8553d', refl: 0.1, hl: 0.16 },
+  steel:   { kind: 1, color: '#9aa6b2', refl: 0.5, hl: 0.22 },
+  chrome:  { kind: 2, color: '#d8dee6', refl: 0.92, hl: 0.12 },
+  brass:   { kind: 3, color: '#d0a442', refl: 0.75, hl: 0.2 },
+  copper:  { kind: 4, color: '#c47548', refl: 0.7, hl: 0.2 },
+  iron:    { kind: 5, color: '#5f6168', refl: 0.22, hl: 0.14 },
+};
+const BRUSH_AXES = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] };
+
+const METAL_GLSL = /* glsl */ `
+  uniform vec4 uMetal;   // kind (METALS), brushed 0/1, reflectivity, highlight size (rad)
+  uniform vec3 uBrushAxis;
+  in vec3 vMetalT;
+  float lum3(vec3 c) { return dot(c, vec3(0.3, 0.55, 0.15)); }
+  // The metal's flat tones. sunLit: the sun reaches this point (1) or not (0).
+  // ink: the brushed hairlines (drawn detail). Call in uniform control flow (derivatives).
+  vec3 metalAlbedo(vec3 base, vec3 n, float sunLit, out float ink) {
+    ink = 0.0;
+    vec3 V = normalize(cameraPosition - vWorldPos);
+    vec3 R = reflect(-V, n);
+    float kind = uMetal.x, refl = uMetal.z;
+    // what the reflection sees: the sky, the bright horizon or the ground, a little wavy
+    float ry = R.y + (vnoise(R.xz * 2.6 + vec2(kind * 3.1)) - 0.5) * 0.09;
+    float fy = max(fwidth(ry), 1e-4) * 0.75;
+    float up = smoothstep(0.32 - fy, 0.32 + fy, ry);
+    float down = 1.0 - smoothstep(-0.04 - fy, -0.04 + fy, ry);
+    vec3 skyC = mix(uSkyHorizon, uSkyTop, 0.85);
+    vec3 env = mix(mix(uSkyHorizon, skyC, up), uEnvGround, down);
+    vec3 c;
+    if (kind > 1.5 && kind < 2.5) {
+      // chrome: the world itself, and the dark band just under the horizon
+      float band = down * smoothstep(-0.24 - fy, -0.24 + fy, ry);
+      env = mix(env, uEnvGround * 0.78, down);
+      env = mix(env, mix(uEnvGround, vec3(0.16, 0.15, 0.21), 0.72), band);
+      c = mix(base, env * mix(vec3(1.0), base / max(lum3(base), 0.05), 0.12), refl);
+    } else {
+      // the metal's own colour in three tones: bright at the horizon, a little less in the sky, dark below
+      bool warm = kind > 2.5 && kind < 4.5;
+      float m = mix(mix(warm ? 1.3 : 1.22, warm ? 1.08 : 1.04, up), warm ? 0.66 : 0.74, down);
+      vec3 tone = base * m;
+      vec3 seen = env * lum3(base) / max(lum3(env), 0.05) * m;    // the world's colour at the metal's value
+      c = mix(base, mix(tone, seen, warm ? 0.14 : 0.42), refl);
+    }
+    // brushed: fine streaks along the axis (object space: they ride with the object)
+    float brushed = uMetal.y;
+    vec3 Bo = cross(uBrushAxis, normalize(vObjNormal));
+    float u = dot(vObjPos, normalize(Bo + 1e-5)) * 70.0, along = dot(vObjPos, uBrushAxis);
+    float fu = max(fwidth(u), 1e-4);
+    float st = vnoise(vec2(u, along * 3.0)) * 0.6 + vnoise(vec2(u * 0.31 + 5.0, along * 0.8)) * 0.4;
+    c *= 1.0 + (st - 0.5) * 0.16 * brushed * (1.0 - smoothstep(0.3, 0.9, fu));
+    float k = u / 9.0, id = floor(k + 0.5);
+    float hair = inkLine(abs(k - id) / max(fu / 9.0, 1e-5), 0.6) * step(0.82, hash(vec2(id, 3.3)))
+               * smoothstep(0.35, 0.6, vnoise(vec2(id * 1.7, along * 2.5))) * (1.0 - smoothstep(0.06, 0.16, fu / 9.0));
+    ink = hair * 0.3 * brushed;
+    // the sun's highlight: one crisp shape (stretched across the streaks when brushed)
+    float s = dot(R, uSunDir), c0 = cos(uMetal.w);
+    float fs = max(fwidth(s), 1e-4);
+    float spot = smoothstep(c0 - fs, c0 + fs, s);
+    float c1 = cos(uMetal.w * 2.3), sheen = smoothstep(c1 - fs, c1 + fs, s) * (1.0 - brushed) * sunLit;   // a paler ring round it
+    vec3 H = normalize(uSunDir + V);
+    float th = dot(vMetalT, H), fth = max(fwidth(th), 1e-4), wb = uMetal.w * 0.45;
+    float streak = (1.0 - smoothstep(wb - fth, wb + fth, abs(th))) * smoothstep(0.25, 0.4, dot(n, H));
+    float hl = mix(spot, streak, brushed) * sunLit;
+    vec3 hc = mix(vec3(1.0, 0.99, 0.95), base, kind > 2.5 && kind < 4.5 ? 0.22 : 0.06);
+    c = mix(c, mix(c, hc, 0.38), sheen);
+    return mix(c, hc, hl);
+  }
+`;
+
+/** The metals' ground reflection: the colour of what lies below the horizon here. */
+export function setEnvGround(color) {
+  if (color) sharedUniforms.uEnvGround.value.set(color);
+}
 
 const vertexShader = /* glsl */ `
   out vec3 vWorldPos;
@@ -98,6 +192,13 @@ const vertexShader = /* glsl */ `
     uniform float uSway;
     uniform vec4 uWind;
     uniform vec4 uBrush;
+  #endif
+  #ifdef METAL
+    uniform vec3 uBrushAxis;
+    out vec3 vMetalT;
+  #endif
+  #ifdef GRASS
+    ${GRASS_VERT_PARS}
   #endif
 
   void main() {
@@ -141,6 +242,9 @@ const vertexShader = /* glsl */ `
       float wy = max(position.y, 0.0) * sqrt(iS2);   // (the height in metres)
       transformed += sh * 0.45 * min(wy, 1.4) / iS2;
     #endif
+    #ifdef GRASS
+      grassPlace(transformed, objectNormal);   // a tuft of blades round the camera (grass-shader.js)
+    #endif
     #ifdef USE_SKINNING
       #include <skinbase_vertex>
       #include <skinnormal_vertex>
@@ -156,6 +260,10 @@ const vertexShader = /* glsl */ `
       nrm = mat3(instanceMatrix) * nrm;
     #endif
     vInstColor = vec3(1.0);
+    #ifdef GRASS
+      // between the ground's two tones, a shade darker at the root
+      vInstColor = mix(vec3(1.0), uColor2 / max(uColor, vec3(0.02)), aGrass2.y) * mix(0.93, 1.05, grassT);
+    #endif
     #ifdef USE_INSTANCING_COLOR
       vInstColor = instanceColor;
     #endif
@@ -185,10 +293,20 @@ const vertexShader = /* glsl */ `
     // vObjPos lose their low bits and the hatching on flat walls broke up into noise.
     vec3 camL = cameraPosition - M[3].xyz;
     vObjRel = vObjPos - vec3(dot(M[0].xyz, camL) / scl.x, dot(M[1].xyz, camL) / scl.y, dot(M[2].xyz, camL) / scl.z);
+    #ifdef GRASS
+      vObjPos = transformed; vObjNormal = objectNormal; vObjRel = transformed - cameraPosition;   // (already in the world)
+    #endif
 
     vec4 world = modelMatrix * pos;
     vWorldPos = world.xyz;
     vNormal = normalize(mat3(modelMatrix) * nrm);
+    #ifdef METAL
+      vec3 brushAx = uBrushAxis;
+      #ifdef USE_INSTANCING
+        brushAx = mat3(instanceMatrix) * brushAx;
+      #endif
+      vMetalT = normalize(mat3(modelMatrix) * brushAx);
+    #endif
     vec4 mv = viewMatrix * world;
     vViewDepth = -mv.z;
     gl_Position = projectionMatrix * mv;
@@ -237,6 +355,10 @@ const fragmentShader = /* glsl */ `
   uniform float uPixelRatio;
   uniform int uShadeStyle;
   uniform float uGrid;
+  uniform vec3 uSkyTop;
+  uniform vec3 uSkyHorizon;
+  uniform vec3 uEnvGround;
+  uniform float uNight;
 
   in vec3 vWorldPos;
   in vec3 vNormal;
@@ -520,7 +642,7 @@ const fragmentShader = /* glsl */ `
   //    once a window is only a few pixels they fade into the wall's average tint, so far
   //    façades stop sparkling (and stop growing flickering colour-edge ink in post.js)
   //  - frames and sills go before the windows get crowded
-  float facade(vec3 wp, vec3 n, vec3 nv, inout vec3 alb) {
+  float facade(vec3 wp, vec3 n, vec3 nv, inout vec3 alb, out float emit) {
     float vert = 1.0 - smoothstep(0.25, 0.4, abs(n.y));
     vec2 dirH = normalize(vec2(-nv.z, nv.x) + 1e-5);
     vec2 q = vec2(dot(wp.xz, dirH), wp.y) / vec2(3.0, 3.3);
@@ -544,10 +666,16 @@ const fragmentShader = /* glsl */ `
                 * win * step(0.55, h2) * step(h2, 0.88);
     const vec3 glass = vec3(0.36, 0.43, 0.56);
     vec3 shutter = h > 0.6 ? vec3(0.37, 0.55, 0.5) : vec3(0.36, 0.47, 0.62);
-    vec3 nearC = mix(mix(alb, glass, glassK), shutter, shutK);
+    // at night some windows light up, one after another as it gets dark (warm lamplight: they glow)
+    float h3 = hash(id + 13.7);
+    float on = step(h3, 0.42) * smoothstep(0.15 + h3, 0.4 + h3, uNight);
+    const vec3 lamp = vec3(1.0, 0.84, 0.5);
+    vec3 nearC = mix(mix(alb, mix(glass, lamp, on), glassK), shutter, shutK);
     // the average: ~12 % of a façade is glass, ~3 % shutters
     vec3 farC = alb * 0.85 + glass * 0.12 + vec3(0.365, 0.51, 0.56) * 0.03;
+    farC = mix(farC, farC * 0.8 + lamp * 0.2, uNight * 0.6);
     alb = mix(alb, mix(farC, nearC, lodFill), vert);
+    emit = glassK * on * lodFill * vert * (1.0 - shutK);
     ink = max(ink, inkLine(abs(boxPx), 1.0) * win * lodInk);
     if (abs(c.x) < hf.x + 0.05) ink = max(ink, inkLine(abs(c.y + hf.y + 0.03) / gq.y, 1.3) * win * lodInk);   // sill
     return ink * vert;
@@ -706,25 +834,11 @@ const fragmentShader = /* glsl */ `
     return inkLine(d, 1.0) * runs * (1.0 - smoothstep(0.08, 0.2, fwq));
   }
 
-  // Alien script on standing stones: one glyph per grid cell, built from a
-  // few pen primitives chosen by hash bits.
-  float glyphs(vec2 g, vec2 fw) {
-    vec2 cell = floor(g), f = fract(g) - 0.5;
-    float h = hash(cell * 1.37 + 4.1);
-    if (h > 0.45) return 0.0;
-    float px = 1.0 / max(max(fw.x, fw.y), 1e-6);                 // device px per cell unit
-    if (px < 14.0 * uPixelRatio) return 0.0;
-    float bits = floor(hash(cell + 9.3) * 16.0);
-    float m = 0.0;
-    if (mod(bits, 2.0) >= 1.0) m = max(m, inkLine(abs(length(f) - 0.26) * px, 1.2));           // ring
-    if (mod(floor(bits / 2.0), 2.0) >= 1.0)                                                     // vertical bar
-      m = max(m, inkLine(max(abs(f.x), abs(f.y) - 0.34) * px, 1.2));
-    if (mod(floor(bits / 4.0), 2.0) >= 1.0)                                                     // bar across
-      m = max(m, inkLine(max(abs(f.y - 0.12), abs(f.x) - 0.3) * px, 1.2));
-    if (mod(floor(bits / 8.0), 2.0) >= 1.0 || bits < 1.0)                                       // dot
-      m = max(m, 1.0 - smoothstep(0.05 * px, 0.05 * px + 1.0, length(f - vec2(0.0, -0.22)) * px));
-    return m;
-  }
+  ${GLYPH_GLSL}
+
+  #ifdef METAL
+  ${METAL_GLSL}
+  #endif
 
   // Grass: short inked ticks scattered on a jittered grid, leaning with the wind.
   float grassTicks(vec2 p, vec2 fwp) {
@@ -909,16 +1023,21 @@ const fragmentShader = /* glsl */ `
     // drawn-detail coordinates + derivatives (uniform control flow)
     float faceX = abs(on.x) > abs(on.z) ? vObjPos.z : vObjPos.x;     // horizontal coord on a side face
     float fissFw = fwidth(faceX) / 9.0;
-    vec2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
-    vec2 glyphFw = gw.x > max(gw.y, gw.z) ? gfw.zy : (gw.y > gw.z ? gfw.xz : gfw.xy);
+    // the makers' inscriptions: on upright faces, in cells of uGlyphs metres (the grid's)
+    vec3 gg = vObjPos / max(uGlyphs, 1e-3), ggfw = fwidth(gg);
+    vec2 glyphUV = gw.x > gw.z ? gg.zy : gg.xy;
+    vec2 glyphFw = gw.x > gw.z ? ggfw.zy : ggfw.xy;
+    vec3 carve = vec3(0.0);
+    if (uGlyphs > 0.0 && gw.y < 0.5) carve = glyphs(glyphUV, glyphFw);
 
     vec3 n = normalize(vNormal);
     if (uFlat > 0.5) {
       // Faceted look: derive the normal from screen-space derivatives.
       n = normalize(cross(dFdx(vWorldPos), dFdy(vWorldPos)));
-    } else if (!gl_FrontFacing) {
-      n = -n;
     }
+    #ifndef GRASS
+    else if (!gl_FrontFacing) n = -n;   // (grass blades: both sides lit like the ground)
+    #endif
 
     vec3 albedo = uColor;
     if (uHasMap > 0.5) albedo *= texture(uMap, vTextureUV).rgb;
@@ -992,7 +1111,8 @@ const fragmentShader = /* glsl */ `
       albedo = fluidAlbedo(albedo);
     #endif
     float patInk = 0.0;
-    if (uPattern == 1) patInk = facade(vWorldPos, n, normalize(vNormal), albedo);
+    float emit = 0.0;   // lit windows at night (facade)
+    if (uPattern == 1) patInk = facade(vWorldPos, n, normalize(vNormal), albedo, emit);
     else if (uPattern == 2) patInk = roofTiles(vWorldPos);
     else if (uPattern == 3) patInk = leaves(vObjPos);
     else if (uPattern == 4) patInk = rockCracks(vObjPos);
@@ -1016,7 +1136,14 @@ const fragmentShader = /* glsl */ `
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);
-    L = mix(L, 1.0, uGlow);
+    L = mix(L, 1.0, max(uGlow, emit));
+    #ifdef METAL
+      float metalInk;
+      albedo = metalAlbedo(albedo, n, ndl > 0.0 ? smoothstep(0.4, 0.6, sh) : 0.0, metalInk);
+    #endif
+    // carved inscriptions: the shadowed side of each groove drops into the shadow tone, the lit lip a shade lighter
+    L = mix(L, min(L, uToon - 0.14), carve.y);
+    albedo *= 1.0 + 0.05 * (carve.x - carve.y);
 
     // local lights pool light on nearby surfaces, even inside shadow
     float local = 0.0;
@@ -1041,7 +1168,10 @@ const fragmentShader = /* glsl */ `
     float detail = uPortrait > 0.5 ? portraitInk(vBind, clamp((uToon - L) / uToon, 0.0, 1.0)) : 0.0;
     if (uCreases > 0.0) detail = max(detail, outfitCreases(vBind, normalize(vObjNormal), clamp((uToon - L) / uToon, 0.0, 1.0)));
     if (uGrid > 0.0) detail = gridLines(gq, gfw, gw);
-    if (uGlyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
+    detail = max(detail, carve.z * 0.62);
+    #ifdef METAL
+      detail = max(detail, metalInk);
+    #endif
     if (uMode == ${MODE_TERRAIN}) {
       // ground ink by distance (src/ground-ink.js); derivatives first, in uniform control flow
       vec2 gp = vWorldPos.xz;
@@ -1109,7 +1239,7 @@ const fragmentShader = /* glsl */ `
     }
     detail = max(detail, patInk);
     gHatch.b = detail;
-    gHatch.a = max(uGlow, smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
+    gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
     #ifdef DISSOLVE
     gHatch.a = max(gHatch.a, dEdge);
     #endif
@@ -1150,7 +1280,14 @@ const cache = new Map();
  * @param {number} [o.strataSize]
  * @param {boolean} [o.strataObject]  the bands fixed to the object, not the world (it moves)
  * @param {number} [o.grid] spacing of drawn grid lines (0 = none)
- * @param {boolean} [o.glyphs] draw alien glyphs in the grid cells
+ * @param {boolean|number} [o.glyphs] the makers' carved inscriptions (src/glyphs.js) on upright faces, in
+ *                              cells of this many metres (true: the grid's spacing). For the makers' work only
+ * @param {string}  [o.metal]   'painted' | 'steel' | 'chrome' | 'brass' | 'copper' | 'iron' (METALS): flat
+ *                              reflection tones, a crisp highlight; o.color defaults to the metal's own
+ * @param {boolean} [o.brushed] metal: brushed, streaks along o.brushAxis ('x' | 'y' | 'z', object space; 'y')
+ * @param {number}  [o.refl]    metal: how much of the world it reflects (0..1, the kind's by default)
+ * @param {number}  [o.highlight] metal: the sun highlight's size (rad)
+ * @param {boolean} [o.grass]   grass blades placed round the camera (flora-grass.js; compiles the GRASS block)
  * @param {boolean} [o.biomes]  terrain: desert region palettes
  * @param {boolean} [o.sandInk] terrain: sparse contour strokes instead of dot fields
  * @param {boolean} [o.ripples] terrain: wind ripple marks
@@ -1174,6 +1311,8 @@ const cache = new Map();
 export function makeMaterial(o) {
   const key = JSON.stringify({ ...o, map: o.map?.uuid });
   if (cache.has(key)) return cache.get(key);
+  const metal = o.metal ? METALS[o.metal] ?? METALS.steel : null;
+  if (metal && o.color === undefined) o = { ...o, color: metal.color };
   const mat = new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader,
@@ -1190,7 +1329,8 @@ export function makeMaterial(o) {
       uFlat: { value: o.flat ? 1 : 0 },
       uStrataSize: { value: o.strataSize ?? 4.0 },
       uGrid: { value: o.grid ?? 0 },
-      uGlyphs: { value: o.glyphs ? 1 : 0 },
+      // the inscriptions' cell (m): a number, or the grid's spacing
+      uGlyphs: { value: o.glyphs ? (typeof o.glyphs === 'number' ? o.glyphs : o.grid || 1.4) : 0 },
       uBiomes: { value: o.biomes ? 1 : 0 },
       uRipples: { value: o.ripples ? 1 : 0 },
       uSandInk: { value: o.sandInk ? 1 : 0 },
@@ -1232,6 +1372,15 @@ export function makeMaterial(o) {
   // strata bands in the object's own space, so they move with it (a moving or turning thing; mesas keep world bands)
   if (o.strataObject) mat.defines = { ...mat.defines, STRATA_OBJECT: 1 };
   if (o.sway) { mat.defines = { ...mat.defines, SWAY: 1 }; mat.uniforms.uSway = { value: o.sway }; }
+  if (metal) {
+    mat.defines = { ...mat.defines, METAL: 1 };
+    mat.uniforms.uMetal = { value: new THREE.Vector4(metal.kind, o.brushed ? 1 : 0, o.refl ?? metal.refl, o.highlight ?? metal.hl) };
+    mat.uniforms.uBrushAxis = { value: new THREE.Vector3(...(BRUSH_AXES[o.brushAxis] ?? BRUSH_AXES.y)) };
+  }
+  if (o.grass) {
+    mat.defines = { ...mat.defines, GRASS: 1 };
+    Object.assign(mat.uniforms, grassUniforms());
+  }
   if (o.fluid) {
     mat.defines = { ...mat.defines, FLUID: 1 };
     mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2, wing: 3, trail: 4 }[o.fluid] ?? 0) };

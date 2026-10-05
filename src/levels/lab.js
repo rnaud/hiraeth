@@ -47,9 +47,16 @@ export const LAB_MATERIALS = [
   { name: 'leaves', o: { color: '#5e7a3a', flat: true, pattern: 'leaves' } },
   { name: 'brush', o: { color: '#8a6fb8', scrub: true } },
   { name: 'grid', o: { color: '#f4f0e6', grid: 1 } },
-  { name: 'glyphs', o: { color: '#9fbfdc', flat: true, glyphs: true } },
+  { name: 'glyphs', o: { color: '#e9dcc4', flat: true, grid: 0.9, glyphs: true } },
   { name: 'glow', o: { color: '#70e7df', flat: true, glow: 1 } },
-  { name: 'metal', o: { color: '#9aa6b2', color2: '#5d6b78', flat: true } },
+  { name: 'lamp', o: { color: '#ffd27a', glow: 1 } },
+  { name: 'steel', o: { metal: 'steel' } },
+  { name: 'brushed', o: { metal: 'steel', brushed: true } },
+  { name: 'chrome', o: { metal: 'chrome' } },
+  { name: 'brass', o: { metal: 'brass' } },
+  { name: 'copper', o: { metal: 'copper' } },
+  { name: 'iron', o: { metal: 'iron' } },
+  { name: 'painted', o: { metal: 'painted', color: '#3f6fb0' } },
   { name: 'dissolve', o: { color: '#25386c', flat: true, dissolve: '#fff4d6' } },
 ];
 

@@ -10,8 +10,8 @@ import { Scout, nextObjective } from './scout.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
-import { sharedUniforms, markHero } from './materials.js';
-import { createPost, DEBUG_VIEWS, PRESETS } from './post.js';
+import { sharedUniforms, markHero, setEnvGround } from './materials.js';
+import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
@@ -19,7 +19,8 @@ import { WindStreaks } from './wind.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFlora } from './physics.js';
 import { tileScene, cullFar, fitBounds, SmallCuller, RoomCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale } from './perf.js';
-import { buildFlora, floraKeep } from './flora.js';
+import { buildFlora, floraKeep, FLORA_WORLDS } from './flora.js';
+import { buildGrass } from './flora-grass.js';
 import { Cascade, ShadowCuller, shadowDirection } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
@@ -103,6 +104,12 @@ const post = createPost();
 post.uniforms.tAlbedo.value = gbuffer.textures[0];
 post.uniforms.tNormal.value = gbuffer.textures[1];
 post.uniforms.tHatch.value = gbuffer.textures[2];
+// glowing surfaces: a quarter-resolution glow buffer the composite draws halos from (post.js)
+const bloom = createBloom(gbuffer);
+post.uniforms.tBloom.value = bloom.texture;
+post.uniforms.tBloom2.value = bloom.wide;
+post.uniforms.uBloom.value = 1;
+const blades = { grass: null, key: null, grow: null };   // the grass blades (built with the flora; regrown when the preset changes)
 
 // Render at the selected resolution, then smooth the final colour with FXAA.
 // The G-buffer stays nearest-filtered so depth and surface boundaries stay exact.
@@ -128,6 +135,7 @@ function resize() {
   const pr = pixelRatio * quality.renderScale;
   const rw = Math.floor(w * pr), rh = Math.floor(h * pr);
   gbuffer.setSize(rw, rh);
+  bloom.setSize(rw, rh);
   composeRT.setSize(rw, rh);
   blit.material.uniforms.resolution.value.set(1 / rw, 1 / rh);
   post.uniforms.uRes.value.set(rw, rh);
@@ -166,6 +174,8 @@ const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { cons
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 const level = meta.create(scene);
 const terrain = level.ground;
+// what the metals see below the horizon: the world's ground (materials.js)
+setEnvGround(level.envGround ?? level.ground?.mesh?.material?.uniforms?.uColor?.value);
 await stage('inking the collisions…');
 // Collision against the real level geometry (built before the player / vehicles join the scene).
 const t0 = performance.now();
@@ -412,6 +422,15 @@ if (flora) {
   if (flora.collider) physics.addCollider(flora.collider);
   console.info(`flora: ${flora.count} plants (${flora.largeCount} large) of ${flora.sets.length} species, ${flora.buildMs.toFixed(0)} ms`);
 }
+// grass blades round the camera on the grassy grounds (src/flora-grass.js), by the graphics preset
+blades.grow = () => {
+  if (blades.key === preset.key) return;
+  blades.key = preset.key;
+  if (blades.grass) { blades.grass.dispose(); level.noShadow = level.noShadow.filter((o) => o !== blades.grass.mesh); }
+  blades.grass = buildGrass({ scene, level, physics, presetKey: preset.key, water: FLORA_WORLDS[levelId]?.water });
+  if (blades.grass) (level.noShadow ??= []).push(blades.grass.mesh);
+};
+blades.grow();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: humanT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
@@ -604,6 +623,7 @@ function applyQuality() {
   shadowTexels();
   resize();
   applyDetail();
+  blades.grow?.();
 }
 /** Dynamic resolution: the render scale follows the frame rate, inside the preset's range (Auto, Handheld; perf.js adaptScale). */
 function adaptQuality(fps, missed) {
@@ -952,6 +972,7 @@ function renderFrame() {
   camera.updateMatrixWorld();
   const frameHidden = [];
   flora?.update(camera, preset.floraFar ?? 1);   // each species draws the plants in view near enough
+  blades.grass?.update(camera);
   cullFar(tiled.small, camera, preset.propFar, frameHidden);
   smallCull.hide(camera, gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)), preset.propPx, frameHidden);
   (roomCull ??= new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] })).hide(camera, frameHidden);
@@ -986,6 +1007,7 @@ function renderFrame() {
   renderer.setClearColor(0x000000, 0);
   renderer.clear();
   renderer.render(scene, camera);
+  bloom.render(renderer);   // the glowing surfaces, for the halos
 
   // 3. Moebius composite
   U.uInvProj.value.copy(camera.projectionMatrixInverse);
@@ -1328,5 +1350,5 @@ window.clipAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatAudit(r));
   return r;
 };
-Object.assign(window, { flora, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+Object.assign(window, { flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame });
