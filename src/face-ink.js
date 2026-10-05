@@ -52,7 +52,7 @@ export function noseSide(toward, prev = 1) {
 }
 
 /** Where the ears sit (bind z of their centre, m), per body. */
-export const EAR_Z = { m: -0.026, f: -0.036 };
+export const EAR_Z = { m: -0.016, f: -0.025 };
 
 const f = (x) => (Number.isInteger(x) ? `${x}.0` : String(x));
 
@@ -138,6 +138,7 @@ export const FACE_INK_GLSL = /* glsl */ `
     float lod2 = smoothstep(${f(FACE_LOD.marks[0])}, ${f(FACE_LOD.marks[1])}, facePx);
     float lod3 = smoothstep(${f(FACE_LOD.fine[0])}, ${f(FACE_LOD.fine[1])}, facePx);
     float W = 1.3 * (0.55 + 0.45 * smoothstep(${f(FACE_LOD.weight[0])}, ${f(FACE_LOD.weight[1])}, facePx));   // (a pen of 1.3 CSS px up close)
+    if (lod1 <= 0.0) return 0.0;   // (a face of a few pixels: only its eyes, the eyeballs' own)
     float m = 0.0;
 
     // ---- the eyes: the opening (centre E) is the eyeball's, with its lash line (MODE_EYE)
@@ -156,9 +157,9 @@ export const FACE_INK_GLSL = /* glsl */ `
     float age = clamp(lines - 0.5, 0.0, 1.5);
     m = max(m, fkArc(q, E + vec2(0.0035, -0.0118 * es + lift), 0.0085 * es, 0.0022, 0.1, 0.55 * W, 0.1, fwq) * lod3 * min(0.35 * lines + 0.35 * fs + 0.3 * squint, 1.0));
     float crow = min(age * 0.6 + fs * 0.5 + squint * 0.5, 1.0) * lod3;
-    vec2 cf = E + vec2(0.0175 * es, 0.0005);
-    m = max(m, fkStroke(q, cf, cf + vec2(0.0072, 0.0032), 0.55 * W, fwq) * crow);
-    m = max(m, fkStroke(q, cf + vec2(0.0004, -0.0018), cf + vec2(0.0068, -0.0055), 0.55 * W, fwq) * crow * 0.85);
+    vec2 cf = E + vec2(0.0185 * es, 0.0002);
+    m = max(m, fkStroke(q, cf + vec2(0.0, 0.0006), cf + vec2(0.0068, 0.0036), 0.55 * W, fwq) * crow);
+    m = max(m, fkStroke(q, cf + vec2(0.0006, -0.0006), cf + vec2(0.0074, -0.0012), 0.5 * W, fwq) * crow * 0.8);
 
     // ---- the nose (its marks scaled by the nose's width)
     vec2 n = vec2(q.x / nw, q.y);
@@ -208,15 +209,16 @@ export const FACE_INK_GLSL = /* glsl */ `
       m = max(m, fkArc(q, vec2(0.0, 0.045 + float(i) * 0.0075), wd, -0.003, 0.0, 0.7 * W, 0.1, fwq) * min(up * (1.2 - float(i) * 0.3), 1.0) * lod2 * 0.8);
     }
 
-    // ---- hatching that follows the face (the deep shade itself stays flat)
+    // ---- hatching that follows the face (the deep shade itself stays flat), and freckles: up close only
     float shade = smoothstep(0.02, 0.2, dark);
+    if (lod3 > 0.0) {
     // the inner socket, between the eye and the bridge
     m = max(m, fkHatch(q, vec2(0.0158, -0.0015), vec2(0.0048, 0.0075), 1.25, 0.0017, 0.55 * W, 0.35 + 0.25 * lines + 0.5 * shade, fwq) * lod3 * 0.75);
     // under the outer end of the brow
-    m = max(m, fkHatch(q, vec2(e + 0.0105, 0.0098), vec2(0.0075, 0.0032), -0.75, 0.0017, 0.5 * W, 0.15 + 0.2 * lines + 0.6 * shade, fwq) * lod3 * 0.7);
+    m = max(m, fkHatch(q, vec2(e + 0.006, 0.0098), vec2(0.0062, 0.0028), -0.75, 0.0017, 0.5 * W, 0.15 + 0.2 * lines + 0.6 * shade, fwq) * lod3 * 0.7);
     // the hollow under the cheekbone (hollow cheeks: more)
     float hollow = clamp(0.35 - 0.45 * cheeks, 0.0, 1.0);
-    m = max(m, fkHatch(q, vec2(0.0505, -0.056), vec2(0.0105, 0.0165), -1.0, 0.0024, 0.55 * W, 0.2 * lines + 0.6 * hollow + 0.6 * shade, fwq) * lod3 * 0.75);
+    m = max(m, fkHatch(q, vec2(0.0505, -0.056), vec2(0.0105, 0.0165), -1.0, 0.0026, 0.5 * W, 0.15 * lines + 0.45 * hollow + 0.6 * shade, fwq) * lod3 * 0.6);
     // under the lower lip
     m = max(m, fkHatch(q, vec2(0.0, my - 0.0125 - oh * 1.8), vec2(0.008, 0.0028), 0.0, 0.0015, 0.5 * W, 0.4 + 0.5 * shade, fwq) * lod3 * 0.6);
 
@@ -229,18 +231,19 @@ export const FACE_INK_GLSL = /* glsl */ `
       float dotK = 1.0 - smoothstep(0.1, 0.1 + max(fwq / 0.0042, 0.05), length(fr - jit * 0.5));
       m = max(m, dotK * step(1.0 - uFaceKit.z * min(region, 1.0) * 0.8, h) * lod3 * 0.6);
     }
+    }
     m *= frontal;
 
     // a few strokes along the shadow's edge, over the whole head (deeper in, the shade is flat)
     float edge = smoothstep(0.02, 0.07, dark) * (1.0 - smoothstep(0.14, 0.24, dark));
-    m = max(m, fkDashes(vec2(vBind.x, q.y), 0.62, 0.0028, 0.012, 0.5 * W, 0.55, fwq) * edge * lod3 * 0.7);
+    if (lod3 * edge > 0.0) m = max(m, fkDashes(vec2(vBind.x, q.y), 0.62, 0.0028, 0.012, 0.5 * W, 0.55, fwq) * edge * lod3 * 0.7);
 
     // ---- the ear: a curl round the rim, a smaller one inside (on the side of the head)
     float earK = smoothstep(0.056, 0.066, q.x) * smoothstep(0.35, 0.65, abs(nb.x)) * lod2;
     if (earK > 0.0) {
-      vec2 ep = vec2(vBind.z - uFaceKit2.w, q.y + 0.008);
-      float ear = fkCurl(ep, vec2(-0.001, 0.0), vec2(0.0105, 0.0195), 1.15, 4.55, 1.0 * W, fwq);
-      ear = max(ear, fkCurl(ep, vec2(0.0015, -0.002), vec2(0.0055, 0.0095), 1.7, 4.4, 0.75 * W, fwq) * 0.85);
+      vec2 ep = vec2(vBind.z - uFaceKit2.w, q.y + 0.007);
+      float ear = fkCurl(ep, vec2(-0.001, 0.0), vec2(0.0115, 0.021), 1.15, 4.55, 1.0 * W, fwq);
+      ear = max(ear, fkCurl(ep, vec2(0.0015, -0.002), vec2(0.006, 0.011), 1.7, 4.4, 0.75 * W, fwq) * 0.85);
       m = max(m, ear * earK);
     }
     return m;

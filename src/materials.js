@@ -1237,6 +1237,8 @@ const fragmentShader = /* glsl */ `
     detail = max(detail, patInk);
     gHatch.b = detail;
     gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
+    // a face (its skin and its eyes): post.js leaves out the line round its shade and the crease shading
+    if (uMode == ${MODE_EYE} || (uMode == ${MODE_OUTFIT} && faceFlat(vBind) > 0.5)) gHatch.a += 16.0;
     #ifdef DISSOLVE
     gHatch.a = max(gHatch.a, dEdge);
     #endif
