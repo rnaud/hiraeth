@@ -86,7 +86,7 @@ const PAGE = `(() => {
   L.sample = (n) => new Promise((res) => {
     frames = []; cpu = []; gpu = []; rec = true;
     const t0 = performance.now();
-    const chk = () => { if (frames.length >= n || performance.now() - t0 > 20000) { rec = false; setTimeout(() => res({ frame: q(frames, 0.5), p95: q(frames, 0.95), cpu: q(cpu, 0.5), gpu: q(gpu, 0.5) }), 100); } else setTimeout(chk, 50); };
+    const chk = () => { if (frames.length >= n || performance.now() - t0 > 20000) { rec = false; setTimeout(() => res({ frame: q(frames, 0.5), p95: q(frames, 0.95), cpu: q(cpu, 0.5), gpu: q(gpu.filter((x) => x > 0.05), 0.5) }), 100); } else setTimeout(chk, 50); };
     chk();
   });
   const px = new Uint8Array(4);
