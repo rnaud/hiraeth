@@ -22,6 +22,7 @@ export const CHANGELOG = [
     'A little garden in the front yard: vegetable beds, a bench, and flowers you can pick.',
     'Pay your respects at your parents’ stone: kneel, lay a flower or what you have found since, and stay a moment.',
     'At the ending Lou comes to the stone with you and leaves a drawing of her own.',
+    'Lou looks like a real seven-year-old: a big head, short arms and legs, a round young face, two buns, quick little steps, and she can’t keep still.',
     'The washing, the bunting, the flag and the curtains are real cloth now: they blow in the wind and move aside when you walk into them.',
   ] },
   { v: '0.49', date: '2026-10-05', items: [
