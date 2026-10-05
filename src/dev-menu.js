@@ -57,6 +57,7 @@ export class DevMenu {
       else if (a === 'reset') this.resetBoxes();
       else if (a === 'openall') this.openAllBoxes();
       else if (a === 'complete') this.completeWorld();
+      else if (a === 'motionpage') location.href = 'motion.html';   // (motion.html: the loops against motion matching)
       else if (b.dataset.level) this.travel(b.dataset.level);
       this.render();
     });
@@ -116,7 +117,9 @@ export class DevMenu {
       <h2>Story</h2>${flag('prologue.done', 'Prologue done')}${flag('ship.powered', 'Ship powered')}${flag('desert.bike.found', 'Hoverbike found')}${flag('desert.tree.lit', 'Qanat’s tree lit')}${flag('tool.empty', 'Tank empty')}
       <div class="btns" style="margin-top:8px"><button data-a="complete" type="button">complete current world</button></div>
       ${this.matching ? `<h2>Motion</h2><label class="item"><input type="checkbox" data-opt="matching"${this.matching.get() ? ' checked' : ''}>Motion matching (CMU capture)<small>traveller</small></label>
-      <p class="hint">the traveller's walk, run, stops and turns picked from motion capture; off: the blended loops</p>` : ''}
+      <p class="hint">the traveller's walk, run, stops and turns picked from motion capture; off: the blended loops</p>
+      <div class="btns"><button data-a="motionpage" type="button">the Motion page</button></div>
+      <p class="hint">both side by side on a test ground, the matcher's debug, the people's walks (motion.html; leaves the game)</p>` : ''}
       <h2>Teleport</h2><div class="worlds">${worlds}</div>
     </div>`;
   }
