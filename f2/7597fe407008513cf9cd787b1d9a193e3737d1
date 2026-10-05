@@ -1,0 +1,21 @@
+index.html
+  s_1fd8d0e7b02dcf::t_cf091120f58052 203,205-206,210-224
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_e93b8d92ce187f 6-7,156-168,339
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f27597fe407008513cf9cd787b1d9a193e3737d1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
