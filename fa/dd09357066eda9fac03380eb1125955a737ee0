@@ -1,0 +1,33 @@
+changelog.md
+  s_1fd8d0e7b02dcf::t_cbeecdad948ec8 11
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_94bdfe49ef7dfc 14
+src/costumes.js
+  s_1fd8d0e7b02dcf::t_f53ae3509affc8 421,423,464,547-548
+src/makehuman/people.js
+  s_1fd8d0e7b02dcf::t_ce65b53fe9217a 166
+src/npc.js
+  s_1fd8d0e7b02dcf::t_2a07f051037032 10,79,81,102-103,106,117,988
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_a70e5828f3b59b 247-249,364,402,414
+src/studio/people.js
+  s_1fd8d0e7b02dcf::t_ed0eaebd3f7ee8 5,80
+tests/makehuman-worlds.test.js
+  s_1fd8d0e7b02dcf::t_21f9e25bc03d8f 228-229,255-289
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fadd09357066eda9fac03380eb1125955a737ee0",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
