@@ -104,3 +104,32 @@ test('ShadowCuller: casters whose shadow cannot reach the view, or smaller than 
   assert.ok(!fine.includes(pebble));
   for (const o of fine) o.visible = true;
 });
+
+test('the far pass leaves out pebbles and shrubs, not a tile of boulders; self-lit things stay out unless they are solid', async () => {
+  const { farPassSkips, largestInstance, selfLitSkips } = await import('../src/shadows.js');
+  const geo = new THREE.IcosahedronGeometry(1, 0);
+  const tile = (scales) => {
+    const m = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial(), scales.length);
+    scales.forEach((s, i) => m.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(i * 3, 0, 0), new THREE.Quaternion(), new THREE.Vector3(s, s, s))));
+    m.userData.tiled = true;
+    m.updateMatrixWorld();
+    return m;
+  };
+  const pebbles = tile([0.2, 0.3, 0.25]), boulders = tile([0.3, 4.4, 0.5]), hidden = tile([6]);
+  hidden.visible = false;
+  const plants = tile([3]); plants.userData.flora = true;
+  const bush = new THREE.Mesh(geo);
+  assert.ok(Math.abs(largestInstance(boulders) - 4.4) < 1e-6, 'the biggest instance');
+  const texel = 2300 / 2048;
+  const skip = farPassSkips([pebbles, boulders, hidden, plants, bush], texel);
+  assert.ok(skip.includes(pebbles) && skip.includes(bush), 'pebbles and shrubs: no km-wide shadow');
+  assert.ok(!skip.includes(boulders), 'a tile holding a 9 m boulder casts in the far map');
+  assert.ok(!skip.includes(hidden), 'what is hidden is left alone');
+  assert.ok(skip.includes(plants), 'plants keep their own rule');
+  // self-lit
+  const lit = (glow, ud = {}) => { const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: { uGlow: { value: glow } } })); Object.assign(m.userData, ud); return m; };
+  assert.equal(selfLitSkips(lit(0.3)), false, 'an ordinary surface casts');
+  assert.equal(selfLitSkips(lit(1)), true, 'a flame or a lamp gives light, it does not block it');
+  assert.equal(selfLitSkips(lit(0.8, { castShadow: true })), false, 'a glowing solid (the great crystal) casts');
+  assert.equal(selfLitSkips(lit(0, { castShadow: false })), true, 'anything can opt out');
+});
