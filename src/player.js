@@ -50,7 +50,7 @@ export const HANG = { time: 1.0, reach: 0.35 };
 /**
  * Jumping off a mount or a vehicle (Player.jumpOff: the pad's bottom button while riding; E or
  * the right button too while it moves faster than `moving` m/s or flies more than `air` m up):
- * a `hop` m/s up, its speed carried on (`keep` of it). In the air the pack comes back at once,
+ * a `hop` m/s up, its speed carried on (`keep` of it). In the air or at speed the pack comes back at once,
  * the wings open by themselves if you have them, and a fall that would kill you is not allowed
  * (a notice), unless the bird is yours: then, `catchAfter` s into a fall like that, she comes
  * and catches you (bird.js flyCatch).
@@ -822,7 +822,7 @@ export class Player {
     const bird = v === this.mount && this.birdCatches;
     if (fatal && !this.fallSaver && !bird) { this.notice('Too high to jump.'); return false; }
     const hx = vel.x * JUMP_OFF.keep, hz = vel.z * JUMP_OFF.keep;
-    this.dismount(airborne);   // (in the air the backpack is simply back on: no hand-off)
+    this.dismount(airborne || Math.abs(v.speed ?? 0) > JUMP_OFF.moving);   // (in the air or at speed the backpack is simply back on: no hand-off from a socket racing away)
     this.vel.set(hx, up, hz);
     this._jumpHeld = true;     // (the press that jumped is not also a jump, a boost or the wings)
     this._autoGlide = airborne && this.canGlide;
@@ -1048,7 +1048,8 @@ export class Player {
     } else this.glideTurn = 0;
     this.vel.copy(tv).addScaledVector(U, vu);
     // boost: the tool spends a charge and sets the burst on this.vel; the wing reopens once you fall again
-    if (airPress && this.onAirJump?.(sincePress, { jets: !input.PadJump })) { this.gliding = false; this.thrusting = false; }
+    // (not while the jets' button is held: on a pad, jump with RT held climbs on the jets)
+    if (airPress && !(jetBtn && jetOn) && this.onAirJump?.(sincePress, { jets: !input.PadJump })) { this.gliding = false; this.thrusting = false; }
 
     // Swept collision: the frame's motion is split into sub-steps no longer
     // than half the capsule radius, each pushed out of walls and checked for

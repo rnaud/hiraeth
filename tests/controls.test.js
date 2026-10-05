@@ -42,7 +42,10 @@ test('the jets: RT (not aiming) fires them, the stick flies you that way, neutra
   const turned = jetter(); run(turned, 2, { PadFire: true, stick: { x: 0, y: 1 } }, Math.PI / 2);
   assert.ok(Math.abs(new THREE.Vector3(turned.vel.x, 0, turned.vel.z).normalize().dot(dirs.fwd)) < 0.05, 'relative to the camera');
   // jump held as well: it climbs
-  const c = jetter(); run(c, 1.5, { PadFire: true, Space: true, PadJump: true });
+  const c = jetter(); let boosts = 0; c.onAirJump = () => { boosts++; return true; };
+  run(c, 0.2, { PadFire: true });
+  run(c, 1.5, { PadFire: true, Space: true, PadJump: true });
+  assert.equal(boosts, 0, 'pressing jump while the jets fire climbs, it does not boost (nor spend a charge)');
   assert.ok(c.thrusting && c.vel.y > 10 && c.pos.y > 40, `climbing (${c.vel.y.toFixed(1)} m/s, ${c.pos.y.toFixed(1)} m)`);
   // aiming: RT shoots, the jets stay off; nor without the item
   const a = jetter(); run(a, 0.3, { PadFire: true, PadAim: true });

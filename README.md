@@ -2992,7 +2992,7 @@ From the author's handheld sessions (TODO.md, "Controls").
   85 % of its speed, and in the air it fades slowly until you land. The left button
   takes over the vehicle's hop / flap / rise. E and the right button still step off
   beside a vehicle that is standing. When it is moving faster than 6 m/s or flying more
-  than 3 m up, they jump off too. In the air the backpack is simply back on (no
+  than 3 m up, they jump off too. In the air or at speed the backpack is simply back on (no
   hand-off). With the wings, they open by themselves until you press jump. A fall that
   would kill you, with no wings and no fluid for the jets, is refused ("Too high to
   jump."), unless the bird is yours: then `watchFall` calls her `JUMP_OFF.catchAfter` s
