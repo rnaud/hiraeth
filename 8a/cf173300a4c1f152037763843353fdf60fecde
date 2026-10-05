@@ -1,0 +1,55 @@
+README.md
+  s_1fd8d0e7b02dcf::t_4a0f072ac6af14 235-236,1239-1325
+TODO.md
+  s_1fd8d0e7b02dcf::t_d1cbedf80d32b9 328
+changelog.md
+  s_1fd8d0e7b02dcf::t_3bca1b8afa4490 5-17
+src/audio.js
+  s_1fd8d0e7b02dcf::t_036e5a4d7f419d 251-253,1014-1062
+src/bike.js
+  s_1fd8d0e7b02dcf::t_4ce6dd4027e2e4 200-201
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_c9e38ea879af8f 6-17
+src/desert-city.js
+  s_1fd8d0e7b02dcf::t_da6a3974694c7f 774
+src/levels/lab.js
+  s_1fd8d0e7b02dcf::t_947275cfc27afb 18,141-144,146-172,174,176-177
+src/levels/perdide.js
+  s_1fd8d0e7b02dcf::t_7a8eaa16d245c7 13-14,18
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_f2775687804bfb 19
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_64ac623f03ef0d 825
+src/main.js
+  s_1fd8d0e7b02dcf::t_73b059fbc2ca92 58-59,188-189,212,339-343,478,618,1034,1275-1278,1374
+src/materials.js
+  s_1fd8d0e7b02dcf::t_cd3bbdadd8fa0e 10,873-875,1050-1052,1117-1119,1123,1174-1176,1184-1186,1224-1228,1420
+src/player.js
+  s_1fd8d0e7b02dcf::t_acab9519b072be 9,14-15,391-398,421-424,537-538,580,671,692,885-887,898,993,1071,1160,1489
+src/swim.js
+  s_1fd8d0e7b02dcf::t_cfe7bbbdc14e30 1-360
+src/ui.js
+  s_1fd8d0e7b02dcf::t_a038c2cadef1e0 54,110
+src/water-shader.js
+  s_1fd8d0e7b02dcf::t_fdd4bc8c83b691 1-218
+src/water.js
+  s_1fd8d0e7b02dcf::t_34271646db504c 1-556
+tests/swim.test.js
+  s_1fd8d0e7b02dcf::t_5bd66729dad751 1-246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8acf173300a4c1f152037763843353fdf60fecde",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
