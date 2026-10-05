@@ -1,0 +1,31 @@
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_2cc21cd968d853 334
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_ad4415450226af 179,298,312-321,364
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_b3152a6b285b39 52,60,152,173-175,177-186,217,262,286-296,298-299
+src/story/perdide2.js
+  s_1fd8d0e7b02dcf::t_4c5ed1a0a4757b 14-16,18-19,30-32,39,211-434,449-450,514-515,519
+src/story/terraces.js
+  s_1fd8d0e7b02dcf::t_9da41a9798343b 97,137-139,265,317-318,382,447
+tests/fetch-puzzles-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_3c2a3c79f1e5d5 1-81
+tests/story-perdide2.test.js
+  s_1fd8d0e7b02dcf::t_9c168d040e10ac 102-131,133-134,137,197,199-254
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ae73f4aee32f1a10230c684781b53ea80a603faf",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
