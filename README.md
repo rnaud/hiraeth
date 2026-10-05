@@ -2565,12 +2565,61 @@ The Sealed Hangar, The Lodestar, Viridel): flat colour, one shadow tone, very fe
   as the lip. The plaza and avenue paving sit 2 cm proud of the ground. The trunk's collider
   is the bark itself (it was a cone up to 0.7 m outside it). `tests/desert-story.test.js`
   raycasts the drawn surfaces against the ground.
-- **The dry cave**: the giant's chest has no water until the rib is pushed off the channel:
+- **The dry cave**: the giant's chest has no water until the rib is off the channel (levered, or pushed with a full tank):
   damp stains in the basin and the gutter, a pale tide line where the pool stood. Then the
   stream runs out of the crack down the channel (`cave.setWater(flow, level)` reveals it
   segment by segment with a draw range), and the pool fills the basin from its lowest point,
   widening up its sides (its radius follows the basin's profile, `cave.basinR`). A save with
   the channel already open finds it full (`tests/desert-cave.test.js`).
+
+### The desert reworked: an empty tank, a cold tree, the spark-stone
+The desert's main quest (`desert.power`, `src/story/desert-data.js`) now runs: the city, the
+chest (the backpack, **empty**), Nour, the well, Ama's jar, the Speaker, the skull, the rib
+(levered off without fluid), the pool (the tank and the jar fill), **the well filling** while
+you watch, Nour's story of the **spark-stone**, **Marrow's hoverbike**, the ride to **the
+Givers' Hearth**, its **grille** and the stone, the stone set in the full well (**the tree
+catches**), the ship.
+- **The empty tank** (`src/fluid-tool.js`): game flag `tool.empty` (set when the desert's chest
+  opens on a new save). `tool.dry`: no charges, no refill clock, every press only sputters and
+  emits `'tool:dry'` (the desert says why, once in a while); the HUD reads `empty`, the glass is
+  empty. Any `refill()` (the giant's pool) fills it and clears the flag for good; the first
+  wade also adds the pool's colour band. An older save never had it set: its tank stays full.
+  `story.world.toolHasPush()` is false while dry, so the drum's knuckle is heaved by hand; the
+  hoverbike won't wake on an empty tank (`desert-bike.js fuelled()`).
+- **The cold tree** (`src/desert-city.js` `city.setLit(k)`, 0..1): no flame (`FlameBody.lit`
+  grows the fire up out of its base), no smoke (`SmokeColumn.light()` starts a column that climbs
+  from the fire, one period to the end of the plume; `grow` gates the puffs), no sparks, no burn
+  (the flame's hazard tests `city.lit`), no light, and only a slow bell for music. The level
+  alone (no story) keeps it burning. An ember glob on the cold tree only hisses (the tree's
+  target accepts `'fire'` to say so).
+- **The rib without fluid** (`src/story/desert.js` `setupLever`): E on the rib with an empty tank
+  is a heave that fails (`desert.pole.tried`), the marker moves to **the keepers' pole** leaning
+  on the mural, then to **the carved post** beside the gutter; three presses there
+  (`desert.lever`) each lift the rib a little more, the third tips it off. A full tank still
+  pushes it.
+- **The well filling**: once the water runs, walking up to the well starts its rise (some ten seconds of
+  living water coming up the shaft, pale motes climbing the trunk, Hessa calling out); brimmed, it sets
+  `desert.well.watched` and Nour has a story to tell.
+- **The Givers' Hearth** (`src/desert-hearth.js`, `STORY.hearth`, ~1.6 km south-east of Qanat on a
+  hilltop of the red rocks, its chimney seen from the way; `hearthStones()`: nine marked stones
+  along the way): a butte with a porch whose door looks back at the city, and a dark round hall
+  far overhead (portals, like the giant's chest). `src/story/desert-spark.js` drives it: the
+  stone breathes (its light, the floor marks and the chimney slit pulse with it); a push target
+  rolls the ball down its groove into the hole, the chain lifts the grille into the rock
+  (`desert.hearth.open`); E on the shelf takes the stone (`desert.stone.taken`, item `stone`),
+  which then rides at your side, lighting the way. E at the well sets it in the water: it
+  sinks, a spark climbs the outside of the trunk, and the fire catches over six seconds in the
+  cool colours (`desert.tree.lit`; the procession sings, the bands feast). The ship only takes
+  the jar's water once the tree burns.
+- **Old saves** (`migrateDesertQuest`, `desert.quest.v` 3): a save whose water had already
+  risen (channel open, ship fed, or done) saw the tree burn: `desert.tree.lit` is set and the
+  errand's stages (`SPARK_STAGES`) are skipped straight to the ship. Others find the tree cold
+  and do the new errand with the full tank they already had.
+- **Tests**: `tests/desert-story.test.js` plays the chain end to end (the empty tank, the lever,
+  the fill, the rise, Nour, Marrow, the bike, the Hearth, the grille, the stone, the lighting,
+  the ship); `tests/desert-spark.test.js` covers the migrations, the cold tree (no burn, the
+  ember), the Hearth's order and a save restored part-way, the bike on an empty tank;
+  `tests/fluid-tool.test.js` the empty tank itself.
 
 ### The conversation camera keeps a clear view
 
