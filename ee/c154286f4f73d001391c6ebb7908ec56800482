@@ -1,0 +1,77 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_f9b2c9682b9097 389-395
+scripts/unity-export/build-world.mjs
+  s_1fd8d0e7b02dcf::t_013378f3e6c801 76-77
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_1fd8d0e7b02dcf::t_57dbd913621352 7,123-127,138,165-213
+unity/Memento/Assets/Memento/Runtime/Ambient.cs
+  s_1fd8d0e7b02dcf::t_58a57dac9db253 24-27,117-118,120-123,128
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_1fd8d0e7b02dcf::t_542285eece6fef 275-289,299,301-310,423-435,446-468
+unity/Memento/Assets/Memento/Runtime/FarCrowd.cs
+  s_1fd8d0e7b02dcf::t_6d173d2beb49fb 18,80-81
+unity/Memento/Assets/Memento/Runtime/Figure.cs
+  s_1fd8d0e7b02dcf::t_8c606d53443f63 1,204,208-252
+unity/Memento/Assets/Memento/Runtime/Flammables.cs.meta
+  s_1fd8d0e7b02dcf::t_8f18350ccb6ecf 1-2
+unity/Memento/Assets/Memento/Runtime/FluidTool.cs
+  s_1fd8d0e7b02dcf::t_a1593f8e3f4e9a 54-55,131,185,270-384,387
+unity/Memento/Assets/Memento/Runtime/HoloTable.cs
+  s_1fd8d0e7b02dcf::t_38c3b933714aee 1-147
+unity/Memento/Assets/Memento/Runtime/HoloTable.cs.meta
+  s_1fd8d0e7b02dcf::t_5b7518ba4b774a 1-2
+unity/Memento/Assets/Memento/Runtime/Loading.cs
+  s_1fd8d0e7b02dcf::t_cd1073c802282d 13
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_405beeefb3b2d0 25-26,31,69-70,97
+unity/Memento/Assets/Memento/Runtime/Play.cs
+  s_1fd8d0e7b02dcf::t_e281e141c33a24 75-76,122-124
+unity/Memento/Assets/Memento/Runtime/Player.cs
+  s_1fd8d0e7b02dcf::t_3e365432335552 16,21,105,113-123
+unity/Memento/Assets/Memento/Runtime/ShipScene.cs
+  s_1fd8d0e7b02dcf::t_77a3e0a006ba71 38-39,74-85,89,177-182
+unity/Memento/Assets/Memento/Runtime/SmokeTest.cs
+  s_1fd8d0e7b02dcf::t_fe4a84483928c6 1-60
+unity/Memento/Assets/Memento/Runtime/SmokeTest.cs.meta
+  s_1fd8d0e7b02dcf::t_cda843b701e6c3 1-2
+unity/Memento/Assets/Memento/Runtime/Sounds.cs
+  s_1fd8d0e7b02dcf::t_9957ac9c4899b2 108,110-111,124-125,127,132,146
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_1fd8d0e7b02dcf::t_030b5918f150c8 47,198-207,448-463
+unity/Memento/Assets/Memento/Shaders/Planet.shader
+  s_1fd8d0e7b02dcf::t_26aa95185e48aa 1-131
+unity/Memento/Assets/Memento/Shaders/Planet.shader.meta
+  s_1fd8d0e7b02dcf::t_d300c9d4fd8091 1-9
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_1fd8d0e7b02dcf::t_5a1594741a39e7 445-446,448,455-464
+unity/README.md
+  s_1fd8d0e7b02dcf::t_8293d28e436824 40-49,278-287,295-305,315-317,397-432,435-440,444-448
+scripts/unity-export/export-desert.mjs
+  s_bb75d8948267c1::t_8ac51ee4ab4d1c 368-369
+unity/Memento/Assets/Memento/Runtime/Flammables.cs
+  s_bb75d8948267c1::t_3f81c6af3494f7 1-270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eec154286f4f73d001391c6ebb7908ec56800482",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_bb75d8948267c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae630ee41ae0117ed",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
