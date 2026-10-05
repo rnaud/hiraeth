@@ -63,7 +63,7 @@ export function setupIncal(ctx) {
   const splMat = makeMaterial({ color: '#fff8e8', flat: true, glow: 1, key: 'incal.splinter' });
   const splinter = new THREE.Group();
   splinter.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0).scale(1, 2.4, 1), splMat));
-  const sg = new THREE.Mesh(glyphGeometry(0.16, 0.01).translate(0, -0.05, 0.075), makeMaterial({ color: '#8a6a3a', flat: true }));
+  const sg = new THREE.Mesh(glyphGeometry(0.16, 0.01).translate(0, -0.05, 0.075), makeMaterial({ color: '#8a6a3a', flat: true, metal: 'brass' }));
   splinter.add(sg);
   splinter.traverse((o) => { o.userData.noCollide = true; });
   splinter.position.copy(P.bowlTop);

@@ -197,7 +197,7 @@ export function setupGarage(ctx) {
     toast('The Major’s note, folded small. On its back: a wheel under sand, turning one tooth a year.');
     setTimeout(() => story.complete?.(), 1500);
   };
-  const crown = makeMaterial({ color: '#f2c54b', grid: 3 });   // the great machine's crown (garage.js)
+  const crown = makeMaterial({ color: '#f2c54b', grid: 3, metal: 'brass' });   // the great machine's crown (garage.js)
 
   // ---------------------------------------------------------------- places for the quest markers
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);

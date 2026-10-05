@@ -121,7 +121,7 @@ export function buildSkiff() {
   cage.add(new THREE.CylinderGeometry(0.004, 0.004, 0.25, 3), C.navy, { at: [0, -0.12, 0] });
   cage.add(new THREE.ConeGeometry(0.13, 0.1, 6), C.navy, { at: [0, -0.27, 0] });
   cage.add(new THREE.CylinderGeometry(0.09, 0.09, 0.03, 6), C.navy, { at: [0, -0.5, 0] });
-  lantern.add(cage.mesh());
+  lantern.add(cage.mesh({ metal: 'iron' }));
   const flame = new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0).scale(1, 1.4, 1).translate(0, -0.4, 0), makeMaterial({ color: '#fff3c4', glow: 1, flat: true }));
   lantern.add(flame);
   body.add(lantern);

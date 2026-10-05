@@ -243,7 +243,9 @@ export function buildBeacon(key = 'beacon') {
 
 // ------------------------------------------------------------------ the items, small
 const BRASS = '#d6a94a', BRASS_DARK = '#9c7330', STEEL = '#6f7a86', INK = '#2b211f', IVORY = '#efe6cf', COPPER = '#c56a3c';
-const flatM = (color, o = {}) => makeMaterial({ color, flat: true, ...o });
+// the brass, steel and copper parts are metal (materials.js METALS); lit parts stay lights
+const METAL_OF = { [BRASS]: 'brass', [BRASS_DARK]: 'brass', [STEEL]: 'steel', [COPPER]: 'copper' };
+const flatM = (color, o = {}) => makeMaterial({ color, flat: true, ...(METAL_OF[color] && !o.glow ? { metal: METAL_OF[color] } : {}), ...o });
 
 function tankModel() {
   const g = new THREE.Group();

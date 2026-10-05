@@ -84,7 +84,7 @@ export function setupArzach2(ctx) {
   thing(THINGS.face, A.face, { range: 7, height: 8, prompt: 'look at the face on the tower' });
 
   // ---------------------------------------------------------------- the clapper, on the island
-  const bronze = makeMaterial({ color: '#c99a52', color2: '#b3843f', color3: '#e0b66a', flat: true });
+  const bronze = makeMaterial({ color: '#c99a52', flat: true, metal: 'brass' });
   const clapperGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.6, 6).translate(0, 0.8, 0);
   const clapperBall = new THREE.SphereGeometry(0.42, 10, 8);
   const makeClapper = () => {

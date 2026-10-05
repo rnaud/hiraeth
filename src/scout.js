@@ -86,7 +86,7 @@ export class Scout {
     this.vel = new THREE.Vector3(); this.stuck = 0; this.over = 0; this.fade = null;
     this.object = new THREE.Group(); this.object.userData.noCollide = true; scene.add(this.object);
     const shell = makeMaterial({ color: '#fff1ca', flat: true, glow: 0.35 });
-    const brass = makeMaterial({ color: '#e2b552', flat: true });
+    const brass = makeMaterial({ color: '#e2b552', flat: true, metal: 'brass' });
     const lamp = makeMaterial({ color: '#70e7df', glow: 1 });
     this.object.add(new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 8).scale(1, 0.7, 1.2), shell));
     const lens = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 6), lamp); lens.position.z = 0.18; this.object.add(lens);

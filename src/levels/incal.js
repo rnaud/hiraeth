@@ -77,7 +77,7 @@ export function createIncal(scene) {
   const placed = (g, x, y, z, rot = 0) => g.rotateY(rot).translate(x, y, z);
   const wallMat = (i) => strata(PASTELS[i % PASTELS.length], PASTELS[(i + 2) % PASTELS.length], '#f6efe0', 3.2, { pattern: 'facade', flat: true });
   const roofMat = (i) => makeMaterial({ color: ROOFS[i % ROOFS.length], flat: true, pattern: 'tiles' });
-  const ironMat = makeMaterial({ color: '#34405e', flat: true });
+  const ironMat = makeMaterial({ color: '#34405e', flat: true, metal: 'iron' });
   const doorMat = makeMaterial({ color: '#5a3a2c', flat: true });
 
   /** A villa: block walls with a window grid, a hipped roof, a dome on a drum, or a roof garden. */
@@ -224,7 +224,7 @@ export function createIncal(scene) {
       for (let k = 0; k < steps; k++) {
         if (rng() < 0.3) continue;
         const b0 = a0 + (k / steps) * span, b1 = b0 + span / steps * 0.85;
-        const rail = new THREE.Mesh(sectorGeometry(r0, r0 + 0.6, b0, b1, 1.2), makeMaterial({ color: '#34405e', flat: true }));
+        const rail = new THREE.Mesh(sectorGeometry(r0, r0 + 0.6, b0, b1, 1.2), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' }));
         rail.position.y = y + 1.2;
         scene.add(rail);
       }
@@ -273,7 +273,7 @@ export function createIncal(scene) {
       new THREE.CylinderGeometry(1.2, 1.2, 70, 6).translate(0, 55, 0),
       new THREE.SphereGeometry(4, 12, 8).translate(0, 92, 0),
     ]);
-    const pm = new THREE.Mesh(palace, makeMaterial({ color: '#f2c54b', grid: 5 }));
+    const pm = new THREE.Mesh(palace, makeMaterial({ color: '#f2c54b', grid: 5, metal: 'brass', refl: 0.55 }));
     pm.position.y = TOP + 120;
     scene.add(pm);
     for (let i = 0; i < 3; i++) { // orbiting rings around the needle
@@ -340,7 +340,7 @@ export function createIncal(scene) {
   for (let i = 0; i < 40; i++) {
     const a = rng() * TAU, y = BOTTOM + 30 + rng() * (TOP - BOTTOM - 30);
     const m = new THREE.Mesh(new THREE.BoxGeometry(14 + rng() * 10, 8 + rng() * 6, 0.8),
-      makeMaterial({ color: pick(['#d9784f', '#9fb2c6', '#f2c54b']), flat: true, grid: 2.2, glyphs: true }));
+      makeMaterial({ color: pick(['#d9784f', '#9fb2c6', '#f2c54b']), flat: true, grid: 2.2 }));   // (bills, not the makers' carving: no inscriptions)
     m.position.set(Math.cos(a) * (R - 1.2), y, Math.sin(a) * (R - 1.2));
     m.lookAt(0, y, 0);
     scene.add(m);
@@ -381,7 +381,7 @@ export function createIncal(scene) {
         g.applyMatrix4(new THREE.Matrix4().makeRotationZ(roll)).applyMatrix4(m);
         parts.push(g);
       }
-      light.add(new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: '#8a6a3a', flat: true })));
+      light.add(new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: '#8a6a3a', flat: true, metal: 'brass' })));
     }
     grp.add(light, dark, halo, halo2);
     scene.add(grp);
@@ -568,7 +568,7 @@ export function createIncal(scene) {
     places.wren = P3(la + 0.012, low.r0 + 3.4, low.y);
     places.bottom = low;
     places.lights = [];   // warm lamps along the lower terraces, lit when the Lodestar is (Vector4s: the story moves them in)
-    const gold = makeMaterial({ color: '#f2c54b', grid: 5 }), steelM = strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3 });
+    const gold = makeMaterial({ color: '#f2c54b', grid: 5, metal: 'brass', refl: 0.55 }), steelM = strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3 });
     const cream = makeMaterial({ color: '#f3ead8', flat: true }), ink = makeMaterial({ color: '#34405e', flat: true });
     // the small things up on the palace and down at the shrine drop out when you are far above or below them
     const palaceG = new THREE.Group(), shrineG = new THREE.Group();
@@ -598,7 +598,7 @@ export function createIncal(scene) {
 
     // the Upward Shrine: a round dais, a bowl held up to the light, candles, the glyph on the floor
     const S = places.shrine, face = Math.atan2(-S.x, -S.z);   // facing the void (and the Lodestar, far above)
-    const stone = makeMaterial({ color: '#cdb38e', flat: true }), bowlM = makeMaterial({ color: '#b5862f', flat: true });
+    const stone = makeMaterial({ color: '#cdb38e', flat: true }), bowlM = makeMaterial({ color: '#b5862f', flat: true, metal: 'brass' });
     const dais = [new THREE.CylinderGeometry(2.6, 2.8, 0.34, 18).translate(0, 0.17, 0), new THREE.CylinderGeometry(0.28, 0.4, 1.0, 8).translate(0, 0.84, 0)];
     const bowl = new THREE.LatheGeometry([[0.08, 0], [0.5, 0.08], [0.78, 0.3], [0.82, 0.42], [0.74, 0.4], [0.45, 0.16], [0, 0.12]].map(([r, y]) => new THREE.Vector2(r, y)), 14).translate(0, 1.32, 0);
     const m1 = new THREE.Mesh(mergeGeometries(dais.map((g) => g.toNonIndexed())), stone);
@@ -753,8 +753,8 @@ export function createIncal(scene) {
   // a railing and cypresses at the spawn, looking out over the town (as in the plate)
   {
     const rail = new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(R + 0.6, TOP + 1.1, -30), new THREE.Vector3(R + 0.6, TOP + 1.1, 30)), 8, 0.12, 8);
-    scene.add(new THREE.Mesh(rail, makeMaterial({ color: '#c9d2dc' })));
-    for (let k = -30; k <= 30; k += 6) scene.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.1, 6).translate(R + 0.6, TOP + 0.55, k), makeMaterial({ color: '#c9d2dc' })));
+    scene.add(new THREE.Mesh(rail, makeMaterial({ color: '#c9d2dc', metal: 'chrome' })));
+    for (let k = -30; k <= 30; k += 6) scene.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.1, 6).translate(R + 0.6, TOP + 0.55, k), makeMaterial({ color: '#c9d2dc', metal: 'chrome' })));
   }
 
   // ---------------------------------------------------------- level description

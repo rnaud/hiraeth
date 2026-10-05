@@ -390,7 +390,7 @@ export const ROOMS = [
         kit.add(M.rose, new THREE.CylinderGeometry(0, 6.4, 3, 4, 1).rotateY(Math.PI / 4).scale(1, 1, 0.8).translate(x, y + 6.5, z));
         kit.add(M.aq, new THREE.BoxGeometry(3.2, 12, 3.2).translate(x + 7, y + 6, z + 2));
         kit.add(M.rose, new THREE.ConeGeometry(2.6, 3, 4).rotateY(Math.PI / 4).translate(x + 7, y + 13.5, z + 2));
-        kit.add(kit.mat({ color: '#d8a24a', flat: true }), new THREE.CylinderGeometry(0.3, 0.9, 1.2, 10).translate(x + 7, y + 10.2, z + 2), { solid: false });
+        kit.add(kit.mat({ color: '#d8a24a', flat: true, metal: 'brass' }), new THREE.CylinderGeometry(0.3, 0.9, 1.2, 10).translate(x + 7, y + 10.2, z + 2), { solid: false });
         kit.add(kit.mat({ color: '#34405e', flat: true }), new THREE.BoxGeometry(1.2, 2, 0.2).translate(x, y + 1, z + 3.55), { solid: false });
       }
       // the sea of cloud below the stones
@@ -473,8 +473,8 @@ export const ROOMS = [
       {
         const mx = 52, mz = -40;
         kit.add(stone(5), soften(new THREE.CylinderGeometry(4, 6, 48, 14, 8), 0.12).translate(mx, 24, mz));
-        kit.add(kit.mat({ color: '#f2c54b', grid: 3 }), new THREE.SphereGeometry(7, 16, 10).scale(1, 0.7, 1).translate(mx, 49, mz));
-        const gearMat = kit.mat({ color: '#d9643a', flat: true, grid: 2 }), ink = kit.mat({ color: '#34405e', flat: true });
+        kit.add(kit.mat({ color: '#f2c54b', grid: 3, metal: 'brass' }), new THREE.SphereGeometry(7, 16, 10).scale(1, 0.7, 1).translate(mx, 49, mz));
+        const gearMat = kit.mat({ color: '#d9643a', flat: true, grid: 2, metal: 'copper' }), ink = kit.mat({ color: '#34405e', flat: true, metal: 'iron' });
         for (let i = 0; i < 3; i++) {
           const r = 9 + i * 2.5, parts = [new THREE.TorusGeometry(r, 1.1, 6, 40).rotateX(Math.PI / 2)];
           for (let k = 0; k < 14; k++) { const a = (k / 14) * TAU; parts.push(new THREE.BoxGeometry(2, 1.6, 2).translate(Math.cos(a) * (r + 1.4), 0, Math.sin(a) * (r + 1.4))); }
@@ -487,7 +487,7 @@ export const ROOMS = [
         for (let k = 0; k < 6; k++) {
           const a = (k / 6) * TAU, px = mx + Math.cos(a) * 13, pz = mz + Math.sin(a) * 13;
           kit.add(stone(2), new THREE.CylinderGeometry(1.8, 2.2, 6, 8).translate(px, 3, pz));
-          const rod = kit.mesh(new THREE.CylinderGeometry(0.7, 0.7, 7, 8), kit.mat({ color: '#f3ead8', flat: true }), { solid: false });
+          const rod = kit.mesh(new THREE.CylinderGeometry(0.7, 0.7, 7, 8), kit.mat({ color: '#f3ead8', metal: 'chrome' }), { solid: false });
           kit.mover((t) => rod.position.set(px, 6.5 + Math.max(0, Math.sin(t * 1.6 + k)) * 4, pz));
         }
       }
@@ -553,13 +553,13 @@ export const ROOMS = [
       const M = {
         rust: kit.mat(strata('#c8643f', '#b35a3a', '#d9825a', 4.5, { flat: true })),
         rustGrid: kit.mat(strata('#c8643f', '#d9825a', '#b35a3a', 3, { grid: 3.5 })),
-        rustDark: kit.mat({ color: '#9a4a30', flat: true }),
+        rustDark: kit.mat({ color: '#9a4a30', flat: true, metal: 'iron', refl: 0.15 }),
         rustWall: kit.mat(strata('#c0603e', '#b35a3a', '#cf7450', 6, { pattern: 'cracks' })),
         rustFloor: kit.mat({ color: '#d9825a', color2: '#cf7650', color3: '#b35a3a', mode: MODE_TERRAIN }),
-        steel: kit.mat(strata('#7f93a3', '#5f7488', '#94a6b3', 2.2)),
-        steelFlat: kit.mat(strata('#7f93a3', '#5f7488', '#94a6b3', 2.2, { flat: true })),
-        pipe: kit.mat({ color: '#d8dcc8', flat: true }), flange: kit.mat({ color: '#a9b4a8', flat: true }),
-        ink: kit.mat({ color: '#34405e', flat: true }), hatch: kit.mat({ color: '#3d4a52', flat: true }),
+        steel: kit.mat(strata('#7f93a3', '#5f7488', '#94a6b3', 2.2, { metal: 'steel', refl: 0.4 })),
+        steelFlat: kit.mat(strata('#7f93a3', '#5f7488', '#94a6b3', 2.2, { flat: true, metal: 'steel', refl: 0.4 })),
+        pipe: kit.mat({ color: '#d8dcc8', flat: true, metal: 'painted' }), flange: kit.mat({ color: '#a9b4a8', flat: true, metal: 'steel' }),
+        ink: kit.mat({ color: '#34405e', flat: true }), hatch: kit.mat({ color: '#3d4a52', flat: true, metal: 'iron' }),
         teal: kit.mat(strata('#5e9094', '#4f8086', '#6fa0a2', 3.5, { grid: 4 })),
         peach: kit.mat({ color: '#f3a57c', glow: 0.85, flat: true }),
       };
@@ -1020,7 +1020,7 @@ export const ROOMS = [
     ],
     build(kit) {
       const mat = (c, extra = {}) => kit.mat({ color: c, flat: true, ...extra });
-      const coral = mat('#f0a083', { grid: 12 }), teal = mat('#88b4b5', { grid: 9 }), ink = mat('#465c65'), cream = mat('#f5dfab'), brass = mat('#c99758'), lilac = mat('#b9a9c5'), dark = mat('#3a535b'), glow = mat('#fff0bd', { glow: 0.75 });
+      const coral = mat('#f0a083', { grid: 12 }), teal = mat('#88b4b5', { grid: 9 }), ink = mat('#465c65', { metal: 'painted' }), cream = mat('#f5dfab'), brass = mat('#c99758', { metal: 'brass' }), lilac = mat('#b9a9c5'), dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
       const shop = ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98'].map((c) => mat(c));
       const box = (x, y, z, w, h, d, m, solid = true) => kit.add(m, new THREE.BoxGeometry(w, h, d).translate(x, y + h / 2, z), { solid });
       // sidewalks and the brass tram lines

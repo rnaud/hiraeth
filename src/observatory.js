@@ -14,8 +14,8 @@ export function buildObservatory(scene, ground) {
   const y = ground.baseAt(x, z, 26);
   const root = new THREE.Group(); root.position.set(x, y, z); scene.add(root);
   const stone = makeMaterial({ color: '#efdbc0', grid: 3, glyphs: true });
-  const blue = makeMaterial({ color: '#697a98' });
-  const brass = makeMaterial({ color: '#d8a24a' });
+  const blue = makeMaterial({ color: '#697a98', metal: 'painted' });
+  const brass = makeMaterial({ color: '#d8a24a', metal: 'brass' });
   const glow = makeMaterial({ color: '#fff1b5', glow: 1 });
   function mesh(geo, mat, px, py, pz, parent = root) {
     const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); parent.add(m); return m;

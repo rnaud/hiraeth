@@ -87,7 +87,7 @@ export function createAtelier(scene) {
     tm.position.set(18, 0, 22);
     tm.rotation.y = -0.7;
     scene.add(tm);
-    const sheet = new THREE.Mesh(new THREE.PlaneGeometry(5, 3.4), makeMaterial({ color: '#fffaf0', grid: 0.6, glyphs: true, side: THREE.DoubleSide }));
+    const sheet = new THREE.Mesh(new THREE.PlaneGeometry(5, 3.4), makeMaterial({ color: '#fffaf0', grid: 0.6, side: THREE.DoubleSide }));
     sheet.rotation.set(-Math.PI / 2 + 0.25, 0, 0);
     sheet.position.set(0, 3.35, 0);
     tm.add(sheet);

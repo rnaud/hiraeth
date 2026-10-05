@@ -98,10 +98,10 @@ export function tokenModel(t) {
   } else if (t.id === 'perdide.thing') {   // the singing splinter
     tokenMesh(g, new THREE.OctahedronGeometry(0.05, 0).scale(0.7, 2.2, 0.7).rotateZ(0.5), tm('#a99be0', { glow: 0.7 }));
   } else if (t.id === 'incal.token') {   // a lift token: a brass disc with a hole
-    tokenMesh(g, new THREE.TorusGeometry(0.05, 0.022, 8, 20).rotateX(Math.PI / 2), tm('#d6a94a'));
+    tokenMesh(g, new THREE.TorusGeometry(0.05, 0.022, 8, 20).rotateX(Math.PI / 2), tm('#d6a94a', { metal: 'brass' }));
   } else if (t.kind === 'song') {   // a little bell
-    tokenMesh(g, new THREE.CylinderGeometry(0.025, 0.065, 0.1, 14, 1, true).translate(0, 0, 0), tm('#d6a94a', { side: THREE.DoubleSide }));
-    tokenMesh(g, new THREE.SphereGeometry(0.02, 8, 6), tm('#9c7330'), 0, 0.06, 0);
+    tokenMesh(g, new THREE.CylinderGeometry(0.025, 0.065, 0.1, 14, 1, true).translate(0, 0, 0), tm('#d6a94a', { side: THREE.DoubleSide, metal: 'brass' }));
+    tokenMesh(g, new THREE.SphereGeometry(0.02, 8, 6), tm('#9c7330', { metal: 'brass' }), 0, 0.06, 0);
   } else if (t.kind === 'word') {   // a folded paper with the words on it
     tokenMesh(g, new THREE.BoxGeometry(0.16, 0.012, 0.11).rotateY(0.3), tm('#f7ecd2'), 0, -0.04, 0);
     for (let k = 0; k < 3; k++) tokenMesh(g, new THREE.BoxGeometry(0.1 - k * 0.02, 0.004, 0.008).rotateY(0.3), INK, 0, -0.032, -0.03 + k * 0.025);
@@ -195,7 +195,7 @@ export function createHome(scene) {
   const smallProps = [];
   const mat = (color, o = {}) => makeMaterial({ color, ...o });
   const add = (geo, m, x = 0, y = 0, z = 0) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); scene.add(mesh); return mesh; };
-  const cream = mat('#f3ead8'), ink = mat('#2b211f'), stone = mat('#dccab0', { flat: true }), terracotta = mat('#c8483a', { flat: true });
+  const cream = mat('#f3ead8'), ink = mat('#2b211f'), iron = mat('#2b211f', { metal: 'iron' }), stone = mat('#dccab0', { flat: true }), terracotta = mat('#c8483a', { flat: true });
   const teal = mat('#5fb7ad'), tealDark = mat('#3f8f8a'), lilac = mat('#b9a3c9', { flat: true });
 
   // ---------------------------------------------------------- the house
@@ -219,15 +219,15 @@ export function createHome(scene) {
     const win = add(new THREE.CircleGeometry(1.5, 32), mat('#4a5a8a', { flat: true }), at.x, at.y, at.z);   // dark: nobody lives here now
     win.lookAt(at.clone().add(new THREE.Vector3(dir.x, dir.y / 0.74, dir.z)));
     win.userData.noCollide = true;
-    const ring = add(new THREE.TorusGeometry(1.55, 0.18, 8, 32), ink, 0, 0, 0);
+    const ring = add(new THREE.TorusGeometry(1.55, 0.18, 8, 32), iron, 0, 0, 0);
     ring.position.copy(win.position); ring.quaternion.copy(win.quaternion);
     // the lamp by the door
-    add(new THREE.CylinderGeometry(0.08, 0.08, 2.6, 6), ink, x + 2.2, 0.9 + 1.3, HOME_SPOTS.door.z - 0.6);
+    add(new THREE.CylinderGeometry(0.08, 0.08, 2.6, 6), iron, x + 2.2, 0.9 + 1.3, HOME_SPOTS.door.z - 0.6);
     add(new THREE.SphereGeometry(0.3, 12, 8), mat('#ffe6b0', { glow: 1 }), x + 2.2, 0.9 + 2.75, HOME_SPOTS.door.z - 0.6);
     lights.push(new THREE.Vector4(x + 2.2, 3.4, HOME_SPOTS.door.z - 1.2, 8));
     // the antenna on top: a mast and a little dish turned to the sky, the old recorder's
-    add(new THREE.CylinderGeometry(0.12, 0.18, 6, 8), ink, x - 1.5, 7.2 + 3, z + 1);
-    const dish = add(new THREE.ConeGeometry(1.4, 0.7, 20, 1, true), mat('#f3ead8', { side: THREE.DoubleSide }), x - 1.5, 13.4, z + 1);
+    add(new THREE.CylinderGeometry(0.12, 0.18, 6, 8), iron, x - 1.5, 7.2 + 3, z + 1);
+    const dish = add(new THREE.ConeGeometry(1.4, 0.7, 20, 1, true), mat('#f3ead8', { side: THREE.DoubleSide, metal: 'painted' }), x - 1.5, 13.4, z + 1);
     dish.rotation.set(Math.PI + 0.6, 0, 0.3);
     const blink = add(new THREE.SphereGeometry(0.16, 8, 6), mat('#e6503a', { glow: 1 }), x - 1.5, 13.3 + 0.1, z + 1);
     movers.push((t) => { blink.visible = Math.sin(t * 2.2) > -0.2; });

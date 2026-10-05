@@ -51,6 +51,9 @@ const fragmentShader = /* glsl */ `
   uniform sampler2D tAlbedo;
   uniform sampler2D tNormal;
   uniform sampler2D tHatch;
+  uniform sampler2D tBloom;   // the glowing surfaces, blurred at a quarter of the resolution (createBloom)
+  uniform sampler2D tBloom2;  // the same, wider (an eighth)
+  uniform float uBloom;       // its strength (0: none)
   uniform float uHatchScreen;
   uniform vec2 uRes;
   uniform float uPixelRatio;
@@ -453,6 +456,8 @@ const fragmentShader = /* glsl */ `
     float figure = step(3.5, surface.a);
     surface.a -= 4.0 * figure;
     float hero = step(1.5, surface.a);
+    // a light (gHatch.a glow over 0.62: crystals, lamps, lit windows; the local lights' pools stay under it)
+    float emitHere = isSky ? 0.0 : smoothstep(0.62, 0.9, surface.a - 2.0 * hero);
     // Detail follows projected size, so a small landscape-phone figure keeps colour.
     float heroHeight = max(0.0, uSubject.w) * 2.0 * uRes.y / uPixelRatio;
     float heroDetail = smoothstep(70.0, 180.0, heroHeight);
@@ -571,6 +576,8 @@ const fragmentShader = /* glsl */ `
       // self-lit surfaces (gHatch.a) keep their colour at night and glow a little
       float glow = surface.a - 2.0 * hero;
       col = mix(shade, albedo * mix(uLightTint, vec3(1.12), glow), lit);
+      // a light: a bright flat core, paler towards white, whatever the hour
+      col = mix(col, mix(albedo * 1.1, vec3(1.0), 0.3), emitHere);
       col = mix(col, mix(col, albedo * uLightTint, 0.3), hero);
       col *= 1.0 + uHighlight * smoothstep(0.9, 0.92, L);
 
@@ -594,7 +601,7 @@ const fragmentShader = /* glsl */ `
 
       // ---- 3b. crease shading: darker tone + accent strokes where geometry closes in
       if (uAO > 0.0 && depth < 260.0 && hero < 0.5) {
-        float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO;
+        float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO * (1.0 - emitHere);
         col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
         ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
       }
@@ -613,7 +620,25 @@ const fragmentShader = /* glsl */ `
     }
 
     if (uDebug == 6) col = vec3(0.97, 0.94, 0.86);
+    // no ink eats a light: its inner lines go, its outline thins
+    ink *= 1.0 - emitHere * 0.7;
     col = mix(col, uInk, ink);
+
+    // ---- 4b. light: a halo round glowing things, in flat rings like a printed glow, and a
+    // soft wash of their colour over what is near (it washes over the ink lines too)
+    if (uBloom > 0.0) {
+      vec3 b = texture(tBloom, uv).rgb, w = texture(tBloom2, uv).rgb;
+      float bl = max(b.r, max(b.g, b.b)), wl = max(w.r, max(w.g, w.b));
+      if (wl > 0.003 || bl > 0.003) {
+        float k = uBloom * mix(0.6, 1.0, uNight);
+        vec3 light = mix((b + w) / max(bl + wl, 1e-4), vec3(1.0), 0.45);
+        // the inner ring hugs the light, the outer one reaches further; both flat
+        float r1 = smoothstep(0.14, 0.16, bl), r2 = max(r1, smoothstep(0.05, 0.058, wl));
+        float out1 = 1.0 - emitHere;
+        col = mix(col, light, (r1 * 0.5 + (r2 - r1) * 0.22) * k * out1);
+        col += w * (0.4 + 0.6 * uNight) * uBloom * out1;   // its colour on what is near
+      }
+    }
 
     // ---- 5. weather, drawn on the page like the rest
     if (uStorm > 0.0) {
@@ -660,6 +685,9 @@ export function createPost() {
     tAlbedo: { value: null },
     tNormal: { value: null },
     tHatch: { value: null },
+    tBloom: { value: null },
+    tBloom2: { value: null },
+    uBloom: { value: 0 },
     uHatchScreen: { value: 0 },
     uRes: { value: new THREE.Vector2(1, 1) },
     uPixelRatio: { value: 1 },
@@ -668,13 +696,14 @@ export function createPost() {
     uSunDir: { value: new THREE.Vector3() },
     uTime: { value: 0 },
 
-    uSkyTop: { value: new THREE.Color('#8ccfd2') },
-    uSkyHorizon: { value: new THREE.Color('#f7ecd2') },
+    // (the surface shader's own: metals reflect the sky, windows light up at night)
+    uSkyTop: sharedUniforms.uSkyTop,
+    uSkyHorizon: sharedUniforms.uSkyHorizon,
     uInk: { value: new THREE.Color('#2b211f') },
     uShadowTint: { value: new THREE.Color('#a59bd0') },
     uSunColor: { value: new THREE.Color('#fff6dc') },
     uLightTint: { value: new THREE.Color('#ffffff') },
-    uNight: { value: 0 },
+    uNight: sharedUniforms.uNight,
     uSunDisc: { value: new THREE.Vector3(0, 1, 0) },
     uMoonDisc: { value: new THREE.Vector3(0, -1, 0) },
     uMoonVis: { value: 0 },
@@ -739,6 +768,98 @@ export function createPost() {
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
   return { scene, camera, uniforms };
+}
+
+// ---------------------------------------------------------------------------
+// Light: the glowing surfaces (gHatch.a glow over 0.62) gathered from the G-buffer at a
+// quarter of the resolution, then blurred (two passes). The composite reads it back as a halo
+// in flat rings round each light and a soft wash of its colour over what is near.
+// About 1/16 of the pixels, a few taps each: cheap enough for the handheld.
+// ---------------------------------------------------------------------------
+const bloomVert = /* glsl */ `
+  out vec2 vUv;
+  void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
+`;
+const extractFrag = /* glsl */ `
+  precision highp float;
+  uniform sampler2D tAlbedo;
+  uniform sampler2D tHatch;
+  in vec2 vUv;
+  out highp vec4 fragColor;
+  void main() {
+    ivec2 size = textureSize(tHatch, 0), base = ivec2(gl_FragCoord.xy) * 4;
+    vec3 sum = vec3(0.0), mx = vec3(0.0);
+    for (int y = 0; y < 4; y++)
+      for (int x = 0; x < 4; x++) {
+        ivec2 p = min(base + ivec2(x, y), size - 1);
+        float a = texelFetch(tHatch, p, 0).a;
+        a -= 4.0 * step(3.5, a);
+        a -= 2.0 * step(1.5, a);
+        float e = smoothstep(0.62, 0.9, a);
+        if (e > 0.0) { vec3 c = texelFetch(tAlbedo, p, 0).rgb * e; sum += c; mx = max(mx, c); }
+      }
+    fragColor = vec4(mix(sum / 16.0, mx, 0.5), 1.0);
+  }
+`;
+const blurFrag = /* glsl */ `
+  precision highp float;
+  uniform sampler2D tSrc;
+  uniform vec2 uStep;   // one texel along the blur, times its spread
+  in vec2 vUv;
+  out highp vec4 fragColor;
+  void main() {
+    // a 13-texel gaussian in 7 bilinear taps
+    vec3 c = texture(tSrc, vUv).rgb * 0.19648;
+    c += (texture(tSrc, vUv + uStep * 1.41176).rgb + texture(tSrc, vUv - uStep * 1.41176).rgb) * 0.29691;
+    c += (texture(tSrc, vUv + uStep * 3.29412).rgb + texture(tSrc, vUv - uStep * 3.29412).rgb) * 0.09447;
+    c += (texture(tSrc, vUv + uStep * 5.17647).rgb + texture(tSrc, vUv - uStep * 5.17647).rgb) * 0.01038;
+    fragColor = vec4(c, 1.0);
+  }
+`;
+
+/**
+ * The glow buffer: render(renderer) after the G-buffer; post reads `texture` (a quarter of the
+ * resolution: the tight glow) as tBloom and `wide` (an eighth, blurred again) as tBloom2.
+ */
+export function createBloom(gbuffer, { spread = 1.3, wideSpread = 3.0 } = {}) {
+  const opts = { type: THREE.HalfFloatType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false };
+  const a = new THREE.WebGLRenderTarget(1, 1, opts), b = new THREE.WebGLRenderTarget(1, 1, opts);
+  const c = new THREE.WebGLRenderTarget(1, 1, opts), d = new THREE.WebGLRenderTarget(1, 1, opts);
+  const quad = (fragmentShader, uniforms) => {
+    const m = new THREE.ShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: bloomVert, fragmentShader, uniforms, depthTest: false, depthWrite: false });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), m);
+    mesh.frustumCulled = false;
+    const scene = new THREE.Scene();
+    scene.add(mesh);
+    return { scene, m };
+  };
+  const extract = quad(extractFrag, { tAlbedo: { value: gbuffer.textures[0] }, tHatch: { value: gbuffer.textures[2] } });
+  const blur = quad(blurFrag, { tSrc: { value: null }, uStep: { value: new THREE.Vector2() } });
+  const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const pass = (src, dst, sx, sy) => {
+    blur.m.uniforms.tSrc.value = src.texture;
+    blur.m.uniforms.uStep.value.set(sx, sy);
+    renderer_.setRenderTarget(dst);
+    renderer_.render(blur.scene, cam);
+  };
+  let renderer_ = null;
+  return {
+    texture: a.texture,
+    wide: c.texture,
+    setSize(w, h) {
+      a.setSize(Math.max(1, Math.ceil(w / 4)), Math.max(1, Math.ceil(h / 4))); b.setSize(a.width, a.height);
+      c.setSize(Math.max(1, Math.ceil(w / 8)), Math.max(1, Math.ceil(h / 8))); d.setSize(c.width, c.height);
+    },
+    render(renderer) {
+      renderer_ = renderer;
+      renderer.setRenderTarget(a);
+      renderer.render(extract.scene, cam);
+      pass(a, b, spread / a.width, 0);
+      pass(b, a, 0, spread / a.height);
+      pass(a, d, wideSpread / c.width, 0);   // (down to an eighth on the way)
+      pass(d, c, 0, wideSpread / c.height);
+    },
+  };
 }
 
 // Style presets: the same pipeline can lean towards Sable (flat, clean,

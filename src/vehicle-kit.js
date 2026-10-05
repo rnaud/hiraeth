@@ -32,10 +32,10 @@ export function painted(geo, color) {
 }
 
 const MATS = {};
-/** The shared vertex-coloured material: faceted (flat) or smooth, one- or two-sided. */
-export function paintMaterial({ smooth = false, side = THREE.FrontSide, glow = 0 } = {}) {
-  const k = `${smooth}.${side}.${glow}`;
-  return MATS[k] ??= makeMaterial({ color: '#ffffff', vertexColors: true, ...(smooth ? {} : { flat: true }), ...(side !== THREE.FrontSide ? { side } : {}), ...(glow ? { glow } : {}) });
+/** The shared vertex-coloured material: faceted (flat) or smooth, one- or two-sided; metal: a METALS kind (materials.js). */
+export function paintMaterial({ smooth = false, side = THREE.FrontSide, glow = 0, metal = null } = {}) {
+  const k = `${smooth}.${side}.${glow}.${metal}`;
+  return MATS[k] ??= makeMaterial({ color: '#ffffff', vertexColors: true, ...(smooth ? {} : { flat: true }), ...(side !== THREE.FrontSide ? { side } : {}), ...(glow ? { glow } : {}), ...(metal ? { metal } : {}) });
 }
 
 /** Collects painted parts; mesh() merges them into one vertex-coloured mesh. */

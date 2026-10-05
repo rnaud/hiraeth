@@ -118,11 +118,11 @@ function figure({ coat, skin, hat, cap = false }) {
 function buildTaxi(color, { driver = true, fares = true, scale = 1 } = {}) {
   const P = cabParts(color);
   const grp = new THREE.Group();
-  const body = new THREE.Mesh(P.smooth, paintMaterial({ smooth: true, side: THREE.DoubleSide }));
-  const trim = new THREE.Mesh(P.flat, paintMaterial());
+  const body = new THREE.Mesh(P.smooth, paintMaterial({ smooth: true, side: THREE.DoubleSide, metal: 'painted' }));
+  const trim = new THREE.Mesh(P.flat, paintMaterial({ metal: 'painted' }));
   const tail = new THREE.Group();
   tail.position.set(0, 0.2, -1.7);
-  tail.add(new THREE.Mesh(P.tail, paintMaterial()));
+  tail.add(new THREE.Mesh(P.tail, paintMaterial({ metal: 'painted' })));
   const glow = new THREE.Mesh(P.glow, makeMaterial({ color: '#fff3c4', glow: 1, flat: true }));
   const lamps = new THREE.Mesh(P.lamps, makeMaterial({ color: '#f6c84e', glow: 1, flat: true }));
   grp.add(body, trim, tail, glow, lamps);

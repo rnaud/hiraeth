@@ -94,11 +94,11 @@ function reactiveMaterial(color){
 }
 function objectFor(theme,screen=false){
   const root=new THREE.Group();root.userData.noCollide=true;
-  const m=reactiveMaterial(theme.quiet),metal=makeMaterial({color:'#617371',flat:true}),ink=makeMaterial({color:'#34494d',flat:true});
+  const m=reactiveMaterial(theme.quiet),metal=makeMaterial({color:'#617371',flat:true,metal:'iron'}),ink=makeMaterial({color:'#34494d',flat:true});
   const moving=new THREE.Group();root.add(moving);
   let texts=[],petals=null;
   if(screen||theme.kind==='screen'||theme.kind==='machine'){
-    const stone=makeMaterial({color:'#e6dabb',flat:true}),brass=makeMaterial({color:'#c99d48',flat:true});
+    const stone=makeMaterial({color:'#e6dabb',flat:true}),brass=makeMaterial({color:'#c99d48',flat:true,metal:'brass'});
     if(!screen){   // (a billboard in the market wears only the face, as a medallion)
       const plinth=new THREE.Mesh(new THREE.CylinderGeometry(.34,.5,1.75,7),stone);plinth.position.y=.875;root.add(plinth);
       const foot=new THREE.Mesh(new THREE.CylinderGeometry(.62,.66,.16,7),stone);foot.position.y=.08;root.add(foot);

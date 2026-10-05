@@ -15,9 +15,9 @@ export function createBazaar(scene) {
   const colors = ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98'];
   const mat = (color, extra = {}) => makeMaterial({ color, flat: true, ...extra });
   const coral = mat('#f0a083', { grid: 12 }), teal = mat('#88b4b5', { grid: 9 });
-  const ink = mat('#465c65'), cream = mat('#f5dfab'), brass = mat('#c99758');
+  const ink = mat('#465c65', { metal: 'painted' }), cream = mat('#f5dfab'), brass = mat('#c99758', { metal: 'brass' });
   const paving = mat('#a4c1be', { grid: 10 }), lilac = mat('#b9a9c5');
-  const dark = mat('#3a535b'), glow = mat('#fff0bd', { glow: 0.75 });
+  const dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
   const shop = colors.map(c => mat(c));
   function add(geo, material, solid = true) {
     geo.computeBoundingBox(); const z = geo.boundingBox.getCenter(new THREE.Vector3()).z;
