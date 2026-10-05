@@ -9,6 +9,7 @@ export const CHANGELOG = [
     'At dusk, windows in the towns light up one by one.',
     'The makers’ marks are now carved inscriptions: friezes of their signs and framed seals cut into Qanat’s gate, the giant’s door, the standing stones, the observatory and the Builders’ ruins. Ordinary walls are left plain.',
     'Real grass: blades sway in the wind and part around your feet in Viridel, the Garden of Spheres, home and Lorn’s mosses (fewer on the Handheld and Low settings).',
+    'The grass is lush and green: wider blades in several shades of the ground’s green, drawn with soft green outlines instead of black ones, with only a few tufts inked by hand.',
   ] },
   { v: '0.46', date: '2026-10-05', items: [
     'The ship’s floor is flat now: walking the deck no longer lifts you over doorways or up onto stools, the bench or the bed.',
