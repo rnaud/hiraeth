@@ -87,6 +87,7 @@ namespace Memento
             }
             if (!simulating) return;
             float dt = Mathf.Min(Time.deltaTime, 1 / 20f);
+            if (dt <= 1e-5f) return;   // (the pause menu holds the clock: no step, or the velocities divide by zero)
             Step(dt);
             var w2l = transform.worldToLocalMatrix;
             for (int i = 0; i < p.Length; i++) verts[i] = w2l.MultiplyPoint3x4(p[i]);

@@ -116,15 +116,21 @@ namespace Memento.Rendering
         class CompositePass : ScriptableRenderPass
         {
             public Material material, bloom, fxaa;
-            class PassData { public Material mat; public TextureHandle a, n, h, b1, b2; public bool hasBloom; }
+            class PassData { public Material mat; public TextureHandle a, n, h, b1, b2; public bool hasBloom; public float flip; }
             // (each pass its own property block: a material's properties are read when the command buffer
             // runs, so five passes sharing one material would all see the last pass's source)
             class BloomData { public Material mat; public TextureHandle src, a, h; public Vector4 step; public int pass; public MaterialPropertyBlock mpb; }
             readonly MaterialPropertyBlock[] mpbs = { new(), new(), new(), new(), new() };
-            class FxaaData { public Material mat; public TextureHandle src; public Vector4 texel; }
+            class FxaaData { public Material mat; public TextureHandle src; public Vector4 texel; public float flip; public MaterialPropertyBlock mpb; }
+            readonly MaterialPropertyBlock fxaaMpb = new();
+            static readonly int IdFlip = Shader.PropertyToID("_TargetFlip");
             static readonly int IdA = Shader.PropertyToID("_GAlbedo"), IdN = Shader.PropertyToID("_GNormal"), IdH = Shader.PropertyToID("_GHatch");
             static readonly int IdB1 = Shader.PropertyToID("_GBloom"), IdB2 = Shader.PropertyToID("_GBloom2"), IdSrc = Shader.PropertyToID("_BloomSrc"), IdStep = Shader.PropertyToID("_BloomStep");
             static readonly int IdFx = Shader.PropertyToID("_FxaaSrc"), IdTexel = Shader.PropertyToID("_FxaaTexel");
+
+            /// <summary>Writing a player's own back buffer (the window): the page the other way up. Not into a texture (the
+            /// batch shots, the portraits), not in the editor (its game view is a texture too).</summary>
+            static bool ToScreen(UniversalResourceData res, UniversalCameraData cam) => !Application.isEditor && cam.camera.targetTexture == null && res.isActiveTargetBackBuffer;
 
             int blurN;
             TextureHandle Blur(RenderGraph rg, string name, TextureHandle src, TextureHandle dst, Vector4 step)
@@ -183,6 +189,7 @@ namespace Memento.Rendering
                 using (var builder = rg.AddRasterRenderPass<PassData>("Memento ink composite", out var pass))
                 {
                     pass.mat = material; pass.a = g.albedo; pass.n = g.normal; pass.h = g.hatch; pass.b1 = b1; pass.b2 = b2; pass.hasBloom = b1.IsValid();
+                    pass.flip = fxaa == null && ToScreen(res, cam) ? 1 : 0;
                     builder.UseTexture(g.albedo); builder.UseTexture(g.normal); builder.UseTexture(g.hatch);
                     if (pass.hasBloom) { builder.UseTexture(b1); builder.UseTexture(b2); }
                     builder.SetRenderAttachment(target, 0, AccessFlags.Write);
@@ -191,6 +198,7 @@ namespace Memento.Rendering
                     {
                         d.mat.SetTexture(IdA, d.a); d.mat.SetTexture(IdN, d.n); d.mat.SetTexture(IdH, d.h);
                         if (d.hasBloom) { d.mat.SetTexture(IdB1, d.b1); d.mat.SetTexture(IdB2, d.b2); d.mat.SetFloat("_Bloom", 1); } else d.mat.SetFloat("_Bloom", 0);
+                        d.mat.SetFloat(IdFlip, d.flip);
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1);
                     });
                 }
@@ -198,11 +206,11 @@ namespace Memento.Rendering
                 {
                     using (var builder = rg.AddRasterRenderPass<FxaaData>("Memento FXAA", out var pass))
                     {
-                        pass.mat = fxaa; pass.src = target; pass.texel = new Vector4(1f / W, 1f / H, 0, 0);
+                        pass.mat = fxaa; pass.src = target; pass.texel = new Vector4(1f / W, 1f / H, 0, 0); pass.flip = ToScreen(res, cam) ? 1 : 0; pass.mpb = fxaaMpb;
                         builder.UseTexture(target);
                         builder.SetRenderAttachment(res.activeColorTexture, 0, AccessFlags.Write);
                         builder.AllowGlobalStateModification(true);
-                        builder.SetRenderFunc((FxaaData d, RasterGraphContext ctx) => { d.mat.SetTexture(IdFx, d.src); d.mat.SetVector(IdTexel, d.texel); ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1); });
+                        builder.SetRenderFunc((FxaaData d, RasterGraphContext ctx) => { d.mpb.SetTexture(IdFx, d.src); d.mpb.SetVector(IdTexel, d.texel); d.mpb.SetFloat(IdFlip, d.flip); ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1, d.mpb); });
                     }
                 }
             }

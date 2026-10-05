@@ -155,7 +155,6 @@ namespace Memento
             Q.Locate("pool", () => poolCenter);
             Q.Locate("ship", () => ship);
             Q.Locate("mask", () => P.V3("mask"));
-            Q.Locate("drum", () => P.V3("drum"));
             Q.Locate("bike", () => game.bike ? game.bike.transform.position : P.V3("bike"));
             Q.Locate("box.desert.backpack", () => ledgeBox);
         }
@@ -217,19 +216,7 @@ namespace Memento
                     },
                 });
             }
-            // the drum, blown under the ribcage south of the start
-            if (drum)
-                Interact.Add(new Interactable
-                {
-                    id = "drum", at = () => drum.transform.position, range = 2.6f, enabled = () => drum.activeSelf,
-                    prompt = () => "pick up the drum",
-                    use = () =>
-                    {
-                        Q.Give("drum"); drum.SetActive(false);
-                        game.hud.Toast($"Picked up {Q.ItemName("drum")}");
-                        if (!Q.IsStarted("desert.drum")) Q.Start("desert.drum", "return"); else Q.Advance("desert.drum", "find");
-                    },
-                });
+            // (the drum, pinned under the ribcage by a knuckle of bone: DesertErrands.cs)
             // the fallen rib: heaved by hand, or shoved with the backpack's push
             if (bone)
                 Interact.Add(new Interactable

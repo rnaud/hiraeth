@@ -37,6 +37,20 @@ play, from the scripted play-through (`Batch.Play`):
 | ![](docs/play-gliding.jpg) the fluid wings | ![](docs/play-wildlife.jpg) a dune crab |
 | ![](docs/play-star.jpg) the star box's keepsake | ![](docs/play-furrow.jpg) the prologue: the crash's furrow |
 | ![](docs/play-procession.jpg) the procession on its loop | ![](docs/play-riding.jpg) the hoverbike |
+| ![](docs/play-glide.jpg) the arms out under the wings | ![](docs/play-jets.jpg) the jets' flames and drops |
+| ![](docs/play-embers.jpg) an ember glob: the camp fire flares, a bramble burns | ![](docs/play-fog.jpg) a fog bank |
+| ![](docs/play-obs-page.jpg) the traveller's sketch: the expedition begins | ![](docs/play-lens.jpg) a lens of the observatory |
+| ![](docs/play-drum.jpg) Teo's drum, shoved free of the knuckle | ![](docs/play-mask.jpg) the mask's eyes washed open |
+| ![](docs/play-chamber.jpg) the masked head's chamber (the close arm of a tight room) | ![](docs/play-sketchbook.jpg) the sketchbook: quests, the observatory, the relics |
+
+The holo table, the rain, the sun rays, the observatory awake (web left, Unity right):
+
+| web (three.js) | Unity (URP) |
+|---|---|
+| ![](docs/web-observatory.jpg) | ![](docs/unity-observatory.jpg) |
+| ![](docs/web-holo.jpg) | ![](docs/unity-holo.jpg) |
+| ![](docs/web-rain.jpg) | ![](docs/unity-rain.jpg) |
+| ![](docs/web-rays.jpg) | ![](docs/unity-rays.jpg) |
 
 ## Run it
 
@@ -81,8 +95,10 @@ play, from the scripted play-through (`Batch.Play`):
 | boost; wings (with the glider) | Space again in the air; hold while falling | A / × again; hold |
 | skip a cinematic | hold Esc | hold Y / △ |
 | choose an answer | 1–3, ↑ ↓ + Enter | D-pad + A / × |
-| journal | Tab, J | View |
+| sketchbook (journal); track a quest in it | Tab, J; ↑ ↓ + Enter | View; D-pad + A / × |
 | close a panel | Esc | Y / △ |
+| pause menu (settings) | Esc, P | Menu |
+| controls in the status box | H | |
 | hoverbike | W / S go and brake, A / D steer, Shift boost | left stick, RT / R2 go |
 
 ### From the command line
@@ -97,6 +113,7 @@ node scripts/unity-export/views.mjs > /tmp/views.json      # fixed viewpoints, w
 scripts/unity-export/unity-batch.sh Shots -shots /tmp/views.json -out /tmp/shots   # PNGs of the world
 scripts/unity-export/unity-batch.sh Play -out /tmp/play    # the scripted play-through (below)
 scripts/unity-export/unity-batch.sh Probe                  # collision checks at the story's places
+scripts/unity-export/unity-batch.sh UiKit -out /tmp/kit    # the UI kit alone (shapes, text, spacing) on a canvas
 ```
 
 Unity's EditMode tests (`Assets/Memento/Editor/Tests`, the story run by the C#
@@ -106,18 +123,26 @@ ports of the quest and dialogue systems):
 Unity -batchmode -projectPath unity/Memento -runTests -testPlatform EditMode -testResults /tmp/results.xml
 ```
 
-`Play` enters play mode and lets `BatchDriver` drive the pad: the prologue
-(waking, the recording, the impact, the crash, stepping out), a run and a jump, the camps and Ama, the city gate, the climb up the burning
+`Play` enters play mode and lets `BatchDriver` drive the pad: the title
+screen (and its settings; `-noTitle` skips it), New game, the prologue
+(waking, the recording, the impact, the crash, stepping out), a run and a jump, the camps and Ama (the prompt over her, her answers chosen with the D-pad),
+the sketchbook and the pause menu, the city gate, the climb up the burning
 tree's buttress to the makers' chest, Nour, the well, Ama's jar, the Speaker at
 the head of the procession, the skull's mouth into the cave, the push that
 clears the rib, the pool that fills the jar, the hoverbike under the tarp, the
-camp fire that burns, a fall that knocks you over, the ship that hums. Along
+camp fire that burns, a fall that knocks you over, the ship that hums, the
+galactic map at its console and its "Travel to …?", the holo table, then the
+traveller's observatory (the page, a ledge, the three lenses, the roof
+unfolding, the second page), Teo's drum shoved free, the mask's eyes, the
+masked head's chamber, a relic and the sketchbook with them, and the rain, the
+fog and the sun rays. Along
 the way it runs the box scenes, the tank, a shot and a splat, the stun mode, a
 boost, the wings, the wildlife, the star box and Nour back on her bench, counts
 the sounds played, and writes a save and reads it back. It saves a frame at
 each step and exits 0 only if the quest is done. The EditMode tests also check
 the voices' syllable plans against `voice.js`, the people's dress against the
-export, the boxes and the recorded sounds.
+export, the boxes and the recorded sounds; `UiTests` the portraits' backdrops,
+the star chart's layout, the planets and the region names against the web's.
 
 ## How it is built
 
@@ -258,7 +283,16 @@ export, the boxes and the recorded sounds.
 - `FluidTool` (`fluid-tool.js`): three charges, the glob shot on an arc and its
   splat, the push, the boost, the wings with the glider, the gun modes
   (stilling, ember) and the tank's colours (the living water adds one).
-  People shout, freeze or are shoved; the wildlife flees.
+  People shout, freeze or are shoved; the wildlife flees. Gliding, the arms
+  open out under the wings (`Figure.SpreadArms`: player.js spreadArms, a
+  two-bone reach over the clip). The jets (`fluid-kit.js` FluidJets, with the
+  jetpack item another world's box gives on the web): hold A / × in the air to
+  thrust on the tank's fluid, the two nozzles spitting flames banded in its
+  tones, a pale core in each, drops falling off them.
+- `Flammables` (`flammable.js`): what an ember glob sets alight. The camp fires
+  flare up tall for a moment; the dry brambles at the edge of each camp (three a
+  camp, drawn as the web's) burn away and grow back a minute later. The flames
+  are `story/flames.js` Flames: tongues of flat colour bands, moved every frame.
 - `BoxScene` (`box-scene.js`): the makers' chest wakes, rises, comes apart
   (dissolve) and leaves its item hovering, then the card comes up. The star
   box (its keepsake) opens the same way.
@@ -266,6 +300,17 @@ export, the boxes and the recorded sounds.
   the father's recording with the parents' coloured hologram, the impact, the
   fall, the streak and the furrow, the dust clearing, the hatch, stepping
   out), then boarding the crashed ship, the console and the galactic map.
+  `StarMap` (`starmap.js`) draws the chart on the HUD's canvas: the worlds on
+  their dotted route round home's sun (`chartLayout`: a ring, or a snake of
+  rows on a small screen), the orbits, each world a drawn planet (`PlanetArt`,
+  `planets.js`: body, shadow, its mark, the highlight, rings and moons) with its
+  name, its tag, the strike's signature badge and the done star; the chosen
+  world's panel, the signature legend, and "Travel to …?" (the other worlds
+  are not in this port). `HoloTable` (`holotable.js`): over the deck's table the
+  desert turns, drawn by `Shaders/Planet.shader` (approach.js planetMaterial:
+  the dune stripes, the hatched crescent, the highlight, self-lit), with its teal
+  rim and two scan rings; it flickers on emergency power, stutters in the
+  alarm, dies in the fall.
 - `Sounds` / `Voice`: the recorded clips (3D where placed) and the score.
   The continuous layers are synthesised in `OnAudioFilterRead` (the wind and
   its howl in the storm, the cloak, the bike's engine, the fires' crackle).
@@ -275,7 +320,9 @@ export, the boxes and the recorded sounds.
   with it.
 - `Puffs` / `FireFx`: the burning tree's landmark smoke column, its embers, the
   camp fires' smoke. `Ambient`: the weather (calm, wind, and the sandstorm that
-  tints the page and hides the distance), wind-blown sand, birds in flocks,
+  tints the page and hides the distance; the rain's slanted ink strokes and the
+  fog banks, which the desert does not have itself but another world or the
+  panel can bring: `forced`), wind-blown sand, birds in flocks,
   dust motes, footprints in the sand. `Wildlife` (`wildlife.js`): puff
   lizards, dune crabs and jerboas, with their gaits, wariness and surprises.
 - `Save`: the flags, keepsakes, position and the tank's colours, as JSON in
@@ -291,32 +338,164 @@ export, the boxes and the recorded sounds.
   makers' chest on the ledge (the backpack), Qanat gathering, Teo's drum, Oum
   and Ilo following you, the rib (heaved, or pushed with the backpack), the
   stream and the rising pool, the jar, the ship; fire hurts.
+- The people near the start (`levels/content.js`, exported with the story's):
+  Ysa, Pell (who sends you to the mask), Rook (who sends you to Marrow), Ennor,
+  Tamsin and the traveller who sketches the observatory (`sketcher`: the
+  player's figure is `traveller`).
+- `Observatory` (`observatory.js`): the sleeping observatory east of camp.
+  Greeting the traveller starts it with a sketchbook page (three views of the
+  world drawn by a page camera, `Hud.ShowPage`); fragments of the keeper's
+  story on the even ledges; three lenses turned a quarter each (B / ○ beside
+  one, or a glob from up there) until they face the heart: the beams reach the
+  centre, the receivers and the lights come on, the roof's four leaves unfold,
+  the constellation is drawn, a second page; back at the traveller, done. Its
+  line stands in for the quest's in the status box while it is under way.
+- `DesertErrands` (`story/desert-errands.js`): Teo's drum pinned under the
+  ribcage by a knuckle of bone (shoved toward the rib it jams; from the side,
+  by the push or by hand, the drum tips out, rolls away like a wheel and falls
+  flat), and the mask's sand-lidded eyes (a glob or a push washes one clear for
+  seven seconds; both at once and they open, a glint in each, and it looks at
+  you).
+- `Targets` (`targets.js`): what the fluid can hit besides people and creatures
+  (the lenses, the knuckle, the drum, the eyes), for the globs and the push.
+- `Relics` (`quest.js` Relics): the five relics on the highest surface over
+  their spots, bobbing and lighting what is near; found, a sketch of the moment
+  goes into the sketchbook ("relics n/5" in the status box).
+- `QuestMarker` (`story/quests.js`): the cyan diamond, ring and beam over the
+  objective, sized by the distance, gone when you are on it.
+- `CameraRig` also probes how tight a spot is (`player.js` tightness: a ring of
+  rays, the ceiling, rays slanting up): in a room or a corridor the arm comes in
+  to 2.6 m. The masked head's chamber, the ship's rooms, the cave's narrows.
 - `Npc`, `Crowd`: people walking their routes or standing, lines over their
   heads; the procession walking its loop round the city in rows.
 - `Bike` (`bike.js`, `story/desert-bike.js`): the tarp, waking it with the
   backpack, a hover spring over the ground, banking, braking, whistling it over.
-- `Hud`: the objective line, prompts in Xbox / PlayStation form, toasts, the
-  health bar, speech over heads, the conversation panel, the journal, the
-  father's charge card, the end card (IMGUI on paper colours).
-- `TitleScreen`: the title page (Continue / New game with a save), then the
-  desert.
+- `Hud`, `TitleScreen` and `Runtime/UI`: the screen (below).
+
+### The screen (`Hud.cs`, `TitleScreen.cs`, `Runtime/UI`)
+
+uGUI built in code on a **camera-space canvas** of the game camera (1280 × 720
+reference, scaled by height), so it is drawn by the camera after the ink
+composite and is in every frame the camera renders, the batch shots too. The
+styles are the web game's (`index.html`, `src/menus.css`):
+
+- `Ui` is the kit: the palette, the fonts (the system's Menlo, Avenir Next and
+  Futura, Roboto on Android, Unity's own as the last fallback), boxes with
+  their ink frame and hard offset shadow (`Panel`; frames and rounded pills are
+  generated 9-sliced sprites), text measured for manual layout, `Spaced`
+  (CSS letter-spacing as a mesh effect), `Sketch` (lines, dashes, dots, rings,
+  ellipses, triangles with a feathered pixel), `StrokeFont` (thin capitals
+  drawn as pen strokes, for what the web sets in Avenir Next Ultra Light: the
+  system offers Unity only the regular and bold weights). The text uses
+  `Shaders/UIText.shader`, uGUI's own with the glyph coverage corrected for
+  the linear page (blended in linear, dark ink on paper reads thin).
+- `Hud`: the status box (the region from `biome.js`, gauges, the objective
+  line, or the father's charge in its gold tag), the prompt floating over what
+  B / ○ would use with its round key badge, speech balloons, the toast, the
+  health bar, the knock-out sheet, the conversation panel (the portrait chip,
+  the name tag across the top edge, the words resolving with their caret, at
+  most three answers, the red "more" pointer), the charge's lettered card, the
+  makers' box card, the ship's subtitles, hint and hold-to-skip bar, the
+  tool's mode flash with its charges, the frame time.
+- `Portrait`: the chip's portrait, rendered by a second camera through the same
+  ink pipeline with only the person on its layer, against the flat tone
+  `portrait-bg.js` picks for them (the composite's `_Backdrop`).
+- `Journal`: the sketchbook: the father's charge card, the gear, the quest log
+  (choose one and track it), the makers' boxes.
+- `PauseMenu` and `Settings`: the Start menu (Menu / Esc; the game holds still):
+  the gold side with its stamped brand, Resume / Sketchbook / Quit to title,
+  and the settings on ruled paper (FXAA, camera sensitivity and invert Y, music,
+  effects, voices, mute, the frame time, a fresh start), kept in PlayerPrefs.
+- `StarMap` and `PlanetArt`: the galactic map (below, with the ship).
+- `TitleScreen`: an overlay on the desert scene (the `Title` scene is the
+  "sketching the world…" page, `Loading`, which opens it): the desert at golden
+  hour drifting behind a soft paper veil, MEMENTO in thin capitals with its pen
+  rule and gold dot, the airy menu (Continue with a save, New game, Settings,
+  Quit), then the play starts in the same scene.
+
+Everything is driven by the pad's own navigation (`Pad.NavDown`, `NavXDown`,
+`ConfirmDown`, `BackDown`, `MenuDown`), so a controller reaches every screen
+and the batch play-through can too.
+
+| web (three.js) | Unity (uGUI) |
+|---|---|
+| ![](docs/web-ui-title.jpg) | ![](docs/unity-ui-title.jpg) |
+| ![](docs/web-ui-hud.jpg) | ![](docs/unity-ui-hud.jpg) |
+| ![](docs/web-ui-talk.jpg) | ![](docs/unity-ui-talk.jpg) |
+| ![](docs/web-ui-journal.jpg) | ![](docs/unity-ui-journal.jpg) |
+| ![](docs/web-ui-pause.jpg) | ![](docs/unity-ui-pause.jpg) |
+| ![](docs/web-ui-map.jpg) | ![](docs/unity-ui-map.jpg) |
+
+| | |
+|---|---|
+| ![](docs/play-charge.jpg) the father's charge, lettered over the crash | ![](docs/play-boxcard.jpg) the makers' box card |
+
+## A standalone build
+
+```sh
+scripts/unity-export/unity-batch.sh BuildMac -out /tmp/Memento.app     # (default unity/Memento/Builds/macOS/Memento.app, git-ignored)
+/tmp/Memento.app/Contents/MacOS/Memento -smoke /tmp/smoke -logFile /tmp/smoke/player.log
+```
+
+`Batch.BuildMac` puts the shaders the game finds by name into the always-included
+list, sets the player (a 1280 × 720 resizable window) and builds the `Title`
+scene (the loading page) and the desert; the export travels in
+`StreamingAssets` (about 430 MB). With `-smoke folder` the player checks
+itself (`SmokeTest.cs`): it shoots the title once the desert has loaded under
+it, picks New game, shoots the prologue, skips it, shoots the desert and quits.
+On an M4 Pro the build is 554 MB, the desert loads in about a second under the
+title and runs at about 57 fps in a 1280 × 720 window (the frames below are
+the player's own window, `ScreenCapture`). The setup takes the template's SSAO
+feature out of the renderer (switched off, it still failed in a player, its
+shaders stripped), and the last pass turns the page the right way up when it
+writes the player's back buffer itself (`_TargetFlip`).
+
+| | |
+|---|---|
+| ![](docs/build-title.jpg) the build's title | ![](docs/build-desert.jpg) out of the ship |
+
+### What an Android build would need
+
+- The editor's Android Build Support module (SDK, NDK, OpenJDK) from the Hub
+  (only macOS and WebGL support are installed here), IL2CPP for ARM64, Vulkan
+  first (the instanced crowd, puffs and wildlife read structured buffers in the
+  vertex shader, which many GLES drivers do not allow).
+- The export out of `StreamingAssets`: on Android those files sit inside the
+  APK, where `File.ReadAllBytes` and `Directory.GetFiles` cannot reach them
+  (`WorldLoader`, `Sounds`, `FigureLibrary` read them so). Copy them out to
+  `persistentDataPath` on the first run (UnityWebRequest), or ship them as a Play
+  Asset Delivery install-time pack: at about 430 MB the export is far over the
+  base APK's limit. A lighter export (the static world's far tiles merged or
+  dropped, the people's clips at 15 fps) would help the handhelds' memory too.
+- The G-buffer's normal + depth target is RGBA32F: on mobile GPUs a half-float
+  normal with depth in its own R32F target would halve the bandwidth.
+- Fonts: Menlo and Avenir Next are Apple's; `Ui` falls back to Roboto and
+  Droid Sans Mono, or a bundled open font (e.g. JetBrains Mono, Jost) could be
+  shipped in the project for the same look everywhere.
+- The pad's prompts in the handheld's names (the web's `native-pad.js` rewrite)
+  and the Android back button as B / ○.
+- The web game's Capacitor app (`android/`) is a separate thing and stays as it is.
 
 ## What is missing (next steps)
 
-- **The traveller**: the glide uses the fall pose (the web's arms-out glide
-  pose is not baked), and the jets' thrust flame is not drawn.
-- **The people**: the crowd's mid-distance figures cast no shadows; the far
-  figures have no brows (too small to see on the web too).
-- **The ship**: the holo table's planet is drawn flat (not with the web's
-  planet shader); the galactic map is an IMGUI list of the worlds, not
-  `starmap.js`'s drawn chart.
-- **Not ported**: the rain and fog weather kinds (the desert uses wind and the
-  sandstorm), the reactive world (flammables catching), the dev menu, the
-  observatory and the masked head's chamber (exported, not playable), the
-  other worlds, Android. The HUD is IMGUI, so it does not show in batch
-  screenshots.
-- **The look**: no sun rays. Shadows are URP's, with a filter close to the
-  web's hand-rolled cascades but not the same.
+- **The traveller**: thrusting on the jets keeps the jump's pose (the web's
+  rig leans into the flight).
+- **The people**: the far figures have no brows (too small to see on the web too).
+- **The ship**: the map's other worlds can be chosen but not travelled to; the
+  ship's interior reads brighter than the web's (washed white round the table).
+- **The desert's smaller things**: the errands of the people near the start
+  (Ysa's crystal, Pell's sand: `quest.js` Errands), the reactive flowers
+  (`reactive-world.js`), the scout drone, the hover trails, swimming, the crowd's
+  own short conversations, the cactus spines, the sand puffs of the drum and the
+  mask. The story's intro and outro pages (the ending is a card).
+- **Not ported**: the dev menu, the other worlds, an Android build (what it
+  would need: above). The web title's own vista scene (the desert stands
+  in for it); mouse clicks on the menus (they take the keyboard and the pad).
+- **The look**: shadows are URP's, with a filter close to the web's
+  hand-rolled cascades but not the same. (Sun rays are in the composite,
+  `_Rays`, off in the desert's "Moebius print" preset as on the web;
+  `MementoLook.rays` is the web panel's slider.) The crowd's mid-distance
+  figures cast their shadows (the shadow pass poses them as the G-buffer does).
 
 ## Connecting an MCP client to the editor
 

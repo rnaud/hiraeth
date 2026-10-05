@@ -442,13 +442,26 @@ Shader "Memento/Surface"
       #pragma vertex shadowVert
       #pragma fragment shadowFrag
       #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+      #pragma multi_compile_local _ MEMENTO_CROWD
+      #pragma target 4.5
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+      #include "Crowd.hlsl"
       float3 _LightDirection;
       float3 _LightPosition;
       float4 shadowVert(Attributes v) : SV_POSITION
       {
         float3 posWS = TransformObjectToWorld(v.positionOS.xyz) + swayOffset(v.sway);
         float3 nWS = TransformObjectToWorldNormal(v.normalOS);
+        #if defined(MEMENTO_CROWD)
+          // the crowd's mid-distance figures cast their shadows too, posed as in the G-buffer pass
+          CrowdInst ci = _CrowdInst[v.iid];
+          float3 cp = v.positionOS.xyz, cn = v.normalOS, ccol; float4 ctrim;
+          crowdAnimate(ci, v.sway, cp, cn, ccol, ctrim);
+          float cs = ci.scale.x, cc = cos(ci.at.w), sn = sin(ci.at.w);
+          float3 pu = toThree(cp) * cs, nu = toThree(cn);
+          posWS = ci.at.xyz + float3(cc * pu.x + sn * pu.z, pu.y, -sn * pu.x + cc * pu.z);
+          nWS = normalize(float3(cc * nu.x + sn * nu.z, nu.y, -sn * nu.x + cc * nu.z));
+        #endif
         float4 positionCS = TransformWorldToHClip(ApplyShadowBias(posWS, nWS, _LightDirection));
         #if UNITY_REVERSED_Z
           positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Memento.Rendering;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -74,6 +75,24 @@ namespace Memento.EditorTools
                 dso.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(data);
             }
+            // the template's other features out (its SSAO, even switched off, fails in a player: its shaders are stripped)
+            {
+                var dso = new SerializedObject(data);
+                var list = dso.FindProperty("m_RendererFeatures");
+                var map = dso.FindProperty("m_RendererFeatureMap");
+                for (int i = list.arraySize - 1; i >= 0; i--)
+                {
+                    var f = list.GetArrayElementAtIndex(i).objectReferenceValue;
+                    if (f is MementoFeature) continue;
+                    list.GetArrayElementAtIndex(i).objectReferenceValue = null;
+                    list.DeleteArrayElementAtIndex(i);
+                    if (i < map.arraySize) map.DeleteArrayElementAtIndex(i);
+                    if (f) { AssetDatabase.RemoveObjectFromAsset(f); UnityEngine.Object.DestroyImmediate(f, true); }
+                    Debug.Log("Memento: renderer feature removed");
+                }
+                dso.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(data);
+            }
             // (the template's post-processing would only blur the page)
             AssetDatabase.SaveAssets();
             BuildScenes();
@@ -91,7 +110,7 @@ namespace Memento.EditorTools
             EditorSceneManager.SaveScene(scene, ScenePath);
             // the title page
             var title = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            new GameObject("Title").AddComponent<TitleScreen>();
+            new GameObject("Loading").AddComponent<Loading>();
             EditorSceneManager.SaveScene(title, TitlePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(TitlePath, true), new EditorBuildSettingsScene(ScenePath, true) };
             AssetDatabase.SaveAssets();
@@ -119,6 +138,11 @@ namespace Memento.EditorTools
             var fx = new GameObject("Fire fx").AddComponent<FireFx>();
             fx.Build(game.world.World.O("fx"));
             for (int k = 0; k < 120; k++) fx.Tick(1f, k);
+            // the holo table's planet in the parked ship (ShipScene builds it in play), unless -noHolo
+            HoloTable holo = null;
+            var shipData = game.world.World.O("ship");
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-noHolo") < 0 && game.world.Objects.TryGetValue("ship", out var parked) && shipData?.O("points")?.Has("table") == true)
+                holo = HoloTable.Build(parked.transform, shipData.O("points").V3("table"), shipData.O("holoTable")?.F("planetR", 0.3f) ?? 0.3f, "desert", null);
             var views = Json.Parse(File.ReadAllText(file)) as List<object>;
             int w = int.Parse(Arg("-w", "1280")), h = int.Parse(Arg("-h", "720"));
             foreach (var v in views)
@@ -129,6 +153,7 @@ namespace Memento.EditorTools
                 game.cam.transform.position = eye;   // (the local lights nearest the view)
                 game.look.Apply();
                 fx.Tick(0, 120);
+                if (holo) holo.Face(eye);
                 Capture(game.cam, eye, target, v.F("fov", 55), w, h, Path.Combine(outDir, v.S("name") + ".png"));
             }
             Debug.Log($"Memento: {views.Count} shots in {outDir}");
@@ -138,6 +163,8 @@ namespace Memento.EditorTools
         public static void Play()
         {
             var outDir = Path.GetFullPath(Arg("-out", "Shots/play"));
+            // the title screen first (its shots, then New game), unless -noTitle
+            Game.showTitle = Array.IndexOf(Environment.GetCommandLineArgs(), "-noTitle") < 0;
             EditorSettings.enterPlayModeOptionsEnabled = true;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
             EditorSceneManager.OpenScene(ScenePath);
@@ -151,6 +178,78 @@ namespace Memento.EditorTools
             };
             EditorApplication.update += () => { if (EditorApplication.timeSinceStartup - started > 420) { Debug.LogError("Memento: play-through timed out"); EditorApplication.Exit(4); } };
             EditorApplication.EnterPlaymode();
+        }
+
+        /// <summary>The shaders the game finds by name at run time (Shader.Find): a build keeps only what it is told to.</summary>
+        public static readonly string[] RuntimeShaders = { "Memento/Surface", "Memento/Planet", "Memento/UIText", "Memento/Wisp", "Memento/Mote", "Memento/Print", "Memento/Flame", "Memento/Hologram",
+            "Hidden/Memento/Composite", "Hidden/Memento/Bloom", "Hidden/Memento/FXAA", "UI/Default" };
+
+        static void IncludeShaders()
+        {
+            var gs = GraphicsSettings.GetGraphicsSettings();
+            var so = new SerializedObject(gs);
+            var arr = so.FindProperty("m_AlwaysIncludedShaders");
+            var have = new HashSet<UnityEngine.Object>();
+            for (int i = 0; i < arr.arraySize; i++) have.Add(arr.GetArrayElementAtIndex(i).objectReferenceValue);
+            foreach (var n in RuntimeShaders)
+            {
+                var sh = Shader.Find(n);
+                if (!sh) { Debug.LogWarning($"Memento: no shader {n}"); continue; }
+                if (have.Contains(sh)) continue;
+                arr.InsertArrayElementAtIndex(arr.arraySize);
+                arr.GetArrayElementAtIndex(arr.arraySize - 1).objectReferenceValue = sh;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+            AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>
+        /// A standalone macOS build (-out path/Memento.app, default Builds/macOS/Memento.app): the
+        /// title's loading page, then the desert; the export travels in StreamingAssets. Launch it
+        /// with -smoke folder for its own check (SmokeTest.cs).
+        /// </summary>
+        public static void BuildMac()
+        {
+            var outPath = Path.GetFullPath(Arg("-out", "Builds/macOS/Memento.app"));
+            IncludeShaders();
+            PlayerSettings.productName = "Memento";
+            PlayerSettings.companyName = "rnaud";
+            PlayerSettings.bundleVersion = Arg("-version", "0.1");
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, "com.rnaud.memento.unity");
+            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+            PlayerSettings.defaultScreenWidth = 1280; PlayerSettings.defaultScreenHeight = 720;
+            PlayerSettings.resizableWindow = true;
+            PlayerSettings.runInBackground = true;
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneOSX)
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX);
+            var opts = new BuildPlayerOptions { scenes = new[] { TitlePath, ScenePath }, locationPathName = outPath, target = BuildTarget.StandaloneOSX, options = BuildOptions.None };
+            var r = BuildPipeline.BuildPlayer(opts);
+            var s = r.summary;
+            Debug.Log($"Memento: build {s.result}: {outPath}, {s.totalSize / 1e6:0} MB, {s.totalTime.TotalSeconds:0} s, {s.totalErrors} errors, {s.totalWarnings} warnings");
+            EditorApplication.Exit(s.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? 0 : 1);
+        }
+
+        /// <summary>The UI kit alone on a camera-space canvas, rendered to -out (a quick look at the shapes and the text).</summary>
+        public static void UiKit()
+        {
+            var outDir = Arg("-out", "Shots"); Directory.CreateDirectory(outDir);
+            var cam = new GameObject("cam").AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Ui.Page;
+            var rt = new RenderTexture(1280, 720, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            cam.targetTexture = rt;
+            var root = Hud.MakeCanvas(cam, "kit", 0);
+            var s = Ui.Node("sketch", root).gameObject.AddComponent<Sketch>();
+            Ui.PlaceC(s.rectTransform, 100, 100, 400, 300);
+            s.Line(new Vector2(-150, 0), new Vector2(150, 40), 3, Ui.Red);
+            s.Disc(new Vector2(0, -60), 30, Ui.Gold);
+            s.Ring(new Vector2(100, -60), 30, 2, Ui.Ink, 5, 4);
+            var b = Ui.Panel(root, "box", Ui.Paper, Ui.Ink, 2, 4, 4); Ui.Place(b.rt, 600, 100, 300, 120);
+            var t = Ui.Label(b.rt, "t", Ui.Mono, 15, Ui.Ink); Ui.Place(t.rectTransform, 12, 10, 280, 100); t.text = "The quick brown fox · ◆ ✦ × ○ △";
+            var sp = Ui.Label(root, "spaced", Ui.Sans, 23, Ui.Ink, TextAnchor.UpperCenter); Ui.Place(sp.rectTransform, 0, 400, 1280, 40); sp.text = "NEW GAME"; Ui.Space(sp, 0.42f);
+            var o = sp.gameObject.AddComponent<UnityEngine.UI.Outline>(); o.effectColor = new Color(1, 1, 1, 0.5f);
+            Canvas.ForceUpdateCanvases();
+            Render(cam, 1280, 720, Path.Combine(outDir, "uikit.png"));
+            Debug.Log($"Memento: ui kit rendered, sketch verts {s.canvasRenderer.GetMaterial() != null}");
         }
 
         /// <summary>Build the world in edit mode and check the collision at the story's places (rays down at each).</summary>

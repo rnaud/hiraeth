@@ -12,7 +12,9 @@ namespace Memento
     /// </summary>
     public static class Pad
     {
-        public class Track { public Vector2 move, look; public bool jump, run, interact, confirm, back, push, shoot; public int mode; public int choice = -1; }
+        public class Track { public Vector2 move, look; public bool jump, run, interact, confirm, back, push, shoot, menu, journal; public int mode, nav, navX; public int choice = -1; }
+        /// <summary>The settings' camera sensitivity and invert Y (PauseMenu).</summary>
+        public static float lookScale = 1; public static bool invertY;
         public static Track Script;   // non-null: a test is playing (batch mode)
         static Track last = new Track();
 
@@ -34,6 +36,8 @@ namespace Memento
             Vector2 v = Vector2.zero;
             if (M != null && (Cursor.lockState == CursorLockMode.Locked || M.rightButton.isPressed)) v += M.delta.ReadValue() * 0.12f;
             if (G != null) { var s = G.rightStick.ReadValue(); if (s.magnitude > 0.12f) v += s * 160f * Time.deltaTime; }
+            v *= lookScale;
+            if (invertY) v.y = -v.y;
             return v;
         }
         public static bool Jump() => Script != null ? Script.jump : (K?.spaceKey.isPressed ?? false) || (G?.buttonSouth.isPressed ?? false);
@@ -44,7 +48,35 @@ namespace Memento
         public static bool BackDown() => Script != null ? Edge(ref last.back, Script.back) : (K?.escapeKey.wasPressedThisFrame ?? false) || (G?.buttonNorth.wasPressedThisFrame ?? false);
         /// <summary>Back held (hold to skip a cinematic): Esc, Y / △.</summary>
         public static bool BackHeld() => Script != null ? Script.back : (K?.escapeKey.isPressed ?? false) || (G?.buttonNorth.isPressed ?? false);
-        public static bool JournalDown() => Script == null && ((K?.tabKey.wasPressedThisFrame ?? false) || (K?.jKey.wasPressedThisFrame ?? false) || (G?.selectButton.wasPressedThisFrame ?? false));
+        public static bool JournalDown() => Script != null ? Edge(ref last.journal, Script.journal) : ((K?.tabKey.wasPressedThisFrame ?? false) || (K?.jKey.wasPressedThisFrame ?? false) || (G?.selectButton.wasPressedThisFrame ?? false));
+        /// <summary>The pause menu: Menu / Start, Esc (when nothing else is open), P.</summary>
+        public static bool MenuDown() => Script != null ? Edge(ref last.menu, Script.menu) : ((K?.escapeKey.wasPressedThisFrame ?? false) || (K?.pKey.wasPressedThisFrame ?? false) || (G?.startButton.wasPressedThisFrame ?? false));
+        /// <summary>The pad's Menu / Start alone (closes the pause menu as it opened it).</summary>
+        public static bool StartDown() => Script == null && ((G?.startButton.wasPressedThisFrame ?? false) || (K?.pKey.wasPressedThisFrame ?? false));
+        /// <summary>H: the controls in the status box (main.js: body.help).</summary>
+        public static bool HelpDown() => Script == null && (K?.hKey.wasPressedThisFrame ?? false);
+        static float stickY, stickX;
+        /// <summary>Left / right in a menu: ← →, D-pad, a flick of the left stick (-1, 0, 1).</summary>
+        public static int NavXDown()
+        {
+            if (Script != null) { int n = Script.navX; Script.navX = 0; return n; }
+            if ((K?.leftArrowKey.wasPressedThisFrame ?? false) || (G?.dpad.left.wasPressedThisFrame ?? false)) return -1;
+            if ((K?.rightArrowKey.wasPressedThisFrame ?? false) || (G?.dpad.right.wasPressedThisFrame ?? false)) return 1;
+            float x = G != null ? G.leftStick.ReadValue().x : 0;
+            int r = 0;
+            if (Mathf.Abs(x) > 0.6f && Mathf.Abs(stickX) <= 0.6f) r = x > 0 ? 1 : -1;
+            stickX = x;
+            return r;
+        }
+        /// <summary>Left / right held (a slider moving while it is held).</summary>
+        public static float NavXHeld()
+        {
+            if (Script != null) return 0;
+            float v = 0;
+            if (K != null) v += (K.rightArrowKey.isPressed ? 1 : 0) - (K.leftArrowKey.isPressed ? 1 : 0);
+            if (G != null) { v += (G.dpad.right.isPressed ? 1 : 0) - (G.dpad.left.isPressed ? 1 : 0); var s = G.leftStick.ReadValue().x; if (Mathf.Abs(s) > 0.3f) v += s; }
+            return Mathf.Clamp(v, -1, 1);
+        }
         public static bool ScoutDown() => Script == null && ((K?.qKey.wasPressedThisFrame ?? false) || (G?.leftShoulder.wasPressedThisFrame ?? false));
         public static bool PushDown() => Script != null ? Edge(ref last.push, Script.push) : ((K?.cKey.wasPressedThisFrame ?? false) || (M?.middleButton.wasPressedThisFrame ?? false) || (G?.rightShoulder.wasPressedThisFrame ?? false));
         /// <summary>The fluid tool's shot: RT / R2, G, or a left click while playing (the cursor locked).</summary>
@@ -71,10 +103,14 @@ namespace Memento
         }
         public static int NavDown()
         {
-            if (Script != null) return 0;
+            if (Script != null) { int n = Script.nav; Script.nav = 0; return n; }
             if ((K?.upArrowKey.wasPressedThisFrame ?? false) || (G?.dpad.up.wasPressedThisFrame ?? false)) return -1;
             if ((K?.downArrowKey.wasPressedThisFrame ?? false) || (G?.dpad.down.wasPressedThisFrame ?? false)) return 1;
-            return 0;
+            float y = G != null ? G.leftStick.ReadValue().y : 0;
+            int r = 0;
+            if (Mathf.Abs(y) > 0.6f && Mathf.Abs(stickY) <= 0.6f) r = y > 0 ? -1 : 1;
+            stickY = y;
+            return r;
         }
         static bool Edge(ref bool prev, bool now) { bool e = now && !prev; prev = now; return e; }
         public static bool HasPad => G != null;

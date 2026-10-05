@@ -22,10 +22,13 @@ namespace Memento
         readonly List<Dictionary<string, object>> hours = new();
         public static MementoLook Instance;
         public Vector3 SunDirThree { get; private set; }
+        /// <summary>Where the sun's disc is drawn in the sky (Unity space; the light comes from a little elsewhere).</summary>
+        public Vector3 SunDisc { get; private set; }
         public float wind = 0.6f, gust = 0.4f;
         public Vector2 windDir = new Vector2(1, 0);
         /// <summary>The ambient wind as a velocity (Unity space), for the cloth.</summary>
         public float fogOverride = -1;
+        public float rays = -1;          // sun rays 0..1 over the preset's (the web's beauty panel), -1: the preset's
         public float fogScale = 1;       // the weather thickens the haze (main.js: × 1 + storm × 2.2)   // >= 0: the fog's multiplier (0 out in space: post.js uFogMul)
         public Vector3 WindVector => new Vector3(-windDir.x, 0, windDir.y) * wind * 4f;
         readonly List<Vector4> localLights = new();
@@ -41,6 +44,14 @@ namespace Memento
             // (exported in Unity space; sorted by distance there, handed to the shaders in three space below)
             if (lights != null) foreach (var l in lights) { var a = l as List<object>; localLights.Add(new Vector4(Json.Num(a[0]), Json.Num(a[1]), Json.Num(a[2]), Json.Num(a[3]))); }
             Apply();
+        }
+
+        /// <summary>A local light's reach (w, m) at a place (the nearest within a metre), or a new one there: a lens lit, a relic, a lamp.</summary>
+        public void SetLight(Vector3 at, float w)
+        {
+            for (int i = 0; i < localLights.Count; i++)
+                if (((Vector3)localLights[i] - at).sqrMagnitude < 1) { var l = localLights[i]; if (l.w != w) { l.w = w; localLights[i] = l; } return; }
+            if (w > 0) localLights.Add(new Vector4(at.x, at.y, at.z, w));
         }
 
         void OnEnable() { Instance = this; }
@@ -63,6 +74,8 @@ namespace Memento
             foreach (var kv in PostKeys) { var p = kv.Split(':'); Shader.SetGlobalFloat(p[1], post.F(p[0])); }
             if (fogOverride >= 0) Shader.SetGlobalFloat("_FogMul", fogOverride);
             else if (fogScale != 1) Shader.SetGlobalFloat("_FogMul", post.F("uFogMul", 1) * fogScale);
+            // sun rays (post.js uRays): the preset's (0 in the "Moebius print"), or the beauty panel's slider (rays >= 0)
+            Shader.SetGlobalFloat("_Rays", rays >= 0 ? rays : post.F("uRays", 0));
             Shader.SetGlobalFloat("_HatchOn", post.F("uHatch", 1));
             Shader.SetGlobalFloat("_HatchSpacing", post.F("uHatchSpacing", 3.6f));
             Shader.SetGlobalFloat("_Clouds", post.F("uClouds", 0.45f));
@@ -89,7 +102,7 @@ namespace Memento
             Shader.SetGlobalFloat("_Night", Fl("night"));
             Shader.SetGlobalFloat("_MoonVis", Fl("moonVis"));
             Vector3 light = D("light"), sunDisc = D("sunDisc"), moonDisc = D("moonDisc");
-            SunDirThree = Three(light);
+            SunDirThree = Three(light); SunDisc = sunDisc;
             Shader.SetGlobalVector("_SunDir", SunDirThree);
             Shader.SetGlobalVector("_SunDisc", Three(sunDisc));
             Shader.SetGlobalVector("_MoonDisc", Three(moonDisc));

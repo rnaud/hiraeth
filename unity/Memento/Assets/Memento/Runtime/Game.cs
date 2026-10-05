@@ -30,17 +30,41 @@ namespace Memento
         public ShipScene ship;
         public Ambient ambient;
         public Wildlife wildlife;
+        public Observatory observatory;
+        public DesertErrands errands;
+        public Relics relics;
+        public QuestMarker marker;
         public static bool playPrologue = true;
         public static bool useSaves => !Application.isBatchMode;   // (a batch run starts fresh; Batch.Play tests the saves itself)
         public Dictionary<string, object> loaded;   // a new game opens in the ship, out in space (Batch: -noPrologue)
         public readonly System.Collections.Generic.List<Npc> npcs = new();
         public string prompt;
 
+        public Vector3? promptAt;                   // where the use prompt floats (the interactable's place), null: in the status box
+        /// <summary>The title screen first (the Title scene's Loading sets it; a batch run with -title too).</summary>
+        public static bool showTitle;
+        public TitleScreen title;
+
         void Awake()
         {
             Instance = this;
+            // (a fresh desert, after a quit to the title: what the last one registered goes)
+            Interact.All.Clear(); Targets.All.Clear();
             if (!BuildWorld()) { enabled = false; return; }
+            if (showTitle) { title = gameObject.AddComponent<TitleScreen>(); title.Begin(this); return; }
             StartPlay();
+        }
+        /// <summary>From the title: the play begins (a save continued, or the prologue).</summary>
+        public void BeginPlay() { title = null; StartPlay(); }
+
+        /// <summary>Where you are (biome.js biomeAtmosphere): golden dunes, rose canyons or salt flats.</summary>
+        public string Region(Vector3 p)
+        {
+            // (three's x is mirrored in Unity: the field is read at -x)
+            float x = -p.x, z = p.z;
+            float f = Mathf.Sin(x * 0.0021f) * Mathf.Cos(z * 0.0017f - 0.7f) + 0.5f * Mathf.Sin((x + z) * 0.0011f);
+            float rose = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(0.3f, 0.6f, f)), salt = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(-0.3f, -0.6f, f));
+            return rose > 0.5f ? "Rose canyons" : salt > 0.5f ? "Salt flats" : "Golden dunes";
         }
 
         /// <summary>The world and the look only (what the editor's batch shots need).</summary>

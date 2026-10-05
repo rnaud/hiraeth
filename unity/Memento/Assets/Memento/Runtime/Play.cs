@@ -29,6 +29,10 @@ namespace Memento
 
             // the sound (audio.js): the web game's recorded effects and score, the wind and the engine synthesised
             Sounds.Create(game.cam.gameObject);
+            Settings.Load(); Settings.Apply();
+            game.hud.Build();
+            // a new keepsake: the charge's gold tag says so for a while (main.js chargeKept)
+            game.state.On("keepsake", k => game.hud.Kept((k as Dictionary<string, object>)?.S("name")));
             // the people, dressed as on the web (people.mjs): the traveller, the story's people, the crowd
             new FigureLibrary(game.world);
             var pgo = new GameObject("Traveller");
@@ -68,6 +72,14 @@ namespace Memento
             game.ship.transform.SetParent(transform, false);
             game.ship.Init(game, storyData);
             gameObject.AddComponent<FireFx>().Build(game.world.World.O("fx"));
+            // what an ember glob sets alight: the camp fires flare, the dry brambles by them burn and grow back (flammable.js)
+            gameObject.AddComponent<Flammables>().Init(game);
+            // the sleeping observatory and its traveller (observatory.js), the drum and the mask's eyes
+            // (desert-errands.js), the relics (quest.js), the objective's marker (story/quests.js)
+            game.observatory = Observatory.Create(game);
+            game.errands = gameObject.AddComponent<DesertErrands>(); game.errands.Init(game, storyData);
+            game.relics = gameObject.AddComponent<Relics>(); game.relics.Init(game);
+            game.marker = new GameObject("Quest marker").AddComponent<QuestMarker>(); game.marker.transform.SetParent(transform, false); game.marker.Init(game);
             game.ambient = gameObject.AddComponent<Ambient>();
             game.ambient.Init(game);
             game.wildlife = gameObject.AddComponent<Wildlife>();
@@ -87,7 +99,7 @@ namespace Memento
             // the father's charge (src/story/charge.js): the words he left, on a card, before you step out
             if (Game.playPrologue && !game.state.Is("prologue.done")) { game.ship.StartPrologue(); return; }
             Sounds.Instance?.Play("charge");
-            game.hud.ShowCard("My son,", "“make us proud. Bring back something of value.”\n\n<size=18>The ship is dark. Its power is gone. Somewhere out there, smoke rises from a city.</size>", 1.0f);
+            game.hud.ShowChargeCard();
             Cursor.lockState = Application.isEditor ? CursorLockMode.None : CursorLockMode.Locked;
         }
 
@@ -113,14 +125,16 @@ namespace Memento
             // the wind, the cloak, the engine, the fires (audio.js update)
             float fireNear = 0;
             foreach (var f in game.story ? game.story.FirePlaces : System.Array.Empty<Vector3>()) fireNear = Mathf.Max(fireNear, 1 - Vector3.Distance(f, pl.transform.position) / 9f);
-            float gust = game.ambient ? game.ambient.Gust : 0.5f, storm = game.ambient ? game.ambient.Storm : 0;
-            Sounds.Instance?.Layers(pl.riding ? 0 : pl.SpeedXZ, gust, pl.riding, game.bike ? game.bike.Speed : 0, Mathf.Clamp01(fireNear), storm);
-            game.prompt = null;
+            float gust = game.ambient ? game.ambient.Gust : 0.5f, storm = game.ambient ? game.ambient.Storm : 0, rain = game.ambient ? game.ambient.Rain : 0;
+            bool indoors = game.ambient && game.ambient.Indoors;
+            Sounds.Instance?.Layers(pl.riding ? 0 : pl.SpeedXZ, gust, pl.riding, game.bike ? game.bike.Speed : 0, Mathf.Clamp01(fireNear), indoors ? 0 : storm, indoors ? 0 : rain, indoors ? rain : 0);
+            game.prompt = null; game.promptAt = null;
             if (busy || pl.down) return;
             var best = Interact.Best(pl.transform.position);
             if (pl.riding) best = null;
-            if (best != null) game.prompt = best.prompt();
-            else if (!pl.riding && game.bike && !game.bike.dormant && Vector3.Distance(game.bike.transform.position, pl.transform.position) > 8) game.prompt = "whistle for the hoverbike";
+            if (best != null) { game.prompt = best.prompt(); game.promptAt = best.at() + Vector3.up * (best.id != null && best.id.StartsWith("talk.") ? 2.25f : 0.8f); }
+            // (not from inside a room off the map: the masked head's chamber, the cave)
+            else if (!pl.riding && game.bike && !game.bike.dormant && pl.transform.position.y < 500 && Vector3.Distance(game.bike.transform.position, pl.transform.position) > 8) game.prompt = "whistle for the hoverbike";
             if (Pad.InteractDown() && !pl.riding)
             {
                 if (best != null) best.use();

@@ -13,12 +13,12 @@ namespace Memento
     [RequireComponent(typeof(CharacterController))]
     public class Player : MonoBehaviour
     {
-        public const float Walk = 3.8f, Run = 7.2f, Gravity = 32f, JumpSpeed = 13f, ClimbSpeed = 1.7f, Stamina = 20f;
+        public const float Walk = 3.8f, Run = 7.2f, Gravity = 32f, JumpSpeed = 13f, ClimbSpeed = 1.7f, Stamina = 20f, JetThrust = 54f, JetMaxUp = 15f;
         public const float FallTumble = 26f, FallLethal = 48f;
         public CharacterController cc;
         public Vector3 vel;
         public float heading;            // Unity yaw (deg)
-        public bool onGround, climbing, mantling, down, dead, riding, frozen;
+        public bool onGround, climbing, mantling, down, dead, riding, frozen, thrusting;
         public float health = 1f, stamina = Stamina;
         float hurtT = 99, downT, mantleT, coyote, climbCooldown;
         Vector3 wallN, mantleFrom, mantleTo, lastSafe;
@@ -102,7 +102,7 @@ namespace Memento
             if (wish.sqrMagnitude > 0.01f) heading = Mathf.MoveTowardsAngle(heading, Mathf.Atan2(wish.x, wish.z) * Mathf.Rad2Deg, 720 * dt);
 
             coyote = onGround ? 0.12f : coyote - dt;
-            bool jumpDown = Pad.JumpDown();
+            bool jumpDown = Pad.JumpDown(), pressedNow = jumpDown;
             if (jumpDown && coyote > 0) { vel.y = JumpSpeed; coyote = 0; onGround = false; jumpDown = false; }
             // a fresh press in the air: the fluid's boost (fluid-tool.js)
             if (jumpDown && !onGround && onAirJump != null && onAirJump()) { }
@@ -110,7 +110,17 @@ namespace Memento
             // the fluid wings (with the glider): hold jump while falling (player.js): forward along the heading,
             // A / D bank and turn, W dives, S flares
             var tool = FluidTool.Instance;
-            bool wantGlide = tool && tool.CanGlide && !onGround && Pad.Jump();
+            // the jets (items: backpack + jetpack): hold A / × in the air to thrust while the tank has fluid;
+            // out of fluid (or with L3 / Shift held), the wings if you have them (player.js)
+            bool canJet = tool && tool.CanJet;
+            bool wantGlide = tool && tool.CanGlide && !onGround && Pad.Jump() && (Pad.Run() || !canJet || tool.charges <= 0.004f);
+            thrusting = canJet && !onGround && Pad.Jump() && tool.charges > 0.02f && !pressedNow && !wantGlide && tool.BurnJet(dt);
+            if (thrusting)
+            {
+                // tilted forward: part of the thrust drives you along when you steer
+                if (wish.sqrMagnitude > 0.01f) { var along = wish.normalized * JetThrust * 0.35f * dt; vel.x += along.x; vel.z += along.z; }
+                vel.y = Mathf.Min(vel.y + JetThrust * dt, JetMaxUp);   // (net of gravity, taken off above: 22 m/s² up)
+            }
             bool wasGliding = tool && tool.gliding;
             if (tool) tool.gliding = wantGlide && (vel.y < 0 || wasGliding);
             if (tool && tool.gliding)

@@ -43,6 +43,9 @@ Shader "Hidden/Memento/Composite"
       float4 _Planet0, _PlanetColor0;
       float _Debug;
       float _CineRed, _CineLids, _CineBars, _CineFade; float4 _CineFadeColor;   // the cinema (Cinema.cs)
+      float4 _Backdrop;     // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait, post.js uBackdrop)
+      float _TargetFlip;   // 1: writing the back buffer itself (MementoFeature)
+      float _Rain, _RainNear, _Rays;   // weather: ink rain 0..1 and the dry radius under a roof; sun rays at a low sun (post.js uRain, uRainNear, uRays)
 
       struct V2F { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; };
       V2F vert(uint id : SV_VertexID)
@@ -53,6 +56,7 @@ Shader "Hidden/Memento/Composite"
         #if UNITY_UV_STARTS_AT_TOP
           o.pos.y = -o.pos.y;
         #endif
+        if (_TargetFlip > 0.5) o.pos.y = -o.pos.y;   // (straight into a player's back buffer: the other way up)
         o.uv = uv;
         return o;
       }
@@ -193,6 +197,16 @@ Shader "Hidden/Memento/Composite"
         col = lerp(col, _SunColor, 1.0 - smoothstep(r - aa, r + aa, ang));
         ink = max(ink, 1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ang - r)));
         ink = max(ink, 0.5 * (1.0 - _Night) * (1.0 - smoothstep(0.0, aa * 0.7 * px, abs(ang - r * 1.6))));
+        // sun rays: pale wedges fanning from a low sun (post.js)
+        if (_Rays > 0.0 && _SunDisc.y > -0.05) {
+          float low = (1.0 - smoothstep(0.08, 0.45, _SunDisc.y)) * (1.0 - _Night);
+          float3 s1 = normalize(cross(_SunDisc, float3(0.0, 1.0, 0.0)) + 1e-5);
+          float3 s2 = cross(s1, _SunDisc);
+          float phi = atan2(dot(rd, s2), dot(rd, s1));
+          float wedge = smoothstep(0.55, 0.62, vnoise(float2(phi * 9.0 + _MTime * 0.01, 3.0)));
+          float nearSun = (1.0 - smoothstep(0.08, 0.9, ang)) * step(r * 1.7, ang);
+          col = lerp(col, lerp(col, _SunColor, 0.6), wedge * nearSun * low * _Rays);
+        }
         if (_MoonVis > 0.0) {
           float ma = acos(clamp(dot(rd, _MoonDisc), -1.0, 1.0));
           float mw = fwidth(ma);
@@ -364,7 +378,8 @@ Shader "Hidden/Memento/Composite"
         if (isSky) {
           float skyInk;
           col = renderSky(rd, skyInk);
-          ink = max(ink, skyInk);
+          ink = max(ink, skyInk * (1.0 - _Backdrop.a));
+          col = lerp(col, _Backdrop.rgb, _Backdrop.a);
         } else {
           // ---- 2. two-tone cel shading
           float3 albedo = A.rgb;
@@ -432,11 +447,27 @@ Shader "Hidden/Memento/Composite"
           col = lerp(col, _Ink * 0.6 + _StormColor * 0.4, dash * thin * _Storm * 0.45);
         }
 
+        if (_Rain > 0.0)
+        {
+          col *= 1.0 - 0.1 * _Rain;
+          // slanted ink strokes falling in columns
+          float2 rp = float2(fc.x + fc.y * 0.22, fc.y + _MTime * 1100.0);
+          float colId = floor(rp.x / 11.0);
+          float h1 = hash(float2(colId, 1.3)), h2 = hash(float2(colId, 8.1));
+          float len = 26.0 + h1 * 40.0;
+          float v = frac((rp.y + h2 * 900.0) / (len * 6.0));
+          float stroke = (1.0 - smoothstep(0.0, 0.16, v)) * step(0.35, h1);
+          float w = 1.0 - smoothstep(0.35, 0.9, abs(frac(rp.x / 11.0) - 0.5) * 11.0);
+          // under a roof the rain falls out past its edge, not over what's under it with you
+          float wet = _RainNear > 0.0 ? smoothstep(_RainNear * 0.7, _RainNear, depth) : 1.0;
+          col = lerp(col, _Ink, stroke * w * _Rain * 0.5 * wet);
+        }
+
         // ---- 6. paper
         float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;
         col *= 1.0 + _Grain * ((fibre - 0.5) * 0.6);
         float2 q = uv - 0.5;
-        col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0);
+        col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0) * (1.0 - _Backdrop.a);
         // ---- 7. the cinema (src/ship/cinema.js): the alarm's red, eyelids, the letterbox, a fade
         col = lerp(col, col * float3(1.0, 0.42, 0.38) + float3(0.16, 0.0, 0.0), _CineRed);
         float lid = _CineLids * 0.5;

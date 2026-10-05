@@ -26,7 +26,7 @@ namespace Memento
         }
         public void On(string ev, Action<object> f) { if (!listeners.TryGetValue(ev, out var l)) listeners[ev] = l = new(); l.Add(f); }
         public void Emit(string ev, object payload = null) { if (listeners.TryGetValue(ev, out var l)) foreach (var f in l.ToArray()) f(payload); }
-        public bool AddKeepsake(Dictionary<string, object> k) { if (keepsakes.Any(x => x.S("id") == k.S("id"))) return false; keepsakes.Add(k); return true; }
+        public bool AddKeepsake(Dictionary<string, object> k) { if (keepsakes.Any(x => x.S("id") == k.S("id"))) return false; keepsakes.Add(k); Emit("keepsake", k); return true; }
         public IEnumerable<string> Keys => flags.Keys;
     }
 

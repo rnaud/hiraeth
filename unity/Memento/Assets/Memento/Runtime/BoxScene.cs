@@ -78,8 +78,7 @@ namespace Memento
             if (p == "card")
             {
                 var def = FigureLibrary.Instance?.ItemDef(item);
-                string text = def != null ? $"<b>What it is</b>\n{def.S("text")}" + (string.IsNullOrEmpty(def.S("use")) ? "" : $"\n\n<b>What it does</b>\n{def.S("use")}") + "\n\n<i>Left by the makers for one who has come a long way.</i>" : "";
-                game.hud.ShowCard(def?.S("name") ?? item, text, dims.F("cardMin", 0.5f));
+                game.hud.ShowBoxCard(def?.S("name") ?? item, def?.S("text") ?? "", def?.S("use"), dims.F("cardMin", 0.5f));
                 cardT = 0;
             }
             if (p == "out")

@@ -385,10 +385,21 @@ The desert runs in `unity/Memento` (Unity 6, URP): exported from the web game by
 - [x] Wildlife, birds, footprints, wind-blown sand, dust motes, the smoke column, embers, camp smoke,
   the sandstorm; saves (Continue / New game).
 - [x] FXAA, the glow, a shadow filter close to the web's; the cave's lighting.
-- [ ] The glide's own arm pose; the jets' thrust flame.
-- [ ] The holo table's planet shader; `starmap.js`'s drawn chart (the map is a list).
-- [ ] Shadows for the crowd's mid-distance figures.
-- [ ] The rain and fog weather kinds, the reactive world (flammables), sun rays, the observatory and
-  the masked head's chamber, the other worlds, Android.
+- [x] The HUD and menus in uGUI on a camera-space canvas (in the batch shots): the status box with the
+  charge's gold tag, the floating prompt, balloons, toasts, the conversation panel with its portrait chip,
+  the charge and box cards, the sketchbook, the pause menu and settings, the airy title over the desert;
+  all reachable with a controller.
+- [x] The glide's arms-out pose (a two-bone reach over the clip); the jets' thrust flames and drops.
+- [x] The holo table's planet shader; `starmap.js`'s drawn chart (planets, orbits, signature badges, the
+  panel, "Travel to …?").
+- [x] Shadows for the crowd's mid-distance figures.
+- [x] The rain and fog weather kinds, the flammables (camp fires flare, brambles burn and grow back), sun
+  rays in the composite.
+- [x] The observatory (the traveller's expedition: ledges, lenses, the roof, the pages), the masked head's
+  chamber, Teo's drum under its knuckle, the mask's eyes, the relics, the quest marker, the people near the
+  start, a close camera in tight rooms.
+- [x] A standalone macOS build that runs (`Batch.BuildMac`, a smoke test); a note on what Android would need.
+- [ ] The desert's smaller things: the errands of the people near the start, the reactive flowers, the
+  scout drone, hover trails, swimming, the crowd's own conversations; the other worlds; an Android build.
 - [ ] Connect an MCP client to the editor (the bridge package is installed; an organization policy
   blocks registering unknown MCP servers in Claude Code).

@@ -16,6 +16,7 @@ Shader "Hidden/Memento/FXAA"
       Texture2D _FxaaSrc;
       SamplerState sampler_linear_clamp;
       float4 _FxaaTexel;   // 1/w, 1/h
+      float _TargetFlip;   // 1: writing the back buffer itself (MementoFeature)
       struct V2F { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; };
       V2F vert(uint id : SV_VertexID)
       {
@@ -24,6 +25,7 @@ Shader "Hidden/Memento/FXAA"
         #if UNITY_UV_STARTS_AT_TOP
           o.pos.y = -o.pos.y;
         #endif
+        if (_TargetFlip > 0.5) o.pos.y = -o.pos.y;   // (straight into a player's back buffer: the other way up)
         o.uv = uv; return o;
       }
       float3 S(float2 uv) { return _FxaaSrc.SampleLevel(sampler_linear_clamp, uv, 0).rgb; }

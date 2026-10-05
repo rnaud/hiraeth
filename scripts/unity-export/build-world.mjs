@@ -63,6 +63,14 @@ export async function buildDesertWorld() {
   const beforeStory = new Set(scene.children);
   const rt = quiet(() => createStory({ levelId: 'desert', scene, physics, level, player, npcs, crowd, sound,
     journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} }, capture: null, lib, humans, toast() {}, tool: null }));
+  // the people near the start (levels/content.js npcs, as main.js spawns them): Ysa, Pell, Rook, Ennor,
+  // Tamsin and the traveller who sketches the observatory (exported as 'sketcher': 'traveller' is the player's figure)
+  {
+    const { spawnNPCs } = await import('../../src/npc.js');
+    const spots = CONTENT.desert.npcs.map((s) => ({ ...s, id: s.id === 'traveller' ? 'sketcher' : s.id }));
+    const near = quiet(() => spawnNPCs(scene, physics, spots, { lib, humans }));
+    near.forEach((n, i) => { n.def ??= spots[i]; n.contentNpc = true; npcs.push(n); });
+  }
   const boxes = quiet(() => createBoxes({ levelId: 'desert', scene, physics, level, player, sound, quests: rt.quests, toast() {}, anchor: ship.arrivalSpot() }));
   const storyRoots = scene.children.filter((c) => !beforeStory.has(c));
   const flora = quiet(() => buildFlora({ scene, level, levelId: 'desert', physics, keep: floraKeep({ level, content: CONTENT.desert, ship, npcs, crowd, boxes }) }));
@@ -73,5 +81,6 @@ export async function buildDesertWorld() {
   scene.updateMatrixWorld(true);
   const shipDirector = await import('../../src/ship/cinematics.js');
   const shipHull = await import('../../src/ship/hull.js');
-  return { shipDirector, shipHull, THREE, scene, level, physics, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, storyRoots, staticRoots, game, CONTENT, humans, lib, travellerTemplate, camera };
+  const shipTable = (await import('../../src/ship/interior.js')).TABLE;
+  return { shipDirector, shipHull, shipTable, THREE, scene, level, physics, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, storyRoots, staticRoots, game, CONTENT, humans, lib, travellerTemplate, camera };
 }

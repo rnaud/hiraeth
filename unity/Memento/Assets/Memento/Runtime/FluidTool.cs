@@ -51,6 +51,8 @@ namespace Memento
         bool Has(string item) => game != null && (game.quests.Has(item) || game.state.Is("item." + item));
         public List<string> Modes() { var l = new List<string>(); if (!Owned) return l; foreach (var m in new[] { "shoot", "stun", "fire" }) if (Has(ModeItem[m])) l.Add(m); return l; }
         public bool CanGlide => Owned && Has("glider");
+        /// <summary>The fluid jets (items: backpack + jetpack, found in another world on the web): hold A / × in the air to thrust.</summary>
+        public bool CanJet => Owned && Has("jetpack");
 
         public void Init(Game g)
         {
@@ -78,6 +80,12 @@ namespace Memento
             if (player.figure) foreach (var t in player.figure.nodes) if (t.name.StartsWith("Equipment_ivory_radio") || t.name.StartsWith("Equipment_blue_metal")) t.gameObject.SetActive(!on);
         }
 
+        /// <summary>The colour of charge i in the tank (the HUD's pips, ui.js ToolHud).</summary>
+        public Color ToneOf(int i)
+        {
+            var list = mode != "shoot" && ModeTones.TryGetValue(mode, out var mt) ? mt : Tones;
+            return Json.Hex(list[i % list.Length]);
+        }
         void SetTones()
         {
             var list = mode != "shoot" && ModeTones.TryGetValue(mode, out var mt) ? mt : Tones;
@@ -120,13 +128,14 @@ namespace Memento
                 var b = glass.GetVector("_FluidB"); glass.SetVector("_FluidB", new Vector4(flash, 0, b.z, Mathf.Clamp01(player.SpeedXZ / 7f)));
             }
             UpdateWings(dt);
+            UpdateJets(dt);
             UpdateGlobs(dt);
             UpdateSplats(dt);
             if (!owned || game.hud.Busy || player.riding || player.down || player.frozen) return;
             if (Pad.ModeDown(out int dir))
             {
                 var ms = Modes();
-                if (ms.Count > 1) { int i = Mathf.Max(0, ms.IndexOf(mode)); mode = ms[((i + dir) % ms.Count + ms.Count) % ms.Count]; SetTones(); game.hud.Toast($"Fluid mode: {(mode == "shoot" ? "fluid" : mode == "stun" ? "stilling" : "ember")}"); Sounds.Instance?.Play(mode == "shoot" ? "fluid_mode" : "fluid_mode_" + mode); }
+                if (ms.Count > 1) { int i = Mathf.Max(0, ms.IndexOf(mode)); mode = ms[((i + dir) % ms.Count + ms.Count) % ms.Count]; SetTones(); game.hud.ModeFlash(mode, mode == "shoot" ? "fluid" : mode == "stun" ? "stilling" : "ember"); Sounds.Instance?.Play(mode == "shoot" ? "fluid_mode" : "fluid_mode_" + mode); }
             }
             if (Pad.ShootDown() && cooldown <= 0) Shoot();
             if (Pad.PushDown() && cooldown <= 0) Push();
@@ -173,6 +182,8 @@ namespace Memento
                 }
                 if (hitNpc) { HitNpc(hitNpc, b.mode, seg.normalized); SplatAt(hitNpc.pos + Vector3.up * 1.1f * hitNpc.scale, -seg.normalized, b.mode, 0.35f); done = true; }
                 else if (Wildlife.Instance && Wildlife.Instance.HitAt(next, 0.3f, b.mode)) { SplatAt(next, -seg.normalized, b.mode, 0.35f); done = true; }
+                else if (Targets.Hit(b.p, next, b.mode) != null) { SplatAt(next, -seg.normalized, b.mode, 0.35f); done = true; }
+                else if (Flammables.Instance && Flammables.Instance.HitAt(b.p, next, b.mode)) { SplatAt(next, -seg.normalized, b.mode, 0.35f); done = true; }
                 else if (len > 1e-5f && Physics.Raycast(b.p, seg / len, out var h, len, ~(1 << 2))) { SplatAt(h.point, h.normal, b.mode, 0.75f); done = true; }
                 b.p = next; b.t.position = b.p;
                 b.t.localScale = Vector3.one * 0.12f * (1 + 0.15f * Mathf.Sin(b.life * 30));
@@ -236,6 +247,7 @@ namespace Memento
                 n++;
             }
             game.story?.Push(player.transform.position, dir);
+            Targets.Push(from, dir, PushRange, PushAngle);
             Wildlife.Instance?.Push(from, dir, PushRange, PushAngle);
             // the fluid shoves out of the nozzle: a burst of splats in front
             if (Physics.Raycast(from, dir, out var h, PushRange, ~(1 << 2))) SplatAt(h.point, h.normal, mode, 0.9f);
@@ -257,8 +269,124 @@ namespace Memento
         }
 
         // ------------------------------------------------------------------ the wings (fluid-kit.js FluidWings)
+        // ------------------------------------------------------------------ the jets (fluid-kit.js FluidJets)
+        float thrust; readonly List<(Transform flame, Transform core)> jetFlames = new();
+        /// <summary>A frame of thrust: burns 0.3 charges a second (fluid-tool.js FLUID.jet.drain); false when the tank is dry.</summary>
+        public bool BurnJet(float dt)
+        {
+            if (!CanJet || charges <= 0.01f) return false;
+            charges = Mathf.Max(0, charges - 0.3f * dt); sinceUse = 0;
+            return true;
+        }
+        void UpdateJets(float dt)
+        {
+            if (!jets) return;
+            bool on = CanJet && tank && tank.gameObject.activeInHierarchy;
+            if (jets.gameObject.activeSelf != on) jets.gameObject.SetActive(on);
+            if (on && jetFlames.Count == 0 && globMat)
+            {
+                // the flame: a teardrop of churning fluid pointing down, stretched by the thrust; a pale core in it
+                var flameMesh = Lathe(new[] { (0f, 0f), (0.045f, -0.02f), (0.08f, -0.14f), (0.07f, -0.34f), (0.04f, -0.66f), (0f, -1f) }, 10);
+                var coreMesh = Lathe(new[] { (0f, 0f), (0.03f, -0.05f), (0.035f, -0.3f), (0f, -1f) }, 8);
+                var coreMat = HoloTable.Flat(Ui.Hex("#fff6dc"));
+                for (int i = 0; i < Mathf.Min(2, jets.childCount); i++)
+                {
+                    var n = jets.GetChild(i);
+                    Transform Part(string name, Mesh m, Material mat)
+                    {
+                        var go = new GameObject(name); go.transform.SetParent(n, false); go.transform.localPosition = new Vector3(0, -0.12f, 0);
+                        go.AddComponent<MeshFilter>().sharedMesh = m;
+                        var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                        go.SetActive(false);
+                        return go.transform;
+                    }
+                    // (the fluid's tones in flat bands up the flame, rewritten as it flickers: the tank's colours burning)
+                    var fm = Instantiate(flameMesh); fm.MarkDynamic();
+                    jetFlames.Add((Part("jet flame", fm, jetMat ??= Flammables.SurfaceMat(Color.white, 0.9f, true, true, true)), Part("jet core", coreMesh, coreMat)));
+                }
+            }
+            bool thrusting = on && player.thrusting;
+            thrust += ((thrusting ? 1 : 0) - thrust) * (1 - Mathf.Exp(-(thrusting ? 18 : 10) * dt));
+            bool lit = thrust > 0.03f;
+            for (int i = 0; i < jetFlames.Count; i++)
+            {
+                var (flame, core) = jetFlames[i];
+                if (flame.gameObject.activeSelf != lit) { flame.gameObject.SetActive(lit); core.gameObject.SetActive(lit); }
+                if (!lit) continue;
+                float flick = 0.82f + 0.18f * Mathf.Sin(fluidTime * 47 + i * 2.1f) + 0.12f * Mathf.Sin(fluidTime * 83 + i);
+                float L = 0.62f * thrust * flick;
+                flame.localScale = new Vector3(1 + 0.25f * thrust, L, 1 + 0.25f * thrust);
+                var fmesh = flame.GetComponent<MeshFilter>().sharedMesh; var vs = fmesh.vertices; var cs = new Color[vs.Length];
+                int tn = mode != "shoot" ? 4 : Mathf.Clamp(colours, 1, 5) + 1;
+                for (int k = 0; k < vs.Length; k++) cs[k] = ToneOf(((int)Mathf.Floor(-vs[k].y * 4 + fluidTime * 9 + i * 1.3f) % tn + tn) % tn);
+                fmesh.colors = cs;
+                core.localScale = new Vector3(1, L * 0.55f, 1);
+            }
+            if (lit && globMat) globMat.SetVector("_FluidA", new Vector4(1, globMat.GetVector("_FluidA").y, fluidTime, 2));
+            // drops falling off the nozzles in the tank's tones (fluid-tool.js updateJets), 60 a second a nozzle
+            if (on && thrust >= 0.2f && jetFlames.Count > 0)
+            {
+                jetAcc += dt;
+                while (jetAcc > 1 / 60f)
+                {
+                    jetAcc -= 1 / 60f;
+                    foreach (var (flame, _) in jetFlames)
+                    {
+                        var m = flame.parent.TransformPoint(new Vector3(0, -0.13f, 0));
+                        var v = Vector3.down * (5 + Random.value * 5) + Random.onUnitSphere * 1.2f + player.vel * 0.6f;
+                        if (drops.Count < 220) drops.Add((m, v, 0, 0.3f + Random.value * 0.25f, 0.016f + Random.value * 0.02f, ToneOf(Random.Range(0, 6))));
+                    }
+                }
+            }
+            if (drops.Count > 0)
+            {
+                dropPuffs ??= new Puffs(Puffs.Ico(1), Puffs.Ink("#ffffff", 0.7f), 220);
+                dropPuffs.count = 0;
+                for (int i = drops.Count - 1; i >= 0; i--)
+                {
+                    var d = drops[i];
+                    d.age += dt; if (d.age >= d.life) { drops.RemoveAt(i); continue; }
+                    d.v += Vector3.down * 4 * dt; d.v *= Mathf.Exp(-3 * dt); d.p += d.v * dt;
+                    drops[i] = d;
+                }
+                for (int i = 0; i < drops.Count; i++) { var d = drops[i]; float k = 1 - d.age / d.life; dropPuffs.Set(i, d.p, new Vector3(d.size, d.size * 3, d.size) * Mathf.Max(0.2f, k), Vector3.zero, d.col); }
+                dropPuffs.Draw(player.transform.position, 30);
+            }
+        }
+        float jetAcc; Puffs dropPuffs; Material jetMat;
+        readonly List<(Vector3 p, Vector3 v, float age, float life, float size, Color col)> drops = new();
+        /// <summary>A lathe (THREE.LatheGeometry): the profile's (radius, y) turned round the y axis.</summary>
+        static Mesh Lathe((float r, float y)[] prof, int seg)
+        {
+            var v = new List<Vector3>(); var n = new List<Vector3>(); var idx = new List<int>();
+            for (int i = 0; i <= seg; i++)
+            {
+                float a = 2 * Mathf.PI * i / seg, c = Mathf.Cos(a), s = Mathf.Sin(a);
+                for (int j = 0; j < prof.Length; j++)
+                {
+                    v.Add(new Vector3(prof[j].r * c, prof[j].y, prof[j].r * s));
+                    var d = j + 1 < prof.Length ? new Vector2(prof[j + 1].r - prof[j].r, prof[j + 1].y - prof[j].y) : new Vector2(prof[j].r - prof[j - 1].r, prof[j].y - prof[j - 1].y);
+                    var nn = new Vector2(-d.y, d.x).normalized; if (nn.x < 0) nn = -nn;
+                    n.Add(new Vector3(nn.x * c, nn.y, nn.x * s));
+                }
+            }
+            int P = prof.Length;
+            for (int i = 0; i < seg; i++)
+                for (int j = 0; j < P - 1; j++)
+                {
+                    int a = i * P + j, b = (i + 1) * P + j;
+                    idx.Add(a); idx.Add(b); idx.Add(a + 1); idx.Add(a + 1); idx.Add(b); idx.Add(b + 1);
+                }
+            var m = new Mesh { name = "lathe" }; m.SetVertices(v); m.SetNormals(n); m.SetTriangles(idx, 0); m.RecalculateBounds();
+            // (the fluid shader reads its box from uv3 / uv4, as the globs: MakeSphere)
+            m.SetUVs(3, v); m.SetUVs(4, n);
+            var cols = new Color[v.Count]; for (int i = 0; i < cols.Length; i++) cols[i] = Color.white; m.colors = cols;
+            return m;
+        }
+
         void UpdateWings(float dt)
         {
+            if (player && player.figure) { player.figure.spread = wingK; player.figure.spreadTurn = player.glideTurn; }
             float open = gliding ? 1 : 0;
             wingK = Mathf.Clamp01(wingK + (open > 0 ? 1 / 0.42f : -1 / 0.3f) * dt);
             if (!wings) return;

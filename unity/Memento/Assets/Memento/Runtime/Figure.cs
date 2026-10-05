@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -200,7 +201,53 @@ namespace Memento
         void LateUpdate()
         {
             ApplyPose();
+            if (spread > 0.001f) SpreadArms();
             UpdateFace(Time.deltaTime);
+        }
+
+        // ------------------------------------------------------------------ the glide (player.js spreadArms)
+        /// <summary>The fluid wings' opening, 0..1 (FluidTool.wingK), and the glide's turn (Player.glideTurn, rad/s, Unity's sense).</summary>
+        public float spread, spreadTurn;
+        Transform[] arm;
+        /// <summary>
+        /// Gliding on the fluid wings: the arms open out and a little back under them, the lower one
+        /// leading the turn. Each hand is drawn toward its target by a two-bone reach (the shoulder
+        /// turns the arm onto it, the elbow opens to its distance), over the clip's pose.
+        /// </summary>
+        void SpreadArms()
+        {
+            arm ??= new[] { Bone("upperarm_r"), Bone("lowerarm_r"), Bone("hand_r"), Bone("upperarm_l"), Bone("lowerarm_l"), Bone("hand_l") };
+            if (arm.Any(t => !t)) return;
+            float k = Mathf.SmoothStep(0, 1, Mathf.Clamp01(spread));
+            var fwd = transform.forward; fwd.y = 0; fwd.Normalize();
+            var up = Vector3.up; var back = -fwd; var right = Vector3.Cross(up, fwd);
+            // (three's turn has the other sign: turning right there is negative)
+            float turn = -spreadTurn;
+            for (int s = 0; s < 2; s++)
+            {
+                Transform sh = arm[s * 3], el = arm[s * 3 + 1], hd = arm[s * 3 + 2];
+                float side = s == 0 ? 1 : -1;
+                var target = sh.position + right * side * 0.5f * transform.lossyScale.y + up * (-0.12f - side * turn * 0.12f) + back * 0.12f;
+                var goal = Vector3.Lerp(hd.position, target, k);
+                Reach(sh, el, hd, goal);
+            }
+        }
+        /// <summary>Two-bone reach: the elbow opened (or closed) so the hand is as far as the goal, then the shoulder turned onto it.</summary>
+        static void Reach(Transform a, Transform b, Transform c, Vector3 goal)
+        {
+            float la = Vector3.Distance(a.position, b.position), lb = Vector3.Distance(b.position, c.position);
+            float want = Mathf.Clamp(Vector3.Distance(a.position, goal), Mathf.Abs(la - lb) + 1e-3f, la + lb - 1e-3f);
+            var ab = b.position - a.position; var bc = c.position - b.position;
+            var axis = Vector3.Cross(ab, bc);
+            if (axis.sqrMagnitude < 1e-8f) axis = Vector3.Cross(ab, Vector3.up);
+            axis.Normalize();
+            // the elbow's inner angle now and wanted (law of cosines)
+            float now = Vector3.Angle(-ab, bc);
+            float wantAng = Mathf.Acos(Mathf.Clamp((la * la + lb * lb - want * want) / (2 * la * lb), -1, 1)) * Mathf.Rad2Deg;
+            b.rotation = Quaternion.AngleAxis(now - wantAng, axis) * b.rotation;
+            // then the whole arm onto the goal
+            var toHand = c.position - a.position; var toGoal = goal - a.position;
+            a.rotation = Quaternion.FromToRotation(toHand, toGoal) * a.rotation;
         }
 
         // ------------------------------------------------------------------ the face (expression.js, talk-face.js, eyes.js)
