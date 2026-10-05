@@ -93,12 +93,13 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
 
 | | bottom (Xbox A, Retroid B) | right (Xbox B, Retroid A) | left (Xbox X, Retroid Y) | top (Xbox Y, Retroid X) |
 |---|---|---|---|---|
-| walking | jump (again in the air: boost; hold: jets / wings) | interact, talk, get on | call the mount (whistle, hail a taxi) | ping |
-| riding | hop / flap / rise | get off | | |
+| walking | jump (again in the air: boost; hold: wings; with RT on the jets: climb) | interact, talk, get on | call the mount (whistle, hail a taxi) | ping |
+| riding | jump off (a hop, its speed carries you) | get off (moving or flying: jump off) | hop / flap / rise | |
 
 - **Walking:** left stick moves; click it (L3) to run, until you let the stick go.
   Right stick looks; hold LB / L1 and the right stick zooms. LT / L2 aims the fluid
-  tool, RT / R2 shoots (an aimed shot while LT is held, a quick shot without), RB / R1
+  tool and RT / R2 shoots while it is held; RT / R2 without LT fires the **jets**
+  (see "The controls of October 2026" below). RB / R1
   pushes, D-pad left / right changes the gun mode, up the worlds, down photo mode,
   R3 sounds the bell-note whistle. View / Select opens the sketchbook on your **gear**
   (every item and what it does, `gearHtml` in `src/items.js`); Menu / Start the settings.
@@ -108,6 +109,7 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
   brakes and reverses, the left stick steers (pushing it forward does not drive), and on
   the bird and the taxi it tilts too: forward dives / goes down, back climbs. RB / R1 or
   L3 boosts the hoverbike and skiff. On the ground a squeeze of RT lifts the bird off.
+  The bottom button jumps off, the left button is the vehicle's own hop / flap / rise.
 - **Menus** confirm with the button printed **A** and go back with **B**, each platform's
   habit: Xbox bottom / right, Retroid right / bottom. View and Menu close too. While
   **talking**, the interact button also carries the conversation on (so on Xbox, B to
@@ -1202,7 +1204,7 @@ candelabra, the Hangar's bolt cactus) register a cylinder round each plant.
 The traveller has a health bar (`player.health`, 0..1). Landings are judged by
 their speed into the ground (a drop of h m lands at about √(64 h) m/s); riding,
 gliding and the jets land softly enough not to count. Up to `FALL.tumble`
-(26 m/s, about 10 m) a landing costs nothing. Harder ones knock you over
+(32 m/s, about 16 m; it was 26 m/s, 10 m, until October 2026) a landing costs nothing. Harder ones knock you over
 (`player.knockDown`): the body goes limp into a ragdoll tumble, lies a moment
 and gets up, and `fallDamage(speed)` takes a little of the bar (at most
 `FALL.worst`, and a fall that isn't fatal never takes the last of it). Only
@@ -3119,6 +3121,51 @@ as a macOS player, and the port's WebGL (WebGPU) build. Results and the reading 
   credits or the mother's "who did you meet". `src/save-migrate.js` brings old saves up once
   (flag `save.migrated`): a "met" carries over to the renamed person if the save has been to
   their world; Clemence's flags move outright. `tests/save-migrate.test.js`.
+
+### The controls of October 2026: straight shots, the jets on RT, jumping off
+
+From the author's handheld sessions (TODO.md, "Controls").
+
+- **Straight shots** (`src/fluid-tool.js`): `FLUID.shoot.gravity` is 0, so a glob flies
+  in a straight line from the nozzle to the crosshair's point (`shotDir`), and nothing
+  previews its path (the dotted arc is gone). The crosshair was already a straight
+  camera ray, so every target lands where it did. Where a lip right in front of the
+  nozzle hides a point the camera sees (hovering just under a shelf), the glob leaves
+  from beside the nozzle on the crosshair's own ray instead (`clearLine`). No puzzle
+  wanted a falling glob (`tool:bloom` uses only the point; the "from above" fights
+  check where you stand).
+- **Aim first** (`triggers()` in `src/controller.js`, used by `toolInput` and the
+  player): LT / L2, the right mouse button or R aims, and only then do RT / R2, the
+  left mouse button or G shoot, on a fresh press (a button held from before the aim
+  does not fire). Without aiming, RT / R2 and the left mouse button (pointer captured)
+  fire the jets. G alone does nothing. The touch ✺ button writes `TouchFire`, a quick
+  shot that raises the arm for you, since touch has no trigger to hold.
+- **The jets steer like the bird** (`player.update`, `JET`): with them firing, the left
+  stick flies you where it points, relative to the camera (forward, back, left, right),
+  at `JET.speed` (`JET.run` while running). The body turns into the way you go and leans
+  and banks into it. With the stick neutral they **hover**: the fall is braked to a
+  standstill and you drift to a stop. Hold jump as well to climb, at up to 15 m/s. From
+  the ground, RT lifts you off. The pad's jump never fires the jets (`PadJump`), so held
+  in the air it opens the wings, and a second press boosts at once (no double tap). The
+  keyboard's and touch's Space still thrusts and climbs as it always did, double tap to
+  boost. Fuel, its refill on landing and the landings themselves are unchanged.
+- **Jump off** (`player.jumpOff`, `JUMP_OFF`): riding, the bottom button (Retroid B)
+  jumps off the bird, the hoverbike, the skiff or a taxi with a 7 m/s hop. You keep
+  85 % of its speed, and in the air it fades slowly until you land. The left button
+  takes over the vehicle's hop / flap / rise. E and the right button still step off
+  beside a vehicle that is standing. When it is moving faster than 6 m/s or flying more
+  than 3 m up, they jump off too. In the air or at speed the backpack is simply back on (no
+  hand-off). With the wings, they open by themselves until you press jump. A fall that
+  would kill you, with no wings and no fluid for the jets, is refused ("Too high to
+  jump."), unless the bird is yours: then `watchFall` calls her `JUMP_OFF.catchAfter` s
+  into it, and she swoops in to catch you (`flyCatch` leads you by its own reach time).
+- **The ragdoll from higher up**: `FALL.tumble` is 32 m/s (about 16 m). A fatal fall is
+  still 48 m/s (about 36 m).
+- Tests: `tests/controls.test.js` (the jets steering, hovering, climbing and lifting
+  off, the pad's jump and the wings, jumping off the bird low and high, with and
+  without wings, the refused taxi jump, the bike's momentum, the new tumble height),
+  `tests/controller.test.js` (`triggers`, the ride buttons), `tests/fluid-tool.test.js`
+  (the straight shot, aim-first, the lip).
 
 ## The makers' temples
 

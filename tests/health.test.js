@@ -10,7 +10,9 @@ const metres = (h) => Math.sqrt(2 * 32 * h);   // landing speed after a drop of 
 
 test('falls: a short drop costs nothing; a hard landing knocks you over, you lie a moment and get up, a little hurt', () => {
   assert.equal(fallDamage(metres(8)), 0, 'an 8 m drop costs nothing');
-  assert.ok(fallDamage(metres(15)) < 0.08, 'a 15 m drop hardly anything');
+  assert.equal(fallDamage(metres(15)), 0, 'nor a 15 m one');
+  assert.ok(fallDamage(metres(20)) < 0.08, 'a 20 m drop hardly anything');
+  assert.ok(FALL.tumble > metres(15) && FALL.tumble < metres(17), 'the tumble starts at ~16 m (it used to be ~10 m)');
   assert.ok(fallDamage(metres(33)) <= FALL.worst, 'even 33 m is not all of it');
   assert.equal(fallDamage(FALL.lethal), 1);
   assert.ok(FALL.lethal > metres(34) && FALL.lethal < metres(40), 'only ~35-40 m and more is fatal');
@@ -19,8 +21,11 @@ test('falls: a short drop costs nothing; a hard landing knocks you over, you lie
   drop(p, 3);
   assert.equal(p.health, 1, 'a 3 m drop is nothing');
   assert.equal(p.down, undefined, 'and you stay on your feet');
-  drop(p, 15);
-  assert.ok(p.down, 'a 15 m drop knocks you over');
+  drop(p, 14);
+  assert.equal(p.down, undefined, 'a 14 m drop: you land it');
+  assert.equal(p.health, 1);
+  drop(p, 20);
+  assert.ok(p.down, 'a 20 m drop knocks you over');
   assert.deepEqual(downs, [false]);
   assert.ok(p.health > 0.9, `and hardly hurts: ${p.health.toFixed(2)}`);
   // no control while down: the stick does nothing

@@ -48,10 +48,10 @@ export class Settings {
  */
 export function padControls(ok = confirmKey(), back = backKey()) {
   return 'Controller, walking: left stick move (click it, L3, to run) · right stick look (hold LB / L1 to zoom) · '
-    + 'A / × jump (again in the air: boost) · B / ○ interact, talk, get on · X / □ call your mount or a taxi · Y / △ ping · '
-    + 'LT / L2 aim the fluid tool · RT / R2 shoot · RB / R1 push · D-pad left / right gun mode, up worlds, down photo · '
+    + 'A / × jump (again in the air: boost; hold: wings) · B / ○ interact, talk, get on · X / □ call your mount or a taxi · Y / △ ping · '
+    + 'LT / L2 aim the fluid tool, and RT / R2 shoots while you aim · RT / R2 without aiming: the jets (left stick flies you that way, A / × held climbs) · RB / R1 push · D-pad left / right gun mode, up worlds, down photo · '
     + 'View gear and sketchbook · Menu settings. '
-    + 'Riding: RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · A / × hop, flap, rise · RB / R1 boost · B / ○ get off. '
+    + 'Riding: RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off. '
     + 'Swimming: left stick swim (L3 sprints) · look down and swim forward to dive, under water you swim where you look · A / × rise, at the surface kick up or climb out. '
     + `In menus: D-pad select, left / right adjust, ${ok} confirm, ${back} back, right stick scroll.`;
 }
@@ -110,7 +110,7 @@ export class SettingsMenu {
           </div>` : ''}
           <p class="keys pad-keys">${padControls()}</p>
           <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
-          <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jetpack (SPACE again in the air: fluid boost) · E interact · Q ping scout · hold right mouse or R aim the fluid tool · left click or G shoot · C or middle click push · in water: Z or CTRL dive, SPACE rise / climb out · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
+          <p class="keys">WASD move · SHIFT run · SPACE jump / glide / jets (SPACE again in the air: fluid boost) · E interact (riding: get off, jump off when moving) · Q ping scout · hold right mouse or R aim the fluid tool, then left click or G shoots · left click without aiming: the jets (WASD fly, SPACE climbs) · C or middle click push · in water: Z or CTRL dive, SPACE rise / climb out · J sketchbook · L worlds · P photo · H help · O settings · N what's new</p>
         </section>
       </div>`;
     // the controls list names the menu's confirm / back buttons, which follow the "Controller buttons" setting
@@ -206,7 +206,7 @@ export class TouchControls {
       <button data-press="KeyJ" class="b-book">❏</button>
       <button data-press="KeyL" class="b-map">◫</button>
       <button data-toggle="KeyR" class="b-aim" aria-label="Aim the fluid tool">◎</button>
-      <button data-key="KeyG" class="b-fire" aria-label="Shoot fluid">✺</button>
+      <button data-key="TouchFire" class="b-fire" aria-label="Shoot fluid">✺</button>
       <button data-key="KeyC" class="b-push" aria-label="Push">✋</button>
       <button data-key="KeyX" class="b-mode" aria-label="Switch the fluid's mode">◐</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');

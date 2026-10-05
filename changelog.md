@@ -9,6 +9,13 @@ The same release notes shown in the game (press **N** or open settings).
 - A downloaded update now starts the next time you open the title screen, without closing the app.
 - A world that loads slowly no longer undoes an update.
 - When an update needs a new version of the app, the settings say so and open its download page. This version needs the new app once.
+- The fluid gun now shoots in a straight line to the crosshair, and the dotted aiming arc is gone.
+- The gun fires only while you aim: hold LT / L2 (right mouse or R), then press RT / R2 (left click or G).
+- RT / R2 without aiming fires the jets, as does a left click on a computer. They hover, the left stick flies you any way you point it, and holding jump as well climbs.
+- On a controller, holding jump in the air opens the wings, and a second press boosts at once.
+- A / × (the bottom button) jumps off the bird, the hoverbike, the skiff or a taxi with a little hop, and you carry their speed. Hop, flap and rise moved to X / □ (the left button).
+- Getting off something moving or flying is now a jump off. With the wings they open by themselves, and if you jump off the bird high up with nothing to break the fall, she swoops in and catches you.
+- You no longer tumble over after a fall of about 10 m; the ragdoll now starts from about 16 m.
 
 ## v0.55 — 2026-10-05
 

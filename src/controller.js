@@ -4,14 +4,15 @@
 //
 //   walking   bottom jump (again in the air: boost) · right interact, talk, get on
 //             · left call the mount (whistle it, hail a taxi) · top ping
-//             · LT aim · RT shoot (aimed while LT is held, a quick shot without)
-//             · RB push · L3 (click the left stick) run until you stop
+//             · LT aim · RT shoots while LT is held, and fires the jets without it
+//             (hover; the stick flies you that way, bottom held climbs) · RB push
+//             · L3 (click the left stick) run until you stop
 //             · LB + right stick zoom · D-pad ←/→ gun mode, ↑ worlds, ↓ photo
 //             · R3 (click the right stick) the bell-note whistle, once found
 //             · View the sketchbook (gear first) · Menu the settings
 //   riding    RT throttle (analog) · LT brake / reverse · left stick steer, and on
-//             flyers dive (forward) / climb (back) · bottom hop / flap / rise
-//             · RB or L3 boost · right get off
+//             flyers dive (forward) / climb (back) · left hop / flap / rise
+//             · RB or L3 boost · bottom jump off (a hop; its speed carries you) · right get off
 //   menus     the button printed A confirms, B goes back (Xbox: bottom / right; a
 //             Retroid, letters Nintendo-style: right / bottom) · View, Menu close
 //   talking   as menus; the interact button also goes on (so on Xbox, B talks and
@@ -113,7 +114,8 @@ export class Controller {
         h.PadRide = true;
         h.Throttle = trigger(value(RT)); h.Brake = trigger(value(LT));
         h.Boost = down(RB) || down(L3);
-        h.Space = down(SOUTH); h.KeyE = down(EAST); h.PadE = h.KeyE;
+        // the bottom button jumps off (player.jumpOff); the vehicle's own hop / flap / rise is the left one's
+        h.Space = down(WEST); h.JumpOff = down(SOUTH); h.KeyE = down(EAST); h.PadE = h.KeyE;
         this.running = false;
       } else {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
@@ -122,9 +124,9 @@ export class Controller {
         if (press(L3)) { this.running = true; this.action('l3'); }   // (the Lab: the previous world's room)
         else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
-        h.Space = down(SOUTH);
+        h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
         h.KeyE = down(EAST); h.PadE = h.KeyE;   // (the pad's interact never whistles: that's the left button's)
-        // the fluid tool: hold LT to aim, RT shoots (a quick shot without LT), RB pushes; jump in the air boosts
+        // the fluid tool: hold LT to aim, RT shoots while aiming and fires the jets otherwise (triggers()), RB pushes; jump in the air boosts
         h.PadAim = down(LT); h.PadFire = down(RT); h.PadPush = down(RB);
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
         h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
@@ -151,6 +153,20 @@ export class Controller {
 export function padRide(input) {
   if (!input?.PadRide) return null;
   return { throttle: +input.Throttle || 0, brake: +input.Brake || 0, x: input.stick?.x ?? 0, y: input.stick?.y ?? 0, boost: !!input.Boost };
+}
+
+/**
+ * What the aim and fire buttons do on foot (the pad's triggers, the mouse, the keys):
+ *   aim    LT / L2, the right mouse button, R (touch: the ◎ toggle)
+ *   shoot  RT / R2, the left mouse button or G, only while aiming (a fresh press: fluid-tool.js)
+ *   jets   RT / R2 or the left mouse button while not aiming (player.js: a hover the stick steers;
+ *          Space, the keyboard's and touch's own jets key, still climbs on them as before)
+ *   quick  the touch ✺ button: a quick shot, aiming for you (touch has no trigger to hold)
+ */
+export function triggers(c = {}) {
+  const aim = !!(c.KeyR || c.MouseRight || c.PadAim);
+  const fire = !!(c.KeyG || c.MouseLeft || c.PadFire);
+  return { aim, fire, shoot: aim && fire, jets: !aim && !!(c.PadFire || c.MouseLeft), quick: !!c.TouchFire };
 }
 
 export function mergeControls(keyboard, gamepad) {

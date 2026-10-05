@@ -283,7 +283,7 @@ export const THINGS = {
           say: ['~neutral~ An old bronze brazier on a stone turntable, with a polished mirror cupped behind it like a hand round a candle. A wooden tiller sticks out at the back. The oil in it still smells sweet.',
             { if: { flag: 'arzach2.lamp.notch', is: 0 }, text: '~curious~ Eight notches are cut round the turntable, and by one of them *a little bell is carved*. The mirror looks straight at it: north, to the rose cliff.' },
             { if: { not: { flag: 'arzach2.lamp.notch', is: 0 } }, text: '~curious~ Eight notches are cut round the turntable, and by one of them *a little bell is carved*. The mirror looks away from it, out over the empty plain. *Push the tiller* from the side to turn it.' },
-            { if: { not: { flag: 'arzach2.lamp.lit' } }, text: '~neutral~ The wick is dry, but it would take a light. (*Shoot*: click, G, or RT / R2.)' }],
+            { if: { not: { flag: 'arzach2.lamp.lit' } }, text: '~neutral~ The wick is dry, but it would take a light. (*Shoot*: aim with R, right click or LT / L2, then shoot with G, a click or RT / R2.)' }],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         answered: { say: ['~solemn~ The lamp burns steady, its mirror turned to the rose cliff. Far off on the cliff, small as a star, a window burns back.'], choices: [{ text: '~neutral~ (step back)', end: true }] },

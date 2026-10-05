@@ -7,7 +7,7 @@ import { padRide } from './controller.js';
 
 // A Sable-like hoverbike. Controls when riding: W throttle, S brake/reverse,
 // A/D steer, Shift boost, Space hop; on a controller RT throttle (analog), LT
-// brake / reverse, the stick steers, RB or L3 boost, the bottom button hops. It hovers on a spring above the dunes,
+// brake / reverse, the stick steers, RB or L3 boost, the left button hops (the bottom one jumps off). It hovers on a spring above the dunes,
 // banks into turns and pitches with the ground.
 //
 // It runs on the traveller's magic-fluid backpack (powered: true; the skiff

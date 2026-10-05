@@ -821,15 +821,16 @@ const RIDE_HINT_MS = 6000;   // a ride's controls show for a few seconds after y
 const RIDE_KEYS = {
   taxi: 'E get out · W/S throttle · A/D steer · SPACE up · SHIFT down',
   bird: 'E jump off · A/D bank · W dive · S pull up · SPACE flap',
-  bike: 'E dismount · W/S throttle · A/D steer · SHIFT boost',
-  skiff: 'E step off · W/S throttle · A/D steer · SHIFT boost',
+  bike: 'E dismount (moving: jump off) · W/S throttle · A/D steer · SHIFT boost · SPACE hop',
+  skiff: 'E step off (moving: jump off) · W/S throttle · A/D steer · SHIFT boost',
 };
-// a pad rides on the triggers: RT goes, the stick steers (and tilts a flyer: forward dives, back climbs)
+// a pad rides on the triggers: RT goes, the stick steers (and tilts a flyer: forward dives, back climbs);
+// the bottom button jumps off (player.jumpOff), the left one is the vehicle's own hop / flap / rise
 const RIDE_PAD = {
-  taxi: 'B / ○ get out · RT / R2 go · LT / L2 brake · left stick steer, forward down, back up · A / × up',
-  bird: 'B / ○ jump off · RT / R2 fly on · left stick bank, forward dive, back climb · A / × flap',
-  bike: 'B / ○ dismount · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · A / × hop',
-  skiff: 'B / ○ step off · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · A / × hop',
+  taxi: 'A / × jump off · B / ○ get out · RT / R2 go · LT / L2 brake · left stick steer, forward down, back up · X / □ up',
+  bird: 'A / × jump off · RT / R2 fly on · left stick bank, forward dive, back climb · X / □ flap',
+  bike: 'A / × jump off · B / ○ dismount · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
+  skiff: 'A / × jump off · B / ○ step off · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
 };
 const rideHint = { kind: null, at: 0 };
 function updateHud() {

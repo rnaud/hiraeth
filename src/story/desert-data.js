@@ -129,7 +129,7 @@ export const QUESTS = [
     stages: [
       { id: 'go', text: 'Visit the masked head that sleeps in the southern dunes', label: 'The masked head', goto: 'mask', radius: 30, at: 'mask' },
       // (src/story/desert-errands.js: a lid of sand over each eye; the wind sifts it back after a few seconds)
-      { id: 'eyes', text: 'Sand has drifted over the mask’s eyes. Wash both clear before the wind fills them again (shoot: G, or left click while aiming)', label: 'The mask’s eyes', flag: 'desert.mask.eyes', at: 'maskEyes' },
+      { id: 'eyes', text: 'Sand has drifted over the mask’s eyes. Wash both clear before the wind fills them again (shoot: aim with R, right click or LT / L2, then G, a click or RT / R2)', label: 'The mask’s eyes', flag: 'desert.mask.eyes', at: 'maskEyes' },
     ],
   },
 ];

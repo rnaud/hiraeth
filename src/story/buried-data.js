@@ -361,7 +361,7 @@ export const THINGS = {
           say: ['~neutral~ A shallow iron dish on a pedestal, black with old oil. A wick as thick as your arm lies coiled in it, dry.', '~neutral~ Beside it a valve stands on a stem, its handwheel rusted fast. *A good shove might turn it*. (*Push*: C, middle click, or RB / R1.)'],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
-        oil: { say: ['~neutral~ Oil has risen in the dish, dark and slow, smelling of warm iron. The wick drinks it. *It only wants a spark*. (*Shoot*: click, G, or RT.)'], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        oil: { say: ['~neutral~ Oil has risen in the dish, dark and slow, smelling of warm iron. The wick drinks it. *It only wants a spark*. (*Shoot*: aim with R, right click or LT / L2, then shoot with G, a click or RT / R2.)'], choices: [{ text: '~neutral~ (step back)', end: true }] },
         lit: { say: ['~solemn~ The Wick burns amber, steady and quiet, and the light goes straight up out of the oculus into the sky. *Stand in it*, and your tank hums.'], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
@@ -383,7 +383,7 @@ export const THINGS = {
     talk: { nodes: { look: {
       say: [
         { if: { not: { flag: 'buried.jib.in' } }, text: '~neutral~ A rusty jib on a slewing post, swung out over the drop. Dun’s key glints on its hook, far out over nothing, swaying.' },
-        { if: { not: { flag: 'buried.jib.oiled' } }, text: '~neutral~ The collar at the foot of the post is crusted orange with rust. *A splash of fluid might free it*. (*Shoot*: click, G, or RT / R2.)' },
+        { if: { not: { flag: 'buried.jib.oiled' } }, text: '~neutral~ The collar at the foot of the post is crusted orange with rust. *A splash of fluid might free it*. (*Shoot*: aim with R, right click or LT / L2, then shoot with G, a click or RT / R2.)' },
         { if: { all: [{ flag: 'buried.jib.oiled' }, { not: { flag: 'buried.jib.in' } }] }, text: '~curious~ The collar drips with fluid. Under the jib a ratchet wheel waits, its pawl leaning one way: *shove the arm side-on, round over the platform*. (*Push*: C, middle click, or RB / R1.)' },
         { if: { flag: 'buried.jib.in' }, text: '~neutral~ The jib hangs in over the platform now, its hook swaying gently at head height.' },
       ],

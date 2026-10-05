@@ -9,7 +9,7 @@ import { padRide } from './controller.js';
 // A/D bank and turn, W dive (gain speed), S pull up (trade speed for height),
 // Space flap (climb). Touching down slowly lands it; Space on the ground takes off.
 // A controller: RT flies on (thrust, analog; squeezed on the ground, she takes off),
-// the stick banks (left / right) and dives (forward) or climbs (back), the bottom button flaps.
+// the stick banks (left / right) and dives (forward) or climbs (back), the left button flaps (the bottom one jumps off: player.js jumpOff).
 
 const MIN_SPEED = 9;
 const MAX_SPEED = 55;
@@ -212,15 +212,20 @@ export class Bird {
   /** Chase a falling rider: aim at a point a little ahead of and under them, faster than they fall. */
   flyCatch(dt) {
     const P = this.catchRef, V = this.catchVel ?? _v.set(0, 0, 0);
-    const aim = new THREE.Vector3(P.x + V.x * 0.35, P.y + V.y * 0.35 - 1.6, P.z + V.z * 0.35).sub(this.pos);
+    // lead the rider by the time it takes to get there (at most 0.35 s), so a fast fall is met, not chased;
+    // catchDist is to the spot under the rider itself (player.js mounts you within 2.6 m of it)
+    const under = _from.set(P.x, P.y - 1.6, P.z);
+    this.catchDist = under.distanceTo(this.pos);
+    const lead = Math.min(0.35, this.catchDist / Math.max(this.speed, 1));
+    const aim = new THREE.Vector3(P.x + V.x * lead, P.y + V.y * lead - 1.6, P.z + V.z * lead).sub(this.pos);
     const d = aim.length();
-    this.catchDist = d;
     const g = this.physics.groundAt(this.pos.x, this.pos.y + 1, this.pos.z);
     // the rider landed first: just come and land beside them instead
     if (P.y - this.physics.groundAt(P.x, P.y + 1, P.z) < 1.5) { this.summon(P.x + 3, P.z + 2, this.heading, P); return; }
     aim.normalize();
     const vlen = Math.hypot(V.x, V.y, V.z);
-    this.speed = THREE.MathUtils.lerp(this.speed, Math.max(vlen + 18, Math.min(70, d * 2 + 10)), 1 - Math.exp(-2 * dt));
+    // (quick to speed up: a rider who jumped off falls ever faster, player.js watchFall)
+    this.speed = THREE.MathUtils.lerp(this.speed, Math.max(vlen + 18, Math.min(70, d * 2 + 10)), 1 - Math.exp(-6 * dt));
     this.pos.addScaledVector(aim, Math.min(this.speed * dt, d));
     if (this.pos.y < g + 1.4) this.pos.y = g + 1.4;
     let dh = Math.atan2(aim.x, aim.z) - this.heading;
