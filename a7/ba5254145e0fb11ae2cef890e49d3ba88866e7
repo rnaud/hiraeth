@@ -1,0 +1,37 @@
+LORE.md
+  s_1fd8d0e7b02dcf::t_96c034c11d8194 91-94,184-185,642,782-785,919-959,965-969
+README.md
+  s_1fd8d0e7b02dcf::t_443e3a887fe4bc 2623-2625,2658-2660
+docs/game-brief.md
+  s_1fd8d0e7b02dcf::t_78ba8cc8d11c15 23-24,40-44,107-112,125
+docs/story-bible.md
+  s_1fd8d0e7b02dcf::t_0b137e55c4a429 5-8,15-16,27-29,67-69,170-173,329-336,369,371-407,410-427,433,474
+src/ship/homecoming.js
+  s_1fd8d0e7b02dcf::t_2b1b852f1c5feb 356
+src/story/calls.js
+  s_1fd8d0e7b02dcf::t_a8e8e22126296d 27-29,172-173,510-511
+src/story/ending.js
+  s_1fd8d0e7b02dcf::t_9eab164aa3321b 160-161,170-171
+src/story/home-data.js
+  s_1fd8d0e7b02dcf::t_e7081cb42984d4 143
+tests/ending.test.js
+  s_1fd8d0e7b02dcf::t_8a75f2a17e652a 129-160
+tests/tone.test.js
+  s_1fd8d0e7b02dcf::t_3a8a2c114c7afd 115,123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a7ba5254145e0fb11ae2cef890e49d3ba88866e7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
