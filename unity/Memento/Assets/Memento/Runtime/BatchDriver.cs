@@ -234,6 +234,28 @@ namespace Memento
             pad.jump = false; yield return Wait(2f);
             game.state.Set("item.stun", false); game.state.Set("item.glider", false);
 
+            // the wildlife: a creature near the camps, then a sprint at it (its surprise)
+            if (game.wildlife && game.wildlife.Count > 0)
+            {
+                var cr = game.wildlife.Nearest(game.world.Places.V3("shipRamp"));
+                PutNear(cr, 7f); yield return Wait(0.6f);
+                game.rig.yaw = game.player.heading; yield return Wait(0.4f);
+                cr = game.wildlife.Nearest(cr);
+                game.rig.enabled = false; yield return null;
+                var side = Vector3.Cross(Vector3.up, (cr - game.player.transform.position).normalized);
+                game.cam.transform.position = cr + side * 2.6f + Vector3.up * 1.3f - (cr - game.player.transform.position).normalized * 1.5f; game.cam.transform.LookAt(cr + Vector3.up * 0.3f);
+                yield return Shoot("wildlife");
+                game.rig.enabled = true;
+                Log($"wildlife: {game.wildlife.Count} creatures, {game.wildlife.Visible} awake near, nearest at {cr}");
+                pad.run = true; pad.move = new Vector2(0, 1); yield return Wait(0.9f); pad.run = false; pad.move = Vector2.zero;
+                yield return Wait(0.5f);
+                game.rig.enabled = false; yield return null;
+                game.cam.transform.position = cr + side * 5f + Vector3.up * 2.5f; game.cam.transform.LookAt(cr + Vector3.up * 2.5f);
+                yield return Shoot("wildlife_surprise");
+                game.rig.enabled = true;
+                Log($"wildlife: {game.wildlife.Surprised} surprised");
+                yield return Wait(1f);
+            }
             // the other makers' box: the pale star
             var starAt = game.world.Places.L("boxes").First(b => b.S("id") == "desert.star").V3("pos");
             PutNear(starAt, 2f); yield return Wait(0.5f);

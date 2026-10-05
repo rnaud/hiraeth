@@ -259,7 +259,22 @@ export async function exportPeople({ W, blob, materialOf }) {
     const col = (m) => '#' + (m.uniforms?.uColor?.value ?? m.color).getHexString();
     return { cfg, body: geometryOf(f.bodies.geometry), bodyColor: col(f.bodies.material), wings: f.wings.map((w) => geometryOf(w.geometry)), wingColor: col(f.wings[0].material) };
   });
+  // ---- the desert's wildlife (wildlife.js, wildlife/species.js): each species' instanced parts (their pivots,
+  // which hide until the surprise, which stay where they fell), its gait and its surprise's timing; and every
+  // creature where the game places it (Wildlife.populate: near the paths, clear of the clutter)
+  const { Wildlife } = await import('../../src/wildlife.js');
+  const wl = new Wildlife(new THREE.Scene(), W.level, physics, { content: W.CONTENT.desert });
+  const species = wl.herds.map((h) => {
+    const d = h.def;
+    const keys = ['id', 'name', 'main', 'size', 'height', 'radius', 'gait', 'speed', 'cadence', 'lift', 'stride', 'hopHeight', 'bob', 'turn', 'notice', 'wary', 'backoff', 'roam', 'skittish', 'touch', 'idleRate'];
+    const out = Object.fromEntries(keys.filter((k) => d[k] !== undefined).map((k) => [k, d[k]]));
+    out.parts = h.parts.map((pt) => ({ name: pt.name, geo: geometryOf(pt.mesh.geometry), at: [-pt.at.x, pt.at.y, pt.at.z], hidden: pt.hidden ? 1 : 0, free: pt.free ? 1 : 0, glow: pt.mesh.material.uniforms?.uGlow?.value ?? 0 }));
+    out.trick = { name: d.trick?.name, dur: d.trick?.dur ?? 4, end: d.trick?.end ?? 'recover', reach: d.trick?.reach ?? 2, sound: d.trick?.sound ?? 'squeak' };
+    return out;
+  });
+  const creatures = wl.list.map((c) => ({ species: wl.herds.indexOf(c.herd), pos: [-c.pos.x, c.pos.y, c.pos.z], fwd: [-c.fwd.x, c.fwd.y, c.fwd.z], size: c.size, seed: c.seed }));
+  const wildlife = { species, creatures };
   const { ITEMS } = await import('../../src/items.js');
   const itemDefs = Object.fromEntries(Object.entries(ITEMS).map(([k, d]) => [k, { name: d.name, kind: d.kind, text: d.text ?? '', use: d.use ?? '' }]));
-  return { people, geometries, poses, anims, crowdFigures, crowdLooks, items: itemModels, itemDefs, boxScene, holo, holoInfo, flocks };
+  return { people, geometries, poses, anims, crowdFigures, crowdLooks, items: itemModels, itemDefs, boxScene, holo, holoInfo, flocks, wildlife };
 }

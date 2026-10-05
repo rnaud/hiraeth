@@ -29,6 +29,7 @@ namespace Memento
         public FluidTool tool;
         public ShipScene ship;
         public Ambient ambient;
+        public Wildlife wildlife;
         public static bool playPrologue = true;
         public static bool useSaves => !Application.isBatchMode;   // (a batch run starts fresh; Batch.Play tests the saves itself)
         public Dictionary<string, object> loaded;   // a new game opens in the ship, out in space (Batch: -noPrologue)

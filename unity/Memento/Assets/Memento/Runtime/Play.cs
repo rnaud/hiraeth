@@ -70,6 +70,8 @@ namespace Memento
             gameObject.AddComponent<FireFx>().Build(game.world.World.O("fx"));
             game.ambient = gameObject.AddComponent<Ambient>();
             game.ambient.Init(game);
+            game.wildlife = gameObject.AddComponent<Wildlife>();
+            game.wildlife.Init(game);
             game.tool = gameObject.AddComponent<FluidTool>();
             game.tool.Init(game);
             game.world.ReleaseBin();

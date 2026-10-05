@@ -94,13 +94,16 @@ Shader "Memento/Surface"
       #pragma fragment frag
       #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
       #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
-      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
       // instanced puffs (smoke, embers, dust, footprints: Puffs.cs): where, how big, which way, what colour
       struct PuffInst { float4 at; float4 size; float4 col; };   // at.w yaw, size.w pitch, col.w roll (rad, Unity)
       StructuredBuffer<PuffInst> _Puffs;
-      float4 _FarDepth;   // x: from this view depth on, y: the depth grows this much slower (smoke-column far shading); 0 off
+      float4 _FarDepth;
+      // instanced parts with a whole transform each (the wildlife: InstMats in Puffs.cs): three rows of a 3x4 matrix and a tint
+      struct MatInst { float4 r0, r1, r2, col; };
+      StructuredBuffer<MatInst> _Mats;   // x: from this view depth on, y: the depth grows this much slower (smoke-column far shading); 0 off
       float3 rotXYZ(float3 v, float3 e)
       {
         float cx = cos(e.x), sx = sin(e.x), cy = cos(e.y), sy = sin(e.y), cz = cos(e.z), sz = sin(e.z);
@@ -172,9 +175,22 @@ Shader "Memento/Surface"
           nWS = normalize(rotXYZ(v.normalOS / max(pi.size.xyz, 1e-4), e3));
           o.positionCS = TransformWorldToHClip(posWS);
           o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
-          o.instColor = pi.col.rgb;
+          o.instColor = pi.col.rgb * v.color.rgb;
           o.viewDepth = -TransformWorldToView(posWS).z;
           o.objPos = toThree(lp); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree(_WorldSpaceCameraPos - pi.at.xyz);
+          o.bind = 0;
+        #endif
+        #if defined(MEMENTO_INSTMAT)
+          MatInst mi = _Mats[v.iid];
+          float3 q = v.positionOS.xyz;
+          posWS = float3(dot(mi.r0.xyz, q) + mi.r0.w, dot(mi.r1.xyz, q) + mi.r1.w, dot(mi.r2.xyz, q) + mi.r2.w);
+          nWS = normalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
+          o.positionCS = TransformWorldToHClip(posWS);
+          o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
+          o.instColor = mi.col.rgb * v.color.rgb;
+          o.viewDepth = -TransformWorldToView(posWS).z;
+          float ms = length(mi.r0.xyz);
+          o.objPos = toThree(q * ms); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree((_WorldSpaceCameraPos - float3(mi.r0.w, mi.r1.w, mi.r2.w)));
           o.bind = 0;
         #endif
         return o;
