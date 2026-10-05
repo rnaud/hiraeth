@@ -12,12 +12,19 @@ import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
 import { attachTemple } from '../temples/index.js';
 import { buildDesertHearth } from '../desert-hearth.js';
+import { SandDrifts, driftMaterial } from '../sand-drifts.js';
+import { STORY } from '../desert-sites.js';
+import { smoothstep } from '../noise.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 export function createDesert(scene) {
   const terrain = new Terrain({ height: desertHeight });
   const { floaters, banners, lights, doors, floraAvoid } = buildWorld(scene, terrain);
   const vistas = buildDesertVistas(scene, terrain);
+  // sand banked against what stands on it: the landmarks', the city's and the camps' solids feed it
+  // (none inside Qanat's walls: its streets and plaza are paved)
+  const inQanat = (x, z) => Math.hypot(x - STORY.city.x, z - STORY.city.z);
+  const sand = SandDrifts.open({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 3, mask: (x, z) => smoothstep(57, 61, inQanat(x, z)) });
   const landmarks = buildDesertLandmarks(scene, terrain);
   // inside the masked head: a glyph-carved chamber under an oculus, built high above the map
   const portals = [];
@@ -50,6 +57,8 @@ export function createDesert(scene) {
   const hearth = buildDesertHearth(scene, terrain);
   lights.push(...hearth.lights);
   portals.push(...hearth.portals);
+  const drifts = sand.close().build(driftMaterial(makeMaterial, terrain.materialOptions));
+  if (drifts) scene.add(drifts);
   // the Givers' House in the eastern dunes, and its rooms far overhead (src/temples/desert.js)
   return attachTemple('desert', scene, {
     id: 'desert',

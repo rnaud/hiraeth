@@ -56,3 +56,17 @@ test('ground marks: rarer ripple patches, few print dots, cracks for bare rock',
   const rock = makeMaterial({ color: '#d8a8b4', mode: MODE_TERRAIN, pattern: 'cracks', key: 't.rockground' });
   assert.ok(rock.defines.S_CRACKS && rock.fragmentShader.includes('rockFissures('), 'terrain with pattern cracks draws fissures');
 });
+
+test('weathered walls: house fronts and old masonry, never metal, glass, lights or the makers\' work', async () => {
+  const { weatheredOf, WATER_INK } = { ...(await import('../src/materials.js')), ...(await import('../src/water-shader.js')) };
+  assert.equal(weatheredOf({ pattern: 'facade' }), 1, 'a house front');
+  assert.equal(weatheredOf({ pattern: 'facade', weathered: 0 }), 0);
+  assert.equal(weatheredOf({ mode: MODE_STRATA, weathered: 0.8 }), 0.8);
+  for (const o of [{ metal: 'painted', weathered: true }, { glass: true, weathered: true }, { glyphs: true, pattern: 'facade' }, { glow: 1, weathered: true }, { mode: MODE_TERRAIN, weathered: true }])
+    assert.equal(weatheredOf(o), 0, JSON.stringify(o));
+  const m = makeMaterial({ color: '#e8d0b0', mode: MODE_STRATA, weathered: true, key: 't.weather' });
+  assert.ok(m.defines.S_WEATHER && m.fragmentShader.includes('weatherInk('), 'compiled only where asked');
+  assert.ok(!makeMaterial({ color: '#e8d0b0', key: 't.noweather' }).defines.S_WEATHER);
+  // the water's crests: in patches, gone far off
+  assert.ok(WATER_INK.calm < 0.5 && WATER_INK.far[1] < 0.5);
+});

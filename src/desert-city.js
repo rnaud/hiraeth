@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
+import { SandDrifts } from './sand-drifts.js';
 import { mulberry32 } from './noise.js';
 import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
@@ -148,7 +149,7 @@ class Kit {
     this.batches.get(mat).push(g);
     return this;
   }
-  solid(geo) { this.proxies.push(prep(geo).applyMatrix4(this.frame)); return this; }
+  solid(geo) { const g = prep(geo).applyMatrix4(this.frame); this.proxies.push(g); SandDrifts.current?.addGeometry(g); return this; }
   both(mat, geo, proxy) { this.add(mat, geo); this.solid(proxy ?? geo.clone()); return this; }
   flush() {
     const meshes = [];
@@ -170,9 +171,9 @@ class Kit {
 // ------------------------------------------------------------------ materials
 function materials() {
   return {
-    wall: makeMaterial({ color: '#f0d7c3', color2: '#e8c4ae', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 2.4, flat: true }),
+    wall: makeMaterial({ color: '#f0d7c3', color2: '#e8c4ae', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 2.4, flat: true, weathered: true }),
     wallGlyph: makeMaterial({ color: '#efd8c4', color2: '#e3bfa8', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 1.2, flat: true, grid: 1.4, glyphs: true }),
-    terrace: makeMaterial({ color: '#ead2bc', color2: '#dfbea4', color3: '#f3e1cd', mode: MODE_STRATA, strataSize: 1.1, flat: true }),
+    terrace: makeMaterial({ color: '#ead2bc', color2: '#dfbea4', color3: '#f3e1cd', mode: MODE_STRATA, strataSize: 1.1, flat: true, weathered: 0.8 }),
     paving: makeMaterial({ color: '#e9d6bf', grid: 2.2, flat: true }),
     white: paint('#f6efe0'), pink: paint('#e9a99a'), rose: paint('#dd8f86'), ochre: paint('#e6b86f'), teal: paint('#5fb7ad'), lav: paint('#b7a0cf'),
     // domes are smooth (no facets on the shadow line)

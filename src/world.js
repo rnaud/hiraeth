@@ -139,12 +139,11 @@ export class Terrain {
     geo.computeVertexNormals();
     geo.computeBoundingSphere();
 
-    this.mesh = new THREE.Mesh(
-      geo,
-      makeMaterial(material ?? {
-        color: '#efd29b', color2: '#f5e1b6', color3: '#dca57a', mode: MODE_TERRAIN, biomes: true, ripples: true, sandInk: true,
-      })
-    );
+    // (kept: the sand banked against things is drawn in the ground's own material, sand-drifts.js)
+    this.materialOptions = material ?? {
+      color: '#efd29b', color2: '#f5e1b6', color3: '#dca57a', mode: MODE_TERRAIN, biomes: true, ripples: true, sandInk: true,
+    };
+    this.mesh = new THREE.Mesh(geo, makeMaterial(this.materialOptions));
     // the heightfield has an exact lookup, so it stays out of the mesh collision
     this.mesh.userData.noCollide = true;
   }

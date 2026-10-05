@@ -234,7 +234,7 @@ export function setEnvGround(color) {
 // The features set this way never change after makeMaterial (their uniforms are only read).
 // ---------------------------------------------------------------------------
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
-  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
+  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -242,6 +242,19 @@ const SURFACE_ALL = /* glsl */ `
   #endif
 `;
 const PATTERNS = { facade: 1, tiles: 2, leaves: 3, cracks: 4 };
+/**
+ * Weathering (S_WEATHER, weatherInk): how worn a material's walls are, 0..1. Asked for with
+ * o.weathered (true: 1), and on by default for house fronts (pattern 'facade'), never on metal,
+ * glass, lights or the makers' work (their inscriptions: glyphs). cell: a crack's cell along and up
+ * the wall (m); cracks: the share of cells with one; patches: of the wall; far: m per px over which
+ * they fade out.
+ */
+export const WEATHER = { cell: [3.7, 3.1], cracks: 0.3, patches: 0.13, far: [0.035, 0.08] };
+export function weatheredOf(o) {
+  if (o.metal || o.glass || o.glyphs || o.glow || o.mode === MODE_TERRAIN || o.mode === MODE_WATER) return 0;
+  const w = o.weathered ?? (o.pattern === 'facade' ? 1 : 0);
+  return w === true ? 1 : +w || 0;
+}
 const PATTERN_DEFINES = { 1: 'S_FACADE', 2: 'S_TILES', 3: 'S_LEAVES', 4: 'S_CRACKS' };
 
 /** The defines a material made with these options compiles: SURFACE_SPEC and the features it uses. */
@@ -264,6 +277,7 @@ export function surfaceDefines(o) {
   on('S_GLYPHS', o.glyphs);
   on('S_GRID', o.grid || o.plates);
   on('S_PLATES', o.plates);
+  on('S_WEATHER', weatheredOf(o) > 0);
   on('S_FOLDS', o.folds);
   on('S_SCRUB', o.scrub);
   on('S_GLASS', o.glass);
@@ -488,6 +502,8 @@ const fragmentShader = /* glsl */ `
   uniform int uShadeStyle;
   uniform float uGrid;
   uniform float uPlates;   // the grid drawn as plating (plateLines)
+  uniform float uWeather;  // weathering: cracks and patches on old walls (weatherInk), 0..1
+  uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
   uniform vec3 uEnvGround;
@@ -848,9 +864,63 @@ const fragmentShader = /* glsl */ `
     alb = mix(alb, mix(farC, nearC, lodFill), vert);
     emit = glassK * on * lodFill * vert * (1.0 - shutK);
     ink = max(ink, inkLine(abs(boxPx), 1.0) * win * lodInk);
+    #ifdef S_WEATHER
+    if (uWeather > 0.0) {
+      // weathered: a crack running out from a corner of the odd window, jagged, thinning
+      float hc = hash(id + 21.7);
+      if (hc < 0.38 * uWeather) {
+        vec2 sgn = vec2(hc < 0.19 * uWeather ? 1.0 : -1.0, hash(id + 4.9) > 0.5 ? 1.0 : -1.0);
+        vec2 a = hf * sgn, b = a + vec2(0.1 + 0.12 * hash(id + 6.1), 0.16 + 0.14 * hash(id + 7.3)) * sgn;
+        vec2 ab = b - a, pa = c - a;
+        float tt = clamp(dot(pa, ab) / dot(ab, ab), 0.0, 1.0);
+        vec2 off = pa - ab * tt + vec2(-ab.y, ab.x) / length(ab) * (vnoise(vec2(tt * 9.0, hc * 40.0)) - 0.5) * 0.035;
+        float dpx = length(off / gq);
+        ink = max(ink, inkLine(dpx, mix(0.9, 0.35, tt)) * win * lodInk * step(dot(pa, ab), dot(ab, ab) * 1.0));
+      }
+    }
+    #endif
     if (abs(c.x) < hf.x + 0.05) ink = max(ink, inkLine(abs(c.y + hf.y + 0.03) / gq.y, 1.3) * win * lodInk);   // sill
     return ink * vert;
   }
+
+  #ifdef S_WEATHER
+  // Weathering (makeMaterial({ weathered })): old walls, lived in. On upright faces, in cells of the
+  // wall anchored in the world (so each building has its own), the odd crack runs down from a
+  // storey's top or up from its foot, jagged and thinning, with a branch now and then; and a few
+  // patches where the plaster has gone, their edge a broken pen line, a shade apart inside (under the
+  // colour-edge threshold: the only line is the drawn one). q: (along the wall, up) in metres,
+  // fq: metres per px of each; pn / fpn: the patches' noise and its px gradient (uniform flow).
+  float weatherInk(vec2 q, vec2 fq, float pn, float fpn, inout vec3 alb) {
+    float ink = 0.0;
+    const vec2 cellS = vec2(${WEATHER.cell[0]}, ${WEATHER.cell[1]});
+    float resolved = 1.0 - smoothstep(${WEATHER.far[0]}, ${WEATHER.far[1]}, max(fq.x, fq.y));
+    if (resolved > 0.0) for (int dy = 0; dy < 2; dy++) {
+      vec2 id = floor(q / cellS) - vec2(0.0, float(dy));
+      if (hash(id + 41.0) > ${WEATHER.cracks} * uWeather) continue;            // most cells: none
+      bool down = hash(id + 2.2) > 0.45;
+      float x0 = (id.x + 0.12 + 0.76 * hash(id + 3.3)) * cellS.x;
+      float y0 = (id.y + (down ? 1.0 : 0.0)) * cellS.y;                     // from the top down, or the foot up
+      float len = cellS.y * (0.4 + 0.75 * hash(id + 8.8));
+      float sAlong = down ? y0 - q.y : q.y - y0, t = sAlong / len;
+      if (t < 0.0 || t > 1.0) continue;
+      float lean = (hash(id + 5.1) - 0.5) * 1.1;
+      float x = x0 + lean * sAlong + (vnoise(vec2(sAlong * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + (vnoise(vec2(sAlong * 8.0, id.y * 3.0)) - 0.5) * 0.07;
+      ink = max(ink, inkLine(abs(q.x - x) / max(fq.x, 1e-5), mix(1.05, 0.35, t)) * (1.0 - smoothstep(0.8, 1.0, t)));
+      // a branch from part-way down, off to one side
+      float tb = 0.3 + 0.3 * hash(id + 9.4), sb = sAlong - tb * len;
+      if (sb > 0.0 && sb < len * 0.35 && hash(id + 1.9) < 0.6) {
+        float xb = x0 + lean * tb * len + (vnoise(vec2(tb * len * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + sign(hash(id + 6.6) - 0.5) * sb * 0.9 + (vnoise(vec2(sb * 6.0, id.x)) - 0.5) * 0.06;
+        ink = max(ink, inkLine(abs(q.x - xb) / max(fq.x, 1e-5), mix(0.7, 0.3, sb / (len * 0.35))) * (1.0 - smoothstep(0.7, 1.0, sb / (len * 0.35))));
+      }
+    }
+    // patches: the plaster gone (a shade darker) or a pale repair, the edge broken
+    float th = 1.0 - ${WEATHER.patches} * uWeather;
+    float inside = step(th, pn);
+    alb *= 1.0 + inside * (hash(floor(q / 6.0) + 12.0) > 0.4 ? -0.07 : 0.05);
+    float edge = inkLine(abs(pn - th) / max(fpn, 1e-5), 0.8) * smoothstep(0.35, 0.6, vnoise(q * 1.7 + 3.0));
+    return max(ink, edge * 0.8) * resolved;
+  }
+  #endif
 
   // Roof tiles: rows with staggered joints.
   float roofTiles(vec3 wp) {
@@ -1157,6 +1227,14 @@ const fragmentShader = /* glsl */ `
     // drawn-detail coordinates + derivatives (uniform control flow)
     float faceX = abs(on.x) > abs(on.z) ? vObjPos.z : vObjPos.x;     // horizontal coord on a side face
     float fissFw = fwidth(faceX) / 9.0;
+    #ifdef S_WEATHER
+    // the wall's own frame for weathering: along it (from the interpolated normal, as façades) and up
+    vec2 wDir = normalize(vec2(-vNormal.z, vNormal.x) + 1e-5);
+    vec2 wq = vec2(dot(vWorldPos.xz, wDir), vWorldPos.y);
+    vec2 wfq = vec2(length(vec2(dFdx(wq.x), dFdy(wq.x))), length(vec2(dFdx(wq.y), dFdy(wq.y))));
+    float wpn = vnoise(wq * 0.42 + 17.0) * 0.72 + vnoise(wq * 1.6) * 0.28;
+    float wfpn = fwidth(wpn);
+    #endif
     #ifdef S_STRATA
     // strokes along the beds of rock (the strata's own wavy horizontals), lit or not
     #ifdef STRATA_OBJECT
@@ -1299,6 +1377,9 @@ const fragmentShader = /* glsl */ `
     #endif
     #ifdef S_CRACKS
     if (uPattern == 4 && uMode != ${MODE_TERRAIN}) patInk = rockCracks(vObjPos);   // (bare rock ground: rockFissures, below)
+    #endif
+    #ifdef S_WEATHER
+    if (uWeather > 0.0 && abs(n.y) < 0.55) patInk = max(patInk, weatherInk(wq, wfq, wpn, wfpn, albedo) * (1.0 - smoothstep(0.35, 0.55, abs(n.y))));
     #endif
     albedo *= instColor;
     #ifdef S_PLATES
@@ -1526,6 +1607,7 @@ const fragmentShader = /* glsl */ `
       facePart = true;
     #endif
     if (facePart) gHatch.a += 16.0;
+    gHatch.a += 32.0 * uDrift;   // sand banked against something (sand-drifts.js): post.js draws its meeting line softly
     #ifdef DISSOLVE
     gHatch.a = max(gHatch.a, dEdge);
     #endif
@@ -1576,7 +1658,8 @@ const fragmentShader = /* glsl */ `
     if (L < uToon) {
       float turned = ndl < 0.0 ? (ndl > -${SHADE.band} ? 1.0 : 0.6) : 0.0;
       float lift = 1.0 - (1.0 - uShade.x) * (1.0 - uHalftone * turned) * (1.0 - uBounce * smoothstep(-0.1, -0.7, n.y));
-      gHatch.rg *= uShade.z * (1.0 - 0.75 * lift);
+      // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
+      gHatch.rg *= uShade.z * vec2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
       float hq = uShade.y < 0.0 ? 0.0 : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
       gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));
     }
@@ -1603,6 +1686,10 @@ const cache = new Map();
  * @param {number} [o.grid] spacing of drawn grid lines (0 = none)
  * @param {boolean|number} [o.plates] the grid drawn as plating: rows of uneven plates, staggered joints, some left
  *                              out, each plate a shade apart (a number: the plate's size in metres, else the grid's)
+ * @param {boolean} [o.drift]   ground banked against something (sand-drifts.js): +32 in gHatch.a, post.js draws
+ *                              the line where it meets a wall softly
+ * @param {boolean|number} [o.weathered] old walls: cracks from storeys' tops and feet and from window corners,
+ *                              patches gone from the plaster (0..1; on for façades; never metal or the makers')
  * @param {number}  [o.shade]   0..1: this surface's shade lifted toward its lit colour (SHADE)
  * @param {number}  [o.shadeHue] 0..1: how much of its own hue its shade keeps (default: the world's, uShadeKeep)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
@@ -1659,6 +1746,8 @@ export function makeMaterial(o) {
       uFlat: { value: o.flat ? 1 : 0 },
       uStrataSize: { value: o.strataSize ?? 4.0 },
       uPlates: { value: o.plates ? 1 : 0 },
+      uWeather: { value: weatheredOf(o) },
+      uDrift: { value: o.drift ? 1 : 0 },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing
       uGlyphs: { value: o.glyphs ? (typeof o.glyphs === 'number' ? o.glyphs : o.grid || 1.4) : 0 },

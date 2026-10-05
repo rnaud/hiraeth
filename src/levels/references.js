@@ -3,6 +3,7 @@ import { colourScript } from '../timeofday.js';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { RoomKit } from './lab-kit.js';
 import { REFERENCE_VIEWS, REFERENCE_SHEETS } from './reference-views.js';
+import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 
 // ---------------------------------------------------------------------------
 // The references: a developer's level (?level=references, or the worlds list, L)
@@ -162,8 +163,13 @@ export function createReferences(scene) {
     group.add(groundMesh);
     const H = (x, z) => def.ground.height(x, z);
     const kit = new RoomKit({ group, ground: { heightAt: H, baseAt: (x, z, r) => { let m = H(x, z); for (let k = 0; k < 8; k++) m = Math.min(m, H(x + Math.cos(k * 0.785) * r, z + Math.sin(k * 0.785) * r)); return m; } }, centre, seed: 3775 + i * 17 });
+    // sand banks against what stands on a sandy ground (sand-drifts.js: the kit's solids feed it)
+    const sandy = def.ground.material.ripples || def.ground.material.sandInk;
+    const sand = sandy ? SandDrifts.open({ heightAt: H, seed: 3775 + i }) : null;
     def.build(kit, def);
     kit.finish();
+    const drifts = sand?.close().build(driftMaterial(makeMaterial, { mode: MODE_TERRAIN, ...def.ground.material }));
+    if (drifts) group.add(drifts);
     noShadow.push(...kit.noShadow);
     movers.push(...kit.movers.map((fn) => (t) => { if (group.visible) fn(t); }));
     group.updateMatrixWorld(true);

@@ -149,8 +149,9 @@ export const REFERENCE_VIEWS = [
       material: { color: '#f4c27a', color2: '#ecb05f', color3: '#e09a52', ripples: true, sandInk: true },
     },
     build(kit) {
-      const bone = kit.mat({ color: '#ede2ca' });
-      const boneShade = kit.mat({ color: '#d9c6a6' });
+      // (bone: its own hue in shade, a flat tone, no strokes)
+      const bone = kit.mat({ color: '#ede2ca', shadeHue: 0.9, hatch: 0 });
+      const boneShade = kit.mat({ color: '#d9c6a6', shadeHue: 0.9, hatch: 0 });
       const hollow = kit.mat({ color: '#7d5f48', flat: true });
       const H = (x, z) => kit.H(x, z);
       // the near dune: a band of deeper orange up to its crest (the panel's foreground tone)
@@ -210,9 +211,9 @@ export const REFERENCE_VIEWS = [
       const H = (x, z) => kit.H(x, z);
       const tower = kit.mat({ color: '#e3ad7c' });
       const cap = kit.mat({ color: '#d69c68', side: THREE.DoubleSide });
-      const hut = [kit.mat({ color: '#e4c6a6', flat: true }), kit.mat({ color: '#d6b08c', flat: true }), kit.mat({ color: '#efd8bd' }), kit.mat({ color: '#c99d78' })];
+      const hut = [kit.mat({ color: '#e4c6a6', flat: true, weathered: 0.8 }), kit.mat({ color: '#d6b08c', flat: true, weathered: 0.8 }), kit.mat({ color: '#efd8bd', weathered: 0.6 }), kit.mat({ color: '#c99d78', weathered: 0.6 })];
       const dark = kit.mat({ color: '#6a4c3a', flat: true });
-      const dish = kit.mat({ color: '#f6dcbd', side: THREE.DoubleSide });
+      const dish = kit.mat({ color: '#f6dcbd', side: THREE.DoubleSide, shade: 0.45, hatch: 0.2 });
       const rope = kit.mat({ color: '#8c7a68', flat: true });
       // the tower: a fluted trumpet stem flaring into a ribbed cap overhead
       const TX = -12, TZ = -86, flutes = 84, y0 = H(TX, TZ);
@@ -373,9 +374,10 @@ export const REFERENCE_VIEWS = [
     people: [{ at: [21, -55], facing: 2.6, palette: PERSON, head: 'hood' }],
     build(kit) {
       const H = (x, z) => kit.H(x, z);
-      const sail = kit.mat({ color: '#e2a46e', side: THREE.DoubleSide });
-      const sail2 = kit.mat({ color: '#dc9a62', side: THREE.DoubleSide });
-      const sailPale = kit.mat({ color: '#efd6ae', side: THREE.DoubleSide });
+      // (cloth: a light shade with few strokes, the panel's sails are toned, barely hatched)
+      const sail = kit.mat({ color: '#e2a46e', side: THREE.DoubleSide, shade: 0.25, hatch: 0.3 });
+      const sail2 = kit.mat({ color: '#dc9a62', side: THREE.DoubleSide, shade: 0.25, hatch: 0.3 });
+      const sailPale = kit.mat({ color: '#efd6ae', side: THREE.DoubleSide, shade: 0.25, hatch: 0.3 });
       const spar = kit.mat({ color: '#7a5c44', flat: true });
       const domeM = kit.mat({ color: '#dcbb8c' });
       const domeFar = kit.mat({ color: '#e2c398' });
@@ -435,11 +437,12 @@ export const REFERENCE_VIEWS = [
         const ledges = 0.9 * smoothstep(-0.05, 0.12, n3(x * 0.035, z * 0.05)) + 0.6 * smoothstep(0.05, 0.22, n2(x * 0.07 + 9, z * 0.09));   // steps in the rock: inked edges
         const rock = 1.6 + 10.2 * smoothstep(28, 0, d) + 24 * smoothstep(5, -70, x + 0.25 * d) * smoothstep(250, 130, d) + 0.8 * n2(x * 0.06, z * 0.06) + ledges;
         const e = r2((x - 55) / 155, (d - 148) / 96) + 0.1 * n3(x * 0.02, z * 0.02);   // the lake's outline: < 1 inside
-        const bed = -2.4 + 2.1 * smoothstep(0.3, 0.75, n2(x * 0.018 + 4, z * 0.024)) + 0.5 * n3(x * 0.06, z * 0.06);   // shallows show pale
+        // broad pale shallows on the near and left side, the deep water off to the right under the cliff
+        const bed = -2.3 + 2.0 * smoothstep(-0.15, 0.45, n2(x * 0.008 + 4, z * 0.013) - 0.004 * (x - 40)) + 0.3 * n3(x * 0.03, z * 0.03);
         const k = smoothstep(1.0, 0.88, e);
         return rock * (1 - k) + bed * k;
       },
-      material: { color: '#dba9b4', color2: '#d79fac', color3: '#c98f9d' },
+      material: { color: '#dba9b4', color2: '#d79fac', color3: '#c98f9d', pattern: 'cracks' },
       rings: { r1: 1500 },
     },
     people: [{ at: [7.3, -30], facing: 3.0, palette: PERSON, head: 'hood' }],

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA, MODE_WATER } from './materials.js';
+import { SandDrifts } from './sand-drifts.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from './noise.js';
 import { heightFn } from './world.js';
 import { basinHeight } from './desert-vistas.js';
@@ -131,7 +132,7 @@ class Kit {
     this.batches.get(mat).push(prep(geo).applyMatrix4(this.frame));
     return this;
   }
-  solid(geo) { this.proxies.push(prep(geo).applyMatrix4(this.frame)); return this; }
+  solid(geo) { const g = prep(geo).applyMatrix4(this.frame); this.proxies.push(g); SandDrifts.current?.addGeometry(g); return this; }
   both(mat, geo, proxy) { const p = proxy ?? geo.clone(); this.add(mat, geo); this.solid(p); return this; }
   flush() {
     for (const [mat, list] of this.batches) {

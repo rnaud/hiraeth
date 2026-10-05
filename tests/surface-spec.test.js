@@ -61,7 +61,12 @@ test('surface shader: each option turns on its feature, and every feature is gua
   assert.deepEqual(D({ mode: MODE_RIBBON }), ['S_RIBBON']);
   assert.deepEqual(D({ mode: MODE_WATER }), ['S_WATERMODE']);
   assert.deepEqual(D({ pattern: 'cracks' }), ['S_CRACKS']);
-  assert.deepEqual(D({ pattern: 'facade' }), ['S_FACADE']);
+  assert.deepEqual(D({ pattern: 'facade' }), ['S_FACADE', 'S_WEATHER'], 'house fronts are weathered by default');
+  assert.deepEqual(D({ pattern: 'facade', weathered: false }), ['S_FACADE']);
+  assert.deepEqual(D({ mode: MODE_STRATA, weathered: true }), ['S_STRATA', 'S_WEATHER']);
+  assert.deepEqual(D({ mode: MODE_STRATA, weathered: true, glyphs: true }), ['S_GLYPHS', 'S_STRATA'], "the makers' work stays new");
+  assert.deepEqual(D({ metal: 'painted', weathered: true }), [], 'metal is never weathered');
+  assert.deepEqual(D({ grid: 3, plates: true }), ['S_GRID', 'S_PLATES']);
   assert.deepEqual(D({ pattern: 'nonsense' }), []);
   assert.deepEqual(D({ folds: 4, scrub: true, glass: true }), ['S_FOLDS', 'S_GLASS', 'S_SCRUB']);
   assert.deepEqual(D({ metal: 'steel' }), []);
@@ -81,6 +86,7 @@ test('surface shader: a feature whose uniform is on is always compiled (the Lab\
       S_RIBBON: u.uMode.value === MODE_RIBBON, S_GLYPHS: u.uGlyphs.value > 0, S_GRID: u.uGrid.value > 0, S_FOLDS: u.uFolds.value > 0, S_SCRUB: u.uScrub.value > 0,
       S_GLASS: u.uGlass.value > 0, S_CREASES: u.uCreases.value > 0, S_MAP: u.uHasMap.value > 0, S_BIOMES: u.uBiomes.value > 0, S_RIPPLES: u.uRipples.value > 0,
       S_TICKS: u.uTicks.value > 0, S_SANDINK: u.uSandInk.value > 0, [[null, 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS'][u.uPattern.value]]: u.uPattern.value > 0,
+      S_WEATHER: u.uWeather.value > 0, S_PLATES: u.uPlates.value > 0,
       WATER: u.uMode.value === MODE_WATER, METAL_BRUSHED: !!(u.uMetal && u.uMetal.value.y > 0),
     };
     for (const [k, on] of Object.entries(need)) if (on) assert.ok(d[k], `${o.key}: ${k}`);

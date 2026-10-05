@@ -474,6 +474,9 @@ const fragmentShader = /* glsl */ `
     float shadeHue = shadeQ.x > 0.5 ? (shadeQ.x - 1.0) / ${SHADE.hues}.0 : uShadeKeep;
     // gHatch.a packs glow (0..1) + 2 hero (the player) + 4 figure (any other person) + 8 soft ink (grass blades)
     // + 16 a face (its skin and eyes: flat colour and one shadow tone, no line round the shade, no crease shading)
+    // + 32 sand banked against something (sand-drifts.js: the line where it meets a wall drawn softly)
+    float drift = step(31.5, surface.a);
+    surface.a -= 32.0 * drift;
     float face = step(15.5, surface.a);
     surface.a -= 16.0 * face;
     float soft = step(7.5, surface.a);
@@ -566,12 +569,14 @@ const fragmentShader = /* glsl */ `
     // how much inner ink (lines, drawn detail, hatching) a person keeps here
     float innerK = figure > 0.5 && hero < 0.5 ? smoothstep(70.0, 260.0, 1.8 * uRes.y * 0.5 * uProj11 / max(depth, 0.1)) : 1.0;
     float softNear = soft;   // a grass blade under this pixel's ink kernel (soft ink)
+    float driftNear = drift; // banked sand under this pixel's ink kernel
     vec2 grassNear = grassInk;   // its pen line's share and its outline's fade (the blade's own, or the nearest blade's)
     if (ink > 0.02 && hero < 0.5 && !isSky) {
       vec2 fo = max(silW * uPixelRatio, 1.0) / uRes;
       vec4 t1 = texture(tHatch, euv + vec2(fo.x, 0)), t2 = texture(tHatch, euv - vec2(fo.x, 0)),
            t3 = texture(tHatch, euv + vec2(0, fo.y)), t4 = texture(tHatch, euv - vec2(0, fo.y));
       vec4 fa = vec4(t1.a, t2.a, t3.a, t4.a);
+      driftNear = max(drift, max(max(step(31.5, fa.x), step(31.5, fa.y)), max(step(31.5, fa.z), step(31.5, fa.w))));
       fa = mod(fa, 16.0);
       vec4 faSoft = step(vec4(7.5), fa);
       fa -= 8.0 * faSoft;
@@ -686,6 +691,8 @@ const fragmentShader = /* glsl */ `
       //  fading out with distance, where the blades blend into the ground)
       ink = (soft > 0.5 ? min(ink, eS.x) * mix(0.75, 1.0, grassNear.x) : ink * mix(0.22, 1.0, grassNear.x)) * (1.0 - grassNear.y);
     }
+    // where banked sand meets a wall: a light line in a darker shade of the sand, not a hard contact line
+    if (driftNear > 0.5 && softNear < 0.5) { inkC = mix(uInk, col * 0.6, 0.55); ink *= 0.45; }
     col = mix(col, inkC, ink);
 
     // ---- 4b. light: a halo round glowing things, in flat rings like a printed glow, and a
