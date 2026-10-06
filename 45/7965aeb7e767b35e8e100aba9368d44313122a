@@ -1,0 +1,47 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_c5fabbd95da368 185-187
+changelog.md
+  s_1fd8d0e7b02dcf::t_28171b8825389f 11
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_25cf39c84e3e32 270-272
+docs/systems/rendering.md
+  s_1fd8d0e7b02dcf::t_6dfe24ad4ac8df 337-365
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_233d7972bad79b 14
+src/desert-sites.js
+  s_1fd8d0e7b02dcf::t_033b5a3fef66e3 68-70
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_d00d4e37daf0a7 26-28
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_c9cfd5bcfdab63 14-16
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_cca138fed6bc9f 24-25,896
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_980486d2811ddf 21-26
+src/levels/reference-desert.js
+  s_1fd8d0e7b02dcf::t_5ea84027682179 4,23-25,41,60,89,110,128,158,184,202,225,248,277,303,330,361
+src/levels/reference-shaft.js
+  s_1fd8d0e7b02dcf::t_dbceee2a45dbee 22-24
+src/levels/reference-vael2.js
+  s_1fd8d0e7b02dcf::t_8258c326e81a69 6,28
+src/post.js
+  s_1fd8d0e7b02dcf::t_a10dd0833827ab 58-84,171-175,372-393,767-768,880-884,886,1048-1051,1168-1169,1176,1184,1197,1205,1213,1221,1228
+tests/ink-pass.test.js
+  s_1fd8d0e7b02dcf::t_d6d11986e464e8 56-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "457965aeb7e767b35e8e100aba9368d44313122a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
