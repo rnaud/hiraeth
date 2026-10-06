@@ -150,7 +150,8 @@ class Kit {
     return this;
   }
   solid(geo) { const g = prep(geo).applyMatrix4(this.frame); this.proxies.push(g); SandDrifts.current?.addGeometry(g); return this; }
-  both(mat, geo, proxy) { this.add(mat, geo); this.solid(proxy ?? geo.clone()); return this; }
+  // (the copy is taken before add(), which transforms a non-indexed geometry in place: else the proxy is moved twice)
+  both(mat, geo, proxy) { const p = proxy ?? geo.clone(); this.add(mat, geo); this.solid(p); return this; }
   flush() {
     const meshes = [];
     for (const [mat, list] of this.batches) {
@@ -389,8 +390,10 @@ export function buildDesertCity(scene, terrain) {
       const a = k / 7 * Math.PI * 2 + 0.4, ca = Math.sin(a), sa = Math.cos(a);
       if (Math.abs(Math.atan2(Math.sin(a - LEDGE.phi), Math.cos(a - LEDGE.phi))) < 0.4) continue;
       // (each grows out of the bark: it starts well inside the trunk, whose knots dip to r 3.6 here)
-      const pts = [V(TREE.x + ca * 2, top + 1.3, TREE.z + sa * 2), V(TREE.x + ca * 6.5, top + 0.4, TREE.z + sa * 6.5), V(TREE.x + ca * 10.5, top - 0.2, TREE.z + sa * 10.5), V(TREE.x + ca * 12.2, top - 2.5, TREE.z + sa * 12.2)];
-      city.add(M.bark, taper(pts, 1.1, 0.35, 12, 6));
+      // (they are solid, so feet no longer sink up to 1.9 m into them; they lie about 0.4 m proud of the
+      // paving all the way out, low enough to step over, so the terrace is still walked round)
+      const pts = [V(TREE.x + ca * 2, top - 0.5, TREE.z + sa * 2), V(TREE.x + ca * 6.5, top - 0.3, TREE.z + sa * 6.5), V(TREE.x + ca * 10.5, top - 0.1, TREE.z + sa * 10.5), V(TREE.x + ca * 12.2, top - 2.5, TREE.z + sa * 12.2)];
+      city.both(M.bark, taper(pts, 0.9, 0.3, 12, 6));
     }
     // limbs: a candelabrum of six arms reaching up and out, each ending in a flame
     const limbs = [];
@@ -430,9 +433,10 @@ export function buildDesertCity(scene, terrain) {
 
     // the dry well at the tree's roots, and the carved stele beside it
     const WELL = { x: 0, z: 8 };
-    city.both(M.stone, lathe([[2.0, 0], [2.6, 0], [2.6, 1.0], [2.25, 1.15], [2.0, 1.0], [2.0, 0]], 24).translate(WELL.x, top, WELL.z),
-      new THREE.CylinderGeometry(2.6, 2.6, 1.1, 10).translate(WELL.x, top + 0.55, WELL.z));
-    city.add(M.dry, new THREE.CylinderGeometry(2.02, 2.02, 0.1, 24).translate(WELL.x, top + 0.06, WELL.z));
+    // (the kerb collides as the ring it is drawn as, and its dry bottom holds you up: a solid cylinder
+    // used to cap the well's mouth with an invisible floor 1.1 m over the terrace)
+    city.both(M.stone, lathe([[2.0, 0], [2.6, 0], [2.6, 1.0], [2.25, 1.15], [2.0, 1.0], [2.0, 0]], 24).translate(WELL.x, top, WELL.z));
+    city.both(M.dry, new THREE.CylinderGeometry(2.02, 2.02, 0.1, 24).translate(WELL.x, top + 0.06, WELL.z));
     const wellMat = magicMaterial(21);
     const wellWater = magicPool(2.0, wellMat, { rings: 4, segs: 24 });
     wellWater.position.copy(city.world(WELL.x, top + 0.12, WELL.z));
@@ -659,17 +663,18 @@ export function buildDesertCity(scene, terrain) {
     // the skull, face down in the sand, looking out over the dunes; its mouth propped open with carved stones
     const skull = new THREE.SphereGeometry(13, 22, 14).scale(1, 0.82, 1.15);
     rough(skull, 0.5, 0.25, 3);
-    giant.add(M.bone, skull.translate(0, 4.5, 0));
-    giant.solid(new THREE.SphereGeometry(12.2, 10, 7).scale(1, 0.8, 0.95).translate(0, 4.5, -1.5));
-    // brow ridge, cheekbones, eye sockets, the nasal hollow
-    giant.add(M.boneDark, T(new THREE.TorusGeometry(7.4, 1.4, 6, 18, Math.PI), [0, 9.2, 12.4], [0.35, 0, 0], [1, 0.45, 1]));
+    // (the bone collides as it is drawn: a smaller sphere pulled back into it left the feet up to 2 m inside
+    // the brow and the cheeks; the mouth stays open, its doorway two metres clear of the skull's front)
+    skull.translate(0, 4.5, 0);
+    giant.both(M.bone, skull);
+    giant.both(M.boneDark, T(new THREE.TorusGeometry(7.4, 1.4, 6, 18, Math.PI), [0, 9.2, 12.4], [0.35, 0, 0], [1, 0.45, 1]));
     for (const s of [-1, 1]) {
-      giant.add(M.ink, T(new THREE.SphereGeometry(2.9, 12, 8), [s * 4.6, 7.8, 13.2], [0, 0, 0], [1.1, 0.8, 0.5]));
-      giant.add(M.boneDark, T(new THREE.SphereGeometry(2.6, 10, 6), [s * 8.8, 3.8, 11.2], [0, s * 0.5, 0], [1.2, 0.7, 0.8]));
+      giant.add(M.ink, T(new THREE.SphereGeometry(2.9, 12, 8), [s * 4.6, 7.8, 13.2], [0, 0, 0], [1.1, 0.8, 0.5]));   // (the sockets are hollows: not solid)
+      giant.both(M.boneDark, T(new THREE.SphereGeometry(2.6, 10, 6), [s * 8.8, 3.8, 11.2], [0, s * 0.5, 0], [1.2, 0.7, 0.8]));
     }
     giant.add(M.ink, T(new THREE.ConeGeometry(1.4, 3.2, 3), [0, 4.6, 14.6], [Math.PI, 0, 0], [1, 1, 0.5]));
     // teeth along the open jaw, the doorway between them
-    for (let i = -5; i <= 5; i++) if (Math.abs(i) > 1) giant.add(M.bone, T(new THREE.BoxGeometry(1.1, 1.8, 1.2), [i * 1.45, 1.6 + Math.abs(i) * 0.08, 14.1 - Math.abs(i) * 0.25], [0.1, 0, 0]));
+    for (let i = -5; i <= 5; i++) if (Math.abs(i) > 1) giant.both(M.bone, T(new THREE.BoxGeometry(1.1, 1.8, 1.2), [i * 1.45, 1.6 + Math.abs(i) * 0.08, 14.1 - Math.abs(i) * 0.25], [0.1, 0, 0]));
     giant.add(M.ink, T(new THREE.BoxGeometry(3.2, 3.4, 1.2), [0, 1.7, 14.2]));
     // the glyph on its brow, faintly alight
     giant.add(M.glyph, T(glyphGeometry(1.35), [0, 8.4, 14.35], [-0.2, 0, 0]));   // between the eyes
@@ -677,17 +682,16 @@ export function buildDesertCity(scene, terrain) {
     const sh = V(17, -1, 2), el = V(25, 8, 9), wr = V(31, 1.5, 17);
     const armPts = [[sh, el, 2.2, 1.7], [el, wr, 1.7, 1.2]];
     for (const [a, b, r0, r1] of armPts) {
-      giant.add(M.bone, taper([a, a.clone().lerp(b, 0.5).add(V(0, 0.6, 0)), b], r0, r1, 10, 8));
-      giant.solid(taper([a, b], r0 * 0.9, r1 * 0.9, 3, 6));
+      giant.both(M.bone, taper([a, a.clone().lerp(b, 0.5).add(V(0, 0.6, 0)), b], r0, r1, 10, 8));
     }
-    giant.add(M.boneDark, new THREE.SphereGeometry(2.2, 10, 8).translate(el.x, el.y, el.z));
+    giant.both(M.boneDark, new THREE.SphereGeometry(2.2, 10, 8).translate(el.x, el.y, el.z));
     for (let f = 0; f < 4; f++) {
       const a = -0.6 + f * 0.4, d = V(Math.sin(a + 0.6), 0, Math.cos(a + 0.6));
       const k1 = wr.clone().addScaledVector(d, 2.5).add(V(0, 0.4, 0)), k2 = wr.clone().addScaledVector(d, 5.2).add(V(0, -0.6, 0));
-      giant.add(M.bone, taper([wr, k1, k2], 0.55, 0.32, 6, 6));
+      giant.both(M.bone, taper([wr, k1, k2], 0.55, 0.32, 6, 6));
     }
     // carved stones propping the mouth, a lintel: the old people's doorway down
-    giant.add(M.wallGlyph, new THREE.BoxGeometry(5.2, 0.9, 1.4).translate(0, 3.8, 14.9));
+    giant.both(M.wallGlyph, new THREE.BoxGeometry(5.2, 0.9, 1.4).translate(0, 3.8, 14.9));
     for (const s of [-1, 1]) giant.both(M.wallGlyph, new THREE.BoxGeometry(0.9, 3.4, 1.3).translate(s * 2.1, 1.7, 14.9));
     giant.flush();
     const door = giant.world(0, 0, 15.6);

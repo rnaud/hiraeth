@@ -194,8 +194,8 @@ export function buildDesertLandmarks(scene, terrain) {
     const s = SITES.carcass, k = new Kit(root, 'Sunken leviathan', s.x, terrain.heightAt(s.x, s.z) - 3, s.z, s.yaw);
     // the spine follows the dune, half sunk in it
     const spine = new THREE.CatmullRomCurve3(Array.from({ length: 9 }, (_, i) => { const t = i / 8, x = -75 + 138 * t, z = -15 + 3 * Math.sin(t * 5); return V(x, k.gy(x, z) - 1.5 + 4 * Math.sin(Math.PI * t), z); }));
-    k.add(M.bone, new THREE.TubeGeometry(spine, 60, 2.8, 8));
-    k.solid(new THREE.TubeGeometry(spine, 12, 2.8, 4));
+    // (the bones collide as they are drawn: coarse stand-ins lay up to 3.7 m inside them)
+    k.both(M.bone, new THREE.TubeGeometry(spine, 60, 2.8, 8));
     const ribs = 19;
     for (let i = 0; i < ribs; i++) {
       const t = 0.12 + 0.72 * i / (ribs - 1), b = spine.getPoint(t);
@@ -207,24 +207,22 @@ export function buildDesertLandmarks(scene, terrain) {
         pts.push(V(b.x - 8 * th / Math.PI + lean * Math.sin(th), base + Math.sin(th) * H, b.z + (1 - Math.cos(th)) * W));
       }
       const r = 1.2 + 1.2 * g;
-      k.add(M.bone, T(tube(pts, r, 24, 7), [0, 0, 0], [0, 0, 0], [1, 1, 1]));
-      k.solid(tube(pts, r, 7, 4));
-      k.add(M.bone, T(new THREE.SphereGeometry(3.4, 8, 6), [b.x, b.y + 2, b.z], [0, 0, 0], [0.75, 1.1, 1.3]));
+      k.both(M.bone, T(tube(pts, r, 24, 7), [0, 0, 0], [0, 0, 0], [1, 1, 1]));
+      k.both(M.bone, T(new THREE.SphereGeometry(3.4, 8, 6), [b.x, b.y + 2, b.z], [0, 0, 0], [0.75, 1.1, 1.3]));
     }
     // tail vertebrae trailing into the sand
     for (let i = 1; i <= 9; i++) {
       const r = 2.8 - i * 0.22;
       const x = -75 - i * 5.4, z = -15 + Math.sin(i * 0.7) * 2.5;
-      k.add(M.bone, T(new THREE.SphereGeometry(r, 8, 6), [x, k.gy(x, z) - 0.4 * r, z], [0, 0, 0], [1.3, 0.9, 1]));
+      k.both(M.bone, T(new THREE.SphereGeometry(r, 8, 6), [x, k.gy(x, z) - 0.4 * r, z], [0, 0, 0], [1.3, 0.9, 1]));
     }
     // skull, nose down, a dark socket turned to the sky, jaw and tusks in the sand
     const sy = k.gy(84, -8) + 2, skullT = [[84, sy, -8], [0.3, 0, -0.2], [1.7, 0.85, 1.05]];
-    k.add(M.bone, T(new THREE.SphereGeometry(16, 18, 12), ...skullT));
-    k.solid(T(new THREE.SphereGeometry(16, 8, 6), ...skullT));
-    k.add(M.bone, T(new THREE.SphereGeometry(9, 12, 8), [62, sy + 5, -10], [0, 0, 0], [1, 0.9, 1.2]));   // the brow behind the sockets
+    k.both(M.bone, T(new THREE.SphereGeometry(16, 18, 12), ...skullT));
+    k.both(M.bone, T(new THREE.SphereGeometry(9, 12, 8), [62, sy + 5, -10], [0, 0, 0], [1, 0.9, 1.2]));   // the brow behind the sockets
     k.add(M.ink, T(new THREE.SphereGeometry(4.2, 12, 8), [80, sy + 9.5, 1], [0.7, 0.3, 0], [1.4, 0.55, 1]));
-    k.add(M.boneDark, T(new THREE.SphereGeometry(8, 12, 8), [96, sy - 3, -15], [0, 0.15, -0.12], [1.8, 0.6, 0.9]));   // jaw, mostly sunk
-    for (const z of [-6, 6]) k.add(M.bone, tube([V(104, sy - 3, -10 + z), V(116, sy - 4, -8 + z * 1.6), V(126, sy - 1, -6 + z * 1.8), V(130, sy + 6, -5 + z * 1.4)], 1.3, 16, 8));   // tusks
+    k.both(M.boneDark, T(new THREE.SphereGeometry(8, 12, 8), [96, sy - 3, -15], [0, 0.15, -0.12], [1.8, 0.6, 0.9]));   // jaw, mostly sunk
+    for (const z of [-6, 6]) k.both(M.bone, tube([V(104, sy - 3, -10 + z), V(116, sy - 4, -8 + z * 1.6), V(126, sy - 1, -6 + z * 1.8), V(130, sy + 6, -5 + z * 1.4)], 1.3, 16, 8));   // tusks
     out.carcass = k.world(0, 20, 6);
     k.flush();
   }
@@ -238,11 +236,11 @@ export function buildDesertLandmarks(scene, terrain) {
     const prof = (n) => Array.from({ length: n + 1 }, (_, i) => { const y = -L * 0.82 + (1.82 * L) * i / n; return [R * Math.sqrt(Math.max(0, 1 - Math.abs(y / L) ** 3)), y]; });
     // hull axis along local +x, nose (+x) dipping into the sand, rolled a little
     const hullRot = [0.5, 0, -Math.PI / 2 - 0.28], hullPos = [0, 5, 0];
-    k.add(M.hull, T(lathe(prof(18), 28), hullPos, hullRot));
-    k.solid(T(lathe(prof(6), 8), hullPos, hullRot));
+    // (the hull, its ribs and what stands on it collide as they are drawn: an 8-sided stand-in lay ~1 m inside)
+    k.both(M.hull, T(lathe(prof(18), 28), hullPos, hullRot));
     for (const y of [-26, -14, -2, 10, 22]) {
       const r = R * Math.sqrt(Math.max(0, 1 - Math.abs(y / L) ** 3)) + 0.25;
-      k.add(M.hullDark, T(T(new THREE.TorusGeometry(r, 0.6, 5, 30), [0, y, 0], [Math.PI / 2, 0, 0]), hullPos, hullRot));
+      k.both(M.hullDark, T(T(new THREE.TorusGeometry(r, 0.6, 5, 30), [0, y, 0], [Math.PI / 2, 0, 0]), hullPos, hullRot));
     }
     // the torn-open stern: a dark mouth inside an engine ring
     const yEnd = -L * 0.82, rEnd = R * Math.sqrt(1 - 0.82 ** 3);
@@ -254,13 +252,13 @@ export function buildDesertLandmarks(scene, terrain) {
       k.add(M.ink, T(T(new THREE.CircleGeometry(1.4, 12), [0, 0, 0.05], [0, 0, 0]).rotateY(Math.PI / 2 - a).translate(Math.cos(a) * (r + 0.05), y, Math.sin(a) * (r + 0.05)), hullPos, hullRot));
     }
     // a cockpit blister on top and a big round port on the flank (hull space: -x is up)
-    k.add(M.hullDark, T(new THREE.SphereGeometry(5, 16, 10).scale(1, 1.6, 1).translate(-R * 0.86, 20, 0), hullPos, hullRot));
+    k.both(M.hullDark, T(new THREE.SphereGeometry(5, 16, 10).scale(1, 1.6, 1).translate(-R * 0.86, 20, 0), hullPos, hullRot));
     k.add(M.ink, T(new THREE.SphereGeometry(3.2, 12, 8).scale(0.7, 1.2, 1).translate(-R * 0.86 - 2.4, 23, 0), hullPos, hullRot));
-    k.add(M.hullDark, T(new THREE.TorusGeometry(4.6, 0.9, 6, 28).translate(0, 4, R * 0.93), hullPos, hullRot));
+    k.both(M.hullDark, T(new THREE.TorusGeometry(4.6, 0.9, 6, 28).translate(0, 4, R * 0.93), hullPos, hullRot));
     k.add(M.ink, T(new THREE.CircleGeometry(4, 24).translate(0, 4, R * 0.96), hullPos, hullRot));
-    for (let i = 0; i < 6; i++) k.add(M.hullDark, T(new THREE.BoxGeometry(2.2, 3 + i % 3, 2.2).translate(-R * 0.75, -16 + i * 3.4, (i % 2 ? 1 : -1) * 4.5), hullPos, hullRot));
+    for (let i = 0; i < 6; i++) k.both(M.hullDark, T(new THREE.BoxGeometry(2.2, 3 + i % 3, 2.2).translate(-R * 0.75, -16 + i * 3.4, (i % 2 ? 1 : -1) * 4.5), hullPos, hullRot));
     // swept fins at the stern
-    for (const side of [-1, 1]) k.add(M.hullDark, T(new THREE.BoxGeometry(14, 0.7, 6), [-24, 12 + side * 2, side * 10], [side * 0.5, 0.3 * side, 0.25]));
+    for (const side of [-1, 1]) k.both(M.hullDark, T(new THREE.BoxGeometry(14, 0.7, 6), [-24, 12 + side * 2, side * 10], [side * 0.5, 0.3 * side, 0.25]));
     // masts on the spine of the hull
     for (const [x, h] of [[-6, 22], [6, 15]]) {
       k.add(M.rope, new THREE.CylinderGeometry(0.22, 0.35, h, 6).translate(x, 15 + h / 2, 0));
@@ -270,16 +268,15 @@ export function buildDesertLandmarks(scene, terrain) {
     // the broken-off section, further down the dune
     const secPos = [-62, 3.5, 16], secRot = [0.9, 0.4, -Math.PI / 2 + 0.15];
     const sec = Array.from({ length: 7 }, (_, i) => { const y = -11 + 22 * i / 6; return [8.5 * (1 - 0.15 * Math.abs(y / 11) ** 2), y]; });
-    k.add(M.hull, T(lathe(sec, 24), secPos, secRot));
-    k.solid(T(lathe(sec, 8), secPos, secRot));
+    k.both(M.hull, T(lathe(sec, 24), secPos, secRot));
     for (const y of [-11, 11]) {
-      k.add(M.hullDark, T(T(new THREE.TorusGeometry(7.3, 0.9, 5, 24), [0, y, 0], [Math.PI / 2, 0, 0]), secPos, secRot));
+      k.both(M.hullDark, T(T(new THREE.TorusGeometry(7.3, 0.9, 5, 24), [0, y, 0], [Math.PI / 2, 0, 0]), secPos, secRot));
       k.add(M.ink, T(T(new THREE.CircleGeometry(6.8, 20), [0, y * 0.9, 0], [Math.PI / 2, 0, 0]), secPos, secRot));
     }
     // two escape pods, half-buried helmets with dark visors
     for (const [x, z, r, yaw] of [[30, -34, 5.5, 0.6], [52, -20, 4.2, -0.4]]) {
       const y = k.gy(x, z) + r * 0.25, place = (g) => T(g, [x, y, z], [0.25, yaw, -0.3]);
-      k.both(M.hull, place(new THREE.SphereGeometry(r, 18, 12).scale(1.35, 1, 1)), place(new THREE.SphereGeometry(r, 8, 5).scale(1.35, 1, 1)));
+      k.both(M.hull, place(new THREE.SphereGeometry(r, 18, 12).scale(1.35, 1, 1)));
       k.add(M.hullDark, place(new THREE.TorusGeometry(r * 0.55, r * 0.12, 6, 20).rotateY(Math.PI / 2).translate(r * 1.25, r * 0.15, 0)));
       k.add(M.ink, place(new THREE.CircleGeometry(r * 0.5, 16).rotateY(Math.PI / 2).translate(r * 1.28, r * 0.15, 0)));
       k.add(M.hullDark, place(new THREE.BoxGeometry(r * 0.9, r * 0.12, r * 1.6).translate(-r * 1.1, r * 0.4, 0)));
@@ -288,7 +285,7 @@ export function buildDesertLandmarks(scene, terrain) {
     const cz = 32, g = (x, z) => k.gy(x, z);
     const hut = new THREE.CylinderGeometry(4.2, 4.2, 13, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2);
     const hy = g(-14, cz) - 0.3;
-    k.both(M.cream, T(hut, [-14, hy, cz], [0, 0.3, 0]), T(new THREE.BoxGeometry(13, 4, 7), [-14, hy + 2, cz], [0, 0.3, 0]));
+    k.both(M.cream, T(hut, [-14, hy, cz], [0, 0.3, 0]));
     k.add(M.ink, T(new THREE.BoxGeometry(0.4, 3.2, 2.2), [-14 + Math.cos(0.3) * 6.6, hy + 1.5, cz - Math.sin(0.3) * 6.6], [0, 0.3, 0]));
     k.add(M.ink, T(new THREE.BoxGeometry(8, 0.6, 0.3), [-14 + 2.75 * Math.sin(0.3), hy + 3.2, cz + 2.75 * Math.cos(0.3)], [-0.86, 0.3, 0]));
     for (const [x, z, r] of [[2, cz + 4, 3.6], [8, cz - 3, 2.6], [-26, cz + 6, 3]]) {
@@ -505,7 +502,9 @@ export function buildDesertLandmarks(scene, terrain) {
   // dome, with a crown of spines between them. The petals are ramps.
   {
     const s = SITES.petals, k = new Kit(root, 'Petal station', s.x, ground(s, 12) - 0.3, s.z, s.yaw);
-    k.both(M.pale, new THREE.CylinderGeometry(10, 11, 2.4, 24).translate(0, 0.9, 0), new THREE.CylinderGeometry(10, 11, 2.4, 10).translate(0, 0.9, 0));
+    // (the station collides as it is drawn: a flat box under each petal, a 10-sided drum and an 8-sided
+    // dome stood up to a metre away from the drawn surfaces, and the cage was a cone with nothing drawn on it)
+    k.both(M.pale, new THREE.CylinderGeometry(10, 11, 2.4, 24).translate(0, 0.9, 0));
     const N = 8, Lp = 34, Wp = 13, tilt = 0.42;
     for (let i = 0; i < N; i++) {
       const az = i * Math.PI * 2 / N, len = Lp * (i % 2 ? 0.85 : 1), lift = tilt + (i % 3) * 0.05;
@@ -513,24 +512,22 @@ export function buildDesertLandmarks(scene, terrain) {
       // the bowl's normals are turned inward so its cupped, sunlit inside shades as the top
       const bowl = new THREE.SphereGeometry(1, 20, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(len / 2, 4.2, Wp / 2);
       bowl.computeVertexNormals(); bowl.attributes.normal.array.forEach((v, j, a) => { a[j] = -v; });
-      k.add(i % 2 ? M.petalB : M.petalA, place(bowl));
-      k.solid(place(new THREE.BoxGeometry(len * 0.9, 0.8, Wp * 0.6).translate(0, -3.0, 0)));
+      k.both(i % 2 ? M.petalB : M.petalA, place(bowl));
       // a spine of the crown between this petal and the next
       const a2 = az + Math.PI / N;
-      k.add(M.pale, new THREE.ConeGeometry(0.9, 15, 6).rotateZ(-Math.PI / 2 + 0.35).translate(7.5, 0, 0).rotateY(-a2).translate(Math.cos(a2) * 8, 2.4, Math.sin(a2) * 8));
+      k.both(M.pale, new THREE.ConeGeometry(0.9, 15, 6).rotateZ(-Math.PI / 2 + 0.35).translate(7.5, 0, 0).rotateY(-a2).translate(Math.cos(a2) * 8, 2.4, Math.sin(a2) * 8));
     }
     // the glass cage: pointed meridians, rings and a finial
     const H = 30, R0 = 8.5, rAt = (y) => R0 * Math.pow(Math.max(0, 1 - (y / H) ** 2), 0.7);
     for (let i = 0; i < 12; i++) {
       const a = i * Math.PI / 6;
-      k.add(M.rope, tube(Array.from({ length: 9 }, (_, j) => { const y = H * j / 8; return V(Math.cos(a) * rAt(y), 2 + y, Math.sin(a) * rAt(y)); }), 0.2, 24, 4));
+      k.both(M.rope, tube(Array.from({ length: 9 }, (_, j) => { const y = H * j / 8; return V(Math.cos(a) * rAt(y), 2 + y, Math.sin(a) * rAt(y)); }), 0.2, 24, 4));
     }
-    for (const y of [6, 13, 20, 25.5]) k.add(M.rope, new THREE.TorusGeometry(rAt(y), 0.16, 4, 32).rotateX(Math.PI / 2).translate(0, 2 + y, 0));
+    for (const y of [6, 13, 20, 25.5]) k.both(M.rope, new THREE.TorusGeometry(rAt(y), 0.16, 4, 32).rotateX(Math.PI / 2).translate(0, 2 + y, 0));
     k.add(M.rope, new THREE.CylinderGeometry(0.08, 0.25, 7, 5).translate(0, 2 + H + 3, 0));
     k.add(M.pale, new THREE.SphereGeometry(0.8, 10, 8).translate(0, 2 + H + 0.4, 0));
-    k.both(M.pale, new THREE.SphereGeometry(5.5, 18, 9, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, 2, 0), new THREE.SphereGeometry(5.5, 8, 3, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, 2, 0));
+    k.both(M.pale, new THREE.SphereGeometry(5.5, 18, 9, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, 2, 0));
     k.add(M.ink, new THREE.BoxGeometry(1.6, 2.4, 0.6).translate(0, 3.2, 5.3));
-    k.solid(new THREE.CylinderGeometry(0.1, R0, H, 12, 1, true).translate(0, 2 + H / 2, 0));
     out.petals = k.origin.clone().add(V(0, 18, 0));
     k.flush();
   }

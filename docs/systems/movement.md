@@ -55,10 +55,31 @@ walk-through scatter, flora, water, things that float on purpose, shadow casters
 is left are in the test). The real traveller (`tests/gait-sim.js`) rides a rising disc with his soles at rest
 height over its top, and on Vael II's rock lands with his feet on the drawn surface.
 
-Left for later: the desert's Givers' Hearth butte and Givers' House tower still collide as smooth stand-ins
-inside their rough drawn sides (made exact, they move the sand banked against them, and the Qanat gathering
-with it); the Buried Machine's pipes and tanks; drawn trims on buildings in the cities; taxi roofs (a car is a
-disc only in the middle); the temple rotunda's top lip.
+**The desert, made exact (October 2026).** The Givers' Hearth butte and the lip of rock round its foot, the
+Givers' House's drum, its fins' caps and the sunken leviathan, the crashed hull and its salvage camp, the
+fallen giant and the petal station all collided as coarse stand-ins up to 3.7 m inside what is drawn; they
+collide as drawn now. Three bugs came out with them:
+- **A proxy moved twice.** `Kit.both(mat, geo)` in `src/desert-hearth.js` and `src/desert-city.js` took its
+  copy of the geometry *after* `add()`, which transforms a non-indexed geometry in place: every proxy with no
+  explicit stand-in (the Hearth's chimney, the hall, the nine marked stones on the way) sat at twice the kit's
+  origin, so the Hearth's hall had no collision where it is drawn. The copy is taken first now, as the other
+  two kits already did.
+- **An invisible floor over Qanat's well.** The dry well was drawn as a ring but collided as a closed
+  cylinder, whose top cap capped its mouth 1.1 m over the terrace. It collides as the ring it is, its dry
+  bottom solid.
+- **A walker leaning on a wall for ever.** `NPC.move` pushed out of what it walked into and tried again from
+  the same place; walking almost straight at a round kerb (Qanat's well, between the stairs and the gathering
+  at the tree's foot) it never got round. It now walks along what it is pushed out of, on a side chosen once
+  and kept until it is free.
+The tree's roots over the terrace were drawn 1 m proud with no collision (feet sank 1.9 m into them); they are
+solid and lie about 0.4 m proud, low enough to step over, so the terrace is still walked round.
+The cost: the desert's collision 194 k → 219 k triangles, its BVH 60 → 64 ms to bake on the desktop, ground
+rays and capsule pushes unchanged. `node scripts/contact-report.mjs [world…]` prints the audit for every world
+with its collision triangle count.
+
+Left for later: the Buried Machine's pipes and tanks; drawn trims on buildings in the cities; taxi roofs (a
+car is a disc only in the middle); the temple rotunda's top lip; the petal station's glass cage, whose thin
+bars collide as drawn so the audit sees collision with nothing drawn where a bar is.
 
 ## Mounts come to you
 

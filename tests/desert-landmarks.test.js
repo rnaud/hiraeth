@@ -34,7 +34,7 @@ test('each landmark stands in its region', () => {
   assert.deepEqual(['petals', 'lagoons', 'dishes'].map((k) => region(SITES[k])), ['salt', 'salt', 'salt']);
 });
 
-test('landmarks sit on the ground and collide only through coarse proxies', () => {
+test('landmarks sit on the ground and collide only through hidden proxies, as they are drawn', () => {
   let proxyTris = 0;
   for (const group of landmarkScene.children[0].children) {
     const parts = meshes(group);
@@ -46,9 +46,11 @@ test('landmarks sit on the ground and collide only through coarse proxies', () =
     if (group.name === 'Telegraph line' || group.name === 'Salt lagoons') continue;
     assert.ok(b.min.y <= terrain.baseAt(c.x, c.z, 4) + 0.5, `${group.name} reaches down to the sand (${b.min.y.toFixed(1)})`);
   }
-  // the whole static collision budget of the desert stays small next to the props' ~155k triangles
-  // (the umbrella grove's stems and caps collide as drawn since the contact audit: docs/systems/movement.md "Contact")
-  assert.ok(proxyTris < 14000, `${proxyTris} proxy triangles`);
+  // the whole static collision budget of the desert stays small next to the props' ~155k triangles.
+  // The grove, the crashed hull, the sunken leviathan and the petal station collide as they are drawn
+  // (docs/systems/movement.md "Contact"): ~32 k here, and the desert's whole collision 194 k → 219 k
+  // triangles, its BVH 60 → 64 ms to bake, ground rays and capsule pushes unchanged.
+  assert.ok(proxyTris < 36000, `${proxyTris} proxy triangles`);
 });
 
 test('the reference structures can be stood on', () => {

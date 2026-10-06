@@ -773,9 +773,23 @@ export class NPC {
   }
 
   move(dir, speed, dt) {
-    this.pos.addScaledVector(dir, speed * dt);
+    const step = speed * dt;
+    this.pos.addScaledVector(dir, step);
     // don't walk through walls, rocks or buildings
-    this.physics.pushCapsule(this.pos, 0.4, 0.6, 2.0, _push);
+    const hit = this.physics.pushCapsule(this.pos, 0.4, 0.6, 2.0, _push);
+    // Pushed straight back the way they came (walking into a wall, a well's kerb, a corner): walk along
+    // it instead of leaning on it for ever. The side is chosen once and kept until they are free again,
+    // so they round the obstacle rather than shuffling from one side to the other.
+    if (hit && -(_push.x * dir.x + _push.z * dir.z) > 0.35 * step) {
+      const n = Math.hypot(_push.x, _push.z);
+      if (n > 1e-6) {
+        let tx = -_push.z / n, tz = _push.x / n;
+        if (!this._around) this._around = tx * dir.x + tz * dir.z >= 0 ? 1 : -1;
+        tx *= this._around; tz *= this._around;
+        this.pos.x += tx * step; this.pos.z += tz * step;
+        this.physics.pushCapsule(this.pos, 0.4, 0.6, 2.0, _push);
+      }
+    } else this._around = 0;
   }
 
   /** What the cloth needs this frame (Cape.update): the body's colliders, the ground, the motion. */

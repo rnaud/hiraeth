@@ -283,7 +283,8 @@ function exterior(scene, level, rt) {
   const top = Math.max(hi - base + 22, dy + 28);
   const rose = { paint: new THREE.Color('#dd8f86'), smooth: true };
   // the drum, its cornice, an upper drum and a low dome
-  K.both(M.wall, lathe([[R + 3, 0], [R + 2.2, 3], [R, 5], [R, top - 3], [R + 1.4, top - 2.4], [R + 1.4, top], [R - 1, top + 0.4]], 48), new THREE.CylinderGeometry(R, R + 2, top, 24).translate(0, top / 2, 0));
+  // (the drum collides as its own lathe: a smooth cylinder lay up to 3.4 m inside the flared foot and the cornice)
+  K.both(M.wall, lathe([[R + 3, 0], [R + 2.2, 3], [R, 5], [R, top - 3], [R + 1.4, top - 2.4], [R + 1.4, top], [R - 1, top + 0.4]], 48));
   const r2 = 21;
   K.both(M.wall, T(annulus(r2 - 0.2, R + 0.2, 0.6, 48), [0, top + 0.35, 0]));
   K.both(M.wallGlyph, new THREE.CylinderGeometry(r2, r2, 11, 40).translate(0, top + 5.5, 0));
@@ -297,7 +298,7 @@ function exterior(scene, level, rt) {
     const h = top + 6 + (i % 2) * 4;
     const fin = new THREE.BoxGeometry(1.8, h, 5).translate(0, h / 2, R + 1.6);
     const cap = new THREE.CylinderGeometry(2.5, 2.5, 1.8, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).translate(0, h, R + 1.6);
-    K.both(M.wall, T(fin, [0, 0, 0], [0, a, 0])); K.add(M.wall, T(cap, [0, 0, 0], [0, a, 0]));
+    K.both(M.wall, T(fin, [0, 0, 0], [0, a, 0])); K.both(M.wall, T(cap, [0, 0, 0], [0, a, 0]));
     const ga = a + Math.PI / 12;
     K.add(M.glyph, T(glyphGeometry(2.8, 0.15), [Math.sin(ga) * (R + 0.08), top - 8, Math.cos(ga) * (R + 0.08)], [0, ga, 0]));
   }

@@ -7,6 +7,11 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.73', date: '2026-10-06', items: [
+    'The desert is solid where it is drawn: on the Givers’ Hearth butte and the Givers’ House tower you hang on the rough rock and the carved stone instead of half inside it, and your feet rest on the sunken leviathan’s ribs and skull, on the crashed hull and its salvage, on the fallen giant’s brow, cheeks, teeth and arm, and on the petal station’s great petals and its cage.',
+    'Qanat’s dry well is a well again: an invisible floor used to cap its mouth a metre above the terrace, so you walked over the hole. The great tree’s roots spread over the terrace are solid under your feet now, and lie low enough to step over.',
+    'People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.',
+  ] },
   { v: '0.72', date: '2026-10-06', items: [
     'Soft things are drawn in softer lines, as in the drawings: clouds in a thin blue-grey line, Lorn II’s reeds and crystals in a pale violet one, leaves and the Garden of Spheres’ canopies in a lighter dark green, glass and the Signal Market’s painted billboards in a darker shade of their own colours, instead of heavy black ink everywhere.',
     'Distance falls away in layers of haze, as in the drawings: in Lorn II the trunks step back into a cool violet mist, with a low mist over the water and the paths; the desert’s far dunes and the Signal Market’s far towers pale in warm bands; Vael II’s plain lightly too. Looking down the City-Shaft, the town fades into a pale blue haze toward the bottom.',

@@ -53,7 +53,8 @@ class Kit {
   heading(h) { return h + this.yaw; }
   add(mat, geo) { const g = prep(geo).applyMatrix4(this.frame); if (!this.batches.has(mat)) this.batches.set(mat, []); this.batches.get(mat).push(g); return this; }
   solid(geo) { this.proxies.push(prep(geo).applyMatrix4(this.frame)); return this; }
-  both(mat, geo, proxy) { this.add(mat, geo); this.solid(proxy ?? geo.clone()); return this; }
+  // (the copy is taken before add(), which transforms a non-indexed geometry in place: else the proxy is moved twice)
+  both(mat, geo, proxy) { const p = proxy ?? geo.clone(); this.add(mat, geo); this.solid(p); return this; }
   flush() {
     for (const [mat, list] of this.batches) {
       const m = new THREE.Mesh(mergeGeometries(list), mat);
@@ -153,9 +154,10 @@ export function buildDesertHearth(scene, terrain) {
   const base = Math.min(...Array.from({ length: 12 }, (_, i) => { const a = i / 12 * Math.PI * 2; return terrain.heightAt(S.x + Math.sin(a) * R0, S.z + Math.cos(a) * R0); })) - 5;
   const out = new Kit(root, 'Givers’ Hearth butte', V(S.x, base, S.z), S.yaw);
   {
-    out.both(M.rose, rough(new THREE.CylinderGeometry(R1, R0, H, 18, 6).translate(0, H / 2, 0), 1.6, 0.18, 2), new THREE.CylinderGeometry(R1 - 0.8, R0 - 0.8, H, 12).translate(0, H / 2, 0));
+    // (the butte and its lip collide as they are drawn: a smooth stand-in lay up to 2.6 m inside the rough sides)
+    out.both(M.rose, rough(new THREE.CylinderGeometry(R1, R0, H, 18, 6).translate(0, H / 2, 0), 1.6, 0.18, 2));
     // a lip of fallen rock round its foot
-    out.add(M.rose, rough(new THREE.CylinderGeometry(R0 + 2, R0 + 7, 7, 18, 2).translate(0, 3.5, 0), 1.4, 0.3, 5));
+    out.both(M.rose, rough(new THREE.CylinderGeometry(R0 + 2, R0 + 7, 7, 18, 2).translate(0, 3.5, 0), 1.4, 0.3, 5));
     // the chimney: a finger of rock on the flat top, a dark slit near its tip (it glows at night: the stone below)
     const CH = { h: 38, r0: 5, r1: 2.8 };
     out.both(M.rose, rough(new THREE.CylinderGeometry(CH.r1, CH.r0, CH.h, 9, 4).translate(-4, H + CH.h / 2 - 0.5, -3), 0.5, 0.4, 7));
