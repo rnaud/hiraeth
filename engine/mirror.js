@@ -11,6 +11,7 @@
 //   create(id, node)            a drawable appears: { kind, gid, mids, name, shadow, ... }
 //   transforms(ids, mats, n)    the world matrices that moved, packed: n ids, 16 floats each
 //   visible(id, on)             shown / hidden (an ancestor hidden or the object left the scene)
+//   geometryOf(id, gid)         a drawable's geometry swapped or rewritten (sent again first)
 //   instances(id, count, mats, colors)   an InstancedMesh's instances, when they change
 //   bones(id, mats, n, bind, bindInverse)   a SkinnedMesh's bone matrices (bone world × inverse bind) and its bind matrices, each frame it is seen (skin.js skinMatrices folds them into one per bone)
 //   remove(id)                  gone for good (not in the scene for `forgetAfter` frames)

@@ -26,11 +26,12 @@ first time it is seen, every geometry and material theirs, and calls the backend
 |---|---|---|
 | `geometry(gid, g)` | a geometry first seen, or an attribute's `version` moved | three's typed arrays as they are (`position`, `normal`, `uv`, `color`, `skinIndex`, `skinWeight`, `index`) and its groups |
 | `material(mid, spec)` | a material first seen | `engine/ink-spec.js`: makeMaterial's options read back from its uniforms, plain numbers and arrays; the frame's shared uniforms left out |
-| `create(id, node)` | a drawable first seen | `{ kind: mesh / instanced / skinned / points / line / sprite, gid, mids, name, renderOrder }` |
+| `create(id, node)` | a drawable first seen | `{ kind: mesh / instanced / skinned / points / line / sprite, gid, mids, name, renderOrder, shadow }` (shadow: the web's caster rules) |
 | `transforms(ids, mats, n)` | each frame, once | the world matrices that changed, packed: `n` ids and 16 floats each |
 | `visible(id, on)` | an object (or an ancestor) shown or hidden, or out of the scene | |
 | `instances(id, count, mats, colors)` | an `InstancedMesh`'s matrices or count changed | three's `instanceMatrix` (16 a instance) and `instanceColor` |
-| `bones(id, mats, n)` | each frame a skinned mesh is seen | three's `skeleton.boneMatrices` (bone world × inverse bind) |
+| `geometryOf(id, gid)` | a drawable's geometry swapped or rewritten (cloth, trails) | the geometry's id (sent again first) |
+| `bones(id, mats, n, bind, bindInverse)` | each frame a skinned mesh is seen | three's `skeleton.boneMatrices` (bone world × inverse bind) and the mesh's bind matrices (`engine/skin.js` folds them into one matrix a bone) |
 | `remove(id)` | out of the scene for `forgetAfter` frames | |
 | `camera(c)` | each frame | world matrix, vertical fov, near, far, aspect |
 | `frame(f)` | each frame, last | the frame number and counters |
@@ -53,7 +54,8 @@ frame.
 
 `engine/godot/backend.js` runs in the same VM as the game and calls Godot directly: an
 `ArrayMesh` per geometry (one surface per group), a `MeshInstance3D` or `MultiMeshInstance3D` per
-drawable, a `ShaderMaterial` on `godot/shaders/ink_surface.gdshader` per ink material. Bulk data
+drawable, a `ShaderMaterial` on the ink surface (`godot/shaders/ink.gdshaderinc`, in five variants by
+side and skinning) per ink material. Bulk data
 never goes vertex by vertex through the binding: an `ArrayBuffer` reaches Godot as a
 `PackedByteArray` (a copy at memory speed), laid out as `var_to_bytes` writes a packed array
 (`[type][count][data]`, `engine/godot/pack.js`), so `bytes_to_var` makes the `PackedVector3Array`,
@@ -99,7 +101,7 @@ bundle, before the game's modules load (some touch the page as they load), and r
 | `document`, elements, `innerHTML`, `classList` | the HUD and menus: main.js (57 uses), ui.js, hud.js, quest.js, changelog.js, dev-menu.js, story/ (dialogue, calls, moment, index, the worlds' data), ship/ (cinema, starmap, homecoming), boxes/ (card, effects), temples/runtime.js, npc.js, crowd.js, aliens/alien.js | **shim now** (elements that take every call and draw nothing; `getElementById` keeps one element per id); **bridge later**: a HUD layer (below) |
 | `window` events (`keydown`, `keyup`, `mousemove`, `blur`, `beforeunload`) | main.js, player.js (`CameraRig`), ui.js, fluid-tool.js, native-pad.js | **bridge**: the engine dispatches `keydown` / `keyup` with the web's `KeyboardEvent.code` names to the same listeners (`page.dispatch`) |
 | `navigator.getGamepads` | controller.js (injectable `pads`), native-pad.js, ship/starmap.js | **bridge**: Gamepad-shaped objects from the engine's joypads (`host.pads()`), standard mapping |
-| `localStorage` | save-slots.js, quest.js, changelog.js, audio.js, native-app.js, motion-match.js | **bridge**: the host's storage (Godot: `user://memento-storage.json`) |
+| `localStorage` | save-slots.js, quest.js, changelog.js, audio.js, native-app.js, motion-match.js | **bridge**: the host's storage (Godot: `user://memento-storage.json`; Unity: PlayerPrefs) |
 | `fetch`, `GLTFLoader` | the characters (`anim/*.glb`), MakeHuman bodies, motion data | **bridge**: `host.readFile(path)` reads `public/` (the repository's, or packed with the game) |
 | WebAudio (`AudioContext`, oscillators, filters) | audio.js (89 uses), score*.js, ship/sfx.js, story/arzach2.js | **bridge later**; a silent stand-in for now (`sound` proxies) |
 | `performance.now`, `requestAnimationFrame` | 21 modules / main.js's loop, title.js | **shim**: the host's clock; the engine's frame runs the callbacks (`page.tick`) |
@@ -130,7 +132,8 @@ run *everything* `main.js` runs, it would be split, in small steps each with its
 Measured on the M4 Pro (macOS 26, Godot 4.6.1 + GodotJS 1.1.0 beta 1, V8, Metal Forward+), the
 desert, the spike's camera:
 
-- **Bundle**: the game's modules and three.js, 2.98 MB of CommonJS, built in 0.1–0.6 s.
+- **Bundle**: the spike's modules and three.js, 2.98 MB of CommonJS (the whole game entry, with the
+  people, crowd and story: 6.1 MB, 1.5 MB gzipped), built in 0.1–0.6 s.
 - **Load**: the desert built by `createDesert` in GodotJS's V8 in 4.3 s (12 s in a Node `vm`
   context, whose globals are slow; the game in Chrome builds it in steps between frames).
 - **Upload**: 796 drawables, 794 geometries (1.07 M vertices, 1.01 M triangles, 1 915 surfaces),
@@ -159,6 +162,12 @@ desert, the spike's camera:
   normals and the lit colour to a post pass, not the web's custom G-buffer, so the shade and the
   strokes are drawn in the surface shader's `light()` and the lines in the post pass.
 - **Per-call cost** in Puerts (reflection) is higher than GodotJS's: hence the command buffer.
+- **No ICU in GodotJS's V8**: a regular expression with `\p{L}` is a syntax error there, and the
+  whole bundle fails to load; the bundler lowers them (`lowerUnicodeClasses`, tested). No `Intl`
+  either (the game uses none outside a log line).
+- **Engine quirks met**: Godot smooths `delta` to the display's refresh (frame times are taken from
+  the wall clock), its measured GPU time reads 0 on Metal here; Unity's V8 isolate aborts if
+  disposed while the editor exits (the batch run leaves it to the process).
 
 ## Running it
 
@@ -297,6 +306,69 @@ Not drawn yet on this side: points, lines and sprites (motes, the fluid's drops)
 panels, glows and the far crowd's animation (as in Godot); the cave's rounded walls in the web's
 shot come from a part of main.js the engine entry doesn't run yet (both engines lack them).
 
+## The three side by side (stage 4)
+
+The same desert, the same viewpoints, at 1280 × 720 on the M4 Pro. **Frame times**: one round of
+each side back to back (5 minutes apart), the machine equally busy for all three (load average
+12–14: other work was running); medians in ms, uncapped. Unity is the editor in play mode (Mono,
+the editor's own overhead), not a player build.
+
+| view | web: frame (CPU) | Godot + GodotJS: frame (the VM) | Unity + Puerts, editor: frame (the VM) |
+|---|---|---|---|
+| spawn | 10.4 (10.1) | 10.3 (7.3) | 8.4 (6.9) |
+| qanat-tree | 17.2 (17.4) | 11.7 (9.9) | 13.4 (11.4) |
+| camps | 16.5 (16.7) | 14.6 (12.2) | 21.2 (18.4) |
+| dunes | 6.5 (6.3) | 8.5 (4.1) | 6.2 (4.7) |
+| cave | 4.9 (4.7) | 8.5 (4.3) | 6.0 (4.6) |
+
+(On a quieter machine earlier the web ran 7.4 / 12.0 / 10.4 / 3.7 / 3.8 ms.) The three are within
+the machine's noise of each other. On both engines the frame is the VM's: the game's own update
+(people, capes, the crowd: the work the web does too, 1–9 ms) and the mirror (the scene walk, the
+moved matrices, the bones, cloth re-sent: 3–10 ms). The engines' own CPU side is small (Godot's
+render CPU 0.4–1.2 ms). So the mirror is the first thing to make cheaper (below), and the engines'
+GPU headroom is not the limit.
+
+| | web (three.js) | Godot 4.6 + GodotJS (V8) | Unity 6.6 + Puerts (V8) |
+|---|---|---|---|
+| **fidelity** | the reference | a first port of the look: the light, each surface's shade, the strokes, the lines, sky and fog; no paper, sky dots, weathering, facades, glows | the C# port's complete look (its HLSL port of materials.js and post.js): closest to the web |
+| **game logic** | the game | the same JS, unchanged (engine/game.js composes it) | the same JS, unchanged |
+| **load** (the desert) | first frame 3.0 s after navigation (9.5 s busy) | built in the VM in 1.6–4.5 s, drawn the next frame | the bundle evaluated in 0.3 s, built in 2.7–4.7 s |
+| **what ships** | 12.1 MB fetched (6.4 gzipped), dist 32.5 MB | the engine (release template, V8: macOS 58 MB, Linux 81 MB, Android 94 MB zipped, all ABIs), the bundle 6.1 MB (1.5 gzipped), `public/` (10 MB) | the Unity player, Puerts' V8 (Android arm64 18 MB, Linux 34 MB), the bundle, `public/`; no world export (the C# port's APK is 143 MB with its exports) |
+| **updates** | the site, the app's web.json | the bundle is data: it could ride the same over-the-air feed | the same |
+
+What it would take to ship each:
+- **Android (the Retroid)**: *Godot*: GodotJS's Android templates (V8 and QuickJS) exist; the ink
+  post reads the normal-roughness buffer, which only Forward+ has (Vulkan devices); the Mobile
+  renderer would need the lines from depth alone. *Unity*: the port already builds an IL2CPP APK
+  (`BenchBuild.Android`); under IL2CPP the methods the JS calls by reflection (`BridgeHost`) need
+  to be kept from stripping (link.xml / `[Preserve]`), and Puerts' IL2CPP mode checked; Puerts ships
+  arm64 V8.
+- **The Deck**: *Godot*: the Linux template (V8). *Unity*: a Linux player with Puerts'
+  `libPapiV8.so`. (The web build already runs there in Electron.)
+- **Both**: the HUD, menus and conversations (today the page's: a platform layer and an engine UI,
+  "A platform layer for the web game" above), sound (recorded samples first), the parts of
+  main.js the entry doesn't run yet (the fluid tool, the drone, weather, wildlife, the ship's
+  scenes).
+
+### Where to go next (a recommendation)
+
+1. **Make the mirror cheap**: skip static subtrees (flag them once, re-check rarely), send cloth as
+   positions only (Godot: `RenderingServer.mesh_surface_update_vertex_region`; Unity: `SetVertices`
+   on a kept mesh), and on Godot apply the frame's transforms from one packed buffer. It is the
+   largest share of the VM's frame on both engines.
+2. **Unity + Puerts as the main line**: it already draws the web's look (the port's shaders), and
+   the bridge lets the port's C# game logic be retired step by step in favour of the web's own,
+   so the port can no longer drift from the web game. Next there: an IL2CPP player, then the APK.
+3. **The platform layer in the web game** (page, input, audio modules; main.js split into the loop
+   and the web shell), so both engines run the whole loop, conversations and HUD included.
+4. **Godot as the light, open alternative**: keep it building and compared; port the rest of the
+   look when it matters (paper, dots, weathering, glows), and decide Forward+ (Vulkan) against the
+   Mobile renderer for Android.
+
+The choice between 2 and 4 as the long-term engine is the author's: Unity has the finished look
+and the existing Android pipeline; Godot is smaller, open, starts fast and its JS binding is
+cheaper a call, but its look is a first port and GodotJS is in beta.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
@@ -304,4 +376,5 @@ shot come from a part of main.js the engine entry doesn't run yet (both engines 
   ![the spike](../engine-bridge/spike-godot-desert.jpg)
 - **Stage 2, the Godot renderer**: the desert played in Godot through the bridge (above).
 - **Stage 3, the Unity renderer**: the desert played in Unity through Puerts, drawn by the port's
-  own ink look (below).
+  own ink look (above).
+- **Stage 4, the comparison**: above.

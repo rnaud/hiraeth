@@ -87,7 +87,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   const warn = console.warn, info = console.info, log = console.log, error = console.error; console.warn = console.info = console.log = () => {}; console.error = (...a) => errors.push(a.map(String).join(' ').slice(0, 300));
   try {
     exports.start(JSON.stringify({ level: 'garage' }));
-    for (let i = 0; i < 200 && !calls.Frame; i++) { await new Promise((r) => setTimeout(r, 30)); exports.frame(1 / 30); }
+    for (let i = 0; i < 2000 && !calls.Frame; i++) { await new Promise((r) => setTimeout(r, 30)); exports.frame(1 / 30); }   // (the world builds first: up to a minute on a busy machine)
     for (let i = 0; i < 20; i++) exports.frame(1 / 30);
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
