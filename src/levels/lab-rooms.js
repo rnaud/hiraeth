@@ -11,6 +11,7 @@ import { table, needle, boulder } from './sky-stones-kit.js';
 import { bridge } from './arzach2.js';
 import { PALETTE as HANGAR, hangarHouse, hangarTower, hangarMachine } from './garage.js';
 import { cylBetween, elbow } from './buried.js';
+import { padForm } from '../form.js';
 import { edenaTree, edenaPyramid, edenaRuins, LEAVES } from './edena.js';
 import { CRESCENT, paintFaces } from './spheres.js';
 import { CRYSTAL, jawShell } from './perdide.js';
@@ -614,7 +615,7 @@ export const ROOMS = [
         add(M.rustDark, T(cylBetween(V(-3, 12, 3), V(-15, 18, 6), 0.45, 0.3, 6)));
         add(M.ink, T(cylBetween(V(-15, 18, 6), V(-15, 9, 6), 0.06, 0.06, 4)));
         add(M.steelFlat, T(new THREE.TorusGeometry(5.6, 0.5, 6, 20).rotateX(Math.PI / 2).translate(0, 4, 0)));
-        for (const [mat, list] of local) { const m = new THREE.Mesh(mergeGeometries(list.map((g) => { g.deleteAttribute('uv'); return g; })), mat); m.userData.noCollide = true; grp.add(m); }
+        for (const [mat, list] of local) { const m = new THREE.Mesh(mergeGeometries(padForm(list.map((g) => { g.deleteAttribute('uv'); return g; }))), mat); m.userData.noCollide = true; grp.add(m); }
         const base = kit.H(48, 34) + 26;
         grp.position.set(48, base, 34);
         kit.group.add(grp);

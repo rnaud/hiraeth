@@ -4,6 +4,9 @@ import { createNoise2D, mulberry32 } from '../noise.js';
 import { V, tube, put, smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
 import { cloudSea } from './reference-vael2.js';
 import { BURIED_SPOTS } from './buried.js';
+import { formAxis } from '../form.js';
+
+const wrapped = (g) => formAxis(g, 'wrap');   // a cylinder made about y: its strokes wrap round it
 
 // ---------------------------------------------------------------------------
 // The Buried Machine's reference sheets (references/The Buried Machine/IMG_3789 … 3792): pale cream
@@ -32,7 +35,8 @@ const nM = createNoise2D(37891), nN = createNoise2D(37892);
 
 function materials(kit) {
   const DS = THREE.DoubleSide;
-  const strata = (c1, c2, c3, o = {}) => kit.mat({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: 4, flat: true, strataHatch: 0, ...o });
+  // (form: the tanks', drums' and towers' strokes wrap round them, src/form.js)
+  const strata = (c1, c2, c3, o = {}) => kit.mat({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: 4, flat: true, strataHatch: 0, form: true, ...o });
   return {
     rust: strata('#c4613f', '#b35a3a', '#cf7450', { side: DS, detail: 'built' }),
     rustPale: strata('#d98a62', '#cf7e58', '#e29a72', { side: DS, detail: 'built' }),
@@ -135,7 +139,7 @@ function ovalWall(kit, M, { x, z, y0 = 0, w, h, t = 3, yaw = 0, holes = [], mat 
 /** A tank: a tall cylinder with rings and a cap. */
 function tank(kit, M, { x, z, r, h, y = null, mat = 'rust' }) {
   const y0 = y ?? kit.base(x, z, r) - 0.5;
-  kit.add(M[mat], new THREE.CylinderGeometry(r, r, h, 20).translate(x, y0 + h / 2, z));
+  kit.add(M[mat], wrapped(new THREE.CylinderGeometry(r, r, h, 20)).translate(x, y0 + h / 2, z));
   for (let k = 1; k < h / 7; k++) kit.add(M.rustDark, new THREE.TorusGeometry(r * 1.01, 0.18, 4, 24).rotateX(Math.PI / 2).translate(x, y0 + k * 7, z), { solid: false });
   kit.add(M.rustDark, new THREE.SphereGeometry(r, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.3, 1).translate(x, y0 + h, z));
 }
@@ -159,8 +163,8 @@ function machinery(kit, M, { x0, z0, x1, z1, y0 = 0, y1 = 20, depth = 4, n = 30,
 function drum(kit, M, { x, z, r, y0 = 0, y1, mat = 'teal', slits = 18, lit = 0.3, seed = 3, gap = 0 }) {
   // gap (rad): the side toward +z left open (a drum entered through its wall)
   const rng = mulberry32(seed), h = y1 - y0;
-  kit.add(M[mat], new THREE.CylinderGeometry(r, r, h, 56, 1, true, gap / 2, Math.PI * 2 - gap).translate(x, y0 + h / 2, z));
-  kit.add(M[mat], new THREE.CylinderGeometry(r + 4, r + 4, h, 56, 1, true, gap / 2, Math.PI * 2 - gap).translate(x, y0 + h / 2, z));
+  kit.add(M[mat], wrapped(new THREE.CylinderGeometry(r, r, h, 56, 1, true, gap / 2, Math.PI * 2 - gap)).translate(x, y0 + h / 2, z));
+  kit.add(M[mat], wrapped(new THREE.CylinderGeometry(r + 4, r + 4, h, 56, 1, true, gap / 2, Math.PI * 2 - gap)).translate(x, y0 + h / 2, z));
   kit.add(M.tealDark, new THREE.RingGeometry(r, r + 4, 56, 1, gap / 2, Math.PI * 2 - gap).rotateX(-Math.PI / 2).translate(x, y1, z), { solid: false });
   for (let i = 0; i < slits; i++) {
     const a = gap / 2 + (i / slits) * (Math.PI * 2 - gap), sx = x + Math.sin(a) * (r - 0.05), sz = z + Math.cos(a) * (r - 0.05);
@@ -209,9 +213,9 @@ function ring(kit, M, { cx, cz, R, y, W = 30, a0 = 0, a1 = Math.PI * 2, arches =
 /** A derrick or a hanging machine: a capsule body with platforms, antennae, a pipe; s its scale. */
 function machine(kit, M, { x, y = null, z, s = 1, mat = 'rust', mast = 0, pipeTo = null }) {
   const y0 = y ?? kit.base(x, z, 2 * s);
-  if (mast) kit.add(M[mat], new THREE.CylinderGeometry(1.2 * s, 2 * s, mast, 10).translate(x, y0 + mast / 2, z));
+  if (mast) kit.add(M[mat], wrapped(new THREE.CylinderGeometry(1.2 * s, 2 * s, mast, 10)).translate(x, y0 + mast / 2, z));
   const yb = y0 + mast;
-  kit.add(M[mat], new THREE.CylinderGeometry(3 * s, 3 * s, 8 * s, 16).translate(x, yb + 4 * s, z));
+  kit.add(M[mat], wrapped(new THREE.CylinderGeometry(3 * s, 3 * s, 8 * s, 16)).translate(x, yb + 4 * s, z));
   kit.add(M[mat], new THREE.SphereGeometry(3 * s, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, yb + 8 * s, z));
   kit.add(M[mat], new THREE.ConeGeometry(2.2 * s, 4 * s, 12).rotateX(Math.PI).translate(x, yb - 2 * s, z));
   for (const k of [0.3, 0.7]) kit.add(M.rustDark, new THREE.CylinderGeometry(5.5 * s, 5.5 * s, 0.4 * s, 18).translate(x, yb + k * 8 * s, z), { solid: false });
@@ -388,7 +392,7 @@ export const BURIED_VIEWS = [
       machineScene(kit, v, {
         seed: 37903,
         extra(k, M) {
-          k.add(M.teal, new THREE.CylinderGeometry(40, 40, 90, 64, 1, true).rotateX(Math.PI / 2).translate(0, 4, -20), { solid: false });
+          k.add(M.teal, wrapped(new THREE.CylinderGeometry(40, 40, 90, 64, 1, true)).rotateX(Math.PI / 2).translate(0, 4, -20), { solid: false });
           k.add(M.tealDark, new THREE.TorusGeometry(40, 2.2, 6, 64).translate(0, 4, -65), { solid: false });
           // the city far below: blocks to the horizon
           const rng = mulberry32(3790);
@@ -484,9 +488,9 @@ export const BURIED_VIEWS = [
       machineScene(kit, v, {
         seed: 37913,
         extra(k, M) {
-          k.add(M.rustPale, new THREE.CylinderGeometry(70, 66, 6, 56).translate(0, -3, -130));
-          k.add(M.teal, new THREE.CylinderGeometry(55, 30, 60, 40, 1, true).translate(0, -36, -130), { solid: false });
-          k.add(M.rustPale, new THREE.CylinderGeometry(9, 10, 160, 24).translate(4, 70, -140));
+          k.add(M.rustPale, wrapped(new THREE.CylinderGeometry(70, 66, 6, 56)).translate(0, -3, -130));
+          k.add(M.teal, wrapped(new THREE.CylinderGeometry(55, 30, 60, 40, 1, true)).translate(0, -36, -130), { solid: false });
+          k.add(M.rustPale, wrapped(new THREE.CylinderGeometry(9, 10, 160, 24)).translate(4, 70, -140));
           k.add(M.teal, new THREE.TorusGeometry(80, 4, 6, 64, Math.PI).translate(0, 120, -110), { solid: false });
           const rng = mulberry32(3791);
           for (let i = 0; i < 120; i++) { const a = rng() * Math.PI * 2, r = 20 + rng() * 46, h = 2 + rng() * 9; k.add(M.town[Math.floor(rng() * 3)], new THREE.BoxGeometry(4 + rng() * 6, h, 4 + rng() * 6).translate(Math.sin(a) * r, h / 2, -130 + Math.cos(a) * r), { solid: false }); }
@@ -569,7 +573,7 @@ export const BURIED_VIEWS = [
       machineScene(kit, v, {
         seed: 37922,
         extra(k, M) {
-          k.add(M.rustPale, new THREE.CylinderGeometry(60, 60, 260, 64, 1, true).translate(0, 120, -60), { solid: false });
+          k.add(M.rustPale, wrapped(new THREE.CylinderGeometry(60, 60, 260, 64, 1, true)).translate(0, 120, -60), { solid: false });
           const rng = mulberry32(3792);
           for (let i = 0; i < 500; i++) {
             const a = rng() * Math.PI * 2, y = rng() * 230, w = 3 + rng() * 9, h = 3 + rng() * 9;

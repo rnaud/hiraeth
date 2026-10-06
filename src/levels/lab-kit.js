@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { mulberry32 } from '../noise.js';
 import { SandDrifts } from '../sand-drifts.js';
+import { FORM_ATTRS, keepForm, padForm } from '../form.js';
 
 // ---------------------------------------------------------------------------
 // The Lab's room kit: what a biome room (src/levels/lab-rooms.js) builds with.
@@ -19,11 +20,11 @@ import { SandDrifts } from '../sand-drifts.js';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
 
-/** A geometry ready to merge: non-indexed, position + normal (+ colour), nothing else. */
+/** A geometry ready to merge: non-indexed, position + normal (+ colour, + a part's axis: src/form.js), nothing else. */
 export function mergeable(g, keepColor = true) {
   if (!g.attributes.normal) g.computeVertexNormals();   // (before un-indexing, so smooth shapes stay smooth)
-  const n = g.index ? g.toNonIndexed() : g;
-  for (const k of Object.keys(n.attributes)) if (k !== 'position' && k !== 'normal' && !(keepColor && k === 'color')) n.deleteAttribute(k);
+  const n = g.index ? keepForm(g.toNonIndexed()) : g;
+  for (const k of Object.keys(n.attributes)) if (k !== 'position' && k !== 'normal' && !(keepColor && k === 'color') && !FORM_ATTRS.includes(k)) n.deleteAttribute(k);
   return n;
 }
 
@@ -86,7 +87,7 @@ export class RoomKit {
   /** Merge the buckets into the room's meshes. */
   finish() {
     for (const b of this.buckets.values()) {
-      const m = new THREE.Mesh(mergeGeometries(b.list), b.mat);
+      const m = new THREE.Mesh(mergeGeometries(padForm(b.list)), b.mat);
       if (!b.solid) m.userData.noCollide = true;
       if (!b.shadow) this.noShadow.push(m);
       this.group.add(m);
