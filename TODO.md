@@ -129,7 +129,8 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   - Shader findings left:
     - The six recurring gaps (docs/systems/references.md "Across the worlds"): (1) pen detail at every scale
       done (`detail`, docs/systems/materials.md); (4) form-following hatching done (`form`, a per-vertex axis
-      in merged geometry: caps radiate, cylinders wrap); (6) colour variation across a wall next (materials side); (2) line weight per material, (3) haze layers, (5) cast-shadow strength by
+      in merged geometry: caps radiate, cylinders wrap); (6) colour variation across a wall done (`patches`: big flat world-anchored patches on every wall
+      with built pen detail, edges ramped under the colour-edge threshold); (2) line weight per material, (3) haze layers, (5) cast-shadow strength by
       the post side.
     - Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense small
       machinery at every scale, so most of their black masses have no geometry to sit in here yet.

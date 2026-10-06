@@ -163,6 +163,36 @@ asks for it (`makeMaterial({ form: true })`, `S_FORM`, `FORM` and `formHatch` in
   +0.28, the great table +0.4 (before the far waver went). Only shaded pixels of parts with an axis pay
   (an `atan` and a stroke family as the hatch's own).
 
+## Colour across a wall: big flat patches
+
+The sheets break a building's colour into a few big flat patches with a clean edge: a repaint, a sunlit
+plane, one storey rendered differently. `makeMaterial({ patches })` (0..1.5, `S_PATCH`, `PATCH`,
+`patchesOf`, `wallPatch` in `src/materials.js`), on by default wherever a material has built pen detail
+(the weathered walls: house fronts, Qanat, the desert's domes, the Signal Market, home, the City-Shaft's
+references; the Buried Machine's rust and teal), never metal, glass, lights, the makers' work, people,
+ground or water:
+
+- **Three layers**, each constant over boxes of the world (no wall frame: a round wall has no seam where a
+  projection would switch): a building (a 17.3 m box of the coarse lattice) gives each of its faces (+x,
+  -x, +z, -z) its own tone, blended by the normal so a curve turns smoothly (a sunlit or repainted plane)
+  and now and then one storey all round it another render (a band, warmer and paler or deeper); the fine
+  lattice's boxes (6.4 m, a storey high) carry repaints, a run of one to three storeys, lighter, darker,
+  warmer or cooler. Few and big: a fifth of the boxes, a band in eleven storeys.
+- **A few percent**: the colour moves by up to `PATCH.tone` (13 %), its change capped at `PATCH.edge`
+  (0.15 in linear RGB).
+- **A clean edge, no line**: post.js inks a colour step over 0.08 between pixels about its interior line
+  width apart. Within `PATCH.ramp` (1.8 px × the pixel ratio) of the nearest face of either lattice the
+  colour ramps linearly to the mean of both sides, so the steepest step stays under it (crisp at Retina,
+  never inked); only there is the neighbour looked up, and only its layer (a repaint's edge: two hashes).
+- **By distance**: none past 380 m (faded from 260), so far pixels pay nothing.
+- `tests/wall-patch.test.js`: the defaults and exclusions, world boxes, the edge under the threshold, the
+  far cut.
+- **Cost** (M4 Pro, 1728 × 1117 at DPR 2 (3456 × 2234), S_PATCH recompiled off and on in the same page, the
+  difference paired, median [quartiles], ms; the machine was loaded by other jobs, load average ~29):
+  High Signal Market spawn +0.63 [-0.48..1.18], over its street +0.39 [-0.36..1.85], Qanat's street
+  +0.43, the desert's spawn within the spread; Handheld Qanat +0.22, the Market +0.13 and +0.17. Every
+  pixel of a built wall within 380 m pays a handful of hashes, no loop, no texture.
+
 ## Faceted normals near the camera
 
 Flat-shaded materials take their normal from the screen derivatives of the position. Taken of
