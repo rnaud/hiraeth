@@ -1,0 +1,61 @@
+changelog.md
+  s_4068fcdc0e3db5::t_e3d767331d5560 10-14
+docs/systems/movement.md
+  s_4068fcdc0e3db5::t_2d77e55d311d68 82-122
+scripts/contact-report.mjs
+  s_4068fcdc0e3db5::t_e006c0006d1ed6 5-6,16-26,30,33,37-38
+src/changelog.js
+  s_4068fcdc0e3db5::t_7ea9aaba4df54b 14-18
+src/contact-audit.js
+  s_4068fcdc0e3db5::t_ba35015a1a0801 34,48-51,93,98-99,131,133,136,236-280,305
+src/levels/bazaar.js
+  s_4068fcdc0e3db5::t_1dcf577133f3a7 54,66-68,71,75,117,143,148
+src/levels/buried.js
+  s_4068fcdc0e3db5::t_7f1cc7dc6ec9ac 310,314,326-327,354,415,430,447,453,461-462,497,505,508,528,544,551,563,570,573,579-580,587,624,808,811,813-814,848-858,955,967
+src/levels/home-garden.js
+  s_4068fcdc0e3db5::t_bc0565d8512fe9 191
+src/levels/home-houses.js
+  s_4068fcdc0e3db5::t_6a8becc2b4cd6a 111-112,305-308,320,325-328,330,351,375-376,397
+src/levels/perdide2.js
+  s_4068fcdc0e3db5::t_be519b8248d9d8 527,556,606,616-618,623,676
+src/levels/spheres.js
+  s_4068fcdc0e3db5::t_010a8fcead75d4 259,379-382,388,494-496,640,649,667-669
+src/temples/bazaar.js
+  s_4068fcdc0e3db5::t_b17943c4848ab3 115,196,232
+src/temples/buried.js
+  s_4068fcdc0e3db5::t_4ecb67958ce80b 110,113-115,121,152,169-171,217,219-220,233
+src/temples/edena.js
+  s_4068fcdc0e3db5::t_680a14b724e617 138,143,168,192,194,227,260-264,266,272,275,281
+src/temples/garage.js
+  s_4068fcdc0e3db5::t_f6dd04a3b58774 112-115,121,139-142,153,202-203,213,255,261-263,270
+src/temples/kit.js
+  s_4068fcdc0e3db5::t_b66fa4f6bcbd66 232-234
+src/temples/perdide.js
+  s_4068fcdc0e3db5::t_9130bb440ef5d4 126,128,132,175,208-209,216,246,250,252,256,261,264
+src/temples/perdide2.js
+  s_4068fcdc0e3db5::t_b0e2d8e472cda0 95,99,109,141,182,214,223-224
+src/temples/spheres.js
+  s_4068fcdc0e3db5::t_0a4679804fba80 99-102,104-107,185,277
+tests/buried.test.js
+  s_4068fcdc0e3db5::t_10c3ddd07d2c6d 84-87
+tests/contact-audit.test.js
+  s_4068fcdc0e3db5::t_3b9824517a3819 46-48,104-106,108-120,122-128,171-172
+tests/perdide2.test.js
+  s_4068fcdc0e3db5::t_b7b2826cfc67af 77-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8a6ca7fb1c3d61f198e89a17fd86930c7dcf4e53",
+  "prompts": {},
+  "sessions": {
+    "s_4068fcdc0e3db5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce61860b-da40-4b8b-a4f2-cda9cfa23c26",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
