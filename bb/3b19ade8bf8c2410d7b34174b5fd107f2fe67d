@@ -1,0 +1,83 @@
+TODO.md
+  s_35804a64f516af::t_229cf0ef480fe9 13,15-22,25,27-32
+changelog.md
+  s_35804a64f516af::t_1d4057d5fe9930 15-16
+docs/README.md
+  s_35804a64f516af::t_594875938b52c2 31
+docs/systems/dev-tools.md
+  s_35804a64f516af::t_a6b4905c5f3ef6 58-60
+docs/systems/worlds.md
+  s_35804a64f516af::t_7179158a17e834 219-222
+src/carriers.js
+  s_35804a64f516af::t_14b36a08fe13a7 1-42
+src/changelog.js
+  s_35804a64f516af::t_be237b75953bac 19-20
+src/contact-audit.js
+  s_35804a64f516af::t_49c861162373e4 1-259
+src/desert-landmarks.js
+  s_35804a64f516af::t_adb398cfdbc0ca 472-474,477-480
+src/feet.js
+  s_35804a64f516af::t_6dc3169833da2e 105,111-112
+src/levels/arzach2.js
+  s_35804a64f516af::t_3e345c16ba7b47 53-54,188-192,195,205,254,262,268,276,282,310,329,332,345-347,354,487-490,574-575,581
+src/levels/lab-rooms.js
+  s_35804a64f516af::t_b462fa210d264f 356,359
+src/levels/perdide2.js
+  s_35804a64f516af::t_02d8065361520e 259,288-290,509
+src/levels/spheres.js
+  s_35804a64f516af::t_d90fbaf208aba8 257-259,357-358,372-374
+src/locomotion.js
+  s_35804a64f516af::t_f08265446dac0d 116-120,123-124
+src/main.js
+  s_35804a64f516af::t_c90beef918dc72 1614-1622
+src/player.js
+  s_35804a64f516af::t_34014dbb6cef5b 15,1156-1158,1344,1363-1366
+src/temples/arzach2.js
+  s_35804a64f516af::t_41884f24379204 110,124,143,146,222-223,232
+src/temples/buried.js
+  s_35804a64f516af::t_c7e2ac9b7e48e6 215-216
+src/temples/kit.js
+  s_35804a64f516af::t_5d7c36ab84e54e 124-126,168-170,172-173,236,257,282-283
+src/temples/perdide2.js
+  s_35804a64f516af::t_351fb08e410bee 214-215
+src/temples/pieces.js
+  s_35804a64f516af::t_d7b48dfcbbc1ec 153-154,169-170,179,1092-1093,1095
+tests/arzach2.test.js
+  s_35804a64f516af::t_c6b20c489227e4 72-73
+tests/contact-audit.test.js
+  s_35804a64f516af::t_ac445337438e9d 1-218
+tests/desert-landmarks.test.js
+  s_35804a64f516af::t_43af06d058a39a 50-51
+tests/perdide2.test.js
+  s_35804a64f516af::t_9243dc9a86b503 77-78
+tests/spheres.test.js
+  s_35804a64f516af::t_6a82ba99dc7efc 95-96
+tests/story-arzach2.test.js
+  s_35804a64f516af::t_1984b4c46f05d8 101
+docs/systems/movement.md
+  s_1d35e74f68eac1::t_3b80feedb93036 20-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bb3b19ade8bf8c2410d7b34174b5fd107f2fe67d",
+  "prompts": {},
+  "sessions": {
+    "s_1d35e74f68eac1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a66792c1e96f1720d",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_35804a64f516af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f765a71d-1875-41c8-b8f3-3df78affbe5a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
