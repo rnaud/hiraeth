@@ -1,0 +1,71 @@
+DONE.md
+  s_1fd8d0e7b02dcf::t_820ad7a054b004 681-693
+TODO.md
+  s_1fd8d0e7b02dcf::t_8fab272edb9e92 231-238
+android/app/src/main/assets/memento-ext/content.js
+  s_1fd8d0e7b02dcf::t_fb6ce6f7aff081 8-10,22-24,46-50
+android/app/src/main/java/com/rnaud/moebius/MainActivity.java
+  s_1fd8d0e7b02dcf::t_bb7505ecc68f64 5-6,8,25,40,67-71,81-82,99-103,195-197,243,258-269,356-372,374,377-388,390-393,396-397,402-421,424-425
+android/app/src/main/java/com/rnaud/moebius/WebBundles.java
+  s_1fd8d0e7b02dcf::t_c0c19d4f1117c5 87
+android/app/src/main/java/com/rnaud/moebius/WebViewActivity.java
+  s_1fd8d0e7b02dcf::t_9347e7e88f5eb4 3-6,9-11,20,45-47,49,53-56,69-74,111-165,170-171,175-180,184-192
+changelog.md
+  s_1fd8d0e7b02dcf::t_6d4f4b386129e0 11-12
+docs/README.md
+  s_1fd8d0e7b02dcf::t_5aef3e0359a11b 55
+docs/systems/android.md
+  s_1fd8d0e7b02dcf::t_4b056915b0652b 60,132-162
+docs/systems/testing.md
+  s_1fd8d0e7b02dcf::t_588fc070c722e2 1-78
+scripts/playthrough-browser.mjs
+  s_1fd8d0e7b02dcf::t_6eadeb3851ac6d 1-201
+src/audio-guard.js
+  s_1fd8d0e7b02dcf::t_555d74c89379ac 1-109
+src/audio.js
+  s_1fd8d0e7b02dcf::t_0af529fd7d3a5a 16,187-191,193-195,214-225,227-231,237,369,394
+src/boot.js
+  s_1fd8d0e7b02dcf::t_80fac03eb80351 11,13
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_020b82a6aa5fc3 15-16
+src/native-app.js
+  s_1fd8d0e7b02dcf::t_92374c0be4133d 13-16,19,124-127
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_8b9e72364e33e5 8,45
+src/story/quests.js
+  s_1fd8d0e7b02dcf::t_9567752fc57bdd 151-153
+tests/android-gecko.test.js
+  s_1fd8d0e7b02dcf::t_67b74aa4be27da 70,101-143
+tests/audio-guard.test.js
+  s_1fd8d0e7b02dcf::t_37082cc1b34eb4 1-160
+tests/dialogue.test.js
+  s_1fd8d0e7b02dcf::t_90b8f7d7ba186c 135-152
+tests/load-steps.test.js
+  s_1fd8d0e7b02dcf::t_cae035090e3baa 39
+tests/native-app.test.js
+  s_1fd8d0e7b02dcf::t_6673f4f2125db2 81,84,87,91
+tests/playthrough-agent.js
+  s_1fd8d0e7b02dcf::t_a94117fa0e65cf 1-668
+tests/playthrough-saves.test.js
+  s_1fd8d0e7b02dcf::t_698fff979cb552 1-145
+tests/playthrough-worlds.js
+  s_1fd8d0e7b02dcf::t_3b7a894134a1d6 1-255
+tests/playthrough.test.js
+  s_1fd8d0e7b02dcf::t_8510ebc7c2b3e4 1-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e76cd83e4f2f0ad43b32825c0ff226af5adae97d",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
