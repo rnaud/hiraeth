@@ -533,7 +533,8 @@ export { fmt };
 
 /** Is this person here: spawned, seen, talkable? { ok, why, npc } */
 export function presence(W, id) {
-  const e = allInteractables().find((x) => x.id === `talk.${id}`);
+  // (a person who shares a name with one in another world has an id of their own, '<name>.<world>': src/save-migrate.js)
+  const e = allInteractables().find((x) => x.id === `talk.${id}`) ?? allInteractables().find((x) => x.id === `talk.${id}.${W.id}`);
   if (!e) return { ok: false, why: 'not spawned' };
   const npc = e.npc;
   if (npc && !Number.isFinite(npc.pos.y)) return { ok: false, why: 'nowhere', npc };

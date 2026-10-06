@@ -241,7 +241,7 @@ export const ROUTE = [
 
 /** A step that asks, in its own words, for a way of getting about must come when he has it. */
 export const SAYS = [
-  [/\bjets?\b|jetpack|RT \/ R2/i, 'jetpack'],
+  [/\bjets?\b|jetpack/i, 'jetpack'],   // (not RT / R2 alone: it is also the shot)
   [/\bwings\b|glide/i, 'glider'],
   [/\b(ride|riding) the bird\b|\bon the bird\b/i, 'bird'],
   [/\b(cab|taxi)s?\b/i, 'cab'],
