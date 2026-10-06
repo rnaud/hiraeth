@@ -1,0 +1,52 @@
+.gitignore
+  s_fef3e0ebb564ed::t_84ca8cfaedd239 37-39
+README.md
+  s_fef3e0ebb564ed::t_6683076e00dd30 40-41
+changelog.md
+  s_fef3e0ebb564ed::t_d4307a589683c8 9
+docs/systems/cinematics.md
+  s_fef3e0ebb564ed::t_a076629cd14c2e 98-129
+src/changelog.js
+  s_fef3e0ebb564ed::t_68b2ef4eb835e1 13
+src/levels/reference-shaft.js
+  s_fef3e0ebb564ed::t_e402f4d599bff1 147
+src/trailer/actors.js
+  s_fef3e0ebb564ed::t_37b657c2cef985 1-135
+src/trailer/export.js
+  s_fef3e0ebb564ed::t_f3e1870e2235a3 1-74
+src/trailer/foley.js
+  s_fef3e0ebb564ed::t_f62a879e13f110 1-35
+src/trailer/main.js
+  s_fef3e0ebb564ed::t_1fbdc74ccd188e 1-227
+src/trailer/reference-scenes.js
+  s_fef3e0ebb564ed::t_92e87af25b1b11 1-42
+src/trailer/timeline.js
+  s_fef3e0ebb564ed::t_c82bc8dfd82c0d 1-50
+src/trailer/world.js
+  s_fef3e0ebb564ed::t_4fa70929575726 1-11
+tests/trailer.test.js
+  s_fef3e0ebb564ed::t_50c6b1fcacb93e 1-129
+trailer.html
+  s_fef3e0ebb564ed::t_2ec32be4b4b662 1-10
+vite.config.js
+  s_fef3e0ebb564ed::t_4f1e0a154030b5 13,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a714012241e5b892b51420e97a2013f8d2f0aa74",
+  "prompts": {},
+  "sessions": {
+    "s_fef3e0ebb564ed": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a111e5-6702-7ff1-aff7-de8b69c9a706",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}

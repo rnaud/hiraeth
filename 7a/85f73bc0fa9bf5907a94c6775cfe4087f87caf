@@ -1,0 +1,105 @@
+changelog.md
+  s_958e45ace108a6::t_8fdf2b9ff9bc03 7-8
+docs/systems/characters.md
+  s_958e45ace108a6::t_0ad2a5fb638ee8 5-45,410-450
+public/characters/traveller-v1/README.md
+  s_958e45ace108a6::t_0a8bb94dce096b 1-11
+public/characters/traveller-v1/colors.json
+  s_958e45ace108a6::t_7a9773d7bb41ba 1
+public/characters/traveller-v1/rig.json
+  s_958e45ace108a6::t_fb88e8fafb1393 1-958
+scripts/tripo/README.md
+  s_958e45ace108a6::t_7ecf858742e836 1-149
+scripts/tripo/audit-cloth.mjs
+  s_958e45ace108a6::t_0ca0a740c027f2 1-52
+scripts/tripo/audit-hands.mjs
+  s_958e45ace108a6::t_78a4928651166b 1-37
+scripts/tripo/audit-walk.mjs
+  s_958e45ace108a6::t_b168ddcd14c6ce 1-31
+scripts/tripo/rig-baseline.mjs
+  s_958e45ace108a6::t_428b301093843c 1-89
+scripts/tripo/sample-colors.py
+  s_958e45ace108a6::t_3bdf41c5389c00 1-31
+scripts/tripo/verify-rig.mjs
+  s_958e45ace108a6::t_7785313f21f7f4 1-16
+src/changelog.js
+  s_958e45ace108a6::t_6a8778a97022f1 10-11
+src/characters/tripo-fit.js
+  s_958e45ace108a6::t_61cc385f5fc27b 1-109
+src/characters/tripo-garment-geometry.js
+  s_958e45ace108a6::t_2680dea0077d49 1-128
+src/characters/tripo-hands.js
+  s_958e45ace108a6::t_d1186b3ff14899 1-17
+src/characters/tripo-material.js
+  s_958e45ace108a6::t_0c1943307594a4 1-21
+src/hands.js
+  s_fef3e0ebb564ed::t_739d12631e8c57 212-219
+src/main.js
+  s_958e45ace108a6::t_b561dd5e369c77 50,195,341-344,346-352,1378
+tests/traveller-v1.test.js
+  s_958e45ace108a6::t_bdeb374ccc9d77 1-70
+tests/tripo-cloth.test.js
+  s_958e45ace108a6::t_6e136ac2d50e3a 1-76
+tests/tripo-fit.test.js
+  s_958e45ace108a6::t_f2418faf98688e 1-26
+tests/tripo-hands.test.js
+  s_958e45ace108a6::t_6c57dd9664144a 1-47
+tests/tripo-walk.test.js
+  s_958e45ace108a6::t_905a63a6ce085b 1-19
+tools/tripo-cloth.js
+  s_958e45ace108a6::t_f67306552b5159 1-2
+tools/tripo-fit.js
+  s_958e45ace108a6::t_adaa17bd67d26b 1-2
+tools/tripo-garment-geometry.js
+  s_958e45ace108a6::t_bcced7a1dbadc6 1-2
+tools/tripo-hands.js
+  s_958e45ace108a6::t_a7200ee691d50a 1-2
+tools/tripo-render.js
+  s_958e45ace108a6::t_b1611d25367e37 1-48
+tools/tripo-review.html
+  s_958e45ace108a6::t_925f07a536d58b 1
+tools/tripo-review.js
+  s_958e45ace108a6::t_434bdf16f77486 1-61
+tools/tripo-walk.js
+  s_958e45ace108a6::t_f97ffe6d653561 1-2
+src/characters/traveller-v1.js
+  s_958e45ace108a6::t_61afb3cc32d722 1-81
+src/characters/tripo-cloth.js
+  s_958e45ace108a6::t_37bfd67d2ed29e 1-157
+src/characters/tripo-walk.js
+  s_958e45ace108a6::t_387f8b1e3d6398 1-52
+src/gear.js
+  s_958e45ace108a6::t_a25abee7e207f3 174,182
+src/player.js
+  s_958e45ace108a6::t_2e4e5159847b19 525,1352,1354-1357
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7a85f73bc0fa9bf5907a94c6775cfe4087f87caf",
+  "prompts": {},
+  "sessions": {
+    "s_958e45ace108a6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11171-5f34-73d0-ab82-57cb192a71e4",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    },
+    "s_fef3e0ebb564ed": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a111e5-6702-7ff1-aff7-de8b69c9a706",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
