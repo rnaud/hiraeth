@@ -12,6 +12,7 @@ export const CHANGELOG = [
     'The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.',
     'Game updates in the app and on the Steam Deck are about a third of their old size: the References scenes’ drawings are no longer packed into them and come from the game’s site when you open those scenes.',
     'On the Steam Deck the screen no longer dims or goes to sleep while you play with the controls.',
+    'Walls and machines are drawn with fine pen detail, as in the drawings: panel seams and joints, little vents, hatches and plates, bolts up close, and the same marks on the far buildings at their own scale. Tree trunks, roots and the giant mushrooms’ stalks have short grain strokes along their bark.',
   ] },
   { v: '0.70', date: '2026-10-06', items: [
     'People wear many more kinds of headwear: wide and narrow-brimmed hats, flat straw hats, bowlers, peaked and flat caps, knit caps, fur hats with their ear-flaps down, aviators’ caps, kerchiefs and headscarves, small round caps, circlets, miners’ hard hats with a lamp, and hoods thrown back on the shoulders. On their faces and necks: round spectacles, dark glasses, cloths over the mouth, desert face-wraps, now and then a monocle, neckerchiefs, thick mufflers and goggles hung round the neck.',

@@ -174,7 +174,7 @@ export function* buildSpheres(scene) {
   const avoid = [];     // [x, z, r] keep scatter away
 
   const M = {
-    trunk: makeMaterial({ color: '#9fb5a8' }),
+    trunk: makeMaterial({ color: '#9fb5a8', detail: 'organic' }),   // (bark: grain strokes, materials.js DETAIL)
     branch: makeMaterial({ color: '#7f9a90' }),
     canopy: makeMaterial({ color: '#ffffff', vertexColors: true }),
     white: makeMaterial({ color: '#f3efe2', flat: true }),
@@ -792,7 +792,7 @@ export function* buildSpheres(scene) {
       lumpy(2, 0.14, 3).scale(1.5, 1.15, 1.5).translate(-1.3, 5.3, -0.8),
       lumpy(2, 0.14, 5).scale(1.4, 1.1, 1.4).translate(0.2, 6.1, -1.2),
     ].map((g) => prep(g)));
-    instanced(trunk, makeMaterial({ color: '#ffffff' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })),
+    instanced(trunk, makeMaterial({ color: '#ffffff', detail: 'organic' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })),
       { collideGeo: new THREE.CylinderGeometry(0.4, 0.4, 3, 6, 1).translate(0, 1.5, 0) });
     instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })));
   }

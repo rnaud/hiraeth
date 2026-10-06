@@ -670,6 +670,9 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   (`reference-market.js`): towers with pipes and machinery, billboards, skybridges, stalls, cabs, cables, a
   crowd, the traveller. On the world: walls and shops shade flat in the street's teal (`MARKET_FLAT`).
   `?look=bazaar`. The recurring gaps across all the worlds: docs/systems/references.md.
+- Gap 1, pen detail at every scale (docs/systems/materials.md): built surfaces' seams, joints, vents, hatches,
+  plates and bolts, organic surfaces' grain strokes, drawn at a coarser scale with distance so they keep their
+  size on screen; on every weathered building, the Buried Machine's rust, the worlds' trunks and stalks.
 - Worn by time (the author's ask, docs/systems/materials.md): grime streaks, chips with the plaster lip's
   shadow, cracks with a shadow side, dust at the wall's foot (post.js), per building, lighter on the
   handheld; on in every world's plaster, mud and stone buildings. The "fuzzy dots" on view 2's dish

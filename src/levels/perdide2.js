@@ -251,7 +251,7 @@ export function* buildPerdide2(scene) {
       n++;
     }
     for (const [c, l] of Object.entries(parts)) {
-      const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks' }));
+      const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks', detail: 'organic' }));
       m.userData.noCollide = true;
       scene.add(m);
     }
@@ -327,7 +327,7 @@ export function* buildPerdide2(scene) {
         const [c, glow] = k.split('|');
         const g = +glow ? (key === 'top' ? 0.45 : key === 'under' ? 0.3 : 0) : (key === 'top' ? 0.12 : 0);
         // (pale even in their own shade, as the reference sheets draw them against the dark wood)
-        const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g, shade: key === 'under' ? 0.4 : 0.6, hatch: 0.4 }));
+        const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g, shade: key === 'under' ? 0.4 : 0.6, hatch: 0.4, detail: key === 'stalk' ? 'organic' : 0, detailDensity: 0.7 }));
         m.userData.noCollide = true;
         scene.add(m);
       }
@@ -725,7 +725,7 @@ export function* buildPerdide2(scene) {
   yield;
   for (const [c, l] of Object.entries(rootParts)) if (l.length) {
     yield;
-    const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks' }));
+    const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks', detail: 'organic' }));
     m.userData.noCollide = true;
     scene.add(m);
   }
