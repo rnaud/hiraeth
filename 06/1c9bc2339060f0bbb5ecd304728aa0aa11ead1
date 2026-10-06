@@ -1,0 +1,21 @@
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_15957b26ae5085 99,102-106,110-113,115-116,118-119
+src/materials.js
+  s_1fd8d0e7b02dcf::t_69920e540bba73 298-299,302,1109-1110,1117,1670-1677
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "061c9bc2339060f0bbb5ecd304728aa0aa11ead1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
