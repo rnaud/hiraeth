@@ -1,0 +1,65 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_bc8c6d3d96f93e 186-196
+changelog.md
+  s_1fd8d0e7b02dcf::t_f522aa04d1bdf7 5-11
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_88513f9376c12d 263-265,270-272,281-283
+docs/systems/rendering.md
+  s_1fd8d0e7b02dcf::t_ad318e79a62501 275-441
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_1b8f657834521f 9-14
+src/desert-sites.js
+  s_1fd8d0e7b02dcf::t_93f675a058772a 68-70
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_367e45ef52ddfc 27-31,668-669
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_d35eaf165aee5c 14-16,34-40,68-74,76,79-82,84-86,90-91,94
+src/levels/incal.js
+  s_1fd8d0e7b02dcf::t_5c09f973fd0732 24-25,896
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_0dcda4c244529c 22-29,399
+src/levels/reference-buried.js
+  s_1fd8d0e7b02dcf::t_2a086f3bbf0151 64-65
+src/levels/reference-desert.js
+  s_1fd8d0e7b02dcf::t_d1d1944ab5b1a1 4,23-25,41,60,89,110,128,158,184,202,225,248,277,303,330,361
+src/levels/reference-lorn.js
+  s_1fd8d0e7b02dcf::t_107901ca4a7cb6 25,48-50
+src/levels/reference-market.js
+  s_1fd8d0e7b02dcf::t_8d482a145c8d9d 43-44
+src/levels/reference-shaft.js
+  s_1fd8d0e7b02dcf::t_98c653375456aa 22-24
+src/levels/reference-spheres.js
+  s_1fd8d0e7b02dcf::t_aee0ecaf5f293b 40,61-62
+src/levels/reference-vael2.js
+  s_1fd8d0e7b02dcf::t_8ee2c136dcbbd6 6,29,60-62
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_dc047482860171 5,8,70,139,229,298,367,416
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_2f2d0bd828b983 78,181
+src/materials.js
+  s_1fd8d0e7b02dcf::t_772c789ff0acb6 126-127,129-155,674,1970-1973,2018-2019,2282-2283,2392
+src/post.js
+  s_1fd8d0e7b02dcf::t_514a63962bc5cd 2,8,38-41,62-112,252-257,314-315,320-323,332-337,344,367-369,448-473,669,719-726,734-736,772,776,779-780,787,822-824,830-851,858-864,877-883,910,917,983-990,992,1000,1151-1155,1173-1190,1327-1329,1336,1344,1357,1365,1373,1381,1388
+src/title-vista.js
+  s_1fd8d0e7b02dcf::t_8ceb893492e277 223
+src/water.js
+  s_1fd8d0e7b02dcf::t_dea727b0cb2227 479-480
+tests/ink-pass.test.js
+  s_1fd8d0e7b02dcf::t_763a40ebf6b89f 1-183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ddef0ed9844cb648db58df3699e36bc3987f8bc",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
