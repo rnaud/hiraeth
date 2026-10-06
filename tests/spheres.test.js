@@ -92,6 +92,8 @@ test('deep lake water is unsafe, the shore is not', () => {
 
 test('static collision stays within budget', () => {
   console.log('collision triangles', physics.triangles);
-  // (the spheres and the umbrella trees collide as drawn since the contact audit, docs/systems/movement.md "Contact": ~157 k)
-  assert.ok(physics.triangles < 180000, `static collision budget: ${physics.triangles}`);
+  // (the spheres, the umbrella trees and, since the contact audit's second pass, the hill's boulders,
+  // the pillars, the monoliths, the android wood's ruins and statue and the Footprint's heel collide as
+  // they are drawn, docs/systems/movement.md "Contact": 157 k → ~179 k, the BVH 49 → 61 ms to bake)
+  assert.ok(physics.triangles < 200000, `static collision budget: ${physics.triangles}`);
 });

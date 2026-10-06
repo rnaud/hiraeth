@@ -292,8 +292,9 @@ export function buildDesertCity(scene, terrain) {
       if (kind < 0.4) {
         // a round house under a dome
         const h = 3 + rng() * 2.5;
-        city.both(wm, new THREE.CylinderGeometry(r, r * 1.04, h, 16).translate(x, h / 2, z), new THREE.CylinderGeometry(r, r, h, 8).translate(x, h / 2, z));
-        { const sy = 0.75 + rng() * 0.5; city.both(dm, T(dome(r * 1.02, 16, 6), [x, h, z], [0, 0, 0], [1, sy, 1]), domeSolid(r * 1.01, [x, h, z], sy)); }
+        // (the houses are low-poly as drawn: their 8-sided stand-ins lay up to 0.4 m inside them)
+        city.both(wm, new THREE.CylinderGeometry(r, r * 1.04, h, 16).translate(x, h / 2, z));
+        { const sy = 0.75 + rng() * 0.5; city.both(dm, T(dome(r * 1.02, 16, 6), [x, h, z], [0, 0, 0], [1, sy, 1])); }
         city.add(M.dark, T(new THREE.BoxGeometry(1.3, 2.1, 0.3), [x + fx * r * 0.98, 1.05, z + fz * r * 0.98], [0, face, 0]));
       } else if (kind < 0.75) {
         // a block house, flat roof, a small dome and a parapet
@@ -301,14 +302,14 @@ export function buildDesertCity(scene, terrain) {
         const g = T(new THREE.BoxGeometry(r * 1.7, h, r * 1.7), [x, h / 2, z], [0, face, 0]);
         city.both(wm, g);
         city.both(wm, T(new THREE.BoxGeometry(r * 1.8, 0.5, r * 1.8), [x, h + 0.25, z], [0, face, 0]));   // (the roof slab: you stand on it, not in it)
-        if (rng() < 0.7) { const at = [x - fx * r * 0.2, h + 0.4, z - fz * r * 0.2]; city.both(dm, T(dome(r * 0.55, 12, 5), at), domeSolid(r * 0.54, at)); }
+        if (rng() < 0.7) { const at = [x - fx * r * 0.2, h + 0.4, z - fz * r * 0.2]; city.both(dm, T(dome(r * 0.55, 12, 5), at)); }
         city.add(M.dark, T(new THREE.BoxGeometry(1.2, 2, 0.3), [x + fx * r * 0.86, 1, z + fz * r * 0.86], [0, face, 0]));
         for (const s of [-1, 1]) city.add(M.dark, T(new THREE.BoxGeometry(0.6, 0.8, 0.3), [x + fx * r * 0.86 + fz * s * r * 0.5, h * 0.7, z + fz * r * 0.86 - fx * s * r * 0.5], [0, face, 0]));
       } else {
         // a tower-house: a tall shaft, a bulb and a needle (the reference pages' spires)
         const h = 10 + rng() * 9;
-        city.both(wm, new THREE.CylinderGeometry(r * 0.75, r, h, 12).translate(x, h / 2, z), new THREE.CylinderGeometry(r * 0.8, r, h, 8).translate(x, h / 2, z));
-        city.both(dm, T(new THREE.SphereGeometry(r * 1.25, 18, 12), [x, h + r * 0.6, z], [0, 0, 0], [1, 0.8, 1]), T(new THREE.SphereGeometry(r * 1.24, 14, 8), [x, h + r * 0.6, z], [0, 0, 0], [1, 0.8, 1]));
+        city.both(wm, new THREE.CylinderGeometry(r * 0.75, r, h, 12).translate(x, h / 2, z));
+        city.both(dm, T(new THREE.SphereGeometry(r * 1.25, 18, 12), [x, h + r * 0.6, z], [0, 0, 0], [1, 0.8, 1]));
         city.add(M.ink, new THREE.CylinderGeometry(0.07, 0.12, 5, 4).translate(x, h + r * 1.6 + 2.5, z));
         city.add(M.dark, T(new THREE.BoxGeometry(0.9, 1.9, 0.3), [x + fx * r * 0.98, 0.95, z + fz * r * 0.98], [0, face, 0]));
         city.add(M.dark, T(new THREE.BoxGeometry(0.6, 1.0, 0.3), [x + fx * r * 0.8, h * 0.75, z + fz * r * 0.8], [0, face, 0]));
@@ -717,7 +718,7 @@ export function buildDesertCity(scene, terrain) {
     // the floor: a shallow basin in the middle
     const prof = [[0, -1.7], [POOL - 2, -1.6], [POOL, -1.1], [POOL + 2.2, 0], [ROOM + 2, 0], [ROOM + 2, -1]];
     const fl = lathe(prof.map(([r, y]) => [r, y]), 36);
-    cave.both(M.caveFloor, fl, lathe(prof.slice(1), 18));
+    cave.both(M.caveFloor, fl);   // (the basin collides as drawn: an 18-sided stand-in lay up to 0.5 m inside it)
     // the pool's bed as one flat disc (a lathe's centre is a needle a ray can slip through)
     cave.solid(new THREE.CylinderGeometry(POOL - 1.5, POOL - 1.5, 0.3, 16).translate(0, -1.75, 0));
     // the basin's floor height at radius r, and its radius at height y (where water standing at y meets it)
@@ -761,14 +762,14 @@ export function buildDesertCity(scene, terrain) {
     // the dome, inside out, rough: the giant's chest
     const door = (x, y, z) => Math.abs(x) < 3.0 && y < 5.2 && z > 15;   // the opening to the passage
     const d = cut(inward(rough(new THREE.SphereGeometry(ROOM + 1, 30, 16, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.62, 1), 1.2, 0.18, 5)), door);
-    cave.both(M.cave, d, cut(inward(new THREE.SphereGeometry(ROOM + 1, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.62, 1)), door));
+    cave.both(M.cave, d);   // (the rough dome collides as drawn: a smooth 14-sided one lay up to 1.6 m inside it)
     // ribs arching overhead, a breastbone ridge between them
     for (let k = 0; k < 7; k++) {
       const z = -18 + k * 6, w = Math.sqrt(Math.max(ROOM * ROOM - z * z, 40)) * 0.97;
       const pts = [V(-w, 0, z), V(-w * 0.78, 10.5, z * 1.02), V(0, 17.6, z * 1.05), V(w * 0.78, 10.5, z * 1.02), V(w, 0, z)];
-      cave.add(M.bone, taper(pts, 1.05, 1.05, 24, 7));
+      cave.both(M.bone, taper(pts, 1.05, 1.05, 24, 7));   // (the ribs come down to the floor: solid where they are drawn)
     }
-    cave.add(M.boneDark, taper([V(0, 17.4, -22), V(0, 18.2, 0), V(0, 17.4, 20)], 1.4, 1.4, 14, 7));
+    cave.both(M.boneDark, taper([V(0, 17.4, -22), V(0, 18.2, 0), V(0, 17.4, 20)], 1.4, 1.4, 14, 7));
     // the tree's roots hang down through the ribs into the pool
     const rootTips = [];
     for (let k = 0; k < 6; k++) {

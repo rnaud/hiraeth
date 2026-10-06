@@ -10,6 +10,7 @@ export const CHANGELOG = [
   { v: '0.73', date: '2026-10-06', items: [
     'The desert is solid where it is drawn: on the Givers’ Hearth butte and the Givers’ House tower you hang on the rough rock and the carved stone instead of half inside it, and your feet rest on the sunken leviathan’s ribs and skull, on the crashed hull and its salvage, on the fallen giant’s brow, cheeks, teeth and arm, and on the petal station’s great petals and its cage.',
     'Qanat’s dry well is a well again: an invisible floor used to cap its mouth a metre above the terrace, so you walked over the hole. The great tree’s roots spread over the terrace are solid under your feet now, and lie low enough to step over.',
+    'Qanat’s houses, domes and tower-houses, and the cave in the giant’s chest — its basin, its rough walls and the ribs arching over it — are solid exactly where they are drawn.',
     'People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.',
   ] },
   { v: '0.72', date: '2026-10-06', items: [

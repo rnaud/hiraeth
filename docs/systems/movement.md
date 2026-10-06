@@ -73,7 +73,9 @@ collide as drawn now. Three bugs came out with them:
   and kept until it is free.
 The tree's roots over the terrace were drawn 1 m proud with no collision (feet sank 1.9 m into them); they are
 solid and lie about 0.4 m proud, low enough to step over, so the terrace is still walked round.
-The cost: the desert's collision 194 k → 219 k triangles, its BVH 60 → 64 ms to bake on the desktop, ground
+Qanat's houses, domes and tower-houses and the cave of the giant's heart (its basin, its rough dome and the
+ribs arching over it) collide as drawn too.
+The cost: the desert's collision 194 k → 228 k triangles, its BVH 60 → 64 ms to bake on the desktop, ground
 rays and capsule pushes unchanged. `node scripts/contact-report.mjs [world…]` prints the audit for every world
 with its collision triangle count.
 
