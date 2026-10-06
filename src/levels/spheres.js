@@ -176,7 +176,7 @@ export function* buildSpheres(scene) {
   const M = {
     trunk: makeMaterial({ color: '#9fb5a8' }),
     branch: makeMaterial({ color: '#7f9a90' }),
-    canopy: makeMaterial({ color: '#ffffff', vertexColors: true }),
+    canopy: makeMaterial({ color: '#ffffff', vertexColors: true, line: 0.7, lineTint: 0.67 }),   // (foliage: a dark green line, lighter)
     white: makeMaterial({ color: '#f3efe2', flat: true }),
     whiteSmooth: makeMaterial({ color: '#f5f2e8' }),
     rock: makeMaterial({ color: '#f1ede2', pattern: 'cracks' }),

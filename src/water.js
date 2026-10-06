@@ -476,7 +476,8 @@ class WaterPass {
             float len = length(N.xyz);
             float g = clamp((len - ${(1 + WATER_MARK.base).toFixed(4)}) / ${WATER_MARK.glint.toFixed(4)}, 0.0, 1.0);
             if (N.w <= 0.0 || g < 0.35) discard;
-            float lit = smoothstep(uToon - 0.02, uToon + 0.02, texture(tAlbedo, vUv).a);
+            float la = texture(tAlbedo, vUv).a;   // (the light term under a line step: materials.js LINE)
+            float lit = smoothstep(uToon - 0.02, uToon + 0.02, la - 2.0 * floor(la * 0.5));
             float a = lit * (1.0 - smoothstep(180.0, 520.0, N.w));
             fragColor = vec4(vec3(1.0, 0.99, 0.94), a);
             return;

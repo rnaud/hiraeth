@@ -657,7 +657,8 @@ export function* buildArzach2(scene) {
       g.setAttribute('color', new THREE.BufferAttribute(c, 3));
       return g;
     };
-    const cloudMat = makeMaterial({ color: '#ffffff', vertexColors: true, palette: PAL, glow: 0.5 });
+    // (a thin line in its own shade's blue, not the ink: materials.js LINE)
+    const cloudMat = makeMaterial({ color: '#ffffff', vertexColors: true, palette: PAL, glow: 0.5, line: 0.45, lineTint: 1 });
     const near = [], far = [];
     const inPlain = (x, z) => z < PLAIN_EDGE - 50 + nA(x * 0.004, 3.1) * 40;
     // cauliflower clusters: a big central puff, smaller lobes round it and on top

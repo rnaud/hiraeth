@@ -387,7 +387,7 @@ export function* buildPerdide2(scene) {
       }
       if (c % 4 === 0) lights.push(new THREE.Vector4(cx, H(cx, cz) + 3, cz, 9));
     }
-    inst(reed, makeMaterial({ color: '#ffffff', flat: true, glow: 0.5 }), reeds);
+    inst(reed, makeMaterial({ color: '#ffffff', flat: true, glow: 0.5, line: 0.45, lineTint: 1 }), reeds);   // (pale blades in a thin violet line of their own: materials.js LINE)
     inst(shard, makeMaterial({ color: '#ffffff', flat: true, glow: 0.45 }), shards);
   }
 

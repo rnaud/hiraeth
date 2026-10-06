@@ -260,6 +260,9 @@ Ranked by how much they would close the gap to the sheets, across every world re
    the Market's billboards): the sheets draw soft things (cloud, reeds, foliage, glass) in thin,
    lighter, coloured lines and solid things in black. Ours use one ink for everything, so soft shapes
    read as hard. A per-material line weight and tint packed into the G-buffer (as the shade is).
+   **Done** (`makeMaterial({ line, lineTint })`, docs/systems/rendering.md, "Lines by material"): the clouds,
+   Lorn II's reeds and crystals, foliage (`leaves`) and the Spheres' canopies, glass and the Market's
+   billboards draw a thin or lighter line in a dark shade of their own colour.
 3. **Aerial layers by depth** (Lorn II's mist, the City-Shaft's shaft, the desert's far dunes, the
    Market's far towers): the sheets separate planes by stepped pale bands of a warm or cool haze; our
    fog is one exponential tint (`uHaze` helps the desert). Stepped haze layers with their own colour per

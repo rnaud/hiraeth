@@ -40,7 +40,8 @@ function materials(kit) {
     cable: kit.mat({ color: '#2b3a40', flat: true }),
     paving: kit.mat({ color: '#a8c9c4', flat: true, grid: 3 }),
     walk: kit.mat({ color: '#d9cfae', flat: true, grid: 1.5 }),
-    screens: ['#f6c9a6', '#f3dca0', '#ef9f86', '#bfe0e0', '#e9c7e6'].map((c) => kit.mat({ color: c, flat: true, glow: 0.35 })),
+    // (the painted signs: drawn in a lighter line of their own colour, not the walls' ink)
+    screens: ['#f6c9a6', '#f3dca0', '#ef9f86', '#bfe0e0', '#e9c7e6'].map((c) => kit.mat({ color: c, flat: true, glow: 0.35, line: 0.7, lineTint: 0.67 })),
     ink: kit.mat({ color: '#c7604b', flat: true, glow: 0.3 }),
     awning: ['#d9573f', '#e38a52', '#4f8a8f', '#e9b25c'].map((c) => kit.mat({ color: c, flat: true, side: DS })),
     goods: ['#e86f4e', '#f2b84b', '#7db36a', '#c2493b', '#e8d8a8'].map((c) => kit.mat({ color: c, flat: true })),

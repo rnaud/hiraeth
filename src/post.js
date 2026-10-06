@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { sharedUniforms, SHADE, SPOT, WEATHER } from './materials.js';
+import { sharedUniforms, SHADE, SPOT, WEATHER, LINE } from './materials.js';
 
 // ---------------------------------------------------------------------------
 // Moebius / Sable composite pass.
 //
 // Inputs (from the G-buffer written by materials.js):
-//   tAlbedo : rgb albedo, a = light term
+//   tAlbedo : rgb albedo, a = light term (+ 2 × the material's line step, materials.js LINE)
 //   tNormal : rgb world normal, a = view depth (0 = sky)
 //   tHatch  : r = single hatch, g = cross hatch (strokes drawn on surfaces)
 //
@@ -206,12 +206,16 @@ const fragmentShader = /* glsl */ `
   }
 
   float invDepth(float d) { return d > 0.0 ? 1.0 / d : 0.0; }
+  // the light term under a material's line step (materials.js LINE: gAlbedoLight.a = L + 2 × step)
+  float lightOf(float a) { return a - 2.0 * floor(a * 0.5); }
 
   // Edge components at a given kernel width:
   //   x = depth discontinuity (silhouettes), y = normal crease,
   //   z = albedo boundary, w = shadow boundary.
-  // minDepth = nearest surface in the kernel (for fading).
-  vec4 inkLines(vec2 uv, float w, bool interior, out float minDepth) {
+  // minDepth = nearest surface in the kernel (for fading); near.xy = where it is, near.z = the signed
+  // Laplacian of 1/z (relative): over 0 on a depth edge's far side, where the line's owner (whose weight and
+  // colour it takes, 1b) is the surface in front at near.xy, not this pixel's.
+  vec4 inkLines(vec2 uv, float w, bool interior, out float minDepth, out vec3 near) {
     vec2 px = max(w, 1.0) / uRes;
     vec4 c  = texture(tNormal, uv);
     vec4 n1 = texture(tNormal, uv + vec2(px.x, 0.0));
@@ -220,14 +224,19 @@ const fragmentShader = /* glsl */ `
     vec4 n4 = texture(tNormal, uv - vec2(0.0, px.y));
 
     float big = 1e7;
-    minDepth = min(min(c.w > 0.0 ? c.w : big, min(n1.w > 0.0 ? n1.w : big, n2.w > 0.0 ? n2.w : big)),
-                   min(n3.w > 0.0 ? n3.w : big, n4.w > 0.0 ? n4.w : big));
+    minDepth = c.w > 0.0 ? c.w : big;
+    near.xy = uv;
+    if (n1.w > 0.0 && n1.w < minDepth) { minDepth = n1.w; near.xy = uv + vec2(px.x, 0.0); }
+    if (n2.w > 0.0 && n2.w < minDepth) { minDepth = n2.w; near.xy = uv - vec2(px.x, 0.0); }
+    if (n3.w > 0.0 && n3.w < minDepth) { minDepth = n3.w; near.xy = uv + vec2(0.0, px.y); }
+    if (n4.w > 0.0 && n4.w < minDepth) { minDepth = n4.w; near.xy = uv - vec2(0.0, px.y); }
 
     // Depth: Laplacian of inverse depth (planar in screen space -> 0 on planes).
     float ic = invDepth(c.w), i1 = invDepth(n1.w), i2 = invDepth(n2.w), i3 = invDepth(n3.w), i4 = invDepth(n4.w);
     float mx = max(max(max(ic, i1), max(i2, i3)), i4);
     float lap = abs(i1 + i2 - 2.0 * ic) + abs(i3 + i4 - 2.0 * ic);
     float dEdge = smoothstep(uDepthThresh, uDepthThresh * 1.6, lap / max(mx, 1e-7));
+    near.z = (i1 + i2 + i3 + i4 - 4.0 * ic) / max(mx, 1e-7);
 
     // Normals: creases.
     float nEdge = 0.0;
@@ -250,9 +259,9 @@ const fragmentShader = /* glsl */ `
       float da = max(max(length(a.rgb - a1.rgb), length(a.rgb - a2.rgb)),
                      max(length(a.rgb - a3.rgb), length(a.rgb - a4.rgb)));
       aEdge = smoothstep(0.08, 0.14, da) * uAlbedoEdges;
-      float s = step(uToon, a.a);
-      float ds = max(max(abs(s - step(uToon, a1.a)), abs(s - step(uToon, a2.a))),
-                     max(abs(s - step(uToon, a3.a)), abs(s - step(uToon, a4.a))));
+      float s = step(uToon, lightOf(a.a));
+      float ds = max(max(abs(s - step(uToon, lightOf(a1.a))), abs(s - step(uToon, lightOf(a2.a)))),
+                     max(abs(s - step(uToon, lightOf(a3.a))), abs(s - step(uToon, lightOf(a4.a)))));
       sEdge = ds * uShadowEdges * (1.0 - uFlatten);
     }
     return vec4(dEdge, nEdge, aEdge, sEdge);
@@ -523,6 +532,7 @@ const fragmentShader = /* glsl */ `
     vec2 uv = vUv;
     vec2 fc = gl_FragCoord.xy / uPixelRatio;   // CSS pixels: stable stroke size on HiDPI
     vec4 A = texture(tAlbedo, uv);
+    A.a = lightOf(A.a);   // (the line step over it: 1b)
     vec4 N = texture(tNormal, uv);
     bool isSky = N.w <= 0.0;
     vec4 surface = texture(tHatch, uv);
@@ -614,14 +624,15 @@ const fragmentShader = /* glsl */ `
     silW = mix(silW, 0.65, heroNear);
     euv = mix(euv, uv, heroNear);
     float nearD2;
+    vec3 ownK, ownK2;   // the nearest surface in the silhouette kernel, and which side of an edge this is (1b)
     vec4 eS, eI;
     if (uPostLite > 0.5) {
       // handheld: one kernel between the two weights serves silhouettes and interior lines (half the taps)
-      eI = inkLines(euv, mix(silW, inW, 0.5) * uPixelRatio, true, nearD2);
+      eI = inkLines(euv, mix(silW, inW, 0.5) * uPixelRatio, true, nearD2, ownK);
       eS = eI; nearD = nearD2;
     } else {
-      eS = inkLines(euv, silW * uPixelRatio, false, nearD);
-      eI = inkLines(euv, inW * uPixelRatio, true, nearD2);
+      eS = inkLines(euv, silW * uPixelRatio, false, nearD, ownK);
+      eI = inkLines(euv, inW * uPixelRatio, true, nearD2, ownK2);
     }
     nearD = min(nearD, nearD2);
     // interior lines break up like quick pen strokes; gaps are anchored in the world
@@ -663,12 +674,35 @@ const fragmentShader = /* glsl */ `
         float innerF = smoothstep(70.0, 260.0, figPx);
         float alpha = mix(0.5, 1.0, smoothstep(20.0, 140.0, figPx));
         float nd;
-        vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio, k), false, nd);
-        vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio, k), true, nd);
+        vec3 nk;
+        vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio, k), false, nd, nk);
+        vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio, k), true, nd, nk);
         float outline = fS.x * alpha * mix(1.0 - figure, 1.0, k);
         ink = clamp(max(outline, max(max(fI.y, fI.z * 0.85) * broken, fI.w * 0.8 * (1.0 - face)) * mix(innerF, 1.0, 1.0 - figure)), 0.0, 1.0);
       }
     }
+
+    // ---- 1b. line weight and colour by material (materials.js LINE, packed over the light term): the line
+    // takes its owner's: this pixel's surface, unless this is a depth edge's far side (the Laplacian of 1/z over
+    // 0: the sky round a cloud, the wall behind a reed), where it is the nearest surface in the kernel, the shape
+    // in front. A thin line is lighter and stays on its owner's side (half as wide); a tinted one is drawn in a
+    // dark shade of the owner's own colour (its albedo in the world's shadow tint) instead of the ink. One tap,
+    // only where there is ink.
+    vec3 lineC = uInk;
+    if (ink > 0.02 && hero < 0.5) {
+      bool own = !isSky && ownK.z < 0.5 * uDepthThresh;
+      vec4 Ao = texture(tAlbedo, own ? euv : ownK.xy);
+      float lq = floor(Ao.a * 0.5);
+      if (lq > 0.5) {
+        float wq = lq - 4.0 * floor(lq * 0.25), tq = floor(lq * 0.25);
+        vec4 la = vec4(${LINE.alpha.map((v) => v.toFixed(3)).join(', ')}), lf = vec4(${LINE.far.map((v) => v.toFixed(3)).join(', ')});
+        vec4 pick = vec4(equal(vec4(wq), vec4(0.0, 1.0, 2.0, 3.0)));
+        ink *= dot(pick, la) * (own ? 1.0 : dot(pick, lf));
+        lineC = mix(uInk, Ao.rgb * uShadowTint * 0.62, tq / ${LINE.tints - 1}.0);
+      }
+      if (uDebug == 11) { fragColor = vec4(own ? 1.0 : 0.0, lq / 15.0, ink, 1.0); return; }   // lines: owned here (red), the owner's step (green), the ink (blue)
+    }
+    if (uDebug == 11) { fragColor = vec4(0.0, 0.0, ink, 1.0); return; }
 
     float heroInk = max(heroBoundary * 0.82, max(eI.y, eI.z) * 0.22 * heroDetail * hero);
     ink = mix(ink, heroInk, heroNear);
@@ -795,7 +829,7 @@ const fragmentShader = /* glsl */ `
     ink *= 1.0 - emitHere * 0.7;
     // grass: its edges drawn in a darker shade of the green, not black, and only on the blade's
     // own side (half as wide); a few tufts keep a real pen line
-    vec3 inkC = uInk;
+    vec3 inkC = mix(lineC, uInk, heroNear);   // (the material's own line colour, 1b)
     if (softNear > 0.5) {
       inkC = mix(mix(uInk, col * 0.62, 0.85), uInk, grassNear.x);
       // (on the blade itself only its outline: no crease, colour-edge or shadow-edge lines;

@@ -43,8 +43,9 @@ function materials(kit) {
     rootPale: kit.mat({ color: '#4c6f7c', flat: true, pattern: 'cracks', side: THREE.DoubleSide }),
     moss: kit.mat({ color: '#3f6a6a', flat: true, grid: 2.2 }),
     door: kit.mat({ color: '#9fe0d0', glow: 0.9 }),
-    reed: kit.mat({ color: '#a69ccc', flat: true, glow: 0.6 }),
-    crystal: kit.mat({ color: '#e7c6d6', flat: true, glow: 0.4 }),
+    // (the reeds and crystals: pale blades drawn in a thin violet line of their own, not the ink)
+    reed: kit.mat({ color: '#a69ccc', flat: true, glow: 0.6, line: 0.45, lineTint: 1 }),
+    crystal: kit.mat({ color: '#e7c6d6', flat: true, glow: 0.4, line: 0.45, lineTint: 0.67 }),
     egg: kit.mat({ color: '#fce0b4', glow: 1 }),
     pool: kit.mat({ color: '#f39a86', glow: 1 }),
     coral: kit.mat({ color: '#ef8a72', glow: 0.75, side: THREE.DoubleSide }),

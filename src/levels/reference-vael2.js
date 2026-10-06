@@ -55,9 +55,9 @@ function materials(kit) {
     dark: kit.mat({ color: '#3c4660', flat: true }),
     tree: kit.mat({ color: '#4f6a58', flat: true }),
     tower: strata('#f9ecda', '#f2e1cb', '#fcf3e6', { strataSize: 9, side: THREE.FrontSide }),
-    // the cloud: a warm white, its shade a pale grey-blue (lifted), no strokes
-    cloud: kit.mat({ color: '#fff4ea', shade: 0.55, hatch: 0, spot: 0 }),
-    pinkCloud: kit.mat({ color: '#fbdccd', shade: 0.55, hatch: 0, spot: 0 }),
+    // the cloud: a warm white, its shade a pale grey-blue (lifted), no strokes, a thin line in its own shade's blue
+    cloud: kit.mat({ color: '#fff4ea', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
+    pinkCloud: kit.mat({ color: '#fbdccd', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
     cloak: kit.mat({ color: PERSON.cloak, flat: true }),
     hidden: new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }),
   };
