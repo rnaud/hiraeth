@@ -27,3 +27,17 @@ scripts/bench/results/raw/
 .env
 .env.*
 !.env.example
+
+# the engine bridges (docs/systems/engine-bridge.md): the bundles are built from src/ (scripts/engine-bundle.mjs),
+# the engines keep their caches; the runs write their pictures and logs to output/engine-bridge/
+output/engine-bridge/
+godot/js/
+godot/.godot/
+godot/gen/
+unity/MementoJS/Library/
+unity/MementoJS/Temp/
+unity/MementoJS/Logs/
+unity/MementoJS/UserSettings/
+unity/MementoJS/Build/
+unity/MementoJS/Assets/Memento.JS/Resources/*.cjs.txt
+unity/MementoJS/Assets/Memento.JS/Resources/*.cjs.txt.meta

@@ -1,0 +1,20 @@
+; Memento drawn by Godot, the game itself running in GodotJS (docs/systems/engine-bridge.md).
+; The scripts in js/ are built from the web game: node scripts/engine-bundle.mjs
+config_version=5
+
+[application]
+config/name="Memento (GodotJS)"
+run/main_scene="res://main.tscn"
+
+[audio]
+driver/driver="Dummy"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[GodotJS]
+runtime/debugger/debugger_port=6299
+
+[rendering]
+renderer/rendering_method="forward_plus"

@@ -229,4 +229,4 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Later
 
-- [ ] The JS bridges: our JS game code inside Godot (GodotJS) and Unity (Puerts), the engine only rendering.
+- [ ] The JS bridges: our JS game code inside Godot (GodotJS) and Unity (Puerts), the engine only rendering. (Under way: docs/systems/engine-bridge.md; the spike draws the desert in Godot through the bridge.)
