@@ -369,6 +369,49 @@ The choice between 2 and 4 as the long-term engine is the author's: Unity has th
 and the existing Android pipeline; Godot is smaller, open, starts fast and its JS binding is
 cheaper a call, but its look is a first port and GodotJS is in beta.
 
+## A cheaper sync (Unity + Puerts, next stage 1)
+
+Where the mirror's time went (`-split`: the mirror's own profile, `SceneMirror.profile()`, and the
+C# side's, `BridgeHost.ApplyMs`), at the camps on a quiet machine, ms a frame: three's matrices
+0.49, the walk 1.9, the bones' encoding 0.75, the call into C# 2.1, all but 0.02 of it the C# apply
+(Puerts' marshalling of a 437 KB ArrayBuffer is nothing), the look 0.16. Under them:
+- **bones a mesh**: a person is five skinned meshes (body, eyes, brows, hair…) on one skeleton, and
+  each sent its bones: 63 skeletons, 102 meshes, ~4 100 bones, each set as a Transform on the main
+  thread;
+- **cloth sent whole**: every cape's geometry re-encoded and a new Unity mesh made every frame,
+  inside the walk;
+- **the look parsed every frame**: its JSON changed every frame only by `uTime`;
+- the walk itself: a recursive closure, two map lookups and a `for…in` over the attributes for every
+  drawable.
+
+What changed:
+- **One skeleton, once a frame** (mirror `skeleton(sid, mats, n)`; a skinned mesh's create says its
+  skeleton and bind matrix): in Unity the meshes share one set of bone Transforms, the bind matrix as
+  their bind pose, and the bones are set by one **Burst job** over a `TransformAccessArray` from the
+  frame's floats, copied straight in (`BridgeBones.cs`). (Backends without `skeleton()`, Godot's, get
+  `bones()` a mesh as before.)
+- **Cloth as points** (mirror `vertices(gid, positions, normals, n)`): when only a geometry's
+  positions and normals moved (the same count, the same triangles), they go alone in the frame's
+  buffer (op 8) and the C# side updates its meshes in place.
+- **The look without the clock** (MementoLook keeps Unity's own), read every 4th frame.
+- **The walk**: an explicit stack, the mirror's node kept on the object, the attribute lists cached
+  on the geometry (looked at again every 32 frames; a new index is a new shape at once).
+
+Before and after, the same C# side, back to back on a quiet machine (load ~3), Unity editor play
+mode, medians in ms (frame; the mirror's share in brackets), and the web game in Chrome then:
+
+| view | before | after | web |
+|---|---|---|---|
+| spawn | 5.19 (3.26) | 3.01 (1.45) | 5.4 |
+| qanat-tree | 8.16 (3.49) | 5.33 (1.26) | 7.2 |
+| camps | 10.62 (5.19) | 6.76 (2.08) | 8.1 |
+| dunes | 2.48 (1.40) | 1.19 (0.43) | 2.9 |
+| cave | 2.45 (1.40) | 1.18 (0.42) | 2.2 |
+
+The mirror is 2.5–3.3 times cheaper and the frames 35–52 % shorter; the commands a frame at the
+camps went from 437 to 317 KB (most of it the bones, 263 KB). What is left at the camps: three's
+own matrices 0.50, the walk 0.86, the bones 0.18, the C# apply 0.85; the game's own update 3.4.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
@@ -378,3 +421,4 @@ cheaper a call, but its look is a first port and GodotJS is in beta.
 - **Stage 3, the Unity renderer**: the desert played in Unity through Puerts, drawn by the port's
   own ink look (above).
 - **Stage 4, the comparison**: above.
+- **Unity, stage 1 (a cheaper sync)**: above.

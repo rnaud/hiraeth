@@ -61,5 +61,7 @@ export function portLook(L) {
     light: mx(L.uSunDir), sunDisc: mx(L.uSunDisc ?? L.uSunDir), moonDisc: mx(L.uMoonDisc ?? [0, -1, 0]),
     flatten: r5(L.uFlatten ?? 0), night: r5(L.uNight ?? 0), moonVis: r5(L.uMoonVis ?? 0),
   };
-  return { hour: L.hour, preset: L.preset, post, shared: { ...L.shared }, hours: [row], planets: L.planets ?? [], envGround: col(L.uEnvGround ?? [0.73, 0.66, 0.55]), cloudShadows: L.shared?.uCloudShadows ?? 1 };
+  // (no clock in it: MementoLook keeps Unity's own, and a look that changed every frame was parsed every frame)
+  const shared = { ...L.shared }; delete shared.uTime;
+  return { hour: L.hour, preset: L.preset, post, shared, hours: [row], planets: L.planets ?? [], envGround: col(L.uEnvGround ?? [0.73, 0.66, 0.55]), cloudShadows: L.shared?.uCloudShadows ?? 1 };
 }

@@ -27,6 +27,11 @@ namespace Memento.Bridge
         readonly Dictionary<string, MeshData> meshes = new();
         readonly Dictionary<int, Material> materials = new();
         readonly Dictionary<int, Node> nodes = new();
+        readonly Dictionary<int, List<MeshData>> byGeometry = new();
+        BridgeBones bonesJob;   // every skeleton's bones, set by one parallel job a frame
+        readonly Dictionary<string, Mesh> bound = new();             // a mesh with a bind pose, by mesh and bind
+
+        Transform[] Skeleton(int sid, int n) => (bonesJob ??= new BridgeBones(transform)).Skeleton(sid, n);
         public int Geometries => meshes.Count;
         public int Nodes => nodes.Count;
         public double msGeometry, msFrame;
@@ -86,6 +91,13 @@ namespace Memento.Bridge
             d.mesh = mesh;
             if (meshes.TryGetValue(key, out var old) && old.mesh) Destroy(old.mesh);
             meshes[key] = d;
+            // (the variants of one geometry, by its id: cloth moves them all at once, op 8)
+            if (int.TryParse(key.Split(':')[0], out int gid))
+            {
+                if (!byGeometry.TryGetValue(gid, out var list)) byGeometry[gid] = list = new List<MeshData>();
+                list.RemoveAll(x => x.mesh == null || x == old);
+                list.Add(d);
+            }
             msGeometry += (Time.realtimeSinceStartupAsDouble - t0) * 1000;
         }
 
@@ -108,7 +120,29 @@ namespace Memento.Bridge
             n.go.transform.SetParent(transform, false);
             n.go.SetActive(false);
             meshes.TryGetValue(n.mesh ?? "", out var md);
-            if (md != null && n.kind == "skinned" && d.I("bones") > 0)
+            if (md != null && n.kind == "skinned" && d.I("bones") > 0 && d.Get("skeleton") != null)
+            {
+                // the skeleton's shared bones (world matrices); the mesh's bind matrix as every bone's bind pose
+                int nb = d.I("bones");
+                var bl = d.L("bind");
+                var bind = new Matrix4x4();
+                for (int i = 0; i < 16; i++) bind[i % 4, i / 4] = Json.Num(bl[i]);
+                var bkey = n.mesh + "|" + string.Join(",", bl);
+                if (!bound.TryGetValue(bkey, out var bm))
+                {
+                    bm = Instantiate(md.mesh); bm.name = md.mesh.name + " (bound)";
+                    var bp = new Matrix4x4[nb]; for (int i = 0; i < nb; i++) bp[i] = bind;
+                    bm.bindposes = bp;
+                    bound[bkey] = bm;
+                }
+                n.bones = null;
+                n.smr = n.go.AddComponent<SkinnedMeshRenderer>();
+                var bones = Skeleton(d.I("skeleton"), nb);
+                n.smr.sharedMesh = bm; n.smr.bones = bones; n.smr.rootBone = bones[0];
+                n.smr.updateWhenOffscreen = true;
+                n.r = n.smr;
+            }
+            else if (md != null && n.kind == "skinned" && d.I("bones") > 0)
             {
                 int nb = d.I("bones");
                 if (md.bones != nb) { var bp = new Matrix4x4[nb]; for (int i = 0; i < nb; i++) bp[i] = Matrix4x4.identity; md.mesh.bindposes = bp; md.bones = nb; }
@@ -216,6 +250,28 @@ namespace Memento.Bridge
                         }
                         break;
                     }
+                    case 7:   // a skeleton's bones: world matrices, shared by its meshes
+                    {
+                        int sid = (int)fu[o++], n = (int)fu[o++];
+                        (bonesJob ??= new BridgeBones(transform)).Set(sid, n, ff, o);
+                        o += n * 16;
+                        break;
+                    }
+                    case 8:   // a geometry's points (and normals) moved: cloth, in place
+                    {
+                        int gid = (int)fu[o++], n = (int)fu[o++]; bool hasN = fu[o++] != 0;
+                        int po = o; o += n * 3; int no = o; if (hasN) o += n * 3;
+                        if (byGeometry.TryGetValue(gid, out var list))
+                            foreach (var md in list)
+                            {
+                                if (!md.mesh || md.pos.Length != n) continue;
+                                for (int i = 0; i < n; i++) md.pos[i] = new Vector3(ff[po + i * 3], ff[po + i * 3 + 1], ff[po + i * 3 + 2]);
+                                md.mesh.SetVertices(md.pos);
+                                if (hasN && md.nrm != null) { for (int i = 0; i < n; i++) md.nrm[i] = new Vector3(ff[no + i * 3], ff[no + i * 3 + 1], ff[no + i * 3 + 2]); md.mesh.SetNormals(md.nrm); }
+                                md.mesh.RecalculateBounds();
+                            }
+                        break;
+                    }
                     case 6:   // remove
                     {
                         int id = (int)fu[o++];
@@ -228,6 +284,7 @@ namespace Memento.Bridge
                         break;
                 }
             }
+            bonesJob?.Apply();
             msFrame += (Time.realtimeSinceStartupAsDouble - t0) * 1000;
         }
 
@@ -268,6 +325,8 @@ namespace Memento.Bridge
         {
             foreach (var n in nodes.Values) if (n.inst) Destroy(n.inst);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);
+            foreach (var m in bound.Values) if (m) Destroy(m);
+            bonesJob?.Dispose();
             foreach (var m in materials.Values) if (m) Destroy(m);
         }
     }

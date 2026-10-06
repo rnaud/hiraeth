@@ -27,6 +27,12 @@ export function start(argsJson) {
     .then((game) => {
       S.game = game;
       console.log(`[unity] ready in ${(now() - t0).toFixed(0)} ms (in the VM: ${JSON.stringify(game.T)})`);
+      if (args.split) {
+        // what a call into C# costs, and how fast plain JS runs here (against Node's numbers in the docs)
+        const d0 = Date.now(); for (let i = 0; i < 2000; i++) performance.now(); const callUs = (Date.now() - d0) / 2;
+        const d1 = Date.now(); let x = 0; for (let i = 0; i < 2e7; i++) x += Math.fround(i * 0.5) % 7; const loopMs = Date.now() - d1;
+        console.log(`[unity] a clock read ${callUs} µs; 2e7 fround loop ${loopMs} ms (${x > 0})`);
+      }
       S.plan = makePlan(args);
     })
     .catch((e) => { console.error('[unity] the game failed to start', e?.stack ?? e); host.Exit(3); });
@@ -67,7 +73,10 @@ export function frame(dt) {
   const tA = now();
   if (!S.plan) readInput(game);
   const r = game.frame(dt);
-  backend.look(JSON.stringify(portLook(game.fullLook())));
+  const tL = now();
+  // (the look moves with the hour and the place: read every 4th frame is enough)
+  if (S.frames % 4 === 0) backend.look(JSON.stringify(portLook(game.fullLook())));
+  S.lookMs = (S.lookMs ?? 0) + now() - tL;
   const tB = now();
   const lastT = S.lastT; S.lastT = tA;
   S.frames++;
@@ -79,13 +88,16 @@ export function frame(dt) {
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
   else if (step.kind === 'wait') { if (++P.wait >= step.frames) next(); }
   else if (step.kind === 'measure') {
+    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
     P.samples ??= [];
     P.samples.push({ dt: lastT ? tA - lastT : dt * 1000, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: host.LastFrameCpuMs(), gpu: host.LastFrameGpuMs(), moved: r.stats.moved });
     P.t += Math.min(dt, 0.1);   // (a load's long first frame counts as one)
     if (P.t >= step.secs) {
       const s = P.samples.slice(5);
       const q = (k, f) => { const a = s.map((x) => x[k]).sort((x, y) => x - y); return a.length ? +a[Math.floor(a.length * f)].toFixed(2) : 0; };
-      const res = { view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes };
+      const nf = Math.max(backend.stats.frames - P.n0, 1);
+      const split = { ...game.mirror.profile(), host: +(backend.stats.hostMs / nf).toFixed(3), apply: +(host.ApplyMs() / nf).toFixed(3), look: +(S.lookMs / nf).toFixed(3), lookSent: (backend.stats.looks ?? 0) - S.looks };
+      const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
       S.results.push(res);
       console.log(`[bench] ${JSON.stringify(res)}`);
       P.samples = null;

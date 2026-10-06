@@ -96,8 +96,11 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;
-  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1 };
-  while (u[o] !== 0) { const op = u[o++]; assert.ok(size[op], `op ${op}`); o += size[op](); ops++; }
+  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 * (u[o + 2] ? 2 : 1) };
+  const skeletons = [];
+  while (u[o] !== 0) { const op = u[o++]; assert.ok(size[op], `op ${op}`); if (op === 7) skeletons.push(u[o]); o += size[op](); ops++; }
+  assert.ok(skeletons.length > 0, 'the people\'s skeletons');
+  assert.equal(new Set(skeletons).size, skeletons.length, 'each skeleton once a frame, however many meshes it moves');
   assert.equal(o, u.length - 1, 'the stream ends where it says');
   assert.ok(ops > 0);
 });

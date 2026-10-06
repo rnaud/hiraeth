@@ -68,6 +68,8 @@ export function unityGeometry(g, { colors = false, bind = false } = {}) {
  *   4 bones:      i32 id, u32 n, f32 × 16 n (X · Sᵢ · X: engine/skin.js, mirrored)
  *   5 camera:     f32 × 16 (mirrored camera world), f32 fov, near, far
  *   6 remove:     i32 id
+ *   8 vertices:   i32 geometry id, u32 n, u32 hasNormals, f32 × 3n positions (mirrored), [f32 × 3n normals]: cloth
+ *   7 skeleton:   i32 skeleton id, u32 n, f32 × 16 n (bone world × inverse bind, mirrored): the bones its meshes share
  *   0 end
  */
 export class CommandWriter {
@@ -82,4 +84,4 @@ export class CommandWriter {
   take() { this.reserve(1); this.u32[this.n++] = 0; const out = this.buf.slice(0, this.n * 4); this.n = 0; return out; }
   get empty() { return this.n === 0; }
 }
-export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6 };
+export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8 };

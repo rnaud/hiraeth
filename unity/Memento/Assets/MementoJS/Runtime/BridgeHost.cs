@@ -87,6 +87,8 @@ namespace Memento.Bridge
         public static void WriteText(string path, string text) { Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, text); }
         public static double LastFrameCpuMs() => Runner ? Runner.cpuMs : 0;
         public static double LastFrameGpuMs() => Runner ? Runner.gpuMs : 0;
+        /// <summary>The C# side's time applying the frames' commands since the last call (ms, summed).</summary>
+        public static double ApplyMs() { var r = R; if (!r) return 0; var v = r.msFrame; r.msFrame = 0; return v; }
         public static void Exit(int code) => Runner?.Exit(code);
     }
 }
