@@ -40,8 +40,10 @@ export function makeStage(owner, { width = 1280, height = 720 } = {}) {
   const root = new godot.Node3D();
   root.name = 'World';
   owner.add_child(root);
-  const surfaceShader = godot.ResourceLoader.load('res://shaders/ink_surface.gdshader');
-  return { env, sun, cam, post, postMat, root, surfaceShader };
+  // the ink surface by side and skinning (makeMaterial's side: 0 front, 1 back, 2 both)
+  const load = (n) => godot.ResourceLoader.load(`res://shaders/${n}.gdshader`);
+  const shaders = { 0: load('ink_surface'), 1: load('ink_surface_back'), 2: load('ink_surface_double'), skinned: load('ink_skinned'), skinned2: load('ink_skinned_double') };
+  return { env, sun, cam, post, postMat, root, shaders };
 }
 
 /** Point the sun along -dir (dir: toward the sun, three's uSunDir). */

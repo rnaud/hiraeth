@@ -12,7 +12,11 @@ import { inkParams } from '../engine/ink-params.js';
 import { godotIndex, multimeshBuffer, packedBytes, VARIANT, rgbaColors } from '../engine/godot/pack.js';
 import { MiniURL, SearchParams, Utf8Decoder, Utf8Encoder, publicPath } from '../engine/platform.js';
 import { makeMaterial, MODE_STRATA } from '../src/materials.js';
-import { bundle } from '../scripts/engine-bundle.mjs';
+import { bundle, lowerUnicodeClasses } from '../scripts/engine-bundle.mjs';
+import { readFileSync } from 'node:fs';
+import { godotKeyCode, standardPad, STANDARD_FROM_GODOT } from '../engine/keys.js';
+import { skinMatrices } from '../engine/skin.js';
+import { lookGlobals, GLOBALS, shaderGlobalsIni } from '../engine/ink-params.js';
 import { loadBundle } from '../engine/vm-run.mjs';
 
 // as the game (main.js): colours are display values, not converted to linear
@@ -106,6 +110,30 @@ test('mirror: drawables once, transforms only when they move, hidden with an anc
   assert.ok(R.ops('camera').length && R.ops('frame').length);
 });
 
+test('mirror: no false moves or uploads (doubles floats cannot hold, interleaved glTF attributes)', () => {
+  const R = recorder();
+  const mirror = new SceneMirror(R.backend);
+  const scene = new THREE.Scene();
+  const ib = new THREE.InterleavedBuffer(new Float32Array([0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1]), 6);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.InterleavedBufferAttribute(ib, 3, 0));
+  geo.setAttribute('normal', new THREE.InterleavedBufferAttribute(ib, 3, 3));
+  const m = new THREE.Mesh(geo, makeMaterial({ color: '#808080' }));
+  m.position.set(0.1, 0.2, 0.3);   // (not floats)
+  m.rotation.y = 0.7;
+  scene.add(m);
+  mirror.sync(scene, null);
+  assert.equal(R.ops('geometry').length, 1);
+  assert.deepEqual(Array.from(R.ops('geometry')[0][2].attributes.position.array), [0, 0, 0, 1, 0, 0, 0, 1, 0], 'de-interleaved');
+  R.log.length = 0;
+  for (let i = 0; i < 3; i++) mirror.sync(scene, null);
+  assert.equal(R.ops('transforms').length, 0, 'an object standing still is not sent again');
+  assert.equal(R.ops('geometry').length, 0, 'nor its interleaved geometry');
+  ib.needsUpdate = true;
+  mirror.sync(scene, null);
+  assert.equal(R.ops('geometry').length, 1, 'until its buffer changes');
+});
+
 test('mirror: instanced meshes send their instances when they change', () => {
   const R = recorder();
   const mirror = new SceneMirror(R.backend);
@@ -186,3 +214,101 @@ async function platformBundle() {
   return platformFile;
 }
 function loadBundleOf(file, host) { return loadBundle(file, host); }
+
+test('keys and pads: Godot keys as KeyboardEvent codes, joypads as standard Gamepads', () => {
+  assert.equal(godotKeyCode(87), 'KeyW');
+  assert.equal(godotKeyCode(32), 'Space');
+  assert.equal(godotKeyCode(4194325, 1), 'ShiftLeft');
+  assert.equal(godotKeyCode(4194325, 2), 'ShiftRight');
+  assert.equal(godotKeyCode(49), 'Digit1');
+  assert.equal(godotKeyCode(4194320), 'ArrowUp');
+  assert.equal(godotKeyCode(123456), null);
+  // A (SDL 0) and Menu (SDL 6) pressed, RT (axis 5) squeezed, the left stick up
+  const pad = standardPad(0, (b) => b === 0 || b === 6, (a) => (a === 5 ? 0.8 : a === 1 ? -1 : 0));
+  assert.equal(pad.mapping, 'standard');
+  assert.equal(pad.buttons.length, 17);
+  assert.equal(pad.buttons[0].pressed, true);
+  assert.equal(pad.buttons[9].pressed, true, 'Menu is standard button 9');
+  assert.equal(pad.buttons[7].value, 0.8);
+  assert.equal(pad.buttons[7].pressed, true);
+  assert.deepEqual(pad.axes, [0, -1, 0, 0]);
+  assert.equal(new Set(STANDARD_FROM_GODOT.filter((x) => x !== null)).size, 15, 'each Godot button once');
+});
+
+test('skinning: one matrix a bone gives three\'s skinned vertex', () => {
+  const bones = [new THREE.Bone(), new THREE.Bone()];
+  bones[1].position.set(0, 1, 0); bones[0].add(bones[1]);
+  const geo = new THREE.BoxGeometry(0.2, 2, 0.2, 1, 4, 1).translate(0, 1, 0);
+  const n = geo.attributes.position.count, si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+  for (let i = 0; i < n; i++) { const y = geo.attributes.position.getY(i); si[i * 4 + 1] = 1; sw[i * 4] = 1 - y / 2; sw[i * 4 + 1] = y / 2; }
+  geo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
+  geo.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+  const mesh = new THREE.SkinnedMesh(geo, new THREE.MeshBasicMaterial());
+  mesh.add(bones[0]);
+  mesh.bind(new THREE.Skeleton(bones));
+  mesh.position.set(3, 0, 1);
+  bones[1].rotation.z = 0.6; bones[0].rotation.x = 0.2;
+  mesh.updateMatrixWorld(true);
+  mesh.skeleton.update();
+  const S = skinMatrices(mesh.skeleton.boneMatrices, 2, mesh.bindMatrix.elements, mesh.bindMatrixInverse.elements);
+  const M = [0, 1].map((b) => new THREE.Matrix4().fromArray(S, b * 16));
+  const v = new THREE.Vector3(), want = new THREE.Vector3(), got = new THREE.Vector3(), t = new THREE.Vector3();
+  for (const i of [0, 5, n - 1]) {
+    v.fromBufferAttribute(geo.attributes.position, i);
+    mesh.getVertexPosition(i, want);   // three's own skinning (mesh space)
+    got.set(0, 0, 0);
+    for (let k = 0; k < 2; k++) got.add(t.copy(v).applyMatrix4(M[k]).multiplyScalar(sw[i * 4 + k]));
+    assert.ok(got.distanceTo(want) < 1e-5, `vertex ${i}: ${got.toArray()} vs ${want.toArray()}`);
+  }
+});
+
+test('the look as global shader parameters, and Godot\'s project declares every one', () => {
+  const g = lookGlobals({ uShadowTint: [0.5, 0.6, 0.7], uToon: 0.45, uHaze: [1, 0.9, 0.8, 0.3], uSunDir: [0, 1, 0, 9] });
+  assert.deepEqual(g.g_shadow_tint, [0.5, 0.6, 0.7]);
+  assert.equal(g.g_toon, 0.45);
+  assert.deepEqual(g.g_haze, [1, 0.9, 0.8, 0.3]);
+  assert.deepEqual(g.g_sun_dir, [0, 1, 0], 'a vec3 keeps three');
+  assert.equal(g.g_hatch, GLOBALS.g_hatch[2], 'the default where the look says nothing');
+  const project = readFileSync(new URL('../godot/project.godot', import.meta.url), 'utf8');
+  assert.ok(project.includes(shaderGlobalsIni().trim()), 'godot/project.godot [shader_globals] is out of date: node scripts/godot-globals.mjs');
+  // and the shaders use only those
+  for (const f of ['ink.gdshaderinc', 'ink_post.gdshader']) {
+    const src = readFileSync(new URL(`../godot/shaders/${f}`, import.meta.url), 'utf8');
+    for (const [, name] of src.matchAll(/global uniform \w+ (\w+)/g)) assert.ok(name === 'g_bones' || GLOBALS[name], `${f}: ${name} is not in GLOBALS`);
+  }
+});
+
+test('the bundle lowers Unicode property escapes (GodotJS\'s V8 has no ICU): the same letters match', () => {
+  const lowered = new RegExp(lowerUnicodeClasses(String.raw`[\p{L}\p{N}’']+`), 'gu');
+  const real = /[\p{L}\p{N}’']+/gu;
+  for (const line of ['Nour — the tree that drinks, 3 jars?', 'Qanat\'s élan: Ça va, Æsir…', 'Έλα εδώ, привет мир', 'שלום, مرحبا 42', '旅人 たびびと 여행자']) {
+    assert.deepEqual(line.match(lowered), line.match(real), line);
+  }
+  assert.ok(!lowerUnicodeClasses(readFileSync(new URL('../src/story/voice.js', import.meta.url), 'utf8')).includes('\\p{'));
+});
+
+test('the game in a bare V8 context: a world with its people, the traveller walks on the keys, the camera follows', async () => {
+  const file = join(tmpdir(), `memento-engine-game-${process.pid}.js`);
+  await bundle('godot', { input: 'engine/game.js', out: [file] });
+  const { exports } = loadBundle(file);
+  const R = recorder();
+  let bones = 0;
+  R.backend.bones = () => bones++;
+  const warn = console.warn, info = console.info; console.warn = console.info = () => {};
+  try {
+    const game = await exports.createGame({ levelId: 'garage', backend: R.backend });
+    game.frame(1 / 30);
+    const p0 = game.player.pos.clone(), c0 = game.camera.position.clone();
+    game.key('KeyW', true);
+    for (let i = 0; i < 45; i++) game.frame(1 / 30);
+    game.key('KeyW', false);
+    const walked = game.player.pos.distanceTo(p0);
+    assert.ok(walked > 2, `walked ${walked.toFixed(2)} m`);
+    assert.ok(game.camera.position.distanceTo(c0) > 1, 'the camera followed');
+    assert.ok(game.camera.position.distanceTo(game.player.pos) < 30, 'and stayed with him');
+    assert.ok(bones > 0, 'skinned people and the traveller send their bones');
+    const look = game.lookParams();
+    assert.equal(look.uSkyTop.length, 3);
+    assert.equal(typeof look.uToon, 'number');
+  } finally { console.warn = warn; console.info = info; }
+});

@@ -8,7 +8,8 @@ export function godotParams(spec) {
   const p = inkParams(spec);
   const out = {};
   for (const [k, v] of Object.entries(p)) {
-    out[k] = Array.isArray(v) ? (v.length === 3 ? new godot.Color(v[0], v[1], v[2], 1) : new godot.Color(v[0], v[1], v[2], v[3])) : v;
+    // (vectors, not Colors: the shader takes the display values as they are and makes them linear itself)
+    out[k] = Array.isArray(v) ? (v.length === 3 ? new godot.Vector3(v[0], v[1], v[2]) : new godot.Vector4(v[0], v[1], v[2], v[3])) : v;
   }
   return out;
 }

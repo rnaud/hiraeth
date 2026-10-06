@@ -14,7 +14,7 @@ export function start(owner) {
   const args = userArgs();
   const t0 = Date.now();
   const stage = makeStage(owner);
-  const backend = new GodotBackend(stage.root, { surfaceShader: stage.surfaceShader, materialParams: godotParams });
+  const backend = new GodotBackend(stage.root, { shaders: stage.shaders, materialParams: godotParams });
   backend.cam = stage.cam;
   backend.sun = (s) => aimSun(stage.sun, s.dir);
   const r = buildSpike({ levelId: args.level ?? 'desert', backend });

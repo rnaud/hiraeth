@@ -307,7 +307,11 @@ export function installPlatform(host = {}) {
     try { buf = host.readFile?.(p) ?? null; } catch (e) { buf = null; }
     return Promise.resolve(response(buf, String(url?.url ?? url)));
   });
-  def('Worker', undefined);   // (no workers: the game's off-thread work runs inline, lod.js falls back)
+  def('AbortController', class { constructor() { this.signal = { aborted: false, reason: undefined, addEventListener() {}, removeEventListener() {}, throwIfAborted() {} }; } abort(r) { this.signal.aborted = true; this.signal.reason = r; } });
+  def('MutationObserver', class { observe() {} disconnect() {} takeRecords() { return []; } });
+  def('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
+  def('IntersectionObserver', class { observe() {} unobserve() {} disconnect() {} });
+  // (no Worker: the game's off-thread work runs inline, lod.js falls back)
   return { window: G, document: G.document, tick, dispatch: (type, init) => G.dispatchEvent(new StubEvent(type, init)) };
 }
 

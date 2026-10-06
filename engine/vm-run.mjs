@@ -16,7 +16,8 @@ export function loadBundle(file, host = {}) {
   vm.createContext(ctx);
   ctx.__MEMENTO_HOST__ = {
     engine: 'node-vm',
-    readFile: (p) => { try { const b = readFileSync(resolve(ROOT, 'public', p)); return new Uint8Array(b).buffer; } catch { return null; } },
+    // (the bytes in the context's own ArrayBuffer: three checks `instanceof ArrayBuffer`)
+    readFile: (p) => { try { const b = readFileSync(resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } },
     ...host,
   };
   const module = { exports: {} };

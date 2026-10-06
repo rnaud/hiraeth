@@ -151,19 +151,110 @@ desert, the spike's camera:
 ## Running it
 
 ```sh
-node scripts/engine-bundle.mjs                 # the bundles (godot/js/, Unity's Resources)
+node scripts/engine-bundle.mjs                 # the bundles (godot/js/memento.js, memento-spike.js)
+godot/run.sh                                   # play the desert in Godot (WASD, Shift, Space; the right mouse button turns the camera; pads)
+godot/run.sh --views=$PWD/scripts/bench/viewpoints.json --out=$PWD/output/engine-bridge/godot   # a PNG a viewpoint
+godot/run.sh --bench=6 --views=… --out=…       # frame times a viewpoint, uncapped: <out>/godot-bench.json
+godot/run.sh --walk=4 --out=…                  # the traveller walks forward for 4 s, a PNG at the end
 godot/run.sh --entry=spike --shot=$PWD/output/engine-bridge/spike.png      # the spike: one frame
+node scripts/godot-globals.mjs                 # godot/project.godot's [shader_globals] from engine/ink-params.js
 ```
 
 `godot/run.sh` rebuilds the bundles and runs the GodotJS editor binary from
-`.local-tools/godot/` (`GODOT=` another), muted, its log in `output/engine-bridge/godot.log`.
-GodotJS's debugger listens on port 6299 (`godot/project.godot`). `tests/engine-bridge.test.js`
-checks the stand-ins, the mirror's ops, materials read back, the Godot layouts, and a bundle of
-the game building a world in a bare V8 context (no Node, no page).
+`.local-tools/godot/` (`GODOT=` another), muted (`--audio-driver Dummy`), its log in
+`output/engine-bridge/godot.log`; `--shadows=0`, `--post=0` and `--only=camps,dunes` narrow a
+benchmark. GodotJS's debugger listens on port 6299 (`godot/project.godot`). The web side of the
+same viewpoints is the benchmark's own (`scripts/bench/web-bench.mjs --paths 0 --shots dir`).
+`tests/engine-bridge.test.js` checks the stand-ins, the mirror's ops (no false moves, no false
+uploads), materials read back, the Godot layouts, keys and pads, the skinning, the look's globals
+against `project.godot`, the bundle's regular expressions, and the game itself in a bare V8
+context (no Node, no page): a world built with its people, the traveller walking on the keys,
+the camera following.
+
+## The Godot renderer (stage 2)
+
+`engine/game.js` builds the world as `main.js` does at load (the level, physics and water, the
+ship at its site, the traveller with his body, clips, gear and cape, the people near the start,
+the crowd and its pooled full bodies, the story's people and places, the flora) and plays it a
+frame at a time: the keys and pads into `Controller` and `Player.update`, the camera rig, the
+crowd and the people, the story's update, the level's own update, the hour's palette. Left out:
+the HUD and menus (the page's), conversations, sound, the fluid tool, the drone, weather,
+wildlife, the grass blades, the ship's scenes.
+
+**On the Godot side** (`engine/godot/`): the mirror's ops become nodes (`backend.js`); the
+skinned bodies are skinned in the ink shader from one **bone atlas** a frame (a float texture,
+every skinned mesh a row: `skin.js` folds three's bind matrices into one matrix a bone), so a
+crowd costs one texture upload, not one a person; geometry that changes (cloth, trails) is sent
+again and swapped in; the shadow casters follow the web's rules (`level.noShadow`, the gear's,
+`selfLitSkips`). **Input**: Godot's key events as `KeyboardEvent.code`s (`keys.js`), its joypads
+as standard-mapping Gamepads for `controller.js`, the mouse (right button) into `CameraRig.look`.
+
+**The ink look in Godot** (`godot/shaders/`): Godot's Forward+ gives a post pass the depth, the
+normals and the lit colour, not the web's G-buffer, so the work is split differently:
+- `ink.gdshaderinc` (the surface, five variants by side and skinning): the albedo by mode (plain,
+  the terrain's patches and slopes with the desert's regions and sand blobs, the strata bands, the
+  people's outfit zones by the rest pose, metal's three tones, vertex and instance colours, grid
+  lines as drawn detail); in `light()` the web's light term and two tones (each surface's lift,
+  half-tone, bounce and hue) and the pen strokes, ported from `materials.js` (object-space
+  triplanar, power-of-two spacing, crossed where darkest, fewer on a lifted shade, faded far
+  off). The maths is in the web's display values, then taken to Godot's linear light.
+- the albedo's value goes to the post pass in the normal buffer's roughness channel (Godot keeps
+  7 bits of it), so colour boundaries are found on the albedo, not on the hatching;
+- `ink_post.gdshader`: the lines (`post.js inkLines`: the Laplacian of 1/z, creases, colour and
+  shadow boundaries, silhouettes heavier, thinner with distance, wobble, pen pressure, broken
+  interior lines), the sky (bands, the flat print sky, the sun's side), fog in flat bands toward
+  the haze, aerial perspective;
+- the frame's look (post.js's preset and the hour's palette: tints, ink, sky, fog, line
+  settings) as Godot **global shader parameters** (`engine/ink-params.js` GLOBALS, declared in
+  `project.godot`), set once a frame when they change.
+
+Not ported yet: the sky's dots, clouds and paper, weathering and pen detail on walls, facades,
+tiles, leaves and cracks, glyphs, plating, the crevice and spot blacks, crease shading (AO),
+water's own look, the faces' ink, glows and bloom, the crowd's GPU animation (its figures stand in
+their rest pose past the pooled bodies), the canvas-painted panels.
+
+The same viewpoints (`scripts/bench/viewpoints.json`), the web game in Chrome (left) and the game
+in Godot through the bridge (right), 1280 × 720, hour 10:
+
+| web (three.js) | Godot 4.6 + GodotJS (the same JS) |
+|---|---|
+| ![](../engine-bridge/web-camps.jpg) | ![](../engine-bridge/godot-camps.jpg) |
+| ![](../engine-bridge/web-qanat-tree.jpg) | ![](../engine-bridge/godot-qanat-tree.jpg) |
+| ![](../engine-bridge/web-dunes.jpg) | ![](../engine-bridge/godot-dunes.jpg) |
+| ![](../engine-bridge/web-cave.jpg) | ![](../engine-bridge/godot-cave.jpg) |
+| ![](../engine-bridge/web-spawn.jpg) | ![](../engine-bridge/godot-spawn.jpg) |
+
+(The spawn view stands inside the parked ship: the web hides its hull from the sun when you are
+in it, the bridge doesn't run the ship's scenes yet, so the hull's shadow falls on the floor.)
+Walking, the camera on the rig (`--walk=4`): ![](../engine-bridge/godot-walk.jpg)
+
+**Frame times, first numbers** (M4 Pro, 1280 × 720, uncapped: no vsync either side; medians in ms;
+the web: `web-bench.mjs --preset high`, render scale 1; Godot: `--bench=6`, the wall clock between
+frames, Godot's own delta being smoothed to the display). The machine was busy with other work
+(load average 30–40 during the Godot runs), so these are an upper bound, to be measured again on a
+quiet machine; the run-to-run spread on the Godot side was ±40 %.
+
+| view | web frame | web CPU | Godot frame | Godot: the VM (game + mirror) | Godot: render CPU |
+|---|---|---|---|---|---|
+| spawn | 7.4 | 7.2 | 15.2 | 9.0 (2.9 + 5.7) | 0.9 |
+| qanat-tree | 12.0 | 11.8 | 19.8 | 16.4 (8.9 + 6.7) | 0.7 |
+| camps | 10.4 | 10.3 | 24.2 | 19.2 (9.4 + 8.9) | 1.0 |
+| dunes | 3.7 | 3.5 | 10.4 | 5.3 (1.2 + 3.8) | 0.6 |
+| cave | 3.8 | 3.6 | 18.5 | 8.9 (2.0 + 6.4) | 1.2 |
+
+Where it goes: the VM's share is the game's own update (people, capes, the crowd: the same work
+the web does) and the mirror (the scene walk, the moved matrices, the bones, cloth re-sent), and
+the rest of a Godot frame is its GPU work (without the sun's shadows or without the ink composite
+the dunes drop from 10.4 to 8.4 ms each). Three fixes found by measuring: matrices compared as
+the floats they are sent as (a double no float can hold counted as a move: 700 false moves a
+frame), interleaved glTF attributes' versions (read off their buffer: every body was sent again
+every frame), and the bone atlas (one texture a frame, not one a body). **Load**: the desert is
+built in the VM in 1.6–4.5 s (the level 1.3–3.2 s of it) and drawn on the next frame; the web's
+first frame comes 3.0 s after navigation.
 
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
-  nodes and drawn through a first ink port (two-tone light, strokes in the shade, lines from depth,
-  creases and colour boundaries, fog), saved as a PNG:
+  nodes and drawn through a first ink port, saved as a PNG:
   ![the spike](../engine-bridge/spike-godot-desert.jpg)
+- **Stage 2, the Godot renderer**: the desert played in Godot through the bridge (above).

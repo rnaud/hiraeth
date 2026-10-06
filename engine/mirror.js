@@ -8,11 +8,11 @@
 //                               typed arrays, as three holds them (position, normal, uv, color,
 //                               skinIndex / skinWeight, index) and its groups
 //   material(mid, spec)         once per material (inkSpec: makeMaterial's options read back)
-//   create(id, node)            a drawable appears: { kind, gid, mids, name, ... }
+//   create(id, node)            a drawable appears: { kind, gid, mids, name, shadow, ... }
 //   transforms(ids, mats, n)    the world matrices that moved, packed: n ids, 16 floats each
 //   visible(id, on)             shown / hidden (an ancestor hidden or the object left the scene)
 //   instances(id, count, mats, colors)   an InstancedMesh's instances, when they change
-//   bones(id, mats, n)          a SkinnedMesh's bone matrices (bone world × inverse bind), each frame it is seen
+//   bones(id, mats, n, bind, bindInverse)   a SkinnedMesh's bone matrices (bone world × inverse bind) and its bind matrices, each frame it is seen (skin.js skinMatrices folds them into one per bone)
 //   remove(id)                  gone for good (not in the scene for `forgetAfter` frames)
 //   camera(c)                   { world: 16 floats, fov, near, far, aspect }
 //   frame(f)                    once a frame, last: { sunDir, time, stats }
@@ -30,8 +30,9 @@ export class SceneMirror {
    * @param o.forgetAfter  frames an object may be out of the scene before it is removed
    * @param o.filter (o) => false to leave an object (and its children) out
    */
-  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec } = {}) {
+  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null } = {}) {
     this.backend = backend;
+    this.castsShadow = castsShadow;   // (o) → false: left out of the sun's shadow (the game's caster rules: shadows.js)
     this.forgetAfter = forgetAfter;
     this.filter = filter;
     this.materialSpec = materialSpec;
@@ -81,10 +82,11 @@ export class SceneMirror {
     this.ids.set(o, id);
     const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
     const mats = Array.isArray(o.material) ? o.material : [o.material];
-    const node = { object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind };
+    const node = { object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind, geo: null, gv: -1 };
     this.nodes.set(id, node);
     this.stats.nodes++;
     const desc = { kind, name: o.name || '', gid: o.geometry ? this._geometry(o.geometry) : 0, mids: mats.map((m) => (m ? this._material(m) : 0)), renderOrder: o.renderOrder ?? 0 };
+    desc.shadow = this.castsShadow ? this.castsShadow(o) !== false : true;
     if (o.isSkinnedMesh) desc.bones = o.skeleton?.bones.length ?? 0;
     if (o.isInstancedMesh) desc.capacity = o.instanceMatrix.count;
     this.backend.create?.(id, desc, o);
@@ -106,12 +108,17 @@ export class SceneMirror {
         const node = this.nodes.get(id);
         node.seen = f;
         drawn++;
-        // geometry swapped or rewritten (a re-uploaded attribute, a morph baked)
-        if (o.geometry) { const g = this.geoms.get(o.geometry); if (!g || g.version !== attrVersion(o.geometry)) { const gid = this._geometry(o.geometry); this.backend.geometryOf?.(id, gid); } }
+        // a geometry swapped or rewritten (cloth, a trail, a morph baked): sent again, and each node drawing it told
+        if (o.geometry && (o.geometry !== node.geo || node.gv !== attrVersion(o.geometry))) {
+          const gid = this._geometry(o.geometry);
+          if (node.geo) this.backend.geometryOf?.(id, gid);
+          node.geo = o.geometry; node.gv = this.geoms.get(o.geometry).version;
+        }
         if (!node.shown) { node.shown = true; this.backend.visible?.(id, true); }
         const e = o.matrixWorld.elements, m = node.matrix;
         let moved = false;
-        for (let k = 0; k < 16; k++) if (m[k] !== e[k]) { moved = true; break; }
+        // (compared as the floats they are sent as: a double that floats can't hold is no move)
+        for (let k = 0; k < 16; k++) if (m[k] !== Math.fround(e[k])) { moved = true; break; }
         if (moved) {
           for (let k = 0; k < 16; k++) m[k] = e[k];
           if (n >= this._ids.length) this._grow();
@@ -123,7 +130,7 @@ export class SceneMirror {
         }
         if (o.isSkinnedMesh && o.skeleton) {
           o.skeleton.update();   // boneMatrices = bone world × inverse bind (three's own)
-          this.backend.bones?.(id, o.skeleton.boneMatrices, o.skeleton.bones.length, o.bindMatrix.elements);
+          this.backend.bones?.(id, o.skeleton.boneMatrices, o.skeleton.bones.length, o.bindMatrix.elements, o.bindMatrixInverse.elements);
         }
       }
       const ch = o.children;
@@ -158,7 +165,8 @@ export class SceneMirror {
 function attrVersion(geo) {
   // (the sum of the versions, and how many there are: an attribute added or rewritten moves it)
   let v = geo.index ? geo.index.version + 1 : 0, n = 0;
-  for (const k in geo.attributes) { v += geo.attributes[k].version; n++; }
+  // (an interleaved attribute, as glTF loads them, keeps its version on its buffer)
+  for (const k in geo.attributes) { const a = geo.attributes[k]; v += (a.isInterleavedBufferAttribute ? a.data.version : a.version) ?? 0; n++; }
   return v * 64 + n;
 }
 
