@@ -3,7 +3,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MODE_STRATA, MODE_TERRAIN } from '../materials.js';
 import { createNoise2D, mulberry32 } from '../noise.js';
 import { table, needle, boulder, lumpy, place, TAU } from './sky-stones-kit.js';
-import { bridge } from './arzach2.js';
+import { bridge, SKY_STONES_HAZE } from './arzach2.js';
 import { buildBird } from '../bird.js';
 import { formAxis, keepForm } from '../form.js';
 import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
@@ -26,7 +26,7 @@ export const VAEL2_SHEETS = Object.fromEntries(['IMG_3783', 'IMG_3784', 'IMG_378
  * The sheets' ink: shadows printed flat in their grey-blue, the undersides of caps and overhangs the
  * darkest (no bounce lifting them), little half-tone, a clean sky.
  */
-export const VAEL2_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.15, uBounce: 0 };
+export const VAEL2_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.15, uBounce: 0, ...SKY_STONES_HAZE, uCast: [0.85, 0] };   // (the panels: the plain's shadows all but gone)
 /** sky top, sky horizon, shadow (the flat grey-blue), light, sun */
 const TINT = '#93a5a8';
 const SKY = {
@@ -57,9 +57,9 @@ function materials(kit) {
     dark: kit.mat({ color: '#3c4660', flat: true }),
     tree: kit.mat({ color: '#4f6a58', flat: true }),
     tower: strata('#f9ecda', '#f2e1cb', '#fcf3e6', { strataSize: 9, side: THREE.FrontSide }),
-    // the cloud: a warm white, its shade a pale grey-blue (lifted), no strokes
-    cloud: kit.mat({ color: '#fff4ea', shade: 0.55, hatch: 0, spot: 0 }),
-    pinkCloud: kit.mat({ color: '#fbdccd', shade: 0.55, hatch: 0, spot: 0 }),
+    // the cloud: a warm white, its shade a pale grey-blue (lifted), no strokes, a thin line in its own shade's blue
+    cloud: kit.mat({ color: '#fff4ea', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
+    pinkCloud: kit.mat({ color: '#fbdccd', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
     cloak: kit.mat({ color: PERSON.cloak, flat: true }),
     hidden: new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }),
   };

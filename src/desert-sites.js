@@ -65,4 +65,6 @@ export const PROCESSION = [
 ];
 
 /** The desert's touches on the print preset (as its plates): a clean sky, no cloud bank; far dunes a pale warm band. */
-export const DESERT_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.95, 0.9, 0.87, 0.55] };
+/** The far dunes in stepped pale bands of the far haze (post.js 4b): from 250 m, each band 1.9 × farther. */
+export const DUNE_HAZE = { uHazeLayers: [250, 1.9, 0.12, 4], uHazeTone: [1, 1, 1, 0] };
+export const DESERT_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.95, 0.9, 0.87, 0.55], ...DUNE_HAZE };

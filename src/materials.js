@@ -123,7 +123,36 @@ export const sharedUniforms = {
 export const SPOT = { steps: 2 };
 /** The step packed for a material's spot amount (0: the world's). */
 export const spotStep = (spot) => (spot === undefined || spot === null || spot < 0 ? 0 : 1 + Math.round(Math.min(spot, 1) * SPOT.steps));
+/** A flat (faceted) surface this close to edge-on to the sun (|n·l|) is shaded whole: no lit specks on the toon threshold. */
+export const FACET_EDGE = 0.03;
 export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
+/**
+ * Line weight and colour by material (post.js 1b; docs/systems/rendering.md, "The G-buffer's layout"): the sheets draw
+ * soft things (clouds, reeds, foliage, glass, painted signs) in thin, lighter lines in a dark shade of their own
+ * colour, solid things in black. makeMaterial({ line, lineTint }): `line` the weight (1 the world's ink … 0.25 a
+ * hairline, the nearest of `weights`), `lineTint` 0..1 (0 the ink, 1 a dark shade of its own colour: its albedo in the
+ * world's shadow tint, darker; `tints` steps). Packed over the light term: gAlbedoLight.a = L + 2 × step, step =
+ * weight step + 4 × tint step (0: the world's ink, as every material says by default), under 32 in the half float.
+ * In post.js a weight is the line's opacity (`alpha`) and how much of it is drawn past the material's own edge
+ * (`far`: a thin line stays on its own side of a silhouette, half as wide).
+ */
+export const LINE = { weights: [1, 0.7, 0.45, 0.25], alpha: [1, 0.82, 0.66, 0.5], far: [1, 0.45, 0, 0], tints: 4 };
+/** The step packed for a material's line (0: the world's ink). */
+export function lineStep(o) {
+  // (glass a thin line in its own colour, foliage a lighter one in its dark green, unless they say)
+  const leaves = o.pattern === 'leaves';
+  const w = o.line ?? (o.glass ? 0.45 : leaves ? 0.7 : 1), t = o.lineTint ?? (o.glass ? 0.7 : leaves ? 0.67 : 0);
+  let wi = 0;
+  LINE.weights.forEach((v, i) => { if (Math.abs(v - w) < Math.abs(LINE.weights[wi] - w)) wi = i; });
+  return wi + 4 * Math.round(Math.min(Math.max(t, 0), 1) * (LINE.tints - 1));
+}
+/** The light term with a line step over it (mirrors the GLSL): L in 0..1. */
+export const packLight = (L, step) => Math.min(Math.max(L, 0), 1) + 2 * step;
+/** post.js' unpacking: [L, weight, tint (0..1)]. */
+export function unpackLight(a) {
+  const q = Math.floor(a * 0.5);
+  return [a - 2 * q, LINE.weights[q % 4], Math.floor(q / 4) / (LINE.tints - 1)];
+}
 /**
  * A material's shade: [lift, hue (-1: the world's), hatch amount, strata strokes]. Metal keeps its own
  * tones and few strokes; sand (terrain with ripples or wind strokes) is shaded in fewer strokes; rock
@@ -642,6 +671,7 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uEnvGround;
   uniform float uNight;
   uniform float uSpotStep;  // its spot-black amount's step (SPOT: 0 the world's)
+  uniform float uLineStep;  // its line's weight and colour (LINE: 0 the world's ink), packed over the light term
   uniform vec4 uShade;      // the material's shade: lift, hue (-1: the world's), hatch amount, strata strokes (SHADE, shadeOf)
   uniform float uHalftone;
   uniform float uBounce;
@@ -1937,6 +1967,10 @@ const fragmentShader = /* glsl */ `
     #endif
 
     float ndl = dot(n, uSunDir);
+    // a flat facet edge-on to the sun (a wall in line with it) sat on the toon threshold, where the last bits of
+    // its normal and the shadow map's grazing taps broke it into a field of lit specks: it goes to shade, whole
+    // (FACET_EDGE; a smooth surface keeps its terminator's antialiasing)
+    if (uFlat > 0.5 && ndl < ${FACET_EDGE}) ndl = min(ndl, -${FACET_EDGE});
     float lambert = ndl * 0.5 + 0.5;
     // the face takes cast shadows from outside its helmet only, keeping one clean shadow shape
     #ifdef S_PORTRAIT
@@ -1981,7 +2015,8 @@ const fragmentShader = /* glsl */ `
     L = mix(L, 1.0, dEdge);
     #endif
 
-    gAlbedoLight = vec4(albedo, L);
+    // (the line's weight and colour over the light term: LINE, post.js lightOf)
+    gAlbedoLight = vec4(albedo, clamp(L, 0.0, 1.0) + 2.0 * uLineStep);
     gNormalDepth = vec4(n, vViewDepth);
     #ifdef WATER
       if (gl_FrontFacing && uWaterOpt.y < 0.5) gNormalDepth.xyz *= 1.0 + ${WATER_MARK.base} + ${WATER_MARK.glint} * wl.glint;   // (water.js: the sparkle)
@@ -2244,6 +2279,8 @@ const cache = new Map();
  * @param {number}  [o.shadeFlat] 0..1: its shade printed flat in the world's shadow colour at its value (default:
  *                              the world's, uShadowFlat; a material saying it keeps the world's hue)
  * @param {number}  [o.spot]    0..1: how much of the world's spot blacks it takes (SPOT; default the world's)
+ * @param {number}  [o.line]    its ink line's weight (LINE: 1 the world's ink … 0.25 a hairline; glass 0.45, leaves 0.7)
+ * @param {number}  [o.lineTint] 0..1: its line drawn in a dark shade of its own colour instead of the ink (glass 0.7, leaves 0.67)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
  * @param {boolean} [o.form]    its shade's strokes follow the form of the parts that carry an axis (src/form.js
@@ -2352,6 +2389,7 @@ export function makeMaterial(o) {
       uFaceKit2: { value: new THREE.Vector4(1, 1, 0, -0.03) },   // eye size, nose width, cheeks, the ears' z
       uShade: { value: new THREE.Vector4(...shadeOf(o)) },
       uSpotStep: { value: spotStep(o.spot ?? (o.glow > 0 || o.glass ? 0 : undefined)) },   // (a self-lit or glass surface never goes black)
+      uLineStep: { value: lineStep(o) },   // (glass: a thin line in its own colour, unless it says)
     },
   });
   mat.vertexColors = !!o.vertexColors;

@@ -21,6 +21,8 @@ import { stepped, runSteps } from '../load-steps.js';
 // ---------------------------------------------------------------------------
 
 const R = 260;          // shaft radius
+/** Down the shaft the town fades into a pale blue haze (post.js 4b): a fog thickening under the shaft's middle (0 m). */
+export const SHAFT_FOG = { uHeightFog: [0, 120, 0.002, 0.7], uHeightFogTone: [0.74, 0.83, 0.88, 0.9] };
 const TOP = 200;        // rim / surface level
 const BOTTOM = -380;    // acid lake
 const LEVELS = [150, 92, 36, -24, -86, -150, -218, -290];
@@ -891,7 +893,7 @@ export function* buildIncal(scene) {
       }
     },
     // (as its plates: barely hatched, a clean sky)
-    defaults: { hour: 12.5, preset: 'Moebius print', look: { uHatch: 0.45, uCumulus: 0 } },
+    defaults: { hour: 12.5, preset: 'Moebius print', look: { uHatch: 0.45, uCumulus: 0, ...SHAFT_FOG } },
     sky: {
       script: {
         day: ['#8fb4da', '#eef0ea', '#93a6cf', '#fffaf0', '#fff6dc'],   // print: clear blue over a pale haze

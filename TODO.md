@@ -183,6 +183,17 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a hill-town,
     the sheets' a canyon of pink and cream stacked houses with water below; the views' houses are boxes (no
     pipes, balconies, laundry or plating under the overhangs), the cabs and blimps simple capsules.
+  - The ink pass's share of the ranked gaps (docs/systems/references.md, "Across the worlds"):
+    - [x] 2. Line weight and colour per material. (`makeMaterial({ line, lineTint })`, `LINE`, packed over the light
+      term in RT0.a; post.js 1b gives a line its owner's weight and a dark shade of its colour: the clouds, Lorn II's
+      reeds and crystals, foliage, glass, the Market's billboards; docs/systems/rendering.md, "Lines by material".)
+    - [x] 3. Haze in layers by depth and fog by height. (post.js 4b: `uHazeLayers` / `uHazeTone` stepped bands by
+      distance, `uHeightFog` / `uHeightFogTone` integrated along the ray; set for Lorn II, the desert, the Market,
+      Vael II and the City-Shaft's pit, and their views; docs/systems/rendering.md, "Haze by depth and height".)
+    - [x] 5. Cast shadows by world. (post.js `uCast`: a cast shadow, told from form shade by facing the sun, lifted
+      toward the light on open ground and elsewhere by the world's and the view's amounts, its strokes and edge
+      line with it; Vael II and Lorn II lift most of theirs on open ground, the Garden of Spheres a little, the
+      desert's sheets keep theirs dark with the spot tier; docs/systems/rendering.md, "Cast shadows by world".)
 - [x] A quick menu to jump to any reference, with a tiny picture of its panel. (`src/levels/reference-picker.js`:
   every view grouped by world and sheet, thumbnails cut from the sheets with each view's crop on a canvas,
   built on the first opening; Tab, X / □ on a pad or the "views" button opens it, B / ○ or Esc closes;

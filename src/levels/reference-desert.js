@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { MODE_STRATA, MODE_WATER, MODE_TERRAIN } from '../materials.js';
 import { createNoise2D } from '../noise.js';
+import { DUNE_HAZE } from '../desert-sites.js';
 import {
   TAU, V, tube, lathe, ridged, gauss, r2, smoothstep, put, dome, PERSON, CLEAN_SKY, n2, n3,
   ribcage, stemDish, gorgeWall, bridge, machineHead, tableCliff, petals, cage, strataMat, radioDish, groundRibbon,
@@ -19,7 +20,9 @@ export const DESERT_SHEETS = { IMG_3772: sheet('IMG_3772'), IMG_3773: sheet('IMG
 
 const n4 = createNoise2D(37754);
 /** IMG_3774 prints its cast shadows as near-black ink masses (post.js uSpot.w: cast shadows most of the way to the spot tone). */
-const INK_SHADOWS = { ...CLEAN_SKY, uSpot: [1, 3, 0.3, 0.75], uSpotTone: [0.2, 0.15, 0.13, 0.35] };
+/** The views' sky and the desert's far dunes in stepped pale bands (post.js 4b). */
+export const DUNES = { ...CLEAN_SKY, ...DUNE_HAZE, uHazeLayers: [120, 1.9, 0.12, 4] };   // (the panels' scenes are smaller: from 120 m)
+const INK_SHADOWS = { ...DUNES, uSpot: [1, 3, 0.3, 0.75], uSpotTone: [0.2, 0.15, 0.13, 0.35] };
 const sand = (c1, c2, c3, o = {}) => ({ color: c1, color2: c2, color3: c3, ripples: true, sandInk: true, ...o });
 /** Dunes: rolling ridged crests whose height grows with the distance (a horizon of dunes). */
 const dunes = (x, z, amp = 4, f = 0.012, seed = 0) => amp * ridged(x * 0.6 + seed, z, f, seed) + 0.4 * amp * n2(x * f * 0.5 + seed, z * f * 0.5);
@@ -35,7 +38,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 3.2, 0], yaw: 0, fov: 34, horizon: 0.42 },
     sun: { side: 70, el: 40 },
     sky: ['#a9c3d0', '#b9cfd5', '#a39488', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.25,
+    look: DUNES, fog: 0.25,
     ground: {
       height: (x, z) => {
         const d = -z;
@@ -54,7 +57,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 54, horizon: 0.74 },
     sun: { side: -125, el: 32 },
     sky: ['#a6c3d6', '#b6cfdc', '#8e99a8', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.3,
+    look: DUNES, fog: 0.3,
     ground: { height: (x, z) => 0.3 * n2(x * 0.02, z * 0.02) + far(x, z, 250, 4), material: sand('#f3d6b6', '#f0cfac', '#e6c19c') },
     people: [{ at: [-4.2, -11], facing: 0.2, palette: PERSON, head: 'hood' }],
     build(kit) {
@@ -83,7 +86,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 3, 0], yaw: 0, fov: 54, horizon: 0.5 },
     sun: { side: 40, el: 50 },
     sky: ['#a8c5da', '#b9d0dc', '#a79583', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.3,
+    look: DUNES, fog: 0.3,
     ground: {
       height: (x, z) => 0.4 * n2(x * 0.04, z * 0.04) + 1.4 * smoothstep(14, 40, Math.abs(x + 4)) * smoothstep(10, 60, -z) + smoothstep(140, 260, -z) * (4 + 4 * ridged(x, z, 0.02, 2)),
       material: sand('#f2c88e', '#efc186', '#dfae70', { pattern: 'cracks' }),
@@ -104,7 +107,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 2, 0], yaw: 0, fov: 40, horizon: 0.7 },
     sun: { side: -100, el: 38 },
     sky: ['#a9c3d1', '#b9cfd7', '#a0948c', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.3,
+    look: DUNES, fog: 0.3,
     ground: { height: (x, z) => 0.2 * n2(x * 0.03, z * 0.03) + far(x, z, 200, 3) + 1.5 * smoothstep(60, 140, -z) * ridged(x, z, 0.01, 4), material: sand('#f3d3ae', '#f0caa2', '#e6bd94', { pattern: 'cracks' }) },
     people: [{ at: [-4.5, -33], facing: 0.4, palette: PERSON, head: 'hood' }],
     build(kit) {
@@ -122,7 +125,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 4, 0], yaw: 0, fov: 42, horizon: 0.38 },
     sun: { side: -60, el: 42 },
     sky: ['#b1c8d3', '#bfd2d8', '#9a9aab', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.25,
+    look: DUNES, fog: 0.25,
     ground: {
       height: (x, z) => {
         const d = -z;
@@ -152,7 +155,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 2.2, 0], yaw: 0, fov: 40, horizon: 0.53 },
     sun: { side: -110, el: 40 },
     sky: ['#b3c7d1', '#c0d1d6', '#a39a91', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.3,
+    look: DUNES, fog: 0.3,
     ground: { height: (x, z) => 0.6 * n2(x * 0.02, z * 0.02) - 0.03 * Math.max(0, -z - 10) + far(x, z, 300, 3), material: sand('#f2d0a8', '#efc79c', '#e3b98b', { pattern: 'cracks' }) },
     build(kit) {
       const pale = kit.mat({ color: '#efe2d2', weathered: 0.6 }), pale2 = kit.mat({ color: '#e2d0bc', flat: true, weathered: 0.7 }), dark = kit.mat({ color: '#5a4a40', flat: true });
@@ -178,7 +181,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 6, 0], yaw: 0, fov: 34, horizon: 0.26 },
     sun: { side: -60, el: 40 },
     sky: ['#a7c0cc', '#b8ccd1', '#a8917a', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.22,
+    look: DUNES, fog: 0.22,
     ground: {
       height: (x, z) => {
         const d = -z;
@@ -196,7 +199,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 40, horizon: 0.86 },
     sun: { side: 110, el: 34 },
     sky: ['#a6c6d4', '#b7d2da', '#a08d84', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.3,
+    look: DUNES, fog: 0.3,
     ground: { height: (x, z) => 0.2 * n2(x * 0.03, z * 0.03), material: sand('#f2c79f', '#efbf94', '#e3af84') },
     people: [{ at: [6, -52], facing: 0, palette: PERSON, head: 'hood' }],
     build(kit) {
@@ -219,7 +222,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 26, 0], yaw: 0, fov: 44, horizon: 0.42 },
     sun: { side: 150, el: 34 },
     sky: ['#9fc2d4', '#b0cfdb', '#9a7c62', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.25,
+    look: DUNES, fog: 0.25,
     ground: {
       height: (x, z) => {
         // a V of a canyon down to a stream ~30 m below the eye, its floor rising away to a far mesa line
@@ -242,7 +245,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 2.4, 0], yaw: 0, fov: 40, horizon: 0.6 },
     sun: { side: -120, el: 36 },
     sky: ['#a2c5d4', '#b3d0d9', '#a6857b', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.3,
+    look: DUNES, fog: 0.3,
     ground: {
       height: (x, z) => 0.5 * n2(x * 0.02, z * 0.02) + 1.6 * smoothstep(80, 200, -z) * ridged(x, z, 0.008, 6) + far(x, z, 300, 4) - 0.8 * gauss(x, z, -9, -11, 3.5),
       material: sand('#f1b49a', '#eeab90', '#e19a80', { pattern: 'cracks' }),
@@ -271,7 +274,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 3, 0], yaw: 0, fov: 40, horizon: 0.36 },
     sun: { side: -70, el: 40 },
     sky: ['#a7c7d6', '#b8d3dc', '#a8877c', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.28,
+    look: DUNES, fog: 0.28,
     ground: {
       height: (x, z) => 0.8 * n2(x * 0.02, z * 0.02) + 0.03 * Math.max(0, -z - 10) + 1.2 * smoothstep(60, 160, -z) * ridged(x, z, 0.01, 8) + far(x, z, 300, 5) - 1.4 * smoothstep(-6, -24, x) * smoothstep(0, -14, z),
       material: sand('#f1b8a2', '#eeae97', '#e09e88', { pattern: 'cracks' }),
@@ -297,7 +300,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 3.5, 0], yaw: 0, fov: 40, horizon: 0.27 },
     sun: { side: 120, el: 40 },
     sky: ['#a5c9d6', '#b5d3dc', '#9c94ac', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.25,
+    look: DUNES, fog: 0.25,
     ground: {
       height: (x, z) => {
         const d = -z;
@@ -324,7 +327,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 5, 0], yaw: 0, fov: 40, horizon: 0.42 },
     sun: { side: 75, el: 40 },
     sky: ['#a6c6d2', '#bcd2d8', '#ad8d76', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.22,
+    look: DUNES, fog: 0.22,
     ground: {
       height: (x, z) => {
         const d = -z;
@@ -355,7 +358,7 @@ export const DESERT_VIEWS = [
     camera: { eye: [0, 12, 0], yaw: 0, fov: 40, horizon: 0.02 },
     sun: { side: -90, el: 40 },
     sky: ['#e9b07a', '#eeb98a', '#a88570', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY, fog: 0.2,
+    look: DUNES, fog: 0.2,
     ground: {
       height: (x, z) => {
         // a dune face rising steeply away up out of the frame

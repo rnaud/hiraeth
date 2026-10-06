@@ -272,3 +272,170 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   ink, hatching and grain in its pixels, at half the world's ink weight), at full resolution, shrunk
   by halves (each a 2 × 2 average) to the circle's pixels on this screen (`portraitSize`), and kept
   as a PNG.
+
+## The G-buffer's layout
+
+Three half-float RGBA targets (`createGBuffer`, `src/pipeline.js`), written by the surface shader
+(`src/materials.js`) and a few others (footprints and the jump shadow multiply into it; the ship's
+approach, flames). A half float keeps 11 significant bits: 1/1024 of a value's power of two, so
+1/64 between 16 and 32, 1/32 between 32 and 64. Flags and steps are packed as whole numbers over a
+fraction in 0..1, and each reader takes them off (`floor`, `mod`) before using the fraction.
+
+| Channel | Holds | Packed over it | Max |
+|---|---|---|---|
+| RT0.rgb | albedo | (none) | 1 |
+| RT0.a | the light term L (half-lambert × cast shadow, 0..1) | + 2 × line step (LINE: weight step + 4 × tint step, 0..15) | < 32 |
+| RT1.xyz | world normal | its length: the water's mark (`WATER_MARK`: 1.012 + 0.05 × sparkle) | 1.07 |
+| RT1.w | linear view depth (m; 0 = the sky) | (none) | 5000 |
+| RT2.r | hatch strokes (0..1) | + 2 × hue step (SHADE: 0 the world's, 1 … 9 a hue, 10 … 15 a flat print) | < 32 |
+| RT2.g | cross-hatch strokes (0..1) | + 2 × lift step (SHADE: 0 … 15) | < 32 |
+| RT2.b | drawn detail (0..2: over 1 a face's pen line) | + 4 × spot step (SPOT: 0 the world's, 1 … 3) + 16 weathered | < 32 |
+| RT2.a | glow (0..1; over 0.62 a light) | + 2 hero + 4 figure + 8 soft ink (grass, makers' box) + 16 face + 32 banked sand | < 64 |
+
+- **Readers of the light term** decode it (`lightOf` in post.js; the water's sparkle in water.js):
+  post.js's centre tap and its four shadow-edge taps, and the line owner's tap (1b). The other
+  readers (the glow buffer, footprints) only read RT0.rgb or RT2.
+- **A material with no line step** (every material by default, every other shader) writes the
+  light term as before, at full precision; a stepped one keeps L to 1/64 at worst (the toon
+  threshold's ±0.01 smoothstep is one step: the same hard edge). The jump shadow multiplies RT0.a by
+  0 (shade): under it a material's line step is the world's.
+- **Room left** for a flag or two: RT0.a's sign bit (L and the steps are never negative: a flag
+  stored as −(1 + L + 2 × step), read by its sign and |a| − 1; the top steps then keep 1/32),
+  RT2.b's +32 (the detail at 1/32), RT2.a's +64 (the glow at 1/16: only for materials whose glow is
+  0 or 1). A new flag belongs to whichever
+  channel's readers can afford the precision; tests/ink-pass.test.js and tests/shade.test.js check
+  the round trips through a half float.
+
+## Lines by material (post.js 1b; `LINE` in materials.js)
+
+The sheets draw soft things (clouds, reeds, foliage, glass, painted signs) in thin, lighter lines in
+a dark shade of their own colour, and solid things in black; ours used one ink for everything, so
+soft shapes read as hard.
+
+- **A material's line**: `makeMaterial({ line, lineTint })`: `line` the weight (1 the world's ink,
+  0.7, 0.45, 0.25 a hairline: `LINE.weights`), `lineTint` 0..1 (the ink → a dark shade of its own
+  colour, in four steps). Glass defaults to 0.45 / 0.7, the `leaves` pattern to 0.7 / 0.67.
+  Packed over the light term (RT0.a, above).
+- **Whose line it is**: a depth edge's line straddles both surfaces. The signed Laplacian of 1/z
+  that already finds it (`inkLines`, its `near.z`) is over 0 on the far side (the sky round a cloud,
+  the wall behind a reed): there the line belongs to the nearest surface in the kernel (`near.xy`),
+  elsewhere to the pixel's own. One tap of RT0 at the owner, only on inked pixels.
+- **What a step does**: the weight is the line's opacity (`LINE.alpha`) and how much of it is drawn
+  past its owner's edge (`LINE.far`: from 0.45 down, a line stays on its owner's side, half as wide).
+  The tint mixes the ink toward the owner's albedo × the world's shadow tint × 0.62 (a cloud's line
+  is its shade's blue-grey, a reed's a dark violet, a leaf's a dark green). Creases, colour edges and
+  shadow edges inside the material take it too; the traveller and grass keep theirs.
+- **Set on**: the clouds of Vael II, of the title screen and of the views (Vael II's, the Buried
+  Machine's, the Spheres'), 0.45 / 1; Lorn II's reeds (the world's and the views'), 0.45 / 1, and the
+  views' crystals; the Spheres' canopies, 0.7 / 0.67, and every `leaves` foliage by default; the
+  Signal Market's billboard faces (the world's and the views'), 0.7 / 0.67; glass by default. (In the world the
+  billboards' painted colours share one material by vertex colour, `signPaint`: a material per colour and part
+  had cost about 130 more draw calls a frame; the dark rings and lit strips keep the walls' materials.)
+- **Debug**: `params.debug` 11: red where the pixel owns its line, green the owner's step, blue the ink.
+- **Cost** (M4 Pro, ANGLE Metal, 1280 × 720 High, the composite pass alone by timer query, the build
+  before and after in two pages of one browser, 16 interleaved pairs of 24 frames; the machine
+  shared with other agents): view 52 3.80 / 3.82 ms. A branch only on inked pixels, one tap; no new
+  GLSL features (WebView 109).
+
+## Haze by depth and height (post.js 4b; `HAZE`)
+
+The sheets separate near, middle and far by stepped pale bands of a warm or cool haze (Lorn II's mist
+between trunks, the desert's far dunes, the Market's far towers), and the City-Shaft and the woods fade
+with depth down or into them. Our fog was one exponential tint by distance (`uHaze` only gave it the
+desert's colour).
+
+- **Layers by depth** (`uHazeLayers`: first distance, each layer's distance over the last's, each
+  layer's veil, how many; `uHazeTone`: their colour, and how much of it over the far haze's): past
+  the first distance every layer k times farther veils a little more, `1 − (1 − a)^layers`, flat
+  inside a layer with a soft ramp (`HAZE.edge`, a fifth of a layer) before each step. Things at
+  different depths (trunks, towers, ridges) fall into separate pale planes; open ground shows soft
+  bands that move with you, never a hard edge (no shimmer). Applied before the far fog, thinner at
+  night; the ink lines take `HAZE.lineFade` of it (at the pixel's depth; on the sky, at the line's surface).
+- **Fog by height** (`uHeightFog`: the height it thickens under, its scale height, density there, its
+  most; `uHeightFogTone`): a density growing exponentially below a height, integrated along each ray
+  (closed form: no loop), so a view down a shaft fades into it while a view across or up stays clear;
+  over the far fog, the lines veiled too.
+- **Set** (looks, so the views carry them): Lorn II `DEEP_WOOD_HAZE` (layers from 25 m × 1.7, a cool
+  violet-blue, a low mist under 1.5 m) and its views; the desert `DUNE_HAZE` (from 250 m × 1.9, the far
+  haze's warm colour; all 27 desert views' `DUNES`, from 120 m); the Signal Market `MARKET_HAZE` (from 90 m × 1.8,
+  pale warm) and its views; Vael II `SKY_STONES_HAZE` (light, from 200 m) and its views; the City-Shaft
+  `SHAFT_FOG` (thickening under the pit's middle, 0 m, scale 120 m, pale blue) and the shaft views'
+  `SHAFT_VIEW_FOG` (under −40 m). Every preset lists them off (`hazeOff`).
+- **Cost**: a log2 and a pow (the layers), three exps (the fog by height) once a pixel, compiled in only
+  where a look sets them (`INK_LAYERS`, `INK_HFOG`: "Cost of the ink pass's three" below).
+- **Shimmer**: none. The layers are a function of each pixel's depth with a soft ramp (`HAZE.edge`), so a band's
+  edge slides smoothly over open ground as you walk and never flickers; the fog by height is smooth in depth.
+- `tests/ink-pass.test.js`: the JS twins (`hazeLayers`, `heightFog`): stepped, monotonic, continuous,
+  thicker looking down; every preset says them; the worlds and views set theirs.
+
+## Cast shadows by world (post.js 2; `CAST`, `uCast`)
+
+The sheets often leave a cast shadow out on open ground (Vael II's plain, Lorn II's paths and water) while
+keeping the shade of every form; the desert's IMG_3774 inks them as near-black masses instead (the spot
+tier's `uSpot.w`, "Spot blacks" in references.md). This is the other half of that knob.
+
+- **Which shade is cast**: the G-buffer has no shadow flag, but it doesn't need one. A point facing the sun
+  (n·l over `CAST.facing`, 0.02 → 0.08: Lorn II's 9° sun still counts) yet below the toon threshold is in a
+  cast shadow (or a cloud's); form shade faces away and is never touched. The jump shadow writes a light
+  term of 0 and is kept (`CAST.light`: a shadow's light term is at least 0.38).
+- **How much**: `uCast` = [on open ground (n.y over `CAST.ground`, 0.55 → 0.8), everywhere else], 0 kept …
+  1 dropped. The shadow's colour goes that far toward the lit one (`lit = max(lit, castLift)`), its hatch
+  strokes fade with it, and so does its shadow-edge line (the edge's lit side too: by `castPot`, which
+  doesn't need the pixel to be shaded). People, faces and the traveller keep theirs.
+- **Set**: every preset says `[0, 0]` (`hazeOff`). Vael II `SKY_STONES_CAST` [0.7, 0] and its views
+  `VAEL2_LOOK` [0.85, 0]; Lorn II `DEEP_WOOD_CAST` [0.6, 0.2] and its views `LORN_LOOK` [0.85, 0.2]; the
+  Garden of Spheres `SPHERES_LOOK` [0.4, 0] (its views inherit it). Checked and left alone: the desert (its
+  sheets' cast shadows are pale tan in IMG_3772–3773 as ours are, near-black in IMG_3774: `uSpot.w`), the
+  City-Shaft (its blocks cast none already), the Buried Machine (dark masses, the spot tier), the Signal
+  Market (its street keeps the towers' shadows).
+- **Debug**: `params.debug` 12: red where a cast shadow would be lifted, green where one is.
+- **Cost**: a dot and three smoothsteps per pixel, compiled in only where a look sets it (`INK_CAST`); no taps.
+- `tests/ink-pass.test.js`: the JS twin (`castLift`): lifted on the ground and on walls by their amounts,
+  the low sun counted, form shade, the terminator, the lit side and the jump shadow kept; the presets keep
+  them; Vael II and Lorn II and their views lift them.
+
+## Facets edge-on to the sun (materials.js `FACET_EDGE`)
+
+A flat-shaded (`flat: true`) wall lying in line with the sun has n·l ≈ 0, a light term on the toon
+threshold, and the last bits of its derivative normal (and the shadow map's grazing taps) broke it into a
+field of fine lit specks (the Signal Market's view 155, a brown wall full of white specks: half its pixels
+50 % lit). A facet within `FACET_EDGE` (0.03) of edge-on now goes to shade, whole; smooth surfaces keep
+their terminator's antialiasing. The drawn detail (pen marks, seams) is inked a little darker in shade
+(0.6 → 0.86 of the ink), so it reads on flat-printed and deep shade as on the lit side.
+
+## Debug views (`params.debug`)
+
+0 final, 1 raw, 2 albedo, 3 normals, 4 depth, 5 light term (the line step taken off), 6 ink only, 7 hatch
+strokes and 8 drawn detail (their packed steps taken off, so a shaded or spotted surface no longer reads as
+solid black), 9 spot blacks' enclosure, 10 the spot tier's cast and spot masks, 11 lines by material, 12 cast
+shadows lifted.
+
+## Cost of the ink pass's three (lines by material, haze, cast shadows)
+
+- **Compiled in only where they are used** (`inkFeatures` in post.js): the haze layers, the fog by height and
+  the cast shadows are `#ifdef`s (`INK_LAYERS`, `INK_HFOG`, `INK_HAZE` either, `INK_CAST`) set from the
+  uniforms the look sets: through the uniforms' value setters (so the load's shader warm-up compiles the
+  right program) and checked again before each draw. three.js keeps each program; a References view of
+  another set compiles once, in its fade. Behind uniform switches alone, merely carrying the code cost the
+  Retina desert +1.0 ms a frame (a bigger shader runs slower on Apple's GPUs even where the code is
+  skipped), as the spot blacks once did (docs/systems/performance.md).
+- **The haze once a pixel**: one `hazeAt` (the pixel's own depth; on the sky, the line's surface), used
+  for the colour and the lines.
+- **Lines by material** are always in (any world has leaves or glass): one more tap of RT0, only on inked
+  pixels, and the light term's decoding. About 0.1-0.15 ms at Retina size.
+- **Measured** (M4 Pro, ANGLE Metal, synced frame time: each `renderFrame()` of 16 closed by a
+  `readPixels`, median of 20-24, the two builds in their own pages timed in turns, the others held; the
+  boot camera and one 25 m up; main 14b75c1 against this branch; in-page toggles that recompile without a
+  part give its share):
+
+| ms, start / wide | High, 1728 × 1117 at DPR 2 (3456 × 2234) | Handheld (scale 0.65, same window) |
+|---|---|---|
+| the desert (layers) | 11.97 → 12.34 / 11.21 → 11.52 | 4.90 → 5.03 / 4.66 → 4.79 |
+| Vael II (layers, cast) | 12.33 → 12.95 / 11.93 → 12.49 | 4.94 → 5.13 / 4.76 → 4.94 |
+| Lorn II (layers, fog by height, cast) | 16.14 → 16.48 / 15.46 → 16.06 | 6.54 → 6.79 / 6.29 → 6.49 |
+| the Signal Market (layers) | 13.07 → 13.57 / 14.28 → 14.72 | 5.24 → 5.39 / 5.54 → 5.74 |
+
+  The haze's share 0.1-0.25 ms at Retina size, the cast shadows' under 0.1, the lines by material's about
+  0.15 (a build without block 1b); the rest the light term's decoding and the drawn detail's darker ink in
+  shade. On the handheld preset 0.13-0.25 ms (3-4 %). Not done: Retina frames over 16.7 ms (Lorn II's) were
+  so before.

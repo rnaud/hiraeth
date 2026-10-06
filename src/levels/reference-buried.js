@@ -61,8 +61,8 @@ function materials(kit) {
     glowAqua: kit.mat({ color: '#c4f1ee', glow: 0.75, flat: true }),
     lamp: kit.mat({ color: '#fff0c8', glow: 0.9, flat: true }),
     window: kit.mat({ color: '#f6c97e', glow: 0.8, flat: true }),
-    cloud: kit.mat({ color: '#fff1dd', shade: 0.55, hatch: 0, spot: 0 }),
-    pinkCloud: kit.mat({ color: '#fbe1d0', shade: 0.55, hatch: 0, spot: 0 }),
+    cloud: kit.mat({ color: '#fff1dd', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
+    pinkCloud: kit.mat({ color: '#fbe1d0', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
     cloak: kit.mat({ color: PERSON.cloak, flat: true }),
   };
 }

@@ -19,7 +19,9 @@ export const SHAFT_SHEETS = { IMG_3778: sheet('IMG_3778'), IMG_3779: sheet('IMG_
  * The sheets' ink: shadows printed flat in their own blue (uShadowFlat), barely hatched, no
  * half-tone lifting the overhangs' undersides (they are the deepest blue), a clean sky.
  */
-export const SHAFT_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.8, uShadeKeep: 0, uHalftone: 0.1, uBounce: 0, uHatch: 0.1 };
+/** Down the shaft the houses fade into a pale blue haze toward the water (post.js 4b: a fog thickening under -40 m). */
+export const SHAFT_VIEW_FOG = { uHeightFog: [-40, 60, 0.003, 0.75], uHeightFogTone: [0.74, 0.83, 0.88, 0.9] };
+export const SHAFT_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.8, uShadeKeep: 0, uHalftone: 0.1, uBounce: 0, uHatch: 0.1, ...SHAFT_VIEW_FOG };
 /** sky top, sky horizon, shadow (the flat blue), light, sun */
 const SKY = ['#8fbcd8', '#c6dbe2', '#6d97b8', '#ffffff', '#fff6dc'];
 const PAL = {
