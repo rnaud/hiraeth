@@ -56,8 +56,8 @@ first desert (the channel open: the spark-stone errand skipped; a jar and the Sp
 Each must chart the right worlds, need no fallback box, resume at the migrated step, play its world to the
 end and chart the next.
 
-**In Chrome** (`node scripts/playthrough-browser.mjs [--port 6101] [--url …] [--out dir]`, about two
-minutes). What only the page has, headless and muted (`--mute-audio`, the game's volumes at 0), over the
+**In Chrome** (`node scripts/playthrough-browser.mjs [--port 6101] [--url …] [--out dir]`, about one
+minute). What only the page has, headless and muted (`--mute-audio`, the game's volumes at 0), over the
 DevTools protocol, against its own dev server (or `--url`: in CI, `npx vite preview` after the build).
 A new game: the title, the prologue skipped by holding Esc, no quest on landing, the drone on Marrow. An
 old save from before the save slots and the reorder: Continue resumes it in the City-Shaft (moved into
