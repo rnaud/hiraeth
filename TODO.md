@@ -182,6 +182,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
     - [x] 2. Line weight and colour per material. (`makeMaterial({ line, lineTint })`, `LINE`, packed over the light
       term in RT0.a; post.js 1b gives a line its owner's weight and a dark shade of its colour: the clouds, Lorn II's
       reeds and crystals, foliage, glass, the Market's billboards; docs/systems/rendering.md, "Lines by material".)
+    - [x] 3. Haze in layers by depth and fog by height. (post.js 4b: `uHazeLayers` / `uHazeTone` stepped bands by
+      distance, `uHeightFog` / `uHeightFogTone` integrated along the ray; set for Lorn II, the desert, the Market,
+      Vael II and the City-Shaft's pit, and their views; docs/systems/rendering.md, "Haze by depth and height".)
 - [x] A quick menu to jump to any reference, with a tiny picture of its panel. (`src/levels/reference-picker.js`:
   every view grouped by world and sheet, thumbnails cut from the sheets with each view's crop on a canvas,
   built on the first opening; Tab, X / □ on a pad or the "views" button opens it, B / ○ or Esc closes;

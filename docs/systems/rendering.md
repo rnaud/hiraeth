@@ -334,3 +334,32 @@ soft shapes read as hard.
   before and after in two pages of one browser, 16 interleaved pairs of 24 frames; the machine
   shared with other agents): view 52 3.80 / 3.82 ms. A branch only on inked pixels, one tap; no new
   GLSL features (WebView 109).
+
+## Haze by depth and height (post.js 4b; `HAZE`)
+
+The sheets separate near, middle and far by stepped pale bands of a warm or cool haze (Lorn II's mist
+between trunks, the desert's far dunes, the Market's far towers), and the City-Shaft and the woods fade
+with depth down or into them. Our fog was one exponential tint by distance (`uHaze` only gave it the
+desert's colour).
+
+- **Layers by depth** (`uHazeLayers`: first distance, each layer's distance over the last's, each
+  layer's veil, how many; `uHazeTone`: their colour, and how much of it over the far haze's): past
+  the first distance every layer k times farther veils a little more, `1 − (1 − a)^layers`, flat
+  inside a layer with a soft ramp (`HAZE.edge`, a fifth of a layer) before each step. Things at
+  different depths (trunks, towers, ridges) fall into separate pale planes; open ground shows soft
+  bands that move with you, never a hard edge (no shimmer). Applied before the far fog, thinner at
+  night; the ink lines take `HAZE.lineFade` of it at their nearest surface.
+- **Fog by height** (`uHeightFog`: the height it thickens under, its scale height, density there, its
+  most; `uHeightFogTone`): a density growing exponentially below a height, integrated along each ray
+  (closed form: no loop), so a view down a shaft fades into it while a view across or up stays clear;
+  over the far fog, the lines veiled too.
+- **Set** (looks, so the views carry them): Lorn II `DEEP_WOOD_HAZE` (layers from 25 m × 1.7, a cool
+  violet-blue, a low mist under 1.5 m) and its views; the desert `DUNE_HAZE` (from 250 m × 1.9, the far
+  haze's warm colour; the desert views' from 120 m); the Signal Market `MARKET_HAZE` (from 90 m × 1.8,
+  pale warm) and its views; Vael II `SKY_STONES_HAZE` (light, from 200 m) and its views; the City-Shaft
+  `SHAFT_FOG` (thickening under the pit's middle, 0 m, scale 120 m, pale blue) and the shaft views'
+  `SHAFT_VIEW_FOG` (under −40 m). Every preset lists them off (`hazeOff`).
+- **Cost**: a log2, a pow and three exps per pixel, behind uniform switches (none where a world sets
+  none); measured with the rest below ("Cost of the ink pass's three").
+- `tests/ink-pass.test.js`: the JS twins (`hazeLayers`, `heightFog`): stepped, monotonic, continuous,
+  thicker looking down; every preset says them; the worlds and views set theirs.

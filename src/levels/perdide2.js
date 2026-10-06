@@ -18,7 +18,12 @@ import { stepped } from '../load-steps.js';
 // ---------------------------------------------------------------------------
 
 /** The world's touches on the print preset (its reference sheets, docs/systems/references.md). */
-export const DEEP_WOOD_LOOK = { uClouds: 0, uCumulus: 0, uFogDensity: 0.002 };
+/**
+ * The wood's mist (post.js 4b): trunks behind trunks in stepped bands of a cool violet-blue haze (every 1.7 × farther
+ * from 25 m), and a low mist over the water and the paths (thick under 1.5 m, its scale 4 m).
+ */
+export const DEEP_WOOD_HAZE = { uHazeLayers: [25, 1.7, 0.14, 5], uHazeTone: [0.42, 0.48, 0.62, 0.85], uHeightFog: [1.5, 4, 0.006, 0.4], uHeightFogTone: [0.55, 0.58, 0.72, 0.6] };
+export const DEEP_WOOD_LOOK = { uClouds: 0, uCumulus: 0, uFogDensity: 0.002, ...DEEP_WOOD_HAZE };
 /** The day's colours: violet / indigo / teal shade under a coral horizon. */
 export const DEEP_WOOD_DAY = ['#c48c98', '#f2a088', '#4a4f7a', '#ece2f2', '#fff0e0'];
 
