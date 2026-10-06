@@ -678,3 +678,16 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   handheld; on in every world's plaster, mud and stone buildings. The "fuzzy dots" on view 2's dish
   column (and the "dotted texture on grazing lit faces") were faceted normals from imprecise derivatives
   far from the origin: now from the camera-relative position.
+
+# The Unity C# port's open items, closed (2026-10-06)
+
+Superseded by the JS bridge (Unity + Puerts, the game's own JS driving Unity: docs/systems/engine-bridge.md),
+so none of these will be built in C#:
+
+- The worlds' own scripts beyond the opening (the hover-skiff, riding the cabs, the temples, the reel's
+  recordings at the console, the homecoming, the Hangar's zone presets, the reactive scenery).
+- The crowd's near tier as the web's (the port gave full bodies out to 55 m).
+- The EditMode story test and the batch play-through walking the desert's old opening quest.
+- The desert's smaller things (the errands near the start, the reactive flowers, the scout drone, hover
+  trails; swimming's strokes, diving and breath).
+
