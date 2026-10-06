@@ -1,0 +1,33 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_cda3f1b03f74eb 132-133
+changelog.md
+  s_1fd8d0e7b02dcf::t_ac41de9bbcbc3c 15
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_d1018c7a1cd733 166-195
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_15cfcd9c0efb4a 277-279
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_36b2096ac3a74e 18
+src/materials.js
+  s_1fd8d0e7b02dcf::t_1527d27b8abf34 255,329-348,375,638,1085-1145,1825-1837,2251-2252,2314
+tests/surface-spec.test.js
+  s_1fd8d0e7b02dcf::t_672ced193ae3c2 64,66-67
+tests/wall-patch.test.js
+  s_1fd8d0e7b02dcf::t_c86adbd9bb0a16 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3d4206eb5240fd6ad5692de9d40ebd679fe9229a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
