@@ -1,0 +1,37 @@
+changelog.md
+  s_1fd8d0e7b02dcf::t_df8bc5619cf05e 10-11
+desktop/main.mjs
+  s_1fd8d0e7b02dcf::t_456aff2ea30b60 1,56-58
+scripts/web-update.mjs
+  s_1fd8d0e7b02dcf::t_03630aa22950f1 129-132,137
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_6bf5d1b976bc92 13-14
+src/levels/reference-picker.js
+  s_1fd8d0e7b02dcf::t_df4c40473c229c 1,233
+src/levels/reference-sheets.js
+  s_1fd8d0e7b02dcf::t_a4290d4318ffa3 1-15
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_2b5f481a841999 15,133
+tests/android-ota.test.js
+  s_1fd8d0e7b02dcf::t_f82a4c301a5c2e 186-190
+tests/native-app.test.js
+  s_1fd8d0e7b02dcf::t_100218fdf46898 55-56
+tests/reference-sheets.test.js
+  s_1fd8d0e7b02dcf::t_88a43231470f33 1-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f9412565e4b7a360a5418a624a1ae3f9053cc3b6",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
