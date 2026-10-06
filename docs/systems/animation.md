@@ -224,6 +224,20 @@ either way: the title and the sky draw before the world is built.
 The same measurements on the handheld are still to take: `scripts/bench/android-run.sh` wants a
 device over USB, and none has been attached since this was written.
 
+## Vael's bird: standing, folding, flying (`src/bird.js`)
+
+She stands tall on long wading legs (drumstick, hock, tarsus, three toes and a back one), as the Sky Stones'
+sheets draw her: `FOOT` is the middle toe's base on the leg, `STAND` the height her body rides over the
+ground (the legs' reach and a toe's thickness), used wherever she is put down, landed or held over the ground.
+Her wings' pose is one function, `poseWings(wings, fold, flap, amp, flare, flapPower)`, shared with the
+reference views: spread (fold 0) they beat; folded (fold 1, `FOLD`) each arm rolls about its own length,
+sweeps back along her flank, its feathers drawn in to half their depth and the hand to a third of its size,
+so the folded wing lies against her side and ends at her tail (the shoulder turns in YXZ order for that:
+roll first, then sweep). Vael's bow (`src/story/arzach.js`) opens the fold the same way. `tests/birds.test.js`
+holds a standing bird's wings within a hand of her side and her feet on the ground; `tests/references.test.js`
+holds every Vael II view's bird either on its feet (standing) or well clear of the ground (flying), never a
+flying pose hovering just over it.
+
 ## Motion capture: the people's own walks, and motion matching (`scripts/mocap/`, `src/motion-match.js`)
 
 Motion-captured takes from the CMU database (and, once downloaded, Mixamo's: docs/mixamo-shopping-list.md),

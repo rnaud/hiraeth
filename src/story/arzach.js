@@ -393,7 +393,12 @@ export function setupArzach(ctx) {
       const len = bow.short ? 2.2 : 4.2, k = Math.sin(Math.PI * Math.min(bow.t / len, 1));
       bird.body.rotation.x += 0.62 * k;
       bird.body.position.y = -0.25 * k;
-      for (const w of bird.wings) { w.shoulder.rotation.y -= w.side * 1.0 * k; w.shoulder.rotation.z += w.side * 0.35 * k; w.elbow.rotation.y -= w.side * 1.2 * k; }
+      // (out of the fold, bird.js poseWings: unrolled, swept forward, the feathers and the hand at their full size)
+      for (const w of bird.wings) {
+        w.shoulder.rotation.x *= 1 - k; w.shoulder.rotation.y -= w.side * 1.0 * k; w.shoulder.rotation.z += w.side * 0.35 * k;
+        w.shoulder.scale.z += (1 - w.shoulder.scale.z) * k;
+        w.elbow.rotation.y += w.side * 0.1 * k; w.elbow.rotation.z *= 1 - k; w.elbow.scale.setScalar(w.elbow.scale.x + (1 - w.elbow.scale.x) * k);
+      }
     };
   }
   const cry = (pitch = 1) => {

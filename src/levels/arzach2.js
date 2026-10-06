@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { formAxis, padForm } from '../form.js';
 import { fbm, mulberry32, smoothstep, lerp } from '../noise.js';
-import { TAU, nA, nB, nC, clean, place, lumpy, solid, table, needle, boulder } from './sky-stones-kit.js';
+import { TAU, nA, nB, nC, clean, place, lumpy, solid, table, needle, boulder, drips } from './sky-stones-kit.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
-import { Bird } from '../bird.js';
+import { Bird, STAND } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 
@@ -202,15 +202,27 @@ export function* buildArzach2(scene) {
   const shadowGeos = [];
   // (a table: its axis, for the strokes radiating from its stalk)
   const tableOf = (o) => { const t = table(o); formAxis(t.vis, 'cap', { centre: [o.x, 0, o.z] }); return t; };
-  const addTable = (mat, o) => { const t = tableOf(o); add(mat, t.vis); if (mat === M.cap) shadowGeos.push(clean(t.shadow)); return t; };
+  // the stalactites hang in their own mesh per material: drawn, never collided and never reachable
+  // (nothing stands under a cap), so the contact audit leaves them alone as it leaves the floaters
+  const dripGeos = new Map();
+  const addTable = (mat, o) => {
+    const t = tableOf(o); add(mat, t.vis);
+    if (t.drip) { if (!dripGeos.has(mat)) dripGeos.set(mat, []); dripGeos.get(mat).push(t.drip); }   // (with their own normals: sky-stones-kit.js drips)
+    if (mat === M.cap) shadowGeos.push(clean(t.shadow));
+    return t;
+  };
   // the start plateau: a wide table with an overhanging lip
-  addTable(M.bone, { ...START, stalk: 70, capT: 6, under: 11, seed: 1.3, rib: 1.3, ribK: 44, seg: 176, colSeg: 24, outline: 0.15, foot: 0.92, neckR: 0.97, waist: 0.03, ledges: 0.05, flute: 0.1, fluteK: 23 });
+  addTable(M.bone, { ...START, stalk: 70, capT: 6, under: 11, seed: 1.3, rib: 1.3, ribK: 44, seg: 176, colSeg: 24, outline: 0.15, foot: 0.92, neckR: 0.97, waist: 0.03, ledges: 0.05, flute: 0.1, fluteK: 23,
+    drips: { n: 44, len: [0.031, 0.087], r: 0.0238, band: [0.5, 0.97] } });
   // the monastery cliff: rose rock, the lip leaning out toward the start
-  addTable(M.rose, { ...MONASTERY, stalk: 62, capT: 6, under: 9, seed: 4.1, rib: 1.6, ribK: 40, seg: 160, colSeg: 22, off: [20, 12], foot: 0.95, neckR: 0.97, waist: 0.03, ledges: 0.05, flute: 0.1, fluteK: 21 });
+  addTable(M.rose, { ...MONASTERY, stalk: 62, capT: 6, under: 9, seed: 4.1, rib: 1.6, ribK: 40, seg: 160, colSeg: 22, off: [20, 12], foot: 0.95, neckR: 0.97, waist: 0.03, ledges: 0.05, flute: 0.1, fluteK: 21,
+    drips: { n: 38, len: [0.031, 0.0928], r: 0.0255, band: [0.5, 0.97] } });
   // the needle plateau
-  addTable(M.bone, { ...NEEDLES, stalk: 78, capT: 6, under: 10, seed: 7.7, rib: 1.2, ribK: 44, seg: 176, colSeg: 24, off: [-10, 0], foot: 0.92, waist: 0.03, ledges: 0.05, flute: 0.1, fluteK: 25 });
+  addTable(M.bone, { ...NEEDLES, stalk: 78, capT: 6, under: 10, seed: 7.7, rib: 1.2, ribK: 44, seg: 176, colSeg: 24, off: [-10, 0], foot: 0.92, waist: 0.03, ledges: 0.05, flute: 0.1, fluteK: 25,
+    drips: { n: 44, len: [0.031, 0.087], r: 0.0238, band: [0.5, 0.97] } });
   // the great mushroom table
-  addTable(M.cap, { ...TABLE, stalk: 17, capT: 7, under: 20, seed: 2.2, rib: 2.4, ribK: 36, seg: 160, colSeg: 26, outline: 0.1, flute: 0.12, fluteK: 13, foot: 1.5, neckR: 1.25, waist: 0.22 });
+  addTable(M.cap, { ...TABLE, stalk: 17, capT: 7, under: 20, seed: 2.2, rib: 2.4, ribK: 36, seg: 160, colSeg: 26, outline: 0.1, flute: 0.12, fluteK: 13, foot: 1.5, neckR: 1.25, waist: 0.22,
+    drips: { n: 40, len: [0.0434, 0.1102], r: 0.0272, band: [0.35, 0.95] } });
   // smaller tables rising from the cloud sea, and some on the plain
   const HOODOOS = [
     [-120, -330, 26, 30], [95, -410, 22, 50], [-170, -545, 34, 22], [340, -110, 30, 56], [-330, 30, 24, 36],
@@ -218,9 +230,13 @@ export function* buildArzach2(scene) {
     [470, -260, 18, 24], [-460, -40, 26, 20], [-60, -720, 30, 44], [120, -800, 24, 30], [-260, -760, 36, 52], [380, -720, 26, 40],
   ];
   const tables = [START, MONASTERY, NEEDLES, TABLE].map((t) => ({ x: t.x, z: t.z, R: t.R }));
+  // (the lean: each tips about its own neck, so its cap's plane goes off the horizontal and its stalk
+  //  slants under it, as the sheets draw them; from the noise, so the rest of the world keeps its seeds)
+  const hoodooLean = (i, k = 0.1) => [nA(i * 2.7 + 0.3, 11) * k, nB(i * 2.7 + 0.3, 11) * k];
   HOODOOS.forEach(([x, z, r, top], i) => {
     addTable(M.cap, { x, z, R: r, top, dome: r * 0.07, stalk: r * R(0.28, 0.38), capT: r * R(0.1, 0.15), under: r * R(0.26, 0.36),
       seed: i * 3.7 + 0.4, rib: r * 0.04, ribK: 30, seg: 112, colSeg: 18, flute: 0.1, fluteK: 9 + (i % 5), foot: 1.6, neckR: 1.3, waist: 0.24,
+      lean: hoodooLean(i), drips: { n: 9, len: [0.0372, 0.0928], r: 0.0306, band: [0.45, 0.92] },
       off: [R(-0.12, 0.12) * r, R(-0.12, 0.12) * r] });
     tables.push({ x, z, R: r });
   });
@@ -229,13 +245,14 @@ export function* buildArzach2(scene) {
   PLAIN_HOODOOS.forEach(([x, z, r, h], i) => {
     const base = terrain.baseAt(x, z, r * 0.4);
     addTable(M.cap, { x, z, R: r, top: base + h, base: base - 4, dome: r * 0.08, stalk: r * R(0.32, 0.42), capT: r * 0.13, under: r * 0.3,
-      seed: 30 + i * 2.9, rib: r * 0.045, ribK: 32, seg: 128, colSeg: 18, flute: 0.11, fluteK: 10 + i, foot: 1.5, neckR: 1.25, waist: 0.2, off: [r * 0.1, 0] });
+      seed: 30 + i * 2.9, rib: r * 0.045, ribK: 32, seg: 128, colSeg: 18, flute: 0.11, fluteK: 10 + i, foot: 1.5, neckR: 1.25, waist: 0.2,
+      lean: hoodooLean(i + 20, 0.07), drips: { n: 10, len: [0.031, 0.0754], r: 0.0272, band: [0.5, 0.94] }, off: [r * 0.1, 0] });
   });
   // rose cliff walls on the west and east of the chasm
   const ROSE = [[-480, -320, 44, 96], [-520, -140, 36, 82], [-430, -520, 40, 60], [540, -180, 48, 72], [520, -420, 34, 90], [-540, 120, 40, 50]];
   ROSE.forEach(([x, z, r, top], i) => {
     addTable(M.rose, { x, z, R: r, top, dome: 0.8, stalk: r * 0.82, capT: r * 0.2, under: r * 0.2, seed: 50 + i * 1.7, rib: 0.8, ribK: 30, seg: 96, colSeg: 18,
-      flute: 0.1, fluteK: 14, foot: 0.9, neckR: 0.95, waist: 0.04, outline: 0.18 });
+      flute: 0.1, fluteK: 14, foot: 0.9, neckR: 0.95, waist: 0.04, outline: 0.18, drips: { n: 20, len: [0.031, 0.0812], r: 0.0272, band: [0.55, 0.97] } });
     tables.push({ x, z, R: r });
   });
 
@@ -304,22 +321,22 @@ export function* buildArzach2(scene) {
     const r2 = mulberry32(seed * 31 + 1);
     let yy = y;
     let ox = 0, oz = 0;
-    for (const [r, sy, egg] of stones) {
+    for (const [r, sy, egg, crack = 0] of stones) {
       const sx = 1 + r2() * 0.25, sz = 0.85 + r2() * 0.3, ry = r2() * TAU, tilt = (r2() - 0.5) * 0.25;
       yy += r * sy * 0.92;
-      add(mat, place(boulder(r, sx, sy, sz, egg, seed + yy), x + ox, yy, z + oz, ry, 1, 1, 1, tilt, -tilt));
+      add(mat, place(boulder(r, sx, sy, sz, egg, seed + yy, true, crack), x + ox, yy, z + oz, ry, 1, 1, 1, tilt, -tilt));
       yy += r * sy * 0.92;
       ox += (r2() - 0.5) * r * 0.35; oz += (r2() - 0.5) * r * 0.35;
     }
     return yy;
   };
   // on the start plateau: a teetering column of pebbles
-  stack(36, START.top - 0.5, -42, [[5.5, 0.62, 0.05], [4.6, 0.72, 0.1], [3.8, 0.8, 0.15], [3.2, 0.68, 0.05], [2.4, 0.9, 0.2]], 1);
+  stack(36, START.top - 0.5, -42, [[5.5, 0.62, 0.05, 0.2], [4.6, 0.72, 0.1], [3.8, 0.8, 0.15, 0.24], [3.2, 0.68, 0.05], [2.4, 0.9, 0.2, 0.18]], 1);
   stack(58, START.top - 0.5, 20, [[3.2, 0.6, 0], [2.6, 0.8, 0.1], [1.8, 0.85, 0.2]], 2);
   // on the needle plateau
-  stack(NEEDLES.x - 40, NEEDLES.top - 0.5, NEEDLES.z - 50, [[7, 0.6, 0], [6, 0.75, 0.1], [4.6, 0.85, 0.1], [3.2, 0.95, 0.25]], 3);
+  stack(NEEDLES.x - 40, NEEDLES.top - 0.5, NEEDLES.z - 50, [[7, 0.6, 0, 0.22], [6, 0.75, 0.1], [4.6, 0.85, 0.1, 0.26], [3.2, 0.95, 0.25, 0.2]], 3);
   // on the plain
-  stack(30, terrain.heightAt(30, -1140) - 0.5, -1140, [[6, 0.55, 0], [5, 0.8, 0.1], [4.2, 0.7, 0], [3.4, 0.9, 0.2], [2.2, 1, 0.25]], 4);
+  stack(30, terrain.heightAt(30, -1140) - 0.5, -1140, [[6, 0.55, 0, 0.2], [5, 0.8, 0.1], [4.2, 0.7, 0, 0.24], [3.4, 0.9, 0.2], [2.2, 1, 0.25, 0.2]], 4);
   stack(-200, terrain.heightAt(-200, -1190) - 0.5, -1190, [[4, 0.6, 0], [3.4, 0.8, 0.1], [2.4, 1.1, 0.25]], 5);
   // a tall stone column out of the cloud, with mushroom discs and stacked stones (page 2)
   yield;
@@ -327,14 +344,14 @@ export function* buildArzach2(scene) {
     const x = 128, z = -92;
     const col0 = needle({ x, y: -80, z, H: 120, R: 7, seed: 41, seg: 14, rings: 18, flute: 0.1, lean: 0 });
     add(M.bone, col0.vis);
-    const disc = (dx, y, dz, rr, th) => {
-      const t = tableOf({ x: x + dx, z: z + dz, R: rr, stalk: rr * 0.18, top: y, base: y - th * 2.5, capT: th, under: th * 0.6, dome: th * 0.3, seed: y * 0.1, rib: 0.4, ribK: 20, seg: 64, colSeg: 14, foot: 1, neckR: 1, waist: 0 });
+    const disc = (dx, y, dz, rr, th, lean = null) => {
+      const t = tableOf({ x: x + dx, z: z + dz, R: rr, stalk: rr * 0.18, top: y, base: y - th * 2.5, capT: th, under: th * 0.6, dome: th * 0.3, seed: y * 0.1, rib: 0.4, ribK: 20, seg: 64, colSeg: 14, foot: 1, neckR: 1, waist: 0, lean });
       add(M.cap, t.vis);
     };
-    disc(0, 30, 0, 8, 1.4);
-    const y1 = stack(x, 31, z, [[3.8, 0.75, 0.1], [3.4, 0.9, 0.15], [2.6, 0.7, 0.05]], 6);
-    disc(0.5, y1 + 2.5, 0.3, 11, 1.6);
-    stack(x + 0.5, y1 + 3.5, z + 0.3, [[2.8, 0.8, 0.2], [2, 0.9, 0.2]], 7);
+    disc(0, 30, 0, 8, 1.4, [0.05, -0.07]);
+    const y1 = stack(x, 31, z, [[3.8, 0.75, 0.1, 0.24], [3.4, 0.9, 0.15], [2.6, 0.7, 0.05, 0.2]], 6);
+    disc(0.5, y1 + 2.5, 0.3, 11, 1.6, [-0.06, 0.05]);
+    stack(x + 0.5, y1 + 3.5, z + 0.3, [[2.8, 0.8, 0.2, 0.26], [2, 0.9, 0.2]], 7);
   }
   // the disc column with an egg resting above it (page 1)
   yield;
@@ -344,7 +361,7 @@ export function* buildArzach2(scene) {
       flute: 0.14, fluteK: 7, foot: 2.1, neckR: 0.85, waist: 0.05 });
     add(M.bone, shaft.vis);
     add(M.bone, place(boulder(0.9, 1, 0.8, 1, 0, 3), x, top + 1.6, z), false);   // the pebble it balances on
-    add(M.bone, place(boulder(3.6, 1, 2, 0.95, 0.12, 62), x, top + 9.6, z, 0.3));
+    add(M.bone, place(boulder(3.6, 1, 2, 0.95, 0.12, 62, true, 0.26), x, top + 9.6, z, 0.3));
   }
 
   // ---------------------------------------------------------- aqueducts and arches
@@ -379,9 +396,32 @@ export function* buildArzach2(scene) {
   yield;
   const building = { walls: [], plain: [], roofs: [], domes: [], dark: [], trees: [] };
   const box = (list, x, y, z, w, h, d, ry = 0) => list.push(place(new THREE.BoxGeometry(w, h, d), x, y + h / 2, z, ry));
+  // (the sheets' roofs are shallow red tile with a course of eaves overhanging the wall head)
   const gable = (x, y, z, w, d, ry = 0) => {
     const g = new THREE.BoxGeometry(w * 0.7071 * 1.08, w * 0.7071 * 1.08, d * 1.06).rotateZ(Math.PI / 4).scale(1, 0.42, 1);
     building.roofs.push(place(g, x, y, z, ry));
+    building.roofs.push(place(new THREE.BoxGeometry(w * 1.18, 0.4, d * 1.22), x, y - 0.15, z, ry));
+  };
+  /** A loggia: a shaded recess behind a row of piers under round arches (the sheets' monastery ranges). */
+  const arcade = (x, y, z, n, w, h, d, ry = 0) => {
+    const ux = Math.cos(ry), uz = -Math.sin(ry), sp = w * 1.75;
+    box(building.dark, x, y, z, n * sp, h + w * 0.8, d * 0.4, ry);
+    for (let i = 0; i <= n; i++) box(building.walls, x + (i - n / 2) * sp * ux, y, z + (i - n / 2) * sp * uz, w * 0.52, h, d, ry);
+    for (let i = 0; i < n; i++) {
+      const t = (i - (n - 1) / 2) * sp;
+      building.walls.push(place(new THREE.TorusGeometry(w * 0.74, w * 0.17, 4, 8, Math.PI), x + t * ux, y + h, z + t * uz, ry));
+    }
+    box(building.walls, x, y + h + w * 0.8, z, n * sp + w, 0.8, d * 1.15, ry);
+  };
+  /** An arched door or window, sunk into a wall face. */
+  const arch = (x, y, z, w, h, ry = 0) => {
+    box(building.dark, x, y, z, w, h, 0.4, ry);
+    building.dark.push(place(new THREE.CylinderGeometry(w / 2, w / 2, 0.4, 9).rotateX(Math.PI / 2), x, y + h, z, ry, 1, 0.9, 1));
+  };
+  /** The ball and spike every dome carries on the sheets. */
+  const finial = (x, y, z, r) => {
+    building.walls.push(place(new THREE.SphereGeometry(r * 0.42, 7, 5), x, y + r * 0.5, z));
+    building.walls.push(place(new THREE.ConeGeometry(r * 0.2, r * 0.9, 6), x, y + r * 1.05, z));
   };
   const house = (x, y, z, w, h, d, ry = 0) => {
     box(building.walls, x, y - 2, z, w, h + 2, d, ry);
@@ -391,6 +431,12 @@ export function* buildArzach2(scene) {
     building.plain.push(place(new THREE.CylinderGeometry(r, r, drum, 16), x, y + drum / 2, z));
     building.domes.push(place(new THREE.SphereGeometry(r * 1.06, 16, 8, 0, TAU, 0, Math.PI / 2), x, y + drum, z, 0, 1, 0.9, 1));
     building.walls.push(place(new THREE.CylinderGeometry(r * 0.12, r * 0.16, r * 0.6, 6), x, y + drum + r * 0.95 + r * 0.3, z));
+    // the drum's little columns and the dome's finial (IMG_3787 panel 3)
+    if (r >= 4.5) for (let i = 0; i < 12; i++) {
+      const a = i * TAU / 12;
+      building.walls.push(place(new THREE.CylinderGeometry(r * 0.075, r * 0.075, drum * 0.74, 5), x + Math.cos(a) * r * 1.03, y + drum * 0.37, z + Math.sin(a) * r * 1.03));
+    }
+    finial(x, y + drum + r * 0.95 + r * 0.6, z, r * 0.36);
   };
   const belltower = (x, y, z, w, h, round = false) => {
     if (round) building.plain.push(place(new THREE.CylinderGeometry(w / 2, w / 2 * 1.06, h + 2, 14), x, y - 2 + (h + 2) / 2, z));
@@ -428,7 +474,10 @@ export function* buildArzach2(scene) {
     house(x - 30, y, z - 14, 9, 6, 10, 0.2);
     house(x + 14, y, z - 2, 8, 7, 9, 0.35);
     box(building.walls, x - 5, y - 1, z - 30, 28, 3.2, 1.2, 0.35);   // a low courtyard wall
+    arcade(x + 2.6, y, z - 14.5, 5, 2.2, 4.4, 1.6, 0.35);             // the cloister along its south range
+    arch(x - 7.2, y, z - 15.5, 2, 3.4, 0.35); arch(x - 16, y + 0.1, z - 0.2, 2.2, 3.6, 0);
     cypress(x - 32, y, z + 6, 11); cypress(x - 35, y, z + 2, 9); cypress(x + 30, y, z - 4, 10);
+    cypress(x - 26, y, z - 22, 12); cypress(x - 22, y, z - 26, 9.5); cypress(x + 20, y, z + 16, 10.5);
   }
   yield;
   {
@@ -441,6 +490,9 @@ export function* buildArzach2(scene) {
     belltower(x + 11, y, z - 6, 4.5, 18, true);
     building.walls.push(place(new THREE.BoxGeometry(0.5, 3, 0.5), x, y + 10 + 4.5 + 6.6, z));      // a cross
     building.walls.push(place(new THREE.BoxGeometry(2, 0.5, 0.5), x, y + 10 + 4.5 + 7.2, z));
+    arcade(x, y, z + 17.4, 4, 1.6, 3.4, 1.4, 0);                                                   // the porch before its door
+    arch(x, y, z + 7.2, 2, 3.2, 0);
+    cypress(x - 9, y, z + 12, 8); cypress(x + 9.5, y, z + 9, 7);
   }
   yield;
   {
@@ -449,6 +501,9 @@ export function* buildArzach2(scene) {
     box(building.walls, x, y - 2, z, 8, 8, 8);
     domed(x, y + 6, z, 3.3, 2.5);
     house(x + 7, y, z + 1, 5, 4, 7, Math.PI / 2);
+    arcade(x - 0.2, y, z + 5.1, 3, 1.3, 2.8, 1.2, 0);
+    arch(x + 4.2, y, z - 2.4, 1.5, 2.4, Math.PI / 2);
+    cypress(x - 6, y, z + 3, 7.5); cypress(x - 7.5, y, z - 1, 6);
   }
   yield;
   for (const [k, list] of Object.entries(building)) {
@@ -544,8 +599,8 @@ export function* buildArzach2(scene) {
     g.position.set(x, y, z);
     const parts = [];
     if (mushroom) {
-      parts.push(table({ x: 0, z: 0, R: r, stalk: r * 0.2, top: 0, base: -r * 0.7, capT: r * 0.25, under: r * 0.2, dome: r * 0.18, seed, rib: r * 0.05, ribK: 20, seg: 64, colSeg: 8 }).vis);
-    } else parts.push(boulder(r, 1, sy, 0.9, egg, seed));
+      parts.push(table({ x: 0, z: 0, R: r, stalk: r * 0.2, top: 0, base: -r * 0.7, capT: r * 0.25, under: r * 0.2, dome: r * 0.18, seed, rib: r * 0.05, ribK: 20, seg: 64, colSeg: 8, lean: [nA(seed, 4) * 0.12, nB(seed, 4) * 0.12] }).vis);
+    } else parts.push(boulder(r, 1, sy, 0.9, egg, seed, true, egg > 0.08 ? 0.22 : 0.12));
     for (let i = 0; i < pebbles; i++) parts.push(place(boulder(r * (0.08 + 0.06 * (pebbles - i) / pebbles), 1, 1.3, 1, 0.1, seed + i), (i % 2 ? 1 : -1) * r * 0.1, -r * sy - r * (0.6 + i * 0.9), 0));
     const m = new THREE.Mesh(mergeGeometries(parts.map((p) => clean(p))), M.bone);
     m.geometry.computeVertexNormals();
@@ -594,6 +649,14 @@ export function* buildArzach2(scene) {
     m.userData.noCollide = true;
     scene.add(m);
     if (mat === M.cap) noShadow.push(m);
+  }
+  for (const [mat, geos] of dripGeos) {
+    const g = mergeGeometries(geos);
+    g.computeBoundingSphere();
+    const m = new THREE.Mesh(g, mat);
+    m.userData.noCollide = true;
+    m.userData.floats = true;   // (hung under an overhang: no one can stand on one, so the audits pass it by)
+    scene.add(m);
   }
   // shadow casters for the smooth caps: depth-only in the shadow pass, invisible in the frame
   if (shadowGeos.length) {
@@ -654,7 +717,7 @@ export function* buildArzach2(scene) {
     const PAL = ['#fffbf4', '#f8e4d6', '#d8dbee'];
     const puffGeo = (detail) => {
       const g = new THREE.IcosahedronGeometry(1, detail);
-      lumpy(g, 0.08, 1.8, detail);
+      lumpy(g, 0.17, 2.3, detail);   // (knobbly, not a ball: the sheets' cloud is cauliflower at every scale)
       g.computeVertexNormals();
       const p = g.attributes.position, c = new Float32Array(p.count * 3), col3 = new THREE.Color();
       for (let i = 0; i < p.count; i++) {
@@ -686,7 +749,13 @@ export function* buildArzach2(scene) {
       const lobes = 3 + Math.floor(rng() * 4);
       for (let k = 0; k < lobes; k++) {
         const a = rng() * TAU, rr = s * R(0.6, 1.05), ls = s * R(0.4, 0.7);
-        list.push({ x: x + Math.cos(a) * rr, y: y0 - ls * 0.2, z: z + Math.sin(a) * rr, s: ls, sy: R(0.65, 0.85) });
+        const lx = x + Math.cos(a) * rr, ly = y0 - ls * 0.2, lz = z + Math.sin(a) * rr;
+        list.push({ x: lx, y: ly, z: lz, s: ls, sy: R(0.65, 0.85) });
+        // a second growth of bumps on the near clusters' lobes (the far ones sit under the haze)
+        if (list === near && rng() < 0.6) {
+          const b = a + R(-0.6, 0.6), bs = ls * R(0.4, 0.62);
+          list.push({ x: lx + Math.cos(b) * ls * 0.62, y: ly + ls * 0.45, z: lz + Math.sin(b) * ls * 0.62, s: bs, sy: 0.78 });
+        }
       }
       if (rng() < 0.6) list.push({ x: x + R(-0.2, 0.2) * s, y: y0 + s * 0.45, z: z + R(-0.2, 0.2) * s, s: s * R(0.45, 0.6), sy: 0.8 });
     }
@@ -731,7 +800,7 @@ export function* buildArzach2(scene) {
     features: { mount: true, wind: true, jetpack: false, climb: true },
     mount: (physics) => {
       const b = new Bird(physics);
-      b.pos.set(10, physics.groundAt(10, START.top + 30, 6) + 1.4, 6);
+      b.pos.set(10, physics.groundAt(10, START.top + 30, 6) + STAND, 6);
       return b;
     },
     mountName: 'bird',

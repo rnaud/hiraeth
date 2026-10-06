@@ -29,7 +29,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 |---|---|
 | [controls.md](systems/controls.md) | keyboard, mouse, touch and the tool; the controller layout by position, prompts; the controls of October 2026 |
 | [movement.md](systems/movement.md) | collision, contact (what you stand on and climb is what is drawn; the contact audit), mounts that come to you, footprints, the paraglider, hazards, health and falls, the hoverbike and vehicles, the feel of the jump and stamina |
-| [animation.md](systems/animation.md) | climbing and mantling, the rig review, ragdolls, hands, locomotion (feet, starts, stops, turns), motion capture and motion matching, the Motion page |
+| [animation.md](systems/animation.md) | climbing and mantling, the rig review, ragdolls, hands, locomotion (feet, starts, stops, turns), Vael's bird (standing, folding, flying), motion capture and motion matching, the Motion page |
 | [characters.md](systems/characters.md) | the traveller, people of every height and build, the character studio, MakeHuman bodies, capes, costumes, the traveller's reference redesign |
 | [aliens.md](systems/aliens.md) | the non-humanoid peoples: drifters, stilt-walkers, shellbacks and murmurs; their bodies, voices, tones without a face, reactions to the tool |
 | [faces.md](systems/faces.md) | the shader face, expressions and hairstyles, hair and talking faces, eyes, faces drawn the Moebius way, warmer faces |

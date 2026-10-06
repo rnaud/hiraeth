@@ -19,6 +19,9 @@ export const CHANGELOG = [
     'Every temple’s halls lose the invisible ledge at the top of their round rooms: the stone cornice is solid where it is drawn, so climbing one you meet the overhang instead of passing through it.',
     'The desert’s people carry what their drawings give them: Bako his reed flute, and his flat bag on its strap over his coat instead of under it; Sefa her oud, and her cap over her braid; Marrow a salvager’s hook, with his loaded hand-cart parked at his pitch in the camps; the Speaker’s staff has the procession’s bell at its head; and the keepers wear their own, a bead fringe at Ama’s hips and the well’s keys at Hessa’s belt.',
     'People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.',
+    'Vael’s bird stands tall on long wading legs, her feet on the ground, and folds her wings close along her sides as the drawings have her, instead of holding them out flat behind her.',
+    'In Vael II the mushroom tables lean as the drawings have them, their caps tipped off the level, with stalactites hanging in the shade under their lips; the stacked stones and the egg on the disc column are split by deep cracks, and the sea of cloud is knobbly as a cauliflower.',
+    'Vael II’s monastery has a cloister and a church porch of round arches, arched doors, red eaves over the walls, slender columns round the great dome and a ball and spike on every dome, among more cypresses.',
   ] },
   { v: '0.72', date: '2026-10-06', items: [
     'The traveller now wears the new coral overshirt, with a new face, articulated fingers and cloth that moves as you explore.',
