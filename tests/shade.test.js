@@ -168,3 +168,22 @@ test('faceted normals come from the position measured from the camera (no specks
   assert.ok(!f.includes('cross(dFdx(vWorldPos), dFdy(vWorldPos))'));
   assert.ok(makeMaterial({ color: '#e8d0b0', flat: true, key: 't.flatn' }).vertexShader.includes('vWorldRel = world.xyz - cameraPosition'));
 });
+
+test('pen detail at every scale: built seams, rectangles and bolts, organic grain strokes, by distance, never on people or lights', async () => {
+  const { DETAIL, detailOf } = await import('../src/materials.js');
+  assert.deepEqual(detailOf({ pattern: 'facade' }), [1, 1], 'house fronts: built detail by default');
+  assert.deepEqual(detailOf({ color: '#fff' }), [0, 0], 'plain surfaces: none unless asked');
+  assert.deepEqual(detailOf({ detail: 'organic', detailDensity: 0.7 }), [2, 0.7], 'bark and stalks: grain');
+  assert.deepEqual(detailOf({ metal: 'iron', detail: 'built' }), [1, 1], 'a machine may ask (the Buried Machine)');
+  for (const o of [{ figure: true, detail: 'built' }, { glass: true, detail: 'built' }, { glow: 0.5, detail: 'organic' }, { mode: MODE_TERRAIN, detail: 'built' }, { pattern: 'facade', detail: 0 }])
+    assert.equal(detailOf(o)[0], 0, JSON.stringify(o));
+  assert.ok(DETAIL.lods >= 3 && DETAIL.ink > 1 && DETAIL.ink < 2, 'levels by distance; darker pen lines, packed under 2');
+  assert.ok(DETAIL.built.far[0] > DETAIL.built.fine.far[1], 'the fine level fades first');
+  const f = makeMaterial({ color: '#e8d0b0', detail: 'built', key: 't.detail.b' }).fragmentShader;
+  assert.ok(f.includes('float detailLod(') && f.includes('builtDetail(q / L') && f.includes('grainDetail('), 'the levels by distance');
+  assert.ok(f.includes('uWearLite < 0.5'), 'the handheld keeps the coarse level only');
+  assert.ok(!makeMaterial({ color: '#e8d0b0', key: 't.detail.none' }).defines.S_DETAIL, 'compiled only where used');
+  const { readFile } = await import('node:fs/promises');
+  for (const [file, pat] of [['../src/levels/spheres.js', /trunk: makeMaterial\(\{[^}]*detail: 'organic'/], ['../src/levels/perdide2.js', /detail: 'organic'/], ['../src/levels/buried.js', /detail: 'built'/], ['../src/levels/edena.js', /detail: 'organic'/]])
+    assert.match(await readFile(new URL(file, import.meta.url), 'utf8'), pat, file);
+});

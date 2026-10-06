@@ -33,13 +33,13 @@ const nL = createNoise2D(37971), nM = createNoise2D(37972);
 
 function materials(kit) {
   return {
-    trunk: [kit.mat({ color: '#2a4554', flat: true, pattern: 'cracks' }), kit.mat({ color: '#334a60', flat: true, pattern: 'cracks' }), kit.mat({ color: '#253c4c', flat: true, pattern: 'cracks' })],
+    trunk: [kit.mat({ color: '#2a4554', flat: true, pattern: 'cracks', detail: 'organic' }), kit.mat({ color: '#334a60', flat: true, pattern: 'cracks', detail: 'organic' }), kit.mat({ color: '#253c4c', flat: true, pattern: 'cracks', detail: 'organic' })],
     farTrunk: kit.mat({ color: '#6e6a92', flat: true }),
     // (the giant mushrooms: pale even in their own shade, as the sheets draw them against the dark wood)
-    stalk: [kit.mat({ color: '#b9b0d8', shade: 0.6, hatch: 0.4 }), kit.mat({ color: '#a79ec9', shade: 0.6, hatch: 0.4 })],
+    stalk: [kit.mat({ color: '#b9b0d8', shade: 0.6, hatch: 0.4, detail: 'organic', detailDensity: 0.7 }), kit.mat({ color: '#a79ec9', shade: 0.6, hatch: 0.4, detail: 'organic', detailDensity: 0.7 })],
     cap: [kit.mat({ color: '#c6bde6', flat: true, shade: 0.7, hatch: 0.3 }), kit.mat({ color: '#b8aedd', flat: true, shade: 0.7, hatch: 0.3 })],
     under: kit.mat({ color: '#9b8fbf', flat: true, side: THREE.DoubleSide, shade: 0.4 }),
-    root: kit.mat({ color: '#2d5058', flat: true, pattern: 'cracks', side: THREE.DoubleSide }),
+    root: kit.mat({ color: '#2d5058', flat: true, pattern: 'cracks', side: THREE.DoubleSide, detail: 'organic' }),
     rootPale: kit.mat({ color: '#4c6f7c', flat: true, pattern: 'cracks', side: THREE.DoubleSide }),
     moss: kit.mat({ color: '#3f6a6a', flat: true, grid: 2.2 }),
     door: kit.mat({ color: '#9fe0d0', glow: 0.9 }),

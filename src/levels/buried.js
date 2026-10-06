@@ -179,10 +179,10 @@ export function* buildBuried(scene) {
   yield;
   const strata = (c1, c2, c3, size, extra = {}) => makeMaterial({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: size, ...extra });
   const M = {
-    rust: strata('#c8643f', '#b35a3a', '#d9825a', 4.5, { flat: true }),
+    rust: strata('#c8643f', '#b35a3a', '#d9825a', 4.5, { flat: true, detail: 'built' }),   // (seams, vents, plates: materials.js DETAIL)
     rustGrid: strata('#c8643f', '#d9825a', '#b35a3a', 3, { grid: 3.5 }),
     rustDark: makeMaterial({ color: '#9a4a30', flat: true, metal: 'iron', refl: 0.15 }),
-    rustWall: strata('#c0603e', '#b35a3a', '#cf7450', 6, { pattern: 'cracks' }),
+    rustWall: strata('#c0603e', '#b35a3a', '#cf7450', 6, { pattern: 'cracks', detail: 'built' }),
     rustFloor: makeMaterial({ color: '#d9825a', color2: '#cf7650', color3: '#b35a3a', mode: MODE_TERRAIN }),
     steel: strata('#7f93a3', '#5f7488', '#94a6b3', 2.2, { metal: 'steel', refl: 0.4 }),
     steelFlat: makeMaterial({ color: '#7f93a3', flat: true, metal: 'steel' }),
@@ -191,7 +191,7 @@ export function* buildBuried(scene) {
     flange: makeMaterial({ color: '#a9b4a8', flat: true, metal: 'steel' }),
     ink: makeMaterial({ color: '#34405e', flat: true }),
     hatch: makeMaterial({ color: '#3d4a52', flat: true, metal: 'iron' }),
-    teal: strata('#5e9094', '#4f8086', '#6fa0a2', 3.5, { grid: 4 }),
+    teal: strata('#5e9094', '#4f8086', '#6fa0a2', 3.5, { grid: 4, detail: 'built' }),
     tealFlat: makeMaterial({ color: '#2f5a5e', flat: true }),
     tealMid: makeMaterial({ color: '#3d6a6c', flat: true }),
     tealFloor: makeMaterial({ color: '#4a6e6c', color2: '#557a76', color3: '#3d6366', mode: MODE_TERRAIN }),

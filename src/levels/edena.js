@@ -282,7 +282,7 @@ export function edenaTree({ scene, terrain, rng, pick }, x, z, s) {
     const p1 = new THREE.Vector3(Math.cos(a) * len, y0 + len * 0.6, Math.sin(a) * len);
     parts.push(new THREE.TubeGeometry(new THREE.LineCurve3(p0, p1), 4, 1.3 * s, 6).toNonIndexed());
   }
-  const trunkMesh = new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: pick(TRUNK), flat: true }));
+  const trunkMesh = new THREE.Mesh(mergeGeometries(parts), makeMaterial({ color: pick(TRUNK), flat: true, detail: 'organic' }));
   trunkMesh.position.set(x, base - 1, z);
   scene.add(trunkMesh);
   const leaf = pick(LEAVES);
@@ -498,7 +498,7 @@ export function* buildEdena(scene) {
     const r2 = mulberry32(915);
     const { x, z, h } = TALL_TREE;
     const base = terrain.baseAt(x, z, 9);
-    const trunkMat = makeMaterial({ color: '#c98a76', flat: true });
+    const trunkMat = makeMaterial({ color: '#c98a76', flat: true, detail: 'organic' });
     const top2 = 0.86 * h;   // the upper canopy
     const trunk = new THREE.CylinderGeometry(3.6, 7.5, top2 + 1, 12, 12).translate(0, (top2 + 1) / 2, 0);
     jitter(trunk, 0.08, 0.05, 31);

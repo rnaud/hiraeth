@@ -34,14 +34,14 @@ function materials(kit) {
   const DS = THREE.DoubleSide;
   const strata = (c1, c2, c3, o = {}) => kit.mat({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: 4, flat: true, strataHatch: 0, ...o });
   return {
-    rust: strata('#c4613f', '#b35a3a', '#cf7450', { side: DS }),
-    rustPale: strata('#d98a62', '#cf7e58', '#e29a72', { side: DS }),
+    rust: strata('#c4613f', '#b35a3a', '#cf7450', { side: DS, detail: 'built' }),
+    rustPale: strata('#d98a62', '#cf7e58', '#e29a72', { side: DS, detail: 'built' }),
     rustDark: kit.mat({ color: '#8a4636', flat: true, metal: 'iron', refl: 0.12 }),
     rustGrid: kit.mat({ color: '#c4613f', flat: true, grid: 3.2, plates: true, side: DS }),
-    teal: strata('#3f6f72', '#386669', '#4a7b7c', { side: DS, grid: 4 }),
+    teal: strata('#3f6f72', '#386669', '#4a7b7c', { side: DS, grid: 4, detail: 'built' }),
     tealDark: kit.mat({ color: '#2b5258', flat: true, side: DS }),
     tealPale: kit.mat({ color: '#9fb39a', flat: true, side: DS }),
-    green: strata('#9fae96', '#94a38c', '#aab9a1', { side: DS }),
+    green: strata('#9fae96', '#94a38c', '#aab9a1', { side: DS, detail: 'built' }),
     lilac: strata('#a0888a', '#97807f', '#ab9393', { side: DS }),
     cream: strata('#efd8c2', '#e8cfb6', '#f4e0cc', { side: DS }),
     pipe: kit.mat({ color: '#cdd5c6', metal: 'painted' }),

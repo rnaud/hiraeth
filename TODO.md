@@ -127,6 +127,10 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   sheets (`references/Vael/` is empty). Every sheet is done; the recurring shader gaps, ranked, are in
   docs/systems/references.md ("Across the worlds").
   - Shader findings left:
+    - The six recurring gaps (docs/systems/references.md "Across the worlds"): (1) pen detail at every scale
+      done (`detail`, docs/systems/materials.md); (4) form-following hatching and (6) colour variation across a
+      wall next (materials side); (2) line weight per material, (3) haze layers, (5) cast-shadow strength by
+      the post side.
     - Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense small
       machinery at every scale, so most of their black masses have no geometry to sit in here yet.
       Vael II's spawn on High pays +1.7 ms for them (its many shaded overhangs).

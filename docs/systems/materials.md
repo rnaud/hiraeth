@@ -82,6 +82,38 @@ round walls, where the tangent of the interpolated normal had swept a column's m
   High 10.3 / 10.1 and 8.5 / 8.5 ms, Signal Market High 8.3 / 8.6 and 5.0 / 5.0, desert Handheld
   4.1 / 4.1 and 3.6 / 3.6, Market Handheld 8.6 / 8.4 and 7.1 / 7.2: within the run-to-run spread.
 
+## Pen detail at every scale
+
+The reference sheets draw fine pen marks inside every surface, dense near and thinning with distance,
+so a big face never reads as plain. `makeMaterial({ detail, detailDensity })` (`S_DETAIL`,
+`builtDetail` / `grainDetail` / `detailLod` in `src/materials.js`; `DETAIL`, `detailOf`), on faces up
+to 40° from upright, in the walls' world-anchored frame (the weathering's: world x or z along, y up):
+
+- **Built** (`'built'`; on by default wherever a material is weathered: house fronts, Qanat, the
+  Market, home, the references' huts and towers; asked for on the Buried Machine's rust and teal):
+  panel seams in rows of uneven height, broken now and then, staggered joints with some left out,
+  small rectangles in the odd panel (a vent with its slats, a hatch, a plate), and near, bolts at
+  the joints and small plates in finer cells.
+- **Organic** (`'organic'`: the Garden of Spheres' and Edena's trunks, the Deep Wood's trunks, roots
+  and mushroom stalks, the references' trunks and stalks): short grain strokes along the fall of the
+  surface, tapering, leaning a little, wavering, in a coarse and a fine level.
+- **By distance** (`detailLod`): the marks are drawn at 1, 2, 4 or 8 × their size so they keep about
+  their size on screen (cells never under ~80 px built, ~8 px between grain strokes), each level its
+  own pattern, the two nearest cross-faded, gone past the fourth; the fine level (bolts, small plates)
+  only at the nearest. No moiré: nothing is drawn finer than its cell can hold.
+- **Each building its own** pattern (a seed from its 9 m cell), `detailDensity` 0..2.
+- **Ink**: drawn as detail (gHatch.b) at 1.35, which post.js draws as a darker pen line (under 2: the
+  spot and weathering flags above it are untouched). Never on figures, faces, glass, lights, ground
+  or water; `detail: 0` turns it off.
+- **Handheld** (`uWearLite`, low detail or the light ink pass): the coarse level only (no bolts,
+  plates or fine grain).
+- **Cost** (M4 Pro, frames back to back, detail off / on interleaved, 40 pairs, ms; 1280 × 720 and
+  1728 × 1117 at DPR 2): High desert 11.3 / 11.2 and 20.3 / 20.1, Market 6.7 / 6.9 and 16.5 / 16.6,
+  Buried 15.8 / 15.7, Deep Wood 19.1 / 19.2 and 23.2 / 24.0 (turned 34.1 / 34.9); Handheld desert
+  3.5 / 3.5 and 17.1 / 17.4, Market 8.7 / 8.6 and 15.5 / 15.8, Buried 3.7 / 3.7 and 8.1 / 8.1, Deep
+  Wood 2.5 / 2.5. Up to +0.8 ms at the Retina size (the Deep Wood's trunks, organic everywhere),
+  otherwise within the spread.
+
 ## Faceted normals near the camera
 
 Flat-shaded materials take their normal from the screen derivatives of the position. Taken of

@@ -34,7 +34,7 @@ const nG = createNoise2D(37931), nH = createNoise2D(37932);
 function materials(kit) {
   const leaves = (c) => kit.mat({ color: c, pattern: 'leaves' });
   return {
-    trunk: kit.mat({ color: '#7ba381' }),
+    trunk: kit.mat({ color: '#7ba381', detail: 'organic' }),
     canopy: kit.mat({ color: '#a9b94f' }),
     // (the canopy's underside: deep green, its strokes the radiating gills, the spot blacks in its pockets)
     under: kit.mat({ color: '#2f4d33', side: THREE.DoubleSide }),
@@ -48,7 +48,7 @@ function materials(kit) {
     cave: kit.mat({ color: '#35503f', flat: true }),
     dark: [leaves('#3f6b45'), leaves('#355e3c'), leaves('#4a7346')],
     olive: [leaves('#8a9a4c'), leaves('#7f9048'), leaves('#9aa65a')],
-    oliveTrunk: kit.mat({ color: '#9a583a' }),
+    oliveTrunk: kit.mat({ color: '#9a583a', detail: 'organic' }),
     cypress: leaves('#3c6447'),
     orange: kit.mat({ color: '#ec8f3a', flat: true }),
     path: kit.mat({ color: '#efe6cd', mode: MODE_TERRAIN }),

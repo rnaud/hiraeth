@@ -252,7 +252,7 @@ export function setEnvGround(color) {
 // The features set this way never change after makeMaterial (their uniforms are only read).
 // ---------------------------------------------------------------------------
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
-  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
+  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -283,6 +283,27 @@ export function weatheredOf(o) {
   const w = o.weathered ?? (o.pattern === 'facade' ? 1 : 0);
   return w === true ? 1 : +w || 0;
 }
+/**
+ * Pen detail at every scale (S_DETAIL, builtDetail / grainDetail): the sheets draw fine marks inside every
+ * surface, dense near and thinning with distance. 'built' (walls, hulls, machines): panel seams in rows of
+ * uneven height with staggered joints, small rectangles (vents with their slats, hatches, plates), and,
+ * near, bolts and small plates; 'organic' (bark, stalks, rock): short grain strokes along the fall of the
+ * surface, a coarse and a fine level. On by default ('built') wherever a material is weathered; never on
+ * figures, faces, glass, lights, ground or water. Each level fades out by its cell's size on screen
+ * (m per px), the fine ones first; the handheld (uWearLite) keeps the coarse level only.
+ * [kind (0 none, 1 built, 2 organic), density 0..2]
+ */
+export const DETAIL = {
+  lods: 4,     // levels by distance: the marks drawn at 1, 2, 4, 8 × their size, then gone
+  ink: 1.35,   // how dark the marks are drawn (post.js draws drawn detail over 1 darker; packed under 2)
+  built: { base: 0.015, cell: [2.6, 1.9], seams: 0.72, joints: 0.55, rects: 0.48, vents: 0.45, far: [0.03, 0.07], fine: { cell: [0.75, 0.55], share: 0.35, far: [0.008, 0.018] } },
+  organic: { base: 0.006, cell: [0.1, 0.26], share: 0.5, far: [0.01, 0.024], coarse: { cell: [0.24, 0.7], share: 0.4, far: [0.03, 0.07] } },
+};
+export function detailOf(o) {
+  if (o.figure || o.glass || o.glow || o.facePart || o.eye || (o.mode ?? MODE_PLAIN) === MODE_OUTFIT || o.mode === MODE_TERRAIN || o.mode === MODE_WATER) return [0, 0];
+  const kind = o.detail === 'organic' ? 2 : o.detail === 'built' ? 1 : o.detail === undefined && weatheredOf(o) > 0 ? 1 : 0;
+  return [kind, kind ? Math.min(Math.max(o.detailDensity ?? 1, 0), 2) : 0];
+}
 const PATTERN_DEFINES = { 1: 'S_FACADE', 2: 'S_TILES', 3: 'S_LEAVES', 4: 'S_CRACKS' };
 
 /** The defines a material made with these options compiles: SURFACE_SPEC and the features it uses. */
@@ -306,6 +327,7 @@ export function surfaceDefines(o) {
   on('S_GRID', o.grid || o.plates);
   on('S_PLATES', o.plates);
   on('S_WEATHER', weatheredOf(o) > 0);
+  on('S_DETAIL', detailOf(o)[0] > 0);
   on('S_FOLDS', o.folds);
   on('S_SCRUB', o.scrub);
   on('S_GLASS', o.glass);
@@ -549,6 +571,7 @@ const fragmentShader = /* glsl */ `
   uniform float uWindows;  // façades: the share of cells with a window
   uniform float uWeather;  // weathering: grime, chips and cracks on old walls (weatherInk), 0..1
   uniform float uWearLite; // the handheld's lighter weathering (sharedUniforms)
+  uniform vec2 uDetail;    // pen detail: kind (1 built, 2 organic), density (DETAIL)
   uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
@@ -1008,6 +1031,102 @@ const fragmentShader = /* glsl */ `
   }
   #endif
 
+  #ifdef S_DETAIL
+  // Pen detail (DETAIL): a box's outline distance, in metres.
+  float boxEdge(vec2 p, vec2 h) { vec2 d = abs(p) - h; return abs(length(max(d, 0.0)) + min(max(d.x, d.y), 0.0)); }
+  // Built surfaces: panel seams in rows of uneven height, staggered joints (some left out), small
+  // rectangles in the odd panel (a vent with its slats, a hatch), and near, bolts and small plates.
+  // q (along, up) m, fq m per px; k the density; seed the building's.
+  float builtDetail(vec2 q, vec2 fq, float k, float seed) {
+    float fm = max(fq.x, fq.y);
+    float rA = 1.0 - smoothstep(${DETAIL.built.far[0]}, ${DETAIL.built.far[1]}, fm);
+    if (rA <= 0.0) return 0.0;
+    const vec2 cA = vec2(${DETAIL.built.cell[0]}, ${DETAIL.built.cell[1]});
+    float ink = 0.0;
+    // the seam at the row's foot (rows of uneven height: each row's line moved by a share of a row)
+    float row = floor(q.y / cA.y);
+    float yLine = (row + 0.35 * (hash(vec2(row, seed)) - 0.5)) * cA.y;
+    float rowB = q.y < yLine ? row - 1.0 : row;
+    float yB = (rowB + 0.35 * (hash(vec2(rowB, seed)) - 0.5)) * cA.y;
+    float yT = (rowB + 1.0 + 0.35 * (hash(vec2(rowB + 1.0, seed)) - 0.5)) * cA.y;
+    float seamOn = step(hash(vec2(rowB, seed + 3.1)), ${DETAIL.built.seams} * k) * smoothstep(0.3, 0.42, vnoise(vec2(q.x * 0.45, rowB * 7.0 + seed)));
+    ink = max(ink, inkLine(abs(q.y - yB) / max(fq.y, 1e-5), 1.0) * seamOn);
+    // the joints in this row, staggered
+    float off = hash(vec2(rowB, seed + 5.7));
+    float col = floor(q.x / cA.x + off);
+    float xJ = (col - off) * cA.x, xJ2 = xJ + cA.x;
+    float jOn = step(hash(vec2(col, rowB + seed)), ${DETAIL.built.joints} * k);
+    ink = max(ink, inkLine(abs(q.x - xJ) / max(fq.x, 1e-5), 0.9) * jOn);
+    // a small rectangle in the odd panel: a vent (slats), a hatch, a plate
+    vec2 id = vec2(col, rowB) + seed;
+    float hr = hash(id + 0.31);
+    if (hr < ${DETAIL.built.rects} * k) {
+      vec2 c = vec2(mix(xJ, xJ2, 0.25 + 0.5 * hash(id + 1.7)), mix(yB, yT, 0.3 + 0.4 * hash(id + 2.3)));
+      vec2 hsz = vec2(cA.x * (0.08 + 0.17 * hash(id + 3.9)), (yT - yB) * (0.07 + 0.16 * hash(id + 4.4)));
+      vec2 p = q - c;
+      ink = max(ink, inkLine(boxEdge(p, hsz) / max(fm, 1e-5), 1.0));
+      // a vent: slats across it (only while they are a few pixels apart)
+      if (hash(id + 6.2) < ${DETAIL.built.vents} && all(lessThan(abs(p), hsz))) {
+        float sl = 0.09, d = abs(fract(p.y / sl + 0.5) - 0.5) * sl;
+        ink = max(ink, inkLine(d / max(fq.y, 1e-5), 0.6) * (1.0 - smoothstep(0.012, 0.025, fq.y)));
+      }
+    }
+    ink *= rA;
+    // near: bolts at the joints' feet and small plates in finer cells
+    float rF = 1.0 - smoothstep(${DETAIL.built.fine.far[0]}, ${DETAIL.built.fine.far[1]}, fm);
+    if (rF > 0.0 && uWearLite < 0.5) {
+      const vec2 cF = vec2(${DETAIL.built.fine.cell[0]}, ${DETAIL.built.fine.cell[1]});
+      vec2 fid = floor(q / cF) + seed * 1.7;
+      if (hash(fid + 9.1) < ${DETAIL.built.fine.share} * k) {
+        vec2 fc = (floor(q / cF) + vec2(0.2 + 0.6 * hash(fid + 2.0), 0.25 + 0.5 * hash(fid + 4.0))) * cF;
+        vec2 fh = cF * vec2(0.08 + 0.18 * hash(fid + 5.0), 0.06 + 0.14 * hash(fid + 6.0));
+        ink = max(ink, inkLine(boxEdge(q - fc, fh) / max(fm, 1e-5), 0.6) * rF);
+      }
+      // a bolt each side of the joint, at the seam
+      vec2 bp = vec2(q.x - xJ, q.y - yB - 0.12);
+      float bolt = (1.0 - smoothstep(0.025, 0.035, length(vec2(abs(bp.x) - 0.12, bp.y)))) * jOn * seamOn;
+      ink = max(ink, bolt * rF);
+    }
+    return ink;
+  }
+  // Organic surfaces (bark, stalks, rock): short grain strokes along the fall of the surface, staggered,
+  // leaning a little and tapering, a coarse level of longer ones and a fine level near.
+  float grainLevel(vec2 q, vec2 fq, vec2 cell, float share, float k, float seed, float w) {
+    vec2 id = vec2(floor(q.x / cell.x), 0.0);
+    float off = hash(vec2(id.x, seed + 1.3));
+    id.y = floor(q.y / cell.y + off);
+    vec2 cid = id + seed;
+    if (hash(cid + 0.9) > share * k) return 0.0;
+    float y0 = (id.y - off) * cell.y, len = cell.y * (0.45 + 0.5 * hash(cid + 2.1));
+    float t = (q.y - y0 - cell.y * 0.1) / len;
+    if (t < 0.0 || t > 1.0) return 0.0;
+    float x = (id.x + 0.2 + 0.6 * hash(cid + 3.3)) * cell.x + (hash(cid + 4.7) - 0.5) * 0.25 * (q.y - y0) + (vnoise(vec2(q.y * 2.0, cid.x)) - 0.5) * cell.x * 0.25;
+    return inkLine(abs(q.x - x) / max(fq.x, 1e-5), w * sin(3.14159 * t));
+  }
+  float grainDetail(vec2 q, vec2 fq, float k, float seed) {
+    float fm = max(fq.x, fq.y), ink = 0.0;
+    float rC = 1.0 - smoothstep(${DETAIL.organic.coarse.far[0]}, ${DETAIL.organic.coarse.far[1]}, fm);
+    if (rC <= 0.0) return 0.0;
+    ink = grainLevel(q, fq, vec2(${DETAIL.organic.coarse.cell[0]}, ${DETAIL.organic.coarse.cell[1]}), ${DETAIL.organic.coarse.share}, k, seed + 17.0, 1.05) * rC;
+    float rF = 1.0 - smoothstep(${DETAIL.organic.far[0]}, ${DETAIL.organic.far[1]}, fm);
+    if (rF > 0.0 && uWearLite < 0.5) ink = max(ink, grainLevel(q, fq, vec2(${DETAIL.organic.cell[0]}, ${DETAIL.organic.cell[1]}), ${DETAIL.organic.share}, k, seed, 0.75) * rF);
+    return ink;
+  }
+  // By distance: the same marks at a coarser scale (cells doubled, each level its own pattern) so they
+  // keep about their size on screen, the two nearest levels cross-faded, gone past the last (DETAIL.lods).
+  float detailLod(vec2 q, vec2 fq, float k, float seed, bool organic) {
+    float fm = max(max(fq.x, fq.y), 1e-6);
+    float lv = max(log2(fm / (organic ? ${DETAIL.organic.base} : ${DETAIL.built.base})), 0.0);
+    float li = floor(lv), a = smoothstep(0.55, 1.0, lv - li);
+    float keep = 1.0 - smoothstep(${DETAIL.lods - 1}.0, ${DETAIL.lods}.0, lv);
+    if (keep <= 0.0) return 0.0;
+    float L = exp2(li);
+    float ink = (organic ? grainDetail(q / L, fq / L, k, seed + li * 7.0) : builtDetail(q / L, fq / L, k, seed + li * 7.0)) * (1.0 - a);
+    if (a > 0.0) ink = max(ink, (organic ? grainDetail(q / (2.0 * L), fq / (2.0 * L), k, seed + li * 7.0 + 7.0) : builtDetail(q / (2.0 * L), fq / (2.0 * L), k, seed + li * 7.0 + 7.0)) * a);
+    return ink * keep;
+  }
+  #endif
+
   // Roof tiles: rows with staggered joints.
   float roofTiles(vec3 wp) {
     float v = wp.y * 4.5, u = dot(wp.xz, vec2(0.707)) * 3.5;
@@ -1373,8 +1492,8 @@ const fragmentShader = /* glsl */ `
     // drawn-detail coordinates + derivatives (uniform control flow)
     float faceX = abs(on.x) > abs(on.z) ? vObjPos.z : vObjPos.x;     // horizontal coord on a side face
     float fissFw = fwidth(faceX) / 9.0;
-    #ifdef S_WEATHER
-    // the wall's own frame for weathering: along it and up. Along is world x on walls facing z, world z
+    #if defined(S_WEATHER) || defined(S_DETAIL)
+    // the wall's own frame for weathering and pen detail: along it and up. Along is world x on walls facing z, world z
     // on walls facing x, blended between: the tangent of the interpolated normal (dot(p, t)) swept a
     // round wall far from the origin through hundreds of metres a turn (a thin column's marks became a
     // field of specks)
@@ -1548,6 +1667,18 @@ const fragmentShader = /* glsl */ `
         albedo = mix(albedo, aB, wb * wUp);
       }
       patInk = max(patInk, wi * wUp);
+    }
+    #endif
+    #ifdef S_DETAIL
+    if (uDetail.x > 0.5 && abs(n.y) < 0.75) {
+      float dUp = 1.0 - smoothstep(0.55, 0.75, abs(n.y));
+      float ax = abs(n.x), az = abs(n.z), db = smoothstep(0.4, 0.6, ax / max(ax + az, 1e-4));   // 0: facing z, 1: facing x
+      float dk = uDetail.y, dSeed = floor(hash(floor(vWorldPos.xz / 9.0) + 11.0) * 53.0);
+      float di = 0.0;
+      bool organic = uDetail.x > 1.5;
+      if (db < 0.999) di = detailLod(wqA, wfqA, dk, dSeed, organic) * (1.0 - db);
+      if (db > 0.001) di = max(di, detailLod(wqB, wfqB, dk, dSeed + 29.0, organic) * db);
+      patInk = max(patInk, di * dUp * ${DETAIL.ink.toFixed(2)});   // (over 1: a darker pen line, post.js; under 2)
     }
     #endif
     albedo *= instColor;
@@ -1951,6 +2082,7 @@ export function makeMaterial(o) {
       uPlates: { value: o.plates ? 1 : 0 },
       uWindows: { value: o.windows ?? 0.78 },
       uWeather: { value: weatheredOf(o) },
+      uDetail: { value: new THREE.Vector2(...detailOf(o)) },
       uDrift: { value: o.drift ? 1 : 0 },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing
