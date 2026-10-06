@@ -3,6 +3,22 @@
 Open work only. Finished items move to DONE.md (with how they were done); the changelog
 (src/changelog.js) says when they reached players.
 
+# Player feedback (2026-10-06)
+
+- [ ] Investigate the traveller's hands rotating while gliding; keep their pose and orientation
+  appropriate to the glide instead of twisting unexpectedly.
+- [ ] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
+  surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
+- [ ] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller).
+- [ ] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
+  standing and landing contact across all worlds, including moving platforms, so visible platform tops
+  and collision surfaces agree and feet do not disappear into them.
+- [ ] When the ridden bird approaches the ground, have it extend its legs and feet in preparation,
+  then land properly with its feet contacting the ground.
+- [ ] Fix the mismatch between Vael's visible rocks and their climbing hitboxes: the traveller goes
+  through roughly half of some rocks while climbing. Align climbing contact with the visible surfaces
+  and check the affected rocks throughout the level.
+
 # Player feedback, part 3 (2026-10-05)
 
 ## Docs
