@@ -1,0 +1,47 @@
+DONE.md
+  s_1fd8d0e7b02dcf::t_2d440a0f8fbd6d 673-675
+TODO.md
+  s_1fd8d0e7b02dcf::t_574ce727f1ef2d 130-133
+changelog.md
+  s_1fd8d0e7b02dcf::t_e1a0f4603b07d1 12
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_5e87ef7330a119 85-120
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_69d6f577fe1fd9 15
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_1f752daa9baf62 182,185,194
+src/levels/edena.js
+  s_1fd8d0e7b02dcf::t_1bf8ade4197d54 285,501
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_c8fa6f468d4b33 254,330,728
+src/levels/reference-buried.js
+  s_1fd8d0e7b02dcf::t_dfa36c879e534c 37-38,41,44
+src/levels/reference-lorn.js
+  s_1fd8d0e7b02dcf::t_0bb0846b0d98a2 36,39,42
+src/levels/reference-spheres.js
+  s_1fd8d0e7b02dcf::t_7f9618ecd34251 37,51
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_ca86018525635f 177,795
+src/materials.js
+  s_1fd8d0e7b02dcf::t_d140e8577834b0 255,286-308,332,576,1036-1126,1492-1493,1669-1680,2082
+tests/shade.test.js
+  s_1fd8d0e7b02dcf::t_eeb3c96c776c37 171-189
+tests/surface-spec.test.js
+  s_1fd8d0e7b02dcf::t_5659f9b2c763a0 64,66-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ef01080d95797538913039894ae5705f1814f85c",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
