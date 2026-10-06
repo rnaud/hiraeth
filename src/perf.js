@@ -151,7 +151,8 @@ export function fitBounds(scene, { pad = 1 } = {}) {
   scene.traverse((o) => {
     if (!o.isInstancedMesh || o.frustumCulled || o.userData.dynamic || o.instanceMatrix.usage === THREE.DynamicDrawUsage || o.count === 0) return;
     o.computeBoundingSphere();
-    if (!o.boundingSphere || !Number.isFinite(o.boundingSphere.radius)) return;
+    // (a pool with nothing placed yet, every instance scaled to nothing: its bounds would be a point)
+    if (!o.boundingSphere || !Number.isFinite(o.boundingSphere.radius) || o.boundingSphere.radius < 1e-6) return;
     o.boundingSphere.radius += pad;   // vertex sway (grass, scrub)
     o.frustumCulled = true;
     n++;

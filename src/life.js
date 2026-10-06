@@ -258,7 +258,12 @@ export class Footprints {
     this.fade = new THREE.InstancedBufferAttribute(new Float32Array(count), 1);
     g.setAttribute('aFade', this.fade);
     this.mesh = new THREE.InstancedMesh(g, material, count);
+    // drawn wherever the prints are: rewritten every frame, so never given fixed bounds (perf.js
+    // fitBounds once fitted them round the empty pool at the origin, a 1 m sphere: the prints were
+    // culled whenever the camera turned that spot out of view)
     this.mesh.frustumCulled = false;
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.userData.dynamic = true;
     this.mesh.renderOrder = 5;
     this.mesh.userData.noCollide = true;
     this.items = Array.from({ length: count }, () => ({ pos: new THREE.Vector3(), q: new THREE.Quaternion(), age: life }));

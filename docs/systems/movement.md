@@ -141,6 +141,11 @@ underneath. A print is a darker shade of whatever it's on (sand, moss,
 stone, tiles) and fades back in. It doesn't touch normals or depth, so it
 isn't outlined.
 
+The prints are one instanced mesh, rewritten every frame (`userData.dynamic`, dynamic usage) and
+never frustum-culled. Until v0.73 `fitBounds` gave it fixed bounds round its empty pool at load, a
+1 m sphere at the origin, so the prints vanished whenever the camera turned that spot out of view
+(`tests/footprints.test.js`). The footstep sound comes from the same step and never stopped.
+
 ## Paraglider
 
 The canopy is in fixed cells: cream, salmon towards the tips and one blue
