@@ -1,0 +1,39 @@
+changelog.md
+  s_35804a64f516af::t_ec7384d710948a 16
+docs/systems/story.md
+  s_35804a64f516af::t_c0fd770f495fd4 60-72,419
+src/changelog.js
+  s_35804a64f516af::t_30ee173d10d340 20
+src/levels/content.js
+  s_35804a64f516af::t_58344fb5e8d995 227-229,231-255
+src/quest.js
+  s_35804a64f516af::t_ce922df8504b7d 362-366
+src/story/edena-data.js
+  s_35804a64f516af::t_96384397e91f8b 79,119,122
+src/story/edena.js
+  s_35804a64f516af::t_a17d05d976ddc5 158
+src/story/water-clock.js
+  s_35804a64f516af::t_e20843e271f24b 7
+tests/errands-route.test.js
+  s_35804a64f516af::t_bb09761584d169 1-46
+tests/loose-ends.test.js
+  s_35804a64f516af::t_aadb165b0931fc 22
+tests/story-perdide.test.js
+  s_35804a64f516af::t_1df152eedb944f 96-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bee02b86d1c454d3258b1a145f3857bcb0acd08c",
+  "prompts": {},
+  "sessions": {
+    "s_35804a64f516af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f765a71d-1875-41c8-b8f3-3df78affbe5a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
