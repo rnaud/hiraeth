@@ -275,7 +275,8 @@ const fragmentShader = /* glsl */ `
     float R = 1.3;
     float rpx = clamp(R * uProj11 * 0.5 * uRes.y / d, 3.0, 48.0);
     // (the spiral's steps turned by one rotation, the random angle's: a cos and a sin per pixel, not
-    // per tap; no branch in the loop, a tap that doesn't count weighs 0: docs/systems/performance.md)
+    // per tap; a tap that doesn't count weighs 0; the surface flags only read for a tap that would
+    // count, to rule out a grass blade: most taps close nothing in. docs/systems/performance.md)
     float a0 = hash(fc) * 6.2832;
     vec2 cs = vec2(cos(a0), sin(a0));
     mat2 turn = mat2(cs.x, cs.y, -cs.y, cs.x);
@@ -285,11 +286,13 @@ const fragmentShader = /* glsl */ `
       float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
       vec2 suv = uv + turn * vec2(cos(b), sin(b)) * rr / uRes;
       float sd = texture(tNormal, suv).w;
-      // (not the sky; grass blades close nothing in: no grey speckle round them)
-      float counts = step(0.0, sd) * sign(sd) * step(mod(texture(tHatch, suv).a, 16.0), 7.5);
       vec3 v = viewPos(suv, sd) - P;
       float dist = length(v);
-      ao += counts * max(dot(nV, v) / max(dist, 1e-4) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
+      float c = step(0.0, sd) * sign(sd)   // (not the sky)
+        * max(dot(nV, v) / max(dist, 1e-4) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
+      // (grass blades close nothing in: no grey speckle round them)
+      if (c > 0.0) c *= step(mod(texture(tHatch, suv).a, 16.0), 7.5);
+      ao += c;
     }
     return clamp(ao / 8.0 * 2.2, 0.0, 1.0);
   }
