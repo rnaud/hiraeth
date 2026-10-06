@@ -232,6 +232,13 @@ Deep Wood's trunks, caps and arches and the Garden of Spheres' spheres and umbre
   ribbed and hatched undersides, and overhanging rose cliffs with monasteries.
   Below the cloud deck counts as unsafe and returns you to your last footing.
   The peach plain leads to the lone tower.
+  Since October 2026 the tables `lean` (`table({ lean: [rx, rz] })` tips the piece about its neck, so the
+  cap stays where asked and the stalk slants under it), hang `drips` (stalactites, `drips()` in
+  `sky-stones-kit.js`: each rooted in the underside as drawn at its angle, outline and ribs included, its
+  root closed well up in the rock, its normals bent toward the underside's so it prints in its shade;
+  drawn only, in a mesh of their own that the contact audit passes by), and boulders take a `crack`
+  (two clefts round the egg and a seam). `tests/sky-stones-kit.test.js` checks no drip hangs under its cap
+  by a gap.
 - **The Buried Machine** (`buried`): domes and pipes on pale dunes, a trench
   that exposes blue-grey machine strata, a rust canyon with oval doors and lit
   portholes, and the oculus drum with its balcony goal. A ring wall with a rim

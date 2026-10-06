@@ -23,6 +23,12 @@ export function place(g, x, y, z, ry = 0, sx = 1, sy = sx, sz = sx, rx = 0, rz =
   _q.setFromEuler(_e.set(rx, ry, rz));
   return g.applyMatrix4(_m4.compose(new THREE.Vector3(x, y, z), _q, new THREE.Vector3(sx, sy, sz)));
 }
+/** Tilt a built piece about the point (x, y, z): rx leans it along +z, rz along -x. */
+export function tiltAbout(g, x, y, z, rx, rz) {
+  if (!rx && !rz) return g;
+  _q.setFromEuler(_e.set(rx, 0, rz));
+  return g.translate(-x, -y, -z).applyMatrix4(_m4.makeRotationFromQuaternion(_q)).translate(x, y, z);
+}
 /** Lumpy displacement along the direction from the origin (position-based, so seams stay welded). */
 export function lumpy(g, amt, freq, seed = 0) {
   const p = g.attributes.position;
@@ -70,10 +76,12 @@ export function solid(rings, seg, shape, { top = null, bottom = null } = {}) {
  * Mushroom table / plateau: an eroded, fluted stalk, a wide cap with a
  * ribbed (radiating) underside, a rounded rim and a gently domed top.
  * off shifts the cap relative to the stalk for one-sided overhangs.
+ * lean [rx, rz] (radians) tips the whole piece about its neck, so the cap's plane goes off the
+ * horizontal and the stalk slants under it: on the sheets no mushroom stands plumb.
  */
 export function table(o) {
   const { x, z, R, stalk, top, base = -120, dome = 1, seed = 0, rib = 0, ribK = 24, flute = 0.08, fluteK = 11,
-    outline = 0.14, waist = 0.12, foot = 1.25, neckR = 1, seg = 112, colSeg = 18, ledges = 0 } = o;
+    outline = 0.14, waist = 0.12, foot = 1.25, neckR = 1, seg = 112, colSeg = 18, ledges = 0, lean = null } = o;
   const capT = o.capT ?? R * 0.16, under = o.under ?? R * 0.22, off = o.off ?? [0, 0];
   const neckY = top - capT - under;
   const rings = [];
@@ -107,15 +115,76 @@ export function table(o) {
     }
     return [capLine(ca, sa), 0];
   };
+  // the lean: the piece tips about its neck, where the stalk meets the cap, so the cap stays where asked
+  const [lx, lz] = lean ?? [0, 0];
+  const lean0 = (g) => tiltAbout(g, x, o.leanY ?? neckY, z, lx, lz);
   const apex = [x + ox, top + dome, z + oz];
-  const vis = place(solid(rings, seg, shape(true), { top: [ox, top + dome, oz] }), x, 0, z);
+  const vis = lean0(place(solid(rings, seg, shape(true), { top: [ox, top + dome, oz] }), x, 0, z));
   // the collision copy keeps every other stalk / underside ring
   const coarse = rings.filter((rg, i) => rg.kind === 'c' || rg.kind === 't' || i % 2 === 0 || i === NS || i === rings.length - 1);
-  const col = place(solid(coarse, colSeg, shape(false), { top: [ox, top + dome, oz] }), x, 0, z);
+  const col = lean0(place(solid(coarse, colSeg, shape(false), { top: [ox, top + dome, oz] }), x, 0, z));
   // a slightly shrunken copy that casts the shadow, so the cap never shadows its own rim
   const inner = coarse.map((rg) => ({ ...rg, r: rg.r * 0.95, y: rg.y - Math.min(0.8, R * 0.03) }));
-  const shadow = place(solid(inner, colSeg, shape(false), { top: [ox, top + dome * 0.9, oz] }), x, 0, z);
-  return { vis, col, shadow, apex };
+  const shadow = lean0(place(solid(inner, colSeg, shape(false), { top: [ox, top + dome * 0.9, oz] }), x, 0, z));
+  // drips { n, len (of R), r (of R), band (of the underside, 0 the neck … 1 the rim) }: stalactites
+  // hung from the underside, the longest near the lip, as the sheets draw every overhang
+  let drip = null;
+  const spots = [];
+  if (o.drips) {
+    const D = { n: 16, len: [0.05, 0.14], r: 0.016, band: [0.45, 0.95], ...o.drips };
+    const rng = mulberry32(Math.floor((seed + 11) * 613) + 5);
+    for (let i = 0; i < D.n; i++) {
+      const u = D.band[0] + rng() * (D.band[1] - D.band[0]), w = Math.pow(u, 0.8);
+      // (rooted in the underside as it is drawn there: its outline and its ribs at this angle, a little
+      //  inside its ring, so a drip never hangs off the rock by a gap where the outline draws in)
+      const a = ((i + rng()) / D.n) * TAU, rg = { kind: 'u', u, y: neckY + under * Math.pow(u, 1.9) };
+      const [m, dy] = shape(true)(a, rg);
+      const rr = lerp(stalk * neckR * 1.04, R, Math.pow(u, 0.7)) * m * 0.95;
+      spots.push([x + ox * w + Math.cos(a) * rr, rg.y + dy,
+        z + oz * w + Math.sin(a) * rr, R * (D.len[0] + rng() * (D.len[1] - D.len[0])) * (0.35 + 0.85 * u)]);
+    }
+    drip = lean0(drips(spots, { r: R * D.r, seed: seed + 3 }));
+  }
+  return { vis, col, shadow, apex, drip, dripAt: drip ? spots : [] };
+}
+
+/**
+ * Drips and stalactites: tapering spikes of stone hung from the points `spots` ([x, y, z, length]),
+ * each a swollen root in the rock, a waist and a long point. The sheets hang them under every dark
+ * overhang and along a cave's mouth (IMG_3787 panels 2 and 4, IMG_3785 panel 2, IMG_3788 panel 4).
+ * Drawn only: nothing walks under a cap, so they are never given to the collision.
+ */
+export function drips(spots, { r = 0.3, seg = 5, seed = 0 } = {}) {
+  const rng = mulberry32(Math.floor(seed * 1000) + 131);
+  const pos = [];
+  const tri = (a, b, c) => pos.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+  for (const [px, py, pz, L] of spots) {
+    const rad = r * (0.55 + rng() * 0.8), bell = 0.7 + rng() * 0.6, twist = rng() * TAU;
+    // (the root goes well up into the rock and is closed there: on a sloping underside its uphill side
+    //  never shows an open end)
+    const prof = [[-L, 0.05], [-L * 0.64, 0.3 * bell], [-L * 0.3, 0.62 * bell], [0, 1.05], [r * 0.8, 1.2], [r * 2.6, 1.1]];
+    const rings = prof.map(([dy, k]) => Array.from({ length: seg }, (_, j) => {
+      const t = (j / seg) * TAU + twist;
+      return [px + Math.cos(t) * rad * k, py + dy, pz + Math.sin(t) * rad * k];
+    }));
+    for (let i = 0; i < rings.length - 1; i++) for (let j = 0; j < seg; j++) {
+      const j2 = (j + 1) % seg, a = rings[i][j], b = rings[i][j2], c = rings[i + 1][j], d = rings[i + 1][j2];
+      tri(a, c, b); tri(b, c, d);
+    }
+    const tip = [px, py - L - rad * 0.1, pz], cap = [px, py + r * 2.8, pz], R = rings[rings.length - 1];
+    for (let j = 0; j < seg; j++) { tri(rings[0][j], rings[0][(j + 1) % seg], tip); tri(R[(j + 1) % seg], R[j], cap); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  // (their normals bent down, toward the underside's own: hung in its shade, they print in its tone,
+  //  outlined, instead of catching the low sun on their flanks like scraps of paper)
+  g.computeVertexNormals();
+  const n = g.attributes.normal;
+  for (let i = 0; i < n.count; i++) {
+    const x = n.getX(i) * 0.3, y = n.getY(i) * 0.3 - 0.7, z = n.getZ(i) * 0.3, l = Math.hypot(x, y, z) || 1;
+    n.setXYZ(i, x / l, y / l, z / l);
+  }
+  return g;
 }
 
 /** A needle spire: slender, lumpy, vertically fluted, with shoulders. */
@@ -154,12 +223,25 @@ export function needle(o) {
   return { vis: make(seg, rings, true), col: make(6, 5, false), tip: [x, y + H, z] };
 }
 
-/** Rounded boulder / egg. */
-export function boulder(r, sx, sy, sz, egg = 0, seed = 0, detail = true) {
-  const g = detail ? new THREE.SphereGeometry(1, 14, 10) : new THREE.IcosahedronGeometry(1, 0);
+/**
+ * Rounded boulder / egg. `crack` (0 … 0.4) cuts two deep clefts round it and a seam down one side,
+ * so the stone reads as an egg split into lobes, as the sheets draw the balanced ones (IMG_3786 p2).
+ */
+export function boulder(r, sx, sy, sz, egg = 0, seed = 0, detail = true, crack = 0) {
+  const g = detail ? new THREE.SphereGeometry(1, crack ? 18 : 14, crack ? 16 : 10) : new THREE.IcosahedronGeometry(1, 0);
   const p = g.attributes.position;
+  const rc = mulberry32(Math.floor(seed * 100) + 17);
+  const c1 = -0.45 + rc() * 0.5, c2 = c1 + 0.4 + rc() * 0.3, a0 = rc() * TAU;
   for (let i = 0; i < p.count; i++) {
-    const yy = p.getY(i), k = 1 - egg * yy;
+    const yy = p.getY(i);
+    let k = 1 - egg * yy;
+    if (crack && detail) {
+      const ang = Math.atan2(p.getZ(i), p.getX(i));
+      k *= 1 - crack * (Math.exp(-(((yy - c1) / 0.15) ** 2)) * (0.75 + 0.25 * Math.sin(ang * 3 + a0))
+        + 0.75 * Math.exp(-(((yy - c2) / 0.12) ** 2)));
+      const da = Math.atan2(Math.sin(ang - a0), Math.cos(ang - a0));
+      k *= 1 - crack * 0.45 * Math.exp(-((da / 0.22) ** 2)) * (0.35 + 0.65 * Math.abs(yy));
+    }
     p.setXYZ(i, p.getX(i) * k, yy, p.getZ(i) * k);
   }
   lumpy(g, detail ? 0.1 : 0.05, 1.3, seed);

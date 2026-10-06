@@ -22,6 +22,9 @@ export const CHANGELOG = [
     'A few clouds drift over the desert again, far apart, drawn in ink with hatched undersides, and their shadows pass slowly over the dunes. The horizon stays clear, as in its drawings.',
     'Your footprints in the sand no longer vanish when you turn the camera: they stay wherever you walked until the wind fills them in.',
     'The stone half-arch that hung in the sky over the pilgrims’ camps, joined to nothing, is back where it belongs: on the inner face of Qanat’s main gate, framing the way in.',
+    'Vael’s bird stands tall on long wading legs, her feet on the ground, and folds her wings close along her sides as the drawings have her, instead of holding them out flat behind her.',
+    'In Vael II the mushroom tables lean as the drawings have them, their caps tipped off the level, with stalactites hanging in the shade under their lips; the stacked stones and the egg on the disc column are split by deep cracks, and the sea of cloud is knobbly as a cauliflower.',
+    'Vael II’s monastery has a cloister and a church porch of round arches, arched doors, red eaves over the walls, slender columns round the great dome and a ball and spike on every dome, among more cypresses.',
   ] },
   { v: '0.72', date: '2026-10-06', items: [
     'The traveller now wears the new coral overshirt, with a new face, articulated fingers and cloth that moves as you explore.',
