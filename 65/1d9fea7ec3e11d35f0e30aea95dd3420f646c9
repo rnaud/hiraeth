@@ -1,0 +1,33 @@
+src/humanoid.js
+  s_55b4bc53b812ec::t_25e77ee04a271f 17,911,913,935-938,941-944,957-971,991-992,1006-1007,1010-1012,1034-1035,1037,1040-1041,1109-1119
+  s_55b4bc53b812ec::t_647115ff64113f 934,939-940,993,1008-1009,1022,1036,1038-1039,1080-1090,1092,1094-1095,1108,1120-1122
+tests/seated-robes.test.js
+  s_55b4bc53b812ec::t_a7dea79286a968 1-94
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_871ce6ad0cecb6 384-398
+src/crowd-shader.js
+  s_55b4bc53b812ec::t_27c107f8040112 56-58,62,271-283
+  s_55b4bc53b812ec::t_0d3d4cdc09c3e4 59-61,63,262-268,270,311
+changelog.md
+  s_55b4bc53b812ec::t_8978e1881f7936 20
+src/changelog.js
+  s_55b4bc53b812ec::t_ef3fcf7bb67e55 24
+src/npc.js
+  s_55b4bc53b812ec::t_1ea08eaf3e0965 685-686
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "651d9fea7ec3e11d35f0e30aea95dd3420f646c9",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
