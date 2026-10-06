@@ -257,9 +257,9 @@ export function buildDesertCity(scene, terrain) {
       city.add(M.red, new THREE.BoxGeometry(0.4, 9, 2.2).translate(s * 8.2, 9, gz + 3.55));   // painted bands
     }
     city.both(M.wallGlyph, new THREE.BoxGeometry(22.4, 4.2, 7.4).translate(0, 15, gz), new THREE.BoxGeometry(22.4, 4.2, 7.4).translate(0, 15, gz));
-    const arch = new THREE.TorusGeometry(5.2, 1.0, 6, 16, Math.PI);
-    city.add(M.wall, T(arch, [0, 7.8, gz + 3.2]));
-    city.add(M.wall, T(arch.clone(), [0, 7.8, gz - 3.2]));
+    // the arch on both faces of the gate (each its own: T moves a geometry in place, and a clone of the
+    // outer one, moved again, hung the inner arch 15 m up and 64 m out over the camps)
+    for (const f of [3.2, -3.2]) city.add(M.wall, T(new THREE.TorusGeometry(5.2, 1.0, 6, 16, Math.PI), [0, 7.8, gz + f]));
     city.add(M.glyph, glyphGeometry(1.6).translate(0, 15, gz + 3.75));
     // the back gate, smaller, toward the giant
     for (const s of [-1, 1]) city.both(M.wall, new THREE.BoxGeometry(4, 13, 5).translate(s * 5.4, 5.5, -R));

@@ -16,6 +16,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The desert’s people carry what their drawings give them: Bako his reed flute, and his flat bag on its strap over his coat instead of under it; Sefa her oud, and her cap over her braid; Marrow a salvager’s hook, with his loaded hand-cart parked at his pitch in the camps; the Speaker’s staff has the procession’s bell at its head; and the keepers wear their own, a bead fringe at Ama’s hips and the well’s keys at Hessa’s belt.
 - People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.
 - Your footprints in the sand no longer vanish when you turn the camera: they stay wherever you walked until the wind fills them in.
+- The stone half-arch that hung in the sky over the pilgrims’ camps, joined to nothing, is back where it belongs: on the inner face of Qanat’s main gate, framing the way in.
 
 ## v0.72 — 2026-10-06
 
