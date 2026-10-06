@@ -9,7 +9,7 @@ import { EAR_Z, noseSide, faceYouth } from './face-ink.js';
 import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lookPieces, roleColor, BUILDS, browColour } from './costumes.js';
-import { suitGeometry, travellerKit, TRAVELLER } from './traveller.js';
+import { suitGeometry, travellerKit, fluidGlove, TRAVELLER } from './traveller.js';
 import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, reshapeCopy, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
 import { cleanExpression, NEUTRAL_EXPRESSION, PEOPLE_REST } from './expression.js';
 import { sharedUniforms } from './materials.js';
@@ -522,14 +522,8 @@ export class Humanoid {
     this.headAnchor = anchor(B.Head, new THREE.Vector3(hf[0], restHead.y + hf[1], restHead.z + hf[2]));
     const kit = this.kit;
     if (kit) {
-      // the traveller: the chest frame behind the pack's front (the tank and the scout's dock sit there),
-      // and on each forearm the bracer's frame (+y toward the hand, -x the thumb's side, out round the sleeve)
+      // the traveller: the chest frame behind the pack's front (the tank and the scout's dock sit there)
       this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, kit.chestY, kit.chestZ));
-      this.forearm = Object.fromEntries(['l', 'r'].map((s) => {
-        const f = kit.forearm[s], o = anchor(B[`lowerarm_${s}`], f.position, f.quaternion, f.scale);
-        o.name = `forearm frame ${s}`;
-        return [s, o];
-      }));
     } else this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
     const move = (obj, parent, pos) => { parent.add(obj); if (pos) obj.position.copy(pos); obj.traverse((o) => keep.add(o)); };
     this.hood = [];
@@ -620,7 +614,7 @@ export class Humanoid {
    */
   ownMaterials() {
     this.model.traverse((o) => {
-      if (!o.isSkinnedMesh || !o.material?.uniforms || o.material.userData.own || this._costume?.includes(o) || this.outfitMeshes?.includes(o)) return;
+      if (!o.isSkinnedMesh || !o.material?.uniforms || o.material.userData.own || this._costume?.includes(o) || this.outfitMeshes?.includes(o) || this.glove?.meshes.includes(o)) return;
       const m = o.material.clone();
       Object.assign(m.uniforms, sharedUniforms);
       m.userData.own = true;
@@ -781,6 +775,75 @@ export class Humanoid {
       if (p.glass) this.noShadow.push(o);
       if (p.pack) this.packPocket.push(o);
     }
+    this.wearGlove(body, body.userData.baseGeometry);
+  }
+
+  /**
+   * The fluid glove (traveller.js fluidGlove) over the right hand of `skin` (a skinned mesh on this
+   * body's skeleton: the traveller's suit, or the coral-shirt traveller's own mesh), hidden until the
+   * tank is worn (fluid-tool.js). this.glove: { meshes, plate, lights (three, one a charge), muzzle
+   * (the fluid's mouth in front of the knuckles), inlet (the hose's end on the cuff) }, the two
+   * anchors on the hand's and the forearm's bones.
+   */
+  wearGlove(skin, geometry = skin.geometry) {
+    const G = fluidGlove(geometry, skin), bones = skin.skeleton.bones;
+    this.glove = { meshes: [], plate: null, lights: [] };
+    for (const p of G.pieces) {
+      const lit = p.o.glove === 'plate' || p.o.glove === 'light';
+      let mat = makeMaterial({ figure: true, color: p.color, side: THREE.DoubleSide, ...(lit ? { flat: true, glow: 0.9 } : {}) });
+      // each light its own colour and glow (the fluid tool sets them), the rest of its uniforms shared
+      if (lit) { const u = mat.uniforms; mat = mat.clone(); mat.uniforms = { ...u, uColor: { value: u.uColor.value.clone() }, uGlow: { value: u.uGlow.value } }; }
+      const o = new THREE.SkinnedMesh(p.geometry, mat);
+      o.name = p.name;
+      o.position.copy(skin.position); o.quaternion.copy(skin.quaternion); o.scale.copy(skin.scale);
+      o.bind(skin.skeleton, skin.bindMatrix);
+      o.frustumCulled = false;
+      o.userData.noCollide = true;
+      o.visible = false;
+      skin.parent.add(o);
+      this.glove.meshes.push(o);
+      if (p.o.glove === 'plate') this.glove.plate = o;
+      if (p.o.glove === 'light') this.glove.lights[p.o.charge] = o;
+    }
+    // a bind point carried by a bone (its place in the bone's frame, whatever the pose now)
+    const carry = (point, i, name) => {
+      const o = new THREE.Object3D();
+      o.name = name;
+      o.position.copy(point).applyMatrix4(skin.bindMatrix).applyMatrix4(skin.skeleton.boneInverses[i]);
+      bones[i].add(o);
+      return o;
+    };
+    this.glove.muzzle = carry(G.muzzle, G.bones.muzzle, 'glove muzzle');
+    this.glove.inlet = carry(G.inlet, G.bones.inlet, 'glove inlet');
+    // worn: the meshes show and the skin's triangles under the leather are left out of its index (else they
+    // show through between the fingers); off, the bare hand as it was. (Per geometry: the face's reshaping
+    // gives the body a new one, and a glove already on follows it there.)
+    const indices = new WeakMap(), v = new THREE.Vector3();
+    const indexOf = (geo) => {
+      if (indices.has(geo)) return indices.get(geo);
+      const P = geo.attributes.position, bare = geo.index, idx = bare?.array;
+      let e = null;
+      if (idx && !geo.groups.length) {
+        const under = new Uint8Array(P.count), keep = [];
+        for (let i = 0; i < P.count; i++) under[i] = G.covers(v.fromBufferAttribute(P, i)) ? 1 : 0;
+        for (let t = 0; t < idx.length; t += 3) if (!(under[idx[t]] && under[idx[t + 1]] && under[idx[t + 2]])) keep.push(idx[t], idx[t + 1], idx[t + 2]);
+        e = { bare, gloved: new THREE.BufferAttribute(new idx.constructor(keep), 1) };
+      }
+      indices.set(geo, e);
+      return e;
+    };
+    this.glove.on = false;
+    let drawn = null;
+    this.glove.show = (on) => {
+      on = !!on;
+      if (on === this.glove.on && skin.geometry === drawn) return;
+      if (on !== this.glove.on) for (const o of this.glove.meshes) o.visible = on;
+      this.glove.on = on;
+      drawn = skin.geometry;
+      const e = indexOf(drawn);
+      if (e) drawn.setIndex(on ? e.gloved : e.bare);
+    };
+    return this.glove;
   }
 
   /**

@@ -86,7 +86,7 @@ carry no finger tracks, so every hand used to hang in the T-pose's flat, straigh
 - **The context picks them** (`handTargets(ctx)`, pure): walking relaxed, opening as you run
   (`HANDS.runFrom`–`runTo`), gliding and the jets open, falling (after `airAfter` s off the ground)
   splayed, climbing a grip, the mantle flat, the hoverbike / skiff / taxi a grip, the bird the reins,
-  swimming cupped, down limp, seated limp; on top, aiming the bracer (the right fist, the left cupped
+  swimming cupped, down limp, seated limp; on top, aiming the glove (the right fist, the left cupped
   under it), the hand-off (a grip), a held prop in the right hand (`PROP_GRIPS`: a staff gripped, a
   lantern or basket hung from the fingers, a flower held), a fright (splayed), and while someone speaks
   a gesture in the line's tone (`TONE_GESTURES`, the right hand leading, beating with the syllables;

@@ -20,6 +20,7 @@ export const CHANGELOG = [
     'The desert’s people carry what their drawings give them: Bako his reed flute, and his flat bag on its strap over his coat instead of under it; Sefa her oud, and her cap over her braid; Marrow a salvager’s hook, with his loaded hand-cart parked at his pitch in the camps; the Speaker’s staff has the procession’s bell at its head; and the keepers wear their own, a bead fringe at Ama’s hips and the well’s keys at Hessa’s belt.',
     'People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.',
     'The traveller no longer holds a phone: the old handheld screen he carried in his right hand (in the character studio and on the Motion page) is gone, and his hand is empty.',
+    'With the tank on your back you now wear a dark leather glove on your right hand, as on the drawings: the hose runs down your arm into its cuff, its three knuckles light for the charges left and its plate glows in the fluid’s colour, and your shots and pushes leave from your fist. The wrist bracer, whose brass nozzle lay along your hand like a phone, is gone.',
   ] },
   { v: '0.72', date: '2026-10-06', items: [
     'The traveller now wears the new coral overshirt, with a new face, articulated fingers and cloth that moves as you explore.',

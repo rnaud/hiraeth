@@ -396,13 +396,121 @@ function rucksack(chestY, chestZ) {
   };
 }
 
+// ------------------------------------------------------------------ the fluid glove
+/**
+ * The glove the fluid comes out of, after the coral-shirt sheets: a dark leather glove on the right
+ * hand, its cuff a little up the forearm with a pale band round it, a plate on the back of the hand
+ * and the three knuckles lit by the fluid, a hose down the outside of the arm into its cuff. In bind
+ * metres: how far up the forearm the cuff reaches from the wrist (`cuff`), how far the leather stands
+ * off the skin on the fingers, on the hand and at the cuff's open end (`off`, `hand`, `flare`), the
+ * band's width, the plate (its centre past the wrist, its half length, half width and half thickness),
+ * the knuckles lit (one charge each: their studs' centres along each finger, the studs' half sizes
+ * along, off and across the hand), the fluid's mouth (`muzzle`: past the knuckles along the hand, and down toward the palm,
+ * so in the aiming fist it is just in front of the knuckles) and the hose's fitting on the cuff.
+ */
+export const GLOVE = {
+  cuff: 0.06, off: 0.0022, hand: 0.003, flare: 0.009, band: 0.011,
+  plate: [0.042, 0.021, 0.018, 0.008], knuckles: ['index', 'middle', 'ring'], knuckle: 0.014, stud: [0.0105, 0.005, 0.0065],
+  muzzle: [0.024, 0.012], inlet: 0.036,
+};
+
+/**
+ * The glove's pieces on the body's own hand (the leather: the skin's triangles there, pushed out along
+ * their welded normals, with the skin's own weights, so it bends with every finger; the band, the plate
+ * and the knuckles' studs each on their bone), skinned in bind space:
+ * { pieces: [{ name, geometry, color, o: { glove } }], muzzle, inlet (bind points: the fluid's mouth
+ * on the hand, the hose's end on the forearm), bones: { muzzle, inlet } (their bones' indices),
+ * covers(p) (a bind point of the skin under the leather) }, cached
+ * per geometry. `base`: the skin's geometry in bind space; `body`: a skinned mesh bound to it (its
+ * skeleton and bind matrices). `o.glove`: 'leather', 'band', 'fitting', 'plate'
+ * (the mode's tone) or 'light' (with `charge` 0..2).
+ */
+export function fluidGlove(base, body, s = 'r') {
+  const cached = gloves.get(base)?.[s];
+  if (cached) return cached;
+  const G = GLOVE, bones = body.skeleton.bones, bi = (n) => BONE(bones, n);
+  // (a bone's bind position from the bind matrix itself: an attached skin's inverse follows it about the world)
+  const unbind = body.bindMatrix.clone().invert();
+  const bindPos = (_, n) => new THREE.Vector3().setFromMatrixPosition(body.skeleton.boneInverses[bi(n)].clone().invert()).applyMatrix4(unbind);
+  const wrist = bindPos(body, `hand_${s}`), knuckle = bindPos(body, `middle_01_${s}`);
+  const along = knuckle.clone().sub(wrist).normalize();                         // toward the fingers
+  const t = bindPos(body, `thumb_01_${s}`).sub(wrist), thumb = t.addScaledVector(along, -t.dot(along)).normalize();
+  const back = new THREE.Vector3().crossVectors(along, thumb).multiplyScalar(s === 'r' ? 1 : -1);   // the back of the hand (palm down in the bind pose)
+  const P = base.attributes.position, N = base.attributes.normal;
+  const key = (x, y, z) => `${Math.round(x * 1e4)},${Math.round(y * 1e4)},${Math.round(z * 1e4)}`;
+  const welded = new Map(), v = new THREE.Vector3(), n = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) {
+    const k = key(P.getX(i), P.getY(i), P.getZ(i));
+    welded.set(k, (welded.get(k) ?? new THREE.Vector3()).add(n.fromBufferAttribute(N, i)));
+  }
+  const past = (p) => v.copy(p).sub(wrist).dot(along);                           // metres past the wrist (up the forearm: < 0)
+  const fingers = bones.map((b) => new RegExp(`^(thumb|index|middle|ring|pinky)_0[123]_${s}$`).test(b.name));
+  const leather = pick(base, (a, b, c) => [a, b, c].every((i) => past(v.fromBufferAttribute(P, i)) > -G.cuff));
+  for (const k of Object.keys(leather.attributes)) if (!['position', 'skinIndex', 'skinWeight'].includes(k)) leather.deleteAttribute(k);
+  const LP = leather.attributes.position, LJ = leather.attributes.skinIndex, LW = leather.attributes.skinWeight;
+  const p = new THREE.Vector3();
+  for (let i = 0; i < LP.count; i++) {
+    p.fromBufferAttribute(LP, i);
+    const w = welded.get(key(p.x, p.y, p.z)), nn = (w ? w.clone() : new THREE.Vector3(0, 1, 0)).normalize();
+    let f = 0; for (let k = 0; k < 4; k++) if (fingers[LJ.getComponent(i, k)]) f += LW.getComponent(i, k);
+    const a = past(p);
+    // snug on the fingers, a little fuller over the hand, flaring to the cuff's open end
+    const d = a < 0 ? G.hand + (G.flare - G.hand) * smooth(-a, 0, G.cuff) : G.hand + (G.off - G.hand) * smooth(f, 0.3, 0.8);
+    LP.setXYZ(i, p.x + nn.x * d, p.y + nn.y * d, p.z + nn.z * d);
+  }
+  leather.computeVertexNormals();
+  const skin = []; for (let i = 0; i < LP.count; i++) skin.push(new THREE.Vector3().fromBufferAttribute(LP, i));
+  // how far the leather stands from a point on the hand's axis, in a direction
+  const surface = (from, dir, r = 0.012) => reach(skin, from, dir, r);
+  // a small rounded stud (an ellipsoid: radii along the hand, off its back, across it), on one bone
+  const stud = (at, [ra, rb, rt], bone) => rigid(plain(new THREE.SphereGeometry(1, 14, 8).scale(rt, rb, ra),
+    new THREE.Matrix4().makeBasis(thumb, back, along).setPosition(at)), bone);
+  const pieces = [{ name: `Glove_${s}`, geometry: leather, color: PAL.glove, o: { glove: 'leather' } }];
+  // the pale band round the cuff's open end
+  {
+    const ring = (a, out) => { const c = wrist.clone().addScaledVector(along, a); return Array.from({ length: 20 }, (_, k) => {
+      const ang = (k / 20) * Math.PI * 2, d = thumb.clone().multiplyScalar(Math.cos(ang)).addScaledVector(back, Math.sin(ang));
+      return c.clone().addScaledVector(d, surface(c, d, 0.014) + out);
+    }); };
+    const a0 = -G.cuff + 0.003, a1 = a0 + G.band;
+    pieces.push({ name: `Glove_band_${s}`, color: PAL.lavender, o: { glove: 'band' },
+      geometry: conform(mergeGeometries([band([ring(a0, 0.0015), ring(a1, 0.0015)]), band([ring(a0, -0.004), ring(a0, 0.0015)])]), leather, body, /./, bi(`lowerarm_${s}`)) });   // (weighted as the cuff beneath it)
+  }
+  // the plate on the back of the hand, an oval between the wrist and the knuckles
+  const mid = bindPos(body, `index_01_${s}`).add(bindPos(body, `pinky_01_${s}`)).multiplyScalar(0.5).sub(wrist).dot(thumb);
+  const [pc, pl, pw, ph] = G.plate;
+  const plateAt = wrist.clone().addScaledVector(along, pc).addScaledVector(thumb, mid);
+  pieces.push({ name: `Glove_plate_${s}`, color: PAL.gloveLight, o: { glove: 'plate' },
+    geometry: stud(plateAt.clone().addScaledVector(back, surface(plateAt, back) - ph * 0.45), [pl, ph, pw], bi(`hand_${s}`)) });
+  // the three knuckles, one charge each: a stud on the back of each finger's first joint
+  G.knuckles.forEach((f, c) => {
+    const j = bindPos(body, `${f}_01_${s}`), at = j.clone().addScaledVector(along, G.knuckle);
+    pieces.push({ name: `Glove_light_${c}_${s}`, color: PAL.gloveLight, o: { glove: 'light', charge: c },
+      geometry: stud(at.addScaledVector(back, surface(at, back, 0.007) - G.stud[1] * 0.4), G.stud, bi(`${f}_01_${s}`)) });
+  });
+  // the hose's fitting: a short brass sleeve on the cuff, over the back of the wrist, pointing up the arm
+  const axis = wrist.clone().addScaledVector(along, -G.inlet);
+  const inlet = axis.clone().addScaledVector(back, surface(axis, back, 0.015) + 0.008);
+  const fit = new THREE.CylinderGeometry(0.0085, 0.011, 0.03, 10).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), along.clone().negate()));
+  pieces.push({ name: `Glove_fitting_${s}`, geometry: conform(plain(fit, new THREE.Matrix4().makeTranslation(inlet.x, inlet.y, inlet.z)), leather, body, /./, bi(`lowerarm_${s}`), inlet), color: PAL.fitting, o: { glove: 'fitting' } });
+  // the fluid's mouth: the knuckles' line, past them and toward the palm (the front of the aiming fist)
+  const line = G.knuckles.reduce((sum, f) => sum.add(bindPos(body, `${f}_01_${s}`)), new THREE.Vector3()).divideScalar(G.knuckles.length);
+  const muzzle = line.addScaledVector(along, G.muzzle[0]).addScaledVector(back, -G.muzzle[1]);
+  // the skin it covers (from a little inside the cuff: the glove's own hand, past(p) metres past the wrist)
+  const covers = (q) => q.clone().sub(wrist).dot(along) > -G.cuff + 0.006;
+  const out = { pieces, muzzle, inlet: inlet.addScaledVector(along, -0.015), bones: { muzzle: bi(`hand_${s}`), inlet: bi(`lowerarm_${s}`) }, covers };
+  gloves.set(base, { ...gloves.get(base), [s]: out });
+  return out;
+}
+const gloves = new WeakMap();
+
 // ------------------------------------------------------------------ the kit
 /**
  * Everything the traveller wears on a body (pure data, cached per outfit scene and body geometry):
  * { pieces: [{ name, geometry (skinned to the body's bones, bind space), color, glass?, pack? }],
  *   chestZ (the chest anchor's offset), dock (where the scout's foot rests on the rucksack's lid,
- *   chest anchor frame), forearm: { r, l } (bracer frames: { position, quaternion, scale } in
- *   bind space), head: { centre, half } }.
+ *   chest anchor frame), head: { centre, half } }. (The glove on his right hand is its own:
+ *   fluidGlove, Humanoid.wearGlove.)
  */
 export function travellerKit(scene, body) {
   const base = body.userData.baseGeometry ?? body.geometry;
@@ -639,24 +747,7 @@ export function travellerKit(scene, body) {
     add(`Rolled_sleeve_${s}`, rigid(mergeGeometries([band([gauntlet(g0, 0.016), gauntlet(g1, 0.006)]), band([gauntlet(g1, 0.006), gauntlet(g1, -0.004)]), band([gauntlet(g0, 0.0), gauntlet(g0, 0.016)])]), bi(`lowerarm_${s}`)), PAL.jacket);
   }
 
-  // ---- the bracer's frame on each forearm (fluid-tool.js): +y toward the hand, -x the thumb's side,
-  // scaled out so the bracer sits round the baggy sleeve, not in it
-  const forearm = {};
-  for (const [s, sign] of [['l', 1], ['r', -1]]) {
-    const arm = bindPos(body, `lowerarm_${s}`), hand = bindPos(body, `hand_${s}`), thumb = bindPos(body, `thumb_01_${s}`);
-    const y = hand.clone().sub(arm).normalize();
-    const t = thumb.sub(hand), x = t.addScaledVector(y, -t.dot(y)).normalize().negate();
-    const z = new THREE.Vector3().crossVectors(x, y);
-    const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
-    const sleevePts = points(suit, ((on) => (p, i) => p.x * sign > 0 && on(p, i))(onBones(suit, body, new RegExp(`^lowerarm_${s}`), 0.5)));
-    const c = arm.clone().addScaledVector(y, 0.13);
-    let r = 0;
-    for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; r = Math.max(r, reach(sleevePts, c, x.clone().multiplyScalar(Math.cos(a)).addScaledVector(z, Math.sin(a)), 0.02)); }
-    const k = Math.max(1, (r + 0.006) / 0.05);
-    forearm[s] = { position: arm, quaternion: q, scale: new THREE.Vector3(k, 1, k) };
-  }
-
-  const kit = { pieces, chestY, chestZ, dock, forearm, head: { centre: headC, half: headHalf }, backZ };
+  const kit = { pieces, chestY, chestZ, dock, head: { centre: headC, half: headHalf }, backZ };
   cache.set(base.uuid, kit);
   return kit;
 }

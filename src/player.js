@@ -1974,7 +1974,7 @@ export class Player {
       rot(c.knees[i], 0.3 * free, 0, 0);
     }
     // soft arms, a slow sway, one hand hooks the belt while the weight is on that side
-    // (the right one, with the tank's bracer on its wrist, hangs a little out from the hip: the cuff sank into it)
+    // (the right one, in the tank's glove, hangs a little out from the hip: its cuff sank into it)
     const cuffed = this.has('backpack');
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1, cuff = cuffed && i === 0;

@@ -172,14 +172,14 @@ export async function exportPeople({ W, blob: worldBlob, sblob = worldBlob, mate
     const h = new Humanoid(humans[0], char, 'm', { outfit: travellerTemplate });
     const gear = new Gear(new THREE.Scene(), h, char);
     if (char.pack) char.pack.visible = false;
-    // the magic-fluid backpack's tank and bracer, worn once found (fluid-tool.js wear), with the wings
-    // and jets folded in it: Unity shows them by name (Fluid tank, Fluid bracer, Fluid wings, Fluid jets)
+    // the magic-fluid backpack's tank and the glove on his right hand, worn once found (fluid-tool.js wear),
+    // with the wings and jets folded in it: Unity shows them by name (Fluid tank, Glove_*, Fluid wings, Fluid jets)
     const { FluidTool } = await import('../../src/fluid-tool.js');
     const items = { has: (k) => k === 'backpack', on: () => () => {} };
     const state = { on: () => () => {}, emit() {}, get() {}, set() {}, is: () => false, flag: () => false };
     const fp = { humanoid: h, char, gear, vehicles: [], pos: new THREE.Vector3(), vel: new THREE.Vector3(), frame: { up: new THREE.Vector3(0, 1, 0) } };
     const tool = new FluidTool({ scene: new THREE.Scene(), player: fp, physics: null, camera: null, items, state });
-    if (tool.bracer) tool.bracer.group.name = 'Fluid bracer';
+    tool.updateWorn(0);   // (the glove on: its meshes shown)
     tool.wings?.update(0, { open: 1, time: 0 });   // (exported open: Unity blooms them by scale)
     const hidden = [tool.wings?.group, tool.jets?.group].filter(Boolean);
     people.push(personOf(h, char, { id: 'traveller', role: 'traveller', hero: true, hidden, noShadow: [tool.tank?.glass].filter(Boolean) }));

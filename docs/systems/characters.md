@@ -76,8 +76,8 @@ ragdoll) poses it exactly as it poses an NPC.
   talk*), with his own hair under the helmet's liner (`travellerHair`).
 - **Hooks:** `Humanoid.headAnchor` is the skull's centre, `chestAnchor` sits
   0.74 below the collar and as far back as the pack moved (the fluid tank and
-  the scout's dock go there), `Humanoid.forearm.r` is the bracer's frame on the
-  forearm (+y to the hand, -x the thumb's side, scaled out round the sleeve).
+  the scout's dock go there), `Humanoid.glove` is the fluid glove on the right hand
+  (its meshes, and the anchors of the fluid's mouth and the hose's end: [traveller-kit.md](traveller-kit.md)).
   `Humanoid.packPocket` (the rucksack's outer pocket; the radio pack until October 2026) shows
   until the flask is found and while it sits in a vehicle (`fluid-tool.js`); the scout docks on
   the rucksack's lid, then on top of the flask's left upright (docs/systems/traveller-kit.md).
