@@ -1,0 +1,41 @@
+changelog.md
+  s_55b4bc53b812ec::t_33ea2e78e553ca 18
+scripts/bench/android-worlds.mjs
+  s_55b4bc53b812ec::t_24b9eb7b1c90c1 1-376
+scripts/bench/gecko-bridge.mjs
+  s_55b4bc53b812ec::t_e00ced3ef43b75 28
+src/characters/tripo-cloth-sim.js
+  s_55b4bc53b812ec::t_4817219053ac2a 1-94
+src/characters/tripo-cloth-worker.js
+  s_55b4bc53b812ec::t_b528a2a962d1f9 1-8
+src/characters/tripo-cloth.js
+  s_55b4bc53b812ec::t_1369f3d8263a06 3,12,15-16,18,22-56,58-59,115-118,124,142-179,186-187,189-196,198,200-205,207-209,212-216,218-223,225-228,230-231
+tests/tripo-cloth-sim.test.js
+  s_55b4bc53b812ec::t_83b9b932a9f340 1-135
+src/changelog.js
+  s_f47d5856bab8cf::t_339f7dd316446a 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ef13ab001e9a4159bc5311d63beba0e4dc6230cd",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_f47d5856bab8cf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad8f1c0c241c427c4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
