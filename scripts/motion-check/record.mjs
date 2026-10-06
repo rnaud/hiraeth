@@ -57,8 +57,6 @@ const TOG = {
   albedoEdges: POSTU('uAlbedoEdges', '0'),
   shadowEdges: POSTU('uShadowEdges', '0'),
   hatch: [`window.__hh ??= sharedUniforms.uHatch.value; sharedUniforms.uHatch.value = 0`, `sharedUniforms.uHatch.value = window.__hh`],
-  grain: POSTU('uGrain', '0'),
-  paper: POSTU('uPaper', '0'),
   aerial: POSTU('uAerial', '0'),
   fog: POSTU('uFogDensity', '0'),
   allfog: [`window.__pu ??= {}; window.__pu.hl ??= post.uniforms.uHazeLayers.value; window.__pu.hf ??= post.uniforms.uHeightFog.value; window.__pu.fm ??= post.uniforms.uFogDensity.value; post.uniforms.uHazeLayers.value = [300, 2, 0, 0]; post.uniforms.uHeightFog.value = [0, 20, 0, 0]; post.uniforms.uFogDensity.value = 0`,

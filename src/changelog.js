@@ -20,6 +20,7 @@ export const CHANGELOG = [
     'The desert’s people carry what their drawings give them: Bako his reed flute, and his flat bag on its strap over his coat instead of under it; Sefa her oud, and her cap over her braid; Marrow a salvager’s hook, with his loaded hand-cart parked at his pitch in the camps; the Speaker’s staff has the procession’s bell at its head; and the keepers wear their own, a bead fringe at Ama’s hips and the well’s keys at Hessa’s belt.',
     'People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.',
     'In the City-Shaft the shade is printed flat in the shaft’s blue, as in its drawings: a pink wall’s shaded side goes blue, while the trees stay green and people keep the shade of their own clothes. In the desert’s reference views of the dish city and the dunes, the shadows the dishes and cliffs throw on the sand are solid dark ink, as drawn, while the domes keep their blue shade.',
+    'No more filter stuck to the screen: the faint paper grain and the darkened corners that stayed put while the world moved under them are gone, and the slight wobble of the ink lines now turns with the world as you look around instead of sitting on the screen like rippled glass.',
   ] },
   { v: '0.72', date: '2026-10-06', items: [
     'The traveller now wears the new coral overshirt, with a new face, articulated fingers and cloth that moves as you explore.',

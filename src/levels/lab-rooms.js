@@ -1011,7 +1011,7 @@ export const ROOMS = [
     sky: {
       script: { day: ['#a4d7d1', '#e1e6c6', '#70969e', '#fff1cf', '#ffe1ae'], dusk: ['#9dabc3', '#ffc5a2', '#887b9e', '#ffd6aa', '#ffe5c2'], night: ['#243e59', '#587581', '#55547c', '#8daec0', '#f9e3ac'] },
     },
-    atmo: { tint: [1, 1, 1], fog: 0.65 }, hour: 11.5, look: { uHatch: 0.18, uLineWidth: 0.85, uWobble: 0.1, uGrain: 0.025 },
+    atmo: { tint: [1, 1, 1], fog: 0.65 }, hour: 11.5, look: { uHatch: 0.18, uLineWidth: 0.85, uWobble: 0.1 },
     flora: { patches: 18, sparse: 0.1, band: [-1, 1.6], rects: [[19, 27, -70, 56], [-27, -19, -70, 56]] },
     avoid: (x, z, r) => Math.abs(x) < 17 + r,
     people: [

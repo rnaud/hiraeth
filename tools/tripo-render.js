@@ -37,7 +37,7 @@ export function createReviewInk(renderer,scene,meshes,{garment,grid,helper}){
    for(const m of materials)m.mesh.material=m.ink;
    SU.uTime.value=U.uTime.value=time;U.uInvProj.value.copy(camera.projectionMatrixInverse);U.uCamWorld.value.copy(camera.matrixWorld);U.uProj11.value=camera.projectionMatrix.elements[5];setSubject(U,camera,origin,up);
    renderer.setRenderTarget(gbuffer);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,camera);
-   post.bakeNoise(renderer);renderer.setRenderTarget(compose);renderer.clear();renderer.render(post.scene,post.camera);
+   renderer.setRenderTarget(compose);renderer.clear();renderer.render(post.scene,post.camera);
    renderer.setRenderTarget(null);renderer.clear();renderer.render(blit.scene,post.camera);
    if(helperVisible){overlay.add(helper);helper.visible=true;renderer.clearDepth();renderer.render(overlay,camera);scene.add(helper);}
   }finally{

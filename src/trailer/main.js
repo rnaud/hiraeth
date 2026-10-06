@@ -106,7 +106,6 @@ function draw(seconds, dt = 0) {
   bloom.render(renderer);
   U.uInvProj.value.copy(camera.projectionMatrixInverse); U.uCamWorld.value.copy(camera.matrixWorld);
   U.uProj11.value = camera.projectionMatrix.elements[5]; U.uSubject.value.w = -1;
-  post.bakeNoise(renderer);
   renderer.setRenderTarget(compose); renderer.clear(); renderer.render(post.scene, post.camera);
   renderer.setRenderTarget(null); renderer.clear(); renderer.render(blit.scene, post.camera);
   ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(renderer.domElement, 0, 0, W, H);

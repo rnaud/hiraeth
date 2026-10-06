@@ -74,7 +74,8 @@ Three passes per frame (`src/main.js`):
      silhouettes.
    - **Procedural sky** with a gradient, an inked sun disc with a halo ring,
      and flat inked clouds with hatched undersides.
-   - **Paper.** Grain, fibre and a vignette.
+   - **Nothing fixed to the screen**: no paper grain or vignette; the lines' wobble is on the view's
+     direction ("Nothing fixed to the screen" below).
 
 ## The developer panel
 
@@ -469,12 +470,40 @@ dunes 1.27/1.25 → 1.34/1.27 ms: within the noise. `tests/shadow-edges.test.js`
 lit fraction continuous and monotone across texel borders, the same for a window moved by whole texels (any
 spread), the cut near the half for every facing, and the spot tier's weighting.
 
+## Nothing fixed to the screen (post.js `LINE_NOISE`)
+
+The author's feedback (2026-10-06): "a filter over the overall image, moving with the camera". Measured at
+Qanat's gate (a frozen clock, the camera turned 0.03 rad between two frames, each effect toggled in the page):
+three things sat on the screen while the world slid under them.
+
+- **The paper** (`uGrain`'s fibre, `uPaper`'s tooth and pits, baked once per frame size): a mottle of ±2 levels
+  with darker pits, over the whole frame, worst on the flat sky. Its difference image before and after the turn
+  correlated 0.94 at the same pixels: it stayed put. **Removed**, with its knobs (`uGrain`, `uPaper`, the
+  panel's "paper grain"): the sky's own dots are on the dome, the sand's on the sand.
+- **The vignette**: the corners 19 % darker, the edges 7 %. **Removed** (a printed page has none).
+- **The lines' wobble, pressure and inner weight**: a value-noise field in screen pixels (`tScreenA`, baked), so
+  a silhouette swelled and wobbled in place as it slid across the frame, a pane of rippled glass in front of the
+  camera. Now read on the **view's direction** in the world (`lineNoise(rd)`): a small tiling texture of random
+  texels (`LINE_NOISE.size`² RGBA, four noises in one tap, smooth-stepped between texel centres), three planar
+  taps on the direction weighted to its facing axis (`LINE_NOISE.sharp`) with the contrast the blend takes away
+  put back, at `LINE_NOISE.cells` (the old 0.06) cells a CSS pixel at the frame's middle, whatever the field
+  of view. As the camera turns the field turns with the world (debug view 13: the turned frame matches the
+  first shifted by the turn's 21 px at r = 0.996, 0.1 at the same pixels); as it moves it stays on the far
+  world, like the sky. Boiling lines re-roll it by an offset.
+- **Kept**: the weather's rain and blown-sand streaks (they race across the frame on purpose); the sky's dots
+  and every surface's strokes were already anchored.
+- **Cost**: the bake and its two half-float frame-size textures (77 MB at Retina size) are gone; three filtered
+  taps of a 64 KB texture instead of two `texelFetch`. Desert, synced frames, the two builds timed in turns:
+  Handheld 1280 × 720 at 0.75 +0.06 ms (2.44 ms, noise), High 3456 × 2234 −0.35 ms.
+- `tests/screen-noise.test.js`: no screen-position noise, paper or vignette in the composite or the presets,
+  the lines' noise on the direction at the old size, the texture tiling and deterministic.
+
 ## Debug views (`params.debug`)
 
 0 final, 1 raw, 2 albedo, 3 normals, 4 depth, 5 light term (the line step taken off), 6 ink only, 7 hatch
 strokes and 8 drawn detail (their packed steps taken off, so a shaded or spotted surface no longer reads as
 solid black), 9 spot blacks' enclosure, 10 the spot tier's cast and spot masks, 11 lines by material, 12 cast
-shadows lifted.
+shadows lifted or inked, 13 the lines' noise (it must turn with the world, never sit on the screen).
 
 ## Cost of the ink pass's three (lines by material, haze, cast shadows)
 
@@ -523,10 +552,8 @@ checked on still frames. A moving camera shows what stills miss: shimmer, a patt
   (`--toggles`) for its share. Paths: still (the clock running), pan, drift, walk to a wall, zoom, orbit and slow
   orbit round a form-hatched part, fast (30 m/s), haze (walking, looking far), swing, descend (the City-Shaft).
   `survey.sh` runs all twelve worlds; WebM clips (half size, and the hottest part 1:1) and the numbers as JSON.
-- **The screen-fixed parts are fixed on purpose**: the lines' wobble and the paper are baked once per frame size
-  (identical in a still frame as the clock runs: nothing in the still path but what moves), so in motion the
-  world slides under them, as under paper; and the vignette. The checks turn wobble and paper off where they
-  warp frames (`--js` file).
+- **Nothing is fixed to the screen** any more (below): the lines' wobble turns with the world, the paper and the
+  vignette are gone. The checks turn the wobble off where they warp frames (`--js` file).
 
 What it found, and what holds it still now:
 

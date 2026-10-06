@@ -65,7 +65,8 @@ scene-level modelling and a few shader limits:
     does not use it. Done: the world prints flat at 0.8, its trees say `shadeFlat: 0`, people keep their shade.
   - The half-tone cannot tell a back wall inside another's cast shadow (it reads as half-tone, the
     panel's is full shadow).
-  - Paper grain is screen-fixed, kept light (`uPaper` 0.7); the sheets' is heavier and on the page.
+  - [x] Paper grain is screen-fixed, kept light (`uPaper` 0.7); the sheets' is heavier and on the page.
+    Done: removed (it read as a filter stuck to the screen), with the vignette; the lines' wobble turns with the world.
   - The gorge panels' walls are in cast shadow from the rim; ours are form-shaded.
   - Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) have many vertical cracks and
     strokes down the face; our strata draw horizontal beds with sparse fissures.

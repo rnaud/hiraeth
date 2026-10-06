@@ -438,7 +438,6 @@ export async function startVista({ parent, settings, native = false, touch = fal
     U.uCamWorld.value.copy(camera.matrixWorld);
     U.uProj11.value = camera.projectionMatrix.elements[5];
     U.uSubject.value.w = -1;
-    post.bakeNoise(renderer);
     renderer.setRenderTarget(composeRT);
     renderer.clear();
     renderer.render(post.scene, post.camera);

@@ -22,7 +22,7 @@ import { sharedUniforms, SHADE, SPOT, WEATHER, LINE } from './materials.js';
 //      lines and hatching fade with distance like a pen drawing.
 //   5. Procedural sky: flat gradient, inked sun disc, inked flat clouds with
 //      hatched undersides.
-//   6. Paper: grain + fibre + vignette.
+//   (Nothing is fixed to the screen: no paper grain or vignette; the lines' noise is on the view's direction.)
 // ---------------------------------------------------------------------------
 
 export const DEBUG_VIEWS = {
@@ -39,6 +39,7 @@ export const DEBUG_VIEWS = {
   'Spot blacks: cast / spot masks': 10,
   'Lines by material: owner / step / ink': 11,
   'Cast shadows: could lift / lifted / inked': 12,
+  "Lines' noise: wobble x, y / pressure": 13,
 };
 
 /**
@@ -129,7 +130,7 @@ export function inkFeatures(U) {
   if (U.uInkShadow.value[0] > 0 || U.uInkShadow.value[1] > 0) f.INK_SHADOW = '';
   return f;
 }
-// The value noise (the composite's, and the bake's below: the same code, the same values).
+// The value noise.
 const NOISE = /* glsl */ `
   float hash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -144,40 +145,45 @@ const NOISE = /* glsl */ `
   }
 `;
 /**
- * The noise fixed to the screen (fc: CSS px), ten value-noise lookups a pixel that change only with the
- * frame's size: the ink lines' wobble (x, y), their pressure and their inner weight (screenLines), the
- * paper's fibre and its tooth with the pits (screenPaper). Baked once per size into two textures
- * (createPost's bakeNoise) and read back with one texel each; worked out per pixel where the bake
- * doesn't match the frame (a portrait drawn at another pixel ratio, a page that doesn't bake) or the
- * lines boil. docs/systems/performance.md.
+ * The ink lines' noise: their wobble (x, y), their pressure (z) and their inner weight (w), anchored to the
+ * view's direction in the world, not to the screen (docs/systems/rendering.md, "Nothing fixed to the screen").
+ * A screen-fixed field made the lines swell and wobble in place while the world slid under them, like a
+ * pane of rippled glass in front of the camera; on the view's direction it turns with the world as the
+ * camera turns, as the sky's dots do. Value noise from a small tiling texture of random texels
+ * (`LINE_NOISE.size`², RGBA: four noises in one tap, smooth-stepped between texel centres), read
+ * triplanar on the direction (three taps, weighted to the facing axis, the contrast the blend takes away
+ * put back) at `LINE_NOISE.cells` cells a CSS pixel at the middle of the frame (the old field's 0.06),
+ * whatever the field of view. Boiling lines (uBoil) re-roll it by an offset at 8 fps.
  */
-const SCREEN_NOISE = /* glsl */ `
-  vec4 screenLines(vec2 fc, float boilT) {
-    return vec4(vnoise(fc * 0.06 + boilT * 17.3), vnoise(fc * 0.06 + 31.7 + boilT * 11.1), vnoise(fc * 0.045 + boilT * 3.1), vnoise(fc * 0.06 + 9.0));
+export const LINE_NOISE = { size: 128, cells: 0.06, sharp: 4 };
+const LINE_NOISE_GLSL = /* glsl */ `
+  vec4 lineTap(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return texture(tLineNoise, (i + f + 0.5) / ${LINE_NOISE.size}.0);
   }
-  // x: the fibre, y: what the tooth and its pits do to a light colour (times uPaper; 0 without the tooth)
-  vec2 screenPaper(vec2 fc, bool tooth) {
-    float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;   // isotropic: no streaks
-    if (!tooth) return vec2(fibre, 0.0);
-    // (the handheld: one octave and no pits, one noise tap instead of four)
-    float t = uPostLite > 0.5 ? vnoise(fc * 0.9 + 3.1) : vnoise(fc * 0.9 + 3.1) * 0.55 + vnoise(fc * 0.37 + 11.0) * 0.3 + vnoise(fc * 0.09 + 5.0) * 0.15;
-    float pits = uPostLite > 0.5 ? 0.0 : smoothstep(0.78, 0.92, vnoise(fc * 1.7 + 17.0));
-    return vec2(fibre, (t - 0.5) * 0.11 - pits * 0.05);
-  }
-`;
-const bakeShader = /* glsl */ `
-  precision highp float;
-  uniform float uPixelRatio;
-  uniform float uPostLite;
-  uniform int uPart;   // 0: the lines' noise (tScreenA), 1: the paper's (tScreenB)
-  out highp vec4 fragColor;
-  ${NOISE}
-  ${SCREEN_NOISE}
-  void main() {
-    vec2 fc = gl_FragCoord.xy / uPixelRatio;
-    fragColor = uPart == 0 ? screenLines(fc, 0.0) : vec4(screenPaper(fc, true), 0.0, 1.0);
+  vec4 lineNoise(vec3 d, float boilT) {
+    // cells per radian: the old field's cells a CSS pixel × the focal length in CSS pixels
+    float s = ${LINE_NOISE.cells} * 0.5 * uRes.y * uProj11 / uPixelRatio;
+    vec3 w = pow(abs(d), vec3(${LINE_NOISE.sharp}.0));
+    w /= w.x + w.y + w.z;
+    vec2 b = mod(boilT * vec2(17.3, 11.1), ${LINE_NOISE.size}.0);
+    vec4 n = lineTap(d.yz * s + b) * w.x + lineTap(d.zx * s + b + 37.0) * w.y + lineTap(d.xy * s + b + 71.0) * w.z;
+    return clamp((n - 0.5) * inversesqrt(dot(w, w)) + 0.5, 0.0, 1.0);
   }
 `;
+/** The tiling random texels the lines' noise is read from (deterministic: the same lines on every run). */
+export function lineNoiseTexture() {
+  const n = LINE_NOISE.size, data = new Uint8Array(n * n * 4);
+  let x = 0x9e3779b9;
+  for (let i = 0; i < data.length; i++) { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; data[i] = (x >>> 0) & 255; }
+  const t = new THREE.DataTexture(data, n, n, THREE.RGBAFormat);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.minFilter = t.magFilter = THREE.LinearFilter;
+  t.generateMipmaps = false;
+  t.needsUpdate = true;
+  return t;
+}
 
 const vertexShader = /* glsl */ `
   out vec2 vUv;
@@ -233,7 +239,6 @@ const fragmentShader = /* glsl */ `
   uniform float uHatchSpacing;
   uniform float uHighlight;
   uniform float uClouds;
-  uniform float uGrain;
   uniform int uDebug;
   uniform float uProj11;      // projection[1][1] = 1 / tan(fov / 2)
   uniform float uAO;          // crease shading + ink accents
@@ -244,9 +249,7 @@ const fragmentShader = /* glsl */ `
   uniform float uAerial;      // distant layers lose saturation and drift to the sky colour
   uniform float uLineVary;    // thick silhouettes / thin interior lines / pen pressure
   uniform float uPostLite;    // 1 = one ink-line kernel instead of two (the handheld preset)
-  uniform sampler2D tScreenA;  // the screen-fixed noise, baked (SCREEN_NOISE): the lines' wobble, pressure, inner weight
-  uniform sampler2D tScreenB;  // and the paper's fibre and tooth
-  uniform float uNoiseBaked;   // 1: the bake matches this frame (its size, pixel ratio and handheld mode)
+  uniform sampler2D tLineNoise; // the lines' noise, tiling random texels (LINE_NOISE)
   uniform float uSkyFlat;     // flat printed sky (vs gradient)
   uniform float uSkyDots;     // stipple dots in the sky
   uniform float uCumulus;     // puffy cloud bank on the horizon
@@ -259,7 +262,6 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uPlanetCraters;    // per planet: 1 = cratered, 0 = a plain printed disc
   uniform vec4 uBackdrop;         // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait)
   uniform float uCrevice;         // the deepest crevices filled with ink (0..1)
-  uniform float uPaper;           // the paper's tooth (0..1)
   uniform float uShadowFlat;      // shadows printed in their own colour (0: albedo × tint .. 1: the tint at the surface's value)
   uniform vec4 uHaze;             // the far ground's haze colour, a = how much (0: the sky's horizon)
   uniform float uShadeKeep;       // how much of its own hue a shade keeps where its material doesn't say (materials.js SHADE)
@@ -281,7 +283,7 @@ const fragmentShader = /* glsl */ `
 
   // ---------------------------------------------------------------- noise
   ${NOISE}
-  ${SCREEN_NOISE}
+  ${LINE_NOISE_GLSL}
   float fbm(vec2 p) {
     float s = 0.0, a = 0.5;
     for (int i = 0; i < 5; i++) { s += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
@@ -773,8 +775,9 @@ const fragmentShader = /* glsl */ `
 
     // ---- 1. ink lines with hand-drawn wobble
     float boilT = floor(uTime * 8.0) * uBoil;
-    // (the screen-fixed noise: baked, unless the bake is stale or the lines boil)
-    vec4 sn = uNoiseBaked > 0.5 && boilT == 0.0 ? texelFetch(tScreenA, ivec2(gl_FragCoord.xy), 0) : screenLines(fc, boilT);
+    // (on the view's direction, not the screen: it turns with the world, LINE_NOISE)
+    vec4 sn = lineNoise(rd, boilT);
+    if (uDebug == 13) { fragColor = vec4(sn.xyz, 1.0); return; }   // the lines' noise: it turns with the world
     vec2 wob = sn.xy - 0.5;
     vec2 euv = uv + wob * uWobble * 2.0 * uPixelRatio / uRes;
     float nearD;
@@ -1103,19 +1106,8 @@ const fragmentShader = /* glsl */ `
       col = mix(col, uInk, stroke * w * uRain * 0.5 * wet);
     }
 
-    // ---- 6. paper
-    // no per-pixel noise: a screen-fixed grain reads as dirt the world slides under
-    float grain = 0.0;
-    vec2 paper = uNoiseBaked > 0.5 ? texelFetch(tScreenB, ivec2(gl_FragCoord.xy), 0).xy : screenPaper(fc, uPaper > 0.0);
-    col *= 1.0 + uGrain * (grain * 0.5 + (paper.x - 0.5) * 0.6);
-    // the paper's tooth: a fine mottle and its pits, strongest in the light colours (ink sits on it)
-    if (uPaper > 0.0) {
-      float onLight = smoothstep(0.25, 0.75, dot(col, vec3(0.3, 0.55, 0.15)));
-      col *= 1.0 + uPaper * onLight * paper.y;
-    }
-    vec2 q = uv - 0.5;
-    col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0);
-
+    // (no paper grain, tooth or vignette: anything fixed to the screen reads as a filter the world slides
+    //  under as the camera moves; the page's texture is the surfaces' own, drawn on them)
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
   }
 `;
@@ -1194,7 +1186,6 @@ export function createPost() {
     uBounce: sharedUniforms.uBounce,
     uShadeKeep: sharedUniforms.uShadeKeep,
     uCrevice: { value: 0 },
-    uPaper: { value: 0 },
     uShadowFlat: { value: 0 },
     uHaze: { value: [1, 1, 1, 0] },
     uSpot: { value: [0, 2.5, 0.5, 0] },
@@ -1205,11 +1196,8 @@ export function createPost() {
     uHeightFogTone: { value: [1, 1, 1, 0] },
     uCast: { value: [0, 0] },
     uInkShadow: { value: [0, 0] },
-    uGrain: { value: 0.1 },
     uDebug: { value: 0 },
-    tScreenA: { value: null },
-    tScreenB: { value: null },
-    uNoiseBaked: { value: 0 },
+    tLineNoise: { value: null },
   };
 
   const material = new THREE.ShaderMaterial({
@@ -1244,44 +1232,13 @@ export function createPost() {
   scene.add(quad);
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-  // ---- the screen-fixed noise, baked once per size (SCREEN_NOISE; docs/systems/performance.md): ten
-  // value-noise lookups a pixel became two texel reads (~1.5 ms a frame at Retina size)
-  const target = (format) => new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, format, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false });
-  const bakeA = target(THREE.RGBAFormat), bakeB = target(THREE.RGFormat);
-  uniforms.tScreenA.value = bakeA.texture;
-  uniforms.tScreenB.value = bakeB.texture;
-  const bakeU = { uPixelRatio: { value: 1 }, uPostLite: { value: 0 }, uPart: { value: 0 } };
-  const bakeScene = new THREE.Scene();
-  const bakeQuad = new THREE.Mesh(quad.geometry, new THREE.ShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader, fragmentShader: bakeShader, uniforms: bakeU, depthTest: false, depthWrite: false }));
-  bakeQuad.frustumCulled = false;
-  bakeScene.add(bakeQuad);
-  let baked = null;
-  const keyNow = () => noiseKey(uniforms);
-  // whoever draws the composite without baking (or at another pixel ratio: a portrait) gets the noise worked out
-  // (and the haze's and cast shadows' defines checked again: this handler replaces the sync above, which had left a value
-  // changed in place, not set, on the program it had)
-  quad.onBeforeRender = () => { sync(); uniforms.uNoiseBaked.value = baked === keyNow() ? 1 : 0; };
-  /** Bake the screen-fixed noise for the frame's size (uRes, uPixelRatio, uPostLite) if it changed: before drawing `scene`. */
-  const bakeNoise = (renderer) => {
-    const key = keyNow();
-    if (key === baked) return false;
-    const w = uniforms.uRes.value.x, h = uniforms.uRes.value.y;
-    bakeA.setSize(w, h); bakeB.setSize(w, h);
-    bakeU.uPixelRatio.value = uniforms.uPixelRatio.value;
-    bakeU.uPostLite.value = uniforms.uPostLite.value;
-    const prev = renderer.getRenderTarget();
-    for (const [rt, part] of [[bakeA, 0], [bakeB, 1]]) { bakeU.uPart.value = part; renderer.setRenderTarget(rt); renderer.render(bakeScene, camera); }
-    renderer.setRenderTarget(prev);
-    baked = key;
-    return true;
-  };
-
-  const dispose = () => { bakeA.dispose(); bakeB.dispose(); bakeQuad.material.dispose(); };
-  return { scene, camera, uniforms, bakeNoise, bakeScene, dispose };
+  // the lines' noise: a small tiling texture of random texels, read on the view's direction (LINE_NOISE)
+  const lineNoise = lineNoiseTexture();
+  uniforms.tLineNoise.value = lineNoise;
+  const dispose = () => { lineNoise.dispose(); };
+  return { scene, camera, uniforms, dispose };
 }
 
-/** What the baked screen noise depends on: the frame's size, its pixel ratio (fc in CSS px) and the handheld's lighter paper. */
-export const noiseKey = (U) => `${U.uRes.value.x}x${U.uRes.value.y}@${U.uPixelRatio.value}${U.uPostLite.value > 0.5 ? ' lite' : ''}`;
 
 // ---------------------------------------------------------------------------
 // Light: the glowing surfaces (gHatch.a glow over 0.62) gathered from the G-buffer at a
@@ -1384,28 +1341,28 @@ const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], u
 export const PRESETS = {
   Moebius: {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
-    uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uGrain: 0.1, uClouds: 0.6,
+    uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uClouds: 0.6,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
   Sable: {
     uLineWidth: 1.25, uLineVary: 0.25, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
-    uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
+    uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uClouds: 0.5,
     uFogDensity: 0.0009, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // a Moebius print: flat stippled sky, cumulus on the horizon, dotted ground,
   // fine even ink, dense fine hatching in blue shadow
   'Moebius print': {
     uLineWidth: 1.0, uLineVary: 0.55, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 1, uShadowEdges: 0.8,
-    uWobble: 0.35, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 3.6, uHighlight: 0, uGrain: 0.05, uClouds: 0.45,
+    uWobble: 0.35, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 3.6, uHighlight: 0, uClouds: 0.45,
     uFogDensity: 0.0009, uSkyFlat: 1, uSkyDots: 1, uCumulus: 1, uSkyBands: 0, uHazeBands: 0.5, uRays: 0, uDots: 1,
     // the shade in three tones: a form turned from the sun a half-tone, faces turned down lifted by
     // the ground's light, cast shadows the full tint; shades keep some of their own hue
-    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uPaper: 0.7, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
     // a third tier of value: spot blacks in the shaded pockets, cast shadows a little deeper
     uSpot: [1, 3, 0.3, 0.2], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
@@ -1413,32 +1370,32 @@ export const PRESETS = {
   // high-key, bone-white, heavy cast shadows, few lines
   Vael: {
     uLineWidth: 1.35, uLineVary: 0.9, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
-    uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uGrain: 0.12, uClouds: 0.25,
+    uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uClouds: 0.25,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
   Viridel: {
     uLineWidth: 1.05, uLineVary: 0.6, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
-    uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uGrain: 0.05, uClouds: 0.7,
+    uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uClouds: 0.7,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
   Lorn: {
     uLineWidth: 1.45, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
-    uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.1, uClouds: 0.5,
+    uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uClouds: 0.5,
     uFogDensity: 0.0012, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   'Animated ink': {
     uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
-    uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.14, uClouds: 0.7,
+    uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uClouds: 0.7,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
 };

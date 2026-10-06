@@ -680,7 +680,6 @@ const fAtmo = gui.addFolder('Atmosphere');
 fAtmo.add(U.uFogDensity, 'value', 0, 0.004, 0.0001).name('haze');
 fAtmo.add(U.uClouds, 'value', 0, 1, 0.01).name('clouds');
 fAtmo.add(sharedUniforms.uCloudShadows, 'value', 0, 1, 0.05).name('cloud shadows');
-fAtmo.add(U.uGrain, 'value', 0, 0.4, 0.01).name('paper grain');
 fAtmo.close();
 
 const fTime = gui.addFolder('Time of day');
@@ -1154,7 +1153,6 @@ function renderFrame() {
   U.uProj11.value = camera.projectionMatrix.elements[5];
   // Projected player size controls how much fine ink detail remains visible.
   setSubject(U, camera, player.pos, player.frame?.up ?? _subjUp, player.hidden);
-  post.bakeNoise(renderer);   // (the screen-fixed noise, once per size: post.js)
   renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);

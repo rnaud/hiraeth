@@ -13,7 +13,7 @@ import { stepped } from '../load-steps.js';
 /** The world's touches on the print preset: few strokes, fine even lines (its reference sheets). */
 /** The far towers in stepped bands of a pale warm haze (post.js 4b): from 90 m, each band 1.8 × farther. */
 export const MARKET_HAZE = { uHazeLayers: [90, 1.8, 0.12, 4], uHazeTone: [0.96, 0.91, 0.8, 0.7] };
-export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.85, uWobble: 0.1, uGrain: 0.025, ...MARKET_HAZE };
+export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.85, uWobble: 0.1, ...MARKET_HAZE };
 /** The day's colours: aqua sky, a pale horizon, teal shade, warm light. */
 export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#70969e', '#fff1cf', '#ffe1ae'];
 /** How flat the walls' shade is printed in the street's teal (makeMaterial shadeFlat: a pink wall's turned side goes blue, as the sheets print it, not brown). */

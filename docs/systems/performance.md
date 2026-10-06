@@ -366,7 +366,9 @@ the two ink kernels, the spot blacks, the sky about 0.5-1.5 ms each), the G-buff
 about 1 ms, the shadow maps under 1 ms of GPU; crowds, people and plants a few tenths. At 1280 × 720
 the GPU and the CPU are about even (5-10 ms each), and the CPU is mostly three.js's draw loop.
 
-- **The screen-fixed noise, baked** (`post.js` `SCREEN_NOISE`, `createPost().bakeNoise`): the ink
+- **The screen-fixed noise, baked** (since replaced: the paper is gone and the lines' noise is read on the
+  view's direction from a small tiling texture, rendering.md "Nothing fixed to the screen"; what follows is
+  the history) (`post.js` `SCREEN_NOISE`, `createPost().bakeNoise`): the ink
   lines' wobble (two value-noise lookups), their pressure and inner weight (two) and the paper's
   fibre, tooth and pits (six) depend only on the pixel and the frame's size, yet were worked out for
   every pixel of every frame. They are drawn once per size into two half-float textures (the lines',

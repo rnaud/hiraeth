@@ -34,8 +34,8 @@ all of it is in the game's own materials and post pass (every world uses it), no
   crease shading).
 - **Sky and paper**: the flat printed sky keeps its tint down to a narrow band on the horizon; its
   dots are a grain (anywhere in their cell, several sizes and weights, thicker and thinner in
-  drifts) rather than a screen; the paper has a tooth (`uPaper`: a fine mottle and pits, on the light
-  colours).
+  drifts) rather than a screen. (The paper's tooth, `uPaper`, is gone: fixed to the screen, it read as a
+  filter the world slid under; rendering.md, "Nothing fixed to the screen".)
 - **Plating** (`makeMaterial({ grid, plates: true })`, `S_PLATES`): the grid drawn as rows of plates
   of uneven widths, staggered joints, the odd joint or seam left out, each plate a shade apart (under
   the colour-edge threshold). On the desert's hulls, its station domes, the ship's hull, the
