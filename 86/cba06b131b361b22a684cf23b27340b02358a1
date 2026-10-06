@@ -1,0 +1,25 @@
+changelog.md
+  s_1fd8d0e7b02dcf::t_c9bf8ec1675488 11
+desktop/main.mjs
+  s_1fd8d0e7b02dcf::t_62a3451f2e2e24 1,56-58
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_011db7d4514df3 14
+tests/android-ota.test.js
+  s_1fd8d0e7b02dcf::t_1979444dbd816d 186-190
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "86cba06b131b361b22a684cf23b27340b02358a1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
