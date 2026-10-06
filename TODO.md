@@ -100,9 +100,11 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 ## Animation
 
 - [ ] Measure frame times, animation CPU cost, loading time and memory on the Retroid with
-  representative crowds (desktop headless Chrome done in the Bazaar and the City-Shaft,
-  docs/systems/animation.md, "Locomotion"). **Blocked**: no Android device is attached
-  (`adb devices` is empty).
+  representative crowds. **Blocked**: no Android device is attached (`adb devices` is empty).
+  The desktop half is done (docs/systems/animation.md, "Locomotion"): frame times and the animation
+  CPU in the Signal Market and the City-Shaft, and now the load and the memory for the three
+  crowd worlds (`node scripts/bench/web-load.mjs`) — the Market 586 people, ready in 1.2 s, 147 MB;
+  the desert 159, 2.3 s, 210 MB; the City-Shaft 1 390, 5.3 s, 300 MB; 19.0 MB over the wire.
 - [ ] Evaluate learned motion matching only if it measures better than the conventional system
   (motion matching exists, `?mm=1`, but measures behind the loops: the data, not the method, is
   short). **Blocked on the author**: Mixamo's starts, stops and turns are pending their downloads

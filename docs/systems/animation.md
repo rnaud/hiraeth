@@ -203,6 +203,27 @@ people's update 0.32 / 0.33 → 0.16 / 0.16 ms, and their bodies 53.9 k → 14.7
 eleven on a level). On this Mac the frame is bound by draw calls and fill, so the triangles don't
 show in the frame time; the handheld is still to measure.
 
+**What a world costs to open** (`node scripts/bench/web-load.mjs`, the companion to `web-bench.mjs`,
+which measures the frame): the production build in headless Chrome on the real GPU (ANGLE on Metal,
+an M4 Pro), 1280 × 720, the High preset, no vsync and no frame-rate limit, three runs a world, the
+JS heap read after a forced collection. 19.0 MB goes over the wire whatever the world: the worlds are
+built in the page, so what is downloaded is the bundle, the bodies and the clips.
+
+| world | people (story + crowd) | world ready | JS heap | geometries / textures / programs | frame |
+|---|---|---|---|---|---|
+| the Signal Market | 586 (15 + 571) | 1.19–1.32 s | 140–147 MB | 1 310 / 70 / 63 | 11.4–11.6 ms |
+| the desert | 159 (27 + 132) | 2.26–2.35 s | 209–210 MB | 1 701 / 106 / 77 | 12.2–12.3 ms |
+| the City-Shaft | 1 390 (12 + 1 378) | 5.24–5.45 s | 299–300 MB | 1 411 / 59 / 65 | 14.0–14.5 ms |
+
+The crowd is what the load and the heap follow: the City-Shaft's 1 378 crowd people take it to 5.3 s
+and 300 MB. The desert loads fewer people but holds more than the Market: its terrain, its landmarks
+and its collision (230 k triangles in the BVH since the contact audit's second pass,
+docs/systems/movement.md) are the heaviest of the three. The first frame is on the screen in 15–49 ms
+either way: the title and the sky draw before the world is built.
+
+The same measurements on the handheld are still to take: `scripts/bench/android-run.sh` wants a
+device over USB, and none has been attached since this was written.
+
 ## Motion capture: the people's own walks, and motion matching (`scripts/mocap/`, `src/motion-match.js`)
 
 Motion-captured takes from the CMU database (and, once downloaded, Mixamo's: docs/mixamo-shopping-list.md),
