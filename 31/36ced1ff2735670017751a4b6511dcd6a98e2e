@@ -1,0 +1,21 @@
+TODO.md
+  s_4068fcdc0e3db5::t_701d46f8599a14 137-141,150-161
+docs/systems/engine-bridge.md
+  s_4068fcdc0e3db5::t_7f3012495c6cd1 504-518
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3136ced1ff2735670017751a4b6511dcd6a98e2e",
+  "prompts": {},
+  "sessions": {
+    "s_4068fcdc0e3db5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce61860b-da40-4b8b-a4f2-cda9cfa23c26",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
