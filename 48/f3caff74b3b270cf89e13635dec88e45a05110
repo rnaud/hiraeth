@@ -1,0 +1,27 @@
+changelog.md
+  s_1fd8d0e7b02dcf::t_6ea1a3b2cdb3d8 9
+docs/systems/performance.md
+  s_1fd8d0e7b02dcf::t_b46f496cb40b6d 303-350
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_c6790887a1a1c1 12
+src/post.js
+  s_1fd8d0e7b02dcf::t_09c35bc5875fb5 47-57,270-271,277-278,280-281,284,286,288-289,292,301-303,305-306,308-322,324,326,328
+tests/occlusion-taps.test.js
+  s_1fd8d0e7b02dcf::t_2de22e0c17b2d3 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "48f3caff74b3b270cf89e13635dec88e45a05110",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
