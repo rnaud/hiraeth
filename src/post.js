@@ -38,7 +38,7 @@ export const DEBUG_VIEWS = {
   'Spot blacks: how enclosed': 9,
   'Spot blacks: cast / spot masks': 10,
   'Lines by material: owner / step / ink': 11,
-  'Cast shadows: could lift / lifted': 12,
+  'Cast shadows: could lift / lifted / inked': 12,
 };
 
 /**
@@ -101,6 +101,24 @@ export function castLift(ndl, ny, L, lit, [ground, other]) {
   return pot * (1 - lit) * ss(CAST.light, L);
 }
 
+/**
+ * Ink shadows (post.js 3d; docs/systems/rendering.md, "Ink shadows"). The other end of uCast, and the same pair:
+ * where uCast lifts a cast shadow toward the light, `uInkShadow` = [on open ground, everywhere else] (0 off … 1)
+ * prints it instead as one flat mass of the world's darkest tone (uSpotTone, the spot blacks'), hard-edged, laid
+ * over its hatching and its crease shading. IMG_3774 inks the shadow of a dish or a cliff *on the sand* as a
+ * near-black mass while the domes it falls on keep their blue shade, which is why it splits by the surface as
+ * uCast does. Which shade is cast is the same test (CAST.facing, CAST.light: facing the sun yet dark, the jump
+ * shadow's 0 left out); a material's spot amount gates it (makeMaterial({ spot: 0 }): a cloud, glass, anything
+ * self-lit never takes a mass), as do people, faces and grass. Its edge is the toon threshold's own, so the mass
+ * stops exactly where the shade does.
+ */
+/** How much of a shaded point's cast shadow is printed as the flat mass (mirrors the GLSL): ndl, its normal's y, its light term, lit (0..1). */
+export function inkMass(ndl, ny, L, lit, [ground, other]) {
+  const ss = ([e0, e1], x) => { const u = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1); return u * u * (3 - 2 * u); };
+  const pot = ss(CAST.facing, ndl) * (other + (ground - other) * ss(CAST.ground, ny));
+  return pot * (1 - lit) * ss(CAST.light, L);
+}
+
 /** The composite's optional parts, as defines, from the uniforms the look set: the haze (4b) and the cast shadows (2). */
 export function inkFeatures(U) {
   const f = {};
@@ -108,6 +126,7 @@ export function inkFeatures(U) {
   if (U.uHeightFog.value[3] > 0) f.INK_HFOG = '';
   if (f.INK_LAYERS !== undefined || f.INK_HFOG !== undefined) f.INK_HAZE = '';
   if (U.uCast.value[0] > 0 || U.uCast.value[1] > 0) f.INK_CAST = '';
+  if (U.uInkShadow.value[0] > 0 || U.uInkShadow.value[1] > 0) f.INK_SHADOW = '';
   return f;
 }
 // The value noise (the composite's, and the bake's below: the same code, the same values).
@@ -255,6 +274,7 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uHeightFog;      // height (m) it thickens under, scale height (m), density there (1/m), most it veils (0: none)
   uniform vec4 uHeightFogTone;  // its colour, a = how much of it over the haze's
   uniform vec2 uCast;           // cast shadows lifted toward the light: x on open ground, y elsewhere (0 kept … 1 dropped; CAST)
+  uniform vec2 uInkShadow;      // cast shadows printed instead as a flat mass of uSpotTone, hard-edged: x on open ground, y elsewhere (0 off … 1; CAST, 3d)
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -727,6 +747,13 @@ const fragmentShader = /* glsl */ `
     if (!isSky)
       castPot = smoothstep(${CAST.facing[0]}, ${CAST.facing[1]}, dot(N.xyz, uSunDir)) * mix(uCast.y, uCast.x, smoothstep(${CAST.ground[0]}, ${CAST.ground[1]}, N.y)) * (1.0 - max(max(face, figure), hero));
     #endif
+    // ...or printed as a flat ink mass instead (uInkShadow, 3d): the same test, its own pair, written out on its
+    // own so a world that inks nothing compiles exactly the shader it compiled before (the two are never both on today)
+    float inkPot = 0.0;
+    #ifdef INK_SHADOW
+    if (!isSky)
+      inkPot = smoothstep(${CAST.facing[0]}, ${CAST.facing[1]}, dot(N.xyz, uSunDir)) * mix(uInkShadow.y, uInkShadow.x, smoothstep(${CAST.ground[0]}, ${CAST.ground[1]}, N.y)) * (1.0 - max(max(face, figure), hero)) * spotMat * (1.0 - soft);
+    #endif
 
     // ---- debug views
     if (uDebug == 2) { fragColor = vec4(isSky ? skyBase(rd) : A.rgb, 1.0); return; }
@@ -883,7 +910,12 @@ const fragmentShader = /* glsl */ `
       castLift = castPot * (1.0 - lit) * smoothstep(${CAST.light[0]}, ${CAST.light[1]}, L);
       lit = max(lit, castLift);
       #endif
-      if (uDebug == 12) { fragColor = vec4(castPot, castLift, 0.2, 1.0); return; }   // cast shadows: could lift (red), lifted (green)
+      // ...or inked as a flat mass (uInkShadow, laid on in 3d): the same shade, the other way
+      float inkMass = 0.0;
+      #ifdef INK_SHADOW
+      inkMass = inkPot * (1.0 - lit) * smoothstep(${CAST.light[0]}, ${CAST.light[1]}, L) * (1.0 - emitHere) * (1.0 - uFlatten) * (1.0 - uNight * 0.5);
+      #endif
+      if (uDebug == 12) { fragColor = vec4(castPot, castLift, inkMass, 1.0); return; }   // cast shadows: could lift (red), lifted (green), inked (blue)
       // during the sun -> moon hand-over both tones converge, so shadows fade
       // a face's shade (its skin, its eyes' whites) is a warm darker tone of itself, not the world's
       // blue-violet shadow: the shadow tint's own darkness, turned warm (less so at night)
@@ -896,7 +928,10 @@ const fragmentShader = /* glsl */ `
       vec3 shadeC = albedo * shadowTint;
       // a flat printed shadow (uShadowFlat): the shadow's own colour at the surface's value, not the
       // surface's colour darkened (the City-Shaft's pink walls go blue in shade, not dark pink)
-      if (shadowFlat > 0.0 && face < 0.5) shadeC = mix(shadeC, shadowTint * (0.45 + 0.7 * dot(albedo, vec3(0.3, 0.55, 0.15))), shadowFlat);
+      // (a person keeps their own shade under the world's print, as Vael II's do: an orange coat in shade
+      //  is a darker orange, not the shaft's grey-blue; a material's own print still holds)
+      float flatHere = ownFlat ? shadowFlat : shadowFlat * (1.0 - max(figure, hero));
+      if (flatHere > 0.0 && face < 0.5) shadeC = mix(shadeC, shadowTint * (0.45 + 0.7 * dot(albedo, vec3(0.3, 0.55, 0.15))), flatHere);
       shadeC = mix(shadeC, albedo * uLightTint, face > 0.5 ? 0.0 : shadeLift);
       vec3 shade = mix(shadeC, albedo * uLightTint, uFlatten);
       // self-lit surfaces (gHatch.a) keep their colour at night and glow a little
@@ -911,6 +946,9 @@ const fragmentShader = /* glsl */ `
       float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
       float hFade = (1.0 - smoothstep(uHatchScreen > 0.5 ? 40.0 : 150.0, uHatchScreen > 0.5 ? 350.0 : 700.0, depth)) * uHatch * (1.0 - uFlatten);
       hFade *= mix(1.0, 0.12 * heroDetail, hero) * (1.0 - castLift);
+      #ifdef INK_SHADOW
+      hFade *= 1.0 - inkMass;   // (a flat mass carries no strokes)
+      #endif
       vec3 H = surface.rgb;
       // the player's drawn face and folds are its pen work: full strength once it is large enough to read
       H.b *= mix(1.0, heroDetail, hero) * innerK;
@@ -971,6 +1009,14 @@ const fragmentShader = /* glsl */ `
         col = mix(col, spotC, spot * k);
         if (uDebug == 10) { fragColor = vec4(castK * k, spot * k, 0.2, 1.0); return; }   // spot blacks: the cast (red) and spot (green) masks
       }
+
+      // ---- 3d. ink shadows: a cast shadow printed as one flat mass of the world's darkest tone (uSpotTone,
+      // the spot blacks'), hard-edged, over its hatching, its drawn detail and its crease shading, the way
+      // IMG_3774 inks the shadow of a dish or a cliff on the sand. The other end of uCast, which lightens.
+      // (compiled in only where a look says it: inkFeatures)
+      #ifdef INK_SHADOW
+      if (inkMass > 0.0) col = mix(col, uSpotTone.rgb * mix(vec3(1.0), clamp(albedo * 2.2, 0.0, 1.6), uSpotTone.a), inkMass);
+      #endif
 
       // ---- 4. atmospheric perspective, in flat layers like a printed background
       float fog = 1.0 - exp(-max(depth * toRange - uFogStart, 0.0) * uFogDensity * uFogMul);
@@ -1158,6 +1204,7 @@ export function createPost() {
     uHeightFog: { value: [0, 20, 0, 0] },
     uHeightFogTone: { value: [1, 1, 1, 0] },
     uCast: { value: [0, 0] },
+    uInkShadow: { value: [0, 0] },
     uGrain: { value: 0.1 },
     uDebug: { value: 0 },
     tScreenA: { value: null },
@@ -1187,7 +1234,7 @@ export function createPost() {
     material.defines = f;
     material.needsUpdate = true;
   };
-  for (const k of ['uHazeLayers', 'uHeightFog', 'uCast']) {
+  for (const k of ['uHazeLayers', 'uHeightFog', 'uCast', 'uInkShadow']) {
     let v = uniforms[k].value;
     Object.defineProperty(uniforms[k], 'value', { get: () => v, set: (x) => { v = x; sync(); }, enumerable: true });
   }
@@ -1333,7 +1380,7 @@ export function createBloom(gbuffer, { spread = 1.3, wideSpread = 3.0 } = {}) {
 // two-tone) or towards a Moebius page (inked, hatched, wobbly).
 // (every preset says the haze: a zone's or a world's touches never carry into the next)
 // (and the cast shadows: every world keeps them unless it says)
-const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0], uCast: [0, 0] });
+const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0], uCast: [0, 0], uInkShadow: [0, 0] });
 export const PRESETS = {
   Moebius: {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,

@@ -1,0 +1,20 @@
+[
+ {
+  "name": "vael2-v52",
+  "url": "?level=references&view=52",
+  "states": [
+   [
+    "asis",
+    ""
+   ],
+   [
+    "nomax",
+    "const m = post.scene.children[0].material;\nlet f = m.fragmentShader;\nf = f.replace('(1.0 - max(castLift, inkMass))', '(1.0 - castLift)');\nm.fragmentShader = f; m.needsUpdate = true;"
+   ],
+   [
+    "bare",
+    "const m = post.scene.children[0].material;\nlet f = m.fragmentShader;\nf = f.replace('(1.0 - max(castLift, inkMass))', '(1.0 - castLift)').replace(/\\n *uniform vec2 uInkShadow;[^\\n]*/, '').replace(/\\n *float inkPot = 0\\.0;/, '').replace(/\\n *float inkMass = 0\\.0;/, '').replace('vec4(castPot, castLift, inkMass, 1.0)', 'vec4(castPot, castLift, 0.2, 1.0)').replace(/\\n *\\/\\/ \\.\\.\\.or printed as a flat ink mass instead[\\s\\S]*?#endif(?=\\n)/, '').replace(/\\n *\\/\\/ \\.\\.\\.or inked as a flat mass[\\s\\S]*?#endif(?=\\n)/, '').replace(/\\n *\\/\\/ ---- 3d\\. ink shadows[\\s\\S]*?#endif\\n/, '\\n');\nm.fragmentShader = f; m.needsUpdate = true;"
+   ]
+  ]
+ }
+]

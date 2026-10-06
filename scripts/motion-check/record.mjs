@@ -50,6 +50,7 @@ const TOG = {
   haze: [`window.__pu ??= {}; window.__pu.hl ??= post.uniforms.uHazeLayers.value; window.__pu.hf ??= post.uniforms.uHeightFog.value; post.uniforms.uHazeLayers.value = [300, 2, 0, 0]; post.uniforms.uHeightFog.value = [0, 20, 0, 0]`,
     `post.uniforms.uHazeLayers.value = window.__pu.hl; post.uniforms.uHeightFog.value = window.__pu.hf`],
   cast: POSTU('uCast', '[0, 0]'),
+  inkShadow: POSTU('uInkShadow', '[0, 0]'),
   spot: POSTU('uSpot', '[0, 3, 0.3, 0.2]'),
   ao: POSTU('uAO', '0'),
   wobble: POSTU('uWobble', '0'),

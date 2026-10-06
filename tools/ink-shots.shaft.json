@@ -1,0 +1,131 @@
+[
+ {
+  "name": "shaft-town",
+  "url": "?level=incal",
+  "settle": 14000,
+  "cam": {
+   "eye": [
+    -95,
+    170,
+    126
+   ],
+   "target": [
+    -140,
+    159,
+    180
+   ],
+   "fov": 55
+  },
+  "states": [
+   [
+    "before",
+    "window.__trees = []; scene.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.uniforms && m.uniforms.uShade && m.uniforms.uShade.value.y === 2) window.__trees.push(m); }); post.uniforms.uShadowFlat.value = 0;"
+   ],
+   [
+    "flat-all",
+    "post.uniforms.uShadowFlat.value = 0.8; for (const m of window.__trees) m.uniforms.uShade.value.y = -1;"
+   ],
+   [
+    "after",
+    "for (const m of window.__trees) m.uniforms.uShade.value.y = 2;"
+   ]
+  ]
+ },
+ {
+  "name": "shaft-rim",
+  "url": "?level=incal",
+  "settle": 14000,
+  "cam": {
+   "eye": [
+    300,
+    204,
+    60
+   ],
+   "target": [
+    296,
+    199,
+    -10
+   ],
+   "fov": 60
+  },
+  "states": [
+   [
+    "before",
+    "window.__trees = []; scene.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.uniforms && m.uniforms.uShade && m.uniforms.uShade.value.y === 2) window.__trees.push(m); }); post.uniforms.uShadowFlat.value = 0;"
+   ],
+   [
+    "flat-all",
+    "post.uniforms.uShadowFlat.value = 0.8; for (const m of window.__trees) m.uniforms.uShade.value.y = -1;"
+   ],
+   [
+    "after",
+    "for (const m of window.__trees) m.uniforms.uShade.value.y = 2;"
+   ]
+  ]
+ },
+ {
+  "name": "shaft-down",
+  "url": "?level=incal",
+  "settle": 14000,
+  "cam": {
+   "eye": [
+    252,
+    203,
+    0
+   ],
+   "target": [
+    60,
+    60,
+    20
+   ],
+   "fov": 60
+  },
+  "states": [
+   [
+    "before",
+    "window.__trees = []; scene.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.uniforms && m.uniforms.uShade && m.uniforms.uShade.value.y === 2) window.__trees.push(m); }); post.uniforms.uShadowFlat.value = 0;"
+   ],
+   [
+    "flat-all",
+    "post.uniforms.uShadowFlat.value = 0.8; for (const m of window.__trees) m.uniforms.uShade.value.y = -1;"
+   ],
+   [
+    "after",
+    "for (const m of window.__trees) m.uniforms.uShade.value.y = 2;"
+   ]
+  ]
+ },
+ {
+  "name": "shaft-town-9h",
+  "url": "?level=incal",
+  "hour": 9,
+  "settle": 14000,
+  "cam": {
+   "eye": [
+    -95,
+    170,
+    126
+   ],
+   "target": [
+    -140,
+    159,
+    180
+   ],
+   "fov": 55
+  },
+  "states": [
+   [
+    "before",
+    "window.__trees = []; scene.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.uniforms && m.uniforms.uShade && m.uniforms.uShade.value.y === 2) window.__trees.push(m); }); post.uniforms.uShadowFlat.value = 0;"
+   ],
+   [
+    "flat-all",
+    "post.uniforms.uShadowFlat.value = 0.8; for (const m of window.__trees) m.uniforms.uShade.value.y = -1;"
+   ],
+   [
+    "after",
+    "for (const m of window.__trees) m.uniforms.uShade.value.y = 2;"
+   ]
+  ]
+ }
+]

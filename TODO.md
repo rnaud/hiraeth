@@ -59,10 +59,10 @@ scene-level modelling and a few shader limits:
   - Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense
     small machinery at every scale, so most of their black masses have no geometry to sit in here yet.
     Vael II's spawn on High pays +1.7 ms for them (its many shaded overhangs).
-  - IMG_3774's cast shadows are near-black ink masses with a hard edge: a world-level "ink shadow"
-    option is missing (`uCast` lightens, it does not blacken).
-  - Flat shadow per material: the City-Shaft's trees go grey-blue with `uShadowFlat` on, so the world
-    does not use it.
+  - [x] IMG_3774's cast shadows are near-black ink masses with a hard edge: a world-level "ink shadow"
+    option is missing (`uCast` lightens, it does not blacken). Done: `uInkShadow` (rendering.md, "Ink shadows").
+  - [x] Flat shadow per material: the City-Shaft's trees go grey-blue with `uShadowFlat` on, so the world
+    does not use it. Done: the world prints flat at 0.8, its trees say `shadeFlat: 0`, people keep their shade.
   - The half-tone cannot tell a back wall inside another's cast shadow (it reads as half-tone, the
     panel's is full shadow).
   - Paper grain is screen-fixed, kept light (`uPaper` 0.7); the sheets' is heavier and on the page.

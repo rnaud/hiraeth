@@ -53,6 +53,27 @@ test('Vael II prints its rock, plain and buildings flat per material, its people
   assert.ok(SKY_STONES_LOOK.uCumulus === 0 && SKY_STONES_LOOK.uClouds === 0 && SKY_STONES_LOOK.uBounce === 0, 'a clean sky, dark undersides');
 });
 
+test("the City-Shaft prints its shade flat in the shaft's blue as its sheets do; its trees say their own and stay green", async () => {
+  const { readFile } = await import('node:fs/promises');
+  const src = await readFile(new URL('../src/levels/incal.js', import.meta.url), 'utf8');
+  const { SHAFT_LOOK } = await import('../src/levels/reference-shaft.js');
+  assert.ok(/look: \{ uHatch: 0\.45, uCumulus: 0, uShadowFlat: 0\.8,/.test(src), "the world prints its shadows flat, as its views already do");
+  assert.equal(SHAFT_LOOK.uShadowFlat, 0.8, 'the world and its sheets at the same strength');
+  assert.ok(/treeMat = makeMaterial\(\{[^}]*pattern: 'leaves', shadeFlat: 0 \}\)/.test(src), 'the cypresses and olives keep their green');
+  // a material's own flat print of 0 is not "nothing said": it overrides the world's uShadowFlat (post.js ownFlat)
+  const [, hue] = shadeOf({ color: '#5e7a3a', pattern: 'leaves', shadeFlat: 0 });
+  const [, , , h, f] = unpackShade(...packShade(0.3, 0.2, 0, hue));
+  assert.equal(f, 0, "the tree's own print, flat: the world's is overridden, not inherited");
+  assert.equal(h, -1, "and it keeps the world's hue");
+  // nothing said at all stays the world's
+  assert.equal(unpackShade(...packShade(0.3, 0.2, 0, shadeOf({ color: '#5e7a3a' })[1]))[4], -1);
+  // people never take the world's print (the traveller's coat in shade stays a darker coat, not the shaft's blue);
+  // a material's own print still holds
+  const post = await readFile(new URL('../src/post.js', import.meta.url), 'utf8');
+  assert.match(post, /float flatHere = ownFlat \? shadowFlat : shadowFlat \* \(1\.0 - max\(figure, hero\)\);/);
+  assert.match(post, /if \(flatHere > 0\.0 && face < 0\.5\) shadeC = mix\(/);
+});
+
 test('rock in strata is hatched down its faces; cross-hatched rings only on upright faces', () => {
   const m = makeMaterial({ color: '#d0c0a0', mode: MODE_STRATA, key: 't.strata.dir' });
   assert.ok(m.fragmentShader.includes(`uMode == ${MODE_STRATA} ? vec2(0.99, 0.14)`), 'strata strokes run down the face');

@@ -396,6 +396,32 @@ tier's `uSpot.w`, "Spot blacks" in references.md). This is the other half of tha
   the low sun counted, form shade, the terminator, the lit side and the jump shadow kept; the presets keep
   them; Vael II and Lorn II and their views lift them.
 
+## Ink shadows (post.js 3d; `uInkShadow`, `inkMass`)
+
+The other end of `uCast`. IMG_3774 prints the shadow of a dish or a cliff *on the sand* as one near-black
+mass with a hard edge, while the domes it falls on keep their blue shade. `uInkShadow` = [on open ground,
+everywhere else] (0 off … 1) lays one flat mass of the world's darkest tone (`uSpotTone`, the spot blacks')
+over a cast shadow, over its hatching, its drawn detail and its crease shading; its strokes go with it.
+
+- **Which shade**: the same test as the lift (facing the sun yet shaded, `CAST`), the same split by surface;
+  never a person, a face, the traveller, grass, a light, or a material that says `spot: 0` (clouds, glass).
+  Its edge is the shade's own antialiased edge (`1 - lit`), so the mass stops where the shade does.
+- **Set**: only IMG_3774's seven views (`INK_SHADOWS` in reference-desert.js: [0.85, 0.3]; the spot tier's
+  `uSpot.w` there is 0 now, the mass does it whole). Every preset says [0, 0] (`hazeOff`); the desert itself
+  keeps its pale tan cast shadows (IMG_3772–3773).
+- **Compiled in only where it is set** (`INK_SHADOW`, `inkFeatures`): a world that inks nothing compiles the
+  shader it did before. Checked by screenshots, before (main) against after: Vael II, the Garden, the Market,
+  the Buried Machine and the desert's other views are identical bar moving people and motes.
+- **Debug**: `params.debug` 12 draws the inked share in blue (red could lift, green lifted).
+- **Cost** (M4 Pro, headless Chrome, Handheld at 1280 × 720 scale 0.75, view 22, the two builds timed in
+  turns, 10 pairs): main 28.5 → 28.0 ms, in-page off/on +0.4 ms; within the noise of a loaded machine.
+- `tests/ink-pass.test.js`: the JS twin (`inkMass`), the shader's order and the define, the seven views.
+
+**Flat shadows, and a material's own.** The City-Shaft's world now prints its shade flat in the shaft's blue
+as its sheets do (`uShadowFlat` 0.8, as `SHAFT_LOOK` already did): a pink wall's turned side goes blue. Its
+cypresses and olives say their own print (`shadeFlat: 0`) and keep their green; people (figures and the
+traveller) never take the world's print, only a material's own, so a coat in shade is a darker coat, not grey.
+
 ## Facets edge-on to the sun (materials.js `FACET_EDGE`)
 
 A flat-shaded (`flat: true`) wall lying in line with the sun has n·l ≈ 0, a light term on the toon

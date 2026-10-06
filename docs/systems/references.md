@@ -148,7 +148,7 @@ the narrowest creases.
   dark rust, teal a dark teal).
 - **Per world**: the presets (all of them say it; Moebius print `[1, 3, 0.3, 0.2]`), a world's
   `defaults.look` and a view's `look`. The Buried Machine `BURIED_SPOTS` (`[1, 3.5, 0.27, 0.45]`, a
-  rust-brown tone keeping more of each colour); IMG_3774's views `INK_SHADOWS` (cast shadows 0.75).
+  rust-brown tone keeping more of each colour); IMG_3774's views `INK_SHADOWS` (their cast shadows inked whole by `uInkShadow` instead, rendering.md "Ink shadows").
 - **Per material** (`makeMaterial({ spot })`, `SPOT`): packed over the drawn detail in `gHatch.b`
   (+4 × (1 + step); the detail stays under 2); a self-lit or glass surface says 0, so do the
   references' clouds. Unsaid: the world's.

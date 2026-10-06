@@ -861,7 +861,10 @@ export function* buildIncal(scene) {
     const greens = ['#5e7a3a', '#4f6b34', '#6f8a42', '#56733f'];
     const hash01 = (i) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
     const groups = [...new Set(trees.map((t) => t[4]))];
-    const treeMat = makeMaterial({ color: '#ffffff', scrub: true, pattern: 'leaves' });
+    // (shadeFlat 0: the world prints its shadows flat in the shaft's blue (uShadowFlat below), which turned
+    //  the cypresses and olives grey-blue; a material's own flat print overrides the world's, so they keep
+    //  their green darkened — docs/systems/rendering.md, "Flat shadows, and a material's own")
+    const treeMat = makeMaterial({ color: '#ffffff', scrub: true, pattern: 'leaves', shadeFlat: 0 });
     // umbrella pine: a bare leaning trunk under a flat layered canopy
     const pineParts = [new THREE.CylinderGeometry(0.22, 0.4, 8, 5).translate(0, 4, 0).rotateZ(0.12)];
     for (let k = 0; k < 5; k++) { const a = k * 1.9, r = k ? 1.8 : 0; pineParts.push(new THREE.IcosahedronGeometry(2.2, 0).scale(1.2, 0.42, 1.2).translate(Math.cos(a) * r + 0.95, 8.4 + (k % 2) * 0.5, Math.sin(a) * r)); }
@@ -988,8 +991,9 @@ export function* buildIncal(scene) {
         vehicles.push(taxi);
       }
     },
-    // (as its plates: barely hatched, a clean sky)
-    defaults: { hour: 12.5, preset: 'Moebius print', look: { uHatch: 0.45, uCumulus: 0, ...SHAFT_FOG } },
+    // (as its plates: barely hatched, a clean sky, the shade printed flat in the shaft's own blue as the
+    //  sheets do — a pink wall's turned side goes blue, not dark pink; the trees say their own, above)
+    defaults: { hour: 12.5, preset: 'Moebius print', look: { uHatch: 0.45, uCumulus: 0, uShadowFlat: 0.8, ...SHAFT_FOG } },
     sky: {
       script: {
         day: ['#8fb4da', '#eef0ea', '#93a6cf', '#fffaf0', '#fff6dc'],   // print: clear blue over a pale haze

@@ -120,7 +120,7 @@ test('cast shadows by world: a cast shadow lifted by how much the world says, fo
   // the shader: its strokes and its edge line go with it, the light kept as the shade's own test
   const post = readFileSync(new URL('../src/post.js', import.meta.url), 'utf8');
   assert.match(post, /lit = max\(lit, castLift\)/);
-  assert.match(post, /\* \(1\.0 - castLift\);/);
+  assert.match(post, /hFade \*= mix\(1\.0, 0\.12 \* heroDetail, hero\) \* \(1\.0 - castLift\);/);   // (its strokes fade with the lift; with the ink mass too, behind its define: "ink shadows" below)
   assert.match(post, /eI\.w \* 0\.8 \* \(1\.0 - face\) \* \(1\.0 - castPot\)/);
   assert.ok(post.includes('${CAST.facing[0]}') && post.includes('${CAST.ground[0]}') && post.includes('${CAST.light[0]}'));
 });
@@ -140,6 +140,49 @@ test('the worlds say their cast shadows: Vael II and Lorn II lift them on open g
   // the desert's sheets ink theirs darker (the spot tier), never lifted
   const { DESERT_LOOK } = await import('../src/desert-sites.js');
   assert.equal(DESERT_LOOK.uCast, undefined);
+});
+
+test('ink shadows: a cast shadow printed as a flat mass by how much the world says, form shade and the jump shadow kept', async () => {
+  const { inkMass } = await import('../src/post.js');
+  const both = [1, 0.3];
+  // a cast shadow on open ground (facing the sun and up, shaded): the whole mass with 1
+  assert.ok(Math.abs(inkMass(0.6, 1, 0.38, 0, both) - 1) < 1e-9);
+  // on a wall or a dome (upright): the other amount, so the sheets' domes keep their blue shade
+  assert.ok(Math.abs(inkMass(0.6, 0, 0.38, 0, both) - 0.3) < 1e-9);
+  // form shade (turned from the sun), the terminator's band, the lit side and the jump shadow (light 0) keep
+  assert.equal(inkMass(-0.3, 1, 0.35, 0, both), 0);
+  assert.equal(inkMass(0.0, 1, 0.45, 0, both), 0);
+  assert.equal(inkMass(0.6, 1, 0.9, 1, both), 0);
+  assert.equal(inkMass(0.6, 1, 0, 0, both), 0);
+  // nothing said: no mass anywhere (off by default, every world as it was)
+  assert.equal(inkMass(0.6, 1, 0.38, 0, [0, 0]), 0);
+  // the shader: the mass laid on over the hatching in the surface's darkest tone, its strokes gone with it
+  const post = readFileSync(new URL('../src/post.js', import.meta.url), 'utf8');
+  assert.match(post, /#ifdef INK_SHADOW\n\s*hFade \*= 1\.0 - inkMass;/);
+  assert.match(post, /if \(inkMass > 0\.0\) col = mix\(col, uSpotTone\.rgb \* mix\(vec3\(1\.0\), clamp\(albedo \* 2\.2, 0\.0, 1\.6\), uSpotTone\.a\), inkMass\);/);
+  assert.ok(post.indexOf('3d. ink shadows') > post.indexOf('3c. spot blacks'), 'after the hatching and the spot tier: one flat mass');
+  // lifting and inking are the two ends of one knob: the same test, the same pair, written out apart so a
+  // world that inks nothing compiles the shader it compiled before (checked by the screenshots, byte for byte)
+  const lift = post.match(/castPot = ([^;]+);/)[1], inkp = post.match(/inkPot = ([^;]+);/)[1];
+  assert.equal(inkp.replace('uInkShadow.y, uInkShadow.x', 'uCast.y, uCast.x').replace(' * spotMat * (1.0 - soft)', ''), lift,
+    'the ink mass asks the same of a pixel as the lift, with its own pair (and never on grass or a material that says no spot black)');
+});
+
+test("the desert's IMG_3774 views ink their cast shadows; no other view and no preset does", async () => {
+  const { PRESETS } = await import('../src/post.js');
+  for (const [name, p] of Object.entries(PRESETS)) assert.deepEqual(p.uInkShadow, [0, 0], `${name} inks none`);
+  const { REFERENCE_VIEWS } = await import('../src/levels/reference-views.js');
+  const inked = REFERENCE_VIEWS.filter((v) => v.look?.uInkShadow?.[0] > 0);
+  assert.equal(inked.length, 7, 'the seven panels of IMG_3774');
+  for (const v of inked) assert.equal(v.sheet, 'IMG_3774', v.title);
+  for (const v of inked) {
+    assert.ok(v.look.uInkShadow[0] > v.look.uInkShadow[1], `${v.title}: the sand's masses darker than the domes'`);
+    assert.equal(v.look.uSpot[3], 0, `${v.title}: the spot tier no longer darkens the cast shadows itself`);
+    assert.ok(v.look.uSpot[0] > 0, `${v.title}: it still fills the pockets`);
+  }
+  // the desert itself (and every other world) keeps its pale tan cast shadows
+  const { DESERT_LOOK } = await import('../src/desert-sites.js');
+  assert.equal(DESERT_LOOK.uInkShadow, undefined);
 });
 
 test('the desert views all say the dunes\' haze, the first sheet\'s too', async () => {
@@ -174,10 +217,14 @@ test('the haze and the cast shadows are compiled into the composite only while t
   const w = m.version;
   post.uniforms.uCast.value = [0.8, 0];
   assert.equal(m.version, w, 'the same set: no recompile');
+  post.uniforms.uInkShadow.value = [0.85, 0.3];
+  assert.deepEqual(Object.keys(m.defines).sort(), ['INK_CAST', 'INK_HAZE', 'INK_HFOG', 'INK_LAYERS', 'INK_SHADOW']);
+  assert.ok(m.version > w, 'recompiled');
   post.uniforms.uHazeLayers.value = [100, 2, 0.1, 0]; post.uniforms.uHeightFog.value = [0, 100, 0.002, 0]; post.uniforms.uCast.value = [0, 0];
+  post.uniforms.uInkShadow.value = [0, 0];
   assert.deepEqual(m.defines, {});
   // the shader: each part behind its define
   const src = m.fragmentShader;
-  for (const d of ['INK_HAZE', 'INK_LAYERS', 'INK_HFOG', 'INK_CAST']) assert.ok(src.includes(`#ifdef ${d}`), d);
+  for (const d of ['INK_HAZE', 'INK_LAYERS', 'INK_HFOG', 'INK_CAST', 'INK_SHADOW']) assert.ok(src.includes(`#ifdef ${d}`), d);
   assert.equal((src.match(/hazeAt\(/g) ?? []).length, 2, 'declared once, evaluated once a pixel');
 });

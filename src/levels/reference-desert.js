@@ -19,10 +19,15 @@ const sheet = (name) => ({ name: `The Desert / ${name}.JPG`, size: [1024, 1024],
 export const DESERT_SHEETS = { IMG_3772: sheet('IMG_3772'), IMG_3773: sheet('IMG_3773'), IMG_3774: sheet('IMG_3774') };
 
 const n4 = createNoise2D(37754);
-/** IMG_3774 prints its cast shadows as near-black ink masses (post.js uSpot.w: cast shadows most of the way to the spot tone). */
+/**
+ * IMG_3774 prints its cast shadows as near-black ink masses with a hard edge (the dish's on the sand, the
+ * cliff's across the gorge): post.js uInkShadow lays one flat mass of the spot tone over each, strokes and all
+ * (3d, docs/systems/rendering.md "Ink shadows"). The spot tier keeps the pockets but no longer darkens the cast
+ * shadows itself (uSpot.w 0: the mass does it, whole).
+ */
 /** The views' sky and the desert's far dunes in stepped pale bands (post.js 4b). */
 export const DUNES = { ...CLEAN_SKY, ...DUNE_HAZE, uHazeLayers: [120, 1.9, 0.12, 4] };   // (the panels' scenes are smaller: from 120 m)
-const INK_SHADOWS = { ...DUNES, uSpot: [1, 3, 0.3, 0.75], uSpotTone: [0.2, 0.15, 0.13, 0.35] };
+const INK_SHADOWS = { ...DUNES, uSpot: [1, 3, 0.3, 0], uSpotTone: [0.2, 0.15, 0.13, 0.35], uInkShadow: [0.85, 0.3] };
 const sand = (c1, c2, c3, o = {}) => ({ color: c1, color2: c2, color3: c3, ripples: true, sandInk: true, ...o });
 /** Dunes: rolling ridged crests whose height grows with the distance (a horizon of dunes). */
 const dunes = (x, z, amp = 4, f = 0.012, seed = 0) => amp * ridged(x * 0.6 + seed, z, f, seed) + 0.4 * amp * n2(x * f * 0.5 + seed, z * f * 0.5);
