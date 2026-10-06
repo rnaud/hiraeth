@@ -1,0 +1,43 @@
+changelog.md
+  s_55b4bc53b812ec::t_79c389d22b7dcb 18-20
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_c6427d6d89c874 144-148
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_0b69b13bf1e645 47-48
+docs/systems/references.md
+  s_55b4bc53b812ec::t_a69b49b1757c40 93-96
+src/changelog.js
+  s_55b4bc53b812ec::t_f5816b7b4ccea5 22-24
+src/desert-city.js
+  s_55b4bc53b812ec::t_235d1014b6bcff 260-262
+src/desert-sites.js
+  s_55b4bc53b812ec::t_11e7f6c48aa4e7 71-77
+src/levels/desert.js
+  s_55b4bc53b812ec::t_27882a769c1c4b 17,89-90
+src/life.js
+  s_55b4bc53b812ec::t_f1f4953acf882a 261-263,265-266
+src/perf.js
+  s_55b4bc53b812ec::t_73e116a272db5c 154-155
+tests/desert-gate.test.js
+  s_55b4bc53b812ec::t_68f0c7433b7538 1-46
+tests/desert-sky.test.js
+  s_55b4bc53b812ec::t_ef662117a18d58 1-28
+tests/footprints.test.js
+  s_55b4bc53b812ec::t_22f0ba44a24798 1-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d638faa80a66b416bee7b028c938d91b38fbb1ec",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
