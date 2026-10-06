@@ -1,0 +1,27 @@
+changelog.md
+  s_4068fcdc0e3db5::t_0f329e253573f4 9
+docs/systems/movement.md
+  s_4068fcdc0e3db5::t_659ff103f24856 76-78
+src/changelog.js
+  s_4068fcdc0e3db5::t_0fe6366a099ba6 13
+src/desert-city.js
+  s_4068fcdc0e3db5::t_d17ed4448445f6 295-297,305,311-312,721,765,770,772
+tests/spheres.test.js
+  s_4068fcdc0e3db5::t_af8928853ab7fe 95-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5334bd2cd6dcf6a5fceabd3aeb72450e37e6ce1a",
+  "prompts": {},
+  "sessions": {
+    "s_4068fcdc0e3db5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce61860b-da40-4b8b-a4f2-cda9cfa23c26",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
