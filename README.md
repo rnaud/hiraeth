@@ -37,6 +37,8 @@ URL parameters that matter while developing:
 | `?pad=android` | Android button names in the prompts |
 | `?level=references&view=<n>&look=desert` | one reference sheet's view, in a world's look |
 
+Watch or export the 48-second in-engine trailer at `trailer.html`.
+
 Other pages: `studio.html` (the character studio), `motion.html` (the Motion page),
 `tools/rig-review.html`, `tools/people-review.html`, `tools/tongues.html`.
 

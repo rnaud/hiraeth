@@ -34,3 +34,6 @@ output/engine-bridge/
 godot/js/
 godot/.godot/
 godot/gen/
+
+# Locally rendered trailer videos
+output/trailer/

@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 export const BUILD_INPUT = {
   main: fileURLToPath(new URL('./index.html', import.meta.url)),
   studio: fileURLToPath(new URL('./studio.html', import.meta.url)),
+  trailer: fileURLToPath(new URL('./trailer.html', import.meta.url)),
   motion: fileURLToPath(new URL('./motion.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
@@ -27,7 +28,7 @@ const dropMakeHuman = () => ({
 export default defineConfig({
   base: './',
   // main.js loads in stages with top-level await
-  // three pages: the game, the character studio (studio.html, src/studio/) and the Motion page
+  // The game, trailer, character studio (studio.html, src/studio/) and Motion page
   // (motion.html, src/motion/: the traveller's loops against motion matching): they ship with the game
   build: { target: 'es2022', rolldownOptions: { input: BUILD_INPUT } },
   plugins: [dropMakeHuman()],

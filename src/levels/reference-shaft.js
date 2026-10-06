@@ -144,7 +144,7 @@ function shaftScene(kit, v, o) {
   for (const w of o.walls ?? []) houseWall(kit, M, rng, { ...w, casts: w.side * Math.sign(v.sun.side) > 0 || Math.abs(v.sun.side) > 172 });
   for (const s of o.stacks ?? []) stack(kit, M, rng, s);
   for (const [a, b, w] of o.walkways ?? []) walkway(kit, M, a, b, w);
-  for (const [x, y, z, yaw, s] of o.cabs ?? []) cab(kit, M, [x, y, z], yaw, s);
+  for (const [x, y, z, yaw, s] of (v.omitCabs ? [] : o.cabs ?? [])) cab(kit, M, [x, y, z], yaw, s);
   // cables across the gap: from one wall's face to the other's, sagging
   const W = o.walls ?? [];
   if (W.length >= 2) for (let i = 0; i < (o.cables ?? 0); i++) {
