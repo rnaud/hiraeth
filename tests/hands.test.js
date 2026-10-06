@@ -207,3 +207,40 @@ test('updateHands drives the traveller and the people near the camera only', () 
   updateHands(1 / 60, { player, npcs: [near, far, hidden, handheld, { pos: new THREE.Vector3() }], camera, faces: { faces: new Map() } });
   assert.deepEqual(calls.map((c) => c[0]), ['player', 'near']);
 });
+
+test('gliding, the hands hold still: open, palms down, the same turn on the arm every frame (they used to spin)', async () => {
+  // (the IK that spreads the arms kept each hand's world turn, read back from the hand's last-frame
+  // local turn on a freshly posed forearm: the difference fed back into itself, ~10° a frame)
+  const { Player } = await import('../src/player.js');
+  const { Physics } = await import('../src/physics.js');
+  const { items, ITEMS } = await import('../src/items.js');
+  for (const id of Object.keys(ITEMS)) if (id === 'backpack' || id === 'glider') items.grant(id); else items.revoke(id);
+  const scene = new THREE.Scene();
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(4000, 1, 4000)); slab.position.y = -0.5; scene.add(slab);
+  const p = new Player(new Physics(scene));
+  p.humanoid = new Humanoid(human, p.char, 'm');
+  p.attach(scene);
+  p.update(1 / 60, {}, 0);
+  p.pos.set(0, 300, 0); p.onGround = false; p.vel.set(0, 0, 0);
+  const H = p.humanoid, q = new THREE.Quaternion(), qb = new THREE.Quaternion();
+  const onBody = (s) => p.object.getWorldQuaternion(qb).clone().invert().multiply(H.b[`hand_${s}`].getWorldQuaternion(q));
+  const palm = (s) => H.handFrames[s].normal.clone().applyQuaternion(H.b[`hand_${s}`].getWorldQuaternion(q).multiply(H.rest.get(H.b[`hand_${s}`]).q.clone().invert()));
+  for (let i = 0; i < 60; i++) p.update(1 / 60, { Space: true }, 0);
+  assert.ok(p.gliding && p.wingK === 1, 'gliding, the wings open');
+  const before = ['r', 'l'].map(onBody);
+  for (let i = 0; i < 30; i++) p.update(1 / 60, { Space: true }, 0);
+  ['r', 'l'].forEach((s, i) => {
+    const turned = before[i].angleTo(onBody(s)) * 180 / Math.PI;
+    assert.ok(turned < 1, `the ${s} hand held its turn: ${turned.toFixed(1)}° in half a second`);
+    assert.ok(palm(s).y < -0.85, `the ${s} palm faces down: ${palm(s).y.toFixed(2)}`);
+  });
+  // banking into a turn the hands tip with the arms, but don't spin
+  let most = 0, last = ['r', 'l'].map(onBody);
+  for (let i = 0; i < 40; i++) {
+    p.update(1 / 60, { Space: true, KeyA: true }, 0);
+    const now = ['r', 'l'].map(onBody);
+    most = Math.max(most, ...now.map((n, k) => n.angleTo(last[k]) * 180 / Math.PI));
+    last = now;
+  }
+  assert.ok(most < 2, `no more than ${most.toFixed(2)}° a frame in a turn`);
+});

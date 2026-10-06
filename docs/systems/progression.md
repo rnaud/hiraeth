@@ -55,3 +55,11 @@ Wren, a hail is hers.
 - Her ground gait (`GAIT`): legs stepping in turn, a bob, a sway and wings
   folded while you walk her. Take-off (`TAKEOFF`) is a crouch, then a leap with
   the wings opening, and the first wingbeat only at the top of the leap.
+- Her landing (`LANDING`, `Bird.approach`): within `height` m of the ground and sinking (or within
+  `ttc` s of it), her legs come down and reach forward, the wings flare and the body tips nose up;
+  ridden, the flare brakes her and holds the last metre's sink to `touch` m/s. Over the last metre
+  the legs swing back so the toes meet the ground level. Each foot finds the ground under it on its
+  own ray (`FOOT`, on a slope one leg reaches down, the other draws up; standing and walking too).
+  Touching down she sinks into her knees (`dip`, `settle`), wings half open, then walks out what is
+  left of her speed (`runout`). Called down beside you or circling down riderless, the same.
+  `tests/birds.test.js` lands her on flat and sloped ground.

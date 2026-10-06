@@ -10,7 +10,10 @@ import { padRide } from './controller.js';
 // Space flap (climb). Touching down slowly lands it; Space on the ground takes off.
 // On the ground she walks: her legs step in turn, her body bobs and sways, her
 // wings stay folded (GAIT). Taking off she crouches, leaps, and only at the top
-// of the leap opens her wings for the first beat (TAKEOFF).
+// of the leap opens her wings for the first beat (TAKEOFF). Coming down to land (LANDING) she
+// lowers her legs and reaches them forward, flares her wings and brakes, touches down with her
+// feet on the ground (each foot on its own ray, so on a slope too), sinks into the knees a moment
+// and walks out what's left of her speed.
 // A controller: RT flies on (thrust, analog; squeezed on the ground, she takes off),
 // the stick banks (left / right) and dives (forward) or climbs (back), the left button flaps (the bottom one jumps off: player.js jumpOff).
 
@@ -20,7 +23,17 @@ const MAX_SPEED = 55;
 export const GAIT = { speed: 5, stride: 9.5, turnStride: 6, swing: 0.55, lift: 0.14, bob: 0.07, sway: 0.05 };
 /** Taking off: the crouch (s), the leap's speed up and forward (m/s), gravity on it, the first wingbeat's speed. */
 export const TAKEOFF = { crouch: 0.22, up: 8.5, forward: 7, gravity: 14, flight: 16 };
-const _v = new THREE.Vector3(), _from = new THREE.Vector3();
+/**
+ * Landing: within `height` m of the ground and coming down faster than `descent` m/s (or `ttc` s
+ * from it) her legs come down and forward (`reach` rad) and her wings flare (the body `flare` rad
+ * nose up); ridden, the flare brakes (`brake` m/s²) and holds the sink to `touch` m/s near the
+ * ground. Touching down she sinks into her knees (`dip` m, over `settle` s) and walks out up to
+ * `runout` m/s of her speed.
+ */
+export const LANDING = { height: 5, descent: 0.6, ttc: 1.6, rate: 5, reach: 0.5, lower: 0.12, flare: 0.42, brake: 9, touch: 2.2, dip: 0.28, settle: 0.5, runout: 5, footReach: 0.45 };
+/** Where her feet are on the leg (the leg's own frame: the middle toe's base), and the ground under it. */
+export const FOOT = new THREE.Vector3(0, -0.91, 0.25);
+const _v = new THREE.Vector3(), _from = new THREE.Vector3(), _f = new THREE.Vector3();
 
 export function buildBird() {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
@@ -129,6 +142,12 @@ export class Bird {
     this.groundSpeed = 0;   // m/s along the ground, walking
     this.takeoff = null;    // { t, vy, speed, leapt }: the crouch and the leap, until the first wingbeat
     this.crouchK = 0;       // 0..1 down into the crouch; < 0 the legs pushing off
+    this.landK = 0;         // 0..1 coming in to land: legs down and forward, wings flared (LANDING)
+    this.flareK = 0;        // the body's flare (nose up), following landK in the air and easing out on the ground
+    this.settle = null;     // { t, k }: the touchdown's sink into the knees
+    this.runout = 0;        // m/s still to walk off after touching down
+    this.vy = 0;            // m/s up (measured each frame, whatever moved her)
+    this.footDrop = [0, 0]; // m each foot reaches down (+) or draws up (-) to the ground under it
     this.time = 0;
     this.boardDistance = 7;
     this.exitOffset = 2.5;
@@ -170,12 +189,56 @@ export class Bird {
   update(dt, input) {
     this.time += dt;
     if (this.takeoff && this.mode !== 'ridden') { this.takeoff = null; this.crouchK = 0; }   // (no rider: no leap)
+    const y0 = this.pos.y, wasLanded = this.landed;
     if (input && this.mode === 'ridden') this.fly(dt, input);
     else if (this.mode === 'summoned') this.flyTo(dt);
     else if (this.mode === 'catching') this.flyCatch(dt);
     else if (this.mode === 'glide-down') this.glideDown(dt);
     else this.idle(dt);
+    if (dt > 0) this.vy = (this.pos.y - y0) / dt;
+    if (this.landed && !wasLanded) this.touchdown();
+    this.approach(dt);
     this.pose(dt);
+  }
+
+  /** Height of her feet over the ground under her (m; the body rides 1.4 m over it). */
+  heightOver() {
+    const g = this.physics.groundAt(this.pos.x, this.pos.y + 0.5, this.pos.z);
+    return Number.isFinite(g) ? this.pos.y - 1.4 - g : Infinity;
+  }
+
+  /** Coming in to land (LANDING): how much her legs are out and her wings flared, from her height and her sink. */
+  approach(dt) {
+    let want = 0;
+    if (!this.landed && !this.takeoff && this.mode !== 'catching') {
+      const L = LANDING, h = this.heightOver(), sink = -this.vy;
+      const low = 1 - THREE.MathUtils.smoothstep(h, L.height * 0.35, L.height);
+      const coming = THREE.MathUtils.smoothstep(sink, L.descent * 0.3, L.descent);
+      const soon = sink > 0.05 && h / sink < L.ttc ? 1 : 0;
+      want = Math.max(low * coming, soon * low);
+      if (this.mode === 'summoned' && this.target && this.pos.distanceTo(this.target) < 14) want = 1;   // (called down beside you)
+    }
+    // (out quickly, away again more slowly: a skim over a rise doesn't snap them back)
+    this.landK += (want - this.landK) * (1 - Math.exp(-(want > this.landK ? LANDING.rate : LANDING.rate * 0.6) * dt));
+    if (this.settle) {
+      this.settle.t += dt;
+      if (this.settle.t >= LANDING.settle) this.settle = null;
+    }
+  }
+
+  /** Feet on the ground: the sink into the knees, scaled by how hard she came down, and the run-out. */
+  touchdown() {
+    const hard = THREE.MathUtils.clamp(-this.vy / 4, 0.35, 1);
+    this.settle = { t: 0, k: hard };
+    this.runout = this.mode === 'ridden' ? Math.min(Math.hypot(this.vel.x, this.vel.z), LANDING.runout) : 0;
+    this.landK = Math.max(this.landK, 0.6);   // (the legs are down whatever: she's standing on them)
+  }
+
+  /** The settle's sink now (0..1 of LANDING.dip): quickly down, slowly back up. */
+  get settleK() {
+    if (!this.settle) return 0;
+    const u = this.settle.t / LANDING.settle;
+    return this.settle.k * (u < 0.25 ? Math.sin((u / 0.25) * Math.PI / 2) : 0.5 + 0.5 * Math.cos(((u - 0.25) / 0.75) * Math.PI));
   }
 
   idle(dt) {
@@ -195,9 +258,9 @@ export class Bird {
     const [fx, fz] = this.forward;
     this.pos.x += fx * 14 * dt;
     this.pos.z += fz * 14 * dt;
-    this.pos.y -= 6 * dt;
+    this.pos.y -= 6 * (1 - 0.7 * this.landK) * dt;   // (the flare: slower over the last metres)
     const g = this.physics.groundAt(this.pos.x, this.pos.y + 1, this.pos.z);
-    if (this.pos.y < g + 1.5) { this.landed = true; this.mode = 'idle'; }
+    if (this.pos.y < g + 1.4) { this.pos.y = g + 1.4; this.landed = true; this.mode = 'idle'; }
     this.bank = 0.3;
   }
 
@@ -262,7 +325,10 @@ export class Bird {
       this.idle(dt);
       // walk the bird around slowly (her gait: pose), take off with Space: a crouch, then a leap
       this.heading -= steer * 1.5 * dt;
-      this.groundSpeed = dive > 0 || thrust > 0 ? GAIT.speed : 0;
+      // (just down: she walks out what's left of her speed)
+      this.runout *= Math.exp(-3 * dt);
+      if (this.runout < 0.6) this.runout = 0;
+      this.groundSpeed = Math.max(dive > 0 || thrust > 0 ? GAIT.speed : 0, this.runout);
       this.turning = Math.abs(steer) > 0.1;
       if (this.groundSpeed) {
         const [fx, fz] = this.forward;
@@ -270,7 +336,7 @@ export class Bird {
         this.pos.z += fz * this.groundSpeed * dt;
         this.vel.set(fx * this.groundSpeed, 0, fz * this.groundSpeed);
       }
-      if (flapping || thrust > 0.5) { this.takeoff = { t: 0, vy: 0, speed: this.groundSpeed, leapt: false }; this.groundSpeed = 0; this.turning = false; }
+      if (flapping || thrust > 0.5) { this.runout = 0; this.settle = null; this.takeoff = { t: 0, vy: 0, speed: this.groundSpeed, leapt: false }; this.groundSpeed = 0; this.turning = false; }
       return;
     }
 
@@ -284,6 +350,8 @@ export class Bird {
     // drag only bites above cruising speed, so a level glide keeps its momentum
     const drag = this.speed > 22 ? (this.speed - 22) * 0.35 : 0.25;
     this.speed += (Math.sin(this.pitch) * 22 - drag + (flapping ? 12 : 0) + thrust * 12) * dt;   // (RT: the flaps' thrust, without their lift)
+    // coming in to land (not diving): the flared wings brake her
+    if (this.landK > 0.05 && dive <= 0) this.speed -= this.landK * LANDING.brake * dt;
     this.speed = THREE.MathUtils.clamp(this.speed, MIN_SPEED, MAX_SPEED);
     const lift = flapping ? 9 : 0;
     // a level glide holds height from 16 m/s; slower it sinks
@@ -292,6 +360,11 @@ export class Bird {
     const [fx, fz] = this.forward;
     const cp = Math.cos(this.pitch);
     this.vel.set(fx * cp * this.speed, -Math.sin(this.pitch) * this.speed + lift - sink, fz * cp * this.speed);
+    // the flare holds the sink over the last metres (not a dive: that skims or lands as it comes)
+    if (this.landK > 0.05 && dive <= 0) {
+      const near = 1 - THREE.MathUtils.smoothstep(this.heightOver(), 0.3, 2.5);
+      this.vel.y = Math.max(this.vel.y, THREE.MathUtils.lerp(this.vel.y, -LANDING.touch, this.landK * near));
+    }
     const from = _from.copy(this.pos);
     this.pos.addScaledVector(this.vel, dt);
     this.flapPower += ((flapping ? 1 : Math.max(0.15, thrust * 0.8)) - this.flapPower) * (1 - Math.exp(-5 * dt));
@@ -346,17 +419,22 @@ export class Bird {
   }
 
   pose(dt) {
-    this.flap += dt * (3 + this.flapPower * 5);
-    // folded on the ground; through a take-off's leap they start to open, but beat only once she's flying
+    const Lk = this.landK, S = this.settleK;
+    this.flap += dt * (3 + this.flapPower * 5) * (1 - 0.35 * Lk);   // (the flare's beats: slower, deeper)
+    // folded on the ground; through a take-off's leap they start to open, but beat only once she's flying;
+    // just down, they stay half open through the settle
     const leaping = this.takeoff?.leapt;
-    const foldTo = this.takeoff ? (leaping ? 0.45 : 1) : this.landed ? 1 : 0;
+    const foldTo = this.takeoff ? (leaping ? 0.45 : 1) : this.landed ? (this.settle ? 0.5 : 1) : 0;
     this.wingFold += (foldTo - this.wingFold) * (1 - Math.exp(-(leaping ? 7 : 5) * dt));
     const fold = this.wingFold;
-    const amp = this.takeoff ? 0 : (1-fold) * (.12 + this.flapPower * .65);
+    const amp = this.takeoff ? 0 : (1-fold) * (.12 + Math.max(this.flapPower, 0.6 * Lk) * .65);
+    // the flare: wings up and forward, cupped against the air
+    const flare = Lk * (1 - fold);
     for (const w of this.wings) {
       // Shoulder powers the stroke; the wrist follows and twists on recovery.
-      w.shoulder.rotation.y = w.side * fold * 1.12;
-      w.shoulder.rotation.z = w.side * (Math.sin(this.flap) * amp - fold * .32 + .08);
+      w.shoulder.rotation.y = w.side * (fold * 1.12 - flare * 0.3);
+      w.shoulder.rotation.z = w.side * (Math.sin(this.flap) * amp - fold * .32 + .08 + flare * 0.3);
+      w.shoulder.rotation.x = -flare * 0.25;
       w.elbow.rotation.y = w.side * (fold * 1.5 + (1-fold)*(.12 + Math.max(0,Math.cos(this.flap))*.22*this.flapPower));
       w.elbow.rotation.z = w.side * Math.sin(this.flap-.65) * amp * .48;
       w.elbow.rotation.x = Math.cos(this.flap-.35) * amp * .18;
@@ -366,21 +444,43 @@ export class Bird {
     this.walkK += ((walking ? (this.groundSpeed > 0 ? 1 : 0.6) : 0) - this.walkK) * (1 - Math.exp(-8 * dt));
     if (this.walkK > 0.01) this.walkPhase += dt * (this.groundSpeed > 0 ? GAIT.stride : GAIT.turnStride);
     const W = this.walkK, ph = this.walkPhase, C = this.crouchK;
-    this.legs.forEach((l, i) => {
-      l.userData.y0 ??= l.position.y;
-      const s = Math.sin(ph + i * Math.PI), up = Math.max(0, Math.cos(ph + i * Math.PI));
-      // flying: tucked back; walking: forward and back in turn, lifted as it swings forward; the crouch bends, the leap pushes back
-      l.rotation.x = -(1 - fold) * 1.25 + s * GAIT.swing * W + (C > 0 ? 0.45 * C : 0.7 * C);
-      l.position.y = l.userData.y0 + up * GAIT.lift * W + (C > 0 ? 0.12 * C : 0);
-    });
-    this.tail.rotation.x = -.08 + this.pitch*.18 + Math.sin(ph * 2) * 0.05 * W;
+    this.tail.rotation.x = -.08 + this.pitch*.18 + Math.sin(ph * 2) * 0.05 * W - Lk * (1 - fold) * 0.35;   // (the tail fans down, a brake too)
     this.tail.rotation.z = -this.bank*.25;
     this.object.position.copy(this.pos);
     this.object.rotation.set(0, this.heading, 0);
-    // the bob (twice a stride: each step), a sway from foot to foot, the head nodding; the crouch: down, nose low
-    this.body.rotation.set(this.pitch + Math.sin(ph * 2) * 0.035 * W + (C > 0 ? 0.14 * C : 0.12 * C), 0, this.bank + Math.sin(ph) * GAIT.sway * W);
-    this.body.position.y = -GAIT.bob * W * (0.5 - 0.5 * Math.cos(ph * 2)) - (C > 0 ? 0.42 * C : 0);
+    // the bob (twice a stride: each step), a sway from foot to foot, the head nodding; the crouch: down, nose low;
+    // coming in to land: nose up into the flare; just down: a sink into the knees
+    // (the flare eases out over the touchdown rather than snapping level with it)
+    this.flareK += ((this.landed ? 0 : Lk) - this.flareK) * (1 - Math.exp(-9 * dt));
+    const F = this.flareK, h = this.landed ? 0 : this.heightOver();
+    const near = 1 - THREE.MathUtils.smoothstep(h, 0.2, 1.6);   // the last metre: the feet come level for the ground
+    this.body.rotation.set(this.pitch + Math.sin(ph * 2) * 0.035 * W + (C > 0 ? 0.14 * C : 0.12 * C) - LANDING.flare * F + 0.08 * S, 0, this.bank + Math.sin(ph) * GAIT.sway * W);
+    this.body.position.y = -GAIT.bob * W * (0.5 - 0.5 * Math.cos(ph * 2)) - (C > 0 ? 0.42 * C : 0) - LANDING.dip * S;
+    // legs: flying, tucked; coming in to land, down and reaching forward; walking, forward and back in
+    // turn, lifted as it swings forward; the crouch and the settle bend them, the leap pushes back
+    const legOut = Math.max(Lk, this.landed ? 1 : 0);
+    const plant = this.landed && !this.takeoff?.leapt ? 1 : Lk * (1 - THREE.MathUtils.smoothstep(h, 0.15, 0.9));
+    this.object.updateMatrixWorld(true);
+    this.legs.forEach((l, i) => {
+      l.userData.y0 ??= l.position.y;
+      const s = Math.sin(ph + i * Math.PI), up = Math.max(0, Math.cos(ph + i * Math.PI));
+      // (reaching forward, then, close to the ground, the toes brought level against the body's nose-up)
+      const tucked = -(1 - fold) * 1.25 * (1 - legOut) + F * (-LANDING.reach * (1 - near) + (LANDING.flare - 0.1) * near);
+      l.rotation.x = tucked + s * GAIT.swing * W + (C > 0 ? 0.45 * C : 0.7 * C) + 0.4 * S;
+      l.position.y = l.userData.y0 - LANDING.lower * F + (C > 0 ? 0.12 * C : 0);
+      // the foot on the ground under it (its own ray: on a slope one reaches down, the other draws up)
+      let drop = 0;
+      if (plant > 0.01 && this.object.visible) {   // (not for a bird no one sees: the promised one, far off)
+        l.updateMatrixWorld(true);
+        const foot = l.localToWorld(_f.copy(FOOT));
+        const g = this.physics.groundAt(foot.x, foot.y + 1.2, foot.z);
+        if (Number.isFinite(g)) drop = THREE.MathUtils.clamp(g + 0.05 - foot.y, -LANDING.footReach, LANDING.footReach) * plant;
+      }
+      this.footDrop[i] = drop;
+      l.position.y += drop + up * GAIT.lift * W;
+    });
   }
+
 }
 
 // ---------------------------------------------------------------------------

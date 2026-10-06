@@ -5,16 +5,23 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Player feedback (2026-10-06)
 
-- [ ] Investigate the traveller's hands rotating while gliding; keep their pose and orientation
-  appropriate to the glide instead of twisting unexpectedly.
+- [x] Investigate the traveller's hands rotating while gliding; keep their pose and orientation
+  appropriate to the glide instead of twisting unexpectedly. (The hand bone kept its last local turn
+  and the glide's arm IK, which keeps a hand's world turn, fed the forearm's change back into it every
+  frame: ~10° a frame of spin. The retarget now resets each wrist to its rest turn on the forearm, and
+  the glide turns the hands open, palms down, thumb edge a little up, blended with the wings; the jets'
+  hands are steady too. Test in tests/hands.test.js.)
 - [ ] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
   surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
 - [x] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller). (The push's rings and spray were hidden in every room off the map (temples, the cave, the Hearth) since the interior culler of 2026-10-05 judged them by bounds cached while empty; unculled instanced effects are now measured where they are, other unculled meshes stay drawn. Pad RB and keyboard C checked on a person, crates, a creature and the temple's ball. tests/interior-cull.test.js)
 - [ ] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
   standing and landing contact across all worlds, including moving platforms, so visible platform tops
   and collision surfaces agree and feet do not disappear into them.
-- [ ] When the ridden bird approaches the ground, have it extend its legs and feet in preparation,
-  then land properly with its feet contacting the ground.
+- [x] When the ridden bird approaches the ground, have it extend its legs and feet in preparation,
+  then land properly with its feet contacting the ground. (A landing phase from her height and sink:
+  legs down and forward, wings flared, nose up and braking, the last metre's sink held to ~2 m/s, toes
+  level at contact; each foot on its own ground ray, so on slopes too; a sink into the knees and a few
+  steps of run-out. Also when called down or circling down riderless. Tests in tests/birds.test.js.)
 - [ ] Fix the mismatch between Vael's visible rocks and their climbing hitboxes: the traveller goes
   through roughly half of some rocks while climbing. Align climbing contact with the visible surfaces
   and check the affected rocks throughout the level.
