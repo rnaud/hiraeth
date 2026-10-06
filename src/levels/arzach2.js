@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { formAxis, padForm } from '../form.js';
 import { fbm, mulberry32, smoothstep, lerp } from '../noise.js';
 import { TAU, nA, nB, nC, clean, place, lumpy, solid, table, needle, boulder } from './sky-stones-kit.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
@@ -168,9 +169,10 @@ export function* buildArzach2(scene) {
   const DS = THREE.DoubleSide;
   const M = {
     // (the needles' shade a flat tone with few strokes and no beds in the light, as the sheets draw them)
-    bone: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, flat: true, side: DS, hatch: 0.4, strataHatch: 0, ...PRINT }),
-    cap: makeMaterial({ color: '#f5e5d1', color2: '#f3e0cb', color3: '#f6e9d8', mode: MODE_STRATA, strataSize: 5, side: DS, ...PRINT }),   // smooth: clean terminator under the caps
-    rose: makeMaterial({ color: '#d9a59a', color2: '#c98f86', color3: '#e3b5a8', mode: MODE_STRATA, strataSize: 9, flat: true, side: DS, ...PRINT }),
+    // (form: a table's strokes radiate from its stalk under the cap and run down the stalk, src/form.js)
+    bone: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, flat: true, side: DS, hatch: 0.4, strataHatch: 0, form: true, ...PRINT }),
+    cap: makeMaterial({ color: '#f5e5d1', color2: '#f3e0cb', color3: '#f6e9d8', mode: MODE_STRATA, strataSize: 5, side: DS, form: true, ...PRINT }),   // smooth: clean terminator under the caps
+    rose: makeMaterial({ color: '#d9a59a', color2: '#c98f86', color3: '#e3b5a8', mode: MODE_STRATA, strataSize: 9, flat: true, side: DS, form: true, ...PRINT }),
     aq: makeMaterial({ color: '#ece3d3', color2: '#e0d5c4', color3: '#f2ebde', mode: MODE_STRATA, strataSize: 2.6, flat: true, side: DS, ...PRINT }),
     wall: makeMaterial({ color: '#f8f3ea', flat: true, pattern: 'facade', ...PRINT }),
     plainWall: makeMaterial({ color: '#f6efe2', flat: true, ...PRINT }),
@@ -184,7 +186,7 @@ export function* buildArzach2(scene) {
   const col = [];
   const add = (mat, g, proxy = g) => {
     if (!vis.has(mat)) vis.set(mat, []);
-    vis.get(mat).push(clean(g));
+    vis.get(mat).push(clean(g, true));
     if (proxy) col.push(clean(proxy));
   };
   const movers = [];
@@ -193,7 +195,9 @@ export function* buildArzach2(scene) {
   // ---------------------------------------------------------- plateaus and mushroom tables
   yield;
   const shadowGeos = [];
-  const addTable = (mat, o) => { const t = table(o); add(mat, t.vis, t.col); if (mat === M.cap) shadowGeos.push(clean(t.shadow)); return t; };
+  // (a table: its axis, for the strokes radiating from its stalk)
+  const tableOf = (o) => { const t = table(o); formAxis(t.vis, 'cap', { centre: [o.x, 0, o.z] }); return t; };
+  const addTable = (mat, o) => { const t = tableOf(o); add(mat, t.vis, t.col); if (mat === M.cap) shadowGeos.push(clean(t.shadow)); return t; };
   // the start plateau: a wide table with an overhanging lip
   addTable(M.bone, { ...START, stalk: 70, capT: 6, under: 11, seed: 1.3, rib: 1.3, ribK: 44, seg: 176, colSeg: 24, outline: 0.15, foot: 0.92, neckR: 0.97, waist: 0.03, ledges: 0.05, flute: 0.1, fluteK: 23 });
   // the monastery cliff: rose rock, the lip leaning out toward the start
@@ -323,7 +327,7 @@ export function* buildArzach2(scene) {
     const col0 = needle({ x, y: -80, z, H: 120, R: 7, seed: 41, seg: 14, rings: 18, flute: 0.1, lean: 0 });
     add(M.bone, col0.vis, col0.col);
     const disc = (dx, y, dz, rr, th) => {
-      const t = table({ x: x + dx, z: z + dz, R: rr, stalk: rr * 0.18, top: y, base: y - th * 2.5, capT: th, under: th * 0.6, dome: th * 0.3, seed: y * 0.1, rib: 0.4, ribK: 20, seg: 64, colSeg: 14, foot: 1, neckR: 1, waist: 0 });
+      const t = tableOf({ x: x + dx, z: z + dz, R: rr, stalk: rr * 0.18, top: y, base: y - th * 2.5, capT: th, under: th * 0.6, dome: th * 0.3, seed: y * 0.1, rib: 0.4, ribK: 20, seg: 64, colSeg: 14, foot: 1, neckR: 1, waist: 0 });
       add(M.cap, t.vis, t.col);
     };
     disc(0, 30, 0, 8, 1.4);
@@ -335,7 +339,7 @@ export function* buildArzach2(scene) {
   yield;
   {
     const { x, z, top, R: r } = DISC;
-    const shaft = table({ x, z, R: r, stalk: 3.6, top, base: -95, capT: 1.8, under: 2.4, dome: 0.35, seed: 61, rib: 0.35, ribK: 22, seg: 96, colSeg: 16,
+    const shaft = tableOf({ x, z, R: r, stalk: 3.6, top, base: -95, capT: 1.8, under: 2.4, dome: 0.35, seed: 61, rib: 0.35, ribK: 22, seg: 96, colSeg: 16,
       flute: 0.14, fluteK: 7, foot: 2.1, neckR: 0.85, waist: 0.05 });
     add(M.bone, shaft.vis, shaft.col);
     add(M.bone, place(boulder(0.9, 1, 0.8, 1, 0, 3), x, top + 1.6, z), null);   // the pebble it balances on
@@ -542,7 +546,7 @@ export function* buildArzach2(scene) {
       parts.push(table({ x: 0, z: 0, R: r, stalk: r * 0.2, top: 0, base: -r * 0.7, capT: r * 0.25, under: r * 0.2, dome: r * 0.18, seed, rib: r * 0.05, ribK: 20, seg: 64, colSeg: 8 }).vis);
     } else parts.push(boulder(r, 1, sy, 0.9, egg, seed));
     for (let i = 0; i < pebbles; i++) parts.push(place(boulder(r * (0.08 + 0.06 * (pebbles - i) / pebbles), 1, 1.3, 1, 0.1, seed + i), (i % 2 ? 1 : -1) * r * 0.1, -r * sy - r * (0.6 + i * 0.9), 0));
-    const m = new THREE.Mesh(mergeGeometries(parts.map(clean)), M.bone);
+    const m = new THREE.Mesh(mergeGeometries(parts.map((p) => clean(p))), M.bone);
     m.geometry.computeVertexNormals();
     g.add(m);
     floaters.add(g);
@@ -564,7 +568,7 @@ export function* buildArzach2(scene) {
   // little flat-topped stones hanging over the cloud, each with a pebble or two below it
   yield;
   SKY.forEach(([x, z, top, r], i) => {
-    const t = table({ x, z, R: r, stalk: r * 0.3, top, base: top - r * 1.5, capT: r * 0.32, under: r * 0.3, dome: r * 0.06, seed: 80 + i * 1.3,
+    const t = tableOf({ x, z, R: r, stalk: r * 0.3, top, base: top - r * 1.5, capT: r * 0.32, under: r * 0.3, dome: r * 0.06, seed: 80 + i * 1.3,
       rib: r * 0.05, ribK: 16, seg: 40, colSeg: 10, flute: 0.1, fluteK: 7, foot: 0.8, neckR: 1.1, waist: 0.1 });
     add(M.bone, t.vis, t.col);
     add(M.bone, place(boulder(r * 0.22, 1, 1.3, 1, 0.1, 90 + i), 0.3, top - r * 1.5 - r * 0.5, 0.2).translate(x, 0, z), null);
@@ -581,7 +585,7 @@ export function* buildArzach2(scene) {
   yield;
   for (const [mat, geos] of vis) {
     yield;
-    let g = mergeGeometries(geos);
+    let g = mergeGeometries(padForm(geos));
     if (mat === M.cap) g = mergeVertices(g, 1e-3);
     g.computeVertexNormals();
     g.computeBoundingSphere();

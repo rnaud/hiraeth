@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { FORM_ATTRS, formAxis, padForm } from '../form.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
@@ -111,11 +112,11 @@ export const SPHERES_CONTENT = {
 
 // ------------------------------------------------------------------ helpers
 
-export function prep(g, keepColor) {
+export function prep(g, keepColor, keepForm = false) {
   const geo = g.index ? g.toNonIndexed() : g;
   if (!geo.attributes.normal) geo.computeVertexNormals();
   for (const k of Object.keys(geo.attributes)) {
-    if (k !== 'position' && k !== 'normal' && !(keepColor && k === 'color')) geo.deleteAttribute(k);
+    if (k !== 'position' && k !== 'normal' && !(keepColor && k === 'color') && !(keepForm && FORM_ATTRS.includes(k))) geo.deleteAttribute(k);
   }
   return geo;
 }
@@ -164,7 +165,7 @@ export function* buildSpheres(scene) {
   const add = (mat, geo, collide = false) => {
     const key = mat.uuid + (collide ? ':c' : ':n');
     if (!batches.has(key)) batches.set(key, { mat, collide, list: [] });
-    batches.get(key).list.push(prep(geo, mat.vertexColors));
+    batches.get(key).list.push(prep(geo, mat.vertexColors, true));   // (and a part's axis: src/form.js)
   };
   const proxies = [];
   const proxy = (geo) => proxies.push(prep(geo, false));
@@ -174,9 +175,10 @@ export function* buildSpheres(scene) {
   const avoid = [];     // [x, z, r] keep scatter away
 
   const M = {
-    trunk: makeMaterial({ color: '#9fb5a8', detail: 'organic' }),   // (bark: grain strokes, materials.js DETAIL)
-    branch: makeMaterial({ color: '#7f9a90' }),
-    canopy: makeMaterial({ color: '#ffffff', vertexColors: true, line: 0.7, lineTint: 0.67 }),   // (foliage: a dark green line, lighter)
+    // (form: the umbrellas' trunks hatched round, their canopies' strokes radiating from the trunk; src/form.js)
+    trunk: makeMaterial({ color: '#9fb5a8', detail: 'organic', form: true }),   // (bark: grain strokes, materials.js DETAIL)
+    branch: makeMaterial({ color: '#7f9a90', form: true }),
+    canopy: makeMaterial({ color: '#ffffff', vertexColors: true, form: true, line: 0.7, lineTint: 0.67 }),   // (foliage: a dark green line, lighter)
     white: makeMaterial({ color: '#f3efe2', flat: true }),
     whiteSmooth: makeMaterial({ color: '#f5f2e8' }),
     rock: makeMaterial({ color: '#f1ede2', pattern: 'cracks' }),
@@ -218,7 +220,7 @@ export function* buildSpheres(scene) {
     ];
     const canopy = lump(new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 96), seed, Rc);
     canopy.computeVertexNormals();
-    const g = canopy.toNonIndexed();
+    const g = formAxis(canopy.toNonIndexed(), 'cap');
     const top = o.top ?? '#b7c46a';
     paintFaces(g, (c, n) => {
       const r = Math.hypot(c.x, c.z);
@@ -233,11 +235,11 @@ export function* buildSpheres(scene) {
     add(M.canopy, g);
     // trunk: pinched waist, flaring roots and crown
     const tl = yJ + 1.5;
-    const trunk = new THREE.CylinderGeometry(rT, rB, tl, 14, 8, true).translate(0, tl / 2, 0);
+    const trunk = formAxis(new THREE.CylinderGeometry(rT, rB, tl, 14, 8, true), 'wrap').translate(0, tl / 2, 0);
     jitter(trunk, 0.12, 0.08, seed);
     soften(trunk, -0.14);
     add(M.trunk, trunk.translate(x, base, z));
-    const flare = new THREE.CylinderGeometry(rB * 0.95, rB * 1.9, Ht * 0.1, 14, 2, true).translate(0, Ht * 0.05, 0);
+    const flare = formAxis(new THREE.CylinderGeometry(rB * 0.95, rB * 1.9, Ht * 0.1, 14, 2, true), 'wrap').translate(0, Ht * 0.05, 0);
     jitter(flare, 0.2, 0.3, seed + 3);
     add(M.trunk, flare.translate(x, base, z));
     // branches fanning out under the canopy
@@ -249,7 +251,7 @@ export function* buildSpheres(scene) {
         new THREE.Vector3(ca * rT * 0.6, yJ - Rc * 0.08, sa * rT * 0.6),
         new THREE.Vector3(ca * r1 * 0.4, yJ + Rc * 0.02, sa * r1 * 0.4),
         new THREE.Vector3(ca * r1, Math.min(y1, Ht - 0.6), sa * r1));
-      add(M.branch, new THREE.TubeGeometry(curve, 6, Rc * (b % 3 ? 0.011 : 0.017), 5).translate(x, base, z));
+      add(M.branch, formAxis(new THREE.TubeGeometry(curve, 6, Rc * (b % 3 ? 0.011 : 0.017), 5), 'cap').translate(x, base, z));
     }
     if (o.collide !== false) {
       proxy(new THREE.CylinderGeometry(rT, rB, tl, 8, 1).translate(x, base + tl / 2, z));
@@ -879,7 +881,7 @@ export function* buildSpheres(scene) {
   yield;
   for (const { mat, collide, list } of batches.values()) {
     yield;
-    const m = new THREE.Mesh(mergeGeometries(list), mat);
+    const m = new THREE.Mesh(mergeGeometries(padForm(list)), mat);
     if (!collide) m.userData.noCollide = true;
     scene.add(m);
   }

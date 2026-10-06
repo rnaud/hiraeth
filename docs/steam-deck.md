@@ -25,6 +25,11 @@ shortcuts and custom fields are preserved. Changed shortcut files get timestampe
 `shortcuts.vdf.moebius-*.bak` backups. Files with unsupported data are left alone.
 Steam must be closed because it rewrites its shortcuts from memory on exit.
 
+In Gaming Mode the game runs on X11 under gamescope; in Desktop Mode on Plasma's own Wayland
+(`ozonePlatform` in `desktop/main.mjs`): on SteamOS 3.8 with Mesa 26.1, X11 through Desktop Mode's
+Xwayland crashed Chromium's GPU process and no window showed. The game also keeps the screen from
+dimming or sleeping while it runs (`powerSaveBlocker`).
+
 Use the **Gamepad with Joystick Trackpad** Steam Input template. Do not force a
 Steam Play compatibility tool. The game starts fullscreen at a 1280×800 window
 size and uses its existing controller controls. Exit through Steam's **Exit Game**

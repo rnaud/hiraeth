@@ -5,6 +5,7 @@ import { createNoise2D, mulberry32 } from '../noise.js';
 import { table, needle, boulder, lumpy, place, TAU } from './sky-stones-kit.js';
 import { bridge, SKY_STONES_HAZE } from './arzach2.js';
 import { buildBird } from '../bird.js';
+import { formAxis, keepForm } from '../form.js';
 import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -44,8 +45,9 @@ function materials(kit) {
     bone: strata('#fbe3ca', '#f8dcc2', '#fde9d4', { hatch: 0.35, strataHatch: 0 }),
     pink: strata('#f6d3c2', '#f2c8b6', '#f9dccd', { hatch: 0.35, strataHatch: 0 }),
     // (smooth: the caps' and the overhangs' undersides, densely hatched)
-    cap: kit.mat({ color: '#fbe0c6', color2: '#f8d9bf', color3: '#fde8d3', mode: MODE_STRATA, strataSize: 5, side: DS }),
-    peach: kit.mat({ color: '#f9bea0', color2: '#f6b596', color3: '#fbc8ad', mode: MODE_STRATA, strataSize: 5, side: DS }),
+    // (form: the strokes under a cap radiate from its stalk, src/form.js)
+    cap: kit.mat({ color: '#fbe0c6', color2: '#f8d9bf', color3: '#fde8d3', mode: MODE_STRATA, strataSize: 5, side: DS, form: true }),
+    peach: kit.mat({ color: '#f9bea0', color2: '#f6b596', color3: '#fbc8ad', mode: MODE_STRATA, strataSize: 5, side: DS, form: true }),
     rose: strata('#d99582', '#d08a78', '#e2a48f', { strataSize: 9 }),
     aq: strata('#efd2c2', '#e8c6b6', '#f3dccd', { strataSize: 2.6 }),
     wall: kit.mat({ color: '#fbf1e2', flat: true, pattern: 'facade', windows: 0.25, weathered: 0.5 }),
@@ -65,7 +67,7 @@ function materials(kit) {
 
 // ---------------------------------------------------------------- builders (the view's own frame)
 /** A smooth surface (the caps): weld, then smooth normals. */
-export const smooth = (g) => { const m = mergeVertices(g, 1e-3); m.computeVertexNormals(); return m; };
+export const smooth = (g) => { const m = keepForm(mergeVertices(g, 1e-3)); m.computeVertexNormals(); return m; };
 
 /** A cluster of needles round (x, z) from y: the main one H high, n round it (fused ones lean on it). */
 function spires(kit, M, { x, z, y, H, R, n = 5, seed = 1, rubble = true, mat = 'bone' }) {
@@ -91,6 +93,8 @@ function mushroom(kit, M, o) {
   const mat = M[o.mat ?? 'cap'];
   const t = table({ seg: 128, colSeg: 18, rib: o.R * 0.04, ribK: 30, flute: 0.1, fluteK: 11, foot: 1.5, neckR: 1.25, waist: 0.22, dome: o.R * 0.07,
     capT: o.R * 0.13, under: o.R * 0.3, stalk: o.R * 0.32, outline: 0.08, base: (o.top ?? 0) - 160, ...o });
+  // (its axis, for the strokes radiating from the stalk: the table is made standing at x, z)
+  formAxis(t.vis, 'cap', { centre: [o.x, 0, o.z] });
   // squash: [sx, sz] about its axis (a cliff's overhang wider than it is deep)
   const fit = (g) => (o.squash ? g.translate(-o.x, 0, -o.z).scale(o.squash[0], 1, o.squash[1]).translate(o.x, 0, o.z) : g);
   if (o.smooth === false) { kit.add(mat, fit(t.vis)); return t; }

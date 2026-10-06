@@ -18,7 +18,16 @@ app.setPath('userData', path.join(app.getPath('appData'), 'moebius'));
 protocol.registerSchemesAsPrivileged([{ scheme: 'moebius', privileges: {
   standard: true, secure: true, supportFetchAPI: true, corsEnabled: true,
 } }]);
-if (process.platform === 'linux') app.commandLine.appendSwitch('ozone-platform', 'x11');
+/**
+ * Linux's window system: X11 under gamescope (Gaming Mode, whose games run on its Xwayland), the
+ * desktop's own Wayland elsewhere. On SteamOS 3.8's Desktop Mode (Plasma 6 on Wayland, Mesa 26.1) X11
+ * through Xwayland crashed the GPU process and the window never showed.
+ */
+export function ozonePlatform(env = process.env) {
+  const gamescope = !!env.GAMESCOPE_WAYLAND_DISPLAY || env.XDG_CURRENT_DESKTOP === 'gamescope';
+  return env.WAYLAND_DISPLAY && !gamescope ? 'wayland' : 'x11';
+}
+if (process.platform === 'linux') app.commandLine.appendSwitch('ozone-platform', ozonePlatform());
 
 const packaged = fileURLToPath(new URL('./game/', import.meta.url));
 /**
