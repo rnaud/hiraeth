@@ -1,0 +1,21 @@
+src/sand-drifts.js
+  s_1fd8d0e7b02dcf::t_c2f22f6969996c 123-152,229,252,256,258-259
+tests/sand-drifts.test.js
+  s_1fd8d0e7b02dcf::t_a1f9b0715d54c2 97-133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8130da98c596a944c4a3f75e98d7b1b2b3076d4a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
