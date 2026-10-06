@@ -1,0 +1,61 @@
+TODO.md
+  s_55b4bc53b812ec::t_144f7c344195f1 62-65
+changelog.md
+  s_55b4bc53b812ec::t_4d9e121f86e600 18
+docs/systems/references.md
+  s_55b4bc53b812ec::t_0128c05d1a8833 151
+docs/systems/rendering.md
+  s_55b4bc53b812ec::t_7cd188bd8389c9 399-424
+scripts/motion-check/record.mjs
+  s_55b4bc53b812ec::t_11c774cf3de497 53
+src/changelog.js
+  s_55b4bc53b812ec::t_03af9b8c066262 22
+src/levels/incal.js
+  s_55b4bc53b812ec::t_7c84b8263f278f 864-867,994-996
+src/levels/reference-desert.js
+  s_55b4bc53b812ec::t_8dd04978c976f2 22-27,30
+tests/ink-pass.test.js
+  s_55b4bc53b812ec::t_eda0ea86afc630 123,145-187,220-222,224,228
+tests/shade.test.js
+  s_55b4bc53b812ec::t_7014a225103af4 56-76
+tools/ink-bench.mjs
+  s_55b4bc53b812ec::t_2dfaab44ea403f 1-59
+tools/ink-shots.handheld.json
+  s_55b4bc53b812ec::t_d7c4a7ba888c23 1-72
+tools/ink-shots.isolate.json
+  s_55b4bc53b812ec::t_5a47ad121bd4ad 1-20
+tools/ink-shots.jobs.json
+  s_55b4bc53b812ec::t_881f1c6a2f1eca 1-147
+tools/ink-shots.mjs
+  s_55b4bc53b812ec::t_8a8d961cb1a340 1-66
+tools/ink-shots.shaft.json
+  s_55b4bc53b812ec::t_9b569cb65390ba 1-131
+tools/ink-shots.unchanged.json
+  s_55b4bc53b812ec::t_1b4e2bfb27f5ed 1-42
+src/post.js
+  s_5ddb958c62a139::t_5b8594149b822e 41,104-121,129,277,750-756,913-918,931-934,949-951,1013-1020,1207,1237,1383
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "001f4013e538829439be6a0be1fffaed11523353",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5ddb958c62a139": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8c00d894c612ddd4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
