@@ -1,7 +1,9 @@
 src/post.js
   s_1fd8d0e7b02dcf::t_14a467c15e47eb 278-279,291-295
+  s_1fd8d0e7b02dcf::t_b3bcec3279a9ef 278-279,291-295
 tests/occlusion-taps.test.js
   s_1fd8d0e7b02dcf::t_1bb7677ac242ec 34,44-46
+  s_1fd8d0e7b02dcf::t_f5200202ff9370 34,44-46
 ---
 {
   "schema_version": "authorship/3.0.0",
