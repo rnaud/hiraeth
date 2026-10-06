@@ -326,7 +326,7 @@ export const PEOPLE = {
 
   corm: {
     id: 'corm', name: 'Corm', title: 'who feeds the plants', color: '#d9506a', voice: 1.0, kind: 'm',
-    palette: { cloak: '#d9506a', lining: '#2b211f', cloth: '#5a6a3a', legs: '#4a3a2a', hat: '#6f9a5a', hair: '#4a3226' }, head: 'hat', cape: 0.55,
+    palette: { cloak: '#d9506a', lining: '#2b211f', cloth: '#5a6a3a', legs: '#4a3a2a', hat: '#6f9a5a', hair: '#4a3226' }, head: 'hat', cape: 0.55, look: { head: 'brim', under: 'locks' },
     lines: ['~shout~ Careful! That’s Margit.', '~playful~ Who’s a hungry girl, then?', '~happy~ Fish heads. They love fish heads.'],
     talk: {
       entry: [

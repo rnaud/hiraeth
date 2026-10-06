@@ -71,7 +71,7 @@ const ON_AIR = { flag: 'bazaar.broadcast.on' };
 export const PEOPLE = {
   sel: {
     id: 'sel', name: 'Madame Sel', title: 'who kept the silent tower', color: '#88b4b5', voice: 0.75, kind: 'f',  age: 'elder', scale: 0.96,
-    palette: { cloak: '#88b4b5', lining: '#465c65', cloth: '#f5dfab', legs: '#465c65', hat: '#f0a083', hair: '#e8dcc0' }, head: 'wrap', cape: 1.4, look: { body: 'badge', robe: 0.12 },
+    palette: { cloak: '#88b4b5', lining: '#465c65', cloth: '#f5dfab', legs: '#465c65', hat: '#f0a083', hair: '#e8dcc0' }, head: 'wrap', cape: 1.4, look: { body: 'badge', robe: 0.12, mask: 'glasses' },
     lines: ['~happy~ Mind the cables, love.', '~sad~ Forty years I ran that tower.', '~solemn~ Listen. No. Listen properly.'],
     talk: {
       entry: [
@@ -158,8 +158,9 @@ export const PEOPLE = {
   },
 
   kip: {
-    id: 'kip', name: 'Kip', title: 'courier of the skybridges', color: '#f0a083', voice: 1.5, kind: 'f', scale: 0.78,
-    palette: { cloak: '#f0a083', lining: '#465c65', cloth: '#88b4b5', legs: '#465c65', hat: '#ebce98', hair: '#4a3226' }, head: 'hair', cape: 0.5,
+    // (a child of eleven, running messages across the bridges: docs/makehuman.md stage 3)
+    id: 'kip', name: 'Kip', title: 'courier of the skybridges', color: '#f0a083', voice: 1.5, kind: 'f', scale: 0.78, age: 'child', years: 11,
+    palette: { cloak: '#f0a083', lining: '#465c65', cloth: '#88b4b5', legs: '#465c65', hat: '#ebce98', hair: '#4a3226' }, head: 'hair', cape: 0.5, look: { head: 'peak', under: 'bob', body: 'neckerchief' },
     lines: ['~playful~ Fastest feet in the market!', '~playful~ I’m not in trouble. I’m resting.', '~shout~ Messages! Messages for fruit!'],
     talk: {
       entry: [
@@ -196,7 +197,7 @@ export const PEOPLE = {
 
   ferro: {
     id: 'ferro', name: 'Ferro', title: 'who rigs the antenna', color: '#c99758', voice: 1.0, kind: 'f',
-    palette: { cloak: '#c99758', lining: '#3a535b', cloth: '#3a535b', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hat', cape: 0.4, look: { prop: 'wrench', mask: 'browgoggles' },
+    palette: { cloak: '#c99758', lining: '#3a535b', cloth: '#3a535b', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hat', cape: 0.4, look: { prop: 'wrench', mask: 'browgoggles', head: 'bandana', under: 'tail', body: 'toolbelt' },
     lines: ['~angry~ Don’t touch that. That’s live.', '~angry~ Three bulbs. Three!', '~playful~ Hold still, you beautiful idiot of an antenna.'],
     talk: {
       entry: [{ if: { flag: 'bazaar.antenna.tuned' }, node: 'tuned' }, { node: 'hello' }],
@@ -231,7 +232,7 @@ export const PEOPLE = {
 
   brush: {
     id: 'brush', name: 'Brush', title: 'who repaints the signs', color: '#e4bd83', voice: 1.05, kind: 'm',
-    palette: { cloak: '#e4bd83', lining: '#465c65', cloth: '#f0a083', legs: '#3a535b', hat: '#88b4b5', hair: '#6e4a32' }, head: 'hat', cape: 0,
+    palette: { cloak: '#e4bd83', lining: '#465c65', cloth: '#f0a083', legs: '#3a535b', hat: '#88b4b5', hair: '#6e4a32' }, head: 'hat', cape: 0, look: { head: 'beret', under: 'curls', body: 'neckerchief', trim: 'patches' },
     lines: ['~neutral~ Careful, wet paint.', '~tired~ A thousand signs. One brush.', '~playful~ Nobody looks up. Good for business; bad for art.'],
     talk: {
       entry: [
@@ -276,7 +277,7 @@ export const PEOPLE = {
 // The market's own people (content.js npcs 0–2).
 export const STREET = {
   doss: {
-    id: 'doss', name: 'Doss', title: 'who welcomes everyone', color: '#dca273',
+    id: 'doss', name: 'Doss', title: 'who welcomes everyone', color: '#dca273', head: 'wrap', look: { body: 'badge' },
     talk: { listen: [
         "~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn.",
         { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the end of the avenue. It went silent the night the sky rang. *Madame Sel* sits at its foot, waiting for somebody to care.' },
@@ -288,7 +289,7 @@ export const STREET = {
       ] },
   },
   oyo: {
-    id: 'oyo', name: 'Oyo', title: 'who sells lanterns', color: '#84bab3',
+    id: 'oyo', name: 'Oyo', title: 'who sells lanterns', color: '#84bab3', look: { head: 'skullcap', under: 'crop', mask: 'glasses', prop: 'lantern' },
     talk: { nodes: {
       hello: {
         say: ['~shout~ Every lantern holds a little sun. Fresh suns, cheap!', "~surprised~ That night every lantern on my stall went out. Then they relit in a colour I’d never stocked."],
@@ -304,7 +305,7 @@ export const STREET = {
     } },
   },
   teb: {
-    id: 'teb', name: 'Teb', title: 'cab tout', color: '#c3a9cc',
+    id: 'teb', name: 'Teb', title: 'cab tout', color: '#c3a9cc', look: { head: 'flatcap', body: 'muffler' },
     talk: { listen: [
         { if: { not: ON_AIR }, say: "~neutral~ The transmitter’s *on the cream balcony*. Need a cab? *Wave at one circling the tower.*" },
         ['~whisper~ The quiet ones? The lavender folk with the big heads. They came with the market, or the market came with them.', '~whisper~ They don’t talk. They listen. When they all turn their heads at once, something’s about to happen.'],

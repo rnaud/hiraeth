@@ -662,6 +662,14 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   umbrella trees with branches under their canopies (greebles for the spot blacks), pyramids, spheres and
   arches, the white hill, ruins, olives, cypresses, the plaza, lakes. On the world (`SPHERES_LOOK`): no bounce
   under the canopies, the white stone's shade the pale blue, green spot blacks. `?look=spheres`.
+- Lorn II (IMG_3797–3800: 6 + 6 + 5 + 6 panels) are views 126–148 (`reference-lorn.js`, sheets "Lorn II / …"):
+  trunks, giant mushrooms, eggs and pools, reeds and crystals, domes, root arches, caves, the saucer and the
+  skiff, backlit at dusk with no cast shadows. The References' views' local lights now reach the shader. On
+  the world: the giant mushrooms pale in their own shade. `?look=lorn2`.
+- The Signal Market (IMG_3801–3808: 1 + 1 + 1 + 1 + 6 + 3 + 4 + 4 panels) are views 149–169
+  (`reference-market.js`): towers with pipes and machinery, billboards, skybridges, stalls, cabs, cables, a
+  crowd, the traveller. On the world: walls and shops shade flat in the street's teal (`MARKET_FLAT`).
+  `?look=bazaar`. The recurring gaps across all the worlds: docs/systems/references.md.
 - Worn by time (the author's ask, docs/systems/materials.md): grime streaks, chips with the plaster lip's
   shadow, cracks with a shadow side, dust at the wall's foot (post.js), per building, lighter on the
   handheld; on in every world's plaster, mud and stone buildings. The "fuzzy dots" on view 2's dish

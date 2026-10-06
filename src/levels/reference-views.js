@@ -10,6 +10,8 @@ import { SHAFT_SHEETS, SHAFT_VIEWS } from './reference-shaft.js';
 import { VAEL2_SHEETS, VAEL2_VIEWS } from './reference-vael2.js';
 import { BURIED_SHEETS, BURIED_VIEWS } from './reference-buried.js';
 import { GARDEN_SHEETS, GARDEN_VIEWS } from './reference-spheres.js';
+import { LORN_SHEETS, LORN_VIEWS } from './reference-lorn.js';
+import { MARKET_SHEETS, MARKET_VIEWS } from './reference-market.js';
 
 // ---------------------------------------------------------------------------
 // The references' views (src/levels/references.js): one per panel of a reference
@@ -51,6 +53,10 @@ export const REFERENCE_SHEETS = {
   ...BURIED_SHEETS,
   // the Garden of Spheres' (reference-spheres.js)
   ...GARDEN_SHEETS,
+  // Lorn II's, the Deep Wood (reference-lorn.js)
+  ...LORN_SHEETS,
+  // the Signal Market's (reference-market.js)
+  ...MARKET_SHEETS,
 };
 
 // ===========================================================================
@@ -477,4 +483,8 @@ export const REFERENCE_VIEWS = [
   ...BURIED_VIEWS,
   // the Garden of Spheres' sheets, IMG_3793 … IMG_3796 (reference-spheres.js)
   ...GARDEN_VIEWS,
+  // Lorn II's sheets, IMG_3797 … IMG_3800 (reference-lorn.js)
+  ...LORN_VIEWS,
+  // the Signal Market's sheets, IMG_3801 … IMG_3808 (reference-market.js)
+  ...MARKET_VIEWS,
 ];

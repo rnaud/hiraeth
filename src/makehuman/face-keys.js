@@ -49,28 +49,52 @@ export function inkShare(x) {
 
 /**
  * The shape-key face of a Humanoid (the MakeHuman template's profile.faceKeys, src/makehuman/body.js): every mesh of its model
- * with morph targets, set together. set(expression) → the ink's share; eyes(blink, squint) → the
- * eyeball's painted lid (with the real lids: they rest opened wider than modelled, body.js openEyes).
+ * with face keys (geometry.userData.faceKeys: the part's shared texture, its head's scale), set together.
+ * Each mesh keeps its weights (mesh.userData.keyWeights, by its key names: mesh.userData.keyNames) and hands
+ * them to its material before each draw (bindKeys), with the texture and the scale of the geometry it draws
+ * then: a level of detail (skinned-lod.js) has no keys, so the shader skips them.
+ * set(expression) → the ink's share; eyes(blink, squint) → the eyeball's painted lid (with the real lids:
+ * they rest opened wider than modelled, body.js openEyes).
  */
 export function faceKeysFor(h) {
   const meshes = [];
-  h.model.traverse((o) => { if (o.isMesh && o.morphTargetDictionary && o.morphTargetInfluences?.length) meshes.push(o); });
-  const names = new Set(meshes.flatMap((m) => Object.keys(m.morphTargetDictionary)));
+  h.model.traverse((o) => {
+    const k = o.isMesh && o.geometry?.userData.faceKeys;
+    if (!k) return;
+    o.userData.keyNames = k.names;
+    o.userData.keyWeights = new Float32Array(k.names.length);
+    o.onBeforeRender = bindKeys;
+    meshes.push(o);
+  });
+  const names = new Set(meshes.flatMap((m) => m.userData.keyNames));
   let expr = {}, blink = 0;
   const write = () => {
     const w = keyWeights(expr, blink);
     for (const m of meshes) {
-      const inf = m.morphTargetInfluences;
-      inf.fill(0);
-      for (const [k, v] of Object.entries(w)) { const i = m.morphTargetDictionary[k]; if (i !== undefined) inf[i] = v; }
+      const W = m.userData.keyWeights, N = m.userData.keyNames;
+      for (let i = 0; i < N.length; i++) W[i] = w[N[i]] ?? 0;
     }
   };
   return {
     meshes, names,
-    brows: !!h.browMesh?.morphTargetDictionary,
+    brows: !!h.browMesh?.geometry?.userData.faceKeys,
     weights: () => keyWeights(expr, blink),
+    /** A mesh's weight on a key (0 if it has none). */
+    weightOf: (mesh, key) => { const i = mesh.userData.keyNames?.indexOf(key) ?? -1; return i >= 0 ? mesh.userData.keyWeights[i] : 0; },
     set(x) { expr = x; write(); return inkShare(x); },
     // (the eyeball's painted lid comes down with the skin's: the lids, opened wider than modelled, shut over it)
     eyes(b) { if (Math.abs(b - blink) > 1e-4) { blink = b; write(); } return b; },
   };
+}
+
+/** A face-keyed mesh's onBeforeRender: its weights, the key texture and its head's scale into its material (none on a level of detail). */
+export function bindKeys() {
+  const u = this.material?.uniforms;
+  if (!u?.uKeyW) return;
+  const k = this.geometry?.userData.faceKeys, W = this.userData.keyWeights, out = u.uKeyW.value;
+  if (!k || !W) { u.uKeyScale.value.w = 0; return; }
+  u.uKeyTex.value = k.texture;
+  u.uKeyWidth.value = k.width;
+  u.uKeyScale.value.set(k.kHead[0], k.kHead[1], k.kHead[2], 1);
+  for (let i = 0; i < out.length; i++) out[i] = W[i] ?? 0;
 }

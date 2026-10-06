@@ -6,10 +6,37 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.71', date: '2026-10-06', items: [
+    'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
+    'The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.',
+    'The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.',
+  ] },
+  { v: '0.70', date: '2026-10-06', items: [
+    'People wear many more kinds of headwear: wide and narrow-brimmed hats, flat straw hats, bowlers, peaked and flat caps, knit caps, fur hats with their ear-flaps down, aviators’ caps, kerchiefs and headscarves, small round caps, circlets, miners’ hard hats with a lamp, and hoods thrown back on the shoulders. On their faces and necks: round spectacles, dark glasses, cloths over the mouth, desert face-wraps, now and then a monocle, neckerchiefs, thick mufflers and goggles hung round the neck.',
+    'Each world wears its own: wraps, veils, face-wraps and straw hats in the desert; bowlers on the City-Shaft’s rim, caps, knit caps and goggles further down, ear-flaps and kerchiefs at the bottom; aviators’ caps in the Hangar, hard hats under the Buried Machine, circlets in the gardens, flat caps, knit caps and headscarves in the Signal Market. People in the crowds far off wear them too.',
+    'On the new bodies, hair shows under a hat, a cap or a headband: pressed flat where the hat sits and falling out below it, instead of a short cap of hair under every hat.',
+    'The Signal Market’s people have the new bodies too, children, the old and the heavy in their own shapes. Kip is a child of eleven in a courier’s cap and neckerchief; Madame Sel wears round spectacles under her turban; Ferro a kerchief with her goggles pushed up and a tool belt; Brush a painter’s beret; and on the street Oyo a small cap and spectacles, Teb a flat cap and a muffler.',
+    'The City-Shaft’s people have the new bodies too: Pip is a child of nine in a knit cap (and no longer has a beard), Wren the cab driver wears an aviator’s cap with her goggles pushed up, Lio the dispatcher a peaked cap, and Corvin of the rim a bowler and a monocle. No child anywhere grows a beard.',
+    'Vael’s silent people have the new bodies too, and Tam, the boy who copies you, is the size of a seven-year-old.',
+    'In the bell monastery of Vael II, Tiv the novice is a boy of ten, Mother Ysolde reads her letters through round spectacles, and the monks and sisters wear skullcaps and headscarves.',
+    'The Sealed Hangar’s mechanics have the new bodies too: Pip is a child of nine, Ambroise the clerk wears a monocle, and the crowd adds aviators’ caps, peaked caps and goggles hung round the neck.',
+    'Under the Buried Machine the dome people have the new bodies too: Pim, nine teeth old, is a small boy (he was an old man’s size), Hask keeps the Wick under a miner’s hard hat with its lamp, and the crowd wears hard hats, knit caps and fur hats.',
+    'In Viridel’s gardens the people have the new bodies too: Lio, who climbs, is a child of nine, Esk tends the tea terraces under a straw hat, and the gardeners wear straw hats, wide brims and circlets among the flower crowns.',
+    'In the Garden of Spheres the listeners have the new bodies too, and some wear circlets, small round caps or a bowler instead of their sphere hats.',
+    'In Lorn the swamp people have the new bodies too: Corm feeds the plants under a wide drooping hat, and the crowd wears drooping brims, kerchiefs and hoods thrown back among the reed hats.',
+    'In the deep wood of Lorn II the lamp-keepers have the new bodies too: Wick, the young lamp-keeper, is a girl of fifteen, and the crowd wears knit caps, fur hats, mufflers and hoods thrown back.',
+    'At home, Lou, your aunt Tove and the neighbours have the new bodies too.',
+    'The Lab’s giants, its gallery of faces, have the new bodies and faces too, so the faces you study there are the ones people wear.',
+    'The small robed walkers in the References scenes have the new bodies too.',
+    'The artist in the atelier has the new body too: every world’s people now do, except the traveller, who keeps his own.',
+  ] },
   { v: '0.69', date: '2026-10-06', items: [
     'Old buildings look worn by time: dirt streaks run down their walls from the tops and sills, patches of plaster have broken away with a little shadow under the edge, longer cracks have a shadow side, and dust darkens the foot of the walls. Each building wears differently. You see it on the desert’s city and domes, the Signal Market’s shops, the houses at home and of the City-Shaft.',
     'Faceted shapes far from the middle of a world no longer break into fuzzy dots where the sun grazes them.',
-    'The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.',
+    'The traveller looks more like his drawings. His hair is a short, tousled mop of soft curls with a fringe over his forehead, instead of long locks. His coral overshirt has a proper collar and hangs open and loose over his undershirt, down to his thighs.',
+    'He wears a little tan neckerchief knotted at his throat instead of the bunched scarf, and slim, low suede ankle boots with thin soles instead of the big rounded ones. His trousers hang looser, and his satchel sits on his right hip, as in the drawings.',
+    'In Lorn II the giant mushrooms stay pale even on their shaded side, as in the drawings, glowing against the dark wood.',
+    'The References scenes now include Lorn II: twenty-three views from its four sheets, the giant mushrooms, the egg heaps and coral pools, the moss domes, the root arches and caves, the saucer and the skiff. The glowing eggs, pools and doors in these scenes now light what is around them.',
   ] },
   { v: '0.68', date: '2026-10-05', items: [
     'In the desert the quest no longer just appears when you land: Marrow the salvager is at your ship, looking over the scar on its hull, and calls you over. Talk to him and he tells you the only fire that could wake your ship is the great tree’s, in Qanat, and to ask old Nour; the quest begins then. Until you have talked to someone, your drone finds the one to ask.',

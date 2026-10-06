@@ -11,7 +11,7 @@
 //   shapeOf(data, params)       a person's points (src/makehuman/shape.js: sliders -> sample weights)
 //   makeBody(data, params, o)   a Humanoid template: the skeleton (each bone where this person's is,
 //                               turned as the reference's), the skinned body, eyes and brows, the
-//                               face keys as morph targets, and a profile the Humanoid reads instead
+//                               face keys (one shared texture: keyTexture), and a profile the Humanoid reads instead
 //                               of its per-kind tables (face, outfit, earZ, headFrame, headScale,
 //                               faceKeys, the hair and the builds: humanoid.js)
 //   measure(...)                the landmarks the game needs (the face ink's, the outfit's, the skull)
@@ -169,25 +169,54 @@ function shared(data, name) {
   return out;
 }
 
-/** The face's shape keys on a part (morph targets, relative, scaled to this head): shared by every body with this head (a template's builds). */
-function keyTargets(data, name, kHead) {
-  const ck = `keys:${name}|${kHead.map((v) => v.toFixed(5)).join(',')}`;
+/** The face keys' texture: this many texels a row (WebGL 2 guarantees textures of 2048 at least). */
+export const KEY_TEX_WIDTH = 2048;
+
+/**
+ * The face's shape keys on a part ('body', 'eyes', 'brows0', 'brows1') as ONE texture for every body:
+ * each key a layer, each vertex a texel (its delta at the reference head, half floats), so every body,
+ * build and face of the game shares it, each scaling the deltas by its own head (kHead, a uniform:
+ * addSparse scales them per axis the same way). three.js made a morph texture per geometry (about 1 MB
+ * each body that came close, and its CPU copy); materials.js FACE_KEYS reads this one instead.
+ * Returns { texture, names, width, count } (texture null when the part has no keys).
+ */
+export function keyTexture(data, name) {
+  const ck = `keytex:${name}`;
   if (data.cache.has(ck)) return data.cache.get(ck);
-  const out = keyTargetsOf(data, name, kHead);
+  const P = data.meta.parts[name], names = [], layers = [];
+  for (const key of Object.keys(data.meta.keys)) {
+    const arr = new Float32Array(P.count * 3);
+    addSparse(data, `k_${key}`, 1, [1, 1, 1], arr, P.start, P.start + P.count, 0);
+    if (!arr.some((v) => v !== 0)) continue;
+    names.push(key); layers.push(arr);
+  }
+  const width = Math.min(P.count, KEY_TEX_WIDTH), height = Math.ceil(P.count / width);
+  let texture = null;
+  if (names.length) {
+    const half = new Uint16Array(width * height * 4 * names.length), toHalf = THREE.DataUtils.toHalfFloat;
+    layers.forEach((arr, k) => {
+      const o = width * height * 4 * k;
+      for (let i = 0; i < P.count; i++) for (let c = 0; c < 3; c++) half[o + i * 4 + c] = toHalf(arr[i * 3 + c]);
+    });
+    texture = new THREE.DataArrayTexture(half, width, height, names.length);
+    texture.type = THREE.HalfFloatType;
+    texture.format = THREE.RGBAFormat;
+    texture.minFilter = texture.magFilter = THREE.NearestFilter;
+    texture.generateMipmaps = false;
+    texture.name = `MakeHuman face keys: ${name}`;
+    texture.needsUpdate = true;
+  }
+  const out = { texture, names, width, count: names.length, part: name };
   data.cache.set(ck, out);
   return out;
 }
-function keyTargetsOf(data, name, kHead) {
-  const P = data.meta.parts[name], targets = [], names = [];
-  for (const key of Object.keys(data.meta.keys)) {
-    const arr = new Float32Array(P.count * 3);
-    addSparse(data, `k_${key}`, 1, kHead, arr, P.start, P.start + P.count, 0);
-    if (!arr.some((v) => v !== 0)) continue;
-    const a = new THREE.BufferAttribute(arr, 3);
-    a.name = key;
-    targets.push(a); names.push(key);
-  }
-  return { targets, names };
+
+/** A key's delta at a vertex of a part, as the shader reads it (the texture's half floats, scaled by kHead): tests and the CPU side. */
+export function keyDelta(keys, kHead, key, i) {
+  const k = keys.names.indexOf(key);
+  if (k < 0 || !keys.texture) return [0, 0, 0];
+  const { data, width, height } = keys.texture.image, o = width * height * 4 * k + i * 4, f = THREE.DataUtils.fromHalfFloat;
+  return [f(data[o]) * kHead[0], f(data[o + 1]) * kHead[1], f(data[o + 2]) * kHead[2]];
 }
 
 /** A skinned part's geometry from its points (and its keys). */
@@ -198,8 +227,9 @@ function partGeometry(data, name, pts, kHead, tris = name) {
   g.setIndex(S.index);
   g.setAttribute('skinIndex', S.skinIndex);
   g.setAttribute('skinWeight', S.skinWeight);
-  const K = keyTargets(data, name, kHead);
-  if (K.targets.length) { g.morphAttributes.position = K.targets; g.morphTargetsRelative = true; g.userData.keys = K.names; }
+  // (the face keys: the part's shared texture, this head's scale; materials.js FACE_KEYS, face-keys.js)
+  const K = keyTexture(data, name);
+  if (K.count) { g.userData.faceKeys = { texture: K.texture, names: K.names, width: K.width, kHead: [...kHead] }; g.userData.keys = K.names; }
   g.computeVertexNormals();
   g.computeBoundingSphere();
   return g;
@@ -330,7 +360,7 @@ export function makeBody(data, params, { brows = 0, id = null, label = '' } = {}
   browGeo.computeVertexNormals();
   const browMesh = new THREE.SkinnedMesh(browGeo, new THREE.MeshBasicMaterial());
   browMesh.name = 'Eyebrows';
-  for (const m of [body, eyes, browMesh]) { arm.add(m); if (m.geometry.morphAttributes.position) m.updateMorphTargets(); }
+  for (const m of [body, eyes, browMesh]) arm.add(m);
   scene.updateMatrixWorld(true);
   const skeleton = new THREE.Skeleton(sk.bones);
   for (const m of [body, eyes, browMesh]) m.bind(skeleton, m.matrixWorld);
@@ -342,6 +372,8 @@ export function makeBody(data, params, { brows = 0, id = null, label = '' } = {}
     face: M.face, outfit: M.outfit, earZ: M.earZ, headFrame: M.headFrame, skull: M.skull,
     headScale: (kind) => headScale(M.skull, kind),
     faceKeys: faceKeysFor,
+    // how many face keys each mesh's material reads (materials.js FACE_KEYS)
+    keyCounts: { body: body.geometry.userData.faceKeys?.names.length ?? 0, eyes: eyes.geometry.userData.faceKeys?.names.length ?? 0, brows: browGeo.userData.faceKeys?.names.length ?? 0 },
     // a child's face is drawn bare (face-ink.js faceYouth), unless the face says otherwise
     young: years === null ? undefined : Math.max(0, Math.min(1, (20 - years) / 12)),
     data, body: bodyPts, kind: params.gender > 0.5 ? 'm' : 'f',

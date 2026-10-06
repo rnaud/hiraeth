@@ -160,10 +160,10 @@ export class MakeHumanPeople {
 }
 
 /**
- * The worlds whose people are MakeHuman bodies by default (docs/makehuman.md, stage 2: the Desert first;
- * the others stay on the Quaternius bodies until their costumes and crowds are checked).
+ * The worlds whose people are MakeHuman bodies by default (docs/makehuman.md: the Desert in stage 2, then
+ * each world once its costumes, children and crowd are checked: the Signal Market).
  */
-export const MH_WORLDS = new Set(['desert']);
+export const MH_WORLDS = new Set(['desert', 'bazaar', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'home', 'lab', 'references', 'atelier']);
 
 /** Whether a world's people are MakeHuman bodies: the page's ?mh=1 / ?mh=0 (to compare), else the world's default (MH_WORLDS). */
 export function usesMakeHuman(world, flag = null) {

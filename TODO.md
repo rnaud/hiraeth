@@ -107,7 +107,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 ## People
 
 - [x] Robes still fly through people until I get close. (A cape simulated every 2nd or 3rd frame, further off or on a 30 fps handheld, now lives all the time since its last update and is carried along with its wearer between updates, pinned and pushed by the collar and limbs on their way, so it no longer streams out behind or lets legs and arms through; the robe under a cape is a collider; the crowd's figures wear the full people's wide cape over their arms and robe, and their robes swing as the full ones do; body girths are measured on the full mesh at every level of detail. tests/robes.test.js)
-- [ ] Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves…
+- [x] Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves… (every level in `MH_WORLDS`, one commit a world, the children given their ages; 15 new headwear, 5 face and 3 neck pieces on the skull egg, hair squashed under hats on MakeHuman heads, a fit test on seven heads, each world's set drawn apart so named people keep their looks; the studio's headwear lineups; docs/makehuman.md stage 3)
 - [x] Alien species on the planets: non-humanoid characters (people, not animals). (Four peoples with procedural bodies, no skeleton: drifters in the Garden of Spheres, stilt-walkers in Vael, shellbacks in Lorn II, murmurs in the Signal Market, three or four each. Each has its own idle and movement, voice and script, tones shown as glow and gesture, a portrait and two-shot, listen-only talk with quest hints, its own reaction to the fluid tool, levels of detail and shadows. docs/systems/aliens.md)
 
 ## The app
@@ -123,8 +123,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 - [ ] Recreate every reference sheet as views (`?level=references`, `[` / `]`, L3 / R3; docs/systems/references.md, "The
   References"). Done: the desert (views 1–27), the City-Shaft (28–50), Vael II (51–81) and the Buried Machine
-  (82–103) and the Garden of Spheres (104–125), DONE.md; Vael has no sheets (`references/Vael/` is empty). In
-  progress, one world at a time: Lorn II → the Signal Market.
+  (82–103) the Garden of Spheres (104–125), Lorn II (126–148) and the Signal Market (149–169), DONE.md; Vael has no
+  sheets (`references/Vael/` is empty). Every sheet is done; the recurring shader gaps, ranked, are in
+  docs/systems/references.md ("Across the worlds").
   - Shader findings left:
     - Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense small
       machinery at every scale, so most of their black masses have no geometry to sit in here yet.
@@ -167,6 +168,11 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
     foliage as clusters of small inked leaf masses (ours smooth lumps); the white stone's shade a flat pale
     blue with almost no strokes; the spheres' printed crescent whatever the sun. Scene-level: the white hill's
     sculpted rock, the ruins' arcades, the robot, the hedges' fruit, the plaza's paving are sketches.
+  - Lorn II, shader-level left: the reeds' outlines dominate their pale blades (an outline weight per
+    material); the far wood's layered mist (fog by distance gives one tint); roots and bushes as dense hatched
+    masses. Scene-level: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes.
+  - Signal Market, shader-level left: fine line detail on every wall (seams, vents, lettering), painted
+    billboards, far towers fading to a warm haze. Scene-level: the crowd, the stalls' goods, the cabs.
   - Buried Machine, scene-level: the trench's pipe mass, the city's clustered hanging towers, the drum's
     interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge are sketches.
   - Scene-level: the game's City-Shaft is a round cream-and-blue pit with a spire, terraces and a hill-town,
@@ -179,9 +185,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## MakeHuman bodies
 
-- [ ] Stages 1 and 2 (the Desert) done (DONE.md). The other worlds; the face keys' morph textures shared
-  between a template's bodies (three makes one per geometry: ~1 MB each body that comes close); the Unity
-  export on MakeHuman bodies (blend shapes for the face keys); the Lab's faces gallery.
+- [ ] Stages 1 and 2 (the Desert) done (DONE.md); stage 3 done: every world, the Lab's faces gallery, the face
+  keys in one texture for every body (docs/makehuman.md). Left: the Unity export on MakeHuman bodies (blend
+  shapes for the face keys); the props the desert's sheets show that the kit lacks.
 
 ## Animation
 

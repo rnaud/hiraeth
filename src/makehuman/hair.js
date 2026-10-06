@@ -13,7 +13,7 @@
 // shoulder pieces and props stay the game's, fitted to the skull (profile.headScale); the beard mask
 // is the jaw's own shell.
 import * as THREE from 'three';
-import { HEADS, MASKS, BODIES, PROPS, hairCap, hashSeed } from '../costumes.js';
+import { HEADS, MASKS, BODIES, PROPS, hairCap, hashSeed, squashUnder, underOf } from '../costumes.js';
 
 /** MakeHuman's styles (scripts/makehuman/hair.py STYLES) and the beard. */
 export const MH_STYLES = ['short01', 'short02', 'short03', 'short04', 'bob01', 'bob02', 'long01', 'ponytail01', 'braid01', 'afro01'];
@@ -44,14 +44,41 @@ export const MH_HAIR = {
   tonsure: { game: true },
 };
 
-/** The MakeHuman style a look's hair is drawn in (null: none; `look.mhHair` forces one: the studio). */
+/**
+ * The MakeHuman style a look's hair is drawn in (null: none; `look.mhHair` forces one: the studio). Under
+ * headwear that covers only part of the head (HEADS[].cover: hats, caps, bands), the hair under it
+ * (costumes.js underOf), squashed under it (squashHair).
+ */
 export function mhStyleOf(look) {
   if (look?.mhHair && MH_STYLES.includes(look.mhHair)) return look.mhHair;
-  const H = MH_HAIR[look?.head];
+  const head = HEADS[look?.head]?.cover ? underOf(look) : look?.head;
+  const H = MH_HAIR[head];
   if (!H) return null;
   const list = H.all ?? H[look.kind === 'f' ? 'f' : 'm'] ?? H.m;
   if (!list?.length) return null;
   return list[hashSeed(`${look.skin}|${look.hair}|${look.eyes}`) % list.length];
+}
+
+/**
+ * A hairstyle's shell (a skinned piece's geometry, bind space) squashed under a look's headwear: into the
+ * head frame (the skull the headwear is made for: Humanoid.headFrame), pressed in where it covers
+ * (costumes.js squashUnder), back. Returns the most any point moved (m).
+ */
+export function squashHair(geo, cover, h, look) {
+  const F = h.headFrame(h.rest.get(h.b.Head).p, look), inv = F.clone().invert();
+  const P = geo.attributes.position, v = new THREE.Vector3(), p = [0, 0, 0], kind = look?.kind === 'f' ? 'f' : 'm';
+  let most = 0;
+  for (let i = 0; i < P.count; i++) {
+    v.fromBufferAttribute(P, i).applyMatrix4(inv);
+    p[0] = v.x; p[1] = v.y; p[2] = v.z;
+    const d = squashUnder(p, cover, kind);
+    if (!d) continue;
+    most = Math.max(most, d);
+    v.set(p[0], p[1], p[2]).applyMatrix4(F);
+    P.setXYZ(i, v.x, v.y, v.z);
+  }
+  P.needsUpdate = true;
+  return most;
 }
 
 const FOLLOW = ['Head', 'neck_01', 'spine_03', 'spine_02'];
@@ -251,13 +278,20 @@ export function mhLookPieces(look, h) {
     else if (M.game) head.push(...(H.base ? H.base(1, look) : H.cap ? [hairCap(1, look.kind === 'f' ? 'f' : 'm')] : []));
     if (M.parts || M.game) head.push(...H.parts(1, look));
   } else {
-    // headwear: the game's, fitted to the skull, the short hair under it the game's cap
-    if (H.cap) head.push(hairCap(1, look.kind === 'f' ? 'f' : 'm'));
-    head.push(...H.parts(1, look));
+    // headwear: the game's, fitted to the skull. Over part of the head (a hat, a cap, a band: H.cover) the
+    // person's own hair, squashed under it and falling below it; else (or bald under it) the game's short cap
+    const st = H.cover ? mhStyleOf(look) : null, shell = st && hairFor(h.profile, st);
+    if (shell) {
+      const piece = skinnedPiece(h, shell);
+      squashHair(piece.geo, H.cover, h, look);
+      skinned.push(piece);
+    } else if (H.cap && !(H.cover && ['bald', 'shaved', 'crest', 'tonsure'].includes(underOf(look)))) head.push(hairCap(1, look.kind === 'f' ? 'f' : 'm'));
+    // (the headwear's own hair, a band's tuft or the flowers' curtain: the real hair instead)
+    head.push(...H.parts(1, look).filter((p) => !(shell && p.role === 'hair')));
   }
   if (look.mask === 'beard') {
     const b = hairFor(h.profile, 'beard');
     if (b) skinned.push(skinnedPiece(h, b));
   } else head.push(...(MASKS[look.mask] ?? MASKS.none)(1));
-  return { head, chest: (BODIES[look.body] ?? BODIES.none)(1), hand: (PROPS[look.prop] ?? PROPS.none)(1), skinned };
+  return { head, chest: [...(H.chest && !M ? H.chest(1, look) : []), ...(BODIES[look.body] ?? BODIES.none)(1)], hand: (PROPS[look.prop] ?? PROPS.none)(1), skinned };
 }
