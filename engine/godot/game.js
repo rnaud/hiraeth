@@ -111,7 +111,7 @@ export function frame(owner, dt) {
     // (the wall clock: Godot's delta is smoothed to the display's refresh, application/run/delta_smoothing)
     const wall = lastT ? tA - lastT : dt * 1000;
     P.samples.push({ dt: wall, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: RS.viewport_get_measured_render_time_cpu(S.vp), gpu: RS.viewport_get_measured_render_time_gpu(S.vp), moved: r.stats.moved });
-    P.t += dt;
+    P.t += Math.min(dt, 0.1);   // (a load's long first frame counts as one)
     if (P.t >= step.secs) {
       const s = P.samples.slice(5);
       const med = (k) => { const a = s.map((x) => x[k]).sort((x, y) => x - y); return a.length ? +a[Math.floor(a.length / 2)].toFixed(2) : 0; };

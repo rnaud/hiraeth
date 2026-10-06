@@ -12,7 +12,7 @@ METHOD=$1; shift
 case $METHOD in *.*) ENTRY=Memento.EditorTools.$METHOD ;; *) ENTRY=Memento.EditorTools.Batch.$METHOD ;; esac
 mkdir -p "$ROOT/unity/Memento/Logs"
 LOG=${LOG:-$ROOT/unity/Memento/Logs/batch-$METHOD.log}
-QUIT=-quit; [ "$METHOD" = Play ] && QUIT=
+QUIT=-quit; case $METHOD in Play|BridgeBatch.Run) QUIT= ;; esac   # (these play, and exit themselves)
 "$UNITY" -batchmode $QUIT -projectPath "$ROOT/unity/Memento" -executeMethod "$ENTRY" -logFile "$LOG" "$@" > /dev/null 2>&1
 STATUS=$?
 grep -n "error CS\|Shader error\|Exception\|Memento:" "$LOG" | grep -v Licensing | head -40

@@ -16,6 +16,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const ENTRIES = {
   spike: { input: 'engine/godot/spike.js', out: ['godot/js/memento-spike.js'] },
   godot: { input: 'engine/godot/game.js', out: ['godot/js/memento.js'] },
+  // (into StreamingAssets, which is not committed, like the port's exports)
+  unity: { input: 'engine/unity/game.js', out: ['unity/Memento/Assets/StreamingAssets/memento-js/memento.cjs'] },
 };
 
 /**

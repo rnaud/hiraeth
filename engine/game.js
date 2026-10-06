@@ -44,7 +44,8 @@ const quiet = (fn) => { const w = console.warn, l = console.log, i = console.inf
 /** The look the engines draw with, from post.js's uniforms and the shared ones: plain numbers. */
 export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLightTint', 'uToon', 'uHatch', 'uHatchSpacing', 'uFogDensity', 'uFogStart', 'uFogMul',
   'uLineWidth', 'uLineVary', 'uDepthThresh', 'uNormalThresh', 'uAlbedoEdges', 'uShadowEdges', 'uWobble', 'uHaze', 'uAerial', 'uSkyFlat', 'uSkyBands', 'uHazeBands',
-  'uHalftone', 'uBounce', 'uShadeKeep', 'uFlatten', 'uNight', 'uSunDisc', 'uPaper', 'uGrain', 'uSkyDots', 'uCrevice', 'uAO', 'uEnvGround'];
+  'uHalftone', 'uBounce', 'uShadeKeep', 'uFlatten', 'uNight', 'uSunDisc', 'uPaper', 'uGrain', 'uSkyDots', 'uCrevice', 'uAO', 'uEnvGround',
+  'uSunColor', 'uMoonDisc', 'uMoonVis'];
 
 export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, log = () => {} } = {}) {
   const T = {};
@@ -185,6 +186,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lookOut.uSunDir = sharedUniforms.uSunDir.value.toArray();
       lookOut.hour = sky.hour;
       return lookOut;
+    },
+    /** The look with every number of the preset and the shared uniforms (the C# port's look format: unity/port-format.js portLook). */
+    fullLook() {
+      const nums = (o) => { const out = {}; for (const [k, x] of Object.entries(o)) if (typeof x?.value === 'number') out[k] = x.value; return out; };
+      return { ...this.lookParams(), post: nums(U), shared: nums(sharedUniforms), preset: presetName, planets: level.sky?.planets ?? [] };
     },
     frame(dtRaw) {
       const tA = performance.now();

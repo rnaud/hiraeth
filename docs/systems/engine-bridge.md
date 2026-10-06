@@ -64,15 +64,27 @@ never goes vertex by vertex through the binding: an `ArrayBuffer` reaches Godot 
 (`godot/js/memento*.js`, built, git-ignored) and forwards `_ready`, `_process` and `_input`.
 `godot/shaders/ink_post.gdshader` is the ink composite on a full-screen quad.
 
-### Unity (Puerts), planned
+### Unity (Puerts)
 
-The same bundle under Puerts' V8. Puerts calls C# by reflection or generated wrappers, slower per
-call than GodotJS, so the Unity side applies the ops in C#: the JS backend appends them to one
-command buffer (`ArrayBuffer`: op, id, payload), handed over once a frame, and a C#
-`BridgeRenderer` decodes it into `Mesh`es (`SetVertexBufferData` from the bytes), `MeshRenderer`s
-or `Graphics.RenderMeshInstanced`, and materials on the C# port's ink shaders
-(`unity/Memento/Assets/Memento/Shaders`). In its own project or assembly, so the C# port keeps
-working.
+The same bundle under Puerts' V8, inside the C# port's project (`unity/Memento`) but apart from it:
+`Assets/MementoJS/` (its scene `BridgeDesert.unity`, plain C# in the project's assembly, no
+compile-time reference to Puerts: `JsRuntime.cs` finds it by reflection, so the port builds and
+runs as before without it). Puerts calls C# by reflection, slower a call than GodotJS, so the JS
+backend (`engine/unity/backend.js`) batches: a geometry once (one ArrayBuffer, `pack.js
+unityGeometry`), a material once (JSON in the exporter's `materialOf` format, `port-format.js`),
+and everything a frame changes in **one command buffer** (`pack.js CommandWriter`: transforms,
+visibility, instances, bones, the camera, removals) decoded by `BridgeRenderer.cs`. Unity is
+left-handed: the bridge mirrors x on the way, as the port's exporter does (points, matrices as
+X · M · X, the winding), so the port's shaders see what they always see.
+
+What it reuses from the port: its **materials** (`WorldLoader.MakeMaterial`, now static so the
+bridge calls it), its **Surface shader, G-buffer and ink composite** (the URP renderer feature),
+its **look** (`MementoLook.Load`, fed each frame the game's own preset and palette in world.json's
+format: `port-format.js portLook`), its **shadows** (`MementoShadows`, the mirrored meshes as its
+casters). Skinned bodies are Unity `SkinnedMeshRenderer`s whose bone transforms the frame's
+buffer sets (each bone's matrix folded with three's bind matrices: `skin.js`); instanced meshes are
+baked into one mesh when their instances change. Input: the Input System's keys as
+`KeyboardEvent.code`s, the first pad in the standard mapping, the mouse (right button).
 
 ## The browser APIs the game uses
 
@@ -169,7 +181,21 @@ same viewpoints is the benchmark's own (`scripts/bench/web-bench.mjs --paths 0 -
 uploads), materials read back, the Godot layouts, keys and pads, the skinning, the look's globals
 against `project.godot`, the bundle's regular expressions, and the game itself in a bare V8
 context (no Node, no page): a world built with its people, the traveller walking on the keys,
-the camera following.
+the camera following; `tests/engine-unity.test.js` the mirror in x, the geometry and command
+layouts the C# side reads, the port's formats, and the Unity bundle against a stand-in of the C#
+host.
+
+The Unity side, once:
+
+```sh
+scripts/unity-js-setup.sh                      # Puerts 3.0.3 (core + V8) into unity/Memento/Packages/ (not committed)
+node scripts/engine-bundle.mjs unity           # the bundle into unity/Memento/Assets/StreamingAssets/memento-js/
+scripts/unity-export/unity-batch.sh BridgeBatch.Run -views scripts/bench/viewpoints.json -out $PWD/output/engine-bridge/unity [-bench 6] [-walk 4]
+```
+
+(Unity writes Puerts' embedded packages into `Packages/packages-lock.json` on a machine that has
+them: leave that change out of commits. The batch run plays `BridgeDesert.unity` in the editor,
+muted, and exits; the menu Memento ▸ JS bridge rebuilds the scene.)
 
 ## The Godot renderer (stage 2)
 
@@ -252,9 +278,30 @@ every frame), and the bone atlas (one texture a frame, not one a body). **Load**
 built in the VM in 1.6–4.5 s (the level 1.3–3.2 s of it) and drawn on the next frame; the web's
 first frame comes 3.0 s after navigation.
 
+## The Unity renderer (stage 3)
+
+The same game, the same frames: `engine/unity/game.js` is `engine/game.js` with the Unity backend.
+Since the port's look is a complete port of the web's (G-buffer, composite, ripples, dots, paper,
+clouds), the bridge's pictures in Unity are closer to the web than Godot's first port.
+
+| web (three.js) | Unity 6.6 + Puerts (the same JS, the port's look) |
+|---|---|
+| ![](../engine-bridge/web-camps.jpg) | ![](../engine-bridge/unity-camps.jpg) |
+| ![](../engine-bridge/web-qanat-tree.jpg) | ![](../engine-bridge/unity-qanat-tree.jpg) |
+| ![](../engine-bridge/web-dunes.jpg) | ![](../engine-bridge/unity-dunes.jpg) |
+| ![](../engine-bridge/web-cave.jpg) | ![](../engine-bridge/unity-cave.jpg) |
+
+Walking (`-walk 4`), the same steps as in Godot: ![](../engine-bridge/unity-walk.jpg)
+
+Not drawn yet on this side: points, lines and sprites (motes, the fluid's drops), the canvas
+panels, glows and the far crowd's animation (as in Godot); the cave's rounded walls in the web's
+shot come from a part of main.js the engine entry doesn't run yet (both engines lack them).
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
   nodes and drawn through a first ink port, saved as a PNG:
   ![the spike](../engine-bridge/spike-godot-desert.jpg)
 - **Stage 2, the Godot renderer**: the desert played in Godot through the bridge (above).
+- **Stage 3, the Unity renderer**: the desert played in Unity through Puerts, drawn by the port's
+  own ink look (below).

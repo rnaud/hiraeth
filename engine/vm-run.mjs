@@ -1,5 +1,5 @@
 // Run an engine bundle (scripts/engine-bundle.mjs) in a bare V8 context, as an engine's VM would
-// hold it: only console and the timers, no Node, no page. The tests use it (tests/engine-bridge.test.js);
+// hold it: only console and the timers, no Node, no page. The tests use it (tests/engine-*.test.js);
 // by hand:  node engine/vm-run.mjs godot/js/memento-spike.js
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
@@ -8,22 +8,23 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Load a bundle into a fresh context. Returns its exports and the context. */
-export function loadBundle(file, host = {}) {
+/**
+ * Load a bundle into a fresh context. host: the engine host's members (engine/platform.js);
+ * globals: more of the context's globals before the bundle runs (a stand-in for Puerts' CS).
+ * Returns its exports, the context, and readFile (public/ files as ArrayBuffers of that context).
+ */
+export function loadBundle(file, host = {}, globals = {}) {
   const code = readFileSync(resolve(ROOT, file), 'utf8');
-  const ctx = { console, setTimeout, clearTimeout, setInterval, clearInterval };
+  const ctx = { console, setTimeout, clearTimeout, setInterval, clearInterval, ...globals };
   ctx.globalThis = ctx;
   vm.createContext(ctx);
-  ctx.__MEMENTO_HOST__ = {
-    engine: 'node-vm',
-    // (the bytes in the context's own ArrayBuffer: three checks `instanceof ArrayBuffer`)
-    readFile: (p) => { try { const b = readFileSync(resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } },
-    ...host,
-  };
+  // (the bytes in the context's own ArrayBuffer: three checks `instanceof ArrayBuffer`)
+  const readFile = (p) => { try { const b = readFileSync(resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } };
+  ctx.__MEMENTO_HOST__ = { engine: 'node-vm', readFile, ...host };
   const module = { exports: {} };
   const fn = vm.runInContext(`(function (module, exports, require) {${code}\n})`, ctx, { filename: file });
   fn(module, module.exports, (n) => { throw new Error(`the bundle asked for '${n}'`); });
-  return { exports: module.exports, ctx };
+  return { exports: module.exports, ctx, readFile };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
