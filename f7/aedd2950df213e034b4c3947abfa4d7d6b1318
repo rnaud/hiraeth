@@ -1,0 +1,45 @@
+TODO.md
+  s_55b4bc53b812ec::t_fcdf92f8a05089 86,88-91
+changelog.md
+  s_55b4bc53b812ec::t_15f690f71c46ce 18-20
+docs/README.md
+  s_55b4bc53b812ec::t_d4959e01945dfb 32
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_9cf31c7824f1b2 227-240
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_99db6cf5bc9e75 235-241
+src/bird.js
+  s_55b4bc53b812ec::t_4da1504847c0e4 23,33,35-69,124-126,129-134,136-138,140-141,173,216,246,249,293,305,322,349,419-420,451,475,492-493,505,540
+src/changelog.js
+  s_55b4bc53b812ec::t_b13fb9c29f35d6 22-24
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_78f8e5fefbfa55 5,8,205-213,215-216,218-219,221-222,224-225,233-235,239,248-249,255,324,327,334,337,339,347-348,351-354,364,399,403-424,434-439,477-478,480,493-495,504-506,602-603,653-660,720,752-758,803
+src/levels/reference-vael2.js
+  s_55b4bc53b812ec::t_19ff9b9a5e16de 5,7,100,111,114,155-160,162-184,190-195,210-211,214-215,221-223,227-228,266-267,281-287,290,300,303-306,313-316,404,424,453,456,481,510,542-543,545-547,562,576,614,649,664,699-701,704,717-719,732,734-756,768,809,812,843
+src/levels/sky-stones-kit.js
+  s_55b4bc53b812ec::t_7c15dcbd0f55cd 26-31,79-80,84,118-120,122,125,128-187,226-231,233-234,236-244
+src/story/arzach.js
+  s_55b4bc53b812ec::t_611f537e0b0e9d 396-401
+tests/birds.test.js
+  s_55b4bc53b812ec::t_efadcde7f24630 5,25-44,94,140
+tests/references.test.js
+  s_55b4bc53b812ec::t_ce7baed46e141f 191-201
+tests/sky-stones-kit.test.js
+  s_55b4bc53b812ec::t_89ddf485331a4c 1-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f7aedd2950df213e034b4c3947abfa4d7d6b1318",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
