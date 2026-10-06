@@ -27,9 +27,10 @@ The agent (`tests/playthrough-agent.js`) teleports rather than walks. At every s
   (`walkTo`: 2 m steps, up no more than a hop, down no more than a safe drop, through the doorways,
   floors over floors told apart), the last of it a climb where the world allows climbing, or a declared
   way (`WAYS`: the wind on wings, the boost-jumps, the jets, the bird) whose needs he has now. The one who
-  opens a world's quest must be reached so from the ship. The wind up Vael's tower, the steps to the
-  flute, and the City-Shaft's first find (Nima, 50 m under the rim: down on wings, back up the shaft's
-  wall) are tried for real, by a `Player` in the physics;
+  opens a world's quest must be reached so from the ship. The wind up Vael's tower and the steps to the
+  flute are tried for real, by a `Player` in the physics. The City-Shaft's first find (Nima, 50 m under
+  the rim) is a walk from the ship, down the red stair (`tests/incal-stair.test.js` walks it with a real
+  `Player`, down and back up, and glides it too);
 - nothing early: nobody arrives anywhere with the wings before Vael, the jets before the City-Shaft, the
   bird's promise before Vael II, a cab pass before Lio; no fallback box by the ship; a step that names a
   way of getting about ("open your wings", "ride the bird", "the jets", "a cab") comes when he has it;
@@ -75,4 +76,5 @@ not a player's.
 **Found so far** (October 2026): arriving with the last world's errand still under way and tracked, Vael
 II, Lorn, Viridel, the Hangar, the Garden and the market had no objective until their first talk:
 `quests.tracked()` returned a quest that world doesn't have (fixed; `tests/dialogue.test.js`).
-Lou, at home, starts her talk herself when she runs to meet you (`KNOWN`: a design choice).
+Lou, at home, starts her talk herself when she runs to meet you (`KNOWN`: intentional, the author's decision). The
+City-Shaft's first find was only reachable on wings or by climbing: the red stair now leads down to it.

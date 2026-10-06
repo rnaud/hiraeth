@@ -48,6 +48,12 @@ The reference pages for the four v0.30 worlds are in `references/`
     the spawn has a railing overlooking the town;
   - a 520 m-wide pit, 580 m deep, with eight levels of terraces;
   - a central spire with rings, bridges and a golden palace on top;
+  - **the red stair** (`STAIR` in `src/levels/incal.js`): the way down on foot to the high terrace,
+    where Nima (the drone's first find) sweeps. A cream gate with a terracotta lintel in a gap of the rim's
+    parapet near the makers' pillar; a top landing flush with the rim; five terracotta flights with landings
+    down the shaft's wall on steel brackets, a red pipe rail on the void side (as the plates' red stairs);
+    a steel landing along the terrace's end, where no house is kept (`lane`). `places.stair.path` is its
+    centre line; `tests/incal-stair.test.js` walks it down and up with a real `Player`, and glides it;
   - flying taxis, landing pads, cables and an acid lake at the bottom;
   - **jetpack:** hold Space in the air for about 10 s of thrust; you lean forward into the flight when steering;
   - **E** hails a taxi, then gets in (once Lio has written you a pass: docs/systems/progression.md). Driving: W/S throttle, A/D steer,

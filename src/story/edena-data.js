@@ -76,7 +76,7 @@ export const QUESTS = [
     ],
   },
   {
-    // the Hangar's errand ends here: the brass gear, fitted (src/story/water-clock.js)
+    // Lorn II's errand ends here: the brass gear, fitted (src/story/water-clock.js)
     id: 'edena.clock', title: 'Mira’s Water Clock', world: 'edena',
     outro: 'The bowl fills, tips, and the bell rings: time to water. It always is.',
     stages: [
@@ -116,10 +116,10 @@ export const PEOPLE = {
           do: { set: { 'edena.mira.flood': true } },
           choices: [{ text: '~sad~ I’m sorry, Mira.', goto: 'floodSorry' }],
         },
-        // the Hangar's gear (src/story/water-clock.js)
+        // Lorn II's gear (src/story/water-clock.js)
         clockNow: {
           say: [
-            { if: { quest: 'edena.clock', stage: 'fit' }, text: "~happy~ A gear from the Hangar! Someone remembered our clock. *Fit it to the axle*, please. My fingers are having an unhelpful day." },
+            { if: { quest: 'edena.clock', stage: 'fit' }, text: "~happy~ A gear from Lorn’s domes! Someone remembered our clock. *Fit it to the axle*, please. My fingers are having an unhelpful day." },
             { if: { quest: 'edena.clock', stage: 'fill' }, text: "~playful~ Now *shoot three quick splashes into the bowl*. It leaks, so keep them close together. When it fills, it tips." },
           ],
           choices: [{ text: '~neutral~ (to the clock)', end: true }],
