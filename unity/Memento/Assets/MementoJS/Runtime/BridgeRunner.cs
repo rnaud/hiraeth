@@ -23,6 +23,7 @@ namespace Memento.Bridge
         public Light sun;
         public MementoLook look;
         public BridgeHud hud;
+        public BridgeAudio audioOut;
         public double cpuMs, gpuMs;
         JsRuntime js;
         bool started, failed;
@@ -39,7 +40,12 @@ namespace Memento.Bridge
             BridgeHost.Runner = this;
             if (!JsRuntime.Available) { Debug.LogError("Memento bridge: Puerts is not installed (scripts/unity-js-setup.sh)"); failed = true; return; }
             QualitySettings.vSyncCount = 0; Application.targetFrameRate = -1;
-            AudioListener.volume = 0; AudioListener.pause = true;   // (the bridge plays no sound yet; nothing may make any)
+            // the sound (BridgeAudio): played, except in batch runs and with -mute, where nothing may make any
+            bool mute = Application.isBatchMode || Array.IndexOf(Environment.GetCommandLineArgs(), "-mute") >= 0;
+            if (mute) { AudioListener.volume = 0; AudioListener.pause = true; }
+            audioOut = new GameObject("Sound").AddComponent<BridgeAudio>();
+            audioOut.transform.SetParent(transform, false);
+            audioOut.Begin(mute);
             // the stage, as Game.BuildWorld sets it up
             sun = new GameObject("Sun").AddComponent<Light>();
             sun.transform.SetParent(transform, false);
@@ -47,6 +53,7 @@ namespace Memento.Bridge
             cam = new GameObject("Camera").AddComponent<Camera>();
             cam.transform.SetParent(transform, false);
             cam.tag = "MainCamera";
+            cam.gameObject.AddComponent<AudioListener>();   // (where the sound is heard: BridgeAudio, muted in batch runs)
             cam.nearClipPlane = 0.1f; cam.farClipPlane = 6000f; cam.fieldOfView = 55;
             cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Color.black;
             cam.allowMSAA = false; cam.allowHDR = false;
@@ -57,7 +64,7 @@ namespace Memento.Bridge
             look.sun = sun;
             scene = new GameObject("Mirrored scene").AddComponent<BridgeRenderer>();
             scene.transform.SetParent(transform, false);
-            scene.cam = cam;
+            scene.cam = cam; scene.look = look;
             hud = new GameObject("HUD").AddComponent<BridgeHud>();
             hud.transform.SetParent(transform, false);
             hud.cam = cam;
@@ -101,22 +108,31 @@ namespace Memento.Bridge
         public void Look(string json)
         {
             var d = Json.Parse(json) as Dictionary<string, object>;
-            if (d != null) look.Load(d, null);
+            if (d == null) return;
+            look.Load(d, null);
+            look.SetLocalLights(scene.lights);   // (the local lights come each frame they change: op 11)
+            // the weather, as the port's Ambient.cs sets it
+            var w = d.O("weather");
+            if (w != null) { Shader.SetGlobalFloat("_Rain", w.F("rain")); Shader.SetGlobalFloat("_RainNear", w.F("rainNear")); Shader.SetGlobalFloat("_Storm", w.F("storm")); }
         }
+
+        void LateUpdate() { Shader.SetGlobalFloat("_FlameTime", Time.time); }
 
         /// <summary>The camera's view as a PNG (the port's Batch.Render does the same in the editor).</summary>
         public void Shot(string path)
         {
+            var probe = Environment.GetCommandLineArgs(); int pi = Array.IndexOf(probe, "-probe");
+            if (pi >= 0 && pi + 1 < probe.Length) Debug.Log($"Memento bridge: probe '{probe[pi + 1]}' at {Path.GetFileName(path)}:{scene.Probe(probe[pi + 1], Array.IndexOf(probe, "-solo") >= 0)}");
             int w = 1280, h = 720;
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var prev = cam.targetTexture;
             cam.targetTexture = rt;
             // (the HUD's letters: a dynamic font rasterises new ones on a canvas rebuild, so build, draw, and again)
             Canvas.ForceUpdateCanvases();
-            cam.Render();
+            scene.DrawCrowds(); cam.Render();
             Canvas.ForceUpdateCanvases();
-            cam.Render();
-            cam.Render();
+            scene.DrawCrowds(); cam.Render();
+            scene.DrawCrowds(); cam.Render();
             RenderTexture.active = rt;
             var tex = new Texture2D(w, h, TextureFormat.RGB24, false);
             tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
@@ -132,6 +148,7 @@ namespace Memento.Bridge
         public void Exit(int code)
         {
             exiting = true;
+            if (audioOut) Debug.Log($"Memento bridge: sound {audioOut.Report()}");
             Debug.Log($"Memento bridge: exit {code}");
             if (OnExit != null) OnExit(code);
             else Application.Quit(code);

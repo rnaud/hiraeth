@@ -21,16 +21,44 @@ namespace Memento.Bridge
             public GameObject go; public string kind, mesh; public int[] mids; public MeshFilter mf; public Renderer r;
             public SkinnedMeshRenderer smr; public Transform[] bones; public Mesh inst; public bool shadow;
             public Matrix4x4 bind; public string bindKey; public int nb;   // (a mesh on a shared skeleton: its bind pose)
+            public MeshData src; public float moteSize; public Vector3[] qv;   // (points: camera-facing quads from src's points, each frame)
+            public Puffs puffs;                                                 // (the footprints: the port's Print decal, instanced)
+            public InstMats im; public Matrix4x4[] raw = new Matrix4x4[0]; public Color[] rawCol = new Color[0]; public int rawN; public bool imDirty;   // (instanced: on the GPU, the port's MEMENTO_INSTMAT)
         }
 
         public Camera cam;
         Shader surface;
         readonly Dictionary<string, MeshData> meshes = new();
         readonly Dictionary<int, Material> materials = new();
+        readonly Dictionary<int, float> moteSizes = new();
+        readonly Dictionary<int, Material> instMaterials = new();   // by node: a material's copy for its GPU instances (MEMENTO_INSTMAT, its own buffer)
+        public readonly List<Vector4> lights = new();         // the local lights (op 11), in Unity's space
+        public MementoLook look;   // a mote material's point size (life.js uSize)
         readonly Dictionary<int, Node> nodes = new();
         readonly Dictionary<int, List<MeshData>> byGeometry = new();
         BridgeBones bonesJob;   // every skeleton's bones, set by one parallel job a frame
+        // the crowd's instanced figures, drawn each frame from their instances (op 9)
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        struct CrowdInst { public Vector4 at, anim, react, look0, look1, dress, body, scale; }
+        class Crowd { public Mesh mesh; public Material mat; public GraphicsBuffer buf; public CrowdInst[] insts = new CrowdInst[0]; public int n; public float time; public bool dirty, said; public readonly MaterialPropertyBlock mpb = new(); }
+        readonly Dictionary<int, Crowd> crowds = new();
         readonly Dictionary<string, Mesh> bound = new();             // a mesh with a bind pose, by mesh and bind
+
+        /// <summary>For a look into what is drawn (BridgeBatch -probe): the nodes whose name holds `sub`, as Unity has them.</summary>
+        public string Probe(string sub, bool solo = false)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var kv in nodes)
+            {
+                var n = kv.Value;
+                if (!n.go || n.go.name.IndexOf(sub, StringComparison.Ordinal) < 0) { if (solo && n.r) n.r.enabled = false; continue; }
+                var m = n.mf ? n.mf.sharedMesh : n.smr ? n.smr.sharedMesh : null;
+                sb.Append($"\n  {n.go.name}: active {n.go.activeInHierarchy} renderer {(n.r ? n.r.enabled.ToString() : "none")} mesh {(m ? m.name + " v" + m.vertexCount + " sub" + m.subMeshCount + " bounds " + n.r.bounds : "none")} mats ");
+                if (n.r) foreach (var mt in n.r.sharedMaterials) sb.Append(mt ? $"{mt.name}(cull {mt.GetFloat("_Cull")}, q {mt.renderQueue}) " : "null ");
+                sb.Append($" pos {n.go.transform.position} scale {n.go.transform.lossyScale} shadows {(n.r ? n.r.shadowCastingMode + "/" + n.r.receiveShadows : "-")}{(n.im != null ? " gpu instances " + n.rawN + " of mesh " + n.mesh : "")}");
+            }
+            return sb.ToString();
+        }
 
         Transform[] Skeleton(int sid, int n) => (bonesJob ??= new BridgeBones(transform)).Skeleton(sid, n);
         public int Geometries => meshes.Count;
@@ -68,6 +96,8 @@ namespace Memento.Bridge
                 o += n * 8;
             }
             if ((flags & 16) != 0) { d.bind = new Vector3[n]; for (int i = 0; i < n; i++, o += 3) d.bind[i] = new Vector3(f[o], f[o + 1], f[o + 2]); }
+            Vector4[] rig = null;
+            if ((flags & 32) != 0) { rig = new Vector4[n]; for (int i = 0; i < n; i++, o += 4) rig[i] = new Vector4(f[o], f[o + 1], f[o + 2], f[o + 3]); }
             var idx = new int[ni];
             for (int i = 0; i < ni; i++) idx[i] = (int)u[o + i];
             d.subs = new int[ng][]; d.subMat = new int[ng];
@@ -86,9 +116,16 @@ namespace Memento.Bridge
             if (d.col != null) mesh.SetColors(d.col);
             if (d.bind != null) mesh.SetUVs(3, d.bind);
             if (weights != null) mesh.boneWeights = weights;
+            if (rig != null)
+            {
+                // the crowd's figure (FarCrowd.cs Figure): the rig in uv2, white, never culled (the shader moves it)
+                mesh.SetUVs(2, rig);
+                if (d.col == null) { var w = new Color[n]; for (int i = 0; i < n; i++) w[i] = Color.white; mesh.colors = w; }
+            }
             mesh.subMeshCount = ng;
             for (int g = 0; g < ng; g++) mesh.SetIndices(d.subs[g], MeshTopology.Triangles, g, false);
             mesh.RecalculateBounds();
+            if (rig != null) mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
             d.mesh = mesh;
             if (meshes.TryGetValue(key, out var old) && old.mesh) Destroy(old.mesh);
             meshes[key] = d;
@@ -106,7 +143,36 @@ namespace Memento.Bridge
         public void Material(int mid, string json)
         {
             var m = Json.Parse(json) as Dictionary<string, object>;
+            if (m.S("port") == "flame") { materials[mid] = Flame(m); return; }
+            if (m.S("port") == "mote")
+            {
+                // the dust motes (life.js Motes) on the port's Memento/Mote, as Ambient.cs draws its own
+                var mm = new Material(Shader.Find("Memento/Mote")) { name = "motes (bridge)" };
+                var c = m.L("color"); var ink = m.L("ink");
+                mm.SetVector("_MoteColor", new Vector4(Json.Num(c[0]), Json.Num(c[1]), Json.Num(c[2]), 1));
+                if (ink != null) mm.SetVector("_Ink", new Vector4(Json.Num(ink[0]), Json.Num(ink[1]), Json.Num(ink[2]), 1));
+                materials[mid] = mm; moteSizes[mid] = m.F("size", 0.05f);
+                return;
+            }
+            if (m.S("port") == "print")
+            {
+                var pm = new Material(Shader.Find("Memento/Print")) { name = "prints (bridge)" };
+                pm.SetFloat("_PrintDepth", m.F("depth", 0.87f));
+                materials[mid] = pm;
+                return;
+            }
             materials[mid] = WorldLoader.MakeMaterial(surface, m);
+        }
+
+        /// <summary>The fire (story/flames.js) on the port's own Memento/Flame: its five bands of colour, its seed, its heat.</summary>
+        Material Flame(Dictionary<string, object> m)
+        {
+            var mat = new Material(Shader.Find("Memento/Flame")) { name = "flame (bridge)" };
+            var pal = m.L("pal"); var arr = new Vector4[5];
+            for (int i = 0; i < 5; i++) arr[i] = new Vector4(Json.Num(pal[i * 3]), Json.Num(pal[i * 3 + 1]), Json.Num(pal[i * 3 + 2]), 1);
+            mat.SetVectorArray("_FlamePal", arr);
+            mat.SetFloat("_Seed", m.F("seed")); mat.SetFloat("_FlameK", m.F("k", 1)); mat.SetFloat("_Shell", 0);
+            return mat;
         }
 
         // ------------------------------------------------------------------ nodes
@@ -121,6 +187,55 @@ namespace Memento.Bridge
             n.go.transform.SetParent(transform, false);
             n.go.SetActive(false);
             meshes.TryGetValue(n.mesh ?? "", out var md);
+            if (n.kind == "crowd")
+            {
+                // the port's own crowd figures (FarCrowd.cs): its Surface shader posing them (MEMENTO_CROWD)
+                materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var cm);
+                var mat = cm ? new Material(cm) : new Material(surface);
+                mat.name = "crowd figures"; mat.EnableKeyword("MEMENTO_CROWD"); mat.SetFloat("_Figure", 1); mat.SetFloat("_Cull", (float)CullMode.Off);
+                crowds[id] = new Crowd { mesh = md?.mesh, mat = mat };
+                nodes[id] = n;
+                return;
+            }
+            if (n.kind == "puffs")
+            {
+                materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var pmat);
+                if (md != null && pmat) n.puffs = new Puffs(md.mesh, pmat, 64);
+                nodes[id] = n;
+                return;
+            }
+            if (n.kind == "points" && md != null)
+            {
+                // points (the motes): a quad for each, turned to the camera and sized as the web's gl_PointSize, every frame
+                int np = md.pos.Length;
+                var q = new Mesh { name = n.go.name + " (quads)", indexFormat = np * 4 > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
+                q.MarkDynamic();
+                n.qv = new Vector3[np * 4]; var quv = new Vector2[np * 4]; var qi = new int[np * 6];
+                for (int i = 0; i < np; i++) { quv[i * 4] = new(0, 0); quv[i * 4 + 1] = new(1, 0); quv[i * 4 + 2] = new(0, 1); quv[i * 4 + 3] = new(1, 1); int b = i * 4, k = i * 6; qi[k] = b; qi[k + 1] = b + 2; qi[k + 2] = b + 1; qi[k + 3] = b + 1; qi[k + 4] = b + 2; qi[k + 5] = b + 3; }
+                q.vertices = n.qv; q.uv = quv; q.triangles = qi; q.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
+                n.src = md; n.inst = q;
+                n.mf = n.go.AddComponent<MeshFilter>(); n.mf.sharedMesh = q;
+                n.r = n.go.AddComponent<MeshRenderer>();
+                materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var qm);
+                n.r.sharedMaterial = qm; n.r.shadowCastingMode = ShadowCastingMode.Off;
+                n.moteSize = moteSizes.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var ms) ? ms : 0.05f;
+                nodes[id] = n;
+                return;
+            }
+            if (n.kind == "instanced" && md != null && md.subs.Length == 1)
+            {
+                // instances drawn on the GPU (the port's InstMats: Surface.shader MEMENTO_INSTMAT, its shadow in the cascades), not baked
+                // (a copy of the material for each node: its instance buffer is bound on the material)
+                int mid = n.mids.Length > 0 ? n.mids[0] : 0;
+                Material imat = materials.TryGetValue(mid, out var bm0) && bm0 ? new Material(bm0) { name = bm0.name + " (instances)" } : null;
+                if (imat) instMaterials[id] = imat;
+                if (imat)
+                {
+                    // (the shader multiplies the instance's tint by the vertex colour: a mesh without any gets white)
+                    if (md.col == null) { md.col = new Color[md.pos.Length]; for (int i = 0; i < md.col.Length; i++) md.col[i] = Color.white; md.mesh.SetColors(md.col); }
+                    n.im = new InstMats(md.mesh, imat, 64); nodes[id] = n; return;
+                }
+            }
             if (md != null && n.kind == "skinned" && d.I("bones") > 0 && d.Get("skeleton") != null)
             {
                 // the skeleton's shared bones (world matrices); the mesh's bind matrix as every bone's bind pose
@@ -159,7 +274,7 @@ namespace Memento.Bridge
                 var mats = new Material[md.subMat.Length];
                 for (int s = 0; s < mats.Length; s++) materials.TryGetValue(n.mids.Length > 0 ? n.mids[Mathf.Min(md.subMat[s], n.mids.Length - 1)] : 0, out mats[s]);
                 n.r.sharedMaterials = mats;
-                n.r.shadowCastingMode = n.shadow ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                n.r.shadowCastingMode = n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off;   // (both faces, as the web's shadow pass draws every caster: main.js shadowOverride)
             }
             nodes[id] = n;
         }
@@ -236,7 +351,13 @@ namespace Memento.Bridge
                     {
                         int id = (int)fu[o++], cnt = (int)fu[o++]; bool hasCol = fu[o++] != 0;
                         int mo = o; o += cnt * 16; int co = o; if (hasCol) o += cnt * 3;
-                        if (nodes.TryGetValue(id, out var nd) && nd.mf && meshes.TryGetValue(nd.mesh ?? "", out var md)) BakeInstances(nd, md, cnt, mo, hasCol ? co : -1);
+                        if (nodes.TryGetValue(id, out var nd) && nd.im != null)
+                        {
+                            if (nd.raw.Length < cnt) { nd.raw = new Matrix4x4[Mathf.Max(cnt, 64)]; nd.rawCol = new Color[nd.raw.Length]; }
+                            for (int i = 0; i < cnt; i++) { nd.raw[i] = Mat(ff, mo + i * 16); nd.rawCol[i] = hasCol ? new Color(ff[co + i * 3], ff[co + i * 3 + 1], ff[co + i * 3 + 2], 1) : Color.white; }
+                            nd.rawN = cnt; nd.imDirty = true;
+                        }
+                        else if (nd != null && nd.mf && meshes.TryGetValue(nd.mesh ?? "", out var md)) BakeInstances(nd, md, cnt, mo, hasCol ? co : -1);
                         break;
                     }
                     case 4:   // bones: each bone's matrix, local to the node
@@ -280,10 +401,53 @@ namespace Memento.Bridge
                             }
                         break;
                     }
+                    case 9:   // the crowd's figures
+                    {
+                        int id = (int)fu[o++], cnt = (int)fu[o++]; float time = ff[o++];
+                        if (crowds.TryGetValue(id, out var c))
+                        {
+                            if (c.insts.Length < cnt) c.insts = new CrowdInst[Mathf.Max(cnt, 64)];
+                            for (int i = 0; i < cnt; i++)
+                            {
+                                int k = o + i * 32;
+                                Vector4 V(int j) => new Vector4(ff[k + j], ff[k + j + 1], ff[k + j + 2], ff[k + j + 3]);
+                                c.insts[i] = new CrowdInst { at = V(0), anim = V(4), react = V(8), look0 = V(12), look1 = V(16), dress = V(20), body = V(24), scale = V(28) };
+                            }
+                            if (cnt > 0 && c.n == 0 && !c.said) { c.said = true; Debug.Log($"Memento bridge: crowd {id}: {cnt} figures, mesh {(c.mesh ? c.mesh.name : "none")}"); }
+                            c.n = cnt; c.time = time; c.dirty = true;
+                        }
+                        o += cnt * 32;
+                        break;
+                    }
                     case 6:   // remove
                     {
                         int id = (int)fu[o++];
-                        if (nodes.TryGetValue(id, out var nd)) { if (nd.inst) Destroy(nd.inst); Destroy(nd.go); nodes.Remove(id); }
+                        if (nodes.TryGetValue(id, out var nd)) { if (nd.inst) Destroy(nd.inst); nd.puffs?.Release(); nd.im?.Release(); if (instMaterials.Remove(id, out var im0) && im0) Destroy(im0); Destroy(nd.go); nodes.Remove(id); }
+                        break;
+                    }
+                    case 11:   // the local lights: x, y, z, reach (Unity's space)
+                    {
+                        int n = (int)fu[o++];
+                        lights.Clear();
+                        for (int i = 0; i < n; i++, o += 4) lights.Add(new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]));
+                        if (look) look.SetLocalLights(lights);
+                        break;
+                    }
+                    case 10:   // instances as the port's Puffs (the footprints): at + yaw, size, fade
+                    {
+                        int id = (int)fu[o++], cnt = (int)fu[o++];
+                        if (nodes.TryGetValue(id, out var nd) && nd.puffs != null)
+                        {
+                            var P = nd.puffs;
+                            if (P.data.Length < cnt) P.data = new Puffs.Inst[Mathf.Max(cnt, 64)];
+                            for (int i = 0; i < cnt; i++)
+                            {
+                                int k = o + i * 8;
+                                P.data[i] = new Puffs.Inst { at = new Vector4(ff[k], ff[k + 1], ff[k + 2], ff[k + 3]), size = new Vector4(ff[k + 4], ff[k + 5], ff[k + 6], 0), col = new Vector4(1, 1, 1, ff[k + 7]) };
+                            }
+                            P.count = cnt;
+                        }
+                        o += cnt * 8;
                         break;
                     }
                     default:
@@ -329,9 +493,67 @@ namespace Memento.Bridge
             nd.mf.sharedMesh = mesh;
         }
 
+        void LateUpdate() => DrawCrowds();
+
+        /// <summary>The motes' quads, turned to the camera: clamp(size × 900 / depth, 1.5, 14) px across, as life.js's gl_PointSize.</summary>
+        void PointQuads()
+        {
+            if (!cam) return;
+            var camT = cam.transform; Vector3 right = camT.right, up = camT.up, at = camT.position;
+            float pxW = 2 * Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad) / Mathf.Max(cam.pixelHeight, 1);
+            foreach (var n in nodes.Values)
+            {
+                if (n.src == null || n.qv == null || !n.go.activeSelf) continue;
+                var P = n.src.pos; int np = Mathf.Min(P.Length, n.qv.Length / 4);
+                Matrix4x4 M = n.go.transform.localToWorldMatrix, Mi = n.go.transform.worldToLocalMatrix;
+                for (int i = 0; i < np; i++)
+                {
+                    var p = M.MultiplyPoint3x4(P[i]);
+                    float d = Mathf.Max(Vector3.Distance(p, at), 0.1f);
+                    float px = Mathf.Clamp(n.moteSize * 900 / d, 1.5f, 14f), half = 0.5f * px * d * pxW;
+                    n.qv[i * 4] = Mi.MultiplyPoint3x4(p - right * half - up * half); n.qv[i * 4 + 1] = Mi.MultiplyPoint3x4(p + right * half - up * half);
+                    n.qv[i * 4 + 2] = Mi.MultiplyPoint3x4(p - right * half + up * half); n.qv[i * 4 + 3] = Mi.MultiplyPoint3x4(p + right * half + up * half);
+                }
+                n.inst.vertices = n.qv;
+            }
+        }
+
+        /// <summary>The crowd's draws for the cameras about to render (each frame, and before a shot's own render), the prints', the motes'.</summary>
+        public void DrawCrowds()
+        {
+            PointQuads();
+            var around = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f);
+            foreach (var n in nodes.Values)
+            {
+                if (!n.go.activeInHierarchy) continue;
+                if (n.puffs != null) n.puffs.Draw(around.center, 500);
+                if (n.im == null || n.rawN == 0) continue;
+                // (each instance's world matrix: the node's, then its own; again when either moved)
+                if (n.imDirty || n.go.transform.hasChanged)
+                {
+                    var W = n.go.transform.localToWorldMatrix;
+                    if (n.im.data.Length < n.rawN) n.im.data = new InstMats.Inst[n.raw.Length];
+                    for (int i = 0; i < n.rawN; i++) n.im.Set(i, W * n.raw[i], n.rawCol[i]);
+                    n.im.count = n.rawN; n.imDirty = false; n.go.transform.hasChanged = false;
+                }
+                n.im.Draw(around, n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off);
+            }
+            foreach (var (id, c) in crowds)
+            {
+                if (c.n == 0 || !c.mesh || !nodes.TryGetValue(id, out var nd) || !nd.go.activeSelf) continue;
+                if (c.buf == null || c.buf.count < c.insts.Length) { c.buf?.Release(); c.buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, Mathf.Max(c.insts.Length, 1), System.Runtime.InteropServices.Marshal.SizeOf<CrowdInst>()); c.mpb.SetBuffer("_CrowdInst", c.buf); c.dirty = true; }
+                if (c.dirty) { c.buf.SetData(c.insts, 0, 0, c.n); c.dirty = false; }
+                c.mat.SetFloat("_CrowdTime", c.time);
+                var rp = new RenderParams(c.mat) { worldBounds = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f), shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true, matProps = c.mpb };
+                Graphics.RenderMeshPrimitives(rp, c.mesh, 0, c.n);
+            }
+        }
+
         void OnDestroy()
         {
-            foreach (var n in nodes.Values) if (n.inst) Destroy(n.inst);
+            foreach (var c in crowds.Values) { c.buf?.Release(); if (c.mat) Destroy(c.mat); }
+            foreach (var n in nodes.Values) { if (n.inst) Destroy(n.inst); n.im?.Release(); n.puffs?.Release(); }
+            foreach (var m in instMaterials.Values) if (m) Destroy(m);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);
             foreach (var m in bound.Values) if (m) Destroy(m);
             bonesJob?.Dispose();

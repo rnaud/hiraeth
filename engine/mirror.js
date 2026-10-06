@@ -13,7 +13,9 @@
 //   visible(id, on)             shown / hidden (an ancestor hidden or the object left the scene)
 //   geometryOf(id, gid)         a drawable's geometry swapped or rewritten (sent again first)
 //   vertices(gid, positions, normals, n)   only a geometry's points and normals moved (cloth): those alone
-//   instances(id, count, mats, colors)   an InstancedMesh's instances, when they change
+//   instances(id, count, mats, colors, attrs, time)   an InstancedMesh's instances, when they change: their
+//                               matrices, colours and per-instance attributes ({ aAnim: { array, itemSize }… }), the
+//                               game's clock then (mirror.time: the crowd's figures pose by it in their shader)
 //   skeleton(sid, mats, n)      a skeleton's bone matrices (bone world × inverse bind: three's boneMatrices), once a frame
 //                               it is drawn, however many meshes it moves; a skinned mesh's create says its skeleton
 //                               and its bind matrix (desc.skeleton, desc.bind, desc.attached). A backend with
@@ -29,6 +31,9 @@
 // keeps one must copy it.
 import { inkSpec } from './ink-spec.js';
 
+
+/** What a render hook is handed for the renderer: nothing it can draw with (hooks here read the scene, not it). */
+const RENDERER_STUB = Object.freeze({ isWebGLRenderer: false, info: { render: { frame: 0 } } });
 
 export class SceneMirror {
   /**
@@ -54,7 +59,8 @@ export class SceneMirror {
     this._cam = new Float32Array(16);
     this.stats = { nodes: 0, drawn: 0, moved: 0, geometries: 0, materials: 0, uploadedBytes: 0, skipped: 0 };
     this.prof = { matrices: 0, walk: 0, bones: 0, tail: 0, frame: 0, frames: 0 };
-    this.profiling = false;   // (the bones' share timed apart: costs a clock read a skinned mesh)
+    this.profiling = false;
+    this.time = 0;            // the game's clock (sharedUniforms.uTime), set before sync: handed to instances()   // (the bones' share timed apart: costs a clock read a skinned mesh)
   }
 
   _geometry(geo) {
@@ -76,6 +82,7 @@ export class SceneMirror {
     const a = geo.attributes;
     const out = { groups: geo.groups.length ? geo.groups.map((x) => ({ start: x.start, count: x.count, materialIndex: x.materialIndex ?? 0 })) : null, attributes: {} };
     for (const [name, attr] of Object.entries(a)) {
+      if (attr.isInstancedBufferAttribute) continue;   // (per instance: they go with instances())
       if (attr.isInterleavedBufferAttribute) { out.attributes[name] = { array: deinterleave(attr), itemSize: attr.itemSize, normalized: attr.normalized }; continue; }
       out.attributes[name] = { array: attr.array, itemSize: attr.itemSize, normalized: attr.normalized };
       this.stats.uploadedBytes += attr.array.byteLength;
@@ -151,6 +158,9 @@ export class SceneMirror {
           if (node.geo && (geo !== node.geo || this._full)) B.geometryOf?.(id, gid);
           node.geo = geo; node.gv = this.geoms.get(geo).version;
         }
+        // an object's own render hook (the crowd's tiers set their count in it; a face binds its keys): called as the
+        // renderer would before drawing it, in the main pass (no override material)
+        if (Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
         if (!node.shown) { node.shown = true; B.visible?.(id, true); }
         const e = o.matrixWorld.elements, m = node.matrix;
         // (compared as the floats they are sent as: a double that floats can't hold is no move)
@@ -162,8 +172,16 @@ export class SceneMirror {
           this._ids[n] = id; this._mats.set(m, n * 16); n++;
         }
         if (o.isInstancedMesh) {
-          const v = o.instanceMatrix.version + (o.instanceColor?.version ?? 0) * 1e6 + o.count * 1e12;
-          if (v !== node.instVersion) { node.instVersion = v; B.instances?.(id, o.count, o.instanceMatrix.array, o.instanceColor?.array ?? null); }
+          // (and the per-instance attributes, as the crowd's figures carry their pose in: aAnim, aReact…)
+          const ia = node.instAttrs ??= instancedAttributes(geo);
+          let v = o.instanceMatrix.version + (o.instanceColor?.version ?? 0) * 1e6 + o.count * 1e12;
+          for (const k in ia) v += geo.attributes[k].version * 1e3;
+          if (v !== node.instVersion) {
+            node.instVersion = v;
+            let attrs = null;
+            for (const k in ia) (attrs ??= {})[k] = { array: geo.attributes[k].array, itemSize: geo.attributes[k].itemSize };
+            B.instances?.(id, o.count, o.instanceMatrix.array, o.instanceColor?.array ?? null, attrs, this.time);
+          }
         }
         if (o.isSkinnedMesh && o.skeleton) {
           // (timed only when profiling: in Puerts the clock is a call into C#, ~5 µs each)
@@ -229,7 +247,7 @@ function attrVersion(geo, frame = -1) {
   let c = geo.__mirrorAttrs;
   if (!c || frame < 0 || frame - c.at >= 32 || c.of !== geo.attributes) {
     const list = [];
-    for (const k in geo.attributes) list.push(geo.attributes[k]);
+    for (const k in geo.attributes) if (!geo.attributes[k].isInstancedBufferAttribute) list.push(geo.attributes[k]);
     c = geo.__mirrorAttrs = { list, at: frame, of: geo.attributes, index: geo.index, epoch: c ? c.epoch + (c.index !== geo.index ? 1 : 0) : 0 };
   }
   // (a new index, setIndex: a new shape, whatever its version says)
@@ -241,10 +259,17 @@ function attrVersion(geo, frame = -1) {
   return (v * 64 + L.length) + c.epoch * 1e12;
 }
 
+/** A geometry's per-instance attributes (InstancedBufferAttribute), by name. */
+function instancedAttributes(geo) {
+  const out = {};
+  for (const k in geo?.attributes ?? {}) if (geo.attributes[k].isInstancedBufferAttribute) out[k] = true;
+  return out;
+}
+
 /** Each attribute's version (and the index's), by name. */
 function versionsOf(geo) {
   const v = { __index: geo.index ? geo.index.version : -1, __indexRef: geo.index, __count: geo.attributes.position?.count ?? 0 };
-  for (const k in geo.attributes) { const a = geo.attributes[k]; v[k] = a.isInterleavedBufferAttribute ? a.data.version : a.version; }
+  for (const k in geo.attributes) { const a = geo.attributes[k]; if (!a.isInstancedBufferAttribute) v[k] = a.isInterleavedBufferAttribute ? a.data.version : a.version; }
   return v;
 }
 /** Did only the positions and normals change since the geometry was last sent? */

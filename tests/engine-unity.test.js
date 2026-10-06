@@ -6,10 +6,12 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as THREE from 'three';
-import { mirrorMatrix, unityGeometry, CommandWriter, OP } from '../engine/unity/pack.js';
+import { mirrorMatrix, unityGeometry, CommandWriter, OP, puffInstances } from '../engine/unity/pack.js';
 import { portMaterial, portLook } from '../engine/unity/port-format.js';
+import { UnityBackend } from '../engine/unity/backend.js';
 import { inkSpec } from '../engine/ink-spec.js';
 import { makeMaterial, MODE_STRATA } from '../src/materials.js';
+import { Motes, Footprints } from '../src/life.js';
 import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
 
@@ -70,34 +72,64 @@ test('the port\'s formats: a material as materialOf writes it, the look as world
   assert.equal(L.post.uFogDensity, 0.001);
 });
 
+test('the motes and the footprints go to the port\'s own shaders; a print\'s place, turn, size and fade as Puffs.Inst', () => {
+  const scene = new THREE.Scene();
+  const motes = new Motes(scene, { count: 8, color: '#e6cf9f', size: 0.05 });
+  const mm = motes.scene.children[0].material;
+  const pm = portMaterial(inkSpec(mm), 3);
+  assert.equal(pm.port, 'mote'); assert.equal(pm.size, 0.05); assert.equal(pm.color.length, 3);
+  const prints = new Footprints(scene, { count: 4 });
+  assert.equal(portMaterial(inkSpec(prints.mesh.material), 4).port, 'print');
+  assert.equal(portMaterial(inkSpec(makeMaterial({ color: '#808080' })), 5).port, undefined, 'an ink surface stays the port\'s Surface');
+  const m = new THREE.Matrix4().compose(new THREE.Vector3(2, 3, 4), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.5), new THREE.Vector3(1, 1, 1.5));
+  const out = puffInstances(m.elements, 1, { aFade: { array: new Float32Array([0.25]), itemSize: 1 } });
+  assert.deepEqual([out[0], out[1], out[2]], [-2, 3, 4], 'mirrored in x');
+  assert.ok(Math.abs(out[3] + 0.5) < 1e-6, 'the turn mirrored');
+  assert.ok(Math.abs(out[6] - 1.5) < 1e-6 && Math.abs(out[4] - 1) < 1e-6, 'the scale');
+  assert.equal(out[7], 0.25, 'the fade');
+  // the local lights: op 11 when they change, mirrored, nothing when they stay
+  const B = new UnityBackend({});
+  B.lights([[3, 4, 5, 6]]); B.lights([[3, 4, 5, 6]]);
+  const f = new Float32Array(B.w.take()), u = new Uint32Array(f.buffer);
+  assert.deepEqual([u[0], u[1], f[2], f[3], f[4], f[5], u[6]], [OP.lights, 1, -3, 4, 5, 6, 0]);
+});
+
 test('the Unity bundle in a bare V8 context, against a stand-in of the C# host', async () => {
   const file = join(tmpdir(), `memento-engine-unity-${process.pid}.js`);
   await bundle('unity', { out: [file] });
   const calls = { Geometry: 0, Material: 0, Create: 0, Frame: 0, Look: 0, bytes: 0 };
   let lastFrame = null, look = null, screenJson = null;
+  // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
+  const sound = { queued: 0, frames: 0, sumSq: 0, bad: 0 };
   const BridgeHost = {
     Now: () => performance.now(), ReadFile: null, StorageGet: () => null, StorageSet() {}, StorageRemove() {},
     Geometry(key, buf) { calls.Geometry++; calls.bytes += buf.byteLength; }, Material() { calls.Material++; }, Create() { calls.Create++; }, SetMesh() {},
     Frame(buf) { calls.Frame++; lastFrame = buf; }, Look(json) { calls.Look++; look = json; }, Screen(json) { calls.Screen = (calls.Screen ?? 0) + 1; screenJson = json; }, ApplyMs: () => 0,
     Keys: () => (calls.Frame > 3 ? 'KeyW' : ''), Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
+    AudioRate: () => 48000, AudioQueued: () => sound.queued,
+    Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
   };
-  const { exports, readFile } = loadBundle(file, {}, { CS: { Memento: { Bridge: { BridgeHost } } } });
+  // (no timers of the VM's own, as in Puerts: engine/platform.js runs them from the frame)
+  const { exports, readFile } = loadBundle(file, {}, { CS: { Memento: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined });
   BridgeHost.ReadFile = readFile;
   const errors = [];
   const warn = console.warn, info = console.info, log = console.log, error = console.error; console.warn = console.info = console.log = () => {}; console.error = (...a) => errors.push(a.map(String).join(' ').slice(0, 300));
   try {
     exports.start(JSON.stringify({ level: 'garage' }));
     for (let i = 0; i < 2000 && !calls.Frame; i++) { await new Promise((r) => setTimeout(r, 30)); exports.frame(1 / 30); }   // (the world builds first: up to a minute on a busy machine)
-    for (let i = 0; i < 20; i++) exports.frame(1 / 30);
+    for (let i = 0; i < 20; i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); }
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
   assert.ok(calls.Create > 50 && calls.Material > 5 && calls.Geometry > 20, JSON.stringify(calls));
   assert.ok(JSON.parse(look).hours[0].skyTop.length === 3, 'the look in the port\'s format');
   assert.ok(calls.Screen >= 1 && 'dialogue' in JSON.parse(screenJson), 'the screen\'s state for the HUD');
+  assert.ok(sound.frames >= 20 * 1600 && sound.queued <= 48000 * 0.12 + 128, `the sound kept a little ahead: ${JSON.stringify(sound)}`);
+  assert.equal(sound.bad, 0, 'every sample finite');
+  assert.ok(Math.sqrt(sound.sumSq / (sound.frames * 2)) > 1e-5, 'and something to hear (the wind)');
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;
-  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 * (u[o + 2] ? 2 : 1) };
+  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 * (u[o + 2] ? 2 : 1), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4 };
   const skeletons = [];
   while (u[o] !== 0) { const op = u[o++]; assert.ok(size[op], `op ${op}`); if (op === 7) skeletons.push(u[o]); o += size[op](); ops++; }
   assert.ok(skeletons.length > 0, 'the people\'s skeletons');

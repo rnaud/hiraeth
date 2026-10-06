@@ -85,7 +85,7 @@ its **look** (`MementoLook.Load`, fed each frame the game's own preset and palet
 format: `port-format.js portLook`), its **shadows** (`MementoShadows`, the mirrored meshes as its
 casters). Skinned bodies are Unity `SkinnedMeshRenderer`s whose bone transforms the frame's
 buffer sets (each bone's matrix folded with three's bind matrices: `skin.js`); instanced meshes are
-baked into one mesh when their instances change. Input: the Input System's keys as
+drawn on the GPU by the port's `InstMats` (below). Input: the Input System's keys as
 `KeyboardEvent.code`s, the first pad in the standard mapping, the mouse (right button).
 
 ## The browser APIs the game uses
@@ -103,7 +103,7 @@ bundle, before the game's modules load (some touch the page as they load), and r
 | `navigator.getGamepads` | controller.js (injectable `pads`), native-pad.js, ship/starmap.js | **bridge**: Gamepad-shaped objects from the engine's joypads (`host.pads()`), standard mapping |
 | `localStorage` | save-slots.js, quest.js, changelog.js, audio.js, native-app.js, motion-match.js | **bridge**: the host's storage (Godot: `user://memento-storage.json`; Unity: PlayerPrefs) |
 | `fetch`, `GLTFLoader` | the characters (`anim/*.glb`), MakeHuman bodies, motion data | **bridge**: `host.readFile(path)` reads `public/` (the repository's, or packed with the game) |
-| WebAudio (`AudioContext`, oscillators, filters) | audio.js (89 uses), score*.js, ship/sfx.js, story/arzach2.js | **bridge later**; a silent stand-in for now (`sound` proxies) |
+| WebAudio (`AudioContext`, oscillators, filters) | audio.js (89 uses), score*.js, ship/sfx.js, story/arzach2.js | **shim**: `engine/webaudio.js` renders the game's own graph to PCM the engine plays (below, "Sound") |
 | `performance.now`, `requestAnimationFrame` | 21 modules / main.js's loop, title.js | **shim**: the host's clock; the engine's frame runs the callbacks (`page.tick`) |
 | 2D canvas (`getContext('2d')`, `CanvasTexture`) | ship/art.js, ship/portrait.js, ship/cinema.js, levels/home-drawings.js, levels/reference-picker.js | **shim**: a context that draws nothing (painted panels stay blank); later an engine-side canvas or pre-rendered textures |
 | `Worker` | lod.js (simplification off the main thread) | absent: lod.js already falls back to the main thread |
@@ -229,6 +229,13 @@ scripts/unity-export/unity-batch.sh BridgeBatch.Run -views scripts/bench/viewpoi
 (Unity writes Puerts' embedded packages into `Packages/packages-lock.json` on a machine that has
 them: leave that change out of commits. The batch run plays `BridgeDesert.unity` in the editor,
 muted, and exits; the menu Memento ▸ JS bridge rebuilds the scene.)
+
+`scripts/unity-js-run.sh <name> [BridgeBatch.Run arguments…]` does the two last in one, its log in
+`output/engine-bridge/unity-<name>.log`, the lines that say what happened printed. Its arguments:
+`-level`, `-views file [-only a,b]`, `-out dir`, `-bench secs`, `-split` (the frame's split: the
+mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id`, `-play tool,drone`, and
+`-probe text [-solo]` (at each shot, the nodes whose name holds the text as Unity has them: mesh,
+bounds, materials' culling, shadows, GPU instances; `-solo` draws only those).
 
 ## The Godot renderer (stage 2)
 
@@ -436,6 +443,67 @@ The mirror is 2.5–3.3 times cheaper and the frames 35–52 % shorter; the comm
 camps went from 437 to 317 KB (most of it the bones, 263 KB). What is left at the camps: three's
 own matrices 0.50, the walk 0.86, the bones 0.18, the C# apply 0.85; the game's own update 3.4.
 
+## The rest of the picture and the play (Unity + Puerts, next stage 3)
+
+`engine/game.js` now builds and runs what main.js does around the world, in main.js's order: the
+flocks, the motes, the footprints, the wildlife, the weather under its shelter (into the look's rain,
+storm and haze), the fluid tool (aim R / LT, fire G / RT) and its splats, the drone (Q / View), the
+answering plants (reactive-world.js), what burns (flammable.js), the plants in view (`flora.update`
+each frame: before, the engines drew only the cells the build left filled), and the sound. Each is
+`optional`: a system that cannot start in the VM is said once and left out.
+
+**Sound.** `engine/webaudio.js` is the part of Web Audio the game's synthesis uses (src/audio.js,
+score.js, score-voices.js, ship/sfx.js, story/voice.js), in JavaScript: oscillators (and periodic
+waves), buffer sources, gains, biquads, stereo panners, a delay, the convolver as a Schroeder room
+(four combs, two allpasses, the impulse's length as its decay: a 3 s impulse convolved in JS would cost
+more than the game), a peak-follower compressor, an analyser; AudioParams follow the spec's timeline
+(set, linear and exponential ramps, setTarget, cancel), a non-finite value is a TypeError as in a
+browser. It renders in 128-frame blocks pulled from the destination, each node once a block; a chain
+whose sources ended leaves the graph and comes back when something new is connected (the buses). The
+game's own `Sound` runs on it unchanged (`createGame({ audio: { sampleRate } })`), started at once.
+In Unity `BridgeAudio.cs` holds a ring of float stereo, played by Unity's audio thread from
+`OnAudioFilterRead` on a clip-less AudioSource; each frame the script renders what keeps the ring
+0.12 s ahead (`host.AudioQueued`, `host.Audio(pcm)`). In batch runs, and with `-mute` on a player's
+command line, nothing reaches Unity's audio: the ring is drained on the main thread at the output rate
+and its level logged (`Memento bridge: sound {…, "rms": …}`; the desert's start: 0.01–0.04, 1–2
+underruns at the load). Its cost in the VM: 0.4 ms a frame at the start, 1.2–2.0 with the camps' voices
+and the wind (a machine under load). The timers the sound's scheduler wants (`setInterval`) are
+`engine/platform.js`'s where the VM has none, run from the frame.
+
+**On the Unity side**, what the port already had, fed from the same objects:
+
+| the web's | Unity through the bridge |
+|---|---|
+| instanced meshes (the flora's sets, the wildlife's parts, the flocks, the props) | the port's `InstMats` (Surface.shader `MEMENTO_INSTMAT`, its shadows in the cascades): the instances' matrices a GPU buffer, each node its own copy of the material (the buffer is bound on it); a mesh without vertex colours gets white ones (the shader multiplies the instance's tint by them); several groups: baked into one mesh as before. The C# apply went from ~3 ms to 0.2–0.5 at the desert's views once the birds, the motes and the wildlife moved every frame |
+| the crowd's GPU figures (crowd-shader.js) | the port's crowd figures (FarCrowd's `MEMENTO_CROWD`), posed in the shader from the same instance data (op 9) |
+| the motes (life.js `Points`, drawn by the page from a scene of their own) | added to the mirrored scene; quads turned to the camera each frame, sized as the web's `gl_PointSize`, on the port's `Memento/Mote` |
+| the footprints (a decal multiplied into the albedo) | the port's `Puffs` with its `Memento/Print` (op 10: place, turn, size, fade) |
+| the fire (story/flames.js) | `Memento/Flame`, its five colours, seed and heat |
+| the weather (post.js uRain, uRainNear, uStorm) | the port's globals, as Ambient.cs sets them |
+| local lights (main.js updateLights: lamps, fires, eggs, pools, doors; the jet's flame) | the 8 nearest the traveller each frame they change (op 11), into MementoLook's list |
+| shadows (main.js draws every caster double-sided: `shadowOverride`) | casters `TwoSided` |
+
+The cave's rounded walls were none of the geometry (the same mesh, the same checksum), the haze, the
+AO or the cast shadows: they are the pools of the cave's **local lights** on its flat walls, which
+the look did not carry. Points, lines and sprites: the motes are the game's only points (the ship's
+hologram has lines, inside the ship only); there are no sprites.
+
+Side by side (the web left, Unity right; the bench's save and conditions, the same views): the
+desert (spawn, camps, cave, dunes), the City-Shaft (incal) and the Signal Market (bazaar), and the
+fluid tool's shot and the drone at the start:
+
+![the desert](../engine-bridge/sbs-desert.jpg)
+![the City-Shaft](../engine-bridge/sbs-shaft.jpg)
+![the Signal Market](../engine-bridge/sbs-market.jpg)
+![the tool and the drone](../engine-bridge/sbs-tool-drone.jpg)
+
+(`scripts/unity-js-run.sh <name> -play tool,drone -out …` plays the second; the views with `-views`.)
+
+What still differs: the Signal Market's façades lack the web's newer surface marks (the port's
+Surface shader predates them), and its light pillar; the web's grass blades (flora-grass.js) and wind
+streaks (wind.js) are not built in the VM; the web wakes the answering flowers by the traveller's
+nearness sooner; some of the web's people are MakeHuman bodies the bridge does not load yet.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
@@ -447,3 +515,5 @@ own matrices 0.50, the walk 0.86, the bones 0.18, the C# apply 0.85; the game's 
 - **Stage 4, the comparison**: above.
 - **Unity, stage 1 (a cheaper sync)**: above.
 - **Unity, stage 2 (the platform layer, the HUD and conversations in uGUI)**: above.
+- **Unity, stage 3 (the rest of the picture and the play: sound, life, weather, the tool and the
+  drone, lights, motes, prints)**: above.

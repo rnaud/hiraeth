@@ -41,8 +41,9 @@ namespace Memento.EditorTools
             var views = Arg("-views");
             if (views != null)
             {
-                var vp = Json.Parse(File.ReadAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", views)))) as Dictionary<string, object>;
-                var list = vp.L("views");
+                var parsed = Json.Parse(File.ReadAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", views))));
+                // (the benchmark's { views: […] }, or a list of views each with its world: views-worlds.mjs)
+                var list = parsed is List<object> all ? all.Where(v => (v.S("world") ?? "desert") == (string)args["level"]).ToList() : (parsed as Dictionary<string, object>).L("views");
                 var only = Arg("-only")?.Split(',');
                 if (only != null) list = list.Where(v => only.Contains(v.S("name"))).ToList();
                 args["views"] = list;
@@ -52,6 +53,7 @@ namespace Memento.EditorTools
             if (Arg("-bench") != null) args["bench"] = double.Parse(Arg("-bench"), System.Globalization.CultureInfo.InvariantCulture);
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-split") >= 0) args["split"] = true;
             if (Arg("-talk") != null) args["talk"] = Arg("-talk");
+            if (Arg("-play") != null) args["play"] = Arg("-play");   // (tool, drone: engine/unity/game.js makePlan)
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), System.Globalization.CultureInfo.InvariantCulture);
             if (!File.Exists(ScenePath)) BuildScene();
             EditorSettings.enterPlayModeOptionsEnabled = true;

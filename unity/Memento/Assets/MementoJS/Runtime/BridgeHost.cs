@@ -24,6 +24,10 @@ namespace Memento.Bridge
         public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Frame(b, n); }
         public static void Look(string json) => Runner?.Look(json);
         /// <summary>What the screen shows (src/platform.js screen), when it changed: BridgeHud draws it.</summary>
+        /// <summary>The sound (BridgeAudio): the output rate (0: none), the frames queued, the next PCM (float32 stereo).</summary>
+        public static int AudioRate() => Runner && Runner.audioOut ? Runner.audioOut.rate : 0;
+        public static int AudioQueued() => Runner && Runner.audioOut ? Runner.audioOut.Queued : 0;
+        public static void Audio(object buffer) { if (!Runner || !Runner.audioOut) return; var b = JsRuntime.Bytes(buffer, out int n); Runner.audioOut.Push(b, n); }
         public static void Screen(string json) { if (Runner && Runner.hud) Runner.hud.Set(json); }
 
         // ---------------------------------------------------------------- the platform
