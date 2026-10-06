@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Walls and machines are drawn with fine pen detail, as in the drawings: panel seams and joints, little vents, hatches and plates, bolts up close, and the same marks on the far buildings at their own scale. Tree trunks, roots and the giant mushrooms’ stalks have short grain strokes along their bark.
 - The Steam Deck version starts again in Desktop Mode on the latest SteamOS, where its window used to stay blank and close.
 - Shading strokes follow the shapes, as in the drawings: under Vael II’s stone tables, the Garden of Spheres’ umbrella trees and Lorn II’s giant mushrooms they fan out from the stalk and run down it, and round the Buried Machine’s tanks, drums and chimneys and the trees’ trunks they wrap round instead of crossing them on the slant.
+- Every world runs smoother, most of all on large and Retina screens, where a frame takes about a tenth less time to draw; the busiest places, like the Garden of Spheres’ crowds and home, also ask less of the computer. The look is the same.
 
 ## v0.70 — 2026-10-06
 
