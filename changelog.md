@@ -15,6 +15,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Every temple’s halls lose the invisible ledge at the top of their round rooms: the stone cornice is solid where it is drawn, so climbing one you meet the overhang instead of passing through it.
 - The desert’s people carry what their drawings give them: Bako his reed flute, and his flat bag on its strap over his coat instead of under it; Sefa her oud, and her cap over her braid; Marrow a salvager’s hook, with his loaded hand-cart parked at his pitch in the camps; the Speaker’s staff has the procession’s bell at its head; and the keepers wear their own, a bead fringe at Ama’s hips and the well’s keys at Hessa’s belt.
 - People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.
+- The game runs smoothly on handhelds again: the traveller’s new coral overshirt had pulled the Retroid down to about 20 frames a second in every world. Its cloth now moves exactly as before but is worked out several times faster, away from the rest of the game.
 
 ## v0.72 — 2026-10-06
 
