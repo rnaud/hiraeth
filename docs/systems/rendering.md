@@ -350,7 +350,7 @@ desert's colour).
   inside a layer with a soft ramp (`HAZE.edge`, a fifth of a layer) before each step. Things at
   different depths (trunks, towers, ridges) fall into separate pale planes; open ground shows soft
   bands that move with you, never a hard edge (no shimmer). Applied before the far fog, thinner at
-  night; the ink lines take `HAZE.lineFade` of it at their nearest surface.
+  night; the ink lines take `HAZE.lineFade` of it (at the pixel's depth; on the sky, at the line's surface).
 - **Fog by height** (`uHeightFog`: the height it thickens under, its scale height, density there, its
   most; `uHeightFogTone`): a density growing exponentially below a height, integrated along each ray
   (closed form: no loop), so a view down a shaft fades into it while a view across or up stays clear;
@@ -361,8 +361,8 @@ desert's colour).
   pale warm) and its views; Vael II `SKY_STONES_HAZE` (light, from 200 m) and its views; the City-Shaft
   `SHAFT_FOG` (thickening under the pit's middle, 0 m, scale 120 m, pale blue) and the shaft views'
   `SHAFT_VIEW_FOG` (under −40 m). Every preset lists them off (`hazeOff`).
-- **Cost**: a log2, a pow and three exps per pixel, behind uniform switches (none where a world sets
-  none); measured with the rest below ("Cost of the ink pass's three").
+- **Cost**: a log2 and a pow (the layers), three exps (the fog by height) once a pixel, compiled in only
+  where a look sets them (`INK_LAYERS`, `INK_HFOG`: "Cost of the ink pass's three" below).
 - **Shimmer**: none. The layers are a function of each pixel's depth with a soft ramp (`HAZE.edge`), so a band's
   edge slides smoothly over open ground as you walk and never flickers; the fog by height is smooth in depth.
 - `tests/ink-pass.test.js`: the JS twins (`hazeLayers`, `heightFog`): stepped, monotonic, continuous,
@@ -389,7 +389,7 @@ tier's `uSpot.w`, "Spot blacks" in references.md). This is the other half of tha
   City-Shaft (its blocks cast none already), the Buried Machine (dark masses, the spot tier), the Signal
   Market (its street keeps the towers' shadows).
 - **Debug**: `params.debug` 12: red where a cast shadow would be lifted, green where one is.
-- **Cost**: a dot and three smoothsteps per pixel, behind a uniform switch; no taps.
+- **Cost**: a dot and three smoothsteps per pixel, compiled in only where a look sets it (`INK_CAST`); no taps.
 - `tests/ink-pass.test.js`: the JS twin (`castLift`): lifted on the ground and on walls by their amounts,
   the low sun counted, form shade, the terminator, the lit side and the jump shadow kept; the presets keep
   them; Vael II and Lorn II and their views lift them.
@@ -409,3 +409,33 @@ their terminator's antialiasing. The drawn detail (pen marks, seams) is inked a 
 strokes and 8 drawn detail (their packed steps taken off, so a shaded or spotted surface no longer reads as
 solid black), 9 spot blacks' enclosure, 10 the spot tier's cast and spot masks, 11 lines by material, 12 cast
 shadows lifted.
+
+## Cost of the ink pass's three (lines by material, haze, cast shadows)
+
+- **Compiled in only where they are used** (`inkFeatures` in post.js): the haze layers, the fog by height and
+  the cast shadows are `#ifdef`s (`INK_LAYERS`, `INK_HFOG`, `INK_HAZE` either, `INK_CAST`) set from the
+  uniforms the look sets: through the uniforms' value setters (so the load's shader warm-up compiles the
+  right program) and checked again before each draw. three.js keeps each program; a References view of
+  another set compiles once, in its fade. Behind uniform switches alone, merely carrying the code cost the
+  Retina desert +1.0 ms a frame (a bigger shader runs slower on Apple's GPUs even where the code is
+  skipped), as the spot blacks once did (docs/systems/performance.md).
+- **The haze once a pixel**: one `hazeAt` (the pixel's own depth; on the sky, the line's surface), used
+  for the colour and the lines.
+- **Lines by material** are always in (any world has leaves or glass): one more tap of RT0, only on inked
+  pixels, and the light term's decoding. About 0.1-0.15 ms at Retina size.
+- **Measured** (M4 Pro, ANGLE Metal, synced frame time: each `renderFrame()` of 16 closed by a
+  `readPixels`, median of 20-24, the two builds in their own pages timed in turns, the others held; the
+  boot camera and one 25 m up; main 14b75c1 against this branch; in-page toggles that recompile without a
+  part give its share):
+
+| ms, start / wide | High, 1728 × 1117 at DPR 2 (3456 × 2234) | Handheld (scale 0.65, same window) |
+|---|---|---|
+| the desert (layers) | 11.97 → 12.34 / 11.21 → 11.52 | 4.90 → 5.03 / 4.66 → 4.79 |
+| Vael II (layers, cast) | 12.33 → 12.95 / 11.93 → 12.49 | 4.94 → 5.13 / 4.76 → 4.94 |
+| Lorn II (layers, fog by height, cast) | 16.14 → 16.48 / 15.46 → 16.06 | 6.54 → 6.79 / 6.29 → 6.49 |
+| the Signal Market (layers) | 13.07 → 13.57 / 14.28 → 14.72 | 5.24 → 5.39 / 5.54 → 5.74 |
+
+  The haze's share 0.1-0.25 ms at Retina size, the cast shadows' under 0.1, the lines by material's about
+  0.15 (a build without block 1b); the rest the light term's decoding and the drawn detail's darker ink in
+  shade. On the handheld preset 0.13-0.25 ms (3-4 %). Not done: Retina frames over 16.7 ms (Lorn II's) were
+  so before.
