@@ -432,6 +432,11 @@ High, 1280 × 720 (1920 × 1080):
 | Garden of Spheres | 10.5 → 10.0 | 6.3 → 5.9 | 6.5 → 5.9 | 6.6 → 6.6 |  |
 | Home | 9.1 → 8.8 | 7.2 → 7.0 | – | 11.0 → 9.4 |  |
 
+The steadier measure, in one page with the world held: the final build against itself with the bake,
+the uniform cache and the crease test undone in the page (the screen noise worked out per pixel,
+every array sent, every crease tap's flags read), at every view above on High at Retina size: 1.4-3.5
+ms a frame (median 2.2) in every world, the pictures differing on 0.001-0.017 % of pixels.
+
 (Home has one knot of people; the ship is the desert's, from its hatch toward the cockpit.) On
 Handheld the rows move by under a millisecond either way at 1280 × 720 (960 × 540 is quick on an M4
 Pro whatever is drawn) and gain 0.3-1.4 ms at Retina size; the Retroid itself wasn't measured (the
