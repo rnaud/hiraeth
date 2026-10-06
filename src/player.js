@@ -716,7 +716,7 @@ export class Player {
   finishDown(dt) {
     const H = this.humanoid;
     if (typeof H?.face?.update === 'function') H.face.update(dt, { speed: 0, climbing: false });   // (face is the morph now, a plain object: calling it threw and stopped the game on every knockdown)
-    if (this.gear) this.gear.update(dt, _g4.set(0, 0, 0), this.phase ?? 0, 0, this.object.visible);
+    if (this.gear) this.gear.update(dt, _g4.set(0, 0, 0), this.phase ?? 0, 0);
     this.updateCloth(dt);
   }
 
@@ -956,7 +956,6 @@ export class Player {
       }
       this.humanoid?.update();
       this.humanoid?.resetFeet();
-      if (this.gear) this.gear.device.visible = false;
       this.updateCloth(dt);
       return;
     }
@@ -1391,7 +1390,7 @@ export class Player {
       this._lastVel.copy(v);
       acc.applyQuaternion(_tq.copy(this.object.quaternion).invert());
       const moving = this.ride ? 0.3 : Math.min(Math.hypot(this.vel.x, this.vel.z) / 6, 1);
-      this.gear.update(dt, acc.clampLength(0, 40), this.phase ?? 0, this.onGround ? moving : 0.4, this.object.visible && !this.climbing && !this.gliding && !this.ride);
+      this.gear.update(dt, acc.clampLength(0, 40), this.phase ?? 0, this.onGround ? moving : 0.4);
     }
     this.updateCloth(dt);
   }

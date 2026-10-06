@@ -432,7 +432,6 @@ export class Ship {
     const P = this.player;
     P.object.visible = on;
     P.hidden = !on;
-    if (P.gear?.device) P.gear.device.visible = on;
   }
 
   /** Walk the player along world points; the camera stays behind (or a shot is used). */

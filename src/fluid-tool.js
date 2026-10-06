@@ -748,8 +748,6 @@ export class FluidTool {
       this.bracer = buildBracer();
       fore.add(this.bracer.group);
     }
-    // the handheld device stays in the gear but the bracer replaces it in the hand
-    for (const o of p.gear?.device?.children ?? []) o.visible = false;
     this.hose = new Hose(this.scene ?? tank.group);
     const copies = new Map(), glassMat = tank.glass.material;
     markHero(tank.group, copies);

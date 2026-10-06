@@ -273,8 +273,8 @@ test('the gear hooks: the head and chest anchors, the scout on the pack, the bra
   assert.ok(along.dot(at(h.b.hand_r).sub(at(h.b.lowerarm_r)).normalize()) > 0.999, 'along the forearm');
   assert.ok(thumb.dot(at(h.b.thumb_01_r).sub(at(h.b.hand_r)).normalize()) > 0.5, 'the thumb side');
   assert.ok(f.getWorldScale(V()).x >= 1, 'not smaller than the bracer was made');
-  // the device in the hand (until the bracer takes over)
-  assert.ok(g.device.visible);
+  // nothing in the hand: the old handheld device (a screen in the fist, read as a phone) is gone
+  assert.equal(g.device, undefined);
 });
 
 test('kneeling (a box, getting up): the knee down to the ground, every piece whole and on the body', () => {
@@ -293,13 +293,11 @@ test('vehicle animation reaches the skin on the first frame and releases foot lo
   p.ride = { speed: 0, pos: V(), update() {}, seatTransform(pos, q) { pos.set(0, 2, 0); q.identity(); } };
   p.humanoid = traveller(p.char);
   p.humanoid._feet = { l: { locked: true }, r: { locked: true } };
-  p.gear = { device: { visible: true } };
   p.updateCloth = () => {};
   const before = p.humanoid.b.thigh_r.quaternion.clone();
   p.update(1 / 60, {}, 0);
   assert.ok(before.angleTo(p.humanoid.b.thigh_r.quaternion) > 0.5);
   assert.equal(p.humanoid._feet.r.locked, false);
-  assert.equal(p.gear.device.visible, false);
 });
 
 test('every clothing piece has valid normalized weights, including the interleaved body-derived sleeves', () => {

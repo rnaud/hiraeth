@@ -134,8 +134,7 @@ function makeTraveller(key, matching) {
   p.humanoid = travellerScene ? new Humanoid(hm, p.char, 'm', { outfit: travellerScene }) : new Humanoid(hm, p.char, 'm', { suit: true });
   p.humanoid.ownMaterials();
   p.attach(scene);
-  const mats = markHero(p.char.root);
-  markHero(p.gear?.device, mats);
+  markHero(p.char.root);
   const T = { key, p, matching, frames: [], prev: null, t: 0, ring: [], err: null, live: null, last: null, series: {} };
   resetTraveller(T, FREE_AT);
   return T;
@@ -167,7 +166,6 @@ function applyMode() {
   for (const T of Object.values(travellers)) {
     const on = active().includes(T);
     T.p.object.visible = on;
-    if (T.p.gear?.device) T.p.gear.device.visible = on;
   }
   for (const w of walkers) w.npc.object.visible = state.mode === 'people';
   showObstacles();
@@ -392,7 +390,7 @@ function views(dt) {
 
 // ------------------------------------------------------------------ drawing
 const _v = new THREE.Vector3();
-function bodyParts(o) { const p = o.p ?? o.npc; return [p.object, p.gear?.device].filter(Boolean); }
+function bodyParts(o) { const p = o.p ?? o.npc; return [p.object].filter(Boolean); }
 function renderView(v) {
   sizeTargets(v.rect.w, v.rect.h);
   const cam = v.cam;
