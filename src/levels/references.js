@@ -336,7 +336,6 @@ export function* buildReferences(scene) {
   function setHidden(player, on) {
     if (player.object) player.object.visible = !on;
     player.hidden = on;
-    if (player.gear?.device) player.gear.device.visible = !on;
     if (player.cape?.mesh) player.cape.mesh.visible = !on;
   }
   function release(ctx) {

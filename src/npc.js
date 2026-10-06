@@ -682,6 +682,8 @@ export class NPC {
    */
   posture(dt, { pose = 0, stumble = false, still = false, startle = 99, seed = 0.5 } = {}) {
     const c = this.char;
+    // seated, a robe falls over the lap and down from the knees (Humanoid.sitRobe), not through the seat
+    this.humanoid?.sitRobe?.(!stumble && (pose === 3 || pose === 4));
     if (stumble) {
       // hold the clip's last frame with the arms flung up, one knee raised, leaning back
       if (!this._frozen) {

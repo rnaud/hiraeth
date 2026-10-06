@@ -53,6 +53,14 @@ export function crowdCapeHalfWidth(t, len, wide = 1) {
 }
 /** The figures' robe on the thighs' swing (crowdRobeTurn): how much of it, and of a thigh's swing back. */
 export const CROWD_ROBE = { follow: 0.65, back: 0.7 };
+/**
+ * A seated robe (sitting on an edge or a seat: the full people's, humanoid.js robeGeometry and sitRobe,
+ * and the figures'): with the thighs from `hip` (m under the hip joints standing: none at the first,
+ * wholly at the second), with the shins from `knee` (m under the knees: from the first, wholly at the second);
+ * between them its back half drawn in to `under` of its depth (close under the thighs, not hanging open
+ * below them), and its flare only from the knees down, all of it for a hem `drop` m or more under them.
+ */
+export const ROBE_SEAT = { hip: [0, 0.14], knee: [-0.05, 0.07], under: 0.4, drop: 0.35 };
 /** Joint pivots in figure space (metres, scale 1). */
 export const CROWD_JOINTS = { hip: 0.95, hipX: 0.09, knee: 0.5, shoulder: 1.43, shoulderX: 0.2, elbow: 1.13, neck: 1.5, collar: 1.45 };
 
@@ -251,10 +259,28 @@ export const CROWD_GLSL = /* glsl */ `
       // the robe: a bell from the belt to its hem, swinging with the thighs
       float t = aRig.w;
       vec3 dir = normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.0, 1e-5));
-      vec2 rad = mix(vec2(0.165, 0.14), vec2(flare, flare * 0.86), pow(t, 0.85)) * (1.0 + (bg - 1.0) * 0.7 + 0.08 * fem);
-      p = vec3(dir.x * rad.x, HIP + 0.01 - t * robeLen, dir.z * rad.y - 0.01);
+      bool seated = pose == 3 || pose == 4;
+      // (seated, snug round the thighs over the lap and flaring only from the knees down: humanoid.js robeGeometry)
+      float yr = HIP + 0.01 - t * robeLen, hemY = HIP + 0.01 - robeLen;
+      float kk = seated ? clamp((KNEE - hemY) / ${ROBE_SEAT.drop.toFixed(3)}, 0.0, 1.0) * pow(clamp((KNEE + ${ROBE_SEAT.knee[0].toFixed(3)} - yr) / max(KNEE + ${ROBE_SEAT.knee[0].toFixed(3)} - hemY, 0.05), 0.0, 1.0), 0.85) : pow(t, 0.85);
+      vec2 rad = mix(vec2(0.165, 0.14), vec2(flare, flare * 0.86), kk) * (1.0 + (bg - 1.0) * 0.7 + 0.08 * fem);
+      if (seated && dir.z < 0.0) rad.y *= mix(1.0, ${ROBE_SEAT.under.toFixed(3)}, smoothstep(${ROBE_SEAT.hip[0].toFixed(3)}, ${ROBE_SEAT.hip[1].toFixed(3)}, HIP - yr) * (1.0 - smoothstep(${ROBE_SEAT.knee[0].toFixed(3)}, ${ROBE_SEAT.knee[1].toFixed(3)}, KNEE - yr)));
+      p = vec3(dir.x * rad.x, yr, dir.z * rad.y - 0.01);
       n = normalize(vec3(dir.x / rad.x, 0.25, dir.z / rad.y));
-      crowdTurn(p, n, vec3(0.0, HIP, 0.0), crowdRotX(-crowdRobeTurn(hip, dir.x, t)));
+      if (seated) {
+        // seated, as the full people's seated robe (humanoid.js robeGeometry, ROBE_SEAT): under the hips with
+        // the thighs, over the lap, and past the knees with the shins, down in front of them (turned with the
+        // thighs alone it stood out round the knees, through the seat)
+        float wl = smoothstep(-0.12, 0.12, p.x);
+        float f = smoothstep(${ROBE_SEAT.hip[0].toFixed(3)}, ${ROBE_SEAT.hip[1].toFixed(3)}, HIP - p.y), c = smoothstep(${ROBE_SEAT.knee[0].toFixed(3)}, ${ROBE_SEAT.knee[1].toFixed(3)}, KNEE - p.y);
+        vec3 lt = p, ltn = n, ls = p, lsn = n, rt = p, rtn = n, rs = p, rsn = n;
+        crowdTurn(lt, ltn, vec3(hipx, HIP, 0.0), crowdRotX(-hip.x));
+        crowdTurn(ls, lsn, vec3(hipx, KNEE, 0.0), crowdRotX(knee.x)); crowdTurn(ls, lsn, vec3(hipx, HIP, 0.0), crowdRotX(-hip.x));
+        crowdTurn(rt, rtn, vec3(-hipx, HIP, 0.0), crowdRotX(-hip.y));
+        crowdTurn(rs, rsn, vec3(-hipx, KNEE, 0.0), crowdRotX(knee.y)); crowdTurn(rs, rsn, vec3(-hipx, HIP, 0.0), crowdRotX(-hip.y));
+        vec3 legs = mix(mix(rt, rs, c), mix(lt, ls, c), wl), legn = mix(mix(rtn, rsn, c), mix(ltn, lsn, c), wl);
+        p = mix(p, legs, f); n = normalize(mix(n, legn, f));
+      } else crowdTurn(p, n, vec3(0.0, HIP, 0.0), crowdRotX(-crowdRobeTurn(hip, dir.x, t)));
     }
     // a padded suit: the clothes swell along their normals (not the head, hands or costume pieces)
     if (bulk > 0.0 && slot == 0 && part != 1 && part < 10 && (zone == 2 || zone == 3 || zone == 9 || zone == 10)) p += n * bulk * 0.014;
@@ -282,7 +308,7 @@ export const CROWD_GLSL = /* glsl */ `
       crowdTurn(p, n, vec3(side * hipx, HIP, 0.0), crowdRotX(-(i == 0 ? hip.x : hip.y)));
     } else if (part == 2 || part == 3) {
       crowdTurn(p, n, vec3(side * hipx, HIP, 0.0), crowdRotX(-(part == 2 ? hip.x : hip.y)));
-    } else if (part != 0 && part != 10 && part != 1) {
+    } else if (part >= 6 && part <= 9) {   // the arms (not the robe, part 11: it turned with the right arm, up over the head when seated)
       bool left = part == 6 || part == 8;
       vec3 sh = vec3(side * shx, SHY, 0.0);
       if (part >= 8) crowdTurn(p, n, vec3(side * shx, ELB, 0.0), crowdRotY(-side * (left ? elbIn.x : elbIn.y)) * crowdRotX(-(left ? elb.x : elb.y)));

@@ -52,6 +52,9 @@ export function createTravellerV1(char, { gltf, data, report, colors }) {
     cloth.garment.name = 'TravellerOvershirt';
     cloth.underlayer.name = 'TravellerTrousers';
     cloth.innerShirt.name = 'TravellerInnerShirt';
+    // the fluid glove over his right hand (shown while the tank is worn: fluid-tool.js), on the skin as
+    // the cloth left it (it gives the mesh its own geometry)
+    humanoid.wearGlove(mesh);
     return {
       humanoid, mesh, cloth,
       // Before Humanoid.update, while the fresh clip is still on the control rig.
