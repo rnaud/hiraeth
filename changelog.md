@@ -9,6 +9,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Cast shadows fall as the drawings have them: on Vael II’s plain and on Lorn II’s paths and water they are only a faint trace or gone, the Garden of Spheres’ lawns are lighter under the trees, while form shade stays.
 - A wall turned edge-on to the sun no longer breaks into a field of tiny light specks: it sits cleanly in its shade, and the fine pen marks on shaded walls read more clearly.
 - On Android, putting the handheld to sleep (or leaving the app) now silences the game at once: the music no longer plays on with the screen off, on the title screen, in a world that is still loading or anywhere else, and it comes back when you return.
+- Arriving in a new world with an errand from the last one still under way, the drone now finds the person who starts this world’s quest, and the marker shows them, instead of finding nothing (Vael II, Lorn, Viridel, the Hangar, the Garden of Spheres and the Signal Market).
 
 ## v0.71 — 2026-10-06
 

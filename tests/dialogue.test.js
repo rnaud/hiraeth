@@ -132,6 +132,24 @@ test('quests: stages advance by talk, flag and arrival; progress persists in the
   assert.match(quests.journalHtml(), /A quest/);
 });
 
+test('a quest still tracked from another world hides nothing here: the opening conversation is what the scout finds', () => {
+  // (found by the play-through, tests/playthrough.test.js: arriving with the last world's errand tracked,
+  // Vael II, Lorn, Viridel, the Hangar, the Garden and the market had no objective until their first talk)
+  const { game, quests } = world();
+  game.set('quest.desert.bike', 'find');          // a side errand left under way in the desert
+  game.set('quest.tracked', 'desert.bike');       // and tracked when the ship left
+  quests.define({ id: 'here.main', title: 'Here', main: true, stages: [{ id: 'talk', text: 'Talk to Ann', label: 'Ann', talk: 'ann' }] });
+  quests.locate('ann', () => new THREE.Vector3(3, 0, 4));
+  quests.opensWith('here.main', 'ann');
+  assert.equal(quests.tracked(), null, 'a quest this world does not know is not the tracked one here');
+  assert.equal(quests.objective()?.id, 'opener-here.main');
+  assert.deepEqual(quests.objective().position.toArray(), [3, 0, 4]);
+  // once it is started here, it is tracked as usual
+  quests.opening('ann');
+  assert.equal(quests.tracked(), 'here.main');
+  assert.equal(game.flag('quest.desert.bike'), 'find', 'the errand is still under way, for when you go back');
+});
+
 test('bring objectives point at the item until you carry it, then at whoever wants it', () => {
   const { quests } = world();
   quests.define({ id: 'drum', title: 'Drum', stages: [{ id: 'find', text: 'Find it', bring: 'drum', at: 'drum', to: 'teo' }] });

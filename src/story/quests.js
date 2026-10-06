@@ -148,7 +148,9 @@ export class Quests {
   }
   onChange(f) { this.listeners.add(f); return () => this.listeners.delete(f); }
 
-  tracked() { const t = this.game.flag('quest.tracked'); return t && this.isActive(t) ? t : null; }
+  // (only a quest of this world: one tracked in another, still under way there, has no marker here and
+  // would hide this world's own objective, the opening conversation too)
+  tracked() { const t = this.game.flag('quest.tracked'); return t && this.def(t) && this.isActive(t) ? t : null; }
   track(id) { if (this.isActive(id)) this.game.set('quest.tracked', id); }
   /** The player chose it in the quest log (it is what the scout finds, even over a world's opening conversation). */
   choose(id) { this.track(id); if (this.isActive(id)) this._chosen = id; }
