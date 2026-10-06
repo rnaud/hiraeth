@@ -1,0 +1,21 @@
+DONE.md
+  s_4068fcdc0e3db5::t_27c9f099085082 694-879
+TODO.md
+  s_4068fcdc0e3db5::t_38ee3e8d270aed 6-34,40-88,92-98,102-109,114-123,127-128,131-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "da0ce890d8f28ad8a80edb79dbb55baa331977af",
+  "prompts": {},
+  "sessions": {
+    "s_4068fcdc0e3db5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce61860b-da40-4b8b-a4f2-cda9cfa23c26",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
