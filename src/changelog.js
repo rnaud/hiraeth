@@ -9,6 +9,7 @@ export const CHANGELOG = [
   { v: '0.71', date: '2026-10-06', items: [
     'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
     'The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.',
+    'The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.',
     'Walls and machines are drawn with fine pen detail, as in the drawings: panel seams and joints, little vents, hatches and plates, bolts up close, and the same marks on the far buildings at their own scale. Tree trunks, roots and the giant mushrooms’ stalks have short grain strokes along their bark.',
   ] },
   { v: '0.70', date: '2026-10-06', items: [
