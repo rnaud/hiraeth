@@ -1,0 +1,97 @@
+TODO.md
+  s_55b4bc53b812ec::t_9ea1114627e29a 86,88-91
+changelog.md
+  s_55b4bc53b812ec::t_2d0e23614743ac 5-8,25-30
+docs/README.md
+  s_55b4bc53b812ec::t_7b5198b017ef9d 32
+docs/game-brief.md
+  s_55b4bc53b812ec::t_724197f6b1ece3 130
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_77aeb430a986af 89,227-240
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_633dbf1ce92ac5 79-80,384-398
+docs/systems/cinematics.md
+  s_55b4bc53b812ec::t_d2536e2f676fbd 89
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_e91b326d3c19d3 254
+docs/systems/story.md
+  s_55b4bc53b812ec::t_e6c15ed325441d 125
+docs/systems/traveller-kit.md
+  s_55b4bc53b812ec::t_9ab3b7636ba4f2 37-52
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_082cc95263e733 235-241
+lore/characters/traveller-design.md
+  s_55b4bc53b812ec::t_87cc8208c002d3 57-59
+scripts/unity-export/people.mjs
+  s_55b4bc53b812ec::t_90d0e8eb9b9090 175-176,182
+src/bird.js
+  s_55b4bc53b812ec::t_4f2bc9e430969d 23,33,35-69,124-126,129-134,136-138,140-141,173,216,246,249,293,305,322,349,419-420,451,475,492-493,505,540
+src/changelog.js
+  s_55b4bc53b812ec::t_f48d5392a864ad 10-12,28-33
+src/characters/traveller-v1.js
+  s_55b4bc53b812ec::t_bcebc1c544e4db 55-57
+src/crowd-shader.js
+  s_55b4bc53b812ec::t_3c30e4e9d17fa6 56-63,262-268,270-283,311
+src/fluid-tool.js
+  s_55b4bc53b812ec::t_0fcd67860c4da3 14-15,17,33,47-48,575-591,594,729,739,778-779,802,853-856,858-863,1072,1121-1124,1140-1142,1145-1148,1157
+src/gear.js
+  s_55b4bc53b812ec::t_b12df8c4e28932 8-10,180-181
+src/hands.js
+  s_55b4bc53b812ec::t_3d9f45920a9319 8-9,42,48,121
+src/humanoid.js
+  s_55b4bc53b812ec::t_32462317459f3a 12,17,526,618,779-847,911,913,934-944,957-971,991-993,1006-1012,1022,1034-1041,1080-1090,1092,1094-1095,1108-1122
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_df9dcbd54a611f 5,8,205-213,215-216,218-219,221-222,224-225,233-235,239,248-249,255,324,327,334,337,339,347-348,351-354,364,399,403-424,434-439,477-478,480,493-495,504-506,602-603,653-660,720,752-758,803
+src/levels/reference-vael2.js
+  s_55b4bc53b812ec::t_0773d8ed1c2457 5,7,100,111,114,155-160,162-184,190-195,210-211,214-215,221-223,227-228,266-267,281-287,290,300,303-306,313-316,404,424,453,456,481,510,542-543,545-547,562,576,614,649,664,699-701,704,717-719,732,734-756,768,809,812,843
+src/levels/sky-stones-kit.js
+  s_55b4bc53b812ec::t_a3aefd0dee8d7b 26-31,79-80,84,118-120,122,125,128-187,226-231,233-234,236-244
+src/motion/main.js
+  s_55b4bc53b812ec::t_add53d1ffb81da 137,393
+src/npc.js
+  s_55b4bc53b812ec::t_c516af665d2d28 685-686
+src/player.js
+  s_55b4bc53b812ec::t_2c1c41c9de8cea 719,1393,1977
+src/story/arzach.js
+  s_55b4bc53b812ec::t_ab5858814a0396 396-401
+src/story/desert-moments.js
+  s_55b4bc53b812ec::t_f5cdd7bd1bd4bb 23,183,197
+src/studio/main.js
+  s_55b4bc53b812ec::t_1916a443817879 159,181,464,621
+src/traveller-style.js
+  s_55b4bc53b812ec::t_1cb5316f04407c 9-10
+src/traveller.js
+  s_55b4bc53b812ec::t_1a525f7ca70a7d 399-506,512-513,750
+tests/abilities.test.js
+  s_55b4bc53b812ec::t_b7bff6caca11a6 59,68,85
+tests/birds.test.js
+  s_55b4bc53b812ec::t_c20af858c9fdb7 5,25-44,94,140
+tests/glove.test.js
+  s_55b4bc53b812ec::t_265fcda1e4034a 1-131
+tests/references.test.js
+  s_55b4bc53b812ec::t_4ba86602d81079 191-201
+tests/seated-robes.test.js
+  s_55b4bc53b812ec::t_cb0a32a58d368e 1-94
+tests/sky-stones-kit.test.js
+  s_55b4bc53b812ec::t_e8503adef3c457 1-54
+tests/traveller-v1.test.js
+  s_55b4bc53b812ec::t_6e446cd33d5227 52
+tests/traveller.test.js
+  s_55b4bc53b812ec::t_bd7a2f5983fd0a 115,257,268-269
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4213f7b7f78f04df41ab44e8645e4cbef052852d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
