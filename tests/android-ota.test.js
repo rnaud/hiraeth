@@ -188,3 +188,14 @@ test('the Deck keeps its screen on while the game runs (no dimming or sleep mid-
   const main = readFileSync(new URL('../desktop/main.mjs', import.meta.url), 'utf8');
   assert.match(main, /powerSaveBlocker\.start\('prevent-display-sleep'\)/);
 });
+
+test('the Deck runs on Wayland on its desktop and on X11 under gamescope (Gaming Mode)', () => {
+  const main = readFileSync(new URL('../desktop/main.mjs', import.meta.url), 'utf8');
+  const src = /export function ozonePlatform[\s\S]*?\n\}/.exec(main)[0].replace('export ', '');
+  const ozonePlatform = new Function(`${src}; return ozonePlatform;`)();
+  assert.equal(ozonePlatform({ WAYLAND_DISPLAY: 'wayland-0', DISPLAY: ':0', XDG_CURRENT_DESKTOP: 'KDE' }), 'wayland', 'Desktop Mode');
+  assert.equal(ozonePlatform({ WAYLAND_DISPLAY: 'wayland-0', GAMESCOPE_WAYLAND_DISPLAY: 'gamescope-0', DISPLAY: ':1' }), 'x11', 'nested in gamescope');
+  assert.equal(ozonePlatform({ DISPLAY: ':0', XDG_CURRENT_DESKTOP: 'gamescope' }), 'x11', 'Gaming Mode');
+  assert.equal(ozonePlatform({ DISPLAY: ':0' }), 'x11', 'a plain X11 desktop');
+  assert.match(main, /appendSwitch\('ozone-platform', ozonePlatform\(\)\)/);
+});
