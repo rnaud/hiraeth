@@ -1,0 +1,25 @@
+src/main.js
+  s_1fd8d0e7b02dcf::t_41a160713fc92b 1143
+src/post.js
+  s_1fd8d0e7b02dcf::t_74fdd18b473ad2 58-107,173-175,202-203,640-642,655,658,905-906,910,1000-1002,1019-1050,1053-1055
+src/title-vista.js
+  s_1fd8d0e7b02dcf::t_83f42b7b3bd386 441,501
+tests/screen-noise.test.js
+  s_1fd8d0e7b02dcf::t_bdb9e07a837399 1-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "493beffbd4acb91da38f3a7c625db05ac46d76a4",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
