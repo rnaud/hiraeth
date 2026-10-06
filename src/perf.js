@@ -260,7 +260,7 @@ export class InteriorCuller {
     this.scene = scene;
     this.rooms = rooms.map((at) => ({ at: at.clone(), box: null }));
     Object.assign(this, { ground, seed, grow, lift, margin, maxRadius });
-    this.list = null; this.n = -1; this.active = null; this.age = 0;
+    this.list = null; this.n = -1; this.active = null; this.age = 0; this.frame = 0;
   }
   /** a renderable's bounds in the world (instanced: all its instances; skinned: its bind pose where it stands) */
   static bounds(o, out) {
@@ -319,9 +319,19 @@ export class InteriorCuller {
     if (box !== this.active) { this.active = box; if (box) this.collect(); }   // (what's there now, on the way in)
     if (!box) return out;
     if (++this.age > 180 || this.n !== this.scene.children.length) this.collect();   // (anything added since, every few seconds)
+    this.frame++;
     const keep = _ib.copy(box).expandByScalar(this.margin);
     for (const o of this.list) {
       if (!o.visible) continue;
+      // Left unculled (frustumCulled false): drawn wherever it is, its bounds not kept (the fluid's
+      // rings and spray, the hose, splats, splashes). Their cached bounds are stale or empty, and
+      // hid the push's shock front in every temple: an instanced one is measured where its
+      // instances are now (none: nothing to draw; a big set, the Givers' water's thousands, every
+      // 16th frame), anything else stays.
+      if (o.frustumCulled === false) {
+        if (!o.isInstancedMesh || o.count === 0) continue;
+        if (o.count <= 512 || !o.boundingSphere || (this.frame & 15) === 0) o.computeBoundingSphere();
+      }
       const s = InteriorCuller.bounds(o, _is);
       if (s && !keep.intersectsSphere(s)) { o.visible = false; out.push(o); }
     }

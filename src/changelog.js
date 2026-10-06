@@ -16,6 +16,7 @@ export const CHANGELOG = [
     'Arriving in a new world with an errand from the last one still under way, the drone now finds the person who starts this world’s quest, and the marker shows them, instead of finding nothing (Vael II, Lorn, Viridel, the Hangar, the Garden of Spheres and the Signal Market).',
     'The drawing holds still as you move: old walls seen at a slant no longer shimmer with flickering grime streaks and cracks, the edge where a big pipe, tank or trunk turns from the sun is one clean line instead of crawling teeth, and the fine pen marks on distant walls change scale gently instead of popping as you ride or fly past.',
     'Haze and fog stay put on the land as you turn the camera, instead of sliding across it with the view.',
+    'Pushing with your fluid (RB / R1) shows its shock front again inside temples, caves and halls: the rings and spray had vanished there, along with the splash where a shot lands.',
   ] },
   { v: '0.71', date: '2026-10-06', items: [
     'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
