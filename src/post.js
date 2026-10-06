@@ -44,6 +44,17 @@ export const DEBUG_VIEWS = {
  */
 export const FACE_SHADE = { tone: 'vec3(1.13, 0.93, 0.8)', warm: '0.72', night: '0.6' };
 
+/**
+ * The spot blacks' screen-space taps (enclosure), as constants (the shader used to work out a cos
+ * and a sin for every tap of every pixel): n fixed directions from 0.39 rad, every other one at
+ * 0.55 of the radius. tests/occlusion-taps.test.js.
+ */
+export const OCCLUSION_TAPS = {
+  spot: (n) => Array.from({ length: n }, (_, i) => { const a = 0.39 + (i * 6.2832) / n, r = i % 2 ? 0.55 : 1; return [Math.cos(a) * r, Math.sin(a) * r]; }),
+};
+/** A GLSL constant array of vec2s. */
+export const glslVec2s = (name, list) => `const vec2 ${name}[${list.length}] = vec2[${list.length}](${list.map(([x, y]) => `vec2(${x.toFixed(7)}, ${y.toFixed(7)})`).join(', ')});`;
+
 const vertexShader = /* glsl */ `
   out vec2 vUv;
   void main() {
@@ -256,22 +267,29 @@ const fragmentShader = /* glsl */ `
     vec3 r = p.xyz / p.w;
     return r / -r.z * d;
   }
+  ${glslVec2s('SPOT_TAPS8', OCCLUSION_TAPS.spot(8))}
+  ${glslVec2s('SPOT_TAPS4', OCCLUSION_TAPS.spot(4))}
   float creaseAO(vec2 uv, vec3 nW, float d, vec2 fc) {
     vec3 P = viewPos(uv, d);
     vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
     float R = 1.3;
     float rpx = clamp(R * uProj11 * 0.5 * uRes.y / d, 3.0, 48.0);
+    // (the spiral's steps turned by one rotation, the random angle's: a cos and a sin per pixel, not
+    // per tap; no branch in the loop, a tap that doesn't count weighs 0: docs/systems/performance.md)
     float a0 = hash(fc) * 6.2832;
+    vec2 cs = vec2(cos(a0), sin(a0));
+    mat2 turn = mat2(cs.x, cs.y, -cs.y, cs.x);
     float ao = 0.0;
     for (int i = 0; i < 8; i++) {
-      float a = a0 + float(i) * 2.39996;
+      float b = float(i) * 2.39996;
       float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
-      vec2 suv = uv + vec2(cos(a), sin(a)) * rr / uRes;
+      vec2 suv = uv + turn * vec2(cos(b), sin(b)) * rr / uRes;
       float sd = texture(tNormal, suv).w;
-      if (sd <= 0.0 || mod(texture(tHatch, suv).a, 16.0) > 7.5) continue;   // (grass blades close nothing in: no grey speckle round them)
+      // (not the sky; grass blades close nothing in: no grey speckle round them)
+      float counts = step(0.0, sd) * sign(sd) * step(mod(texture(tHatch, suv).a, 16.0), 7.5);
       vec3 v = viewPos(suv, sd) - P;
       float dist = length(v);
-      ao += max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
+      ao += counts * max(dot(nV, v) / max(dist, 1e-4) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
     }
     return clamp(ao / 8.0 * 2.2, 0.0, 1.0);
   }
@@ -280,23 +298,34 @@ const fragmentShader = /* glsl */ `
   // How enclosed a point is, at the scale of a pocket (R metres): from fixed directions round it in
   // screen space (no jitter: the estimate is smooth from pixel to pixel, so a hard threshold of it is a
   // clean-edged mass), the share of the neighbours standing in front of its face. taps: 8, or 4 (handheld).
+  // The directions are constants (SPOT_TAPS8, SPOT_TAPS4), the view ray is affine in uv (a
+  // perspective camera: ray(uv) = (uv * rA + rB, -1)), and a tap on the sky weighs 0 instead of a
+  // skip: the same estimate at a fraction of its cost (docs/systems/performance.md).
   float enclosure(vec2 uv, vec3 nW, float d, float R, int taps) {
-    vec3 P = viewPos(uv, d);
+    vec2 rB = viewPos(vec2(0.0), 1.0).xy, rA = viewPos(vec2(1.0), 1.0).xy - rB;
+    vec3 P = vec3(uv * rA + rB, -1.0) * d;
     vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
-    float rpx = clamp(R * uProj11 * 0.5 * uRes.y / d, 4.0, 96.0);
-    float occ = 0.0;
-    for (int i = 0; i < 8; i++) {
-      if (i >= taps) break;
-      float a = 0.39 + float(i) * 6.2832 / float(taps);
-      float rr = rpx * ((i / 2) * 2 == i ? 1.0 : 0.55);
-      vec2 suv = uv + vec2(cos(a), sin(a)) * rr / uRes;
-      float sd = texture(tNormal, suv).w;
-      if (sd <= 0.0) continue;   // the sky: open
-      vec3 v = viewPos(suv, sd) - P;
-      float dist = length(v);
-      occ += smoothstep(0.12, 0.5, dot(nV, v / max(dist, 1e-4))) * (1.0 - smoothstep(R * 1.5, R * 3.0, dist));
+    vec2 s = clamp(R * uProj11 * 0.5 * uRes.y / d, 4.0, 96.0) / uRes;
+    float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0;
+    if (taps == 8) {
+      for (int i = 0; i < 8; i++) {
+        vec2 suv = uv + SPOT_TAPS8[i] * s;
+        float sd = texture(tNormal, suv).w;
+        vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
+        float dist = length(v);
+        occ += step(0.0, sd) * sign(sd)   // (the sky: open)
+          * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+      }
+      return occ * 0.125;
     }
-    return occ / float(taps);
+    for (int i = 0; i < 4; i++) {
+      vec2 suv = uv + SPOT_TAPS4[i] * s;
+      float sd = texture(tNormal, suv).w;
+      vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
+      float dist = length(v);
+      occ += step(0.0, sd) * sign(sd) * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+    }
+    return occ * 0.25;
   }
 
   // ---------------------------------------------------------------- planets

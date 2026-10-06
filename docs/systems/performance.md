@@ -300,3 +300,51 @@ main thread is given back once `LOAD_BUDGET` (24 ms) has run, by a `MessageChann
 (The shipped bundle, `vite preview`; the first-frame times move by a second or more from run to run
 with what else the machine is doing: repeated quietly, the Garden of Spheres 1.1-1.7 s before and
 1.2-1.4 s after, the Buried Machine 1.1-1.4 s and 1.0-1.3 s.)
+
+## The desert at Retina size: spot blacks and crease shading without branches (October 2026)
+
+"Did we hurt performance? The desert at 40 fps on my Mac." A Mac's default is High, which on a
+HiDPI screen renders at the display's own pixels: a full-screen 16" MacBook Pro window (1728 × 1117
+CSS px) is 3456 × 2234, 7.7 M pixels through the G-buffer and the ink composite, 8.4× a 1280 × 720
+frame. There a frame cost about 14-16 ms in Qanat's streets and the camps (just inside a 60 Hz
+refresh, or 8 of 120 Hz ProMotion's), and the third feedback round's merges pushed it to 16-17 ms:
+over the line, so the browser showed every frame for 25 ms instead of 16.7, the 40 fps the author
+saw. At 1280 × 720 the same cost is under a millisecond, inside the noise, which is why each merge
+measured "no change".
+
+- **The culprit:** the spot blacks' enclosure (3330a4d, `post.js`), +1.0-2.3 ms at Retina size in
+  the streets, camps and under the tree (a build with only that block compiled out came back to
+  the baseline). Then the worn-by-time walls (755f51e, `materials.js` weatherInk and the composite's
+  dust band) another +0.4-1.0 ms on walls. Nothing else between ce8b8c4 and 755f51e moved a view by
+  more than the noise (the capes, the jump shadow, the boxes, the aliens: CPU time a frame the same,
+  measured at 640 × 400).
+- **Not the taps:** 4 taps cost what 8 did, an unrolled loop and a separate full-resolution or
+  half-resolution pass (its own full-screen pass costs more than it saves at this size) didn't help.
+  What did: no branch inside the loops (a tap on the sky, or on a grass blade for crease shading,
+  weighs 0 instead of a `continue`: divergent skips inside a loop are slow on Apple's GPUs), the
+  spot taps' directions as constants (no cos and sin per tap), the spot taps placed with the view
+  ray (affine in uv for a perspective camera) instead of the inverse projection, and crease
+  shading's spiral turned by one rotation per pixel instead of a cos and a sin per tap. The same
+  estimates, the same picture: screenshots of the four views, the people and the wind held still,
+  differ from main's only where flags, smoke and crowds move (as two runs of main differ).
+- **Tests:** `tests/occlusion-taps.test.js` (the constant taps are the old formula's, no branch,
+  cos or sin in the loops, the affine ray for off-centre cameras too, the rotation).
+
+Synced frame time (each `renderFrame()` of 16, closed by a `readPixels`; median of 20, other agents'
+Chrome and node jobs on the machine), High, 1728 × 1117 at DPR 2:
+
+| ms | ce8b8c4 (before) | 63b130d (spot blacks) | 755f51e (+ worn walls) | this fix |
+|---|---|---|---|---|
+| arrival (by the ship) | 12.9 | 13.1 | 13.4 | 12.7 |
+| Qanat's street, gate to tree | 14.4 | 16.1 | 17.1 | 15.6 |
+| the camps | 13.9 | 14.9 | 15.3 | 14.2 |
+| the dunes (quickest of 20) | 13.3 | 13.4 | 13.5 | 12.8 |
+| under the tree (quickest of 20) | 12.1 | 13.0 | 13.6 | 12.8 |
+
+At 1280 × 720 (High: 1.5×, 1920 × 1080) the street 7.7 → 8.9 → 8.2 ms and the camps 8.5 → 9.1 → 8.4.
+The rest of the street's gap is the worn walls (a G-buffer cost on every wall pixel).
+
+To measure: two or more builds side by side, each its own page, the idle ones held (their
+`requestAnimationFrame` deferred) and the views timed in turns, so the machine's noise falls on all
+of them alike: the A/B scripts of this pass (`pair.mjs`, `compare.mjs`) live in the agent's
+scratchpad; the same approach as `scripts/bench/passes.mjs`' toggles, across builds.

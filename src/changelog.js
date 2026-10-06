@@ -9,6 +9,7 @@ export const CHANGELOG = [
   { v: '0.71', date: '2026-10-06', items: [
     'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
     'The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.',
+    'The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.',
   ] },
   { v: '0.70', date: '2026-10-06', items: [
     'People wear many more kinds of headwear: wide and narrow-brimmed hats, flat straw hats, bowlers, peaked and flat caps, knit caps, fur hats with their ear-flaps down, aviators’ caps, kerchiefs and headscarves, small round caps, circlets, miners’ hard hats with a lamp, and hoods thrown back on the shoulders. On their faces and necks: round spectacles, dark glasses, cloths over the mouth, desert face-wraps, now and then a monocle, neckerchiefs, thick mufflers and goggles hung round the neck.',
