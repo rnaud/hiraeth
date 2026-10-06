@@ -1,0 +1,23 @@
+docs/README.md
+  s_1fd8d0e7b02dcf::t_471b152c2fede0 36
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_d5864255d03528 78-82,107-108
+docs/systems/rendering.md
+  s_1fd8d0e7b02dcf::t_7d5526e8182ec3 347,366-369,444-534
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "accc90fc72206a97a102d77209fc9dd0f9e09976",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

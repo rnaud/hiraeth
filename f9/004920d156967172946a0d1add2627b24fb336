@@ -1,0 +1,29 @@
+TODO.md
+  s_35804a64f516af::t_e053dae1f7107c 12
+changelog.md
+  s_35804a64f516af::t_612d87f55a7c42 15
+docs/systems/performance.md
+  s_35804a64f516af::t_41d802036f9502 76-82
+src/changelog.js
+  s_35804a64f516af::t_2a715e24162f14 19
+src/perf.js
+  s_35804a64f516af::t_8def7fc6c7d5c4 263,322,326-334
+tests/interior-cull.test.js
+  s_35804a64f516af::t_298764e60f8bc2 78-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f9004920d156967172946a0d1add2627b24fb336",
+  "prompts": {},
+  "sessions": {
+    "s_35804a64f516af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f765a71d-1875-41c8-b8f3-3df78affbe5a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

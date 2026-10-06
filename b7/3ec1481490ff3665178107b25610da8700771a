@@ -1,0 +1,57 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_c82cba0dad18d3 244
+docs/systems/engine-bridge.md
+  s_1fd8d0e7b02dcf::t_09fa05f71e915d 88,106,233-239,446-506,518-519
+engine/game.js
+  s_1fd8d0e7b02dcf::t_e56522b2fbd318 12-14,29,38-47,53-54,59-74,83,86-87,133,141-142,149-150,161-163,165-181,189,234,276-277,284-286,311-327,337-346,372-396,398-400,402
+engine/mirror.js
+  s_1fd8d0e7b02dcf::t_308ee3cde1d2a7 16-18,35-37,62-63,85,161-163,175-184,250,262-268,272
+engine/platform.js
+  s_1fd8d0e7b02dcf::t_8bd3f3f824ac87 15,260-275
+engine/unity/backend.js
+  s_1fd8d0e7b02dcf::t_d5cac0877264f7 6,20,33-34,38,48-50,56-74,102-103,105-119,177-188
+engine/unity/game.js
+  s_1fd8d0e7b02dcf::t_074e577d592781 13-16,29-32,66-79,102-114,121,129,154,162
+engine/unity/pack.js
+  s_1fd8d0e7b02dcf::t_0b553c23297e4c 22,26,35-37,55,73-74,91-124
+engine/unity/port-format.js
+  s_1fd8d0e7b02dcf::t_5a3a52a414db0a 14-25,78-80
+engine/webaudio.js
+  s_1fd8d0e7b02dcf::t_27bced2fd26d14 1-438
+scripts/unity-js-run.sh
+  s_1fd8d0e7b02dcf::t_0b55cd64944a99 1-14
+tests/engine-unity.test.js
+  s_1fd8d0e7b02dcf::t_9929e6a148277e 9,11,14,75-96,102-103,109-110,112-113,120,126-128,132
+tests/webaudio.test.js
+  s_1fd8d0e7b02dcf::t_e353f1ed0b92d5 1-118
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_1fd8d0e7b02dcf::t_5b669234c82432 54-56
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs
+  s_1fd8d0e7b02dcf::t_6911cd4ab0b239 44-46,56
+unity/Memento/Assets/MementoJS/Runtime/BridgeAudio.cs
+  s_1fd8d0e7b02dcf::t_1c406e8ab6e94c 1-118
+unity/Memento/Assets/MementoJS/Runtime/BridgeAudio.cs.meta
+  s_1fd8d0e7b02dcf::t_f839a6bc36414e 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_1fd8d0e7b02dcf::t_f0ac231b2ec8f6 27-30
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_1fd8d0e7b02dcf::t_b2d9a5928fffc3 24-26,33-36,40-44,47-62,99-100,119-124,128,146-163,167-177,190-238,277,354-360,404-421,425-450,496-551,554-556
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_1fd8d0e7b02dcf::t_d04dff334f1b2f 26,43-48,56,67,111-116,119-120,124-125,132,134-135,151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b73ec1481490ff3665178107b25610da8700771a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,111 @@
+TODO.md
+  s_35804a64f516af::t_4b90676d35bdc0 243
+docs/systems/engine-bridge.md
+  s_35804a64f516af::t_881bbe006d6844 88,106,113-147,149-152,233-239,380,403-560,570-574
+engine/game.js
+  s_35804a64f516af::t_e635fcc91a844e 12-14,29,38-50,53-54,59-74,83,86-87,133,141-142,145-150,157,161-163,165-181,189,210-213,216,218-230,234-261,276-277,284-295,311-327,337-346,351-356,358,368,370,372-396,398-400,402
+engine/mirror.js
+  s_35804a64f516af::t_999da9214cf8a5 15-24,34-36,54-55,61-63,68,70-78,80-81,85,106-107,113-114,119-122,131-132,135-149,153-159,161-164,167-170,175-184,187-197,201-204,208-209,213,215-218,222-230,240-256,258-282,284
+engine/platform.js
+  s_35804a64f516af::t_35bf2d1bd6b739 15,260-275
+engine/unity/backend.js
+  s_35804a64f516af::t_47608259bc7e00 6,10-11,16-17,20,22,25-26,35-36,40-42,50-52,58-76,79-82,93-94,101-102,104-105,107-121,128-129,138-157,159-163,171,174-188,192
+engine/unity/game.js
+  s_35804a64f516af::t_a0eef52c645b14 6,13-16,29-32,36-41,54-79,102-114,121-129,139-151,154,161-163
+engine/unity/host.js
+  s_35804a64f516af::t_391d47f1e9edd1 23-26
+engine/unity/pack.js
+  s_35804a64f516af::t_1778ef90f70add 22,26,35-37,55,73-76,91-124
+engine/unity/port-format.js
+  s_35804a64f516af::t_751dcc67dc747b 14-25,76-80
+engine/webaudio.js
+  s_35804a64f516af::t_366f7f312f0597 1-446
+scripts/unity-js-player.sh
+  s_35804a64f516af::t_4769b25fe54618 1-16
+scripts/unity-js-run.sh
+  s_35804a64f516af::t_957551b0a10dd2 1-14
+src/audio.js
+  s_35804a64f516af::t_84956996ed76df 12,170,393
+src/changelog.js
+  s_35804a64f516af::t_143ec580151524 5,696,702
+src/hud.js
+  s_35804a64f516af::t_b1353d8374548e 11,86-107,109,111
+src/main.js
+  s_35804a64f516af::t_9afc5ee37ea219 11-12,297-298,302,304,306-308,318-322
+src/motion-match.js
+  s_35804a64f516af::t_14ba84962f2089 1,62,65
+src/platform.js
+  s_35804a64f516af::t_c173039816e9b9 1-75
+src/ship/cinema.js
+  s_35804a64f516af::t_a3c3c8e3a71da1 13,355
+src/story/dialogue.js
+  s_35804a64f516af::t_a2f0af584d4231 1,283,298,307,356-357,396-397,419,437,443-453
+src/story/index.js
+  s_35804a64f516af::t_afb46c1c0bd341 1,223,282-283,286-287
+src/ui.js
+  s_35804a64f516af::t_600dca20004018 1,34,41
+tests/engine-bridge.test.js
+  s_35804a64f516af::t_9e323207623d84 137-161
+tests/engine-unity.test.js
+  s_35804a64f516af::t_5f654d6a0f14c3 9,11,14,75-96,101-103,107,109-110,112-113,120,125-128,132-136
+tests/hud.test.js
+  s_35804a64f516af::t_6c7773502bb120 4,77-86
+tests/platform.test.js
+  s_35804a64f516af::t_4659c908f13ef0 1-76
+tests/webaudio.test.js
+  s_35804a64f516af::t_e63f52cc322ad2 1-130
+unity/.gitignore
+  s_35804a64f516af::t_211e22656524ee 32-34
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_35804a64f516af::t_1704f13c21655c 54-56
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs
+  s_35804a64f516af::t_7d4481c5d5e818 40,46
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_35804a64f516af::t_36a55aa250cc2b 1-156
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs.meta
+  s_35804a64f516af::t_4df3521babf938 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_35804a64f516af::t_47edd26d6f0c30 1-86
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs.meta
+  s_35804a64f516af::t_4be4734ba63b77 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeAudio.cs
+  s_35804a64f516af::t_ba5bc04ebc0ac6 1-118
+unity/Memento/Assets/MementoJS/Runtime/BridgeAudio.cs.meta
+  s_35804a64f516af::t_71d280867ae02d 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeBones.cs
+  s_35804a64f516af::t_6be369d512d22d 1-99
+unity/Memento/Assets/MementoJS/Runtime/BridgeBones.cs.meta
+  s_35804a64f516af::t_4589612045211d 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_35804a64f516af::t_e739b32d9f9a92 24-32,35-40,50-51,105-106
+unity/Memento/Assets/MementoJS/Runtime/BridgeHud.cs
+  s_35804a64f516af::t_25ef36dbea513b 1-254
+unity/Memento/Assets/MementoJS/Runtime/BridgeHud.cs.meta
+  s_35804a64f516af::t_34b431482c3245 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_35804a64f516af::t_ef3c9edfcc96b7 23-26,33-36,38-63,99-100,119-124,128,132-138,146-163,167-177,190-255,277,282-293,298,354-360,382-421,425-450,459,496-551,554-556,558-559
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_35804a64f516af::t_f9256be852efe7 25-26,41-45,48-53,61,72-75,86-87,89-90,102,105,120-125,128-129,133-134,139-144,160
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs
+  s_35804a64f516af::t_bb5d129a972f1a 16,53-60,67
+unity/Memento/Assets/MementoJS/link.xml
+  s_35804a64f516af::t_8542077a003467 1-10
+unity/Memento/Assets/MementoJS/link.xml.meta
+  s_35804a64f516af::t_02b2f94445ca81 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e96c43e656a1f897d11825f0ab91f9a7464ea865",
+  "prompts": {},
+  "sessions": {
+    "s_35804a64f516af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f765a71d-1875-41c8-b8f3-3df78affbe5a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

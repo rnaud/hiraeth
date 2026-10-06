@@ -1,0 +1,31 @@
+TODO.md
+  s_35804a64f516af::t_87ed4ee00fab41 8-13
+changelog.md
+  s_35804a64f516af::t_9f57ff2af1efe7 15
+docs/systems/animation.md
+  s_35804a64f516af::t_3201b095c61d60 103-109,112
+src/changelog.js
+  s_35804a64f516af::t_987ff41a41d44e 19
+src/humanoid.js
+  s_35804a64f516af::t_bfb34cd9853b83 484-490,1074-1075,1159-1169,1230
+src/player.js
+  s_35804a64f516af::t_0bb90fb149b6f3 1423-1429
+tests/hands.test.js
+  s_35804a64f516af::t_313e6fe412be74 210-246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5fa64866d504ea7c1f639c66e09e2e0fc7a78166",
+  "prompts": {},
+  "sessions": {
+    "s_35804a64f516af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f765a71d-1875-41c8-b8f3-3df78affbe5a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
