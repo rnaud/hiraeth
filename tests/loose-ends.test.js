@@ -19,7 +19,7 @@ test('Vael is quiet by choice: its errand lines are gestures and a word or two',
     for (const l of lines) assert.ok(spokenWords(l).length <= 3, `${e.id}: “${said(l)}” says too much for Vael`);
   }
   const feather = ERRANDS.find((e) => e.id === 'feather');
-  assert.match(said(feather.ask), /Major/, 'it still says who it is for');
+  assert.match(said(feather.ask), /sky stones/, 'it still says where it goes');
 });
 
 test('Vael II: the sky stones are older than the bell’s silence; only loose things fell up when it stopped', () => {

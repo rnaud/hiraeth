@@ -359,7 +359,11 @@ export class Errands {
   /** The parcels you're carrying, for the HUD. */
   hud() {
     const out = [];
-    for (const [, e] of Object.entries(this.journal.data.errands ?? {})) if (!e.done) out.push(`carrying ${e.item.replace(/^an? /, '')} → ${e.toTitle}`);
+    // (where it goes now: a parcel picked up before the errands followed the route names its new world)
+    for (const [id, e] of Object.entries(this.journal.data.errands ?? {})) if (!e.done) {
+      const to = this.defs.find((d) => d.id === id)?.to[0];
+      out.push(`carrying ${e.item.replace(/^an? /, '')} → ${(to && this.titles[to]) ?? e.toTitle}`);
+    }
     return out.slice(0, 1).join('');
   }
 }

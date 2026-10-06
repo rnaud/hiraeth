@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The drawing holds still as you move: old walls seen at a slant no longer shimmer with flickering grime streaks and cracks, the edge where a big pipe, tank or trunk turns from the sun is one clean line instead of crawling teeth, and the fine pen marks on distant walls change scale gently instead of popping as you ride or fly past.
 - Haze and fog stay put on the land as you turn the camera, instead of sliding across it with the view.
 - In the City-Shaft a red stair now runs down the shaft’s wall from the rim to Nima’s terrace, 50 metres below: look for the cream gate with the red lintel on the rim near the stone pillar. You no longer have to glide or climb to reach her (gliding down still works).
+- Errands between worlds now always send you on to the next world on your way, never back to one you have finished: singing sand from the desert for Senn in Vael, the bird’s feather from Vael for Vael II, a storm crystal from Lorn for Bram in Lorn II, a brass gear from Lorn II for Mira’s water clock in Viridel, a glass seed from Viridel for Nima in the City-Shaft, and a taxi token from the City-Shaft for the Sealed Hangar, each with new words from the one who gives it and the one who takes it.
 
 ## v0.71 — 2026-10-06
 
