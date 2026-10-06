@@ -92,12 +92,11 @@ function mothHit(g, part, mode) {
 function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
-  const root = (pts, r) => K.add(M.stone, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => V(...p))), 16, r, 7, false));
+  const root = (pts, r) => K.both(M.stone, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => V(...p))), 16, r, 7, false));
 
   // ---- the Threshold (z 0..12)
   K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
-  K.solid(box(4, 5, 0.5, 0, 2.5, -1.4));
+  K.both(M.voidM, box(3.6, 5, 1.25, 0, 2.5, -0.625));   // (drawn and solid as one: from the doorway's face back to the wall's inner face)
   K.glyph([0, 6.2, 0.05], 1.5, 0);
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
   K.wall(-12.2, 12.6, 12.2, 12.6, 0, 13, { t: 1.2, holes: [{ at: 12.2, w: 6, h: 7 }] });
@@ -107,7 +106,7 @@ function layout(rt) {
   const poolM = makeMaterial({ color: '#2f3560', glow: 0.1, flat: true, key: 'temple.p2.pools' });
   for (const [i, [x, z]] of [[-5, 22], [5, 28], [-5, 35]].entries()) {
     K.both(M.trim, T(annulus(2.0, 2.6, 0.5, 32), [x, 0.5, z]));
-    K.add(poolM, T(new THREE.CylinderGeometry(2.0, 2.0, 0.1, 28), [x, 0.3, z]));
+    K.both(poolM, T(new THREE.CylinderGeometry(2.0, 2.0, 0.1, 28), [x, 0.3, z]));
     add(Switch, { id: `s${i + 1}`, at: [x, 0.9, z], yaw: 0, size: 0.9 });
   }
   add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.4, lamps: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] });
@@ -139,7 +138,7 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 15.8, C2 + 11.6));
   const C3 = C2 + 22.6;    // 79.8
   K.rotunda({ x: 0, z: C3, y: 9, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 9, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 9.31, C3));
+  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 9, C3));   // (its own lathe: a cylinder stand-in stood over its lower step)
   add(Door, { id: 'd2', at: [0, 9, C3 + 10.2], w: 5, h: 6.4, lamps: [{ lit: 'l1' }] });
   add(LightEar, { id: 'l1', at: [2.6, 9, C3 + 8.4], reach: 3.6 });
   add(Mark, { room: 'lantern', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
@@ -180,8 +179,7 @@ function layout(rt) {
   K.wall(-3.2, CL + HR + 1.4, -3.2, CL + HR + 10, 9, 7, { t: 0.8 }); K.wall(3.2, CL + HR + 10, 3.2, CL + HR + 1.4, 9, 7, { t: 0.8 });
   K.wall(3.2, CL + HR + 10, -3.2, CL + HR + 10, 9, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
   K.both(M.wall, box(7.2, 0.8, 9.4, 0, 16.4, CL + HR + 5.7));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 9, CL + HR + 10.5]));
-  K.solid(box(4, 5, 0.5, 0, 11.5, CL + HR + 10.9));
+  K.both(M.voidM, box(3.4, 5, 0.9, 0, 11.5, CL + HR + 10.35));
 
   const model = mothModel();
   model.pos.copy(K.world(0, 9, CL + 4));
@@ -213,7 +211,7 @@ function exterior(scene, level, rt) {
   K.both(M.floor, new THREE.CylinderGeometry(R + 6, R + 7, door, 32).translate(0, door / 2, 0));
   // (the lathe itself collides: a straight cylinder inside it let a climber into its flared foot and crown, src/contact-audit.js)
   K.both(M.wall, lathe([[R + 1.2, door], [R, door + 4], [R - 2.2, door + 40], [R - 1.6, door + 41], [R - 1.6, door + 42]], 32));
-  for (let y = door + 8; y < door + 40; y += 8) K.add(M.trim, new THREE.CylinderGeometry(R - 2.2 + (1 - (y - door) / 40) * 2.2 + 0.3, R - 2.2 + (1 - (y - door) / 40) * 2.2 + 0.3, 0.6, 32).translate(0, y, 0));
+  for (let y = door + 8; y < door + 40; y += 8) K.both(M.trim, new THREE.CylinderGeometry(R - 2.2 + (1 - (y - door) / 40) * 2.2 + 0.3, R - 2.2 + (1 - (y - door) / 40) * 2.2 + 0.3, 0.6, 32).translate(0, y, 0));
   K.both(M.floor, T(annulus(R - 3, R + 1.5, 0.6, 32), [0, door + 42.6, 0]));
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; K.both(M.trim, T(new THREE.BoxGeometry(0.5, 7, 0.5), [Math.sin(a) * (R - 2.6), door + 46, Math.cos(a) * (R - 2.6)])); }
   K.both(ink, T(new THREE.ConeGeometry(R - 1.6, 5, 16), [0, door + 52, 0]));
@@ -222,9 +220,8 @@ function exterior(scene, level, rt) {
   const z0 = R - 0.6, z1 = R + 3;
   for (const s of [-1, 1]) K.both(M.wall, box(3.4, 9, z1 - z0, s * 3.9, door + 4.5, (z0 + z1) / 2));
   K.both(M.wall, box(4.4, 2.4, z1 - z0, 0, door + 8.2, (z0 + z1) / 2));
-  K.add({ paint: new THREE.Color(PALETTE.accent), smooth: false, side: THREE.FrontSide }, box(11, 1, 1.2, 0, door + 9.6, z1 + 0.1));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.3, 7).translate(0, 3.5, 0), [0, door, R + 1.3]));
-  K.solid(box(4.4, 7, 0.6, 0, door + 3.5, R + 0.95));
+  K.both({ paint: new THREE.Color(PALETTE.accent), smooth: false, side: THREE.FrontSide }, box(11, 1, 1.2, 0, door + 9.6, z1 + 0.1));
+  K.both(M.voidM, box(4.3, 7, 0.9, 0, door + 3.5, R + 0.85));   // (drawn and solid as one: the dark of the doorway, back to the tower's wall)
   // the causeway: flat stones from the apron to the end of the lit path
   const pathL = K.local(V(SITE.path[0], 0, SITE.path[1]));
   const n = 9;

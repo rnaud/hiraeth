@@ -229,8 +229,9 @@ export class TempleKit {
       const spans = gap ? [[0, gap.y0 ?? 0], [(gap.y0 ?? 0) + gap.h, h]] : [[0, h]];
       for (const [s0, s1] of spans) if (s1 - s0 > 0.05) this.both(this.M.wall, T(new THREE.BoxGeometry(chord, s1 - s0, t), [px, y + s0 + (s1 - s0) / 2, pz], [0, a, 0]));
     }
-    // the trim at the top, round the hall
-    this.add(this.M.trim, T(annulus(r - 0.1, r + t + 0.4, 0.5, seg * 2), [x, y + h, z]));
+    // the trim at the top, round the hall (solid: it overhangs the wall's outer face by 0.4 m, and a
+    // climber used to hug the wall inside the drawn stone)
+    this.both(this.M.trim, T(annulus(r - 0.1, r + t + 0.4, 0.5, seg * 2), [x, y + h, z]));
     if (oculus > 0) {
       this.both(this.M.wall, T(annulus(r * oculus, r + t, 0.9, seg * 2), [x, y + h + 0.9, z]));
       this.add(this.M.trim, T(annulus(r * oculus - 0.3, r * oculus + 0.4, 0.4, seg * 2), [x, y + h + 1.1, z]));   // (drawn only: the ceiling's, out of reach, and solid it caught rays dropped through the oculus)

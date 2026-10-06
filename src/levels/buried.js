@@ -307,11 +307,11 @@ export function* buildBuried(scene) {
     // flanged joints
     for (const [p, q] of [[a1, a0], [b1, b0]]) {
       const m = p.clone().lerp(q, 0.12);
-      put(M.flange, cylBetween(m.clone().addScaledVector(Y, 0.3), m.clone().addScaledVector(Y, -0.3), r * 1.3, r * 1.3, 12), { solid: false });
+      put(M.flange, cylBetween(m.clone().addScaledVector(Y, 0.3), m.clone().addScaledVector(Y, -0.3), r * 1.3, r * 1.3, 12));
     }
     if (len > 2 * R + 6) {
       const m = s0.clone().lerp(s1, 0.5);
-      put(M.flange, cylBetween(m.clone().addScaledVector(h, 0.35), m.clone().addScaledVector(h, -0.35), r * 1.3, r * 1.3, 12), { solid: false });
+      put(M.flange, cylBetween(m.clone().addScaledVector(h, 0.35), m.clone().addScaledVector(h, -0.35), r * 1.3, r * 1.3, 12));
     }
     return top + r;
   }
@@ -323,8 +323,8 @@ export function* buildBuried(scene) {
     const R = r * 2;
     put(M.pipe2, elbow(a1.clone().addScaledVector(h, R), R, r, h.clone().negate(), Y, 12));
     const mouth = a1.clone().addScaledVector(h, R).addScaledVector(Y, R);
-    put(M.flange, cylBetween(mouth, mouth.clone().addScaledVector(h, 0.7), r * 1.35, r * 1.35, 12), { solid: false });
-    put(M.hatch, cylBetween(mouth.clone().addScaledVector(h, 0.4), mouth.clone().addScaledVector(h, 0.75), r * 0.85, r * 0.85, 12), { solid: false });
+    put(M.flange, cylBetween(mouth, mouth.clone().addScaledVector(h, 0.7), r * 1.35, r * 1.35, 12));
+    put(M.hatch, cylBetween(mouth.clone().addScaledVector(h, 0.4), mouth.clone().addScaledVector(h, 0.75), r * 0.85, r * 0.85, 12));
   }
   yield;
   {
@@ -351,7 +351,7 @@ export function* buildBuried(scene) {
           pts.push(new THREE.Vector3(x, H(x, z) + r * 0.35, z));
         }
         put(k % 2 ? M.pipe2 : M.pipe, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 56, r, 8), { solid: k === 0 });
-        for (let q = 1; q < pts.length - 1; q += 4) put(M.flange, cylBetween(pts[q].clone().setZ(pts[q].z + 0.4), pts[q].clone().setZ(pts[q].z - 0.4), r * 1.3, r * 1.3, 10), { solid: false });
+        for (let q = 1; q < pts.length - 1; q += 4) put(M.flange, cylBetween(pts[q].clone().setZ(pts[q].z + 0.4), pts[q].clone().setZ(pts[q].z - 0.4), r * 1.3, r * 1.3, 10), { solid: k === 0 });
       }
     }
   }
@@ -412,7 +412,7 @@ export function* buildBuried(scene) {
           if (y < f + 0.4) y = f - 2;
           pts.push(new THREE.Vector3(cx(z) + s * (wallD(y, z, s) + r * 0.1), y, z));
         }
-        put(k % 3 === 1 ? M.steelFlat : M.steel, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 3, r, 8), { solid: false });
+        put(k % 3 === 1 ? M.steelFlat : M.steel, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 3, r, 8));
       }
     }
     for (const s of [-1, 1]) {
@@ -427,7 +427,7 @@ export function* buildBuried(scene) {
         if (rng() < 0.5) {   // vertical conduits in the strata
           const y0 = band0, y1 = top - 0.5, r = range(0.7, 1.5), zz = z + range(-2, 2);
           put(M.steel, cylBetween(new THREE.Vector3(at(y0, r * 0.6), y0, zz), new THREE.Vector3(at(y1, r * 0.6), y1, zz), r, r, 8));
-          put(M.flange, cylBetween(new THREE.Vector3(at(y1 - 1, r * 0.6), y1 - 1, zz), new THREE.Vector3(at(y1 - 1.5, r * 0.6), y1 - 1.5, zz), r * 1.3, r * 1.3, 8), { solid: false });
+          put(M.flange, cylBetween(new THREE.Vector3(at(y1 - 1, r * 0.6), y1 - 1, zz), new THREE.Vector3(at(y1 - 1.5, r * 0.6), y1 - 1.5, zz), r * 1.3, r * 1.3, 8));
         }
         if (shallow || nearWall || nearLedge) continue;
         // rust machinery below the strata
@@ -444,13 +444,13 @@ export function* buildBuried(scene) {
             const r = range(1.8, 3.2), l = range(6, 10), za = z + l / 2, zb = z - l / 2;
             const xa = cx(za) + s * (wallD(y, za, s) + r * 0.25), xb = cx(zb) + s * (wallD(y, zb, s) + r * 0.25);
             put(M.rust, cylBetween(new THREE.Vector3(xa, y, za), new THREE.Vector3(xb, y, zb), r, r, 12));
-            put(M.rustDark, cylBetween(new THREE.Vector3(xa, y, za + 0.3), new THREE.Vector3(xa, y, za - 0.2), r * 1.12, r * 1.12, 12), { solid: false });
+            put(M.rustDark, cylBetween(new THREE.Vector3(xa, y, za + 0.3), new THREE.Vector3(xa, y, za - 0.2), r * 1.12, r * 1.12, 12));
           }
         } else {   // a ribbed duct climbing the wall
           const r = range(1.6, 2.4), y0 = f - 1, y1 = Math.min(top - 12, f + wallH * 0.75);
           const a = new THREE.Vector3(at(y0, r), y0, z), b = new THREE.Vector3(at(y1, r), y1, z);
           put(M.rustGrid, cylBetween(a, b, r, r, 10));
-          for (let k = 1; k < 7; k++) { const p = a.clone().lerp(b, k / 7); put(M.rustDark, cylBetween(p.clone().addScaledVector(Y, 0.35), p.clone().addScaledVector(Y, -0.35), r * 1.18, r * 1.18, 10), { solid: false }); }
+          for (let k = 1; k < 7; k++) { const p = a.clone().lerp(b, k / 7); put(M.rustDark, cylBetween(p.clone().addScaledVector(Y, 0.35), p.clone().addScaledVector(Y, -0.35), r * 1.18, r * 1.18, 10)); }
         }
       }
     }
@@ -458,8 +458,8 @@ export function* buildBuried(scene) {
     for (const p of pillarH) {
       const lit = rng() < 0.35, face = new THREE.Vector3(-p.s, 0, 0);
       const c = new THREE.Vector3(p.x, p.y, p.z).addScaledVector(face, p.r * 0.92);
-      put(M.rustDark, new THREE.TorusGeometry(p.r * 0.55, 0.22, 6, 18).rotateY(Math.PI / 2).translate(c.x, c.y, c.z), { solid: false });
-      put(lit ? M.peach : M.hatch, new THREE.CircleGeometry(p.r * 0.52, 18).rotateY(-p.s * Math.PI / 2).translate(c.x - p.s * 0.08, c.y, c.z), { solid: false });
+      put(M.rustDark, new THREE.TorusGeometry(p.r * 0.55, 0.22, 6, 18).rotateY(Math.PI / 2).translate(c.x, c.y, c.z));
+      put(lit ? M.peach : M.hatch, new THREE.CircleGeometry(p.r * 0.52, 18).rotateY(-p.s * Math.PI / 2).translate(c.x - p.s * 0.08, c.y, c.z));
     }
 
     // the ledge (a relic spot), a jutting machine slab on the left wall
@@ -494,7 +494,7 @@ export function* buildBuried(scene) {
         const pts = curve.getPoints(40).slice(0, -1).map((p) => new THREE.Vector3(p.x, p.y, side * 3.7));
         const tube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 48, 0.9, 6, true);
         tube.rotateY(tan).translate(cx(wz), 0, wz);
-        put(M.rustDark, tube, { solid: false });
+        put(M.rustDark, tube, { solid: false });   // (drawn only: solid, its foot banks sand across the opening you walk through)
         // lit oval panes either side of the opening
         for (const ox of [-1, 1]) {
           if ((ox + side + wi) % 2 === 0) continue;
@@ -502,10 +502,10 @@ export function* buildBuried(scene) {
           if (side < 0) pane.rotateY(Math.PI);
           pane.translate(ox * (rx + 9), cy + 3, side * 3.62);
           pane.rotateY(tan).translate(cx(wz), 0, wz);
-          put(M.peach, pane, { solid: false });
+          put(M.peach, pane);
           const ring = new THREE.TorusGeometry(1, 0.12, 5, 24).scale(3.4, 6.7, 1).translate(ox * (rx + 9), cy + 3, side * 3.66);
           ring.rotateY(tan).translate(cx(wz), 0, wz);
-          put(M.rustDark, ring, { solid: false });
+          put(M.rustDark, ring);
         }
       }
     }
@@ -525,7 +525,7 @@ export function* buildBuried(scene) {
     inner.computeVertexNormals();   // faces the inside
     put(M.teal, inner);
     put(M.rustDark, new THREE.RingGeometry(OR - 0.2, OR + 3.4, 72).rotateX(-Math.PI / 2).translate(OX, OTOP, OZ));
-    put(M.rust, new THREE.TorusGeometry(OR + 3, 0.9, 6, 72).rotateX(Math.PI / 2).translate(OX, OTOP - 0.6, OZ), { solid: false });
+    put(M.rust, new THREE.TorusGeometry(OR + 3, 0.9, 6, 72).rotateX(Math.PI / 2).translate(OX, OTOP - 0.6, OZ));
     // the doorway panel: an arched opening through the drum wall
     for (const [t, mat, r] of [[2.6, M.rustGrid, OR + 1.4], [0.6, M.teal, OR - 0.2]]) {
       const sh = new THREE.Shape();
@@ -541,14 +541,14 @@ export function* buildBuried(scene) {
     put(M.tealFloor, new THREE.CircleGeometry(OR + 0.5, 48).rotateX(-Math.PI / 2).translate(OX, FLOOR + 0.06, OZ));
     const balc = sectorGeometry(OR - 6, OR + 0.1, 0, TAU, 1.4, 72).translate(OX, BALCONY, OZ);
     put(M.steel, balc);
-    put(M.tealFlat, sectorGeometry(OR - 6.3, OR - 5.7, 0, TAU, 1.0, 72).translate(OX, BALCONY + 1.0, OZ), { solid: false });  // a low rail
+    put(M.tealFlat, sectorGeometry(OR - 6.3, OR - 5.7, 0, TAU, 1.0, 72).translate(OX, BALCONY + 1.0, OZ));  // a low rail
     // brackets under the balcony
     for (let k = 0; k < 24; k++) {
       const a = (k / 24) * TAU, dx = Math.sin(a), dz = Math.cos(a);
       if (Math.abs(Math.atan2(dx, dz)) < g + 0.1) continue;
       const p0 = new THREE.Vector3(OX + dx * (OR - 0.4), BALCONY - 7, OZ + dz * (OR - 0.4));
       const p1 = new THREE.Vector3(OX + dx * (OR - 5.5), BALCONY - 0.5, OZ + dz * (OR - 5.5));
-      put(M.tealFlat, cylBetween(p0, p1, 0.5, 0.5, 6), { solid: false });
+      put(M.tealFlat, cylBetween(p0, p1, 0.5, 0.5, 6));
     }
     // tall narrow arched windows round the inside, two tiers
     for (let k = 0; k < 18; k++) {
@@ -560,31 +560,31 @@ export function* buildBuried(scene) {
           new THREE.CircleGeometry(1.2, 10, 0, Math.PI).translate(0, y0 + hh, 0),
         ].map((q) => q.toNonIndexed()));
         win.rotateY(a + Math.PI).translate(OX + dx * (OR - 0.15), 0, OZ + dz * (OR - 0.15));
-        put(k % 5 === 2 ? M.peach : M.skyPane, win, { solid: false });
+        put(k % 5 === 2 ? M.peach : M.skyPane, win);
       }
     }
     // the goal: a great porthole glowing above the far side of the balcony
     {
       const c = new THREE.Vector3(OX, BALCONY + 9.5, OZ - OR + 0.5);
       put(M.steel, new THREE.TorusGeometry(7, 1.2, 8, 40).translate(c.x, c.y, c.z));
-      put(M.peach, new THREE.CircleGeometry(6.6, 36).translate(c.x, c.y, c.z + 0.1), { solid: false });
+      put(M.peach, new THREE.CircleGeometry(6.6, 36).translate(c.x, c.y, c.z + 0.1));
       for (let k = 0; k < 8; k++) {   // bolts / ribs
         const a = (k / 8) * TAU;
-        put(M.tealFlat, new THREE.BoxGeometry(0.5, 2.2, 1).translate(Math.cos(a) * 8.4, Math.sin(a) * 8.4, 0).rotateZ(0).translate(c.x, c.y, c.z + 0.3), { solid: false });
+        put(M.tealFlat, new THREE.BoxGeometry(0.5, 2.2, 1).translate(Math.cos(a) * 8.4, Math.sin(a) * 8.4, 0).rotateZ(0).translate(c.x, c.y, c.z + 0.3));
       }
       porthole.light = new THREE.Vector4(c.x, c.y, c.z + 4, 16);
       porthole.centre = c.clone();
       lights.push(porthole.light);
       // the maker's mark cast in the rim, above the glass: three dots over an arc
-      for (const k of [-1, 0, 1]) put(M.tealFlat, new THREE.CylinderGeometry(0.5, 0.5, 0.5, 10).rotateX(Math.PI / 2).translate(c.x + k * 1.6, c.y + 10.5 + (k ? 0 : 0.35), c.z + 0.5), { solid: false });
-      put(M.tealFlat, new THREE.TorusGeometry(2.2, 0.28, 5, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).translate(c.x, c.y + 7.3, c.z + 0.5), { solid: false });
+      for (const k of [-1, 0, 1]) put(M.tealFlat, new THREE.CylinderGeometry(0.5, 0.5, 0.5, 10).rotateX(Math.PI / 2).translate(c.x + k * 1.6, c.y + 10.5 + (k ? 0 : 0.35), c.z + 0.5));
+      put(M.tealFlat, new THREE.TorusGeometry(2.2, 0.28, 5, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).translate(c.x, c.y + 7.3, c.z + 0.5));
     }
     // vertical pipes up the inner wall, tanks on the floor
     for (let k = 0; k < 16; k++) {
       const a = (k / 16) * TAU + 0.05, dx = Math.sin(a), dz = Math.cos(a);
       if (Math.abs(Math.atan2(dx, dz)) < g + 0.15) continue;
       const r = range(0.5, 1.1), rr = OR - r - 0.2;
-      put(M.tealFlat, new THREE.CylinderGeometry(r, r, OTOP - FLOOR, 8, 1, true).translate(OX + dx * rr, (OTOP + FLOOR) / 2, OZ + dz * rr), { solid: false });
+      put(M.tealFlat, new THREE.CylinderGeometry(r, r, OTOP - FLOOR, 8, 1, true).translate(OX + dx * rr, (OTOP + FLOOR) / 2, OZ + dz * rr));
     }
     for (let k = 0; k < 9; k++) {
       const a = rng() * TAU, rr = range(18, 27), dx = Math.sin(a), dz = Math.cos(a);
@@ -621,7 +621,7 @@ export function* buildBuried(scene) {
   {
     const [x, z] = TOWER, y = H(x, z) + 30;
     derrick((mat, g) => {
-      const solid = mat === M.rustGrid || mat === M.rustDark || mat === M.rust;
+      const solid = mat !== M.ink;
       put(mat, g.translate(x, y, z), { solid });
     }, 1, false);
   }
@@ -805,12 +805,13 @@ export function* buildBuried(scene) {
     const [ax, az] = WHEEL.axle;
     const ground = H(WHEEL.x, WHEEL.z);
     const centre = new THREE.Vector3(WHEEL.x, ground - sink, WHEEL.z);
-    const gear = new THREE.Shape();
+    const rim = [];                        // the toothed outline, shared by the gear and its collision
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU, w = TAU / N;
-      const pts = [[a, R], [a + w * 0.18, R], [a + w * 0.28, R + tooth], [a + w * 0.62, R + tooth], [a + w * 0.72, R]];
-      pts.forEach(([b, r], k) => (i === 0 && k === 0 ? gear.moveTo(Math.cos(b) * r, Math.sin(b) * r) : gear.lineTo(Math.cos(b) * r, Math.sin(b) * r)));
+      for (const [b, r] of [[a, R], [a + w * 0.18, R], [a + w * 0.28, R + tooth], [a + w * 0.62, R + tooth], [a + w * 0.72, R]]) rim.push([Math.cos(b) * r, Math.sin(b) * r]);
     }
+    const gear = new THREE.Shape();
+    rim.forEach(([x, y], k) => (k ? gear.lineTo(x, y) : gear.moveTo(x, y)));
     gear.closePath();
     const S = 7, rIn = R - 6.5, rHub = 9;
     for (let k = 0; k < S; k++) {
@@ -844,8 +845,17 @@ export function* buildBuried(scene) {
     holder.add(spin);
     holder.userData.noCollide = true;
     scene.add(holder);
-    // collision: a still disc the size of the rim (the teeth turn freely past it)
-    const proxy = new THREE.Mesh(new THREE.CylinderGeometry(R + tooth * 0.5, R + tooth * 0.5, T, 40).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial());
+    // Collision: a still disc the size of the rim, so the teeth and the spokes turn freely past it (the
+    // wheel never stops once it has started: src/story/buried.js), with the two face trims it carries,
+    // which are rings about the axle and so stand where they are drawn at any angle.
+    const proxyGeo = mergeGeometries([
+      new THREE.CylinderGeometry(R + tooth * 0.5, R + tooth * 0.5, T, 40).rotateX(Math.PI / 2),
+      ...[-1, 1].flatMap((f) => [
+        new THREE.TorusGeometry(R - 0.7, 0.7, 5, 96).translate(0, 0, f * T / 2),
+        new THREE.TorusGeometry(rIn + 0.4, 0.5, 5, 80).translate(0, 0, f * T / 2),
+      ]),
+    ].map((g) => { const n = g.toNonIndexed(); n.deleteAttribute('uv'); return n; }));
+    const proxy = new THREE.Mesh(proxyGeo, new THREE.MeshBasicMaterial());
     proxy.position.copy(centre); proxy.rotation.y = holder.rotation.y;
     proxy.visible = false;
     scene.add(proxy);
@@ -942,6 +952,7 @@ export function* buildBuried(scene) {
 
   // ---------------------------------------------------------- merge the buckets
   yield;
+  const matName = new Map(Object.entries(M).flatMap(([k, v]) => (Array.isArray(v) ? v.map((m, i) => [m, `${k}${i}`]) : [[v, k]])));
   for (const { mat, solid, tag, geos } of buckets.values()) {
     yield;
     const list = geos.map((g) => {
@@ -953,6 +964,7 @@ export function* buildBuried(scene) {
     const g = mergeGeometries(padForm(list));
     g.computeBoundingSphere();
     const m = new THREE.Mesh(g, mat);
+    m.name = `${matName.get(mat) ?? 'mesh'}${tag ? ` ${tag}` : ''}${solid ? '' : ' (drawn only)'}`;
     if (!solid) m.userData.noCollide = true;
     if (tag) { m.userData.tiled = true; noShadow.push(m); }
     (tag === 'city' ? cityInner : scene).add(m);

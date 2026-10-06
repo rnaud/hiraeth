@@ -96,11 +96,16 @@ class Resonator {
     this.group.position.copy(this.pos);
     rt.root.add(this.group);
     this.glow = makeMaterial({ color: o.color, glow: 0.05, flat: true, key: `temple.spheres.res.${o.i}` });
-    this.group.add(new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 1.2, 16).translate(0, 0.6, 0), rt.M.trimMat));
-    this.group.add(new THREE.Mesh(new THREE.SphereGeometry(1.5, 20, 14).translate(0, 2.6, 0), this.glow));
+    const plinth = new THREE.CylinderGeometry(1.4, 1.8, 1.2, 16).translate(0, 0.6, 0);
+    const ball = new THREE.SphereGeometry(1.5, 20, 14).translate(0, 2.6, 0);
+    this.group.add(new THREE.Mesh(plinth, rt.M.trimMat));
+    this.group.add(new THREE.Mesh(ball, this.glow));
     this.group.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; });
+    // it never moves: it collides as drawn, the plinth and the round ball, not as a flat disc 1.8 m
+    // wide at the ball's crown, whose floor hung 0.14 m over the drawn sphere (src/contact-audit.js)
+    K.solid(plinth.clone().translate(o.at[0], o.at[1], o.at[2]));
+    K.solid(ball.clone().translate(o.at[0], o.at[1], o.at[2]));
     this.center = this.pos.clone().add(V(0, 2.6, 0));
-    this.solid = { pos: this.pos, r: 1.8, top: this.pos.y + 4.1, bottom: this.pos.y, vel: V() };
     this.onHit = o.onHit;
     this.off = registerTarget({ kind: 'resonator', radius: 1.6, position: () => this.center, onHit: (mode) => this.hit(mode) });
     this.k = 0;
@@ -177,7 +182,7 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.9, 75.6));
   const C3 = 86.6;
   K.rotunda({ x: 0, z: C3, y: 0, r: 9, h: 14, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 0, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 0.31, C3));
+  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 0, C3));   // (as drawn)
   add(Door, { id: 'd2', at: [0, 0, C3 + 9.7], w: 5, h: 6.4, hidden: true });
   add(Mark, { room: 'lens', at: [5.6, 0, C3 - 4.5], yaw: -Math.PI * 0.75 });
 
@@ -269,7 +274,7 @@ function exterior(scene, level, rt) {
   }
   for (const g of rim) K.both(M.stone, g);
   // the heel: a great pale sphere half sunk, a ring of white steps round it, a round door toward the grove
-  K.both({ paint: new THREE.Color('#f7f3ea'), smooth: true }, new THREE.SphereGeometry(R, 48, 24, 0, TAU, 0, Math.PI * 0.62).translate(0, -R * 0.36, 0), new THREE.SphereGeometry(R, 24, 12, 0, TAU, 0, Math.PI * 0.62).translate(0, -R * 0.36, 0));
+  K.both({ paint: new THREE.Color('#f7f3ea'), smooth: true }, new THREE.SphereGeometry(R, 48, 24, 0, TAU, 0, Math.PI * 0.62).translate(0, -R * 0.36, 0));   // (as drawn: a 24-sided stand-in lay inside the heel you climb)
   K.both(M.floor, T(annulus(R * 0.9, R + 4, 0.8, 48), [0, 0.6, 0]));
   K.both(M.trim, T(annulus(R + 3.6, R + 5.2, 0.5, 48), [0, 0.2, 0]));
   for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; K.add(M.glyph, T(glyphGeometry(2.2, 0.15), [Math.sin(a) * (R * 0.93), R * 0.33, Math.cos(a) * (R * 0.93)], [-0.35, a, 0])); }

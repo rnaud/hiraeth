@@ -123,14 +123,13 @@ function motherHit(g, part, mode) {
 function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
-  const root = (pts, r) => K.add(M.floor, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => V(...p))), 16, r, 7, false));
+  const root = (pts, r) => K.both(M.floor, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => V(...p))), 16, r, 7, false));
   const crystalM = makeMaterial({ color: PALETTE.glow, glow: 0.45, flat: true, key: 'temple.lorn.crystal' });
-  const spike = (x, y, z, h, r, tilt = 0, yaw = 0) => K.add(crystalM, T(new THREE.ConeGeometry(r, h, 5).translate(0, h / 2, 0), [x, y, z], [tilt, yaw, 0]));
+  const spike = (x, y, z, h, r, tilt = 0, yaw = 0) => K.both(crystalM, T(new THREE.ConeGeometry(r, h, 5).translate(0, h / 2, 0), [x, y, z], [tilt, yaw, 0]));
 
   // ---- the Threshold (z 0..12)
   K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
-  K.solid(box(4, 5, 0.5, 0, 2.5, -1.4));
+  K.both(M.voidM, box(3.6, 5, 1.25, 0, 2.5, -0.625));   // (drawn and solid as one: from the doorway's face back to the wall's inner face)
   K.glyph([0, 6.2, 0.05], 1.5, 0);
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
   K.wall(-12.2, 12.6, 12.2, 12.6, 0, 13, { t: 1.2, holes: [{ at: 12.2, w: 6, h: 7 }] });
@@ -173,7 +172,7 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 15.8, C2 + 11.6));
   const C3 = C2 + 22.6;    // 79.8
   K.rotunda({ x: 0, z: C3, y: 9, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5.4, h: 6.6 }], oculus: 0.3 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 9, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 9.31, C3));
+  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 9, C3));   // (its own lathe: a cylinder stand-in stood over its lower step)
   add(Jaw, { id: 'd2', still: 'j1', at: [0, 9, C3 + 10.1], w: 5.2, h: 6.4, seed: 1 });
   add(Mark, { room: 'stilling', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
   spike(-6.5, 9, C3 + 3, 4.5, 0.7, 0.25); spike(6.2, 9, C3 + 4, 3.2, 0.6, -0.2, 2);
@@ -206,16 +205,15 @@ function layout(rt) {
   const HR = 19, CL = H0 + 3.2 + HR + 1.4;
   K.rotunda({ x: 0, z: CL, y: 9, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.25 });
   // her bed: a ring of dark soil and moss round her root, and the crystals of the dome over her
-  K.add(M.floor, T(new THREE.CylinderGeometry(6.5, 7, 0.3, 32), [0, 9.12, CL + 3]));
-  K.add(M.trim, T(annulus(6.5, 7.2, 0.4, 36), [0, 9.2, CL + 3]));
+  K.both(M.floor, T(new THREE.CylinderGeometry(6.5, 7, 0.3, 32), [0, 9.12, CL + 3]));
+  K.both(M.trim, T(annulus(6.5, 7.2, 0.4, 36), [0, 9.2, CL + 3]));
   for (let i = 0; i < 7; i++) { const a = (i / 7) * TAU + 0.3; spike(Math.sin(a) * (HR - 1.6), 9, CL + Math.cos(a) * (HR - 1.6), 5 + (i % 3) * 2, 0.9, Math.cos(a) * 0.25, a); }
   add(Door, { id: 'd5', at: [0, 9, CL + HR + 0.7], w: 5, h: 6 });
   K.slab(-3.2, CL + HR + 0.6, 3.2, CL + HR + 10, 9, 0.8);
   K.wall(-3.2, CL + HR + 1.4, -3.2, CL + HR + 10, 9, 7, { t: 0.8 }); K.wall(3.2, CL + HR + 10, 3.2, CL + HR + 1.4, 9, 7, { t: 0.8 });
   K.wall(3.2, CL + HR + 10, -3.2, CL + HR + 10, 9, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
   K.both(M.wall, box(7.2, 0.8, 9.4, 0, 16.4, CL + HR + 5.7));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 9, CL + HR + 10.5]));
-  K.solid(box(4, 5, 0.5, 0, 11.5, CL + HR + 10.9));
+  K.both(M.voidM, box(3.4, 5, 0.9, 0, 11.5, CL + HR + 10.35));
 
   const model = snapperModel({ reach: 12 });
   model.pos.copy(K.world(0, 9, CL + 3));
@@ -245,26 +243,25 @@ function exterior(scene, level, rt) {
   const crystalM = makeMaterial({ color: PALETTE.glow, glow: 0.5, flat: true, key: 'temple.lorn.spire' });
   // a ring plinth, a low dome of violet stone, ribs over it, an oculus ring at the top
   K.both(M.floor, new THREE.CylinderGeometry(R + 3, R + 4, sill, 36).translate(0, sill / 2, 0));
-  K.both(M.wall, new THREE.SphereGeometry(R, 32, 12, 0, TAU, 0, Math.PI / 2).scale(1, 0.78, 1).translate(0, sill, 0), new THREE.CylinderGeometry(R * 0.55, R, R * 0.7, 16).translate(0, sill + R * 0.35, 0));
+  K.both(M.wall, new THREE.SphereGeometry(R, 32, 12, 0, TAU, 0, Math.PI / 2).scale(1, 0.78, 1).translate(0, sill, 0));   // (as drawn: a cone stand-in lay a metre inside it, src/contact-audit.js)
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * TAU + TAU / 16;
     const pts = []; for (let k = 0; k <= 8; k++) { const e = (k / 8) * (Math.PI / 2 - 0.2); pts.push(V(Math.sin(a) * Math.cos(e) * (R + 0.35), sill + Math.sin(e) * R * 0.78 + 0.3, Math.cos(a) * Math.cos(e) * (R + 0.35))); }
-    K.add(M.trim, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.45, 6, false));
+    K.both(M.trim, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.45, 6, false));   // (drawn proud of the dome: solid)
   }
-  K.add(M.trim, T(annulus(R * 0.18, R * 0.3, 0.8, 28), [0, sill + R * 0.78 - 0.1, 0]));
+  K.both(M.trim, T(annulus(R * 0.18, R * 0.3, 0.8, 28), [0, sill + R * 0.78 - 0.1, 0]));
   K.add(crystalM, T(new THREE.OctahedronGeometry(1, 0), [0, sill + R * 0.78 + 3.2, 0], [0, 0.3, 0], [1.8, 4.2, 1.8]));
   // the swamp's crystals grow up through it and round it
   for (const [a, d, h, r, tilt] of [[0.9, R * 0.75, 22, 2.2, 0.15], [2.1, R * 0.55, 28, 2.6, -0.1], [3.4, R + 2, 16, 1.7, 0.25], [4.3, R * 0.7, 24, 2.3, -0.2], [5.4, R + 1.5, 12, 1.4, 0.3]])
-    K.both(crystalM, T(new THREE.ConeGeometry(r, h, 5).translate(0, h / 2, 0), [Math.sin(a) * d, 0, Math.cos(a) * d], [tilt * Math.cos(a), a, tilt * Math.sin(a)]), T(new THREE.CylinderGeometry(r * 0.3, r, h * 0.8, 5).translate(0, h * 0.4, 0), [Math.sin(a) * d, 0, Math.cos(a) * d], [tilt * Math.cos(a), a, tilt * Math.sin(a)]));
+    K.both(crystalM, T(new THREE.ConeGeometry(r, h, 5).translate(0, h / 2, 0), [Math.sin(a) * d, 0, Math.cos(a) * d], [tilt * Math.cos(a), a, tilt * Math.sin(a)]));   // (as drawn)
   // the doorway, a porch of stone out of the dome toward the channel, the Hush over it
   const z0 = R - 2.5, z1 = R + 3.2;
   for (const s of [-1, 1]) K.both(M.wall, box(3.2, 8, z1 - z0, s * 3.8, sill + 4, (z0 + z1) / 2));
   K.both(M.wall, box(10.8, 2.2, z1 - z0, 0, sill + 7.1, (z0 + z1) / 2));
-  K.add({ paint: new THREE.Color(PALETTE.accent), smooth: false, side: THREE.FrontSide }, box(11.4, 0.8, 1.2, 0, sill + 8.4, z1 + 0.1));
+  K.both({ paint: new THREE.Color(PALETTE.accent), smooth: false, side: THREE.FrontSide }, box(11.4, 0.8, 1.2, 0, sill + 8.4, z1 + 0.1));
   K.both(M.wall, box(7, 3.6, z1 - z0, 0, sill + 10.6, (z0 + z1) / 2));
   K.add(M.glyph, T(glyphGeometry(2.6, 0.15), [0, sill + 10.6, z1 + 0.06]));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.3, 6).translate(0, 3, 0), [0, sill, R + 0.1]));
-  K.solid(box(4.4, 6, 0.6, 0, sill + 3, R - 0.25));
+  K.both(M.voidM, box(4.3, 6, 0.9, 0, sill + 3, R - 0.35));   // (drawn and solid as one: the dark of the doorway, back to the dome's shell)
   // steps down from the porch to the island's moss
   K.both(M.floor, box(6.4, sill * 0.5, 2, 0, sill * 0.25, z1 + 1));
   K.flush();

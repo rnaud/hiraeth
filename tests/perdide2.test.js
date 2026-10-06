@@ -74,6 +74,9 @@ test('the skiff waits at the cave mouth and the collision budget holds', () => {
   skiff.update(0.016, null, 0);
   assert.ok(Number.isFinite(skiff.pos.y));
   const triangles = physics.triangles;
-  // (the trunks, caps and arches collide as drawn since the contact audit, docs/systems/movement.md "Contact": ~130 k)
-  assert.ok(triangles < 150000, `static collision budget: ${triangles}`);
+  // (the trunks, caps and arches collide as drawn since the contact audit, and since its second pass the
+  // root heaps and gate roots over the cave, the arches' main twist roots, the glass dome's ribs, the
+  // saucer's blister and the 30 drapes over the root cave: 130 k → ~154 k, the BVH 38 → 56 ms to bake,
+  // ground rays and capsule pushes within noise; docs/systems/movement.md "Contact")
+  assert.ok(triangles < 170000, `static collision budget: ${triangles}`);
 });

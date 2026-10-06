@@ -256,7 +256,7 @@ export function* buildSpheres(scene) {
     if (o.collide !== false) {
       // (the trunk and the canopy collide as drawn: a 20-sided canopy of half the profile lay metres inside the
       // drawn one, where you land on it: src/contact-audit.js)
-      proxy(trunk.clone()); proxy(g.clone());
+      proxy(trunk.clone()); proxy(g.clone()); proxy(flare.clone());   // (the flaring roots are drawn up to 4 m outside the trunk: they are solid too)
     }
     avoid.push([x, z, rB * 2.2]);
     return { top: base + Ht + 2.3 + dome, base };
@@ -376,16 +376,17 @@ export function* buildSpheres(scene) {
   }
   function pillar(x, z, ht, r = 0.9) {
     const b = terrain.baseAt(x, z, r) - 0.5;
-    add(M.pole, new THREE.CylinderGeometry(r * 0.85, r, ht, 12, 1).translate(x, b + ht / 2, z));
-    add(M.pole, new THREE.CylinderGeometry(r * 1.6, r * 1.8, 1.2, 12, 1).translate(x, b + 0.6, z));
-    proxy(new THREE.CylinderGeometry(r, r, ht, 6, 1).translate(x, b + ht / 2, z));
+    const shaft = new THREE.CylinderGeometry(r * 0.85, r, ht, 12, 1).translate(x, b + ht / 2, z);
+    const foot = new THREE.CylinderGeometry(r * 1.6, r * 1.8, 1.2, 12, 1).translate(x, b + 0.6, z);
+    proxy(shaft.clone()); proxy(foot.clone());   // (as drawn: a 6-sided stand-in cut the corners off, and the foot had no collision at all)
+    add(M.pole, shaft); add(M.pole, foot);
     avoid.push([x, z, 2.5]);
   }
   function monolith(x, z, ht, w, rot) {
     const b = terrain.baseAt(x, z, w) - 0.5;
     const g = new RoundedBoxGeometry(w, ht, w * 0.5, 3, w * 0.24).translate(0, ht / 2, 0).rotateY(rot).translate(x, b, z);
+    proxy(g.clone());   // (as drawn: a square box stood proud of the rounded edges)
     add(M.whiteSmooth, g);
-    proxy(new THREE.BoxGeometry(w, ht, w * 0.5).translate(0, ht / 2, 0).rotateY(rot).translate(x, b, z));
     avoid.push([x, z, w]);
   }
 
@@ -490,8 +491,9 @@ export function* buildSpheres(scene) {
       const g = new THREE.IcosahedronGeometry(1, 1);
       jitter(g, 0.22, 0.6, i);
       const sx = s * R(0.9, 1.4), sy = s * R(0.7, 1), sz = s * R(0.9, 1.3), ry = rng() * 3;
-      add(M.boulder, g.scale(sx, sy, sz).rotateY(ry).translate(x, y, z));
-      proxy(new THREE.IcosahedronGeometry(1, 0).scale(sx * 0.95, sy * 0.95, sz * 0.95).rotateY(ry).translate(x, y, z));
+      g.scale(sx, sy, sz).rotateY(ry).translate(x, y, z);
+      proxy(g.clone());   // (as drawn: a bare 20-sided stand-in at 0.95 lay up to 2 m inside the lumpy rock you stand on)
+      add(M.boulder, g);
     }
     // round-arched cave doors in the lowest terrace
     const arch = new THREE.Shape();
@@ -635,8 +637,8 @@ export function* buildSpheres(scene) {
     const cx = -175, cz = -450;
     const ru = LAYOUT.ruin, rb = terrain.baseAt(ru.x, ru.z, 4) - 0.5;
     const block = new RoundedBoxGeometry(7, 9.5, 6, 2, 0.8).translate(ru.x, rb + 4.75, ru.z);
+    proxy(block.clone());   // (as drawn)
     add(M.whiteSmooth, block);
-    proxy(new THREE.BoxGeometry(7, 9.5, 6).translate(ru.x, rb + 4.75, ru.z));
     avoid.push([ru.x, ru.z, 7]);
     for (let i = 0; i < 16; i++) {
       const x = cx + R(-45, 45), z = cz + R(-40, 40);
@@ -644,8 +646,8 @@ export function* buildSpheres(scene) {
       const w = R(3, 9), h = R(3, 18) * (rng() < 0.4 ? 1.6 : 1), d = R(2, 7), ry = rng() * Math.PI;
       const b = terrain.baseAt(x, z, w * 0.5) - 1;
       const g = new RoundedBoxGeometry(w, h, d, 2, Math.min(w, d) * 0.12).rotateZ(R(-0.08, 0.08)).rotateY(ry).translate(x, b + h / 2, z);
+      proxy(g.clone());   // (as drawn: the upright square stand-in leant the other way, up to 1.4 m off at the top of a tall one)
       add(M.whiteSmooth, g);
-      proxy(new THREE.BoxGeometry(w, h, d).rotateY(ry).translate(x, b + h / 2, z));
       avoid.push([x, z, Math.max(w, d) * 0.7]);
     }
     // the white robot statue, leaning a little
@@ -662,11 +664,9 @@ export function* buildSpheres(scene) {
     ];
     const tilt = new THREE.Matrix4().makeRotationZ(0.06).premultiply(new THREE.Matrix4().makeRotationY(0.5)).premultiply(new THREE.Matrix4().makeTranslation(sx, sb, sz));
     for (const g of parts) {
-      g.computeBoundingBox();
-      const s = new THREE.Vector3(), c = new THREE.Vector3();
-      g.boundingBox.getSize(s); g.boundingBox.getCenter(c);
-      add(M.whiteSmooth, g.applyMatrix4(tilt));
-      proxy(new THREE.BoxGeometry(s.x, s.y, s.z).translate(c.x, c.y, c.z).applyMatrix4(tilt));
+      g.applyMatrix4(tilt);
+      proxy(g.clone());   // (as drawn: each part's bounding box stood outside its rounded sides)
+      add(M.whiteSmooth, g);
     }
     add(M.cave, new THREE.BoxGeometry(3.4, 0.7, 0.3).translate(0, 25.4, 2.35).applyMatrix4(tilt));
     void bot;

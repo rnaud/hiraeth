@@ -188,6 +188,7 @@ export function buildGarden(scene, { ground = () => 0 } = {}) {
   const plants = new THREE.Mesh(mergeGeometries(crops.map((g) => (g.index ? g.toNonIndexed() : g))), plantMat);
   plants.name = 'garden: vegetables';
   plants.userData.noCollide = true;
+  plants.userData.flora = true;   // (crops: walked through, like the rest of the flora)
   root.add(plants);
   void ink;
 

@@ -79,9 +79,47 @@ The cost: the desert's collision 194 k → 228 k triangles, its BVH 60 → 64 ms
 rays and capsule pushes unchanged. `node scripts/contact-report.mjs [world…]` prints the audit for every world
 with its collision triangle count.
 
-Left for later: the Buried Machine's pipes and tanks; drawn trims on buildings in the cities; taxi roofs (a
-car is a disc only in the middle); the temple rotunda's top lip; the petal station's glass cage, whose thin
-bars collide as drawn so the audit sees collision with nothing drawn where a bar is.
+**Every world made exact (October 2026, the second pass).** The audit was answering only half the question:
+its tops are sampled on the *collision*, so anything drawn with no collision of its own — a root over the
+sand, a trim on a roof — was never sampled at all. It now samples the drawn walkable faces too and looks for
+solid ground under each (**walks through**: a drawn top more than the tolerance over the ground within 1.2 m
+of it; further than that it is a thing in the air, a cloud or a hanging city, not a floor). A moving solid's
+own meshes are left out of the still surfaces, a guardian's model with them (`solidObjects` follows
+`v.model.group`).
+
+With that, every world's coarse stand-ins came out:
+
+| world | feet sink | climbs inside | collision triangles | BVH |
+|---|---|---|---|---|
+| desert | 57 → 7 | 186 → 35 | 194 k → 230 k | 60 → 69 ms |
+| Buried Machine | 270 → 69 | 833 → 49 | 51 k → 125 k | 24 → 31 ms |
+| Garden of Spheres | 91 → 6 | 120 → 6 | 157 k → 181 k | 49 → 63 ms |
+| Lorn | 61 → 13 | 35 → 7 | 40 k → 47 k | 15 → 10 ms |
+| Deep Wood (Lorn II) | 97 → 8 | 5 → 1 | 130 k → 154 k | 38 → 33 ms |
+| Signal Market | 7 → 4 | 86 → 2 | 9 k → 24 k | 6 → 8 ms |
+| First Garage | 5 → 0 | 34 → 13 | 63 k → 75 k | 17 → 15 ms |
+| Viridel | 18 → 3 | 31 → 7 | 75 k → 86 k | 29 → 19 ms |
+| home | 23 → 0 | 15 → 3 | 20 k → 24 k | 11 → 7 ms |
+
+Ground rays and capsule pushes are unchanged everywhere within noise. The temple kit's rotunda cornice, which
+overhangs its wall by 0.4 m, is solid now, which cleans up every temple at once.
+
+Left for later, with the reason:
+- **The Buried Machine's great wheel** turns for ever once the story turns it, and its spokes are seven to its
+  many teeth, so no still shape is right at every angle: its collision stays a disc of the rim. Exact would
+  want a *turning* collider (`src/physics.js`, `src/carriers.js`).
+- **The cross-walls' opening rims** there stay drawn-only: solid, `SandDrifts` gives them a footprint and
+  banks sand right across the passage.
+- **Lorn II's bank roots and whip roots** stay walk-through: the 26 bank roots alone doubled every collision
+  query (bake 60 → 120 ms, 20 k ground rays 25 → 50 ms) for about one audit sample.
+- **The Garden's olive and cypress trunks** collide as a cylinder inside the drawn tree (flora, brushed past),
+  which the audit counts as collision with nothing drawn.
+- **Taxi roofs and the guardians' balls**: a car's roof and a ball are a disc only in the middle. A taxi's
+  solid top is its awning's crest, 1.4 m over the cab in the middle, so a character standing on one floats.
+- **The temple rotunda's oculus trim** is drawn-only on purpose (solid, it caught rays dropped through the
+  oculus), and a shut door's organic edges (the gates of Jaws) sit on a box.
+- **The sand skirts** are drawn over the terrain's own analytic height; the two part by up to 0.2 m where the
+  skirt is tessellated, 0.78 m at the worst corner.
 
 ## Mounts come to you
 

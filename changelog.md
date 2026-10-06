@@ -7,6 +7,11 @@ The same release notes shown in the game (press **N** or open settings).
 - The desert is solid where it is drawn: on the Givers’ Hearth butte and the Givers’ House tower you hang on the rough rock and the carved stone instead of half inside it, and your feet rest on the sunken leviathan’s ribs and skull, on the crashed hull and its salvage, on the fallen giant’s brow, cheeks, teeth and arm, and on the petal station’s great petals and its cage.
 - Qanat’s dry well is a well again: an invisible floor used to cap its mouth a metre above the terrace, so you walked over the hole. The great tree’s roots spread over the terrace are solid under your feet now, and lie low enough to step over.
 - Qanat’s houses, domes and tower-houses, and the cave in the giant’s chest — its basin, its rough walls and the ribs arching over it — are solid exactly where they are drawn.
+- In the Buried Machine your feet and hands meet the metal where it is drawn: the trench’s pipe strata, collars, tanks and ribs, the drum’s rail, its windows and porthole, and the Engine-House’s gantry, ember floor, wall pipes and riveted bands are solid now.
+- In the Garden of Spheres the hill’s boulders, the pillars, the monoliths, the white ruins and the robot statue hold you up where they are drawn, and the singing spheres in the Footprint are round under your feet instead of a flat disc over them.
+- In Lorn the Hush-House’s dome, its ribs and the swamp crystals, and in Lorn II the Lamp-House’s tower bands and pool-lamps, the root heaps and gate over the cave, the arches’ roots and the glass dome’s ribs are solid where they are drawn.
+- Things you can stand on are the things you see: the painted bands, window frames and chimney cap of the houses at home, the Signal Market’s awnings and tower billboards, Viridel’s glass dome and its ribs, and the First Garage’s clocks and great escapement wheels. The band round the small house at home no longer runs across its own doorway.
+- Every temple’s halls lose the invisible ledge at the top of their round rooms: the stone cornice is solid where it is drawn, so climbing one you meet the overhang instead of passing through it.
 - People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.
 
 ## v0.72 — 2026-10-06

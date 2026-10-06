@@ -109,16 +109,16 @@ function layout(rt) {
   const cream = { paint: new THREE.Color('#f3ead8'), smooth: false, side: THREE.FrontSide };
   /** A clock face on a wall: a cream dial, twelve ticks, two stopped hands (facing `yaw`). */
   const dial = (x, y, z, r, yaw, hands = [-0.6, 2.3]) => {
-    K.add(cream, T(new THREE.CylinderGeometry(r, r, 0.2, 40).rotateX(Math.PI / 2), [x, y, z], [0, yaw, 0]));
-    K.add(brass, T(new THREE.TorusGeometry(r + 0.1, 0.25, 6, 40), [x, y, z], [0, yaw, 0]));
-    for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.add(M.dark, T(new THREE.BoxGeometry(0.22, r * 0.18, 0.12).translate(Math.sin(a) * r * 0.82, Math.cos(a) * r * 0.82, 0.12).rotateZ(0), [x, y, z], [0, yaw, -a])); }
-    for (const [a, L, w] of [[hands[0], r * 0.55, 0.32], [hands[1], r * 0.8, 0.2]]) K.add(M.dark, T(new THREE.BoxGeometry(w, L, 0.1).translate(0, L / 2, 0.2).rotateZ(-a), [x, y, z], [0, yaw, 0]));
+    K.both(cream, T(new THREE.CylinderGeometry(r, r, 0.2, 40).rotateX(Math.PI / 2), [x, y, z], [0, yaw, 0]));
+    K.both(brass, T(new THREE.TorusGeometry(r + 0.1, 0.25, 6, 40), [x, y, z], [0, yaw, 0]));
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.22, r * 0.18, 0.12).translate(Math.sin(a) * r * 0.82, Math.cos(a) * r * 0.82, 0.12).rotateZ(0), [x, y, z], [0, yaw, -a])); }
+    for (const [a, L, w] of [[hands[0], r * 0.55, 0.32], [hands[1], r * 0.8, 0.2]]) K.both(M.dark, T(new THREE.BoxGeometry(w, L, 0.1).translate(0, L / 2, 0.2).rotateZ(-a), [x, y, z], [0, yaw, 0]));
   };
 
   // ---- the Threshold (z 0..12): the Major's old bench, where his first garage was
   K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
-  K.solid(box(4, 5, 0.5, 0, 2.5, -1.4));
+  K.solid(box(4, 5, 0.1, 0, 2.5, -1.25));   // (thin, on the dark drawn in the doorway: nothing to climb in front of it)
   K.glyph([0, 6.2, 0.05], 1.5, 0);   // the stone he copied it from
   const wood = { paint: new THREE.Color('#8a5a3a'), smooth: false, side: THREE.FrontSide };
   K.both(wood, box(4.4, 0.18, 1.4, 4.4, 1.0, 9.6));
@@ -136,10 +136,10 @@ function layout(rt) {
   add(Pit, { room: 'esc', min: [-12, -10, 18], max: [12, -2, 40] });
   add(Platform, { path: [[0, 0, 20.4], [0, 0, 37.6]], r: 2.2, speed: 2.0, pause: 1.6, when: { lit: 's1' } });
   // the escapement's anchor overhead, and a great stopped wheel on each wall
-  K.add(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [-10.4, 6, 29], [0, Math.PI / 2, 0]));
-  K.add(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [10.4, 6, 29], [0, Math.PI / 2, 0]));
-  for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; for (const s of [-1, 1]) K.add(brass, T(new THREE.BoxGeometry(0.4, 1.2, 1.2), [s * 10.4, 6 + Math.cos(a) * 6.6, 29 + Math.sin(a) * 6.6], [a, 0, 0])); }
-  K.add(brass, T(new THREE.BoxGeometry(14, 0.6, 0.6), [0, 12.4, 29]));
+  K.both(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [-10.4, 6, 29], [0, Math.PI / 2, 0]));
+  K.both(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [10.4, 6, 29], [0, Math.PI / 2, 0]));
+  for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; for (const s of [-1, 1]) K.both(brass, T(new THREE.BoxGeometry(0.4, 1.2, 1.2), [s * 10.4, 6 + Math.cos(a) * 6.6, 29 + Math.sin(a) * 6.6], [a, 0, 0])); }
+  K.both(brass, T(new THREE.BoxGeometry(14, 0.6, 0.6), [0, 12.4, 29]));
   add(Switch, { id: 's1', at: [0, 8.6, 47.4], yaw: Math.PI, size: 1.0 });
   add(Mark, { room: 'esc', at: [-6.5, 0, 15.4], yaw: Math.PI / 2 });
 
@@ -150,7 +150,7 @@ function layout(rt) {
   const C2 = 61.2;
   K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 22, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4, y0: 9 }], oculus: 0.3 });
   K.both(M.wallGlyph, box(20, 9, 7.2, 0, 4.5, C2 + 6.4));
-  K.add(M.trim, box(20.2, 0.3, 7.4, 0, 9.05, C2 + 6.4));
+  K.both(M.trim, box(20.2, 0.3, 7.4, 0, 9.05, C2 + 6.4));
   K.add(M.dark, box(10.6, 0.04, 1.0, 0, 9.02, C2 + 6));
   add(Ball, { id: 'ball1', a: [-5, 9.04, C2 + 6], b: [5, 9.04, C2 + 6], r: 1.1 });
   add(Plate, { id: 'p1', at: [5, 9, C2 + 6], r: 1.3 });
@@ -199,8 +199,8 @@ function layout(rt) {
   const HR = 20, CW = H0 + 3.2 + HR + 1.4;
   K.rotunda({ x: 0, z: CW, y: 9, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });
   // a great dial inlaid in the floor, a gear's teeth round it, a pendulum's rod down from the oculus
-  K.add(cream, T(annulus(8.2, 9.2, 0.25, 64), [0, 9.25, CW]));
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.add(M.dark, T(new THREE.BoxGeometry(0.35, 0.06, 1.4), [Math.sin(a) * 7.4, 9.03, CW + Math.cos(a) * 7.4], [0, a, 0])); }
+  K.both(cream, T(annulus(8.2, 9.2, 0.25, 64), [0, 9.25, CW]));
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.35, 0.06, 1.4), [Math.sin(a) * 7.4, 9.03, CW + Math.cos(a) * 7.4], [0, a, 0])); }
   K.add(brass, T(annulus(12.0, 12.8, 0.08, 72), [0, 9.06, CW]));
   for (let i = 0; i < 36; i++) { const a = (i / 36) * TAU; K.add(brass, T(new THREE.BoxGeometry(0.7, 0.08, 0.7), [Math.sin(a) * 13.1, 9.04, CW + Math.cos(a) * 13.1], [0, a, 0])); }
   for (const a of [0.9, 2.2, 4.0, 5.3]) dial(Math.sin(a) * (HR - 0.2), 21, CW + Math.cos(a) * (HR - 0.2), 2.4, a + Math.PI, [a * 2, a * 5]);
@@ -210,7 +210,7 @@ function layout(rt) {
   K.wall(3.2, CW + HR + 10, -3.2, CW + HR + 10, 9, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
   K.both(M.wall, box(7.2, 0.8, 9.4, 0, 16.4, CW + HR + 5.7));
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 9, CW + HR + 10.5]));
-  K.solid(box(4, 5, 0.5, 0, 11.5, CW + HR + 10.9));
+  K.solid(box(4, 5, 0.1, 0, 11.5, CW + HR + 10.5));
 
   const model = foremanModel();
   model.pos.copy(K.world(0, 9, CW + 4));
@@ -252,22 +252,22 @@ function exterior(scene, level, rt) {
   // a broad flagged apron round it, a round stair-house of pale stone, bands of brass, a teal cap
   K.both(M.floor, new THREE.CylinderGeometry(R + 5, R + 5, 1.0, 32).translate(0, sill - 0.5, 0));
   K.both(M.wall, new THREE.CylinderGeometry(R, R + 0.4, 15, 28).translate(0, sill + 7.5, 0));
-  for (const y of [5, 10.5]) K.add(brass, new THREE.CylinderGeometry(R + 0.2, R + 0.2, 0.6, 28).translate(0, sill + y, 0));
+  for (const y of [5, 10.5]) K.both(brass, new THREE.CylinderGeometry(R + 0.2, R + 0.2, 0.6, 28).translate(0, sill + y, 0));
   K.both(teal, new THREE.SphereGeometry(R + 0.3, 28, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.55, 1).translate(0, sill + 15, 0));
   K.both(brass, new THREE.CylinderGeometry(0.4, 0.6, 3.2, 8).translate(0, sill + 19.4, 0));
   for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.6) continue; K.add(M.glyph, T(glyphGeometry(1.4, 0.12), [Math.sin(a) * (R + 0.42), sill + 13, Math.cos(a) * (R + 0.42)], [0, a, 0])); }
   // the great clock over the door: a cream dial in a brass ring, twelve ticks, two hands (the change turns them)
   const cy = sill + 11.4, cz = R + 0.55, cr = 2.6;
-  K.add(cream, T(new THREE.CylinderGeometry(cr, cr, 0.3, 40).rotateX(Math.PI / 2), [0, cy, cz]));
-  K.add(brass, T(new THREE.TorusGeometry(cr + 0.1, 0.28, 6, 40), [0, cy, cz + 0.1]));
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.add(M.dark, T(new THREE.BoxGeometry(0.2, 0.5, 0.1).translate(0, cr * 0.8, 0).rotateZ(-a), [0, cy, cz + 0.2])); }
+  K.both(cream, T(new THREE.CylinderGeometry(cr, cr, 0.3, 40).rotateX(Math.PI / 2), [0, cy, cz]));
+  K.both(brass, T(new THREE.TorusGeometry(cr + 0.1, 0.28, 6, 40), [0, cy, cz + 0.1]));
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.2, 0.5, 0.1).translate(0, cr * 0.8, 0).rotateZ(-a), [0, cy, cz + 0.2])); }
   // the doorway: a porch of two pillars and a lintel, the glyph over it (the stone the Major copied)
   const z0 = R - 1.2, z1 = R + 2.6;
   for (const s of [-1, 1]) K.both(M.wall, box(2.4, 8, z1 - z0, s * 3.6, sill + 4, (z0 + z1) / 2));
   K.both(M.wall, box(9.6, 1.6, z1 - z0, 0, sill + 7.6, (z0 + z1) / 2));
   K.add(M.glyph, T(glyphGeometry(2.0, 0.14), [0, sill + 7.6, z1 + 0.06]));
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 6.8).translate(0, 3.4, 0), [0, sill, R + 0.25]));
-  K.solid(box(4.8, 6.8, 0.6, 0, sill + 3.4, R - 0.1));
+  K.solid(box(4.8, 6.8, 0.1, 0, sill + 3.4, R + 0.25));
   // the Major's lean-to against the drum: a tin roof on posts, a bench, a painted board (his first garage)
   const sx = -(R + 3.4), sz = 1.4;
   for (const [x, z] of [[sx - 2.4, sz - 2.6], [sx - 2.4, sz + 2.6]]) K.both(M.trim, box(0.3, 3.6, 0.3, x, sill + 1.8, z));

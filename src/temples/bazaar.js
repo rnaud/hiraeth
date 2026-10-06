@@ -112,7 +112,7 @@ function layout(rt) {
   // ---- the Threshold (z 0..12)
   K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
-  K.solid(box(4, 5, 0.5, 0, 2.5, -1.4));
+  K.solid(box(4, 5, 0.1, 0, 2.5, -1.25));   // (thin, on the dark drawn in the doorway: nothing to climb in front of it)
   K.glyph([0, 6.2, 0.05], 1.5, 0);
   cable([-6.4, 0.2, 1], [-5, 0.2, 12]); cable([6.2, 0.2, 2], [4.6, 0.2, 12.4], 0.24);
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
@@ -193,7 +193,7 @@ function layout(rt) {
   K.wall(3.2, CW + HR + 10, -3.2, CW + HR + 10, 12, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
   K.both(M.wall, box(7.2, 0.8, 9.4, 0, 19.4, CW + HR + 5.7));
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 12, CW + HR + 10.5]));
-  K.solid(box(4, 5, 0.5, 0, 14.5, CW + HR + 10.9));
+  K.solid(box(4, 5, 0.1, 0, 14.5, CW + HR + 10.5));
 
   const model = signModel();
   model.pos.copy(K.world(0, 12, CW + 3));
@@ -229,7 +229,7 @@ function exterior(scene, level, rt) {
   K.both(old, box(9.4, 2.0, 3.6, 0, 9.2, 1.6));
   K.add(M.glyph, T(glyphGeometry(2.0, 0.14), [0, 9.2, 3.42]));
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 7.6).translate(0, 3.8, 0), [0, sill, 0.35]));
-  K.solid(box(4.8, 7.6, 0.6, 0, sill + 3.8, 0.0));
+  K.solid(box(4.8, 7.6, 0.1, 0, sill + 3.8, 0.35));
   K.both(M.floor, box(9.6, sill, 5.4, 0, sill / 2, 2.7));
   // an old dish on the lintel, and two lamps that wake after
   const prof = []; for (let i = 0; i <= 8; i++) { const q = (i / 8) * 1.8; prof.push([Math.max(0.01, q), q * q / 4]); }

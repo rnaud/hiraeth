@@ -107,18 +107,18 @@ function layout(rt) {
   // ---- the Piston Hall (z 12.6..44): pistons that rise and fall out of step to the gantry (top at 7)
   K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 16, roof: 'oculus', oculus: 0.22, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4, y0: 7 }] });
   K.both(M.wallGlyph, box(22, 7, 6, 0, 3.5, 41));                     // the gantry (you could climb its face too; the pistons are the makers' way)
-  K.add(M.trim, box(22.2, 0.3, 6.2, 0, 7.05, 41));
+  K.both(M.trim, box(22.2, 0.3, 6.2, 0, 7.05, 41));
   // big pipes along the walls, and gauges
   for (const s of [-1, 1]) {
-    K.add(M.stone, T(new THREE.CylinderGeometry(0.9, 0.9, 30, 14), [s * 10.2, 3, 28], [Math.PI / 2, 0, 0]));
-    K.add(M.stone, T(new THREE.CylinderGeometry(0.6, 0.6, 30, 12), [s * 10.4, 5.4, 28], [Math.PI / 2, 0, 0]));
-    for (let i = 0; i < 3; i++) K.add(M.trim, T(new THREE.CylinderGeometry(0.7, 0.7, 0.2, 16), [s * 10.95, 7.5, 18 + i * 8], [0, 0, Math.PI / 2]));
+    K.both(M.stone, T(new THREE.CylinderGeometry(0.9, 0.9, 30, 14), [s * 10.2, 3, 28], [Math.PI / 2, 0, 0]));
+    K.both(M.stone, T(new THREE.CylinderGeometry(0.6, 0.6, 30, 12), [s * 10.4, 5.4, 28], [Math.PI / 2, 0, 0]));
+    for (let i = 0; i < 3; i++) K.both(M.trim, T(new THREE.CylinderGeometry(0.7, 0.7, 0.2, 16), [s * 10.95, 7.5, 18 + i * 8], [0, 0, Math.PI / 2]));
   }
   // three pistons in a row toward the gantry, each a riding disc that rises and falls, out of step
   add(Platform, { path: [[0, 0.3, 27.4], [0, 2.6, 27.4]], r: 2, speed: 1.1, pause: 1.2, when: { lit: 's1' } });
   add(Platform, { path: [[0, 2.4, 31.6], [0, 4.7, 31.6]], r: 2, speed: 1.1, pause: 1.2, phase: 1, when: { lit: 's1' } });
   add(Platform, { path: [[0, 4.9, 35.8], [0, 7.2, 35.8]], r: 2, speed: 1.1, pause: 1.2, when: { lit: 's1' } });
-  for (const z of [27.4, 31.6, 35.8]) K.add(M.dark, T(new THREE.CylinderGeometry(1.2, 1.4, 0.1, 18), [0, 0.05, z]));
+  for (const z of [27.4, 31.6, 35.8]) K.both(M.dark, T(new THREE.CylinderGeometry(1.2, 1.4, 0.1, 18), [0, 0.05, z]));
   add(Switch, { id: 's1', at: [-6, 3.2, 12.0], yaw: 0, size: 1.0 });   // the valve's eye, high on the south wall by the way in
   add(Mark, { room: 'pistons', at: [-6.5, 0, 16], yaw: Math.PI / 2 });
 
@@ -149,7 +149,7 @@ function layout(rt) {
   K.slab(-11, F0, 11, F0 + 6, 7, 12);
   K.slab(-11, F0 + 26, 11, F0 + 34.4, 7, 12);
   const ember = makeMaterial({ color: '#e0644a', glow: 0.55, flat: true, key: 'temple.buried.embers' });
-  K.add(ember, box(22, 0.4, 20, 0, -4.6, F0 + 16));
+  K.both(ember, box(22, 0.4, 20, 0, -4.6, F0 + 16));
   K.both(M.dark, box(22, 1, 20, 0, -5.4, F0 + 16));
   add(Pit, { room: 'furnace', min: [-12, -8, F0 + 6], max: [12, 2, F0 + 26] });
   add(Bridge, { id: 'br1', a: [0, 7, F0 + 5.9], b: [0, 7, F0 + 26.1], w: 4, n: 8 });
@@ -166,9 +166,9 @@ function layout(rt) {
   const HR = 20, CW = H0 + 3.2 + HR + 1.4;
   K.rotunda({ x: 0, z: CW, y: 7, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });
   // the engine's great shaft through the middle of the hall's roof, a gear on the floor
-  K.add(M.stone, T(new THREE.CylinderGeometry(1.4, 1.4, 14, 16), [0, 7 + 26 - 7, CW]));
-  for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; K.add(M.dark, T(new THREE.BoxGeometry(1.2, 0.25, 1.6), [Math.sin(a) * 9.6, 7.12, CW + Math.cos(a) * 9.6], [0, a, 0])); }
-  K.add(M.dark, T(annulus(8.2, 9.2, 0.25, 64), [0, 7.25, CW]));
+  K.both(M.stone, T(new THREE.CylinderGeometry(1.4, 1.4, 14, 16), [0, 7 + 26 - 7, CW]));
+  for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(1.2, 0.25, 1.6), [Math.sin(a) * 9.6, 7.12, CW + Math.cos(a) * 9.6], [0, a, 0])); }
+  K.both(M.dark, T(annulus(8.2, 9.2, 0.25, 64), [0, 7.25, CW]));
   add(Door, { id: 'd5', at: [0, 7, CW + HR + 0.7], w: 5, h: 6 });
   K.slab(-3.2, CW + HR + 0.6, 3.2, CW + HR + 10, 7, 0.8);
   K.wall(-3.2, CW + HR + 1.4, -3.2, CW + HR + 10, 7, 7, { t: 0.8 }); K.wall(3.2, CW + HR + 10, 3.2, CW + HR + 1.4, 7, 7, { t: 0.8 });
@@ -214,10 +214,10 @@ function exterior(scene, level, rt) {
   // a riveted drum of rust iron in bands, a teal cap, a ring window high on its face
   // (the lathe itself collides: a straight cylinder inside it let a climber into its flared foot and crown, src/contact-audit.js)
   K.both(M.wall, lathe([[R + 2, 0], [R + 2, 4], [R, 5], [R, top - 2], [R + 1.2, top - 1.6], [R + 1.2, top], [R - 2, top + 0.6]], 40));
-  for (let y = 12; y < top - 4; y += 9) K.add(blue, new THREE.CylinderGeometry(R + 0.3, R + 0.3, 1.0, 40).translate(0, y, 0));
+  for (let y = 12; y < top - 4; y += 9) K.both(blue, new THREE.CylinderGeometry(R + 0.3, R + 0.3, 1.0, 40).translate(0, y, 0));
   K.both(teal, new THREE.SphereGeometry(R - 1.5, 32, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.45, 1).translate(0, top + 0.4, 0));
-  K.add(M.trim, T(new THREE.TorusGeometry(7, 0.7, 8, 40), [0, top - 14, R + 0.3]));
-  K.add({ paint: new THREE.Color('#f3c39a'), smooth: true }, T(new THREE.CircleGeometry(6.4, 36), [0, top - 14, R + 0.35]));
+  K.both(M.trim, T(new THREE.TorusGeometry(7, 0.7, 8, 40), [0, top - 14, R + 0.3]));
+  K.both({ paint: new THREE.Color('#f3c39a'), smooth: true }, T(new THREE.CircleGeometry(6.4, 36), [0, top - 14, R + 0.35]));
   for (let i = 0; i < 18; i++) { const a = (i + 0.5) / 18 * TAU; K.add(M.glyph, T(glyphGeometry(2.0, 0.14), [Math.sin(a) * (R + 0.35), top - 4, Math.cos(a) * (R + 0.35)], [0, a, 0])); }
   // pipe elbows round its foot, going into the sand
   for (let i = 0; i < 5; i++) {
@@ -230,7 +230,7 @@ function exterior(scene, level, rt) {
   const z0 = R - 0.5, z1 = R + 4.2;
   for (const s of [-1, 1]) K.both(M.wall, box(3.8, 11, z1 - z0, s * 4.1, dy + 5.5, (z0 + z1) / 2));
   K.both(M.wall, box(4.4, 4, z1 - z0, 0, dy + 9, (z0 + z1) / 2));
-  K.add(teal, T(new THREE.TorusGeometry(3.4, 0.5, 8, 32), [0, dy + 4.0, z1 + 0.2], [0, 0, 0], [0.75, 1.15, 1]));
+  K.both(teal, T(new THREE.TorusGeometry(3.4, 0.5, 8, 32), [0, dy + 4.0, z1 + 0.2], [0, 0, 0], [0.75, 1.15, 1]));   // (4.1 x 6.8 m clear: the way in stays open)
   K.glyph([0, dy + 9.4, z1 + 0.05], 2.6, 0);
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.3, 7).translate(0, 3.5, 0), [0, dy, R + 0.2]));
   K.solid(box(4.4, 7, 0.6, 0, dy + 3.5, R - 0.2));

@@ -524,7 +524,7 @@ export function* buildPerdide2(scene) {
       const u = i / 12, s = -half * 0.9 + u * half * 1.8, y = Math.max(-1, A.apex * Math.sin(Math.PI * (0.05 + u * 0.9)) - 1.5);
       twist.push(at(s, y + Math.cos(u * 9) * A.r * 1.1, Math.sin(u * 9) * A.r * 1.3));
     }
-    tube(twist, A.r * 0.35, 48, 6, k + 10, false);
+    tube(twist, A.r * 0.35, 48, 6, k + 10);
     for (let w = 0; w < 2; w++) {
       const ph = R(0, 6), tw = [], rr = R(0.6, 1.0), turns = R(4, 8);
       for (let i = 0; i <= 10; i++) {
@@ -553,7 +553,7 @@ export function* buildPerdide2(scene) {
     p0.y = H(p0.x, p0.z) - 0.8; p2.y = H(p2.x, p2.z) - 0.8;
     p2.x += R(-6, 6); p2.z += f;
     const mid = p0.clone().lerp(p2, 0.5); mid.y += y;
-    tube([p0, mid, p2], R(0.8, 1.6), 24, 8, i, false);
+    tube([p0, mid, p2], R(0.8, 1.6), 24, 8, i, false);   // (walk-through: 26 roots sprawling off the path, and solid they doubled the collision's cost)
   }
 
   // ---------------------------------------------------------- the root cave
@@ -603,7 +603,7 @@ export function* buildPerdide2(scene) {
         new THREE.Vector3(CAVE.x + side * w * 0.75, CAVE.y + w * 0.75, zz + R(-4, 4)),
         new THREE.Vector3(CAVE.x + side * (w + R(3, 9)), H(CAVE.x + side * (w + 5), zz) - 1, zz + R(-8, 8)),
       ];
-      tube(pts, R(1.2, 2.4), 20, 8, 50 + i, false);
+      tube(pts, R(1.2, 2.4), 20, 8, 50 + i, true);   // (solid: 1-2 m thick, and the feet sank into them)
     }
     // the root mass heaped over the tunnel
     for (let i = 0; i < 7; i++) {
@@ -613,12 +613,14 @@ export function* buildPerdide2(scene) {
       g.scale(s2 * R(0.9, 1.3), sy, s2 * R(0.9, 1.3)).rotateY(rng() * 6)
         .translate(CAVE.x + R(-8, 8), CAVE.y + CAVE.r + 1 + sy * 1.25, Math.min(CAVE.z + R(-0.5, 0.1) * CAVE.len, CAVE.mouth - s2 * 1.35));
       g.deleteAttribute('uv');
-      pick(Object.values(rootParts)).push(g.index ? g.toNonIndexed() : g);
+      const lump = g.index ? g.toNonIndexed() : g;
+      pick(Object.values(rootParts)).push(lump);
+      proxies.push(lump);   // (walked over: as drawn, src/contact-audit.js)
     }
     // arching roots framing the mouth (the tall gate of the reference)
     for (const sd of [-1, 1]) {
       const x0 = CAVE.x + sd * (CAVE.r + CAVE.T + 4), z0 = CAVE.mouth + 3;
-      tube([new THREE.Vector3(x0, -1, z0 + 2), new THREE.Vector3(x0 - sd * 3, 14, z0), new THREE.Vector3(CAVE.x + sd * 3, CAVE.y + CAVE.r + CAVE.T + 6, CAVE.mouth - 4), new THREE.Vector3(CAVE.x - sd * 6, CAVE.y + CAVE.r + CAVE.T, CAVE.z)], 2.6, 40, 10, 70, false);
+      tube([new THREE.Vector3(x0, -1, z0 + 2), new THREE.Vector3(x0 - sd * 3, 14, z0), new THREE.Vector3(CAVE.x + sd * 3, CAVE.y + CAVE.r + CAVE.T + 6, CAVE.mouth - 4), new THREE.Vector3(CAVE.x - sd * 6, CAVE.y + CAVE.r + CAVE.T, CAVE.z)], 2.6, 40, 10, 70);
     }
     // the mouth's dark boulders
     const rockMat = makeMaterial({ color: '#3a4560', flat: true });
@@ -671,8 +673,7 @@ export function* buildPerdide2(scene) {
         }
         const r = new THREE.Mesh(mergeGeometries(ribs), frameMat);
         r.position.set(D.x, g0, D.z);
-        r.userData.noCollide = true;
-        scene.add(r);
+        scene.add(r);   // (drawn proud of the dome, and stood on: solid)
       }
       lights.push(new THREE.Vector4(px + dx * 2, py, pz + dz * 2, 8));
       domeDoors.push({ pos: new THREE.Vector3(px, py, pz), out: new THREE.Vector3(dx, 0, dz), ground: g0 + 0.15, top: g0 + D.R * 0.72, door, R: D.R });
@@ -710,10 +711,8 @@ export function* buildPerdide2(scene) {
     const rim = new THREE.Mesh(new THREE.TorusGeometry(SAUCER.r * 0.98, 0.45, 6, 32).rotateX(Math.PI / 2), makeMaterial({ color: '#3a8f8a', flat: true, metal: 'painted' }));
     const slot = new THREE.Mesh(new THREE.SphereGeometry(2.6, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.3, 0.45, 0.8), makeMaterial({ color: '#1d2a3a', flat: true }));
     slot.position.set(0, SAUCER.r * 0.25, SAUCER.r * 0.3);
-    slot.userData.noCollide = true;
     const hatch = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.12, 5, 20).rotateX(Math.PI / 2), makeMaterial({ color: '#3a8f8a', flat: true }));
     hatch.position.set(0, SAUCER.r * 0.33, -1.6);
-    hatch.userData.noCollide = true;
     // its own material: the story makes it blink an answer to the relit pools
     const light = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), makeMaterial({ color: '#f2a07a', glow: 1, saucerLight: true }));
     light.position.set(SAUCER.r * 0.75, SAUCER.r * 0.12, 0);

@@ -108,7 +108,8 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
   inner.userData.noCollide = true;
   // the painted band, broken at the doorway
   const GAP = 0.2;
-  add(new THREE.TorusGeometry(R + 0.02, 0.28, 8, 64, Math.PI * 2 - GAP * 2).rotateX(Math.PI / 2).rotateY(Math.PI / 2 - GAP), mat('#5fb7ad', { flat: true }), 0, FLOOR + 0.7, 0).userData.noCollide = true;
+  // (solid: it stands 0.34 m proud of the dome over the plinth you walk round, so the feet must meet it)
+  add(new THREE.TorusGeometry(R + 0.02, 0.28, 8, 64, Math.PI * 2 - GAP * 2).rotateX(Math.PI / 2).rotateY(Math.PI / 2 - GAP), mat('#5fb7ad', { flat: true }), 0, FLOOR + 0.7, 0);
   // the doorway: a short arched tunnel of terracotta through the shell, and the leaf in it
   const tunnel = new THREE.ExtrudeGeometry(archShape(DW + 1.0, DH, { w: DW, h: DH }), { depth: 1.9, bevelEnabled: false, curveSegments: 18 });
   add(tunnel, terracotta, 0, FLOOR, front - 0.45);
@@ -301,7 +302,10 @@ export function buildFamilyHouse(scene, { centre, heading, mat }) {
   const innerWall = add(mergeGeometries(inner), mat('#f6ead2', { flat: true }));
   innerWall.userData.noCollide = true;
   // the doorway's frame and lintel, and the band round the wall
-  add(new THREE.TorusGeometry(R + 0.17, 0.12, 6, 56).rotateX(Math.PI / 2), teal, 0, FLOOR + 1.0, 0).userData.noCollide = true;
+  // the band round the wall, broken at the doorway (it used to run straight across the open door) and solid:
+  // it stands proud of the wall over the plinth you walk round
+  const BAND_GAP = 0.3;
+  add(new THREE.TorusGeometry(R + 0.17, 0.12, 6, 56, Math.PI * 2 - BAND_GAP * 2).rotateX(Math.PI / 2).rotateY(-(Math.PI / 2 + BAND_GAP)), teal, 0, FLOOR + 1.0, 0);
   const dw = 2 * Math.sin(DOOR) * R, dh = 2.3;
   for (const s of [-1, 1]) add(new THREE.BoxGeometry(0.22, dh, T + 0.14), terracotta, s * (dw / 2 + 0.05), FLOOR + dh / 2, R * Math.cos(DOOR) - 0.02);
   add(new THREE.BoxGeometry(dw + 0.32, WALL - dh, T + 0.14), terracotta, 0, FLOOR + (dh + WALL) / 2, R * Math.cos(DOOR) - 0.02);
@@ -313,17 +317,17 @@ export function buildFamilyHouse(scene, { centre, heading, mat }) {
     const sill = add(new THREE.BoxGeometry(1.2, 0.06, T + 0.3), terracotta, Math.sin(a) * R, FLOOR + 1.06, Math.cos(a) * R);
     sill.rotation.y = a;
     const fr = add(new THREE.TorusGeometry(0.62, 0.07, 6, 20), terracotta, Math.sin(a) * (R + 0.17), FLOOR + 1.6, Math.cos(a) * (R + 0.17));
-    fr.rotation.y = a; fr.scale.set(1.05, 0.95, 1);
-    fr.userData.noCollide = true;
+    fr.rotation.y = a; fr.scale.set(1.05, 0.95, 1);   // (solid: a frame proud of the wall, over the sill you stand on)
   }
   // the roof: a low dome, terracotta outside, cream within; the chimney out of the back
   const roof = add(new THREE.SphereGeometry(R + 0.45, 40, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.48, 1), terracotta, 0, FLOOR + WALL, 0);
   roof.name = 'roof';
-  const ceiling = add(new THREE.SphereGeometry(R - 0.1, 40, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.44, 1), mat('#efdcbc', { side: THREE.BackSide, flat: true }), 0, FLOOR + WALL - 0.02, 0);
-  ceiling.userData.noCollide = true;
-  add(new THREE.CylinderGeometry(R + 0.06, R + 0.06, 0.08, 40), mat('#efdcbc', { side: THREE.BackSide, flat: true }), 0, FLOOR + WALL - 0.04, 0).userData.noCollide = true;
+  // the ceiling and its cornice are solid: the ceiling you see is lower than the roof shell outside it,
+  // and the head should meet the one that is drawn
+  add(new THREE.SphereGeometry(R - 0.1, 40, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.44, 1), mat('#efdcbc', { side: THREE.BackSide, flat: true }), 0, FLOOR + WALL - 0.02, 0);
+  add(new THREE.CylinderGeometry(R + 0.06, R + 0.06, 0.08, 40), mat('#efdcbc', { side: THREE.BackSide, flat: true }), 0, FLOOR + WALL - 0.04, 0);
   add(new THREE.CylinderGeometry(0.42, 0.5, 2.6, 10), stone, 0, FLOOR + WALL + 1.6, -R + 1.0);
-  add(new THREE.CylinderGeometry(0.5, 0.5, 0.18, 10), terracotta, 0, FLOOR + WALL + 2.95, -R + 1.0).userData.noCollide = true;
+  add(new THREE.CylinderGeometry(0.5, 0.5, 0.18, 10), terracotta, 0, FLOOR + WALL + 2.95, -R + 1.0);   // (the cap, solid: it laps over the chimney)
 
   // ---------------------------------------------------------------- inside
   const room = new THREE.Group();
@@ -344,7 +348,7 @@ export function buildFamilyHouse(scene, { centre, heading, mat }) {
   r(new THREE.CylinderGeometry(0.17, 0.2, 0.24, 10), mat('#3b3a3f', { metal: 'iron' }), 0.65, 1.37, -R + 0.75).userData.noCollide = true;   // the kettle on the mantel
   // Moustache's basket by the hearth
   r(new THREE.CylinderGeometry(0.55, 0.45, 0.22, 14, 1, true), mat('#b07a48', { side: THREE.DoubleSide, flat: true }), 1.7, 0.11, -R + 1.5).userData.noCollide = true;
-  r(new THREE.CylinderGeometry(0.48, 0.48, 0.08, 14), mat('#c8483a', { flat: true }), 1.7, 0.06, -R + 1.5).userData.noCollide = true;
+  r(new THREE.CylinderGeometry(0.48, 0.48, 0.08, 14), mat('#c8483a', { flat: true }), 1.7, 0.06, -R + 1.5);
   // the kitchen table, three stools; Lou's drawings and crayons on it
   const tableAt = V(1.2, 0, 0.9);
   r(new THREE.BoxGeometry(1.7, 0.08, 1.0), wood, tableAt.x, 0.76, tableAt.z, 0.25);
@@ -368,8 +372,8 @@ export function buildFamilyHouse(scene, { centre, heading, mat }) {
   r(new THREE.CylinderGeometry(0.03, 0.03, 8.2, 6).rotateX(Math.PI / 2), dark, CURTAIN_X, 2.35, 0).userData.noCollide = true;
   const bed = (x, z, w, l, cover) => {
     r(new THREE.BoxGeometry(w, 0.4, l), wood, x, 0.2, z);
-    r(new THREE.BoxGeometry(w - 0.06, 0.12, l * 0.78), mat(cover, { flat: true }), x, 0.46, z + l * 0.1).userData.noCollide = true;
-    r(new THREE.BoxGeometry(w * 0.7, 0.12, 0.34), mat('#f6ead2', { flat: true }), x, 0.47, z - l / 2 + 0.25).userData.noCollide = true;
+    r(new THREE.BoxGeometry(w - 0.06, 0.12, l * 0.78), mat(cover, { flat: true }), x, 0.46, z + l * 0.1);        // (the cover and the pillow are
+    r(new THREE.BoxGeometry(w * 0.7, 0.12, 0.34), mat('#f6ead2', { flat: true }), x, 0.47, z - l / 2 + 0.25);   //  what you sit on, not the frame)
   };
   bed(-3.05, -1.3, 0.85, 1.6, '#f2c54b');   // Lou's
   bed(-3.0, 1.55, 1.15, 2.0, '#8a6fb8');    // Tove's
@@ -390,7 +394,7 @@ export function buildFamilyHouse(scene, { centre, heading, mat }) {
   seat.position.copy(seatAt); seat.rotation.y = SEAT_A;
   room.add(seat);
   add(new THREE.BoxGeometry(1.5, 0.42, 0.62), wood, 0, 0.21, 0, seat);
-  add(new THREE.BoxGeometry(1.4, 0.1, 0.56), mat('#c8483a', { flat: true }), 0, 0.47, 0, seat).userData.noCollide = true;
+  add(new THREE.BoxGeometry(1.4, 0.1, 0.56), mat('#c8483a', { flat: true }), 0, 0.47, 0, seat);   // (the cushion, sat on)
   for (const s of [-1, 1]) add(new THREE.SphereGeometry(0.2, 10, 6).scale(1, 0.6, 0.5), mat(s > 0 ? '#f2c54b' : '#5fb7ad', { flat: true }), s * 0.5, 0.6, 0.18, seat).userData.noCollide = true;
   // the lamp, lit
   r(new THREE.CylinderGeometry(0.01, 0.01, 1.2, 4), ink, 0.3, WALL + 0.3, 0.3).userData.noCollide = true;

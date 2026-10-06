@@ -135,12 +135,12 @@ function layout(rt) {
     else { K.add(leaf, T(new THREE.IcosahedronGeometry(1.1 * s, 1), [x, y + 1.9 * s, z])); for (let i = 0; i < 3; i++) K.add(pink, T(new THREE.SphereGeometry(0.2 * s, 6, 4), [x + Math.sin(i * 2.1) * 0.9 * s, y + 2.2 * s, z + Math.cos(i * 2.1) * 0.9 * s])); }
   };
   /** A pane of glass high on a wall (looking out on nothing: a pale green light). */
-  const pane = (x, y, z, w, h, yaw) => { K.add(glassM, T(new THREE.PlaneGeometry(w, h), [x, y, z], [0, yaw, 0])); K.add(M.trim, T(new THREE.BoxGeometry(w + 0.3, 0.2, 0.2), [x, y + h / 2, z], [0, yaw, 0])); K.add(M.trim, T(new THREE.BoxGeometry(0.16, h, 0.16), [x, y, z], [0, yaw, 0])); };
+  const pane = (x, y, z, w, h, yaw) => { K.add(glassM, T(new THREE.PlaneGeometry(w, h), [x, y, z], [0, yaw, 0])); K.both(M.trim, T(new THREE.BoxGeometry(w + 0.3, 0.2, 0.2), [x, y + h / 2, z], [0, yaw, 0])); K.both(M.trim, T(new THREE.BoxGeometry(0.16, h, 0.16), [x, y, z], [0, yaw, 0])); };
 
   // ---- the Threshold (z 0..12)
   K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
-  K.solid(box(4, 5, 0.5, 0, 2.5, -1.4));
+  K.solid(box(4, 5, 0.1, 0, 2.5, -1.25));   // (thin, on the dark drawn in the doorway: nothing to climb in front of it)
   K.glyph([0, 6.2, 0.05], 1.5, 0);
   pot(5, 0, 9, 0.8, true); pot(-5, 0, 10, 0.7, true);
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
@@ -165,7 +165,7 @@ function layout(rt) {
   const C2 = 57.2;
   K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 30, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6, y0: 18 }], oculus: 0.4 });
   K.both(M.wallGlyph, box(20, 9, 6.4, 0, 4.5, C2 + 6.2));
-  for (let i = 0; i < 9; i++) K.add(i % 2 ? leaf : leaf2, T(new THREE.CylinderGeometry(0.22, 0.3, 9.2, 5), [-7 + i * 1.75, 4.5, C2 + 2.95], [0, 0, Math.sin(i * 1.7) * 0.12]));   // roots down its face
+  for (let i = 0; i < 9; i++) K.add(i % 2 ? leaf : leaf2, T(new THREE.CylinderGeometry(0.22, 0.3, 9.2, 5), [-7 + i * 1.75, 4.5, C2 + 2.95], [0, 0, Math.sin(i * 1.7) * 0.12]));   // roots down its face (drawn only: solid, they are a ladder up a wall you are not meant to climb yet)
   add(Platform, { path: [[0, 9, C2 + 6], [0, 18, C2 + 6]], r: 2.2, speed: 1.5, pause: 2 });
   K.slab(-3.2, C2 + 8.3, 3.2, C2 + 10.6, 18, 0.6);
   for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU + 0.5; if (Math.abs(Math.cos(a)) < 0.5) continue; pane(Math.sin(a) * 9.95, 22, C2 + Math.cos(a) * 9.95, 3.5, 6, a + Math.PI); }
@@ -189,9 +189,9 @@ function layout(rt) {
   K.slab(-11, G0, 11, G0 + 6, 18, 24);
   K.slab(-11, G0 + 28, 11, G0 + 44, 18, 24);
   K.both(M.wallGlyph, box(22, 9, 6, 0, 22.5, G0 + 41));          // the high ledge, its face the glass wall
-  K.add(M.trim, box(22.2, 0.3, 6.2, 0, 27.05, G0 + 41));
+  K.both(M.trim, box(22.2, 0.3, 6.2, 0, 27.05, G0 + 41));
   K.both(M.dark, box(22, 1, 22, 0, -6.4, G0 + 17));
-  for (let i = 0; i < 7; i++) K.add(i % 2 ? leaf : leaf2, T(new THREE.SphereGeometry(1.6 + (i % 3) * 0.5, 8, 6).scale(1, 0.5, 1), [-9 + i * 3, -5.6, G0 + 10 + (i % 3) * 5]));   // a jungle down there
+  for (let i = 0; i < 7; i++) K.add(i % 2 ? leaf : leaf2, T(new THREE.SphereGeometry(1.6 + (i % 3) * 0.5, 8, 6).scale(1, 0.5, 1), [-9 + i * 3, -5.6, G0 + 10 + (i % 3) * 5]));   // a jungle down there (drawn only: foliage, and solid it floors the gulf you are meant to bridge)
   add(Pit, { room: 'gulf', min: [-12, -8, G0 + 6], max: [12, 12, G0 + 28] });
   add(Seed, { id: 'seed1', at: [-2.6, 18, G0 + 4.6], size: 0.9, seed: 1 });
   add(Bridge, { id: 'vine1', a: [0, 18, G0 + 5.9], b: [0, 18, G0 + 28.1], w: 3.6, n: 10, from: 'grow' });
@@ -224,7 +224,7 @@ function layout(rt) {
   K.wall(3.2, CW + HR + 10, -3.2, CW + HR + 10, 27, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
   K.both(M.wall, box(7.2, 0.8, 9.4, 0, 34.4, CW + HR + 5.7));
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 27, CW + HR + 10.5]));
-  K.solid(box(4, 5, 0.5, 0, 29.5, CW + HR + 10.9));
+  K.solid(box(4, 5, 0.1, 0, 29.5, CW + HR + 10.5));
 
   const model = gardenerModel();
   model.pos.copy(K.world(0, 27, CW + 3));
@@ -257,28 +257,28 @@ function exterior(scene, level, rt) {
   // a white plinth, a drum of the builders' gridded stone, a ribbed dome of glass on it
   K.both(M.floor, new THREE.CylinderGeometry(R + 4, R + 5, sill, 40).translate(0, sill / 2, 0));
   K.both(M.wallGlyph, new THREE.CylinderGeometry(R, R, 7, 36).translate(0, sill + 3.5, 0));
-  K.add(M.trim, new THREE.CylinderGeometry(R + 0.3, R + 0.3, 0.6, 36).translate(0, sill + 7.1, 0));
-  K.solid(new THREE.SphereGeometry(R - 0.2, 20, 8, 0, TAU, 0, Math.PI / 2).translate(0, sill + 7, 0));
-  K.add(glassM, new THREE.SphereGeometry(R, 32, 12, 0, TAU, 0, Math.PI / 2).translate(0, sill + 7, 0));
-  for (let i = 0; i < 16; i++) K.add(ribs, T(new THREE.TorusGeometry(R + 0.05, 0.22, 4, 32, Math.PI / 2), [0, sill + 7, 0], [0, (i / 16) * TAU, 0]));
-  for (const k of [0.35, 0.65, 0.88]) { const a = k * Math.PI / 2; K.add(ribs, T(new THREE.TorusGeometry(R * Math.cos(a) + 0.05, 0.2, 4, 40), [0, sill + 7 + R * Math.sin(a), 0], [Math.PI / 2, 0, 0])); }
+  K.both(M.trim, new THREE.CylinderGeometry(R + 0.3, R + 0.3, 0.6, 36).translate(0, sill + 7.1, 0));
+  // (the dome collides as it is drawn, ribs and all: it used to be a 20-sided sphere 0.2 m inside the glass)
+  K.both(glassM, new THREE.SphereGeometry(R, 32, 12, 0, TAU, 0, Math.PI / 2).translate(0, sill + 7, 0));
+  for (let i = 0; i < 16; i++) K.both(ribs, T(new THREE.TorusGeometry(R + 0.05, 0.22, 4, 32, Math.PI / 2), [0, sill + 7, 0], [0, (i / 16) * TAU, 0]));
+  for (const k of [0.35, 0.65, 0.88]) { const a = k * Math.PI / 2; K.both(ribs, T(new THREE.TorusGeometry(R * Math.cos(a) + 0.05, 0.2, 4, 40), [0, sill + 7 + R * Math.sin(a), 0], [Math.PI / 2, 0, 0])); }
   K.both(teal, new THREE.CylinderGeometry(0.9, 1.4, 2.2, 12).translate(0, sill + 7 + R, 0));
-  K.add(teal, new THREE.SphereGeometry(1.0, 12, 8).translate(0, sill + 9.3 + R, 0));
+  K.both(teal, new THREE.SphereGeometry(1.0, 12, 8).translate(0, sill + 9.3 + R, 0));
   for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.5) continue; K.add(M.glyph, T(glyphGeometry(1.6, 0.12), [Math.sin(a) * (R + 0.05), sill + 4.5, Math.cos(a) * (R + 0.05)], [0, a, 0])); }
   // the doorway: a white porch out of the drum, the glyph over it
   const z0 = R - 1.5, z1 = R + 3.2;
   for (const s of [-1, 1]) K.both(M.wall, box(2.6, 8, z1 - z0, s * 3.8, sill + 4, (z0 + z1) / 2));
   K.both(M.wall, box(10.2, 1.8, z1 - z0, 0, sill + 7.6, (z0 + z1) / 2));
-  K.add(M.trim, box(10.6, 0.5, 0.4, 0, sill + 8.6, z1 + 0.1));
+  K.both(M.trim, box(10.6, 0.5, 0.4, 0, sill + 8.6, z1 + 0.1));
   K.add(M.glyph, T(glyphGeometry(2.2, 0.15), [0, sill + 7.6, z1 + 0.06]));
   K.add(M.voidM, T(new THREE.PlaneGeometry(5, 6.6).translate(0, 3.3, 0), [0, sill, R + 0.3]));
-  K.solid(box(5, 6.6, 0.6, 0, sill + 3.3, R));
+  K.solid(box(5, 6.6, 0.1, 0, sill + 3.3, R + 0.3));
   // dry creepers already on it (brown: the garden grows over everything, even this, but it has stopped)
   const twig = { paint: new THREE.Color('#9a7448'), smooth: false, side: THREE.FrontSide };
   for (let i = 0; i < 9; i++) {
     const a = (i / 9) * TAU + 0.3; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.45) continue;
     const pts = []; for (let j = 0; j <= 8; j++) { const h = j * 1.2, r = R + 0.25 - Math.max(0, h - 7) * 0.12; pts.push(V(Math.sin(a + Math.sin(j) * 0.04) * r, sill + h, Math.cos(a + Math.sin(j) * 0.04) * r)); }
-    K.add(twig, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.18, 4));
+    K.both(twig, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.18, 4));
   }
   // the steps down to the meadow
   const foot = level.ground.heightAt(...(() => { const p = K.world(0, 0, R + 12); return [p.x, p.z]; })()) - base;

@@ -51,7 +51,7 @@ export function* buildBazaar(scene) {
     add(new THREE.TubeGeometry(curve, Math.max(4, points.length * 3), radius, 5, false), material, solid);
   }
   function sphere(x,y,z,rx,ry,rz,material) { add(new THREE.SphereGeometry(1,10,7).scale(rx,ry,rz).translate(x,y,z),material,false); }
-  function local(geo, x, y, z, yaw, material) { add(geo.rotateY(yaw).translate(x,y,z),material,false); }
+  function local(geo, x, y, z, yaw, material, solid = false) { add(geo.rotateY(yaw).translate(x,y,z),material,solid); }
 
   box(0,-1, -130,1500,2,1500,paving);
   // Broad sidewalks leave a continuous 32 m central walking route.
@@ -63,14 +63,16 @@ export function* buildBazaar(scene) {
 
   // Billboards are relief illustrations, not noisy microtexture. All faces
   // use the game's ink shader: illustrated heads, planets and alien symbols.
-  function poster(x,y,z,w,h,yaw,seed) {
+  // `solid`: a billboard hung within the climber's reach of its wall must collide as it is drawn,
+  // relief and all, or he hangs inside it; the ones that stand well clear of a wall stay drawn only.
+  function poster(x,y,z,w,h,yaw,seed,solid=false) {
     reactiveScreens.push({pos:new THREE.Vector3(x-Math.sin(yaw)*-.9,y,z+Math.cos(yaw)*.9),w,h,yaw});
     const plate = (g,m) => {
-      if (!m.paint) return local(g,x,y,z,yaw,m);
+      if (!m.paint) return local(g,x,y,z,yaw,m,solid);
       const n = g.attributes.position.count, c = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) m.paint.toArray(c, i * 3);
       g.setAttribute('color', new THREE.BufferAttribute(c, 3));
-      return local(g,x,y,z,yaw,signPaint);
+      return local(g,x,y,z,yaw,signPaint,solid);
     };
     plate(new THREE.BoxGeometry(w+.9,h+.9,.8),ink);
     plate(new THREE.BoxGeometry(w,h,.3).translate(0,0,.53),sign.shop[seed%sign.shop.length]);
@@ -112,7 +114,7 @@ export function* buildBazaar(scene) {
     poster(face-side*1.2,h*.61,z,20,40,yaw,row+(side===1?2:0));
     poster(face-side*1.6,20,z+9,7,13,yaw,row+1);
     // Forward-facing signs are legible as you enter the street.
-    poster(x,h*.32,z+22.2,20,24,0,row+2);
+    poster(x,h*.32,z+22.2,20,24,0,row+2,true);   // (0.3 m off the tower's front: the climber would hang inside it)
     frontPosters.push({x,y:h*.32,z:z+22.2+1.05,w:20,h:24,yaw:0});
     for(let k=0;k<5;k++) {
       box(face-side*1.6,5+k*2.1,z-12,2,1.3,5,teal,false);
@@ -138,12 +140,12 @@ export function* buildBazaar(scene) {
     const side=i%2?1:-1, z=100-Math.floor(i/2)*27, x=side*29;
     const body=shop[i%5], yaw=-side*Math.PI/2;
     box(x,2,z,8,4,12,body);
-    box(x-side*4.05,2,z,.12,2.9,10,dark,false);
+    box(x-side*4.05,2,z,.12,2.9,10,dark);   // (the fascia stands 0.11 m proud of the shop front you climb)
     box(x-side*5,1.1,z,2.6,2.2,10,teal);
     // Tilted canopy, with a scalloped edge made from alternating strips.
     for(let k=0;k<7;k++) {
       const awning=new THREE.BoxGeometry(7,.18,1.7).rotateZ(side*.14).translate(x-side*2.1,4.8,z+(k-3)*1.7);
-      add(awning,k%2?cream:body,false);
+      add(awning,k%2?cream:body);   // (solid: a canopy drawn 0.9 m over the shop roof you walk on)
     }
     poster(x-side*4.3,6.4,z,10,2,yaw,i+2);
     for(const dz of [-5,5]) {

@@ -31,6 +31,7 @@ import { MODE_WATER } from './materials.js';
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _n = new THREE.Vector3(), _p = new THREE.Vector3();
 const _ray = new THREE.Ray(), _m = new THREE.Matrix4();
 const OUT = 0.75;   // m: the climber's side of a wall, where its rays start (about where his chest hangs)
+const WALK = 1.2;   // m: how far under a drawn top solid ground must be for the feet to pass through it
 const shown = (o) => { for (let x = o; x; x = x.parent) if (x.visible === false) return false; return true; };
 const walkThrough = (o) => { for (let x = o; x; x = x.parent) if (x.userData?.noCollide) return true; return false; };
 const r2 = (v) => [+v.x.toFixed(1), +v.y.toFixed(1), +v.z.toFixed(1)];
@@ -44,7 +45,10 @@ function nameOf(o) {
 /** The moving solids' own drawn objects (a Platform's group, a taxi's model), to leave out of the still surfaces. */
 export function solidObjects(solids = []) {
   const out = [];
-  for (const v of solids) for (const k of ['group', 'root', 'object', 'mesh', 'model']) if (v?.[k]?.isObject3D) out.push(v[k]);
+  for (const v of solids) {
+    for (const k of ['group', 'root', 'object', 'mesh', 'model']) if (v?.[k]?.isObject3D) out.push(v[k]);
+    if (v?.model?.group?.isObject3D) out.push(v.model.group);   // (a guardian: its model is { group, pos, … })
+  }
   return out;
 }
 
@@ -86,13 +90,13 @@ export function drawnSurfaces(scene, { exclude = [], maxInstances = 4000 } = {})
   // (the BVH reorders its index: a hit's faceIndex names a slot in it, whose first vertex is still the merged
   // geometry's own, three to a triangle)
   const index = bvh.geometry.index;
-  const owner = (slot) => {
-    const face = Math.floor((index ? index.getX(3 * slot) : 3 * slot) / 3);
+  const ownerFace = (face) => {
     let lo = 0, hi = ends.length - 1;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (ends[mid] > face) hi = mid; else lo = mid + 1; }
     return names[lo];
   };
-  return { bvh, owner, tris };
+  const owner = (slot) => ownerFace(Math.floor((index ? index.getX(3 * slot) : 3 * slot) / 3));
+  return { bvh, owner, ownerFace, tris };
 }
 
 /** The collision's own triangles (the level's and any added later), as position arrays. */
@@ -124,12 +128,12 @@ const first = (bvh, origin, dir, far) => {
  * @param o.solids   level.dynamic() (moving floors), checked as carriers and left out of the still surfaces
  * @param o.tol      metres the drawn and the collision surfaces may differ by (default 0.06)
  * @param o.cell     metres between samples on a face (default 1.5); o.max: a cap on samples of each kind
- * @param o.region   optional (p) => bool: only sample there
+ * @param o.region   optional (p) => bool: only sample there; o.walk: also sample the drawn tops (default true)
  */
-export function auditContact({ physics, scene, solids = [], exclude = [], tol = 0.06, cell = 1.5, max = 60000, region = null, seed = 1 } = {}) {
+export function auditContact({ physics, scene, solids = [], exclude = [], tol = 0.06, cell = 1.5, max = 60000, region = null, seed = 1, walk = true } = {}) {
   // (the heightfield's own mesh is the terrain's, checked against heightAt elsewhere: the rays here are for meshes)
   const drawn = drawnSurfaces(scene, { exclude: [...exclude, ...solidObjects(solids), physics.base?.mesh] });
-  const groups = new Map(), counts = {}, checked = { top: 0, wall: 0, carrier: 0 };
+  const groups = new Map(), counts = {}, checked = { top: 0, wall: 0, walk: 0, carrier: 0 };
   let worst = null;
   const flag = (issue, name, at, by) => {
     counts[issue] = (counts[issue] ?? 0) + 1;
@@ -229,6 +233,51 @@ export function auditContact({ physics, scene, solids = [], exclude = [], tol = 
       }
     }
   }
+  // ---- the other way round: a drawn surface you would walk through
+  // The tops above are sampled on the *collision*, so a thing drawn with no collision of its own over
+  // open ground (a root over the sand, a trim on a roof with no proxy) is never sampled at all. Here the
+  // walkable faces of the drawn surfaces are sampled instead, and the ground under each (the collision
+  // and the heightfield): a drawn top more than `tol` over it is one the feet pass through.
+  if (walk) {
+    const dgeo = drawn.bvh.geometry, dpos = dgeo.attributes.position;
+    const dfaces = [];
+    let darea = 0;
+    for (let f = 0; f < dpos.count / 3; f++) {
+      _a.fromBufferAttribute(dpos, 3 * f); _b.fromBufferAttribute(dpos, 3 * f + 1); _c.fromBufferAttribute(dpos, 3 * f + 2);
+      _n.subVectors(_c, _b).cross(_d.subVectors(_a, _b));
+      const ar = _n.length() / 2;
+      if (ar < 1e-3 || _n.y / (2 * ar) < 0.7) continue;   // (only what is drawn facing up: a face you could stand on)
+      if (region && !region(_p.copy(_a).add(_b).add(_c).divideScalar(3))) continue;
+      dfaces.push(f, ar);
+      darea += ar;
+    }
+    const density = Math.min(1 / (cell * cell), max / Math.max(darea, 1e-6));
+    for (let i = 0; i < dfaces.length; i += 2) {
+      const f = dfaces[i], ar = dfaces[i + 1];
+      const want = ar * density, k = Math.floor(want) + (rnd() < want - Math.floor(want) ? 1 : 0);
+      if (!k) continue;
+      _a.fromBufferAttribute(dpos, 3 * f); _b.fromBufferAttribute(dpos, 3 * f + 1); _c.fromBufferAttribute(dpos, 3 * f + 2);
+      for (let j = 0; j < k; j++) {
+        let u = rnd(), v = rnd();
+        if (u + v > 1) { u = 1 - u; v = 1 - v; }
+        _p.copy(_a).multiplyScalar(1 - u - v).addScaledVector(_b, u).addScaledVector(_c, v);
+        if (region && !region(_p)) continue;
+        // (buried: the ground already stands over what is drawn here, so no one walks on it)
+        if (physics.base && physics.base.heightAt(_p.x, _p.z) > _p.y - tol) continue;
+        _o.set(_p.x, _p.y + 0.05, _p.z);
+        if (physics.embedded(_o)) continue;     // (inside a solid: a face drawn inside the collision, not stood on)
+        // (and nothing drawn right over it: the underside of a stack, a floor under a table, is not walked on)
+        if (first(drawn.bvh, _o, UP, 2)) continue;
+        checked.walk++;
+        const g = physics.groundAt(_p.x, _p.y + 0.05, _p.z, WALK + 0.05);
+        const dy = _p.y - g;
+        // (further than WALK over anything solid it is not a floor anyone stands on but a thing in the air:
+        // a cloud, a hanging city, a lamp; those are not walked through, they are flown past)
+        if (dy > tol && dy <= WALK) flag('walks through', drawn.ownerFace(f), _p, dy);
+      }
+    }
+  }
+
   // the moving solids: their drawn top over the disc against the solid's top
   const rc = new THREE.Raycaster();
   for (const v of solids) {
@@ -253,7 +302,7 @@ export function auditContact({ physics, scene, solids = [], exclude = [], tol = 
 
 /** A few lines for the console or a test's message. */
 export function formatContact(r, { top = 15 } = {}) {
-  const lines = [`checked tops ${r.checked.top}, walls ${r.checked.wall}, carriers ${r.checked.carrier}; ` + (Object.entries(r.counts).map(([k, v]) => `${k} ${v}`).join(', ') || 'nothing off')];
+  const lines = [`checked tops ${r.checked.top}, walls ${r.checked.wall}, drawn tops ${r.checked.walk ?? 0}, carriers ${r.checked.carrier}; ` + (Object.entries(r.counts).map(([k, v]) => `${k} ${v}`).join(', ') || 'nothing off')];
   for (const g of r.groups.slice(0, top)) lines.push(`  ${g.issue.padEnd(14)} ${String(g.n).padStart(5)} × up to ${g.max.toFixed(2)} m  ${g.name}  at ${g.at.join(', ')}`);
   return lines.join('\n');
 }
