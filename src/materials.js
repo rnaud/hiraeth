@@ -252,7 +252,7 @@ export function setEnvGround(color) {
 // The features set this way never change after makeMaterial (their uniforms are only read).
 // ---------------------------------------------------------------------------
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
-  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
+  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_PATCH', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -326,6 +326,26 @@ export const FORM = {
   waverFar: 90,            // m: past this (and on the handheld) no waver, a stroke's own offset only
   veins: { spacing: 2.4, width: 1.4, lift: 0.12 },   // a dark cap's veins (veins: 0..1): lighter lines radiating, lit or not (under the colour-edge threshold)
 };
+/**
+ * Colour across a wall (S_PATCH, wallPatch): the sheets break a building's colour into a few big flat
+ * patches, a repaint, a sunlit plane, one storey rendered differently. On by default wherever a material
+ * has built pen detail (detailOf: weathered walls, the Market, the Buried Machine's rust and teal), or
+ * patches: 0..1. All world-anchored (no seam on a round wall: the cells are boxes in the world, not in a
+ * wall's frame), each building its own (the weathering's 9 m cells), a few percent of tone or hue, under
+ * post.js's colour-edge threshold: a clean edge, no line of its own. None past far (m).
+ * cell: a repaint's cell (m, along and up: it runs over one to three storeys); share: of the cells;
+ * band: the share of a building's storeys in another render; tone: how far a patch's colour moves;
+ * face: how far each face of a building differs (blended round a curve); building: the coarse lattice's box (m);
+ * edge: the most the colour moves (the length of its change); ramp: the edge's width (px), so the step
+ * between two neighbouring pixels stays under post.js's colour-edge threshold (0.08) and draws no line.
+ */
+export const PATCH = { cell: [6.4, 3.3], building: 17.3, share: 0.22, band: 0.09, tone: 0.13, face: 0.06, edge: 0.15, ramp: 1.8, far: [260, 380] };
+export function patchesOf(o) {
+  if (o.metal || o.glass || o.glow || o.glyphs || o.figure || o.facePart || o.eye) return 0;
+  if (o.mode === MODE_TERRAIN || o.mode === MODE_WATER || o.mode === MODE_OUTFIT) return 0;
+  const p = o.patches ?? (detailOf(o)[0] === 1 ? 1 : 0);
+  return p === true ? 1 : Math.min(Math.max(+p || 0, 0), 1.5);
+}
 export const formOf = (o) => !!o.form && !o.figure && !o.facePart && !o.eye && !o.glass && (o.mode ?? MODE_PLAIN) !== MODE_TERRAIN && o.mode !== MODE_WATER && o.mode !== MODE_OUTFIT;
 const PATTERN_DEFINES = { 1: 'S_FACADE', 2: 'S_TILES', 3: 'S_LEAVES', 4: 'S_CRACKS' };
 
@@ -352,6 +372,7 @@ export function surfaceDefines(o) {
   on('S_WEATHER', weatheredOf(o) > 0);
   on('S_DETAIL', detailOf(o)[0] > 0);
   on('S_FORM', formOf(o));
+  on('S_PATCH', patchesOf(o) > 0);
   on('S_FOLDS', o.folds);
   on('S_SCRUB', o.scrub);
   on('S_GLASS', o.glass);
@@ -614,6 +635,7 @@ const fragmentShader = /* glsl */ `
   uniform float uWearLite; // the handheld's lighter weathering (sharedUniforms)
   uniform vec2 uDetail;    // pen detail: kind (1 built, 2 organic), density (DETAIL)
   uniform float uVeins;    // a cap's veins (FORM.veins): lighter lines radiating from its stalk
+  uniform float uPatch;    // colour across a wall (PATCH): how many patches, 0..1.5
   uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
@@ -1059,6 +1081,67 @@ const fragmentShader = /* glsl */ `
     if (abs(c.x) < hf.x + 0.05) ink = max(ink, inkLine(abs(c.y + hf.y + 0.03) / gq.y, 1.3) * win * lodInk);   // sill
     return ink * vert;
   }
+
+  #ifdef S_PATCH
+  // Colour across a wall (PATCH): the albedo's factor at p (world), its smooth normal nv, k the amount.
+  // Three layers, all constant over boxes of the world (so a round wall has no seam): each building
+  // (a box of the coarse lattice, LA) its own tone on each face (a sunlit or a repainted plane, blended by
+  // the normal so a curve turns smoothly) and the odd storey all round it in another render; and repaints
+  // over the fine lattice's boxes (LB), one to three storeys tall. A handful of hashes, no loop.
+  const vec3 PATCH_LA = vec3(${PATCH.building.toFixed(3)}, ${PATCH.cell[1].toFixed(3)}, ${PATCH.building.toFixed(3)});
+  const vec3 PATCH_LB = vec3(${PATCH.cell[0].toFixed(3)}, ${PATCH.cell[1].toFixed(3)}, ${PATCH.cell[0].toFixed(3)});
+  const vec3 PATCH_O = vec3(0.371, 0.173, 0.619);   // (the lattices off the round numbers buildings stand on)
+  // the building's layer (LA): each face its own tone, the odd storey all round in another render
+  vec3 patchA(vec3 p, vec3 nv, float k) {
+    const float T = ${PATCH.tone.toFixed(4)};
+    vec3 qa = p + PATCH_O * PATCH_LA;
+    vec2 bld = floor(qa.xz / PATCH_LA.xz);
+    vec4 fw = max(vec4(nv.x, -nv.x, nv.z, -nv.z), 0.0);   // (+x, -x, +z, -z)
+    fw *= fw; fw *= fw;
+    float hf = hash(bld + 1.13);
+    vec4 ft = fract(hf * vec4(1.0, 7.31, 13.7, 29.3)) - 0.5;   // (one hash: four tones)
+    vec3 m = vec3(1.0 + dot(fw, ft) / max(dot(fw, vec4(1.0)), 1e-4) * ${(2 * PATCH.face).toFixed(4)});
+    float row = floor(qa.y / PATCH_LA.y);
+    float hb = fract(hash(vec2(row * 3.7, 9.1) + hf * 61.0) + hf * 3.1);
+    if (hb < ${PATCH.band} * k) m *= hb < ${(PATCH.band / 2).toFixed(4)} * k ? vec3(1.0 + T * 0.6, 1.0 + T * 0.3, 1.0 - T * 0.2) : vec3(1.0 - T * 0.7);
+    return m;
+  }
+  // the repaints' layer (LB): a run of one to three storeys over a box, lighter, darker, warmer or cooler
+  vec3 patchB(vec3 p, float k) {
+    const float T = ${PATCH.tone.toFixed(4)};
+    vec3 c = floor((p + PATCH_O * PATCH_LB) / PATCH_LB);
+    float hc = hash(c.xz + 7.7);
+    float span = 1.0 + floor(hc * 3.0);
+    float cy = floor((c.y + floor(fract(hc * 7.3) * 3.0)) / span);
+    float hp = hash(vec2(c.x + cy * 31.7, c.z - cy * 17.3) + 0.53);
+    if (hp >= ${PATCH.share} * k) return vec3(1.0);
+    float t = fract(hp * 97.31 / max(${PATCH.share} * k, 1e-3));
+    return t < 0.3 ? vec3(1.0 + T) : t < 0.55 ? vec3(1.0 - T) : t < 0.8 ? vec3(1.0 + T * 0.7, 1.0 + T * 0.1, 1.0 - T * 0.6) : vec3(1.0 - T * 0.6, 1.0 - T * 0.05, 1.0 + T * 0.6);
+  }
+  // The patches with their edges drawn clean: a hard step would be inked by post.js's colour edges, so
+  // within a few pixels of the nearest face of either lattice the colour ramps (linearly) to the mean of
+  // both sides: crisp, but never a step its edge test sees. Only there is the neighbour looked up, and
+  // only its layer (a repaint's edge: two hashes). pfw: metres per px along x, y, z.
+  vec3 wallPatch(vec3 p, vec3 nv, float k, vec3 pfw) {
+    vec3 mA = patchA(p, nv, k), mB = patchB(p, k);
+    vec3 fa = fract((p + PATCH_O * PATCH_LA) / PATCH_LA), fb = fract((p + PATCH_O * PATCH_LB) / PATCH_LB);
+    vec3 ga = min(fa, 1.0 - fa) * PATCH_LA / max(pfw, 1e-6), gb = min(fb, 1.0 - fb) * PATCH_LB / max(pfw, 1e-6);   // px to each face
+    vec3 g = min(ga, gb);
+    float dpx = min(g.x, min(g.y, g.z)), R = ${PATCH.ramp.toFixed(2)} * uPixelRatio;
+    if (dpx < R) {
+      vec3 e = g.x <= dpx ? vec3(1.0, 0.0, 0.0) : g.y <= dpx ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
+      bool coarse = dot(e, ga) <= dot(e, gb);
+      vec3 f = coarse ? fa : fb, L = coarse ? PATCH_LA : PATCH_LB;
+      float fe = dot(e, f);
+      vec3 pn = p + e * (fe < 0.5 ? -1.0 : 1.0) * (min(fe, 1.0 - fe) + 0.5) * dot(e, L);
+      float t = clamp(dpx / R, 0.0, 1.0);   // (linear: the steepest step is half the change over R)
+      vec3 mBn = patchB(pn, k);
+      if (coarse) mA = mix(0.5 * (mA + patchA(pn, nv, k)), mA, t);
+      mB = mix(0.5 * (mB + mBn), mB, t);
+    }
+    return mA * mB;
+  }
+  #endif
 
   #ifdef S_WEATHER
   // Weathering (makeMaterial({ weathered })): old walls, lived in. On upright faces, in cells of the
@@ -1739,6 +1822,19 @@ const fragmentShader = /* glsl */ `
     #ifdef FLUID
       albedo = fluidAlbedo(albedo);
     #endif
+    #ifdef S_PATCH
+    // colour across a wall (PATCH): big flat patches, each building its own; none far off (nothing paid)
+    #if defined(S_WEATHER) || defined(S_DETAIL)
+    vec3 patchFw = vec3(wfqA.x, wfy, wfqB.x);   // (the walls' frame's: metres per px along x, y, z)
+    #else
+    vec3 patchFw = fwidth(vWorldPos);   // (uniform flow)
+    #endif
+    if (uPatch > 0.0 && vViewDepth < ${PATCH.far[1]}.0) {
+      float pk = 1.0 - smoothstep(${PATCH.far[0]}.0, ${PATCH.far[1]}.0, vViewDepth);
+      vec3 dP = albedo * (wallPatch(vWorldPos, normalize(vNormal), uPatch, patchFw) - 1.0);
+      albedo += dP * min(1.0, ${PATCH.edge} / max(length(dP), 1e-5)) * pk;   // (never past the colour-edge threshold)
+    }
+    #endif
     float patInk = 0.0;
     float emit = 0.0;   // lit windows at night (facade)
     #ifdef S_FACADE
@@ -2152,6 +2248,8 @@ const cache = new Map();
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
  * @param {boolean} [o.form]    its shade's strokes follow the form of the parts that carry an axis (src/form.js
  *                              formAxis: a cap's radiate from it, a cylinder's wrap round it; FORM, S_FORM)
+ * @param {number|boolean} [o.patches] colour across a wall: big flat patches of another tone (PATCH; 0..1.5; on
+ *                              by default with built pen detail)
  * @param {number}  [o.veins]   with form: a dark cap's veins drawn lighter, radiating from its stalk (0..1)
  * @param {boolean|number} [o.glyphs] the makers' carved inscriptions (src/glyphs.js) on upright faces, in
  *                              cells of this many metres (true: the grid's spacing). For the makers' work only
@@ -2213,6 +2311,7 @@ export function makeMaterial(o) {
       uWeather: { value: weatheredOf(o) },
       uDetail: { value: new THREE.Vector2(...detailOf(o)) },
       uVeins: { value: formOf(o) ? o.veins ?? 0 : 0 },
+      uPatch: { value: patchesOf(o) },
       uDrift: { value: o.drift ? 1 : 0 },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing

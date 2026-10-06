@@ -274,4 +274,6 @@ Ranked by how much they would close the gap to the sheets, across every world re
    cast shadow on open ground) would let the plains read as the sheets do.
 6. **Per-face colour variation** (the Market's and the City-Shaft's towers, the desert's domes): the
    sheets vary a wall's colour in big flat patches (a repaint, a sunlit plane); ours are one albedo per
-   material (`color2`, `color3` only in strata).
+   material (`color2`, `color3` only in strata). **Done** (`patches`, docs/systems/materials.md "Colour
+   across a wall"): each building's faces their own tone, repaints over one to three storeys, the odd
+   storey in another render, world-anchored, a clean edge with no line, on every wall with built pen detail.
