@@ -4,7 +4,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs } from './puffs.js';
 
-// Mira's water clock (Viridel): where the Hangar's errand of a brass gear ends
+// Mira's water clock (Viridel): where Lorn II's errand of a brass gear ends
 // (src/levels/content.js ERRANDS 'gear'). Delivering it (greeting Mira) starts a
 // little quest of its own (edena.clock): fit the gear in the clock (E), then fill
 // its leaking bowl with three quick splashes (shoot) so it tips and rings the

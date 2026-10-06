@@ -35,6 +35,14 @@ const SPIRE_RING = 48;
 const SHRINE_A = 3.155, LAMP_A = 3.2, NIMA_DA = 0.045;
 // the old goods hoist on the bottom terrace, a little way past Pip (quest incal.ration): its angle, and how far it stands in from the edge
 export const HOIST = { a: SHRINE_A - 0.075, inset: 1.3, reach: 4.0, height: 4.8 };
+/**
+ * The red stair, the way down on foot from the rim to the high terrace where Nima sweeps (the drone's
+ * first find): it leaves the rim through a gap in the parapet near the makers' pillar (`top`, an angle
+ * round the shaft), runs down along the shaft's wall in `flights` with landings between (each `landing`
+ * m long; steps `rise` m high, `width` m wide), and comes out on a steel landing along the terrace's end
+ * (`gangway` rad wide). No house is kept within `lane` m of the terrace's end, so the way to Nima is open.
+ */
+export const STAIR = { top: 0.5105, width: 4, flights: 5, landing: 3.5, topLanding: 4.5, rise: 0.25, gangway: 0.032, lane: 9 };
 
 const TAU = Math.PI * 2;
 
@@ -74,7 +82,10 @@ export function* buildIncal(scene) {
   let curGroup = 'misc', curY = TOP;
   let skip = false;            // a house in one of the story's clearings: built (same random draws) but not kept
   const clearZones = [];
-  const nearClear = (x, y, z) => clearZones.some((c) => Math.abs(c.y - y) < 1 && Math.hypot(c.x - x, c.z - z) < c.r);
+  const clearEnds = [];   // { y, a, w }: no house within w m of a terrace's end at angle a (the red stair's landing, STAIR)
+  const fromEnd = (x, z, a) => (((Math.atan2(z, x) - a) % TAU + TAU + Math.PI) % TAU - Math.PI) * Math.hypot(x, z);
+  const nearClear = (x, y, z) => clearZones.some((c) => Math.abs(c.y - y) < 1 && Math.hypot(c.x - x, c.z - z) < c.r)
+    || clearEnds.some((c) => Math.abs(c.y - y) < 1 && Math.abs(fromEnd(x, z, c.a) - c.w / 2) < c.w / 2 + 2);
   const bucket = (key, mat) => {
     if (skip) return [];
     const k = key + '@' + curGroup;
@@ -214,6 +225,7 @@ export function* buildIncal(scene) {
       const span = TAU / nSectors - gap;
       const a0 = a, a1 = a + span;
       if (s === 0 && li === 0) clearZones.push({ x: Math.cos(a0 + NIMA_DA) * (r0 + 6), y, z: Math.sin(a0 + NIMA_DA) * (r0 + 6), r: 9 });
+      if (s === 0 && li === 0) clearEnds.push({ y, a: a0, w: STAIR.lane });
       if (s === 0 && li === LEVELS.length - 1) clearZones.push({ x: Math.cos(SHRINE_A) * (r0 + 8), y, z: Math.sin(SHRINE_A) * (r0 + 8), r: 12.5 });
       curGroup = `t${li}`; curY = y;
       const slab = new THREE.Mesh(sectorGeometry(r0, R, a0, a1, 7),
@@ -736,6 +748,89 @@ export function* buildIncal(scene) {
     for (const t of trees) for (const [c, r] of [[S, 9], [L, 3], [places.nima, 4], [places.hoist, 6]]) if (Math.abs(t[1] - c.y) < 1 && Math.hypot(t[0] - c.x, t[2] - c.z) < r) t[3] = 0;
   }
 
+  // ---------------------------------------------------------- the red stair down to Nima's terrace (STAIR)
+  // Terracotta flights cut into the shaft's wall on steel brackets, a red pipe rail on the void side, as the
+  // plates' red stairs; a cream gate with a terracotta lintel at the rim marks where it starts. Every piece is
+  // built round the shaft's axis: x the distance from it, z along the wall, then turned to its angle.
+  yield;
+  {
+    const top = terraces.find((t) => t.y === LEVELS[0]);
+    const W = STAIR.width, rIn = R - W, rc = R - W / 2, rOut = R + 0.4;
+    const th0 = STAIR.top - STAIR.topLanding / 2 / rc, thA = STAIR.top + STAIR.topLanding / 2 / rc;
+    const thB = top.a0 - STAIR.gangway;                      // the foot of the last flight: the landing on the terrace's end
+    const drop = (TOP - top.y) / STAIR.flights, n = Math.round(drop / STAIR.rise), rise = drop / n;
+    const flight = ((thB - thA) * rc - (STAIR.flights - 1) * STAIR.landing) / STAIR.flights, tread = flight / n;
+    const red = makeMaterial({ color: '#d0694a', flat: true, key: 'incal.stair' });
+    const pipe = makeMaterial({ color: '#b24a36', flat: true, metal: 'iron' });
+    const steelS = strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3 });
+    const cream = makeMaterial({ color: '#f3ead8', flat: true });
+    const flat0 = (g) => { g = g.index ? g.toNonIndexed() : g; g.deleteAttribute('uv'); g.deleteAttribute('normal'); return g; };
+    const steps = [], brackets = [], rails = [], path = [];
+    /** a block against the wall: from radius r0 to r1, z0..z1 m along the wall from angle th, top at y, h deep */
+    const block = (r0, r1, th, z0, z1, y, h) => new THREE.BoxGeometry(r1 - r0, h, z1 - z0).translate((r0 + r1) / 2, y - h / 2, (z0 + z1) / 2).rotateY(-th);
+    /** a steel bracket under the stair at angle th, its top at y: a wedge from the wall */
+    const bracket = (th, y) => {
+      const s = new THREE.Shape();
+      s.moveTo(rOut, 0); s.lineTo(rIn + 0.3, 0); s.lineTo(rIn + 0.6, -0.5); s.lineTo(rOut, -3.2);
+      return new THREE.ExtrudeGeometry(s, { depth: 0.7, bevelEnabled: false }).translate(0, y, -0.35).rotateY(-th);
+    };
+    const at = (th, r, y) => new THREE.Vector3(Math.cos(th) * r, y, Math.sin(th) * r);
+    // the top landing, flush with the rim, in a gap of the parapet
+    steps.push(block(rIn, R, th0, 0, STAIR.topLanding, TOP, 1.2));
+    brackets.push(bracket(STAIR.top, TOP - 1.2));
+    path.push(at(STAIR.top, R + 4, TOP), at(STAIR.top, rc, TOP));
+    const railPts = [at(th0, rIn + 0.15, TOP + 1.0)];
+    let th = thA, y = TOP;
+    for (let f = 0; f < STAIR.flights; f++) {
+      path.push(at(th, rc, y));
+      for (let k = 0; k < n; k++) {
+        const yk = y - (k + 1) * rise;
+        steps.push(block(rIn, rOut, th, k * tread - 0.01, (k + 1) * tread + 0.01, yk, 1.1));
+        if (k % 8 === 4) rails.push(new THREE.CylinderGeometry(0.035, 0.035, 1.0, 5).translate(rIn + 0.15, yk + 0.5, (k + 0.5) * tread).rotateY(-th));
+      }
+      railPts.push(at(th, rIn + 0.15, y + 1.0));
+      brackets.push(bracket(th + flight / 2 / rc, y - drop / 2 - 1.1));
+      th += flight / rc; y -= drop;
+      path.push(at(th, rc, y));
+      railPts.push(at(th, rIn + 0.15, y + 1.0));
+      if (f < STAIR.flights - 1) {
+        steps.push(block(rIn, rOut, th, 0, STAIR.landing, y, 1.2));
+        brackets.push(bracket(th + STAIR.landing / 2 / rc, y - 1.2));
+        rails.push(new THREE.CylinderGeometry(0.035, 0.035, 1.0, 5).translate(rIn + 0.15, y + 0.5, STAIR.landing / 2).rotateY(-th));
+        th += STAIR.landing / rc;
+        railPts.push(at(th, rIn + 0.15, y + 1.0));
+      }
+    }
+    // the red pipe rail along the void side, a straight run per flight and landing (along the wall's curve)
+    for (let i = 1; i < railPts.length; i++) {
+      const a = railPts[i - 1], b = railPts[i], m = Math.max(1, Math.round(a.distanceTo(b) / 2)), pts = [];
+      const ta = Math.atan2(a.z, a.x), tb = Math.atan2(b.z, b.x);
+      for (let j = 0; j <= m; j++) { const u = j / m; pts.push(at(ta + (tb - ta) * u, rIn + 0.15, a.y + (b.y - a.y) * u)); }
+      rails.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), m * 2, 0.05, 5));
+    }
+    // the steel landing along the terrace's end, with an iron parapet on its void side and at its inner end
+    const gang = sectorGeometry(top.r0, R, thB, top.a0, 1.2);
+    gang.translate(0, top.y, 0);
+    const iron = [
+      sectorGeometry(top.r0, top.r0 + 0.5, thB, top.a0, 1.1).translate(0, top.y + 1.1, 0),
+      block(top.r0, rIn, thB, 0.05, 0.45, top.y + 1.1, 1.1),
+      block(rIn, R, th0, 0.05, 0.4, TOP + 1.1, 1.1),   // (the top landing's far end)
+    ];
+    path.push(at(thB + STAIR.gangway / 2, rc - 3, top.y), at(thB + STAIR.gangway / 2, top.r0 + 6, top.y));
+    // the gate at the rim: two cream pylons either side of the gap, a terracotta lintel
+    const gate = [], gw = 3.1 / R;
+    for (const s of [-1, 1]) gate.push(block(R + 0.4, R + 1.6, STAIR.top + s * gw, -0.6, 0.6, TOP + 4.6, 4.6));
+    const lintel = block(R + 0.3, R + 1.7, STAIR.top, -3.9, 3.9, TOP + 5.4, 0.8);
+    const add = (geos, mat) => { const m = new THREE.Mesh(mergeGeometries(geos.map(flat0)), mat); m.geometry.computeVertexNormals(); scene.add(m); return m; };
+    add(steps, red); add([lintel], red);
+    add([...brackets, gang], steelS);
+    add(rails, pipe); add(iron, ironMat);
+    add(gate, cream);
+    places.stair = { top: at(STAIR.top, R + 4, TOP), foot: at(thB + STAIR.gangway / 2, rc - 3, top.y), path };
+    // no tree on the landing or in the open strip along the terrace's end
+    for (const t of trees) if (Math.abs(t[1] - top.y) < 1) { const d = fromEnd(t[0], t[2], top.a0); if (d > -10 && d < STAIR.lane + 1) t[3] = 0; }
+  }
+
   // trees on the rim around the spawn
   yield;
   for (let k = 0; k < 160; k++) {
@@ -870,6 +965,7 @@ export function* buildIncal(scene) {
     // the rim's flora (src/flora.js) keeps the view from the spawn, the villas, the pillar and the trees' feet clear
     floraAvoid: (x, z, r) => (Math.abs(z) < 18 + r && x < R + 42) || (x > R + 28 && x < R + 62 && Math.abs(z) < 44)
       || Math.hypot(x - Math.cos(PILLAR.a) * PILLAR.r, z - Math.sin(PILLAR.a) * PILLAR.r) < 10 + r
+      || Math.hypot(x - Math.cos(STAIR.top) * (R + 6), z - Math.sin(STAIR.top) * (R + 6)) < 8 + r   // (the red stair's gate)
       || trees.some((t) => t[3] > 0 && Math.abs(t[1] - TOP) < 1 && Math.hypot(t[0] - x, t[2] - z) < 2.2 + r),
     ground: { heightAt: () => -Infinity }, // everything walkable is real geometry
     spawn,

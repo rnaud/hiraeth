@@ -92,5 +92,6 @@ test('deep lake water is unsafe, the shore is not', () => {
 
 test('static collision stays within budget', () => {
   console.log('collision triangles', physics.triangles);
-  assert.ok(physics.triangles < 60000, `static collision budget: ${physics.triangles}`);
+  // (the spheres and the umbrella trees collide as drawn since the contact audit, docs/systems/movement.md "Contact": ~157 k)
+  assert.ok(physics.triangles < 180000, `static collision budget: ${physics.triangles}`);
 });

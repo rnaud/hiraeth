@@ -3,6 +3,46 @@
 Open work only. Finished items move to DONE.md (with how they were done); the changelog
 (src/changelog.js) says when they reached players.
 
+# Player feedback (2026-10-06)
+
+- [x] Investigate the traveller's hands rotating while gliding; keep their pose and orientation
+  appropriate to the glide instead of twisting unexpectedly. (The hand bone kept its last local turn
+  and the glide's arm IK, which keeps a hand's world turn, fed the forearm's change back into it every
+  frame: ~10° a frame of spin. The retarget now resets each wrist to its rest turn on the forearm, and
+  the glide turns the hands open, palms down, thumb edge a little up, blended with the wings; the jets'
+  hands are steady too. Test in tests/hands.test.js.)
+- [x] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
+  surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
+  (Measured: moving only the camera changes no shadow map; the blockiness was the edge itself. The shadow
+  lookup is now a sliding tent filter, same taps, and its lit fraction is steepened about a half so the toon
+  cut keeps shadows their true size. The spot tier's darkening follows the shade's antialiased edge instead
+  of a hard step that crawled. Checked in the desert and Vael II on High and Handheld, panning, orbiting and
+  walking. The cost is within noise. docs/systems/rendering.md, "Smooth cast-shadow edges".)
+- [x] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller). (The push's rings and spray were hidden in every room off the map (temples, the cave, the Hearth) since the interior culler of 2026-10-05 judged them by bounds cached while empty; unculled instanced effects are now measured where they are, other unculled meshes stay drawn. Pad RB and keyboard C checked on a person, crates, a creature and the temple's ball. tests/interior-cull.test.js)
+- [x] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
+  standing and landing contact across all worlds, including moving platforms, so visible platform tops
+  and collision surfaces agree and feet do not disappear into them. (The feet asked only the baked collision,
+  which leaves out moving floors: they found the floor under the disc and reached through it, ~0.3 m; now they
+  see `level.dynamic()` solids (src/carriers.js) and held feet ride with the disc. A disc's 3 cm-a-frame rise
+  read as a stair, so the drawn body lagged ~15 cm into it: StepLag takes out the carried motion. The Belfry's
+  ledge trims, the discs' rim band, pressure plates and the temple kit's wall caps, frames, kerbs and columns
+  now collide as drawn. New contact audit (src/contact-audit.js, `contactAudit()`, tests/contact-audit.test.js)
+  compares drawn and collision tops and walls in every world, with a regression line and a known list;
+  docs/systems/movement.md "Contact".)
+- [x] When the ridden bird approaches the ground, have it extend its legs and feet in preparation,
+  then land properly with its feet contacting the ground. (A landing phase from her height and sink:
+  legs down and forward, wings flared, nose up and braking, the last metre's sink held to ~2 m/s, toes
+  level at contact; each foot on its own ground ray, so on slopes too; a sink into the knees and a few
+  steps of run-out. Also when called down or circling down riderless. Tests in tests/birds.test.js.)
+- [x] Fix the mismatch between Vael's visible rocks and their climbing hitboxes: the traveller goes
+  through roughly half of some rocks while climbing. Align climbing contact with the visible surfaces
+  and check the affected rocks throughout the level. (Vael II's rock collided as coarse stand-ins, up to 2 m
+  inside the drawn needles, boulders, mounds and table rims; it now collides as drawn (~390 k triangles), and
+  the audit's climb check is clean across the level (4618 places to ~2); Vael's rock already collided as
+  drawn. Also made exact: Lorn II's trunks, caps and arches, the Garden of Spheres' spheres and umbrella
+  trees, the desert's umbrella grove, the temple towers' lathes. Left: the desert's Hearth butte and Givers'
+  House tower, the Buried Machine, see movement.md.)
+
 # Player feedback, part 3 (2026-10-05)
 
 ## Docs
@@ -240,4 +280,4 @@ what remains is the bridge's:
 
 ## Later
 
-- [x] The JS bridges: our JS game code inside Godot (GodotJS) and Unity (Puerts), the engine only rendering. (The game's modules bundled into the engines' V8 with browser stand-ins, the three.js scene mirrored each frame: in Godot through a first port of the ink look, in Unity through the C# port's own; the desert plays in both, side-by-sides and frame times against the web and a recommendation in docs/systems/engine-bridge.md.)
+- [x] The JS bridges: our JS game code inside Godot (GodotJS) and Unity (Puerts), the engine only rendering. (The game's modules bundled into the engines' V8 with browser stand-ins, the three.js scene mirrored each frame: in Godot through a first port of the ink look, in Unity through the C# port's own; the desert plays in both, side-by-sides and frame times against the web and a recommendation in docs/systems/engine-bridge.md. Unity + Puerts chosen; since then: a 2.5-3.3x cheaper sync, the platform layer with the HUD and conversations in uGUI, and the rest of the picture and the play: the game's own sound on a Web Audio shim, life, weather, the tool and the drone, local lights, motes, prints, GPU instances; the desert, the City-Shaft and the Signal Market side by side; players for macOS (IL2CPP), Linux (the Deck's, Mono) and Android (IL2CPP ARM64, run in an emulator), measured against the web.)

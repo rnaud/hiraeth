@@ -155,7 +155,7 @@ export function setupEdena(ctx) {
   // ---------------------------------------------------------------- the tea terraces (the quest that fails)
   const terraces = setupTerraces(ctx);
   people.esk = terraces.esk;
-  // ---------------------------------------------------------------- Mira's water clock (the Hangar's errand ends here)
+  // ---------------------------------------------------------------- Mira's water clock (Lorn II's errand ends here)
   const clock = setupWaterClock(ctx);
 
   // ---------------------------------------------------------------- the end of the main quest

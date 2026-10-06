@@ -82,9 +82,10 @@ test(`${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, 
 // ------------------------------------------------------------------ the report
 // Issues the play-through knows about and that wait on a decision (each with why); anything else fails it.
 const KNOWN = [
-  // home's design: Lou runs down the path to meet you and asks what you brought (src/story/home.js greet;
-  // tests/home-family.test.js); the "call you over, never start the talk" rule was asked for Nour
-  { world: 'home', kind: 'auto-talk', match: /^lou /, why: 'Lou runs to meet you at home (a design choice; see the report)' },
+  // home's design, intentional and kept (the author's decision, October 2026): Lou runs down the path to meet
+  // you and starts her homecoming talk herself, asking what you brought (src/story/home.js greet;
+  // tests/home-family.test.js). The "call you over, never start the talk" rule is for everyone else.
+  { world: 'home', kind: 'auto-talk', match: /^lou /, why: 'intentional: Lou runs to meet you at home and starts the homecoming talk herself (the author’s decision)' },
 ];
 test('the report: no soft-lock, no step without a target, nothing out of reach, nothing early', () => {
   const known = (i) => KNOWN.find((k) => k.world === i.world && k.kind === i.kind && k.match.test(i.text));

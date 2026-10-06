@@ -75,6 +75,11 @@ round walls, where the tangent of the interpolated normal had swept a column's m
 - **By distance**: the pen marks fade out at 0.03–0.075 m a pixel, the tone marks (grime, the chips'
   fill) at 0.1–0.28; the handheld (`uWearLite`, low detail or the light ink pass) keeps the grime and
   the chips' tone and edge, no cracks or lip shadows.
+- **In motion** ("Stable in motion", rendering.md): nothing is a hard step a camera moving by a fraction of a
+  pixel can flip. A grime streak keeps its tone (`WEATHER.grime.taper`: 20 % lighter at its foot, not 55 %) well
+  over post.js's colour-edge threshold, so its outline doesn't come and go along it, and a streak whose head is
+  under `minPx` (2.25 CSS px) wide, on a wall seen edge-on, is left out whole; a chip's fill edge is a pixel wide,
+  its lip's shadow fades out under 0.75–1.75 CSS px, a crack's shadow sliver is antialiased.
 - **On**: house fronts by default, the desert city's walls and terraces, the desert's adobe domes,
   the Signal Market's shops and blocks, home's dome house, the references' huts and houses; never on
   metal, glass, lights or the makers' work (their inscriptions).
@@ -99,7 +104,8 @@ to 40° from upright, in the walls' world-anchored frame (the weathering's: worl
   surface, tapering, leaning a little, wavering (one level, drawn coarser with distance).
 - **By distance** (`detailLod`): the marks are drawn at 1, 2, 4 or 8 × their size so they keep about
   their size on screen (cells never under ~80 px built, ~8 px between grain strokes), each level its
-  own pattern, the next level only cross-faded in over the last fifth of a level, gone past the fourth;
+  own pattern, the next level cross-faded in over the last half of a level (`DETAIL.blend`; over a fifth the
+  pattern swapped in a few frames riding past, "Stable in motion" in rendering.md), gone past the fourth;
   the fine level (bolts, small plates) only at the nearest. None past 260 m (grain 130 m), faded from
   0.7 of it, so far pixels pay nothing. No moiré: nothing is drawn finer than its cell can hold.
 - **One projection**: the wall's dominant axis (world x or z), not a blend of two: a round wall's

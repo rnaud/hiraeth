@@ -256,7 +256,7 @@ export function* buildPerdide2(scene) {
       const ry = rng() * 6;
       for (const g of [trunk, flare]) { g.rotateY(ry).translate(x, g0 - 0.5, z); g.deleteAttribute('uv'); }
       pick(Object.values(parts)).push(trunk.toNonIndexed(), flare.toNonIndexed());
-      coll.push(new THREE.CylinderGeometry(r * 0.9, r * 1.4, Ht, 6, 1, true).translate(x, g0 + Ht / 2 - 0.5, z));
+      coll.push(trunk.toNonIndexed(), flare.toNonIndexed());   // (as drawn: src/contact-audit.js)
       n++;
     }
     for (const [c, l] of Object.entries(parts)) {
@@ -285,11 +285,9 @@ export function* buildPerdide2(scene) {
       const c = key === 'stalk' ? stalkColor : key === 'under' ? (glow ? '#b5abe0' : '#9890c0') : (glow ? '#ddd6f6' : pick(['#c9c1ea', '#bdb4e2', '#d2cbef']));
       const k = `${c}|${glow ? 1 : 0}`;
       (shroomGeo[key][k] ??= []).push(g.toNonIndexed());
-      // coarse collision: same profile, fewer sides
-      const p = lathe(key === 'stalk' ? [parts.stalk[1], parts.stalk[4], parts.stalk[7]] : parts[key], 10);
-      p.rotateY(ry).rotateX(rx).rotateZ(rz).translate(x, g0 - sink, z);
-      p.deleteAttribute('uv');
-      proxies.push(p);
+      // collision: the drawn cap and stalk themselves (a ten-sided copy without the drawn one's waver sat up to a
+      // metre inside it: feet sank into the stepping caps, src/contact-audit.js)
+      proxies.push(g.toNonIndexed());
     }
     if (glow) lights.push(new THREE.Vector4(x, g0 + parts.topY * 0.85, z, s.capR * 1.6));
     return g0 - sink + parts.topY;
@@ -508,11 +506,7 @@ export function* buildPerdide2(scene) {
     g.computeVertexNormals();
     g.deleteAttribute('uv');
     pick(Object.values(rootParts)).push(g.index ? g.toNonIndexed() : g);
-    if (collide) {
-      const p = new THREE.TubeGeometry(curve, Math.max(8, tubular >> 2), r * 0.9, 6, false);
-      p.deleteAttribute('uv');
-      proxies.push(p);
-    }
+    if (collide) proxies.push(g.index ? g.toNonIndexed() : g.clone());   // (as drawn)
     void seed;
     return curve;
   };

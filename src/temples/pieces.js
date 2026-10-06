@@ -150,6 +150,8 @@ export class Door {
 }
 
 // ---------------------------------------------------------------------------------------- plates
+const PLATE_TOP = 0.17;   // m: a plate's disc top over the floor, up
+
 export class Plate {
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.r = o.r ?? 1.3;
@@ -164,6 +166,8 @@ export class Plate {
     this.group.add(this.disc);
     noCollide(this.group);
     this.k = 0;
+    // stood on, not stood in: its disc's top is a floor for the feet (a moving solid, level.dynamic), as it sinks
+    this.solid = { pos: this.pos, r: this.r, top: this.pos.y + PLATE_TOP, bottom: this.pos.y - 0.2, vel: V(), flat: true };
   }
   weighed(p) { return !!p && Math.hypot(p.pos.x - this.pos.x, p.pos.z - this.pos.z) < this.r + 0.2 && Math.abs(p.pos.y - this.pos.y) < 0.6 && (p.onGround || p.down); }
   update(dt) {
@@ -172,6 +176,7 @@ export class Plate {
     const down = L.pressed(this.id);
     this.k += ((down ? 1 : 0) - this.k) * Math.min(1, dt * 8);
     this.disc.position.y = -0.07 * this.k;
+    this.solid.top = this.pos.y + PLATE_TOP + this.disc.position.y;
     this.glow.uniforms.uGlow.value = 0.1 + 0.85 * this.k;
   }
 }
@@ -1084,9 +1089,10 @@ export class Platform {
     this.group.add(mesh([T(new THREE.CylinderGeometry(this.r, this.r * 0.85, th, 28), [0, -th / 2, 0])], M.floor));
     this.glow = own({ color: rt.P.glow ?? '#70e7df', glow: 0.5, flat: true });
     this.group.add(mesh([T(new THREE.TorusGeometry(this.r * 0.92, 0.07, 4, 40), [0, -th - 0.02, 0], [Math.PI / 2, 0, 0]), T(glyphGeometry(this.r * 0.9, 0.04).rotateX(-Math.PI / 2), [0, -th - 0.05, 0], [Math.PI, 0, 0])], this.glow));
-    this.group.add(mesh([T(new THREE.TorusGeometry(this.r - 0.1, 0.12, 5, 40), [0, 0.02, 0], [Math.PI / 2, 0, 0])], M.trimMat));
+    // the rim's band, flush with the top (a lip standing 14 cm proud of it swallowed the feet of whoever stood by the edge)
+    this.group.add(mesh([T(new THREE.TorusGeometry(this.r - 0.1, 0.12, 5, 40), [0, -0.1, 0], [Math.PI / 2, 0, 0])], M.trimMat));
     noCollide(this.group);
-    this.solid = { pos: V(), r: this.r, top: 0, bottom: 0, vel: V() };
+    this.solid = { pos: V(), r: this.r, top: 0, bottom: 0, vel: V(), flat: true };   // (flat: a level disc to its rim, src/contact-audit.js)
     // a closed path as a ping-pong: lengths of its legs
     this.legs = [];
     for (let i = 0; i < this.path.length - 1; i++) this.legs.push(this.path[i].distanceTo(this.path[i + 1]));

@@ -57,12 +57,19 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
 
 ## Errands and travel between worlds
 
-- **Errands:** in each world one villager asks you to carry something to
-  someone in the next world: a jar of singing sand, a taxi token, a feather,
-  a brass gear, a glass seed, a humming crystal. Greeting them hands you the
-  parcel, and the HUD shows what you're carrying. Greeting the receiver
-  delivers it and puts a sketch of them in the sketchbook (J, "Errands").
-  The errands are defined in `ERRANDS` in `levels/content.js`.
+- **Errands:** in six worlds one villager asks you to carry something to
+  someone in the next world on the route (`ORDER`), never back to one already
+  done: Pell's singing sand from the desert to Senn in Vael (who listens to
+  stones); Hollin's feather of the bird from Vael to the sky stones of Vael II;
+  Ivo's storm crystal from Lorn to Bram, who keeps Lorn II's skiff; Pim's brass
+  gear from Lorn II's domes to Mira's water clock in Viridel; Lio's glass seed
+  from Viridel to Nima in the City-Shaft; Lio's taxi token from the City-Shaft
+  to the Sealed Hangar. Greeting the giver hands you the parcel, and the HUD
+  shows what you're carrying and where it goes (the receiver's world now, even
+  for a parcel picked up before the errands were re-routed). Greeting the
+  receiver delivers it and puts a sketch of them in the sketchbook (J,
+  "Errands"). The errands are defined in `ERRANDS` in `levels/content.js`;
+  `tests/errands-route.test.js` keeps each one going to the next world.
 - **Travel between worlds** is by ship only (v0.38): the gates and the
   seamless edge crossings were removed. The edge of a world is a wall now
   (`player.opts.limit`).
@@ -409,7 +416,7 @@ sound to make it clear I should chat with her".
     frame keeps Pim's door from shutting: wake the moss lamp over it (shoot), then push the door
     shut. Stage `shut`. *Whose skiff?*: Fen asks you to bring the skiff home once: light the lamp
     on his berth post, step off on his landing and nudge the empty skiff in. Stage `home`.
-  - *Mira's water clock* (Viridel, `src/story/water-clock.js`): the Hangar's errand of a brass
+  - *Mira's water clock* (Viridel, `src/story/water-clock.js`): Lorn II's errand of a brass
     gear now ends on the clock: fit it (E), then fill its leaking bowl with three quick splashes
     so it tips and rings (quest `edena.clock`).
   - Left as they were, already hands-on: the bird's feathers and the stone hand, the cairn,

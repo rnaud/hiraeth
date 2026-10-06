@@ -134,6 +134,31 @@ test('mirror: no false moves or uploads (doubles floats cannot hold, interleaved
   assert.equal(R.ops('geometry').length, 1, 'until its buffer changes');
 });
 
+test('mirror: cloth sends its points alone, a new shape the whole geometry', () => {
+  const R = recorder();
+  const verts = [];
+  R.backend.vertices = (gid, pos, nrm, n) => verts.push([gid, n, Array.from(pos.slice(0, 3))]);
+  const geomOf = []; R.backend.geometryOf = (id, gid) => geomOf.push(gid);
+  const mirror = new SceneMirror(R.backend);
+  const scene = new THREE.Scene();
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 2, 2), makeMaterial({ color: '#c0402a', side: THREE.DoubleSide }));
+  scene.add(cloth);
+  mirror.sync(scene, null);
+  assert.equal(R.ops('geometry').length, 1);
+  const P = cloth.geometry.attributes.position;
+  P.setX(0, 5); P.needsUpdate = true; cloth.geometry.attributes.normal.needsUpdate = true;
+  mirror.sync(scene, null);
+  assert.equal(R.ops('geometry').length, 1, 'not sent whole again');
+  assert.deepEqual(verts.map((v) => v[1]), [9]);
+  assert.equal(verts[0][2][0], 5);
+  assert.equal(geomOf.length, 0, 'the node keeps its mesh');
+  // a new index: the whole geometry, and the node told
+  cloth.geometry.setIndex([0, 1, 2]);
+  mirror.sync(scene, null);
+  assert.equal(R.ops('geometry').length, 2);
+  assert.equal(geomOf.length, 1);
+});
+
 test('mirror: instanced meshes send their instances when they change', () => {
   const R = recorder();
   const mirror = new SceneMirror(R.backend);

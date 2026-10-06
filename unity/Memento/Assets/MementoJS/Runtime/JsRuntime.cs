@@ -13,6 +13,7 @@ namespace Memento.Bridge
     {
         static Type envType, bufferType;
         static FieldInfo bytesField, countField;
+        static Type boxType; static MethodInfo boxGet; static readonly object[] boxKey = { "b" };
         static MethodInfo eval, tick, dispose;
         readonly object env;
 
@@ -49,13 +50,21 @@ namespace Memento.Bridge
             if (buffer == null) return null;
             if (buffer is byte[] b) { count = b.Length; return b; }
             Find();
+            // (an IL2CPP player hands a JS object over as a ScriptObject: the script boxes its buffers as { b },
+            // BridgeHost.BoxBuffers, and the buffer is read out of it as Puerts' ArrayBuffer)
+            if (bufferType != null && !bufferType.IsInstanceOfType(buffer))
+            {
+                var t = buffer.GetType();
+                if (t != boxType) { boxType = t; boxGet = t.GetMethods().FirstOrDefault(m => m.Name == "Get" && m.IsGenericMethodDefinition && m.GetParameters().Length == 1)?.MakeGenericMethod(bufferType); }
+                if (boxGet != null) buffer = boxGet.Invoke(buffer, boxKey);
+            }
             if (bufferType != null && bufferType.IsInstanceOfType(buffer))
             {
                 var bytes = (byte[])bytesField.GetValue(buffer);
                 count = countField != null ? (int)countField.GetValue(buffer) : bytes?.Length ?? 0;
                 return bytes;
             }
-            throw new ArgumentException($"not an ArrayBuffer: {buffer.GetType()}");
+            throw new ArgumentException($"not an ArrayBuffer: {buffer?.GetType()}");
         }
 
         /// <summary>Bytes as a JS ArrayBuffer (returned as object: Puerts makes it one).</summary>

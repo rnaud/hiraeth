@@ -211,7 +211,8 @@ function exterior(scene, level, rt) {
   const ink = { paint: new THREE.Color(PALETTE.dark), smooth: false, side: THREE.FrontSide };
   // a stone apron in the water, a tall tapering tower, a gallery, a glass lamp-room and a cap
   K.both(M.floor, new THREE.CylinderGeometry(R + 6, R + 7, door, 32).translate(0, door / 2, 0));
-  K.both(M.wall, lathe([[R + 1.2, door], [R, door + 4], [R - 2.2, door + 40], [R - 1.6, door + 41], [R - 1.6, door + 42]], 32), new THREE.CylinderGeometry(R - 2.2, R, 38, 16).translate(0, door + 21, 0));
+  // (the lathe itself collides: a straight cylinder inside it let a climber into its flared foot and crown, src/contact-audit.js)
+  K.both(M.wall, lathe([[R + 1.2, door], [R, door + 4], [R - 2.2, door + 40], [R - 1.6, door + 41], [R - 1.6, door + 42]], 32));
   for (let y = door + 8; y < door + 40; y += 8) K.add(M.trim, new THREE.CylinderGeometry(R - 2.2 + (1 - (y - door) / 40) * 2.2 + 0.3, R - 2.2 + (1 - (y - door) / 40) * 2.2 + 0.3, 0.6, 32).translate(0, y, 0));
   K.both(M.floor, T(annulus(R - 3, R + 1.5, 0.6, 32), [0, door + 42.6, 0]));
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; K.both(M.trim, T(new THREE.BoxGeometry(0.5, 7, 0.5), [Math.sin(a) * (R - 2.6), door + 46, Math.cos(a) * (R - 2.6)])); }

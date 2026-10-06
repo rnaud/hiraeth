@@ -20,3 +20,7 @@ globalThis.__MEMENTO_HOST__ = {
 };
 
 export const host = H;
+
+/** A buffer as the C# side takes it: as is, or boxed ({ b }) where Puerts hands objects over as ScriptObjects (IL2CPP players). */
+const boxed = !!H?.BoxBuffers?.();
+export const toHost = boxed ? (b) => ({ b }) : (b) => b;

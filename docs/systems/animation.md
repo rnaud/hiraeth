@@ -100,9 +100,16 @@ carry no finger tracks, so every hand used to hang in the T-pose's flat, straigh
   people within `HANDS.near` m of the camera (`nearLow` on the Handheld preset; `npcHands`), their tone
   from their talking face (`talkOf`). Further off the hands keep their last pose. The studio drives
   them from its own state.
+- **The wrists** (`Humanoid.update`, `Humanoid.turnHand`): the retarget poses each hand at its rest
+  turn on the forearm every frame (`wristOf`); a clip then sets the wrist (`poseHands`), aiming turns it
+  along the line of fire, and the glide's spread arms (`Player.spreadArms`) turn it with `turnHand`:
+  fingers on along the forearm, palms down, the thumb's edge a little up, blended in and out with the
+  wings. The hand bone used to keep its local turn from the last frame, and the arms' IK (which keeps
+  a hand's world turn) fed the forearm's change back into it: gliding, the hands spun about 10° a
+  frame.
 - `tests/hands.test.js`: the bones and the relaxed arc on a real body, the fist and the thumb, every
   pose / tone / prop covered, the pose per context, the blend, the easing, the drift and the lag, the
-  game's contexts and who is driven.
+  game's contexts and who is driven, and the glide's hands holding still, palms down, through a turn.
 
 ## Locomotion: feet on the ground, starts, stops and turns (`src/feet.js`, `src/locomotion.js`)
 

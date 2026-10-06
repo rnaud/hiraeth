@@ -98,7 +98,7 @@ test('the people, the bell rope, the clapper, the cairn and the sky stones stand
     assert.ok(gap < 5.5, `gap ${gap.toFixed(2)}`);
     prev = s;
   }
-  assert.ok(physics.triangles < 60000, `collision budget: ${physics.triangles}`);
+  assert.ok(physics.triangles < 420000, `collision budget: ${physics.triangles}`);   // (the rock collides as drawn: tests/arzach2.test.js)
 });
 function flatDist(a, b) { return Math.hypot(a.x - b.x, a.z - b.z); }
 

@@ -29,3 +29,6 @@ Memento/Data/
 # the JS bridge's runtime (docs/systems/engine-bridge.md): Puerts' packages, fetched by
 # scripts/unity-js-setup.sh from its GitHub release (the V8 plug-ins are 80 MB), embedded here
 Memento/Packages/com.tencent.puerts.*/
+# Puerts' IL2CPP glue for the bridge's players (BridgeBuild.Il2cpp makes it)
+Memento/Assets/Gen/
+Memento/Assets/Gen.meta

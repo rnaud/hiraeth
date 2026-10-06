@@ -93,8 +93,8 @@ test('the swamp’s people and places stand on walkable or wadeable ground', () 
     const [x, z] = Array.isArray(s) ? s : [s.at[0], s.at[2]];
     assert.ok(terrain.heightAt(x, z) > -0.5, `relic at ${x},${z} is above the water`);
   }
-  // the errands still find their people: the egg-warden takes the seed, Ivo gives the crystal
-  assert.equal(ERRANDS.find((e) => e.id === 'seed').to[1], 0);
+  // the errands still find their people: Ivo gives the crystal (on to Lorn II)
+  assert.deepEqual(ERRANDS.find((e) => e.id === 'crystal').to, ['perdide2', 2]);
   assert.equal(ERRANDS.find((e) => e.id === 'crystal').from[1], 2);
 });
 
