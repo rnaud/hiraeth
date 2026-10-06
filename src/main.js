@@ -22,7 +22,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
-import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel } from './perf.js';
+import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel, cacheUniformArrays } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -96,6 +96,7 @@ THREE.ColorManagement.enabled = false;
 
 // ------------------------------------------------------------------ renderer
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+cacheUniformArrays(renderer.getContext());   // (the light list and the palettes not sent again unchanged at every material: perf.js)
 const pixelRatio = Math.min(window.devicePixelRatio, 2);
 renderer.setPixelRatio(pixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1140,6 +1141,7 @@ function renderFrame() {
   U.uProj11.value = camera.projectionMatrix.elements[5];
   // Projected player size controls how much fine ink detail remains visible.
   setSubject(U, camera, player.pos, player.frame?.up ?? _subjUp, player.hidden);
+  post.bakeNoise(renderer);   // (the screen-fixed noise, once per size: post.js)
   renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);

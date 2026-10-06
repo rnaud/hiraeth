@@ -1,6 +1,8 @@
 # The Unity port and the benchmark
 
-The desert in Unity (a proof of concept) and the web-against-Unity benchmark.
+The desert in Unity (a proof of concept) and the web-against-Unity benchmark. (The other way to
+Unity, the web game's own JavaScript run in Unity by Puerts and drawn through this port's look:
+docs/systems/engine-bridge.md, `unity/Memento/Assets/MementoJS/`.)
 
 ## The desert in Unity (a proof of concept)
 `unity/Memento` is a Unity 6 (URP) port of the desert, built from this game rather than

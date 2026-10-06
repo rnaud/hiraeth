@@ -348,3 +348,99 @@ To measure: two or more builds side by side, each its own page, the idle ones he
 `requestAnimationFrame` deferred) and the views timed in turns, so the machine's noise falls on all
 of them alike: the A/B scripts of this pass (`pair.mjs`, `compare.mjs`) live in the agent's
 scratchpad; the same approach as `scripts/bench/passes.mjs`' toggles, across builds.
+
+## Every world at Retina size: baked screen noise, uniform arrays sent once (October 2026)
+
+A pass over all twelve worlds and the ship, at each world's start, its two densest knots of people
+and a wide view, on High and Handheld, at 1280 × 720 and at 1728 × 1117 CSS px with DPR 2. What a
+Retina frame costs (in-page toggles, each timed between two base runs): the ink composite 5-9 ms of
+13-17 (crease shading alone 1.6-3.4 ms in every world, the screen-fixed noise 1-2 ms, the paper,
+the two ink kernels, the spot blacks, the sky about 0.5-1.5 ms each), the G-buffer 3-5 ms, FXAA
+about 1 ms, the shadow maps under 1 ms of GPU; crowds, people and plants a few tenths. At 1280 × 720
+the GPU and the CPU are about even (5-10 ms each), and the CPU is mostly three.js's draw loop.
+
+- **The screen-fixed noise, baked** (`post.js` `SCREEN_NOISE`, `createPost().bakeNoise`): the ink
+  lines' wobble (two value-noise lookups), their pressure and inner weight (two) and the paper's
+  fibre, tooth and pits (six) depend only on the pixel and the frame's size, yet were worked out for
+  every pixel of every frame. They are drawn once per size into two half-float textures (the lines',
+  RGBA; the paper's, RG) and read back with a `texelFetch` each. Where the bake doesn't match the
+  frame (`noiseKey`: size, pixel ratio, the handheld's lighter paper; a portrait drawn at another
+  pixel ratio, a page that doesn't bake: the studio) or the lines boil (`uBoil`), the composite works
+  them out as before. 1.0-1.9 ms less a frame at Retina size, 0.3-0.4 ms at 1080p; the picture the
+  same but for ~0.01 % of pixels (single pixels where a paper pit or a wobble lands the other way:
+  the hash behind the noise is chaotic, and two programs computing it round differently). Costs
+  12 bytes a pixel of GPU memory (77 MB at 3456 × 2234, 14 MB on the Retroid).
+- **Crease shading's grass test** only for a tap that would close something in (`creaseAO`):
+  0.5-0.8 ms at Retina size, the same picture (max 1/255 off).
+- **Uniform arrays sent once** (`perf.js` `cacheUniformArrays`): three.js keeps a single uniform's
+  value per program but not an array's, so every material switch sent the light list (`uLights`)
+  and the material's palette (`uPalette`) again, unchanged: 220-290 redundant GL calls a frame in
+  busy worlds, each a round through Chrome's GPU process and ANGLE. The context's array uploads now
+  skip values a location already has. The frame's CPU time (natural loop, small render scale) in
+  the Garden of Spheres' crowd 13-15 → 8-11 ms, at Home 12.7 → 11.3 ms; the same picture.
+- **The sand drifts' height** (`sand-drifts.js` `polyEdges`, `edgeDistance`): asked hundreds of
+  times a frame (the wind's wisps follow the ground), its distance to each footprint now from edges
+  worked out once (no `Math.hypot` and divisions per edge, the corner test squared): 0.68 → 0.34 ms
+  of CPU a frame in Qanat's streets, the same field.
+- **Tried, no gain:** crease shading's taps placed with the affine view ray (the same cost), its
+  depth from a separate one-channel copy (the copy costs more than the taps save). Crease shading's
+  cost is its random rotation per pixel: with one fixed rotation it costs a millisecond less (the
+  taps hit the texture cache), but that is its pattern, so it stays.
+- **Tests:** `tests/screen-noise.test.js` (baked once per size, ratio and mode, the target put back;
+  read only when it matches; no screen noise left in `main()`; the bake and the composite share the
+  noise code), `tests/uniform-arrays.test.js`, `tests/sand-drifts.test.js` (the fast distance and
+  drift equal the old ones).
+
+Before (main, a3663e8) → after, synced frame time in ms (each `renderFrame()` of 10, closed by a
+`readPixels`; the two builds side by side, each view timed in turns, median of 6). The machine was
+shared with other agents' GPU work all along (load average 12-75), so the absolute values run 1.2-1.8×
+what an idle Mac gives; the pairs are what to read. Means over all views: High at Retina size 22.6 →
+19.6 ms (-13 %), High at 1280 × 720 10.6 → 9.8 ms (-7 %), Handheld at Retina size 8.8 → 8.2 ms
+(-8 %), Handheld at 1280 × 720 5.2 → 5.2 ms (bound by neither change on this Mac).
+
+High, 1728 × 1117 at DPR 2 (3456 × 2234):
+
+| world | start | busiest knot | second knot | wide | others |
+|---|---|---|---|---|---|
+| Desert | 19.0 → 16.4 | 21.3 → 19.5 | 25.2 → 21.1 | 19.5 → 16.1 | Qanat's street 27.5 → 24.5, in the ship 20.0 → 16.7 |
+| City-Shaft | 27.3 → 24.4 | 23.6 → 20.9 | 20.5 → 18.3 | 23.6 → 22.1 |  |
+| Signal Market | 27.1 → 22.4 | 42.0 → 32.3 | 24.4 → 19.8 | 22.5 → 19.7 |  |
+| Vael | 24.4 → 19.8 | 20.4 → 19.7 | 21.9 → 19.8 | 21.5 → 18.6 |  |
+| Vael II | 16.8 → 15.1 | 16.1 → 15.8 | 15.2 → 13.6 | 15.1 → 13.7 |  |
+| Lorn | 26.4 → 22.6 | 20.8 → 18.6 | 22.1 → 19.8 | 20.1 → 18.9 |  |
+| Lorn II | 34.5 → 29.3 | 28.4 → 25.6 | 28.8 → 23.9 | 28.5 → 25.5 |  |
+| Viridel | 23.8 → 21.2 | 24.7 → 19.5 | 23.1 → 19.3 | 21.4 → 17.8 |  |
+| Sealed Hangar | 24.0 → 21.1 | 21.5 → 19.8 | 13.6 → 11.9 | 14.2 → 13.2 |  |
+| Buried Machine | 23.0 → 16.2 | 23.9 → 20.7 | 22.7 → 19.7 | 22.4 → 19.4 |  |
+| Garden of Spheres | 22.0 → 18.4 | 20.8 → 19.1 | 20.5 → 18.4 | 21.3 → 17.9 |  |
+| Home | 20.4 → 18.3 | 19.8 → 17.7 | – | 19.9 → 18.2 |  |
+
+High, 1280 × 720 (1920 × 1080):
+
+| world | start | busiest knot | second knot | wide | others |
+|---|---|---|---|---|---|
+| Desert | 8.3 → 7.3 | 8.3 → 7.6 | 7.5 → 7.9 | 6.4 → 5.8 | Qanat's street 8.8 → 8.0, in the ship 7.8 → 7.2 |
+| City-Shaft | 11.7 → 11.4 | 13.3 → 13.0 | 11.8 → 10.3 | 14.9 → 13.9 |  |
+| Signal Market | 10.9 → 10.5 | 11.5 → 10.4 | 5.5 → 5.8 | 4.9 → 4.9 |  |
+| Vael | 11.5 → 10.7 | 11.8 → 10.3 | 12.5 → 11.2 | 13.4 → 11.7 |  |
+| Vael II | 12.0 → 11.4 | 12.3 → 11.2 | 12.9 → 11.8 | 13.3 → 12.0 |  |
+| Lorn | 10.7 → 10.3 | 11.1 → 10.2 | 12.3 → 11.3 | 10.6 → 10.6 |  |
+| Lorn II | 14.3 → 13.3 | 13.5 → 12.7 | 6.4 → 5.9 | 6.7 → 6.4 |  |
+| Viridel | 11.3 → 10.8 | 10.9 → 10.2 | 10.4 → 9.4 | 9.6 → 9.2 |  |
+| Sealed Hangar | 10.9 → 9.8 | 10.3 → 9.3 | 9.5 → 8.5 | 10.1 → 9.3 |  |
+| Buried Machine | 5.8 → 5.5 | 6.0 → 5.9 | 6.8 → 6.8 | 8.6 → 7.9 |  |
+| Garden of Spheres | 10.5 → 10.0 | 6.3 → 5.9 | 6.5 → 5.9 | 6.6 → 6.6 |  |
+| Home | 9.1 → 8.8 | 7.2 → 7.0 | – | 11.0 → 9.4 |  |
+
+The steadier measure, in one page with the world held: the final build against itself with the bake,
+the uniform cache and the crease test undone in the page (the screen noise worked out per pixel,
+every array sent, every crease tap's flags read), at every view above on High at Retina size: 1.4-3.5
+ms a frame (median 2.2) in every world, the pictures differing on 0.001-0.017 % of pixels.
+
+(Home has one knot of people; the ship is the desert's, from its hatch toward the cockpit.) On
+Handheld the rows move by under a millisecond either way at 1280 × 720 (960 × 540 is quick on an M4
+Pro whatever is drawn) and gain 0.3-1.4 ms at Retina size; the Retroid itself wasn't measured (the
+bake takes about seven value-noise lookups a pixel off its lighter paper). The scripts behind these
+numbers (`ab.mjs`: in-page experiments as page snippets and shader patches, picture diffs with the
+world held; `world.mjs`: builds side by side; `cpuprof.mjs`: the V8 profile of the game loop) live
+in the agent's scratchpad, after `scripts/bench/passes.mjs`.

@@ -31,7 +31,7 @@ test('the spot taps are the directions the shader used to work out per pixel', (
   assert.match(glslVec2s('X', [[1, -0.5]]), /^const vec2 X\[1\] = vec2\[1\]\(vec2\(1\.0000000, -0\.5000000\)\);$/);
 });
 
-test('no branch, cos or sin inside the occlusion loops', () => {
+test('no skip (continue / break), cos or sin inside the occlusion loops', () => {
   for (const name of ['enclosure', 'creaseAO']) {
     const b = body(name);
     assert.ok(!/\bcontinue\b|\bbreak\b/.test(b), `${name}: a tap that doesn't count weighs 0, it isn't skipped`);
@@ -41,6 +41,9 @@ test('no branch, cos or sin inside the occlusion loops', () => {
   assert.ok(!/viewPos\(suv/.test(enc), 'the tap positions from the affine ray');
   const ao = body('creaseAO');
   assert.equal((ao.match(/\bcos\(/g) ?? []).length, 2, 'crease shading: one turn per pixel (and the spiral\'s own constant steps)');
+  // the surface flags (is the tap on a grass blade?) only read for a tap that would close something in
+  assert.match(ao, /if \(c > 0\.0\) c \*= step\(mod\(texture\(tHatch, suv\)\.a, 16\.0\), 7\.5\);/);
+  assert.equal((ao.match(/texture\(tHatch/g) ?? []).length, 1);
 });
 
 test('the view ray is affine in uv, so a tap can be placed without the inverse projection', () => {

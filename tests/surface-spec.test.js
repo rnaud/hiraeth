@@ -61,9 +61,10 @@ test('surface shader: each option turns on its feature, and every feature is gua
   assert.deepEqual(D({ mode: MODE_RIBBON }), ['S_RIBBON']);
   assert.deepEqual(D({ mode: MODE_WATER }), ['S_WATERMODE']);
   assert.deepEqual(D({ pattern: 'cracks' }), ['S_CRACKS']);
-  assert.deepEqual(D({ pattern: 'facade' }), ['S_DETAIL', 'S_FACADE', 'S_WEATHER'], 'house fronts are weathered and pen-detailed by default');
+  assert.deepEqual(D({ pattern: 'facade' }), ['S_DETAIL', 'S_FACADE', 'S_PATCH', 'S_WEATHER'], 'house fronts are weathered, pen-detailed and patched by default');
   assert.deepEqual(D({ pattern: 'facade', weathered: false }), ['S_FACADE']);
-  assert.deepEqual(D({ mode: MODE_STRATA, weathered: true }), ['S_DETAIL', 'S_STRATA', 'S_WEATHER']);
+  assert.deepEqual(D({ mode: MODE_STRATA, weathered: true }), ['S_DETAIL', 'S_PATCH', 'S_STRATA', 'S_WEATHER']);
+  assert.deepEqual(D({ form: true }), ['S_FORM'], 'hatching that follows the form');
   assert.deepEqual(D({ detail: 'organic' }), ['S_DETAIL'], 'bark, stalks, rock: grain strokes');
   assert.deepEqual(D({ pattern: 'facade', detail: 0 }), ['S_FACADE', 'S_WEATHER'], 'a material may say none');
   assert.deepEqual(D({ mode: MODE_STRATA, weathered: true, glyphs: true }), ['S_GLYPHS', 'S_STRATA'], "the makers' work stays new");

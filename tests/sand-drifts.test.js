@@ -94,3 +94,40 @@ test('a world built its own way: every collided mesh in the scene, its hidden co
   assert.equal(d.sources.length, 3, 'the hut, and the merged two; not the render copy');
   assert.ok(d.fieldAt(17.9, 0) > 0 && d.fieldAt(0, 0) === 0, 'at the hut where it stands');
 });
+
+test('the field\'s fast distance (polyEdges / edgeDistance) and corner test give what polyDistance and hypot gave', async () => {
+  const { polyEdges, edgeDistance } = await import('../src/sand-drifts.js');
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const d = new SandDrifts({ heightAt: flat, wind: [0.8, 0.6], seed: 3, opts: { corner: 0.6 } });
+  for (let k = 0; k < 12; k++) {
+    const cx = (rnd() - 0.5) * 80, cz = (rnd() - 0.5) * 80, r = 1 + rnd() * 6;
+    d.addFootprint(Array.from({ length: 3 + Math.floor(rnd() * 20) }, () => [cx + (rnd() - 0.5) * r * 2, cz + (rnd() - 0.5) * r * 2]), { rise: 0.6 + rnd() });
+  }
+  d.addCircle(5, -8, 7);
+  // the field as it was worked out before (polyDistance, hypot per corner)
+  const before = (s, x, z) => {
+    if (Math.abs(x - s.cx) > s.R + s.reach || Math.abs(z - s.cz) > s.R + s.reach) return 0;
+    const { d: dd, nx, nz } = polyDistance(s.poly, x, z);
+    let rise = d.riseAt(nx, nz, x, z, s.k), boost = 1;
+    const w = rise * d.o.reach * 1.4;
+    for (const [px, pz] of s.corners) { const c = Math.hypot(x - px, z - pz); if (c < w * 1.6) boost = Math.max(boost, 1 + (d.o.big - 1) * Math.exp(-(c * c) / (w * w))); }
+    rise *= boost;
+    const reach = rise * d.o.reach;
+    if (dd <= 0) return dd > -2 * d.o.inside ? rise : 0;
+    if (dd >= reach) return 0;
+    const u = 1 - dd / reach;
+    return rise * u * u;
+  };
+  let some = 0;
+  for (let i = 0; i < 4000; i++) {
+    const x = (rnd() - 0.5) * 100, z = (rnd() - 0.5) * 100;
+    for (const s of d.sources) {
+      const a = polyDistance(s.poly, x, z), b = edgeDistance(s.edges ?? polyEdges(s.poly), x, z);
+      assert.ok(Math.abs(a.d - b.d) < 1e-9 && Math.abs(a.nx - b.nx) < 1e-9 && Math.abs(a.nz - b.nz) < 1e-9, `distance at ${x}, ${z}`);
+      const v0 = before(s, x, z), v1 = d.driftOf(s, x, z);
+      assert.ok(Math.abs(v0 - v1) < 1e-9, `drift at ${x}, ${z}: ${v0} vs ${v1}`);
+      if (v0 > 0) some++;
+    }
+  }
+  assert.ok(some > 100, 'the points reach some drifts');
+});

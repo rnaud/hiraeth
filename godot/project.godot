@@ -1,0 +1,151 @@
+; Memento drawn by Godot, the game itself running in GodotJS (docs/systems/engine-bridge.md).
+; The scripts in js/ are built from the web game: node scripts/engine-bundle.mjs
+config_version=5
+
+[application]
+config/name="Memento (GodotJS)"
+run/main_scene="res://main.tscn"
+
+[audio]
+driver/driver="Dummy"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[GodotJS]
+runtime/debugger/debugger_port=6299
+
+[rendering]
+renderer/rendering_method="forward_plus"
+
+[shader_globals]
+
+g_bones={
+"type": "sampler2D",
+"value": ""
+}
+g_shadow_tint={
+"type": "vec3",
+"value": Vector3(0.62, 0.64, 0.78)
+}
+g_light_tint={
+"type": "vec3",
+"value": Vector3(1, 1, 1)
+}
+g_ink={
+"type": "vec3",
+"value": Vector3(0.17, 0.13, 0.12)
+}
+g_sky_top={
+"type": "vec3",
+"value": Vector3(0.45, 0.66, 0.82)
+}
+g_sky_horizon={
+"type": "vec3",
+"value": Vector3(0.93, 0.86, 0.72)
+}
+g_haze={
+"type": "vec4",
+"value": Vector4(1, 1, 1, 0)
+}
+g_env_ground={
+"type": "vec3",
+"value": Vector3(0.86, 0.72, 0.52)
+}
+g_sun_dir={
+"type": "vec3",
+"value": Vector3(0.5, 0.6, 0.3)
+}
+g_sun_disc={
+"type": "vec3",
+"value": Vector3(0.5, 0.6, 0.3)
+}
+g_toon={
+"type": "float",
+"value": 0.5
+}
+g_hatch={
+"type": "float",
+"value": 1
+}
+g_hatch_spacing={
+"type": "float",
+"value": 5.5
+}
+g_halftone={
+"type": "float",
+"value": 0
+}
+g_bounce={
+"type": "float",
+"value": 0
+}
+g_shade_keep={
+"type": "float",
+"value": 0
+}
+g_night={
+"type": "float",
+"value": 0
+}
+g_fog_density={
+"type": "float",
+"value": 0.0011
+}
+g_fog_start={
+"type": "float",
+"value": 0
+}
+g_fog_mul={
+"type": "float",
+"value": 1
+}
+g_aerial={
+"type": "float",
+"value": 0
+}
+g_line_width={
+"type": "float",
+"value": 1
+}
+g_line_vary={
+"type": "float",
+"value": 1
+}
+g_depth_thresh={
+"type": "float",
+"value": 0.07
+}
+g_normal_thresh={
+"type": "float",
+"value": 0.22
+}
+g_albedo_edges={
+"type": "float",
+"value": 1
+}
+g_shadow_edges={
+"type": "float",
+"value": 1
+}
+g_wobble={
+"type": "float",
+"value": 1
+}
+g_sky_flat={
+"type": "float",
+"value": 0
+}
+g_sky_bands={
+"type": "float",
+"value": 0
+}
+g_haze_bands={
+"type": "float",
+"value": 0
+}
+g_flatten={
+"type": "float",
+"value": 0
+}
