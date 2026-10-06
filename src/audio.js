@@ -12,6 +12,7 @@
 import { bindVoice, languageOf } from './story/voice.js';
 import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
 import { playVoice, playColour, hit } from './score-voices.js';
+import { audioGuard } from './audio-guard.js';
 
 // Bako's ney solo (AudioEngine.solo): three breaths in a hijaz mode, [semitones from the tonic, seconds].
 // (0 D, 1 E♭, 4 F♯, 5 G, 7 A, 8 B♭, 10 C) The augmented second (1 -> 4) and the slow falls back to the tonic
@@ -182,10 +183,15 @@ export class Sound {
     const key = (e) => { if (e.code === 'KeyM') this.toggleMute(); else start(); };
     window.addEventListener('pointerdown', start, { once: false });
     window.addEventListener('keydown', key);
-    this._unlisten = () => { window.removeEventListener('pointerdown', start); window.removeEventListener('keydown', key); };
+    // silent while the app is away (asleep, home, recents) or the page hidden: src/audio-guard.js
+    // suspends the context and blocks every resume; the master gain goes to 0 as well
+    this.guard = audioGuard(window);
+    const off = this.guard.on((away) => this._away(away));
+    this._unlisten = () => { window.removeEventListener('pointerdown', start); window.removeEventListener('keydown', key); off(); };
     // Each world is a new page: without this, a landing (or anything before your first
-    // press) would play in silence. Start now wherever sound is allowed without a press.
-    if (Sound.mayStart(window)) this.start();
+    // press) would play in silence. Start now wherever sound is allowed without a press
+    // (a world that loads while the app is away: on return, and asked then).
+    this.guard.whenBack(() => { if (!this._disposed && Sound.mayStart(window)) this.start(); });
   }
 
   /**
@@ -204,13 +210,30 @@ export class Sound {
     } catch { return false; }
   }
 
+  /** The master level now: 0 when muted, or while the game is away. */
+  masterLevel() { return this.muted || this.guard?.away() ? 0 : 0.9; }
+
+  /** The guard's change: hush the master at once when away, bring it back softly on return. */
+  _away(away) {
+    if (!this.master) return;
+    const g = this.master.gain, t = this.ctx.currentTime;
+    g.cancelScheduledValues(t);
+    if (away) g.setValueAtTime(0, t);
+    else g.setTargetAtTime(this.masterLevel(), t, 0.15);
+  }
+
   start() {
+    // nothing starts or resumes while away (a press, a pad reconnecting, the frame loop): on return instead
+    if (this.guard?.away()) {
+      if (!this._startLater) { this._startLater = true; this.guard.whenBack(() => { this._startLater = false; if (!this._disposed) this.start(); }); }
+      return;
+    }
     if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     const ctx = (this.ctx = new AC());
     this.master = ctx.createGain();
-    this.master.gain.value = this.muted ? 0 : 0.9;
+    this.master.gain.value = this.masterLevel();
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18;
     this.master.connect(comp).connect(ctx.destination);
@@ -342,6 +365,7 @@ export class Sound {
   /** Stop for good (the title screen's sound, handing over to the game's): fade out, then close. */
   dispose() {
     this._unlisten?.();
+    this._disposed = true;
     clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop);
     this.scheduler = this.menuTimer = null;
     const ctx = this.ctx;
@@ -366,7 +390,7 @@ export class Sound {
   toggleMute() {
     this.muted = !this.muted;
     localStorage.setItem('moebius.muted', this.muted ? '1' : '0');
-    if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : 0.9, this.ctx.currentTime, 0.1);
+    if (this.master) this.master.gain.setTargetAtTime(this.masterLevel(), this.ctx.currentTime, 0.1);
   }
 
   setVolumes(music, fx) {

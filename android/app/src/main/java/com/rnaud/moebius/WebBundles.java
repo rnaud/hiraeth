@@ -84,7 +84,7 @@ final class WebBundles {
 
     /** The native bridge's level. Bump it whenever the Java side changes in a way the web side relies on
      *  (GamepadBridge, AppShellPlugin, the events below): web bundles built after that need this APK. */
-    static final int NATIVE_API = 6;   // 6: the game in GeckoView (MainActivity; the WebView where it can't run), AppShell.info's engine; 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
+    static final int NATIVE_API = 7;   // 7: silent while away (the tab muted by GeckoView, the pause answered before the session deactivates, onStop and screen off too, the WebView's timers paused); 6: the game in GeckoView (MainActivity; the WebView where it can't run), AppShell.info's engine; 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
     /** The oldest bridge the web game needs (web.json's minNative, scripts/release-info.mjs). Raise it to NATIVE_API
      *  when the web side starts relying on a bridge change; a Java-only change (like 5) leaves it, so older apps keep
      *  taking the game's updates while the APK offer (latest.json's native) brings them the new app. */

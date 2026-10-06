@@ -5,6 +5,7 @@ import { registerTarget } from '../targets.js';
 import { Flames } from './flames.js';
 import { ownMaterial } from './puffs.js';
 import { game as sharedGame } from '../game-state.js';
+import { audioAway } from '../audio-guard.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, CAIRN_STONES } from './arzach2-data.js';
 
 // Vael II's story, alive (arzach2-data.js has the words): "The Bell Under the Cloud".
@@ -41,7 +42,7 @@ const STONES_DOWN = 6;      // m the floating stones come down
 let noteSound = null, ownCtx = null, lastNote = -1;
 export function playBellNote({ vol = 0.07, f = 164.8 } = {}) {
   try {
-    if (globalThis.localStorage?.getItem('moebius.muted') === '1') return false;
+    if (globalThis.localStorage?.getItem('moebius.muted') === '1' || audioAway()) return false;
     if (noteSound?.ctx) { noteSound.instrument?.('bell', f, noteSound.ctx.currentTime + 0.05, 2, vol * 1.4, noteSound.fx); return true; }
     const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
     if (!AC) return false;

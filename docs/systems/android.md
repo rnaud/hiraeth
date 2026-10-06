@@ -57,6 +57,7 @@ the game in its own engine, GeckoView, and in the system WebView only where that
 - **Pause and resume:** leaving the app (home, recents, power) releases the
   controls, stops the sound and pauses the page. Coming back restores fullscreen
   and the sound. On a handheld the sound starts with the first controller input.
+  (How it stays silent since NATIVE_API 7: "Silent while away" below.)
 - **Testing a debug build:** `adb shell am start -n com.rnaud.moebius/.MainActivity
   --es webManifest <url>`. Debug builds otherwise skip over-the-air updates.
 
@@ -127,6 +128,37 @@ does better still, but the app can't use it.
   server) and has GeckoView's remote debugging on (Firefox's protocol, not DevTools). The bench's
   harness drives the page itself instead (`scripts/bench/gecko-bridge.mjs`).
 - Tests: `tests/android-gecko.test.js`, `tests/native-app.test.js`, `tests/android-ota.test.js`.
+
+### Silent while away (NATIVE_API 7)
+The bug: on the Retroid the music went on with the screen off. GeckoView deliberately keeps a page
+that plays Web Audio running in the background (Gecko's `BrowsingContext::InactiveForSuspend`: a
+running AudioContext is an "awake request", and `dom.suspend_inactive.enabled`, on by default on
+Android, then leaves the page alone). So only the page could stop it, and it did so only in a world
+that had finished loading (`installAppShell`, near the end of `main.js`): the title screen's sound,
+a world still loading (12 s and more on the handheld) and the bell's own AudioContext in Vael II
+were never suspended. And the session was deactivated before `moebius:pause` was even sent.
+- **The page** (`src/audio-guard.js`, installed first in `src/boot.js` and by every `Sound`): one
+  guard per page. Away = `moebius:pause` until `moebius:resume` (`window.__moebiusAway` for a page
+  that starts while away), or the page hidden or frozen (in a browser too: a hidden tab is silent).
+  It wraps the page's `AudioContext`, so every context is registered; going away suspends them all,
+  `resume()` does nothing while away (it resumes on return instead), a context made while away is
+  suspended at once. `Sound.start()` (a press, `nativepadconnected` from the pad's reset or a
+  reconnect, the frame loop) is deferred until return, and the master gain goes to 0 as well. Once
+  every context is suspended, Gecko suspends the page itself (timers stop too).
+- **GeckoView** (`MainActivity.goAway` / `comeBack`): `onPause`, `onStop` and the screen-off
+  broadcast all go away, once. The tab is muted by the engine (`MediaSession.muteAudio`, with a
+  media-session delegate set so GeckoView's media control runs: nothing is heard whatever the page
+  does), the page is sent `moebius:pause` with an id, and the session goes unfocused and inactive
+  when the content script answers (it answers right after the page's handlers ran) or after
+  `PAUSE_WAIT_MS` (400 ms). `onResume`, or the screen coming on over a resumed app, undoes it.
+- **The WebView** (`WebViewActivity`): the same three triggers; `moebius:pause` first, then
+  `onPause()` and `pauseTimers()` when the script has run; `resumeTimers()` on return; a page that
+  loads while away is told again (`onPageLoaded`).
+- **Not used:** muting a stream with `AudioManager.adjustStreamVolume` changes the device's media
+  volume for every app (and it is a setting); audio focus only quiets other apps.
+- **Older apps** (NATIVE_API 6) get the page's guard over the air (the web game still needs only 4);
+  `latest.json`'s native 7 offers them the new APK for the rest.
+- Tests: `tests/audio-guard.test.js`, `tests/android-gecko.test.js` (the order of the native calls).
 
 ### Updates that arrive, and the update section in the settings (NATIVE_API 4)
 Why updates used to arrive at random, and what changed:

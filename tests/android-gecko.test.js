@@ -67,7 +67,7 @@ test('the page gets in GeckoView what Capacitor gives it in the WebView', () => 
   assert.match(content, /isNativePlatform: \(\) => true/);
   assert.match(content, /nativePromise: \(plugin, method, args\) =>/);
   assert.match(content, /window\.__nativePad\?\.\(id, axes, buttons\)/);
-  assert.match(main, /post\(json\("event", "moebius:pause"\)\);/);
+  assert.match(main, /post\(json\("event", "moebius:pause", "id", id\)\);/);
   assert.match(main, /post\(json\("event", "moebius:resume"\)\);/);
   // every AppShell method, in both engines
   const shell = java('AppShell.java');
@@ -97,4 +97,47 @@ test('the build: GeckoView pinned, arm64, cached in CI', () => {
   assert.match(read('android/build.gradle'), /includeGroup 'org\.mozilla\.geckoview'/);
   assert.match(yml, /cache: gradle/, 'the AAR comes from the Gradle cache once downloaded');
   assert.match(yml, /platforms;android-37\.0/);
+});
+
+test('away, the game is silent: told first, answered, then paused; muted by the engine; onStop and screen off too', () => {
+  const main = code(java('MainActivity.java')), web = code(java('WebViewActivity.java'));
+  const content = read('android/app/src/main/assets/memento-ext/content.js');
+  const body = (src, name) => new RegExp(`void ${name}\\([^)]*\\) \\{([\\s\\S]*?)\\n {4}\\}`).exec(src)?.[1] ?? '';
+  const order = (src, parts, what) => {
+    let at = -1;
+    for (const p of parts) { const i = src.indexOf(p, at + 1); assert.ok(i > at, `${what}: ${p} (in order)`); at = i; }
+  };
+  // GeckoView: the page is told (and asked to answer) before the session goes inactive
+  const away = body(main, 'goAway');
+  assert.match(away, /if \(session == null \|\| away\) return;/, 'once, whichever comes first');
+  order(away, ['pad.reset()', 'media.muteAudio(true)', 'asks.put(id, (ok) -> deactivateNow())', 'post(json("event", "moebius:pause", "id", id))', 'ui.postDelayed(deactivate, PAUSE_WAIT_MS)'], 'goAway');
+  assert.doesNotMatch(away, /setActive\(false\)/, 'never before the page has heard');
+  order(body(main, 'deactivateNow'), ['session.setFocused(false)', 'session.setActive(false)'], 'deactivateNow');
+  order(body(main, 'comeBack'), ['session.setActive(true)', 'session.setFocused(true)', 'media.muteAudio(false)', 'post(json("event", "moebius:resume"))', 'bundles.onResume()'], 'comeBack');
+  assert.match(main, /session\.setMediaSessionDelegate\(new MediaSession\.Delegate\(\) \{ \}\);\s*media = new MediaSession\(session\) \{ \};\s*session\.open\(runtime\);/);
+  assert.match(main, /if \(away\) post\(json\("event", "moebius:pause"\)\);/, 'a page that starts while away hears it too');
+  // the content script answers once the page's handlers have run, and keeps the state for a new page's guard
+  assert.match(content, /window\.dispatchEvent\(new CustomEvent\('memento:event'[^\n]*\n\s*if \(m\.id\) port\.postMessage\(\{ answer: m\.id, value: true \}\);/);
+  assert.match(content, /if \(name === 'moebius:pause'\) window\.__moebiusAway = true;/);
+  assert.match(content, /else if \(name === 'moebius:resume'\) window\.__moebiusAway = false;/);
+  // the WebView: told first, then paused with its timers once the script has run
+  const wAway = body(web, 'goAway');
+  order(wAway, ['pad.reset()', 'evaluateJavascript(PAUSE_JS, (v) -> deactivateNow())', 'ui.postDelayed(deactivate, MainActivity.PAUSE_WAIT_MS)'], 'WebView goAway');
+  assert.doesNotMatch(wAway, /getWebView\(\)\.onPause\(\)|web\.onPause\(\)|pauseTimers/);
+  order(body(web, 'deactivateNow'), ['web.onPause()', 'web.pauseTimers()'], 'WebView deactivateNow');
+  order(body(web, 'comeBack'), ['web.resumeTimers()', 'web.onResume()', 'evaluateJavascript(RESUME_JS, null)'], 'WebView comeBack');
+  assert.match(web, /PAUSE_JS = "window\.__moebiusAway=true;window\.dispatchEvent\(new Event\('moebius:pause'\)\);true"/);
+  assert.match(web, /if \(away\) webView\.evaluateJavascript\(PAUSE_JS, null\);/);
+  // both: onPause, onStop and the screen turning off all go away; onResume (or the screen on over a resumed app) comes back
+  for (const [name, src] of [['MainActivity', main], ['WebViewActivity', web]]) {
+    assert.match(src, /public void onPause\(\) \{\s*resumed = false;\s*goAway\("pause"\);/, name);
+    assert.match(src, /public void onStop\(\) \{\s*goAway\("stop"\);/, name);
+    assert.match(src, /public void onResume\(\) \{\s*super\.onResume\(\);\s*resumed = true;\s*comeBack\("resume"\);/, name);
+    assert.match(src, /if \(Intent\.ACTION_SCREEN_OFF\.equals\(i\.getAction\(\)\)\) goAway\("screen off"\);/, name);
+    assert.match(src, /else if \(resumed && away && hasWindowFocus\(\)\) comeBack\("screen on"\);/, name);
+    assert.match(src, /ContextCompat\.registerReceiver\(this, screen, f, ContextCompat\.RECEIVER_NOT_EXPORTED\);/, name);
+    assert.match(src, /unregisterReceiver\(screen\)/, name);
+  }
+  // a new native contract: older apps are offered this APK
+  assert.ok(+/NATIVE_API = (\d+);/.exec(java('WebBundles.java'))[1] >= 7);
 });

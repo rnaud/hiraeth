@@ -2,7 +2,10 @@ package com.rnaud.moebius;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -19,6 +22,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.PackageInfoCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -33,6 +37,7 @@ import org.mozilla.geckoview.GeckoRuntime;
 import org.mozilla.geckoview.GeckoRuntimeSettings;
 import org.mozilla.geckoview.GeckoSession;
 import org.mozilla.geckoview.GeckoView;
+import org.mozilla.geckoview.MediaSession;
 import org.mozilla.geckoview.SlowScriptResponse;
 import org.mozilla.geckoview.WebExtension;
 
@@ -59,6 +64,11 @@ import java.util.function.Consumer;
 //   stop (the WebView never stops a long script either), no pinch zoom.
 // - The APK updater (Updater) and the over-the-air game updates (WebBundles) as in the WebView.
 // - Links elsewhere open in the system browser.
+// - Away (onPause, onStop, the screen turning off) the tab is muted by the engine itself
+//   (MediaSession.muteAudio: nothing is heard whatever the page does; Gecko keeps a page that plays
+//   Web Audio running in the background), the page is told (moebius:pause: its guard,
+//   src/audio-guard.js, suspends every sound) and, once it answers or after PAUSE_WAIT_MS, the
+//   session goes inactive and unfocused. onResume (or the screen back on over a resumed app) undoes it.
 // Where GeckoView can't run (not arm64, Android before 8, or GeckoView failed to start here before)
 // the WebView version takes over (WebViewActivity), with the saves it has.
 public class MainActivity extends Activity {
@@ -68,6 +78,8 @@ public class MainActivity extends Activity {
     static final String ORIGIN = "http://127.0.0.1:" + PORT;
     static final String EXTENSION = "resource://android/assets/memento-ext/";
     static final String EXTENSION_ID = "bridge@memento.rnaud";
+    /** how long the page has to answer moebius:pause before the session is deactivated anyway */
+    static final long PAUSE_WAIT_MS = 400;
 
     private static GeckoRuntime runtime;
     private static AssetServer server;
@@ -84,6 +96,11 @@ public class MainActivity extends Activity {
     private int nextAsk;
     private boolean extensionReady, savesReady;
     private String startUrl;
+    private MediaSession media;            // the tab's media controls: muteAudio while away
+    private BroadcastReceiver screen;      // the screen turning off (and on)
+    private boolean away, resumed, pausing;
+    private int pauseAsk;
+    private final Runnable deactivate = this::deactivateNow;
 
     /** Whether GeckoView can run here (its libraries are arm64 only; it needs Android 8). */
     static boolean usable(Activity a) {
@@ -175,6 +192,9 @@ public class MainActivity extends Activity {
             @Override
             public GeckoResult<GeckoSession> onNewSession(GeckoSession s, String uri) { openOutside(uri); return null; }
         });
+        // (a media-session delegate enables GeckoView's media control for the tab, which mutes it while away)
+        session.setMediaSessionDelegate(new MediaSession.Delegate() { });
+        media = new MediaSession(session) { };
         session.open(runtime);
         view = new GeckoView(this);
         view.setBackgroundColor(0xfff7ecd2);
@@ -220,6 +240,7 @@ public class MainActivity extends Activity {
                         @Override public void onPortMessage(Object message, WebExtension.Port from) { onPage(message, from); }
                         @Override public void onDisconnect(WebExtension.Port from) { if (port == from) port = null; }
                     });
+                    if (away) post(json("event", "moebius:pause"));   // a page that started while the app is away: silent too
                 }
             }, "memento");
             extensionReady = true;
@@ -234,6 +255,18 @@ public class MainActivity extends Activity {
             maybeLoad();
         });
         new Updater(this, bundles).check();   // (the APK dialog; the game's update check runs in onResume)
+
+        // the screen turning off pauses the game even where a device doesn't pause the app for it
+        screen = new BroadcastReceiver() {
+            @Override public void onReceive(Context c, Intent i) {
+                if (Intent.ACTION_SCREEN_OFF.equals(i.getAction())) goAway("screen off");
+                else if (resumed && away && hasWindowFocus()) comeBack("screen on");
+            }
+        };
+        IntentFilter f = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+        f.addAction(Intent.ACTION_SCREEN_ON);
+        f.addAction(Intent.ACTION_USER_PRESENT);
+        ContextCompat.registerReceiver(this, screen, f, ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     private void maybeLoad() {
@@ -320,30 +353,76 @@ public class MainActivity extends Activity {
         return o;
     }
 
-    @Override
-    public void onPause() {
-        // home, the recents, the power button: let go of the controls, tell the page (sound stops) and pause it
-        if (session != null) {
-            if (pad != null) pad.reset();
-            post(json("event", "moebius:pause"));
-            session.setActive(false);
-            bundles.onPause();
+    /**
+     * The app leaves the screen (home, the recents, the power button, sleep): let go of the controls,
+     * mute the tab, tell the page (its sound stops), then pause it once it has answered. Once only,
+     * whichever of onPause, onStop and the screen-off broadcast comes first.
+     */
+    void goAway(String why) {
+        if (session == null || away) return;
+        away = true;
+        Log.i(TAG, "away (" + why + ")");
+        if (pad != null) pad.reset();
+        if (media != null) media.muteAudio(true);
+        bundles.onPause();
+        pausing = true;
+        if (port != null) {
+            int id = pauseAsk = ++nextAsk;
+            asks.put(id, (ok) -> deactivateNow());
+            post(json("event", "moebius:pause", "id", id));
         }
-        super.onPause();
+        ui.postDelayed(deactivate, PAUSE_WAIT_MS);   // (a page that doesn't answer: busy, or not loaded yet)
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
+    /** the page has handled moebius:pause (or didn't answer in time): the session goes inactive */
+    private void deactivateNow() {
+        ui.removeCallbacks(deactivate);
+        if (pauseAsk != 0) { asks.remove(pauseAsk); pauseAsk = 0; }
+        if (!pausing || !away || session == null) return;
+        pausing = false;
+        session.setFocused(false);
+        session.setActive(false);
+    }
+
+    /** Back on the screen: the session active again, the tab unmuted, the page told (its sound comes back). */
+    void comeBack(String why) {
         if (session == null) return;
+        if (away) Log.i(TAG, "back (" + why + ")");
+        away = pausing = false;
+        ui.removeCallbacks(deactivate);
+        if (pauseAsk != 0) { asks.remove(pauseAsk); pauseAsk = 0; }
         hideSystemBars();
         session.setActive(true);
+        session.setFocused(true);
+        if (media != null) media.muteAudio(false);
         post(json("event", "moebius:resume"));
         bundles.onResume();
     }
 
     @Override
+    public void onPause() {
+        resumed = false;
+        goAway("pause");
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        goAway("stop");   // (the same, where a device stops the app without pausing it first)
+        super.onStop();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        resumed = true;
+        comeBack("resume");
+    }
+
+    @Override
     public void onDestroy() {
+        ui.removeCallbacks(deactivate);
+        if (screen != null) { try { unregisterReceiver(screen); } catch (IllegalArgumentException ignored) { } }
         if (session != null) session.close();
         super.onDestroy();
     }
