@@ -1140,6 +1140,7 @@ function renderFrame() {
   U.uProj11.value = camera.projectionMatrix.elements[5];
   // Projected player size controls how much fine ink detail remains visible.
   setSubject(U, camera, player.pos, player.frame?.up ?? _subjUp, player.hidden);
+  post.bakeNoise(renderer);   // (the screen-fixed noise, once per size: post.js)
   renderer.setRenderTarget(composeRT);
   renderer.clear();
   renderer.render(post.scene, post.camera);

@@ -55,6 +55,56 @@ export const OCCLUSION_TAPS = {
 /** A GLSL constant array of vec2s. */
 export const glslVec2s = (name, list) => `const vec2 ${name}[${list.length}] = vec2[${list.length}](${list.map(([x, y]) => `vec2(${x.toFixed(7)}, ${y.toFixed(7)})`).join(', ')});`;
 
+// The value noise (the composite's, and the bake's below: the same code, the same values).
+const NOISE = /* glsl */ `
+  float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x),
+               mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+  }
+`;
+/**
+ * The noise fixed to the screen (fc: CSS px), ten value-noise lookups a pixel that change only with the
+ * frame's size: the ink lines' wobble (x, y), their pressure and their inner weight (screenLines), the
+ * paper's fibre and its tooth with the pits (screenPaper). Baked once per size into two textures
+ * (createPost's bakeNoise) and read back with one texel each; worked out per pixel where the bake
+ * doesn't match the frame (a portrait drawn at another pixel ratio, a page that doesn't bake) or the
+ * lines boil. docs/systems/performance.md.
+ */
+const SCREEN_NOISE = /* glsl */ `
+  vec4 screenLines(vec2 fc, float boilT) {
+    return vec4(vnoise(fc * 0.06 + boilT * 17.3), vnoise(fc * 0.06 + 31.7 + boilT * 11.1), vnoise(fc * 0.045 + boilT * 3.1), vnoise(fc * 0.06 + 9.0));
+  }
+  // x: the fibre, y: what the tooth and its pits do to a light colour (times uPaper; 0 without the tooth)
+  vec2 screenPaper(vec2 fc, bool tooth) {
+    float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;   // isotropic: no streaks
+    if (!tooth) return vec2(fibre, 0.0);
+    // (the handheld: one octave and no pits, one noise tap instead of four)
+    float t = uPostLite > 0.5 ? vnoise(fc * 0.9 + 3.1) : vnoise(fc * 0.9 + 3.1) * 0.55 + vnoise(fc * 0.37 + 11.0) * 0.3 + vnoise(fc * 0.09 + 5.0) * 0.15;
+    float pits = uPostLite > 0.5 ? 0.0 : smoothstep(0.78, 0.92, vnoise(fc * 1.7 + 17.0));
+    return vec2(fibre, (t - 0.5) * 0.11 - pits * 0.05);
+  }
+`;
+const bakeShader = /* glsl */ `
+  precision highp float;
+  uniform float uPixelRatio;
+  uniform float uPostLite;
+  uniform int uPart;   // 0: the lines' noise (tScreenA), 1: the paper's (tScreenB)
+  out highp vec4 fragColor;
+  ${NOISE}
+  ${SCREEN_NOISE}
+  void main() {
+    vec2 fc = gl_FragCoord.xy / uPixelRatio;
+    fragColor = uPart == 0 ? screenLines(fc, 0.0) : vec4(screenPaper(fc, true), 0.0, 1.0);
+  }
+`;
+
 const vertexShader = /* glsl */ `
   out vec2 vUv;
   void main() {
@@ -120,6 +170,9 @@ const fragmentShader = /* glsl */ `
   uniform float uAerial;      // distant layers lose saturation and drift to the sky colour
   uniform float uLineVary;    // thick silhouettes / thin interior lines / pen pressure
   uniform float uPostLite;    // 1 = one ink-line kernel instead of two (the handheld preset)
+  uniform sampler2D tScreenA;  // the screen-fixed noise, baked (SCREEN_NOISE): the lines' wobble, pressure, inner weight
+  uniform sampler2D tScreenB;  // and the paper's fibre and tooth
+  uniform float uNoiseBaked;   // 1: the bake matches this frame (its size, pixel ratio and handheld mode)
   uniform float uSkyFlat;     // flat printed sky (vs gradient)
   uniform float uSkyDots;     // stipple dots in the sky
   uniform float uCumulus;     // puffy cloud bank on the horizon
@@ -146,17 +199,8 @@ const fragmentShader = /* glsl */ `
   out highp vec4 fragColor;
 
   // ---------------------------------------------------------------- noise
-  float hash(vec2 p) {
-    p = fract(p * vec2(123.34, 456.21));
-    p += dot(p, p + 45.32);
-    return fract(p.x * p.y);
-  }
-  float vnoise(vec2 p) {
-    vec2 i = floor(p), f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x),
-               mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
-  }
+  ${NOISE}
+  ${SCREEN_NOISE}
   float fbm(vec2 p) {
     float s = 0.0, a = 0.5;
     for (int i = 0; i < 5; i++) { s += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
@@ -593,7 +637,9 @@ const fragmentShader = /* glsl */ `
 
     // ---- 1. ink lines with hand-drawn wobble
     float boilT = floor(uTime * 8.0) * uBoil;
-    vec2 wob = vec2(vnoise(fc * 0.06 + boilT * 17.3), vnoise(fc * 0.06 + 31.7 + boilT * 11.1)) - 0.5;
+    // (the screen-fixed noise: baked, unless the bake is stale or the lines boil)
+    vec4 sn = uNoiseBaked > 0.5 && boilT == 0.0 ? texelFetch(tScreenA, ivec2(gl_FragCoord.xy), 0) : screenLines(fc, boilT);
+    vec2 wob = sn.xy - 0.5;
     vec2 euv = uv + wob * uWobble * 2.0 * uPixelRatio / uRes;
     float nearD;
     float probeD = depth;
@@ -606,10 +652,10 @@ const fragmentShader = /* glsl */ `
     }
     float weight = mix(uLineWidth, uLineWidth * 0.6, smoothstep(15.0, 400.0, probeD));
     // pen pressure: the line swells and thins along its length
-    float press = mix(1.0, 0.65 + 0.7 * vnoise(fc * 0.045 + boilT * 3.1), uLineVary);
+    float press = mix(1.0, 0.65 + 0.7 * sn.z, uLineVary);
     // silhouettes (depth edges) heavy, interior creases and colour edges light
     float silW = weight * mix(1.0, 1.35, uLineVary) * press;
-    float inW = weight * mix(1.0, 0.75, uLineVary) * mix(1.0, 0.85 + 0.3 * vnoise(fc * 0.06 + 9.0), uLineVary);
+    float inW = weight * mix(1.0, 0.75, uLineVary) * mix(1.0, 0.85 + 0.3 * sn.w, uLineVary);
     // Keep continuous interior strokes near the subject.
     vec2 sd = (uv - uSubject.xy) * vec2(uRes.x / uRes.y, 1.0);
     float subj = (1.0 - smoothstep(uSubject.w * 0.7, uSubject.w, length(sd))) * (1.0 - smoothstep(1.5, 4.0, abs(probeD - uSubject.z)));
@@ -856,15 +902,12 @@ const fragmentShader = /* glsl */ `
     // ---- 6. paper
     // no per-pixel noise: a screen-fixed grain reads as dirt the world slides under
     float grain = 0.0;
-    float fibre = vnoise(fc * 0.55) * 0.5 + vnoise(fc * 0.21 + 7.0) * 0.5;   // isotropic: no streaks
-    col *= 1.0 + uGrain * (grain * 0.5 + (fibre - 0.5) * 0.6);
+    vec2 paper = uNoiseBaked > 0.5 ? texelFetch(tScreenB, ivec2(gl_FragCoord.xy), 0).xy : screenPaper(fc, uPaper > 0.0);
+    col *= 1.0 + uGrain * (grain * 0.5 + (paper.x - 0.5) * 0.6);
     // the paper's tooth: a fine mottle and its pits, strongest in the light colours (ink sits on it)
     if (uPaper > 0.0) {
-      // (the handheld: one octave and no pits, one noise tap instead of four)
-      float tooth = uPostLite > 0.5 ? vnoise(fc * 0.9 + 3.1) : vnoise(fc * 0.9 + 3.1) * 0.55 + vnoise(fc * 0.37 + 11.0) * 0.3 + vnoise(fc * 0.09 + 5.0) * 0.15;
-      float pits = uPostLite > 0.5 ? 0.0 : smoothstep(0.78, 0.92, vnoise(fc * 1.7 + 17.0));
       float onLight = smoothstep(0.25, 0.75, dot(col, vec3(0.3, 0.55, 0.15)));
-      col *= 1.0 + uPaper * onLight * ((tooth - 0.5) * 0.11 - pits * 0.05);
+      col *= 1.0 + uPaper * onLight * paper.y;
     }
     vec2 q = uv - 0.5;
     col *= 1.0 - 0.28 * pow(length(q) * 1.25, 3.0);
@@ -954,6 +997,9 @@ export function createPost() {
     uSpotTone: { value: [0.17, 0.15, 0.19, 0.4] },
     uGrain: { value: 0.1 },
     uDebug: { value: 0 },
+    tScreenA: { value: null },
+    tScreenB: { value: null },
+    uNoiseBaked: { value: 0 },
   };
 
   const material = new THREE.ShaderMaterial({
@@ -970,8 +1016,42 @@ export function createPost() {
   scene.add(quad);
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-  return { scene, camera, uniforms };
+  // ---- the screen-fixed noise, baked once per size (SCREEN_NOISE; docs/systems/performance.md): ten
+  // value-noise lookups a pixel became two texel reads (~1.5 ms a frame at Retina size)
+  const target = (format) => new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, format, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false });
+  const bakeA = target(THREE.RGBAFormat), bakeB = target(THREE.RGFormat);
+  uniforms.tScreenA.value = bakeA.texture;
+  uniforms.tScreenB.value = bakeB.texture;
+  const bakeU = { uPixelRatio: { value: 1 }, uPostLite: { value: 0 }, uPart: { value: 0 } };
+  const bakeScene = new THREE.Scene();
+  const bakeQuad = new THREE.Mesh(quad.geometry, new THREE.ShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader, fragmentShader: bakeShader, uniforms: bakeU, depthTest: false, depthWrite: false }));
+  bakeQuad.frustumCulled = false;
+  bakeScene.add(bakeQuad);
+  let baked = null;
+  const keyNow = () => noiseKey(uniforms);
+  // whoever draws the composite without baking (or at another pixel ratio: a portrait) gets the noise worked out
+  quad.onBeforeRender = () => { uniforms.uNoiseBaked.value = baked === keyNow() ? 1 : 0; };
+  /** Bake the screen-fixed noise for the frame's size (uRes, uPixelRatio, uPostLite) if it changed: before drawing `scene`. */
+  const bakeNoise = (renderer) => {
+    const key = keyNow();
+    if (key === baked) return false;
+    const w = uniforms.uRes.value.x, h = uniforms.uRes.value.y;
+    bakeA.setSize(w, h); bakeB.setSize(w, h);
+    bakeU.uPixelRatio.value = uniforms.uPixelRatio.value;
+    bakeU.uPostLite.value = uniforms.uPostLite.value;
+    const prev = renderer.getRenderTarget();
+    for (const [rt, part] of [[bakeA, 0], [bakeB, 1]]) { bakeU.uPart.value = part; renderer.setRenderTarget(rt); renderer.render(bakeScene, camera); }
+    renderer.setRenderTarget(prev);
+    baked = key;
+    return true;
+  };
+
+  const dispose = () => { bakeA.dispose(); bakeB.dispose(); bakeQuad.material.dispose(); };
+  return { scene, camera, uniforms, bakeNoise, bakeScene, dispose };
 }
+
+/** What the baked screen noise depends on: the frame's size, its pixel ratio (fc in CSS px) and the handheld's lighter paper. */
+export const noiseKey = (U) => `${U.uRes.value.x}x${U.uRes.value.y}@${U.uPixelRatio.value}${U.uPostLite.value > 0.5 ? ' lite' : ''}`;
 
 // ---------------------------------------------------------------------------
 // Light: the glowing surfaces (gHatch.a glow over 0.62) gathered from the G-buffer at a

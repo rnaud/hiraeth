@@ -438,6 +438,7 @@ export async function startVista({ parent, settings, native = false, touch = fal
     U.uCamWorld.value.copy(camera.matrixWorld);
     U.uProj11.value = camera.projectionMatrix.elements[5];
     U.uSubject.value.w = -1;
+    post.bakeNoise(renderer);
     renderer.setRenderTarget(composeRT);
     renderer.clear();
     renderer.render(post.scene, post.camera);
@@ -497,6 +498,7 @@ export async function startVista({ parent, settings, native = false, touch = fal
     for (const c of cascades) c.rt?.dispose();
     gbuffer.dispose(); composeRT.dispose(); fxaa.dispose(); blitQuad.geometry.dispose();
     post.scene.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
+    post.dispose();
     renderer.dispose();
     if (!lost) renderer.forceContextLoss();
     canvas.remove();
