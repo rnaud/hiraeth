@@ -74,7 +74,7 @@ function height(x, z) {
  */
 /** The day's colours: sky top, horizon, shadow, light, sun. */
 export const SPHERES_DAY = ['#9cc4dc', '#f1d9cb', '#a9c3cf', '#fffdf4', '#fff8e0'];
-export const SPHERES_LOOK = { uLineWidth: 1.0, uLineVary: 0.1, uWobble: 0.12, uHatch: 0.5, uDots: 0, uSkyDots: 0.3, uBounce: 0, uShadeKeep: 0, uSpotTone: [0.1, 0.17, 0.11, 0.5] };
+export const SPHERES_LOOK = { uLineWidth: 1.0, uLineVary: 0.1, uWobble: 0.12, uHatch: 0.5, uDots: 0, uSkyDots: 0.3, uBounce: 0, uShadeKeep: 0, uSpotTone: [0.1, 0.17, 0.11, 0.5], uCast: [0.4, 0] };   // (uCast: the lawns' shadows lighter, as the sheets: post.js CAST)
 
 // light direction the spheres' printed crescents are drawn for (morning sun from +x)
 export const CRESCENT = new THREE.Vector3(0.75, 0.42, 0.5).normalize();

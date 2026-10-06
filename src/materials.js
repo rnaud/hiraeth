@@ -123,6 +123,8 @@ export const sharedUniforms = {
 export const SPOT = { steps: 2 };
 /** The step packed for a material's spot amount (0: the world's). */
 export const spotStep = (spot) => (spot === undefined || spot === null || spot < 0 ? 0 : 1 + Math.round(Math.min(spot, 1) * SPOT.steps));
+/** A flat (faceted) surface this close to edge-on to the sun (|n·l|) is shaded whole: no lit specks on the toon threshold. */
+export const FACET_EDGE = 0.03;
 export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * Line weight and colour by material (post.js 1b; docs/systems/rendering.md, "The G-buffer's layout"): the sheets draw
@@ -1752,6 +1754,10 @@ const fragmentShader = /* glsl */ `
     #endif
 
     float ndl = dot(n, uSunDir);
+    // a flat facet edge-on to the sun (a wall in line with it) sat on the toon threshold, where the last bits of
+    // its normal and the shadow map's grazing taps broke it into a field of lit specks: it goes to shade, whole
+    // (FACET_EDGE; a smooth surface keeps its terminator's antialiasing)
+    if (uFlat > 0.5 && ndl < ${FACET_EDGE}) ndl = min(ndl, -${FACET_EDGE});
     float lambert = ndl * 0.5 + 0.5;
     // the face takes cast shadows from outside its helmet only, keeping one clean shadow shape
     #ifdef S_PORTRAIT

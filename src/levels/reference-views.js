@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { MODE_STRATA, MODE_WATER, MODE_TERRAIN } from '../materials.js';
 import { createNoise2D } from '../noise.js';
 import {
-  TAU, V, tube, lathe, sagPts, n2, n3, ridged, gauss, r2, smoothstep, put, dome, PERSON, CLEAN_SKY,
+  TAU, V, tube, lathe, sagPts, n2, n3, ridged, gauss, r2, smoothstep, put, dome, PERSON,
   sailGeo, groundRibbon, radioDish, groundPatch,
 } from './reference-kit.js';
-import { DESERT_SHEETS, DESERT_VIEWS } from './reference-desert.js';
+import { DESERT_SHEETS, DESERT_VIEWS, DUNES } from './reference-desert.js';
 import { SHAFT_SHEETS, SHAFT_VIEWS } from './reference-shaft.js';
 import { VAEL2_SHEETS, VAEL2_VIEWS } from './reference-vael2.js';
 import { BURIED_SHEETS, BURIED_VIEWS } from './reference-buried.js';
@@ -67,7 +67,7 @@ export const REFERENCE_VIEWS = [
     camera: { eye: [0, 8.7, 0], yaw: 0, fov: 38, horizon: 0.37 },
     sun: { side: -115, el: 36 },
     sky: ['#9db5cb', '#a6bccd', '#9a8f86', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY,
+    look: DUNES,   // (the far dunes in stepped bands, as the desert's other sheets)
     fog: 0.25,
     ground: {
       height: (x, z) => {
@@ -136,7 +136,7 @@ export const REFERENCE_VIEWS = [
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 52, horizon: 0.74 },
     sun: { side: 145, el: 22 },
     sky: ['#97b8d3', '#a3bfd5', '#8f8b88', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY,
+    look: DUNES,   // (the far dunes in stepped bands, as the desert's other sheets)
     fog: 0.3,
     ground: {
       height: (x, z) => 0.25 * n2(x * 0.02, z * 0.02) + 0.6 * ridged(x, z, 0.008, 5) * smoothstep(60, 200, r2(x, z)) + smoothstep(200, 900, r2(x, z)) * 4,
@@ -226,7 +226,7 @@ export const REFERENCE_VIEWS = [
     camera: { eye: [0, 3.2, 0], yaw: 0, fov: 56, horizon: 0.72 },
     sun: { side: 0, el: 48 },
     sky: ['#a5bdcf', '#b3cad3', '#a29b8e', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY,
+    look: DUNES,   // (the far dunes in stepped bands, as the desert's other sheets)
     fog: 0.3,
     ground: {
       height: (x, z) => {
@@ -295,7 +295,7 @@ export const REFERENCE_VIEWS = [
     camera: { eye: [0, 3.6, 0], yaw: 0, fov: 40, horizon: 0.63 },
     sun: { side: -110, el: 48 },
     sky: ['#abc6cb', '#b5cdcd', '#a39689', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY,
+    look: DUNES,   // (the far dunes in stepped bands, as the desert's other sheets)
     fog: 0.3,
     ground: {
       height: (x, z) => {
@@ -364,7 +364,7 @@ export const REFERENCE_VIEWS = [
     camera: { eye: [0, 14, 0], yaw: 0, fov: 40, horizon: 0.345 },
     sun: { side: 120, el: 36 },
     sky: ['#b7d6df', '#bdd8de', '#8f95a3', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY,
+    look: DUNES,   // (the far dunes in stepped bands, as the desert's other sheets)
     fog: 0.25,
     ground: {
       height: (x, z) => {
@@ -413,7 +413,7 @@ export const REFERENCE_VIEWS = [
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 38, horizon: 0.52 },
     sun: { side: 125, el: 38 },
     sky: ['#bdd1cb', '#c3d3ca', '#9c968c', '#ffffff', '#fff6dc'],
-    look: CLEAN_SKY,
+    look: DUNES,   // (the far dunes in stepped bands, as the desert's other sheets)
     fog: 0.3,
     ground: {
       height: (x, z) => {

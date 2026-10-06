@@ -99,3 +99,59 @@ test('the worlds and the views say their haze', async () => {
   // the shaft's fog thickens down its pit (its rim at 200 m)
   assert.ok(SHAFT_FOG.uHeightFog[0] < 200);
 });
+
+test('cast shadows by world: a cast shadow lifted by how much the world says, form shade and the jump shadow kept', async () => {
+  const { CAST, castLift } = await import('../src/post.js');
+  const both = [1, 0.5];
+  // a cast shadow on open ground (facing the sun and up, shaded): all of it with 1
+  assert.ok(Math.abs(castLift(0.6, 1, 0.38, 0, both) - 1) < 1e-9);
+  // on a wall (upright): the other amount
+  assert.ok(Math.abs(castLift(0.6, 0, 0.38, 0, both) - 0.5) < 1e-9);
+  // the low sun of Lorn II (9°): the ground still counts as facing it
+  assert.ok(castLift(Math.sin(9 * Math.PI / 180), 1, 0.38, 0, both) > 0.99);
+  // form shade (turned from the sun) keeps, so does the terminator's band, the lit side and the jump shadow (light 0)
+  assert.equal(castLift(-0.3, 1, 0.35, 0, both), 0);
+  assert.equal(castLift(0.0, 1, 0.45, 0, both), 0);
+  assert.equal(castLift(0.6, 1, 0.9, 1, both), 0);
+  assert.equal(castLift(0.6, 1, 0, 0, both), 0);
+  // nothing said: nothing lifted
+  assert.equal(castLift(0.6, 1, 0.38, 0, [0, 0]), 0);
+  assert.ok(CAST.facing[1] < Math.sin(9 * Math.PI / 180) && CAST.light[1] < 0.38, 'a cast shadow (L 0.38) under the lowest sun counts');
+  // the shader: its strokes and its edge line go with it, the light kept as the shade's own test
+  const post = readFileSync(new URL('../src/post.js', import.meta.url), 'utf8');
+  assert.match(post, /lit = max\(lit, castLift\)/);
+  assert.match(post, /\* \(1\.0 - castLift\);/);
+  assert.match(post, /eI\.w \* 0\.8 \* \(1\.0 - face\) \* \(1\.0 - castPot\)/);
+  assert.ok(post.includes('${CAST.facing[0]}') && post.includes('${CAST.ground[0]}') && post.includes('${CAST.light[0]}'));
+});
+
+test('the worlds say their cast shadows: Vael II and Lorn II lift them on open ground, the views more, every preset none', async () => {
+  const { PRESETS } = await import('../src/post.js');
+  for (const [name, p] of Object.entries(PRESETS)) assert.deepEqual(p.uCast, [0, 0], `${name} keeps them`);
+  const { SKY_STONES_LOOK } = await import('../src/levels/arzach2.js');
+  const { DEEP_WOOD_LOOK } = await import('../src/levels/perdide2.js');
+  const { VAEL2_LOOK } = await import('../src/levels/reference-vael2.js');
+  const { LORN_LOOK } = await import('../src/levels/reference-lorn.js');
+  for (const [name, world, views] of [['Vael II', SKY_STONES_LOOK, VAEL2_LOOK], ['Lorn II', DEEP_WOOD_LOOK, LORN_LOOK]]) {
+    assert.ok(world.uCast[0] >= 0.5 && world.uCast[0] <= 1, `${name}: most of a shadow on open ground lifted`);
+    assert.ok(views.uCast[0] >= world.uCast[0], `${name}'s panels: as much or more`);
+    assert.ok(world.uCast[1] < world.uCast[0] && views.uCast[1] < views.uCast[0], `${name}: walls and things keep more of theirs`);
+  }
+  // the desert's sheets ink theirs darker (the spot tier), never lifted
+  const { DESERT_LOOK } = await import('../src/desert-sites.js');
+  assert.equal(DESERT_LOOK.uCast, undefined);
+});
+
+test('the desert views all say the dunes\' haze, the first sheet\'s too', async () => {
+  const { REFERENCE_VIEWS } = await import('../src/levels/reference-views.js');
+  const desert = REFERENCE_VIEWS.filter((v) => /^IMG_377[2-5]$/.test(v.sheet));
+  assert.equal(desert.length, 27);
+  for (const v of desert) assert.ok(v.look.uHazeLayers?.[3] > 0, `${v.title}: layers`);
+});
+
+test('a flat facet edge-on to the sun is shaded whole (no lit specks on the toon threshold)', async () => {
+  const { FACET_EDGE } = await import('../src/materials.js');
+  assert.ok(FACET_EDGE > 0.01 && FACET_EDGE < 0.1);
+  const surf = readFileSync(new URL('../src/materials.js', import.meta.url), 'utf8');
+  assert.match(surf, /if \(uFlat > 0\.5 && ndl < \$\{FACET_EDGE\}\) ndl = min\(ndl, -\$\{FACET_EDGE\}\);\n\s*float lambert = ndl/);
+});

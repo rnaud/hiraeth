@@ -276,6 +276,9 @@ Ranked by how much they would close the gap to the sheets, across every world re
 5. **Cast shadows by world** (the desert's ink masses, Vael II's and Lorn II's near-absent ones): the
    spot tier's `uSpot.w` darkens them; a world knob to lighten or drop them (the sheets often omit a
    cast shadow on open ground) would let the plains read as the sheets do.
+   **Done** (post.js `uCast`, docs/systems/rendering.md, "Cast shadows by world"): a cast shadow (facing the sun,
+   yet shaded) lifted toward the light on open ground and elsewhere by the world's amounts, its strokes and edge
+   line with it; Vael II's and Lorn II's plains and paths all but drop theirs, the Garden's lawns lighten.
 6. **Per-face colour variation** (the Market's and the City-Shaft's towers, the desert's domes): the
    sheets vary a wall's colour in big flat patches (a repaint, a sunlit plane); ours are one albedo per
    material (`color2`, `color3` only in strata).

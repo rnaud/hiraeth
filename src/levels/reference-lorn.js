@@ -21,7 +21,7 @@ const sheet = (name) => ({ name: `Lorn II / ${name}.JPG`, size: [1024, 1024], ur
 export const LORN_SHEETS = Object.fromEntries(['IMG_3797', 'IMG_3798', 'IMG_3799', 'IMG_3800'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: the world's own look (perdide2.js DEEP_WOOD_LOOK) and a clean sky. */
-export const LORN_LOOK = { ...DEEP_WOOD_LOOK, ...CLEAN_SKY };
+export const LORN_LOOK = { ...DEEP_WOOD_LOOK, ...CLEAN_SKY, uCast: [0.85, 0.2] };   // (the panels: no long shadows across the paths)
 /** sky top, horizon (the coral), shadow (violet), light, sun */
 const SKY = {
   dusk: ['#7f7aa6', '#c9807f', '#5a5d8c', '#ece2f2', '#fff0e0'],

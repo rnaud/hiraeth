@@ -25,7 +25,7 @@ export const VAEL2_SHEETS = Object.fromEntries(['IMG_3783', 'IMG_3784', 'IMG_378
  * The sheets' ink: shadows printed flat in their grey-blue, the undersides of caps and overhangs the
  * darkest (no bounce lifting them), little half-tone, a clean sky.
  */
-export const VAEL2_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.15, uBounce: 0, ...SKY_STONES_HAZE };
+export const VAEL2_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.15, uBounce: 0, ...SKY_STONES_HAZE, uCast: [0.85, 0] };   // (the panels: the plain's shadows all but gone)
 /** sky top, sky horizon, shadow (the flat grey-blue), light, sun */
 const TINT = '#93a5a8';
 const SKY = {

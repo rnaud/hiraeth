@@ -32,9 +32,12 @@ export function* buildBazaar(scene) {
   const dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
   const shop = colors.map(c => mat(c, { weathered: 0.7, ...PRINT }));
   // the billboards' painted faces: a lighter line in a dark shade of their own colours, not the walls' ink (materials.js LINE)
+  // (the painted colours in one material, by vertex colour: a material per colour and part cost ~130 more draw calls a frame)
   const SIGN = { line: 0.7, lineTint: 0.67 };
-  const sign = { shop: colors.map(c => mat(c, { ...PRINT, ...SIGN })), lilac: mat('#b9a9c5', { ...PRINT, ...SIGN }), dark: mat('#3a535b', { metal: 'painted', ...SIGN }),
-    cream: mat('#f5dfab', { ...PRINT, ...SIGN }), glow: mat('#fff0bd', { glow: 0.75, ...SIGN }) };
+  const signPaint = mat('#ffffff', { ...PRINT, ...SIGN, vertexColors: true });
+  const paint = (hex) => ({ paint: new THREE.Color(hex) });
+  // (the dark rings' and the lit strips' lines stay the walls': a dark line on dark paint is the ink, a light's is thinned anyway)
+  const sign = { shop: colors.map(paint), lilac: paint('#b9a9c5'), dark, cream: paint('#f5dfab'), glow };
   function add(geo, material, solid = true) {
     geo.computeBoundingBox(); const z = geo.boundingBox.getCenter(new THREE.Vector3()).z;
     const key = `${Math.floor(z / 75)}:${material.uuid}:${solid}`;
@@ -62,7 +65,13 @@ export function* buildBazaar(scene) {
   // use the game's ink shader: illustrated heads, planets and alien symbols.
   function poster(x,y,z,w,h,yaw,seed) {
     reactiveScreens.push({pos:new THREE.Vector3(x-Math.sin(yaw)*-.9,y,z+Math.cos(yaw)*.9),w,h,yaw});
-    const plate = (g,m) => local(g,x,y,z,yaw,m);
+    const plate = (g,m) => {
+      if (!m.paint) return local(g,x,y,z,yaw,m);
+      const n = g.attributes.position.count, c = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) m.paint.toArray(c, i * 3);
+      g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+      return local(g,x,y,z,yaw,signPaint);
+    };
     plate(new THREE.BoxGeometry(w+.9,h+.9,.8),ink);
     plate(new THREE.BoxGeometry(w,h,.3).translate(0,0,.53),sign.shop[seed%sign.shop.length]);
     const faceZ = .78;

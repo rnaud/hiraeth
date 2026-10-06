@@ -328,7 +328,9 @@ soft shapes read as hard.
 - **Set on**: the clouds of Vael II, of the title screen and of the views (Vael II's, the Buried
   Machine's, the Spheres'), 0.45 / 1; Lorn II's reeds (the world's and the views'), 0.45 / 1, and the
   views' crystals; the Spheres' canopies, 0.7 / 0.67, and every `leaves` foliage by default; the
-  Signal Market's billboard faces (the world's and the views'), 0.7 / 0.67; glass by default.
+  Signal Market's billboard faces (the world's and the views'), 0.7 / 0.67; glass by default. (In the world the
+  billboards' painted colours share one material by vertex colour, `signPaint`: a material per colour and part
+  had cost about 130 more draw calls a frame; the dark rings and lit strips keep the walls' materials.)
 - **Debug**: `params.debug` 11: red where the pixel owns its line, green the owner's step, blue the ink.
 - **Cost** (M4 Pro, ANGLE Metal, 1280 × 720 High, the composite pass alone by timer query, the build
   before and after in two pages of one browser, 16 interleaved pairs of 24 frames; the machine
@@ -355,11 +357,55 @@ desert's colour).
   over the far fog, the lines veiled too.
 - **Set** (looks, so the views carry them): Lorn II `DEEP_WOOD_HAZE` (layers from 25 m × 1.7, a cool
   violet-blue, a low mist under 1.5 m) and its views; the desert `DUNE_HAZE` (from 250 m × 1.9, the far
-  haze's warm colour; the desert views' from 120 m); the Signal Market `MARKET_HAZE` (from 90 m × 1.8,
+  haze's warm colour; all 27 desert views' `DUNES`, from 120 m); the Signal Market `MARKET_HAZE` (from 90 m × 1.8,
   pale warm) and its views; Vael II `SKY_STONES_HAZE` (light, from 200 m) and its views; the City-Shaft
   `SHAFT_FOG` (thickening under the pit's middle, 0 m, scale 120 m, pale blue) and the shaft views'
   `SHAFT_VIEW_FOG` (under −40 m). Every preset lists them off (`hazeOff`).
 - **Cost**: a log2, a pow and three exps per pixel, behind uniform switches (none where a world sets
   none); measured with the rest below ("Cost of the ink pass's three").
+- **Shimmer**: none. The layers are a function of each pixel's depth with a soft ramp (`HAZE.edge`), so a band's
+  edge slides smoothly over open ground as you walk and never flickers; the fog by height is smooth in depth.
 - `tests/ink-pass.test.js`: the JS twins (`hazeLayers`, `heightFog`): stepped, monotonic, continuous,
   thicker looking down; every preset says them; the worlds and views set theirs.
+
+## Cast shadows by world (post.js 2; `CAST`, `uCast`)
+
+The sheets often leave a cast shadow out on open ground (Vael II's plain, Lorn II's paths and water) while
+keeping the shade of every form; the desert's IMG_3774 inks them as near-black masses instead (the spot
+tier's `uSpot.w`, "Spot blacks" in references.md). This is the other half of that knob.
+
+- **Which shade is cast**: the G-buffer has no shadow flag, but it doesn't need one. A point facing the sun
+  (n·l over `CAST.facing`, 0.02 → 0.08: Lorn II's 9° sun still counts) yet below the toon threshold is in a
+  cast shadow (or a cloud's); form shade faces away and is never touched. The jump shadow writes a light
+  term of 0 and is kept (`CAST.light`: a shadow's light term is at least 0.38).
+- **How much**: `uCast` = [on open ground (n.y over `CAST.ground`, 0.55 → 0.8), everywhere else], 0 kept …
+  1 dropped. The shadow's colour goes that far toward the lit one (`lit = max(lit, castLift)`), its hatch
+  strokes fade with it, and so does its shadow-edge line (the edge's lit side too: by `castPot`, which
+  doesn't need the pixel to be shaded). People, faces and the traveller keep theirs.
+- **Set**: every preset says `[0, 0]` (`hazeOff`). Vael II `SKY_STONES_CAST` [0.7, 0] and its views
+  `VAEL2_LOOK` [0.85, 0]; Lorn II `DEEP_WOOD_CAST` [0.6, 0.2] and its views `LORN_LOOK` [0.85, 0.2]; the
+  Garden of Spheres `SPHERES_LOOK` [0.4, 0] (its views inherit it). Checked and left alone: the desert (its
+  sheets' cast shadows are pale tan in IMG_3772–3773 as ours are, near-black in IMG_3774: `uSpot.w`), the
+  City-Shaft (its blocks cast none already), the Buried Machine (dark masses, the spot tier), the Signal
+  Market (its street keeps the towers' shadows).
+- **Debug**: `params.debug` 12: red where a cast shadow would be lifted, green where one is.
+- **Cost**: a dot and three smoothsteps per pixel, behind a uniform switch; no taps.
+- `tests/ink-pass.test.js`: the JS twin (`castLift`): lifted on the ground and on walls by their amounts,
+  the low sun counted, form shade, the terminator, the lit side and the jump shadow kept; the presets keep
+  them; Vael II and Lorn II and their views lift them.
+
+## Facets edge-on to the sun (materials.js `FACET_EDGE`)
+
+A flat-shaded (`flat: true`) wall lying in line with the sun has n·l ≈ 0, a light term on the toon
+threshold, and the last bits of its derivative normal (and the shadow map's grazing taps) broke it into a
+field of fine lit specks (the Signal Market's view 155, a brown wall full of white specks: half its pixels
+50 % lit). A facet within `FACET_EDGE` (0.03) of edge-on now goes to shade, whole; smooth surfaces keep
+their terminator's antialiasing. The drawn detail (pen marks, seams) is inked a little darker in shade
+(0.6 → 0.86 of the ink), so it reads on flat-printed and deep shade as on the lit side.
+
+## Debug views (`params.debug`)
+
+0 final, 1 raw, 2 albedo, 3 normals, 4 depth, 5 light term (the line step taken off), 6 ink only, 7 hatch
+strokes and 8 drawn detail (their packed steps taken off, so a shaded or spotted surface no longer reads as
+solid black), 9 spot blacks' enclosure, 10 the spot tier's cast and spot masks, 11 lines by material, 12 cast
+shadows lifted.

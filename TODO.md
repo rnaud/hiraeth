@@ -189,6 +189,10 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
     - [x] 3. Haze in layers by depth and fog by height. (post.js 4b: `uHazeLayers` / `uHazeTone` stepped bands by
       distance, `uHeightFog` / `uHeightFogTone` integrated along the ray; set for Lorn II, the desert, the Market,
       Vael II and the City-Shaft's pit, and their views; docs/systems/rendering.md, "Haze by depth and height".)
+    - [x] 5. Cast shadows by world. (post.js `uCast`: a cast shadow, told from form shade by facing the sun, lifted
+      toward the light on open ground and elsewhere by the world's and the view's amounts, its strokes and edge
+      line with it; Vael II and Lorn II lift most of theirs on open ground, the Garden of Spheres a little, the
+      desert's sheets keep theirs dark with the spot tier; docs/systems/rendering.md, "Cast shadows by world".)
 - [x] A quick menu to jump to any reference, with a tiny picture of its panel. (`src/levels/reference-picker.js`:
   every view grouped by world and sheet, thumbnails cut from the sheets with each view's crop on a canvas,
   built on the first opening; Tab, X / □ on a pad or the "views" button opens it, B / ○ or Esc closes;

@@ -12,6 +12,8 @@ The same release notes shown in the game (press **N** or open settings).
 - Walls and machines are drawn with fine pen detail, as in the drawings: panel seams and joints, little vents, hatches and plates, bolts up close, and the same marks on the far buildings at their own scale. Tree trunks, roots and the giant mushrooms’ stalks have short grain strokes along their bark.
 - Soft things are drawn in softer lines, as in the drawings: clouds in a thin blue-grey line, Lorn II’s reeds and crystals in a pale violet one, leaves and the Garden of Spheres’ canopies in a lighter dark green, glass and the Signal Market’s painted billboards in a darker shade of their own colours, instead of heavy black ink everywhere.
 - Distance falls away in layers of haze, as in the drawings: in Lorn II the trunks step back into a cool violet mist, with a low mist over the water and the paths; the desert’s far dunes and the Signal Market’s far towers pale in warm bands; Vael II’s plain lightly too. Looking down the City-Shaft, the town fades into a pale blue haze toward the bottom.
+- Cast shadows fall as the drawings have them: on Vael II’s plain and on Lorn II’s paths and water they are only a faint trace or gone, the Garden of Spheres’ lawns are lighter under the trees, while form shade stays.
+- A wall turned edge-on to the sun no longer breaks into a field of tiny light specks: it sits cleanly in its shade, and the fine pen marks on shaded walls read more clearly.
 
 ## v0.70 — 2026-10-06
 

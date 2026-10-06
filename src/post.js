@@ -35,6 +35,10 @@ export const DEBUG_VIEWS = {
   'Ink lines only': 6,
   'Hatch strokes': 7,
   'Drawn detail (faces, glyphs)': 8,
+  'Spot blacks: how enclosed': 9,
+  'Spot blacks: cast / spot masks': 10,
+  'Lines by material: owner / step / ink': 11,
+  'Cast shadows: could lift / lifted': 12,
 };
 
 /**
@@ -80,6 +84,21 @@ export function heightFog(yc, ry, dist, [h0, H, rho, most]) {
   const x = Math.max(dy * b, -30);
   const k = Math.abs(x) > 1e-3 ? (1 - Math.exp(-x)) / x : 1;
   return (1 - Math.exp(-rho * dist * base * k)) * most;
+}
+
+/**
+ * Cast shadows by world (post.js 2; docs/systems/rendering.md, "Cast shadows by world"). uCast: [how much a cast
+ * shadow on open ground is lifted toward the light (0 kept … 1 dropped), the same on everything else]. A point
+ * facing the sun (`facing`: n·l, a ramp) yet in shade is in a cast shadow (form shade faces away and keeps); open
+ * ground faces up (`ground`: n.y, a ramp); `light` the light term under which a shade is a shadow at all (the
+ * jump shadow writes 0: always kept). People and faces keep theirs. Darker cast shadows are the spot tier's uSpot.w.
+ */
+export const CAST = { facing: [0.02, 0.08], ground: [0.55, 0.8], light: [0.08, 0.2] };
+/** How much of a shaded point's cast shadow is lifted (mirrors the GLSL): ndl, its normal's y, its light term, lit (0..1). */
+export function castLift(ndl, ny, L, lit, [ground, other]) {
+  const ss = ([e0, e1], x) => { const u = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1); return u * u * (3 - 2 * u); };
+  const pot = ss(CAST.facing, ndl) * (other + (ground - other) * ss(CAST.ground, ny));
+  return pot * (1 - lit) * ss(CAST.light, L);
 }
 
 const vertexShader = /* glsl */ `
@@ -173,6 +192,7 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uHazeTone;       // the layers' colour, a = how much of it over the far haze's
   uniform vec4 uHeightFog;      // height (m) it thickens under, scale height (m), density there (1/m), most it veils (0: none)
   uniform vec4 uHeightFogTone;  // its colour, a = how much of it over the haze's
+  uniform vec2 uCast;           // cast shadows lifted toward the light: x on open ground, y elsewhere (0 kept … 1 dropped; CAST)
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -636,6 +656,11 @@ const fragmentShader = /* glsl */ `
     float heroBoundary = heroNear - min(hero, min(min(hm.x, hm.y), min(hm.z, hm.w)));
     float depth = isSky ? 1e7 : N.w;
     vec3 rd = viewRay(uv);
+    // cast shadows by world (CAST): how much a cast shadow here would be lifted (facing the sun, open ground or not);
+    // its shade, strokes (2, 3) and its edge line (1) go with it. Not a person's, a face's or the sky's.
+    float castPot = 0.0;
+    if (uCast.x + uCast.y > 0.0 && !isSky)
+      castPot = smoothstep(${CAST.facing[0]}, ${CAST.facing[1]}, dot(N.xyz, uSunDir)) * mix(uCast.y, uCast.x, smoothstep(${CAST.ground[0]}, ${CAST.ground[1]}, N.y)) * (1.0 - max(max(face, figure), hero));
 
     // ---- debug views
     if (uDebug == 2) { fragColor = vec4(isSky ? skyBase(rd) : A.rgb, 1.0); return; }
@@ -643,8 +668,9 @@ const fragmentShader = /* glsl */ `
     if (uDebug == 4) { fragColor = vec4(vec3(isSky ? 1.0 : pow(depth / 3000.0, 0.4)), 1.0); return; }
     if (uDebug == 5) { fragColor = vec4(vec3(isSky ? 1.0 : A.a), 1.0); return; }
     if (uDebug == 9) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - enclosure(uv, N.xyz, depth, uSpot.y, 8)), 1.0); return; }   // spot blacks: how enclosed
-    if (uDebug == 8) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - texture(tHatch, uv).b), 1.0); return; }
-    if (uDebug == 7) { vec3 H = texture(tHatch, uv).rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
+    // (the strokes and the detail with their packed steps taken off, above)
+    if (uDebug == 8) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - surface.b), 1.0); return; }
+    if (uDebug == 7) { vec3 H = isSky ? vec3(0.0) : surface.rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
     if (uDebug == 1) {
       vec3 c = isSky ? skyBase(rd) : A.rgb * (0.35 + 0.75 * A.a);
       if (!isSky) c = mix(c, skyBase(rd), 1.0 - exp(-max(depth - uFogStart, 0.0) * uFogDensity * uFogMul));
@@ -693,7 +719,7 @@ const fragmentShader = /* glsl */ `
     vec3 wpL = uCamWorld[3].xyz + rd * min(probeD, 5000.0) / max(dot(rd, -uCamWorld[2].xyz), 0.2);
     float gapN = vnoise(vec2(wpL.x + wpL.y * 0.7, wpL.z - wpL.y * 0.4) * 0.9);
     float broken = mix(1.0, smoothstep(0.22, 0.34, gapN), uLineVary * (1.0 - subj) * smoothstep(3.0, 12.0, probeD));
-    float ink = clamp(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8 * (1.0 - face))), 0.0, 1.0);
+    float ink = clamp(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8 * (1.0 - face) * (1.0 - castPot))), 0.0, 1.0);
 
     // People far away: a pen line of fixed width turned small figures into black shapes
     // (more so at the handheld's render scale). Where this pixel's kernel touches a person
@@ -778,6 +804,10 @@ const fragmentShader = /* glsl */ `
       vec3 albedo = A.rgb;
       float L = A.a;
       float lit = smoothstep(uToon - 0.01, uToon + 0.01, L);
+      // a cast shadow lifted toward the light by the world (uCast), its strokes with it (3); the jump shadow's 0 kept
+      float castLift = castPot * (1.0 - lit) * smoothstep(${CAST.light[0]}, ${CAST.light[1]}, L);
+      lit = max(lit, castLift);
+      if (uDebug == 12) { fragColor = vec4(castPot, castLift, 0.2, 1.0); return; }   // cast shadows: could lift (red), lifted (green)
       // during the sun -> moon hand-over both tones converge, so shadows fade
       // a face's shade (its skin, its eyes' whites) is a warm darker tone of itself, not the world's
       // blue-violet shadow: the shadow tint's own darkness, turned warm (less so at night)
@@ -804,14 +834,14 @@ const fragmentShader = /* glsl */ `
       // ---- 3. hatching in shadow
       float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
       float hFade = (1.0 - smoothstep(uHatchScreen > 0.5 ? 40.0 : 150.0, uHatchScreen > 0.5 ? 350.0 : 700.0, depth)) * uHatch * (1.0 - uFlatten);
-      hFade *= mix(1.0, 0.12 * heroDetail, hero);
+      hFade *= mix(1.0, 0.12 * heroDetail, hero) * (1.0 - castLift);
       vec3 H = surface.rgb;
       // the player's drawn face and folds are its pen work: full strength once it is large enough to read
       H.b *= mix(1.0, heroDetail, hero) * innerK;
       hFade *= innerK;
       // drawn detail lines: grids, glyphs, ripples, cracks, fissures (independent of the marks toggle)
       // (a value over 1 is a pen line, the faces' (materials.js faceInk): darker, up to 0.92 at 2)
-      float drawnK = mix(0.6, 0.88, hero);
+      float drawnK = mix(mix(0.6, 0.86, 1.0 - lit), 0.88, hero);
       col = mix(col, uInk, (clamp(H.b, 0.0, 1.0) * drawnK + clamp(H.b - 1.0, 0.0, 1.0) * (0.92 - drawnK)) * (1.0 - smoothstep(120.0, 600.0, depth)));
       if (hFade > 0.0 && uHatchScreen < 0.5) {
         col = mix(col, uInk, clamp(max(H.r, H.g), 0.0, 1.0) * hFade * 0.55);
@@ -1049,6 +1079,7 @@ export function createPost() {
     uHazeTone: { value: [1, 1, 1, 0] },
     uHeightFog: { value: [0, 20, 0, 0] },
     uHeightFogTone: { value: [1, 1, 1, 0] },
+    uCast: { value: [0, 0] },
     uGrain: { value: 0.1 },
     uDebug: { value: 0 },
   };
@@ -1166,7 +1197,8 @@ export function createBloom(gbuffer, { spread = 1.3, wideSpread = 3.0 } = {}) {
 // Style presets: the same pipeline can lean towards Sable (flat, clean,
 // two-tone) or towards a Moebius page (inked, hatched, wobbly).
 // (every preset says the haze: a zone's or a world's touches never carry into the next)
-const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0] });
+// (and the cast shadows: every world keeps them unless it says)
+const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0], uCast: [0, 0] });
 export const PRESETS = {
   Moebius: {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
