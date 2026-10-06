@@ -55,6 +55,9 @@ door. `tests/lab.test.js` walks through every door and back.
 
 ## The clipping audit
 
+(Its sibling, the **contact audit**, `await contactAudit()`, compares the surfaces you stand on and climb
+with what is drawn there: [movement.md](movement.md), "Contact".)
+
 `src/clip-audit.js` lists what sinks into the ground, floats above it or stands in a wall.
 In the running game, `await clipAudit()` prints a report for the world you are in
 (`clipAudit({ print: false })` returns it: `{ checked, counts, offenders }`);

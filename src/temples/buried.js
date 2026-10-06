@@ -212,7 +212,8 @@ function exterior(scene, level, rt) {
   const blue = { paint: new THREE.Color(PALETTE.stone), smooth: false, side: THREE.FrontSide };
   const teal = { paint: new THREE.Color(PALETTE.accent), smooth: true, side: THREE.FrontSide };
   // a riveted drum of rust iron in bands, a teal cap, a ring window high on its face
-  K.both(M.wall, lathe([[R + 2, 0], [R + 2, 4], [R, 5], [R, top - 2], [R + 1.2, top - 1.6], [R + 1.2, top], [R - 2, top + 0.6]], 40), new THREE.CylinderGeometry(R, R + 2, top, 24).translate(0, top / 2, 0));
+  // (the lathe itself collides: a straight cylinder inside it let a climber into its flared foot and crown, src/contact-audit.js)
+  K.both(M.wall, lathe([[R + 2, 0], [R + 2, 4], [R, 5], [R, top - 2], [R + 1.2, top - 1.6], [R + 1.2, top], [R - 2, top + 0.6]], 40));
   for (let y = 12; y < top - 4; y += 9) K.add(blue, new THREE.CylinderGeometry(R + 0.3, R + 0.3, 1.0, 40).translate(0, y, 0));
   K.both(teal, new THREE.SphereGeometry(R - 1.5, 32, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.45, 1).translate(0, top + 0.4, 0));
   K.add(M.trim, T(new THREE.TorusGeometry(7, 0.7, 8, 40), [0, top - 14, R + 0.3]));

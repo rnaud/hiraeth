@@ -74,5 +74,6 @@ test('the skiff waits at the cave mouth and the collision budget holds', () => {
   skiff.update(0.016, null, 0);
   assert.ok(Number.isFinite(skiff.pos.y));
   const triangles = physics.triangles;
-  assert.ok(triangles < 60000, `static collision budget: ${triangles}`);
+  // (the trunks, caps and arches collide as drawn since the contact audit, docs/systems/movement.md "Contact": ~130 k)
+  assert.ok(triangles < 150000, `static collision budget: ${triangles}`);
 });

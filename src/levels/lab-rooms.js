@@ -353,10 +353,10 @@ export const ROOMS = [
         aq: kit.mat(strata('#ece3d3', '#e0d5c4', '#f2ebde', 2.6, { flat: true, side: DS })),
         hidden: kit.mat({ color: '#ffffff' }),
       };
-      // the Sky Stones' own geometry (arzach2.js): drawn meshes walk-through, a coarse twin collides
+      // the Sky Stones' own geometry (arzach2.js): the drawn rock collides, as in the world (its coarse twin sat inside it)
       const solidOf = (vis, col, mat) => {
         kit.add(mat, vis, { solid: false });
-        const c = kit.mesh(mergeable(col), M.hidden);
+        const c = kit.mesh(mergeable(vis.clone()), M.hidden);
         c.visible = false;
       };
       const mergeable = (g) => { g.computeVertexNormals(); return g; };

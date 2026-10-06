@@ -107,7 +107,7 @@ function motherBell(g, pos) {
 function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
-  const stone = (x, y, z, r, i) => K.add(M.stone, T(new THREE.IcosahedronGeometry(r, 1), [x, y, z], [i, i * 2, 0], [1, 0.7, 1]));
+  const stone = (x, y, z, r, i) => K.both(M.stone, T(new THREE.IcosahedronGeometry(r, 1), [x, y, z], [i, i * 2, 0], [1, 0.7, 1]));
 
   // ---- the Threshold (z 0..12)
   K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
@@ -121,7 +121,7 @@ function layout(rt) {
   K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 13, roof: 'oculus', oculus: 0.25, columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.6 }] });
   for (const [x, z0] of [[-5, 17], [5, 21]]) {
     K.add(M.dark, box(1.0, 0.04, 39 - z0, x, 0.02, (z0 + 39) / 2));
-    for (const s of [-1, 1]) K.add(M.trim, box(0.25, 0.12, 39 - z0, x + s * 0.75, 0.06, (z0 + 39) / 2));
+    for (const s of [-1, 1]) K.both(M.trim, box(0.25, 0.12, 39 - z0, x + s * 0.75, 0.06, (z0 + 39) / 2));
   }
   add(Ball, { id: 'ball1', a: [-5, 0.04, 17], b: [-5, 0.04, 39], r: 1.0 });
   add(Ball, { id: 'ball2', a: [5, 0.04, 21], b: [5, 0.04, 39], r: 1.3 });
@@ -140,10 +140,10 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C2, y: 0, r: 9, h: 25, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6, y0: 16.2 }], oculus: 0.35 });
   add(Platform, { path: [[0, 0.3, C2 - 4.6], [0, 8.25, C2 - 4.6]], r: 2.2, speed: 2.0, pause: 1.6 });
   K.both(M.floor, box(6.4, 8, 3.6, 0, 4, C2 - 0.6));                     // the ledge, its top at 8
-  K.add(M.trim, box(6.6, 0.3, 3.8, 0, 8.05, C2 - 0.6));
+  K.both(M.trim, box(6.6, 0.3, 3.8, 0, 8.05, C2 - 0.6));        // (its trim solid too: you stand on it)
   add(Platform, { path: [[0, 8.3, C2 + 3.4], [0, 16.25, C2 + 3.4]], r: 2.2, speed: 2.0, pause: 1.6 });
   K.both(M.floor, box(7.2, 16, 3.2, 0, 8, C2 + 7.2));                    // the top landing, by the high door
-  K.add(M.trim, box(7.4, 0.3, 3.4, 0, 16.05, C2 + 7.2));
+  K.both(M.trim, box(7.4, 0.3, 3.4, 0, 16.05, C2 + 7.2));
   add(Mark, { room: 'stair', at: [5, 0, C2 - 3], yaw: -Math.PI / 2 });
 
   // ---- the corridor and the Bell Chamber (floor 16): the chest, and the bell-tuned door
@@ -219,8 +219,8 @@ function exterior(scene, level, rt) {
   const M = rt.M, R = 15;
   const rose = { paint: new THREE.Color(PALETTE.accent), smooth: true };
   // a round tower out of the cloud: a fluted shaft, a gallery ring at the door, an open belfry on top
-  K.both(M.wall, lathe([[R + 3, base], [R + 1, base + 30], [R, door - 6], [R, door + 34], [R + 2.4, door + 35], [R + 2.4, door + 36.5], [R - 0.5, door + 37]], 40),
-    new THREE.CylinderGeometry(R, R + 2, door + 37 - base, 24).translate(0, (door + 37 + base) / 2, 0));
+  // (the shaft's own lathe collides: a straight cylinder stood out from its waist and sank into its foot)
+  K.both(M.wall, lathe([[R + 3, base], [R + 1, base + 30], [R, door - 6], [R, door + 34], [R + 2.4, door + 35], [R + 2.4, door + 36.5], [R - 0.5, door + 37]], 40));
   K.both(M.floor, T(annulus(R - 0.5, R + 5, 1.2, 48), [0, door, 0]));                                 // the gallery round the door
   for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.3) continue; K.both(M.trim, T(new THREE.BoxGeometry(0.4, 1.0, 0.4), [Math.sin(a) * (R + 4.7), door + 0.5, Math.cos(a) * (R + 4.7)])); }
   // the belfry: eight piers, a dome of rose stone, a great bell inside
@@ -229,7 +229,7 @@ function exterior(scene, level, rt) {
   K.both(M.wall, T(annulus(4, R + 1, 1.4, 40), [0, B0 + 17.4, 0]));
   K.both(rose, new THREE.SphereGeometry(R, 32, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.6, 1).translate(0, B0 + 17, 0));
   K.add(M.trim, lathe([[2.6, 0], [2.6, 1], [1.8, 1.4], [0.01, 2.2]], 16).translate(0, B0 + 17 + R * 0.6 - 0.4, 0));
-  K.add(M.stone, T(lathe([[0.02, 0], [5, 0.3], [5.4, 3], [3.8, 8.5], [3.1, 12], [0.02, 12.8]], 32), [0, B0 + 2, 0]));
+  K.both(M.stone, T(lathe([[0.02, 0], [5, 0.3], [5.4, 3], [3.8, 8.5], [3.1, 12], [0.02, 12.8]], 32), [0, B0 + 2, 0]));
   K.add(M.dark, box(0.6, 3.4, 0.6, 0, B0 + 15.5, 0));
   // glyphs round the shaft, between flutes
   for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU; K.add(M.glyph, T(glyphGeometry(2.4, 0.14), [Math.sin(a) * (R + 0.06), door + 18, Math.cos(a) * (R + 0.06)], [0, a, 0])); }

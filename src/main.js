@@ -1611,5 +1611,14 @@ window.clipAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatAudit(r));
   return r;
 };
+/** Dev: where the drawn surfaces you stand on and climb part from the collision (src/contact-audit.js); prints a report. */
+window.contactAudit = async (o = {}) => {
+  const { auditContact, formatContact } = await import('./contact-audit.js');
+  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
+  const region = level.unsafe ? (p) => !level.unsafe(p) : null;
+  const r = auditContact({ physics, scene, solids: level.dynamic?.() ?? [], exclude, region, ...o });
+  if (o.print !== false) console.log(formatContact(r));
+  return r;
+};
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

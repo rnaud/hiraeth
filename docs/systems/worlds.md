@@ -222,7 +222,10 @@ layout checks do not establish performance on physical iPhone hardware.
 Each new world is self-contained in `src/levels/<id>.js`. The module exports its
 journal content (`<ID>_CONTENT`, imported by `content.js`) and has its own test in
 `tests/<id>.test.js`. Visible rock and props generally render without collision;
-hidden coarse copies collide instead. Static collision for each world is under 60k triangles.
+hidden coarse copies collide instead, except where you stand and climb on them: Vael II's rock, the
+Deep Wood's trunks, caps and arches and the Garden of Spheres' spheres and umbrella trees collide as drawn
+(~390 k, ~130 k and ~157 k triangles; the coarse copies sat up to metres inside the drawn surface:
+[movement.md](movement.md), "Contact"). The other worlds' static collision is under 60k triangles.
 - **Vael II** (`arzach2`): plateaus and needle forests above a cloud sea, linked
   by aqueducts and natural bridges. The rocks are built from noisy horizontal rings:
   fluted needles that fuse like drips, egg-stone stacks, mushroom tables with

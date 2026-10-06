@@ -69,7 +69,8 @@ test('aqueducts carry you across the chasm', () => {
 });
 
 test('collision budget holds and clouds do not collide', () => {
-  assert.ok(physics.triangles < 60000, `static collision budget: ${physics.triangles}`);
+  // (the rock collides as drawn since the contact audit, docs/systems/movement.md "Contact": ~390 k; Incal has ~920 k)
+  assert.ok(physics.triangles < 420000, `static collision budget: ${physics.triangles}`);
   // straight down through open cloud reaches nothing but the chasm floor
   const g = physics.groundAt(-300, 10, -620, 400);
   assert.ok(level.unsafe(new THREE.Vector3(-300, g, -620)), `cloud sea is not walkable: ${g}`);

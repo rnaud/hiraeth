@@ -22,6 +22,8 @@ export const CHANGELOG = [
     'Gliding, your hands no longer twist and spin at the ends of your arms: they stay open and flat, palms down like the tips of the wings, through turns and as the wings open and fold.',
     'Vael’s bird lands like a bird now: coming down she lowers her legs and reaches them forward, flares her wings and slows, touches down with her feet on the ground, even on a slope, sinks into her knees and walks off the last of her speed.',
     'Cast shadows have smooth, clean edges instead of blocky steps, most visibly the desert’s deep dark shadows and on the handheld. Small shadows such as a flower’s petals or a ribcage’s bones keep their true shape. The dark edge no longer crawls when you move the camera.',
+    'On the moving stone discs of Vael II’s Founders’ Belfry the traveller’s feet rest on the stone instead of sinking into it, and he rides a rising disc without dipping into it; the same on every temple’s riding discs and pressure plates and on the Belfry’s ledges. The trims, door frames and columns of the temples’ walls are solid where they are drawn.',
+    'Vael II’s rocks are solid exactly where they are drawn: climbing a needle, a boulder or a stone table the traveller hangs on the rock’s face instead of half inside it, and on the caps, boulders and rubble his feet rest on the stone. The same for Lorn II’s trunks, giant mushrooms and root arches, the Garden of Spheres’ spheres and umbrella trees, the desert’s umbrella grove and the towers outside several temples.',
   ] },
   { v: '0.71', date: '2026-10-06', items: [
     'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
