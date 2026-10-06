@@ -1,0 +1,113 @@
+DONE.md
+  s_1fd8d0e7b02dcf::t_0052e3337e6f50 665-672
+TODO.md
+  s_1fd8d0e7b02dcf::t_b18eb9e8120d72 110,126-128,171-175,188-190
+changelog.md
+  s_1fd8d0e7b02dcf::t_9f638d86e3bf4c 5-30,35-38
+docs/makehuman.md
+  s_1fd8d0e7b02dcf::t_6c730beb46d8c3 32-35,430-432,435-592,597-598,602,605-607
+docs/systems/characters.md
+  s_1fd8d0e7b02dcf::t_469488e51401e7 221,246-247,257-292
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_01097063553daf 209-275
+docs/systems/traveller-kit.md
+  s_1fd8d0e7b02dcf::t_f90ae3963efa27 28-35
+lore/characters/traveller-design.md
+  s_1fd8d0e7b02dcf::t_0ad2712fbb626c 13-16,28-33,41-47,72-75
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_8a0477a056bbd3 9-32,36-39
+src/costumes.js
+  s_1fd8d0e7b02dcf::t_e0dad01850dd65 32-34,41-45,83-84,104-105,122-123,141-142,161-162,181-182,201-202,220-221,240-241,260-261,280-281,299-300,315-316,320-321,339-340,420-421,423,437-438,441-442,462-464,473-488,547-548,563,570,616-653,793-794,862,871,884,890,896,928,933,939,958,964,966,968-970,973,977-1081,1084-1182,1201-1223,1225-1241,1243-1244,1246,1288-1311,1364-1365
+src/crowd-shader.js
+  s_1fd8d0e7b02dcf::t_01638ca4fad077 22,99
+src/crowd.js
+  s_1fd8d0e7b02dcf::t_262db02cc55769 168-169,193-196
+src/humanoid.js
+  s_1fd8d0e7b02dcf::t_d88d8fe5d732f1 413-414,419,422
+src/levels/bazaar.js
+  s_1fd8d0e7b02dcf::t_9695a4c9bd64f1 13-18,26-29,31,86,112,291-292
+src/levels/content.js
+  s_1fd8d0e7b02dcf::t_599efe990f1692 195-196
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_b3efa9997363f8 20-24,127-128,329-330,763,767
+src/levels/reference-lorn.js
+  s_1fd8d0e7b02dcf::t_e1634f14fb371e 1-557
+src/levels/reference-market.js
+  s_1fd8d0e7b02dcf::t_91ec7cad290224 1-435
+src/levels/reference-views.js
+  s_1fd8d0e7b02dcf::t_09e9796253e282 13-14,56-59,486-489
+src/levels/references.js
+  s_1fd8d0e7b02dcf::t_5fa749968699ec 12-13,168-169,198-201
+src/makehuman/body.js
+  s_1fd8d0e7b02dcf::t_3d03d7ff4c9546 14,172-184,186,189,191,193-219,230-232,363,375-376
+src/makehuman/face-keys.js
+  s_1fd8d0e7b02dcf::t_c857e5aa6e5c2b 52-57,61-69,74-75,80,82-83,89-100
+src/makehuman/hair.js
+  s_1fd8d0e7b02dcf::t_21f8309dbc5a82 16,47-51,54-55,62-83,281-290,296
+src/makehuman/people.js
+  s_1fd8d0e7b02dcf::t_08d388d996cf55 163-164,166
+src/materials.js
+  s_1fd8d0e7b02dcf::t_f6fc4f25ebfe61 334-341,381-386,1911,2000-2004
+src/npc.js
+  s_1fd8d0e7b02dcf::t_fb25269850a999 10,79,81,102-103,106,117,988
+src/story/arzach2-data.js
+  s_1fd8d0e7b02dcf::t_8dab6b651b0765 81,119-120
+src/story/bazaar-data.js
+  s_1fd8d0e7b02dcf::t_046a3dfa4643da 74,161-163,200,235,280,292,308
+src/story/buried-data.js
+  s_1fd8d0e7b02dcf::t_4c7ca4ef0cb3b7 148,242-243
+src/story/edena-data.js
+  s_1fd8d0e7b02dcf::t_822ec25a84fa59 267,350
+src/story/garage-data.js
+  s_1fd8d0e7b02dcf::t_92bc8ab63b2c5b 65,178
+src/story/incal-data.js
+  s_1fd8d0e7b02dcf::t_0f419ee6443c32 247-249,364,402,414
+src/story/perdide-data.js
+  s_1fd8d0e7b02dcf::t_fa5a16cf5f5ed3 329
+src/story/perdide2-data.js
+  s_1fd8d0e7b02dcf::t_27eb387e19a9c8 226
+src/studio/main.js
+  s_1fd8d0e7b02dcf::t_8baaab85fab965 22,35,189,209-210,239-244,845-849,852
+src/studio/makehuman.js
+  s_1fd8d0e7b02dcf::t_7368bd612158f1 93-117
+src/studio/people.js
+  s_1fd8d0e7b02dcf::t_5274f4a4bd5428 5,80
+src/traveller-style.js
+  s_1fd8d0e7b02dcf::t_ae07daf9e61ebc 4-5
+src/traveller.js
+  s_1fd8d0e7b02dcf::t_d55e6e9c1b487d 4-5,11-13,18,20,22,74-75,236-242,244-247,249-276,278-285,289-292,294-297,300-312,314-321,323-327,329-332,412,431-432,434-435,438-439,441-449,452,471,477-478,482,496-505,507-513,519,535-550,554,559,569-572,574-575,577-623,626
+tests/costumes.test.js
+  s_1fd8d0e7b02dcf::t_9830f462c6b32f 31-32,34-35,64-65,67-68
+tests/hair.test.js
+  s_1fd8d0e7b02dcf::t_a5aef522e57e73 82
+tests/makehuman-desert.test.js
+  s_1fd8d0e7b02dcf::t_35a28573b04798 42-44,188,193
+tests/makehuman-worlds.test.js
+  s_1fd8d0e7b02dcf::t_2db36818a53035 1-385
+tests/makehuman.test.js
+  s_1fd8d0e7b02dcf::t_0ad7e3f6f01e00 107,109,112-113,119,131,185-191,233,242-244
+tests/people.test.js
+  s_1fd8d0e7b02dcf::t_b5411895b9cb8f 7,61-68
+tests/reference-picker.test.js
+  s_1fd8d0e7b02dcf::t_cf9bff1cb19ce7 36,38,50
+tests/references.test.js
+  s_1fd8d0e7b02dcf::t_f829dfeef9291e 238-283
+tests/traveller.test.js
+  s_1fd8d0e7b02dcf::t_4ec6ad12470fb0 135,140,152,189,203,285,393,412-446
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5588604cbc2916449933391ae74291862a17f678",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
