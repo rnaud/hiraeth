@@ -23,10 +23,13 @@ The agent (`tests/playthrough-agent.js`) teleports rather than walks. At every s
 - there is an objective, and the drone's FIND (`scout.js nextObjective`) points at the same one;
 - its person is there: spawned, shown when you are near, talkable; a world's opening quest waits for its
   first talk, and the one who opens it is the first step's person (the desert: Marrow, its hint-giver);
-- there is ground to stand on at it, and it can be reached: walkable from the open ground round it (steps
-  no higher than a stair, `walkable`), through a doorway, a climb where the world allows climbing, or a
-  declared way (`WAYS`: the wind on wings, the boost-jumps, the jets, the bird) whose needs he has now;
-  the wind up Vael's tower and the steps to the flute are tried for real, by a `Player` in the physics;
+- there is ground to stand on at it, and it can be reached: a walk over the ground from where he stands
+  (`walkTo`: 2 m steps, up no more than a hop, down no more than a safe drop, through the doorways,
+  floors over floors told apart), the last of it a climb where the world allows climbing, or a declared
+  way (`WAYS`: the wind on wings, the boost-jumps, the jets, the bird) whose needs he has now. The one who
+  opens a world's quest must be reached so from the ship. The wind up Vael's tower, the steps to the
+  flute, and the City-Shaft's first find (Nima, 50 m under the rim: down on wings, back up the shaft's
+  wall) are tried for real, by a `Player` in the physics;
 - nothing early: nobody arrives anywhere with the wings before Vael, the jets before the City-Shaft, the
   bird's promise before Vael II, a cab pass before Lio; no fallback box by the ship; a step that names a
   way of getting about ("open your wings", "ride the bird", "the jets", "a cab") comes when he has it;
@@ -63,8 +66,9 @@ travel asks, the ship takes off, the next page is Vael and the arrival is a land
 Oïa; the bird is nowhere. Save and load: back to the title, Continue, Vael again as it was. Screenshots
 go to `--out`; it exits 1 if a check fails.
 
-**What it does not do.** It does not walk between objectives: reachability is local (45 m round each
-spot), plus the declared ways. It plays the route's quests, not every side quest, and the temples only as
+**What it does not do.** It teleports between objectives once it has found a walk (or a declared way),
+so it does not run the traveller's own movement except where a way is tried for real; the Hangar's
+turned gravity is not walked. It plays the route's quests, not every side quest, and the temples only as
 far as the route needs (the wings, the jets). Its choices in a conversation are a search over the data,
 not a player's.
 

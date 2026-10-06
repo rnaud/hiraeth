@@ -331,6 +331,14 @@ export async function playQuest(W, qid, { solvers = {}, ways = {}, checks = {}, 
   if (!q.isStarted(qid)) {
     const o = q.pendingOpener();
     if (o?.id === qid) {
+      // from the ship to the one who opens it: on foot, or by a declared way he has
+      const way = ways[`${qid}:opener`], giverAt = q.resolve(o.at ?? o.who[0])?.clone();
+      if (giverAt) {
+        const spot = standNear(W, giverAt, { radius: 3, up: 2 }) ?? giverAt;
+        if (way) { for (const i of reach(W, { position: giverAt, id: 'opener' }, null, way).issues) issue(i.kind, `the way to ${o.who[0]}: ${i.text}`); }
+        else walkCheck(W, W.level.ship?.pos ?? W.level.spawn, spot, (t) => issue('unreachable', `the one who opens it, ${o.who[0]}: ${t}`));
+        steps.push(`opener: ${o.who[0]} (${fmt(giverAt)}; ${way?.how ?? 'on foot from the ship'})`);
+      }
       const { ob, scout } = objectiveNow(W);
       if (!ob) issue('no-target', 'the quest waits for its first talk, but there is no objective to find the one who opens it');
       else if (!scout || scout.id !== ob.id) issue('drone', `the drone finds "${scout?.label}", not the one to talk to ("${ob.label}")`);
@@ -372,7 +380,9 @@ export async function playQuest(W, qid, { solvers = {}, ways = {}, checks = {}, 
       if (raw) {
         const R = reach(W, raw, ob, way);
         for (const i of R.issues) issue(i.kind, `stage "${stage}": ${i.text}`);
-        steps.push(`${stage}: ${raw.label ?? ob?.label} (${fmt(raw.position)}; ${R.how})`);
+        // and the walk there from where he stands now
+        const walk = way || !R.spot ? '' : walkCheck(W, W.player.pos, R.door ?? R.spot, (t) => issue('unreachable', `stage "${stage}": ${t}`));
+        steps.push(`${stage}: ${raw.label ?? ob?.label} (${fmt(raw.position)}; ${R.how})${walk}`);
       }
       // what the world says must hold at this step
       if (each) { const why = each(W, st, qid); if (why) issue('ability', `stage "${stage}": ${why}`); }
@@ -420,9 +430,9 @@ export function reach(W, raw, ob, way) {
   // through a doorway: walk to the doorway (on the ground), the room behind it is its own
   const door = ob && ob.id !== raw.id && ob.position ? standNear(W, ob.position, { radius: 4, up: 3 }) : null;
   const walk = walkable(W, door ?? spot);
-  if (walk.ok) return { spot, how: door ? `on foot, through ${ob.label.replace(/^Through the /, 'the ')}` : 'on foot', issues };
-  if (means.includes('climb')) return { spot, how: `a climb of ${walk.climb.toFixed(0)} m`, issues };
-  if (means.includes('jetpack')) return { spot, how: `the jets, ${walk.climb.toFixed(0)} m up`, issues };
+  if (walk.ok) return { spot, door, how: door ? `on foot, through ${ob.label.replace(/^Through the /, 'the ')}` : 'on foot', issues };
+  if (means.includes('climb')) return { spot, door, how: `a climb of ${walk.climb.toFixed(0)} m`, climb: true, issues };
+  if (means.includes('jetpack')) return { spot, door, how: `the jets, ${walk.climb.toFixed(0)} m up`, issues };
   issues.push({ kind: 'unreachable', text: `${walk.climb.toFixed(0)} m above the ground round it, and he can neither climb nor fly here` });
   return { spot, how: 'out of reach', issues };
 }
@@ -457,6 +467,64 @@ export function walkable(W, spot, { cell = 1, far = 45, stair = 0.8, hop = 2.2 }
     }
   }
   return { ok: false, climb: lowest - base };
+}
+
+/**
+ * Can he walk from where he stands to `to`? Returns '' when he can, or a note for the step's line;
+ * calls `bad` when the gap is not a climb at the end (a wall to climb up to it is the world's own way).
+ * Worlds whose gravity turns (the Hangar's zones) are not walked.
+ */
+export function walkCheck(W, fromPos, to, bad) {
+  if (W.level.gravityAt) return '';
+  // (from where he stands; from the air, where he comes down)
+  const below = W.physics.groundAt(fromPos.x, fromPos.y + 0.5, fromPos.z, 300);
+  const here = standNear(W, fromPos, { radius: 3, up: 2 }) ?? (Number.isFinite(below) ? V(fromPos.x, below, fromPos.z) : fromPos.clone());
+  const w = walkTo(W, here, to);
+  if (w.ok) return '';
+  // the last of it is a climb (a wall, a trunk, a ledge) where climbing is allowed: the way the world means
+  if ((W.level.features?.climb ?? true) && Math.hypot(w.at.x - to.x, w.at.z - to.z) < 12 && to.y > w.at.y) return ` (the last ${(to.y - w.at.y).toFixed(0)} m a climb)`;
+  bad(`no way on foot from ${fmt(here)} (the walk gets within ${w.closest.toFixed(0)} m)`);
+  return ' (not on foot)';
+}
+
+/**
+ * A walk from one spot to another over the ground, best first: steps of `cell` m up no higher than a stair
+ * or a hop (`rise`), down no deeper than a safe drop, with headroom; through the world's doorways
+ * (level.portals) as a player walks into them. Floors stacked over one another are told apart (a key
+ * per 4 m of height). { ok, closest (m), nodes }.
+ */
+export function walkTo(W, from, to, { cell = 2, rise = 1.4, drop = 6, near = 5, max = 120000 } = {}) {
+  const { physics } = W;
+  const key = (x, y, z) => `${Math.round(x / cell)},${Math.round(z / cell)},${Math.round(y / 4)}`;
+  const h = (x, y, z) => Math.hypot(x - to.x, z - to.z) + Math.abs(y - to.y) * 2;
+  const heap = [], push = (n) => { heap.push(n); let i = heap.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (heap[p].f <= heap[i].f) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l].f < heap[m].f) m = l; if (r < heap.length && heap[r].f < heap[m].f) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+  const seen = new Set([key(from.x, from.y, from.z)]);
+  push({ x: from.x, y: from.y, z: from.z, f: h(from.x, from.y, from.z) });
+  const portals = (W.level.portals ?? []).filter((p) => p.at && p.to);
+  let closest = Infinity, at = from, n = 0;
+  while (heap.length && n++ < max) {
+    const c = pop();
+    const d = Math.hypot(c.x - to.x, c.z - to.z) + Math.abs(c.y - to.y);
+    if (d < closest) { closest = d; at = c; }
+    if (d < near) return { ok: true, closest: d, nodes: n, at };
+    const next = [];
+    for (const [dx, dz] of [[cell, 0], [-cell, 0], [0, cell], [0, -cell]]) {
+      const x = c.x + dx, z = c.z + dz;
+      const g = physics.groundAt(x, c.y + rise + 0.2, z, rise + drop + 0.2);
+      if (!Number.isFinite(g) || g - c.y > rise || c.y - g > drop) continue;
+      if (physics.rayDistance(V(x, g + 0.3, z), V(0, 1, 0), 1.9) < 1.5) continue;
+      next.push([x, g, z]);
+    }
+    for (const p of portals) if (Math.hypot(c.x - p.at.x, c.z - p.at.z) < p.r + cell && Math.abs(c.y - p.at.y) < 2.5) next.push([p.to.x, p.to.y, p.to.z]);
+    for (const [x, y, z] of next) {
+      const k = key(x, y, z);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      push({ x, y, z, f: h(x, y, z) });
+    }
+  }
+  return { ok: false, closest, nodes: n, at };
 }
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
