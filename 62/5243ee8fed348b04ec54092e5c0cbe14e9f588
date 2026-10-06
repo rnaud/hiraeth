@@ -1,0 +1,69 @@
+docs/systems/engine-bridge.md
+  s_1fd8d0e7b02dcf::t_04caa130db43ad 113-152,373,449
+engine/game.js
+  s_1fd8d0e7b02dcf::t_e928cf6a160c5f 36-38,111-114,122,155-158,161,163-175,179-206,229-237,266-271,273,283,285
+engine/unity/game.js
+  s_1fd8d0e7b02dcf::t_46d0284040aee6 48-59,92-94,104-116
+src/audio.js
+  s_1fd8d0e7b02dcf::t_219e3aa68ead16 12,169,369
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_50e3d864698824 5,692,698
+src/hud.js
+  s_1fd8d0e7b02dcf::t_2d49fa77f6e93f 11,86-107,109,111
+src/motion-match.js
+  s_1fd8d0e7b02dcf::t_8698879ff130f2 1,62,65
+src/platform.js
+  s_1fd8d0e7b02dcf::t_da1d4a13b8a3ad 1-75
+src/ship/cinema.js
+  s_1fd8d0e7b02dcf::t_bd304323c0fc05 13,355
+src/story/dialogue.js
+  s_1fd8d0e7b02dcf::t_1684b3d5f6f7dd 1,283,298,307,356-357,396-397,419,437,443-453
+src/story/index.js
+  s_1fd8d0e7b02dcf::t_0ac61f485bda9c 1,223,282-283,286-287
+src/ui.js
+  s_1fd8d0e7b02dcf::t_1b914d7b4e61cd 1,34,41
+tests/engine-unity.test.js
+  s_1fd8d0e7b02dcf::t_bb73e6358cb3d1 77,81,96
+tests/hud.test.js
+  s_1fd8d0e7b02dcf::t_05179d5d39d38f 4,77-86
+tests/platform.test.js
+  s_1fd8d0e7b02dcf::t_aade42557c0c19 1-76
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs
+  s_1fd8d0e7b02dcf::t_b786b4d16c2f32 54
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_1fd8d0e7b02dcf::t_c3db6e8f7ee6a6 26-27
+unity/Memento/Assets/MementoJS/Runtime/BridgeHud.cs
+  s_1fd8d0e7b02dcf::t_26111b8ff35da1 1-254
+unity/Memento/Assets/MementoJS/Runtime/BridgeHud.cs.meta
+  s_1fd8d0e7b02dcf::t_51ebf663a8a4cf 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_1fd8d0e7b02dcf::t_e1822aa6606044 23,129-132,167-178,183
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_1fd8d0e7b02dcf::t_f2f6759e20e9de 25,61-63,114-117
+src/main.js
+  s_0014bcffd963c9::t_f30c56868957fd 11-12,297-298,302,304,306-308,318-322
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "625243ee8fed348b04ec54092e5c0cbe14e9f588",
+  "prompts": {},
+  "sessions": {
+    "s_0014bcffd963c9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aba15402618226002",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
