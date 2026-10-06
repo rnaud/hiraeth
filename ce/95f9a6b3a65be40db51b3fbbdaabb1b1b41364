@@ -1,0 +1,153 @@
+.gitignore
+  s_1fd8d0e7b02dcf::t_76d2aa2b8474ec 30-36
+TODO.md
+  s_1fd8d0e7b02dcf::t_dc0d9f0ce8e21b 132-133,233
+changelog.md
+  s_1fd8d0e7b02dcf::t_c72b488a2498c0 15
+docs/README.md
+  s_1fd8d0e7b02dcf::t_f39f807a1a9615 56
+docs/systems/engine-bridge.md
+  s_1fd8d0e7b02dcf::t_bd1c3960874930 1-380
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_159a4d789a7ec4 166-195
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_eb2a291d15e404 277-279
+docs/systems/unity.md
+  s_1fd8d0e7b02dcf::t_ac0fd5d5ab9b05 3-5
+engine/boot.js
+  s_1fd8d0e7b02dcf::t_24b2f8d734aca5 1-22
+engine/game.js
+  s_1fd8d0e7b02dcf::t_a52e8219e2e667 1-232
+engine/godot/backend.js
+  s_1fd8d0e7b02dcf::t_673860e7e8c4a5 1-262
+engine/godot/game.js
+  s_1fd8d0e7b02dcf::t_11315b10fb991a 1-150
+engine/godot/host.js
+  s_1fd8d0e7b02dcf::t_7a432f82476aa7 1-40
+engine/godot/look.js
+  s_1fd8d0e7b02dcf::t_ad90a25182d23f 1-15
+engine/godot/pack.js
+  s_1fd8d0e7b02dcf::t_f80f78d929d24f 1-51
+engine/godot/spike.js
+  s_1fd8d0e7b02dcf::t_4a1534df8764a4 1-35
+engine/godot/stage.js
+  s_1fd8d0e7b02dcf::t_918e02772cd13a 1-81
+engine/ink-params.js
+  s_1fd8d0e7b02dcf::t_c08308a6827e63 1-81
+engine/ink-spec.js
+  s_1fd8d0e7b02dcf::t_b48613dbcac689 1-58
+engine/keys.js
+  s_1fd8d0e7b02dcf::t_745ba3f9adfcbe 1-48
+engine/mirror.js
+  s_1fd8d0e7b02dcf::t_055c32a78d0ae3 1-180
+engine/platform.js
+  s_1fd8d0e7b02dcf::t_785ce2b4bdaa79 1-318
+engine/skin.js
+  s_1fd8d0e7b02dcf::t_5addcc3e0ba86c 1-24
+engine/spike.js
+  s_1fd8d0e7b02dcf::t_f56184f8595e34 1-38
+engine/unity/backend.js
+  s_1fd8d0e7b02dcf::t_527ebb35549e64 1-109
+engine/unity/game.js
+  s_1fd8d0e7b02dcf::t_e9bd8d1d018e79 1-104
+engine/unity/host.js
+  s_1fd8d0e7b02dcf::t_78d17527179289 1-22
+engine/unity/pack.js
+  s_1fd8d0e7b02dcf::t_07e6f0d198febf 1-85
+engine/unity/port-format.js
+  s_1fd8d0e7b02dcf::t_ad700778b2e61a 1-65
+engine/vm-run.mjs
+  s_1fd8d0e7b02dcf::t_6fba05f1e80f2b 1-36
+godot/main.js
+  s_1fd8d0e7b02dcf::t_babbb93c815c12 1-21
+godot/main.tscn
+  s_1fd8d0e7b02dcf::t_bc7e61996a7162 1-6
+godot/project.godot
+  s_1fd8d0e7b02dcf::t_a29291a80d4302 1-151
+godot/run.sh
+  s_1fd8d0e7b02dcf::t_bf46db150ac9eb 1-18
+godot/shaders/ink.gdshaderinc
+  s_1fd8d0e7b02dcf::t_efeb8312690d78 1-309
+godot/shaders/ink_post.gdshader
+  s_1fd8d0e7b02dcf::t_a50b995de0ff6d 1-165
+godot/shaders/ink_skinned.gdshader
+  s_1fd8d0e7b02dcf::t_a3d5c4559c863a 1-6
+godot/shaders/ink_skinned_double.gdshader
+  s_1fd8d0e7b02dcf::t_cfc1d15e38661c 1-5
+godot/shaders/ink_surface.gdshader
+  s_1fd8d0e7b02dcf::t_1eecb3d96cd880 1-4
+godot/shaders/ink_surface_back.gdshader
+  s_1fd8d0e7b02dcf::t_0b72ff5e588227 1-4
+godot/shaders/ink_surface_double.gdshader
+  s_1fd8d0e7b02dcf::t_014895052c8e7d 1-4
+scripts/engine-bundle.mjs
+  s_1fd8d0e7b02dcf::t_3100b2167dad39 1-72
+scripts/godot-globals.mjs
+  s_1fd8d0e7b02dcf::t_b122f01bc3173d 1-14
+scripts/unity-export/unity-batch.sh
+  s_1fd8d0e7b02dcf::t_30ac6f15d523b9 15
+scripts/unity-js-setup.sh
+  s_1fd8d0e7b02dcf::t_c162bd9d2205ec 1-21
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_dd0eff188e2b10 18
+src/materials.js
+  s_1fd8d0e7b02dcf::t_0db50e27f56e8d 255,329-348,375,638,1085-1145,1825-1837,2251-2252,2314
+tests/engine-bridge.test.js
+  s_1fd8d0e7b02dcf::t_c7530806bee6ef 1-314
+tests/engine-unity.test.js
+  s_1fd8d0e7b02dcf::t_852c09a5501953 1-103
+tests/surface-spec.test.js
+  s_1fd8d0e7b02dcf::t_c8149e9dfc41a9 64,66-67
+tests/wall-patch.test.js
+  s_1fd8d0e7b02dcf::t_6857e0628743e0 1-38
+unity/.gitignore
+  s_1fd8d0e7b02dcf::t_69ce75f8a41bdb 28-31
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_14a9a8395f4630 166-170
+unity/Memento/Assets/MementoJS.meta
+  s_1fd8d0e7b02dcf::t_1e97e5d8331f84 1-8
+unity/Memento/Assets/MementoJS/BridgeDesert.unity
+  s_1fd8d0e7b02dcf::t_da3caf50c9ace1 1-177
+unity/Memento/Assets/MementoJS/BridgeDesert.unity.meta
+  s_1fd8d0e7b02dcf::t_95af0756428e85 1-7
+unity/Memento/Assets/MementoJS/Editor.meta
+  s_1fd8d0e7b02dcf::t_d2dbe2dc441f23 1-8
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs
+  s_1fd8d0e7b02dcf::t_75d75ce52b3d5a 1-81
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs.meta
+  s_1fd8d0e7b02dcf::t_cce456b145550d 1-2
+unity/Memento/Assets/MementoJS/Runtime.meta
+  s_1fd8d0e7b02dcf::t_eb9d8d2ea1b87a 1-8
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_1fd8d0e7b02dcf::t_96f3c2a3fc6a75 1-92
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs.meta
+  s_1fd8d0e7b02dcf::t_6594fcb7b17ac9 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_1fd8d0e7b02dcf::t_dc052e4aeb3dd3 1-274
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs.meta
+  s_1fd8d0e7b02dcf::t_782100751f026c 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_1fd8d0e7b02dcf::t_31fdbd5bbd2b5d 1-139
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs.meta
+  s_1fd8d0e7b02dcf::t_e10da517137264 1-2
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs
+  s_1fd8d0e7b02dcf::t_dceb57e4ad1d8c 1-64
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs.meta
+  s_1fd8d0e7b02dcf::t_c7b643e1d6ecd3 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ce95f9a6b3a65be40db51b3fbbdaabb1b1b41364",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
