@@ -25,3 +25,7 @@ Memento/Assets/StreamingAssets/*
 # build leftovers (the Android build's CMake staging, plugin copies)
 Memento/.utmp/
 Memento/Data/
+
+# the JS bridge's runtime (docs/systems/engine-bridge.md): Puerts' packages, fetched by
+# scripts/unity-js-setup.sh from its GitHub release (the V8 plug-ins are 80 MB), embedded here
+Memento/Packages/com.tencent.puerts.*/
