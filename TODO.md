@@ -10,14 +10,26 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
   surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
 - [ ] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller).
-- [ ] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
+- [x] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
   standing and landing contact across all worlds, including moving platforms, so visible platform tops
-  and collision surfaces agree and feet do not disappear into them.
+  and collision surfaces agree and feet do not disappear into them. (The feet asked only the baked collision,
+  which leaves out moving floors: they found the floor under the disc and reached through it, ~0.3 m; now they
+  see `level.dynamic()` solids (src/carriers.js) and held feet ride with the disc. A disc's 3 cm-a-frame rise
+  read as a stair, so the drawn body lagged ~15 cm into it: StepLag takes out the carried motion. The Belfry's
+  ledge trims, the discs' rim band, pressure plates and the temple kit's wall caps, frames, kerbs and columns
+  now collide as drawn. New contact audit (src/contact-audit.js, `contactAudit()`, tests/contact-audit.test.js)
+  compares drawn and collision tops and walls in every world, with a regression line and a known list;
+  docs/systems/movement.md "Contact".)
 - [ ] When the ridden bird approaches the ground, have it extend its legs and feet in preparation,
   then land properly with its feet contacting the ground.
-- [ ] Fix the mismatch between Vael's visible rocks and their climbing hitboxes: the traveller goes
+- [x] Fix the mismatch between Vael's visible rocks and their climbing hitboxes: the traveller goes
   through roughly half of some rocks while climbing. Align climbing contact with the visible surfaces
-  and check the affected rocks throughout the level.
+  and check the affected rocks throughout the level. (Vael II's rock collided as coarse stand-ins, up to 2 m
+  inside the drawn needles, boulders, mounds and table rims; it now collides as drawn (~390 k triangles), and
+  the audit's climb check is clean across the level (4618 places to ~2); Vael's rock already collided as
+  drawn. Also made exact: Lorn II's trunks, caps and arches, the Garden of Spheres' spheres and umbrella
+  trees, the desert's umbrella grove, the temple towers' lathes. Left: the desert's Hearth butte and Givers'
+  House tower, the Buried Machine, see movement.md.)
 
 # Player feedback, part 3 (2026-10-05)
 

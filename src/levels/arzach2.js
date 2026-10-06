@@ -50,7 +50,8 @@ const AQ2 = { a: [215, -325], b: [215, plainEdge(215) - 30], y: 40 };   // needl
 // the story's places (src/story/arzach2.js)
 const BELL = { x: -228, z: -239, w: 7.5, h: 30 };                 // the monastery's bell tower (its open belfry)
 // sky stones climbing from the great table's east rim: each a boost-jump above the last
-const SKY = [[32, -446.3, 66.6, 2.7], [36.5, -439.5, 70.2, 2.4], [34, -433, 73.2, 2.8], [39.5, -429, 76.2, 2.4], [45, -432.5, 79.2, 2.4],
+// (the first half a metre higher since the rim collides as drawn: it stood that much below its drawn edge)
+const SKY = [[32, -446.3, 67.1, 2.7], [36.5, -439.5, 70.2, 2.4], [34, -433, 73.2, 2.8], [39.5, -429, 76.2, 2.4], [45, -432.5, 79.2, 2.4],
   [49, -437.5, 82.2, 2.8], [51.5, -444, 85.2, 2.4], [48.5, -450, 88.2, 2.4], [42.5, -452.5, 91.2, 3.4]];
 const CAIRN = { x: -18, z: -438 };                                 // on the great table, toward the stones
 const CLAPPER = { x: 251, z: -503 };                               // on the floating island, before the church door
@@ -184,10 +185,14 @@ export function* buildArzach2(scene) {
   };
   const vis = new Map();
   const col = [];
-  const add = (mat, g, proxy = g) => {
+  // what you stand on and climb is the drawn rock itself (solid: false for what you pass through). The
+  // coarse copies the builders also make (a table's every-other ring at 18 sides, a needle's hexagon, a
+  // boulder's bare icosahedron, a low mound) lay up to metres inside the drawn surface: feet sank into the
+  // drawn caps and boulders and the traveller climbed half inside the needles (docs/systems/movement.md, "Contact")
+  const add = (mat, g, solid = true) => {
     if (!vis.has(mat)) vis.set(mat, []);
     vis.get(mat).push(clean(g, true));
-    if (proxy) col.push(clean(proxy));
+    if (solid) col.push(clean(g));
   };
   const movers = [];
   const noShadow = [];
@@ -197,7 +202,7 @@ export function* buildArzach2(scene) {
   const shadowGeos = [];
   // (a table: its axis, for the strokes radiating from its stalk)
   const tableOf = (o) => { const t = table(o); formAxis(t.vis, 'cap', { centre: [o.x, 0, o.z] }); return t; };
-  const addTable = (mat, o) => { const t = tableOf(o); add(mat, t.vis, t.col); if (mat === M.cap) shadowGeos.push(clean(t.shadow)); return t; };
+  const addTable = (mat, o) => { const t = tableOf(o); add(mat, t.vis); if (mat === M.cap) shadowGeos.push(clean(t.shadow)); return t; };
   // the start plateau: a wide table with an overhanging lip
   addTable(M.bone, { ...START, stalk: 70, capT: 6, under: 11, seed: 1.3, rib: 1.3, ribK: 44, seg: 176, colSeg: 24, outline: 0.15, foot: 0.92, neckR: 0.97, waist: 0.03, ledges: 0.05, flute: 0.1, fluteK: 23 });
   // the monastery cliff: rose rock, the lip leaning out toward the start
@@ -246,8 +251,7 @@ export function* buildArzach2(scene) {
       if (detail && rg.y < top - 3) m *= 1 - 0.1 * Math.pow(0.5 + 0.5 * Math.sin(13 * a + 2 * nB(ca, sa + rg.y * 0.05)), 3);
       return [m, 0];
     };
-    add(M.bone, place(solid(rs, 96, shape(true), { top: [0, top + ISLAND.dome, 0], bottom: [3, top - 53, 2] }), x, 0, z),
-      place(solid(rs, 18, shape(false), { top: [0, top + ISLAND.dome, 0] }), x, 0, z));
+    add(M.bone, place(solid(rs, 96, shape(true), { top: [0, top + ISLAND.dome, 0], bottom: [3, top - 53, 2] }), x, 0, z));
   }
 
   // ---------------------------------------------------------- needle clusters
@@ -255,13 +259,13 @@ export function* buildArzach2(scene) {
   const cluster = (cx, cy, cz, H, Rr, n, seed, rubble = true, mat = M.bone) => {
     const r2 = mulberry32(seed * 97 + 3);
     const nd = needle({ x: cx, y: cy, z: cz, H, R: Rr, seed: seed + 0.1, seg: 18, rings: 28, lean: (r2() - 0.5) * 0.08 });
-    add(mat, nd.vis, nd.col);
+    add(mat, nd.vis);
     for (let i = 0; i < n; i++) {
       // the first few lean on the main needle like wax drips, the rest stand apart
       const fused = i < Math.ceil(n / 2), a = r2() * TAU, d = Rr * (fused ? 0.55 + r2() * 0.4 : 1.3 + r2() * 1.5);
       const h = H * (fused ? 0.22 + r2() * 0.4 : 0.15 + Math.pow(r2(), 1.3) * 0.5), rr = Rr * (fused ? 0.4 + r2() * 0.25 : 0.3 + r2() * 0.35);
       const s = needle({ x: cx + Math.cos(a) * d, y: cy - 1, z: cz + Math.sin(a) * d, H: h, R: rr, seed: seed + i * 1.37 + 0.5, seg: 14, rings: 20, lean: (r2() - 0.5) * 0.25 });
-      add(mat, s.vis, s.col);
+      add(mat, s.vis);
     }
     if (!rubble) return nd;
     // rounded boulder piles at the foot
@@ -269,15 +273,13 @@ export function* buildArzach2(scene) {
       const a = r2() * TAU, d = Rr * (0.6 + r2() * 2.2), br = Rr * (0.18 + r2() * 0.32);
       const bx = cx + Math.cos(a) * d, bz = cz + Math.sin(a) * d;
       const sx = 1 + r2() * 0.4, sy = 0.65 + r2() * 0.3, sz = 0.9 + r2() * 0.3, ry = r2() * TAU;
-      add(mat, place(boulder(br, sx, sy, sz, 0.1, seed + i), bx, cy + br * sy * 0.35, bz, ry),
-        place(boulder(br, sx, sy, sz, 0.1, seed + i, false), bx, cy + br * sy * 0.35, bz, ry));
+      add(mat, place(boulder(br, sx, sy, sz, 0.1, seed + i), bx, cy + br * sy * 0.35, bz, ry));
     }
     // a low rubble mound round the base
     const mound = new THREE.SphereGeometry(1, 22, 6, 0, TAU, 0, Math.PI / 2);
     lumpy(mound, 0.18, 1.6, seed);
     const mr = Rr * 2.6, mh = Rr * 0.7;
-    const moundLo = new THREE.SphereGeometry(1, 10, 3, 0, TAU, 0, Math.PI / 2);
-    add(mat, place(mound, cx, cy - 0.5, cz, 0, mr, mh, mr), place(moundLo, cx, cy - 0.5, cz, 0, mr, mh * 0.95, mr));
+    add(mat, place(mound, cx, cy - 0.5, cz, 0, mr, mh, mr));
     return nd;
   };
   // on the start plateau
@@ -305,8 +307,7 @@ export function* buildArzach2(scene) {
     for (const [r, sy, egg] of stones) {
       const sx = 1 + r2() * 0.25, sz = 0.85 + r2() * 0.3, ry = r2() * TAU, tilt = (r2() - 0.5) * 0.25;
       yy += r * sy * 0.92;
-      add(mat, place(boulder(r, sx, sy, sz, egg, seed + yy), x + ox, yy, z + oz, ry, 1, 1, 1, tilt, -tilt),
-        place(boulder(r, sx, sy, sz, egg, seed + yy, false), x + ox, yy, z + oz, ry, 1, 1, 1, tilt, -tilt));
+      add(mat, place(boulder(r, sx, sy, sz, egg, seed + yy), x + ox, yy, z + oz, ry, 1, 1, 1, tilt, -tilt));
       yy += r * sy * 0.92;
       ox += (r2() - 0.5) * r * 0.35; oz += (r2() - 0.5) * r * 0.35;
     }
@@ -325,10 +326,10 @@ export function* buildArzach2(scene) {
   {
     const x = 128, z = -92;
     const col0 = needle({ x, y: -80, z, H: 120, R: 7, seed: 41, seg: 14, rings: 18, flute: 0.1, lean: 0 });
-    add(M.bone, col0.vis, col0.col);
+    add(M.bone, col0.vis);
     const disc = (dx, y, dz, rr, th) => {
       const t = tableOf({ x: x + dx, z: z + dz, R: rr, stalk: rr * 0.18, top: y, base: y - th * 2.5, capT: th, under: th * 0.6, dome: th * 0.3, seed: y * 0.1, rib: 0.4, ribK: 20, seg: 64, colSeg: 14, foot: 1, neckR: 1, waist: 0 });
-      add(M.cap, t.vis, t.col);
+      add(M.cap, t.vis);
     };
     disc(0, 30, 0, 8, 1.4);
     const y1 = stack(x, 31, z, [[3.8, 0.75, 0.1], [3.4, 0.9, 0.15], [2.6, 0.7, 0.05]], 6);
@@ -341,16 +342,16 @@ export function* buildArzach2(scene) {
     const { x, z, top, R: r } = DISC;
     const shaft = tableOf({ x, z, R: r, stalk: 3.6, top, base: -95, capT: 1.8, under: 2.4, dome: 0.35, seed: 61, rib: 0.35, ribK: 22, seg: 96, colSeg: 16,
       flute: 0.14, fluteK: 7, foot: 2.1, neckR: 0.85, waist: 0.05 });
-    add(M.bone, shaft.vis, shaft.col);
-    add(M.bone, place(boulder(0.9, 1, 0.8, 1, 0, 3), x, top + 1.6, z), null);   // the pebble it balances on
-    add(M.bone, place(boulder(3.6, 1, 2, 0.95, 0.12, 62), x, top + 9.6, z, 0.3), place(boulder(3.6, 1, 2, 0.95, 0.12, 62, false), x, top + 9.6, z, 0.3));
+    add(M.bone, shaft.vis);
+    add(M.bone, place(boulder(0.9, 1, 0.8, 1, 0, 3), x, top + 1.6, z), false);   // the pebble it balances on
+    add(M.bone, place(boulder(3.6, 1, 2, 0.95, 0.12, 62), x, top + 9.6, z, 0.3));
   }
 
   // ---------------------------------------------------------- aqueducts and arches
   yield;
   const aqueduct = (o, mat = M.aq, parapets = true) => {
     const br = bridge(o);
-    add(mat, br.g, bridge({ ...o, step: 2.5 }).g);
+    add(mat, br.g);
     if (!parapets) return br;
     // broken parapet blocks along both edges
     for (let i = 4; i < br.S.length - 4; i += 3) {
@@ -483,10 +484,10 @@ export function* buildArzach2(scene) {
       add(M.tower, place(new THREE.SphereGeometry(3.6, 14, 10), x, fy, fz, 0, 1, 1.25, 0.55));
       add(M.tower, place(new THREE.BoxGeometry(5.6, 0.7, 1.2), x, fy + 1.6, fz + 1.4));                    // the brow
       add(M.tower, place(new THREE.ConeGeometry(0.75, 2.6, 4), x, fy - 0.2, fz + 1.9, 0, 1, 1, 1, Math.PI / 2 + 0.25)); // the nose
-      for (const sx of [-1, 1]) add(M.dark, place(new THREE.BoxGeometry(1.5, 0.22, 0.3), x + sx * 1.35, fy + 0.85, fz + 1.95), null); // shut eyes
-      add(M.dark, place(new THREE.BoxGeometry(1.8, 0.2, 0.3), x, fy - 1.9, fz + 1.7), null);                // the mouth
-      for (const dx of [-0.9, 0, 0.9]) add(M.dark, place(new THREE.SphereGeometry(0.26, 8, 6), x + dx, fy + 2.85 + (dx ? 0 : 0.25), fz + 1.75), null);
-      add(M.dark, place(new THREE.TorusGeometry(1.2, 0.12, 4, 12, Math.PI), x, fy + 2.0, fz + 1.75, 0, 1, 0.5, 1), null);
+      for (const sx of [-1, 1]) add(M.dark, place(new THREE.BoxGeometry(1.5, 0.22, 0.3), x + sx * 1.35, fy + 0.85, fz + 1.95), false); // shut eyes
+      add(M.dark, place(new THREE.BoxGeometry(1.8, 0.2, 0.3), x, fy - 1.9, fz + 1.7), false);                // the mouth
+      for (const dx of [-0.9, 0, 0.9]) add(M.dark, place(new THREE.SphereGeometry(0.26, 8, 6), x + dx, fy + 2.85 + (dx ? 0 : 0.25), fz + 1.75), false);
+      add(M.dark, place(new THREE.TorusGeometry(1.2, 0.12, 4, 12, Math.PI), x, fy + 2.0, fz + 1.75, 0, 1, 0.5, 1), false);
       FACE.x = x; FACE.y = base; FACE.z = fz + 4;
     }
     // low ruins at its foot
@@ -570,14 +571,14 @@ export function* buildArzach2(scene) {
   SKY.forEach(([x, z, top, r], i) => {
     const t = tableOf({ x, z, R: r, stalk: r * 0.3, top, base: top - r * 1.5, capT: r * 0.32, under: r * 0.3, dome: r * 0.06, seed: 80 + i * 1.3,
       rib: r * 0.05, ribK: 16, seg: 40, colSeg: 10, flute: 0.1, fluteK: 7, foot: 0.8, neckR: 1.1, waist: 0.1 });
-    add(M.bone, t.vis, t.col);
-    add(M.bone, place(boulder(r * 0.22, 1, 1.3, 1, 0.1, 90 + i), 0.3, top - r * 1.5 - r * 0.5, 0.2).translate(x, 0, z), null);
+    add(M.bone, t.vis);
+    add(M.bone, place(boulder(r * 0.22, 1, 1.3, 1, 0.1, 90 + i), 0.3, top - r * 1.5 - r * 0.5, 0.2).translate(x, 0, z), false);
   });
   // the cairn's footing stone on the great table
   yield;
   {
     const y = tableTop(TABLE, Math.hypot(CAIRN.x - TABLE.x, CAIRN.z - TABLE.z));
-    add(M.bone, place(boulder(1.5, 1.2, 0.5, 1.1, 0, 95), CAIRN.x, y + 0.35, CAIRN.z), place(boulder(1.5, 1.2, 0.5, 1.1, 0, 95, false), CAIRN.x, y + 0.35, CAIRN.z));
+    add(M.bone, place(boulder(1.5, 1.2, 0.5, 1.1, 0, 95), CAIRN.x, y + 0.35, CAIRN.z));
     CAIRN.y = y + 1.05;
   }
 

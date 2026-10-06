@@ -17,6 +17,49 @@ BVH. Moving things, plants and the desert heightfield are flagged
 - **Camera:** a line-of-sight ray pulls it in front of walls, so it never
   clips inside buildings.
 
+## Contact: what you stand on and climb is what is drawn (October 2026)
+
+The author's feedback: feet sank into the riding discs and ledges of Vael II's Founders' Belfry, and the
+traveller climbed half inside some of Vael's rocks. Four causes, four fixes:
+
+- **The feet looked through moving floors.** The body stands on `level.dynamic()` solids (a temple's riding
+  disc, a pressure plate, a taxi's roof: `Player.moveStep`), but the feet (`feet.js plantFeet`) asked the
+  baked collision, which leaves out everything that moves: they found the floor under the disc, the hips came
+  down and the legs reached through it (~0.3 m). `src/carriers.js` `standGround(physics, solids)` answers the
+  feet's two questions (`heightAbove`, `groundNormal`) with the solids' tops counted, and a held foot moves
+  with what carries it (`plantFeet(..., { carry })`).
+- **A disc's rise read as a stair.** At 2 m/s a riding disc lifts the root 3.3 cm a frame, over `StepLag`'s
+  3 cm step threshold: the drawn body lagged ~15 cm under the root as it rose (and floated over it going
+  down). `StepLag.update(..., carried)` takes out what a carrier moved; `Player._ridden` is that motion.
+- **Drawn-only trims over floors.** The Belfry's stair ledges carried a 0.3 m trim drawn 0.2 m over the
+  collision; the discs' rim band stood 0.14 m proud of their top; a pressure plate's disc stood 0.17 m over
+  the floor. The ledges' trims collide now, the rim band is flush, a plate is a moving solid whose top follows
+  its disc. The temple kit's wall caps, door frames, stair kerbs and columns (its own lathe) collide as drawn.
+- **Coarse stand-ins inside drawn rock.** Vael II's rock collided as a coarse copy (a table's every other ring
+  at 18 sides, a needle's hexagon, a boulder's bare icosahedron, an unlumped mound): up to 2 m inside the drawn
+  surface. It collides as drawn now (`src/levels/arzach2.js` `add`), ~390 k triangles (from ~57 k; Incal has
+  ~920 k; the BVH builds in a worker: ~+150 ms on the desktop load). The same for the Deep Wood's trunks, caps
+  and arches (~130 k), the Garden of Spheres' spheres and umbrella trees (~157 k: the giant sphere's 20-sided
+  stand-in lay 4.9 m under its drawn top), the desert's umbrella grove, and the temple towers' lathes (the
+  Belfry's, the Buried Machine's, the Deep Wood's). Vael (the first) already collided as drawn.
+
+**The contact audit** (`src/contact-audit.js`; `await contactAudit()` in the running game prints the world's
+report) samples the collision by area: on walkable faces a ray down from 1 m above meets the collision and the
+drawn surfaces (*feet sink*: drawn above, *feet hover*: drawn below, *unseen floor*: nothing drawn); on faces you
+can grab (within ~20° of vertical, above step height), a ray in from 0.75 m out along the face (*climbs inside*:
+drawn in front, or the climber's side itself inside drawn rock; *climbs off*: drawn behind); each moving solid's
+drawn top over its disc (`solid.flat`: to its rim). Drawn means visible, opaque meshes where they are now, not
+walk-through scatter, flora, water, things that float on purpose, shadow casters or the heightfield's mesh.
+`tests/contact-audit.test.js` runs it on made-up scenes and on every world: Vael and Vael II must be clean
+(the rock as drawn), every disc and plate flush, and no world may grow past its known count (the list and what
+is left are in the test). The real traveller (`tests/gait-sim.js`) rides a rising disc with his soles at rest
+height over its top, and on Vael II's rock lands with his feet on the drawn surface.
+
+Left for later: the desert's Givers' Hearth butte and Givers' House tower still collide as smooth stand-ins
+inside their rough drawn sides (made exact, they move the sand banked against them, and the Qanat gathering
+with it); the Buried Machine's pipes and tanks; drawn trims on buildings in the cities; taxi roofs (a car is a
+disc only in the middle); the temple rotunda's top lip.
+
 ## Mounts come to you
 
 - **Hoverbike:** whistle (E) and it drives over on autopilot. If it's

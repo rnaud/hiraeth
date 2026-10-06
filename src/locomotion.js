@@ -113,11 +113,15 @@ export function gaitFeet(animator, speed, out = {}) {
 export class StepLag {
   constructor() { this.lag = 0; this.last = null; }
   reset() { this.lag = 0; this.last = null; }
-  /** pos: the root (world), up: the way up there; returns the offset to add along up. */
-  update(dt, pos, up, onGround) {
+  /**
+   * pos: the root (world), up: the way up there; carried: how far a moving floor took the root this
+   * frame (a riding disc's rise is not a step: the body rides it as it is); returns the offset to add along up.
+   */
+  update(dt, pos, up, onGround, carried = null) {
     // (the rise since the last frame along today's up: where gravity turns (the Hangar), a height
     // measured from the world's origin would jump with every turn of the up vector)
-    const jump = this.last ? (pos.x - this.last.x) * up.x + (pos.y - this.last.y) * up.y + (pos.z - this.last.z) * up.z : 0;
+    let jump = this.last ? (pos.x - this.last.x) * up.x + (pos.y - this.last.y) * up.y + (pos.z - this.last.z) * up.z : 0;
+    if (carried && this.last) jump -= carried.x * up.x + carried.y * up.y + carried.z * up.z;
     (this.last ??= pos.clone()).copy(pos);
     if (!onGround) { this.lag = 0; return 0; }
     // (a stair is centimetres in one frame; a slope at a run is ~1 cm; a teleport is metres)

@@ -469,17 +469,19 @@ export function buildDesertLandmarks(scene, terrain) {
       const stem = lathe(Array.from({ length: 13 }, (_, i) => { const t = i / 12; return [rT + (rB - rT) * (1 - t) ** 3, t * (H - 4)]; }), 28);
       const p = stem.attributes.position;
       for (let i = 0; i < p.count; i++) { const a = Math.atan2(p.getZ(i), p.getX(i)), f = 1 + 0.07 * Math.cos(a * 14); p.setX(i, p.getX(i) * f); p.setZ(i, p.getZ(i) * f); }
-      k.add(M.stem, stem.translate(x, -1, z));
-      k.solid(new THREE.CylinderGeometry(rT * 1.1, rB, H - 4, 8).translate(x, (H - 4) / 2 - 1, z));
+      // (the stem and the cap collide as drawn: you climb the one and stand on the other, and their eight-sided
+      // stand-ins lay up to metres inside them: src/contact-audit.js)
+      k.both(M.stem, stem.translate(x, -1, z));
       const top = [[0, H + 2.5], [Rc * 0.5, H + 1.9], [Rc * 0.9, H + 0.6], [Rc, H - 0.2], [Rc * 0.98, H - 0.9]];
       const under = [[Rc * 0.98, H - 0.9], [Rc * 0.7, H - 2.6], [Rc * 0.35, H - 4.6], [rT * 1.3, H - 6]];
-      k.add(M.canopy, lathe(top.slice().reverse(), 40).translate(x, 0, z));
-      k.add(M.canopyUnder, lathe(under.slice().reverse(), 40).translate(x, 0, z));
+      // (its collision closed at the apex: the drawn lathe keeps a millimetre's hole there, which a ray straight down
+      // the middle falls through)
+      k.both(M.canopy, lathe(top.slice().reverse(), 40).translate(x, 0, z), new THREE.LatheGeometry(top.slice().reverse().map(([r, y]) => new THREE.Vector2(r, y)), 40).translate(x, 0, z));
+      k.both(M.canopyUnder, lathe(under.slice().reverse(), 40).translate(x, 0, z));
       for (let i = 0; i < 20; i++) {   // gills under the cap
         const a = i * Math.PI / 10, c = Math.cos(a), sn = Math.sin(a);
         k.add(M.canopy, tube([V(x + c * rT * 1.4, H - 5.6, z + sn * rT * 1.4), V(x + c * Rc * 0.5, H - 3.5, z + sn * Rc * 0.5), V(x + c * Rc * 0.95, H - 1.1, z + sn * Rc * 0.95)], 0.22, 8, 3));
       }
-      k.solid(lathe([[0.01, H + 2.5], [Rc, H - 0.2], [rT, H - 5]], 8).translate(x, 0, z));
     }
     for (let i = 0; i < 16; i++) {
       const a = rng() * Math.PI * 2, d = 8 + rng() * 42, x = Math.cos(a) * d, z = Math.sin(a) * d;

@@ -47,7 +47,8 @@ test('landmarks sit on the ground and collide only through coarse proxies', () =
     assert.ok(b.min.y <= terrain.baseAt(c.x, c.z, 4) + 0.5, `${group.name} reaches down to the sand (${b.min.y.toFixed(1)})`);
   }
   // the whole static collision budget of the desert stays small next to the props' ~155k triangles
-  assert.ok(proxyTris < 8000, `${proxyTris} proxy triangles`);
+  // (the umbrella grove's stems and caps collide as drawn since the contact audit: docs/systems/movement.md "Contact")
+  assert.ok(proxyTris < 14000, `${proxyTris} proxy triangles`);
 });
 
 test('the reference structures can be stood on', () => {

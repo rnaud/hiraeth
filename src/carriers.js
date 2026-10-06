@@ -1,0 +1,42 @@
+import * as THREE from 'three';
+
+// What the feet stand on, moving floors included. The level's collision (physics.js) is baked once
+// and leaves out everything that moves: the riding discs of a temple, a taxi's roof, a ball. The
+// body stands on those through level.dynamic() (Player.moveStep), but the feet (feet.js plantFeet)
+// and anything else that asks the ground straight from the physics looked through them, down to the
+// floor under the disc, and the feet went into it. standGround(physics, solids) answers the two
+// questions the feet ask (heightAbove, groundNormal) with the moving solids' tops counted: a solid
+// is a disc { pos, r, top } under its centre.
+
+/**
+ * @param physics  the level's Physics
+ * @param solids   () => [{ solid: { pos, r, top } }] (level.dynamic), read on every query
+ * @param skip     () => a solid's owner to leave out (the vehicle you ride)
+ */
+export function standGround(physics, solids, skip = () => null) {
+  const topUnder = (x, fromY, z) => {
+    let best = -Infinity;
+    for (const v of solids?.() ?? []) {
+      const d = v?.solid;
+      if (!d || v === skip() || d.top > fromY || d.top <= best) continue;
+      if (Math.hypot(x - d.pos.x, z - d.pos.z) <= d.r) best = d.top;
+    }
+    return best;
+  };
+  return {
+    physics,
+    /** Height of pos above the ground along up (physics.heightAbove), a moving floor's top counted (only with +Y up). */
+    heightAbove(pos, up, step = 0.6) {
+      const h = physics.heightAbove(pos, up, step);
+      if (up.y < 0.999) return h;
+      const t = topUnder(pos.x, pos.y + step, pos.z);
+      return Number.isFinite(t) && pos.y - t < h ? pos.y - t : h;
+    },
+    groundAt(x, fromY, z, maxDrop) { return Math.max(physics.groundAt(x, fromY, z, maxDrop), topUnder(x, fromY, z)); },
+    groundNormal(x, fromY, z, out = new THREE.Vector3()) {
+      const t = topUnder(x, fromY, z);
+      if (Number.isFinite(t) && t >= physics.groundAt(x, fromY, z)) return out.set(0, 1, 0);   // (the discs are level)
+      return physics.groundNormal(x, fromY, z, out);
+    },
+  };
+}

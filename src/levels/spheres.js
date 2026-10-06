@@ -254,10 +254,9 @@ export function* buildSpheres(scene) {
       add(M.branch, formAxis(new THREE.TubeGeometry(curve, 6, Rc * (b % 3 ? 0.011 : 0.017), 5), 'cap').translate(x, base, z));
     }
     if (o.collide !== false) {
-      proxy(new THREE.CylinderGeometry(rT, rB, tl, 8, 1).translate(x, base + tl / 2, z));
-      const pp = [prof[1], prof[3], prof[5], prof[7], prof[8], prof[9], prof[11]];
-      const pc = lump(new THREE.LatheGeometry(pp.map(([r, y]) => new THREE.Vector2(r, y)), 20), seed, Rc);
-      proxy(pc.translate(x, base, z));
+      // (the trunk and the canopy collide as drawn: a 20-sided canopy of half the profile lay metres inside the
+      // drawn one, where you land on it: src/contact-audit.js)
+      proxy(trunk.clone()); proxy(g.clone());
     }
     avoid.push([x, z, rB * 2.2]);
     return { top: base + Ht + 2.3 + dome, base };
@@ -355,7 +354,8 @@ export function* buildSpheres(scene) {
     const seg = Rs > 60 ? 96 : 64;
     const g = crescentSphere(Rs, seg, Math.round(seg * 0.6), yellow ? '#f3e3a0' : '#f6efd0');
     add(yellow ? M.yellow : M.cream, g.translate(x, cy, z));
-    if (collide) proxy(new THREE.SphereGeometry(Rs, 20, 12).translate(x, cy, z));
+    // (collides as drawn: a 20-sided stand-in lay up to metres inside a big sphere's top, where you stand: src/contact-audit.js)
+    if (collide) proxy(g.clone());
     if (reflectIt) reflect.push({ geo: new THREE.SphereGeometry(Rs, 32, 20).translate(x, cy, z), key: 'sphere' });
     avoid.push([x, z, Rs * 1.05]);
     orbs.push({ x, z, R: Rs, y: cy, yellow });
@@ -369,9 +369,9 @@ export function* buildSpheres(scene) {
     const outer = paintFaces(new THREE.SphereGeometry(Rs, 96, 48, 0, Math.PI * 2, th0, Math.PI - 2 * th0).toNonIndexed().rotateX(Math.PI / 2),
       (c) => (c.dot(sh) > 0 ? '#f3e3a0' : '#a9c9c4'));
     add(M.yellow, outer.translate(x, cy, z));
-    add(M.lining, new THREE.CylinderGeometry(rt, rt, len, 96, 1, true).rotateX(Math.PI / 2).translate(x, cy, z));
-    proxy(new THREE.SphereGeometry(Rs, 28, 14, 0, Math.PI * 2, th0, Math.PI - 2 * th0).rotateX(Math.PI / 2).translate(x, cy, z));
-    proxy(new THREE.CylinderGeometry(rt, rt, len, 20, 1, true).rotateX(Math.PI / 2).translate(x, cy, z));
+    const lining = new THREE.CylinderGeometry(rt, rt, len, 96, 1, true).rotateX(Math.PI / 2).translate(x, cy, z);
+    add(M.lining, lining);
+    proxy(outer.clone()); proxy(lining.clone());   // (as drawn)
     avoid.push([x, z, Rs * 1.1]);
   }
   function pillar(x, z, ht, r = 0.9) {

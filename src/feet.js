@@ -102,11 +102,14 @@ export function resetFeet(H) {
  * @param o.pivot   turning fast on the spot
  * @param o.scale   the body's size (default: its root's scale)
  * @param o.steps   take settling steps when standing (default: with a contact)
+ * @param o.carry   how far a moving floor carried the body this frame (the held feet go with it)
  */
 export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
   const B = H.b;
   const S = (H._feet ??= { l: newFoot(), r: newFoot(), drop: 0, cool: 0 });
   S.cool = Math.max(0, (S.cool ?? 0) - dt);
+  // standing on a moving floor (a riding disc, a taxi's roof): the held feet go where it took the body
+  if (o.carry && o.carry.lengthSq() > 0) for (const s of ['l', 'r']) { const F = S[s]; F.pos.add(o.carry); F.step?.from.add(o.carry); F.land?.add(o.carry); }
   const sc = o.scale ?? H.char.root.scale.y ?? 1;
   const contact = o.contact ?? null, warp = o.warp ?? 1, gait = o.gait ?? (contact ? 0 : 1);
   // a fast turn at low speed (a pivot): both feet stay down and step round, quicker, whatever the gait's phase says

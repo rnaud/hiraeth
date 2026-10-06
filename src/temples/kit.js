@@ -121,7 +121,9 @@ export class TempleKit {
     const meshes = [];
     for (const [mat, list] of this.batches) {
       const m = new THREE.Mesh(mergeGeometries(list), mat);
-      m.userData.noCollide = true; m.name = `${this.group.name} (${list.length})`;
+      // (named by its material, so an audit's report says which: src/contact-audit.js)
+      const key = this.M ? Object.keys(this.M).find((k) => this.M[k] === mat) : null;
+      m.userData.noCollide = true; m.name = `${this.group.name} (${key ?? 'painted'}, ${list.length})`;
       this.group.add(m); meshes.push(m);
     }
     if (this.proxies.length) {
@@ -163,11 +165,12 @@ export class TempleKit {
         y = Math.max(y, o.y1);
       }
     }
-    // a lintel line of trim along the top, and the doorways' frames
-    if (cap) this.add(this.M.trim, at(L / 2, h - 0.25, 0.5, L + 0.02, t + 0.24));
+    // a lintel line of trim along the top, and the doorways' frames (solid: they stand proud of the wall, and a
+    // climber's hands and head met them drawn but not felt: src/contact-audit.js)
+    if (cap) this.both(this.M.trim, at(L / 2, h - 0.25, 0.5, L + 0.02, t + 0.24));
     for (const o of H) {
-      if (o.y1 < h - 0.3) this.add(this.M.trim, at((o.x0 + o.x1) / 2, o.y1, 0.45, o.x1 - o.x0 + 1.2, t + 0.24));
-      for (const s of [o.x0 - 0.3, o.x1 + 0.3]) this.add(this.M.trim, at(s, o.y0, o.y1 - o.y0, 0.6, t + 0.24));
+      if (o.y1 < h - 0.3) this.both(this.M.trim, at((o.x0 + o.x1) / 2, o.y1, 0.45, o.x1 - o.x0 + 1.2, t + 0.24));
+      for (const s of [o.x0 - 0.3, o.x1 + 0.3]) this.both(this.M.trim, at(s, o.y0, o.y1 - o.y0, 0.6, t + 0.24));
     }
     return this;
   }
@@ -230,7 +233,7 @@ export class TempleKit {
     this.add(this.M.trim, T(annulus(r - 0.1, r + t + 0.4, 0.5, seg * 2), [x, y + h, z]));
     if (oculus > 0) {
       this.both(this.M.wall, T(annulus(r * oculus, r + t, 0.9, seg * 2), [x, y + h + 0.9, z]));
-      this.add(this.M.trim, T(annulus(r * oculus - 0.3, r * oculus + 0.4, 0.4, seg * 2), [x, y + h + 1.1, z]));
+      this.add(this.M.trim, T(annulus(r * oculus - 0.3, r * oculus + 0.4, 0.4, seg * 2), [x, y + h + 1.1, z]));   // (drawn only: the ceiling's, out of reach, and solid it caught rays dropped through the oculus)
     } else if (oculus === 0) this.both(this.M.wall, T(new THREE.CylinderGeometry(r + t, r + t, 0.9, seg), [x, y + h + 0.45, z]));
     if (frieze) for (let i = 0; i < seg; i += 2) {
       const a = (i + 0.5) * step;
@@ -251,7 +254,7 @@ export class TempleKit {
     }
     if (sides) for (const s of [-1, 1]) {
       const ox = Math.cos(yaw) * (w / 2 + 0.3) * s, oz = -Math.sin(yaw) * (w / 2 + 0.3) * s;
-      this.add(this.M.trim, T(new THREE.BoxGeometry(0.6, 0.6, Math.hypot(L, dy)), [(a[0] + b[0]) / 2 + ox, (a[1] + b[1]) / 2 + 0.3, (a[2] + b[2]) / 2 + oz], [-Math.atan2(dy, L), yaw, 0], 1, 'YXZ'));
+      this.both(this.M.trim, T(new THREE.BoxGeometry(0.6, 0.6, Math.hypot(L, dy)), [(a[0] + b[0]) / 2 + ox, (a[1] + b[1]) / 2 + 0.3, (a[2] + b[2]) / 2 + oz], [-Math.atan2(dy, L), yaw, 0], 1, 'YXZ'));
     }
     return this;
   }
@@ -276,7 +279,8 @@ export class TempleKit {
     return this.rotunda({ x, z, y: y0, r, h: y1 - y0, gaps, seg, t, oculus: -1, floor: false, frieze: false });
   }
   column(x, z, y, h, r = 0.7, { mat = this.M.trim } = {}) {
-    this.both(mat, lathe([[r * 1.35, 0], [r * 1.35, 0.6], [r, 0.9], [r * 0.92, h - 1], [r * 1.3, h - 0.6], [r * 1.4, h]], 12).translate(x, y, z), new THREE.CylinderGeometry(r, r, h, 10).translate(x, y + h / 2, z));
+    // (its own lathe collides: a plain cylinder inside the drawn base and capital let you walk into them)
+    this.both(mat, lathe([[r * 1.35, 0], [r * 1.35, 0.6], [r, 0.9], [r * 0.92, h - 1], [r * 1.3, h - 0.6], [r * 1.4, h]], 12).translate(x, y, z));
     return this;
   }
   /** A ledge (a shelf) along a wall: a slab, its top at y. */

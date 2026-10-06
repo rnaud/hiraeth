@@ -12,6 +12,7 @@ import { triggers } from './controller.js';
 import { JumpLayer } from './jump.js';
 import { keepInside, EdgePush } from './edge.js';
 import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './stamina.js';
+import { standGround } from './carriers.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -1152,8 +1153,9 @@ export class Player {
     // stamina: the sprint spends it, the ground gives it back (faster standing than walking)
     if (this.sprinting && this.onGround) spendStamina(this, STAMINA.sprint * dt);
     else if (this.onGround) restStamina(this, dt, Math.hypot(this.vel.x, this.vel.z) < 0.5 ? STAMINA.stand : STAMINA.walk);
-    // ride along on whatever you're standing on
-    if (carrier && this.onGround) this.pos.addScaledVector(carrier.vel, dt);
+    // ride along on whatever you're standing on (and the feet held on it, and the drawn body's step lag, with you)
+    (this._ridden ??= new THREE.Vector3()).set(0, 0, 0);
+    if (carrier && this.onGround) { this.pos.addScaledVector(carrier.vel, dt); this._ridden.copy(carrier.vel).multiplyScalar(dt); }
 
     // Still ended up inside solid geometry (a moving taxi, a teleport, a
     // vehicle): step out to the nearest free spot, or back to the last one.
@@ -1339,7 +1341,7 @@ export class Player {
     // a stair or a kerb: the drawn body follows the floor's jump over a moment (src/locomotion.js StepLag)
     {
       const U = this.frame.up, walking = this.onGround && !this.ride && !this.climbing && !this.mantle && !this.swim && !this.boarding;
-      this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos, U, walking));
+      this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos, U, walking, this._ridden));
     }
     this.frame.quaternion(this.heading, this.object.quaternion);
     // a scene's pose laid over the clip (kneeling at the stone, sitting in a window: src/story/home.js):
@@ -1358,7 +1360,10 @@ export class Player {
         // the gait says which feet are down and how far to shorten the stride (src/locomotion.js gaitFeet)
         const o = gaitFeet(this.animator, _g2.copy(this.vel).addScaledVector(U, -this.vel.dot(U)).length(), this._feetO ??= {});
         o.pivot = !!this.loco?.pivot;
-        H.plantFeet(dt, this.physics, U, this.object.position, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n), o);
+        o.carry = this._ridden;   // (a moving floor takes the held feet along)
+        // the feet find the moving floors too (src/carriers.js), not the floor under them
+        this._feetGround ??= this.opts.dynamic ? standGround(this.physics, () => this.opts.dynamic(), () => this.ride) : this.physics;
+        H.plantFeet(dt, this._feetGround, U, this.object.position, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n), o);
       } else H.resetFeet();
       if (this.aim && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);
       if (this.wingK > 0.03) this.spreadArms();
