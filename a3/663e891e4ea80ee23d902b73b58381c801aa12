@@ -1,0 +1,57 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_19b58e74e3ff11 131-132
+changelog.md
+  s_1fd8d0e7b02dcf::t_fda9ebbff923eb 14
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_dbf3a10c66c687 121-165
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_7bcf0c942e571b 269-271
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_df262fdce66beb 17
+src/form.js
+  s_1fd8d0e7b02dcf::t_b0dc03513e80ac 1-71
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_e1d4be3643d36b 3,168-171,185,194-196,326,338,545,567,584
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_fdbd76e01f2a3f 3-5,153,185-187,191,198,437,439,521,523,593,635,651,654,953
+src/levels/lab-kit.js
+  s_1fd8d0e7b02dcf::t_178200bc7cfaaf 6,23,26-27,90
+src/levels/lab-rooms.js
+  s_1fd8d0e7b02dcf::t_8145d88ba4acf7 14,618
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_f836152a1acb17 4,244-245,247,256,274,332
+src/levels/reference-buried.js
+  s_1fd8d0e7b02dcf::t_9c14c75c7e187a 7-9,38-39,142,166-167,216,218,395,491-493,576
+src/levels/reference-lorn.js
+  s_1fd8d0e7b02dcf::t_e1468c5e888704 8,37-38,41-43,69-70,76-78,82
+src/levels/reference-spheres.js
+  s_1fd8d0e7b02dcf::t_f34d2e1b3965ee 8,38-40,42-43,78,82-83,88-89
+src/levels/reference-vael2.js
+  s_1fd8d0e7b02dcf::t_7b786e199bd05b 8,48-50,70,96-97
+src/levels/sky-stones-kit.js
+  s_1fd8d0e7b02dcf::t_c9da74137aee47 13-14,18
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_d5d2de5b857200 3,115,119,168,178-181,223,238,242,254,884
+src/materials.js
+  s_1fd8d0e7b02dcf::t_2b286341f545a5 255,309-329,354,377-381,537-548,616,638-640,865-924,1576-1578,1788-1798,2051-2058,2105-2110,2153-2155,2215,2259
+src/title-vista.js
+  s_1fd8d0e7b02dcf::t_a565b4977183be 170
+tests/form-hatch.test.js
+  s_1fd8d0e7b02dcf::t_10d58211a3fa12 1-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3663e891e4ea80ee23d902b73b58381c801aa12",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
