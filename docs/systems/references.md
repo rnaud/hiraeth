@@ -266,7 +266,9 @@ Ranked by how much they would close the gap to the sheets, across every world re
    world, and a fog by height for shafts and woods.
 4. **Hatching that follows the form** (Vael II's and the Spheres' caps radiate, the Buried Machine's
    tanks wrap, rock runs down the face): strata now run down faces; radial and wrapping strokes need a
-   per-vertex axis (a cap's centre, a cylinder's axis) in merged geometry.
+   per-vertex axis (a cap's centre, a cylinder's axis) in merged geometry. **Done** (`form`, `src/form.js`,
+   docs/systems/materials.md "Hatching that follows the form"): caps radiate from the stalk, cylinders wrap,
+   the Garden's dark undersides carry lighter veins.
 5. **Cast shadows by world** (the desert's ink masses, Vael II's and Lorn II's near-absent ones): the
    spot tier's `uSpot.w` darkens them; a world knob to lighten or drop them (the sheets often omit a
    cast shadow on open ground) would let the plains read as the sheets do.
