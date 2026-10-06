@@ -1,0 +1,77 @@
+docs/systems/engine-bridge.md
+  s_1fd8d0e7b02dcf::t_3eb48f9cf95fde 67-87,184-198,281-299,306-307
+engine/game.js
+  s_1fd8d0e7b02dcf::t_35f44a114ea89f 47-48,190-194
+engine/godot/game.js
+  s_1fd8d0e7b02dcf::t_6bb21c40bc18bb 114
+engine/unity/backend.js
+  s_1fd8d0e7b02dcf::t_f8c4962b5a875c 1-109
+engine/unity/game.js
+  s_1fd8d0e7b02dcf::t_0806e3ea2e8a58 1-104
+engine/unity/host.js
+  s_1fd8d0e7b02dcf::t_79643b5507bc45 1-22
+engine/unity/pack.js
+  s_1fd8d0e7b02dcf::t_6ca524c65c7809 1-85
+engine/unity/port-format.js
+  s_1fd8d0e7b02dcf::t_48354cc41c5953 1-65
+engine/vm-run.mjs
+  s_1fd8d0e7b02dcf::t_f98b3ac3f589bf 2,11-16,18,21-23,27
+scripts/engine-bundle.mjs
+  s_1fd8d0e7b02dcf::t_7c2499761a9263 19-20
+scripts/unity-export/unity-batch.sh
+  s_1fd8d0e7b02dcf::t_5ecedc1d38f565 15
+scripts/unity-js-setup.sh
+  s_1fd8d0e7b02dcf::t_0d5203fe50dc5c 1-21
+tests/engine-unity.test.js
+  s_1fd8d0e7b02dcf::t_aefc5dbdda9201 1-103
+unity/.gitignore
+  s_1fd8d0e7b02dcf::t_c5248aef9f21d4 28-31
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_1573412b8afa07 166-170
+unity/Memento/Assets/MementoJS.meta
+  s_1fd8d0e7b02dcf::t_0625e5e79042f7 1-8
+unity/Memento/Assets/MementoJS/BridgeDesert.unity
+  s_1fd8d0e7b02dcf::t_b84c22f843463c 1-177
+unity/Memento/Assets/MementoJS/BridgeDesert.unity.meta
+  s_1fd8d0e7b02dcf::t_0a055a6d16c8b7 1-7
+unity/Memento/Assets/MementoJS/Editor.meta
+  s_1fd8d0e7b02dcf::t_faa8a8b72657f5 1-8
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs
+  s_1fd8d0e7b02dcf::t_92c623b40c3887 1-81
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs.meta
+  s_1fd8d0e7b02dcf::t_40d9ecc91e3e41 1-2
+unity/Memento/Assets/MementoJS/Runtime.meta
+  s_1fd8d0e7b02dcf::t_bbcd0133c14f13 1-8
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_1fd8d0e7b02dcf::t_52f6546ee5d6a6 1-92
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs.meta
+  s_1fd8d0e7b02dcf::t_84a4ee28090e32 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_1fd8d0e7b02dcf::t_08c7fa2552f73a 1-274
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs.meta
+  s_1fd8d0e7b02dcf::t_d2a30dff2aab75 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_1fd8d0e7b02dcf::t_ad655907f3fba6 1-139
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs.meta
+  s_1fd8d0e7b02dcf::t_23492fa60fa40e 1-2
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs
+  s_1fd8d0e7b02dcf::t_5012d96aef10cd 1-64
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs.meta
+  s_1fd8d0e7b02dcf::t_6447ecab4b5273 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ff1d1ad42267b61fd4ef6bd403e667a6083430b7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
