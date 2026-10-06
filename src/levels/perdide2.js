@@ -1,6 +1,7 @@
 import { attachTemple } from '../temples/index.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { formAxis } from '../form.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter } from '../world.js';
@@ -240,9 +241,10 @@ export function* buildPerdide2(scene) {
       // denser near the path, so they frame it like a nave
       if (dp > 60 && rng() < 0.45) continue;
       const r = R(1.6, 4.2) * (dp > 80 ? 1.3 : 1), Ht = R(110, 170), g0 = H(x, z);
-      const trunk = new THREE.CylinderGeometry(r * 0.82, r, Ht, 10, 4, true).translate(0, Ht / 2, 0);
+      // (form: the trunk's strokes wrap round it, src/form.js)
+      const trunk = formAxis(new THREE.CylinderGeometry(r * 0.82, r, Ht, 10, 4, true), 'wrap').translate(0, Ht / 2, 0);
       jitter(trunk, 0.1, 0.05, n);
-      const flare = lathe([[r * 2.3, -1.5], [r * 1.7, 0.6], [r * 1.25, 2.6], [r * 1.02, 5.5]], 10);
+      const flare = formAxis(lathe([[r * 2.3, -1.5], [r * 1.7, 0.6], [r * 1.25, 2.6], [r * 1.02, 5.5]], 10), 'wrap');
       jitter(flare, 0.18, 0.2, n);
       const ry = rng() * 6;
       for (const g of [trunk, flare]) { g.rotateY(ry).translate(x, g0 - 0.5, z); g.deleteAttribute('uv'); }
@@ -251,7 +253,7 @@ export function* buildPerdide2(scene) {
       n++;
     }
     for (const [c, l] of Object.entries(parts)) {
-      const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks', detail: 'organic' }));
+      const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks', detail: 'organic', form: true }));
       m.userData.noCollide = true;
       scene.add(m);
     }
@@ -269,7 +271,7 @@ export function* buildPerdide2(scene) {
     const seg = s.capR > 6 ? 28 : 16;
     const stalkColor = pick(STALK);
     for (const key of ['stalk', 'under', 'top']) {
-      const g = lathe(parts[key], seg);
+      const g = formAxis(lathe(parts[key], seg), 'cap');   // (its strokes radiate from the stalk, src/form.js)
       jitter(g, key === 'stalk' ? 0.08 : 0.05, 0.06, seed);
       g.rotateY(ry).rotateX(rx).rotateZ(rz).translate(x, g0 - sink, z);
       g.deleteAttribute('uv');
@@ -327,7 +329,7 @@ export function* buildPerdide2(scene) {
         const [c, glow] = k.split('|');
         const g = +glow ? (key === 'top' ? 0.45 : key === 'under' ? 0.3 : 0) : (key === 'top' ? 0.12 : 0);
         // (pale even in their own shade, as the reference sheets draw them against the dark wood)
-        const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g, shade: key === 'under' ? 0.4 : 0.6, hatch: 0.4, detail: key === 'stalk' ? 'organic' : 0, detailDensity: 0.7 }));
+        const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g, shade: key === 'under' ? 0.4 : 0.6, hatch: 0.4, detail: key === 'stalk' ? 'organic' : 0, detailDensity: 0.7, form: true }));
         m.userData.noCollide = true;
         scene.add(m);
       }

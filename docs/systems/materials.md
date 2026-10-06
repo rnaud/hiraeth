@@ -118,6 +118,51 @@ to 40° from upright, in the walls' world-anchored frame (the weathering's: worl
   Wood 2.5 / 2.5 and 14.7 / 15.1. About +0.3–0.5 ms at the Retina size on High, +0.3 on Handheld
   (this machine's run-to-run spread is ±30 %).
 
+## Hatching that follows the form
+
+The sheets fan the shade's strokes out from the stalk under a cap (Vael II's tables, the Garden's umbrella
+trees, Lorn II's mushrooms) and wrap them round a cylinder (the Buried Machine's tanks, drums and towers,
+trunks). Merged geometry has no axis, so the builders give each part one (`src/form.js`) and the material
+asks for it (`makeMaterial({ form: true })`, `S_FORM`, `FORM` and `formHatch` in `src/materials.js`):
+
+- **The axis per vertex**: `formAxis(geo, 'cap' | 'wrap', { centre, axis })` writes `aFormC` (a point on
+  the axis, w the kind) and `aFormA` (its direction) in the part's own frame (the y axis through the
+  origin, as lathes and cylinders are made). The part's own `applyMatrix4` carries them, so `translate`,
+  `rotate*`, `applyQuaternion`, `scale` and the kits' `put` / `place` move the axis with it; a copy
+  (`toNonIndexed`, `mergeVertices`) does once `keepForm` is called (the kits' `mergeable` does). Parts with
+  and without an axis merge after `padForm` (the others kind 0: plain hatching); `RoomKit.finish`, the
+  Garden's, Vael II's and the Buried Machine's batches pad. A material without an axis on its geometry
+  reads kind 0 (`defaultAttributeValues`).
+- **The strokes** (`formLines`): the vertex shader writes the point about the axis (`vForm`: across it x,
+  y; along it z; affine in the position, so exact across a triangle); the fragment takes the angle
+  (`atan`, a turn `FORM.turn` = 1024 units, so every power-of-two spacing closes on itself: no seam) and
+  its derivatives analytically (atan's jump has none). A **cap**'s strokes are isolines of the angle: they
+  radiate from the stalk under the cap and run down the stalk; the cross-hatch is more of them, between
+  (dense, not a web). A **cylinder**'s are rings (isolines of the height along it), the cross-hatch along
+  it; on a face across its axis (a drum's lid, a slab's top) the rings would be degenerate, so it radiates
+  as a cap (the share by the two coordinates' screen gradients). The spacing comes from the screen as the
+  hatch's does (powers of two, the next level cross-faded, every other stroke fading out as they converge
+  on the stalk; none once there would be under two a turn). Each stroke has its own pressure and offset
+  from where it lies, and wavers along its length near (faded out from 68 to 90 m; none on the handheld).
+- **Under a lifted shade** a cap keeps more of its strokes (`FORM.cap.keep`): Lorn II's pale mushrooms
+  keep their gills' fan.
+- **Veins** (`makeMaterial({ form: true, veins })`): on a dark cap's underside ink would vanish, so the
+  references' Garden umbrellas draw their veins lighter, radiating from the trunk, lit or not (albedo, a
+  line a shade lighter).
+- **On**: Vael II's tables, cliffs and discs (`bone`, `cap`, `rose`), the Garden's umbrella trees (trunk,
+  canopy, branches), Lorn II's trunks and giant mushrooms, the Buried Machine's tanks, pillars, drums,
+  chimney stacks and every `cylBetween` (rust, rust grid, teal, steel); the references' Vael II
+  mushrooms, Garden umbrellas, Lorn II trunks and mushrooms, Buried Machine tanks, drums, machines and
+  towers. `uFormHatch` 0 turns it off (the dev menu's "hatching follows form").
+- `tests/form-hatch.test.js`: the define and its exclusions, the axis carried through moves and merges,
+  the angle's seam, the builders.
+- **Cost** (M4 Pro, 1728 × 1117 at DPR 2 (3456 × 2234), frames back to back, S_FORM recompiled off and on
+  in the same page, the difference paired, median [quartiles], ms): High Vael II spawn +0.28 [0.1..0.96],
+  the great table +0.09 [-0.33..0.6], the Garden under an umbrella (its underside filling the frame)
+  +0.47 [0.23..0.63], the Buried Machine spawn -0.05, its chimney stack +0.27; Handheld Vael II spawn
+  +0.28, the great table +0.4 (before the far waver went). Only shaded pixels of parts with an axis pay
+  (an `atan` and a stroke family as the hatch's own).
+
 ## Faceted normals near the camera
 
 Flat-shaded materials take their normal from the screen derivatives of the position. Taken of

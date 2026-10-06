@@ -167,7 +167,7 @@ export async function buildVista(scene, { detail = 1, step = async () => {} } = 
     if (mushroom) parts.push(table({ x: 0, z: 0, R: r, stalk: r * 0.2, top: 0, base: -r * 0.7, capT: r * 0.25, under: r * 0.2, dome: r * 0.18, seed, rib: r * 0.05, ribK: 20, seg: 64, colSeg: 8 }).vis);
     else parts.push(boulder(r, 1, sy, 0.9, egg, seed));
     for (let i = 0; i < pebbles; i++) parts.push(place(boulder(r * (0.08 + 0.06 * (pebbles - i) / pebbles), 1, 1.3, 1, 0.1, seed + i), (i % 2 ? 1 : -1) * r * 0.1, -r * sy - r * (0.6 + i * 0.9), 0));
-    const geo = mergeGeometries(parts.map(clean));
+    const geo = mergeGeometries(parts.map((p) => clean(p)));
     geo.computeVertexNormals();
     const m = new THREE.Mesh(geo, M.bone);
     m.position.set(x, y, z);

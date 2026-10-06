@@ -5,6 +5,7 @@ import { V, tube, put, smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js'
 import { lumpy } from './sky-stones-kit.js';
 import { smooth } from './reference-vael2.js';
 import { shroomParts, lathe, buildSkiff, DEEP_WOOD_LOOK } from './perdide2.js';
+import { formAxis } from '../form.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II's reference sheets (references/Lorn II The Deep Wood/IMG_3797 … 3800): a dusk forest of giant
@@ -33,12 +34,13 @@ const nL = createNoise2D(37971), nM = createNoise2D(37972);
 
 function materials(kit) {
   return {
-    trunk: [kit.mat({ color: '#2a4554', flat: true, pattern: 'cracks', detail: 'organic' }), kit.mat({ color: '#334a60', flat: true, pattern: 'cracks', detail: 'organic' }), kit.mat({ color: '#253c4c', flat: true, pattern: 'cracks', detail: 'organic' })],
+    // (form: the trunks' strokes wrap round them, the mushrooms' radiate from the stalk; src/form.js)
+    trunk: [kit.mat({ color: '#2a4554', flat: true, pattern: 'cracks', detail: 'organic', form: true }), kit.mat({ color: '#334a60', flat: true, pattern: 'cracks', detail: 'organic', form: true }), kit.mat({ color: '#253c4c', flat: true, pattern: 'cracks', detail: 'organic', form: true })],
     farTrunk: kit.mat({ color: '#6e6a92', flat: true }),
     // (the giant mushrooms: pale even in their own shade, as the sheets draw them against the dark wood)
-    stalk: [kit.mat({ color: '#b9b0d8', shade: 0.6, hatch: 0.4, detail: 'organic', detailDensity: 0.7 }), kit.mat({ color: '#a79ec9', shade: 0.6, hatch: 0.4, detail: 'organic', detailDensity: 0.7 })],
-    cap: [kit.mat({ color: '#c6bde6', flat: true, shade: 0.7, hatch: 0.3 }), kit.mat({ color: '#b8aedd', flat: true, shade: 0.7, hatch: 0.3 })],
-    under: kit.mat({ color: '#9b8fbf', flat: true, side: THREE.DoubleSide, shade: 0.4 }),
+    stalk: [kit.mat({ color: '#b9b0d8', shade: 0.6, hatch: 0.4, detail: 'organic', detailDensity: 0.7, form: true }), kit.mat({ color: '#a79ec9', shade: 0.6, hatch: 0.4, detail: 'organic', detailDensity: 0.7, form: true })],
+    cap: [kit.mat({ color: '#c6bde6', flat: true, shade: 0.7, hatch: 0.3, form: true }), kit.mat({ color: '#b8aedd', flat: true, shade: 0.7, hatch: 0.3, form: true })],
+    under: kit.mat({ color: '#9b8fbf', flat: true, side: THREE.DoubleSide, shade: 0.4, form: true }),
     root: kit.mat({ color: '#2d5058', flat: true, pattern: 'cracks', side: THREE.DoubleSide, detail: 'organic' }),
     rootPale: kit.mat({ color: '#4c6f7c', flat: true, pattern: 'cracks', side: THREE.DoubleSide }),
     moss: kit.mat({ color: '#3f6a6a', flat: true, grid: 2.2 }),
@@ -64,20 +66,20 @@ const NO_CAST = { solid: false, shadow: false };
 /** A cathedral trunk: very tall, straight, flaring at its foot (r its radius; far: pale and plain in the haze). */
 function trunk(kit, M, rng, x, z, r, { far = false, h = 160 } = {}) {
   const y = kit.base(x, z, r) - 0.5, m = far ? M.farTrunk : M.trunk[Math.floor(rng() * M.trunk.length)];
-  kit.add(m, new THREE.CylinderGeometry(r * 0.82, r, h, 10, 1, true).translate(x, y + h / 2, z), NO_CAST);
-  if (!far) kit.add(m, lathe([[r * 2.2, -1.5], [r * 1.6, 0.6], [r * 1.2, 2.6], [r, 5.5]], 10).translate(x, y, z), NO_CAST);
+  kit.add(m, formAxis(new THREE.CylinderGeometry(r * 0.82, r, h, 10, 1, true), 'wrap').translate(x, y + h / 2, z), NO_CAST);
+  if (!far) kit.add(m, formAxis(lathe([[r * 2.2, -1.5], [r * 1.6, 0.6], [r * 1.2, 2.6], [r, 5.5]], 10), 'wrap').translate(x, y, z), NO_CAST);
 }
 /** A giant pale mushroom (perdide2.js's profile): H tall, its cap capR wide, dome how round its top. */
 function mushroom(kit, M, rng, { x, z, H, capR, sr = capR * 0.16, dome = 0.16, tilt = 0 }) {
   const y = kit.base(x, z, sr * 2) - 0.4, P = shroomParts({ sr, capR, H, dome }), k = Math.floor(rng() * 2);
   const at = (g) => g.rotateZ(tilt).translate(x, y, z);
-  kit.add(M.stalk[k], at(lathe(P.stalk, 24)), NO_CAST);
-  kit.add(M.under, at(lathe(P.under, 40)), NO_CAST);
-  kit.add(M.cap[k], at(lathe(P.top, 40)), NO_CAST);
+  kit.add(M.stalk[k], at(formAxis(lathe(P.stalk, 24), 'cap')), NO_CAST);
+  kit.add(M.under, at(formAxis(lathe(P.under, 40), 'cap')), NO_CAST);
+  kit.add(M.cap[k], at(formAxis(lathe(P.top, 40), 'cap')), NO_CAST);
   // the gills under the cap: thin ribs from the stalk to the rim (greebles in the cap's dark recess)
   for (let i = 0; i < 28; i++) {
     const a = (i / 28) * Math.PI * 2, top = 0.9 * H;
-    kit.add(M.under, at(tube([V(Math.cos(a) * sr * 1.3, top - 0.01 * H, Math.sin(a) * sr * 1.3), V(Math.cos(a) * capR * 0.96, top - 0.048 * H, Math.sin(a) * capR * 0.96)], capR * 0.01, 2, 3)), { solid: false });
+    kit.add(M.under, at(formAxis(tube([V(Math.cos(a) * sr * 1.3, top - 0.01 * H, Math.sin(a) * sr * 1.3), V(Math.cos(a) * capR * 0.96, top - 0.048 * H, Math.sin(a) * capR * 0.96)], capR * 0.01, 2, 3), 'cap')), { solid: false });
   }
 }
 /** A heap of glowing eggs at (x, z) on the water or the bank, n of them, s their size; a light over it. */

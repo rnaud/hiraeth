@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { formAxis, padForm } from '../form.js';
+
+const wrapped = (g) => formAxis(g, 'wrap');   // a cylinder made about y: its strokes wrap round it (src/form.js)
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
@@ -147,7 +150,7 @@ const Y = new THREE.Vector3(0, 1, 0);
 /** A cylinder from a to b (radius r0 at a, r1 at b). */
 export function cylBetween(a, b, r0, r1 = r0, seg = 10, open = false) {
   const d = new THREE.Vector3().subVectors(b, a), len = d.length();
-  const g = new THREE.CylinderGeometry(r1, r0, len, seg, 1, open);
+  const g = formAxis(new THREE.CylinderGeometry(r1, r0, len, seg, 1, open), 'wrap');   // (its axis: strokes wrap round it, src/form.js)
   g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(Y, d.normalize()));
   return g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
 }
@@ -179,19 +182,20 @@ export function* buildBuried(scene) {
   yield;
   const strata = (c1, c2, c3, size, extra = {}) => makeMaterial({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: size, ...extra });
   const M = {
-    rust: strata('#c8643f', '#b35a3a', '#d9825a', 4.5, { flat: true, detail: 'built' }),   // (seams, vents, plates: materials.js DETAIL)
-    rustGrid: strata('#c8643f', '#d9825a', '#b35a3a', 3, { grid: 3.5 }),
+    // (form: the tanks', drums' and pillars' strokes wrap round them, src/form.js)
+    rust: strata('#c8643f', '#b35a3a', '#d9825a', 4.5, { flat: true, detail: 'built', form: true }),   // (seams, vents, plates: materials.js DETAIL)
+    rustGrid: strata('#c8643f', '#d9825a', '#b35a3a', 3, { grid: 3.5, form: true }),
     rustDark: makeMaterial({ color: '#9a4a30', flat: true, metal: 'iron', refl: 0.15 }),
     rustWall: strata('#c0603e', '#b35a3a', '#cf7450', 6, { pattern: 'cracks', detail: 'built' }),
     rustFloor: makeMaterial({ color: '#d9825a', color2: '#cf7650', color3: '#b35a3a', mode: MODE_TERRAIN }),
-    steel: strata('#7f93a3', '#5f7488', '#94a6b3', 2.2, { metal: 'steel', refl: 0.4 }),
+    steel: strata('#7f93a3', '#5f7488', '#94a6b3', 2.2, { metal: 'steel', refl: 0.4, form: true }),
     steelFlat: makeMaterial({ color: '#7f93a3', flat: true, metal: 'steel' }),
     pipe: makeMaterial({ color: '#d8dcc8', metal: 'painted' }),
     pipe2: makeMaterial({ color: '#bfcabd', metal: 'painted' }),
     flange: makeMaterial({ color: '#a9b4a8', flat: true, metal: 'steel' }),
     ink: makeMaterial({ color: '#34405e', flat: true }),
     hatch: makeMaterial({ color: '#3d4a52', flat: true, metal: 'iron' }),
-    teal: strata('#5e9094', '#4f8086', '#6fa0a2', 3.5, { grid: 4, detail: 'built' }),
+    teal: strata('#5e9094', '#4f8086', '#6fa0a2', 3.5, { grid: 4, detail: 'built', form: true }),
     tealFlat: makeMaterial({ color: '#2f5a5e', flat: true }),
     tealMid: makeMaterial({ color: '#3d6a6c', flat: true }),
     tealFloor: makeMaterial({ color: '#4a6e6c', color2: '#557a76', color3: '#3d6366', mode: MODE_TERRAIN }),
@@ -430,9 +434,9 @@ export function* buildBuried(scene) {
         const kind = rng();
         if (kind < 0.45) {   // a colossal pillar standing against the wall
           const r = range(2.4, 4.2), h = wallH * range(0.55, 0.85), x = cx(z) + s * (W + 3 + r * 0.4);
-          put(M.rustGrid, new THREE.CylinderGeometry(r, r * 1.08, h, 12, 1).translate(x, f + h / 2 - 1, z));
+          put(M.rustGrid, wrapped(new THREE.CylinderGeometry(r, r * 1.08, h, 12, 1)).translate(x, f + h / 2 - 1, z));
           put(M.rustDark, new THREE.CylinderGeometry(r * 1.2, r * 1.2, 1.2, 12, 1).translate(x, f + h - 1, z));
-          put(M.rust, new THREE.CylinderGeometry(r * 1.25, r * 1.3, 2, 12, 1).translate(x, f, z));
+          put(M.rust, wrapped(new THREE.CylinderGeometry(r * 1.25, r * 1.3, 2, 12, 1)).translate(x, f, z));
           pillarH.push({ x, z, r, y: f + h * range(0.3, 0.6), s });
         } else if (kind < 0.8) {   // stacked horizontal cylinders (tanks laid along the wall)
           for (let y = f + range(2, 4); y < top - 13; y += range(5, 8)) {
@@ -514,9 +518,9 @@ export function* buildBuried(scene) {
   {
     const g = Math.asin(10 / OR);                 // half-angle of the doorway (faces +z, back up the canyon)
     const h = OTOP - (FLOOR - 2);
-    const outer = new THREE.CylinderGeometry(OR + 2.5, OR + 3, h, 72, 1, true, g, TAU - 2 * g).translate(OX, (OTOP + FLOOR - 2) / 2, OZ);
+    const outer = wrapped(new THREE.CylinderGeometry(OR + 2.5, OR + 3, h, 72, 1, true, g, TAU - 2 * g)).translate(OX, (OTOP + FLOOR - 2) / 2, OZ);
     put(M.rustGrid, outer);
-    const inner = new THREE.CylinderGeometry(OR, OR, h, 72, 1, true, g, TAU - 2 * g).translate(OX, (OTOP + FLOOR - 2) / 2, OZ);
+    const inner = wrapped(new THREE.CylinderGeometry(OR, OR, h, 72, 1, true, g, TAU - 2 * g)).translate(OX, (OTOP + FLOOR - 2) / 2, OZ);
     { const ix = inner.index.array; for (let i = 0; i < ix.length; i += 3) { const t = ix[i + 1]; ix[i + 1] = ix[i + 2]; ix[i + 2] = t; } }
     inner.computeVertexNormals();   // faces the inside
     put(M.teal, inner);
@@ -586,7 +590,7 @@ export function* buildBuried(scene) {
       const a = rng() * TAU, rr = range(18, 27), dx = Math.sin(a), dz = Math.cos(a);
       if (Math.abs(Math.atan2(dx, dz)) < 0.6) continue;   // keep the doorway and the centre clear
       const r = range(1.6, 3.4), hh = range(3, 9);
-      put(M.teal, new THREE.CylinderGeometry(r, r, hh, 12).translate(OX + dx * rr, FLOOR + hh / 2, OZ + dz * rr));
+      put(M.teal, wrapped(new THREE.CylinderGeometry(r, r, hh, 12)).translate(OX + dx * rr, FLOOR + hh / 2, OZ + dz * rr));
       put(M.tealFlat, new THREE.SphereGeometry(r, 12, 5, 0, TAU, 0, Math.PI / 2).translate(OX + dx * rr, FLOOR + hh, OZ + dz * rr));
     }
   }
@@ -628,7 +632,7 @@ export function* buildBuried(scene) {
     const grp = new THREE.Group();
     const local = new Map();
     derrick((mat, g) => { if (!local.has(mat)) local.set(mat, []); local.get(mat).push(g); }, s);
-    for (const [mat, list] of local) grp.add(new THREE.Mesh(mergeGeometries(list.map((g) => { const n = g.index ? g.toNonIndexed() : g; n.deleteAttribute('uv'); return n; })), mat));
+    for (const [mat, list] of local) grp.add(new THREE.Mesh(mergeGeometries(padForm(list.map((g) => { const n = g.index ? g.toNonIndexed() : g; n.deleteAttribute('uv'); return n; }))), mat));
     const base = H(x, z) + y;
     grp.position.set(x, base, z);
     grp.userData.noCollide = true;
@@ -644,10 +648,10 @@ export function* buildBuried(scene) {
     yield;
     const b = terrain.baseAt(x, z, 4) - 2;
     stacks.push(new THREE.Vector3(x, b + hh + 3, z));
-    put(M.steel, new THREE.CylinderGeometry(2.4, 3.2, hh, 12).translate(x, b + hh / 2, z));
+    put(M.steel, wrapped(new THREE.CylinderGeometry(2.4, 3.2, hh, 12)).translate(x, b + hh / 2, z));
     put(M.rustDark, new THREE.CylinderGeometry(3, 2.6, 3, 12).translate(x, b + hh + 1.5, z));
     for (const f of [0.45, 0.78]) {
-      put(M.rust, new THREE.CylinderGeometry(6, 6, 0.8, 16).translate(x, b + hh * f, z));
+      put(M.rust, wrapped(new THREE.CylinderGeometry(6, 6, 0.8, 16)).translate(x, b + hh * f, z));
       put(M.ink, new THREE.TorusGeometry(6, 0.08, 4, 24).rotateX(Math.PI / 2).translate(x, b + hh * f + 1.1, z), { solid: false });
     }
     put(M.pipe2, cylBetween(new THREE.Vector3(x + 4, b, z), new THREE.Vector3(x + 4, b + hh * 0.7, z), 0.8, 0.8, 8));
@@ -946,7 +950,7 @@ export function* buildBuried(scene) {
       if (!n.attributes.normal) n.computeVertexNormals();
       return n;
     });
-    const g = mergeGeometries(list);
+    const g = mergeGeometries(padForm(list));
     g.computeBoundingSphere();
     const m = new THREE.Mesh(g, mat);
     if (!solid) m.userData.noCollide = true;

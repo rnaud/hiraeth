@@ -252,7 +252,7 @@ export function setEnvGround(color) {
 // The features set this way never change after makeMaterial (their uniforms are only read).
 // ---------------------------------------------------------------------------
 export const SURFACE_FEATURES = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_BIOMES', 'S_RIPPLES', 'S_TICKS', 'S_SANDINK',
-  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
+  'S_STRATA', 'S_RIBBON', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_CRACKS', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_FOLDS', 'S_SCRUB', 'S_GLASS', 'S_MAP'];
 const SURFACE_ALL = /* glsl */ `
   #ifndef SURFACE_SPEC
   ${SURFACE_FEATURES.map((f) => `#define ${f}`).join('\n  ')}
@@ -306,6 +306,27 @@ export function detailOf(o) {
   const kind = o.detail === 'organic' ? 2 : o.detail === 'built' ? 1 : o.detail === undefined && weatheredOf(o) > 0 ? 1 : 0;
   return [kind, kind ? Math.min(Math.max(o.detailDensity ?? 1, 0), 2) : 0];
 }
+/**
+ * Hatching that follows the form (S_FORM, formLines): merged geometry has no axis, so a builder gives each
+ * part its own (src/form.js formAxis: a point on the axis and its direction, per vertex) and the material
+ * says form: true. Kind 1, a cap (a mushroom, an umbrella tree's canopy, a table of rock): the shade's strokes
+ * radiate from the axis (the cross-hatch: more of them, between), so a cap's underside is a fan of dense
+ * strokes from the stalk and the stalk itself is hatched along its length. Kind 2, a cylinder (a tank, a
+ * drum, a tower, a trunk): the strokes wrap round it (rings about the axis; the cross-hatch along it), and
+ * its flat ends, where rings would be degenerate, radiate as a cap's. Strokes are isolines of an angle
+ * about the axis (a turn is `turn` units: every power-of-two spacing up to it closes on itself, no seam)
+ * or of the height along it, thinned by powers of two as the hatch is (every other one fades out).
+ */
+export const FORM = {
+  kinds: { cap: 1, wrap: 2 },
+  turn: 1024,              // angle units a turn (2^10: the coarsest level is one stroke a turn)
+  cap: { spacing: 0.8, dense: 0.5, keep: 0.45 },  // its strokes' spacing (× the hatch's), the cross-hatch's, how much of them a lifted shade keeps
+  wrap: { spacing: 1.0, along: 1.25, keep: 0.2 },
+  waver: 0.22,             // how far a stroke wanders, in its spacing
+  waverFar: 90,            // m: past this (and on the handheld) no waver, a stroke's own offset only
+  veins: { spacing: 2.4, width: 1.4, lift: 0.12 },   // a dark cap's veins (veins: 0..1): lighter lines radiating, lit or not (under the colour-edge threshold)
+};
+export const formOf = (o) => !!o.form && !o.figure && !o.facePart && !o.eye && !o.glass && (o.mode ?? MODE_PLAIN) !== MODE_TERRAIN && o.mode !== MODE_WATER && o.mode !== MODE_OUTFIT;
 const PATTERN_DEFINES = { 1: 'S_FACADE', 2: 'S_TILES', 3: 'S_LEAVES', 4: 'S_CRACKS' };
 
 /** The defines a material made with these options compiles: SURFACE_SPEC and the features it uses. */
@@ -330,6 +351,7 @@ export function surfaceDefines(o) {
   on('S_PLATES', o.plates);
   on('S_WEATHER', weatheredOf(o) > 0);
   on('S_DETAIL', detailOf(o)[0] > 0);
+  on('S_FORM', formOf(o));
   on('S_FOLDS', o.folds);
   on('S_SCRUB', o.scrub);
   on('S_GLASS', o.glass);
@@ -352,6 +374,11 @@ const vertexShader = /* glsl */ `
   out vec3 vBind;
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
+  #ifdef S_FORM
+    in vec4 aFormC;       // the part's axis (src/form.js): a point on it (object space), w its kind (FORM: 0 none, 1 a cap, 2 a cylinder)
+    in vec3 aFormA;       // and its direction
+    out vec4 vForm;       // the point about the axis: across it (x, y), along it (z), w the kind
+  #endif
   out vec2 vTextureUV;
   #include <skinning_pars_vertex>
   #include <morphtarget_pars_vertex>
@@ -507,6 +534,18 @@ const vertexShader = /* glsl */ `
     #ifdef GRASS
       vObjPos = transformed; vObjNormal = objectNormal; vObjRel = transformed - cameraPosition;   // (already in the world)
     #endif
+    #ifdef S_FORM
+    {
+      // the point in the axis' frame, metric as vObjPos (its scale baked in); affine in the position, so it
+      // interpolates exactly across a triangle (the angle and the radius are taken per pixel)
+      vec3 fa = aFormA * scl;
+      float fl = length(fa);
+      fa = fl > 1e-6 ? fa / fl : vec3(0.0, 1.0, 0.0);
+      vec3 fu = normalize(cross(fa, abs(fa.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0))), fv = cross(fa, fu);
+      vec3 fr = (position - aFormC.xyz) * scl;
+      vForm = vec4(dot(fr, fu), dot(fr, fv), dot(fr, fa), aFormC.w);
+    }
+    #endif
 
     vec4 world = modelMatrix * pos;
     vWorldPos = world.xyz;
@@ -574,6 +613,7 @@ const fragmentShader = /* glsl */ `
   uniform float uWeather;  // weathering: grime, chips and cracks on old walls (weatherInk), 0..1
   uniform float uWearLite; // the handheld's lighter weathering (sharedUniforms)
   uniform vec2 uDetail;    // pen detail: kind (1 built, 2 organic), density (DETAIL)
+  uniform float uVeins;    // a cap's veins (FORM.veins): lighter lines radiating from its stalk
   uniform float uDrift;    // 1: sand banked against something (sand-drifts.js)
   uniform vec3 uSkyTop;
   uniform vec3 uSkyHorizon;
@@ -595,6 +635,9 @@ const fragmentShader = /* glsl */ `
   in vec3 vBind;
   in vec2 vFold;
   in vec2 vTextureUV;
+  #ifdef S_FORM
+    in vec4 vForm;
+  #endif
   uniform sampler2D uMap;
   uniform float uHasMap;
   uniform float uFolds;
@@ -818,6 +861,66 @@ const fragmentShader = /* glsl */ `
     float s0 = exp2(floor(lvl));
     return mix(stippleLevel(ce, fw, s0, dark), stippleLevel(ce, fw, s0 * 2.0, dark), fract(lvl));
   }
+
+  #ifdef S_FORM
+  // Strokes that follow the form (FORM): isolines of c (an angle about the part's axis, period units a turn,
+  // or a height along it), at the spacing the screen asks for in powers of two, the two nearest levels
+  // cross-faded as strokes() does. Each stroke wavers a little along its length (nq: a point that runs
+  // along it with no seam) and has its own pressure, both from where it lies (the same stroke at either
+  // level, and either side of the angle's seam). fw: c per device px.
+  float formLevel(float c, float fw, float s, float sRef, float period, float widthPx, vec2 nq) {
+    float k = floor(c / s + 0.5), id = mod(k * s, period);
+    float h = hash(vec2(id, 7.31));
+    // (far off, and on the handheld, a stroke keeps its own offset but no waver: one hash, no noise)
+    float wob = h - 0.5, wk = uWearLite > 0.5 ? 0.0 : 1.0 - smoothstep(${(FORM.waverFar * 0.75).toFixed(1)}, ${FORM.waverFar}.0, vViewDepth);
+    if (wk > 0.0) wob = mix(wob, vnoise(nq + vec2(id * 0.37, h * 19.0)) - 0.5, wk);
+    wob *= ${FORM.waver.toFixed(4)};
+    float f = fw / s;
+    float d = abs(c - k * s - wob * sRef) / s;
+    float hw = 0.5 * widthPx * (0.75 + 0.5 * h) * f;
+    return 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+  }
+  float formLines(float c, float fw, float period, float spacingPx, float widthPx, vec2 nq) {
+    float lvl = log2(max(fw * spacingPx * uPixelRatio, 1e-6));
+    float top = log2(period) - 1.0;                      // (two strokes a turn at the coarsest; none past it)
+    float keep = 1.0 - smoothstep(top - 1.0, top, lvl);
+    if (keep <= 0.0) return 0.0;
+    float s0 = exp2(floor(lvl));
+    widthPx *= uPixelRatio;
+    float a = formLevel(c, fw, s0, s0, period, widthPx, nq);
+    float b = formLevel(c, fw, s0 * 2.0, s0, period, widthPx, nq);
+    return mix(a, b, fract(lvl)) * keep;
+  }
+  // The shade's two families of strokes on a part with an axis: x the strokes, y the cross-hatch (dark > 0.5).
+  // f the point about the axis (vForm), fdx / fdy its screen derivatives (taken in uniform flow).
+  vec2 formHatch(vec4 f, vec3 fdx, vec3 fdy, float hsp, float dark) {
+    const float T = ${FORM.turn}.0, K = ${(FORM.turn / (2 * Math.PI)).toFixed(4)};
+    float r2 = max(dot(f.xy, f.xy), 1e-8), r = sqrt(r2);
+    // the angle and its derivatives (analytic: atan's seam has none of its own)
+    float th = atan(f.y, f.x) * K;
+    float fwT = (abs(f.x * fdx.y - f.y * fdx.x) + abs(f.x * fdy.y - f.y * fdy.x)) / r2 * K;
+    float fwH = abs(fdx.z) + abs(fdy.z);
+    float fwR = (abs(f.x * fdx.x + f.y * fdx.y) + abs(f.x * fdy.x + f.y * fdy.y)) / r;
+    float w1 = mix(0.9, 2.2, dark), w2 = mix(0.6, 1.7, dark);
+    float in1 = smoothstep(0.02, 0.12, dark), in2 = smoothstep(0.5, 0.65, dark);
+    vec2 h = vec2(0.0);
+    // a cylinder's strokes wrap round it, but on a face across its axis (its flat ends) the rings would be
+    // degenerate: there it radiates as a cap does
+    float wrap = f.w > 1.5 ? smoothstep(0.3, 0.6, fwH / max(fwH + fwR, 1e-9)) : 0.0;
+    if (wrap < 0.999) {
+      vec2 nqR = vec2(r * 0.6, 3.0);
+      h.x = formLines(th, fwT, T, hsp * ${FORM.cap.spacing.toFixed(4)}, w1, nqR) * in1;
+      if (dark > 0.5) h.y = formLines(th, fwT, T, hsp * ${FORM.cap.dense.toFixed(4)}, w2, nqR) * in2;
+      h *= 1.0 - wrap;
+    }
+    if (wrap > 0.001) {
+      vec2 ring = formLines(f.z, fwH, 65536.0, hsp * ${FORM.wrap.spacing.toFixed(4)}, w1, f.xy / r * 1.5) * in1 * vec2(1.0, 0.0);
+      if (dark > 0.5) ring.y = formLines(th, fwT, T, hsp * ${FORM.wrap.along.toFixed(4)}, w2, vec2(f.z * 0.6, 5.0)) * in2;
+      h += ring * wrap;
+    }
+    return h;
+  }
+  #endif
 
   // Drawn grid lines on architecture (Sable's "gridded lines"), ~1px pen,
   // fading out once the grid gets denser than a few pixels.
@@ -1470,6 +1573,9 @@ const fragmentShader = /* glsl */ `
     vec2 ceY = vec2(vObjPos.y, dot(vObjPos.xz, vec2(0.7071)));
     float fwY = fwidth(vObjPos.y);
     vec2 fwd = vec2(fw1, fwidth(ce1.y));
+    #ifdef S_FORM
+    vec3 formDx = dFdx(vForm.xyz), formDy = dFdy(vForm.xyz);   // (form-following strokes: their derivatives here)
+    #endif
     vec3 gq = vObjPos / max(uGrid, 1e-3);
     vec3 gfw = fwidth(gq);
     vec3 gw = vec3(0.0);
@@ -1679,6 +1785,17 @@ const fragmentShader = /* glsl */ `
     }
     #endif
     albedo *= instColor;
+    #ifdef S_FORM
+    if (uVeins > 0.0 && uFormHatch > 0.0 && vForm.w > 0.5 && vForm.w < 1.5) {
+      // a dark cap's underside (the Garden's umbrellas): its veins drawn lighter, radiating from the stalk, lit
+      // or not (a shade under the colour-edge threshold: no outline of their own; ink would vanish on it)
+      const float K = ${(FORM.turn / (2 * Math.PI)).toFixed(4)};
+      float r2 = max(dot(vForm.xy, vForm.xy), 1e-8);
+      float fwT = (abs(vForm.x * formDx.y - vForm.y * formDx.x) + abs(vForm.x * formDy.y - vForm.y * formDy.x)) / r2 * K;
+      float vein = formLines(atan(vForm.y, vForm.x) * K, fwT, ${FORM.turn}.0, uHatchSpacing * ${FORM.veins.spacing.toFixed(4)}, ${FORM.veins.width.toFixed(4)}, vec2(sqrt(r2) * 0.35, 9.0));
+      albedo += min(albedo * 1.2, vec3(${FORM.veins.lift.toFixed(4)})) * vein * uVeins;
+    }
+    #endif
     #ifdef MAKERS_BOX
     {
       vec3 bp = vObjPos - vec3(0.0, uBoxB.w, 0.0);
@@ -1931,7 +2048,14 @@ const fragmentShader = /* glsl */ `
     float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
     if (dark > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
       gHatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
-    } else if (dark > 0.0 && uHatch > 0.0) {
+    }
+    #ifdef S_FORM
+    // a part with an axis (a cap, a cylinder: FORM): strokes radiating from it or wrapping round it
+    else if (dark > 0.0 && uHatch > 0.0 && vForm.w > 0.5 && uFormHatch > 0.0) {
+      gHatch.rg = formHatch(vForm, formDx, formDy, hsp, dark);
+    }
+    #endif
+    else if (dark > 0.0 && uHatch > 0.0) {
       float h1 = strokes(ce1, fw1, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
       if (uFormHatch > 0.0 && uMode == ${MODE_TERRAIN}) {
         // on slopes the strokes become height contours wrapping round the dunes
@@ -1978,7 +2102,12 @@ const fragmentShader = /* glsl */ `
       // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
       // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)
       float hatchK = uMode == ${MODE_TERRAIN} ? mix(uShade.z, 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : uShade.z;
-      gHatch.rg *= hatchK * vec2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
+      float liftK = lift;
+      #ifdef S_FORM
+      // (a cap's fan of strokes stays dense under a lifted shade, as the sheets draw a pale cap's gills)
+      if (vForm.w > 0.5) liftK *= 1.0 - (vForm.w > 1.5 ? ${FORM.wrap.keep.toFixed(4)} : ${FORM.cap.keep.toFixed(4)});
+      #endif
+      gHatch.rg *= hatchK * vec2(1.0 - 0.8 * liftK, max(1.0 - 2.5 * liftK, 0.0));
       float hq = uShade.y < 0.0 ? 0.0 : uShade.y >= 2.0 ? ${SHADE.hues + 2}.0 + floor((uShade.y - 2.0) * ${SHADE.flats}.0 + 0.5) : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
       gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));
     }
@@ -2021,6 +2150,9 @@ const cache = new Map();
  * @param {number}  [o.spot]    0..1: how much of the world's spot blacks it takes (SPOT; default the world's)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
+ * @param {boolean} [o.form]    its shade's strokes follow the form of the parts that carry an axis (src/form.js
+ *                              formAxis: a cap's radiate from it, a cylinder's wrap round it; FORM, S_FORM)
+ * @param {number}  [o.veins]   with form: a dark cap's veins drawn lighter, radiating from its stalk (0..1)
  * @param {boolean|number} [o.glyphs] the makers' carved inscriptions (src/glyphs.js) on upright faces, in
  *                              cells of this many metres (true: the grid's spacing). For the makers' work only
  * @param {string}  [o.metal]   'painted' | 'steel' | 'chrome' | 'brass' | 'copper' | 'iron' (METALS): flat
@@ -2080,6 +2212,7 @@ export function makeMaterial(o) {
       uWindows: { value: o.windows ?? 0.78 },
       uWeather: { value: weatheredOf(o) },
       uDetail: { value: new THREE.Vector2(...detailOf(o)) },
+      uVeins: { value: formOf(o) ? o.veins ?? 0 : 0 },
       uDrift: { value: o.drift ? 1 : 0 },
       uGrid: { value: o.grid ?? (typeof o.plates === 'number' ? o.plates : o.plates ? 3 : 0) },
       // the inscriptions' cell (m): a number, or the grid's spacing
@@ -2123,6 +2256,7 @@ export function makeMaterial(o) {
     },
   });
   mat.vertexColors = !!o.vertexColors;
+  mat.defaultAttributeValues = { ...mat.defaultAttributeValues, aFormC: [0, 0, 0, 0], aFormA: [0, 1, 0] };   // (a part with no axis: plain hatching)
   mat.defines = surfaceDefines(o);   // only the features this material uses are compiled
   if (o.crowd) mat.defines = { ...mat.defines, CROWD: 1 };
   if (o.facePart) mat.defines = { ...mat.defines, FACE_PART: 1 };

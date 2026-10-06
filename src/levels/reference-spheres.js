@@ -5,6 +5,7 @@ import { V, tube, lathe, put, smoothstep, PERSON, CLEAN_SKY, groundRibbon } from
 import { lumpy } from './sky-stones-kit.js';
 import { cloudSea, smooth } from './reference-vael2.js';
 import { SPHERES_LOOK } from './spheres.js';
+import { formAxis } from '../form.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres' reference sheets (references/The Garden of Spheres/IMG_3793 … 3796): a lime
@@ -34,11 +35,12 @@ const nG = createNoise2D(37931), nH = createNoise2D(37932);
 function materials(kit) {
   const leaves = (c) => kit.mat({ color: c, pattern: 'leaves' });
   return {
-    trunk: kit.mat({ color: '#7ba381', detail: 'organic' }),
-    canopy: kit.mat({ color: '#a9b94f' }),
+    // (form: the trunk's strokes wrap round it, the canopy's radiate from it; src/form.js)
+    trunk: kit.mat({ color: '#7ba381', detail: 'organic', form: true }),
+    canopy: kit.mat({ color: '#a9b94f', form: true }),
     // (the canopy's underside: deep green, its strokes the radiating gills, the spot blacks in its pockets)
-    under: kit.mat({ color: '#2f4d33', side: THREE.DoubleSide }),
-    branch: kit.mat({ color: '#486a50' }),
+    under: kit.mat({ color: '#2f4d33', side: THREE.DoubleSide, form: true, veins: 1 }),
+    branch: kit.mat({ color: '#486a50', form: true }),
     white: kit.mat({ color: '#f1ead7', flat: true, hatch: 0.15 }),
     whiteSmooth: kit.mat({ color: '#f3eddc', hatch: 0 }),
     rock: kit.mat({ color: '#eee6d2', pattern: 'cracks', hatch: 0.15 }),
@@ -73,18 +75,18 @@ const smoothG = (g) => smooth(g);
 function umbrella(kit, M, { x, z, h, R, lean = 0, seed = 1, branches = 44 }) {
   const rng = mulberry32(seed * 7 + 1), y0 = kit.base(x, z, R * 0.12) - 0.5, r = R * 0.07;
   const tilt = (g) => g.rotateZ(lean).translate(x, y0, z);
-  kit.add(M.trunk, tilt(lathe([[r * 2.6, 0], [r * 1.5, h * 0.06], [r * 1.05, h * 0.2], [r, h * 0.6], [r * 1.4, h * 0.85], [r * 3.2, h * 0.97], [r * 4, h]], 28)));
+  kit.add(M.trunk, tilt(formAxis(lathe([[r * 2.6, 0], [r * 1.5, h * 0.06], [r * 1.05, h * 0.2], [r, h * 0.6], [r * 1.4, h * 0.85], [r * 3.2, h * 0.97], [r * 4, h]], 28), 'wrap')));
   // the canopy: a lime dome on top, a shallow cone underneath up to the trunk's crown
   const top = new THREE.SphereGeometry(R, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.14, 1);
   lumpy(top, 0.05, 0.08, seed);
-  kit.add(M.canopy, tilt(smoothG(top).translate(0, h + R * 0.05, 0)), { solid: false });
-  kit.add(M.under, tilt(lathe([[R * 1.005, h + R * 0.05], [R * 0.7, h - R * 0.02], [R * 0.35, h - R * 0.05], [r * 4, h - R * 0.04]], 48)), { solid: false });
+  kit.add(M.canopy, tilt(formAxis(smoothG(top), 'cap').translate(0, h + R * 0.05, 0)), { solid: false });
+  kit.add(M.under, tilt(formAxis(lathe([[R * 1.005, h + R * 0.05], [R * 0.7, h - R * 0.02], [R * 0.35, h - R * 0.05], [r * 4, h - R * 0.04]], 48), 'cap')), { solid: false });
   // branches fanning from the crown to the rim, a few forking (greebles under the canopy)
   for (let i = 0; i < branches; i++) {
     const a = (i / branches) * Math.PI * 2 + rng() * 0.2, rr = R * (0.75 + rng() * 0.2);
     const pts = [V(0, h * 0.86, 0), V(Math.cos(a) * rr * 0.35, h - R * 0.04, Math.sin(a) * rr * 0.35), V(Math.cos(a) * rr, h + R * 0.02, Math.sin(a) * rr)];
-    kit.add(M.branch, tilt(tube(pts, r * (0.12 + rng() * 0.12), 10, 4)), { solid: false });
-    if (rng() < 0.6) { const b = a + (rng() - 0.5) * 0.4; kit.add(M.branch, tilt(tube([pts[1], V(Math.cos(b) * rr * 0.8, h, Math.sin(b) * rr * 0.8)], r * 0.08, 6, 3)), { solid: false }); }
+    kit.add(M.branch, tilt(formAxis(tube(pts, r * (0.12 + rng() * 0.12), 10, 4), 'cap')), { solid: false });
+    if (rng() < 0.6) { const b = a + (rng() - 0.5) * 0.4; kit.add(M.branch, tilt(formAxis(tube([pts[1], V(Math.cos(b) * rr * 0.8, h, Math.sin(b) * rr * 0.8)], r * 0.08, 6, 3), 'cap')), { solid: false }); }
   }
 }
 

@@ -10,11 +10,12 @@ export const TAU = Math.PI * 2;
 export const nA = createNoise2D(1975), nB = createNoise2D(2112), nC = createNoise2D(77);
 
 
-/** Keep only positions (non-indexed) so everything merges. */
-export function clean(g) {
+/** Keep only positions (non-indexed) so everything merges; form: and a part's axis, if it has one (src/form.js). */
+export function clean(g, form = false) {
   const n = g.index ? g.toNonIndexed() : g;
   const out = new THREE.BufferGeometry();
   out.setAttribute('position', n.getAttribute('position').clone());
+  if (form && n.attributes.aFormC) for (const k of ['aFormC', 'aFormA']) out.setAttribute(k, n.getAttribute(k).clone());
   return out;
 }
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler();
