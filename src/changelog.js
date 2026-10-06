@@ -10,6 +10,8 @@ export const CHANGELOG = [
     'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
     'The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.',
     'The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.',
+    'Game updates in the app and on the Steam Deck are about a third of their old size: the References scenes’ drawings are no longer packed into them and come from the game’s site when you open those scenes.',
+    'On the Steam Deck the screen no longer dims or goes to sleep while you play with the controls.',
     'Soft things are drawn in softer lines, as in the drawings: clouds in a thin blue-grey line, Lorn II’s reeds and crystals in a pale violet one, leaves and the Garden of Spheres’ canopies in a lighter dark green, glass and the Signal Market’s painted billboards in a darker shade of their own colours, instead of heavy black ink everywhere.',
     'Distance falls away in layers of haze, as in the drawings: in Lorn II the trunks step back into a cool violet mist, with a low mist over the water and the paths; the desert’s far dunes and the Signal Market’s far towers pale in warm bands; Vael II’s plain lightly too. Looking down the City-Shaft, the town fades into a pale blue haze toward the bottom.',
   ] },

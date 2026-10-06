@@ -52,7 +52,8 @@ function fakeApp(info, store = new Map()) {
   installAppShell({ sound, label: () => label, toast: (t) => toasts.push(t) }, win);
   return { win, calls, label, log, toasts };
 }
-const tick = () => new Promise((r) => setTimeout(r, 5));
+// a few turns of the timers, so the page's chained answers all land even on a busy machine
+const tick = async () => { for (let i = 0; i < 4; i++) await new Promise((r) => setTimeout(r, 5)); };
 
 test('in the app: the label, the update toast and restart now', async () => {
   const a = fakeApp({ native: 2, app: 12, web: 14, bundle: true, ready: 15, readyVersion: '0.37' });

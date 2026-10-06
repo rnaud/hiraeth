@@ -183,3 +183,8 @@ test('saves survive bundle switches: one fixed origin', () => {
   assert.equal(cfg.server?.androidScheme, 'https');
   assert.equal(cfg.server?.hostname, 'localhost');
 });
+
+test('the Deck keeps its screen on while the game runs (no dimming or sleep mid-game)', () => {
+  const main = readFileSync(new URL('../desktop/main.mjs', import.meta.url), 'utf8');
+  assert.match(main, /powerSaveBlocker\.start\('prevent-display-sleep'\)/);
+});
