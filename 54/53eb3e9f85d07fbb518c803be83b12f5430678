@@ -1,0 +1,63 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_5986be676bf329 131-132
+changelog.md
+  s_1fd8d0e7b02dcf::t_a325a189359340 13-14
+desktop/main.mjs
+  s_1fd8d0e7b02dcf::t_d2a0e65470e998 21-30
+docs/steam-deck.md
+  s_1fd8d0e7b02dcf::t_302e06db23e58a 28-32
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_e142f92b3426c9 121-165
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_6d8bf2c309ab34 275-277
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_725a87e7ddff0c 16-17
+src/form.js
+  s_1fd8d0e7b02dcf::t_4ccbb8586ca289 1-71
+src/levels/arzach2.js
+  s_1fd8d0e7b02dcf::t_4b99d8f4a0d7c9 3,172-175,189,198-200,330,342,549,571,588
+src/levels/buried.js
+  s_1fd8d0e7b02dcf::t_be8ddbce002df4 3-5,153,185-187,191,198,437,439,521,523,593,635,651,654,953
+src/levels/lab-kit.js
+  s_1fd8d0e7b02dcf::t_8adab8c8f98911 6,23,26-27,90
+src/levels/lab-rooms.js
+  s_1fd8d0e7b02dcf::t_0746c6284731d8 14,618
+src/levels/perdide2.js
+  s_1fd8d0e7b02dcf::t_af1e39ff6da1ab 4,251-252,254,263,281,339
+src/levels/reference-buried.js
+  s_1fd8d0e7b02dcf::t_af762499826a05 7-9,38-39,142,166-167,216,218,395,491-493,576
+src/levels/reference-lorn.js
+  s_1fd8d0e7b02dcf::t_06c76ca74e45b7 8,37-38,41-43,70-71,77-79,83
+src/levels/reference-spheres.js
+  s_1fd8d0e7b02dcf::t_2ee93ff366da34 8,38-40,42-43,78,82-83,88-89
+src/levels/reference-vael2.js
+  s_1fd8d0e7b02dcf::t_9e946386d84986 8,48-50,70,96-97
+src/levels/sky-stones-kit.js
+  s_1fd8d0e7b02dcf::t_a29d2cf9faaecf 13-14,18
+src/levels/spheres.js
+  s_1fd8d0e7b02dcf::t_3ee1036c15a811 3,115,119,168,178-181,223,238,242,254,884
+src/materials.js
+  s_1fd8d0e7b02dcf::t_de58262b54a405 284,338-358,383,406-410,566-577,645,668-670,895-954,1606-1608,1818-1828,2086-2093,2140-2145,2190-2192,2252,2297
+src/title-vista.js
+  s_1fd8d0e7b02dcf::t_d2d736afc5e060 170
+tests/android-ota.test.js
+  s_1fd8d0e7b02dcf::t_8a039e6abc3b27 191-201
+tests/form-hatch.test.js
+  s_1fd8d0e7b02dcf::t_aea723ebdb0514 1-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5453eb3e9f85d07fbb518c803be83b12f5430678",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
