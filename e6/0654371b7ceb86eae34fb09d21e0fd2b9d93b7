@@ -1,0 +1,67 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_3c75c982ad3640 232
+docs/systems/engine-bridge.md
+  s_1fd8d0e7b02dcf::t_96b293afce7dd4 154-158,160,164-253,258,260
+engine/game.js
+  s_1fd8d0e7b02dcf::t_71e7e8a3616262 1-226
+engine/godot/backend.js
+  s_1fd8d0e7b02dcf::t_125bbd5c5b5199 11,26-33,36-38,40,42-44,46-48,50-51,60-67,70-75,78-79,81-83,86,89-90,97,101-107,110-111,113-114,122,127-133,137,144-145,149,151-152,154-156,159,162,166-176,193-198,204-240,250-261
+engine/godot/game.js
+  s_1fd8d0e7b02dcf::t_0a8fb87c5c51fb 1-150
+engine/godot/look.js
+  s_1fd8d0e7b02dcf::t_363e77a8b9535e 11-12
+engine/godot/spike.js
+  s_1fd8d0e7b02dcf::t_1b32a862281192 17
+engine/godot/stage.js
+  s_1fd8d0e7b02dcf::t_26a3643bc041d6 43-46
+engine/ink-params.js
+  s_1fd8d0e7b02dcf::t_a14478ef10411d 2,4,6,17,19,21-22,31-41,44-81
+engine/keys.js
+  s_1fd8d0e7b02dcf::t_cf1ec1bb0178f3 1-48
+engine/mirror.js
+  s_1fd8d0e7b02dcf::t_50af1dbff21cf7 11,15,33,35,85,89,111-116,120-121,133,168-169
+engine/platform.js
+  s_1fd8d0e7b02dcf::t_6e44f183624157 310-314
+engine/skin.js
+  s_1fd8d0e7b02dcf::t_dbc9f3811e18aa 1-24
+engine/vm-run.mjs
+  s_1fd8d0e7b02dcf::t_07968f79f53c89 19-20
+godot/project.godot
+  s_1fd8d0e7b02dcf::t_10343e33eb65ef 21-151
+godot/shaders/ink.gdshaderinc
+  s_1fd8d0e7b02dcf::t_b0d2d4336d52b7 1-309
+godot/shaders/ink_post.gdshader
+  s_1fd8d0e7b02dcf::t_0eb753e39bee3e 1-10,12,18-41,47-54,56-59,63-74,76-112,116-121,123-149,151-161,163-164
+godot/shaders/ink_skinned.gdshader
+  s_1fd8d0e7b02dcf::t_10717540762b30 1-6
+godot/shaders/ink_skinned_double.gdshader
+  s_1fd8d0e7b02dcf::t_3f908660070198 1-5
+godot/shaders/ink_surface.gdshader
+  s_1fd8d0e7b02dcf::t_5f67d91c75b996 1,4
+godot/shaders/ink_surface_back.gdshader
+  s_1fd8d0e7b02dcf::t_0b9c0807dfb997 1-4
+godot/shaders/ink_surface_double.gdshader
+  s_1fd8d0e7b02dcf::t_021cfd2c586fb1 1-4
+scripts/engine-bundle.mjs
+  s_1fd8d0e7b02dcf::t_31bda55060546f 18,21-40,50
+scripts/godot-globals.mjs
+  s_1fd8d0e7b02dcf::t_94ad7b4129521b 1-14
+tests/engine-bridge.test.js
+  s_1fd8d0e7b02dcf::t_903d7c00f6e16a 15-19,113-136,217-314
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e60654371b7ceb86eae34fb09d21e0fd2b9d93b7",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
