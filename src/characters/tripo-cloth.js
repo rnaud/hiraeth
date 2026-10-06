@@ -149,7 +149,11 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
   const sim={...constants,P:new Float64Array(N*3),Q:new Float64Array(N*3)},G=new Float64Array(N*3);
   const simCaps=new Float64Array(caps.length*CAP),mapCaps=new Float64Array(caps.length*CAP);
   // the targets the positions were last simulated against: the garment follows positions - simTarget
-  const simTarget=new Float64Array(N*3);
+  const simTarget=new Float64Array(N*3),D=new Float64Array(N*3);
+  // the garment's vertices as flat arrays: where each sits on the attachment bone, its four particles (as
+  // offsets into the particle arrays) with their weights already times its freedom, its outward direction
+  const mapArrays={count:mapping.length,local:new Float64Array(mapping.length*3),ids:new Int32Array(mapping.length*4),weights:new Float64Array(mapping.length*4),free:new Float64Array(mapping.length),outward:new Float64Array(mapping.length*3),out:new Int32Array(mapping.length)};
+  mapping.forEach((m,v)=>{const A=mapArrays;A.local.set([m.local.x,m.local.y,m.local.z],v*3);A.outward.set([m.outward.x,m.outward.y,m.outward.z],v*3);A.free[v]=m.free;A.out[v]=m.o*3;for(let k=0;k<4;k++){A.ids[v*4+k]=m.ids[k]*3;A.weights[v*4+k]=m.weights[k]*m.free;}});
   // Off the main thread where there are workers: each frame sends the targets and the capsules with the steps
   // due and uses the newest positions back (a frame old: the shirt's own swing; the body under it is this
   // frame's). Steps the worker hasn't taken yet wait for the next send.
@@ -162,9 +166,14 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
       worker.onerror=(e)=>{console.warn('cloth: the worker failed; simulating on the main thread',e.message??e);worker=null;waiting=false;initialized=false;};
     }catch{worker=null;}
   }
-  const skeleton=source.skeleton,boneSkin=skeleton.bones.map(()=>new T.Matrix4());
+  const skeleton=source.skeleton,boneSkin=skeleton.bones.map(()=>new T.Matrix4()),boneMesh=skeleton.bones.map(()=>new T.Matrix4());
   const sourceSkin=[original.attributes.skinIndex.array,original.attributes.skinWeight.array];
   const detailSkin=[detailed.attributes.skinIndex.array,detailed.attributes.skinWeight.array];
+  // the garment's skinned vertices (free < 1): their rest places in bind space and their bones, worked out once
+  {
+    const A=mapArrays,[idx,wts]=detailSkin,b=new T.Vector3();A.base=new Float64Array(A.count*3);A.skinB=new Int32Array(A.count*4);A.skinW=new Float64Array(A.count*4);
+    mapping.forEach((m,v)=>{if(m.free>=1)return;b.copy(m.p).applyMatrix4(skinSource.bindMatrix);A.base.set([b.x,b.y,b.z],v*3);for(let k=0;k<4;k++){A.skinB[v*4+k]=idx[m.i*4+k];A.skinW[v*4+k]=wts[m.i*4+k];}});
+  }
   const base=new T.Vector4(),bindMatrix=skinSource.bindMatrix;
   /** p (the mesh's local space) skinned with vertex `index`'s weights: SkinnedMesh.applyBoneTransform's own math */
   function skin([indices,weights],index,p){
@@ -184,6 +193,7 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
     skinSource.bindMatrixInverse.copy(source.bindMatrixInverse);
     skinDetail.bindMatrixInverse.copy(source.bindMatrixInverse);
     for(let b=0;b<boneSkin.length;b++)boneSkin[b].multiplyMatrices(skeleton.bones[b].matrixWorld,skeleton.boneInverses[b]);
+    for(let b=0;b<boneSkin.length;b++)boneMesh[b].multiplyMatrices(source.bindMatrixInverse,boneSkin[b]);
     toLocal.copy(source.matrixWorld).invert();
     for(let i=0;i<target.length;i++)target[i].copy(attachmentRest[i]).applyMatrix4(attachment.matrixWorld).applyMatrix4(toLocal);
     for(let i=0;i<=COLS;i++){const s=top[i],a=skin(sourceSkin,s.a,current.copy(rest[i])),b=skin(sourceSkin,s.b,scratch.copy(rest[i]));target[i].copy(a.lerp(b,s.t));}
@@ -214,13 +224,22 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
     const out=garmentGeometry.attributes.position.array,P=sim.P;
     // (the attachment bone into the mesh's space as one affine matrix: one product a vertex, not two)
     const e=attachToLocal.multiplyMatrices(toLocal,attachment.matrixWorld).elements;
-    for(const m of mapping){
-      const l=m.local,free=m.free,p=current.set(e[0]*l.x+e[4]*l.y+e[8]*l.z+e[12],e[1]*l.x+e[5]*l.y+e[9]*l.z+e[13],e[2]*l.x+e[6]*l.y+e[10]*l.z+e[14]);
+    // each particle's displacement off its target, once; then every vertex from the flat arrays (mapArrays)
+    for(let j=0;j<N*3;j++)D[j]=P[j]-simTarget[j];
+    const M=mapArrays;
+    for(let v=0;v<M.count;v++){
+      const l=v*3,lx=M.local[l],ly=M.local[l+1],lz=M.local[l+2],free=M.free[v];
+      let x=e[0]*lx+e[4]*ly+e[8]*lz+e[12],y=e[1]*lx+e[5]*ly+e[9]*lz+e[13],z=e[2]*lx+e[6]*ly+e[10]*lz+e[14];
       // (a vertex the cloth moves all by itself, free = 1, doesn't need its skinned place: lerp by 0)
-      if(free<1)p.lerp(skin(detailSkin,m.i,scratch.copy(m.p)),1-free);
-      if(free>0)for(let k=0;k<4;k++){const j=m.ids[k]*3,w=m.weights[k]*free;p.x+=(P[j]-simTarget[j])*w;p.y+=(P[j+1]-simTarget[j+1])*w;p.z+=(P[j+2]-simTarget[j+2])*w;}
-      if(simulated&&free>.95){const o=m.outward;for(let k=0;k<caps.length;k++){const hi=pushOut(p.x,p.y,p.z,o.x,o.y,o.z,mapCaps,k);if(hi)p.addScaledVector(o,hi);}}
-      out[m.o*3]=p.x;out[m.o*3+1]=p.y;out[m.o*3+2]=p.z;
+      if(free<1){
+        // skinned: its four bones' matrices (bind inverse folded in, once a frame) on its bind-space rest place (once)
+        let sx=0,sy=0,sz=0;const bx=M.base[l],by=M.base[l+1],bz=M.base[l+2];
+        for(let k=v*4,end=k+4;k<end;k++){const w=M.skinW[k];if(w===0)continue;const c=boneMesh[M.skinB[k]].elements;sx+=(c[0]*bx+c[4]*by+c[8]*bz+c[12])*w;sy+=(c[1]*bx+c[5]*by+c[9]*bz+c[13])*w;sz+=(c[2]*bx+c[6]*by+c[10]*bz+c[14])*w;}
+        const t=1-free;x+=(sx-x)*t;y+=(sy-y)*t;z+=(sz-z)*t;
+      }
+      if(free>0)for(let k=v*4,end=k+4;k<end;k++){const j=M.ids[k],w=M.weights[k];x+=D[j]*w;y+=D[j+1]*w;z+=D[j+2]*w;}
+      if(simulated&&free>.95){const ox=M.outward[l],oy=M.outward[l+1],oz=M.outward[l+2];for(let k=0,c=0;k<caps.length;k++,c+=CAP){if(x<mapCaps[c+8]||x>mapCaps[c+11]||y<mapCaps[c+9]||y>mapCaps[c+12]||z<mapCaps[c+10]||z>mapCaps[c+13])continue;const hi=pushOut(x,y,z,ox,oy,oz,mapCaps,k);if(hi){x+=ox*hi;y+=oy*hi;z+=oz*hi;}}}   // (the box first, here: most vertices are nowhere near a leg)
+      const o=M.out[v];out[o]=x;out[o+1]=y;out[o+2]=z;
     }
     garmentGeometry.attributes.position.needsUpdate=true;vertexNormals(garmentGeometry);
     // (the regular cage itself is never drawn: its normals only when it is shown, for a debug view)
