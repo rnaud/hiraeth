@@ -1,0 +1,173 @@
+.gitignore
+  s_1fd8d0e7b02dcf::t_b5ea8125b239f6 30-36
+TODO.md
+  s_1fd8d0e7b02dcf::t_a9dad57c072f6b 132-133,244
+changelog.md
+  s_1fd8d0e7b02dcf::t_0c8c2fbfb47e64 15-16
+docs/README.md
+  s_1fd8d0e7b02dcf::t_9afa9f8db9af38 56
+docs/systems/engine-bridge.md
+  s_1fd8d0e7b02dcf::t_dd37bccb964b5e 1-380
+docs/systems/materials.md
+  s_1fd8d0e7b02dcf::t_32cccf31c19e19 166-195
+docs/systems/performance.md
+  s_1fd8d0e7b02dcf::t_22e35d07b18000 351-446
+docs/systems/references.md
+  s_1fd8d0e7b02dcf::t_898b65772aa645 286-288
+docs/systems/unity.md
+  s_1fd8d0e7b02dcf::t_d338718d846635 3-5
+engine/boot.js
+  s_1fd8d0e7b02dcf::t_c6cd4a87726c39 1-22
+engine/game.js
+  s_1fd8d0e7b02dcf::t_89ca207b0e4b1b 1-232
+engine/godot/backend.js
+  s_1fd8d0e7b02dcf::t_bfe87b45f9e69d 1-262
+engine/godot/game.js
+  s_1fd8d0e7b02dcf::t_33fae151ab04e0 1-150
+engine/godot/host.js
+  s_1fd8d0e7b02dcf::t_81497102bf671d 1-40
+engine/godot/look.js
+  s_1fd8d0e7b02dcf::t_a2d215fd7583b4 1-15
+engine/godot/pack.js
+  s_1fd8d0e7b02dcf::t_34ea721cf5a2b7 1-51
+engine/godot/spike.js
+  s_1fd8d0e7b02dcf::t_8e32731d50e117 1-35
+engine/godot/stage.js
+  s_1fd8d0e7b02dcf::t_d2bf222a510a6d 1-81
+engine/ink-params.js
+  s_1fd8d0e7b02dcf::t_065dcbfbd15221 1-81
+engine/ink-spec.js
+  s_1fd8d0e7b02dcf::t_34a90c73b7fbd9 1-58
+engine/keys.js
+  s_1fd8d0e7b02dcf::t_6c30891dd31a95 1-48
+engine/mirror.js
+  s_1fd8d0e7b02dcf::t_214a0296e0c2c3 1-180
+engine/platform.js
+  s_1fd8d0e7b02dcf::t_9efe030a037dbb 1-318
+engine/skin.js
+  s_1fd8d0e7b02dcf::t_5e079c5dd40295 1-24
+engine/spike.js
+  s_1fd8d0e7b02dcf::t_f8844af4d97450 1-38
+engine/unity/backend.js
+  s_1fd8d0e7b02dcf::t_173a8593dabba9 1-109
+engine/unity/game.js
+  s_1fd8d0e7b02dcf::t_19868e7ab09fce 1-104
+engine/unity/host.js
+  s_1fd8d0e7b02dcf::t_a572191018cbc1 1-22
+engine/unity/pack.js
+  s_1fd8d0e7b02dcf::t_7218352045f756 1-85
+engine/unity/port-format.js
+  s_1fd8d0e7b02dcf::t_d1495a67210243 1-65
+engine/vm-run.mjs
+  s_1fd8d0e7b02dcf::t_b36f4f7fae18c5 1-36
+godot/main.js
+  s_1fd8d0e7b02dcf::t_4296cdb1c7ad6e 1-21
+godot/main.tscn
+  s_1fd8d0e7b02dcf::t_7059106c3c42fd 1-6
+godot/project.godot
+  s_1fd8d0e7b02dcf::t_cb567cf4468002 1-151
+godot/run.sh
+  s_1fd8d0e7b02dcf::t_e1b90a791571a7 1-18
+godot/shaders/ink.gdshaderinc
+  s_1fd8d0e7b02dcf::t_915b9009089645 1-309
+godot/shaders/ink_post.gdshader
+  s_1fd8d0e7b02dcf::t_d96ff5d09e5720 1-165
+godot/shaders/ink_skinned.gdshader
+  s_1fd8d0e7b02dcf::t_bc8ff774d995a1 1-6
+godot/shaders/ink_skinned_double.gdshader
+  s_1fd8d0e7b02dcf::t_c4d83a1a7aea23 1-5
+godot/shaders/ink_surface.gdshader
+  s_1fd8d0e7b02dcf::t_5659985f7a877d 1-4
+godot/shaders/ink_surface_back.gdshader
+  s_1fd8d0e7b02dcf::t_ce135e0dc92fdd 1-4
+godot/shaders/ink_surface_double.gdshader
+  s_1fd8d0e7b02dcf::t_db208ce97f7146 1-4
+scripts/engine-bundle.mjs
+  s_1fd8d0e7b02dcf::t_97404bbf37c5ca 1-72
+scripts/godot-globals.mjs
+  s_1fd8d0e7b02dcf::t_92ea810f881213 1-14
+scripts/unity-export/unity-batch.sh
+  s_1fd8d0e7b02dcf::t_02f10fb410841c 15
+scripts/unity-js-setup.sh
+  s_1fd8d0e7b02dcf::t_adb17823487513 1-21
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_84cc9f29847175 18-19
+src/main.js
+  s_1fd8d0e7b02dcf::t_a1c18e17c587d9 25,99,1144
+src/materials.js
+  s_1fd8d0e7b02dcf::t_26fd0da9196c56 284,358-377,404,667,1115-1175,1855-1867,2288-2289,2351
+src/perf.js
+  s_1fd8d0e7b02dcf::t_88f58ab2fab5e6 470-505
+src/post.js
+  s_1fd8d0e7b02dcf::t_5cded97a2c036c 113-161,228-230,263-264,392-393,405-409,746-748,761,764,1058-1059,1063,1158-1160,1195-1226,1229-1231
+src/sand-drifts.js
+  s_1fd8d0e7b02dcf::t_77205e2d9ceb14 123-152,229,252,256,258-259
+src/title-vista.js
+  s_1fd8d0e7b02dcf::t_2c44a3aa3cb9ef 441,501
+tests/engine-bridge.test.js
+  s_1fd8d0e7b02dcf::t_3c9ebf2aeba00b 1-314
+tests/engine-unity.test.js
+  s_1fd8d0e7b02dcf::t_a673059a8823e2 1-103
+tests/occlusion-taps.test.js
+  s_1fd8d0e7b02dcf::t_7b12bd41efcbe6 34,44-46
+tests/sand-drifts.test.js
+  s_1fd8d0e7b02dcf::t_f4a2ff6bd4dc6b 97-133
+tests/screen-noise.test.js
+  s_1fd8d0e7b02dcf::t_b01ca3b630c4f4 1-67
+tests/surface-spec.test.js
+  s_1fd8d0e7b02dcf::t_c36f59afac296b 64,66-67
+tests/uniform-arrays.test.js
+  s_1fd8d0e7b02dcf::t_0eccb66bc2f20c 1-45
+tests/wall-patch.test.js
+  s_1fd8d0e7b02dcf::t_9b74bfd39331e0 1-38
+unity/.gitignore
+  s_1fd8d0e7b02dcf::t_ffddca452e1231 28-31
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_1fd8d0e7b02dcf::t_c37a4cd19cfb45 166-170
+unity/Memento/Assets/MementoJS.meta
+  s_1fd8d0e7b02dcf::t_054c2c7f7ccd96 1-8
+unity/Memento/Assets/MementoJS/BridgeDesert.unity
+  s_1fd8d0e7b02dcf::t_0bdcba3f280f37 1-177
+unity/Memento/Assets/MementoJS/BridgeDesert.unity.meta
+  s_1fd8d0e7b02dcf::t_732300c89164b1 1-7
+unity/Memento/Assets/MementoJS/Editor.meta
+  s_1fd8d0e7b02dcf::t_17282a384bff35 1-8
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs
+  s_1fd8d0e7b02dcf::t_ead6d1bdcdf873 1-81
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs.meta
+  s_1fd8d0e7b02dcf::t_67345e5fa22536 1-2
+unity/Memento/Assets/MementoJS/Runtime.meta
+  s_1fd8d0e7b02dcf::t_d5226364ad3029 1-8
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_1fd8d0e7b02dcf::t_ce461eb25864bf 1-92
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs.meta
+  s_1fd8d0e7b02dcf::t_109e7e7110b5c1 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_1fd8d0e7b02dcf::t_18f9ddcfcc2a3d 1-274
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs.meta
+  s_1fd8d0e7b02dcf::t_08f317cd2a0878 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_1fd8d0e7b02dcf::t_ca83aaa63eaeac 1-139
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs.meta
+  s_1fd8d0e7b02dcf::t_480061d7875039 1-2
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs
+  s_1fd8d0e7b02dcf::t_6b08c3bbff94ef 1-64
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs.meta
+  s_1fd8d0e7b02dcf::t_278f4e2a7ace13 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "430cbf9f7a925c68d63c7e142d1950ff8bcf5be4",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
