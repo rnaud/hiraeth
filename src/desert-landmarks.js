@@ -368,7 +368,7 @@ export function buildDesertLandmarks(scene, terrain) {
       k.add(M.rope, tube(sagPts(fingers[3], fingers[3].clone().setY(0).add(V(3, 0, 1)), 0.3, 4), 0.05, 6, 3));
     }
     for (const [x, z, r] of [[-10, 2, 4.6], [10, -8, 3.8], [6, 15, 3.2], [-16, 14, 2.6], [20, 8, 2.4]]) {
-      k.both(M.creamSmooth, new THREE.SphereGeometry(r, 18, 9, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.85, 1).translate(x, -0.4, z), new THREE.SphereGeometry(r, 8, 3, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.85, 1).translate(x, -0.4, z));
+      k.both(M.creamSmooth, new THREE.SphereGeometry(r, 18, 9, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.85, 1).translate(x, -0.4, z));
       k.add(M.ink, new THREE.BoxGeometry(1.3, 1.9, 0.5).translate(x + r * 0.6, 0.6, z + r * 0.75));
     }
     k.add(M.rope, new THREE.CylinderGeometry(0.15, 0.2, 16, 5).translate(26, 8, -2));
@@ -542,7 +542,8 @@ export function buildDesertLandmarks(scene, terrain) {
       const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * s.r * 0.95, x = Math.cos(a) * d, z = Math.sin(a) * d;
       if (terrain.heightAt(s.x + x, s.z + z) > wy - 0.5) continue;   // only on open water
       const r = 1.5 + rng() * 4.5;
-      k.add(M.salt, T(new THREE.CylinderGeometry(r, r * 1.05, 0.25, 6 + Math.floor(rng() * 3)), [x, 0.05, z], [0, rng() * 3, 0], [1, 1, 0.5 + rng() * 0.5]));
+      // (the salt plates hold you up where they float: your feet went through them into the lagoon)
+      k.both(M.salt, T(new THREE.CylinderGeometry(r, r * 1.05, 0.25, 6 + Math.floor(rng() * 3)), [x, 0.05, z], [0, rng() * 3, 0], [1, 1, 0.5 + rng() * 0.5]));
     }
     out.lagoons = k.origin.clone();
     k.flush();
@@ -597,27 +598,27 @@ export function buildDesertLandmarks(scene, terrain) {
     const s = SITES.dishes, k = new Kit(root, 'Radio dishes', s.x, ground(s, 60) - 0.5, s.z, s.yaw);
     for (const [x, z, R, el, az] of [[-34, 0, 22, 0.75, -0.3], [12, -30, 17, 0.68, -0.85], [30, 22, 14, 1.0, 0.25]]) {
       const ped = R * 0.55;
-      k.both(M.creamSmooth, new THREE.CylinderGeometry(R * 0.12, R * 0.2, ped, 12).translate(x, ped / 2 - 0.5, z), new THREE.CylinderGeometry(R * 0.12, R * 0.2, ped, 6).translate(x, ped / 2 - 0.5, z));
-      for (const e of [-1, 1]) k.add(M.creamSmooth, T(new THREE.BoxGeometry(R * 0.08, R * 0.35, R * 0.3), [x + Math.cos(az) * e * R * 0.16, ped + R * 0.15, z - Math.sin(az) * e * R * 0.16], [0, az, 0]));
+      // (the dishes collide as they are drawn: a 3-point, 8-sided stand-in lay up to 0.55 m under the bowl)
+      k.both(M.creamSmooth, new THREE.CylinderGeometry(R * 0.12, R * 0.2, ped, 12).translate(x, ped / 2 - 0.5, z));
+      for (const e of [-1, 1]) k.both(M.creamSmooth, T(new THREE.BoxGeometry(R * 0.08, R * 0.35, R * 0.3), [x + Math.cos(az) * e * R * 0.16, ped + R * 0.15, z - Math.sin(az) * e * R * 0.16], [0, az, 0]));
       const depth = 0.22 * R, f = 0.65 * R;
       const orient = (g) => g.rotateX(Math.PI / 2 - el).rotateY(az).translate(x, ped + R * 0.3, z);
-      k.add(M.dish, orient(lathe(Array.from({ length: 12 }, (_, i) => { const r = i / 11 * R; return [r, depth * (r / R) ** 2]; }), 48)));
-      k.solid(orient(lathe([[0.1, 0], [R * 0.5, depth * 0.25], [R, depth]], 8)));
-      k.add(M.rope, orient(new THREE.TorusGeometry(R, 0.3, 4, 48).rotateX(Math.PI / 2).translate(0, depth, 0)));
+      k.both(M.dish, orient(lathe(Array.from({ length: 12 }, (_, i) => { const r = i / 11 * R; return [r, depth * (r / R) ** 2]; }), 48)));
+      k.both(M.rope, orient(new THREE.TorusGeometry(R, 0.3, 4, 48).rotateX(Math.PI / 2).translate(0, depth, 0)));
       for (let i = 0; i < 4; i++) {
         const a = i * Math.PI / 2 + Math.PI / 4;
         k.add(M.rope, orient(tube([V(Math.cos(a) * R * 0.95, depth * 0.9, Math.sin(a) * R * 0.95), V(0, f, 0)], 0.15, 1, 4)));
       }
-      k.add(M.creamSmooth, orient(new THREE.CylinderGeometry(0.9, 1.4, 3, 10).translate(0, f, 0)));
-      k.add(M.rope, orient(new THREE.CylinderGeometry(1.2, 1.2, 1.2, 10).translate(0, -1, 0)));
+      k.both(M.creamSmooth, orient(new THREE.CylinderGeometry(0.9, 1.4, 3, 10).translate(0, f, 0)));
+      k.both(M.rope, orient(new THREE.CylinderGeometry(1.2, 1.2, 1.2, 10).translate(0, -1, 0)));
     }
     for (const [x, z, r] of [[-6, 34, 9], [8, 40, 6], [-22, 46, 7], [-48, 30, 5.5], [42, -6, 7.5]]) {
-      k.both(M.station, new THREE.SphereGeometry(r, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, -0.3, z), new THREE.SphereGeometry(r, 8, 3, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, -0.3, z));
+      k.both(M.station, new THREE.SphereGeometry(r, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, -0.3, z));
       k.add(M.ink, new THREE.BoxGeometry(1.6, 2.2, 0.8).translate(x, 0.8, z + r - 0.2));
     }
     k.both(M.cream, new THREE.BoxGeometry(30, 5, 9).translate(-10, 2, 54));
     k.add(M.ink, new THREE.BoxGeometry(24, 0.9, 0.3).translate(-10, 3, 49.4));
-    k.both(M.creamSmooth, new THREE.CylinderGeometry(1.8, 2.4, 46, 12).translate(20, 22.5, 46), new THREE.CylinderGeometry(1.8, 2.4, 46, 6).translate(20, 22.5, 46));
+    k.both(M.creamSmooth, new THREE.CylinderGeometry(1.8, 2.4, 46, 12).translate(20, 22.5, 46));
     for (const y of [12, 26, 40]) k.add(M.rust, new THREE.CylinderGeometry(2.3, 2.3, 1.6, 12).translate(20, y, 46));
     out.dishes = k.origin.clone().add(V(0, 25, 0));
     k.flush();

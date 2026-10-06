@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Garden of Spheres the hill’s boulders, the pillars, the monoliths, the white ruins and the robot statue hold you up where they are drawn, and the singing spheres in the Footprint are round under your feet instead of a flat disc over them.
 - In Lorn the Hush-House’s dome, its ribs and the swamp crystals, and in Lorn II the Lamp-House’s tower bands and pool-lamps, the root heaps and gate over the cave, the arches’ roots and the glass dome’s ribs are solid where they are drawn.
 - Things you can stand on are the things you see: the painted bands, window frames and chimney cap of the houses at home, the Signal Market’s awnings and tower billboards, Viridel’s glass dome and its ribs, and the First Garage’s clocks and great escapement wheels. The band round the small house at home no longer runs across its own doorway.
+- In the desert the radio dishes’ bowls, rims and feeds, the sail camp’s domes and the salt lagoons’ floating plates hold you up where they are drawn — you can stand on a salt plate now instead of going through it.
 - Every temple’s halls lose the invisible ledge at the top of their round rooms: the stone cornice is solid where it is drawn, so climbing one you meet the overhang instead of passing through it.
 - People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.
 

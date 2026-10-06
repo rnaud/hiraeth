@@ -47,10 +47,11 @@ test('landmarks sit on the ground and collide only through hidden proxies, as th
     assert.ok(b.min.y <= terrain.baseAt(c.x, c.z, 4) + 0.5, `${group.name} reaches down to the sand (${b.min.y.toFixed(1)})`);
   }
   // the whole static collision budget of the desert stays small next to the props' ~155k triangles.
-  // The grove, the crashed hull, the sunken leviathan and the petal station collide as they are drawn
-  // (docs/systems/movement.md "Contact"): ~32 k here, and the desert's whole collision 194 k → 219 k
-  // triangles, its BVH 60 → 64 ms to bake, ground rays and capsule pushes unchanged.
-  assert.ok(proxyTris < 36000, `${proxyTris} proxy triangles`);
+  // The grove, the crashed hull, the sunken leviathan, the petal station, the radio dishes, the sail
+  // tents' domes and the lagoons' salt plates collide as they are drawn (docs/systems/movement.md
+  // "Contact"): ~40 k here, and the desert's whole collision 194 k → 238 k triangles, its BVH 60 → 66 ms
+  // to bake, ground rays 14 → 12 ms and capsule pushes 21 → 18 (both within the run-to-run noise).
+  assert.ok(proxyTris < 46000, `${proxyTris} proxy triangles`);
 });
 
 test('the reference structures can be stood on', () => {

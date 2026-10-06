@@ -91,7 +91,7 @@ With that, every world's coarse stand-ins came out:
 
 | world | feet sink | climbs inside | collision triangles | BVH |
 |---|---|---|---|---|
-| desert | 57 → 7 | 186 → 35 | 194 k → 230 k | 60 → 69 ms |
+| desert | 57 → 8 | 186 → 23 | 194 k → 238 k | 60 → 66 ms |
 | Buried Machine | 270 → 69 | 833 → 49 | 51 k → 125 k | 24 → 31 ms |
 | Garden of Spheres | 91 → 6 | 120 → 6 | 157 k → 181 k | 49 → 63 ms |
 | Lorn | 61 → 13 | 35 → 7 | 40 k → 47 k | 15 → 10 ms |
@@ -118,8 +118,12 @@ Left for later, with the reason:
   solid top is its awning's crest, 1.4 m over the cab in the middle, so a character standing on one floats.
 - **The temple rotunda's oculus trim** is drawn-only on purpose (solid, it caught rays dropped through the
   oculus), and a shut door's organic edges (the gates of Jaws) sit on a box.
-- **The sand skirts** are drawn over the terrain's own analytic height; the two part by up to 0.2 m where the
-  skirt is tessellated, 0.78 m at the worst corner.
+- **The sand skirts**: `SandDrifts.raise` makes the terrain's `heightAt` the drift field itself, so the skirt
+  and the ground you stand on agree almost everywhere — 29 711 of the desert's 29 811 skirt vertices sit
+  within 6 cm. The other 100 are scattered one or two to a chunk and part by 0.2–0.9 m; making the skirts
+  collide as drawn would fix them but costs the desert 230 → 300 k collision triangles and Vael 110 → 211 k
+  (its bake 27 → 50 ms), which is the wrong price for a hundred vertices. Why those hundred disagree is
+  unexplained (`node scripts/tmp/drift.mjs` measured it).
 
 ## Mounts come to you
 
