@@ -1,0 +1,21 @@
+src/post.js
+  s_1fd8d0e7b02dcf::t_5b359cb340b9b4 104-113,408-409,414-416,424,675,677-678,680,811-816,830-832,834,937,942-944,1125-1142
+tests/ink-pass.test.js
+  s_1fd8d0e7b02dcf::t_9868d3289b6f33 158-183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "514d235eff3c1333e40420b7736878fb38a0ffa8",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
