@@ -220,7 +220,7 @@ export async function buildVista(scene, { detail = 1, step = async () => {} } = 
       g.setAttribute('color', new THREE.BufferAttribute(c, 3));
       return g;
     };
-    const cloudMat = makeMaterial({ color: '#ffffff', vertexColors: true, palette: PAL, glow: 0.5 });
+    const cloudMat = makeMaterial({ color: '#ffffff', vertexColors: true, palette: PAL, glow: 0.5, line: 0.45, lineTint: 1 });   // (a thin line of its own: materials.js LINE)
     const near = [], far = [];
     const want = low ? [1300, 800] : [2800, 1600];
     for (let i = 0; i < 20000 && (near.length < want[0] || far.length < want[1]); i++) {

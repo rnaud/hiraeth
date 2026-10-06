@@ -11,7 +11,9 @@ import { stepped } from '../load-steps.js';
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
 /** The world's touches on the print preset: few strokes, fine even lines (its reference sheets). */
-export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.85, uWobble: 0.1, uGrain: 0.025 };
+/** The far towers in stepped bands of a pale warm haze (post.js 4b): from 90 m, each band 1.8 × farther. */
+export const MARKET_HAZE = { uHazeLayers: [90, 1.8, 0.12, 4], uHazeTone: [0.96, 0.91, 0.8, 0.7] };
+export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.85, uWobble: 0.1, uGrain: 0.025, ...MARKET_HAZE };
 /** The day's colours: aqua sky, a pale horizon, teal shade, warm light. */
 export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#70969e', '#fff1cf', '#ffe1ae'];
 /** How flat the walls' shade is printed in the street's teal (makeMaterial shadeFlat: a pink wall's turned side goes blue, as the sheets print it, not brown). */
@@ -29,6 +31,10 @@ export function* buildBazaar(scene) {
   const paving = mat('#a4c1be', { grid: 10 }), lilac = mat('#b9a9c5', PRINT);
   const dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
   const shop = colors.map(c => mat(c, { weathered: 0.7, ...PRINT }));
+  // the billboards' painted faces: a lighter line in a dark shade of their own colours, not the walls' ink (materials.js LINE)
+  const SIGN = { line: 0.7, lineTint: 0.67 };
+  const sign = { shop: colors.map(c => mat(c, { ...PRINT, ...SIGN })), lilac: mat('#b9a9c5', { ...PRINT, ...SIGN }), dark: mat('#3a535b', { metal: 'painted', ...SIGN }),
+    cream: mat('#f5dfab', { ...PRINT, ...SIGN }), glow: mat('#fff0bd', { glow: 0.75, ...SIGN }) };
   function add(geo, material, solid = true) {
     geo.computeBoundingBox(); const z = geo.boundingBox.getCenter(new THREE.Vector3()).z;
     const key = `${Math.floor(z / 75)}:${material.uuid}:${solid}`;
@@ -58,25 +64,25 @@ export function* buildBazaar(scene) {
     reactiveScreens.push({pos:new THREE.Vector3(x-Math.sin(yaw)*-.9,y,z+Math.cos(yaw)*.9),w,h,yaw});
     const plate = (g,m) => local(g,x,y,z,yaw,m);
     plate(new THREE.BoxGeometry(w+.9,h+.9,.8),ink);
-    plate(new THREE.BoxGeometry(w,h,.3).translate(0,0,.53),shop[seed%shop.length]);
+    plate(new THREE.BoxGeometry(w,h,.3).translate(0,0,.53),sign.shop[seed%sign.shop.length]);
     const faceZ = .78;
     if (seed % 3 === 0) {
-      plate(new THREE.SphereGeometry(1,16,10).scale(w*.28,h*.22,.16).translate(0,h*.12,faceZ),lilac);
-      plate(new THREE.SphereGeometry(1,12,8).scale(w*.39,h*.22,.13).translate(0,-h*.26,faceZ),dark);
-      for(const sx of [-1,1]) plate(new THREE.BoxGeometry(w*.08,h*.025,.07).translate(sx*w*.1,h*.14,faceZ+.17),cream);
-      plate(new THREE.TorusGeometry(w*.32,.12,4,32).scale(1,h/w*.7,1).translate(0,h*.12,faceZ+.2),glow);
+      plate(new THREE.SphereGeometry(1,16,10).scale(w*.28,h*.22,.16).translate(0,h*.12,faceZ),sign.lilac);
+      plate(new THREE.SphereGeometry(1,12,8).scale(w*.39,h*.22,.13).translate(0,-h*.26,faceZ),sign.dark);
+      for(const sx of [-1,1]) plate(new THREE.BoxGeometry(w*.08,h*.025,.07).translate(sx*w*.1,h*.14,faceZ+.17),sign.cream);
+      plate(new THREE.TorusGeometry(w*.32,.12,4,32).scale(1,h/w*.7,1).translate(0,h*.12,faceZ+.2),sign.glow);
     } else if (seed % 3 === 1) {
-      plate(new THREE.CircleGeometry(w*.25,24).translate(0,h*.06,faceZ),cream);
-      plate(new THREE.TorusGeometry(w*.34,.18,4,32).scale(1,.33,1).rotateZ(.4).translate(0,h*.06,faceZ+.1),dark);
-      for(let i=0;i<3;i++) plate(new THREE.BoxGeometry(w*(.55-i*.12),.3,.08).translate(0,-h*.31-i*.7,faceZ),glow);
+      plate(new THREE.CircleGeometry(w*.25,24).translate(0,h*.06,faceZ),sign.cream);
+      plate(new THREE.TorusGeometry(w*.34,.18,4,32).scale(1,.33,1).rotateZ(.4).translate(0,h*.06,faceZ+.1),sign.dark);
+      for(let i=0;i<3;i++) plate(new THREE.BoxGeometry(w*(.55-i*.12),.3,.08).translate(0,-h*.31-i*.7,faceZ),sign.glow);
     } else {
       for(let i=0;i<4;i++) {
         const yy=h*(.32-i*.21);
-        plate(new THREE.BoxGeometry(w*.5,.5,.1).translate(0,yy,faceZ),glow);
-        plate(new THREE.BoxGeometry(.6,h*.1,.1).translate((i%2 ? 1:-1)*w*.13,yy-h*.05,faceZ),glow);
+        plate(new THREE.BoxGeometry(w*.5,.5,.1).translate(0,yy,faceZ),sign.glow);
+        plate(new THREE.BoxGeometry(.6,h*.1,.1).translate((i%2 ? 1:-1)*w*.13,yy-h*.05,faceZ),sign.glow);
       }
     }
-    for(let i=0;i<4;i++) plate(new THREE.BoxGeometry(w*.12,.25,.06).translate((i-1.5)*w*.2,-h*.43,faceZ+.02),cream);
+    for(let i=0;i<4;i++) plate(new THREE.BoxGeometry(w*.12,.25,.06).translate((i-1.5)*w*.2,-h*.43,faceZ+.02),sign.cream);
   }
 
   const frontPosters=[], towerPosters=[];   // for the story: signs that face the street; the silent tower's own screens

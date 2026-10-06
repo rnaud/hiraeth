@@ -35,7 +35,7 @@ function materials(kit) {
   const leaves = (c) => kit.mat({ color: c, pattern: 'leaves' });
   return {
     trunk: kit.mat({ color: '#7ba381', detail: 'organic' }),
-    canopy: kit.mat({ color: '#a9b94f' }),
+    canopy: kit.mat({ color: '#a9b94f', line: 0.7, lineTint: 0.67 }),   // (foliage: its line a dark green, lighter)
     // (the canopy's underside: deep green, its strokes the radiating gills, the spot blacks in its pockets)
     under: kit.mat({ color: '#2f4d33', side: THREE.DoubleSide }),
     branch: kit.mat({ color: '#486a50' }),
@@ -56,8 +56,8 @@ function materials(kit) {
     water: kit.mat({ color: '#a9d2d8', color2: '#bfdcdc', mode: MODE_WATER }),
     pole: kit.mat({ color: '#f4efe4' }),
     roof: kit.mat({ color: '#e7dfc8', flat: true }),
-    cloud: kit.mat({ color: '#fbe0cc', shade: 0.6, hatch: 0, spot: 0 }),
-    pinkCloud: kit.mat({ color: '#fbd6c0', shade: 0.6, hatch: 0, spot: 0 }),
+    cloud: kit.mat({ color: '#fbe0cc', shade: 0.6, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
+    pinkCloud: kit.mat({ color: '#fbd6c0', shade: 0.6, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
     cloak: kit.mat({ color: PERSON.cloak, flat: true }),
   };
 }

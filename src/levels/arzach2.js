@@ -23,7 +23,9 @@ export const SKY_STONES_FLAT = 0.85;
  * The print preset's touches: a clean sky (no cumulus bank, no flat clouds: the sea of cloud is the
  * world's own), the undersides of caps and overhangs the darkest (no bounce), little half-tone.
  */
-export const SKY_STONES_LOOK = { uCumulus: 0, uClouds: 0, uBounce: 0, uHalftone: 0.15, uShadeKeep: 0 };
+/** The plain's far stones and the tower in light pale bands of the sky's haze (post.js 4b). */
+export const SKY_STONES_HAZE = { uHazeLayers: [200, 2, 0.09, 4], uHazeTone: [1, 1, 1, 0] };
+export const SKY_STONES_LOOK = { uCumulus: 0, uClouds: 0, uBounce: 0, uHalftone: 0.15, uShadeKeep: 0, ...SKY_STONES_HAZE };
 /** The day's colours: sky top, horizon, the shadow's grey-blue, light, sun. */
 export const SKY_STONES_DAY = ['#a3d0d2', '#f4cdb0', '#93a6ac', '#fff7ec', '#fff2dc'];
 
@@ -657,7 +659,8 @@ export function* buildArzach2(scene) {
       g.setAttribute('color', new THREE.BufferAttribute(c, 3));
       return g;
     };
-    const cloudMat = makeMaterial({ color: '#ffffff', vertexColors: true, palette: PAL, glow: 0.5 });
+    // (a thin line in its own shade's blue, not the ink: materials.js LINE)
+    const cloudMat = makeMaterial({ color: '#ffffff', vertexColors: true, palette: PAL, glow: 0.5, line: 0.45, lineTint: 1 });
     const near = [], far = [];
     const inPlain = (x, z) => z < PLAIN_EDGE - 50 + nA(x * 0.004, 3.1) * 40;
     // cauliflower clusters: a big central puff, smaller lobes round it and on top

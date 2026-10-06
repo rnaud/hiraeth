@@ -260,10 +260,16 @@ Ranked by how much they would close the gap to the sheets, across every world re
    the Market's billboards): the sheets draw soft things (cloud, reeds, foliage, glass) in thin,
    lighter, coloured lines and solid things in black. Ours use one ink for everything, so soft shapes
    read as hard. A per-material line weight and tint packed into the G-buffer (as the shade is).
+   **Done** (`makeMaterial({ line, lineTint })`, docs/systems/rendering.md, "Lines by material"): the clouds,
+   Lorn II's reeds and crystals, foliage (`leaves`) and the Spheres' canopies, glass and the Market's
+   billboards draw a thin or lighter line in a dark shade of their own colour.
 3. **Aerial layers by depth** (Lorn II's mist, the City-Shaft's shaft, the desert's far dunes, the
    Market's far towers): the sheets separate planes by stepped pale bands of a warm or cool haze; our
    fog is one exponential tint (`uHaze` helps the desert). Stepped haze layers with their own colour per
    world, and a fog by height for shafts and woods.
+   **Done** (post.js 4b, docs/systems/rendering.md, "Haze by depth and height"): stepped haze layers per world
+   (Lorn II's violet mist, the desert's and the Market's warm bands, Vael II lightly) and a fog by height down the
+   City-Shaft's pit and low in Lorn II's wood.
 4. **Hatching that follows the form** (Vael II's and the Spheres' caps radiate, the Buried Machine's
    tanks wrap, rock runs down the face): strata now run down faces; radial and wrapping strokes need a
    per-vertex axis (a cap's centre, a cylinder's axis) in merged geometry.

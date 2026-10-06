@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { sharedUniforms, SHADE, SPOT, WEATHER } from './materials.js';
+import { sharedUniforms, SHADE, SPOT, WEATHER, LINE } from './materials.js';
 
 // ---------------------------------------------------------------------------
 // Moebius / Sable composite pass.
 //
 // Inputs (from the G-buffer written by materials.js):
-//   tAlbedo : rgb albedo, a = light term
+//   tAlbedo : rgb albedo, a = light term (+ 2 × the material's line step, materials.js LINE)
 //   tNormal : rgb world normal, a = view depth (0 = sky)
 //   tHatch  : r = single hatch, g = cross hatch (strokes drawn on surfaces)
 //
@@ -54,6 +54,33 @@ export const OCCLUSION_TAPS = {
 };
 /** A GLSL constant array of vec2s. */
 export const glslVec2s = (name, list) => `const vec2 ${name}[${list.length}] = vec2[${list.length}](${list.map(([x, y]) => `vec2(${x.toFixed(7)}, ${y.toFixed(7)})`).join(', ')});`;
+
+/**
+ * Haze in layers by depth and fog by height (4b; docs/systems/rendering.md, "Haze by depth and height").
+ * uHazeLayers: [first distance (m), each layer's distance over the last's, how much each layer veils, layers
+ * (0: none)]; uHazeTone: [rgb, how much of it over the far haze's colour]. uHeightFog: [height (m) under which
+ * it thickens, its scale height (m), density at that height (1/m), most it veils (0: none)]; uHeightFogTone:
+ * [rgb, how much of it over the haze's colour]. edge: a step's soft ramp (in layers); lineFade: how much of
+ * a layer's veil the ink lines take.
+ */
+export const HAZE = { edge: 0.18, lineFade: 0.85 };
+/** The layers' veil at a distance d (mirrors the GLSL hazeAt): 1 - (1 - a)^(layers passed, stepped). */
+export function hazeLayers(d, [d0, k, a, n]) {
+  if (!(n > 0)) return 0;
+  const t = Math.log2(Math.max(d, 1) / d0) / Math.log2(k), f = t - Math.floor(t);
+  const ss = (e0, e1, x) => { const u = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1); return u * u * (3 - 2 * u); };
+  const L = Math.min(Math.max(Math.floor(t) + 1 + ss(1 - HAZE.edge, 1, f), 0), n);
+  return 1 - Math.pow(1 - a, L);
+}
+/** The height fog's veil along a ray from a camera at height yc, dist m long, its direction's y ry (mirrors the GLSL). */
+export function heightFog(yc, ry, dist, [h0, H, rho, most]) {
+  if (!(rho > 0) || !(most > 0)) return 0;
+  const b = 1 / H, dy = ry * dist;
+  const base = Math.exp(Math.min(-(yc - h0) * b, 30));
+  const x = Math.max(dy * b, -30);
+  const k = Math.abs(x) > 1e-3 ? (1 - Math.exp(-x)) / x : 1;
+  return (1 - Math.exp(-rho * dist * base * k)) * most;
+}
 
 const vertexShader = /* glsl */ `
   out vec2 vUv;
@@ -141,6 +168,11 @@ const fragmentShader = /* glsl */ `
   // of the surface's own colour it keeps
   uniform vec4 uSpot;
   uniform vec4 uSpotTone;
+  // haze in layers by depth, fog by height (HAZE, 4b)
+  uniform vec4 uHazeLayers;     // first distance (m), each layer's distance over the last's, each layer's veil, layers (0: none)
+  uniform vec4 uHazeTone;       // the layers' colour, a = how much of it over the far haze's
+  uniform vec4 uHeightFog;      // height (m) it thickens under, scale height (m), density there (1/m), most it veils (0: none)
+  uniform vec4 uHeightFogTone;  // its colour, a = how much of it over the haze's
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -206,12 +238,16 @@ const fragmentShader = /* glsl */ `
   }
 
   float invDepth(float d) { return d > 0.0 ? 1.0 / d : 0.0; }
+  // the light term under a material's line step (materials.js LINE: gAlbedoLight.a = L + 2 × step)
+  float lightOf(float a) { return a - 2.0 * floor(a * 0.5); }
 
   // Edge components at a given kernel width:
   //   x = depth discontinuity (silhouettes), y = normal crease,
   //   z = albedo boundary, w = shadow boundary.
-  // minDepth = nearest surface in the kernel (for fading).
-  vec4 inkLines(vec2 uv, float w, bool interior, out float minDepth) {
+  // minDepth = nearest surface in the kernel (for fading); near.xy = where it is, near.z = the signed
+  // Laplacian of 1/z (relative): over 0 on a depth edge's far side, where the line's owner (whose weight and
+  // colour it takes, 1b) is the surface in front at near.xy, not this pixel's.
+  vec4 inkLines(vec2 uv, float w, bool interior, out float minDepth, out vec3 near) {
     vec2 px = max(w, 1.0) / uRes;
     vec4 c  = texture(tNormal, uv);
     vec4 n1 = texture(tNormal, uv + vec2(px.x, 0.0));
@@ -220,14 +256,19 @@ const fragmentShader = /* glsl */ `
     vec4 n4 = texture(tNormal, uv - vec2(0.0, px.y));
 
     float big = 1e7;
-    minDepth = min(min(c.w > 0.0 ? c.w : big, min(n1.w > 0.0 ? n1.w : big, n2.w > 0.0 ? n2.w : big)),
-                   min(n3.w > 0.0 ? n3.w : big, n4.w > 0.0 ? n4.w : big));
+    minDepth = c.w > 0.0 ? c.w : big;
+    near.xy = uv;
+    if (n1.w > 0.0 && n1.w < minDepth) { minDepth = n1.w; near.xy = uv + vec2(px.x, 0.0); }
+    if (n2.w > 0.0 && n2.w < minDepth) { minDepth = n2.w; near.xy = uv - vec2(px.x, 0.0); }
+    if (n3.w > 0.0 && n3.w < minDepth) { minDepth = n3.w; near.xy = uv + vec2(0.0, px.y); }
+    if (n4.w > 0.0 && n4.w < minDepth) { minDepth = n4.w; near.xy = uv - vec2(0.0, px.y); }
 
     // Depth: Laplacian of inverse depth (planar in screen space -> 0 on planes).
     float ic = invDepth(c.w), i1 = invDepth(n1.w), i2 = invDepth(n2.w), i3 = invDepth(n3.w), i4 = invDepth(n4.w);
     float mx = max(max(max(ic, i1), max(i2, i3)), i4);
     float lap = abs(i1 + i2 - 2.0 * ic) + abs(i3 + i4 - 2.0 * ic);
     float dEdge = smoothstep(uDepthThresh, uDepthThresh * 1.6, lap / max(mx, 1e-7));
+    near.z = (i1 + i2 + i3 + i4 - 4.0 * ic) / max(mx, 1e-7);
 
     // Normals: creases.
     float nEdge = 0.0;
@@ -250,9 +291,9 @@ const fragmentShader = /* glsl */ `
       float da = max(max(length(a.rgb - a1.rgb), length(a.rgb - a2.rgb)),
                      max(length(a.rgb - a3.rgb), length(a.rgb - a4.rgb)));
       aEdge = smoothstep(0.08, 0.14, da) * uAlbedoEdges;
-      float s = step(uToon, a.a);
-      float ds = max(max(abs(s - step(uToon, a1.a)), abs(s - step(uToon, a2.a))),
-                     max(abs(s - step(uToon, a3.a)), abs(s - step(uToon, a4.a))));
+      float s = step(uToon, lightOf(a.a));
+      float ds = max(max(abs(s - step(uToon, lightOf(a1.a))), abs(s - step(uToon, lightOf(a2.a)))),
+                     max(abs(s - step(uToon, lightOf(a3.a))), abs(s - step(uToon, lightOf(a4.a)))));
       sEdge = ds * uShadowEdges * (1.0 - uFlatten);
     }
     return vec4(dEdge, nEdge, aEdge, sEdge);
@@ -326,6 +367,28 @@ const fragmentShader = /* glsl */ `
       occ += step(0.0, sd) * sign(sd) * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
     }
     return occ * 0.25;
+  }
+
+  // ---------------------------------------------------------------- haze by depth and height (4b)
+  // x: the layers' veil at view depth d: stepped in distance (each layer k times farther than the last),
+  // a soft ramp before each step, so far planes separate in flat bands; y: the height fog's, integrated
+  // along the ray (a density growing exponentially under a height: down a shaft, low in a wood).
+  vec2 hazeAt(float d, vec3 rd) {
+    vec2 h = vec2(0.0);
+    if (uHazeLayers.w > 0.0) {
+      float t = log2(max(d, 1.0) / uHazeLayers.x) / log2(uHazeLayers.y);
+      float L = clamp(floor(t) + 1.0 + smoothstep(${(1 - HAZE.edge).toFixed(3)}, 1.0, fract(t)), 0.0, uHazeLayers.w);
+      h.x = (1.0 - pow(1.0 - uHazeLayers.z, L)) * (1.0 - 0.6 * uNight);   // (thinner at night)
+    }
+    if (uHeightFog.w > 0.0) {
+      float dist = d / max(dot(rd, -uCamWorld[2].xyz), 0.05);
+      float b = 1.0 / uHeightFog.y;
+      float base = exp(min(-(uCamWorld[3].y - uHeightFog.x) * b, 30.0));
+      float x = max(rd.y * dist * b, -30.0);
+      float k = abs(x) > 1e-3 ? (1.0 - exp(-x)) / x : 1.0;
+      h.y = (1.0 - exp(-uHeightFog.z * dist * base * k)) * uHeightFog.w;
+    }
+    return h;
   }
 
   // ---------------------------------------------------------------- planets
@@ -523,6 +586,7 @@ const fragmentShader = /* glsl */ `
     vec2 uv = vUv;
     vec2 fc = gl_FragCoord.xy / uPixelRatio;   // CSS pixels: stable stroke size on HiDPI
     vec4 A = texture(tAlbedo, uv);
+    A.a = lightOf(A.a);   // (the line step over it: 1b)
     vec4 N = texture(tNormal, uv);
     bool isSky = N.w <= 0.0;
     vec4 surface = texture(tHatch, uv);
@@ -614,14 +678,15 @@ const fragmentShader = /* glsl */ `
     silW = mix(silW, 0.65, heroNear);
     euv = mix(euv, uv, heroNear);
     float nearD2;
+    vec3 ownK, ownK2;   // the nearest surface in the silhouette kernel, and which side of an edge this is (1b)
     vec4 eS, eI;
     if (uPostLite > 0.5) {
       // handheld: one kernel between the two weights serves silhouettes and interior lines (half the taps)
-      eI = inkLines(euv, mix(silW, inW, 0.5) * uPixelRatio, true, nearD2);
+      eI = inkLines(euv, mix(silW, inW, 0.5) * uPixelRatio, true, nearD2, ownK);
       eS = eI; nearD = nearD2;
     } else {
-      eS = inkLines(euv, silW * uPixelRatio, false, nearD);
-      eI = inkLines(euv, inW * uPixelRatio, true, nearD2);
+      eS = inkLines(euv, silW * uPixelRatio, false, nearD, ownK);
+      eI = inkLines(euv, inW * uPixelRatio, true, nearD2, ownK2);
     }
     nearD = min(nearD, nearD2);
     // interior lines break up like quick pen strokes; gaps are anchored in the world
@@ -663,12 +728,35 @@ const fragmentShader = /* glsl */ `
         float innerF = smoothstep(70.0, 260.0, figPx);
         float alpha = mix(0.5, 1.0, smoothstep(20.0, 140.0, figPx));
         float nd;
-        vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio, k), false, nd);
-        vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio, k), true, nd);
+        vec3 nk;
+        vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio, k), false, nd, nk);
+        vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio, k), true, nd, nk);
         float outline = fS.x * alpha * mix(1.0 - figure, 1.0, k);
         ink = clamp(max(outline, max(max(fI.y, fI.z * 0.85) * broken, fI.w * 0.8 * (1.0 - face)) * mix(innerF, 1.0, 1.0 - figure)), 0.0, 1.0);
       }
     }
+
+    // ---- 1b. line weight and colour by material (materials.js LINE, packed over the light term): the line
+    // takes its owner's: this pixel's surface, unless this is a depth edge's far side (the Laplacian of 1/z over
+    // 0: the sky round a cloud, the wall behind a reed), where it is the nearest surface in the kernel, the shape
+    // in front. A thin line is lighter and stays on its owner's side (half as wide); a tinted one is drawn in a
+    // dark shade of the owner's own colour (its albedo in the world's shadow tint) instead of the ink. One tap,
+    // only where there is ink.
+    vec3 lineC = uInk;
+    if (ink > 0.02 && hero < 0.5) {
+      bool own = !isSky && ownK.z < 0.5 * uDepthThresh;
+      vec4 Ao = texture(tAlbedo, own ? euv : ownK.xy);
+      float lq = floor(Ao.a * 0.5);
+      if (lq > 0.5) {
+        float wq = lq - 4.0 * floor(lq * 0.25), tq = floor(lq * 0.25);
+        vec4 la = vec4(${LINE.alpha.map((v) => v.toFixed(3)).join(', ')}), lf = vec4(${LINE.far.map((v) => v.toFixed(3)).join(', ')});
+        vec4 pick = vec4(equal(vec4(wq), vec4(0.0, 1.0, 2.0, 3.0)));
+        ink *= dot(pick, la) * (own ? 1.0 : dot(pick, lf));
+        lineC = mix(uInk, Ao.rgb * uShadowTint * 0.62, tq / ${LINE.tints - 1}.0);
+      }
+      if (uDebug == 11) { fragColor = vec4(own ? 1.0 : 0.0, lq / 15.0, ink, 1.0); return; }   // lines: owned here (red), the owner's step (green), the ink (blue)
+    }
+    if (uDebug == 11) { fragColor = vec4(0.0, 0.0, ink, 1.0); return; }
 
     float heroInk = max(heroBoundary * 0.82, max(eI.y, eI.z) * 0.22 * heroDetail * hero);
     ink = mix(ink, heroInk, heroNear);
@@ -676,6 +764,8 @@ const fragmentShader = /* glsl */ `
     // fog factor (for lines use the nearest surface in the kernel)
     float fogLine = 1.0 - exp(-max(nearD - uFogStart, 0.0) * uFogDensity * uFogMul * 1.4);
     ink *= 1.0 - fogLine;
+    // (the haze layers and the height fog veil the lines with what they stand in: 4b)
+    if (uHazeLayers.w + uHeightFog.w > 0.0) { vec2 hzL = hazeAt(nearD, rd); ink *= (1.0 - hzL.x * ${HAZE.lineFade}) * (1.0 - hzL.y); }
 
     vec3 col;
     if (isSky) {
@@ -787,7 +877,13 @@ const fragmentShader = /* glsl */ `
       float aer = smoothstep(0.0, 0.55, fog) * uAerial;
       float luma = dot(col, vec3(0.3, 0.55, 0.15));
       col = mix(col, mix(vec3(luma), skyC, 0.35) * 1.04, aer * 0.4);
+      // ---- 4b. haze in layers by depth (near, middle and far planes in stepped pale bands of the world's
+      // warm or cool haze), then the far fog over them, then the fog by height (down a shaft, low in a wood)
+      vec2 hz = hazeAt(depth, rd);
+      vec3 hazeC = mix(skyC, uHazeTone.rgb, uHazeTone.a * (1.0 - 0.7 * uNight));
+      col = mix(col, hazeC, hz.x);
       col = mix(col, skyC, fog);
+      col = mix(col, mix(hazeC, uHeightFogTone.rgb, uHeightFogTone.a * (1.0 - 0.7 * uNight)), hz.y);
     }
 
     if (uDebug == 6) col = vec3(0.97, 0.94, 0.86);
@@ -795,7 +891,7 @@ const fragmentShader = /* glsl */ `
     ink *= 1.0 - emitHere * 0.7;
     // grass: its edges drawn in a darker shade of the green, not black, and only on the blade's
     // own side (half as wide); a few tufts keep a real pen line
-    vec3 inkC = uInk;
+    vec3 inkC = mix(lineC, uInk, heroNear);   // (the material's own line colour, 1b)
     if (softNear > 0.5) {
       inkC = mix(mix(uInk, col * 0.62, 0.85), uInk, grassNear.x);
       // (on the blade itself only its outline: no crease, colour-edge or shadow-edge lines;
@@ -949,6 +1045,10 @@ export function createPost() {
     uHaze: { value: [1, 1, 1, 0] },
     uSpot: { value: [0, 2.5, 0.5, 0] },
     uSpotTone: { value: [0.17, 0.15, 0.19, 0.4] },
+    uHazeLayers: { value: [300, 2, 0, 0] },
+    uHazeTone: { value: [1, 1, 1, 0] },
+    uHeightFog: { value: [0, 20, 0, 0] },
+    uHeightFogTone: { value: [1, 1, 1, 0] },
     uGrain: { value: 0.1 },
     uDebug: { value: 0 },
   };
@@ -1065,12 +1165,15 @@ export function createBloom(gbuffer, { spread = 1.3, wideSpread = 3.0 } = {}) {
 
 // Style presets: the same pipeline can lean towards Sable (flat, clean,
 // two-tone) or towards a Moebius page (inked, hatched, wobbly).
+// (every preset says the haze: a zone's or a world's touches never carry into the next)
+const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0] });
 export const PRESETS = {
   Moebius: {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uGrain: 0.1, uClouds: 0.6,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
     uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    ...hazeOff(),
   },
   // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
   Sable: {
@@ -1078,6 +1181,7 @@ export const PRESETS = {
     uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uGrain: 0.04, uClouds: 0.5,
     uFogDensity: 0.0009, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
     uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    ...hazeOff(),
   },
   // a Moebius print: flat stippled sky, cumulus on the horizon, dotted ground,
   // fine even ink, dense fine hatching in blue shadow
@@ -1090,6 +1194,7 @@ export const PRESETS = {
     uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uPaper: 0.7, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
     // a third tier of value: spot blacks in the shaded pockets, cast shadows a little deeper
     uSpot: [1, 3, 0.3, 0.2], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    ...hazeOff(),
   },
   // high-key, bone-white, heavy cast shadows, few lines
   Vael: {
@@ -1097,6 +1202,7 @@ export const PRESETS = {
     uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uGrain: 0.12, uClouds: 0.25,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
     uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    ...hazeOff(),
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
   Viridel: {
@@ -1104,6 +1210,7 @@ export const PRESETS = {
     uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uGrain: 0.05, uClouds: 0.7,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
     uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    ...hazeOff(),
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
   Lorn: {
@@ -1111,11 +1218,13 @@ export const PRESETS = {
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.1, uClouds: 0.5,
     uFogDensity: 0.0012, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
     uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    ...hazeOff(),
   },
   'Animated ink': {
     uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uGrain: 0.14, uClouds: 0.7,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
     uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uPaper: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    ...hazeOff(),
   },
 };
