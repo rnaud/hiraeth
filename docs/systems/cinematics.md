@@ -95,3 +95,35 @@ tone, a swell of the world's score, then back to you.
     gestures. `tests/moment.test.js` holds them to it (no line in his voice, no big look).
   - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
     the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
+
+## In-engine trailer
+
+`trailer.html` plays a 48-second trailer across the desert, City-Shaft, Vael II, Buried Machine,
+Deep Wood and Garden of Spheres, using the shared ink, bloom and FXAA pipeline. Twelve shots
+are authored in `src/trailer/timeline.js`; `frameAt(seconds)` supports review seeks.
+
+`src/trailer/reference-scenes.js` reuses the reference level’s builders, ground, palette and
+sun orientation: the desert sheet’s empty dunes for the opening, IMG_3779’s shaft to the water,
+IMG_3797’s glowing stream, and IMG_3793’s lake arch and pyramid grove. The opening adds the
+actual ship model on the horizon. Reference people are omitted; the shaft’s baked cabs are
+omitted with `omitCabs` and replaced by eight moving taxis with varied colours, scales and
+routes at different depths. Nine cameras stay fixed, with three moving views for contrast.
+
+The traveller uses `loadTravellerV1` / `createTravellerV1`, matching the current game’s coral
+overshirt, body, hands and cloth. `src/trailer/actors.js` stages the actual bike and bird seat
+transforms and the driving/climbing clips. The opening walks toward the ship; other character action is riding or climbing.
+The climb uses the game’s raycast wall contacts and hand/foot IK. Hover trails use the actual
+Trail geometry, reconstructed from the authored path for seeks. Both bird views add seeded
+flocks. Taxi envelopes are collision-tested along their routes; the final three shots change worlds. Cloth resets on a seek or replay. No quests or saves are loaded.
+The camera respects each scene’s atmosphere and lighting; `src/trailer/world.js` passes it
+into world updates and sets the tree’s fire clock explicitly so the flame remains animated.
+
+Play starts a short arrangement of the father's theme on the game's synthesised instruments, with a scheduled engine pass, wing beats and climbing contacts sharing the same audio clock.
+Export renders the 2560 × 1440 canvas (3840 × 2160 internally, FXAA then downsampled)
+frame by frame at exactly 30 fps using WebCodecs, then combines VP9 frames and offline-rendered
+Opus audio in WebM. GPU speed changes the export time, never the film speed or frame count.
+Older browsers without WebCodecs fall back to real-time MediaRecorder (WebM or MP4). The video contains the game footage and soundtrack, with letterboxing and fades; no titles, captions or shot counters.
+Sound on/off controls monitoring;
+the exported soundtrack is always included. Hiding the tab pauses live playback and MediaRecorder capture.
+Open `/trailer.html` on the dev server or built site. `window.trailer.draw(seconds)` is exposed
+for visual review; it does not advance playback.

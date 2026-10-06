@@ -523,6 +523,7 @@ export class Player {
   }
 
   updateCloth(dt) {
+    this.character?.updateCloth(dt);
     // the robe: a short front-open skirt of heavy cloth hanging from the waist, kicked by the legs
     const pelvis = this.humanoid?.b?.pelvis;
     if (pelvis && !this.robe && !this.gear) {
@@ -1350,8 +1351,12 @@ export class Player {
     if (posed) this.overlay(this, dt);
     const H = this.humanoid;
     if (H) {
+      const armRotations = this.character?.poseArms(this);
       H.update();
-      if (this.animator && !this.ride && !this.gliding && !this.thrusting && !this.swim && !posed) H.poseHands(this.animator);
+      if (this.animator && !this.ride && !this.gliding && !this.thrusting && !this.swim && !posed) {
+        H.poseHands(this.animator);
+        this.character?.poseWrists(armRotations);
+      }
       const U = this.frame.up;
       if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
       else if (this.climbing) { H.resetFeet(); H.reach(this.animator ? this.climbContacts(dt) : this.climbTargets()); }

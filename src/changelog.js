@@ -19,6 +19,9 @@ export const CHANGELOG = [
     'People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.',
   ] },
   { v: '0.72', date: '2026-10-06', items: [
+    'The traveller now wears the new coral overshirt, with a new face, articulated fingers and cloth that moves as you explore.',
+    'Fingertips on the new character bodies now bend with hand gestures instead of staying rigid.',
+    'The 48-second trailer opens on the new coral-shirt traveller walking across empty dunes toward the ship. Reference compositions frame the City-Shaft’s busy flying taxis, the glowing Deep Wood and the Garden of Spheres. Taxis keep clear of the walls, hover jets leave colourful trails, small birds pass the great bird, and climbing hands meet the wall. The ending changes worlds; the film renders at 4K for a smoother 1440p video, with music, action sounds and no text over the footage.',
     'Soft things are drawn in softer lines, as in the drawings: clouds in a thin blue-grey line, Lorn II’s reeds and crystals in a pale violet one, leaves and the Garden of Spheres’ canopies in a lighter dark green, glass and the Signal Market’s painted billboards in a darker shade of their own colours, instead of heavy black ink everywhere.',
     'Distance falls away in layers of haze, as in the drawings: in Lorn II the trunks step back into a cool violet mist, with a low mist over the water and the paths; the desert’s far dunes and the Signal Market’s far towers pale in warm bands; Vael II’s plain lightly too. Looking down the City-Shaft, the town fades into a pale blue haze toward the bottom.',
     'Cast shadows fall as the drawings have them: on Vael II’s plain and on Lorn II’s paths and water they are only a faint trace or gone, the Garden of Spheres’ lawns are lighter under the trees, while form shade stays.',
