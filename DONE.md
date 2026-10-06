@@ -691,3 +691,189 @@ so none of these will be built in C#:
 - The desert's smaller things (the errands near the start, the reactive flowers, the scout drone, hover
   trails; swimming's strokes, diving and breath).
 
+# Player feedback: hands, shadows, the push, contact, the bird and the rocks (2026-10-06)
+
+- Investigate the traveller's hands rotating while gliding; keep their pose and orientation
+  appropriate to the glide instead of twisting unexpectedly. (The hand bone kept its last local turn
+  and the glide's arm IK, which keeps a hand's world turn, fed the forearm's change back into it every
+  frame: ~10° a frame of spin. The retarget now resets each wrist to its rest turn on the forearm, and
+  the glide turns the hands open, palms down, thumb edge a little up, blended with the wings; the jets'
+  hands are steady too. Test in tests/hands.test.js.)
+- Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
+  surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
+  (Measured: moving only the camera changes no shadow map; the blockiness was the edge itself. The shadow
+  lookup is now a sliding tent filter, same taps, and its lit fraction is steepened about a half so the toon
+  cut keeps shadows their true size. The spot tier's darkening follows the shade's antialiased edge instead
+  of a hard step that crawled. Checked in the desert and Vael II on High and Handheld, panning, orbiting and
+  walking. The cost is within noise. docs/systems/rendering.md, "Smooth cast-shadow edges".)
+- Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller). (The push's rings and spray were hidden in every room off the map (temples, the cave, the Hearth) since the interior culler of 2026-10-05 judged them by bounds cached while empty; unculled instanced effects are now measured where they are, other unculled meshes stay drawn. Pad RB and keyboard C checked on a person, crates, a creature and the temple's ball. tests/interior-cull.test.js)
+- Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
+  standing and landing contact across all worlds, including moving platforms, so visible platform tops
+  and collision surfaces agree and feet do not disappear into them. (The feet asked only the baked collision,
+  which leaves out moving floors: they found the floor under the disc and reached through it, ~0.3 m; now they
+  see `level.dynamic()` solids (src/carriers.js) and held feet ride with the disc. A disc's 3 cm-a-frame rise
+  read as a stair, so the drawn body lagged ~15 cm into it: StepLag takes out the carried motion. The Belfry's
+  ledge trims, the discs' rim band, pressure plates and the temple kit's wall caps, frames, kerbs and columns
+  now collide as drawn. New contact audit (src/contact-audit.js, `contactAudit()`, tests/contact-audit.test.js)
+  compares drawn and collision tops and walls in every world, with a regression line and a known list;
+  docs/systems/movement.md "Contact".)
+- When the ridden bird approaches the ground, have it extend its legs and feet in preparation,
+  then land properly with its feet contacting the ground. (A landing phase from her height and sink:
+  legs down and forward, wings flared, nose up and braking, the last metre's sink held to ~2 m/s, toes
+  level at contact; each foot on its own ground ray, so on slopes too; a sink into the knees and a few
+  steps of run-out. Also when called down or circling down riderless. Tests in tests/birds.test.js.)
+- Fix the mismatch between Vael's visible rocks and their climbing hitboxes: the traveller goes
+  through roughly half of some rocks while climbing. Align climbing contact with the visible surfaces
+  and check the affected rocks throughout the level. (Vael II's rock collided as coarse stand-ins, up to 2 m
+  inside the drawn needles, boulders, mounds and table rims; it now collides as drawn (~390 k triangles), and
+  the audit's climb check is clean across the level (4618 places to ~2); Vael's rock already collided as
+  drawn. Also made exact: Lorn II's trunks, caps and arches, the Garden of Spheres' spheres and umbrella
+  trees, the desert's umbrella grove, the temple towers' lathes. Left: the desert's Hearth butte and Givers'
+  House tower, the Buried Machine, see movement.md.)
+
+# Player feedback, part 3: the docs, the ship, the desert, conversations, the boxes, the traveller, movement, the HUD, progression, people, the app (2026-10-05)
+
+## Docs
+
+- README.md much shorter; the per-system notes, measurements and history into `docs/`. (README.md is ~110 lines: what the game is, running, URL parameters, tests, shipping, the layout; the rest moved unreworded into `docs/systems/<topic>.md` and `docs/archive/`, indexed in `docs/README.md`.)
+
+## The ship and travel
+
+- Remove the lines leading to the cockpit: just a glowing light on the console and a button prompt to
+  get started. (The floor chevrons, their hint and the dark cable strip to the dash are gone; the voicemail
+  button on the dash pulses and lights the dash, the round screen above it glows "1 NEW MESSAGE", and at the
+  console the prompt says "E voicemail": pressing it starts the father's message.)
+- The central console opens the galactic map. (E at the holo table in the middle of the deck opens it,
+  locked without power; the cockpit dash is only the voicemail now. No other key opens the map in play.)
+- Travelling to another planet is not a crash landing. (The arrival brakes into the air through the
+  clouds, comes down upright on its jets and settles at rest on its feet: no entry fire or smoke trail, no
+  shaking, no roar, a soft touchdown; the homecoming lands the same way. The prologue's crash is unchanged.)
+- Don't tell me I'm playing a recording of my dad (it defeats the purpose): I just press the voicemail
+  button. (Prompt "E voicemail"; the ship says "Good morning. You have one new message." and "First new
+  message." / "New message." / "End of message."; the reel search starts only from the fourth message, after
+  the third has given their age away; the sketchbook and home's lock text say "message on the ship's voicemail".)
+
+## The desert's story
+
+- The quest shouldn't just appear: someone I talk to gives me a hint about where to go. (Marrow waits at the
+  ship and calls you over; the quest starts in his talk, the drone finds him till then; every world's main quest now
+  starts in a talk with its first person: quests.opensWith)
+- Nour doesn't start talking by herself: she makes a sound so it's clear I should go and talk to her. (she comes
+  over and calls "Psst. Child." every few seconds with a psst-and-hum sound, turned to you; the talk is on the prompt)
+- The traveller doesn't say "how is it that I can understand you" (it's obvious). (the choice and Nour's
+  translator answer are gone; no other world had one)
+- The spark-stone goes into my inventory instead of floating around. (hidden while carried, listed under "In your
+  pack" in the gear page and the Quests page, out of your hand into the well)
+- The cave filling cinematic: the bottom half of the pipe still has stuff in it, so it doesn't look
+  unclogged. (it was the dark: one light by the rib left half the gutter unlit, hatched like rubble; four lights now)
+- Cinematics show, don't tell: the traveller reacts with at most a slight smirk, nothing corny. (no lines, no
+  surprised or happy faces, no talking hands in the desert's two; a quiet 'smirk' look at the end)
+
+## Conversations
+
+- The camera doesn't spin round when a conversation starts: it cuts straight to the right angle. (A hard cut in and out, no blend; a new angle mid-talk is a cut too, kept to page turns, a blocked view, or one every 2.5 s; small drifts still eased.)
+- Too close to someone when a conversation starts: step me (or them) back to a good distance. (src/story/spacing.js: about 1.45 m, scaled for children and giants, more for the seated; the traveller is placed back, or round them, as the camera cuts in, never into a wall, off a ledge, up a step or onto a bystander; if he can't, a standing NPC steps back instead; he is turned to face them.)
+- The alien script turns into English faster. (LAG 14 → 5 letters, FADE 12 → 5: the line is all English about 0.2 s after the last word instead of 0.55 s, still word by word.)
+
+## The makers' boxes
+
+- Don't mention the makers' boxes until I find my first one. (Nothing about them before a box is opened: the per-world box quests, their toast, the sketchbook's "Item boxes" page, the empty gear page's line and the pilgrim's roof-box line all wait for the first; the world's other boxes are offered a few seconds after it.)
+- Redesign them: a box with no edges, and a shader with a ray of light travelling across its surface. (One smooth rounded shell, inked by its outline only; the star and side compasses painted in its own shader, and a thin glowing line of light that sweeps across and wraps round it, pass after pass, with a short trail.)
+- Opening: it floats and shakes slightly, like a pokéball, before dissolving. (It floats up turning a corner to the camera, then three small wobbles about its heart with rests between, each a knock and a pass of the ray, a still moment, then the dissolve.)
+- The tree's pedestal looks bad: higher up (harder to reach) and fancier. (A carved makers' stone dais 7 m up the trunk on a pier, reached in two climbs: the root to its shoulder, then the pier; a drum ringed with light, two lamps and a stone halo with the glyph.)
+
+## The traveller
+
+- More casual, not a space suit, a backpack as originally. The fluid backpack slimmer. (An everyday
+  canvas rucksack always worn, in place of the radio box; the tank is a flat glass flask set into its outer
+  face, 22 cm off the back instead of 34; no suit seams, boot buckles or ringed collar left; the drone docks on
+  the flask's upright, out of the arms' way.)
+- Build on the new reference (`references/main character/new*.JPG`, the coral-jacket redesign): thinner
+  cheeks, scruffier hair, and whatever else brings him closer to it. (A leaner face with slim cheeks and a
+  narrow jaw; a curly mop of broken locks with a parted fringe and lighter lock edges; a bunched cotton cowl,
+  soft slouched desert boots with sand soles, a tiny hidden earpiece.)
+
+## Movement and camera
+
+- The jetpack flies like Superman: I can orient up, or down (I can't point down now). (RT / R2 with the
+  stick flies where the camera looks: look up to climb, down to dive, straight down head first; the stick
+  at rest hovers, A / × held rises; the body lies flat along the flight, arms ahead; low flight skims
+  rising ground; diving into the ground lands.)
+- Inside a temple I sometimes can't aim all the way up: the camera gets stuck pointing up. (The tight
+  rooms' look-up limit, ~36°, held the aim too; aiming now goes to ~86° anywhere and eases back after.)
+- Ragdolling down a long fall, the fall sometimes stops, the traveller stands up in mid-air, then keeps
+  falling. (The ragdoll ended after 3.5 s wherever it was; now only on the ground. The landing hurts like
+  any fall, and the camera keeps up.)
+- Always a slight shadow under the traveller while jumping, for precise platforming. (A patch of shade
+  straight under you whenever you are off the ground, inked like a shadow, shrinking with the height.)
+
+## HUD, menus and bosses
+
+- "J to close" makes no sense on Android with a controller; B closes the menu too. (The sketchbook, what's new, the worlds picker and the skip tags name the pad's back button, printed B, or nothing on touch: prompt-keys.js closeHint; B closes the Start menu from any page; the controller's back closes the panel on top first, the sketchbook before a conversation or a moment under it.)
+- No three pills for the gun's level: it already shows on the backpack. (ToolHud: no pips, no refill seconds; nothing beside the traveller while the tank is short or the jets burn; only "empty" for 3 s when it runs dry.)
+- The drone's second pointer doesn't make sense (the drone already heads the way to go): remove it. (No beak, no beam on a find; the flare stays. Also fixed its aim, which the capsule sweep zeroed every frame, so it now really faces what it found.)
+- Bosses show a damage bar: show a health bar. (boss.js guardianBar: full at the start, going down; "health" for a machine, "unrest" for a living guardian; lifted above the cue line.)
+- The vents boss: the vents only open a few times, then not any more. (The Warden's Well: in its second phase its side vents stay shut by design and only the crown opened, unseen from the floor and told once. Now its crown hatch swings up with a column of glow every time, the phase has its own open line, and any side vent counts in the first phase; tests/bosses.test.js. Also fixed: the Gardener could never be calmed, bloom reached it as water.)
+- The drone can give a hint about what to do against a boss. (src/temples/hints.js: a ping in a guardian's fight chirps, turns the lens beam on the weak point or the thing to use, and says a line; three lines a phase, plainer each ping; the weary guardian asks for your hand.)
+
+## Progression
+
+- The jetpack comes in the later half of the game, not the second world unlocked; the winds and gliding
+  come first. (New route: desert, Vael (wings, and the wind up its tower), Vael II (after Vael), Lorn, Lorn II,
+  Viridel, then the City-Shaft (jets) as the seventh, and after it the worlds that want jets; tests check it.)
+- After picking up the jetpack it isn't clear what to do next. (A line says what they're for, the drone
+  flies up to point, rings rise through the oculus, and the temple quest says "fly up through the ceiling".)
+- Taxis don't answer until I get a taxi pass in a quest. (Cabs refuse hails and boarding without a cab
+  pass; Lio on the rim writes one for the fare Hask owes him; the pass is in the gear; Wren still stops.)
+- Vael: the big bird can't be seen or ridden until the quest where I learn the whistle. The top of the
+  tower is not a screen but a little flute for the special whistle. (She's hidden until her call is played;
+  the window is a stone arch; a modelled flute on the sill plays a five-note call that brings her down.)
+- The bird walks with a walking animation on the ground; taking off it leaps before it flaps.
+  (A procedural gait: legs stepping, a bob and sway, wings folded; take-off is a crouch, a leap, and the
+  first wingbeat at its top.)
+
+## People
+
+- Robes still fly through people until I get close. (A cape simulated every 2nd or 3rd frame, further off or on a 30 fps handheld, now lives all the time since its last update and is carried along with its wearer between updates, pinned and pushed by the collar and limbs on their way, so it no longer streams out behind or lets legs and arms through; the robe under a cape is a collider; the crowd's figures wear the full people's wide cape over their arms and robe, and their robes swing as the full ones do; body girths are measured on the full mesh at every level of detail. tests/robes.test.js)
+- Every world on MakeHuman bodies; more variety in headwear: hats, goggles, scarves… (every level in `MH_WORLDS`, one commit a world, the children given their ages; 15 new headwear, 5 face and 3 neck pieces on the skull egg, hair squashed under hats on MakeHuman heads, a fit test on seven heads, each world's set drawn apart so named people keep their looks; the studio's headwear lineups; docs/makehuman.md stage 3)
+- Alien species on the planets: non-humanoid characters (people, not animals). (Four peoples with procedural bodies, no skeleton: drifters in the Garden of Spheres, stilt-walkers in Vael, shellbacks in Lorn II, murmurs in the Signal Market, three or four each. Each has its own idle and movement, voice and script, tones shown as glow and gesture, a portrait and two-shot, listen-only talk with quest hints, its own reaction to the fluid tool, levels of detail and shadows. docs/systems/aliens.md)
+
+## The app
+
+- A new icon for the app. (A capture of the References' dish city, view 22, through the game's ink;
+  `node scripts/icons.mjs all` re-captures it and makes every Android, web and Steam Deck size, with an
+  adaptive foreground, sky background and themed silhouette; four other views kept in `docs/icon/`;
+  docs/systems/app-icon.md.)
+
+
+# The JS bridges (2026-10-06)
+
+- The JS bridges: our JS game code inside Godot (GodotJS) and Unity (Puerts), the engine only rendering. (The game's modules bundled into the engines' V8 with browser stand-ins, the three.js scene mirrored each frame: in Godot through a first port of the ink look, in Unity through the C# port's own; the desert plays in both, side-by-sides and frame times against the web and a recommendation in docs/systems/engine-bridge.md. Unity + Puerts chosen; since then: a 2.5-3.3x cheaper sync, the platform layer with the HUD and conversations in uGUI, and the rest of the picture and the play: the game's own sound on a Web Audio shim, life, weather, the tool and the drone, local lights, motes, prints, GPU instances; the desert, the City-Shaft and the Signal Market side by side; players for macOS (IL2CPP), Linux (the Deck's, Mono) and Android (IL2CPP ARM64, run in an emulator), measured against the web.)
+
+# Contact, the second pass: every world solid where it is drawn (2026-10-06)
+
+The author's requirement was no feet sinking anywhere, and the first pass left the desert's Hearth butte and
+Givers' House tower, the Buried Machine and the cities on coarse stand-ins. What was done, with the numbers
+and what is still left, is in docs/systems/movement.md, "Contact".
+
+- The audit was answering half the question: its tops are sampled on the *collision*, so anything drawn with
+  no collision of its own was never sampled. `auditContact` samples the drawn walkable faces too now
+  (*walks through*), and leaves out a moving solid's own meshes, a guardian's model with them.
+- Three bugs came out of the desert: `Kit.both()` took its copy of a non-indexed geometry after `add()` had
+  already transformed it in place, so every proxy without an explicit stand-in sat at twice the kit's origin
+  (the Hearth's hall had no collision where it is drawn); Qanat's dry well collided as a closed cylinder whose
+  cap was an invisible floor 1.1 m over the terrace; and `NPC.move` leaned on whatever it walked into instead
+  of walking along it, so a villager could never round the well to the gathering at the tree's foot.
+- Made exact: the desert (the butte, the tower, the leviathan, the hull, the giant, the petal station,
+  Qanat's houses and the giant's cave), the Buried Machine (the trench's pipe strata, collars, tanks and ribs,
+  the drum's rail, windows and porthole, the Engine-House's gantry, ember floor, pipes and bands), the Garden
+  of Spheres (the hill's boulders, the pillars, the monoliths, the android wood's ruins and statue, the
+  Footprint's heel), Lorn and Lorn II (the Hush-House's dome, ribs and crystals, the Lamp-House's bands and
+  pool-lamps, the root heaps, the cave gate, the arches' roots, the glass dome's ribs, the drapes over the
+  root cave), the Signal Market (the tower billboards, the awnings, the fascias), Viridel (the glass dome and
+  its ribs), the First Garage (the clocks, the escapement wheels, the floor dial) and home (the houses' bands,
+  window frames, chimney cap, ceiling dome).
+- The temple kit's rotunda cornice, which overhangs its wall by 0.4 m, is solid, which cleans every temple.
+- The cost, measured: a few ms a world on the BVH's bake (the Buried Machine 24 → 31 ms, the desert 60 → 69),
+  ground rays and capsule pushes unchanged within noise. The collision budgets of the Buried Machine, the Deep
+  Wood and the Garden are raised in their tests with those measurements beside them.
