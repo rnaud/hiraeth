@@ -481,6 +481,13 @@ export class Humanoid {
     this.charQ = new Map();
     this.chainOf = new Map(this.chains.map((c) => [c.B, c]));
     this.followOf = new Map(this.follow.map((f) => [f.B, f]));
+    // the wrists: each frame back to the hand's rest turn on the forearm (character space), so a pose
+    // that sets no wrist (the jets, the glide, a ride) starts from the same hand every frame. Left as
+    // it was, the IK that keeps a hand's world turn (reach) fed it back into itself: the hands spun.
+    this.wristOf = new Map(['r', 'l'].filter((s) => B[`hand_${s}`]?.parent?.isBone).map((s) => {
+      const hand = B[`hand_${s}`];
+      return [hand, this.rest.get(hand.parent).q.clone().invert().multiply(this.rest.get(hand).q)];
+    }));
 
     this.dressRig();
     this.hands = new Hands(this);   // the fingers: a relaxed hand at rest, posed by context (src/hands.js)
@@ -1064,6 +1071,8 @@ export class Humanoid {
       } else if (f) {
         // rig joint's rotation (its rest is identity in character space)
         q = charQOf(f.j(), new THREE.Quaternion()).multiply(rest.q);
+      } else if (this.wristOf.has(bone)) {
+        q = new THREE.Quaternion().copy(parentQ).multiply(this.wristOf.get(bone));
       }
       if (q) {
         bone.quaternion.copy(_qr.copy(parentQ).invert().multiply(q));
@@ -1147,6 +1156,17 @@ export class Humanoid {
     bone.updateMatrixWorld(true);
   }
 
+  /** Turn hand `s` ('r' | 'l') by w (0..1) toward its fingers along `along` and its palm facing `palm` (world). */
+  turnHand(s, along, palm, w = 1) {
+    const hand = this.b[`hand_${s}`], F = this.handFrames[s];
+    if (!hand || !F || w <= 0.001) return;
+    const q0 = hand.getWorldQuaternion(new THREE.Quaternion());
+    this.orientContact(hand, F.along, F.normal, along, palm);
+    const q = q0.slerp(hand.getWorldQuaternion(_wq1), Math.min(1, w));
+    hand.quaternion.copy(hand.parent.getWorldQuaternion(_wq2).invert().multiply(q));
+    hand.updateMatrixWorld(true);
+  }
+
   /** Climbing: hands and feet onto wall points (world), elbows out, knees off the wall. */
   reach({ hands, feet, wallN, up, wallContact = false }) {
     const B = this.b;
@@ -1207,15 +1227,7 @@ export class Humanoid {
     const right = new THREE.Vector3().crossVectors(to, up).normalize();        // the character's right
     const len = (this._armLen ??= this.rest.get(B.upperarm_r).p.distanceTo(this.rest.get(B.lowerarm_r).p) + this.rest.get(B.lowerarm_r).p.distanceTo(this.rest.get(B.hand_r).p));
     const grip = sh.clone().addScaledVector(to, len * 0.9).addScaledVector(up, 0.03);
-    const blendHand = (hand, along, palm, w) => {
-      const s = hand === B.hand_r ? 'r' : 'l', F = this.handFrames[s];
-      if (!F) return;
-      const q0 = hand.getWorldQuaternion(new THREE.Quaternion());
-      this.orientContact(hand, F.along, F.normal, along, palm);
-      const q = q0.slerp(hand.getWorldQuaternion(_wq1), w);
-      hand.quaternion.copy(hand.parent.getWorldQuaternion(_wq2).invert().multiply(q));
-      hand.updateMatrixWorld(true);
-    };
+    const blendHand = (hand, along, palm, w) => this.turnHand(hand === B.hand_r ? 'r' : 'l', along, palm, w);
     // the fist along the line of fire, thumb up: its palm faces in, across the body
     this.solveTwoBone(B.upperarm_r, B.lowerarm_r, B.hand_r, grip, sh.clone().addScaledVector(up, -0.6).addScaledVector(right, 0.5), k);
     blendHand(B.hand_r, to, right.clone().negate(), k);

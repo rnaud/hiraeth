@@ -1420,6 +1420,13 @@ export class Player {
       return rest.lerp(target, k);
     });
     H.reach({ hands, wallN: back, up: U });
+    // the hands as the wings' tips: fingers on along the forearm, palms down, the leading edge
+    // (the thumb's) a little up; set each frame, never left to the IK (which once made them spin)
+    const palm = _g4.copy(U).negate().addScaledVector(fwd, 0.25).normalize();
+    for (const s of ['r', 'l']) {
+      const along = B[`hand_${s}`].getWorldPosition(_g5).sub(B[`lowerarm_${s}`].getWorldPosition(_g6)).normalize();
+      H.turnHand?.(s, along, palm, k);
+    }
   }
 
   /** How much the hands hold the tank during a hand-off, 0..1 (on as it lifts off, off as it's seated / worn). */

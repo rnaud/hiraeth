@@ -5,8 +5,12 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Player feedback (2026-10-06)
 
-- [ ] Investigate the traveller's hands rotating while gliding; keep their pose and orientation
-  appropriate to the glide instead of twisting unexpectedly.
+- [x] Investigate the traveller's hands rotating while gliding; keep their pose and orientation
+  appropriate to the glide instead of twisting unexpectedly. (The hand bone kept its last local turn
+  and the glide's arm IK, which keeps a hand's world turn, fed the forearm's change back into it every
+  frame: ~10° a frame of spin. The retarget now resets each wrist to its rest turn on the forearm, and
+  the glide turns the hands open, palms down, thumb edge a little up, blended with the wings; the jets'
+  hands are steady too. Test in tests/hands.test.js.)
 - [ ] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
   surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
 - [ ] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller).
