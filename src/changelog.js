@@ -21,6 +21,7 @@ export const CHANGELOG = [
     'Pushing with your fluid (RB / R1) shows its shock front again inside temples, caves and halls: the rings and spray had vanished there, along with the splash where a shot lands.',
     'Gliding, your hands no longer twist and spin at the ends of your arms: they stay open and flat, palms down like the tips of the wings, through turns and as the wings open and fold.',
     'Vael’s bird lands like a bird now: coming down she lowers her legs and reaches them forward, flares her wings and slows, touches down with her feet on the ground, even on a slope, sinks into her knees and walks off the last of her speed.',
+    'Cast shadows have smooth, clean edges instead of blocky steps, most visibly the desert’s deep dark shadows and on the handheld. Small shadows such as a flower’s petals or a ribcage’s bones keep their true shape. The dark edge no longer crawls when you move the camera.',
   ] },
   { v: '0.71', date: '2026-10-06', items: [
     'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',

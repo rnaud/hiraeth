@@ -11,8 +11,13 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   frame: ~10° a frame of spin. The retarget now resets each wrist to its rest turn on the forearm, and
   the glide turns the hands open, palms down, thumb edge a little up, blended with the wings; the jets'
   hands are steady too. Test in tests/hands.test.js.)
-- [ ] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
+- [x] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
   surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
+  (Measured: moving only the camera changes no shadow map; the blockiness was the edge itself. The shadow
+  lookup is now a sliding tent filter, same taps, and its lit fraction is steepened about a half so the toon
+  cut keeps shadows their true size. The spot tier's darkening follows the shade's antialiased edge instead
+  of a hard step that crawled. Checked in the desert and Vael II on High and Handheld, panning, orbiting and
+  walking. The cost is within noise. docs/systems/rendering.md, "Smooth cast-shadow edges".)
 - [x] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller). (The push's rings and spray were hidden in every room off the map (temples, the cave, the Hearth) since the interior culler of 2026-10-05 judged them by bounds cached while empty; unculled instanced effects are now measured where they are, other unculled meshes stay drawn. Pad RB and keyboard C checked on a person, crates, a creature and the temple's ball. tests/interior-cull.test.js)
 - [ ] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
   standing and landing contact across all worlds, including moving platforms, so visible platform tops

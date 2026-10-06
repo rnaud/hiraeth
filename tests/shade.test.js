@@ -136,7 +136,7 @@ test('spot blacks: a third tier of value, per world (presets) and per material (
   const { readFile } = await import('node:fs/promises');
   const post = await readFile(new URL('../src/post.js', import.meta.url), 'utf8');
   assert.ok(post.includes('floor(surface.b * 0.25)'), 'post.js unpacks it before the detail is read');
-  assert.ok(/uSpot\.x > 0\.0 && lit < 0\.5[^\n]*face \+ figure \+ hero \+ soft < 0\.5/.test(post), 'only in shade, never on a face, a person, the traveller or grass');
+  assert.ok(/uSpot\.x > 0\.0 && lit < 0\.99[^\n]*face \+ figure \+ hero \+ soft < 0\.5/.test(post), 'only in shade, never on a face, a person, the traveller or grass');
   assert.ok(post.includes('uPostLite > 0.5 ? 4 : 8'), 'half the taps on the handheld');
   const { BURIED_SPOTS } = await import('../src/levels/buried.js');
   assert.ok(BURIED_SPOTS.uSpot[3] > PRESETS['Moebius print'].uSpot[3], 'the Buried Machine prints its cast shadows darker');

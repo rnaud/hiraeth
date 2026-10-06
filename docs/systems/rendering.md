@@ -405,6 +405,44 @@ field of fine lit specks (the Signal Market's view 155, a brown wall full of whi
 their terminator's antialiasing. The drawn detail (pen marks, seams) is inked a little darker in shade
 (0.6 → 0.86 of the ink), so it reads on flat-printed and deep shade as on the lit side.
 
+## Smooth cast-shadow edges (materials.js `sampleShadow`, `SHADOW_CUT`; shadows.js `tentTaps`)
+
+The author's feedback (2026-10-06): the darkened shadows looked blocky and seemed to shift as the camera
+moved. Measured first (a probe that runs the shadow passes from one camera or traveller position and draws
+the view from another, fixed one; and the motion check): moving or turning **only the camera** changes no
+shadow map at all (the cascades follow the traveller, snapped to texels; the caster culling drops nothing
+the camera sees). What was wrong was the edge itself:
+
+- **Texel steps.** Each lookup was a box of bilinear comparison taps (3 × 3 at one-texel spacing, or 2 × 2
+  at half a texel on Handheld). That lit fraction has a kink at every texel border, and the toon threshold
+  turns it into a hard edge, so the texel grid (11 cm in the near map, 16 cm on Handheld: a dozen to twenty
+  pixels close up) was drawn into every cast shadow's outline as steps, then inked by the shadow-edge line.
+  Now the taps carry the weights of a tent that slides with the point inside its texel (Castaño's filter,
+  The Witness): 5 × 5 texels in the same 9 taps, 3 × 3 in the same 4 on Handheld. The lit fraction changes
+  continuously and evenly across texel borders, and the edge is a smooth curve. Where a texel is under the
+  pixel the taps spread about the point on the map's own grid (`spread`), so a cascade moved by whole texels
+  still reads exactly the same (a grid scaled with `spread` did not: the stationary shadows changed as you
+  walked).
+- **Shadows eaten by the filter.** A cast shadow shades as `mix(min(lambert, 0.38), lambert, sh)` and the
+  toon threshold is 0.5, so a sunny face cut the filtered `sh` at 0.24: a shadow shrank by most of the
+  filter's width (thin petals and ribs vanished, small shadows went blobby) and grew on a face turned half
+  away. `getShadow` now steepens `sh` about its half (`SHADOW_CUT` = 3, clamped), so the cut lands within
+  0.4–0.56 of the filter whatever the facing: shadows keep their true size, and the wider tent costs no shape.
+- **The darkening's hard step.** The spot tier's cast-shadow darkening (`uSpot.w`, the desert's and the
+  Buried Machine's deep shadows) switched on at `lit < 0.5`, an unfiltered step inside the shade's
+  antialiased edge: a staircase on the darkened shadows that crawled with every camera move. It now runs
+  over the edge band (`lit < 0.99`) weighted by `1 - lit`.
+
+What still changes with the traveller (not the camera): shadow edges move by about a pixel as the near map's
+window steps along (sub-texel rasterisation), and on High the fine map's ±12 m edge hands over to the near one.
+
+**Cost**: the same taps as before plus a few multiply-adds per lookup. Desert, `scripts/bench/passes.mjs`
+whole frame (synced), before → after, two runs each: Retina High (1728 × 1117 at scale 2) spawn 10.0/11.6 →
+10.0/10.6 ms, dunes 11.8/12.0 → 11.9/12.2 ms; Handheld (1280 × 720 at 0.75) spawn 2.61/2.60 → 2.58/2.56 ms,
+dunes 1.27/1.25 → 1.34/1.27 ms: within the noise. `tests/shadow-edges.test.js`: the tent's weights, the
+lit fraction continuous and monotone across texel borders, the same for a window moved by whole texels (any
+spread), the cut near the half for every facing, and the spot tier's weighting.
+
 ## Debug views (`params.debug`)
 
 0 final, 1 raw, 2 albedo, 3 normals, 4 depth, 5 light term (the line step taken off), 6 ink only, 7 hatch

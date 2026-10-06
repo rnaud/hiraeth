@@ -957,10 +957,12 @@ const fragmentShader = /* glsl */ `
       // ---- 3c. spot blacks: the third tier of value. A shaded point enclosed at the scale of a pocket
       // (between ribs or pipes, into a hull, a city's recesses) is filled with a near-black mass of the
       // world's darkest tone, hard-edged; cast shadows darken toward it (uSpot.w). Never on a face, a
-      // person, grass or a light; never in the light (the sheets keep their lit areas clean).
-      if (uSpot.x > 0.0 && lit < 0.5 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
+      // person, grass or a light; never in the light (the sheets keep their lit areas clean). It follows the
+      // shade's own antialiased edge (1 - lit): switched on at lit < 0.5 it cut a hard, unfiltered step into
+      // the darkened cast shadows' edges, a staircase that crawled as the camera moved.
+      if (uSpot.x > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
         vec3 spotC = uSpotTone.rgb * mix(vec3(1.0), clamp(albedo * 2.2, 0.0, 1.6), uSpotTone.a);
-        float k = uSpot.x * spotMat * (1.0 - uNight * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - uFlatten);
+        float k = uSpot.x * spotMat * (1.0 - uNight * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - uFlatten) * (1.0 - lit);
         float encl = enclosure(uv, N.xyz, depth, uSpot.y, uPostLite > 0.5 ? 4 : 8);
         float spot = smoothstep(uSpot.z - 0.03, uSpot.z + 0.03, encl) * (1.0 - shadeLift);
         // in cast shadow (facing the sun, yet dark): toward the spot tone, keeping its strokes
