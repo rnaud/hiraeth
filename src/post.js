@@ -101,6 +101,16 @@ export function castLift(ndl, ny, L, lit, [ground, other]) {
   return pot * (1 - lit) * ss(CAST.light, L);
 }
 
+/** The composite's optional parts, as defines, from the uniforms the look set: the haze (4b) and the cast shadows (2). */
+export function inkFeatures(U) {
+  const f = {};
+  if (U.uHazeLayers.value[3] > 0) f.INK_LAYERS = '';
+  if (U.uHeightFog.value[3] > 0) f.INK_HFOG = '';
+  if (f.INK_LAYERS !== undefined || f.INK_HFOG !== undefined) f.INK_HAZE = '';
+  if (U.uCast.value[0] > 0 || U.uCast.value[1] > 0) f.INK_CAST = '';
+  return f;
+}
+
 const vertexShader = /* glsl */ `
   out vec2 vUv;
   void main() {
@@ -395,12 +405,15 @@ const fragmentShader = /* glsl */ `
   // along the ray (a density growing exponentially under a height: down a shaft, low in a wood).
   vec2 hazeAt(float d, vec3 rd) {
     vec2 h = vec2(0.0);
-    if (uHazeLayers.w > 0.0) {
+    #ifdef INK_LAYERS
+    {
       float t = log2(max(d, 1.0) / uHazeLayers.x) / log2(uHazeLayers.y);
       float L = clamp(floor(t) + 1.0 + smoothstep(${(1 - HAZE.edge).toFixed(3)}, 1.0, fract(t)), 0.0, uHazeLayers.w);
       h.x = (1.0 - pow(1.0 - uHazeLayers.z, L)) * (1.0 - 0.6 * uNight);   // (thinner at night)
     }
-    if (uHeightFog.w > 0.0) {
+    #endif
+    #ifdef INK_HFOG
+    {
       float dist = d / max(dot(rd, -uCamWorld[2].xyz), 0.05);
       float b = 1.0 / uHeightFog.y;
       float base = exp(min(-(uCamWorld[3].y - uHeightFog.x) * b, 30.0));
@@ -408,6 +421,7 @@ const fragmentShader = /* glsl */ `
       float k = abs(x) > 1e-3 ? (1.0 - exp(-x)) / x : 1.0;
       h.y = (1.0 - exp(-uHeightFog.z * dist * base * k)) * uHeightFog.w;
     }
+    #endif
     return h;
   }
 
@@ -658,9 +672,12 @@ const fragmentShader = /* glsl */ `
     vec3 rd = viewRay(uv);
     // cast shadows by world (CAST): how much a cast shadow here would be lifted (facing the sun, open ground or not);
     // its shade, strokes (2, 3) and its edge line (1) go with it. Not a person's, a face's or the sky's.
+    // (compiled in only where a world says them: inkFeatures, a shader that carries code it never runs is slower)
     float castPot = 0.0;
-    if (uCast.x + uCast.y > 0.0 && !isSky)
+    #ifdef INK_CAST
+    if (!isSky)
       castPot = smoothstep(${CAST.facing[0]}, ${CAST.facing[1]}, dot(N.xyz, uSunDir)) * mix(uCast.y, uCast.x, smoothstep(${CAST.ground[0]}, ${CAST.ground[1]}, N.y)) * (1.0 - max(max(face, figure), hero));
+    #endif
 
     // ---- debug views
     if (uDebug == 2) { fragColor = vec4(isSky ? skyBase(rd) : A.rgb, 1.0); return; }
@@ -791,7 +808,12 @@ const fragmentShader = /* glsl */ `
     float fogLine = 1.0 - exp(-max(nearD - uFogStart, 0.0) * uFogDensity * uFogMul * 1.4);
     ink *= 1.0 - fogLine;
     // (the haze layers and the height fog veil the lines with what they stand in: 4b)
-    if (uHazeLayers.w + uHeightFog.w > 0.0) { vec2 hzL = hazeAt(nearD, rd); ink *= (1.0 - hzL.x * ${HAZE.lineFade}) * (1.0 - hzL.y); }
+    // (once a pixel: its own depth, or on the sky the line's surface; a line's far side on a wall takes the wall's)
+    vec2 hz = vec2(0.0);
+    #ifdef INK_HAZE
+    hz = hazeAt(isSky ? nearD : depth, rd);
+    ink *= (1.0 - hz.x * ${HAZE.lineFade}) * (1.0 - hz.y);
+    #endif
 
     vec3 col;
     if (isSky) {
@@ -805,8 +827,11 @@ const fragmentShader = /* glsl */ `
       float L = A.a;
       float lit = smoothstep(uToon - 0.01, uToon + 0.01, L);
       // a cast shadow lifted toward the light by the world (uCast), its strokes with it (3); the jump shadow's 0 kept
-      float castLift = castPot * (1.0 - lit) * smoothstep(${CAST.light[0]}, ${CAST.light[1]}, L);
+      float castLift = 0.0;
+      #ifdef INK_CAST
+      castLift = castPot * (1.0 - lit) * smoothstep(${CAST.light[0]}, ${CAST.light[1]}, L);
       lit = max(lit, castLift);
+      #endif
       if (uDebug == 12) { fragColor = vec4(castPot, castLift, 0.2, 1.0); return; }   // cast shadows: could lift (red), lifted (green)
       // during the sun -> moon hand-over both tones converge, so shadows fade
       // a face's shade (its skin, its eyes' whites) is a warm darker tone of itself, not the world's
@@ -909,11 +934,14 @@ const fragmentShader = /* glsl */ `
       col = mix(col, mix(vec3(luma), skyC, 0.35) * 1.04, aer * 0.4);
       // ---- 4b. haze in layers by depth (near, middle and far planes in stepped pale bands of the world's
       // warm or cool haze), then the far fog over them, then the fog by height (down a shaft, low in a wood)
-      vec2 hz = hazeAt(depth, rd);
+      #ifdef INK_HAZE
       vec3 hazeC = mix(skyC, uHazeTone.rgb, uHazeTone.a * (1.0 - 0.7 * uNight));
       col = mix(col, hazeC, hz.x);
       col = mix(col, skyC, fog);
       col = mix(col, mix(hazeC, uHeightFogTone.rgb, uHeightFogTone.a * (1.0 - 0.7 * uNight)), hz.y);
+      #else
+      col = mix(col, skyC, fog);
+      #endif
     }
 
     if (uDebug == 6) col = vec3(0.97, 0.94, 0.86);
@@ -1094,6 +1122,24 @@ export function createPost() {
   });
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
   quad.frustumCulled = false;
+  // the haze and the cast shadows compiled in only while the look asks for them (inkFeatures): checked before each
+  // draw, recompiled when the set changes (a world's or a view's look; three.js keeps both programs)
+  // (set as the look sets them, so the shader warm-up at load compiles the right one; and before each draw, should
+  // a value have been changed in place)
+  let features = null;
+  const sync = () => {
+    const f = inkFeatures(uniforms), key = Object.keys(f).join();
+    if (key === features) return;
+    features = key;
+    material.defines = f;
+    material.needsUpdate = true;
+  };
+  for (const k of ['uHazeLayers', 'uHeightFog', 'uCast']) {
+    let v = uniforms[k].value;
+    Object.defineProperty(uniforms[k], 'value', { get: () => v, set: (x) => { v = x; sync(); }, enumerable: true });
+  }
+  sync();
+  quad.onBeforeRender = sync;
   const scene = new THREE.Scene();
   scene.add(quad);
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);

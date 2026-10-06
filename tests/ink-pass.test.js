@@ -155,3 +155,29 @@ test('a flat facet edge-on to the sun is shaded whole (no lit specks on the toon
   const surf = readFileSync(new URL('../src/materials.js', import.meta.url), 'utf8');
   assert.match(surf, /if \(uFlat > 0\.5 && ndl < \$\{FACET_EDGE\}\) ndl = min\(ndl, -\$\{FACET_EDGE\}\);\n\s*float lambert = ndl/);
 });
+
+test('the haze and the cast shadows are compiled into the composite only while the look asks for them', async () => {
+  const { createPost, inkFeatures, PRESETS } = await import('../src/post.js');
+  const post = createPost(), m = post.scene.children[0].material;
+  assert.deepEqual(m.defines, {}, 'none by default: the shader as without them');
+  for (const p of Object.values(PRESETS)) {
+    const U = Object.fromEntries(Object.entries(p).map(([k, v]) => [k, { value: v }]));
+    assert.deepEqual(inkFeatures(U), {}, 'no preset compiles them in');
+  }
+  const v = m.version;
+  post.uniforms.uHazeLayers.value = [100, 2, 0.1, 3];
+  assert.deepEqual(Object.keys(m.defines).sort(), ['INK_HAZE', 'INK_LAYERS']);
+  assert.ok(m.version > v, 'recompiled');
+  post.uniforms.uHeightFog.value = [0, 100, 0.002, 0.5];
+  post.uniforms.uCast.value = [0.7, 0];
+  assert.deepEqual(Object.keys(m.defines).sort(), ['INK_CAST', 'INK_HAZE', 'INK_HFOG', 'INK_LAYERS']);
+  const w = m.version;
+  post.uniforms.uCast.value = [0.8, 0];
+  assert.equal(m.version, w, 'the same set: no recompile');
+  post.uniforms.uHazeLayers.value = [100, 2, 0.1, 0]; post.uniforms.uHeightFog.value = [0, 100, 0.002, 0]; post.uniforms.uCast.value = [0, 0];
+  assert.deepEqual(m.defines, {});
+  // the shader: each part behind its define
+  const src = m.fragmentShader;
+  for (const d of ['INK_HAZE', 'INK_LAYERS', 'INK_HFOG', 'INK_CAST']) assert.ok(src.includes(`#ifdef ${d}`), d);
+  assert.equal((src.match(/hazeAt\(/g) ?? []).length, 2, 'declared once, evaluated once a pixel');
+});
