@@ -75,6 +75,34 @@ test('what arrives while you are inside is caught on the next refresh; what leav
   assert.ok(cull.hide(w.camera).includes(w.guest));
 });
 
+// The push's shock front went missing in every temple: the fluid's rings and spray are instanced,
+// unculled, empty at load, so their cached bounds were empty and the culler hid them in rooms.
+test('effects left unculled are judged by where their instances are now, never by stale bounds', () => {
+  const w = world();
+  const cull = new InteriorCuller(w.scene, [door], { ground: () => 0 });
+  const effect = (max) => {
+    const m = new THREE.InstancedMesh(new THREE.TorusGeometry(1, 0.07, 4, 16), new THREE.MeshBasicMaterial(), max);
+    m.frustumCulled = false; m.count = 0; w.scene.add(m); return m;
+  };
+  const rings = effect(8), mapSpray = effect(8);
+  const hose = new THREE.Mesh(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3)), new THREE.MeshBasicMaterial());
+  hose.frustumCulled = false; w.scene.add(hose);   // its vertices rewritten each frame where the traveller is
+  rings.computeBoundingSphere(); hose.geometry.computeBoundingSphere();   // (cached while empty, as the first frame did)
+  w.camera.position.set(0, 1002, 20);
+  for (const o of cull.hide(w.camera)) o.visible = true;
+  // a push in the room: three rings ahead of the traveller; a spray somewhere on the map below
+  const at = new THREE.Matrix4();
+  for (let i = 0; i < 3; i++) rings.setMatrixAt(i, at.makeTranslation(0, 1001, 14 - i * 2));
+  rings.count = 3;
+  mapSpray.setMatrixAt(0, at.makeTranslation(40, 2, 30)); mapSpray.count = 1;
+  w.scene.updateMatrixWorld(true);
+  const hidden = cull.hide(w.camera);
+  assert.ok(!hidden.includes(rings) && rings.visible, 'the push\'s rings are drawn in the room');
+  assert.ok(!hidden.includes(hose), 'the hose is drawn in the room');
+  assert.ok(hidden.includes(mapSpray), 'a spray on the map is still hidden');
+  assert.ok(hidden.includes(w.ground), 'the map is still hidden');
+});
+
 test('the game culls the map from rooms off it in every pass, and the bench can measure both ways', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   const frame = main.slice(main.indexOf('function renderFrame()'), main.indexOf('// 1. shadow maps'));

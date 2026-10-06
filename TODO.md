@@ -9,7 +9,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   appropriate to the glide instead of twisting unexpectedly.
 - [ ] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
   surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
-- [ ] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller).
+- [x] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller). (The push's rings and spray were hidden in every room off the map (temples, the cave, the Hearth) since the interior culler of 2026-10-05 judged them by bounds cached while empty; unculled instanced effects are now measured where they are, other unculled meshes stay drawn. Pad RB and keyboard C checked on a person, crates, a creature and the temple's ball. tests/interior-cull.test.js)
 - [ ] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
   standing and landing contact across all worlds, including moving platforms, so visible platform tops
   and collision surfaces agree and feet do not disappear into them.

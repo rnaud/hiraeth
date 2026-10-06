@@ -73,6 +73,13 @@ hides most of that (hidden-surface removal); the handheld's Adreno doesn't.
   time (a temple's rooms in a row). The traveller, the drone and whoever is in the room stay; people, mounts
   and anything left outside are hidden. Rooms only open onto the sky (oculi, door veils, windows over a
   kilometre of air), so the picture is unchanged (screenshots of every room, both ways, with and without).
+- **What is left unculled** (`frustumCulled = false`: drawn wherever it is, its bounds not kept) is
+  never judged by its cached bounds. The fluid's rings, spray and glow are instanced meshes, empty at load,
+  so their cached bounds were empty and the first version hid them in every room: the push's shock front
+  (and every splash's ring) was gone in the temples, the cave and the Hearth. Now an unculled instanced
+  mesh is measured where its instances are that frame (a set over 512 instances, every 16th frame; an empty
+  one draws nothing anyway), and anything else unculled (the hose, the splats, flames) always stays.
+  (`tests/interior-cull.test.js`)
 - **In the cave**: 425 → 87 draws and 0.47 → 0.09 M triangles (Handheld; High 577 → 118, 0.57 → 0.13 M).
   The passage's walls now go first into the cave's batches, so they hide the dome's far side instead of
   being painted over it (fragments shaded in the G-buffer: 1.84 → 1.18 a pixel in the passage, 1.60 → 1.25
