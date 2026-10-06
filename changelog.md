@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Old buildings look worn by time: dirt streaks run down their walls from the tops and sills, patches of plaster have broken away with a little shadow under the edge, longer cracks have a shadow side, and dust darkens the foot of the walls. Each building wears differently. You see it on the desert’s city and domes, the Signal Market’s shops, the houses at home and of the City-Shaft.
 - Faceted shapes far from the middle of a world no longer break into fuzzy dots where the sun grazes them.
+- The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.
 
 ## v0.68 — 2026-10-05
 
