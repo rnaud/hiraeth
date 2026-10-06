@@ -2,7 +2,47 @@
 
 The traveller and the people: bodies, outfits, costumes by world, cloth, the character studio and the MakeHuman bodies.
 
-## The traveller: a person in a suit (v0.43)
+## The traveller: generated character v1 (v0.72)
+
+The default playable traveller is the reviewed coral-shirt Tripo character, without
+an integrated backpack. `src/characters/traveller-v1.js` loads the tracked asset
+bundle in `public/characters/traveller-v1/` through Vite's base URL. The GLB,
+rig parameters and matching per-vertex sampled colours ship with the game; no
+runtime request depends on Downloads or the ignored `output/` experiment folder.
+The old suited traveller remains the asset-load fallback.
+
+The module fits the MakeHuman template with the same rest-joint procedure as the
+export, hides the donor render meshes, and binds the generated surface to the
+Humanoid skeleton. Gameplay retains its existing clip animation, feet/contact IK,
+equipment anchors and contextual hand poses. Ground-motion arm corrections blend
+with walk/jog/sprint weights, before Humanoid posing; the source wrists receive the
+same rotation. Climbing, aiming, story overlays and riding keep their own contact
+poses. The preview's lap pose is deliberately not applied to vehicle controls.
+
+Shared code lives in `src/characters/tripo-*.js`; the `tools/` files re-export it
+so the review and regeneration scripts use the same fitting, clothing, materials
+and hand fixes. The lower overshirt, reconstructed trousers and opaque inner-shirt
+backing are built at load time. The simulation retains state between locomotion
+clips. Its detached CPU skinning proxies copy the real mesh's inverse world bind,
+so the coat follows translation and rotation away from the review's origin.
+
+The surfaces use the real game G-buffer material, world lighting, hero shadows
+and post-processing. Repair colours are explicitly linearized before the shader
+converts to the game's printed RGB, independent of global Three.js colour mode.
+`Gear` recognizes the character's own outfit and retains gameplay attachment
+points while hiding the legacy helmet, belt and radio-pack meshes. Earned fluid
+equipment can still attach normally.
+
+Validation: `tests/traveller-v1.test.js` uses the shipped asset to check binding,
+arbitrary spawn transforms, cloth following a moved/rotated root, game materials,
+equipment anchors, preservation of interaction poses and colour consistency.
+The existing `tests/tripo-*.test.js` cover fitting, fingers and garment repairs.
+Visual review still matters. This v1 has no generated facial-expression rig,
+no cloth self/hand/environment collision, and no independently simulated sleeves;
+seated hems and tight hand grips remain iteration areas. The asset is about 10 MB
+plus 0.9 MB of repair colour data; it has no character-specific LOD yet.
+
+## Legacy traveller fallback: a person in a suit (v0.43)
 
 The traveller is a normal 3D character: Quaternius' male human (`human_m.glb`,
 reshaped like the NPCs), with the NPCs' own skeleton, bind pose, weights, face
@@ -367,3 +407,44 @@ vertical folds held the cloth out flat like a board, so the lower half lay sprea
 The current character follows the [three reference sheets and visual direction](../../lore/characters/traveller-design.md): coral overshirt, cream cropped trousers, scruffy dark hair and a round satchel. `src/traveller.js` builds the clothing on the unchanged human animation rig; `src/traveller-style.js` owns its palette. `src/fluid-tool.js` fits the compact green tank and preserves its scale through vehicle handoffs. The earned star and lantern mounts live in `src/boxes/effects.js`.
 
 For a complete preview, open `studio.html?backpack=1`; the **Fluid backpack** checkbox uses isolated state and never grants items to the game save. The traveller and drone tests cover skin weights, garment fit, movement, docking clearance, and the resized pack’s handoff.
+
+## Tripo character review experiment
+
+`/tools/tripo-review.html` is a local development preview of the generated coral-shirt character
+without a backpack. `scripts/tripo/` fits MakeHuman arm joints to the generated surface before
+transferring skin weights and exporting a matte GLB. The viewer uses the same fitted donor
+and exercises game animations. Torso/ankle positions are still estimates, and hands and
+extreme poses need review. See `scripts/tripo/README.md` for reproduction and limitations.
+
+Regeneration outputs remain local and ignored by Git. The accepted v1 snapshot is now
+shipped as the default traveller (see above); the review remains available for further
+iteration. Facial expressions and more natural extreme poses remain unfinished.
+
+The Tripo review separates the original textured lower shirt from a regular simulation cage
+(`tools/tripo-cloth.js`), with fixed-step constraints, hip/leg collisions, and a plain lining.
+It reconstructs connected upper trousers with a shared crotch seam, exact lower-leg boundaries,
+and a continuous hip/thigh weight field across the repair. Collision axes follow the trouser
+volume rather than the rearward donor joint centers, avoiding an inflated back. An opaque
+inner-shirt backing closes missing geometry exposed above the waistband. Front/side/back walking and raised-knee jogging poses were visually checked.
+The rebuilt trousers have simpler detail; sleeves remain skinned and seated poses still
+stretch excessively. The preview's Next pose control advances and settles repeatable poses. Drag-to-orbit, zoom,
+pan, reset and body-part focus controls support inspection. Live hand poses use reduced finger
+and thumb curl because the generated finger anatomy only approximates the donor rig. Jogging
+still exposes unnatural hem stretching.
+Cloth is runtime-only; the downloadable GLB has no simulation. `scripts/tripo/audit-cloth.mjs`
+checks numerical stability and collision-capsule clearance, not complete mesh intersection.
+
+The review's **Game style** toggle (`tools/tripo-render.js`) reuses the game material G-buffer,
+Moebius print composite, fine character shadows and FXAA. It preserves texture/cloth repairs
+and swaps only rendering materials, retaining camera and animation state. Lighting is fixed
+for comparison; world-specific looks and atmosphere are not loaded.
+
+Walk/jog arm styling narrows the source clips without changing elbow bend. The Seated preview
+uses the driving clip for body/legs, but places hands palm-down over the thighs with two-bone
+IK and aligned forearm roll (`tools/tripo-walk.js`), rather than reaching for a steering wheel.
+
+Digit fitting now precedes weight transfer; `scripts/tripo/audit-hands.mjs` checks all 30
+joints for meaningful influence and actual mesh displacement. `src/hands.js` derives an
+incoming-segment curl axis for terminal phalanges on leafless rigs, which were previously
+skipped. Hand pose diagnostics expose open, relaxed and fist poses; full contact grips still
+need refinement on the generated mesh.

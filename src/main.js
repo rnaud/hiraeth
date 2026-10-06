@@ -47,6 +47,7 @@ import { loadHuman, Humanoid } from './humanoid.js';
 import { loadPeople, usesMakeHuman } from './makehuman/people.js';
 import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
+import { loadTravellerV1, createTravellerV1 } from './characters/traveller-v1.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
@@ -191,7 +192,7 @@ const meta = levelById(levelParam) ?? levelById(resumeId) ?? LEVELS[0];
 const levelId = meta.id;
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
-const traveller = new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(e => { console.warn('Traveller unavailable; using the original explorer.', e); return null; });
+const traveller = loadTravellerV1(import.meta.env.BASE_URL).catch(e => { console.warn('Traveller v1 unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
 // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: the Desert's by default, ?mh=1
 // any world's, ?mh=0 none): the body's one file asked for now, while the rest loads
@@ -337,13 +338,18 @@ const humanT = await humans;
 // the people on MakeHuman bodies (each by their age, build and world); the traveller stays on his own body
 // (docs/makehuman.md). Without the file, the Quaternius ones.
 const peopleT = humanT && mhPeople ? ((await mhPeople)?.humans() ?? humanT) : humanT;
-const travellerTemplate = await traveller;
-if (humanT && travellerTemplate) {
-  // the traveller: the people's own body and skeleton, the suit painted on, the gear of traveller.glb worn on top (src/traveller.js)
-  player.humanoid = new Humanoid(humanT[0], player.char, 'm', { outfit: travellerTemplate });
+const generatedTraveller = await traveller;
+if (generatedTraveller) {
+  player.character = createTravellerV1(player.char, generatedTraveller);
+  player.humanoid = player.character.humanoid;
 } else if (humanT) {
-  player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9b9a0', gloves: player.char.colors.gloves, suit: true });
-  player.humanoid.setHeadwear('short', { hair: '#8a5638' });
+  const travellerTemplate = await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(() => null);
+  if (travellerTemplate) {
+    player.humanoid = new Humanoid(humanT[0], player.char, 'm', { outfit: travellerTemplate });
+  } else {
+    player.humanoid = new Humanoid(humanT[0], player.char, 'm', { skin: '#e9b9a0', gloves: player.char.colors.gloves, suit: true });
+    player.humanoid.setHeadwear('short', { hair: '#8a5638' });
+  }
 }
 player.attach(scene);
 await slice();
@@ -1369,6 +1375,7 @@ function frame() {
     if (best?.humanoid && !best.talkTo && best.object.visible && camera.position.distanceTo(best.pos) < TALK_FACE.near) talkFaces.drive(best.humanoid, best.balloonFace());
     talkFaces.update(dt);
     updateHands(dt, { player, npcs, camera });   // the fingers: relaxed, gripping, gesturing with the line (src/hands.js)
+    player.character?.updateHands();
     if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);

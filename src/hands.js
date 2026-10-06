@@ -209,7 +209,14 @@ export class Hands {
     const restQ = (b) => R.get(b).q, restP = (b) => R.get(b).p;
     const bindLocal = (b) => (b.parent?.isBone ? R.get(b.parent).q.clone().invert() : new THREE.Quaternion()).multiply(restQ(b));
     const local = (b, axis) => axis.clone().applyQuaternion(_qi.copy(restQ(b)).invert()).normalize();
-    const dirOf = (b) => { const c = b.children.find((o) => o.isBone); return c ? restP(c).clone().sub(restP(b)).normalize() : null; };
+    // Some MakeHuman rigs end at the distal phalanx instead of providing a
+    // fingertip leaf. Its incoming segment still defines a curl axis; skipping
+    // it leaves every fingertip rigid even when it has valid skin weights.
+    const dirOf = (b) => {
+      const c = b.children.find((o) => o.isBone);
+      if (c) return restP(c).clone().sub(restP(b)).normalize();
+      return b.parent?.isBone && R.has(b.parent) ? restP(b).clone().sub(restP(b.parent)).normalize() : null;
+    };
     // the palm (character space, at rest): along the fingers, across the knuckles (toward the index), the way it faces
     const origin = restP(bone('hand'));
     const along = restP(bone('middle_01')).clone().sub(origin).normalize();

@@ -171,7 +171,7 @@ export class Gear {
     this.device = dev;
 
     for (const g of [hs, pack, belt]) g.traverse((o) => { o.userData.noCollide = true; });
-    if (humanoid.outfit) {
+    if (humanoid.outfit || humanoid.ownOutfit) {
       hs.visible = false;
       // Keep the launch socket, but replace all legacy wearable geometry: the traveller wears its own (traveller.js)
       for (const group of [pack, belt]) group.traverse(o => { if (o.isMesh) o.visible = false; });
@@ -179,7 +179,7 @@ export class Gear {
       if (humanoid.kit?.dock) this.scoutDock.position.copy(humanoid.kit.dock).add(new THREE.Vector3(0, DRONE_BELLY + 0.004, 0));
       this.packDock = this.scoutDock.position.clone();
       for (const o of chest.children) if (!originalChest.has(o) && o.isMesh) o.visible = false;
-      this.noShadow = [...humanoid.noShadow];
+      this.noShadow = [...(humanoid.noShadow ?? [])];
       this.springs = [];
     }
     this.char = char;
