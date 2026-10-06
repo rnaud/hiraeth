@@ -125,6 +125,10 @@ export const SPOT = { steps: 2 };
 export const spotStep = (spot) => (spot === undefined || spot === null || spot < 0 ? 0 : 1 + Math.round(Math.min(spot, 1) * SPOT.steps));
 /** A flat (faceted) surface this close to edge-on to the sun (|n·l|) is shaded whole: no lit specks on the toon threshold. */
 export const FACET_EDGE = 0.03;
+/** n·l over which a smooth surface's own shadow map is faded in from its terminator (no teeth along it: "Stable in motion"). */
+export const TERMINATOR = 0.08;
+/** ...only on forms large on screen: the normal's turn per pixel (length of fwidth(n)) over which it is let go. */
+export const TERMINATOR_TURN = [0.02, 0.06];
 export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * Line weight and colour by material (post.js 1b; docs/systems/rendering.md, "The G-buffer's layout"): the sheets draw
@@ -303,8 +307,8 @@ export const WEATHER = {
   cell: [3.7, 3.1], cracks: 0.5, patches: 0.24,
   far: [0.03, 0.075],      // m per px over which the pen marks (cracks, the chips' edges) fade out
   farTone: [0.1, 0.28],    // and the tone marks (grime, the chips' exposed fill): larger shapes, kept further
-  grime: { cell: [1.3, 2.4], share: 0.75, dark: 0.36 },   // streaks running down from the tops of the wall's cells
-  chip: { lip: 0.1, dark: 0.42 },                      // the plaster lip's shadow into a chip (m, how dark)
+  grime: { cell: [1.3, 2.4], share: 0.75, dark: 0.36, taper: 0.2, minPx: 2.25 },   // streaks running down from the tops of the wall's cells (lighter by taper at the foot; none under minPx CSS px wide)
+  chip: { lip: 0.1, dark: 0.42, minPx: [0.75, 1.75] },   // the plaster lip's shadow into a chip (m, how dark; faded out under minPx CSS px wide)
   foot: { height: 0.62, dark: 0.22 },                   // the dust splashed up the foot of a wall (post.js)
 };
 export function weatheredOf(o) {
@@ -324,6 +328,7 @@ export function weatheredOf(o) {
  */
 export const DETAIL = {
   lods: 4,     // levels by distance: the marks drawn at 1, 2, 4, 8 × their size, then gone
+  blend: 0.5,  // the share of each level over which the next is cross-faded in
   depth: 260,  // m: none past this (faded from 0.7 of it)
   depthOrganic: 130,
   ink: 1.35,   // how dark the marks are drawn (post.js draws drawn detail over 1 darker; packed under 2)
@@ -1199,11 +1204,18 @@ const fragmentShader = /* glsl */ `
       if (hash(id + 0.7) < ${WEATHER.grime.share} * k) {
         float x0 = (floor(q.x / gc.x) + 0.3 + 0.4 * hash(id + 1.3)) * gc.x;
         float top = (floor(q.y / gc.y) + 1.0) * gc.y - 0.04 - 0.9 * hash(id + 4.4);   // (sources at uneven heights: no frieze)
-        float len = gc.y * (0.35 + 0.6 * hash(id + 2.7)), t = (top - q.y) / len;
-        if (t > 0.0 && t < 1.0) {
-          float w = (0.1 + 0.34 * hash(id + 3.1) * hash(id + 5.9)) * (1.0 - 0.65 * t) + 0.05 * (vnoise(vec2(q.y * 3.0, id.x * 5.0)) - 0.5);
+        float len = gc.y * (0.35 + 0.6 * hash(id + 2.7)), t = (top - q.y) / len, ty = fq.y / len;
+        if (t > -ty && t < 1.0 + ty) {
+          float tc = clamp(t, 0.0, 1.0);
+          float w0 = 0.1 + 0.34 * hash(id + 3.1) * hash(id + 5.9);
+          float w = w0 * (1.0 - 0.65 * tc) + 0.05 * (vnoise(vec2(q.y * 3.0, id.x * 5.0)) - 0.5);
           float d = abs(q.x - x0 - 0.1 * (vnoise(vec2(q.y * 1.3, id.x)) - 0.5)) - w;
-          dark = max(dark, (1.0 - smoothstep(-fq.x, fq.x, d)) * ${WEATHER.grime.dark} * (1.0 - 0.55 * t));
+          // (its sides and ends antialiased over a pixel, its tone kept well over post.js's colour-edge threshold to
+          // its foot, and a streak whose head is under minPx wide (a wall seen edge-on) left out: a thin or faint streak's outline
+          // flickered as the camera moved; "Stable in motion", rendering.md)
+          float ends = smoothstep(-0.5, 0.5, t / ty) * (1.0 - smoothstep(-0.5, 0.5, (t - 1.0) / ty));
+          float wide = step(${WEATHER.grime.minPx.toFixed(2)} * uPixelRatio, 2.0 * w0 / max(fq.x, 1e-5));   // (by its head: whole or not at all)
+          dark = max(dark, (1.0 - smoothstep(-0.5 * fq.x, 0.5 * fq.x, d)) * ${WEATHER.grime.dark} * (1.0 - ${WEATHER.grime.taper} * tc) * ends * wide);
         }
       }
     }
@@ -1212,13 +1224,16 @@ const fragmentShader = /* glsl */ `
     float pn = vnoise(q * vec2(0.42, 0.55) + seed * 7.1) * 0.7 + vnoise(q * 1.9 + seed) * 0.3;
     float fpn = 0.9 * fm;   // (the field's gradient, about 1.05 a metre, times metres per px)
     float th = 1.0 - ${WEATHER.patches} * k;
-    float inside = step(th, pn);
+    // (the fill's edge a pixel wide, not a step: still a hard edge to post.js, but a speck of a chip fades in and out
+    // instead of blinking; the lip's shadow, a sliver, only while it is a few pixels wide)
+    float inside = smoothstep(th - 0.5 * fpn, th + 0.5 * fpn, pn);
     alb = mix(alb, alb * vec3(0.74, 0.68, 0.62), inside * rTone);
     ink = max(ink, inkLine(abs(pn - th) / max(fpn, 1e-5), 0.9) * 0.85 * resolved);
-    if (!lite && inside > 0.5 && litK > 0.0) {
+    float lipK = smoothstep(${WEATHER.chip.minPx[0].toFixed(2)} * uPixelRatio, ${WEATHER.chip.minPx[1].toFixed(2)} * uPixelRatio, ${WEATHER.chip.lip} / max(fm, 1e-5));
+    if (!lite && inside > 0.0 && litK > 0.0 && lipK > 0.0) {
       vec2 qs = q + sunD * ${WEATHER.chip.lip};
       float pl = vnoise(qs * vec2(0.42, 0.55) + seed * 7.1) * 0.7 + vnoise(qs * 1.9 + seed) * 0.3;
-      dark = max(dark, step(pl, th) * ${WEATHER.chip.dark} * litK * resolved);
+      dark = max(dark, (1.0 - smoothstep(th - 0.5 * fpn, th + 0.5 * fpn, pl)) * inside * ${WEATHER.chip.dark} * litK * resolved * lipK);
     }
     // ---- cracks: down from a storey's top or up from its foot, jagged, thinning, a branch now and
     // then; their shadow side a sliver darker (off the side away from the sun)
@@ -1237,7 +1252,7 @@ const fragmentShader = /* glsl */ `
       float fade = 1.0 - smoothstep(0.8, 1.0, t);
       ink = max(ink, inkLine(abs(dPx), wPx) * fade);
       float side = dPx * -sign(sunD.x);   // (the crack's far wall, from the sun)
-      dark = max(dark, step(wPx * 0.5, side) * step(side, wPx * 0.5 + 1.6) * 0.32 * fade * litK);
+      dark = max(dark, smoothstep(wPx * 0.5 - 0.5, wPx * 0.5 + 0.5, side) * (1.0 - smoothstep(wPx * 0.5 + 1.1, wPx * 0.5 + 2.1, side)) * 0.32 * fade * litK);   // (antialiased)
       float tb = 0.3 + 0.3 * hash(id + 9.4), sb = sAlong - tb * len;
       if (sb > 0.0 && sb < len * 0.35 && hash(id + 1.9) < 0.6) {
         float xb = x0 + lean * tb * len + (vnoise(vec2(tb * len * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + sign(hash(id + 6.6) - 0.5) * sb * 0.9 + (vnoise(vec2(sb * 6.0, id.x)) - 0.5) * 0.06;
@@ -1330,7 +1345,9 @@ const fragmentShader = /* glsl */ `
   float detailLod(vec2 q, vec2 fq, float k, float seed, bool organic) {
     float fm = max(max(fq.x, fq.y), 1e-6);
     float lv = max(log2(fm / (organic ? ${DETAIL.organic.base} : ${DETAIL.built.base})), 0.0);
-    float li = floor(lv), a = smoothstep(0.78, 1.0, lv - li);   // (the next level only in the last fifth: most pixels draw one)
+    // (the next level cross-faded in over the last half of a level: over a fifth, the pattern swapped in a few frames when
+    // riding or flying past, a pop; half the pixels draw one level; "Stable in motion", rendering.md)
+    float li = floor(lv), a = smoothstep(${(1 - DETAIL.blend).toFixed(2)}, 1.0, lv - li);
     float keep = 1.0 - smoothstep(${DETAIL.lods - 1}.0, ${DETAIL.lods}.0, lv);
     if (keep <= 0.0) return 0.0;
     float L = exp2(li);
@@ -1981,7 +1998,15 @@ const fragmentShader = /* glsl */ `
     // (a person's face is lit as one rounded volume, faceRound: the ink pass sees the same rounded
     // normals, so the low-poly face's facets draw no creases across it)
     float shadowPx = max(length(dFdx(vWorldPos)), length(dFdy(vWorldPos)));   // (outside the branch: derivatives)
+    float nTurn = length(fwidth(n));   // how fast the normal turns from pixel to pixel (a big smooth form: little; a stalk: a lot)
     float sh = ndl > 0.0 ? getShadow(shadowAt, n, ndl, shadowPx) * cloudShadow(vWorldPos) : 1.0;
+    // a big curved surface turning from the sun (a pipe, a tank, a trunk): within TERMINATOR of edge-on its own shadow
+    // map's grazing taps cut the light/shade line into teeth that crawl as the camera moves; there the line is the
+    // light's own (n·l), whole. Only where the form is large on screen (its normal turns slowly from pixel to pixel):
+    // a stalk or a twig keeps the map's shade, which holds it still. (Not the ground: a low sun's cast shadows stay;
+    // flat facets: FACET_EDGE.)
+    if (uMode != ${MODE_TERRAIN} && uFlat < 0.5)
+      sh = mix(sh, mix(1.0, sh, smoothstep(0.0, ${TERMINATOR}, ndl)), 1.0 - smoothstep(${TERMINATOR_TURN[0]}, ${TERMINATOR_TURN[1]}, nTurn));
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);
