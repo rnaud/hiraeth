@@ -1,0 +1,27 @@
+src/sand-drifts.js
+  s_55b4bc53b812ec::t_62d785e401a195 175,211,232-235,257-259,261
+src/wind.js
+  s_55b4bc53b812ec::t_e443eca5d3cb99 11-38,178-179,204
+src/world.js
+  s_55b4bc53b812ec::t_cb4b7ac57840f6 200
+tests/sand-drifts.test.js
+  s_55b4bc53b812ec::t_2518659a732b32 134-169
+tests/wind-ground.test.js
+  s_55b4bc53b812ec::t_f743356bf64bcf 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30f9d267dfb3bdb11c7eee0d3cfd84378a4131d8",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
