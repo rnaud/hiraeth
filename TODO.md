@@ -3,14 +3,24 @@
 Open work only. Finished items move to DONE.md (with how they were done); the changelog
 (src/changelog.js) says when they reached players.
 
+# Player decisions and menu redesign (2026-10-06)
+
+- [ ] Flying cabs are self-driving. Players ride seated inside the cab, not standing on its roof
+  or awning. Remove driver characters and references to human drivers; preserve usable boarding,
+  destination selection, travel and disembarking with the player correctly seated during the ride.
+  This answers the earlier question about where passengers should stand.
+- [ ] Replace the sketchbook interface with a game menu inspired by Ocarina of Time, with multiple
+  distinct panels and clear controller navigation. Include an Items panel showing collected items
+  and a Quests panel. Use the game's own visual style and assets.
+- [ ] Simplify the current quest presentation: show only the overall goal and the next actionable
+  step, updating as progress changes. Do not show the full quest log or accumulated history in the
+  current quest view. Apply this to the Quests panel and any current-quest summary shown in play.
+
 # Questions for the author
 
 - [ ] The push's rings and spray (RB / R1) were missing in every room off the map and are back
   (DONE.md). Were they also missing **outdoors**, in the open world? Nothing in the code says they
   were, and no one has seen it; if they were, that is a second bug and wants looking at.
-- [ ] A character standing on a flying cab floats: a cab's solid top is its awning's crest, 1.4 m
-  over the cab in the middle (`src/taxi.js` `get solid`). Should anyone be able to stand on a cab at
-  all? If yes, on the awning or on the cab's own roof?
 
 # Contact: what is left
 
@@ -123,6 +133,12 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
   sketchbook's keepsake pictures (the same capture path, JPEG, no isolate and no backdrop) also come
   out blank there? If they do it is the canvas read; if they do not it is something in the
   portrait-only path (`isolate`, the backdrop, `shrinkInto`).
+  Meanwhile two things are in place for it: `node scripts/portrait-check.mjs [--preset …] [--dpr …]`
+  measures the chip's image (a drawn person is hundreds of colours with no colour over about half;
+  an empty capture is one or none), and `captureView` now refuses a blank portrait, so the panel
+  falls back to the speaker's initial instead of showing an empty coloured disc. That fallback is
+  also the answer to the question: **if the Retroid now shows the initial letter in the circle, the
+  capture is coming back empty on the device** and the fault is the canvas read, not the framing.
 
 ## Android
 

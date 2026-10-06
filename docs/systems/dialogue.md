@@ -118,3 +118,23 @@ change is eased, a new angle is a cut (never a swing round the pair; docs/system
 cuts it. A thing whose `at` is only where you stand (the foot of the stone hand) passes the
 part to look at as `dialogue.start(def, null, at, look)`. While a conversation is open
 `player.faceToward` turns the traveller to the person or the thing.
+
+## The speaker's portrait, and when it comes back empty (October 2026)
+
+The circle at the panel's corner is a shot of whoever is speaking, alone against one flat colour of
+the world's (`src/story/index.js` `portrait`, `src/story/portrait-bg.js`, `main.js captureView` with
+`keep`, `backdrop` and `css`). `captureView` renders the frame and then reads the WebGL canvas with
+`drawImage`; the renderer has no `preserveDrawingBuffer`, and some drivers hand that read back empty.
+An empty portrait used to show as a flat disc of the world's backdrop with nobody in it (reported on
+the Retroid, in its own Chrome). `captureView` now measures a portrait before returning it — every
+pixel clear, or every pixel the same colour, means the capture came back empty — and returns nothing,
+so the panel falls back to the speaker's initial on their colour, as it does when there is no
+renderer at all.
+
+`node scripts/portrait-check.mjs [--level …] [--preset …] [--dpr …]` opens a world in a headless
+Chrome against the production build, talks to the four nearest people and measures each chip: a drawn
+person is hundreds of distinct colours with no colour over about half the pixels. On the Mac's GPU at
+the Handheld preset and device pixel ratio 2 — the device's preset and ratio, and the same Chrome
+version — the portraits draw. So the preset and the ratio are not the fault; what is left to suspect
+is the driver's canvas read. The fallback is also the test: if the circle on the device now shows the
+initial letter, the capture is coming back empty there.

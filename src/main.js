@@ -1238,7 +1238,25 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
   }
   camera.position.copy(_cp); camera.quaternion.copy(_cq); camera.up.copy(_cu);
   camera.updateMatrixWorld();
+  // A capture reads the WebGL canvas with drawImage, which some drivers hand back empty. An empty
+  // portrait is worse than none: the circle would show a flat disc of the world's backdrop with the
+  // person missing (the Retroid, TODO.md). Say so instead, and the panel falls back to the initial.
+  // (Portraits only: a comic panel of open sky is legitimately one colour.)
+  if (css && blankCapture(grabCanvas)) return null;
   return css ? grabCanvas.toDataURL('image/png') : grabCanvas.toDataURL('image/jpeg', 0.82);
+}
+/** Did the capture come back empty: every pixel clear, or every pixel the same colour? */
+function blankCapture(c) {
+  let d;
+  try { d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; } catch { return false; }   // (its own context, already made above)
+  const r0 = d[0], g0 = d[1], b0 = d[2];
+  let clear = true, flat = true;
+  for (let i = 0; i < d.length; i += 4 * 7) {   // (every seventh pixel: enough to tell a picture from a blank)
+    if (d[i + 3] > 8) clear = false;
+    if (Math.abs(d[i] - r0) > 4 || Math.abs(d[i + 1] - g0) > 4 || Math.abs(d[i + 2] - b0) > 4) flat = false;
+    if (!clear && !flat) return false;
+  }
+  return true;
 }
 
 // F: frame rate, frame time (and the CPU's and, where the browser can time it, the GPU's share),
