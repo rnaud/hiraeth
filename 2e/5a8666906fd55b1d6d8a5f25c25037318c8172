@@ -1,0 +1,61 @@
+changelog.md
+  s_55b4bc53b812ec::t_c10bd666857531 19
+docs/game-brief.md
+  s_55b4bc53b812ec::t_e7aa7d6b594cfb 130
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_0efbe9d302f6a3 89
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_1c7f7ebf47a45b 79-80
+docs/systems/cinematics.md
+  s_55b4bc53b812ec::t_20a1f569ba3e65 89
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_45e15494d4aa2d 254
+docs/systems/story.md
+  s_55b4bc53b812ec::t_8627e2bcca501c 125
+docs/systems/traveller-kit.md
+  s_55b4bc53b812ec::t_5d70619fdc4122 37-52
+lore/characters/traveller-design.md
+  s_55b4bc53b812ec::t_2f40afcadd8c5e 57-59
+scripts/unity-export/people.mjs
+  s_55b4bc53b812ec::t_f2b6c325c93693 175-176,182
+src/changelog.js
+  s_55b4bc53b812ec::t_04aca5c488c3ab 23
+src/characters/traveller-v1.js
+  s_55b4bc53b812ec::t_680a18049b47f9 55-57
+src/fluid-tool.js
+  s_55b4bc53b812ec::t_dd94ab27d11ad6 14-15,17,33,47-48,575-591,594,729,739,778-779,802,853-856,858-863,1072,1121-1124,1140-1142,1145-1148,1157
+src/hands.js
+  s_55b4bc53b812ec::t_c07bf1a1a2f201 8-9,42,48,121
+src/humanoid.js
+  s_55b4bc53b812ec::t_4153a4fcf65c8a 12,525,617,778-846
+src/player.js
+  s_55b4bc53b812ec::t_06803a511f7250 1977
+src/story/desert-moments.js
+  s_55b4bc53b812ec::t_d29476592eb20c 23,183,197
+src/traveller-style.js
+  s_55b4bc53b812ec::t_4e7ef3b25fc118 9-10
+src/traveller.js
+  s_55b4bc53b812ec::t_29b3305d629f26 399-506,512-513,750
+tests/abilities.test.js
+  s_55b4bc53b812ec::t_7bd417c5b0ba38 59,68,85
+tests/glove.test.js
+  s_55b4bc53b812ec::t_d70d81786d68e2 1-131
+tests/traveller.test.js
+  s_55b4bc53b812ec::t_da70745d595ad9 115,257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e5a8666906fd55b1d6d8a5f25c25037318c8172",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
