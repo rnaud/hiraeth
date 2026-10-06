@@ -7,8 +7,13 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 - [ ] Investigate the traveller's hands rotating while gliding; keep their pose and orientation
   appropriate to the glide instead of twisting unexpectedly.
-- [ ] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
+- [x] Fix the darkened shadows looking blocky and shifting as the camera moves. Shadows on stationary
   surfaces should remain stable when only the camera moves; verify while panning and moving the camera.
+  (Measured: moving only the camera changes no shadow map; the blockiness was the edge itself. The shadow
+  lookup is now a sliding tent filter, same taps, and its lit fraction is steepened about a half so the toon
+  cut keeps shadows their true size. The spot tier's darkening follows the shade's antialiased edge instead
+  of a hard step that crawled. Checked in the desert and Vael II on High and Handheld, panning, orbiting and
+  walking. The cost is within noise. docs/systems/rendering.md, "Smooth cast-shadow edges".)
 - [ ] Restore the missing visual effect when pushing objects with R1 (RB / R1 on the controller).
 - [ ] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
   standing and landing contact across all worlds, including moving platforms, so visible platform tops

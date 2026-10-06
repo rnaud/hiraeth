@@ -57,7 +57,7 @@ export const sharedUniforms = {
   // each cascade's texel in metres (fine, near, far): the filter widens to the pixel's
   // footprint where a texel is smaller than a pixel, instead of aliasing
   uShadowTexel: { value: new THREE.Vector3(0.0117, 0.107, 1.12) },
-  uShadowTaps: { value: 9 },      // PCF taps: 9 (a smooth 4x4-texel tent) or 4 (3x3, the handheld preset)
+  uShadowTaps: { value: 9 },      // PCF taps: 9 (a sliding 5x5-texel tent) or 4 (3x3, the handheld preset): shadows.js tentTaps
   uTime: { value: 0 },
   // the world's wind for the plants (flora.js sway): x, z downwind direction, strength (0 still,
   // 1 a fresh breeze, up to ~3 in a storm), gust 0..1 (main.js sets it from wind.js every frame)
@@ -129,6 +129,15 @@ export const FACET_EDGE = 0.03;
 export const TERMINATOR = 0.08;
 /** ...only on forms large on screen: the normal's turn per pixel (length of fwidth(n)) over which it is let go. */
 export const TERMINATOR_TURN = [0.02, 0.06];
+/**
+ * The shadow map's lit fraction steepened about a half (x3, clamped) before it shades: the toon threshold
+ * then cuts a cast shadow near its true edge (the filter's 0.5) whatever the surface's facing. Unsteepened,
+ * a sunny face cut it at 0.24, so a shadow shrank by most of the filter's width (and grew on a face turned
+ * half away); the filter couldn't widen to smooth the edge without eating small shadows away.
+ */
+export const SHADOW_CUT = 3;
+/** The steepening, as the shader does it (getShadow). */
+export const shadowCut = (s) => Math.min(1, Math.max(0, (s - 0.5) * SHADOW_CUT + 0.5));
 export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * Line weight and colour by material (post.js 1b; docs/systems/rendering.md, "The G-buffer's layout"): the sheets draw
@@ -753,36 +762,53 @@ const fragmentShader = /* glsl */ `
   // and shadows.js). "inside" fades out at each map's border so the hand-over
   // between cascades is a blend, not a seam.
   //  - the maps are depth textures with hardware comparison and linear
-  //    filtering: every tap is a bilinear 2x2 PCF, so edges move smoothly
-  //    with sub-texel precision instead of stepping texel by texel
+  //    filtering: every tap is a bilinear 2x2 PCF
+  //  - the taps are weighted by a tent that slides with the point inside its
+  //    texel (shadows.js tentTaps, Castano's filter from The Witness): 3x3
+  //    texels in 4 taps (handheld), 5x5 in 9. The lit fraction is then a smooth
+  //    function of the position, and the toon threshold cuts it along a smooth
+  //    curve. (A plain box of bilinear taps has a kink at every texel border:
+  //    the threshold drew the texel grid into every cast shadow's edge as steps,
+  //    worse where the spot tier darkens the shadow and the edge line inks it.)
   //  - normal offset and bias are in texels of each cascade (main.js sets
   //    them from the map size); the offset grows towards grazing light,
   //    where acne starts, and stays small facing the sun (no peter-panning)
   //  - where a texel is smaller than the pixel (far walls in the near
-  //    cascade, the handheld's low resolution) the taps spread to the
+  //    cascade, the handheld's low resolution) the tent spreads to the
   //    pixel's footprint: a filtered edge instead of shimmering texels
+  // one tap, o texels from the corner base (texel units), its distance from the point uv scaled by spread
+  // (about the point, on the map's own grid: a window moved by whole texels reads exactly the same)
+  float shadowTap(highp sampler2DShadow map, vec2 uv, vec2 base, vec2 o, vec2 inv, float spread, float z) {
+    return texture(map, vec3((uv + (base + o - uv) * spread) * inv, z));
+  }
   float sampleShadow(highp sampler2DShadow map, mat4 m, vec3 wp, vec3 n, float sinL, float off, float bias, float spread, out float inside) {
     vec4 sc = m * vec4(wp + n * (off * (0.35 + 0.65 * sinL)), 1.0);
     vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
     vec2 e = smoothstep(0.0, 0.06, p.xy) * (1.0 - smoothstep(0.94, 1.0, p.xy));
     inside = p.z > 1.0 ? 0.0 : e.x * e.y;
     if (inside <= 0.0) return 1.0;
-    vec2 texel = spread / vec2(textureSize(map, 0));
     float z = p.z - bias;
+    // the tent on the map's own texels (tentTaps): st, where the point lies past the nearest texel corner (0..1);
+    // where a texel is under the pixel the taps spread about the point (spread), the grid unchanged
+    vec2 inv = 1.0 / vec2(textureSize(map, 0));
+    vec2 uv = p.xy / inv, base = floor(uv + 0.5), st = uv + 0.5 - base;
+    base -= 0.5;
     if (uShadowTaps < 5.0) {
-      vec2 o = texel * 0.5;
-      return 0.25 * (texture(map, vec3(p.xy + vec2(-o.x, -o.y), z)) + texture(map, vec3(p.xy + vec2(o.x, -o.y), z))
-                   + texture(map, vec3(p.xy + vec2(-o.x, o.y), z)) + texture(map, vec3(p.xy + vec2(o.x, o.y), z)));
+      vec2 w0 = 3.0 - 2.0 * st, w1 = 1.0 + 2.0 * st;
+      vec2 o0 = (2.0 - st) / w0 - 1.0, o1 = st / w1 + 1.0;
+      return (w0.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o0.y), inv, spread, z) + w1.x * shadowTap(map, uv, base, vec2(o1.x, o0.y), inv, spread, z))
+            + w1.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o1.y), inv, spread, z) + w1.x * shadowTap(map, uv, base, vec2(o1.x, o1.y), inv, spread, z))) / 16.0;
     }
-    float s = 0.0;
-    for (int x = -1; x <= 1; x++)
-      for (int y = -1; y <= 1; y++)
-        s += texture(map, vec3(p.xy + vec2(x, y) * texel, z));
-    return s / 9.0;
+    vec2 w0 = 4.0 - 3.0 * st, w2 = 1.0 + 3.0 * st;
+    vec2 o0 = (3.0 - 2.0 * st) / w0 - 2.0, o1 = (3.0 + st) / 7.0, o2 = st / w2 + 2.0;
+    float s = w0.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o0.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o0.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o0.y), inv, spread, z));
+    s += 7.0 * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o1.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o1.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o1.y), inv, spread, z));
+    s += w2.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o2.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o2.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o2.y), inv, spread, z));
+    return s / 144.0;
   }
 
   // ndl: light facing (> 0); px: the pixel's footprint in metres
-  float getShadow(vec3 wp, vec3 n, float ndl, float px) {
+  float shadowLit(vec3 wp, vec3 n, float ndl, float px) {
     float iF, i0, i1;
     float sinL = sqrt(max(1.0 - ndl * ndl, 0.0));
     vec3 spread = clamp(vec3(px) / uShadowTexel, 1.0, 2.5);
@@ -794,6 +820,10 @@ const fragmentShader = /* glsl */ `
       s0 = mix(mix(1.0, s1, i1), s0, i0);
     }
     return mix(s0, sF, iF);
+  }
+  // the lit fraction steepened about its half (SHADOW_CUT): the toon threshold cuts the shadow at its true edge
+  float getShadow(vec3 wp, vec3 n, float ndl, float px) {
+    return clamp((shadowLit(wp, n, ndl, px) - 0.5) * ${SHADOW_CUT.toFixed(1)} + 0.5, 0.0, 1.0);
   }
 
   // Cloud shadows: the ground point is projected along the light onto a cloud

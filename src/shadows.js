@@ -40,6 +40,23 @@ export function snapLightSpace(ls, texel, zStep, out = new THREE.Vector3()) {
 }
 
 /**
+ * The shadow lookup's filter along one axis (mirrors materials.js sampleShadow): a tent over 3 texels
+ * (taps 4: two bilinear taps per axis) or 5 (taps 9: three), that slides with the point. `st` (0..1) is
+ * where the point lies past the nearest texel corner. Returns the taps as { o, w }: o in texels from
+ * (that corner - 0.5), w the weight (they sum to 1). Each bilinear comparison tap reads two texels in
+ * the ratio its fraction says, so every texel's weight changes continuously as the point moves, across
+ * texel borders too: no jump in the lit fraction for the toon threshold to turn into a step.
+ */
+export function tentTaps(st, taps = 9) {
+  if (taps < 5) {
+    const w0 = 3 - 2 * st, w1 = 1 + 2 * st;
+    return [{ o: (2 - st) / w0 - 1, w: w0 / 4 }, { o: st / w1 + 1, w: w1 / 4 }];
+  }
+  const w0 = 4 - 3 * st, w2 = 1 + 3 * st;
+  return [{ o: (3 - 2 * st) / w0 - 2, w: w0 / 12 }, { o: (3 + st) / 7, w: 7 / 12 }, { o: st / w2 + 2, w: w2 / 12 }];
+}
+
+/**
  * One cascade. Bias and normal offset are given in texels (so a smaller map,
  * the handheld preset's, scales them with its bigger texels).
  * uniforms: { map, matrix, bias, offset } shared uniform objects.
