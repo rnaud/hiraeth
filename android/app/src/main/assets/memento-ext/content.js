@@ -5,7 +5,9 @@
 //   - window.Capacitor: isNativePlatform() and nativePromise(plugin, method, args), answered by
 //     the app (AppShell.java: info, check, download, restart, openApk);
 //   - window.__nativePad(name, axes, buttons), called with the handheld's controls (GamepadBridge);
-//   - DOM events from the app: moebius:pause, moebius:resume, moebius:webupdate (with its detail).
+//   - DOM events from the app: moebius:pause, moebius:resume, moebius:webupdate (with its detail);
+//     window.__moebiusAway follows pause / resume, and an event sent with an id is answered once
+//     the page has handled it (MainActivity waits for the pause's answer before deactivating).
 // The app may ask whether the page has booted (window.__moebiusBooted: WebBundles' watchdog), and
 // hears when the saves copied from the WebView have been written (AssetServer's import script).
 const PAGE = `(() => {
@@ -17,6 +19,9 @@ const PAGE = `(() => {
   window.addEventListener('memento:pad', (e) => { const [id, axes, buttons] = JSON.parse(e.detail); window.__nativePad?.(id, axes, buttons); });
   window.addEventListener('memento:event', (e) => {
     const [name, detail] = JSON.parse(e.detail);
+    // (kept for the page's guard, src/audio-guard.js: a page that starts while the app is away stays silent)
+    if (name === 'moebius:pause') window.__moebiusAway = true;
+    else if (name === 'moebius:resume') window.__moebiusAway = false;
     window.dispatchEvent(detail == null ? new Event(name) : new CustomEvent(name, { detail }));
   });
   window.Capacitor = {
@@ -38,6 +43,10 @@ window.addEventListener('memento:imported', (e) => port.postMessage({ imported: 
 port.onMessage.addListener((m) => {
   if (m.pad) window.dispatchEvent(new CustomEvent('memento:pad', { detail: JSON.stringify([m.pad.id, m.pad.axes, m.pad.buttons]) }));
   else if (m.reply) window.dispatchEvent(new CustomEvent('memento:reply', { detail: JSON.stringify(m.reply) }));
-  else if (m.event) window.dispatchEvent(new CustomEvent('memento:event', { detail: JSON.stringify([m.event, m.detail ?? null]) }));
+  else if (m.event) {
+    // (dispatched synchronously: the page's handlers have run, its sound suspended, when the answer goes)
+    window.dispatchEvent(new CustomEvent('memento:event', { detail: JSON.stringify([m.event, m.detail ?? null]) }));
+    if (m.id) port.postMessage({ answer: m.id, value: true });
+  }
   else if (m.ask === 'booted') port.postMessage({ answer: m.id, value: window.wrappedJSObject.__moebiusBooted === true });
 });

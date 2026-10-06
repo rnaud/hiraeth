@@ -78,15 +78,17 @@ test('in the app: the update toast shows once, not again on the next world', asy
   assert.equal(newer.toasts.length, 1, 'a newer download is told again');
 });
 
-test('in the app: sound pauses with the app and comes back', async () => {
+test('in the app: the pad starts the sound, but not while the app is away (src/audio-guard.js, tests/audio-guard.test.js)', async () => {
   const a = fakeApp({ native: 2, app: 12, web: 12, bundle: false, ready: 0 });
   a.win.dispatchEvent(new Event('moebius:pause'));
+  a.win.dispatchEvent(new Event('nativepadconnected'));   // (the pad's reset as the app leaves)
   a.win.document.hidden = true; a.win.document.dispatchEvent(new Event('visibilitychange'));
   a.win.dispatchEvent(new Event('moebius:resume'));   // (still hidden: wait for the page to show)
+  a.win.dispatchEvent(new Event('nativepadconnected'));
   a.win.document.hidden = false; a.win.document.dispatchEvent(new Event('visibilitychange'));
   a.win.dispatchEvent(new Event('nativepadconnected'));
   await tick();
-  assert.deepEqual(a.log, ['suspend', 'suspend', 'resume', 'start']);
+  assert.deepEqual(a.log, ['start']);
   assert.equal(a.label.textContent, 'web build 12 (built in) · app 12');
 });
 

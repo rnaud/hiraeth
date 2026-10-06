@@ -1,7 +1,14 @@
 package com.rnaud.moebius;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -10,6 +17,7 @@ import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -34,11 +42,18 @@ import org.json.JSONObject;
 // APK; it looks for one at launch and each time the app comes back to the front);
 // APK updates for native changes come from GitHub releases (Updater); the game's
 // own updates from its site (WebBundles.MANIFEST).
-// Leaving the app pauses the page (rendering, sound); coming back restores it.
+// Leaving the app (onPause, onStop, the screen turning off) tells the page first (moebius:pause:
+// its guard, src/audio-guard.js, suspends every sound), then, once the script has run or after
+// MainActivity.PAUSE_WAIT_MS, pauses the WebView and its timers; coming back restores it.
 public class WebViewActivity extends BridgeActivity {
+    private static final String TAG = "MoebiusWebView";
     private GamepadBridge pad;
     private static long renderGoneAt;
     WebBundles bundles;
+    private final Handler ui = new Handler(Looper.getMainLooper());
+    private BroadcastReceiver screen;
+    private boolean away, resumed, pausing;
+    private final Runnable deactivate = this::deactivateNow;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +65,12 @@ public class WebViewActivity extends BridgeActivity {
         bridgeBuilder.addWebViewListener(new WebViewListener() {
             @Override
             public void onPageStarted(WebView webView) { bundles.onPageStarted(); }
+
+            @Override
+            public void onPageLoaded(WebView webView) {
+                // a page that loaded while the app is away: silent too
+                if (away) webView.evaluateJavascript(PAUSE_JS, null);
+            }
 
             @Override
             public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
@@ -87,28 +108,88 @@ public class WebViewActivity extends BridgeActivity {
         hideSystemBars();
         pad = new GamepadBridge(web);
         new Updater(this, bundles).check();   // (the APK dialog; the game's update check runs in onResume)
+
+        // the screen turning off pauses the game even where a device doesn't pause the app for it
+        screen = new BroadcastReceiver() {
+            @Override public void onReceive(Context c, Intent i) {
+                if (Intent.ACTION_SCREEN_OFF.equals(i.getAction())) goAway("screen off");
+                else if (resumed && away && hasWindowFocus()) comeBack("screen on");
+            }
+        };
+        IntentFilter f = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+        f.addAction(Intent.ACTION_SCREEN_ON);
+        f.addAction(Intent.ACTION_USER_PRESENT);
+        ContextCompat.registerReceiver(this, screen, f, ContextCompat.RECEIVER_NOT_EXPORTED);
+    }
+
+    static final String PAUSE_JS = "window.__moebiusAway=true;window.dispatchEvent(new Event('moebius:pause'));true";
+    static final String RESUME_JS = "window.__moebiusAway=false;window.dispatchEvent(new Event('moebius:resume'));true";
+
+    /**
+     * Home, the recents, the power button, sleep: let go of the controls, tell the page (its sound
+     * stops), then pause the WebView once the script has run. Once only, whichever of onPause,
+     * onStop and the screen-off broadcast comes first.
+     */
+    void goAway(String why) {
+        if (getBridge() == null || away) return;
+        away = true;
+        Log.i(TAG, "away (" + why + ")");
+        if (pad != null) pad.reset();
+        bundles.onPause();
+        pausing = true;
+        getBridge().getWebView().evaluateJavascript(PAUSE_JS, (v) -> deactivateNow());
+        ui.postDelayed(deactivate, MainActivity.PAUSE_WAIT_MS);   // (a page that doesn't answer)
+    }
+
+    /** the page has handled moebius:pause (or didn't in time): the WebView and its timers pause */
+    private void deactivateNow() {
+        ui.removeCallbacks(deactivate);
+        if (!pausing || !away || getBridge() == null) return;
+        pausing = false;
+        WebView web = getBridge().getWebView();
+        web.onPause();
+        web.pauseTimers();
+    }
+
+    /** Back on the screen: the WebView and its timers run again, the page is told (its sound comes back). */
+    void comeBack(String why) {
+        if (getBridge() == null) return;
+        if (away) Log.i(TAG, "back (" + why + ")");
+        away = pausing = false;
+        ui.removeCallbacks(deactivate);
+        hideSystemBars();
+        WebView web = getBridge().getWebView();
+        web.resumeTimers();
+        web.onResume();
+        web.evaluateJavascript(RESUME_JS, null);
+        bundles.onResume();
     }
 
     @Override
     public void onPause() {
-        // home, the recents, the power button: let go of the controls, tell the page (sound stops) and pause it
-        if (getBridge() != null) {
-            if (pad != null) pad.reset();
-            getBridge().getWebView().evaluateJavascript("window.dispatchEvent(new Event('moebius:pause'))", null);
-            getBridge().getWebView().onPause();
-            bundles.onPause();
-        }
+        resumed = false;
+        goAway("pause");
         super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        goAway("stop");   // (the same, where a device stops the app without pausing it first)
+        super.onStop();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (getBridge() == null) return;
-        hideSystemBars();
-        getBridge().getWebView().onResume();
-        getBridge().getWebView().evaluateJavascript("window.dispatchEvent(new Event('moebius:resume'))", null);
-        bundles.onResume();
+        resumed = true;
+        comeBack("resume");
+    }
+
+    @Override
+    public void onDestroy() {
+        ui.removeCallbacks(deactivate);
+        if (screen != null) { try { unregisterReceiver(screen); } catch (IllegalArgumentException ignored) { } }
+        super.onDestroy();
     }
 
     @Override

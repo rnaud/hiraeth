@@ -8,7 +8,9 @@ import './menus.css';
 import { installNativePad, watchLabels } from './native-pad.js';
 import { opensTitle } from './save-slots.js';
 import { applyReadyUpdate } from './native-app.js';
+import { audioGuard } from './audio-guard.js';
 
+audioGuard();         // (before any sound: silent while the app is away, from the title screen on)
 installNativePad();   // (the Android handheld's controls, for the title screen too)
 watchLabels();
 if (opensTitle(location.search)) {

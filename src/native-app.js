@@ -10,12 +10,13 @@
 //   on the next launch, and applyReadyUpdate() (src/boot.js) applies it the next
 //   time the title screen opens (nothing is running yet there).
 // - Pause and resume: the app sends moebius:pause / moebius:resume (and the
-//   page turns hidden, which stops the frame loop); the sound is suspended
-//   meanwhile and comes back after the screen unlocks. On a handheld nothing
-//   reaches the page as a key or a click, so the sound also starts on the
-//   first controller input.
+//   page turns hidden, which stops the frame loop); src/audio-guard.js keeps
+//   every sound silent meanwhile, whatever asks for it, and brings it back on
+//   return. On a handheld nothing reaches the page as a key or a click, so the
+//   sound also starts on the first controller input (not while away).
 
 import { nativePad } from './native-pad.js';
+import { audioGuard, audioAway } from './audio-guard.js';
 
 const shell = (win) => (win?.Capacitor?.isNativePlatform?.() && win.Capacitor.nativePromise ? win.Capacitor : null);
 const ask = (win, method) => shell(win)?.nativePromise('AppShell', method).catch(() => null) ?? Promise.resolve(null);
@@ -120,14 +121,10 @@ export function installAppShell({ sound, label = () => null, toast = () => {} } 
   refresh();
   win.addEventListener('moebius:webupdate', refresh);
 
-  // sound: off while the app is away, back on return (also after unlocking the screen)
-  const ctx = () => (sound?.ctx && sound.ctx.state !== 'closed' ? sound.ctx : null);
-  const away = () => { ctx()?.suspend?.().catch?.(() => {}); };
-  const back = () => { if (!win.document.hidden) ctx()?.resume?.().catch?.(() => {}); };
-  win.addEventListener('moebius:pause', away);
-  win.addEventListener('moebius:resume', back);
-  win.document.addEventListener('visibilitychange', () => (win.document.hidden ? away() : back()));
-  win.addEventListener('nativepadconnected', () => sound?.start?.());
+  // sound: off while the app is away and back on its return (src/audio-guard.js, installed
+  // before any sound; it also holds Sound.start() below while away)
+  audioGuard(win);
+  win.addEventListener('nativepadconnected', () => { if (!audioAway(win)) sound?.start?.(); });
   if (nativePad()) sound?.start?.();   // (the controller was already used during the loading screen)
   return { refresh, info: () => info };
 }
