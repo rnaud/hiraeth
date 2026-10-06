@@ -1,0 +1,75 @@
+TODO.md
+  s_35804a64f516af::t_bd23b209b7caa3 22,24-31,37,39-44
+changelog.md
+  s_35804a64f516af::t_46a643afaef285 21-22
+docs/README.md
+  s_35804a64f516af::t_16e7fa277bb8c7 31
+docs/systems/dev-tools.md
+  s_35804a64f516af::t_d65f18bd0bdd27 58-60
+docs/systems/movement.md
+  s_35804a64f516af::t_c894d96574a7ea 20-62
+docs/systems/worlds.md
+  s_35804a64f516af::t_ffcfcd61f0adbd 225-228
+src/carriers.js
+  s_35804a64f516af::t_8762bb612b0eac 1-42
+src/changelog.js
+  s_35804a64f516af::t_c369ec60674266 25-26
+src/contact-audit.js
+  s_35804a64f516af::t_2ac1de4dfc1be3 1-259
+src/desert-landmarks.js
+  s_35804a64f516af::t_caf72f244957c4 472-474,477-480
+src/feet.js
+  s_35804a64f516af::t_0b182d53f098b7 105,111-112
+src/levels/arzach2.js
+  s_35804a64f516af::t_de4f2752a9cba1 53-54,188-192,195,205,254,262,268,276,282,310,329,332,345-347,354,487-490,574-575,581
+src/levels/lab-rooms.js
+  s_35804a64f516af::t_30effdbf5e230b 356,359
+src/levels/perdide2.js
+  s_35804a64f516af::t_3d83bb82bfccca 259,288-290,509
+src/levels/spheres.js
+  s_35804a64f516af::t_6e2e6c88c68dfb 257-259,357-358,372-374
+src/locomotion.js
+  s_35804a64f516af::t_500d715c173f1a 116-120,123-124
+src/main.js
+  s_35804a64f516af::t_d953230c0e929e 1614-1622
+src/player.js
+  s_35804a64f516af::t_d4bc6c748f4748 15,1156-1158,1344,1363-1366
+src/temples/arzach2.js
+  s_35804a64f516af::t_33664b86692dd3 110,124,143,146,222-223,232
+src/temples/buried.js
+  s_35804a64f516af::t_88b0081a76193b 215-216
+src/temples/kit.js
+  s_35804a64f516af::t_660a649244693f 124-126,168-170,172-173,236,257,282-283
+src/temples/perdide2.js
+  s_35804a64f516af::t_bd66e51bafb98b 214-215
+src/temples/pieces.js
+  s_35804a64f516af::t_03881c208db13e 153-154,169-170,179,1092-1093,1095
+tests/arzach2.test.js
+  s_35804a64f516af::t_8772d3302b4cbd 72-73
+tests/contact-audit.test.js
+  s_35804a64f516af::t_9200ac4e834a60 1-218
+tests/desert-landmarks.test.js
+  s_35804a64f516af::t_5667679d1cd79a 50-51
+tests/perdide2.test.js
+  s_35804a64f516af::t_61724510008e55 77-78
+tests/spheres.test.js
+  s_35804a64f516af::t_4b24e7511805b5 95-96
+tests/story-arzach2.test.js
+  s_35804a64f516af::t_28814547958591 101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0c68b867145b08b756cbf7915f1c410353a6e5e7",
+  "prompts": {},
+  "sessions": {
+    "s_35804a64f516af": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f765a71d-1875-41c8-b8f3-3df78affbe5a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
