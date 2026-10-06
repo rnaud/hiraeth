@@ -501,9 +501,21 @@ fluid tool's shot and the drone at the start:
 (`scripts/unity-js-run.sh <name> -play tool,drone -out …` plays the second; the views with `-views`.)
 
 What still differs: the Signal Market's façades lack the web's newer surface marks (the port's
-Surface shader predates them), and its light pillar; the web's grass blades (flora-grass.js) and wind
-streaks (wind.js) are not built in the VM; the web wakes the answering flowers by the traveller's
-nearness sooner; some of the web's people are MakeHuman bodies the bridge does not load yet.
+Surface shader predates them), and its light pillar; the web's grass blades and wind streaks are not
+drawn; the web wakes the answering flowers by the traveller's nearness sooner; some of the web's
+people are MakeHuman bodies the bridge does not load yet.
+
+**The grass and the wind, looked into** (2026-10-06). *Building* the blades in the VM is one line in
+`engine/game.js` (`buildGrass` beside `buildFlora`, `grass.update(camera)` in the frame), and it
+works: the Garden of Spheres builds its two grass meshes inside Puerts. *Drawing* them is the port's
+side: `Grass` (src/flora-grass.js) is a plain `THREE.Mesh` carrying `geometry.instanceCount` and a
+per-instance `aGrass` vec4, and `engine/mirror.js` describes a plain mesh as a plain mesh — only an
+`InstancedMesh` gets a `capacity` — so Unity draws one blade at the origin and the field is
+invisible. It wants a mirror kind and a Surface variant of its own, as `MEMENTO_INSTMAT` and
+`MEMENTO_CROWD` are. The one-line VM change was taken out again meanwhile, so the VM does not pay
+for blades nothing draws. The wind streaks are not scene geometry at all: `src/wind.js` is a
+screen-space overlay drawn over the composite from a scene of its own, so they belong to the port's
+look and not to the mirror.
 
 ## Players (Unity + Puerts, next stage 4)
 

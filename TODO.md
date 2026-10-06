@@ -134,6 +134,11 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 
 ## The Unity bridge
 
+(Verified running on 2026-10-06: `scripts/unity-js-setup.sh` then
+`scripts/unity-js-run.sh <name> -level <id> -views scripts/bench/viewpoints.json -out <dir>` plays a
+world in the Unity editor through Puerts and saves a PNG a viewpoint; the desert was ready in the VM
+1.2 s after launch, the Garden of Spheres 0.8 s.)
+
 The C# port's own game logic is retired in favour of the JS bridge (2026-10-06: Unity + Puerts chosen;
 the game's JS runs in Unity, which only draws: docs/systems/engine-bridge.md). Its stages 1–4 are done
 (DONE.md): the cheaper scene sync, the platform layer, sound, the tool, the drone, weather, life,
@@ -142,7 +147,18 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
 
 - [ ] The Signal Market's façades lack the web's newer surface marks (the port's Surface shader
   predates them), and its light pillar.
-- [ ] The web's grass blades (flora-grass.js) and wind streaks (wind.js) are not built in the VM.
+- [ ] The web's grass blades (flora-grass.js) and wind streaks (wind.js) are not drawn. Looked into
+  (2026-10-06, the bridge run and shot in `output/engine-bridge/unity-grass*/`): **building** the
+  blades in the VM is one line in `engine/game.js` (`buildGrass` beside `buildFlora`, then
+  `grass.update(camera)` in the frame) and it works — the Garden of Spheres builds its two grass
+  meshes in Puerts. **Drawing** them is the port's: `Grass` is a plain `THREE.Mesh` carrying
+  `geometry.instanceCount` and a per-instance `aGrass` vec4, which `engine/mirror.js` describes as
+  an ordinary mesh (`capacity` is only read off an `InstancedMesh`), so Unity draws one blade at the
+  origin and the field is invisible. It wants a mirror kind and a Surface variant of its own, as
+  `MEMENTO_INSTMAT` and `MEMENTO_CROWD` are. The one-line VM change was reverted meanwhile, so the
+  VM does not pay for blades nothing draws. The wind streaks are not scene geometry at all: `wind.js`
+  is a screen-space overlay drawn over the composite from a scene of its own, so they belong to the
+  port's look, not to the mirror.
 - [ ] The web wakes the answering flowers by the traveller's nearness sooner.
 - [ ] Some of the web's people are MakeHuman bodies the bridge does not load yet.
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
