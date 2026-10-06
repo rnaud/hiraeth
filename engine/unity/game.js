@@ -3,7 +3,7 @@
 // Surface shader and materials, MementoLook), the keys and pads from Unity's Input System.
 // BridgeRunner.cs loads this bundle and calls start(args) once and frame(dt) every frame; a batch
 // run (BridgeBatch.cs, scripts/unity-export/unity-batch.sh BridgeBatch.Run) passes its plan in args.
-import { pads, host } from './host.js';
+import { pads, host, toHost } from './host.js';
 import { createGame } from '../game.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
@@ -107,7 +107,7 @@ function pumpAudio(game) {
   const want = Math.floor(ctx.sampleRate * AUDIO_AHEAD) - host.AudioQueued();
   if (want >= 128) {
     const pcm = ctx.render(want);
-    if (pcm.length) host.Audio(pcm.buffer);
+    if (pcm.length) host.Audio(toHost(pcm.buffer));
   }
   S.audioMs += now() - t0;
 }

@@ -40,6 +40,18 @@ test('automation: ramps, targets and set values land where the spec says', () =>
   assert.equal(f.frequency.value, 800);
 });
 
+test('a target set every frame keeps one event, and lands where it should', () => {
+  const ctx = new AudioContext({ sampleRate: 48000 });
+  const g = ctx.createGain(); g.gain.value = 0;
+  const o = ctx.createOscillator(); o.connect(g).connect(ctx.destination); o.start(0);
+  for (let f = 0; f < 600; f++) { g.gain.setTargetAtTime(0.5, ctx.currentTime, 0.05); ctx.render(800); }
+  assert.ok(g.gain.events.length <= 2, `${g.gain.events.length} events`);
+  assert.ok(Math.abs(g.gain.value - 0.5) < 1e-3, `${g.gain.value}`);
+  g.gain.setValueAtTime(0.1, ctx.currentTime); g.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.1);
+  ctx.render(9600);
+  assert.ok(Math.abs(g.gain.value - 0.3) < 1e-6 && g.gain.events.length === 1, 'a ramp that has ended is its value');
+});
+
 test('a filter takes out what it should', () => {
   const ctx = new AudioContext({ sampleRate: 48000 });
   const hi = ctx.createOscillator(), f = ctx.createBiquadFilter();

@@ -13,6 +13,8 @@ export class UnityBackend {
   /** @param host  the C# side: CS.Memento.Bridge.BridgeHost (or a stand-in in the tests) */
   constructor(host) {
     this.host = host;
+    // (an IL2CPP player takes buffers boxed, { b }: BridgeHost.BoxBuffers)
+    this.toHost = host.BoxBuffers?.() ? (b) => ({ b }) : (b) => b;
     this.geoms = new Map();    // gid → the mirror's geometry (uploaded per variant when a node needs it)
     this.sent = new Set();     // the variants sent: `${gid}:${colours}:${bind}`
     this.sentGids = new Set(); // (and the geometries they come from)
@@ -36,7 +38,7 @@ export class UnityBackend {
       const g = this.geoms.get(gid);
       if (!g) return null;
       const buf = unityGeometry(g, { colors, bind, rig });
-      this.host.Geometry(key, buf);
+      this.host.Geometry(key, this.toHost(buf));
       this.sent.add(key); this.sentGids.add(gid);
       this.stats.geometries++; this.stats.bytes += buf.byteLength;
     }
@@ -170,7 +172,7 @@ export class UnityBackend {
     const buf = this.w.take();
     this.stats.frames++; this.stats.commandBytes = buf.byteLength;
     const t0 = performance.now();
-    this.host.Frame(buf);
+    this.host.Frame(this.toHost(buf));
     this.stats.hostMs += performance.now() - t0;   // (the call: Puerts' marshalling and the C# apply)
   }
 

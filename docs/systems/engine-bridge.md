@@ -466,8 +466,9 @@ In Unity `BridgeAudio.cs` holds a ring of float stereo, played by Unity's audio 
 0.12 s ahead (`host.AudioQueued`, `host.Audio(pcm)`). In batch runs, and with `-mute` on a player's
 command line, nothing reaches Unity's audio: the ring is drained on the main thread at the output rate
 and its level logged (`Memento bridge: sound {…, "rms": …}`; the desert's start: 0.01–0.04, 1–2
-underruns at the load). Its cost in the VM: 0.4 ms a frame at the start, 1.2–2.0 with the camps' voices
-and the wind (a machine under load). The timers the sound's scheduler wants (`setInterval`) are
+underruns at the load). Its cost in the VM: 0.2–0.6 ms a frame in the macOS player (the music, the
+wind, the camps' voices), once the automation a parameter has had folds into one event as it passes (the
+game sets its targets every frame: unfolded, thousands piled up and the cost grew to 3 ms). The timers the sound's scheduler wants (`setInterval`) are
 `engine/platform.js`'s where the VM has none, run from the frame.
 
 **On the Unity side**, what the port already had, fed from the same objects:
@@ -504,6 +505,59 @@ Surface shader predates them), and its light pillar; the web's grass blades (flo
 streaks (wind.js) are not built in the VM; the web wakes the answering flowers by the traveller's
 nearness sooner; some of the web's people are MakeHuman bodies the bridge does not load yet.
 
+## Players (Unity + Puerts, next stage 4)
+
+`BridgeBuild.cs` builds the bridge's scene alone with the bundle and the characters it loads
+(public/anim/*.glb into StreamingAssets/memento-js/public), the bridge's own package name
+(`com.rnaud.memento.bridge`):
+
+```sh
+node scripts/engine-bundle.mjs unity                              # the bundle first: a build takes StreamingAssets as they are
+scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp            # once: Puerts' IL2CPP glue into Assets/Gen (not committed)
+scripts/unity-export/unity-batch.sh BridgeBuild.Mac               # IL2CPP ARM64: Builds/bridge-macOS/Memento JS.app
+scripts/unity-export/unity-batch.sh BridgeBuild.Linux -mono       # the Steam Deck's: Linux x86_64, Vulkan: Builds/bridge-linux/
+scripts/unity-export/unity-batch.sh BridgeBuild.Android           # IL2CPP ARM64, Vulkan then GLES3, debug key: Builds/bridge-android/memento-js.apk
+scripts/unity-js-player.sh bench -views scripts/bench/viewpoints.json -bench 6 -split -out output/engine-bridge/player-mac
+```
+
+A player takes its plan from its command line (`BridgeArgs.cs`: the batch run's arguments, a relative
+path from the shell's directory) and `-limit secs`; `-mute` keeps it silent (the script passes it).
+Under IL2CPP:
+- Puerts 3.0.3 wants its IL2CPP glue generated ("Minimal Bridge, Reflection Mode"), and the glue calls
+  il2cpp's `Object::Unbox`, which Unity 6.6's il2cpp no longer has: `BridgeBuild.Il2cpp` generates it
+  and patches those calls to the object's raw data;
+- an IL2CPP player hands a JS value typed `object` over as a ScriptObject, not as an ArrayBuffer: the
+  script boxes its buffers (`{ b }`, `BridgeHost.BoxBuffers`) and `JsRuntime.Bytes` reads the buffer out
+  as Puerts' ArrayBuffer (`ScriptObject.Get<ArrayBuffer>`);
+- `link.xml` keeps Puerts' assemblies and the bridge whole; StreamingAssets inside an APK are read
+  through UnityWebRequest (`StreamingFile`).
+
+What came out (Unity 6000.6.4f1, an M-series Mac):
+
+| player | size | its start |
+|---|---|---|
+| macOS, IL2CPP ARM64 | 163 MB (V8 56, GameAssembly 42, UnityPlayer 29, data 30) | the bundle running 2.4 s after launch, the world ready 1.7 s later |
+| Linux x86_64, Mono (the Deck's) | 133 MB, 46 MB as a .tar.gz | built, not run (no Linux machine; Linux IL2CPP from a Mac wants Unity's Linux sysroot package) |
+| Android, IL2CPP ARM64 | 58 MB APK (149 MB unpacked: libil2cpp 55, libunity 30, V8 18, the bundle 6.7) | in an emulator of its own (Android 15, arm64, software GPU): installed in 14 s; the bundle running 5.5 s after launch, the world ready 9.8 s later, the desert drawn |
+
+The macOS player against the web game in Chrome at the same views, back to back (1280 × 720, the
+web's High preset at render scale 1; the player's frame is uncapped), medians in ms, the player's
+script share in brackets (the game's update, the mirror, the sound); the machine was busy (load
+24–40), so these are a comparison, not a benchmark:
+
+| view | the player | web |
+|---|---|---|
+| spawn | 6.8 (4.2: 1.7, 1.9, 0.4) | 6.4 |
+| qanat-tree | 9.4 (7.4: 4.9, 2.0, 0.4) | 7.8 |
+| camps | 11.0 (8.4: 5.4, 2.3, 0.6) | 8.5 |
+| dunes | 4.1 (2.3: 1.0, 1.0, 0.2) | 3.2 |
+| cave | 4.1 (2.3: 1.1, 1.0, 0.3) | 2.7 |
+
+The player is within 6–30 % of the web at the busy views and 1–1.5 ms behind at the quiet ones; the
+difference is the game's own update (5.4 ms at the camps in Puerts' V8, the same modules) and the
+mirror, which the web does not pay. The C# apply is 0.1–0.3 ms. The Android numbers on a
+device wait for the Retroid.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
@@ -517,3 +571,4 @@ nearness sooner; some of the web's people are MakeHuman bodies the bridge does n
 - **Unity, stage 2 (the platform layer, the HUD and conversations in uGUI)**: above.
 - **Unity, stage 3 (the rest of the picture and the play: sound, life, weather, the tool and the
   drone, lights, motes, prints)**: above.
+- **Unity, stage 4 (players: macOS, Linux, Android)**: above.

@@ -21,6 +21,15 @@ namespace Memento.Bridge
         public static void Material(int mid, string json) => R?.Material(mid, json);
         public static void Create(int id, string json) => R?.Create(id, json);
         public static void SetMesh(int id, string key) => R?.SetMesh(id, key);
+        /// <summary>Does the script box its buffers ({ b: buffer })? In an IL2CPP player Puerts hands an `object` over as a ScriptObject.</summary>
+        public static bool BoxBuffers()
+        {
+#if ENABLE_IL2CPP
+            return true;
+#else
+            return false;
+#endif
+        }
         public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Frame(b, n); }
         public static void Look(string json) => Runner?.Look(json);
         /// <summary>What the screen shows (src/platform.js screen), when it changed: BridgeHud draws it.</summary>
@@ -38,8 +47,8 @@ namespace Memento.Bridge
         {
             foreach (var root in Runner ? Runner.PublicRoots() : new string[0])
             {
-                var p = Path.Combine(root, path);
-                if (File.Exists(p)) return JsRuntime.ToScript(File.ReadAllBytes(p));
+                var b = StreamingFile.Read(Path.Combine(root, path));
+                if (b != null) return JsRuntime.ToScript(b);
             }
             return null;
         }

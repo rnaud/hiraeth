@@ -47,8 +47,16 @@ export class AudioParam {
   /** The value at time t (the spec's timeline: each event from the value and time the one before left). */
   at(t) {
     const E = this.events;
-    // (what is wholly past goes: an event whose successor has ended holds nothing more)
-    while (E.length > 1 && E[1].t <= t && E[1].type !== 'target') E.shift();
+    // what is past folds into the first event (the game sets its targets every frame: thousands would pile up):
+    // once the next event has begun, the one before only says what value it began from (`_v`, the value
+    // standing before the first event)
+    while (E.length > 1 && E[1].t <= t) {
+      const a = E[0], b = E[1];
+      const v = a.type === 'target' ? a.v + (this._v - a.v) * Math.exp(-(b.t - a.t) / a.tc) : a.v;
+      E.shift();
+      if (b.type === 'target') this._v = v;
+      else E[0] = { type: 'set', t: b.t, v: b.v };   // (a set, or a ramp that has reached its value)
+    }
     let v = this._v, tp = -Infinity, target = null;
     for (let i = 0; i < E.length; i++) {
       const e = E[i];
