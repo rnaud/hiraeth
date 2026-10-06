@@ -74,11 +74,11 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   const file = join(tmpdir(), `memento-engine-unity-${process.pid}.js`);
   await bundle('unity', { out: [file] });
   const calls = { Geometry: 0, Material: 0, Create: 0, Frame: 0, Look: 0, bytes: 0 };
-  let lastFrame = null, look = null;
+  let lastFrame = null, look = null, screenJson = null;
   const BridgeHost = {
     Now: () => performance.now(), ReadFile: null, StorageGet: () => null, StorageSet() {}, StorageRemove() {},
     Geometry(key, buf) { calls.Geometry++; calls.bytes += buf.byteLength; }, Material() { calls.Material++; }, Create() { calls.Create++; }, SetMesh() {},
-    Frame(buf) { calls.Frame++; lastFrame = buf; }, Look(json) { calls.Look++; look = json; },
+    Frame(buf) { calls.Frame++; lastFrame = buf; }, Look(json) { calls.Look++; look = json; }, Screen(json) { calls.Screen = (calls.Screen ?? 0) + 1; screenJson = json; }, ApplyMs: () => 0,
     Keys: () => (calls.Frame > 3 ? 'KeyW' : ''), Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
   };
   const { exports, readFile } = loadBundle(file, {}, { CS: { Memento: { Bridge: { BridgeHost } } } });
@@ -93,6 +93,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
   assert.ok(calls.Create > 50 && calls.Material > 5 && calls.Geometry > 20, JSON.stringify(calls));
   assert.ok(JSON.parse(look).hours[0].skyTop.length === 3, 'the look in the port\'s format');
+  assert.ok(calls.Screen >= 1 && 'dialogue' in JSON.parse(screenJson), 'the screen\'s state for the HUD');
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;

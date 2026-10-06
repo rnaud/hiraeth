@@ -23,6 +23,8 @@ namespace Memento.Bridge
         public static void SetMesh(int id, string key) => R?.SetMesh(id, key);
         public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Frame(b, n); }
         public static void Look(string json) => Runner?.Look(json);
+        /// <summary>What the screen shows (src/platform.js screen), when it changed: BridgeHud draws it.</summary>
+        public static void Screen(string json) { if (Runner && Runner.hud) Runner.hud.Set(json); }
 
         // ---------------------------------------------------------------- the platform
         public static double Now() => Time.realtimeSinceStartupAsDouble * 1000;

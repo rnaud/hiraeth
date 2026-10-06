@@ -1,3 +1,4 @@
+import { page, screen } from '../platform.js';
 import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
 import { pickTwoShot, pickLookShot, pullIn } from './shot.js';
@@ -279,7 +280,7 @@ export class Dialogue {
     this.clock = 0;          // s, while open (the mouths' syllables are timed on it)
     this._mouth = [];        // syllables being said: { at, dur, open, who: 'npc' | 'player' }
     this.answer = null;      // the traveller's spoken answer: { tone, until }
-    this.el = typeof document !== 'undefined' ? document.getElementById('dialogue') : null;
+    this.el = page.byId('dialogue');
     this._eye = new THREE.Vector3(); this._look = new THREE.Vector3(); this._eyeC = new THREE.Vector3(); this._q = new THREE.Quaternion();
     this._m = new THREE.Matrix4();
     if (this.el) {
@@ -294,7 +295,7 @@ export class Dialogue {
         if (b) this.choose(+b.dataset.i);
         else if (e.target.closest('.dlg-panel')) this.next();
       });
-      window.addEventListener('keydown', (e) => {
+      page.on('keydown', (e) => {
         if (!this.open || e.repeat) return;
         if (e.code === 'Escape') { e.stopImmediatePropagation(); this.close(); return; }
         const n = Number(e.key);
@@ -303,7 +304,7 @@ export class Dialogue {
           if (performance.now() - this.openedAt < 250) return;   // the press that opened it
           e.preventDefault();
           // Enter / E on a focused choice picks it; otherwise finish the line, then turn the page
-          const f = document.activeElement;
+          const f = page.activeElement();
           if (f?.dataset?.i !== undefined && this.el.contains(f) && this.revealed >= this.runner.text.length) this.choose(+f.dataset.i);
           else this.next();
         }
@@ -352,8 +353,8 @@ export class Dialogue {
         if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
       } catch { /* no sketch */ }
       this.el.classList.add('open');
-      document.body.classList.add('talking');
-      document.exitPointerLock?.();
+      page.bodyClass('talking', true);
+      page.exitPointerLock();
       this.render();
     }
     return true;
@@ -392,7 +393,8 @@ export class Dialogue {
     this.blend = 0;   // and cuts back to the follow camera, which has kept its place behind the traveller all along
     this.closedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.el?.classList.remove('open');
-    if (typeof document !== 'undefined') document.body.classList.remove('talking');
+    page.bodyClass('talking', false);
+    screen.set('dialogue', null);
     this.game.emit('dialogue:end', { npc: this.npc, id: this.person.id });
     this.quests?.opened?.();   // (the quest this talk opened says so now)
     this.onClose(this.person, this.npc);
@@ -414,6 +416,7 @@ export class Dialogue {
   }
 
   render() {
+    this.publish();
     if (!this.el) return;
     const r = this.runner, full = r.text;
     const plan = this.voicePlan();
@@ -431,10 +434,21 @@ export class Dialogue {
     const html = choices.map((c, k) => choiceHtml(c, k)).join('');
     if (box.dataset.html !== html) {
       box.innerHTML = html; box.dataset.html = html;
-      if (choices.length && document.body.classList.contains('controller')) box.querySelector('button')?.focus();
+      if (choices.length && page.hasBodyClass('controller')) box.querySelector('button')?.focus();
     }
     // a small mark at the panel's corner when the line is done and the next press turns the page
     this.el.classList.toggle('more', done && !choices.length);
+  }
+
+  /** The panel as data (platform.js screen.dialogue): an engine draws its own from it; the page's is render(). */
+  publish() {
+    const r = this.runner, full = r.text, n = Math.floor(this.revealed), done = this.revealed >= full.length;
+    const choices = done ? r.choices() : [], p = this.person;
+    screen.set('dialogue', {
+      name: p.name, title: p.title ?? '', color: p.color ?? '#d8a24a', speaker: r.speaker ?? 'npc',
+      text: full, shown: n, done, more: done && !choices.length,
+      choices: choices.map((c) => ({ text: c.text, tone: c.tone ?? null, index: c.index })),
+    });
   }
 
   /** Per frame: reveal text, voice blips, keep the speaker turned to you. */

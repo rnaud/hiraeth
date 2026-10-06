@@ -8,6 +8,7 @@
 //     while it is short (main.js, ui.js ToolHud), each lingering a moment (Fader);
 //   - the objective: the scout finds it (Q, Y / △: src/scout.js), the menu's Quests page lists it.
 import { badgeLine, escapeHtml } from './prompt-keys.js';
+import { page, screen } from './platform.js';
 
 /** A ride's controls show for this long after you get on (ms), then go. */
 export const RIDE_HINT_MS = 6000;
@@ -82,10 +83,32 @@ export class Fader {
   get on() { return this.left > 0; }
 }
 
-/** The cue's element (index.html #cue): set only when the line changes; fades in and out. */
+/**
+ * The health bar's state this frame (index.html #health; an engine draws it from platform.js screen):
+ * shown while hurt or down and the fader's linger after, or null. `hurt`: a hurt or a knockdown just
+ * now (shows it at once).
+ */
+export function healthHud({ health = 1, down = false, hurt = false, quiet = false } = {}, fader, dt) {
+  if (hurt) fader.update(0, true);
+  const on = fader.update(dt, health < 0.999 || !!down) && !quiet;
+  return on ? { value: +health.toFixed(3), low: health < 0.3 } : null;
+}
+
+/**
+ * The stamina wheel's state (index.html #stamina): while it isn't full and a moment after (`shown`,
+ * the seconds left, carried by the caller), red while winded; null when hidden.
+ */
+export function staminaHud({ stamina = 1, winded = false, quiet = false } = {}, shown) {
+  const k = Math.min(Math.max(stamina ?? 1, 0), 1);
+  const on = shown > 0 && !quiet;
+  return on ? { value: +k.toFixed(3), winded: !!winded } : null;
+}
+
+/** The cue's element (index.html #cue): set only when the line changes; fades in and out. Its state goes to platform.js screen.cue. */
 export class Cue {
-  constructor(el = typeof document !== 'undefined' ? document.getElementById('cue') : null) { this.el = el; this.text = ''; this.kind = ''; }
+  constructor(el = page.byId('cue')) { this.el = el; this.text = ''; this.kind = ''; }
   set(text, kind = '') {
+    screen.set('cue', text ? { text, kind } : null);
     if (!this.el) return;
     if (text && (text !== this.text || kind !== this.kind)) {
       // (the place name is a plain line; a prompt badges its button: native-pad.js renames it in place)

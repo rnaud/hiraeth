@@ -110,22 +110,46 @@ bundle, before the game's modules load (some touch the page as they load), and r
 | `matchMedia`, `devicePixelRatio`, `location`, `history`, `URL` | perf.js, ui.js, main.js (`?level=`), reference levels (`new URL(…, import.meta.url)`) | **shim**: no media matches, `location.search` from the host |
 | WebAssembly | none (three-mesh-bvh is plain JS) | |
 
-### A platform layer for the web game (proposed)
+### The platform layer (`src/platform.js`)
 
-Today `engine/` composes the game's modules itself (the level, physics, the player and the camera
-rig: what `main.js` does at load), so the web game needs no change for the spike or the desert. To
-run *everything* `main.js` runs, it would be split, in small steps each with its tests:
+One module for what the game's modules reach for on the page, so the same code runs on the web and
+in an engine:
+- `page`: `byId`, `on` (a window listener; returns its remover), `bodyClass`, `exitPointerLock`,
+  `activeElement`; nothing (null, a no-op) without a page;
+- `store`: localStorage behind a try (the settings in ui.js, the mute in audio.js, the changelog's
+  seen version, motion matching's switch);
+- `input.pads()`, `audio.context()`;
+- `screen`: **what the HUD shows, as data**, each part null or a plain object, with a `version` that
+  moves when a part changes: `cue` (hud.js `Cue`), `toast` (ship/cinema.js as one goes up),
+  `prompt` (story/index.js `placePrompt`: the text, the key, where it floats in the world),
+  `health` and `stamina` (hud.js `healthHud` / `staminaHud`, the rules main.js draws by, now shared),
+  `dialogue` (story/dialogue.js `publish`: name, title, colour, the line, how much is revealed,
+  the answers), `choice` (the answer a pad has picked, in an engine).
 
-1. `src/platform/page.js`: one module that owns `document` / `window` access (the HUD's elements by
-   id, adding and removing listeners, pointer lock, fullscreen), imported where the 29 modules
-   reach for `document` now; the web's version is today's code, the engines' records the HUD's
-   state (text, shown / hidden) for an engine-side HUD.
-2. `src/platform/input.js`: the keys and pads as one source (today main.js's `input` proxy and
-   `Controller`'s `pads`); the engines feed it.
-3. `src/platform/audio.js`: `Sound` behind an interface the engines implement with recorded
-   samples first (scripts/unity-export/record-sounds.mjs already records every effect and score).
-4. `main.js` split into the game loop (platform-free: what `frame(dt)` runs) and the web shell
-   (renderer, passes, panel); the engine entries then run the same loop.
+The web draws as before (the modules set their part as they draw; `tests/platform.test.js`,
+`tests/hud.test.js`); in the engine the page is engine/platform.js's stand-in and the engine draws
+from `screen`. Left on the page for now: the menus (ui.js SettingsMenu, the sketchbook, the star
+map, cards), the floating speech balloons, the scout's line.
+
+**In Unity** (`BridgeHud.cs`): the bundle sends `screen.state` when its version moves, and the HUD
+draws it in uGUI with the C# port's own pieces and layout (Hud.cs, Ui.cs: the paper, the ink, the
+fonts, the notebook panel with its name tag and chip, the answers); the conversation itself (who
+speaks, the reveal, the answers, what an answer does) is the web's `Dialogue` and `DialogueRunner`,
+fed the engine's keys as the page's events (E, Space, 1–9, Escape) and its pad through
+`Controller`'s talk context. engine/game.js runs E as main.js does (`storyRt.update` with
+`ePressed`, the traveller held while busy, the two-shot through `frameCamera`, the cue by
+`cueText`, the toasts queued for their reading time). A batch run: `-talk ama` walks up to someone
+and photographs the conversation.
+
+| web (three.js) | Unity + Puerts (the same conversation, the port's uGUI) |
+|---|---|
+| ![](../engine-bridge/web-talk.jpg) | ![](../engine-bridge/unity-talk.jpg) |
+| ![](../engine-bridge/web-prompt.jpg) | ![](../engine-bridge/unity-prompt.jpg) |
+
+(No portrait in the chip yet: the web shoots one with its renderer; the initial on their colour
+stands in.) Two traps met on the way: the canvas has to stay beyond the near plane the game's
+camera sets each frame (on it, the HUD was clipped away), and the dynamic font's letters are put
+in its texture at once (`Warm`: added one by one, they dropped out of a frame).
 
 ## Costs
 
@@ -346,7 +370,7 @@ What it would take to ship each:
 - **The Deck**: *Godot*: the Linux template (V8). *Unity*: a Linux player with Puerts'
   `libPapiV8.so`. (The web build already runs there in Electron.)
 - **Both**: the HUD, menus and conversations (today the page's: a platform layer and an engine UI,
-  "A platform layer for the web game" above), sound (recorded samples first), the parts of
+  "The platform layer" above), sound (recorded samples first), the parts of
   main.js the entry doesn't run yet (the fluid tool, the drone, weather, wildlife, the ship's
   scenes).
 
@@ -422,3 +446,4 @@ own matrices 0.50, the walk 0.86, the bones 0.18, the C# apply 0.85; the game's 
   own ink look (above).
 - **Stage 4, the comparison**: above.
 - **Unity, stage 1 (a cheaper sync)**: above.
+- **Unity, stage 2 (the platform layer, the HUD and conversations in uGUI)**: above.

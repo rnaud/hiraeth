@@ -20,6 +20,7 @@ namespace Memento.Bridge
         {
             public GameObject go; public string kind, mesh; public int[] mids; public MeshFilter mf; public Renderer r;
             public SkinnedMeshRenderer smr; public Transform[] bones; public Mesh inst; public bool shadow;
+            public Matrix4x4 bind; public string bindKey; public int nb;   // (a mesh on a shared skeleton: its bind pose)
         }
 
         public Camera cam;
@@ -125,16 +126,10 @@ namespace Memento.Bridge
                 // the skeleton's shared bones (world matrices); the mesh's bind matrix as every bone's bind pose
                 int nb = d.I("bones");
                 var bl = d.L("bind");
-                var bind = new Matrix4x4();
-                for (int i = 0; i < 16; i++) bind[i % 4, i / 4] = Json.Num(bl[i]);
-                var bkey = n.mesh + "|" + string.Join(",", bl);
-                if (!bound.TryGetValue(bkey, out var bm))
-                {
-                    bm = Instantiate(md.mesh); bm.name = md.mesh.name + " (bound)";
-                    var bp = new Matrix4x4[nb]; for (int i = 0; i < nb; i++) bp[i] = bind;
-                    bm.bindposes = bp;
-                    bound[bkey] = bm;
-                }
+                n.bind = new Matrix4x4();
+                for (int i = 0; i < 16; i++) n.bind[i % 4, i / 4] = Json.Num(bl[i]);
+                n.bindKey = string.Join(",", bl); n.nb = nb;
+                var bm = Bound(n.mesh, md, n);
                 n.bones = null;
                 n.smr = n.go.AddComponent<SkinnedMeshRenderer>();
                 var bones = Skeleton(d.I("skeleton"), nb);
@@ -169,10 +164,23 @@ namespace Memento.Bridge
             nodes[id] = n;
         }
 
+        /// <summary>The mesh with this node's bind matrix as every bone's bind pose (one per mesh and bind, shared).</summary>
+        Mesh Bound(string key, MeshData md, Node n)
+        {
+            var bkey = key + "|" + n.bindKey;
+            if (bound.TryGetValue(bkey, out var bm) && bm) return bm;
+            bm = Instantiate(md.mesh); bm.name = md.mesh.name + " (bound)";
+            var bp = new Matrix4x4[n.nb]; for (int i = 0; i < n.nb; i++) bp[i] = n.bind;
+            bm.bindposes = bp;
+            bound[bkey] = bm;
+            return bm;
+        }
+
         public void SetMesh(int id, string key)
         {
             if (!nodes.TryGetValue(id, out var n) || !meshes.TryGetValue(key, out var md)) return;
             n.mesh = key;
+            if (n.smr && n.bindKey != null) { n.smr.sharedMesh = Bound(key, md, n); return; }
             if (n.smr) { if (md.bones != n.bones.Length) { var bp = new Matrix4x4[n.bones.Length]; for (int i = 0; i < bp.Length; i++) bp[i] = Matrix4x4.identity; md.mesh.bindposes = bp; md.bones = bp.Length; } n.smr.sharedMesh = md.mesh; }
             else if (n.mf && n.kind != "instanced") n.mf.sharedMesh = md.mesh;
         }

@@ -33,6 +33,9 @@ import { applyTimeOfDay, colourScript } from '../src/timeofday.js';
 import { EDGE_HINTS } from '../src/edge.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { SceneMirror } from './mirror.js';
+import { screen } from '../src/platform.js';
+import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud } from '../src/hud.js';
+import { toastSeconds } from '../src/quest.js';
 import { selfLitSkips } from '../src/shadows.js';
 import { plainValue } from './ink-spec.js';
 
@@ -105,6 +108,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   }
   // the story's people and places (story/index.js), as the exporter builds it (build-world.mjs): its
   // conversations and pages are the page's, so they are left out; its people stand and move
+  // the toasts, one at a time for their reading time (as ship/cinema.js shows them on the page)
+  const toasts = { queue: [], left: 0 };
+  const toast = (text) => { if (text && toasts.queue.at(-1) !== text) toasts.queue.push(String(text)); };
+  player.onNotice = toast;
   let story = null;
   if (people && humans && lib) {
     const journal = { sections: [], el: { addEventListener() {} }, seen: () => false, storyDone: () => false, markSeen() {}, relicCount: () => 0, render() {} };
@@ -112,7 +119,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     try {
       gameState.data.flags['prologue.done'] = true;
       story = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: { complete() {}, start() {}, done: false, waitFor: null },
-        capture: null, lib, humans, toast: () => {}, tool: null, isNight: () => false, ship, drone: () => null }));
+        capture: null, lib, humans, toast, tool: null, isNight: () => false, ship, drone: () => null }));
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
   stamp('people');
@@ -145,15 +152,58 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const keys = {};
   const tapped = new Set();
   const latched = () => { const o = { ...keys }; for (const k of tapped) o[k] = true; tapped.clear(); return o; };
+  // a conversation's answer picked with the pad (the page focuses a button; here: an index, screen.choice)
+  const talk = { sel: 0 };
+  const dialogue = () => story?.dialogue ?? null;
+  const talking = () => !!dialogue()?.open;
   const controller = new Controller({
     pads: () => navigator.getGamepads?.() ?? [],
-    context: () => (player.ride ? 'ride' : 'game'),
+    context: () => (talking() ? 'talk' : player.ride ? 'ride' : 'game'),
     look: (x, y) => { if (x || y) rig.look(x, y); },
-    action: (name, dt) => { if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60); },
-    navigate: () => {}, scroll: () => {},
+    action: (name, dt) => {
+      if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
+      const d = dialogue();
+      if (!d?.open) return;
+      if (name === 'back') d.close();
+      if (name === 'confirm') {
+        const c = screen.state.dialogue?.choices ?? [];
+        if (c.length && screen.state.dialogue.done) d.choose(c[Math.min(talk.sel, c.length - 1)].index); else d.next();
+        talk.sel = 0;
+      }
+    },
+    navigate: (x, y) => { const n = screen.state.dialogue?.choices?.length ?? 0; if (n) talk.sel = Math.max(0, Math.min(n - 1, talk.sel + y)); },
+    scroll: () => {},
   });
 
   const noInput = {};
+  let eWasDown = false;
+  // the HUD's state, as main.js draws it (src/platform.js screen): the cue line, the floating prompt,
+  // the toasts, the health bar and the stamina wheel
+  const cue = new Cue(), placeName = new PlaceName(), hpFade = new Fader(3);
+  const rideHint = { kind: null, at: 0 };
+  let stShown = 0;
+  const _w = new THREE.Vector3();
+  function hud(dt, busy) {
+    const nowMs = performance.now();
+    if (player.ride) { if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = nowMs; } } else rideHint.kind = null;
+    const pad = controller.index !== null;
+    const quiet = busy || player.dead || !!pinned;
+    const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: nowMs - rideHint.at, prompt: story?.prompt, promptAt: story?.promptAt, boarding: player.boarding, controller: pad });
+    const place = quiet ? '' : placeName.update(atmo?.name, nowMs);
+    cue.set(text || place, text ? '' : 'place');
+    if (story && !busy && !pinned) story.placePrompt?.(camera, pad); else screen.set('prompt', null);
+    // toasts: the next once the last has been read
+    toasts.left -= dt;
+    if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
+    if (toasts.left < -6) screen.set('toast', null);
+    screen.set('health', healthHud({ health: player.health ?? 1, down: player.down, quiet: !!pinned }, hpFade, dt));
+    const k = Math.min(Math.max(player.stamina ?? 1, 0), 1);
+    stShown = k < 0.995 || player.winded ? 0.9 : Math.max(0, stShown - dt);
+    const st = staminaHud({ stamina: k, winded: player.winded, quiet: quiet || !!player.ride || !!player.down }, stShown);
+    _w.setFromMatrixColumn(camera.matrixWorld, 0);
+    screen.set('stamina', st && { ...st, at: _w.multiplyScalar(0.62).add(player.object?.position ?? player.pos).addScaledVector(player.frame.up, 1.75).toArray().map((v) => +v.toFixed(2)) });
+    screen.set('choice', talking() ? talk.sel : null);
+  }
   // who casts a shadow (main.js renderFrame, shadows.js): everything but the level's noShadow list, the
   // traveller's gear's, and what lights itself
   const noShadow = new Set();
@@ -176,7 +226,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const game = {
     scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, sky, post, T,
-    key(code, down) { if (down) tapped.add(code); keys[code] = down; },
+    key(code, down) {
+      if (down) tapped.add(code);
+      const was = keys[code];
+      keys[code] = down;
+      // and as the page's events, for the modules that listen to the window (a conversation's E, Space, 1–9, Escape)
+      if (down !== was) page.dispatch(down ? 'keydown' : 'keyup', { code, key: /^Digit\d$/.test(code) ? code.slice(5) : code === 'Space' ? ' ' : code, repeat: false });
+    },
+    /** What the screen shows (src/platform.js screen): the engine draws it when `version` moves. */
+    screen: () => screen,
     /** A pointer delta (pixels), as the mouse turns the camera on the page. */
     look(dx, dy) { rig.look(dx, dy); },
     pin(v) { pinned = v ? pin(v) : null; },
@@ -205,9 +263,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       sharedUniforms.uTime.value = simT;
       crowd?.update(dt, simT, player, camera);
       for (const n of npcs) n.update(dt, player, camera);
-      if (story) { try { story.update(dt, simT, { camera, ePressed: false, paused: false }); } catch (e) { if (!story.failed) log('story update failed', e?.message ?? e); story.failed = true; } }
+      // E goes to the nearest person or thing first (story/index.js, interact.js), as main.js does
+      const ePressed = !!ctl.KeyE && !eWasDown && !pinned; eWasDown = !!ctl.KeyE;
+      let handled = false;
+      if (story) { try { handled = story.update(dt, simT, { camera, ePressed, paused: false }).handled; } catch (e) { if (!story.failed) log('story update failed', e?.message ?? e); story.failed = true; } }
+      if (handled) player._eHeld = true;
+      const busy = !!story?.busy?.();
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
-      player.update(dt, pinned ? noInput : ctl, rig.yaw, rig.pitch);
+      player.update(dt, pinned || busy ? noInput : ctl, rig.yaw, rig.pitch);
       if (pinned) {
         // a fixed view: the traveller stands (idle), the camera is pinned to the eye
         camera.position.copy(pinned.eye); camera.quaternion.copy(pinned.q);
@@ -217,7 +280,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
         rig.down = !!player.down;
         rig.update(player.pos, dt, player.frame);
+        story?.frameCamera?.(camera);   // the two-shot while talking
       }
+      hud(dt, busy);
       level.update?.(dt, simT, { player, rig, camera, passage: null, fade: () => {} });
       // (the ship stands at its site: its scenes, inside and its console want the story's journal and the page: ship.attach)
       const tB = performance.now();

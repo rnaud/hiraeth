@@ -51,6 +51,7 @@ namespace Memento.EditorTools
             if (outDir != null) args["out"] = Path.GetFullPath(outDir).Replace('\\', '/');
             if (Arg("-bench") != null) args["bench"] = double.Parse(Arg("-bench"), System.Globalization.CultureInfo.InvariantCulture);
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-split") >= 0) args["split"] = true;
+            if (Arg("-talk") != null) args["talk"] = Arg("-talk");
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), System.Globalization.CultureInfo.InvariantCulture);
             if (!File.Exists(ScenePath)) BuildScene();
             EditorSettings.enterPlayModeOptionsEnabled = true;

@@ -1,3 +1,4 @@
+import { page, screen } from '../platform.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { Quests, QuestMarker } from './quests.js';
@@ -219,7 +220,7 @@ export function createStory(o) {
     return moved;
   }
 
-  const promptEl = typeof document !== 'undefined' ? document.getElementById('prompt') : null;
+  const promptEl = page.byId('prompt');
   // (looked up when needed: the touch controls are built after the story)
   let useBtn = null;
   const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
@@ -278,9 +279,12 @@ export function createStory(o) {
     /** The floating "E talk to Ama" tag, over whoever it's for. */
     placePrompt(camera, controller = false) {
       if (!promptEl) return;
-      if (!rt.prompt || !rt.promptAt) { promptEl.classList.remove('show'); return; }
+      if (!rt.prompt || !rt.promptAt) { promptEl.classList.remove('show'); screen.set('prompt', null); return; }
+      const at = rt.promptAt.toArray().map((v) => +v.toFixed(2));   // (before projecting: the vector may be shared)
       _p.copy(rt.promptAt).project(camera);
       const on = _p.z < 1 && Math.abs(_p.x) < 1.05 && Math.abs(_p.y) < 1.05;
+      // (as data too, platform.js screen.prompt: where it floats, in the world)
+      screen.set('prompt', on ? { text: rt.prompt, key: controller ? 'B / ○' : 'E', at } : null);
       if (on) {
         const key = controller ? 'B / ○' : 'E', text = `${key} ${rt.prompt}`;
         // (the button as a round badge; native-pad.js renames it in place, it rewrites text nodes)

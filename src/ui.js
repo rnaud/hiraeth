@@ -1,3 +1,4 @@
+import { store } from './platform.js';
 import { VERSION } from './changelog.js';
 import { confirmKey, backKey } from './native-pad.js';
 import { slotStorage } from './save-slots.js';
@@ -30,14 +31,14 @@ const DEFAULTS = {
 export class Settings {
   constructor() {
     let saved = {};
-    try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) ?? {}; } catch { /* ignore */ }
+    try { saved = JSON.parse(store.get(SETTINGS_KEY)) ?? {}; } catch { /* ignore */ }
     Object.assign(this, DEFAULTS, migrateSettings(saved));
     this.listeners = [];
   }
   save() {
     const out = {};
     for (const k of Object.keys(DEFAULTS)) out[k] = this[k];
-    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(out)); } catch { /* ignore */ }
+    store.set(SETTINGS_KEY, JSON.stringify(out));
   }
   set(k, v) { this[k] = v; this.save(); for (const f of this.listeners) f(k, v); }
   on(f) { this.listeners.push(f); f(null); }

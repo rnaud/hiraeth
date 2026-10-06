@@ -45,6 +45,18 @@ function makePlan(args) {
     if (args.bench) steps.push({ kind: 'measure', view: v, secs: args.bench });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-${v.name}.png` });
   }
+  if (args.talk) {
+    // walk up to someone (args.talk: their id, or 'any'), press E, and photograph the conversation as it goes
+    steps.push({ kind: 'approach', who: args.talk }, { kind: 'wait', frames: 20 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-prompt.png` });
+    steps.push({ kind: 'key', code: 'KeyE', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyE', down: false }, { kind: 'wait', frames: 30 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-talk.png` });
+    steps.push({ kind: 'wait', frames: 240 });
+    for (let k = 0; k < 3; k++) {
+      steps.push({ kind: 'key', code: 'Space', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Space', down: false }, { kind: 'wait', frames: 240 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-talk-${k + 2}.png` });
+    }
+  }
   if (args.walk) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-walk.png` });
@@ -77,6 +89,9 @@ export function frame(dt) {
   // (the look moves with the hour and the place: read every 4th frame is enough)
   if (S.frames % 4 === 0) backend.look(JSON.stringify(portLook(game.fullLook())));
   S.lookMs = (S.lookMs ?? 0) + now() - tL;
+  // the HUD's state when it changed (src/platform.js screen: BridgeHud draws it in uGUI)
+  const scr = game.screen();
+  if (scr.version !== S.screenV) { S.screenV = scr.version; host.Screen(JSON.stringify(scr.state)); }
   const tB = now();
   const lastT = S.lastT; S.lastT = tA;
   S.frames++;
@@ -86,6 +101,19 @@ export function frame(dt) {
   const next = () => { P.i++; P.wait = 0; P.t = 0; };
   if (step.kind === 'pin') { game.pin(step.view); next(); }
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
+  else if (step.kind === 'approach') {
+    const people = game.npcs.filter((n) => n.def && !n.pooled);
+    const n = people.find((x) => x.def.id === step.who) ?? people[0];
+    if (n) {
+      const V = n.pos.constructor, dir = new V(Math.sin(n.heading ?? 0), 0, Math.cos(n.heading ?? 0));
+      const p = n.pos.clone().addScaledVector(dir, 1.6);
+      game.player.teleport(p, new V(0, 1, 0), new V(0, 0, 1));
+      game.player.heading = Math.atan2(n.pos.x - p.x, n.pos.z - p.z);
+      game.rig.yaw = game.player.heading + Math.PI;
+      console.log(`[unity] beside ${n.def.id}`);
+    }
+    next();
+  }
   else if (step.kind === 'wait') { if (++P.wait >= step.frames) next(); }
   else if (step.kind === 'measure') {
     if (!P.samples) { game.mirror.profiling = !!S.args.split; game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }

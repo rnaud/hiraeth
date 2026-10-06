@@ -2,6 +2,7 @@
 // from the settings menu; after an update a note points you to it once.
 // Add an entry at the top for every release.
 
+import { store } from './platform.js';
 import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
@@ -688,13 +689,13 @@ export class Changelog {
     });
     this.onOpen = onOpen;
     let seen = null;
-    try { seen = localStorage.getItem(SEEN_KEY); } catch { /* ignore */ }
+    seen = store.get(SEEN_KEY);
     this.fresh = seen !== VERSION;      // updated since your last visit
   }
 
   /** This version's notes count as seen: the "Updated to …" toast shows once, not on every world. */
   markSeen() {
-    try { localStorage.setItem(SEEN_KEY, VERSION); } catch { /* ignore */ }
+    store.set(SEEN_KEY, VERSION);
     this.fresh = false;
   }
 

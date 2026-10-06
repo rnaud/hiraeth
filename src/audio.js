@@ -9,6 +9,7 @@
 // tune: 'play' (their own ostinato), 'near' (someone is listening: they pick
 // up the world's melody), 'feast' (the holy event: double-time and claps).
 
+import { store } from './platform.js';
 import { bindVoice, languageOf } from './story/voice.js';
 import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
 import { playVoice, playColour, hit } from './score-voices.js';
@@ -165,7 +166,7 @@ export class Sound {
     this.voice = { lead: S.pal.lead, pluck: S.pal.pluck, ambience: AMBIENCE[levelId] ?? 'wind', melody: S.motif };
     this.act = { ...CALM_ACT };   // what you are doing, eased (update): the score follows it
     this.ctx = null;
-    this.muted = localStorage.getItem('moebius.muted') === '1';
+    this.muted = store.get('moebius.muted') === '1';
     this.musicVol = 0.8;
     this.fxVol = 1.0;
     // the mumbled alien voices (src/story/voice.js plans them, speak() sings them)
@@ -365,7 +366,7 @@ export class Sound {
 
   toggleMute() {
     this.muted = !this.muted;
-    localStorage.setItem('moebius.muted', this.muted ? '1' : '0');
+    store.set('moebius.muted', this.muted ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : 0.9, this.ctx.currentTime, 0.1);
   }
 

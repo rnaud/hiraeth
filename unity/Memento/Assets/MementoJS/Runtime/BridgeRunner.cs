@@ -22,6 +22,7 @@ namespace Memento.Bridge
         public Camera cam;
         public Light sun;
         public MementoLook look;
+        public BridgeHud hud;
         public double cpuMs, gpuMs;
         JsRuntime js;
         bool started, failed;
@@ -57,6 +58,9 @@ namespace Memento.Bridge
             scene = new GameObject("Mirrored scene").AddComponent<BridgeRenderer>();
             scene.transform.SetParent(transform, false);
             scene.cam = cam;
+            hud = new GameObject("HUD").AddComponent<BridgeHud>();
+            hud.transform.SetParent(transform, false);
+            hud.cam = cam;
             // the port's shadow pass draws casters over a WorldDetail; the bridge's are all "movers" (MementoShadows
             // finds them), the detail only says where the lowest ground is
             var detail = new WorldDetail();
@@ -107,6 +111,10 @@ namespace Memento.Bridge
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var prev = cam.targetTexture;
             cam.targetTexture = rt;
+            // (the HUD's letters: a dynamic font rasterises new ones on a canvas rebuild, so build, draw, and again)
+            Canvas.ForceUpdateCanvases();
+            cam.Render();
+            Canvas.ForceUpdateCanvases();
             cam.Render();
             cam.Render();
             RenderTexture.active = rt;

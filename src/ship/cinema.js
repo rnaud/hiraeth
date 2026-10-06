@@ -10,6 +10,7 @@
 // letterbox and whatever HUD, buttons, conversation or box card is showing.
 // Subtitles replace each other cleanly, one at a time (Subtitles: a line can
 // also be timed, or queued behind the one showing).
+import { screen } from '../platform.js';
 import { speakLine } from '../story/voice.js';
 import { inputKind } from '../prompt-keys.js';
 import { backKey } from '../native-pad.js';
@@ -351,6 +352,7 @@ export class Cinema {
   _pumpToasts() {
     if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark()) return;
     const text = this.toasts.shift(), secs = toastSeconds(text);
+    screen.toast(text, secs);   // (as data too: platform.js screen.toast)
     this.toastEl.textContent = text;
     this.toastEl.style.animationDuration = `${secs}s`;
     this.toastEl.classList.remove('show');
