@@ -448,3 +448,13 @@ joints for meaningful influence and actual mesh displacement. `src/hands.js` der
 incoming-segment curl axis for terminal phalanges on leafless rigs, which were previously
 skipped. Hand pose diagnostics expose open, relaxed and fist poses; full contact grips still
 need refinement on the generated mesh.
+
+## The desert's own pieces (October 2026)
+
+Four held props (`ney`, `oud`, `hook`, `bellstaff`) and three worn ones (`satchel`, `fringe`, `keys`),
+with a `braidcap` head, drawn from the Desert's character sheets (docs/makehuman.md). They go to named
+people only, never into a tribe's weights, so the crowd figure never bakes them. `bellstaff` is the
+kit's `staff` and `bell` reused rather than copied. Every held prop needs an entry in `PROP_GRIPS`
+(`src/hands.js`) or `tests/hands.test.js` fails. The chest pieces outgrew sixteen: `BODY_ID_LIMIT` is
+32 and `src/crowd-shader.js` reads the prop from 512. Marrow's hand-cart is world geometry, not a
+piece: it stands in the camps (`src/desert-city.js`) at his pitch.

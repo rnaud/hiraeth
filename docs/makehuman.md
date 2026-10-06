@@ -318,9 +318,19 @@ child's bigger head it shades the eyes), the wrap's tail stands off the neck, th
 box behind the head, a cape's lining shows where the cloth folds over, and a long cape (1.25 m and
 more) pools on the ground round a child (no story child wears one).
 
-What the sheets have that the costume kit doesn't (left for later): Bako's satchel and ney (the rig's
-satchel would sit under his coat), Marrow's cart and hook, Sefa's oud and cap over her braid, the
-keepers' bead fringes and hanging keys, the Speaker's bell staff.
+What the sheets had that the costume kit didn't is now in it (October 2026): Bako's ney and his
+satchel — a flat bag on a strap worn *over* the coat, not under it, where the rig's own satchel would
+have sat; Sefa's oud and the cap she wears over her braid (`braidcap`: the cap's shape with the
+braid's, so her hair is squashed under it and never replaced); Marrow's hook; the Speaker's bell
+staff (the kit's `staff` and `bell` reused, the bell hung from a loop at the staff's head); and the
+keepers' bead fringe and hanging keys, worn at the belt where a cloak's opening leaves them in sight
+(there is no keeper sheet: both were drawn in the desert's idiom, the fringe to Ama and the keys to
+Hessa, because a look has one chest slot). A cloak hides every chest piece from behind, and the held
+props are carried a hand's width forward of the wrist so they read against the cloth instead of
+inside it. The chest pieces outgrew sixteen, so `BODY_ID_LIMIT` is 32 and the crowd shader reads the
+prop from 512. Marrow's cart is not a costume piece and was not forced into the kit: it is world
+geometry, built with the camps (`src/desert-city.js`) and parked at his pitch, two spoked wheels, a
+bed of scrap and bone under a cloth, and its shafts down on the sand.
 
 ### The traveller: kept on his own body
 

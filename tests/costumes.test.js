@@ -7,12 +7,14 @@ const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: (
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 globalThis.window ??= { innerWidth: 1200, innerHeight: 800 };
 
-const { COSTUMES, HEADS, MASKS, BODIES, PROPS, TRIM_IDS, HEAD_IDS, dressFor, namedLook, crowdLook, silhouette, packDress, unpackDress, tribeOf } = await import('../src/costumes.js');
+const { COSTUMES, HEADS, MASKS, BODIES, PROPS, TRIM_IDS, HEAD_IDS, BODY_IDS, PROP_IDS, MASK_IDS, BODY_ID_LIMIT, MASK_ID_LIMIT, dressFor, namedLook, crowdLook, silhouette, packDress, unpackDress, tribeOf, lookPieces, underOf } = await import('../src/costumes.js');
 const { LEVELS } = await import('../src/levels/index.js');
 const { Crowd, figureGeometry, worldPieces } = await import('../src/crowd.js');
 const { pooledNPC, NPC } = await import('../src/npc.js');
 const { createBazaar } = await import('../src/levels/bazaar.js');
 const { Physics } = await import('../src/physics.js');
+const { CROWD_GLSL } = await import('../src/crowd-shader.js');
+const { PEOPLE: DESERT } = await import('../src/story/desert-data.js');
 const { mulberry32 } = await import('../src/noise.js');
 
 const people = (world, n = 60, o = {}) => { const rng = mulberry32(3); return Array.from({ length: n }, () => crowdLook(rng, { world, ...o })); };
@@ -117,4 +119,57 @@ test('a crowd person promoted to a full NPC keeps their look', () => {
   assert.equal(sel.look.head, 'turban');
   assert.equal(sel.look.cloak, '#88b4b5');
   crowd.dispose();
+});
+
+// ------------------------------------------------------------------ the desert's own pieces (its character sheets)
+const finite = (g) => { const P = g.attributes.position; for (let i = 0; i < P.count; i++) if (!Number.isFinite(P.getX(i) + P.getY(i) + P.getZ(i))) return false; return true; };
+const DESERT_PIECES = { props: ['ney', 'oud', 'hook', 'bellstaff'], bodies: ['satchel', 'fringe', 'keys'], heads: ['braidcap'] };
+
+test('the desert’s own props and worn pieces build on every head and every quality', () => {
+  for (const id of DESERT_PIECES.props) assert.ok(PROPS[id] && PROP_IDS.includes(id), `prop ${id}`);
+  for (const id of DESERT_PIECES.bodies) assert.ok(BODIES[id] && BODY_IDS.includes(id), `chest piece ${id}`);
+  for (const id of DESERT_PIECES.heads) assert.ok(HEADS[id] && HEAD_IDS.includes(id), `headwear ${id}`);
+  // every piece, on a man and a woman, under each of several heads, at the full and the crowd qualities
+  for (const kind of ['m', 'f']) for (const head of ['wrap', 'hood', 'sunhat', 'braidcap', 'headcloth']) for (const q of [1, 0.55, 0.3]) {
+    for (const prop of DESERT_PIECES.props) for (const body of DESERT_PIECES.bodies) {
+      const s = dressFor('desert', mulberry32(5), { kind, look: { head, prop, body, mask: 'none' } });
+      const pieces = lookPieces(s, q);
+      for (const [where, list] of Object.entries(pieces)) {
+        assert.ok(list.length, `${kind} ${head} ${prop}/${body} q${q}: nothing in the ${where} frame`);
+        for (const pc of list) assert.ok(pc.geo.attributes.position.count > 0 && finite(pc.geo), `${kind} ${head} ${prop}/${body} q${q} ${where}`);
+      }
+    }
+  }
+});
+
+test('the desert’s people carry what their sheets show, and the shader still reads it back', () => {
+  const look = (id, def) => namedLook({ world: 'desert', id, palette: def.palette ?? {}, head: def.head ?? null, cape: def.cape ?? null, look: def.look ?? {}, kind: def.kind });
+  const want = { bako: { prop: 'ney', body: 'satchel' }, sefa: { prop: 'oud', head: 'braidcap' }, marrow: { prop: 'hook' },
+    speaker: { prop: 'bellstaff' }, ama: { body: 'fringe' }, hessa: { body: 'keys' } };
+  for (const [id, wants] of Object.entries(want)) {
+    const def = DESERT[id];
+    assert.ok(def, id);
+    const s = look(id, def);
+    for (const [k, v] of Object.entries(wants)) assert.equal(s[k], v, `${id} ${k}`);
+    // what the crowd shader packs comes back the same, with the new ids
+    const d = packDress(s);
+    assert.deepEqual(unpackDress(d.dress, d.w), silhouette(s), id);
+  }
+  // Sefa's cap sits on her braid: it is the hair she wears under it, and the braid's own pieces are still drawn
+  const sefa = look('sefa', DESERT.sefa);
+  assert.equal(underOf(sefa), 'braid');
+  const braid = HEADS.braid.parts(1, sefa).length;
+  assert.equal(HEADS.braidcap.parts(1, sefa).length, HEADS.cap.parts(1, sefa).length + braid);
+  assert.ok(braid > 0);
+});
+
+test('every chest piece and held prop survives the crowd shader’s packing', () => {
+  assert.ok(BODY_IDS.length <= BODY_ID_LIMIT && MASK_IDS.length <= MASK_ID_LIMIT);
+  assert.match(CROWD_GLSL, new RegExp(`mod\\(floor\\(aDress\\.y / ${MASK_ID_LIMIT}\\.0 \\+ 0\\.01\\), ${BODY_ID_LIMIT}\\.0\\)`));
+  const base = crowdLook(mulberry32(9), { world: 'desert' });
+  for (const body of BODY_IDS) for (const prop of PROP_IDS) {
+    const s = { ...base, body, prop };
+    const d = packDress(s);
+    assert.deepEqual(unpackDress(d.dress, d.w), silhouette(s), `${body}/${prop}`);
+  }
 });

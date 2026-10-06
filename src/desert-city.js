@@ -642,6 +642,35 @@ export function buildDesertCity(scene, terrain) {
       if (rng() < 0.7) camp.both(M.ochre, lathe([[0.01, 0], [0.32, 0.05], [0.42, 0.4], [0.2, 0.75], [0.16, 0.85], [0.22, 0.9]], 10).translate(x + 1.4, 0, z), new THREE.CylinderGeometry(0.4, 0.4, 0.9, 6).translate(x + 1.4, 0.45, z));
       if (rng() < 0.5) camp.both(M.wood, T(new THREE.BoxGeometry(0.9, 0.7, 0.7), [x - 1.5, 0.35, z + 0.4], [0, rng(), 0]));
     }
+    // Marrow's hand-cart, parked at his spot (src/story/desert.js marrowAt = camps.spot(-19, -14)):
+    // two spoked wheels, a cloth-lined bed of scrap and bone, and two long shafts down on the sand,
+    // as the Desert's character sheet draws it behind him (docs/makehuman.md)
+    {
+      const cx = -21.6, cz = -12.6, yaw = 0.7;                 // (beside him, its shafts pointing out of the camp)
+      const at = (geo, lx, ly, lz, rx = 0, ry = 0) => T(geo.translate(lx, ly, lz), [cx, 0, cz], [rx, yaw + ry, 0]);
+      const BED = 0.74;                                        // the bed's top
+      camp.both(M.wood, at(new THREE.BoxGeometry(1.0, 0.1, 1.7), 0, BED - 0.05, 0));
+      for (const sgn of [-1, 1]) camp.both(M.wood, at(new THREE.BoxGeometry(0.07, 0.3, 1.7), sgn * 0.47, BED + 0.15, 0));
+      camp.both(M.wood, at(new THREE.BoxGeometry(1.0, 0.32, 0.07), 0, BED + 0.16, -0.82));
+      // the wheels: a rim, a felloe and six spokes each, on an axle under the bed
+      for (const sgn of [-1, 1]) {
+        camp.both(M.wood, at(new THREE.CylinderGeometry(0.52, 0.52, 0.1, 14).rotateZ(Math.PI / 2), sgn * 0.62, 0.52, -0.42));
+        camp.add(M.dark, at(new THREE.TorusGeometry(0.52, 0.045, 4, 18).rotateY(Math.PI / 2), sgn * 0.62, 0.52, -0.42));
+        camp.add(M.dark, at(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 8).rotateZ(Math.PI / 2), sgn * 0.62, 0.52, -0.42));   // the hub
+        // the spokes on both faces, proud of the disc (inside it nothing would show)
+        for (const f of [-1, 1]) for (let k = 0; k < 6; k++) camp.add(M.boneDark, at(new THREE.BoxGeometry(0.035, 0.92, 0.05).rotateX(k * Math.PI / 6), sgn * 0.62 + f * 0.062, 0.52, -0.42));
+      }
+      camp.both(M.wood, at(new THREE.CylinderGeometry(0.06, 0.06, 1.4, 6).rotateZ(Math.PI / 2), 0, 0.52, -0.42));
+      // the shafts, resting on the sand in front
+      const dz = 1.95, dy = -0.7, len = Math.hypot(dz, dy), tilt = Math.atan2(dz, -dy);
+      for (const sgn of [-1, 1]) camp.both(M.wood, at(new THREE.CylinderGeometry(0.055, 0.045, len, 5).rotateX(tilt), sgn * 0.42, BED + dy / 2, 0.85 + dz / 2));
+      camp.add(M.wood, at(new THREE.CylinderGeometry(0.05, 0.05, 0.84, 5).rotateZ(Math.PI / 2), 0, BED + dy - 0.02, 0.85 + dz));
+      // what it carries: a cloth over the bed, a crate, two long bones and a jar
+      camp.add(M.cloth[2], at(new THREE.BoxGeometry(0.94, 0.03, 1.5), 0, BED + 0.02, 0.02));
+      camp.both(M.wood, at(new THREE.BoxGeometry(0.5, 0.42, 0.46), -0.17, BED + 0.23, -0.48, 0, 0.3));
+      for (const [lx, lz, a, h] of [[0.16, 0.14, 0.5, 0.22], [0.02, 0.46, -0.35, 0.31]]) camp.add(M.bone, at(new THREE.CylinderGeometry(0.055, 0.075, 1.25, 6).rotateZ(Math.PI / 2 + 0.12).rotateY(a), lx, BED + h, lz));
+      camp.add(M.ochre, at(lathe([[0.01, 0], [0.2, 0.04], [0.26, 0.26], [0.12, 0.46], [0.15, 0.5]], 8), 0.2, BED + 0.03, -0.62));
+    }
     // banners on tall poles round the camps
     for (let i = 0; i < 7; i++) {
       const a = i / 7 * Math.PI * 2 + 0.3, x = Math.sin(a) * 36, z = Math.cos(a) * 36;

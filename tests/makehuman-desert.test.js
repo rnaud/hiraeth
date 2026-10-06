@@ -20,7 +20,7 @@ const { Humanoid, prepareHuman, segmentGirths, CAPSULES, CAPSULE_MARGIN, hairEdg
 const { JOINTS } = await import('../src/ragdoll.js');
 const { reshapeCopy } = await import('../src/morph.js');
 const { buildCharacter } = await import('../src/player.js');
-const { HEIGHT, namedLook } = await import('../src/costumes.js');
+const { HEIGHT, namedLook, underOf } = await import('../src/costumes.js');
 const { CROWD_JOINTS, CROWD_BODY } = await import('../src/crowd-shader.js');
 const { PEOPLE, VILLAGERS } = await import('../src/story/desert-data.js');
 const { BLANK } = await import('../src/studio/people.js');
@@ -198,8 +198,12 @@ test('the named desert people follow their character sheets', () => {
   assert.equal(at('bako').mask, 'beard'); assert.equal(at('bako').head, 'wrap');
   assert.equal(at('nour').head, 'sunhat'); assert.equal(at('nour').mask, 'veil'); assert.equal(at('nour').prop, 'staff');
   assert.equal(at('marrow').mask, 'browgoggles'); assert.equal(at('marrow').head, 'raghood'); assert.notEqual(ageClassOf({ def: PEOPLE.marrow, dress: at('marrow') }), 'elder');
-  assert.equal(at('sefa').head, 'braid'); assert.equal(at('sefa').capeLen, 1.45);
-  assert.equal(at('speaker').head, 'wizard'); assert.equal(at('speaker').mask, 'veil');
+  // her sheet: a cap over her braid, the oud on its strap (the cap is worn on the braid, not instead of it)
+  assert.equal(at('sefa').head, 'braidcap'); assert.equal(underOf(at('sefa')), 'braid'); assert.equal(at('sefa').prop, 'oud'); assert.equal(at('sefa').capeLen, 1.45);
+  assert.equal(at('speaker').head, 'wizard'); assert.equal(at('speaker').mask, 'veil'); assert.equal(at('speaker').prop, 'bellstaff');
+  // the rest of what the sheets show: Bako's satchel over his coat and his ney, Marrow's hook, the keepers' fringe and keys
+  assert.equal(at('bako').body, 'satchel'); assert.equal(at('bako').prop, 'ney');
+  assert.equal(at('marrow').prop, 'hook'); assert.equal(at('ama').body, 'fringe'); assert.equal(at('hessa').body, 'keys');
 });
 
 test('a cape on a heavy MakeHuman body hangs round its belly, not through it', async () => {

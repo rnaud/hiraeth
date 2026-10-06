@@ -17,6 +17,7 @@ export const CHANGELOG = [
     'Things you can stand on are the things you see: the painted bands, window frames and chimney cap of the houses at home, the Signal Market’s awnings and tower billboards, Viridel’s glass dome and its ribs, and the First Garage’s clocks and great escapement wheels. The band round the small house at home no longer runs across its own doorway.',
     'In the desert the radio dishes’ bowls, rims and feeds, the sail camp’s domes and the salt lagoons’ floating plates hold you up where they are drawn — you can stand on a salt plate now instead of going through it.',
     'Every temple’s halls lose the invisible ledge at the top of their round rooms: the stone cornice is solid where it is drawn, so climbing one you meet the overhang instead of passing through it.',
+    'The desert’s people carry what their drawings give them: Bako his reed flute, and his flat bag on its strap over his coat instead of under it; Sefa her oud, and her cap over her braid; Marrow a salvager’s hook, with his loaded hand-cart parked at his pitch in the camps; the Speaker’s staff has the procession’s bell at its head; and the keepers wear their own, a bead fringe at Ama’s hips and the well’s keys at Hessa’s belt.',
     'People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.',
   ] },
   { v: '0.72', date: '2026-10-06', items: [

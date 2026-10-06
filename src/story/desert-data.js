@@ -143,7 +143,7 @@ export const QUESTS = [
 export const PEOPLE = {
   ama: {
     id: 'ama', name: 'Ama', title: 'keeper of the fires', color: '#c8483a', voice: 1.05, kind: 'f',
-    palette: { cloak: '#c8483a', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#f3ead8', hair: '#2b211f' }, head: 'wrap', cape: 1.25,
+    palette: { cloak: '#c8483a', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#f3ead8', hair: '#2b211f' }, head: 'wrap', cape: 1.25, look: { body: 'fringe' },
     lines: ["~neutral~ Mind the sparks. They’ve no manners.", "~happy~ Sit. There’s room, if everyone admits it.", "~neutral~ One drinking jar. Plenty of thirsty people."],
     talk: {
       entry: [
@@ -264,7 +264,7 @@ export const PEOPLE = {
   sefa: {
     id: 'sefa', name: 'Sefa', title: 'oud player', color: '#8a6fb8', voice: 0.95, kind: 'f',
     // (her character sheet: a long purple cloak over a cream tunic, baggy trousers, a long braid)
-    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'braid', cape: 1.45, look: { robe: 0.5, build: 'slim', trim: 'none', body: 'none', prop: 'none' },
+    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'braidcap', cape: 1.45, look: { robe: 0.5, build: 'slim', trim: 'none', body: 'none', prop: 'oud', under: 'braid' },
     lines: ['~happy~ ♪', "~happy~ Stay for a tune. Leaving halfway makes it self-conscious.", "~curious~ You keep glancing behind you."],
     talk: { listen: [
       ["~playful~ You stopped! I was beginning to think I’d been mistaken for a decorative bush.", "~whisper~ I’m Sefa. I try to play what suits the listener. Yours keeps wandering away from the last note."],
@@ -280,7 +280,7 @@ export const PEOPLE = {
   bako: {
     id: 'bako', name: 'Bako', title: 'ney player', color: '#5fb7ad', voice: 0.75, kind: 'm', age: 'elder', years: 70,
     // (his character sheet: an old man, a cream head-wrap, a grey beard, a long teal coat over a brown robe)
-    palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#7a4a35', legs: '#3a3a3a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 1.45, look: { mask: 'beard', body: 'none', prop: 'none', robe: 0.06, build: 'slim', trim: 'none' },
+    palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#7a4a35', legs: '#3a3a3a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 1.45, look: { mask: 'beard', body: 'satchel', prop: 'ney', robe: 0.06, build: 'slim', trim: 'none' },
     lines: ['~tired~ Hm.', '~happy~ Hmmm-hm.', '~neutral~ (he hums)'],
     talk: { listen: [
       "~neutral~ You’re from the round ship. I saw the burn on its side.",
@@ -337,7 +337,7 @@ export const PEOPLE = {
   speaker: {
     id: 'speaker', name: 'The Speaker', title: 'who leads the procession', color: '#f3ead8', voice: 0.7, kind: 'm', scale: 1.08,
     // (his character sheet: a tall hat with a wide brim, a high collar over the mouth, a mustard poncho over a rust robe, a staff)
-    palette: { cloak: '#d8a24a', lining: '#b5562f', cloth: '#b5562f', legs: '#5a4a40', hat: '#c9974a', accent: '#b5562f', hair: '#e8dcc0' }, head: 'wizard', cape: 1.45, look: { prop: 'staff', body: 'mantle', robe: 0.05, mask: 'veil', build: 'slim', trim: 'none' },
+    palette: { cloak: '#d8a24a', lining: '#b5562f', cloth: '#b5562f', legs: '#5a4a40', hat: '#c9974a', accent: '#b5562f', hair: '#e8dcc0' }, head: 'wizard', cape: 1.45, look: { prop: 'bellstaff', body: 'mantle', robe: 0.05, mask: 'veil', build: 'slim', trim: 'none' },
     lines: ['~solemn~ Round, and round, and round.', '~neutral~ Keep the step.', '~solemn~ The tree is patient. So are we.'],
     talk: {
       entry: [
@@ -555,7 +555,7 @@ export const PEOPLE = {
 
   hessa: {
     id: 'hessa', name: 'Hessa', title: 'keeper of the well', color: '#62c3c9', voice: 0.95, kind: 'f',
-    palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f3ead8', hair: '#4a3226' }, head: 'hood', cape: 1.45, look: { prop: 'basket' },
+    palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f3ead8', hair: '#4a3226' }, head: 'hood', cape: 1.45, look: { prop: 'basket', body: 'keys' },
     lines: ["~angry~ The well’s dry. The rim still needs looking after.", "~tired~ Sweep. Wait. Sweep what arrived while I waited.", "~neutral~ Read the stele. Stone gets interrupted less."],
     talk: {
       entry: [{ if: { flag: 'desert.tree.lit' }, node: 'burning' }, { if: { flag: 'desert.channel.open' }, node: 'full' }, { node: 'hello' }],
@@ -585,7 +585,7 @@ export const PEOPLE = {
   marrow: {
     id: 'marrow', name: 'Marrow', title: 'salvager and liar', color: '#dca273', voice: 1.0, kind: 'm',
     // (his character sheet: a short, grinning scavenger in a patched cream coat and hood, goggles, a scarf)
-    palette: { cloak: '#e6dcc0', lining: '#2b211f', cloth: '#e6dcc0', legs: '#4a3a2a', hat: '#d8a24a', accent: '#c9974a', hair: '#2b211f' }, head: 'raghood', cape: 0.9, look: { mask: 'browgoggles', body: 'scarf', prop: 'none', robe: 0.3, trim: 'patches', build: 'average', height: 0.92, faceType: 'round', mood: 'amused' },
+    palette: { cloak: '#e6dcc0', lining: '#2b211f', cloth: '#e6dcc0', legs: '#4a3a2a', hat: '#d8a24a', accent: '#c9974a', hair: '#2b211f' }, head: 'raghood', cape: 0.9, look: { mask: 'browgoggles', body: 'scarf', prop: 'hook', robe: 0.3, trim: 'patches', build: 'average', height: 0.92, faceType: 'round', mood: 'amused' },
     lines: ["~shout~ Bones! Glass! Authenticated bits of sky!", "~playful~ Finders keepers. I find that very reasonable.", "~whisper~ Sky-person. Excellent timing. For me."],
     talk: {
       entry: [

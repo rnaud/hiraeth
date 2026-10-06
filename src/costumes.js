@@ -31,7 +31,9 @@ export const HEAD_IDS = ['hood', 'hat', 'wrap', 'hair', 'wizard', 'short', 'tail
   // hairstyles on the skull's own shape (scalp(): a hairline, not a bowl); each tribe has its own (tribe.hair)
   'crop', 'shaved', 'bald', 'curls', 'braid', 'flow', 'locks', 'crest', 'bob', 'twin', 'swept', 'tonsure',
   // more headwear (stage 3: docs/makehuman.md); appended, so the crowd's ids above keep their numbers
-  'brim', 'straw', 'trilby', 'bowler', 'peak', 'flatcap', 'beanie', 'trapper', 'aviator', 'bandana', 'kerchief', 'skullcap', 'circlet', 'helmet', 'hooddown'];
+  'brim', 'straw', 'trilby', 'bowler', 'peak', 'flatcap', 'beanie', 'trapper', 'aviator', 'bandana', 'kerchief', 'skullcap', 'circlet', 'helmet', 'hooddown',
+  // the desert: a cap worn over a braid (Sefa's sheet)
+  'braidcap'];
 /** How many head ids the crowd shader can tell apart (crowd-shader.js: aDress.x = id + HEAD_ID_LIMIT * hair cap). */
 export const HEAD_ID_LIMIT = 64;
 /** The bare-headed styles (no headwear): the studio's hair list, what tribes pick from (tribe.hair). */
@@ -39,11 +41,15 @@ export const HAIR_IDS = ['short', 'hair', 'tail', 'long', 'bun', 'crop', 'shaved
 /** The story's generic bare heads: each tribe draws its own hairstyle for them (tribe.hair). */
 export const GENERIC_HAIR = ['hair', 'short'];
 export const MASK_IDS = ['none', 'veil', 'beak', 'breather', 'goggles', 'browgoggles', 'beard', 'glasses', 'shades', 'scarfmask', 'facewrap', 'monocle'];
-export const BODY_IDS = ['none', 'collar', 'scarf', 'pauldrons', 'mantle', 'reedcape', 'garland', 'badge', 'toolbelt', 'ruff', 'tatters', 'neckerchief', 'muffler', 'neckgoggles'];
+export const BODY_IDS = ['none', 'collar', 'scarf', 'pauldrons', 'mantle', 'reedcape', 'garland', 'badge', 'toolbelt', 'ruff', 'tatters', 'neckerchief', 'muffler', 'neckgoggles',
+  // the desert's own, from its character sheets: a bag worn over the coat, a keeper's bead fringe and her keys
+  'satchel', 'fringe', 'keys'];
 /** How many mask and shoulder-piece ids the crowd shader can tell apart (packDress: mask + MASK_ID_LIMIT * piece + MASK_ID_LIMIT * BODY_ID_LIMIT * prop). */
 export const MASK_ID_LIMIT = 16;
-export const BODY_ID_LIMIT = 16;
-export const PROP_IDS = ['none', 'staff', 'lantern', 'basket', 'wrench', 'parasol', 'lamppole', 'bell', 'flower'];
+export const BODY_ID_LIMIT = 32;
+export const PROP_IDS = ['none', 'staff', 'lantern', 'basket', 'wrench', 'parasol', 'lamppole', 'bell', 'flower',
+  // the desert's own: Bako's reed flute, Sefa's lute, Marrow's salvage hook, the Speaker's bell on a staff
+  'ney', 'oud', 'hook', 'bellstaff'];
 /** Cloth patterns printed on the tunic (materials.js outfitTrim, the crowd's fragment hook). */
 export const TRIM_IDS = ['none', 'stripes', 'sash', 'yoke', 'bib', 'diamonds', 'patches', 'dots', 'hem'];
 /** Fixed colours of the material roles that aren't the person's own. */
@@ -970,6 +976,12 @@ export const HEADS = {
     P('hat', rim(q, { kind: kindOf(l), t: 0.01, front: 26, side: 20, back: 14, h: 11, r: 0.012, cols: 20 })),
     P('hair', sphere(0.05, q, 10, 8).scale(1.4, 0.8, 1.2).translate(0, 0.125, -0.02)),
   ] },
+  // Sefa's cap, worn over her braid: the cap's own shape, the braid falling from under it (the hair
+  // the wearer has under it: look.under; on a MakeHuman body her own braid, squashed under the cap)
+  braidcap: { cap: true, cover: { t: 0.015, front: 16, side: 22, back: 20 }, parts: (q, l) => [
+    ...HEADS.cap.parts(q, l),
+    ...HEADS.braid.parts(q, l).map((pc) => P(pc.role === 'accent' ? 'hair' : pc.role, pc.geo, pc.far)),
+  ] },
   beret: { cap: true, cover: { t: 0.02, front: 40, side: 34, back: 30 }, parts: (q) => [
     P('hat', sphere(0.15, q, 14, 8).scale(1, 0.32, 1).rotateZ(0.25).translate(0.02, 0.105, -0.01), true),
     P('hat', cyl(0.006, 0.006, 0.03, q, 4).translate(0.03, 0.15, -0.01)),
@@ -1309,6 +1321,42 @@ export const BODIES = {
     P('accent', box(0.06, 0.24, 0.016).rotateZ(0.08).rotateX(-0.2).translate(0.045, 0.6, 0.115)),
     P('accent', box(0.055, 0.17, 0.016).rotateZ(-0.12).rotateX(-0.25).translate(-0.02, 0.63, 0.122)),
   ],
+  // ---- the desert's own, from its character sheets (references/The Desert/characters)
+  // Bako's satchel: a flat bag on a strap across the chest, worn over the coat (not under it), the bag at the left hip
+  satchel: (q) => [
+    P('wood', box(0.05, 0.54, 0.014).rotateX(-0.36).rotateZ(0.74).translate(0.01, 0.54, 0.165), true),
+    P('wood', box(0.048, 0.52, 0.014).rotateX(-0.27).rotateZ(0.76).translate(0.015, 0.54, -0.055)),
+    P('cloth', box(0.22, 0.23, 0.1).rotateZ(-0.09).rotateY(-0.22).translate(0.178, 0.255, 0.245), true),
+    P('hat', box(0.228, 0.09, 0.108).rotateZ(-0.09).rotateY(-0.22).translate(0.175, 0.37, 0.245), true),
+  ],
+  // a keeper's bead fringe: a cord low on the hips with short strings of beads hanging from it round the front
+  fringe: (q) => {
+    const n = q < 1 ? 6 : 9, out = [P('accent', torus(0.15, 0.009, q, 14, 4).scale(1, 0.9, 1.05).rotateX(Math.PI / 2).translate(0, 0.3, 0.015))];
+    for (let i = 0; i < n; i++) {
+      const az = -1.15 + (2.3 * i) / (n - 1), x = Math.sin(az) * 0.152, z = Math.cos(az) * 0.16 + 0.015;
+      const drop = 0.095 + 0.045 * Math.sin(i * 1.9 + 0.6) ** 2;
+      out.push(P('hat', cyl(0.0035, 0.0035, drop, q, 3).translate(x, 0.3 - drop / 2, z), true));
+      out.push(P('accent', sphere(0.016, q, 5, 3).translate(x, 0.3 - drop, z), true));
+      out.push(P('hat', sphere(0.012, q, 5, 3).translate(x, 0.3 - drop * 0.5, z), true));
+    }
+    return out;
+  },
+  // a keeper's keys: a ring of them on a thong at the belt, hanging in front of the cloak's opening
+  keys: (q) => {
+    const out = [
+      P('wood', box(0.026, 0.11, 0.011).rotateZ(0.16).translate(-0.045, 0.33, 0.155)),
+      P('metal', torus(0.03, 0.006, q, 10, 4).rotateY(0.35).translate(-0.057, 0.278, 0.16), true),
+    ];
+    for (const [i, tilt] of [[-1, -0.3], [0, -0.03], [1, 0.26]]) {
+      const g = [
+        P('metal', cyl(0.005, 0.005, 0.1, q, 4).translate(0, -0.05, 0), true),
+        P('metal', box(0.022, 0.013, 0.006).translate(0.012, -0.093, 0)),
+        ...Pq('metal', q < 1 ? null : box(0.016, 0.012, 0.006).translate(0.009, -0.073, 0)),
+      ];
+      for (const pc of g) out.push(P(pc.role, pc.geo.rotateZ(tilt).rotateY(0.35).translate(-0.057 + i * 0.012, 0.272, 0.162 + i * 0.004), pc.far));
+    }
+    return out;
+  },
   // the Garden of Spheres: a pleated ruff
   ruff: (q) => {
     const g = torus(0.115, 0.04, q, 24, 6).rotateX(Math.PI / 2);
@@ -1342,6 +1390,48 @@ export const PROPS = {
   ],
   bell: (q) => [P('wood', cyl(0.008, 0.008, 0.09, q, 4).translate(0, -0.11, 0.02)), P('metal', cyl(0.03, 0.058, 0.075, q, 10, true).translate(0, -0.19, 0.02))],
   flower: (q) => [P('wood', cyl(0.005, 0.005, 0.45, q, 3).rotateX(0.3).translate(0, 0.1, 0.08)), ...blossoms(5, 0.03, 0.31, 0, 0.026, q, ['accent', 'hat']).map((p) => (p.geo.translate(0, 0, 0.15), p))],
+  // ---- the desert's own, from its character sheets (references/The Desert/characters)
+  // Bako's ney: a long reed flute, knotted along its length, carried slanting up across the chest and
+  // a little in front of it, so it reads clear of a long coat (its top rises past the collar)
+  ney: (q) => {
+    const out = [P('wood', cyl(0.012, 0.017, 0.82, q, 7).translate(0, 0.27, 0), true)];
+    for (let k = 0; k < 4; k++) out.push(P('dark', cyl(0.0195, 0.0195, 0.014, q, 7).translate(0, -0.03 + k * 0.19, 0), true));
+    if (q >= 1) for (let k = 0; k < 4; k++) out.push(P('dark', cyl(0.0045, 0.0045, 0.036, q, 4).rotateX(Math.PI / 2).translate(0, 0.14 + k * 0.085, 0.006)));
+    return out.map((pc) => P(pc.role, pc.geo.rotateX(0.22).rotateZ(-0.14).translate(0.02, 0.0, 0.17), pc.far));
+  },
+  // Sefa's oud: a deep pear bowl, a flat soundboard with a rosette, a short neck and a pegbox bent back
+  oud: (q) => {
+    const bowl = [[0, 0], [0.062, 0.014], [0.102, 0.055], [0.124, 0.125], [0.122, 0.205], [0.094, 0.277], [0.052, 0.325], [0, 0.34]];
+    const out = [
+      P('wood', lathe(bowl, q, 12).scale(1, 1, 0.58).translate(0, -0.17, 0), true),
+      P('cloth', cyl(0.098, 0.098, 0.012, q, 12).rotateX(Math.PI / 2).scale(1, 1.28, 1).translate(0, -0.015, 0.072), true),
+      P('dark', torus(0.029, 0.007, q, 10, 4).translate(0, 0.02, 0.074)),
+      P('wood', box(0.042, 0.24, 0.03).translate(0, 0.27, 0.042), true),
+      P('dark', box(0.028, 0.235, 0.006).translate(0, 0.27, 0.059)),
+      P('wood', box(0.05, 0.12, 0.026).rotateX(-1.2).translate(0, 0.425, 0.016), true),
+      P('dark', box(0.042, 0.012, 0.009).translate(0, -0.1, 0.075)),
+    ];
+    if (q >= 1) {
+      out.push(P('dark', box(0.024, 0.16, 0.004).translate(0, 0.07, 0.08)));
+      for (const sx of [-1, 1]) out.push(P('metal', cyl(0.005, 0.005, 0.05, q, 4).rotateZ(Math.PI / 2).rotateX(-1.2).translate(sx * 0.03, 0.455, -0.012)));
+    }
+    return out.map((pc) => P(pc.role, pc.geo.rotateZ(-0.88).rotateX(0.22).translate(0.1, -0.04, 0.21), pc.far));
+  },
+  // Marrow's hook: a salvager's iron hook on a short shaft, carried upright and held out in front of
+  // him (the last translate), so the shaft reads against his cloak instead of disappearing inside it
+  hook: (q) => [
+    P('wood', cyl(0.014, 0.019, 0.6, q, 6).translate(0, 0.18, 0), true),
+    P('dark', cyl(0.021, 0.021, 0.05, q, 6).translate(0, 0.465, 0)),
+    P('metal', torus(0.068, 0.014, q, 12, 5, Math.PI * 1.35).rotateZ(Math.PI * 0.42).translate(0.066, 0.53, 0), true),
+    P('metal', cone(0.016, 0.06, q, 6).rotateZ(-2.25).translate(0.045, 0.473, 0), true),
+  ].map((pc) => P(pc.role, pc.geo.translate(0, 0, 0.22), pc.far)),
+  // the Speaker's bell staff: the pilgrims' staff with the procession's bell hung from a loop at its head
+  bellstaff: (q) => [
+    ...PROPS.staff(q),
+    P('metal', cyl(0.009, 0.009, 0.16, q, 5).rotateX(Math.PI / 2).translate(0, 0.745, 0.105)),
+    P('metal', torus(0.04, 0.007, q, 12, 4).rotateY(Math.PI / 2).translate(0, 0.705, 0.175), true),
+    ...PROPS.bell(q).map((pc) => P(pc.role, pc.geo.scale(1.9, 1.9, 1.9).translate(0, 0.905, 0.137), true)),
+  ],
 };
 function lantern(q, y, z) {
   return [

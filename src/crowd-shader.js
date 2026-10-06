@@ -19,7 +19,7 @@ import { EYE_WHITE } from './eyes.js';
 //   aReact  head yaw (rad, relative to the body), head pitch, talk 0..1, startle time (uTime; stumbling: when the shove landed, the pose's frozen time)
 //   aLook0  cloak, cloth, legs, skin as 0xRRGGBB packed in floats (exact up to 2^24)
 //   aLook1  hat, accent, hair, body = bulk (0..3) + 4 * sleeveless + 8 * cloth pattern (TRIM_IDS) + 128 * robe hem radius (cm)
-//   aDress  headwear + 64 * the hair cap under it (costumes.js HEAD_ID_LIMIT), mask + 16 * chest piece + 256 * prop (MASK_ID_LIMIT, BODY_ID_LIMIT),
+//   aDress  headwear + 64 * the hair cap under it (costumes.js HEAD_ID_LIMIT), mask + 16 * chest piece + 512 * prop (MASK_ID_LIMIT, BODY_ID_LIMIT),
 //           cape length (m) + 2 * cape width (tenths), robe length (m below the belt, 0 none) — costumes.js packDress
 //   aBody   female (0 / 1), shoulder width, girth (costumes.js packBody: the build), iris colour 0xRRGGBB; the height is the instance scale
 // A piece that isn't worn collapses to a point (zero-area triangles): every world bakes only its own
@@ -96,7 +96,7 @@ export const CROWD_GLSL = /* glsl */ `
     // the costume (costumes.js packDress)
     int headId = int(mod(aDress.x, 64.0) + 0.5);
     bool hairCap = aDress.x > 63.5;
-    int maskId = int(mod(aDress.y, 16.0) + 0.5), bodyId = int(mod(floor(aDress.y / 16.0 + 0.01), 16.0) + 0.5), propId = int(floor(aDress.y / 256.0 + 0.01) + 0.5);
+    int maskId = int(mod(aDress.y, 16.0) + 0.5), bodyId = int(mod(floor(aDress.y / 16.0 + 0.01), 32.0) + 0.5), propId = int(floor(aDress.y / 512.0 + 0.01) + 0.5);
     float capeWide = floor(aDress.z / 2.0 + 0.001);
     float capeLen = aDress.z - capeWide * 2.0;
     capeWide *= 0.1;
