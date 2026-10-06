@@ -1,0 +1,19 @@
+TODO.md
+  s_1f19c2748b27f1::t_5f99952952c85a 6-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0f0e069641faec08063f173c444d9945cd826a61",
+  "prompts": {},
+  "sessions": {
+    "s_1f19c2748b27f1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1117f-d1f8-7970-9033-afa94cfb19c4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
