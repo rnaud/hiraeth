@@ -230,4 +230,4 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Later
 
-- [ ] The JS bridges: our JS game code inside Godot (GodotJS) and Unity (Puerts), the engine only rendering.
+- [x] The JS bridges: our JS game code inside Godot (GodotJS) and Unity (Puerts), the engine only rendering. (The game's modules bundled into the engines' V8 with browser stand-ins, the three.js scene mirrored each frame: in Godot through a first port of the ink look, in Unity through the C# port's own; the desert plays in both, side-by-sides and frame times against the web and a recommendation in docs/systems/engine-bridge.md.)

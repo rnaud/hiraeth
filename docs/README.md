@@ -53,6 +53,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
 | [dev-tools.md](systems/dev-tools.md) | the Lab, the clipping audit |
 | [unity.md](systems/unity.md) | the desert in Unity, and the web-against-Unity benchmark |
+| [engine-bridge.md](systems/engine-bridge.md) | the game's JavaScript inside Godot (GodotJS) and Unity (Puerts), the engine only drawing: the scene mirror, the platform stand-ins |
 
 ## Deployment and data
 

@@ -163,7 +163,11 @@ namespace Memento
             return true;
         }
 
-        Material MakeMaterial(Dictionary<string, object> m)
+        Material MakeMaterial(Dictionary<string, object> m) => MakeMaterial(surface, m);
+
+        /// <summary>A material of the export (materialOf in export-world.mjs) on the Surface shader; the JS bridge
+        /// (Assets/MementoJS) makes its materials here too, from the same format.</summary>
+        public static Material MakeMaterial(Shader surface, Dictionary<string, object> m)
         {
             var mat = new Material(surface) { name = $"mat {m.I("id")}" };
             Color c1 = m.C("color"), c2 = m.Get("color2") != null ? m.C("color2") : c1, c3 = m.Get("color3") != null ? m.C("color3") : c1;
