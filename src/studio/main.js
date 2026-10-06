@@ -156,8 +156,7 @@ function makeTraveller() {
   const tool = state.backpack ? new FluidTool({ scene, player: { char, humanoid: h, gear, object: char.root, pos: char.root.position, frame: { up: UP }, vel: new THREE.Vector3() }, camera,
     noShadow, state: new GameState(), items: { has: (id) => id === 'backpack', on: () => () => {} } }) : null;
   h.ownMaterials();
-  const copies = markHero(char.root);
-  markHero(gear.device, copies);
+  markHero(char.root);
   return { type: 'traveller', name: 'The traveller', root: char.root, char, h, animator, gear, tool, baseScale: 1, noShadow };
 }
 
@@ -179,7 +178,7 @@ function disposePerson(p) {
   if (!p) return;
   p.tool?.dispose();
   if (p.npc) p.npc.dispose(scene);
-  else { scene.remove(p.root); p.gear?.device?.removeFromParent(); }
+  else scene.remove(p.root);
 }
 
 let people = [];      // on stage
@@ -462,7 +461,7 @@ function animate(p, dt, t) {
       cape.rest(dt);
     }
   }
-  if (p.gear) p.gear.update(dt, _w.set(0, 0, 0), a.phase ?? 0, speed / 6, true);
+  if (p.gear) p.gear.update(dt, _w.set(0, 0, 0), a.phase ?? 0, speed / 6);
   p.tool?.updateWorn(state.paused ? 0 : dt);
 }
 
@@ -619,7 +618,7 @@ function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || st
   const g = out.getContext('2d');
   g.fillStyle = '#f2ecdf'; g.fillRect(0, 0, out.width, out.height);
   const aspect0 = camera.aspect;
-  const parts = (q) => [q.root, q.npc?.cape?.mesh, q.gear?.device].filter(Boolean);
+  const parts = (q) => [q.root, q.npc?.cape?.mesh].filter(Boolean);
   const shown = people.flatMap((q) => parts(q).map((o) => [o, o.visible]));
   const V = VIEWS[view] ?? VIEWS.face, s0 = Math.min(src.width / src.height, w / h);
   try {

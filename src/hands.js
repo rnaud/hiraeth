@@ -5,8 +5,8 @@ import { talkFaces as gameFaces } from './talk-face.js';
 // thumb, all skinned) were left in the T-pose's flat, straight hand, since the clips carry no
 // finger tracks. Here each hand gets a pose: a relaxed arc at rest (every finger a little more
 // curled than the last, from the index to the little finger, the thumb in by the index), a looser
-// open hand running or gliding, a grip on the holds, the handlebars or a staff, a fist round the
-// bracer's line of fire with the other hand cupped under it, and while someone talks a gesture in
+// open hand running or gliding, a grip on the holds, the handlebars or a staff, the gloved fist on the
+// fluid's line of fire with the other hand cupped under it, and while someone talks a gesture in
 // the line's tone (src/story/tone.js), beating with the syllables. Poses blend into each other
 // over a moment, and the fingers move a little by themselves: a slow drift, and a lag behind the
 // wrist when the hand is jerked about.
@@ -39,13 +39,13 @@ export const HAND_POSES = {
   splay: pose([[-6, 2, 2], [-4, 2, 2], [-2, 4, 3], [0, 6, 4]], 17, [0, -18, 0]),
   // holds on a wall, the handlebars, a staff: wrapped round something about 3 cm thick, the thumb over it
   grip: pose([[44, 66, 30], [50, 70, 32], [54, 72, 32], [58, 72, 32]], 0, [15, -40, 45]),
-  // the bracer's fist (aiming), an angry line (the tips into the palm, not through the back of the hand)
+  // the glove's fist (aiming: the fluid leaves from its knuckles), an angry line (the tips into the palm, not through the back of the hand)
   fist: pose([[72, 92, 36], [76, 94, 38], [78, 94, 38], [80, 92, 36]], -2, [-55, -25, 65]),
   // reins: a fist with the thumb on top
   reins: pose([[60, 88, 34], [66, 90, 36], [70, 90, 36], [74, 88, 36]], -1, [-50, -55, 72]),
   // a handle hanging from the fingers (a lantern, a basket, a bell)
   hook: pose([[24, 70, 36], [28, 74, 38], [32, 76, 38], [36, 76, 38]], 0, [-60, -20, 35]),
-  // the other hand under the bracer, swimming strokes: cupped, the fingers together
+  // the other hand under the gloved fist, swimming strokes: cupped, the fingers together
   cup: pose([[16, 20, 10], [18, 22, 11], [20, 24, 12], [23, 26, 13]], -2, [-70, -15, 35]),
   // pushing up onto a ledge: the palm flat, the fingers apart
   flat: pose([[3, 4, 2], [3, 4, 2], [4, 5, 3], [5, 6, 3]], 7, [-55, -30, 25]),
@@ -118,7 +118,7 @@ function over(w, id, k) {
  *   ride     the ride's kind (RIDE_GRIPS)
  *   air      s off the ground (mode 'air')
  *   prop     a held prop in the right hand (PROP_GRIPS)
- *   aim      0..1 aiming the bracer: the right fist, the left cupped under it
+ *   aim      0..1 aiming the glove: the right fist, the left cupped under it
  *   handoff  0..1 both hands on the tank
  *   startle  0..1 a fright (splayed hands)
  *   talk     { tone, k (0..1), beat (0..1) } speaking a line: a gesture in its tone

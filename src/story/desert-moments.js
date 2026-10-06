@@ -20,7 +20,7 @@ import { faceOf } from './moment.js';
 //         A  wide, over the water: the traveller stops in the glowing pool              0.0–2.3
 //         B  over his shoulder, close on the tank: the water climbs into the dry glass,
 //            slowly, in three colours, its glow on his back                            2.3–5.9
-//         C  beside him: he lifts the bracer, its rings light one by one, and a first
+//         C  beside him: he lifts the glove, its knuckles light one by one, and a first
 //            glob leaves the nozzle and splashes out across the pool                    5.9–8.7
 //         D  his face: a slight smirk, nothing said                                    8.7–11.2
 //         sound: the father's theme on the desert's duduk (sound.swell('father')), the
@@ -180,7 +180,7 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
       beats: [
         { t: 0.2, run: () => sound.swell?.('father', P.clone()) },
         { t: FILL.fillAt, run: () => doFill() },
-        // the bracer's rings light again, one after another, for the shot to see
+        // the glove's knuckles light again, one after another, for the shot to see
         { t: FILL.A + FILL.B + 0.2, run: () => { if (tool?.ringLit) tool.ringLit = tool.ringLit.map((_, i) => -i * 0.7); } },
         { t: FILL.sparkAt, run: () => tool?.spark?.(aimDir) },
       ],
@@ -194,7 +194,7 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
         if (tool) tool.fillTo = t < FILL.fillAt ? 0 : k;
         // the tank glows on his back as it fills
         if (t > B0 && t < D0 + 0.5) { const tk = tankAt(_h); tankLight.set(tk.x, tk.y + 0.3, tk.z, 7 * k); } else dark(tankLight);
-        // he lifts the bracer and lets the first glob go
+        // he lifts the glove and lets the first glob go
         const lift = t < C0 ? 0 : t < D0 ? smooth((t - C0) / 0.6) * (1 - smooth((t - D0 + 1.0) / 0.6)) : 0;   // (down before his face's panel)
         player.aim = lift > 0.01 ? { k: lift, point: sparkTo, dir: aimDir } : null;
         mm.eyes = t < C0 ? tankAt(_f) : t < D0 ? sparkTo : ahead;

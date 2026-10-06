@@ -54,7 +54,9 @@ family history or turn him into a fool.
 - Once earned, the fluid tank is a slim, flat glass flask sunk into the
   rucksack's outer face (where the outer pocket was), held by two leather bands
   and two leather-bound uprights, its brass neck and valve out over the lid; a
-  hose, and a dark right-wrist bracer lit by the fluid.
+  hose down the outside of the right arm into the cuff of a dark leather glove,
+  a plate on its back and three knuckles lit by the fluid: the glove is what
+  shoots (no device in the hand).
 - The makers’ star is pinned to the jacket lapel; the scout perches on the
   flask's left upright, beside the neck; the lantern hangs off that upright, below.
 

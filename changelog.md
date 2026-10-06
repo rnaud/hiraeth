@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.74 — 2026-10-06
+
+- The game runs smoothly on handhelds again: the traveller’s new coral overshirt had pulled the Retroid down to about 20 frames a second in every world. Its cloth now moves exactly as before but is worked out several times faster, away from the rest of the game.
+
 ## v0.73 — 2026-10-06
 
 - The desert is solid where it is drawn: on the Givers’ Hearth butte and the Givers’ House tower you hang on the rough rock and the carved stone instead of half inside it, and your feet rest on the sunken leviathan’s ribs and skull, on the crashed hull and its salvage, on the fallen giant’s brow, cheeks, teeth and arm, and on the petal station’s great petals and its cage.
@@ -18,7 +22,12 @@ The same release notes shown in the game (press **N** or open settings).
 - A few clouds drift over the desert again, far apart, drawn in ink with hatched undersides, and their shadows pass slowly over the dunes. The horizon stays clear, as in its drawings.
 - Your footprints in the sand no longer vanish when you turn the camera: they stay wherever you walked until the wind fills them in.
 - The stone half-arch that hung in the sky over the pilgrims’ camps, joined to nothing, is back where it belongs: on the inner face of Qanat’s main gate, framing the way in.
-- The game runs smoothly on handhelds again: the traveller’s new coral overshirt had pulled the Retroid down to about 20 frames a second in every world. Its cloth now moves exactly as before but is worked out several times faster, away from the rest of the game.
+- Vael’s bird stands tall on long wading legs, her feet on the ground, and folds her wings close along her sides as the drawings have her, instead of holding them out flat behind her.
+- In Vael II the mushroom tables lean as the drawings have them, their caps tipped off the level, with stalactites hanging in the shade under their lips; the stacked stones and the egg on the disc column are split by deep cracks, and the sea of cloud is knobbly as a cauliflower.
+- Vael II’s monastery has a cloister and a church porch of round arches, arched doors, red eaves over the walls, slender columns round the great dome and a ball and spike on every dome, among more cypresses.
+- The traveller no longer holds a phone: the old handheld screen he carried in his right hand (in the character studio and on the Motion page) is gone, and his hand is empty.
+- With the tank on your back you now wear a dark leather glove on your right hand, as on the drawings: the hose runs down your arm into its cuff, its three knuckles light for the charges left and its plate glows in the fluid’s colour, and your shots and pushes leave from your fist. The wrist bracer, whose brass nozzle lay along your hand like a phone, is gone.
+- People sitting on benches, stones and kerbs wear their robes as seated people do: over the lap and falling from the knees in front of their shins, instead of standing out round their knees and through the bench. Robed people in the crowds no longer have their robe swing out with an arm as they walk, or rise over their head when they sit.
 
 ## v0.72 — 2026-10-06
 

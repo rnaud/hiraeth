@@ -251,7 +251,7 @@ numbers, as `vObjRel` already was for the strokes).
   detail, and its highlight stretched across them. The sky is the post pass's own (`uSkyTop`,
   `uSkyHorizon` and `uNight` are shared uniforms now); the ground is the level's terrain colour
   (`setEnvGround`, main.js). Used on the ship, the vehicles (`paintMaterial({ metal })`), the
-  backpack's tank and bracer, the boxes' items, the gear and trinkets, the Hangar's machines,
+  backpack's tank, the boxes' items, the gear and trinkets, the Hangar's machines,
   pipes, gears, crown and pistons, the listening stones' brass, the Buried Machine's steel and
   rusted iron, the City-Shaft's railings and gilded palace, the market's brass and painted steel,
   the bell, the observatory, the desert's hulls, dishes and masts.

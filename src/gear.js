@@ -5,8 +5,9 @@ import { DRONE_BELLY, DOCK_ON_TOP } from './drone.js';
 // The hero's kit, after the reference plate: a glass bubble helmet over a
 // blue headset (ear cups, mic, a gadget cluster and little aerials at the
 // back), a boxy cream radio pack with dials, a lens and a long whip antenna
-// with a ball tip, cables looping down to a tan belt crowded with pouches,
-// and a handheld device. Authored in the humanoid's anchor frames: the chest
+// with a ball tip, cables looping down to a tan belt crowded with pouches.
+// (Nothing is held in the hand: the old handheld device, a screen in the fist,
+// is gone.) Authored in the humanoid's anchor frames: the chest
 // anchor (y = 0 at the hips, 0.74 at the collar, +z forward) and the head
 // anchor (centre of the skull, +z = face).
 
@@ -161,15 +162,6 @@ export class Gear {
       this.springs.push({ obj: piv, ax: 0, az: 0, vx: 0, vz: 0, k: 0.8, rest: 0, dangle: true });
     }
 
-    // ---------------------------------------------------------------- handheld device (placed in the right hand each frame)
-    const dev = new THREE.Group();
-    dev.add(box(0.075, 0.13, 0.018, G.steel, 0, 0, 0));
-    dev.add(mesh(new THREE.BoxGeometry(0.058, 0.09, 0.004), makeMaterial({ color: G.screen, flat: true, glow: 0.45 }), 0, 0.012, 0.0105));
-    dev.add(cyl(0.004, 0.004, 0.06, G.ink, 0.028, 0.09, -0.004, 4));
-    dev.traverse((o) => { o.userData.noCollide = true; });
-    scene.add(dev);
-    this.device = dev;
-
     for (const g of [hs, pack, belt]) g.traverse((o) => { o.userData.noCollide = true; });
     if (humanoid.outfit || humanoid.ownOutfit) {
       hs.visible = false;
@@ -185,8 +177,8 @@ export class Gear {
     this.char = char;
   }
 
-  /** Swing the antenna and the dangling meter; place the device in the right hand. */
-  update(dt, accLocal, phase, moving, visible) {
+  /** Swing the antenna and the dangling meter. */
+  update(dt, accLocal, phase, moving) {
     for (const s of this.springs) {
       const kx = (-accLocal.z * 0.012 + Math.sin(phase * 2) * 0.08 * moving) * s.k;
       const kz = (accLocal.x * 0.012 + Math.cos(phase) * 0.05 * moving) * s.k;
@@ -195,21 +187,5 @@ export class Gear {
       s.ax += s.vx * dt; s.az += s.vz * dt;
       s.obj.rotation.set(s.rest + s.ax, 0, s.az);
     }
-    const B = this.h.b, hand = B.hand_r, fore = B.lowerarm_r;
-    this.device.visible = visible;
-    if (!hand || !visible) return;
-    // held in the fist: long edge along the forearm, screen facing back up the arm towards the eyes
-    const hp = hand.getWorldPosition(_a), fp = fore.getWorldPosition(_b);
-    const along = _c.subVectors(hp, fp).normalize();
-    const head = B.Head.getWorldPosition(_d);
-    const toEye = _e.subVectors(head, hp).normalize();
-    const side = _f.crossVectors(along, toEye).normalize();
-    const normal = _g.crossVectors(side, along).normalize();
-    _m.makeBasis(side, along, normal);
-    this.device.quaternion.setFromRotationMatrix(_m);
-    this.device.position.copy(hp).addScaledVector(along, 0.06).addScaledVector(normal, 0.02);
   }
 }
-
-const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _e = new THREE.Vector3(), _f = new THREE.Vector3(), _g = new THREE.Vector3();
-const _m = new THREE.Matrix4();
