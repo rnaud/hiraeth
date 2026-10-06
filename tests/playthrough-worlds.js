@@ -117,47 +117,9 @@ Object.assign(CHECKS, {
 });
 
 // ------------------------------------------------------------------ the City-Shaft: 600 m deep, the jets (its temple's) the way down and up
-/** From the rim's edge nearest `to`, a traveller on wings (no jets) steering for it: where does he land? */
-function glideDown(W, to) {
-  const S = W.level.shaft, a = Math.atan2(to.z, to.x);
-  let best = null;
-  for (const da of [-0.3, -0.15, 0, 0.15, 0.3]) for (const r of [S.R + 1, S.R + 4]) {
-    const x = Math.cos(a + da) * r, z = Math.sin(a + da) * r, g = W.physics.groundAt(x, S.TOP + 5, z, 10);
-    if (!Number.isFinite(g) || Math.abs(g - S.TOP) > 2) continue;
-    const P = new A.Player(W.physics, { health: false });
-    P.has = (id) => id !== 'jetpack' && items.has(id);
-    P.respawn(V(x, g + 0.1, z));
-    for (let i = 0; i < 60 * 60; i++) {
-      const heading = Math.atan2(to.x - P.pos.x, to.z - P.pos.z);
-      P.heading = heading;
-      P.update(1 / 60, { KeyW: A.flat(P.pos, to) > 2, Space: i < 4 || (i > 30 && !P.onGround) }, heading + Math.PI);
-      if (i > 40 && P.onGround) break;
-    }
-    const d = P.pos.distanceTo(to);
-    if (P.onGround && (!best || d < best.d)) best = { d, at: P.pos.clone() };
-  }
-  return best;
-}
-/** From `from`, walking out to the shaft's wall and up it: is he back on the rim? */
-function climbOut(W, from) {
-  const S = W.level.shaft, P = new A.Player(W.physics, { health: false, climb: true });
-  P.respawn(from.clone().add(V(0, 0.2, 0)));
-  const out = Math.atan2(from.x, from.z);
-  for (let i = 0; i < 60 * 120; i++) {
-    P.heading = out; P.update(1 / 60, { KeyW: true }, out + Math.PI);
-    if (P.pos.y > S.TOP - 0.5 && P.onGround) return true;
-  }
-  return false;
-}
 Object.assign(WAYS, {
-  // the drone's first find is Nima, on the high terrace 50 m under the rim; the jets are in the makers' tower on
-  // the rim: down on the wings he has from Vael, back up by climbing the shaft's wall
-  'incal.light:opener': { needs: ['glider', 'climb'], how: 'down from the rim on wings; back up the shaft’s wall',
-    check: (W) => {
-      const nima = W.quests.resolve('nima').clone(), g = glideDown(W, nima);
-      if (!g || g.d > 8 || !A.walkTo(W, g.at, nima).ok) return `a glide from the rim lands ${g ? `${g.d.toFixed(0)} m` : 'nowhere'} from Nima`;
-      return climbOut(W, nima) ? null : 'from Nima’s terrace there is no climbing back up to the rim';
-    } },
+  // (the drone's first find, Nima on the high terrace 50 m under the rim, is reached on foot from the ship,
+  // down the red stair in the shaft's wall: no way declared; tests/incal-stair.test.js walks it, and glides it)
   // (the cabs don't stop in the depths: src/story/incal.js)
   'incal.light:ossa': { needs: ['jetpack'], how: 'down the shaft on the jets' },
   'incal.light:palace': { needs: ['jetpack'], how: 'up to the palace on the jets' },
