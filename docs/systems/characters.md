@@ -381,6 +381,21 @@ vertical folds held the cloth out flat like a board, so the lower half lay sprea
   doesn't see, Hask on a broad ledge): the spread from the body's axis, cloth standing up over
   the seat, how far the hem hangs below the collar, near and far.
 
+## Seated robes sit on the seat, not in it
+
+A robe's lower part follows the thighs at three quarters of their swing (`robeGeometry`), which
+reads well walking; seated, the thighs forward, it stood out from the lap as a ring round the knees,
+through the bench under and in front of them. Seated people now wear the robe shaped and weighted
+for sitting (`Humanoid.sitRobe`, called by `NPC.posture` for poses 3 and 4: story people with a
+`seat` and the crowd's sitters): under the hips wholly with the thighs, snug over the lap and close
+under them behind; past the knees with the shins, flaring from there to the hem, so it falls in
+front of the shins (a short robe flares the less the less of it hangs past the knees: `ROBE_SEAT`
+in `crowd-shader.js`). The costume keeps a second geometry with the seated positions, normals and
+weights (the colours and index shared) and swaps it in; its levels of detail follow. The crowd's
+figures do the same in their shader, whose robe also no longer went through the arms' turn (part 11
+fell into the branch for parts 6..9: it swung out with the right arm on a walker and went up over
+a sitter's head). `tests/seated-robes.test.js`.
+
 ## Costumes, the close camera and subtitles (v0.37)
 - **Costumes** (`src/costumes.js`, keyed by level id): each world has one or more tribes
   (headwear, mask, shoulders, prop, robe, cape, pattern, skins, palette), seeded by world

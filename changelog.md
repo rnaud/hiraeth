@@ -17,6 +17,7 @@ The same release notes shown in the game (press **N** or open settings).
 - People walking somewhere no longer lean against a wall, a kerb or a well for ever: they walk round it and carry on.
 - The traveller no longer holds a phone: the old handheld screen he carried in his right hand (in the character studio and on the Motion page) is gone, and his hand is empty.
 - With the tank on your back you now wear a dark leather glove on your right hand, as on the drawings: the hose runs down your arm into its cuff, its three knuckles light for the charges left and its plate glows in the fluid’s colour, and your shots and pushes leave from your fist. The wrist bracer, whose brass nozzle lay along your hand like a phone, is gone.
+- People sitting on benches, stones and kerbs wear their robes as seated people do: over the lap and falling from the knees in front of their shins, instead of standing out round their knees and through the bench. Robed people in the crowds no longer have their robe swing out with an arm as they walk, or rise over their head when they sit.
 
 ## v0.72 — 2026-10-06
 

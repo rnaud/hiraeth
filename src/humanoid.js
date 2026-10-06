@@ -14,6 +14,7 @@ import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPos
 import { cleanExpression, NEUTRAL_EXPRESSION, PEOPLE_REST } from './expression.js';
 import { sharedUniforms } from './materials.js';
 import { Hands } from './hands.js';
+import { ROBE_SEAT } from './crowd-shader.js';
 import { JOINTS as RAG_JOINTS } from './ragdoll.js';
 
 const RAGDOLL_JOINTS = RAG_JOINTS.map(([n]) => n), RAGDOLL_R = RAG_JOINTS.map(([, , r]) => r);
@@ -907,8 +908,9 @@ export class Humanoid {
    */
   dress(look) {
     this.lod?.reset();
-    for (const m of this._costume ?? []) { m.removeFromParent(); m.geometry.dispose(); }
+    for (const m of this._costume ?? []) { m.removeFromParent(); m.geometry.dispose(); m.userData.poses?.seat.dispose(); m.userData.poses?.stand.dispose(); }
     this._costume = [];
+    this._robeSeated = false;
     // (the robe's shape, for the cloth's colliders: robeCones)
     this._robeLook = look?.robe > 0 && !this.outfit && this.body ? { hem: look.robe, flare: look.flare ?? 0.3, belt: this.outfitRest[1] } : null;
     for (const h of this.hood) h.visible = false;
@@ -929,6 +931,17 @@ export class Humanoid {
       }
       geo.setAttribute('color', new THREE.BufferAttribute(c, 3));
       const mesh = new THREE.SkinnedMesh(geo, mat);
+      // seated, the same mesh with its robe's seated shape and weights (the other attributes shared): sitRobe
+      if (src.seat) {
+        const seat = new THREE.BufferGeometry();
+        for (const [k, a] of Object.entries(geo.attributes)) seat.setAttribute(k, a);
+        seat.setIndex(geo.index);
+        seat.setAttribute('position', new THREE.BufferAttribute(src.seat.P, 3));
+        seat.setAttribute('normal', new THREE.BufferAttribute(src.seat.N, 3));
+        seat.setAttribute('skinIndex', new THREE.BufferAttribute(src.seat.J, 4));
+        seat.setAttribute('skinWeight', new THREE.BufferAttribute(src.seat.W, 4));
+        mesh.userData.poses = { stand: geo, seat };
+      }
       const body = this.body;
       mesh.position.copy(body.position); mesh.quaternion.copy(body.quaternion); mesh.scale.copy(body.scale);
       mesh.bind(body.skeleton, body.bindMatrix);
@@ -939,6 +952,21 @@ export class Humanoid {
     };
     make(base.main, makeMaterial({ color: '#ffffff', vertexColors: true, side: THREE.DoubleSide, figure: true }));
     make(base.glow, makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.85, side: THREE.DoubleSide, figure: true }));
+  }
+
+  /**
+   * Seated or not (NPC.posture: sitting on an edge or a seat): a robe's lower part follows the thighs
+   * over the lap and the shins down from the knees (robeGeometry's seated weights), instead of turning
+   * forward with the thighs through the seat. Swaps the costume's geometry (its levels follow: skinned-lod.js).
+   */
+  sitRobe(on) {
+    on = !!on;
+    if ((this._robeSeated ?? false) === on) return;
+    this._robeSeated = on;
+    const meshes = (this._costume ?? []).filter((m) => m.userData.poses);
+    if (!meshes.length) return;
+    this.lod?.reset();
+    for (const m of meshes) m.geometry = on ? m.userData.poses.seat : m.userData.poses.stand;
   }
 
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
@@ -960,7 +988,9 @@ export class Humanoid {
         new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), handDir).multiply(HAND_GRIP), new THREE.Vector3(1, 1, 1)) },
     };
     const out = { main: [], glow: [] };
-    const push = (geo, role, joints, weights, edge = null) => {
+    // (with a robe, every piece also gets the weights it has seated: sitRobe swaps them in)
+    const sits = look.robe > 0;
+    const push = (geo, role, joints, weights, edge = null, seated = null, seatGeo = null) => {
       for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal') geo.deleteAttribute(k);
       if (!geo.index) geo.setIndex([...Array(geo.attributes.position.count).keys()]);
       const n = geo.attributes.position.count;
@@ -973,7 +1003,13 @@ export class Humanoid {
       }
       geo.setAttribute('skinIndex', new THREE.BufferAttribute(J, 4));
       geo.setAttribute('skinWeight', new THREE.BufferAttribute(W, 4));
-      (role === 'lamp' ? out.glow : out.main).push({ geo, role, n, edge });
+      let seat = null;
+      if (sits) {
+        const shape = seatGeo ?? geo;
+        seat = { J: J.slice(), W: W.slice(), P: shape.attributes.position.array, N: shape.attributes.normal.array };
+        if (seated) for (let i = 0; i < n; i++) { const [j, w] = seated(i, geo); seat.J.set(j, i * 4); seat.W.set(w, i * 4); }
+      }
+      (role === 'lamp' ? out.glow : out.main).push({ geo, role, n, edge, seat });
     };
     // (a MakeHuman body draws its own hair and beard, skinned shells: src/makehuman/hair.js)
     const pieces = this.profile?.lookPieces ? this.profile.lookPieces(look, this) : lookPieces(look, 1);
@@ -983,7 +1019,7 @@ export class Humanoid {
       for (const pc of list) push(pc.geo.applyMatrix4(F.m), pc.role, rigid);
     }
     for (const part of pieces.skinned ?? []) push(part.geo, part.role, part.joints, null, part.edge ?? null);
-    if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, part.role, part.joints);
+    if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, part.role, part.joints, null, null, part.seated, part.seatGeo);
     const merged = (list) => {
       if (!list.length) return null;
       const roles = [];
@@ -995,7 +1031,14 @@ export class Humanoid {
         let o = 0;
         for (const p of list) { if (p.edge) edge.set(p.edge, o); o += p.n; }
       }
-      return { geo: mergeGeometries(list.map((p) => p.geo)), roles, edge };
+      let seat = null;
+      if (sits) {
+        const n = roles.length, J = new Uint16Array(n * 4), W = new Float32Array(n * 4), P = new Float32Array(n * 3), N = new Float32Array(n * 3);
+        let o = 0;
+        for (const p of list) { J.set(p.seat.J, o * 4); W.set(p.seat.W, o * 4); P.set(p.seat.P, o * 3); N.set(p.seat.N, o * 3); o += p.n; }
+        seat = { J, W, P, N };
+      }
+      return { geo: mergeGeometries(list.map((p) => p.geo)), roles, edge, seat };
     };
     const r = { main: merged(out.main), glow: merged(out.glow) };
     cache.set(key, r);
@@ -1034,15 +1077,22 @@ export class Humanoid {
     const jp = Math.max(0, bones.indexOf(B.pelvis)), jl = Math.max(0, bones.indexOf(B.thigh_l)), jr = Math.max(0, bones.indexOf(B.thigh_r));
     const ts = [0, 0.15, 0.32, 0.5, 0.7, 0.88];
     const cols = 18, len = belt - hem;
-    const ring = (t) => {
-      const y = belt - t * len, e = at(y), k = Math.pow(t, 0.85);
-      const zc = (e.z0 + e.z1) / 2;
-      return { y, zc: THREE.MathUtils.lerp(zc, zc - 0.02, t), rx: Math.max(THREE.MathUtils.lerp(0.165, flare, k), e.x + 0.03), rz: Math.max(THREE.MathUtils.lerp(0.14, flare * 0.86, k), (e.z1 - e.z0) / 2 + 0.03) };
+    const hipY = (this.rest.get(B.thigh_l).p.y + this.rest.get(B.thigh_r).p.y) / 2, kneeY = (this.rest.get(B.calf_l).p.y + this.rest.get(B.calf_r).p.y) / 2;
+    // (seated: snug round the thighs over the lap, close under them behind, flaring only from the knees
+    // down, where it hangs, and the less the shorter it is past them: flared from the hips, the lap stood
+    // out round the knees like a funnel, its open hem facing ahead)
+    const S = ROBE_SEAT, below = THREE.MathUtils.clamp((kneeY - hem) / S.drop, 0, 1);
+    const ring = (t, seated = false) => {
+      const y = belt - t * len, e = at(y);
+      const k = seated ? below * Math.pow(THREE.MathUtils.clamp((kneeY + S.knee[0] - y) / Math.max(kneeY + S.knee[0] - hem, 0.05), 0, 1), 0.85) : Math.pow(t, 0.85);
+      const zc = (e.z0 + e.z1) / 2, rz = Math.max(THREE.MathUtils.lerp(0.14, flare * 0.86, k), (e.z1 - e.z0) / 2 + 0.03);
+      const under = seated ? THREE.MathUtils.smoothstep(hipY - y, S.hip[0], S.hip[1]) * (1 - THREE.MathUtils.smoothstep(kneeY - y, S.knee[0], S.knee[1])) : 0;
+      return { y, zc: THREE.MathUtils.lerp(zc, zc - 0.02, t), rx: Math.max(THREE.MathUtils.lerp(0.165, flare, k), e.x + 0.03), rz, rzb: THREE.MathUtils.lerp(rz, rz * S.under, under) };
     };
-    const band = (t0, t1, steps) => {
+    const band = (t0, t1, steps, seated = false) => {
       const pos = [], idx = [], rows = [];
-      for (let r = 0; r <= steps; r++) rows.push(ring(t0 + (t1 - t0) * (r / steps)));
-      rows.forEach((R) => { for (let c = 0; c <= cols; c++) { const a = (c / cols) * Math.PI * 2; pos.push(Math.sin(a) * R.rx, R.y, R.zc + Math.cos(a) * R.rz); } });
+      for (let r = 0; r <= steps; r++) rows.push(ring(t0 + (t1 - t0) * (r / steps), seated));
+      rows.forEach((R) => { for (let c = 0; c <= cols; c++) { const a = (c / cols) * Math.PI * 2; pos.push(Math.sin(a) * R.rx, R.y, R.zc + Math.cos(a) * (Math.cos(a) < 0 ? R.rzb : R.rz)); } });
       for (let r = 0; r < steps; r++) for (let c = 0; c < cols; c++) { const a = r * (cols + 1) + c, b = a + 1, d = a + cols + 1, e = d + 1; idx.push(a, d, b, b, d, e); }
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -1055,7 +1105,21 @@ export class Humanoid {
       const wl = THREE.MathUtils.smoothstep(P.getX(i) * left, -0.12, 0.12), follow = 0.75 * THREE.MathUtils.smoothstep(t, 0, 0.5);
       return [[jp, jl, jr, 0], [1 - follow, follow * wl, follow * (1 - wl), 0]];
     };
-    return [{ geo: band(0, 0.88, ts.length - 1), role: 'cloth', joints }, { geo: band(0.88, 1, 1), role: 'accent', joints }];
+    // Seated (sitRobe), the robe shaped and weighted otherwise: under the hips wholly with the thighs (over the lap
+    // in front, tucked under them behind) and past the knees with the shins, so it falls from the knees in
+    // front of them to the hem. Standing weights there turned the lower robe forward with the thighs
+    // into a ring round the knees, through the seat.
+    const R = ROBE_SEAT, cl = Math.max(0, bones.indexOf(B.calf_l)), cr = Math.max(0, bones.indexOf(B.calf_r));
+    const seated = (i, g) => {
+      const P = g.attributes.position, y = P.getY(i);
+      const wl = THREE.MathUtils.smoothstep(P.getX(i) * left, -0.12, 0.12);
+      const f = THREE.MathUtils.smoothstep(hipY - y, R.hip[0], R.hip[1]), c = THREE.MathUtils.smoothstep(kneeY - y, R.knee[0], R.knee[1]);
+      if (c > 0) return [[jl, jr, cl, cr], [(1 - c) * wl, (1 - c) * (1 - wl), c * wl, c * (1 - wl)]];
+      return [[jp, jl, jr, 0], [1 - f, f * wl, f * (1 - wl), 0]];
+    };
+    // (the seated weights are read off the standing shape: the same vertices, in the same order, as the seated one)
+    return [{ geo: band(0, 0.88, ts.length - 1), seatGeo: band(0, 0.88, ts.length - 1, true), role: 'cloth', joints, seated },
+      { geo: band(0.88, 1, 1), seatGeo: band(0.88, 1, 1, true), role: 'accent', joints, seated }];
   }
 
   /**
