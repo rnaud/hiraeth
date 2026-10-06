@@ -446,9 +446,10 @@ const fragmentShader = /* glsl */ `
   }
 
   // ---------------------------------------------------------------- haze by depth and height (4b)
-  // x: the layers' veil at view depth d: stepped in distance (each layer k times farther than the last),
-  // a soft ramp before each step, so far planes separate in flat bands; y: the height fog's, integrated
-  // along the ray (a density growing exponentially under a height: down a shaft, low in a wood).
+  // x: the layers' veil at distance d from the eye: stepped in distance (each layer k times farther than the
+  // last), a soft ramp before each step, so far planes separate in flat bands; y: the height fog's, integrated
+  // along the ray (a density growing exponentially under a height: down a shaft, low in a wood). d is the
+  // distance, not the view depth: a band then stays put on the ground as the view turns ("Stable in motion").
   vec2 hazeAt(float d, vec3 rd) {
     vec2 h = vec2(0.0);
     #ifdef INK_LAYERS
@@ -460,7 +461,7 @@ const fragmentShader = /* glsl */ `
     #endif
     #ifdef INK_HFOG
     {
-      float dist = d / max(dot(rd, -uCamWorld[2].xyz), 0.05);
+      float dist = d;
       float b = 1.0 / uHeightFog.y;
       float base = exp(min(-(uCamWorld[3].y - uHeightFog.x) * b, 30.0));
       float x = max(rd.y * dist * b, -30.0);
@@ -716,6 +717,8 @@ const fragmentShader = /* glsl */ `
     float heroBoundary = heroNear - min(hero, min(min(hm.x, hm.y), min(hm.z, hm.w)));
     float depth = isSky ? 1e7 : N.w;
     vec3 rd = viewRay(uv);
+    // view depth to distance from the eye (the fog, the haze: by distance, so they stay put as the view turns)
+    float toRange = 1.0 / max(dot(rd, -uCamWorld[2].xyz), 0.2);
     // cast shadows by world (CAST): how much a cast shadow here would be lifted (facing the sun, open ground or not);
     // its shade, strokes (2, 3) and its edge line (1) go with it. Not a person's, a face's or the sky's.
     // (compiled in only where a world says them: inkFeatures, a shader that carries code it never runs is slower)
@@ -736,7 +739,7 @@ const fragmentShader = /* glsl */ `
     if (uDebug == 7) { vec3 H = isSky ? vec3(0.0) : surface.rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
     if (uDebug == 1) {
       vec3 c = isSky ? skyBase(rd) : A.rgb * (0.35 + 0.75 * A.a);
-      if (!isSky) c = mix(c, skyBase(rd), 1.0 - exp(-max(depth - uFogStart, 0.0) * uFogDensity * uFogMul));
+      if (!isSky) c = mix(c, skyBase(rd), 1.0 - exp(-max(depth * toRange - uFogStart, 0.0) * uFogDensity * uFogMul));
       fragColor = vec4(c, 1.0);
       return;
     }
@@ -853,13 +856,13 @@ const fragmentShader = /* glsl */ `
     ink = mix(ink, heroInk, heroNear);
 
     // fog factor (for lines use the nearest surface in the kernel)
-    float fogLine = 1.0 - exp(-max(nearD - uFogStart, 0.0) * uFogDensity * uFogMul * 1.4);
+    float fogLine = 1.0 - exp(-max(nearD * toRange - uFogStart, 0.0) * uFogDensity * uFogMul * 1.4);
     ink *= 1.0 - fogLine;
     // (the haze layers and the height fog veil the lines with what they stand in: 4b)
     // (once a pixel: its own depth, or on the sky the line's surface; a line's far side on a wall takes the wall's)
     vec2 hz = vec2(0.0);
     #ifdef INK_HAZE
-    hz = hazeAt(isSky ? nearD : depth, rd);
+    hz = hazeAt((isSky ? nearD : depth) * toRange, rd);
     ink *= (1.0 - hz.x * ${HAZE.lineFade}) * (1.0 - hz.y);
     #endif
 
@@ -968,7 +971,7 @@ const fragmentShader = /* glsl */ `
       }
 
       // ---- 4. atmospheric perspective, in flat layers like a printed background
-      float fog = 1.0 - exp(-max(depth - uFogStart, 0.0) * uFogDensity * uFogMul);
+      float fog = 1.0 - exp(-max(depth * toRange - uFogStart, 0.0) * uFogDensity * uFogMul);
       float fb = fog * 4.0;
       float fogQ = (floor(fb) + smoothstep(0.42, 0.58, fract(fb))) / 4.0;
       fog = mix(fog, fogQ, uHazeBands);
@@ -1206,7 +1209,9 @@ export function createPost() {
   let baked = null;
   const keyNow = () => noiseKey(uniforms);
   // whoever draws the composite without baking (or at another pixel ratio: a portrait) gets the noise worked out
-  quad.onBeforeRender = () => { uniforms.uNoiseBaked.value = baked === keyNow() ? 1 : 0; };
+  // (and the haze's and cast shadows' defines checked again: this handler replaces the sync above, which had left a value
+  // changed in place, not set, on the program it had)
+  quad.onBeforeRender = () => { sync(); uniforms.uNoiseBaked.value = baked === keyNow() ? 1 : 0; };
   /** Bake the screen-fixed noise for the frame's size (uRes, uPixelRatio, uPostLite) if it changed: before drawing `scene`. */
   const bakeNoise = (renderer) => {
     const key = keyNow();

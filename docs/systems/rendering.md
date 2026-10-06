@@ -344,7 +344,7 @@ between trunks, the desert's far dunes, the Market's far towers), and the City-S
 with depth down or into them. Our fog was one exponential tint by distance (`uHaze` only gave it the
 desert's colour).
 
-- **Layers by depth** (`uHazeLayers`: first distance, each layer's distance over the last's, each
+- **Layers by distance** (`uHazeLayers`: first distance, each layer's distance over the last's, each
   layer's veil, how many; `uHazeTone`: their colour, and how much of it over the far haze's): past
   the first distance every layer k times farther veils a little more, `1 − (1 − a)^layers`, flat
   inside a layer with a soft ramp (`HAZE.edge`, a fifth of a layer) before each step. Things at
@@ -363,8 +363,10 @@ desert's colour).
   `SHAFT_VIEW_FOG` (under −40 m). Every preset lists them off (`hazeOff`).
 - **Cost**: a log2 and a pow (the layers), three exps (the fog by height) once a pixel, compiled in only
   where a look sets them (`INK_LAYERS`, `INK_HFOG`: "Cost of the ink pass's three" below).
-- **Shimmer**: none. The layers are a function of each pixel's depth with a soft ramp (`HAZE.edge`), so a band's
-  edge slides smoothly over open ground as you walk and never flickers; the fog by height is smooth in depth.
+- **Shimmer**: none. The layers are a function of each pixel's distance from the eye with a soft ramp (`HAZE.edge`),
+  so a band's edge slides smoothly over open ground as you walk and never flickers; the fog by height is smooth in
+  distance. By distance, not the view depth (as the far fog too): by depth a band's edge was a plane facing the
+  camera, which swept across the ground as the view turned ("Stable in motion").
 - `tests/ink-pass.test.js`: the JS twins (`hazeLayers`, `heightFog`): stepped, monotonic, continuous,
   thicker looking down; every preset says them; the worlds and views set theirs.
 
@@ -439,3 +441,94 @@ shadows lifted.
   0.15 (a build without block 1b); the rest the light term's decoding and the drawn detail's darker ink in
   shade. On the handheld preset 0.13-0.25 ms (3-4 %). Not done: Retina frames over 16.7 ms (Lorn II's) were
   so before.
+
+## Stable in motion
+
+The ink pass's recent work (pen detail at every scale, form hatching, colour patches, worn walls, spot blacks, lines
+by material, haze layers and fog by height, cast shadows by world, `FACET_EDGE`, the baked screen noise) had been
+checked on still frames. A moving camera shows what stills miss: shimmer, a pattern swapping scale, bands sliding.
+
+- **The check** (`scripts/motion-check/`): a build in headless Chrome (muted, the game's volume 0), the game's own
+  clock taken over once booted (`performance.now` and `requestAnimationFrame`: each frame is stepped by hand, the
+  same on every run), the camera carried along a path frame by frame, each frame read back. With the world frozen
+  (people, water and motes held) the camera moves a third of a pixel a frame: an antialiased drawing changes a few
+  levels a frame and in one direction; **flicker** counts the pixels that jumped over 20 levels and came straight back
+  (per 10 000 px). The **zoom** (straight at a wall along its normal) and the **swing** (a 30° level turn) are
+  measured against the last frame warped to match (exact at every depth), counting a pixel only where its value
+  is outside the 3 × 3 it came from. Each path has a heat map; a slow path is run again with a feature off
+  (`--toggles`) for its share. Paths: still (the clock running), pan, drift, walk to a wall, zoom, orbit and slow
+  orbit round a form-hatched part, fast (30 m/s), haze (walking, looking far), swing, descend (the City-Shaft).
+  `survey.sh` runs all twelve worlds; WebM clips (half size, and the hottest part 1:1) and the numbers as JSON.
+- **The screen-fixed parts are fixed on purpose**: the lines' wobble and the paper are baked once per frame size
+  (identical in a still frame as the clock runs: nothing in the still path but what moves), so in motion the
+  world slides under them, as under paper; and the vignette. The checks turn wobble and paper off where they
+  warp frames (`--js` file).
+
+What it found, and what holds it still now:
+
+- **Worn walls seen at a slant** (the Signal Market, Qanat, home): the grime streaks were tapered in tone to their
+  foot, so along each streak the colour step crossed post.js's colour-edge threshold (0.08–0.14): its outline was
+  drawn on one frame and not the next, and on a face seen edge-on every streak was a dash 1–3 px wide, outlined.
+  The streaks now keep their tone (`WEATHER.grime.taper` 0.2), have pixel-wide antialiased sides and ends, and a
+  streak whose head is under 2.25 CSS px wide is left out whole; chips' fills, their lip shadows and the cracks'
+  shadow slivers lost their hard steps (materials.md, "Weathered walls"). The Market from its spawn, a slow pan
+  across two walls at a slant: flicker 6.3 → 2.9 (the weathering's own share 5.1 → 1.7); from the survey's view 3.8 → 3.0.
+- **Big curved forms' terminators** (the Buried Machine's pipes and tanks, trunks): within a few degrees of edge-on
+  to the sun the surface's own shadow map cut the light/shade line into teeth (shadow texels at grazing), and the
+  shadow-edge line followed them in a crawling zig-zag. A smooth surface's shadow map is now faded in over
+  n·l 0 … `TERMINATOR` (0.08), the line there the light's own, only where the form is big on screen (its normal
+  turns under `TERMINATOR_TURN`, 0.02–0.06, per pixel: a stalk or a rib keeps the map's shade, which holds it still;
+  letting it go made the desert's shrubs and ribs flicker more), never the ground (a low sun's cast shadows stay)
+  or flat facets (`FACET_EDGE`). The Buried Machine, orbiting its main pipe slowly: 9.3 → 1.5.
+- **Haze and fog turning with the view**: the far fog, its posterised bands, the haze layers and the line fade were
+  functions of the view depth, a plane facing the camera, so as the view turned a band's edge swept across the
+  ground and a trunk moved from the middle of the view to its side stepped a layer nearer. They are by distance
+  from the eye now (`toRange` in post.js; the fog by height already was). Over a 30° turn in Lorn II the pixels
+  changed by the fog and haze went from 563 to 242 per 10 000 (what is left: the vignette's darkening on paler
+  pixels); the look straight ahead is the same, the sides a little hazier (the corners 1.4 × as far).
+- **Pen detail handing over its scales**: each scale is its own pattern, and the next was cross-faded in over the
+  last fifth of a level, a swap in a few frames riding or flying past. It is over the last half now
+  (`DETAIL.blend`): a long zoom at a Market wall on Handheld (160 → 20 m, where the scales change at Retina's
+  2 ×) left half the residual (879 → 492 summed, worst frame 136 → 68). At Retina High the scales change at
+  60 / 120 / 240 m only, so walking toward a wall never crosses one.
+- **The composite's defines** (`inkFeatures`): a second `onBeforeRender` had replaced the check before each draw,
+  so a haze or cast value changed in place kept the program without it; both run now.
+- **Checked and steady**: form hatching (Vael II's tables, Lorn II's mushrooms, the Buried Machine's tanks: its
+  toggle changes nothing in slow orbits), colour patches (their edges ramp: nothing), lines by material, cast shadows
+  by world, the spot blacks, `FACET_EDGE`, and the still frames of every world (only people, water, birds, motes
+  and banners change).
+- **Left** (older than this work, measured, not changed): the hatching's dense cross-hatch on facets turned away
+  and seen at a slant breaks into a speckle that shimmers (the Sealed Hangar's towers: half its pan's flicker, the
+  hatch toggle 8.7 → 4.5; the desert's 7.4 → 6.6); grass tufts with a pen line in the Garden of Spheres; the
+  shadow edge where the fine cascade (±12 m) takes over from the near one moves a few pixels at once as you walk
+  up to a wall (a 1.4 m blend at the map's border); shadow-edge lines are a step per pixel (FXAA smooths them).
+
+Per world (High, 1728 × 1117 at DPR 2; flicker per 10 000 px before → after; zoom and swing: the warped residual):
+
+| World | Found | High: before → after | Handheld: before → after |
+|---|---|---|---|
+| Desert | nothing new; the hatching on the far mesas the most of a pan; fog bands sliding as you turn | pan 7.4 → 7.0, drift 1.3 → 1.0, swing 3449 → 3322 | pan 6.9 → 6.2 |
+| City-Shaft | its fog by height steady going down; fog turning with the view | swing 3726 → 3235, descend 88.6 → 88.7 | swing 3773 → 3303 |
+| Signal Market | grime and its outlines shimmering on walls at a slant (fixed) | pan 3.8 → 3.0 (from its spawn 6.3 → 2.9) | pan 6.0 → 5.2 |
+| Vael | nothing new | pan 1.6 → 1.6 | pan 3.2 → 3.0 |
+| Vael II | the tables' form hatching steady in a slow orbit | pan 9.4 → 9.0, orbit 7.1 → 7.1 | pan 7.3 → 7.0 |
+| Lorn | nothing new | pan 4.3 → 4.3 | pan 5.2 → 5.3 |
+| Lorn II | haze layers turning with the view (fixed); mushrooms' fans steady | pan 6.1 → 5.8, swing 1662 → 1312 | swing 1752 → 1413 |
+| Viridel | nothing new | pan 2.4 → 2.5 | pan 2.8 → 3.1 |
+| Sealed Hangar | the towers' dense cross-hatch speckle (left) | pan 8.8 → 8.7 | pan 10.2 → 10.2 |
+| Buried Machine | teeth crawling along the pipes' and tanks' terminators (fixed) | slow orbit 9.3 → 1.5, zoom 4.5 → 4.0 | slow orbit 1.6 → 1.6 |
+| Garden of Spheres | grass tufts' pen lines (left) | pan 15.1 → 15.3, slow orbit 12.1 → 11.7 | pan 23.9 → 23.9 |
+| Home | nothing new | pan 5.9 → 5.9 | pan 5.7 → 5.6 |
+
+(The still path is left out: with the clock running it measures who walks by; every world's showed only moving
+things. On Handheld the Buried Machine's pipe is small enough on screen that the shadow map holds its line.)
+
+- **Cost** (M4 Pro, ANGLE Metal, the two builds in their own pages timed in turns: 16 `renderFrame()` closed by a
+  `readPixels`, 12 rounds, the boot camera and one 25 m up; paired difference median, ms): High 1728 × 1117 at
+  DPR 2, the Market +0.02 / +0.18, the Buried Machine −0.30 / +0.18, Lorn II −0.11 / −0.01, the desert −0.01 /
+  −0.02; Handheld 0.00 / −0.01, −0.60 / −0.62, 0.00 / −0.31, −0.47 / −0.26. Nothing measurable: the detail's
+  wider cross-fade evaluates a second scale on more of a wall's pixels, the rest is a divide, an `fwidth` and a
+  few smoothsteps.
+- `tests/motion-stable.test.js`: the grime's tone at its foot against the edge threshold and its width cut, no hard
+  steps in the wear, the detail's blend, the terminator's fade and where it applies, the fog and haze by distance
+  (a trunk turning to the side of the view keeps its veil), the composite's defines followed in place.

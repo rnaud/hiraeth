@@ -10,6 +10,8 @@ The same release notes shown in the game (press **N** or open settings).
 - A wall turned edge-on to the sun no longer breaks into a field of tiny light specks: it sits cleanly in its shade, and the fine pen marks on shaded walls read more clearly.
 - On Android, putting the handheld to sleep (or leaving the app) now silences the game at once: the music no longer plays on with the screen off, on the title screen, in a world that is still loading or anywhere else, and it comes back when you return.
 - Arriving in a new world with an errand from the last one still under way, the drone now finds the person who starts this world’s quest, and the marker shows them, instead of finding nothing (Vael II, Lorn, Viridel, the Hangar, the Garden of Spheres and the Signal Market).
+- The drawing holds still as you move: old walls seen at a slant no longer shimmer with flickering grime streaks and cracks, the edge where a big pipe, tank or trunk turns from the sun is one clean line instead of crawling teeth, and the fine pen marks on distant walls change scale gently instead of popping as you ride or fly past.
+- Haze and fog stay put on the land as you turn the camera, instead of sliding across it with the view.
 
 ## v0.71 — 2026-10-06
 
