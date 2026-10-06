@@ -1,0 +1,25 @@
+TODO.md
+  s_4068fcdc0e3db5::t_4fa3376330ea52 103-107
+docs/systems/animation.md
+  s_4068fcdc0e3db5::t_64cf29554a3fbc 206-226
+scripts/bench/results/load-desktop.json
+  s_4068fcdc0e3db5::t_ecece0e0820673 1-154
+scripts/bench/web-load.mjs
+  s_4068fcdc0e3db5::t_4f93a6aec4e7fd 1-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c1490087ed1016d8c9a83e6691f95018ed59518a",
+  "prompts": {},
+  "sessions": {
+    "s_4068fcdc0e3db5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce61860b-da40-4b8b-a4f2-cda9cfa23c26",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
