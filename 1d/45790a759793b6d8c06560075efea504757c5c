@@ -1,0 +1,25 @@
+changelog.md
+  s_55b4bc53b812ec::t_93b3bfa4a17961 19
+src/changelog.js
+  s_55b4bc53b812ec::t_6fbb67df5b7286 23
+src/desert-city.js
+  s_55b4bc53b812ec::t_2bc198066c1eca 260-262
+tests/desert-gate.test.js
+  s_55b4bc53b812ec::t_a0a37c99b04eac 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1d45790a759793b6d8c06560075efea504757c5c",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
