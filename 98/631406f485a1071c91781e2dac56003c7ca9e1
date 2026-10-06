@@ -1,0 +1,67 @@
+.gitignore
+  s_1fd8d0e7b02dcf::t_64a7faa52a487e 30-43
+TODO.md
+  s_1fd8d0e7b02dcf::t_04af0f40ef860c 232
+docs/README.md
+  s_1fd8d0e7b02dcf::t_84c92adebb7a10 56
+docs/systems/engine-bridge.md
+  s_1fd8d0e7b02dcf::t_378b846be282ac 1-169
+engine/boot.js
+  s_1fd8d0e7b02dcf::t_87552585712f69 1-22
+engine/godot/backend.js
+  s_1fd8d0e7b02dcf::t_36ffe095b51a2e 1-158
+engine/godot/host.js
+  s_1fd8d0e7b02dcf::t_5fe77bbccb2683 1-40
+engine/godot/look.js
+  s_1fd8d0e7b02dcf::t_6016d8520e477e 1-14
+engine/godot/pack.js
+  s_1fd8d0e7b02dcf::t_8b6807a4c17b4e 1-51
+engine/godot/spike.js
+  s_1fd8d0e7b02dcf::t_91dfa5cd8aaf72 1-35
+engine/godot/stage.js
+  s_1fd8d0e7b02dcf::t_0199f6f988bf6f 1-79
+engine/ink-params.js
+  s_1fd8d0e7b02dcf::t_fb3f6cf0a9e9dd 1-26
+engine/ink-spec.js
+  s_1fd8d0e7b02dcf::t_eb5e38e5560543 1-58
+engine/mirror.js
+  s_1fd8d0e7b02dcf::t_5c059c03461330 1-171
+engine/platform.js
+  s_1fd8d0e7b02dcf::t_47f47a20fd032f 1-314
+engine/spike.js
+  s_1fd8d0e7b02dcf::t_fad9445f37be5c 1-38
+engine/vm-run.mjs
+  s_1fd8d0e7b02dcf::t_1c3ac940384017 1-34
+godot/main.js
+  s_1fd8d0e7b02dcf::t_adef9793408210 1-21
+godot/main.tscn
+  s_1fd8d0e7b02dcf::t_e477f2a04b6be8 1-6
+godot/project.godot
+  s_1fd8d0e7b02dcf::t_dbefb0c7352195 1-20
+godot/run.sh
+  s_1fd8d0e7b02dcf::t_a2163fe8c867a3 1-18
+godot/shaders/ink_post.gdshader
+  s_1fd8d0e7b02dcf::t_49fe14dfb622cb 1-84
+godot/shaders/ink_surface.gdshader
+  s_1fd8d0e7b02dcf::t_8bce9e9d6e4e77 1-95
+scripts/engine-bundle.mjs
+  s_1fd8d0e7b02dcf::t_999a6b7040ab6b 1-49
+tests/engine-bridge.test.js
+  s_1fd8d0e7b02dcf::t_1fa51b89309678 1-188
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "98631406f485a1071c91781e2dac56003c7ca9e1",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
