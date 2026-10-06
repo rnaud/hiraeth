@@ -1,0 +1,47 @@
+android/app/src/main/assets/memento-ext/content.js
+  s_1fd8d0e7b02dcf::t_17592abd14eebf 8-10,22-24,46-50
+android/app/src/main/java/com/rnaud/moebius/MainActivity.java
+  s_1fd8d0e7b02dcf::t_fef13ab772a5f3 5-6,8,25,40,67-71,81-82,99-103,195-197,243,258-269,356-372,374,377-388,390-393,396-397,402-421,424-425
+android/app/src/main/java/com/rnaud/moebius/WebBundles.java
+  s_1fd8d0e7b02dcf::t_a3626073a7e9f3 87
+android/app/src/main/java/com/rnaud/moebius/WebViewActivity.java
+  s_1fd8d0e7b02dcf::t_2e754182bee1fb 3-6,9-11,20,45-47,49,53-56,69-74,111-165,170-171,175-180,184-192
+changelog.md
+  s_1fd8d0e7b02dcf::t_8093f777e7e18b 11
+docs/systems/android.md
+  s_1fd8d0e7b02dcf::t_4cf153d728d86f 60,132-162
+src/audio-guard.js
+  s_1fd8d0e7b02dcf::t_43963b4c90cece 1-109
+src/audio.js
+  s_1fd8d0e7b02dcf::t_20e4ee489f57ac 15,186-190,192-194,213-224,226-230,236,368,393
+src/boot.js
+  s_1fd8d0e7b02dcf::t_5d42a904f56b32 11,13
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_7212adad1bcb31 14
+src/native-app.js
+  s_1fd8d0e7b02dcf::t_146aa191ff9f3b 13-16,19,124-127
+src/story/arzach2.js
+  s_1fd8d0e7b02dcf::t_ceb369205e8bc1 8,45
+tests/android-gecko.test.js
+  s_1fd8d0e7b02dcf::t_335026ac082d3f 70,101-143
+tests/audio-guard.test.js
+  s_1fd8d0e7b02dcf::t_96c94ce73dc800 1-160
+tests/native-app.test.js
+  s_1fd8d0e7b02dcf::t_ce210a26f7664c 81,84,87,91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9eb88c33dd69b0427449cce3794fe4f77fd7335a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
