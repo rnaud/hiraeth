@@ -1,4 +1,4 @@
-import { app, BrowserWindow, net, protocol } from 'electron';
+import { app, BrowserWindow, net, powerSaveBlocker, protocol } from 'electron';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { existsSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -53,6 +53,9 @@ else {
     icon: path.join(packaged, 'icons/icon-512.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true },
   });
+  // a game is played with the sticks, not the touchscreen: the screen stays on (no dimming, no sleep)
+  // while it runs, in Gaming Mode and on the desktop alike
+  powerSaveBlocker.start('prevent-display-sleep');
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', (event, url) => {
     if (!url.startsWith('moebius://game/')) event.preventDefault();

@@ -8,6 +8,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.
 - The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.
 - Game updates in the app and on the Steam Deck are about a third of their old size: the References scenes’ drawings are no longer packed into them and come from the game’s site when you open those scenes.
+- On the Steam Deck the screen no longer dims or goes to sleep while you play with the controls.
 
 ## v0.70 — 2026-10-06
 
