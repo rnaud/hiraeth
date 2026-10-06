@@ -1,0 +1,41 @@
+changelog.md
+  s_1fd8d0e7b02dcf::t_682d67df635531 12
+docs/README.md
+  s_1fd8d0e7b02dcf::t_688f184799a459 55
+docs/systems/testing.md
+  s_1fd8d0e7b02dcf::t_905006d6f4c613 1-78
+scripts/playthrough-browser.mjs
+  s_1fd8d0e7b02dcf::t_c0dea63e364450 1-201
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_dc7cf2ae60fb06 15
+src/story/quests.js
+  s_1fd8d0e7b02dcf::t_e49791ef05f2b8 151-153
+tests/dialogue.test.js
+  s_1fd8d0e7b02dcf::t_40bd40d4eaaba7 135-152
+tests/load-steps.test.js
+  s_1fd8d0e7b02dcf::t_f9c62fde987959 39
+tests/playthrough-agent.js
+  s_1fd8d0e7b02dcf::t_e5a4a0688e2023 1-668
+tests/playthrough-saves.test.js
+  s_1fd8d0e7b02dcf::t_20f1c82c9fd193 1-145
+tests/playthrough-worlds.js
+  s_1fd8d0e7b02dcf::t_ce4a70b433461e 1-255
+tests/playthrough.test.js
+  s_1fd8d0e7b02dcf::t_993c880fd730d5 1-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "35cffdb37a9007253657341875b5d5080c753203",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
