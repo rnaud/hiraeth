@@ -1,0 +1,55 @@
+TODO.md
+  s_1fd8d0e7b02dcf::t_81cf16251a1f38 243
+docs/systems/engine-bridge.md
+  s_1fd8d0e7b02dcf::t_0f37593d67e563 469-471,508-560,574
+engine/unity/backend.js
+  s_1fd8d0e7b02dcf::t_7846de11a7921d 16-17,41,175
+engine/unity/game.js
+  s_1fd8d0e7b02dcf::t_0693f7ebfbb430 6,110
+engine/unity/host.js
+  s_1fd8d0e7b02dcf::t_338a1fe7f256d9 23-26
+engine/webaudio.js
+  s_1fd8d0e7b02dcf::t_8d914570f5060e 50-59
+scripts/unity-js-player.sh
+  s_1fd8d0e7b02dcf::t_51dbf1472a4573 1-16
+tests/webaudio.test.js
+  s_1fd8d0e7b02dcf::t_2153980e40eaa4 43-54
+unity/.gitignore
+  s_1fd8d0e7b02dcf::t_61f82fadc1fd5c 32-34
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs
+  s_1fd8d0e7b02dcf::t_37c3046c411ac2 40,46
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_1fd8d0e7b02dcf::t_2bb95588dc1542 1-156
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs.meta
+  s_1fd8d0e7b02dcf::t_a9c743453c9b43 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_1fd8d0e7b02dcf::t_efeedf1057ace4 1-86
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs.meta
+  s_1fd8d0e7b02dcf::t_a88eff96e005da 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_1fd8d0e7b02dcf::t_25dc4d9d09fc28 24-32,50-51
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_1fd8d0e7b02dcf::t_c29b7e490429de 41-45,86-87,89-90,102,105
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs
+  s_1fd8d0e7b02dcf::t_86201e1aacf111 16,53-60,67
+unity/Memento/Assets/MementoJS/link.xml
+  s_1fd8d0e7b02dcf::t_92b1f4e81d0993 1-10
+unity/Memento/Assets/MementoJS/link.xml.meta
+  s_1fd8d0e7b02dcf::t_d22cd829a2a069 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "00ec865e4f917829bdde04477a0f519c846e6b04",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
