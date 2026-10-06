@@ -1,3 +1,4 @@
+import { sheetSrc } from './reference-sheets.js';
 // ---------------------------------------------------------------------------
 // The References' quick menu (src/levels/references.js): every view at a glance, grouped by
 // world and then by sheet, each with a tiny picture of its panel (cut from its sheet on a canvas
@@ -229,7 +230,7 @@ export class ReferencePicker {
           canvas.classList.add('ready');
         }
       };
-      img.src = url;
+      img.src = sheetSrc(url);
     }
   }
 

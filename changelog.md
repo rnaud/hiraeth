@@ -7,6 +7,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.
 - The References scenes now include the Signal Market: twenty-one views from its eight sheets, the canyon of towers and billboards, the skybridges, the stalls, the cabs and the crowd. Every reference sheet of every world is now in the References.
 - The desert runs smoother again on large and Retina screens: the shading of deep pockets and creases costs far less, so Qanat’s streets and the camps are back near 60 frames a second on a MacBook, with the same look.
+- Game updates in the app and on the Steam Deck are about a third of their old size: the References scenes’ drawings are no longer packed into them and come from the game’s site when you open those scenes.
 - Walls and machines are drawn with fine pen detail, as in the drawings: panel seams and joints, little vents, hatches and plates, bolts up close, and the same marks on the far buildings at their own scale. Tree trunks, roots and the giant mushrooms’ stalks have short grain strokes along their bark.
 
 ## v0.70 — 2026-10-06

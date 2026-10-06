@@ -12,6 +12,7 @@ import { SPHERES_DAY, SPHERES_LOOK } from './spheres.js';
 import { DEEP_WOOD_DAY, DEEP_WOOD_LOOK } from './perdide2.js';
 import { MARKET_DAY, MARKET_LOOK } from './bazaar.js';
 import { ReferencePicker } from './reference-picker.js';
+import { sheetSrc } from './reference-sheets.js';
 
 // ---------------------------------------------------------------------------
 // The references: a developer's level (?level=references, or the worlds list, L)
@@ -129,7 +130,7 @@ export function cropStyle(view, w, h) {
   const [x, y, cw, ch] = view.crop;
   const sx = w / cw, sy = h / ch;
   return {
-    backgroundImage: `url("${sheet.url}")`,
+    backgroundImage: `url("${sheetSrc(sheet.url)}")`,
     backgroundSize: `${sheet.size[0] * sx}px ${sheet.size[1] * sy}px`,
     backgroundPosition: `${-x * sx}px ${-y * sy}px`,
   };
