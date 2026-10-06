@@ -120,6 +120,36 @@ export function polyDistance(poly, x, z) {
   return { d: best, nx, nz };
 }
 
+/**
+ * A polygon's edges ready for edgeDistance (per edge: start x z, along x z, outward x z, 1 / length²):
+ * the field is asked for hundreds of points a frame (the wind's wisps follow the ground), and
+ * polyDistance's hypot and divisions per edge were most of a frame's drift lookups.
+ */
+export function polyEdges(poly) {
+  const e = new Float64Array(poly.length * 7);
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const ex = b[0] - a[0], ez = b[1] - a[1], L = Math.hypot(ex, ez) || 1;
+    e.set([a[0], a[1], ex, ez, ez / L, -ex / L, 1 / (L * L)], i * 7);
+  }
+  return e;
+}
+const _ed = { d: 0, nx: 0, nz: 0 };
+/** polyDistance from polyEdges (the same distance and normal; the result object is reused). */
+export function edgeDistance(e, x, z) {
+  let best = Infinity, nx = 0, nz = 0, inside = true;
+  for (let k = 0; k < e.length; k += 7) {
+    const rx = x - e[k], rz = z - e[k + 1], ex = e[k + 2], ez = e[k + 3], ox = e[k + 4], oz = e[k + 5];
+    if (rx * ox + rz * oz > 0) inside = false;
+    const t = Math.min(Math.max((rx * ex + rz * ez) * e[k + 6], 0), 1);
+    const dx = rx - ex * t, dz = rz - ez * t, d = Math.sqrt(dx * dx + dz * dz);
+    if (d < best) { best = d; if (d > 1e-6) { nx = dx / d; nz = dz / d; } else { nx = ox; nz = oz; } }
+  }
+  if (inside) { best = -best; nx = -nx; nz = -nz; }
+  _ed.d = best; _ed.nx = nx; _ed.nz = nz;
+  return _ed;
+}
+
 export class SandDrifts {
   /** The drifts a sandy world's builders are feeding (Kit.solid), or null. */
   static current = null;
@@ -196,7 +226,7 @@ export class SandDrifts {
     const corners = poly.filter(([x, z]) => frac(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453) < this.o.corner);
     let R = 0;
     for (const [x, z] of poly) R = Math.max(R, Math.hypot(x - cx, z - cz));
-    const s = { id, poly, cx, cz, R, k: rise, corners };
+    const s = { id, poly, edges: polyEdges(poly), cx, cz, R, k: rise, corners };
     s.reach = this.o.rise[1] * this.o.big * rise * this.o.reach;
     this.sources.push(s);
     // (a grid of cells each source's reach touches, for the field's lookups)
@@ -219,14 +249,14 @@ export class SandDrifts {
   /** One source's drift at (x, z) (m over the ground). */
   driftOf(s, x, z) {
     if (Math.abs(x - s.cx) > s.R + s.reach || Math.abs(z - s.cz) > s.R + s.reach) return 0;
-    const { d, nx, nz } = polyDistance(s.poly, x, z);
+    const { d, nx, nz } = edgeDistance(s.edges, x, z);
     let rise = this.riseAt(nx, nz, x, z, s.k);
     // a corner's bigger drift: the nearest such corner's boost (never compounded)
     let boost = 1;
-    const w = rise * this.o.reach * 1.4;
+    const w = rise * this.o.reach * 1.4, w2 = w * w, near2 = w2 * 2.56;   // (squared: c < 1.6 w)
     for (const [px, pz] of s.corners) {
-      const c = Math.hypot(x - px, z - pz);
-      if (c < w * 1.6) boost = Math.max(boost, 1 + (this.o.big - 1) * Math.exp(-(c * c) / (w * w)));
+      const c2 = (x - px) * (x - px) + (z - pz) * (z - pz);
+      if (c2 < near2) boost = Math.max(boost, 1 + (this.o.big - 1) * Math.exp(-c2 / w2));
     }
     rise *= boost;
     const reach = rise * this.o.reach;

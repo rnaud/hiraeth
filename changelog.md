@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Steam Deck version starts again in Desktop Mode on the latest SteamOS, where its window used to stay blank and close.
 - Shading strokes follow the shapes, as in the drawings: under Vael II’s stone tables, the Garden of Spheres’ umbrella trees and Lorn II’s giant mushrooms they fan out from the stalk and run down it, and round the Buried Machine’s tanks, drums and chimneys and the trees’ trunks they wrap round instead of crossing them on the slant.
 - Old walls are no longer one even colour: as in the drawings, a building’s colour breaks into a few big flat patches, a repainted stretch over a storey or three, one face a little paler or warmer than the next, now and then a whole storey in another render. You see it in the Signal Market, the desert’s city and domes, the City-Shaft’s houses and the Buried Machine.
+- Every world runs smoother, most of all on large and Retina screens, where a frame takes about a tenth less time to draw; the busiest places, like the Garden of Spheres’ crowds and home, also ask less of the computer. The look is the same.
 
 ## v0.70 — 2026-10-06
 

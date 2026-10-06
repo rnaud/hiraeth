@@ -467,3 +467,39 @@ export class GpuTimer {
   /** Mean GPU ms since the last take (null if none). */
   take() { const v = this.n ? this.sum / this.n : null; this.sum = this.n = 0; return v; }
 }
+
+// ------------------------------------------------------------------ uniform arrays sent once
+/**
+ * three.js keeps a single uniform's value per program but not an array's: every material switch
+ * sends the shared light list (uLights, 8 vec4) and each material's palette (uPalette, 12 vec3)
+ * again, unchanged: ~300 redundant GL calls a frame in a busy world, each a round through Chrome's
+ * GPU process and ANGLE. This keeps the last values sent to each uniform location (one per program
+ * and uniform) and skips a call that would send the same ones. Only the plain (location, array)
+ * form is kept; any other form goes through and forgets the location's values.
+ * docs/systems/performance.md
+ */
+export const CACHED_UNIFORM_ARRAYS = ['uniform1fv', 'uniform2fv', 'uniform3fv', 'uniform4fv'];
+export function cacheUniformArrays(gl) {
+  if (!gl || gl.__uniformArraysCached) return gl;
+  const last = new WeakMap();
+  for (const name of CACHED_UNIFORM_ARRAYS) {
+    const send = gl[name];
+    if (typeof send !== 'function') continue;
+    gl[name] = function (loc, data, ...rest) {
+      if (!loc || rest.length || !data || typeof data.length !== 'number') {
+        if (loc) last.delete(loc);
+        return send.call(this, loc, data, ...rest);
+      }
+      const prev = last.get(loc);
+      if (prev && prev.length === data.length) {
+        let same = true;
+        for (let i = 0; i < data.length; i++) if (prev[i] !== data[i]) { same = false; break; }
+        if (same) return undefined;
+        prev.set(data);
+      } else last.set(loc, Float32Array.from(data));
+      return send.call(this, loc, data);
+    };
+  }
+  gl.__uniformArraysCached = true;
+  return gl;
+}
