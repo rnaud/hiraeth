@@ -1,3 +1,4 @@
+import { store } from './platform.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
@@ -58,10 +59,10 @@ export const matchingSetting = {
     try {
       const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('mm') : null;
       if (q !== null) return q === '1' || q === 'on';
-      return typeof localStorage !== 'undefined' && localStorage.getItem(this.key) === '1';
+      return store.get(this.key) === '1';
     } catch { return false; }
   },
-  set(on) { try { localStorage.setItem(this.key, on ? '1' : '0'); } catch { /* (no storage: this session only) */ } },
+  set(on) { store.set(this.key, on ? '1' : '0'); },   // (no storage: this session only)
 };
 
 /** A parsed walks.glb or locomotion.glb, attached to `lib` (lib.motion: what was there before stays). */

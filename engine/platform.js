@@ -12,7 +12,7 @@
 //
 // What it puts on globalThis, only where the VM has none of its own:
 //   performance, TextDecoder / TextEncoder (UTF-8), queueMicrotask, structuredClone,
-//   requestAnimationFrame (driven by the engine: tick() runs the callbacks), self / window
+//   requestAnimationFrame and setTimeout / setInterval (driven by the engine: tick() runs them), self / window
 //   with add / remove / dispatchEvent (the engine's keys arrive as keydown / keyup, as in a
 //   page), document (elements that take every call and draw nothing), navigator, location,
 //   URL / URLSearchParams (enough for the game's own uses), localStorage, fetch (from readFile),
@@ -257,7 +257,22 @@ export function installPlatform(host = {}) {
   const raf = new Map();
   def('requestAnimationFrame', (fn) => { raf.set(++rafId, fn); return rafId; });
   def('cancelAnimationFrame', (id) => { raf.delete(id); });
-  const tick = (ms = now()) => { const due = [...raf.values()]; raf.clear(); for (const fn of due) { try { fn(ms); } catch (e) { console.error(e); } } };
+  // the timers, where the VM has none (the sound's scheduler, the toasts' and the voices' delays): run by tick()
+  const timers = new Map();
+  let timerId = 0;
+  const own = G.setTimeout === undefined;
+  def('setTimeout', (fn, ms = 0, ...a) => { timers.set(++timerId, { fn, at: now() + ms, a }); return timerId; });
+  def('setInterval', (fn, ms = 0, ...a) => { timers.set(++timerId, { fn, at: now() + ms, every: Math.max(ms, 1), a }); return timerId; });
+  def('clearTimeout', (id) => { timers.delete(id); });
+  def('clearInterval', (id) => { timers.delete(id); });
+  const runTimers = (t) => {
+    for (const [id, x] of [...timers]) {
+      if (x.at > t || !timers.has(id)) continue;
+      if (x.every) x.at = Math.max(x.at + x.every, t); else timers.delete(id);
+      try { x.fn(...x.a); } catch (e) { console.error(e); }
+    }
+  };
+  const tick = (ms = now()) => { if (own) runTimers(now()); const due = [...raf.values()]; raf.clear(); for (const fn of due) { try { fn(ms); } catch (e) { console.error(e); } } };
 
   // the window: the global object itself, as in a page (its listeners are where keys arrive)
   if (!G.addEventListener) {

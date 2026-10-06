@@ -51,6 +51,9 @@ namespace Memento
             Apply();
         }
 
+        /// <summary>The local lights all at once (Unity's space): the JS bridge's, as the game ranks them each frame.</summary>
+        public void SetLocalLights(List<Vector4> unitySpace) { localLights.Clear(); localLights.AddRange(unitySpace); }
+
         /// <summary>A local light's reach (w, m) at a place (the nearest within a metre), or a new one there: a lens lit, a relic, a lamp.</summary>
         public void SetLight(Vector3 at, float w)
         {

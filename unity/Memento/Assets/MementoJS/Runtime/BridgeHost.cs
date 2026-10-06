@@ -21,8 +21,23 @@ namespace Memento.Bridge
         public static void Material(int mid, string json) => R?.Material(mid, json);
         public static void Create(int id, string json) => R?.Create(id, json);
         public static void SetMesh(int id, string key) => R?.SetMesh(id, key);
+        /// <summary>Does the script box its buffers ({ b: buffer })? In an IL2CPP player Puerts hands an `object` over as a ScriptObject.</summary>
+        public static bool BoxBuffers()
+        {
+#if ENABLE_IL2CPP
+            return true;
+#else
+            return false;
+#endif
+        }
         public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Frame(b, n); }
         public static void Look(string json) => Runner?.Look(json);
+        /// <summary>What the screen shows (src/platform.js screen), when it changed: BridgeHud draws it.</summary>
+        /// <summary>The sound (BridgeAudio): the output rate (0: none), the frames queued, the next PCM (float32 stereo).</summary>
+        public static int AudioRate() => Runner && Runner.audioOut ? Runner.audioOut.rate : 0;
+        public static int AudioQueued() => Runner && Runner.audioOut ? Runner.audioOut.Queued : 0;
+        public static void Audio(object buffer) { if (!Runner || !Runner.audioOut) return; var b = JsRuntime.Bytes(buffer, out int n); Runner.audioOut.Push(b, n); }
+        public static void Screen(string json) { if (Runner && Runner.hud) Runner.hud.Set(json); }
 
         // ---------------------------------------------------------------- the platform
         public static double Now() => Time.realtimeSinceStartupAsDouble * 1000;
@@ -32,8 +47,8 @@ namespace Memento.Bridge
         {
             foreach (var root in Runner ? Runner.PublicRoots() : new string[0])
             {
-                var p = Path.Combine(root, path);
-                if (File.Exists(p)) return JsRuntime.ToScript(File.ReadAllBytes(p));
+                var b = StreamingFile.Read(Path.Combine(root, path));
+                if (b != null) return JsRuntime.ToScript(b);
             }
             return null;
         }
@@ -87,6 +102,8 @@ namespace Memento.Bridge
         public static void WriteText(string path, string text) { Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, text); }
         public static double LastFrameCpuMs() => Runner ? Runner.cpuMs : 0;
         public static double LastFrameGpuMs() => Runner ? Runner.gpuMs : 0;
+        /// <summary>The C# side's time applying the frames' commands since the last call (ms, summed).</summary>
+        public static double ApplyMs() { var r = R; if (!r) return 0; var v = r.msFrame; r.msFrame = 0; return v; }
         public static void Exit(int code) => Runner?.Exit(code);
     }
 }

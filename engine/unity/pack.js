@@ -19,11 +19,11 @@ export function mirrorMatrix(e, eo = 0, out = new Float32Array(16), o = 0) {
  *   u32 vertices, u32 indices, u32 flags (1 normal, 2 uv, 4 colour, 8 skin, 16 bind), u32 groups,
  *   groups × (u32 start, u32 count, u32 material index),
  *   f32 position × 3n (x mirrored), [normal × 3n], [uv × 2n], [colour rgba × 4n],
- *   [skin index × 4n (as floats), skin weight × 4n], [bind: the rest pose, three's space, × 3n],
+ *   [skin index × 4n (as floats), skin weight × 4n], [bind: the rest pose, three's space, × 3n], [rig × 4n: 32],
  *   u32 index × m (wound for Unity).
  * colours: only when the material draws them (vertexColors); bind: for people (their outfit zones).
  */
-export function unityGeometry(g, { colors = false, bind = false } = {}) {
+export function unityGeometry(g, { colors = false, bind = false, rig = false } = {}) {
   const A = g.attributes, P = A.position.array, n = P.length / 3;
   const N = A.normal?.itemSize === 3 ? A.normal.array : null;
   const UV = A.uv?.itemSize === 2 ? A.uv.array : null;
@@ -32,8 +32,9 @@ export function unityGeometry(g, { colors = false, bind = false } = {}) {
   const idx = g.index ?? null;
   const total = idx ? idx.length : n;
   const groups = g.groups?.length ? g.groups : [{ start: 0, count: total, materialIndex: 0 }];
-  const flags = (N ? 1 : 0) | (UV ? 2 : 0) | (C ? 4 : 0) | (skin ? 8 : 0) | (bind ? 16 : 0);
-  const floats = n * 3 + (N ? n * 3 : 0) + (UV ? n * 2 : 0) + (C ? n * 4 : 0) + (skin ? n * 8 : 0) + (bind ? n * 3 : 0);
+  const R = rig && A.aRig ? A.aRig : null;   // (the crowd's figure: each vertex's part, zone and code, crowd.js)
+  const flags = (N ? 1 : 0) | (UV ? 2 : 0) | (C ? 4 : 0) | (skin ? 8 : 0) | (bind ? 16 : 0) | (R ? 32 : 0);
+  const floats = n * 3 + (N ? n * 3 : 0) + (UV ? n * 2 : 0) + (C ? n * 4 : 0) + (skin ? n * 8 : 0) + (bind ? n * 3 : 0) + (R ? n * 4 : 0);
   const head = 4 + groups.length * 3;
   const buf = new ArrayBuffer((head + floats + total) * 4);
   const u32 = new Uint32Array(buf), f32 = new Float32Array(buf);
@@ -51,6 +52,7 @@ export function unityGeometry(g, { colors = false, bind = false } = {}) {
     for (const a of [A.skinIndex, A.skinWeight]) { const k = a.itemSize, src = a.array; for (let i = 0; i < n; i++) for (let c = 0; c < 4; c++) f32[o++] = c < k ? src[i * k + c] : 0; }
   }
   if (bind) { f32.set(P.subarray(0, n * 3), o); o += n * 3; }
+  if (R) { const k = R.itemSize; for (let i = 0; i < n; i++) for (let c = 0; c < 4; c++) f32[o++] = c < k ? R.array[i * k + c] : 0; }
   // (the mirror flips the winding: a, c, b)
   for (let t = 0; t + 2 < total; t += 3) {
     const a = idx ? idx[t] : t, b = idx ? idx[t + 1] : t + 1, c = idx ? idx[t + 2] : t + 2;
@@ -68,6 +70,10 @@ export function unityGeometry(g, { colors = false, bind = false } = {}) {
  *   4 bones:      i32 id, u32 n, f32 × 16 n (X · Sᵢ · X: engine/skin.js, mirrored)
  *   5 camera:     f32 × 16 (mirrored camera world), f32 fov, near, far
  *   6 remove:     i32 id
+ *   9 crowd:      i32 id, u32 count, f32 time, count × 32 floats (FarCrowd.cs Inst: at (Unity, yaw), anim, react,
+ *                 look0, look1, dress, body, scale): the crowd's figures, posed in the port's Crowd.hlsl
+ *   8 vertices:   i32 geometry id, u32 n, u32 hasNormals, f32 × 3n positions (mirrored), [f32 × 3n normals]: cloth
+ *   7 skeleton:   i32 skeleton id, u32 n, f32 × 16 n (bone world × inverse bind, mirrored): the bones its meshes share
  *   0 end
  */
 export class CommandWriter {
@@ -82,4 +88,37 @@ export class CommandWriter {
   take() { this.reserve(1); this.u32[this.n++] = 0; const out = this.buf.slice(0, this.n * 4); this.n = 0; return out; }
   get empty() { return this.n === 0; }
 }
-export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6 };
+export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11 };
+
+/**
+ * Instances as the port's Puffs.Inst (8 floats each, op 10: the footprints' decals): the position in Unity's
+ * space and the turn about y (as crowdInstances), the scale on each axis, and the fade (an instanced aFade, 0–1).
+ */
+export function puffInstances(mats, count, attrs, out = new Float32Array(count * 8)) {
+  const fade = attrs?.aFade;
+  for (let i = 0; i < count; i++) {
+    const e = i * 16, o = i * 8;
+    out[o] = -mats[e + 12]; out[o + 1] = mats[e + 13]; out[o + 2] = mats[e + 14]; out[o + 3] = -Math.atan2(mats[e + 8], mats[e + 10]);
+    out[o + 4] = Math.hypot(mats[e], mats[e + 1], mats[e + 2]); out[o + 5] = Math.hypot(mats[e + 4], mats[e + 5], mats[e + 6]); out[o + 6] = Math.hypot(mats[e + 8], mats[e + 9], mats[e + 10]);
+    out[o + 7] = fade ? fade.array[i * fade.itemSize] : 1;
+  }
+  return out;
+}
+
+/**
+ * The crowd's instances as the port's FarCrowd.cs Inst (32 floats each): at = the position in Unity's
+ * frame and the yaw (−the heading: the mirror), anim, react, look0, look1, dress, body from crowd.js's
+ * per-instance attributes, scale (x) from the matrix.
+ */
+export function crowdInstances(mats, count, attrs, out = new Float32Array(count * 32)) {
+  const K = ['aAnim', 'aReact', 'aLook0', 'aLook1', 'aDress', 'aBody'];
+  for (let i = 0; i < count; i++) {
+    const e = i * 16, o = i * 32;
+    const s = Math.hypot(mats[e + 4], mats[e + 5], mats[e + 6]) || 1;
+    const heading = Math.atan2(mats[e + 8], mats[e + 10]);
+    out[o] = -mats[e + 12]; out[o + 1] = mats[e + 13]; out[o + 2] = mats[e + 14]; out[o + 3] = -heading;
+    K.forEach((k, j) => { const a = attrs?.[k]; for (let c = 0; c < 4; c++) out[o + 4 + j * 4 + c] = a ? a.array[i * a.itemSize + c] : (k === 'aBody' ? [0, 1, 1, 0][c] : 0); });
+    out[o + 28] = s; out[o + 29] = 0; out[o + 30] = 0; out[o + 31] = 0;
+  }
+  return out;
+}

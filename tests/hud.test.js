@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cueText, PlaceName, Fader, Cue, questsPageHtml, padCue, RIDE_HINT_MS } from '../src/hud.js';
+import { cueText, PlaceName, Fader, Cue, questsPageHtml, padCue, RIDE_HINT_MS, healthHud, staminaHud } from '../src/hud.js';
 import { Quests } from '../src/story/quests.js';
 import { Controller, menuNavigate } from '../src/controller.js';
 
@@ -74,7 +74,16 @@ test('the health bar and the stamina wheel show while it matters and fade a mome
   assert.equal(f.update(0.2, false), false, 'gone');
   const main = src('src/main.js');
   assert.match(main, /const hpFade = new Fader\(3\)/);
-  assert.match(main, /hpFade\.update\(dt, h < 0\.999 \|\| !!player\.down\)/, 'hurt or healing (health below full), or knocked down');
+  // (the rule in hud.js healthHud, which main.js draws and an engine reads: platform.js screen.health)
+  assert.match(main, /healthHud\(\{ health: h, down: player\.down, hurt: hpShown > 0/, 'main.js shows the bar by healthHud');
+  const g = new Fader(3);
+  assert.equal(healthHud({ health: 1 }, g, 0.1), null, 'unhurt: nothing');
+  assert.deepEqual(healthHud({ health: 0.6 }, g, 0.1), { value: 0.6, low: false }, 'hurt or healing (health below full)');
+  assert.deepEqual(healthHud({ health: 0.2 }, g, 0.1), { value: 0.2, low: true }, 'low');
+  assert.ok(healthHud({ health: 1, down: true }, new Fader(3), 0.1), 'knocked down');
+  assert.equal(healthHud({ health: 0.5, quiet: true }, new Fader(3), 0.1), null, 'not over a scene or photo mode');
+  assert.equal(staminaHud({ stamina: 0.5 }, 0), null, 'the wheel: only while it has time left');
+  assert.deepEqual(staminaHud({ stamina: 0.5, winded: true }, 0.9), { value: 0.5, winded: true });
 });
 
 test('no charge pips on the screen (the backpack\'s tank shows the level): only an empty tank says so, briefly', async () => {

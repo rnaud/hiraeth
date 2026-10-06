@@ -3,13 +3,17 @@
 // Surface shader and materials, MementoLook), the keys and pads from Unity's Input System.
 // BridgeRunner.cs loads this bundle and calls start(args) once and frame(dt) every frame; a batch
 // run (BridgeBatch.cs, scripts/unity-export/unity-batch.sh BridgeBatch.Run) passes its plan in args.
-import { pads, host } from './host.js';
+import { pads, host, toHost } from './host.js';
 import { createGame } from '../game.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
 
 let S = null;
 const now = () => host.Now();
+// the sound kept this far ahead of what Unity has played (BridgeAudio.cs's ring): frames
+const AUDIO_AHEAD = 0.12;
+// a run at fixed views starts from the web bench's save (scripts/bench/web-page.mjs prepareStorage): the backpack found
+const BENCH_FLAGS = { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 };
 
 function standardPad(state) {
   // (BridgeHost.Pad: "b0,b1,…,b16|a0,a1,a2,a3", the standard mapping's buttons as values, the sticks)
@@ -22,11 +26,19 @@ export function start(argsJson) {
   const args = JSON.parse(argsJson || '{}');
   const t0 = now();
   const backend = new UnityBackend(host);
-  S = { args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0 };
-  createGame({ levelId: args.level ?? 'desert', backend, people: args.people !== false, log: (...a) => console.log('[game]', ...a) })
+  S = { args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0 };
+  // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
+  const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;
+  createGame({ levelId: args.level ?? 'desert', backend, people: args.people !== false, audio: rate ? { sampleRate: rate } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a) })
     .then((game) => {
       S.game = game;
       console.log(`[unity] ready in ${(now() - t0).toFixed(0)} ms (in the VM: ${JSON.stringify(game.T)})`);
+      if (args.split) {
+        // what a call into C# costs, and how fast plain JS runs here (against Node's numbers in the docs)
+        const d0 = Date.now(); for (let i = 0; i < 2000; i++) performance.now(); const callUs = (Date.now() - d0) / 2;
+        const d1 = Date.now(); let x = 0; for (let i = 0; i < 2e7; i++) x += Math.fround(i * 0.5) % 7; const loopMs = Date.now() - d1;
+        console.log(`[unity] a clock read ${callUs} µs; 2e7 fround loop ${loopMs} ms (${x > 0})`);
+      }
       S.plan = makePlan(args);
     })
     .catch((e) => { console.error('[unity] the game failed to start', e?.stack ?? e); host.Exit(3); });
@@ -38,6 +50,32 @@ function makePlan(args) {
     steps.push({ kind: 'pin', view: v }, { kind: 'wait', frames: 12 });
     if (args.bench) steps.push({ kind: 'measure', view: v, secs: args.bench });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-${v.name}.png` });
+  }
+  if (args.talk) {
+    // walk up to someone (args.talk: their id, or 'any'), press E, and photograph the conversation as it goes
+    steps.push({ kind: 'approach', who: args.talk }, { kind: 'wait', frames: 20 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-prompt.png` });
+    steps.push({ kind: 'key', code: 'KeyE', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyE', down: false }, { kind: 'wait', frames: 30 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-talk.png` });
+    steps.push({ kind: 'wait', frames: 240 });
+    for (let k = 0; k < 3; k++) {
+      steps.push({ kind: 'key', code: 'Space', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Space', down: false }, { kind: 'wait', frames: 240 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-talk-${k + 2}.png` });
+    }
+  }
+  if (args.play) {
+    // the fluid tool (aim with R, fire with G: a shot and its splat) and the drone (Q), photographed as they go
+    steps.push({ kind: 'wait', frames: 40 });
+    if (args.play.includes('tool')) {
+      steps.push({ kind: 'key', code: 'KeyR', down: true }, { kind: 'wait', frames: 25 }, { kind: 'key', code: 'KeyG', down: true }, { kind: 'wait', frames: 3 }, { kind: 'key', code: 'KeyG', down: false }, { kind: 'wait', frames: 10 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-tool.png` });
+      steps.push({ kind: 'wait', frames: 45 }, { kind: 'key', code: 'KeyR', down: false }, { kind: 'wait', frames: 20 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-splat.png` });
+    }
+    if (args.play.includes('drone')) {
+      steps.push({ kind: 'key', code: 'KeyQ', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyQ', down: false }, { kind: 'wait', frames: 75 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-drone.png` });
+    }
   }
   if (args.walk) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
@@ -61,13 +99,34 @@ function readInput(game) {
   if (look) { const [dx, dy] = look.split(',').map(Number); if (dx || dy) game.look(dx, dy); }
 }
 
+/** The sound's next PCM to Unity: what keeps its ring AUDIO_AHEAD seconds ahead (whole 128-frame blocks). */
+function pumpAudio(game) {
+  const ctx = game.audio;
+  if (!ctx) return;
+  const t0 = now();
+  const want = Math.floor(ctx.sampleRate * AUDIO_AHEAD) - host.AudioQueued();
+  if (want >= 128) {
+    const pcm = ctx.render(want);
+    if (pcm.length) host.Audio(toHost(pcm.buffer));
+  }
+  S.audioMs += now() - t0;
+}
+
 export function frame(dt) {
   if (!S?.game) return;
   const { game, backend } = S;
   const tA = now();
   if (!S.plan) readInput(game);
   const r = game.frame(dt);
-  backend.look(JSON.stringify(portLook(game.fullLook())));
+  backend.lights(game.localLights());
+  const tL = now();
+  // (the look moves with the hour and the place: read every 4th frame is enough)
+  if (S.frames % 4 === 0) backend.look(JSON.stringify(portLook(game.fullLook())));
+  S.lookMs = (S.lookMs ?? 0) + now() - tL;
+  // the HUD's state when it changed (src/platform.js screen: BridgeHud draws it in uGUI)
+  const scr = game.screen();
+  if (scr.version !== S.screenV) { S.screenV = scr.version; host.Screen(JSON.stringify(scr.state)); }
+  pumpAudio(game);
   const tB = now();
   const lastT = S.lastT; S.lastT = tA;
   S.frames++;
@@ -77,15 +136,31 @@ export function frame(dt) {
   const next = () => { P.i++; P.wait = 0; P.t = 0; };
   if (step.kind === 'pin') { game.pin(step.view); next(); }
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
+  else if (step.kind === 'approach') {
+    const people = game.npcs.filter((n) => n.def && !n.pooled);
+    const n = people.find((x) => x.def.id === step.who) ?? people[0];
+    if (n) {
+      const V = n.pos.constructor, dir = new V(Math.sin(n.heading ?? 0), 0, Math.cos(n.heading ?? 0));
+      const p = n.pos.clone().addScaledVector(dir, 1.6);
+      game.player.teleport(p, new V(0, 1, 0), new V(0, 0, 1));
+      game.player.heading = Math.atan2(n.pos.x - p.x, n.pos.z - p.z);
+      game.rig.yaw = game.player.heading + Math.PI;
+      console.log(`[unity] beside ${n.def.id}`);
+    }
+    next();
+  }
   else if (step.kind === 'wait') { if (++P.wait >= step.frames) next(); }
   else if (step.kind === 'measure') {
+    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
     P.samples ??= [];
     P.samples.push({ dt: lastT ? tA - lastT : dt * 1000, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: host.LastFrameCpuMs(), gpu: host.LastFrameGpuMs(), moved: r.stats.moved });
     P.t += Math.min(dt, 0.1);   // (a load's long first frame counts as one)
     if (P.t >= step.secs) {
       const s = P.samples.slice(5);
       const q = (k, f) => { const a = s.map((x) => x[k]).sort((x, y) => x - y); return a.length ? +a[Math.floor(a.length * f)].toFixed(2) : 0; };
-      const res = { view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes };
+      const nf = Math.max(backend.stats.frames - P.n0, 1);
+      const split = { ...game.mirror.profile(), audio: +(S.audioMs / nf).toFixed(3), host: +(backend.stats.hostMs / nf).toFixed(3), apply: +(host.ApplyMs() / nf).toFixed(3), look: +(S.lookMs / nf).toFixed(3), lookSent: (backend.stats.looks ?? 0) - S.looks };
+      const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
       S.results.push(res);
       console.log(`[bench] ${JSON.stringify(res)}`);
       P.samples = null;

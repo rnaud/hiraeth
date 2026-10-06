@@ -8,7 +8,8 @@ import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
 import { guardianHint } from './temples/hints.js';
-import { cueText, Cue, PlaceName, Fader, questsPageHtml } from './hud.js';
+import { cueText, Cue, PlaceName, Fader, questsPageHtml, healthHud, staminaHud } from './hud.js';
+import { screen } from './platform.js';
 import { closeHint, inputKind } from './prompt-keys.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
@@ -293,14 +294,18 @@ function updateStamina(dt) {
   if (!stEl) return;
   const k = THREE.MathUtils.clamp(player.stamina ?? 1, 0, 1);
   stShown = k < 0.995 || player.winded ? 0.9 : Math.max(0, stShown - dt);
-  const on = stShown > 0 && !ship.playing && !photo.on && !player.ride && !player.down && !busy();
+  const st = staminaHud({ stamina: k, winded: player.winded, quiet: ship.playing || photo.on || !!player.ride || !!player.down || busy() }, stShown);
+  const on = !!st;
   stEl.classList.toggle('on', on);
   stEl.classList.toggle('winded', !!player.winded);
   if (Math.abs(k - stLast) > 0.002) { stArc.setAttribute('stroke-dasharray', `${(k * 100).toFixed(1)} 100`); stLast = k; }
+  if (!on) screen.set('stamina', null);
   if (!on && stShown <= 0) return;
-  // a little up and to the right of the shoulders, as the camera sees them
+  // a little up and to the right of the shoulders, as the camera sees them (platform.js screen.stamina: where, in the world)
   _stR.setFromMatrixColumn(camera.matrixWorld, 0);
-  _stP.copy(player.object?.position ?? player.pos).addScaledVector(player.frame.up, 1.75).addScaledVector(_stR, 0.62).project(camera);
+  _stP.copy(player.object?.position ?? player.pos).addScaledVector(player.frame.up, 1.75).addScaledVector(_stR, 0.62);
+  if (st) screen.set('stamina', { ...st, at: _stP.toArray().map((v) => +v.toFixed(2)) });
+  _stP.project(camera);
   if (_stP.z > 1) return;
   const x = (_stP.x * 0.5 + 0.5) * innerWidth, y = (-_stP.y * 0.5 + 0.5) * innerHeight;
   stEl.style.transform = `translate(${(x - 17).toFixed(1)}px, ${(y - 17).toFixed(1)}px)`;
@@ -310,9 +315,11 @@ function updateHealth(dt) {
   updateStamina(dt);
   if (!hpEl) return;
   const h = player.health ?? 1;
-  if (hpShown > 0) { hpFade.update(0, true); hpShown = 0; }   // (a hurt, a knockdown: at once)
-  const hpOn = hpFade.update(dt, h < 0.999 || !!player.down);
-  hpEl.classList.toggle('on', hpOn && !ship.playing && !photo.on);
+  // (a hurt, a knockdown: at once; the state goes to platform.js screen.health as it is drawn)
+  const hp = healthHud({ health: h, down: player.down, hurt: hpShown > 0, quiet: ship.playing || photo.on }, hpFade, dt);
+  hpShown = 0;
+  screen.set('health', hp);
+  hpEl.classList.toggle('on', !!hp);
   hpEl.classList.toggle('low', h < 0.3);
   hpFill.style.width = `${(h * 100).toFixed(1)}%`;
 }
