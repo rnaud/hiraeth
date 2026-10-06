@@ -228,15 +228,14 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Unity port
 
-- [ ] The worlds' own scripts beyond the opening (unity/README.md, per world): the hover-skiff, riding the
-  cabs, the temples, the reel's recordings at the console, the homecoming, the Hangar's zone presets, the
-  reactive scenery.
-- [ ] Run `scripts/bench/android-run.sh` on the Retroid (the APK has never run on a device).
-- [ ] The crowd's near tier as the web's (full bodies for the nearest few within 12.5 m, the mid figure
-  beyond): the port still gives full bodies out to 55 m.
-- [ ] The EditMode story test and the batch play-through still walk the desert's old opening quest.
-- [ ] The desert's smaller things: the errands near the start, the reactive flowers, the scout drone, hover
-  trails; swimming's strokes, diving and breath.
+The C# port's own game logic is retired in favour of the JS bridge (2026-10-06: Unity + Puerts chosen; the
+game's JS runs in Unity, which only draws: docs/systems/engine-bridge.md). Its open items are closed (DONE.md);
+what remains is the bridge's:
+
+- [ ] The bridge, stage by stage (docs/systems/engine-bridge.md): a cheaper scene sync, the platform layer
+  (HUD, menus, conversations in Unity), sound, the fluid tool, drone, weather, wildlife, glows and lines, the
+  crowd's GPU animation, the cave's rounded walls; player builds for macOS, Linux (the Deck) and Android.
+- [ ] Run the Unity APK on the Retroid once it builds through the bridge (`scripts/bench/android-run.sh`).
 - [ ] Connect an MCP client to the editor (an organization policy blocks registering unknown MCP servers).
 
 ## Later
