@@ -295,9 +295,11 @@ export function weatheredOf(o) {
  */
 export const DETAIL = {
   lods: 4,     // levels by distance: the marks drawn at 1, 2, 4, 8 × their size, then gone
+  depth: 260,  // m: none past this (faded from 0.7 of it)
+  depthOrganic: 130,
   ink: 1.35,   // how dark the marks are drawn (post.js draws drawn detail over 1 darker; packed under 2)
   built: { base: 0.015, cell: [2.6, 1.9], seams: 0.72, joints: 0.55, rects: 0.48, vents: 0.45, far: [0.03, 0.07], fine: { cell: [0.75, 0.55], share: 0.35, far: [0.008, 0.018] } },
-  organic: { base: 0.006, cell: [0.1, 0.26], share: 0.5, far: [0.01, 0.024], coarse: { cell: [0.24, 0.7], share: 0.4, far: [0.03, 0.07] } },
+  organic: { base: 0.006, cell: [0.1, 0.26], share: 0.55 },
 };
 export function detailOf(o) {
   if (o.figure || o.glass || o.glow || o.facePart || o.eye || (o.mode ?? MODE_PLAIN) === MODE_OUTFIT || o.mode === MODE_TERRAIN || o.mode === MODE_WATER) return [0, 0];
@@ -1104,20 +1106,15 @@ const fragmentShader = /* glsl */ `
     return inkLine(abs(q.x - x) / max(fq.x, 1e-5), w * sin(3.14159 * t));
   }
   float grainDetail(vec2 q, vec2 fq, float k, float seed) {
-    float fm = max(fq.x, fq.y), ink = 0.0;
-    float rC = 1.0 - smoothstep(${DETAIL.organic.coarse.far[0]}, ${DETAIL.organic.coarse.far[1]}, fm);
-    if (rC <= 0.0) return 0.0;
-    ink = grainLevel(q, fq, vec2(${DETAIL.organic.coarse.cell[0]}, ${DETAIL.organic.coarse.cell[1]}), ${DETAIL.organic.coarse.share}, k, seed + 17.0, 1.05) * rC;
-    float rF = 1.0 - smoothstep(${DETAIL.organic.far[0]}, ${DETAIL.organic.far[1]}, fm);
-    if (rF > 0.0 && uWearLite < 0.5) ink = max(ink, grainLevel(q, fq, vec2(${DETAIL.organic.cell[0]}, ${DETAIL.organic.cell[1]}), ${DETAIL.organic.share}, k, seed, 0.75) * rF);
-    return ink;
+    // (one level: detailLod draws it coarser with distance; the handheld every other stroke)
+    return grainLevel(q, fq, vec2(${DETAIL.organic.cell[0]}, ${DETAIL.organic.cell[1]}), ${DETAIL.organic.share} * (uWearLite > 0.5 ? 0.5 : 1.0), k, seed, 0.9);
   }
   // By distance: the same marks at a coarser scale (cells doubled, each level its own pattern) so they
   // keep about their size on screen, the two nearest levels cross-faded, gone past the last (DETAIL.lods).
   float detailLod(vec2 q, vec2 fq, float k, float seed, bool organic) {
     float fm = max(max(fq.x, fq.y), 1e-6);
     float lv = max(log2(fm / (organic ? ${DETAIL.organic.base} : ${DETAIL.built.base})), 0.0);
-    float li = floor(lv), a = smoothstep(0.55, 1.0, lv - li);
+    float li = floor(lv), a = smoothstep(0.78, 1.0, lv - li);   // (the next level only in the last fifth: most pixels draw one)
     float keep = 1.0 - smoothstep(${DETAIL.lods - 1}.0, ${DETAIL.lods}.0, lv);
     if (keep <= 0.0) return 0.0;
     float L = exp2(li);
@@ -1670,14 +1667,14 @@ const fragmentShader = /* glsl */ `
     }
     #endif
     #ifdef S_DETAIL
-    if (uDetail.x > 0.5 && abs(n.y) < 0.75) {
-      float dUp = 1.0 - smoothstep(0.55, 0.75, abs(n.y));
-      float ax = abs(n.x), az = abs(n.z), db = smoothstep(0.4, 0.6, ax / max(ax + az, 1e-4));   // 0: facing z, 1: facing x
-      float dk = uDetail.y, dSeed = floor(hash(floor(vWorldPos.xz / 9.0) + 11.0) * 53.0);
-      float di = 0.0;
-      bool organic = uDetail.x > 1.5;
-      if (db < 0.999) di = detailLod(wqA, wfqA, dk, dSeed, organic) * (1.0 - db);
-      if (db > 0.001) di = max(di, detailLod(wqB, wfqB, dk, dSeed + 29.0, organic) * db);
+    // (one projection, the wall's dominant axis: a round wall's pattern changes at its 45° lines; and none
+    // past DETAIL.depth, where its marks would be under a pixel anyway: far pixels pay nothing)
+    float dFar = uDetail.x > 1.5 ? ${DETAIL.depthOrganic}.0 : ${DETAIL.depth}.0;   // (grain: a forest's trunks fill the frame, cut nearer)
+    if (uDetail.x > 0.5 && abs(n.y) < 0.75 && vViewDepth < dFar) {
+      float dUp = (1.0 - smoothstep(0.55, 0.75, abs(n.y))) * (1.0 - smoothstep(dFar * 0.7, dFar, vViewDepth));
+      bool facingX = abs(n.x) > abs(n.z);
+      float dSeed = floor(hash(floor(vWorldPos.xz / 9.0) + 11.0) * 53.0) + (facingX ? 29.0 : 0.0);
+      float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, uDetail.y, dSeed, uDetail.x > 1.5);
       patInk = max(patInk, di * dUp * ${DETAIL.ink.toFixed(2)});   // (over 1: a darker pen line, post.js; under 2)
     }
     #endif
