@@ -1,0 +1,41 @@
+changelog.md
+  s_1fd8d0e7b02dcf::t_2f0110994f7c9c 16
+docs/systems/performance.md
+  s_1fd8d0e7b02dcf::t_faabdb97016f36 351-446
+src/changelog.js
+  s_1fd8d0e7b02dcf::t_5acfcfda627227 19
+src/main.js
+  s_1fd8d0e7b02dcf::t_c26992dbe57051 25,99,1144
+src/perf.js
+  s_1fd8d0e7b02dcf::t_262a6b6d8d3071 470-505
+src/post.js
+  s_1fd8d0e7b02dcf::t_6366c9a9bed7fe 58-107,173-175,202-203,322-323,335-339,640-642,655,658,905-906,910,1000-1002,1019-1050,1053-1055
+src/sand-drifts.js
+  s_1fd8d0e7b02dcf::t_209588a32b2888 123-152,229,252,256,258-259
+src/title-vista.js
+  s_1fd8d0e7b02dcf::t_ec7bdc203c3092 441,501
+tests/occlusion-taps.test.js
+  s_1fd8d0e7b02dcf::t_c191125c8c385b 34,44-46
+tests/sand-drifts.test.js
+  s_1fd8d0e7b02dcf::t_24bd2ef0af1e56 97-133
+tests/screen-noise.test.js
+  s_1fd8d0e7b02dcf::t_5c56ecf208eab4 1-67
+tests/uniform-arrays.test.js
+  s_1fd8d0e7b02dcf::t_ddb5569d79d469 1-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "14b75c16bb820f0d951e0c3a4033cb2ec9775b0a",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
