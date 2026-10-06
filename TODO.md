@@ -17,8 +17,11 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] Fix feet sinking into the moving platforms and other platforms in Vael II's Belfroy. Audit
   standing and landing contact across all worlds, including moving platforms, so visible platform tops
   and collision surfaces agree and feet do not disappear into them.
-- [ ] When the ridden bird approaches the ground, have it extend its legs and feet in preparation,
-  then land properly with its feet contacting the ground.
+- [x] When the ridden bird approaches the ground, have it extend its legs and feet in preparation,
+  then land properly with its feet contacting the ground. (A landing phase from her height and sink:
+  legs down and forward, wings flared, nose up and braking, the last metre's sink held to ~2 m/s, toes
+  level at contact; each foot on its own ground ray, so on slopes too; a sink into the knees and a few
+  steps of run-out. Also when called down or circling down riderless. Tests in tests/birds.test.js.)
 - [ ] Fix the mismatch between Vael's visible rocks and their climbing hitboxes: the traveller goes
   through roughly half of some rocks while climbing. Align climbing contact with the visible surfaces
   and check the affected rocks throughout the level.

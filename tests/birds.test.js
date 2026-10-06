@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {Flock} from '../src/life.js';
-import {Bird,TAKEOFF} from '../src/bird.js';
+import {Bird,TAKEOFF,LANDING,FOOT} from '../src/bird.js';
 const physics={groundAt:()=>0,pushCapsule:()=>false};
 test('small birds have separate bodies and feathered wings, with bounded distance scaling',()=>{
  const scene=new THREE.Scene(),flock=new Flock(scene,{count:5,size:1});
@@ -63,4 +63,74 @@ test('taking off she crouches, leaps, and beats her wings only at the top of the
  assert.notEqual(bird.wings[0].shoulder.rotation.z,z,'and the wings beat');
  // off her back mid-crouch: no leap without a rider
  const b2=new Bird(physics);b2.board();b2.update(1/60,{Space:true});assert.ok(b2.takeoff);b2.leave();b2.update(1/60,null);assert.equal(b2.takeoff,null);assert.equal(b2.landed,true);
+});
+
+// Landing: coming down, her legs lower and reach forward and her wings flare and brake; she
+// touches down with her feet on the ground (each foot on its own ray), sinks into her knees, and
+// walks out what's left of her speed.
+const feetY=(bird)=>{bird.object.updateMatrixWorld(true);return bird.legs.map(l=>l.localToWorld(FOOT.clone()));};
+function comeIn(ground,{h=6,speed=12}={}){
+ const bird=new Bird({groundAt:(x,y,z)=>ground(x,z),pushCapsule:()=>false});
+ bird.pos.set(0,ground(0,0)+1.4+h,0);bird.heading=0;bird.landed=false;bird.speed=speed;bird.board();
+ const log=[];
+ let down=-1;
+ for(let i=0;i<600&&(down<0||i<down+150);i++){
+  const air=!bird.landed;bird.update(1/60,{});
+  if(bird.landed&&down<0)down=i;
+  log.push({air,landed:bird.landed,landK:bird.landK,vy:bird.vy,legs:bird.legs.map(l=>l.rotation.x),pitch:bird.body.rotation.x,dip:bird.body.position.y,h:bird.heightOver(),speed:bird.speed,walk:bird.walkK});
+ }
+ return {bird,log,touch:down};
+}
+test('coming in to land she lowers her legs forward, flares and brakes, and touches down gently',()=>{
+ const {log,touch}=comeIn(()=>0);
+ assert.ok(touch>0,'she lands');
+ const before=log.slice(Math.max(0,touch-12),touch);
+ assert.ok(before.every(e=>e.landK>0.8),'the legs are out over the last moments');
+ const flying=-1.25;
+ assert.ok(before.every(e=>e.legs.every(x=>x>flying+0.5)),`legs down from their tuck: ${before[0].legs.map(x=>x.toFixed(2))}`);
+ assert.ok(log.slice(0,touch).some(e=>e.legs.every(x=>x<-0.3)&&e.landK>0.5),'and reaching forward on the way down');
+ assert.ok(log.slice(0,touch).some(e=>e.pitch<-0.3),'the body flares nose up');
+ assert.ok(log[0].landK<0.05,'not while still high up');
+ const sink=-log[touch-1].vy;
+ assert.ok(sink<LANDING.touch+0.6,`a gentle touchdown: ${sink.toFixed(2)} m/s down`);
+ assert.ok(log[touch-1].speed<log[0].speed-2,'the flare braked her');
+});
+test('touching down her feet are on the ground, she sinks into her knees, settles and walks out her speed',()=>{
+ const {bird,log,touch}=comeIn(()=>0);
+ const after=log.slice(touch);
+ assert.ok(Math.min(...after.slice(0,40).map(e=>e.dip))<-LANDING.dip*0.3,'a sink into the knees');
+ assert.ok(after.slice(0,40).some(e=>e.walk>0.3),'a few steps to walk off the speed');
+ assert.ok(Math.abs(after.at(-1).dip)<0.01&&after.at(-1).walk<0.05,'and settled, standing');
+ for(const f of feetY(bird))assert.ok(Math.abs(f.y-0)<0.08,`a foot on the ground: ${f.y.toFixed(3)}`);
+ assert.ok(bird.legs.every(l=>Math.abs(l.rotation.x)<0.05),'standing straight');
+});
+test('on a slope each foot finds the ground under it (no sinking, no floating)',()=>{
+ const slope=(x)=>0.45*x;   // across her: one foot lower than the other
+ const {bird,touch}=comeIn((x)=>slope(x));
+ assert.ok(touch>0);
+ const [a,b]=feetY(bird);
+ assert.ok(Math.abs(a.y-slope(a.x))<0.07&&Math.abs(b.y-slope(b.x))<0.07,`feet ${a.y.toFixed(2)}/${slope(a.x).toFixed(2)} and ${b.y.toFixed(2)}/${slope(b.x).toFixed(2)}`);
+ assert.ok(Math.abs(a.y-b.y)>0.2,'one foot higher than the other');
+ // and walking on, still on it
+ for(let i=0;i<40;i++)bird.update(1/60,{KeyW:true});
+ for(let i=0;i<40;i++)bird.update(1/60,{});
+ for(const f of feetY(bird))assert.ok(Math.abs(f.y-slope(f.x))<0.08,`after a walk: ${f.y.toFixed(2)} vs ${slope(f.x).toFixed(2)}`);
+});
+test('flying level low over the ground, or skimming fast, she keeps her legs tucked',()=>{
+ const bird=new Bird(physics);bird.pos.set(0,1.4+3,0);bird.landed=false;bird.speed=20;bird.board();
+ for(let i=0;i<60;i++)bird.update(1/60,{});
+ assert.ok(bird.landK<0.1,`legs tucked flying level: ${bird.landK.toFixed(2)}`);
+ assert.ok(bird.legs.every(l=>l.rotation.x<-1),'tucked');
+});
+test('called down beside you, or circling down without a rider, she lands on her feet the same way',()=>{
+ const bird=new Bird(physics);bird.pos.set(-60,40,-60);bird.landed=false;
+ bird.summon(0,0,0,null);
+ let legsOut=0,i=0;
+ for(;i<900&&!bird.landed;i++){bird.update(1/60,null);if(bird.heightOver()<1.5)legsOut=Math.max(legsOut,bird.landK);}
+ assert.ok(bird.landed,'down');assert.ok(legsOut>0.7,`legs out coming down: ${legsOut.toFixed(2)}`);
+ for(let k=0;k<60;k++)bird.update(1/60,null);
+ for(const f of feetY(bird))assert.ok(Math.abs(f.y)<0.08,`feet on the ground: ${f.y.toFixed(3)}`);
+ const b2=new Bird(physics);b2.pos.set(0,12,0);b2.landed=false;b2.mode='glide-down';
+ let out2=0;for(let k=0;k<600&&!b2.landed;k++){b2.update(1/60,null);if(b2.heightOver()<1)out2=Math.max(out2,b2.landK);}
+ assert.ok(b2.landed&&out2>0.7,`circling down: legs out ${out2.toFixed(2)}`);
 });

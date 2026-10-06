@@ -17,6 +17,7 @@ export const CHANGELOG = [
     'The drawing holds still as you move: old walls seen at a slant no longer shimmer with flickering grime streaks and cracks, the edge where a big pipe, tank or trunk turns from the sun is one clean line instead of crawling teeth, and the fine pen marks on distant walls change scale gently instead of popping as you ride or fly past.',
     'Haze and fog stay put on the land as you turn the camera, instead of sliding across it with the view.',
     'Gliding, your hands no longer twist and spin at the ends of your arms: they stay open and flat, palms down like the tips of the wings, through turns and as the wings open and fold.',
+    'Vael’s bird lands like a bird now: coming down she lowers her legs and reaches them forward, flares her wings and slows, touches down with her feet on the ground, even on a slope, sinks into her knees and walks off the last of her speed.',
   ] },
   { v: '0.71', date: '2026-10-06', items: [
     'In the Signal Market the shaded sides of the pink and cream towers turn the street’s cool teal, as in its drawings, instead of a dark brown.',
