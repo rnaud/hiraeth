@@ -1,0 +1,21 @@
+src/levels/incal.js
+  s_55b4bc53b812ec::t_637ba8ac2768db 8,107-109,146-151,181-189,298-313,527,530,534,537-539,678-704
+src/levels/reference-shaft.js
+  s_55b4bc53b812ec::t_d03102d6704197 5,50-55,66-108,114,125,130,132,145,152-154,182,184-186,196,200-202,360,403,584
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0bb9a0a3e0b649029b1d5c9a6ff040d68e2f8345",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
