@@ -1,0 +1,29 @@
+TODO.md
+  s_55b4bc53b812ec::t_5339e51bc5c168 66-68
+changelog.md
+  s_55b4bc53b812ec::t_3645298bec14ff 18
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_6cb5d4c86ed2d0 180-190
+src/changelog.js
+  s_55b4bc53b812ec::t_088ce884fb931c 22
+src/sand-drifts.js
+  s_55b4bc53b812ec::t_a7fbca02e7bc00 44-46,92-98,102-104,106-117,122-172,247-265,399,401-415
+tests/sand-drifts.test.js
+  s_55b4bc53b812ec::t_9b1d94436004c3 199-233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "37f6603f67cc569eb6ce875cabb670926657c8e3",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
