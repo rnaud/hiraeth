@@ -1,0 +1,117 @@
+.github/workflows/cloudflare.yml
+  s_55b4bc53b812ec::t_69c49490fe4735 23-44,47
+.gitignore
+  s_55b4bc53b812ec::t_a03bad2a1a6b40 40
+changelog.md
+  s_55b4bc53b812ec::t_aeeecfd4f12ca7 5-12,15-20,22-28,33-46,51-63,68-74,79-91,96-100,105-118,123-131,136-155,160-169,174-185,190-196,201-220,225-242,247-255,260-275,280-284,289-300,305-313,318-328,333-344,349-357,362-375,380-390,395-405,410-421,426-431,436-438,443-444,449-462,467-475,480-485,490-499,504-514,519-532,537-543,548-558,563-569,574-581,586-597,602-615,620-629,634-655,660-666,671-683,685-696,701-720,725-727,732-735,740-745,750-754,759-760,765-767,772-775,780-783,788-790,795-796,801-802,807-808,813,818,823,832-834,839-840,845-846,851-852,857-859,864-865,870-873,878-883,888-897,902-909,914-916,921-922,927-929,934-935,944,957
+docs/systems/changelog.md
+  s_55b4bc53b812ec::t_c0d027050d8cbb 4-6
+docs/systems/dev-tools.md
+  s_55b4bc53b812ec::t_6e4c5c80e63137 8-15
+docs/systems/references.md
+  s_55b4bc53b812ec::t_dcce641a79321c 702-746,849-884
+docs/systems/rendering.md
+  s_55b4bc53b812ec::t_e4d3f3c1762f53 708-732
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_66f638ad922950 935-1052
+index.html
+  s_55b4bc53b812ec::t_d0c43f9979d998 137-139
+scripts/changelog-md.mjs
+  s_55b4bc53b812ec::t_6bcb59fe369ce4 7,15
+scripts/changelog-shots.mjs
+  s_55b4bc53b812ec::t_349ab19d1fefe5 259-260
+scripts/release-info.mjs
+  s_55b4bc53b812ec::t_7333ebe8e96aac 16,77,162
+scripts/world-thumbs.mjs
+  s_55b4bc53b812ec::t_81b28c8881220e 1-56
+src/audio.js
+  s_55b4bc53b812ec::t_3f6b4ab23ba9ea 37-38
+src/boot.js
+  s_55b4bc53b812ec::t_daf310be2b4f99 5,18-23,29
+src/changelog-media.js
+  s_55b4bc53b812ec::t_2706f9dd7145db 52,96,119-176,246-259
+src/changelog.js
+  s_55b4bc53b812ec::t_76b67002ef99c7 12-18,28-37,911-912,921
+src/costumes.js
+  s_55b4bc53b812ec::t_0221452a9f9910 474,477
+src/edge.js
+  s_55b4bc53b812ec::t_cdb1e20c0c8416 38-39
+src/levels/content.js
+  s_55b4bc53b812ec::t_8aa2f4ace1e9a4 28-29,49-50
+src/levels/index.js
+  s_55b4bc53b812ec::t_d7916ace2d98a8 26-27,166-179
+src/levels/names.js
+  s_55b4bc53b812ec::t_f9eebb9e935efe 28-29,37
+src/levels/reference-spacecity.js
+  s_55b4bc53b812ec::t_840015df55fdc4 1-294
+src/levels/reference-underside.js
+  s_55b4bc53b812ec::t_7861d827265b87 1-241
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_16b88ec4f41d96 38-39
+src/levels/references.js
+  s_55b4bc53b812ec::t_70afce43be663f 21-22,230-231,267,301
+src/levels/space-city-kit.js
+  s_55b4bc53b812ec::t_91b255f5de40d5 1-475
+src/levels/space-city.js
+  s_55b4bc53b812ec::t_64960ed63ec568 1-362
+src/levels/underside-kit.js
+  s_55b4bc53b812ec::t_1e776e415060c9 1-674
+src/levels/underside.js
+  s_55b4bc53b812ec::t_ed72bae361d0e5 1-505
+src/main.js
+  s_55b4bc53b812ec::t_0f6b73a0a16865 75,880,886
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_cea7e586153f6c 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_0b8120a8068318 119-120
+src/post.js
+  s_55b4bc53b812ec::t_7d67a6f9e0c20d 271-278,324,545-546,548,618-650,673,692,701,764,1294-1297,1475
+src/reactive-world.js
+  s_55b4bc53b812ec::t_21446114d3084d 37-38
+src/ship/planets.js
+  s_55b4bc53b812ec::t_aa6a7ba0ad2b4a 33-34
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_5822409c510e73 34-35
+src/title.js
+  s_55b4bc53b812ec::t_25fb38dca6e7ea 156,210-211,213,215-216
+src/world-picker.js
+  s_55b4bc53b812ec::t_675aee206ca1bb 1-76
+tests/android-ota.test.js
+  s_55b4bc53b812ec::t_8fc2a41f933df9 81
+tests/changelog-media.test.js
+  s_55b4bc53b812ec::t_a159bc45bd7ba6 87-89,91-94
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_d503d1e72edd05 137-138
+tests/marketnight.test.js
+  s_55b4bc53b812ec::t_eab35b41d9c737 19
+tests/menus.test.js
+  s_55b4bc53b812ec::t_0809816af4609b 3-5,19-30
+tests/sky-stones-kit.test.js
+  s_55b4bc53b812ec::t_78163b0947fc20 92-93,95-97
+tests/spacecity-world.test.js
+  s_55b4bc53b812ec::t_8db565f5497482 1-101
+tests/spacecity.test.js
+  s_55b4bc53b812ec::t_3fb123e8434af0 1-105
+tests/studio.test.js
+  s_55b4bc53b812ec::t_66994dfcc5526c 55-57
+tests/underside-world.test.js
+  s_55b4bc53b812ec::t_fc45cda941cd37 1-134
+tests/underside.test.js
+  s_55b4bc53b812ec::t_18567f50b0e4f5 1-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e6ab74867976a079838abbdfdfbda76fe600d9df",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

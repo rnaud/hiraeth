@@ -1,0 +1,55 @@
+changelog.md
+  s_55b4bc53b812ec::t_4baaf23493dbbe 17
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_4dd830298956b6 934-993
+src/audio.js
+  s_55b4bc53b812ec::t_79d301bba9f085 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_30dd51a6e8af17 188-213
+src/changelog.js
+  s_55b4bc53b812ec::t_28db912a4f1a8a 27
+src/costumes.js
+  s_55b4bc53b812ec::t_933259c8157a4d 474
+src/edge.js
+  s_55b4bc53b812ec::t_44016b61cd2272 38
+src/levels/content.js
+  s_55b4bc53b812ec::t_397de9b447e6ba 28,48
+src/levels/index.js
+  s_55b4bc53b812ec::t_18ac16b9aa46db 26,165-171
+src/levels/names.js
+  s_55b4bc53b812ec::t_fa427f92acdce8 28,36
+src/levels/space-city-kit.js
+  s_55b4bc53b812ec::t_dc637830a4724c 84,166,185,327,329-330,336-337,347,357,359,370,380,384,394,434,436-437
+src/levels/space-city.js
+  s_55b4bc53b812ec::t_75904aadfa5b2b 1-362
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_59f381d1cbdbda 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_6da95504efaa57 119
+src/reactive-world.js
+  s_55b4bc53b812ec::t_84bf41e5065b70 37
+src/ship/planets.js
+  s_55b4bc53b812ec::t_e1beaee1f61990 33
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_15e7a14fb03f77 34
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_855a16b9ff8963 137
+tests/spacecity-world.test.js
+  s_55b4bc53b812ec::t_0cfef5a813774d 1-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "743bc056d91399f74698358f78f1cb6e76587f86",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+.github/workflows/cloudflare.yml
+  s_55b4bc53b812ec::t_778579469c74dc 23-44,47
+changelog.md
+  s_55b4bc53b812ec::t_825d566293efae 5-10,23-24
+docs/systems/references.md
+  s_55b4bc53b812ec::t_688ba2263cd915 702-746
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_ebef34dbde1f4b 935-992
+src/audio.js
+  s_55b4bc53b812ec::t_02a2cdd0e7b362 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_8336b6954cfdb1 119-153,223-236
+src/changelog.js
+  s_55b4bc53b812ec::t_8523ebc86f4a66 12-16,32-33
+src/costumes.js
+  s_55b4bc53b812ec::t_39b154e1aa0457 477
+src/edge.js
+  s_55b4bc53b812ec::t_6e0152e93e5f7f 38
+src/levels/content.js
+  s_55b4bc53b812ec::t_910ff04763f154 28,49
+src/levels/index.js
+  s_55b4bc53b812ec::t_708504f4b8d5d9 26,166-172
+src/levels/names.js
+  s_55b4bc53b812ec::t_ebfdeea7a04c83 28,37
+src/levels/reference-underside.js
+  s_55b4bc53b812ec::t_f8e1410c80a785 1-241
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_9babccd37b8bc4 38
+src/levels/references.js
+  s_55b4bc53b812ec::t_af383d7381dbec 21,229
+src/levels/underside-kit.js
+  s_55b4bc53b812ec::t_7921dcdc18cf0d 1-674
+src/levels/underside.js
+  s_55b4bc53b812ec::t_c2f39c86970cf4 1-505
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_a9e9452471512e 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_b7968c7983e964 119
+src/reactive-world.js
+  s_55b4bc53b812ec::t_527f8475fe3cbf 37
+src/ship/planets.js
+  s_55b4bc53b812ec::t_9815198d9bc00e 33
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_b8858748d34fe4 34
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_760aea78508627 137
+tests/underside-world.test.js
+  s_55b4bc53b812ec::t_7f3dea241921ab 1-134
+tests/underside.test.js
+  s_55b4bc53b812ec::t_af7e003fa51be1 1-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "858596e1bd5138c2402e028579ba55f4dd5eaf91",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
