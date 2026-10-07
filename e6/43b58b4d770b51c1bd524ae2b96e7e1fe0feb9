@@ -1,0 +1,27 @@
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_a89b3dd9788f32 736-762
+src/animator.js
+  s_55b4bc53b812ec::t_de49613eb3d9c2 2,310-312,500-501,505-507,516,542-543
+src/humanoid.js
+  s_55b4bc53b812ec::t_3175681cebad6a 5,384-385,444,1253-1260,1273-1278,1285-1290,1294,1296,1299-1304,1306,1573-1574
+src/world-read.js
+  s_55b4bc53b812ec::t_a6ac5af6af2b9a 1-29
+tests/pose-exact.test.js
+  s_55b4bc53b812ec::t_43a18baa53a782 1-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e643b58b4d770b51c1bd524ae2b96e7e1fe0feb9",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
