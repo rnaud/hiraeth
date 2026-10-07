@@ -9,6 +9,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Buried Machine the trench walls are a mass of pipes, bends rising over the long runs and dropping back; inside the drum an arcade of little dark bays runs under the rim, with slits, panels and machinery against the wall, some of it lit; and the city overhead hangs its towers in clusters, lesser towers round the great ones, each ending in a bulb.
 - The desert’s canyon walls and violet cliffs are drawn with many cracks running down their faces, as in their drawings, instead of a few far-apart fissures, and the doors of Qanat’s houses have the plaster stained darker round them.
 - In the References level the Signal Market’s panels have a crowd of people in coats, hoods and hats, the quiet ones among them, stalls full of goods with their sellers, and the game’s own cabs; the Buried Machine’s have the trench’s pipes, the hanging towers in clusters, the drums’ arcades and machinery under vaulted ceilings, the oval tunnel’s inside, the moon seen from the arched cave and the layered rock ledge; the City-Shaft’s houses have pipes, balconies with washing and machinery under their overhangs, with blimps and the game’s own cabs in the sky.
+- Looking across the City-Shaft is lighter on handhelds: its towers are drawn together, a few at a time, each with its own colours and bands exactly as before.
 
 ## v0.77 — 2026-10-07
 
@@ -33,7 +34,6 @@ The same release notes shown in the game (press **N** or open settings).
 - Climbing a wall where sand is banked against its foot, you take hold standing on the bank: your hands and knees no longer go into the sand, and climbing down you step off onto it.
 - Cabs are solid just as they are drawn: you stand on a parked cab’s nose, tail or striped canopy where they are, instead of on an invisible lid at the canopy’s height, and walking up to one you stop at its side rather than a step away from it. The rolling stone balls in the temples are round underfoot too.
 - Climbing an olive tree in the Garden of Spheres, you stop under its crown or climb on round its leaves and stand on top, instead of coming out inside the crown; and pulling yourself up over an edge never puts you inside something solid.
-- Looking across the City-Shaft is lighter on handhelds: its towers are drawn together, a few at a time, each with its own colours and bands exactly as before.
 
 ## v0.76 — 2026-10-07
 
