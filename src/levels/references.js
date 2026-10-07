@@ -15,6 +15,7 @@ import { MANGROVE_DAY, MANGROVE_LOOK } from './mangrove-kit.js';
 import { WATERFALL_DAY, WATERFALL_WORLD_LOOK } from './waterfall-kit.js';
 import { SALT_DAY, SALT_LOOK } from './salt-harbour-kit.js';
 import { ANTENNAS_DAY, ANTENNAS_LOOK } from './antennas-kit.js';
+import { ECLIPSE_TOTAL, ECLIPSE_LOOK, eclipseUniforms } from './eclipse-kit.js';
 import { RING_DAY, RING_LOOK } from './fallen-ring-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
@@ -201,6 +202,7 @@ export const WORLD_LOOKS = {
   waterfall: { sky: WATERFALL_DAY, look: { ...WATERFALL_WORLD_LOOK } },
   saltharbour: { sky: SALT_DAY, look: { ...SALT_LOOK } },
   antennas: { sky: ANTENNAS_DAY, look: { ...ANTENNAS_LOOK } },
+  eclipse: { sky: ECLIPSE_TOTAL, look: { ...ECLIPSE_LOOK, ...eclipseUniforms() } },
   fallenring: { sky: RING_DAY, look: { ...RING_LOOK } },
 };
 

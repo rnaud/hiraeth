@@ -20,6 +20,7 @@ import { PERDIDE_CONTENT } from './perdide.js';
 import { MANGROVE_CONTENT } from './mangrove.js';
 import { SALT_CONTENT } from './salt-harbour.js';
 import { ANTENNAS_CONTENT } from './antennas.js';
+import { ECLIPSE_CONTENT } from './eclipse.js';
 import { HOME_CONTENT } from './home.js';
 import { GLASS_CONTENT } from './glass-dunes.js';
 import { RING_CONTENT } from './fallen-ring.js';
@@ -97,6 +98,7 @@ export const CONTENT = {
       { at: [70, 12], y: 0, radius: 2, palette: pal('#7a6e9e', { cloth: '#efe0c4' }), lines: ['~surprised~ A ship on the landing! The last thing that landed there was a heron, and it left offended.', '~playful~ The city’s that way, behind the water. You’ll hear it before you see it.'] },
     ],
   },
+  eclipse: ECLIPSE_CONTENT,   // src/levels/eclipse.js: off the route, no quest; three visitors and the city's folk at their tables
   // src/levels/underwater.js: off the route (names.js SIDE), no quest, no relics; a few of the city's people, in the cafés and the streets
   underwater: {
     weather: [],

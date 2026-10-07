@@ -739,3 +739,30 @@ Ranked by how much they would close the gap to the sheets, across every world re
    material (`color2`, `color3` only in strata). **Done** (`patches`, docs/systems/materials.md "Colour
    across a wall"): each building's faces their own tone, repaints over one to three storeys, the odd
    storey in another render, world-anchored, a clean edge with no line, on every wall with built pen detail.
+
+## The City During the Eclipse's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-eclipse.js`, world `eclipse`: `?level=references&world=eclipse&view=n`): four
+  16:9 pictures (1456 × 816), one view each, after the Underwater City's: the square under the eclipse, the tables
+  along the walls, the stair, the round tower (1); from the top of the steps, the stair down and the far city to the
+  rose horizon, the terraces climbing on the left (2); the bowl of terraces round the square, the stars out at midday
+  (3); down the street of steps, the washing, the city falling away to the horizon (4). One scene builder
+  (`cityScene`) with the world's kit (`src/levels/eclipse-kit.js`, shared with the world, worlds.md): houses
+  (`house`: rounded blocks, drums, towers, flat or domed, arched doors with the door stain, windows some lit, flower
+  boxes, antennas), terraces of big masonry blocks, broad stairs with cheek walls, tables with their cloths,
+  lanterns and diners, lamps (globes, posts, hung, the big paper lanterns), awnings, the rooftops' poles and
+  sheets, washing, the pale figures (`paleFigure`: leaning out from a wall, hung over a parapet, standing), the far
+  city (`farQuarter`), the traveller with his glowing lantern pack.
+- **The eclipse where the picture has it**: each view's `eclipse` ({ side, el } from the line of sight, its disc's
+  size, the corona's reach, style and colour, the stars) becomes its look's eclipse uniforms (`eclipseUniforms`),
+  the direction through `eclipseAt` (references.js's sunTurn, so the disc lands where it should whatever the view's
+  sun); the view's `sun` stays high and lights the city from the sky (the pictures' faces toward the eclipse are
+  lit, not black). Picture 1's corona is a short ring of fine white rays under a plain blue sky; 2's a peach stipple;
+  3's a white stipple among stars; 4's long fine peach rays (rendering.md "The eclipse").
+- **The look** (`ECLIPSE_LOOK`, `ECLIPSE_TOTAL` in the kit): a flat sky, the limewash lit a cold lavender and its
+  shade printed flat in a deep violet (read off the pictures: lit walls #9589e6 … #5c4e99, shade #3c3a68), little
+  hatching, few spot blacks, cast shadows lifted on open ground, a rose-lavender haze in bands; the lamps' pools
+  amber on the walls (`lampTint`). `?look=eclipse`.
+- **Left**: the pictures' city is far denser (stairs everywhere, ledges, plants, crowds at every table); our walls
+  are plain masonry faces where the pictures carry deep detail; the pale figures are simpler; picture 3's pink
+  cloud streaks are left out; the compositions follow the pictures' masses, not every house.

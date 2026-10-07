@@ -260,6 +260,14 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uPlanet[3];        // xyz = direction, w = angular radius (0 = none)
   uniform vec4 uPlanetColor[3];   // rgb, a = ring (0 none, else ring tilt)
   uniform vec3 uPlanetCraters;    // per planet: 1 = cratered, 0 = a plain printed disc
+  // the eclipse (src/eclipse.js, docs/systems/rendering.md "The eclipse"): x how far the moon covers the sun
+  // (0 … 1 total), y the discs' angular radius (rad; 0: no eclipse, the plain sun), z the corona's reach (× the
+  // radius), w its style (0 fine rays … 1 a stipple of dots); the corona's colour (a: stars shown in totality);
+  // the low band of rose light all round the horizon (rgb, a its height in the sky, as rd.y)
+  uniform vec4 uEclipse;
+  uniform vec4 uCorona;
+  uniform vec4 uEclipseGlow;
+  uniform vec3 uEclipseDir;   // where the eclipsed sun stands, if not at the sun's own place (0: at uSunDisc; the References' views)
   uniform vec4 uBackdrop;         // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait)
   uniform float uCrevice;         // the deepest crevices filled with ink (0..1)
   uniform float uShadowFlat;      // shadows printed in their own colour (0: albedo × tint .. 1: the tint at the surface's value)
@@ -305,7 +313,7 @@ const fragmentShader = /* glsl */ `
     // flat printed sky: one tint down to the horizon, only a narrow paler band right on it
     c = mix(c, mix(uSkyHorizon, uSkyTop, mix(0.45, 1.0, smoothstep(0.0, 0.03, h))), uSkyFlat);
     float sd = max(dot(rd, uSunDisc), 0.0);
-    c = mix(c, uSkyHorizon * vec3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - uNight));
+    c = mix(c, uSkyHorizon * vec3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - uNight) * (1.0 - step(1e-5, uEclipse.y) * uEclipse.x));
     return c;
   }
 
@@ -552,6 +560,52 @@ const fragmentShader = /* glsl */ `
     }
   }
 
+  // The eclipse: the moon's black disc over the sun, ringed at its limb with a thin bright line, the corona
+  // round it printed as fine pen rays of their own lengths and/or a stipple thinning outward, a halo of two
+  // flat lighter bands. Its shapes are measured on the sky round the sun (anchored: they never swim), their
+  // widths in pixels from one pixel's angle (aa). Out of totality only the moon's bite out of the sun shows.
+  void drawEclipse(vec3 rd, vec3 sun, float ang, float aa, float sunR, inout vec3 col, inout float ink) {
+    float R = uEclipse.y, cover = uEclipse.x, px = uPixelRatio;
+    vec3 s1 = normalize(cross(sun, vec3(0.0, 1.0, 0.0)) + 1e-5), s2 = cross(s1, sun);
+    // the moon slides off the sun as the cover falls (0: just clear of it), down and to one side
+    vec3 md = normalize(sun + (s1 * 0.8 - s2 * 0.6) * (1.0 - cover) * 2.05 * R);
+    float ma = acos(clamp(dot(rd, md), -1.0, 1.0));
+    float total = smoothstep(0.93, 1.0, cover);   // the corona shows only in totality
+    float u = ang / R;
+    if (total > 0.0 && u < 2.0 + uEclipse.z) {
+      vec2 q = vec2(dot(rd, s1), dot(rd, s2)) / R;
+      // the halo: two flat bands of lighter sky round the disc, close in
+      float b1 = 1.0 - smoothstep(1.0 + uEclipse.z * 0.3 - aa / R, 1.0 + uEclipse.z * 0.3 + aa / R, u);
+      float b2 = 1.0 - smoothstep(1.0 + uEclipse.z * 0.7 - aa / R, 1.0 + uEclipse.z * 0.7 + aa / R, u);
+      col = mix(col, mix(col, uCorona.rgb, 0.18), (b1 * 0.6 + b2 * 0.4) * total);
+      // the rays: fine strokes out of the limb, each of its own length
+      float N = 260.0, phi = atan(q.y, q.x), k = phi / 6.2832 * N, id = floor(k), f = fract(k);
+      float cellPx = ang * 6.2832 / N / max(aa, 1e-7);   // one ray's cell, in pixels across
+      float hl = hash(vec2(id, 7.3)), len = 1.0 + uEclipse.z * (0.2 + 0.8 * hl * hl);
+      float jit = (hash(vec2(id, 3.1)) - 0.5) * 0.5;
+      float wpx = mix(0.55, 1.1, hash(vec2(id, 5.7))) * px;
+      float ray = (1.0 - smoothstep(wpx * 0.5, wpx * 0.5 + 0.9, abs(f - 0.5 - jit * 0.6) * cellPx)) * step(1.0, u)
+        * (1.0 - smoothstep(mix(1.0, len, 0.55), len, u)) * step(hash(vec2(id, 2.1)), 0.82) * smoothstep(1.3, 2.6, cellPx);
+      // the stipple: dots on the sky round the sun, thick at the limb, thinning outward
+      float pxQ = aa / R, lvl = log2(max(pxQ * 3.2 * px, 1e-7)), cell = exp2(floor(lvl));
+      vec2 g = q / cell, cid = floor(g), o = vec2(hash(cid + 1.3), hash(cid + 7.1)) * 0.8 + 0.1;
+      float dens = exp(-(u - 1.0) / max(uEclipse.z * 0.38, 1e-3)) * 0.95;
+      float size = mix(0.35, 0.8, hash(cid + 2.9)) * px;
+      float dots = (1.0 - smoothstep(size, size + 0.6, length(fract(g) - o) * cell / pxQ)) * step(hash(cid + 4.4), dens) * step(1.0, u);
+      float cor = max(ray * clamp(1.6 - 1.6 * uEclipse.w, 0.0, 1.0), dots * clamp(1.6 * uEclipse.w, 0.0, 1.0));
+      col = mix(col, uCorona.rgb, cor * total);
+    }
+    // the limb: a thin bright ring round the black disc (the sun's own edge, all that is left of it)
+    float rw = max(R * 0.035, aa * 1.2 * px);
+    float ring = (1.0 - smoothstep(rw - aa, rw + aa, abs(ma - R - rw))) * total;
+    col = mix(col, mix(uCorona.rgb, vec3(1.0, 0.98, 0.94), 0.6), ring);
+    // the moon's disc: unseen on the day sky, black where it covers the sun (all of it in totality)
+    float inSun = 1.0 - smoothstep(sunR - aa, sunR + aa, ang);
+    float mdisc = (1.0 - smoothstep(R - aa, R + aa, ma)) * max(inSun, total) * step(0.001, cover);
+    col = mix(col, vec3(0.012, 0.012, 0.03), mdisc);
+    ink = max(ink, (1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ma - R))) * inSun * step(0.001, cover) * (1.0 - total));
+  }
+
   // ---------------------------------------------------------------- sky
   vec3 renderSky(vec3 rd, vec2 fc, out float ink) {
     vec3 col = skyBase(rd);
@@ -562,9 +616,20 @@ const fragmentShader = /* glsl */ `
     float ang = acos(clamp(dot(rd, uSunDisc), -1.0, 1.0));
     float aa = fwidth(ang);
     float r = 0.05;
-    col = mix(col, uSunColor, 1.0 - smoothstep(r - aa, r + aa, ang));
-    ink = max(ink, 1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ang - r)));
-    ink = max(ink, 0.5 * (1.0 - uNight) * (1.0 - smoothstep(0.0, aa * 0.7 * px, abs(ang - r * 1.6))));
+    // (an eclipse world: the rose light low all round the horizon, and the sun the moon's own size)
+    float eclipse = step(1e-5, uEclipse.y), eCover = eclipse * uEclipse.x;
+    vec3 sunAt = uSunDisc;
+    if (eclipse > 0.0) {
+      if (dot(uEclipseDir, uEclipseDir) > 0.25) { sunAt = normalize(uEclipseDir); ang = acos(clamp(dot(rd, sunAt), -1.0, 1.0)); aa = fwidth(ang); }
+      float eh = rd.y, ew = fwidth(eh) * 1.2, top = uEclipseGlow.a;
+      float band = (1.0 - smoothstep(top * 0.45 - ew, top * 0.45 + ew, eh)) * 0.55 + (1.0 - smoothstep(top - ew, top + ew, eh)) * 0.45;
+      col = mix(col, uEclipseGlow.rgb, band * step(-0.02, eh) * smoothstep(0.6, 1.0, eCover));
+      r = uEclipse.y * 0.985;
+    }
+    col = mix(col, uSunColor, (1.0 - smoothstep(r - aa, r + aa, ang)) * (1.0 - smoothstep(0.93, 1.0, eCover)));
+    ink = max(ink, (1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ang - r))) * (1.0 - eCover));
+    ink = max(ink, 0.5 * (1.0 - uNight) * (1.0 - smoothstep(0.0, aa * 0.7 * px, abs(ang - r * 1.6))) * (1.0 - eclipse));
+    if (eclipse > 0.0) drawEclipse(rd, sunAt, ang, aa, r, col, ink);
 
     // Moon: smaller pale disc with a crescent shadow, drawn separately so it
     // never jumps when the lighting switches from sun to moon.
@@ -582,7 +647,7 @@ const fragmentShader = /* glsl */ `
 
     // Sun rays: pale wedges fanning from a low sun.
     if (uRays > 0.0 && uSunDisc.y > -0.05) {
-      float low = (1.0 - smoothstep(0.08, 0.45, uSunDisc.y)) * (1.0 - uNight);
+      float low = (1.0 - smoothstep(0.08, 0.45, uSunDisc.y)) * (1.0 - uNight) * (1.0 - eCover);
       vec3 s1 = normalize(cross(uSunDisc, vec3(0.0, 1.0, 0.0)));
       vec3 s2 = cross(s1, uSunDisc);
       float phi = atan(dot(rd, s2), dot(rd, s1));
@@ -651,14 +716,16 @@ const fragmentShader = /* glsl */ `
     }
 
     // Stars: sparse inked-paper dots at night.
-    if (uNight > 0.0 && rd.y > 0.0) {
+    // (and in an eclipse's totality, uCorona.a: not on the moon's disc)
+    float starsK = max(uNight, uCorona.a * eclipse * step(uEclipse.y * 1.02, ang));
+    if (starsK > 0.0 && rd.y > 0.0) {
       vec2 sp = rd.xz / (rd.y + 1.0) * 260.0;
       vec2 cell = floor(sp);
       float hs = hash(cell);
       vec2 o = vec2(hash(cell + 3.3), hash(cell + 7.7)) * 0.6 + 0.2;
       float sd2 = length(fract(sp) - o) / max(fwidth(sp.x), 1e-5);
       float star = step(0.985, hs) * (1.0 - smoothstep(0.4, 1.2 + 1.2 * step(0.996, hs), sd2 / px));
-      col = mix(col, vec3(1.0, 0.97, 0.88), star * uNight * smoothstep(0.02, 0.2, rd.y));
+      col = mix(col, vec3(1.0, 0.97, 0.88), star * starsK * smoothstep(0.02, 0.2, rd.y));
     }
 
     // Flat inked clouds on a virtual plane.
@@ -1176,6 +1243,10 @@ export function createPost() {
     uPlanet: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
     uPlanetColor: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
     uPlanetCraters: { value: new THREE.Vector3(1, 1, 1) },
+    uEclipse: { value: new THREE.Vector4(0, 0, 0, 0) },
+    uCorona: { value: new THREE.Vector4(1, 1, 1, 0) },
+    uEclipseGlow: { value: new THREE.Vector4(1, 1, 1, 0) },
+    uEclipseDir: { value: new THREE.Vector3(0, 0, 0) },
 
     uFogDensity: { value: 0.0011 },
     uFogStart: { value: 120 },
@@ -1352,7 +1423,8 @@ export function createBloom(gbuffer, { spread = 1.3, wideSpread = 3.0 } = {}) {
 // two-tone) or towards a Moebius page (inked, hatched, wobbly).
 // (every preset says the haze: a zone's or a world's touches never carry into the next)
 // (and the cast shadows: every world keeps them unless it says)
-const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0], uCast: [0, 0], uInkShadow: [0, 0] });
+// (and the eclipse: off, unless a world's look or src/eclipse.js says)
+const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0], uCast: [0, 0], uInkShadow: [0, 0], uEclipse: [0, 0, 0, 0], uCorona: [1, 1, 1, 0], uEclipseGlow: [1, 1, 1, 0], uEclipseDir: [0, 0, 0] });
 export const PRESETS = {
   Moebius: {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,

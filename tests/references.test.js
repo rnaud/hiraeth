@@ -64,7 +64,7 @@ test('IMG_3775 has six views, each with a camera framed like its panel', async (
     const p = v.eye.clone().addScaledVector(fwd, 1000).project(cam);
     assert.ok(Math.abs((1 - p.y) / 2 - d.camera.horizon) < 1e-3, `${d.id}: horizon at ${d.camera.horizon}`);
   }
-  // (one world is built at a time: past 196 views the grid's cells go round again, so only a world's own views must stand apart)
+  // (one world is built at a time: past 196 views the grid's cells go round again, so only a world's own views need be apart)
   for (const { level } of worlds) {
     const all = level.views;
     for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++)

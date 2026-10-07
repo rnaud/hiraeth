@@ -131,6 +131,7 @@ const KNOWN = {
   saltharbour: { sink: 1, hover: 0, inside: 12, walk: 6 },   // (the Salt Harbour: hulls, houses, stairs and decks solid as drawn; a porthole or two proud of a facet)
   antennas: { sink: 1, hover: 0, inside: 3, walk: 1 },   // (the Forest of Antennas: solid where walked; the masts' legs kept clear by stand-ins too steep to stand on or climb)
   underwater: { sink: 46, hover: 0, inside: 150, walk: 93 },   // (the cafés' chair backs and the domes' ribs, drawn only; the towers' tops)
+  eclipse: { sink: 16, hover: 0, inside: 14, walk: 3 },   // (the City During the Eclipse: walls, terraces, stairs, houses and the roofs behind them solid; the flower boxes and the figures over the parapets drawn only)
   fallenring: { sink: 2, hover: 0, inside: 13, walk: 0 },   // (the Fallen Ring: hulls, houses, posts, stairs and the interiors solid as drawn; the awnings drawn only)
 };
 const audits = new Map();

@@ -678,3 +678,30 @@ ship flickered 62 pixels in 10 000 a frame on Handheld (the busiest world measur
 - **Cost**: a few multiply-adds a vertex of a thin material; nothing measurable at Handheld.
 - `tests/antennas.test.js`: the views' sheet projection; `tests/surface-spec.test.js` and `vertex-material.test.js`
   unchanged.
+
+## The eclipse (post.js `drawEclipse`, `uEclipse`; src/eclipse.js; October 2026)
+
+The City During the Eclipse's sky: the sun covered by the moon at midday, drawn as the pictures draw it.
+
+- **The disc and its corona** (post.js, in the sky): `uEclipse` (x how far the moon covers the sun, y the discs'
+  angular radius, z the corona's reach × the radius, w its style: 0 fine rays … 1 a stipple), `uCorona` (its colour;
+  a: stars shown in totality), `uEclipseGlow` (the band of rose light low all round the horizon: rgb, its height),
+  `uEclipseDir` (where the eclipse stands, when not at the sun's own place: the References' views). The moon is a
+  black disc slid off the sun as the cover falls (only its bite out of the sun shows out of totality); in totality
+  its limb gets a thin bright ring, the corona prints as fine pen rays of their own lengths and/or dots thinning
+  outward, a halo of two flat lighter bands, all measured on the sky round the sun (they never swim) and sized in
+  pixels from one pixel's angle. Off (`uEclipse.y` 0) in every preset; a world's look or src/eclipse.js turns it on.
+- **The hour** (src/eclipse.js, `applyEclipse`, called after `applyTimeOfDay` by main.js's `updateSky` when the
+  level says `sky.eclipse`): the sun on the world's own path (its height and azimuth at noon), the moon over it
+  round `mid` (`eclipsePhase`: partial, then total), the light leaning up toward the zenith in totality (the whole
+  sky's glow lights the tops), `uNight` held at `night` in totality (the windows lit, the glows' halos wider), the
+  stars. Its colours are the level's own script (`eclipseScript`: day, the dimming partial phase, totality, dusk,
+  night), handed over with `atmo().script`.
+- **Lamplight in its own colour** (`makeMaterial({ lampTint })`, the LAMP_TINT define): the local lights' pools
+  turn the albedo toward the lamps' amber, so a cold-lit world's lamps throw warm light (the eclipse's city; the
+  White Mangrove's notes asked for it); `uLampsOn` (shared, 1 unless a world dims it: src/eclipse.js keeps it for
+  the eclipse and the night). Opt-in per material; the other worlds compile without it.
+- **Cost**: one branch on a uniform in the sky (nothing for the other worlds); in an eclipse sky a few hashes a sky
+  pixel near the sun; nothing measurable at Handheld.
+- `tests/eclipse.test.js`: the phase by the hour, the sun's path, the script's keys, `applyEclipse`'s uniforms and
+  light, every preset turning it off, `lampTint`'s define.
