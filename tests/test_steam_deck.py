@@ -593,6 +593,30 @@ class LaunchTests(unittest.TestCase):
         self.assertFalse(how[2])
         self.assertLess(time.monotonic() - started, 10)
 
+    def test_a_game_killed_after_it_has_drawn_is_not_retried(self):
+        # killed (or crashed) long after its window showed: the way to draw worked, no fallback
+        body = f'open({str(self.ready)!r}, "w").write("1")\ntime.sleep(1.5)\nos.kill(os.getpid(), 9)'
+        how = deck.run_game(self.script(body), dict(os.environ), self.ready, played_seconds=0.5, log=lambda _line: None)
+        self.assertEqual(how, ('ended', -9, True))
+        # the same soon after the window showed is still a failed start
+        how = deck.run_game(self.script(f'open({str(self.ready)!r}, "w").write("1")\nos.kill(os.getpid(), 9)'),
+                            dict(os.environ), self.ready, played_seconds=30, log=lambda _line: None)
+        self.assertEqual(how[0], 'retry')
+
+    def test_launch_after_a_late_crash_keeps_the_way_that_drew(self):
+        modes = []
+
+        def run(command, env, ready, log):
+            modes.append(env['MOEBIUS_GPU'])
+            return ('ended', -5, True)
+        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
+            with self.assertRaises(SystemExit) as done:
+                deck.launch(self.root, [], run=run)
+        self.assertEqual(done.exception.code, 1)
+        self.assertEqual(modes, ['gl'])
+        self.assertEqual(list(json.loads((self.root / 'gpu.json').read_text()).values()), ['gl'])
+        self.assertIn('Ended (gl, exit -5)', (self.root / 'launch.log').read_text())
+
     def test_the_retry_exit_asks_for_the_next_way_to_draw(self):
         how = deck.run_game(self.script(f'sys.exit({deck.RETRY_EXIT})'), dict(os.environ), self.ready, log=lambda _line: None)
         self.assertEqual(how, ('retry', deck.RETRY_EXIT, False))

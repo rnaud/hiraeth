@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.
 - On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.
+- On the Steam Deck, a game that closes unexpectedly after you have been playing no longer starts again by itself in a different graphics mode: it returns to Steam, and the next launch draws the way that worked.
 
 ## v0.79 — 2026-10-07
 
