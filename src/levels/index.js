@@ -14,6 +14,7 @@ import { createSpheres, buildSpheres } from './spheres.js';
 import { createPerdide2, buildPerdide2 } from './perdide2.js';
 import { createHome, buildHome } from './home.js';
 import { createReferences, buildReferences } from './references.js';
+import { createMangrove, buildMangrove } from './mangrove.js';
 import { createGlassDunes, buildGlassDunes } from './glass-dunes.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
@@ -83,6 +84,13 @@ export const LEVELS = [
     title: TITLES.bazaar, source: 'a city of a thousand broadcasts',
     blurb: 'Coral towers, illustrated signs and a busy alien bazaar. Climb the skybridges or hail a cab to the silent broadcast tower. Shop screens wake, recognize you and echo distant encounters.',
     moves: 'market streets · skybridges · jetpack · taxis',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'mangrove', create: createMangrove, build: buildMangrove, hidden: true,
+    title: TITLES.mangrove, source: 'a village in the white roots',
+    blurb: 'Bone-white trees stand on arching roots in a black lake, and people live in them. Walk the lantern-lit planks, climb to the decks round the trunks, and look down: the lake glows like a second sky.',
+    moves: 'walk · climb · swim',
   },
   {
     id: 'atelier', create: createAtelier, build: buildAtelier, hidden: true,

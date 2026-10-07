@@ -9,7 +9,7 @@
 //    a small glyph mark on its disc, its reading in the panel, and a line beside the
 //    chart saying why these worlds and no others.
 //  - The detours (names.js SIDE: worlds off the route, with no story to finish) are charted after
-//    the route, always, joined to it by a faint line, tagged "a detour".
+//    the route, always, off its dotted line, tagged "a detour".
 //  - Choosing a world asks first: "Travel to X?" Yes / No (keyboard, mouse,
 //    touch and pad: A / × yes, B / ○ no). The press that opens the question
 //    never answers it.
@@ -55,11 +55,10 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay,
     return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id), signature: hasSignature(id),
       signal: sig?.stage === 'far' && sig.world === id ? 'far' : null };
   });
-  // the detours off the route (names.js SIDE): always charted, after the route, no signature, nothing to finish
+  // the worlds off the route (names.js SIDE): charted from the start, off the dotted line
   for (const id of side) {
-    if (order.includes(id)) continue;
     const L = levels.find((l) => l.id === id) ?? { id, title: id };
-    out.push({ id, i: out.length, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: false, current: id === current, known: true, side: true, signature: false, signal: null });
+    out.push({ id, i: out.length, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: true, signature: hasSignature(id), side: true, signal: null });
   }
   const h = homeEntry({ unlocked: typeof home === 'function' ? home() : !!home, current });
   if (h) out.push({ ...h, i: out.length, known: true, signature: false, held: sig?.stage === 'held', relayFar: !!out.find((e) => e.signal && !e.known) });
@@ -325,9 +324,8 @@ export class StarMap {
       svg += [0.5, 0.78, 1.05].map((r) => `<ellipse cx="${L.centre[0]}" cy="${L.centre[1]}" rx="${r * (W / 2 - PAD)}" ry="${r * ((H - HEADER) / 2 - PAD)}" fill="none" stroke="rgba(247,236,210,.13)" stroke-width="1"/>`).join('');
       if (!home) svg += `<circle cx="${L.home[0]}" cy="${L.home[1]}" r="${L.box.disc * 0.2}" fill="#f2c54b" stroke="#2b211f" stroke-width="2"/>`;   // the sun home goes round
     }
-    for (let i = 1; i < worlds.length; i++) svg += seg(L.pts[i - 1], L.pts[i], !worlds[i].known || !worlds[i - 1].known || worlds[i].side);
-    const last = worlds.filter((e) => !e.side).length - 1;   // (the route's end: the detours hang off it)
-    if (home) svg += `<path d="M${L.pts[Math.max(0, last)].join(' ')} L${L.home.join(' ')}${L.centre ? ` L${L.pts[0].join(' ')}` : ''}" fill="none" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="2 6"/>`;
+    for (let i = 1; i < worlds.length; i++) if (!worlds[i].side) svg += seg(L.pts[i - 1], L.pts[i], !worlds[i].known || !worlds[i - 1].known);
+    if (home) svg += `<path d="M${L.pts[worlds.filter((e) => !e.side).length - 1].join(' ')} L${L.home.join(' ')}${L.centre ? ` L${L.pts[0].join(' ')}` : ''}" fill="none" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="2 6"/>`;
     // the worlds not known yet: faint dots, no names
     for (const e of worlds) if (!e.known) svg += `<circle cx="${L.pts[e.i][0]}" cy="${L.pts[e.i][1]}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
     // the relay signal from a world not charted yet: a ring pulsing round its faint dot (src/story/relay.js)

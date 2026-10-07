@@ -309,7 +309,8 @@ test('the Signal Market\'s sheets after Lorn II\'s, every panel, and the world\'
     }
   }
   const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
-  { const order = [...new Set(world)]; assert.equal(order.indexOf('The Signal Market'), order.indexOf('Lorn II') + 1, 'the Market right after Lorn II'); }
+  const worlds = [...new Set(world)];   // (after Lorn II's; the new worlds' sheets come after it)
+  assert.equal(worlds[worlds.indexOf('Lorn II') + 1], 'The Signal Market');
   assert.equal(world.filter((w) => w === 'The Signal Market').length, 21);
   const { MARKET_FLAT } = await import('../src/levels/bazaar.js');
   assert.ok(MARKET_FLAT > 0.5);

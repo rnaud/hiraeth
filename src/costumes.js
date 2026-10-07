@@ -300,6 +300,24 @@ export const COSTUMES = {
       accents: ['#c7a6f2', '#7fe0d0', '#d6ff9a'],
     },
   })] },
+  // the White Mangrove's folk (src/levels/mangrove.js): pale robes and hoods, lanterns, the lake's violet and rose
+  mangrove: { tribes: [tribe({
+    name: 'the lake folk',
+    moods: { calm: 4, kind: 3, curious: 1.5, amused: 1.2, stern: 0.2 },
+    heads: { hood: 4, lamphat: 1, hair: 1 }, as: { hat: 'hood', wrap: 'hood' },
+    hair: { m: { tail: 2, locks: 1 }, f: { long: 3, braid: 2 } },
+    masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lantern: 2, lamppole: 1, none: 2 }, trim: { none: 1 },
+    capes: [0.9, 1.2, 1.4], robe: 0.7, robes: [0.2, 0.32], flare: [0.3, 0.36], size: [0.97, 1.05],
+    palette: {
+      cloaks: ['#e9e2f2', '#c9c2e6', '#8a8ed0', '#d8b8d8'],
+      tunics: ['#5a5a8a', '#3e4672', '#6f5a9a', '#4a4f7a'],
+      legs: ['#2f3a4f', '#2a2f4a'],
+      skins: ['#e6c8b8', '#d8b8a8', '#c8a898', '#f0d8c8'],
+      hair: ['#2b211f', '#e8e2f2', '#4a3a5a'],
+      hats: ['#e9e2f2', '#8a8ed0', '#c9c2e6'],
+      accents: ['#ffd27a', '#ff9ad8', '#7fb8ff'],
+    },
+  })] },
   perdide2: { tribes: [tribe({
     name: 'the lamp-keepers',
     moods: { kind: 4.5, calm: 2, curious: 1.5, amused: 1, stern: 0.2 },

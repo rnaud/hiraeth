@@ -43,6 +43,7 @@ export const WORLDS = [
   ['home', 'Home', /at home|houses at home/],
   ['viridel', 'Viridel', /Viridel/],
   ['garage', 'The Sealed Hangar', /First Garage|Sealed Hangar/],
+  ['mangrove', 'The White Mangrove', /White Mangrove/],
   ['references', 'References', /References level/],
 ];
 
@@ -164,6 +165,16 @@ export const CHANGELOG_MEDIA = {
         { where: 'the wide view down the shaft from the rim', before: 25.4, after: 27.3 },
       ], note: 'A second run: 22.7 → 24.3 and 27.0 → 28.8. The city’s crowd is about as large as before (1 373 → 1 505 people), spread round the whole ring.' },
     ], see: 'In the City-Shaft, look down into the pit from the rim, or fly out over the middle on the jets: every level’s terrace now rings the shaft, with only narrow gaps between its stretches.' },
+    { match: 'A new world off the route, the White Mangrove', shots: [
+      { name: 'mangrove-arrival', only: 'after', caption: 'Out of the ship on the White Mangrove’s landing island at dusk: the landing stage, Bram, the walk to the great tree', from: 'the world’s own screenshots, headless Chrome, High, 17:48 (7 October)' },
+      { name: 'mangrove-deck', only: 'after', caption: 'From the deck round the great tree: a house, the ring walk and a spoke, the next tree’s stair and its deck', from: 'the world’s own screenshots, headless Chrome, High, 17:48 (7 October)' },
+      { name: 'mangrove-water', only: 'after', caption: 'Swimming in the black lake among the roots, the bridges and stairs overhead', from: 'the world’s own screenshots, headless Chrome, High, 18:12 (7 October)' },
+      { name: 'mangrove-night', only: 'after', caption: 'The walk from the landing stage at night', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the White Mangrove on the galactic map (or open the game with ?level=mangrove). Walk north from the landing stage to the great tree and climb its stair; Oyo is on the deck, Fen by the stair of a tree to the north-west, Bram at the landing.' },
+    { match: 'The References level has the White Mangrove’s four pictures', shots: [
+      { name: 'mangrove-refs', only: 'after', size: [2920, 816], caption: 'The first picture (left) and its view in the game (right): the landing stage, the lit roots, the long walk', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'mangrove-refs-causeway', only: 'after', size: [2920, 816], caption: 'The fourth: the pale causeway and the tree towers', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=mangrove (or the worlds list, L, then the References and Tab to the White Mangrove) and press \\ to set each panel beside its view.' },
   ],
   '0.82': [
     { match: 'The camera follows closer', shots: [

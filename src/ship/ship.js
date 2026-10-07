@@ -1,3 +1,4 @@
+import { SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp } from './model.js';
@@ -322,10 +323,11 @@ export class Ship {
     // the recordings' hologram: the game's own people, drawn in light (needs the bodies and the mocap library)
     if (deps.lib && deps.humans && !this.holo) this.holo = new Hologram({ lib: deps.lib, humans: deps.humans });
     this.map = new StarMap({
-      order: deps.order, side: deps.side ?? [], levels: deps.levels, journal: deps.journal, current: this.levelId,
+      order: deps.order, levels: deps.levels, journal: deps.journal, current: this.levelId,
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
       home: () => homeOpen({ flag: (k) => game.flag(k), completed: this.completed() }) || this.levelId === HOME_ID,   // src/story/ending.js
       relay: () => this.relay(),
+      side: deps.side ?? SIDE,   // (the worlds off the route: src/levels/names.js)
       onTravel: (id) => this.travel(id),
     });
     globalThis.addEventListener?.('keydown', (e) => { if (e.code === 'Escape') this._esc = true; this._keyT = performance.now(); });

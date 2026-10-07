@@ -17,6 +17,7 @@ import { EDENA_CONTENT } from './edena.js';
 import { SPHERES_CONTENT } from './spheres.js';
 import { PERDIDE2_CONTENT } from './perdide2.js';
 import { PERDIDE_CONTENT } from './perdide.js';
+import { MANGROVE_CONTENT } from './mangrove.js';
 import { HOME_CONTENT } from './home.js';
 import { GLASS_CONTENT } from './glass-dunes.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
@@ -32,6 +33,7 @@ export const CONTENT = {
   buried: BURIED_CONTENT,
   spheres: SPHERES_CONTENT,
   perdide2: PERDIDE2_CONTENT,
+  mangrove: MANGROVE_CONTENT,
   home: HOME_CONTENT,   // src/levels/home.js: the parents at the door
   glassdunes: GLASS_CONTENT,   // src/levels/glass-dunes.js: a detour, no quest
   bazaar: {
