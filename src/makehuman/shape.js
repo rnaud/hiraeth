@@ -112,6 +112,7 @@ export const WORLD_BODIES = {
   antennas: { proportions: 0.56, height: 0.52, weight: 0.02 },                // the mast-menders: climbers
   bazaar: { proportions: 0.5, height: 0.5, weight: 0.07 },                    // the market: sturdier
   home: { proportions: 0.6, height: 0.55 },
+  underwater: { proportions: 0.6, height: 0.55, weight: 0 },                 // the sea floor's folk
 };
 
 /**

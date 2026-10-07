@@ -15,6 +15,10 @@ The same release notes shown in the game (press **N** or open settings).
 - The Forest of Antennas hums: a low drone that swells near the masts and under the great receiver, static crackling in the air, and now and then a far signal whistling as it tunes in.
 - In the Forest of Antennas, far-off masts, wires and lattice struts stay steady lines as you walk and turn, instead of breaking into flickering pixels.
 - The References level has the Forest of Antennas’ four pictures rebuilt as views, to set beside the pictures they come from.
+- The References level has the Underwater City’s four pictures rebuilt as views: salmon towers ringed with amber pods on the sea floor, glass columns of rising bubbles, cafés lit warm under their domes, a manta overhead, and the light falling in shafts from the surface far above.
+- Under a sea, the water is drawn the way the drawings draw it: a flat blue haze in layers that leaves what is near in its own colours, shafts of light from the surface as pale bands slanting away from the sun, and the light’s ripples printed as fine lines on the ground.
+- A new world off the route, the Underwater City: a city on the floor of a sea, its salmon towers ringed with amber-lit pods, glass columns of rising bubbles between them and a manta gliding overhead. Walk the lamplit avenue in the water, step into the dry cafés under their domes, cross the canal, look out from the terrace over the drop into the deep, or swim up among the towers and land on their pods. It is on the ship’s galactic map from the start.
+- Deep under a sea you walk its floor, a little slower than on land: jump (A / ×) to kick off and swim, hold it to rise, let go to sink gently back down and land on whatever is under you. Your pack gives you air down there.
 
 ## v0.83 — 2026-10-07
 

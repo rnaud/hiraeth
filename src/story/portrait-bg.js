@@ -27,6 +27,7 @@ export const BACKDROPS = {
   waterfall: ['#b5ece4', '#f1dcbd', '#9fd6d0', '#efd6b8', '#c8e8e0'],
   saltharbour: ['#f4ece2', '#c8daf0', '#f0d0c0', '#e8e0d0', '#d0dcec'],
   antennas: ['#f1e6a2', '#d8cff0', '#e9bab4', '#c9d4e0', '#e8d8f0'],
+  underwater: ['#9fd0e0', '#f6c2b0', '#b0dce4', '#f0c8a8', '#a8d8d4'],
 };
 
 const rgb = (hex) => {

@@ -31,6 +31,9 @@ import { waterShared, RINGS, WATER_MARK } from './water-shader.js';
 //              health bar) while you hold your breath
 // ---------------------------------------------------------------------------
 
+/** m under the surface past which nothing splashes up there (a step, a stroke, going in: a sea's bed, swim.js seaWalk) */
+export const DEEP_UNDER = 2.5;
+
 export const BED = {
   texel: 0.3,          // m: the finest bed map texel (small pools)
   maxSize: 256,        // texels a side
@@ -100,7 +103,7 @@ export class Waters {
     mesh.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(mesh);
     const sx = box.max.x - box.min.x, sz = box.max.z - box.min.z;
-    const body = { mesh, mat: mat?.defines?.WATER ? mat : null, box, top: box.max.y, flat: box.max.y - box.min.y < 0.05, huge: Math.max(sx, sz) > BED.huge, bake: null, baked: null };
+    const body = { mesh, mat: mat?.defines?.WATER ? mat : null, box, top: box.max.y, flat: box.max.y - box.min.y < 0.05, huge: Math.max(sx, sz) > BED.huge, bake: null, baked: null, sea: mesh.userData.sea ?? null };
     this.bodies.push(body);
     return body;
   }
@@ -137,6 +140,7 @@ export class Waters {
     let inY = Infinity, inB = null, overY = -Infinity, overB = null;
     for (const b of this.bodies) {
       if (b.top < y - below || b.box.min.y > y + 60) continue;
+      if (b.sea?.air?.(x, y, z)) continue;   // (a sea's air pockets: a dome, a covered street)
       const s = this.surfaceOf(b, x, z);
       if (s === null) continue;
       if (s >= y - 0.6) { if (s < inY) { inY = s; inB = b; } }
@@ -152,6 +156,7 @@ export class Waters {
     let best = -Infinity;
     for (const b of this.bodies) {
       if (b.box.min.y > y + 0.5 || b.top < y - 200) continue;
+      if (b.sea?.air?.(x, y, z)) continue;
       const s = this.surfaceOf(b, x, z);
       if (s !== null && s <= y + 0.5 && s > best) best = s;
     }
@@ -226,7 +231,7 @@ export class Waters {
     if (!todo) {
       let bd = Infinity;
       for (const b of this.bodies) {
-        if (!b.mat) continue;
+        if (!b.mat || b.sea) continue;   // (a sea is seen from below: its ceiling needs no bed)
         const stale = !b.baked || (b.huge && Math.hypot(at.x - b.baked.centre.x, at.z - b.baked.centre.z) > BED.recentre);
         if (!stale) continue;
         const d = b.huge ? 0 : Math.hypot(Math.max(b.box.min.x - at.x, 0, at.x - b.box.max.x), Math.max(b.box.min.z - at.z, 0, at.z - b.box.max.z));
@@ -271,6 +276,12 @@ export class Waters {
   /** The player's water events (swim.js player.onSwim). */
   event(kind, info) {
     const s = info.surface;
+    // deep under (a sea you walk the bed of): no splash up at the surface, only bubbles
+    if (s - (info.pos?.y ?? s) > DEEP_UNDER) {
+      if (kind === 'enter' || kind === 'dive') this.sound?.bubbles?.(0.6);
+      else if (kind === 'stroke') this.sound?.bubbles?.(0.4);
+      return;
+    }
     if (kind === 'enter') this.splash(info.pos, s, Math.min(2, 0.5 + info.speed / 9));
     else if (kind === 'exit' || kind === 'hop') this.splash(info.pos, s, 0.45);
     else if (kind === 'stroke') {
@@ -284,7 +295,7 @@ export class Waters {
   /** A footstep: in the water, a splash instead of a print (returns true then). */
   step(p, k = 1) {
     const w = this.surfaceAt(p.x, p.z, p.y);
-    if (!w || w.y < p.y + 0.04) return false;
+    if (!w || w.y < p.y + 0.04 || w.y - p.y > DEEP_UNDER) return false;   // (on a sea's bed: an ordinary step)
     const deep = THREE.MathUtils.clamp((w.y - p.y) / 1.2, 0, 1);
     this.ring(p.x, p.z, 0.4 + 0.5 * deep);
     this.drops?.burst(_o.set(p.x, w.y + 0.02, p.z), 0.15 + 0.3 * deep * k, 0.6);
@@ -310,7 +321,7 @@ export class Waters {
       if (player.swim) {
         const moving = player.swim.hs > 0.5;
         if (!player.swim.under) this.touch(player, player.pos.x, player.pos.z, moving ? 0.75 : 0.45, moving ? 0.45 : 1.3, dt);
-      } else if (w && w.over > 0.08 && player.onGround) {
+      } else if (w && w.over > 0.08 && w.over < DEEP_UNDER && player.onGround) {
         this.touch(player, player.pos.x, player.pos.z, 0.35 + 0.4 * Math.min(w.over, 1), Math.hypot(player.vel.x, player.vel.z) > 0.5 ? 0.6 : 1.6, dt);
       }
     }
@@ -434,11 +445,45 @@ class Drops {
 
 // ---------------------------------------------------------------- over the page
 /**
+ * A sea's look under water (a body's userData.sea: src/levels/underwater.js and its views), drawn by the
+ * pass over the page while the camera is under it. Every field is optional:
+ *   tint, deep       the water's colour near and far (looking level / looking down)
+ *   density          how thick it is (1/m; the generic water's 0.085); bands: how many flat steps; min / max:
+ *                    the veil's least and most (a flat tinted haze in layers); start: m of clear water first
+ *   shafts           light from the surface as flat bands: { cell (m between them: a lattice round the
+ *                    camera, each shaft world-anchored), width: [min, max] (m), lean (their slant away from
+ *                    the sun: m across a metre down), reach (m down where they are gone), strength, tone, n (the share of cells
+ *                    that carry one) }
+ *   caustics         printed lines of light on what faces up: { scale (cells a metre), range (m), strength,
+ *                    tone, speed }
+ *   air(x, y, z)     true inside an air pocket (a dome, a covered street): no water there (surfaceAt)
+ */
+export const SEA_LOOK = { tint: '#3f8f95', deep: '#1f4f60', density: 0.085, bands: 3, min: 0.28, max: 0.9, start: 0 };
+export const SEA_SHAFTS = 25;   // the lattice's cells round the camera (5 × 5)
+
+const hash01 = (i, j, k) => { const v = Math.sin(i * 127.1 + j * 311.7 + k * 74.7) * 43758.5453; return v - Math.floor(v); };
+/** The shafts round (cx, cz): [x, z, half width, strength] per lattice cell, world-anchored (a cell's shaft never moves). */
+export function seaShafts(o, cx, cz, out = new Float32Array(SEA_SHAFTS * 4)) {
+  const cell = o.cell ?? 30, [w0, w1] = o.width ?? [1.2, 4], n = o.n ?? 0.7;
+  const ci = Math.floor(cx / cell), cj = Math.floor(cz / cell);
+  let k = 0;
+  for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++, k++) {
+    const i = ci + di, j = cj + dj, on = hash01(i, j, 1) < n;
+    out[k * 4] = (i + 0.15 + 0.7 * hash01(i, j, 2)) * cell;
+    out[k * 4 + 1] = (j + 0.15 + 0.7 * hash01(i, j, 3)) * cell;
+    out[k * 4 + 2] = (w0 + (w1 - w0) * hash01(i, j, 4)) / 2;
+    out[k * 4 + 3] = on ? 0.55 + 0.45 * hash01(i, j, 5) : 0;
+  }
+  return out;
+}
+
+/**
  * Drawn with alpha over the finished page. Under water: everything sinks into
  * the water's colour in flat bands with distance, a little darker the deeper
  * you look (the surface overhead stays bright: the water shader draws it from
- * below). Above water: white dashes of sun where the water shader marked a
- * glint, only where the water is lit, fading with distance.
+ * below); a sea (SEA_LOOK) has its own colours, its shafts and its caustics.
+ * Above water: white dashes of sun where the water shader marked a glint, only
+ * where the water is lit, fading with distance.
  */
 class WaterPass {
   constructor() {
@@ -455,6 +500,13 @@ class WaterPass {
         uToon: { value: 0.5 },
         uTint: { value: new THREE.Color('#3f8f95') },
         uDeep: { value: new THREE.Color('#1f4f60') },
+        uFog: { value: new THREE.Vector4(SEA_LOOK.density, SEA_LOOK.bands, SEA_LOOK.min, SEA_LOOK.max) },   // density, bands, least, most
+        uFogStart: { value: 0 },                                         // m of clear water before it
+        uShafts: { value: Array.from({ length: SEA_SHAFTS }, () => new THREE.Vector4()) },                   // x, z, half width, strength
+        uShaftDir: { value: new THREE.Vector4(0, -1, 0, 60) },          // their way down (unit), reach (m)
+        uShaftTone: { value: new THREE.Vector4(0.92, 0.98, 0.96, 0) },  // colour; strength (0: the generic shafts, < 0: none)
+        uCaustic: { value: new THREE.Vector4(0.5, 30, 0, 0.6) },        // cells a metre, range (m), strength, speed
+        uCausticTone: { value: new THREE.Color('#e4fbf4') },
         uTime: sharedUniforms.uTime,
       },
       vertexShader: /* glsl */ `
@@ -465,10 +517,51 @@ class WaterPass {
         precision highp float;
         uniform sampler2D tNormal, tAlbedo;
         uniform mat4 uInvProj, uCamWorld;
-        uniform float uUnder, uSurf, uTime, uToon;
-        uniform vec3 uTint, uDeep;
+        uniform float uUnder, uSurf, uTime, uToon, uFogStart;
+        uniform vec3 uTint, uDeep, uCausticTone;
+        uniform vec4 uFog, uShaftDir, uShaftTone, uCaustic;
+        uniform vec4 uShafts[${SEA_SHAFTS}];
         in vec2 vUv;
         out vec4 fragColor;
+        // premultiplied layers, each over the ones before
+        void over(inout vec4 acc, vec3 c, float a) { acc.rgb = c * a + acc.rgb * (1.0 - a); acc.a = a + acc.a * (1.0 - a); }
+        vec2 hash2(vec2 p) { p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))); return fract(sin(p) * 43758.5453); }
+        // the caustic net: how far (in cells) from the border of two cells (F2 - F1 over the 3 x 3 round x), the
+        // cells' points wandering slowly
+        float net(vec2 x) {
+          vec2 n = floor(x), f = fract(x);
+          float d1 = 8.0, d2 = 8.0;
+          for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
+            vec2 g = vec2(float(i), float(j));
+            vec2 o = 0.5 + 0.42 * sin(uTime * uCaustic.w + 6.2831 * hash2(n + g));
+            vec2 r = g + o - f;
+            float d = dot(r, r);
+            if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+          }
+          return sqrt(d2) - sqrt(d1);
+        }
+        // the brightest shaft the ray crosses before what it meets (far): each a slanted cylinder down from the
+        // surface, seen as a flat band (the nearest approach of the ray to its axis inside its half width)
+        float shaftsAlong(vec3 cam, vec3 rd, float far) {
+          vec3 L = uShaftDir.xyz;
+          float b = dot(rd, L), den = 1.0 - b * b;
+          if (den < 1e-4) return 0.0;
+          float best = 0.0;
+          for (int i = 0; i < ${SEA_SHAFTS}; i++) {
+            vec4 S = uShafts[i];
+            if (S.w <= 0.0) continue;
+            vec3 w0 = cam - vec3(S.x, uSurf, S.y);
+            float d = dot(rd, w0), e = dot(L, w0);
+            float t = (b * e - d) / den, s = (e - b * d) / den;
+            if (t < 0.0 || t > far || s < 0.0) continue;
+            float dist = length(w0 + rd * t - L * s);
+            if (dist > S.z) continue;
+            float across = 1.0 - smoothstep(S.z * 0.45, S.z, dist);
+            float down = 1.0 - smoothstep(uShaftDir.w * 0.3, uShaftDir.w, s);
+            best = max(best, across * down * S.w);
+          }
+          return best;
+        }
         void main() {
           vec4 N = texture(tNormal, vUv);
           if (uUnder < 0.5) {
@@ -487,18 +580,44 @@ class WaterPass {
           vec3 cam = uCamWorld[3].xyz;
           float fwdK = max(dot(rd, -uCamWorld[2].xyz), 0.05);
           float dist = N.w > 0.0 ? N.w / fwdK : 400.0;
-          // the way through the water: to the thing seen, or up to the surface
+          vec4 acc = vec4(0.0);
+          // ---- a sea's caustics: printed lines of light on what faces up, near, stronger in the light
+          if (uCaustic.z > 0.0 && N.w > 0.0 && N.y > 0.4 && dist < uCaustic.y) {
+            vec3 wp = cam + rd * dist;
+            vec2 q = wp.xz * uCaustic.x;
+            q += 0.35 * vec2(sin(q.y * 0.9 + uTime * 0.5), cos(q.x * 0.8 + uTime * 0.43));
+            float fw = max(fwidth(q.x) + fwidth(q.y), 1e-4);
+            float line = (1.0 - smoothstep(0.035, 0.035 + fw * 1.3, net(q))) * (1.0 - smoothstep(0.2, 0.5, fw));   // (gone once finer than a few px)
+            // in drifting patches, as the light comes through the waves above (never one net over everything)
+            float patchK = 0.5 + 0.5 * sin(wp.x * 0.43 + uTime * 0.13) * sin(wp.z * 0.37 - uTime * 0.09 + wp.x * 0.11);
+            line *= smoothstep(0.55, 0.85, patchK);
+            float la = texture(tAlbedo, vUv).a;
+            float lit = smoothstep(uToon - 0.02, uToon + 0.02, la - 2.0 * floor(la * 0.5));
+            over(acc, uCausticTone, line * uCaustic.z * smoothstep(0.4, 0.8, N.y) * mix(0.4, 1.0, lit) * (1.0 - smoothstep(uCaustic.y * 0.5, uCaustic.y, dist)));
+          }
+          // ---- the way through the water: to the thing seen, or up to the surface
           float toSurf = rd.y > 1e-3 ? (uSurf - cam.y) / rd.y : 1e5;
           float path = min(dist, toSurf);
-          float f = 1.0 - exp(-path * 0.085);
-          float fb = f * 3.0;
-          f = (floor(fb) + smoothstep(0.4, 0.6, fract(fb))) / 3.0;          // flat bands, like a printed haze
+          float f = 1.0 - exp(-max(path - uFogStart, 0.0) * uFog.x);
+          float fb = f * uFog.y;
+          f = (floor(fb) + smoothstep(0.4, 0.6, fract(fb))) / uFog.y;          // flat bands, like a printed haze
           float down = clamp(-rd.y, 0.0, 1.0);
           vec3 col = mix(uTint, uDeep, 0.35 + 0.5 * down);
-          // light from the surface: shafts drifting slowly, only looking up
-          float shaft = smoothstep(0.55, 0.9, sin(rd.x * 9.0 + rd.z * 5.0 + uTime * 0.25) * 0.5 + 0.5) * clamp(rd.y + 0.4, 0.0, 1.0) * 0.18;
-          col = mix(col, vec3(0.92, 0.98, 0.96), shaft);
-          fragColor = vec4(col, 0.28 + 0.62 * f);
+          if (uShaftTone.a == 0.0) {
+            // light from the surface: shafts drifting slowly, only looking up
+            float shaft = smoothstep(0.55, 0.9, sin(rd.x * 9.0 + rd.z * 5.0 + uTime * 0.25) * 0.5 + 0.5) * clamp(rd.y + 0.4, 0.0, 1.0) * 0.18;
+            col = mix(col, vec3(0.92, 0.98, 0.96), shaft);
+          }
+          over(acc, col, mix(uFog.z, uFog.w, f));
+          // ---- a sea's shafts: flat pale bands down from the surface, in two printed steps
+          if (uShaftTone.a > 0.0) {
+            float sh = shaftsAlong(cam, rd, path);
+            float fs = max(fwidth(sh), 1e-3);
+            float q = 0.5 * smoothstep(0.12 - fs, 0.12 + fs, sh) + 0.5 * smoothstep(0.55 - fs, 0.55 + fs, sh);
+            over(acc, uShaftTone.rgb, q * uShaftTone.a);
+          }
+          if (acc.a <= 0.002) discard;
+          fragColor = vec4(acc.rgb / acc.a, acc.a);
         }
       `,
     });
@@ -507,6 +626,41 @@ class WaterPass {
     quad.frustumCulled = false;
     this.scene.add(quad);
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    this._sh = new Float32Array(SEA_SHAFTS * 4);
+  }
+  /** The uniforms for the water the camera is under (`under`: keepCamera's { y, body }). */
+  setUnder(camera, under) {
+    const U = this.material.uniforms;
+    U.uSurf.value = under.y;
+    const sea = under.body?.sea, m = under.body?.mat?.uniforms;
+    if (!sea) {
+      U.uFog.value.set(SEA_LOOK.density, SEA_LOOK.bands, SEA_LOOK.min, SEA_LOOK.max);
+      U.uFogStart.value = 0;
+      U.uShaftTone.value.w = 0; U.uCaustic.value.z = 0;
+      if (m) { U.uTint.value.copy(m.uColor.value); U.uDeep.value.copy(m.uColor.value).multiplyScalar(0.5); }
+      else { U.uTint.value.set('#5aa6a8'); U.uDeep.value.set('#2a5560'); }
+      return;
+    }
+    const o = { ...SEA_LOOK, ...sea };
+    U.uTint.value.set(o.tint); U.uDeep.value.set(o.deep);
+    U.uFog.value.set(o.density, o.bands, o.min, o.max);
+    U.uFogStart.value = o.start;
+    const sh = o.shafts;
+    if (sh) {
+      const v = seaShafts(sh, camera.position.x, camera.position.z, this._sh);
+      U.uShafts.value.forEach((u, i) => u.fromArray(v, i * 4));
+      // (they slant away from the sun: its way through the water, steeper than in the air)
+      const sun = sharedUniforms.uSunDir.value, hl = Math.hypot(sun.x, sun.z) || 1, lean = sh.lean ?? 0.3;
+      U.uShaftDir.value.set((-sun.x / hl) * lean, -1, (-sun.z / hl) * lean, 0).normalize();
+      U.uShaftDir.value.w = sh.reach ?? 60;
+      _c.set(sh.tone ?? '#eafbf6');
+      U.uShaftTone.value.set(_c.r, _c.g, _c.b, sh.strength ?? 0.2);
+    } else U.uShaftTone.value.w = -1;
+    const ca = o.caustics;
+    if (ca) {
+      U.uCaustic.value.set(ca.scale ?? 0.5, ca.range ?? 30, ca.strength ?? 0.5, ca.speed ?? 0.6);
+      U.uCausticTone.value.set(ca.tone ?? '#e4fbf4');
+    } else U.uCaustic.value.z = 0;
   }
   render(renderer, camera, { tNormal, tAlbedo, target, toon, under }) {
     const U = this.material.uniforms;
@@ -516,12 +670,7 @@ class WaterPass {
     U.uInvProj.value.copy(camera.projectionMatrixInverse);
     U.uCamWorld.value.copy(camera.matrixWorld);
     U.uUnder.value = under ? 1 : 0;
-    if (under) {
-      U.uSurf.value = under.y;
-      const m = under.body?.mat?.uniforms;
-      if (m) { U.uTint.value.copy(m.uColor.value); U.uDeep.value.copy(m.uColor.value).multiplyScalar(0.5); }
-      else { U.uTint.value.set('#5aa6a8'); U.uDeep.value.set('#2a5560'); }
-    }
+    if (under) this.setUnder(camera, under);
     renderer.setRenderTarget(target);
     renderer.render(this.scene, this.camera);
   }

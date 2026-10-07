@@ -593,6 +593,38 @@ the narrowest creases.
 - **Left, scene level**: the sheets' workshops are dense with machinery, decks and ladders, ours plain domes;
   their mid-distance lattices are fine pen work at every bay, ours a few struts; view 2's stacked domes reach up
   to the saucer's collar, ours stop lower.
+## The Underwater City's sheets (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-underwater.js`, world `underwater`: `?level=references&world=underwater&view=n`):
+  four 16:9 plates (1456 × 816), one view each, after the City Behind the Waterfall's: the two cafés under their
+  domes, the bridge and the towers of pods (1); the white bridge into the city, the spires beyond (2); the street of
+  pods down the canyon, the café shell on the left (3); the great café on the terrace and the lamps along the drop,
+  the open sea (4). One scene builder (`seaScene`) with the world's kit (`src/levels/underwater-kit.js`, shared with
+  the world, worlds.md "The Underwater City"). `?look=underwater` is not needed: the views use the world's own look.
+- **The shapes** (the kit): `tower` (a pale salmon shaft, a solid ring every storey, round windows flush with the
+  wall, some lit, a dome, spire or flat top, and pods round it: `podRing`), `pod` (a saucer underside, a band of
+  lit amber glass with its mullions, a pale rim; open (a deck with plants) or domed (a roof of amber panes on
+  ribs); on a stalk), `glassColumns` (tubes of luminous water, the bubbles one InstancedMesh of discs on the glass
+  rising, moved by one mover), `cafeDome` (a glass dome on ribs, or a shell (`'teal'`, `'pink'`) with glass windows
+  cut into it and a porthole, a door left open, its warm inside: the floor, tables and chairs, a counter and a
+  dresser of bottles, pendant lamps, people at the tables; its `air` test), `walkway` (decks on piers with globe
+  lamps), `lampPost`, `bush`, `kelp` (swaying), `rock`, `manta` (body and two wings beating, gliding round a loop or
+  held), `fishSchool`, `swimmer`, `farCity` (plain towers far off, for the haze). `seaSurface` lays the sea's
+  surface overhead (`userData.sea`: water.md "A sea").
+- **The look** (`UNDERWATER_LOOK`, `UNDERWATER_DAY` in the kit): no clouds, the sky the far water's blue (top lighter
+  toward the surface), the shade printed flat in the water's teal but the towers keep half their salmon in it,
+  no aerial greying (it turned the salmon grey), haze layers from 70 m (× 1.5, 0.22 each): the near city keeps its
+  colour, the far city goes to the water's blue. The sea's own pass (water.md) adds the banded tint from 25 m, the
+  shafts and the caustics.
+- **Light from within**: the pods' amber glass, the lit windows and the cafés' insides are self-lit just under the
+  bloom's threshold (glow 0.5–0.58: no halo, no lift to white) with their shade lifted to their own colour; a shell
+  casts no shadow on its inside, and is lined (a warm back-faced copy) so its windows show a warm room.
+- **The light** comes from behind the camera in all four (as the plates light the towers' faces toward you), 44–52°
+  high; the shafts lean away from it.
+- **Left**: the plates' cities are denser (pods on every storey, balconies, plants in every pod, figures inside the
+  amber glass); ours are tidy rings of pods. View 2's white bridge is a flat walkway, not the plate's arched span;
+  view 3's canyon is a street, not the plate's dark water with walkways over it; the domes' glass draws only its
+  rim (S_GLASS), where the plates draw reflections across it; the columns' swimmers are not there.
 
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 

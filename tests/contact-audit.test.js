@@ -130,6 +130,7 @@ const KNOWN = {
   waterfall: { sink: 2, hover: 0, inside: 2, walk: 0 },   // (its mist banks: drawn only, walked through on purpose)
   saltharbour: { sink: 1, hover: 0, inside: 12, walk: 6 },   // (the Salt Harbour: hulls, houses, stairs and decks solid as drawn; a porthole or two proud of a facet)
   antennas: { sink: 1, hover: 0, inside: 3, walk: 1 },   // (the Forest of Antennas: solid where walked; the masts' legs kept clear by stand-ins too steep to stand on or climb)
+  underwater: { sink: 46, hover: 0, inside: 150, walk: 93 },   // (the cafés' chair backs and the domes' ribs, drawn only; the towers' tops)
 };
 const audits = new Map();
 function audit(id) {
