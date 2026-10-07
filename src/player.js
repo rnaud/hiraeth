@@ -63,6 +63,9 @@ export function jetFlight(f, s, camF, camR, U, pitch = JET.level, out = new THRE
 const JET_PIVOT = 1.0;
 // a flinch as a foe's strike lands (Player.flinch): the Sword and Shield pack's impact, its first 0.6 s
 const FLINCH = { clip: 'mixamo_ss_impact_1', from: 0, for: 0.6 };
+// locked on (main.js sets player.lockOn = { dir }): you face the foe and the stick strafes round it or backs
+// away, at a jog at most; sideways and backwards play captured steps (the Sword and Shield pack), m/s each covers
+export const LOCK_MOVE = { speed: 4.2, turn: 12, left: { clip: 'mixamo_ss_strafe_1', speed: 1.14 }, right: { clip: 'mixamo_ss_strafe_2', speed: 1.01 }, back: { clip: 'mixamo_ss_walk_2', speed: 1.08 } };
 // the gestures (Player.gesture): Mixamo's kneeling inspection (kneeling from its first frame: eased
 // in over `in` s, held, eased out over `out`, its hands' bit of `loop` s round and round), and for
 // petting the petting's stroking arm over it
@@ -761,6 +764,24 @@ export class Player {
    * petting's arms over it: stroking the dog). Played over `hold` s, eased in and out; walking off
    * ends it. Returns false without the clips (or with the captured moves off).
    */
+  /** Locked on and stepping sideways or back: play that step (its time follows the ground covered), eased in and out. */
+  updateStrafe(dt, A, hs, R) {
+    const S = (this._strafe ??= { w: 0, t: 0, side: null });
+    let want = null;
+    if (this.lockOn && this.onGround && hs > 0.4 && !R && !this.down && !this.ride && !this.swim && !this.climbing) {
+      const F = this.frame.dir(this.heading, _g1), U = this.frame.up, Rt = _g2.crossVectors(F, U).normalize();
+      const vf = this.vel.dot(F), vr = this.vel.dot(Rt);
+      want = Math.abs(vr) > Math.abs(vf) * 0.8 ? (vr > 0 ? 'right' : 'left') : vf < -0.3 ? 'back' : null;
+    }
+    if (want && want !== S.side) { S.side = want; }
+    S.w += ((want ? 1 : 0) - S.w) * (1 - Math.exp(-10 * dt));
+    if (S.w < 0.02 || !S.side) { S.w = want ? S.w : 0; if (!want) S.side = null; return; }
+    const M = LOCK_MOVE[S.side], clip = A.moveClip?.(M.clip);
+    if (!clip) return;
+    S.t = (S.t + dt * hs / M.speed) % clip.duration;
+    A.play(M.clip, S.t, S.w, { full: true });
+  }
+
   /** Hit (a foe's strike that didn't knock you down): the upper body flinches, from motion capture (FLINCH). */
   flinch() { if (!this.down && !this.ride) this._flinch = { t: 0 }; }
 
@@ -1088,7 +1109,7 @@ export class Player {
     const jetting = this.thrusting || liftOff;
 
     // sprinting spends the stamina climbing does (src/stamina.js); winded, you jog
-    const sprint = run && canSprint(this) && !this.aim;
+    const sprint = run && canSprint(this) && !this.aim && !this.lockOn;   // (locked on: no sprint, you strafe)
     this.sprinting = sprint && this.onGround && !this.thrusting && !this.gliding && move.lengthSq() > 0.01;
     let speed = (sprint ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
     if (this.gliding) speed *= 1.25;
@@ -1097,6 +1118,7 @@ export class Player {
     // flying on RT / the mouse (not climbing on them with the jump held): the stick goes where the camera looks
     const superman = jetting && jetBtn && !input.Space;
     if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
+    else if (this.lockOn && !jetting && !this.gliding) speed = Math.min(speed, LOCK_MOVE.speed);   // locked on: a jog at most
     speed *= this.wadeSlow;                                                   // wading (src/swim.js)
     const steering = move.lengthSq() > .001;
     if (this.onGround || jetting || this.gliding) this._carry = false;   // (jumped off something fast: its speed carries you until you land)
@@ -1225,7 +1247,11 @@ export class Player {
     // facing
     const tvel = _v1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
     const hs = tvel.length();
-    if (this.aim && !this.gliding) this.faceAim(dt, tvel, hs);
+    if (this.lockOn && !this.gliding && !this.thrusting && !this.climbing && !this.ride && !this.swim) {
+      // locked on: face the foe square, whichever way you move (strafing, backing off): no lead into the step
+      const d = Math.atan2(Math.sin(this.frame.headingOf(this.lockOn.dir) - this.heading), Math.cos(this.frame.headingOf(this.lockOn.dir) - this.heading));
+      this.heading += d * (1 - Math.exp(-LOCK_MOVE.turn * dt));
+    } else if (this.aim && !this.gliding) this.faceAim(dt, tvel, hs);
     else if (hs > 0.5 && !this.gliding) {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -2049,6 +2075,8 @@ export class Player {
         if (Gs.kind === 'pet') A.playUpper(GESTURES.pet.clip, GESTURES.pet.from + (Gs.t % GESTURES.pet.loop), Gs.w * GESTURES.pet.w);
       }
     }
+    // locked on, moving sideways or backwards: the captured steps over the loops (LOCK_MOVE)
+    this.updateStrafe(dt, A, hs, R);
     // a swing of the fluid blade or its guard from motion capture, above the legs (src/fluid-blade.js: this.swingMove = { clip, t, w });
     // else a flinch as a foe's strike lands (Player.flinch)
     const Sw = this.swingMove, Fl = this._flinch;

@@ -25,7 +25,7 @@ import { hasUpgrade } from './ink.js';
 //   emits 'tool:fire' { mode: 'blade', point } on each swing
 
 export const BLADE = {
-  length: 1.25, radius: 0.045,
+  length: 0.85, width: 0.052, guard: 0.1,   // a sword's blade (m), out of a hilt: the grip in the fist, the guard this far up it
   swing: 0.3,          // s a swing takes
   hitAt: 0.42,         // share of the swing when it lands
   chain: 0.45,         // s after a swing in which the next press chains
@@ -53,7 +53,7 @@ export const LUNGE = { clip: 'mixamo_gs_slide_attack', from: 0.0, to: 0.9, hit: 
 /** The reach step: the blade this much longer, its swing this much further. */
 export const REACH_UP = 1.3;
 /** The guard: the clips (block idle held round and round, the block played as a strike lands), how wide it covers, and the shield. */
-export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, angle: 1.3, rise: 0.12, radius: 0.5, perfect: 0.3 };   // (perfect: a guard raised this little before the strike: free, and the foe is stunned)
+export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, angle: 1.3, rise: 0.12, radius: 0.4, perfect: 0.3 };   // (perfect: a guard raised this little before the strike: free, and the foe is stunned)
 /** Is a strike from `from` in front of someone at `pos` facing `dir` (flat), within GUARD.angle? */
 export function inGuard(pos, dir, from, angle = GUARD.angle) {
   const dx = from.x - pos.x, dz = from.z - pos.z, d = Math.hypot(dx, dz);
@@ -90,20 +90,36 @@ export function lockTarget(from, range = BLADE.lock, targets = allTargets(), loc
 
 const _o = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion();
 const _Y = new THREE.Vector3(0, 1, 0), _Z = new THREE.Vector3(0, 0, 1);
+const _e1 = new THREE.Vector3(), _e2 = new THREE.Vector3(), _e3 = new THREE.Vector3(), _mx = new THREE.Matrix4();
 
 export class FluidBlade {
   constructor(tool) {
     this.tool = tool;
     this.n = -1; this.t = 0; this.chainT = 0; this.cool = 0; this.lit = 0; this.hit = false; this.queued = false;
     this.point = new THREE.Vector3(); this.dir = new THREE.Vector3(0, 0, 1); this.pose = { k: 0, point: this.point, dir: this.dir };
-    // the blade: the glob's lava in the tank's tones, from the glove along the arm, and a pale edge
-    // (glowing: the bloom draws its halo); the trail's glowing drops follow its tip
-    const geo = new THREE.CapsuleGeometry(BLADE.radius, BLADE.length, 4, 10).translate(0, BLADE.length / 2 + BLADE.radius, 0);
-    this.core = new THREE.Mesh(geo, tool.globMat);
-    this.edge = new THREE.Mesh(new THREE.CylinderGeometry(BLADE.radius * 0.35, BLADE.radius * 0.35, BLADE.length * 0.92, 6).translate(0, BLADE.length * 0.5, BLADE.radius * 0.8),
-      makeMaterial({ color: '#fffbea', flat: true, glow: 1, key: 'fluid-blade-edge' }));
+    // a sword: a flat, two-edged blade of the tank's fluid (the glob's lava in its tones) tapering to a point,
+    // its two edges bright (glowing: the bloom draws its halo), out of a hilt: a brass guard, a wrapped grip in
+    // the fist, a brass pommel. The blade grows out of the guard as it lights; the trail's drops follow its tip
+    const L = BLADE.length, W = BLADE.width, tip = W * 2.2;
+    const outline = new THREE.Shape().moveTo(-W / 2, 0).lineTo(W / 2, 0).lineTo(W / 2 * 0.86, L - tip).lineTo(0, L).lineTo(-W / 2 * 0.86, L - tip).lineTo(-W / 2, 0);
+    const bladeGeo = new THREE.ExtrudeGeometry(outline, { depth: 0.002, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 1, curveSegments: 1 }).translate(0, 0, -0.001);
+    const edgeMat = makeMaterial({ color: '#fffbea', flat: true, glow: 1, key: 'fluid-blade-edge' });
+    this.core = new THREE.Mesh(bladeGeo, tool.globMat);
+    this.edges = [-1, 1].map((s) => {
+      const len = Math.hypot(L - tip, W * 0.07), e = new THREE.Mesh(new THREE.BoxGeometry(0.005, len, 0.004).translate(0, len / 2, 0), edgeMat);
+      e.position.set(s * W / 2 * 0.98, 0, 0); e.rotation.z = s * Math.atan2(W / 2 * 0.14, L - tip); return e;
+    });
+    const tipEdges = [-1, 1].map((s) => { const len = Math.hypot(tip, W / 2 * 0.86), e = new THREE.Mesh(new THREE.BoxGeometry(0.005, len, 0.004).translate(0, len / 2, 0), edgeMat); e.position.set(s * W / 2 * 0.86, L - tip, 0); e.rotation.z = s * Math.atan2(W / 2 * 0.86, tip); return e; });
+    this.bladeGroup = new THREE.Group();
+    this.bladeGroup.position.y = BLADE.guard + 0.012;
+    this.bladeGroup.add(this.core, ...this.edges, ...tipEdges);
+    const brass = makeMaterial({ color: '#c99a46', metal: 'brass', key: 'fluid-blade-brass' }), wrap = makeMaterial({ color: '#3a2a22', flat: true, key: 'fluid-blade-grip' });
+    this.hilt = new THREE.Group();
+    this.hilt.add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.022, 0.034).translate(0, BLADE.guard, 0), brass));          // the guard
+    this.hilt.add(new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.16, 8).translate(0, 0.01, 0), wrap));       // the grip, in the fist
+    this.hilt.add(new THREE.Mesh(new THREE.SphereGeometry(0.026, 8, 6).translate(0, -0.08, 0), brass));                   // the pommel
     this.group = new THREE.Group();
-    this.group.add(this.core, this.edge);
+    this.group.add(this.bladeGroup, this.hilt);
     this.group.visible = false;
     this.group.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
     tool.fx.add(this.group);
@@ -232,7 +248,9 @@ export class FluidBlade {
     this.chained = this.n >= 0 || this.chainT > 0;
     this.n = n; this.t = 0; this.hit = false;
     // the captured swing if the clip is there, else the arc; grown: the whirl for the third, the lunge from a run
-    this.special = !this.chained && n === 0 && p.sprinting && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
+    // (the lunge: a swing begun at a run, or locked on and closing in fast)
+    const closing = p.lockOn && p.vel && p.vel.dot(p.lockOn.dir) > 2.5;
+    this.special = !this.chained && n === 0 && (p.sprinting || closing) && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
     const S = this.special ?? SWINGS[n], A = p.animator;
     this.move = S && A?.moveClip?.(S.clip) ? S : null;
     this.dur = this.move ? (S.to - S.from) / SWING_SPEED : BLADE.swing;
@@ -285,11 +303,20 @@ export class FluidBlade {
     // (an arc: lean it a little toward the swing's way, so a cut reads as a cut)
     if (!this.move) along.addScaledVector(this.dir, 0.35).normalize();
     this.group.position.copy(hand);
-    this.group.quaternion.copy(_q.setFromUnitVectors(_Y, along));
-    this.group.scale.set(1, Math.max(0.05, this.lit) * (hasUpgrade('reach', T.state) ? REACH_UP : 1), 1);
+    // the flat blade turned so its edge leads the cut: its width along the way the hand is moving
+    const mv = _e1.subVectors(hand, this._lastHand ?? hand);
+    (this._lastHand ??= new THREE.Vector3()).copy(hand);
+    mv.addScaledVector(along, -mv.dot(along));
+    if (mv.lengthSq() > 1e-7) (this._edge ??= new THREE.Vector3()).copy(mv).normalize();
+    else if (!this._edge || Math.abs(this._edge.dot(along)) > 0.9) (this._edge ??= new THREE.Vector3()).copy(Math.abs(along.y) < 0.9 ? _Y : _Z).cross(along).normalize();
+    const ex = _e2.copy(this._edge).addScaledVector(along, -this._edge.dot(along)).normalize(), ez = _e3.crossVectors(ex, along);
+    this.group.quaternion.setFromRotationMatrix(_mx.makeBasis(ex, along, ez));
+    this.group.scale.setScalar(1);
+    this.bladeGroup.scale.set(1, Math.max(0.05, this.lit) * (hasUpgrade('reach', T.state) ? REACH_UP : 1), 1);   // (the blade grows out of the guard as it lights)
     if (this.swinging && dt > 0) {
-      const tip = _b.copy(hand).addScaledVector(along, BLADE.length * this.lit), tones = T.modeTones;
-      for (let i = 0; i < 3; i++) T.glow.add({ pos: _o.lerpVectors(hand, tip, 0.45 + i * 0.27), vel: _r.set(0, 0, 0), drag: 6, size: 0.05 + i * 0.015, life: 0.16, color: tones[(this.n + i) % tones.length], grow: false });
+      const tip = _b.copy(hand).addScaledVector(along, (BLADE.guard + BLADE.length) * this.lit), tones = T.modeTones;
+      // a fine trail: small sparks along the edge, gone in a blink (the blade itself carries the look)
+      for (let i = 0; i < 4; i++) T.glow.add({ pos: _o.lerpVectors(hand, tip, 0.35 + i * 0.21), vel: _r.set(0, 0, 0), drag: 8, size: 0.012 + i * 0.004, life: 0.09, color: tones[(this.n + i) % tones.length], grow: false });
     }
   }
 

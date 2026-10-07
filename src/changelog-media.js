@@ -134,6 +134,12 @@ export const CHANGELOG_MEDIA = {
     { match: 'The makers’ machines are rebuilt', shots: [
       { name: 'machine-breaks', only: 'after', caption: 'A machine coming apart: its shell, belt, arms and glowing glyph flying off', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
     ], see: 'In the Arena’s fifth wave, or any temple’s rooms: break a machine with the blade.' },
+    { match: 'Locked on, the traveller faces the foe and strafes', shots: [
+      { name: 'strafe', only: 'after', caption: 'Locked on (the gold ring), side-stepping round a blot in a sword stance', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'In the Arena, lock on (Tab, R3) and move the stick left, right or back.' },
+    { match: 'The fluid blade is a real sword now', shots: [
+      { name: 'sword', only: 'after', caption: 'The sword mid-swing: the slim fluid blade on its brass guard and hilt', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'Swing the blade (F, RB / R1).' },
     { match: 'A new foe, the shade', shots: [
       { name: 'shade', only: 'after', caption: 'A shade: living shadow running down a person’s body, its feet melting into print dots, the pools it left behind', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
     ], see: 'In the Arena’s sixth wave; out in the wilds, a later pack now and then.' },

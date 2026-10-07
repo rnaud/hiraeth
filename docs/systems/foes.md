@@ -27,9 +27,12 @@ The first things in the game that fight back, and the tool's answer to them.
 - **What it hits:** at `BLADE.hitAt` of the swing, `bladeHits()` takes the targets in a cone (`reach` 2.9 m,
   half-angle 1.15 rad) that list `'blade'` in `accepts`. Nothing else feels it: people, switches and the story's
   puzzles don't (a blade is not a splash). Wildlife in the cone scatters (`push`).
-- **The look:** a capsule of the glob's lava material from the glove along the arm (shoulder to hand, leaning
-  into the swing), a pale glowing edge, and glowing drops off it as a trail. It lights for the swing and fades.
-  (The game's materials draw into the G-buffer: no transparency, so the glow is the bloom's.)
+- **The look:** a sword. A flat two-edged blade (`BLADE.length` 0.85 m, `width` 5 cm, extruded from an
+  outline tapering to a point) of the glob's lava material in the tank's tones, its edges bright glowing lines,
+  on a hilt: a brass guard, a wrapped grip in the fist and a brass pommel. The blade grows out of the guard as
+  it lights for a swing and fades after. It is turned each frame so its edge leads the cut (its width along the
+  hand's motion), and a fine trail of small sparks follows the edge. (The game's materials draw into the
+  G-buffer: no transparency, so the glow is the bloom's.)
 
 ## The foes (`src/foes.js`)
 
@@ -108,6 +111,17 @@ The count is said every 5 ink.
   first), then the next out, then lets go. It is lost past `LOCK.lose` or when the foe falls.
 - While locked, main.js turns `rig.yaw` to keep the foe ahead, `#foe-lock` rings it, and the blade's soft
   lock and the guard turn to it first (`tool.lockOn`).
+
+## Strafing, locked on (`src/player.js` `LOCK_MOVE`)
+
+- main.js sets `player.lockOn = { dir }` each frame while a foe is locked.
+- The body faces it square (no lead into the step) at `LOCK_MOVE.turn`; speed is capped at a jog
+  (`LOCK_MOVE.speed` 4.2 m/s) with no sprint.
+- The camera keeps the foe ahead, so the stick strafes round it, or backs away.
+- Sideways and backwards, `updateStrafe` plays the Sword and Shield pack's strafes (`ss_strafe_1` left,
+  `ss_strafe_2` right) or its walk back (`ss_walk_2`) over the whole body, their time following the ground
+  covered.
+- A fast approach toward the locked foe counts as a run for the lunge.
 
 ## More foes, the perfect parry, combos
 

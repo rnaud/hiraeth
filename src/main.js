@@ -1490,6 +1490,9 @@ function frame(ts) {
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   foes.update(dt, busy() || photo.on || ship.playing);
   // locked on (R3 / Tab): the camera turns to keep the foe ahead (src/foes.js)
+  // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
+  player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
+  if (player.lockOn) player.lockOn.dir.set(foes.lock.pos.x - player.pos.x, 0, foes.lock.pos.z - player.pos.z).normalize();
   if (foes.lock && !busy() && !photo.on) {
     const f = foes.lock, F = player.frame, dx = f.pos.x - player.pos.x, dz = f.pos.z - player.pos.z;
     const r = dx * F.right.x + dz * F.right.z, a = dx * F.fwd.x + dz * F.fwd.z;
