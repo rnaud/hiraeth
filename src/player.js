@@ -12,7 +12,7 @@ import { triggers } from './controller.js';
 import { JumpLayer } from './jump.js';
 import { keepInside, EdgePush } from './edge.js';
 import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './stamina.js';
-import { standGround } from './carriers.js';
+import { standGround, moverCarrier } from './carriers.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -1254,6 +1254,8 @@ export class Player {
     // Ground: first surface below step height (terrain, rocks, roofs, domes...)
     let h = this.physics.heightAbove(this.pos, U, STEP);
     if (carrier && roofH < h) h = roofH;
+    // (or the ground is a moving collider, the great wheel's rim: it carries you as a moving solid does)
+    else if (this.physics.groundMover && h < 0.8) carrier = moverCarrier(this.physics.groundMover, this.pos, this._moverRide ??= { vel: new THREE.Vector3() });
     if (this.pos.y < this.opts.killY) { this.respawn(); this._respawned = true; return null; }
     const vu = this.vel.dot(U);
     this._groundH = h;   // (the jump's pose looks ahead to the landing: src/jump.js)
@@ -1605,6 +1607,8 @@ export class Player {
     // stick to the wall
     // hug the wall: the mocap clips hold the hips ~0.25 m off it
     this.pos.copy(hit.point).addScaledVector(n, this.animator ? 0.27 : RADIUS + 0.08).addScaledVector(U, -1.2);
+    // (a wall that moves, the great wheel's turning rim: the hands go with it)
+    if (hit.mover) this.pos.addScaledVector(moverCarrier(hit.mover, hit.point, this._moverRide ??= { vel: new THREE.Vector3() }).vel, dt);
 
     // reached the top: nothing in front at head height -> mantle over
     const head = _v2.copy(this.pos).addScaledVector(U, 2.3);

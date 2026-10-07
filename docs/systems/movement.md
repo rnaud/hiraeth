@@ -104,10 +104,8 @@ With that, every world's coarse stand-ins came out:
 Ground rays and capsule pushes are unchanged everywhere within noise. The temple kit's rotunda cornice, which
 overhangs its wall by 0.4 m, is solid now, which cleans up every temple at once.
 
-Left for later, with the reason:
-- **The Buried Machine's great wheel** turns for ever once the story turns it, and its spokes are seven to its
-  many teeth, so no still shape is right at every angle: its collision stays a disc of the rim. Exact would
-  want a *turning* collider (`src/physics.js`, `src/carriers.js`).
+Left for later, with the reason (the third pass, below, settled the first four):
+- ~~**The Buried Machine's great wheel**~~ collides as drawn and turns (moving colliders, below).
 - **The cross-walls' opening rims** there stay drawn-only: solid, `SandDrifts` gives them a footprint and
   banks sand right across the passage.
 - **Lorn II's bank roots and whip roots** stay walk-through: the 26 bank roots alone doubled every collision
@@ -124,6 +122,23 @@ Left for later, with the reason:
   collide as drawn would fix them but costs the desert 230 → 300 k collision triangles and Vael 110 → 211 k
   (its bake 27 → 50 ms), which is the wrong price for a hundred vertices. Why those hundred disagree is
   unexplained (`node scripts/tmp/drift.mjs` measured it).
+
+### Moving colliders (October 2026, the third pass)
+
+The rule for what collides: **exact where the player can touch it, light approximations elsewhere, and never
+a big cost to every collision query.** The Buried Machine's great wheel turns for ever once the story turns it,
+and its spokes are seven to its forty teeth, so no still shape is right at every angle; it collided as a still
+disc of its rim (feet stood on air over the spokes' gaps and sank into the teeth). It is a **moving collider**
+now: `physics.addMover(object)` takes the meshes under `object` as drawn, in the object's own frame, into their
+own BVH (the wheel: its gear, trims, rivets and boss, ~8 k triangles), and every query meets them where the
+object stood at the last `physics.syncMovers(dt)` (main.js, once a frame before anyone moves): a ray is turned
+into the mover's frame and its hit back; a capsule's shapecast gets the mover's boxes and triangles turned into
+the world's. A query nowhere near it pays one box test, as for any added collider. `moverVelocity(e, p)` is how
+fast its surface moves at p (what moved it since the last sync, over dt), and `src/carriers.js`
+`moverCarrier` makes that a carrier: standing on it (`physics.groundMover`, set by `groundAt`) or climbing it
+(`rayHit(...).mover`) carries you as a riding disc does, the feet and the step lag with you. The audit samples
+a mover where it stands. The Buried Machine: 69 → 37 feet sink, 102 → 11 climbs off, 18 → 0 unseen floor;
+ground rays and capsule pushes unchanged (`tests/buried.test.js`, `tests/mover.test.js`).
 
 ## Mounts come to you
 

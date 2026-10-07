@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { MeshBVH } from 'three-mesh-bvh';
+import { MeshBVH, ExtendedTriangle } from 'three-mesh-bvh';
 import { GenerateMeshBVHWorker } from 'three-mesh-bvh/src/workers/GenerateMeshBVHWorker.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { runSteps, runStepsAsync } from './load-steps.js';
@@ -123,13 +123,58 @@ export class Physics {
     const geometry = mergeGeometries(geos);
     geometry.computeBoundingBox();
     const extra = { bvh: new MeshBVH(geometry), box: geometry.boundingBox.clone().expandByScalar(0.5), triangles: geometry.attributes.position.count / 3 };
-    if (!this.extras) {
-      this.extras = [];
-      this.levelBVH = this.bvh;
-      this.bvh = compositeBVH(this);
-    }
+    this.composite();
     this.extras.push(extra);
     return extra;
+  }
+
+  /** From here on the level's BVH sits behind compositeBVH, with the colliders added later. */
+  composite() {
+    if (this.extras) return;
+    this.extras = [];
+    this.levelBVH = this.bvh;
+    this.bvh = compositeBVH(this);
+  }
+
+  /**
+   * A collider that moves as a whole (the Buried Machine's great wheel, which turns for ever): the meshes
+   * under `object` (minus noCollide below it) as drawn, in the object's own frame, with their own BVH.
+   * Every query sees them where the object stood at the last syncMovers(): a ray or a capsule is met by
+   * the turned shape, not a still stand-in, and moverVelocity() says how fast its surface moves at a point
+   * (src/carriers.js: what you stand or climb on carries you). Returns a handle for removeCollider.
+   * Cost: nothing to a query that does not come near it (one box test, as any added collider).
+   */
+  addMover(object) {
+    object.updateWorldMatrix(true, true);
+    const inv = new THREE.Matrix4().copy(object.matrixWorld).invert();
+    const geos = [];
+    object.traverse((obj) => {
+      if (!obj.isMesh) return;
+      for (let o = obj; o && o !== object; o = o.parent) if (o.userData.noCollide) return;
+      const src = obj.geometry.userData.lodSource ?? obj.geometry;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', src.attributes.position);
+      if (src.index) g.setIndex(src.index);
+      const w = g.clone().applyMatrix4(_m.multiplyMatrices(inv, obj.matrixWorld));
+      geos.push(w.index ? w.toNonIndexed() : w);
+    });
+    if (!geos.length) return null;
+    const geometry = mergeGeometries(geos);
+    geometry.computeBoundingBox();
+    const e = {
+      moving: true, object, bvh: new MeshBVH(geometry), local: geometry.boundingBox.clone(), box: new THREE.Box3(),
+      matrix: new THREE.Matrix4(), inverse: new THREE.Matrix4(), step: new THREE.Matrix4(), dt: 0,
+      triangles: geometry.attributes.position.count / 3,
+    };
+    syncMover(e, 0, true);
+    this.composite();
+    this.extras.push(e);
+    return e;
+  }
+
+  /** The moving colliders to where their objects are now (once a frame, before anyone moves: main.js). */
+  syncMovers(dt) {
+    for (const e of this.extras ?? []) if (e.moving) syncMover(e, dt);
   }
 
   removeCollider(handle) {
@@ -140,12 +185,15 @@ export class Physics {
   /** Height of the first surface below (x, fromY, z), or -Infinity. */
   groundAt(x, fromY, z, maxDrop = 600) {
     const b = this.base ? this.base.heightAt(x, z) : -Infinity;
+    this.groundMover = null;
     if (!this.bvh) return b;
     // a tiny offset keeps the ray off shared vertices (e.g. the centre of a
     // cylinder cap), where it could slip between triangles
     _ray.origin.set(x + 1.37e-4, fromY, z + 2.91e-4);
     _ray.direction.set(0, -1, 0);
     const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, maxDrop);
+    // (what the ground is, when it is a moving collider: src/carriers.js groundCarrier)
+    this.groundMover = hit?.mover && hit.point.y >= b ? hit.mover : null;
     return hit ? Math.max(hit.point.y, b) : b;
   }
 
@@ -161,7 +209,7 @@ export class Physics {
     if (!hit) return null;
     const normal = hit.face.normal.clone();
     if (normal.dot(dir) > 0) normal.negate();
-    return { distance: hit.distance, point: hit.point.clone(), normal };
+    return { distance: hit.distance, point: hit.point.clone(), normal, mover: hit.mover ?? null };
   }
 
   /**
@@ -170,6 +218,7 @@ export class Physics {
    */
   heightAbove(pos, up, step = 0.6) {
     if (up.y > 0.999) return pos.y - this.groundAt(pos.x, pos.y + step, pos.z);
+    this.groundMover = null;
     _cap.copy(pos).addScaledVector(up, step);
     _dir.copy(up).negate();
     return this.rayDistance(_cap, _dir, 600) - step;
@@ -321,32 +370,78 @@ export class Physics {
   }
 }
 
+/** A moving collider to where its object stands now; `step` is what moved it since the last sync. */
+function syncMover(e, dt, first = false) {
+  e.object.updateWorldMatrix(true, false);
+  if (first) e.step.identity();
+  else e.step.multiplyMatrices(e.object.matrixWorld, e.inverse);   // (now · before⁻¹)
+  e.matrix.copy(e.object.matrixWorld);
+  e.inverse.copy(e.matrix).invert();
+  e.box.copy(e.local).applyMatrix4(e.matrix).expandByScalar(0.5);
+  e.dt = dt;
+}
+
+/** How fast a moving collider's surface moves at world point p (m/s, into out): zero when it stood still. */
+export function moverVelocity(e, p, out = new THREE.Vector3()) {
+  if (!e?.dt) return out.set(0, 0, 0);
+  return out.copy(p).applyMatrix4(e.step).sub(p).divideScalar(e.dt);
+}
+
 /** The level's BVH plus the colliders added later, behind the same three calls. */
-const _cr = new THREE.Vector3();
+const _cr = new THREE.Vector3(), _lr = new THREE.Ray(), _wb = new THREE.Box3(), _wt = new ExtendedTriangle();
+/** A hit in a moving collider's frame, back in the world's (rigid: the distance stands). */
+function worldHit(h, e) {
+  h.point.applyMatrix4(e.matrix);
+  h.face?.normal.transformDirection(e.matrix);
+  h.mover = e;
+  return h;
+}
 function compositeBVH(physics) {
   const reach = (box, ray, far) => {
     if (box.containsPoint(ray.origin)) return true;
     const p = ray.intersectBox(box, _cr);
     return !!p && p.distanceTo(ray.origin) <= far;
   };
+  const cast = (e, ray, side, near, far) => {
+    if (!e.moving) return e.bvh.raycastFirst(ray, side, near, far);
+    const h = e.bvh.raycastFirst(_lr.copy(ray).applyMatrix4(e.inverse), side, near, far);
+    return h ? worldHit(h, e) : null;
+  };
   return {
     raycastFirst(ray, side, near, far) {
       let best = physics.levelBVH ? physics.levelBVH.raycastFirst(ray, side, near, far) : null;
       for (const e of physics.extras) {
         if (!reach(e.box, ray, best ? best.distance : far)) continue;
-        const h = e.bvh.raycastFirst(ray, side, near, best ? best.distance : far);
+        const h = cast(e, ray, side, near, best ? best.distance : far);
         if (h && (!best || h.distance < best.distance)) best = h;
       }
       return best;
     },
     raycast(ray, side, near, far) {
       const out = physics.levelBVH ? physics.levelBVH.raycast(ray, side, near, far) : [];
-      for (const e of physics.extras) if (reach(e.box, ray, far)) out.push(...e.bvh.raycast(ray, side, near, far));
+      for (const e of physics.extras) {
+        if (!reach(e.box, ray, far)) continue;
+        if (e.moving) out.push(...e.bvh.raycast(_lr.copy(ray).applyMatrix4(e.inverse), side, near, far).map((h) => worldHit(h, e)));
+        else out.push(...e.bvh.raycast(ray, side, near, far));
+      }
       return out;
     },
     shapecast(cb) {
       physics.levelBVH?.shapecast(cb);
-      for (const e of physics.extras) e.bvh.shapecast(cb);
+      for (const e of physics.extras) {
+        if (!e.moving) { e.bvh.shapecast(cb); continue; }
+        // (its boxes and triangles handed over in the world's frame: a box turned is boxed again, so the
+        // query's own test stays conservative; one box test for a query that is nowhere near it)
+        const M = e.matrix;
+        e.bvh.shapecast({
+          intersectsBounds: (box, ...rest) => cb.intersectsBounds(_wb.copy(box).applyMatrix4(M), ...rest),
+          intersectsTriangle: (t, ...rest) => {
+            _wt.a.copy(t.a).applyMatrix4(M); _wt.b.copy(t.b).applyMatrix4(M); _wt.c.copy(t.c).applyMatrix4(M);
+            _wt.needsUpdate = true;
+            return cb.intersectsTriangle(_wt, ...rest);
+          },
+        });
+      }
     },
   };
 }

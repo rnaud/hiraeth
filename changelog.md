@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.76 — 2026-10-07
+
+- The Buried Machine’s great wheel is solid just as it is drawn, and turns with you on it: you stand on its teeth and in the gaps between them, climb its rim and spokes, and once it turns it carries you round with it; a spoke sweeps you aside instead of passing through you, and you no longer stand on an invisible disc over its spokes.
+
 ## v0.75 — 2026-10-07
 
 - The sketchbook is now a game menu in the spirit of Ocarina of Time’s pause screen, drawn in the game’s own ink and paper: four panels side by side, Items, Quests, Sketchbook and Worlds. View / Select (J, or the ❏ button) opens it; LB / L1 and RB / R1 (Q and E, or the tabs) turn from panel to panel, the stick or the D-pad moves a cursor, the strip at the bottom says what you have picked, and B / ○ closes it from anywhere.

@@ -796,7 +796,7 @@ export function* buildBuried(scene) {
 
   // ======================================================== the great wheel, sunk to its axle in the dunes
   // One extruded gear (rim, teeth, spokes and hub in one shape) that the story
-  // turns by one tooth; its collision is a plain static disc, so it can turn.
+  // turns by one tooth, then for ever; it collides as drawn, turning with it.
   yield;
   const wheel = {};
   yield;
@@ -845,20 +845,10 @@ export function* buildBuried(scene) {
     holder.add(spin);
     holder.userData.noCollide = true;
     scene.add(holder);
-    // Collision: a still disc the size of the rim, so the teeth and the spokes turn freely past it (the
-    // wheel never stops once it has started: src/story/buried.js), with the two face trims it carries,
-    // which are rings about the axle and so stand where they are drawn at any angle.
-    const proxyGeo = mergeGeometries([
-      new THREE.CylinderGeometry(R + tooth * 0.5, R + tooth * 0.5, T, 40).rotateX(Math.PI / 2),
-      ...[-1, 1].flatMap((f) => [
-        new THREE.TorusGeometry(R - 0.7, 0.7, 5, 96).translate(0, 0, f * T / 2),
-        new THREE.TorusGeometry(rIn + 0.4, 0.5, 5, 80).translate(0, 0, f * T / 2),
-      ]),
-    ].map((g) => { const n = g.toNonIndexed(); n.deleteAttribute('uv'); return n; }));
-    const proxy = new THREE.Mesh(proxyGeo, new THREE.MeshBasicMaterial());
-    proxy.position.copy(centre); proxy.rotation.y = holder.rotation.y;
-    proxy.visible = false;
-    scene.add(proxy);
+    // Collision: the drawn wheel itself, teeth, spokes, trims and rivets, as a moving collider that turns
+    // with it (physics.addMover, in the level's init below; synced each frame: main.js). The wheel never
+    // stops once it has started (src/story/buried.js), and its spokes are seven to its forty teeth, so no
+    // still shape is right at every angle; standing or climbing on it, it carries you (src/carriers.js).
     // where a shed tooth lands: on the sand in front of the face, below the top of the arc
     const face = new THREE.Vector3(ax, 0, az);
     const drop = centre.clone().addScaledVector(face, T / 2 + 6);
@@ -1028,6 +1018,8 @@ export function* buildBuried(scene) {
       if (inCanyon(x, z, y)) return { tint: [1.05, 0.96, 0.9], fog: 0.85, name: 'The rust canyon' };
       return { tint: [1.0, 1.0, 0.97], fog: 0.7, name: 'The pale dunes' };
     },
+    // the great wheel collides as drawn, turning (physics.addMover; the static bake leaves its holder out)
+    init(physics) { wheel.collider = physics.addMover?.(wheel.spin) ?? null; },
     update(dt, t) {
       for (const m of movers) m(t);
     },

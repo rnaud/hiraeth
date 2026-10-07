@@ -34,11 +34,14 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 The second pass made every world collide as it is drawn (DONE.md; docs/systems/movement.md,
 "Contact"). What the audit still finds, and why it was left:
 
-- [ ] The Buried Machine's **great wheel**: it turns for ever once the story turns it, and its spokes
+- [x] The Buried Machine's **great wheel**: it turns for ever once the story turns it, and its spokes
   are seven to its many teeth, so no still shape is right at every angle; its collision stays a disc
   of the rim. That is most of what the audit still finds in any world (69 feet sink, 49 climbs
   inside, 102 climbs off). Exact wants a *turning* collider (`src/physics.js`, `src/carriers.js`),
-  which nothing else needs yet.
+  which nothing else needs yet. Done: `physics.addMover` (the drawn wheel, ~8 k triangles, its own BVH
+  in its own frame, synced each frame), carrying you standing or climbing (`moverCarrier`); the audit
+  69 → 37 feet sink, 102 → 11 climbs off, 18 → 0 unseen floor (what is left there is sand and the rims);
+  queries unchanged (movement.md, "Moving colliders").
 - [ ] The Buried Machine's **cross-wall opening rims**: solid, `SandDrifts` gives them a footprint
   and banks sand right across the passage you have to walk through.
 - [ ] **Lorn II's bank roots and whip roots**: solid, the 26 bank roots alone doubled every collision
