@@ -89,8 +89,9 @@ test('static collision stays within budget; the hanging city and ring are not co
   // gantry, embers and bands collide as they are drawn since the contact audit, docs/systems/movement.md
   // "Contact": 51 k → ~123 k, the BVH 24 → 45 ms to bake, ground rays 15 → 17 ms, capsule pushes unchanged;
   // since its third pass the sand skirts' triangles drawn over the ground (sand-drifts.js misfits), most of
-  // them in the canyon: ~124 k → ~171 k, the bake +15 ms, queries unchanged within noise)
-  assert.ok(physics.triangles < 185000, `static collision budget: ${physics.triangles}`);
+  // them in the canyon: ~124 k → ~171 k, the bake +15 ms, queries unchanged within noise; the reference
+  // sheets' pipe mass on the trench walls and the drum's small work, climbed as drawn: +~14 k)
+  assert.ok(physics.triangles < 200000, `static collision budget: ${physics.triangles}`);
   // overhead city: a ray straight up from the dunes meets nothing
   assert.equal(physics.rayHit(new THREE.Vector3(-70, 20, -170), new THREE.Vector3(0, 1, 0), 2000), null);
 });

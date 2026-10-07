@@ -73,6 +73,13 @@ panel, its number (as the label and `?view=n` count) and its title; the view you
 
 ### The City-Shaft's sheets, and three desert touches
 
+- **Since October 2026** the blocks carry their small work (`blockWork`, its own random numbers so the
+  views' layouts stay as framed): pipes down the faces with collars, a balcony with side rails and washing
+  hung along it, and under an overhanging slab the plating (brackets back to the wall, boxes, a pipe along
+  it). `blimp`: a teardrop envelope with four fins and a gondola (IMG_3780 p1 and p4, IMG_3782 p6); the
+  cabs are the game's own (`cabModel`). On the world: see worlds.md (pink and cream walls, drainpipes,
+  washing, plating under the terraces, blimps, turquoise water).
+
 - **The views** (`src/levels/reference-shaft.js`, `SHAFT_VIEWS`): IMG_3778 (one plate) and IMG_3779
   to 3782 (5, 5, 5 and 7 panels), 23 views after the desert's 27, grouped by world (the label names
   the world, the sheet and the panel). One scene builder (`shaftScene`) does them all: walls of
@@ -204,9 +211,22 @@ the narrowest creases.
   recesses are mostly lit on the sheets; ours shade as one mass. The canyon floor's dense
   stippling and the dunes' long shaded slopes (IMG_3790 p5: a slope in shade a flat sage band)
   aren't drawn.
-- **Left, scene level**: the trench's pipe mass (IMG_3789 p1), the city's towers hanging in
-  clusters, the drum's interior machinery and arcades, the oval tunnel's interior (IMG_3791 p4),
-  the cave with the moon (IMG_3792 p3), the rock ledge of IMG_3792 p5 are all sketches.
+- **Scene level, rebuilt (October 2026)**: `pipeMass` fills IMG_3789 p1's trench (long runs at several
+  levels, inverted U-bends rising from a dark floor along it and across it, flanged risers, elbows over the
+  lip; `bent` rounds each corner within 1.6 r), its camera raised to look down into it. `hangingCity` hangs
+  its towers in clusters: a great one (`hangingTower`: tiers narrowing a little, bands, boxes on the shafts,
+  an onion bulb, a short spike, now and then a cable) with three to six lesser ones packed round it, cables
+  slung from cluster to cluster. `drum({ inside, roof, off, vault, ribs })`: tiers of arcades round the
+  inner wall (dark round-headed bays, a few lit, pilasters, a cornice per tier) and machinery standing in
+  from it; a vaulted roof with a central oculus, or (`off`) a flat ceiling with machinery hung from it and
+  its oculus toward the far wall, as IMG_3791 p6 sees it from inside. `ovalTunnel` (IMG_3791 p4: a pale
+  lit oval tube, ribs, rounded machine forms and pipes along it), `archPortal` (IMG_3792 p3: six recessed
+  stone rings with their voussoir joints, a vault over them; the drum beyond is tall and pale, the moon a
+  great disc with craters in its far wall), `rockLedge` (IMG_3792 p5: bevelled slabs stepping down and out,
+  strata rock with cracks). IMG_3789 p5 now looks into the drum through the wall's oval (opened toward it,
+  its vault casting no shadow, as drawn).
+- **Left, scene level**: the ring's town and the far canyons; IMG_3792 p3 reads as a moon in a drum
+  (the sheet's disc may be the sky through the shaft's top), and its vault's stone stays lighter than drawn.
 
 ## The Garden of Spheres' sheets (IMG_3793–3796)
 
@@ -334,8 +354,15 @@ the narrowest creases.
 - **Left, shader level**: the sheets' walls are dense with fine line detail (panel seams, vents, signs
   in a hand's lettering) at every scale; ours are plain faces with a grid. The billboards are painted
   illustrations; ours are a few flat shapes. Far towers fade to a pale warm haze on the sheets.
-- **Left, scene level**: the crowd (the sheets' hundreds of drawn people; ours are cylinders), the
-  stalls' heaps of goods and signs, the aliens in the foreground, the cabs' shapes.
+- **Scene level, rebuilt (October 2026)**: `person` (two legs a stride apart, a coat flaring to its hem,
+  shoulders, arms, a head, and a hood, a wide hat, a wrap or a bubble helmet, now and then a bundle)
+  makes the crowd, denser near the camera, on the skybridges too and clear of the counters; `quiet` the
+  pale lilac folk with broad heads (bazaar.js's), a few in the crowd and in the foreground of IMG_3801,
+  IMG_3805 p6 and IMG_3807 p4. `stall`: a counter painted with round pictures, heaped bowls and jars, shelves
+  of crates and pots, four posts, a slanted awning with a scalloped edge, strings of goods, a sign with
+  strokes, a lamp, the seller behind. The cabs are the game's own (`cabModel` in taxi.js: the
+  self-driving, round-bellied cab with its striped canopy and a rider).
+- **Left, scene level**: the sheets' stalls are a dense heap of goods and signs; ours are tidy rows.
 
 ## Across the worlds: the shader gaps that recur
 

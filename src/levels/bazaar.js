@@ -148,6 +148,7 @@ export function* buildBazaar(scene) {
   box(0,465,-455,1.5,70,1.5,brass,false);
 
   // Market frontage: awnings, stacked shop signs, produce and hanging lamps.
+  const gr=mulberry32(38050);   // (the goods' own draws: the street's layout keeps its own)
   const flammables=[];   // the hanging lamps: an ember glob lights a little sun on each (src/flammable.js)
   for(let i=0;i<36;i++) {
     const side=i%2?1:-1, z=100-Math.floor(i/2)*27, x=side*29;
@@ -166,9 +167,28 @@ export function* buildBazaar(scene) {
       sphere(x-side*6.5,3.9,z+dz,.45,.6,.45,glow);
       flammables.push({at:new THREE.Vector3(x-side*6.5,3.9,z+dz),kind:'lantern',r:.7,top:.55});
     }
-    for(let k=0;k<10;k++) {
-      const zz=z-4+k*.88;
-      sphere(x-side*5.1,2.38,zz,.3,.25,.32,shop[(i+k)%5]);
+    // the goods (the sheets' stalls: IMG_3805 p4, IMG_3808 p3): brass bowls heaped with fruit, jars
+    // between them, strings of goods hung from the awning, round pictures painted on the counter's front
+    for(let k=0;k<5;k++) {
+      const zz=z-4+k*2+(gr()-.5)*.4, bx=x-side*(4.6+gr()*.9), fruit=shop[(i+k)%5];
+      add(new THREE.CylinderGeometry(.42,.28,.2,8,1,true).translate(bx,2.3,zz),brass,false);
+      for(let j=0;j<7;j++) {
+        const a=j/6*Math.PI*2, r=j?.24:0;
+        add(new THREE.SphereGeometry(.15+gr()*.05,5,3).translate(bx+Math.cos(a)*r,2.48+(j?0:.14),zz+Math.sin(a)*r),fruit,false);
+      }
+      const jz=zz+1, jh=.35+gr()*.3;
+      add(new THREE.CylinderGeometry(.14,.19,jh,7).translate(x-side*(4.3+gr()*1.2),2.2+jh/2,jz),k%2?cream:shop[(i+k+2)%5],false);
+    }
+    for(let k=0;k<4;k++) {
+      const hz=z-4.2+k*2.8+gr()*.6, hx=x-side*(6+gr()*.25), n=3+Math.floor(gr()*3), goods=shop[(i+k+1)%5];
+      add(new THREE.CylinderGeometry(.015,.015,n*.3+.25,3).translate(hx,4.25-(n*.3+.25)/2,hz),dark,false);
+      for(let j=0;j<n;j++) add((j%2?new THREE.BoxGeometry(.2,.26,.2):new THREE.SphereGeometry(.14,5,3)).translate(hx,4.0-j*.3,hz),goods,false);
+    }
+    for(let k=0;k<3;k++) {
+      const pz=z+(k-1)*3.2;
+      local(new THREE.CircleGeometry(.62,14),x-side*6.31,1.05,pz,-side*Math.PI/2,cream);
+      local(new THREE.RingGeometry(.3,.4,12),x-side*6.32,1.05,pz,-side*Math.PI/2,shop[(i+k+3)%5]);
+      local(new THREE.CircleGeometry(.14,8),x-side*6.32,1.05,pz,-side*Math.PI/2,dark);
     }
     box(x+side*4,1,z+8,2,2,2,brass);
     box(x+side*4,2.5,z+8,1.5,1,1.5,cream);
