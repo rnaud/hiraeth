@@ -1,0 +1,45 @@
+TODO.md
+  s_55b4bc53b812ec::t_efff4fe0d11b5e 57,61-68
+changelog.md
+  s_55b4bc53b812ec::t_5836acb781d7f8 10-12
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_9bad09071871bd 107,111,114-116,153-184
+src/changelog.js
+  s_55b4bc53b812ec::t_917753a8fc4f15 14-16
+src/levels/spheres.js
+  s_55b4bc53b812ec::t_abb7a914e4559f 738-739,755,798-799,801,811
+src/physics.js
+  s_55b4bc53b812ec::t_56afb5eb304f13 146,148,154
+src/sand-drifts.js
+  s_55b4bc53b812ec::t_c491ef3cbcec8f 212-220,223-267,427
+src/temples/kit.js
+  s_55b4bc53b812ec::t_1572aaa9128329 237-240
+src/temples/pieces.js
+  s_55b4bc53b812ec::t_a1081bd81d2965 540-545,560-567,583-588,604
+tests/buried.test.js
+  s_55b4bc53b812ec::t_65b6ba997f9c37 90-93
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_6dc35551668c4e 107-114,116-118,121-125,146-147
+tests/sand-drifts.test.js
+  s_55b4bc53b812ec::t_9584afdb05f490 170-198
+tests/spheres.test.js
+  s_55b4bc53b812ec::t_c06b590119d3cb 97-126
+tests/temples.test.js
+  s_55b4bc53b812ec::t_eae0d3e5a36365 29,338,453,683,768,864,938-988,997,1098,1256,1370,1414-1417
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ba26446bba233a0300d8a9f90a9d2151c6be1cec",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
