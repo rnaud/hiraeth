@@ -66,7 +66,7 @@ run; these are the clips the matcher lacks most (docs/systems/animation.md, "Mot
 | file | name | description | In Place | use |
 |---|---|---|---|---|
 | idle_weight_shift | Idle | Weight Shift Idle | yes | mm |
-| breathing_idle | Breathing Idle | Breathing Idle | yes | mm |
+| breathing_idle | Breathing Idle | Breathing Idle | yes | mm+clip |
 | weight_shift | Weight Shift | Shifting Weight From Side To Side | yes | mm |
 | neutral_idle | Neutral Idle | Neutral Idle | yes | mm |
 | looking_around | Looking Around | Idle Stand Looking Around | yes | clip |
@@ -156,3 +156,29 @@ sitting is a little girl's (Lou, at home).
 | walking_up_stairs | Walking Up The Stairs | Male Walk Up The Stairs | no | ref |
 
 The names and descriptions were checked against mixamo.com's catalogue on 2026-10-05.
+
+## Additional traversal and recovery references (2026-10-07)
+
+Downloaded on Y Bot with FBX Binary, Without Skin, 30 fps, no keyframe reduction,
+and default animation sliders. These preserve the source movement (`In Place` off where
+available). They ship as clips of their own (`moves.glb`): the get-ups for getting up after a
+knockdown (from the back or the stomach, as he lay), the jumps and the short drop for the
+take-off and the landing, the wall jump for kicking off a wall, the stumble for a hard landing
+at a run.
+
+| file | name | description | In Place | use |
+|---|---|---|---|---|
+| get_up_back | Getting Up | Getting Up From Back | no | clip |
+| get_up_stomach | Getting Up | Getting Up From Stomach | no | clip |
+| jump_up | Jumping | Jump Up | no | clip |
+| forward_running_jump | Jump | Forward Running Jump | no | clip |
+| jump_from_wall | Jump From Wall | Hanging On Wall To Jump Off | no | clip |
+| jump_down_low | Jumping | Male Jumping Down From 4 Feet | no | clip |
+| jogging_stumble | Jogging Stumble | Brief Stumble While Jogging | no | clip |
+
+The same batch also downloaded the existing `breathing_idle`, `looking_around`,
+`kneeling_inspecting`, and `petting_animal` entries. Mixamo exposed no `In Place`
+checkbox for those four clips; their default exports were retained, with the manifest's
+existing `inPlace: true` conversion intent unchanged. Checked on conversion: none of the four
+drifts (their hips end within a millimetre of where they start).
+No suitable stationary exhaustion clip was found under `Tired` or `Exhausted`.

@@ -14,7 +14,7 @@ import { speakBalloon } from './story/voice.js';
 import { toneOf } from './story/tone.js';
 import { talkFaces, mouthAt } from './talk-face.js';
 import { cleanExpression, PEOPLE_REST } from './expression.js';
-import { Knockdown, toppleVelocities, KNOCKOVER } from './ragdoll.js';
+import { Knockdown, toppleVelocities, KNOCKOVER, getUpPlacement, GET_UP } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
 import { Locomotion, gaitFeet, gaitStyle, poseStyle, walkFor } from './locomotion.js';
@@ -74,6 +74,9 @@ function faceOf(player) {
 
 /** How fast someone walks before they put a stowed prop on their back (m/s; Humanoid.stow). */
 export const STOW_AT = 0.3;
+
+// (a person's frame: up is +y, heading 0 faces +z: for placing a get-up)
+const NPC_FRAME = { up: new THREE.Vector3(0, 1, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)), headingOf: (v) => Math.atan2(v.x, v.z) };
 
 export class NPC {
   /**
@@ -365,17 +368,23 @@ export class NPC {
       const up = D.update(dt, this.physics, Y);
       D.rag.groundSpot(this.physics, Y, this.pos);
       if (!up) return true;
-      const f = D.rag.riseDir(Y, _w);
-      this.heading = Math.atan2(f.x, f.z);
+      // (the captured get-up for how they lie, placed so its first frame lies where they lie; else the kneel)
+      const A = this.animator;
+      const at = H && A && D.chooseGetUp(Y, (n) => !!A.moveClip(n)) && getUpPlacement(D, A, NPC_FRAME, this.pos);
+      if (at) { this.heading = at.heading; this.pos.copy(at.pos); }
+      else { D.getUp = null; const f = D.rag.riseDir(Y, _w); this.heading = Math.atan2(f.x, f.z); }
       this.physics.pushCapsule(this.pos, 0.4, 0.6, 2.0, _push);
       D.beginRise();
     }
+    if (D.getUp) this._riseMove = { name: D.getUp.clip, t: D.riseClipT, w: 1 };
     this.pose(dt, 0, -1, 99, player, null);
     this.object.position.copy(this.pos);
     this.object.quaternion.setFromAxisAngle(Y, this.heading);
     H.update();
-    H.kneel(D.kneel, { up: Y, fwd: _w.set(Math.sin(this.heading), 0, Math.cos(this.heading)), ground: this.pos.y });
+    if (!D.getUp) H.kneel(D.kneel, { up: Y, fwd: _w.set(Math.sin(this.heading), 0, Math.cos(this.heading)), ground: this.pos.y });
     if (D.rise(dt, Y)) {
+      // (the get-up eases out into their stand)
+      this._riseMove = D.getUp ? { name: D.getUp.clip, t: D.getUp.to, w: 1, out: true } : null;
       this.endDown();
       this.startleAt = this.time - 0.9;   // up again: they stand and glare at you a moment (the startled turn, no hop)
       return false;
@@ -911,6 +920,12 @@ export class NPC {
       const DG = this.def?.gait, stride = DG?.stride ?? 1, pace = DG?.pace ?? 1;
       // their own stride (and a slow drift in it, so two walking side by side fall out of step)
       const wobble = 1 + G.wobble * Math.sin(this.time * G.wobbleRate * Math.PI * 2);
+      // a get-up (updateDown), easing out once they are up
+      const R = this._riseMove;
+      if (R) {
+        this.animator.play(R.name, R.t, R.w, { full: true });
+        if (R.out && (R.w -= dt / GET_UP.out) <= 0) this._riseMove = null;
+      }
       this.animator.update(dt, {
         speed, onGround: true, mode: mode ?? (waveT >= 0 ? 'talk' : 'ground'),
         walkAt: N.walk * 1.3 * pace, jogAt: N.jog * pace, sprintAt: N.sprint * 1.2 * pace, strideScale: 1.05 * stride * G.stride * wobble, scale: this.object.scale.y,

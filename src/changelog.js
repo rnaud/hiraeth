@@ -22,6 +22,11 @@ export const CHANGELOG = [
           { where: 'the wide view', before: 26.7, after: 10.9 },
         ] },
       ] },
+    'The traveller moves more like a person at the moments that used to look mechanical: setting off at a walk he straightens and swings his arms instead of hunching into a jog, stopping he throws his arms out to brake, and turning on the spot or doubling back at a run his head and shoulders lead the turn. His feet land and hold exactly as before, and the controls answer just as fast.',
+    'Knocked down, the traveller gets up as a person does, by how he landed: face down he pushes up and gets his feet under him, on his back he sits up and rises, instead of always coming up through the same stiff kneel. People knocked over get up the same way.',
+    'Jumps and landings look caught from life: a running jump is a long stride through the air, dropping off a ledge he lands in a deep crouch, landing hard at a run makes him stumble, and kicking off a wall he pushes away with his whole body.',
+    'Standing still a while, he now and then looks about him or just breathes, his feet staying where they are.',
+    'Picking something up off the ground he goes down on one knee for it, and petting Moustache he kneels and reaches out to him.',
   ] },
   { v: '0.81', date: '2026-10-07', items: [
     'In the desert, letting the water out of the giant’s pool before anyone has sent you there no longer stalls the story: the steps that only led there pass on their own, and Ama still hands you her jar.',

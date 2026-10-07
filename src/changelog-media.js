@@ -116,6 +116,48 @@ export const CHANGELOG_MEDIA = {
       { name: 'camera-ship', caption: 'Inside the ship, by the hatch: before 2.6 m back over the right shoulder; after 1.9 m, at shoulder height', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
       { name: 'camera-temple', caption: 'The desert temple’s first hall', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
     ], see: 'Walk up the ship’s ramp, or into a corridor with a wall close on your right: the camera eases in over your left shoulder and stays there; hold LT / L2 (or the right mouse button) to aim and it moves over the right.' },
+    { match: 'The traveller moves more like a person at the moments that used to look mechanical', shots: [
+      { name: 'captured-start', caption: 'Setting off at a walk (the stick half way), a frame every tenth of a second from the side: before, the jog loop hunches him forward; after, Mixamo’s captured start keeps him upright, arms swinging', size: [1280, 237], from: 'the Motion page’s frame strips (motionPage.sheet), the same scripted run before and after (7 October)' },
+      { name: 'captured-stop', caption: 'Letting go of the stick at a walk, seen from in front: after, the captured stop throws his arms out to brake; the feet land in the same places', size: [1280, 237], from: 'the Motion page’s frame strips, the same run before and after (7 October)' },
+      { name: 'captured-pivot', caption: 'Doubling back at a run: after, the head and shoulders turn into it first', size: [1280, 237], from: 'the Motion page’s frame strips, the same run before and after (7 October)' },
+    ], numbers: [
+      { title: 'Foot sliding (the worst contact)', unit: 'm', better: 'lower', device: 'Node, the gait harness on the coral-shirt traveller (scripts/mocap/compare.mjs)', source: 'docs/systems/animation.md, “Captured starts, stops and turns over the loops”', rows: [
+        { where: 'walk, run, turn back, stop', before: 0.11, after: 0.11 },
+        { where: 'walk, quarter turn, stop', before: 0.08, after: 0.08 },
+        { where: 'turn round on the spot', before: 0.09, after: 0.09 },
+        { where: 'slow walk, stop', before: 0.05, after: 0.05 },
+        { where: 'the same with motion matching instead (not used)', before: 0.11, after: 0.25 },
+      ] },
+      { title: 'How fast the pose answers the stick', unit: 's', better: 'lower', device: 'Node, the gait harness on the coral-shirt traveller', source: 'docs/systems/animation.md', rows: [
+        { where: 'from standing, the stick pushed: a foot off the ground', before: 0.13, after: 0.13 },
+        { where: 'slow walk: a foot off the ground', before: 0.17, after: 0.17 },
+        { where: 'letting go at a walk: both feet held', before: 0.9, after: 0.9 },
+        { where: 'facing back after turning at a run', before: 0.3, after: 0.3 },
+      ] },
+      { title: 'The traveller’s animation a frame (walking, stopping, turning, jumping about the desert)', unit: 'ms', better: 'lower', device: MAC_X4, source: 'docs/systems/animation.md, “The traveller’s captured moves”: two runs each, the captured moves off (before) and on', rows: [
+        { where: 'the player’s whole update, run 1', before: 1.64, after: 1.43 },
+        { where: 'the player’s whole update, run 2', before: 1.76, after: 1.71 },
+        { where: 'the Animator', before: '0.22–0.26', after: '0.21–0.25' },
+      ], note: 'within the run-to-run noise: the moves cost nothing measurable' },
+    ], see: 'Walk with the stick half way and let go, tap back to turn round on the spot, or run and pull back: the body above the legs follows the capture. The dev menu’s Motion section switches it off to compare.' },
+    { match: 'Knocked down, the traveller gets up as a person does', shots: [
+      { name: 'getup-stomach', caption: 'Knocked forward onto his face: before, the kneel; after, Mixamo’s get-up from the stomach, placed where he lies', size: [1280, 143], from: 'the Motion page’s frame strips, the same knockdown before and after (7 October)' },
+      { name: 'getup-back', caption: 'Knocked back: after, he sits up and rises from his back', size: [1280, 143], from: 'the Motion page’s frame strips, the same knockdown before and after (7 October)' },
+    ], numbers: [
+      { title: 'Lying to standing', unit: 's', better: 'lower', device: 'the game’s timing (src/ragdoll.js GET_UP, KNOCK)', source: 'docs/systems/animation.md, “The traveller’s captured moves”', rows: [
+        { where: 'from the back', before: 1.25, after: 1.45 },
+        { where: 'from the stomach', before: 1.25, after: 2.05 },
+      ], note: 'the captured get-ups play at twice their pace; the kneel was quicker, but the same for every fall' },
+    ] },
+    { match: 'Jumps and landings look caught from life', shots: [
+      { name: 'running-jump', caption: 'A running jump, from behind: before, a frog-legged tuck with the arms straight out; after, the captured stride through the air', size: [1280, 216], from: 'the Motion page’s frame strips, the same jump before and after (7 October)' },
+      { name: 'drop', caption: 'Walking off a 1.44 m ledge toward the camera: after, the captured landing’s deep crouch', size: [1280, 216], from: 'the Motion page’s frame strips, the same drop before and after (7 October)' },
+    ], see: 'Run and jump, walk off a ledge, fall from a roof at a run, or climb a wall and jump off it (A / × while climbing). The flight itself is as before: the same height, the same time in the air, the same place to land.' },
+    { match: 'Standing still a while, he now and then looks about him', see: 'Stand still: after 7 s he looks about him (Mixamo’s look-around), later breathes a while, then the old look-around, ten seconds apart. Only the body above the legs moves: the feet stay planted to the millimetre (tests/idle-legs.test.js stands him 36 s).' },
+    { match: 'Picking something up off the ground he goes down on one knee', shots: [
+      { name: 'kneel', caption: 'Picking something up: down on one knee, a look at it, and up again (E pressed at 0.5 s)', only: 'after', size: [1280, 216], from: 'the Motion page’s frame strip (7 October)' },
+      { name: 'pet', caption: 'Petting Moustache: kneeling, a hand reached out to him', only: 'after', size: [1280, 216], from: 'the Motion page’s frame strip (7 October)' },
+    ], see: 'Pick up a feather in Vael, a flower at home, or pet Moustache at home: walking off stands him up at once.' },
   ],
   '0.81': [
     { match: 'What’s new (N) has a See what changed button', shots: [

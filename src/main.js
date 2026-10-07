@@ -44,6 +44,7 @@ import { Journal, Relics, Story, Errands } from './quest.js';
 import { CONTENT, ERRANDS } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
+import { movesSetting } from './loco-moves.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { loadPeople, usesMakeHuman } from './makehuman/people.js';
@@ -347,6 +348,7 @@ if (lib) {
   // traveller's motion matching only when it is switched on (the dev menu, ?mm=1)
   const matching = matchingSetting.get();
   loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
+  player.locoMoves = movesSetting.get();
 }
 const humanT = await humans;
 // the people on MakeHuman bodies (each by their age, build and world); the traveller stays on his own body
@@ -568,7 +570,9 @@ const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.qu
   matching: lib && {
     get: () => !!player.animator?.matching,
     set: (on) => { matchingSetting.set(on); loadMotionLibrary(lib, { matching: on }).then(() => { if (player.animator) player.animator.matching = on && !!lib.motion?.db; devMenu.render(); }); },
-  } });
+  },
+  // (the captured starts, stops and turns over the loops: src/loco-moves.js)
+  moves: { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; devMenu.render(); } } });
 window.addEventListener('keydown', (e) => {
   if (!boxes.busy() || e.repeat) return;
   if (e.code === 'Escape') boxes.skip();

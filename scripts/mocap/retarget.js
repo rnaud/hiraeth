@@ -78,7 +78,7 @@ const gauss = (arr, n, dim, sigma) => {
  *   root: Float32Array(n*3) (x, z, yaw), feet: { ankleL, ankleR, ballL, ballR, toeL, toeR: Float32Array(n*3) in
  *   the target's metres, on a floor at y = 0 (world, not root-relative) } }
  */
-export function retarget(take, T, { posSigma = 0.1, yawSigma = 0.2 } = {}) {
+export function retarget(take, T, { posSigma = 0.1, yawSigma = 0.2, root: pin = null, head = false } = {}) {
   const { map, landmarks: L } = take, n = take.n, B = T.bones;
   const up = new THREE.Vector3(0, 1, 0);
   // scale: the target's leg over the source's
@@ -124,6 +124,14 @@ export function retarget(take, T, { posSigma = 0.1, yawSigma = 0.2 } = {}) {
   const yaw = gauss(raw.filter((_, k) => k % 3 === 2), n, 1, yawSigma * take.fps);
   const root = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) { root[i * 3] = pos[i * 2]; root[i * 3 + 1] = pos[i * 2 + 1]; root[i * 3 + 2] = yaw[i]; }
+  // a root held still (`pin`): 'fixed' at its mean place and facing (a clip on the spot: the hips sway
+  // over still feet), 'end' where it ends (a get-up: from lying down to standing there)
+  if (pin === 'fixed' || pin === 'end') {
+    let x = 0, z = 0, y = 0;
+    if (pin === 'end') { x = root[(n - 1) * 3]; z = root[(n - 1) * 3 + 1]; y = root[(n - 1) * 3 + 2]; }
+    else { for (let i = 0; i < n; i++) { x += root[i * 3]; z += root[i * 3 + 1]; y += root[i * 3 + 2]; } x /= n; z /= n; y /= n; }
+    for (let i = 0; i < n; i++) { root[i * 3] = x; root[i * 3 + 1] = z; root[i * 3 + 2] = y; }
+  }
 
   const local = Object.fromEntries(BONES.map((k) => [k, new Float32Array(n * 4)]));
   const pelvisPos = new Float32Array(n * 3);
@@ -136,7 +144,8 @@ export function retarget(take, T, { posSigma = 0.1, yawSigma = 0.2 } = {}) {
     const rootPos = a.set(root[i * 3], 0, root[i * 3 + 1]).clone();
     for (const k of BONES) {
       // (a fixed bone keeps its rest turn on its parent: its children are aimed in the world all the same)
-      if (FIXED.has(k)) { world[k] = world[B[k].parent].clone().multiply(B[k].lq); continue; }
+      // (`head`: the head's own turn too, for a clip that looks about: the Animator turns the skull with it)
+      if (FIXED.has(k) && !(head && k === 'Head')) { world[k] = world[B[k].parent].clone().multiply(B[k].lq); continue; }
       const m = map[k];
       take.rotation(m.rot, i, R);
       q.copy(R).multiply(B[k].wq);                         // rest-relative transfer (world)

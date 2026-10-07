@@ -5,7 +5,9 @@ import { Gear } from './gear.js';
 import { items as sharedItems } from './items.js';
 import { HANDOFF } from './fluid-kit.js';
 import { inTightRoom } from './interiors.js';
-import { Knockdown, toppleVelocities } from './ragdoll.js';
+import { Knockdown, toppleVelocities, getUpPlacement, GET_UP } from './ragdoll.js';
+import { LocoMoves } from './loco-moves.js';
+import { AirMoves } from './air-moves.js';
 import { SWIM, swimFrame, swimPose, leaveSwim } from './swim.js';
 import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
 import { triggers } from './controller.js';
@@ -59,6 +61,13 @@ export function jetFlight(f, s, camF, camR, U, pitch = JET.level, out = new THRE
 
 /** m: the jets' lean turns the body about its hips, this high over the feet. */
 const JET_PIVOT = 1.0;
+// the gestures (Player.gesture): Mixamo's kneeling inspection (kneeling from its first frame: eased
+// in over `in` s, held, eased out over `out`, its hands' bit of `loop` s round and round), and for
+// petting the petting's stroking arm over it
+const GESTURES = {
+  kneel: { clip: 'kneeling_inspecting', from: 0.2, loop: 4.4, in: 0.45, out: 0.5 },
+  pet: { clip: 'petting_animal', from: 2.5, loop: 8, w: 0.85 },
+};
 /**
  * The jets' pose for a flight at `hs` m/s across and `vu` m/s up: the body's lean (rad, about
  * the hips: 0 upright, π/2 flat out, more head first into a dive) and how far the arms reach
@@ -699,8 +708,14 @@ export class Player {
         return;
       }
       if (up) {
-        // get up facing the way you lay (toward the feet from the back, toward the head from the front)
-        if (H) this.heading = this.frame.headingOf(D.rag.riseDir(U, _g1));
+        // get up facing the way you lay (toward the feet from the back, toward the head from the front);
+        // with the captured get-ups (moves.glb), the one for how you lie, placed so its first frame lies
+        // where you lie
+        const A = this.animator;
+        const G = H && A && this.locoMoves !== false && D.chooseGetUp(U, (n) => !!A.moveClip(n));
+        const at = G && getUpPlacement(D, A, this.frame, this.pos);
+        if (at) { this.heading = at.heading; this.pos.copy(at.pos); }
+        else { D.getUp = null; if (H) this.heading = this.frame.headingOf(D.rag.riseDir(U, _g1)); }
         this.unstick();
         this.physics.pushCapsule(this.pos, RADIUS, STEP, HEIGHT, this._push, U);
         D.beginRise();
@@ -710,17 +725,23 @@ export class Player {
         return;
       }
     }
-    // the rise: the standing pose, down on one knee at first, blended in from lying there
+    // the rise: the get-up clip, or the standing pose down on one knee at first, blended in from lying there
     this.onGround = true; this._wasAir = false;
+    this._riseMove = D.getUp ? { name: D.getUp.clip, t: D.riseClipT, w: 1 } : null;
     this.animate(dt, 0);
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
     if (H) {
       H.update();
       if (this.animator) H.poseHands(this.animator);
-      H.kneel(D.kneel, { up: U, fwd: this.frame.dir(this.heading, _g1).clone(), ground: this.pos.dot(U) });
+      if (!D.getUp) H.kneel(D.kneel, { up: U, fwd: this.frame.dir(this.heading, _g1).clone(), ground: this.pos.dot(U) });
     }
-    if (D.rise(dt, U)) { this.down = null; this._safeTimer = 0; this.humanoid?.resetFeet(); }
+    if (D.rise(dt, U)) {
+      // (up: the clip eases out into the stand over GET_UP.out, as you take over)
+      if (D.getUp) this._riseOut = { name: D.getUp.clip, t: D.getUp.to, w: 1, rate: D.getUp.rate };
+      this._riseMove = null;
+      this.down = null; this._safeTimer = 0; this.humanoid?.resetFeet();
+    }
     this.finishDown(dt);
   }
 
@@ -730,6 +751,19 @@ export class Player {
     if (typeof H?.face?.update === 'function') H.face.update(dt, { speed: 0, climbing: false });   // (face is the morph now, a plain object: calling it threw and stopped the game on every knockdown)
     if (this.gear) this.gear.update(dt, _g4.set(0, 0, 0), this.phase ?? 0, 0);
     this.updateCloth(dt);
+  }
+
+  /**
+   * A gesture from motion capture (moves.glb), as you use something: 'kneel' (down on one knee to
+   * pick up or look at something low: Mixamo's kneeling inspection) or 'pet' (the kneel, with the
+   * petting's arms over it: stroking the dog). Played over `hold` s, eased in and out; walking off
+   * ends it. Returns false without the clips (or with the captured moves off).
+   */
+  gesture(kind, { hold = kind === 'pet' ? 1.8 : 1.1 } = {}) {
+    const A = this.animator;
+    if (this.locoMoves === false || !A?.moveClip(GESTURES.kneel.clip) || !this.onGround || this.ride || this.swim || this.climbing) return false;
+    this._gesture = { kind, t: 0, hold, w: 0 };
+    return true;
   }
 
   /** Jump to another place, e.g. through a portal, with a new "up" (speed: carry on walking along fwd). */
@@ -1079,6 +1113,7 @@ export class Player {
       this.onGround = false;
       jumped = true;
       this._jumped = true;   // (the pose's take-off: src/jump.js)
+      this._jumpedNow = true;   // (and the captured jump's: src/air-moves.js)
     }
     const jumpedNow = input.Space && !this._jumpHeld;
     this._jumpHeld = !!input.Space;
@@ -1667,6 +1702,7 @@ export class Player {
       this.stopClimb(false);
       this.vel.copy(n).multiplyScalar(6).addScaledVector(U, 8);
       this._climbCooldown = 0.5;
+      this._wallKick = true;   // (the captured kick off the wall: src/air-moves.js)
     }
     this._jumpHeld = !!input.Space;
     if (this.stamina <= 0) { this.stamina = 0; this.winded = true; this.stopClimb(false); this._climbCooldown = 1; }
@@ -1987,6 +2023,44 @@ export class Player {
       onGround: this.onGround, vy, airT: this._clipAirT = this.onGround ? 0 : (this._clipAirT ?? 0) + dt,
       h: this._groundH ?? Infinity, jumped: !!this._jumped, impact: this._impact ?? 0, speed: hs,
     });
+    // a get-up (Player.updateDown), and its last moment easing out once you have control again
+    const R = this._riseMove ?? this._riseOut;
+    if (R) A.play(R.name, R.t, R.w, { full: true, head: true });
+    if (this._riseOut && !this._riseMove) {
+      const O = this._riseOut;
+      O.w -= dt / GET_UP.out;   // (held on its last frame: past it the clip's fists come up)
+      if (O.w <= 0 || hs > 1.5) this._riseOut = null;
+    }
+    // a gesture (Player.gesture): kneeling to pick something up, petting the dog
+    const Gs = this._gesture;
+    if (Gs) {
+      Gs.t += dt;
+      const D = GESTURES.kneel, end = Gs.hold + D.in + D.out;
+      if (hs > 0.8 || !this.onGround || R) Gs.t = Math.max(Gs.t, Gs.hold + D.in);   // (walking off: up again)
+      Gs.w = THREE.MathUtils.smoothstep(Math.min(Gs.t / D.in, (end - Gs.t) / D.out), 0, 1);
+      if (Gs.t >= end) this._gesture = null;
+      else if (!R) {
+        A.play(D.clip, D.from + (Gs.t % D.loop), Gs.w, { full: true, head: true, free: true });
+        if (Gs.kind === 'pet') A.playUpper(GESTURES.pet.clip, GESTURES.pet.from + (Gs.t % GESTURES.pet.loop), Gs.w * GESTURES.pet.w);
+      }
+    }
+    // jumps, drops, the kick off a wall and a hard landing's stumble from motion capture (src/air-moves.js)
+    const captured = this.locoMoves !== false && !!A.lib.motion?.clips?.length && !A.matching;
+    A.idleMoves = captured;
+    const air = (this.airMoves ??= new AirMoves());
+    air.update(dt, { onGround: this.onGround, airT: this._clipAirT, tLand: J.phase?.tLand ?? Infinity, jumped: !!this._jumpedNow, wallKick: !!this._wallKick, speed: hs, impact: this._impact ?? 0,
+      free: captured && !R && !this._gesture && !this.ride && !this.swim && !this.gliding && !this.thrusting && !this.aim });
+    this._jumpedNow = this._wallKick = false;
+    if (!R) air.play(A);
+    // starts, stops, turns on the spot and the pivot at a run from motion capture (src/loco-moves.js),
+    // over the loops, played by the body's own motion (the controller is as it was)
+    const steering = !!(this._moveDir && this._moveDir.lengthSq() > 0.01 && (this._wantSpeed ?? 0) > 0);
+    if (this.locoMoves !== false && A.lib.motion?.clips?.length) {
+      if (this.moves?.A !== A) this.moves = new LocoMoves(A);
+      const free = this.onGround && !this.aim && !this.ride && !this.swim && !this.overlay && !this.down && !this.climbing && !A.matching && !R && !air.cur && !this._gesture;
+      this.moves.update(dt, { speed: hs, steering, wantSpeed: this._wantSpeed ?? 0, heading: this.heading, want: steering ? this.frame.headingOf(this._moveDir) : null, ground: free, size: A.legRatio });
+      this.moves.play(A);
+    }
     // our walk / run speeds land on the walk and sprint clips; jog in between
     A.update(dt, {
       speed: hs, onGround: this.onGround, mode: 'ground', vy, jump: this.onGround ? null : J.phase,
@@ -2004,7 +2078,7 @@ export class Player {
     const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim ? this.frame.headingOf(this._moveDir) : null;
     (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim });
     this.loco.pose(c);
-    J.pose(c);
+    J.pose(c, 1 - 0.6 * (A.legsW ?? 0));   // (a captured jump in the air, or its landing, has its own: a little of the tuck stays)
     if (this.edge?.k > 0.01 && this.onGround) this.edge.pose(c, 1 - THREE.MathUtils.smoothstep(hs, 0.6, 2.6));
     this.idleLayer(dt, hs);
     if (this.onGround && !this.humanoid) this.footIK(dt);
@@ -2032,7 +2106,8 @@ export class Player {
    * looks around now and then. The foot IK keeps both feet planted.
    */
   idleLayer(dt, hs) {
-    const target = this.onGround && !this.ride && hs < 0.35 && !this.climbing ? 1 : 0;
+    // (not under a move of the clips' own: a turn on the spot, a stop's settling steps, a kneel)
+    const target = this.onGround && !this.ride && hs < 0.35 && !this.climbing ? 1 - (this.animator?.legsW ?? 0) : 0;
     const k = this._still = THREE.MathUtils.lerp(this._still ?? target, target, 1 - Math.exp(-(target ? 2.5 : 8) * dt));
     if (k < 0.01) return;
     const c = this.char, t = this.time;
@@ -2061,7 +2136,8 @@ export class Player {
       rot(c.elbows[i], -0.28 - hook * 0.9, 0, 0);
     }
     // glances: hold, turn the head, hold
-    const look = Math.tanh(2.5 * Math.sin(t * 0.21)) * 0.45 + Math.sin(t * 0.9) * 0.03;
+    // (not while a captured idle looks about on its own: Animator idleMoves)
+    const look = (Math.tanh(2.5 * Math.sin(t * 0.21)) * 0.45 + Math.sin(t * 0.9) * 0.03) * (1 - (this.animator?.moveW ?? 0));
     rot(c.head, IDLE_HEAD + Math.max(0, Math.sin(t * 0.13)) * 0.12, look, 0);
   }
 

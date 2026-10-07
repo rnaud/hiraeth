@@ -13,6 +13,7 @@
 //     at: () => Vector3,                  // optional: where the floating prompt hangs
 //     use: (player) => {},                // pressed
 //     enabled: () => true,                // optional
+//     gesture: 'kneel' | 'pet' | null,    // optional: what the body does as it is used (gestureOf guesses)
 //   });
 //   off();                                // unregister
 //
@@ -67,6 +68,26 @@ export function facingWeight(player, e) {
   return 1 + FACING * (1 - (dx * f.x + dz * f.z) / (L * fl));
 }
 
+/** Under this (m over your feet) a thing you pick up or take is low: you kneel for it. */
+export const LOW = 1.1;
+
+/**
+ * What the traveller's body does as he uses an entry (Player.gesture): its own `gesture` if it says
+ * (a name, or null for none); else 'pet' for petting, 'kneel' for picking up or taking something
+ * low (its prompt's place under LOW over his feet), else nothing.
+ */
+export function gestureOf(e, player) {
+  if (e.gesture !== undefined) return e.gesture;
+  const p = String(typeof e.prompt === 'function' ? e.prompt() : e.prompt ?? '');
+  if (/^pet\b/i.test(p)) return 'pet';
+  if (!/^(pick( up)?|take|gather|collect)\b/i.test(p)) return null;
+  const at = e.at?.(), pos = player?.pos;
+  if (!at || !pos) return null;
+  const up = player.frame?.up;
+  const h = up ? (at.x - pos.x) * up.x + (at.y - pos.y) * up.y + (at.z - pos.z) * up.z : at.y - pos.y;
+  return h < LOW ? 'kneel' : null;
+}
+
 /** The interactable that E would use right now, or null: { entry, distance }. */
 export function bestInteractable(player, { riding = !!player?.riding } = {}) {
   let best = null, bd = Infinity, bs = Infinity, bp = -Infinity;
@@ -88,7 +109,12 @@ export function bestInteractable(player, { riding = !!player?.riding } = {}) {
  */
 export function updateInteract(player, pressed, o = {}) {
   const best = bestInteractable(player, o);
-  if (best && pressed) best.entry.use(player);
+  if (best && pressed) {
+    // (and the body goes with it: down on one knee to pick up something low, petting the dog)
+    const g = gestureOf(best.entry, player);
+    best.entry.use(player);
+    if (g) player.gesture?.(g);
+  }
   const prompt = best ? (typeof best.entry.prompt === 'function' ? best.entry.prompt() : best.entry.prompt) : null;
   return { prompt, entry: best?.entry ?? null, handled: !!(best && pressed) };
 }

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { worldPos, worldQuat, updateRig } from './world-read.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
-import { MotionMatcher, MATCH } from './motion-match.js';
+import { MotionMatcher, MATCH, mirrorClip } from './motion-match.js';
 
 // Motion from Quaternius' Universal Animation Library (CC0, public/anim/),
 // retargeted onto our hand-built rider rig.
@@ -24,6 +24,11 @@ const CLIPS = { idle: 'Idle_Loop', walk: 'Walk_Loop', jog: 'Jog_Fwd_Loop', sprin
   climbIdle: 'Climb_Idle_Loop', climbUp: 'Climb_Up_Loop', climbDown: 'Climb_Down_Loop', climbLeft: 'Climb_Left_Loop', climbRight: 'Climb_Right_Loop' };
 // the clips whose head turns on the neck as captured (Animator.apply): on foot
 const HEAD_NOD = ['idle', 'walk', 'jog', 'sprint', 'talk', 'look'];
+// the traveller's idle variants after standing 7 s (Animator.idleMoves), in turn with IDLE_GAP s between
+const IDLE_VARIANTS = ['looking_around', 'breathing_idle', 'look'];
+const IDLE_GAP = 10;
+// the rig's hips over its body's origin (player.js buildCharacter: the thighs' pivots, the pelvis)
+const HIP_PIVOT = 0.97;
 const CLIMB = ['climbIdle', 'climbUp', 'climbDown', 'climbLeft', 'climbRight'];
 
 let libPromise = null;
@@ -241,6 +246,7 @@ export class Animator {
       return [s, { along: along.applyQuaternion(inverse), normal: normal.applyQuaternion(inverse) }];
     }));
     this.restHips = this.hips.getWorldPosition(new THREE.Vector3());
+    this.restAnkleY = this.bone('foot_l').getWorldPosition(new THREE.Vector3()).y;   // (the clips' floor: a standing ankle's height)
     this.restHipsQ = this.hips.getWorldQuaternion(new THREE.Quaternion());
     for (const a of Object.values(this.actions)) a.play();
     this.phase = 0;
@@ -260,6 +266,76 @@ export class Animator {
     this.matching = false;
     this.mm = null;
     this.mmW = 0;
+    // a move of the traveller's own (lib.motion.clips: a get-up, a jump, a kneel, the petting) laid
+    // over all of it this frame: play(); moveW its share, fullW how much of the body follows its hips
+    this.moveReq = null;
+    this.moveW = 0;
+    this.legsW = 0;   // (its share of the legs: 0 for one laid on above them)
+    this.fullW = 0;
+    this.groundW = 0;
+    this.headW = 0;
+    this.moveActs = new Map();
+  }
+
+  /** A move (lib.motion.clips) by name, or null: `mixamo_get_up_back`, or just `get_up_back`. */
+  moveClip(name) {
+    const clips = this.lib.motion?.clips;
+    if (!clips?.length || !name) return null;
+    const by = (this.lib._moveBy ??= new Map());
+    if (!by.has(name)) {
+      // (`<name>_m`: the move in a mirror, made once)
+      const find = (n) => clips.find((c) => c.name === n || c.name === `mixamo_${n}`) ?? null;
+      const own = find(name), base = !own && name.endsWith('_m') ? find(name.slice(0, -2)) : null;
+      by.set(name, own ?? (base ? mirrorClip(base) : null));
+    }
+    return by.get(name);
+  }
+
+  /**
+   * Play a move this frame (call before update()): `t` s into it, weight `w` (0..1) over the blend.
+   * o.full: the body follows the clip's hips all the way (lying, kneeling, a get-up; else the
+   * walk's 0.6 of their sway and half their turn); o.ground: the clip's own rise off the floor is
+   * left out (a jump in the air: the body's flight is the controller's); o.head: the clip turns the
+   * head on the neck (on foot); o.walks: a start, a stop or a turn (the gait's share and the stride's
+   * sweep from the clip's own path and its playback `rate`, clip s a s, so the feet plant as the
+   * loops' do); o.legs false: the body above the hips only (and the hips' height), the legs and the
+   * feet left to the loops (a stop's braking, a start's lean, the pivot's twist at speeds the clips
+   * don't walk at); o.free: the feet let go of where they stand and follow the clip's (a kneel: one
+   * goes back, a knee down). Returns false when the clip isn't there (moves.glb not loaded).
+   */
+  play(name, t, w, { full = true, ground = false, head = true, walks = false, rate = 1, legs = true, free = false } = {}) {
+    const clip = this.moveClip(name);
+    if (!clip || !(w > 0.001)) return !!clip;
+    this.moveReq = { clip, t: THREE.MathUtils.clamp(t, 0, clip.duration), w: Math.min(w, 1), full: full && legs, ground, head, walks: walks && legs, rate, legs, free };
+    return true;
+  }
+
+  /**
+   * A second move this frame above the legs only (on top of play()'s, which may hold the legs: the
+   * petting's arms over the kneel). Same names and times as play().
+   */
+  playUpper(name, t, w) {
+    const clip = this.moveClip(name);
+    if (!clip || !(w > 0.001)) return !!clip;
+    this.upperReq = { clip, t: THREE.MathUtils.clamp(t, 0, clip.duration), w: Math.min(w, 1), legs: false, head: true };
+    return true;
+  }
+
+  /** The move's contacts at `t` (its own, labelled on the capture: scripts/mocap/process.js), { l, r } 0..1. */
+  moveContact(clip, t, out) {
+    const ud = clip.userData ?? {};
+    if (ud.feet === undefined) {
+      ud.feet = null;
+      if (ud.contact?.l) {
+        const dec = (s) => { const b = typeof atob === 'function' ? atob(s) : Buffer.from(s, 'base64').toString('binary'); const u = new Float32Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i) / 255; return u; };
+        ud.feet = { l: dec(ud.contact.l), r: dec(ud.contact.r) };
+      }
+    }
+    if (!ud.feet) { out.l = out.r = 1; return out; }
+    const fps = ud.fps ?? 30, n = ud.feet.l.length, x = Math.min(t * fps, n - 1), i = Math.floor(x), k = x - i, j = Math.min(i + 1, n - 1);
+    out.l = ud.feet.l[i] * (1 - k) + ud.feet.l[j] * k;
+    out.r = ud.feet.r[i] * (1 - k) + ud.feet.r[j] * k;
+    return out;
   }
 
   /** Start the gait and the standing loops at `k` (0..1) of their cycle: people side by side don't breathe or step in time. */
@@ -363,7 +439,23 @@ export class Animator {
     // standing a while: now and then look around properly
     this.idleT = tw.idle > 0.99 ? this.idleT + dt : 0;
     const look = this.clips.look;
-    if (look && this.idleT > 7) {
+    // (the traveller, idleMoves: Mixamo's looking about and breathing idle take turns with the
+    // library's look-around, above the legs, so the feet stay as they stand: IDLE_VARIANTS)
+    const variants = this.idleMoves ? IDLE_VARIANTS.map((v) => (v === 'look' ? (look ? { look, d: look.duration } : null) : (() => { const c = this.moveClip(v); return c && { clip: c, d: c.duration }; })())).filter(Boolean) : null;
+    if (variants?.length && this.idleT > 7) {
+      const gap = IDLE_GAP, cycle = variants.reduce((a, v) => a + v.d + gap, 0);
+      let lt = (this.idleT - 7) % cycle;
+      for (const v of variants) {
+        if (lt < v.d) {
+          const k = Math.min(lt / 0.8, (v.d - lt) / 0.8, 1);
+          if (v.look) { tw.look = k; tw.idle = 1 - k; this.actions.look.time = lt; }
+          else if (!this.moveReq && k > 0.001) this.moveReq = { clip: v.clip, t: lt, w: k, full: false, ground: false, head: true, walks: false, rate: 1, legs: false };
+          break;
+        }
+        lt -= v.d + gap;
+        if (lt < 0) break;
+      }
+    } else if (look && this.idleT > 7) {
       const lt = (this.idleT - 7) % (look.duration + 14);
       if (lt < look.duration) {
         const k = Math.min(lt / 0.6, (look.duration - lt) / 0.6, 1);
@@ -439,9 +531,84 @@ export class Animator {
       const key = k === 'jumpLoop' ? 'air' : k;
       a.setEffectiveWeight(this.w[key] ?? 0);
     }
+    this.cps = cps;
+    this.layMove(size);
     this.mixer.update(0);
+    if (this.move?.legs === false) this.overlayMove(this.move);
+    if (this.upperReq) { this.overlayMove(this.upperReq); this.headW = Math.max(this.headW, this.upperReq.w); this.upperReq = null; }
     this.match(dt, s, landing, size);
     this.src.updateMatrixWorld(true);
+  }
+
+  /** This frame's move (play()) over the blend: its share off every other clip's weight, the feet by its contacts. */
+  layMove(size = 1) {
+    const M = this.moveReq;
+    this.moveReq = null;
+    const w = M ? M.w : 0;
+    for (const [clip, a] of this.moveActs) if (!M || clip !== M.clip) a.setEffectiveWeight(0);
+    this.moveW = w; this.legsW = M && M.legs !== false ? w : 0; this.fullW = M?.full ? w : 0; this.groundW = M?.ground ? w : 0; this.headW = M?.head ? w : 0;
+    this.move = M;
+    if (!M) return;
+    if (M.legs === false) return;   // (laid on after the mixer: overlayMove)
+    let a = this.moveActs.get(M.clip);
+    if (!a) { a = this.mixer.clipAction(M.clip); a.enabled = true; a.play(); this.moveActs.set(M.clip, a); }
+    for (const b of Object.values(this.actions)) b.setEffectiveWeight(b.getEffectiveWeight() * (1 - w));
+    a.setEffectiveWeight(w);
+    a.time = M.t;
+    // (the feet: the move's own contacts; no gait, no landing to wait for)
+    const c = M.free ? Object.assign(this._mc ??= {}, { l: 0, r: 0 }) : this.moveContact(M.clip, M.t, (this._mc ??= { l: 1, r: 1 }));
+    const P = M.clip.userData?.path, fps = M.clip.userData?.fps ?? 30;
+    for (const f of ['l', 'r']) {
+      this.contact[f] += (c[f] - this.contact[f]) * w;
+      if (w > 0.5) this.toContact[f] = c[f] > 0.5 ? 0 : M.walks ? this.moveLead(M.clip, M.t, f) / Math.max(M.rate, 0.05) : Infinity;
+    }
+    if (M.walks && P) {
+      // (a start or a stop walks: the gait's share and the stride's sweep are the clip's own)
+      const i = Math.min(Math.round(M.t * fps), P.speed.length - 1), sp = P.speed[i];
+      this.gaitW += (THREE.MathUtils.smoothstep(sp, 0.15, 0.55) - this.gaitW) * w;
+      this.footSpeed += (sp * M.rate * size - this.footSpeed) * w;
+    } else {
+      this.gaitW *= 1 - w;
+      this.footSpeed *= 1 - w;
+    }
+  }
+
+  /** A move on the body above the legs (play's legs: false), over the blend the mixer made: each bone turned toward the clip's by its weight. */
+  overlayMove(M) {
+    if (!M) return;
+    const ud = M.clip.userData ?? (M.clip.userData = {});
+    ud.upper ??= M.clip.tracks.flatMap((t) => {
+      const dot = t.name.lastIndexOf('.'), bone = t.name.slice(0, dot), prop = t.name.slice(dot + 1);
+      return /^(thigh|calf|foot|ball)_|^pelvis$/.test(bone) ? [] : [{ prop, bone, ip: t.createInterpolant() }];
+    });
+    for (const u of ud.upper) {
+      const b = (u.b ??= new Map()).get(this) ?? (u.b.set(this, this.bone(u.bone)), u.b.get(this));
+      if (!b) continue;
+      const v = u.ip.evaluate(M.t);
+      if (u.prop === 'quaternion') b.quaternion.slerp(_q.fromArray(v), M.w);
+      else if (u.prop === 'position') b.position.lerp(_a.fromArray(v), M.w);
+    }
+  }
+
+  /** Seconds of the move (at rate 1) from `t` until foot `f` comes down again (Infinity: not before it ends). */
+  moveLead(clip, t, f) {
+    const feet = clip.userData?.feet, fps = clip.userData?.fps ?? 30;
+    if (!feet) return Infinity;
+    const a = feet[f], n = a.length;
+    for (let i = Math.ceil(t * fps); i < n; i++) if (a[i] > 0.5 && (i === 0 || a[i - 1] <= 0.5)) return i / fps - t;
+    return Infinity;
+  }
+
+  /**
+   * Set the loops' shared phase so foot `f` came down `since` s ago (at this cadence): a start or a
+   * pivot hands over to the walk or the run in step, not with the feet crossed.
+   */
+  alignPhase(f, since) {
+    const G = this.gait;
+    if (!G) return;
+    const k = ['walk', 'jog', 'sprint'].reduce((a, b) => ((this.w[b] ?? 0) > (this.w[a] ?? 0) ? b : a), 'walk');
+    const c = G.clips[k];
+    this.phase = ((touchdown(c.contact[f]) - (c.phase ?? 0) + since * (this.cps ?? 1)) % 1 + 1) % 1;
   }
 
   /**
@@ -478,7 +645,8 @@ export class Animator {
     // (in quickly; out quickly when the body outruns the clips, which the feet would show at once)
     this.mmW += (target - this.mmW) * (1 - Math.exp(-(target > this.mmW ? 10 : this._mmLag ? 25 : 7) * dt));
     if (this.mmW < 0.001) { this.mmW = 0; return; }
-    const k = this.mmW, M = this.mm;
+    const k = this.mmW * (1 - this.moveW), M = this.mm;
+    if (k < 0.001) return;
     this._mmBones ??= db.bones.map((n) => this.bone(n));
     this._mmBones.forEach((b, i) => b.quaternion.slerp(_q.fromArray(M.outQ, i * 4), k));
     this.hips.position.lerp(_a.fromArray(M.outP), k);
@@ -500,8 +668,23 @@ export class Animator {
     const hp = worldPos(this.hips, _a);
     const hq = worldQuat(this.hips, _q);
     _q2.copy(this.restHipsQ).invert().premultiply(hq);   // hq * rest^-1
-    C.body.position.set((hp.x - this.restHips.x) * 0.6, (hp.y - this.restHips.y) * legScale - drop, 0);
-    C.body.quaternion.setFromEuler(new THREE.Euler(lean, 0, bank)).multiply(_q2.slerp(_qp.identity(), 0.5));
+    // (a move that lies, kneels or gets up (fullW): the body follows its hips all the way, not the
+    // walk's 0.6 of their sway and half their turn; in the air (groundW), the clip's own rise off the
+    // floor is left out: the controller flies the body)
+    const fw = this.fullW;
+    let lift = 0;
+    if (this.groundW > 0) {
+      const ankle = Math.min(worldPos(this.bone('foot_l'), _d).y, worldPos(this.bone('foot_r'), _r).y);
+      lift = Math.max(0, ankle - this.restAnkleY) * this.groundW;
+    }
+    C.body.position.set((hp.x - this.restHips.x) * (0.6 + 0.4 * fw), (hp.y - this.restHips.y - lift) * legScale - drop, (hp.z - this.restHips.z) * fw);
+    C.body.quaternion.setFromEuler(new THREE.Euler(lean, 0, bank)).multiply(_q2.slerp(_qp.identity(), 0.5 * (1 - fw)));
+    // (turned about the hips, not the feet: the walk's small turns never showed the difference, a body
+    // lying down does: turned 90° about the ground under it, the hips went a metre to the side, into the floor)
+    if (fw > 0) {
+      const piv = _x.set(0, HIP_PIVOT, 0), turned = _y.copy(piv).applyQuaternion(_q2);
+      C.body.position.addScaledVector(piv.sub(turned), fw);
+    }
     updateRig(root);
     // (the rig's matrices current from here: the root's update, then each joint's own after it turns)
     const rootQ = worldQuat(root, _qp);
@@ -538,7 +721,7 @@ export class Animator {
     if (C.headNod && this.restHead) {
       let k = 0;
       for (const key of HEAD_NOD) k += this.actions[key]?.getEffectiveWeight() ?? 0;
-      k = Math.min(1, k);
+      k = Math.min(1, k + this.headW);
       const want = worldQuat(this.bone('Head'), _q).multiply(_q2.copy(this.restHead).invert()).premultiply(rootQ);
       C.headNod.quaternion.copy(worldQuat(C.head, _q2).invert().multiply(want)).slerp(_q.identity(), 1 - k);
       C.headNod.updateMatrixWorld(true);

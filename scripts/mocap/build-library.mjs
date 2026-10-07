@@ -19,21 +19,23 @@ import { asfAmcTake, CMU_MAP, CMU_POINTS } from './asf-amc.js';
 import { bvhTake } from './bvh.js';
 import { resampleTake, mirrorTake } from './take.js';
 import { otherSide } from './maps.js';
-import { targetSkeleton, retarget, BONES, TRACKS } from './retarget.js';
-import { footContacts, cleanClip, findLoop, rootMotion, sliceClip } from './process.js';
+import { targetSkeleton, retarget, BONES, TRACKS as TRACKS_DB } from './retarget.js';
+// (a clip of its own keeps the head's turn too: the looking about, the petting)
+const TRACKS_CLIP = [...TRACKS_DB.slice(0, 4), 'Head', ...TRACKS_DB.slice(4)];
+import { footContacts, cleanClip, findLoop, wholeLoop, rootMotion, sliceClip } from './process.js';
 import { writeGLB, toBase64 } from './glb.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
 const RAW = resolve(ROOT, 'data/mocap/raw');
 const MIXAMO = resolve(ROOT, 'data/mocap/mixamo');
-const OUT = resolve(ROOT, 'public/anim/locomotion.glb'), WALKS = resolve(ROOT, 'public/anim/walks.glb');
+const OUT = resolve(ROOT, 'public/anim/locomotion.glb'), WALKS = resolve(ROOT, 'public/anim/walks.glb'), MOVES = resolve(ROOT, 'public/anim/moves.glb');
 const FPS = 30;
 const args = process.argv.slice(2);
 const STATS = args.includes('--stats');
 
 // how much of the matching database to ship (frames at 30 fps, before the runtime's mirrored copy)
-const DB_BUDGET = 7500;   // (the CMU takes fill ~5900 of it: the rest is room for the Mixamo list)
+const DB_BUDGET = 9000;   // (the CMU takes fill ~5900 of it, Mixamo's starts, stops and turns ~1300: the rest is room)
 
 const parseGLB = async (file) => {
   const b = await readFile(file);
@@ -71,7 +73,14 @@ async function sources() {
     const key = basename(f, extname(f));
     const info = mix.clips.find((c) => c.file.toLowerCase() === key.toLowerCase());
     if (!info) { console.warn(`  mixamo: ${f} is not in scripts/mocap/mixamo-clips.json; skipped`); continue; }
-    list.push({ id: `mixamo_${info.id}`, use: info.use, desc: `${info.name}: ${info.desc}`, source: `Mixamo "${info.name}" (${info.desc})`, inPlace: info.inPlace, loop: info.loop, opts: { loop: !!info.loop && info.use === 'mm' }, load: async () => {
+    // (Mixamo's clips are single moves, many under a second: a loop is one whole cycle, a turn on the
+    // spot 0.9 s. Standing ones (in place, or `root` in the table) keep their root still, so the hips'
+    // sway and a get-up's rise stay in the pose instead of sliding the feet; `still`: an idle, smoothed
+    // as the CMU idles are)
+    const uses = info.use.split('+');
+    list.push({ id: `mixamo_${info.id}`, use: uses[0], uses, desc: `${info.name}: ${info.desc}`, source: `Mixamo "${info.name}" (${info.desc})`, inPlace: info.inPlace, loop: info.loop, mixamo: true,
+      still: info.still ?? (/idle/i.test(info.desc) && !/turn|walk|run/i.test(info.desc)), root: info.root ?? (info.inPlace && uses[0] !== 'mm' ? 'fixed' : null),
+      opts: { loop: !!info.loop && uses.includes('mm'), minLength: 0.5 }, load: async () => {
       const { fbxTake } = await import('./fbx.js');
       const b = await readFile(resolve(MIXAMO, f));
       return fbxTake(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), { fps: FPS, name: key });
@@ -80,7 +89,9 @@ async function sources() {
   return list;
 }
 
-const idleLike = (desc) => /idle|stand|wait|shift|look/i.test(desc);
+const idleLike = (src) => (src.mixamo ? src.still : /idle|stand|wait|shift|look/i.test(src.desc));
+/** Does a take go to `use` (mm, npc, clip, ref)? Mixamo rows may list two ('mm+clip'). */
+const goes = (src, use) => (src.uses ?? [src.use]).includes(use);
 
 /** One source -> its cleaned clips (each with contacts and per-frame motion). */
 async function convert(src) {
@@ -88,9 +99,9 @@ async function convert(src) {
   take = resampleTake(take, FPS);
   // (standing still, the ground track is smoothed much more: the hips sway as the weight shifts,
   // the feet don't move, and a root that followed the hips would seem to slide them about)
-  const r = retarget(take, T, idleLike(src.desc) ? { posSigma: 0.8, yawSigma: 0.8 } : {});
+  const r = retarget(take, T, { ...(idleLike(src) ? { posSigma: 0.8, yawSigma: 0.8 } : {}), root: src.root, head: goes(src, 'clip') });
   r.contact = footContacts(r);
-  let clips = cleanClip(r, { idle: idleLike(src.desc) || src.use !== 'mm' }).map((c) => ({ ...c, contact: footContacts(c) }));
+  let clips = cleanClip(r, { idle: idleLike(src) || !goes(src, 'mm'), minLength: src.opts?.minLength ?? 1, turnMoves: !!src.mixamo }).map((c) => ({ ...c, contact: footContacts(c) }));
   // the take's options: skip `from` seconds, keep at most `max` (over its pieces, in order)
   const o = src.opts ?? {};
   if (o.from || o.max) {
@@ -130,7 +141,7 @@ for (const src of list) {
 }
 if (STATS) {
   for (const use of ['mm', 'npc', 'ref']) {
-    const frames = results.filter((r) => r.src.use === use).reduce((a, r) => a + r.clips.reduce((b, c) => b + c.n, 0), 0);
+    const frames = results.filter((r) => goes(r.src, use)).reduce((a, r) => a + r.clips.reduce((b, c) => b + c.n, 0), 0);
     console.log(`${use}: ${frames} frames (${(frames / FPS).toFixed(0)} s)`);
   }
   process.exit(0);
@@ -149,7 +160,7 @@ const nodeOf = (n) => 1 + order.indexOf(n);
 const u8 = (arr) => toBase64(Uint8Array.from(arr, (x) => Math.round(Math.max(0, Math.min(1, x)) * 255)));
 
 /** Clips end to end as one animation; each segment's ground track starts at the origin facing +z. */
-function packSheet(name, segs, extras, { rootMotion: withRoot = true } = {}) {
+function packSheet(name, segs, extras, { rootMotion: withRoot = true, tracks: TRACKS = TRACKS_DB } = {}) {
   const n = segs.reduce((a, s) => a + s.c.n, 0);
   const rot = Object.fromEntries(TRACKS.map((k) => [k, new Float32Array(n * 4)]));
   const pel = new Float32Array(n * 3), t = new Float32Array(n * 3), q = new Float32Array(n * 4);
@@ -179,7 +190,7 @@ function packSheet(name, segs, extras, { rootMotion: withRoot = true } = {}) {
 const sheets = [], report = { mm: [], npc: [] };
 let dbFrames = 0;
 const mm = [];
-for (const { src, clips: cs } of results.filter((r) => r.src.use === 'mm')) {
+for (const { src, clips: cs } of results.filter((r) => goes(r.src, 'mm'))) {
   cs.forEach((c, k) => {
     if (dbFrames + c.n > DB_BUDGET) { console.warn(`  ${src.id}: over the database's budget, left out`); return; }
     dbFrames += c.n;
@@ -192,7 +203,8 @@ for (const { src, clips: cs } of results.filter((r) => r.src.use === 'mm')) {
   // (the capture volume ends every take after a few strides)
   if (src.opts?.loop && cs.length) {
     const c = cs.reduce((a, b) => (b.n > a.n ? b : a), cs[0]);
-    const loop = findLoop(c);
+    // (a Mixamo loop is a whole cycle as it is: its last frame is its first again, a cycle on)
+    const loop = src.mixamo ? wholeLoop(c) : findLoop(c);
     if (!loop) console.warn(`  ${src.id}: no clean cycle for a loop`);
     else if (dbFrames + loop.n <= DB_BUDGET) {
       dbFrames += loop.n;
@@ -204,7 +216,7 @@ for (const { src, clips: cs } of results.filter((r) => r.src.use === 'mm')) {
 }
 if (mm.length) sheets.push(packSheet('mm_database', mm, { use: 'mm' }));
 const loops = [];
-for (const { src, clips: cs } of results.filter((r) => r.src.use === 'npc')) {
+for (const { src, clips: cs } of results.filter((r) => goes(r.src, 'npc'))) {
   // the longest piece's best single cycle
   const c = cs.reduce((a, b) => (b.n > a.n ? b : a), cs[0]);
   const loop = c && findLoop(c);
@@ -214,15 +226,19 @@ for (const { src, clips: cs } of results.filter((r) => r.src.use === 'npc')) {
   report.npc.push(`${src.id} ${(loop.n / FPS).toFixed(2)} s at ${loop.loop.speed.toFixed(2)} m/s (${src.desc})`);
 }
 const walkSheets = loops.length ? [packSheet('walk_loops', loops, { use: 'npc' }, { rootMotion: false })] : [];
-// anything else that is shipped (Mixamo's gestures, idles, ...: use 'clip'), one animation each
-for (const { src, clips: cs } of results.filter((r) => r.src.use === 'clip')) {
-  for (const [k, c] of cs.entries()) sheets.push(packSheet(`${src.id}${cs.length > 1 ? `_${k + 1}` : ''}`, [{ c, info: { name: src.id, source: src.source, desc: src.desc } }], { use: 'clip', loop: !!src.loop }, { rootMotion: !src.inPlace }));
+// anything else that is shipped (Mixamo's get-ups, jumps, idles, ...: use 'clip'), one animation each
+const moves = [];
+for (const { src, clips: cs } of results.filter((r) => goes(r.src, 'clip'))) {
+  for (const [k, c0] of cs.entries()) {
+    const c = src.loop && src.mixamo ? wholeLoop(c0) ?? c0 : c0;
+    moves.push(packSheet(`${src.id}${cs.length > 1 ? `_${k + 1}` : ''}`, [{ c, info: { name: src.id, source: src.source, desc: src.desc } }], { use: 'clip', loop: !!src.loop }, { rootMotion: !src.inPlace && !src.root, tracks: TRACKS_CLIP }));
+  }
 }
-// two files: the people's walks (small, loaded with the game) and the matching database with any
-// other clips (loaded when motion matching is on, and by the character studio)
-const extras = { generator: 'scripts/mocap/build-library.mjs', fps: FPS, tracks: TRACKS, credits: 'CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu), created with funding from NSF EIA-0196217; Mixamo (Adobe) where listed. See docs/motion-data.md.' };
+// three files: the people's walks and the traveller's own moves (small, loaded with the game), and
+// the matching database (loaded when motion matching is on, and by the character studio)
+const extras = { generator: 'scripts/mocap/build-library.mjs', fps: FPS, tracks: TRACKS_DB, credits: 'CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu), created with funding from NSF EIA-0196217; Mixamo (Adobe) where listed. See docs/motion-data.md.' };
 await mkdir(dirname(OUT), { recursive: true });
-for (const [file, list] of [[OUT, sheets], [WALKS, walkSheets]]) {
+for (const [file, list] of [[OUT, sheets], [WALKS, walkSheets], [MOVES, moves]]) {
   const glb = writeGLB({ nodes, clips: list, extras });
   await writeFile(file, glb);
   console.log(`${file}: ${(glb.length / 1024).toFixed(0)} KB`);
