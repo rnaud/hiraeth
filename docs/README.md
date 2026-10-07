@@ -47,7 +47,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [story.md](systems/story.md) | the story's systems: quests, errands, the father's charge, every world's story, the ending, the route and the galactic map, the strike's signature, the recordings, the desert reworked, quests that fail |
 | [progression.md](systems/progression.md) | progression: the route, the wings before the jets, the cab pass, Vael's bird |
 | [dialogue.md](systems/dialogue.md) | conversations and answers, listening, alien voices and the translator, the worlds' scripts, highlights, the conversation camera |
-| [conversations.md](systems/conversations.md) | conversations: the camera's cut, the gap between two people, the translator |
+| [conversations.md](systems/conversations.md) | conversations: the camera's cut, the close shot of the traveller's face and his answer beat, the gap between two people, the translator |
 | [cinematics.md](systems/cinematics.md) | the ship's cutscenes and the burning tree, moments (first times, filmed) |
 | [ship-consoles.md](systems/ship-consoles.md) | the ship's two consoles: the voicemail and the holo table |
 | [scout.md](systems/scout.md) | the scout drone |

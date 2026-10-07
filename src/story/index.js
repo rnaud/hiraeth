@@ -2,7 +2,7 @@ import { page, screen } from '../platform.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { Quests, QuestMarker } from './quests.js';
-import { Dialogue } from './dialogue.js';
+import { Dialogue, TRAVELLER_TAG } from './dialogue.js';
 import { sightOf } from './shot.js';
 import { talkSpace, stepBack, gapOf } from './spacing.js';
 import { CAPSULE } from '../player.js';
@@ -11,6 +11,7 @@ import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
 import { NPC, registerNPCTargets } from '../npc.js';
 import { talkFaces } from '../talk-face.js';
 import { makeMaterial } from '../materials.js';
+import { expressionFor } from '../expression.js';
 import { viaPortal } from '../scout.js';
 import { backdropFor, portraitSize } from './portrait-bg.js';
 import { keyBadge, escapeHtml } from '../prompt-keys.js';
@@ -69,6 +70,7 @@ export function createStory(o) {
   const dialogue = new Dialogue({
     game, quests, sound, toast,
     portrait: (person, npc) => npc && capture ? portrait(npc, person) : null,
+    portraitYou: (tone) => capture ? portraitYou(tone) : null,
     onOpen: (person, npc) => {
       talking = { person, npc, at: dialogue.at, look: dialogue.look };
       if (npc) makeRoom(npc);   // (before the camera cuts to the two-shot: nobody sees the step)
@@ -106,6 +108,41 @@ export function createStory(o) {
     const px = portraitSize(css, typeof window !== 'undefined' ? window.devicePixelRatio : 1);
     const src = capture(eye, look.clone().addScaledVector(UP, -0.06 * s), px, px, { keep: [npc.object, npc.cape?.mesh], backdrop: background, fov: 36, css });
     return src ? { src, background } : null;
+  }
+
+  /** Where the traveller's face is (its middle, as drawn: characters/tripo-face.js), or near enough. */
+  function travellerFace(out) {
+    const h = player.humanoid, head = h?.b?.Head;
+    if (!head || player.hidden || player.object?.visible === false) return null;
+    return h.drawnFace?.at?.(head, out) ?? head.getWorldPosition(out).addScaledVector(player.frame?.up ?? UP, 0.08);
+  }
+
+  // the traveller's own, for the panel on his lines: his face wearing the tone of what he says, framed as theirs are
+  const _yf = new THREE.Vector3(), _yd = new THREE.Vector3();
+  function portraitYou(tone) {
+    const h = player.humanoid, up = player.frame?.up ?? UP;
+    const face = travellerFace(_yf);
+    if (!h || !face) return null;
+    // (from in front of his face as it is turned now, a little to the side and below, as theirs are)
+    const fwd = h.drawnFace?.facing?.(_yd) ?? (player.frame?.dir ? player.frame.dir(player.heading, _yd) : _yd.set(Math.sin(player.heading), 0, Math.cos(player.heading)));
+    fwd.addScaledVector(up, -fwd.dot(up)).normalize();
+    const right = new THREE.Vector3().crossVectors(fwd, up).normalize();
+    const look = face.clone().addScaledVector(up, -0.04);
+    const eye = look.clone().addScaledVector(fwd, 1.0).addScaledVector(right, 0.3).addScaledVector(up, -0.1);
+    const background = backdropFor(TRAVELLER_TAG, levelId);
+    const css = (typeof document !== 'undefined' && document.querySelector('#dialogue .dlg-chip')?.clientWidth) || 84;
+    const px = portraitSize(css, typeof window !== 'undefined' ? window.devicePixelRatio : 1);
+    // (the face put on for the picture, the eyes open; given back after: his talking face takes it on from there)
+    const was = h.expression, blink = h.drawnFace?.blink ?? 0;
+    h.setExpression(expressionFor(tone, { rest: h.restExpression }));
+    h.drawnFace?.eyes(0, null, h.drawnFace.look);
+    try {
+      const src = capture(eye, look, px, px, { keep: [player.object], backdrop: background, fov: 25, css });
+      return src ? { src, background } : null;
+    } finally {
+      h.setExpression(was);
+      h.drawnFace?.eyes(blink, null, h.drawnFace.look);
+    }
   }
 
   /** E talks to this person. */
@@ -164,7 +201,7 @@ export function createStory(o) {
   // ---------------------------------------------------------------- the conversation camera
   // (src/story/shot.js: a shot with no wall, tree, rock or bystander between it and the faces)
   const sight = physics ? sightOf(physics) : null;
-  const _fa = new THREE.Vector3(), _fb = new THREE.Vector3(), _fw = new THREE.Vector3();
+  const _fa = new THREE.Vector3(), _fb = new THREE.Vector3(), _fw = new THREE.Vector3(), _fs = new THREE.Vector3(), _fsd = new THREE.Vector3();
   /** What the camera frames: a person (the two-shot), or a thing (over the shoulder, at `look`). */
   function shotOf(t) {
     if (t.npc) return { npc: t.npc };
@@ -243,7 +280,7 @@ export function createStory(o) {
         p.faceUntil = crowd.time + 0.5; p.lookUntil = crowd.time + 1;
         if (p.group) { p.group.pauseUntil = crowd.time + 0.5; p.group.lookUntil = crowd.time + 1; }
       }
-      if (talking?.npc?.talkTo) talking.npc.talkTo.speaking = dialogue.runner?.speaker === 'npc' && dialogue.revealed < (dialogue.runner?.text.length ?? 0);
+      if (talking?.npc?.talkTo) talking.npc.talkTo.speaking = dialogue.runner?.speaker === 'npc' && !dialogue.beat && dialogue.revealed < (dialogue.runner?.text.length ?? 0);
       cabs.update();
       dialogue.update(dt);
       // their faces (src/talk-face.js): the person you talk to wears the tone of the line they say, their mouth on
@@ -299,7 +336,16 @@ export function createStory(o) {
       if (dialogue.blend < 0.002 || !rt._shot) { rt._shot = null; return; }
       const S = rt._shot, up = player.frame?.up ?? UP;
       const o = { sight, faceA: _fa.copy(player.pos).addScaledVector(up, 1.58), look: S.look, facing: player.frame?.dir?.(player.heading, _fw) ?? null };
-      if (S.npc) o.faceB = faceOf(S.npc, up, _fb);
+      if (S.npc) {
+        o.faceB = faceOf(S.npc, up, _fb);
+        o.radiusB = 0.3 * (S.npc.object?.scale?.y ?? 1);
+        // a close shot of his face may be had (src/story/coverage.js): standing or sitting on the ground, not
+        // inside a vehicle, swimming or hanging off a wall (the cab's cabin, a mount's saddle)
+        const free = !player.ride && !player.swim && !player.climbing && !player.gliding && !player.down;
+        o.single = free && S.npc.object?.visible !== false ? travellerFace(_fs) : null;
+        o.singleFacing = o.single ? player.humanoid?.drawnFace?.facing?.(_fsd) ?? null : null;
+        o.viewH = typeof innerHeight !== 'undefined' ? innerHeight : null;   // (CSS px: the close shot's face no taller than it needs to be on a big screen)
+      }
       dialogue.frameCamera(camera, player, S.npc?.pos ?? S.at, up, bystanders, o);
     },
   };

@@ -6,6 +6,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.
 - On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.
+- In conversations you see the traveller’s face now: when he answers, and sometimes when someone says something that moves him, the camera cuts to a close view of him, so his smile, frown or surprise shows. Otherwise it keeps its view of you both, and it never cuts on every line.
+- When you choose an answer the traveller says it before the reply comes, with his words, his name and his portrait in the panel. Press to go straight on to the reply.
+- The traveller’s expressions are drawn more strongly, so his smiles, frowns and raised brows read in a close view and in his portrait.
 
 ## v0.79 — 2026-10-07
 
