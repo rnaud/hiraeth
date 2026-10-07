@@ -709,6 +709,7 @@ export class Humanoid {
     if (u?.uMood) { u.uMood.value.set(ink.smile, ink.open, ink.brow, ink.squint); u.uMood2.value.x = ink.browTilt; }
     this.squint = x.squint;
     this.gaze = x.gaze;
+    this.drawnFace?.set(x);   // (a face drawn over a body with none of its own: the coral-shirt traveller, characters/tripo-face.js)
     // the brows' geometry only when they move (the mouth on the syllables doesn't touch them)
     const b = this._browPosed;
     if (!b || Math.abs(b[0] - x.brow) > 1e-3 || Math.abs(b[1] - x.browTilt) > 1e-3) { this.poseBrows(); this._browPosed = [x.brow, x.browTilt]; }
@@ -1140,7 +1141,9 @@ export class Humanoid {
     }
     this.eyeLook.update(dt, dir);
     // an expression's gaze (setExpression) holds the eyes there; a squint narrows the lids
-    const L = (this.gaze ? EyeLook.fromAngles(this.gaze[0], this.gaze[1], _c) : _c.copy(this.eyeLook.look)).applyAxisAngle(_xAxis, EYE_TILT);
+    const look = this.gaze ? EyeLook.fromAngles(this.gaze[0], this.gaze[1], _c) : _c.copy(this.eyeLook.look);
+    this.drawnFace?.eyes(this.eyeLook.blink, this.squint ?? 0, look);   // (before the tilt: a drawn face's lids aren't the model's)
+    const L = look.applyAxisAngle(_xAxis, EYE_TILT);
     const lid = Math.max(this.eyeLook.blink, (this.squint ?? 0) * 0.45);
     // (lids with shape keys close themselves: the eyeball's painted lid then only does what they don't)
     m.material.uniforms.uEyeLook.value.set(L.x, L.y, L.z, this.faceKeys ? this.faceKeys.eyes(this.eyeLook.blink, this.squint ?? 0) : lid);

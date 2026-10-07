@@ -7,6 +7,9 @@ import { makeTripoCloth } from './tripo-cloth.js';
 import { makeReviewInkMaterial } from './tripo-material.js';
 import { relaxWalkArms, relaxWalkHands } from './tripo-walk.js';
 import { softenTripoHands } from './tripo-hands.js';
+import { wearTripoFace } from './tripo-face.js';
+import { cleanExpression } from '../expression.js';
+import { TRAVELLER } from '../traveller.js';
 
 export async function loadTravellerV1(base) {
   const folder = `${base}characters/traveller-v1/`;
@@ -49,6 +52,11 @@ export function createTravellerV1(char, { gltf, data, report, colors }) {
       part.material = makeReviewInkMaterial(part, { lining: part === cloth.garment });
       standard.dispose();
     }
+    // his face, drawn over the painted one so it can move (tripo-face.js): the same expressions, blinks and
+    // talking mouth as everyone's (Humanoid.setExpression / updateEyes), resting with his little smile
+    humanoid.drawnFace = wearTripoFace(mesh);
+    humanoid.restExpression = cleanExpression(TRAVELLER.rest);
+    humanoid.setExpression(humanoid.restExpression);
     cloth.garment.name = 'TravellerOvershirt';
     cloth.underlayer.name = 'TravellerTrousers';
     cloth.innerShirt.name = 'TravellerInnerShirt';

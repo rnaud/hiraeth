@@ -138,7 +138,8 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 
 ## Dialogue
 
-- [ ] Facial expressions and talking for the coral-shirt traveller (author, 2026-10-07). His face
+- [x] Facial expressions and talking for the coral-shirt traveller (author, 2026-10-07). Done: his face is drawn
+  in his body's shader over the painted one (`src/characters/tripo-face.js`, faces.md "The coral-shirt traveller's drawn face"). His face
   (`src/characters/traveller-v1.js`, the Tripo body) has no expression rig, so he shows none of the
   tone expressions the people's bodies get (`src/expression.js`, `TONE_EXPRESSIONS`;
   `Humanoid.setExpression`, docs/systems/faces.md) and his mouth doesn't move with the voice. Give
