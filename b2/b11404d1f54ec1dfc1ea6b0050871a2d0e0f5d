@@ -1,0 +1,47 @@
+changelog.md
+  s_55b4bc53b812ec::t_0917b84451e2f3 8-11
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_397d847a92d432 333-373
+src/air-moves.js
+  s_55b4bc53b812ec::t_6fe0ba0c2315dc 1-97
+src/animator.js
+  s_55b4bc53b812ec::t_1374bf11624293 27-29,303-304,306,309-320,442-458,537-538,559,577-578
+src/changelog-media.js
+  s_55b4bc53b812ec::t_687daf3efa7069 125-129,131-148
+src/changelog.js
+  s_55b4bc53b812ec::t_1c60c1596fe064 14-17
+src/interact.js
+  s_55b4bc53b812ec::t_d26cd051e8346d 16,71-90,112-117
+src/jump.js
+  s_55b4bc53b812ec::t_be2e76dcd437f5 106-109
+src/motion/main.js
+  s_55b4bc53b812ec::t_2749d100b68ab6 982-983,985,999-1001,1009,1027-1029
+src/npc.js
+  s_55b4bc53b812ec::t_b2d73e73488b66 17,78-80,371-375,379,384,386-387,923-928
+src/player.js
+  s_55b4bc53b812ec::t_56792673348f0a 8,10,61-67,707-714,724,726,733-739,752-764,1112,1701,2022-2050,2056,2077,2135-2136
+src/ragdoll.js
+  s_55b4bc53b812ec::t_bf925b8de64669 400-443,485-495,502-508,510,521-524
+tests/air-gestures.test.js
+  s_55b4bc53b812ec::t_ca5d0d0c01ed1a 1-89
+tests/getup.test.js
+  s_55b4bc53b812ec::t_2f6f0e2f1b7cbf 1-64
+tests/idle-legs.test.js
+  s_55b4bc53b812ec::t_013f9254a912c4 21,24,35,61,68-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b2b11404d1f54ec1dfc1ea6b0050871a2d0e0f5d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
