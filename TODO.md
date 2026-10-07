@@ -210,6 +210,11 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
   loads the world's MakeHuman people as main.js does (`usesMakeHuman`, `loadPeople`: the story's people,
   the crowd's pooled bodies, everyone the story makes); body.bin read through the host, packed with the
   players. Their faces' shape keys (FACE_KEYS, a texture the port's Surface doesn't read) stay at rest.)
+- [ ] What the bridge still leaves out (engine-bridge.md, "The web's newer look and the rest of the
+  world"): hatching that follows the form (`S_FORM`: its per-vertex axis), the makers' boxes' star and
+  ray (`MAKERS_BOX`), the MakeHuman faces' shape keys (`FACE_KEYS`), the overshirt's lining; some people
+  near the camera hold their things out sideways in Unity (not understood yet). And the coral-shirt
+  traveller's overshirt cloth steps on the VM's thread (the web: a Worker): its sim as a C# job.
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached.
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
