@@ -100,14 +100,14 @@ pair taken from that work's own before / after (the cab ride, the idle sheets); 
 
 ## Retroactive media (October 2026)
 
-The 99 lines from 6 October, 5 PM (the later half of v0.73) to v0.80 were given their media after the
+The lines from 6 October, 5 PM (the later half of v0.73) to v0.80 were given their media after the
 fact (choices made while the author slept, noted here):
 
 - **98 lines** show something: **55 with pictures** (61 before / after pairs and 8 after-only pictures,
   130 WebP files, 6.1 MB in all), **26 with numbers** (the Retroid's and the Mac's frame times and frame
   rates, draw calls, the contact audit's counts, the presets' distances), **39 with a "how to see it"
   note** (22 with only a note: solid ground, menus deep in a save, the Deck, things that only show in
-  motion). The one left (the Deck's crash line, added to 0.80 meanwhile) has none yet; v0.73's first four lines were written before 5 PM.
+  motion). The lines added while this was done (0.80's Deck crash and conversation lines, v0.81's) have none yet; v0.73's first four were written before 5 PM.
 - Pictures were taken at each line's own commit and its parent; where the work had a work-in-progress
   commit first (the References' Garden of Spheres, Lorn II and Buried Machine), the before is the commit
   before that (`before:`). Numbers come from `docs/systems/performance.md`, `docs/systems/movement.md`

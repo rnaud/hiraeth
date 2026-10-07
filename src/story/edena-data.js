@@ -64,13 +64,13 @@ export const QUESTS = [
   {
     // the quest that fails (src/story/terraces.js): it can't be won, and it doesn't block anything
     id: 'edena.terraces', title: 'Water for the Tea Terraces', world: 'edena', major: true,
-    failOutro: 'You opened the builders’ gate a little, as Esk asked, and the hill came down with the water. She said it was the garden’s now.',
+    failOutro: 'You turned the builders’ gate once, as Esk asked. It had been shut a thousand years, and it gave way; the middle of her hill went down into the hollow with the water. She asked you to leave her with it.',
     stages: [
       { id: 'esk', text: 'Esk keeps the tea terraces south-east of the landing, above the dry hollow. Go and see her', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
       { id: 'runnels', text: 'Clear the three choked runnels, top terrace first: shove each clod of silt out (push: C, middle click, or RB / R1)', label: 'A choked runnel', when: (q) => (q.game.flag('edena.runnels') ?? 0) >= 3, at: 'clod' },
       { id: 'ask', text: 'Water runs, but only a trickle. Tell Esk', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
       { id: 'roots', text: 'Roots have grown through the wheel of the builders’ gate, on the cistern above the terraces. Water them so they let go (shoot)', label: 'The builders’ gate', flag: 'edena.gate.roots', at: 'gate' },
-      { id: 'gate', text: 'Turn the gate’s wheel a little: one shove (push)', label: 'The builders’ gate', flag: 'edena.gate.turned', at: 'gate' },
+      { id: 'gate', text: 'Esk asked for one turn of the gate’s wheel. Nobody has opened it in living memory. One shove (push: RB / R1)', label: 'The builders’ gate', flag: 'edena.gate.turned', at: 'gate' },
       { id: 'flood', text: 'The gate is giving way', label: 'The terraces', flag: 'edena.terraces.flooded', at: 'esk' },
       { id: 'sorry', text: 'Go down to Esk', label: 'Esk', talk: 'esk', at: 'esk' },
     ],
@@ -80,7 +80,7 @@ export const QUESTS = [
     id: 'edena.clock', title: 'Mira’s Water Clock', world: 'edena',
     outro: 'The bowl fills, tips, and the bell rings: time to water. It always is.',
     stages: [
-      { id: 'fit', text: 'Fit the brass gear into Mira’s water clock, beside her (E)', label: 'The water clock', flag: 'edena.clock.fitted', at: 'clock' },
+      { id: 'fit', text: 'Fit the brass gear into Mira’s water clock, beside her (E, or B / ○)', label: 'The water clock', flag: 'edena.clock.fitted', at: 'clock' },
       { id: 'fill', text: 'The bowl leaks: fill it with three quick splashes, so it tips and rings the bell (shoot)', label: 'The water clock’s bowl', flag: 'edena.clock.rung', at: 'clock' },
     ],
   },
@@ -104,6 +104,7 @@ export const PEOPLE = {
       entry: [
         { if: { all: [{ quest: 'edena.terraces', failed: true }, { not: { flag: 'edena.mira.flood' } }, { not: { quest: Q, stage: 'tell' } }] }, node: 'flood' },
         { if: { all: [{ quest: 'edena.clock', active: true }, { flag: 'edena.mira.heard' }, { not: { quest: Q, stage: 'tell' } }] }, node: 'clockNow' },
+        { if: { all: [{ quest: 'edena.clock', done: true }, { not: { flag: 'edena.mira.clock' } }, { not: { quest: Q, stage: 'tell' } }] }, node: 'clockDone' },
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { quest: Q, stage: 'tell' }, node: 'tell' },
         { if: { flag: 'edena.mira.heard' }, node: 'again' },
@@ -112,7 +113,7 @@ export const PEOPLE = {
       nodes: {
         // after the terraces (src/story/terraces.js): once
         flood: {
-          say: ["~solemn~ Esk came by. She was too tired to be angry. That worried me more.", "~solemn~ The terraces are gone. We’ll still tend what’s left. The clock rang this morning, and for a moment I forgot where the water used to go."],
+          say: ["~solemn~ Esk came by. She was too tired to be angry. That worried me more.", "~solemn~ The terraces are gone. We’ll still tend what’s left. This morning I went to water, and for a moment I forgot where the water used to go."],
           do: { set: { 'edena.mira.flood': true } },
           choices: [{ text: '~sad~ I’m sorry, Mira.', goto: 'floodSorry' }],
         },
@@ -154,7 +155,12 @@ export const PEOPLE = {
             { text: '~happy~ See you, Mira.', end: true },
           ],
         },
-        clock: { say: ["~playful~ It tells us when to water. The bowl fills, tips, and rings the bell. Its gear is worn smooth. We’ve learned to be punctual approximately."], choices: [{ text: '~happy~ See you, Mira.', end: true }] },
+        clockDone: {
+          say: ["~happy~ You heard it? It rang on its own. Years, I’ve been guessing when to water.", "~playful~ Tell the dome people their old pump gear has a new job. A bossy one."],
+          do: { set: { 'edena.mira.clock': true } },
+          choices: [{ text: '~happy~ It suits it.', end: true }],
+        },
+        clock: { say: ["~playful~ It tells us when to water. The bowl fills, tips, and rings the bell. Or it did, until its gear went missing. We’ve learned to be punctual approximately."], choices: [{ text: '~happy~ See you, Mira.', end: true }] },
         tell: {
           say: ["~solemn~ You saw the mark under the flowers. Tell me."],
           choices: [
@@ -175,7 +181,7 @@ export const PEOPLE = {
           next: 'carry',
         },
         carry: { say: ['~happy~ Take that with you. It isn’t heavy. It fits in any ship.'], choices: [{ text: '~happy~ Thank you, Mira.', end: true }] },
-        after: { say: ["~happy~ The clock rang. Time to water. Then tea. I find the order helps."], choices: [{ text: '~curious~ What is the water clock for?', goto: 'clock', once: true }, { text: '~playful~ I’ll let you water.', end: true }] },
+        after: { say: [{ if: { quest: 'edena.clock', done: true }, text: "~happy~ The clock rang. Time to water. Then tea. I find the order helps." }, { if: { not: { quest: 'edena.clock', done: true } }, text: "~happy~ Time to water, I think. The clock can’t tell me, so I guess. Then tea." }], choices: [{ text: '~curious~ What is the water clock for?', goto: 'clock', once: true }, { text: '~playful~ I’ll let you water.', end: true }] },
       },
     },
   },
@@ -183,7 +189,7 @@ export const PEOPLE = {
   sol: {
     id: 'sol', name: 'Sol', title: 'who remembers them', color: '#9fd6c9', voice: 0.85, kind: 'm',
     palette: { cloak: '#9fd6c9', lining: '#2b211f', cloth: '#f7f4ec', legs: '#5a6a6a', hat: '#f2a7b5', hair: '#e8dcc0' }, head: 'hat', cape: 0.9,
-    lines: ['~curious~ Odile? Talo? They left in the ship.', '~happy~ They’ll be back for the tea.', '~surprised~ Every flower turned east. Every one.'],
+    lines: ['~curious~ Odile? Talo? They left in the little saucer.', '~happy~ They’ll be back for the tea.', '~surprised~ Every flower turned east. Every one.'],
     talk: {
       entry: [
         { if: { all: [{ quest: 'edena.terraces', failed: true }, { not: { flag: 'edena.sol.flood' } }] }, node: 'flood' },
@@ -258,7 +264,7 @@ export const PEOPLE = {
           choices: [{ text: '~playful~ (splash it)', end: true }],
         },
         water: { say: ["~neutral~ *Water the seed beside me.* One splash should do."], choices: [{ text: '~playful~ (splash it)', end: true }] },
-        after: { say: ["~surprised~ It grew! That was a thousand years’ growth in one splash. I may need a chair."], choices: [{ text: '~playful~ It is.', end: true }] },
+        after: { say: ["~surprised~ It grew! A century’s growth in one splash. Only nine hundred years to go."], choices: [{ text: '~playful~ I’ll come back and check.', end: true }] },
       },
     },
   },
@@ -289,8 +295,8 @@ export const PEOPLE = {
         tell: {
           say: ['~surprised~ You went up! You went UP! What was there?'],
           choices: [
-            { text: '~neutral~ A bench, and a note from Talo. He watched the sky from up there.', do: { advance: ['edena.tree', 'tell'] }, goto: 'bench' },
-            { text: '~neutral~ The whole garden, and the furrow the ship cut across it.', do: { advance: ['edena.tree', 'tell'] }, goto: 'view' },
+            { text: '~neutral~ A bench, and a note from Talo. He watched the sky from up there.', do: (ctx) => { const q = ctx.quests; if (!q.isStarted('edena.tree')) q.start('edena.tree', 'tell'); q.advance('edena.tree', 'tell'); }, goto: 'bench' },
+            { text: '~neutral~ The whole garden, and the furrow the ship cut across it.', do: (ctx) => { const q = ctx.quests; if (!q.isStarted('edena.tree')) q.start('edena.tree', 'tell'); q.advance('edena.tree', 'tell'); }, goto: 'view' },
           ],
         },
         bench: { say: ["~surprised~ He took a BENCH up there? I haven’t even managed myself! Right. More practice."], choices: [{ text: '~happy~ You will.', end: true }] },
@@ -339,7 +345,7 @@ export const PEOPLE = {
           do: { set: { 'edena.vey.flood': true } },
           choices: [{ text: '~sad~ I only meant to help.', goto: 'floodMeant' }],
         },
-        floodMeant: { say: ["~tired~ You meant to help. So did Esk. Remember that, and remember the damage. Both matter."], choices: [{ text: '~solemn~ Gently.', end: true }] },
+        floodMeant: { say: ["~tired~ You meant to help. So did Esk. Remember that, and remember the damage. Both matter."], choices: [{ text: '~solemn~ Both. I’ll remember.', end: true }] },
       },
     },
   },
@@ -394,7 +400,7 @@ export const PEOPLE = {
           do: [{ advance: ['edena.terraces', 'ask'] }, { set: { 'edena.esk.gate': true } }],
           choices: [{ text: '~neutral~ One turn.', end: true }],
         },
-        go: { say: ["~neutral~ *At the cistern above the terraces*: water the roots around the wheel, then *push it once*. Carefully."], choices: [{ text: '~neutral~ A little.', end: true }] },
+        go: { say: ["~neutral~ *At the cistern above the terraces*: water the roots around the wheel, then *push it once*. I don’t know what it will do. Nobody does."], choices: [{ text: '~neutral~ Once.', end: true }] },
         flood: { say: ["~scared~ Stop! The gate— Get off the slope! Get clear!"], choices: [{ text: '~scared~ (get back)', end: true }] },
         sorry: {
           say: ["~angry~ (Esk stares at the raw gap through her terraces. She does not turn to you.)", '~angry~ I said a little. I said one turn.'],

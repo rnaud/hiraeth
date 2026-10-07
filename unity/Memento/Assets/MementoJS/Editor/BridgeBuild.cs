@@ -64,7 +64,17 @@ namespace Memento.EditorTools
         }
 
         /// <summary>Puerts' IL2CPP glue (Assets/Gen/Plugins/puerts_il2cpp, not committed): its menu's "Minimal Bridge, Reflection Mode".</summary>
-        public static void Il2cpp() => EditorApplication.Exit(GenerateGlue() ? 0 : 1);
+        public static void Il2cpp() => Exit(GenerateGlue());
+
+        /// <summary>
+        /// The editor's exit after a batch entry. GameCI (unity-builder v6) takes a run for a failure unless its log says
+        /// "Build succeeded!" (what its own build script prints) or carries its "Build results" block: said on success.
+        /// </summary>
+        static void Exit(bool ok)
+        {
+            if (ok) Debug.Log("Memento: Build succeeded!");
+            EditorApplication.Exit(ok ? 0 : 1);
+        }
 
         static bool GenerateGlue()
         {
@@ -105,7 +115,7 @@ namespace Memento.EditorTools
             long folder = Directory.Exists(dir) ? Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length) : 0;
             Debug.Log($"Memento: bridge build {s.result}: {outPath}, {size / 1e6:0.0} MB ({folder / 1e6:0.0} MB the folder), {s.totalTime.TotalSeconds:0} s, {s.totalErrors} errors, {s.totalWarnings} warnings");
             foreach (var st in r.steps) foreach (var m in st.messages) if (m.type == LogType.Error || m.type == LogType.Exception) Debug.Log("Memento: build error: " + m.content);
-            EditorApplication.Exit(s.result == BuildResult.Succeeded ? 0 : 1);
+            Exit(s.result == BuildResult.Succeeded);
         }
 
         static void Standalone(string name)

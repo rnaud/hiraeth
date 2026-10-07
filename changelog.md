@@ -2,12 +2,31 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.81 — 2026-10-07
+
+- In the desert, letting the water out of the giant’s pool before anyone has sent you there no longer stalls the story: the steps that only led there pass on their own, and Ama still hands you her jar.
+- Qanat and its camps say a little more, and nothing that goes stale once the chest is open: Oum, Marrow, Rook, Tamsin, the sketcher and the townspeople have new lines, Pell wants to hear about the sleeping mask, and the Speaker has heard Ilo’s report of a monster.
+- Landing in Vael with the wings already yours, the drone finds Oïa first instead of the Aerie.
+- Notes that still pointed to the old sketchbook name the game menu now: a hidden box’s note sends you to the Quests page, and a delivered parcel names View (or J) for the Sketchbook.
+- In Vael, Hollin now waits beside his stone hand, where Oïa’s people say he is, and has a little more to say; the hand’s quest says the order and the buttons, and the shed feathers wait at the tower’s balcony until the bird has answered her call.
+- In Vael II, Mother Ysolde answers her sister’s lamp the old way and lays a place at supper once the bell has rung; Sister Aube, Brother Calix and Ondine say more in passing, Hollin’s feather gets a thanks that fits, and the belfry’s guardian brings down only the stones round her tower, as you can see.
+- In Viridel, reading Talo’s note on the tallest tree before Lio has asked you to climb no longer leaves Lio asking forever: tell him what you saw and it counts. Mira no longer says her clock rang while it was missing its gear, and thanks you once it does; what happened at Esk’s terraces is told as it happened, and nobody suggests you should have turned the gate more gently.
+- In Lorn and Lorn II, prompts name the pad’s buttons, Ivo lets you keep his fireflies, Ysse tells the crossing as everyone else does, the humming crystal goes to Bram where he actually sits, and Bram, Pim and Wick have more to say, Wick once every pool is lit.
+- In the Buried Machine, lighting the Wick before Wen or Hask has sent you no longer stalls Tooth Day, and reading the three gauges before you meet Ossa no longer leaves her repeating herself: both quests go on from what you did. Hask has noticed the wheel never stopped.
+- In the City-Shaft you can give Dov Ossa’s message from the bottom, and he answers it; Dov knows he left before Pip was born, Lio hears that Hask tipped, and the rim no longer says the cabs stop for anyone. Lio’s taxi token is for Clemence in the Sealed Hangar, by name, and Lio, Hask and two of the Hangar’s people have more to say.
+- In the Signal Market, meeting Kip before Madame Sel no longer leaves the broadcast out of reach; the keepsake quotes what your father actually says, and Ferro’s prompt names the pad’s buttons. In the Garden of Spheres, hearing all three spheres before you meet Aube no longer stops her sending you on, and a few answers fit what was said to you.
+- At home, Lou talks about the drawing of the furthest world you have written from, any of them, and the round window only speaks of singing once the reel has told you about it.
+- Four new parcels to carry, so every world on the way hands you something for the next: Brother Calix’s muffled hand bell for Wendel in Lorn, Nikko’s gear grease for Tull’s squeaky doors under the sand, Ossa’s pipe whistle for Aube among the spheres, and Nell’s sliver of lake mirror for Oyo’s lantern stall in the Signal Market.
+- What’s new (N) has a See what changed button: every change with pictures of before and after to drag between, the numbers for the ones that make the game faster, and how to see the rest, with filters by world and kind and a search. It works with the mouse, touch and a controller; the pictures come from the game’s site, so they need a connection.
+
 ## v0.80 — 2026-10-07
 
 - Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.
 - On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.
 - On the Steam Deck, a game that closes unexpectedly after you have been playing no longer starts again by itself in a different graphics mode: it returns to Steam, and the next launch draws the way that worked.
-- What’s new (N) has a See what changed button: every change with pictures of before and after to drag between, the numbers for the ones that make the game faster, and how to see the rest, with filters by world and kind and a search. It works with the mouse, touch and a controller; the pictures come from the game’s site, so they need a connection.
+- In conversations you see the traveller’s face now: when he answers, and sometimes when someone says something that moves him, the camera cuts to a close view of him, so his smile, frown or surprise shows. Otherwise it keeps its view of you both, and it never cuts on every line.
+- When you choose an answer the traveller says it before the reply comes, with his words, his name and his portrait in the panel. Press to go straight on to the reply.
+- The traveller’s expressions are drawn more strongly, so his smiles, frowns and raised brows read in a close view and in his portrait.
 
 ## v0.79 — 2026-10-07
 

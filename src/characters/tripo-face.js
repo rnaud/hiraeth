@@ -1,4 +1,4 @@
-import { Vector4 } from 'three';
+import { Vector4, Matrix4 } from 'three';
 import { cleanExpression, NEUTRAL_EXPRESSION } from '../expression.js';
 import { EYE_REACH } from '../eyes.js';
 
@@ -32,7 +32,16 @@ export const TRIPO_FACE = {
   eye: { x: 0.0328, y: 1.6415, w: 0.0163, h: 0.0056, iris: 0.0066 },
   brow: { inner: [0.0112, 1.6596], peak: [0.033, 1.6648], outer: [0.0618, 1.6603], half: 0.0039 },
   mouth: { y: 1.5805, w: 0.0195 },
+  centre: [1.612, 0.08],                         // the face's middle on its surface (y, z): what the close shot frames
 };
+const _m = new Matrix4();
+/**
+ * How far the channels move his face, against the measures it was first drawn with (brows, the mouth's
+ * corners and width, its opening), and how heavy the mouth's line is: in the conversations' close shot his
+ * face is 120 to 180 px tall, where the first measures moved a corner by two pixels and drew the mouth one
+ * pixel thick. Still within the people's own faces' range (face-ink.js), which are bent as far again.
+ */
+export const TRIPO_GAIN = { brow: 1.45, mouth: 1.5, open: 1.4, line: 1.5 };
 
 /**
  * The face's uniforms for an expression (a clean one: expression.js cleanExpression), the lids (blink 0..1)
@@ -41,8 +50,10 @@ export const TRIPO_FACE = {
 export function tripoFaceState(expression = NEUTRAL_EXPRESSION, { blink = 0, look = null } = {}, out = { brow: new Array(7), eye: new Array(4), mouth: new Array(4) }) {
   const x = expression ?? NEUTRAL_EXPRESSION, F = TRIPO_FACE, B = F.brow;
   // the brows: raised (or lowered and drawn together), their inner ends up (worry) or down (anger)
-  const raise = x.brow >= 0 ? x.brow * 0.006 : x.brow * 0.0035;
-  const knit = Math.max(0, -x.brow) * 0.003, tilt = x.browTilt * 0.0055;
+  // (October 2026: half as much again, so a face 120 px tall in the conversation's close shot reads: TRIPO_GAIN)
+  const G = TRIPO_GAIN;
+  const raise = x.brow >= 0 ? x.brow * 0.006 * G.brow : x.brow * 0.0035 * G.brow;
+  const knit = Math.max(0, -x.brow) * 0.003 * G.brow, tilt = x.browTilt * 0.0055 * G.brow;
   const b = out.brow;
   b[0] = B.inner[0] - knit; b[1] = B.inner[1] + raise + tilt - knit * 0.5;
   b[2] = B.peak[0] - knit * 0.4; b[3] = B.peak[1] + raise + tilt * 0.3;
@@ -57,10 +68,10 @@ export function tripoFaceState(expression = NEUTRAL_EXPRESSION, { blink = 0, loo
   const gy = look ? Math.max(-1, Math.min(1, look[1] / sy)) * 0.0022 : 0;
   // the mouth: wider with a smile, its corners up (or down), the lower lip dropping as it opens
   const open = x.open, m = out.mouth, e = out.eye;
-  m[0] = F.mouth.w * (1 + 0.14 * Math.max(0, x.smile) - 0.08 * Math.max(0, -x.smile) - 0.1 * open);
-  m[1] = x.smile * 0.0042;
-  m[2] = open * 0.017;
-  m[3] = open * 0.0026;
+  m[0] = F.mouth.w * (1 + 0.14 * G.mouth * Math.max(0, x.smile) - 0.08 * G.mouth * Math.max(0, -x.smile) - 0.1 * open);
+  m[1] = x.smile * 0.0042 * G.mouth;
+  m[2] = open * 0.017 * G.open;
+  m[3] = open * 0.0026 * G.open;
   e[0] = close; e[1] = lower; e[2] = gx; e[3] = gy;
   return out;
 }
@@ -87,7 +98,7 @@ export const TRIPO_FACE_GLSL = (() => {
     return vec2(y, s);
   }
   vec3 tripoFace(vec3 albedo, vec3 b, float aa) {
-    if (b.z < ${f(F.front)} || b.y < 1.562 || b.y > 1.678 || abs(b.x - (${f(F.mid)})) > 0.072) return albedo;
+    if (b.z < ${f(F.front)} || b.y < 1.553 || b.y > 1.684 || abs(b.x - (${f(F.mid)})) > 0.072) return albedo;
     const vec3 INK = vec3(0.075, 0.058, 0.05);
     // 1. cover the paint: the skin round it, where a pixel isn't skin already
     vec2 xy = b.xy;
@@ -99,7 +110,7 @@ export const TRIPO_FACE_GLSL = (() => {
     float side = sign(p.x);
     // 2. the brows: one thick stroke each, square at the inner end, tapering to a point
     vec2 I = uTfBrowA.xy, Pk = uTfBrowA.zw, O = uTfBrowB.xy;
-    if (q.x > I.x - 0.004 && q.x < O.x + 0.003 && abs(q.y - Pk.y) < 0.016) {
+    if (q.x > I.x - 0.004 && q.x < O.x + 0.003 && abs(q.y - Pk.y) < 0.022) {
       float x = clamp(q.x, I.x, O.x);
       vec2 ys = tfQuad(x, I, Pk, O);
       float t = (x - I.x) / (O.x - I.x);
@@ -138,7 +149,7 @@ export const TRIPO_FACE_GLSL = (() => {
     }
     // 4. the mouth: one line, its corners up or down; open, a dark shape under it (teeth at the top)
     float mw = uTfMouth.x, t = p.x / mw;
-    if (abs(t) < 1.35 && abs(p.y - ${f(F.mouth.y)}) < 0.02) {
+    if (abs(t) < 1.35 && abs(p.y - ${f(F.mouth.y)}) < 0.028) {
       float s2 = max(1.0 - t * t, 0.0);
       float line = ${f(F.mouth.y)} + uTfMouth.y * t * t - 0.0003 * s2;
       float top = line + uTfMouth.w * pow(s2, 0.6), bot = line - uTfMouth.z * pow(s2, 0.7);
@@ -147,7 +158,7 @@ export const TRIPO_FACE_GLSL = (() => {
       mc = mix(mc, vec3(0.92, 0.88, 0.8), step(top - min(0.0022, (top - bot) * 0.3), p.y) * step(0.0035, top - bot) * step(abs(t), 0.62));
       albedo = mix(albedo, mc, inside);
       float slope = 2.0 * uTfMouth.y * t / mw;
-      float wm = mix(0.0007, 0.00035, abs(t)) * (1.0 - smoothstep(0.96, 1.06, abs(t)));
+      float wm = mix(${f(0.0007 * TRIPO_GAIN.line)}, ${f(0.00035 * TRIPO_GAIN.line)}, abs(t)) * (1.0 - smoothstep(0.96, 1.06, abs(t)));
       vec3 lip = vec3(0.24, 0.12, 0.09);
       albedo = mix(albedo, lip, tfCover(abs(p.y - top) / sqrt(1.0 + slope * slope), max(wm, 0.55 * aa * step(0.0001, wm)), aa));
       // the open mouth's lower edge, finer
@@ -155,11 +166,11 @@ export const TRIPO_FACE_GLSL = (() => {
       // the corners: a short tick turned up by a smile, down by a frown
       float ct = abs(t) - 1.05;
       float cy = line + uTfMouth.y * (1.0 + 2.0 * ct) * 1.4 - ${f(F.mouth.y)};
-      float tick = step(abs(ct), 0.1) * tfCover(abs(p.y - ${f(F.mouth.y)} - cy), max(0.00035, 0.5 * aa), aa) * smoothstep(0.0003, 0.0012, abs(uTfMouth.y));
+      float tick = step(abs(ct), 0.1) * tfCover(abs(p.y - ${f(F.mouth.y)} - cy), max(${f(0.00035 * TRIPO_GAIN.line)}, 0.5 * aa), aa) * smoothstep(0.0003, 0.0012, abs(uTfMouth.y));
       albedo = mix(albedo, lip, tick * 0.8);
       // the lower lip: a short stroke under the mouth, lowered as it opens
       float ll = 1.0 - smoothstep(0.25, 0.4, abs(p.x) / ${f(F.mouth.w)});
-      albedo = mix(albedo, lip, 0.45 * ll * tfCover(abs(p.y - (bot - 0.0047 - 0.0002 * s2)), max(0.0003, 0.45 * aa), aa));
+      albedo = mix(albedo, lip, 0.45 * ll * tfCover(abs(p.y - (bot - 0.0047 - 0.0002 * s2)), max(${f(0.0003 * TRIPO_GAIN.line)}, 0.45 * aa), aa));
     }
     return albedo;
   }
@@ -199,6 +210,15 @@ export function wearTripoFace(mesh) {
       this.look = look ? this._look : null;
       this.push();
     },
+    /** The middle of his face (between the eyes and the mouth, on its surface) in the world, through the head bone's skinning; null if it isn't his. */
+    at(head, out) {
+      const sk = mesh.skeleton, i = sk?.bones.indexOf(head) ?? -1;
+      if (i < 0) return null;
+      _m.multiplyMatrices(head.matrixWorld, sk.boneInverses[i]).multiply(mesh.bindMatrix).premultiply(mesh.bindMatrixInverse).premultiply(mesh.matrixWorld);
+      return out.set(TRIPO_FACE.mid, TRIPO_FACE.centre[0], TRIPO_FACE.centre[1]).applyMatrix4(_m);
+    },
+    /** Which way his face looks (the world direction of the head's +z, through the same skinning); after at(). */
+    facing(out) { return out.set(0, 0, 1).transformDirection(_m); },
     push() {
       const s = tripoFaceState(this.expression, { blink: this.blink, look: this.look }, this.state);
       const u = mesh.material.uniforms;

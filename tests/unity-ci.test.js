@@ -43,6 +43,10 @@ test('the workflow prepares the bridge as the local players do, then builds the 
   assert.match(workflow, /node scripts\/engine-bundle\.mjs unity/);
   assert.match(workflow, /path: \$\{\{ env\.PROJECT \}\}\/Library/);
   assert.match(workflow, /buildMethod: Memento\.EditorTools\.BridgeBuild\.Il2cpp/);
+  // (GameCI v6 fails a run whose log lacks "Build succeeded!": the entries say it on success)
+  assert.match(build, /if \(ok\) Debug\.Log\("Memento: Build succeeded!"\);/);
+  assert.match(build, /public static void Il2cpp\(\) => Exit\(GenerateGlue\(\)\);/);
+  assert.match(build, /Exit\(s\.result == BuildResult\.Succeeded\);/);
   assert.match(workflow, /buildMethod: Memento\.EditorTools\.BridgeBuild\.AndroidRelease/);
   assert.match(workflow, /targetPlatform: Android/);
   assert.match(workflow, /androidVersionCode: \$\{\{ steps\.meta\.outputs\.build \}\}/);

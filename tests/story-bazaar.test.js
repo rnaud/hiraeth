@@ -219,3 +219,21 @@ test('Oyo’s last lantern: its little sun goes into the tank as a band of its o
   // the desert's water, the buried machine's oil-light, the Great Crystal and the market's lantern: four bands, room for all
   assert.ok(FLUID.maxColours >= 1 + 4, 'every world’s source has room in the tank');
 });
+
+test('out of order: Kip gave you the cylinder before Sel sent you; telling Kip again moves the quest on', async () => {
+  const { GameState } = await import('../src/game-state.js');
+  const { Quests } = await import('../src/story/quests.js');
+  const { QUESTS } = await import('../src/story/bazaar-data.js');
+  const m = new Map();
+  const g = new GameState({ getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) });
+  const q = new Quests({ game: g });
+  for (const d of QUESTS) q.define(d);
+  // the parked cab's stop is beside Kip: he hands the cylinder over before the quest has begun
+  g.set('bazaar.kip.gave', true); q.give('recording');
+  q.start('bazaar.signal'); q.advance('bazaar.signal', 'sel');
+  assert.equal(q.stage('bazaar.signal'), 'kip');
+  const r = new DialogueRunner(PEOPLE.kip, { game: g, quests: q });
+  assert.equal(r.nodeId, 'again');
+  while (!r.ended && r.advance());
+  assert.equal(q.stage('bazaar.signal'), 'tune');
+});

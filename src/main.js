@@ -1549,7 +1549,7 @@ setInterval(() => {
   const imgs = shots.map(([e, l], i) => captureView(e, l, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
   const page = document.getElementById('page');
   page.innerHTML = `<div class="sheet">
-    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Seven worlds, thirty-five small things kept.</div></div>
+    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Every world, ${ORDER.reduce((n, id) => n + CONTENT[id].relics.names.length, 0)} small things kept.</div></div>
     <div class="p p2"><img src="${imgs[1]}" alt=""></div>
     <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">The final page has opened.<br>(L → The Atelier)</div></div>
     <div class="hint" aria-label="continue">▸</div></div>`;

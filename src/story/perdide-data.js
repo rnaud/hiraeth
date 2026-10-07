@@ -26,7 +26,7 @@ export const ITEMS = { splinter: 'a singing splinter', jar: 'a jar of fireflies'
 export const QUESTS = [
   {
     id: Q, title: 'The Great Crystal', world: 'perdide', main: true,
-    outro: 'The splinter hums with your tank. The crystal remembers the light that struck your ship.',
+    outro: 'The splinter hums with your tank. The crystal sang a phrase like the one you heard the night your ship was struck.',
     stages: [
       { id: 'wendel', text: 'Something hums in the east. Ask Wendel, the egg-warden at the landing', label: 'Wendel, the egg-warden', flag: 'perdide.wendel.heard', at: 'wendel' },
       { id: 'cross', text: 'Cross to the Great Crystal: south over the hill, then east through the ford', label: 'The Great Crystal', goto: 'crystalFoot', radius: 30 },
@@ -135,7 +135,7 @@ export const LANDING = [
         },
         corm: { say: ["~playful~ Corm will feed them extra now. He hates losing a debate to someone standing still."], choices: [{ text: '~neutral~ Goodbye, Wendel.', end: true }] },
         after: {
-          say: ["~solemn~ You have a piece of the crystal. Listen: it’s still singing. A good deal lighter than taking the whole thing.", '~playful~ It’s not a bad thing to carry. Lighter than eggs.'],
+          say: ["~solemn~ You have a piece of the crystal. Listen: it’s still singing. A good deal lighter than taking the whole thing.", '~playful~ Keep it out of the rain. Or don’t, and let it sing.'],
           choices: [
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
             { text: '~happy~ Keep them warm, Wendel.', end: true },
@@ -168,11 +168,11 @@ export const LANDING = [
           ],
         },
         water: {
-          say: ["~playful~ Deep water beyond the shallows. Go past your chest and the swamp puts you back on dry ground. Wet, but with an improved opinion of boats.", "~neutral~ *The cave island is west, across deep water.* The Great Crystal is east, reachable on foot through the ford."],
+          say: ["~playful~ Deep water beyond the shallows. You can swim it, if you like reeds in your teeth. Most people come out with an improved opinion of boats.", "~neutral~ *The cave island is west, across deep water.* The Great Crystal is east, reachable on foot through the ford."],
           choices: [{ text: '~curious~ How do I get to the cave island?', goto: 'skiff' }, { text: '~happy~ Thanks.', end: true }],
         },
         skiff: {
-          say: ["~neutral~ Whistle for the skiff with E in the open. It comes to you. Nobody owns it, though several people give it advice.", "~whisper~ Let it find the channels. It knows more than I do and boasts considerably less."],
+          say: ["~neutral~ Whistle for the skiff out in the open (E, or X / □). It comes to you. Nobody owns it, though several people give it advice.", "~whisper~ Let it find the channels. It knows more than I do and boasts considerably less."],
           choices: [{ text: '~happy~ Thanks, Sedge.', end: true }],
         },
         light: {
@@ -210,7 +210,7 @@ export const LANDING = [
         },
         here: { say: ["~tired~ Ysse brings me in her boat. I help in the cave by not touching things. I’m extremely experienced now."], choices: [{ text: '~neutral~ I’ll follow your fireflies.', goto: 'go' }, { text: '~neutral~ Bye, Ivo.', end: true }] },
         go: {
-          say: ["~happy~ Follow them *at dusk*. *Whistle for the skiff* to cross the water and stay close. They wait if you fall behind."],
+          say: ["~happy~ Follow them now, while they’re crossing. *Whistle for the skiff* to cross the water and stay close. They wait if you fall behind."],
           do: { start: 'perdide.fireflies' },
           choices: [{ text: '~neutral~ I’ll tell you where they go.', end: true }],
         },
@@ -224,7 +224,7 @@ export const LANDING = [
         },
         guess: { say: ["~playful~ Where? The moon? A jar? Please say it’s better than a jar!"], choices: [{ text: '~neutral~ They hatch from the glowing eggs, on the little isle.', goto: 'eggs' }] },
         eggs: {
-          say: ["~surprised~ The EGGS? Wendel has watched those for thirty years! Wait till I tell him!", "~curious~ Fireflies inside glowing eggs. It seems obvious once someone else has done the finding out.", "~happy~ Here, take the fireflies I caught. You’ll know where to bring them back."],
+          say: ["~surprised~ The EGGS? Wendel has watched those for thirty years! Wait till I tell him!", "~curious~ Fireflies inside glowing eggs. It seems obvious once someone else has done the finding out.", "~happy~ Here, keep the fireflies I caught. A jar of them lights a skiff better than any lamp. I know where to find more now."],
           do: [{ advance: ['perdide.fireflies', 'ivo'] }, { give: 'jar' }],
           choices: [{ text: '~happy~ Thank you, Ivo.', end: true }],
         },
@@ -414,7 +414,7 @@ export const PEOPLE = {
           do: { set: { 'clue.perdide.perdide2': true } },
           choices: [{ text: '~curious~ A boat from the sky…', goto: 'boat' }, { text: '~happy~ Thanks, Ysse.', end: true }],
         },
-        boat: { say: ["~sad~ Two travellers survived, then left on foot. The lamp-keepers still hope they’ll return. That’s the story I heard."], choices: [{ text: '~happy~ Thanks, Ysse.', end: true }] },
+        boat: { say: ["~sad~ Two travellers survived it. They waited a season in the deep wood, then borrowed a boat and crossed the swamp. The lamp-keepers still hope they’ll return. That’s the story I heard."], choices: [{ text: '~happy~ Thanks, Ysse.', end: true }] },
         splinter: {
           say: ["~surprised~ A splinter of the Great Crystal! It finally let something go.", "~whisper~ Take it *to the ring at the cave’s heart*. Raise it there. Gently."],
           choices: [{ text: '~neutral~ (go to the heart)', end: true }, { text: '~curious~ Is there anywhere else like this?', goto: 'far', if: { not: { flag: 'clue.perdide.perdide2' } } }],

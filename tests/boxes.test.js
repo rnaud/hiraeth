@@ -344,7 +344,7 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   assert.equal(quests.isStarted(qid), false, 'not straight away');
   for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
   assert.equal(quests.isActive(qid), true, 'started after the landing');
-  assert.ok(toasts.length === 1 && /sketchbook/.test(toasts[0]));
+  assert.ok(toasts.length === 1 && /Quests page/.test(toasts[0]), toasts[0]);
   assert.ok(quests.journalHtml().includes('umbrella tree'), 'the sketchbook says where');
   boxes.open('edena.pouch', { instant: true });
   quests.update(pl);   // (the story runtime does this every frame)

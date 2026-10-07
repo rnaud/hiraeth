@@ -157,7 +157,7 @@ export function setupHoverbike(ctx) {
     if (!fuelled()) { toast('It runs on fluid, and your tank is empty. Fill it first, where the water is: the giant’s pool, past Qanat’s back gate.'); return; }
     game.set('desert.bike.found', true);
     sound.chime?.();
-    toast('The tank clicks into its cradle. The hoverbike hums awake: call it from anywhere (E, or X / □).');
+    toast('Your pack clicks into the socket behind the seat. The hoverbike hums awake: call it from anywhere (E, or X / □).');
     if (bike) setTimeout(() => { if (!player.ride && flat(player.pos, bike.pos) < 6) player.board?.(bike); }, 350);
   };
   registerInteractable({

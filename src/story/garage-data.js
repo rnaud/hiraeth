@@ -93,7 +93,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What does the board show?', goto: 'board' }, { text: '~happy~ See you, Ambroise.', end: true }],
         },
         board: { say: ["~tired~ Nine lamps blink the signal. Eleven years watching them and I know every blink. Understanding is apparently a separate department."], choices: [{ text: '~neutral~ See you.', end: true }] },
-        after: { say: ["~happy~ The board has stopped blinking. Now it shows three dots above an arc. {glyph} A doorway with three lamps. A considerable improvement in legibility.", "~happy~ We still do the round. Now we know what we’re carrying. Makes the paperwork feel almost personal."], choices: [{ text: '~happy~ On purpose is good.', end: true }] },
+        after: { say: ["~happy~ The board has stopped blinking. Now it shows three dots above an arc. {glyph} A doorway with three lamps. A considerable improvement in legibility.", "~happy~ We still do the round. Now we know what we’re carrying. Makes the paperwork feel almost personal."], choices: [{ text: '~happy~ Almost personal is a start.', end: true }] },
       },
     },
   },

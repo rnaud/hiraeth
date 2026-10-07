@@ -57,14 +57,19 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
 
 ## Errands and travel between worlds
 
-- **Errands:** in six worlds one villager asks you to carry something to
+- **Errands:** in every world but the last one villager asks you to carry something to
   someone in the next world on the route (`ORDER`), never back to one already
   done: Pell's singing sand from the desert to Senn in Vael (who listens to
   stones); Hollin's feather of the bird from Vael to the sky stones of Vael II;
-  Ivo's storm crystal from Lorn to Bram, who keeps Lorn II's skiff; Pim's brass
+  Brother Calix's muffled hand bell from Vael II to Wendel, Lorn's egg-warden;
+  Ivo's storm crystal from Lorn to Bram, who minds Lorn II's root cave; Pim's brass
   gear from Lorn II's domes to Mira's water clock in Viridel; Lio's glass seed
   from Viridel to Nima in the City-Shaft; Lio's taxi token from the City-Shaft
-  to the Sealed Hangar. Greeting the giver hands you the parcel, and the HUD
+  to Clemence in the Sealed Hangar; Nikko's gear grease from the Hangar to Tull at
+  the Buried Machine's oval doors; Ossa's pipe whistle from the Buried Machine to
+  Aube, the spheres' listener; Nell's sliver of lake mirror from the Garden of
+  Spheres to Oyo's lantern stall in the Signal Market (the last four since the story
+  pass of October 2026, docs/story-audit.md). Greeting the giver hands you the parcel, and the HUD
   shows what you're carrying and where it goes (the receiver's world now, even
   for a parcel picked up before the errands were re-routed). Greeting the
   receiver delivers it and puts a sketch of them in the sketchbook (J,
@@ -439,3 +444,22 @@ sound to make it clear I should chat with her".
   credits or the mother's "who did you meet". `src/save-migrate.js` brings old saves up once
   (flag `save.migrated`): a "met" carries over to the renamed person if the save has been to
   their world; Clemence's flags move outright. `tests/save-migrate.test.js`.
+
+## Quests played out of order (the story pass, October 2026)
+
+A stage that waits for a flag only one conversation sets is a soft-lock waiting to happen: do the thing
+itself first and that conversation is never reached again (its entry has moved on). Where the story
+can be done in another order, the quest catches up instead (docs/story-audit.md):
+
+- **the desert**: the channel opened before Nour, the well, Ama or the Speaker sent you (`desert.js`
+  `caughtUp`) passes those steps; Ama's `lateJar` still gives the jar;
+- **the Buried Machine**: the Wick lit before Wen or Hask (`buried.js` `caughtUp`); Ossa met after the
+  gauges were read starts and ends her quest in that talk;
+- **Viridel**: telling Lio about the tallest tree after reading Talo's note first starts and ends
+  `edena.tree`; **the Signal Market**: Kip met before Sel moves the quest on when you see him again;
+  **the Garden of Spheres**: Aube met after all three spheres still counts as heard;
+- **the temples**: a temple's quest that starts as you pass its door (the ship lands beside Vael's
+  Aerie) counts as one that started on its own until you go in, so the drone still finds the world's
+  opening conversation (`src/temples/index.js`).
+
+Each has an out-of-order test in its world's story test.
