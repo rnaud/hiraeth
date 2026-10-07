@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runtimeKey, split, partName, runtimeJson, liveRuntime, writeRuntime, KEY_FILES, PART } from '../scripts/deck-runtime.mjs';
@@ -30,7 +30,8 @@ test('the runtime goes up in parts under the Workers file limit, named as deck.p
 });
 
 test('the runtime\'s key is what it runs: the launcher, the updater, the packaging and Electron', async () => {
-  assert.deepEqual(KEY_FILES, ['desktop/main.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json']);
+  assert.deepEqual(KEY_FILES.slice(0, 4), ['desktop/main.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json']);
+  assert.ok(KEY_FILES.includes('desktop/steam/hero.png'), 'and Steam\'s artwork it carries');
   const files = Object.fromEntries(KEY_FILES.map((name) => [name, Buffer.from(name)]));
   const key = await runtimeKey(async (name) => files[name]);
   assert.match(key, /^[0-9a-f]{64}$/);
@@ -72,4 +73,25 @@ test('the Cloudflare deploy puts the runtime on the site, numbered as the GitHub
   assert.match(JSON.parse(read('../package.json')).scripts['deploy:cloudflare'], /web-update\.mjs && node scripts\/deck-runtime\.mjs && wrangler deploy/);
   // the packaged game leaves the site's updates out
   assert.match(read('../scripts/package-steam-deck.mjs'), /filter: \(src\) => !\/\^dist\[\\\\\/\]updates/);
+});
+
+test('Steam\'s library artwork: every image at Steam\'s size, in the package, named in Steam\'s grid as deck.py names it', async () => {
+  const { ART, GRID, LOGO_SIZE } = await import('../scripts/steam-art.mjs');
+  const size = (file) => { const b = readFileSync(new URL(`../desktop/steam/${file}`, import.meta.url)); assert.equal(b.toString('latin1', 1, 4), 'PNG'); return [b.readUInt32BE(16), b.readUInt32BE(20)]; };
+  assert.deepEqual(ART.portrait.size, [600, 900]);
+  assert.deepEqual(ART.wide.size, [920, 430]);
+  assert.deepEqual(ART.hero.size, [1920, 620]);
+  for (const [name, a] of Object.entries(ART)) assert.deepEqual(size(`${name}.png`), a.size, name);
+  assert.deepEqual(size('logo.png'), LOGO_SIZE);
+  assert.equal(ART.hero.logo, undefined, 'no title on the hero: Steam lays the logo over it');
+  for (const name of ['wide', 'portrait']) assert.ok(ART[name].logo, `${name} carries the title`);
+  // the views are References views (captures of the game itself)
+  const refs = readFileSync(new URL('../src/levels/reference-views.js', import.meta.url), 'utf8') + readdirSync(new URL('../src/levels/', import.meta.url)).filter((f) => f.startsWith('reference-')).map((f) => readFileSync(new URL(`../src/levels/${f}`, import.meta.url), 'utf8')).join('');
+  for (const a of Object.values(ART)) assert.ok(refs.includes(`'${a.view}'`), a.view);
+  // deck.py writes the same files under the same names
+  const deck = read('../scripts/steam-deck/deck.py');
+  const py = Object.fromEntries([...deck.matchAll(/'([p_a-z]*\.png)': '([\w/-]+\.png)'/g)].map((m) => [m[1], m[2]]));
+  assert.deepEqual(py, GRID);
+  assert.deepEqual(Object.keys(GRID).sort(), ['.png', '_hero.png', '_icon.png', '_logo.png', 'p.png']);
+  assert.match(read('../scripts/package-steam-deck.mjs'), /cp\('desktop\/steam', `\$\{output\}\/source\/steam`/);
 });
