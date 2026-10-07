@@ -46,9 +46,11 @@ import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
 
 /**
  * A material's vectors that move after it is made, sent live (materialVec's `which` is the index): a makers' box's
- * ray and clock (boxes/), the coral-shirt traveller's drawn face (characters/tripo-face.js: brows, eyes, mouth).
+ * ray and clock (boxes/), the coral-shirt traveller's drawn face (characters/tripo-face.js: brows, eyes, mouth), a
+ * face's expression as its ink draws it (Humanoid.setExpression: uMood, uMood2).
  */
-export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth'];
+export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2'];
+const LIVE_FROM_SPEC = LIVE_VECTORS.indexOf('uMood');
 
 /** What a render hook is handed for the renderer: nothing it can draw with (hooks here read the scene, not it). */
 const RENDERER_STUB = Object.freeze({ isWebGLRenderer: false, info: { render: { frame: 0 } } });
@@ -136,7 +138,8 @@ export class SceneMirror {
       for (let w = 0; w < LIVE_VECTORS.length; w++) {
         const A = U[LIVE_VECTORS[w]]?.value;
         if (!A?.isVector4) continue;
-        const L2 = (m.__mirrorVec ??= {})[w] ??= new Float32Array(4).fill(NaN);
+        // (a face's mood starts as the material was sent with it: only its moves go; the others once as they are)
+        const L2 = (m.__mirrorVec ??= {})[w] ??= w >= LIVE_FROM_SPEC ? Float32Array.of(A.x, A.y, A.z, A.w) : new Float32Array(4).fill(NaN);
         if (L2[0] === Math.fround(A.x) && L2[1] === Math.fround(A.y) && L2[2] === Math.fround(A.z) && L2[3] === Math.fround(A.w)) continue;
         L2[0] = A.x; L2[1] = A.y; L2[2] = A.z; L2[3] = A.w;
         const mid = this.mats.get(m);

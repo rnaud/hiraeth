@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as THREE from 'three';
-import { SceneMirror } from '../engine/mirror.js';
+import { SceneMirror, LIVE_VECTORS } from '../engine/mirror.js';
 import { inkSpec, plainValue } from '../engine/ink-spec.js';
 import { inkParams } from '../engine/ink-params.js';
 import { godotIndex, multimeshBuffer, packedBytes, VARIANT, rgbaColors } from '../engine/godot/pack.js';
@@ -269,6 +269,15 @@ test('mirror: a makers\' box\'s ray (uBoxA) and a face\'s shape-key weights go l
   mirror.sync(scene, null);
   assert.deepEqual(vecs[1].slice(0, 1).concat(vecs[1][4]), [0, 2.5], 'its clock');
   assert.ok(Math.abs(keys[1][1] - 0.7) < 1e-6, 'a smile');
+  // a face's expression as its ink draws it (Humanoid.setExpression: uMood, uMood2): only when it moves
+  const n0 = vecs.length;
+  mirror.sync(scene, null);
+  assert.equal(vecs.length, n0, 'nothing more while it stays');
+  face.material.uniforms.uMood.value.set(0.8, 0, 0.15, 0.25); face.material.uniforms.uMood2.value.x = -0.6;
+  mirror.sync(scene, null);
+  const which = (k) => vecs.slice(n0).find((x) => x[0] === LIVE_VECTORS.indexOf(k));
+  assert.deepEqual(Array.from(which('uMood').slice(1)).map((x) => +x.toFixed(3)), [0.8, 0, 0.15, 0.25], 'the smile, brow and squint');
+  assert.equal(+which('uMood2')[1].toFixed(3), -0.6, 'the brows\' tilt');
 });
 
 test('ink spec: makeMaterial read back as plain numbers, the shared uniforms left out', () => {

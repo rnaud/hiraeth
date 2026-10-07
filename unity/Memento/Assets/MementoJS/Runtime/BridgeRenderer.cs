@@ -53,7 +53,7 @@ namespace Memento.Bridge
         // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
         readonly Dictionary<int, BridgeCloth> cloths = new();
         // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
-        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth" };
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2" };
         public double msCloth;
         public void Cloth(int id, byte[] b, int count)
         {

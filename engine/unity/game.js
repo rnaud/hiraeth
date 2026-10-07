@@ -98,18 +98,25 @@ function makePlan(args) {
 }
 
 /**
- * A view aimed at someone (view.npc: their id; the side-by-sides' close-ups): the eye `dist` m off their front,
- * a little to the side, looking at their chest, wherever they have walked to by now. Other views as they are.
+ * A view aimed at someone (view.npc: their id, or 'traveller'; the side-by-sides' close-ups): the eye `dist` m off
+ * their front, a little to the side, looking at their chest (view.face: at their head, from its height), wherever
+ * they have walked to by now; view.expression (an expression.js expression: smile, open, brow, browTilt, squint)
+ * put on their face. Other views as they are. (scratchpad webshots.mjs does the same on the web.)
  */
 function aimed(game, v) {
   if (!v?.npc) return v;
-  const n = game.npcs.find((x) => x.def?.id === v.npc);
+  const trav = v.npc === 'traveller';
+  const n = trav ? { pos: game.player.pos, heading: game.player.heading, object: game.player.object, humanoid: game.player.humanoid } : game.npcs.find((x) => x.def?.id === v.npc);
   if (!n) { console.log(`[unity] no ${v.npc} here`); return v; }
+  if (v.expression && n.humanoid?.setExpression) n.humanoid.setExpression(v.expression);
   const p = n.pos, h = n.heading ?? 0, d = v.dist ?? 2.8, side = v.side ?? 0.6;
-  // (where they face: their object's -z, whatever the heading's convention)
-  const e = n.object?.matrixWorld?.elements, fl = e ? Math.hypot(e[8], e[10]) : 0;
-  const fx = fl > 1e-6 ? -e[8] / fl : Math.sin(h), fz = fl > 1e-6 ? -e[10] / fl : Math.cos(h);
-  return { ...v, player: null, hidePlayer: true, eye: [p.x + fx * d + fz * side, p.y + 1.5, p.z + fz * d - fx * side], target: [p.x, p.y + 1.1, p.z], fov: v.fov ?? 45 };
+  // (where they face: their object's +z (npc.js turns it by the heading), whatever the heading says by now)
+  const e = n.object?.matrixWorld?.elements, fl = e ? Math.hypot(e[8], e[10]) : 0, sg = 1;
+  const fx = fl > 1e-6 ? sg * e[8] / fl : Math.sin(h), fz = fl > 1e-6 ? sg * e[10] / fl : Math.cos(h);
+  const head = v.face ? n.humanoid?.b?.Head?.getWorldPosition?.(p.clone()) : null;
+  const t = head ? [head.x, head.y + 0.05, head.z] : [p.x, p.y + (v.face ? 1.6 : 1.1), p.z];
+  const eyeY = (v.face ? t[1] : p.y + 1.5) + (v.dy ?? 0);
+  return { ...v, player: null, hidePlayer: !trav, eye: [t[0] + fx * d + fz * side, eyeY, t[2] + fz * d - fx * side], target: t, fov: v.fov ?? 45 };
 }
 
 /** This frame's keys from Unity (BridgeHost.Keys: the KeyboardEvent codes held), as the page's keydown / keyup. */

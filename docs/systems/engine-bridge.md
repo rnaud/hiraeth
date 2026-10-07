@@ -786,6 +786,22 @@ The rose gorge (its walls' cracks) and the City-Shaft from the rim, the web on t
 Teo's portrait, the web's (left) and Unity's (middle), and Ysa's in Unity's panel:
 ![the portraits](../engine-bridge/sbs4-portrait.jpg)
 
+## Faces close up: expressions (Unity + Puerts, 2026-10-07)
+
+A bench view can be aimed at a face and put an expression on it (engine/unity/game.js `aimed`: `npc` an id or
+`'traveller'`, `face` at the head bone, `dy` from below, `expression` an expression.js one, set through
+Humanoid.setExpression), so the same faces are photographed on both sides (the web's from the bench page, the same
+numbers). The MakeHuman faces' shape keys already went live (op 19); their ink did not: the face ink's expression
+(`uMood`, `uMood2`: the smile's lines, the brows' creases, the squint) was the one the material was sent with. Both
+are live vectors now (engine/mirror.js LIVE_VECTORS, op 18), sent only when they move.
+
+The coral-shirt traveller's drawn face (neutral, happy, sad, surprised) and Teo's MakeHuman face (neutral, happy,
+angry, surprised), the web above Unity:
+![faces](../engine-bridge/sbs4-faces.jpg)
+
+What still differs: the port's face ink draws Teo's forehead and cheek lines heavier than the web's at rest, and
+the traveller's hair is spikier; the expressions themselves read the same.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
