@@ -1,0 +1,27 @@
+changelog.md
+  s_55b4bc53b812ec::t_8b166b595b2478 22
+docs/systems/story.md
+  s_55b4bc53b812ec::t_39de69ad4dd453 60,64-65,68-72
+src/changelog.js
+  s_55b4bc53b812ec::t_919216a706f154 26
+src/levels/content.js
+  s_55b4bc53b812ec::t_6eb51ed6918892 233-234,261-277
+tests/errands-route.test.js
+  s_55b4bc53b812ec::t_e99c3496e9132e 21-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f375bee4fb035184ad40d5a13bc0b59bb1cde8b9",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
