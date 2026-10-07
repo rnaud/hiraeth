@@ -1,0 +1,50 @@
+changelog.md
+  s_0a0e834cfcfe52::t_36f8957d1691f9 8-10
+docs/motion-data.md
+  s_0a0e834cfcfe52::t_deb932c7ac734d 10
+docs/systems/controls.md
+  s_0a0e834cfcfe52::t_77915b433ce586 14
+docs/systems/foes.md
+  s_0a0e834cfcfe52::t_619246e7e3101a 20-26,68,85-86
+scripts/mocap/mixamo-clips.json
+  s_0a0e834cfcfe52::t_6d42bc0fb0a6d9 97,99-102
+src/audio.js
+  s_0a0e834cfcfe52::t_0c0829e44dccc4 1214-1221
+src/changelog-media.js
+  s_0a0e834cfcfe52::t_a27518b639f182 172-176
+src/changelog.js
+  s_0a0e834cfcfe52::t_afffbdcbcde996 25-27
+src/fluid-blade.js
+  s_0a0e834cfcfe52::t_1c31f99bb148f0 14-18,20-21,48-55,84,102-132,137-138,142-143,177-198,201-214,280
+src/fluid-tool.js
+  s_0a0e834cfcfe52::t_6eb86b634510d4 966
+src/foes.js
+  s_0a0e834cfcfe52::t_022f680096e809 126-132,406-407,413,415
+src/levels/arena.js
+  s_0a0e834cfcfe52::t_b084b356fa5f9a 6,10,19-21,49,60
+src/player.js
+  s_0a0e834cfcfe52::t_555ec9e43d4e0b 64-65,764-766,2052-2055,2057
+src/ui.js
+  s_0a0e834cfcfe52::t_a0943f45cd0c4b 72,80
+tests/foes.test.js
+  s_0a0e834cfcfe52::t_48c32e0aa66030 170-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3ba57afdfab1efc72acafec6ce0bff02858a14fb",
+  "prompts": {},
+  "sessions": {
+    "s_0a0e834cfcfe52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ade28b2d-b826-430e-b2e2-c43a0ae93ce3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
