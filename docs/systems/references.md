@@ -484,10 +484,15 @@ the narrowest creases.
   the giants' cliffs, the billows, a frozen wave and the breaking wave round a valley of sand, the two camps.
 - **Off-frame casters**: plate 1's foreground shadow and plate 3's streaks of low sun across the sand are cast by
   glass mounds just outside the frame (the plates' light comes through dunes we don't see).
-- **Left**: the glass is opaque and lit as a surface; the plates' glow from within (light pooling lime at a wall's
-  foot, the luminous rims) is only its colours. Plate 4's breaking wave reads as a hood but not yet as the plate's
-  tall arch; plate 2's billows want deeper, rounder shading under each lobe. The plates' sand carries painted
-  bands of light and shade more than our cast shadows do.
+- **The glass shader** (October 2026, materials.md "Dune glass"): the views use the world's: the light through
+  the thin glass and the grazing edges in mint and lime bands, the silhouettes cut hard inside, a deeper shade
+  in the lobes, light pooled on the sand at the walls' feet (`glassPools` on the view's ground, turned by the
+  view's own turn so the pools fall away from the sun). Plate 4's wave is rebuilt as the plate's tall arch: the
+  curl profile rising steep at its left end (`ends` 16, `taper` 1.75 → 0) to ~130 m and sweeping down to the
+  sand on the right, the camp under it, the walls behind pushed back and casting no shadow on the plain.
+- **Left**: the glass is opaque (no parallax of what it holds); the plates' lit glass is a deeper emerald with
+  blue in its tops, ours a paler mint; plate 2's billows still want rounder lobes; the plates' sand carries
+  painted bands of light and shade more than our cast shadows do (plate 4's dark foreground band).
 ## The City Behind the Waterfall's sheets (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-waterfall.js`, world `waterfall`: `?level=references&world=waterfall&view=n`):

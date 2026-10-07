@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.88 — 2026-10-07
 
+- In the References level the Glass Dunes’ fourth picture has its tall wave: it rises steep over the glassworkers’ camp, curls over its dark hollow and sweeps down to the sand, as drawn, instead of a low hood.
 - Two archways in the Glass Dunes go through now: walk through the cliff of the giants to the sand behind it, and through the frozen wave in the middle of the valley, under a vault of glass lit green. The breaking wave’s hollow can be walked into from its camp, a long way under the lip.
 - In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.
 - The Glass Dunes’ glass glows from within: the sun comes through its thin edges, its foot and the lips of its waves in bands of mint and lime, the more as you look toward the light, and the giants, heads and trees held inside it are crisp dark shapes instead of soft smudges.

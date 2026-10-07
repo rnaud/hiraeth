@@ -221,7 +221,8 @@ export const GLASS_VIEWS = [
     },
   }),
   // ======================================================== reference-4: the breaking wave over the camp
-  // (an eye a metre up; the traveller 26 m out; the dune and its camp 110 m, the wave cresting 85 m over it, the walls 300 m)
+  // (an eye a metre up; the traveller 26 m out; the dune and its camp 110 m, the wave cresting ~130 m over the plain
+  //  at its steep left end and sweeping down to the sand on the right, the walls 350 m, casting no shadow on the plain)
   view({
     id: 'glass-4-wave', title: 'The breaking wave over the camp, arches in the walls', sheet: 'glassdunes-4', panel: 1, where: 'the whole plate', crop: [0, 0, 1456, 816],
     camera: { eye: [0, 1.35, 0], yaw: 0, fov: 56, horizon: 0.78 },
@@ -234,18 +235,21 @@ export const GLASS_VIEWS = [
       dunesScene(kit, v, {
         seed: 4,
         ridges: [
-          { path: [[-75, -150], [-30, -142], [20, -136], [90, -122], [170, -96]], height: 70, depth: 130, ends: 70,
-            profile: 'curl', taper: [1.6, 0.1],
-            folds: { width: 30, amp: 4, lean: 0.4, crest: 0.05 },
-            silhouettes: [{ shape: 'tree', u: 40, y: 18, s: 40 }] },
-          { path: [[-300, -320], [-150, -290], [0, -280], [150, -270], [300, -240]], height: 300, depth: 120, profile: 'cliff', folds: { width: 60, amp: 10, lean: 0.08, crest: 0.05 },
-            silhouettes: [{ shape: 'tree', u: 340, y: 20, s: 90 }, { shape: 'tree', u: 430, y: 10, s: 80 }, { shape: 'tree', u: 140, y: 30, s: 100 }] },
-          { path: [[-200, -60], [-190, -160], [-200, -270]], height: 260, depth: 80, profile: 'cliff', folds: { width: 30, amp: 6, lean: 0.1 } },
+          // the tall arching wave: it rises steep on the left to its crest, the lip curling over its dark hollow
+          // toward us, and sweeps down a long way to the sand on the right (the plate's arch)
+          { path: [[-112, -196], [-60, -186], [10, -176], [80, -160], [160, -130]], height: 76, depth: 110, ends: 18,
+            profile: 'curl', taper: [1.75, 0.0],
+            folds: { width: 26, amp: 4, lean: 0.5, crest: 0.04 },
+            silhouettes: [{ shape: 'tree', u: 95, y: 6, s: 44 }] },
+          { path: [[-300, -380], [-150, -350], [0, -345], [150, -335], [300, -300]], height: 320, depth: 120, profile: 'cliff', folds: { width: 60, amp: 10, lean: 0.08, crest: 0.05 }, shadow: false,
+            silhouettes: [{ shape: 'tree', u: 340, y: 20, s: 90 }, { shape: 'tree', u: 470, y: 10, s: 80 }, { shape: 'tree', u: 140, y: 30, s: 100 }] },
+          { path: [[-220, -60], [-210, -180], [-220, -330]], height: 280, depth: 80, profile: 'cliff', folds: { width: 30, amp: 6, lean: 0.1 }, shadow: false },
         ],
-        arches: [{ x: 180, z: -258, yaw: -0.25, w: 22, h: 34 }, { x: 40, z: -278, yaw: 0, w: 26, h: 90 }],
+        arches: [{ x: 190, z: -318, yaw: -0.25, w: 22, h: 34 }, { x: 70, z: -342, yaw: 0, w: 26, h: 90 }],
         camps: [{ x: -40, z: -104, yaw: 0, w: 40, d: 7, n: 7, h: 4 }],
         workers: [[-66, -100]],
         traveller: [5.5, -26, 0.2],
+        paint: [[0, -60, 260, 70, 0.75]],   // (the light through the walls greens the plain, as the plate's)
       });
     },
   }),
