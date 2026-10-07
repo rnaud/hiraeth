@@ -103,6 +103,51 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.74': [
+    { match: 'Seated people’s capes rest on what they sit on', shots: [
+      { name: 'seated-capes', caption: 'Bako and Sefa seated, from behind and from the side, in the running game', commit: '7a8806f', view: people([{ id: 'bako', yaw: 2.4 }, { id: 'bako', yaw: 1.57 }, { id: 'sefa', yaw: 2.4 }, { id: 'sefa', yaw: -1.57 }]) },
+    ] },
+    { match: 'In the City-Shaft the shade is printed flat', shots: [
+      { name: 'dish-city-shadows', caption: 'The References’ view of the pink dishes over the blue domes: the dish’s shadow on the sand, hatched before, one solid dark mass after', commit: '001f401', view: { ref: '3774-dish-city' } },
+    ] },
+    { match: 'No more filter stuck to the screen', shots: [
+      { name: 'no-filter', caption: 'Qanat from the plinth’s stair (look at the corners and the sky)', commit: '997e28a', view: desertAt([213.052, 3.246, 370.525], [231.495, 21.846, 402.601], { player: [215.544, 2.346, 374.86], fov: 60 }) },
+    ], numbers: [
+      { title: 'What stayed on the screen when the camera turned', device: 'Mac, Qanat’s gate, the clock frozen', source: 'the commit’s measurements (997e28a)', rows: [
+        { where: 'the corners darkened (%)', before: 19, after: 0 },
+        { where: 'the paper grain left on the same pixels (correlation)', before: 0.94, after: 0 },
+      ] },
+    ] },
+    { match: 'Old walls no longer shimmer', see: 'Shimmer only shows in motion: turn the camera slowly in front of Qanat’s gate; the far walls’ grime and hatching stay still instead of crawling.', numbers: [
+      { title: 'Shimmer as the camera pans (flickering pixels in 10 000)', better: 'lower', device: 'the motion check: a slow pan, the world frozen', source: 'the commit’s measurements (4d24ba7)', rows: [
+        { where: 'Qanat, Medium', before: 22.8, after: 15.8 },
+        { where: 'Qanat, Handheld', before: 28.1, after: 19.2 },
+        { where: 'the Signal Market', before: 17.8, after: 14.3 },
+      ] },
+    ] },
+    { match: 'The spots on the desert sand are pebbles', shots: [
+      { name: 'pebbles', caption: 'The sand at your feet on a dune’s crest at 8 in the morning', commit: '4a16479', view: desertAt([-203, 23.5, 303], [-208, 21.2, 308], { fov: 28, hour: 8, player: [-198, 22, 298] }) },
+      { name: 'pebbles-far', caption: 'The open dunes from a crest', commit: '4a16479', view: desertAt([-200, 39.852, 300], [-420, 2.804, 520], { hour: 9, player: [-205.657, 21.133, 305.657] }) },
+    ] },
+    { match: 'The Steam Deck version updates all of itself', see: 'On the Steam Deck, Check for updates in the settings: a new version of the app around the game comes from the game’s site too, not only the game.' },
+    { match: 'On the Steam Deck the game has its own pictures', shots: [
+      { name: 'steam-art', caption: 'Memento in the Steam Deck’s library, its banner drawn from the game itself', only: 'after', size: [1280, 800], from: 'the Deck work’s own screenshot of the Deck (7 October)' },
+    ] },
+    { match: 'The game runs smoothly on handhelds again', numbers: [
+      { title: 'Frames a second, every view of every world', unit: 'fps', better: 'higher', device: RETROID, source: 'docs/systems/performance.md, “Every world on the Retroid, in GeckoView”', rows: [
+        { where: 'the desert', before: '17–25', after: '44–60' },
+        { where: 'the City-Shaft', before: '18–20', after: '44–60' },
+        { where: 'the Signal Market', before: '18–24', after: '59–60' },
+        { where: 'Vael', before: '18–24', after: '59–60' },
+        { where: 'Vael II', before: '18–23', after: '57–60' },
+        { where: 'the Buried Machine', before: '21–22', after: '59–60' },
+        { where: 'the Garden of Spheres', before: '22–24', after: '59–60' },
+        { where: 'Lorn II', before: '22–25', after: '59–60' },
+        { where: 'home', before: '17–22', after: '59–60' },
+      ] },
+      { title: 'The shirt’s work on the processor a frame', unit: 'ms', better: 'lower', device: RETROID, rows: [{ where: 'every world', before: '33–43', after: 1.8 }] },
+    ] },
+  ],
   '0.73': [
     { match: 'In the Buried Machine your feet and hands meet the metal', numbers: [
       { title: 'Where the solid and the drawn shapes disagree', better: 'lower', device: AUDIT, source: 'the commit’s measurements (8a6ca7f)', rows: [
