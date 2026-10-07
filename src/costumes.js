@@ -300,6 +300,24 @@ export const COSTUMES = {
       accents: ['#c7a6f2', '#7fe0d0', '#d6ff9a'],
     },
   })] },
+  // the Salt Harbour's folk (src/levels/salt-harbour.js): sun-bleached wraps and hoods against the glare, terracotta and sailcloth
+  saltharbour: { tribes: [tribe({
+    name: 'the harbour folk',
+    moods: { kind: 3, calm: 3, amused: 2, curious: 1.5, stern: 0.4 },
+    heads: { hood: 3, wrap: 3, hat: 1, hair: 1 }, as: { hat: 'hood' },
+    hair: { m: { short: 2, tail: 1 }, f: { long: 2, braid: 2, bun: 1 } },
+    masks: { none: 3, goggles: 1 }, body: { mantle: 2, none: 2 }, props: { none: 3, basket: 1.5 }, trim: { none: 1 },
+    capes: [0.8, 1.1, 1.3], robe: 0.6, robes: [0.2, 0.3], flare: [0.28, 0.34], size: [0.96, 1.04],
+    palette: {
+      cloaks: ['#efe2cc', '#e2c8a8', '#c4664a', '#a0644a', '#d8d0c4'],
+      tunics: ['#7c4a38', '#8a6448', '#5e5068', '#4d6a9a'],
+      legs: ['#4a3a2a', '#3a3448'],
+      skins: ['#d8a888', '#c89878', '#b88868', '#e8c0a0'],
+      hair: ['#2b211f', '#4a3226', '#d8c8b0'],
+      hats: ['#efe2cc', '#c4664a', '#e2c8a8'],
+      accents: ['#c4664a', '#6f8f5a', '#4d6a9a'],
+    },
+  })] },
   // the White Mangrove's folk (src/levels/mangrove.js): pale robes and hoods, lanterns, the lake's violet and rose
   mangrove: { tribes: [tribe({
     name: 'the lake folk',

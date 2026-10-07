@@ -592,6 +592,63 @@ references.md). Its pieces are in `src/levels/waterfall-kit.js`, shared with the
   nothing (walking into the curtain from the pool you just pass through); the houses can't be entered; the inner
   fall's basin is shallow and plain.
 
+## The Salt Harbour (`saltharbour`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The Salt Harbour/`; the views:
+references.md): huge weathered ships standing on their keels in a vast dry white salt basin, made into
+apartment buildings, a street between their hulls. No story to follow and no errands: three people from other
+worlds came to see it (Marrow, the desert's salvager, by the ship; Corvin Sale of the City-Shaft's rim on the
+terracotta hull's deck; Pip, from the bottom of the shaft, under the ship stood on its stern), six of the
+harbour's folk stand in the street and on the decks with a few toned lines of their own, and a crowd walks the
+street, talks at the shops and leans on the decks' rails (`crowdSpots`, crowd.js; `CROWD_LINES`).
+
+- **Off the route** (`SIDE`, src/levels/names.js, after the White Mangrove): on the galactic map from the start,
+  off the dotted line, never counted toward the way home; `?level=saltharbour` opens it. Its folk speak the
+  desert's tongue (`lang: 'desert'`); Corvin and Pip the City-Shaft's.
+- **The layout** (`src/levels/salt-harbour.js`, `SHIPS`): the ship lands on the open salt in the south
+  (`SHIP_SITE`, 0, 92); the street runs north ~30 m wide between two hulls each side (w1, w2 to the west; e1, the
+  terracotta one, and e2 to the east), a cross-street between them out to the flats at z −130, to the ship
+  stood on its stern at the end (z −372, its keel's terracotta stripe toward the street, its deck turned away).
+  Five more ships lie out on the flats (one stood up, one sunk deep with rounded ridges in the crust round it),
+  and the basin's rim closes the world at ~450 m (`limit` 430).
+- **On the hulls** (the kit's `hull().at(t, y)`: a point of the drawn, faceted side and its normal): house stacks
+  out from the plating where it is widest (their storeys hang over the shops at the hull's foot), shops with
+  sailcloth awnings and lanterns, arched doors (some lit), ledges of herbs at the portholes, mooring ropes fanned
+  from the flanks to stakes in the salt (e1's toward the street, the upright ship's all round). Up on the decks:
+  upper works, railings along the walked decks' gunwales, houses on w1's deck round its upper works, crates,
+  planters and washing lines. Sailcloths stretched across the street between the hulls, tied off to them.
+- **Up and across**: a timber stair tower (`TOWER`: switchback flights, landings, posts, braces) climbs w1's
+  flank at its middle to its deck (40.7 m), a short bridge over the gunwale onto it; a gangway (planks, rails,
+  a truss) crosses the street from w1's deck to e1's (45.6 m); two more gangways overhead are drawn and solid
+  too. The decks sit 0.35 m under their gunwales (a lip you step over); the gangways' ends lie over the decks.
+- **The salt** (`height`): flat, barely rolling; a bank of salt up each hull's foot (its footprint an ellipse
+  where the salt cuts the hull, the bank 4 m high at the plating and gone 15 m out), the ridges round f3, the
+  basin's rim. The terrain's ink is the desert's (`sandInk`) over cracks.
+- **Solid as drawn**: hulls, decks, upper works, houses, balconies, shops, stairs, gangways and rails are the
+  collision (SAH BVH, ~90 k triangles); portholes, doors and herbs are put on the hull's facets, not the curve
+  they are cut from, so nothing stands proud of the plating by more than the audit's 6 cm (the herbs are flora:
+  walked through). Contact audit: climbs inside 12 (a porthole or two on a facet's edge, ≤ 0.5 m), walks
+  through 6 (≤ 1 m: the tower's braces and a balcony's washing), nothing else. `tests/saltharbour-world.test.js`
+  walks the street, the tower, both decks and the gangway.
+- **Draws**: every static thing is ~30 merged meshes (RoomKit buckets by material); the terrain 80 k triangles
+  (1200 m at 6 m); the hulls cast the shadows (the pictures' great blue shadows on the salt).
+- **The look**: `SALT_LOOK` (salt-harbour-kit.js) on the print preset: the shade printed flat in one blue-grey,
+  little hatching, a warm pale haze down the street; the day deep blue over a blinding salt (default hour
+  10.5), the dusk rose and terracotta, the night indigo with its stars and the lit portholes and doors; no
+  weather; the desert's wind ambience, footsteps on sand; gulls overhead, salt glints in the air.
+- **Cost** (desktop, M-series Mac shared with other agents' jobs, Chrome on Metal, Handheld preset at render
+  scale 0.75, 1280 × 720, rounds of 90 `renderFrame` + a pixel read each, the median round, the Signal Market's
+  start and crowd views measured in the same runs, alternating): first run (five rounds, the terrain then at 5 m
+  cells, 135 k triangles) the market's start 7.1 / 6.3 ms (700 draws, 0.67 M triangles), its crowd 8.0 (330); the
+  harbour's spawn 8.7 (317 draws, 0.61 M), the street 5.4 / 6.0 (171 / 245), the cross-street 5.7 (220), w1's deck
+  6.1 (202). Second run (seven rounds, the terrain at 6 m, 80 k; the Mac busier): the market's start 9.6 / 9.4
+  (698 draws), its crowd 6.1 (140); the harbour's spawn 9.1 / 9.2 (321 / 213 draws, 0.61 / 0.35 M), the street 6.6
+  (173), w1's deck 3.9 (235). At or under the market's frame time, under half its draws at the spawn.
+- **Left to make it better**: the hulls have no inside (the doors are drawn; a cabin you walk into would make the
+  houses read as homes); the sailcloths are smooth undersides from the street (the pictures' are layered and
+  folded); the crowd hauls nothing aboard (a basket at most); the ropes are drawn only and the crowd walks
+  through them; the far ships have no people.
+
 ## The Underwater City (`underwater`, off the route, October 2026)
 
 `src/levels/underwater.js` (`?level=underwater`; a SIDE world in `src/levels/names.js`, charted on the ship's map from

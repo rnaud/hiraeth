@@ -24,6 +24,7 @@ export const PLANETS = {
   mangrove: { body: '#3a3f78', shade: '#262a56', ink: '#f2e8f2', mark: 'lights' },
   glassdunes: { body: '#8fdcae', shade: '#4f9c86', ink: '#e4f6b0', mark: 'dunes' },   // (a detour: glass dunes)
   waterfall: { body: '#6fc9cc', shade: '#3f8f98', ink: '#f1dcbd', mark: 'bands' },
+  saltharbour: { body: '#f1e9e0', shade: '#b9c4dc', ink: '#c4664a', mark: 'bands' },
   underwater: { body: '#2a7fae', shade: '#164f74', ink: '#f2a48e', mark: 'lights' },   // (a detour: the city on the sea floor)
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };

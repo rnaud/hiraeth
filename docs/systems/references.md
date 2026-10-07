@@ -514,6 +514,42 @@ the narrowest creases.
   are tidy rows of pods on terraces whose retaining walls still show too plain. The sheets' roof is a mass of
   blocky overhangs with deep pockets; ours a few lumpy slabs. View 3's and 4's cities stand a little far and low.
 
+## The Salt Harbour's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-saltharbour.js`, world `saltharbour`:
+  `?level=references&world=saltharbour&view=<1…4>`): four single compositions (1456 × 816), one view each: the
+  street between the hulls, the market in the cleft, the gangway and the terracotta hull's ropes (1); the canyon of
+  hulls with two gangways overhead and the ropes meeting in the street (2); the curtains hung from the high gangway,
+  the arcade at the hull's foot, the ship at the street's end (3); the hulls' terracotta feet, the upright ships, the
+  open salt beyond (4). One scene builder (`harbourScene`): ships (each a hull with portholes, house stacks on its
+  flanks, shops and doors at its foot, herbs on ledges, upper works, mooring ropes from its flank to stakes in the
+  salt), free house stacks against a plastered wall, sailcloths, curtains, gangways with people on them, ropes,
+  shops, residents, the traveller with the luminous pack. The ground is the salt (`salt(mounds)`: barely rolling,
+  mounds banked where asked, the crust's cracks and the sand's sparse ink, drifts banked against the hulls by
+  `SandDrifts`). A ship behind the camera casts view 1's foreground shadow. `?look=saltharbour`.
+- **The shapes** (`src/levels/salt-harbour-kit.js`, shared with the world): `hull` (a lofted hull on its keel:
+  sections of a superellipse, the keel rising at the ends, `tumble` drawing the side in again over its widest as
+  the pictures' round-shouldered hulls; painted white over a terracotta bottom `band` and/or under a terracotta
+  `top`, each band its own geometry at a level line; `upright` stands it on its stern; `at(t, y)` finds a point of
+  its side and the normal there, for everything built onto it), `portholes`, `archDoor`, `herbs`, `houseStack`
+  (storeys of cabins out from a wall: balconies with rails and struts, doors and windows, shutters, washing, herbs;
+  it reports its balconies' decks), `superstructure`, `cloth` (between four corners, sagging and folded),
+  `curtain` (from a sagging top edge, in folds, its hem gently scalloped), `gangway` (planks, rails, a truss under
+  it), `rope` and `stake`, `stall`, `figure`.
+- **The look** (`SALT_LOOK`, `SALT_DAY`, `SALT_TONES` in the kit): a clean deep blue sky over a blinding salt, the
+  shade printed flat in one blue-grey (`uShadowFlat` 0.85, as the pictures print every shadow on the salt and the
+  hulls alike), little hatching, a warm pale haze in bands down the long streets, cast shadows kept whole. The hulls
+  are plated (`plates`: rows of plates, staggered joints, each a shade apart), no weathering pen detail (its small
+  rectangles read as stuck-on marks at this scale).
+- **On the world** (`src/levels/salt-harbour.js`, worlds.md "The Salt Harbour"): the same kit at `detail` 0.7, the
+  hull's `at()` on its facets (what is put on the plating sits on what collides), the street's ships solid.
+- **The scale, from the pictures**: the traveller ~10–12 m from a 2.1–2.4 m eye; the near hulls 40–75 m high,
+  40–60 m in the beam, 100–160 m long, 15–40 m off; the gangways 22–50 m up; the streets 25–40 m wide.
+- **Left**: the pictures' hulls carry dense small work (rivets, hatches, vents, stains running down from the
+  portholes) that our plating only hints at; their houses are many more and finer (a village on every flank), their
+  sails layered three or four deep; the pictures' near ropes are a fan of hairlines, ours thicker strokes. Our
+  views' compositions follow the pictures' masses (which hull where, lit or in shade), not every hull's exact turn.
+
 ## The Underwater City's sheets (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-underwater.js`, world `underwater`: `?level=references&world=underwater&view=n`):
