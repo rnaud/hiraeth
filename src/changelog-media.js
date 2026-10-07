@@ -178,6 +178,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'An items page, linked from the worlds list', shots: [
       { name: 'items-page', only: 'after', caption: 'The items page: each item’s picture, what it does and where it is found', from: 'headless Chrome against the dev server (7 October)' },
     ], see: 'On the title screen, choose Debug, then Items at the top.' },
+    { match: 'Fights have their own music', see: 'In the Arena, as a wave comes in: the drum starts; it fades once the wave is down.' },
+    { match: 'Where a blot falls, its ink stains the ground', see: 'Cut a blot down: dark stains on the sand where it was.' },
+    { match: 'In the temples the makers’ machines meet the rooms’ workings', see: 'In a temple with gusts (Vael’s Aerie), lead a machine into the hall as it blows.' },
+    { match: 'On a touch screen the blade has one button again', see: 'On a phone or tablet: tap ⚔, then hold it.' },
     { match: 'A new foe, the shade', shots: [
       { name: 'shade', only: 'after', caption: 'A shade: living shadow running down a person’s body, its feet melting into print dots, the pools it left behind', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
     ], see: 'In the Arena’s sixth wave; out in the wilds, a later pack now and then.' },

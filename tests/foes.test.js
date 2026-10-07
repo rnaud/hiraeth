@@ -326,3 +326,20 @@ test('the shade: a person of living shadow, in later packs and in the Arena, tou
   assert.equal(s.alive, false);
   foes.dispose(); clearTargets();
 });
+
+test('in a temple the machines meet its kit: a gust shoves them, and one standing on a plate presses it', () => {
+  clearTargets();
+  const pressed = new Set();
+  const kit = { local: (p) => p.clone() };
+  const gust = { dirW: v(1, 0, 0), push: 7.5, state: 1, box: new THREE.Box3(v(-5, -1, -5), v(5, 5, 5)), sheltered: () => false };
+  const plate = { id: 'p1', pos: v(20, 0, 0), r: 1.3, solid: {}, weighed: () => false };
+  const rt = { kit, pieces: [gust, plate], marks: [], logic: { press: (id, by) => pressed.add(`${id}:${by}`), release: (id, by) => pressed.delete(`${id}:${by}`) }, inside: () => true };
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), temple: rt }, levelId: 'desert', physics: flat, player: player(v(0, 0, -30)), settings: { enemies: 'normal' }, game: new GameState(null) });
+  const m = foes.add('machine', v(0, 0, 0)), n = foes.add('machine', v(20, 0, 0));
+  foes.templeKit();
+  assert.ok(m.vel.x > 4, 'shoved down the hall');
+  assert.ok(pressed.has('p1:foe'), 'the plate pressed under the machine');
+  n.pos.set(30, 0, 0); foes.templeKit();
+  assert.ok(!pressed.has('p1:foe'), 'and let go when it walks off');
+  foes.dispose(); clearTargets();
+});

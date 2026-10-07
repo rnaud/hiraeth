@@ -23,7 +23,8 @@ test('menu swipes remain native while canvas gestures move and look', async () =
     assert.match(root.innerHTML, /data-toggle="KeyR" class="b-aim"/);
     assert.match(root.innerHTML, /data-key="TouchFire" class="b-fire"/, 'the shoot button: a quick shot that aims for you (controller.js triggers)');
     assert.doesNotMatch(root.innerHTML, /b-push/, 'no push button: the push is a gun mode (◐)');
-    assert.match(root.innerHTML, /data-key="TouchGuard" class="b-guard"/);
+    assert.match(root.innerHTML, /data-key="TouchBlade" class="b-blade"/, 'one blade button: a tap swings, held it guards');
+    assert.doesNotMatch(root.innerHTML, /b-guard/);
     assert.match(root.innerHTML, /data-key="KeyX" class="b-mode"/, 'a button cycles the owned gun modes (hidden until there are two)');
     const touch = (identifier, clientX, clientY) => ({ identifier, clientX, clientY, target: canvas });
     const fire = (target, type, changedTouches) => {

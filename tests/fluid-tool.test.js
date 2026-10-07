@@ -80,8 +80,9 @@ test('controls: aim, shoot and push from keyboard, mouse, pad or touch; a shot o
   assert.deepEqual(toolInput({ TouchFire: true }), { ...none, quick: true }, 'the touch button: a quick shot');
   assert.deepEqual(toolInput({ KeyC: true }), none, 'C does nothing now');
   assert.deepEqual(toolInput({ KeyX: true, KeyE: true }), { ...none, mode: true }, 'X switches the gun mode; E does nothing to the tool');
-  for (const k of ['KeyF', 'PadBlade', 'TouchBlade']) assert.deepEqual(toolInput({ [k]: true }), { ...none, blade: true }, `${k}: the fluid blade`);
-  for (const k of ['ControlLeft', 'KeyZ', 'PadGuard', 'TouchGuard']) assert.deepEqual(toolInput({ [k]: true }), { ...none, guard: true }, `${k}: its guard`);
+  for (const k of ['KeyF', 'PadBlade']) assert.deepEqual(toolInput({ [k]: true }), { ...none, blade: true }, `${k}: the fluid blade`);
+  for (const k of ['ControlLeft', 'KeyZ', 'PadGuard']) assert.deepEqual(toolInput({ [k]: true }), { ...none, guard: true }, `${k}: its guard`);
+  assert.deepEqual(toolInput({ TouchBlade: true }), { ...none, blade: true, guard: true }, 'touch: one button, a tap swings and held it guards');
   assert.deepEqual(toolInput({ PadModeNext: true }), { ...none, mode: true }, 'D-pad right');
   assert.deepEqual(toolInput({ PadModePrev: true }), { ...none, modeBack: true }, 'D-pad left');
 });

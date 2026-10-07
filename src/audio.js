@@ -320,6 +320,57 @@ export class Sound {
     if (this.menuOn) this.menuMusic(true);
   }
 
+  // ------------------------------------------------------------------ combat
+  /**
+   * A fight's layer over the world's music (src/foes.js: on while foes chase you): a low drum on the beat,
+   * a dry tom on the off-beats and a held drone a fifth apart, fading in over a second and out over two.
+   */
+  combat(on) {
+    on = !!on;
+    const ctx = this.ctx;
+    if (!ctx || on === this.combatOn) return;
+    this.combatOn = on;
+    const t = ctx.currentTime;
+    if (!this.combatBus) {
+      this.combatBus = ctx.createGain(); this.combatBus.gain.value = 0;
+      this.combatBus.connect(this.music ?? this.master);
+      this.combatDrone = [55, 82.4].map((f) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+        o.type = 'sawtooth'; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = 220; g.gain.value = 0.05;
+        o.connect(lp).connect(g).connect(this.combatBus); o.start();
+        return o;
+      });
+    }
+    this.combatBus.gain.setTargetAtTime(on ? 0.9 : 0, t, on ? 0.35 : 0.7);
+    clearTimeout(this._combatStop);
+    if (on && !this.combatTimer) {
+      this.combatBeat = 0; this.combatNext = t + 0.1;
+      this.combatTimer = setInterval(() => this.combatSchedule(), 100);
+    } else if (!on && this.combatTimer) {
+      this._combatStop = setTimeout(() => { if (!this.combatOn) { clearInterval(this.combatTimer); this.combatTimer = null; } }, 3000);
+    }
+  }
+
+  combatSchedule() {
+    const ctx = this.ctx, spb = 60 / 132 / 2;   // (eighths at 132 bpm)
+    while (this.combatNext < ctx.currentTime + 0.3) {
+      const t = this.combatNext, b = this.combatBeat % 8;
+      if (b === 0 || b === 3 || b === 4) {   // the drum: a falling thump
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18);
+        g.gain.setValueAtTime(0.32, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        o.connect(g).connect(this.combatBus); o.start(t); o.stop(t + 0.32);
+      }
+      if (b === 2 || b === 6) {   // the tom: dry, a little higher
+        const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+        src.buffer = this.noiseBuf; f.type = 'bandpass'; f.frequency.value = 320; f.Q.value = 2.5;
+        g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        src.connect(f).connect(g).connect(this.combatBus); src.start(t, Math.random()); src.stop(t + 0.14);
+      }
+      this.combatBeat++; this.combatNext += spb;
+    }
+  }
+
   // ------------------------------------------------------------------ menu music
   /** The menu music fades in over the hushed world (on), or out as the world comes back (off). */
   menuMusic(on) {

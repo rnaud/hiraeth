@@ -152,6 +152,17 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Where:** a lone shade in a later pack (`packKinds`, n ≥ 3), and in the Arena. Without the game's bodies
   (tests) it is drawn as a blot.
 
+## Polish
+
+- **Combat music** (`Sound.combat`): a drum, an off-beat tom and a low drone a fifth apart on their own bus
+  under the music. It is on while a foe within 28 m chases, winds up or recovers.
+- **Ink stains:** where a blot or a shade falls (`Foes.stain`), dark pools in the `ShadePools` decal.
+- **The shade's slash:** a dark arc of drops in front of it as it strikes (`slashTrail`).
+- **The temple kit** (`templeKit`, inside the temple): a blowing `Gust` shoves machines down its hall; a
+  machine on a `Plate` presses it (`logic.press(id, 'foe')`).
+- **Touch:** one ⚔ button (a tap swings, held it guards: `TouchBlade` is the guard too). ◉ shows only with
+  `body.combat`.
+
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes

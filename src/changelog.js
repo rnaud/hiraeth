@@ -32,6 +32,10 @@ export const CHANGELOG = [
     'Locked on, the traveller faces the foe and strafes round it, side-stepping left and right or backing away in a sword stance, instead of running round it.',
     'The fluid blade is a real sword now: a slim two-edged blade of the tank’s fluid tapering to a point, its edges bright, on a brass crossguard, a wrapped grip and a pommel, its edge leading every cut.',
     'An items page, linked from the worlds list (Debug): every item with its picture, what it does, and where its boxes are, with a search and the kinds to filter by.',
+    'Fights have their own music: a drum and a low drone come in under the world’s music while foes chase you, and fade when the fight is over.',
+    'Where a blot falls, its ink stains the ground for a while; a shade’s cut leaves a dark arc of shadow in the air.',
+    'In the temples the makers’ machines meet the rooms’ workings: a gust shoves them down its hall, and one standing on a pressure plate presses it.',
+    'On a touch screen the blade has one button again: tap ⚔ to swing, hold it to guard; the lock-on button shows only in a fight.',
     'A new foe, the shade: a person made of living shadow, near-black violet running down its body in streaks, its feet melting into the ground, dripping as it walks and leaving dark pools behind. It comes in later packs out in the wilds and cuts with a sword’s swing; five cuts bring it down, and it runs away into the ground.',
   ] },
   { v: '0.87', date: '2026-10-07', items: [

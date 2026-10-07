@@ -88,7 +88,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
     ],
     touch: [
       ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'],
-      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade · guard (hold) · lock on', '⚔ · 🛡 · ◉'],
+      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade (tap) · guard (hold it) · lock on', '⚔ · ⚔ held · ◉'],
       ['Items, quests and sketchbook · menu', '❏ (its tabs turn the panels) · the small ⚙ in the corner'],
     ],
   };
@@ -284,7 +284,6 @@ export class TouchControls {
       <button data-key="TouchFire" class="b-fire" aria-label="Shoot fluid">✺</button>
       <button data-key="KeyX" class="b-mode" aria-label="Switch the fluid's mode">◐</button>
       <button data-key="TouchBlade" class="b-blade" aria-label="Swing the fluid blade">⚔</button>
-      <button data-key="TouchGuard" class="b-guard" aria-label="Guard (hold)">🛡</button>
       <button data-press="Tab" class="b-lock" aria-label="Lock on to a foe">◉</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');
     let stickId = null, lookId = null, sx = 0, sy = 0, lx = 0, ly = 0;

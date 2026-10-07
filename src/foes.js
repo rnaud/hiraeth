@@ -509,6 +509,40 @@ export class Foes {
     return { group: body.group, shade: body, parts: [], eyeMat: null, size: 1 };
   }
 
+  /** Where a blot (or a shade) is cut down, its ink stains the ground: a few dark pools that fade (ShadePools). */
+  stain(f) {
+    this.shadePools ??= new ShadePools(this.scene ?? this.group);
+    const n = f.kind === 'swarm' ? 1 : f.kind === 'shade' ? 5 : 3;
+    for (let i = 0; i < n; i++) this.shadePools.pools.add(new THREE.Vector3(f.pos.x + (this.rng() - 0.5) * 0.9, f.pos.y + 0.02, f.pos.z + (this.rng() - 0.5) * 0.9), this.rng() * Math.PI * 2, _up);
+  }
+
+  /** A shade's cut leaves a dark arc of shadow in the air, right to left in front of it. */
+  slashTrail(f) {
+    this.shadePools ??= new ShadePools(this.scene ?? this.group);
+    for (let i = 0; i < 16; i++) {
+      const a = f.heading + 1.1 - (i / 15) * 2.2, r = 1.3;
+      const at = new THREE.Vector3(f.pos.x + Math.sin(a) * r, f.pos.y + 1.25 - i * 0.03, f.pos.z + Math.cos(a) * r);
+      this.shadePools.drops.add({ pos: at, vel: new THREE.Vector3(Math.sin(a), 0, Math.cos(a)).multiplyScalar(0.6), drag: 4, grav: 2, size: 0.05 + (i % 3) * 0.01, stretch: 2, life: 0.35 + i * 0.01, color: i % 4 ? '#15121c' : '#6c4fa0' });
+    }
+  }
+
+  /** In a temple, the machines meet its kit: a gust shoves them down its hall, and one standing on a plate presses it. */
+  templeKit() {
+    const rt = this.level?.temple;
+    if (!rt?.pieces) return;
+    const machines = this.list.filter((f) => f.kind === 'machine' && f.alive);
+    for (const p of rt.pieces) {
+      if (p.dirW && p.box && p.state === 1) for (const f of machines) {
+        const l = rt.kit.local(f.pos);
+        if (p.box.containsPoint(l) && !p.sheltered?.(l)) f.vel.set(p.dirW.x, 0, p.dirW.z).multiplyScalar(p.push * 0.7);
+      }
+      if (p.weighed && p.solid && p.id && rt.logic) {
+        const on = machines.some((f) => Math.hypot(f.pos.x - p.pos.x, f.pos.z - p.pos.z) < p.r + 0.3 && Math.abs(f.pos.y - p.pos.y) < 0.8);
+        if (on) rt.logic.press(p.id, 'foe'); else rt.logic.release(p.id, 'foe');
+      }
+    }
+  }
+
   /** A machine comes apart: its pieces fly off, bounce on the ground, settle and fade. */
   breakApart(f) {
     const floor = f.pos.y;
@@ -553,6 +587,7 @@ export class Foes {
       if (tank) for (let i = 0; i < 10; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
     }
     if (f.kind === 'machine') this.breakApart(f);
+    else this.stain(f);
     if (f.id) this.game.set(f.id, true);
     if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards are gone for good)
     gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it)
@@ -593,6 +628,7 @@ export class Foes {
       const ev = inTemple ? f.update(dt, P, this.env) : [];
       for (const e of ev) {
         if (e === 'warn') this.sound?.foeWarn?.(f.kind);
+        if (e?.type === 'strike' && f.kind === 'shade') this.slashTrail(f);
         if (e?.type === 'strike' && e.hit) this.strike(f);
       }
       this.look(f, dt);
@@ -602,6 +638,11 @@ export class Foes {
     this.updateLock();
     this.updateDebris(dt);
     this.shadePools?.update(dt);
+    if (this.level?.temple?.inside?.(P.pos)) this.templeKit();
+    // a fight on: the combat music comes in (src/audio.js), and touch shows its lock-on button
+    const fighting = this.list.some((f) => f.alive && (f.state === 'chase' || f.state === 'wind' || f.state === 'recover') && f.pos.distanceTo(P.pos) < 28);
+    this.sound?.combat?.(fighting);
+    if (typeof document !== 'undefined') document.body.classList.toggle('combat', fighting || !!this.lock);
   }
 
   /** Foes don't stand inside each other: two too close are pushed apart, half each. */

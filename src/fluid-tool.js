@@ -98,7 +98,7 @@ export function toolInput(c = {}) {
     fire: t.fire,
     quick: t.quick,
     blade: !!(c.KeyF || c.PadBlade || c.TouchBlade),   // the fluid blade (src/fluid-blade.js): F, RB / R1, touch ⚔
-    guard: !!(c.ControlLeft || c.ControlRight || c.KeyZ || c.PadGuard || c.TouchGuard),   // its guard, held: Ctrl or Z (on land), LB / L1, touch 🛡
+    guard: !!(c.ControlLeft || c.ControlRight || c.KeyZ || c.PadGuard || c.TouchBlade),   // its guard, held: Ctrl or Z (on land), LB / L1, ⚔ held on touch (a tap swings, held it guards after)
     mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode
     modeBack: !!c.PadModePrev,             // the previous one (D-pad left)
   };
