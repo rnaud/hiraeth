@@ -8,6 +8,34 @@ import * as THREE from 'three';
 
 const SEGS = 10;
 
+/**
+ * The ground's height under the wisps, from a grid of exact heights 0.5 m apart round the camera (filled as
+ * the wisps reach it, kept while the ground stays as it was) read bilinearly. A wisp asks for its eleven
+ * points every frame, and in Qanat each lookup is the sand banked against a dozen walls (sand-drifts.js):
+ * 2 600 of them were 4 ms a frame on the handheld. Within a centimetre of the exact height, most points a few mm (the
+ * terrain is flat between its own grid points, a drift's fillet bends gently), so the wisps skim as before.
+ */
+export class GroundCache {
+  constructor(heightAt, { cell = 0.5, size = 256 } = {}) {
+    this.heightAt = heightAt; this.cell = cell; this.size = size; this.mask = size - 1;
+    this.h = new Float64Array(size * size); this.kx = new Int32Array(size * size).fill(0x7fffffff); this.kz = new Int32Array(size * size);
+    this.version = null;
+  }
+  /** the exact height at grid point (ix, iz), worked out once */
+  at(ix, iz) {
+    const k = (ix & this.mask) + (iz & this.mask) * this.size;
+    if (this.kx[k] !== ix || this.kz[k] !== iz) { this.kx[k] = ix; this.kz[k] = iz; this.h[k] = this.heightAt(ix * this.cell, iz * this.cell); }
+    return this.h[k];
+  }
+  /** forget everything when the ground was reshaped (its `version`, world.js setHeights) */
+  check(version) { if (version !== this.version) { this.version = version; this.kx.fill(0x7fffffff); } }
+  get(x, z) {
+    const fx = x / this.cell, fz = z / this.cell, ix = Math.floor(fx), iz = Math.floor(fz), tx = fx - ix, tz = fz - iz;
+    const a = this.at(ix, iz), b = this.at(ix + 1, iz), c = this.at(ix, iz + 1), d = this.at(ix + 1, iz + 1);
+    return (a + (b - a) * tx) * (1 - tz) + (c + (d - c) * tx) * tz;
+  }
+}
+
 const vertexShader = /* glsl */ `
   in float aAlpha;
   out float vAlpha;
@@ -147,6 +175,8 @@ export class WindStreaks {
     const gust = this.gust();
     const cam = camera.position;
     const p = this._p, T = this._t, V = this._v, S = this._s;
+    if (this._ground?.terrain !== terrain) this._ground = Object.assign(new GroundCache((x, z) => terrain.heightAt(x, z)), { terrain });
+    const ground = this._ground; ground.check(terrain.version ?? 0);
 
     for (let i = 0; i < this.count; i++) {
       const w = this.wisps[i];
@@ -171,7 +201,7 @@ export class WindStreaks {
         const s = (k / SEGS) * w.len;
         const wig = Math.sin(w.phase + s * 0.9 - w.age * 4) * w.amp;
         p.set(w.x - dx * s - dz * wig, 0, w.z - dz * s + dx * wig);
-        p.y = (w.y0 ?? terrain.heightAt(p.x, p.z)) + w.h + Math.sin(w.phase * 2 + s * 0.6) * 0.08;
+        p.y = (w.y0 ?? ground.get(p.x, p.z)) + w.h + Math.sin(w.phase * 2 + s * 0.6) * 0.08;
         // tangent and camera-facing side vector
         T.set(-dx, 0, -dz);
         V.subVectors(cam, p);

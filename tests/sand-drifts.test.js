@@ -131,3 +131,39 @@ test('the field\'s fast distance (polyEdges / edgeDistance) and corner test give
   }
   assert.ok(some > 100, 'the points reach some drifts');
 });
+
+// The field's quick outs (each footprint's own box grown by its farthest reach, the distance against it, 8 m
+// cells; docs/systems/performance.md): the same field as every footprint tried in full, as it was written.
+test('the drift field with its quick outs is the field of every footprint tried in full', async () => {
+  const { edgeDistance } = await import('../src/sand-drifts.js');
+  let seed = 3; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const d = new SandDrifts({ heightAt: flat, wind: [0.8, 0.6], seed: 5, mask: (x, z) => (x > 40 ? 0.5 : 1) });
+  for (let i = 0; i < 60; i++) {
+    const cx = rand() * 120 - 60, cz = rand() * 120 - 60, w = 1 + rand() * 9, h = 1 + rand() * 4, a = rand() * 3;
+    const c = Math.cos(a), s = Math.sin(a);
+    d.addFootprint([[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, z]) => [cx + x * c - z * s, cz + x * s + z * c]), { rise: 0.6 + rand() });
+    if (i % 7 === 0) d.addCircle(cx + 12, cz, 1 + rand() * 4);
+  }
+  // driftOf as written before the quick outs
+  const full = (s, x, z) => {
+    if (Math.abs(x - s.cx) > s.R + s.reach || Math.abs(z - s.cz) > s.R + s.reach) return 0;
+    const { d: dist, nx, nz } = edgeDistance(s.edges, x, z);
+    let rise = d.riseAt(nx, nz, x, z, s.k), boost = 1;
+    const w = rise * d.o.reach * 1.4, w2 = w * w, near2 = w2 * 2.56;
+    for (const [px, pz] of s.corners) { const c2 = (x - px) * (x - px) + (z - pz) * (z - pz); if (c2 < near2) boost = Math.max(boost, 1 + (d.o.big - 1) * Math.exp(-c2 / w2)); }
+    rise *= boost;
+    const reach = rise * d.o.reach;
+    if (dist <= 0) return dist > -2 * d.o.inside ? rise : 0;
+    if (dist >= reach) return 0;
+    const u = 1 - dist / reach;
+    return rise * u * u;
+  };
+  let some = 0;
+  for (let n = 0; n < 20000; n++) {
+    const x = rand() * 160 - 80, z = rand() * 160 - 80;
+    let h = 0; for (const s of d.sources) { const v = full(s, x, z); if (v > h) h = v; }
+    if (h > 0) { h *= x > 40 ? 0.5 : 1; some++; }
+    assert.equal(d.fieldAt(x, z), h, `at ${x}, ${z}`);
+  }
+  assert.ok(some > 1000, `many points had sand (${some})`);
+});

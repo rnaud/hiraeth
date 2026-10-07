@@ -46,8 +46,8 @@ Steam starts `launch`, which execs `deck.py --launch`, which runs Electron and w
   fine on X11 under gamescope, fails on Plasma's Wayland), `software` (SwiftShader). The way that
   worked is remembered per runtime build and session kind (`gpu.json`); when none works the
   launcher exits 1 and Steam returns to its library.
-- **A clean exit.** Steam's Exit Game signals the launcher (SIGINT/SIGTERM); it passes the signal
-  on, kills whatever is left after 5 s, and after any exit kills Electron's leftover helpers (a
+- **A clean exit.** Steam's Exit Game signals the launcher (SIGINT/SIGTERM); it sends SIGINT to
+  the browser (which closes its helpers at once), kills whatever is left after 5 s, and after any exit kills Electron's leftover helpers (a
   zygote outliving its browser kept the game "running").
 - **The update check runs outside the game** (`systemd-run --user`, its own unit), so Steam doesn't
   count the game running while a download finishes; without systemd-run it is a detached child.
@@ -61,6 +61,29 @@ Use the **Gamepad with Joystick Trackpad** Steam Input template. Do not force a
 Steam Play compatibility tool. The game starts fullscreen at a 1280×800 window
 size and uses its existing controller controls. Exit through Steam's **Exit Game**
 command, or Alt+F4 in Desktop Mode.
+
+## Library artwork
+
+The shortcut has its own artwork in Steam's library, from captures of the game and the title's
+lettering (`scripts/steam-art.mjs`, sources in `docs/steam/`, images in `desktop/steam/`, packaged
+as `resources/app/steam/`; see `docs/systems/app-icon.md`). `deck.py` (`install_art`) copies them
+into each account's `config/grid/` under the shortcut's app id (read from `shortcuts.vdf`, the id
+`add_shortcut` derives): `<id>p.png` the portrait capsule (600×900), `<id>.png` the wide capsule
+(920×430), `<id>_hero.png` (1920×620), `<id>_logo.png` (transparent, laid over the hero) and
+`<id>_icon.png` (the app icon; the shortcut's own `icon` field points at `icon.png` next to
+`launch`). It runs at install, at `--register-steam` and in every background update. Only files
+change, never `shortcuts.vdf`, so it is safe while Steam runs; Steam shows new artwork after it
+restarts (Steam → Exit, or a reboot to Gaming Mode). Artwork the player picks in Steam (a grid
+file we didn't write, `steam-art.json` keeps what we did) is never replaced. Re-running the
+installer for an account that has the shortcut as it should be no longer waits for Steam to close.
+
+A shortcut still named `Moebius` (the installers before 0.71), or without an icon, is renamed
+`Memento` and given `icon.png` (`add_shortcut`, `shortcut_stale`), keeping its app id, playtime and
+the player's own name if they changed it. That edits `shortcuts.vdf`, so only while Steam is closed
+(Steam rewrites it from memory as it exits): at install, `--register-steam`, or a background update
+that finds Steam closed (`steam_entry`). The grid files use the shortcut's `appid` from
+`shortcuts.vdf`, unsigned (2165417005 on the author's Deck; its 64-bit game id, in Steam's logs, is
+`appid << 32 | 0x02000000`).
 
 ## Install by hand
 
