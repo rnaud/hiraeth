@@ -1,0 +1,33 @@
+changelog.md
+  s_55b4bc53b812ec::t_78f4ee7025d1ca 22
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_39e6597bd9741d 502-509
+src/cape.js
+  s_55b4bc53b812ec::t_a409e7237a817c 30-31,557,575,593-595
+src/changelog.js
+  s_55b4bc53b812ec::t_37b8cc3cf70a97 26
+src/costumes.js
+  s_55b4bc53b812ec::t_935ab07a0689da 1512-1518
+src/humanoid.js
+  s_55b4bc53b812ec::t_bc3d644ce5d907 11,922-926,989-993,995-997,999-1005,1007,1009-1011,1014,1016-1017,1031,1526-1528,1532-1533
+src/npc.js
+  s_55b4bc53b812ec::t_37035f8775b8d2 837
+tests/cape-front.test.js
+  s_55b4bc53b812ec::t_9aceec33189944 1-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "27ffa1304740efbb0acaab838b72dea8ba6f2d37",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
