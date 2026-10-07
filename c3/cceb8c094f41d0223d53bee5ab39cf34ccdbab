@@ -1,0 +1,39 @@
+changelog.md
+  s_55b4bc53b812ec::t_c49041e1ceb72d 8
+docs/systems/traveller-kit.md
+  s_55b4bc53b812ec::t_ec43eed173a5ce 18-39
+lore/characters/traveller-design.md
+  s_55b4bc53b812ec::t_ec704ecfc4ab4d 81-83
+src/boxes/model.js
+  s_55b4bc53b812ec::t_fd64af7b23da2b 4,126,128,130-131
+src/changelog.js
+  s_55b4bc53b812ec::t_bccb307e6bd626 12
+src/characters/traveller-v1.js
+  s_55b4bc53b812ec::t_4d20439eb377bf 14-16,69-70
+src/fluid-tool.js
+  s_55b4bc53b812ec::t_4f53b8b5b6731a 482-489,491-495,497-502,505,523-526,535-536,544-550,552,555,557-581,583-591,594-596,600-601,765,823-824,1037,1040,1127-1128
+src/materials.js
+  s_55b4bc53b812ec::t_67bad64caf2977 1621-1642,1703-1705,1715,1717-1725,1729,2432,2540
+tests/abilities.test.js
+  s_55b4bc53b812ec::t_4fae1103f63f20 192,202-203
+tests/flask.test.js
+  s_55b4bc53b812ec::t_cb7624a785061a 1-47
+tests/traveller.test.js
+  s_55b4bc53b812ec::t_dd627bd5f60494 351-352
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c3cceb8c094f41d0223d53bee5ab39cf34ccdbab",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
