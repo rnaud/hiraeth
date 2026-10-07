@@ -72,6 +72,7 @@ import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
+import { fillPicker } from './world-picker.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
@@ -874,34 +875,15 @@ installAppShell({ sound, toast: showToast });   // (queued with the rest, src/sh
 const picker = document.getElementById('picker');
 const completed = () => !!journal.data.completed;
 const cont = SaveGame.load();
-if (cont?.level && levelById(cont.level)) {
-  const btn = document.createElement('a');
-  btn.className = 'continue';
-  btn.href = `?level=${cont.level}`;
-  btn.textContent = `▶ Continue — ${levelById(cont.level).title}`;
-  picker.querySelector('header').after(btn);
-}
 // only the worlds you know of (src/story/route.js): the rest open as you go. ?level=<id> and the dev menu go anywhere.
 const pickable = LEVELS;   // the worlds list (L) is a debug tool: every world, open, whatever you've found (play travels by the ship's map)
-picker.querySelector('.cards').innerHTML = pickable.map((l, i) => false ? `
-  <div class="card locked"><div class="lock">?</div><div class="txt"><div class="num">${i + 1}</div><h2>???</h2>
-    <p>${l.lock?.text ?? `Find every story page and every relic in all ${ORDER.length} worlds.`}</p><div class="moves">${l.lock?.moves ?? 'the final page'}</div></div></div>` : `
-  <a class="card${l.id === levelId ? ' current' : ''}" href="?level=${l.id}">
-    <img src="thumbs/${l.id}.jpg" alt="" onerror="this.style.visibility='hidden'" />
-    <div class="txt">
-      <div class="num">${i + 1}</div>
-      <h2>${l.title}</h2>
-      <div class="src">${l.source}</div>
-      <p>${l.blurb}</p>
-      <div class="moves">${l.moves}</div>
-    </div>
-  </a>`).join('');
+fillPicker(picker, { levels: pickable, current: levelId, cont: levelById(cont?.level) ?? null });
 function showPicker(on) {
   if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
   if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'press a number · L to toggle this screen' : closeHint(''); }
 }
-showPicker(query.get('worlds') === '1');   // (the title's and the Start menu's Debug entry) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
+showPicker(query.get('worlds') === '1');   // (?level=<id>&worlds=1: a world with the list up; the title's Debug entry shows the list alone, src/world-picker.js) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));

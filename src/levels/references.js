@@ -18,6 +18,8 @@ import { ANTENNAS_DAY, ANTENNAS_LOOK } from './antennas-kit.js';
 import { ECLIPSE_TOTAL, ECLIPSE_LOOK, eclipseUniforms } from './eclipse-kit.js';
 import { RING_DAY, RING_LOOK } from './fallen-ring-kit.js';
 import { MF_DAY, MF_LOOK } from './moon-foundry-kit.js';
+import { UNDER_DAY, UNDER_LOOK } from './underside-kit.js';
+import { SPACE_DAY, SPACE_LOOK } from './space-city-kit.js';
 import { MARKET_NIGHT } from './market-night-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
@@ -225,6 +227,8 @@ export const WORLD_LOOKS = {
   eclipse: { sky: ECLIPSE_TOTAL, look: { ...ECLIPSE_LOOK, ...eclipseUniforms() } },
   fallenring: { sky: RING_DAY, look: { ...RING_LOOK } },
   moonfoundry: { sky: MF_DAY, look: { ...MF_LOOK } },
+  underside: { sky: UNDER_DAY, look: { ...UNDER_LOOK } },
+  spacecity: { sky: SPACE_DAY, look: { ...SPACE_LOOK } },
   marketnight: { sky: MARKET_NIGHT, look: { ...MARKET_LOOK } },
 };
 
@@ -260,6 +264,7 @@ export function* buildReferences(scene, { params = pageParams(), go = pageGo, se
     const ground = ringGround(def.ground.height, { at: [def.camera.eye[0], def.camera.eye[2]], ...def.ground.rings });
     const groundMesh = new THREE.Mesh(ground, makeMaterial({ mode: MODE_TERRAIN, ...def.ground.material }));
     groundMesh.userData.noCollide = true;   // (the height is looked up exactly: level.ground)
+    if (def.ground.hidden) groundMesh.visible = false;   // (a view over the void: the City Floating in Space)
     group.add(groundMesh);
     const H = (x, z) => def.ground.height(x, z);
     const kit = new RoomKit({ group, ground: { heightAt: H, baseAt: (x, z, r) => { let m = H(x, z); for (let k = 0; k < 8; k++) m = Math.min(m, H(x + Math.cos(k * 0.785) * r, z + Math.sin(k * 0.785) * r)); return m; } }, centre, seed: 3775 + i * 17 });
@@ -293,7 +298,7 @@ export function* buildReferences(scene, { params = pageParams(), go = pageGo, se
         const dx = x - centre.x, dz = z - centre.z, a = group.rotation.y, c = Math.cos(a), s = Math.sin(a);
         return [dx * c - dz * s, dx * s + dz * c];
       },
-      zone: { name: `References · ${def.title}`, preset: def.preset ?? 'Moebius print', look: asWorld ? asWorld.look : def.look ?? {}, planets: [], hour },
+      zone: { name: `References · ${def.title}`, preset: def.preset ?? 'Moebius print', look: asWorld ? asWorld.look : def.look ?? {}, planets: def.planets ?? [], hour },
       atmo: { tint: [1, 1, 1], fog: def.fog ?? 0.35, name: `References · ${def.title}`, script },
     });
   }

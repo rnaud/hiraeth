@@ -89,7 +89,10 @@ test('Vael II: the shadow keeps the day’s grey-teal at dusk and at night, and 
     const h = hue(s[2]);
     assert.ok(Math.abs(h.h - day.h) < 0.12, `${name}'s shadow in the day's grey-teal (hue ${h.h.toFixed(2)} vs ${day.h.toFixed(2)}), not the old violet`);
   }
-  // (the References level's views carry their own sky and no planets; the world keeps its own)
+  // (the References level's views carry their own sky and no planets unless a view hangs its own: the City Floating in Space's;
+  //  Vael II's hang none, the world keeps its own)
   const src = (await import('node:fs')).readFileSync(new URL('../src/levels/references.js', import.meta.url), 'utf8');
-  assert.match(src, /planets: \[\], hour/);
+  assert.match(src, /planets: def\.planets \?\? \[\], hour/);
+  const { VIEWS } = await import('../src/levels/reference-vael2.js');
+  assert.ok(VIEWS.every((v) => !v.planets), 'Vael II’s views hang no planets');
 });

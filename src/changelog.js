@@ -9,6 +9,13 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.86', date: '2026-10-07', items: [
+    'A new world off the route, the City Floating in Space: rounded houses in cream, salmon and coral heaped on islands in the black of space, joined by pale arched bridges, with the stars all round you, even under your feet. Cross the crowded Market Bridge to the stalls of the plaza, climb to the Towers, rest under the dark trees of the Garden, and look out from the Balcony at the great planet, which turns its lit face toward the city as night comes. Step over a parapet and you fall into the void, and come back where you last stood.',
+    'The References level has the City Floating in Space’s four pictures rebuilt as views: rounded houses in cream, salmon and coral heaped on islands that float in the black of space, pale arched bridges between them, dark machinery and long cables hanging under them into the void, and a great pale planet over the roofs.',
+    'Space is drawn the way the drawings draw it: a flat black all round, below you as well as above, printed with fine white and teal stars and a faint nebula, and a great planet hanging as an ink-ringed disc, full or a crescent.',
+    'The References level has the Signal Market at night: its four pictures rebuilt as views, a narrow lane of the market after midnight, its walls stacked with old screens of every age and size lit pink, violet, lemon, orange and green, each showing its own picture, vendors mending them at the walls’ feet.',
+    'The Signal Market has its night: after dark its billboards and shop signs light up as the old screens of a night market, each in its own colour (a pale face on violet, a planet on cobalt, glyphs on lemon or white, a head on scarlet), the towers go dark round them under a black sky, the lanterns throw warm pools on the street, steam rises off the stalls and half the crowd has gone home. By day the market is as it was.',
+  ] },
   { v: '0.85', date: '2026-10-07', items: [
     'A new world off the route, the City During the Eclipse: a city of white domes and round towers at midday, with the moon over the sun. The lamps are lit at noon and people eat outside at their tables by lantern light, pale figures lean out from the walls, and the stars are out. Walk the Lantern Square, climb the Great Stair and the tiers of the bowl, and look out from the overlook over the lit city on the plain. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came for the eclipse.',
     'Eclipses are drawn the way the drawings draw them: the moon’s black disc ringed with light, its corona in fine pen rays or a stipple of dots, a band of rose light all round the horizon, and in a city lit cold by it, the lamps throw warm amber pools on the walls.',
@@ -18,8 +25,16 @@ export const CHANGELOG = [
     'A new world off the route, the Moon Foundry: an abandoned workshop for making moons under a vast open roof on rust pillars. Unfinished ivory moons hang from the cranes or rest in orange claws, the workers live in the old machinery, and one great moon lies broken open like an eggshell round a little courtyard of houses and mint trees. Climb the stair to the gantry and walk straight into it, cross to the garden in the half-shell, and warm your hands at the last furnace. Dun and Wen of the Buried Machine and Emrys of the Garden of Spheres came to see it. It is on the galactic map from the start.',
     'In the Moon Foundry the last furnace still pours: molten metal falls from a tipped ladle into a small new moon in bands of hot colour that march down the stream, its mouth glows, and it drones as you come near. At night it is the warmest light on the floor.',
     'The References level has the Moon Foundry’s four pictures rebuilt as views: ivory moons hanging from cranes or held in orange claws, shells broken open round little courtyards of houses and mint trees, gantries between the workstations under a vast open roof. Their camera keeps every pillar upright, as the pictures do.',
-    'The References level has the Signal Market at night: its four pictures rebuilt as views, a narrow lane of the market after midnight, its walls stacked with old screens of every age and size lit pink, violet, lemon, orange and green, each showing its own picture, vendors mending them at the walls’ feet.',
-    'The Signal Market has its night: after dark its billboards and shop signs light up as the old screens of a night market, each in its own colour (a pale face on violet, a planet on cobalt, glyphs on lemon or white, a head on scarlet), the towers go dark round them under a black sky, the lanterns throw warm pools on the street, steam rises off the stalls and half the crowd has gone home. By day the market is as it was.',
+    { text: 'The title screen has a What’s new button: every change, with its before and after pictures, without starting a game.', see: 'On the title screen, choose What’s new under Settings; Play brings you back.' },
+    { text: 'Debug on the title screen opens the worlds list straight away, instead of loading a whole world behind it first.',
+      numbers: [{ title: 'From Debug on the title screen to the worlds list', unit: 's', better: 'lower', device: 'MacBook, headless Chrome, dev server (modules cached)', source: 'docs/systems/dev-tools.md, “The Lab”', rows: [
+        { where: 'Debug → worlds list', before: 15.1, after: 1.0 },
+      ] }],
+      see: 'On the title screen, choose Debug: the list of worlds shows in about a second. Esc or B / ○ goes back to the title.' },
+    'A new world off the route, the Underside: a shelf of white rock jutting far out over a sea of cloud, with a town hung under it. Round white houses cling to the rock and hang from it like swallows’ nests, timber galleries are slung beneath it on rods, long red banners fall toward the clouds and baskets go up and down on their ropes. Walk down the great stair cut into the cliff, along the rope walk and the galleries under the shelf to the deck at its tip, and climb back up the timber stair on its north face. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came to see it.',
+    'The References level has the Underside’s four pictures rebuilt as views: an immense shelf of pale rock jutting out over a sea of cloud, a town of round white houses and timber decks hung under it, long red banners falling toward the clouds, baskets let down on ropes, and the traveller on a stair cut into the cliff.',
+    { text: 'What’s new lists each version’s newest changes first, in the game and on the changelog page.', see: 'Press N in the game, or choose What’s new on the title screen: the change at the top of each version is its latest.' },
+    { text: 'The worlds list has a fresh picture of every world, the hidden ones included, and links at the top to the character studio, the Motion page, the trailer and What’s new. The character studio left the title screen for it.', see: 'On the title screen, choose Debug.' },
   ] },
   { v: '0.84', date: '2026-10-07', items: [
     'A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.',
@@ -893,6 +908,8 @@ export const VERSION = CHANGELOG[0].v;
 const SEEN_KEY = 'moebius.changelog.seen';
 /** A line's words: the line itself, or the text of a line written with its pictures. */
 export const lineText = (item) => (typeof item === 'string' ? item : item.text);
+/** A version's lines as they are shown, newest first: lines are added at the end of their version (CLAUDE.md), read from the top. */
+export const newestFirst = (entry) => [...entry.items].reverse();
 /** The interactive changelog, its pictures and numbers: the page beside the game, in a frame over it. */
 export const PICTURES_PAGE = 'changelog.html';
 
@@ -901,7 +918,7 @@ export class Changelog {
     const el = (this.el = document.createElement('div'));
     el.id = 'changelog';
     el.innerHTML = `<div class="panel"><h1>WHAT'S NEW <span>v${VERSION}</span></h1><div class="list">${
-      CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${r.items.map((i) => `<li>${lineText(i)}</li>`).join('')}</ul></section>`).join('')
+      CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${newestFirst(r).map((i) => `<li>${lineText(i)}</li>`).join('')}</ul></section>`).join('')
     }</div><div class="buttons"><button data-a="pictures">See what changed</button><button data-a="close">Close (N)</button></div></div>`;
     document.body.appendChild(el);
     el.addEventListener('click', (e) => {

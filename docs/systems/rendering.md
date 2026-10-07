@@ -705,3 +705,28 @@ The City During the Eclipse's sky: the sun covered by the moon at midday, drawn 
   pixel near the sun; nothing measurable at Handheld.
 - `tests/eclipse.test.js`: the phase by the hour, the sun's path, the script's keys, `applyEclipse`'s uniforms and
   light, every preset turning it off, `lampTint`'s define.
+
+## Space (post.js `drawSpace`, `uSpace`; October 2026)
+
+The City Floating in Space's sky: the black of space all round, below the city as well as above it, the way the
+pictures print it (references/The City Floating in Space/).
+
+- **The sky**: the world's colour script keeps the sky top and horizon a near-black with a trace of teal at every
+  hour, and its look prints it flat (`uSkyFlat` 1, no bands, no dots, no clouds, no cumulus, no sun rays: `uRays`
+  0); with `uSpace.x` on, the sun's glow on the horizon and the halo ring round its disc go too.
+- **The stars and the nebula** (`drawSpace`, before the planets so they hide what is behind them): two
+  stereographic caps, one per hemisphere, meeting at the horizon (the lower one's cells offset so the stars below
+  are not the mirror of those above; the cell width taken from the caps' own mapping, so no seam), one star or
+  none a cell: `uSpace.y` the density, `uSpace.z` the share of teal ones, a few larger with a short fine cross
+  (`uSpaceTone.a` their size). The nebula is a slow noise on the caps plus a band across the sky, printed in two
+  flat steps of `uSpaceTone.rgb` (`uSpace.w` how much). The night's own stars (`uNight`) are left off in space.
+- **The planet** is one of the level's `sky.planets` (drawPlanet: a flat lit disc, its night side hatched, an ink
+  ring round it), made great (20–50° across) and plain (`craters: false`). `uSpaceSun` (xyz, w 1) lights the planets
+  from a direction of their own instead of the sun's, so a view can have a crescent while its city is lit from
+  elsewhere; `uSpaceNight` (rgb, a) prints their dark side in a colour of its own (the mauve of picture 3, or the
+  sky's black for picture 2's crescent). The world itself leaves `uSpaceSun` off: its planet is lit by its own sun,
+  full at noon and a crescent at night.
+- Off (`uSpace` 0, `uSpaceSun.w` 0, `uSpaceNight.a` 0) in every preset (`hazeOff`); the world's look or a view's
+  turns it on. Cost: one branch on a uniform in the sky; in space a handful of hashes and a five-octave noise per
+  sky pixel (the nebula), nothing measurable at Handheld.
+- `tests/spacecity.test.js`: every preset turns it off; the city's look turns it on, flat and black.

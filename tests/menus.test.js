@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import { LEVELS } from '../src/levels/index.js';
+import { PAGES } from '../src/world-picker.js';
 import { MENU_SCORE, MENU_HUSH, menuBeat, menuFreq } from '../src/audio.js';
 import { opensTitle } from '../src/save-slots.js';
 
@@ -14,6 +16,18 @@ test('the title screen opens the game, a world asked for directly skips it', () 
   assert.match(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), /<script type="module" src="\/src\/boot\.js"><\/script>/);
   const boot = src('boot.js');
   assert.ok(boot.indexOf("await showTitle()") < boot.indexOf("await import('./main.js')"));
+  // the title's Debug entry: the worlds list alone (?worlds=1), without the game (no world built behind it)
+  assert.match(src('title.js'), /pathname\}\?worlds=1`/);
+  assert.match(boot, /if \(worldsOnly\)[\s\S]*showWorldsOnly\(\)/);
+  assert.match(boot, /if \(!worldsOnly\) await import\('\.\/main\.js'\)/);
+  assert.doesNotMatch(src('world-picker.js'), /from '\.\/main\.js'|import\('\.\/main\.js'\)/);
+  // every world has its picture in the list (scripts/world-thumbs.mjs), and the other pages are linked from it
+  for (const l of LEVELS) assert.ok(existsSync(new URL(`../public/thumbs/${l.id}.jpg`, import.meta.url)), `thumbs/${l.id}.jpg`);
+  for (const p of PAGES) assert.ok(existsSync(new URL(`../${p.href}`, import.meta.url)), p.href);
+  assert.doesNotMatch(src('title.js'), /studio\.html/, 'the studio is in the worlds list, not on the title');
+  // and What's new, the interactive changelog (its Play button comes back)
+  assert.match(src('title.js'), /data-a="news"/);
+  assert.match(src('title.js'), /'changelog\.html'/);
   // the title imports nothing that loads the game state (it would read the slot before the choice)
   const title = src('title.js');
   for (const m of title.matchAll(/from '\.\/([\w/-]+)\.js'/g)) assert.ok(!['game-state', 'items', 'quest', 'main', 'levels/index', 'levels/content'].includes(m[1]), m[1]);

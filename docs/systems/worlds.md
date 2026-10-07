@@ -932,6 +932,124 @@ moons: the moons were never finished and nobody came for them; the workers live 
   night); the houses can't be entered; the floor has no grass or bushes where the third picture has them; the far moons
   are plain spheres; no wildlife of its own beyond a flock.
 
+## The Underside (`underside`, off the route, October 2026)
+
+An immense shelf of pale limestone jutting east from a mountain far out over a sea of cloud, and a town hung from its
+underside (`src/levels/underside.js`, after `references/The Underside/`; its views in the References,
+`reference-underside.js`; the shapes and the look in `underside-kit.js`, shared with them: references.md "The
+Underside's pictures"). On the galactic map from the start (names.js `SIDE`), no story to follow (`story.manual`: the
+page names the place and closes on the tip deck). `?level=underside`.
+
+- **The layout** (north -z, east +x; `SHELF`, `STAIR`, `GALLERY_S`… exported for the tests): the mountain's face runs
+  north-south at x ≈ 2; the shelf juts east from it, its top (y 40, a meadow laid on the rock, `MEADOW`) from z -60 to
+  -230, out to its tip at x ≈ 170, its underside at y 12 with lobes a few metres lower. The ship lands on the top, its
+  hatch to the south edge. **The great stair** is cut into the mountain's face south of the shelf: 190 steps from the
+  top's south-west corner down to a landing jutting from the face (y 2), its parapet on the open side, lamps up it.
+  **The rope walk** runs back north from the landing along the stair's rock into **the town** under the shelf (y 2):
+  the south gallery along the south face, three cross decks north to the north gallery (their lanes kept clear, rows of
+  timber houses along their sides), the Bell Deck across the middle one (stalls in a ring round the bell hung from the
+  rock), the tip deck out past the tip, over nothing (benches, herbs, a cluster of lamps); the basket deck below the
+  south gallery (y -6), out over the cloud, down a timber stair. **The timber stair** climbs the north face in ten
+  switchback flights to a bridge onto the top: a loop. Below the decks the town goes on down in scaffolds, houses and
+  banners out of reach (the kit's `town()` in the faces' frames, drawn only).
+- **The houses**: white plaster pods (`pod`): drops hung from the underside down to the decks (round the Bell Deck, at
+  the galleries' backs), bulbs hung free between the decks, eggs and domes on the faces' ledges, domes on the top;
+  rows of timber houses (salt-harbour-kit's `houseStack`) along the galleries' backs and the cross decks' sides.
+  Banners fall from every open deck edge, 16-44 m; five baskets go up and down their ropes (`lifts`, moved in
+  `update`), others hang still.
+- **Solid as drawn**: the shelf (one slab, its underside split off in a deeper stone: `splitFaces`), the mountain (its
+  face beside the stair kept smooth), the stairs and their parapets, the meadow, the decks, their rails (a traveller's
+  body stops at the top rail: `tests/underside-world.test.js` `fits`), the houses and the stalls. Drawn only: rods,
+  struts, ropes, banners, baskets, lamps, the town below the decks, the far rocks and the far shelf, the cloud. The
+  ground is nothing (-600): a fall into the cloud (under y -70) puts you back. Contact audit: feet sink 4, hover 0,
+  climbs inside 0, walks through 5 (a hung house's crown up in the rock). Collision ~174 k triangles (the mountain's bulk solid too: what overlaps its face is the same rock).
+- **The cloud**: three instanced puff meshes by distance (`cloudPuffs`, `puffGeo`: gently lumped, the far ones
+  lumped least: Vael II's sharper lumps read as ice floes from above) on a deck, 110 m under the town.
+- **People**: Zazie of the Sealed Hangar (who doesn't trust down) on the south gallery, Kip of the Signal Market on
+  the basket deck, Tiv of the Sky Stones at the tip (their own words, `talk.listen`, no errands); six of the town's
+  folk with toned lines (Vael II's tongue, `lang: 'arzach2'`), a crowd in the Salt Harbour's cloaks
+  (`COSTUMES.underside`) walking the galleries and cross decks, gathered on the Bell Deck and the tip, at the rails.
+- **Light and hours**: `UNDERSIDE_SKY` (a golden morning: the landing hour is 7:36, the low sun from the east-south-east
+  lighting the south face and the tip and reaching in under the shelf; a rose dusk; an indigo night with the windows and
+  lamps lit). The lamps' pools are warm (`lampTint`), faint by day and full from dusk (the level sets `uLampsOn` by the
+  sun's height). A pale moon. Two flocks (white birds round the town, dark ones over the top), motes. Sound: footsteps
+  on stone, the `highwind` ambience.
+- **Choices made**: the playable shelf is one shelf with the pictures' two vantage points as its two stairs (the
+  stone stair south of it as pictures 1 and 3 stand, the timber stair on its north face looking back as 2 and 4); the
+  morning instead of the pictures' afternoon, so that the sun's path (azimuth 30° at 6:00) lights the south face the
+  way in; the town's main level one walkable layer with the rest of its depth drawn only (the Handheld budget).
+- **Cost** (Mac M4 Pro, headless Chrome on Metal, 1280 × 720, the Handheld preset at render scale 0.75 without dynamic
+  resolution, a synced loop of `renderFrame()`s closed by a readPixels, the median of 5 rounds alternating with the Signal
+  Market, the machine shared with other agents): the Market (the budget) 2.79 ms / 597-692 draws at its start, 2.83 /
+  334-590 in its street, 2.47 / 312-617 far down it (0.44-0.77 M triangles); the Underside by the ship 2.38 / 282-300, on
+  the great stair 2.58 / 243-371, on the rope walk 2.28 / 221-353, on the south gallery 2.33 / 198-305, the Bell Deck
+  2.42 / 180-287, the tip 2.14 / 188-214 (0.57-1.04 M triangles: the cloud's puffs are most of them). Under the Market's
+  frame time with half its draws; more triangles. The build in node: ~550 ms, in steps (load-steps.js).
+- **Left to make it better**: the pictures' town is far denser and warmer (every balcony crowded with people and pots,
+  timber lit by the low sun, stairs and ladders between many levels); ours has one walkable level and a drawn one
+  under it. The shelf's underside and faces in shade read flat (the shade printed flat); the pictures' pillows of rock
+  have dark creases. The mountain is big plain cliffs. The banners don't move in the wind; the baskets carry nobody;
+  the far shelf's town is a sketch. No interiors.
+## The City Floating in Space (`spacecity`, off the route, October 2026)
+
+`src/levels/space-city.js`, after the pictures in `references/The City Floating in Space/` (their views:
+references.md; the shapes and the look: `src/levels/space-city-kit.js`, shared with the views). A city of rounded adobe
+houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges,
+their undersides hung with dark machinery and cables dangling into the void; stars all round, below as well as above
+(rendering.md "Space"); a great pale planet hangs to the north over the roofs. On the galactic map from the start
+(names.js `SIDE`, one entry at the end of each shared list), `?level=spacecity`.
+
+- **The layout** (north is -z, `ISLANDS`, `BRIDGES`): the ship lands on the Pier, a round dock at the south (deck y 0).
+  A bridge north to the Gate Quarter and its lane between heaped houses, washing over it; the broad Market Bridge,
+  crowded, to the Market island in the middle (its plaza of stalls under awnings and tables round lamps, `PLAZA`); from
+  the market east up to the Towers (y 6), west down to the Garden terrace (y -4: dark round trees, benches, an
+  overlook), north to the Balcony island, whose dark teal railing looks out over the void at the far islands and the
+  planet (the pictures' composition). Twelve far islands round it all, 150-500 m off and from 90 m below to 70 m above,
+  some joined by bridges: drawn only, no shadows, no collision.
+- **No ground**: `ground.heightAt` is -Infinity (as the Sealed Hangar); you stand on the decks, the bridges and the
+  houses, found by the physics as meshes. Each island has a parapet round its edge, open where a bridge lands (the
+  Balcony's north edge has the railing). Over it you fall into the void, and below `UNSAFE_Y` (-40 m, about a second
+  and a half of falling) `level.unsafe` puts you back where you last stood. No jets, no mount; the game's own gravity
+  (the pictures' cables and washing hang straight down: nothing there says the gravity is low).
+- **The houses** (`quarter` with the world's `LANES`): each island keeps its lanes from bridge to bridge and its squares
+  clear; the houses face the nearest lane, and the farther from it they stand, the more storeys they carry (`levels`),
+  so the islands heap up toward their middles and backs as in the pictures. Roofs carry trees, chimneys (solid),
+  antennas, clutter; awnings and washing over the lanes.
+- **The sky by the hour** (`SPACECITY_SCRIPT`): black at every hour; the light warm by day, rose at dusk, the planet's
+  cool light at night. The planet (`PLANET`, 44° across, plain) is lit by the city's own sun (`uSpaceSun` off), so it is
+  two-thirds lit in the morning (the arrival hour, 8:30), a thin crescent through the afternoon and nearly full at
+  night; its dark side a dim mauve (`uSpaceNight`), a disc against the stars. The sun crosses the sky and at night is
+  under the city (you can see it below the islands); the lamps, the lit doors and windows and the glows under the
+  islands are the night's light.
+- **People**: Kip of the Signal Market on the Market Bridge (a courier, in a city of nothing but bridges), Nima of the
+  City-Shaft sweeping the Gate's lane, Madame Sel of the Signal Market listening to the planet from the Balcony (their
+  own words: `talk.listen`, no errands); five of the city's folk with toned lines (the City-Shaft's tongue), and a crowd
+  in the City-Shaft's clothes (`COSTUMES.spacecity`) over the bridges, along the lanes, round the plaza, at the railing.
+- **Life and sound**: no birds in space; glowing dust hanging in the light (motes). Footsteps on stone, the ambience
+  `city`.
+- **Built** in kits by island (each frustum-culled on its own), the bridges in one, the far islands in one; ~250 meshes,
+  ~0.42 M triangles (the far islands 0.19 M: their trees one ball of a few faces, no flower boxes); built in steps in
+  ~0.8 s in node. Solid as drawn where walked: decks, parapets, bridges and their parapets, houses, chimneys, the pipe
+  stacks over the decks, tables, benches, crates, bollards. Drawn only: everything under the islands (you fall past
+  it), the trees (flora), awnings, washing, lamps, the diners. Contact audit: feet sink 16, climbs inside 113 (awnings,
+  washing and wall lamps in front of the walls they hang on; the diners at their tables; the machinery under the
+  islands where the bridges' arches meet it, out of reach), walks through 0.
+- **Cost** (Mac, headless Chrome, 1280 × 720, Handheld at render scale 0.75 without dynamic resolution, 90 synced
+  frames a round, 7 rounds; the machine heavily shared with other agents, so the rounds spread 5-10 ms and only the
+  comparison in the same run means anything): the Signal Market (the budget) median 9.9 ms / best round 5.9 / 366 draws
+  at its start, 8.2 / 5.0 / 329 in its crowd; the city by the ship 9.1 / 5.9 / 366, the Gate's lane 9.0 / 6.5 / 347, on
+  the Market Bridge 5.9 / 5.0 / 256, the plaza 6.5 / 5.1 / 212, the Balcony 7.8 / 4.6 / 182, looking back south over
+  the whole city 5.2 / 4.6 / 401 (0.44-0.64 M triangles in view; the Market 0.44-0.67 M).
+- `tests/spacecity.test.js` (the kit, the sky, the views) and `tests/spacecity-world.test.js`: registered off the route
+  and charted; built without errors; the Pier flat under the ship; every island's deck and every bridge underfoot from
+  end to end and clear; the way from the ship along the lanes and over the bridges to the Balcony, the Towers and the
+  Garden clear; the plaza open; a parapet round every island but at the bridges; the void below unsafe, the decks safe.
+- **Left to make it better**: the pictures' houses carry dense small detail (pipes, vents, signs, plants, washing by the
+  dozen) and their decks crowds; ours are clean rounded blocks. The pictures' houses also step down the islands' sides
+  below the decks, and their islands sit at many more heights with stairs between them; ours stand on six decks at
+  three heights. The houses can't be entered; nothing moves under the islands (a lift, a cable car would suit it); the
+  far islands are only seen.
+
 ## The Signal Market at night (`bazaar` after dark, October 2026)
 
 The night sheets (`references/The Signal Market - Night`, the views: references.md "The Signal Market at night") are

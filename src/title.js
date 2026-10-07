@@ -153,8 +153,8 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         : '<button data-a="new" class="primary">New game</button>'}
         <button data-a="saves">Saves</button>
         <button data-a="settings">Settings</button>
+        <button data-a="news">What's new</button>
         <button data-a="debug">Debug</button>
-        <button data-a="studio" class="minor">Character studio</button>
         ${fullscreen ? `<button data-a="fullscreen">${doc.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}`;
     };
     const renderSaves = () => { root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join(''); };
@@ -207,13 +207,13 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       else if (a === 'back') back();
       else if (a === 'settings') settingsMenu.toggle(true);
       else if (a === 'debug') {
-        // the worlds list (any world, open): straight into the save played last (or the first), on
-        // the Lab, with the list up (main.js ?worlds=1)
+        // the worlds list (any world, open) for the save played last (or the first): the list alone,
+        // no world built behind it (?worlds=1, src/world-picker.js)
         store.setActive(store.latest() ?? 1);
-        win.location.href = `${win.location.pathname}?level=lab&worlds=1`;
+        win.location.href = `${win.location.pathname}?worlds=1`;
       }
-      // the character studio (studio.html): the people alone, in the game's ink, to tune them
-      else if (a === 'studio') win.location.href = 'studio.html';
+      // the interactive changelog (changelog.html, its Play button comes back here)
+      else if (a === 'news') win.location.href = 'changelog.html';
       else if (a === 'fullscreen') {
         const p = doc.fullscreenElement ? doc.exitFullscreen?.() : doc.documentElement.requestFullscreen?.();
         Promise.resolve(p).catch(() => {}).finally(() => setTimeout(() => { if (screen === 'main') show('main', '[data-a="fullscreen"]'); }, 150));
