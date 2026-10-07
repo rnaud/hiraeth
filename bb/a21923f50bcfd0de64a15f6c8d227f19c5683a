@@ -1,0 +1,46 @@
+changelog.md
+  s_0a0e834cfcfe52::t_7d8390910aeb15 8
+docs/systems/dev-tools.md
+  s_0a0e834cfcfe52::t_3a42d5edec79a2 13-16
+items.html
+  s_0a0e834cfcfe52::t_ef47cdb3d0a831 1-49
+scripts/item-pictures.mjs
+  s_0a0e834cfcfe52::t_b0db411168b67d 1-47
+src/changelog-media.js
+  s_0a0e834cfcfe52::t_f6bcdf83de4a85 143-145
+src/changelog.js
+  s_0a0e834cfcfe52::t_a1e83fe756b7bd 28
+src/items-page/main.js
+  s_0a0e834cfcfe52::t_094ec9b0ba5b32 1-29
+src/items-page/view.js
+  s_0a0e834cfcfe52::t_a3ed7665920fef 1-28
+src/items.js
+  s_0a0e834cfcfe52::t_42f1c60566c59f 28
+src/main.js
+  s_0a0e834cfcfe52::t_5178ae1feb5a05 1714
+src/world-picker.js
+  s_0a0e834cfcfe52::t_b075f7b11e4ca7 11
+tests/items-page.test.js
+  s_0a0e834cfcfe52::t_594a54a859a163 1-20
+vite.config.js
+  s_0a0e834cfcfe52::t_d912ce710d21d3 17-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bba21923f50bcfd0de64a15f6c8d227f19c5683a",
+  "prompts": {},
+  "sessions": {
+    "s_0a0e834cfcfe52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ade28b2d-b826-430e-b2e2-c43a0ae93ce3",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
