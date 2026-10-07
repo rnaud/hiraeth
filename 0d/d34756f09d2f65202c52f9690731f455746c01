@@ -1,0 +1,35 @@
+TODO.md
+  s_55b4bc53b812ec::t_02285c4ec71916 49,51-56
+changelog.md
+  s_55b4bc53b812ec::t_b25f13ffa9a97f 9
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_806507735eee30 110,148-158
+scripts/contact-report.mjs
+  s_55b4bc53b812ec::t_568232855210be 17-21,24-33,38-44
+src/changelog.js
+  s_55b4bc53b812ec::t_df84b41f311e66 13
+src/levels/perdide2.js
+  s_55b4bc53b812ec::t_5c66063bd94c84 534,541,556-559,734-735
+src/physics.js
+  s_55b4bc53b812ec::t_0dbc4ba3fd2382 263,433
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_43c4bbab64bb41 114-115,125
+tests/perdide2.test.js
+  s_55b4bc53b812ec::t_1ed486b6dddc2e 80-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0dd34756f09d2f65202c52f9690731f455746c01",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
