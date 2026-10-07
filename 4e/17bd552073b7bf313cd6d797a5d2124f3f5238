@@ -1,0 +1,65 @@
+changelog.md
+  s_55b4bc53b812ec::t_10cd75baa7bd90 15
+docs/systems/references.md
+  s_55b4bc53b812ec::t_233ea2e8856894 740-741
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_fdedf9fc9f74d4 934-992
+src/audio.js
+  s_55b4bc53b812ec::t_ac52be78d205e8 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_e220a3cb591328 187-196
+src/changelog.js
+  s_55b4bc53b812ec::t_66f6c86b7e0871 21
+src/costumes.js
+  s_55b4bc53b812ec::t_d2335594ee6171 476
+src/edge.js
+  s_55b4bc53b812ec::t_e2fc15f87c0fe4 38
+src/levels/content.js
+  s_55b4bc53b812ec::t_6b4cdb5352f146 28,48
+src/levels/names.js
+  s_55b4bc53b812ec::t_998ca058b256f6 28,36
+src/levels/underside-kit.js
+  s_55b4bc53b812ec::t_90cba78f59e713 38,41,46,54-55,65,77-78,84,181-194,216,283-284,289,449,574,578,585,618,620
+src/levels/underside.js
+  s_55b4bc53b812ec::t_d353cd564f88d6 1-505
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_2253cf8f308f00 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_f7ccc414d7ece2 119
+src/reactive-world.js
+  s_55b4bc53b812ec::t_ba7a4c4d871c7d 37
+src/ship/planets.js
+  s_55b4bc53b812ec::t_03f2651be9536b 33
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_996eb96a9168e0 34
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_447b2a581f5abf 137
+tests/underside-world.test.js
+  s_55b4bc53b812ec::t_de7b7460eaab59 1-134
+src/levels/index.js
+  s_d7d2274ec95e40::t_d3b6431fb71aca 26,165-171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4e17bd552073b7bf313cd6d797a5d2124f3f5238",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d7d2274ec95e40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a392826a77bc5bfe5",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
