@@ -135,6 +135,14 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 
 ## Dialogue
 
+- [ ] Facial expressions and talking for the coral-shirt traveller (author, 2026-10-07). His face
+  (`src/characters/traveller-v1.js`, the Tripo body) has no expression rig, so he shows none of the
+  tone expressions the people's bodies get (`src/expression.js`, `TONE_EXPRESSIONS`;
+  `Humanoid.setExpression`, docs/systems/faces.md) and his mouth doesn't move with the voice. Give
+  his face the same channels (smile, open, brow, browTilt, squint, gaze, blink and the mouth on the
+  syllables), as morph targets or a drawn face layer over the mesh, so conversations and reactions
+  read on him as on everyone else, up close and in the dialogue portrait.
+
 - [ ] The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: a blank
   yellow disc — that is `person.color ?? '#d8a24a'`, the chip's background, with `img.hidden` left
   true or the image blank). **Not reproduced on the desktop**: a headless Chrome 154 (the device's
