@@ -815,3 +815,119 @@ lamps at the overlook), five of the city's folk with a few toned lines, a crowd 
   tidy blocks and drums where the pictures heap stairs, balconies, ledges and plants; the far city has no streets;
   the houses can't be entered; the lamps' pools show as pale discs in full day (the local lights lift the shade in
   every world).
+
+## The Fallen Ring (`fallenring`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The Fallen Ring/`; the views: references.md): a
+broken orbital ring lying across a vast sage-green plain, its colossal curved segments standing as arches into the sky,
+lying in the grass as tubes, leaning on their crushed ends; their cut sections showing the streets and gardens inside;
+the low pieces made into villages; herds of woolly beasts grazing through. No story to follow and no errands: two people
+from other worlds came to see it (Oro, who grows pyramids in Viridel, in the garden inside the tube's broken end; Emrys,
+the Garden of Spheres' climber, on the tube's crest), and five of the ring folk stand about with a couple of toned lines
+each. They speak Viridel's tongue (`lang: 'edena'`).
+
+- **Off the route** (`SIDE`, `src/levels/names.js`): on the galactic map from the start, `?level=fallenring`.
+- **The layout** (`src/levels/fallen-ring.js`): the ship lands on the open plain in the south (`SHIP`); a path runs 200 m
+  north to the long tube lying across the grass (`TUBE`: 22 m round, 300 m long, sunk 2 m), its village along its south
+  foot (rows of cabins under the overhang, built into the cut-away bottom of the hull, awnings and stalls out front),
+  three service stairs up its flank to the crest (`STAIR_S`, `STAIR_RUN`: each lands where the flank is 32° from level
+  and runs out far enough to clear the bulge), its east end broken open on the old street inside (a floor a metre over
+  the grass, lamps, a garden, a ramp up to it). Behind it the great arch (`ARCH`: a circle through three points, its
+  legs 540 m apart, its top 200 m up and leaning back, the storeys inside each leg bared behind ribs, machinery on the
+  inside wall); east of the tube's end the tilted segment leans on its crushed vermilion foot (`TILTED`), trees from
+  its seams. West, the low segment (`BAND`: an arc of 80 m radius) rests on timber posts 11 m over two rings of houses,
+  a street between them, a stair up onto its top and the grove there; east, the vault half sunk in the grass with its
+  village (`VAULT`), and behind it a great tube 44 m round broken open end-on (`BIG`). Groves of umbrella trees on the
+  plain; the rest of the ring far off all round (six pieces at 1.1-1.7 km, low-poly, one draw with its vermilion bands
+  another), where the land rises; cumulus banks at 0.95-1.4 km (instanced lumpy puffs).
+- **The pieces** are the views' kit (`fallen-ring-kit.js`, references.md "The Fallen Ring's pictures"): `ringThrough`
+  (a segment by three points of its centre line), `village`, `tree`, `serviceStair`, `grazer`, `cloudBank`.
+- **Built in cells**: each 220 m cell its own `RoomKit` (frustum-culled); the flat-coloured surfaces (timber, doors,
+  goods, trunks), the foliage and the awnings merged per vertex in each cell (`mergeWithMaterials`, S_VMAT); the
+  windows, rails, doors, goods, collars, broken edges, inside walls and floors cast no shadow. ~120 meshes in all.
+- **Solid as drawn where walked** (~90 k collision triangles): the hulls' skins (a few thousand faces each: the arc
+  rows are a few metres, the section 32-40 columns, so the contact audit finds the skin where it is drawn), their broken
+  edges, inside walls, floors, ribs and the houses inside, the village houses, the posts, the stairs and the floor in
+  the broken end. Drawn only: the trees' crowns (flora), the awnings, the far ring, the cumulus. Contact audit: feet
+  sink 2, climbs inside 13 (awnings), walks through 0 (`tests/contact-audit.test.js` KNOWN).
+- **The herds** (`Herds`): 45 beasts in five herds (`HERDS`), two instanced draws (the fleece, the legs and heads);
+  each walks slowly to a spot on its herd's ground and grazes there, nodding, and trots off when the traveller comes
+  within 7 m; past 160 m they stand still.
+- **The look**: `RING_LOOK` on the print preset (fallen-ring-kit.js): a teal-blue day, a rose dusk, a deep green-blue
+  night with the windows lit; passing rain. Grass blades from the ground's ticks. A pale moon. Birds overhead (two
+  flocks), pollen motes. Sound: footsteps on grass, the `birds` ambience.
+- **Cost** (Mac, M4 Pro, headless Chrome on Metal, Handheld preset at render scale 0.75, 1280 × 720, a synced loop of
+  `renderFrame`, median of 3 rounds alternating with the Signal Market): the market's spawn 2.19 ms (598-693 draws,
+  0.67-0.70 M triangles), its street 2.30 (334-656, 0.47-0.76 M); the ring by the ship 1.61 ms (457-525 draws,
+  0.37-0.61 M), on the path 1.96 (424, 0.35 M), at the tube's village 2.01 (448-670, 0.57 M), on the crest 1.83
+  (416-420, 0.48 M), under the low segment 2.33 (425, 0.58 M). At or under the market's frame time and draws. Before
+  the per-vertex merging and the shadow trims the same places drew 434-771 calls. The build in node: ~300 ms.
+- **Left to make it better**: the pictures' interiors are dense little cities, ours a few decks of boxes and gardens;
+  the hulls' fine panel work and stains are the built pen detail and the collars only; the beasts are plain lumps (no
+  wool, no legs moving); the arch and the tilted segment can't be climbed; the far ring is the same plain tubes; the
+  cumulus are lumpy balls that pale a little with distance; the tilted segment's foot is a clean cylinder where the
+  pictures crush it; nothing moves in the villages but the people standing there.
+## The Moon Foundry (`moonfoundry`, off the route, October 2026)
+
+`src/levels/moon-foundry.js` (`?level=moonfoundry`; a SIDE world in `src/levels/names.js`, charted on the ship's map from
+the start, no quest, no relics: `manual: true`), after its four pictures (`references/The Moon Foundry`, references.md).
+Its pieces are in `src/levels/moon-foundry-kit.js`, shared with the views. An abandoned workshop for making miniature
+moons: the moons were never finished and nobody came for them; the workers live in the old machinery.
+
+- **The choices**: no low gravity (the pictures show a hangar under a pale sky with haze, grass and trees: the moons are
+  made here, not stood on; the jump keeps the game's one gravity, `GRAVITY` in player.js, which has no world scale).
+  The pictures have no molten metal (it is abandoned), so the heat is one landmark of its own, the last furnace, drawn
+  the Moebius way: flat hot tones, a pour as printed bands, no shimmer.
+- **The layout**: the ship lands on the apron south of the hangar's mouth (`SHIP`, z 120; nothing over it). The hangar
+  (`HALL`, 340 × 338 m) is a roof 88 m up on rust pillars (a grid of 60 × 78 m, kept off the stations and the gantry),
+  open on every side; its floor is level slabs (a plain material with a 9 m grid over the terrain: no terrain ink, the
+  pictures' floor is clean), rails in it, the aisle's painted edges and lamps north from the mouth. Along it: the **hung
+  moons** (`HUNG`, `HUNG2`: R 19 and 22, from the roof by their crowns), the **moon in the claws** (`CRADLE`, R 20), the
+  **last furnace** (`FURNACE`), the **workers' quarter** (`QUARTER`: houses round a little square, a great polishing drum
+  lying on its side made a home), the **broken moon** (`COURT`: R 30, its hole toward the mouth, a cradle of five claws,
+  none across the opening), the **bowl garden** (`BOWL`: a plated half-shell in its cradle, two houses and trees on its
+  deck), the **moon on its pillar** (`PMOON`, a lookout house under it). Spare plates of shell lie on the floor; beyond the
+  hangar, 70 far moons on cradles or tall cranes stand in the haze, out of reach (instanced, `userData.floats`).
+- **The gantry** (`G` = the courtyard's floor, 13.05 m): a truss stair from the aisle (`STAIR`), the railed way north
+  (`WAYS.main`) straight in over the broken moon's lip, and a branch west (`WAYS.branch`, a gap in the main rail where
+  it leaves) to the bowl's deck, level with its rim (`bowl({ below: 0 })`). The courtyard's floor sits just over the
+  hole's lip (`lipFloor`), and the moon's edge keeps no jag round its lowest point (`moon({ cut: { sill } })`), so the
+  lip stays under the floor and a threshold of planks carries you in. Lamps on posts along the way.
+- **The courtyard**: houses up to four floors under the shell's curve toward the back, a terrace on the back wall with its
+  stair and a house, machinery on the inner wall, mint trees; lit windows, a lamp for each of the first six.
+- **The last furnace**: a banded drum with its chimney to the roof, a glowing mouth in a dark frame toward the aisle, a
+  hot patch on the floor before it; west of it a jib crane on its plinth, a ladle tipped on its hook (its rim and bail),
+  the pour from its lip into a small new moon half sunk in the floor, its seam glowing. The pour is one mesh of 22 rings
+  coloured per vertex in three hot tones (`T.molten`), recoloured each frame so the bands march down (`updatePour`): a
+  printed pour, not a light. Lights at the mouth, the ladle and the mould. It drones (`level.hum`, the masts' drone
+  audio.js already had: 0.75 at its mouth, nothing past 34 m).
+- **Built in cells** (115 m, a kit each, frustum-culled); the moons' ivory tones and the machinery's and homes' oranges
+  are two surfaces merged per vertex in each cell (`mergeWithMaterials`, `S_VMAT`); the roof by cell, drawn only and
+  casting no shadow (the pictures light everything under it; out of reach); thin bars (trusses, rails, ladders, cables)
+  1.5 px wide at any distance (`thin`). ~200 meshes; built in ~300 ms in node, in steps (load-steps.js).
+- **Solid as drawn** where it can be walked or touched: the floor, the pillars and their ladders, the machinery dressing
+  on them (greebles, so a climber goes up over it), the cradles, the moons, the houses, the gantries' decks, rails and
+  legs, the stairs, the courtyard and the bowl's deck, the furnace and the crane's plinth. Drawn only: the roof, the
+  cables, the trusses' web, the trees (flora), the pour. Collision ~168 k triangles (bake ~50 ms). Contact audit: feet
+  sink 22 (the trusses' web over their chords), climbs inside 2, walks through 10.
+- **People**: Dun of the Buried Machine at the furnace, Wen counting moons in the courtyard, Emrys of the Garden of Spheres
+  on the bowl (their own words for the place: `talk.listen`, no errands); five of the foundry's folk with toned lines (the
+  Buried Machine's tongue, `lang: 'buried'`), and a crowd in the Buried Machine's clothes (`COSTUMES.moonfoundry`) in the
+  foundry's colours walking the aisle, the quarter's ring, the floor, the gantry, leaning on its rail.
+- **Light and hours**: `MOONFOUNDRY_SKY` (a pale blue-mint day, a peach dusk, an indigo night); two pale moons in the
+  sky. At night the homes' windows, the lamps and the furnace are the light. A small flock under the roof, a few motes.
+- **Sound**: the ambience `machine`, footsteps on stone, the furnace's drone.
+- **Cost** (Mac M4 Pro, headless Chrome, 1280 × 720, the Handheld preset at render scale 0.75 without dynamic resolution,
+  a synced loop of 60 `renderFrame()`s closed by a readPixels, the median of 7 rounds, the machine shared with other
+  agents): the Signal Market (the budget) 1.66-1.78 ms / 361-692 draws at its start, 1.51 / 540 in its crowd; the
+  foundry by the ship 1.51 / 391, the mouth's widest view 1.47 / 321, the aisle 1.43 / 281, the gantry 1.63 / 336, the
+  courtyard 1.33 / 322, the furnace 1.44 / 299, the quarter 1.42 / 291 (0.34-0.54 M triangles; the Market 0.45-0.73 M).
+- `tests/moonfoundry.test.js`: the kit (a broken moon's hole open, its craters out of it, the courtyard at the lip), the
+  shifted lens, the four views; the world registered off the route and charted, the named people standing on what is
+  drawn, the apron flat and clear overhead, the way in clear, the stair climbing to the gantry, the gantry and its branch
+  holding all the way and clear, over the lip into the courtyard, the bowl's deck; pillars, moons and furnace solid, the
+  roof out of reach, the mesh and collision budgets, the drone, the pour's bands moving.
+- **Left to make it better**: the pictures' machinery is dense pen work everywhere, ours is clean; the courtyard's houses
+  are stacked boxes (the pictures heap balconies, stairs and plants); the hung moons don't turn (Wen says they do, at
+  night); the houses can't be entered; the floor has no grass or bushes where the third picture has them; the far moons
+  are plain spheres; no wildlife of its own beyond a flock.

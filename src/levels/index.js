@@ -21,6 +21,8 @@ import { createSaltHarbour, buildSaltHarbour } from './salt-harbour.js';
 import { createAntennas, buildAntennas } from './antennas.js';
 import { createUnderwater, buildUnderwater } from './underwater.js';
 import { createEclipse, buildEclipse } from './eclipse.js';
+import { createFallenRing, buildFallenRing } from './fallen-ring.js';
+import { createMoonFoundry, buildMoonFoundry } from './moon-foundry.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -143,6 +145,20 @@ export const LEVELS = [
     id: 'eclipse', create: createEclipse, build: buildEclipse, hidden: true,
     title: TITLES.eclipse, source: 'a city at noon under a black sun',
     blurb: 'A city of white domes and round towers at midday, the moon over the sun: the lamps lit, people eating outside by lantern light, pale figures leaning from the walls. Walk the Lantern Square, climb the Great Stair and the tiers of the bowl, and look out over the lit city on the plain.',
+    moves: 'walk · climb',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'fallenring', create: createFallenRing, build: buildFallenRing, hidden: true,
+    title: TITLES.fallenring, source: 'a ring that fell from the sky',
+    blurb: 'The pieces of a broken orbital ring lie across a sage-green plain: arches higher than the clouds, tubes in the grass with villages along their feet, broken ends open on the streets inside. Walk among the grazing herds and climb onto the long tube’s crest.',
+    moves: 'walk · climb',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'moonfoundry', create: createMoonFoundry, build: buildMoonFoundry, hidden: true,
+    title: TITLES.moonfoundry, source: 'a workshop for making moons',
+    blurb: 'Unfinished ivory moons hang from the cranes of a vast open hangar or rest in orange claws, and the workers live in the old machinery. Climb to the gantry and walk into the moon broken open round its courtyard; one furnace still pours.',
     moves: 'walk · climb',
   },
   {

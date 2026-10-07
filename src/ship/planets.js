@@ -28,6 +28,8 @@ export const PLANETS = {
   antennas: { body: '#a98cd8', shade: '#7e68b2', ink: '#f1e6a2', mark: 'lights' },
   underwater: { body: '#2a7fae', shade: '#164f74', ink: '#f2a48e', mark: 'lights' },   // (a detour: the city on the sea floor)
   eclipse: { body: '#1c2244', shade: '#0e1128', ink: '#ffe2c8', mark: 'lights' },   // (a detour: the city under the black sun)
+  fallenring: { body: '#9c9e58', shade: '#6a7a52', ink: '#f8e6c8', mark: 'bands' },   // (a detour: the fallen ring)
+  moonfoundry: { body: '#efe2c8', shade: '#c9a888', ink: '#d4763c', mark: 'craters' },   // (a detour: the workshop of moons)
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };
 

@@ -33,6 +33,8 @@ export const REFERENCE_WORLDS = [
   { id: 'antennas', name: 'The Forest of Antennas', count: 4, load: () => import('./reference-antennas.js') },
   { id: 'underwater', name: 'The Underwater City', count: 4, load: () => import('./reference-underwater.js') },
   { id: 'eclipse', name: 'The City During the Eclipse', count: 4, load: () => import('./reference-eclipse.js') },
+  { id: 'fallenring', name: 'The Fallen Ring', count: 4, load: () => import('./reference-fallenring.js') },
+  { id: 'moonfoundry', name: 'The Moon Foundry', count: 4, load: () => import('./reference-moonfoundry.js') },
   { id: 'underside', name: 'The Underside', count: 4, load: () => import('./reference-underside.js') },
 ];
 

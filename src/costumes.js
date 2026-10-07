@@ -449,9 +449,28 @@ export const COSTUMES = {
       accents: ['#ffcf72', '#ff8a6a', '#8ea2b0'],
     },
   })] },
+  // the Fallen Ring's folk (src/levels/fallen-ring.js): herders and the villagers under the hulls, in ivory, sage and faded vermilion
+  fallenring: { tribes: [tribe({
+    name: 'the ring folk',
+    moods: { calm: 3, kind: 3, curious: 1.5, amused: 1.5, stern: 0.5 },
+    heads: { hood: 2, hair: 2 }, as: { hat: 'hood', wrap: 'hood' },
+    hair: { m: { tail: 1, swept: 2 }, f: { long: 2, twin: 1 } },
+    masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lantern: 1, none: 3 }, trim: { none: 1 },
+    capes: [0.7, 1, 1.2], robe: 0.6, robes: [0.2, 0.3], flare: [0.28, 0.34], size: [0.96, 1.05],
+    palette: {
+      cloaks: ['#f0e2c4', '#e8b48c', '#9c9e58', '#d8c9a0'],
+      tunics: ['#8a5c38', '#5a4028', '#6a7a52', '#c9764e'],
+      legs: ['#3a3a30', '#4a3a2a'],
+      skins: ['#e6c8b0', '#d4a888', '#b88a68', '#f0d8c4'],
+      hair: ['#2b211f', '#5a4028', '#e8dcc0'],
+      hats: ['#f0e2c4', '#9c9e58', '#e8b48c'],
+      accents: ['#ef9a7c', '#ffc27a', '#5d9fb6'],
+    },
+  })] },
 };
 // the Glass Dunes' glassworkers dress as the desert's people (src/levels/glass-dunes.js: its crowd's costume is the desert's)
 COSTUMES.glassdunes = COSTUMES.desert;
+COSTUMES.moonfoundry = COSTUMES.buried;   // (the Moon Foundry, src/levels/moon-foundry.js: the Buried Machine's workers' clothes, in the foundry's own colours)
 COSTUMES.underwater = COSTUMES.waterfall;   // (the Underwater City, src/levels/underwater.js: the falls' wraps and hoods, in the city's own colours)
 COSTUMES.eclipse = COSTUMES.mangrove;   // (the City During the Eclipse, src/levels/eclipse.js: the lake folk's pale robes and hoods, their lanterns)
 const INCAL = { TOP: 200, LEVELS: [150, 92, 36, -24, -86] };
