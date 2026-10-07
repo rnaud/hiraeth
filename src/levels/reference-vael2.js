@@ -400,16 +400,16 @@ export const VAEL2_VIEWS = [
   }),
   view({
     id: '3783-egg-column', title: 'The column, its disc and its egg', sheet: 'IMG_3783', panel: 2, where: 'top, second', crop: [276, 38, 224, 451],
-    // (the eye a little over the disc, as the panel sees its pale top: from under it, its rim and underside filled the
-    //  disc's place and read as a grey-hatched top)
-    camera: { eye: [0, 35, 0], yaw: 0, fov: 72, pitch: -4 },
+    // (the eye a few metres under the disc, as the panel sees it nearly edge-on: 22 m under it, its shaded underside
+    //  filled the disc's place and read as a grey-hatched top; the sheet's top is pale, its underside a thin dark band)
+    camera: { eye: [0, 27, 0], yaw: 0, fov: 72, pitch: 7 },
     sun: { side: -70, el: 35 },   // (from the left, as the panel lights its column: one clean terminator down it)
     ground: sky(-300),
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37832,
         mushrooms: [{ x: 0, z: -70, R: 20, top: 32, base: -80, stalk: 4.3, capT: 2.4, under: 3, dome: 0.6, rib: 0.4, ribK: 22, flute: 0.14, fluteK: 7, foot: 1.5, neckR: 0.9, waist: 0.05, outline: 0.04, mat: 'boneNeedle', smooth: false }],
-        stones: [[0.4, 42, -70, [[4.6, 2.7, 0.15, 0.26]]]],
+        stones: [[0.4, 35, -70, [[4.6, 2.7, 0.15, 0.26]]]],
         spires: [{ x: -16, z: -90, y: -40, H: 45, R: 4, n: 2, rubble: false }, { x: 14, z: -80, y: -40, H: 30, R: 3, n: 1, rubble: false }],
         clouds: [{ y: -30, near: 60, far: 1200, n: 240, size: [12, 30] }, { y: 10, near: 120, far: 400, n: 22, size: [24, 40], deck: false, spread: 30 }],
       });
