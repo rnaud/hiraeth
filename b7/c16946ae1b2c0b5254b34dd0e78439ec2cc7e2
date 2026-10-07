@@ -1,0 +1,35 @@
+TODO.md
+  s_55b4bc53b812ec::t_6dccfd9244c00b 204-208
+engine/game.js
+  s_55b4bc53b812ec::t_1761131ff07080 410-413
+engine/mirror.js
+  s_55b4bc53b812ec::t_a7518f1f0c4d07 23-24,116-130,161,189
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_6330acb5995fdd 172-180
+engine/unity/game.js
+  s_55b4bc53b812ec::t_6e2a6d5e6fbc8b 50-52,154
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_1993077860bfe7 84,99
+tests/engine-bridge.test.js
+  s_55b4bc53b812ec::t_43e89445bd0af6 222-239
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_1d45c629e750f9 95,111,121,182
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_04257e125be697 35-36,208,217,256-257,487-501
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b7c16946ae1b2c0b5254b34dd0e78439ec2cc7e2",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
