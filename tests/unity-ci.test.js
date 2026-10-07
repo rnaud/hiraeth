@@ -87,8 +87,13 @@ test('the testers\' APK has its own identity: installed next to the web app, nev
   assert.match(release, /startInFullscreen = true/);
   assert.match(release, /runInBackground = false/);
   assert.match(release, /useCustomKeystore = true/);
-  assert.match(release, /"public", "icons", "icon-512\.png"/);
-  assert.ok(existsSync(new URL('../public/icons/icon-512.png', import.meta.url)));
+  // the game's icon in Android's own icons (left empty, Android draws Unity's), the maskable one for the adaptive layers
+  assert.match(release, /IconTexture\("icon-512\.png", ReleaseIcon\)/);
+  assert.match(release, /IconTexture\("maskable-512\.png"/);
+  assert.match(release, /AndroidIcons\(tex, maskable\)/);
+  assert.match(build, /new\[\] \{ "Legacy", "Round", "Adaptive" \}/);
+  assert.match(build, /PlayerSettings\.SetPlatformIcons\(NamedBuildTarget\.Android, kind, icons\)/);
+  for (const f of ['icon-512.png', 'maskable-512.png']) assert.ok(existsSync(new URL(`../public/icons/${f}`, import.meta.url)), f);
   // the bridge's Android player: IL2CPP, ARM64
   assert.match(build, /SetScriptingBackend\(NamedBuildTarget\.Android, ScriptingImplementation\.IL2CPP\)/);
   assert.match(build, /AndroidArchitecture\.ARM64/);
