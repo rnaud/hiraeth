@@ -1,0 +1,45 @@
+changelog.md
+  s_55b4bc53b812ec::t_c52b4e770ec7e5 9-11
+docs/README.md
+  s_55b4bc53b812ec::t_086ed81fefa3c7 50
+docs/systems/conversations.md
+  s_55b4bc53b812ec::t_2b981d562efa57 1,29-79,81-83
+docs/systems/faces.md
+  s_55b4bc53b812ec::t_f30fb12cbf735a 284-304
+src/changelog.js
+  s_55b4bc53b812ec::t_f72f3161a9dc7f 13-15
+src/characters/tripo-face.js
+  s_55b4bc53b812ec::t_5d97518f82a667 1,35,37-44,53-56,71-74,101,113,152,161,169,173,213-221
+src/story/coverage.js
+  s_55b4bc53b812ec::t_48805e0b65038d 1-75
+src/story/dialogue.js
+  s_55b4bc53b812ec::t_73d434d98f3248 4-5,11,227-233,281,285-289,348-349,361,370-403,406-407,416,428-430,440,469-481,506-509,511,513,526-532,576,582-585,600-603,606-609,614,620-625,638-653,659-661
+src/story/index.js
+  s_55b4bc53b812ec::t_50c83996fef2d8 5,14,73,113-147,204,283,339-348
+src/story/shot.js
+  s_55b4bc53b812ec::t_c9e79d810162ea 151,163-165,175,193-266
+tests/convo-closeup.test.js
+  s_55b4bc53b812ec::t_4edb2a3428e524 1-229
+tests/platform.test.js
+  s_55b4bc53b812ec::t_ffc233833e3218 73-78,80
+tests/tripo-face.test.js
+  s_55b4bc53b812ec::t_2dceb5b321ac02 117-131
+unity/Memento/Assets/Memento/Shaders/TripoFace.hlsl
+  s_55b4bc53b812ec::t_62ca77e3b1cd86 20,32,71,80,88,92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6666e3ce061aabb4a5bcf04fd4f948fdde246725",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
