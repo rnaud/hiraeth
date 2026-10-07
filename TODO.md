@@ -217,6 +217,13 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 
 ## Android
 
+- [ ] Next time the Retroid is attached, in the GeckoView test app (never the player's app): measure the
+  loading pen through a desert and a City-Shaft load (`adb shell screenrecord`, then
+  `scripts/transition-perf/pen.mjs`'s `angles()`); check the City-Shaft's merged towers (`S_VMAT`, checked
+  in Firefox / Chrome Metal / SwiftShader on the Mac) draw as unmerged; the speaker's portrait and the
+  Sketchbook's captures; the game menu's item pictures; a self-driving cab ride; and re-measure the camps
+  and the City-Shaft with the shirt on the GPU (expected ~0.3 ms instead of 2.4).
+
 - [ ] On the Retroid: GeckoView with the real buttons, the upgrade over the installed app, the cave's
   FPS and the shader cost. **Blocked**: no Android device is attached. (The cave's FPS and the shader
   cost are measured, in the GeckoView test app: the cave 60 fps, GPU 41 %, docs/systems/performance.md
