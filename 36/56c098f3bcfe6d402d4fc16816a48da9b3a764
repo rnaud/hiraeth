@@ -1,0 +1,64 @@
+changelog.md
+  h_a9d45f2c234256 18-21
+docs/systems/references.md
+  h_a9d45f2c234256 596-627
+docs/systems/water.md
+  h_a9d45f2c234256 84-88,94-116
+docs/systems/worlds.md
+  h_a9d45f2c234256 707-765
+src/audio.js
+  h_a9d45f2c234256 37-38
+src/changelog-media.js
+  h_a9d45f2c234256 192-223
+src/changelog.js
+  h_a9d45f2c234256 24-27
+src/costumes.js
+  h_a9d45f2c234256 455
+src/edge.js
+  h_a9d45f2c234256 34
+src/levels/content.js
+  h_a9d45f2c234256 99-111
+src/levels/index.js
+  h_a9d45f2c234256 22,133-139
+src/levels/names.js
+  h_a9d45f2c234256 24,32
+src/levels/reference-underwater.js
+  h_a9d45f2c234256 1-217
+src/levels/underwater-kit.js
+  h_a9d45f2c234256 1-643
+src/levels/underwater.js
+  h_a9d45f2c234256 1-306
+src/main.js
+  h_a9d45f2c234256 1516
+src/makehuman/people.js
+  h_a9d45f2c234256 166
+src/makehuman/shape.js
+  h_a9d45f2c234256 115
+src/reactive-world.js
+  h_a9d45f2c234256 33
+src/ship/planets.js
+  h_a9d45f2c234256 29
+src/story/portrait-bg.js
+  h_a9d45f2c234256 30
+src/swim.js
+  h_a9d45f2c234256 29-33,62-74,158-167,190,219,239,242,250,270,278,368-369
+src/water-shader.js
+  h_a9d45f2c234256 71-72,83,158
+src/water.js
+  h_a9d45f2c234256 34-36,106,143,159,234,279-284,298,324,447-479,484-486,503-509,520-523,526-564,583-598,601-603,606-620,629-663,673
+tests/contact-audit.test.js
+  h_a9d45f2c234256 133
+tests/underwater.test.js
+  h_a9d45f2c234256 1-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3656c098f3bcfe6d402d4fc16816a48da9b3a764",
+  "prompts": {},
+  "humans": {
+    "h_a9d45f2c234256": {
+      "author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
