@@ -287,6 +287,58 @@ function gardenScene(kit, v, o) {
   for (const [pts, w] of o.paths ?? []) kit.add(M.path, groundRibbon(kit.H.bind(kit), pts, w, 0.04), { solid: false });
   for (const c of [o.clouds ?? []].flat()) cloudSea(kit, M, { at: [v.camera.eye[0], v.camera.eye[2]], yaw: v.camera.yaw ?? 0, deck: false, seed: o.seed ?? 1, pink: true, ...c });
   o.extra?.(kit, M, rng);
+  if (o.lake) mirror(kit, M, v, o.lake);
+}
+
+/**
+ * The still water's printed reflection (the sheets' and the world's mirror lake, spheres.js): what stands beyond
+ * the lake mirrored in its plane and laid on the water as flat shapes in a paler, watery tone of each thing's own
+ * colour, exactly where the reflection is seen from the view's camera. Every vertex is mirrored in the water
+ * plane and projected back onto it along the line of sight; the shapes nearest the camera print over the farther.
+ * No reflection pass: plain geometry, drawn once.
+ */
+const MIRROR = { mix: 0.38, darker: 0.9, over: 0.3 };   // (toward the water's colour; the second tone; how far above the water a part must stand)
+function mirror(kit, M, v, { x0, x1, z0, z1, y: W = -0.4 }) {
+  const E = new THREE.Vector3(...v.camera.eye), water = M.water.uniforms.uColor.value, skip = new Set([M.water, M.path, M.plaza, M.cloud, M.pinkCloud, M.cloak]);
+  const parts = [], p = new THREE.Vector3(), c = new THREE.Color();
+  for (const b of kit.buckets.values()) {
+    if (skip.has(b.mat) || !b.mat.uniforms?.uColor) continue;
+    for (const g of b.list) {
+      const P = g.attributes.position, C = g.attributes.color, out = [];
+      let d = 0;
+      for (let i = 0; i < P.count; i += 3) {
+        const tri = [];
+        for (let k = 0; k < 3; k++) {
+          p.fromBufferAttribute(P, i + k);
+          if (p.y < W + MIRROR.over) break;
+          const my = 2 * W - p.y, t = (E.y - W) / (E.y - my);
+          tri.push(E.x + (p.x - E.x) * t, 0, E.z + (p.z - E.z) * t);
+        }
+        if (tri.length < 9) continue;
+        const cx = (tri[0] + tri[3] + tri[6]) / 3, cz = (tri[2] + tri[5] + tri[8]) / 3;
+        if (cx < x0 || cx > x1 || cz < z0 || cz > z1) continue;
+        // (facing up whatever the mirror did to its winding)
+        const ax = tri[3] - tri[0], az = tri[5] - tri[2], bx = tri[6] - tri[0], bz = tri[8] - tri[2];
+        if (az * bx - ax * bz > 0) out.push(...tri); else out.push(tri[0], tri[1], tri[2], tri[6], tri[7], tri[8], tri[3], tri[4], tri[5]);
+        d += Math.hypot(cx - E.x, cz - E.z);
+      }
+      if (!out.length) continue;
+      c.copy(b.mat.uniforms.uColor.value);
+      if (C) c.setRGB(C.getX(0), C.getY(0), C.getZ(0)).multiply(b.mat.uniforms.uColor.value);
+      parts.push({ out, d: d / (out.length / 9), color: c.clone().lerp(water, MIRROR.mix) });
+    }
+  }
+  // the farthest first, each a hair higher than the last: the nearer shapes print over the farther
+  parts.sort((a, b) => b.d - a.d).forEach(({ out, color }, i) => {
+    const y = W + 0.02 + i * 0.004;
+    for (let k = 1; k < out.length; k += 3) out[k] = y;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+    const n = new Float32Array(out.length); for (let k = 1; k < n.length; k += 3) n[k] = 1;
+    g.setAttribute('normal', new THREE.BufferAttribute(n, 3));
+    const hex = `#${color.getHexString()}`, dark = `#${color.clone().multiplyScalar(MIRROR.darker).getHexString()}`;
+    kit.mesh(g, kit.mat({ color: hex, color2: dark, mode: MODE_WATER, waterPrint: true }), { solid: false, shadow: false });
+  });
 }
 
 /** Rows of a kind along an avenue: from z0 to z1, at x = ±off, every `step` m (with a little jitter). */

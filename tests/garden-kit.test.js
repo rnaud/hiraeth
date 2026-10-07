@@ -87,3 +87,12 @@ test('an olive crown is round and layered: about as tall as it is wide, in three
   assert.ok(h > w * 0.85 && h < w * 1.3, `${w.toFixed(2)} wide, ${h.toFixed(2)} tall`);
   assert.equal(g.index.count / 3, (6 + 5 + 2) * 80);
 });
+
+test('the views’ still lakes carry a printed reflection of what stands beyond them', async () => {
+  const { GARDEN_VIEWS } = await import('../src/levels/reference-spheres.js');
+  const lakes = GARDEN_VIEWS.filter((v) => /lake: \{ x0/.test(String(v.build)));
+  assert.ok(lakes.length >= 4, `views with a lake: ${lakes.length}`);
+  const src = await import('node:fs').then((fs) => fs.readFileSync(new URL('../src/levels/reference-spheres.js', import.meta.url), 'utf8'));
+  assert.match(src, /if \(o\.lake\) mirror\(kit, M, v, o\.lake\)/);
+  assert.match(src, /waterPrint: true/);
+});

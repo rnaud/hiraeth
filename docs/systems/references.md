@@ -240,7 +240,12 @@ the narrowest creases.
   a tight loop of frames, five rounds alternating with the build before, median ms): spawn 4.27 → 4.75, under an
   umbrella 3.44 → 3.63, before the hill 4.13 → 4.32, the avenue 3.37 → 3.27, the plaza 3.01 → 3.07, the android
   wood 3.29 → 3.16 (the world's triangles 1.28 → 1.59 M, most of it the shrubs' leaf masses).
-- **Left**: the lakes' reflections in the views; the avenue's grasses; the views' far woods are round trees, the
+- **The lakes' printed reflections in the views** (`mirror` in reference-spheres.js, October 2026): what stands
+  beyond a view's lake is mirrored in the water plane and projected back onto it along the line of sight from the
+  view's camera (the world's mirror lake, spheres.js, does the same from the south shore), laid on the water as
+  flat `waterPrint` shapes in each thing's own colour 38 % toward the water's, the nearer printed over the farther.
+  Plain geometry built once: no reflection pass. Views 106, 112, 118, 123 (and 111's pool).
+- **Left**: the avenue's grasses; the views' far woods are round trees, the
   sheets' dense tall trunks.
 
 ## Lorn II's sheets (IMG_3797–3800)
