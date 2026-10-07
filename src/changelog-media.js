@@ -169,6 +169,11 @@ export const CHANGELOG_MEDIA = {
     ], see: 'On a porch between two carriages, climb the ladder beside the door (or the end wall itself); the plank bridges join the roofs from the lounge back to the library, whose terrace carries the sky lounge.' },
     { match: 'The Overnight Train sounds like a train', see: 'Turn the effects up and stand at a window while the train runs: the beat of the joints keeps time with its speed, slows as it brakes into a station and stops; go out on the balcony or the roofs and the rush of the air comes up; listen for the whistle as it pulls out.' },
     { match: 'The fluid blade swings like a sword', see: 'In the Arena, press F three times quickly: the three cuts, one after another.' },
+    { match: 'Hold the blade button to raise your guard', shots: [
+      { name: 'guard-block', only: 'after', caption: 'The guard up, an ink blot’s lunge landing on the shield of fluid', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'In the Arena, hold F (LB / L1) as a blot winds up in front of you.' },
+    { match: 'A foe’s strike that lands makes the traveller flinch', see: 'In the Arena, let an ink blot’s lunge land without your guard up.' },
+    { match: 'The Arena is bright now', see: 'On the title screen, choose Debug, then The Arena.' },
     { match: 'On the Overnight Train the carriages’ ceilings have round lamps', shots: [
       { name: 'overnighttrain-ceiling', caption: 'The dining car from its aisle: the long lamp strip’s beam down the ceiling (before), the round lamps (after)', from: 'the world’s own screenshots of the same view, headless Chrome, High, 22:00 (7 October)' },
     ], see: 'Open ?level=overnighttrain, walk forward from the ship into the library and on to the dining car, and look down the aisle.' },

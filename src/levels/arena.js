@@ -3,22 +3,22 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { stepped } from '../load-steps.js';
+import { DESERT_WORLD_LOOK } from '../desert-sites.js';
 
 // ---------------------------------------------------------------------------
 // The Arena: a developer's world for the fluid blade and the foes (src/fluid-blade.js, src/foes.js),
-// reached only from the worlds list (?level=arena). A ring of pale sand in a shallow bowl, a few
+// reached only from the worlds list (?level=arena). A ring of golden sand under an open sky, a few
 // standing stones to fight round, a low ramp and a ledge. The foes come in waves round you, one after
 // another, whatever the Enemies setting (level.foes.waves: src/foes.js): one ink blot, then three,
 // then a makers' machine, then two machines with blots, and round again.
 // ---------------------------------------------------------------------------
 
-const SAND = '#e8d3a6';
-
 export function* buildArena(scene) {
   const terrain = yield* Terrain.make({
     size: 900, seg: 90,
-    height: (x, z) => { const r = Math.hypot(x, z); return r < 70 ? 0 : (r - 70) ** 1.5 * 0.12; },   // a bowl: flat in the middle
-    material: { color: SAND, color2: '#dcc28f', color3: '#cdb07a', mode: MODE_TERRAIN },
+    height: (x, z) => { const r = Math.hypot(x, z); return r < 150 ? 0 : (r - 150) * 0.07; },   // flat out to 150 m, a low rise at the edge: the open sky all round
+    // the desert's golden sand (its ripples and inked grain), bright under the open sky
+    material: { color: '#efd29b', color2: '#f5e1b6', color3: '#dca57a', mode: MODE_TERRAIN, ripples: true, sandInk: true },
   });
   scene.add(terrain.mesh);
   const stone = makeMaterial({ color: '#b9a88e', color2: '#a29177', color3: '#8f7f66', mode: MODE_STRATA, strataSize: 1.2 });
@@ -46,7 +46,7 @@ export function* buildArena(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     features: { mount: false, wind: false, jetpack: true, climb: true },
-    defaults: { hour: 10, preset: 'Moebius print', cloudShadows: 0 },
+    defaults: { hour: 9.5, preset: 'Moebius print', cloudShadows: 0, look: DESERT_WORLD_LOOK },   // (the desert's print: bright sand, a blue sky)
     killY: -Infinity,
     foes: { waves: true },
     // the desert's print: a flat cerulean sky over cream sand
@@ -57,7 +57,7 @@ export function* buildArena(scene) {
         night: ['#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],
       },
     },
-    atmo: () => ({ tint: [1, 1, 1], fog: 0.6, name: 'The Arena' }),
+    atmo: () => ({ tint: [1, 1, 1], fog: 1.0, name: 'The Arena' }),   // (as the desert's golden dunes)
     update() {},
   };
 }

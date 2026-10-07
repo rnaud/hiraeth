@@ -17,6 +17,13 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
+- **The guard (hold the button):** once the swing is done, the left arm comes up (the pack's block idle,
+  round and round) and a lens of fluid with a bright rim blooms over the forearm, turned to the nearest foe;
+  you walk slowly and can't sprint. `blade.block(from)` (as `player.guard`): a strike from within `GUARD.angle`
+  of the guard's way is blocked for a charge, no harm, the arm takes the blow (the pack's block), and the foe
+  reels (`Foe.staggered`: open 1.6× as long). Behind you, or with the tank empty, it gets through.
+- **The flinch:** a strike that lands without knocking you down plays the pack's impact on the upper body
+  (`Player.flinch`, `FLINCH`).
 - **What it hits:** at `BLADE.hitAt` of the swing, `bladeHits()` takes the targets in a cone (`reach` 2.9 m,
   half-angle 1.15 rad) that list `'blade'` in `accepts`. Nothing else feels it: people, switches and the story's
   puzzles don't (a blade is not a splash). Wildlife in the cone scatters (`push`).
@@ -58,7 +65,7 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
 
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
-A developer's world in the worlds list: flat sand in a bowl, standing stones, a ledge. `level.foes.waves` makes
+A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes
 `Foes` send `WAVES` round you, whatever the setting: one blot, three blots, a machine, two machines and two
 blots, round and round, `WAVE.rest` s after the last one falls.
 
@@ -75,8 +82,8 @@ blots, round and round, `WAVE.rest` s after the last one falls.
 ## Left to do
 
 - The machine's model is a first pass of boxes.
-- The packs hold more (blocks, impacts, deaths, kicks, the great sword's spins and jump attacks): a block,
-  a hit reaction or a charged spin could come from them.
+- The packs hold more (deaths, kicks, the great sword's spins and jump attacks): a charged spin could come
+  from them.
 - Neither foe has an animation of its own beyond the procedural wobble, walk and arm raise.
 - Foes don't avoid each other.
 - No foe yet uses the temple kit (gusts, updrafts) or the open world's height.

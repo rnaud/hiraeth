@@ -11,8 +11,14 @@ import { allTargets, targetsInCone } from './targets.js';
 // machines, src/foes.js; wildlife scatters); people, switches and the story's puzzles do not: a blade
 // is not a splash.
 //
+// Held, the button raises the guard once the swing is done (GUARD): the left arm comes up and a
+// shield of fluid blooms over the forearm (the Sword and Shield pack's block idle). A strike from in
+// front (GUARD.angle) is blocked: it spends a charge, does no harm and staggers the foe, and the
+// arm takes the blow (the pack's block). With the tank empty a strike gets through.
+//
 //   const blade = new FluidBlade(tool)      (FluidTool makes it)
-//   blade.update(dt, press, ok)             per frame, after the tool's own update
+//   blade.update(dt, press, ok, held)       per frame, after the tool's own update
+//   blade.block(from)                       a strike from `from`: true if the guard took it (player.guard)
 //   blade.swinging                          true during a swing
 //   emits 'tool:fire' { mode: 'blade', point } on each swing
 
@@ -39,6 +45,14 @@ export const SWINGS = [
   { clip: 'mixamo_ss_attack_1', from: 0.78, to: 1.5, hit: 1.15 },
 ];
 export const SWING_SPEED = 1.5;
+/** The guard: the clips (block idle held round and round, the block played as a strike lands), how wide it covers, and the shield. */
+export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, angle: 1.3, rise: 0.12, radius: 0.5 };
+/** Is a strike from `from` in front of someone at `pos` facing `dir` (flat), within GUARD.angle? */
+export function inGuard(pos, dir, from, angle = GUARD.angle) {
+  const dx = from.x - pos.x, dz = from.z - pos.z, d = Math.hypot(dx, dz);
+  if (d < 1e-4) return true;
+  return Math.acos(THREE.MathUtils.clamp((dx * dir.x + dz * dir.z) / (d * Math.hypot(dir.x, dir.z) || 1), -1, 1)) <= angle;
+}
 /** The blade in the fist, in the hand bone's frame: out of the fist (+z), leaning along the fingers (+y). */
 const GRIP = new THREE.Vector3(0, 0.45, 1).normalize();
 
@@ -67,7 +81,7 @@ export function lockTarget(from, range = BLADE.lock, targets = allTargets()) {
 }
 
 const _o = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion();
-const _Y = new THREE.Vector3(0, 1, 0);
+const _Y = new THREE.Vector3(0, 1, 0), _Z = new THREE.Vector3(0, 0, 1);
 
 export class FluidBlade {
   constructor(tool) {
@@ -85,16 +99,48 @@ export class FluidBlade {
     this.group.visible = false;
     this.group.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
     tool.fx.add(this.group);
+    // the guard's shield: a lens of the same fluid with a bright rim, over the left forearm
+    this.guardK = 0; this.guardT = 0; this.parry = 0;
+    this.shield = new THREE.Group();
+    this.shield.add(new THREE.Mesh(new THREE.SphereGeometry(GUARD.radius, 24, 12).scale(1, 1, 0.16), tool.globMat));
+    this.shield.add(new THREE.Mesh(new THREE.TorusGeometry(GUARD.radius * 0.98, 0.018, 6, 40), makeMaterial({ color: '#fffbea', flat: true, glow: 1, key: 'fluid-blade-edge' })));
+    this.shield.visible = false;
+    this.shield.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
+    tool.fx.add(this.shield);
+    if (tool.player) tool.player.guard = (from) => this.block(from);
+  }
+
+  /** The guard is up (enough to block). */
+  get guarding() { return this.guardK > 0.5; }
+
+  /**
+   * A strike from `from` (a foe's position): the guard takes it if it is up, the strike comes from in
+   * front, and a charge is left to spend. Then the arm takes the blow (the block clip), the shield
+   * flashes, and true; else false (it gets through).
+   */
+  block(from) {
+    const T = this.tool, p = T.player;
+    if (!p || !this.guarding || !inGuard(p.pos, this.dir, from)) return false;
+    if (!T.reserve.use()) { T.sputter?.(); return false; }
+    this.parry = GUARD.parryFor;
+    T.used('block', p.pos);
+    T.sound?.fluidBlock?.();
+    const at = this.shield.position, tones = T.modeTones;
+    T.rings?.add({ from: at, dir: this.dir, reach: 0.1, r0: 0.2, r1: 1.1, life: 0.3, color: tones[0], thick: 1 });
+    for (let i = 0; i < 18; i++) T.drops?.add({ pos: at, vel: _a.copy(this.dir).multiplyScalar(-2).add(_b.randomDirection().multiplyScalar(3)), drag: 3, grav: 6, size: 0.03, life: 0.4, color: tones[i % tones.length] });
+    p.vel?.addScaledVector(this.dir, -2);   // pushed back a step
+    return true;
   }
 
   get swinging() { return this.n >= 0; }
 
-  /** Per frame. press: a fresh press of the blade button; ok: the tool may act (FluidTool.allowed). */
-  update(dt, press, ok) {
+  /** Per frame. press: a fresh press of the blade button; ok: the tool may act (FluidTool.allowed); held: the button is down. */
+  update(dt, press, ok, held = false) {
     const T = this.tool, p = T.player;
     this.cool = Math.max(0, this.cool - dt);
     this.chainT = Math.max(0, this.chainT - dt);
-    if (!ok || !p) { this.stop(); return this.fade(dt); }
+    this.parry = Math.max(0, this.parry - dt);
+    if (!ok || !p) { this.stop(); this.guardK = 0; this.placeShield(dt); return this.fade(dt); }
     if (press) {
       if (this.swinging) this.queued = this.n < 2;                 // chained: the next swing follows this one
       else if (this.cool === 0) this.start(this.chainT > 0 ? Math.min(this.last + 1, 2) : 0);
@@ -128,8 +174,44 @@ export class FluidBlade {
       this.pose.k = Math.min(1, 0.35 + this.t * 3);
       p.aim = this.pose;
     }
+    // the guard: held after the swing (or with no swing to finish), turned to the nearest foe
+    const want = held && !this.swinging && T.k < 0.05;
+    this.guardK += ((want ? 1 : 0) - this.guardK) * (1 - Math.exp(-(want ? 14 : 10) * dt));
+    if (this.guardK < 0.01) this.guardK = 0;
+    if (this.guardK > 0 && !this.swinging) {
+      this.guardT += dt;
+      const foe = lockTarget(p.pos);
+      if (foe) { this.dir.subVectors(foe.position(), p.pos); this.dir.addScaledVector(p.frame.up, -this.dir.dot(p.frame.up)); if (this.dir.lengthSq() > 1e-6) this.dir.normalize(); }
+      else if (!want) { /* (easing out: keep the last way) */ }
+      else p.frame.dir(p.heading, this.dir);
+      const A = p.animator, idle = A?.moveClip?.(GUARD.idle);
+      if (idle) {
+        const m = (p.swingMove ??= {});
+        if (this.parry > 0 && A.moveClip(GUARD.parry)) { m.clip = GUARD.parry; m.t = GUARD.parryFor - this.parry; }
+        else { m.clip = GUARD.idle; m.t = this.guardT % idle.duration; }
+        m.w = this.guardK;
+      }
+      this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.dir, 3);
+      this.pose.k = this.guardK; this.pose.noArm = !!idle;
+      p.aim = this.pose;
+    } else if (!this.swinging && p.swingMove) p.swingMove = null;
+    if (!want && this.guardK === 0) this.guardT = 0;
     this.lit += ((this.swinging ? 1 : 0) - this.lit) * (1 - Math.exp(-(this.swinging ? 30 : 9) * dt));
     this.place(dt);
+    this.placeShield(dt);
+  }
+
+  /** The shield over the left forearm, facing the guard's way, as big as the guard is up (a flash as it blocks). */
+  placeShield() {
+    const p = this.tool.player, B = p?.humanoid?.b, on = this.guardK > 0.03 && p?.object?.visible !== false;
+    this.shield.visible = on;
+    if (!on) return;
+    const at = B?.hand_l ? B.hand_l.getWorldPosition(_a) : _a.copy(p.pos).addScaledVector(p.frame.up, 1.1);
+    if (B?.lowerarm_l) at.lerp(B.lowerarm_l.getWorldPosition(_b), 0.35);
+    at.addScaledVector(this.dir, 0.12).addScaledVector(p.frame.up, GUARD.rise);
+    this.shield.position.copy(at);
+    this.shield.quaternion.setFromUnitVectors(_Z, this.dir);
+    this.shield.scale.setScalar(Math.max(0.05, this.guardK) * (1 + (this.parry > 0 ? 0.25 * this.parry / GUARD.parryFor : 0)));
   }
 
   start(n) {
@@ -195,5 +277,5 @@ export class FluidBlade {
     }
   }
 
-  dispose() { this.group.removeFromParent(); }
+  dispose() { this.group.removeFromParent(); this.shield.removeFromParent(); if (this.tool.player?.guard) this.tool.player.guard = null; }
 }

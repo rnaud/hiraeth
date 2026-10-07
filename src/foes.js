@@ -123,6 +123,13 @@ export class Foe {
     return ev;
   }
 
+  /** Its strike was blocked: it reels back, open a moment longer than after a strike. */
+  staggered() {
+    if (!this.alive) return;
+    this.state = 'recover'; this.timer = this.def.recover * 1.6; this.k = 0; this.flash = 0.8;
+    this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.kind === 'machine' ? 2 : 5);
+  }
+
   face(dx, dz, dt, rate = 6) {
     const want = Math.atan2(dx, dz), da = Math.atan2(Math.sin(want - this.heading), Math.cos(want - this.heading));
     this.heading += da * (1 - Math.exp(-rate * dt));
@@ -396,13 +403,16 @@ export class Foes {
   /** A strike that caught the traveller: a bite of the bar (never all of a healthy one), a shove, a machine knocks you down. */
   strike(f) {
     const P = this.player, a = f.def.attack;
+    // the guard took it (src/fluid-blade.js block): no harm, and the foe reels back
+    if (P.guard?.(f.pos)) { f.staggered(); this.sound?.foeHurt?.(f.kind); return false; }
     const dmg = strikeDamage(P.health ?? 1, a.damage);
     _v.subVectors(P.pos, f.pos).setY(0);
     if (_v.lengthSq() < 1e-4) _v.set(Math.sin(f.heading), 0, Math.cos(f.heading));
     _v.normalize();
     if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
-    else P.vel?.addScaledVector(_v, 5).addScaledVector(_up, 2.5);
+    else { P.vel?.addScaledVector(_v, 5).addScaledVector(_up, 2.5); P.flinch?.(); }   // (a flinch from motion capture: player.js)
     P.hurt?.(dmg, 'foe');
+    return true;
   }
 
   /** The first pack: say what they are and what cuts them, once. */

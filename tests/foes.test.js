@@ -167,3 +167,33 @@ test('the blade: three arcs, a soft lock on the nearest foe, and only targets th
   tool.dispose();
   clearTargets();
 });
+
+test('held, the blade button raises the guard after the swing: a strike from in front is blocked for a charge, the foe reels; from behind, or with the tank empty, it gets through', async () => {
+  const { GUARD, inGuard } = await import('../src/fluid-blade.js');
+  assert.ok(inGuard(v(), v(0, 0, 1), v(1, 0, 3)) && !inGuard(v(), v(0, 0, 1), v(0, 0, -3)), 'in front, not behind');
+  clearTargets();
+  const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, -3); camera.lookAt(0, 1.6, 10); camera.updateMatrixWorld();
+  const P = player(v()); P.heading = 0; P.flinches = 0; P.flinch = function () { this.flinches++; };
+  const tool = new FluidTool({ scene: new THREE.Scene(), player: P, physics: flat, camera, rig: { aimK: 0 }, state: new GameState(null) });
+  for (let i = 0; i < 1.2 / DT; i++) tool.update(DT, { KeyF: true });   // the swing, then held: the guard
+  assert.ok(tool.blade.guarding, 'the guard is up');
+  assert.equal(typeof P.guard, 'function', 'the player asks the blade');
+  const game = new GameState(null);
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, tool, settings: { enemies: true }, game });
+  const front = foes.add('blot', v(0, 0, 1.5)), charges = tool.reserve.charges;
+  assert.equal(foes.strike(front), false, 'blocked');
+  assert.deepEqual(P.hurts, [], 'no harm');
+  assert.equal(tool.reserve.charges, charges - 1, 'a charge spent');
+  assert.equal(front.state, 'recover', 'the foe reels');
+  assert.ok(tool.blade.parry > 0 && tool.blade.parry <= GUARD.parryFor, 'the arm takes the blow');
+  const behind = foes.add('blot', v(0, 0, -1.5));
+  assert.equal(foes.strike(behind), true, 'from behind it gets through');
+  assert.equal(P.hurts.length, 1);
+  assert.equal(P.flinches, 1, 'and the traveller flinches');
+  tool.reserve.level = 0;
+  assert.equal(foes.strike(front), true, 'with the tank empty it gets through');
+  // let go: the guard comes down
+  for (let i = 0; i < 0.6 / DT; i++) tool.update(DT, {});
+  assert.equal(tool.blade.guarding, false);
+  tool.dispose(); foes.dispose(); clearTargets();
+});

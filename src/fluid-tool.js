@@ -963,7 +963,7 @@ export class FluidTool {
     } else if (p) p.aim = null;
     if (this.rig) this.rig.aimK = smooth(Math.min(this.k, this.camK));
     // the blade swings when the arm isn't up for a shot (it takes the aim pose for its arc)
-    this.blade.update(dt, bladePress && this.k < 0.3, ok && this.k < 0.5);
+    this.blade.update(dt, bladePress && this.k < 0.3, ok && this.k < 0.5, input.blade);   // (held: the guard)
 
     this.updateGlobs(dt);
     const up = p?.frame.up ?? _y;

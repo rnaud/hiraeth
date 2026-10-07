@@ -5,6 +5,9 @@ The same release notes shown in the game (press **N** or open settings).
 ## v0.87 — 2026-10-07
 
 - On the Overnight Train the carriages’ ceilings have round lamps in a row instead of one long glowing strip, which drew a bright beam down the middle of the dining car and the library; the brackets of the library’s roof terrace no longer poke through its ceiling.
+- The Arena is bright now: golden sand under an open blue sky.
+- A foe’s strike that lands makes the traveller flinch, from motion capture.
+- Hold the blade button to raise your guard: a shield of fluid blooms over your left arm. A strike from in front is blocked for a charge and leaves the foe reeling; with the tank empty it gets through.
 - The fluid blade swings like a sword: three cuts from motion capture, a slash down from the right, a rising backhand and an overhead cut, the blade held in the fist.
 - The Overnight Train sounds like a train: the wheels’ beat over the rail joints, ta-dum … ta-dum, slowing to nothing at a station, the rumble underfoot, the rush of the air on the roofs and the balcony, and a whistle as it pulls out or brakes.
 - Climb the ladder on any porch of the Overnight Train and walk the roofs from carriage to carriage over plank bridges, past the roof gardens, to the terrace and its little sky lounge.
