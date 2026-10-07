@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.80 — 2026-10-07
 
+- Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.
 - On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.
 
 ## v0.79 — 2026-10-07
