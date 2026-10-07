@@ -36,11 +36,17 @@ test('the workflow caches what makes a warm build short', () => {
   // (in both jobs: Puerts wants its glue even in the Linux player's Mono build)
   assert.equal((workflow.match(/key: puerts-glue-3\.0\.3-/g) || []).length, 2);
   assert.match(workflow, /key: puerts-3\.0\.3/);
-  // (both build jobs make room first: the Linux one ran out of disk pulling the editor image)
-  for (const job of ['android', 'linux']) {
+  // the editor image on the runner's big disk (the Linux job ran out of room pulling it onto the root one),
+  // pulled in the background while the job checks out and restores, waited for before the first editor run
+  for (const [job, image] of [['android', 'android-3'], ['linux', 'linux-il2cpp-3']]) {
     const body = workflow.split(new RegExp(`^ {2}${job}:\\n`, 'm'))[1].split(/^ {2}\w+:\n/m)[0];
-    assert.match(body, /uses: jlumbroso\/free-disk-space@/, job);
+    assert.ok(body.includes(`scripts/unity-ci-docker.sh start "unityci/editor:ubuntu-$UNITY_VERSION-${image}"`), job);
+    const waitAt = body.indexOf('scripts/unity-ci-docker.sh wait');
+    assert.ok(waitAt > 0 && waitAt < body.indexOf('uses: game-ci/unity-builder@v6'), job);
   }
+  const docker = read('scripts/unity-ci-docker.sh');
+  assert.match(docker, /"data-root": "\/mnt\/docker"/);
+  assert.match(docker, /nohup sh -c "docker pull -q/);
   assert.match(workflow, /cache: npm/);
 });
 

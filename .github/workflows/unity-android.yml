@@ -94,21 +94,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      # (the Android editor image is 8 GB, the cached Library 6 GB unpacked: the runner's preinstalled SDKs go first)
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: false
-          docker-images: true
-          swap-storage: false
-
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0   # the whole history: the versionCode counts its commits (release-info.mjs build)
+
+      # (the editor image, 8 GB, onto the runner's big temporary disk, pulled while the next steps run)
+      - name: The editor image (pulled in the background)
+        run: scripts/unity-ci-docker.sh start "unityci/editor:ubuntu-$UNITY_VERSION-android-3"
 
       - uses: actions/setup-node@v5
         with:
@@ -174,6 +166,9 @@ jobs:
         run: |
           mkdir -p .local-tools
           echo "$KEYSTORE_BASE64" | base64 -d > .local-tools/ci-release.p12
+
+      - name: The editor image
+        run: scripts/unity-ci-docker.sh wait
 
       # Puerts' IL2CPP glue in an editor run of its own: it is C# as well as C++ (skipped when cached)
       - name: Puerts' IL2CPP glue
@@ -249,21 +244,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      # (the runner's disk is too small for the editor image as it comes: "no space left on device" pulling it)
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: false
-          docker-images: true
-          swap-storage: false
-
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      # (the runner's root disk alone was too small for the editor image: "no space left on device" pulling it)
+      - name: The editor image (pulled in the background)
+        run: scripts/unity-ci-docker.sh start "unityci/editor:ubuntu-$UNITY_VERSION-linux-il2cpp-3"
 
       - uses: actions/setup-node@v5
         with:
@@ -304,6 +291,9 @@ jobs:
             ${{ env.PROJECT }}/Assets/Gen
             ${{ env.PROJECT }}/Assets/Gen.meta
           key: puerts-glue-3.0.3-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json') }}
+
+      - name: The editor image
+        run: scripts/unity-ci-docker.sh wait
 
       - name: Puerts' IL2CPP glue
         if: steps.glue.outputs.cache-hit != 'true'
