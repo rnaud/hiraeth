@@ -1,0 +1,19 @@
+docs/systems/performance.md
+  s_49cd91b776d109::t_8d5f57f48eb126 647-678
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9a28e814ed5ca908128d33eef0ee042548d3b71a",
+  "prompts": {},
+  "sessions": {
+    "s_49cd91b776d109": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a92871400884d0dd0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
