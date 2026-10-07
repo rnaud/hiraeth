@@ -21,6 +21,8 @@ export const CHANGELOG = [
     'In Lorn and Lorn II, prompts name the pad’s buttons, Ivo lets you keep his fireflies, Ysse tells the crossing as everyone else does, the humming crystal goes to Bram where he actually sits, and Bram, Pim and Wick have more to say, Wick once every pool is lit.',
     'In the Buried Machine, lighting the Wick before Wen or Hask has sent you no longer stalls Tooth Day, and reading the three gauges before you meet Ossa no longer leaves her repeating herself: both quests go on from what you did. Hask has noticed the wheel never stopped.',
     'In the City-Shaft you can give Dov Ossa’s message from the bottom, and he answers it; Dov knows he left before Pip was born, Lio hears that Hask tipped, and the rim no longer says the cabs stop for anyone. Lio’s taxi token is for Clemence in the Sealed Hangar, by name, and Lio, Hask and two of the Hangar’s people have more to say.',
+    'In the Signal Market, meeting Kip before Madame Sel no longer leaves the broadcast out of reach; the keepsake quotes what your father actually says, and Ferro’s prompt names the pad’s buttons. In the Garden of Spheres, hearing all three spheres before you meet Aube no longer stops her sending you on, and a few answers fit what was said to you.',
+    'At home, Lou talks about the drawing of the furthest world you have written from, any of them, and the round window only speaks of singing once the reel has told you about it.',
   ] },
   { v: '0.79', date: '2026-10-07', items: [
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
