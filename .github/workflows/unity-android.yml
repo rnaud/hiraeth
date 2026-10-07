@@ -1,0 +1,227 @@
+name: Unity release (testers)
+
+# The Unity side of the engine bridge (docs/systems/engine-bridge.md: the web game's own JavaScript run in
+# Puerts' V8 inside Unity, drawn by the C# port's ink look) built for testing on the devices, next to the
+# players' builds (docs/systems/unity.md, "Building in GitHub Actions"):
+# - android: the testers' APK (BridgeBuild.AndroidRelease): com.rnaud.memento.unity, "Memento (Unity)", IL2CPP
+#   ARM64, signed with the web app's release key, so it installs next to the app com.rnaud.moebius and each
+#   build over the last; published to the GitHub release unity-android (memento-unity.apk, replaced each run);
+# - linux: the bridge's Linux player (BridgeBuild.Linux -mono: x86_64, Vulkan) for the Steam Deck, to unity-linux.
+# Both releases are prereleases, never the latest: the app's updater and the players read the vX.Y releases.
+# Unity is licensed by GameCI (unity-builder v6, which activates a Personal seat from UNITY_EMAIL and
+# UNITY_PASSWORD and returns it after); without those secrets the first job fails at once and says so.
+# The same APK can be built and published from a Mac with scripts/unity-android-release.sh.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'unity/**'
+      - 'engine/**'
+      - 'src/**'
+      - 'public/**'
+      - 'scripts/unity-*'
+      - 'scripts/unity-*/**'
+      - 'scripts/engine-bundle.mjs'
+      - '.github/workflows/unity-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# (one build at a time, never cancelled once started: a newer push waits, and GitHub keeps only the newest waiting)
+concurrency:
+  group: unity-release
+  cancel-in-progress: false
+
+env:
+  UNITY_VERSION: 6000.6.4f1   # (unity/Memento/ProjectSettings/ProjectVersion.txt: GameCI reads the version from there)
+  PROJECT: unity/Memento
+
+jobs:
+  # the secrets first, in seconds, before an hour of build
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Unity licence and signing key
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          missing=""
+          for s in UNITY_EMAIL UNITY_PASSWORD ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD; do
+            eval "v=\${$s:-}"; [ -n "$v" ] || missing="$missing $s"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=Missing secrets::Missing repository secrets:$missing. Unity needs UNITY_EMAIL and UNITY_PASSWORD (the Unity account's sign-in, two-factor sign-in off; Unity Pro adds UNITY_SERIAL). See docs/systems/unity.md, 'Building in GitHub Actions'."
+            exit 1
+          fi
+          echo "Unity licence (Personal from UNITY_EMAIL + UNITY_PASSWORD) and the release key are set"
+
+  android:
+    needs: secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      # (the Android editor image is 8 GB, the IL2CPP build 4-6 GB more: the runner's preinstalled SDKs go first)
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: false
+
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # the whole history: the versionCode counts its commits (release-info.mjs build)
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Puerts (cached)
+        uses: actions/cache@v4
+        with:
+          path: .local-tools/puerts
+          key: puerts-3.0.3
+
+      - name: Puerts into the project, the game's JavaScript into StreamingAssets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npm ci
+          scripts/unity-js-setup.sh
+          node scripts/engine-bundle.mjs unity
+
+      - name: The Unity Library (cached)
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PROJECT }}/Library
+          key: unity-library-android-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.shader', 'unity/Memento/Assets/**/*.hlsl') }}
+          restore-keys: unity-library-android-
+
+      - name: Version
+        id: meta
+        run: |
+          echo "version=$(node scripts/release-info.mjs version)" >> "$GITHUB_OUTPUT"
+          echo "build=$(node scripts/release-info.mjs build)" >> "$GITHUB_OUTPUT"
+
+      - name: Signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p .local-tools
+          echo "$KEYSTORE_BASE64" | base64 -d > .local-tools/ci-release.p12
+
+      # Puerts' IL2CPP glue (Assets/Gen) in an editor run of its own: it is C# as well as C++
+      - name: Puerts' IL2CPP glue
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: The testers' APK (IL2CPP ARM64)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.AndroidRelease
+          versioning: Custom
+          version: ${{ steps.meta.outputs.version }}
+          androidVersionCode: ${{ steps.meta.outputs.build }}
+          androidKeystoreName: ../../.local-tools/ci-release.p12
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          androidKeyaliasName: moebius
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          customParameters: -out Builds/unity-android/memento-unity.apk
+          allowDirtyBuild: true
+
+      - name: Forget the key
+        if: always()
+        run: rm -f .local-tools/ci-release.p12
+
+      - name: Publish to the release unity-android
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: scripts/unity-publish.sh android "$PROJECT/Builds/unity-android/memento-unity.apk" "GitHub Actions (run ${{ github.run_number }})"
+
+  linux:
+    # (after the APK, not beside it: one Personal seat held at a time)
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Puerts (cached)
+        uses: actions/cache@v4
+        with:
+          path: .local-tools/puerts
+          key: puerts-3.0.3
+
+      - name: Puerts into the project, the game's JavaScript into StreamingAssets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npm ci
+          scripts/unity-js-setup.sh
+          node scripts/engine-bundle.mjs unity
+
+      - name: The Unity Library (cached)
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PROJECT }}/Library
+          key: unity-library-linux-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.shader', 'unity/Memento/Assets/**/*.hlsl') }}
+          restore-keys: unity-library-linux-
+
+      # (Mono: no IL2CPP glue, and the Deck's player as the docs build it)
+      - name: The Linux player (x86_64, Vulkan, Mono)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: StandaloneLinux64
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Linux
+          versioning: None
+          customParameters: -mono -out Builds/bridge-linux/memento-js.x86_64
+          allowDirtyBuild: true
+
+      - name: Publish to the release unity-linux
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          tar czf "$RUNNER_TEMP/memento-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
+          scripts/unity-publish.sh linux "$RUNNER_TEMP/memento-unity-linux.tar.gz" "GitHub Actions (run ${{ github.run_number }})"

@@ -170,7 +170,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.4
   androidMinAspectRatio: 1
   applicationIdentifier:
-    Android: com.UnityTechnologies.com.unity.template.urpblank
+    Android: com.rnaud.memento.unity
     Standalone: com.rnaud.memento.unity
     iPhone: com.Unity-Technologies.com.unity.template.urp-blank
   buildNumber:
