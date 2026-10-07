@@ -1509,6 +1509,13 @@ export const PROPS = {
  * the cloth's colliders, so Sefa's oud swings against her cloak as she walks instead of through it (the
  * thin props need none).
  */
+/**
+ * The chest pieces worn over the cloak (chest frame, m): capsules the cloth goes under (cape.js OVER), so from
+ * the front the bag lies on the cloak as the sheets draw it instead of inside it. Its strap too.
+ */
+export const BODY_BULK = {
+  satchel: [{ a: [0.17, 0.2, 0.25], b: [0.18, 0.33, 0.25], r: 0.1, under: true }, { a: [-0.02, 0.6, 0.17], b: [0.14, 0.38, 0.25], r: 0.03, under: true }],
+};
 export const PROP_BULK = { oud: [{ a: [0.05, -0.08, 0.2], b: [0.15, 0.0, 0.23], r: 0.16 }, { a: [0.17, 0.03, 0.24], b: [0.42, 0.21, 0.285], r: 0.07 }] };
 
 function lantern(q, y, z) {

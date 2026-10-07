@@ -499,6 +499,14 @@ and the body, idle / walking / talking): Bako 84 / 71 / 51 % → 0, the Speaker 
 33 → 0, Ama and Hessa talking 42 and 31 → 0. Seated people still rest their forearms on the cloak in their
 laps. `tests/cape-arms.test.js`.
 
+**From the front, the chest pieces stay in sight** (`tests/cape-front.test.js`: the share of the pieces facing
+you that the cloak covers). A cloak may hide every chest piece from behind; from the front, where the sheets
+draw them, it must not. Bako's satchel lay inside his cloak's left edge (31 % of it covered); a piece worn over
+the cloak now has capsules the cloth goes *under* (`BODY_BULK` in `src/costumes.js`, the bag and its strap;
+cape.js `OVER`, a collider's `under`), so the bag lies on the cloak (5 %; three-quarters 21 %). Nour's gourds and
+keys 0 % (three-quarters 12 %), Hessa's keys 0 %, Ama's fringe 1 % from the front; three-quarters the cloak's near
+edge crosses the keepers' hips (no sheet draws them), and the test holds only the sheets' pieces there.
+
 ## The desert's own pieces (October 2026)
 
 Four held props (`ney`, `oud`, `hook`, `bellstaff`) and three worn ones (`satchel`, `fringe`, `keys`),

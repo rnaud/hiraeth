@@ -8,7 +8,7 @@ import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
 import { EAR_Z, noseSide, faceYouth } from './face-ink.js';
 import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { lookPieces, roleColor, BUILDS, browColour, PROP_BULK } from './costumes.js';
+import { lookPieces, roleColor, BUILDS, browColour, PROP_BULK, BODY_BULK } from './costumes.js';
 import { suitGeometry, travellerKit, fluidGlove, TRAVELLER } from './traveller.js';
 import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, reshapeCopy, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
 import { cleanExpression, NEUTRAL_EXPRESSION, PEOPLE_REST } from './expression.js';
@@ -919,8 +919,11 @@ export class Humanoid {
     // (the robe's shape, for the cloth's colliders: robeCones)
     this._robeLook = look?.robe > 0 && !this.outfit && this.body ? { hem: look.robe, flare: look.flare ?? 0.3, belt: this.outfitRest[1] } : null;
     // (a bulky held prop, for the cloth's colliders too: propCapsule)
-    this._propBulk = !this.outfit && this.body && PROP_BULK[look?.prop] ? { list: PROP_BULK[look.prop], id: look.prop } : null;
-    this._propCap = null;
+    // (and a chest piece worn over the cloak, a bag on its strap: the cloth goes under it, BODY_BULK)
+    const dressed = !this.outfit && this.body;
+    this._propBulk = dressed && PROP_BULK[look?.prop] ? { list: PROP_BULK[look.prop], id: look.prop, bone: 'hand_r', frame: () => this.handFrame() } : null;
+    this._bodyBulk = dressed && BODY_BULK[look?.body] ? { list: BODY_BULK[look.body], id: look.body, bone: 'spine_03', frame: () => this.chestFrame() } : null;
+    this._propCap = this._bodyCap = null;
     for (const h of this.hood) h.visible = false;
     if (!look || this.outfit || !this.body) return;
     const base = this.costumeGeometry(look);
@@ -983,27 +986,35 @@ export class Humanoid {
       new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), this.restDir('lowerarm_r', 'hand_r')).multiply(HAND_GRIP), new THREE.Vector3(1, 1, 1));
   }
 
+  /** The chest pieces' frame in bind space (on spine_03; shoulder and chest pieces widen with the build). */
+  chestFrame() {
+    return new THREE.Matrix4().makeTranslation(0, this.rest.get(this.b.neck_01).p.y - 0.76, 0).multiply(new THREE.Matrix4().makeScale(BUILDS[this.build].width * (this.morph?.shoulders ?? 1), 1, Math.sqrt(BUILDS[this.build].girth) * (this.morph?.chest ?? 1)));
+  }
+
   /**
-   * A bulky held prop as cloth colliders (world space): costumes.js PROP_BULK's capsules in the hand
-   * frame, carried by the hand bone as the prop's own mesh is (rigid on it), at the body's size.
+   * A bulky piece as cloth colliders (world space): costumes.js PROP_BULK's capsules in the hand frame (a held
+   * prop: the cloth goes round it) or BODY_BULK's in the chest frame (a bag worn over the cloak: `under`, the
+   * cloth goes under it), carried by their bone as the piece's own mesh is (rigid on it), at the body's size.
    */
-  propCapsules() {
-    const P = this._propBulk, hand = this.b.hand_r;
-    if (!P || !hand) return null;
-    if (!this._propCap) {
-      const r = this.rest.get(hand);
-      const toBone = new THREE.Matrix4().compose(r.p, r.q, new THREE.Vector3(1, 1, 1)).invert().multiply(this.handFrame());
-      this._propCap = P.list.map((k) => ({ la: new THREE.Vector3(...k.a).applyMatrix4(toBone), lb: new THREE.Vector3(...k.b).applyMatrix4(toBone), r: k.r, cap: { a: new THREE.Vector3(), b: new THREE.Vector3(), r: k.r } }));
+  bulkCapsules(B, key) {
+    const bone = B && this.b[B.bone];
+    if (!bone) return null;
+    if (!this[key]) {
+      const r = this.rest.get(bone);
+      const toBone = new THREE.Matrix4().compose(r.p, r.q, new THREE.Vector3(1, 1, 1)).invert().multiply(B.frame());
+      this[key] = B.list.map((k) => ({ la: new THREE.Vector3(...k.a).applyMatrix4(toBone), lb: new THREE.Vector3(...k.b).applyMatrix4(toBone), r: k.r, cap: { a: new THREE.Vector3(), b: new THREE.Vector3(), r: k.r, under: !!k.under } }));
     }
-    hand.updateWorldMatrix(true, false);
+    bone.updateWorldMatrix(true, false);
     const s = this.profile ? this.char.root.getWorldScale(_c).x : 1;
-    for (const C of this._propCap) {
-      C.cap.a.copy(C.la).applyMatrix4(hand.matrixWorld);
-      C.cap.b.copy(C.lb).applyMatrix4(hand.matrixWorld);
+    for (const C of this[key]) {
+      C.cap.a.copy(C.la).applyMatrix4(bone.matrixWorld);
+      C.cap.b.copy(C.lb).applyMatrix4(bone.matrixWorld);
       C.cap.r = C.r * s;
     }
-    return this._propCap;
+    return this[key];
   }
+  propCapsules() { return this.bulkCapsules(this._propBulk, '_propCap'); }
+  bodyCapsules() { return this.bulkCapsules(this._bodyBulk, '_bodyCap'); }
 
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
@@ -1017,7 +1028,7 @@ export class Humanoid {
     const frames = {
       head: { bone: bi('Head'), m: this.headFrame(restHead, look) },
       // (shoulder and chest pieces widen with the build)
-      chest: { bone: bi('spine_03'), m: new THREE.Matrix4().makeTranslation(0, this.rest.get(B.neck_01).p.y - 0.76, 0).multiply(new THREE.Matrix4().makeScale(BUILDS[this.build].width * (this.morph?.shoulders ?? 1), 1, Math.sqrt(BUILDS[this.build].girth) * (this.morph?.chest ?? 1))) },
+      chest: { bone: bi('spine_03'), m: this.chestFrame() },
       // the hand frame: the arm hanging down; turned so a staff stands upright in the idle clip's grip
       hand: { bone: bi('hand_r'), m: this.handFrame() },
     };
@@ -1512,13 +1523,14 @@ export class Humanoid {
     }
     spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
     const caps = this._robeLook && B.thigh_l && B.thigh_r && B.calf_l && B.calf_r ? this.robeCones() : this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
-    // (a bulky held prop pushes the cloth aside too: propCapsules)
-    const prop = this._propBulk ? this.propCapsules() : null;
-    if (!prop) return caps;
+    // (a bulky held prop pushes the cloth aside too, and a bag worn over the cloak holds it under: bulkCapsules)
+    const prop = this._propBulk ? this.propCapsules() : null, worn = this._bodyBulk ? this.bodyCapsules() : null;
+    if (!prop && !worn) return caps;
     const out = (this._capsProp ??= []);
     out.length = 0;
     for (const k of caps) out.push(k);
-    for (const k of prop) out.push(k.cap);
+    for (const k of prop ?? []) out.push(k.cap);
+    for (const k of worn ?? []) out.push(k.cap);
     return out;
   }
 

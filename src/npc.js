@@ -834,7 +834,7 @@ export class NPC {
   drapeKey(pose = this.seat ? 4 : 0, field = null) {
     const seated = pose === 3 || pose === 4, H = this.humanoid, R = H?._robeLook;
     // (and what lies under the cloth: a story person's own body shape, a robe)
-    const under = `${H?.morph ? `~${JSON.stringify(H.morph)}` : ''}${R ? `~robe${R.hem.toFixed(2)}/${R.flare.toFixed(2)}` : ''}${H?._propBulk ? `~${H._propBulk.id}` : ''}`;
+    const under = `${H?.morph ? `~${JSON.stringify(H.morph)}` : ''}${R ? `~robe${R.hem.toFixed(2)}/${R.flare.toFixed(2)}` : ''}${H?._propBulk ? `~${H._propBulk.id}` : ''}${H?._bodyBulk ? `~${H._bodyBulk.id}` : ''}`;
     return `${H ? `${H.profile?.id ?? this.kind}/${H.build}${H.years ? `@${H.years}` : ''}` : 'rig'}${under}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
   }
 
