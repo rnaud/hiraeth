@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { SandDrifts } from './sand-drifts.js';
 import { mulberry32 } from './noise.js';
+import { doorStainGeometry, GRIME } from './door-stain.js';
 import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
 import { Banner } from './life.js';
@@ -275,25 +276,8 @@ export function buildDesertCity(scene, terrain) {
     // weathering round a block house's door (the reference sheets: the plaster stained darker round its
     // opening, most over the lintel, ragged at its edges): a flat patch of the wall's own colour darkened,
     // flush on the face, painted (no draw of its own); its own random numbers, the town's layout keeps its own
-    const srng = mulberry32(4471), WALL_TONE = new THREE.Color('#f0d7c3'), GRIME = new THREE.Color('#8a6a50');
-    const doorStain = (wm, w, h, R = 0) => {
-      // a fan from over the lintel out to a ragged outline (a ring between, so a curved wall keeps it on its face);
-      // R: the wall's radius (a round house, a tower), its vertices laid round it; 0 a flat face
-      const hw = w / 2 + 0.3 + srng() * 0.3, top = h + 0.5 + srng() * 0.5, c = [0, h * 0.7], n = 16, rim = [];
-      const ph = srng() * 6, ph2 = srng() * 6, foot = 0.3 + srng() * 0.5;
-      for (let i = 0; i <= n; i++) {   // from the right foot round over the top to the left foot, a soft wavy edge
-        const ang = Math.PI * (i / n), j = 1 + 0.08 * Math.sin(ang * 5 + ph) + 0.05 * Math.sin(ang * 11 + ph2);
-        const y = c[1] + Math.sin(ang) * (top - c[1]) * j;
-        rim.push([Math.cos(ang) * hw * j, Math.abs(Math.cos(ang)) > 0.93 ? foot : y]);
-      }
-      const pos = [c[0], c[1], 0];
-      for (const [x, y] of rim) pos.push((x + c[0]) / 2, (y + c[1]) / 2, 0, x, y, 0);
-      const idx = [];
-      for (let i = 0; i < n; i++) { const m0 = 1 + 2 * i, m1 = m0 + 2; idx.push(0, m0, m1, m0, m0 + 1, m1 + 1, m0, m1 + 1, m1); }
-      if (R) for (let k = 0; k < pos.length; k += 3) { const t = pos[k] / R; pos[k] = Math.sin(t) * R; pos[k + 2] = (Math.cos(t) - 1) * R; }
-      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-      return { geo: g, paint: (wm.paint ?? WALL_TONE).clone().lerp(GRIME, 0.22 + srng() * 0.08) };
-    };
+    const srng = mulberry32(4471), WALL_TONE = new THREE.Color('#f0d7c3');
+    const doorStain = (wm, w, h, R = 0) => ({ geo: doorStainGeometry(srng, w, h, R), paint: (wm.paint ?? WALL_TONE).clone().lerp(GRIME, 0.22 + srng() * 0.08) });
     // (its own material: drawn with a hairline of its own colour, not the ink round a door, as a smudge is)
     const stainMat = makeMaterial({ color: '#ffffff', vertexColors: true, flat: true, line: 0.25, lineTint: 1 });
     const stainAt = (wm, w, h, R, d, face, x, z) => {

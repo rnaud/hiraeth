@@ -7,6 +7,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { LINES as STORY_LINES } from '../story/bazaar-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { doorStainGeometry, stainColor } from '../door-stain.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
@@ -48,6 +49,8 @@ export function* buildBazaar(scene) {
   // (the painted colours in one material, by vertex colour: a material per colour and part cost ~130 more draw calls a frame)
   const SIGN = { line: 0.7, lineTint: 0.67 };
   const signPaint = mat('#ffffff', { ...PRINT, ...SIGN, vertexColors: true });
+  // the stains round the shops' openings: painted in each shop's colour, a hairline of their own (door-stain.js)
+  const stainPaint = mat('#ffffff', { ...PRINT, vertexColors: true, line: 0.25, lineTint: 1 });
   const paint = (hex) => ({ paint: new THREE.Color(hex) });
   // (the dark rings' and the lit strips' lines stay the walls': a dark line on dark paint is the ink, a light's is thinned anyway)
   const sign = { shop: colors.map(paint), lilac: paint('#b9a9c5'), dark, cream: paint('#f5dfab'), glow };
@@ -155,6 +158,12 @@ export function* buildBazaar(scene) {
     const body=shop[i%5], yaw=-side*Math.PI/2;
     box(x,2,z,8,4,12,body);
     box(x-side*4.05,2,z,.12,2.9,10,dark);   // (the fascia stands 0.11 m proud of the shop front you climb)
+    {   // the plaster stained round the shop's opening (door-stain.js): its own colour darkened, flush on its front
+      const st=doorStainGeometry(gr,10,2.9), n=st.attributes.position.count, c=new Float32Array(n*3), k=stainColor(colors[i%5],.22+gr()*.08);
+      for(let q=0;q<n;q++) k.toArray(c,q*3);
+      st.setAttribute('color',new THREE.BufferAttribute(c,3));
+      local(st,x-side*4.02,0.55,z,yaw,stainPaint);
+    }
     box(x-side*5,1.1,z,2.6,2.2,10,teal);
     // Tilted canopy, with a scalloped edge made from alternating strips.
     for(let k=0;k<7;k++) {
