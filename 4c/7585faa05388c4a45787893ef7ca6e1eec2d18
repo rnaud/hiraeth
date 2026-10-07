@@ -1,0 +1,25 @@
+DONE.md
+  s_55b4bc53b812ec::t_20ae78d7e681fe 880-1109
+README.md
+  s_55b4bc53b812ec::t_ef46c5d3c79c10 70-72,85,108
+TODO.md
+  s_55b4bc53b812ec::t_30a7507ec1b104 15-16,98-99
+docs/README.md
+  s_55b4bc53b812ec::t_0551563fc4178c 32,35-36,46,48,50,52,55,72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4c7585faa05388c4a45787893ef7ca6e1eec2d18",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
