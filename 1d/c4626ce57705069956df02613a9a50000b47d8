@@ -1,0 +1,29 @@
+tests/unity-ci.test.js
+  s_3172b1cc5112bb::t_94d1218ea9c4c0 90-96
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_b06e222a46e2f7::t_45026475e54d61 205-251,263-268,270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1dc4626ce57705069956df02613a9a50000b47d8",
+  "prompts": {},
+  "sessions": {
+    "s_3172b1cc5112bb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac6693c09814e3227",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b06e222a46e2f7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a079dad4060103d4b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
