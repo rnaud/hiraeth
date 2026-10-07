@@ -505,3 +505,23 @@ can be done in another order, the quest catches up instead (docs/story-audit.md)
   opening conversation (`src/temples/index.js`).
 
 Each has an out-of-order test in its world's story test.
+
+## Places to stop on the way (the second story pass, October 2026)
+
+The audit's empty stretches (docs/story-audit.md, "Places to fill"), one at a time, with the worlds'
+own kits and systems, a few draws each, and colliders baked from what is drawn (`physics.addCollider`).
+
+- **The halfway stall** (`src/story/halfway.js`; words in `incal-data.js`): the City-Shaft's middle
+  levels (y −24), ten metres along the promenade from the middle cab stop, on the stretch the houses
+  leave clearest (`HALFWAY`). Perrine's tea stall: a counter under a flat red awning, a kettle and
+  cups, a bench, HALFWAY TEA on the board, and Perrine behind it (her lines change while you carry
+  the splinter, and after). Beside it **the halfway mirror** on its pole: her mother set it to catch
+  the Lodestar and throw a coin of its light down to the bottom; the smog greased it and someone at
+  the top turned it to a billboard. Quest `incal.mirror` ("The Halfway Mirror"): wash it (shoot,
+  `incal.mirror.washed`), push the frame from the side a notch at a time (eight notches,
+  `incal.mirror.notch`, from 3) until it faces up the shaft (`incal.mirror.turned`; shoved straight
+  at the glass it only rocks), tell Perrine (`incal.mirror.done`). Done in another order, she
+  notices and it ends there. With the Lodestar lit, the glass glows, and Ossa at the bottom has seen
+  the coin of light come back on Behla's wall. The Smog lantern relic (the world's third) sits over
+  the awning's flat roof now (`content.js`, `AWNING_TOP`). Far above or below (160 m), the stall is
+  not drawn. `tests/story-incal.test.js` plays it.

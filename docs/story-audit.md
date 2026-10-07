@@ -328,7 +328,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The token errand that named nobody.
   - The glyph described upside down ("beneath the curve").
   - Lio and Hask with one balloon line each.
-- **Pacing:** the main quest takes about 20 min, the world 50–60. The return to Nima is a pure walk back, and the middle levels have little to do.
+- **Pacing:** the main quest takes about 20 min, the world 50–60. The return to Nima is a pure walk back, and the middle levels had little to do (the second pass put Perrine's halfway stall and mirror there).
 - **Fixed now:** all of the above. Dov now has a node that answers Ossa's message.
 - **Still open:** the repeated "eleven" (Pip's seconds, Wren's lamp, Dov's years, a commuter). Decide whether it means something; for the author.
 
@@ -455,7 +455,7 @@ It is a developer page: it is hidden, off the route and off the map, reachable o
 6. *(done)* The contradictions with the bible and with October's cabs, glove, flask and game menu.
 7. *(done)* Pad prompts wherever only keys were named.
 8. *(done)* More lines for one-line and stale people, in their worlds' voices.
-9. *(proposal)* Something to do in the empty stretches: Vael's colossus, the desert's far landmarks and the Hearth, the City-Shaft's middle levels, the spheres' android wood.
+9. *(started, second pass: the City-Shaft's middle levels)* Something to do in the empty stretches: Vael's colossus, the desert's far landmarks and the Hearth, the City-Shaft's middle levels, the spheres' android wood.
 10. *(done, second pass)* Esk's loss presented as what happened rather than as a failure stamp.
 
 ## Proposals for the author
@@ -504,6 +504,8 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
   - a find at the desert's second wreck;
   - something on the City-Shaft's middle levels;
   - a different puzzle at the Hearth than the temple's stone ball.
+
+  *Second pass, one at a time:* **the City-Shaft's middle levels** first (the most passed): Perrine's halfway tea stall by the middle cab stop, and the halfway mirror her mother set to throw a coin of the Lodestar down to the bottom (wash it, turn it up the shaft; Ossa sees the coin at the bottom), with the Smog lantern relic moved onto the stall's awning (docs/systems/story.md, "Places to stop on the way").
 - **Shared names.** Renaming needs a coordinated text, save and export review, so for now each role is kept clear in its first greeting.
   - Shared names:
     - Pip (the City-Shaft's boy, the Hangar's girl);
