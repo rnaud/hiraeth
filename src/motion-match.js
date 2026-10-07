@@ -73,7 +73,7 @@ export function attachMotion(lib, gltf) {
   if (sheets.mm_database) motion.db = new MotionDB(lib, sheets.mm_database);
   const walks = sheets.walk_loops ? segmentClips(sheets.walk_loops).map((c) => ({ ...c.userData, clip: c })) : [];
   motion.walks.push(...walks);
-  const clips = gltf.animations.filter((a) => a.userData?.use === 'clip').map(stripRoot);
+  const clips = gltf.animations.filter((a) => a.userData?.use === 'clip').map((c) => stripRoot(pathOf(c)));
   motion.clips.push(...clips);
   // the studio lists everything: the database's takes and the walks one by one
   motion.all.push(...(sheets.mm_database ? segmentClips(sheets.mm_database, 'mm') : []), ...walks.map((w) => w.clip), ...clips);
@@ -81,6 +81,48 @@ export function attachMotion(lib, gltf) {
 }
 
 const stripRoot = (clip) => { clip.tracks = clip.tracks.filter((t) => !t.name.startsWith('root_motion.')); return clip; };
+
+/**
+ * A move's own path, from its ground track (before it is stripped: the controller moves the body),
+ * per frame: `d` the distance it has walked, `yaw` how far it has turned (unwrapped, + left), `speed`
+ * (m/s): what a start, a stop or a turn is matched by (src/loco-moves.js). None for a clip on the spot.
+ */
+function pathOf(clip) {
+  const P = clip.tracks.find((t) => t.name === 'root_motion.position'), Q = clip.tracks.find((t) => t.name === 'root_motion.quaternion');
+  if (!P || !Q) return clip;
+  const n = P.times.length, fps = clip.userData?.fps ?? FPS_DEFAULT;
+  const d = new Float32Array(n), yaw = new Float32Array(n), speed = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let y = 2 * Math.atan2(Q.values[i * 4 + 1], Q.values[i * 4 + 3]);
+    if (i) { while (y - yaw[i - 1] > Math.PI) y -= 2 * Math.PI; while (y - yaw[i - 1] < -Math.PI) y += 2 * Math.PI; }
+    yaw[i] = y;
+    if (i) d[i] = d[i - 1] + Math.hypot(P.values[i * 3] - P.values[i * 3 - 3], P.values[i * 3 + 2] - P.values[i * 3 - 1]);
+  }
+  for (let i = 0; i < n; i++) { const a = Math.max(i - 2, 0), b = Math.min(i + 2, n - 1); speed[i] = b > a ? (d[b] - d[a]) * fps / (b - a) : 0; }
+  clip.userData = { ...(clip.userData ?? {}), path: { d, yaw, speed, fps } };
+  return clip;
+}
+
+/**
+ * A move seen in a mirror (a left turn for a right one; a stop on the other foot): left and right
+ * bones swapped, rotations (x, -y, -z, w), the pelvis' x and the path's turn the other way round.
+ * Named `<name>_m`; its userData its own (the feet's cache, the swapped contacts).
+ */
+export function mirrorClip(clip) {
+  const tracks = clip.tracks.map((t) => {
+    const dot = t.name.lastIndexOf('.'), bone = t.name.slice(0, dot), prop = t.name.slice(dot);
+    const v = new Float32Array(t.values);
+    if (prop === '.quaternion') for (let i = 0; i < v.length; i += 4) { v[i + 1] = -v[i + 1]; v[i + 2] = -v[i + 2]; }
+    else if (prop === '.position') for (let i = 0; i < v.length; i += 3) v[i] = -v[i];
+    return new t.constructor(otherSide(bone) + prop, t.times, v);
+  });
+  const m = new THREE.AnimationClip(`${clip.name}_m`, clip.duration, tracks);
+  const ud = clip.userData ?? {};
+  m.userData = { ...ud, feet: undefined, mirrored: true,
+    contact: ud.contact ? { l: ud.contact.r, r: ud.contact.l } : ud.contact,
+    path: ud.path ? { ...ud.path, yaw: ud.path.yaw.map((y) => -y) } : ud.path };
+  return m;
+}
 
 /** The segments of a packed animation (extras.segments) as clips of their own (no ground track). */
 export function segmentClips(sheet, prefix = 'walk') {

@@ -154,6 +154,8 @@ function resetTraveller(T, at) {
   const p = T.p;
   p.animator = new Animator(lib, p.char);
   p.animator.matching = T.matching && !!db;
+  p.locoMoves = state.moves;
+  p.moves = null;
   Object.assign(p, { loco: null, _stepLag: null, _turn: 0, _lastHeading: undefined, _feetO: null, _moveDir: null, _wantSpeed: 0, _accel: 8, _still: 0, _animAcc: 0, time: 0, _jumpHeld: false, heading: 0, onGround: true });
   p.pos.copy(at); p.pos.y = physics.groundAt(at.x, at.y + 5, at.z);
   p.vel.set(0, 0, 0);
@@ -761,6 +763,7 @@ const soloRow = seg(sShow, 'Traveller on', 'mm', [[false, 'Loops'], [true, 'Moti
   resetNumbers(T);
 });
 refreshers.push(() => { soloRow.hidden = state.mode !== 'solo'; });
+check(sShow, 'Starts, stops, turns', 'moves', () => { for (const T of Object.values(travellers)) T.p.locoMoves = state.moves; });
 check(sShow, 'Trajectories', 'traj');
 check(sShow, 'Planted feet', 'feet');
 onlyIn(sShow, 'duo', 'solo', 'people');

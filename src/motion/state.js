@@ -31,6 +31,7 @@ export const DEFAULTS = Object.freeze({
   follow: 'split',      // duo: split (two views side by side, one traveller each) | both (one view) | loops | mm
   view: 'side',         // side | behind | orbit (drag to turn round)
   mm: false,            // solo: motion matching on (else the loops)
+  moves: true,          // the starts, stops and turns from motion capture over the loops (src/loco-moves.js: the game's default)
   traj: true,           // solo: the predicted and the matched trajectory, the path walked
   feet: true,           // planted feet marked on the ground
   obstacles: true,      // pillars and crates to walk round (free control)

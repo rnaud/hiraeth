@@ -6,6 +6,7 @@ import { items as sharedItems } from './items.js';
 import { HANDOFF } from './fluid-kit.js';
 import { inTightRoom } from './interiors.js';
 import { Knockdown, toppleVelocities } from './ragdoll.js';
+import { LocoMoves } from './loco-moves.js';
 import { SWIM, swimFrame, swimPose, leaveSwim } from './swim.js';
 import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
 import { triggers } from './controller.js';
@@ -1983,6 +1984,15 @@ export class Player {
       onGround: this.onGround, vy, airT: this._clipAirT = this.onGround ? 0 : (this._clipAirT ?? 0) + dt,
       h: this._groundH ?? Infinity, jumped: !!this._jumped, impact: this._impact ?? 0, speed: hs,
     });
+    // starts, stops, turns on the spot and the pivot at a run from motion capture (src/loco-moves.js),
+    // over the loops, played by the body's own motion (the controller is as it was)
+    const steering = !!(this._moveDir && this._moveDir.lengthSq() > 0.01 && (this._wantSpeed ?? 0) > 0);
+    if (this.locoMoves !== false && A.lib.motion?.clips?.length) {
+      if (this.moves?.A !== A) this.moves = new LocoMoves(A);
+      const free = this.onGround && !this.aim && !this.ride && !this.swim && !this.overlay && !this.down && !this.climbing && !A.matching;
+      this.moves.update(dt, { speed: hs, steering, heading: this.heading, want: steering ? this.frame.headingOf(this._moveDir) : null, ground: free, size: A.legRatio });
+      this.moves.play(A);
+    }
     // our walk / run speeds land on the walk and sprint clips; jog in between
     A.update(dt, {
       speed: hs, onGround: this.onGround, mode: 'ground', vy, jump: this.onGround ? null : J.phase,
@@ -2028,7 +2038,8 @@ export class Player {
    * looks around now and then. The foot IK keeps both feet planted.
    */
   idleLayer(dt, hs) {
-    const target = this.onGround && !this.ride && hs < 0.35 && !this.climbing ? 1 : 0;
+    // (not under a move of the clips' own: a turn on the spot, a stop's settling steps, a kneel)
+    const target = this.onGround && !this.ride && hs < 0.35 && !this.climbing ? 1 - (this.animator?.legsW ?? 0) : 0;
     const k = this._still = THREE.MathUtils.lerp(this._still ?? target, target, 1 - Math.exp(-(target ? 2.5 : 8) * dt));
     if (k < 0.01) return;
     const c = this.char, t = this.time;
