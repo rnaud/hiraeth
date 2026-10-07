@@ -310,7 +310,11 @@ export const CAPSULES = [
   ['thigh_r', 'calf_r', 0.12, /^thigh_(twist_\d+_)?r$/], ['calf_r', 'foot_r', 0.1, /^calf_(twist_\d+_)?r$/], ['foot_r', 'ball_r', 0.08, /^(foot|ball)_r$/],
   ['upperarm_l', 'lowerarm_l', 0.08, /^upperarm_(twist_\d+_)?l$/], ['lowerarm_l', 'hand_l', 0.07, /^lowerarm_(twist_\d+_)?l$/],
   ['upperarm_r', 'lowerarm_r', 0.08, /^upperarm_(twist_\d+_)?r$/], ['lowerarm_r', 'hand_r', 0.07, /^lowerarm_(twist_\d+_)?r$/],
+  // the hands, wrist to the middle of the fingers (the cloth went through them: a hand on the outside of a cloak)
+  ['hand_l', 'middle_02_l', 0.06, /^(hand|thumb_0\d|index_0\d|middle_0\d|ring_0\d|pinky_0\d)_l$/], ['hand_r', 'middle_02_r', 0.06, /^(hand|thumb_0\d|index_0\d|middle_0\d|ring_0\d|pinky_0\d)_r$/],
 ];
+/** The colliders the cloth goes over, not under (cape.js collide: out on the far side from the body): the arms and hands. */
+export const CAPE_OVER = /^(lowerarm|hand)_[lr]$/;
 
 /**
  * A robe's colliders (Humanoid.robeCones): each leg's cone, from the belt (this radius round the hip's
@@ -319,7 +323,7 @@ export const CAPSULES = [
  */
 export const ROBE_CONE = { belt: 0.1, inset: 0.06, upright: 0.6 };
 /** What the Quaternius bodies' colliders leave over their own skin (CAPSULES' radius less the man's and woman's measured girth): the cloth's thickness and a margin, the same on any body. */
-export const CAPSULE_MARGIN = [0.072, 0.02, 0, 0.028, 0.032, 0.007, 0.028, 0.032, 0.007, 0.027, 0.024, 0.027, 0.024];
+export const CAPSULE_MARGIN = [0.072, 0.02, 0, 0.028, 0.032, 0.007, 0.028, 0.032, 0.007, 0.027, 0.024, 0.027, 0.024, 0.02, 0.02];
 
 const girths = new WeakMap();
 /**
@@ -1504,7 +1508,7 @@ export class Humanoid {
       // (measured on the full mesh: far off the body may be drawing a simpler level of it, skinned-lod.js)
       const own = this.profile && this.body ? segmentGirths(this.body, 0.9, this.fullBody()) : null;
       this._caps = spec.map(([a, , r, , i]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(),
-        r: own ? (own[i] + CAPSULE_MARGIN[i]) * s : r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)) }));
+        r: own ? (own[i] + CAPSULE_MARGIN[i]) * s : r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)), over: CAPE_OVER.test(a) }));
     }
     spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
     const caps = this._robeLook && B.thigh_l && B.thigh_r && B.calf_l && B.calf_r ? this.robeCones() : this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider

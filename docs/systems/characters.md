@@ -479,6 +479,26 @@ incoming-segment curl axis for terminal phalanges on leafless rigs, which were p
 skipped. Hand pose diagnostics expose open, relaxed and fist poses; full contact grips still
 need refinement on the generated mesh.
 
+## Cloaks over the arms (October 2026)
+
+Hands and arms poked through capes: Bako's and the Speaker's arms lay over their cloaks, Nour's hand hung on
+the outside of hers. The cloth kept out of each collider by its nearest way out, so a cape falling from the
+collar inside the arms stayed under them, and the hands had no colliders at all. Now:
+
+- **The hands are colliders** (`CAPSULES` in `src/humanoid.js`: wrist to the middle of the fingers, measured
+  on each body as the others are).
+- **The cloth goes over the forearms and hands** (`CAPE_OVER`; `cape.js` `OVER`). Seen from the body's upright
+  line through the feet, a forearm shades a wedge in toward the body; cloth in that wedge (or in the arm) goes
+  out to the arm's far side, and so does cloth up to `OVER.reach` (10 cm) beside it. The cloth is coarse (10 ×
+  8 points), and a face between two points either side of a hand otherwise ran through it.
+- Not the upper arms (lifting the shoulders' cloth pulled the front edges onto a robe's legs once hung), and not
+  seated: the hands rest in the lap, and lifting the cloth over them stood it out over the seat.
+
+Measured in the studio on MakeHuman bodies (the share of hand and forearm points with the cloak between them
+and the body, idle / walking / talking): Bako 84 / 71 / 51 % → 0, the Speaker 65 / 64 / 51 → 0, Nour 41 / 31 /
+33 → 0, Ama and Hessa talking 42 and 31 → 0. Seated people still rest their forearms on the cloak in their
+laps. `tests/cape-arms.test.js`.
+
 ## The desert's own pieces (October 2026)
 
 Four held props (`ney`, `oud`, `hook`, `bellstaff`) and three worn ones (`satchel`, `fringe`, `keys`),
