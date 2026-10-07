@@ -20,6 +20,8 @@ export const CHANGELOG = [
     'The cracks in Vael II’s peach plain are no longer black holes: their walls are a lit red-brown, hatched with strokes running down them, as in its drawings.',
     'Vael II’s sea of cloud is printed flat as in its drawings: a warm white in the light and one pale grey-blue in its shade, following the real sun through the day instead of being lit from the same side at every hour.',
     'At dusk and at night Vael II’s shadows keep the soft grey-teal of its day, warmer at dusk and deeper at night, instead of turning the old violet-blue.',
+    'The game menu’s Quests panel lists everything you have finished, in every world: after the desert, the Tree That Drinks is under Done in the worlds that follow, instead of “None yet”.',
+    'In the Sketchbook, a story you told on an older save, before story pages were drawn, now reads as told rather than “not told yet”.',
   ] },
   { v: '0.77', date: '2026-10-07', items: [
     'The traveller’s face moves now: he smiles, frowns, looks worried, surprised or tired with the tone of what is said, blinks, glances about with his eyes, and his mouth opens and shuts on the syllables when he speaks, as everyone else’s does. At rest he looks as he always did, with the corners of his mouth a little up.',
