@@ -10,6 +10,7 @@ test('the zip leaves out the reference sheets, and nothing else of the game', ()
   assert.ok(SHEET_FILE.test('assets/IMG_3808-DAtVrONv.JPG'));
   assert.ok(SHEET_FILE.test('assets/IMG_3774-rk70iGlb.JPG'));
   assert.ok(SHEET_FILE.test('assets/IMG_3805-CaM7_TcDI.jpg'));
+  assert.ok(SHEET_FILE.test('assets/reference-3-Bx9_k2Qa.jpeg'), 'the new worlds\' sheets (references/<world>/reference-n.jpeg)');
   for (const keep of ['index.html', 'anim/traveller.glb', 'icons/icon-512.png', 'assets/main-C2nBPXlV.js', 'assets/IMG_3808.js', 'textures/IMG_1.JPG'])
     assert.ok(!SHEET_FILE.test(keep), keep);
   assert.equal(SHEET_SITE, SITE, 'the sheets come from the site the updates are published on');

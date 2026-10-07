@@ -12,6 +12,8 @@ import { SPHERES_DAY, SPHERES_LOOK } from './spheres.js';
 import { DEEP_WOOD_DAY, DEEP_WOOD_LOOK } from './perdide2.js';
 import { MARKET_DAY, MARKET_LOOK } from './bazaar.js';
 import { MANGROVE_DAY, MANGROVE_LOOK } from './mangrove-kit.js';
+import { WATERFALL_DAY, WATERFALL_WORLD_LOOK } from './waterfall-kit.js';
+import { SALT_DAY, SALT_LOOK } from './salt-harbour-kit.js';
 import { ANTENNAS_DAY, ANTENNAS_LOOK } from './antennas-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
@@ -195,6 +197,8 @@ export const WORLD_LOOKS = {
   lorn2: { sky: DEEP_WOOD_DAY, look: { ...DEEP_WOOD_LOOK } },
   bazaar: { sky: MARKET_DAY, look: { ...MARKET_LOOK } },
   mangrove: { sky: MANGROVE_DAY, look: { ...MANGROVE_LOOK } },
+  waterfall: { sky: WATERFALL_DAY, look: { ...WATERFALL_WORLD_LOOK } },
+  saltharbour: { sky: SALT_DAY, look: { ...SALT_LOOK } },
   antennas: { sky: ANTENNAS_DAY, look: { ...ANTENNAS_LOOK } },
 };
 

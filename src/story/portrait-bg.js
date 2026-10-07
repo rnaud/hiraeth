@@ -24,6 +24,8 @@ export const BACKDROPS = {
   perdide: ['#cde0e8', '#f0d0b0', '#d8cff0', '#e8e4b0', '#c8e4cc'],
   perdide2: ['#cde0e8', '#f0d0b0', '#d8cff0', '#e8e4b0', '#c8e4cc'],
   mangrove: ['#d8cff0', '#f0d0dc', '#c8d8f0', '#efe2c0', '#d0e8e4'],
+  waterfall: ['#b5ece4', '#f1dcbd', '#9fd6d0', '#efd6b8', '#c8e8e0'],
+  saltharbour: ['#f4ece2', '#c8daf0', '#f0d0c0', '#e8e0d0', '#d0dcec'],
   antennas: ['#f1e6a2', '#d8cff0', '#e9bab4', '#c9d4e0', '#e8d8f0'],
 };
 

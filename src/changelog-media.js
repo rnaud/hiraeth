@@ -44,6 +44,7 @@ export const WORLDS = [
   ['viridel', 'Viridel', /Viridel/],
   ['garage', 'The Sealed Hangar', /First Garage|Sealed Hangar/],
   ['mangrove', 'The White Mangrove', /White Mangrove/],
+  ['saltharbour', 'The Salt Harbour', /Salt Harbour/],
   ['references', 'References', /References level/],
 ];
 
@@ -111,6 +112,54 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.84': [
+    { match: 'A new world off the route, the Glass Dunes', shots: [
+      { name: 'glass-camp', caption: 'The Glass Dunes: the west camp under its ramp of sand, the cliff of the giants behind (16:30, the Handheld preset)', commit: 'ac98118a', only: 'after',
+        view: { level: 'glassdunes', quality: 'handheld', hour: 16.5, player: [-100, 2, 40], heading: -1.571, eye: [-80, 5, 55], target: [-140, 10, 25], fov: 55 } },
+      { name: 'glass-billows', caption: 'The billows in the morning, a glass flow over the sand and an archway at their foot', commit: 'ac98118a', only: 'after',
+        view: { level: 'glassdunes', hour: 9, player: [120, 2, 60], eye: [100, 5, 110], target: [180, 20, 20], fov: 60 } },
+      { name: 'glass-night', caption: 'The west camp at night: the kiln and the floats lit, an archway glowing in the glass', commit: 'ac98118a', only: 'after',
+        view: { level: 'glassdunes', hour: 22, player: [-100, 2, 40], heading: -1.571, eye: [-85, 6, 55], target: [-140, 8, 25], fov: 60 } },
+    ], see: 'On the ship, use the galactic map: the Glass Dunes are charted after the route from the start, tagged “a detour”. Or open ?level=glassdunes.' },
+    { match: 'In the References level (the worlds list), the Glass Dunes’ four plates', shots: [
+      { name: 'glass-ref-1', caption: 'The References: the Glass Dunes’ first plate, the green wall and the camp at the foot of its ramp (\\ compares it with the plate)', commit: 'ac98118a', only: 'after',
+        view: { ref: 'glass-1-wall-camp', query: 'world=glassdunes', hour: null } },
+      { name: 'glass-ref-4', caption: 'The fourth plate: the wave breaking over the camp, the walls and their silhouettes behind', commit: 'ac98118a', only: 'after',
+        view: { ref: 'glass-4-wave', query: 'world=glassdunes', hour: null } },
+    ], see: 'Open ?level=references&world=glassdunes and step through its four views with [ and ]; \\ lays the plate over the view.' },
+    { match: 'A new world off the route, the City Behind the Waterfall', shots: [
+      { name: 'falls-promenade', caption: 'The promenade along the falls, the lower town climbing the back wall, the small fall at the deep end', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'falls-balcony', caption: 'From a balcony behind the water: the terraces of rounded houses, the cafés on the promenade', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'falls-night', caption: 'The deep quarter at night: the falls glowing, the houses’ lamps and lit doors', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'Open the ship’s galactic map: the City Behind the Waterfall is charted beside the route. Walk from the landing into the cavern, along the promenade, out onto a balcony, and down the quay’s stair to the pool.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of frames, median of 7 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The City Behind the Waterfall”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 2.03, after: null },
+          { where: 'the landing (spawn)', before: null, after: 1.1 },
+          { where: 'the promenade', before: null, after: 1.24 },
+          { where: 'the deep quarter', before: null, after: 1.12 },
+        ] },
+      ] },
+    { match: 'Waterfalls are drawn the way the drawings draw them', shots: [
+      { name: 'falls-curtain', caption: 'The curtain from the cavern mouth: the bands, the pen streaks and the slits of light', only: 'after', from: 'the world’s own screenshots, headless Chrome, High (7 October)' },
+    ], see: 'Stand by the parapet on the promenade and watch the water: the bands keep their places while their breaks stream down; walk toward the falls and back to hear the roar rise and fall.' },
+    { match: 'The References level has the City Behind the Waterfall’s four pictures', shots: [
+      { name: 'refs-waterfall-terraces', caption: 'The picture (left) and its view (right): the terraces of domes beside the great fall', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'refs-waterfall-pink', caption: 'The picture (left) and its view (right): the city’s slope at the pink hour, the falls on the left', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open the References (?level=references&world=waterfall) and press Tab for the quick menu: the City Behind the Waterfall’s four views; the backslash key (View on a pad) compares each with its picture.' },
+    { match: 'A new world off the route, the Salt Harbour', shots: [
+      { name: 'saltharbour-arrival', only: 'after', caption: 'Out of the ship on the open salt: the street between the hulls, the houses on the first hull, the stair tower, the terracotta hull', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'saltharbour-street', only: 'after', caption: 'Up the street: the stair tower, the houses over the shops, the sailcloth, the ship stood on its stern at the end', from: 'the world’s own screenshots, headless Chrome, High, 10:00 (7 October)' },
+      { name: 'saltharbour-deck', only: 'after', caption: 'At the top of the stair: the bridge onto the first hull’s deck, the gangway across to the terracotta hull, the street far below', from: 'the world’s own screenshots, headless Chrome, High, 14:00 (7 October)' },
+      { name: 'saltharbour-upright', only: 'after', caption: 'At the street’s end: the ship that stands on its stern, its ropes staked all round it, Pip and the harbour folk', from: 'the world’s own screenshots, headless Chrome, High, 12:00 (7 October)' },
+      { name: 'saltharbour-dusk', only: 'after', caption: 'The street at dusk', from: 'the world’s own screenshots, headless Chrome, High, 18:36 (7 October)' },
+      { name: 'saltharbour-night', only: 'after', caption: 'The street at night, the houses’ windows lit', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the Salt Harbour on the galactic map (or open the game with ?level=saltharbour). Walk north up the street; the stair tower stands against the first hull on the left, and the gangway further north along its deck crosses to the terracotta hull. Marrow waits by the ship, Corvin on the terracotta hull’s deck, Pip under the standing ship.' },
+    { match: 'The References level has the Salt Harbour’s four pictures', shots: [
+      { name: 'saltharbour-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): the market in the cleft, the gangway, the terracotta hull and its ropes', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'saltharbour-refs-curtains', only: 'after', size: [1928, 538], caption: 'The third: the curtains hung from the high gangway, the arcade along the hull’s foot', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=saltharbour (or the worlds list, L, then the References and Tab to the Salt Harbour) and press \\ to set each panel beside its view.' },
+  ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [
       { name: 'relay-signal', caption: 'The galactic map six worlds along: the Signal Market, not charted yet, pulses as “a signal” (home’s panel says where it is)', commit: '1af87675',

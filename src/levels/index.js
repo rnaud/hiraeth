@@ -15,6 +15,9 @@ import { createPerdide2, buildPerdide2 } from './perdide2.js';
 import { createHome, buildHome } from './home.js';
 import { createReferences, buildReferences } from './references.js';
 import { createMangrove, buildMangrove } from './mangrove.js';
+import { createGlassDunes, buildGlassDunes } from './glass-dunes.js';
+import { createWaterfall, buildWaterfall } from './waterfall.js';
+import { createSaltHarbour, buildSaltHarbour } from './salt-harbour.js';
 import { createAntennas, buildAntennas } from './antennas.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
@@ -91,6 +94,20 @@ export const LEVELS = [
     title: TITLES.mangrove, source: 'a village in the white roots',
     blurb: 'Bone-white trees stand on arching roots in a black lake, and people live in them. Walk the lantern-lit planks, climb to the decks round the trunks, and look down: the lake glows like a second sky.',
     moves: 'walk · climb · swim',
+  },  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'saltharbour', create: createSaltHarbour, build: buildSaltHarbour, hidden: true,
+    title: TITLES.saltharbour, source: 'a street of ships in the salt',
+    blurb: 'Huge old ships stand on their keels in a dry white salt basin, and people live in them. Walk the street between their hulls under the sailcloth, climb the stair to a deck, and cross the gangway to the next.',
+    moves: 'walk · climb',
+  },
+
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'waterfall', create: createWaterfall, build: buildWaterfall, hidden: true,
+    title: TITLES.waterfall, source: 'a city behind a curtain of water',
+    blurb: 'A long cavern city hidden behind a towering waterfall. Terraced streets of rounded houses, amber lamps in the deep quarter, and balconies behind slits in the water, looking out over a sunlit valley.',
+    moves: 'walk · climb · swim · jetpack',
   },
   {
     // off the route (names.js SIDE): on the ship's map from the start, no story to follow
@@ -104,6 +121,13 @@ export const LEVELS = [
     title: TITLES.atelier, source: 'the last page',
     blurb: 'A blank page where every world you crossed is sketched in pencil. Someone is still drawing. Pale paper-like growths stir when you look at them.',
     moves: 'off the route: a page for the curious',
+  },
+  {
+    // a detour off the route (names.js SIDE): charted on the galactic map, no story to finish
+    id: 'glassdunes', create: createGlassDunes, build: buildGlassDunes, side: true,
+    title: TITLES.glassdunes, source: 'a desert that turned to glass',
+    blurb: 'Dunes of fused green glass, great shapes held inside them, and the glassworkers’ camps at their feet. Walk the sandy paths between the walls while the low sun comes through.',
+    moves: 'walk · climb',
   },
   {
     // a developer's world: the game's surfaces and giant faces side by side (in the worlds list, L, for testing; never on the route)

@@ -27,6 +27,9 @@ export const REFERENCE_WORLDS = [
   { id: 'lorn', name: 'Lorn II', count: 23, load: () => import('./reference-lorn.js') },
   { id: 'market', name: 'The Signal Market', count: 21, load: () => import('./reference-market.js') },
   { id: 'mangrove', name: 'The White Mangrove', count: 4, load: () => import('./reference-mangrove.js') },
+  { id: 'glassdunes', name: 'The Glass Dunes', count: 4, load: () => import('./reference-glassdunes.js') },
+  { id: 'waterfall', name: 'The City Behind the Waterfall', count: 4, load: () => import('./reference-waterfall.js') },
+  { id: 'saltharbour', name: 'The Salt Harbour', count: 4, load: () => import('./reference-saltharbour.js') },
   { id: 'antennas', name: 'The Forest of Antennas', count: 4, load: () => import('./reference-antennas.js') },
 ];
 
