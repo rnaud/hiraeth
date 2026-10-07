@@ -73,6 +73,10 @@ round walls, where the tangent of the interpolated normal had swept a column's m
 - **Dust at the foot** (post.js): a weathered pixel is flagged in `gHatch.b` (+16); a probe the band's
   height below it on screen that lands on the ground (facing up) less than 0.62 m under it in the
   world puts it in a flat darker band, its top a little ragged. One tap, within 220 m.
+  Where sand banks against the wall (sand-drifts.js) the band would be buried, so it is drawn on the bank's top
+  edge instead (October 2026): a drift pixel whose probe ~0.37 m up the screen (ragged by a noise) lands on a
+  weathered wall just behind it (within 0.5 m before, 3 m behind) takes the same dust tone. Drift pixels only,
+  two taps, within 220 m.
 - **Each building its own**: an amount (0.6–1.4 × `weathered`) and a pattern seed from where it stands
   (9 m cells).
 - **By distance**: the pen marks fade out at 0.03–0.075 m a pixel, the tone marks (grime, the chips'

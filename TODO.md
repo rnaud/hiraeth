@@ -95,11 +95,12 @@ scene-level modelling and a few shader limits:
   - [x] Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) have many vertical cracks and
     strokes down the face; our strata draw horizontal beds with sparse fissures. Done: a strata material's
     `cracks` (materials.md, "Cracks down a cliff's face"), on in the views' canyons and the desert's gorge and cliffs.
-  - Weathering and drifts: stains round the doors are not drawn (the doors are separate meshes); the
+  - [x] Weathering and drifts: stains round the doors are not drawn (the doors are separate meshes); the
     dust band at a wall's foot is hidden where sand banks against it; home's and the Market's walls
     carry no weathering yet. Partly done (October 2026): the doors of Qanat, home, the Market's shops and Vael II's
     monasteries have their stains (src/door-stain.js; materials.md, "Stains round the doors"); home's and the Market's walls have been weathered since
-    v0.69 (`weathered` 0.6–0.8). Left: the dust band under banked sand.
+    v0.69 (`weathered` 0.6–0.8). The dust band is drawn on the sand bank's top edge where sand banks against a
+    weathered wall (materials.md, "Dust at the foot").
   - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
   - Vael II: the needles' and stalks' terminator is a clean band on the sheets, while flat facets with
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
