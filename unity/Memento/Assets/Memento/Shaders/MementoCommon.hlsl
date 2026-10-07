@@ -191,6 +191,25 @@ float fissures(float2 q, float fwq) {
   float runs = smoothstep(0.5, 0.65, vnoise(float2(floor(u) * 3.7, q.y * 0.035)));
   return inkLine(d, 1.0) * runs * (1.0 - smoothstep(0.08, 0.2, fwq));
 }
+// Cracks down a cliff's face (materials.js faceCracks: the desert canyons' sheets): long near-vertical lines a couple
+// of metres apart, each its own length, wandering a little and thinning at its ends, with short strokes between
+// them; denser with k. q = (across the face, height) in metres, fwx metres per pixel across the face.
+float faceCracks(float2 q, float fwx, float k) {
+  float ink = 0.0;
+  [unroll] for (int f = 0; f < 2; f++) {
+    float sp = f == 0 ? lerp(6.0, 2.0, k) : lerp(3.0, 1.1, k);
+    float wob = (vnoise(float2(q.y * 0.11 + float(f) * 9.0, q.x * 0.03)) - 0.5) * 0.45;
+    float u = q.x / sp + wob, id = floor(u + 0.5);
+    float off = (hash(float2(id, 3.1 + float(f))) - 0.5) * 0.5;
+    float d = abs(frac(u + 0.5) - 0.5 - off) * sp / max(fwx, 1e-5);
+    float len = f == 0 ? lerp(0.03, 0.09, hash(float2(id, 7.7))) : lerp(0.25, 0.5, hash(float2(id, 5.3)));
+    float run = vnoise(float2(id * 7.31 + float(f) * 13.0, q.y * len));
+    float on = smoothstep(f == 0 ? 0.42 : 0.62, f == 0 ? 0.55 : 0.72, run);
+    float w = (f == 0 ? 2.0 : 1.2) * lerp(0.5, 1.0, smoothstep(0.42, 0.75, run));
+    ink = max(ink, inkLine(d, w) * on * (1.0 - smoothstep(0.035, 0.11, fwx / sp)));
+  }
+  return ink;
+}
 float glyphs(float2 g, float2 fw) {
   float2 cell = floor(g), f = frac(g) - 0.5;
   float h = hash(cell * 1.37 + 4.1);

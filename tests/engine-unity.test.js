@@ -246,3 +246,37 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   assert.equal(o, u.length - 1, 'the stream ends where it says');
   assert.ok(ops > 0);
 });
+
+test('a merged mesh\'s material values per vertex (S_VMAT: the City-Shaft\'s towers) and a cliff\'s cracks reach the port', async () => {
+  const { mergeWithMaterials } = await import('../src/vertex-material.js');
+  const { VMAT_ATTRS } = await import('../engine/unity/pack.js');
+  const a = makeMaterial({ color: '#c08060', color2: '#405060', color3: '#a0a0a0', strataSize: 5, grid: 2, flat: true });
+  const b = makeMaterial({ color: '#203040', color2: '#405060', color3: '#a0a0a0', strataSize: 3, grid: 0, flat: false });
+  const box = new THREE.BoxGeometry(2, 4, 2);
+  const g = mergeWithMaterials([{ geometry: box, x: 10, y: 0, z: -5, rotY: 0.5, material: a }, { geometry: box, x: -20, y: 2, z: 40, rotY: 0, material: b }]);
+  const merged = makeMaterial({ color: '#c08060', perVertex: true });
+  const pm = portMaterial(inkSpec(merged), 1);
+  assert.equal(pm.vmat, 1, 'the port\'s variant that reads them (MEMENTO_VMAT)');
+  // (as the mirror hands a geometry over: its attributes' arrays and sizes, the index's array)
+  const plain = { attributes: Object.fromEntries(Object.entries(g.attributes).map(([k, x]) => [k, { array: x.array, itemSize: x.itemSize }])), index: g.index.array, groups: null };
+  const buf = unityGeometry(plain, { vmat: true });
+  const u = new Uint32Array(buf), f = new Float32Array(buf);
+  const n = u[0];
+  assert.ok(u[2] & 128, 'flag 128');
+  assert.equal(n, g.attributes.position.count);
+  // after the points and normals: aMatC1, C2, C3, S, P, N (3n each), M (4n), as the attributes are
+  let o = 4 + u[3] * 3 + n * 6;
+  for (const [k, s] of VMAT_ATTRS) {
+    const src = g.attributes[k].array;
+    for (const i of [0, n - 1]) for (let c = 0; c < s; c++) assert.ok(Math.abs(f[o + i * s + c] - src[i * s + c]) < 1e-6, `${k}[${i}]`);
+    o += n * s;
+  }
+  // the second object's colour, band size and flat where the vertex says
+  const c1 = g.attributes.aMatC1.array, S = g.attributes.aMatS.array;
+  assert.ok(Math.abs(c1[(n - 1) * 3] - new THREE.Color('#203040').r) < 1e-6 && S[(n - 1) * 3] === 3 && S[(n - 1) * 3 + 2] === 0);
+  assert.equal(new Uint32Array(unityGeometry(plain))[2] & 128, 0, 'only when asked for');
+  // the strata's cracks (uCracks)
+  const cliff = makeMaterial({ color: '#c08060', color2: '#a06040', color3: '#e0a080', mode: MODE_STRATA, strataSize: 5, flat: true, cracks: 0.8 });
+  assert.equal(portMaterial(inkSpec(cliff), 2).cracks, 0.8);
+  assert.equal(portMaterial(inkSpec(makeMaterial({ color: '#808080' })), 3).cracks, undefined);
+});

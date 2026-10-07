@@ -180,8 +180,10 @@ namespace Memento
             if (m.I("plain") == 1) mat.SetFloat("_Glow", 1);
             // the web's newer surface marks (materials.js): weathering, pen detail, colour across a wall, plating, the
             // window share, banked sand, the shade (lift, hue, hatch, strata strokes), the spot and line steps
-            foreach (var (k, p) in new[] { ("weather", "_Weather"), ("patch", "_Patch"), ("plates", "_Plates"), ("drift", "_Drift"), ("spotStep", "_SpotStep"), ("lineStep", "_LineStep"), ("toDisplay", "_ToDisplay"), ("form", "_FormOn"), ("veins", "_Veins"), ("box", "_BoxOn"), ("tripoFace", "_TripoFace") })
+            foreach (var (k, p) in new[] { ("weather", "_Weather"), ("patch", "_Patch"), ("plates", "_Plates"), ("drift", "_Drift"), ("spotStep", "_SpotStep"), ("lineStep", "_LineStep"), ("toDisplay", "_ToDisplay"), ("form", "_FormOn"), ("veins", "_Veins"), ("box", "_BoxOn"), ("tripoFace", "_TripoFace"), ("cracks", "_Cracks") })
                 if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            // a merged mesh's material values per vertex (materials.js S_VMAT): the shader's variant that reads them
+            if (m.I("vmat") == 1) mat.EnableKeyword("MEMENTO_VMAT");
             if (m.Has("windows")) mat.SetFloat("_Windows", m.F("windows"));
             foreach (var (k, p, d) in new[] { ("detail", "_Detail", Vector4.zero), ("shade", "_Shade", new Vector4(0, -1, 1, 0)), ("lining", "_Lining", Vector4.zero),
                 ("boxA", "_BoxA", new Vector4(0.6f, 0.35f, 0, 0)), ("boxB", "_BoxB", new Vector4(0.5f, 0.5f, 0.5f, 0.5f)), ("boxMark", "_BoxMark", Vector4.one), ("boxLight", "_BoxLight", Vector4.one),

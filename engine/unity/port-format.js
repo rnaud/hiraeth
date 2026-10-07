@@ -50,6 +50,9 @@ export function portMaterial(spec, id = 0) {
   if (spec.lining) e.lining = [...spec.lining.map(r5), 1];
   // hatching that follows the form (S_FORM: its axis per vertex, src/form.js), a dark cap's veins
   if (spec.defines?.S_FORM) { e.form = 1; e.veins = v('uVeins'); }
+  // a merged mesh's material values per vertex (S_VMAT: the City-Shaft's towers); a cliff's dense cracks (uCracks)
+  if (spec.defines?.S_VMAT) e.vmat = 1;
+  if (v('uCracks') > 0) e.cracks = r5(v('uCracks'));
   // the coral-shirt traveller's drawn face (characters/tripo-face.js: its uniforms live, op 18)
   if (Array.isArray(u.uTfBrowA)) { e.tripoFace = 1; for (const [k, name] of [['tfBrowA', 'uTfBrowA'], ['tfBrowB', 'uTfBrowB'], ['tfEye', 'uTfEye'], ['tfMouth', 'uTfMouth']]) if (Array.isArray(u[name])) e[k] = u[name].map(r5); }
   // a makers' box (MAKERS_BOX: boxes/model.js): its ray and clock, size, the marks' and the ray's colours

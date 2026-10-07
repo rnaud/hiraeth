@@ -638,6 +638,19 @@ Shader "Hidden/Memento/Composite"
               col = lerp(col, col * float3(0.82, 0.78, 0.73), band * 0.88);
             }
           }
+          // ...and where sand banks against a weathered wall that band is buried: the dust drawn on the bank's top
+          // edge instead (drift pixels, a probe up the screen that lands on a weathered wall just behind)
+          if (drift > 0.5 && depth < 220.0) {
+            float3 wpD = _CamWorld._m03_m13_m23 + rd * depth / max(dot(rd, -camZ), 0.2);
+            float rag = 0.75 + 0.5 * vnoise(float2(wpD.x + wpD.z, wpD.y) * 1.7);
+            float dyPx = clamp(0.62 * 0.6 * rag * _Proj11 * 0.5 * _Res.y / depth, 1.0, 90.0);
+            float2 puv = uv + float2(0.0, dyPx * _Res.w);
+            float4 Np = tN(puv);
+            if (Np.w > depth - 0.5 && Np.w < depth + 3.0 && abs(Np.y) < 0.5) {
+              float wearP = step(15.5, tH(puv).b);
+              col = lerp(col, col * float3(0.82, 0.78, 0.73), wearP * 0.88 * (1.0 - smoothstep(150.0, 220.0, depth)));
+            }
+          }
           // ---- 3c. spot blacks: a shaded pocket filled with the world's darkest tone; cast shadows toward it
           #if defined(MEMENTO_INK_SPOT)
           if (_Spot.x > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {

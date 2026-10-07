@@ -35,12 +35,12 @@ export class UnityBackend {
     for (const k of [...this.sent]) if (k.startsWith(`${gid}:`)) { this.sent.delete(k); this._resend = true; }
   }
 
-  _variant(gid, colors, bind, rig = false, form = false) {
-    const key = `${gid}:${colors ? 1 : 0}:${bind ? 1 : 0}${rig ? ':r' : ''}${form ? ':f' : ''}`;
+  _variant(gid, colors, bind, rig = false, form = false, vmat = false) {
+    const key = `${gid}:${colors ? 1 : 0}:${bind ? 1 : 0}${rig ? ':r' : ''}${form ? ':f' : ''}${vmat ? ':v' : ''}`;
     if (!this.sent.has(key)) {
       const g = this.geoms.get(gid);
       if (!g) return null;
-      const buf = unityGeometry(g, { colors, bind, rig, form });
+      const buf = unityGeometry(g, { colors, bind, rig, form, vmat });
       this.host.Geometry(key, this.toHost(buf));
       // a MakeHuman face's shape keys (body.js keyTexture): the mesh's blend shapes, only the vertices they move
       const fk = this.keysOf?.get(gid);
@@ -65,9 +65,11 @@ export class UnityBackend {
     const crowd = d.kind === 'instanced' && specs.some((s) => s?.defines?.CROWD);
     const figure = !crowd && specs.some((s) => (s?.u?.uMode === 4 || s?.u?.uFigure > 0 || s?.u?.uMode === 6 || s?.defines?.FACE_PART));
     const form = specs.some((s) => s?.defines?.S_FORM);
+    // (a merged mesh's material values per vertex: the City-Shaft's towers, S_VMAT)
+    const vmat = specs.some((s) => s?.defines?.S_VMAT);
     // (the fluid's flask, hose and globs read their own rest place too: their box, the glass's height, materials.js FLUID)
     const fluid = specs.some((s) => s?.defines?.FLUID);
-    const mesh = d.gid ? this._variant(d.gid, colors, figure || fluid || d.kind === 'skinned', crowd, form) : null;
+    const mesh = d.gid ? this._variant(d.gid, colors, figure || fluid || d.kind === 'skinned', crowd, form, vmat) : null;
     if (d.kind === 'instanced' && d.mids.some((m) => this.ports.get(m) === 'print')) {
       // the footprints: the port's Puffs (its Print decal), instanced from op 10
       (this.puffs ??= new Set()).add(id);

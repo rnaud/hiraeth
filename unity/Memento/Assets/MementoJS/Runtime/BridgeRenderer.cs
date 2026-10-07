@@ -167,6 +167,26 @@ namespace Memento.Bridge
                 formC = new Vector4[n]; for (int i = 0; i < n; i++, o += 4) formC[i] = new Vector4(f[o], f[o + 1], f[o + 2], f[o + 3]);
                 formA = new Vector3[n]; for (int i = 0; i < n; i++, o += 3) formA[i] = new Vector3(f[o], f[o + 1], f[o + 2]);
             }
+            List<Vector4>[] vm = null;
+            if ((flags & 128) != 0)
+            {
+                // a merged mesh's material values and object frames per vertex (materials.js S_VMAT; Surface.shader MEMENTO_VMAT):
+                // uv1-3 the three colours with the band size, the grid and the flat in w; uv4 its object-space point and its turn,
+                // uv5 its object-space normal (w 0: no form), uv6 its place; all three's frame, as the web has them
+                vm = new List<Vector4>[6];
+                for (int c = 0; c < 6; c++) vm[c] = new List<Vector4>(n);
+                int c1 = o, c2 = o + n * 3, c3 = o + n * 6, sz = o + n * 9, op = o + n * 12, on = o + n * 15, om = o + n * 18;
+                for (int i = 0; i < n; i++)
+                {
+                    vm[0].Add(new Vector4(f[c1 + i * 3], f[c1 + i * 3 + 1], f[c1 + i * 3 + 2], f[sz + i * 3]));
+                    vm[1].Add(new Vector4(f[c2 + i * 3], f[c2 + i * 3 + 1], f[c2 + i * 3 + 2], f[sz + i * 3 + 1]));
+                    vm[2].Add(new Vector4(f[c3 + i * 3], f[c3 + i * 3 + 1], f[c3 + i * 3 + 2], f[sz + i * 3 + 2]));
+                    vm[3].Add(new Vector4(f[op + i * 3], f[op + i * 3 + 1], f[op + i * 3 + 2], f[om + i * 4 + 3]));
+                    vm[4].Add(new Vector4(f[on + i * 3], f[on + i * 3 + 1], f[on + i * 3 + 2], 0));
+                    vm[5].Add(new Vector4(f[om + i * 4], f[om + i * 4 + 1], f[om + i * 4 + 2], 0));
+                }
+                o += n * 22;
+            }
             var idx = new int[ni];
             for (int i = 0; i < ni; i++) idx[i] = (int)u[o + i];
             d.subs = new int[ng][]; d.subMat = new int[ng];
@@ -185,6 +205,7 @@ namespace Memento.Bridge
             if (d.col != null) mesh.SetColors(d.col);
             if (d.bind != null) mesh.SetUVs(3, d.bind);
             if (formC != null) { mesh.SetUVs(5, formC); mesh.SetUVs(6, formA); }
+            if (vm != null) for (int c = 0; c < 6; c++) mesh.SetUVs(1 + c, vm[c]);
             if (weights != null) mesh.boneWeights = weights;
             if (rig != null)
             {

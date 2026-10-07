@@ -746,6 +746,26 @@ on the main thread. Three changes:
   spot blacks, the haze (layers and height fog), the cast and the ink shadows are Composite.shader keywords
   (`MEMENTO_INK_SPOT`, `_HAZE`, `_CAST`, `_SHADOW`) that MementoLook sets from the look's own values.
 
+## The towers' own colours, the cliffs' cracks, the web's newest shading (Unity + Puerts, 2026-10-07)
+
+- **Per-vertex material values** (materials.js `S_VMAT`, src/vertex-material.js: the City-Shaft's towers, merged
+  into a draw each with their own colours, band size, grid, flatness, object-space point and normal, place and
+  turn). The geometry carries them (unityGeometry flag 128: aMatC1–3, aMatS, aObjP, aObjN, aObjM), BridgeRenderer
+  puts them in uv1–uv6, and Surface.shader's `MEMENTO_VMAT` variant reads them: its vertex stage takes the object
+  frame from them (the camera in each object's own frame, as the web's), and its fragment stage redirects
+  `_Color`, `_Color2`, `_Color3`, `_StrataSize`, `_Grid` and `_Flat` to the vertex's values (statics set at its
+  start), so every use below reads them unchanged.
+- **The cliffs' cracks** (`uCracks`, materials.js faceCracks: the desert's canyon walls and violet cliffs, the
+  references' strata): ported as `faceCracks` in MementoCommon.hlsl, the material's `_Cracks`.
+- From main since: **the half-tone kept off faces inside another's cast shadow** (materials.js castBeyond: one
+  tap of the middle shadow map 16 m toward the sun; Surface.shader the same on `_MShadowMap1`, built walls only)
+  and **the dust band on the sand banked against a weathered wall** (post.js: drift pixels whose probe up the
+  screen lands on a weathered wall just behind; Composite.shader the same). The door stains, the Market's heaps
+  and the greeble kit are plain meshes and materials the port already draws.
+
+The rose gorge (its walls' cracks) and the City-Shaft from the rim, the web on the left, Unity on the right:
+![the gorge and the shaft](../engine-bridge/sbs4-cracks-towers.jpg)
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

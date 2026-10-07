@@ -82,6 +82,18 @@ Shader "Memento/Surface"
     float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
     float _Halftone, _Bounce;   // the look's shade tones (globals)
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
+    float _Cracks;         // strata rock: dense cracks and strokes down its faces (materials.js uCracks; 0: the sparse fissures only)
+    #if defined(MEMENTO_VMAT)
+      // a merged mesh's material values per vertex (materials.js S_VMAT): every read below takes the vertex's, set in frag
+      static float4 vmColor, vmColor2, vmColor3;
+      static float vmStrataSize, vmGrid, vmFlat;
+      #define _Color vmColor
+      #define _Color2 vmColor2
+      #define _Color3 vmColor3
+      #define _StrataSize vmStrataSize
+      #define _Grid vmGrid
+      #define _Flat vmFlat
+    #endif
 
     struct Attributes
     {
@@ -89,12 +101,19 @@ Shader "Memento/Surface"
       float3 normalOS : NORMAL;
       float4 color : COLOR;
       float2 uv : TEXCOORD0;
+    #if defined(MEMENTO_VMAT)
+      // a merged mesh (BridgeRenderer: S_VMAT): the colours with the band size, grid and flat; its object point and turn,
+      // normal, place (three's frame)
+      float4 vm1 : TEXCOORD1; float4 vm2 : TEXCOORD2; float4 vm3 : TEXCOORD3;
+      float4 vmP : TEXCOORD4; float4 vmN : TEXCOORD5; float4 vmM : TEXCOORD6;
+    #else
       float2 fold : TEXCOORD1;
       float4 sway : TEXCOORD2;   // plants: anchor x, z (Unity world), bend per metre of wind, brush lean
       float3 bind : TEXCOORD3;   // people: the rest-pose position (outfit zones, face, eyes: Figures.cs)
       float3 bindN : TEXCOORD4;  // and its normal
       float4 formC : TEXCOORD5;  // hatching that follows the form (src/form.js): a point on the part's axis (three's object space), w its kind
       float3 formA : TEXCOORD6;  // and the axis' direction
+    #endif
       uint iid : SV_InstanceID;  // the crowd's instanced figures (MEMENTO_CROWD)
     };
 
@@ -151,7 +170,7 @@ Shader "Memento/Surface"
       #pragma target 4.5
       #pragma vertex vert
       #pragma fragment frag
-      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT MEMENTO_GRASS MEMENTO_FLORA
+      #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT MEMENTO_GRASS MEMENTO_FLORA MEMENTO_VMAT
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
       // the sun's shadow maps (MementoShadows.cs, materials.js getShadow): fine, near, far; each its matrix
@@ -204,6 +223,22 @@ Shader "Memento/Surface"
         }
         return lerp(s0, sF, iF);
       }
+      // A face turned from the sun: is it also inside another's cast shadow? (materials.js castBeyond: one tap of the
+      // middle map HALFTONE_REACH = 16 m toward the sun, past the form's own body; wpU in Unity space)
+      float castBeyond(float3 wpU)
+      {
+        if (_MShadowOn <= 0.0 || _MShadowParams1.w <= 0.0) return 0.0;
+        float3 p = mul(_MShadowMat1, float4(wpU + toThree(_SunDir) * 16.0, 1.0)).xyz;
+        if (p.x < 0.0 || p.y < 0.0 || p.x > 1.0 || p.y > 1.0) return 0.0;
+        #if UNITY_REVERSED_Z
+          if (p.z < 0.0) return 0.0;
+          float z = p.z + _MShadowParams1.x * 4.0;
+        #else
+          if (p.z > 1.0) return 0.0;
+          float z = p.z - _MShadowParams1.x * 4.0;
+        #endif
+        return 1.0 - SAMPLE_TEXTURE2D_SHADOW(_MShadowMap1, sampler_LinearClampCompare, float3(p.xy, z));
+      }
       // instanced puffs (smoke, embers, dust, footprints: Puffs.cs): where, how big, which way, what colour
       struct PuffInst { float4 at; float4 size; float4 col; };   // at.w yaw, size.w pitch, col.w roll (rad, Unity)
       StructuredBuffer<PuffInst> _Puffs;
@@ -239,12 +274,19 @@ Shader "Memento/Surface"
         float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
         nointerpolation float3 grassLook : TEXCOORD11;   // a grass blade: its pen line, its outline's fade, its blend into the ground
         float4 form : TEXCOORD12;       // the point about its part's axis (materials.js vForm): across it xy, along it z, w the kind
+      #if defined(MEMENTO_VMAT)
+        nointerpolation float4 vm1 : TEXCOORD13; nointerpolation float4 vm2 : TEXCOORD14; nointerpolation float4 vm3 : TEXCOORD15;
+      #endif
       };
 
       Varyings vert(Attributes v)
       {
         Varyings o;
-        float3 posWS = TransformObjectToWorld(v.positionOS.xyz) + swayOffset(v.sway);
+        #if defined(MEMENTO_VMAT)
+          float3 posWS = TransformObjectToWorld(v.positionOS.xyz);
+        #else
+          float3 posWS = TransformObjectToWorld(v.positionOS.xyz) + swayOffset(v.sway);
+        #endif
         float3 nWS = TransformObjectToWorldNormal(v.normalOS);
         float3 scl = float3(length(UNITY_MATRIX_M._m00_m10_m20), length(UNITY_MATRIX_M._m01_m11_m21), length(UNITY_MATRIX_M._m02_m12_m22));
         o.positionCS = TransformWorldToHClip(posWS);
@@ -255,13 +297,22 @@ Shader "Memento/Surface"
         o.viewDepth = -TransformWorldToView(posWS).z;
         o.objPos = toThree(v.positionOS.xyz * scl);
         o.objNormal = toThree(v.normalOS / scl);
-        if (_Bind > 0.5) { o.objPos = toThree(v.bind * scl); o.objNormal = toThree(v.bindN / scl); }   // (three: the unskinned position)
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
+        o.crowdTrim = 0;
+        o.form = 0;
+        #if defined(MEMENTO_VMAT)
+          // (each merged object's own frame: materials.js S_VMAT; the camera in its frame, its turn about y undone)
+          o.vm1 = v.vm1; o.vm2 = v.vm2; o.vm3 = v.vm3;
+          o.objPos = v.vmP.xyz; o.objNormal = v.vmN.xyz;
+          float vc = cos(v.vmP.w), vs = sin(v.vmP.w);
+          float3 vd = toThree(_WorldSpaceCameraPos) - v.vmM.xyz;
+          o.objRel = v.vmP.xyz - float3(vc * vd.x - vs * vd.z, vd.y, vs * vd.x + vc * vd.z);
+          o.fold = 0; o.bind = 0;
+        #else
+        if (_Bind > 0.5) { o.objPos = toThree(v.bind * scl); o.objNormal = toThree(v.bindN / scl); }   // (three: the unskinned position)
         o.objRel = o.objPos - toThree(camOS * scl);
         o.fold = v.fold;
         o.bind = toThree(v.bind);
-        o.crowdTrim = 0;
-        o.form = 0;
         if (_FormOn > 0.5 && v.formC.w > 0.5)
         {
           // (in three's object frame, metric: materials.js S_FORM; the position mirrored back)
@@ -272,6 +323,7 @@ Shader "Memento/Surface"
           float3 fr = (toThree(v.positionOS.xyz) - v.formC.xyz) * scl;
           o.form = float4(dot(fr, fu), dot(fr, fv), dot(fr, fa), v.formC.w);
         }
+        #endif
         #if defined(MEMENTO_CROWD)
           // an instanced crowd figure (crowd-shader.js): posed in figure space (three's), then mirrored and placed
           CrowdInst ci = _CrowdInst[v.iid];
@@ -531,6 +583,10 @@ Shader "Memento/Surface"
 
       GBufferOut frag(Varyings i, bool frontFace : SV_IsFrontFace)
       {
+        #if defined(MEMENTO_VMAT)
+          vmColor = float4(i.vm1.xyz, 1); vmColor2 = float4(i.vm2.xyz, 1); vmColor3 = float4(i.vm3.xyz, 1);
+          vmStrataSize = i.vm1.w; vmGrid = i.vm2.w; vmFlat = i.vm3.w;
+        #endif
         int mode = (int)(_Mode + 0.5);
         // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
         if (_Glass > 0.0)
@@ -809,6 +865,7 @@ Shader "Memento/Surface"
           detail = max(detail, _WaterOpt.x > 0.0 ? waterInk : waterLines(gp, _MTime) * 0.7);
         } else if (mode == MODE_STRATA && abs(normalize(on).y) < 0.6) {
           detail = max(detail, fissures(float2(faceX, i.objPos.y), fissFw) * 0.85);
+          if (_Cracks > 0.0) detail = max(detail, faceCracks(float2(faceX, i.objPos.y), fissFw * 9.0, _Cracks) * 1.7);   // (over 1: a pen line)
         }
         UNITY_BRANCH if (_Scrub > 0.0) {
           float dashN = smoothstep(0.42, 0.6, vnoise(float2(ce1.x * 2.5, ce1.y * 9.0)));
@@ -877,6 +934,8 @@ Shader "Memento/Surface"
         if (L < _Toon)
         {
           float turned = ndl < 0.0 ? (ndl > -0.42 ? 1.0 : 0.6) : 0.0;
+          // (no half-tone inside another's cast shadow; built walls only: a cliff's own body would read as another's)
+          if (turned > 0.0 && _Halftone > 0.0 && _SunDir.y > 0.0 && mode != MODE_STRATA && mode != MODE_TERRAIN && abs(n.y) < 0.5) turned *= 1.0 - castBeyond(i.posWS);
           float lift = 1.0 - (1.0 - _Shade.x) * (1.0 - _Halftone * turned) * (1.0 - _Bounce * smoothstep(-0.1, -0.7, n.y));
           float hatchK = mode == MODE_TERRAIN ? lerp(min(_Shade.z, 1.0), 1.0, smoothstep(0.16, 0.36, slope)) : min(_Shade.z, 1.0);
           float liftK = lift;
