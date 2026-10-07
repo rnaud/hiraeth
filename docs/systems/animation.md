@@ -165,7 +165,15 @@ below is laid over them procedurally, so no new motion data was needed (see TODO
   in (`IDLE_STANCE`: 30 % of the fore-aft offset kept, 40 % of the outward one) and the body rises by
   what the legs gained, so the knees keep the clip's bend. A body that starts standing starts in this
   stance (no settling step at the spawn); stopping, the feet settle into it with a step. The head is lifted over the clip's (`IDLE_HEAD`, 0.2 rad): the idle
-  clip looks 15° down, at the ground; he now looks 0–12° down (7° on average), ahead as drawn.
+  clip looks 15° down, at the ground; he now looks a few degrees down on average, ahead as drawn.
+- **The head on the neck** (`char.headNod`, `Animator.apply`, `HEAD_NOD`): the rig's head joint takes the
+  library neck's line (and `neck_01` with it), and a child of it the clip's own head turn, which the
+  `Head` bone follows. With the neck's line alone the face followed the neck: the jog and the sprint
+  lean the neck 35–50° forward while the captured head stays up (about 20° down), so he ran looking at
+  his feet (35° down jogging, 48° sprinting; now 21 and 23); the look-around's head turn came through
+  only as the neck's. On foot only (idle, walk, jog, sprint, talk, look-around, by the actions'
+  weights): on a ledge, climbing, in the air and seated the neck's line is kept, as the tipped-back
+  head would meet the scout docked behind it (`tests/drone.test.js`). Only the traveller's rig has it.
 - **The body** (`Locomotion`, after `Animator.apply`): the chest tips forward as the body speeds
   up and back (the hips dipping) as it brakes, banks into a curve by turn rate × speed, and the
   head and then the chest turn toward where you steer before the hips get there.

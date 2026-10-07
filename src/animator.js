@@ -21,6 +21,8 @@ const CLIPS = { idle: 'Idle_Loop', walk: 'Walk_Loop', jog: 'Jog_Fwd_Loop', sprin
   jumpStart: 'Jump_Start', jumpLoop: 'Jump_Loop', jumpLand: 'Jump_Land', drive: 'Driving_Loop', talk: 'Idle_Talking_Loop',
   look: 'Idle_LookAround_Loop', ledge: 'ClimbLedge',
   climbIdle: 'Climb_Idle_Loop', climbUp: 'Climb_Up_Loop', climbDown: 'Climb_Down_Loop', climbLeft: 'Climb_Left_Loop', climbRight: 'Climb_Right_Loop' };
+// the clips whose head turns on the neck as captured (Animator.apply): on foot
+const HEAD_NOD = ['idle', 'walk', 'jog', 'sprint', 'talk', 'look'];
 const CLIMB = ['climbIdle', 'climbUp', 'climbDown', 'climbLeft', 'climbRight'];
 
 let libPromise = null;
@@ -225,6 +227,7 @@ export class Animator {
     this.mixer.stopAllAction();
     this.src.updateMatrixWorld(true);
     for (const m of this.map) m.rest.copy(this.dir(m.A, m.B, _a));
+    this.restHead = this.bone('Head')?.getWorldQuaternion(new THREE.Quaternion());
     this.restHands = Object.fromEntries(['r', 'l'].map((s) => [s, this.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion())]));
     // Hand directions are measured in the source bone's local frame. Retargeting
     // these anatomical axes also works when the destination was bound in A-pose.
@@ -523,6 +526,19 @@ export class Animator {
         m.j.quaternion.setFromUnitVectors(m.axis, local.normalize());
       }
       m.j.updateMatrixWorld(true);
+    }
+    // the head: the rig's head joint takes the neck's line (above), and the skull the clip's own turn on
+    // it. Running, the neck leans 35-50 deg forward while the clip's head stays up (20 deg down): with the
+    // neck's line alone the face looked at the ground. (On foot only: hanging from a ledge, climbing,
+    // in the air and seated the neck's line is kept, as before: the head tipped back there would meet
+    // the scout docked behind it.)
+    if (C.headNod && this.restHead) {
+      let k = 0;
+      for (const key of HEAD_NOD) k += this.actions[key]?.getEffectiveWeight() ?? 0;
+      k = Math.min(1, k);
+      const want = this.bone('Head').getWorldQuaternion(_q).multiply(_q2.copy(this.restHead).invert()).premultiply(rootQ);
+      C.headNod.quaternion.copy(C.head.getWorldQuaternion(_q2).invert().multiply(want)).slerp(_q.identity(), 1 - k);
+      C.headNod.updateMatrixWorld(true);
     }
   }
 }

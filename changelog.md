@@ -13,7 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The game runs smoothly on handhelds again: the traveller’s new coral overshirt had pulled the Retroid down to about 20 frames a second in every world. Its cloth now moves exactly as before but is worked out several times faster, away from the rest of the game.
 - Standing still, the traveller’s legs hold still: his right foot no longer snaps round and steps every second or so, and when he shifts his weight his hips go over the leg he stands on while the other knee relaxes forward, instead of the free foot stepping back and forth every few seconds.
 - The traveller stands as he is drawn, upright with his feet under him a little apart, instead of in a wide split stance that looked like a stride from the side.
-- Standing about, the traveller holds his head up and looks ahead, as in his drawings, instead of hanging it to stare at the ground.
+- Standing about, the traveller holds his head up and looks ahead, as in his drawings, instead of hanging it to stare at the ground, and running he keeps his eyes on the way ahead instead of on his feet; when he looks around, his head turns as far as the motion has it.
 
 ## v0.73 — 2026-10-06
 

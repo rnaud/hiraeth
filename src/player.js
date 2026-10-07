@@ -179,6 +179,9 @@ export function buildCharacter(palette = {}) {
   const head = new THREE.Group();
   head.position.y = 0.87;
   torso.add(head);
+  // the skull's own turn on the neck (Animator.apply: the clip's head, not just its neck's line; Humanoid's Head bone follows it)
+  const headNod = new THREE.Object3D();   // (not a Group: Humanoid moves the hood's groups off the rig head)
+  head.add(headNod);
   const neck = part(new THREE.CylinderGeometry(0.035, 0.045, 0.12, 6), C.face);
   neck.position.y = 0.79;
   torso.add(neck);
@@ -235,7 +238,7 @@ export function buildCharacter(palette = {}) {
   jetpack.visible = false;
   torso.add(jetpack);
 
-  return { root, body, torso, head, hatTip, legs, knees, feet, arms, elbows, scarf, scarf2, pack, bedroll, jetpack, flames,
+  return { root, body, torso, head, headNod, hatTip, legs, knees, feet, arms, elbows, scarf, scarf2, pack, bedroll, jetpack, flames,
     scarfAnchors: [], colors: C };
 }
 
@@ -246,7 +249,7 @@ const _sq1 = new THREE.Quaternion(), _sq2 = new THREE.Quaternion(), _sq3 = new T
 // standing: how much of the idle clip's stance each foot keeps, fore-aft and outward from its hip (Player.standUnder)
 export const IDLE_STANCE = { ahead: 0.3, out: 0.4 };
 // standing: the head's pitch over the idle clip's (rad, + down): the clip looks 15° down, at the ground; he looks ahead, as drawn
-export const IDLE_HEAD = -0.2;
+export const IDLE_HEAD = -0.14;
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const _mf = new THREE.Vector3(), _ml = new THREE.Vector3();   // (the matcher's frame: matchInput)
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot

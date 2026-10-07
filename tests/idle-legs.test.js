@@ -91,3 +91,22 @@ test('standing still, the traveller\'s legs hold still: no twitch, no steps, the
   assert.ok(Math.abs(l.ball.z - r.ball.z) < 0.2, `the feet ${Math.abs(l.ball.z - r.ball.z).toFixed(2)} m apart fore and aft`);
   assert.ok(Math.abs(l.ball.x - r.ball.x) < 0.45, `the feet ${Math.abs(l.ball.x - r.ball.x).toFixed(2)} m apart side to side`);
 });
+
+/** The face's pitch (deg, + down) in the body's frame: the Head bone's turn from its rest applied to straight ahead. */
+const facePitch = (p) => {
+  const B = p.humanoid.b, q = B.Head.getWorldQuaternion(new T.Quaternion()).multiply(p.humanoid.rest.get(B.Head).q.clone().invert());
+  const f = new T.Vector3(0, 0, 1).applyQuaternion(q).applyQuaternion(p.object.getWorldQuaternion(new T.Quaternion()).invert());
+  return Math.asin(-f.y) * 180 / Math.PI;
+};
+
+test('the traveller looks ahead, standing and running, not at the ground', { timeout: 120000 }, async () => {
+  // (the retarget turned the whole head by the neck's line: running, the neck leans 35-50 deg forward
+  // while the clip's head stays up, so the face looked 35 deg down jogging and 48 sprinting; standing,
+  // the idle clip holds it 15 deg down)
+  for (const [input, most, label] of [[{}, 10, 'standing'], [{ KeyW: true }, 26, 'jogging'], [{ KeyW: true, ShiftLeft: true }, 28, 'sprinting']]) {
+    const p = await traveller(), dt = 1 / 60, pitches = [];
+    for (let i = 0; i < 360; i++) { p.update(dt, input, CAM_PLUS_Z); p.object.updateMatrixWorld(true); if (i > 120) pitches.push(facePitch(p)); }
+    const mean = pitches.reduce((a, b) => a + b, 0) / pitches.length;
+    assert.ok(mean < most && mean > -10, `${label}: the face ${mean.toFixed(1)} deg down on average`);
+  }
+});
