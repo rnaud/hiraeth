@@ -1,0 +1,39 @@
+changelog.md
+  s_55b4bc53b812ec::t_22112cb2425745 16
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_b08d5e8d986634 417-423
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_72679bc2e8ce09 934-970
+src/changelog.js
+  s_55b4bc53b812ec::t_5b18a454ab16f7 22
+src/crowd.js
+  s_55b4bc53b812ec::t_9fbbcfdbf4a9f4 630-631,716-723
+src/levels/bazaar.js
+  s_55b4bc53b812ec::t_9d6534700e69ed 3,12-13,44-45,47,50,56-57,81,92-94,96-98,100,104,107,109,112,122,371-377,386-387,391-392,452-465
+src/levels/market-night-kit.js
+  s_55b4bc53b812ec::t_d1c0c339804cb7 261-273
+src/levels/references.js
+  s_55b4bc53b812ec::t_19ed2d6db41bfa 21,228
+src/main.js
+  s_55b4bc53b812ec::t_c08784056ca286 1444
+src/materials.js
+  s_55b4bc53b812ec::t_e1e283c32367e2 483-487,598-600,773-775,2006-2008,2111-2113,2619-2620,2737-2741
+tests/marketnight.test.js
+  s_55b4bc53b812ec::t_89681e2193b2d9 87-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6083d8e297a06ce57537d07792b2058947400564",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
