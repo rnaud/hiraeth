@@ -18,19 +18,20 @@ export const EXPRESSION_KEYS = [
   { key: 'open', label: 'Mouth open', min: 0, max: 1, def: 0 },
   { key: 'brow', label: 'Brow (furrow – raise)', min: -1, max: 1, def: 0 },
   { key: 'browTilt', label: 'Brow tilt (anger – worry)', min: -1, max: 1, def: 0 },
+  { key: 'asymmetry', label: 'One-sided expression', min: -1, max: 1, def: 0 },
   { key: 'squint', label: 'Squint', min: 0, max: 1, def: 0 },
 ];
-export const NEUTRAL_EXPRESSION = Object.freeze({ smile: 0, open: 0, brow: 0, browTilt: 0, squint: 0, gaze: null });
+export const NEUTRAL_EXPRESSION = Object.freeze({ smile: 0, open: 0, brow: 0, browTilt: 0, squint: 0, asymmetry: 0, gaze: null });
 
 /** One expression per tone. */
 export const TONE_EXPRESSIONS = {
   neutral: {},
   happy: { smile: 0.8, squint: 0.25, brow: 0.15 },
-  sad: { smile: -0.6, browTilt: 0.85, squint: 0.15, gaze: [0, -0.18] },
+  sad: { smile: -0.6, brow: -0.12, browTilt: 0.85, squint: 0.5, gaze: [0, -0.18] },
   angry: { smile: -0.35, brow: -0.9, browTilt: -0.6, squint: 0.35 },
   scared: { smile: -0.25, brow: 0.75, browTilt: 0.6, open: 0.3 },
   surprised: { brow: 1, open: 0.55 },
-  curious: { brow: 0.45, smile: 0.15, gaze: [0.12, 0.05] },
+  curious: { brow: 0.3, smile: 0.1, asymmetry: 0.85, gaze: [0.12, 0.05] },
   tired: { squint: 0.6, smile: -0.15, brow: -0.1, gaze: [0, -0.12] },
   solemn: { smile: -0.15, brow: -0.25, squint: 0.1 },
   playful: { smile: 0.65, brow: 0.35, squint: 0.15, gaze: [-0.15, 0] },
@@ -42,7 +43,16 @@ for (const t of TONES) TONE_EXPRESSIONS[t] ??= {};
  * Looks that aren't a line's tone: a face a cinematic gives the traveller without a word (src/story/moment.js
  * m.look, src/talk-face.js `look`). A smirk: the mouth shut, its corners a little up, the lids a touch narrower.
  */
-TONE_EXPRESSIONS.smirk = { smile: 0.42, squint: 0.14, brow: 0.06, gaze: [0.05, -0.03] };
+TONE_EXPRESSIONS.smirk = { smile: 0.42, squint: 0.14, brow: 0.06, asymmetry: 0.65, gaze: [0.05, -0.03] };
+
+// Acting studies from references/main character/Facial Expressions.
+Object.assign(TONE_EXPRESSIONS, {
+  amused: { smile: 0.58, squint: 0.28, brow: 0.12, asymmetry: 0.65 },
+  delighted: { smile: 1, open: 0.55, squint: 0.12, brow: 0.42, browTilt: 0.45 },
+  worried: { smile: -0.55, brow: 0.18, browTilt: 0.95, squint: 0.08 },
+  startled: { smile: -0.15, open: 0.42, brow: 1, browTilt: 0.2 },
+  determined: { smile: -0.12, brow: -0.7, browTilt: -0.65, squint: 0.3 },
+});
 
 /**
  * The people's faces at rest (Humanoid.restExpression): a kind face, not a somber one. The corners

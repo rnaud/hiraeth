@@ -7,6 +7,7 @@ import { makeTripoCloth } from './tripo-cloth.js';
 import { makeReviewInkMaterial } from './tripo-material.js';
 import { relaxWalkArms, relaxWalkHands } from './tripo-walk.js';
 import { softenTripoHands } from './tripo-hands.js';
+import { markTripoHair } from './tripo-hair.js';
 import { wearTripoFace } from './tripo-face.js';
 import { cleanExpression } from '../expression.js';
 import { TRAVELLER } from '../traveller.js';
@@ -49,6 +50,7 @@ export function createTravellerV1(char, { gltf, data, report, colors }, { gpu } 
     humanoid.body.parent.add(mesh);
     mesh.bind(humanoid.body.skeleton, humanoid.body.bindMatrix);
     humanoid.body.skeleton.pose(); root.updateMatrixWorld(true);
+    markTripoHair(mesh.geometry, colors);
     const cloth = makeTripoCloth(mesh, colors, gpu === undefined ? {} : { gpu });
     for (const part of [mesh, cloth.garment, cloth.underlayer, cloth.innerShirt]) {
       const standard = part.material;

@@ -4,7 +4,7 @@
 // Only the people's assets load: the two bodies, the clip library, the
 // traveller's outfit (and a world's story data and sky when picked).
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadTravellerV1, createTravellerV1 } from '../characters/traveller-v1.js';
 import { sharedUniforms, makeMaterial, markHero } from '../materials.js';
 import { createPost, DEBUG_VIEWS, PRESETS } from '../post.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from '../pipeline.js';
@@ -12,7 +12,7 @@ import { Cascade, shadowDirection } from '../shadows.js';
 import { applyTimeOfDay, colourScript } from '../timeofday.js';
 import { loadAnimationLibrary, Animator } from '../animator.js';
 import { loadMotionLibrary } from '../motion-match.js';
-import { loadHuman, Humanoid } from '../humanoid.js';
+import { loadHuman } from '../humanoid.js';
 import { buildCharacter } from '../player.js';
 import { Gear } from '../gear.js';
 import { FluidTool } from '../fluid-tool.js';
@@ -25,7 +25,6 @@ import { IRIS } from '../eyes.js';
 import { mulberry32 } from '../noise.js';
 import { BODY_MORPHS, FACE_MORPHS, NEUTRAL_BODY, cleanMorph } from '../morph.js';
 import { EXPRESSION_KEYS, TONE_EXPRESSIONS, expressionFor } from '../expression.js';
-import { TONES } from '../story/tone.js';
 import { POSE_IDS } from '../hands.js';
 import { TITLES } from '../levels/names.js';
 import { cleanState, encodeState, decodeState, settingsJSON } from './state.js';
@@ -117,9 +116,9 @@ scene.add(marker);
 // ------------------------------------------------------------------ assets
 const BASE = import.meta.env.BASE_URL;
 const t0 = performance.now();
-const [lib, hm, hf, travellerScene] = await Promise.all([
+const [lib, hm, hf, travellerAsset] = await Promise.all([
   loadAnimationLibrary(`${BASE}anim/ual.glb`), loadHuman('m'), loadHuman('f'),
-  new GLTFLoader().loadAsync(`${BASE}anim/traveller.glb`).then((g) => g.scene),
+  loadTravellerV1(BASE),
 ]);
 const humans = { m: hm, f: hf };
 // the captured motion too (scripts/mocap/: CMU takes through the same retargeting): the matcher's takes (mm:) and the people's walks (walk:) in the clip list
@@ -146,18 +145,19 @@ const fakePlayer = { pos: new THREE.Vector3(0, -100, 0), wind, vel: new THREE.Ve
 function makeTraveller() {
   const char = buildCharacter();
   char.jetpack.visible = false;
-  const h = new Humanoid(hm, char, 'm', { outfit: travellerScene });
+  const character = createTravellerV1(char, travellerAsset);
+  const h = character.humanoid;
   const animator = new Animator(lib, char);
   scene.add(char.root);
   const gear = new Gear(scene, h, char);
   if (char.pack) char.pack.visible = false;
-  const noShadow = [...gear.noShadow];
+  const noShadow = [...gear.noShadow, ...h.noShadow];
   // An isolated equipment preview: no grants or writes to the player's save.
   const tool = state.backpack ? new FluidTool({ scene, player: { char, humanoid: h, gear, object: char.root, pos: char.root.position, frame: { up: UP }, vel: new THREE.Vector3() }, camera,
     noShadow, state: new GameState(), items: { has: (id) => id === 'backpack', on: () => () => {} } }) : null;
   h.ownMaterials();
   markHero(char.root);
-  return { type: 'traveller', name: 'The traveller', root: char.root, char, h, animator, gear, tool, baseScale: 1, noShadow };
+  return { type: 'traveller', name: 'The traveller', root: char.root, char, h, character, animator, gear, tool, baseScale: 1, noShadow };
 }
 
 function makeNPC(def, look, world, human = null) {
@@ -325,9 +325,9 @@ function applyFace() {
   const one = !state.lineup;
   for (const p of people) {
     // (the person's own face, the traveller's: Humanoid.ownFace, under the sliders)
-    p.h.setFace(one ? { ...(p.h.ownFace ?? {}), ...state.f } : p.h.ownFace);
+    if (!p.character) p.h.setFace(one ? { ...(p.h.ownFace ?? {}), ...state.f } : p.h.ownFace);
     // the traveller's skin, if picked (the rest is their suit)
-    if (p.type === 'traveller' && state.c.skin) for (const m of [p.h.body.material, p.h.eyeMesh?.material]) m?.uniforms.uSkin.value.set(state.c.skin);
+    if (!p.character && p.type === 'traveller' && state.c.skin) for (const m of [p.h.body.material, p.h.eyeMesh?.material]) m?.uniforms.uSkin.value.set(state.c.skin);
   }
 }
 
@@ -355,7 +355,7 @@ function describe() {
   if (state.lineup === 'faces') return `${people.length} faces, from the left: ${people.map((q) => (q.world ? `${q.name} (${TITLES[q.world] ?? q.world})` : q.name)).join(', ')} · Share → Faces sheet`;
   if (state.lineup) return `${people.length} people · ${TITLES[state.world] ?? state.world}${state.lineup === 'crowd' ? ' · front: full bodies, back: GPU crowd figures' : ''}`;
   const L = p.look;
-  return L ? `${p.name} · ${L.kind === 'f' ? 'woman' : L.kind === 'm' ? 'man' : 'person'} · ${L.build} · ${(p.baseScale * (state.b.height ?? 1) * 1.8).toFixed(2)} m · ${L.tribe ?? ''}` : `${p.name} · coral overshirt, cream trousers, canvas rucksack`;
+  return L ? `${p.name} · ${L.kind === 'f' ? 'woman' : L.kind === 'm' ? 'man' : 'person'} · ${L.build} · ${(p.baseScale * (state.b.height ?? 1) * 1.8).toFixed(2)} m · ${L.tribe ?? ''}` : `${p.name} · game model · coral overshirt, cream trousers`;
 }
 
 // ------------------------------------------------------------------ animation, eyes, expression, cloth
@@ -424,7 +424,9 @@ function animate(p, dt, t) {
   }
   root.updateMatrixWorld(true);
   const H = p.h;
+  const wrists = p.character?.poseArms({ animator: a, onGround: true, overlay: !!clip });
   H.update();
+  if (wrists) p.character.poseWrists(wrists);
   if (p.type === 'traveller') {
     H.poseHands(a);
     // the traveller's feet find the ground (the player's plantFeet); the people's don't, in the game either
@@ -446,6 +448,8 @@ function animate(p, dt, t) {
     ride: 'bike', air: 1, speed, prop: H.stowed ? null : p.npc?.look?.prop,
     talk: state.talk || state.anim === 'game:talk' ? { tone: state.tone, k: state.amount, beat: Math.min(1, (e.open ?? 0) * 1.6) } : null,
   });
+  p.character?.updateHands();
+  p.character?.updateCloth(Math.min(dt, 1 / 30));
   // cloth
   if (p.npc?.cape) {
     const cape = p.npc.cape;
@@ -544,6 +548,7 @@ function placeCamera(dt) {
   let ty = V.y * s;
   const head = p?.h?.b?.Head;
   if (p && headView && head) ty = head.getWorldPosition(_v).y + ((state.view === 'bust' ? -0.13 : state.view === 'close' ? 0.045 : 0.0) + faceOffset(p)) * s;
+  if (p?.h?.drawnFace && headView && p.h.drawnFace.at(head, _v)) ty = _v.y + (state.view === 'bust' ? -0.13 * s : 0);
   const cx = state.lineup ? 0 : p?.pos.x ?? 0, cz = state.lineup ? 0 : p?.pos.z ?? 0;
   const target = new THREE.Vector3(cx, ty, cz);
   if (state.view === 'hands' && p?.h?.b?.hand_r && !state.lineup) {
@@ -631,7 +636,8 @@ function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || st
       // (twice: the head turns toward the camera, the camera follows the head)
       for (let k = 0; k < 2; k++) {
         const head = p.h.b.Head.getWorldPosition(new THREE.Vector3()), sc = p.root.scale.y;
-        head.y += ((view === 'bust' ? -0.13 : view === 'close' ? 0.045 : 0) + faceOffset(p)) * sc;
+        p.h.drawnFace?.at(p.h.b.Head, head);
+        head.y += ((view === 'bust' ? -0.13 : view === 'close' && !p.h.drawnFace ? 0.045 : 0) + (p.h.drawnFace ? 0 : faceOffset(p))) * sc;
         // (the cell is cut from the middle of the picture, its full height: the face view's framing)
         const dist = V.dist * sc * orbit.zoom * z;
         camera.position.set(head.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, head.y + Math.sin(orbit.pitch) * dist, head.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
@@ -900,7 +906,8 @@ buttons(sFace, [['Reset face', () => { state.f = {}; saveURL(); applyFace(); upd
 
 // expression
 const sExp = section('Expression', true);
-select(sExp, 'Tone', 'tone', TONES.map((t) => [t, t]), () => updatePanel());
+buttons(sExp, ['neutral', 'curious', 'amused', 'delighted', 'worried', 'startled', 'sad', 'determined'].map((tone) => [tone, () => { state.tone = tone; state.e = {}; state.amount = 1; saveURL(); updatePanel(); }]));
+select(sExp, 'Tone', 'tone', Object.keys(TONE_EXPRESSIONS).map((t) => [t, t]), () => updatePanel());
 slider(sExp, 'Amount', 'amount', 0, 1.5, 0.01, 1);
 check(sExp, 'Talking', 'talk');
 check(sExp, 'Blinking', 'blink');
