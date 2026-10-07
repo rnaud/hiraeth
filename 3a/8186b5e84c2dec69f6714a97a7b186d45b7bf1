@@ -1,0 +1,39 @@
+TODO.md
+  s_55b4bc53b812ec::t_e740bfd06b3b8e 191-196
+engine/game.js
+  s_55b4bc53b812ec::t_91652b0cf1ecb3 54,83-84,164-166,169,290,314-315,377
+engine/unity/port-format.js
+  s_55b4bc53b812ec::t_fe216ce873036c 40-45
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_38edede0119bf1 75-94
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_55b4bc53b812ec::t_45b97474ffccf5 111-130,190-207
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_55b4bc53b812ec::t_2820c50525ced4 181-193
+unity/Memento/Assets/Memento/Shaders/Bloom.shader
+  s_55b4bc53b812ec::t_dac69fb72ffbbe 41
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_55b4bc53b812ec::t_9b0ee6e90868e6 9,50-55,99,118-122,126-131,136,150-151,157-173,196-198,203-243,340,344-346,351,382-393,422,426-443,446-447,451,456,463-472,480-481,483,485-486,497,499,505-508,510,513,517-518,521-524,528-531,538-540,542-556,561,563-568,577,581-592,595,598,600,604-605,607-609,612-628,630-643,648,652-654,656,659-666,709
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl
+  s_55b4bc53b812ec::t_5ccf342155645d 1-359
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl.meta
+  s_55b4bc53b812ec::t_8a47880734e383 1-7
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_55b4bc53b812ec::t_b420c47cc37874 37-45,56,69-71,543-552,602-608,610,613,617-647,650-656,661-662,666-671,673,695,701,714-715,717-726,756,760-764,785-803
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3a8186b5e84c2dec69f6714a97a7b186d45b7bf1",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
