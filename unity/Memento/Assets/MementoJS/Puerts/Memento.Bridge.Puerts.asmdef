@@ -1,0 +1,16 @@
+{
+    "name": "Memento.Bridge.Puerts",
+    "rootNamespace": "Memento.Bridge",
+    "references": ["com.tencent.puerts.core"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": ["MEMENTO_PUERTS"],
+    "versionDefines": [
+        { "name": "com.tencent.puerts.core", "expression": "0.0.1", "define": "MEMENTO_PUERTS" }
+    ],
+    "noEngineReferences": false
+}

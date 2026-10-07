@@ -128,6 +128,12 @@ namespace Memento
             Shader.SetGlobalVector("_Cast", V4("uCast", Vector4.zero));
             Shader.SetGlobalVector("_InkShadow", V4("uInkShadow", Vector4.zero));
             Shader.SetGlobalTexture("_LineNoise", LineNoise());
+            // the composite's optional passes compiled in only where this look asks for them (post.js inkFeatures)
+            Vector4 spot = V4("uSpot", Vector4.zero), hl = V4("uHazeLayers", Vector4.zero), hf = V4("uHeightFog", Vector4.zero), cast = V4("uCast", Vector4.zero), ish = V4("uInkShadow", Vector4.zero);
+            Keyword("MEMENTO_INK_SPOT", spot.x > 0);
+            Keyword("MEMENTO_INK_HAZE", hl.w > 0 || (hf.w > 0 && hf.z > 0));
+            Keyword("MEMENTO_INK_CAST", cast.x > 0 || cast.y > 0);
+            Keyword("MEMENTO_INK_SHADOW", ish.x > 0 || ish.y > 0);
             // what the metals see below the horizon: the world's ground (materials.js setEnvGround)
             Shader.SetGlobalVector("_EnvGround", look.Get("envGround") != null ? (Vector4)look.C("envGround") : new Vector4(0.79f, 0.66f, 0.47f, 1));
 
@@ -207,6 +213,7 @@ namespace Memento
             return lineNoise;
         }
         static Texture2D lineNoise;
+        static void Keyword(string k, bool on) { if (Shader.IsKeywordEnabled(k) != on) { if (on) Shader.EnableKeyword(k); else Shader.DisableKeyword(k); } }
 
         public static Vector3 Three(Vector3 v) => new Vector3(-v.x, v.y, v.z);
         static readonly Matrix4x4 Mirror = Matrix4x4.Scale(new Vector3(-1, 1, 1));

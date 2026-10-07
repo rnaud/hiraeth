@@ -41,6 +41,7 @@
 // made for them. Every array handed over is the mirror's own (or the geometry's): a backend that
 // keeps one must copy it.
 import { inkSpec } from './ink-spec.js';
+import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
 
 
 /**
@@ -57,8 +58,9 @@ export class SceneMirror {
    * @param backend  the engine side (see above); missing methods are skipped
    * @param o.forgetAfter  frames an object may be out of the scene before it is removed
    * @param o.filter (o) => false to leave an object (and its children) out
+   * @param o.freeze  still subtrees taken whole, not walked (mirror-freeze.js)
    */
-  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null } = {}) {
+  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = true } = {}) {
     this.backend = backend;
     this.castsShadow = castsShadow;   // (o) → false: left out of the sun's shadow (the game's caster rules: shadows.js)
     this.forgetAfter = forgetAfter;
@@ -77,6 +79,8 @@ export class SceneMirror {
     this.stats = { nodes: 0, drawn: 0, moved: 0, geometries: 0, materials: 0, uploadedBytes: 0, skipped: 0 };
     this.prof = { matrices: 0, walk: 0, bones: 0, tail: 0, frame: 0, frames: 0 };
     this.profiling = false;
+    this.freeze = freeze && !filter;   // (a filter may change its mind about what is inside: walked each frame)
+    this._frozen = []; this._frozenDirty = false; this._checkAt = 0;
     this.time = 0;            // the game's clock (sharedUniforms.uTime), set before sync: handed to instances()   // (the bones' share timed apart: costs a clock read a skinned mesh)
   }
 
@@ -166,7 +170,7 @@ export class SceneMirror {
     this.ids.set(o, id);
     const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh && isInstGeo(o.geometry) ? 'instgeo' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
     const mats = Array.isArray(o.material) ? o.material : [o.material];
-    const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind, geo: null, gv: -1 };
+    const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind, geo: null, gv: -1, changedAt: this.frameNo, frozen: null, owner: this, dead: false };
     o.__mirror = node;   // (the walk finds it on the object: no map lookups a frame)
     this.nodes.set(id, node);
     this.stats.nodes++;
@@ -200,9 +204,16 @@ export class SceneMirror {
       visited++;
       if (!o.visible) continue;
       if (filter && filter(o) === false) continue;
+      // a frozen subtree (mirror-freeze.js): its drawables seen as they were, their materials' live values looked at
+      const fz = o.__frozen;
+      if (fz && fz.root === o && fz.mirror === this && !fz.dead) {
+        fz.seen = f; drawn += fz.drawn;
+        if (liveMats) { const M = fz.mats; for (let i = 0; i < M.length; i++) this._live(M[i], f); }
+        continue;
+      }
       if (o.isMesh || o.isPoints || o.isLine || o.isSprite) {
         let node = o.__mirror;
-        if (!node || this.nodes.get(node.id) !== node) node = this.nodes.get(this._create(o));
+        if (!node || node.owner !== this || node.dead) node = this.nodes.get(this._create(o));
         const id = node.id;
         node.seen = f;
         drawn++;
@@ -213,12 +224,12 @@ export class SceneMirror {
           const gid = this._geometry(geo);
           // (told only when it is another geometry or was sent whole again: moved points alone need nothing)
           if (node.geo && (geo !== node.geo || this._full)) B.geometryOf?.(id, gid);
-          node.geo = geo; node.gv = this.geoms.get(geo).version;
+          node.geo = geo; node.gv = this.geoms.get(geo).version; node.changedAt = f;
         }
         // an object's own render hook (the crowd's tiers set their count in it; a face binds its keys): called as the
         // renderer would before drawing it, in the main pass (no override material)
         if (Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
-        if (!node.shown) { node.shown = true; B.visible?.(id, true); }
+        if (!node.shown) { node.shown = true; node.changedAt = f; B.visible?.(id, true); }
         if (liveMats) { const M = o.material; if (Array.isArray(M)) { for (const m of M) this._live(m, f); } else if (M) this._live(M, f); }
         // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), when they move
         const KW = o.userData.keyWeights;
@@ -226,7 +237,7 @@ export class SceneMirror {
           const S = node.keys ??= new Float32Array(KW.length).fill(NaN);
           let moved = false;
           for (let i = 0; i < KW.length; i++) if (S[i] !== Math.fround(KW[i])) { S[i] = KW[i]; moved = true; }
-          if (moved) B.keyWeights(id, S);
+          if (moved) { B.keyWeights(id, S); node.changedAt = f; }
         }
         const e = o.matrixWorld.elements, m = node.matrix;
         // (compared as the floats they are sent as: a double that floats can't hold is no move)
@@ -234,6 +245,7 @@ export class SceneMirror {
         while (k < 16 && m[k] === Math.fround(e[k])) k++;
         if (k < 16) {
           for (k = 0; k < 16; k++) m[k] = e[k];
+          node.changedAt = f;
           if (n >= this._ids.length) this._grow();
           this._ids[n] = id; this._mats.set(m, n * 16); n++;
         }
@@ -284,6 +296,8 @@ export class SceneMirror {
           if (this.profiling) tb += now() - t0;
         }
       }
+      // (a skeleton's bones are walked only down to what hangs on them: a prop in a hand, a hat)
+      if (o.isBone && !boneCarries(o)) continue;
       const ch = o.children;
       for (let i = ch.length - 1; i >= 0; i--) stack.push(ch[i]);
     }
@@ -292,9 +306,12 @@ export class SceneMirror {
     // what was not reached: hidden, and in time forgotten
     for (const [id, node] of this.nodes) {
       if (node.seen === f) continue;
+      const fz = node.frozen;
+      if (fz && fz.seen === f && !fz.dead) continue;   // (in a frozen subtree the walk took whole)
       if (node.shown) { node.shown = false; B.visible?.(id, false); }
-      if (f - node.seen > this.forgetAfter && !inScene(node.object, scene)) { B.remove?.(id); this.nodes.delete(id); this.ids.delete(node.object); if (node.object.__mirror === node) node.object.__mirror = null; this.stats.nodes--; }
+      if (f - node.seen > this.forgetAfter && !inScene(node.object, scene)) { B.remove?.(id); node.dead = true; this.nodes.delete(id); this.ids.delete(node.object); if (node.object.__mirror === node) node.object.__mirror = null; this.stats.nodes--; }
     }
+    if (this.freeze) this._still(scene, f);
     if (camera) {
       this._cam.set(camera.matrixWorld.elements);
       B.camera?.({ world: this._cam, fov: camera.fov, near: camera.near, far: camera.far, aspect: camera.aspect, zoom: camera.zoom ?? 1 });
@@ -314,6 +331,18 @@ export class SceneMirror {
     this.prof = { matrices: 0, walk: 0, bones: 0, tail: 0, frame: 0, frames: 0 };
     return out;
   }
+
+  /** The frozen subtrees: a few looked at for what has no hook, and the scene surveyed for more now and then. */
+  _still(scene, f) {
+    let L = this._frozen;
+    if (this._frozenDirty) { L = this._frozen = L.filter((r) => !r.dead); this._frozenDirty = false; }
+    const k = Math.ceil(L.length / CHECK_ROUND);
+    for (let i = 0; i < k && L.length; i++) { const r = L[this._checkAt++ % L.length]; if (!r.dead) r.check(f, attrVersion); }
+    if (f % SURVEY_EVERY === 0) survey(this, scene, f);
+  }
+
+  /** Every frozen subtree thawed (a test, or before the scene is handed elsewhere). */
+  thawAll() { for (const r of this._frozen) r.thaw(); this._frozen = []; this._frozenDirty = false; }
 
   _grow() {
     const ids = new Int32Array(this._ids.length * 2); ids.set(this._ids); this._ids = ids;
@@ -339,11 +368,13 @@ function attrVersion(geo, frame = -1) {
   }
   // (a new index, setIndex: a new shape, whatever its version says)
   if (c.index !== geo.index) { c.index = geo.index; c.epoch++; }
+  else if (frame >= 0 && c.vf === frame) return c.v;   // (a geometry drawn by many: summed once a frame)
   let v = geo.index ? geo.index.version + 1 : 0;
   const L = c.list;
   // (an interleaved attribute, as glTF loads them, keeps its version on its buffer)
   for (let i = 0; i < L.length; i++) { const a = L[i]; v += (a.isInterleavedBufferAttribute ? a.data.version : a.version) ?? 0; }
-  return (v * 64 + L.length) + c.epoch * 1e12;
+  c.vf = frame;
+  return (c.v = (v * 64 + L.length) + c.epoch * 1e12);
 }
 
 /** A plain mesh's instanced geometry with a count of its own (the grass blades: flora-grass.js). */
@@ -372,6 +403,21 @@ function sameShape(geo, g) {
   return now.position !== was.position || now.normal !== was.normal || now.aAlpha !== was.aAlpha;
 }
 const plain = (a) => (a.isInterleavedBufferAttribute ? deinterleave(a) : a.array);
+
+/**
+ * Does anything that is not a bone hang below this bone? Kept on the bones, and forgotten up the chain when a
+ * child is added to or taken from one of them (three's childadded / childremoved).
+ */
+function boneCarries(b) {
+  const c = b.__mirrorCarries;
+  if (c !== undefined) return c;
+  if (!b.__mirrorBoneWatch) { b.__mirrorBoneWatch = true; b.addEventListener?.('childadded', forgetCarries); b.addEventListener?.('childremoved', forgetCarries); }
+  let any = false;
+  const ch = b.children;
+  for (let i = 0; i < ch.length; i++) if (!ch[i].isBone || boneCarries(ch[i])) any = true;
+  return (b.__mirrorCarries = any);
+}
+function forgetCarries(e) { for (let p = e.target; p && p.isBone; p = p.parent) p.__mirrorCarries = undefined; }
 
 function inScene(o, scene) { for (let p = o; p; p = p.parent) if (p === scene) return true; return false; }
 

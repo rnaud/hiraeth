@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,22 +13,77 @@ namespace Memento.Bridge
     /// What the game's JavaScript calls in Unity (engine/unity/host.js and backend.js, through Puerts'
     /// CS object): the scene mirror's ops, the files and the save, the clock, the keys and pads, and the
     /// batch run's shots and exit. Static, for Puerts' reflection; the scene's BridgeRunner sets Runner.
+    ///
+    /// The script runs on a thread of its own (BridgeRunner: the next frame's script while Unity draws this one),
+    /// so what touches Unity is handed to the main thread: the ops in order (On), what returns a value waited for
+    /// (Ask); the keys, pads and frame times are read from what the main thread took at the frame's start.
+    /// Without the thread (-js-main) both run at once, as before.
     /// </summary>
     public static class BridgeHost
     {
         public static BridgeRunner Runner;
-        static BridgeRenderer R => Runner ? Runner.scene : null;
+        static BridgeRenderer R => (object)Runner != null ? Runner.scene : null;
+
+        // ---------------------------------------------------------------- the script's thread and the main one
+        public static Thread Main;
+        static readonly object gate = new();
+        static List<Action> ops = new(), spare = new();
+        static readonly Stopwatch clock = Stopwatch.StartNew();
+        static double clock0;
+        /// <summary>Set when the script has handed something over (an op, a question, its frame done).</summary>
+        public static readonly AutoResetEvent Wake = new(false);
+        static bool OnMain => Main == null || Thread.CurrentThread == Main;
+
+        /// <summary>Done on the main thread: now if this is it, else at the next RunOps (in the order handed over).</summary>
+        public static void On(Action a)
+        {
+            if (OnMain) { a(); return; }
+            lock (gate) ops.Add(a);
+            Wake.Set();
+        }
+        /// <summary>Asked of the main thread and waited for (a file in the APK, the save).</summary>
+        static T Ask<T>(Func<T> f)
+        {
+            if (OnMain) return f();
+            T v = default; Exception err = null;
+            using var done = new ManualResetEventSlim(false);
+            On(() => { try { v = f(); } catch (Exception e) { err = e; } done.Set(); });
+            done.Wait();
+            if (err != null) throw err;
+            return v;
+        }
+        /// <summary>A function run on the main thread, its value waited for (Puerts' loader, made on the script's thread).</summary>
+        public static object OnMainThread(Func<object> f) => Ask(f);
+        /// <summary>The main thread: what the script handed over since the last call, in order.</summary>
+        public static int RunOps()
+        {
+            List<Action> list;
+            lock (gate) { if (ops.Count == 0) return 0; list = ops; ops = spare; spare = list; }
+            int n = list.Count;
+            try { foreach (var a in list) a(); }
+            finally { list.Clear(); }
+            return n;
+        }
+        /// <summary>The main thread, at a frame's start: what the script reads this frame (keys, pads, the mouse, the frame times).</summary>
+        public static void Snapshot()
+        {
+            keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook();
+            if ((object)Runner != null) { cpuMs = Runner.cpuMs; gpuMs = Runner.gpuMs; }
+            clock0 = Time.realtimeSinceStartupAsDouble * 1000 - clock.Elapsed.TotalMilliseconds;
+        }
+        static string keys = "", pad, mouse;
+        static double cpuMs, gpuMs;
 
         // ---------------------------------------------------------------- the mirror's ops
-        public static void Geometry(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Geometry(key, b, n); }
-        public static void Material(int mid, string json) => R?.Material(mid, json);
+        public static void Geometry(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Geometry(key, b, n)); }
+        public static void Material(int mid, string json) => On(() => R?.Material(mid, json));
         /// <summary>The coral-shirt traveller's overshirt, done here (BridgeCloth): its description, once (engine/cloth.js packClothDesc).</summary>
-        public static void Cloth(int id, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Cloth(id, b, n); }
+        public static void Cloth(int id, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Cloth(id, b, n)); }
         /// <summary>A MakeHuman face's shape keys as the mesh's blend shapes (engine/unity/backend.js faceKeyDeltas).</summary>
-        public static void FaceKeys(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.FaceKeys(key, b, n); }
-        public static double ClothMs() { var r = R; if (!r) return 0; var v = r.msCloth; r.msCloth = 0; return v; }
-        public static void Create(int id, string json) => R?.Create(id, json);
-        public static void SetMesh(int id, string key) => R?.SetMesh(id, key);
+        public static void FaceKeys(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.FaceKeys(key, b, n)); }
+        public static double ClothMs() { var r = R; if (r is null) return 0; var v = r.msCloth; r.msCloth = 0; return v; }
+        public static void Create(int id, string json) => On(() => R?.Create(id, json));
+        public static void SetMesh(int id, string key) => On(() => R?.SetMesh(id, key));
         /// <summary>Does the script box its buffers ({ b: buffer })? In an IL2CPP player Puerts hands an `object` over as a ScriptObject.</summary>
         public static bool BoxBuffers()
         {
@@ -35,31 +93,41 @@ namespace Memento.Bridge
             return false;
 #endif
         }
-        public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Frame(b, n); }
-        public static void Look(string json) => Runner?.Look(json);
+        public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Frame(b, n)); }
+        public static void Look(string json) => On(() => Runner?.Look(json));
         /// <summary>What the screen shows (src/platform.js screen), when it changed: BridgeHud draws it.</summary>
         /// <summary>The sound (BridgeAudio): the output rate (0: none), the frames queued, the next PCM (float32 stereo).</summary>
-        public static int AudioRate() => Runner && Runner.audioOut ? Runner.audioOut.rate : 0;
-        public static int AudioQueued() => Runner && Runner.audioOut ? Runner.audioOut.Queued : 0;
-        public static void Audio(object buffer) { if (!Runner || !Runner.audioOut) return; var b = JsRuntime.Bytes(buffer, out int n); Runner.audioOut.Push(b, n); }
-        public static void Screen(string json) { if (Runner && Runner.hud) Runner.hud.Set(json); }
+        // (BridgeAudio's ring is locked: these are safe on the script's thread)
+        static BridgeAudio Sound => (object)Runner != null && Runner.audioOut is BridgeAudio a ? a : null;
+        public static int AudioRate() => Sound?.rate ?? 0;
+        public static int AudioQueued() => Sound?.Queued ?? 0;
+        public static void Audio(object buffer) { var s = Sound; if (s is null) return; var b = JsRuntime.Bytes(buffer, out int n); s.Push(b, n); }
+        public static void Screen(string json) => On(() => { if (Runner && Runner.hud) Runner.hud.Set(json); });
 
         // ---------------------------------------------------------------- the platform
-        public static double Now() => Time.realtimeSinceStartupAsDouble * 1000;
+        /// <summary>Unity's clock in ms (on the script's thread: a stopwatch set to it at each frame's start).</summary>
+        public static double Now() => OnMain ? Time.realtimeSinceStartupAsDouble * 1000 : clock0 + clock.Elapsed.TotalMilliseconds;
 
         /// <summary>A file of the web game's public/ folder (anim/*.glb…) as an ArrayBuffer, or null.</summary>
         public static object ReadFile(string path)
         {
-            foreach (var root in Runner ? Runner.PublicRoots() : new string[0])
+            // (a folder's files are read here; the APK's through UnityWebRequest, on the main thread)
+            var b = StreamingFile.InArchive ? Ask(() => ReadPublic(path)) : ReadPublic(path);
+            return b != null ? JsRuntime.ToScript(b) : null;
+        }
+        static string[] roots;
+        static byte[] ReadPublic(string path)
+        {
+            foreach (var root in roots ??= (object)Runner != null ? Runner.PublicRoots() : new string[0])
             {
                 var b = StreamingFile.Read(Path.Combine(root, path));
-                if (b != null) return JsRuntime.ToScript(b);
+                if (b != null) return b;
             }
             return null;
         }
-        public static string StorageGet(string k) => PlayerPrefs.HasKey("memento.js." + k) ? PlayerPrefs.GetString("memento.js." + k) : null;
-        public static void StorageSet(string k, string v) { PlayerPrefs.SetString("memento.js." + k, v); PlayerPrefs.Save(); }
-        public static void StorageRemove(string k) { PlayerPrefs.DeleteKey("memento.js." + k); }
+        public static string StorageGet(string k) => Ask(() => PlayerPrefs.HasKey("memento.js." + k) ? PlayerPrefs.GetString("memento.js." + k) : null);
+        public static void StorageSet(string k, string v) => On(() => { PlayerPrefs.SetString("memento.js." + k, v); PlayerPrefs.Save(); });
+        public static void StorageRemove(string k) => On(() => PlayerPrefs.DeleteKey("memento.js." + k));
 
         // ---------------------------------------------------------------- input (as the page's: KeyboardEvent.code names, a standard Gamepad)
         static readonly Dictionary<Key, string> Codes = new()
@@ -73,7 +141,10 @@ namespace Memento.Bridge
         };
         static readonly StringBuilder sb = new();
         /// <summary>The keys held now, comma-separated KeyboardEvent codes.</summary>
-        public static string Keys()
+        public static string Keys() => OnMain ? ReadKeys() : keys;
+        public static string Pad() => OnMain ? ReadPad() : pad;
+        public static string MouseLook() => OnMain ? ReadMouseLook() : mouse;
+        static string ReadKeys()
         {
             var kb = Keyboard.current;
             if (kb == null) return "";
@@ -82,7 +153,7 @@ namespace Memento.Bridge
             return sb.ToString();
         }
         /// <summary>The first pad in the standard mapping: "b0,…,b16|lx,ly,rx,ry" (values 0..1), or null.</summary>
-        public static string Pad()
+        static string ReadPad()
         {
             var g = Gamepad.current;
             if (g == null) return null;
@@ -94,7 +165,7 @@ namespace Memento.Bridge
             return string.Join(",", v) + "|" + $"{ls.x},{-ls.y},{rs.x},{-rs.y}";
         }
         /// <summary>The mouse's move this frame while the right button is held: "dx,dy" (pixels, y down), or null.</summary>
-        public static string MouseLook()
+        static string ReadMouseLook()
         {
             var m = Mouse.current;
             if (m == null || !m.rightButton.isPressed) return null;
@@ -103,12 +174,18 @@ namespace Memento.Bridge
         }
 
         // ---------------------------------------------------------------- a batch run's
-        public static void Shot(string path) => Runner?.Shot(path);
+        public static void Shot(string path) => On(() => Runner?.Shot(path));
         public static void WriteText(string path, string text) { Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, text); }
-        public static double LastFrameCpuMs() => Runner ? Runner.cpuMs : 0;
-        public static double LastFrameGpuMs() => Runner ? Runner.gpuMs : 0;
+        public static double LastFrameCpuMs() => OnMain ? (Runner ? Runner.cpuMs : 0) : cpuMs;
+        public static double LastFrameGpuMs() => OnMain ? (Runner ? Runner.gpuMs : 0) : gpuMs;
+        /// <summary>The GPU's passes, ms a frame since the last call (BridgeGpuSplit; "{}" without -split).</summary>
+        public static string GpuSplit() => Ask(() => Runner && Runner.gpuSplit != null ? Runner.gpuSplit.Take() : "{}");
         /// <summary>The C# side's time applying the frames' commands since the last call (ms, summed).</summary>
-        public static double ApplyMs() { var r = R; if (!r) return 0; var v = r.msFrame; r.msFrame = 0; return v; }
-        public static void Exit(int code) => Runner?.Exit(code);
+        public static double ApplyMs() { var r = R; if (r is null) return 0; var v = r.msFrame; r.msFrame = 0; return v; }
+        public static void Exit(int code) => On(() => Runner?.Exit(code));
+        /// <summary>The main thread's time waiting on the script's frame since the last call (ms, summed; 0 without the thread).</summary>
+        public static double WaitMs() { var r = Runner; if (r is null) return 0; var v = r.waitMs; r.waitMs = 0; return v; }
+        /// <summary>Is the script on a thread of its own?</summary>
+        public static bool Threaded() => Main != null;
     }
 }

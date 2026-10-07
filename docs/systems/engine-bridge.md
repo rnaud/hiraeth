@@ -706,6 +706,46 @@ on the main thread. Its GPU is now the heavier side: the port's composite took o
 GPU's (12.8 ms). Next for speed: the mirror's walk (static subtrees skipped), and the composite's passes
 compiled in only where a look asks for them, as post.js does (`inkFeatures`).
 
+## Speed: the script on its own thread, still subtrees (Unity + Puerts, 2026-10-07)
+
+Profiled in a development player (`BridgeBuild.Mac -development`, the bench's `-split`: the mirror's parts,
+and Unity's own main-thread samplers by name, `BridgeGpuSplit.cs`; this Mac's Metal has no GPU recorders, so
+those are CPU times), the player was CPU-bound everywhere but the City-Shaft: at the camps 12.7 ms a frame,
+of which the script 8.7 (the game's update 5.4, the mirror 2.8), Unity's culling and render-graph recording
+2–3, the overshirt's job waited for 0.65; the GPU 6.9. The script and Unity's drawing ran one after the other
+on the main thread. Three changes:
+
+- **The script on a thread of its own, a frame ahead** (BridgeRunner.cs, BridgeHost.cs). While Unity draws
+  frame N, the script plays frame N + 1. At the next Update the main thread waits for it, applying what it
+  hands over as it comes (every op that touches Unity is queued in order, `BridgeHost.On`; what returns a value
+  is asked of the main thread and waited for: a file inside the APK, the save, `Ask`), takes the keys, the pad,
+  the mouse and the frame times for the next frame (`Snapshot`), and lets it go. The frame costs the longer of
+  the two, not their sum; the picture is one frame behind the script (as the web's is behind its GPU).
+  V8 takes its stack limit from the thread that makes the isolate, so the JsEnv is made on the script's thread
+  (64 MB of stack); Puerts reads its own scripts from Resources as it starts, which only the main thread may,
+  so a loader hands those reads over (`Assets/MementoJS/Puerts/MainThreadLoader.cs`, an assembly that compiles
+  only where Puerts is installed, found by name). On macOS a plain thread ran on the efficiency cores, the
+  script ten times slower: it asks for the main thread's class (`pthread_set_qos_class_self_np`,
+  USER_INTERACTIVE). `-js-main` (or `"jsMain": true`) runs the script in Update as before. The bench's split
+  says how long the main thread waited (`mainWait`) and that the thread ran (`threaded`).
+- **Still subtrees frozen** (engine/mirror-freeze.js). Every 30 frames the mirror looks for the largest
+  subtrees whose drawables have not moved for 45 frames (plain groups and meshes: no bones, instances, lines,
+  render hooks, face keys or own matrices) and freezes them: the walk takes such a subtree whole (its drawables
+  seen, its materials' live colours still looked at) without going in, and three's matrix update stops at its
+  root while the root's parent stays where it was. Every object in it is watched, so a change thaws it at once,
+  before the next frame's matrices: position and scale (their x, y, z made accessors), rotation and quaternion
+  (their change callbacks), `visible`, a child added or removed, the root moved elsewhere, its parent's world
+  matrix. A geometry rewritten or swapped, or a render hook set later, has no hook: each frozen subtree is looked
+  at for those once every 8 frames. One that thaws soon after freezing waits twice as long each time. At the
+  dunes this halved the mirror (2.1 to 0.8 ms in Node's VM, the walk 1.8 to 0.6), at the camps a third.
+  tests/mirror-freeze.test.js plays 400 frames of random moves, turns, hides, adds, removes and reparentings
+  on two copies of a world and checks the frozen mirror says exactly what a full walk says, every frame.
+- **The bones walked only down to what hangs on them** (a prop in a hand), and a geometry's version summed once
+  a frame however many drawables share it.
+- **The composite's passes compiled in only where a look asks for them**, as post.js's `inkFeatures`: the
+  spot blacks, the haze (layers and height fog), the cast and the ink shadows are Composite.shader keywords
+  (`MEMENTO_INK_SPOT`, `_HAZE`, `_CAST`, `_SHADOW`) that MementoLook sets from the look's own values.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

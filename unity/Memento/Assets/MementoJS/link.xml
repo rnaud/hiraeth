@@ -1,9 +1,11 @@
 <!-- The JS bridge's players (IL2CPP): what the bundle reaches by reflection stays whole. Puerts' own
      assemblies (JsRuntime.cs finds its JsEnv by name; the V8 backend is found the same way) and the
-     bridge's host, whose static methods the script calls through Puerts (CS.Memento.Bridge.BridgeHost). -->
+     bridge's host, whose static methods the script calls through Puerts (CS.Memento.Bridge.BridgeHost), and its
+     loader for a script made off the main thread (Puerts/MainThreadLoader.cs, found by name). -->
 <linker>
   <assembly fullname="com.tencent.puerts.core" preserve="all" />
   <assembly fullname="com.tencent.puerts.v8" preserve="all" />
+  <assembly fullname="Memento.Bridge.Puerts" preserve="all" />
   <assembly fullname="Assembly-CSharp">
     <namespace fullname="Memento.Bridge" preserve="all" />
   </assembly>

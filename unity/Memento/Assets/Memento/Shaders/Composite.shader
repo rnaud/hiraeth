@@ -22,6 +22,12 @@ Shader "Hidden/Memento/Composite"
       #pragma target 4.5
       #pragma vertex vert
       #pragma fragment frag
+      // the look's optional passes, compiled in only where a look asks for them (post.js inkFeatures; MementoLook sets
+      // them): spot blacks, haze by depth and height, cast shadows lifted, cast shadows printed as ink
+      #pragma multi_compile _ MEMENTO_INK_SPOT
+      #pragma multi_compile _ MEMENTO_INK_HAZE
+      #pragma multi_compile _ MEMENTO_INK_CAST
+      #pragma multi_compile _ MEMENTO_INK_SHADOW
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
       Texture2D _GAlbedo, _GNormal, _GHatch, _GBloom, _GBloom2;
@@ -467,8 +473,12 @@ Shader "Hidden/Memento/Composite"
         if (!isSky)
         {
           float facing = smoothstep(0.02, 0.08, dot(N.xyz, _SunDir)), ground = smoothstep(0.55, 0.8, N.y), person = 1.0 - max(max(face, figure), hero);
+          #if defined(MEMENTO_INK_CAST)
           castPot = facing * lerp(_Cast.y, _Cast.x, ground) * person;
+          #endif
+          #if defined(MEMENTO_INK_SHADOW)
           inkPot = facing * lerp(_InkShadow.y, _InkShadow.x, ground) * person * spotMat * (1.0 - soft);
+          #endif
         }
 
         int dbg = (int)(_Debug + 0.5);
@@ -561,11 +571,12 @@ Shader "Hidden/Memento/Composite"
         float fogLine = 1.0 - exp(-max(nearD * toRange - _FogStart, 0.0) * _FogDensity * _FogMul * 1.4);
         ink *= 1.0 - fogLine;
         float2 hz = 0;
-        if (_HazeLayers.w > 0.0 || _HeightFog.w > 0.0)
+        #if defined(MEMENTO_INK_HAZE)
         {
           hz = hazeAt((isSky ? nearD : depth) * toRange, rd);
           ink *= (1.0 - hz.x * 0.85) * (1.0 - hz.y);
         }
+        #endif
 
         float3 col;
         if (isSky) {
@@ -628,6 +639,7 @@ Shader "Hidden/Memento/Composite"
             }
           }
           // ---- 3c. spot blacks: a shaded pocket filled with the world's darkest tone; cast shadows toward it
+          #if defined(MEMENTO_INK_SPOT)
           if (_Spot.x > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
             float3 spotC = _SpotTone.rgb * lerp(float3(1, 1, 1), clamp(albedo * 2.2, 0.0, 1.6), _SpotTone.a);
             float k = _Spot.x * spotMat * (1.0 - _Night * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - _Flatten) * (1.0 - lit);
@@ -638,6 +650,7 @@ Shader "Hidden/Memento/Composite"
             col = lerp(col, spotC, spot * k);
           }
           // ---- 3d. ink shadows: a cast shadow printed as one flat mass of the spot tone (post.js uInkShadow)
+          #endif
           if (inkMass > 0.0) col = lerp(col, _SpotTone.rgb * lerp(float3(1, 1, 1), clamp(albedo * 2.2, 0.0, 1.6), _SpotTone.a), inkMass);
           // ---- 4. atmospheric perspective in flat layers, by distance
           float fog = 1.0 - exp(-max(depth * toRange - _FogStart, 0.0) * _FogDensity * _FogMul);
