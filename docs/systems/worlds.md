@@ -221,8 +221,9 @@ Reaching the console completes **The Last Broadcast**. Five relics are spread
 between the market, a stall roof, two bridges and the balcony. The scout, saves,
 sketchbook, controller and touch controls use the existing game systems.
 
-The stalls carry goods (October 2026, toward the reference sheets): five brass bowls heaped with fruit
-and jars on each counter, strings of goods hanging under the awning's edge, three round pictures on the
+The stalls carry goods (October 2026, toward the reference sheets): four heaps of fruit mounded over brass
+bowls (a cone of the fruit's colour under fruit on its slopes, so the pile reads full), crates stacked two
+or three high and a sack against a jar between them, strings of goods hanging under the awning's edge, three round pictures on the
 counter's front; their own random numbers, the existing buckets (no draws of their own), low-poly.
 
 Geometry is merged by street block and material for culling. Collision tests

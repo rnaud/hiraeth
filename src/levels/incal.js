@@ -13,6 +13,7 @@ import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped, runSteps } from '../load-steps.js';
+import { greebles } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
 // The City-Shaft: a city stacked down a 600 m pit.
@@ -144,6 +145,7 @@ export function* buildIncal(scene) {
   const roofMat = (i) => makeMaterial({ color: ROOFS[i % ROOFS.length], flat: true, pattern: 'tiles' });
   const ironMat = makeMaterial({ color: '#34405e', flat: true, metal: 'iron' });
   const doorMat = makeMaterial({ color: '#5a3a2c', flat: true });
+  const underPipeMat = makeMaterial({ color: '#7f93a3', flat: true, metal: 'steel' });   // (the pipes under the terraces)
   // the houses' small work (the reference sheets: pipes down the walls, washing on the balconies, the
   // plating under the terraces) draws from its own numbers, so the town's layout keeps its own, and
   // goes into the iron and the stalls' cloth buckets: no draws of its own
@@ -314,6 +316,22 @@ export function* buildIncal(scene) {
           const rr = r0 + 6 + work() * 12, pts = [];
           for (let k = 0; k <= 12; k++) { const b = a0 + 0.01 + (span - 0.02) * (k / 12); pts.push(new THREE.Vector3(Math.cos(b) * rr, under - 1.6, Math.sin(b) * rr)); }
           bucket('iron', ironMat).push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 28, 0.6, 4));
+        }
+        // the sheets' dense small machinery under the overhang (greeble-kit.js): pipe runs, casings, plates and
+        // pipes hung on rods, in the slab's underside between the ribs, whose gaps the spot blacks fill (solid as drawn:
+        // you fly under them). Its own numbers, so the town keeps its layout.
+        {
+          const G = greebles(1977 + li * 31 + s), cells = Math.max(2, Math.round(span * R / 26)), V3 = (a, b, c) => new THREE.Vector3(a, b, c);
+          for (let c = 0; c < cells; c++) {
+            const b = a0 + ((c + 0.5) / cells) * span, ca = Math.cos(b), sa = Math.sin(b), t = V3(-sa, 0, ca), w = (span * R / cells) * 0.7;
+            G.patch(V3(ca * (r0 + 2), under, sa * (r0 + 2)).addScaledVector(t, -w / 2), t, V3(ca, 0, sa), V3(0, -1, 0), w, (R - r0) * 0.8, { density: 0.35, scale: 2.4, hang: true, depth: 2.2 });
+          }
+          // (the town's buckets merge indexed geometry: give the kit's an index of its own)
+          const idx = (g) => { g.setIndex([...Array(g.attributes.position.count).keys()]); return g; };
+          const m = G.merged();
+          if (m.metal) bucket('underPipe', underPipeMat).push(idx(m.metal));
+          if (m.dark) bucket('iron', ironMat).push(idx(m.dark));
+          if (m.pale) bucket('underPipe', underPipeMat).push(idx(m.pale));
         }
       }
 

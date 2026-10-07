@@ -4,6 +4,7 @@ import { createNoise2D, mulberry32 } from '../noise.js';
 import { V, tube, put, smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
 import { cloudSea } from './reference-vael2.js';
 import { BURIED_SPOTS } from './buried.js';
+import { greebles } from './greeble-kit.js';
 import { formAxis } from '../form.js';
 
 const wrapped = (g) => formAxis(g, 'wrap');   // a cylinder made about y: its strokes wrap round it
@@ -166,7 +167,7 @@ function pipeMass(kit, M, { x0, z0, x1, z1, w, deep, seed = 1, density = 1 }) {
  * A wall pierced by ovals: w wide, h high, t thick, its face at (x, y0, z) turned by yaw; holes
  * [[cx, cy, rx, ry]…] in the wall's own frame (cx from its middle, cy from its foot), each rimmed.
  */
-function ovalWall(kit, M, { x, z, y0 = 0, w, h, t = 3, yaw = 0, holes = [], mat = 'rust', rim = 'rustDark', fill = null }) {
+function ovalWall(kit, M, { x, z, y0 = 0, w, h, t = 3, yaw = 0, holes = [], mat = 'rust', rim = 'rustDark', fill = null, fine = 1.6 }) {
   // an oval reaching the floor is a doorway: cut into the wall's outline (its sides straight down), not a hole
   const door = holes.find(([, cy, , ry]) => cy - ry < 0.6);
   const sh = new THREE.Shape();
@@ -186,6 +187,19 @@ function ovalWall(kit, M, { x, z, y0 = 0, w, h, t = 3, yaw = 0, holes = [], mat 
   }
   const g = new THREE.ExtrudeGeometry(sh, { depth: t, bevelEnabled: false, curveSegments: 40 }).translate(0, 0, -t / 2);
   kit.add(M[mat], put(g, x, y0, z, yaw));
+  // the sheets' small machinery climbing the wall's foot on its near face (greeble-kit.js), in columns that stop
+  // short of the ovals
+  if (fine) {
+    const G = greebles(x * 3 + z), col = 6, foot = h * 0.28;
+    for (let c = -w / 2; c < w / 2 - 1; c += col) {
+      let top = foot;
+      for (const [cx, cy, rx, ry] of holes) if (c + col > cx - rx && c < cx + rx) top = Math.min(top, cy - ry - 0.6);
+      if (top < 1.5) continue;
+      G.patch(new THREE.Vector3(c, 0.2, t / 2), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1), Math.min(col, w / 2 - c), top, { density: fine, scale: 1, depth: 1 });
+    }
+    const m = G.merged();
+    for (const [k, mm] of [['metal', 'rustDark'], ['dark', mat], ['pale', 'pipe']]) if (m[k]) kit.add(M[mm], put(m[k], x, y0, z, yaw), { solid: false });
+  }
   for (const hole of holes) {
     const [cx, cy, rx, ry] = hole, at = [x + Math.cos(yaw) * cx, z - Math.sin(yaw) * cx];
     if (hole === door) {
@@ -206,14 +220,26 @@ function tank(kit, M, { x, z, r, h, y = null, mat = 'rust' }) {
   kit.add(M.rustDark, new THREE.SphereGeometry(r, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.3, 1).translate(x, y0 + h, z));
 }
 
-/** Machinery against a wall: boxes, little tanks, hatches, a few lamps, along a line from (x0, z0) to (x1, z1). */
-function machinery(kit, M, { x0, z0, x1, z1, y0 = 0, y1 = 20, depth = 4, n = 30, seed = 1, mats = ['rust', 'rustPale', 'rustDark'], lamps = 0 }) {
+/** Machinery against a wall: boxes, little tanks, hatches, a few lamps, along a line from (x0, z0) to (x1, z1); `fine`: the small work's density (0: none). */
+function machinery(kit, M, { x0, z0, x1, z1, y0 = 0, y1 = 20, depth = 4, n = 30, seed = 1, mats = ['rust', 'rustPale', 'rustDark'], lamps = 0, fine = 1.2 }) {
   const rng = mulberry32(seed), L = Math.hypot(x1 - x0, z1 - z0), yaw = Math.atan2(x1 - x0, z1 - z0) + Math.PI / 2;
   for (let i = 0; i < n; i++) {
     const t = rng(), px = x0 + (x1 - x0) * t, pz = z0 + (z1 - z0) * t, w = 1 + rng() * L * 0.08, hh = 1 + rng() * (y1 - y0) * 0.35, d = depth * (0.3 + rng() * 0.7);
     const y = y0 + rng() * (y1 - y0 - hh);
     const g = rng() < 0.3 ? new THREE.CylinderGeometry(d / 2, d / 2, hh, 12).translate(0, hh / 2, 0) : new THREE.BoxGeometry(w, hh, d).translate(0, hh / 2, 0);
     kit.add(M[mats[Math.floor(rng() * mats.length)]], put(g, px, y, pz, yaw));
+  }
+  // and the sheets' small machinery over and between them (greeble-kit.js): pipe runs, valves, conduits, casings,
+  // on the wall face at `depth` behind the line, facing the camera's side of it
+  if (fine) {
+    const u = new THREE.Vector3(x1 - x0, 0, z1 - z0).normalize(), nrm = new THREE.Vector3(-u.z, 0, u.x);
+    if (nrm.x * -x0 + nrm.z * -z0 < 0) nrm.negate();
+    const G = greebles(seed * 13 + 7);
+    G.patch(new THREE.Vector3(x0, y0, z0).addScaledVector(nrm, -depth * 0.5), u, new THREE.Vector3(0, 1, 0), nrm, L, y1 - y0, { density: fine, scale: Math.max(0.7, (y1 - y0) / 30), depth: depth * 0.8 });
+    const m = G.merged();
+    if (m.metal) kit.add(M.rustDark, m.metal, { solid: false });
+    if (m.dark) kit.add(M[mats[0]], m.dark, { solid: false });
+    if (m.pale) kit.add(M.pipe, m.pale, { solid: false });
   }
   for (let i = 0; i < lamps; i++) {
     const t = rng(), px = x0 + (x1 - x0) * t, pz = z0 + (z1 - z0) * t;
@@ -279,6 +305,21 @@ function drumInside(kit, M, rng, { x, z, r, y0, y1, gap, mat, inside }) {
     }
     kit.add(M[dark], new THREE.CylinderGeometry(r - 0.6, r - 0.6, 0.7, 64, 1, true, gap / 2, Math.PI * 2 - gap).translate(x, y + th + 0.35, z), nd);
     y += th + 0.7;
+  }
+  // the sheets' dense small machinery over the inside wall (greeble-kit.js): strips between the bays' piers, pipes
+  // and casings whose gaps the spot blacks fill
+  if (inside > 0) {
+    const G = greebles(x * 7 + z), strips = Math.round((Math.PI * 2 * r) / 9), V3 = (a, b, c) => new THREE.Vector3(a, b, c);
+    for (let i = 0; i < strips; i++) {
+      const a = gap / 2 + ((i + 0.5) / strips) * (Math.PI * 2 - gap);
+      if (!open(a)) continue;
+      const dx = Math.sin(a), dz = Math.cos(a), t = V3(dz, 0, -dx), w = 4;
+      G.patch(V3(x + dx * (r - 0.15), y0 + 0.5, z + dz * (r - 0.15)).addScaledVector(t, -w / 2), t, V3(0, 1, 0), V3(-dx, 0, -dz), w, (y1 - y0) * 0.9, { density: 2 * inside, scale: Math.max(0.8, r / 34), depth: 0.8 });
+    }
+    const m = G.merged();
+    if (m.metal) kit.add(M[body], m.metal, nd);
+    if (m.dark) kit.add(M[dark], m.dark, nd);
+    if (m.pale) kit.add(M.pipe, m.pale, nd);
   }
   const n = Math.round(r * 5 * inside);
   for (let i = 0; i < n; i++) {

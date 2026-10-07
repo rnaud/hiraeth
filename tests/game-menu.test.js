@@ -237,3 +237,27 @@ test('nothing the sketchbook held is lost: the menu reads the gear, the charge, 
   assert.match(src('index.html'), /<div id="journal"><\/div>/);
   assert.match(src('src/boot.js'), /import '\.\/game-menu\.css';/);
 });
+
+test('the Quests panel names what you finished in other worlds, whose quests are not defined where you are now', () => {
+  // in Vael: Vael's own quest under way, the desert's and the City-Shaft's finished there (only their flags here)
+  const flags = { 'quest.desert.power': 'done', 'quest.incal.light': 'done' }, game = { flag: (k) => flags[k], set: (k, v) => { flags[k] = v; }, emit() {} };
+  const q = new Quests({ game });
+  q.define({ id: 'arzach.bird', title: 'The Waiting Bird', world: 'arzach', main: true, stages: [{ id: 'a', text: 'Find Oïa', at: [0, 0, 0] }] });
+  q.start('arzach.bird');
+  const d = questsData({ quests: q });
+  assert.deepEqual(d.active.map((x) => x.id), ['arzach.bird']);
+  const titles = d.done.map((x) => x.title);
+  assert.ok(titles.includes('The Tree That Drinks'), `done: ${titles.join(', ')}`);
+  assert.ok(d.done.some((x) => x.id === 'incal.light'), 'the City-Shaft’s too');
+  assert.match(questsPanel(d).html, /class="ended"[^>]*><i>✓<\/i>The Tree That Drinks/);
+  assert.doesNotMatch(questsPanel(d).html, /None yet/);
+});
+
+test('a story told in an older save, before pages were drawn, reads as told in the Sketchbook', () => {
+  const sk = sketchesData({ data: { stories: { desert: { t: 1 } } }, levels: [{ id: 'desert', title: 'The Desert', relicNames: [] }] });
+  assert.equal(sk.worlds[0].story.told, true);
+  assert.equal(sk.worlds[0].story.img, null);
+  const story = sketchesPanel(sk).rows.flat().find((c) => c.kind === 'story');
+  assert.match(story.sub, /the story, told/);
+  assert.match(story.desc, /older save/);
+});

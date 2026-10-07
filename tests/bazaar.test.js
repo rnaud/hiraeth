@@ -34,7 +34,8 @@ test('taxis initialize and the crowd walks the avenue, sidewalks and skybridges'
  assert.ok(routes.length>=10,`walkable crowd routes: ${routes.length}`);
  assert.ok(routes.some(r=>r.pts[0].y>15),'someone strolls across a skybridge');
  for(const route of routes) for(const p of route.pts) assert.ok(Math.abs(physics.groundAt(p.x,p.y+1,p.z,3)-p.y)<1e-6);
- const triangles=physics.triangles;assert.ok(triangles<30000,`static collision budget: ${triangles}`);
+ // (the back alleys' small machinery, climbed as drawn, greeble-kit.js: ~27 k → ~52 k, docs/systems/references.md)
+ const triangles=physics.triangles;assert.ok(triangles<56000,`static collision budget: ${triangles}`);
 });
 
 test('the broadcast page closes with the story (the quest), not on arriving at the balcony', async()=>{

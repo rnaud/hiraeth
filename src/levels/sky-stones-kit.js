@@ -154,7 +154,17 @@ export function table(o) {
     }
     drip = lean0(drips(spots, { r: R * D.r, seed: seed + 3 }));
   }
-  return { vis, col, shadow, apex, drip, dripAt: drip ? spots : [] };
+  // a point on the underside as drawn (u 0 the neck … 1 the rim, a the angle) and the way out of it, before the lean:
+  // for what is hung from it or grows on it (arzach2.js: the knobs and ribs of rock under the overhangs)
+  const underAt = (u, a) => {
+    const w = Math.pow(u, 0.8), rg = { kind: 'u', u, y: neckY + under * Math.pow(u, 1.9) }, [m, dy] = shape(true)(a, rg);
+    const rr = lerp(stalk * neckR * 1.04, R, Math.pow(u, 0.7)) * m;
+    const p = new THREE.Vector3(x + ox * w + Math.cos(a) * rr, rg.y + dy, z + oz * w + Math.sin(a) * rr);
+    const slope = under * 1.9 * Math.pow(Math.max(u, 0.05), 0.9) / Math.max(R - stalk * neckR, 1);   // (dy / dr, roughly)
+    const n = new THREE.Vector3(Math.cos(a) * slope, -1, Math.sin(a) * slope).normalize();
+    return { p, n };
+  };
+  return { vis, col, shadow, apex, drip, dripAt: drip ? spots : [], underAt, lean: lean0 };
 }
 
 /**
