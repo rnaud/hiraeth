@@ -1,0 +1,29 @@
+TODO.md
+  s_55b4bc53b812ec::t_25f0ef46f31c7d 90-92
+changelog.md
+  s_55b4bc53b812ec::t_428333511c23ea 11
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_a882ca65d6d7cd 97-107
+src/changelog.js
+  s_55b4bc53b812ec::t_a1171047181995 15
+src/materials.js
+  s_55b4bc53b812ec::t_0059ffb4a82b43 148-151,842-850,2415-2416
+tests/halftone-cast.test.js
+  s_55b4bc53b812ec::t_02babf1745fb03 1-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "487f3e433cb049c24c31c5cdc3c9c58cdbb5495c",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
