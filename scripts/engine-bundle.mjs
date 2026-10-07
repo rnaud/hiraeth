@@ -18,7 +18,11 @@ export const ENTRIES = {
   godot: { input: 'engine/godot/game.js', out: ['godot/js/memento.js'] },
   // (into StreamingAssets, which is not committed, like the port's exports)
   unity: { input: 'engine/unity/game.js', out: ['unity/Memento/Assets/StreamingAssets/memento-js/memento.cjs'] },
+  // the sound's renderer on Unity's audio thread (engine/unity/audio-worker.js: the Web Audio shim alone)
+  'unity-audio': { input: 'engine/unity/audio-worker.js', out: ['unity/Memento/Assets/StreamingAssets/memento-js/audio.cjs'] },
 };
+/** What goes with an entry made from the command line (the Unity player needs its sound's renderer too). */
+const WITH = { unity: ['unity-audio'] };
 
 /**
  * GodotJS's V8 is built without ICU: a regular expression with a Unicode property escape
@@ -64,7 +68,8 @@ export async function bundle(name, override = {}) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const names = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ENTRIES);
+  const asked = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ENTRIES);
+  const names = [...new Set(asked.flatMap((n) => [n, ...(WITH[n] ?? [])]))];
   for (const n of names) {
     const r = await bundle(n);
     console.log(`${r.name}: ${r.out.map((o) => `${o.file} ${(o.bytes / 1e6).toFixed(2)} MB`).join(', ')} (${r.ms} ms)`);

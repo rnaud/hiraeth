@@ -854,6 +854,22 @@ the most of it.
   packets: the same to 0.1 mm for 20 frames, the same cloth after (within 2 mm on average: the packets carry floats,
   and the cloth's colliders amplify that). The people's update at the camps went from 3.8 to 1.9 ms a frame, the
   Market crowd's from 2.4 to 1.1.
+- **The sound rendered on a thread of its own** (engine/webaudio.js recorded, engine/unity/audio-worker.js;
+  BridgeRunner.RunAudio). The script's thread no longer renders: its Web Audio shim, recorded
+  (`installAudio({ record: true })`), keeps every node's and param's state as before (what the game reads back:
+  values, the clock) but writes down what is done to the graph (nodes made with their params, connections, param
+  events, starts and stops, types, buffers and waves once) and, a frame at a time, the blocks to render after
+  them, exactly the ones it rendered before (the ring kept AUDIO_AHEAD ahead); a Float64Array of tokens
+  (BridgeHost.AudioBatch). A second V8, on Unity's side on a thread of its own with only the shim in it
+  (StreamingAssets/memento-js/audio.cjs, `engine-bundle.mjs unity-audio`), makes the same graph from them
+  (`AudioReplay`: the same classes) and renders those blocks into the ring Unity plays; the sources that ended go
+  back for their onended. The recorded side keeps no graph of its own (only the replay drops what has ended from
+  what it fed: kept here as well, nothing could be collected), holds a source with an onended until it ends, and
+  tells the replay which nodes the game let go of (WeakRefs swept every 120 frames: a FinalizationRegistry's
+  callbacks never ran in Puerts' V8); a 45 s walk ended with 48 nodes in the replay's map, 543 freed.
+  tests/webaudio.test.js plays the game's own Sound for 150 frames rendered and recorded-and-replayed: the same
+  samples, every one. `-audio-js` renders on the script's thread as before. The sound's share of the script's
+  frame went from 0.28 to 0.05 ms at the camps.
 - **The mirror's freezing off by default** (above).
 
 ## Status

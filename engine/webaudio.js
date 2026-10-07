@@ -15,25 +15,46 @@
 // Approximations: the convolver is a feedback-delay reverb with the impulse's length as its decay
 // (a 3 s noise impulse convolved in JS would cost more than the rest of the game), the compressor a
 // simple peak follower, the analyser gives the last block's samples.
+//
+// Recorded (installAudio({ record: true }): the Unity bridge): the context keeps every node's and param's state as
+// above but renders nothing; what the game does to its graph is written down instead (ctx.takeOps(blocks): a
+// Float64Array of tokens, the blocks to render last), and an AudioReplay elsewhere (engine/unity/audio-worker.js, on
+// a thread of its own) builds the same graph from them and renders it, exactly as this context would have: the same
+// classes, the same ops at the same blocks. Its sources' ends come back (ctx.ended(ids): their onended).
 
 const Q = 128;   // the render quantum
+// (the recording's tokens: ops, node kinds, param events, properties)
+const OP = { new: 1, con: 2, dis: 3, pv: 4, pe: 5, cancel: 6, start: 7, stop: 8, prop: 9, buf: 10, wave: 11, free: 12, render: 13, state: 14 };
+const KIND = { dest: 0, gain: 1, osc: 2, biquad: 3, src: 4, pan: 5, conv: 6, comp: 7, an: 8, delay: 9 };
+const EV = { set: 0, lin: 1, exp: 2, target: 3 }, EV_NAME = ['set', 'lin', 'exp', 'target'];
+const PROP = { oscType: 1, biquadType: 2, buffer: 3, loop: 4, loopStart: 5, loopEnd: 6, convBuffer: 7, wave: 8 };
+const OSC_TYPES = ['sine', 'square', 'sawtooth', 'triangle', 'custom'];
+const BIQUAD_TYPES = ['lowpass', 'highpass', 'bandpass', 'notch', 'allpass', 'peaking', 'lowshelf', 'highshelf'];
+const STATES = ['running', 'suspended', 'closed'];
+let paramIds = 0, bufferIds = 0, waveIds = 0;
 
 // ------------------------------------------------------------------ AudioParam
 export class AudioParam {
   constructor(ctx, value, { min = -3.4e38, max = 3.4e38, rate = 'a' } = {}) {
-    this.ctx = ctx; this._v = value; this.defaultValue = value; this.minValue = min; this.maxValue = max; this.rate = rate;
+    this.ctx = ctx; this._v = value; this.defaultValue = value; this.minValue = min; this.maxValue = max; this.rate = rate; this.pid = ++paramIds;
     this.events = [];   // sorted by time: { type, t, v, tc }
     this.inputs = [];   // nodes modulating it (their output summed in)
     this._buf = new Float32Array(Q); this._block = -1;
   }
   get value() { return this.events.length ? this.at(this.ctx.currentTime) : this._v; }
   // (setting value is a setValueAtTime now, as browsers do; with nothing scheduled, just the value)
-  set value(v) { if (!Number.isFinite(v)) throw new TypeError('AudioParam: non-finite value'); if (!this.events.length) { this._v = v; return; } this.setValueAtTime(v, this.ctx.currentTime); }
+  set value(v) { if (!Number.isFinite(v)) throw new TypeError('AudioParam: non-finite value'); if (!this.events.length) { this._v = v; this.ctx._rec?.push(OP.pv, this.pid, v); return; } this.setValueAtTime(v, this.ctx.currentTime); }
   _add(e) {
     // (as browsers do: a non-finite value or time is a TypeError, not a NaN that silences the whole mix)
     if (!Number.isFinite(e.v) || !Number.isFinite(e.t)) throw new TypeError(`AudioParam: non-finite ${Number.isFinite(e.v) ? 'time' : 'value'}`);
     const i = this.events.findIndex((x) => x.t > e.t);
     if (i < 0) this.events.push(e); else this.events.splice(i, 0, e);
+    const R = this.ctx._rec;
+    if (R) {
+      R.push(OP.pe, this.pid, EV[e.type], e.v, e.t, e.tc ?? 0);
+      // (nothing renders here to fold what is past: folded as the value is read, which changes nothing it says)
+      if (this.events.length > 24) this.at(this.ctx.currentTime);
+    }
     return this;
   }
   setValueAtTime(v, t) { return this._add({ type: 'set', t, v }); }
@@ -41,7 +62,7 @@ export class AudioParam {
   exponentialRampToValueAtTime(v, t) { return this._add({ type: 'exp', t, v }); }
   setTargetAtTime(v, t, tc) { return this._add({ type: 'target', t, v, tc: Math.max(tc, 1e-4) }); }
   setValueCurveAtTime(curve, t, dur) { const n = curve.length; for (let i = 0; i < n; i++) this._add({ type: i ? 'lin' : 'set', t: t + (dur * i) / Math.max(n - 1, 1), v: curve[i] }); return this; }
-  cancelScheduledValues(t) { this.events = this.events.filter((e) => e.t < t); return this; }
+  cancelScheduledValues(t) { this.ctx._rec?.push(OP.cancel, this.pid, t); this.events = this.events.filter((e) => e.t < t); return this; }
   cancelAndHoldAtTime(t) { const v = this.at(t); this.cancelScheduledValues(t); return this.setValueAtTime(v, t); }
 
   /** The value at time t (the spec's timeline: each event from the value and time the one before left). */
@@ -109,6 +130,10 @@ export class AudioNode {
     this.numberOfInputs = 1; this.numberOfOutputs = 1; this.channelCount = 2;
   }
   connect(dest) {
+    // (recorded: written down only; the graph is the replay's, which drops what has ended. Kept here as well, nothing
+    // the game let go of could be collected: no render here drops a source that ended from what it fed)
+    const R = this.context._rec;
+    if (R) { if (dest instanceof AudioParam) R.push(OP.con, this.id, 1, dest.pid); else if (dest) R.push(OP.con, this.id, 0, dest.id); return dest; }
     if (dest instanceof AudioParam) { dest.inputs.push(this); this.outputs.add(dest); return dest; }
     if (!dest) return dest;
     dest.inputs.add(this); this.outputs.add(dest);
@@ -116,6 +141,8 @@ export class AudioNode {
     return dest;
   }
   disconnect(dest) {
+    const R = this.context._rec;
+    if (R) { R.push(OP.dis, this.id, !dest ? -1 : dest instanceof AudioParam ? 1 : 0, !dest ? 0 : dest instanceof AudioParam ? dest.pid : dest.id); return; }
     const all = dest ? [dest] : [...this.outputs];
     for (const d of all) {
       if (d instanceof AudioParam) d.inputs = d.inputs.filter((n) => n !== this);
@@ -178,9 +205,11 @@ export class StereoPannerNode extends Through {
 }
 
 export class BiquadFilterNode extends Through {
+  get type() { return this._type; }
+  set type(v) { this._type = v; this.context._rec?.push(OP.prop, this.id, PROP.biquadType, Math.max(0, BIQUAD_TYPES.indexOf(v))); }
   constructor(ctx) {
     super(ctx);
-    this.type = 'lowpass';
+    this._type = 'lowpass';
     this.frequency = new AudioParam(ctx, 350, { rate: 'k' }); this.Q = new AudioParam(ctx, 1, { rate: 'k' });
     this.gain = new AudioParam(ctx, 0, { rate: 'k' }); this.detune = new AudioParam(ctx, 0, { rate: 'k' });
     this._z = [[0, 0, 0, 0], [0, 0, 0, 0]];
@@ -225,9 +254,12 @@ export class BiquadFilterNode extends Through {
 
 /** Sources: silent before start, done after stop. */
 class Source extends AudioNode {
-  constructor(ctx) { super(ctx); this._start = Infinity; this._stop = Infinity; this.onended = null; this._ended = false; this.numberOfInputs = 0; }
-  start(when = 0) { this._start = Math.max(when, this.context.currentTime); return this; }
-  stop(when = 0) { this._stop = Math.max(when, this.context.currentTime); return this; }
+  constructor(ctx) { super(ctx); this._start = Infinity; this._stop = Infinity; this._onended = null; this._ended = false; this.numberOfInputs = 0; }
+  // (recorded: a source with an onended is held until it ends, as a browser's graph holds a playing source)
+  get onended() { return this._onended; }
+  set onended(f) { this._onended = f; const K = this.context._keep; if (K) { if (f && !this._ended) K.set(this.id, this); else K.delete(this.id); } }
+  start(when = 0) { this.context._rec?.push(OP.start, this.id, when, 0, NaN); this._start = Math.max(when, this.context.currentTime); return this; }
+  stop(when = 0) { this.context._rec?.push(OP.stop, this.id, when); this._stop = Math.max(when, this.context.currentTime); return this; }
   done(b) { return this._ended; }
   _span(b) {
     const sr = this.context.sampleRate, t0 = b * Q, s = Math.ceil(this._start * sr) - t0, e = Math.ceil(this._stop * sr) - t0;
@@ -238,8 +270,10 @@ class Source extends AudioNode {
 }
 
 export class OscillatorNode extends Source {
-  constructor(ctx) { super(ctx); this.type = 'sine'; this.frequency = new AudioParam(ctx, 440); this.detune = new AudioParam(ctx, 0); this._ph = 0; this._wave = null; }
-  setPeriodicWave(w) { this.type = 'custom'; this._wave = w; }
+  constructor(ctx) { super(ctx); this._type = 'sine'; this.frequency = new AudioParam(ctx, 440); this.detune = new AudioParam(ctx, 0); this._ph = 0; this._wave = null; }
+  get type() { return this._type; }
+  set type(v) { this._type = v; this.context._rec?.push(OP.prop, this.id, PROP.oscType, Math.max(0, OSC_TYPES.indexOf(v))); }
+  setPeriodicWave(w) { const R = this.context._rec; if (R) { this.context._sendWave(w); R.push(OP.prop, this.id, PROP.wave, w._wid); } this._type = 'custom'; this._wave = w; }
   process(b, out) {
     const span = this._span(b);
     if (!span) return false;
@@ -279,8 +313,20 @@ export class AudioBuffer {
 }
 
 export class AudioBufferSourceNode extends Source {
-  constructor(ctx) { super(ctx); this.buffer = null; this.loop = false; this.loopStart = 0; this.loopEnd = 0; this.playbackRate = new AudioParam(ctx, 1); this.detune = new AudioParam(ctx, 0); this._pos = 0; }
-  start(when = 0, offset = 0, duration) { super.start(when); this._pos = offset * (this.buffer?.sampleRate ?? this.context.sampleRate); if (duration !== undefined && !this.loop) this._stop = this._start + duration; return this; }
+  constructor(ctx) { super(ctx); this._buffer = null; this._loop = false; this._loopStart = 0; this._loopEnd = 0; this.playbackRate = new AudioParam(ctx, 1); this.detune = new AudioParam(ctx, 0); this._pos = 0; }
+  get buffer() { return this._buffer; }
+  set buffer(b) { this._buffer = b; const R = this.context._rec; if (R) { if (b) this.context._sendBuffer(b); R.push(OP.prop, this.id, PROP.buffer, b ? b._bid : 0); } }
+  get loop() { return this._loop; }
+  set loop(v) { this._loop = !!v; this.context._rec?.push(OP.prop, this.id, PROP.loop, v ? 1 : 0); }
+  get loopStart() { return this._loopStart; }
+  set loopStart(v) { this._loopStart = v; this.context._rec?.push(OP.prop, this.id, PROP.loopStart, v); }
+  get loopEnd() { return this._loopEnd; }
+  set loopEnd(v) { this._loopEnd = v; this.context._rec?.push(OP.prop, this.id, PROP.loopEnd, v); }
+  start(when = 0, offset = 0, duration) {
+    this.context._rec?.push(OP.start, this.id, when, offset, duration === undefined ? NaN : duration);
+    this._start = Math.max(when, this.context.currentTime);
+    this._pos = offset * (this.buffer?.sampleRate ?? this.context.sampleRate); if (duration !== undefined && !this.loop) this._stop = this._start + duration; return this;
+  }
   process(b, out) {
     const span = this._span(b);
     if (!span || !this.buffer) return false;
@@ -312,6 +358,8 @@ export class ConvolverNode extends Through {
   get buffer() { return this._buffer; }
   set buffer(b) {
     this._buffer = b;
+    const R = this.context._rec;
+    if (R) { if (b) this.context._sendBuffer(b); R.push(OP.prop, this.id, PROP.convBuffer, b ? b._bid : 0); }
     // (the impulse's length as the time to fall 60 dB; its decay shape is softer than that: a third of it)
     const rt = b ? b.duration / 3 : 1;
     this._g = Math.pow(10, (-3 * 0.039) / Math.max(rt, 0.05));
@@ -392,9 +440,16 @@ class Destination extends AudioNode { constructor(ctx) { super(ctx); this.maxCha
 // ------------------------------------------------------------------ the context
 let defaultRate = 48000;
 export class AudioContext {
-  constructor({ sampleRate = defaultRate } = {}) {
+  constructor({ sampleRate = defaultRate, record = defaultRecord } = {}) {
     this.sampleRate = sampleRate;
-    this.destination = new Destination(this);
+    this._rec = record ? [] : null;
+    if (record) {
+      this._srcs = new Map();   // sources with an onended to call: id → WeakRef (ended(ids))
+      // (every node, weakly: the ones the game let go of are freed in the replay too; swept now and then in takeOps. A
+      // FinalizationRegistry's callbacks never ran in Puerts' V8: nothing pumps the tasks that call them)
+      this._weak = []; this._sweepIn = 120; this._keep = new Map();
+    }
+    this.destination = this._made(new Destination(this), KIND.dest);
     this.listener = { positionX: new AudioParam(this, 0), positionY: new AudioParam(this, 0), positionZ: new AudioParam(this, 0), setPosition() {}, setOrientation() {} };
     this.state = 'running';
     this._block = 0;
@@ -402,21 +457,71 @@ export class AudioContext {
     this.onstatechange = null;
   }
   get currentTime() { return (this._block * Q) / this.sampleRate; }
-  createGain() { return new GainNode(this); }
-  createOscillator() { return new OscillatorNode(this); }
-  createBiquadFilter() { return new BiquadFilterNode(this); }
-  createBufferSource() { return new AudioBufferSourceNode(this); }
-  createStereoPanner() { return new StereoPannerNode(this); }
-  createConvolver() { return new ConvolverNode(this); }
-  createDynamicsCompressor() { return new DynamicsCompressorNode(this); }
-  createAnalyser() { return new AnalyserNode(this); }
-  createDelay(max) { return new DelayNode(this, max); }
+  createGain() { return this._made(new GainNode(this), KIND.gain); }
+  createOscillator() { return this._made(new OscillatorNode(this), KIND.osc); }
+  createBiquadFilter() { return this._made(new BiquadFilterNode(this), KIND.biquad); }
+  createBufferSource() { return this._made(new AudioBufferSourceNode(this), KIND.src); }
+  createStereoPanner() { return this._made(new StereoPannerNode(this), KIND.pan); }
+  createConvolver() { return this._made(new ConvolverNode(this), KIND.conv); }
+  createDynamicsCompressor() { return this._made(new DynamicsCompressorNode(this), KIND.comp); }
+  createAnalyser() { return this._made(new AnalyserNode(this), KIND.an); }
+  createDelay(max) { return this._made(new DelayNode(this, max), KIND.delay, max ?? 1); }
+
+  /** A node made (recorded: its kind, its id, its params' ids in their order: paramsOf). */
+  _made(node, kind, extra = 0) {
+    const R = this._rec;
+    if (!R) return node;
+    R.push(OP.new, kind, node.id, extra);
+    for (const p of paramsOf(node, kind)) R.push(p.pid);
+    if (kind === KIND.osc || kind === KIND.src) this._srcs.set(node.id, new WeakRef(node));
+    if (kind !== KIND.dest && typeof WeakRef !== 'undefined') this._weak.push(new WeakRef(node), node.id);
+    return node;
+  }
+  _sendBuffer(b) {
+    if (b._bid) return;
+    b._bid = ++bufferIds;
+    const R = this._rec;
+    R.push(OP.buf, b._bid, b.numberOfChannels, b.length, b.sampleRate);
+    for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i++) R.push(d[i]); }
+  }
+  _sendWave(w) {
+    if (w._wid) return;
+    w._wid = ++waveIds;
+    const R = this._rec;
+    R.push(OP.wave, w._wid, w.real.length, w.imag.length, ...w.real, ...w.imag);
+  }
+  /** Recorded: the ops since the last call and `blocks` to render after them, as a Float64Array; the clock moves on that much. */
+  takeOps(blocks) {
+    const R = this._rec;
+    if (--this._sweepIn <= 0) {
+      this._sweepIn = 120;
+      const W = this._weak, keep = [];
+      for (let i = 0; i < W.length; i += 2) { if (W[i].deref()) keep.push(W[i], W[i + 1]); else R.push(OP.free, W[i + 1]); }
+      this._weak = keep;
+    }
+    R.push(OP.render, blocks);
+    const out = Float64Array.from(R);
+    R.length = 0;
+    this._block += blocks;
+    return out;
+  }
+  /** Recorded: these sources ended where they were rendered (their onended, as a render here would call it). */
+  ended(ids) {
+    for (const id of ids) {
+      const w = this._srcs.get(id), n = w?.deref();
+      this._srcs.delete(id); this._keep.delete(id);
+      if (!n || n._ended) continue;
+      n._ended = true;
+      const f = n.onended;
+      if (f) queueMicrotask(() => f({ type: 'ended', target: n }));
+    }
+  }
   createBuffer(channels, length, sampleRate) { return new AudioBuffer({ numberOfChannels: channels, length, sampleRate }); }
   createPeriodicWave(real, imag) { return new PeriodicWave(real, imag); }
   decodeAudioData(data, ok, fail) { const e = new Error('decodeAudioData: no decoder in the engine'); fail?.(e); return Promise.reject(e); }
-  resume() { this.state = 'running'; return Promise.resolve(); }
-  suspend() { this.state = 'suspended'; return Promise.resolve(); }
-  close() { this.state = 'closed'; return Promise.resolve(); }
+  resume() { this.state = 'running'; this._rec?.push(OP.state, 0); return Promise.resolve(); }
+  suspend() { this.state = 'suspended'; this._rec?.push(OP.state, 1); return Promise.resolve(); }
+  close() { this.state = 'closed'; this._rec?.push(OP.state, 2); return Promise.resolve(); }
 
   /** The next `frames` frames of the mix, interleaved stereo (a whole number of blocks: the rest waits for the next call). */
   render(frames, out = null) {
@@ -437,9 +542,92 @@ export class AudioContext {
   liveNodes() { const seen = new Set(), st = [this.destination]; while (st.length) { const n = st.pop(); if (seen.has(n)) continue; seen.add(n); for (const i of n.inputs) st.push(i); } return seen.size; }
 }
 
+/** A node's params in their order (a recorded node's, as AudioReplay makes it). */
+function paramsOf(n, kind) {
+  switch (kind) {
+    case KIND.gain: return [n.gain];
+    case KIND.osc: return [n.frequency, n.detune];
+    case KIND.biquad: return [n.frequency, n.Q, n.gain, n.detune];
+    case KIND.src: return [n.playbackRate, n.detune];
+    case KIND.pan: return [n.pan];
+    case KIND.comp: return [n.threshold, n.knee, n.ratio, n.attack, n.release];
+    case KIND.delay: return [n.delayTime];
+    default: return [];
+  }
+}
+
+/**
+ * A recorded context's graph, made again from its ops and rendered (engine/unity/audio-worker.js): apply(tokens) →
+ * { pcm (interleaved stereo, the render op's blocks), ended (the recorded ids of the sources that ended) }.
+ */
+export class AudioReplay {
+  constructor(sampleRate) {
+    this.ctx = new AudioContext({ sampleRate, record: false });
+    this.nodes = new Map(); this.params = new Map(); this.buffers = new Map(); this.waves = new Map();
+    this.live = new Map();   // started sources not yet ended: recorded id → node
+    this.out = new Float32Array(0);
+  }
+  apply(T) {
+    const C = this.ctx, N = this.nodes, P = this.params;
+    let pcm = new Float32Array(0);
+    const ended = [];
+    for (let i = 0; i < T.length;) {
+      const op = T[i++];
+      switch (op) {
+        case OP.new: {
+          const kind = T[i++], id = T[i++], extra = T[i++];
+          const n = kind === KIND.dest ? C.destination : kind === KIND.gain ? C.createGain() : kind === KIND.osc ? C.createOscillator() : kind === KIND.biquad ? C.createBiquadFilter()
+            : kind === KIND.src ? C.createBufferSource() : kind === KIND.pan ? C.createStereoPanner() : kind === KIND.conv ? C.createConvolver() : kind === KIND.comp ? C.createDynamicsCompressor()
+              : kind === KIND.an ? C.createAnalyser() : C.createDelay(extra);
+          N.set(id, n);
+          n._pids = [];
+          for (const p of paramsOf(n, kind)) { const pid = T[i++]; P.set(pid, p); n._pids.push(pid); }
+          break;
+        }
+        case OP.con: { const a = N.get(T[i++]), isP = T[i++], d = isP ? P.get(T[i++]) : N.get(T[i++]); if (a && d) a.connect(d); break; }
+        case OP.dis: { const a = N.get(T[i++]), kind = T[i++], did = T[i++]; if (a) a.disconnect(kind < 0 ? undefined : kind ? P.get(did) : N.get(did)); break; }
+        case OP.pv: { const p = P.get(T[i++]), v = T[i++]; if (p) p.value = v; break; }
+        case OP.pe: { const p = P.get(T[i++]), type = EV_NAME[T[i++]], v = T[i++], t = T[i++], tc = T[i++]; if (p) p._add(type === 'target' ? { type, t, v, tc } : { type, t, v }); break; }
+        case OP.cancel: { const p = P.get(T[i++]), t = T[i++]; if (p) p.cancelScheduledValues(t); break; }
+        case OP.start: { const id = T[i++], n = N.get(id), when = T[i++], off = T[i++], dur = T[i++]; if (n) { n.start(when, off, Number.isNaN(dur) ? undefined : dur); this.live.set(id, n); } break; }
+        case OP.stop: { const n = N.get(T[i++]), when = T[i++]; if (n) n.stop(when); break; }
+        case OP.prop: {
+          const n = N.get(T[i++]), k = T[i++], v = T[i++];
+          if (!n) break;
+          if (k === PROP.oscType) n.type = OSC_TYPES[v]; else if (k === PROP.biquadType) n.type = BIQUAD_TYPES[v];
+          else if (k === PROP.buffer) n.buffer = this.buffers.get(v) ?? null; else if (k === PROP.convBuffer) n.buffer = this.buffers.get(v) ?? null;
+          else if (k === PROP.loop) n.loop = !!v; else if (k === PROP.loopStart) n.loopStart = v; else if (k === PROP.loopEnd) n.loopEnd = v;
+          else if (k === PROP.wave) { const w = this.waves.get(v); if (w) n.setPeriodicWave(w); }
+          break;
+        }
+        case OP.buf: {
+          const id = T[i++], ch = T[i++], len = T[i++], sr = T[i++], b = C.createBuffer(ch, len, sr);
+          for (let c = 0; c < ch; c++) { b.getChannelData(c).set(T.subarray(i, i + len)); i += len; }
+          this.buffers.set(id, b);
+          break;
+        }
+        case OP.wave: { const id = T[i++], nr = T[i++], ni = T[i++], w = C.createPeriodicWave(T.subarray(i, i + nr), T.subarray(i + nr, i + nr + ni)); i += nr + ni; this.waves.set(id, w); break; }
+        case OP.free: { const id = T[i++], n = N.get(id); this.freed = (this.freed ?? 0) + 1; if (n) { for (const pid of n._pids ?? []) P.delete(pid); N.delete(id); this.live.delete(id); } break; }
+        case OP.state: { const s = STATES[T[i++]]; C.state = s; break; }
+        case OP.render: {
+          const blocks = T[i++];
+          if (this.out.length < blocks * Q * 2) this.out = new Float32Array(blocks * Q * 2);
+          pcm = C.render(blocks * Q, this.out);
+          for (const [id, n] of this.live) if (n._ended) { this.live.delete(id); ended.push(id); }
+          break;
+        }
+        default: throw new Error(`AudioReplay: op ${op} at ${i - 1}`);
+      }
+    }
+    return { pcm, ended };
+  }
+}
+
 /** Put AudioContext (and webkitAudioContext) on globalThis, where the VM has none; new contexts at the engine's rate. */
-export function installAudio(G = globalThis, { sampleRate } = {}) {
+let defaultRecord = false;
+export function installAudio(G = globalThis, { sampleRate, record = false } = {}) {
   if (sampleRate) defaultRate = sampleRate;
+  defaultRecord = record;
   if (!G.AudioContext) G.AudioContext = AudioContext;
   if (!G.webkitAudioContext) G.webkitAudioContext = AudioContext;
   if (!G.OfflineAudioContext) G.OfflineAudioContext = undefined;

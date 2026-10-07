@@ -69,8 +69,9 @@ const SILENT = new Proxy({}, { get: (t, k) => (k === 'ctx' ? null : k === 'band'
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
 
 /** The game's Sound on the shim (engine/webaudio.js), started: the engine has no autoplay rule to wait for. */
-function makeSound(levelId, { sampleRate = 48000, volume = 1 } = {}) {
-  installAudio(globalThis, { sampleRate });
+function makeSound(levelId, { sampleRate = 48000, volume = 1, record = false } = {}) {
+  // (record: the graph rendered elsewhere, from what is done to it here: engine/webaudio.js, the Unity bridge's audio thread)
+  installAudio(globalThis, { sampleRate, record });
   const s = quiet(() => new Sound(levelId));
   s.start();
   if (volume !== 1 && s.master) s.master.gain.value = 0.9 * volume;

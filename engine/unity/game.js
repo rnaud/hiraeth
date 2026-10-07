@@ -30,7 +30,9 @@ export function start(argsJson) {
   S = { args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0 };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
   const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;
-  createGame({ levelId: args.level ?? 'desert', backend, people: args.people !== false, audio: rate ? { sampleRate: rate } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a) })
+  // (rendered on Unity's audio thread where it has one: the graph recorded here, BridgeHost.AudioBatch)
+  const record = !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
+  createGame({ levelId: args.level ?? 'desert', backend, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a) })
     .then((game) => {
       S.game = game;
       if (args.freeze !== undefined) game.mirror.freeze = !!args.freeze;   // (-freeze: still subtrees frozen, mirror-freeze.js; off by default)
@@ -139,6 +141,16 @@ function pumpAudio(game) {
   if (!ctx) return;
   const t0 = now();
   const want = Math.floor(ctx.sampleRate * AUDIO_AHEAD) - host.AudioQueued();
+  if (ctx._rec) {
+    // recorded: the frame's ops and the blocks to render after them, to the audio thread; the sources it ended back
+    const blocks = want >= 128 ? Math.floor(want / 128) : 0;
+    const ops = ctx.takeOps(blocks);
+    if (blocks > 0 || ops.length > 2) host.AudioBatch(toHost(ops.buffer));
+    const ended = host.AudioEndedTake();
+    if (ended) ctx.ended(ended.split(',').map(Number));
+    S.audioMs += now() - t0;
+    return;
+  }
   if (want >= 128) {
     const pcm = ctx.render(want);
     if (pcm.length) host.Audio(toHost(pcm.buffer));

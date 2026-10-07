@@ -35,7 +35,8 @@ namespace Memento.Bridge
         JsRuntime js;
         bool started, failed;
         // the script's thread: its frame asked for (go), its frame done (done, then BridgeHost.Wake)
-        Thread thread;
+        Thread thread, audioThread;
+        readonly ManualResetEventSlim scriptEnvMade = new(false);
         readonly AutoResetEvent go = new(false);
         volatile bool done, quit, threadFailed;
         volatile float nextDt;
@@ -114,6 +115,15 @@ namespace Memento.Bridge
             BridgeHost.Snapshot();
             done = false;
             thread = new Thread(() => Run(code), 64 << 20) { Name = "Memento script", IsBackground = true, Priority = System.Threading.ThreadPriority.Highest };
+            // the sound rendered on a thread of its own (engine/unity/audio-worker.js: the script records its graph), unless -audio-js
+            var audioCode = Array.IndexOf(Environment.GetCommandLineArgs(), "-audio-js") >= 0 ? null : StreamingFile.Read(Path.Combine(Application.streamingAssetsPath, "memento-js", "audio.cjs"));
+            if (audioCode != null && audioOut)
+            {
+                BridgeHost.audioThreaded = true;
+                int rate = audioOut.rate;
+                audioThread = new Thread(() => RunAudio(audioCode, rate), 16 << 20) { Name = "Memento sound", IsBackground = true, Priority = System.Threading.ThreadPriority.Highest };
+                audioThread.Start();
+            }
             thread.Start();
             started = true;
             Debug.Log("Memento bridge: the script on its own thread");
@@ -125,6 +135,7 @@ namespace Memento.Bridge
             // (-jsinspect <port>: V8's inspector, for a profile of the script: scratchpad's cdp tools, Chrome's DevTools)
             int port = BridgeArgs.Arg("-jsinspect") is string ps && int.TryParse(ps, out int pp) ? pp : -1;
             js = thread != null ? new JsRuntime(BridgeHost.OnMainThread, port) : new JsRuntime();
+            scriptEnvMade.Set();
             if (port > 0) Debug.Log($"Memento bridge: V8's inspector on {port}");
             var t0 = DateTime.UtcNow;
             js.Eval("var __m = { exports: {} }; (function (module, exports, require) {\n" + System.Text.Encoding.UTF8.GetString(code)
@@ -154,6 +165,30 @@ namespace Memento.Bridge
             catch (Exception e) { threadError = (e.InnerException ?? e).ToString(); threadFailed = true; Finish(); }
         }
         void Finish() { done = true; BridgeHost.Wake.Set(); }
+
+        /// <summary>The sound's thread: its own V8 with the Web Audio shim, rendering what the script's thread hands over.</summary>
+        void RunAudio(byte[] code, int rate)
+        {
+            Urgent();
+            try
+            {
+                // (one JsEnv made at a time: after the script's)
+                scriptEnvMade.Wait();
+                var a = new JsRuntime(BridgeHost.OnMainThread);
+                a.Eval("var __a = { exports: {} }; (function (module, exports, require) {\n" + System.Text.Encoding.UTF8.GetString(code)
+                    + "\n})(__a, __a.exports, function (n) { throw new Error('the audio bundle asked for ' + n); }); globalThis.MementoAudio = __a.exports;", "audio.cjs");
+                a.Eval($"MementoAudio.start({rate})", "audio start");
+                Debug.Log($"Memento bridge: the sound on its own thread ({rate} Hz)");
+                while (!quit)
+                {
+                    BridgeHost.AudioWake.WaitOne(20);
+                    if (quit) break;
+                    a.Tick();
+                    a.Eval("MementoAudio.pump()", "audio");
+                }
+            }
+            catch (Exception e) { Debug.LogError("Memento bridge: the sound's thread: " + (e.InnerException ?? e)); BridgeHost.audioThreaded = false; }
+        }
 
 #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
         [System.Runtime.InteropServices.DllImport("/usr/lib/libSystem.B.dylib")]
@@ -357,7 +392,7 @@ namespace Memento.Bridge
 
         void OnDestroy()
         {
-            quit = true; go.Set();
+            quit = true; go.Set(); BridgeHost.AudioWake.Set();
             if (BridgeHost.Runner == this) BridgeHost.Runner = null;
             // (not on the way out: V8 tears down with the process, and disposing its isolate then aborts)
             if (!exiting) try { js?.Dispose(); } catch { }

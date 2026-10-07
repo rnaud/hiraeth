@@ -15,6 +15,7 @@ import { Motes, Footprints } from '../src/life.js';
 import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
 import { capePacketWords } from '../engine/cape-job.js';
+import { AudioReplay } from '../engine/webaudio.js';
 
 THREE.ColorManagement.enabled = false;
 const X = new THREE.Matrix4().makeScale(-1, 1, 1);
@@ -205,7 +206,8 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   const cloths = {}, capes = {};
   const clothWords = (id) => { const c = cloths[id]; return 3 * c.N + 28 * c.K + 16 * c.B + 16; };
   // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
-  const sound = { queued: 0, frames: 0, sumSq: 0, bad: 0 };
+  const sound = { queued: 0, frames: 0, sumSq: 0, bad: 0, batches: 0 };
+  const replay = new AudioReplay(48000), ended = [];
   const BridgeHost = {
     Now: () => performance.now(), ReadFile: null, StorageGet: () => null, StorageSet() {}, StorageRemove() {},
     Geometry(key, buf) { calls.Geometry++; calls.bytes += buf.byteLength; }, Material() { calls.Material++; },
@@ -218,6 +220,10 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     Keys: () => (calls.Frame > 3 ? 'KeyW' : ''), Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
     Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
+    // the sound rendered on Unity's audio thread (BridgeRunner.RunAudio, engine/unity/audio-worker.js): its batches played here as there
+    AudioThreaded: () => true,
+    AudioBatch(buf) { sound.batches++; const r = replay.apply(new Float64Array(buf)); if (r.pcm.length) BridgeHost.Audio(r.pcm.slice().buffer); if (r.ended.length) ended.push(...r.ended); },
+    AudioEndedTake: () => { const s = ended.join(','); ended.length = 0; return s; },
   };
   // (no timers of the VM's own, as in Puerts: engine/platform.js runs them from the frame)
   const { exports, readFile } = loadBundle(file, {}, { CS: { Memento: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined });
@@ -235,6 +241,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   assert.ok(calls.Screen >= 1 && 'dialogue' in JSON.parse(screenJson), 'the screen\'s state for the HUD');
   assert.ok(sound.frames >= 20 * 1600 && sound.queued <= 48000 * 0.12 + 128, `the sound kept a little ahead: ${JSON.stringify(sound)}`);
   assert.equal(sound.bad, 0, 'every sample finite');
+  assert.ok(sound.batches >= 20, `the sound recorded and played elsewhere: ${sound.batches} batches`);
   assert.ok(Math.sqrt(sound.sumSq / (sound.frames * 2)) > 1e-5, 'and something to hear (the wind)');
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);

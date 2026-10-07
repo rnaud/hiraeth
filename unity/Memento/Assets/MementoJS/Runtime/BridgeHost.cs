@@ -107,7 +107,42 @@ namespace Memento.Bridge
         // (BridgeAudio's ring is locked: these are safe on the script's thread)
         static BridgeAudio Sound => (object)Runner != null && Runner.audioOut is BridgeAudio a ? a : null;
         public static int AudioRate() => Sound?.rate ?? 0;
-        public static int AudioQueued() => Sound?.Queued ?? 0;
+        /// <summary>The frames queued: the ring's, and those asked of the audio thread not rendered yet.</summary>
+        public static int AudioQueued() => (Sound?.Queued ?? 0) + (int)Interlocked.Read(ref audioPending);
+
+        // ---------------------------------------------------------------- the sound rendered on its own thread
+        // (engine/webaudio.js recorded on the script's thread, engine/unity/audio-worker.js renders it: BridgeRunner's audio thread)
+        static readonly Queue<byte[]> audioBatches = new();
+        static long audioPending;
+        static readonly StringBuilder audioEnded = new();
+        /// <summary>Set when a batch waits for the audio thread.</summary>
+        public static readonly AutoResetEvent AudioWake = new(false);
+        /// <summary>Does the sound render on Unity's audio thread (the script records its graph)?</summary>
+        public static bool AudioThreaded() => audioThreaded;
+        public static volatile bool audioThreaded;
+        /// <summary>The script's thread: a frame's ops, the blocks to render last (a Float64Array of tokens).</summary>
+        public static void AudioBatch(object buffer)
+        {
+            var b = JsRuntime.Bytes(buffer, out int n);
+            var copy = new byte[n]; Buffer.BlockCopy(b, 0, copy, 0, n);
+            int blocks = n >= 8 ? (int)BitConverter.ToDouble(copy, n - 8) : 0;   // (the render op's count is the last token)
+            lock (audioBatches) audioBatches.Enqueue(copy);
+            Interlocked.Add(ref audioPending, blocks * 128);
+            AudioWake.Set();
+        }
+        /// <summary>The audio thread: the next batch, or null.</summary>
+        public static object AudioTake() { byte[] b; lock (audioBatches) { if (audioBatches.Count == 0) return null; b = audioBatches.Dequeue(); } return JsRuntime.ToScript(b); }
+        /// <summary>The audio thread: what it rendered (float32 stereo), into the ring.</summary>
+        public static void AudioRendered(object buffer)
+        {
+            var b = JsRuntime.Bytes(buffer, out int n);
+            Sound?.Push(b, n);
+            Interlocked.Add(ref audioPending, -(n / 8));
+        }
+        /// <summary>The audio thread: the recorded ids of the sources that ended ("1,2,3").</summary>
+        public static void AudioEnded(string ids) { lock (audioEnded) { if (audioEnded.Length > 0) audioEnded.Append(','); audioEnded.Append(ids); } }
+        /// <summary>The script's thread: the ends since the last call ("" none).</summary>
+        public static string AudioEndedTake() { lock (audioEnded) { var s = audioEnded.ToString(); audioEnded.Clear(); return s; } }
         public static void Audio(object buffer) { var s = Sound; if (s is null) return; var b = JsRuntime.Bytes(buffer, out int n); s.Push(b, n); }
         public static void Screen(string json) => On(() => { if (Runner && Runner.hud) Runner.hud.Set(json); });
 
