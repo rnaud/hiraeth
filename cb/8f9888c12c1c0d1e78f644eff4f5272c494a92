@@ -1,0 +1,63 @@
+changelog.md
+  s_55b4bc53b812ec::t_9457de06769246 5-8,23
+desktop/deck-updates.mjs
+  s_55b4bc53b812ec::t_7022e7583e1153 1-158
+desktop/main.mjs
+  s_55b4bc53b812ec::t_48c4fddeb4b206 3,5,67-89,92,99-100,158-159
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_b3e8551352da42 138-166
+scripts/deck-runtime.mjs
+  s_55b4bc53b812ec::t_1a04786d77576e 21
+scripts/package-steam-deck.mjs
+  s_55b4bc53b812ec::t_b81b504d896e5c 20
+scripts/steam-deck/deck.py
+  s_55b4bc53b812ec::t_0d20a5bb159945 254-270,282,428,636-681,741,812-813,862-881,885,895,901-902,912-919,938-942,944-946,949,953-954,956-961
+src/changelog.js
+  s_55b4bc53b812ec::t_32f03c4866d97c 10-12,26
+src/flora-grass.js
+  s_55b4bc53b812ec::t_70d8e7f0b1b4a9 28
+src/main.js
+  s_55b4bc53b812ec::t_0d6c42d179c0fd 26,53,152-153,779
+src/native-app.js
+  s_55b4bc53b812ec::t_c9244a1744cd35 2-3,22-30,32,35,38
+src/perf.js
+  s_55b4bc53b812ec::t_128a8306bdb6d2 373-378,444-448,461-462,465
+src/title-vista.js
+  s_55b4bc53b812ec::t_716c49022bd68b 8,339-340,520
+src/title.js
+  s_55b4bc53b812ec::t_a39a6a3b1c6ced 15,124
+src/ui.js
+  s_55b4bc53b812ec::t_ff6ab170459d56 16-17,20,31,38,51,54-55,136-137,154
+src/update-panel.js
+  s_55b4bc53b812ec::t_e843228ad1d30d 1,6-7
+src/updates.js
+  s_55b4bc53b812ec::t_fa91524eb4bf4e 1,32-33,67-69
+tests/deck-runtime.test.js
+  s_55b4bc53b812ec::t_ba037f8dbb7236 33
+tests/deck-updates.test.js
+  s_55b4bc53b812ec::t_84275c8be25115 1-123
+tests/hud.test.js
+  s_55b4bc53b812ec::t_5377a547e20f5d 112-116
+tests/quality.test.js
+  s_55b4bc53b812ec::t_4957071a222a98 139-160
+tests/test_steam_deck.py
+  s_55b4bc53b812ec::t_e9e2a8df853548 412-471
+tests/updates.test.js
+  s_55b4bc53b812ec::t_c9045b0d14f9cb 195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cb8f9888c12c1c0d1e78f644eff4f5272c494a92",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
