@@ -56,7 +56,11 @@ const STUN_FOR = 3.5;   // seconds a stilling glob holds them (fluid-kit.js STUN
 // feet planted on the ground (feet.js) and the body's lean and turn (locomotion.js); further off
 // the pose every 2nd, then 3rd frame (they still move every frame), no foot planting; past 110 m
 // the whole update a quarter of the time (and the body draws a simpler mesh: skinned-lod.js).
-export const NPC_DETAIL = { feet: 22, every2: 30, every3: 60, quarter: 110 };
+// still: someone standing or sitting still (no steps, no wave, not in a conversation) further than this is
+// posed every other frame, half of them on each (their idle breathing and shifting at 30 Hz): the posing,
+// the body and the feet were a quarter of the handheld's frame in the desert's camps (docs/systems/performance.md)
+export const NPC_DETAIL = { feet: 22, every2: 30, every3: 60, quarter: 110, still: 8 };
+let poseSeq = 0;   // (each person's posing frames offset from the others')
 let knockedDown = 0;   // bodies down at once (KNOCKOVER.most)
 
 const _face = new THREE.Vector3();
@@ -522,9 +526,10 @@ export class NPC {
     const waveT = this.talkTo ? -1 : this.greeted && !this.seat ? this.time - this.greeted : -1;
     // the pose: every frame near the camera, every 2nd / 3rd further off (they still move every frame)
     const D = NPC_DETAIL, near = camD0 < D.feet;
-    const every = camD0 < D.every2 || this.time - this.startleAt < 1 ? 1 : camD0 < D.every3 ? 2 : 3;
+    const still = speed < 0.05 && waveT < 0 && !this.talkTo && !this.talking && camD0 > D.still;
+    const every = this.time - this.startleAt < 1 ? 1 : camD0 < D.every2 ? (still ? 2 : 1) : camD0 < D.every3 ? 2 : 3;
     this._poseDt = (this._poseDt ?? 0) + dt;
-    this._poseN = ((this._poseN ?? 0) + 1) % every;
+    this._poseN = ((this._poseN ?? poseSeq++) + 1) % every;
     const posing = this._poseN === 0 || !this._posed;
     if (posing) {
       this._posed = true;

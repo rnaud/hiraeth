@@ -54,7 +54,8 @@ export class UnityBackend {
 
   create(id, d) {
     const specs = d.mids.map((m) => this.specs.get(m));
-    const colors = specs.some((s) => s?.vertexColors);
+    // (the wind's wisps: their alpha per vertex, as the port's Memento/Wisp reads it from the vertex colour)
+    const colors = specs.some((s) => s?.vertexColors) || d.mids.some((m) => this.ports.get(m) === 'wisp');
     const crowd = d.kind === 'instanced' && specs.some((s) => s?.defines?.CROWD);
     const figure = !crowd && specs.some((s) => (s?.u?.uMode === 4 || s?.u?.uFigure > 0 || s?.u?.uMode === 6 || s?.defines?.FACE_PART));
     const mesh = d.gid ? this._variant(d.gid, colors, figure || d.kind === 'skinned', crowd) : null;
@@ -64,6 +65,14 @@ export class UnityBackend {
       this.nodes ??= new Map();
       this.nodes.set(id, { gid: d.gid, colors, bind: false, kind: 'puffs' });
       this.host.Create(id, JSON.stringify({ kind: 'puffs', mesh, mids: d.mids, name: d.name, shadow: false }));
+      return;
+    }
+    if (d.kind === 'instgeo' && specs.some((s) => s?.defines?.GRASS)) {
+      // the grass blades (flora-grass.js): the port's Surface MEMENTO_GRASS, its tufts placed from aGrass, aGrass2 (op 12)
+      (this.grass ??= new Map()).set(id, { view: '' });
+      this.nodes ??= new Map();
+      this.nodes.set(id, { gid: d.gid, colors: false, bind: false, kind: 'grass' });
+      this.host.Create(id, JSON.stringify({ kind: 'grass', mesh, mids: d.mids, name: d.name, capacity: d.capacity ?? 0, shadow: false }));
       return;
     }
     if (crowd) {
@@ -112,6 +121,25 @@ export class UnityBackend {
       for (let i = 0; i < count * 32; i++) w.f(this._crowd[i]);
       return;
     }
+    if (this.grass?.has(id)) {
+      // op 12: a tuft attribute's rewritten range (aGrass: root mirrored in x, height; aGrass2: turn, tint, lean, rank)
+      for (const [k, which] of [['aGrass', 0], ['aGrass2', 1]]) {
+        const a = attrs?.[k];
+        if (!a) continue;
+        const total = Math.min(count, a.array.length / 4);
+        let [start, n] = a.range ? [Math.floor(a.range[0] / 4), Math.ceil(a.range[1] / 4)] : [0, total];
+        start = Math.max(0, Math.min(start, total)); n = Math.max(0, Math.min(n, total - start));
+        w.reserve(6 + n * 4);
+        w.u(OP.grass); w.i(id); w.u(count); w.u(which); w.u(start); w.u(n);
+        const A = a.array;
+        for (let i = start; i < start + n; i++) {
+          // (the root in Unity's space; the turn, tint, lean and rank as they are: the shader bends the tuft in three's)
+          w.f(which === 0 ? -A[i * 4] : A[i * 4]); w.f(A[i * 4 + 1]); w.f(A[i * 4 + 2]); w.f(A[i * 4 + 3]);
+        }
+      }
+      if (!attrs || !Object.keys(attrs).length) { w.reserve(6); w.u(OP.grass); w.i(id); w.u(count); w.u(2); w.u(0); w.u(0); }   // (the count alone)
+      return;
+    }
     if (this.puffs?.has(id)) {
       this._puff = puffInstances(mats, count, attrs, this._puff?.length >= count * 8 ? this._puff : new Float32Array(Math.max(count, 64) * 8));
       w.reserve(3 + count * 8);
@@ -125,6 +153,50 @@ export class UnityBackend {
     if (colors) for (let i = 0; i < count * 3; i++) w.f(colors[i]);
   }
 
+  /** The grass layer's per-frame uniforms (grass-shader.js: the patch's centre, three's space, and fades; the ground's two tones), when they change: op 13. */
+  drawState(id, o) {
+    const g = this.grass?.get(id), U = o.material?.uniforms;
+    if (!g || !U?.uGrassView) return;
+    const v = [...U.uGrassView.value.toArray(), ...U.uGrassLod.value.toArray(), ...U.uGrassLook.value.toArray(), ...U.uColor.value.toArray(), ...U.uColor2.value.toArray()];
+    // (in three's space, as the shader places the tufts)
+    const key = v.map((x) => Math.fround(x)).join(',');
+    if (key === g.view) return;
+    g.view = key;
+    const w = this.w, b0 = w.n;
+    w.reserve(2 + 18);
+    w.u(OP.grassView); w.i(id);
+    for (const x of v) w.f(x);
+    tally(this, 'grassView', b0);
+  }
+
+  /** A material's colour or glow changed after it was sent (the answering plants waking, lamps, beacons): op 15. */
+  materialLive(mid, color, glow) {
+    const w = this.w, b0 = w.n;
+    w.reserve(6);
+    w.u(OP.material); w.i(mid);
+    w.f(color ? color[0] : NaN); w.f(color ? color[1] : NaN); w.f(color ? color[2] : NaN); w.f(glow ?? NaN);
+    tally(this, 'material', b0);
+  }
+
+  /** The fluid on a material (fluid-tool.js uFluidA, uFluidB, uFluidTones: 26 floats), when it moves: op 16. */
+  materialFluid(mid, f) {
+    const w = this.w, b0 = w.n;
+    w.reserve(28);
+    w.u(OP.fluid); w.i(mid);
+    for (let i = 0; i < 26; i++) w.f(f[i]);
+    tally(this, 'fluid', b0);
+  }
+
+  /** The traveller's feet and speed (three's space: the grass parts round them, the plants lean away), when they move: op 14. */
+  brush(p, speed) {
+    const v = [p.x, p.y, p.z, speed], key = v.map((x) => Math.fround(x)).join(',');
+    if (key === this._brush) return;
+    this._brush = key;
+    const w = this.w;
+    w.reserve(5);
+    w.u(OP.brush); for (const x of v) w.f(x);
+  }
+
   bones(id, boneMatrices, n, bind, bindInverse) { const b0 = this.w.n; this._bones(id, boneMatrices, n, bind, bindInverse); tally(this, 'bones', b0); }
   _bones(id, boneMatrices, n, bind, bindInverse) {
     if (this.skin.length < n * 16) this.skin = new Float32Array(n * 16);
@@ -136,14 +208,15 @@ export class UnityBackend {
   }
 
   /** A geometry's points and normals moved (cloth): into the frame's buffer, for every variant of it sent (op 8). */
-  vertices(gid, pos, nrm, n) { const b0 = this.w.n; this._vertices(gid, pos, nrm, n); tally(this, 'vertices', b0); }
-  _vertices(gid, pos, nrm, n) {
+  vertices(gid, pos, nrm, n, alpha = null) { const b0 = this.w.n; this._vertices(gid, pos, nrm, n, alpha); tally(this, 'vertices', b0); }
+  _vertices(gid, pos, nrm, n, alpha = null) {
     if (!this.sentGids.has(gid)) return;
     const w = this.w;
-    w.reserve(4 + n * 6);
-    w.u(OP.vertices); w.i(gid); w.u(n); w.u(nrm ? 1 : 0);
+    w.reserve(4 + n * 7);
+    w.u(OP.vertices); w.i(gid); w.u(n); w.u((nrm ? 1 : 0) | (alpha ? 2 : 0));
     for (let i = 0; i < n; i++) { w.f(-pos[i * 3]); w.f(pos[i * 3 + 1]); w.f(pos[i * 3 + 2]); }
     if (nrm) for (let i = 0; i < n; i++) { w.f(-nrm[i * 3]); w.f(nrm[i * 3 + 1]); w.f(nrm[i * 3 + 2]); }
+    if (alpha) for (let i = 0; i < n; i++) w.f(alpha[i]);
     this.stats.vertexBytes = (this.stats.vertexBytes ?? 0) + n * 24;
   }
 

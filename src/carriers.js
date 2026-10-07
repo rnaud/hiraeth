@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { moverVelocity } from './physics.js';
 
 // What the feet stand on, moving floors included. The level's collision (physics.js) is baked once
 // and leaves out everything that moves: the riding discs of a temple, a taxi's roof, a ball. The
@@ -39,4 +40,15 @@ export function standGround(physics, solids, skip = () => null) {
       return physics.groundNormal(x, fromY, z, out);
     },
   };
+}
+
+/**
+ * What carries you when the ground under you (or the wall you climb) is a moving collider
+ * (physics.addMover: the Buried Machine's great wheel): { vel } of its surface at p, as a moving
+ * solid's, or null. `mover` is physics.groundMover after a ground query, or a rayHit's mover.
+ */
+export function moverCarrier(mover, p, out = { vel: new THREE.Vector3() }) {
+  if (!mover) return null;
+  moverVelocity(mover, p, out.vel);
+  return out;
 }

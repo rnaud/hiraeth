@@ -256,6 +256,7 @@ export function* buildIncal(scene) {
   // ---------------------------------------------------------- terraces
   yield;
   const terraces = [];
+  const rails = new Map();   // terrace:eighth -> the railing's segments
   for (const [li, y] of LEVELS.entries()) {
     yield;
     const depth = li / (LEVELS.length - 1);              // 0 = top, 1 = bottom
@@ -291,9 +292,11 @@ export function* buildIncal(scene) {
       for (let k = 0; k < steps; k++) {
         if (rng() < 0.3) continue;
         const b0 = a0 + (k / steps) * span, b1 = b0 + span / steps * 0.85;
-        const rail = new THREE.Mesh(sectorGeometry(r0, r0 + 0.6, b0, b1, 1.2), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' }));
-        rail.position.y = y + 1.2;
-        scene.add(rail);
+        // (gathered by terrace and eighth of the ring, one mesh each, below: a mesh a segment was some 160
+        //  draws in a view across the shaft, twice with the shadows, docs/systems/performance.md)
+        const eighth = Math.floor((((b0 % TAU) + TAU) % TAU) / (TAU / 8)), key = `${li}:${eighth}`;
+        if (!rails.has(key)) rails.set(key, []);
+        rails.get(key).push(sectorGeometry(r0, r0 + 0.6, b0, b1, 1.2).translate(0, y + 1.2, 0));
       }
 
       // buildings on the terrace, below the next terrace up
@@ -324,6 +327,8 @@ export function* buildIncal(scene) {
     }
     a += TAU / nSectors;
   }
+  // the railings, one mesh for each terrace's eighth of the ring (the same segments, the same iron)
+  for (const geos of rails.values()) scene.add(new THREE.Mesh(mergeGeometries(geos), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' })));
 
   curGroup = 'misc'; curY = TOP;
   const bridges = [];   // spire ring → terrace: { y, phi, r0 } (for the story's routes)
