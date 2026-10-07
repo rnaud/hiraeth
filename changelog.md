@@ -7,6 +7,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Once four worlds are behind you, a faint signal pulses on the galactic map further along the route, and the ship’s console mentions it: a broadcast worth hearing before you go home. After the Signal Market the recording you put off waits at the console as soon as you step outside, a second one follows it, the later worlds’ recordings find their own lines again, and the stone at home remembers Ilen even if you learn of her after the end.
 - Your mother’s note in the ship’s galley ends differently now, with the lamp she keeps in the window.
 - At the stone at home, the listening shell and the echo shell go down with the other gifts, each with its own words.
+- What happened at Esk’s terraces in Viridel is filed under “What happened” in the Quests page now, not marked failed; and coming back to Viridel later, Esk has decided there is one small job for you, down in the mud where her hill went.
 
 ## v0.81 — 2026-10-07
 

@@ -456,7 +456,7 @@ It is a developer page: it is hidden, off the route and off the map, reachable o
 7. *(done)* Pad prompts wherever only keys were named.
 8. *(done)* More lines for one-line and stale people, in their worlds' voices.
 9. *(proposal)* Something to do in the empty stretches: Vael's colossus, the desert's far landmarks and the Hearth, the City-Shaft's middle levels, the spheres' android wood.
-10. *(proposal)* Esk's loss presented as what happened rather than as a failure stamp.
+10. *(done, second pass)* Esk's loss presented as what happened rather than as a failure stamp.
 
 ## Proposals for the author
 
@@ -490,6 +490,8 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
 - **Esk** (plot review §3):
   - the Quests panel's "Failed ✗" and the "Failed:" toast could read "What happened";
   - a return visit where Esk decides whether there is a small job.
+
+  *Done (second pass):* the Quests panel says "What happened" (a quiet dot, not ✗) and so does the toast. On a later visit Esk has decided: one small job, a tea cutting from the rows that held, pressed into the new mud by the stream ("A Cutting for the Mud", two steps, tested). The payoff stays small and quiet: the cutting stays there, "It won't be my grandmother's hill. It'll be this one.", and she checks it every morning. The terraces stay what happened.
 - **Viridel's closing toast**, matching Lorn's and Lorn II's "Something of value?".
 - **The wheel that keeps turning.** What does Wen's "the city settles when the last tooth turns" mean now? Revise the bible's §9.
 - **Places to fill:**

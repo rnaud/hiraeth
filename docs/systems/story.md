@@ -422,6 +422,14 @@ sound to make it clear I should chat with her".
   things (`calls.js` beat `broke`), and Viridel's own recording gets a different answer
   (`REEL.edena.youAfter`). At the stone the traveller names it, once, after the space for Ilen
   (`tombLines(tokens, { broke })`, from `edena.terraces.flooded`).
+  The Quests panel files it under **What happened** (a quiet `·`, not "Failed ✗"), and the toast
+  reads "What happened: Water for the Tea Terraces" (`quests.js`, `game-menu.js`: any quest that
+  fails; this is the only one). **Coming back** (a visit that began with the quest already
+  failed sets `edena.esk.back`), Esk has decided there is a small job: the quest
+  `edena.cutting` ("A Cutting for the Mud"): press one tea cutting from the rows that held into
+  the mud beside the stream (E, or B / ○, `edena.cutting.planted`), then tell her ("It won't be
+  my grandmother's hill. It'll be this one."). The cutting stays in the mud on every visit
+  after, and she checks it every morning.
   `tests/story-terraces.test.js` runs it end to end and reloads it.
 - **Hands-on steps in the fetch quests** (each one solvable with a plain shot and push; ember
   shots work where lighting fits; existing stage ids kept, so old saves carry on):

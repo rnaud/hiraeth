@@ -17,7 +17,7 @@ const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
 const { PEOPLE } = await import('../src/story/edena-data.js');
-const { clearInteractables } = await import('../src/interact.js');
+const { clearInteractables, allInteractables } = await import('../src/interact.js');
 const { allTargets, clearTargets } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
 const { chargeState, chargeJournalHtml } = await import('../src/story/charge.js');
@@ -132,12 +132,12 @@ test('the quest: the runnels top first, the gate at Esk’s asking, the flood; i
   assert.equal(quests.isActive(Q), false);
   assert.equal(quests.isDone(Q), false);
   assert.equal(game.flag(`failed.${Q}`), 'Water for the Tea Terraces');
-  assert.ok(W.toasts.includes('Failed: Water for the Tea Terraces'));
-  // the Quests panel files it under Failed, with its own stamp; how it went is said when you pick it
+  assert.ok(W.toasts.includes('What happened: Water for the Tea Terraces'));
+  // the Quests panel files it under What happened, with its own stamp; how it went is said when you pick it
   const html = quests.journalHtml();
-  assert.match(html, /qgroup failed">Failed/);
+  assert.match(html, /qgroup failed">What happened/);
   assert.match(html, /class="quest finished failed" data-quest="edena.terraces"/);
-  assert.match(html, /✗ Failed/);
+  assert.match(html, /· What happened/);
   assert.match(quests.summary().failed[0].outro, /her hill went down into the hollow/);
   // it can't be retried
   assert.equal(quests.set(Q, 'runnels'), false);
@@ -160,6 +160,47 @@ test('the main quest is untouched by it, and the next visit finds the hill as it
   assert.ok(Math.abs(physics.groundAt(laneMid.x, 40, laneMid.z, 80) - W.level.ground.heightAt(laneMid.x, laneMid.z)) < 0.4, 'no invisible steps left in the lane');
   assert.ok(!targets('clod').some((t) => t.enabled()) && !targets('gate').some((t) => t.enabled()), 'nothing to push any more');
   assert.ok([undefined, 'mira'].includes(quests.stage('edena.garden')), 'the world’s own story still waits (for Mira)');
+});
+
+test('coming back, Esk has a small job: one tea cutting pressed into the mud, and it stays', () => {
+  // (this is the visit after the one the hill went in: W, above)
+  const { quests, T, step, at } = W, C = 'edena.cutting';
+  assert.equal(game.flag('edena.esk.back'), true, 'a later visit');
+  assert.equal(T.cutting.visible, false);
+  // (everything said on the way, node by node)
+  const heard = (person, choices) => {
+    const r = new DialogueRunner(person, { game, quests: W.quests }), out = [];
+    const read = () => { let last = null; for (;;) { if (r.node !== last) { out.push(...r.pages); last = r.node; } if (r.ended || !r.advance()) break; } };
+    read();
+    for (const c of choices) { r.choose(r.choices().find((x) => x.text.startsWith(c)).index); read(); }
+    return out.join(' ');
+  };
+  const said = heard(PEOPLE.esk, ['Are you sure']);
+  assert.match(said, /You came back/);
+  assert.match(said, /That’s why it’s a small job/);
+  assert.match(said, /second leaf/);
+  assert.equal(quests.stage(C), 'plant');
+  assert.match(heard(PEOPLE.esk, []), /second leaf/, 'she reminds you where');
+  const spot = allInteractables().find((e) => e.id === 'edena.cutting');
+  assert.ok(spot && spot.enabled());
+  assert.ok(Math.abs(T.cuttingAt.y - W.level.ground.heightAt(T.cuttingAt.x, T.cuttingAt.z)) < 0.01, 'on the mud');
+  at(T.cuttingAt); spot.use(); step(2);
+  assert.equal(T.cutting.visible, true);
+  assert.equal(quests.stage(C), 'tell');
+  assert.ok(!spot.enabled(), 'once');
+  assert.match(heard(PEOPLE.esk, ['This one, then.']), /It’ll be this one/);
+  assert.equal(quests.isDone(C), true);
+  assert.equal(quests.isFailed(Q), true, 'the terraces stay what happened');
+  // the visit after: the cutting is still there, and she checks it every morning
+  W = visit();
+  assert.equal(W.T.cutting.visible, true);
+  assert.match(heard(PEOPLE.esk, []), /I check every morning/);
+});
+
+test('the Quests panel says what happened, not "Failed"', () => {
+  const html = W.quests.journalHtml();
+  assert.match(html, /qgroup failed">What happened/);
+  assert.ok(!/Failed/.test(html));
 });
 
 test('the father’s charge keeps it quietly; a recording afterwards lands differently', () => {

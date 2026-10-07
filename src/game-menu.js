@@ -160,7 +160,7 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
   for (const q of active) main.push({ kind: 'quest', id: q.id, name: q.title, sub: q.tracked ? 'The one you are on: the scout finds it' : (q.main ? 'This world’s quest' : 'An errand'), desc: `${q.goal}.`, act: q.tracked ? null : 'track', q });
   for (const q of errands) main.push({ kind: 'errand', id: q.id, name: q.title, sub: 'A parcel to carry', desc: `${q.goal}.`, act: null, q });
   const ended = [...done.slice(0, ENDED).map((q) => ({ ...q, failed: false })), ...failed.slice(0, ENDED).map((q) => ({ ...q, failed: true }))];
-  const side = ended.map((q) => ({ kind: 'ended', id: q.id, name: q.title, sub: q.failed ? 'Failed' : 'Complete', desc: q.outro ?? '', act: null, q }));
+  const side = ended.map((q) => ({ kind: 'ended', id: q.id, name: q.title, sub: q.failed ? 'What happened' : 'Complete', desc: q.outro ?? '', act: null, q }));
   const n = Math.max(main.length, side.length);
   for (let r = 0; r < n; r++) {
     const row = [];
@@ -180,7 +180,7 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
   const more = (list) => (list.length > ENDED ? `<li class="more">and ${list.length - ENDED} more</li>` : '');
   const endedHtml = ended.length
     ? `<ul>${ended.filter((q) => !q.failed).map((q) => `<li><button class="ended" ${at('ended', q.id)}><i>✓</i>${esc(q.title)}</button></li>`).join('')}${more(done)}
-       ${ended.filter((q) => q.failed).map((q) => `<li><button class="ended failed" ${at('ended', q.id)}><i>✗</i>${esc(q.title)}</button></li>`).join('')}${more(failed)}</ul>`
+       ${ended.filter((q) => q.failed).map((q) => `<li><button class="ended failed" ${at('ended', q.id)}><i>·</i>${esc(q.title)}</button></li>`).join('')}${more(failed)}</ul>`
     : '<p class="none">None yet.</p>';
   const tracked = rows.findIndex((r) => r[0]?.q?.tracked);
   const html = `<div class="gm-quests">
