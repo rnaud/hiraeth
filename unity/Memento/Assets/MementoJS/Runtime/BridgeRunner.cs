@@ -61,7 +61,7 @@ namespace Memento.Bridge
             QualitySettings.vSyncCount = 0; Application.targetFrameRate = -1;
             if (args.Contains("\"split\":true")) gpuSplit = new BridgeGpuSplit();
             // the sound (BridgeAudio): played, except in batch runs and with -mute, where nothing may make any
-            bool mute = Application.isBatchMode || Array.IndexOf(Environment.GetCommandLineArgs(), "-mute") >= 0;
+            bool mute = Application.isBatchMode || Array.IndexOf(BridgeArgs.CommandLine(), "-mute") >= 0;
             if (mute) { AudioListener.volume = 0; AudioListener.pause = true; }
             audioOut = new GameObject("Sound").AddComponent<BridgeAudio>();
             audioOut.transform.SetParent(transform, false);
@@ -103,7 +103,7 @@ namespace Memento.Bridge
                 Debug.Log($"Memento bridge: started {Time.realtimeSinceStartup * 1000:0} ms after launch; the bundle {code.Length / 1e6:0.0} MB");
             }
             catch (Exception e) { Debug.LogError("Memento bridge: " + (e.InnerException ?? e)); failed = true; return; }
-            bool onMain = Array.IndexOf(Environment.GetCommandLineArgs(), "-js-main") >= 0 || args.Contains("\"jsMain\":true");
+            bool onMain = Array.IndexOf(BridgeArgs.CommandLine(), "-js-main") >= 0 || args.Contains("\"jsMain\":true");
             if (onMain)
             {
                 try { Boot(code); started = true; }
@@ -116,7 +116,7 @@ namespace Memento.Bridge
             done = false;
             thread = new Thread(() => Run(code), 64 << 20) { Name = "Memento script", IsBackground = true, Priority = System.Threading.ThreadPriority.Highest };
             // the sound rendered on a thread of its own (engine/unity/audio-worker.js: the script records its graph), unless -audio-js
-            var audioCode = Array.IndexOf(Environment.GetCommandLineArgs(), "-audio-js") >= 0 ? null : StreamingFile.Read(Path.Combine(Application.streamingAssetsPath, "memento-js", "audio.cjs"));
+            var audioCode = Array.IndexOf(BridgeArgs.CommandLine(), "-audio-js") >= 0 ? null : StreamingFile.Read(Path.Combine(Application.streamingAssetsPath, "memento-js", "audio.cjs"));
             if (audioCode != null && audioOut)
             {
                 BridgeHost.audioThreaded = true;
@@ -351,7 +351,7 @@ namespace Memento.Bridge
         /// <summary>The camera's view as a PNG (the port's Batch.Render does the same in the editor).</summary>
         public void Shot(string path)
         {
-            var probe = Environment.GetCommandLineArgs(); int pi = Array.IndexOf(probe, "-probe");
+            var probe = BridgeArgs.CommandLine(); int pi = Array.IndexOf(probe, "-probe");
             if (pi >= 0 && pi + 1 < probe.Length) Debug.Log($"Memento bridge: probe '{probe[pi + 1]}' at {Path.GetFileName(path)}:{scene.Probe(probe[pi + 1], Array.IndexOf(probe, "-solo") >= 0)}");
             // (-look: the frame's look as the shaders have it, at each shot)
             if (Array.IndexOf(probe, "-look") >= 0)

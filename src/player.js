@@ -40,7 +40,10 @@ const LIMIT = 1900;
  * Let go and you fall (or glide) as before. The keyboard's / touch's Space, the jets on its
  * own, climbs to JET_MAX_UP. They push at most JET_THRUST; a dive is gravity's.
  */
-export const JET = { speed: 8, run: 14, accel: 3, drift: 2.2, hover: 0, hold: 4, takeoff: 4, rise: 9, level: 0.22, gain: 1.4, dive: 0.6 };
+// The follow camera's look down when a world starts (rad, the rig's pitch): a little down the way the
+// traveller faces, as Ocarina of Time's (CameraRig). The jets fly level at it (JET.level).
+export const OPEN_PITCH = 0.13;
+export const JET = { speed: 8, run: 14, accel: 3, drift: 2.2, hover: 0, hold: 4, takeoff: 4, rise: 9, level: OPEN_PITCH, gain: 1.4, dive: 0.6 };
 
 /**
  * The jets' flight direction (unit, into `out`) for the stick (f forward, s right) and the
@@ -283,6 +286,7 @@ const _qId = new THREE.Quaternion();
 const _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu2 = new THREE.Vector3();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _cn = new THREE.Vector3(), _cd = new THREE.Vector3(), _ce = new THREE.Vector3(), _sw = new THREE.Vector3(), _ct = new THREE.Vector3();
+const _sr = new THREE.Vector3(), _sp = new THREE.Vector3(), _lb = new THREE.Vector3();   // (CameraRig.pickShoulder)
 
 /**
  * A scarf tail simulated as a Verlet chain and drawn as a ribbon in world
@@ -2245,12 +2249,23 @@ export class Player {
 // stick or the mouse); where a wall is close behind, the arm comes in rather than climbing.
 const INDOOR_PITCH = 0.1;        // rad: a touch down from level, at shoulder height
 
-// The follow camera's arm. Out in the open it hangs back (OPEN_DIST, the wheel
-// zooms it); in tight spaces it comes in close over the right shoulder, like
-// Uncharted: the ship, rooms, the giant's chest, alleys, canyons, low ceilings.
-export const OPEN_DIST = 9.5;
-export const TIGHT_DIST = 2.6;     // m, at the default zoom (scaled with the wheel)
-const TIGHT_SIDE = 0.75;           // m: the look point off the right shoulder when close
+// The follow camera's arm. Out in the open it hangs back like Ocarina of Time's: low behind the
+// traveller, a little over his head, looking a little down the way he faces, the traveller about a
+// quarter of the frame's height in its lower middle and the world ahead filling the rest
+// (OPEN_DIST, OPEN_LOOK, OPEN_PITCH; the wheel and LB + the right stick zoom it, ZOOM). In closed
+// spaces it comes in close over a shoulder, like Uncharted: about 2 m back at shoulder height, the
+// traveller big in the frame and to one side, the way ahead beside him (TIGHT_DIST, TIGHT_LOOK,
+// TIGHT_SIDE): the ship, rooms, temples, the giant's chest, caves, alleys, canyons, low ceilings.
+// The shoulder is the one with room beside it (CameraRig.pickShoulder), the right by default.
+export const OPEN_DIST = 6.4;      // m, the arm from the look point (was 9.5 until v0.82)
+export const OPEN_LOOK = 2.15;     // m over the feet: the look point in the open, over the head
+export const TIGHT_DIST = 1.9;     // m, at the default zoom (scaled with the wheel; was 2.6)
+export const TIGHT_LOOK = 1.5;     // m over the feet: close in, at the shoulders
+export const HALL_DIST = 2.6;      // m: close in, but in a hall (hallness): a little further back (the close arm before v0.82), the room round him
+export const ZOOM = [3, 60];       // m: the wheel's and the pad's range for the open arm
+const TIGHT_SIDE = 0.7;            // m: the look point off the shoulder when close
+const AIM_DIST = [3.4, 2.4];       // m: the arm while aiming, in the open and close in
+const SHOULDER = { room: 2.4, margin: 0.6, cramped: 0.3, gain: 0.8, hold: 0.6, rest: 1.6, rate: 2.2 };   // pickShoulder
 const PROBE_EVERY = 0.12;          // s between clearance probes
 const PROBE_N = 8;                 // horizontal rays round the player
 const LENS_R = 0.36;               // m: the room the lens needs round it (its near plane is 0.3 m out)
@@ -2303,6 +2318,19 @@ export function tightness({ ceil = Infinity, ring = [], up = [] }) {
   ), 0, 1);
 }
 
+/**
+ * How much a closed space is a hall rather than a passage, 0..1, from the same probes: a high
+ * ceiling and walls far apart every way across (the giant's chest, a great cave, a temple's big
+ * hall). There the close arm stands back further (HALL_DIST) so the room shows round the traveller;
+ * in a corridor, a cabin or a narrow cave it stays over the shoulder (TIGHT_DIST).
+ */
+export function hallness({ ceil = Infinity, ring = [] }) {
+  const half = ring.length >> 1;
+  let width = Infinity;
+  for (let i = 0; i < half; i++) width = Math.min(width, ring[i] + ring[i + half]);
+  return smoothstep(6, 14, ceil) * smoothstep(9, 20, width);
+}
+
 export class CameraRig {
   constructor(camera, dom, physics) {
     this.camera = camera;
@@ -2310,7 +2338,8 @@ export class CameraRig {
     this._curDist = OPEN_DIST;
     this._dir = new THREE.Vector3();
     this.yaw = 0;
-    this.pitch = 0.22;
+    this.pitch = OPEN_PITCH;
+    this.pitch0 = OPEN_PITCH;   // (the default, for tools and tests)
     this.dist = OPEN_DIST;
     this.target = new THREE.Vector3();
     this._look = new THREE.Vector3();
@@ -2331,14 +2360,21 @@ export class CameraRig {
     this.tightRaw = 0;       // what the last probe saw
     this.tightGoal = 0;      // after hysteresis
     this.tightK = 0;         // eased: what the arm uses
+    this.hallRaw = 0;        // how much of a hall the last probe saw (hallness)
+    this.hallK = 0;          // eased
     this._probeT = 0;
     this._lowT = 0;
     this._riding = false;
     this._lastP = null;
     this._ring = new Array(PROBE_N).fill(Infinity);
     this._up = new Array(4).fill(Infinity);
-    this._side = 0;          // the look point's offset off the shoulder, eased (it snapped and shook the view by walls)
+    this._side = 0;          // the look point's offset off the shoulder (signed: + right, - left), eased (it snapped and shook the view by walls)
+    this.shoulder = 1;       // which shoulder close in: 1 the right, -1 the left (pickShoulder)
+    this._swapT = 0;         // how long the other shoulder has looked better
+    this._restT = 9;         // since the last swap
+    this._jumped = false;    // the last updateTight was a jump (a teleport, a hand-over)
     this._swing = 0;         // indoors: the turn the camera is easing through to get clear of a wall behind you
+    this._wide = 0; this._wideT = 0;   // the wider arm asked for (gliding, the jets), held a moment
 
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));
@@ -2349,9 +2385,52 @@ export class CameraRig {
       if (document.pointerLockElement !== dom && !this._dragging) return;
       this.look(e.movementX, e.movementY);
     });
-    dom.addEventListener('wheel', (e) => {
-      this.dist = THREE.MathUtils.clamp(this.dist * (1 + Math.sign(e.deltaY) * 0.1), 4, 60);
-    }, { passive: true });
+    dom.addEventListener('wheel', (e) => this.zoom(1 + Math.sign(e.deltaY) * 0.1), { passive: true });
+  }
+
+  /** Zoom the open arm by a factor (the wheel, LB + the right stick), within ZOOM. */
+  zoom(f) {
+    this.dist = THREE.MathUtils.clamp(this.dist * f, ZOOM[0], ZOOM[1]);
+  }
+
+  /** The look point's height over the feet: over the head in the open, at the shoulders close in, lower aiming. */
+  lookHeight(k = Math.max(this.tightK, this.indoorK), ak = this.aimK ?? 0, pitch = this.pitch) {
+    const free = THREE.MathUtils.lerp(OPEN_LOOK, TIGHT_LOOK, k);
+    const aim = THREE.MathUtils.lerp(1.7, 1.4, k);
+    // looking up from low down: aim higher so the sky and clouds fill the view
+    const h = THREE.MathUtils.lerp(free, aim, ak) + Math.max(0, -pitch) * 1.4 * (1 - ak);
+    return THREE.MathUtils.lerp(h, 0.9 - 0.3 * k, this.downK);   // knocked down: the body on the ground
+  }
+
+  /**
+   * Which shoulder the camera looks over close in (this.shoulder, 1 right / -1 left), from the room
+   * beside the look point and beside the arm on either side (rays along the camera's right, `R`):
+   * the camera goes over the shoulder with room, so the traveller stands toward the wall and the way
+   * ahead shows beside him. Hardly offset yet (coming in from the open), it picks freely (the right
+   * unless the left has clearly more room); once over a shoulder it only swaps when that side is
+   * cramped, the other has much more room, and that has held a moment, and not again soon after
+   * (SHOULDER). Aiming is always over the right shoulder (the tool's hand). A jump picks at once.
+   */
+  pickShoulder(dt, want, ak, look, R, dir) {
+    this._restT += dt;
+    if (ak > 0.05) { this.shoulder = 1; this._swapT = 0; return; }
+    if (want < 0.05 && Math.abs(this._side) < 0.05) { this._swapT = 0; return; }
+    const P = this.physics, room = (s) => {
+      _sr.copy(R).multiplyScalar(s);
+      const a = P.rayDistance(look, _sr, SHOULDER.room);
+      _sp.copy(look).addScaledVector(dir, Math.min(1.4, this._curDist * 0.7));
+      return Math.min(a, P.rayDistance(_sp, _sr, SHOULDER.room));
+    };
+    if (this._jumped || (Math.abs(this._side) < 0.12 && this._restT > SHOULDER.rest)) {   // (not halfway through a swap)
+      this._swapT = 0;
+      this.shoulder = room(-1) > room(1) + SHOULDER.margin ? -1 : 1;
+      return;
+    }
+    const here = room(this.shoulder), there = room(-this.shoulder);
+    const cramped = here < want + 0.45 + SHOULDER.cramped;
+    if (cramped && there > here + SHOULDER.gain && this._restT > SHOULDER.rest) this._swapT += dt;
+    else this._swapT = 0;
+    if (this._swapT > SHOULDER.hold) { this.shoulder = -this.shoulder; this._swapT = 0; this._restT = 0; }
   }
 
   /** Turn the camera by a pointer delta in pixels (mouse or touch). */
@@ -2399,7 +2478,7 @@ export class CameraRig {
    */
   probe(playerPos, U = Y, Fw = _zAxis, Rt = _xAxis) {
     const P = this.physics, chest = _pc.copy(playerPos).addScaledVector(U, 1.2);
-    const ceil = P.rayDistance(chest, U, 30);
+    const ceil = this._ceil = P.rayDistance(chest, U, 30);
     const base = P.base && U.y > 0.999 ? P.base : null;
     for (let i = 0; i < PROBE_N; i++) {
       const a = (i / PROBE_N) * Math.PI * 2, s = Math.sin(a), c = Math.cos(a);
@@ -2415,6 +2494,7 @@ export class CameraRig {
         this._up[i >> 1] = P.rayDistance(chest, _pd, 50);
       }
     }
+    this.hallRaw = hallness({ ceil, ring: this._ring });
     return tightness({ ceil, ring: this._ring, up: this._up });
   }
 
@@ -2425,6 +2505,7 @@ export class CameraRig {
   updateTight(playerPos, dt, U, Fw, Rt) {
     const jumped = !this._lastP || this._lastP.distanceToSquared(playerPos) > 36;   // a teleport, a portal, a respawn
     (this._lastP ??= new THREE.Vector3()).copy(playerPos);
+    this._jumped = jumped;
     this._probeT -= dt;
     if (this._probeT <= 0 || jumped) {
       const step = jumped ? 0 : PROBE_EVERY - this._probeT;
@@ -2440,7 +2521,8 @@ export class CameraRig {
         if ((this._lowT += step) > 1.0) { this.tightGoal = raw; this._lowT = 0; }
       } else this._lowT = 0;
     }
-    if (jumped) this.tightK = this.tightGoal;
+    if (jumped) { this.tightK = this.tightGoal; this.hallK = this.hallRaw; }
+    else this.hallK += (this.hallRaw - this.hallK) * (1 - Math.exp(-0.8 * dt));
     const rate = this.tightGoal > this.tightK ? 3.2 : 1.1;
     this.tightK += (this.tightGoal - this.tightK) * (1 - Math.exp(-rate * dt));
     return this.tightK;
@@ -2457,10 +2539,17 @@ export class CameraRig {
    * While riding: swing behind the bike unless the mouse moved recently. A ride may ask for its own
    * view (shot: { side, boost, pitch }): a cab, which drives itself, is watched from beside and a
    * little above, where you see the traveller seated in it under its canopy.
+   * `wide` (metres, not riding a vehicle): a longer arm for what needs to see ahead and below
+   * (gliding, the jets, climbing); held a moment after it drops (a tap of the jets doesn't pump it).
    */
-  follow(heading, dt, riding, shot = null) {
+  follow(heading, dt, riding, shot = null, wide = null) {
     this._riding = !!riding;
-    this._distBoost += ((riding ? shot?.boost ?? 6 : 0) - this._distBoost) * (1 - Math.exp(-2 * dt));
+    if (wide != null) {
+      if (wide >= this._wide) { this._wide = wide; this._wideT = 0; }
+      else if ((this._wideT += dt) > 1.2) this._wide = wide;
+    }
+    const goal = wide != null ? this._wide : riding ? shot?.boost ?? 7 : 0;
+    this._distBoost += (goal - this._distBoost) * (1 - Math.exp(-2 * dt));
     if (!riding || this._now - this._lastMouse < 1.5) return;
     let d = heading + (shot?.side ?? 0) + Math.PI - this.yaw;
     d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -2518,8 +2607,8 @@ export class CameraRig {
   armRoom(yaw, pitch, want, k, U, Fw, Rt) {
     const cp = Math.cos(pitch);
     const dir = _toCam.copy(Rt).multiplyScalar(Math.sin(yaw) * cp).addScaledVector(U, Math.sin(pitch)).addScaledVector(Fw, Math.cos(yaw) * cp);
-    const look = _sw.copy(this.target).addScaledVector(U, 1.8 - 0.3 * k);
-    _shoulder.crossVectors(U, dir).normalize();
+    const look = _sw.copy(this.target).addScaledVector(U, this.lookHeight(k, 0, pitch));
+    _shoulder.crossVectors(U, dir).normalize().multiplyScalar(this.shoulder);
     const side = Math.max(0, Math.min(TIGHT_SIDE * k, this.physics.rayDistance(look, _shoulder, TIGHT_SIDE * k + 0.45) - 0.45));
     look.addScaledVector(_shoulder, side);
     let d = Math.min(want, this.coneClear(look, dir, want + 0.5, U) - 0.4);
@@ -2536,8 +2625,29 @@ export class CameraRig {
   armLength(tk = this.tightK, ak = this.aimK ?? 0) {
     const open = this.dist + this._distBoost;
     // the close arm follows the wheel too (zoomed out a little further, in a little nearer)
-    const close = THREE.MathUtils.clamp(TIGHT_DIST * this.dist / OPEN_DIST, 1.9, 4.5);
-    return THREE.MathUtils.lerp(THREE.MathUtils.lerp(open, Math.min(open, close), tk), 3.4, ak);
+    const close = THREE.MathUtils.clamp(THREE.MathUtils.lerp(TIGHT_DIST, HALL_DIST, this.hallK) * this.dist / OPEN_DIST, 1.5, 4.5);
+    // aiming: over the right shoulder, a little nearer close in
+    return THREE.MathUtils.lerp(THREE.MathUtils.lerp(open, Math.min(open, close), tk), THREE.MathUtils.lerp(AIM_DIST[0], AIM_DIST[1], tk), ak);
+  }
+
+  /**
+   * The room beside `look` toward the shoulder `s` (along the camera's right, `_shoulder`), up to `far`:
+   * also a little way ahead, counted as more room the further ahead it is, so a wall beside the way
+   * ahead (the end of a pillar row, a door's jamb) eases the offset in before you reach it.
+   */
+  sideRoom(look, s, far, U = Y) {
+    const P = this.physics, dir = _lb.copy(_shoulder).multiplyScalar(s);
+    let room = P.rayDistance(look, dir, far);
+    _sr.copy(this._dir).addScaledVector(U, -this._dir.dot(U)).negate();   // ahead, level
+    if (_sr.lengthSq() > 1e-6) {
+      _sr.normalize();
+      for (const [ahead, extra] of [[0.7, 0.25], [1.4, 0.5]]) {
+        _sp.copy(look).addScaledVector(_sr, ahead);
+        if (P.rayDistance(look, _sr, ahead) < ahead) break;   // (a wall ahead: nothing beside it to see)
+        room = Math.min(room, P.rayDistance(_sp, dir, far) + extra);
+      }
+    }
+    return room;
   }
 
   /** @param frame the player's local frame (up / fwd / right) */
@@ -2555,6 +2665,7 @@ export class CameraRig {
     const dist = this.armLength(tk, ak);
     this.downK += ((this.down ? 1 : 0) - this.downK) * (1 - Math.exp(-3 * dt));
     // (knocked down, softer; but not while the body is falling away from it: a long tumble left the frame)
+    if (this._jumped) this.target.copy(playerPos);   // (a teleport, a hand-over: the framing is chosen where you are now)
     const lag = this.target.distanceTo(playerPos);
     this.target.lerp(playerPos, 1 - Math.exp(-THREE.MathUtils.lerp(14, 5, this.downK * (1 - smoothstep(1.5, 4, lag))) * dt));
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
@@ -2579,20 +2690,36 @@ export class CameraRig {
     if (ik > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);
     const cp = Math.cos(pitch);
     const cam = this.camera.position;
-    // looking up from low down: aim higher so the sky and clouds fill the view
-    // (close in, at the shoulders rather than over the head)
-    this._look.copy(this.target).addScaledVector(U, 1.8 + Math.max(0, -pitch) * 1.4 * (1 - ak) - 0.1 * ak - 0.3 * k - 0.9 * this.downK);
+    // over the head in the open (the traveller in the lower middle of the frame), at the shoulders
+    // close in; looking up from low down, higher, so the sky and clouds fill the view
+    this._look.copy(this.target).addScaledVector(U, this.lookHeight(k, ak, pitch));
     this._dir.copy(Rt).multiplyScalar(Math.sin(this.yaw) * cp)
       .addScaledVector(U, Math.sin(pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);
-    // over the right shoulder (aiming, and close in), but never past a wall beside you
-    // (eased out, snapped in: a wall beside you used to flick it on and off, shaking the view)
-    let side = Math.max(0.85 * ak, TIGHT_SIDE * k);
-    if (side > 0.01 || this._side > 0.01) {
-      _shoulder.crossVectors(U, this._dir).normalize();
-      const room = this.physics.rayDistance(this._look, _shoulder, side + 0.45);
-      side = Math.max(0, Math.min(side, room - 0.45));
-      this._side = side < this._side ? side : this._side + (side - this._side) * (1 - Math.exp(-4 * dt));
+    // over a shoulder (aiming: the right; close in: the one with room, pickShoulder), but never past
+    // a wall beside you. The offset is signed (+ right) and eased, so a change of shoulder slides
+    // across behind the head; a wall closing in on the side it is on pulls it in at once (it used to
+    // flick on and off by walls, shaking the view: eased out, snapped in).
+    const want = Math.max(0.85 * ak, TIGHT_SIDE * k);
+    if (want > 0.01 || Math.abs(this._side) > 0.01) {
+      _shoulder.crossVectors(U, this._dir).normalize();   // the camera's right
+      this.pickShoulder(dt, want, ak, this._look, _shoulder, this._dir);
+      const s = this.shoulder;
+      const room = this.sideRoom(this._look, s, want + 0.45, U);
+      const goal = s * Math.max(0, Math.min(want, room - 0.45));
+      const onSide = this._side * s >= 0;   // (the offset is on that shoulder already, or there is none)
+      if (this._jumped) this._side = goal;
+      else if (onSide && Math.abs(goal) < Math.abs(this._side)) {
+        // a wall coming in beside it: eased in quickly, and pulled in at once only as far as needed
+        // to keep the look point off the wall (it used to snap all the way in, a jump in the view)
+        this._side += (goal - this._side) * (1 - Math.exp(-10 * dt));
+        if (Math.abs(this._side) > room - 0.2) this._side = s * Math.max(0, room - 0.2);
+      } else this._side += (goal - this._side) * (1 - Math.exp(-(onSide ? 4 : SHOULDER.rate) * dt));
+      // (sliding across: never past a wall on the side it is still on)
+      if (Math.sign(this._side) !== s && Math.abs(this._side) > 0.01) {
+        const back = this.physics.rayDistance(this._look, _lb.copy(_shoulder).multiplyScalar(-s), Math.abs(this._side) + 0.45);
+        this._side = -s * Math.max(0, Math.min(Math.abs(this._side), back - 0.2));
+      }
       this._look.addScaledVector(_shoulder, this._side);
     } else this._side = 0;
 

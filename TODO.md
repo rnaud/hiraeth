@@ -26,7 +26,11 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Dialogue
 
-- [ ] The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: a blank
+- [x] (2026-10-07, the Retroid in the GeckoView test app: the portrait draws the person in all four
+  conversations tried, 210 × 210, 280–440 colours; the Sketchbook's relic sketches and the game menu's 23 item
+  pictures draw too. So in the app's engine the canvas read works and the capture path stays as it is; the blank
+  disc was the device's Chrome, not measured this round. docs/systems/performance.md, "The Retroid, round 4".)
+  The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: a blank
   yellow disc — that is `person.color ?? '#d8a24a'`, the chip's background, with `img.hidden` left
   true or the image blank). **Not reproduced on the desktop**: a headless Chrome 154 (the device's
   version) at the Handheld preset and device pixel ratio 2 draws the person — 210 × 210, 265 distinct
@@ -49,7 +53,13 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Android
 
-- [ ] Next time the Retroid is attached, in the GeckoView test app (never the player's app): measure the
+- [x] (2026-10-07, docs/systems/performance.md "The Retroid, round 4": the pen never stopped over 50 ms in seven
+  loads, before 6b10cc0 and after; the merged towers draw as unmerged on the Adreno; portraits, the Sketchbook and
+  the item pictures draw, the pictures cost one 15–29 ms frame each for 23 frames as the Items panel opens; cab
+  rides at 59–60 fps, the route planned in 0.2–0.4 ms; every world again: the traveller's update 2.7–3.6 → 1.0–1.4
+  ms, the camps 45 → 56 fps, Qanat 49 → 57, the City-Shaft's rim 50 → 59. Found and fixed: dynamic resolution
+  held 0.75 looking down the City-Shaft, GPU-bound at 44 fps; it probes a step down now, 53.5 fps at 0.55.)
+  Next time the Retroid is attached, in the GeckoView test app (never the player's app): measure the
   loading pen through a desert and a City-Shaft load (`adb shell screenrecord`, then
   `scripts/transition-perf/pen.mjs`'s `angles()`); check the City-Shaft's merged towers (`S_VMAT`, checked
   in Firefox / Chrome Metal / SwiftShader on the Mac) draw as unmerged; the speaker's portrait and the
@@ -92,7 +102,13 @@ still differs"). What is left needs a device or a policy:
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached. (2026-10-07: the bridge's
   APK builds, 73 MB, `BridgeBuild.Android`; `scripts/bench/android-bridge.sh desert -views
   scripts/bench/viewpoints.json -bench 8 -split` installs and runs it, muted, and pulls its results.
-  The Linux player for the Deck builds too: engine-bridge.md, "The players again".)
+  The Linux player for the Deck builds too: engine-bridge.md, "The players again".) (2026-10-07, on the Retroid:
+  it starts, the world ready in 3.5 s, but it never ran its plan: the `unity` extra did not reach it, so neither
+  did `-mute` (it played the desert with its sound for ten minutes before the script's limit stopped it). Fixed,
+  not yet seen on the device: the script quotes the extra, `BridgeArgs.CommandLine` reads the activity's intent
+  on Android, and the script stops a player that has not logged its plan within 20 s, and refuses a locked
+  handheld (the second run met the lock screen: the device had locked itself; engine-bridge.md, "On the
+  Retroid".) Next: unlock, `android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split`.)
 - [x] The Unity player at the camps and the Market's crowd: 0.7–1.5 ms a frame behind the web (2026-10-07,
   engine-bridge.md "Speed"; level at the dunes, ahead at the City-Shaft). The script's thread is the frame
   there; next: the sound's synthesis off it, the people's bone matrices. (2026-10-07: the capes' cloth in Burst
@@ -100,7 +116,9 @@ still differs"). What is left needs a device or a policy:
   every view at or under the web; engine-bridge.md "The script's frame against the web's".)
 - [ ] The Android player's script thread and sound thread (BridgeRunner runs the script, and the sound's renderer,
   on threads of their own since 2026-10-07; checked on macOS only, no device): run it there once a device is free
-  (`-js-main`, `-audio-js` if they fail).
+  (`-js-main`, `-audio-js` if they fail). (2026-10-07, the Retroid: both started on their own threads and the game ran, "the script on its
+  own thread", "the sound on its own thread (24000 Hz)", the audio replay's node counts steady over 6 minutes;
+  their frame times wait for the bench run above.)
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
   unknown MCP servers (the configured UnityMCP server also fails to connect). The editor is driven in
   batch mode instead (`scripts/unity-export/unity-batch.sh`).
