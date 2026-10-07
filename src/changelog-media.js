@@ -103,6 +103,43 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.78': [
+    { match: 'The City-Shaft looks more like its drawings', shots: [
+      { name: 'shaft-wide', caption: 'Across and down the shaft to its lake', commit: '0bb9a0a', view: { level: 'incal', player: [274, 200, 0], eye: [283.27, 228.87, 0], target: [2.6, -46.8, 8.11] } },
+    ] },
+    { match: 'The Signal Market’s stalls are full now', shots: [
+      { name: 'market-stalls-ref', caption: 'The References’ view of the long street of stalls', commit: '17d2e92', before: 'af8e8c6^', view: { ref: '3808-long-street' } },
+    ] },
+    { match: 'In the Buried Machine the trench walls are a mass of pipes', shots: [
+      { name: 'buried-trench', caption: 'The References’ view of the domes on the ridge and the pipes in the trench', commit: '86c6ee4', view: { ref: '3789-domes-trench' } },
+      { name: 'buried-city', caption: 'The References’ view of the ring and the city hanging over it', commit: '86c6ee4', view: { ref: '3789-city-ring' } },
+    ] },
+    { match: 'The desert’s canyon walls and violet cliffs', shots: [
+      { name: 'violet-cliffs', caption: 'The References’ view of the turquoise pool in the violet cliffs', commit: '74f6ff6', view: { ref: '3774-violet-pool' } },
+    ] },
+    { match: 'A wall turned away from the sun now stays in full shadow', see: 'In the Signal Market or Qanat, look at a wall turned from the sun with another building between it and the sun: it is one even shadow, not a lighter half-tone patch.' },
+    { match: 'Where sand has banked against an old wall', see: 'Walk along Qanat’s outer wall where the sand banks against it: the pale band of dust at the wall’s foot follows the top of the sand.' },
+    { match: 'The plaster is stained darker round the doors', see: 'Walk up to a door in Qanat, at home, in the Signal Market or at Vael II’s monastery: the plaster round it is darker, worn by hands.' },
+    { match: 'In the References level the gorge under the rope bridges', shots: [
+      { name: 'gorge-shadow', caption: 'The References’ view of the rope bridges over the gorge', commit: '22c1b63', view: { ref: 'bridges' } },
+    ] },
+    { match: 'In the References level the Signal Market’s panels', shots: [
+      { name: 'ref-market-crowd', caption: 'The crowded skybridge and the round towers', commit: 'af8e8c6', view: { ref: '3804-crowded-bridge' } },
+      { name: 'ref-market-cabs', caption: 'The bridge between the towers, cabs under it', commit: 'af8e8c6', view: { ref: '3807-bridge-cabs' } },
+      { name: 'ref-shaft-balcony', caption: 'The balcony over the slot in the City-Shaft', commit: '0bb9a0a', view: { ref: '3782-balcony' } },
+    ] },
+    { match: 'Looking across the City-Shaft is lighter on handhelds', numbers: [
+      { title: 'Draw calls in close views of the towers', better: 'lower', device: 'headless Chrome, Handheld preset', source: 'docs/systems/performance.md, “Round 3, on the Mac”', rows: [
+        { where: 'a tower close by', before: 313, after: 141 },
+        { where: 'another', before: 328, after: 110 },
+        { where: 'a third', before: 547, after: 115 },
+      ] },
+      { title: 'The processor’s work a frame', unit: 'ms', better: 'lower', device: MAC_X4, rows: [
+        { where: 'the rim', before: 35.6, after: 31.3 },
+        { where: 'the wide view across the shaft', before: 39.8, after: 37.3 },
+      ] },
+    ], see: 'The towers look exactly as before (0.001–0.16 % of the pixels apart, the moving things): the gain is in how they are drawn.' },
+  ],
   '0.77': [
     { match: 'The traveller’s face moves now', see: 'Talk to anyone and watch the traveller in the conversation’s close-up: he smiles, frowns or looks worried with what is said, blinks, glances about, and his mouth moves as he speaks.' },
     { match: 'The fluid tank is the glass jar', shots: [
