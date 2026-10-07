@@ -30,6 +30,7 @@ export const PLANETS = {
   eclipse: { body: '#1c2244', shade: '#0e1128', ink: '#ffe2c8', mark: 'lights' },   // (a detour: the city under the black sun)
   fallenring: { body: '#9c9e58', shade: '#6a7a52', ink: '#f8e6c8', mark: 'bands' },   // (a detour: the fallen ring)
   moonfoundry: { body: '#efe2c8', shade: '#c9a888', ink: '#d4763c', mark: 'craters' },   // (a detour: the workshop of moons)
+  underside: { body: '#f6efe6', shade: '#9caccc', ink: '#c8643e', mark: 'bands' },   // (a detour: the town under the rock, over the cloud)
   spacecity: { body: '#f4b49a', shade: '#a8686a', ink: '#8ef0e4', mark: 'lights' },   // (a detour: the city floating in space)
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };

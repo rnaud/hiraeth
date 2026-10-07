@@ -699,6 +699,51 @@ the narrowest creases.
   continents over a darker machine layer, ours a ragged hole; the far moons are paler than the sheets' crisp ivory;
   the floor is plain where view 3 has grass and bushes along it.
 
+## The Underside's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-underside.js`, world `underside`: `?level=references&world=underside&view=n`):
+  four 16:9 pictures (1456 × 816), one view each: from a stair in the cliff's shade, the shelf's town near on the
+  right, its tip far on the left, banners and baskets over the cloud (1); up the lit stair, the shelf's nose on the
+  left, the tall silo houses along its face, a far rock with its tower (2); the nests under the shelf, the town's
+  timber mass in its shade, baskets on long ropes from its underside near the tip, the cloud to the edge (3); at
+  dusk, the fluted face lit rose, the white masses along it, the flat cloud to the horizon (4). One scene builder
+  (`undersideScene`): the shelf (`shelfAt`), its town (the kit's `town`, in the face's frame), cliffs, the stair,
+  the sea of cloud, the traveller with his great pale pack.
+- **Placed off the pictures' pixels**: `sheetAt(cam, px, py, d)` (the point drawn at that pixel, d m deep) and
+  `sheetPlane(cam, px, py, y)` (where that pixel's ray meets the level y, above or below the eye; the antennas'
+  `sheetGround` for any level). A shelf is given by two points of its top front edge (`R` its root side, `P` its
+  tip) on its top's level; its slab is laid behind that line, away from the eye, its root running on past R. Its
+  free end is pinched on its back only (`slab({ pinch })`): pinched on both sides, the tip drew back 40 m from where
+  the picture has it. A cliff is given by its near corner (`corner`: the edge the eye sees), its side toward the
+  middle of the frame turned edge-on to the eye, so only its face shows. `tests/underside.test.js` projects pixels
+  back through a camera.
+- **The shapes** (`src/levels/underside-kit.js`, shared with the world): `slab` (a rounded block: its top flat, its
+  sides cut in ledges with their own depths, cracked down, bulging in `pillow`s with creased valleys, lumpy, its
+  underside hanging in lobes), `pod` (white plaster houses, round as swallows' nests: `dome` with a cupola, `egg`,
+  `drop` (its crown buried in the underside, its foot on a deck), `bulb` (hung free); windows in deep frames, some
+  lit; an arched door), `deck` (planks, beams, a rail, rods up to the rock only where the rock is overhead, struts
+  back to a wall), `ladder`, `banner` (a long cloth from a bar, salt-harbour-kit's `curtain`), `basket`, `lamp` (on
+  a cord), `stoneStair` (steps, the rock under the flight, a parapet), `shrubs`, `cloudPuffs` and `puffGeo` (the
+  cloud's cauliflowers), `traveller`, `resident`; and `town(fk, M, rng, o)`: a town hung along a face in its own
+  frame (x along the face, z out from it): decks in runs at each level from under the shelf out past its face,
+  rows of shacks on them (salt-harbour-kit's `houseStack`) with a walk kept along the rail, a back wall of houses
+  hung from the underside down to the lowest deck (so the eye under the shelf meets lit windows, not the sky beyond
+  its far side), pods on the face's ledges and hung under it, banners from the outer edges, baskets on arms, lamps,
+  herbs, people; `fill(x)` thins it toward the tip.
+- **The look** (`UNDER_LOOK`, `UNDER_DAY` in the kit): no clouds drawn in the sky (the cloud is below), the shade
+  printed nearly flat in a cool blue-grey, light hatching, deep spot blacks in the scaffolds' gaps, a warm pale haze
+  in bands over the cloud. The rock is strata rock (`MODE_STRATA`, as Vael II's), not weathered: weathering's built
+  pen detail drew panel seams and small rectangles on it. The cloud's shade is a visible pale blue (`CLOUD_PRINT`
+  lifted 0.12, printed 0.6 flat), its puffs gently lumped (0.09): Vael II's sharper lumps read as ice floes from
+  above. The foreground stair stands in the shade of a rock behind the eye (`shade`), as the pictures put it.
+  `?look=underside`.
+- **On the world** (`src/levels/underside.js`, worlds.md "The Underside"): the same kit at `detail` 0.6-0.8, the decks,
+  houses and rails solid, the shelf's underside split off in a deeper stone (`splitFaces`), the cloud instanced.
+- **Left**: the pictures' town is a far denser, warmer mass (balconies crowded with people and pots, timber lit by
+  the low sun, every gap filled); ours reads as decks and rods with houses on them. The pictures' face bulges in
+  big pillows of rock with dark creases, ours more gently; their white houses are lumpier and clumped like nests;
+  picture 1's town is closer and larger than ours; their cloud heaps are softer, shaded in gradients.
+
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 
 The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had

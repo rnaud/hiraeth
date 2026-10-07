@@ -23,6 +23,7 @@ import { createUnderwater, buildUnderwater } from './underwater.js';
 import { createEclipse, buildEclipse } from './eclipse.js';
 import { createFallenRing, buildFallenRing } from './fallen-ring.js';
 import { createMoonFoundry, buildMoonFoundry } from './moon-foundry.js';
+import { createUnderside, buildUnderside } from './underside.js';
 import { createSpaceCity, buildSpaceCity } from './space-city.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
@@ -160,6 +161,13 @@ export const LEVELS = [
     id: 'moonfoundry', create: createMoonFoundry, build: buildMoonFoundry, hidden: true,
     title: TITLES.moonfoundry, source: 'a workshop for making moons',
     blurb: 'Unfinished ivory moons hang from the cranes of a vast open hangar or rest in orange claws, and the workers live in the old machinery. Climb to the gantry and walk into the moon broken open round its courtyard; one furnace still pours.',
+    moves: 'walk · climb',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'underside', create: createUnderside, build: buildUnderside, hidden: true,
+    title: TITLES.underside, source: 'a town hung under a shelf of rock',
+    blurb: 'A shelf of white rock juts out over a sea of cloud, and a town hangs under it: round white houses stuck to the rock, timber decks slung on rods, long red banners falling toward the cloud. Go down the great stair, walk the galleries under the shelf to its tip, and climb back up the timber stair.',
     moves: 'walk · climb',
   },
   {

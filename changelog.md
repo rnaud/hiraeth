@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.86 — 2026-10-07
+
+- A new world off the route, the City Floating in Space: rounded houses in cream, salmon and coral heaped on islands in the black of space, joined by pale arched bridges, with the stars all round you, even under your feet. Cross the crowded Market Bridge to the stalls of the plaza, climb to the Towers, rest under the dark trees of the Garden, and look out from the Balcony at the great planet, which turns its lit face toward the city as night comes. Step over a parapet and you fall into the void, and come back where you last stood.
+- The References level has the City Floating in Space’s four pictures rebuilt as views: rounded houses in cream, salmon and coral heaped on islands that float in the black of space, pale arched bridges between them, dark machinery and long cables hanging under them into the void, and a great pale planet over the roofs.
+- Space is drawn the way the drawings draw it: a flat black all round, below you as well as above, printed with fine white and teal stars and a faint nebula, and a great planet hanging as an ink-ringed disc, full or a crescent.
+
 ## v0.85 — 2026-10-07
 
 - A new world off the route, the City During the Eclipse: a city of white domes and round towers at midday, with the moon over the sun. The lamps are lit at noon and people eat outside at their tables by lantern light, pale figures lean out from the walls, and the stars are out. Walk the Lantern Square, climb the Great Stair and the tiers of the bowl, and look out from the overlook over the lit city on the plain. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came for the eclipse.
@@ -14,9 +20,8 @@ The same release notes shown in the game (press **N** or open settings).
 - The References level has the Moon Foundry’s four pictures rebuilt as views: ivory moons hanging from cranes or held in orange claws, shells broken open round little courtyards of houses and mint trees, gantries between the workstations under a vast open roof. Their camera keeps every pillar upright, as the pictures do.
 - The title screen has a What’s new button: every change, with its before and after pictures, without starting a game.
 - Debug on the title screen opens the worlds list straight away, instead of loading a whole world behind it first.
-- A new world off the route, the City Floating in Space: rounded houses in cream, salmon and coral heaped on islands in the black of space, joined by pale arched bridges, with the stars all round you, even under your feet. Cross the crowded Market Bridge to the stalls of the plaza, climb to the Towers, rest under the dark trees of the Garden, and look out from the Balcony at the great planet, which turns its lit face toward the city as night comes. Step over a parapet and you fall into the void, and come back where you last stood.
-- The References level has the City Floating in Space’s four pictures rebuilt as views: rounded houses in cream, salmon and coral heaped on islands that float in the black of space, pale arched bridges between them, dark machinery and long cables hanging under them into the void, and a great pale planet over the roofs.
-- Space is drawn the way the drawings draw it: a flat black all round, below you as well as above, printed with fine white and teal stars and a faint nebula, and a great planet hanging as an ink-ringed disc, full or a crescent.
+- A new world off the route, the Underside: a shelf of white rock jutting far out over a sea of cloud, with a town hung under it. Round white houses cling to the rock and hang from it like swallows’ nests, timber galleries are slung beneath it on rods, long red banners fall toward the clouds and baskets go up and down on their ropes. Walk down the great stair cut into the cliff, along the rope walk and the galleries under the shelf to the deck at its tip, and climb back up the timber stair on its north face. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came to see it.
+- The References level has the Underside’s four pictures rebuilt as views: an immense shelf of pale rock jutting out over a sea of cloud, a town of round white houses and timber decks hung under it, long red banners falling toward the clouds, baskets let down on ropes, and the traveller on a stair cut into the cliff.
 
 ## v0.84 — 2026-10-07
 

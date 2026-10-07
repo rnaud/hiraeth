@@ -20,8 +20,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # The tests in four parts side by side: a private repository's runners have two cores, where
+  # node --test ran one file at a time (2 min became 12). Each part runs two files at once.
+  test:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # (tests/android-ota.test.js counts the history's commits)
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Test (part ${{ matrix.shard }} of 4)
+        run: node --test --test-concurrency=2 --test-shard=${{ matrix.shard }}/4 tests/*.test.js
+
   deploy:
     if: github.ref == 'refs/heads/main'
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 30   # (a new Deck runtime: Electron packaged and 150 MB uploaded and checked)
     steps:
@@ -33,8 +56,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Test
-        run: node --test tests/*.test.js
       - name: Build the game and its content update
         run: |
           npm run build
