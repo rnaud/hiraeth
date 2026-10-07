@@ -15,6 +15,8 @@ The same release notes shown in the game (press **N** or open settings).
 - In Vael II, Mother Ysolde answers her sister’s lamp the old way and lays a place at supper once the bell has rung; Sister Aube, Brother Calix and Ondine say more in passing, Hollin’s feather gets a thanks that fits, and the belfry’s guardian brings down only the stones round her tower, as you can see.
 - In Viridel, reading Talo’s note on the tallest tree before Lio has asked you to climb no longer leaves Lio asking forever: tell him what you saw and it counts. Mira no longer says her clock rang while it was missing its gear, and thanks you once it does; what happened at Esk’s terraces is told as it happened, and nobody suggests you should have turned the gate more gently.
 - In Lorn and Lorn II, prompts name the pad’s buttons, Ivo lets you keep his fireflies, Ysse tells the crossing as everyone else does, the humming crystal goes to Bram where he actually sits, and Bram, Pim and Wick have more to say, Wick once every pool is lit.
+- In the Buried Machine, lighting the Wick before Wen or Hask has sent you no longer stalls Tooth Day, and reading the three gauges before you meet Ossa no longer leaves her repeating herself: both quests go on from what you did. Hask has noticed the wheel never stopped.
+- In the City-Shaft you can give Dov Ossa’s message from the bottom, and he answers it; Dov knows he left before Pip was born, Lio hears that Hask tipped, and the rim no longer says the cabs stop for anyone. Lio’s taxi token is for Clemence in the Sealed Hangar, by name, and Lio, Hask and two of the Hangar’s people have more to say.
 
 ## v0.79 — 2026-10-07
 

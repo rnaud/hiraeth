@@ -27,7 +27,7 @@ export const PEOPLE = {
         hello: {
           say: ["~neutral~ Wim. Clock-winder. Hold still while I count… No. That one’s wrong too. I wind every clock on this plateau each morning.",
             "~solemn~ That’s *the First Garage*. The Major found it here before building the rest. Kept his first car in the porch and copied the mark from its door.",
-            "~sad~ The works below set the pace for this whole world. They jolted when the Singer passed. Three machines stopped. Something underneath has been winding tighter ever since."],
+            "~sad~ The works below set the pace for this whole world. They jolted when the singing light passed. Three machines stopped. Something underneath has been winding tighter ever since."],
           do: { set: { 'met.wim': true } },
           choices: [
             { text: '~neutral~ I’ll go down and look.', do: { start: 'temple.garage' }, goto: 'go' },

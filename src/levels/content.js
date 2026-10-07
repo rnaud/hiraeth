@@ -177,8 +177,8 @@ export const CONTENT = {
     // singing sand is for her); the rest of the city's people are in src/story/incal-data.js
     npcs: [
       { at: [300, -40], y: 200, palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ["~angry~ Below the smog? I’ve never needed to go.", "~tired~ The Lodestar is a tourist attraction. So I’m told."], ...INCAL_RIM.corvin },
-      { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ["~playful~ Watch the taxis. Their hurry outranks yours."], ...INCAL_RIM.lio },
-      { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ["~shout~ Views of the abyss! Looking up remains free!"], shy: true, ...INCAL_RIM.hask },
+      { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ["~playful~ Watch the taxis. Their hurry outranks yours.", "~tired~ No pass, no cab. I don’t make the rules. I make the passes."], ...INCAL_RIM.lio },
+      { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ["~shout~ Views of the abyss! Looking up remains free!", "~playful~ The abyss, at today’s price. Tomorrow’s is higher."], shy: true, ...INCAL_RIM.hask },
       { ...INCAL_PEOPLE.nima, at: [112.1, 165.8], y: 150, radius: 1.8, speed: 0.45 },
     ],
   },
@@ -208,7 +208,7 @@ export const CONTENT = {
     story: {
       title: 'THE MAJOR FORGOT',
       intro: 'Major Brask built this pocket universe, and forgot why. His people keep the machines turning, and pass round a signal nobody can read.',
-      outro: "The Major’s note asks what his world might become. On its back: coordinates for a wheel buried in sand. The machines keep working.",
+      outro: "The Major’s note says he still doesn’t know what his world is for. On its back: coordinates for a wheel buried in sand. The machines keep working.",
       label: 'the great machine', goal: [90, 86, -60], radius: 12, manual: true,
     },
     relics: {
@@ -217,8 +217,8 @@ export const CONTENT = {
     },
     npcs: [
       { at: [40, 60], palette: pal('#e6875f', { cloth: '#3f8f8a' }), lines: ["~playful~ Gravity is a local arrangement here.", "~tired~ The Major built this world and forgot its purpose."] },
-      { at: [-80, -20], palette: pal('#62c3c9'), lines: ["~angry~ Hands clear of the gears, please!"] },
-      { at: [120, -110], palette: pal('#f2c54b'), lines: ["~playful~ Walk round the ring and arrive where you left."], shy: true },
+      { at: [-80, -20], palette: pal('#62c3c9'), lines: ["~angry~ Hands clear of the gears, please!", "~happy~ Grease today, grease tomorrow. Lovely."] },
+      { at: [120, -110], palette: pal('#f2c54b'), lines: ["~playful~ Walk round the ring and arrive where you left.", "~tired~ My feet have seen this whole world. Twice."], shy: true },
     ],
   },
   edena: EDENA_CONTENT,
@@ -254,7 +254,7 @@ export const ERRANDS = [
     wait: "~neutral~ *Nima, who sweeps the high terrace, down the red stair from the City-Shaft’s rim.*",
     thanks: "~happy~ A seed, from Viridel’s gardens? Glass, so the smog can’t hurt it. I’ll keep it on my sill, where the Lodestar reaches. Thank you." },
   { id: 'token', item: 'a taxi token', from: ['incal', 1], to: ['garage', 0],
-    ask: "~playful~ Take this taxi token to *the Sealed Hangar*. They’ve never seen a cab there. Show them what a real city runs on.",
-    wait: "~neutral~ *Someone in the Sealed Hangar.* Anyone who’ll admire it.",
-    thanks: "~playful~ A cab token? We don’t have cabs. We have walls that turn into floors. I’ll keep it for the day we do." },
+    ask: "~playful~ The Sealed Hangar next? Take this taxi token to *Clemence* there. They’ve never seen a cab. Show them what a real city runs on.",
+    wait: "~neutral~ *Clemence, in the Sealed Hangar.* The one who remembers the man who built it.",
+    thanks: "~playful~ A cab token? We don’t have cabs. We have walls that turn into floors. The Major would have taken it apart to see how it paid. I’ll keep it whole." },
 ];
