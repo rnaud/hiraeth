@@ -160,20 +160,17 @@ test('the APK updater only asks for native changes', () => {
   assert.match(src, /web\.apkOffered\(name, apk, /, 'the settings know about the APK it offered');
 });
 
-test('the workflow publishes the web zip and both manifests, never half', () => {
+test('the workflow publishes the APK and its manifest, never half', () => {
   const yml = readFileSync(new URL('../.github/workflows/android.yml', import.meta.url), 'utf8');
-  // (for apps up to NATIVE_API 4, until the repository is private: docs/cloudflare.md)
-  assert.match(yml, /TRANSITION: remove once the repository is private/);
-  assert.match(yml, /zip -q -r -X "\$RUNNER_TEMP\/web-\$BUILD\.zip" \./, 'one zip name per build');
-  assert.match(yml, /release-info\.mjs web-json "\$BUILD" "\$RUNNER_TEMP\/web-\$BUILD\.zip" "\$BASE\/web-\$BUILD\.zip"/);
+  // the repository is private: the game's updates come from the site only, no web zip on GitHub (docs/cloudflare.md)
+  assert.doesNotMatch(yml, /TRANSITION|web-\$BUILD\.zip|web\.json|web-zips/);
   assert.match(yml, /release-info\.mjs latest-json/);
-  const zipUp = yml.indexOf('"$APK" "$ZIP" --clobber'), jsonUp = yml.indexOf('"$RUNNER_TEMP/web.json" --clobber');
-  assert.ok(zipUp > 0 && zipUp < jsonUp, 'the zip goes up before the manifest that points at it');
+  const apkUp = yml.indexOf('"$APK" --clobber'), jsonUp = yml.indexOf('"$RUNNER_TEMP/latest.json" --clobber');
+  assert.ok(apkUp > 0 && apkUp < jsonUp, 'the APK goes up before the manifest that points at it');
   // a new release is made with every file at once (gh keeps it a draft until they are up)
-  assert.match(yml, /gh release create "\$TAG" "\$APK" "\$ZIP" "\$RUNNER_TEMP\/latest\.json" "\$RUNNER_TEMP\/web\.json"/);
-  // a run publishing is never cancelled (that left the newest release without web.json)
+  assert.match(yml, /gh release create "\$TAG" "\$APK" "\$RUNNER_TEMP\/latest\.json"/);
+  // a run publishing is never cancelled (that left the newest release without its manifest)
   assert.match(yml, /concurrency:\s*\n\s*group: android-release\s*\n\s*cancel-in-progress: false/);
-  assert.match(yml, /release-info\.mjs web-zips/);
 });
 
 test('saves survive bundle switches: one fixed origin', () => {
