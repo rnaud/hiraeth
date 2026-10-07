@@ -1,0 +1,37 @@
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_72139011b96802 857-872
+engine/game.js
+  s_55b4bc53b812ec::t_ba3b1c484624ab 72-74
+engine/unity/audio-worker.js
+  s_55b4bc53b812ec::t_916fc73518565b 1-27
+engine/unity/game.js
+  s_55b4bc53b812ec::t_64449f1cec8602 33-35,144-153
+engine/webaudio.js
+  s_55b4bc53b812ec::t_1a89b817784d2f 18-23,26-34,39,46,52-57,65,133-136,144-145,208-209,212,257-262,273-276,316-329,361-362,443,445-452,460-518,522-524,545-625,627-628,630
+scripts/engine-bundle.mjs
+  s_55b4bc53b812ec::t_413fbed0b5b948 21-22,24-25,71-72
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_56a448ac5dafbd 18,209-210,223-226,244
+tests/webaudio.test.js
+  s_55b4bc53b812ec::t_9977933a0ed54f 131-177
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_55b4bc53b812ec::t_8cee55d9d3a316 110-145
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_d6a3b46af2e005 38-39,118-126,138,169-192,395
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6403ab306d3c5e4f90c35f999d0c17ad126f0b43",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
