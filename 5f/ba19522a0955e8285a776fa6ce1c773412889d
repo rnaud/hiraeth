@@ -1,0 +1,197 @@
+.github/workflows/android.yml
+  s_55b4bc53b812ec::t_d2c597374843bd 79-82
+.github/workflows/cloudflare.yml
+  s_55b4bc53b812ec::t_c37475fecd58e4 55-60
+.github/workflows/unity-android.yml
+  s_55b4bc53b812ec::t_55885db28a2d3a 1-227
+LORE.md
+  s_55b4bc53b812ec::t_02c0683c6604bd 497,510
+changelog.html
+  s_55b4bc53b812ec::t_5948b5386ebc9d 1-138
+changelog.md
+  s_55b4bc53b812ec::t_0ff4440abd6ad0 5-25,30-33
+docs/README.md
+  s_55b4bc53b812ec::t_8f024896c711c6 23,51,57
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_f11a6723fd14c2 48-50
+docs/story-audit.md
+  s_55b4bc53b812ec::t_a35751e2d8001d 1-508
+docs/systems/changelog.md
+  s_55b4bc53b812ec::t_2a2774a1f5f1a8 1-122
+docs/systems/conversations.md
+  s_55b4bc53b812ec::t_acbb94868d1430 1,29-79,81-83
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_7d35efcfd25344 637-641
+docs/systems/faces.md
+  s_55b4bc53b812ec::t_fbf9da9455188c 284-304
+docs/systems/story.md
+  s_55b4bc53b812ec::t_4849c072b09526 60,64-65,68-72,447-465
+docs/systems/ui.md
+  s_55b4bc53b812ec::t_5260e7a00590df 28-29
+docs/systems/unity.md
+  s_55b4bc53b812ec::t_e847adadaf91e4 50-101
+index.html
+  s_55b4bc53b812ec::t_9b806b0227b77e 133-136
+scripts/changelog-md.mjs
+  s_55b4bc53b812ec::t_a904518caa26c1 7,15
+scripts/changelog-shots.mjs
+  s_55b4bc53b812ec::t_801bd770ae0909 1-258
+scripts/package-steam-deck.mjs
+  s_55b4bc53b812ec::t_40835a990b957a 17-19
+scripts/release-info.mjs
+  s_55b4bc53b812ec::t_f77eff09a399f7 10,16,77,115-137,147-151,154-155
+scripts/steam-deck/deck.py
+  s_55b4bc53b812ec::t_17dd09ce1b46e5 744,766,769-773,790,799-800,821-822,934-937
+scripts/unity-android-release.sh
+  s_55b4bc53b812ec::t_f8849d3b164803 1-69
+scripts/unity-publish.sh
+  s_55b4bc53b812ec::t_3dea8f5579a0ca 1-30
+scripts/web-update.mjs
+  s_55b4bc53b812ec::t_08e1024ef33aad 132-135,141
+src/boxes/index.js
+  s_55b4bc53b812ec::t_d88d771e27691a 282
+src/changelog-media.js
+  s_55b4bc53b812ec::t_f27f29be64ed12 1-502
+src/changelog-page/main.js
+  s_55b4bc53b812ec::t_771f7ef68e30a1 1-197
+src/changelog-page/view.js
+  s_55b4bc53b812ec::t_4e339f8a9bd5d3 1-107
+src/changelog.js
+  s_55b4bc53b812ec::t_f3e94728ceb603 3-5,12-39,43-46,842-845,852-853,855-858,861,863-864,877-901,903
+src/characters/tripo-face.js
+  s_55b4bc53b812ec::t_b64b1e7c0f5c80 1,35,37-44,53-56,71-74,101,113,152,161,169,173,213-221
+src/items.js
+  s_55b4bc53b812ec::t_b0443a2ef8dfc7 47,52,139
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_31a72e9637e969 93,95,97
+src/levels/buried.js
+  s_55b4bc53b812ec::t_0611e44ba7163a 137
+src/levels/content.js
+  s_55b4bc53b812ec::t_110c3a8061c999 51,118-122,128,147,155,180-181,202,211,220-221,233-234,237,242,244,246-248,258-277
+src/levels/perdide.js
+  s_55b4bc53b812ec::t_4a21a82785f82a 166
+src/main.js
+  s_55b4bc53b812ec::t_fd586a911435d4 1025-1026,1028,1552
+src/observatory.js
+  s_55b4bc53b812ec::t_7745a22ba8e137 108-109,153,180-181,183-184
+src/quest.js
+  s_55b4bc53b812ec::t_46d7428608d17e 5,300-302,337
+src/story/arzach-data.js
+  s_55b4bc53b812ec::t_2812333a39366f 60,67,107,149,163,204
+src/story/arzach.js
+  s_55b4bc53b812ec::t_12e83a7ade7757 457-458
+src/story/arzach2-data.js
+  s_55b4bc53b812ec::t_df5731b16cd8a3 110,114,138,147,175-176,206
+src/story/bazaar-data.js
+  s_55b4bc53b812ec::t_552302d548e472 35,86,139,186,189,191-192,217,403,431,484
+src/story/buried-data.js
+  s_55b4bc53b812ec::t_4e0667db7bba04 140,196,226,297
+src/story/buried.js
+  s_55b4bc53b812ec::t_5adc6948613fbb 54-62
+src/story/coverage.js
+  s_55b4bc53b812ec::t_37219c7aa514e0 1-75
+src/story/desert-bike.js
+  s_55b4bc53b812ec::t_4bfbc57202923e 160
+src/story/desert-data.js
+  s_55b4bc53b812ec::t_f5b709710fbe85 152-153,183,185,201,211,217-221,250,278,396,407,410,421,448-451,627,745,757-761
+src/story/desert.js
+  s_55b4bc53b812ec::t_4a12448f79b5d4 78,123-132,535
+src/story/dialogue.js
+  s_55b4bc53b812ec::t_464496de5ab5bc 4-5,11,227-233,281,285-289,348-349,361,370-403,406-407,416,428-430,440,469-481,506-509,511,513,526-532,576,582-585,600-603,606-609,614,620-625,638-653,659-661
+src/story/edena-data.js
+  s_55b4bc53b812ec::t_be7d361690a15f 67,73,83,107,116,158-163,184,192,267,298-299,348,403
+src/story/garage-data.js
+  s_55b4bc53b812ec::t_fc2313fae54999 96
+src/story/home-data.js
+  s_55b4bc53b812ec::t_ef688cb3b34822 19-20,29-32,99,196
+src/story/incal-data.js
+  s_55b4bc53b812ec::t_92000bc32ca110 174,212,335-338,345,348,398,449,512,544
+src/story/index.js
+  s_55b4bc53b812ec::t_6b9e85a90794a1 5,14,73,113-147,204,283,339-348
+src/story/perdide-data.js
+  s_55b4bc53b812ec::t_b67772aac53250 29,138,171,175,213,227,417
+src/story/perdide.js
+  s_55b4bc53b812ec::t_e681ae64d91dce 213
+src/story/perdide2-data.js
+  s_55b4bc53b812ec::t_ef22e767392320 60,120,125,146,160,192,208,232,252,283,327
+src/story/shot.js
+  s_55b4bc53b812ec::t_857573759ff8d4 151,163-165,175,193-266
+src/story/spheres-data.js
+  s_55b4bc53b812ec::t_c3d50a9fa92ed1 43,105-106,139,151,192,218,220
+src/temples/arzach2-data.js
+  s_55b4bc53b812ec::t_bad59b6b816c6e 7,29,67
+src/temples/arzach2.js
+  s_55b4bc53b812ec::t_d87ce0d462ba8d 312
+src/temples/buried-data.js
+  s_55b4bc53b812ec::t_3abf9ddc551781 17
+src/temples/edena-data.js
+  s_55b4bc53b812ec::t_aa1a7377dff341 44,63
+src/temples/garage-data.js
+  s_55b4bc53b812ec::t_3ba6880732b5b7 30
+src/temples/index.js
+  s_55b4bc53b812ec::t_58c046df4167cd 210,214-222
+src/temples/perdide2-data.js
+  s_55b4bc53b812ec::t_dd6a78f1f7912a 66
+tests/android-ota.test.js
+  s_55b4bc53b812ec::t_c382172655a632 10,81
+tests/boxes.test.js
+  s_55b4bc53b812ec::t_363c1be873d98e 347
+tests/changelog-media.test.js
+  s_55b4bc53b812ec::t_2d7b3156bda7d3 1-138
+tests/convo-closeup.test.js
+  s_55b4bc53b812ec::t_5187dc91fa7bd8 1-229
+tests/desert-story.test.js
+  s_55b4bc53b812ec::t_d13fd8781a2957 693-711
+tests/errands-route.test.js
+  s_55b4bc53b812ec::t_750646003c1b45 21-23
+tests/home-family.test.js
+  s_55b4bc53b812ec::t_c442a32e7abc3f 64-69
+tests/platform.test.js
+  s_55b4bc53b812ec::t_502e95d9049f81 73-78,80
+tests/story-arzach.test.js
+  s_55b4bc53b812ec::t_ed12df6f43a260 110-128
+tests/story-bazaar.test.js
+  s_55b4bc53b812ec::t_104633337718b8 222-239
+tests/story-buried.test.js
+  s_55b4bc53b812ec::t_3ebb814765fa7a 281-301
+tests/story-edena.test.js
+  s_55b4bc53b812ec::t_791c7e1311de59 181-189
+tests/story-perdide2.test.js
+  s_55b4bc53b812ec::t_e8ad0681300b57 96,184
+tests/story-spheres.test.js
+  s_55b4bc53b812ec::t_1e8162c44d7f1d 182-198
+tests/story-terraces.test.js
+  s_55b4bc53b812ec::t_d9145ea348f337 141
+tests/test_steam_deck.py
+  s_55b4bc53b812ec::t_052b7443aaa841 596-619
+tests/tripo-face.test.js
+  s_55b4bc53b812ec::t_14028514302016 117-131
+tests/unity-ci.test.js
+  s_55b4bc53b812ec::t_ef551d1fe936eb 1-110
+unity/.gitignore
+  s_55b4bc53b812ec::t_888eaca027fef8 35-37
+unity/Memento/Assets/Memento/Shaders/TripoFace.hlsl
+  s_55b4bc53b812ec::t_3ff2aebb034eb7 20,32,71,80,88,92
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_2fd49b7707cf6f 22-23,30-34,67-79,83,95,118,158-176,178-180,182-183,187-188,197,199,204-237
+unity/Memento/ProjectSettings/ProjectSettings.asset
+  s_55b4bc53b812ec::t_df12290a07cb86 173
+vite.config.js
+  s_55b4bc53b812ec::t_1d71e19f755867 15-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5fba19522a0955e8285a776fa6ce1c773412889d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
