@@ -367,6 +367,24 @@ the narrowest creases.
   self-driving, round-bellied cab with its striped canopy and a rider).
 - **Left, scene level**: the sheets' stalls are a dense heap of goods and signs; ours are tidy rows.
 
+## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
+
+The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had
+large plain faces, so the spot blacks (post.js `uSpot`) had no pockets to fill. `greebles(seed).patch(o, u, v, n, w,
+h, { density, scale, depth, hang, kinds })` dresses a rectangle of a face with pipe runs (bundles of one to three on
+brackets, flanges, now and then a valve), conduits up it, cable bundles along it, casings and louvred plates, and
+under a ceiling (`hang`) pipes dropped on rods; `kinds: 'rock'` lays knobs and ribs instead. `merged()` gives one
+geometry per role (metal, dark, pale, rock) for a world's buckets or a kit's. Pieces are 8–36 faces (`GREEBLE.faces`),
+about 10 faces a square metre at density 1; a left-handed frame is turned round so nothing is drawn inside out.
+
+- **The Buried Machine** (buried.js): the drum's inside wall between the tall windows, below the balcony and above it
+  (solid as drawn: it is a jetpack world and you climb it), pipes hung under the balcony (drawn only), and clusters on
+  the trench's leaning walls, one band over the banked sand, two quads in five, laid quad by quad on the drawn wall
+  (solid). ~68 k triangles; the static collision ~195 k → ~257 k (bake +5 ms, ground rays +15 %; tests/buried.test.js
+  budget 270 k); Handheld (desktop, scale 0.75, 7 rounds, median ms): the drum 3.13 → 3.05 and 2.52 → 2.99, the
+  trench 3.51 → 3.76 and 4.48 → 4.47. The views: the drums' inside walls (`drumInside`), the machinery against the
+  walls (`machinery`, its `fine` density) and the oval walls' feet (`ovalWall`, columns stopping under the ovals).
+
 ## Across the worlds: the shader gaps that recur
 
 Ranked by how much they would close the gap to the sheets, across every world rebuilt:

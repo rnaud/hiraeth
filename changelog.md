@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The cracks in Vael II’s peach plain are no longer black holes: their walls are a lit red-brown, hatched with strokes running down them, as in its drawings.
 - Vael II’s sea of cloud is printed flat as in its drawings: a warm white in the light and one pale grey-blue in its shade, following the real sun through the day instead of being lit from the same side at every hour.
 - At dusk and at night Vael II’s shadows keep the soft grey-teal of its day, warmer at dusk and deeper at night, instead of turning the old violet-blue.
+- The Buried Machine’s drum is lined with dense small machinery, as in its drawings: pipe runs with their valves and flanges, conduits, casings and louvred plates between the tall windows, pipes hung under the balcony; machinery clusters cling to the trench’s walls too, and you can climb on all of it.
 
 ## v0.78 — 2026-10-07
 
