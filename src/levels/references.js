@@ -18,6 +18,7 @@ import { ANTENNAS_DAY, ANTENNAS_LOOK } from './antennas-kit.js';
 import { ECLIPSE_TOTAL, ECLIPSE_LOOK, eclipseUniforms } from './eclipse-kit.js';
 import { RING_DAY, RING_LOOK } from './fallen-ring-kit.js';
 import { MF_DAY, MF_LOOK } from './moon-foundry-kit.js';
+import { MARKET_NIGHT } from './market-night-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
 
@@ -224,6 +225,7 @@ export const WORLD_LOOKS = {
   eclipse: { sky: ECLIPSE_TOTAL, look: { ...ECLIPSE_LOOK, ...eclipseUniforms() } },
   fallenring: { sky: RING_DAY, look: { ...RING_LOOK } },
   moonfoundry: { sky: MF_DAY, look: { ...MF_LOOK } },
+  marketnight: { sky: MARKET_NIGHT, look: { ...MARKET_LOOK } },
 };
 
 const pageParams = () => (typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams());

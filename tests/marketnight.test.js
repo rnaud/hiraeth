@@ -84,3 +84,77 @@ test('the views\' lens: a sheet pixel lands where the picture draws it', () => {
     assert.ok(Math.abs((p.x + 1) * 728 - px) < 0.5 && Math.abs((1 - p.y) * 408 - py) < 0.5, `${px}, ${py}`);
   }
 });
+
+// ------------------------------------------------------------------ the market's own night (bazaar.js)
+import { createBazaar } from '../src/levels/bazaar.js';
+import { Physics } from '../src/physics.js';
+import { Crowd } from '../src/crowd.js';
+import { clearTargets } from '../src/targets.js';
+import { NIGHT_LIGHTS, NIGHT_CROWD_AWAY, MARKET_NIGHT } from '../src/levels/market-night-kit.js';
+
+const market = (() => { let m; return () => { if (!m) { const scene = new THREE.Scene(), level = createBazaar(scene); m = { scene, level, physics: new Physics(scene, level.ground) }; } return m; }; })();
+
+test('the market\'s billboards: painted as by day, and each part its night colour and glow', () => {
+  const { scene } = market();
+  const signs = [];
+  scene.traverse((o) => { if (o.isMesh && o.material.defines?.NIGHT_PAINT) signs.push(o); });
+  assert.ok(signs.length >= 1, 'the signs are night-painted');
+  let lit = 0, colours = new Set();
+  for (const m of signs) {
+    const c = m.geometry.attributes.color, q = m.geometry.attributes.aNight;
+    assert.ok(c && q && q.itemSize === 4 && q.count === c.count, 'a night colour for every vertex');
+    for (let i = 0; i < q.count; i += 7) { if (q.getW(i) > 0.5) lit++; colours.add(`${q.getX(i).toFixed(2)},${q.getY(i).toFixed(2)},${q.getZ(i).toFixed(2)}`); }
+  }
+  assert.ok(lit > 1000, 'they glow by night');
+  assert.ok(colours.size >= 10, `the sheets' many screen colours (${colours.size})`);
+  // by day their colours are the shop colours they always were (the night colours replace them only as uNight comes up)
+  const day = new Set();
+  for (const m of signs) { const c = m.geometry.attributes.color; for (let i = 0; i < c.count; i += 7) day.add('#' + new THREE.Color(c.getX(i), c.getY(i), c.getZ(i)).getHexString()); }
+  for (const hex of ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98', '#b9a9c5', '#f5dfab']) assert.ok(day.has(hex), `${hex}: a day colour kept`);
+  assert.ok([...day].every((h) => ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98', '#b9a9c5', '#f5dfab'].includes(h)), 'and no other');
+  assert.equal(MARKET_NIGHT.length, 5);
+});
+
+test('by night the lanterns light pools; by day none, and the Undertower\'s lights stay', () => {
+  const { level } = market();
+  const player = { pos: new THREE.Vector3(-20, 0.3, 30) };
+  const temple = level.lights.length;
+  sharedUniforms.uNight.value = 0;
+  level.update(1 / 60, 0, { player });
+  assert.equal(level.lights.length, temple, 'by day: no lantern light at all');
+  assert.equal(sharedUniforms.uLampsOn.value, 0);
+  level.update(1 / 60, 0, { player });
+  sharedUniforms.uNight.value = 1;
+  level.update(1 / 60, 1 / 60, { player });
+  assert.equal(level.lights.length, temple + NIGHT_LIGHTS.count, 'the nearest lanterns');
+  const mine = level.lights.slice(temple);
+  for (const l of mine) assert.ok(Math.hypot(l.x - player.pos.x, l.z - player.pos.z) < 40 && l.w === NIGHT_LIGHTS.r, 'near the traveller, at full reach');
+  level.update(1 / 60, 2 / 60, { player });
+  assert.equal(level.lights.length, temple + NIGHT_LIGHTS.count, 'not piling up frame after frame');
+  sharedUniforms.uNight.value = 0;
+  level.update(1 / 60, 3 / 60, { player });
+  assert.equal(level.lights.length, temple, 'gone at daybreak');
+});
+
+test('after midnight half the crowd goes home, never in front of the camera', () => {
+  const { level, physics } = market();
+  clearTargets();
+  const fakeNPC = (kind) => ({ kind, pooled: true, person: null, assign(p) { this.person = p; }, release() { this.person = null; } });
+  const crowd = new Crowd(new THREE.Scene(), physics, { spots: level.crowdSpots(), makeNPC: fakeNPC });
+  const player = { pos: new THREE.Vector3(0, 0, 60), vel: new THREE.Vector3() };
+  const cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.3, 5000);
+  cam.position.set(0, 2, 66); cam.lookAt(0, 1.5, 0); cam.updateMatrixWorld();
+  sharedUniforms.uNight.value = 1;
+  crowd.away = level.crowdAway();
+  assert.equal(crowd.away, NIGHT_CROWD_AWAY);
+  for (let f = 0; f < 3; f++) crowd.update(1 / 60, f / 60, player, cam);
+  const gone = crowd.people.filter((p) => p.gone);
+  assert.ok(gone.length > crowd.people.length * 0.3 && gone.length < crowd.people.length * 0.6, `${gone.length} of ${crowd.people.length} gone home`);
+  assert.ok(gone.every((p) => p.pos.distanceTo(cam.position) > 45), 'only those far off');
+  assert.ok(gone.every((p) => p.tier === 0), 'not drawn');
+  sharedUniforms.uNight.value = 0;
+  crowd.away = level.crowdAway();
+  cam.position.set(0, 2, 400); cam.updateMatrixWorld();   // (out of the way: everyone far off)
+  crowd.update(1 / 60, 1, player, cam);
+  assert.ok(crowd.people.every((p) => !p.gone), 'back by day');
+});

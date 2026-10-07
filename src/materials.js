@@ -480,6 +480,11 @@ const vertexShader = /* glsl */ `
     out vec4 vForm;       // the point about the axis: across it (x, y), along it (z), w the kind
   #endif
   out vec2 vTextureUV;
+  #ifdef NIGHT_PAINT
+    // its colour after dark and how far it glows then (makeMaterial nightPaint: the Signal Market's screens)
+    in vec4 aNight;
+    out vec4 vNight;
+  #endif
   #include <skinning_pars_vertex>
   #include <morphtarget_pars_vertex>
   #ifdef FACE_KEYS
@@ -590,6 +595,9 @@ const vertexShader = /* glsl */ `
     vTextureUV = uv;
     vBind = position;
     vFold = aFold;
+    #ifdef NIGHT_PAINT
+      vNight = aNight;
+    #endif
     vec4 pos = vec4(transformed, 1.0);
     vec3 nrm = objectNormal;
     #ifdef USE_INSTANCING
@@ -762,6 +770,9 @@ const fragmentShader = /* glsl */ `
   in vec3 vBind;
   in vec2 vFold;
   in vec2 vTextureUV;
+  #ifdef NIGHT_PAINT
+    in vec4 vNight;
+  #endif
   #ifdef S_VMAT
     // (the material values from the vertex instead of the uniforms: every use below reads these)
     flat in vec3 vMatC1; flat in vec3 vMatC2; flat in vec3 vMatC3; flat in vec3 vMatS;
@@ -1992,6 +2003,9 @@ const fragmentShader = /* glsl */ `
         if (dot(d, d) < best) { best = dot(d, d); instColor = uPalette[i]; }
       }
     }
+    #ifdef NIGHT_PAINT
+      instColor = mix(instColor, vNight.rgb, uNight);   // (by night its own colour: a billboard lit as a screen)
+    #endif
     vec2 bw = vec2(0.0);
     float slope = 1.0 - n.y;
     if (false) {
@@ -2094,6 +2108,9 @@ const fragmentShader = /* glsl */ `
     #endif
     float patInk = 0.0;
     float emit = 0.0;   // lit windows at night (facade)
+    #ifdef NIGHT_PAINT
+      emit = vNight.a * uNight;   // (and glows, as far as it says, after dark)
+    #endif
     #ifdef S_FACADE
     if (uPattern == 1) patInk = facade(vWorldPos, n, normalize(vNormal), albedo, emit);
     #endif
@@ -2599,6 +2616,8 @@ const cache = new Map();
  *                              the compasses painted on, a ray of light travelling across it (uBoxA.w its clock), outline-only ink
  * @param {boolean|string} [o.dissolve] compile the DISSOLVE block: uDissolve (amount, edge, bottom y, top y in
  *                              world space) eats the surface from the top down with a bright edge (o.dissolve: its colour)
+ * @param {boolean} [o.nightPaint] compile the NIGHT_PAINT block: the geometry's aNight attribute (vec4: rgb its colour by
+ *                              night, a how far it glows then) takes over from its colour as uNight comes up (the Signal Market)
  */
 export function makeMaterial(o) {
   const key = JSON.stringify({ ...o, map: o.map?.uuid });
@@ -2714,6 +2733,11 @@ export function makeMaterial(o) {
     mat.uniforms.uBoxB = { value: new THREE.Vector4(...(B.half ?? [0.5, 0.5, 0.5]), B.center ?? 0.5) };
     mat.uniforms.uBoxMark = { value: new THREE.Color(B.mark ?? '#dcecf2') };
     mat.uniforms.uBoxLight = { value: new THREE.Color(B.light ?? '#fffbea') };
+  }
+  if (o.nightPaint) {
+    // painted one way by day and another by night (the geometry's aNight: rgb its night colour, a its glow then, mixed
+    // in by uNight): the Signal Market's billboards turn into the night sheets' screens (bazaar.js, market-night-kit.js)
+    mat.defines = { ...mat.defines, NIGHT_PAINT: 1 };
   }
   if (o.lampTint) {
     // the lamps' pools in their own colour: '#rrggbb' (most of the way to it) or [colour, how far]

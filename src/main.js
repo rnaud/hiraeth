@@ -1441,6 +1441,7 @@ function frame(ts) {
       }
     }
   }
+  if (crowd && level.crowdAway) crowd.away = level.crowdAway();   // (a world's night thins its street: bazaar.js)
   crowd?.update(dt, t, player, camera);
   for (const n of npcs) n.update(dt, player, camera);
   errands.update();

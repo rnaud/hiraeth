@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Moon Foundry the last furnace still pours: molten metal falls from a tipped ladle into a small new moon in bands of hot colour that march down the stream, its mouth glows, and it drones as you come near. At night it is the warmest light on the floor.
 - The References level has the Moon Foundry’s four pictures rebuilt as views: ivory moons hanging from cranes or held in orange claws, shells broken open round little courtyards of houses and mint trees, gantries between the workstations under a vast open roof. Their camera keeps every pillar upright, as the pictures do.
 - The References level has the Signal Market at night: its four pictures rebuilt as views, a narrow lane of the market after midnight, its walls stacked with old screens of every age and size lit pink, violet, lemon, orange and green, each showing its own picture, vendors mending them at the walls’ feet.
+- The Signal Market has its night: after dark its billboards and shop signs light up as the old screens of a night market, each in its own colour (a pale face on violet, a planet on cobalt, glyphs on lemon or white, a head on scarlet), the towers go dark round them under a black sky, the lanterns throw warm pools on the street, steam rises off the stalls and half the crowd has gone home. By day the market is as it was.
 
 ## v0.84 — 2026-10-07
 

@@ -258,3 +258,16 @@ export function nightPaint(seed) {
   if (k === 1) return [{ bg: S.cobalt, fig: S.planet, dark: S.navy, light: S.apricot }, { bg: S.orange, fig: S.apricot, dark: S.orangeDark, light: S.cream }, { bg: S.emerald, fig: S.cream, dark: S.greenDark, light: S.white }][n % 3];
   return [{ bg: S.lemon, fig: S.cream, dark: S.black, light: S.white }, { bg: S.white, fig: S.black, dark: S.black, light: S.black }, { bg: S.magenta, fig: S.cream, dark: S.crack, light: S.cream }, { bg: S.green, fig: S.greenDark, dark: S.greenDark, light: S.cream }][n % 4];
 }
+
+/**
+ * The market's night (bazaar.js's colour script, its night palette): a black-indigo sky, the street's far glow a deep
+ * indigo, the towers' shade and the moonlight dark, so the walls are dark masses round their lit screens, as the night
+ * sheets draw them. [sky top, horizon, shadow tint, light tint, moon]
+ */
+export const MARKET_NIGHT = ['#0b0e1e', '#232a4a', '#1c1e36', '#454b78', '#ece6d2'];
+/** The lanterns' pools on the street by night: warm apricot against the indigo (makeMaterial lampTint). */
+export const LANTERN_TINT = ['#ffb070', 0.8];
+/** How many lanterns light pools at once by night (the nearest to the traveller) and how far each reaches (m). */
+export const NIGHT_LIGHTS = { count: 6, r: 9 };
+/** The share of the market's crowd gone home after midnight (crowd.js away). */
+export const NIGHT_CROWD_AWAY = 0.5;
