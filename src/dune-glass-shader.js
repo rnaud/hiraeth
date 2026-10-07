@@ -12,8 +12,7 @@ import * as THREE from 'three';
 // there, 0..1; z the lobe, 0 in a crease .. 1 on a belly; w the height up the ridge, 0 foot .. 1 crest, 2 a
 // passage's vault):
 //   silhouettes  the giants, heads and trees held inside, cut at the distance's zero crossing: one flat
-//                dark shape with a hard edge (antialiased over a pixel), whatever the mesh's spacing;
-//                a pale band of glass just outside it (the light round a mass seen through the glass)
+//                dark shape with a hard edge (antialiased over a pixel), whatever the mesh's spacing
 //   the light through  thin glass (the ridge's low ends, its foot, the lip of a wave, the crest), and
 //                every edge seen grazing (a lobe turning away from the eye: 1 − |n·v|), lets the sun
 //                through, the more the more you look toward the sun: printed as two flat bands, a mint
@@ -34,8 +33,6 @@ export const DUNE_GLASS = {
   mint: '#86dca6',     // the glow band
   lime: '#bdf09c',     // its core
   sil: '#2a5848',      // the silhouettes held inside
-  halo: 0.0,           // the pale band round a silhouette: how much paler
-  haloW: 1.6,          // its width (m)
   rim: 0.85,           // the grazing edges' weight in the light through
   band: [0.58, 0.98],  // where the glow band and its core start (the light through, 0..1+)
   deep: 0.78,          // the deep shade: the albedo times this
@@ -56,8 +53,8 @@ export function duneGlassMaterial(mat, o = {}) {
   Object.assign(mat.uniforms, {
     uDuneMint: { value: new THREE.Vector4(...col(g.mint).toArray(), g.rim) },
     uDuneLime: { value: new THREE.Vector4(...col(g.lime).toArray(), g.night) },
-    uDuneSil: { value: new THREE.Vector4(...col(g.sil).toArray(), g.haloW) },
-    uDuneK: { value: new THREE.Vector4(g.band[0], g.band[1], g.deep, g.halo) },
+    uDuneSil: { value: new THREE.Vector4(...col(g.sil).toArray(), 0) },
+    uDuneK: { value: new THREE.Vector4(g.band[0], g.band[1], g.deep, 0) },
   });
   mat.defaultAttributeValues = { ...mat.defaultAttributeValues, [GLASS_ATTR]: GLASS_DEFAULT };
   return mat;
@@ -97,8 +94,8 @@ export const DUNE_GLASS_GLSL = /* glsl */ `
   #ifdef DUNE_GLASS
   uniform vec4 uDuneMint;   // rgb the glow band, a the grazing edges' weight
   uniform vec4 uDuneLime;   // rgb its core, a the night's glow
-  uniform vec4 uDuneSil;    // rgb the silhouettes, a the pale band's width round them (m)
-  uniform vec4 uDuneK;      // the bands' thresholds (x glow, y core), z the deep shade, w the pale band's lift
+  uniform vec4 uDuneSil;    // rgb the silhouettes
+  uniform vec4 uDuneK;      // the bands' thresholds (x glow, y core), z the deep shade
 
   // (derivatives first, in uniform flow: the caller runs it for every pixel of the material)
   void duneGlass(inout vec3 albedo, inout float L, inout float emit, vec3 n, float ndl) {
@@ -108,10 +105,8 @@ export const DUNE_GLASS_GLSL = /* glsl */ `
     float back = clamp(dot(-v, uSunDir) * 0.5 + 0.5, 0.0, 1.0);   // 1 looking into the sun
     float sun = duneSun();
     float shade = 1.0 - step(uToon, L);
-    // the silhouettes: a hard edge at the distance's zero, a pale band of glass round them
-    float sd = vGlass.x;
-    float sil = 1.0 - duneBand(sd, 0.0);
-    float halo = (1.0 - duneBand(sd, uDuneSil.a)) * (1.0 - sil);
+    // the silhouettes: a hard edge at the distance's zero
+    float sil = 1.0 - duneBand(vGlass.x, 0.0);
     // the light through: thin glass and grazing edges, the more toward the sun; through a silhouette, none
     float through = (vGlass.y * (0.6 + 0.55 * back) + rim * uDuneMint.a * (0.25 + 0.95 * back)) * sun * (0.55 + 0.6 * shade);
     through = max(through, vGlass.y * uDuneLime.a * uNight);
@@ -120,7 +115,6 @@ export const DUNE_GLASS_GLSL = /* glsl */ `
     // the deep shade: turned well away from the sun, or a lobe's crease (printed: a step darker)
     float deep = max(duneBand(-ndl, 0.38), duneBand(0.22, vGlass.z)) * shade * (1.0 - b1);
     albedo *= mix(1.0, uDuneK.z, deep);
-    albedo = mix(albedo, min(albedo * (1.0 + uDuneK.w * 2.0), vec3(1.0)), halo);
     albedo = mix(albedo, uDuneSil.rgb * (0.85 + 0.3 * min(vGlass.w, 1.0)), sil);
     // a pale streak up each lobe's belly, where it turns most toward you (the plates' long highlights)
     float streak = duneBand(vGlass.z, 0.9) * (1.0 - sil) * (1.0 - b1) * smoothstep(0.1, 0.5, vGlass.w) * step(vGlass.w, 1.5);

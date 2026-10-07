@@ -546,6 +546,9 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
   1.83 ms / 321, the valley 2.11 / 277, the west camp 1.73 / 237, the breaker 1.73 / 215), the Signal Market
   2.23–2.28 ms and 312–695 draws. About 0.38 M triangles drawn at the spawn on the Handheld preset (0.87 M on
   High); the static collision ~45 k triangles. The load is the game's steps (a ridge a step).
+  The glass shader and the passages (October 2026; the same method, 3 × 20 frames, median of 5 rounds, 16:30,
+  the crowd off): by the ship 1.52 → 1.55 ms, the valley 1.51 → 1.52, the west camp 1.43 → 1.48, the breaker
+  1.36 → 1.41, the cliff of the giants 1.33 → 1.40; draws unchanged (±2); the pools add a few ms to the load.
 - **Tests** (`tests/glass-dunes.test.js`): the kit (finite, coloured, the face out, the ends sunk, the silhouettes
   darker), the four views, the detour on the map and off the route, the build (the cliff solid, a mound stood on
   where drawn, the ship's flat), the contact audit (1 climbs inside, 2 walk through: the drawn-only rims that took

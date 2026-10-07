@@ -117,6 +117,41 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.88': [
+    { match: 'The Glass Dunes’ glass glows from within', shots: [
+      { name: 'glass-giants', caption: 'The cliff of the giants from the valley at 16:30: the giants held in the glass are crisp dark shapes, the lobes’ thin edges glow mint', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'glass-breaker', caption: 'The breaking wave from the valley at 16:30, looking toward the sun: its lip and crest let the light through in lime, the tree inside cut clean', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'glass-plate3', caption: 'The References’ view of the third picture: the giants in the cliffs, before soft smudges, now printed shapes', from: 'the References level, ?level=references&world=glassdunes&view=3, headless Chrome, High, 1456 × 816 (7 October)' },
+    ], see: 'Open the Glass Dunes (?level=glassdunes) in the late afternoon and look at the walls toward the sun: their thin edges and the lips of the waves glow; the giants stand dark inside the cliffs west of the valley.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a tight loop of renderFrame() synced by a one-pixel read, 3 × 20 frames a sample, median of 5 rounds, 16:30, the crowd off (the machine shared with other agents: compare within the run)', unit: 'ms', better: 'lower', device: 'Mac, headless Chrome on Metal, 1280 × 720', source: 'docs/systems/worlds.md, “The Glass Dunes”', rows: [
+          { where: 'by the ship', before: 1.52, after: 1.55 },
+          { where: 'the valley', before: 1.51, after: 1.52 },
+          { where: 'the west camp', before: 1.43, after: 1.48 },
+          { where: 'the breaking wave', before: 1.36, after: 1.41 },
+          { where: 'the cliff of the giants', before: 1.33, after: 1.40 },
+          { where: 'the Signal Market (the budget, docs/systems/worlds.md)', before: '2.23–2.28', after: null },
+        ] },
+      ] },
+    { match: 'In the Glass Dunes the light that comes through the glass', shots: [
+      { name: 'pools-spawn', caption: 'From the ship at 17:36, the sun going: the walls’ shade on the sand an emerald, not a grey teal', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'pools-westcamp', caption: 'The west camp at 17:36: the light through the cliff pooled mint and lime at its foot', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+    ], see: 'In the Glass Dunes, late in the afternoon, walk to the foot of a wall on its side away from the sun: the sand there takes the glass’s mint and lime.' },
+    { match: 'Two archways in the Glass Dunes go through now', shots: [
+      { name: 'passage-giants', caption: 'The archway at the foot of the cliff of the giants: before a lit panel, now a vault of glass you walk through', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'passage-wave', caption: 'The frozen wave in the valley’s middle: its archway goes through to the north', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'passage-inside', only: 'after', caption: 'Inside the cliff of the giants’ passage, 70 m of green vault, the sand beyond at its end', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 16:30 (7 October)' },
+    ], see: 'From the ship walk north up the valley: the frozen wave’s archway is straight ahead; the giants’ is in the west cliff, north of the west camp.',
+      numbers: [
+        { title: 'The contact audit (what you stand on and walk into is what is drawn)', unit: 'problems', better: 'lower', device: 'node, tests/glass-dunes.test.js', source: 'docs/systems/worlds.md, “The Glass Dunes”', rows: [
+          { where: 'climbs inside (the arches’ drawn-only rims)', before: 5, after: 1 },
+          { where: 'walks through', before: 1, after: 2 },
+        ] },
+      ] },
+    { match: 'In the References level the Glass Dunes’ fourth picture', shots: [
+      { name: 'wave-plate4', caption: 'The fourth picture’s view: the wave rises steep over the camp, curls over its hollow and sweeps down to the sand', from: 'the References level, ?level=references&world=glassdunes&view=4, headless Chrome, High, 1456 × 816 (7 October)' },
+    ], see: 'Open ?level=references&world=glassdunes&view=4; the backslash key lays the picture over the view.' },
+  ],
   '0.87': [
     { match: 'The fluid blade: the glove draws', shots: [
       { name: 'blade-swing', only: 'after', caption: 'The blade mid-swing, among three ink blots in the Arena', from: 'headless Chrome against the dev server, High, 10:00 (7 October)' },
