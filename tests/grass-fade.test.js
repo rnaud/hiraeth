@@ -66,7 +66,9 @@ test('grass fade: twice the reach for fewer triangles than before, on every pres
   for (const [key, [R0, d0]] of Object.entries(before)) {
     const q = GRASS_QUALITY[key];
     const old = tris(R0, d0, 9), now = tris(q.radius, q.density, 9) + tris(q.far.radius, q.far.density, farTris);
-    assert.ok(now <= old, `${key}: ${now} triangles, before ${old}`);
+    // (the handheld's patch was widened again for its look, October 2026: its GPU has the headroom, its CPU
+    // pays nothing more standing still, docs/systems/performance.md "What the Handheld and the Deck lose next to High")
+    assert.ok(now <= old * (key === 'handheld' ? 1.45 : 1), `${key}: ${now} triangles, before ${old}`);
     assert.ok(q.far.radius * (AHEAD + 0.9) >= 2 * R0 * (AHEAD + 0.9), `${key}: the field reaches twice as far`);
   }
   const g = new Grass({ scene: new THREE.Scene(), fields: [{ heightAt: () => 0, color: new THREE.Color('#8cc77e'), color2: new THREE.Color('#9fd08a'), inside: () => true }], quality: GRASS_QUALITY.high });

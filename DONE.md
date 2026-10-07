@@ -997,6 +997,9 @@ What the audit still found after it, and how each was settled:
   - Lorn II: roots and bushes as dense hatched masses. Done (October 2026, world and views): a hatch over 1
     is a hatched mass (`HATCH_DENSE`: closer, heavier strokes that a half-tone keeps), `ROOT_INK` and
     `BUSH_INK` (references.md, Lorn II's).
+  - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off). Decided
+    (October 2026): left as it is. The clouds belong to the worlds (their skies, their drifting cloud shadows,
+    the desert's few flat clouds); the views stay clean (`CLEAN_SKY`) to match their panels.
 - Scene-level, world by world (modelling, not shading):
   - Vael II: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's framing, the
     monasteries' detail (arcades, cypresses, roofs), the mushrooms' lean, the bird's standing pose

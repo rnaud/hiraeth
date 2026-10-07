@@ -659,7 +659,8 @@ resolution (scale 1, adapting down to 0.6 with the Handheld's missed-refresh rul
 guard), crease shading and both ink passes as on Medium; the Handheld's lighter CPU side where the Deck
 pays for it: crowd figures out to 260 m (full figures 45 m), props out to 380 m and over 1.5 px, plants at
 0.75 of their range and 0.65 of their density, LOD at 1.5 px, a 1 k fine cascade, the near and far maps
-every 2nd and 4th frame, 4 PCF taps, no cloud shadows. The grass is Low's. Auto picks it on the Deck
+every 2nd and 4th frame, 4 PCF taps, no cloud shadows. The grass was Low's; since v0.80 a wider patch
+("What the Handheld and the Deck lose next to High", below). Auto picks it on the Deck
 (`detectDeck`: the page at `moebius:`, or a Van Gogh GPU, `AMD Custom GPU 0405` / `0932`), and a Deck
 whose settings were saved on High or Medium moves to Auto once (`deckV`); a lighter choice is kept.
 
@@ -708,3 +709,27 @@ numbers are work counted and pictures compared, timings only where the gap is la
 - **The Garden of Spheres' triangles**: at its start 1.03 M a frame on Handheld, of which the round leaf masses
   (instanced, 320 triangles each, 29-126 a set) about 130 k in the view and 90 k in the shadows, not simplified far
   off. The Retroid held 60 fps there (GPU 54-67 %), so they are as they were.
+
+## What the Handheld and the Deck lose next to High (October 2026)
+
+Compared at the bench viewpoints (`viewpoints-worlds.json`: the desert, the City-Shaft, the Market, the
+Buried Machine, the Garden of Spheres; High, Handheld and Deck side by side, then the Handheld with one
+of High's features put back at a time), the presets look very close. Two losses show:
+
+- **The grass** (v0.80, restored). The Handheld's patch (11.5 m) reached barely past the traveller from
+  the camera, so the Garden's meadows read as bare ground a few steps ahead; the Deck's (Low's, 13.5 m)
+  little better. Now `GRASS_QUALITY.handheld` is 14 m at the same density with its far layer out to 36 m
+  (was 26), the Deck's 16 m and 40 m (was 30) at Low's densities. To pay for it, a patch whose centre has
+  not moved 2 cm since its last scan, with nothing left to place, skips the scan of every tuft
+  (`Grass.scanAt`): standing still the grass costs nothing on any preset. Measured A/B in the Garden
+  (Chrome at CPU ×4, the M4): standing, the Handheld's CPU and GPU time unchanged within 0.2 ms
+  (without the skip the wider patch alone cost 0.3–2 ms of CPU); walking its bench path, 11.6 → 11.5 ms
+  of CPU and 7.3 → 7.3 ms of GPU; the Deck standing within the noise of its dynamic resolution, walking
+  +0.6 to +1.2 ms of CPU at ×4 (the grass's own update while walking, measured alone, goes from 14 to
+  22 µs a frame on the Mac, so most of that is noise). About 1 % more triangles a frame.
+- **The far small props** (`propFar`, `propPx`): they are the CPU side (culling, the instance lists), and
+  the Handheld is CPU-bound, so they stay.
+
+Crease shading, the second ink pass and full weathering show barely visible differences at these views;
+their Handheld GPU cost is noisy, up to ~1 ms on the M4, and the Retroid's GPU is several times slower,
+so they stay off there.

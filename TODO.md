@@ -13,10 +13,7 @@ Machine (82–103), the Garden of Spheres (104–125), Lorn II (126–148) and t
 Vael has no sheets. All six of the ranked recurring shader gaps are closed (docs/systems/references.md,
 "Across the worlds"): pen detail at every scale, line weight and colour per material, haze in layers,
 form-following hatching, cast shadows by world, colour variation across a wall, and the scene-level
-modelling world by world (DONE.md). What is left is one shader limit:
-
-- [ ] Shader limits left:
-  - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
+modelling world by world, and the shader limits (DONE.md). Nothing is left open here.
 
 ## Animation
 
