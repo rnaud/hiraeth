@@ -1,0 +1,59 @@
+changelog.md
+  s_55b4bc53b812ec::t_92f8fe0f076b7b 14-15
+docs/systems/water.md
+  s_55b4bc53b812ec::t_0def14a84088f1 84-88
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_90fbda6f91b1e1 594-653
+src/audio.js
+  s_55b4bc53b812ec::t_b33382502c0fe1 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_de1bbf9a8dce1e 156-180
+src/changelog.js
+  s_55b4bc53b812ec::t_ead84a07706804 20-21
+src/costumes.js
+  s_55b4bc53b812ec::t_b89d46c4e4bd04 419
+src/edge.js
+  s_55b4bc53b812ec::t_e8ff28260a8deb 32
+src/levels/content.js
+  s_55b4bc53b812ec::t_a7490b285750a0 95-107
+src/levels/index.js
+  s_55b4bc53b812ec::t_9e44c7c5b1184b 20,117-123
+src/levels/names.js
+  s_55b4bc53b812ec::t_b487d59ae1987d 22,30
+src/levels/underwater.js
+  s_55b4bc53b812ec::t_c1b847e49ce8bf 1-306
+src/main.js
+  s_55b4bc53b812ec::t_aa596a944909b3 1514
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_e22d3c9645d2e9 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_33bf1275a3df5d 112
+src/reactive-world.js
+  s_55b4bc53b812ec::t_c44f44640ed2dd 31
+src/ship/planets.js
+  s_55b4bc53b812ec::t_6cb17cafb36d39 27
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_0eb732b987e46b 28
+src/swim.js
+  s_55b4bc53b812ec::t_e912096559405a 29-33,62-74,158-167,190,219,239,242,250,270,278,368-369
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_f7b8c9d5efd438 131
+tests/underwater.test.js
+  s_55b4bc53b812ec::t_c5fd8104fee8df 1-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "31b94967e8bfde24bddafe6dd7b12b0b321a7db1",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
