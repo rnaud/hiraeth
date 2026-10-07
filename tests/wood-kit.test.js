@@ -50,7 +50,7 @@ test('the nest view sits its nest in the great cap', () => {
   assert.ok(v && /nestParts/.test(String(v.build)));
 });
 
-test('a bank bush breaks its outline with blades, two-sided, and its dense hatch keeps a pen's spacing far off', async () => {
+test('a bank bush breaks its outline with blades, two-sided, and its dense hatch keeps a pen’s spacing far off', async () => {
   const { frondTuft } = await import('../src/levels/wood-kit.js');
   const t = frondTuft(2, 10);
   assert.equal(t.index.count / 3, 20, 'ten blades, each two faces back to back');
