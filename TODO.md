@@ -273,7 +273,10 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
   - [x] The overshirt's lining colour. (2026-10-07: back faces in it, `_Lining`; the trousers' repaired
     band in their fabric, in the vertex colours.)
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
-  (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached.
+  (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached. (2026-10-07: the bridge's
+  APK builds, 73 MB, `BridgeBuild.Android`; `scripts/bench/android-bridge.sh desert -views
+  scripts/bench/viewpoints.json -bench 8 -split` installs and runs it, muted, and pulls its results.
+  The Linux player for the Deck builds too: engine-bridge.md, "The players again".)
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
   unknown MCP servers (the configured UnityMCP server also fails to connect). The editor is driven in
   batch mode instead (`scripts/unity-export/unity-batch.sh`).

@@ -590,6 +590,17 @@ shapes, scaled by its head (`faceKeyDeltas`, `BridgeHost.FaceKeys`: only the ver
 face's weights go a frame they move (`keyWeights`, op 19). The overshirt's lining colours its back faces
 (`_Lining`); the trousers' repaired band is in their vertex colours.
 
+Side by side after all of it (the web left, Unity right, the same views; the editor):
+
+![the Signal Market](../engine-bridge/sbs3-market.jpg)
+![the desert](../engine-bridge/sbs3-desert.jpg)
+![the traveller's drawn face](../engine-bridge/sbs3-face.jpg)
+![the City-Shaft](../engine-bridge/sbs3-shaft.jpg)
+![the Garden of Spheres](../engine-bridge/sbs3-spheres.jpg)
+
+(Once, with the machine's load at 150, the editor's shots after the first came out black; the same run again,
+the load at 20, drew every view. `-look` logs the frame's look at each shot.)
+
 **The newer pieces from the web** (2026-10-07). The coral-shirt traveller's drawn face (characters/tripo-face.js:
 brows, eyes and mouth drawn in his body's shader, moved by his expression): its GLSL is turned into HLSL by
 `scripts/unity-export/tripo-face-hlsl.mjs` (`TripoFace.hlsl`, generated; a test checks it is current) and its four
@@ -660,6 +671,40 @@ The player is within 6–30 % of the web at the busy views and 1–1.5 ms behind
 difference is the game's own update (5.4 ms at the camps in Puerts' V8, the same modules) and the
 mirror, which the web does not pay. The C# apply is 0.1–0.3 ms. The Android numbers on a
 device wait for the Retroid.
+
+### The players again, and the web against the macOS player (2026-10-07)
+
+With everything above in (the overshirt in its Burst job, the surface marks, grass, wind, people, the boxes),
+built again from the same tree (`scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp`, then `.Mac`,
+`.Android`, `BridgeBuild.Linux -mono`): the macOS app 173 MB, the Android APK 73 MB, the Linux player 141 MB.
+Not installed anywhere. On a device they are one command each:
+
+```sh
+scripts/bench/android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split   # the Retroid: installs com.rnaud.memento.bridge only, muted
+# the Deck: copy unity/Memento/Builds/bridge-linux/ over, then
+./memento-js.x86_64 -mute -screen-width 1280 -screen-height 800 -level desert -views viewpoints.json -bench 8 -split -out out
+```
+
+(`android-bridge.sh` pushes the views to the app's own folder, starts it with the plan as Unity's `-e unity`
+arguments, waits for it to exit and pulls its pictures and `unity-bench.json`; written without a device to run
+it on.) The four views of the comparison, each side back to back as the machine went quiet (load 8–10; a
+second round at load 8–19 in brackets): the web game in Chrome (High, render scale 1, 1280 × 720, uncapped)
+and the macOS player (IL2CPP, uncapped), medians in ms; the player's script in its frame split into the game's
+update and the mirror:
+
+| view | web: frame (CPU, GPU) | macOS player: frame | its script (update + mirror) | its GPU |
+|---|---|---|---|---|
+| the camps | 8.8 (8.6, 3.5) [7.4] | 11.9 [13.5] | 8.7 (5.3 + 2.9) | 5.9 |
+| the dunes | 4.0 (3.8, 2.6) [2.9] | 4.7 [7.8] | 2.7 (1.3 + 1.2) | 6.3 |
+| the Signal Market's crowd | 4.4 (4.3, 2.8) [6.5] | 6.6 [7.7] | 4.3 (2.9 + 1.1) | 5.4 |
+| the City-Shaft, wide | 8.7 (8.4, 5.7) [10.5] | 11.5 [14.1] | 5.6 (2.7 + 2.5) | 12.8 |
+
+The player is 1–3 ms behind the web at every view. Its script costs about what the web's whole frame costs
+(the same game update, plus the mirror the web doesn't pay); the overshirt's job adds 0.5–0.8 ms of waiting
+on the main thread. Its GPU is now the heavier side: the port's composite took on the web's newer passes
+(spot blacks' enclosure, haze, the lines by material), and at the City-Shaft's wide view the frame is the
+GPU's (12.8 ms). Next for speed: the mirror's walk (static subtrees skipped), and the composite's passes
+compiled in only where a look asks for them, as post.js does (`inkFeatures`).
 
 ## Status
 
