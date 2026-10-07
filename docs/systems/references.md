@@ -202,13 +202,44 @@ the narrowest creases.
   thickets, no warm grey kept in the white stone's shade (the sheets' pale blue), the spot blacks in a
   deep green (`uSpotTone`). Uniforms only: no cost. The real umbrella trees already carry branches under
   their canopies, so no greebles were added there.
-- **Left, shader level**: the sheets draw the canopies' undersides as dense radiating branch lines
-  over the dark green, and foliage as clusters of small inked leaf masses; ours are smooth lumps with
-  the `leaves` pattern. The white stone's shade on the sheets is a flat pale blue with almost no
-  strokes (ours keeps a few). Spheres print a crescent of pale blue on the sheets whatever the sun;
-  ours follow the view's sun. The lakes' reflections (the world has them, the views don't).
-- **Left, scene level**: the white hill's sculpted rock, the ruins' arcades, the robot statue, the
-  hedges' fruit, the avenue's grasses, the plaza's paving pattern are sketches.
+- **Shapes from the sheets, October 2026** (`src/levels/garden-kit.js`, shared by the world and the views):
+  - *Foliage in leaf masses* (`leafCrown`): a crown is a core and a few smaller balls bulging from it, each
+    welded and smooth, so the ink draws each mass's own outline, as the sheets' olives, shrubs and woods. The
+    world's shrubs are a core and three lobes (320 faces, the old lump's 180: there are 1 800 of them), its olive
+    crowns a core and seven (640, the four lumps' 720); the views' have more and smaller.
+  - *Spheres printed whatever the sun* (`crescentSphere`): two flat tones, the line between them one ring of
+    vertices (the poles along the light), self-lit (`glow` 0.6), so the pale blue crescent stays where the panel
+    has it. The world's spheres already were (`CRESCENT`); the views now are too, each sphere with its `lit`
+    side (the view's sun by default), the sphere-arches painted the same way.
+  - *The white hill's sculpted rock* (`pillowRock`): rounded pillows of stone, flattened on top, ring each
+    terrace's wall (clear of the stairs, the canopy step and the cave doors), a few smaller ones stacked on
+    them. In the world they collide as drawn (the contact audit): with the robot and the arcades the static
+    collision is ~200 k triangles (179 k before; tests/spheres.test.js budget 215 k).
+  - *Arcades* (`arcade`): a wall pierced by round arches, its top broken bay by bay; three in the android
+    wood (solid as drawn), and in views 106, 110, 112 and 117 (the vaulted gallery is a great arcade now).
+  - *The robot statue* (`robotParts`): feet, shins, knees, thighs, hips, a chest with its plate and vents,
+    shoulder pads, arms to the hands, a domed head with its visor and an antenna; the world's and view 110's.
+  - *The hedges' fruit* (`hedge`): clipped hedges of leaf masses with their fruit on the top and the long
+    faces; the world's ring round the plaza (instanced: walk-through, as the shrubs were) and view 119's
+    foreground rows, with the orange trees behind its plaza.
+  - *The plaza's paving* (`paintPaving`): each ring's slabs a hair apart in tone (just past post.js's
+    colour-edge threshold), so the ink draws the joints; the world's plaza and the views'.
+- **Shading, October 2026**:
+  - *The white stone's shade* (`WHITE_SHADE` in spheres.js: `shadeFlat` 1, `hatch` 0.08): printed flat in the
+    day's pale blue with almost no strokes, on the world's and the views' white stone, rock, pillars, stairs.
+  - *The canopies' undersides as branches* (`FORM.veins`, materials.js `veinLines`): the veins are a cap's
+    radiating strokes drawn lighter, and now a vein that carries on to the coarser levels (toward the trunk) is
+    drawn thicker, a bough the finer ones fork from, every vein wandering along its length. The world's
+    umbrellas draw their underside in a veined material of its own (`M.under`) instead of painted stripes.
+  - The views' compositions were checked against their panels: the grove's trunk (104), the lakes brought to
+    the foreground (106, 112, 118), the ruins' wood behind the robot (110), the trees framing the lake temple
+    (118), the monolith over a lower wood (124).
+- **Cost** (desktop, M4 Pro, Chrome on Metal, the Handheld preset at render scale 0.75 without dynamic resolution,
+  a tight loop of frames, five rounds alternating with the build before, median ms): spawn 4.27 → 4.75, under an
+  umbrella 3.44 → 3.63, before the hill 4.13 → 4.32, the avenue 3.37 → 3.27, the plaza 3.01 → 3.07, the android
+  wood 3.29 → 3.16 (the world's triangles 1.28 → 1.59 M, most of it the shrubs' leaf masses).
+- **Left**: the lakes' reflections in the views; the avenue's grasses; the views' far woods are round trees, the
+  sheets' dense tall trunks.
 
 ## Lorn II's sheets (IMG_3797–3800)
 

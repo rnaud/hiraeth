@@ -5,6 +5,11 @@ The same release notes shown in the game (press **N** or open settings).
 ## v0.76 — 2026-10-07
 
 - The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.
+- In the Garden of Spheres the white hill is carved: each terrace is ringed with rounded pillows of white stone instead of a plain drum, and the white stone everywhere takes its shade as a flat pale blue, with almost no hatching, as in its drawings.
+- The Garden’s olives and shrubs are drawn as clusters of small leaf masses, each with its own outline, instead of single smooth lumps; the hedges round the plaza are clipped hedges heavy with fruit.
+- The undersides of the great umbrella trees show their branches: lighter veins forking out from the trunk to the rim, thicker toward the trunk.
+- The round plaza is paved: the joints between its slabs are drawn in each ring.
+- The robot statue in the android wood is a proper statue now, with feet, knees, a chest plate, shoulder pads, hands and a visor, and the wood’s white ruins have arcades of round arches.
 
 ## v0.75 — 2026-10-07
 

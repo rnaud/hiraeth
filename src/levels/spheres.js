@@ -518,12 +518,12 @@ export function* buildSpheres(scene) {
           const clearOf = (b, w) => off(a, b) > w + sx * 0.5 / r;
           if (clearOf(Math.PI / 2, 4.5 / r) && (i !== 1 || clearOf(0, 0.3)) && doors.every(([b, t]) => t !== i || clearOf(b, 2.6 / r))) {
             const sy = h * R2(rs, 0.62, 0.86), sz = R2(rs, 3, 5.5), rr = r + sz * R2(rs, 0.05, 0.3);
-            const g = pillowRock(rs() * 100, sx * 0.5, sy * 0.5, sz * 0.5).rotateY(-a + Math.PI / 2)
+            const g = pillowRock(rs() * 100, sx * 0.5, sy * 0.5, sz * 0.5, { detail: 1 }).rotateY(-a + Math.PI / 2)
               .translate(Hl.x + Math.cos(a) * rr, hillBase + lo - 0.6, Hl.z + Math.sin(a) * rr);
             add(M.rock, g); proxy(g.clone());
             if (rs() < 0.35) {
               const s2 = sx * R2(rs, 0.4, 0.6), sy2 = h * R2(rs, 0.3, 0.45), r2 = r + sz * 0.1;
-              const u = pillowRock(rs() * 100, s2 * 0.5, sy2 * 0.5, sz * 0.4).rotateY(-a + Math.PI / 2)
+              const u = pillowRock(rs() * 100, s2 * 0.5, sy2 * 0.5, sz * 0.4, { detail: 1 }).rotateY(-a + Math.PI / 2)
                 .translate(Hl.x + Math.cos(a + (rs() - 0.5) * da) * r2, hillBase + lo + sy * 0.55, Hl.z + Math.sin(a + (rs() - 0.5) * da) * r2);
               add(M.rock, u); proxy(u.clone());
             }

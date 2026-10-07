@@ -130,7 +130,7 @@ export function arcade({ bays = 4, span = 6, h = 9, depth = 1.6, pier = 1.4, spr
  * chest's vents (dark) }.
  */
 export function robotParts() {
-  const B = (w, h, d, x, y, z, r = 0.25) => new RoundedBoxGeometry(w, h, d, 3, Math.min(w, h, d) * r).translate(x, y, z);
+  const B = (w, h, d, x, y, z, r = 0.25) => new RoundedBoxGeometry(w, h, d, 2, Math.min(w, h, d) * r).translate(x, y, z);
   const parts = [], slots = [];
   for (const s of [-1, 1]) {
     parts.push(B(3.4, 1.4, 4.6, s * 2.4, 0.7, 0.5, 0.3));          // a foot

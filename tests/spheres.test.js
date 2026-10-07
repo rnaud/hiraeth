@@ -94,6 +94,7 @@ test('static collision stays within budget', () => {
   console.log('collision triangles', physics.triangles);
   // (the spheres, the umbrella trees and, since the contact audit's second pass, the hill's boulders,
   // the pillars, the monoliths, the android wood's ruins and statue and the Footprint's heel collide as
-  // they are drawn, docs/systems/movement.md "Contact": 157 k → ~179 k, the BVH 49 → 61 ms to bake)
-  assert.ok(physics.triangles < 200000, `static collision budget: ${physics.triangles}`);
+  // they are drawn, docs/systems/movement.md "Contact": 157 k → ~179 k, the BVH 49 → 61 ms to bake; the hill's
+  // sculpted pillows, the robot's 28 parts and the arcades, solid as drawn, ~200 k: docs/systems/references.md)
+  assert.ok(physics.triangles < 215000, `static collision budget: ${physics.triangles}`);
 });
