@@ -75,7 +75,15 @@ into each account's `config/grid/` under the shortcut's app id (read from `short
 change, never `shortcuts.vdf`, so it is safe while Steam runs; Steam shows new artwork after it
 restarts (Steam → Exit, or a reboot to Gaming Mode). Artwork the player picks in Steam (a grid
 file we didn't write, `steam-art.json` keeps what we did) is never replaced. Re-running the
-installer for an account that has the shortcut no longer waits for Steam to close.
+installer for an account that has the shortcut as it should be no longer waits for Steam to close.
+
+A shortcut still named `Moebius` (the installers before 0.71), or without an icon, is renamed
+`Memento` and given `icon.png` (`add_shortcut`, `shortcut_stale`), keeping its app id, playtime and
+the player's own name if they changed it. That edits `shortcuts.vdf`, so only while Steam is closed
+(Steam rewrites it from memory as it exits): at install, `--register-steam`, or a background update
+that finds Steam closed (`steam_entry`). The grid files use the shortcut's `appid` from
+`shortcuts.vdf`, unsigned (2165417005 on the author's Deck; its 64-bit game id, in Steam's logs, is
+`appid << 32 | 0x02000000`).
 
 ## Install by hand
 

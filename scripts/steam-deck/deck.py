@@ -148,9 +148,42 @@ def add_shortcut(config, root):
     if not isinstance(entries, list):
         raise ValueError('Missing shortcuts map; Steam files unchanged')
     exe = f'"{root / "launch"}"'
-    # Identity is the stable executable, not the display name. Keep user edits.
-    if any(isinstance(value, list) and field(value, 'exe') == exe for _, value in entries):
-        return False
+    # Identity is the stable executable, not the display name. Keep user edits, but a shortcut
+    # still under the game's old name ('Moebius', as installers before 0.71 named it) or without an
+    # icon gets the game's.
+    ours = [value for _, value in entries if isinstance(value, list) and field(value, 'exe') == exe]
+    if ours:
+        changed = False
+        for entry in ours:
+            changed |= set_field(entry, 'AppName', 'Memento', lambda name: name in (None, '', 'Moebius', 'moebius'))
+            changed |= set_field(entry, 'icon', str(root / 'icon.png'), lambda icon: not icon)
+        if not changed:
+            return False
+    else:
+        add_entry(entries, exe, root)
+    # Check again immediately before writing; don't overwrite intervening edits.
+    if steam_running() or (path.read_bytes() if path.exists() else None) != original:
+        raise RuntimeError('Steam shortcuts changed during installation; please retry with Steam closed.')
+    if original is not None:
+        backup = config / f'shortcuts.vdf.moebius-{time.time_ns()}.bak'
+        atomic_write(backup, original)
+    atomic_write(path, encode_vdf(document))
+    return True
+
+
+def set_field(entry, key, value, replace):
+    """Set a shortcut's field (matched as Steam does, whatever its case) when replace(its value)."""
+    for i, (name, old) in enumerate(entry):
+        if name.lower() == key.lower():
+            if isinstance(old, str) and replace(old) and old != value:
+                entry[i] = (name, value)
+                return True
+            return False
+    entry.append((key, value))
+    return True
+
+
+def add_entry(entries, exe, root):
     appid = shortcut_appid(root)   # (from the old name: the id stays stable)
     entries.append((str(len(entries)), [
         ('appid', appid), ('AppName', 'Memento'), ('Exe', exe),
@@ -160,14 +193,17 @@ def add_shortcut(config, root):
         ('Devkit', 0), ('DevkitGameID', ''), ('LastPlayTime', 0), ('tags', []),
     ]))
     entries[:] = [(str(i), value) for i, (_, value) in enumerate(entries)]
-    # Check again immediately before writing; don't overwrite intervening edits.
-    if steam_running() or (path.read_bytes() if path.exists() else None) != original:
-        raise RuntimeError('Steam shortcuts changed during installation; please retry with Steam closed.')
-    if original is not None:
-        backup = config / f'shortcuts.vdf.moebius-{time.time_ns()}.bak'
-        atomic_write(backup, original)
-    atomic_write(path, encode_vdf(document))
-    return True
+
+
+def shortcut_stale(config, root):
+    """Whether this account lacks our shortcut, or has it under the old name or without an icon."""
+    try:
+        entries = field(parse_vdf((config / 'shortcuts.vdf').read_bytes()), 'shortcuts')
+    except (OSError, ValueError):
+        return True
+    ours = [value for _, value in (entries if isinstance(entries, list) else [])
+            if isinstance(value, list) and field(value, 'exe') == f'"{root / "launch"}"']
+    return not ours or any(field(value, 'AppName') in (None, '', 'Moebius', 'moebius') or not field(value, 'icon') for value in ours)
 
 
 def fetch_manifest(url):
@@ -578,6 +614,20 @@ def install_art(root, configs, app=None):
     return changed
 
 
+def steam_entry(root, configs):
+    """Our shortcut's artwork and, while Steam is closed (it rewrites shortcuts.vdf from memory as it
+    exits), its name and icon in accounts that have it under the old name. @return whether anything changed"""
+    renamed = False
+    if not steam_running():
+        for config in configs:
+            if shortcut_appids(config, root) and shortcut_stale(config, root):
+                try:
+                    renamed |= add_shortcut(config, root)
+                except (RuntimeError, ValueError, OSError):
+                    pass   # (Steam started meanwhile, or files we won't touch: next time)
+    return install_art(root, configs) > 0 or renamed
+
+
 def update_all(root, runtime=None, content=None, art=None):
     """The background update: the runtime and the game separately, so one failing (the runtime's
     feed once GitHub is out of reach, or offline) never holds back the other; and Steam's artwork
@@ -585,7 +635,7 @@ def update_all(root, runtime=None, content=None, art=None):
     failures = []
     steps = (('runtime', runtime or (lambda: install_update(root, get_manifest()))),
              ('game', content or (lambda: install_content(root, get_content_manifest()))),
-             ('artwork', art or (lambda: install_art(root, steam_configs(Path.home())) > 0)))
+             ('artwork', art or (lambda: steam_entry(root, steam_configs(Path.home())))))
     for name, step in steps:
         try:
             changed = step()
@@ -814,8 +864,8 @@ def main():
     configs = steam_configs(Path.home())
     if not configs:
         raise RuntimeError('Game installed. Open Steam and sign in once, then rerun this installer to add it to the library.')
-    # accounts that have the shortcut already need nothing from Steam, only the artwork's files
-    missing = [config for config in configs if not shortcut_appids(config, ROOT)]
+    # accounts that have the shortcut as it should be need nothing from Steam, only the artwork
+    missing = [config for config in configs if shortcut_stale(config, ROOT)]
     if not missing:
         changed = install_art(ROOT, configs)
         print('Memento is installed and in Steam' + (' with its library artwork: restart Steam to see it.' if changed else '.'), flush=True)
