@@ -509,7 +509,10 @@ function mantaParts(w) {
   body.moveTo(-w * 0.09, w * 0.24); body.lineTo(w * 0.09, w * 0.24); body.lineTo(w * 0.06, -w * 0.26); body.lineTo(0, -w * 0.3); body.lineTo(-w * 0.06, -w * 0.26); body.lineTo(-w * 0.09, w * 0.24);
   const bg = new THREE.ExtrudeGeometry(body, { depth: w * 0.035, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, -w * 0.017, 0);
   const tail = new THREE.CylinderGeometry(w * 0.004, w * 0.012, w * 0.55, 4).rotateX(Math.PI / 2).translate(0, 0, w * 0.55);
-  return { wg, body: mergeGeometries([bg.toNonIndexed(), tail.toNonIndexed()]) };
+  const flat = (g) => (g.index ? g.toNonIndexed() : g);
+  for (const k of Object.keys(bg.attributes)) if (k !== 'position' && k !== 'normal') bg.deleteAttribute(k);
+  for (const k of Object.keys(tail.attributes)) if (k !== 'position' && k !== 'normal') tail.deleteAttribute(k);
+  return { wg, body: mergeGeometries([flat(bg), flat(tail)]) };
 }
 
 /**
