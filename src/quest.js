@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { slotStorage } from './save-slots.js';
-import { closeHint } from './prompt-keys.js';
+import { GameMenu } from './game-menu.js';
 
 // Story, collectibles and the sketchbook journal (worlds are reached by the ship: src/ship/).
 //  - Story: one quiet goal per level, marked by a beacon. A first visit and
@@ -9,12 +9,11 @@ import { closeHint } from './prompt-keys.js';
 //    into the sketchbook).
 //  - Relics: five per level, often on top of things you have to climb.
 //    Picking one up sketches the moment into your journal.
-//  - Journal (J): a sketchbook with every relic and story page found, kept
-//    in localStorage (per save slot: src/save-slots.js).
+//  - Journal: every relic and story page found, the errands and the observatory,
+//    kept in localStorage (per save slot: src/save-slots.js); J, View / Select
+//    open it as the game menu (src/game-menu.js: Items, Quests, Sketchbook, Worlds).
 //  - A story with `manual: true` (the desert's) has no beacon and doesn't
 //    finish on arrival: its quest calls story.complete() (src/story/).
-//  - journal.sections: functions returning extra HTML for the sketchbook
-//    (the quest log).
 
 const STORE = 'moebius.journal.v1';
 
@@ -26,12 +25,14 @@ export class Journal {
     this.data.stories ??= {};
     this.data.seen ??= {};
     this.el = document.getElementById('journal');
+    // the game menu draws itself into #journal; main.js gives it its sources (src/game-menu-data.js)
+    this.menu = new GameMenu(this.el, { onClose: () => this.toggle(false) });
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyJ') this.toggle();
       else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); this.toggle(false); }   // (not also opening the Start menu)
+      else if (this.open && !e.repeat && this.menu.key(e)) { e.preventDefault(); e.stopImmediatePropagation(); }
+      else if (this.open && e.repeat && /^(Arrow|Key[WASD]$)/.test(e.code)) { e.preventDefault(); this.menu.key(e); }
     });
-    this.el.querySelector('.close').addEventListener('click', () => this.toggle(false));
-    this.sections = [];   // () => html, rendered first (the quest log)
   }
 
   save() {
@@ -48,40 +49,19 @@ export class Journal {
   seen(level) { return !!this.data.seen[level]; }
   markSeen(level) { this.data.seen[level] = 1; this.save(); }
 
-  toggle(on = !this.open) {
+  /**
+   * Open (on a panel: 'items', 'quests', 'sketches', 'worlds'; else where it was left) or close the
+   * game menu (src/game-menu.js), which since October 2026 shows what the sketchbook did.
+   */
+  toggle(on = !this.open, panel = null) {
     this.open = on;
-    if (on) { this.render(); document.exitPointerLock?.(); }
-    // how to close it, for the hands on the game (a controller's back button, not the J key)
-    const hint = on && this.el.querySelector('header .hint');
-    if (hint) hint.textContent = closeHint('J or Esc');
+    if (on) { this.menu.open(panel); document.exitPointerLock?.(); }
+    else this.menu.close();
     this.el.classList.toggle('open', on);
   }
 
-  render() {
-    const body = this.el.querySelector('.pages');
-    const extra = this.sections.map((f) => { try { return f() ?? ''; } catch (e) { console.warn(e); return ''; } }).join('');
-    // (only the worlds you know of: `known`, set by main.js from src/story/route.js)
-    body.innerHTML = extra + this.levels.filter((L) => (!L.hidden || this.data.completed) && (!this.known || this.known(L.id))).map((L) => {
-      const relics = (L.relicNames ?? []).map((name, i) => {
-        const e = this.data.relics[L.id]?.[i];
-        return e
-          ? `<figure class="tile"><img src="${e.img}" alt=""><figcaption>${name}</figcaption></figure>`
-          : `<figure class="tile empty"><div>?</div><figcaption>&nbsp;</figcaption></figure>`;
-      }).join('');
-      const st = this.data.stories[L.id];
-      const story = st
-        ? `<figure class="tile story"><img src="${st.img}" alt=""><figcaption>${L.storyTitle}</figcaption></figure>`
-        : `<figure class="tile story empty"><div>…</div><figcaption>${L.storyTitle ?? ''}</figcaption></figure>`;
-      return `<section><h2>${L.title} <span>${this.relicCount(L.id)}/${(L.relicNames ?? []).length}</span></h2><div class="row">${story}${relics}</div></section>`;
-    }).join('');
-    const obs = this.data.observatory;
-    if (obs?.started) body.innerHTML += `<section><h2>The Sleeping Observatory</h2><div class="row"><figure class="tile story"><img src="${obs.img ?? ''}" alt="Observatory sketch"><figcaption>${obs.done ? 'The stars remember' : 'East of camp · climb the six ledges · turn the lenses toward the centre'}</figcaption></figure></div>${(obs.fragments ?? []).map((f) => `<p>${f}</p>`).join('')}</section>`;
-    const errands = Object.entries(this.data.errands ?? {});
-    if (errands.length) body.innerHTML += `<section><h2>Errands <span>${errands.filter(([, e]) => e.done).length}</span></h2><div class="row">${
-      errands.map(([, e]) => e.done
-        ? `<figure class="tile"><img src="${e.img}" alt=""><figcaption>${e.item} · delivered</figcaption></figure>`
-        : `<figure class="tile empty"><div>✉</div><figcaption>${e.item} · ${e.toTitle}</figcaption></figure>`).join('')}</div></section>`;
-  }
+  /** Draw the open panel again (something in it changed). */
+  render() { if (this.open) this.menu.render(); }
 }
 
 // ---------------------------------------------------------------------------

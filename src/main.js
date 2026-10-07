@@ -8,7 +8,7 @@ import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
 import { guardianHint } from './temples/hints.js';
-import { cueText, Cue, PlaceName, Fader, questsPageHtml, healthHud, staminaHud } from './hud.js';
+import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary } from './hud.js';
 import { screen } from './platform.js';
 import { closeHint, inputKind } from './prompt-keys.js';
 import { Wildlife } from './wildlife.js';
@@ -61,13 +61,16 @@ import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
-import { items, ITEMS, gearHtml } from './items.js';
+import { items, ITEMS } from './items.js';
+import { menuSources } from './game-menu-data.js';
+import { ItemIcons } from './item-icons.js';
+import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { DevMenu } from './dev-menu.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
-import { chargeState, chargeHud, chargeJournalHtml, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
+import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { slots, formatPlaytime } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
@@ -486,18 +489,29 @@ for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
 await slice();
 // E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
-registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: () => player.nearestVehicle()?.pos,
-  prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the taxi' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
-  distance: (p) => { const v = p.nearestVehicle(); return v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; }, use: () => player.interact() });
+// (as far as the vehicle lets you board from: a cab hovering beside a terrace is further off than a bike)
+registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 9, at: () => player.nearestVehicle()?.pos,
+  prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the cab' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
+  distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? d : Infinity; }, use: () => player.interact() });
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 // the scout finds the objective (Q, Y / △, the touch "ping"; src/scout.js): the cue names it and
 // how far, at once (a toast would wait its turn), and the quest marker over it shows for a while
 // (src/story/quests.js QuestMarker.reveal)
-const scoutSaid = { text: '', until: 0 };
-const scoutSays = (text, secs) => { scoutSaid.text = text; scoutSaid.until = performance.now() + secs * 1000; };
+const scoutSaid = { text: '', until: 0, kind: '' };
+const scoutSays = (text, secs, kind = '') => { scoutSaid.text = text; scoutSaid.kind = kind; scoutSaid.until = performance.now() + secs * 1000; };
+// what the find is for: the quest's overall goal (src/story/quest-goals.js), the observatory's, the world's story
+const findGoal = (target) => {
+  const id = String(target?.id ?? '').replace(/^portal-\d+-/, '');   // (through a doorway first: the same find)
+  const q = /^(quest|opener)-/.test(id) ? storyRt.quests.objective()?.quest : null;
+  if (q) return storyRt.quests.goal(q);
+  if (/^(ledge|lens|observatory|traveler)/.test(id)) return 'Wake the sleeping observatory';
+  if (id === 'story') return content.story.title ?? '';
+  if (id === 'ship') return 'On to the next world';
+  return '';
+};
 const scout = new Scout({ scene, player, physics, sound,
   getTarget: () => nextObjective({ player, expedition, story, ship: level.ship, level, quest: () => storyRt.objective() }),
-  onFind: (target, d) => { scoutSays(`◆ ${findText(target, d)}`, 5); storyRt.marker.reveal(); },
+  onFind: (target, d) => { scoutSays(findSummary({ goal: findGoal(target), step: findText(target, d) }), 6, 'quest'); storyRt.marker.reveal(); },
   onShrug: () => scoutSays('Nothing to find here', 2.5),
   // in a guardian's fight the ping is a hint: the lens on the weak point, the line on the cue (src/temples/hints.js)
   getHint: () => guardianHint(level.temple),
@@ -512,12 +526,25 @@ const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quest
   cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
 const itemFx = createItemEffects({ player, tool, level, sound, camera, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
 await slice();
-journal.sections.unshift(() => gearHtml(items.owned(), { mode: tool.owned && tool.modes.length > 1 ? tool.modeName : null, carried: storyRt.quests.carried() }));   // Select / View opens on your gear
-journal.sections.push(() => boxes.journalHtml(Object.fromEntries(LEVELS.map((l) => [l.id, l.title]))));
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
 const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
   failed: Object.entries(game.data.flags).filter(([k, v]) => k.startsWith('failed.') && v).map(([, v]) => v) });   // (quests that went wrong: src/story/quests.js)
-journal.sections.unshift(() => chargeJournalHtml(charge()));
+// the game menu (View / Select, J: src/game-menu.js): what fills its four panels (src/game-menu-data.js),
+// and the items' pictures, drawn one a frame while it is open (src/item-icons.js)
+// (drawn in the late-morning light whatever the hour, so a picture made at night is not a dark one for the session)
+const itemIcons = new ItemIcons({ scene, build: buildItemModel,
+  capture: (...a) => { const h = sky.hour; sky.hour = 10.5; updateSky(); try { return captureView(...a); } finally { sky.hour = h; updateSky(); } },
+  place: () => ({ at: player.pos.clone().addScaledVector(player.frame.up, 140), up: player.frame.up.clone() }),
+  onReady: (id, url) => journal.menu.iconReady(id, url) });
+Object.assign(journal.menu, {
+  sources: menuSources({ items, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id),
+    levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title })),
+    mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
+    icon: (id) => itemIcons.get(id) }),
+  onTrack: (id) => storyRt.quests.choose(id),
+  // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
+  onUse: (id) => { const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); },
+});
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', (k) => { const line = chargeHud(charge(), { kept: k.name }); if (line) showToast(line); });
 // a save from before the charge had its card: letter it once, at the first quiet moment
@@ -785,11 +812,8 @@ const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
   onDev: () => devMenu.toggle(true),
-  onBook: () => journal.toggle(true),
+  onBook: (panel) => journal.toggle(true, panel),   // (its Items and Quests: the game menu, on that panel)
   onDebug: () => showPicker(true),
-  // the Quests page: where to go now (what the scout would find), the father's charge, the quest log (the sketchbook's own sections)
-  quests: () => { const ob = scout.getTarget(); return questsPageHtml({ objective: ob?.label, distance: ob ? roughDistance(player.pos.distanceTo(ob.position)) : '', charge: chargeJournalHtml(charge()), quests: storyRt.quests.journalHtml(), carrying: [storyRt.quests.carried().join(', '), errands.hud()].filter(Boolean).join(' · ') }); },
-  onTrack: (id) => storyRt.quests.choose(id),
   onQuit: () => quitToTitle(),
   // an update restarts the game (at the title, in the new build): the position and the time played first
   onBeforeRestart: () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); },
@@ -810,7 +834,7 @@ function quitToTitle() {
   flushPlay(); reactiveWorld.flush();
   location.href = location.pathname;
 }
-// The full-screen menus (Start: settings; View / Select: the sketchbook; what's new) pause
+// The full-screen menus (Start: settings; View / Select: the game menu, src/game-menu.js; what's new) pause
 // the game: frame() skips the world while one is open, and the menu music plays over the
 // hushed world (src/audio.js menuMusic).
 const paused = () => menu.open || journal.open || changelog.open;
@@ -927,15 +951,19 @@ const cue = new Cue(), placeName = new PlaceName();
 const rideHint = { kind: null, at: 0 };
 function updateHud() {
   const now = performance.now();
-  if (player.ride) { if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = now; } }
+  // (a cab's cue says what it is doing: waiting for a stop, or on its way; it shows again at each stop it reaches)
+  const rideKind = player.ride ? (player.ride.kind === 'taxi' && player.ride.mode === 'route' ? 'taxiRoute' : player.ride.kind) : null;
+  const rideStamp = player.ride ? `${rideKind}.${player.ride.arrivals ?? 0}` : null;
+  if (player.ride) { if (rideHint.kind !== rideStamp) { rideHint.kind = rideStamp; rideHint.at = now; } }
   else rideHint.kind = null;
   const quiet = busy() || photo.on || player.dead;
+  if (quiet && player.ride) rideHint.at = now;   // (a ride's cue waits for the cab's question, a menu, to close)
   const lens = !player.ride && expedition?.state.started && !expedition.state.done && expedition.nearby(player) >= 0 ? expedition.hud(player) : null;
-  const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: now - rideHint.at, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
+  const text = cueText({ quiet, ride: rideKind, rideFor: now - rideHint.at, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
     prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
   const place = quiet || ship.playing || ship.inside ? '' : placeName.update(atmo?.name, now);
   const found = !quiet && now < scoutSaid.until ? scoutSaid.text : '';   // (what the scout found, a moment)
-  cue.set(found || text || place, found || text ? '' : 'place');
+  cue.set(found || text || place, found ? scoutSaid.kind : text ? '' : 'place');
   // (the tank's gauge, when it shows without the crosshair, sits beside the traveller: left of the shoulders)
   placeToolGauge();
   audioCfg.mute = sound.muted;
@@ -988,7 +1016,7 @@ const controller = new Controller({
   faces: () => padFaces(),
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
-  navigate: (x, y) => { const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else menuNavigate(root, x, y); },
+  navigate: (x, y) => { const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
   scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
@@ -996,10 +1024,13 @@ const controller = new Controller({
     // (in a menu, a conversation or a scene: Start toggles the Start menu, Select the sketchbook)
     if (name === 'start') { if (storyRt.moments.playing && !menu.open) storyRt.moments.skip(); else menu.toggle(!menu.open); }   // (Menu skips a moment too)
     if (name === 'select') journal.toggle(!journal.open);
+    // LB / L1, RB / R1 in the game menu: the panel before, the one after
+    if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === journal.el) journal.menu.turn(name === 'tabPrev' ? -1 : 1);
     if (name === 'confirm') {
       const root = menuRoot();
       if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f) && storyRt.dialogue.revealed >= storyRt.dialogue.runner.text.length) f.click(); else storyRt.dialogue.next(); }
       else if (root.id === 'page') root.click();
+      else if (root === journal.el) journal.menu.confirm();
       else if (root.contains(document.activeElement)) {
         const el = document.activeElement;
         if (el.tagName !== 'SELECT' && el.type !== 'range') el.click();
@@ -1339,7 +1370,7 @@ function frame(ts) {
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
     player.update(dt, busy() ? noInput : ctl, rig.yaw, rig.pitch);   // (the pitch: the jets fly where the camera looks)
-    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
+    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding, player.ride?.shot ?? null);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
@@ -1479,6 +1510,7 @@ function frame(ts) {
  */
 function pausedFrame() {
   tapped.clear();
+  if (journal.open) itemIcons.pump();
   wasBusy = true;
   sound.update(CALM);
 }

@@ -7,7 +7,7 @@
 //   npm run build && node scripts/web-update.mjs && node scripts/deck-runtime.mjs [--live <site url>]
 //
 // The game updates on its own (web.json), so the runtime only changes with what it runs: its key is
-// a hash of main.mjs, deck.py, the packaging and Electron's lockfile. While the live site's runtime
+// a hash of main.mjs, deck.py, the packaging, Electron's lockfile and Steam's artwork. While the live site's runtime
 // has the same key its parts are fetched, checked and published again unchanged (a deploy uploads
 // nothing for them); a new key packages a new runtime (scripts/package-steam-deck.mjs, DECK_BUILD).
 import { createHash } from 'node:crypto';
@@ -18,7 +18,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SITE, UPDATES, MAX_FILE, checkLimits } from './web-update.mjs';
 
 export const PART = 20 * 1024 * 1024;
-export const KEY_FILES = ['desktop/main.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json'];
+export const KEY_FILES = ['desktop/main.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json',
+  ...['portrait', 'wide', 'hero', 'logo'].map((art) => `desktop/steam/${art}.png`)];   // (Steam's artwork, scripts/steam-art.mjs)
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 

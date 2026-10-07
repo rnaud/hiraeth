@@ -36,7 +36,7 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
 | | bottom (Xbox A, Retroid B) | right (Xbox B, Retroid A) | left (Xbox X, Retroid Y) | top (Xbox Y, Retroid X) |
 |---|---|---|---|---|
 | walking | jump (again in the air: boost; hold: wings; with RT on the jets: climb) | interact, talk, get on | call the mount (whistle, hail a taxi) | ping |
-| riding | jump off (a hop, its speed carries you) | get off (moving or flying: jump off) | hop / flap / rise | |
+| riding | jump off (a hop, its speed carries you) | get off (moving or flying: jump off) | hop / flap / rise (a cab: where to?) | |
 
 - **Walking:** left stick moves; click it (L3) to run, until you let the stick go.
   Right stick looks; hold LB / L1 and the right stick zooms. LT / L2 aims the fluid
@@ -49,9 +49,12 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
   whistle when nothing is near; on a pad that is the left button's (`player.callMount`).
 - **Riding** (context `'ride'`, `padRide()`): RT / R2 is an analog throttle, LT / L2
   brakes and reverses, the left stick steers (pushing it forward does not drive), and on
-  the bird and the taxi it tilts too: forward dives / goes down, back climbs. RB / R1 or
+  the bird it tilts too: forward dives, back climbs. RB / R1 or
   L3 boosts the hoverbike and skiff. On the ground a squeeze of RT lifts the bird off.
   The bottom button jumps off, the left button is the vehicle's own hop / flap / rise.
+  A cab drives itself (movement.md, "Riding a cab"): its dash asks where to as you get in
+  (choose a stop like an answer: the stick or d-pad and A / ×), X / □ (SPACE) asks again,
+  B / ○ (E) steps out at the stop; the triggers and the stick do nothing in it.
 - **Menus** confirm with the button printed **A** and go back with **B**, each platform's
   habit: Xbox bottom / right, Retroid right / bottom. View and Menu close too. While
   **talking**, the interact button also carries the conversation on (so on Xbox, B to

@@ -462,7 +462,7 @@ export class Humanoid {
     // whole-segment orientation follows a rig joint's rotation
     this.follow = [
       ['pelvis', () => char.body], ['spine_01', () => char.torso], ['spine_02', () => char.torso], ['spine_03', () => char.torso],
-      ['neck_01', () => char.head], ['Head', () => char.head],
+      ['neck_01', () => char.head], ['Head', () => char.headNod ?? char.head],
       ['foot_r', () => char.feet[0]], ['foot_l', () => char.feet[1]],
     ].filter(([n]) => B[n]).map(([n, j]) => ({ B: B[n], j }));
     // each hand's anatomy at rest (character space): along the fingers, and the way the palm faces

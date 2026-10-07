@@ -35,6 +35,50 @@ const SPIRE_RING = 48;
 const SHRINE_A = 3.155, LAMP_A = 3.2, NIMA_DA = 0.045;
 // the old goods hoist on the bottom terrace, a little way past Pip (quest incal.ration): its angle, and how far it stands in from the edge
 export const HOIST = { a: SHRINE_A - 0.075, inset: 1.3, reach: 4.0, height: 4.8 };
+
+// ---------------------------------------------------------------------------
+// The cabs' stops (src/taxi.js, src/story/cab.js): cabs drive themselves, and take you to these.
+// Each hovers out over the void beside its terrace (at), turned along the wall; you step out onto
+// the terrace (step). Only a cab that goes below the smog (Wren) stops at the bottom (depths).
+const P3c = (a, r, y) => new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r);
+const along = (a) => Math.atan2(-Math.sin(a), Math.cos(a));   // the heading along the wall at angle a
+/** The stops, from the story's places and the terraces. */
+export function shaftCabStops(places, terraces) {
+  const top = terraces.find((t) => t.y === LEVELS[0]), mid = terraces.find((t) => t.y === LEVELS[3]);
+  const nimaA = top.a0 + NIMA_DA + 0.035, midA = (mid.a0 + mid.a1) / 2;
+  const P = places.palace;
+  return [
+    { id: 'rim', name: 'The rim, by the ship', at: P3c(0, R - 9, TOP + 2.4), heading: along(0), step: P3c(0, R + 3, TOP) },
+    { id: 'terrace', name: 'The high terrace', at: P3c(nimaA, top.r0 - 6.5, top.y + 2.4), heading: along(nimaA), step: P3c(nimaA, top.r0 + 4, top.y) },
+    { id: 'middle', name: 'The middle levels', at: P3c(midA, mid.r0 - 6.5, mid.y + 2.4), heading: along(midA), step: P3c(midA, mid.r0 + 4, mid.y) },
+    { id: 'palace', name: 'The palace gate', at: P.taxi.clone(), heading: along(0), step: P3c(-0.035, 48.5, P.y) },
+    { id: 'bottom', name: 'The bottom terrace, by the call-lamp', at: places.cab.clone(), heading: Math.atan2(places.lamp.x - places.cab.x, places.lamp.z - places.cab.z) + Math.PI / 2, step: places.wren.clone(), depths: true },
+  ];
+}
+/**
+ * The ways round the shaft a cab tries (src/taxi.js planRoute takes the first that is clear): out
+ * from the wall to a ring of open air (rf), up or down it, round it, and in to the stop; climbing
+ * first or going round first, at a few rings and a few heights between the levels' bridges.
+ */
+export function shaftRoutes(from, stop) {
+  const cyl = (p) => ({ a: Math.atan2(p.z, p.x), y: p.y });
+  const A = cyl(from), B = cyl(stop.at), list = [];
+  const arc = (rf, y, a0, a1) => {
+    const d = Math.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0)), n = Math.max(1, Math.ceil(Math.abs(d) / 0.3));
+    return Array.from({ length: n }, (_, i) => P3c(a0 + d * (i + 1) / n, rf, y));
+  };
+  const lo = BOTTOM + 40, hi = TOP + 160, clampY = (y) => Math.min(hi, Math.max(lo, y));
+  for (const rf of [150, 120, 172, 95]) {
+    const out = P3c(A.a, rf, A.y), inn = P3c(B.a, rf, B.y);
+    list.push([from.clone(), out, P3c(A.a, rf, B.y), ...arc(rf, B.y, A.a, B.a), stop.at.clone()]);   // up or down first, then round
+    list.push([from.clone(), out, ...arc(rf, A.y, A.a, B.a), inn, stop.at.clone()]);                 // round first, then up or down
+    for (const y of [B.y + 26, B.y - 26, A.y + 26, A.y - 26].map(clampY)) {                           // round at a height between the bridges
+      list.push([from.clone(), out, P3c(A.a, rf, y), ...arc(rf, y, A.a, B.a), inn, stop.at.clone()]);
+    }
+  }
+  return list;
+}
+
 /**
  * The red stair, the way down on foot from the rim to the high terrace where Nima sweeps (the drone's
  * first find): it leaves the rim through a gap in the parapet near the makers' pillar (`top`, an angle
@@ -615,8 +659,10 @@ export function* buildIncal(scene) {
     places.ossa = P3(sa + 0.012, low.r0 + 10.2, low.y);
     places.pip = P3(sa - 0.03, low.r0 + 6, low.y);
     places.lamp = P3(la, low.r0 + 1.8, low.y);
-    places.cab = P3(la, low.r0 - 5.5, low.y + 2.4);
-    places.wren = P3(la + 0.012, low.r0 + 3.4, low.y);
+    // Wren's spot over the void beside the lamp, and where you step in and out of it: far enough along
+    // the edge that E there is for the cab, not the lamp (the lamp answers within 3 m)
+    places.cab = P3(la - 0.02, low.r0 - 4.5, low.y + 2.4);
+    places.wren = P3(la - 0.02, low.r0 + 1.2, low.y);
     places.bottom = low;
     places.lights = [];   // warm lamps along the lower terraces, lit when the Lodestar is (Vector4s: the story moves them in)
     const gold = makeMaterial({ color: '#f2c54b', grid: 5, metal: 'brass', refl: 0.55 }), steelM = strata(STEEL.color, STEEL.color2, '#f1e6cf', 1.5, { flat: true, grid: 3 });
@@ -991,6 +1037,7 @@ export function* buildIncal(scene) {
       for (const m of treeMeshes) yield* dropBuriedInstancesSteps(m, physics, [1, 3.5, 6], { ring: 0.9 });
       for (const spec of taxiSpecs) {
         const taxi = new Taxi(physics, spec.color, spec.scale, spec.lane);
+        taxi.routes = shaftRoutes;
         taxi.update(0, null, 0);
         scene.add(taxi.object);
         vehicles.push(taxi);
@@ -1025,6 +1072,9 @@ export function* buildIncal(scene) {
     },
     // taxis are solid: bump into them, or land on a roof and ride along
     dynamic: () => vehicles,
+    // where the cabs take you, and how they get there (src/taxi.js, src/story/cab.js)
+    cabStops: shaftCabStops(places, terraces),
+    cabRoutes: shaftRoutes,
     // inside the shaft the sun comes in steeper, so the terraces are lit like the plate
     lightAt(p, dir) {
       const inside = Math.hypot(p.x, p.z) < R + 20 && p.y < TOP + 40;

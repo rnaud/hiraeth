@@ -165,10 +165,11 @@ test('B off the bird far up with the wings: they open by themselves and you glid
   assert.ok(p.ride !== bird, 'she did not need to catch you');
 });
 
-test('off a taxi far up without wings or jets: not allowed (a notice); with the jets, off you go', () => {
+test('off a cab on its way, far up, without wings or jets: not allowed (a notice); with the jets, off you go', () => {
   const taxi = new Taxi(flat, '#fff', 1, () => {});
-  taxi.mode = 'driven'; taxi.pos.set(0, 90, 0); taxi.object.updateMatrixWorld(true);
+  taxi.pos.set(0, 90, 0); taxi.object.updateMatrixWorld(true);
   const p = riding(taxi);
+  assert.ok(taxi.goTo({ id: 'far', name: 'Far away', at: new THREE.Vector3(0, 90, 2000), heading: 0, step: new THREE.Vector3(0, 0, 2000) }), 'on its way');
   const notes = []; p.onNotice = (t) => notes.push(t);
   p.update(DT, { JumpOff: true }, 0);
   assert.equal(p.ride, taxi, 'still aboard');

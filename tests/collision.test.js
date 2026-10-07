@@ -108,8 +108,23 @@ test('vehicles at full speed stop at walls instead of passing through', () => {
   bird.mode = 'ridden'; bird.landed = false; bird.speed = 55; bird.heading = 0; bird.pos.set(0, 8, 0);
   for (let i = 0; i < 40; i++) bird.update(1 / 20, { KeyW: true });
   assert.ok(bird.pos.z < 40, `bird z ${bird.pos.z}`);
+  // a cab drives itself: sent past the wall, it flies over it (the first clear way it knows), never through
   const taxi = new Taxi(physics, '#fff', 1, () => {});
-  taxi.mode = 'driven'; taxi.pos.set(0, 6, 0); taxi.heading = 0; taxi.speed = 40;
-  for (let i = 0; i < 40; i++) taxi.update(1 / 20, { KeyW: true }, i / 20);
-  assert.ok(taxi.pos.z < 40, `taxi z ${taxi.pos.z}`);
+  taxi.pos.set(0, 6, 0); taxi.heading = 0; taxi.board();
+  assert.ok(taxi.goTo({ id: 'past', name: 'Past the wall', at: new THREE.Vector3(0, 6, 80), heading: 0, step: new THREE.Vector3(0, 0, 80) }));
+  let lowest = Infinity;
+  for (let i = 0; i < 20 * 30 && taxi.mode === 'route'; i++) {
+    const z0 = taxi.pos.z;
+    taxi.update(1 / 20, {}, i / 20);
+    if ((z0 - 40) * (taxi.pos.z - 40) <= 0) lowest = Math.min(lowest, taxi.pos.y);
+  }
+  assert.equal(taxi.mode, 'aboard', 'it got there');
+  assert.ok(taxi.pos.distanceTo(new THREE.Vector3(0, 6, 80)) < 0.6, `at the stop (${taxi.pos.toArray().map((x) => x.toFixed(1))})`);
+  assert.ok(lowest > 20 + 0.6, `over the wall, not through it (${lowest.toFixed(1)} m up as it crossed)`);
+  // a stop with no clear way to it (inside the wall): it says so and stays
+  const why = [];
+  taxi.onBlocked = (t, s, w) => why.push(w);
+  assert.equal(taxi.goTo({ id: 'in', name: 'In the wall', at: new THREE.Vector3(0, 10, 40), heading: 0 }), false);
+  assert.deepEqual(why, ['none']);
+  assert.equal(taxi.mode, 'aboard');
 });

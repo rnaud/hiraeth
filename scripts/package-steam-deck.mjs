@@ -18,6 +18,8 @@ await mkdir(`${output}/source`, { recursive: true });
 await cp('dist', `${output}/source/game`, { recursive: true, filter: (src) => !/^dist[\\/]updates([\\/]|$)/.test(src) });
 await cp('desktop/main.mjs', `${output}/source/main.mjs`);
 await cp('scripts/steam-deck/deck.py', `${output}/source/deck.py`);
+// Steam's library artwork for the shortcut (scripts/steam-art.mjs; deck.py puts it in Steam's grid/)
+await cp('desktop/steam', `${output}/source/steam`, { recursive: true });
 await writeFile(`${output}/source/package.json`, JSON.stringify({ name: 'moebius', version: `${VERSION}.0`, type: 'module', main: 'main.mjs' }));
 // (build.json stays exactly { build, version }: the updaters installed today check it so)
 await writeFile(`${output}/source/build.json`, JSON.stringify({ build, version: VERSION }));

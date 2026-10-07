@@ -6,7 +6,6 @@ import { Controller, padRide } from '../src/controller.js';
 import { Hoverbike } from '../src/bike.js';
 import { Bird } from '../src/bird.js';
 import { Taxi } from '../src/taxi.js';
-import { gearHtml } from '../src/items.js';
 
 const fakeWin = (ids = [], search = '', extra = {}) => ({ location: { search }, localStorage: { getItem: () => null }, navigator: { getGamepads: () => ids.map((id) => ({ id })) }, ...extra });
 
@@ -134,19 +133,29 @@ test('the bird: RT flies on and takes off, the stick dives (forward) and climbs 
   assert.ok(bank.bank < -0.3, 'the stick banks');
 });
 
-test('the taxi: RT goes, the stick steers and tilts it up (back) or down (forward)', () => {
-  const drive = (o, n = 90) => { const t = new Taxi(flat, '#fff', 1, () => {}); t.mode = 'driven'; t.pos.set(0, 40, 0); t.heading = 0; for (let i = 0; i < n; i++) t.update(1 / 60, ride(o), i / 60); return t; };
-  assert.ok(drive({ Throttle: 1 }).speed > 10);
-  assert.ok(drive({ stick: { x: 0, y: 1 } }).speed < 1, 'the stick forward alone does not drive on');
-  assert.ok(drive({ stick: { x: 0, y: -1 } }).pos.y > 45 && drive({ stick: { x: 0, y: 1 } }).pos.y < 35);
-  assert.ok(drive({ Throttle: 1, stick: { x: 1, y: 0 } }).heading < -0.5);
+test('the cab drives itself: RT and the stick do nothing, X / □ asks where to', () => {
+  const seated = (o, n = 90) => { const t = new Taxi(flat, '#fff', 1, () => {}); t.pos.set(0, 40, 0); t.heading = 0; t.board(); t.asking = false; for (let i = 0; i < n; i++) t.update(1 / 60, ride(o), i / 60); return t; };
+  for (const o of [{ Throttle: 1 }, { stick: { x: 1, y: 1 } }, { Brake: 1, stick: { x: -1, y: -1 } }]) {
+    const t = seated(o);
+    assert.ok(t.speed < 0.01 && Math.hypot(t.pos.x, t.pos.z) < 0.01 && Math.abs(t.pos.y - 40) < 0.2 && t.heading === 0, `it waits where it is (${JSON.stringify(o)})`);
+    assert.equal(t.asking, false);
+  }
+  assert.equal(seated({ Space: true }, 2).asking, true, 'X / □ (the pad\'s Space while riding): where to?');
   assert.equal(padRide({ KeyW: true }), null);
 });
 
-test('View / Select opens the sketchbook on your gear: each item and what it does', () => {
-  const html = gearHtml(['bell', 'backpack', 'jetpack'], { mode: 'Stilling' });
-  assert.ok(html.indexOf('Magic-fluid backpack') < html.indexOf('Fluid jets') && html.indexOf('Fluid jets') < html.indexOf('Bell-note whistle'), 'the backpack first');
-  assert.match(html, /Gear <span>3<\/span>/);
-  assert.match(html, /gun mode: Stilling/);
-  assert.match(gearHtml([]), /Nothing yet/);
+test('View / Select opens the game menu on your items: each one, the backpack first, the gun mode in use marked', async () => {
+  const { itemsData } = await import('../src/game-menu-data.js');
+  const { itemsPanel } = await import('../src/game-menu.js');
+  const d = itemsData({ owned: ['bell', 'stun', 'backpack', 'jetpack'], mode: 'stun', modes: ['shoot', 'stun'] });
+  assert.deepEqual(d.gear.map((g) => g.id), ['backpack', 'jetpack', 'stun', 'bell'], 'the backpack first, then by kind');
+  assert.equal(d.gear.find((g) => g.id === 'stun').inUse, true);
+  assert.equal(d.gear.find((g) => g.id === 'backpack').usable, true, 'plain fluid: A / × takes it');
+  assert.equal(d.gear.find((g) => g.id === 'bell').usable, false);
+  const { html, rows } = itemsPanel(d);
+  assert.match(html, /Gear <span>4 of \d+<\/span>/);
+  assert.match(html, /<em>in use<\/em>/);
+  assert.equal(rows[0][0].name, 'Magic-fluid backpack');
+  assert.match(rows[0][0].desc, /Aim \(LT \/ L2/, 'what it is and what it does, at the bottom');
+  assert.match(itemsPanel(itemsData({ owned: [] })).html, /Nothing to deliver|Nothing of value yet/);
 });

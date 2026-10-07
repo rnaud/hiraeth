@@ -179,6 +179,9 @@ export function buildCharacter(palette = {}) {
   const head = new THREE.Group();
   head.position.y = 0.87;
   torso.add(head);
+  // the skull's own turn on the neck (Animator.apply: the clip's head, not just its neck's line; Humanoid's Head bone follows it)
+  const headNod = new THREE.Object3D();   // (not a Group: Humanoid moves the hood's groups off the rig head)
+  head.add(headNod);
   const neck = part(new THREE.CylinderGeometry(0.035, 0.045, 0.12, 6), C.face);
   neck.position.y = 0.79;
   torso.add(neck);
@@ -235,13 +238,18 @@ export function buildCharacter(palette = {}) {
   jetpack.visible = false;
   torso.add(jetpack);
 
-  return { root, body, torso, head, hatTip, legs, knees, feet, arms, elbows, scarf, scarf2, pack, bedroll, jetpack, flames,
+  return { root, body, torso, head, headNod, hatTip, legs, knees, feet, arms, elbows, scarf, scarf2, pack, bedroll, jetpack, flames,
     scarfAnchors: [], colors: C };
 }
 
 const _v1 = new THREE.Vector3();
 const _edgeN = new THREE.Vector3();
 const _tq = new THREE.Quaternion(), _te = new THREE.Euler();
+const _sq1 = new THREE.Quaternion(), _sq2 = new THREE.Quaternion(), _sq3 = new THREE.Quaternion(), _sq4 = new THREE.Quaternion();
+// standing: how much of the idle clip's stance each foot keeps, fore-aft and outward from its hip (Player.standUnder)
+export const IDLE_STANCE = { ahead: 0.3, out: 0.4 };
+// standing: the head's pitch over the idle clip's (rad, + down): the clip looks 15° down, at the ground; he looks ahead, as drawn
+export const IDLE_HEAD = -0.14;
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const _mf = new THREE.Vector3(), _ml = new THREE.Vector3();   // (the matcher's frame: matchInput)
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
@@ -758,10 +766,10 @@ export class Player {
     this.boarding = this.unboarding = null;
     this.gliding = this.thrusting = this.climbing = false;
     this.wingK = 0;   // the wings fold away at once
-    v.board?.();
+    v.board?.(this.pos);
   }
 
-  /** Does this vehicle run on the backpack? (hoverbikes and skiffs; not the bird, who's alive, nor taxis, which someone else drives) */
+  /** Does this vehicle run on the backpack? (hoverbikes and skiffs; not the bird, who's alive, nor cabs, which drive themselves) */
   needsPower(v) { return !!v?.powered; }
 
   /**
@@ -793,8 +801,9 @@ export class Player {
   dismount(instant = false) {
     const v = this.ride;
     this.ride = null;
+    const out = this.exitSpot(v);   // (before it leaves: a cab says where its stop is while it still waits there)
     v.leave?.();
-    this.pos.copy(this.exitSpot(v));
+    this.pos.copy(out);
     this.vel.set(v.vel.x * 0.3, 0, v.vel.z * 0.3);
     this.heading = v.heading;
     this.onGround = false;
@@ -811,6 +820,8 @@ export class Player {
    * from the seat without passing through a wall.
    */
   exitSpot(v) {
+    const own = v.exitAt?.();   // (a cab waiting at a stop: the stop's own spot, src/taxi.js)
+    if (own) return own;
     const [fx, fz] = v.forward;
     const side = v.exitOffset ?? 1.8, P = this.physics;
     const seat = _g4.set(v.pos.x, v.pos.y + 0.6, v.pos.z);
@@ -894,6 +905,7 @@ export class Player {
     if (this.boarding || this.unboarding) return;
     if (this.ride) {
       const v = this.ride;
+      if (v.exitAt?.()) return this.dismount();   // a cab at a stop: you step out onto it, however high it hovers
       if (Math.abs(v.speed ?? 0) > JUMP_OFF.moving || this.rideHeight(v) > JUMP_OFF.air) return this.jumpOff();
       return this.dismount();
     }
@@ -1674,6 +1686,7 @@ export class Player {
     this._gait = null;
     for (const f of c.feet) f.rotation.set(0, 0, 0);
     const flow = Math.min(Math.abs(this.ride.speed) / 30, 1.3);
+    if (this.ride.kind === 'taxi') return this.animateSeated(flow);
     c.legs[0].rotation.set(-1.35, 0, 0.12);
     c.legs[1].rotation.set(-1.35, 0, -0.12);
     c.knees[0].rotation.x = c.knees[1].rotation.x = 1.45;
@@ -1685,6 +1698,28 @@ export class Player {
     c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.6;
     c.head.rotation.set(-0.15, 0, 0);
     c.hatTip.rotation.x = -0.55 - flow * 0.5 + Math.sin(this.time * 20) * 0.06 * flow;  // flaps in the wind
+    for (const fl of c.flames) fl.visible = false;
+  }
+
+  /**
+   * Seated in a cab (it drives itself): upright against the seat's back, thighs level on the
+   * cushion, shins down to the footrest, hands resting on the thighs; he looks about as it flies
+   * and sways a little into its turns.
+   */
+  animateSeated(flow) {
+    const c = this.char, t = this.time, bank = this.ride.bank ?? 0;
+    c.legs[0].rotation.set(-1.52, 0, 0.07);
+    c.legs[1].rotation.set(-1.52, 0, -0.07);
+    c.knees[0].rotation.x = c.knees[1].rotation.x = 1.5;
+    for (const f of c.feet) f.rotation.set(0.05, 0, 0);
+    c.body.position.set(0, 0, 0);
+    c.body.rotation.set(-0.04, 0, 0);
+    c.torso.rotation.set(0.02 + Math.sin(t * 1.1) * 0.01, 0, -bank * 0.35);
+    c.arms[0].rotation.set(-0.5, 0, -0.16);
+    c.arms[1].rotation.set(-0.5, 0, 0.16);
+    c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.72;
+    c.head.rotation.set(-0.06 - flow * 0.04, Math.sin(t * 0.27) * 0.32 * Math.sin(t * 0.09 + 1), bank * 0.2);
+    c.hatTip.rotation.x = -0.3 - flow * 0.35 + Math.sin(t * 16) * 0.04 * flow;  // the wind under the canopy
     for (const fl of c.flames) fl.visible = false;
   }
 
@@ -1956,22 +1991,23 @@ export class Player {
    */
   idleLayer(dt, hs) {
     const target = this.onGround && !this.ride && hs < 0.35 && !this.climbing ? 1 : 0;
-    const k = this._still = THREE.MathUtils.lerp(this._still ?? 0, target, 1 - Math.exp(-(target ? 2.5 : 8) * dt));
+    const k = this._still = THREE.MathUtils.lerp(this._still ?? target, target, 1 - Math.exp(-(target ? 2.5 : 8) * dt));
     if (k < 0.01) return;
     const c = this.char, t = this.time;
     const rot = (j, x, y, z) => j.quaternion.multiply(_tq.setFromEuler(_te.set(x * k, y * k, z * k)));
     const w = Math.tanh(3 * Math.sin(t * 0.38 + 0.6));          // -1..1, dwells on each side
     const breath = Math.sin(t * 1.7);
-    c.body.position.x += w * 0.045 * k;
+    c.body.position.x -= w * 0.045 * k;
     c.body.position.y -= 0.015 * Math.abs(w) * k;
     rot(c.body, 0, w * 0.06, -w * 0.07);
     rot(c.torso, breath * 0.018, -w * 0.05, w * 0.09);
+    this.standUnder(k);
     // narrow the stance; the free leg relaxes forward with a bent knee
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;                               // which way is inward for this leg
       const free = THREE.MathUtils.smoothstep(-w * side, 0.1, 0.9);
-      rot(c.legs[i], 0.1 * free, 0.08 * free * side, side * 0.05);
-      rot(c.knees[i], 0.3 * free, 0, 0);
+      rot(c.legs[i], -0.09 * free, 0.08 * free * side, side * 0.05);
+      rot(c.knees[i], 0.2 * free, 0, 0);
     }
     // soft arms, a slow sway, one hand hooks the belt while the weight is on that side
     // (the right one, in the tank's glove, hangs a little out from the hip: its cuff sank into it)
@@ -1984,7 +2020,35 @@ export class Player {
     }
     // glances: hold, turn the head, hold
     const look = Math.tanh(2.5 * Math.sin(t * 0.21)) * 0.45 + Math.sin(t * 0.9) * 0.03;
-    rot(c.head, -0.04 + Math.max(0, Math.sin(t * 0.13)) * 0.12, look, 0);
+    rot(c.head, IDLE_HEAD + Math.max(0, Math.sin(t * 0.13)) * 0.12, look, 0);
+  }
+
+  /**
+   * The idle clip stands in a wide, split stance (the left foot 13 cm ahead of its hip, the right
+   * 26 cm behind, both well out to the side): side on, it reads as a stride. The drawings stand
+   * him upright with his feet under his hips, a little apart. Each thigh swings (by k) so its ankle
+   * comes in under the hip: IDLE_STANCE.ahead of its fore-aft offset kept, IDLE_STANCE.out of its
+   * offset outward. (Before the weight shift's own leg poses, which go on top.)
+   */
+  standUnder(k) {
+    const c = this.char, root = this.object;
+    root.updateMatrixWorld(true);
+    const rootQ = root.getWorldQuaternion(_sq1);
+    // (legs brought upright reach lower: the body rises by what the less lowered ankle went down,
+    // so the knees keep the clip's bend instead of folding to keep the feet on the ground)
+    let sank = Infinity;
+    for (let i = 0; i < 2; i++) {
+      const hip = root.worldToLocal(c.legs[i].getWorldPosition(_g5)), d = root.worldToLocal(c.feet[i].getWorldPosition(_g6)).sub(hip);
+      const y0 = d.y;
+      const want = _g4.set(d.x * IDLE_STANCE.out + Math.sign(d.x) * (1 - IDLE_STANCE.out) * 0.03, d.y, d.z * IDLE_STANCE.ahead).setLength(d.length());
+      const swing = _sq2.setFromUnitVectors(d.normalize(), want.normalize()).slerp(_sq3.identity(), 1 - k);
+      // (the swing is in the root's frame: to the world, then into the thigh's parent)
+      const world = c.legs[i].getWorldQuaternion(_sq3).premultiply(_sq4.copy(rootQ).multiply(swing).multiply(_sq1.clone().invert()));
+      c.legs[i].quaternion.copy(c.legs[i].parent.getWorldQuaternion(_sq2).invert().multiply(world));
+      c.legs[i].updateMatrixWorld(true);
+      sank = Math.min(sank, y0 - root.worldToLocal(c.feet[i].getWorldPosition(_g6)).y + root.worldToLocal(c.legs[i].getWorldPosition(_g5)).y);
+    }
+    if (sank > 0 && sank < 0.2) { c.body.position.y += sank; c.body.updateMatrixWorld(true); }
   }
 
   /**
@@ -2275,14 +2339,19 @@ export class CameraRig {
     this.indoorK = this.indoor ? 1 : 0;
   }
 
-  /** While riding: swing behind the bike unless the mouse moved recently. */
-  follow(heading, dt, riding) {
+  /**
+   * While riding: swing behind the bike unless the mouse moved recently. A ride may ask for its own
+   * view (shot: { side, boost, pitch }): a cab, which drives itself, is watched from beside and a
+   * little above, where you see the traveller seated in it under its canopy.
+   */
+  follow(heading, dt, riding, shot = null) {
     this._riding = !!riding;
-    this._distBoost += ((riding ? 6 : 0) - this._distBoost) * (1 - Math.exp(-2 * dt));
+    this._distBoost += ((riding ? shot?.boost ?? 6 : 0) - this._distBoost) * (1 - Math.exp(-2 * dt));
     if (!riding || this._now - this._lastMouse < 1.5) return;
-    let d = heading + Math.PI - this.yaw;
+    let d = heading + (shot?.side ?? 0) + Math.PI - this.yaw;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     this.yaw += d * (1 - Math.exp(-2.2 * dt));
+    if (shot?.pitch != null) this.pitch += (shot.pitch - this.pitch) * (1 - Math.exp(-1.5 * dt));
   }
 
   /**

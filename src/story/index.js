@@ -25,6 +25,7 @@ import { setupEdena } from './edena.js';
 import { setupSpheres } from './spheres.js';
 import { setupIncal } from './incal.js';
 import { setupBazaar } from './bazaar.js';
+import { setupCabs } from './cab.js';
 import { setupHome } from './home.js';
 import { setupTempleStory } from '../temples/index.js';
 
@@ -84,12 +85,7 @@ export function createStory(o) {
   });
   const marker = new QuestMarker(scene, makeMaterial);
 
-  // the quest log in the sketchbook; click a quest to track it
-  journal.sections.push(() => quests.journalHtml());
-  journal.el.addEventListener('click', (e) => {
-    const q = e.target.closest?.('[data-quest]');
-    if (q && quests.isActive(q.dataset.quest)) { quests.choose(q.dataset.quest); journal.render(); }
-  });
+  // (the quests in the game menu's Quests panel, where choosing one tracks it: main.js, src/game-menu.js)
 
   // a sketch of whoever you're talking to, for the panel: just them (and their cape) against a flat
   // colour of this world's (src/story/portrait-bg.js); returns { src, background }
@@ -143,6 +139,8 @@ export function createStory(o) {
   // a world's first times, filmed (src/story/moment.js): on the ship's camera, never over a conversation
   const moments = new MomentStage({ ship: o.ship ?? null, game, player, physics, quiet: () => dialogue.open || !!story?.pageOpen });
   world = WORLDS[levelId]?.({ ...o, quests, dialogue, game, spawn, talkable, moments }) ?? null;
+  // the cabs (src/taxi.js): they drive themselves, and ask where to as you get in (src/story/cab.js)
+  const cabs = setupCabs({ player, dialogue, level, toast });
   // the world's temple (src/temples/): its quest, its local, its rooms and guardian
   const temple = setupTempleStory({ ...o, quests, dialogue, game, spawn, talkable });
 
@@ -225,7 +223,7 @@ export function createStory(o) {
   let useBtn = null;
   const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
   const rt = {
-    quests, dialogue, marker, world, temple, portrait, moments, makeRoom, prompt: null, promptAt: null,
+    quests, dialogue, marker, world, temple, portrait, moments, makeRoom, cabs, prompt: null, promptAt: null,
     busy: () => dialogue.open || moments.playing || !!world?.busy?.(),   // (a world's own scene: home's quiet moments, a first time filmed)
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {
@@ -246,6 +244,7 @@ export function createStory(o) {
         if (p.group) { p.group.pauseUntil = crowd.time + 0.5; p.group.lookUntil = crowd.time + 1; }
       }
       if (talking?.npc?.talkTo) talking.npc.talkTo.speaking = dialogue.runner?.speaker === 'npc' && dialogue.revealed < (dialogue.runner?.text.length ?? 0);
+      cabs.update();
       dialogue.update(dt);
       // their faces (src/talk-face.js): the person you talk to wears the tone of the line they say, their mouth on
       // its syllables; so does the traveller on his pages and when he answers; each eases back to rest after

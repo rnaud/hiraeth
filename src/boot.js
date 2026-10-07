@@ -5,6 +5,7 @@
 // In the Android app, an update downloaded meanwhile is switched to before the title shows.
 
 import './menus.css';
+import './game-menu.css';
 import { installNativePad, watchLabels } from './native-pad.js';
 import { opensTitle } from './save-slots.js';
 import { applyReadyUpdate } from './native-app.js';

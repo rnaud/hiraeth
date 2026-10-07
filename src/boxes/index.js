@@ -333,7 +333,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       const c = api.counts();
       const rows = Object.entries(c).filter(([, v]) => v.total).map(([id, v]) => `<li class="${v.found >= v.total ? 'done' : ''}">${titles[id] ?? id} · boxes found ${v.found}/${v.total}</li>`).join('');
       const found = Object.values(c).reduce((s, v) => s + v.found, 0), total = Object.values(c).reduce((s, v) => s + v.total, 0);
-      return `<section class="quests boxes"><h2>Item boxes <span>${found}/${total}</span></h2><ul>${rows}</ul></section>`;   // (what they held: the Gear section at the top, items.js gearHtml)
+      return `<section class="quests boxes"><h2>Item boxes <span>${found}/${total}</span></h2><ul>${rows}</ul></section>`;   // (what they held: the game menu's Items panel; the counts show on its Worlds panel, src/game-menu-data.js)
     },
     update(dt, t, { camera } = {}) {
       // the reactions: star, seam, light, hum, shudder

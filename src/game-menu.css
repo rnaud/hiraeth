@@ -1,0 +1,222 @@
+/* The game menu (src/game-menu.js: View / Select, J, the touch ❏).
+   After Ocarina of Time's pause screen, in the game's ink and paper: the panel's name in the comic
+   lettering of the Start menu among four tabs, the sheet between two side tabs naming the neighbours
+   (LB / L1, RB / R1), the cursor a gold cell inside a pulsing red ring, the picked thing's name and
+   words in the strip at the bottom. Sized by the viewport so a 730 × 410 CSS px handheld and a desktop
+   window both fit without the frame scrolling (a long panel scrolls inside its sheet). */
+#journal.gamemenu {
+  position: fixed; inset: 0; z-index: 8500; display: none; color: #2b211f; font: 13px/1.45 ui-monospace, Menlo, monospace;
+  --ink: #2b211f; --paper: #fbf4e2; --paper2: #f3e7cc; --gold: #f2c54b; --red: #c8483a; --teal: #277e86; --green: #2f7a55;
+  --slot: clamp(40px, min(10.6vh, 6.2vw), 88px);
+  background: #e8d9b5 radial-gradient(ellipse 80% 70% at 50% 45%, #f1e5c6 0%, #e8d9b5 62%, #d9c69b 100%);
+  user-select: none; -webkit-user-select: none;
+}
+#journal.gamemenu.open { display: block; animation: gm-in 0.22s ease-out; }
+@keyframes gm-in { from { opacity: 0; transform: scale(0.985); } }
+#journal .gm {
+  position: relative; height: 100%; box-sizing: border-box; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: clamp(5px, 1.6vh, 16px);
+  padding: calc(clamp(6px, 2.2vh, 26px) + env(safe-area-inset-top, 0px)) calc(clamp(8px, 2.4vw, 40px) + env(safe-area-inset-right, 0px))
+    calc(clamp(8px, 2.4vh, 26px) + env(safe-area-inset-bottom, 0px)) calc(clamp(8px, 2.4vw, 40px) + env(safe-area-inset-left, 0px));
+}
+
+/* the four panels, as tabs across the top (a click or a tap goes there); the one showing in comic letters */
+#journal .gm-tabs { display: flex; justify-content: center; align-items: center; gap: clamp(4px, 1vw, 14px); padding: 0 clamp(40px, 6vw, 80px); }
+#journal .gm-tab {
+  font: 500 clamp(9px, 1.8vh, 13px)/1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--ink); background: rgba(251, 244, 226, 0.6); border: 2px solid rgba(43, 33, 31, 0.5); border-radius: 999px;
+  padding: clamp(4px, 0.9vh, 8px) calc(clamp(9px, 1.4vw, 18px) - 0.3em) clamp(4px, 0.9vh, 8px) clamp(9px, 1.4vw, 18px); cursor: pointer;
+  transition: background 0.12s;
+}
+#journal .gm-tab:hover { background: var(--paper); }
+#journal .gm-tab.on {
+  font: 900 clamp(16px, 4.2vh, 34px)/1 Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif; letter-spacing: 0.08em;
+  margin: 0 clamp(4px, 1vw, 12px); padding: clamp(5px, 1vh, 9px) clamp(14px, 2vw, 26px); color: var(--paper); -webkit-text-stroke: 1.8px var(--ink); paint-order: stroke fill;
+  text-shadow: 3px 3px 0 var(--ink); background: var(--gold); border: 2.5px solid var(--ink); border-radius: 6px; box-shadow: 4px 4px 0 var(--ink); transform: rotate(-1.5deg);
+}
+#journal .gm-close {
+  position: absolute; top: calc(clamp(6px, 2.2vh, 26px) + env(safe-area-inset-top, 0px)); right: calc(clamp(8px, 2.4vw, 40px) + env(safe-area-inset-right, 0px));
+  width: clamp(28px, 5.4vh, 42px); height: clamp(28px, 5.4vh, 42px); padding: 0; font: bold clamp(13px, 2.4vh, 18px)/1 ui-monospace, Menlo, monospace; color: var(--ink);
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 2px 2px 0 var(--ink); cursor: pointer;
+}
+#journal .gm-close:hover { background: var(--red); color: var(--paper); }
+body.controller #journal .gm-close { display: none; }
+
+/* the sheet between its two side tabs */
+#journal .gm-stage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; min-height: 0; height: 100%; }
+#journal .gm-side {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(5px, 1.2vh, 12px); height: min(52%, 300px); box-sizing: border-box;
+  padding: 0 clamp(4px, 0.7vw, 9px); font: inherit; color: var(--ink); cursor: pointer; background: var(--paper2);
+  border: 2.5px solid var(--ink); transition: background 0.12s;
+}
+#journal .gm-side.prev { border-right: 0; border-radius: 16px 0 0 16px; box-shadow: -3px 4px 0 var(--ink); }
+#journal .gm-side.next { border-left: 0; border-radius: 0 16px 16px 0; box-shadow: 5px 4px 0 var(--ink); }
+#journal .gm-side .nm { writing-mode: vertical-rl; font: 500 clamp(9px, 1.8vh, 13px)/1 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase; }
+#journal .gm-side.prev .nm { transform: rotate(180deg); }
+#journal .gm-side .arrow { font-size: clamp(9px, 1.6vh, 13px); color: var(--red); }
+#journal .gm-side .key { font-size: clamp(8px, 1.35vh, 11px); }
+#journal .gm-side:hover, #journal .gm-side.at { background: var(--gold); }
+#journal .gm-side.at { animation: gm-nudge 0.6s ease-in-out infinite alternate; }
+#journal .gm-side.prev.at { --nudge: -4px; }
+#journal .gm-side.next.at { --nudge: 4px; }
+@keyframes gm-nudge { to { transform: translateX(var(--nudge, 0)); } }
+body:not(.controller) #journal .gm-side .key { display: none; }
+#journal .gm-sheet {
+  position: relative; height: 100%; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--paper); background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(43, 33, 31, 0.05) 27px 28px);
+  border: 3px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); border-radius: 5px;
+}
+#journal .gm-title { display: none; }
+#journal .gm-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: clamp(8px, 2.4vh, 26px) clamp(10px, 2.2vw, 32px); scrollbar-width: thin; scrollbar-color: rgba(43, 33, 31, 0.35) transparent; }
+#journal .gm-body h2 { margin: 0 0 clamp(5px, 1.2vh, 12px); font: 500 clamp(9px, 1.75vh, 13px)/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.34em; text-transform: uppercase; }
+#journal .gm-body h2 span { margin-left: 0.5em; letter-spacing: 0.06em; opacity: 0.6; font-family: ui-monospace, Menlo, monospace; text-transform: none; }
+#journal .gm-body .none { margin: 0 0 6px; font-style: italic; opacity: 0.6; }
+#journal .gm-body button { font: inherit; color: inherit; cursor: pointer; }
+
+/* the cursor: a gold cell, lifted, in a pulsing red ring (the browser's own focus ring is not used) */
+#journal [data-at] { outline: none; scroll-margin: clamp(26px, 6vh, 44px) 12px 12px; transition: transform 0.1s, box-shadow 0.1s, background 0.1s; }
+#journal [data-at].at { position: relative; z-index: 1; outline: 3px solid var(--red); outline-offset: 3px; animation: gm-pulse 1.1s ease-in-out infinite; }
+@keyframes gm-pulse { 50% { outline-offset: 6px; outline-color: #e5896d; } }
+@media (prefers-reduced-motion: reduce) {
+  #journal [data-at].at, #journal .gm-side.at, #journal.gamemenu.open, #journal .gm-look figure { animation: none; }
+}
+
+/* Items: the gear's grid, what you carry under it, and the picked one large beside them */
+#journal .gm-items { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(14px, 3.4vw, 52px); align-items: start; min-height: 100%; }
+#journal .gm-left { display: flex; flex-direction: column; gap: clamp(10px, 2.6vh, 26px); }
+#journal .gm-items .grid { display: grid; grid-template-columns: repeat(var(--cols), var(--slot)); gap: clamp(6px, 1.5vh, 14px); }
+#journal .slot {
+  position: relative; display: grid; place-items: center; width: var(--slot); height: var(--slot); box-sizing: border-box; padding: 0;
+  background: var(--paper2); border: 2.5px solid var(--ink); border-radius: 28%; box-shadow: inset 0 -4px 0 rgba(43, 33, 31, 0.1);
+}
+#journal .slot.empty { background: rgba(43, 33, 31, 0.03); border: 2px dashed rgba(43, 33, 31, 0.26); box-shadow: none; }
+#journal .slot.at, #journal .slot:hover { background: var(--gold); transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--ink); }
+#journal .ico { display: block; width: 90%; height: 90%; object-fit: contain; pointer-events: none; }
+#journal .slot .ico { border-radius: 26%; }
+#journal .ico.mark { display: grid; place-items: center; font-style: normal; font-size: calc(var(--slot) * 0.42); color: var(--teal); -webkit-text-stroke: 0.6px var(--ink); }
+#journal .slot.inuse { border-color: var(--red); }
+#journal .slot em {
+  position: absolute; left: 50%; bottom: -0.8em; transform: translateX(-50%); padding: 0 5px; font-style: normal; font-size: clamp(7px, 1.25vh, 10px); line-height: 1.55;
+  letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px;
+}
+#journal .gm-carry { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 2vw, 28px); min-width: 0; }
+#journal .gm-carry section { min-width: 0; }
+/* the picked one, large: its picture in a big slot, its name in capitals, what kind of thing it is */
+#journal .gm-preview { align-self: center; display: flex; flex-direction: column; align-items: center; gap: clamp(4px, 1vh, 10px); text-align: center; min-width: 0; }
+#journal .gm-preview:empty { display: none; }
+#journal .gm-preview .big {
+  display: grid; place-items: center; width: min(34vh, 21vw, 260px); aspect-ratio: 1; box-sizing: border-box; margin-bottom: clamp(4px, 1vh, 10px);
+  background: var(--paper2); border: 3px solid var(--ink); border-radius: 30%; box-shadow: 6px 6px 0 var(--ink), inset 0 -8px 0 rgba(43, 33, 31, 0.08); transform: rotate(-2deg);
+}
+#journal .gm-preview .big .ico { width: 92%; height: 92%; border-radius: 28%; }
+#journal .gm-preview .big .ico.mark { font-size: min(14vh, 9vw, 110px); }
+#journal .gm-preview .big.keepsake .ico.mark { color: var(--gold); -webkit-text-stroke: 1.5px var(--ink); }
+#journal .gm-preview .big.quest .ico.mark { color: var(--red); }
+#journal .gm-preview b { font: 900 clamp(13px, 2.8vh, 22px)/1.1 Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; max-width: 100%; }
+#journal .gm-preview span { font-size: clamp(9px, 1.7vh, 12px); letter-spacing: 0.08em; color: var(--red); }
+#journal .gm-preview em { padding: 0 8px; font-style: normal; font-size: clamp(8px, 1.4vh, 11px); line-height: 1.6; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px; }
+#journal .gm-carry .line {
+  display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 clamp(4px, 0.9vh, 8px); padding: 3px 12px 3px 4px; text-align: left; box-sizing: border-box;
+  background: rgba(255, 250, 240, 0.75); border: 2px solid var(--ink); border-radius: 999px;
+}
+#journal .gm-carry .line .ico { flex: none; width: calc(var(--slot) * 0.46); height: calc(var(--slot) * 0.46); }
+#journal .gm-carry .line .ico.mark { font-size: calc(var(--slot) * 0.3); }
+#journal .gm-carry .line.keepsake .ico.mark { color: var(--gold); -webkit-text-stroke: 0.8px var(--ink); }
+#journal .gm-carry .line.pack .ico.mark { color: var(--red); }
+#journal .gm-carry .line span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; font-size: clamp(10px, 1.9vh, 13px); }
+#journal .gm-carry .line.at, #journal .gm-carry .line:hover { background: var(--gold); }
+
+/* Quests: the charge and each quest under way (its goal, its next step); the finished ones by title */
+#journal .gm-quests { display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 30%); gap: clamp(14px, 2.8vw, 40px); align-items: start; }
+#journal .qlist { display: flex; flex-direction: column; gap: clamp(8px, 1.8vh, 16px); }
+#journal .qcard {
+  position: relative; display: flex; flex-direction: column; gap: 3px; text-align: left; padding: clamp(6px, 1.4vh, 12px) 16px clamp(6px, 1.4vh, 12px) 22px;
+  background: #fffaf0; border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 3px;
+}
+#journal .qcard::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; background: #b9a98a; border-right: 2px solid var(--ink); }
+#journal .qcard.main::before { background: var(--red); }
+#journal .qcard.charge { background: #fff6dc; }
+#journal .qcard.charge::before { background: var(--gold); }
+#journal .qcard.errand::before { background: var(--teal); }
+#journal .qcard.at, #journal .qcard:hover { background: #fff1c4; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+#journal .qhead { display: flex; align-items: baseline; gap: 8px; }
+#journal .qhead .mark { font-style: normal; color: var(--red); }
+#journal .qcard.charge .qhead .mark { color: var(--gold); -webkit-text-stroke: 0.7px var(--ink); }
+#journal .qcard.errand .qhead .mark { color: var(--teal); }
+#journal .qhead b { font-size: clamp(12px, 2.3vh, 16px); letter-spacing: 0.04em; }
+#journal .qhead .tag, #journal .wcard .tag {
+  padding: 0 7px; font-style: normal; font-size: clamp(7px, 1.3vh, 10px); line-height: 1.6; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px;
+}
+#journal .qhead .tag { margin-left: auto; align-self: center; }
+#journal .qcard .goal { font-style: italic; opacity: 0.8; font-size: clamp(10px, 1.95vh, 13px); }
+#journal .qcard .next { font-weight: bold; font-size: clamp(11px, 2.05vh, 14px); }
+#journal .qcard .next small { margin-right: 8px; font-size: 0.72em; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); }
+#journal .qdone ul { list-style: none; margin: 0; padding: 0; }
+#journal .qdone li { margin: 0; }
+#journal .qdone .ended { display: flex; gap: 8px; width: 100%; text-align: left; padding: clamp(3px, 0.7vh, 6px) 8px; background: none; border: 0; border-bottom: 1px dashed rgba(43, 33, 31, 0.3); font-size: clamp(10px, 1.9vh, 13px); }
+#journal .qdone .ended i { font-style: normal; color: var(--green); font-weight: bold; }
+#journal .qdone .ended.failed i { color: #9a4a32; }
+#journal .qdone .ended.at, #journal .qdone .ended:hover { background: var(--gold); }
+#journal .qdone .more { padding: 3px 8px; font-size: 11px; opacity: 0.6; }
+
+/* Sketchbook: a world a row, its story page and its relics */
+#journal .gm-sketches .world { margin: 0 0 clamp(10px, 2.4vh, 22px); }
+#journal .gm-sketches .row { display: flex; gap: clamp(7px, 1.1vw, 14px); flex-wrap: wrap; padding: 0 0 4px; }
+#journal .tile {
+  --h: clamp(46px, 12vh, 112px); height: var(--h); width: calc(var(--h) * 1.41); padding: 0; overflow: hidden; flex: none;
+  background: #efe3c6; border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+}
+#journal .tile.wide { width: calc(var(--h) * 2.37); }
+#journal .tile:nth-child(odd) { transform: rotate(-0.6deg); }
+#journal .tile:nth-child(even) { transform: rotate(0.5deg); }
+#journal .tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#journal .tile.empty { display: grid; place-items: center; background: transparent; border-style: dashed; border-color: rgba(43, 33, 31, 0.4); box-shadow: none; }
+#journal .tile.empty i { font-style: normal; font-size: calc(var(--h) * 0.3); opacity: 0.4; }
+#journal .tile.at, #journal .tile:hover { transform: translate(-2px, -2px) rotate(0); box-shadow: 5px 5px 0 var(--ink); }
+#journal .tile.empty.at { background: rgba(242, 197, 75, 0.35); }
+/* a sketch held up (A / ×): over the sheet, on its own paper */
+#journal .gm-look { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; background: rgba(43, 33, 31, 0.6); cursor: zoom-out; }
+#journal .gm-look[hidden] { display: none; }
+#journal .gm-look figure { margin: 0; max-width: 90%; padding: clamp(6px, 1.4vh, 14px); background: #fffaf0; border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); transform: rotate(-0.8deg); animation: gm-in 0.18s ease-out; }
+#journal .gm-look img { display: block; max-width: 100%; max-height: 52vh; margin: 0 auto; }
+#journal .gm-look figcaption { margin-top: 6px; font-size: clamp(10px, 1.9vh, 13px); }
+#journal .gm-look figcaption b { margin-right: 6px; }
+
+/* Worlds: the worlds you know, in the route's order */
+#journal .gm-worlds { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: clamp(10px, 2vh, 20px) clamp(10px, 1.8vw, 22px); }
+#journal .wcard { display: flex; flex-direction: column; gap: 3px; padding: clamp(4px, 0.8vh, 7px); text-align: left; background: #fffaf0; border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+#journal .wcard .pic { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #e2d3ae; border: 1.5px solid var(--ink); }
+#journal .wcard .pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#journal .wcard .num { position: absolute; left: 5px; top: 5px; display: grid; place-items: center; width: 1.9em; height: 1.9em; font-size: clamp(9px, 1.6vh, 12px); color: var(--paper); background: var(--ink); border-radius: 50%; }
+#journal .wcard .tag { position: absolute; right: 5px; bottom: 5px; }
+#journal .wcard .wname { font-weight: bold; font-size: clamp(11px, 2vh, 14px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#journal .wcard .wfacts { display: flex; gap: 10px; font-size: clamp(9px, 1.65vh, 12px); opacity: 0.85; }
+#journal .wcard .wfacts .on { color: var(--green); font-weight: bold; }
+#journal .wcard.here { border-color: var(--red); }
+#journal .wcard.at, #journal .wcard:hover { background: var(--gold); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+
+/* the strip at the bottom: what the cursor is on, and the buttons that do something here */
+#journal .gm-info {
+  display: flex; align-items: center; gap: clamp(10px, 2vw, 28px); margin: 0 clamp(28px, 3.8vw, 56px); min-height: clamp(46px, 12vh, 104px); box-sizing: border-box;
+  padding: clamp(5px, 1.2vh, 12px) clamp(10px, 1.6vw, 20px); background: #fffaf0; border: 2.5px solid var(--ink); box-shadow: 5px 5px 0 var(--ink);
+}
+#journal .gm-what { flex: 1; min-width: 0; }
+#journal .gm-name { font-size: clamp(12px, 2.4vh, 17px); letter-spacing: 0.1em; text-transform: uppercase; }
+#journal .gm-sub { margin-left: 12px; font-size: clamp(9px, 1.65vh, 12px); letter-spacing: 0.06em; color: var(--red); }
+#journal .gm-desc { margin: 2px 0 0; font-size: clamp(10px, 1.9vh, 13px); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#journal .gm-keys { flex: none; display: flex; align-items: center; font-size: clamp(10px, 1.85vh, 13px); white-space: nowrap; }
+#journal .gm-keys .key { margin-right: 6px; }
+#journal .gm-keys .key + .key { margin-left: -3px; }
+#journal .gm-keys .sep { width: 1.5px; height: 1.3em; margin: 0 10px; background: rgba(43, 33, 31, 0.3); }
+#journal .gm-keys:empty { display: none; }
+
+/* a phone held upright, or a narrow window: the column under the grid, two worlds a row */
+@media (max-width: 720px) {
+  #journal .gm-items, #journal .gm-quests { grid-template-columns: minmax(0, 1fr); }
+  #journal .gm-preview { display: none; }
+  #journal.gamemenu { --slot: clamp(30px, 9.4vw, 60px); }
+  #journal .gm-worlds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #journal .gm-tabs { padding: 0 44px 0 0; justify-content: flex-start; flex-wrap: wrap; }
+  #journal .gm-side .nm { display: none; }
+  #journal .gm-info { margin: 0; }
+}
