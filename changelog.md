@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.
 - On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.
+- On a handheld, looking down the City-Shaft no longer stutters: where the graphics chip is what holds a frame back, the picture softens a little to keep it smooth (about 44 frames a second before, 54 now); where softening would not help, the picture stays sharp.
 
 ## v0.79 — 2026-10-07
 

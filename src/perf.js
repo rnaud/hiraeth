@@ -362,10 +362,13 @@ export class InteriorCuller {
  *  - lodPx: levels of detail (lod.js): a distant mesh may lose detail smaller than this many pixels
  *    on screen (0 = always full detail)
  */
+// (cpuBound's probe, adaptScale: a step of 0.1 tried where the main thread looks like the limit, judged over
+//  5 windows, kept for 3 fps more or 2 missed refreshes fewer a window, else not tried again for 240 windows, 2 min)
+const PROBE = { step: 0.1, windows: 5, fps: 3, missed: 2, hold: 240 };
 const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, ao: true, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false, floraFar: 1, floraDensity: 1, lodPx: 1 };
 export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
-  handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40, cpuBound: 0.85 },
+  handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
     shadow: { fine: 0, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2 },
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
@@ -373,7 +376,7 @@ export const QUALITY_PRESETS = {
   // the Steam Deck at its own 1280×800: the handheld's lighter recipe where the Deck's CPU pays for
   // it (crowd, props, flora, the fine cascade), the full image otherwise (native resolution, crease
   // shading, both ink passes), adapting down to 0.6 when a scene is too much
-  deck:     { label: 'Steam Deck', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40, cpuBound: 0.85 },
+  deck:     { label: 'Steam Deck', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
     shadow: { fine: 1024, near: 2048, far: 2048 }, nearExtent: 180, nearEvery: 2, farEvery: 4, taps: 4,
     ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5 },
   medium:   { ...FULL, label: 'Medium', scale: 1 },
@@ -397,9 +400,23 @@ export function adaptScale(s, { fps, missed = 0, cpu = 0, period = 1000 / 60 }, 
   //  slow, and fewer pixels can't help: no drop then, for missed refreshes or a low frame rate; GeckoView on
   //  the handheld fell to its floor at no gain in fps, docs/systems/performance.md)
   const cpuBound = D.cpuBound ? cpu > D.cpuBound * period : false;
+  if (s.probe) return judgeProbe(s, fps, missed, D, scale);
+  if (s.noProbe > 0) s.noProbe--;
   const jerky = D.steady && !cpuBound ? missed >= D.steady : false;
   const clean = !D.steady || missed === 0;
   if (s.hold > 0) s.hold--;
+  // Slow, but the main thread looks like the limit: its time can be the GPU's too (GeckoView's main thread
+  // waits when the GPU process is behind: the City-Shaft looking down the shaft, 17 ms a frame whatever the
+  // scale, 44 fps at 0.75 and 55 at 0.5). So try one step down, and keep it only if it helped (D.probe).
+  const slowAnyway = fps < D.low || (D.steady && missed >= D.steady);
+  if (cpuBound && D.probe && slowAnyway && !(s.noProbe > 0) && scale > D.min) {
+    s.cpuSlow = (s.cpuSlow ?? 0) + 1; s.cpuFps = (s.cpuFps ?? 0) + fps; s.cpuMissed = (s.cpuMissed ?? 0) + missed;
+    if (s.cpuSlow >= 3) {
+      s.probe = { from: scale, fps: s.cpuFps / s.cpuSlow, missed: s.cpuMissed / s.cpuSlow, n: 0, f: 0, m: 0 };
+      s.cpuSlow = s.cpuFps = s.cpuMissed = 0; s.slow = s.fast = 0;
+      return { scale: Math.max(D.min, +(scale - D.probe.step).toFixed(2)), dropped: true };
+    }
+  } else s.cpuSlow = s.cpuFps = s.cpuMissed = 0;
   if ((fps < D.low && !cpuBound) || jerky) { s.slow++; s.fast = 0; } else if (fps > D.high && clean) { s.fast++; s.slow = 0; } else s.slow = s.fast = 0;
   if (s.slow >= 3 && scale > D.min) {
     const step = fps < D.low * 0.7 ? 0.1 : 0.05;   // well under: a bigger step
@@ -412,6 +429,22 @@ export function adaptScale(s, { fps, missed = 0, cpu = 0, period = 1000 / 60 }, 
     return { scale: Math.min(D.max, +(scale + 0.05).toFixed(2)), dropped: false };
   }
   return { scale, dropped: false };
+}
+
+/**
+ * A probe's windows (adaptScale): the first one left out (the resize's own hitch), the rest against the three
+ * slow windows before it. Better by D.probe.fps frames a second, or by D.probe.missed missed refreshes a window:
+ * the scale stays (and holds, as after a stutter). Not: back to where it was, and no probe for D.probe.hold windows.
+ */
+function judgeProbe(s, fps, missed, D, scale) {
+  const p = s.probe;
+  if (++p.n > 1) { p.f += fps; p.m += missed; }
+  if (p.n < D.probe.windows) return { scale, dropped: false };
+  const k = p.n - 1, better = p.f / k - p.fps >= D.probe.fps || p.missed - p.m / k >= D.probe.missed;
+  s.probe = null; s.slow = s.fast = 0;
+  if (better) { s.hold = D.hold ?? 0; return { scale, dropped: false }; }
+  s.noProbe = D.probe.hold;
+  return { scale: p.from, dropped: false };
 }
 
 /**

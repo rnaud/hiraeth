@@ -131,6 +131,34 @@ test('dynamic resolution leaves the scale alone where the main thread is what is
   assert.ok(windows(s, { ...D, cpuBound: undefined }, 0.75, rep(6, { fps: 46, missed: 6, cpu: 20, period: 16.6 })) < 0.75);
 });
 
+test('where the main thread only looks like the limit, a probe step down is kept if it helps (cpuBound probe)', () => {
+  const D = QUALITY_PRESETS.handheld.dynamic, P = D.probe;
+  assert.ok(P && P.step > 0 && P.windows >= 3 && P.hold > 0);
+  assert.equal(QUALITY_PRESETS.deck.dynamic.probe, P);
+  // the City-Shaft looking down the shaft (the Retroid, GeckoView): 17 ms of JS a frame at any scale, but the
+  // GPU is behind: 44 fps and 7 missed a window at 0.75, 50 and 4 at 0.65, 55 and 2 at 0.55, as at 0.5
+  const gpuLimited = (scale) => (scale > 0.7 ? { fps: 44, missed: 7 } : scale > 0.6 ? { fps: 50, missed: 4 } : { fps: 55, missed: 2 });
+  let s = { slow: 0, fast: 0, hold: 0 }, scale = 0.75;
+  for (let i = 0; i < 40; i++) scale = adaptScale(s, { ...gpuLimited(scale), cpu: 17, period: 16.7 }, D, scale).scale;
+  assert.equal(scale, 0.55, 'two kept probes: 0.75 → 0.65 → 0.55, smooth enough there to stop');
+  assert.ok(s.hold > 0, 'and it holds there, as after a stutter');
+  // the camps (CPU-bound): a step down changes nothing, so it goes back and isn't tried again for a while
+  s = { slow: 0, fast: 0, hold: 0 }; scale = 0.75;
+  const seen = new Set();
+  for (let i = 0; i < 3 + P.windows; i++) { scale = adaptScale(s, { fps: 50, missed: 5, cpu: 18, period: 16.7 }, D, scale).scale; seen.add(scale); }
+  assert.deepEqual([...seen].sort(), [0.65, 0.75], 'one probe, then back');
+  assert.equal(scale, 0.75);
+  for (let i = 0; i < P.hold - 1; i++) assert.equal(adaptScale(s, { fps: 50, missed: 5, cpu: 18, period: 16.7 }, D, scale).scale, 0.75, `window ${i}`);
+  // the probe's first window (the resize's own hitch) is not judged
+  s = { slow: 0, fast: 0, hold: 0 }; scale = 0.75;
+  const w = [...rep(3, { fps: 44, missed: 7 }), { fps: 20, missed: 12 }, ...rep(P.windows - 1, { fps: 50, missed: 4 })];
+  for (const x of w) scale = adaptScale(s, { ...x, cpu: 17, period: 16.7 }, D, scale).scale;
+  assert.equal(scale, 0.65);
+  // without cpuBound nothing changes: the ordinary steps
+  s = { slow: 0, fast: 0, hold: 0 };
+  assert.equal(windows(s, { ...D, cpuBound: undefined }, 0.75, rep(3, { fps: 46, missed: 6, cpu: 20, period: 16.6 })), 0.7);
+});
+
 test('the missed refreshes are counted from the animation frame\'s timestamp (main.js frame)', () => {
   const src = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(src, /function frame\(ts\)/);
