@@ -18,6 +18,7 @@ export const CHANGELOG = [
     'The Buried Machine’s drum is lined with dense small machinery, as in its drawings: pipe runs with their valves and flanges, conduits, casings and louvred plates between the tall windows, pipes hung under the balcony; machinery clusters cling to the trench’s walls too, and you can climb on all of it.',
     'Under the City-Shaft’s terraces, between the ribs of their blue undersides, hang pipes, casings and plates on their rods, as in its drawings.',
     'The undersides of Vael II’s mushroom tables are lumpy and pocketed rock, as in its drawings, their hollows filled with deep shadow, instead of smooth.',
+    'The Signal Market’s back alleys are crowded with pipes, valves, conduits and casings up their walls, as in its drawings, and you can climb them.',
   ] },
   { v: '0.78', date: '2026-10-07', items: [
     'The City-Shaft looks more like its drawings: half its walls are pink now among the cream, drainpipes run down the houses, washing hangs over the balconies’ rails, the undersides of the terraces are hung with ribs, machinery and pipes, three orange blimps drift slowly round the shaft, and the lake at the bottom is turquoise water instead of acid green.',

@@ -396,7 +396,11 @@ about 10 faces a square metre at density 1; a left-handed frame is turned round 
 - **View 52's grey-hatched disc top**: the eye stood 22 m under the disc, so its shaded underside filled the disc's
   place; the panel sees the disc nearly edge-on. The eye now stands a few metres under it (its pale top, a thin dark
   underside), the egg resting on it.
-- **The Signal Market's back alleys**: not dressed this round (refsB is on the Market's goods; the kit is ready).
+- **The Signal Market's back alleys** (bazaar.js): the towers' side walls into the alleys between them, the 14 m
+  nearest the street, 22 m up, dense with pipe runs, conduits, casings and cables, in the street's ink, dark paint and
+  cream; solid as drawn (you climb them). Collision ~27 k → ~52 k (tests/bazaar.test.js budget 56 k; bake +8 ms,
+  ground rays +15 %); Handheld (against the same build without it): the street 3.98 → 4.08, looking up 3.68 → 3.82,
+  in an alley 2.67 → 2.13 (noise). The Market's views are refsB's this round, left to it.
 
 ## Across the worlds: the shader gaps that recur
 
