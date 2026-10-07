@@ -3,7 +3,7 @@ import { MODE_TERRAIN, makeMaterial } from '../materials.js';
 import { mulberry32 } from '../noise.js';
 import { gauss, n2, smoothstep, CLEAN_SKY } from './reference-kit.js';
 import { DUNE_HAZE } from '../desert-sites.js';
-import { glassRidge, glassArch, awningCamp, boulders, glassOptions, painted, withoutDrifts, SAND } from './glass-dunes-kit.js';
+import { glassRidge, glassArch, awningCamp, boulders, glassOptions, painted, glassBatch, glassPools, SAND } from './glass-dunes-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes' reference sheets (references/The Glass Dunes/reference-1 … 4.jpeg, one plate each):
@@ -30,7 +30,7 @@ const SKY = {
   dusk: ['#9aab9f', '#eebd95', '#5f9690', '#fff0dc', '#ffd9a6'],
   blue: ['#86b9d4', '#d8e8bf', '#3f8f7a', '#fff8e6', '#fff0c6'],
 };
-const sand = (o = {}) => ({ color: SAND[0], color2: SAND[1], color3: SAND[2], ripples: true, sandInk: true, ...o });
+const sand = (o = {}) => ({ color: SAND[0], color2: SAND[1], color3: SAND[2], ripples: true, sandInk: true, dunePool: true, ...o });
 
 function materials(kit) {
   const DS = THREE.DoubleSide;
@@ -77,8 +77,9 @@ function worker(kit, M, rng, x, z) {
  * The ground's paint: the sand's colour times fn(x, z) (rgb), as vertex colours on the view's ground
  * (the level built it before the view: it is the group's first mesh). The light through the glass.
  */
+const groundOf = (kit) => kit.group.children?.find((m) => m.isMesh && m.material?.uniforms?.uMode?.value === MODE_TERRAIN);
 function paintGround(kit, def, fn) {
-  const ground = kit.group.children.find((m) => m.isMesh && m.material?.uniforms?.uMode?.value === MODE_TERRAIN);
+  const ground = groundOf(kit);
   if (!ground) return;
   const p = ground.geometry.attributes.position, c = new Float32Array(p.count * 3);
   for (let i = 0; i < p.count; i++) { const [r, g, b] = fn(p.getX(i), p.getZ(i)); c[i * 3] = r; c[i * 3 + 1] = g; c[i * 3 + 2] = b; }
@@ -99,10 +100,16 @@ const pools = (list) => (x, z) => {
  */
 function dunesScene(kit, v, o) {
   const M = materials(kit), rng = mulberry32(o.seed ?? 1), H = (x, z) => kit.H(x, z);
+  const glass = glassBatch(kit), ridges = [];
   for (const [i, r] of (o.ridges ?? []).entries()) {
-    const ridge = glassRidge({ H, seed: (o.seed ?? 1) * 7 + i, ...r });
-    withoutDrifts(() => kit.add(r.profile === 'flow' ? M.glassFlow : M.glass, ridge.geo, { shadow: r.shadow ?? true, solid: r.solid ?? true }));
+    const ridge = glassRidge({ H, seed: (o.seed ?? 1) * 7 + i, ...(r.profile === 'flow' ? { thin: 0.9 } : {}), ...r });
+    glass.add(r.profile === 'flow' ? M.glassFlow : M.glass, ridge.geo, { shadow: r.shadow ?? true, solid: r.solid ?? true });
+    if (r.profile !== 'flow') ridges.push(ridge);
   }
+  glass.finish();
+  // the light come through the glass on the sand (the ground the level built for the view: its first mesh)
+  const ground = groundOf(kit);
+  if (ground) glassPools(ground.geometry, ridges, { turn: kit.group.rotation?.y ?? 0, ...o.pools });
   for (const a of o.arches ?? []) glassArch(kit, M, a);
   for (const c of o.camps ?? []) awningCamp(kit, M, rng, c);
   for (const r of o.rocks ?? []) boulders(kit, M.rock, rng, r);

@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.88 — 2026-10-07
+
+- In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.
+- The Glass Dunes’ glass glows from within: the sun comes through its thin edges, its foot and the lips of its waves in bands of mint and lime, the more as you look toward the light, and the giants, heads and trees held inside it are crisp dark shapes instead of soft smudges.
+
 ## v0.87 — 2026-10-07
 
 - On the Overnight Train the carriages’ ceilings have round lamps in a row instead of one long glowing strip, which drew a bright beam down the middle of the dining car and the library; the brackets of the library’s roof terrace no longer poke through its ceiling.
