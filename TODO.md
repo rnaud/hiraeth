@@ -91,6 +91,11 @@ still differs"). What is left needs a device or a policy:
   APK builds, 73 MB, `BridgeBuild.Android`; `scripts/bench/android-bridge.sh desert -views
   scripts/bench/viewpoints.json -bench 8 -split` installs and runs it, muted, and pulls its results.
   The Linux player for the Deck builds too: engine-bridge.md, "The players again".)
+- [ ] The Unity player at the camps and the Market's crowd: 0.7–1.5 ms a frame behind the web (2026-10-07,
+  engine-bridge.md "Speed"; level at the dunes, ahead at the City-Shaft). The script's thread is the frame
+  there; next: the sound's synthesis off it, the people's bone matrices.
+- [ ] The Android player's script thread (BridgeRunner runs the script on a thread of its own since
+  2026-10-07; checked on macOS only, no device): run it there once a device is free (`-js-main` if it fails).
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
   unknown MCP servers (the configured UnityMCP server also fails to connect). The editor is driven in
   batch mode instead (`scripts/unity-export/unity-batch.sh`).

@@ -745,6 +745,31 @@ on the main thread. Three changes:
 - **The composite's passes compiled in only where a look asks for them**, as post.js's `inkFeatures`: the
   spot blacks, the haze (layers and height fog), the cast and the ink shadows are Composite.shader keywords
   (`MEMENTO_INK_SPOT`, `_HAZE`, `_CAST`, `_SHADOW`) that MementoLook sets from the look's own values.
+- **The G-buffer's normal and distance in half floats**, as the web's (pipeline.js createGBuffer; it was full
+  floats): every tap of the composite's edges, pockets and creases reads it.
+
+The four views again, each side back to back as the machine went quiet (load 4–6; the web before and after the
+player): the web game in Chrome (High, render scale 1, 1280 × 720, uncapped) and the macOS player (IL2CPP,
+uncapped), medians in ms; the player's script on its thread split into the game's update and the mirror, and the
+main thread's wait on it:
+
+| view | web: frame (CPU, GPU) | macOS player: frame [other runs] | its script (update + mirror) | main thread waiting | before (stage 2) |
+|---|---|---|---|---|---|
+| the camps | 7.4–7.5 (7.2, 5.9) | 9.1 [8.4, 8.6] | 9.0 (6.3 + 2.5) | 5.9 | 11.9 |
+| the dunes | 3.0 (2.8, 2.5) | 3.1 [3.0, 3.0] | 2.7 (1.6 + 1.0) | 0.7 | 4.7 |
+| the Signal Market's crowd | 4.2 (4.1, 3.5) | 4.9 [4.9, 5.4] | 4.8 (3.4 + 1.2) | 2.7 | 6.6 |
+| the City-Shaft, wide | 6.8–7.0 (6.6, 6.0) | 6.4 [6.5, 6.5] | 5.6 (3.0 + 2.3) | 0.9 | 11.5 |
+
+The player is 28–44 % faster than before this stage, level with the web at the dunes, ahead of it at the City-Shaft,
+and 0.7–1.5 ms behind at the camps and the Market's crowd, where the script's thread is the frame: the game's own
+update (the same modules as the web's, 3.4–6.3 ms in Puerts' V8), the mirror (1.2–2.5: three's matrices 0.6–1.0, the
+walk 0.5–1.3) and the sound's synthesis (0.2–0.4, which the web leaves to its audio thread). The main thread waits
+on it 3–6 ms there. Above the display's rate (the dunes, the City-Shaft) the player's frames come in bursts with a
+stall every 5–7 (p95 14–24 ms): the bench's `-split` says those frames waited neither on the script nor on Unity's
+CPU (main thread 2–4 ms, render thread under 1), and no GC ran: the window's drawables are released at the
+display's refresh, so an uncapped player outrunning it waits there; the web's headless bench presents nothing.
+Next for speed: the sound's synthesis off the script's thread, and the mirror's matrices for the people's bones
+(three's updateMatrixWorld recomposes every bone every frame, on the web too).
 
 ## The towers' own colours, the cliffs' cracks, the web's newest shading (Unity + Puerts, 2026-10-07)
 
@@ -818,3 +843,6 @@ the traveller's hair is spikier; the expressions themselves read the same.
 - **Unity, stage 4 (players: macOS, Linux, Android)**: above.
 - **Unity, the web's newer look and the rest of the world** (the surface marks, the boxes, grass, wind, the
   answering flowers, MakeHuman people, the coral-shirt traveller, the cabs): above.
+- **Unity, speed and the last of the look** (the script on its own thread, still subtrees frozen, the composite's
+  passes by the look; the towers' per-vertex materials, the cliffs' cracks, the newest shading; the chip's portrait;
+  faces close up): above.
