@@ -74,6 +74,14 @@ function makePlan(args) {
       steps.push({ kind: 'wait', frames: 45 }, { kind: 'key', code: 'KeyR', down: false }, { kind: 'wait', frames: 20 });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-splat.png` });
     }
+    if (args.play.includes('cab')) {
+      // the traveller seated in the market's parked cab (src/taxi.js), the ride camera on him
+      steps.push({ kind: 'cab' }, { kind: 'wait', frames: 90 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-cab.png` });
+      // and close, from beside him (the web's side: the same place from the traveller, scratch views)
+      steps.push({ kind: 'cabClose' }, { kind: 'wait', frames: 6 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-cabclose.png` });
+    }
     if (args.play.includes('drone')) {
       steps.push({ kind: 'key', code: 'KeyQ', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyQ', down: false }, { kind: 'wait', frames: 75 });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-drone.png` });
@@ -149,6 +157,17 @@ export function frame(dt) {
       game.rig.yaw = game.player.heading + Math.PI;
       console.log(`[unity] beside ${n.def.id}`);
     }
+    next();
+  }
+  else if (step.kind === 'cab') {
+    const v = game.player.vehicles.find((x) => x.kind === 'taxi' || x.constructor?.name === 'Taxi') ?? game.player.vehicles[0];
+    game.pin(null);   // (the camera back on the rig: the ride camera)
+    if (v) { game.player.mount_(v); console.log(`[unity] seated in the ${v.kind ?? 'vehicle'}`); } else console.log('[unity] no vehicle here');
+    next();
+  }
+  else if (step.kind === 'cabClose') {
+    const p = game.player.pos;
+    game.pin({ eye: [p.x + 2.6, p.y + 1.9, p.z + 2.6], target: [p.x, p.y + 0.9, p.z], fov: 50, hidePlayer: false });
     next();
   }
   else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }

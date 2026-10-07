@@ -46,6 +46,7 @@ export function portMaterial(spec, id = 0) {
   for (const [k, name] of [['weather', 'uWeather'], ['patch', 'uPatch'], ['plates', 'uPlates'], ['windows', 'uWindows'], ['drift', 'uDrift'], ['spotStep', 'uSpotStep'], ['lineStep', 'uLineStep']])
     if (typeof u[name] === 'number') e[k] = r5(u[name]);
   if (Array.isArray(u.uDetail)) e.detail = u.uDetail.map(r5);
+  if (spec.albedoLinear) e.toDisplay = 1;   // (the coral-shirt traveller: linear colours, turned to display values in the shader)
   if (Array.isArray(u.uShade)) e.shade = u.uShade.map(r5);
   const ps = v('uPaletteSize');
   if (ps > 0 && Array.isArray(u.uPalette)) for (let i = 0; i < ps; i++) e.palette.push(u.uPalette.slice(i * 3, i * 3 + 3).map(r5));

@@ -499,6 +499,18 @@ namespace Memento.Bridge
                         if (copies.TryGetValue(mid, out var cl)) foreach (var c in cl) Set(c);
                         break;
                     }
+                    case 16:   // the traveller's fluid on a material: _FluidA, _FluidB, the six tones
+                    {
+                        int mid = (int)fu[o++];
+                        var fa = new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]); var fb = new Vector4(ff[o + 4], ff[o + 5], ff[o + 6], ff[o + 7]);
+                        var tones = new Vector4[6];
+                        for (int t = 0; t < 6; t++) tones[t] = new Vector4(ff[o + 8 + t * 3], ff[o + 9 + t * 3], ff[o + 10 + t * 3], 1);
+                        o += 26;
+                        void SetF(Material m) { if (!m) return; m.SetVector("_FluidA", fa); m.SetVector("_FluidB", fb); m.SetVectorArray("_FluidTones", tones); }
+                        if (materials.TryGetValue(mid, out var fm)) SetF(fm);
+                        if (copies.TryGetValue(mid, out var fl)) foreach (var c in fl) SetF(c);
+                        break;
+                    }
                     case 6:   // remove
                     {
                         int id = (int)fu[o++];

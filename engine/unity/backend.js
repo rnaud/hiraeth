@@ -178,6 +178,15 @@ export class UnityBackend {
     tally(this, 'material', b0);
   }
 
+  /** The fluid on a material (fluid-tool.js uFluidA, uFluidB, uFluidTones: 26 floats), when it moves: op 16. */
+  materialFluid(mid, f) {
+    const w = this.w, b0 = w.n;
+    w.reserve(28);
+    w.u(OP.fluid); w.i(mid);
+    for (let i = 0; i < 26; i++) w.f(f[i]);
+    tally(this, 'fluid', b0);
+  }
+
   /** The traveller's feet and speed (three's space: the grass parts round them, the plants lean away), when they move: op 14. */
   brush(p, speed) {
     const v = [p.x, p.y, p.z, speed], key = v.map((x) => Math.fround(x)).join(',');

@@ -22,6 +22,7 @@
 //                               the range rewritten since they were last sent ({ array, itemSize, version, range: [start, count] | null })
 //   materialLive(mid, color, glow)   a material's colour or glow changed after it was sent (the answering plants
 //                               waking, a lamp lit, a beacon breathing): checked each frame a drawable using it is drawn
+//   materialFluid(mid, f)       the traveller's fluid on a material (fluid-tool.js): uFluidA, uFluidB, the six tones (26 floats), when they move
 //   drawState(id, object)       each frame an 'instgeo' drawable is drawn: the backend reads what moves on it (its
 //                               material's per-frame uniforms: the grass patch's centre and fades)
 //   skeleton(sid, mats, n)      a skeleton's bone matrices (bone world × inverse bind: three's boneMatrices), once a frame
@@ -118,6 +119,17 @@ export class SceneMirror {
     if (m.__mirrorLiveF === f) return;
     m.__mirrorLiveF = f;
     const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow?.value;
+    // the traveller's fluid (fluid-tool.js): its fill, tones and clock move every frame it flows
+    if (U?.uFluidA && U.uFluidTones && this.backend.materialFluid) {
+      const F = m.__mirrorFluid ??= new Float32Array(26).fill(NaN), A = U.uFluidA.value, Bv = U.uFluidB?.value, T = U.uFluidTones.value;
+      let moved = false;
+      const put = (k, v) => { const x = Math.fround(v); if (F[k] !== x) { F[k] = x; moved = true; } };
+      put(0, A.x); put(1, A.y); put(2, A.z); put(3, A.w);
+      if (Bv) { put(4, Bv.x); put(5, Bv.y); put(6, Bv.z); put(7, Bv.w); }
+      for (let i = 0; i < 6 && i < T.length; i++) { put(8 + i * 3, T[i].r); put(9 + i * 3, T[i].g); put(10 + i * 3, T[i].b); }
+      const mid = this.mats.get(m);
+      if (moved && mid) this.backend.materialFluid(mid, F);
+    }
     if (!c?.isColor && typeof g !== 'number') return;
     const r = c?.isColor ? Math.fround(c.r) : 0, gr = c?.isColor ? Math.fround(c.g) : 0, b = c?.isColor ? Math.fround(c.b) : 0, gl = typeof g === 'number' ? Math.fround(g) : 0;
     const L = m.__mirrorLive;

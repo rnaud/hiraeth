@@ -237,6 +237,23 @@ test('mirror: a material\'s colour and glow, changed after it was sent, go live 
   assert.equal(live[0][2], 0.65);
 });
 
+test('mirror: the traveller\'s fluid on a material (its fill, clock and tones) goes live when it moves', () => {
+  const sent = [];
+  const mirror = new SceneMirror({ material: () => {}, materialLive: () => {}, materialFluid: (mid, f) => sent.push(Array.from(f)) });
+  const scene = new THREE.Scene();
+  const m = makeMaterial({ color: '#ffffff', fluid: 'tank', fluidBox: [0, 1, 0.2, 0] });
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(), m));
+  mirror.sync(scene, null);
+  assert.equal(sent.length, 1, 'as it is when first drawn');
+  mirror.sync(scene, null);
+  assert.equal(sent.length, 1, 'unchanged: nothing');
+  m.uniforms.uFluidA.value.z = 3.5; m.uniforms.uFluidTones.value[2].set('#263c37');
+  mirror.sync(scene, null);
+  assert.equal(sent.length, 2);
+  assert.equal(sent[1][2], 3.5, 'its clock');
+  assert.ok(Math.abs(sent[1][8 + 6] - new THREE.Color('#263c37').r) < 1e-6, 'its third tone');
+});
+
 test('ink spec: makeMaterial read back as plain numbers, the shared uniforms left out', () => {
   const m = makeMaterial({ color: '#ff8000', color2: '#0000ff', mode: MODE_STRATA, strataSize: 6, glow: 0.5, metal: 'steel' });
   const s = inkSpec(m);

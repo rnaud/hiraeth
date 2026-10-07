@@ -86,6 +86,10 @@ test('the web\'s newer surface marks reach the port: weathering, pen detail, pat
   const plain = portMaterial(inkSpec(makeMaterial({ color: '#808080' })), 2);
   assert.equal(plain.weather, 0); assert.deepEqual(plain.detail, [0, 0]); assert.equal(plain.patch, 0);
   assert.equal(plain.spotStep, 0); assert.equal(plain.lineStep, 0); assert.deepEqual(plain.shade, [0, -1, 1, 0]);
+  // the coral-shirt traveller's linear colours (tripo-material.js): turned to display values in the port's shader
+  const lin = makeMaterial({ color: '#ffffff', figure: true }).clone(); lin.userData.albedoLinear = true;
+  assert.equal(portMaterial(inkSpec(lin), 3).toDisplay, 1);
+  assert.equal(plain.toDisplay, undefined);
   // the look's vectors (spot blacks, haze by depth and height, cast shadows lifted or inked) go with its numbers
   const L = portLook({ hour: 10, uSunDir: [0, 1, 0], post: { uSpot: [0.8, 2.5, 0.5, 0.3], uInkShadow: [1, 0] }, shared: {} });
   assert.deepEqual(L.post.uSpot, [0.8, 2.5, 0.5, 0.3]);
@@ -179,7 +183,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;
-  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5 };
+  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5, 16: () => 27 };
   const skeletons = [];
   while (u[o] !== 0) { const op = u[o++]; assert.ok(size[op], `op ${op}`); if (op === 7) skeletons.push(u[o]); o += size[op](); ops++; }
   assert.ok(skeletons.length > 0, 'the people\'s skeletons');

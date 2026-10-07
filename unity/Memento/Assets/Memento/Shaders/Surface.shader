@@ -43,6 +43,7 @@ Shader "Memento/Surface"
     _Shade ("Shade (lift, hue, hatch, strata strokes)", Vector) = (0, -1, 1, 0)
     _SpotStep ("Spot step", Float) = 0
     _LineStep ("Line step", Float) = 0
+    _ToDisplay ("Linear colours to display values", Float) = 0
     _Cull ("Cull", Float) = 2
   }
   SubShader
@@ -66,7 +67,7 @@ Shader "Memento/Surface"
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
     TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
-    float _Drift, _SpotStep, _LineStep;
+    float _Drift, _SpotStep, _LineStep, _ToDisplay;
     float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
     float _Halftone, _Bounce;   // the look's shade tones (globals)
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
@@ -658,6 +659,8 @@ Shader "Memento/Surface"
         }
         if (_Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold);
         albedo *= instColor;
+        // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
+        if (_ToDisplay > 0.5) albedo = lerp(albedo * 12.92, 1.055 * pow(max(albedo, 0.0), 1.0 / 2.4) - 0.055, step(0.0031308, albedo));
         #if defined(MEMENTO_GRASS)
           // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
           if (i.grassLook.z > 0.0)

@@ -26,6 +26,8 @@ import { Controller, mergeControls } from '../src/controller.js';
 import { loadAnimationLibrary, Animator } from '../src/animator.js';
 import { loadHuman, Humanoid } from '../src/humanoid.js';
 import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
+import { loadTravellerV1, createTravellerV1 } from '../src/characters/traveller-v1.js';
+import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, buildPeople } from '../src/crowd.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
@@ -73,6 +75,42 @@ function makeSound(levelId, { sampleRate = 48000, volume = 1 } = {}) {
   return s;
 }
 
+/**
+ * The coral-shirt traveller's colours for an engine: his skin's texture is a JPEG no engine VM decodes, so its sampled
+ * colours (colors.json, sRGB, in the mesh's vertex order) go on as vertex colours, linear as the cloth's are; and every
+ * part is marked as carrying linear colour (tripo-material.js turns it to the game's display values in its shader:
+ * the engines' ink surfaces do the same by userData.albedoLinear).
+ */
+function engineColours(ch, { gltf, colors }) {
+  const parts = [ch.mesh, ch.cloth?.garment, ch.cloth?.underlayer, ch.cloth?.innerShirt].filter(Boolean);
+  let src = null;
+  gltf?.scene?.traverse((o) => { if (o.isSkinnedMesh && !src) src = o.geometry.attributes.position; });
+  if (!src || colors?.length !== src.count) return;
+  // (the cloth rebuilt the skin's geometry and cut the overshirt from it, at rest still, its seams split: each vertex
+  // finds its colour by its place)
+  const key = (a, i) => `${Math.round(a.getX(i) * 1e4)},${Math.round(a.getY(i) * 1e4)},${Math.round(a.getZ(i) * 1e4)}`;
+  const at = new Map();
+  for (let i = 0; i < src.count; i++) at.set(key(src, i), i);
+  const col = new THREE.Color();
+  for (const part of [ch.mesh, ch.cloth?.garment]) {
+    const P = part?.geometry?.attributes?.position;
+    if (!P || part.geometry.attributes.color || part.material.uniforms?.uMap?.value?.image) continue;
+    const c = new Float32Array(P.count * 3);
+    let found = 0;
+    for (let i = 0; i < P.count; i++) {
+      const j = at.get(key(P, i));
+      if (j === undefined) continue;
+      found++;
+      col.setRGB(colors[j][0] / 255, colors[j][1] / 255, colors[j][2] / 255).convertSRGBToLinear();
+      c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b;
+    }
+    if (found < P.count * 0.8) continue;   // (not the same places: left as it is)
+    part.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
+    part.material.vertexColors = true;
+  }
+  for (const p of parts) for (const m of Array.isArray(p.material) ? p.material : [p.material]) if (m) m.userData.albedoLinear = true;
+}
+
 /** A system the engine can do without: built if it can be, said once if not. */
 function optional(name, make) { try { return quiet(make); } catch (e) { console.warn(`[game] ${name} left out: ${e?.message ?? e}`); return null; } }
 
@@ -97,7 +135,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const content = CONTENT[levelId];
   // start the loads the way main.js does: the clips, the traveller, the bodies
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
-  const travellerP = new GLTFLoader().loadAsync('anim/traveller.glb').then((g) => g.scene).catch(() => null);
+  // the traveller as main.js has him: the coral-shirt traveller (src/characters/traveller-v1.js), his overshirt's cloth
+  // stepped on this thread (no workers in the engines' VMs: tripo-cloth.js falls back); the old suit if he can't load
+  const travellerV1P = loadTravellerV1('').catch((e) => { log('traveller v1 unavailable', e?.message ?? e); return null; });
   const humansP = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { log('human models failed', e); return null; });
   // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md), each world's as main.js has them
   const mhP = people && usesMakeHuman(levelId) ? loadPeople('', levelId).catch((e) => { log('MakeHuman bodies unavailable', e?.message ?? e); return null; }) : null;
@@ -124,13 +164,25 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (the people's templates: MakeHuman's man and woman where the world has them, else the Quaternius pair; the traveller
   // keeps his own body)
   const humans = humans0 && mhP ? ((await mhP)?.humans() ?? humans0) : humans0;
-  const travellerTemplate = await travellerP;
-  if (humans0 && travellerTemplate) player.humanoid = new Humanoid(humans0[0], player.char, 'm', { outfit: travellerTemplate });
+  const generated = await travellerV1P;
+  if (generated) {
+    try {
+      player.character = createTravellerV1(player.char, generated);
+      player.humanoid = player.character.humanoid;
+      engineColours(player.character, generated);
+    } catch (e) { log('traveller v1 failed', e?.message ?? e); player.character = null; }
+  }
+  if (!player.humanoid && humans0) {
+    const travellerTemplate = await new GLTFLoader().loadAsync('anim/traveller.glb').then((g) => g.scene).catch(() => null);
+    if (travellerTemplate) player.humanoid = new Humanoid(humans0[0], player.char, 'm', { outfit: travellerTemplate });
+  }
   player.attach(scene);
   const heroMaterials = markHero(player.char.root);
   markHero(player.gear?.device, heroMaterials);
   markHero(player.cape?.mesh, heroMaterials);
   if (player.mount) scene.add(player.mount.object);
+  // the world's vehicles (the self-driving cabs: src/taxi.js), as main.js gives them to the traveller
+  player.vehicles.push(...(level.vehicles ?? []));
   stamp('traveller');
   const npcs = [];
   if (people && content?.npcs?.length && humans && lib) {
@@ -392,6 +444,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const busy = !!story?.busy?.();
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
       player.update(dt, pinned || busy ? noInput : ctl, rig.yaw, rig.pitch);
+      // the vehicles no one rides go about (the cabs on their lanes; main.js)
+      for (const v of player.vehicles) if (v !== player.ride) { try { v.update(dt, null, simT); } catch (e) { if (!game._vehiclesFailed) { game._vehiclesFailed = true; console.warn('[game] a vehicle failed', e?.stack ?? e); } } }
       if (pinned) {
         // a fixed view: the traveller stands (idle), the camera is pinned to the eye
         camera.position.copy(pinned.eye); camera.quaternion.copy(pinned.q);
@@ -404,6 +458,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         story?.frameCamera?.(camera);   // the two-shot while talking
       }
       try { boxes?.update(dt, simT, { camera }); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
+      // the fingers (hands.js: relaxed, gripping, gesturing), the coral-shirt traveller's own hands after (main.js)
+      try { updateHands(dt, { player, npcs, camera }); player.character?.updateHands?.(); } catch (e) { if (!game._handsFailed) { game._handsFailed = true; console.warn('[game] the hands failed', e?.stack ?? e); } }
       hud(dt, busy);
       level.update?.(dt, simT, { player, rig, camera, passage: null, fade: () => {} });
       // the world's life, the tool and the drone (main.js's order)
