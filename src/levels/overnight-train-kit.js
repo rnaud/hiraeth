@@ -424,6 +424,9 @@ export function porch(x, dir, { y0 = TR.floor, d = TR.gap / 2, half = TR.half, l
 }
 
 // ------------------------------------------------------------------ furniture
+/** A round lamp hung flush under a ceiling at (x, y, z), r m across: a flattened glowing dome. */
+export const ceilingLamp = (x, y, z, r = 0.22) => new THREE.SphereGeometry(r, 10, 5, 0, TAU, 0, Math.PI / 2).scale(1, -0.45, 1).translate(x, y - 0.01, z);
+
 /** An armchair at (x, y, z) facing yaw (its front toward yaw's +z): seat, back, arms. { plush: [geo], wood: [geo] }. */
 export function armchair(x, y, z, yaw = 0, { w = 0.8, back = 0.95 } = {}) {
   const out = {}, at = (g) => g.rotateY(yaw).translate(x, y, z);
@@ -741,7 +744,9 @@ function skyLounge(kit, M, rng, { x0, x1, xc, L, detail, res, S }) {
   const dx0 = x0 + 0.4, dx1 = x1 - 0.4;
   kit.add(M.plank, new THREE.BoxGeometry(dx1 - dx0, 0.18, wd).translate((dx0 + dx1) / 2, yd - 0.09, 0), S);
   // (its brackets down onto the curve of the roof)
-  for (let x = dx0 + 1; x < dx1; x += 3) for (const s of [-1, 1]) kit.add(M.iron, new THREE.BoxGeometry(0.1, 0.9, 0.1).translate(x, yd - 0.6, s * (wd / 2 - 0.3)), SH);
+  // (each stands on the roof's curve where it is, never through it into the library's ceiling below)
+  { const P = profile(), zb = wd / 2 - 0.3, f = Math.acos(Math.pow(Math.min(1, zb / (P.half - 0.06)), 1 / 0.9)), yr = TR.floor + P.head + (P.crown - P.head) * Math.sin(f), h = yd - 0.18 - yr;
+    if (h > 0.05) for (let x = dx0 + 1; x < dx1; x += 3) for (const s of [-1, 1]) kit.add(M.iron, new THREE.BoxGeometry(0.1, h + 0.04, 0.1).translate(x, yr + h / 2, s * zb), SH); }
   // the railing round the deck (open where the walk comes on at each end)
   const rail = (a, b) => { kit.add(M.brass, rodGeo(a.clone().setY(yd + 1.0), b.clone().setY(yd + 1.0), 0.04), S); kit.add(M.brass, rodGeo(a.clone().setY(yd + 0.5), b.clone().setY(yd + 0.5), 0.025), S); };
   for (const s of [-1, 1]) { rail(V(dx0, 0, s * (wd / 2 - 0.06)), V(dx1, 0, s * (wd / 2 - 0.06))); for (let x = dx0; x <= dx1 + 0.01; x += 1.5) kit.add(M.brass, rodGeo(V(x, yd, s * (wd / 2 - 0.06)), V(x, yd + 1.0, s * (wd / 2 - 0.06)), 0.03), S); }
@@ -760,7 +765,7 @@ function skyLounge(kit, M, rng, { x0, x1, xc, L, detail, res, S }) {
   const T = table(lx1 - 0.4, yd + 0.06, 0, { w: 0.6, round: true, cloth: false });
   addParts(kit, M, T, { wood: M.wood, brass: M.brass, glow: M.glow, linen: M.linen }, S);
   res.lamps.push(T.lamp);
-  kit.add(M.lamp, new THREE.BoxGeometry(lx1 - lx0 - 1, 0.06, 0.2).translate((lx0 + lx1) / 2, yd + P2.crown - TR.wall - 0.04, 0), NC);
+  for (let x = lx0 + 1.2; x < lx1 - 0.5; x += 2.6) kit.add(M.lamp, ceilingLamp(x, yd + P2.crown - TR.wall, 0, 0.18), NC);
   res.lamps.push([(lx0 + lx1) / 2, yd + 2.2, 0]);
   // the deck's garden behind the cabin: planters along the rails, a bench
   for (const s of [-1, 1]) for (const g of [planter(dx0 + 0.6, lx0 - 1, yd, s * 1.6, { seed: s + 3, w: 0.7, detail })]) { for (const p of g.pot) kit.add(M.pot, p, S); for (const p of g.shrub) kit.add(M.shrub[Math.floor(rng() * 2)], p, SH); }
@@ -826,9 +831,10 @@ export function furnishCar(kit, M, c, { x0, x1, xc, L, rng, res }, { solid = tru
   const FURN = { plush: M.plush, wood: M.wood, linen: M.linen, brass: M.brass, glow: M.glow, books: M.plush2, books2: M.wood2 };
   const lamp = (p, r = 6) => { if (!p) return; res.lamps.push(p); if (lights) kit.light(p[0], p[1], p[2], r); };
   const seats = (res.seats ??= []);
-  // the ceiling's lamp strip down the middle (seen as light through the windows from outside)
+  // round lamps along the ceiling's middle (seen as light through the windows from outside). (One long glowing strip
+  // here drew, end on, a bright beam down the whole carriage: its bloom ran the length of it.)
   if (c.kind !== 'coach') {
-    kit.add(M.lamp, new THREE.BoxGeometry(L - 1.6, 0.05, 0.22).translate(xc, y + TR.crown - TR.wall - 0.05, 0), NC);
+    for (let x = x0 + 2; x < x1 - 1; x += 3.2) kit.add(M.lamp, ceilingLamp(x, y + TR.crown - TR.wall, 0), NC);
     for (let x = x0 + 4; x < x1 - 2; x += 8) if (lights) kit.light(x, y + 2.6, 0, 7.5);
   }
   if (c.kind === 'prow') {

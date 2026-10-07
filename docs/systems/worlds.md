@@ -1126,7 +1126,10 @@ after references/The Overnight Train/; its kit `overnight-train-kit.js` shared w
   (instanced spokes turned by `s / r`), the pennants (their cloth waved by the speed: `pennantWave`).
 - **A thin bar must be short.** The rails were first one 9 km thin bar each: src/thin.js widens a bar to a pixel at each
   of its ends' distance, so the far end grew metres wide and its long wedge cut through the carriages (the interior
-  read as one lavender V). `railsGeo` lays them in 30 m pieces (the views too).
+  read as one lavender V). `railsGeo` lays them in 30 m pieces (the views too). Likewise a glowing strip along a
+  carriage's ceiling, seen end on down the aisle, bloomed into one bright beam from the top of the frame to the end
+  door: the ceilings carry round lamps every 3.2 m instead (`ceilingLamp`). The roof terrace's brackets stand on the
+  roof's curve where they are (they reached down through the library's ceiling).
 - **People**: Saba the Listener (Viridel) in the dining car, counting the rails' phrase; Oïa (the tower in Vael) on the
   roof terrace by the sky lounge; Sol (the Garden) in the lounge, counting stations by the cup of tea; five of the
   train's own folk (the cook, a sleeping-car attendant, a deckhand by the ship, the librarian, a passenger on the

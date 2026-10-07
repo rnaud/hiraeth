@@ -139,6 +139,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'overnighttrain-lounge', only: 'after', caption: 'The observation lounge: armchairs and lamps down both rows of windows, the balcony at the end', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
       { name: 'overnighttrain-dining', only: 'after', caption: 'The dining car, its tables laid and lit, the plain running past the windows', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
       { name: 'overnighttrain-sleeper', only: 'after', caption: 'A sleeping car’s corridor, the compartments’ doors along it', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+      { name: 'overnighttrain-library', only: 'after', caption: 'The library: shelves under the windows, sofas and lamps, the door on through to the landing wagon', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
       { name: 'overnighttrain-balcony', only: 'after', caption: 'On the balcony at the nose: the track and the poles coming at you out of the dark', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
       { name: 'overnighttrain-deck', only: 'after', caption: 'The landing wagon: the ship on its deck, the railing, people come to look', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
       { name: 'overnighttrain-moons', only: 'after', caption: 'From the plain beside it: the lit carriages, the two moons ahead of the train', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
@@ -167,6 +168,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'overnighttrain-terrace', only: 'after', caption: 'The library carriage’s roof terrace, the sky lounge’s door, its pennants', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
     ], see: 'On a porch between two carriages, climb the ladder beside the door (or the end wall itself); the plank bridges join the roofs from the lounge back to the library, whose terrace carries the sky lounge.' },
     { match: 'The Overnight Train sounds like a train', see: 'Turn the effects up and stand at a window while the train runs: the beat of the joints keeps time with its speed, slows as it brakes into a station and stops; go out on the balcony or the roofs and the rush of the air comes up; listen for the whistle as it pulls out.' },
+    { match: 'On the Overnight Train the carriages’ ceilings have round lamps', shots: [
+      { name: 'overnighttrain-ceiling', caption: 'The dining car from its aisle: the long lamp strip’s beam down the ceiling (before), the round lamps (after)', from: 'the world’s own screenshots of the same view, headless Chrome, High, 22:00 (7 October)' },
+    ], see: 'Open ?level=overnighttrain, walk forward from the ship into the library and on to the dining car, and look down the aisle.' },
   ],
   '0.86': [
     { match: 'A new world off the route, the City Floating in Space', shots: [
