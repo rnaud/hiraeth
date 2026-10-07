@@ -26,6 +26,7 @@ import { SITE as SITE_EDENA } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
 import { JETS_NEXT, jetsUsed } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
+import { TempleKit } from '../src/temples/kit.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -334,7 +335,7 @@ test('the Givers’ House on foot: in, the ball and the plates, the disc and the
   rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -449,7 +450,7 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -679,7 +680,7 @@ test('the Footprint on foot: two spheres on two plates, the still pool, the lens
   rt.connect({ player: P, toast: () => {} });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -764,7 +765,7 @@ test('the Engine-House on foot: the valve and the pistons, the counterweight, th
   rt.connect({ player: P, toast: () => {} });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -860,7 +861,7 @@ test('the Lamp-House on foot: three dark pools, the disc and the root-wall, the 
   rt.connect({ player: P, toast: () => {} });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -934,6 +935,57 @@ test('the Lamp-House on foot: three dark pools, the disc and the root-wall, the 
   own();
 });
 
+test('a rotunda’s oculus trim is solid where it lies on the ceiling, and the oculus is as wide to the collision as it is open', () => {
+  const scene = new THREE.Scene(), root = new THREE.Group();
+  scene.add(root);
+  const mat = new THREE.MeshBasicMaterial(), M = new Proxy({}, { get: () => mat });
+  const K = new TempleKit(root, 'test rotunda', new THREE.Vector3(), 0, M);
+  const r = 10, h = 12, oc = 0.4;
+  K.rotunda({ x: 0, z: 0, y: 0, r, h, oculus: oc });
+  K.flush();
+  const physics = new Physics(scene);
+  const floor = physics.groundAt(0.3, h - 1, 0.2, 20);
+  for (let a = 0; a < Math.PI * 2; a += 0.29) {
+    const c = Math.cos(a), sn = Math.sin(a);
+    // dropped through the oculus anywhere in its opening, to the trim's drawn lip: the floor
+    for (const rr of [0.5, r * oc - 0.4, r * oc - 0.05]) assert.ok(Math.abs(physics.groundAt(c * rr, h + 20, sn * rr, 60) - floor) < 0.05, `through the oculus at ${rr.toFixed(2)} m out`);
+    // on the trim, where it lies on the ceiling: its drawn top, 1.1 m over the ceiling's foot
+    assert.ok(Math.abs(physics.groundAt(c * (r * oc + 0.2), h + 20, sn * (r * oc + 0.2), 60) - (h + 1.1)) < 0.05, 'on the trim');
+  }
+});
+
+test('a shut gate of jaws collides as its two halves are drawn, snapping with them, and its slot keeps the way when they gape', () => {
+  const { physics, rt } = world('perdide');
+  const jaw = rt.pieces.find((p) => p.halves && p.id === 'd2');
+  const wasOpen = jaw.open;
+  if (wasOpen) jaw.setOpen(false, true);
+  try {
+    assert.equal(jaw.movers.length, 2, 'two moving halves');
+    const ray = new THREE.Raycaster(), inv = jaw.group.matrixWorld.clone().invert();
+    const toWorld = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(jaw.group.matrixWorld);
+    for (const ang of [0.12, 0.3, 0.5]) {
+      for (const { g, side } of jaw.halves) g.rotation.y = side * ang;
+      jaw.group.updateMatrixWorld(true);
+      physics.syncMovers(1 / 60);
+      let n = 0, worst = 0, gape = 0;
+      // from the side you come at them (-z, the gallery), straight at the gate's plane (inside its jambs)
+      for (let x = -1.8; x <= 1.8; x += 0.3) for (let y = 0.8; y <= jaw.h - 0.8; y += 0.8) {
+        const o = toWorld(x, y, -4), d = toWorld(x, y, 0).sub(o).normalize();
+        ray.set(o, d); ray.far = 8;
+        const drawn = ray.intersectObject(jaw.group, true)[0];
+        const hit = physics.rayHit(o, d, 8);
+        const atSlot = hit && !hit.mover && Math.abs(new THREE.Vector3().copy(hit.point).applyMatrix4(inv).z) < 0.1;
+        if (!drawn) { assert.ok(atSlot, `ang ${ang}: through the gape at x ${x.toFixed(1)}, y ${y.toFixed(1)} the slot stops you`); continue; }
+        if (atSlot && hit.distance <= drawn.distance + 0.05) { gape++; continue; }   // (the slot, in the gape, before the inside of a half)
+        n++;
+        worst = Math.max(worst, hit ? Math.abs(hit.distance - drawn.distance) : 8);
+      }
+      assert.ok(n > 25 && worst < 0.05, `ang ${ang}: ${n} rays, the collision off the drawn halves by up to ${worst.toFixed(2)} m`);
+      if (ang >= 0.3) assert.ok(gape > 0, `ang ${ang}: the slot meets rays through the gape`);
+    }
+  } finally { if (wasOpen) jaw.setOpen(true, true); }
+});
+
 test('the Hush-House on foot: the crystals sung low to high, the climbing disc and the root-wall, the stilling mode, the gates of jaws, the pendulums, the Mother Snapper stilled, the swamp in flower', () => {
   game.reset();
   own('backpack');
@@ -942,7 +994,7 @@ test('the Hush-House on foot: the crystals sung low to high, the climbing disc a
   rt.connect({ player: P, toast: () => {} });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -1043,7 +1095,7 @@ test('the Aerie on foot: the gusts waited out behind the screens, the wall and t
   rt.connect({ player: P, toast: () => {} });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -1201,7 +1253,7 @@ test('the First Garage on foot: the escapement’s disc, the climb and the count
   rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -1315,7 +1367,7 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
   rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -1359,6 +1411,10 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
   bud.hit('shoot'); bud.hit('fire');
   assert.equal(rt.logic.isLit('bud1'), false, 'water and ember do nothing');
   assert.equal(walk(L(0, 18, 92), { max: 4 }), false, 'the bud keeps the way');
+  // (pushing at it for 4 s, he starts up it: let go, back on the floor, before it opens; where a climb half
+  // way up a door that vanishes ends is not this test's business, and hangs on the last centimetre)
+  if (P.climbing) { P.stopClimb(false); for (let i = 0; i < 3 / DT && !P.onGround; i++) frame(); }
+  assert.ok(local().y < 18.5, `back on the floor before the bud (${where()})`);
   bud.hit('bloom');
   assert.equal(rt.logic.isLit('bud1'), false, 'without bloom mode, a bloom glob is only fluid');
   items.grant('bloom'); game.emit('box:opened', { id: 'edena.temple.bloom' });

@@ -735,7 +735,8 @@ export function* buildSpheres(scene) {
   // ---------------------------------------------------------- instanced flora
   yield;
   const dummy = new THREE.Object3D(), col = new THREE.Color();
-  function instanced(geo, mat, items, { collideGeo = null } = {}) {
+  // (solid: the drawn instances collide as drawn; otherwise walk-through, or a collideGeo stand-in per instance)
+  function instanced(geo, mat, items, { collideGeo = null, solid = false } = {}) {
     const mesh = new THREE.InstancedMesh(geo, mat, items.length);
     const cm = collideGeo ? new THREE.InstancedMesh(collideGeo, new THREE.MeshBasicMaterial(), items.length) : null;
     items.forEach((it, i) => {
@@ -751,7 +752,7 @@ export function* buildSpheres(scene) {
       }
     });
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    mesh.userData.noCollide = true;
+    if (!solid) mesh.userData.noCollide = true;
     mesh.computeBoundingSphere();
     scene.add(mesh);
     if (cm) { cm.visible = false; scene.add(cm); }
@@ -794,8 +795,10 @@ export function* buildSpheres(scene) {
       lumpy(2, 0.14, 3).scale(1.5, 1.15, 1.5).translate(-1.3, 5.3, -0.8),
       lumpy(2, 0.14, 5).scale(1.4, 1.1, 1.4).translate(0.2, 6.1, -1.2),
     ].map((g) => prep(g)));
+    // (the trunk and its two boughs collide as drawn, leaning and turned as each is: an upright 0.4 m post stood
+    // in for them, out of the drawn bark at the top and turned the other way; the crown stays walk-through)
     instanced(trunk, makeMaterial({ color: '#ffffff', detail: 'organic' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })),
-      { collideGeo: new THREE.CylinderGeometry(0.4, 0.4, 3, 6, 1).translate(0, 1.5, 0) });
+      { solid: true }).name = 'olive trunks';
     instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })));
   }
   // cypresses: tall dark green flames
@@ -805,7 +808,7 @@ export function* buildSpheres(scene) {
     jitter(g, 0.14, 0.4, 7);
     instanced(g, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), cypresses.map(([x, z, s]) => ({
       x, y: H(x, z) - 0.3, z, s, sx: s * R(0.85, 1.1), sz: s * R(0.85, 1.1), sy: s * R(0.9, 1.25), ry: rng() * 6, color: pick(['#4f6b3a', '#43603a', '#587542']),
-    })), { collideGeo: new THREE.CylinderGeometry(0.9, 0.9, 6, 6, 1).translate(0, 3, 0) });
+    })), { solid: true }).name = 'cypresses';   // (a dense flame of a tree: it collides as drawn, where a 0.9 m post 6 m tall stood inside it)
   }
   // grass tufts
   yield;

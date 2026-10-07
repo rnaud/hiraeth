@@ -209,7 +209,61 @@ export class SandDrifts {
     this.ground = base;
     ground.heightAt = (x, z) => base(x, z) + this.fieldAt(x, z);
     ground.drifts = this;   // (for measuring: the field behind the height)
+    // where a built skirt is drawn over that height between its points, it collides there (misfits)
+    const fit = this.group ? this.misfits(ground.heightAt) : null;
+    if (fit) {
+      const m = new THREE.Mesh(fit, new THREE.MeshBasicMaterial());
+      m.visible = false;
+      m.name = 'Sand banked: collision where it is drawn over the ground';
+      this.group.add(m);
+      this.group.userData.fitTriangles = fit.attributes.position.count / 3;
+    }
     return this;
+  }
+
+  /**
+   * The skirts' triangles that stand more than `tol` over the ground's height somewhere between their
+   * points, as one world-space geometry (non-indexed), or null. Each point of a skirt is on that height
+   * (ground + field + lift), but a triangle is flat between them, and the height is not: where the
+   * ground bends (a canyon floor turning up into its wall), across a fillet's curve, or over the crease
+   * where two drifts meet, the drawn sand stood up to a metre over where the feet stood. Those few
+   * triangles (a few per cent) collide as drawn; everywhere else the height is the sand's already, and
+   * colliding every skirt would cost the desert 230 → 300 k triangles. Triangles inside another
+   * footprint (a skirt running into the next building) are left out: they are inside a solid (not a
+   * footprint over 40 m across, whose hull may cover open ground).
+   */
+  misfits(heightAt, tol = 0.06) {
+    if (!this.group) return null;
+    const out = [], a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), p = new THREE.Vector3();
+    const SAMPLES = [[1 / 3, 1 / 3], [0.5, 0], [0, 0.5], [0.5, 0.5], [2 / 3, 1 / 6], [1 / 6, 2 / 3], [1 / 6, 1 / 6]];
+    const insideOther = (x, z) => {
+      for (const s of this.grid.get(Math.floor(x / this.cell) * 65536 + Math.floor(z / this.cell)) ?? []) {
+        // (a footprint is its part's convex hull: a long curved one, a canyon's wall, covers open floor)
+        if (s.R > 40 || x < s.box[0] || x > s.box[1] || z < s.box[2] || z > s.box[3]) continue;
+        if (edgeDistance(s.edges, x, z).d < -2 * this.o.inside) return true;
+      }
+      return false;
+    };
+    for (const m of this.group.children) {
+      if (!m.isMesh || !m.userData.drifts) continue;
+      const P = m.geometry.attributes.position, I = m.geometry.index;
+      for (let t = 0; t < I.count; t += 3) {
+        a.fromBufferAttribute(P, I.getX(t)); b.fromBufferAttribute(P, I.getX(t + 1)); c.fromBufferAttribute(P, I.getX(t + 2));
+        let over = false;
+        for (const [u, v] of SAMPLES) {
+          p.copy(a).multiplyScalar(1 - u - v).addScaledVector(b, u).addScaledVector(c, v);
+          if (p.y - this.o.lift - heightAt(p.x, p.z) > tol) { over = true; break; }
+        }
+        if (!over) continue;
+        p.copy(a).add(b).add(c).divideScalar(3);
+        if (insideOther(p.x, p.z)) continue;
+        out.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+      }
+    }
+    if (!out.length) return null;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+    return g;
   }
   /** A round footprint (a dome, a rock): centre, radius. */
   addCircle(x, z, r, extra = {}) {
@@ -370,6 +424,7 @@ export class SandDrifts {
       tris += c.idx.length / 3;
     }
     group.userData.triangles = tris;
+    this.group = group;
     return group;
   }
 }

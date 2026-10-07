@@ -1362,6 +1362,7 @@ function frame(ts) {
   updateSky();
   level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
 
+  physics.syncMovers(dt);   // the moving colliders (the great wheel) to where they were drawn last frame, before anyone moves
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
   const ePressed = !!ctl.KeyE && !eWasDown && !photo.on && !player.down; eWasDown = !!ctl.KeyE;   // (no talking while knocked down)
