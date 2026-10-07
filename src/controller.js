@@ -48,8 +48,8 @@ export class Controller {
    * @param o.context () => 'menu' | 'talk' | 'photo' | 'ride' | 'game'
    * @param o.faces   () => ({ faces: 'xbox' | 'nintendo', byLabel }) (native-pad.js padFaces)
    */
-  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }) }) {
-    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces });
+  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null }) {
+    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat });   // (combat: a foe is near, LB blocks rather than zooms)
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
     this.blocked = new Set(); this.lastContext = null; this.running = false;
   }
@@ -103,7 +103,8 @@ export class Controller {
     } else {
       const h = this.held;
       // LB held: the right stick zooms (pull back: out) instead of looking
-      if (down(LB) && ctx !== 'photo') { if (right.y) this.action(right.y > 0 ? 'zoomOut' : 'zoomIn', dt * Math.abs(right.y) * 1.6); }
+      // (in a fight LB blocks: the stick looks)
+      if (down(LB) && ctx !== 'photo' && !this.combat?.()) { if (right.y) this.action(right.y > 0 ? 'zoomOut' : 'zoomIn', dt * Math.abs(right.y) * 1.6); }
       else this.look(right.x * dt * 900, right.y * dt * 900);
       h.stick = { x: left.x, y: -left.y };
       if (ctx === 'photo') {
@@ -130,9 +131,10 @@ export class Controller {
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
         h.KeyE = down(EAST); h.PadE = h.KeyE;   // (the pad's interact never whistles: that's the left button's)
-        // the fluid tool: hold LT to aim, RT shoots while aiming and fires the jets otherwise (triggers()), RB pushes; jump in the air boosts
-        h.PadAim = down(LT); h.PadFire = down(RT); h.PadPush = down(RB);
-        h.PadBlade = down(LB);   // the fluid blade (src/fluid-blade.js); LB held with the right stick still zooms
+        // the fluid tool: hold LT to aim, RT shoots while aiming (the push too: a gun mode) and fires the jets
+        // otherwise (triggers()); jump in the air boosts. The fluid blade (src/fluid-blade.js): RB swings, LB held blocks
+        h.PadAim = down(LT); h.PadFire = down(RT);
+        h.PadBlade = down(RB); h.PadGuard = down(LB);
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
         h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
         if (press(WEST)) this.action('call');
@@ -140,10 +142,10 @@ export class Controller {
       // the top button sends the scout to find the objective, on foot and riding (flying too)
       if (ctx !== 'photo' && press(NORTH)) this.action('ping');
       if (ctx !== 'photo') {
-        if (press(R3)) this.action('bell');   // the bell-note whistle, once found (V on the keyboard)
+        if (press(R3)) this.action('lock');   // lock on to the nearest foe, then the next (Tab on the keyboard: src/foes.js)
         if (press(MENU)) this.action('settings');
         else if (press(VIEW)) this.action('journal');
-        else if (press(UP)) this.action('worlds');
+        else if (press(UP)) this.action('bell');   // the bell-note whistle, once found (V on the keyboard)
         else if (press(DOWN)) this.action('photo');
       }
     }

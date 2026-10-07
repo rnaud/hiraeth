@@ -94,11 +94,34 @@ The count is said every 5 ink.
   blots round it as you come within `GUARDS.near` (32 m).
 - Cut down, they are gone for good (flag `foes.<world>.r<i>`).
 
+## Controls and the lock-on
+
+- **RB / R1** (F, ⚔) swings; **LB / L1** held (Ctrl or Z on land, 🛡) guards; **R3** (Tab, ◉) locks on.
+- The push is a gun mode (`MODES.push`, always owned with the backpack): fired as a shot, it throws the cone.
+- In a fight (`foes.near(20)`) LB doesn't zoom (`Controller.combat`).
+- **The lock-on:** `Foes.cycleLock()` locks the nearest foe in `LOCK.reach` (those ahead of the camera
+  first), then the next out, then lets go. It is lost past `LOCK.lose` or when the foe falls.
+- While locked, main.js turns `rig.yaw` to keep the foe ahead, `#foe-lock` rings it, and the blade's soft
+  lock and the guard turn to it first (`tool.lockOn`).
+
+## More foes, the perfect parry, combos
+
+- **Spitter:** keeps `keep` (6.5 m) away, backing off. It lobs a glob (drawn arcing over the second half of
+  its wind-up) at the ring drawn where you stood (`attack.at: 'target'`).
+- **Swarm:** six tiny blots, 1 hp; a push ends one.
+- **Flyer:** hovers `hover` (3.6 m) up, out of the blade's reach, and dives along a lane. Low (`alt`) while
+  it recovers, and falls when stilled. Only under open sky (`SKY_WORLDS`).
+- **Packs:** `packKinds(n, world)`: the first is one blot; then blots, a spitter with blots, a swarm, or a
+  flyer with blots.
+- **Perfect parry:** a guard up less than `GUARD.perfect` (0.3 s) when the strike comes costs nothing and
+  stuns the foe `PARRY_STUN` s.
+- **Combos:** a stilled foe takes the blade double (and the stilling breaks); a push ends a swarm blot.
+
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes
 `Foes` send `WAVES` round you, whatever the setting: one blot, three blots, a machine, two machines and two
-blots, round and round, `WAVE.rest` s after the last one falls.
+blots, a spitter, a swarm, a machine, flyers, spitters with a machine, and a mixed last wave, round and round, `WAVE.rest` s after the last one falls.
 
 ## Tests
 

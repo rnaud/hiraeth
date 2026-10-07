@@ -39,12 +39,13 @@ test('in every world, in the open air and in every room off the map, the push’
       const camera = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 2000);
       const player = stubPlayer(at);
       const tool = new FluidTool({ scene, player, physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
-      for (const [how, ctl] of [['keyboard', { KeyC: true }], ['pad', { PadPush: true }]]) {
+      tool.setMode('push');   // (the push is a gun mode: aimed and fired as a shot)
+      for (const [how, ctl] of [['keyboard', { KeyR: true, KeyG: true }], ['pad', { PadAim: true, PadFire: true }]]) {
         camera.position.copy(at).add(V(0, 1.7, 3.4)); camera.lookAt(at.x, at.y + 1.4, at.z - 30); camera.updateMatrixWorld();
         tool.cooldown = 0; tool.reserve.level = tool.reserve.max;
         let rings = 0, drops = 0, hidden = new Set();
         for (let f = 0; f < 24; f++) {
-          tool.update(DT, f < 3 ? ctl : {});
+          tool.update(DT, f < 12 ? ctl : {});
           rings = Math.max(rings, tool.rings.mesh.count); drops = Math.max(drops, tool.drops.mesh.count);
           scene.updateMatrixWorld();
           for (const o of cull.hide(camera, [])) { if (o === tool.rings.mesh || o === tool.drops.mesh) hidden.add(o === tool.rings.mesh ? 'rings' : 'spray'); o.visible = true; }

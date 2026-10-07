@@ -123,6 +123,13 @@ export const CHANGELOG_MEDIA = {
     { match: 'Cut-down foes leave ink', shots: [
       { name: 'blade-whirl', only: 'after', caption: 'The whirl: the third swing, grown from the ink, the blade longer', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
     ], see: 'Cut blots down: the count shows every 5 ink, and each step is announced as it is reached. Then press F three times quickly, or press it while running.' },
+    { match: 'New controls for the blade', see: 'In the Arena: RB / R1 (F) swings, hold LB / L1 (Ctrl) to guard, click the right stick (Tab) to lock on.' },
+    { match: 'Locked on, the camera keeps the foe ahead', shots: [
+      { name: 'lock-spitter', only: 'after', caption: 'Locked on to a spitting blot (the gold ring), a blot lunging behind the traveller', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'In the Arena, press Tab (R3) as a wave comes in.' },
+    { match: 'The push is a gun mode now', see: 'Press X (or the D-pad) until the readout says push, then aim and shoot at a crate or a blot.' },
+    { match: 'Three new foes', see: 'In the Arena, waves 3, 4 and 6; out in the wilds, the later packs; winged blots in Vael and the other open-sky worlds.' },
+    { match: 'A perfect parry', see: 'In the Arena, hold LB / L1 just as a blot’s ring fills: it costs no charge and the blot is stunned.' },
     { match: 'Relics out in the wilds are guarded', see: 'In the desert, walk toward a relic out in the dunes: two blots gather round it.' },
     { match: 'Foes take turns', see: 'In the Arena’s second wave, three blots come: two wind up at most while the third circles.' },
   ],

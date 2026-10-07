@@ -13,7 +13,7 @@ import { hasUpgrade } from './ink.js';
 // machines, src/foes.js; wildlife scatters); people, switches and the story's puzzles do not: a blade
 // is not a splash.
 //
-// Held, the button raises the guard once the swing is done (GUARD): the left arm comes up and a
+// The guard button held (LB / L1, Ctrl or Z on land, touch 🛡) raises the guard (GUARD), once a swing is done: the left arm comes up and a
 // shield of fluid blooms over the forearm (the Sword and Shield pack's block idle). A strike from in
 // front (GUARD.angle) is blocked: it spends a charge, does no harm and staggers the foe, and the
 // arm takes the blow (the pack's block). With the tank empty a strike gets through.
@@ -53,7 +53,7 @@ export const LUNGE = { clip: 'mixamo_gs_slide_attack', from: 0.0, to: 0.9, hit: 
 /** The reach step: the blade this much longer, its swing this much further. */
 export const REACH_UP = 1.3;
 /** The guard: the clips (block idle held round and round, the block played as a strike lands), how wide it covers, and the shield. */
-export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, angle: 1.3, rise: 0.12, radius: 0.5 };
+export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, angle: 1.3, rise: 0.12, radius: 0.5, perfect: 0.3 };   // (perfect: a guard raised this little before the strike: free, and the foe is stunned)
 /** Is a strike from `from` in front of someone at `pos` facing `dir` (flat), within GUARD.angle? */
 export function inGuard(pos, dir, from, angle = GUARD.angle) {
   const dx = from.x - pos.x, dz = from.z - pos.z, d = Math.hypot(dx, dz);
@@ -77,7 +77,8 @@ export function bladeHits(origin, dir, physics = null, { reach = BLADE.reach, an
 }
 
 /** The nearest foe the soft lock turns to: a target with lock: true within `range` (flat distance), or null. */
-export function lockTarget(from, range = BLADE.lock, targets = allTargets()) {
+export function lockTarget(from, range = BLADE.lock, targets = allTargets(), locked = null) {
+  if (locked?.enabled()) return locked;   // (the lock-on's foe first: src/foes.js)
   let best = null, bd = range;
   for (const t of targets) {
     if (!t.lock || !t.enabled()) continue;
@@ -128,7 +129,8 @@ export class FluidBlade {
   block(from) {
     const T = this.tool, p = T.player;
     if (!p || !this.guarding || !inGuard(p.pos, this.dir, from)) return false;
-    if (!T.reserve.use()) { T.sputter?.(); return false; }
+    const perfect = (this.guardSince ?? 9) < GUARD.perfect;   // raised just in time: it costs nothing
+    if (!perfect && !T.reserve.use()) { T.sputter?.(); return false; }
     this.parry = GUARD.parryFor;
     hitStop(0.07); kick(0.35);
     T.used('block', p.pos);
@@ -137,7 +139,8 @@ export class FluidBlade {
     T.rings?.add({ from: at, dir: this.dir, reach: 0.1, r0: 0.2, r1: 1.1, life: 0.3, color: tones[0], thick: 1 });
     for (let i = 0; i < 18; i++) T.drops?.add({ pos: at, vel: _a.copy(this.dir).multiplyScalar(-2).add(_b.randomDirection().multiplyScalar(3)), drag: 3, grav: 6, size: 0.03, life: 0.4, color: tones[i % tones.length] });
     p.vel?.addScaledVector(this.dir, -2);   // pushed back a step
-    return true;
+    if (perfect) { hitStop(0.11); kick(0.5); T.sound?.fluidMode?.('stun'); for (let i = 0; i < 12; i++) T.glow?.add({ pos: at, vel: _a.randomDirection().multiplyScalar(2), drag: 3, size: 0.07, life: 0.5, color: '#fff6dc', grow: true }); }
+    return perfect ? 'perfect' : true;
   }
 
   get swinging() { return this.n >= 0; }
@@ -183,13 +186,14 @@ export class FluidBlade {
       this.pose.k = Math.min(1, 0.35 + this.t * 3);
       p.aim = this.pose;
     }
-    // the guard: held after the swing (or with no swing to finish), turned to the nearest foe
+    // the guard: held (LB / L1, Ctrl), up once a swing is done, turned to the locked or the nearest foe
     const want = held && !this.swinging && T.k < 0.05;
+    if (want && this.guardK < 0.5) this.guardSince = 0; else this.guardSince = (this.guardSince ?? 9) + dt;
     this.guardK += ((want ? 1 : 0) - this.guardK) * (1 - Math.exp(-(want ? 14 : 10) * dt));
     if (this.guardK < 0.01) this.guardK = 0;
     if (this.guardK > 0 && !this.swinging) {
       this.guardT += dt;
-      const foe = lockTarget(p.pos);
+      const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
       if (foe) { this.dir.subVectors(foe.position(), p.pos); this.dir.addScaledVector(p.frame.up, -this.dir.dot(p.frame.up)); if (this.dir.lengthSq() > 1e-6) this.dir.normalize(); }
       else if (!want) { /* (easing out: keep the last way) */ }
       else p.frame.dir(p.heading, this.dir);
@@ -234,7 +238,7 @@ export class FluidBlade {
     this.dur = this.move ? (S.to - S.from) / SWING_SPEED : BLADE.swing;
     this.hitAt = this.move ? (S.hit - S.from) / (S.to - S.from) : BLADE.hitAt;
     // the swing's way: toward the nearest foe in reach, else where the traveller faces
-    const foe = lockTarget(p.pos);
+    const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
     if (foe) this.dir.subVectors(foe.position(), p.pos); else p.frame.dir(p.heading, this.dir);
     this.dir.addScaledVector(U, -this.dir.dot(U));
     if (this.dir.lengthSq() < 1e-6) p.frame.dir(p.heading, this.dir);

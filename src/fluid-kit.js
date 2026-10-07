@@ -8,19 +8,22 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 // is swung off the back into a vehicle's socket. fluid-tool.js drives them.
 
 /**
- * The gun modes. All of them shoot a glob and share the three charges; the
+ * The gun modes. All of them share the three charges; all but push shoot a glob (push throws its cone of
+ * fluid shock along the aim: FluidTool.push), and the
  * mode changes what the glob does (targets.js) and how the fluid looks:
  * tones (null: the fluid's own blend), rate: how fast the lava churns (stun
  * almost still, fire boiling), and the splash's character.
  */
 export const MODES = {
   shoot: { item: 'backpack', name: 'fluid', label: 'Fluid', tones: null, rate: 1, css: '' },
+  // the push: a cone of fluid shock along the aim (no glob), pale and quick; it comes with the backpack
+  push: { item: 'backpack', name: 'push', label: 'Push', tones: ['#e8f4ff', '#9ec9e8', '#52c8cf', '#ffffff'], rate: 1.8, css: 'push', glow: '#e8f4ff', cone: true },
   stun: { item: 'stun', name: 'stilling', label: 'Stilling', tones: ['#d6f0fa', '#86bfe8', '#5a8ed6', '#f2fbff'], rate: 0.12, css: 'stun', glow: '#bfe6f7' },
   fire: { item: 'fire', name: 'ember', label: 'Ember', tones: ['#f9c45a', '#e0644a', '#f39a45', '#fff0b8', '#b8433f'], rate: 2.6, css: 'fire', glow: '#ffb347' },
   // Viridel's: leaf green and petal pink, slow as sap (src/temples/edena.js: seeds, budded doors, vines)
   bloom: { item: 'bloom', name: 'bloom', label: 'Bloom', tones: ['#7fcf72', '#f2a7b8', '#4f9a5a', '#f6d36a', '#fff1f4'], rate: 0.55, css: 'bloom', glow: '#c6eba8' },
 };
-export const MODE_ORDER = ['shoot', 'stun', 'fire', 'bloom'];
+export const MODE_ORDER = ['shoot', 'push', 'stun', 'fire', 'bloom'];
 export const STUN_SECONDS = 3.5;
 
 /** The owned modes in order (has: id -> bool). Without the backpack: none. */

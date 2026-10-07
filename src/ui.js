@@ -69,15 +69,15 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off)'],
       ['In a cab (it drives itself)', 'choose a stop: click it, or its number · SPACE choose again · E get out'],
       ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
-      ['Push · gun mode', 'C or middle click · X'], ['Fluid blade (press again to chain three swings) · guard', 'F · hold F'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
+      ['Gun mode (fluid, push, and those found)', 'X'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'F · hold CTRL or Z · TAB'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
       ['Items, quests, sketchbook · menu · this page', 'J (Q / E turn its panels) · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F3 · N'], ['Mute', 'M'],
     ],
     pad: [
-      ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1 with the right stick'],
+      ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1 with the right stick (no foe near)'],
       ['Jump · boost · wings', 'A / × · again in the air · hold'], ['Use, talk, get on', 'B / ○'],
       ['Call your mount or a taxi', 'X / □'], ['The scout finds your objective', 'Y / △ (riding too)'],
       ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'hold RT / R2 without aiming: the left stick flies where you look (look down to dive, up to climb), the stick at rest hovers · A / × held climbs'],
-      ['Push · gun mode', 'RB / R1 · D-pad left / right'], ['Fluid blade (press again to chain three swings) · guard', 'LB / L1 · hold LB / L1'], ['Photo mode · worlds', 'D-pad down · D-pad up'],
+      ['Gun mode (fluid, push, and those found)', 'D-pad left / right'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'RB / R1 · hold LB / L1 · click the right stick (R3)'], ['Photo mode · bell whistle (once found)', 'D-pad down · D-pad up'],
       ['Items, quests and sketchbook · menu', 'View · Menu'],
       ['Their panels (items, quests, sketchbook, worlds)', 'LB / L1 · RB / R1'],
       ['Riding', 'RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off'],
@@ -87,7 +87,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
     ],
     touch: [
       ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'],
-      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · push · gun mode · blade', '◎ · ✺ · ✋ · ◐ · ⚔'],
+      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade · guard (hold) · lock on', '⚔ · 🛡 · ◉'],
       ['Items, quests and sketchbook · menu', '❏ (its tabs turn the panels) · the small ⚙ in the corner'],
     ],
   };
@@ -281,9 +281,10 @@ export class TouchControls {
       <button data-press="KeyJ" class="b-book">❏</button>
       <button data-toggle="KeyR" class="b-aim" aria-label="Aim the fluid tool">◎</button>
       <button data-key="TouchFire" class="b-fire" aria-label="Shoot fluid">✺</button>
-      <button data-key="KeyC" class="b-push" aria-label="Push">✋</button>
       <button data-key="KeyX" class="b-mode" aria-label="Switch the fluid's mode">◐</button>
-      <button data-key="TouchBlade" class="b-blade" aria-label="Swing the fluid blade">⚔</button>`;
+      <button data-key="TouchBlade" class="b-blade" aria-label="Swing the fluid blade">⚔</button>
+      <button data-key="TouchGuard" class="b-guard" aria-label="Guard (hold)">🛡</button>
+      <button data-press="Tab" class="b-lock" aria-label="Lock on to a foe">◉</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');
     let stickId = null, lookId = null, sx = 0, sy = 0, lx = 0, ly = 0;
     const R = 60;

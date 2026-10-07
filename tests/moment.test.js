@@ -228,7 +228,7 @@ test('the empty tank’s first fill is filmed once: it fills on its beat, the ja
   assert.ok(!rt.moments.playing);
   assert.equal(refills.length, 1, 'never twice');
   assert.ok(rt.quests.has('water'), 'the jar fills at its end');
-  assert.ok(toasts.some((t) => /RT \/ R2/.test(t) && /RB \/ R1/.test(t)), 'and the controls, in Xbox / PlayStation form');
+  assert.ok(toasts.some((t) => /RT \/ R2/.test(t) && /D-pad/.test(t)), 'and the controls, in Xbox / PlayStation form (the push: a gun mode)');
   assert.equal(W.dry(), false);
   offRefill?.();
 });

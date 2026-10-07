@@ -609,6 +609,7 @@ await slice();
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
 const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, notice: (t) => showToast(t) });
+tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
 await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
@@ -1013,6 +1014,7 @@ const closeControllerMenu = () => {
 const controller = new Controller({
   context: () => busy() ? (menuRoot() === storyRt.dialogue.el ? 'talk' : 'menu') : photo.on ? 'photo' : player.ride ? 'ride' : 'game',
   faces: () => padFaces(),
+  combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
   navigate: (x, y) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
@@ -1047,8 +1049,9 @@ const controller = new Controller({
     if (name === 'ping' && !ship.playing) scout.ping();
     if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the References: X / □ opens the list of views; there is no mount to call)
     else if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
-    if (name === 'bell' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
-    else if (name === 'bell') itemFx.ring();   // R3: the bell-note whistle (V), and the echo shell plays back
+    if (name === 'lock' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
+    else if (name === 'lock' && !ship.playing) foes.cycleLock();   // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js)
+    if (name === 'bell') itemFx.ring();   // D-pad up: the bell-note whistle (V), and the echo shell plays back
     if (name === 'l3' && level.jump) level.jump(-1);
   },
 });
@@ -1308,6 +1311,7 @@ function missedFrames() {
   return n;
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'F3' && !photo.on) { e.preventDefault(); settings.set('showFps', !settings.showFps); } });   // (F is the fluid blade)
+window.addEventListener('keydown', (e) => { if (e.code === 'Tab' && !e.repeat && !busy() && !photo.on) { e.preventDefault(); foes.cycleLock(); } });   // lock on (R3 on a pad: src/foes.js)
 // (first the engine, and a benchmark's label when it sets one: window.__benchLabel, e.g. "camps r2/3")
 const ENGINE = window.__fpsEngine = engineLabel(navigator.userAgent, location.search, window.Capacitor);
 function frameReadout(fps) {
@@ -1485,6 +1489,13 @@ function frame(ts) {
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   foes.update(dt, busy() || photo.on || ship.playing);
+  // locked on (R3 / Tab): the camera turns to keep the foe ahead (src/foes.js)
+  if (foes.lock && !busy() && !photo.on) {
+    const f = foes.lock, F = player.frame, dx = f.pos.x - player.pos.x, dz = f.pos.z - player.pos.z;
+    const r = dx * F.right.x + dz * F.right.z, a = dx * F.fwd.x + dz * F.fwd.z;
+    const want = Math.atan2(-r, -a), da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
+    rig.yaw += da * (1 - Math.exp(-6 * realDt));
+  }
   // levels with zones (the Hangar) switch ink style as you cross between them
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);

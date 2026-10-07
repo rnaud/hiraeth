@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.88 — 2026-10-07
 
+- A perfect parry: raise the guard just as a strike comes and it costs nothing and leaves the foe stunned. A foe frozen by stilling takes the blade double.
+- Three new foes: a spitting blot that keeps its distance and lobs ink where you stand, a swarm of tiny blots that a push scatters, and winged blots that fly out of reach under open skies and dive along a lane drawn on the ground.
+- The push is a gun mode now, beside fluid, stilling, ember and bloom: switch to it with X or the D-pad and fire it as you shoot. C and the middle click do nothing now.
+- Locked on, the camera keeps the foe ahead, a ring marks it, and the blade and the guard turn to it.
+- New controls for the blade: RB / R1 swings it, LB / L1 held guards, and clicking the right stick (R3) locks on to a foe, then the next, then lets go. On a keyboard: F swings, Ctrl or Z held guards, Tab locks on. The bell whistle moved to the D-pad’s up.
 - Relics out in the wilds are guarded: ink blots gather round as you come near, and once cut down they are gone for good.
 - Cut-down foes leave ink, which runs into the glove, and the blade grows with it: at 8 ink it reaches further, at 20 its third swing becomes a whirl that cuts all round you, at 40 a swing begun at a run lunges into the cut.
 - Foes take turns: no more than two strike at once while the others circle, and they no longer stand inside each other.

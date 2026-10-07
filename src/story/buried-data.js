@@ -47,7 +47,7 @@ export const QUESTS = [
     outro: 'Every chimney on the dunes is open.',
     stages: [
       // (new: a save already at 'find' with the jib still out is moved back here)
-      { id: 'swing', text: 'Dun’s key hangs on the crane of the floating derrick, east of the domes, out over the drop. Splash the jib’s rusted collar (shoot), then shove the jib round over the platform (push: C, middle click, or RB / R1)', label: 'The derrick’s crane', flag: 'buried.jib.in', at: 'jib' },
+      { id: 'swing', text: 'Dun’s key hangs on the crane of the floating derrick, east of the domes, out over the drop. Splash the jib’s rusted collar (shoot), then shove the jib round over the platform (push mode: X or the D-pad, then shoot)', label: 'The derrick’s crane', flag: 'buried.jib.in', at: 'jib' },
       { id: 'find', text: 'The hook has swung in over the platform: take Dun’s key off it', label: 'The derrick’s crane hook', bring: 'key', at: 'key', to: 'dun' },
       { id: 'return', text: 'Bring the key back to Dun', label: 'Dun, by his chimneys', bring: 'key', to: 'dun' },
     ],
@@ -363,7 +363,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'buried.oculus.lit' }, node: 'lit' }, { if: { flag: 'buried.valve.open' }, node: 'oil' }, { node: 'dry' }],
       nodes: {
         dry: {
-          say: ["~neutral~ A dry wick coils in an iron dish. Old oil has blackened the rim.", "~neutral~ The oil valve beside it is rusted shut. *Push* it: C, middle click or RB / R1."],
+          say: ["~neutral~ A dry wick coils in an iron dish. Old oil has blackened the rim.", "~neutral~ The oil valve beside it is rusted shut. *Push* it: the gun’s push mode: X or the D-pad, then shoot."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         oil: { say: ["~neutral~ Oil fills the dish and soaks the wick. *Shoot the Wick* to light it: aim with R, right click or LT / L2, then G, left click or RT / R2."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -389,7 +389,7 @@ export const THINGS = {
       say: [
         { if: { not: { flag: 'buried.jib.in' } }, text: "~neutral~ Dun’s key hangs from the crane hook, out over the drop." },
         { if: { not: { flag: 'buried.jib.oiled' } }, text: "~neutral~ Rust locks the crane’s collar. *Shoot it with fluid*: aim with R, right click or LT / L2, then G, left click or RT / R2." },
-        { if: { all: [{ flag: 'buried.jib.oiled' }, { not: { flag: 'buried.jib.in' } }] }, text: "~curious~ The wet collar is free. *Push the arm sideways* until the hook is above the platform: C, middle click or RB / R1. The ratchet permits only one direction." },
+        { if: { all: [{ flag: 'buried.jib.oiled' }, { not: { flag: 'buried.jib.in' } }] }, text: "~curious~ The wet collar is free. *Push the arm sideways* until the hook is above the platform: the gun’s push mode: X or the D-pad, then shoot. The ratchet permits only one direction." },
         { if: { flag: 'buried.jib.in' }, text: "~neutral~ The hook now hangs over the platform, with the key in reach." },
       ],
       choices: [{ text: '~neutral~ (step back)', end: true }],
