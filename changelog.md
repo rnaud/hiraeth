@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.84 — 2026-10-07
+
+- The References level has the Salt Harbour’s four pictures rebuilt as views: huge ships standing on their keels in a white salt basin, the streets between their hulls shaded by sailcloth, gangways overhead, shops and houses built onto the plating, mooring ropes staked into the salt.
+
 ## v0.83 — 2026-10-07
 
 - The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.

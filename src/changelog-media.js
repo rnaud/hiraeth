@@ -44,6 +44,7 @@ export const WORLDS = [
   ['viridel', 'Viridel', /Viridel/],
   ['garage', 'The Sealed Hangar', /First Garage|Sealed Hangar/],
   ['mangrove', 'The White Mangrove', /White Mangrove/],
+  ['saltharbour', 'The Salt Harbour', /Salt Harbour/],
   ['references', 'References', /References level/],
 ];
 
@@ -111,6 +112,12 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.84': [
+    { match: 'The References level has the Salt Harbour’s four pictures', shots: [
+      { name: 'saltharbour-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): the market in the cleft, the gangway, the terracotta hull and its ropes', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'saltharbour-refs-curtains', only: 'after', size: [1928, 538], caption: 'The third: the curtains hung from the high gangway, the arcade along the hull’s foot', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=saltharbour (or the worlds list, L, then the References and Tab to the Salt Harbour) and press \\ to set each panel beside its view.' },
+  ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [
       { name: 'relay-signal', caption: 'The galactic map six worlds along: the Signal Market, not charted yet, pulses as “a signal” (home’s panel says where it is)', commit: '1af87675',
