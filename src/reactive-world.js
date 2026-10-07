@@ -33,6 +33,7 @@ export const WORLD_REACTIONS = {
   underwater: {kind:'fungus',quiet:'#3f7a74',awake:'#9ff4ee',radius:9},   // (none grow there: level.reactions false)
   eclipse: {kind:'flower',quiet:'#8a7ac8',awake:'#ffb25c',radius:9},   // (none grow there: level.reactions false)
   fallenring: {kind:'flower',quiet:'#9c9e58',awake:'#ef9a7c',radius:9},   // (none grow there: level.reactions false)
+  moonfoundry: {kind:'flower',quiet:'#9cc9b4',awake:'#ffd466',radius:9},   // (none grow there: level.reactions false)
 };
 
 // ------------------------------------------------------------------ room to bloom

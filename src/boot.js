@@ -2,6 +2,7 @@
 // game (src/main.js) in the save slot chosen there. A world asked for directly skips
 // the title and plays the current slot: ?level=<id> (the ship's arrivals, the dev
 // shortcut), ?prologue=1, ?ending=1, and ?start (a save started over from the Start menu).
+// ?worlds=1 alone (the title's Debug entry) shows only the worlds list.
 // In the Android app, an update downloaded meanwhile is switched to before the title shows.
 
 import './menus.css';
@@ -14,10 +15,15 @@ import { audioGuard } from './audio-guard.js';
 audioGuard();         // (before any sound: silent while the app is away, from the title screen on)
 installNativePad();   // (the Android handheld's controls, for the title screen too)
 watchLabels();
-if (opensTitle(location.search)) {
+const worldsOnly = new URLSearchParams(location.search).get('worlds') === '1' && opensTitle(location.search);
+if (worldsOnly) {
+  // the title's Debug entry: the worlds list alone, without building a world behind it (src/world-picker.js)
+  const { showWorldsOnly } = await import('./world-picker.js');
+  await showWorldsOnly();
+} else if (opensTitle(location.search)) {
   // the Android app: a downloaded update starts here, before anything runs (the page reloads into it)
   if (await applyReadyUpdate()) await new Promise((r) => setTimeout(r, 5000));
   const { showTitle } = await import('./title.js');
   await showTitle();
 } else if (new URLSearchParams(location.search).has('start')) history.replaceState(null, '', location.pathname);   // (a reload goes back to the title)
-await import('./main.js');
+if (!worldsOnly) await import('./main.js');

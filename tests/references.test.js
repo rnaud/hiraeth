@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { LEVELS } from '../src/levels/index.js';
 import { ORDER, CONTENT } from '../src/levels/content.js';
-import { createReferences, viewCamera, frameBox, sunHour, sunTurn, cropStyle, worldPeople, VIEW_EXTENT } from '../src/levels/references.js';
+import { createReferences, viewCamera, frameBox, lensShift, sunHour, sunTurn, cropStyle, worldPeople, VIEW_EXTENT } from '../src/levels/references.js';
 import { REFERENCE_VIEWS, REFERENCE_SHEETS } from '../src/levels/reference-views.js';
 import { REFERENCE_WORLDS, loadWorld, worldIndex } from '../src/levels/reference-worlds.js';
 import { COSTUMES } from '../src/costumes.js';
@@ -60,6 +60,7 @@ test('IMG_3775 has six views, each with a camera framed like its panel', async (
     // the horizon lands where the panel has it: eye level projects to that height of the frame
     const cam = new THREE.PerspectiveCamera(d.camera.fov, w / h, 0.3, 5000);
     cam.position.copy(v.eye); cam.lookAt(v.target); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    lensShift(cam, d.camera, w, h, frameBox(w, h, w / h, d.camera.fov));   // (a shifted lens: looking level, the frame a window of a taller one)
     const fwd = v.target.clone().sub(v.eye).setY(0).normalize();
     const p = v.eye.clone().addScaledVector(fwd, 1000).project(cam);
     assert.ok(Math.abs((1 - p.y) / 2 - d.camera.horizon) < 1e-3, `${d.id}: horizon at ${d.camera.horizon}`);

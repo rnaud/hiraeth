@@ -34,6 +34,7 @@ export const EDGE_HINTS = {
   underwater: 'The water darkens into the deep and turns you back.',
   eclipse: 'The dark beyond the lamps thickens and turns you back.',
   fallenring: 'The plain runs on toward the far pieces of the ring, and the wind turns you back.',
+  moonfoundry: 'The plain runs on into the haze and the far moons, and turns you back.',
 };
 
 /**

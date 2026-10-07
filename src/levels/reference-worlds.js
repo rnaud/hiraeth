@@ -34,6 +34,7 @@ export const REFERENCE_WORLDS = [
   { id: 'underwater', name: 'The Underwater City', count: 4, load: () => import('./reference-underwater.js') },
   { id: 'eclipse', name: 'The City During the Eclipse', count: 4, load: () => import('./reference-eclipse.js') },
   { id: 'fallenring', name: 'The Fallen Ring', count: 4, load: () => import('./reference-fallenring.js') },
+  { id: 'moonfoundry', name: 'The Moon Foundry', count: 4, load: () => import('./reference-moonfoundry.js') },
   { id: 'spacecity', name: 'The City Floating in Space', count: 4, load: () => import('./reference-spacecity.js') },
 ];
 

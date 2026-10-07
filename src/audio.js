@@ -34,8 +34,8 @@ export const AMBIENT_WIND = 0.4;
 // Each world's score lives in src/score.js (its mode, tempo, instruments, leitmotif, and the
 // father's theme in it); its instruments in src/score-voices.js. Here: the ground under your
 // feet (the footsteps) and each world's ambience bed.
-const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', home: 'grass', mangrove: 'stone', waterfall: 'stone', saltharbour: 'sand', antennas: 'grass', underwater: 'stone', eclipse: 'stone', fallenring: 'grass' };
-const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds' };
+const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', home: 'grass', mangrove: 'stone', waterfall: 'stone', saltharbour: 'sand', antennas: 'grass', underwater: 'stone', eclipse: 'stone', fallenring: 'grass', moonfoundry: 'stone' };
+const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds', moonfoundry: 'machine' };
 // the instruments audio.js plays itself (the rest are src/score-voices.js's)
 export const OWN_KINDS = new Set(['duduk', 'reed', 'flute', 'strings', 'synth', 'bell', 'marimba', 'oud', 'ney', 'chant', 'celesta', 'kalimba']);
 

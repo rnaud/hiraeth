@@ -30,6 +30,7 @@ export const BACKDROPS = {
   underwater: ['#9fd0e0', '#f6c2b0', '#b0dce4', '#f0c8a8', '#a8d8d4'],
   eclipse: ['#c8c4ec', '#f0d0dc', '#b8c4ec', '#f6e0c8', '#d8d0f0'],
   fallenring: ['#a8c8cc', '#f8e6c8', '#ef9a7c', '#c8d4a0', '#d0e4e4'],
+  moonfoundry: ['#b4d0d6', '#efe2c8', '#9cc9b4', '#e8c4a4', '#d8dce0'],
 };
 
 const rgb = (hex) => {
