@@ -253,6 +253,27 @@ walkthroughs and local names; each data file's header lists its flags.
   (`OLDER`). Once-only beats (`calls.beat.<id>`) still follow the journey, and Ilen is a
   recording of the mother's labelled "For when he asks" (`calls.ilen.*`, as before). HUD:
   "E voicemail" (no word of a recording before the third message gives it away).
+- **The relay signal: Ilen before home** (`src/story/relay.js`, October 2026; docs/story-audit.md).
+  The Signal Market is the last world on the route and home opens after six, so the ship hears the
+  broadcast from far off instead of the worlds changing order. From `RELAY_FROM` (four) worlds done
+  until the broadcast is heard (`clue.bazaar.home`), the market's place on the galactic map pulses
+  with a dotted gold ring and the tag "a signal", whether it is charted yet or only a faint dot (the
+  map's sub line and home's panel say it is further along the route); the console's standby screen
+  says RELAY SIGNAL and its "No new messages" says where it comes from; "Come home" ends with the
+  ship's word of it. Once he has asked the reel for Ilen, the recording is **held** ("Recording held.
+  It will wait at the console.", RECORDING HELD on the screen, a line on home's panel) and it waits
+  as soon as he steps out of the ship (`calls.ilen.later`, set on `ship:exit`) or the ship flies, so
+  flying straight home from the market still leaves it at the console. After it, the father's own
+  recording on Ilen (the `ilen.after` beat, `ILEN_AFTER_CALL`) waits the same way
+  (`calls.ilen.after.later`) when no world is left to bring it; it now holds the line written for
+  "Come home", which plays before the market in any run ("I would have welcomed her back with empty
+  hands."). The recordings after "Come home" still ask the reel for the world's word first (so the
+  City-Shaft's, the Hangar's, the Buried Machine's, the spheres' and the market's lines play), and
+  "Come home" itself asks for the sixth world's before the last of all. After the ending, a player
+  who learns about Ilen hears "And this space is for Ilen, wherever she is." once at the stone
+  (`ilenAtStoneDue`; `ending.ilen` when the ending named her). `tests/relay.test.js` plays a run in
+  the route's order and checks every world's reel line, the mother's recording and the father's are
+  heard before the stone.
 - **The hologram** (`src/ship/hologram.js`): the parents are the game's own people (the
   human bodies, dressed by `costumes.js`, played by the mocap library) projected as
   **coloured busts**: head, neck, shoulders and the top of the chest (`BUST`: cut across the

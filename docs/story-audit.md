@@ -449,7 +449,7 @@ It is a developer page: it is hidden, off the route and off the map, reachable o
 
 1. *(done)* The five out-of-order soft-locks, with tests. These were the only places a player could lose a world's story for good.
 2. *(done)* The drone finds the world's opener even when the ship lands beside a temple.
-3. *(proposal)* A route to Ilen before Home (see below). It is the biggest gap between the story as written and as played.
+3. *(done, second pass)* A route to Ilen before Home (see below). It is the biggest gap between the story as written and as played.
 4. *(done)* The setups now get their payoffs: Ossa's message, Ondine's supper, Mira's clock, the mask, Ilo's monster, Hask's tip.
 5. *(done)* Errands in every world but the last, and the ones that didn't land now do.
 6. *(done)* The contradictions with the bible and with October's cabs, glove, flask and game menu.
@@ -458,7 +458,10 @@ It is a developer page: it is hidden, off the route and off the map, reachable o
 9. *(proposal)* Something to do in the empty stretches: Vael's colossus, the desert's far landmarks and the Hearth, the City-Shaft's middle levels, the spheres' android wood.
 10. *(proposal)* Esk's loss presented as what happened rather than as a failure stamp.
 
-## Proposals for the author (not done: each adds plot, changes a design decision, or renames)
+## Proposals for the author
+
+The author's answer: "go with your recommendations". The second story pass (October 2026) did
+them; each proposal below says what was chosen, marked *Done (second pass)*.
 
 - **Ilen before Home** (plot review §1). Today the Signal Market comes ninth and Home opens at six, so the revelation is post-game. Options:
   - chart the market earlier;
@@ -466,7 +469,11 @@ It is a developer page: it is hidden, off the route and off the map, reachable o
   - have the ship say once, after the market, that the mother's recording waits ("Recording held. It will wait at the console.").
 
   Whichever you choose, test the ending with and without it. The dead line in the last recording ("I told your sister…", `calls.js`) could then play.
+
+  *Done (second pass):* the second and third options, the worlds' order unchanged (`src/story/relay.js`, docs/systems/story.md "The relay signal"). From four worlds done the market's place on the galactic map pulses as "a signal", charted or not, and the console's screen and "No new messages" say a faint signal waits further along the route; "Come home" mentions it. After the market the recording is "held" and waits as soon as you step out of the ship, so flying straight home still leaves it at the console. The father's own recording on Ilen then waits on its own (no world is left to bring it), and holds the dead line ("I would have welcomed her back with empty hands."). The recordings after "Come home" now play the later worlds' reel lines too, which no run could hear before. `tests/relay.test.js` plays a run in the route's order: every world's reel line, the mother's and the father's recordings are heard before the stone; the ending without them is unchanged (`tests/ending.test.js`).
 - **Ilen at the stone after the ending.** In `home.js` `homage()`, if `calls.ilen.told` and the ending didn't include her, say "And this space is for Ilen, wherever she is." once.
+
+  *Done (second pass),* as written: the bible's "At the stone" gives the line. `ending.ilen` marks an ending that named her.
 - **Lou seeded earlier** (plot review §2):
   - a drawing of hers on the ship ("The ship, and a small red hood waving at the edge. Signed LOU.");
   - or the traveller's own line in recording 3 ("I was seven. Younger than Lou is now.").

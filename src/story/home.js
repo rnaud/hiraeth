@@ -4,7 +4,7 @@ import { Dog } from '../dog.js';
 import { spoken } from './tone.js';
 import { HOME_SPOTS, unlaidTokens, laidTokens, layTokens, tokensNow, tokenModel } from '../levels/home.js';
 import { FLOWERS } from '../levels/home-garden.js';
-import { tokenLine } from './ending.js';
+import { tokenLine, ILEN_AT_STONE, ilenAtStoneDue } from './ending.js';
 import { PEOPLE, THINGS, HOMAGE, PETTED } from './home-data.js';
 
 // Home, alive (home-data.js has the words; src/levels/home.js the place).
@@ -271,6 +271,11 @@ export function setupHome(ctx) {
       beats.push({ t, line: spoken('scene', HOMAGE.empty), secs: 3, run: (m) => { m.reachTo = 0.6; } });
       beats.push({ t: t + 2.2, run: (m) => { m.reachTo = 0; } });
       t += 3.2;
+    }
+    // Ilen, learned about after the ending: named at the stone once (src/story/ending.js ilenAtStoneDue)
+    if (ilenAtStoneDue((k) => game.flag(k))) {
+      beats.push({ t, line: spoken('you', ILEN_AT_STONE), secs: 3.4, run: () => game.set('home.ilen.said', true) });
+      t += 3.6;
     }
     if (louNear) beats.push({ t: t - 0.4, line: spoken('scene', HOMAGE.lou), secs: 3.4, run: () => { st.louKneel = true; } });
     else beats.push({ t: t - 0.4, line: spoken('scene', pick(HOMAGE.quiet, st.quietIdx++)), secs: 3.4 });

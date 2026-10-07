@@ -395,8 +395,8 @@ father said later, sorrier.
 **Ilen.** The Signal Market's broadcast is the father's voice, years younger,
 to a child called Ilen. Afterwards the traveller asks the reel for the name
 (`calls.ilen.asked`). There is one recording, in the mother's voice, labelled
-"For when he asks." He is not ready: "Not here. Not yet." Once the ship has
-flown on, it is waiting (`calls.ilen`, `calls.ilen.told`): she made it knowing
+"For when he asks." He is not ready: "Not here. Not yet." Once he has stepped
+out of the ship or the ship has flown on, it is waiting (`calls.ilen`, `calls.ilen.told`): she made it knowing
 he would hear the broadcast one day. Ilen was his elder sister, grown and gone
 before he was born, sent out with the same words; she never came home; the
 father sent that message after her every night for a year; the last thing that

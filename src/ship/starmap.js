@@ -23,6 +23,7 @@
 
 import { homeEntry } from '../story/ending.js';
 import { knownWorlds } from '../story/route.js';
+import { RELAY_TEXT } from '../story/relay.js';
 import { planetSvg } from './planets.js';
 import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
 import { padIndex, confirmKey, backKey } from '../native-pad.js';
@@ -37,17 +38,23 @@ export function consoleAction({ at = 'dash', powered, pendingCall }) {
   return pendingCall ? 'call' : 'empty';
 }
 
-/** The list of worlds on the chart (`known`: named and choosable); Home is last, once the ending is open (src/story/ending.js). */
-export function mapEntries({ order, levels, flag, journal, current, home }) {
+/**
+ * The list of worlds on the chart (`known`: named and choosable); Home is last, once the ending is open (src/story/ending.js).
+ * `relay` (src/story/relay.js relaySignal, or a function giving it): the world it comes from carries `signal` ('far'),
+ * named or a faint dot, and home carries the held recording (`held`).
+ */
+export function mapEntries({ order, levels, flag, journal, current, home, relay }) {
+  const sig = typeof relay === 'function' ? relay() : relay ?? null;
   const isDone = (id) => !!(flag?.(`world.${id}.done`) || journal?.storyDone?.(id));
   const isVisited = (id) => !!(journal?.seen?.(id) || id === current || isDone(id));
   const known = new Set(knownWorlds({ order, done: isDone, visited: isVisited, current }));
   const out = order.map((id, i) => {
     const L = levels.find((l) => l.id === id) ?? { id, title: id };
-    return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id), signature: hasSignature(id) };
+    return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id), signature: hasSignature(id),
+      signal: sig?.stage === 'far' && sig.world === id ? 'far' : null };
   });
   const h = homeEntry({ unlocked: typeof home === 'function' ? home() : !!home, current });
-  if (h) out.push({ ...h, i: out.length, known: true, signature: false });
+  if (h) out.push({ ...h, i: out.length, known: true, signature: false, held: sig?.stage === 'held', relayFar: !!out.find((e) => e.signal && !e.known) });
   return out;
 }
 
@@ -152,6 +159,12 @@ const CSS = `
 #starmap.portrait .legend .long, #starmap.small .legend .long { display: none; }
 #starmap.portrait .legend .short, #starmap.small .legend .short { display: inline; }
 @media (max-height: 760px) { #starmap .legend .long { display: none; } #starmap .legend .short { display: inline; } }
+#starmap .world.signal .disc::before { content: ''; position: absolute; inset: -11px; border-radius: 50%; border: 2px dotted #f2c54b; animation: relay 1.8s ease-out infinite; pointer-events: none; }
+@keyframes relay { 0% { transform: scale(.82); opacity: .95; } 100% { transform: scale(1.18); opacity: 0; } }
+#starmap .world.signal .tag { color: #f2c54b; }
+#starmap svg.route .relay { fill: none; stroke: #f2c54b; stroke-width: 1.6; stroke-dasharray: 2 3; transform-box: fill-box; transform-origin: center; animation: relay 1.8s ease-out infinite; }
+#starmap svg.route text.relay-tag { fill: #f2c54b; font: 10.5px ui-monospace, Menlo, monospace; letter-spacing: .06em; }
+#starmap .panel p.relay { color: #8a5a3c; font-style: italic; border-left: 3px solid #f2c54b; padding-left: 7px; }
 #starmap .world.unvisited .disc::after { border: 2px dashed rgba(247, 236, 210, .75); }
 #starmap .world.current .disc::after { border: 3px solid #e6875f; }
 #starmap .world.current .tag { color: #e6875f; }
@@ -258,13 +271,14 @@ export class StarMap {
     this.hints = pad ? 'pad' : touch ? 'touch' : 'keys';
     const worlds = this.entries.filter((e) => !e.home), known = worlds.filter((e) => e.known);
     const done = worlds.filter((e) => e.done).length;
+    const farSig = worlds.find((e) => e.signal && !e.known);
     this.el.innerHTML = `<div class="chart">
       <div class="field">
         <svg class="route"></svg>
-        <h1>GALACTIC MAP</h1><div class="sub">${known.length} worlds charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made</div>
-        ${this.entries.map((e, i) => e.known ? `<button class="world${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
+        <h1>GALACTIC MAP</h1><div class="sub">${known.length} worlds charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${farSig ? ' · a faint signal further along the route' : ''}</div>
+        ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
             <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}</span>
-            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
+            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.signal ? RELAY_TEXT.tag : e.visited ? '' : 'new'}</span></button>` : '').join('')}
         <button class="close">close ✕</button>
       </div>
       <div class="side">
@@ -307,6 +321,12 @@ export class StarMap {
     if (home) svg += `<path d="M${L.pts[worlds.length - 1].join(' ')} L${L.home.join(' ')}${L.centre ? ` L${L.pts[0].join(' ')}` : ''}" fill="none" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="2 6"/>`;
     // the worlds not known yet: faint dots, no names
     for (const e of worlds) if (!e.known) svg += `<circle cx="${L.pts[e.i][0]}" cy="${L.pts[e.i][1]}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
+    // the relay signal from a world not charted yet: a ring pulsing round its faint dot (src/story/relay.js)
+    for (const e of worlds) if (!e.known && e.signal) {
+      const [x, y] = L.pts[e.i], r = Math.max(9, L.box.disc * 0.26);
+      svg += `<circle class="relay" cx="${x}" cy="${y}" r="${r}"/><circle cx="${x}" cy="${y}" r="${Math.max(3, L.box.disc * 0.07)}" fill="#f2c54b"/>`
+        + `<text class="relay-tag" x="${x}" y="${y + r + 13}" text-anchor="middle">${RELAY_TEXT.tag}</text>`;
+    }
     const route = field.querySelector('svg.route');
     route.setAttribute('viewBox', `0 0 ${W} ${H}`);
     route.innerHTML = svg;
@@ -320,6 +340,7 @@ export class StarMap {
     const p = this.el.querySelector('.panel');
     const sig = signatureReading(e.id, { visited: e.visited });
     p.innerHTML = `${e.home ? '' : planetSvg(e.id, { cls: 'mini' })}<h2>${e.title}</h2><div class="src">${e.source}</div><p>${e.blurb}</p>
+      ${e.signal ? `<p class="relay">${RELAY_TEXT.far}</p>` : e.held ? `<p class="relay">${RELAY_TEXT.held}</p>` : e.relayFar ? `<p class="relay">${RELAY_TEXT.farUncharted}</p>` : ''}
       ${sig ? `<div class="sigline">${SIG_GLYPH}<span>SIGNATURE · ${sig}</span></div>` : ''}
       <div class="state">${e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.done ? '✦ DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
       <button class="go"${e.current || !this.o.powered?.() ? ' disabled' : ''}>${e.current ? 'you are here' : 'Travel ▶'}</button>`;

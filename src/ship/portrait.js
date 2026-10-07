@@ -9,7 +9,7 @@ import { hasCanvas } from './art.js';
 export class CallScreen {
   constructor(size = 384) {
     this.size = size;
-    this.state = { who: 'off', talk: 0, statik: 0, t: 0, speaker: 'father', crack: 0, power: 1, label: '', waiting: false };
+    this.state = { who: 'off', talk: 0, statik: 0, t: 0, speaker: 'father', crack: 0, power: 1, label: '', waiting: false, signal: '' };
     if (!hasCanvas()) { this.texture = null; return; }
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.canvas.height = size;
@@ -92,6 +92,14 @@ export class CallScreen {
     g.font = `${S * 0.05}px ui-monospace, Menlo, monospace`;
     g.textAlign = 'center'; g.fillStyle = '#9fe0d6';
     g.fillText(s.who === 'map' ? 'GALACTIC MAP' : 'VOICEMAIL', c, S * 0.86);
+    // the relay signal (src/story/relay.js): a faint broadcast out along the route, or the mother's recording held
+    if (s.signal) {
+      g.globalAlpha = 0.55 + 0.45 * pulse;
+      g.fillStyle = '#f2c54b';
+      g.font = `bold ${S * 0.055}px ui-monospace, Menlo, monospace`;
+      g.fillText(`· ${s.signal} ·`, c, S * 0.13);
+      g.globalAlpha = 1;
+    }
   }
 
   /** A recording playing: the reel turning, its label (the date stamp), the voice as a trace. */
