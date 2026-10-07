@@ -334,7 +334,8 @@ export class Taxi {
     this.bank = 0;
     this.pitch = 0;
     // the ride camera's view (CameraRig.follow): from beside and behind, a little above, closer than a bike's
-    this.shot = { side: 1.05, boost: 0.5, pitch: 0.1 };
+    // (boost: over the open arm, OPEN_DIST 6.4 since v0.82: the ~10 m it always had)
+    this.shot = { side: 1.05, boost: 3.6, pitch: 0.1 };
     this.boardDistance = 3 + 2.2 * scale;
     this.halfWidth = 0.92 * scale;   // (its hull's half-width: E measures to its side, src/main.js)
     this.exitOffset = 1.6 * scale;

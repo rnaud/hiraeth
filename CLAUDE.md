@@ -16,6 +16,13 @@ running, testing, shipping.
   Write it for players: plain words about what changed for them, no file names.
 - **Then regenerate `changelog.md`** with `node scripts/changelog-md.mjs`, and
   commit both files together. `tests/changelog.test.js` fails if they differ.
+- **Show what changed.** The interactive changelog (`changelog.html`, opened
+  from What's new) shows each line's before/after pictures, numbers or a "how
+  to see it" note. Give every new line one of them: a before/after pair from
+  `scripts/changelog-shots.mjs` (or your own screenshots of the same view),
+  before/after numbers for performance lines (device, preset), or a short note,
+  in `src/changelog-media.js` with the files in `changelog-media/`. How, and the
+  size limits: `docs/systems/changelog.md`.
 - **A new version starts a new release.** Adding a new entry at the top
   (`{ v: '0.38', date: 'YYYY-MM-DD', items: [...] }`) makes the next push create
   a new GitHub release `v0.38`. Smaller follow-ups go into the current entry, and

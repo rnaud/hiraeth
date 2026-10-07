@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { nativeApi, webMinNative, desktopApi, gameBuild, LAST_RUN_NUMBER_BUILD, latestJson, webJson, webDecision, staleWebZips, releasePage, releaseNotes } from '../scripts/release-info.mjs';
-import { CHANGELOG } from '../src/changelog.js';
+import { CHANGELOG, lineText } from '../src/changelog.js';
 
 const java = (name) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/moebius/${name}`, import.meta.url), 'utf8');
 const script = fileURLToPath(new URL('../scripts/release-info.mjs', import.meta.url));
@@ -78,7 +78,7 @@ test('web.json: version, build number, the zip\'s sha256, its URL, size, notes a
   assert.deepEqual(JSON.parse(run('web-json', '14', zip, 'https://x/web-14.zip')),
     { version: CHANGELOG[0].v, build: 14, sha256: sha, zip: 'https://x/web-14.zip', minNative: webMinNative(), size: 16, notes: releaseNotes() });
   assert.equal(webJson({ build: 14, version: '1', zip: 'u', file: zip, native: 4, desktop: 2, notes: [] }).minDesktop, 2, 'the Deck runtime level, for the site\'s web.json');
-  assert.deepEqual(releaseNotes(), CHANGELOG[0].items.slice(0, 12), 'the newest changelog lines, for the settings');
+  assert.deepEqual(releaseNotes(), CHANGELOG[0].items.slice(0, 12).map(lineText), 'the newest changelog lines (their words), for the settings');
   assert.deepEqual(JSON.parse(run('latest-json', '14', 'https://x/a.apk')), { code: 14, name: CHANGELOG[0].v, apk: 'https://x/a.apk', native: nativeApi() });
   assert.deepEqual(latestJson({ build: 3, version: '1', apk: 'u', native: 2 }), { code: 3, name: '1', apk: 'u', native: 2 });
   assert.equal(latestJson({ build: 3, version: '1', apk: 'https://example.com/o/r/releases/download/v1/a.apk', native: 2 }).page, 'https://example.com/o/r/releases/tag/v1');

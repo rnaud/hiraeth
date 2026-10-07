@@ -160,6 +160,13 @@ jobs:
         if: always()
         run: rm -f .local-tools/ci-release.p12
 
+      # (kept with the run too: a week, in case the release can't be written)
+      - uses: actions/upload-artifact@v5
+        with:
+          name: memento-unity-apk
+          path: ${{ env.PROJECT }}/Builds/unity-android/memento-unity.apk
+          retention-days: 7
+
       - name: Publish to the release unity-android
         env:
           GH_TOKEN: ${{ github.token }}
@@ -224,4 +231,5 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           tar czf "$RUNNER_TEMP/memento-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
+          ls -l "$RUNNER_TEMP/memento-unity-linux.tar.gz"
           scripts/unity-publish.sh linux "$RUNNER_TEMP/memento-unity-linux.tar.gz" "GitHub Actions (run ${{ github.run_number }})"

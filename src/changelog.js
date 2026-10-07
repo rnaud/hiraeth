@@ -9,6 +9,20 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.82', date: '2026-10-07', items: [
+    'The camera follows closer: out in the open it hangs low behind the traveller, a little over his head and looking a little down the way he faces, so he stands bigger in the lower middle of the view with the world ahead filling the rest. Zooming with the mouse wheel or LB / L1 and the right stick still works from there; gliding and the jets stand it further back so you see ahead and below.',
+    'In closed spaces (the ship, temples, caves, corridors, houses) the camera comes in close over a shoulder, about two metres back at shoulder height, and picks the shoulder with room beside it so the way ahead shows next to the traveller. It slides across only when a wall really closes in, eases in and out at doorways, stands a little further back in big halls, and aiming the fluid tool is always over the right shoulder.',
+    { text: 'On a handheld, looking down the City-Shaft no longer stutters: where the graphics chip is what holds a frame back, the picture softens a little to keep it smooth (about 44 frames a second before, 54 now); where softening would not help, it stays sharp.',
+      see: 'On a handheld with automatic resolution and the frame readout on (F), stand at the City-Shaft’s rim and look down into the shaft: within a few seconds the scale on the readout steps from 0.75 to 0.55 and the frames a second rise. At the desert’s camps it tries one step and goes straight back.',
+      numbers: [
+        { title: 'Looking down the City-Shaft (the wide view): frames a second', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova (GeckoView 157), Handheld preset, automatic resolution', source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+          { where: 'the wide view (the scale 0.75 → 0.55)', before: 44.1, after: 53.5 },
+        ] },
+        { title: 'Refreshes missed', unit: '%', better: 'lower', device: 'Retroid Pocket Nova (GeckoView 157), Handheld preset, automatic resolution', rows: [
+          { where: 'the wide view', before: 26.7, after: 10.9 },
+        ] },
+      ] },
+  ] },
   { v: '0.81', date: '2026-10-07', items: [
     'In the desert, letting the water out of the giant’s pool before anyone has sent you there no longer stalls the story: the steps that only led there pass on their own, and Ama still hands you her jar.',
     'Qanat and its camps say a little more, and nothing that goes stale once the chest is open: Oum, Marrow, Rook, Tamsin, the sketcher and the townspeople have new lines, Pell wants to hear about the sleeping mask, and the Speaker has heard Ilo’s report of a monster.',

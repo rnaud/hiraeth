@@ -904,6 +904,28 @@ Market's crowd from 1.02 to 0.70; its frames from 6.4 to 5.6 ms and 3.5 to 2.9 (
 again with all of it (macOS 183 MB, the Android APK 76 MB, Linux 150 MB), ready for the Retroid and the Deck
 (`scripts/bench/android-bridge.sh`, "The players again" above); none installed.
 
+## On the Retroid (2026-10-07)
+
+The bridge's APK (`com.rnaud.memento.bridge`, its own package beside the web game's `com.rnaud.moebius`; built
+at 81f0311, 76 MB) on the Retroid Pocket Nova, `scripts/bench/android-bridge.sh desert -views
+scripts/bench/viewpoints.json -bench 8 -split`: it started 2.1 s after launch, the bundle (7.2 MB) loaded in
+0.2 s, the desert ready 3.5 s later (GeckoView's load of the same world: 9.4 s), with **the script and the
+sound each on a thread of their own** (no need for `-js-main` or `-audio-js`); the audio replay's graph stayed
+small over six minutes (195 nodes after 600 batches, 53 after 6 000, 1 171 freed). But it never ran the plan:
+**the `unity` intent extra did not arrive** (adb's shell split the unquoted arguments, and the player read only
+`Environment.GetCommandLineArgs()`, which on Android need not carry it), so it played the desert, with its sound, until the script's 10-minute
+limit. Now:
+
+- `android-bridge.sh` passes the extra quoted, stops the player if it has not logged its plan within 20 s,
+  and refuses to start on a locked screen (where the player is paused as it starts and never runs);
+- `BridgeArgs.CommandLine()` (BridgeRunner's flags read it too) adds the activity's `unity` extra on Android
+  (read once, in Start) and logs `the plan from the intent: …`.
+
+Built (`BridgeBuild.Android`, 337 s with a fresh Library) but not yet seen on the device: by the second run the
+handheld had locked itself behind its PIN, which only the author can open. The web numbers to compare on the
+same views are in performance.md, "The Retroid, round 4" (the desert's views: the camps 56 fps, JS 17.2 ms;
+the dunes 60, 11.7; the spawn 59, 13.6).
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

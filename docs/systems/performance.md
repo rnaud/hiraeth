@@ -807,3 +807,101 @@ checked against the bundle of the code before the change too (`POSE_REF`): no di
 | the web, Handheld preset, Chrome's CPU ×4: the camps (frame; the people's update) | 25.7 ms; 6.1 | 22.8; 4.9 |
 | the same, the Signal Market's crowd | 14.0; 3.6 | 13.2; 2.9 |
 | the Unity player (macOS): the people's update at the camps, at the crowd | 1.69, 1.02 | 1.08, 0.70 |
+
+## The Retroid, round 4: every world again, the loading pen, the merged towers, the captures, a cab ride (October 2026)
+
+The Retroid Pocket Nova back on the Mac, in the GeckoView test app (`com.rnaud.moebius.gecko`, built from main at
+81f0311; the player's app untouched), Handheld preset, the frame readout on, the game's sound at 0.
+
+**Every world** (`android-worlds.mjs --profile 1`, render scale held at 0.75; round 1's "after", a592cb9, against
+this round, with v0.77–0.80 in: the shirt on the GPU, the towers merged, the people posed without recomputing,
+still people on twos, the wider handheld grass; every view in `scripts/bench/results/android-worlds-round4.json`):
+
+| World (views) | fps | p95 ms | missed % | JS ms a frame | GPU busy % | draws | load s | memory MB |
+|---|---|---|---|---|---|---|---|---|
+| Desert (spawn, Qanat, camps, dunes, cave, ride, walk) | 44–60 → 51–60 | 17–33 → 17–33 | 0–27 → 0–15 | 13–22 → 11–19 | 41–77 → 43–82 | 68–465 → 66–472 | 8.0 → 9.4 | 1225 → 1250 |
+| City-Shaft (start, crowd, crowd2, wide, walk) | 44–60 → 43–60 | 17–33 → 17–33 | 1–26 → 1–28 | 13–22 → 12–17 | 61–88 → 65–93 | 352–1482 → 356–1140 | 14.2 → 15.8 | 1353 → 1399 |
+| Signal Market | 59–60 → 59–60 | 17 → 17 | 0–2 → 0–2 | 13–14 → 11–14 | 64–82 → 67–86 | 316–572 → 329–594 | 5.4 → 6.2 | 1128 → 1070 |
+| Vael | 59–60 → 60 | 17 → 17 | 0–1 → 0–1 | 12–14 → 12–13 | 39–52 → 42–54 | 198–393 → 207–393 | 4.9 → 6.1 | 1095 → 1075 |
+| Vael II | 57–60 → 56–60 | 17–33 → 17–33 | 0–5 → 0–6 | 12–14 → 11–14 | 79–84 → 83–92 | 282–499 → 307–592 | 6.0 → 7.2 | 1350 → 1604 |
+| Sealed Hangar | 60 → 60 | 17 → 17 | 0–1 → 0 | 12–14 → 10–13 | 51–57 → 52–58 | 186–551 → 177–551 | 4.2 → 4.3 | 1004 → 1057 |
+| Buried Machine | 59–60 → 60 | 17 → 17 | 0–2 → 0 | 12–14 → 11–13 | 54–67 → 60–74 | 242–479 → 246–487 | 7.1 → 9.9 | 1218 → 1226 |
+| Viridel | 60 → 60 | 17 → 17 | 0–1 → 0–1 | 12–13 → 10–13 | 38–57 → 40–59 | 190–459 → 198–461 | 5.3 → 5.8 | 994 → 1153 |
+| Garden of Spheres | 59–60 → 60 | 17 → 17 | 0–2 → 0–1 | 12–14 → 11–14 | 54–67 → 59–71 | 257–479 → 257–515 | 6.0 → 7.0 | 1422 → 1343 |
+| Lorn | 60 → 60 | 17 → 17 | 0–1 → 0–1 | 12–13 → 12–13 | 54–64 → 56–67 | 303–390 → 303–395 | 4.0 → 5.1 | 964 → 991 |
+| Lorn II | 59–60 → 57–60 | 17 → 17–33 | 0–2 → 0–5 | 12–14 → 10–13 | 73–93 → 75–96 | 175–465 → 172–520 | 6.2 → 7.5 | 1160 → 1212 |
+| Home | 59–60 → 59–60 | 17 → 17 | 0–2 → 0–1 | 12 → 12–14 | 41–61 → 43–63 | 441–614 → 443–617 | 4.0 → 4.3 | 978 → 988 |
+
+The places that were slow, view by view (JS: the animation frame's callback; the parts from `--profile`):
+
+| view | fps | missed % | JS ms | traveller ms | people ms | G-buffer ms | shadows ms | GPU % |
+|---|---|---|---|---|---|---|---|---|
+| Qanat | 49 → 57 | 19 → 5 | 19.8 → 16.6 | 2.9 → 1.1 | 4.8 → 3.9 | 4.0 → 3.9 | 1.5 → 1.2 | 60 → 75 |
+| the camps | 45 → 56 | 25 → 8 | 21.3 → 17.2 | 2.8 → 1.0 | 5.3 → 3.9 | 5.0 → 4.7 | 2.2 → 1.9 | 61 → 78 |
+| the walk through the camps | 44 → 51 | 27 → 15 | 22.4 → 18.7 | 2.7 → 1.0 | 5.6 → 4.0 | 5.6 → 5.2 | 1.5 → 1.3 | 48 → 59 |
+| the ride to the city | 51 → 56 | 15 → 7 | 18.2 → 15.2 | 2.9 → 1.1 | 5.6 → 4.5 | 4.3 → 4.2 | 1.6 → 1.3 | 68 → 76 |
+| City-Shaft, the rim (start) | 50 → 59 | 17 → 2 | 19.3 → 14.2 | 2.9 → 1.1 | 1.5 → 1.3 | 6.7 → 4.7 | 2.6 → 2.3 | 69 → 84 |
+| City-Shaft, wide | 44 → 43 | 26 → 28 | 21.6 → 16.7 | 3.0 → 1.1 | 1.5 → 1.3 | 8.5 → 5.9 | 4.0 → 3.4 | 88 → 93 |
+| City-Shaft, the walk | 49 → 53 | 18 → 11 | 19.5 → 15.2 | 3.2 → 1.3 | 1.3 → 1.1 | 5.6 → 4.0 | 2.4 → 1.9 | 79 → 90 |
+
+- **The shirt on the GPU** is as predicted: the traveller's whole update (the shirt, the cage's messages, the
+  posing) 2.7–3.6 → 1.0–1.4 ms in every world. **The people** at the camps and Qanat 4.8–5.6 → 3.9–4.5 ms (the
+  posing, still people on twos). **The merged towers**: the City-Shaft's G-buffer loop 6.7–8.5 → 4.0–5.9 ms, its
+  draws 1 326 → 1 140 (wide) and 960 → 868 (the rim). Every other world was at 60 already and stays there, the GPU
+  a few points busier (the wider grass, the References' modelling).
+- **What is left at 60 fps's edge**: the camps and the walk through them (51–56 fps) are still the main thread's:
+  17–19 ms of JS, the people 4, the G-buffer's draw loop 4.7–5.2 (410–470 draws). **The City-Shaft looking down the
+  shaft** is the GPU's now (93 %, 3.1 M triangles with the shadows): the synced loop (`--toggles`) takes 30–33 ms
+  a frame at 0.75 and 21–23 at half the scale, while the JS stays 16–17.6 ms at any scale (the main thread waits
+  on GeckoView's GPU process). The live frame rate there: 43–44 fps at 0.75, 51 at 0.6, 55 at 0.5.
+- **So `cpuBound` was wrong there**: the main thread over 0.85 of the refresh read as CPU-bound and held the
+  scale at 0.75 at 44 fps. Now a slow window that `cpuBound` would leave alone **probes** (`adaptScale`,
+  `D.probe`: Handheld and Deck): three such windows try one step of 0.1 down, judged over the next four windows
+  (the first after the resize left out) against the three before: 3 fps more, or 2 missed refreshes fewer a
+  window, and it stays (holding as after a stutter); else back, and no probe for 240 windows (2 minutes). On the
+  device, from 0.75 with dynamic resolution as shipped: **the wide view 0.75 → 0.65 → 0.55 (0.5 tried, no gain,
+  back): 44.1 → 53.5 fps, 26.7 → 10.9 % missed**; its walk holds 0.55 at 52.6; the rim stays 0.75 (59 fps); the
+  camps try 0.65 once and go back to 0.75; Qanat climbs to 0.85 as before (`tests/quality.test.js`).
+- **Loads** are 0.1–2.8 s longer than round 1's (Buried Machine 7.1 → 9.9, Vael 4.9 → 6.1, the City-Shaft 14.2 →
+  15.8): the worlds have more in them (the References' modelling). Not the GPU pacer: loaded in turns with it and
+  without (`?nopace`, a scratch build), the Buried Machine 9.4–10.6 s against 9.2–13.6, the City-Shaft 14.2–15.7
+  against 14.0–15.6, the desert 7.9–9.2 against 8.6–9.2; it waited ≤ 7 ms in the first two, 370–500 ms in the
+  desert. Vael II's memory after load is 250 MB more than round 1's (1 350 → 1 604 MB), the content process's.
+
+**The loading pen** (`scripts/transition-perf/pen-android.mjs`: `adb shell screenrecord` through the load, read
+frame by frame with `pen-read.swift`, AVFoundation with each frame's own time, since headless Chrome draws the
+device's H.264 blank into a canvas; the measures are `pen-stops.mjs`'s): it turned smoothly through every load,
+150° a second, the gap between frames where it had turned 17 ms at the median and the 95th percentile.
+
+| load (the game from the Mac unless said) | longest stop ms | stops over 50 ms |
+|---|---|---|
+| desert, ac7e4d1 (before the pen's own layer and the GPU pacer) | 33 | 0 |
+| desert, main (two runs; and from the APK) | 49, 49; 33 | 0 |
+| City-Shaft, ac7e4d1 | 32 | 0 |
+| City-Shaft, main; from the APK | 32; 18 | 0 |
+
+So on the device the pen never stalled, before the change or after: GeckoView runs the CSS spin on its
+compositor through the shader compiles. What the author saw stutter was not reproduced in seven loads.
+
+**The City-Shaft's merged towers on the Adreno** draw as unmerged: five views (the rim, the wide view, two views
+of towers across the shaft, the crowd), main against a scratch build with the merge loop putting each tower back
+as its own mesh and material, device screenshots with the hour and weather held: 0.13–1.1 % of the pixels apart
+(3.6 % at the crowd), every one of them a cab, a person or the airship that moved; the towers themselves
+identical. Draws there, unmerged → merged: 1 331 → 1 129 (wide), 781 → 679 and 713 → 613 (the towers' views).
+
+**The speaker's portrait and the Sketchbook** draw on the device in GeckoView: four conversations in the desert
+(the traveller, Ysa, Ennor, Marrow), each chip a 210 × 210 picture of the person, 280–440 colours, the commonest
+38–58 %; two relics found the game's way (the traveller set at each), their sketches 240 × 170 JPEGs of 1 283–1 603
+colours, in the Sketchbook panel. The blank yellow disc of the TODO was seen in the device's Chrome, which this
+round does not use (only the test app runs); in the app's engine the canvas read works, so the capture path is
+left as it is (with its refusal of a blank portrait).
+
+**The game menu's item pictures** draw too: all 23 of a full kit, 256 × 256, 150–514 colours each. Their cost:
+opening the Items panel draws one a frame for 23 frames (14.9 ms of JS at the 95th percentile, the worst frame
+29 ms of JS and one 66 ms frame), the rest of the frames at 16.7 ms; held open, 0.1 ms a frame (the menu covers
+the canvas, nothing is drawn).
+
+**A self-driving cab ride**: boarded beside the cab, the stop chosen as the dash's answer does (`Taxi.goTo`), the
+route planned in 0.2 ms (the Signal Market, 196 m) and 0.4 ms (the City-Shaft, 232 m); the ride recorded 15 s to the
+stop: the Market 59.6 fps, p95 16.7 ms, no frame over 33 ms, JS 12.5 ms (p95 14.8); the City-Shaft 59.1 fps, two
+frames over 33 ms (the worst 50), JS 12.5 (p95 17.8).
