@@ -1,0 +1,29 @@
+changelog.md
+  s_55b4bc53b812ec::t_06b46f9fce7b61 10
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_23e4d9a2487461 222-234
+src/changelog.js
+  s_55b4bc53b812ec::t_a12bfb2f22abfc 14
+src/ground-ink.js
+  s_55b4bc53b812ec::t_f08d8186408443 27,35-90,166-207
+src/materials.js
+  s_55b4bc53b812ec::t_272db0b79c3683 8,2129-2130,2132-2142
+tests/ground-ink.test.js
+  s_55b4bc53b812ec::t_dfec0ea8a500ac 82-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4a164791dbd2b8eeb08d63db2637d774cc425213",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
