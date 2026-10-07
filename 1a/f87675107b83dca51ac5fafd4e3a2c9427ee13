@@ -1,0 +1,45 @@
+changelog.md
+  s_55b4bc53b812ec::t_85450897fb43a0 5-8
+docs/story-audit.md
+  s_55b4bc53b812ec::t_ac598f5cc2eaed 452,461-464,472-473,475-476
+docs/story-bible.md
+  s_55b4bc53b812ec::t_562bebb9fdeaf7 398-399
+docs/systems/story.md
+  s_55b4bc53b812ec::t_a0afa7263964d1 256-276
+src/changelog.js
+  s_55b4bc53b812ec::t_4572fec9d77d59 12-14
+src/ship/homecoming.js
+  s_55b4bc53b812ec::t_5b2404b725aa1a 356
+src/ship/portrait.js
+  s_55b4bc53b812ec::t_0161de46786eeb 12,95-102
+src/ship/ship.js
+  s_55b4bc53b812ec::t_ed64498f855fe8 17,328,500-502,519-520,568,650-652,689
+src/ship/starmap.js
+  s_55b4bc53b812ec::t_480b97eb5a7026 26,41-47,53-54,57,162-167,274,278-279,281,324-329,343
+src/story/calls.js
+  s_55b4bc53b812ec::t_1a40a7614ddfe5 52,86-87,318,331-332,433,447-452,457,470,482,513-515,519-521,535-537,552-553,592-604,610,615
+src/story/ending.js
+  s_55b4bc53b812ec::t_89106bcff59cbe 164-168,184
+src/story/home.js
+  s_55b4bc53b812ec::t_5b56211e3e1e28 7,275-279
+src/story/relay.js
+  s_55b4bc53b812ec::t_60a2ca5b617f6f 1-58
+tests/relay.test.js
+  s_55b4bc53b812ec::t_ee2c7bad5bae51 1-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1af87675107b83dca51ac5fafd4e3a2c9427ee13",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
