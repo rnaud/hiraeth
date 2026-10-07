@@ -32,3 +32,6 @@ Memento/Packages/com.tencent.puerts.*/
 # Puerts' IL2CPP glue for the bridge's players (BridgeBuild.Il2cpp makes it)
 Memento/Assets/Gen/
 Memento/Assets/Gen.meta
+# the testers' APK's icon (BridgeBuild.AndroidRelease copies public/icons/icon-512.png in)
+Memento/Assets/MementoJS/Icon/
+Memento/Assets/MementoJS/Icon.meta

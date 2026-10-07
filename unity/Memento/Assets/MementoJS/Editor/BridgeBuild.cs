@@ -19,12 +19,19 @@ namespace Memento.EditorTools
     ///   scripts/unity-export/unity-batch.sh BridgeBuild.Android   IL2CPP ARM64, Vulkan then GLES3, debug-signed, Builds/bridge-android/memento-js.apk
     ///   scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp    first, once (and after a Puerts update): Puerts' IL2CPP glue into Assets/Gen
     ///                                                             (its "Minimal Bridge, Reflection Mode": the script calls C# by reflection)
+    ///   BridgeBuild.AndroidRelease                                the testers' APK (scripts/unity-android-release.sh, .github/workflows/unity-android.yml):
+    ///                                                             com.rnaud.memento.unity, "Memento (Unity)", the game's icon, the release key, sound on
     /// (-out another path). A player runs the plan its command line gives (BridgeArgs: -views, -bench,
     /// -out …), and plays nothing aloud with -mute. The package name is the bridge's own, never the web app's.
     /// </summary>
     public static class BridgeBuild
     {
         public const string Package = "com.rnaud.memento.bridge";
+        /// <summary>The testers' APK (AndroidRelease): installed next to the web game's app (com.rnaud.moebius), never over it.</summary>
+        public const string ReleasePackage = "com.rnaud.memento.unity";
+        public const string ReleaseName = "Memento (Unity)";
+        public const string ReleaseAlias = "moebius";   // (the web app's release key: android/app/build.gradle, docs/systems/android.md)
+        public const string ReleaseIcon = "Assets/MementoJS/Icon/memento-icon.png";   // (copied from public/icons/icon-512.png, not committed)
         static string Arg(string name, string fallback = null) => BridgeArgs.Arg(name, fallback);
         static bool Flag(string name) => BridgeArgs.Flag(name);
         static string Repo => Path.GetFullPath(Path.Combine(Application.dataPath, "../../.."));
@@ -57,11 +64,13 @@ namespace Memento.EditorTools
         }
 
         /// <summary>Puerts' IL2CPP glue (Assets/Gen/Plugins/puerts_il2cpp, not committed): its menu's "Minimal Bridge, Reflection Mode".</summary>
-        public static void Il2cpp()
+        public static void Il2cpp() => EditorApplication.Exit(GenerateGlue() ? 0 : 1);
+
+        static bool GenerateGlue()
         {
             var menu = Type.GetType("Puerts.Editor.Generator.UnityMenu, com.tencent.puerts.core.Editor");
             var gen = menu?.GetMethod("GenMinimumWrappersAndBridge", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-            if (gen == null) { Debug.LogError("Memento: Puerts' generator not found (scripts/unity-js-setup.sh)"); EditorApplication.Exit(1); return; }
+            if (gen == null) { Debug.LogError("Memento: Puerts' generator not found (scripts/unity-js-setup.sh)"); return false; }
             gen.Invoke(null, null);
             // (Puerts 3.0.3's glue calls il2cpp's Object::Unbox(obj), which Unity 6.6's il2cpp no longer has: its raw data instead)
             var cpp = Path.Combine(Application.dataPath, "Gen", "Plugins", "puerts_il2cpp", "Puerts_il2cpp.cpp");
@@ -73,7 +82,7 @@ namespace Memento.EditorTools
             }
             AssetDatabase.Refresh();
             Debug.Log("Memento: Puerts' IL2CPP glue generated");
-            EditorApplication.Exit(0);
+            return true;
         }
 
         static void Il2Cpp(NamedBuildTarget t)
@@ -136,15 +145,37 @@ namespace Memento.EditorTools
             Build(BuildTarget.StandaloneLinux64, outPath);
         }
 
-        public static void Android()
+        public static void Android() => AndroidPlayer(false);
+
+        /// <summary>
+        /// The testers' APK (docs/systems/unity.md, "Building in GitHub Actions"): the bridge's player as Android() builds
+        /// it, under its own identity so it installs next to the web game's app: com.rnaud.memento.unity, "Memento (Unity)",
+        /// the game's icon (public/icons/icon-512.png), landscape, immersive, sound on and paused in the background, signed
+        /// with the web app's release key (alias moebius) so every build installs over the last.
+        ///   -version 0.80 (or GameCI's -buildVersion)    versionName: the newest version in src/changelog.js
+        ///   -code 812 (or GameCI's -androidVersionCode)  versionCode: the commit count (scripts/release-info.mjs build)
+        ///   -androidKeystoreName file                    the PKCS#12 keystore (relative: to unity/Memento), else $ANDROID_KEYSTORE_PATH
+        ///   -androidKeystorePass, -androidKeyaliasPass   its password, else $ANDROID_KEYSTORE_PASSWORD
+        ///   -out (or GameCI's -customBuildPath)          default Builds/unity-android/memento-unity.apk
+        /// Puerts' IL2CPP glue (BridgeBuild.Il2cpp) has to be made first, in an editor run of its own (it is C# too).
+        /// </summary>
+        public static void AndroidRelease() => AndroidPlayer(true);
+
+        static string NonEmpty(params string[] values) => values.FirstOrDefault(v => !string.IsNullOrEmpty(v));
+
+        static void AndroidPlayer(bool release)
         {
-            var outPath = Path.GetFullPath(Arg("-out", "Builds/bridge-android/memento-js.apk"));
+            var outPath = Path.GetFullPath(NonEmpty(Arg("-out"), release ? Arg("-customBuildPath") : null,
+                release ? "Builds/unity-android/memento-unity.apk" : "Builds/bridge-android/memento-js.apk"));
+            if (!outPath.EndsWith(".apk")) outPath += ".apk";   // (GameCI's path comes without the extension)
             Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+            if (release && !File.Exists(Path.Combine(Application.dataPath, "Gen", "Plugins", "puerts_il2cpp", "Puerts_il2cpp.cpp")))
+            { Debug.LogError("Memento: no Puerts IL2CPP glue (Assets/Gen): run BridgeBuild.Il2cpp first"); EditorApplication.Exit(1); return; }
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
             Common();
-            PlayerSettings.productName = "Memento JS";
-            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, Package);
+            PlayerSettings.productName = release ? ReleaseName : "Memento JS";
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, release ? ReleasePackage : Package);
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Android, Il2CppCompilerConfiguration.Release);
             PlayerSettings.Android.targetArchitectures = Flag("-x86_64") ? AndroidArchitecture.ARM64 | AndroidArchitecture.X86_64 : AndroidArchitecture.ARM64;
@@ -153,11 +184,46 @@ namespace Memento.EditorTools
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
             PlayerSettings.Android.useCustomKeystore = false;   // (the debug key)
-            PlayerSettings.Android.bundleVersionCode = int.Parse(Arg("-code", "1"));
+            PlayerSettings.Android.bundleVersionCode = int.Parse(NonEmpty(Arg("-code"), release ? Arg("-androidVersionCode") : null, "1"));
             PlayerSettings.Android.startInFullscreen = true;
+            if (release && !Release()) { EditorApplication.Exit(1); return; }
             EditorUserBuildSettings.buildAppBundle = false;
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
             Build(BuildTarget.Android, outPath);
+        }
+
+        /// <summary>What the testers' APK adds to the bridge's Android player: its version, manners, icon and key.</summary>
+        static bool Release()
+        {
+            PlayerSettings.bundleVersion = NonEmpty(Arg("-version"), Arg("-buildVersion"), "0.1");
+            // landscape (the handheld's way up), immersive (no bars), drawn under the cut-outs; the pads and keys come
+            // through the Input System (the project's input handling; BridgeHost reads Gamepad.current)
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
+            PlayerSettings.Android.startInFullscreen = true;
+            PlayerSettings.Android.renderOutsideSafeArea = true;
+            // played by hand: it pauses, and goes quiet, when the player leaves it (the bench players keep running)
+            PlayerSettings.runInBackground = false;
+            // the game's icon (the web app's), copied in as a texture the build reads
+            var icon = Path.GetFullPath(ReleaseIcon);
+            Directory.CreateDirectory(Path.GetDirectoryName(icon));
+            File.Copy(Path.Combine(Repo, "public", "icons", "icon-512.png"), icon, true);
+            AssetDatabase.ImportAsset(ReleaseIcon, ImportAssetOptions.ForceSynchronousImport);
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(ReleaseIcon);
+            if (tex == null) { Debug.LogError("Memento: the icon did not import: " + ReleaseIcon); return false; }
+            PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { tex }, IconKind.Any);
+            // the release key, never the debug one: an APK signed otherwise would not install over the last
+            var ks = NonEmpty(Arg("-androidKeystoreName"), Environment.GetEnvironmentVariable("ANDROID_KEYSTORE_PATH"));
+            var pass = NonEmpty(Arg("-androidKeystorePass"), Environment.GetEnvironmentVariable("ANDROID_KEYSTORE_PASSWORD"));
+            if (ks == null || pass == null) { Debug.LogError("Memento: no release key: -androidKeystoreName and -androidKeystorePass (or ANDROID_KEYSTORE_PATH and ANDROID_KEYSTORE_PASSWORD)"); return false; }
+            ks = Path.GetFullPath(ks);
+            if (!File.Exists(ks)) { Debug.LogError("Memento: no keystore at " + ks); return false; }
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = ks;
+            PlayerSettings.Android.keystorePass = pass;
+            PlayerSettings.Android.keyaliasName = NonEmpty(Arg("-androidKeyaliasName"), ReleaseAlias);
+            PlayerSettings.Android.keyaliasPass = NonEmpty(Arg("-androidKeyaliasPass"), pass);   // (PKCS#12: the key's password is the store's)
+            Debug.Log($"Memento: the testers' APK: {ReleasePackage} {PlayerSettings.bundleVersion} ({PlayerSettings.Android.bundleVersionCode}), signed with {Path.GetFileName(ks)}");
+            return true;
         }
     }
 }
