@@ -867,3 +867,6 @@ export const VAEL2_VIEWS = [
     },
   }),
 ];
+
+/** The world's sheets and views (the registry, reference-worlds.js, loads them by these names). */
+export { VAEL2_SHEETS as SHEETS, VAEL2_VIEWS as VIEWS };

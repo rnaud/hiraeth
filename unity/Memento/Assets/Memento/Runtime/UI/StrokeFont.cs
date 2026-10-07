@@ -5,7 +5,7 @@ namespace Memento
 {
     /// <summary>
     /// Thin geometric capitals drawn as pen strokes (a Sketch), for the airy lettering the web sets
-    /// in Avenir Next Ultra Light (the title's MEMENTO, the charge card's SOMETHING OF VALUE): the
+    /// in Avenir Next Ultra Light (the title's HIRAETH, the charge card's SOMETHING OF VALUE): the
     /// system gives Unity's text only the regular and bold weights. Each letter is a few polylines
     /// in a box one cap-height tall; its width is its own.
     /// </summary>

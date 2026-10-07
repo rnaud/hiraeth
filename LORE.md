@@ -1,4 +1,4 @@
-# Memento: the story and the lore
+# Hiraeth: the story and the lore
 
 > **Dialogue revision, 2026-10-05:** The current script and character voices
 > are documented in [lore/README.md](lore/README.md). Quoted dialogue below

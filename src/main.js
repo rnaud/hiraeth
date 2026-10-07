@@ -687,7 +687,7 @@ const params = {
   debug: 0,
   ink: '#2b211f',
 };
-const gui = new GUI({ title: 'Memento shader' });
+const gui = new GUI({ title: 'Hiraeth shader' });
 gui.add(params, 'preset', Object.keys(PRESETS)).name('style preset').onChange(applyPreset);
 gui.add({ level: levelId }, 'level', Object.fromEntries(LEVELS.map((l) => [l.title, l.id])))
   .name('level').onChange((v) => { location.search = '?level=' + v; });
@@ -1037,6 +1037,7 @@ const controller = new Controller({
     if (name === 'select') journal.toggle(!journal.open);
     // LB / L1, RB / R1 in the game menu: the panel before, the one after
     if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === journal.el) journal.menu.turn(name === 'tabPrev' ? -1 : 1);
+    if ((name === 'tabPrev' || name === 'tabNext') && quickMenu && menuRoot() === quickMenu.el) quickMenu.turn?.(name === 'tabPrev' ? -1 : 1);   // (the References' list: the world before / after)
     if (name === 'confirm') {
       const root = menuRoot();
       if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f) && storyRt.dialogue.revealed >= storyRt.dialogue.runner.text.length) f.click(); else storyRt.dialogue.next(); }

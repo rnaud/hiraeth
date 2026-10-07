@@ -1,18 +1,20 @@
 import { sheetSrc } from './reference-sheets.js';
 // ---------------------------------------------------------------------------
-// The References' quick menu (src/levels/references.js): every view at a glance, grouped by
-// world and then by sheet, each with a tiny picture of its panel (cut from its sheet on a canvas
-// with the view's own crop: no image files of its own), its number and its title. Choose one and
-// the level fades straight to it (level.goTo).
+// The References' quick menu (src/levels/references.js): every view of every world at a glance,
+// grouped by world and then by sheet, each with a tiny picture of its panel (cut from its sheet on a
+// canvas with the view's own crop: no image files of its own), its number and its title. Choose one
+// and the level fades straight to it (level.goTo), or loads the page at it if it is another world's.
 //
 //   open / close   Tab (keyboard) · X / □ (pad, free in this level: there is no mount to call)
 //                  · the small "views" button at the top left (touch, mouse) · B / ○ or Esc closes
 //   move           mouse · arrows and Enter · d-pad or left stick and A / × (main.js routes the pad
 //                  here while it is open: level.quickMenu)
+//   by world       the worlds' names at the top · Page Up / Page Down · LB / RB (main.js: turn)
 //
-// The list is read from REFERENCE_VIEWS and REFERENCE_SHEETS when it is first opened, so views
-// added to the view files show up by themselves. The thumbnails are drawn once, as each sheet
-// image arrives (the current view's sheet first).
+// The list is read when it is first opened: every world's module (reference-worlds.js, loadAllWorlds:
+// only their code, nothing is built), so views added to the world files show up by themselves. The
+// thumbnails are drawn once, as each sheet image arrives: the current world's sheets first, the others'
+// as their world comes into sight in the list.
 // ---------------------------------------------------------------------------
 
 /** The world a view belongs to: its own `world`, its sheet's, or the start of its sheet's name ("The Desert / IMG_3775.JPG"). */
@@ -99,18 +101,28 @@ const CSS = `
   #ref-picker footer .pad { display: none; }
   body.controller #ref-picker footer .pad { display: inline; }
   body.controller #ref-picker footer .kb { display: none; }
+  #ref-picker nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 clamp(12px, 2.4vw, 26px) clamp(6px, 1.2vh, 10px); }
+  #ref-picker nav button { font: inherit; font-size: 11px; padding: 3px 8px; color: #2b211f; cursor: pointer; background: rgba(255, 252, 244, 0.6);
+    border: 1px solid rgba(43, 33, 31, 0.25); border-radius: 3px; }
+  #ref-picker nav button:hover, #ref-picker nav button:focus { outline: none; background: #fffaf0; border-color: #2b211f; }
+  #ref-picker nav button.here { border-color: #c8483a; color: #c8483a; }
   @media (pointer: coarse) { body:not(.controller) #ref-picker footer { display: none; } }
 `;
 
 export class ReferencePicker {
   /**
-   * @param o.views    the level's views (REFERENCE_VIEWS)
-   * @param o.sheets   REFERENCE_SHEETS
+   * @param o.views    the views, numbered across the worlds (REFERENCE_VIEWS), or
+   * @param o.load     () => a promise of the worlds ([{ name, views, sheets }], reference-worlds.js
+   *                   loadAllWorlds), read on the first opening
+   * @param o.sheets   the sheets by key (with o.views)
+   * @param o.world    the world you are in (its thumbnails are drawn first)
    * @param o.current  () => the index of the view you are in (marked, and focused on opening)
    * @param o.goTo     (index) => the level fades to that view
    */
-  constructor({ views, sheets, current = () => 0, goTo = () => {}, win = globalThis.window, doc = globalThis.document }) {
-    Object.assign(this, { views, sheets, current, goTo, win, doc });
+  constructor({ views = null, sheets = null, load = null, world = 0, current = () => 0, goTo = () => {}, win = globalThis.window, doc = globalThis.document }) {
+    Object.assign(this, { views, sheets, current, goTo, win, doc, world });
+    this.loader = load;
+    this.ready = views ? Promise.resolve(this) : null;
     this.open = false;
     this.el = null;            // the overlay (main.js: the root of the pad's menu navigation while open)
     this.items = [];           // the entries' buttons, in view order
@@ -119,6 +131,16 @@ export class ReferencePicker {
     this.onKey = this.onKey.bind(this);
     if (win?.addEventListener) win.addEventListener('keydown', this.onKey, true);   // (capture: before the game's own keys)
     this.addButton();
+  }
+
+  /** The views and sheets of every world (o.load), once: a promise of the picker. */
+  prepare() {
+    this.ready ??= Promise.resolve(this.loader?.() ?? []).then((worlds) => {
+      this.views = worlds.flatMap((w) => w.views);
+      this.sheets = Object.assign({}, ...worlds.map((w) => w.sheets));
+      return this;
+    });
+    return this.ready;
   }
 
   /** The small button for touch and the mouse. */
@@ -145,7 +167,7 @@ export class ReferencePicker {
 
   /** The overlay and every entry, on the first opening (from the views as they are now). */
   build() {
-    if (this.el || !this.doc?.createElement || !this.doc.body?.append) return;
+    if (this.el || !this.views || !this.doc?.createElement || !this.doc.body?.append) return;
     const doc = this.doc;
     this.style();
     this.groups = pickerGroups(this.views, this.sheets);
@@ -156,18 +178,26 @@ export class ReferencePicker {
     const card = doc.createElement('div');
     card.className = 'card';
     card.innerHTML = `<header><h2>References</h2><span class="count">${this.views.length} views · ${this.groups.length} worlds</span>`
-      + '<button class="close" type="button" aria-label="Close">×</button></header><div class="list"></div>'
-      + '<footer><span class="kb">arrows choose · Enter goes there · Tab or Esc closes</span>'
-      + '<span class="pad">D-pad or left stick choose · A / × goes there · B / ○ closes</span></footer>';
-    const list = card.querySelector('.list');
+      + '<button class="close" type="button" aria-label="Close">×</button></header><nav aria-label="Worlds"></nav><div class="list"></div>'
+      + '<footer><span class="kb">arrows choose · Enter goes there · Page Up / Down: the world before / after · Tab or Esc closes</span>'
+      + '<span class="pad">D-pad or left stick choose · A / × goes there · LB / RB: the world before / after · B / ○ closes</span></footer>';
+    const list = card.querySelector('.list'), nav = card.querySelector('nav');
     this.items = new Array(this.views.length);
-    this.canvases = new Map();   // sheet → [{ canvas, entry, w, h }]
+    this.canvases = new Map();   // sheet → [{ canvas, entry }]
+    this.sections = [];          // per world: { section, first (its first view's index), sheets, chip }
     const dpr = Math.min(2, this.win?.devicePixelRatio || 1);
     for (const w of this.groups) {
       const sec = doc.createElement('section');
       sec.className = 'world';
       const n = w.sheets.reduce((a, s) => a + s.entries.length, 0);
       sec.innerHTML = `<h3>${esc(w.world)}<span>${n} view${n === 1 ? '' : 's'}</span></h3>`;
+      const chip = doc.createElement('button');
+      chip.type = 'button';
+      chip.textContent = `${w.world} · ${n}`;
+      const at = { section: sec, first: w.sheets[0].entries[0].index, sheets: w.sheets.map((s) => s.sheet), chip };
+      chip.addEventListener('click', (ev) => { ev.stopPropagation(); this.focus(at.first, 'start'); });
+      nav.append(chip);
+      this.sections.push(at);
       for (const s of w.sheets) {
         const block = doc.createElement('div');
         block.className = 'sheet';
@@ -210,19 +240,30 @@ export class ReferencePicker {
     this.list = list;
   }
 
-  /** The sheets, loaded once (the current view's first); each one's thumbnails are drawn as it arrives. */
+  /** The world (its place in this.sections) view i is in. */
+  worldAt(i) {
+    let k = 0;
+    for (let j = 0; j < (this.sections?.length ?? 0); j++) if (this.sections[j].first <= i) k = j;
+    return k;
+  }
+
+  /**
+   * The sheets' images, each loaded once: the current world's at once (the current view's sheet first),
+   * every other world's as its part of the list comes near the screen (all at once without an observer).
+   */
   load() {
     if (this.loading || !this.canvases || typeof Image === 'undefined') return;
     this.loading = true;
-    const first = this.views[this.current()]?.sheet;
-    const order = [...this.canvases.keys()].sort((a, b) => (b === first) - (a === first));
-    for (const key of order) {
+    this.loaded = new Set();
+    const sheet = (key) => {
+      if (this.loaded.has(key)) return;
+      this.loaded.add(key);
       const url = this.sheets[key]?.url;
-      if (!url) continue;
+      if (!url) return;
       const img = new Image();
       img.decoding = 'async';
       img.onload = () => {
-        for (const { canvas, entry } of this.canvases.get(key)) {
+        for (const { canvas, entry } of this.canvases.get(key) ?? []) {
           const ctx = canvas.getContext('2d');
           if (!ctx) continue;
           ctx.imageSmoothingQuality = 'high';
@@ -231,12 +272,26 @@ export class ReferencePicker {
         }
       };
       img.src = sheetSrc(url);
-    }
+    };
+    const here = this.sections[this.worldAt(this.current())];
+    const first = this.views[this.current()]?.sheet;
+    if (here) for (const key of [...here.sheets].sort((a, b) => (b === first) - (a === first))) sheet(key);
+    const IO = this.win?.IntersectionObserver;
+    if (!IO) { for (const key of this.canvases.keys()) sheet(key); return; }
+    const io = new IO((seen) => {
+      for (const s of seen) if (s.isIntersecting) { const at = this.sections.find((x) => x.section === s.target); at?.sheets.forEach(sheet); io.unobserve(s.target); }
+    }, { root: this.list, rootMargin: '400px 0px' });
+    for (const at of this.sections) io.observe(at.section);
   }
 
   toggle(on = !this.open) {
     if (on === this.open) return this.open;
     if (on) {
+      if (!this.views) {   // (the worlds' views are read on the first opening: it opens once they are here)
+        this.wanted = true;
+        this.prepare().then(() => { if (this.wanted) { this.wanted = false; this.toggle(true); } }, (e) => console.warn('the reference views did not load', e));
+        return false;
+      }
       this.build();
       if (!this.el) return false;
       this.open = true;
@@ -246,9 +301,11 @@ export class ReferencePicker {
       const cur = this.current();
       for (const b of this.items) b?.classList.remove('current');
       this.items[cur]?.classList.add('current');
+      this.sections.forEach((s, k) => s.chip.classList.toggle('here', k === this.worldAt(cur)));
       this.focus(cur, 'center');
       this.load();
     } else {
+      this.wanted = false;
       this.open = false;
       this.el?.classList.remove('open');
       this.doc?.body?.classList.remove('ref-picking');
@@ -272,6 +329,13 @@ export class ReferencePicker {
     if (!b) return;
     b.focus({ preventScroll: true });
     b.scrollIntoView({ block, inline: 'nearest' });
+  }
+
+  /** The focus to the first view of the world before (-1) or after (+1) the focused one's (Page Up / Down, LB / RB). */
+  turn(d) {
+    if (!this.open || !this.sections?.length) return;
+    const n = this.sections.length, k = (((this.worldAt(this.focused()) + Math.sign(d)) % n) + n) % n;
+    this.focus(this.sections[k].first, 'start');
   }
 
   /**
@@ -309,6 +373,7 @@ export class ReferencePicker {
     if (dir) { stop(); this.navigate(...dir); }
     else if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') { stop(); if (!e.repeat) this.choose(this.focused()); }
     else if (e.code === 'Escape') { stop(); this.toggle(false); }
+    else if (e.code === 'PageUp' || e.code === 'PageDown') { stop(); this.turn(e.code === 'PageUp' ? -1 : 1); }
     else if (e.code === 'Home' || e.code === 'End') { stop(); this.focus(e.code === 'Home' ? 0 : this.items.length - 1); }
   }
 }

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { colourScript } from '../timeofday.js';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { RoomKit } from './lab-kit.js';
-import { REFERENCE_VIEWS, REFERENCE_SHEETS } from './reference-views.js';
+import { REFERENCE_WORLDS, loadWorld, loadedWorld, loadAllWorlds, startOf, findView, firstView, totalViews, locateView, viewSearch } from './reference-worlds.js';
 import { stepped } from '../load-steps.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { DESERT_LOOK } from '../desert-sites.js';
@@ -11,6 +11,7 @@ import { BURIED_DAY, BURIED_SPOTS } from './buried.js';
 import { SPHERES_DAY, SPHERES_LOOK } from './spheres.js';
 import { DEEP_WOOD_DAY, DEEP_WOOD_LOOK } from './perdide2.js';
 import { MARKET_DAY, MARKET_LOOK } from './bazaar.js';
+import { MANGROVE_DAY, MANGROVE_LOOK } from './mangrove-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
 
@@ -20,29 +21,45 @@ import { sheetSrc } from './reference-sheets.js';
 // own materials, sky, light and ink, each seen from a fixed camera framed like its
 // panel, so the shaders can be checked against the look they are after.
 //
-//   a view      one panel (src/levels/reference-views.js): its ground, what stands
-//               on it, its sky and shadow colours, its sun (beside / above the
+//   a world     the views of one world's sheets (reference-worlds.js, the registry:
+//               reference-<world>.js holds them). Only the world you are in is
+//               loaded and built; going to another loads the page again at it, so
+//               the one you leave goes with the page
+//   a view      one panel (reference-views.js describes its fields): its ground, what
+//               stands on it, its sky and shadow colours, its sun (beside / above the
 //               camera) and its camera (eye, heading, field of view, where the
 //               horizon sits in the frame)
-//   [ and ]     the previous / next view (L3 / R3 on a pad); each switch frames
-//               the camera on the panel again. Walk or look and the camera is
-//               yours (the traveller appears where the view's camera stood)
+//   [ and ]     the previous / next view (L3 / R3 on a pad), on into the next world at
+//               a world's end; each switch frames the camera on the panel again. Walk
+//               or look and the camera is yours (the traveller appears where the
+//               view's camera stood)
+//   { and }     the previous / next world (shift + [ ]; in the quick menu, Tab or
+//               X / □: Page Up / Down, LB / RB, or a world's name)
 //   \           the comparison (View on a pad): off → the panel in a corner →
 //               the panel over the frame, half seen through → the panel over the
 //               left half of the frame → off
+//   the address ?level=references&world=<id>&view=<n> (the n-th view of that world),
+//               &view=<n> alone (the n-th across the worlds, as the label numbers
+//               them) or &view=<a view's id>
 //
-// The views lie far apart on a grid (VIEW_SPACING) and only the one you are in is
-// drawn, as with the Lab's rooms. Each is authored in its own frame, looking
-// down -z from its camera; its group is turned about the vertical so the sun of
-// the view's hour comes from the side the panel is lit from (sunTurn). Nothing
-// here touches the renderer: the views are ordinary scenery, sky scripts, hours
-// and ink presets.
+// The views lie far apart on a grid (VIEW_SPACING), each in the cell of its number,
+// and only the one you are in is drawn, as with the Lab's rooms. Each is authored in
+// its own frame, looking down -z from its camera; its group is turned about the
+// vertical so the sun of the view's hour comes from the side the panel is lit from
+// (sunTurn). Nothing here touches the renderer: the views are ordinary scenery, sky
+// scripts, hours and ink presets.
 // ---------------------------------------------------------------------------
 
 /** The views' centres lie on a square grid this far apart (m): only the one you are in is drawn. */
 export const VIEW_SPACING = 3300;
-/** Cells per side (even: no view at the origin, where the ship's site is). */
-const GRID = 2 * Math.ceil(Math.sqrt(REFERENCE_VIEWS.length) / 2);
+/**
+ * Cells per side (even: no view at the origin, where the ship's site is). 14 × 14 cells: view n stands in
+ * cell n - 1, and past the 196th the numbers go round the grid again (only one world is built at a time,
+ * and no world has that many views: tests/reference-worlds.test.js), so the grid never grows and every
+ * view keeps the place, and so the look, it has always had.
+ */
+const GRID = 14;
+const CELLS = GRID * GRID;
 /** How far out the grid reaches (m): its farthest centre on either axis. */
 export const VIEW_EXTENT = ((GRID - 1) / 2) * VIEW_SPACING;
 /** Past this far from a view's centre (m) you are put back at its camera. */
@@ -51,8 +68,11 @@ const Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 const PASS = { in: 0.18, out: 0.45 };   // s: the fade between views
 const DEG = Math.PI / 180;
 
-/** A view's centre in the world. */
-export const viewCentre = (i) => new THREE.Vector3(((i % GRID) - (GRID - 1) / 2) * VIEW_SPACING, 0, (Math.floor(i / GRID) - (GRID - 1) / 2) * VIEW_SPACING);
+/** A view's centre in the world (i: its number across the worlds, 0-based). */
+export const viewCentre = (i) => {
+  const c = ((i % CELLS) + CELLS) % CELLS;
+  return new THREE.Vector3(((c % GRID) - (GRID - 1) / 2) * VIEW_SPACING, 0, (Math.floor(c / GRID) - (GRID - 1) / 2) * VIEW_SPACING);
+};
 
 // the sun of timeofday.js: up from 6 to 18, at most 62° high, from azimuth 30° (6:00) round to 210° (18:00)
 const SUN_MAX_EL = 62, AZ_OFFSET = 30;
@@ -124,9 +144,9 @@ export function ringGround(height, { at = [0, 0], r0 = 0.6, r1 = 2200, rings = 1
   return g;
 }
 
-/** The panel's crop of its sheet as CSS (a background on a box w × h px). */
-export function cropStyle(view, w, h) {
-  const sheet = REFERENCE_SHEETS[view.sheet];
+/** The panel's crop of its sheet (sheets: the world's, by key) as CSS: a background on a box w × h px. */
+export function cropStyle(view, w, h, sheets) {
+  const sheet = sheets[view.sheet];
   const [x, y, cw, ch] = view.crop;
   const sx = w / cw, sy = h / ch;
   return {
@@ -136,20 +156,25 @@ export function cropStyle(view, w, h) {
   };
 }
 
-/** A point of a view's own frame (x, z) in the world. */
-function viewToWorld(i, x, z) {
-  const c = viewCentre(i), a = sunTurn(REFERENCE_VIEWS[i].sun, REFERENCE_VIEWS[i].camera.yaw), cs = Math.cos(a), sn = Math.sin(a);
+/** A point of a view's own frame (x, z) in the world (i: the view's number, 0-based). */
+function viewToWorld(i, def, x, z) {
+  const c = viewCentre(i), a = sunTurn(def.sun, def.camera.yaw), cs = Math.cos(a), sn = Math.sin(a);
   return [c.x + x * cs + z * sn, c.z - x * sn + z * cs, a];
 }
-/** The panels' people (content.js), standing where their panel has them: small figures in the distance. */
-export const REFERENCE_PEOPLE = REFERENCE_VIEWS.flatMap((def, i) => (def.people ?? []).map((p) => {
-  const [x, z, a] = viewToWorld(i, p.at[0], p.at[1]);
-  return {
-    at: [x, z], y: def.ground.height(p.at[0], p.at[1]), radius: 0, shy: false, facing: (p.facing ?? 0) + a, view: def.id,
-    palette: p.palette, head: p.head, kind: p.kind ?? 'm',
-    lines: ['~neutral~ I stand where the drawing put me.', '~curious~ From here, do I look the way I should?'],
-  };
-}));
+/** A world's panels' people (content.js), standing where their panel has them: small figures in the distance. */
+export function worldPeople(world) {
+  return world.views.flatMap((def, j) => (def.people ?? []).map((p) => {
+    const [x, z, a] = viewToWorld(world.first + j, def, p.at[0], p.at[1]);
+    return {
+      at: [x, z], y: def.ground.height(p.at[0], p.at[1]), radius: 0, shy: false, facing: (p.facing ?? 0) + a, view: def.id,
+      palette: p.palette, head: p.head, kind: p.kind ?? 'm',
+      lines: ['~neutral~ I stand where the drawing put me.', '~curious~ From here, do I look the way I should?'],
+    };
+  }));
+}
+let peopleBuilt = [];
+/** The people of the world built last (content.js: the level's npcs, read once the level is built). */
+export const referencePeople = () => peopleBuilt;
 
 const COMPARE = ['off', 'corner', 'overlay', 'half'];
 const COMPARE_NAMES = { off: 'off', corner: 'the panel in a corner', overlay: 'the panel over the frame', half: 'the panel on the left half' };
@@ -168,14 +193,32 @@ export const WORLD_LOOKS = {
   spheres: { sky: SPHERES_DAY, look: { ...SPHERES_LOOK } },
   lorn2: { sky: DEEP_WOOD_DAY, look: { ...DEEP_WOOD_LOOK } },
   bazaar: { sky: MARKET_DAY, look: { ...MARKET_LOOK } },
+  mangrove: { sky: MANGROVE_DAY, look: { ...MANGROVE_LOOK } },
 };
 
-// (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
-export function* buildReferences(scene) {
+const pageParams = () => (typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams());
+const pageSearch = () => (typeof location !== 'undefined' ? location.search : '');
+const pageGo = (search) => { if (typeof location !== 'undefined') location.assign(search); };
+
+/**
+ * One world's views, built (built in steps, src/load-steps.js: the game's load gives the main thread back
+ * between them). Its module is imported first (a yielded promise: the async runner waits for it; the sync
+ * one, createReferences, needs it loaded already: loadWorld).
+ *   params     the address's query (?world=, ?view=, ?look=): where it opens
+ *   go         (search) => going to another world's view: the page loads again at that address
+ *   search     the address's query as text (what `go` keeps of it)
+ */
+export function* buildReferences(scene, { params = pageParams(), go = pageGo, search = pageSearch() } = {}) {
   // ?look=<world> (WORLD_LOOKS): the views in that world's own colours and ink, not the panels'
-  const asWorld = typeof location !== 'undefined' ? WORLD_LOOKS[new URLSearchParams(location.search).get('look')] ?? null : null;
+  const asWorld = WORLD_LOOKS[params.get('look')] ?? null;
+  let start = startOf(params);
+  if (start.id) start = (yield findView(start.id)) ?? { k: 0, local: 0 };
+  const world = loadedWorld(start.k) ?? (yield loadWorld(start.k));
   const lights = [], noShadow = [], movers = [];
-  const views = REFERENCE_VIEWS.map((def, i) => {
+  const views = [];
+  for (const [j, def] of world.views.entries()) {
+    yield;
+    const i = world.first + j;   // (the view's number across the worlds: its cell and its seeds, as they have always been)
     const centre = viewCentre(i);
     const group = new THREE.Group();
     group.name = `Reference: ${def.title}`;
@@ -211,8 +254,8 @@ export function* buildReferences(scene) {
     // where the traveller stands while the camera is held: on the ground under the eye, facing the view
     const stand = new THREE.Vector3(def.camera.eye[0], H(def.camera.eye[0], def.camera.eye[2]) + 0.05, def.camera.eye[2]);
     const fwd = target.clone().sub(eye).setY(0).normalize();
-    return {
-      def, i, centre, group, H, hour, cam, eye, target,
+    views.push({
+      def, i, local: j, centre, group, H, hour, cam, eye, target,
       stand: toWorld(stand), heading: Math.atan2(fwd.x, fwd.z),
       toLocal: (x, z) => {   // world x, z → the view's own frame
         const dx = x - centre.x, dz = z - centre.z, a = group.rotation.y, c = Math.cos(a), s = Math.sin(a);
@@ -220,8 +263,9 @@ export function* buildReferences(scene) {
       },
       zone: { name: `References · ${def.title}`, preset: def.preset ?? 'Moebius print', look: asWorld ? asWorld.look : def.look ?? {}, planets: [], hour },
       atmo: { tint: [1, 1, 1], fog: def.fog ?? 0.35, name: `References · ${def.title}`, script },
-    };
-  });
+    });
+  }
+  peopleBuilt = worldPeople(world);
   const viewAt = (x, z) => {
     for (const v of views) if ((x - v.centre.x) ** 2 + (z - v.centre.z) ** 2 < 1500 * 1500) return v;
     return null;
@@ -256,21 +300,24 @@ export function* buildReferences(scene) {
       v.group.visible = v === view;
     }
   };
-  show(views[0]);
+  const first = views[start.local] ?? views[0];
+  show(first);
 
-  // ---- the held camera, the switch between views, the comparison
+  // ---- the held camera, the switch between views and worlds, the comparison
   yield;
+  const total = totalViews(), worlds = REFERENCE_WORLDS.length;
   let held = null;       // { view, pos, yaw, pitch, mouse }: the camera is the panel's until you move or look
   let pending = 0;       // a switch asked for ([ ], L3 / R3)
-  let pendingTo = null;  // or a view by its index (goTo)
+  let pendingTo = null;  // or a view by its number (goTo)
   let passing = null;    // the fade between two views
+  let leaving = null;    // { k, local, t }: going to another world's view (a fade, then the page loads there)
   let compare = 0;       // COMPARE[compare]
   let baseFov = null;
   let ui = null;
   const keys = (e) => {
     if (e.repeat || e.target?.closest?.('input, textarea, select')) return;
-    if (e.code === 'BracketRight') pending = 1;
-    else if (e.code === 'BracketLeft') pending = -1;
+    if (e.code === 'BracketRight') { if (e.shiftKey) level.jumpWorld(1); else pending = 1; }
+    else if (e.code === 'BracketLeft') { if (e.shiftKey) level.jumpWorld(-1); else pending = -1; }
     else if (e.code === 'Backslash') level.compare();
   };
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('keydown', keys);
@@ -315,10 +362,10 @@ export function* buildReferences(scene) {
     Object.assign(ui.frame.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.w}px`, height: `${box.h}px`, display: held ? '' : 'none' });
     ui.frame.className = mode;
     const rw = mode === 'corner' ? Math.round(box.w * 0.36) : box.w, rh = mode === 'corner' ? Math.round(rw * def.crop[3] / def.crop[2]) : box.h;
-    Object.assign(ui.ref.style, cropStyle(def, rw, rh), mode === 'corner' ? { width: `${rw}px`, height: `${rh}px` } : { width: '', height: '' });
-    const sheet = REFERENCE_SHEETS[def.sheet];
-    ui.label.innerHTML = `<b>REFERENCE ${view.i + 1} / ${views.length} · ${def.title}</b><br>${sheet.name}, panel ${def.panel} (${def.where})`
-      + `<br><span class="kb">[ ] view · Tab all views · \\ compare: ${COMPARE_NAMES[mode]}</span><span class="pad">L3 / R3 view · X / □ all views · View compare:${COMPARE_NAMES[mode]}</span>`
+    Object.assign(ui.ref.style, cropStyle(def, rw, rh, world.sheets), mode === 'corner' ? { width: `${rw}px`, height: `${rh}px` } : { width: '', height: '' });
+    const sheet = world.sheets[def.sheet];
+    ui.label.innerHTML = `<b>REFERENCE ${view.i + 1} / ${total} · ${def.title}</b><br>${world.name}, ${view.local + 1} of ${views.length} · ${sheet.name.split(' / ').pop()}, panel ${def.panel} (${def.where})`
+      + `<br><span class="kb">[ ] view · { } world · Tab all views · \\ compare: ${COMPARE_NAMES[mode]}</span><span class="pad">L3 / R3 view · X / □ all views · View compare:${COMPARE_NAMES[mode]}</span>`
       + (held ? '' : '<br><i>walking: [ or ] frames the panel again</i>');
     void camera;
   }
@@ -344,37 +391,54 @@ export function* buildReferences(scene) {
     const cam = ctx.camera;
     if (cam && baseFov !== null && cam.fov !== baseFov) { cam.fov = baseFov; cam.updateProjectionMatrix(); }
   }
+  /** View i (its number across the worlds, 0-based): framed here if it is this world's, else the page goes to its world. */
+  function toView(i) {
+    const at = locateView(((i % total) + total) % total);
+    if (!at) return;
+    if (at.k === world.k) pendingTo = at.local;
+    else leaving ??= { ...at, t: 0 };
+  }
 
   const level = {
     id: 'references',
     ground,
     envGround: '#e9c27d',
-    spawn: views[0].stand.clone(),
-    spawnHeading: views[0].heading,
-    camYaw: views[0].heading + Math.PI,
+    spawn: first.stand.clone(),
+    spawnHeading: first.heading,
+    camYaw: first.heading + Math.PI,
     features: { mount: false, wind: false, jetpack: true, climb: true },
-    // (the hour of the view you open on: ?view=n frames it on the first frame, before any zone change sets it)
-    defaults: { hour: (views[Number(typeof location !== 'undefined' ? new URLSearchParams(location.search).get('view') : 0) - 1] ?? views[0]).hour, preset: 'Moebius print', cloudShadows: 0 },
+    // (the hour of the view you open on: it is framed on the first frame, before any zone change sets it)
+    defaults: { hour: first.hour, preset: 'Moebius print', cloudShadows: 0 },
     killY: -Infinity,
     limit: VIEW_EXTENT + 1600,
     shipSite: { x: 0, z: 0, heading: 0 },   // at the origin, far from every view
     lights, noShadow,
     reactions: false,   // (no responsive flowers in the panels: reactive-world.js)
+    /** This world's views (each with i, its number across the worlds, and local, its place in the world). */
     views,
+    /** The world built: { k, id, name, first, count, views, sheets } (reference-worlds.js). */
+    world,
+    worlds: REFERENCE_WORLDS,
     viewAt,
-    /** The previous (-1) or next (+1) view, framed on its panel ([ ], L3 / R3). */
+    /** The previous (-1) or next (+1) view, framed on its panel ([ ], L3 / R3); past a world's end, the next world's. */
     jump: (d) => { pending = d; },
-    /** Frame view i (0-based; ?view=<n> in the address opens on view n, 1-based). */
-    goTo: (i) => { pendingTo = ((i % views.length) + views.length) % views.length; },
+    /** The previous (-1) or next (+1) world's first view ({ }, the quick menu). */
+    jumpWorld: (d) => { const k = (((world.k + d) % worlds) + worlds) % worlds; toView(firstView(k)); },
+    /** Frame view i (its number across the worlds, 0-based; ?view=<n> in the address opens on view n, 1-based). */
+    goTo: (i) => toView(i),
+    /** Where the page goes for another world's view (?level=references&world=<id>&view=<n>). */
+    address: (k, local) => viewSearch(search, k, local),
+    /** Where the level is going (another world's view: { k, local }), or null. */
+    get leaving() { return leaving ? { k: leaving.k, local: leaving.local } : null; },
     /** The next comparison mode (\, View): off, the panel in a corner, over the frame, over its left half. */
     compare: () => { compare = (compare + 1) % COMPARE.length; if (ui) ui.key = ''; return COMPARE[compare]; },
     get comparing() { return COMPARE[compare]; },
     get held() { return held?.view ?? null; },
-    /** The quick menu of every view, each with its panel's thumbnail (reference-picker.js: Tab, X / □, the views button). */
-    quickMenu: new ReferencePicker({ views: REFERENCE_VIEWS, sheets: REFERENCE_SHEETS, current: () => shown?.i ?? 0, goTo: (i) => level.goTo(i) }),
-    sky: { script: { day: asWorld?.sky ?? views[0].def.sky, dusk: asWorld?.sky ?? views[0].def.sky, night: asWorld?.sky ?? views[0].def.sky } },
-    atmo: (x, z) => viewAt(x, z)?.atmo ?? views[0].atmo,
-    zoneAt: (p) => viewAt(p.x, p.z)?.zone ?? views[0].zone,
+    /** The quick menu of every view of every world, each with its panel's thumbnail (reference-picker.js: Tab, X / □, the views button). */
+    quickMenu: new ReferencePicker({ load: loadAllWorlds, world: world.k, current: () => shown?.i ?? first.i, goTo: (i) => level.goTo(i) }),
+    sky: { script: { day: asWorld?.sky ?? first.def.sky, dusk: asWorld?.sky ?? first.def.sky, night: asWorld?.sky ?? first.def.sky } },
+    atmo: (x, z) => viewAt(x, z)?.atmo ?? first.atmo,
+    zoneAt: (p) => viewAt(p.x, p.z)?.zone ?? first.zone,
     update(dt, t, ctx = {}) {
       for (const m of movers) m(t);
       const { player, camera, rig } = ctx;
@@ -382,25 +446,34 @@ export function* buildReferences(scene) {
       const p = player.pos;
       let here = viewAt(p.x, p.z);
       if (camera && baseFov === null) baseFov = camera.fov;
-      // the first frame: the panel of the view you are in (or the first)
+      // the first frame: the panel of the view the address asks for (or the world's first)
       if (!held && !passing && !level._started) {
         level._started = true;
-        const asked = typeof location !== 'undefined' ? Number(new URLSearchParams(location.search).get('view')) : 0;
-        frame(asked >= 1 && asked <= views.length ? views[asked - 1] : here ?? views[0], ctx);
+        frame(first, ctx);
         here = viewAt(p.x, p.z);
       }
       if (here) show(here);
+      if (leaving) {
+        // to another world: a fade, then the page loads at its view (the world here goes with the page)
+        if (!leaving.t) ctx.fade?.(0.95, PASS.in);
+        leaving.t += dt;
+        if (!leaving.gone && (leaving.t >= PASS.in || !ctx.fade)) { leaving.gone = true; go(level.address(leaving.k, leaving.local)); }
+        return;
+      }
       // between views: a quick fade, then the next panel's framing
       if (passing) {
         passing.t += dt;
         if (!passing.done && passing.t >= PASS.in) { passing.done = true; frame(passing.to, ctx); ctx.fade?.(0, PASS.out); }
         if (passing.t >= PASS.in + PASS.out) passing = null;
       } else if (pending || pendingTo !== null) {
-        const n = views.length, i = here ? here.i : 0, j = pendingTo ?? (i + pending + n) % n;
+        const n = views.length, j = pendingTo ?? (here ? here.local : 0) + pending;
         pending = 0; pendingTo = null;
-        passing = { to: views[j], t: 0, done: false };
-        ctx.fade?.(0.95, PASS.in);
-        if (!ctx.fade) { passing.t = PASS.in; passing.done = true; frame(views[j], ctx); passing = null; }
+        if (j < 0 || j >= n) toView(world.first + j);   // (past the world's first or last view: on into the world before or after)
+        if (j >= 0 && j < n) {
+          passing = { to: views[j], t: 0, done: false };
+          ctx.fade?.(0.95, PASS.in);
+          if (!ctx.fade) { passing.t = PASS.in; passing.done = true; frame(views[j], ctx); passing = null; }
+        }
       } else if (here && (Math.hypot(p.x - here.centre.x, p.z - here.centre.z) > VIEW_REACH)) {
         frame(here, ctx);   // strayed off the view's ground: back at its camera
       }
@@ -425,4 +498,5 @@ export function* buildReferences(scene) {
   yield;
   return level;
 }
+/** The level at once (tests): the world it opens on must be loaded already (await loadWorld(k)). */
 export const createReferences = stepped(buildReferences);

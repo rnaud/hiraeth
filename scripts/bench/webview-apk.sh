@@ -5,7 +5,7 @@
 #
 # It is the same app (android/: WebViewActivity, the gamepad bridge, the WebView settings) copied
 # into $WORK and changed there only, never in android/:
-#   - its own package id com.rnaud.moebius.perf and name "Memento (perf)", so it installs beside the
+#   - its own package id com.rnaud.moebius.perf and name "Hiraeth (perf)", so it installs beside the
 #     player's com.rnaud.moebius and never touches it or its saves;
 #   - WebView debugging on (a debug build), so DevTools reaches its page through
 #     adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>;
@@ -32,7 +32,7 @@ rsync -a "$PLUGINS/" "$WORK/android/capacitor-cordova-android-plugins/"
 A=$WORK/android/app
 sed -i '' "s/applicationId \"com.rnaud.moebius\"/applicationId \"$PKG\"/" "$A/build.gradle"
 grep -q "applicationId \"$PKG\"" "$A/build.gradle" || { echo "could not set the package id" >&2; exit 1; }
-sed -i '' 's#<string name="app_name">.*</string>#<string name="app_name">Memento (perf)</string>#; s#<string name="title_activity_main">.*</string>#<string name="title_activity_main">Memento (perf)</string>#' "$A/src/main/res/values/strings.xml"
+sed -i '' 's#<string name="app_name">.*</string>#<string name="app_name">Hiraeth (perf)</string>#; s#<string name="title_activity_main">.*</string>#<string name="title_activity_main">Hiraeth (perf)</string>#' "$A/src/main/res/values/strings.xml"
 J=$A/src/main/java/com/rnaud/moebius
 for f in MainActivity WebViewActivity; do
   sed -i '' 's#^\( *\)new Updater(this, bundles).check();#\1// (perf build: no APK updater)#' "$J/$f.java"
@@ -45,12 +45,12 @@ grep -q "perf build: always the WebView" "$J/MainActivity.java" || { echo "could
 sed -i '' 's#<application#<application android:usesCleartextTraffic="true"#' "$A/src/main/AndroidManifest.xml"
 mkdir -p "$A/src/main/assets/public"
 cat > "$A/src/main/assets/capacitor.config.json" <<EOF
-{ "appId": "$PKG", "appName": "Memento (perf)", "webDir": "dist", "backgroundColor": "#f7ecd2",
+{ "appId": "$PKG", "appName": "Hiraeth (perf)", "webDir": "dist", "backgroundColor": "#f7ecd2",
   "server": { "url": "$URL", "cleartext": true },
   "android": { "backgroundColor": "#f7ecd2", "allowMixedContent": true, "captureInput": true, "webContentsDebuggingEnabled": true } }
 EOF
 echo '[]' > "$A/src/main/assets/capacitor.plugins.json"
-echo '<!doctype html><title>Memento (perf)</title><p>loads the game from the bench server</p>' > "$A/src/main/assets/public/index.html"
+echo '<!doctype html><title>Hiraeth (perf)</title><p>loads the game from the bench server</p>' > "$A/src/main/assets/public/index.html"
 echo "sdk.dir=${ANDROID_HOME:-$HOME/Library/Android/sdk}" > "$WORK/android/local.properties"
 # Capacitor 8 asks for Java 21; its Java builds as 17 as well, so the copy (and a copy of capacitor-android)
 # compile at 17 on Unity's JDK, with no newer JDK needed

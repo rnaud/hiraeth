@@ -126,7 +126,7 @@ jobs:
           else
             # (one call: gh keeps the release a draft until every file is up, so the newest
             # release never shows without its manifest)
-            gh release create "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --target "$GITHUB_SHA" --title "Memento v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
+            gh release create "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --target "$GITHUB_SHA" --title "Hiraeth v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
           fi
 
       - uses: actions/upload-artifact@v5
