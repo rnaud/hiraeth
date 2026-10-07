@@ -93,10 +93,13 @@ view in headless Chrome on this Mac's GPU); one world is 2.0–4.4 s.
 - **Numbers and places stay put:** views are numbered across the worlds (the label's "REFERENCE n /
   169", `?view=n`, `level.goTo(i)`), each world's first being 1 + the counts before it. View n stands
   in grid cell n − 1, its seeds as before; the grid stays 14 × 14 (past 196 views the cells go round
-  again: one world is built at a time and no world has that many views). Sampling 18 views (two or
-  three a world) before and after, 13 rendered pixel-identical and 4 within 0.4 % (people mid-step,
-  water); the one that differed more had its lake's bed map baked sooner (one world's waters bake in
-  seconds, all seven's took longer than the shot's wait).
+  again: one world is built at a time and no world has that many views). I compared 18 views (two or
+  three per world) before and after, 1280 × 720. 11 were pixel-identical, and two more differed in under 0.01 % of their pixels. In
+  the others, at most 0.4 % of the pixels differ once settled, and every difference I traced was
+  something that moves: the panels' small figures (their idle pose, which
+  varies between two runs of the same build) and a lake's moving ripple strokes. With a 5 s wait,
+  that lake (view 140) also looked unfinished in the old build: there all seven worlds' waters
+  queue to bake their bed maps, so its map wasn't ready yet. With a 40 s wait it matches.
 - **The address:** `world=<id>&view=<n>` is the n-th view of that world (no `view`: its first);
   `view=<n>` alone the n-th across the worlds; `view=<a view's id>` that view, whichever world.
   Scripts that open a view (`scripts/changelog-shots.mjs`, `icons.mjs`, `steam-art.mjs`) open it by
