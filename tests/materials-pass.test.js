@@ -184,7 +184,9 @@ test('grass: something built over a cell (a slab, a path, a roof) keeps the blad
 
 test('grass: the presets grow fewer, closer blades on the handheld; grassy grounds are the ones drawn with ticks', () => {
   const n = (q) => Math.round(q.radius * 2 * Math.sqrt(q.density)) ** 2;
-  assert.ok(n(GRASS_QUALITY.handheld) < n(GRASS_QUALITY.medium) / 3);
+  // (a wider handheld patch since October 2026, still under Low's count and well under Medium's)
+  assert.ok(n(GRASS_QUALITY.handheld) < n(GRASS_QUALITY.medium) / 2.4);
+  assert.ok(n(GRASS_QUALITY.handheld) < n(GRASS_QUALITY.low));
   assert.ok(n(GRASS_QUALITY.low) < n(GRASS_QUALITY.medium));
   assert.ok(n(GRASS_QUALITY.handheld) <= 2500, `${n(GRASS_QUALITY.handheld)} tufts on the handheld`);
   const ticks = makeMaterial({ color: '#b4d896', color2: '#c9e4a8', mode: 1, ticks: true, key: 't.ticks' });

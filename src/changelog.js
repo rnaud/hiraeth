@@ -7,6 +7,9 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.80', date: '2026-10-07', items: [
+    'On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.',
+  ] },
   { v: '0.79', date: '2026-10-07', items: [
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
     'Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it, and it is the bag of his drawings now: a big soft canvas shoulder bag with a flap, on a wide strap over his shoulder.',

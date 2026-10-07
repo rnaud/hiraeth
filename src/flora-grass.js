@@ -24,8 +24,11 @@ export const GRASS_QUALITY = {
   medium: { radius: 19, density: 4, far: { radius: 48, density: 0.26 } },
   auto: { radius: 19, density: 4, far: { radius: 48, density: 0.26 } },
   low: { radius: 13.5, density: 3.4, far: { radius: 30, density: 0.2 } },
-  handheld: { radius: 11.5, density: 3, far: { radius: 26, density: 0.16 } },
-  deck: { radius: 13.5, density: 3.4, far: { radius: 30, density: 0.2 } },   // (the low preset's: perf.js QUALITY_PRESETS.deck)
+  // (the handheld's patch reached barely past the traveller from the camera, so its meadows read as bare ground:
+  // a wider patch at its density and a far layer further out, docs/systems/performance.md "What the Handheld and the Deck lose next to High")
+  handheld: { radius: 14, density: 3, far: { radius: 36, density: 0.16 } },
+  // (the Deck's had been Low's: widened the same way, its GPU has the room; perf.js QUALITY_PRESETS.deck)
+  deck: { radius: 16, density: 3.4, far: { radius: 40, density: 0.2 } },
 };
 
 /** The far layer's tuft: two broader blades. */
@@ -210,6 +213,7 @@ export class Grass {
       this.field = field;
       this.mask.clear();
       this.at.fill(NaN);
+      this.scanAt = null;
       if (field) {
         this.material.uniforms.uColor.value.set(field.color);
         this.material.uniforms.uColor2.value.set(field.color2);
@@ -218,6 +222,11 @@ export class Grass {
     this.mesh.visible = !!field;
     if (!field) return 0;
     this.material.uniforms.uGrassView.value.set(cx, cz, ...this.lod.view);
+    // Standing still (the centre within 2 cm of the last scan's, nothing left to place), no tuft can have
+    // wrapped: skip the scan of every tuft (it was most of the grass's CPU a frame, and the handheld is
+    // CPU-bound; a 2 cm lag of the patch's faded edge does not show)
+    const sc = this.scanAt;
+    if (sc && !this.pending && Math.abs(cx - sc[0]) < 0.02 && Math.abs(cz - sc[1]) < 0.02) { this.placed = 0; this._placing = false; return 0; }
     const { off, at, S } = this, n = this.count;
     // Walking, a few rows wrap a frame. After a jump (a door, a portal, a new field) every tuft
     // moves: that is placed over the next frames, PLACE_MS at a time, carrying on from where it
@@ -239,6 +248,7 @@ export class Grass {
       if ((++done & 63) === 0 && performance.now() - t0 > this.placeMs) { k++; break; }
     }
     this.cursor = k < n ? (this.cursor + k) % n : 0;
+    this.scanAt = [cx, cz]; this.pending = k < n;
     this._placing = k < n;
     this.placedOnce = true;
     if (hi >= 0) {
