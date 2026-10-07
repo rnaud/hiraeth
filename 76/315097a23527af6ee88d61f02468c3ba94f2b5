@@ -1,0 +1,35 @@
+scripts/release-info.mjs
+  s_55b4bc53b812ec::t_59ef7b672bdf65 138-143,156-158
+scripts/unity-publish.sh
+  s_55b4bc53b812ec::t_0ae7f61ce2c117 13
+tests/unity-ci.test.js
+  s_55b4bc53b812ec::t_34f034de554991 6,94,116-121
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_f2ddeb1c43981c 225,234-236,264-265
+docs/systems/unity.md
+  s_b06e222a46e2f7::t_dd78acb126c529 105-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76315097a23527af6ee88d61f02468c3ba94f2b5",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b06e222a46e2f7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a079dad4060103d4b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
