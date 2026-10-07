@@ -9,6 +9,12 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.84', date: '2026-10-07', items: [
+    'A new world off the route, the Forest of Antennas: abandoned masts by the thousand on a plain of violet grass, great dishes turned up like flowers with birds nesting in them, vine-grown cables strung between the towers, and a small settlement of rounded workshops under one immense receiver. Climb the long stair to the observation deck and cross the maintenance bridge to the receiver’s balcony; Lune and Ottla of the Sealed Hangar and Teb of the Signal Market came to hear it. It is on the galactic map from the start.',
+    'The Forest of Antennas hums: a low drone that swells near the masts and under the great receiver, static crackling in the air, and now and then a far signal whistling as it tunes in.',
+    'In the Forest of Antennas, far-off masts, wires and lattice struts stay steady lines as you walk and turn, instead of breaking into flickering pixels.',
+    'The References level has the Forest of Antennas’ four pictures rebuilt as views, to set beside the pictures they come from.',
+  ] },
   { v: '0.83', date: '2026-10-07', items: [
     { text: 'The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.', see: 'Open the title screen to see Hiraeth above the clouds. Existing Steam shortcuts receive the new name when the updater next runs with Steam closed.' },
     'Once four worlds are behind you, a faint signal pulses on the galactic map further along the route, and the ship’s console mentions it: a broadcast worth hearing before you go home. After the Signal Market the recording you put off waits at the console as soon as you step outside, a second one follows it, the later worlds’ recordings find their own lines again, and the stone at home remembers Ilen even if you learn of her after the end.',

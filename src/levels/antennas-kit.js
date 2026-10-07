@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { formAxis } from '../form.js';
-import { taper } from './wood-kit.js';
+import { taper as taperTube } from './wood-kit.js';
+import { thinBar, thinTube, thinRing, thinPole } from '../thin.js';
 
 // ---------------------------------------------------------------------------
 // The Forest of Antennas' shapes, shared by the world (antennas.js) and its reference views
@@ -31,6 +32,10 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 const UP = V(0, 1, 0);
 const _q = new THREE.Quaternion();
+/** A tapering tube along points (wood-kit's), each vertex carrying its axis point: kept a least width far off (src/thin.js). */
+const taper = (pts, r, end, tub, rad) => thinTube(taperTube(pts, r, end, tub, rad), new THREE.CatmullRomCurve3(pts), tub, rad);
+/** A torus round the y axis at height y (a rim), R round, kept a least width far off. */
+const rim = (R, tube, radial, seg, y = 0) => thinRing(new THREE.TorusGeometry(R, tube, radial, seg), R, seg, radial).rotateX(Math.PI / 2).translate(0, y, 0);
 const roles = () => ({ iron: [], vine: [], leaf: [], dish: [], under: [], frame: [], shell: [], trim: [], glow: [], plank: [] });
 /** Every role of b appended to a's (a builder's parts gathered into a scene's). */
 export function gather(a, b) { for (const [k, v] of Object.entries(b)) if (Array.isArray(v) && v[0]?.isBufferGeometry) (a[k] ??= []).push(...v); return a; }
@@ -44,7 +49,7 @@ export function bar(a, b, r, r1 = r, radial = 5, caps = false) {
   g.deleteAttribute('uv');
   g.translate(0, L / 2, 0);
   g.applyQuaternion(_q.setFromUnitVectors(UP, d.normalize()));
-  return g.translate(a.x, a.y, a.z);
+  return thinBar(g.translate(a.x, a.y, a.z), a, b);   // (kept a least width far off: src/thin.js)
 }
 /** A lathe of [r, y] points (r kept off the axis), `seg` round. */
 export const lathe = (pts, seg = 24) => { const g = new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(Math.max(r, 0.001), y)), seg); g.deleteAttribute('uv'); return g; };
@@ -68,20 +73,21 @@ function strand(rng, p, len, r = 0.035) {
  * A lattice mast, its foot at the origin: `legs` legs from w0 (their distance from the axis at the foot) to w1 at
  * the top `h` up, bays about `bay` high X-braced on every face (one diagonal under detail 0.6), a ring at the top;
  * vines (0..1) climb the legs, leaf clumps on them and strands (hang 0..1) hanging from the struts. r, s: the legs'
- * and the struts' radii. { iron, vine, leaf, top: { y, w } }.
+ * and the struts' radii; open: the bottom bay that high left unbraced (walked in under). { iron, vine, leaf, top: { y, w }, feet: [[x, z]] }.
  */
-export function latticeTower({ h = 30, w0 = 2.2, w1 = 0.5, legs = 3, bay = 2.8, r = 0.16, s = 0.07, seed = 1, rot = 0, vines = 0.5, hang = 0.5, detail = 1, foot = 0.8, leaves = 1 } = {}) {
+export function latticeTower({ h = 30, w0 = 2.2, w1 = 0.5, legs = 3, bay = 2.8, r = 0.16, s = 0.07, seed = 1, rot = 0, vines = 0.5, hang = 0.5, detail = 1, foot = 0.8, leaves = 1, open = 0 } = {}) {
   const rng = mulberry32(Math.floor(seed * 7307) + 11), out = roles();
   const P = (k, y) => { const a = rot + (k / legs) * TAU, w = w0 + (w1 - w0) * (y / h); return V(Math.cos(a) * w, y, Math.sin(a) * w); };
   const rad = detail < 0.6 ? 3 : 4;
   for (let k = 0; k < legs; k++) out.iron.push(bar(P(k, -foot), P(k, h), r, r * 0.65, detail < 0.6 ? 4 : 6, true));
-  const nb = Math.max(2, Math.round(h / bay));
+  // (open: the bottom bay that high left unbraced, a ring over it: you walk in under the mast between its legs)
+  const nb = Math.max(2, Math.round((h - open) / bay)), Y = (i) => open + ((h - open) * i) / nb;
   const mids = [];
   for (let i = 0; i < nb; i++) {
-    const y0 = (h * i) / nb, y1 = (h * (i + 1)) / nb;
+    const y0 = Y(i), y1 = Y(i + 1);
     for (let k = 0; k < legs; k++) {
       const k1 = (k + 1) % legs;
-      if (i > 0) { out.iron.push(bar(P(k, y0), P(k1, y0), s, s, rad)); mids.push(P(k, y0).lerp(P(k1, y0), 0.3 + rng() * 0.4)); }
+      if (i > 0 || open) { out.iron.push(bar(P(k, y0), P(k1, y0), s, s, rad)); mids.push(P(k, y0).lerp(P(k1, y0), 0.3 + rng() * 0.4)); }
       out.iron.push(bar(P(k, y0), P(k1, y1), s * 0.85, s * 0.85, rad));
       if (detail >= 0.6) out.iron.push(bar(P(k1, y0), P(k, y1), s * 0.85, s * 0.85, rad));
     }
@@ -104,7 +110,7 @@ export function latticeTower({ h = 30, w0 = 2.2, w1 = 0.5, legs = 3, bay = 2.8, 
   }
   // strands hanging from the struts
   if (hang > 0) for (const p of mids) if (rng() < hang * 0.45) out.vine.push(strand(rng, p, 0.6 + rng() * 2.6 * hang, 0.03 + rng() * 0.02));
-  return { ...out, top: { y: h, w: w1 } };
+  return { ...out, top: { y: h, w: w1 }, feet: Array.from({ length: legs }, (_, k) => { const p = P(k, 0); return [p.x, p.z]; }) };
 }
 
 /**
@@ -120,7 +126,7 @@ export function dish({ R = 6, depth = 0.3, seg = 40, rings = 10, feed = 'tripod'
   out.dish.push(formAxis(bowl, 'cap'));
   // (back: its outside a shell of its own a little behind the bowl, to be coloured apart: under)
   if (back) out.under.push(formAxis(lathe(Array.from({ length: rings + 1 }, (_, i) => { const r = (i / rings) * R * 1.005; return [r, yAt(r) - Math.max(0.012 * R, 0.04)]; }).reverse(), seg), 'cap'));
-  out.frame.push(new THREE.TorusGeometry(R, Math.max(0.013 * R, 0.05), 4, seg).rotateX(Math.PI / 2).translate(0, D, 0));
+  out.frame.push(rim(R, Math.max(0.013 * R, 0.05), 4, seg, D));
   const F = R / (4 * depth), t = R * 0.012 + 0.03;
   if (feed === 'tripod' || feed === 'quad') {
     const n = feed === 'quad' ? 4 : 3, a0 = rng() * TAU;
@@ -139,7 +145,7 @@ export function dish({ R = 6, depth = 0.3, seg = 40, rings = 10, feed = 'tripod'
     for (let j = 1; j < pts.length; j++) out.frame.push(bar(pts[j - 1], pts[j], t * 0.9, t * 0.9, 3));
   }
   if (seams) {
-    for (const k of [0.45, 0.75]) out.frame.push(new THREE.TorusGeometry(R * k, t * 0.6, 3, seg).rotateX(Math.PI / 2).translate(0, yAt(R * k) + 0.02, 0));
+    for (const k of [0.45, 0.75]) out.frame.push(rim(R * k, t * 0.6, 3, seg, yAt(R * k) + 0.02));
     for (let i = 0; i < seams; i++) { const a = (i / seams) * TAU, c = Math.cos(a), s = Math.sin(a); out.frame.push(bar(V(c * R * 0.1, yAt(R * 0.1) + 0.02, s * R * 0.1), V(c * R * 0.5, yAt(R * 0.5) + 0.02, s * R * 0.5), t * 0.5, t * 0.5, 3), bar(V(c * R * 0.5, yAt(R * 0.5) + 0.02, s * R * 0.5), V(c * R * 0.99, yAt(R * 0.99) + 0.02, s * R * 0.99), t * 0.5, t * 0.5, 3)); }
   }
   return { ...out, focus: F };
@@ -155,7 +161,7 @@ export function saucer({ R = 5, h = 0.5, under = 0.32, stem = 0.45, seg = 36, ha
   out.dish.push(formAxis(lathe(Array.from({ length: 7 }, (_, i) => { const t = i / 6; return [t * R * 0.985, -h * (1 - t * t)]; }), seg), 'cap'));
   const U = under * R;
   out.under.push(formAxis(lathe([[R, -0.02], [R * 0.97, -R * 0.05], ...Array.from({ length: 5 }, (_, i) => { const t = (i + 1) / 5; return [R * 0.97 + (stem - R * 0.97) * t, -R * 0.05 - (U - R * 0.05) * Math.pow(t, 0.8)]; })].reverse(), seg), 'cap'));
-  out.frame.push(new THREE.TorusGeometry(R, Math.max(0.02 * R, 0.05), 4, seg).rotateX(Math.PI / 2));
+  out.frame.push(rim(R, Math.max(0.02 * R, 0.05), 4, seg));
   out.frame.push(bar(V(0, -U - R * 0.06, 0), V(0, -U + 0.05, 0), stem * 1.25, stem * 1.1, 8, true));
   if (hang > 0) for (let i = 0, n = Math.round(seg * hang * 0.8); i < n; i++) {
     const a = rng() * TAU, p = V(Math.cos(a) * R * 0.99, -0.05, Math.sin(a) * R * 0.99);
@@ -251,16 +257,16 @@ export function egg({ R = 6, H = 14, windows = 6, lit = 0.8, seed = 1, seg = 26,
 export function vineCable(a, b, { sag = 3, r = 0.18, leaves = 0.6, hang = 0.6, seed = 1, detail = 1 } = {}) {
   const out = roles(), rng = mulberry32(Math.floor(seed * 9311) + 1), L = a.distanceTo(b), n = Math.max(6, Math.round((L / 2.5) * detail));
   const pts = sagPts(a, b, sag, n), curve = new THREE.CatmullRomCurve3(pts);
-  const g = new THREE.TubeGeometry(curve, n * 2, r, detail < 0.6 ? 4 : 6, false), P = g.attributes.position;
-  for (let i = 0; i < P.count; i++) { const k = 1 + (rng() - 0.5) * 0.5; const c = curve.getPointAt(Math.floor(i / ((detail < 0.6 ? 4 : 6) + 1)) / (n * 2)); P.setXYZ(i, c.x + (P.getX(i) - c.x) * k, c.y + (P.getY(i) - c.y) * k, c.z + (P.getZ(i) - c.z) * k); }
+  const rad = detail < 0.6 ? 4 : 6, g = new THREE.TubeGeometry(curve, n * 2, r, rad, false), P = g.attributes.position;
+  for (let i = 0; i < P.count; i++) { const k = 1 + (rng() - 0.5) * 0.5; const c = curve.getPointAt(Math.floor(i / (rad + 1)) / (n * 2)); P.setXYZ(i, c.x + (P.getX(i) - c.x) * k, c.y + (P.getY(i) - c.y) * k, c.z + (P.getZ(i) - c.z) * k); }
   g.deleteAttribute('uv'); g.computeVertexNormals();
-  out.vine.push(g);
+  out.vine.push(thinTube(g, curve, n * 2, rad));
   for (let i = 0, m = Math.round(L * 0.5 * leaves); i < m; i++) { const p = curve.getPointAt(rng()); out.leaf.push(clump(rng, r * (1.5 + rng() * 2.2), p.x, p.y - r * 0.5, p.z)); }
   for (let i = 0, m = Math.round(L * 0.45 * hang); i < m; i++) { const p = curve.getPointAt(0.05 + rng() * 0.9); out.vine.push(strand(rng, p, 0.5 + rng() * 2.4, 0.03 + rng() * 0.03)); }
   return out;
 }
 /** A plain sagging wire from a to b. */
-export const cable = (a, b, sag = 1, r = 0.04, n = 10) => { const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(sagPts(a, b, sag, n)), n, r, 3, false); g.deleteAttribute('uv'); return g; };
+export const cable = (a, b, sag = 1, r = 0.04, n = 10) => { const c = new THREE.CatmullRomCurve3(sagPts(a, b, sag, n)), g = new THREE.TubeGeometry(c, n, r, 3, false); g.deleteAttribute('uv'); return thinTube(g, c, n, 3); };
 
 /**
  * A steep metal stair from A to B ([x, y, z]: the foot's and the top's tread), w wide: treads, two stringers with a
@@ -331,12 +337,14 @@ export function rimSpots(R, y, n, seed = 1) {
 }
 
 /** Far masts (instanced): a unit pole (radius 1, height 1, its foot at 0) and a unit cap for its top. */
-export const unitPole = () => { const g = new THREE.CylinderGeometry(0.7, 1, 1, 5, 1, true).translate(0, 0.5, 0); g.deleteAttribute('uv'); return g; };
+export const unitPole = () => { const g = new THREE.CylinderGeometry(0.7, 1, 1, 5, 1, true).translate(0, 0.5, 0); g.deleteAttribute('uv'); return thinPole(g); };
 /** A unit nest dish (R 1, its rim at y 0): the shape the far masts carry, one closed lathe. */
-export const unitSaucer = (seg = 14) => lathe([[0.12, -0.42], [0.5, -0.24], [0.97, -0.05], [1, 0], [0.7, -0.05], [0.001, -0.08]], seg);
+export const unitSaucer = (seg = 14) => lathe([[0.12, -0.42], [0.6, -0.2], [1, 0], [0.6, -0.06], [0.001, -0.08]], seg);
 /** A unit dish turned up to its tilt (R 1, its vertex at the origin, its axis +y): a far dish, one lathe (two-sided). */
-export const unitDish = (seg = 16, depth = 0.3) => lathe(Array.from({ length: 5 }, (_, i) => { const r = i / 4; return [r, depth * r * r]; }), seg);
+export const unitDish = (seg = 16, depth = 0.3, rings = 4) => lathe(Array.from({ length: rings + 1 }, (_, i) => { const r = i / rings; return [r, depth * r * r]; }), seg);
 
+/** How thick a far mast must be drawn per metre of distance not to break into a crawl of pixels: ~1.5 px wide on the handheld's frame. */
+export const FAR_MIN_R = 0.0016;
 export const merged = (list) => (list.length ? mergeGeometries(list.map((g) => (g.index ? g.toNonIndexed() : g))) : null);
 
 // ------------------------------------------------------------------ the look
@@ -352,5 +360,5 @@ export const ANTENNAS_TONES = {
   iron: '#5a4a3f', iron2: '#4b3e39', vine: '#3c4a2e', leaf: '#4a5a36', frame: '#3a3438',
   dish: '#b9aac8', dishPink: '#e9bab4', dishBlue: '#8ea2b0', dishNavy: '#33456a', dishRose: '#d8a6b4',
   under: '#9c8cb0', shell: '#d9a184', shell2: '#c9b0c4', shell3: '#c8907a', trim: '#3a2e34', window: '#ffcf72', plank: '#8a6c56',
-  bush: '#3e5638', bush2: '#30483c', far: '#c9b9d6', farDeep: '#e2d6cc', bird: '#2d2834',
+  bush: '#24402f', bush2: '#203a30', far: '#c9b9d6', farDeep: '#e2d6cc', bird: '#2d2834',
 };

@@ -105,6 +105,7 @@ export const WORLD_BODIES = {
   perdide: { proportions: 0.55, height: 0.52, weight: 0.03 },                 // the swamp people
   perdide2: { proportions: 0.55, height: 0.52, weight: 0.03 },
   mangrove: { proportions: 0.62, height: 0.55, weight: -0.02 },               // the lake folk: slight, long-armed (polers)
+  antennas: { proportions: 0.56, height: 0.52, weight: 0.02 },                // the mast-menders: climbers
   bazaar: { proportions: 0.5, height: 0.5, weight: 0.07 },                    // the market: sturdier
   home: { proportions: 0.6, height: 0.55 },
 };

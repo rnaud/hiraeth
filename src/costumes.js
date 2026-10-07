@@ -392,6 +392,24 @@ export const COSTUMES = {
     capes: [0], robe: 1, robes: [0.5], flare: [0.27, 0.27], size: [1, 1],
     palette: { accents: ['#2b211f'] },
   })] },
+  // the Forest of Antennas' folk (src/levels/antennas.js): menders of the masts, in lilac and rust, goggles up, tools on their belts
+  antennas: { tribes: [tribe({
+    name: 'the mast-menders',
+    moods: { calm: 3, kind: 3, curious: 2, amused: 1.5, stern: 0.4 },
+    heads: { antenna: 2, hood: 2, hair: 1.5 }, as: { hat: 'hood', wrap: 'hood' },
+    hair: { m: { tail: 2, swept: 1 }, f: { long: 2, twin: 2 } },
+    masks: { browgoggles: 2, none: 3 }, body: { toolbelt: 3, mantle: 1, none: 1 }, props: { wrench: 2, lantern: 1, none: 3 }, trim: { none: 1 },
+    capes: [0.6, 0.9, 1.1], robe: 0.4, robes: [0.18, 0.28], flare: [0.28, 0.34], size: [0.95, 1.04],
+    palette: {
+      cloaks: ['#b8a6d8', '#8a7ab8', '#d8a184', '#e9bab4'],
+      tunics: ['#5a4a3f', '#4b3e39', '#6a5a8a', '#3c4a2e'],
+      legs: ['#34304a', '#2f2a3a'],
+      skins: ['#e6c8b8', '#d8b098', '#c09878', '#f0d8c8'],
+      hair: ['#2b211f', '#e8dcc0', '#5a4a3a'],
+      hats: ['#b8a6d8', '#d8a184', '#8a7ab8'],
+      accents: ['#ffcf72', '#ff8a6a', '#8ea2b0'],
+    },
+  })] },
 };
 const INCAL = { TOP: 200, LEVELS: [150, 92, 36, -24, -86] };
 function zoneIncal(c) {

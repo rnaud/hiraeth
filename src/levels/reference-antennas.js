@@ -4,7 +4,7 @@ import { V, CLEAN_SKY, groundRibbon } from './reference-kit.js';
 import { bankBush } from './wood-kit.js';
 import {
   latticeTower, dish, saucer, aimAt, dirOf, column, dome, egg, vineCable, cable, trussStair, deck, bird, rimSpots, bar, tipToward,
-  unitPole, unitSaucer, unitDish, moveParts, ANTENNAS_LOOK, ANTENNAS_TONES,
+  unitPole, unitSaucer, unitDish, moveParts, FAR_MIN_R, ANTENNAS_LOOK, ANTENNAS_TONES,
 } from './antennas-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -34,23 +34,23 @@ function materials(kit, o = {}) {
   const DS = THREE.DoubleSide;
   const dishMat = (c) => kit.mat({ color: c, shade: 0.45, hatch: 0.35, side: DS, form: true, line: 0.7, lineTint: 0.35 });
   return {
-    iron: kit.mat({ color: o.iron ?? T.iron, shade: 0.3, hatch: 0.4 }),
+    iron: kit.mat({ color: o.iron ?? T.iron, shade: 0.3, hatch: 0.4, thin: 1.5 }),
     // (the lattices further off: a lighter rust, a thinner line of its own colour, as the sheets draw them in the haze)
-    ironMid: kit.mat({ color: o.ironMid ?? '#7a6458', shade: 0.3, hatch: 0.3, line: 0.7, lineTint: 0.6 }),
-    vine: kit.mat({ color: T.vine, shade: 0.4, hatch: 0.6 }),
+    ironMid: kit.mat({ color: o.ironMid ?? '#7a6458', shade: 0.3, hatch: 0.3, line: 0.7, lineTint: 0.6, thin: 1.5 }),
+    vine: kit.mat({ color: T.vine, shade: 0.4, hatch: 0.6, thin: 1.5 }),
     leaf: kit.mat({ color: T.leaf, pattern: 'leaves', hatch: 1.2, shade: 0.5, spot: 0 }),
-    frame: kit.mat({ color: T.frame, flat: true }),
+    frame: kit.mat({ color: T.frame, flat: true, thin: 1.5 }),
     dish: Object.fromEntries(['dish', 'dishPink', 'dishBlue', 'dishNavy', 'dishRose', 'under', 'shell', 'shell3'].map((k) => [k, dishMat(o[k] ?? T[k])])),
     shell: kit.mat({ color: o.shell ?? T.shell, shade: 0.45, hatch: 0.4, form: true, detail: 'built', detailDensity: 0.4 }),
     shell2: kit.mat({ color: o.shell2 ?? T.shell2, shade: 0.45, hatch: 0.4, form: true, detail: 'built', detailDensity: 0.4 }),
     trim: kit.mat({ color: T.trim, flat: true }),
     glow: kit.mat({ color: T.window, glow: 0.95, flat: true }),
     plank: kit.mat({ color: T.plank, flat: true }),
-    path: kit.mat({ color: o.path ?? T.path, shade: 0.2, hatch: 0.2 }),
+    path: kit.mat({ color: o.path ?? T.path, shade: 0.2, hatch: 0.2, side: DS }),
     bush: [kit.mat({ color: o.bush ?? T.bush, pattern: 'leaves', hatch: 1.6, shade: 0.5, spot: 0 }), kit.mat({ color: o.bush2 ?? T.bush2, pattern: 'leaves', hatch: 1.6, shade: 0.5, spot: 0 })],
     bird: kit.mat({ color: T.bird, flat: true }),
     // far masts and dishes: instanced, each its own tone (paler with distance), a hairline of their own colour (no ink round them)
-    far: kit.mat({ color: '#ffffff', flat: true, hatch: 0.15, line: 0.25, lineTint: 1, side: DS }),
+    far: kit.mat({ color: '#ffffff', flat: true, hatch: 0.15, line: 0.25, lineTint: 1, side: DS, thin: 1.5 }),
     tuft: kit.mat({ color: '#ffffff', side: DS, line: 0.25, lineTint: 1, hatch: 0.3 }),
     figure: kit.mat({ color: '#5d5478', flat: true, figure: true }),
     suit: kit.mat({ color: '#4c5a88', flat: true, figure: true }),
@@ -177,8 +177,7 @@ function instanced(kit, geo, mat, list, name) {
 }
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
 const mat4 = (x, y, z, sx, sy, sz, ry = 0, rx = 0, rz = 0) => _m.compose(_p.set(x, y, z), _q.setFromEuler(_e.set(rx, ry, rz, 'YXZ')), _s.set(sx, sy, sz)).clone();
-/** How thick a far mast must be drawn at distance d not to break into a crawl of pixels (≥ ~1.5 px at the handheld's size). */
-export const FAR_MIN_R = 0.0016;
+export { FAR_MIN_R };
 /**
  * The forest beyond: n masts between r0 and r1 m from the eye in a wedge of the view, each a pole and its cap (a nest
  * saucer, a tilted dish or a flower dish on a stalk), toned from `near` to `far` with distance, drawn at least

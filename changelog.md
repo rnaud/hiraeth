@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.84 — 2026-10-07
+
+- A new world off the route, the Forest of Antennas: abandoned masts by the thousand on a plain of violet grass, great dishes turned up like flowers with birds nesting in them, vine-grown cables strung between the towers, and a small settlement of rounded workshops under one immense receiver. Climb the long stair to the observation deck and cross the maintenance bridge to the receiver’s balcony; Lune and Ottla of the Sealed Hangar and Teb of the Signal Market came to hear it. It is on the galactic map from the start.
+- The Forest of Antennas hums: a low drone that swells near the masts and under the great receiver, static crackling in the air, and now and then a far signal whistling as it tunes in.
+- In the Forest of Antennas, far-off masts, wires and lattice struts stay steady lines as you walk and turn, instead of breaking into flickering pixels.
+- The References level has the Forest of Antennas’ four pictures rebuilt as views, to set beside the pictures they come from.
+
 ## v0.83 — 2026-10-07
 
 - The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.

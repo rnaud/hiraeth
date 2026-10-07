@@ -127,6 +127,7 @@ const KNOWN = {
   bazaar: { sink: 4, hover: 0, inside: 2, walk: 2 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },
   home: { sink: 0, hover: 0, inside: 3, walk: 13 },
   mangrove: { sink: 0, hover: 0, inside: 6, walk: 0 },   // (the White Mangrove: solid as drawn, roots, decks, leaves and all)
+  antennas: { sink: 1, hover: 0, inside: 3, walk: 1 },   // (the Forest of Antennas: solid where walked; the masts' legs kept clear by stand-ins too steep to stand on or climb)
 };
 const audits = new Map();
 function audit(id) {

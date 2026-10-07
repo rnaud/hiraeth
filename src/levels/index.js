@@ -15,6 +15,7 @@ import { createPerdide2, buildPerdide2 } from './perdide2.js';
 import { createHome, buildHome } from './home.js';
 import { createReferences, buildReferences } from './references.js';
 import { createMangrove, buildMangrove } from './mangrove.js';
+import { createAntennas, buildAntennas } from './antennas.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -90,6 +91,13 @@ export const LEVELS = [
     title: TITLES.mangrove, source: 'a village in the white roots',
     blurb: 'Bone-white trees stand on arching roots in a black lake, and people live in them. Walk the lantern-lit planks, climb to the decks round the trunks, and look down: the lake glows like a second sky.',
     moves: 'walk · climb · swim',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'antennas', create: createAntennas, build: buildAntennas, hidden: true,
+    title: TITLES.antennas, source: 'a plain of listening masts',
+    blurb: 'Abandoned masts by the thousand on a plain of violet grass, great dishes turned up like flowers, birds nesting in them. Walk to the workshops under the immense receiver and climb the stair to the observation deck.',
+    moves: 'walk · climb',
   },
   {
     id: 'atelier', create: createAtelier, build: buildAtelier, hidden: true,

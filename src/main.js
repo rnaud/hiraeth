@@ -173,6 +173,7 @@ function resize() {
   post.uniforms.uRes.value.set(rw, rh);
   post.uniforms.uPixelRatio.value = pr;
   sharedUniforms.uPixelRatio.value = pr;
+  sharedUniforms.uViewH.value = rh;   // (thin bars' least width, src/thin.js)
   wind?.uniforms.uRes.value.set(rw, rh);
   HOLO.uniforms.uRes.value.set(rw, rh);
   if (overlays.motes) { overlays.motes.uniforms.uRes.value.set(rw, rh); overlays.motes.uniforms.uPR.value = pr; }
@@ -1464,6 +1465,7 @@ function frame(ts) {
     thrusting: player.thrusting, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
     altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
     flying: player.gliding || player.thrusting, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
+    hum: level.hum?.(player.pos) ?? 0,   // (masts and a receiver near: src/levels/antennas.js)
   });
 
   // sand: ambient gusts + dust behind the bike
