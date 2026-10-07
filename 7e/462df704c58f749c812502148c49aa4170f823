@@ -1,0 +1,57 @@
+changelog.md
+  s_55b4bc53b812ec::t_23a2e7aef818c5 7
+docs/systems/references.md
+  s_55b4bc53b812ec::t_fbc3ad8d26bb68 497-498
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_a56fd4c80a8c62 501-557
+src/audio.js
+  s_55b4bc53b812ec::t_c191efaeb5a95c 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_c3c452e4c0c4ca 116-123
+src/changelog.js
+  s_55b4bc53b812ec::t_4d9528857e5f46 13
+src/costumes.js
+  s_55b4bc53b812ec::t_c670b4bb4c08a2 303-320
+src/edge.js
+  s_55b4bc53b812ec::t_bdb7d3359121f7 26
+src/levels/content.js
+  s_55b4bc53b812ec::t_d4921c41a7979b 21,37
+src/levels/index.js
+  s_55b4bc53b812ec::t_7bc915029dfd0c 18,94-99,101
+src/levels/names.js
+  s_55b4bc53b812ec::t_0a21cc055f05f1 19,28
+src/levels/salt-harbour-kit.js
+  s_55b4bc53b812ec::t_731f6b332ea0b5 46-47,96-106,113-114,136-138
+src/levels/salt-harbour.js
+  s_55b4bc53b812ec::t_3f85367ed54e62 1-452
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_3e5efd81b1d812 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_ac03bc1b79b3e3 107
+src/reactive-world.js
+  s_55b4bc53b812ec::t_753fc1f8389c87 29
+src/ship/planets.js
+  s_55b4bc53b812ec::t_ea6056bd583f34 25
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_b814f4b241937a 27
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_c022b5f65697fb 130
+tests/saltharbour-world.test.js
+  s_55b4bc53b812ec::t_fbaa1e64706a22 1-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7e462df704c58f749c812502148c49aa4170f823",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
