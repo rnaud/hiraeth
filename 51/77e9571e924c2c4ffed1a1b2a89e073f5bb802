@@ -1,0 +1,61 @@
+changelog.md
+  s_55b4bc53b812ec::t_461e95730de7df 5-10
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_ed7fe5d781615b 766-817
+src/audio.js
+  s_55b4bc53b812ec::t_144cae3ff80297 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_33bb860593d4b5 116-133
+src/changelog.js
+  s_55b4bc53b812ec::t_66ca8e51cbe5a9 12-16
+src/costumes.js
+  s_55b4bc53b812ec::t_5cda5617db084b 456
+src/edge.js
+  s_55b4bc53b812ec::t_df2876b67cbede 35
+src/levels/content.js
+  s_55b4bc53b812ec::t_aa4cdf37acdbba 23,100
+src/levels/eclipse.js
+  s_55b4bc53b812ec::t_1ec5517b7d852f 1-387
+src/levels/index.js
+  s_55b4bc53b812ec::t_e4635d23e55bc5 23,141-147
+src/levels/names.js
+  s_55b4bc53b812ec::t_9e9f3389573802 25,33
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_8565dbb2e1fe93 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_bdbf5f2bffb04e 116
+src/reactive-world.js
+  s_55b4bc53b812ec::t_3c8c2fdb9ebd9a 34
+src/ship/planets.js
+  s_55b4bc53b812ec::t_3e9b0907739927 30
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_195141c16ba441 31
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_d1cbab90c78e10 134
+tests/eclipse-world.test.js
+  s_8395ca312d15ae::t_c9020a39254e5a 1-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5177e9571e924c2c4ffed1a1b2a89e073f5bb802",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_8395ca312d15ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-adc5da3279ac4a3c9",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
