@@ -1,0 +1,133 @@
+.github/workflows/android.yml
+  s_55b4bc53b812ec::t_deb69130aa8796 129
+.github/workflows/steam-deck.yml
+  s_55b4bc53b812ec::t_6d692940f08f61 73
+.github/workflows/unity-android.yml
+  s_55b4bc53b812ec::t_2c4f8f69730724 6
+CLAUDE.md
+  s_55b4bc53b812ec::t_1c119d00e8e806 1,3
+LORE.md
+  s_55b4bc53b812ec::t_6f0ea692bad1f3 1
+README.md
+  s_55b4bc53b812ec::t_3e722005f8e5fe 1,15-17
+android/app/src/main/assets/memento-ext/manifest.json
+  s_55b4bc53b812ec::t_2c38abfe2e7ea2 3
+android/app/src/main/java/com/rnaud/moebius/MainActivity.java
+  s_55b4bc53b812ec::t_0d72a757f6568b 136
+android/app/src/main/res/values/strings.xml
+  s_55b4bc53b812ec::t_4428a672ed4072 3-4
+capacitor.config.json
+  s_55b4bc53b812ec::t_5725d8e182c2d0 3
+changelog.html
+  s_55b4bc53b812ec::t_0d4b2daba9096d 7
+changelog.md
+  s_55b4bc53b812ec::t_291e16c35ad20b 7
+desktop/deck-updates.mjs
+  s_55b4bc53b812ec::t_7d7aac104c2eb9 60
+desktop/main.mjs
+  s_55b4bc53b812ec::t_9af1dd13b785fc 17,100
+docs/README.md
+  s_55b4bc53b812ec::t_7c2608e92c6176 1
+docs/benchmark-web-vs-unity.md
+  s_55b4bc53b812ec::t_e0b04ebe743043 1,80,201
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_fa9f47dfd900dc 82-83
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_1f6df8cecfb671 234,637
+docs/systems/unity.md
+  s_55b4bc53b812ec::t_baa33c859baad1 60
+godot/project.godot
+  s_55b4bc53b812ec::t_a85fe43446769e 1,6
+index.html
+  s_55b4bc53b812ec::t_2e45c727a0366e 9,15,434
+lore/README.md
+  s_55b4bc53b812ec::t_3a0e729ce41bef 1
+lore/voice-guide.md
+  s_55b4bc53b812ec::t_7395157631a548 6
+motion.html
+  s_55b4bc53b812ec::t_50015d69b539d8 6,68
+public/manifest.webmanifest
+  s_55b4bc53b812ec::t_2c3aa7c3cb47b8 3-4
+scripts/bench/gecko-app/app/src/main/assets/ext/manifest.json
+  s_55b4bc53b812ec::t_362718560ed453 3
+scripts/bench/gecko-app/app/src/main/res/values/strings.xml
+  s_55b4bc53b812ec::t_41570fea2f8331 2
+scripts/bench/webview-apk.sh
+  s_55b4bc53b812ec::t_cd6acb220cd5cd 8,35,48,53
+scripts/release-info.mjs
+  s_55b4bc53b812ec::t_58f797c2bf24c8 129-130,132,135,161
+scripts/steam-deck/deck.py
+  s_55b4bc53b812ec::t_23f0ec2e97f7d1 2,152,158,189,206,539,731,906,978,981,997,1000,1010,1017
+scripts/steam-deck/release-notes.md
+  s_55b4bc53b812ec::t_80b5d1f2b681a2 1,9
+scripts/unity-publish.sh
+  s_55b4bc53b812ec::t_e475e65bbb918e 17
+src/changelog.js
+  s_55b4bc53b812ec::t_af345160d69cec 13
+src/main.js
+  s_55b4bc53b812ec::t_60824a84aee414 690
+src/motion/main.js
+  s_55b4bc53b812ec::t_a97afb28c88309 933
+src/studio/main.js
+  s_55b4bc53b812ec::t_da85ed0cca7cb6 947-948
+src/title.js
+  s_55b4bc53b812ec::t_c67e5c2639b380 1,77,86
+src/trailer/export.js
+  s_55b4bc53b812ec::t_397abf686d8c9a 21
+src/trailer/main.js
+  s_55b4bc53b812ec::t_49a6a4bd7a5a5c 163,175
+src/ui.js
+  s_55b4bc53b812ec::t_d5b636d16e2b57 121
+studio.html
+  s_55b4bc53b812ec::t_c32a920907864f 6,51
+tests/deck-updates.test.js
+  s_55b4bc53b812ec::t_4990e499d7a8f9 51
+tests/playthrough-agent.js
+  s_55b4bc53b812ec::t_d3c5b47ecf0efd 3
+tests/test_steam_deck.py
+  s_55b4bc53b812ec::t_d5c51dd33a205d 518,523,529-538,551
+tests/unity-ci.test.js
+  s_55b4bc53b812ec::t_2587c257a1e715 101
+tests/web-update.test.js
+  s_55b4bc53b812ec::t_7f54129c649baa 41,55
+trailer.html
+  s_55b4bc53b812ec::t_bbcf123bb65dff 3,7-9
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_55b4bc53b812ec::t_e010997151298f 36,102,231
+unity/Memento/Assets/Memento/Editor/BenchBuild.cs
+  s_55b4bc53b812ec::t_05ef967862b5b9 76,118,145
+unity/Memento/Assets/Memento/Editor/Tests/UiTests.cs
+  s_55b4bc53b812ec::t_074b32d5d6726e 88-89
+unity/Memento/Assets/Memento/Runtime/Hud.cs
+  s_55b4bc53b812ec::t_7b7fab7c9299b8 438
+unity/Memento/Assets/Memento/Runtime/TitleScreen.cs
+  s_55b4bc53b812ec::t_f22fc78e60b5aa 13,155-156
+unity/Memento/Assets/Memento/Runtime/UI/Menus.cs
+  s_55b4bc53b812ec::t_f7a105c2f1afe1 202
+unity/Memento/Assets/Memento/Runtime/UI/StrokeFont.cs
+  s_55b4bc53b812ec::t_4cbb051e8f1fb7 8
+unity/Memento/Assets/MementoJS/Editor/BridgeBatch.cs
+  s_55b4bc53b812ec::t_c41b679e55f3f1 29
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_df830d9f21dff6 23,32,136,151,162,187
+unity/Memento/ProjectSettings/ProjectSettings.asset
+  s_55b4bc53b812ec::t_17c76918aa9477 16,867
+unity/README.md
+  s_55b4bc53b812ec::t_e6e1d4096429aa 1,82,500,673,763
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0744c5eebe25d1b11c4df27f732e55808f1a0cb7",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
