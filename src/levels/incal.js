@@ -969,7 +969,7 @@ export function* buildIncal(scene) {
     // (the crown held high on a tall trunk: you see the people under it, and the camera passes beneath)
     for (let k = 0; k < 7; k++) { const a = k * 2.39996, r = 0.9 + (k % 3) * 0.5; lobes.push(new THREE.IcosahedronGeometry(1.5 + (k % 2) * 0.5, 0).translate(Math.cos(a) * r, 5.4 + (k % 3) * 0.8, Math.sin(a) * r)); }
     lobes.push(new THREE.CylinderGeometry(0.22, 0.35, 5.6, 5).translate(0, 2.8, 0));
-    const olive = mergeGeometries(lobes.map((g) => g.toNonIndexed()));
+    const olive = mergeGeometries(lobes.map((g) => (g.index ? g.toNonIndexed() : g)));
     olive.computeVertexNormals();
     const greens = ['#5e7a3a', '#4f6b34', '#6f8a42', '#56733f'];
     const hash01 = (i) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
@@ -981,7 +981,7 @@ export function* buildIncal(scene) {
     // umbrella pine: a bare leaning trunk under a flat layered canopy
     const pineParts = [new THREE.CylinderGeometry(0.22, 0.4, 8, 5).translate(0, 4, 0).rotateZ(0.12)];
     for (let k = 0; k < 5; k++) { const a = k * 1.9, r = k ? 1.8 : 0; pineParts.push(new THREE.IcosahedronGeometry(2.2, 0).scale(1.2, 0.42, 1.2).translate(Math.cos(a) * r + 0.95, 8.4 + (k % 2) * 0.5, Math.sin(a) * r)); }
-    const pine = mergeGeometries(pineParts.map((g) => g.toNonIndexed()));
+    const pine = mergeGeometries(pineParts.map((g) => (g.index ? g.toNonIndexed() : g)));
     pine.computeVertexNormals();
     const kindOf = (i) => { const h = hash01(i); return h < 0.5 ? cypress : h < 0.82 ? olive : pine; };
     // one mesh per terrace, kind and eighth of the ring: a whole terrace's trees in one mesh
