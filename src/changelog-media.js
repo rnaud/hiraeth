@@ -188,6 +188,25 @@ export const CHANGELOG_MEDIA = {
       { name: 'marketnight-refs', only: 'after', size: [1464, 408], caption: 'The first picture (left) and its view in the game (right): the screen lane at midnight, the violet face, the scarlet portrait, the planet and the desert', from: 'the views\u2019 own contact sheets, headless Chrome, High (7 October)' },
       { name: 'marketnight-refs-awning', only: 'after', size: [1464, 408], caption: 'The third: under the diagonal awning, the great scarlet portrait, the round planet, the white glyphs', from: 'the views\u2019 own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=marketnight and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'The Signal Market has its night', shots: [
+      { name: 'marketnight-street', caption: 'The avenue at 23:00 from the cab stop: the towers\u2019 signs and the shop signs lit as screens, the black sky', commit: '6083d8e2',
+        view: { level: 'bazaar', hour: 23, player: [0, 0, 88], heading: 3.1416, eye: [0, 1.99, 97.5], target: [0, 1.79, 87.5], fov: 55 } },
+      { name: 'marketnight-square', caption: 'Signal Square at 23:00: the screens round the silent tower, which stays dark under its covers, and a thinner crowd', commit: '6083d8e2',
+        view: { level: 'bazaar', hour: 23, player: [8, 0, -150], heading: 3.1416, eye: [6, 2.4, -140], target: [2, 6, -200], fov: 55 } },
+      { name: 'marketnight-stalls', caption: 'Along the stalls at 23:00: a lantern\u2019s warm pool on the sidewalk and the shop front, a shop sign lit lemon', commit: '6083d8e2',
+        view: { level: 'bazaar', hour: 23, player: [-20, 0.3, 30], eye: [-18, 3, 30], target: [-24, 4, 0], fov: 55 } },
+      { name: 'marketnight-day', caption: 'And at 10:00 the same avenue as it was (only the walkers differ)', commit: '6083d8e2',
+        view: { level: 'bazaar', hour: 10, player: [0, 0, 88], heading: 3.1416, eye: [0, 1.99, 97.5], target: [0, 1.79, 87.5], fov: 55 } },
+    ], see: 'In the Signal Market (?level=bazaar), set the hour past 21:00 in the developer panel\u2019s Time of day, or wait for the night. The signs light up from dusk; half the crowd is gone by midnight, only out of your sight.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), 60 frames \u00d7 7 rounds, the day and the night alternated four times at each place, the median', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 \u00d7 720', source: 'docs/systems/worlds.md, \u201cThe Signal Market at night\u201d', rows: [
+          { where: 'the spawn: by day (before) and by night (after)', before: 1.51, after: 1.48 },
+          { where: 'the wide view from 27 m up', before: 1.24, after: 1.19 },
+          { where: 'in the crowd', before: 1.29, after: 1.3 },
+          { where: 'along the stalls', before: 1.37, after: 1.39 },
+          { where: 'Signal Square', before: 1.62, after: 1.58 },
+        ] },
+      ] },
   ],
   '0.84': [
     { match: 'A new world off the route, the Glass Dunes', shots: [
