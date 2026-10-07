@@ -2,6 +2,7 @@ import { limbSegments } from './creases.js';
 import { TRAVELLER_PALETTE } from './traveller-style.js';
 import * as THREE from 'three';
 import { plantFeet, resetFeet } from './feet.js';
+import { POSE, worldPos, worldQuat } from './world-read.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
@@ -380,7 +381,8 @@ const _i1 = new THREE.Vector3(), _i2 = new THREE.Vector3(), _i3 = new THREE.Vect
 const _i6 = new THREE.Vector3(), _i7 = new THREE.Vector3(), _i8 = new THREE.Vector3(), _i9 = new THREE.Vector3();
 const _iq = new THREE.Quaternion(), _iq2 = new THREE.Quaternion(), _iq3 = new THREE.Quaternion(), _im = new THREE.Matrix4();
 const _q = new THREE.Quaternion(), _qr = new THREE.Quaternion(), _qp = new THREE.Quaternion();
-const _m4 = new THREE.Matrix4();
+const _m4 = new THREE.Matrix4(), _m4i = new THREE.Matrix4();
+const IDENTITY_Q = new THREE.Quaternion();   // (read only)
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _w1 = new THREE.Vector3(), _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3();
 const _wq1 = new THREE.Quaternion(), _wq2 = new THREE.Quaternion(), _wq3 = new THREE.Quaternion(), _wq4 = new THREE.Quaternion(), _wq5 = new THREE.Quaternion();
@@ -439,6 +441,7 @@ export class Humanoid {
     if (outfit) this.wearOutfit(outfit);
     else if (build) this.setBuild(build);
     char.root.add(model);
+    model.userData.poseSkip = true;   // (the rig's own updates leave it: Humanoid.update makes it again, world-read.js updateRig)
     char.root.updateMatrixWorld(true);
     const rootInv = char.root.matrixWorld.clone().invert();
 
@@ -483,7 +486,6 @@ export class Humanoid {
 
     this.order = [];
     model.traverse((o) => { if (o.isBone) this.order.push(o); });   // parents before children
-    this.charQ = new Map();
     this.chainOf = new Map(this.chains.map((c) => [c.B, c]));
     this.followOf = new Map(this.follow.map((f) => [f.B, f]));
     // the wrists: each frame back to the hand's rest turn on the forearm (character space), so a pose
@@ -1248,6 +1250,14 @@ export class Humanoid {
     s.y += (want - s.y) * (1 - Math.exp(-5 * Math.max(dt, 0)));
   }
 
+  /** The bones in order (parents first), each with what drives it (Humanoid.update's records). */
+  planBones() {
+    const plan = this.order.map((bone) => ({ bone, rest: this.rest.get(bone), ch: this.chainOf.get(bone) ?? null, f: this.followOf.get(bone) ?? null, wrist: this.wristOf.get(bone) ?? null, p: null, q: new THREE.Quaternion() }));
+    const by = new Map(plan.map((r) => [r.bone, r]));
+    for (const r of plan) r.p = r.bone.parent?.isBone ? by.get(r.bone.parent) ?? null : null;
+    return plan;
+  }
+
   /** Aim the skeleton along the rig (call after the rig's pose for this frame). */
   update(atRest = false) {
     const c = this.char, root = c.root;
@@ -1260,40 +1270,40 @@ export class Humanoid {
       this.model.updateMatrixWorld(true);
       return;
     }
-    root.updateMatrixWorld(true);
-    const rootQi = root.getWorldQuaternion(_qp).invert();
-    const charQOf = (o, out) => o.getWorldQuaternion(out).premultiply(rootQi);
-    const charPosOf = (o, out) => root.worldToLocal(o.getWorldPosition(out));
+    // the rig's matrices (the model's are all made again at the end); the rig read as it now is (world-read.js)
+    if (POSE.exact) root.updateMatrixWorld(true);
+    else { root.updateWorldMatrix(false, false); for (const ch of root.children) if (ch !== this.model) ch.updateMatrixWorld(true); }
+    const rootQi = worldQuat(root, _qp).invert(), rootInv = _m4i.copy(root.matrixWorld).invert();
+    const charQOf = (o, out) => worldQuat(o, out).premultiply(rootQi);
+    const charPosOf = POSE.exact ? (o, out) => root.worldToLocal(o.getWorldPosition(out)) : (o, out) => worldPos(o, out).applyMatrix4(rootInv);
 
     // pelvis position: the rig's hip midpoint, keeping the model's hip→pelvis offset
     const hipMid = charPosOf(c.legs[0], _a).add(charPosOf(c.legs[1], _b)).multiplyScalar(0.5);
     const pelvisChar = hipMid.add(_c.copy(this.restPelvis).sub(this.restHipMid));
     pelvisChar.y += this.lift;   // (longer legs: setMorph)
 
-    for (const bone of this.order) {
-      const parentQ = bone.parent?.isBone ? this.charQ.get(bone.parent) : _q.identity();
-      const rest = this.rest.get(bone);
-      let q = null;
-      const f = this.followOf.get(bone), ch = this.chainOf.get(bone);
+    // (each bone's record once: its rest, what drives it, its parent's record and its turn in character space, kept)
+    const plan = this._plan ??= this.planBones();
+    for (let i = 0; i < plan.length; i++) {
+      const R = plan[i], bone = R.bone, rest = R.rest, ch = R.ch, f = R.f;
+      const parentQ = R.p ? R.p.q : IDENTITY_Q;
+      let driven = true;
       if (ch) {
         // minimal rotation of the bone's rest direction onto the rig limb
         const from = charPosOf(ch.from(), _a);
-        const to = ch.hand !== undefined ? root.worldToLocal(c.elbows[ch.hand].localToWorld(_b.set(0, -0.31, 0))) : charPosOf(ch.to(), _b);
+        const to = ch.hand !== undefined ? (POSE.exact ? c.elbows[ch.hand].localToWorld(_b.set(0, -0.31, 0)) : _b.set(0, -0.31, 0).applyMatrix4(c.elbows[ch.hand].matrixWorld)).applyMatrix4(rootInv) : charPosOf(ch.to(), _b);
         const want = to.sub(from).normalize();
-        q = new THREE.Quaternion().setFromUnitVectors(ch.dir, want).multiply(rest.q);
+        R.q.setFromUnitVectors(ch.dir, want).multiply(rest.q);
       } else if (f) {
         // rig joint's rotation (its rest is identity in character space)
-        q = charQOf(f.j(), new THREE.Quaternion()).multiply(rest.q);
-      } else if (this.wristOf.has(bone)) {
-        q = new THREE.Quaternion().copy(parentQ).multiply(this.wristOf.get(bone));
-      }
-      if (q) {
-        bone.quaternion.copy(_qr.copy(parentQ).invert().multiply(q));
-        this.charQ.set(bone, q);
-      } else {
-        this.charQ.set(bone, (this.charQ.get(bone) ?? new THREE.Quaternion()).copy(parentQ).multiply(bone.quaternion));
-      }
+        charQOf(f.j(), R.q).multiply(rest.q);
+      } else if (R.wrist) {
+        R.q.copy(parentQ).multiply(R.wrist);
+      } else driven = false;
+      if (driven) bone.quaternion.copy(_qr.copy(parentQ).invert().multiply(R.q));
+      else R.q.copy(parentQ).multiply(bone.quaternion);
       if (bone === this.b.pelvis && !atRest) {
+        if (!POSE.exact) bone.parent.updateWorldMatrix(true, false);   // (the model's own matrices, not made above)
         bone.parent.updateMatrixWorld(true);
         _m4.copy(bone.parent.matrixWorld).invert().multiply(root.matrixWorld);
         bone.position.copy(pelvisChar).applyMatrix4(_m4);
@@ -1560,7 +1570,8 @@ export class Humanoid {
       this._caps = spec.map(([a, , r, , i]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(),
         r: own ? (own[i] + CAPSULE_MARGIN[i]) * s : r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)), over: CAPE_OVER.test(a) }));
     }
-    spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
+    // (the bones as the pose left them: Humanoid.update, then the feet's and hands' own updates)
+    spec.forEach(([a, b], i) => { worldPos(B[a], this._caps[i].a); worldPos(B[b], this._caps[i].b); });
     const caps = this._robeLook && B.thigh_l && B.thigh_r && B.calf_l && B.calf_r ? this.robeCones() : this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
     // (a bulky held prop pushes the cloth aside too, and a bag worn over the cloak holds it under: bulkCapsules)
     const prop = this._propBulk && !this.stowed ? this.propCapsules() : null, worn = this._bodyBulk ? this.bodyCapsules() : null;

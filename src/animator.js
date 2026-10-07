@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { worldPos, worldQuat, updateRig } from './world-read.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import { MotionMatcher, MATCH } from './motion-match.js';
@@ -306,8 +307,9 @@ export class Animator {
   }
 
   dir(A, B, out) {
-    A.getWorldPosition(_r);
-    return B.getWorldPosition(out).sub(_r).normalize();
+    // (the library skeleton's matrices: current since update(), src.updateMatrixWorld)
+    worldPos(A, _r);
+    return worldPos(B, out).sub(_r).normalize();
   }
 
   /**
@@ -495,13 +497,14 @@ export class Animator {
   apply(root, { lean = 0, bank = 0, drop = 0, legScale = 1 } = {}) {
     const C = this.char;
     // body: hip motion relative to rest (bob, sway, rotation)
-    const hp = this.hips.getWorldPosition(_a);
-    const hq = this.hips.getWorldQuaternion(_q);
+    const hp = worldPos(this.hips, _a);
+    const hq = worldQuat(this.hips, _q);
     _q2.copy(this.restHipsQ).invert().premultiply(hq);   // hq * rest^-1
     C.body.position.set((hp.x - this.restHips.x) * 0.6, (hp.y - this.restHips.y) * legScale - drop, 0);
     C.body.quaternion.setFromEuler(new THREE.Euler(lean, 0, bank)).multiply(_q2.slerp(_qp.identity(), 0.5));
-    root.updateMatrixWorld(true);
-    const rootQ = root.getWorldQuaternion(_qp);
+    updateRig(root);
+    // (the rig's matrices current from here: the root's update, then each joint's own after it turns)
+    const rootQ = worldQuat(root, _qp);
     for (const m of this.map) {
       // limbs follow the library bone's absolute direction (both rigs face +Z,
       // y up); feet are corrected by the library foot's rest pitch so a flat
@@ -510,7 +513,7 @@ export class Animator {
       const desiredChar = m.foot ? cur.clone().applyQuaternion(_q.setFromUnitVectors(m.rest, FWD)) : cur.clone();
       // character space → world → the joint's parent space
       const world = desiredChar.applyQuaternion(rootQ);
-      m.j.parent.getWorldQuaternion(_q2);
+      worldQuat(m.j.parent, _q2);
       const local = world.applyQuaternion(_q2.invert());
       if (m.foot) {
         // keep the boot level side-to-side: build a basis from forward + parent up
@@ -536,8 +539,8 @@ export class Animator {
       let k = 0;
       for (const key of HEAD_NOD) k += this.actions[key]?.getEffectiveWeight() ?? 0;
       k = Math.min(1, k);
-      const want = this.bone('Head').getWorldQuaternion(_q).multiply(_q2.copy(this.restHead).invert()).premultiply(rootQ);
-      C.headNod.quaternion.copy(C.head.getWorldQuaternion(_q2).invert().multiply(want)).slerp(_q.identity(), 1 - k);
+      const want = worldQuat(this.bone('Head'), _q).multiply(_q2.copy(this.restHead).invert()).premultiply(rootQ);
+      C.headNod.quaternion.copy(worldQuat(C.head, _q2).invert().multiply(want)).slerp(_q.identity(), 1 - k);
       C.headNod.updateMatrixWorld(true);
     }
   }

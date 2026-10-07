@@ -733,3 +733,30 @@ of High's features put back at a time), the presets look very close. Two losses 
 Crease shading, the second ink pass and full weathering show barely visible differences at these views;
 their Handheld GPU cost is noisy, up to ~1 ms on the M4, and the Retroid's GPU is several times slower,
 so they stay off there.
+
+## The people posed without recomputing what was current (October 2026)
+
+Each person's posing (animator.js `apply`, humanoid.js `update`, the cloth's colliders) asked three for world
+positions and turns with `getWorldPosition` / `getWorldQuaternion` / `localToWorld` / `worldToLocal`, each of which
+recomputes every parent's matrix up to the scene first (and inverts the root's matrix again), right after a pass
+that had just updated them; and `updateMatrixWorld(true)` on the character's root went through the body's ~70 bones
+too, which Humanoid.update makes again from the rig straight after. Now (src/world-read.js):
+
+- `worldPos` / `worldQuat` read the matrix as it is where it is known to be current: the library skeleton's after
+  `Animator.update`, the rig's after its root's update and each joint's own, the bones' after `Humanoid.update`.
+- `updateRig` updates the root and everything under it but the body (`userData.poseSkip`), in Animator.apply and
+  Humanoid.update; the root's inverse is worked out once a pose, not once a bone.
+- Humanoid.update keeps a record a bone (its rest, what drives it, its parent's record, its turn) instead of five
+  map lookups and a new quaternion a bone a frame.
+
+The poses are the same to the float: tests/pose-exact.test.js runs two copies of the game in lockstep (the Unity
+bundle in two bare V8 contexts, the same clock and random numbers) through the camps (people walking, seated round
+the fires, carrying their staffs and instruments, their capes' colliders), a conversation and a walk, one with
+`__POSE_EXACT__` (every read recomputed as three does), and compares every bone's world matrix every frame; once
+checked against the bundle of the code before the change too (`POSE_REF`): no difference at all.
+
+| | before | after |
+|---|---|---|
+| the web, Handheld preset, Chrome's CPU ×4: the camps (frame; the people's update) | 25.7 ms; 6.1 | 22.8; 4.9 |
+| the same, the Signal Market's crowd | 14.0; 3.6 | 13.2; 2.9 |
+| the Unity player (macOS): the people's update at the camps, at the crowd | 1.69, 1.02 | 1.32, 0.81 |
