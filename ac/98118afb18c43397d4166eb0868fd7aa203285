@@ -1,0 +1,63 @@
+changelog.md
+  s_55b4bc53b812ec::t_e5126737ca688b 5-9
+docs/systems/references.md
+  s_55b4bc53b812ec::t_c45cc204ff01ad 446-447
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_7ebad6b5910799 455-499
+src/changelog.js
+  s_55b4bc53b812ec::t_68dc22bf26a850 12-15
+src/costumes.js
+  s_55b4bc53b812ec::t_6ffca54ee9f3d6 378-379
+src/levels/content.js
+  s_55b4bc53b812ec::t_965b43c8ffc0d1 21,36
+src/levels/glass-dunes-kit.js
+  s_55b4bc53b812ec::t_17ab2caceef78f 3,147,177-186,264-265
+src/levels/glass-dunes.js
+  s_55b4bc53b812ec::t_7bdb5ccacbdffc 1-228
+src/levels/index.js
+  s_55b4bc53b812ec::t_280b94ccbb4f3c 17,93-99
+src/levels/names.js
+  s_55b4bc53b812ec::t_3e9a07241ff27a 19,28-30
+src/levels/reference-glassdunes.js
+  s_55b4bc53b812ec::t_50e12175a1c42a 6,104
+src/main.js
+  s_55b4bc53b812ec::t_3f4e838c6f904b 58,607
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_f20e358c26b96a 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_f5b995f0182e0a 98
+src/reactive-world.js
+  s_55b4bc53b812ec::t_5f4d80a9d813bb 28
+src/ship/planets.js
+  s_55b4bc53b812ec::t_7067486b7c05d4 24
+src/ship/ship.js
+  s_55b4bc53b812ec::t_d76cb3db43d123 325
+src/ship/starmap.js
+  s_55b4bc53b812ec::t_1f86dfa7be123f 11-12,48,58-63,289,328-330,354
+src/wildlife/species.js
+  s_55b4bc53b812ec::t_f7613e9bb1f935 900-901
+tests/glass-dunes.test.js
+  s_55b4bc53b812ec::t_5d24efac5f2ce9 87-147
+tests/scripts.test.js
+  s_55b4bc53b812ec::t_9c9ced0e5e608f 10,20
+tests/signature.test.js
+  s_55b4bc53b812ec::t_907337e4e02af1 18-19
+tests/wildlife.test.js
+  s_55b4bc53b812ec::t_350b700da7ca8a 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ac98118afb18c43397d4166eb0868fd7aa203285",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
