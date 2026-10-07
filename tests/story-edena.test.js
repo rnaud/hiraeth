@@ -178,5 +178,14 @@ test('side quests: the pyramid seed, planted and watered; the tallest tree’s c
   assert.equal(quests.stage('edena.tree'), 'tell');
   talk(PEOPLE.lio, ['A bench']);
   assert.equal(quests.isDone('edena.tree'), true);
+  // Talo's note read before Lio ever asked: telling him starts and ends the quest in that talk (it used to wait forever)
+  game.set('quest.edena.tree', undefined);
+  assert.equal(quests.isStarted('edena.tree'), false);
+  talk(PEOPLE.lio, ['The whole garden']);
+  assert.equal(quests.isDone('edena.tree'), true);
+  // Mira hears her mended clock once, and never says it rang while it had no gear
+  game.set('quest.edena.clock', 'done');
+  const r = new DialogueRunner(PEOPLE.mira, { game, quests });
+  assert.equal(r.nodeId, 'clockDone');
   clearInteractables(); clearTargets();
 });

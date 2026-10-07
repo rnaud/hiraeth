@@ -7,12 +7,13 @@
 //   node scripts/release-info.mjs latest-json <build> <apk url>        → latest.json, read by Updater.java
 //   node scripts/release-info.mjs web-json <build> <web.zip> <zip url> → web.json, read by WebBundles.java
 //   node scripts/release-info.mjs web-zips <asset names…>              → the web zips a release can delete (staleWebZips)
+//   node scripts/release-info.mjs unity-notes <android|linux> [sha] [by] → the Unity testers' release notes (unityNotes)
 // The Cloudflare deploy writes its own web.json (scripts/web-update.mjs, from webJson below).
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { CHANGELOG } from '../src/changelog.js';
+import { CHANGELOG, lineText } from '../src/changelog.js';
 
 const BUNDLES_JAVA = fileURLToPath(new URL('../android/app/src/main/java/com/rnaud/moebius/WebBundles.java', import.meta.url));
 const DESKTOP_MAIN = fileURLToPath(new URL('../desktop/main.mjs', import.meta.url));
@@ -73,7 +74,7 @@ export const latestJson = ({ build, version, apk, native = nativeApi() }) => {
 };
 
 /** The newest changelog lines, for the settings' "what's new in the update" (plain text, at most `max`). */
-export const releaseNotes = (entry = CHANGELOG[0], max = 12) => entry.items.slice(0, max).map((i) => String(i));
+export const releaseNotes = (entry = CHANGELOG[0], max = 12) => entry.items.slice(0, max).map(lineText);
 
 /**
  * The web bundle manifest. `minNative`: the Android bridge the bundle needs (WEB_MIN_NATIVE);
@@ -111,6 +112,29 @@ export function webDecision(manifest, { native, current, bad = [] }) {
   return 'stage';
 }
 
+/** The Unity testers' builds (docs/systems/unity.md, "Building in GitHub Actions"): their releases, files and package. */
+export const UNITY_RELEASES = {
+  android: { tag: 'unity-android', file: 'memento-unity.apk', package: 'com.rnaud.memento.unity' },
+  linux: { tag: 'unity-linux', file: 'memento-unity-linux.tar.gz' },
+};
+
+/**
+ * The notes of a Unity testers' release (unity-android, unity-linux): what it is, how to install it, and which
+ * commit and web version it was built from (a release of its own, replaced each build; never the players' latest).
+ */
+export function unityNotes({ platform = 'android', sha, subject = '', version = CHANGELOG[0].v, build, by = 'GitHub Actions', date = new Date().toISOString().slice(0, 10) }) {
+  const r = UNITY_RELEASES[platform];
+  if (!r) throw new Error(`unknown platform: ${platform}`);
+  const what = platform === 'android'
+    ? `Memento (Unity), for testing: the game's own JavaScript run inside Unity (the engine bridge) and drawn by Unity, on Android. `
+      + `Package \`${r.package}\`: it installs next to the Memento app (\`com.rnaud.moebius\`) and never replaces it; each new build installs over the last (the same release key) and keeps its saves. `
+      + `Download \`${r.file}\` below and open it on the device.`
+    : `Memento (Unity), for testing: the engine bridge's Linux player (x86_64, Vulkan, Mono), for the Steam Deck. `
+      + `Download \`${r.file}\`, unpack it and run \`memento-js.x86_64\`.`;
+  const from = `Built from commit ${sha ? `\`${sha.slice(0, 12)}\`` : '(unknown)'}${subject ? ` (${subject})` : ''}, web version v${version}${build ? `, build ${build}` : ''}, by ${by} on ${date}.`;
+  return `${what}\n\n${from}\n\nNot for players: the game itself is the Memento app and https://memento.alexandria-rnaud.workers.dev/.`;
+}
+
 function main(what = 'version', ...args) {
   const [latest] = CHANGELOG;
   if (what === 'version') console.log(latest.v);
@@ -120,9 +144,15 @@ function main(what = 'version', ...args) {
   else if (what === 'latest-json') console.log(JSON.stringify(latestJson({ build: +args[0], version: latest.v, apk: args[1] })));
   else if (what === 'web-json') console.log(JSON.stringify(webJson({ build: +args[0], version: latest.v, file: args[1], zip: args[2] })));
   else if (what === 'web-zips') console.log(staleWebZips(args).join('\n'));
+  else if (what === 'unity-notes') {
+    const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8' }).trim();
+    const sha = args[1] || git('rev-parse', 'HEAD');
+    console.log(unityNotes({ platform: args[0], sha, subject: git('log', '-1', '--format=%s', sha), build: gameBuild(), by: args[2] }));
+  }
   else if (what === 'notes') {
     console.log(`Memento v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online, from the game's own site.\n`);
-    console.log(latest.items.map((i) => `- ${i}`).join('\n'));
+    console.log(latest.items.map((i) => `- ${lineText(i)}`).join('\n'));
+    console.log(`\nBefore and after pictures of what changed: https://memento.alexandria-rnaud.workers.dev/changelog.html#v${latest.v}`);
     console.log('\nThe game runs fully offline. Built from the web version that is also playable at https://memento.alexandria-rnaud.workers.dev/.');
   } else throw new Error(`unknown: ${what}`);
 }

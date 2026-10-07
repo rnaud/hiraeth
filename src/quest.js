@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { slotStorage } from './save-slots.js';
 import { GameMenu } from './game-menu.js';
+import { inputKind } from './prompt-keys.js';
 
 // Story, collectibles and the sketchbook journal (worlds are reached by the ship: src/ship/).
 //  - Story: one quiet goal per level, marked by a beacon. A first visit and
@@ -296,6 +297,9 @@ export class Story {
  * villagers: greeting a giver hands you the parcel, greeting the receiver
  * while carrying it delivers it (with a sketch of them for the journal).
  */
+/** What opens the game menu, for the errand's toast: View on a pad, the book on a touch screen, J on the keys. */
+export const errandMenuKey = (kind = inputKind()) => (kind === 'pad' ? 'View' : kind === 'touch' ? 'The book' : 'J');
+
 export class Errands {
   constructor({ levelId, defs, npcs, journal, titles, capture, sound }) {
     Object.assign(this, { levelId, defs, npcs, journal, titles, capture, sound });
@@ -330,7 +334,7 @@ export class Errands {
           img = this.capture(new THREE.Vector3(P.x + Math.sin(h) * 3, P.y + 1.8, P.z + Math.cos(h) * 3), P.clone().add(new THREE.Vector3(0, 1.4, 0)), 240, 180);
         } catch { /* no sketch */ }
         this.journal.setErrand(d.id, { ...st, done: true, img });
-        toast(`Delivered ${d.item} · J to see it in the sketchbook`);
+        toast(`Delivered ${d.item} · ${errandMenuKey()} to see it in the Sketchbook`);
         this.sound?.chime?.();
       } else npc.lines = w.base;
     }

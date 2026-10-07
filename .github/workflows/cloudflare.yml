@@ -52,6 +52,12 @@ jobs:
           export DECK_BUILD=$((WEB_BUILD * 1000 + GITHUB_RUN_ATTEMPT))
           node scripts/deck-runtime.mjs --live https://memento.alexandria-rnaud.workers.dev/
           cat dist/updates/steam-deck.json
+      - name: The changelog's pictures on the site
+        run: |
+          # (after the content update and the Deck's runtime are made: the pictures are the site's alone,
+          # never in the APK, the update zip or the Deck; changelog.html reads them from here)
+          cp -R changelog-media dist/changelog-media
+          du -sh dist/changelog-media
       - name: Deploy
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

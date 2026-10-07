@@ -148,7 +148,7 @@ const portraitPull =(aspect) => THREE.MathUtils.clamp(1.25 / (aspect || 1.6), 1,
  * @param from         where the camera is now (prefers that side)
  * @param prefer       { side, i } a previous pick, kept unless clearly worse
  */
-export function pickTwoShot({ a, b, faceA = null, faceB = null, up = UPY, aspect = 1.6, from = null, sight = null, people = [], prefer = null }) {
+export function pickTwoShot({ a, b, faceA = null, faceB = null, up = UPY, aspect = 1.6, from = null, sight = null, people = [], prefer = null, side: keep = 0 }) {
   const fa = faceA ?? a.clone().addScaledVector(up, 1.55), fb = faceB ?? b.clone().addScaledVector(up, 1.55);
   // (someone much taller, a stilt-walker's lantern 4 m up: the shot rises and steps back to hold both faces; people are unchanged)
   const ha = _d.subVectors(fa, a).dot(up), hb = _d.subVectors(fb, b).dot(up);
@@ -160,7 +160,9 @@ export function pickTwoShot({ a, b, faceA = null, faceB = null, up = UPY, aspect
   const side = new THREE.Vector3().crossVectors(up, across).normalize();
   const dist = (2.0 + sep * 1.0 + Math.max(0, Math.abs(hb - ha) - 0.6)) * portraitPull(aspect);
   const phi0 = Math.atan2(sep * 0.3, dist);
-  const here = from && side.dot(_d.subVectors(from, mid)) < 0 ? -1 : 1;
+  // (keep: the side the conversation's shots have been on, the 180° rule: the other side only when this one is blocked)
+  const here = keep ? Math.sign(keep) : from && side.dot(_d.subVectors(from, mid)) < 0 ? -1 : 1;
+  const flip = keep ? 1.5 : 0.3;
   const look = () => mid.clone().addScaledVector(across, 0.06 * sep).addScaledVector(up, -0.75);
   const cands = [];
   // the two-shot round both sides: angles toward the traveller's back (phi > 0) or the other's
@@ -170,7 +172,7 @@ export function pickTwoShot({ a, b, faceA = null, faceB = null, up = UPY, aspect
         for (const [h, hc] of [[0.4, 0], [1.1, 0.5], [0.05, 0.6]]) {
           const dir = _a.copy(side).multiplyScalar(s * Math.cos(phi)).addScaledVector(across, -Math.sin(phi));
           const eye = mid.clone().addScaledVector(dir, dist * k).addScaledVector(up, h * Math.min(1, k + 0.2));
-          cands.push({ eye, look: look(), pref: pc + kc + hc + (s === here ? 0 : 0.3), kind: 'two', side: s, anchorAt: fa });
+          cands.push({ eye, look: look(), pref: pc + kc + hc + (s === here ? 0 : flip), kind: 'two', side: s, anchorAt: fa });
         }
       }
     }
@@ -186,6 +188,80 @@ export function pickTwoShot({ a, b, faceA = null, faceB = null, up = UPY, aspect
     }
   }
   return best(cands, (c) => (c.kind === 'two' ? [[fa, 0.15, [b]], [fb, 0.15, [a]], [mid, 0.6]] : [[c.far, 0.15, null, null, [c.near]], [c.near, 0.5]]), { sight, people, up, prefer }, mid);
+}
+
+/**
+ * The close shot of one face (src/story/coverage.js: the traveller saying something, or taking a line
+ * in): from beside the other's shoulder, a three-quarter view (SINGLE.yaw off the line he looks along),
+ * near enough that the face (SINGLE.face m, hairline to chin) is SINGLE.frac of the frame's height, and no more
+ * than SINGLE.most px tall on a big screen (where a fifth of the height is more than it takes to read it).
+ */
+export const SINGLE = {
+  face: 0.21, frac: 0.2, most: 170,
+  // (rad off the line from his face to the other's, toward the two-shot's side; and what each costs)
+  yaw: [[0.5, 0], [0.4, 0.35], [0.62, 0.45], [0.3, 0.9], [0.78, 1.0]],
+  near: [[1, 0], [0.86, 0.5], [1.15, 0.6], [0.72, 1.2]],
+  up: [[0.05, 0], [0.14, 0.3], [-0.04, 0.4]],
+  at: [0.2, 0.32],   // where the face sits in the frame (NDC): toward the side away from the other (room to look), in the upper third
+  turn: 0.9,         // how much the angle goes by the way his face looks rather than the line between them
+  follow: 0.45,      // how far the camera goes down (or up) toward the other's face height
+  max: 3.2,          // a pick costing more (something in the way, the camera pressed into something): the two-shot instead
+};
+
+/**
+ * @param fa, fb     the framed face and the other's
+ * @param b          the other's feet; radius: their body's (a giant's is wider)
+ * @param side       the side of the line between them the camera keeps to (the 180° rule: the two-shot's), ±1
+ * @param fov        the camera's vertical field of view (degrees)
+ * @returns          { eye, look, cost, kind: 'single', side, ok } (ok: clear enough to use)
+ */
+export function pickSingle({ fa, fb, b = null, radius = 0.3, up = UPY, aspect = 1.6, fov = 55, side = 1, sight = null, people = [], prefer = null, facing = null, height = null }) {
+  const g = new THREE.Vector3().subVectors(fb, fa); g.addScaledVector(up, -g.dot(up));
+  if (g.lengthSq() < 1e-6) g.set(1, 0, 0);
+  g.normalize();
+  // (the side of the line between them: the same as pickTwoShot's, cross(up, a → b))
+  const sd = new THREE.Vector3().crossVectors(up, g).normalize();
+  // his head turns about as he listens: the angle is taken mostly off the way his face looks, so it stays a
+  // three-quarter view (the camera still on its side of the line between them)
+  const base = g.clone();
+  if (facing) {
+    const f = _a.copy(facing).addScaledVector(up, -facing.dot(up));
+    if (f.lengthSq() > 1e-4 && f.normalize().dot(g) > 0) base.lerp(f, SINGLE.turn).normalize();
+  }
+  const sb = new THREE.Vector3().crossVectors(up, base).normalize();
+  const tv = Math.tan(THREE.MathUtils.degToRad(fov || 55) / 2);
+  const frac = height ? Math.min(SINGLE.frac, SINGLE.most / height) : SINGLE.frac;
+  const d0 = SINGLE.face / (frac * 2 * tv) * THREE.MathUtils.clamp(1.1 / (aspect || 1.6), 1, 1.6);
+  const foot = b ?? fb.clone().addScaledVector(up, -1.5);
+  const top = fb.clone().addScaledVector(up, 0.2 * Math.max(1, radius / 0.3));
+  // (he looks down at a child or someone seated, up at a giant: the camera goes part of the way with his eyes)
+  const dh = THREE.MathUtils.clamp(_d.subVectors(fb, fa).dot(up), -0.9, 0.5) * SINGLE.follow;
+  const cands = [];
+  for (const [yaw, yc] of SINGLE.yaw) {
+    for (const [k, kc] of SINGLE.near) {
+      for (const [h, hc] of SINGLE.up) {
+        const dir = _a.copy(base).multiplyScalar(Math.cos(yaw)).addScaledVector(sb, side * Math.sin(yaw));
+        const eye = fa.clone().addScaledVector(dir, d0 * k).addScaledVector(up, h + dh);
+        // (the camera inside the other, beside a giant or right over a child's head: never; over the line: hardly)
+        const inside = segDist(eye, eye, foot, top) < radius + 0.12 ? 10 : 0;
+        const over = side * sd.dot(_b.subVectors(eye, fa)) < -0.05 ? 3 : 0;
+        cands.push({ eye, pref: yc + kc + hc + inside + over, kind: 'single', side, near: fa });
+      }
+    }
+  }
+  const o = { sight, people, up, prefer };
+  const pick = best(cands, () => [[fa, 0.12, [foot], null, [fb]]], o, fa);
+  pick.ok = !pick.blocked && pick.room && pick.cost <= SINGLE.max;
+  // where the face sits in the frame: the view turned so it lands at SINGLE.at, away from the other
+  const fwd = _b.subVectors(fa, pick.eye).normalize();
+  const right = _c.crossVectors(fwd, up).normalize(), vup = _d.crossVectors(right, fwd);
+  // (the way he looks: his face's, else toward the other)
+  const away = Math.sign(right.dot(facing ? _s1.copy(facing) : _s1.subVectors(fb, pick.eye))) || 1;
+  const view = new THREE.Vector3().copy(fwd)
+    .addScaledVector(right, away * SINGLE.at[0] * tv * (aspect || 1.6))
+    .addScaledVector(vup, -SINGLE.at[1] * tv).normalize();
+  pick.look = pick.eye.clone().addScaledVector(view, pick.eye.distanceTo(fa));
+  return pick;
 }
 
 /**

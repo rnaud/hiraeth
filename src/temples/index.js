@@ -207,10 +207,19 @@ export function setupTempleStory(ctx) {
   const after = () => { if (W.LINES_AFTER?.length) for (const n of people) { n.lines = [...W.LINES_AFTER]; n.lineIdx = 0; } };
   if (game.flag(`temple.${id}.done`)) after();
   const offAfter = game.on(`flag:temple.${id}.done`, (v) => { if (v) after(); });
+  let byTheWay = false;   // its quest started as you passed by (not by arrival, not inside)
   return {
     rt, people, dispose: offAfter,
     update(dt, t) {
-      if (!quests?.isStarted?.(Q.id) && (near() || game.flag(`temple.${id}.entered`))) quests.start(Q.id);
+      if (!quests?.isStarted?.(Q.id) && (near() || game.flag(`temple.${id}.entered`))) {
+        quests.start(Q.id);
+        // only passing by (the ship lands near Vael's Aerie): it started on its own, so while the world's own
+        // quest waits for its first conversation the scout still finds who to talk to (quests.objective)
+        const qd = quests.def?.(Q.id);
+        if (qd && !game.flag(`temple.${id}.entered`)) { qd.arrival = true; byTheWay = true; }
+      }
+      // inside it, the temple is what you are doing
+      if (byTheWay && game.flag(`temple.${id}.entered`)) { const qd = quests.def?.(Q.id); if (qd) qd.arrival = false; byTheWay = false; }
       rt.update(dt, t);
     },
   };

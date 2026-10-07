@@ -25,6 +25,8 @@ Press **N**, or use the button in settings, for what's new in each version
 (`src/changelog.js`; add an entry at the top for every release). After an
 update, a note points to it once. The same release notes are in
 [changelog.md](../../changelog.md); keep it in sync when adding a release.
+Its **See what changed** opens the interactive changelog over the game: each line with its
+before / after pictures, numbers or how to see it ([changelog.md](changelog.md)).
 
 ## A quieter screen: conversations and prompts
 - **No button reminders.** (Since v0.62 there is no status box at all: "Nothing on the screen" below.) The status box (`updateHud` in `src/main.js`) showed the place,
