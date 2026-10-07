@@ -467,6 +467,48 @@ the narrowest creases.
 - **Left, scene level**: the sheets' houses are a dense village (twenty or thirty in a view, on every limb),
   ours six to eight; their decks are ragged with sticks and ladders; the boats carry crates and lamps.
 
+## The Forest of Antennas' pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-antennas.js`, world `antennas`: `?level=references&world=antennas&view=<1…4>`):
+  four single compositions (1456 × 816), one view each: the path to the workshops under the immense navy receiver,
+  backlit (1); under the great nest saucer, the workshops on their decks, the pink dish on its lattice, the
+  maintenance bridge (2); the vine-grown masts and their nests, the pink receiver on its block over the domes (3);
+  the great saucer over the egg and the domes, the stair to the observation platform (4). One scene builder
+  (`antennaScene`): lattice masts with nest saucers and birds, dishes on lattice legs, a pedestal or a block,
+  great saucers on their masts, the domes and the egg, vine-grown cables and plain wires, metal stairs and decks,
+  the path, dark bushes, grass strokes, and the forest beyond. `?look=antennas`.
+- **Placed off the sheets' pixels** (`sheetAt(cam, px, py, d)`, `sheetGround(cam, px, py)`, `sheetSpan`): a point
+  drawn at pixel (px, py) and standing d m down the line of sight is put where the view's camera (its fov and
+  horizon, so its pitch) sees it there; a mast is given by its foot and its saucer's rim in pixels (`mastAt`), a
+  dish by its centre and half-width. A pixel above the horizon never meets the ground (`sheetGround` behind the
+  eye): such a foot is placed with `sheetAt` at a distance instead. `tests/antennas.test.js` projects them back.
+- **The sheets' flattened perspective**: their high saucers are drawn nearly edge-on (a thin rim, little of the
+  underside) though they stand 25-40° up from the eye, which no camera does; the saucers are tipped toward the eye
+  by a share of that angle (`tipEye`: 0.4 a mast's, 0.85 a great one's), the birds on their rims with them.
+- **The shapes** (`src/levels/antennas-kit.js`, shared with the world): `latticeTower` (three or four tapering legs,
+  X-braced bays, one diagonal under detail 0.6, vines climbing the legs with leaf clumps on them, strands hanging
+  from the struts), `dish` (a paraboloid with its back shell to colour apart, the rim, a tripod, quad or boom feed
+  at the focus, ribs on its back; `aimAt` turns it to a direction about its vertex), `saucer` (the flat nest dish:
+  a shallow bowl on a conical underside, vines off the rim), `column`, `dome` (a workshop: round lit windows in
+  dark frames, an arched lit door under its hood, a vent and a little dish on top), `egg`, `vineCable`, `cable`,
+  `trussStair`, `deck` (railed, gaps where a stair meets it), `bird`, and unit far masts (`unitPole`, `unitSaucer`,
+  `unitDish`). Caps and bowls hatch radially (`form` 'cap'), columns and the egg wrap.
+- **The forest beyond** (`farForest`): 700-1100 masts from 70-140 m to 1.1 km, each a pole and a cap (a nest
+  saucer, a tilted dish, a flower dish on a stalk), four instanced draws, each mast its own tone from a mid lilac to
+  the haze's cream with distance. **No shimmer at distance**: a pole is never drawn thinner than `FAR_MIN_R` × its
+  distance (1.6 mm a metre: ~1.5 px on the handheld's frame), and the far masts and the dishes' frames draw a thin
+  line in a dark shade of their own colour (`line`, `lineTint`), not the world's black ink, so a mast a pixel or two
+  wide is a pale stroke, not a crawling black one; the lattices further off are a lighter rust with a thinner line
+  (`ironMid`).
+- **The look** (`ANTENNAS_LOOK`, `ANTENNAS_DAY`, `ANTENNAS_TONES` in the kit): no clouds, a flat pale yellow sky,
+  lavender shade, thin lines and light hatching, stepped haze in a pale cream from 90 m out, cast shadows lifted on
+  the grass. Per view: the sky's five colours read off the sheet (view 4 an amber sky), the grass's three tones.
+- **Left, shader level**: the sheets' grass is a dense field of fine strokes, ours a few thousand instanced tufts
+  and the ground's ticks; their far forest dissolves into a glowing horizon haze, ours steps into it.
+- **Left, scene level**: the sheets' workshops are dense with machinery, decks and ladders, ours plain domes;
+  their mid-distance lattices are fine pen work at every bay, ours a few struts; view 2's stacked domes reach up
+  to the saucer's collar, ours stop lower.
+
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 
 The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had
