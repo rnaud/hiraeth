@@ -1,0 +1,55 @@
+TODO.md
+  s_55b4bc53b812ec::t_5e66738dd5073c 27-31,54-60,103-109,117-119
+changelog.md
+  s_55b4bc53b812ec::t_259796cfb4e5e1 9
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_02a5b395a879ea 907-928
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_ecb1775503b26e 765-862
+scripts/bench/android-bridge.sh
+  s_55b4bc53b812ec::t_f54ad4fabaf8ac 22-25,39-49
+scripts/bench/results/android-worlds-round4.json
+  s_55b4bc53b812ec::t_3c1d3cc028e3e0 1-3713
+scripts/transition-perf/pen-android.mjs
+  s_55b4bc53b812ec::t_d3cdc43654c317 1-95
+scripts/transition-perf/pen-read.swift
+  s_55b4bc53b812ec::t_2b32a28d3ff106 1-37
+scripts/transition-perf/pen-stops.mjs
+  s_55b4bc53b812ec::t_b893014e262e7c 1-31
+src/changelog-media.js
+  s_55b4bc53b812ec::t_8dc1394423a77f 133-142,245-253,265-269,357-362
+src/changelog.js
+  s_55b4bc53b812ec::t_92ff7f8c0e9288 15-24
+src/main.js
+  s_55b4bc53b812ec::t_7770297876838b 784
+src/perf.js
+  s_55b4bc53b812ec::t_20a4504e419cca 365-367,371,379,403-404,408-419,434-449
+tests/android-bridge.test.js
+  s_55b4bc53b812ec::t_9edf7a794fa124 1-31
+tests/android-ota.test.js
+  s_55b4bc53b812ec::t_d17d5f6152829b 10,81
+tests/pen-stops.test.js
+  s_55b4bc53b812ec::t_bd2cc8a2fae8e6 1-40
+tests/quality.test.js
+  s_55b4bc53b812ec::t_026d903ee82af3 134-161
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_55b4bc53b812ec::t_55810565e41a0e 19-25,27,29-59,63,86
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_c6ffe3ab8e4d05 64,106,119,354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8afcee5334e8636d6ac76fca96ae8b5c0702958d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
