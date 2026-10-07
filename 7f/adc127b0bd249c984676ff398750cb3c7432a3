@@ -1,0 +1,43 @@
+changelog.md
+  s_55b4bc53b812ec::t_323d39a301891e 16-17
+src/changelog.js
+  s_55b4bc53b812ec::t_f0e92dea52e933 20-21
+src/levels/content.js
+  s_55b4bc53b812ec::t_e07f81596c8f6d 245-247
+src/levels/perdide.js
+  s_55b4bc53b812ec::t_0a9a69383e1318 166
+src/story/edena-data.js
+  s_55b4bc53b812ec::t_83408c4b49f05c 67,73,83,107,116,158-163,184,192,267,298-299,348,403
+src/story/perdide-data.js
+  s_55b4bc53b812ec::t_a33d4d2bb6de76 29,138,171,175,213,227,417
+src/story/perdide.js
+  s_55b4bc53b812ec::t_d724464aec8b98 213
+src/story/perdide2-data.js
+  s_55b4bc53b812ec::t_6490e9ca5ba030 60,120,125,146,160,192,208,232,252,283,327
+src/temples/edena-data.js
+  s_55b4bc53b812ec::t_ce6b33e06998b6 44,63
+src/temples/perdide2-data.js
+  s_55b4bc53b812ec::t_dda214ca2f41d1 66
+tests/story-edena.test.js
+  s_55b4bc53b812ec::t_3d39373f79eeb1 181-189
+tests/story-perdide2.test.js
+  s_55b4bc53b812ec::t_359b45b7a96af8 96,184
+tests/story-terraces.test.js
+  s_55b4bc53b812ec::t_ab2a32ba5f5716 141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7fadc127b0bd249c984676ff398750cb3c7432a3",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
