@@ -102,7 +102,7 @@ const studio = (query, size = [960, 720]) => ({ page: 'studio.html', query: `${q
 const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 720], wait: 1500, ...o });
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
-// (the story's second pass, v0.82: a save six worlds along the route, everything charted and heard so far)
+// (the story's second pass, v0.83: a save six worlds along the route, everything charted and heard so far)
 const ROUTE = ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'incal', 'garage', 'buried', 'spheres', 'bazaar'];
 const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.powered': true, 'charge.given': true, 'charge.card': true,
   ...Object.fromEntries(ROUTE.slice(0, n).map((w) => [`world.${w}.done`, true])), ...Object.fromEntries(Array.from({ length: n }, (_, i) => [`calls.${i + 1}`, true])),
@@ -110,7 +110,7 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
-  '0.82': [
+  '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [
       { name: 'relay-signal', caption: 'The galactic map six worlds along: the Signal Market, not charted yet, pulses as “a signal” (home’s panel says where it is)', commit: '1af87675',
         view: { level: 'edena', hud: true, save: saveAlong(6), setup: 'window.ship.map.toggle(true)', wait: 2500 } },
@@ -134,6 +134,62 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Take a cab to the middle levels (or fly down to the terrace at −24 m) and walk along the promenade: talk to Perrine, wash the mirror (shoot) and push its frame round from the side until it faces up the shaft. With the Lodestar lit, its glass glows, and Ossa at the bottom has something to say.' },
     { match: 'A few quiet places have something to say now', see: 'In Vael, walk up to the fallen giant’s face on the plain; in the desert, look up at the lintel of the Givers’ Hearth’s door, look at the little mask inside the masked head in the southern dunes, and read the slate by the hut at the crashed hull, then meet Marrow again.' },
   ],
+  '0.82': [
+    { match: 'The camera follows closer', shots: [
+      { name: 'camera-desert', caption: 'Open desert, the camera as it starts: before 9.5 m back and high; after 6.4 m back, lower, the traveller a quarter of the view', from: 'the camera work’s own screenshots, before and after, the same spot, heading and hour (7 October)' },
+      { name: 'camera-qanat', caption: 'Qanat, inside the main gate', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
+      { name: 'camera-market', caption: 'The Signal Market’s street, where you arrive', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
+    ], numbers: [{ title: 'The open camera, as a world starts', unit: 'm', better: 'lower', device: 'any', rows: [
+      { where: 'arm (look point to camera)', before: 9.5, after: 6.4 },
+      { where: 'camera height over the feet', before: 3.9, after: 3.0 },
+    ], source: 'docs/systems/movement-and-camera.md' }] },
+    { match: 'In closed spaces (the ship, temples', shots: [
+      { name: 'camera-ship', caption: 'Inside the ship, by the hatch: before 2.6 m back over the right shoulder; after 1.9 m, at shoulder height', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
+      { name: 'camera-temple', caption: 'The desert temple’s first hall', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
+    ], see: 'Walk up the ship’s ramp, or into a corridor with a wall close on your right: the camera eases in over your left shoulder and stays there; hold LT / L2 (or the right mouse button) to aim and it moves over the right.' },
+    { match: 'The traveller moves more like a person at the moments that used to look mechanical', shots: [
+      { name: 'captured-start', caption: 'Setting off at a walk (the stick half way), a frame every tenth of a second from the side: before, the jog loop hunches him forward; after, Mixamo’s captured start keeps him upright, arms swinging', size: [1280, 237], from: 'the Motion page’s frame strips (motionPage.sheet), the same scripted run before and after (7 October)' },
+      { name: 'captured-stop', caption: 'Letting go of the stick at a walk, seen from in front: after, the captured stop throws his arms out to brake; the feet land in the same places', size: [1280, 237], from: 'the Motion page’s frame strips, the same run before and after (7 October)' },
+      { name: 'captured-pivot', caption: 'Doubling back at a run: after, the head and shoulders turn into it first', size: [1280, 237], from: 'the Motion page’s frame strips, the same run before and after (7 October)' },
+    ], numbers: [
+      { title: 'Foot sliding (the worst contact)', unit: 'm', better: 'lower', device: 'Node, the gait harness on the coral-shirt traveller (scripts/mocap/compare.mjs)', source: 'docs/systems/animation.md, “Captured starts, stops and turns over the loops”', rows: [
+        { where: 'walk, run, turn back, stop', before: 0.11, after: 0.11 },
+        { where: 'walk, quarter turn, stop', before: 0.08, after: 0.08 },
+        { where: 'turn round on the spot', before: 0.09, after: 0.09 },
+        { where: 'slow walk, stop', before: 0.05, after: 0.05 },
+        { where: 'the same with motion matching instead (not used)', before: 0.11, after: 0.25 },
+      ] },
+      { title: 'How fast the pose answers the stick', unit: 's', better: 'lower', device: 'Node, the gait harness on the coral-shirt traveller', source: 'docs/systems/animation.md', rows: [
+        { where: 'from standing, the stick pushed: a foot off the ground', before: 0.13, after: 0.13 },
+        { where: 'slow walk: a foot off the ground', before: 0.17, after: 0.17 },
+        { where: 'letting go at a walk: both feet held', before: 0.9, after: 0.9 },
+        { where: 'facing back after turning at a run', before: 0.3, after: 0.3 },
+      ] },
+      { title: 'The traveller’s animation a frame (walking, stopping, turning, jumping about the desert)', unit: 'ms', better: 'lower', device: MAC_X4, source: 'docs/systems/animation.md, “The traveller’s captured moves”: two runs each, the captured moves off (before) and on', rows: [
+        { where: 'the player’s whole update, run 1', before: 1.64, after: 1.43 },
+        { where: 'the player’s whole update, run 2', before: 1.76, after: 1.71 },
+        { where: 'the Animator', before: '0.22–0.26', after: '0.21–0.25' },
+      ], note: 'within the run-to-run noise: the moves cost nothing measurable' },
+    ], see: 'Walk with the stick half way and let go, tap back to turn round on the spot, or run and pull back: the body above the legs follows the capture. The dev menu’s Motion section switches it off to compare.' },
+    { match: 'Knocked down, the traveller gets up as a person does', shots: [
+      { name: 'getup-stomach', caption: 'Knocked forward onto his face: before, the kneel; after, Mixamo’s get-up from the stomach, placed where he lies', size: [1280, 143], from: 'the Motion page’s frame strips, the same knockdown before and after (7 October)' },
+      { name: 'getup-back', caption: 'Knocked back: after, he sits up and rises from his back', size: [1280, 143], from: 'the Motion page’s frame strips, the same knockdown before and after (7 October)' },
+    ], numbers: [
+      { title: 'Lying to standing', unit: 's', better: 'lower', device: 'the game’s timing (src/ragdoll.js GET_UP, KNOCK)', source: 'docs/systems/animation.md, “The traveller’s captured moves”', rows: [
+        { where: 'from the back', before: 1.25, after: 1.45 },
+        { where: 'from the stomach', before: 1.25, after: 2.05 },
+      ], note: 'the captured get-ups play at twice their pace; the kneel was quicker, but the same for every fall' },
+    ] },
+    { match: 'Jumps and landings look caught from life', shots: [
+      { name: 'running-jump', caption: 'A running jump, from behind: before, a frog-legged tuck with the arms straight out; after, the captured stride through the air', size: [1280, 216], from: 'the Motion page’s frame strips, the same jump before and after (7 October)' },
+      { name: 'drop', caption: 'Walking off a 1.44 m ledge toward the camera: after, the captured landing’s deep crouch', size: [1280, 216], from: 'the Motion page’s frame strips, the same drop before and after (7 October)' },
+    ], see: 'Run and jump, walk off a ledge, fall from a roof at a run, or climb a wall and jump off it (A / × while climbing). The flight itself is as before: the same height, the same time in the air, the same place to land.' },
+    { match: 'Standing still a while, he now and then looks about him', see: 'Stand still: after 7 s he looks about him (Mixamo’s look-around), later breathes a while, then the old look-around, ten seconds apart. Only the body above the legs moves: the feet stay planted to the millimetre (tests/idle-legs.test.js stands him 36 s).' },
+    { match: 'Picking something up off the ground he goes down on one knee', shots: [
+      { name: 'kneel', caption: 'Picking something up: down on one knee, a look at it, and up again (E pressed at 0.5 s)', only: 'after', size: [1280, 216], from: 'the Motion page’s frame strip (7 October)' },
+      { name: 'pet', caption: 'Petting Moustache: kneeling, a hand reached out to him', only: 'after', size: [1280, 216], from: 'the Motion page’s frame strip (7 October)' },
+    ], see: 'Pick up a feather in Vael, a flower at home, or pet Moustache at home: walking off stands him up at once.' },
+  ],
   '0.81': [
     { match: 'What’s new (N) has a See what changed button', shots: [
       { name: 'see-what-changed', caption: 'This page: a line of v0.77 with its before and after, the split dragged to the left', only: 'after', size: [1440, 900], from: 'a screenshot of changelog.html (7 October)' },
@@ -146,6 +202,16 @@ export const CHANGELOG_MEDIA = {
         { where: 'the camps: the people’s update', before: 6.1, after: 4.9 },
         { where: 'the Signal Market’s crowd: the whole frame', before: 14.0, after: 13.2 },
         { where: 'the Signal Market’s crowd: the people’s update', before: 3.6, after: 2.9 },
+      ] },
+      { title: 'On the device: the people’s update a frame (round 1 → 7 October, with v0.77–0.80 in)', unit: 'ms', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+        { where: 'the camps', before: 5.34, after: 3.88 },
+        { where: 'Qanat', before: 4.79, after: 3.94 },
+        { where: 'the walk through the camps', before: 5.61, after: 4.01 },
+      ] },
+      { title: 'On the device: frames a second (round 1 → 7 October)', unit: 'fps', better: 'higher', device: RETROID, rows: [
+        { where: 'the camps', before: 45, after: 56 },
+        { where: 'Qanat', before: 49, after: 57 },
+        { where: 'the walk through the camps', before: 44, after: 51 },
       ] },
     ], see: 'Nothing looks different: the people are posed to the same float as before (checked bone by bone, frame by frame); it is the time each frame takes that went down.' },
     { match: 'On the Handheld and Steam Deck settings the grass grows further', see: 'On the Handheld or Steam Deck setting, walk into the Garden of Spheres’ meadows or the dry grass round home: the blades reach well ahead of the traveller instead of stopping a few steps in front of him. (A still picture barely shows it: the numbers say how far.)', numbers: [
@@ -160,6 +226,7 @@ export const CHANGELOG_MEDIA = {
         { where: 'the graphics a frame', before: 7.3, after: 7.3 },
       ] },
     ] },
+    { match: 'On the Steam Deck, a game that closes unexpectedly after you have been playing', see: 'Nothing to see while it works: if the game ever closes by itself after you have played a while (or something closes it), Steam returns to its library, and the next launch draws the way it did before instead of switching to a slower one.' },
   ],
   '0.79': [
     { match: 'Cloaks hang over people’s arms now', shots: [
@@ -249,7 +316,15 @@ export const CHANGELOG_MEDIA = {
         { where: 'the rim', before: 35.6, after: 31.3 },
         { where: 'the wide view across the shaft', before: 39.8, after: 37.3 },
       ] },
-    ], see: 'The towers look exactly as before (0.001–0.16 % of the pixels apart, the moving things): the gain is in how they are drawn.' },
+      { title: 'On the device: draw calls (the Retroid’s second round → 7 October)', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+        { where: 'the wide view', before: 1326, after: 1140 },
+        { where: 'the rim', before: 960, after: 868 },
+      ] },
+      { title: 'On the device: the G-buffer’s work on the processor a frame (round 1 → 7 October)', unit: 'ms', better: 'lower', device: RETROID, rows: [
+        { where: 'the wide view', before: 8.45, after: 5.92 },
+        { where: 'the rim', before: 6.67, after: 4.69 },
+      ] },
+    ], see: 'The towers look exactly as before (0.001–0.16 % of the pixels apart, the moving things; on the Retroid too, the same views merged and unmerged differ only where cabs, people and the airship moved): the gain is in how they are drawn.' },
   ],
   '0.77': [
     { match: 'The traveller’s face moves now', see: 'Talk to anyone and watch the traveller in the conversation’s close-up: he smiles, frowns or looks worried with what is said, blinks, glances about, and his mouth moves as he speaks.' },
@@ -260,6 +335,11 @@ export const CHANGELOG_MEDIA = {
       { title: 'The traveller’s shirt: its work on the processor a frame', unit: 'ms', better: 'lower', device: MAC_X4, source: 'docs/systems/performance.md, “The traveller’s overshirt on the GPU”', rows: [
         { where: 'the shirt’s update (median 0.2–0.5)', before: 3.5, after: 0.5 },
         { where: 'positions and normals sent to the graphics chip a frame (kB)', before: 260, after: 16 },
+      ] },
+      { title: 'On the device: the traveller’s whole update a frame, shirt and all (round 1 → 7 October)', unit: 'ms', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+        { where: 'the desert’s spawn', before: 2.81, after: 1.11 },
+        { where: 'the dunes', before: 3.5, after: 1.33 },
+        { where: 'the City-Shaft, wide', before: 2.99, after: 1.11 },
       ] },
     ] },
     { match: 'In the Garden of Spheres the white hill is carved', shots: [
@@ -323,11 +403,11 @@ export const CHANGELOG_MEDIA = {
   ],
   '0.76': [
     { match: 'The Steam Deck gets its own Graphics setting', numbers: [
-      { title: 'What the Deck drew before, on High, against its own setting', device: 'Steam Deck OLED, SteamOS 3.8', source: 'docs/systems/performance.md, “The Steam Deck”', note: 'the frame rate on the new setting is still to be measured on the Deck', rows: [
+      { title: 'What the Deck drew before, on High, against its own setting', device: 'Steam Deck OLED, SteamOS 3.8', source: 'docs/systems/performance.md, “The Steam Deck”', note: 'the spawn on High was read once in Desktop Mode (v0.73); on its own setting it was measured in Gaming Mode’s X11 under gamescope at 90 Hz (v0.80); High at 1.5× is still to be measured the same way', rows: [
         { where: 'pixels drawn (thousands)', before: 2304, after: 1024 },
         { where: 'props drawn out to (m)', before: 520, after: 380 },
         { where: 'the fine shadow map (px)', before: 2048, after: 1024 },
-        { where: 'the desert’s spawn on High (fps)', before: '17–22', after: null },
+        { where: 'the desert’s spawn (fps)', before: '17–22', after: 48 },
       ] },
     ] },
     { match: 'On handhelds the City-Shaft runs smoother', numbers: [
@@ -348,7 +428,12 @@ export const CHANGELOG_MEDIA = {
     { match: 'The desert’s camps and other crowded places run a little smoother', numbers: [
       { title: 'The processor’s work a frame at the camps', unit: 'ms', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, second round”', rows: [{ where: 'the camps', before: 20.2, after: 19.6 }] },
     ] },
-    { match: 'The loading screen’s turning pen', see: 'Open a world on a handheld and watch the pen on the loading screen: it should turn without stopping. (Measured on a busy Mac it stopped 100–240 ms at a time before; the Retroid’s own measurement is still to do.)' },
+    { match: 'The loading screen’s turning pen', see: 'Open a world on a handheld and watch the pen on the loading screen: it turns without stopping. (On a busy Mac it stopped 100–240 ms at a time before. On the Retroid it turned smoothly through every load, before the change and after, with no stop over 50 ms: the stutter measured was the Mac’s.)', numbers: [
+      { title: 'The pen’s longest stop through a load (a refresh is 17 ms)', unit: 'ms', better: 'lower', device: 'Retroid Pocket Nova (GeckoView 157), a screen recording of the load', source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+        { where: 'the desert', before: 33, after: 49 },
+        { where: 'the City-Shaft', before: 32, after: 32 },
+      ] },
+    ] },
     { match: 'The Buried Machine’s great wheel is solid', numbers: [
       { title: 'Where the wheel’s solid and drawn shapes disagree', better: 'lower', device: AUDIT, source: 'the commit’s measurements (48b995e)', rows: [
         { where: 'feet sinking into it', before: 69, after: 37 },

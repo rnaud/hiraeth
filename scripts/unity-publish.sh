@@ -22,9 +22,12 @@ cp "$FILE" "$TMP/$NAME"
 node scripts/release-info.mjs unity-notes "$PLATFORM" "$SHA" "$BY" > "$TMP/notes.md"
 if gh release view "$TAG" -R "$REPO" > /dev/null 2>&1; then
   gh release upload "$TAG" "$TMP/$NAME" -R "$REPO" --clobber
-  gh api -X PATCH "repos/$REPO/git/refs/tags/$TAG" -f sha="$SHA" -F force=true > /dev/null
+  # (the tag follows the build; Actions' token may not move it over commits that touch .github/workflows: the notes name the commit anyway)
+  gh api -X PATCH "repos/$REPO/git/refs/tags/$TAG" -f sha="$SHA" -F force=true > /dev/null 2>&1 \
+    || echo "::warning::the tag $TAG stays where it was (moving it to $SHA was refused); the notes name the commit"
   gh release edit "$TAG" -R "$REPO" --title "$TITLE" --notes-file "$TMP/notes.md" --prerelease --latest=false > /dev/null
 else
+  # (made once, by hand or by the local script: Actions' token was refused creating it, 403, on a commit that adds a workflow)
   gh release create "$TAG" "$TMP/$NAME" -R "$REPO" --target "$SHA" --title "$TITLE" --notes-file "$TMP/notes.md" --prerelease --latest=false > /dev/null
 fi
 echo "https://github.com/$REPO/releases/tag/$TAG ($NAME, $(du -h "$FILE" | cut -f1 | tr -d ' '), $(git rev-parse --short=12 "$SHA"))"

@@ -2,7 +2,7 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v0.82 — 2026-10-07
+## v0.83 — 2026-10-07
 
 - Once four worlds are behind you, a faint signal pulses on the galactic map further along the route, and the ship’s console mentions it: a broadcast worth hearing before you go home. After the Signal Market the recording you put off waits at the console as soon as you step outside, a second one follows it, the later worlds’ recordings find their own lines again, and the stone at home remembers Ilen even if you learn of her after the end.
 - Your mother’s note in the ship’s galley ends differently now, with the lamp she keeps in the window.
@@ -14,6 +14,17 @@ The same release notes shown in the game (press **N** or open settings).
 - Vael II’s people sound more like themselves, and less alike: Brother Calix, Mother Ysolde, Ondine, Tiv and the bridge’s keeper each end their words their own way. A few jokes that three worlds shared now belong to one, and each world hears the singing light in its own words.
 - Halfway down the City-Shaft, by the middle levels’ cab stop, Perrine keeps a tea stall now, and the old mirror beside it wants washing and turning back up the shaft, so a little of the Lodestar’s light reaches the bottom again. One of the city’s five relics waits on her awning.
 - A few quiet places have something to say now: Vael’s fallen giant on the plain, a carved frieze over the Givers’ Hearth’s door, the little mask in the masked head’s chamber, and an old salvager’s slate by the crashed hull in the southern dunes, which Marrow will want to talk about.
+
+## v0.82 — 2026-10-07
+
+- The camera follows closer: out in the open it hangs low behind the traveller, a little over his head and looking a little down the way he faces, so he stands bigger in the lower middle of the view with the world ahead filling the rest. Zooming with the mouse wheel or LB / L1 and the right stick still works from there; gliding and the jets stand it further back so you see ahead and below.
+- In closed spaces (the ship, temples, caves, corridors, houses) the camera comes in close over a shoulder, about two metres back at shoulder height, and picks the shoulder with room beside it so the way ahead shows next to the traveller. It slides across only when a wall really closes in, eases in and out at doorways, stands a little further back in big halls, and aiming the fluid tool is always over the right shoulder.
+- On a handheld, looking down the City-Shaft no longer stutters: where the graphics chip is what holds a frame back, the picture softens a little to keep it smooth (about 44 frames a second before, 54 now); where softening would not help, it stays sharp.
+- The traveller moves more like a person at the moments that used to look mechanical: setting off at a walk he straightens and swings his arms instead of hunching into a jog, stopping he throws his arms out to brake, and turning on the spot or doubling back at a run his head and shoulders lead the turn. His feet land and hold exactly as before, and the controls answer just as fast.
+- Knocked down, the traveller gets up as a person does, by how he landed: face down he pushes up and gets his feet under him, on his back he sits up and rises, instead of always coming up through the same stiff kneel. People knocked over get up the same way.
+- Jumps and landings look caught from life: a running jump is a long stride through the air, dropping off a ledge he lands in a deep crouch, landing hard at a run makes him stumble, and kicking off a wall he pushes away with his whole body.
+- Standing still a while, he now and then looks about him or just breathes, his feet staying where they are.
+- Picking something up off the ground he goes down on one knee for it, and petting Moustache he kneels and reaches out to him.
 
 ## v0.81 — 2026-10-07
 

@@ -18,9 +18,10 @@ const { Physics } = await import('../src/physics.js');
 const { Animator, libraryFrom } = await import('../src/animator.js');
 const { createTravellerV1 } = await import('../src/characters/traveller-v1.js');
 const { course, CAM_PLUS_Z } = await import('../src/gait-course.js');
+const { attachMotion } = await import('../src/motion-match.js');
 
 const parse = (file) => { const b = readFileSync(file); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
-async function traveller() {
+async function traveller({ moves = false } = {}) {
   const b = readFileSync('public/anim/mh/body.bin'), data = parseBody(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
   const dir = 'public/characters/traveller-v1/';
   const report = JSON.parse(readFileSync(dir + 'rig.json')), colors = JSON.parse(readFileSync(dir + 'colors.json'));
@@ -31,6 +32,7 @@ async function traveller() {
   for (const m of json.meshes) for (const p of m.primitives) delete p.material;
   const gltf = await new GLTFLoader().parseAsync(JSON.stringify(json), '');
   const lib = libraryFrom(await parse('public/anim/ual.glb'));
+  if (moves) attachMotion(lib, await parse('public/anim/moves.glb'));   // (the captured idles: Animator idleMoves)
   const scene = course(), physics = new Physics(scene);
   const p = new Player(physics, { climb: false, health: false });
   p.animator = new Animator(lib, p.char);
@@ -56,16 +58,19 @@ function stand(p, secs) {
     const f = { t: i * dt, rate: {}, feet: {} };
     legs.forEach((k, j) => { f.rate[k] = prev ? q[j].angleTo(prev[j]) / dt : 0; });
     for (const s of ['l', 'r']) f.feet[s] = { ball: B[`ball_${s}`].getWorldPosition(new T.Vector3()), step: !!F?.[s].step, locked: !!F?.[s].locked };
+    f.move = p.animator.move?.clip?.name ?? null; f.moveW = p.animator.moveW;
     frames.push(f);
     prev = q;
   }
   return frames;
 }
 
-test('standing still, the traveller\'s legs hold still: no twitch, no steps, the feet planted', { timeout: 120000 }, async () => {
-  const p = await traveller();
-  // (20 s: two of the idle layer's weight shifts, and a look around after 7 s)
-  const frames = stand(p, 20).filter((f) => f.t > 0.5);
+for (const moves of [false, true]) test(`standing still, the traveller's legs hold still: no twitch, no steps, the feet planted${moves ? ' (with the captured idles: looking about, breathing)' : ''}`, { timeout: 240000 }, async () => {
+  const p = await traveller({ moves });
+  // (20 s: two of the idle layer's weight shifts, and a look around after 7 s; with the captured
+  // idles 36 s: Mixamo's looking about from 7 s, its breathing idle from 23 s)
+  const frames = stand(p, moves ? 36 : 20).filter((f) => f.t > 0.5);
+  if (moves) for (const n of ['mixamo_looking_around', 'mixamo_breathing_idle']) assert.ok(frames.some((f) => f.move === n && f.moveW > 0.9), `${n} played`);
   let fastest = { rate: 0 }, jolt = { d: 0 };
   for (let i = 1; i < frames.length; i++) {
     for (const [k, r] of Object.entries(frames[i].rate)) {

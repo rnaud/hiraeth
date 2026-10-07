@@ -202,6 +202,53 @@ namespace Memento.EditorTools
             Build(BuildTarget.Android, outPath);
         }
 
+        /// <summary>public/icons/<file> copied to <asset> and imported, readable, uncompressed (the build scales it).</summary>
+        static Texture2D IconTexture(string file, string asset)
+        {
+            var path = Path.GetFullPath(asset);
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.Copy(Path.Combine(Repo, "public", "icons", file), path, true);
+            AssetDatabase.ImportAsset(asset, ImportAssetOptions.ForceSynchronousImport);
+            if (AssetImporter.GetAtPath(asset) is TextureImporter ti && (ti.textureCompression != TextureImporterCompression.Uncompressed || ti.mipmapEnabled || ti.npotScale != TextureImporterNPOTScale.None))
+            {
+                ti.textureCompression = TextureImporterCompression.Uncompressed;
+                ti.mipmapEnabled = false;
+                ti.npotScale = TextureImporterNPOTScale.None;
+                ti.SaveAndReimport();
+            }
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(asset);
+            if (tex == null) Debug.LogError("Memento: the icon did not import: " + asset);
+            return tex;
+        }
+
+        /// <summary>
+        /// Android's own icons (legacy, round, adaptive: every size). Their kinds live in the Android module's
+        /// assembly, found by name so this file compiles without it (the Linux build's editor has no Android module).
+        /// </summary>
+        static bool AndroidIcons(Texture2D icon, Texture2D maskable)
+        {
+            var kinds = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == "UnityEditor.Android.Extensions")
+                .Select(a => a.GetTypes().FirstOrDefault(t => t.Name == "AndroidPlatformIconKind")).FirstOrDefault(t => t != null);
+            if (kinds == null) { Debug.LogError("Memento: no Android module (AndroidPlatformIconKind)"); return false; }
+            int set = 0;
+            // (Legacy and Round are marked obsolete in Unity 6, Adaptive is the one launchers since Android 8 draw)
+            foreach (var name in new[] { "Legacy", "Round", "Adaptive" })
+                try
+                {
+                    var flags = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static;
+                    var value = kinds.GetProperty(name, flags)?.GetValue(null) ?? kinds.GetField(name, flags)?.GetValue(null);
+                    if (value is not PlatformIconKind kind) continue;
+                    var icons = PlayerSettings.GetPlatformIcons(NamedBuildTarget.Android, kind);
+                    foreach (var i in icons)
+                        for (int layer = 0; layer < i.maxLayerCount; layer++) i.SetTexture(name == "Adaptive" ? maskable : icon, layer);
+                    PlayerSettings.SetPlatformIcons(NamedBuildTarget.Android, kind, icons);
+                    set += icons.Length;
+                }
+                catch (Exception e) { Debug.LogWarning($"Memento: the {name} icons: {e.Message}"); }
+            Debug.Log($"Memento: the game's icon in {set} Android icons");
+            return set > 0;
+        }
+
         /// <summary>What the testers' APK adds to the bridge's Android player: its version, manners, icon and key.</summary>
         static bool Release()
         {
@@ -213,14 +260,14 @@ namespace Memento.EditorTools
             PlayerSettings.Android.renderOutsideSafeArea = true;
             // played by hand: it pauses, and goes quiet, when the player leaves it (the bench players keep running)
             PlayerSettings.runInBackground = false;
-            // the game's icon (the web app's), copied in as a texture the build reads
-            var icon = Path.GetFullPath(ReleaseIcon);
-            Directory.CreateDirectory(Path.GetDirectoryName(icon));
-            File.Copy(Path.Combine(Repo, "public", "icons", "icon-512.png"), icon, true);
-            AssetDatabase.ImportAsset(ReleaseIcon, ImportAssetOptions.ForceSynchronousImport);
-            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(ReleaseIcon);
-            if (tex == null) { Debug.LogError("Memento: the icon did not import: " + ReleaseIcon); return false; }
+            // the game's icon (the web app's), copied in as textures the build reads: icon-512 for the legacy and round
+            // icons, the maskable one (its picture inside the launchers' safe zone) for both layers of the adaptive icon.
+            // (Android takes its platform icons only: with those left empty it draws Unity's own, whatever the default is.)
+            var tex = IconTexture("icon-512.png", ReleaseIcon);
+            var maskable = IconTexture("maskable-512.png", ReleaseIcon.Replace(".png", "-maskable.png"));
+            if (tex == null || maskable == null) return false;
             PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { tex }, IconKind.Any);
+            if (!AndroidIcons(tex, maskable)) return false;
             // the release key, never the debug one: an APK signed otherwise would not install over the last
             var ks = NonEmpty(Arg("-androidKeystoreName"), Environment.GetEnvironmentVariable("ANDROID_KEYSTORE_PATH"));
             var pass = NonEmpty(Arg("-androidKeystorePass"), Environment.GetEnvironmentVariable("ANDROID_KEYSTORE_PASSWORD"));

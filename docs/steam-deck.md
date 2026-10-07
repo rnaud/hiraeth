@@ -132,7 +132,11 @@ holds back the other; see `update.log`):
   inside updates through the content feed meanwhile. Runtimes up to 189001 only know GitHub:
   install the first site-aware one by hand (above).
 
-The running game keeps using what it started with; the next launch uses the update. Network
+The running game keeps using what it started with; the next launch uses the update. A game left
+running doesn't update: on 7 October the author's Deck had run one launch for 9 hours (03:29 to 12:38)
+and was still on runtime 814001 while the site had 830001; its own updater, run as a launch runs it,
+installed 830001 and the newer game (`web/969`) in 15 s. (Runtimes from 830001 on also check from the
+settings' Updates section.) Network
 failures never prevent an installed game from starting. The checksums detect
 incomplete/corrupted downloads; they are not independent signatures and trust the
 publisher and HTTPS.

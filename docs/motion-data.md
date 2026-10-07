@@ -7,7 +7,8 @@ see docs/credits.md). On top of it come motion-captured takes from two sources, 
 | File | What | Size | Loaded |
 |---|---|---|---|
 | `public/anim/walks.glb` | 12 walking cycles of CMU subjects: the people's own walks | 81 KB | always (after the game starts, not waited for) |
-| `public/anim/locomotion.glb` | the motion-matching database: 75 CMU clips (202 s; mirrored at load) | 1.05 MB | only with motion matching switched on (dev menu, `?mm=1`) and in the character studio |
+| `public/anim/moves.glb` | the traveller's own moves: 11 Mixamo clips (get-ups, jumps, a stumble, idles, a kneel, the petting) | 349 KB | always (after the game starts, not waited for) |
+| `public/anim/locomotion.glb` | the motion-matching database: 75 CMU clips and 33 Mixamo ones (267 s; mirrored at load) | 1.39 MB | only with motion matching switched on (dev menu, `?mm=1`) and in the character studio |
 
 Only these processed files are in the repository. The raw downloads live in `data/mocap/raw/`
 and `data/mocap/mixamo/`, which git ignores; `node scripts/mocap/fetch-cmu.mjs` downloads the CMU
@@ -73,8 +74,11 @@ takes again, and the Mixamo files are downloaded by hand (docs/mixamo-shopping-l
 ## Mixamo (Adobe)
 
 - **Site:** https://www.mixamo.com/ (needs an Adobe account: the author downloads, see
-  docs/mixamo-shopping-list.md). Nothing from Mixamo is in the repository yet; once the files
-  are in `data/mocap/mixamo/`, `node scripts/mocap/build-library.mjs` converts them with the rest.
+  docs/mixamo-shopping-list.md). The first batch (36 clips, 2026-10-07: all 25 starts, stops and
+  turns, the get-ups, the jumps, the drop, the wall push-off, the stumble, breathing idle, looking
+  around, kneeling inspection, petting an animal) is converted into `locomotion.glb` (the starts,
+  stops and turns, and the breathing idle) and `moves.glb` (the rest); the raw FBX files stay in
+  `data/mocap/mixamo/`, and `node scripts/mocap/build-library.mjs` converts them with the rest.
 - **Terms, as Adobe's Mixamo FAQ states them** (https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html):
   characters and animations downloaded from Mixamo are royalty free for personal, commercial and
   non-profit projects (games, films, …), and may be used in a project you sell; what is not
