@@ -103,6 +103,59 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.79': [
+    { match: 'Cloaks hang over people’s arms now', shots: [
+      { name: 'cloak-arms', caption: 'Bako and the Speaker from in front and from three-quarters, in the running game', commit: 'a526f2e', view: people([{ id: 'bako' }, { id: 'bako', yaw: 0.8 }, { id: 'speaker' }, { id: 'speaker', yaw: -0.8 }]) },
+    ], numbers: [
+      { title: 'Of each person’s hands and forearms, the share the cloak covered (idle / walking / talking)', unit: '%', better: 'lower', device: 'the character studio, MakeHuman bodies', rows: [
+        { where: 'Bako', before: '51–84', after: 0 },
+        { where: 'the Speaker', before: '51–65', after: 0 },
+        { where: 'Nour', before: '31–41', after: 0 },
+        { where: 'Ama, talking', before: 42, after: 0 },
+        { where: 'Hessa, talking', before: 31, after: 0 },
+      ] },
+    ] },
+    { match: 'Bako’s bag hangs over his cloak', shots: [
+      { name: 'bako-bag', caption: 'Bako from in front, three-quarters and the side', commit: '3221594', before: '27ffa13^', view: people([{ id: 'bako' }, { id: 'bako', yaw: 0.8 }, { id: 'bako', yaw: 1.57 }]) },
+    ] },
+    { match: 'Sefa slings her oud on her back', shots: [
+      { name: 'sefa-walk', caption: 'Sefa walking, from behind and from the side, in the character studio', commit: 'df5f5c4', view: studio('who=npc&world=desert&npc=sefa&source=makehuman&anim=game:walk&time=0.6&yaw=2.6', [1280, 720]) },
+      { name: 'marrow-walk', caption: 'Marrow walking, in the character studio', commit: 'df5f5c4', view: studio('who=npc&world=desert&npc=marrow&source=makehuman&anim=game:walk&time=0.6&yaw=2.2', [1280, 720]) },
+    ] },
+    { match: 'In Vael II the needle spires and the mushroom tables', shots: [
+      { name: 'vael2-needles', caption: 'The References’ view of the needles against the peach sky', commit: 'bb521ba', view: { ref: '3783-spires' } },
+      { name: 'vael2-tables', caption: 'The References’ view under the mushroom, the plain and its tower', commit: 'bb521ba', view: { ref: '3783-mushroom-plain' } },
+    ] },
+    { match: 'The cracks in Vael II’s peach plain', shots: [
+      { name: 'vael2-crevasse', caption: 'The References’ view of the crevasse, the tower and the far sea of cloud', commit: 'cdb7daa', view: { ref: '3785-crevasse' } },
+    ] },
+    { match: 'Vael II’s sea of cloud is printed flat', shots: [
+      { name: 'vael2-cloud', caption: 'Vael II from over its start at 9 in the morning, the sea of cloud below', commit: 'a5a6b41', view: { level: 'arzach2', hour: 9, player: [0, 41.13, 22], eye: [0, 70, 31.27], target: [-48.35, 40.65, 11.66] } },
+      { name: 'vael2-cloud-afternoon', caption: 'The same at 4 in the afternoon', commit: 'a5a6b41', view: { level: 'arzach2', hour: 16, player: [0, 41.13, 22], eye: [0, 70, 31.27], target: [-48.35, 40.65, 11.66] } },
+    ] },
+    { match: 'At dusk and at night Vael II’s shadows', shots: [
+      { name: 'vael2-dusk', caption: 'Vael II’s start at dusk', commit: '02974b3', view: { level: 'arzach2', hour: 18.6, player: [0, 41.13, 22], eye: [0, 45, 31.27], target: [0, 42.82, 21.51] } },
+      { name: 'vael2-night', caption: 'The same at night', commit: '02974b3', view: { level: 'arzach2', hour: 22, player: [0, 41.13, 22], eye: [0, 45, 31.27], target: [0, 42.82, 21.51] } },
+    ] },
+    { match: 'The game menu’s Quests panel lists everything', see: 'Finish the desert’s first quest, travel to Vael and open the game menu (View / Select, or J): Quests lists the desert’s quest under Done instead of “None yet”.' },
+    { match: 'In the Sketchbook, a story you told on an older save', see: 'Load a save from before the story pages (v0.6x) whose story you had told, open the game menu’s Sketchbook: that world’s story reads as told.' },
+    { match: 'The Buried Machine’s drum is lined', shots: [
+      { name: 'buried-drum', caption: 'The References’ view of the traveller in the drum', commit: '27255e7', before: '6de2ddd^', view: { ref: '3791-oculus-traveller' } },
+      { name: 'buried-teal-hall', caption: 'The References’ view of the porthole in the teal hall', commit: '27255e7', before: '6de2ddd^', view: { ref: '3790-teal-porthole' } },
+    ] },
+    { match: 'Under the City-Shaft’s terraces', see: 'In the City-Shaft, look up from a lower terrace at the blue underside of the one above: pipes, casings and plates hang between its ribs.' },
+    { match: 'The undersides of Vael II’s mushroom tables', shots: [
+      { name: 'vael2-caps', caption: 'The References’ view up under the giant cap', commit: '87d6195', view: { ref: '3787-giant-cap' } },
+      { name: 'vael2-under-cap', caption: 'The References’ view under the great cap, the birds and the traveller', commit: '87d6195', view: { ref: '3786-under-cap' } },
+    ] },
+    { match: 'The Signal Market’s back alleys', shots: [
+      { name: 'market-alley', caption: 'Into a back alley off the Signal Market’s street', commit: 'dfa7e07', view: { level: 'bazaar', player: [-24, 0, 73], eye: [-26, 5, 73], target: [-52, 9, 73], fov: 60 } },
+    ] },
+    { match: 'Stepping out of a cab beside a building', see: 'In the Signal Market or the City-Shaft, ride a cab to a stop beside a wall and step out (E, or B / ○): the camera stays outside the cab.' },
+    { match: 'E (B / ○) uses what you are facing', shots: [
+      { name: 'cab-prompt', caption: 'Facing a parked cab with people about: the prompt over it says what E will do', only: 'after', size: [1280, 633], from: 'the interaction work’s own screenshot (7 October)' },
+    ], see: 'Walk up to a parked cab with someone standing at your shoulder: the prompt over the cab says it will get you in, and E (B / ○) does.' },
+  ],
   '0.78': [
     { match: 'The City-Shaft looks more like its drawings', shots: [
       { name: 'shaft-wide', caption: 'Across and down the shaft to its lake', commit: '0bb9a0a', view: { level: 'incal', player: [274, 200, 0], eye: [283.27, 228.87, 0], target: [2.6, -46.8, 8.11] } },
