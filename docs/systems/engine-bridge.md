@@ -634,6 +634,11 @@ scripts/unity-export/unity-batch.sh BridgeBuild.Android           # IL2CPP ARM64
 scripts/unity-js-player.sh bench -views scripts/bench/viewpoints.json -bench 6 -split -out output/engine-bridge/player-mac
 ```
 
+The testers' APK (`BridgeBuild.AndroidRelease`: `com.rnaud.memento.unity`, "Memento (Unity)", the release
+key, sound on) and the Linux player are built by GitHub Actions and published to the releases
+`unity-android` and `unity-linux`; `scripts/unity-android-release.sh` builds and publishes the APK from the
+Mac (docs/systems/unity.md, "Building in GitHub Actions").
+
 A player takes its plan from its command line (`BridgeArgs.cs`: the batch run's arguments, a relative
 path from the shell's directory) and `-limit secs`; `-mute` keeps it silent (the script passes it).
 Under IL2CPP:
