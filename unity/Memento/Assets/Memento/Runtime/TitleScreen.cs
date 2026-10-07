@@ -10,7 +10,7 @@ namespace Memento
     /// The title screen, light and airy (src/title.js, src/menus.css "the title, light and airy"):
     /// the desert itself at golden hour behind it (the web draws its own vista; here the camera
     /// drifts slowly round Qanat and its smoke), a soft paper light behind the menu and darker
-    /// corners, MEMENTO in thin wide capitals with a pen rule and its gold dot, and the menu as
+    /// corners, HIRAETH in thin wide capitals with a pen rule and its gold dot, and the menu as
     /// thin spaced capitals over the sky (Continue with a save, New game, Settings, Quit), the
     /// chosen one underlined with a gold dot. ↑ ↓ / the D-pad choose, A / × or Enter picks.
     /// It is an overlay on the desert scene: the world is built under it, the play starts after.
@@ -152,8 +152,8 @@ namespace Memento
             Ui.PlaceC(logoRule.rectTransform, 0, top0, W, cap + 50);
             logoRule.Clear();
             var mid = new Vector2(0, (cap + 50) / 2 - cap / 2);
-            StrokeFont.Draw(logoRule, "MEMENTO", mid, cap, 0.36f, cap * 0.075f, new Color(1, 0.98f, 0.94f, 0.18f));
-            StrokeFont.Draw(logoRule, "MEMENTO", mid, cap, 0.36f, cap * 0.028f, Ui.Paper);
+            StrokeFont.Draw(logoRule, "HIRAETH", mid, cap, 0.36f, cap * 0.075f, new Color(1, 0.98f, 0.94f, 0.18f));
+            StrokeFont.Draw(logoRule, "HIRAETH", mid, cap, 0.36f, cap * 0.028f, Ui.Paper);
             float ry = mid.y - cap / 2 - 21;
             logoRule.Line(new Vector2(-113, ry), new Vector2(113, ry), 1.2f, new Color(1, 0.98f, 0.94f, 0.95f));
             logoRule.Disc(new Vector2(0, ry), 2.4f, Ui.Hex("#8a6a2a")); logoRule.Disc(new Vector2(0, ry), 1.7f, Ui.Gold);

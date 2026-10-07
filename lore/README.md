@@ -1,4 +1,4 @@
-# Memento: writing room
+# Hiraeth: writing room
 
 This folder accompanies the text-only dialogue pass of 2026-10-05. Start with
 [the voice guide](voice-guide.md), then the relevant character sheet. The aim is

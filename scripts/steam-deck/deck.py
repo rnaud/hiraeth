@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Memento Steam Deck installer, background updater, and Steam integration.
+"""Hiraeth Steam Deck installer, background updater, and Steam integration.
 
 Two kinds of update, both checked in the background at each launch:
 - the game itself (content): the same web bundle the Android app takes, from the
@@ -149,13 +149,13 @@ def add_shortcut(config, root):
         raise ValueError('Missing shortcuts map; Steam files unchanged')
     exe = f'"{root / "launch"}"'
     # Identity is the stable executable, not the display name. Keep user edits, but a shortcut
-    # still under the game's old name ('Moebius', as installers before 0.71 named it) or without an
+    # still under the game's old names ('Moebius' or 'Memento') or without an
     # icon gets the game's.
     ours = [value for _, value in entries if isinstance(value, list) and field(value, 'exe') == exe]
     if ours:
         changed = False
         for entry in ours:
-            changed |= set_field(entry, 'AppName', 'Memento', lambda name: name in (None, '', 'Moebius', 'moebius'))
+            changed |= set_field(entry, 'AppName', 'Hiraeth', lambda name: name in (None, '', 'Moebius', 'moebius', 'Memento', 'memento'))
             changed |= set_field(entry, 'icon', str(root / 'icon.png'), lambda icon: not icon)
         if not changed:
             return False
@@ -186,7 +186,7 @@ def set_field(entry, key, value, replace):
 def add_entry(entries, exe, root):
     appid = shortcut_appid(root)   # (from the old name: the id stays stable)
     entries.append((str(len(entries)), [
-        ('appid', appid), ('AppName', 'Memento'), ('Exe', exe),
+        ('appid', appid), ('AppName', 'Hiraeth'), ('Exe', exe),
         ('StartDir', f'"{root}"'), ('icon', str(root / 'icon.png')),
         ('ShortcutPath', ''), ('LaunchOptions', ''), ('IsHidden', 0),
         ('AllowDesktopConfig', 1), ('AllowOverlay', 1), ('OpenVR', 0),
@@ -203,7 +203,7 @@ def shortcut_stale(config, root):
         return True
     ours = [value for _, value in (entries if isinstance(entries, list) else [])
             if isinstance(value, list) and field(value, 'exe') == f'"{root / "launch"}"']
-    return not ours or any(field(value, 'AppName') in (None, '', 'Moebius', 'moebius') or not field(value, 'icon') for value in ours)
+    return not ours or any(field(value, 'AppName') in (None, '', 'Moebius', 'moebius', 'Memento', 'memento') or not field(value, 'icon') for value in ours)
 
 
 def fetch_manifest(url):
@@ -536,7 +536,7 @@ def install_content(root, manifest, downloader=download_content):
     current = (root / 'current').resolve(strict=True)
     carried = runtime_content(current)
     if manifest['minDesktop'] > carried['desktop']:
-        print(f"Game build {manifest['build']} needs a newer Memento runtime: install the new package.", flush=True)
+        print(f"Game build {manifest['build']} needs a newer Hiraeth runtime: install the new package.", flush=True)
         return False
     web = root / 'web'
     web.mkdir(parents=True, exist_ok=True)
@@ -728,7 +728,7 @@ def write_launchers(root):
     atomic_write(root / 'icon.png', (root / 'current/resources/app/game/icons/icon-512.png').read_bytes())
     # Desktop Exec quoting is not shell quoting; escape its reserved characters.
     command = str(root / 'launch').replace('\\', '\\\\').replace('"', '\\"').replace('`', '\\`').replace('$', '\\$').replace('%', '%%')
-    entry = f'[Desktop Entry]\nType=Application\nName=Memento\nExec="{command}"\nIcon={root / "icon.png"}\nTerminal=false\nCategories=Game;\n'
+    entry = f'[Desktop Entry]\nType=Application\nName=Hiraeth\nExec="{command}"\nIcon={root / "icon.png"}\nTerminal=false\nCategories=Game;\n'
     atomic_write(Path.home() / '.local/share/applications/moebius.desktop', entry.encode(), 0o755)
 
 
@@ -903,7 +903,7 @@ def launch_once(root, arguments, run=run_game):
             fcntl.flock(game_pin, fcntl.LOCK_SH)
     with pin, game_pin, (root / 'launch.log').open('a' if restarted else 'w') as record:
         def log(line):
-            print(f'Memento: {line}', file=sys.stderr, flush=True)
+            print(f'Hiraeth: {line}', file=sys.stderr, flush=True)
             record.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {line}\n')
             record.flush()
         try:
@@ -975,10 +975,10 @@ def main():
     if not args.register_steam:
         if args.source:
             manifest, copy = local_package(args.source)
-            print(f"Installing Memento build {manifest['build']} from {args.source}…", flush=True)
+            print(f"Installing Hiraeth build {manifest['build']} from {args.source}…", flush=True)
             changed = install_update(ROOT, manifest, copy)
         else:
-            print('Checking for a Memento update…', flush=True)
+            print('Checking for a Hiraeth update…', flush=True)
             changed = install_update(ROOT, get_manifest())
         print('Update installed. It will be used on the next launch.' if changed else 'Already up to date.', flush=True)
         try:
@@ -994,10 +994,10 @@ def main():
     missing = [config for config in configs if shortcut_stale(config, ROOT)]
     if not missing:
         changed = install_art(ROOT, configs)
-        print('Memento is installed and in Steam' + (' with its library artwork: restart Steam to see it.' if changed else '.'), flush=True)
+        print('Hiraeth is installed and in Steam' + (' with its library artwork: restart Steam to see it.' if changed else '.'), flush=True)
         return
     if steam_running():
-        print('Game installed. Exit Steam using Steam → Exit; this installer will add Memento automatically once Steam closes.', flush=True)
+        print('Game installed. Exit Steam using Steam → Exit; this installer will add Hiraeth automatically once Steam closes.', flush=True)
         deadline = time.monotonic() + 300
         while steam_running() and time.monotonic() < deadline:
             time.sleep(1)
@@ -1007,12 +1007,12 @@ def main():
     for config in configs:
         add_shortcut(config, ROOT)
     install_art(ROOT, configs)
-    print('Memento is installed and added to Steam. Reopen Steam or return to Gaming Mode. Updates download while you play and apply next launch.', flush=True)
+    print('Hiraeth is installed and added to Steam. Reopen Steam or return to Gaming Mode. Updates download while you play and apply next launch.', flush=True)
 
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as error:
-        print(f'Memento: {error}', file=sys.stderr)
+        print(f'Hiraeth: {error}', file=sys.stderr)
         sys.exit(1)

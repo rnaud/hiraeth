@@ -79,8 +79,8 @@ restarts (Steam → Exit, or a reboot to Gaming Mode). Artwork the player picks 
 file we didn't write, `steam-art.json` keeps what we did) is never replaced. Re-running the
 installer for an account that has the shortcut as it should be no longer waits for Steam to close.
 
-A shortcut still named `Moebius` (the installers before 0.71), or without an icon, is renamed
-`Memento` and given `icon.png` (`add_shortcut`, `shortcut_stale`), keeping its app id, playtime and
+A shortcut still named `Moebius` or `Memento`, or without an icon, is renamed
+`Hiraeth` and given `icon.png` (`add_shortcut`, `shortcut_stale`), keeping its app id, playtime and
 the player's own name if they changed it. That edits `shortcuts.vdf`, so only while Steam is closed
 (Steam rewrites it from memory as it exits): at install, `--register-steam`, or a background update
 that finds Steam closed (`steam_entry`). The grid files use the shortcut's `appid` from

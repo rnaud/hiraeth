@@ -231,7 +231,7 @@ scripts/unity-export/unity-batch.sh BridgeBatch.Run -views scripts/bench/viewpoi
 
 (Unity writes Puerts' embedded packages into `Packages/packages-lock.json` on a machine that has
 them: leave that change out of commits. The batch run plays `BridgeDesert.unity` in the editor,
-muted, and exits; the menu Memento ▸ JS bridge rebuilds the scene.)
+muted, and exits; the menu Hiraeth ▸ JS bridge rebuilds the scene.)
 
 `scripts/unity-js-run.sh <name> [BridgeBatch.Run arguments…]` does the two last in one, its log in
 `output/engine-bridge/unity-<name>.log`, the lines that say what happened printed. Its arguments:
@@ -634,7 +634,7 @@ scripts/unity-export/unity-batch.sh BridgeBuild.Android           # IL2CPP ARM64
 scripts/unity-js-player.sh bench -views scripts/bench/viewpoints.json -bench 6 -split -out output/engine-bridge/player-mac
 ```
 
-The testers' APK (`BridgeBuild.AndroidRelease`: `com.rnaud.memento.unity`, "Memento (Unity)", the release
+The testers' APK (`BridgeBuild.AndroidRelease`: `com.rnaud.memento.unity`, "Hiraeth (Unity)", the release
 key, sound on) and the Linux player are built by GitHub Actions and published to the releases
 `unity-android` and `unity-linux`; `scripts/unity-android-release.sh` builds and publishes the APK from the
 Mac (docs/systems/unity.md, "Building in GitHub Actions").

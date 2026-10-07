@@ -73,7 +73,7 @@ namespace Memento.EditorTools
         {
             var outPath = Path.GetFullPath(Arg("-out", "Builds/macOS-bench/Memento.app"));
             Common();
-            PlayerSettings.productName = "Memento";
+            PlayerSettings.productName = "Hiraeth";
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, Package);
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
             PlayerSettings.defaultScreenWidth = 1280; PlayerSettings.defaultScreenHeight = 720;
@@ -115,7 +115,7 @@ namespace Memento.EditorTools
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
             Common();
-            PlayerSettings.productName = "Memento (Unity)";
+            PlayerSettings.productName = "Hiraeth (Unity)";
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, Package);
             bool mono = Arg("-mono") != null || Array.IndexOf(Environment.GetCommandLineArgs(), "-mono") >= 0;
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, mono ? ScriptingImplementation.Mono2x : ScriptingImplementation.IL2CPP);
@@ -142,7 +142,7 @@ namespace Memento.EditorTools
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
             Common();
-            PlayerSettings.productName = "Memento";
+            PlayerSettings.productName = "Hiraeth";
             // WebGPU: the crowd, puffs and wildlife read structured buffers in the vertex shader, which WebGL 2 can't
             var api = Arg("-api", "webgpu");
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.WebGL, false);

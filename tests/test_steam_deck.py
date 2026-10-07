@@ -515,16 +515,26 @@ class SteamArtTests(unittest.TestCase):
         document = deck.parse_vdf((self.config / 'shortcuts.vdf').read_bytes())
         return deck.field(deck.field(document, 'shortcuts'), '0')
 
-    def test_the_old_moebius_shortcut_is_renamed_memento_with_its_icon(self):
+    def test_the_old_moebius_shortcut_is_renamed_hiraeth_with_its_icon(self):
         self.old_shortcut()
         self.assertTrue(deck.shortcut_stale(self.config, self.root))
         self.assertTrue(deck.add_shortcut(self.config, self.root))
         entry = self.entry()
-        self.assertEqual((deck.field(entry, 'AppName'), deck.field(entry, 'icon')), ('Memento', str(self.root / 'icon.png')))
+        self.assertEqual((deck.field(entry, 'AppName'), deck.field(entry, 'icon')), ('Hiraeth', str(self.root / 'icon.png')))
         self.assertEqual(deck.field(entry, 'appid'), deck.shortcut_appid(self.root), 'the same id: its playtime and artwork stay')
         self.assertEqual(len(deck.field(deck.parse_vdf((self.config / 'shortcuts.vdf').read_bytes()), 'shortcuts')), 1, 'no duplicate')
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
         self.assertFalse(deck.add_shortcut(self.config, self.root))
+
+    def test_memento_shortcut_keeps_its_id_when_renamed(self):
+        self.old_shortcut(name='Memento', icon='/some/icon.png')
+        original_id = deck.field(self.entry(), 'appid')
+        self.assertTrue(deck.shortcut_stale(self.config, self.root))
+        self.assertTrue(deck.add_shortcut(self.config, self.root))
+        self.assertEqual(deck.field(self.entry(), 'AppName'), 'Hiraeth')
+        self.assertEqual(deck.field(self.entry(), 'appid'), original_id)
+        self.assertEqual(deck.field(self.entry(), 'icon'), '/some/icon.png')
+        self.assertFalse(deck.shortcut_stale(self.config, self.root))
 
     def test_a_name_the_player_chose_is_kept(self):
         self.old_shortcut(name='My Moebius game', icon='/some/icon.png')
@@ -538,7 +548,7 @@ class SteamArtTests(unittest.TestCase):
             deck.steam_entry(self.root, [self.config])
         self.assertEqual(deck.field(self.entry(), 'AppName'), 'Moebius')
         deck.steam_entry(self.root, [self.config])
-        self.assertEqual(deck.field(self.entry(), 'AppName'), 'Memento')
+        self.assertEqual(deck.field(self.entry(), 'AppName'), 'Hiraeth')
 
     def test_no_shortcut_no_art_and_shortcuts_vdf_untouched(self):
         other = self.home / '.local/share/Steam/userdata/456/config'

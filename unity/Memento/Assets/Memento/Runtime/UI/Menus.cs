@@ -199,7 +199,7 @@ namespace Memento
             Ui.Place(side.rectTransform, 0, 0, sw, H); Ui.Place(sideShade.rectTransform, sw - 3 - 8, 0, 8, H); Ui.Place(sideRule.rectTransform, sw - 3, 0, 3, H);
             float gap = Mathf.Clamp(H * 0.024f, 8, 22), y = padT;
             brand.fontSize = Mathf.RoundToInt(Mathf.Clamp(H * 0.07f, 28, 66));
-            brand.text = title ? "MEMENTO" : "PAUSED";
+            brand.text = title ? "HIRAETH" : "PAUSED";
             brand.rectTransform.localRotation = Quaternion.Euler(0, 0, 2);
             Ui.Place(brand.rectTransform, padX, y, sw - 2 * padX, brand.fontSize * 1.2f); y += brand.fontSize * 1.15f + gap;
             if (!title)

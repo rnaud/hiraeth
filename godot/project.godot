@@ -1,9 +1,9 @@
-; Memento drawn by Godot, the game itself running in GodotJS (docs/systems/engine-bridge.md).
+; Hiraeth drawn by Godot, the game itself running in GodotJS (docs/systems/engine-bridge.md).
 ; The scripts in js/ are built from the web game: node scripts/engine-bundle.mjs
 config_version=5
 
 [application]
-config/name="Memento (GodotJS)"
+config/name="Hiraeth (GodotJS)"
 run/main_scene="res://main.tscn"
 
 [audio]
