@@ -479,7 +479,11 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
   - or the traveller's own line in recording 3 ("I was seven. Younger than Lou is now.").
 
   Either one gives away the surprise at Home sooner. Also: one ordinary act with her at home, such as hanging a drawing or mending the swing.
+
+  *Second pass: kept as it is.* The surprise at Home stays: no drawing on the ship, no line on the reel names her before the yard (the father's "the little one" in the last recording and the mother's "She has your hands" stay unnamed).
 - **The galley note** "We are proud of you already. — M." (`src/ship/art.js`) says the final recording's line in the first minute.
+
+  *Done (second pass):* it reads "The lamp stays on in the window. — M." now: as warm, and it sets up the lamp beat on the reel and the dark round window at home instead of giving the last recording away.
 - **The stone's tokens.** Add the listening shell and the echo shell (and any later charms) to `TOKEN_ITEMS`, each with its own line.
 - **Esk** (plot review §3):
   - the Quests panel's "Failed ✗" and the "Failed:" toast could read "What happened";

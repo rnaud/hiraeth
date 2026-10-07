@@ -5,6 +5,7 @@ The same release notes shown in the game (press **N** or open settings).
 ## v0.82 — 2026-10-07
 
 - Once four worlds are behind you, a faint signal pulses on the galactic map further along the route, and the ship’s console mentions it: a broadcast worth hearing before you go home. After the Signal Market the recording you put off waits at the console as soon as you step outside, a second one follows it, the later worlds’ recordings find their own lines again, and the stone at home remembers Ilen even if you learn of her after the end.
+- Your mother’s note in the ship’s galley ends differently now, with the lamp she keeps in the window.
 
 ## v0.81 — 2026-10-07
 
