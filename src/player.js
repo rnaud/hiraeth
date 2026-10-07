@@ -1990,7 +1990,7 @@ export class Player {
     if (this.locoMoves !== false && A.lib.motion?.clips?.length) {
       if (this.moves?.A !== A) this.moves = new LocoMoves(A);
       const free = this.onGround && !this.aim && !this.ride && !this.swim && !this.overlay && !this.down && !this.climbing && !A.matching;
-      this.moves.update(dt, { speed: hs, steering, heading: this.heading, want: steering ? this.frame.headingOf(this._moveDir) : null, ground: free, size: A.legRatio });
+      this.moves.update(dt, { speed: hs, steering, wantSpeed: this._wantSpeed ?? 0, heading: this.heading, want: steering ? this.frame.headingOf(this._moveDir) : null, ground: free, size: A.legRatio });
       this.moves.play(A);
     }
     // our walk / run speeds land on the walk and sprint clips; jog in between

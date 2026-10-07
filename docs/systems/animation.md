@@ -384,6 +384,59 @@ foot under the next step's riser, and a heel kick flips a shin: 2.9 rad in a fra
 response is the same (0.30 / 0.33 s). So the loops stay the default; the matcher is there to look
 at, and for Mixamo's starts, stops and turns (the shopping list) to fill its gaps.
 
+**With Mixamo's starts, stops and turns** (2026-10-07: the database 75 → 108 clips, 202 → 267 s),
+measured again, on the game's coral-shirt traveller this time (`BODY=v1 node scripts/mocap/compare.mjs`;
+slide max / mean m, head jerk km/s³, the biggest bone turn rad a frame, and how fast the pose answers:
+*step*, s from pushing the stick while standing to a foot off the ground; *settled*, s from letting go
+to both feet held):
+
+| Run | loops | loops + captured moves (the default) | motion matching |
+|---|---|---|---|
+| walk → run → 180° turn → stop | 0.11 / 0.051, jerk 3.51, bone 0.84, step 0.13, settled 0.95 | 0.11 / 0.051, 3.35, 0.84, 0.13, 0.95 | 0.25 / 0.083, 3.94, 0.84, –, 0.88 |
+| walk, 90° turn, stop | 0.08 / 0.016, 1.31, 0.41, 0.13, 0.90 | 0.08 / 0.016, 1.36, 0.41, 0.13, 0.90 | 0.34 / 0.101, 2.18, 0.70, –, 1.10 |
+| turn round on the spot | 0.09 / 0.025, 1.38, 0.61, 0.07, 0.50 | 0.09 / 0.025, 1.28, 0.61, 0.07, 0.50 | 0.15 / 0.065, 2.21, 0.44, 0.08, 0.32 |
+| up the ramp, stand | 0.06 / 0.022, 1.32, 0.80, 0.13, 0.90 | 0.06 / 0.022, 1.42, 0.80, 0.13, 0.90 | 0.25 / 0.059, 2.17, 0.71, –, 1.10 |
+| stairs up, stand, down | 0.07 / 0.022, 2.41, 0.76 | 0.07 / 0.022, 2.48, 0.76 | 0.26 / 0.085, 3.31, 2.57 (sink 0.18) |
+| slow walk, stop | 0.05 / 0.024, 0.97, 0.51, 0.17, 0.87 | 0.05 / 0.024, 1.25, 0.51, 0.17, 0.87 | 0.23 / 0.054, 1.53, 0.52 |
+| jog, 45° and back, stop | 0.07 / 0.019, 1.36, 0.53, 0.13, 0.90 | 0.07 / 0.019, 1.41, 0.53, 0.13, 0.90 | 0.60 / 0.097, 2.22, 0.57, –, 0.58 |
+
+(The matcher's *step* is none: its captured idle sways a foot over 3 cm all the time.) The matcher
+still slides two to five times as far: the game's walk is 3.8 m/s, a jog, and its run 7.2, faster
+than any of Mixamo's walking starts and stops (about 1 m/s) and runs (4–5.4 m/s), and the controller
+reaches its speed in 0.3 s. So the loops stay the default (`?mm=1` and the dev menu still switch the
+matcher on), and the new clips go into the conventional system instead, as below.
+
+**Captured starts, stops and turns over the loops** (`src/loco-moves.js`, `LocoMoves`; on by default,
+`?moves=0` or the dev menu's *Captured starts, stops and turns* for the loops alone; the Motion page's
+*Starts, stops, turns*). At the moments the loops can't show, a Mixamo clip (in `moves.glb` as well as
+the database: `mm+clip`) is laid over them, played *by* the body's own motion rather than the clock,
+each frame's time held within a range of real time so it never stalls or races, eased in over 0.1 s
+and out over 0.2 s:
+
+- setting off from standing at a walk, the stick part way (`start_walking`, every other one mirrored):
+  by the distance walked (at the full stick the game's walk is a 3.8 m/s jog, too fast for it);
+- letting go of the stick over 0.9 m/s (`stop_walking`, `run_to_stop` from 2.8 m/s): by the distance
+  left (the speed over the controller's braking, 16/s), on whichever version has the foot down that
+  the loops have down;
+- turning on the spot by over 43° (`left_turn_45`, `_90`, `_180`, mirrored for the right): by the
+  share of the turn done;
+- turning back at a run over 4.2 m/s (`running_turn_180`, mirrored for the left): likewise.
+
+Laid on whole (its legs and contacts driving the feet), each of them measured worse than the loops:
+a start at the game's walking speed ran its clip at three times its pace and the feet slid 0.72 m
+(the loops: 0.08), a stop re-stepped into the clip's braking stance (0.54 m), a turn on the spot took
+twice as long to settle with twice the slide. So each is laid on *above the legs* (`Animator.play`
+`legs: false`, `overlayMove`: the spine, arms and head turned toward the clip's by its weight after
+the mixer; the pelvis, the legs, the contacts and the gait phase stay the loops'): the lean and the
+arms of setting off, the braking arms and the twist of a stop, the turn of the head and shoulders
+into a turn and the pivot's look over the shoulder, with the feet exactly as before. The numbers
+above: the same slide, the same answer to the stick, the same settling, the head's jerk within a few
+per cent (a little more on a stop, a little less on a turn). `tests/loco-moves.test.js`: which
+moment picks which clip and side, the start played by distance within its rate, the path, slide and
+bone turns unchanged, and none with the moves off, under matching, or off the ground. What would let
+the legs follow the capture too: starts, stops and turns at the game's speeds (a jog start, a run
+start, a run stop, a 90° turn at a jog; docs/mixamo-shopping-list.md).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

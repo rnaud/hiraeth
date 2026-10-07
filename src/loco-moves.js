@@ -5,9 +5,9 @@ import * as THREE from 'three';
 // standing, stopping from a walk or a run, turning round on the spot, and the 180° pivot at a run.
 // None of it changes where you go or how fast you turn: the controller moves the body as before,
 // and each clip is played *by* that motion, not by the clock:
-//  - a start by distance: the clip's frame is the one where its own walk has covered as much
-//    ground as the body has since it set off (so its first step comes as the body moves, however
-//    quick the controller's start; and it never waits for the clip's own wind-up);
+//  - a start by distance (setting off at a walk, the stick part way: the game's full walk is a jog,
+//    three times the clip's pace): the clip's frame is the one where its own walk has covered as
+//    much ground as the body has since it set off (it never waits for the clip's own wind-up);
 //  - a stop by the distance left: the frame where the clip has as far left to go as the body has
 //    (its speed over the controller's braking rate), on whichever foot (the clip or its mirror)
 //    is down now; the clip's settling steps then play out once the body is still;
@@ -33,7 +33,7 @@ export const movesSetting = {
 
 export const MOVES = {
   blendIn: 0.1, blendOut: 0.2,
-  start: { clips: ['start_walking'], legs: false, from: 0.25, fade: [2.2, 3.4], minRate: 0.6, maxRate: 3, lead: 0.12 },
+  start: { clips: ['start_walking'], legs: false, from: 0.25, upTo: 2.6, fade: [2.2, 3.4], minRate: 0.6, maxRate: 3, lead: 0.12 },
   stop: { legs: false, walk: 'stop_walking', run: 'run_to_stop', runFrom: 2.8, from: 0.9, brake: 16, minRate: 0.7, maxRate: 2.5 },
   turn: { legs: false, from: 0.75, maxSpeed: 2.0, outSpeed: 2.8, clips: [[1.15, 'left_turn_45'], [2.2, 'left_turn_90'], [Infinity, 'left_turn_180']], minRate: 0.9, maxRate: 3.2 },
   pivot: { legs: false, clip: 'running_turn_180', speed: 4.2, from: 2.4, minRate: 0.8, maxRate: 2.4 },
@@ -99,12 +99,13 @@ export class LocoMoves {
   /**
    * @param s.speed     horizontal speed (m/s)
    * @param s.steering  the stick pushed (the controller is steering somewhere)
+   * @param s.wantSpeed the speed it steers to (m/s): a start is a walker's (the stick half way), not a jog's
    * @param s.heading   the facing now (rad)
    * @param s.want      the heading steered to (rad), or null
    * @param s.ground    on foot on the ground, free (no aim, ride, climb, move of its own)
    * @param s.size      the body's legs against the clips' (Animator.legRatio x scale)
    */
-  update(dt, { speed, steering, heading, want = null, ground = true, size = 1 }) {
+  update(dt, { speed, steering, wantSpeed = 0, heading, want = null, ground = true, size = 1 }) {
     const was = this.prev;
     this.prev = { speed, steering, heading };
     const C = this.cur;
@@ -118,7 +119,7 @@ export class LocoMoves {
     }
     if (was && (!this.cur || this.cur.out)) {
       const turnBy = want === null ? 0 : wrap(want - heading);
-      if (steering && !was.steering && was.speed < MOVES.start.from && Math.abs(turnBy) < MOVES.turn.from) this.begin('start', MOVES.start.clips[0], { size, heading });
+      if (steering && !was.steering && was.speed < MOVES.start.from && wantSpeed <= MOVES.start.upTo && Math.abs(turnBy) < MOVES.turn.from) this.begin('start', MOVES.start.clips[0], { size, heading });
       else if (!steering && was.steering && was.speed > MOVES.stop.from) this.beginStop(was.speed, size, heading);
       else if (steering && speed < MOVES.turn.maxSpeed && was.speed < MOVES.turn.maxSpeed && Math.abs(turnBy) > MOVES.turn.from && (!this.cur || this.cur.kind !== 'turn')) {
         const name = MOVES.turn.clips.find(([lim]) => Math.abs(turnBy) < lim)[1];

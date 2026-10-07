@@ -17,10 +17,12 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Animation
 
-- [ ] Evaluate learned motion matching only if it measures better than the conventional system
-  (motion matching exists, `?mm=1`, but measures behind the loops: the data, not the method, is
-  short). **Blocked on the author**: Mixamo's starts, stops and turns are pending their downloads
-  (docs/mixamo-shopping-list.md).
+- [x] Evaluate learned motion matching only if it measures better than the conventional system:
+  measured again with Mixamo's 25 starts, stops and turns in its database (2026-10-07): it still
+  slides two to five times as far as the loops (the game walks at 3.8 m/s, faster than any captured
+  walking start), so the loops stay the default (`?mm=1` keeps the matcher) and the new clips play
+  over them as captured starts, stops and turns (src/loco-moves.js; docs/systems/animation.md). Next:
+  starts, stops and turns at the game's speeds would let the legs follow the capture too.
 
 ## Dialogue
 

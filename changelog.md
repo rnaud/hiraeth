@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.82 — 2026-10-07
+
+- The traveller moves more like a person at the moments that used to look mechanical: setting off at a walk he straightens and swings his arms instead of hunching into a jog, stopping he throws his arms out to brake, and turning on the spot or doubling back at a run his head and shoulders lead the turn. His feet land and hold exactly as before, and the controls answer just as fast.
+
 ## v0.81 — 2026-10-07
 
 - In the desert, letting the water out of the giant’s pool before anyone has sent you there no longer stalls the story: the steps that only led there pass on their own, and Ama still hands you her jar.

@@ -103,6 +103,27 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.82': [
+    { match: 'The traveller moves more like a person at the moments that used to look mechanical', shots: [
+      { name: 'captured-start', caption: 'Setting off at a walk (the stick half way), a frame every tenth of a second from the side: before, the jog loop hunches him forward; after, Mixamo’s captured start keeps him upright, arms swinging', size: [1280, 237], from: 'the Motion page’s frame strips (motionPage.sheet), the same scripted run before and after (7 October)' },
+      { name: 'captured-stop', caption: 'Letting go of the stick at a walk, seen from in front: after, the captured stop throws his arms out to brake; the feet land in the same places', size: [1280, 237], from: 'the Motion page’s frame strips, the same run before and after (7 October)' },
+      { name: 'captured-pivot', caption: 'Doubling back at a run: after, the head and shoulders turn into it first', size: [1280, 237], from: 'the Motion page’s frame strips, the same run before and after (7 October)' },
+    ], numbers: [
+      { title: 'Foot sliding (the worst contact)', unit: 'm', better: 'lower', device: 'Node, the gait harness on the coral-shirt traveller (scripts/mocap/compare.mjs)', source: 'docs/systems/animation.md, “Captured starts, stops and turns over the loops”', rows: [
+        { where: 'walk, run, turn back, stop', before: 0.11, after: 0.11 },
+        { where: 'walk, quarter turn, stop', before: 0.08, after: 0.08 },
+        { where: 'turn round on the spot', before: 0.09, after: 0.09 },
+        { where: 'slow walk, stop', before: 0.05, after: 0.05 },
+        { where: 'the same with motion matching instead (not used)', before: 0.11, after: 0.25 },
+      ] },
+      { title: 'How fast the pose answers the stick', unit: 's', better: 'lower', device: 'Node, the gait harness on the coral-shirt traveller', source: 'docs/systems/animation.md', rows: [
+        { where: 'from standing, the stick pushed: a foot off the ground', before: 0.13, after: 0.13 },
+        { where: 'slow walk: a foot off the ground', before: 0.17, after: 0.17 },
+        { where: 'letting go at a walk: both feet held', before: 0.9, after: 0.9 },
+        { where: 'facing back after turning at a run', before: 0.3, after: 0.3 },
+      ] },
+    ], see: 'Walk with the stick half way and let go, tap back to turn round on the spot, or run and pull back: the body above the legs follows the capture. The dev menu’s Motion section switches it off to compare.' },
+  ],
   '0.81': [
     { match: 'What’s new (N) has a See what changed button', shots: [
       { name: 'see-what-changed', caption: 'This page: a line of v0.77 with its before and after, the split dragged to the left', only: 'after', size: [1440, 900], from: 'a screenshot of changelog.html (7 October)' },

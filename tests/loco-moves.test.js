@@ -23,8 +23,10 @@ async function watch(script, o = {}) {
 const kinds = (seen) => [...new Set(seen.filter((f) => f.s).map((f) => `${f.s.kind}:${f.s.name.replace(/^mixamo_/, '')}`))];
 
 test('each moment its move: a start from standing, a stop on letting go, a turn on the spot by its angle and side, the pivot at a run', async () => {
-  const start = await watch([[1, none], [1.5, W], [1.5, none]]);
-  assert.deepEqual(kinds(start.seen).map((k) => k.split(':')[0]), ['start', 'stop'], `a start, then a stop (${kinds(start.seen)})`);
+  const start = await watch([[1, none], [1.5, { stick: { x: 0, y: 0.45 } }], [1.5, none]]);
+  assert.deepEqual(kinds(start.seen).map((k) => k.split(':')[0]), ['start', 'stop'], `setting off at a walk, a start, then a stop (${kinds(start.seen)})`);
+  const jog = await watch([[1, none], [1.5, W], [1.5, none]]);
+  assert.deepEqual(kinds(jog.seen).map((k) => k.split(':')[0]), ['stop'], `at the full stick (a jog, faster than the captured start): the loops set off, the stop still comes (${kinds(jog.seen)})`);
   // a quarter turn on the spot each way: the 90° clip, mirrored for the right
   const left = await watch([[1, none], [0.1, A], [1.5, none]]);
   const right = await watch([[1, none], [0.1, D], [1.5, none]]);
