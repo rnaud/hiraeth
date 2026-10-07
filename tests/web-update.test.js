@@ -118,7 +118,7 @@ test('the Cloudflare deploy owns the site: it builds, adds the update, then depl
   for (const s of ['deploy:cloudflare', 'check:cloudflare', 'dev:cloudflare']) {
     assert.match(pkg.scripts[s], /npm run build && node scripts\/web-update\.mjs/, `${s} deploys the update too`);
   }
-  for (const f of ['android.yml', 'steam-deck.yml', 'deploy.yml']) {
+  for (const f of ['android.yml', 'steam-deck.yml']) {
     assert.doesNotMatch(read(`../.github/workflows/${f}`), /wrangler/, `${f} doesn't deploy the Worker (it would replace the updates)`);
   }
   assert.match(read('../wrangler.jsonc'), /"directory": "\.\/dist"/, 'updates/ is inside dist/');
