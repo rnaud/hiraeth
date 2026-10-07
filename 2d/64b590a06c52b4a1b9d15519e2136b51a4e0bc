@@ -1,0 +1,33 @@
+src/levels/arzach.js
+  s_55b4bc53b812ec::t_b7645c05853290 312
+src/levels/edena.js
+  s_55b4bc53b812ec::t_62e057921ae430 475
+src/levels/incal.js
+  s_55b4bc53b812ec::t_d651568a21a23f 5,217,250-257,526-532,922,934
+src/materials.js
+  s_55b4bc53b812ec::t_cfa4942f477d48 432,450-457,618-627,731-740
+src/story/desert-errands.js
+  s_55b4bc53b812ec::t_90b6bc87bb6aca 72
+src/temples/guardians.js
+  s_55b4bc53b812ec::t_5509851e88c4a9 473
+src/vertex-material.js
+  s_55b4bc53b812ec::t_aeed947e737f5a 1-53
+tests/vertex-material.test.js
+  s_55b4bc53b812ec::t_4fcc4b046306fe 1-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2d64b590a06c52b4a1b9d15519e2136b51a4e0bc",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
