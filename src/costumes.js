@@ -473,6 +473,7 @@ COSTUMES.glassdunes = COSTUMES.desert;
 COSTUMES.moonfoundry = COSTUMES.buried;   // (the Moon Foundry, src/levels/moon-foundry.js: the Buried Machine's workers' clothes, in the foundry's own colours)
 COSTUMES.underwater = COSTUMES.waterfall;   // (the Underwater City, src/levels/underwater.js: the falls' wraps and hoods, in the city's own colours)
 COSTUMES.eclipse = COSTUMES.mangrove;   // (the City During the Eclipse, src/levels/eclipse.js: the lake folk's pale robes and hoods, their lanterns)
+COSTUMES.underside = COSTUMES.saltharbour;   // (the Underside, src/levels/underside.js: the harbour folk's terracotta cloaks and hoods)
 const INCAL = { TOP: 200, LEVELS: [150, 92, 36, -24, -86] };
 function zoneIncal(c) {
   const id = c.spot?.id;

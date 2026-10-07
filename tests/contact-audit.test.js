@@ -134,6 +134,7 @@ const KNOWN = {
   eclipse: { sink: 16, hover: 0, inside: 14, walk: 3 },   // (the City During the Eclipse: walls, terraces, stairs, houses and the roofs behind them solid; the flower boxes and the figures over the parapets drawn only)
   fallenring: { sink: 2, hover: 0, inside: 13, walk: 0 },   // (the Fallen Ring: hulls, houses, posts, stairs and the interiors solid as drawn; the awnings drawn only)
   moonfoundry: { sink: 22, hover: 0, inside: 2, walk: 10 },   // (the Moon Foundry: solid as drawn, machinery dressing too; the gantries' trusses' web drawn only over their chords)
+  underside: { sink: 4, hover: 0, inside: 0, walk: 5 },   // (the Underside: the shelf, the mountain, the stairs, the decks, the houses and their rails solid as drawn; a hung house's crown in the rock)
 };
 const audits = new Map();
 function audit(id) {

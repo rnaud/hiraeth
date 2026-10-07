@@ -737,6 +737,8 @@ the narrowest creases.
   lifted 0.12, printed 0.6 flat), its puffs gently lumped (0.09): Vael II's sharper lumps read as ice floes from
   above. The foreground stair stands in the shade of a rock behind the eye (`shade`), as the pictures put it.
   `?look=underside`.
+- **On the world** (`src/levels/underside.js`, worlds.md "The Underside"): the same kit at `detail` 0.6-0.8, the decks,
+  houses and rails solid, the shelf's underside split off in a deeper stone (`splitFaces`), the cloud instanced.
 - **Left**: the pictures' town is a far denser, warmer mass (balconies crowded with people and pots, timber lit by
   the low sun, every gap filled); ours reads as decks and rods with houses on them. The pictures' face bulges in
   big pillows of rock with dark creases, ours more gently; their white houses are lumpier and clumped like nests;

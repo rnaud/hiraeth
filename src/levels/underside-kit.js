@@ -35,15 +35,15 @@ export { stick, rope, herbs, figure };
 
 // ------------------------------------------------------------------ the look
 /** The lamps' light on the walls and the decks: a warm amber in the shade under the shelf (makeMaterial lampTint). */
-export const LAMP_TINT = ['#ffa860', 0.7];
+export const LAMP_TINT = ['#ffb070', 0.5];
 /** The surfaces' tones, read off the pictures. */
 export const UNDER_TONES = {
-  rock: '#f1e2c6', rock2: '#ead8b8', rock3: '#e2cfae', rockShade: '#d8c8b0',
+  rock: '#f1e2c6', rock2: '#ead8b8', rock3: '#e2cfae', rockShade: '#d8c8b0', rockUnder: '#c2ae92',
   plaster: '#f5ecdc', plaster2: '#efe2cc', plaster3: '#e8dccb',
   wood: '#8a6446', wood2: '#a07450', woodDark: '#5a4030', plank: '#b08a62',
   banner: '#c8643e', banner2: '#b85636', banner3: '#d47a4c',
   dark: '#2e2a3a', glow: '#ffb466', lamp: '#ffd690', rope: '#3a302c', iron: '#3e3640',
-  wicker: '#a8784a', grass: '#7a8a4e', shrub: '#5a6e48', shrub2: '#6e7c50', pot: '#a65a3e', leaves: '#5f7e4e',
+  wicker: '#a8784a', grass: '#7a8a4e', meadow: '#b4ae78', meadow2: '#a6a36e', shrub: '#5a6e48', shrub2: '#6e7c50', pot: '#a65a3e', leaves: '#5f7e4e',
   cloud: '#fff6ec', cloudPink: '#fde4d4',
   cloak: ['#9a4a34', '#7a5a48', '#5e5068', '#a06a4a', '#6a4e40', '#b07a5a'], skin: '#d8a888',
   traveller: '#8a3c2a', travellerHood: '#6a2e24', pack: '#f2f0ea', packRim: '#c8c6c4',
@@ -51,8 +51,8 @@ export const UNDER_TONES = {
 /** The cloud's print: a warm white, its shade a pale grey-blue (lifted), no strokes (arzach2.js CLOUD_PRINT). */
 export const CLOUD_PRINT = { shade: 0.12, shadeFlat: 0.6, hatch: 0, spot: 0 };
 /** The day's colours (sky top, horizon, shadow, light, sun): a clear blue over the cloud, a low golden sun, the shade a cool blue-grey. */
-export const UNDER_DAY = ['#4f86cc', '#cfe0ee', '#8e9cc4', '#fff0dc', '#ffe6bc'];
-export const UNDER_DUSK = ['#7e8cc0', '#f6c4a6', '#8a7eb4', '#ffd6b8', '#ffb888'];
+export const UNDER_DAY = ['#4f86cc', '#cfe0ee', '#7a86b2', '#fff0dc', '#ffe6bc'];
+export const UNDER_DUSK = ['#7e8cc0', '#f6c4a6', '#7a70a6', '#ffd6b8', '#ffb888'];
 export const UNDER_NIGHT = ['#0c1430', '#24345e', '#2e3a6a', '#aab4e0', '#f0e8e0'];
 /** The haze: stepped pale bands over the cloud sea, warm, so the far shelf and the far cloud go pale. */
 export const UNDER_HAZE = { uHazeLayers: [140, 1.8, 0.13, 4], uHazeTone: [0.93, 0.92, 0.94, 0.7] };
@@ -62,7 +62,7 @@ export const UNDER_HAZE = { uHazeLayers: [140, 1.8, 0.13, 4], uHazeTone: [0.93, 
  * spot blacks but deep ones in the scaffolds' gaps, cast shadows kept (the shelf's great shadow on its own town).
  */
 export const UNDER_LOOK = {
-  uClouds: 0, uCumulus: 0, uSkyDots: 0.25, uShadowFlat: 0.72, uShadeKeep: 0.2, uHalftone: 0.18, uBounce: 0.3, uHatch: 0.3,
+  uClouds: 0, uCumulus: 0, uSkyDots: 0.25, uShadowFlat: 0.72, uShadeKeep: 0.2, uHalftone: 0.18, uBounce: 0.08, uHatch: 0.3,
   uFogDensity: 0.00055, uSpot: [0.6, 3, 0.3, 0.1], uSpotTone: [0.2, 0.18, 0.28, 0.4], uCast: [0.25, 0.15], ...UNDER_HAZE,
 };
 
@@ -74,12 +74,14 @@ export function underMats(kit, { lamps = true } = {}) {
     // (strata rock as Vael II's: bands along its beds, a few cracks running down; no built pen detail, it is not a wall)
     rock: kit.mat({ color: T.rock, color2: T.rock2, color3: T.rock3, mode: MODE_STRATA, strataSize: 6, flat: true, hatch: 0.35, cracks: 0.3, strataHatch: 0.12, ...LT }),
     rockDeep: kit.mat({ color: T.rockShade, color2: T.rock3, color3: T.rockShade, mode: MODE_STRATA, strataSize: 6, flat: true, hatch: 0.35, cracks: 0.3, ...LT }),
+    // the shelf's underside: a warmer, deeper stone, hatched (it is only ever in shade, lit by the lamps and the cloud's glow)
+    rockUnder: kit.mat({ color: T.rockUnder, color2: T.rockShade, color3: T.rockUnder, mode: MODE_STRATA, strataSize: 5, flat: true, hatch: 0.6, cracks: 0.4, shade: 0, ...LT }),
     plaster: [T.plaster, T.plaster2, T.plaster3].map((c) => kit.mat({ color: c, flat: true, patches: 0.35, hatch: 0.6, ...LT })),
     step: kit.mat({ color: T.rock2, flat: true, hatch: 0.4, ...LT }),
     wood: kit.mat({ color: T.wood, flat: true, pattern: 'cracks', ...LT }),
     wood2: kit.mat({ color: T.wood2, flat: true, ...LT }),
     woodDark: kit.mat({ color: T.woodDark, flat: true, ...LT }),
-    plank: kit.mat({ color: T.plank, flat: true, pattern: 'cracks', ...LT }),
+    plank: kit.mat({ color: T.plank, flat: true, line: 0.6, lineTint: 0.5, ...LT }),
     // the struts and rods: thin bars kept a pixel and a half wide (src/thin.js)
     rod: kit.mat({ color: T.woodDark, flat: true, thin: 1.4 }),
     rope: kit.mat({ color: T.rope, flat: true, thin: 1.2, line: 0.5, lineTint: 0.6 }),
@@ -176,6 +178,20 @@ export function slab({ sx, sy, sz, rTop = 3, rBot = 8, rSide = 6, band = 7, ledg
   return g;
 }
 
+/** A geometry's triangles split in two by a test on each one's normal: [those that pass, the rest] (non-indexed). */
+export function splitFaces(g, test) {
+  const src = g.index ? g.toNonIndexed() : g, p = src.attributes.position, nrm = src.attributes.normal, a = [], b = [], an = [], bn = [];
+  const e1 = V(), e2 = V(), fn = V(), A = V(), B = V(), C = V();
+  for (let i = 0; i < p.count; i += 3) {
+    A.fromBufferAttribute(p, i); B.fromBufferAttribute(p, i + 1); C.fromBufferAttribute(p, i + 2);
+    fn.crossVectors(e1.subVectors(B, A), e2.subVectors(C, A)).normalize();
+    const [P, N] = test(fn, A) ? [a, an] : [b, bn];
+    for (let k = 0; k < 3; k++) { P.push(p.getX(i + k), p.getY(i + k), p.getZ(i + k)); if (nrm) N.push(nrm.getX(i + k), nrm.getY(i + k), nrm.getZ(i + k)); }
+  }
+  const make = (P, N) => { const o = new THREE.BufferGeometry(); o.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); if (nrm) o.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); else o.computeVertexNormals(); return o; };
+  return [make(a, an), make(b, bn)];
+}
+
 /** Lobes for a slab's underside: n rounded masses hanging under it, inside its plan (x ±sx/2·k, z ±sz/2·k), r and h their size. */
 export function lobesFor({ sx, sz, n = 12, r = [8, 18], h = [3, 9], k = 0.8, seed = 1 }) {
   const rng = mulberry32(Math.floor(seed * 613) + 1);
@@ -197,7 +213,7 @@ const PROFILES = {
   dome: [[0.001, 0], [0.9, 0.001], [1, 0.22], [0.99, 0.46], [0.88, 0.68], [0.64, 0.86], [0.34, 0.97], [0.001, 1]],
   egg: [[0.001, 0], [0.72, 0.001], [0.95, 0.14], [1, 0.36], [0.93, 0.58], [0.74, 0.78], [0.44, 0.93], [0.001, 1]],
   // hung from the rock: its crown buried in the underside (over y = h), its body swelling to a rounded foot on a deck
-  drop: [[0.001, 0], [0.52, 0.01], [0.84, 0.1], [1, 0.32], [0.98, 0.55], [0.9, 0.78], [0.86, 0.96], [0.9, 1.12], [0.001, 1.13]],
+  drop: [[0.001, 0], [0.5, 0.01], [0.82, 0.08], [1, 0.26], [0.97, 0.46], [0.8, 0.66], [0.62, 0.84], [0.56, 0.98], [0.66, 1.12], [0.001, 1.13]],
   // a nest under the rock with no foot: a hanging bulb, rounded under (it hangs free over the void)
   bulb: [[0.001, 0], [0.42, 0.03], [0.76, 0.14], [0.96, 0.36], [1, 0.6], [0.92, 0.84], [0.88, 1.12], [0.001, 1.13]],
 };
@@ -264,12 +280,13 @@ export function pod({ r = 5, h = 9, kind = 'dome', seed = 1, windows = 4, lit = 
  * (x, z) => y) every `every` m round its edge, or struts back to a wall at `wall` ('n' | 's' | 'w' | 'e').
  * { planks: [geo], wood: [geo], rods: [geo] }.
  */
-export function deck({ x0, x1, z0, z1, y, rail = 'nswe', gaps = [], up = null, every = 6, wall = null, seed = 1, plank = 0.45, thick = 0.16 }) {
+export function deck({ x0, x1, z0, z1, y, rail = 'nswe', gaps = [], up = null, every = 6, wall = null, seed = 1, plank: plankW, thick = 0.16 }) {
+  const plank = plankW ?? 0.6;
   const rng = mulberry32(Math.floor(seed * 3313) + 5), out = { planks: [], wood: [], rods: [] };
   const w = x1 - x0, d = z1 - z0, alongX = w >= d, L = alongX ? w : d, B = alongX ? d : w;
   const n = Math.max(1, Math.round(L / plank));
   for (let i = 0; i < n; i++) {
-    const u = (i + 0.5) / n, len = B * (0.98 + rng() * 0.05), dy = (rng() - 0.5) * 0.03;
+    const u = (i + 0.5) / n, len = B, dy = 0;
     const g = alongX ? new THREE.BoxGeometry((L / n) * 1.02, thick, len).translate(x0 + u * w, y - thick / 2 + dy, (z0 + z1) / 2 + (rng() - 0.5) * 0.1)
       : new THREE.BoxGeometry(len, thick, (L / n) * 1.02).translate((x0 + x1) / 2 + (rng() - 0.5) * 0.1, y - thick / 2 + dy, z0 + u * d);
     out.planks.push(g);
@@ -429,7 +446,7 @@ export function cloudPuffs({ y, near = 60, far = 2400, at = [0, 0], arc = [-Math
 /** A cloud puff's shape: knobbly, not a ball (the pictures' cloud is cauliflower at every scale). */
 export function puffGeo(detail = 2, seed = 1) {
   const g = new THREE.IcosahedronGeometry(1, detail);
-  lumpy(g, 0.09, 1.6, detail + seed);
+  lumpy(g, [0.03, 0.05, 0.09, 0.09][Math.min(3, detail)], 1.6, detail + seed);
   const m = mergeVertices(g, 1e-4); m.computeVertexNormals();
   return m;
 }
@@ -554,18 +571,18 @@ export function town(fk, M, rng, o) {
   const { x0, x1, faceTop } = o, yUf = typeof o.yU === 'function' ? o.yU : () => o.yU;
   const y0 = yUf((x0 + x1) / 2, 0), levels = o.levels ?? [y0 - 4, y0 - 10, y0 - 16];
   const out = o.out ?? [4, 6, 8], under = o.under ?? [10, 6, 3], fill = o.fill ?? (() => 1), detail = o.detail ?? 1;
-  const solid = !!o.solid, N = NC, decks = (o.decks ?? []).map((d) => ({ ...d })), pods = [];
+  const solid = !!o.solid, N = NC, decks = (o.decks ?? []).map((d) => ({ ...d })), pods = [], crown = o.crown ?? 1.2;   // (crown: how far the hung houses go up into what they hang from)
   const R = (a, b) => a + rng() * (b - a);
   // ---- the decks, level by level: runs along the face (or the ones given)
   const overhead = (px, pz) => (pz < -1 ? yUf(px, pz) : -Infinity);
-  for (const d of decks) deckAt(fk, M, { rail: 'swe', up: overhead, every: 6, seed: d.x0 * 3 + d.y, solid, ...d });
+  for (const d of decks) deckAt(fk, M, { rail: 'swe', up: overhead, every: 6, seed: d.x0 * 3 + d.y, solid, plank: o.plank, ...d });
   if (!o.decks) levels.forEach((y, li) => {
     let x = x0 + R(0, 4);
     while (x < x1 - 4) {
       const f = fill(x), len = R(6, 18) * (0.6 + f * 0.6);
       if (rng() < f * [1.1, 0.95, 0.8, 0.65, 0.5][Math.min(4, li)]) {
         const a = x, b = Math.min(x1, x + len), zo = out[li] * R(0.6, 1.2), zi = -under[li] * R(0.5, 1);
-        deckAt(fk, M, { x0: a, x1: b, z0: zi, z1: zo, y, rail: 'swe', up: overhead, every: 6, seed: a * 3 + li, solid });
+        deckAt(fk, M, { x0: a, x1: b, z0: zi, z1: zo, y, rail: 'swe', up: overhead, every: 6, seed: a * 3 + li, solid, plank: o.plank });
         decks.push({ x0: a, x1: b, z0: zi, z1: zo, y, level: li });
       }
       x += len + (rng() < 0.6 ? R(1, 6) : 0);
@@ -598,9 +615,9 @@ export function town(fk, M, rng, o) {
     if (rng() > fill(x) + 0.1) continue;
     const yU = yUf(x, z), deckUnder = decks.find((d) => x > d.x0 + 2 && x < d.x1 - 2 && z > d.z0 + 2 && z < d.z1 - 2 && d.y < yU - 4);
     const kind = deckUnder && rng() < 0.8 ? 'drop' : 'bulb', r = R(...(o.podR ?? [3.5, 8]));
-    const h = kind === 'drop' ? (yU + 1.2 - deckUnder.y) / 1.12 : r * R(1.4, 2.2) / 1.13;
+    const h = kind === 'drop' ? (yU + crown - deckUnder.y) / 1.12 : r * R(1.4, 2.2) / 1.13;
     if (h < 3) continue;
-    const y = kind === 'drop' ? deckUnder.y : yU + 1.2 - h * 1.12;
+    const y = kind === 'drop' ? deckUnder.y : yU + crown - h * 1.12;
     podAt(fk, M, x, y, z, { r, h, kind, seed: x * 3 + i, windows: 3 + Math.floor(rng() * 3), lit: o.lit ?? 0.4, door: kind === 'drop', cupola: false, detail, solid, yaw: R(-0.4, 0.4), lampR: 6 });
     pods.push({ x, y, z, r, h, kind });
   }
