@@ -1,0 +1,63 @@
+docs/systems/references.md
+  s_55b4bc53b812ec::t_b1d72085e6fba5 32,41,74-135
+scripts/changelog-shots.mjs
+  s_55b4bc53b812ec::t_f0a5304a983b92 145-146,158
+scripts/icons.mjs
+  s_55b4bc53b812ec::t_5ee420f90942ed 116-117,127
+scripts/steam-art.mjs
+  s_55b4bc53b812ec::t_7c9b5addf749ed 78,88
+src/levels/content.js
+  s_55b4bc53b812ec::t_42bcbe262d1115 14,72,77
+src/levels/reference-buried.js
+  s_55b4bc53b812ec::t_00589c722c0d6a 912-914
+src/levels/reference-desert.js
+  s_55b4bc53b812ec::t_2f708422dbbf94 6,39-456,964-967
+src/levels/reference-lorn.js
+  s_55b4bc53b812ec::t_3811f96531d8ea 568-570
+src/levels/reference-market.js
+  s_55b4bc53b812ec::t_03f6b0c9143de6 517-519
+src/levels/reference-picker.js
+  s_55b4bc53b812ec::t_7f8c550ed34c00 3-6,12,14-17,104-108,114-118,122-125,136-145,170,181-184,186-187,194-200,243-253,257-260,262,266,275-284,290-294,304,308,334-340,376
+src/levels/reference-shaft.js
+  s_55b4bc53b812ec::t_e33388355bb605 602-604
+src/levels/reference-spheres.js
+  s_55b4bc53b812ec::t_78629c0cf1d8e3 744-746
+src/levels/reference-vael2.js
+  s_55b4bc53b812ec::t_57bdafec9d6f13 870-872
+src/levels/reference-views.js
+  s_55b4bc53b812ec::t_f1dfabda0c8106 1,5-11,31-35
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_dcf8b2a82ce6d3 1-108
+src/levels/references.js
+  s_dcdf8c32199d18::t_4c809a8f5046c9 5,23-28,31-36,40-42,44-49,54-61,70-74,146-148,158-160,163-176,197-209,211-214,216-219,255-256,264-266,301-302,304,306,309,311,317-318,363-366,392-398,404-406,408-409,415,417-419,421,423-430,435-439,447,450,454-460,467,469-474,499
+src/main.js
+  s_55b4bc53b812ec::t_ab94e3db66c5e0 1040
+tests/reference-worlds.test.js
+  s_55b4bc53b812ec::t_65d2e7c2707403 1-146
+tests/references.test.js
+  s_55b4bc53b812ec::t_4d37f24da4dd1d 6,8,12-23,33,38,43,47-49,51,67-69,72-73,77,89-90,99-100,105,107-113,122,128-137,139-143,146,162,164,209,218-219,246,271,292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1699648e0d85b65082373f02203babdcd8d1a1e0",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_dcdf8c32199d18": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a113e0-c524-77e1-acfb-aab5db67127f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
