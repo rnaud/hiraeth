@@ -38,7 +38,7 @@ function site() {
   const dist = mkdtempSync(join(tmpdir(), 'memento-site-'));
   mkdirSync(join(dist, 'assets'));
   mkdirSync(join(dist, UPDATES));
-  writeFileSync(join(dist, 'index.html'), '<!doctype html><title>Memento</title>');
+  writeFileSync(join(dist, 'index.html'), '<!doctype html><title>Hiraeth</title>');
   writeFileSync(join(dist, 'assets', 'main.js'), 'console.log("game");'.repeat(50));
   writeFileSync(join(dist, 'assets', 'ünïcode.bin'), Buffer.from([1, 2, 3]));
   writeFileSync(join(dist, UPDATES, 'web-1.zip'), 'an older update');   // (never zipped into the bundle)
@@ -52,7 +52,7 @@ test('the bundle zip: every game file and nothing of updates/, the same bytes ev
   assert.deepEqual(a.zip, b.zip, 'deterministic: a redeploy of the same build gives the same zip');
   const files = unzip(a.zip);
   assert.deepEqual(Object.keys(files), ['assets/main.js', 'assets/ünïcode.bin', 'index.html'], 'sorted, no folders, no updates/');
-  assert.equal(files['index.html'].toString(), '<!doctype html><title>Memento</title>');
+  assert.equal(files['index.html'].toString(), '<!doctype html><title>Hiraeth</title>');
   assert.deepEqual([...files['assets/ünïcode.bin']], [1, 2, 3]);
 });
 

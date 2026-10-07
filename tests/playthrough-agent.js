@@ -1,6 +1,6 @@
 // The play-through's agent (tests/playthrough.test.js; docs/systems/testing.md).
 //
-// It plays Memento in node, world by world in the route's order, on the game's own modules: the
+// It plays Hiraeth in node, world by world in the route's order, on the game's own modules: the
 // level as main.js builds it (its temple attached), real collision, the story runtime
 // (src/story/index.js) with its people and interactables, the makers' boxes, a real Player who is
 // put where the objective is (the agent teleports; it does not walk), and one game state carried

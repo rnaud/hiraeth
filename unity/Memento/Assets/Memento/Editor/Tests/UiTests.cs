@@ -85,8 +85,8 @@ namespace Memento.Tests
         [Test]
         public void TheStrokeCapitalsSpanTheirWidth()
         {
-            float w = StrokeFont.Width("MEMENTO", 75, 0.36f);
-            Assert.AreEqual(540f, w, 40f, "the title's name spans about 540 px, as the web's logo does at 1280 × 720");
+            float w = StrokeFont.Width("HIRAETH", 75, 0.36f);
+            Assert.AreEqual(450f, w, 40f, "the seven thin capitals fit comfortably within the title area");
             Assert.Greater(StrokeFont.Width("SOMETHING OF VALUE", 42, 0.34f), StrokeFont.Width("SOMETHING", 42, 0.34f));
         }
     }

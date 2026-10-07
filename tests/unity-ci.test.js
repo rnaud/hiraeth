@@ -98,7 +98,7 @@ test('the testers\' APK has its own identity: installed next to the web app, nev
   assert.equal(c('ReleasePackage'), UNITY_RELEASES.android.package);
   assert.notEqual(c('ReleasePackage'), 'com.rnaud.moebius');
   assert.notEqual(c('ReleasePackage'), c('Package'));   // (nor the bench's debug-signed bridge player)
-  assert.equal(c('ReleaseName'), 'Memento (Unity)');
+  assert.equal(c('ReleaseName'), 'Hiraeth (Unity)');
   assert.equal(c('ReleaseAlias'), 'moebius');
   assert.match(read('android/app/build.gradle'), /keyAlias System\.getenv\("ANDROID_KEY_ALIAS"\) \?: "moebius"/);
   const release = build.slice(build.indexOf('static bool Release()'));

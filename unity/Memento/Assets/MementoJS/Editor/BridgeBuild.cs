@@ -20,7 +20,7 @@ namespace Memento.EditorTools
     ///   scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp    first, once (and after a Puerts update): Puerts' IL2CPP glue into Assets/Gen
     ///                                                             (its "Minimal Bridge, Reflection Mode": the script calls C# by reflection)
     ///   BridgeBuild.AndroidRelease                                the testers' APK (scripts/unity-android-release.sh, .github/workflows/unity-android.yml):
-    ///                                                             com.rnaud.memento.unity, "Memento (Unity)", the game's icon, the release key, sound on
+    ///                                                             com.rnaud.memento.unity, "Hiraeth (Unity)", the game's icon, the release key, sound on
     /// (-out another path). A player runs the plan its command line gives (BridgeArgs: -views, -bench,
     /// -out …), and plays nothing aloud with -mute. The package name is the bridge's own, never the web app's.
     /// </summary>
@@ -29,7 +29,7 @@ namespace Memento.EditorTools
         public const string Package = "com.rnaud.memento.bridge";
         /// <summary>The testers' APK (AndroidRelease): installed next to the web game's app (com.rnaud.moebius), never over it.</summary>
         public const string ReleasePackage = "com.rnaud.memento.unity";
-        public const string ReleaseName = "Memento (Unity)";
+        public const string ReleaseName = "Hiraeth (Unity)";
         public const string ReleaseAlias = "moebius";   // (the web app's release key: android/app/build.gradle, docs/systems/android.md)
         public const string ReleaseIcon = "Assets/MementoJS/Icon/memento-icon.png";   // (copied from public/icons/icon-512.png, not committed)
         static string Arg(string name, string fallback = null) => BridgeArgs.Arg(name, fallback);
@@ -133,7 +133,7 @@ namespace Memento.EditorTools
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneOSX)
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX);
             Common();
-            Standalone("Memento JS");
+            Standalone("Hiraeth JS");
             PlayerSettings.macRetinaSupport = false;   // (1280 × 720 is 1280 × 720 pixels, as the web side's device scale 1)
             Il2Cpp(NamedBuildTarget.Standalone);
             var t = Type.GetType("UnityEditor.OSXStandalone.UserBuildSettings, UnityEditor.OSXStandalone.Extensions");
@@ -148,7 +148,7 @@ namespace Memento.EditorTools
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneLinux64)
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64);
             Common();
-            Standalone("Memento JS");
+            Standalone("Hiraeth JS");
             Il2Cpp(NamedBuildTarget.Standalone);
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.StandaloneLinux64, false);
             PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneLinux64, new[] { GraphicsDeviceType.Vulkan });
@@ -159,7 +159,7 @@ namespace Memento.EditorTools
 
         /// <summary>
         /// The testers' APK (docs/systems/unity.md, "Building in GitHub Actions"): the bridge's player as Android() builds
-        /// it, under its own identity so it installs next to the web game's app: com.rnaud.memento.unity, "Memento (Unity)",
+        /// it, under its own identity so it installs next to the web game's app: com.rnaud.memento.unity, "Hiraeth (Unity)",
         /// the game's icon (public/icons/icon-512.png), landscape, immersive, sound on and paused in the background, signed
         /// with the web app's release key (alias moebius) so every build installs over the last.
         ///   -buildVersion 0.80 (GameCI passes it)        versionName: the newest version in src/changelog.js (not -version: the editor prints its own and quits)
@@ -184,7 +184,7 @@ namespace Memento.EditorTools
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
             Common();
-            PlayerSettings.productName = release ? ReleaseName : "Memento JS";
+            PlayerSettings.productName = release ? ReleaseName : "Hiraeth JS";
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, release ? ReleasePackage : Package);
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Android, Il2CppCompilerConfiguration.Release);

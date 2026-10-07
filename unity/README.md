@@ -1,4 +1,4 @@
-# Memento in Unity: every world, by ship
+# Hiraeth in Unity: every world, by ship
 
 `unity/Memento` is a Unity 6 (6000.6, URP 17) port of the web game, built from the web game
 itself: a Node script builds each world headlessly exactly as the game does at load and exports
@@ -79,7 +79,7 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
    ```
 2. Open `unity/Memento` in Unity 6000.6 (Hub: Add project from disk). The first
    import resolves the packages (URP, Input System, glTFast, MCP for Unity).
-3. Once, or after pulling: menu **Memento → Set up project** (URP settings, the
+3. Once, or after pulling: menu **Hiraeth → Set up project** (URP settings, the
    ink renderer feature, the scenes). Already done in the committed project.
 4. Open `Assets/Memento/Scenes/Title.unity` (or `Desert.unity`) and press Play.
    Loading the export takes a few seconds; another world, about one.
@@ -497,7 +497,7 @@ styles are the web game's (`index.html`, `src/menus.css`):
 - `StarMap` and `PlanetArt`: the galactic map (below, with the ship).
 - `TitleScreen`: an overlay on the desert scene (the `Title` scene is the
   "sketching the world…" page, `Loading`, which opens it): the desert at golden
-  hour drifting behind a soft paper veil, MEMENTO in thin capitals with its pen
+  hour drifting behind a soft paper veil, HIRAETH in thin capitals with its pen
   rule and gold dot, the airy menu (Continue with a save, New game, Settings,
   Quit), then the play starts in the same scene.
 
@@ -670,7 +670,7 @@ scripts/unity-export/unity-batch.sh BenchBuild.WebGL     # Builds/WebGL (WebGPU)
 scripts/unity-export/unity-batch.sh BenchBuild.Mac       # Builds/macOS-bench/Memento.app: IL2CPP, ARM64, frame timing on (-mono: Mono; -development: the profiler markers)
 ```
 
-- **Android**: package `com.rnaud.memento.unity` ("Memento (Unity)"), never the
+- **Android**: package `com.rnaud.memento.unity` ("Hiraeth (Unity)"), never the
   web app's `com.rnaud.moebius`, so both install side by side; debug-signed,
   IL2CPP ARM64, Vulkan first with GLES3 behind it (the instanced crowd, puffs and
   wildlife read structured buffers in the vertex shader, which many GLES drivers
@@ -760,5 +760,5 @@ MCP client talks to through its Python server.
    (check the package's README for the current command; organisation policies
    may require the server to be approved first).
 3. With the editor open and the bridge running, the client can read the scene,
-   the console, run menu items (Memento → Set up project), enter play mode and
+   the console, run menu items (Hiraeth → Set up project), enter play mode and
    take screenshots.

@@ -48,7 +48,7 @@ test('a newer runtime comes too, one bar over both downloads; a game for a newer
   assert.equal(i.total, 100 + game.size);
   const waits = deckInfo({ running, local, status: status({ game: { ...game, minDesktop: 2 } }), desktop: 1 });
   assert.equal(waits.check, 'current');
-  assert.match(waits.error, /newer Memento app/);
+  assert.match(waits.error, /newer Hiraeth app/);
 });
 
 test('what the next launch runs is ready: Restart now, and no loop after a restart that didn\'t take', () => {

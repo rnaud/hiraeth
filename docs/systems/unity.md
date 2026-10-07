@@ -57,7 +57,7 @@ every night at 03:17 UTC when the game (`src/`, `public/`, …) moved since the 
 and by hand (Actions ▸ Unity release (testers) ▸ Run workflow, or `gh workflow run unity-android.yml`).
 The game's own pushes come every 20–40 minutes, faster than a cold build: one run at a time, never
 cancelled once started; GitHub keeps only the newest waiting run and cancels those between.
-- **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.memento.unity`, named "Memento
+- **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.memento.unity`, named "Hiraeth
   (Unity)", the game's icon (`public/icons/icon-512.png`), landscape, immersive, sound on (paused when
   left), the pads through the Input System; IL2CPP ARM64, Vulkan then GLES3; versionName the newest
   version in `src/changelog.js`, versionCode the commit count (`release-info.mjs build`); signed with the
