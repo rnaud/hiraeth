@@ -1,0 +1,90 @@
+changelog.md
+  s_0a0e834cfcfe52::t_bec2cfb84442c6 7-11
+docs/systems/controls.md
+  s_0a0e834cfcfe52::t_88bbd2800e0721 14,21,42-47
+docs/systems/foes.md
+  s_0a0e834cfcfe52::t_323d1287de0639 97-119,124
+docs/systems/story.md
+  s_0a0e834cfcfe52::t_8d18b0b412c220 131
+index.html
+  s_0a0e834cfcfe52::t_ae323fe1255d7d 398-399,403,412-413
+src/changelog-media.js
+  s_0a0e834cfcfe52::t_f2a72333740c0c 126-132
+src/changelog.js
+  s_0a0e834cfcfe52::t_801e839dea7b4b 18-22
+src/controller.js
+  s_0a0e834cfcfe52::t_920feae8878be1 51-52,106-107,134-137,145,148
+src/fluid-blade.js
+  s_0a0e834cfcfe52::t_df6ebcaab9f041 16,56,80-81,132-133,142-143,189,191,196,241
+src/fluid-kit.js
+  s_0a0e834cfcfe52::t_34a8993ca79d04 11-12,19-20,26
+src/fluid-tool.js
+  s_0a0e834cfcfe52::t_de4fd84c478d9c 64,100-101,107,112,926-927,931,967
+src/foes.js
+  s_0a0e834cfcfe52::t_8d669ff5e1dbde 37-54,62-72,74,76,82-83,98,101,110-111,127-128,138-139,151,212-214,230-234,246,262-277,320-359,383,386-387,396,424,434,515,528,540,590-595,620,622-633,649
+src/main.js
+  s_0a0e834cfcfe52::t_091ba521afd202 612,1017,1052-1054,1314,1492-1498
+src/story/arzach2-data.js
+  s_0a0e834cfcfe52::t_681dc7c55712b8 62,298
+src/story/arzach2.js
+  s_0a0e834cfcfe52::t_d39d18e7db9a48 284
+src/story/bazaar-data.js
+  s_0a0e834cfcfe52::t_9a24c687afa7a3 347,374
+src/story/bazaar.js
+  s_0a0e834cfcfe52::t_57da0dcc9597bc 158
+src/story/buried-data.js
+  s_0a0e834cfcfe52::t_4ac5c1db9959c0 50,366,392
+src/story/buried.js
+  s_0a0e834cfcfe52::t_cbca00b58d609e 181
+src/story/desert-data.js
+  s_0a0e834cfcfe52::t_979b63fe05a0cf 98,713,727,768
+src/story/desert-errands.js
+  s_0a0e834cfcfe52::t_1e2c718d4e0d8d 137
+src/story/desert-spark.js
+  s_0a0e834cfcfe52::t_8f93aeb583d464 57
+src/story/desert.js
+  s_0a0e834cfcfe52::t_39d851a690036d 332,484,539
+src/story/edena-data.js
+  s_0a0e834cfcfe52::t_f6acdd4523a773 70,73
+src/story/garage-data.js
+  s_0a0e834cfcfe52::t_675aeaf7492ccf 55
+src/story/incal-data.js
+  s_0a0e834cfcfe52::t_5d87ea35026c32 57,67,585,604
+src/story/perdide2-data.js
+  s_0a0e834cfcfe52::t_91910434674113 52,60
+src/ui.js
+  s_0a0e834cfcfe52::t_5bd9bc554fa16c 72,76,80,90,285-287
+tests/abilities.test.js
+  s_0a0e834cfcfe52::t_9ac30224b23eb5 70,87,180,182,184-186,191,203,445,447
+tests/controller.test.js
+  s_0a0e834cfcfe52::t_bd0c56dd252100 31-32,79,89-90,118-123
+tests/fluid-tool.test.js
+  s_0a0e834cfcfe52::t_3f8559c4b6a110 52-53,74,76-77,81,84,101,123,143,160,288
+tests/foes.test.js
+  s_0a0e834cfcfe52::t_54818b9ca25081 171,178-179,196-203,264-289
+tests/moment.test.js
+  s_0a0e834cfcfe52::t_e394367d52230d 231
+tests/push-fx.test.js
+  s_0a0e834cfcfe52::t_53398f1ae27a3a 42-43,48
+tests/touch.test.js
+  s_0a0e834cfcfe52::t_1d62353d6328d2 25-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76ddd271725286289128220fc97ab292bd5ca2e1",
+  "prompts": {},
+  "sessions": {
+    "s_0a0e834cfcfe52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ade28b2d-b826-430e-b2e2-c43a0ae93ce3",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
