@@ -384,6 +384,11 @@ about 10 faces a square metre at density 1; a left-handed frame is turned round 
   budget 270 k); Handheld (desktop, scale 0.75, 7 rounds, median ms): the drum 3.13 → 3.05 and 2.52 → 2.99, the
   trench 3.51 → 3.76 and 4.48 → 4.47. The views: the drums' inside walls (`drumInside`), the machinery against the
   walls (`machinery`, its `fine` density) and the oval walls' feet (`ovalWall`, columns stopping under the ovals).
+- **The City-Shaft** (incal.js): the terraces' undersides, between the ribs (a ceiling patch per 26 m of each sector,
+  `hang`), large and sparse (scale 2.4, density 0.35: the shaft is the game's heaviest world), in its iron and a steel
+  for the pipes; solid as drawn (you fly under them). ~140 k triangles, collision 973 k → 1 114 k (bake and rays
+  within noise); Handheld: under a terrace 2.53 → 2.55, across the shaft 4.23 → 4.22, down it 6.33 → 6.39. The
+  City-Shaft's views are refsB's (their houses' modelling), left to it.
 
 ## Across the worlds: the shader gaps that recur
 
