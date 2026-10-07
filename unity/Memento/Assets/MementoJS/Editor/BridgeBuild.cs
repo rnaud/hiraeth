@@ -36,6 +36,9 @@ namespace Memento.EditorTools
             var dst = Path.Combine(Application.streamingAssetsPath, "memento-js", "public", "anim");
             Directory.CreateDirectory(dst);
             foreach (var f in Directory.GetFiles(src).Where(f => f.EndsWith(".glb"))) File.Copy(f, Path.Combine(dst, Path.GetFileName(f)), true);
+            // the people's MakeHuman body (anim/mh/body.bin)
+            Directory.CreateDirectory(Path.Combine(dst, "mh"));
+            File.Copy(Path.Combine(src, "mh", "body.bin"), Path.Combine(dst, "mh", "body.bin"), true);
             if (!File.Exists(Path.Combine(Application.streamingAssetsPath, "memento-js", "memento.cjs"))) throw new Exception("no bundle: node scripts/engine-bundle.mjs unity");
             AssetDatabase.Refresh();
             typeof(Batch).GetMethod("IncludeShaders", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);

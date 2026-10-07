@@ -381,6 +381,8 @@ test('the game in a bare V8 context: a world with its people, the traveller walk
   const warn = console.warn, info = console.info; console.warn = console.info = () => {};
   try {
     const game = await exports.createGame({ levelId: 'garage', backend: R.backend });
+    // the world's people on MakeHuman bodies, as main.js has them (src/makehuman/people.js)
+    assert.ok(game.npcs.some((n) => n.humanoid?.profile?.buildGeometry), 'MakeHuman bodies for the people');
     game.frame(1 / 30);
     const p0 = game.player.pos.clone(), c0 = game.camera.position.clone();
     game.key('KeyW', true);

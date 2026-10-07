@@ -25,6 +25,7 @@ import { Player, CameraRig } from '../src/player.js';
 import { Controller, mergeControls } from '../src/controller.js';
 import { loadAnimationLibrary, Animator } from '../src/animator.js';
 import { loadHuman, Humanoid } from '../src/humanoid.js';
+import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, buildPeople } from '../src/crowd.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
@@ -98,6 +99,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
   const travellerP = new GLTFLoader().loadAsync('anim/traveller.glb').then((g) => g.scene).catch(() => null);
   const humansP = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { log('human models failed', e); return null; });
+  // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md), each world's as main.js has them
+  const mhP = people && usesMakeHuman(levelId) ? loadPeople('', levelId).catch((e) => { log('MakeHuman bodies unavailable', e?.message ?? e); return null; }) : null;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(55, width / height, 0.3, 5000);
@@ -117,9 +120,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   });
   const lib = await animLib;
   if (lib) player.animator = player._animator = new Animator(lib, player.char);
-  const humans = await humansP;
+  const humans0 = await humansP;
+  // (the people's templates: MakeHuman's man and woman where the world has them, else the Quaternius pair; the traveller
+  // keeps his own body)
+  const humans = humans0 && mhP ? ((await mhP)?.humans() ?? humans0) : humans0;
   const travellerTemplate = await travellerP;
-  if (humans && travellerTemplate) player.humanoid = new Humanoid(humans[0], player.char, 'm', { outfit: travellerTemplate });
+  if (humans0 && travellerTemplate) player.humanoid = new Humanoid(humans0[0], player.char, 'm', { outfit: travellerTemplate });
   player.attach(scene);
   const heroMaterials = markHero(player.char.root);
   markHero(player.gear?.device, heroMaterials);

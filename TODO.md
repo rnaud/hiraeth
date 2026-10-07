@@ -206,7 +206,10 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
   material's colour and glow changed after it was sent never reached Unity, so a waking flower opened
   but stayed its quiet green. The mirror now sends a material's live colour and glow (op 15, to every
   copy the port made of it: lamps, beacons, the temples' lights too), and a view settles 1.5 s.)
-- [ ] Some of the web's people are MakeHuman bodies the bridge does not load yet.
+- [x] Some of the web's people are MakeHuman bodies the bridge does not load yet. (2026-10-06: engine/game.js
+  loads the world's MakeHuman people as main.js does (`usesMakeHuman`, `loadPeople`: the story's people,
+  the crowd's pooled bodies, everyone the story makes); body.bin read through the host, packed with the
+  players. Their faces' shape keys (FACE_KEYS, a texture the port's Surface doesn't read) stay at rest.)
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached.
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
