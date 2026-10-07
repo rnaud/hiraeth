@@ -1,0 +1,33 @@
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_7bdee904da9287 731-734
+engine/game.js
+  s_55b4bc53b812ec::t_e5f4e9e02d98a4 386,433-440,443-446,454,475,478,480,486,491,504,508,510,512,526,541,547,549,554
+engine/mirror.js
+  s_55b4bc53b812ec::t_c7f4cc5f39429d 63,65
+engine/unity/game.js
+  s_55b4bc53b812ec::t_6d35b1f15c0597 36,199,208
+tests/mirror-freeze.test.js
+  s_55b4bc53b812ec::t_9af3e9d6b16f8b 51,114,133,149
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_55b4bc53b812ec::t_6556acd158177a 48
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_5bc33af7bcdfd7 125-128
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs
+  s_55b4bc53b812ec::t_41224419a770e9 39-40,48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2673b45ce0596c9783ba1b02b8cb680a670703c9",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
