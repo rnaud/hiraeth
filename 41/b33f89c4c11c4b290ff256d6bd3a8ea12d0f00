@@ -1,0 +1,39 @@
+changelog.md
+  s_55b4bc53b812ec::t_3161844427c72a 20-21
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_786eeac0c982e7 218-224
+docs/systems/story.md
+  s_55b4bc53b812ec::t_6efd2af346819a 136-140
+src/carriers.js
+  s_55b4bc53b812ec::t_a504874768b4b4 66-96
+src/changelog.js
+  s_55b4bc53b812ec::t_fffc95bc31f055 24-25
+src/interact.js
+  s_55b4bc53b812ec::t_ed3806f41d1071 20-24,30-31,51-69,72,78-79
+src/main.js
+  s_55b4bc53b812ec::t_15a24782cf3049 21,420-421,424,500-501
+src/taxi.js
+  s_55b4bc53b812ec::t_c252c293d83d86 339,617-673
+tests/desert-story.test.js
+  s_55b4bc53b812ec::t_fefc3f2ac0db32 34-35,434,650
+tests/interact-facing.test.js
+  s_55b4bc53b812ec::t_13b81c04dada5b 1-45
+tests/shaped-solids.test.js
+  s_55b4bc53b812ec::t_e9ee8e9d9e74f7 100-147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "41b33f89c4c11c4b290ff256d6bd3a8ea12d0f00",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
