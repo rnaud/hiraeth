@@ -124,7 +124,7 @@ export const LEVELS = [
   },
   {
     // a detour off the route (names.js SIDE): charted on the galactic map, no story to finish
-    id: 'glassdunes', create: createGlassDunes, build: buildGlassDunes, side: true,
+    id: 'glassdunes', create: createGlassDunes, build: buildGlassDunes, hidden: true,
     title: TITLES.glassdunes, source: 'a desert that turned to glass',
     blurb: 'Dunes of fused green glass, great shapes held inside them, and the glassworkers’ camps at their feet. Walk the sandy paths between the walls while the low sun comes through.',
     moves: 'walk · climb',
