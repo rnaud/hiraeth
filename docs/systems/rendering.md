@@ -470,6 +470,33 @@ dunes 1.27/1.25 → 1.34/1.27 ms: within the noise. `tests/shadow-edges.test.js`
 lit fraction continuous and monotone across texel borders, the same for a window moved by whole texels (any
 spread), the cut near the half for every facing, and the spot tier's weighting.
 
+## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
+
+The author's feedback (2026-10-06): "I still see some shimmering on some structures". The motion check
+(`scripts/motion-check/`, a pan a third of a pixel a frame, the world frozen) at Qanat's gate, 40 m from the
+walls, Medium (scale 1) at 1280 × 720: 22.8 flickering pixels per 10 000 a frame, the worst of any view
+measured (the desert's spawn 33, but that is its shrubs swaying: the plants' wind is not frozen by the check).
+Feature toggles and builds with one mark turned off each: the walls' **grime streaks** −7, their chips −2,
+cracks −0.5, the colour-edge lines −10 (the same thing: the streaks' outlines), the hatching −1.5.
+
+- **Grime streaks a few pixels wide were outlined**, and the outline of a shape 3–8 px wide jumps a pixel
+  either side as it slides under the pixels. A streak whose head is under `crisp` (6 → 14 CSS px) is now a faint
+  soft tone: its sides ramp over `soft` (2) px and its step is held under post.js's colour edge (`faint`, 0.065
+  in RGB: the edge starts at 0.08), so nothing outlines it; past 14 px it is drawn whole, dark and inked, as
+  before. Its size on screen is what decides, so a pan never changes it (walking up to a wall fades the outline
+  in over the 6 → 14 px of its head).
+- **Chips' fills** ramp over two pixels instead of one: no colour edge of their own (their pen line marks them).
+- **Hatch strokes too fine to draw** (`HATCH_AA`: closer than 4 → 2.2 px, `strokesLevel`, `formLevel`) fade to
+  their mean tone instead of aliasing; the same darkness, no pattern to crawl.
+- **Results** (flicker per 10 000 px, before → after): Qanat's gate pan, Medium 22.8 → 15.8, Handheld 28.1 → 19.2,
+  drift on Handheld 13.3 → 8.4; the Signal Market's pan 17.8 → 14.3; the Buried Machine 23.1 → 23.0 and the
+  desert's spawn 33.3 → 32.9 (their own: pipes and swaying shrubs). The hatch fade alone 17.2 → 15.8 at Qanat.
+- **Left**: silhouette and crease lines are still a step per pixel (the merlons' and the towers' edges are what
+  is left at Qanat); crease shading's sample rotation is a per-pixel hash of the screen position (its share of the
+  flicker measured nothing).
+- `tests/motion-stable.test.js`: a small streak's step under the edge on any wall, the size by its head in CSS px,
+  the chips' ramp, the hatch fade in both stroke functions.
+
 ## Nothing fixed to the screen (post.js `LINE_NOISE`)
 
 The author's feedback (2026-10-06): "a filter over the overall image, moving with the camera". Measured at

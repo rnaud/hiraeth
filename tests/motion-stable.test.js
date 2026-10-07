@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { makeMaterial, WEATHER, DETAIL, TERMINATOR, TERMINATOR_TURN, FACET_EDGE, MODE_TERRAIN } from '../src/materials.js';
+import { makeMaterial, WEATHER, DETAIL, TERMINATOR, TERMINATOR_TURN, FACET_EDGE, MODE_TERRAIN, HATCH_AA } from '../src/materials.js';
 
 // Stable in motion (docs/systems/rendering.md): what flickered, crawled or slid as the camera moved, checked in
 // headless Chrome with the game's clock stepped by hand, and how each one is held still.
@@ -18,10 +18,34 @@ test('weathered walls: grime keeps its tone over the colour-edge threshold to it
   const f = makeMaterial({ color: '#c8a888', weathered: 1, key: 't.motion.wear' }).fragmentShader;
   assert.ok(f.includes(`float wide = step(${WEATHER.grime.minPx.toFixed(2)} * uPixelRatio`), 'the cut scales with the pixel ratio');
   assert.ok(/2\.0 \* w0 \/ max\(fq\.x/.test(f), 'by the head of the streak: whole or not at all');
-  assert.ok(f.includes('float inside = smoothstep(th - 0.5 * fpn, th + 0.5 * fpn, pn);'), "a chip's fill edge is a pixel wide, not a step");
+  assert.ok(f.includes('float inside = smoothstep(th - fpn, th + fpn, pn);'), "a chip's fill edge two pixels wide: no colour edge of its own, its pen line marks it");
   assert.ok(!/step\(th, pn\)|step\(pl, th\)/.test(f), 'no hard step left in the chips or their lip');
   assert.ok(!f.includes('step(wPx * 0.5, side) * step(side'), "a crack's shadow sliver is antialiased");
   assert.ok(WEATHER.chip.minPx[1] > WEATHER.chip.minPx[0], "the lip's shadow fades out as it thins");
+});
+
+test("a small grime streak is a faint soft tone under the colour-edge threshold: no outline to shimmer as the camera turns", () => {
+  const G = WEATHER.grime;
+  // the step a small streak makes, on any wall (dark limited to faint / |albedo|): under post.js's edge start (0.08)
+  assert.ok(G.faint < 0.08, `faint ${G.faint}`);
+  for (const alb of [0.2, 0.4, 0.8, 1]) {
+    const len = Math.sqrt(3) * alb, dark = Math.min(G.dark, G.faint / len);
+    assert.ok(len * dark < 0.08, `a wall of ${alb}: step ${(len * dark).toFixed(3)}`);
+  }
+  assert.ok(G.crisp[1] > G.crisp[0] && G.crisp[0] > G.minPx, 'small streaks faint, big ones whole and inked');
+  assert.ok(G.soft > 1, 'its sides ramp over more than a pixel');
+  const f = makeMaterial({ color: '#c8a888', weathered: 1, key: 't.motion.wear2' }).fragmentShader;
+  assert.ok(f.includes(`float gDark = mix(min(${G.dark}, ${G.faint} / max(length(alb), 0.1)), ${G.dark}, bigK);`));
+  assert.ok(f.includes(`smoothstep(${G.crisp[0].toFixed(1)}, ${G.crisp[1].toFixed(1)}, headPx / uPixelRatio)`), 'by its head, in CSS px: a pan never changes it');
+});
+
+test('hatch strokes too fine to draw fade to their tone instead of aliasing', () => {
+  assert.ok(HATCH_AA[0] >= 0.2 && HATCH_AA[1] <= 0.5 && HATCH_AA[1] > HATCH_AA[0], 'from ~4 px apart to ~2 px');
+  const f = makeMaterial({ color: '#888', key: 't.motion.hatch' }).fragmentShader;
+  const fade = `mix(line, min(2.0 * hw, 1.0), smoothstep(${HATCH_AA[0].toFixed(3)}, ${HATCH_AA[1].toFixed(3)}, f))`;
+  assert.ok(f.includes(fade), 'the strokes (strokesLevel)');
+  const fo = makeMaterial({ color: '#888', form: true, key: 't.motion.hatchf' }).fragmentShader;
+  if (fo.includes('float formLevel(')) assert.ok(fo.split(fade).length >= 3, 'and the form strokes (formLevel)');
 });
 
 test('pen detail hands one scale over to the next across half a level, not a fifth', () => {

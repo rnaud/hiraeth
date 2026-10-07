@@ -130,6 +130,13 @@ export const TERMINATOR = 0.08;
 /** ...only on forms large on screen: the normal's turn per pixel (length of fwidth(n)) over which it is let go. */
 export const TERMINATOR_TURN = [0.02, 0.06];
 /**
+ * Strokes near the pixel grid's own frequency alias: a family of hatch lines under ~4 px apart crawls and
+ * flickers as it slides under the pixels (a shaded wall seen at 40 m). Over these periods per pixel (4 px →
+ * 2.2 px apart) a level of strokes fades to its mean tone instead: the same darkness, no pattern to alias
+ * ("Shimmer", rendering.md).
+ */
+export const HATCH_AA = [0.25, 0.45];
+/**
  * The shadow map's lit fraction steepened about a half (x3, clamped) before it shades: the toon threshold
  * then cuts a cast shadow near its true edge (the filter's 0.5) whatever the surface's facing. Unsteepened,
  * a sunny face cut it at 0.24, so a shadow shrank by most of the filter's width (and grew on a face turned
@@ -316,7 +323,8 @@ export const WEATHER = {
   cell: [3.7, 3.1], cracks: 0.5, patches: 0.24,
   far: [0.03, 0.075],      // m per px over which the pen marks (cracks, the chips' edges) fade out
   farTone: [0.1, 0.28],    // and the tone marks (grime, the chips' exposed fill): larger shapes, kept further
-  grime: { cell: [1.3, 2.4], share: 0.75, dark: 0.36, taper: 0.2, minPx: 2.25 },   // streaks running down from the tops of the wall's cells (lighter by taper at the foot; none under minPx CSS px wide)
+  grime: { cell: [1.3, 2.4], share: 0.75, dark: 0.36, taper: 0.2, minPx: 2.25,   // streaks running down from the tops of the wall's cells (lighter by taper at the foot; none under minPx CSS px wide)
+    soft: 2, crisp: [6, 14], faint: 0.065 },   // a small streak (its head under crisp CSS px): its sides ramp over soft px, its tone under post.js's colour edge (faint: rgb step), so no outline; drawn whole and outlined once its head is over crisp px
   chip: { lip: 0.1, dark: 0.42, minPx: [0.75, 1.75] },   // the plaster lip's shadow into a chip (m, how dark; faded out under minPx CSS px wide)
   foot: { height: 0.62, dark: 0.22 },                   // the dust splashed up the foot of a wall (post.js)
 };
@@ -888,7 +896,8 @@ const fragmentShader = /* glsl */ `
     float f = fw / s;                          // periods per pixel
     float d = abs(fract(v + 0.5) - 0.5);       // distance to line (line at fract = 0)
     float hw = 0.5 * widthPx * f;
-    return 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+    float line = 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+    return mix(line, min(2.0 * hw, 1.0), smoothstep(${HATCH_AA[0].toFixed(3)}, ${HATCH_AA[1].toFixed(3)}, f));   // (too fine to draw: its tone, HATCH_AA)
   }
 
   // fw = fwidth(ce.x) in world units per device px; spacing / width in CSS px.
@@ -965,7 +974,8 @@ const fragmentShader = /* glsl */ `
     float f = fw / s;
     float d = abs(c - k * s - wob * sRef) / s;
     float hw = 0.5 * widthPx * (0.75 + 0.5 * h) * f;
-    return 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+    float line = 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+    return mix(line, min(2.0 * hw, 1.0), smoothstep(${HATCH_AA[0].toFixed(3)}, ${HATCH_AA[1].toFixed(3)}, f));   // (HATCH_AA)
   }
   float formLines(float c, float fw, float period, float spacingPx, float widthPx, vec2 nq) {
     float lvl = log2(max(fw * spacingPx * uPixelRatio, 1e-6));
@@ -1243,9 +1253,14 @@ const fragmentShader = /* glsl */ `
           // (its sides and ends antialiased over a pixel, its tone kept well over post.js's colour-edge threshold to
           // its foot, and a streak whose head is under minPx wide (a wall seen edge-on) left out: a thin or faint streak's outline
           // flickered as the camera moved; "Stable in motion", rendering.md)
-          float ends = smoothstep(-0.5, 0.5, t / ty) * (1.0 - smoothstep(-0.5, 0.5, (t - 1.0) / ty));
-          float wide = step(${WEATHER.grime.minPx.toFixed(2)} * uPixelRatio, 2.0 * w0 / max(fq.x, 1e-5));   // (by its head: whole or not at all)
-          dark = max(dark, (1.0 - smoothstep(-0.5 * fq.x, 0.5 * fq.x, d)) * ${WEATHER.grime.dark} * (1.0 - ${WEATHER.grime.taper} * tc) * ends * wide);
+          // (and a small one, its head under crisp px, soft-sided: post.js outlined it, and the outline of a streak a few pixels
+          // wide was the old city's worst shimmer as the camera turned; "Shimmer", rendering.md)
+          float headPx = 2.0 * w0 / max(fq.x, 1e-5), bigK = smoothstep(${WEATHER.grime.crisp[0].toFixed(1)}, ${WEATHER.grime.crisp[1].toFixed(1)}, headPx / uPixelRatio);
+          float soft = mix(${WEATHER.grime.soft.toFixed(1)}, 1.0, bigK) * uPixelRatio;
+          float gDark = mix(min(${WEATHER.grime.dark}, ${WEATHER.grime.faint} / max(length(alb), 0.1)), ${WEATHER.grime.dark}, bigK);
+          float ends = smoothstep(-0.5 * soft, 0.5 * soft, t / ty) * (1.0 - smoothstep(-0.5 * soft, 0.5 * soft, (t - 1.0) / ty));
+          float wide = step(${WEATHER.grime.minPx.toFixed(2)} * uPixelRatio, headPx);   // (by its head: whole or not at all)
+          dark = max(dark, (1.0 - smoothstep(-0.5 * soft * fq.x, 0.5 * soft * fq.x, d)) * gDark * (1.0 - ${WEATHER.grime.taper} * tc) * ends * wide);
         }
       }
     }
@@ -1256,7 +1271,9 @@ const fragmentShader = /* glsl */ `
     float th = 1.0 - ${WEATHER.patches} * k;
     // (the fill's edge a pixel wide, not a step: still a hard edge to post.js, but a speck of a chip fades in and out
     // instead of blinking; the lip's shadow, a sliver, only while it is a few pixels wide)
-    float inside = smoothstep(th - 0.5 * fpn, th + 0.5 * fpn, pn);
+    // (over two pixels: a step a pixel wide is still a colour edge to post.js, and its outline over the drawn
+    //  one flickered on far walls; the pen line marks the edge)
+    float inside = smoothstep(th - fpn, th + fpn, pn);
     alb = mix(alb, alb * vec3(0.74, 0.68, 0.62), inside * rTone);
     ink = max(ink, inkLine(abs(pn - th) / max(fpn, 1e-5), 0.9) * 0.85 * resolved);
     float lipK = smoothstep(${WEATHER.chip.minPx[0].toFixed(2)} * uPixelRatio, ${WEATHER.chip.minPx[1].toFixed(2)} * uPixelRatio, ${WEATHER.chip.lip} / max(fm, 1e-5));
