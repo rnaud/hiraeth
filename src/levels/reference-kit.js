@@ -232,5 +232,5 @@ export function cage(kit, rope, { x, y, z, r, h, meridians = 10, rings = 4 }) {
   kit.add(rope, new THREE.SphereGeometry(0.35, 8, 6).translate(x, y + h + 0.2, z), { solid: false });
 }
 
-/** A strata material for a canyon or cliff (flat facets: its edges inked). */
-export const strataMat = (kit, c1, c2, c3, size = 5) => kit.mat({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: size, flat: true });
+/** A strata material for a canyon or cliff (flat facets: its edges inked; cracks down its faces, as the sheets draw them). */
+export const strataMat = (kit, c1, c2, c3, size = 5, cracks = 0.8) => kit.mat({ color: c1, color2: c2, color3: c3, mode: MODE_STRATA, strataSize: size, flat: true, cracks });

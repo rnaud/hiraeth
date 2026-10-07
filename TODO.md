@@ -92,11 +92,14 @@ scene-level modelling and a few shader limits:
   - [x] Paper grain is screen-fixed, kept light (`uPaper` 0.7); the sheets' is heavier and on the page.
     Done: removed (it read as a filter stuck to the screen), with the vignette; the lines' wobble turns with the world.
   - The gorge panels' walls are in cast shadow from the rim; ours are form-shaded.
-  - Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) have many vertical cracks and
-    strokes down the face; our strata draw horizontal beds with sparse fissures.
+  - [x] Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) have many vertical cracks and
+    strokes down the face; our strata draw horizontal beds with sparse fissures. Done: a strata material's
+    `cracks` (materials.md, "Cracks down a cliff's face"), on in the views' canyons and the desert's gorge and cliffs.
   - Weathering and drifts: stains round the doors are not drawn (the doors are separate meshes); the
     dust band at a wall's foot is hidden where sand banks against it; home's and the Market's walls
-    carry no weathering yet.
+    carry no weathering yet. Partly done (October 2026): Qanat's doors have their stains (materials.md, "Stains
+    round the doors"; other worlds' doors not yet); home's and the Market's walls have been weathered since
+    v0.69 (`weathered` 0.6–0.8). Left: the dust band under banked sand.
   - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
   - Vael II: the needles' and stalks' terminator is a clean band on the sheets, while flat facets with
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
