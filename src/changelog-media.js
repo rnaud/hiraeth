@@ -184,6 +184,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'moonfoundry-refs-hung', only: 'after', size: [1938, 540], caption: 'The first picture (left) and its view in the game (right): the hung moon, the moon broken open round its courtyard, the bowl in its cradle', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'moonfoundry-refs-claws', only: 'after', size: [1938, 540], caption: 'The third: two moons in their claws, the far moon between the pillars, the bridge across', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=moonfoundry (or the worlds list, L, then the References and Tab to the Moon Foundry) and press \\ to set each picture beside its view.' },
+    { match: 'The References level has the Underside’s four pictures', shots: [
+      { name: 'underside-refs', only: 'after', size: [1608, 448], caption: 'The third picture (left) and its view in the game (right): the nests under the shelf, the banners, the baskets on their long ropes, the cloud to the edge', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'underside-refs-dusk', only: 'after', size: [1608, 448], caption: 'The fourth: at dusk, the shelf’s face lit rose, its town, the flat cloud to the horizon, the stair up the cliff', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=underside (or the worlds list, L, then the References and Tab to the Underside) and press \\ to set each picture beside its view.' },
   ],
   '0.84': [
     { match: 'A new world off the route, the Glass Dunes', shots: [
