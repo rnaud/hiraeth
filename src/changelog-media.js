@@ -103,6 +103,28 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.80': [
+    { match: 'Crowded places run smoother on handhelds', numbers: [
+      { title: 'A frame at the camps and in the Signal Market’s crowd', unit: 'ms', better: 'lower', device: MAC_X4, source: 'docs/systems/performance.md, “The people posed without recomputing what was current”', rows: [
+        { where: 'the camps: the whole frame', before: 25.7, after: 22.8 },
+        { where: 'the camps: the people’s update', before: 6.1, after: 4.9 },
+        { where: 'the Signal Market’s crowd: the whole frame', before: 14.0, after: 13.2 },
+        { where: 'the Signal Market’s crowd: the people’s update', before: 3.6, after: 2.9 },
+      ] },
+    ], see: 'Nothing looks different: the people are posed to the same float as before (checked bone by bone, frame by frame); it is the time each frame takes that went down.' },
+    { match: 'On the Handheld and Steam Deck settings the grass grows further', see: 'On the Handheld or Steam Deck setting, walk into the Garden of Spheres’ meadows or the dry grass round home: the blades reach well ahead of the traveller instead of stopping a few steps in front of him. (A still picture barely shows it: the numbers say how far.)', numbers: [
+      { title: 'How far the grass grows round you', unit: 'm', better: 'higher', device: 'the Handheld and Steam Deck settings', source: 'docs/systems/performance.md, “What the Handheld and the Deck lose next to High”', rows: [
+        { where: 'Handheld: the full grass', before: 11.5, after: 14 },
+        { where: 'Handheld: the far, thinner grass', before: 26, after: 36 },
+        { where: 'Steam Deck: the full grass', before: 13.5, after: 16 },
+        { where: 'Steam Deck: the far, thinner grass', before: 30, after: 40 },
+      ] },
+      { title: 'What it costs, walking the Garden’s bench path', unit: 'ms', better: 'lower', device: MAC_X4, rows: [
+        { where: 'the processor a frame', before: 11.6, after: 11.5 },
+        { where: 'the graphics a frame', before: 7.3, after: 7.3 },
+      ] },
+    ] },
+  ],
   '0.79': [
     { match: 'Cloaks hang over people’s arms now', shots: [
       { name: 'cloak-arms', caption: 'Bako and the Speaker from in front and from three-quarters, in the running game', commit: 'a526f2e', view: people([{ id: 'bako' }, { id: 'bako', yaw: 0.8 }, { id: 'speaker' }, { id: 'speaker', yaw: -0.8 }]) },
