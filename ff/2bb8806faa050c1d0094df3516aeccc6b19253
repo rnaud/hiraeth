@@ -1,0 +1,25 @@
+src/levels/mangrove-kit.js
+  s_55b4bc53b812ec::t_edec3e73092471 1-338
+src/levels/reference-mangrove.js
+  s_55b4bc53b812ec::t_2f2f20f8d077ea 1-370
+src/levels/reference-views.js
+  s_55b4bc53b812ec::t_1499e8e4596361 15,61-62,495-496
+tests/references.test.js
+  s_55b4bc53b812ec::t_ab221303609491 285-286
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ff2bb8806faa050c1d0094df3516aeccc6b19253",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
