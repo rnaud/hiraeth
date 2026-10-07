@@ -368,6 +368,9 @@ export function detailOf(o) {
  * about the axis (a turn is `turn` units: every power-of-two spacing up to it closes on itself, no seam)
  * or of the height along it, thinned by powers of two as the hatch is (every other one fades out).
  */
+/** A hatch over 1 (makeMaterial({ hatch })): a hatched mass. Its strokes up to `closer` times closer (no finer:
+ *  past ~4 px apart a pen's strokes only read as a tone), and its shade drawn as `heavier` × (hatch − 1) darker. */
+export const HATCH_DENSE = { closer: 1.3, heavier: 0.9 };
 export const FORM = {
   kinds: { cap: 1, wrap: 2 },
   turn: 1024,              // angle units a turn (2^10: the coarsest level is one stroke a turn)
@@ -375,7 +378,10 @@ export const FORM = {
   wrap: { spacing: 1.0, along: 1.25, keep: 0.2 },
   waver: 0.22,             // how far a stroke wanders, in its spacing
   waverFar: 90,            // m: past this (and on the handheld) no waver, a stroke's own offset only
-  veins: { spacing: 2.4, width: 1.4, lift: 0.12 },   // a dark cap's veins (veins: 0..1): lighter lines radiating, lit or not (under the colour-edge threshold)
+  // a dark cap's veins (veins: 0..1): lighter lines radiating, lit or not (under the colour-edge threshold), drawn as
+  // branches: a line that carries on to the coarser levels (toward the stalk) is a bough, thicker by `bough` a level
+  // (up to `boughs` levels), and every line wanders `waver` of its spacing along its length
+  veins: { spacing: 2.2, width: 1.5, lift: 0.15, bough: 0.7, boughs: 3, waver: 0.45 },
 };
 /**
  * Colour across a wall (S_PATCH, wallPatch): the sheets break a building's colour into a few big flat
@@ -987,6 +993,29 @@ const fragmentShader = /* glsl */ `
     float a = formLevel(c, fw, s0, s0, period, widthPx, nq);
     float b = formLevel(c, fw, s0 * 2.0, s0, period, widthPx, nq);
     return mix(a, b, fract(lvl)) * keep;
+  }
+  // A dark cap's veins as branches (FORM.veins): formLines' strokes, but a stroke that carries on to the coarser
+  // levels (its index divisible by two, four, …: it reaches further toward the stalk) is drawn thicker, a bough the
+  // finer ones fork from; and each wanders further along its length.
+  float veinLevel(float c, float fw, float s, float sRef, float widthPx, vec2 nq) {
+    float k = floor(c / s + 0.5), id = mod(k * s, ${FORM.turn}.0);
+    float h = hash(vec2(id, 3.17)), rank = 0.0, kk = abs(k);
+    for (int i = 0; i < ${FORM.veins.boughs}; i++) { if (mod(kk, 2.0) > 0.5) break; rank += 1.0; kk *= 0.5; }
+    float wob = (vnoise(nq + vec2(id * 0.37, h * 19.0)) - 0.5) * ${FORM.veins.waver.toFixed(4)};
+    float f = fw / s;
+    float d = abs(c - k * s - wob * sRef) / s;
+    float hw = 0.5 * widthPx * (0.7 + 0.6 * h) * (1.0 + ${FORM.veins.bough.toFixed(4)} * rank) * f;
+    float line = 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+    return mix(line, min(2.0 * hw, 1.0), smoothstep(${HATCH_AA[0].toFixed(3)}, ${HATCH_AA[1].toFixed(3)}, f));
+  }
+  float veinLines(float c, float fw, float spacingPx, float widthPx, vec2 nq) {
+    float lvl = log2(max(fw * spacingPx * uPixelRatio, 1e-6));
+    float top = log2(${FORM.turn}.0) - 1.0;
+    float keep = 1.0 - smoothstep(top - 1.0, top, lvl);
+    if (keep <= 0.0) return 0.0;
+    float s0 = exp2(floor(lvl));
+    widthPx *= uPixelRatio;
+    return mix(veinLevel(c, fw, s0, s0, widthPx, nq), veinLevel(c, fw, s0 * 2.0, s0, widthPx, nq), fract(lvl)) * keep;
   }
   // The shade's two families of strokes on a part with an axis: x the strokes, y the cross-hatch (dark > 0.5).
   // f the point about the axis (vForm), fdx / fdy its screen derivatives (taken in uniform flow).
@@ -1618,6 +1647,28 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
   uniform vec3 uFluidTones[6];   // the fluid's tones in the order they join the blend (fluid-tool.js sets them)
   vec3 fluidTone(int i) { return uFluidTones[i - 6 * (i / 6)]; }
+  uniform vec3 uFluidBase;       // the flask's own fluid, the colour the tones stream through (green; a gun mode's tone)
+  // The flask's living fluid (kind 0, fluid-tool.js buildFlask; the sheets' glass jar): a green body with
+  // the blend's tones turning through it in slow warped streams, dark veins where they meet the green.
+  // p: a point on the glass (object space, in glass heights), continuous all round (no seam at the back).
+  vec3 flaskFluid(vec2 p, float t, int n) {
+    p *= 4.2;
+    vec2 q = vec2(vnoise(p + vec2(0.0, t * 0.23)), vnoise(p + vec2(5.2, 1.3) - vec2(t * 0.19, 0.0)));
+    vec2 r = vec2(vnoise(p * 1.3 + 2.8 * q + vec2(1.7, 9.2) + t * 0.09), vnoise(p * 1.3 + 2.8 * q + vec2(8.3, 2.8) - t * 0.11));
+    float f = vnoise(p * 0.9 + 2.6 * r);
+    vec3 col = uFluidBase;
+    // the streams: where the warped field rises, one tone of the blend each (the stretch of r it falls in),
+    // and inside the widest of them a core of the next tone
+    const float EDGE = 0.45, CORE = 0.63;
+    int nn = max(n, 1), k = int(floor(fract(r.y * 1.7 + q.x * 0.8) * float(nn)));
+    if (f > EDGE) col = fluidTone(k);
+    if (f > CORE) col = fluidTone(k + 1 - nn * ((k + 1) / nn));
+    // dark veins where the streams meet the green, finer round the cores: one pen-width
+    float fw = max(fwidth(f), 1e-4);
+    col = mix(col, vec3(0.08, 0.19, 0.14), 0.85 * (1.0 - smoothstep(0.6, 1.4, abs(f - EDGE) / fw)));
+    col = mix(col, vec3(0.1, 0.12, 0.16), 0.6 * (1.0 - smoothstep(0.4, 1.0, abs(f - CORE) / fw)));
+    return col;
+  }
   // Round a vertical axis (angle a, height h 0..1, aspect = radius / height):
   // three stacked bands of one tone each, with metaball blobs of the other
   // tones rising, sinking and merging through them. Flat tones, so the post
@@ -1678,9 +1729,9 @@ const fragmentShader = /* glsl */ `
     float H = uFluidBox.y - uFluidBox.x;
     float h = (vBind.y - uFluidBox.x) / H;
     float a = atan(vBind.z, vBind.x);
-    vec3 col = fluidLava(a, h, uFluidBox.z / H, kind > 1.5 ? t * 4.0 : t, n, kind < 1.5);
-    if (kind > 1.5) return col;   // a glob in flight: blobs churning, no bands
-    // the tank: the fluid stands at the fill level (three charges = three bands), sloshing; empty glass above
+    if (kind > 1.5) return fluidLava(a, h, uFluidBox.z / H, t * 4.0, n, false);   // a glob in flight: blobs churning, no bands
+    // the flask: its living fluid stands at the fill level (a third of the glass a charge), sloshing; empty glass above
+    vec3 col = flaskFluid(vec2(vBind.x + 0.8 * vBind.z, vBind.y - uFluidBox.x) / H, t, n);
     float fill = uFluidA.x;
     float surf = max(fill, 0.07) + (0.012 + 0.05 * uFluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
     float w = uFluidB.y;
@@ -1690,12 +1741,21 @@ const fragmentShader = /* glsl */ `
       vec2 c = fract(g) - 0.5;
       if (hash(floor(g)) > 0.55 && dot(c, c) < 0.07) col = mix(col, vec3(1.0), 0.75 * w);
     }
-    if (h > surf) col = vec3(0.855, 0.925, 0.945);
+    if (h > surf) col = kind < 0.5 ? vec3(0.8, 0.9, 0.88) : vec3(0.855, 0.925, 0.945);   // (the flask's glass a little green)
     else if (h > surf - 0.04) col = mix(col, vec3(1.0), 0.35 + 0.4 * w);   // the meniscus
+    // the glass's edge, pale where it turns away from the eye (its thickness, seen through)
+    if (kind < 0.5) {
+      float fr = 1.0 - abs(dot(normalize(vNormal), normalize(cameraPosition - vWorldPos)));
+      col = mix(col, vec3(0.84, 0.94, 0.91), 0.8 * smoothstep(0.78, 0.86, fr));
+    }
+    // the glass's thick green foot, and a short etched mark at each third (the charges) on one side
+    if (h < 0.045) col = mix(col, vec3(0.2, 0.46, 0.36), 0.75);
+    float da = abs(a + 0.42);
+    if (da < 0.16 && (abs(h - 0.3333) < 0.008 || abs(h - 0.6667) < 0.008)) col = mix(col, vec3(0.12, 0.2, 0.17), 0.8);
     col = mix(col, vec3(1.0), uFluidB.x * 0.45);
     // a highlight streak down the glass
     float dh = abs(mod(a - uFluidBox.w + 3.14159, 6.28318) - 3.14159);
-    if (dh < 0.14 && h > 0.1 && h < 0.86) col = mix(col, vec3(1.0), h > surf ? 0.9 : 0.5);
+    if (dh < (kind < 0.5 ? 0.07 : 0.14) && h > 0.16 && h < 0.8) col = mix(col, vec3(1.0), h > surf ? 0.9 : 0.5);
     return col;
   }
   #endif
@@ -1982,7 +2042,7 @@ const fragmentShader = /* glsl */ `
       const float K = ${(FORM.turn / (2 * Math.PI)).toFixed(4)};
       float r2 = max(dot(vForm.xy, vForm.xy), 1e-8);
       float fwT = (abs(vForm.x * formDx.y - vForm.y * formDx.x) + abs(vForm.x * formDy.y - vForm.y * formDy.x)) / r2 * K;
-      float vein = formLines(atan(vForm.y, vForm.x) * K, fwT, ${FORM.turn}.0, uHatchSpacing * ${FORM.veins.spacing.toFixed(4)}, ${FORM.veins.width.toFixed(4)}, vec2(sqrt(r2) * 0.35, 9.0));
+      float vein = veinLines(atan(vForm.y, vForm.x) * K, fwT, uHatchSpacing * ${FORM.veins.spacing.toFixed(4)}, ${FORM.veins.width.toFixed(4)}, vec2(sqrt(r2) * 0.5, 9.0));
       albedo += min(albedo * 1.2, vec3(${FORM.veins.lift.toFixed(4)})) * vein * uVeins;
     }
     #endif
@@ -2135,9 +2195,11 @@ const fragmentShader = /* glsl */ `
           vec2 s2 = uSunDir.xz / max(length(uSunDir.xz), 1e-3);
           float len = pebbleShadow(uSunDir.y), castK = smoothstep(uToon - 0.02, uToon + 0.12, L);
           float pk = smoothstep(${PEBBLES.patch[0].toFixed(2)}, ${PEBBLES.patch[1].toFixed(2)}, vnoise(gp * 0.04 + 23.0));
-          float peb = max(max(pebbleField(gp, gm, s2, len, castK, ${PEBBLES.grit.cell.toFixed(2)}, ${PEBBLES.grit.density.toFixed(3)}, vec2(${PEBBLES.grit.r[0].toFixed(3)}, ${PEBBLES.grit.r[1].toFixed(3)}), ${PEBBLES.grit.seed.toFixed(1)}),
-                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.pebble.cell.toFixed(2)}, ${PEBBLES.pebble.density.toFixed(3)} * pk, vec2(${PEBBLES.pebble.r[0].toFixed(3)}, ${PEBBLES.pebble.r[1].toFixed(3)}), ${PEBBLES.pebble.seed.toFixed(1)})),
-                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.stone.cell.toFixed(2)}, ${PEBBLES.stone.density.toFixed(3)}, vec2(${PEBBLES.stone.r[0].toFixed(3)}, ${PEBBLES.stone.r[1].toFixed(3)}), ${PEBBLES.stone.seed.toFixed(1)}));
+          // (a high sun: more of them, a little bigger, as its shadows shrink: ground-ink.js pebbleNoon)
+          float hk = smoothstep(${PEBBLES.noon.from.toFixed(2)}, ${PEBBLES.noon.to.toFixed(2)}, uSunDir.y), nc = 1.0 + ${PEBBLES.noon.count.toFixed(3)} * hk, ns = 1.0 + ${PEBBLES.noon.size.toFixed(3)} * hk;
+          float peb = max(max(pebbleField(gp, gm, s2, len, castK, ${PEBBLES.grit.cell.toFixed(2)}, ${PEBBLES.grit.density.toFixed(3)} * nc, vec2(${PEBBLES.grit.r[0].toFixed(3)}, ${PEBBLES.grit.r[1].toFixed(3)}) * ns, ${PEBBLES.grit.seed.toFixed(1)}),
+                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.pebble.cell.toFixed(2)}, ${PEBBLES.pebble.density.toFixed(3)} * pk * nc, vec2(${PEBBLES.pebble.r[0].toFixed(3)}, ${PEBBLES.pebble.r[1].toFixed(3)}) * ns, ${PEBBLES.pebble.seed.toFixed(1)})),
+                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.stone.cell.toFixed(2)}, ${PEBBLES.stone.density.toFixed(3)} * nc, vec2(${PEBBLES.stone.r[0].toFixed(3)}, ${PEBBLES.stone.r[1].toFixed(3)}) * ns, ${PEBBLES.stone.seed.toFixed(1)}));
           detail = max(detail, peb * uDots * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
         }
       }
@@ -2257,31 +2319,35 @@ const fragmentShader = /* glsl */ `
     #endif
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
     // detail by distance: finer marks close to the camera, coarser far away
-    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
-    if (dark > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
-      gHatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
+    // (a hatch over 1 is a denser one, a hatched mass (Lorn II's roots and bushes): its strokes a little closer
+    // (never finer than a pen can draw: past ~4 px they would only be a tone) and heavier, cross-hatched sooner)
+    float hDense = max(uShade.z, 1.0);
+    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth)) / min(hDense, ${HATCH_DENSE.closer.toFixed(2)});
+    float darkH = min(dark * (1.0 + (hDense - 1.0) * ${HATCH_DENSE.heavier.toFixed(2)}), 1.0);
+    if (darkH > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
+      gHatch.r = stipple(ce1, fwd, hsp * 1.15, darkH) * smoothstep(0.02, 0.15, darkH);
     }
     #ifdef S_FORM
     // a part with an axis (a cap, a cylinder: FORM): strokes radiating from it or wrapping round it
-    else if (dark > 0.0 && uHatch > 0.0 && vForm.w > 0.5 && uFormHatch > 0.0) {
-      gHatch.rg = formHatch(vForm, formDx, formDy, hsp, dark);
+    else if (darkH > 0.0 && uHatch > 0.0 && vForm.w > 0.5 && uFormHatch > 0.0) {
+      gHatch.rg = formHatch(vForm, formDx, formDy, hsp, darkH);
     }
     #endif
-    else if (dark > 0.0 && uHatch > 0.0) {
-      float h1 = strokes(ce1, fw1, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+    else if (darkH > 0.0 && uHatch > 0.0) {
+      float h1 = strokes(ce1, fw1, hsp, mix(0.9, 2.2, darkH)) * smoothstep(0.02, 0.12, darkH);
       if (uFormHatch > 0.0 && uMode == ${MODE_TERRAIN}) {
         // on slopes the strokes become height contours wrapping round the dunes
         float sm = smoothstep(0.1, 0.3, slope) * uFormHatch;
-        float hc = strokes(ceY, fwY, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+        float hc = strokes(ceY, fwY, hsp, mix(0.9, 2.2, darkH)) * smoothstep(0.02, 0.12, darkH);
         h1 = mix(h1, hc, sm);
       }
       float h2 = 0.0;
-      if (dark > 0.5) {
+      if (darkH > 0.5) {
         // (on upright faces: under a cap or an overhang the height's contours wander into wood grain)
         bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN} && abs(n.y) < 0.6;
         // smooth objects: cross-hatch as rings round the form (trunks, ribs, domes)
-        h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, dark))
-                    : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
+        h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, darkH))
+                    : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, darkH))) * smoothstep(0.5, 0.65, darkH);
       }
       gHatch.rg = vec2(h1, h2);
     }
@@ -2313,12 +2379,14 @@ const fragmentShader = /* glsl */ `
       float lift = 1.0 - (1.0 - uShade.x) * (1.0 - uHalftone * turned) * (1.0 - uBounce * smoothstep(-0.1, -0.7, n.y));
       // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
       // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)
-      float hatchK = uMode == ${MODE_TERRAIN} ? mix(uShade.z, 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : uShade.z;
+      float hatchK = uMode == ${MODE_TERRAIN} ? mix(min(uShade.z, 1.0), 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : min(uShade.z, 1.0);
       float liftK = lift;
       #ifdef S_FORM
       // (a cap's fan of strokes stays dense under a lifted shade, as the sheets draw a pale cap's gills)
       if (vForm.w > 0.5) liftK *= 1.0 - (vForm.w > 1.5 ? ${FORM.wrap.keep.toFixed(4)} : ${FORM.cap.keep.toFixed(4)});
       #endif
+      // (a dense hatch, over 1, keeps its strokes and cross-hatch under a half-tone: a hatched mass stays one)
+      liftK /= max(uShade.z, 1.0) * max(uShade.z, 1.0);
       gHatch.rg *= hatchK * vec2(1.0 - 0.8 * liftK, max(1.0 - 2.5 * liftK, 0.0));
       float hq = uShade.y < 0.0 ? 0.0 : uShade.y >= 2.0 ? ${SHADE.hues + 2}.0 + floor((uShade.y - 2.0) * ${SHADE.flats}.0 + 0.5) : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
       gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));
@@ -2398,6 +2466,7 @@ const cache = new Map();
  *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
  * @param {string[]} [o.fluidTones] the six tones (uFluidTones; the tool rewrites them as colours are added)
+ * @param {string}  [o.fluidBase] the flask's own fluid colour (uFluidBase: green; the tool sets a gun mode's tone)
  * @param {object}  [o.makersBox] a makers' box's shell (src/boxes/model.js; compiles the MAKERS_BOX block): { half: [x, y, z]
  *                              (m, as drawn), center (m over its foot), mark, light (colours), ray, glow (0..1) }. The star and
  *                              the compasses painted on, a ray of light travelling across it (uBoxA.w its clock), outline-only ink
@@ -2505,6 +2574,7 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidB = { value: new THREE.Vector4() };
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
+    mat.uniforms.uFluidBase = { value: new THREE.Color(o.fluidBase ?? '#5fb86a') };
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
   if (o.makersBox) {

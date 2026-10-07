@@ -1116,6 +1116,8 @@ function shadowPass(c, reach, hide = []) {
   c.place(player.pos);
   const off = shadowCull.hide(reach, c.texel, c.depth, 0.75, hide);
   c.render(renderer, scene);
+  // (a mesh whose shape its own material makes, drawn with that material: the traveller's overshirt, tripo-cloth.js)
+  if (player.object.visible) for (const o of player.character?.shadowCasters ?? []) renderer.render(o, c.cam);
   frameStats.culled += off.length;
   for (const o of off) o.visible = true;
 }
@@ -1360,6 +1362,7 @@ function frame(ts) {
   updateSky();
   level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
 
+  physics.syncMovers(dt);   // the moving colliders (the great wheel) to where they were drawn last frame, before anyone moves
   for (const v of player.vehicles) if (v !== player.ride) v.update(dt, null, t);
   // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
   const ePressed = !!ctl.KeyE && !eWasDown && !photo.on && !player.down; eWasDown = !!ctl.KeyE;   // (no talking while knocked down)

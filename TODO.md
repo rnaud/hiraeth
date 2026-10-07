@@ -34,21 +34,38 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 The second pass made every world collide as it is drawn (DONE.md; docs/systems/movement.md,
 "Contact"). What the audit still finds, and why it was left:
 
-- [ ] The Buried Machine's **great wheel**: it turns for ever once the story turns it, and its spokes
+- [x] The Buried Machine's **great wheel**: it turns for ever once the story turns it, and its spokes
   are seven to its many teeth, so no still shape is right at every angle; its collision stays a disc
   of the rim. That is most of what the audit still finds in any world (69 feet sink, 49 climbs
   inside, 102 climbs off). Exact wants a *turning* collider (`src/physics.js`, `src/carriers.js`),
-  which nothing else needs yet.
-- [ ] The Buried Machine's **cross-wall opening rims**: solid, `SandDrifts` gives them a footprint
-  and banks sand right across the passage you have to walk through.
-- [ ] **Lorn II's bank roots and whip roots**: solid, the 26 bank roots alone doubled every collision
+  which nothing else needs yet. Done: `physics.addMover` (the drawn wheel, ~8 k triangles, its own BVH
+  in its own frame, synced each frame), carrying you standing or climbing (`moverCarrier`); the audit
+  69 → 37 feet sink, 102 → 11 climbs off, 18 → 0 unseen floor (what is left there is sand and the rims);
+  queries unchanged (movement.md, "Moving colliders").
+- [x] The Buried Machine's **cross-wall opening rims**: solid, `SandDrifts` gives them a footprint
+  and banks sand right across the passage you have to walk through. Done: solid, and the drifts' mask
+  is 0 on the way through each opening (`passageMask`: the opening's width at the floor, 11 m either
+  side; the wall's own drift crossed it too, up to 0.57 m); climbs inside 50 → 36.
+- [x] **Lorn II's bank roots and whip roots**: solid, the 26 bank roots alone doubled every collision
   query (bake 60 → 120 ms, 20 k ground rays 25 → 50 ms, 20 k capsule pushes 46 → 93 ms) for about one
-  audit sample. They sprawl 10–40 m off the path.
-- [ ] Smaller, each with its reason in movement.md: the Garden's olive and cypress trunk colliders
+  audit sample. They sprawl 10–40 m off the path. Done: solid as drawn in the main BVH, with the arches'
+  splayed feet (154 → 172 k triangles; walks through 21 → 5). The doubling did not reproduce: measured
+  before and after in one process, interleaved, fastest of 9–15 (a single run swings 2–3× on a busy
+  machine), the bake is +4–11 ms, rays and capsules round the spawn unchanged, along the path rays
+  +5–18 %, capsules +11–15 %. Lighter shapes (capsule chains, a BVH of their own) would cost more: the
+  roots line the whole path, so a second BVH is a second traversal for every query there.
+- [x] Smaller, each with its reason in movement.md: the Garden's olive and cypress trunk colliders
   inside their drawn trees (flora, brushed past), Lorn's gates of Jaws (organic halves on a box
   collider), the temple rotunda's oculus trim (drawn-only on purpose: solid it caught rays dropped
   through the oculus), and the sand skirts, whose tessellated mesh and the terrain's analytic height
-  part by up to 0.2 m (0.78 m at the worst corner).
+  part by up to 0.2 m (0.78 m at the worst corner). Done (movement.md, "The smaller ones"): the olives'
+  trunks and the cypresses collide as drawn (climbs off 234 → ~10); the jaws' halves are moving colliders
+  while shut, with a thin slot that keeps the way; the oculus trim is solid over its ceiling, its 0.3 m
+  lip over the opening drawn-only so the oculus stays as open as before; a skirt's triangles drawn over
+  the ground collide (`SandDrifts.misfits`; the error was between the skirt's points, not at them).
+  Left: sand banked up a wall's foot hides where a climb starts, and the Buried Machine's canyon walls
+  have one convex footprint each that banks sand along chords across the canyon floor (splitting long
+  footprints raises the ground along the seams inside the walls: wants a look in the game first).
 
 # Carried over
 
@@ -85,11 +102,15 @@ scene-level modelling and a few shader limits:
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
     on the sheets, ours dark; its cloud puffs are pre-shaded vertex colours (not the flat print), its
     planets stay (the sheets have none), and dusk and night keep the old blue shadow.
-  - The Garden of Spheres: the canopies' undersides want dense radiating *branch* lines and foliage as
+  - [x] The Garden of Spheres: the canopies' undersides want dense radiating *branch* lines and foliage as
     clusters of small inked leaf masses (the form hatching radiates, but the shapes are smooth lumps);
     the white stone's shade a flat pale blue with almost no strokes; the spheres' printed crescent
-    whatever the sun.
-  - Lorn II: roots and bushes as dense hatched masses.
+    whatever the sun. Done (October 2026, world and views): veins drawn as forking boughs (`FORM.veins`), the
+    world's undersides veined; foliage as clusters of welded leaf masses (`leafCrown`); `WHITE_SHADE` (flat,
+    hatch 0.08); the views' spheres printed in two tones with their crescent (references.md, the Garden's).
+  - [x] Lorn II: roots and bushes as dense hatched masses. Done (October 2026, world and views): a hatch over 1
+    is a hatched mass (`HATCH_DENSE`: closer, heavier strokes that a half-tone keeps), `ROOT_INK` and
+    `BUSH_INK` (references.md, Lorn II's).
 - [ ] Scene-level, world by world (modelling, not shading):
   - [x] Vael II: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's framing, the
     monasteries' detail (arcades, cypresses, roofs), the mushrooms' lean, the bird's standing pose
@@ -97,9 +118,13 @@ scene-level modelling and a few shader limits:
     rooted in the undersides and printed in their shade, cracked eggs and stones, the cave mouth hung
     with stalactites, arcades, eaves, finials and cypresses, leaning tables, the bird on long legs with
     her wings folded along her sides (`poseWings`), knobbly cloud; docs/systems/worlds.md, animation.md.)
-  - The Garden of Spheres: the white hill's sculpted rock, the ruins' arcades, the robot, the hedges'
-    fruit, the plaza's paving are sketches.
-  - Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes.
+  - [x] The Garden of Spheres: the white hill's sculpted rock, the ruins' arcades, the robot, the hedges'
+    fruit, the plaza's paving are sketches. Done (October 2026, world and views, `src/levels/garden-kit.js`):
+    pillows of stone round the terraces, arcades of round arches, a robot of 28 parts, fruit hedges, paved
+    rings whose joints the ink draws; the views' framing checked panel by panel.
+  - [x] Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes. Done
+    (October 2026, world and views, `src/levels/wood-kit.js`): roots as braided strands, cave mouths framed in
+    tangled arches with hanging roots and feet, bushes of leaf clumps, a woven nest of eggs under a ribbed dome.
   - The Signal Market: the crowd, the stalls' goods, the cabs.
   - The Buried Machine: the trench's pipe mass, the city's clustered hanging towers, the drum's
     interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge.
@@ -113,7 +138,9 @@ scene-level modelling and a few shader limits:
 Stages 1–3 are done (DONE.md, docs/makehuman.md): one parametric body, the Desert, then every world,
 the Lab's faces gallery, the face keys in one texture for every body, the headwear.
 
-- [ ] The props the desert's sheets show that the kit lacks (docs/makehuman.md, stage 2).
+- [x] The props the desert's sheets show that the kit lacks (docs/makehuman.md, stage 2). **Done:** Nour's
+  gourds, keys and disc staff, Marrow's salvage bag and pack (no cloak: his sheet's coat), the bells on Sefa's
+  hem, her oud's tassels and the oud kept out of her cloak, the Speaker's copper bell and streamers.
 - [ ] `scripts/unity-export` still reads the Quaternius bodies. **Reconciled:** the C# port's own game
   logic is retired (the JS bridge draws the live scene instead), so the export is only the bench
   scene's. The live question is the bridge's, below: it does not load MakeHuman bodies yet.
@@ -138,7 +165,8 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 
 ## Dialogue
 
-- [ ] Facial expressions and talking for the coral-shirt traveller (author, 2026-10-07). His face
+- [x] Facial expressions and talking for the coral-shirt traveller (author, 2026-10-07). Done: his face is drawn
+  in his body's shader over the painted one (`src/characters/tripo-face.js`, faces.md "The coral-shirt traveller's drawn face"). His face
   (`src/characters/traveller-v1.js`, the Tripo body) has no expression rig, so he shows none of the
   tone expressions the people's bodies get (`src/expression.js`, `TONE_EXPRESSIONS`;
   `Humanoid.setExpression`, docs/systems/faces.md) and his mouth doesn't move with the voice. Give

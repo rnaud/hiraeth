@@ -2,6 +2,23 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.77 — 2026-10-07
+
+- The traveller’s face moves now: he smiles, frowns, looks worried, surprised or tired with the tone of what is said, blinks, glances about with his eyes, and his mouth opens and shuts on the syllables when he speaks, as everyone else’s does. At rest he looks as he always did, with the corners of his mouth a little up.
+- The fluid tank is the glass jar of the traveller’s drawings now: a squat flask of green, living fluid on his upper back, its other colours turning through it in slow streams, the level falling a third with each charge you use, with a dark collar, brass fittings, a stoppered neck and leather straps over his shoulders. A gun mode tints the fluid its colour, and the Items panel shows the new flask.
+- On handhelds every world runs a little smoother around the traveller: his shirt now swings and falls round his legs on the graphics chip instead of the processor, and looks the same as before.
+- In the Garden of Spheres the white hill is carved: each terrace is ringed with rounded pillows of white stone instead of a plain drum, and the white stone everywhere takes its shade as a flat pale blue, with almost no hatching, as in its drawings.
+- The Garden’s olives and shrubs are drawn as clusters of small leaf masses, each with its own outline, instead of single smooth lumps; the hedges round the plaza are clipped hedges heavy with fruit.
+- The undersides of the great umbrella trees show their branches: lighter veins forking out from the trunk to the rim, thicker toward the trunk.
+- The round plaza is paved: the joints between its slabs are drawn in each ring.
+- The robot statue in the android wood is a proper statue now, with feet, knees, a chest plate, shoulder pads, hands and a visor, and the wood’s white ruins have arcades of round arches.
+- In Lorn II the great roots are tangles of strands twisting round each other, and the root cave’s mouth is framed in arches of roots, with roots crawling out along the ground and hanging in the mouth.
+- Lorn II’s roots and the bushes on its banks are drawn as dense hatched masses, as in its drawings, and the bushes are clusters of small leaf clumps.
+- Look up near the start of Lorn II’s path: on the flat cap of a giant mushroom sits a woven nest of glowing eggs under a ribbed glass dome.
+- The desert’s people carry the rest of what their drawings give them: Nour has clay gourds and a ring of keys at her belt and a tall staff with a pierced disc at its head; Marrow wears his long patched coat without a cloak, with a salvage bag at his hip (a bone and a pipe sticking out of it) and a pack on his back; Sefa’s cloak has little brass bells all along its hem and her oud has tassels; the Speaker’s bell is copper and his staff carries streamers.
+- Sefa’s oud no longer pokes through her cloak as she walks: the cloth swings round it.
+- The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.
+
 ## v0.76 — 2026-10-07
 
 - The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.
@@ -9,6 +26,12 @@ The same release notes shown in the game (press **N** or open settings).
 - On handhelds the picture no longer goes soft for nothing: the automatic resolution now notices every stutter, but only lowers the sharpness where that can help, and keeps it in busy places where the processor, not the graphics, is what slows the game.
 - The desert’s camps and other crowded places run a little smoother: people standing or sitting still a little way off move their idle breathing on every other frame.
 - The loading screen’s turning pen should keep turning smoothly while a world is built, instead of stopping for a moment now and then.
+- The Buried Machine’s great wheel is solid just as it is drawn, and turns with you on it: you stand on its teeth and in the gaps between them, climb its rim and spokes, and once it turns it carries you round with it; a spoke sweeps you aside instead of passing through you, and you no longer stand on an invisible disc over its spokes.
+- In the Buried Machine’s rust canyon, the heavy rims round the two cross-walls’ great oval openings are solid, so you climb and stand on them as drawn, and the way through each opening is bare floor: sand no longer banks up across it.
+- In Lorn II’s Deep Wood every root is solid as it is drawn: the gnarled roots sprawling along the banks, the thin roots whipping round the great arches and the small roots splaying from their feet. You climb and stand on them instead of walking through them.
+- In the Garden of Spheres the olive trees’ trunks and the dark cypresses are solid just as they are drawn: you no longer walk half a metre into a cypress before it stops you, or bump into an invisible post beside an olive’s leaning trunk.
+- In Lorn’s Hush-House the gates of jaws are solid exactly where their two snapping halves are, and they still will not let you by until they are stilled.
+- You no longer sink into banked sand: where a drift of sand against a wall or a rock rose above the ground you walked on, your feet now stand on the sand as it is drawn, in the desert, on Vael and in the Buried Machine’s canyon. The trim round a temple rotunda’s open roof is solid where it lies on the roof.
 
 ## v0.75 — 2026-10-07
 

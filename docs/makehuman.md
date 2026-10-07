@@ -332,6 +332,30 @@ prop from 512. Marrow's cart is not a costume piece and was not forced into the 
 geometry, built with the camps (`src/desert-city.js`) and parked at his pitch, two spoked wheels, a
 bed of scrap and bone under a cloth, and its shafts down on the sand.
 
+**The rest of what the sheets draw** (October 2026, a second pass over every sheet; the environment
+sheets show no one close enough to carry anything):
+
+- **Nour**: clay gourds and a ring of keys on a cord at her belt (`gourds`, at the front where her open
+  cloak shows it, the clay a fixed colour, `FIXED.clay`: a palette accent would have drawn one less random
+  number and changed her cape's width) and her tall staff with a pierced disc at its head (`discstaff`).
+- **Marrow**: a soft salvage bag at his left hip on a strap across the chest, a bone and a pipe sticking out
+  of it, and a pack on his back with a bedroll and a long bone (`scavbag`, with his scarf's collar; the
+  scarf's long tail, cut to fall over a cape, stood out across the pack and is left off). His sheet draws a
+  long patched coat, not a cloak, and his cape hid both bags, so he wears none now (`cape: 0`): his robe
+  with its patches is the coat.
+- **Sefa**: brass bells all along her cloak's hem (`look.capeBells`: cape.js hangs them from the hem's
+  points, a child mesh of the cloth's, see docs/systems/characters.md) and two tassels and a knot at her
+  oud's pegbox. The oud used to show through her cloak as she walked: its bowl and neck are now cloth
+  colliders in her hand (`PROP_BULK`), so the cloak swings round it.
+- **The Speaker**: his bell in copper, as drawn, and three streamers tied round the staff under its arm.
+
+Not done, and why: Sefa's sheet also slings the oud on her back and carries a pack as she walks (one held
+prop, carried in the hand); Marrow's sheet binds his shins in cloth (the costume kit's pieces are rigid on
+a bone, none follows a leg); every chest piece still goes under a cloak from behind. The coarse cloth
+(10 × 8 points) keeps its points off the oud, but a face between two points can still graze the bowl's
+rim for a frame. Contact sheets before and after: the studio, each person from five sides, standing and
+walking, and in the running game.
+
 ### The traveller: kept on his own body
 
 Re-fitting him would mean a new `suitGeometry` (the baggy copy of the body the suit is painted on),
@@ -440,7 +464,7 @@ the hair shells and the scalp are ordinary skinned costume meshes and need nothi
 1. ~~Its looks on every age and build, its children, its crowd; then `MH_WORLDS`~~: done (stage 3).
 2. ~~The face keys' morph textures~~: one texture for every body (stage 3).
 3. The Unity export (above), which still shows the Quaternius bodies (~~the Lab's faces gallery~~: stage 3).
-4. The props the sheets show that the kit lacks (above).
+4. ~~The props the sheets show that the kit lacks~~: done (above, "The rest of what the sheets draw").
 
 ## Stage 3: every world, one face-key texture, more headwear (2026-10-06)
 
@@ -595,7 +619,7 @@ into `MH_WORLDS`; now every level is (`COSTUME_WORLDS`), and the traveller alone
 ![The other worlds on MakeHuman bodies](makehuman/worlds.jpg)
 *Each world's story people on MakeHuman bodies in the studio, and the City-Shaft's crowds close, by depth.*
 
-What is left: the Unity export (above), the props the desert's sheets show (above); the wizard's hat over
+What is left: the Unity export (above); the wizard's hat over
 a woman's big curls leaves a few strands at its brim; the crowd's full bodies and figures differ in their hair
 under a hat (the figures keep a short cap); the older pieces' own fit (a wrap's tori, a hat's brim disc,
 the sphere hats floating over the Spheres' heads) is as it was.

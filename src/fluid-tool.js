@@ -479,22 +479,30 @@ class Rings {
 
 // The tank, in its own frame (y up the glass from its bottom, +z toward the
 // wearer's back), placed in the chest anchor's frame (y = 0 at the hips,
-// 0.74 at the collar, +z forward, the character's right at -x). A slim, flat
-// glass flask: it sits in the outer face of the traveller's canvas rucksack
-// (traveller.js), held by two leather bands and two leather-bound side staves,
-// its neck and valve out over the rucksack's lid.
+// 0.74 at the collar, +z forward, the character's right at -x). The glass flask
+// of the reference sheets (lore/characters/traveller-design.md): a squat jar
+// with rounded shoulders on his upper back, a little wider than tall and
+// flattened front to back, its green living fluid standing at the charges
+// (a third of the glass each), a dark collar with a brass rim and a brass
+// neck with a cream stopper, the hose's brass elbow at the right shoulder,
+// leather tabs up over the shoulders, a brass foot ring, and the two slim
+// leather-bound uprights the scout and the lantern ride on.
 export const TANK = {
-  at: [0, 0.28, -0.283],    // glass bottom, half sunk into the rucksack's outer face
-  scale: 0.8,              // a compact shoulder-to-waist flask on the adult body
-  height: 0.52,             // glass
-  full: 0.5,                // fluid height at three charges (a sliver of air on top)
-  squash: 0.85,             // across the back (x), of the round profile (the canvas shows either side)
+  at: [0, 0.4, -0.283],     // glass bottom: on the upper back, its top under the shoulders
+  scale: 0.8,               // a shoulder-blade-wide jar on the adult body
+  height: 0.36,             // glass
+  full: 0.34,               // fluid height at three charges (a sliver of air under the collar)
+  squash: 1,                // across the back (x), of the round profile
   depth: 0.55,              // front to back (z): a flat flask, not a drum
-  straps: [0.012, 0.49],    // the leather bands round the glass: on the brass foot and at its brim, so the three bands show whole
-  profile: [[0.12, 0], [0.153, 0.05], [0.167, 0.14], [0.162, 0.26], [0.147, 0.38], [0.121, 0.47], [0.098, 0.52]],
-  outlet: [-0.1, 0.6, 0.02],      // where the hose leaves: the cap's fitting, on the wearer's right
+  straps: [],               // leather bands round the glass (none: the collar and the shoulder tabs hold it)
+  // the jar's half-width up the glass: a rounded foot, straight sides, rounded shoulders into the collar
+  profile: [[0.1, 0], [0.137, 0.012], [0.155, 0.04], [0.1625, 0.09], [0.1625, 0.21], [0.158, 0.262], [0.146, 0.3], [0.127, 0.33], [0.106, 0.352], [0.094, 0.36]],
+  collar: { y: 0.318, h: 0.05, r: [0.141, 0.1] },   // the dark band over the shoulders (bottom y, height, radius bottom, top)
+  neck: { y: 0.374, h: 0.04, r: 0.046, stopper: 0.034 },
+  outlet: [-0.09, 0.39, 0.01],    // where the hose leaves: the brass elbow on the collar, on the wearer's right
   highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
   inked: true,              // blobs inked at full strength (not the player's softer interior lines)
+  base: '#5fb86a',          // the living fluid's own green (a gun mode tints it its first tone)
 };
 const profileCurve = new THREE.SplineCurve(TANK.profile.map(([r, y]) => new THREE.Vector2(r, y)));
 function radiusAt(y) {
@@ -512,8 +520,10 @@ export const tankRadiusAt = radiusAt;
  * the upright below), off the glass. (The rucksack is slim: lower down the swinging arms would
  * reach it.)
  */
-export const TANK_RAIL = { x: TANK.profile.reduce((m, [r]) => Math.max(m, r), 0) * TANK.squash + 0.018, r: 0.012, z: -0.03, top: TANK.height * 1.24, brackets: [0.04, TANK.height - 0.07] };
-export const SCOUT_DOCK_Y = TANK.height * 1.2;
+// (the top and the dock where they were on the body with the old, taller tank: 0.645 and 0.624 of it over a
+// glass bottom 0.12 m lower; high enough that the swinging arms never reach the scout)
+export const TANK_RAIL = { x: TANK.profile.reduce((m, [r]) => Math.max(m, r), 0) * TANK.squash + 0.018, r: 0.012, z: -0.03, top: 0.495, brackets: [0.04, TANK.height - 0.07] };
+export const SCOUT_DOCK_Y = 0.474;
 export const SCOUT_DOCK_X = TANK_RAIL.x + TANK_RAIL.r + DRONE_BELLY / TANK.scale + 0.002;
 export const SCOUT_DOCK_Z = TANK_RAIL.z;
 /**
@@ -522,8 +532,8 @@ export const SCOUT_DOCK_Z = TANK_RAIL.z;
  * rail when they fold: scoutDockPose(k) is that hop (k 0 on the rail .. 1 on the cap), along an
  * arc that stays clear of the glass, turning from side-on to upright.
  */
-export const SCOUT_CAP = { y: TANK.height + 0.12 + DRONE_BELLY / TANK.scale, hop: 0.2 };
-const _dockArc = [new THREE.Vector3(SCOUT_DOCK_X, SCOUT_DOCK_Y, SCOUT_DOCK_Z), new THREE.Vector3(SCOUT_DOCK_X + 0.03, TANK.height + 0.5, SCOUT_DOCK_Z), new THREE.Vector3(0, SCOUT_CAP.y, 0)];
+export const SCOUT_CAP = { y: TANK.neck.y + TANK.neck.h + 0.07 + DRONE_BELLY / TANK.scale, hop: 0.2 };
+const _dockArc = [new THREE.Vector3(SCOUT_DOCK_X, SCOUT_DOCK_Y, SCOUT_DOCK_Z), new THREE.Vector3(SCOUT_DOCK_X + 0.03, SCOUT_DOCK_Y + 0.14, SCOUT_DOCK_Z), new THREE.Vector3(0, SCOUT_CAP.y, 0)];
 export function scoutDockPose(k, pos, quat) {
   const t = THREE.MathUtils.smoothstep(k, 0, 1), [a, b, c] = _dockArc;
   pos.set(0, 0, 0).addScaledVector(a, (1 - t) ** 2).addScaledVector(b, 2 * t * (1 - t)).addScaledVector(c, t * t);
@@ -531,45 +541,64 @@ export function scoutDockPose(k, pos, quat) {
   return pos;
 }
 
-const LEATHER = '#5e4b37';
-function buildTank() {
+const LEATHER = '#5e4b37', STOPPER = '#e9dcbc';
+/**
+ * The flask itself (the worn tank's and the item's picture, src/boxes/model.js): the glass in its fluid
+ * material (`glassMat`), the collar, the neck and stopper, the hose's elbow, the foot ring and, worn
+ * (`worn`), the leather tabs up over the shoulders. In the tank's frame. Returns { group, glass }.
+ */
+export function buildFlask(glassMat, { worn = true, mat = flatMat } = {}) {
   const g = new THREE.Group();
-  g.name = 'Fluid tank';
+  g.name = 'Fluid flask';
   // (sq: the part takes the flask's flattening, across and front to back)
   const add = (geo, m, x = 0, y = 0, z = 0, sq = true) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); if (sq) { o.scale.x = TANK.squash; o.scale.z = TANK.depth; } g.add(o); return o; };
-  const R = TANK.profile.reduce((m, [r]) => Math.max(m, r), 0);
-  const glass = add(new THREE.LatheGeometry(profileCurve.getPoints(24), 28),
-    makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.5, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES }));
+  const glass = add(new THREE.LatheGeometry(profileCurve.getPoints(28), 32), glassMat);
   glass.name = 'Fluid glass';
-  // brass base cup and foot ring, the cap with its valve
-  add(new THREE.CylinderGeometry(0.136, 0.16, 0.075, 28), flatMat(BRASS), 0, -0.03, 0);
-  add(new THREE.TorusGeometry(0.159, 0.013, 5, 28).rotateX(Math.PI / 2), flatMat(BRASS_DARK), 0, -0.066, 0);
-  add(new THREE.CylinderGeometry(0.06, 0.103, 0.06, 24), flatMat(BRASS), 0, TANK.height + 0.024, 0);
-  add(new THREE.CylinderGeometry(0.03, 0.036, 0.03, 12), flatMat(STEEL), 0, TANK.height + 0.068, 0, false);
-  add(new THREE.TorusGeometry(0.045, 0.008, 4, 16).rotateX(Math.PI / 2), flatMat(INK), 0, TANK.height + 0.086, 0, false);
-  add(new THREE.SphereGeometry(0.022, 10, 7), flatMat(BRASS), 0, TANK.height + 0.094, 0, false);
-  // hoops mark the three charge bands (the level reads against them from behind)
-  for (const k of [1, 2]) {
-    const y = (TANK.full * k) / 3;
-    add(new THREE.TorusGeometry(radiusAt(y) + 0.006, 0.01, 5, 30).rotateX(Math.PI / 2), flatMat(INK), 0, y, 0);
+  const C = TANK.collar, N = TANK.neck;
+  // a brass ring round the glass's foot
+  add(new THREE.TorusGeometry(radiusAt(0.01) + 0.006, 0.009, 5, 32).rotateX(Math.PI / 2), mat(BRASS_DARK), 0, 0.01, 0);
+  // the collar over its shoulders: a dark band with a brass rim at its foot and a flat brass lid
+  add(new THREE.CylinderGeometry(C.r[1], C.r[0], C.h, 32), mat(STEEL_DARK), 0, C.y + C.h / 2, 0);
+  add(new THREE.TorusGeometry(C.r[0] + 0.002, 0.008, 5, 32).rotateX(Math.PI / 2), mat(BRASS), 0, C.y + 0.004, 0);
+  add(new THREE.CylinderGeometry(C.r[1] - 0.008, C.r[1], 0.008, 32), mat(BRASS), 0, C.y + C.h + 0.003, 0);
+  // the neck, its stopper and a brass bead on it
+  add(new THREE.CylinderGeometry(N.r * 0.9, N.r, N.h, 16), mat(BRASS), 0, N.y + N.h / 2, 0, false);
+  add(new THREE.TorusGeometry(N.r * 0.92, 0.007, 4, 16).rotateX(Math.PI / 2), mat(INK), 0, N.y + N.h * 0.7, 0, false);
+  add(new THREE.CylinderGeometry(N.stopper * 0.86, N.stopper, 0.034, 12), mat(STOPPER), 0, N.y + N.h + 0.017, 0, false);
+  add(new THREE.SphereGeometry(0.014, 8, 6), mat(BRASS), 0, N.y + N.h + 0.04, 0, false);
+  // the hose's brass elbow on the collar, toward the right shoulder, and the pipe from the neck to it
+  const [ox, oy, oz] = TANK.outlet;
+  add(new THREE.CylinderGeometry(0.02, 0.024, 0.06, 10), mat(BRASS), ox + 0.016, oy - 0.022, oz, false).rotation.z = 0.5;
+  add(new THREE.TorusGeometry(0.024, 0.007, 4, 12).rotateX(Math.PI / 2), mat(INK), ox + 0.006, oy - 0.008, oz, false).rotation.z = 0.5;
+  add(new THREE.CylinderGeometry(0.011, 0.011, Math.abs(ox) - N.r + 0.01, 8).rotateZ(Math.PI / 2), mat(BRASS_DARK), (ox - N.r) / 2, N.y + 0.012, oz, false);
+  if (worn) {
+    // the leather tabs from the collar's corners up over his shoulders (into the collar of his shirt)
+    for (const sx of [-1, 1]) {
+      const a = new THREE.Vector3(sx * 0.1, C.y + C.h * 0.6, 0.03), b = new THREE.Vector3(sx * 0.105, 0.43, 0.27), d = b.clone().sub(a);
+      const tab = add(new THREE.BoxGeometry(0.042, 0.011, d.length()), mat(LEATHER), (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2, false);
+      tab.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize());
+      add(new THREE.BoxGeometry(0.03, 0.016, 0.02), mat(BRASS), a.x, a.y, a.z + 0.004, false).quaternion.copy(tab.quaternion);   // its buckle on the collar
+    }
   }
-  // two worn leather bands round the glass, below the fluid and at its brim (clear of the hoops and the bands between)
-  for (const y of TANK.straps) add(new THREE.TorusGeometry(radiusAt(y) + 0.012, 0.014, 4, 30).rotateX(Math.PI / 2).scale(1, 1.2, 1), flatMat(LEATHER), 0, y, 0);
-  // the leather-bound side staves the bands hang from, bracketed into the rucksack (no back plate:
-  // the rucksack is the flask's back)
+  return { group: g, glass };
+}
+
+function buildTank() {
+  const R = TANK.profile.reduce((m, [r]) => Math.max(m, r), 0);
+  const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.5, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base }));
+  g.name = 'Fluid tank';
+  const add = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
+  // the leather-bound uprights at the flask's sides, bracketed to his back: the scout rides the left one's top, the lantern hangs off it
   const railX = TANK_RAIL.x;
   for (const sx of [-1, 1]) {
-    add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK_RAIL.top + 0.035, 6), flatMat(LEATHER), sx * railX, (TANK_RAIL.top - 0.035) / 2, TANK_RAIL.z, false);
-    for (const y of TANK_RAIL.brackets) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(LEATHER), sx * railX, y, TANK_RAIL.z + 0.07, false);
-    add(new THREE.SphereGeometry(0.018, 8, 6), flatMat(BRASS), sx * railX, TANK_RAIL.top, TANK_RAIL.z, false);   // a brass knob on the upright's top
+    add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK_RAIL.top + 0.035, 6), flatMat(LEATHER), sx * railX, (TANK_RAIL.top - 0.035) / 2, TANK_RAIL.z);
+    for (const y of TANK_RAIL.brackets) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(LEATHER), sx * railX, y, TANK_RAIL.z + 0.07);
+    add(new THREE.SphereGeometry(0.018, 8, 6), flatMat(BRASS), sx * railX, TANK_RAIL.top, TANK_RAIL.z);   // a brass knob on the upright's top
   }
-  // the hose's fitting on the cap, leaning toward the right shoulder
-  const [ox, oy, oz] = TANK.outlet;
-  add(new THREE.CylinderGeometry(0.022, 0.026, 0.07, 10), flatMat(BRASS), ox + 0.02, oy - 0.03, oz, false).rotation.z = 0.55;
-  add(new THREE.TorusGeometry(0.026, 0.008, 4, 12).rotateX(Math.PI / 2), flatMat(INK), ox + 0.008, oy - 0.012, oz, false).rotation.z = 0.55;
   mergeParts(g, [glass]);
   g.position.set(...TANK.at); g.scale.setScalar(TANK.scale);
-  return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + (TANK.height + 0.11) * TANK.scale };
+  const [ox, oy, oz] = TANK.outlet;
+  return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + (TANK.neck.y + TANK.neck.h + 0.05) * TANK.scale };
 }
 
 /**
@@ -733,6 +762,7 @@ export class FluidTool {
     // (the traveller keeps his canvas rucksack, the flask sits in its outer face: traveller.js, updateWorn())
     if (!H.outfit) for (const o of (p.gear?.packDockParent ?? p.gear?.scoutDock?.parent)?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
     const tank = (this.tank = buildTank());
+    tank.group.position.set(...this.tankAt);
     H.chestAnchor.add(tank.group);
     // the scout clings to the tank's left side (the cap would hide the helmet), folded, its foot on the glass
     this.placeDock(this.owned);
@@ -790,6 +820,8 @@ export class FluidTool {
   get tones() { return fluidTones(this.colours, this.state.flag('tool.tones')); }
   /** What the tank, the globs and the splashes show now: the current mode's tones (stun cold blue, fire ember). */
   get modeTones() { return MODES[this.mode]?.tones ?? this.tones; }
+  /** Where the flask sits on the back (chest anchor frame): the body's own place for it (Humanoid.tankAt), else TANK.at. */
+  get tankAt() { return this.player?.humanoid?.tankAt ?? TANK.at; }
   /** The backpack is found. */
   get owned() { return this.items.has('backpack'); }
   /** The tank is empty (the desert's backpack, until the giant's pool fills it): no charges, no refill. */
@@ -1002,10 +1034,10 @@ export class FluidTool {
     // the back's pose and the socket's, in world space
     const back = this._back ??= { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
     chest.updateWorldMatrix(true, false);
-    chest.localToWorld(back.p.set(...TANK.at)); chest.getWorldQuaternion(back.q); chest.getWorldScale(back.s).multiplyScalar(TANK.scale);
+    chest.localToWorld(back.p.set(...this.tankAt)); chest.getWorldQuaternion(back.q); chest.getWorldScale(back.s).multiplyScalar(TANK.scale);
     if (where === 'back') {
       if (g.parent !== chest) chest.add(g);
-      g.position.set(...TANK.at); g.quaternion.identity(); g.scale.setScalar(TANK.scale);
+      g.position.set(...this.tankAt); g.quaternion.identity(); g.scale.setScalar(TANK.scale);
       if (was === 'flight') this.onDocked(null, false);
       return where;
     }
@@ -1092,6 +1124,8 @@ export class FluidTool {
     const tones = this.modeTones, n = tones.length, key = tones.join();
     const retone = key !== this._tonesKey;
     this._tonesKey = key;
+    // the flask's own fluid: green, or a gun mode's first tone (stilling's cold blue, ember's orange, bloom's leaf green)
+    if (retone && this.tankU?.uFluidBase) this.tankU.uFluidBase.value.set(MODES[this.mode]?.tones?.[0] ?? TANK.base);
     for (const U of [this.tankU, this.hoseU, this.globU, this.wingU]) {
       if (!U) continue;
       if (retone) U.uFluidTones.value.forEach((c, i) => c.set(tones[i] ?? FLUID_TONES[i]));

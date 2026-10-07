@@ -78,9 +78,9 @@ shaft on the shin), close enough to stay slim and still keep the feet inside.
 
 The rucksack is built in `src/traveller.js` (`rucksack`, `RUCKSACK`) and rides
 the chest frame, like the flask. The flask (`src/fluid-tool.js`, `TANK`) is
-flattened to about 23 × 15 cm and stands about 22 cm off his back in all,
-against 34 cm for the old round tank; its three charge bands stay in full view
-from behind, the leather bands sit below the fluid and at its brim. The outer
+the sheets' squat glass jar, about 26 × 29 cm and 14 cm deep, green living
+fluid standing at the charges, a dark collar, brass fittings and leather tabs
+over the shoulders (docs/systems/traveller-kit.md). The outer
 pocket shows while the flask is not on his back (not yet found, or in a
 vehicle's socket); the rucksack itself always stays on. Without the flask the
 scout docks on the rucksack's lid; with it, on top of the flask's left upright,

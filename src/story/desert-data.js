@@ -263,8 +263,8 @@ export const PEOPLE = {
 
   sefa: {
     id: 'sefa', name: 'Sefa', title: 'oud player', color: '#8a6fb8', voice: 0.95, kind: 'f',
-    // (her character sheet: a long purple cloak over a cream tunic, baggy trousers, a long braid)
-    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'braidcap', cape: 1.45, look: { robe: 0.5, build: 'slim', trim: 'none', body: 'none', prop: 'oud', under: 'braid' },
+    // (her character sheet: a long purple cloak with bells along its hem over a cream tunic, baggy trousers, a long braid)
+    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'braidcap', cape: 1.45, look: { robe: 0.5, build: 'slim', trim: 'none', body: 'none', prop: 'oud', under: 'braid', capeBells: 10 },
     lines: ['~happy~ ♪', "~happy~ Stay for a tune. Leaving halfway makes it self-conscious.", "~curious~ You keep glancing behind you."],
     talk: { listen: [
       ["~playful~ You stopped! I was beginning to think I’d been mistaken for a decorative bush.", "~whisper~ I’m Sefa. I try to play what suits the listener. Yours keeps wandering away from the last note."],
@@ -444,8 +444,9 @@ export const PEOPLE = {
   // the eldest of Qanat, Hessa's grandmother, who has kept the makers' chest company from her bench under its ledge for sixty years
   nour: {
     id: 'nour', name: 'Nour', title: 'the eldest of Qanat', color: '#3b4f8a', voice: 0.72, kind: 'f', scale: 0.93, age: 'elder', years: 80,
-    // (her character sheets: frail and upright, a wide straw cone with a veil under it, ochre robes over cream, a staff)
-    palette: { cloak: '#d8a24a', lining: '#e2d3b4', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#e6c48a', hair: '#ece4d2' }, head: 'sunhat', cape: 1.45, look: { mask: 'veil', prop: 'staff', robe: 0.04, build: 'slim', trim: 'none', body: 'none' },
+    // (her character sheets: frail and upright, a wide straw cone with a veil under it, ochre robes over cream, a staff
+    // with a pierced disc at its head, clay gourds and keys hung at her belt)
+    palette: { cloak: '#d8a24a', lining: '#e2d3b4', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#e6c48a', hair: '#ece4d2' }, head: 'sunhat', cape: 1.45, look: { mask: 'veil', prop: 'discstaff', robe: 0.04, build: 'slim', trim: 'none', body: 'gourds' },
     lines: ['~neutral~ Mind the chest, child.', '~tired~ Sixty years I have sat with it.', '~curious~ It hums more when you are near. Did you notice?'],
     talk: {
       entry: [
@@ -584,8 +585,8 @@ export const PEOPLE = {
 
   marrow: {
     id: 'marrow', name: 'Marrow', title: 'salvager and liar', color: '#dca273', voice: 1.0, kind: 'm',
-    // (his character sheet: a short, grinning scavenger in a patched cream coat and hood, goggles, a scarf)
-    palette: { cloak: '#e6dcc0', lining: '#2b211f', cloth: '#e6dcc0', legs: '#4a3a2a', hat: '#d8a24a', accent: '#c9974a', hair: '#2b211f' }, head: 'raghood', cape: 0.9, look: { mask: 'browgoggles', body: 'scarf', prop: 'hook', robe: 0.3, trim: 'patches', build: 'average', height: 0.92, faceType: 'round', mood: 'amused' },
+    // (his character sheet: a short, grinning scavenger in a patched cream coat and hood, goggles, a scarf, a salvage bag at his hip)
+    palette: { cloak: '#e6dcc0', lining: '#2b211f', cloth: '#e6dcc0', legs: '#4a3a2a', hat: '#d8a24a', accent: '#c9974a', hair: '#2b211f' }, head: 'raghood', cape: 0, look: { mask: 'browgoggles', body: 'scavbag', prop: 'hook', robe: 0.3, trim: 'patches', build: 'average', height: 0.92, faceType: 'round', mood: 'amused' },
     lines: ["~shout~ Bones! Glass! Authenticated bits of sky!", "~playful~ Finders keepers. I find that very reasonable.", "~whisper~ Sky-person. Excellent timing. For me."],
     talk: {
       entry: [

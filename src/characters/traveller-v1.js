@@ -7,6 +7,12 @@ import { makeTripoCloth } from './tripo-cloth.js';
 import { makeReviewInkMaterial } from './tripo-material.js';
 import { relaxWalkArms, relaxWalkHands } from './tripo-walk.js';
 import { softenTripoHands } from './tripo-hands.js';
+import { wearTripoFace } from './tripo-face.js';
+import { cleanExpression } from '../expression.js';
+import { TRAVELLER } from '../traveller.js';
+
+/** The fluid flask's place on his back (the chest anchor's frame; fluid-tool.js TANK.at is the rucksack's). */
+export const TRAVELLER_V1_TANK_AT = [0, 0.4, -0.235];
 
 export async function loadTravellerV1(base) {
   const folder = `${base}characters/traveller-v1/`;
@@ -23,7 +29,7 @@ export async function loadTravellerV1(base) {
 
 // Build in the same origin/rest frame as the fitted export and review. Gameplay
 // can spawn at any position and orientation (including a sphere's far side).
-export function createTravellerV1(char, { gltf, data, report, colors }) {
+export function createTravellerV1(char, { gltf, data, report, colors }, { gpu } = {}) {
   const skins = [];
   gltf.scene.traverse(o => { if (o.isSkinnedMesh) skins.push(o); });
   if (skins.length !== 1 || colors.length !== skins[0].geometry.attributes.position.count)
@@ -43,20 +49,31 @@ export function createTravellerV1(char, { gltf, data, report, colors }) {
     humanoid.body.parent.add(mesh);
     mesh.bind(humanoid.body.skeleton, humanoid.body.bindMatrix);
     humanoid.body.skeleton.pose(); root.updateMatrixWorld(true);
-    const cloth = makeTripoCloth(mesh, colors);
+    const cloth = makeTripoCloth(mesh, colors, gpu === undefined ? {} : { gpu });
     for (const part of [mesh, cloth.garment, cloth.underlayer, cloth.innerShirt]) {
       const standard = part.material;
       part.material = makeReviewInkMaterial(part, { lining: part === cloth.garment });
       standard.dispose();
     }
+    // his face, drawn over the painted one so it can move (tripo-face.js): the same expressions, blinks and
+    // talking mouth as everyone's (Humanoid.setExpression / updateEyes), resting with his little smile
+    humanoid.drawnFace = wearTripoFace(mesh);
+    humanoid.restExpression = cleanExpression(TRAVELLER.rest);
+    humanoid.setExpression(humanoid.restExpression);
+    cloth.gpuMaterial(cloth.garment.material);   // (the game: skinned and moved by the cage on the GPU, tripo-cloth.js)
+    // (its shadow drawn the same shape by itself: the shadow passes' one plain material can't move it with the cage)
+    if (cloth.shadow) humanoid.noShadow.push(cloth.garment);
     cloth.garment.name = 'TravellerOvershirt';
     cloth.underlayer.name = 'TravellerTrousers';
     cloth.innerShirt.name = 'TravellerInnerShirt';
     // the fluid glove over his right hand (shown while the tank is worn: fluid-tool.js), on the skin as
     // the cloth left it (it gives the mesh its own geometry)
     humanoid.wearGlove(mesh);
+    // the flask (fluid-tool.js TANK) sits right on his back: he has no rucksack for it to sink into
+    humanoid.tankAt = TRAVELLER_V1_TANK_AT;
     return {
       humanoid, mesh, cloth,
+      shadowCasters: cloth.shadow ? [cloth.shadow] : [],
       // Before Humanoid.update, while the fresh clip is still on the control rig.
       poseArms(player) {
         const w = player.animator?.w;

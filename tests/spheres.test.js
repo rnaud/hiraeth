@@ -94,6 +94,35 @@ test('static collision stays within budget', () => {
   console.log('collision triangles', physics.triangles);
   // (the spheres, the umbrella trees and, since the contact audit's second pass, the hill's boulders,
   // the pillars, the monoliths, the android wood's ruins and statue and the Footprint's heel collide as
-  // they are drawn, docs/systems/movement.md "Contact": 157 k → ~179 k, the BVH 49 → 61 ms to bake)
-  assert.ok(physics.triangles < 200000, `static collision budget: ${physics.triangles}`);
+  // they are drawn, docs/systems/movement.md "Contact": 157 k → ~179 k, the BVH 49 → 61 ms to bake; since
+  // its third pass the olives' trunks and the cypresses too: ~181 k → ~201 k, the bake +4 ms, queries unchanged;
+  // the hill's sculpted pillows, the robot's 28 parts and the arcades, solid as drawn, +~21 k: docs/systems/references.md)
+  assert.ok(physics.triangles < 235000, `static collision budget: ${physics.triangles}`);
+});
+
+test('the olives’ trunks and the cypresses collide as they are drawn, not as posts inside them', () => {
+  const ray = new THREE.Raycaster();
+  for (const [name, heights] of [['olive trunks', [0.8, 2.2]], ['cypresses', [2, 5, 9]]]) {
+    const mesh = scene.children.find((o) => o.isInstancedMesh && o.name === name);
+    assert.ok(mesh && !mesh.userData.noCollide && mesh.count > 40, `${name}: ${mesh?.count}`);
+    const m = new THREE.Matrix4(), c = new THREE.Vector3();
+    let n = 0, worst = 0;
+    for (let i = 0; i < mesh.count; i += 3) {
+      mesh.getMatrixAt(i, m);
+      c.setFromMatrixPosition(m);
+      for (const h of heights) for (const a of [0, 2.1, 4.2]) {
+        const d = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+        const o = c.clone().add(new THREE.Vector3(0, h * m.getMaxScaleOnAxis(), 0)).addScaledVector(d, 6);
+        ray.set(o, d.clone().negate()); ray.far = 6;
+        const drawn = ray.intersectObject(mesh, false).find((x) => x.instanceId === i);
+        if (!drawn) continue;
+        const hit = physics.rayHit(o, d.clone().negate(), 6);
+        if (hit && hit.distance < drawn.distance - 0.6) continue;   // (something else stands in front: a hedge, a neighbour)
+        n++;
+        worst = Math.max(worst, hit ? Math.abs(hit.distance - drawn.distance) : 6);
+      }
+    }
+    assert.ok(n > 60, `${name}: ${n} rays`);
+    assert.ok(worst < 0.05, `${name}: the collision parts from the drawn bark or foliage by up to ${worst.toFixed(2)} m`);
+  }
 });
