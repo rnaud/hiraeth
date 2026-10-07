@@ -2,16 +2,36 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v0.88 — 2026-10-07
+## v0.89 — 2026-10-07
 
 - In the References level the Glass Dunes’ fourth picture has its tall wave: it rises steep over the glassworkers’ camp, curls over its dark hollow and sweeps down to the sand, as drawn, instead of a low hood.
 - Two archways in the Glass Dunes go through now: walk through the cliff of the giants to the sand behind it, and through the frozen wave in the middle of the valley, under a vault of glass lit green. The breaking wave’s hollow can be walked into from its camp, a long way under the lip.
 - In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.
 - The Glass Dunes’ glass glows from within: the sun comes through its thin edges, its foot and the lips of its waves in bands of mint and lime, the more as you look toward the light, and the giants, heads and trees held inside it are crisp dark shapes instead of soft smudges.
 
+## v0.88 — 2026-10-07
+
+- A new foe, the shade: a person made of living shadow, near-black violet running down its body in streaks, its feet melting into the ground, dripping as it walks and leaving dark pools behind. It comes in later packs out in the wilds and cuts with a sword’s swing; five cuts bring it down, and it runs away into the ground.
+- The Enemies setting has a Gentle choice: half the harm, slower wind-ups, one foe striking at a time and smaller, rarer packs. Normal and Off stay.
+- The makers’ machines are rebuilt: a round brass shell on three spindly legs, two clawed arms, the makers’ glyph glowing for an eye. Broken, they come apart, their pieces flying and settling on the ground.
+- The frame freezes for an instant as a blow lands, longer on a heavy one and on a perfect parry, so every impact reads.
+- A perfect parry: raise the guard just as a strike comes and it costs nothing and leaves the foe stunned. A foe frozen by stilling takes the blade double.
+- Three new foes: a spitting blot that keeps its distance and lobs ink where you stand, a swarm of tiny blots that a push scatters, and winged blots that fly out of reach under open skies and dive along a lane drawn on the ground.
+- The push is a gun mode now, beside fluid, stilling, ember and bloom: switch to it with X or the D-pad and fire it as you shoot. C and the middle click do nothing now.
+- Locked on, the camera keeps the foe ahead, a ring marks it, and the blade and the guard turn to it.
+- New controls for the blade: RB / R1 swings it, LB / L1 held guards, and clicking the right stick (R3) locks on to a foe, then the next, then lets go. On a keyboard: F swings, Ctrl or Z held guards, Tab locks on. The bell whistle moved to the D-pad’s up.
+- Relics out in the wilds are guarded: ink blots gather round as you come near, and once cut down they are gone for good.
+- Cut-down foes leave ink, which runs into the glove, and the blade grows with it: at 8 ink it reaches further, at 20 its third swing becomes a whirl that cuts all round you, at 40 a swing begun at a run lunges into the cut.
+- Foes take turns: no more than two strike at once while the others circle, and they no longer stand inside each other.
+- A foe winding up out of sight shows a marker at the edge of the screen, on its side, filling as its strike comes.
+- Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.
+
 ## v0.87 — 2026-10-07
 
 - On the Overnight Train the carriages’ ceilings have round lamps in a row instead of one long glowing strip, which drew a bright beam down the middle of the dining car and the library; the brackets of the library’s roof terrace no longer poke through its ceiling.
+- The Arena is bright now: golden sand under an open blue sky.
+- A foe’s strike that lands makes the traveller flinch, from motion capture.
+- Hold the blade button to raise your guard: a shield of fluid blooms over your left arm. A strike from in front is blocked for a charge and leaves the foe reeling; with the tank empty it gets through.
 - The fluid blade swings like a sword: three cuts from motion capture, a slash down from the right, a rising backhand and an overhead cut, the blade held in the fist.
 - The Overnight Train sounds like a train: the wheels’ beat over the rail joints, ta-dum … ta-dum, slowing to nothing at a station, the rumble underfoot, the rush of the air on the roofs and the balcony, and a whistle as it pulls out or brakes.
 - Climb the ladder on any porch of the Overnight Train and walk the roofs from carriage to carriage over plank bridges, past the roof gardens, to the terrace and its little sky lounge.

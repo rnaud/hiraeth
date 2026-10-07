@@ -1211,6 +1211,14 @@ export class Sound {
     this.sweep(t, 300, 110, 0.12, 0.1, 'triangle');
   }
 
+  /** The fluid shield takes a blow (src/fluid-blade.js block): a bright clang and a wet splash. */
+  fluidBlock() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [1, 1.33].forEach((m, i) => this.sweep(t + i * 0.008, 880 * m, 760 * m, 0.3, 0.06, 'triangle'));
+    this.burst(t, { dur: 0.18, type: 'bandpass', freq: 1400, q: 0.8, vol: 0.16, rate: 0.9 });
+  }
+
   /** A foe (src/foes.js) winds up a strike: an ink blot's wet gurgle, a machine's grinding whine. */
   foeWarn(kind = 'blot') {
     if (!this.ctx) return;

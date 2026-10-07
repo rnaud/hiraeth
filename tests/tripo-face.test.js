@@ -129,3 +129,39 @@ test('strong enough for the close shot, and where his face is in the world', asy
   assert.ok(Math.abs(at.y - 1.6) < 0.15 && Math.hypot(at.x - 3, at.z + 2) < 0.25, `his face, over his feet: ${at.toArray().map((v) => v.toFixed(2))}`);
   assert.ok(facing.x > 0.8, `looking the way he faces: ${facing.toArray().map((v) => v.toFixed(2))}`);
 });
+
+test('reference acting presets keep a readable range and asymmetric looks survive cleaning', () => {
+  const curious = state(TONE_EXPRESSIONS.curious), amused = state(TONE_EXPRESSIONS.amused);
+  assert.ok(curious.brow[7] > 0.7, 'curiosity raises one brow');
+  assert.ok(amused.brow[7] > 0 && amused.mouth[1] > 0, 'amusement has a crooked smile');
+  assert.equal(state({ asymmetry: -4 }).brow[7], -1, 'the signed acting channel is clamped');
+  assert.ok(state(TONE_EXPRESSIONS.delighted).mouth[2] > 0.01, 'delight opens enough for a toothy smile');
+  assert.ok(state(TONE_EXPRESSIONS.worried).brow[1] > state(TONE_EXPRESSIONS.determined).brow[1], 'worry lifts the inner brows, determination lowers them');
+  assert.ok(state(TONE_EXPRESSIONS.startled).eye[0] < rest.eye[0], 'startle widens the eyes');
+  for (const tone of ['neutral', 'curious', 'amused', 'delighted', 'worried', 'startled', 'sad', 'determined']) {
+    const s = state(TONE_EXPRESSIONS[tone]);
+    assert.ok([...s.brow, ...s.eye, ...s.mouth].every(Number.isFinite), tone);
+  }
+});
+
+test('the connected scalp mask survives the garment split and protects hair from face paint', async () => {
+  const { mesh } = await traveller();
+  const hair = mesh.geometry.attributes.travellerHair, skin = mesh.geometry.attributes.travellerSkin, p = mesh.geometry.attributes.position;
+  assert.ok(skin && skin.count === p.count);
+  assert.ok(hair && hair.count === p.count);
+  let scalp = 0, masked = 0, mouth = 0;
+  for (let i = 0; i < p.count; i++) {
+    if (p.getY(i) > 1.75) { scalp++; masked += hair.getX(i); }
+    if (p.getY(i) > 1.56 && p.getY(i) < 1.61 && p.getZ(i) > 0.04 && Math.abs(p.getX(i)) < 0.04) {
+      mouth++; assert.equal(hair.getX(i), 0, 'lip ink is not connected scalp');
+      assert.equal(skin.getX(i), 1, 'the entire mouth and chin replace the baked texture');
+    }
+  }
+  assert.ok(scalp > 10 && masked / scalp > 0.9, 'the crown is identified as hair');
+  assert.ok(mouth > 0);
+  for (let i = 0; i < p.count; i++) {
+    if (p.getY(i) < 1.48) assert.equal(skin.getX(i), 0, 'clothing and lower body keep their texture');
+    if (hair.getX(i) > 0.5) assert.equal(skin.getX(i), 0, 'skin cleanup cannot recolour hair');
+  }
+  assert.match(mesh.material.fragmentShader, /smoothstep\(0.25, 0.65, vTravellerHair\)/);
+});

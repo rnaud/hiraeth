@@ -95,7 +95,7 @@ export const QUESTS = [
     stages: [
       // (src/story/desert-errands.js: the drum is jammed against a rib's foot by a knuckle of spine; shove the knuckle off sideways)
       { id: 'find', text: 'Find Teo’s drum, blown away under the old ribcage south of the start', label: 'Teo’s drum', goto: 'drum', radius: 9, at: 'drum' },
-      { id: 'free', text: 'The drum is jammed against a rib by a fallen knuckle of bone. Shift the knuckle from the side (heave it, or push: C, middle click, or RB / R1) and pick the drum up', label: 'Teo’s drum', bring: 'drum', at: 'drum', to: 'teo' },
+      { id: 'free', text: 'The drum is jammed against a rib by a fallen knuckle of bone. Shift the knuckle from the side (heave it, or push mode: X or the D-pad, then shoot) and pick the drum up', label: 'Teo’s drum', bring: 'drum', at: 'drum', to: 'teo' },
       { id: 'return', text: 'Bring the drum back to Teo at the fire', label: 'Teo, at the fire', bring: 'drum', to: 'teo' },
     ],
   },
@@ -710,7 +710,7 @@ export const THINGS = {
   knuckle: {
     id: 'knuckle', name: 'A knuckle of bone', title: 'from the giant’s spine', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~neutral~ A heavy round bone traps the drum against the rib behind it.", "~neutral~ *Push the bone from the side* to roll it clear: C, middle click or RB / R1. Pushing toward the rib would crush the drum."],
+      say: ["~neutral~ A heavy round bone traps the drum against the rib behind it.", "~neutral~ *Push the bone from the side* to roll it clear: the gun’s push mode: X or the D-pad, then shoot. Pushing toward the rib would crush the drum."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -724,7 +724,7 @@ export const THINGS = {
   bone: {
     id: 'bone', name: 'The fallen rib', title: 'across the channel', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~neutral~ A fallen rib blocks the dry channel. Behind it, a crack in the wall is damp. The water is trapped on the other side.", "~neutral~ Too heavy to lift. Find *the keepers’ pole by the mural* and lever it over the carved post. With a filled tank, *Push* also works: C, middle click or RB / R1."],
+      say: ["~neutral~ A fallen rib blocks the dry channel. Behind it, a crack in the wall is damp. The water is trapped on the other side.", "~neutral~ Too heavy to lift. Find *the keepers’ pole by the mural* and lever it over the carved post. With a filled tank, *Push* also works: the gun’s push mode: X or the D-pad, then shoot."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -765,7 +765,7 @@ export const THINGS = {
     id: 'weight', name: 'A stone ball', title: 'in a groove on a plinth', color: '#c9b8a0', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~neutral~ A stone ball rests in a groove leading to a hole. A bronze chain connects the mechanism to the grille guarding the light.",
-        "~neutral~ *Push the ball along the groove* with fluid: C, middle click or RB / R1."],
+        "~neutral~ *Push the ball along the groove* with fluid: the gun’s push mode: X or the D-pad, then shoot."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

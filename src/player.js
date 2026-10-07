@@ -61,6 +61,8 @@ export function jetFlight(f, s, camF, camR, U, pitch = JET.level, out = new THRE
 
 /** m: the jets' lean turns the body about its hips, this high over the feet. */
 const JET_PIVOT = 1.0;
+// a flinch as a foe's strike lands (Player.flinch): the Sword and Shield pack's impact, its first 0.6 s
+const FLINCH = { clip: 'mixamo_ss_impact_1', from: 0, for: 0.6 };
 // the gestures (Player.gesture): Mixamo's kneeling inspection (kneeling from its first frame: eased
 // in over `in` s, held, eased out over `out`, its hands' bit of `loop` s round and round), and for
 // petting the petting's stroking arm over it
@@ -759,6 +761,9 @@ export class Player {
    * petting's arms over it: stroking the dog). Played over `hold` s, eased in and out; walking off
    * ends it. Returns false without the clips (or with the captured moves off).
    */
+  /** Hit (a foe's strike that didn't knock you down): the upper body flinches, from motion capture (FLINCH). */
+  flinch() { if (!this.down && !this.ride) this._flinch = { t: 0 }; }
+
   gesture(kind, { hold = kind === 'pet' ? 1.8 : 1.1 } = {}) {
     const A = this.animator;
     if (this.locoMoves === false || !A?.moveClip(GESTURES.kneel.clip) || !this.onGround || this.ride || this.swim || this.climbing) return false;
@@ -2044,9 +2049,12 @@ export class Player {
         if (Gs.kind === 'pet') A.playUpper(GESTURES.pet.clip, GESTURES.pet.from + (Gs.t % GESTURES.pet.loop), Gs.w * GESTURES.pet.w);
       }
     }
-    // a swing of the fluid blade from motion capture, above the legs (src/fluid-blade.js: this.swingMove = { clip, t, w })
-    const Sw = this.swingMove;
+    // a swing of the fluid blade or its guard from motion capture, above the legs (src/fluid-blade.js: this.swingMove = { clip, t, w });
+    // else a flinch as a foe's strike lands (Player.flinch)
+    const Sw = this.swingMove, Fl = this._flinch;
+    if (Fl) { Fl.t += dt; if (Fl.t >= FLINCH.for || this.down) this._flinch = null; }
     if (Sw && !R && !this.down) A.playUpper(Sw.clip, Sw.t, Sw.w);
+    else if (this._flinch && !R) A.playUpper(FLINCH.clip, FLINCH.from + Fl.t, THREE.MathUtils.clamp(Math.min(Fl.t / 0.05, (FLINCH.for - Fl.t) / 0.2), 0, 1));
     // jumps, drops, the kick off a wall and a hard landing's stumble from motion capture (src/air-moves.js)
     const captured = this.locoMoves !== false && !!A.lib.motion?.clips?.length && !A.matching;
     A.idleMoves = captured;

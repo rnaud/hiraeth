@@ -6,8 +6,8 @@ import { EYE_REACH } from '../eyes.js';
 // painted into its texture (thick black brows, almond eyes with a dark iris, a faint mouth line) and no
 // rig for it, so he could not smile, frown, blink or talk. This draws the face in his material's
 // fragment shader instead, in the head's bind space (vBind, skinned with the head like the paint was):
-// first the painted features are covered with the skin round them (only the pixels that differ from
-// the skin, so the paint's edges go with it and the skin's own texture stays), then the brows, the
+// first the head skin is flattened to remove painted lighting, the old features are covered,
+// and the hair fringe is protected from those repairs. Then the brows, the
 // eyes and the mouth are drawn again, where the paint had them and in the same hand, but moved by the
 // same channels as everyone else's face (src/expression.js: smile, open, brow, browTilt, squint, gaze;
 // the blink and the mouth on the syllables come in through Humanoid.updateEyes and setExpression).
@@ -25,7 +25,7 @@ export const TRIPO_FACE = {
   front: 0.035,                                  // only in front of this z (the back of the head has the same x, y)
   paint: {                                       // the painted features, covered
     eyes: [[-0.034, 1.6415], [0.0315, 1.6415]], eyeHalf: [0.0185, 0.0078],
-    brows: [[-0.0385, 1.6616], [0.035, 1.6616]], browHalf: [0.0285, 0.0092],
+    brows: [[-0.0385, 1.6616], [0.035, 1.6616]], browHalf: [0.032, 0.014],
     mouth: [-0.0005, 1.5803], mouthHalf: [0.026, 0.0038],
     skin: [0.72, 0.505, 0.37], lid: [0.684, 0.488, 0.345],   // the skin round them (sRGB, as the texture holds it)
   },
@@ -47,7 +47,7 @@ export const TRIPO_GAIN = { brow: 1.45, mouth: 1.5, open: 1.4, line: 1.5 };
  * The face's uniforms for an expression (a clean one: expression.js cleanExpression), the lids (blink 0..1)
  * and the gaze (look: [x, y] of a direction, +z ahead); into `out` (one per face: no garbage a frame).
  */
-export function tripoFaceState(expression = NEUTRAL_EXPRESSION, { blink = 0, look = null } = {}, out = { brow: new Array(7), eye: new Array(4), mouth: new Array(4) }) {
+export function tripoFaceState(expression = NEUTRAL_EXPRESSION, { blink = 0, look = null } = {}, out = { brow: new Array(8), eye: new Array(4), mouth: new Array(4) }) {
   const x = expression ?? NEUTRAL_EXPRESSION, F = TRIPO_FACE, B = F.brow;
   // the brows: raised (or lowered and drawn together), their inner ends up (worry) or down (anger)
   // (October 2026: half as much again, so a face 120 px tall in the conversation's close shot reads: TRIPO_GAIN)
@@ -59,6 +59,7 @@ export function tripoFaceState(expression = NEUTRAL_EXPRESSION, { blink = 0, loo
   b[2] = B.peak[0] - knit * 0.4; b[3] = B.peak[1] + raise + tilt * 0.3;
   b[4] = B.outer[0]; b[5] = B.outer[1] + raise * 0.75 - tilt * 0.25;
   b[6] = 1 + 0.08 * Math.max(0, -x.brow);
+  b[7] = x.asymmetry ?? 0;
   // the lids: a blink shuts the upper one; a squint brings it half down and the lower one up; a smile
   // lifts the lower lid with the cheek; raised brows open the eye a little wider (a gasp)
   const close = Math.min(1, Math.max(blink, x.squint * 0.45)) - Math.max(0, x.brow - 0.4) * 0.22 * (1 - blink);
@@ -69,9 +70,10 @@ export function tripoFaceState(expression = NEUTRAL_EXPRESSION, { blink = 0, loo
   // the mouth: wider with a smile, its corners up (or down), the lower lip dropping as it opens
   const open = x.open, m = out.mouth, e = out.eye;
   m[0] = F.mouth.w * (1 + 0.14 * G.mouth * Math.max(0, x.smile) - 0.08 * G.mouth * Math.max(0, -x.smile) - 0.1 * open);
+  m[0] *= 1 - Math.max(0, x.brow) * open * Math.max(0, 1 - x.smile) * 0.75;
   m[1] = x.smile * 0.0042 * G.mouth;
   m[2] = open * 0.017 * G.open;
-  m[3] = open * 0.0026 * G.open;
+  m[3] = open * (0.0026 + Math.max(0, x.brow) * Math.max(0, 1 - x.smile) * 0.008) * G.open;
   e[0] = close; e[1] = lower; e[2] = gx; e[3] = gy;
   return out;
 }
@@ -98,18 +100,31 @@ export const TRIPO_FACE_GLSL = (() => {
     return vec2(y, s);
   }
   vec3 tripoFace(vec3 albedo, vec3 b, float aa) {
+    // The imported portrait contains baked shading. Flatten skin-coloured texels on
+    // the head and neck before drawing features; leave black hair and pale cloth alone.
+    float neck = (1.0 - smoothstep(0.027, 0.038, abs(b.x))) * smoothstep(0.015, 0.035, b.z);
+    float head = smoothstep(mix(1.545, 1.49, neck), mix(1.56, 1.515, neck), b.y) * (1.0 - smoothstep(1.72, 1.74, b.y));
+    float warmSkin = smoothstep(0.055, 0.095, albedo.r - albedo.g)
+      * smoothstep(0.025, 0.055, albedo.g - albedo.b) * smoothstep(0.16, 0.28, albedo.r);
+    albedo = mix(albedo, ${v3(P.skin)}, head * warmSkin);
     if (b.z < ${f(F.front)} || b.y < 1.553 || b.y > 1.684 || abs(b.x - (${f(F.mid)})) > 0.072) return albedo;
     const vec3 INK = vec3(0.075, 0.058, 0.05);
     // 1. cover the paint: the skin round it, where a pixel isn't skin already
     vec2 xy = b.xy;
     float er = max(max(tfOval(xy, ${v2(P.eyes[0])}, ${v2(P.eyeHalf)}), tfOval(xy, ${v2(P.eyes[1])}, ${v2(P.eyeHalf)})),
       max(max(tfOval(xy, ${v2(P.brows[0])}, ${v2(P.browHalf)}), tfOval(xy, ${v2(P.brows[1])}, ${v2(P.browHalf)})), tfOval(xy, ${v2(P.mouth)}, ${v2(P.mouthHalf)})));
-    vec3 fill = mix(${v3(P.skin)}, ${v3(P.lid)}, 1.0 - smoothstep(0.0, 0.006, abs(b.y - 1.6505)));
-    albedo = mix(albedo, fill, er * smoothstep(0.03, 0.1, distance(albedo, fill)));
+    // Do not paint skin over the black fringe at the edge of the brow region.
+    float fringe = smoothstep(1.669, 1.681, b.y) * (1.0 - smoothstep(0.12, 0.28, albedo.r));
+    albedo = mix(albedo, ${v3(P.skin)}, er * (1.0 - fringe));
+    // Clear the old lip, smile creases and chin ink over the whole moving mouth.
+    float mouthBase = tfOval(xy, vec2(${f(F.mid)}, 1.579), vec2(0.044, 0.025));
+    albedo = mix(albedo, ${v3(P.skin)}, mouthBase);
     vec2 p = vec2(b.x - (${f(F.mid)}), b.y), q = vec2(abs(p.x), p.y);
     float side = sign(p.x);
     // 2. the brows: one thick stroke each, square at the inner end, tapering to a point
     vec2 I = uTfBrowA.xy, Pk = uTfBrowA.zw, O = uTfBrowB.xy;
+    float asym = side * uTfBrowB.w * 0.0045;
+    I.y += asym * 0.5; Pk.y += asym; O.y += asym * 0.7;
     if (q.x > I.x - 0.004 && q.x < O.x + 0.003 && abs(q.y - Pk.y) < 0.022) {
       float x = clamp(q.x, I.x, O.x);
       vec2 ys = tfQuad(x, I, Pk, O);
@@ -151,23 +166,18 @@ export const TRIPO_FACE_GLSL = (() => {
     float mw = uTfMouth.x, t = p.x / mw;
     if (abs(t) < 1.35 && abs(p.y - ${f(F.mouth.y)}) < 0.028) {
       float s2 = max(1.0 - t * t, 0.0);
-      float line = ${f(F.mouth.y)} + uTfMouth.y * t * t - 0.0003 * s2;
+      float line = ${f(F.mouth.y)} + uTfMouth.y * (t * t + uTfBrowB.w * t * 0.65) - 0.0003 * s2;
       float top = line + uTfMouth.w * pow(s2, 0.6), bot = line - uTfMouth.z * pow(s2, 0.7);
       float inside = step(0.0002, uTfMouth.z) * step(abs(t), 1.0) * smoothstep(bot - 0.5 * aa, bot + 0.5 * aa, p.y) * (1.0 - smoothstep(top - 0.5 * aa, top + 0.5 * aa, p.y));
       vec3 mc = mix(vec3(0.5, 0.2, 0.17), vec3(0.24, 0.08, 0.07), smoothstep(bot, top, p.y));
-      mc = mix(mc, vec3(0.92, 0.88, 0.8), step(top - min(0.0022, (top - bot) * 0.3), p.y) * step(0.0035, top - bot) * step(abs(t), 0.62));
+      mc = mix(mc, vec3(0.92, 0.88, 0.8), step(top - min(0.0042, (top - bot) * 0.4), p.y) * step(0.0035, top - bot) * step(abs(t), 0.78) * smoothstep(0.0, 0.002, uTfMouth.y));
       albedo = mix(albedo, mc, inside);
-      float slope = 2.0 * uTfMouth.y * t / mw;
+      float slope = uTfMouth.y * (2.0 * t + uTfBrowB.w * 0.65) / mw;
       float wm = mix(${f(0.0007 * TRIPO_GAIN.line)}, ${f(0.00035 * TRIPO_GAIN.line)}, abs(t)) * (1.0 - smoothstep(0.96, 1.06, abs(t)));
       vec3 lip = vec3(0.24, 0.12, 0.09);
       albedo = mix(albedo, lip, tfCover(abs(p.y - top) / sqrt(1.0 + slope * slope), max(wm, 0.55 * aa * step(0.0001, wm)), aa));
       // the open mouth's lower edge, finer
       albedo = mix(albedo, lip, step(0.0006, uTfMouth.z) * tfCover(abs(p.y - bot), max(wm * 0.6, 0.45 * aa * step(0.0001, wm)), aa));
-      // the corners: a short tick turned up by a smile, down by a frown
-      float ct = abs(t) - 1.05;
-      float cy = line + uTfMouth.y * (1.0 + 2.0 * ct) * 1.4 - ${f(F.mouth.y)};
-      float tick = step(abs(ct), 0.1) * tfCover(abs(p.y - ${f(F.mouth.y)} - cy), max(${f(0.00035 * TRIPO_GAIN.line)}, 0.5 * aa), aa) * smoothstep(0.0003, 0.0012, abs(uTfMouth.y));
-      albedo = mix(albedo, lip, tick * 0.8);
       // the lower lip: a short stroke under the mouth, lowered as it opens
       float ll = 1.0 - smoothstep(0.25, 0.4, abs(p.x) / ${f(F.mouth.w)});
       albedo = mix(albedo, lip, 0.45 * ll * tfCover(abs(p.y - (bot - 0.0047 - 0.0002 * s2)), max(${f(0.0003 * TRIPO_GAIN.line)}, 0.45 * aa), aa));
@@ -194,6 +204,15 @@ export function wearTripoFace(mesh) {
   mat.fragmentShader = mat.fragmentShader.slice(0, at) + TRIPO_FACE_GLSL + '\n  ' + mat.fragmentShader.slice(at);
   // (metres per pixel at the head: the derivatives taken out here, in uniform control flow)
   mat.fragmentShader = mat.fragmentShader.replace(SRGB_LINE, `${SRGB_LINE}\n albedo = tripoFace(albedo, vBind, max(fwidth(vBind.x) + fwidth(vBind.y), 1e-6) * 0.75);`);
+  // The face repair must never draw skin or brows onto the actual hair surface.
+  // A mesh-space scalp mask survives skinning and the garment split.
+  if (mesh.geometry.attributes.travellerHair) {
+    mat.vertexShader = mat.vertexShader.replace('out vec2 vTextureUV;', 'out vec2 vTextureUV;\nin float travellerHair; out float vTravellerHair; in float travellerSkin; out float vTravellerSkin;')
+      .replace('vTextureUV = uv;', 'vTextureUV = uv; vTravellerHair = travellerHair; vTravellerSkin = travellerSkin;');
+    mat.fragmentShader = mat.fragmentShader.replace('in vec2 vTextureUV;', 'in vec2 vTextureUV; in float vTravellerHair; in float vTravellerSkin;')
+      .replace('albedo = tripoFace(albedo, vBind, max(fwidth(vBind.x) + fwidth(vBind.y), 1e-6) * 0.75);',
+        'albedo = mix(albedo, vec3(0.72, 0.505, 0.37), smoothstep(0.15, 0.85, vTravellerSkin)); albedo = tripoFace(albedo, vBind, max(fwidth(vBind.x) + fwidth(vBind.y), 1e-6) * 0.75); albedo = mix(albedo, vec3(0.075, 0.058, 0.05), smoothstep(0.25, 0.65, vTravellerHair));');
+  }
   mat.needsUpdate = true;
   const face = {
     mesh,
@@ -224,7 +243,7 @@ export function wearTripoFace(mesh) {
       const u = mesh.material.uniforms;
       if (!u?.uTfBrowA) return;
       u.uTfBrowA.value.set(s.brow[0], s.brow[1], s.brow[2], s.brow[3]);
-      u.uTfBrowB.value.set(s.brow[4], s.brow[5], s.brow[6], 0);
+      u.uTfBrowB.value.set(s.brow[4], s.brow[5], s.brow[6], s.brow[7]);
       u.uTfEye.value.set(...s.eye);
       u.uTfMouth.value.set(...s.mouth);
     },

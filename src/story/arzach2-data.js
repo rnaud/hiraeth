@@ -59,7 +59,7 @@ export const QUESTS = [
     stages: [
       { id: 'carry', text: 'Carry Mother Ysolde’s letter across the long aqueduct to her sister Ondine, on the peach plain', label: 'Ondine, on the plain', bring: 'letter', to: 'ondine' },
       // (new: saves already at 'face' skip it, and can still light the lamp)
-      { id: 'lamp', text: 'Answer for Ondine with the old signal lamp on the tower’s plinth: turn its mirror to the carved bell (push the tiller from the side: C, middle click, or RB / R1), and light it (shoot)', label: 'The signal lamp', flag: 'arzach2.lamp.answered', at: 'lamp' },
+      { id: 'lamp', text: 'Answer for Ondine with the old signal lamp on the tower’s plinth: turn its mirror to the carved bell (push the tiller from the side: the gun’s push mode: X or the D-pad, then shoot), and light it (shoot)', label: 'The signal lamp', flag: 'arzach2.lamp.answered', at: 'lamp' },
       { id: 'face', text: 'Look at the face carved on the lone tower’s plinth', label: 'The face on the tower', flag: 'arzach2.face.seen', at: 'face' },
     ],
   },
@@ -295,7 +295,7 @@ export const THINGS = {
     id: 'tiles', name: 'Fallen-up tiles', title: 'before the church door', color: '#c9765c', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~neutral~ Fallen roof tiles pin the clapper down. One bright bronze end sticks out.",
-        "~neutral~ *Push the tiles aside* to free it: C, middle click or RB / R1."],
+        "~neutral~ *Push the tiles aside* to free it: the gun’s push mode: X or the D-pad, then shoot."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

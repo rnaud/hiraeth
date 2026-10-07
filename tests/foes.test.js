@@ -167,3 +167,162 @@ test('the blade: three arcs, a soft lock on the nearest foe, and only targets th
   tool.dispose();
   clearTargets();
 });
+
+test('held, the guard button raises the guard (after a swing): a strike from in front is blocked for a charge, the foe reels; from behind, or with the tank empty, it gets through', async () => {
+  const { GUARD, inGuard } = await import('../src/fluid-blade.js');
+  assert.ok(inGuard(v(), v(0, 0, 1), v(1, 0, 3)) && !inGuard(v(), v(0, 0, 1), v(0, 0, -3)), 'in front, not behind');
+  clearTargets();
+  const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, -3); camera.lookAt(0, 1.6, 10); camera.updateMatrixWorld();
+  const P = player(v()); P.heading = 0; P.flinches = 0; P.flinch = function () { this.flinches++; };
+  const tool = new FluidTool({ scene: new THREE.Scene(), player: P, physics: flat, camera, rig: { aimK: 0 }, state: new GameState(null) });
+  tool.update(DT, { KeyF: true });                                        // a swing…
+  for (let i = 0; i < 1.2 / DT; i++) tool.update(DT, { ControlLeft: true });   // …then the guard held
+  assert.ok(tool.blade.guarding, 'the guard is up');
+  assert.equal(typeof P.guard, 'function', 'the player asks the blade');
+  const game = new GameState(null);
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: P, tool, settings: { enemies: true }, game });
+  const front = foes.add('blot', v(0, 0, 1.5)), charges = tool.reserve.charges;
+  assert.equal(foes.strike(front), false, 'blocked');
+  assert.deepEqual(P.hurts, [], 'no harm');
+  assert.equal(tool.reserve.charges, charges - 1, 'a charge spent');
+  assert.equal(front.state, 'recover', 'the foe reels');
+  assert.ok(tool.blade.parry > 0 && tool.blade.parry <= GUARD.parryFor, 'the arm takes the blow');
+  const behind = foes.add('blot', v(0, 0, -1.5));
+  assert.equal(foes.strike(behind), true, 'from behind it gets through');
+  assert.equal(P.hurts.length, 1);
+  assert.equal(P.flinches, 1, 'and the traveller flinches');
+  tool.reserve.level = 0;
+  assert.equal(foes.strike(front), true, 'with the tank empty it gets through');
+  // a perfect parry: the guard raised just as the strike comes costs nothing, and the foe is stunned
+  tool.reserve.level = 1;
+  for (let i = 0; i < 0.6 / DT; i++) tool.update(DT, {});
+  let up = 0; while (!tool.blade.guarding && up++ < 60) tool.update(DT, { ControlLeft: true });
+  const late = foes.add('blot', v(0, 0, 1.5));
+  assert.equal(foes.strike(late), false, 'parried');
+  assert.equal(tool.reserve.level, 1, 'for nothing');
+  assert.ok(late.stunned > 1, 'and the foe is stunned');
+  // let go: the guard comes down
+  for (let i = 0; i < 0.6 / DT; i++) tool.update(DT, {});
+  assert.equal(tool.blade.guarding, false);
+  tool.dispose(); foes.dispose(); clearTargets();
+});
+
+test('feel: a hit-stop nearly stops the world for its length, then lets go; four foes round you take turns, two striking at most, and keep apart', async () => {
+  const { hitStop, feelDt, resetFeel, FEEL } = await import('../src/feel.js');
+  resetFeel();
+  hitStop(0.05);
+  assert.ok(feelDt(DT) <= Math.max(DT * FEEL.slow, 1e-5), 'the frame freezes');
+  for (let i = 0; i < 5; i++) feelDt(DT);
+  assert.equal(feelDt(DT), DT, 'and back to its pace');
+  clearTargets();
+  const P = player(v(0, 0, 0));
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: true }, game: new GameState(null) });
+  foes.waveRest = 999;
+  for (const [x, z] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) foes.add('blot', v(x, 0, z));
+  let most = 0;
+  for (let i = 0; i < 6 / DT; i++) { foes.update(DT); most = Math.max(most, foes.list.filter((f) => f.state === 'wind').length); P.health = 1; }
+  assert.ok(most >= 1 && most <= 2, `at most two wind up at once (${most})`);
+  const [a, b] = foes.list;
+  a.pos.set(5, 0, 5); b.pos.set(5.1, 0, 5);
+  foes.keepApart();
+  assert.ok(a.pos.distanceTo(b.pos) > 1, 'pushed apart');
+  foes.dispose(); clearTargets();
+});
+
+test('ink: each foe cut down leaves ink, and the blade grows at its steps (reach, whirl, lunge), each said once', async () => {
+  const { gainInk, inkOf, hasUpgrade, UPGRADES } = await import('../src/ink.js');
+  const game = new GameState(null), notes = [];
+  assert.equal(hasUpgrade('reach', game), false);
+  gainInk(1, { game, notice: (t) => notes.push(t) });
+  assert.match(notes[0], /ink/i, 'the first ink is explained');
+  const reached = [];
+  for (let i = 1; i < 45; i++) reached.push(...gainInk(1, { game, notice: (t) => notes.push(t) }).map((u) => u.id));
+  assert.deepEqual(reached, UPGRADES.map((u) => u.id), 'each step once, in order');
+  assert.equal(inkOf(game), 45);
+  for (const u of UPGRADES) assert.ok(hasUpgrade(u.id, game) && notes.includes(u.text), u.id);
+});
+
+test('a relic out in the wilds is guarded: its blots gather as you come near, and once cut down they are gone for good', async () => {
+  clearTargets();
+  const game = new GameState(null);
+  const P = player(v(0, 0, 380));
+  const content = { npcs: [], relics: { spots: [{ at: [0, 0, 420] }], names: ['r'] } };
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', content, physics: flat, player: P, settings: { enemies: true }, game });
+  foes.packRest = 999;
+  foes.update(DT);
+  assert.equal(foes.list.length, 0, 'not yet: 40 m away');
+  P.pos.set(0, 0, 395);
+  foes.update(DT);
+  const guards = foes.list.filter((f) => f.guard);
+  assert.equal(guards.length, 2, 'two guards round it');
+  for (const f of guards) for (let i = 0; i < 2; i++) foes.hurt(f, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(game.flag('foes.desert.r0'), true, 'cleared');
+  for (let i = 0; i < 1 / DT; i++) foes.update(DT);
+  assert.equal(foes.list.filter((f) => f.guard && f.alive).length, 0, 'and they do not come back');
+  foes.dispose(); clearTargets();
+});
+
+test('more foes: the spitter keeps its distance and lobs at where you stand, the flyer hovers out of reach and dives low, the swarm falls to a push; a stilled foe takes the blade double', async () => {
+  const { packKinds, waveWords } = await import('../src/foes.js');
+  // the spitter: it backs off when you come close, and its ring lands where you stood
+  const s = new Foe('spitter', v(0, 0, 0), { rng: () => 0.5 }), P = player(v(0, 0, 4));
+  run(s, P, 0.5);
+  assert.ok(s.pos.distanceTo(P.pos) > 4.2, 'backs off');
+  let warned = false; for (let i = 0; i < 6 / DT && !warned; i++) warned = s.update(DT, P, env).includes('warn');
+  assert.ok(warned && s.attackAt.distanceTo(v(P.pos.x, 0, P.pos.z)) < 0.01, 'its ring is drawn under you');
+  // the flyer: high, out of the blade's reach; after its dive, low
+  const f = new Foe('flyer', v(0, 0, 0), { rng: () => 0.5 }), Q = player(v(0, 0, 5));
+  run(f, Q, 0.3);
+  assert.ok(f.chest.y > 3, 'flies high');
+  let dove = false; for (let i = 0; i < 8 / DT && !dove; i++) dove = f.update(DT, Q, env).some((e) => e.type === 'strike');
+  assert.ok(dove && f.alt < 1, 'dove, and low');
+  // the swarm: a push ends one; a stilled blot takes a cut double
+  const w = new Foe('swarm', v());
+  assert.equal(w.hit('push', v(0, 0, 1), { shove: 2 }), 'burst');
+  const b = new Foe('blot', v()); b.hit('stun');
+  assert.equal(b.hit('blade', v(0, 0, 1), { damage: 1 }), 'burst', 'stilled: one cut is two');
+  // packs: the first one blot; flyers only under open sky
+  assert.deepEqual(packKinds(0, 'desert'), ['blot']);
+  for (let i = 0; i < 40; i++) assert.ok(!packKinds(3, 'desert', () => (i % 10) / 10).includes('flyer'), 'no flyers in the desert');
+  assert.ok([...Array(40)].some((_, i) => packKinds(3, 'arzach', () => (i % 10) / 10).includes('flyer')), 'flyers in Vael');
+  assert.equal(waveWords(['machine', 'machine', 'blot', 'blot', 'flyer']), '2 machines, 1 winged blot and 2 ink blots');
+});
+
+test('difficulty: gentle halves the harm, slows the wind-ups and lets one strike at a time; off has none; an old on / off setting carries over', async () => {
+  const { GENTLE } = await import('../src/foes.js');
+  globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget();   // (ui.js reads them at import)
+  const { migrateSettings } = await import('../src/ui.js');
+  assert.equal(migrateSettings({ enemies: true }).enemies, 'normal');
+  assert.equal(migrateSettings({ enemies: false }).enemies, 'off');
+  clearTargets();
+  const P = player(v(0, 0, 0));
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'desert', physics: flat, player: P, settings: { enemies: 'gentle' }, game: new GameState(null) });
+  assert.equal(foes.strikers, 1);
+  const f = foes.add('blot', v(0, 0, 1.5));
+  P.health = 0.2; foes.strike(f);
+  assert.ok(Math.abs(P.hurts.at(-1) - FOES.blot.attack.damage * GENTLE.harm) < 1e-9, 'half the harm');
+  assert.equal(foes.env.slow(), GENTLE.wind);
+  const off = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', physics: flat, player: P, settings: { enemies: 'off' }, game: new GameState(null) });
+  assert.equal(off.on, false);
+  foes.dispose(); off.dispose(); clearTargets();
+});
+
+test('the shade: a person of living shadow, in later packs and in the Arena, tougher than a blot, cutting with a sword\'s swing', async () => {
+  const { packKinds, WAVES, waveWords } = await import('../src/foes.js');
+  const { SHADE_STRIKE } = await import('../src/shade.js');
+  assert.ok(FOES.shade.hp > FOES.blot.hp && FOES.shade.attack.shape === 'cone');
+  assert.ok(SHADE_STRIKE.from < SHADE_STRIKE.cut && SHADE_STRIKE.cut < SHADE_STRIKE.to, 'the clip winds up to its cut, then follows through');
+  assert.deepEqual(packKinds(3, 'desert', () => 0.05), ['shade'], 'a lone shade in a later pack');
+  assert.ok(!packKinds(1, 'desert', () => 0.05).includes('shade'), 'never early on');
+  assert.ok(WAVES.some((w) => w.includes('shade')), 'and in the Arena');
+  assert.equal(waveWords(['shade', 'shade', 'blot']), '2 shades and 1 ink blot');
+  // without the game's bodies (here, in node) it still fights, drawn as a blot
+  clearTargets();
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: player(v()), settings: { enemies: 'normal' }, game: new GameState(null) });
+  const s = foes.add('shade', v(0, 0, 2));
+  for (let i = 0; i < 4; i++) foes.hurt(s, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(s.alive, true, 'four cuts are not enough');
+  foes.hurt(s, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(s.alive, false);
+  foes.dispose(); clearTargets();
+});

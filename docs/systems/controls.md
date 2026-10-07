@@ -11,14 +11,14 @@ npm run dev     # http://localhost:5173
 
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
-**F** swings the fluid blade (LB / L1 on a controller, ⚔ on touch: docs/systems/foes.md). **F3** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
+**F** swings the fluid blade (RB / R1 on a controller, ⚔ on touch), **Ctrl** or **Z** held (on land) guards (LB / L1, 🛡), **Tab** locks on to a foe (R3, ◉): docs/systems/foes.md. The push is a gun mode (X, the D-pad, ◐), fired as a shot; C and the middle button do nothing now. **F3** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after
 five seconds; ping again to refresh it. The guide follows quest progress and
 portal routes, with local obstacle avoidance. **L** opens the level picker. Each level's controls are listed in [worlds.md](worlds.md), "Levels".
 
 **The tool:** hold right mouse (or **R**) to aim, click (or **G**) to fire, and
-**X** (or middle click) to switch modes. On a gamepad, LT aims, RT fires while
+**X** to switch modes (fluid, push, and those found). On a gamepad, LT aims, RT fires while
 aiming and the D-pad switches; on touch, use **◎ ✺ ⇄**. The paralyze ray
 freezes wildlife and people briefly. Foam darts activate things from afar:
 reactive scenery, observatory lenses within 30 m, cruising
@@ -39,11 +39,12 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
 | riding | jump off (a hop, its speed carries you) | get off (moving or flying: jump off) | hop / flap / rise (a cab: where to?) | |
 
 - **Walking:** left stick moves; click it (L3) to run, until you let the stick go.
-  Right stick looks; hold LB / L1 and the right stick zooms (a press of LB / L1 on its own swings the fluid blade). LT / L2 aims the fluid
-  tool and RT / R2 shoots while it is held; RT / R2 without LT fires the **jets**
-  (see "The controls of October 2026" below). RB / R1
-  pushes, D-pad left / right changes the gun mode, up the worlds, down photo mode,
-  R3 sounds the bell-note whistle. View / Select opens the sketchbook on your **gear**
+  Right stick looks; hold LB / L1 and the right stick zooms (with no foe near: in a fight LB / L1 is the
+  guard). LT / L2 aims the fluid tool and RT / R2 shoots while it is held (the **push** is a gun mode, fired
+  the same way); RT / R2 without LT fires the **jets** (see "The controls of October 2026" below).
+  **RB / R1 swings the fluid blade** (press again to chain three swings), **LB / L1 held guards**, **R3 locks
+  on** to the nearest foe, then the next, then lets go (docs/systems/foes.md). D-pad left / right changes the
+  gun mode (fluid, push and those found), up sounds the bell-note whistle, down photo mode. View / Select opens the sketchbook on your **gear**
   (every item and what it does, `gearHtml` in `src/items.js`); Menu / Start the settings.
 - **The pad's interact never whistles.** On the keyboard E still falls back to the
   whistle when nothing is near; on a pad that is the left button's (`player.callMount`).

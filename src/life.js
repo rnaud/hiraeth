@@ -226,13 +226,13 @@ export class Footprints {
    * the colour of its surface, sand, moss, stone or tiles alike. Normals,
    * depth and marks are left alone, so prints don't get outlined.
    */
-  constructor(scene, { count = 160, life = 30, depth = 0.87 } = {}) {
+  constructor(scene, { count = 160, life = 30, depth = 0.87, geometry = null } = {}) {   // (geometry: another shape, flat in xy: a shade's pools)
     this.count = count;
     this.life = life;
     // a sole: heel and ball as two ovals, toe forward (+z)
     const sole = new THREE.Shape();
     sole.absellipse(0, -0.075, 0.042, 0.05, 0, Math.PI * 2);
-    const g = mergeSole([new THREE.ShapeGeometry(sole, 10), new THREE.ShapeGeometry(new THREE.Shape().absellipse(0.004, 0.055, 0.05, 0.075, 0, Math.PI * 2), 12)]);
+    const g = geometry ?? mergeSole([new THREE.ShapeGeometry(sole, 10), new THREE.ShapeGeometry(new THREE.Shape().absellipse(0.004, 0.055, 0.05, 0.075, 0, Math.PI * 2), 12)]);
     g.rotateX(Math.PI / 2);
     const material = new THREE.ShaderMaterial({
       glslVersion: THREE.GLSL3,

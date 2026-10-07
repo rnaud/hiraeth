@@ -54,7 +54,7 @@ export const QUESTS = [
     outro: 'Dov ate it at his post, standing up, with his eyes shut.',
     stages: [
       // (src/story/incal.js: the tin hangs in the old goods hoist's basket, out over the void; shoot the pin, push the weight round)
-      { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin (shoot: aim with R, right click or LT / L2, then G, a click or RT / R2), push the hoist round (push: C, middle click, or RB / R1) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
+      { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin (shoot: aim with R, right click or LT / L2, then G, a click or RT / R2), push the hoist round (push mode: X or the D-pad, then shoot) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
       { id: 'carry', text: 'Carry Pip’s ration tin up to his uncle Dov, the palace guard', label: 'Dov, at the palace gate', bring: 'ration', to: 'dov' },
     ],
   },
@@ -64,7 +64,7 @@ export const QUESTS = [
     outro: 'The halfway mirror faces up the shaft again. When the Lodestar shines, a coin of its light goes down to the bottom terraces.',
     stages: [
       { id: 'wash', text: 'Wash the smog off the halfway mirror beside Perrine’s tea stall (shoot)', label: 'The halfway mirror', flag: 'incal.mirror.washed', at: 'mirror' },
-      { id: 'turn', text: 'Turn the mirror round on its pole until it faces up the shaft, toward the Lodestar (push it from the side: C, middle click, or RB / R1)', label: 'The halfway mirror', flag: 'incal.mirror.turned', at: 'mirror' },
+      { id: 'turn', text: 'Turn the mirror round on its pole until it faces up the shaft, toward the Lodestar (push it from the side: the gun’s push mode: X or the D-pad, then shoot)', label: 'The halfway mirror', flag: 'incal.mirror.turned', at: 'mirror' },
       { id: 'tell', text: 'Tell Perrine the mirror faces up again', label: 'Perrine, at the halfway stall', talk: 'perrine', at: 'perrine' },
     ],
   },
@@ -582,7 +582,7 @@ export const THINGS = {
       nodes: {
         stuck: {
           say: ["~neutral~ A *ration tin* hangs in a hoist basket over the drop. *A rusty pin* locks the hoist arm in place.",
-            "~neutral~ Free the pin with *Shoot*: aim, then G, left click or RT / R2. Turn the arm with *Push*: C, middle click or RB / R1."],
+            "~neutral~ Free the pin with *Shoot*: aim, then G, left click or RT / R2. Turn the arm with *Push*: the gun’s push mode (X or the D-pad), then shoot."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         loose: { say: ["~neutral~ The pin is out. *Push the counterweight sideways round the post* to swing the basket in. Pushing along the arm won’t help."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -601,7 +601,7 @@ export const THINGS = {
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         clean: {
-          say: [{ if: { not: { flag: 'incal.mirror.turned' } }, text: "~neutral~ Clean now. It faces sideways, at a billboard selling something bright. *Push the frame from the side* (C, middle click or RB / R1) to turn it, one notch at a time, until it faces up the shaft." }],
+          say: [{ if: { not: { flag: 'incal.mirror.turned' } }, text: "~neutral~ Clean now. It faces sideways, at a billboard selling something bright. *Push the frame from the side* (the gun’s push mode: X or the D-pad, then shoot) to turn it, one notch at a time, until it faces up the shaft." }],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         up: {

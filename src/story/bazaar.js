@@ -155,7 +155,7 @@ export function setupBazaar(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearCrates(); return true; }
       st.crateWobble = 1;
-      if (!st.crateHint) { st.crateHint = true; toast('The crates rock and settle. They need a shove: push (C, middle click, or RB / R1).'); }
+      if (!st.crateHint) { st.crateHint = true; toast('The crates rock and settle. They need a shove: push (the gun’s push mode: X or the D-pad, then shoot).'); }
       return true;
     } });
   const placeCrates = (k) => {

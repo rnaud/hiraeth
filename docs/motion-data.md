@@ -7,7 +7,7 @@ see docs/credits.md). On top of it come motion-captured takes from two sources, 
 | File | What | Size | Loaded |
 |---|---|---|---|
 | `public/anim/walks.glb` | 12 walking cycles of CMU subjects: the people's own walks | 81 KB | always (after the game starts, not waited for) |
-| `public/anim/moves.glb` | the traveller's own moves: 21 Mixamo clips (get-ups, jumps, a stumble, idles, turns, a kneel, the petting, the fluid blade's three swings) | 486 KB | always (after the game starts, not waited for) |
+| `public/anim/moves.glb` | the traveller's own moves: 25 Mixamo clips (get-ups, jumps, a stumble, idles, turns, a kneel, the petting, the fluid blade's three swings, its guard and block, a flinch) | 523 KB | always (after the game starts, not waited for) |
 | `public/anim/locomotion.glb` | the motion-matching database: 75 CMU clips and 33 Mixamo ones (267 s; mirrored at load) | 1.39 MB | only with motion matching switched on (dev menu, `?mm=1`) and in the character studio |
 
 The raw downloads live in `data/mocap/raw/` and `data/mocap/mixamo/`, which git ignores;
