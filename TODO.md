@@ -17,14 +17,20 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Animation
 
-- [ ] Evaluate learned motion matching only if it measures better than the conventional system
-  (motion matching exists, `?mm=1`, but measures behind the loops: the data, not the method, is
-  short). **Blocked on the author**: Mixamo's starts, stops and turns are pending their downloads
-  (docs/mixamo-shopping-list.md).
+- [x] Evaluate learned motion matching only if it measures better than the conventional system:
+  measured again with Mixamo's 25 starts, stops and turns in its database (2026-10-07): it still
+  slides two to five times as far as the loops (the game walks at 3.8 m/s, faster than any captured
+  walking start), so the loops stay the default (`?mm=1` keeps the matcher) and the new clips play
+  over them as captured starts, stops and turns (src/loco-moves.js; docs/systems/animation.md). Next:
+  starts, stops and turns at the game's speeds would let the legs follow the capture too.
 
 ## Dialogue
 
-- [ ] The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: a blank
+- [x] (2026-10-07, the Retroid in the GeckoView test app: the portrait draws the person in all four
+  conversations tried, 210 × 210, 280–440 colours; the Sketchbook's relic sketches and the game menu's 23 item
+  pictures draw too. So in the app's engine the canvas read works and the capture path stays as it is; the blank
+  disc was the device's Chrome, not measured this round. docs/systems/performance.md, "The Retroid, round 4".)
+  The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: a blank
   yellow disc — that is `person.color ?? '#d8a24a'`, the chip's background, with `img.hidden` left
   true or the image blank). **Not reproduced on the desktop**: a headless Chrome 154 (the device's
   version) at the Handheld preset and device pixel ratio 2 draws the person — 210 × 210, 265 distinct
@@ -47,7 +53,13 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Android
 
-- [ ] Next time the Retroid is attached, in the GeckoView test app (never the player's app): measure the
+- [x] (2026-10-07, docs/systems/performance.md "The Retroid, round 4": the pen never stopped over 50 ms in seven
+  loads, before 6b10cc0 and after; the merged towers draw as unmerged on the Adreno; portraits, the Sketchbook and
+  the item pictures draw, the pictures cost one 15–29 ms frame each for 23 frames as the Items panel opens; cab
+  rides at 59–60 fps, the route planned in 0.2–0.4 ms; every world again: the traveller's update 2.7–3.6 → 1.0–1.4
+  ms, the camps 45 → 56 fps, Qanat 49 → 57, the City-Shaft's rim 50 → 59. Found and fixed: dynamic resolution
+  held 0.75 looking down the City-Shaft, GPU-bound at 44 fps; it probes a step down now, 53.5 fps at 0.55.)
+  Next time the Retroid is attached, in the GeckoView test app (never the player's app): measure the
   loading pen through a desert and a City-Shaft load (`adb shell screenrecord`, then
   `scripts/transition-perf/pen.mjs`'s `angles()`); check the City-Shaft's merged towers (`S_VMAT`, checked
   in Firefox / Chrome Metal / SwiftShader on the Mac) draw as unmerged; the speaker's portrait and the
@@ -66,11 +78,17 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 - [ ] Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
   fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
   then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the
-  before/after table.
-- [ ] Decide the Retroid's `cpuBound` guard (0.85) for the Deck preset from those numbers (left on: the
-  one reading so far, the desert at 17–22 fps with the renderer at 100 %+ of a core, points to CPU-bound).
-- [ ] Compare ANGLE's GL and Vulkan backends under gamescope; check the loading pen turns smoothly in a
-  Deck load; check the new Updates section on the Deck itself (runtime 830001 and later).
+  before/after table. Done so far (2026-10-07): the Deck preset, fixed and dynamic, in the desert and the
+  City-Shaft under headless gamescope (Gaming Mode's X11); the Deck slept at the Market. Left: the other ten
+  worlds, High at 1.5×, Desktop Mode. Needs the Deck plugged in (or Desktop Mode): on battery in Gaming
+  Mode it sleeps ~15 min after the last input.
+- [x] Decide the Retroid's `cpuBound` guard (0.85) for the Deck preset from those numbers: kept on. On the
+  Deck (Gaming Mode's X11, the desert and the City-Shaft) JS 19–28 ms a frame against GPU 6–15; dynamic held
+  scale 1 at the fixed run's frame rate (performance.md, "The Steam Deck").
+- [ ] Compare ANGLE's GL and Vulkan backends under gamescope (`GPU=vulkan scripts/bench/deck-run.sh ...`);
+  check the loading pen turns smoothly in a Deck load (`scripts/bench/deck-pen.mjs`); check the new Updates
+  section on the Deck itself (the Deck has runtime 830001 and web 969 now, and the site 970001: Check,
+  Download and Restart now should take it to 970001).
 
 ## The Unity bridge
 
@@ -90,7 +108,13 @@ still differs"). What is left needs a device or a policy:
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached. (2026-10-07: the bridge's
   APK builds, 73 MB, `BridgeBuild.Android`; `scripts/bench/android-bridge.sh desert -views
   scripts/bench/viewpoints.json -bench 8 -split` installs and runs it, muted, and pulls its results.
-  The Linux player for the Deck builds too: engine-bridge.md, "The players again".)
+  The Linux player for the Deck builds too: engine-bridge.md, "The players again".) (2026-10-07, on the Retroid:
+  it starts, the world ready in 3.5 s, but it never ran its plan: the `unity` extra did not reach it, so neither
+  did `-mute` (it played the desert with its sound for ten minutes before the script's limit stopped it). Fixed,
+  not yet seen on the device: the script quotes the extra, `BridgeArgs.CommandLine` reads the activity's intent
+  on Android, and the script stops a player that has not logged its plan within 20 s, and refuses a locked
+  handheld (the second run met the lock screen: the device had locked itself; engine-bridge.md, "On the
+  Retroid".) Next: unlock, `android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split`.)
 - [x] The Unity player at the camps and the Market's crowd: 0.7–1.5 ms a frame behind the web (2026-10-07,
   engine-bridge.md "Speed"; level at the dunes, ahead at the City-Shaft). The script's thread is the frame
   there; next: the sound's synthesis off it, the people's bone matrices. (2026-10-07: the capes' cloth in Burst
@@ -98,7 +122,9 @@ still differs"). What is left needs a device or a policy:
   every view at or under the web; engine-bridge.md "The script's frame against the web's".)
 - [ ] The Android player's script thread and sound thread (BridgeRunner runs the script, and the sound's renderer,
   on threads of their own since 2026-10-07; checked on macOS only, no device): run it there once a device is free
-  (`-js-main`, `-audio-js` if they fail).
+  (`-js-main`, `-audio-js` if they fail). (2026-10-07, the Retroid: both started on their own threads and the game ran, "the script on its
+  own thread", "the sound on its own thread (24000 Hz)", the audio replay's node counts steady over 6 minutes;
+  their frame times wait for the bench run above.)
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
   unknown MCP servers (the configured UnityMCP server also fails to connect). The editor is driven in
   batch mode instead (`scripts/unity-export/unity-batch.sh`).

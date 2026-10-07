@@ -32,8 +32,8 @@ const CSS = `
 `;
 
 export class DevMenu {
-  constructor({ levelId, levels = [], boxes = null, quests = null, story = null, onTravel = null, matching = null, game: g = sharedGame } = {}) {
-    Object.assign(this, { levelId, levels, boxes, quests, story, onTravel, matching, g });
+  constructor({ levelId, levels = [], boxes = null, quests = null, story = null, onTravel = null, matching = null, moves = null, game: g = sharedGame } = {}) {
+    Object.assign(this, { levelId, levels, boxes, quests, story, onTravel, matching, moves, g });
     this.open = false;
     this.dom = typeof document !== 'undefined' && !!document.head && typeof document.createElement === 'function';
     if (!this.dom) return;
@@ -46,6 +46,7 @@ export class DevMenu {
       if (c.dataset.item) this.setItem(c.dataset.item, c.checked);
       if (c.dataset.flag) this.setFlag(c.dataset.flag, c.checked);
       if (c.dataset.opt === 'matching') this.matching?.set(c.checked);
+      if (c.dataset.opt === 'moves') this.moves?.set(c.checked);
     });
     el.addEventListener('click', (e) => {
       const b = e.target.closest?.('button');
@@ -118,6 +119,8 @@ export class DevMenu {
       <div class="btns" style="margin-top:8px"><button data-a="complete" type="button">complete current world</button></div>
       ${this.matching ? `<h2>Motion</h2><label class="item"><input type="checkbox" data-opt="matching"${this.matching.get() ? ' checked' : ''}>Motion matching (CMU capture)<small>traveller</small></label>
       <p class="hint">the traveller's walk, run, stops and turns picked from motion capture; off: the blended loops</p>
+      ${this.moves ? `<label class="item"><input type="checkbox" data-opt="moves"${this.moves.get() ? ' checked' : ''}>Captured starts, stops and turns<small>traveller</small></label>
+      <p class="hint">over the loops: setting off, stopping, turning on the spot and the pivot at a run from Mixamo's capture (the body above the legs); off: the loops alone</p>` : ''}
       <div class="btns"><button data-a="motionpage" type="button">the Motion page</button></div>
       <p class="hint">both side by side on a test ground, the matcher's debug, the people's walks (motion.html; leaves the game)</p>` : ''}
       <h2>Teleport</h2><div class="worlds">${worlds}</div>

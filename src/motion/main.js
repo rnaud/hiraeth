@@ -19,7 +19,10 @@ import { applyTimeOfDay } from '../timeofday.js';
 import { loadAnimationLibrary, Animator } from '../animator.js';
 import { loadMotionLibrary, MotionMatcher, MATCH } from '../motion-match.js';
 import { loadHuman, Humanoid } from '../humanoid.js';
-import { Player } from '../player.js';
+import { Player, buildCharacter } from '../player.js';
+import { loadTravellerV1, createTravellerV1 } from '../characters/traveller-v1.js';
+import { loadBody as loadMakeHumanBody } from '../makehuman/body.js';
+import { MakeHumanPeople } from '../makehuman/people.js';
 import { Physics } from '../physics.js';
 import { NPC } from '../npc.js';
 import { stick as deadzone } from '../controller.js';
@@ -36,7 +39,7 @@ const view = $('view'), statusEl = $('status'), overlay = $('overlay'), ctx = ov
 let state = decodeState(location.search);
 const setStatus = (t) => { statusEl.textContent = t; };
 const FPS = 60, DT = 1 / FPS;
-const COLORS = { loops: '#3f5fae', mm: '#c8483a', pred: '#c8483a', match: '#2f7f6f', path: '#2b211f', l: '#2b211f', r: '#8a4f9e' };
+const COLORS = { v1: '#2b211f', mh: '#2f7f6f', loops: '#3f5fae', mm: '#c8483a', pred: '#c8483a', match: '#2f7f6f', path: '#2b211f', l: '#2b211f', r: '#8a4f9e' };
 
 // ------------------------------------------------------------------ the game's pipeline
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: true });
@@ -114,9 +117,12 @@ const LANE = 0.9;                                // duo: the loops at +x, matchi
 // ------------------------------------------------------------------ assets
 const BASE = import.meta.env.BASE_URL;
 const t0 = performance.now();
-const [lib, hm, hf, travellerScene] = await Promise.all([
+const [lib, hm, hf, travellerScene, travellerV1, mhData] = await Promise.all([
   loadAnimationLibrary(`${BASE}anim/ual.glb`), loadHuman('m'), loadHuman('f'),
   new GLTFLoader().loadAsync(`${BASE}anim/traveller.glb`).then((g) => g.scene).catch(() => null),
+  // the game's traveller (the coral shirt: src/characters/traveller-v1.js), and the MakeHuman people's body
+  loadTravellerV1(BASE).catch((e) => { console.warn('motion: no traveller v1, the old one', e); return null; }),
+  loadMakeHumanBody(BASE).catch(() => null),
 ]);
 // the captured motion: the people's walks (walks.glb) and the matching database, whatever
 // locomotion.glb holds (CMU now; Mixamo's starts, stops and turns once rebuilt with them)
@@ -131,8 +137,9 @@ const noItems = { has: () => false };
 function makeTraveller(key, matching) {
   const p = new Player(physics, { climb: false, health: false, items: noItems });
   p.animator = new Animator(lib, p.char);
-  p.humanoid = travellerScene ? new Humanoid(hm, p.char, 'm', { outfit: travellerScene }) : new Humanoid(hm, p.char, 'm', { suit: true });
-  p.humanoid.ownMaterials();
+  if (travellerV1) { p.character = createTravellerV1(p.char, travellerV1); p.humanoid = p.character.humanoid; }
+  else p.humanoid = travellerScene ? new Humanoid(hm, p.char, 'm', { outfit: travellerScene }) : new Humanoid(hm, p.char, 'm', { suit: true });
+  p.humanoid.ownMaterials?.();
   p.attach(scene);
   markHero(p.char.root);
   const T = { key, p, matching, frames: [], prev: null, t: 0, ring: [], err: null, live: null, last: null, series: {} };
@@ -140,13 +147,15 @@ function makeTraveller(key, matching) {
   return T;
 }
 const travellers = { loops: makeTraveller('loops', false), mm: makeTraveller('mm', true) };
-const NAMES = { loops: 'Loops (the default)', mm: 'Motion matching' };
+const NAMES = { loops: 'Loops (the default)', mm: 'Motion matching', v1: 'The traveller', mh: 'A MakeHuman person' };
 
 /** Back to standing at `at` facing +z, as the harness's traveller starts every run (a fresh Animator: its blend, phase and matcher). */
 function resetTraveller(T, at) {
   const p = T.p;
   p.animator = new Animator(lib, p.char);
   p.animator.matching = T.matching && !!db;
+  p.locoMoves = state.moves;
+  p.moves = null;
   Object.assign(p, { loco: null, _stepLag: null, _turn: 0, _lastHeading: undefined, _feetO: null, _moveDir: null, _wantSpeed: 0, _accel: 8, _still: 0, _animAcc: 0, time: 0, _jumpHeld: false, heading: 0, onGround: true });
   p.pos.copy(at); p.pos.y = physics.groundAt(at.x, at.y + 5, at.z);
   p.vel.set(0, 0, 0);
@@ -159,6 +168,58 @@ function resetTraveller(T, at) {
 function resetNumbers(T) { T.frames = []; T.prev = null; T.t = 0; T.ring = []; T.err = { pred: [0, 0, 0], match: [0, 0, 0], n: [0, 0, 0], nm: [0, 0, 0] }; T.live = null; }
 /** Which travellers this mode drives. */
 const active = () => (state.mode === 'duo' ? [travellers.loops, travellers.mm] : state.mode === 'solo' ? [travellers.loops] : []);
+
+// ------------------------------------------------------------------ the moves (moves.glb): on the traveller and on a MakeHuman person
+// Each played as the game plays a move (Animator.play: laid over the blend, the body following the
+// clip's hips), so what is seen here is what the game draws; the feet as the clip has them.
+const MOVES_AT = new THREE.Vector3(0, 0, -150);
+const moveNames = () => (motion.clips ?? []).map((c) => c.name);
+const moveClip = () => motion.clips.find((c) => c.name === state.move) ?? motion.clips[0] ?? null;
+const moveBodies = (() => {
+  const out = [];
+  const T = { key: 'v1', p: null };
+  const v1 = new Player(physics, { climb: false, health: false, items: noItems });
+  v1.animator = new Animator(lib, v1.char);
+  if (travellerV1) { v1.character = createTravellerV1(v1.char, travellerV1); v1.humanoid = v1.character.humanoid; }
+  else v1.humanoid = new Humanoid(hm, v1.char, 'm', { suit: true });
+  v1.gear = { update() {}, device: { visible: true }, noShadow: [] };   // (no gear: but no robe either, Player.updateCloth gives a body without gear one)
+  v1.humanoid.ownMaterials?.();
+  v1.attach(scene);
+  markHero(v1.char.root);
+  T.p = v1; T.name = travellerV1 ? 'The traveller' : 'The traveller (old body)';
+  out.push(T);
+  if (mhData) {
+    const npc = new NPC(scene, physics, { route: [MOVES_AT.clone()], cape: 0, lines: ['~neutral~ …'], lib, human: new MakeHumanPeople(mhData).template('m'), kind: 'm' });
+    npc.restyle({ ...BLANK('m'), cloth: '#a9c4b8' });
+    npc.humanoid.ownMaterials?.();
+    out.push({ key: 'mh', npc, name: 'A MakeHuman person' });
+  }
+  return out;
+})();
+const bodyOf = (B) => B.p ?? B.npc;
+let moveClock = 0;
+/** Pose every move body `t` s into the clip (dt: the cloth's step). */
+function poseMoves(t, dt = DT) {
+  const clip = moveClip();
+  moveBodies.forEach((B, i) => {
+    const b = bodyOf(B), A = b.animator, H = b.humanoid;
+    if (!A || !H) return;
+    // (side by side as seen from the side: one behind the other along the way they face)
+    b.pos.copy(MOVES_AT).add(new THREE.Vector3(0, 0, (i - (moveBodies.length - 1) / 2) * 1.8));
+    b.heading = 0;
+    if (clip) A.play(clip.name, t, 1, { full: true });
+    A.update(dt, { speed: 0, onGround: true, mode: 'ground', walkAt: 1, jogAt: 2, sprintAt: 3, strideScale: 1 });
+    const o = b.object;
+    o.visible = state.mode === 'moves';
+    o.position.copy(b.pos); o.quaternion.identity();
+    A.apply(o, { legScale: 1.04 });
+    o.updateMatrixWorld(true);
+    H.update();
+    H.poseHands?.(A);
+    H.resetFeet();
+    if (B.p) B.p.updateCloth?.(dt);
+  });
+}
 function applyMode() {
   const solo = travellers.loops;
   solo.matching = state.mode === 'solo' ? state.mm : false;
@@ -168,6 +229,7 @@ function applyMode() {
     T.p.object.visible = on;
   }
   for (const w of walkers) w.npc.object.visible = state.mode === 'people';
+  for (const B of moveBodies) bodyOf(B).object.visible = state.mode === 'moves';
   showObstacles();
   restart();
 }
@@ -227,6 +289,12 @@ function restart() {
 function simStep() {
   simT += DT;
   if (state.mode === 'people') { for (const w of walkers) stepWalker(w, DT); return; }
+  if (state.mode === 'moves') {
+    const c = moveClip(), d = c?.duration ?? 1;
+    moveClock = state.paused ? state.moveT * d : (moveClock + DT) % d;
+    poseMoves(moveClock);
+    return;
+  }
   let input = liveInput, camYaw = controlYaw, tag = 'free';
   if (run) {
     const s = scriptFrame(run, runK, FPS);
@@ -367,6 +435,10 @@ function placeCamera(cam, key, who, dt, aspect) {
 /** The views this frame: [{ cam, rect (CSS px), show: [travellers / walkers], label }]. */
 function views(dt) {
   const L = travellers.loops, M = travellers.mm;
+  if (state.mode === 'moves') {
+    placeCamera(cameras[0], 'moves', [{ pos: MOVES_AT, heading: 0 }], dt, cssW / cssH);
+    return [{ cam: cameras[0], rect: { x: 0, y: 0, w: cssW, h: cssH }, show: moveBodies, label: moveClip()?.name ?? 'no moves (anim/moves.glb)' }];
+  }
   if (state.mode === 'people') {
     const f = walkers[state.focus];
     const list = f ? [f.npc] : walkers.map((w) => w.npc);
@@ -395,7 +467,7 @@ function renderView(v) {
   sizeTargets(v.rect.w, v.rect.h);
   const cam = v.cam;
   // only what this view shows (a split screen hides the other lane's traveller)
-  const all = state.mode === 'people' ? walkers : active();
+  const all = state.mode === 'people' ? walkers : state.mode === 'moves' ? moveBodies : active();
   const hide = all.filter((o) => !v.show.includes(o)).flatMap(bodyParts).filter((o) => o.visible);
   for (const o of hide) o.visible = false;
   scene.updateMatrixWorld();
@@ -583,7 +655,7 @@ function liveNumbers() {
   renderNumbers();
   renderMatcher();
   const time = run ? `${(runK / FPS).toFixed(2)} / ${(runFrames(run, FPS) / FPS).toFixed(2)} s` : `${simT.toFixed(1)} s`;
-  setStatus(`${{ duo: 'Two travellers, one input', solo: 'One traveller', people: 'The people’s walks' }[state.mode]} · ${state.mode === 'people' ? `${walkers.length} walkers` : run ? RUN_IDS[runId] : 'your control (WASD / arrows, Shift run; left stick, RT / R2 run)'} · ${time}${state.paused ? ' · paused' : state.rate !== 1 ? ` · ${state.rate}×` : ''} · ${fps.toFixed(0)} fps`);
+  setStatus(`${{ duo: 'Two travellers, one input', solo: 'One traveller', people: 'The people’s walks', moves: `Moves · ${moveClip()?.name ?? 'none'} · ${moveClock.toFixed(2)} / ${(moveClip()?.duration ?? 0).toFixed(2)} s` }[state.mode]} · ${state.mode === 'people' ? `${walkers.length} walkers` : run ? RUN_IDS[runId] : 'your control (WASD / arrows, Shift run; left stick, RT / R2 run)'} · ${time}${state.paused ? ' · paused' : state.rate !== 1 ? ` · ${state.rate}×` : ''} · ${fps.toFixed(0)} fps`);
 }
 
 // ------------------------------------------------------------------ the panel
@@ -634,13 +706,14 @@ const onlyIn = (node, ...modes) => refreshers.push(() => { node.hidden = !modes.
 
 // mode
 const sMode = section('Mode', true);
-seg(sMode, '', 'mode', [['duo', 'Side by side'], ['solo', 'One, toggled'], ['people', 'People’s walks']], applyMode);
+seg(sMode, '', 'mode', [['duo', 'Side by side'], ['solo', 'One, toggled'], ['people', 'People’s walks'], ['moves', 'Moves']], applyMode);
 const modeNote = note(sMode, '');
 refreshers.push(() => {
   modeNote.innerHTML = {
     duo: 'Two travellers in two lanes, the <b class="loops">loops</b> (the game’s default) and <b class="mm">motion matching</b>, driven by the same input at the same time.',
     solo: 'One traveller: switch between the loops and motion matching in place, with the matcher’s debug drawn on the ground.',
     people: 'A row of walkers, each on the library’s walk or one of the captured walks (CMU), at its own speed.',
+    moves: 'The traveller’s own moves (anim/moves.glb: Mixamo’s get-ups, jumps, idles, the kneel and the petting), on him and on a MakeHuman person, played as the game plays them.',
   }[state.mode];
 });
 
@@ -690,6 +763,7 @@ const soloRow = seg(sShow, 'Traveller on', 'mm', [[false, 'Loops'], [true, 'Moti
   resetNumbers(T);
 });
 refreshers.push(() => { soloRow.hidden = state.mode !== 'solo'; });
+check(sShow, 'Starts, stops, turns', 'moves', () => { for (const T of Object.values(travellers)) T.p.locoMoves = state.moves; });
 check(sShow, 'Trajectories', 'traj');
 check(sShow, 'Planted feet', 'feet');
 onlyIn(sShow, 'duo', 'solo', 'people');
@@ -716,6 +790,7 @@ function table(cols) {
 function renderNumbers() {
   if (!sNums.open) return;
   numsBox.replaceChildren();
+  if (state.mode === 'moves') { numsBox.append(el('p', { class: 'note' }, 'No numbers for the moves: they are looked at.')); return; }
   if (state.mode === 'people') {
     // one row a walker (the best of each column in bold)
     const cols = [['slide max', (r) => r.maxSlide, 2], ['mean', (r) => r.meanSlide, 3], ['held', (r) => r.heldSlide, 3], ['sink', (r) => r.sink, 3], ['jerk', (r) => r.jitterHead, 2]];
@@ -803,6 +878,23 @@ function renderClips() {
   }
 }
 
+// the moves
+const sMoves = section('The move', true);
+onlyIn(sMoves, 'moves');
+{
+  const s = el('select');
+  const fill = () => { s.replaceChildren(...moveNames().map((n) => new Option(`${n.replace(/^mixamo_/, '')} · ${(motion.clips.find((c) => c.name === n)?.duration ?? 0).toFixed(1)} s`, n))); s.value = moveClip()?.name ?? ''; };
+  fill();
+  s.onchange = () => { state.move = s.value; moveClock = 0; saveURL(); updatePanel(); };
+  refreshers.push(() => { s.value = moveClip()?.name ?? ''; });
+  row(sMoves, 'Move', s);
+  const r = el('input', { type: 'range', min: 0, max: 1, step: 0.001 }), out = el('output');
+  r.oninput = () => { state.moveT = +r.value; state.paused = true; saveURL(); updatePanel(); };
+  refreshers.push(() => { r.value = state.moveT; out.textContent = `${(state.moveT * (moveClip()?.duration ?? 0)).toFixed(2)} s`; });
+  row(sMoves, 'Scrub', r, out);
+  note(sMoves, 'Scrubbing pauses. <code>motionPage.sheet()</code> makes a frame strip of the move (or of the run playing, in the other modes).');
+}
+
 // the people lane
 const shortWalk = (name) => (name === 'library' ? 'library' : walkByName(name)?.desc?.replace(/ walk( forward)?$/, '').replace(/^muscular, heavyset person's$/, 'heavyset') ?? name);
 const walkTitle = (name) => (name === 'library' ? 'the library’s walk' : (() => { const w = walkByName(name); return w ? `${w.desc} (${w.name.replace(/^cmu_/, 'CMU ')})` : name; })());
@@ -884,8 +976,57 @@ buildClips();
 renderWalkers();
 applyMode();
 updatePanel();
+/**
+ * A frame strip (a contact sheet) as a PNG data URL: in the moves mode, `frames` poses evenly
+ * through the move (or at `times`, s); in the others, the current run from its start, stepped to
+ * each of `times` (s); `setup(player)` runs first and `at(t, player)` before each step (a knockdown, a
+ * jump). Each tile is the middle of the view, w x h CSS px, labelled with its time.
+ */
+function sheet({ frames = 8, times = null, cols = null, w = 300, h = 420, label = '', setup = null, at = null } = {}) {
+  const moves = state.mode === 'moves', clip = moveClip();
+  const ts = times ?? Array.from({ length: frames }, (_, i) => (moves ? (clip?.duration ?? 1) * i / Math.max(frames - 1, 1) : i * 0.25));
+  const n = ts.length, C = cols ?? n, R = Math.ceil(n / C), pr = dpr();
+  const out = document.createElement('canvas');
+  out.width = Math.round(C * w * pr); out.height = Math.round((R * h + (label ? 26 : 0)) * pr);
+  const g = out.getContext('2d');
+  g.fillStyle = '#f2ecdf'; g.fillRect(0, 0, out.width, out.height);
+  g.scale(pr, pr);
+  if (label) { g.fillStyle = '#2b211f'; g.font = '600 15px system-ui, sans-serif'; g.fillText(label, 8, 18); }
+  const top = label ? 26 : 0;
+  const was = state.paused;
+  state.paused = true;
+  if (!moves) restart();
+  // (setup(traveller): something to happen first, as a knockdown; at(s): an event on the way, called each step with the time)
+  if (setup) setup(travellers.loops.p);
+  let clock = 0;
+  ts.forEach((t, i) => {
+    if (moves) {
+      // (stepped up to it, so the cloth follows)
+      const from = i === 0 ? Math.max(0, t - 0.5) : ts[i - 1];
+      for (let x = from; x < t; x += DT) poseMoves(x);
+      poseMoves(t);
+      moveClock = t;
+    } else for (; clock < t - 1e-6; clock += DT) { at?.(clock, travellers.loops.p); simStep(); }
+    const vs = views(1);   // (the camera on the body at once: dt 1 s)
+    renderer.setRenderTarget(null);
+    renderer.setViewport(0, 0, cssW * pr, cssH * pr);
+    for (const v of vs) renderView(v);
+    drawOverlay(vs);
+    const x = (i % C) * w, y = top + Math.floor(i / C) * h;
+    const sx = (cssW - w) / 2, sy = Math.max(0, (cssH - h) / 2);
+    g.drawImage(renderer.domElement, sx * pr, sy * pr, w * pr, h * pr, x, y, w, h);
+    g.drawImage(overlay, sx * pr, sy * pr, w * pr, h * pr, x, y, w, h);
+    g.fillStyle = '#2b211f'; g.font = '12px system-ui, sans-serif'; g.fillText(`${t.toFixed(2)} s`, x + 8, y + 16);
+    g.strokeStyle = 'rgba(43,33,31,0.25)'; g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+  });
+  state.paused = was;
+  return out.toDataURL('image/png');
+}
+
 window.motionPage = {
-  state: () => state, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); buildWalkers(); renderWalkers(); applyMode(); updatePanel(); },
+  state: () => state, sheet, poseMoves, moveBodies, motion,
+  // (your control's input, set by a script: held until the next frame reads the keys and the pad)
+  input: (i) => { liveInput = i ?? {}; }, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); buildWalkers(); renderWalkers(); applyMode(); updatePanel(); },
   travellers, walkers: () => walkers, lib, db, scene, cameras, renderer, physics, step: (n = 1) => { for (let i = 0; i < n; i++) simStep(); liveNumbers(); }, restart, liveNumbers,
 };
 requestAnimationFrame((t) => { last = t; frame(t); });

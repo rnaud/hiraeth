@@ -44,6 +44,7 @@ import { Journal, Relics, Story, Errands } from './quest.js';
 import { CONTENT, ERRANDS } from './levels/content.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
+import { movesSetting } from './loco-moves.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { loadPeople, usesMakeHuman } from './makehuman/people.js';
@@ -347,6 +348,7 @@ if (lib) {
   // traveller's motion matching only when it is switched on (the dev menu, ?mm=1)
   const matching = matchingSetting.get();
   loadMotionLibrary(lib, { matching }).then(() => { if (player.animator) player.animator.matching = matching && !!lib.motion?.db; });
+  player.locoMoves = movesSetting.get();
 }
 const humanT = await humans;
 // the people on MakeHuman bodies (each by their age, build and world); the traveller stays on his own body
@@ -568,7 +570,9 @@ const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.qu
   matching: lib && {
     get: () => !!player.animator?.matching,
     set: (on) => { matchingSetting.set(on); loadMotionLibrary(lib, { matching: on }).then(() => { if (player.animator) player.animator.matching = on && !!lib.motion?.db; devMenu.render(); }); },
-  } });
+  },
+  // (the captured starts, stops and turns over the loops: src/loco-moves.js)
+  moves: { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; devMenu.render(); } } });
 window.addEventListener('keydown', (e) => {
   if (!boxes.busy() || e.repeat) return;
   if (e.code === 'Escape') boxes.skip();
@@ -781,7 +785,7 @@ function applyDetail() {
 function applyQuality() {
   preset = resolveQuality(settings.quality, { handheld, deck, hiDPI: pixelRatio >= 2 });
   quality.renderScale = preset.scale;
-  adapt.slow = adapt.fast = adapt.hold = 0; adapt.dropped = false;
+  adapt.slow = adapt.fast = adapt.hold = adapt.noProbe = 0; adapt.probe = null; adapt.dropped = false;
   const S = preset.shadow;
   cascades.fine.configure(S.fine || 256, cascades.fine.extent);
   if (!S.fine) cascades.fine.disable();
@@ -1026,7 +1030,7 @@ const controller = new Controller({
   scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (changelog.pad(name)) return;   // (the interactive changelog over the game takes the controller: src/changelog.js)
-    if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
+    if (name === 'zoomOut' || name === 'zoomIn') rig.zoom(Math.exp((name === 'zoomOut' ? 1 : -1) * dt));
     if (name === 'back') closeControllerMenu();
     // (in a menu, a conversation or a scene: Start toggles the Start menu, Select the sketchbook)
     if (name === 'start') { if (storyRt.moments.playing && !menu.open) storyRt.moments.skip(); else menu.toggle(!menu.open); }   // (Menu skips a moment too)
@@ -1380,7 +1384,9 @@ function frame(ts) {
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
     player.update(dt, busy() ? noInput : ctl, rig.yaw, rig.pitch);   // (the pitch: the jets fly where the camera looks)
-    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding, player.ride?.shot ?? null);
+    // (a wider arm for what needs to see ahead and below: gliding, the jets; a little for climbing and swimming)
+    const wide = player.riding ? null : player.gliding ? 7 : player.thrusting ? 3.5 : player.climbing ? 1.5 : player.swim ? 0.8 : 0;
+    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding, player.ride?.shot ?? null, wide);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking

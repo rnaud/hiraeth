@@ -90,7 +90,7 @@ function poseJumps(r) {
  * turning more than `maxJump` between frames), trim long still stretches at either end to `keepStill`
  * seconds (idles keep theirs), and drop what is left too short.
  */
-export function cleanClip(r, { idle = false, keepStill = 0.7, maxJump = 1.0, minLength = 1.0 } = {}) {
+export function cleanClip(r, { idle = false, keepStill = 0.7, maxJump = 1.0, minLength = 1.0, turnMoves = false } = {}) {
   const jumps = poseJumps(r), out = [];
   let a = 0;
   const pieces = [];
@@ -98,16 +98,31 @@ export function cleanClip(r, { idle = false, keepStill = 0.7, maxJump = 1.0, min
   for (const [s, e] of pieces) {
     let c = sliceClip(r, s, e);
     if (!idle) {
-      const { speed } = rootMotion(c);
+      const { speed, turn } = rootMotion(c);
       const keep = Math.round(keepStill * c.fps);
+      // (still: hardly moving, and with `turnMoves` hardly turning either: a turn on the spot is all motion)
+      const still = (i) => speed[i] < 0.2 && (!turnMoves || Math.abs(turn[i]) < 0.5);
       let i0 = 0, i1 = c.n;
-      while (i0 < c.n && speed[i0] < 0.2) i0++;
-      while (i1 > i0 && speed[i1 - 1] < 0.2) i1--;
+      while (i0 < c.n && still(i0)) i0++;
+      while (i1 > i0 && still(i1 - 1)) i1--;
       c = sliceClip(c, Math.max(0, i0 - keep), Math.min(c.n, i1 + keep));
     }
     if (c.n >= minLength * c.fps) out.push(c);
   }
   return out;
+}
+
+/**
+ * A clip that is one whole cycle as it is (Mixamo's loops: the last frame is the first again, a
+ * cycle on): the clip less its last frame, so playing it round and round doesn't hold that pose
+ * twice. Returns the loop (with `loop.speed` its mean ground speed) or null if too short.
+ */
+export function wholeLoop(r) {
+  if (r.n < 8) return null;
+  const loop = sliceClip(r, 0, r.n - 1);
+  const { speed } = rootMotion(loop);
+  loop.loop = { from: 0, to: r.n - 1, speed: speed.reduce((a, b) => a + b, 0) / speed.length, score: 0 };
+  return loop;
 }
 
 /**

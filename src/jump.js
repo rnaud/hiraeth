@@ -103,9 +103,10 @@ export class JumpLayer {
     return this;
   }
 
-  /** Lay the phase over the clips' pose (after Animator.apply); the hands are left as they are. */
-  pose(c) {
-    const a = this.air, W = this.w, q = this.squash;
+  /** Lay the phase over the clips' pose (after Animator.apply), by k (0..1); the hands are left as they are. */
+  pose(c, k = 1) {
+    // (k: how much of it; less under a captured jump, src/air-moves.js)
+    const a = this.air * k, W = this.w, q = this.squash * k;
     if (a > 0.01) {
       const tk = W.takeoff * a, ap = W.apex * a * (1 - W.reach), fl = W.fall * a * (1 - W.reach), rc = W.reach * a;
       for (let i = 0; i < 2; i++) {

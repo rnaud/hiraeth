@@ -16,11 +16,18 @@ export function sampleSkeleton(root, clip, { fps = 30, name = clip.name, landmar
   root.traverse((o) => { if (o !== root && (!bones || bones.includes(o.name)) && (o.isBone || o.type === 'Object3D' || o.isObject3D)) list.push(o); });
   root.updateMatrixWorld(true);
   const restQ = new Map(list.map((o) => [o, o.getWorldQuaternion(new THREE.Quaternion())]));
+  // (the rest pose's joints: the file's bind pose stands upright, which a take's first frame may not:
+  // a run leans 25° into its stride, a get-up lies on the ground)
+  const restP = Object.fromEntries(list.map((o) => [o.name, o.getWorldPosition(new THREE.Vector3())]));
   const names = list.map((o) => o.name);
   const n = Math.max(1, Math.floor(clip.duration * fps + 1e-6) + 1);
   const take = newTake({ name, fps, n, points: names, rotations: names });
   const mixer = new THREE.AnimationMixer(root);
   const action = mixer.clipAction(clip);
+  // (played once and held at its end: a repeating action at t = duration wraps round to frame 0,
+  // which put the take's first pose (and the hips back where they started) on its last frame)
+  action.setLoop(THREE.LoopOnce, 1);
+  action.clampWhenFinished = true;
   action.play();
   const p = new THREE.Vector3(), q = new THREE.Quaternion();
   for (let i = 0; i < n; i++) {
@@ -35,17 +42,18 @@ export function sampleSkeleton(root, clip, { fps = 30, name = clip.name, landmar
   action.stop();
   take.parents = Object.fromEntries(list.map((o) => [o.name, o.parent && o.parent !== root ? o.parent.name : null]));
   take.landmarks = landmarks;
-  if (landmarks) uprightTake(take);
+  if (landmarks) uprightTake(take, restP);
   return take;
 }
 const _qi = new THREE.Quaternion();
 
 /**
  * Turn the whole take (positions and rotations) so the body stands along +y and faces +z, from
- * frame 0's landmarks: up = hips -> head, left = right hip -> left hip.
+ * the rest pose's landmarks (`rest`: name -> Vector3; else frame 0's): up = hips -> head, left =
+ * right hip -> left hip.
  */
-export function uprightTake(take) {
-  const L = take.landmarks, P = (k) => take.point(k, 0);
+export function uprightTake(take, rest = null) {
+  const L = take.landmarks, P = (k) => (rest?.[k] ? rest[k].clone() : take.point(k, 0));
   const hipL = P(L.hipL), hipR = P(L.hipR), head = P(L.head);
   const mid = hipL.clone().add(hipR).multiplyScalar(0.5);
   const up = head.clone().sub(mid).normalize();

@@ -49,10 +49,19 @@ class Page {
       if (d.id) { this.pending.get(d.id)?.(d); this.pending.delete(d.id); }
       else if (d.method === 'Runtime.exceptionThrown') this.errors.push(String(d.params.exceptionDetails?.exception?.description ?? d.params.exceptionDetails?.text).slice(0, 200));
     };
+    // (the Deck gone to sleep, or the game closed: every call waiting fails, and the run stops with what it has)
+    this.ws.onclose = () => {
+      this.closed = true;
+      for (const r of this.pending.values()) r({ result: { exceptionDetails: { text: 'the page went away (the Deck asleep?)' } } });
+      this.pending.clear();
+    };
     await new Promise((r, j) => { this.ws.onopen = r; this.ws.onerror = j; });
     await this.send('Runtime.enable'); await this.send('Page.enable');
   }
-  send(method, params = {}) { return new Promise((r) => { const i = ++this.id; this.pending.set(i, r); this.ws.send(JSON.stringify({ id: i, method, params })); }); }
+  send(method, params = {}) {
+    if (this.closed) return Promise.resolve({ result: { exceptionDetails: { text: 'the page went away (the Deck asleep?)' } } });
+    return new Promise((r) => { const i = ++this.id; this.pending.set(i, r); this.ws.send(JSON.stringify({ id: i, method, params })); });
+  }
   async eval(fn, arg) {
     const expression = typeof fn === 'string' ? fn : `(${fn})(${JSON.stringify(arg ?? null)})`;
     const r = await this.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
@@ -61,7 +70,7 @@ class Page {
   }
   async waitFor(expr, ms = 300000, every = 250) {
     const t = Date.now();
-    while (Date.now() - t < ms) { try { if (await this.eval(expr)) return true; } catch { /* navigating */ } await sleep(every); }
+    while (Date.now() - t < ms) { try { if (await this.eval(expr)) return true; } catch (e) { if (this.closed) throw e; /* navigating */ } await sleep(every); }
     throw new Error(`timed out: ${expr}`);
   }
 }
@@ -170,6 +179,7 @@ for (const world of WORLDS) for (const mode of modes) {
   try { out.runs.push(await runWorld(page, world, mode)); }
   catch (e) { console.error(`${world} ${mode}: ${e.message}`); out.runs.push({ world, mode, quality, error: e.message }); }
   writeFileSync(`${RAW}/deck-worlds.json`, JSON.stringify(out, null, 1));
+  if (page.closed) { console.error(`the page went away after ${world} ${mode}: ${RAW}/deck-worlds.json has what was measured`); process.exit(2); }
 }
 console.log(`${RAW}/deck-worlds.json`);
 process.exit(0);

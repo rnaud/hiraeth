@@ -16,13 +16,51 @@ namespace Memento.Bridge
     /// </summary>
     public static class BridgeArgs
     {
+        static string[] line;
+        /// <summary>
+        /// The player's arguments: its command line, and on Android the activity's `unity` extra
+        /// (`am start -e unity "-level desert -mute …"`: scripts/bench/android-bridge.sh), which Android's
+        /// Environment.GetCommandLineArgs() does not carry. Read once, on the main thread (Start), then kept.
+        /// </summary>
+        public static string[] CommandLine()
+        {
+            if (line != null) return line;
+            var a = Environment.GetCommandLineArgs();
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
+                using var intent = activity?.Call<AndroidJavaObject>("getIntent");
+                var extra = intent?.Call<string>("getStringExtra", "unity");
+                if (!string.IsNullOrWhiteSpace(extra)) a = a.Concat(Split(extra)).ToArray();
+                Debug.Log($"Memento bridge: the plan from the intent: {(string.IsNullOrWhiteSpace(extra) ? "none" : extra)}");
+            }
+            catch (Exception e) { Debug.LogWarning("Memento bridge: the intent's arguments: " + e.Message); }
+#endif
+            return line = a;
+        }
+        /// <summary>Arguments split at spaces, a "quoted part" kept whole.</summary>
+        public static string[] Split(string s)
+        {
+            var list = new List<string>(); var cur = new System.Text.StringBuilder(); bool q = false, any = false;
+            foreach (var c in s)
+            {
+                if (c == '"') { q = !q; any = true; }
+                else if (char.IsWhiteSpace(c) && !q) { if (any || cur.Length > 0) list.Add(cur.ToString()); cur.Clear(); any = false; }
+                else cur.Append(c);
+            }
+            if (any || cur.Length > 0) list.Add(cur.ToString());
+            return list.ToArray();
+        }
+
         public static string Arg(string name, string fallback = null)
         {
-            var a = Environment.GetCommandLineArgs();
+            var a = CommandLine();
             int i = Array.IndexOf(a, name);
             return i >= 0 && i + 1 < a.Length ? a[i + 1] : fallback;
         }
-        public static bool Flag(string name) => Array.IndexOf(Environment.GetCommandLineArgs(), name) >= 0;
+        public static bool Flag(string name) => Array.IndexOf(CommandLine(), name) >= 0;
 
         public static string FromCommandLine(string root = null)
         {
@@ -45,7 +83,7 @@ namespace Memento.Bridge
             if (Flag("-split")) args["split"] = true;
             if (Arg("-talk") != null) args["talk"] = Arg("-talk");
             if (Arg("-play") != null) args["play"] = Arg("-play");
-            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-freeze") >= 0) args["freeze"] = true;
+            if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             return JsonText(args);
         }
