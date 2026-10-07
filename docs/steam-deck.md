@@ -135,6 +135,35 @@ failures never prevent an installed game from starting. The checksums detect
 incomplete/corrupted downloads; they are not independent signatures and trust the
 publisher and HTTPS.
 
+### The settings' Updates section
+
+The same panel as the Android app's (`src/update-panel.js`, `src/updates.js`, controller-navigable,
+in the title's settings and the Start menu): what runs, Check for updates, what the new version
+brings, Download and restart with its progress bar, Restart now, Details (`update.log` and
+`launch.log`). The page reaches the runtime at `moebius://game/__app/<method>` (`src/native-app.js`
+picks that when the page is at `moebius:`; `desktop/main.mjs` answers `info`, `check`, `download`,
+`restart`; anything else, or a runtime launched without deck.py, is a 404 and the section stays
+hidden). `desktop/deck-updates.mjs` turns deck.py into Android's `AppShell.info` fields
+(`platform: 'deck'`, `app` the runtime build, `web` the game running):
+
+- **check** runs `deck.py --status` (what is here: `local_state`, the game the next launch would
+  serve; the newest game on the site and the newest runtime on the feeds). One runs by itself 20 s
+  after the start, so the section knows without a press.
+- **download** runs `deck.py --update --progress <file>`, the same update as at launch (runtime,
+  game, artwork); `progress()` writes `{step, got, total}` and the bar covers the runtime and then
+  the game. A game that needs a newer runtime than exists waits, said quietly.
+- **ready** is what the next launch runs differing from what runs (`deck.py --status-local`, read
+  every 5 s while the settings are open, so a background update that finished shows too).
+- **restart** writes `.restart` (the update it is for) and exits 76 (`RESTART_EXIT`): deck.py's
+  launcher, still Steam's process, execs the current runtime's `deck.py --launch` again, which pins
+  the new runtime and game. `MOEBIUS_RESTARTED_FOR` keeps a restart that didn't bring that update
+  from being offered again (no loop). The game opens at the title, the saves at the same origin.
+  As on Android, a downloaded update also starts by itself the next time the title screen opens.
+
+Tested on a Mac with a fake install (`--status`, `--status-local` and `--update` run anywhere with
+an explicit `--root`, and `MOEBIUS_HIDDEN=1` keeps the window off the screen): check, available,
+download, ready, restart (exit 76, `.restart`), then the downloaded game served with nothing ready.
+
 Runtimes from before content updates update themselves to one that has them (from GitHub,
 while the repository is public): launch the game twice before the repository goes private.
 `build.json` stays exactly `{build, version}`, as those updaters check.

@@ -164,6 +164,9 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
   falls back to the speaker's initial instead of showing an empty coloured disc. That fallback is
   also the answer to the question: **if the Retroid now shows the initial letter in the circle, the
   capture is coming back empty on the device** and the fault is the canvas read, not the framing.
+  (Planned for the second Retroid round in the GeckoView test app, with the Sketchbook's captures, the game
+  menu's item pictures and a cab ride; not reached: the device was taken back. The loading pen's fix is in,
+  its device measurement too is still to do: docs/systems/performance.md, "The Retroid, second round".)
 
 ## Android
 

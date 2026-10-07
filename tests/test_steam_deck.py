@@ -409,6 +409,66 @@ class SiteRuntimeTests(unittest.TestCase):
             deck.get_manifest(lambda url: (_ for _ in ()).throw(OSError('offline')))
 
 
+class SettingsUpdateTests(unittest.TestCase):
+    """The settings' Updates section on the Deck (desktop/deck-updates.mjs): --status, --update --progress, Restart now."""
+
+    setUp_base = SteamDeckTests.setUp
+    bundle = SteamDeckTests.bundle
+    content = ContentUpdateTests.content
+
+    def setUp(self):
+        self.setUp_base()
+        runtime, fetch = self.bundle(1001, web=600)
+        deck.install_update(self.root, runtime, fetch)
+
+    def test_status_says_what_is_here_and_what_is_new(self):
+        manifest, fetch = self.content(601)
+        local = deck.local_state(self.root)
+        self.assertEqual((local['runtime'], local['nextWeb'], local['desktop']), (1001, 600, 1))
+        deck.install_content(self.root, manifest, fetch)
+        self.assertEqual(deck.local_state(self.root)['nextWeb'], 601, 'what the next launch serves')
+        newer, _ = self.content(602)
+        state = deck.status(self.root, content=lambda: newer, runtime=lambda: (_ for _ in ()).throw(OSError('404')))
+        self.assertEqual((state['game']['build'], state['game']['minDesktop']), (602, 1))
+        self.assertIn('runtimeError', state)
+        self.assertGreater(state['checkedAt'], 0)
+        import urllib.error
+        state = deck.status(self.root, content=lambda: (_ for _ in ()).throw(urllib.error.URLError('no network')), runtime=lambda: None)
+        self.assertTrue(state['offline'])
+
+    def test_downloads_report_their_progress(self):
+        manifest, fetch = self.content(601)
+        data = (self.home / 'web-601.zip').read_bytes()
+        file = self.home / 'progress.json'
+        with patch.object(deck, 'PROGRESS', file), patch.object(deck.urllib.request, 'urlopen', return_value=io.BytesIO(data)):
+            deck.download_content(manifest, self.home / 'out.zip')
+            deck.progress('done', 0, 0, done=True)
+        self.assertEqual(json.loads(file.read_text())['step'], 'done')
+
+    def test_restart_now_launches_again_into_the_update(self):
+        calls = []
+
+        def run(command, env, ready, log):
+            calls.append(env['MOEBIUS_ROOT'])
+            self.assertEqual(env['MOEBIUS_PYTHON'], sys.executable)
+            (self.root / '.restart').write_text('601\n')
+            return 'restart', deck.RESTART_EXIT, True
+        relaunched = []
+        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), patch.dict(os.environ, {}, clear=False):
+            os.environ.pop('MOEBIUS_RESTARTED_FOR', None)
+            deck.launch(self.root, ['--x'], run=run, relaunch=relaunched.append)
+            self.assertEqual(os.environ['MOEBIUS_RESTARTED_FOR'], '601')
+        self.assertEqual(calls, [str(self.root)])
+        self.assertEqual(relaunched[0][1:], [str((self.root / 'current').resolve() / 'resources/app/deck.py'), '--launch', '--x'])
+        self.assertFalse((self.root / '.restart').exists())
+        self.assertIn('Restarting into the update', (self.root / 'launch.log').read_text())
+
+    def test_the_restart_exit_is_not_a_crash(self):
+        how = deck.run_game([sys.executable, '-c', f'import sys; sys.exit({deck.RESTART_EXIT})'], dict(os.environ),
+                            self.home / '.ready', log=lambda _line: None)
+        self.assertEqual(how[:2], ('restart', deck.RESTART_EXIT))
+
+
 class SteamArtTests(unittest.TestCase):
     """Steam's library artwork for the shortcut, in each account's config/grid/."""
 

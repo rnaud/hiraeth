@@ -552,3 +552,61 @@ To repeat: `npx vite build && WORK=… scripts/bench/gecko-apk.sh`, `adb install
 fixed,dynamic] [--profile 1] [--toggles base,noShadow,postAlbedo,scale05] [--apk 1] --raw <dir>` (it
 serves the game with the page bridge on 6253, starts and stops only the test app, removes its port
 rule), and `node scripts/bench/android-worlds-summary.mjs <before dir> <after dir>`.
+
+## The Retroid, second round: what is left in Qanat and the City-Shaft, dynamic resolution, the loading pen (October 2026)
+
+Measured on the device in the GeckoView test app as above; small changes A/B'd *in the page* (the same world
+and view, the variants in turns, 2.5 s each, six rounds: `ab-gen.js`-style snippets), since two runs of
+the same build differ by 2–3 fps.
+
+**What the camps' 19–20 ms of JS are** (in-page, each thing switched off in turns): the people's updates
+4.6 ms (posing 1.1, the body following the rig 0.8, capes 0.8, feet 0.25, the rest their own logic and
+the crowd's near tier), the traveller's shirt 2.4 ms, the shadow passes 1.1 ms, the G-buffer's draw loop
+~5 ms (270 draws: three.js's work per draw, ~10 µs in GeckoView; few share a material: 145 switches for
+272 draws, so merging equal materials would save ten). Without the people's updates the camps ran at 59 fps,
+without the shirt at 60.
+- **Still people on twos** (`npc.js` `NPC_DETAIL.still`): someone standing or sitting still (no steps, no
+  wave, not talking) beyond 8 m is posed every other frame, half of them on each frame: 0.7 ms at the camps
+  (19.6 against 20.2 ms, in-page). Their idle breathing and shifting moves at 30 Hz.
+- Tried, no gain on the device: the animator's and the body's per-bone `getWorldPosition` /
+  `getWorldQuaternion` (each updating its ancestors) replaced by matrices updated once, bit for bit the same
+  (0.14 ms: SpiderMonkey's cost is elsewhere); the people's posing distances brought nearer on the small
+  frame (19.2 against 19.3 ms). Not done: the shirt (another agent's), merging people's meshes.
+
+**The City-Shaft** (1 000–1 500 draws): 700 of a wide view's draws are meshes straight under the scene with
+285 materials, mostly the towers, each with its own random palette (merging needs per-vertex material values:
+a shader change), and 161 were the terrace railings, a mesh and a material a segment. Those are now one mesh
+for each terrace's eighth of the ring (`incal.js`, the same segments and iron): the wide view 1 492 → 1 326
+draws, 42–43 → 45 fps, the rim 1 025 → 960.
+
+**Dynamic resolution** counts the missed refreshes from the animation frame's timestamp now (`main.js`
+`frame(ts)`): GeckoView starts a late frame's callback late and evenly, which hid them. Counted that way, the
+Handheld scale fell to its floor, 0.5, in Qanat, the camps and the City-Shaft, for +1–3 fps (GPU busy 15–20
+points lower): those frames are the main thread's. So `cpuBound` (Handheld and the Deck, 0.85): with the main
+thread's time a frame over that share of the refresh, the scale isn't lowered, for missed refreshes or a low
+frame rate (`adaptScale`; `tests/quality.test.js`). There the scale holds 0.75 (it had drifted to 0.6–0.7
+on the frame-rate test alone). Where the GPU is behind and the CPU isn't, it drops as before.
+
+| (device, fixed 0.75 unless said) | before | after |
+|---|---|---|
+| City-Shaft wide: fps / draws | 42–43 / 1 492 | 45 / 1 326 |
+| City-Shaft rim: fps / draws | 50–51 / 1 025 | 52 / 960 |
+| camps, JS a frame (in-page A/B: still people on twos) | 20.2 ms | 19.6 ms |
+| dynamic resolution, missed refreshes counted from the timestamps: scale in Qanat, camps, City-Shaft | 0.6–0.75 (callback starts) | 0.5 at +1–3 fps without `cpuBound`; 0.75 with it |
+
+**The loading pen** (the author sees it stutter). Its spin is a CSS transform animation, the compositor's,
+but the compositor shares the GPU process with WebGL, and the load queues its compiles and uploads faster than
+the GPU process works through them. `scripts/transition-perf/pen.mjs` reads the pen's angle in every frame of
+a screencast (from its red nib) through a load (headless Chrome, Handheld, the CPU ×4): on a loaded Mac the pen
+stopped 100–240 ms at a time during the shader and passage warm-ups (the desert: 11–17 gaps over 100 ms, the
+longest 195–346 ms), on a quiet one often not at all (none over 60 ms), whatever the build: the Mac is too
+fast and too shared to settle it. Done, at no measured cost in load time:
+- `gpuPacer` (`load-steps.js`): a fence after each compile and each warm-draw batch (8 meshes, was 24); the
+  load waits only while a fence older than 40 ms is still unsignaled (the GPU that far behind). Waiting on
+  every fence instead took the gaps away here but doubled the load (a fence's status is seen a frame late).
+- The pen spins on an HTML box of its own (`will-change: transform`; a transform on an SVG root isn't run
+  off the main thread by every engine); the drawing is the same.
+- The WebGL canvas is hidden under the loading screen until the first frame.
+Still to measure on the Retroid (it was taken back mid-run): an `adb shell screenrecord` of a desert and a
+City-Shaft load, decoded in Chrome and read with `pen.mjs`'s `angles()`. Also left for the device: the
+speaker's portrait circle (TODO, Dialogue), the game menu's item pictures and the self-driving cab ride.
