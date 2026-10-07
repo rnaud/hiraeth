@@ -1,0 +1,25 @@
+changelog.md
+  s_55b4bc53b812ec::t_e93b092d1189f2 8
+docs/story-audit.md
+  s_55b4bc53b812ec::t_08ff2503c50093 482-483,485-486
+src/changelog.js
+  s_55b4bc53b812ec::t_c1f0216e6579dc 14
+src/ship/art.js
+  s_55b4bc53b812ec::t_223eb14c456bcd 59,64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "672abd7214d47d08ba014d58518d1a838228a788",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
