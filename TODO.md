@@ -54,11 +54,18 @@ The second pass made every world collide as it is drawn (DONE.md; docs/systems/m
   machine), the bake is +4–11 ms, rays and capsules round the spawn unchanged, along the path rays
   +5–18 %, capsules +11–15 %. Lighter shapes (capsule chains, a BVH of their own) would cost more: the
   roots line the whole path, so a second BVH is a second traversal for every query there.
-- [ ] Smaller, each with its reason in movement.md: the Garden's olive and cypress trunk colliders
+- [x] Smaller, each with its reason in movement.md: the Garden's olive and cypress trunk colliders
   inside their drawn trees (flora, brushed past), Lorn's gates of Jaws (organic halves on a box
   collider), the temple rotunda's oculus trim (drawn-only on purpose: solid it caught rays dropped
   through the oculus), and the sand skirts, whose tessellated mesh and the terrain's analytic height
-  part by up to 0.2 m (0.78 m at the worst corner).
+  part by up to 0.2 m (0.78 m at the worst corner). Done (movement.md, "The smaller ones"): the olives'
+  trunks and the cypresses collide as drawn (climbs off 234 → ~10); the jaws' halves are moving colliders
+  while shut, with a thin slot that keeps the way; the oculus trim is solid over its ceiling, its 0.3 m
+  lip over the opening drawn-only so the oculus stays as open as before; a skirt's triangles drawn over
+  the ground collide (`SandDrifts.misfits`; the error was between the skirt's points, not at them).
+  Left: sand banked up a wall's foot hides where a climb starts, and the Buried Machine's canyon walls
+  have one convex footprint each that banks sand along chords across the canyon floor (splitting long
+  footprints raises the ground along the seams inside the walls: wants a look in the game first).
 
 # Carried over
 

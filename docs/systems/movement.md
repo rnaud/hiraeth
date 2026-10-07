@@ -104,22 +104,16 @@ With that, every world's coarse stand-ins came out:
 Ground rays and capsule pushes are unchanged everywhere within noise. The temple kit's rotunda cornice, which
 overhangs its wall by 0.4 m, is solid now, which cleans up every temple at once.
 
-Left for later, with the reason (the third pass, below, settled the first four):
+Left for later, with the reason (the third pass, below, settled all but the taxis and balls):
 - ~~**The Buried Machine's great wheel**~~ collides as drawn and turns (moving colliders, below).
 - ~~**The cross-walls' opening rims**~~ are solid, their passages kept clear of sand (below).
 - ~~**Lorn II's bank roots and whip roots**~~ are solid as drawn (below).
-- **The Garden's olive and cypress trunks** collide as a cylinder inside the drawn tree (flora, brushed past),
-  which the audit counts as collision with nothing drawn.
+- ~~**The Garden's olive and cypress trunks**~~ collide as drawn (below).
 - **Taxi roofs and the guardians' balls**: a car's roof and a ball are a disc only in the middle. A taxi's
   solid top is its awning's crest, 1.4 m over the cab in the middle, so a character standing on one floats.
-- **The temple rotunda's oculus trim** is drawn-only on purpose (solid, it caught rays dropped through the
-  oculus), and a shut door's organic edges (the gates of Jaws) sit on a box.
-- **The sand skirts**: `SandDrifts.raise` makes the terrain's `heightAt` the drift field itself, so the skirt
-  and the ground you stand on agree almost everywhere — 29 711 of the desert's 29 811 skirt vertices sit
-  within 6 cm. The other 100 are scattered one or two to a chunk and part by 0.2–0.9 m; making the skirts
-  collide as drawn would fix them but costs the desert 230 → 300 k collision triangles and Vael 110 → 211 k
-  (its bake 27 → 50 ms), which is the wrong price for a hundred vertices. Why those hundred disagree is
-  unexplained (`node scripts/tmp/drift.mjs` measured it).
+- ~~**The temple rotunda's oculus trim** and **the gates of Jaws**~~: the trim is solid over its ceiling, the
+  jaws snap as moving colliders (below).
+- ~~**The sand skirts**~~ collide where they are drawn over the ground (below).
 
 ### Moving colliders (October 2026, the third pass)
 
@@ -155,6 +149,38 @@ capsule pushes round the spawn unchanged, along the path rays +5–18 % and caps
 were weighed and would cost more, not less: the roots line the whole path, so a BVH of their own would be a
 second traversal for every query there, and capsule chains a test per capsule. Capsule pushes now skip an added
 collider (a door, the wheel) whose box is nowhere near the capsule (`shapecast`'s `bounds`).
+
+**The smaller ones.**
+- *The Garden's olives and cypresses* stood on stand-ins: an upright 0.4 m post 3 m tall for an olive's leaning
+  trunk (out of the drawn bark at the top, turned the other way from the drawn boughs), a 0.9 m post 6 m tall
+  inside a cypress's 14 m flame, so you walked half a metre into the foliage and the climber hung inside it.
+  Both collide as drawn now (`instanced(..., { solid: true })` in `src/levels/spheres.js`): the olive's trunk
+  and its two boughs, leaning and turned as each instance is; its crown stays walk-through; the whole cypress,
+  a dense flame. ~181 k → ~201 k triangles, the bake +4 ms, queries unchanged; climbs off 234 → ~10.
+- *The gates of Jaws* (Lorn's Hush-House) were a box the size of the doorway, the two round halves up to 0.75 m
+  inside it. While shut each half is a moving collider (`addMover(half, { all: true })`: the pieces flag their
+  meshes noCollide to stay out of the bake) that snaps with the drawn half, and a thin still slot down the
+  middle (inside the lips when they meet) keeps the way when they gape; the bite (a hazard) is unchanged. Open
+  (stilled) they are walk-through, as before: laid back against the jambs they would narrow the way and stand
+  over the next room's mark.
+- *The rotunda's oculus trim* was drawn-only, because solid it caught what is dropped or flown up through the
+  oculus. It is solid where it lies on the ceiling now, and its 0.3 m lip over the opening stays drawn-only, so
+  the oculus is exactly as open to the collision as the ceiling's own hole (the one place the audit still sees:
+  0.3 m, on purpose).
+- *The sand skirts.* Each skirt point is on the ground's height (ground + field + lift), but a triangle is flat
+  between its points and the height is not: where the ground bends (the canyon floor turning up into its walls),
+  across a fillet's curve, over the crease where two drifts meet, the drawn sand stood up to a metre over where
+  the feet stood (between the points, not at them: 29 711 of the desert's 29 811 *vertices* agreed within 6 cm,
+  which is why it looked like a hundred stray points). `SandDrifts.raise` now gives the skirts a hidden collision
+  mesh of just those triangles (`misfits`: any of seven points on it more than 6 cm over the height, and not
+  inside a smaller footprint, where it is inside a solid): desert ~7 k of its 70 k skirt triangles, Vael ~9 k of
+  101 k, the Buried Machine ~45 k of 176 k (the canyon). The cost: the bake +15 ms in the Buried Machine, queries
+  unchanged within noise. Sand-skirt *walks through* 46 → 6 in the desert and 80 → 28 on Vael, the Buried
+  Machine's feet sink 34 → 16. Left: sand banked up a wall's foot is drawn in front of the wall a climb starts on
+  (the hands go through the top of the bank), and the Buried Machine's canyon walls, each one solid, have a single
+  convex hull for a footprint that covers the canyon floor, so sand banks along its chords across the floor.
+  Splitting long footprints would fix that, but the seams between the pieces raise the ground inside the walls
+  and want a look in the game first.
 
 ## Mounts come to you
 

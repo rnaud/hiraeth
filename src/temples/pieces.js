@@ -537,7 +537,12 @@ export class Jaw {
       return { g, side };
     });
     noCollide(this.group);
-    this.block = new THREE.Mesh(box(w, h, 1.6, 0, h / 2, 0), new THREE.MeshBasicMaterial());
+    // Collision while shut: each half as drawn, a moving collider that snaps with it (physics.addMover; synced
+    // each frame), and a thin still slot down the middle, inside the lips when they meet, that keeps the way
+    // when they gape (never wide enough to pass). A box the size of the doorway stood in for both: the
+    // halves' round sides lay up to 0.75 m inside it. Open (stilled), they are walk-through as before: laid
+    // back against the jambs they would narrow the way on and stand over the next room's mark.
+    this.block = new THREE.Mesh(box(w * 0.42, h - 1, 0.12, 0, h / 2, 0), new THREE.MeshBasicMaterial());
     this.block.position.copy(this.group.position); this.block.rotation.copy(this.group.rotation);
     this.center = this.group.position.clone().addScaledVector(UP, h * 0.5);
     this.open = rt.logic.isOpen(o.id);
@@ -552,7 +557,14 @@ export class Jaw {
       push: (p, out) => { _l.copy(p).applyMatrix4(inv); return out.copy(_o.set(0, 0, Math.sign(_l.z) || -1).transformDirection(this.group.matrixWorld)); },
     });
   }
-  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  init(physics) { this.physics = physics; if (!this.open) this.solidify(); }
+  /** The halves (as they stand: shut, until the frame syncs them) and the slot, as colliders. */
+  solidify() {
+    const P = this.physics;
+    if (!this.open) for (const { g, side } of this.halves) g.rotation.y = side * 0.12;   // (shut: where a snap starts)
+    this.movers = P.addMover ? this.halves.map(({ g }) => P.addMover(g, { all: true })).filter(Boolean) : [];
+    this.handle = P.addCollider?.(this.block) ?? null;
+  }
   hit(mode) {
     if (this.open) return false;
     if (mode === 'stun') {
@@ -568,8 +580,12 @@ export class Jaw {
   setOpen(open, instant = false) {
     if (open === this.open) return;
     this.open = open;
-    if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
-    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
+    if (open && this.handle) {
+      this.physics?.removeCollider?.(this.handle); this.handle = null;
+      for (const m of this.movers ?? []) this.physics?.removeCollider?.(m);
+      this.movers = [];
+    }
+    if (!open && this.physics && !this.handle) this.solidify();
     if (instant) this.k = open ? 1 : 0;
     else this.rt.rumble?.(1.2, 0.3);
   }
@@ -585,7 +601,7 @@ export class Jaw {
     for (const { g, side } of this.halves) g.rotation.y = side * this.ang;
     this.skin.uniforms.uColor.value.set('#c94f6a').lerp(_frost, Math.min(1, this.frost * 1.4));
   }
-  dispose() { this.off?.(); this.offHazard?.(); }
+  dispose() { this.off?.(); this.offHazard?.(); for (const m of this.movers ?? []) this.physics?.removeCollider?.(m); }
 }
 
 /**

@@ -143,14 +143,15 @@ export class Physics {
    * the turned shape, not a still stand-in, and moverVelocity() says how fast its surface moves at a point
    * (src/carriers.js: what you stand or climb on carries you). Returns a handle for removeCollider.
    * Cost: nothing to a query that does not come near it (one box test, as any added collider).
+   * o.all: every mesh under it, noCollide or not (a moving piece flagged noCollide to keep it out of the bake).
    */
-  addMover(object) {
+  addMover(object, { all = false } = {}) {
     object.updateWorldMatrix(true, true);
     const inv = new THREE.Matrix4().copy(object.matrixWorld).invert();
     const geos = [];
     object.traverse((obj) => {
       if (!obj.isMesh) return;
-      for (let o = obj; o && o !== object; o = o.parent) if (o.userData.noCollide) return;
+      if (!all) for (let o = obj; o && o !== object; o = o.parent) if (o.userData.noCollide) return;
       const src = obj.geometry.userData.lodSource ?? obj.geometry;
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', src.attributes.position);
