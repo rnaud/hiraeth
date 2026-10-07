@@ -25,6 +25,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Climbing a wall where sand is banked against its foot, you take hold standing on the bank: your hands and knees no longer go into the sand, and climbing down you step off onto it.
 - Cabs are solid just as they are drawn: you stand on a parked cab’s nose, tail or striped canopy where they are, instead of on an invisible lid at the canopy’s height, and walking up to one you stop at its side rather than a step away from it. The rolling stone balls in the temples are round underfoot too.
 - Climbing an olive tree in the Garden of Spheres, you stop under its crown or climb on round its leaves and stand on top, instead of coming out inside the crown; and pulling yourself up over an edge never puts you inside something solid.
+- Looking across the City-Shaft is lighter on handhelds: its towers are drawn together, a few at a time, each with its own colours and bands exactly as before.
 
 ## v0.76 — 2026-10-07
 
