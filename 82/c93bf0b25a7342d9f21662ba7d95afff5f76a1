@@ -1,0 +1,31 @@
+docs/README.md
+  s_55b4bc53b812ec::t_2a6676f2589816 40
+docs/systems/audio.md
+  s_55b4bc53b812ec::t_0923bff56c25f8 79-88
+docs/systems/references.md
+  s_55b4bc53b812ec::t_592085a1de66a0 589-590
+docs/systems/rendering.md
+  s_55b4bc53b812ec::t_43902ffc66be0f 653-680
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_d1f753703dcb18 651-706
+src/changelog-media.js
+  s_55b4bc53b812ec::t_096e27ccc4e9cb 48,163-191
+tests/antennas.test.js
+  s_55b4bc53b812ec::t_c5232817194402 90-91,127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "82c93bf0b25a7342d9f21662ba7d95afff5f76a1",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
