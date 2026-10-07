@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { worldPos, worldQuat } from './world-read.js';
 
 // Feet on the ground (Humanoid.plantFeet): a foot the gait puts down is locked to the real ground
 // where it lands and held there, its place and its way, while the body moves over it; the legs
@@ -54,7 +55,7 @@ function footWay(H, s, up, out) {
     v.y = 0;   // (character space: y is up at rest)
     return v.normalize().applyQuaternion(r.q.clone().invert());
   })());
-  out.copy(local).applyQuaternion(foot.getWorldQuaternion(_q3));
+  out.copy(local).applyQuaternion(worldQuat(foot, _q3));
   out.addScaledVector(up, -out.dot(up));
   const flat = out.length();
   if (flat > 1e-4) out.divideScalar(flat); else out.set(0, 0, 0);
@@ -75,7 +76,7 @@ function aimFromRest(H, bone, child, dirWorld, rootQ) {
   const restDir = _r4.subVectors(rc.p, r.p).normalize();
   const want = _r5.copy(dirWorld).applyQuaternion(_rq3.copy(rootQ).invert());
   const q = _rq.setFromUnitVectors(restDir, want.normalize()).multiply(r.q).premultiply(rootQ);   // world
-  bone.quaternion.copy(bone.parent.getWorldQuaternion(_rq2).invert().multiply(q));
+  bone.quaternion.copy(worldQuat(bone.parent, _rq2).invert().multiply(q));
   bone.updateMatrixWorld(true);
 }
 
@@ -86,7 +87,7 @@ function aimFromRest(H, bone, child, dirWorld, rootQ) {
  */
 function legIK(H, s, target, pole) {
   const B = H.b, a = B[`thigh_${s}`], b = B[`calf_${s}`], c = B[`foot_${s}`];
-  const A = a.getWorldPosition(_r1), K = b.getWorldPosition(_r2), C = c.getWorldPosition(_r3);
+  const A = worldPos(a, _r1), K = worldPos(b, _r2), C = worldPos(c, _r3);
   const la = A.distanceTo(K), lb = K.distanceTo(C);
   const dir = _a.subVectors(target, A);
   const d = THREE.MathUtils.clamp(dir.length(), Math.abs(la - lb) + 1e-3, (la + lb) * 0.999);
@@ -98,9 +99,9 @@ function legIK(H, s, target, pole) {
   pd.normalize();
   const knee = _c.copy(A).addScaledVector(dir, along).addScaledVector(pd, h);
   const end = _d.copy(A).addScaledVector(dir, d);
-  const rootQ = H.char.root.getWorldQuaternion(new THREE.Quaternion());
+  const rootQ = worldQuat(H.char.root, new THREE.Quaternion());
   aimFromRest(H, a, b, _e.subVectors(knee, A), rootQ);
-  aimFromRest(H, b, c, _e.subVectors(end, b.getWorldPosition(_r2)), rootQ);
+  aimFromRest(H, b, c, _e.subVectors(end, worldPos(b, _r2)), rootQ);
 }
 
 export function resetFeet(H) {
@@ -135,12 +136,12 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
   const ballRest = H.rest.get(B.ball_l).p.y * sc;
   H.ankleRest ??= H.rest.get(B.foot_l).p.y;   // the ankle over the sole at rest
   H.legLen ??= H.rest.get(B.thigh_l).p.distanceTo(H.rest.get(B.calf_l).p) + H.rest.get(B.calf_l).p.distanceTo(H.rest.get(B.foot_l).p);
-  const pelvis = B.pelvis.getWorldPosition(_a).clone();
+  const pelvis = worldPos(B.pelvis, _a).clone();
   const D = {};
   for (const s of ['l', 'r']) {
     const F = S[s];
-    const ankle = B[`foot_${s}`].getWorldPosition(new THREE.Vector3());
-    const ball = B[`ball_${s}`].getWorldPosition(new THREE.Vector3());
+    const ankle = worldPos(B[`foot_${s}`], new THREE.Vector3());
+    const ball = worldPos(B[`ball_${s}`], new THREE.Vector3());
     // the stride warp: the foot's reach ahead of / behind the hips, scaled
     if (Math.abs(warp - 1) > 1e-3) {
       const along = _b.addVectors(ankle, ball).multiplyScalar(0.5).sub(pelvis).dot(fwd);
@@ -261,7 +262,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       // fast): it goes with the stride now rather than being dragged along the ground
       if (F.locked && !standing) {
         const reach = H.legLen * sc + Math.min(S.drop + 0.03 * sc, FEET.maxDrop * sc);
-        if (B[`thigh_${s}`].getWorldPosition(_d).distanceTo(_c.copy(F.pos).add(_e.subVectors(d.ankle, d.ball))) > reach) { F.locked = false; F.released = true; }
+        if (worldPos(B[`thigh_${s}`], _d).distanceTo(_c.copy(F.pos).add(_e.subVectors(d.ankle, d.ball))) > reach) { F.locked = false; F.released = true; }
       }
     }
     const held = F.locked || !!F.step;
@@ -305,21 +306,21 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     }
     const t = swing.lerp(lockedAnkle, F.w);
     targets[s] = t;
-    const hip = B[`thigh_${s}`].getWorldPosition(_d);
+    const hip = worldPos(B[`thigh_${s}`], _d);
     need = Math.max(need, hip.distanceTo(t) - H.legLen * 0.985 * sc);
   }
   S.drop += (THREE.MathUtils.clamp(need, 0, FEET.maxDrop * sc) - S.drop) * (1 - Math.exp(-16 * dt));
   if (S.drop > 0.002) {
     // lower the pelvis (world down) and refresh the chain
     const p = B.pelvis;
-    const wp = p.getWorldPosition(_a).addScaledVector(up, -S.drop).applyMatrix4(_m.copy(p.parent.matrixWorld).invert());
+    const wp = worldPos(p, _a).addScaledVector(up, -S.drop).applyMatrix4(_m.copy(p.parent.matrixWorld).invert());
     p.position.copy(wp);
     p.updateMatrixWorld(true);
   }
   for (const s of ['l', 'r']) {
     const foot = B[`foot_${s}`], F = S[s];
-    const fq = foot.getWorldQuaternion(new THREE.Quaternion());
-    const knee = B[`calf_${s}`].getWorldPosition(new THREE.Vector3());
+    const fq = worldQuat(foot, new THREE.Quaternion());
+    const knee = worldPos(B[`calf_${s}`], new THREE.Vector3());
     // the knee bends over the toes (the held way, as the foot turned), else forward
     const kneeWay = _b.copy(fwd).applyAxisAngle(up, yaws[s] * F.w);
     const pole = knee.addScaledVector(kneeWay, 0.6);
@@ -329,7 +330,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       fq.premultiply(_q2.setFromAxisAngle(up, yaws[s] * F.w));
       if (F.n) fq.premultiply(_q.setFromUnitVectors(up, F.n).slerp(_q3.identity(), 1 - F.w));
     }
-    foot.quaternion.copy(foot.parent.getWorldQuaternion(_q3).invert().multiply(fq));
+    foot.quaternion.copy(worldQuat(foot.parent, _q3).invert().multiply(fq));
     foot.updateMatrixWorld(true);
   }
 }

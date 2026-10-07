@@ -746,6 +746,8 @@ too, which Humanoid.update makes again from the rig straight after. Now (src/wor
   `Animator.update`, the rig's after its root's update and each joint's own, the bones' after `Humanoid.update`.
 - `updateRig` updates the root and everything under it but the body (`userData.poseSkip`), in Animator.apply and
   Humanoid.update; the root's inverse is worked out once a pose, not once a bone.
+- feet.js (the feet planted, the legs' IK) reads the same way: npc.js `plant` updates the person's matrices first,
+  and each bone it turns updates its own.
 - Humanoid.update keeps a record a bone (its rest, what drives it, its parent's record, its turn) instead of five
   map lookups and a new quaternion a bone a frame.
 
@@ -759,4 +761,4 @@ checked against the bundle of the code before the change too (`POSE_REF`): no di
 |---|---|---|
 | the web, Handheld preset, Chrome's CPU ×4: the camps (frame; the people's update) | 25.7 ms; 6.1 | 22.8; 4.9 |
 | the same, the Signal Market's crowd | 14.0; 3.6 | 13.2; 2.9 |
-| the Unity player (macOS): the people's update at the camps, at the crowd | 1.69, 1.02 | 1.32, 0.81 |
+| the Unity player (macOS): the people's update at the camps, at the crowd | 1.69, 1.02 | 1.08, 0.70 |
