@@ -1,0 +1,30 @@
+.agents/skills/moebius-ai-characters/SKILL.md
+  s_958e45ace108a6::t_b2c9de0d9e61ae 1-35
+.agents/skills/moebius-ai-characters/agents/openai.yaml
+  s_958e45ace108a6::t_0da23152a915ad 1-4
+.agents/skills/moebius-ai-characters/references/pipeline-and-failures.md
+  s_958e45ace108a6::t_44a30fea5b7c9d 1-78
+.agents/skills/moebius-ai-characters/references/repo-map.md
+  s_958e45ace108a6::t_efc2a666103ee8 1-39
+docs/systems/characters.md
+  s_958e45ace108a6::t_c6d8e9d4c5d21f 5-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e3a494d2e7f9f65265e7cd3eb9757dbb4cf59c67",
+  "prompts": {},
+  "sessions": {
+    "s_958e45ace108a6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11171-5f34-73d0-ab82-57cb192a71e4",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
