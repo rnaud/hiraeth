@@ -1033,6 +1033,10 @@ What the audit still found after it, and how each was settled:
   gourds, keys and disc staff, Marrow's salvage bag and pack (no cloak: his sheet's coat), the bells on Sefa's
   hem, her oud's tassels and the oud kept out of her cloak, the Speaker's copper bell and streamers.
 
+- `scripts/unity-export` still reads the Quaternius bodies: settled (2026-10-07). The C# port's own game
+  logic is retired, so the export only feeds the old bench scene; the live game in Unity is the JS bridge,
+  which loads the MakeHuman bodies as main.js does (95ca5e8, docs/systems/engine-bridge.md).
+
 ## Animation
 
 - Measure frame times, animation CPU cost, loading time and memory on the Retroid with

@@ -18,15 +18,6 @@ modelling world by world (DONE.md). What is left is one shader limit:
 - [ ] Shader limits left:
   - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
 
-## MakeHuman bodies
-
-Stages 1–3 are done (DONE.md, docs/makehuman.md): one parametric body, the Desert, then every world,
-the Lab's faces gallery, the face keys in one texture for every body, the headwear.
-
-- [ ] `scripts/unity-export` still reads the Quaternius bodies. **Reconciled:** the C# port's own game
-  logic is retired (the JS bridge draws the live scene instead), so the export is only the bench
-  scene's. The live question is the bridge's, below: it does not load MakeHuman bodies yet.
-
 ## Animation
 
 - [ ] Evaluate learned motion matching only if it measures better than the conventional system
