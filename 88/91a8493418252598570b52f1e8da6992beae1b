@@ -1,0 +1,67 @@
+changelog.md
+  s_55b4bc53b812ec::t_5c83dc250ebff9 7
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_eadfa1a5169680 766-817
+src/audio.js
+  s_55b4bc53b812ec::t_e24ef80f284416 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_34f9ac5fc4f48b 50,117-141
+src/changelog.js
+  s_55b4bc53b812ec::t_e8dcd18a62b401 13
+src/costumes.js
+  s_55b4bc53b812ec::t_9977c85f4209c9 452-469
+src/edge.js
+  s_55b4bc53b812ec::t_950d28f6368d79 35
+src/levels/content.js
+  s_55b4bc53b812ec::t_9371a4ab0d452d 25,264
+src/levels/fallen-ring-kit.js
+  s_55b4bc53b812ec::t_629fc7e933de64 296-316,455,458
+src/levels/fallen-ring.js
+  s_55b4bc53b812ec::t_97b3c9c107888b 1-496
+src/levels/index.js
+  s_55b4bc53b812ec::t_c3365101a7265b 23,141-147
+src/levels/names.js
+  s_55b4bc53b812ec::t_4a424b1c3be095 25,33
+src/levels/reference-fallenring.js
+  s_55b4bc53b812ec::t_dc881cac0a7f5c 8,104
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_f42c50eb68ce3d 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_929187a8b929d9 116
+src/reactive-world.js
+  s_55b4bc53b812ec::t_64c3168c97e732 34
+src/ship/planets.js
+  s_55b4bc53b812ec::t_deb5984eb443f0 30
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_bd843b90304ffd 31
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_9c2ce86bed9dfc 134
+tests/fallenring.test.js
+  s_55b4bc53b812ec::t_82100551be13f7 10-15,98-181
+docs/systems/references.md
+  s_8395ca312d15ae::t_45a3b571f62db5 659-660
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8891a8493418252598570b52f1e8da6992beae1b",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_8395ca312d15ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-adc5da3279ac4a3c9",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
