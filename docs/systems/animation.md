@@ -304,8 +304,31 @@ node scripts/mocap/compare-people.mjs      # a person on each captured walk
 - **The files** (`glb.js`, glTF 2.0): rotations as normalised 16-bit integers (three dequantises
   them), one long animation per kind with `extras.segments` saying where each clip starts (many
   short animations made the JSON 440 KB), contacts as base64 bytes. `walks.glb` (12 walks, 81 KB)
-  loads with the game; `locomotion.glb` (the matching database, 75 clips, 202 s, 1.05 MB) only when
-  matching is on, and in the character studio, which lists every clip (`mm:` and `walk:`).
+  and `moves.glb` (the traveller's own moves, 11 Mixamo clips, 349 KB) load with the game;
+  `locomotion.glb` (the matching database, 108 clips, 267 s, 1.39 MB) only when matching is on, and
+  in the character studio, which lists every clip (`mm:` and `walk:`).
+- **Mixamo's FBX** (the first batch, 2026-10-07: 36 clips; `mixamo-clips.json` is the table): what
+  it took to bring them in. The take is stood up by the file's rest pose (its T-pose), not by its
+  first frame: a run's first frame leans 25° into the stride, so its travel went up into the air
+  and its feet never touched the floor it was measured against (every run had no contacts), and a
+  get-up's first frame lies down. Sampling holds the clip at its end (`LoopOnce`): a repeating
+  action at t = duration wraps round to frame 0, which put the first pose on the last frame (a 10 m/s
+  jump back at every clip's end, a stop that ended back where it started). Their clips are single
+  moves, many under a second (a run cycle 0.6 s, a turn on the spot 1 s): kept down to 0.5 s; a
+  turn on the spot is motion, not a still end to trim (`cleanClip turnMoves`); a loop is the whole
+  clip less its last frame (`wholeLoop`). A clip of its own (`use: clip`) holds its root still
+  (`root: 'fixed'`, or `'end'` for a get-up: where it stands up), so the hips' sway and a get-up's
+  rise stay in the pose instead of sliding the feet, and it keeps the head's own turn (`Head`), which
+  the database leaves out. Two uses at once: `mm+clip`.
+
+**The traveller's moves** (`Animator.play(name, t, w, { full, ground, head })`, `moves.glb`): a
+clip laid over the whole blend for a frame, by its weight; `full` (lying, kneeling, getting up) has
+the body follow the clip's hips all the way and turn about them (the walk takes 0.6 of their sway
+and half their turn, about the feet: a body lying down went a metre to the side, into the floor),
+`ground` leaves the clip's own rise off the floor out (in the air the controller flies the body),
+`head` turns the head on the neck as captured. The feet take the move's own contacts. The Motion
+page's **Moves** mode plays each on the traveller and on a MakeHuman person, with a scrubber, and
+`motionPage.sheet()` makes a frame strip of it (or of a scripted run in the other modes).
 
 **The people's walks** (`Animator.useWalk`, `locomotion.js walkFor`): a nearby person may walk one
 of twelve captured walks instead of the library's: picked (seeded, like the rest of their gait) among

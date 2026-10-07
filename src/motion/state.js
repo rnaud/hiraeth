@@ -19,11 +19,11 @@ export const RUN_IDS = {
 };
 for (const name of Object.values(RUN_IDS)) if (!PAGE_RUNS[name]) throw new Error(`motion page: no run "${name}"`);
 
-export const MODES = ['duo', 'solo', 'people'];
+export const MODES = ['duo', 'solo', 'people', 'moves'];
 export const RATES = [1, 0.5, 0.25];
 
 export const DEFAULTS = Object.freeze({
-  mode: 'duo',          // duo: loops and motion matching side by side, one input | solo: one traveller, a toggle | people: a row of walkers
+  mode: 'duo',          // duo: loops and motion matching side by side, one input | solo: one traveller, a toggle | people: a row of walkers | moves: the traveller's own moves (moves.glb) on him and a MakeHuman person
   run: '',              // '' your own control (keyboard / pad), or a RUN_IDS id
   loop: true,           // a scripted run starts again when it ends
   rate: 1,              // 1 | 0.5 | 0.25: slow motion
@@ -38,6 +38,8 @@ export const DEFAULTS = Object.freeze({
   style: false,         // people: each their own seeded gait style (else one plain style, so only the walks differ)
   focus: -1,            // people: the walker the camera is on (-1 the whole row)
   walkers: 'library:1.25,cmu_137_29:1.3,cmu_136_20:1,cmu_142_07:0.6',   // people: walk:speed, comma separated
+  move: '',             // moves: the clip shown ('' the first)
+  moveT: 0,             // moves: where in it (0..1) while paused
 });
 
 /** The people lane's walkers from the URL value: [{ walk: 'library' | a captured walk's name, speed }]. */
