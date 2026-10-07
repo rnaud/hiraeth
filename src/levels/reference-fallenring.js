@@ -5,7 +5,7 @@ import { bankBush } from './wood-kit.js';
 import { CLOUD_PRINT } from './arzach2.js';
 import { greebles } from './greeble-kit.js';
 import {
-  ringSegment, placeRing, arcThrough, tree, village, serviceStair, grazer, puff, cloudBank, moveParts, RING_LOOK, RING_TONES,
+  ringThrough, tree, village, serviceStair, grazer, puff, cloudBank, moveParts, RING_LOOK, RING_TONES,
 } from './fallen-ring-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -101,15 +101,7 @@ export const sheetSpan = (cam, n, d) => (n / camOf(cam).f) * d;
  * ringSegment's; trees grown from its skin ([t, s, h, r]: the arc's share, the section's), greebles in its openings.
  */
 function segment(kit, M, rng, o) {
-  const C = arcThrough(V(...o.A), V(...o.M), V(...o.B), { up: o.lie });
-  // (a ring lying down is turned so its section's z is up: then it runs from B to A, and what is given from A is mirrored)
-  const f = C.flipped, ft = (r) => (f ? [1 - r[1], 1 - r[0]] : r), oe = o.ends ?? {};
-  const [e0, e1] = f ? [...(o.ext ?? [0, 0])].reverse() : o.ext ?? [0, 0];
-  const a0 = -e0 / C.R, a1 = C.a[2] + e1 / C.R;
-  const ends = f ? { ...(oe[1] !== undefined ? { 0: oe[1] } : {}), ...(oe[0] !== undefined ? { 1: oe[0] } : {}) } : oe;
-  const P = ringSegment({ R: C.R, a0, a1, w: o.w, h: o.h, round: o.round ?? 3, seg: o.seg ?? 5, sseg: o.sseg ?? 32, bands: (o.bands ?? []).map((b) => ({ ...b, t: ft(b.t) })), open: (o.open ?? []).map((b) => ({ ...b, t: ft(b.t), up: (b.up ?? 1) * (f ? -1 : 1) })), ends, wall: o.wall ?? 1.8, floors: o.floors ?? (o.lie ? 'z' : 'r'), nFloors: o.nFloors ?? 4, joints: o.joints ?? 0, seed: o.seed ?? 1, detail: o.detail ?? 1, holes: o.holes ?? 0 });
-  placeRing(P, C.matrix);
-  if (f) { const at = P.at; P.at = (t, s2, off) => at(1 - t, s2, off); }
+  const P = ringThrough(o), C = P.circle;
   addParts(kit, M, P, { far: o.far });
   for (const [t, s, h, r, sd] of o.trees ?? []) {
     const q = P.at(t, s, -0.5), Tr = tree({ h, r, seed: sd ?? t * 100 + s * 10, up: q.n.clone().lerp(V(0, 1, 0), 0.7).normalize() });

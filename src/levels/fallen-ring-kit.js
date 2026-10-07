@@ -293,6 +293,27 @@ export function placeRing(parts, m) {
   return parts;
 }
 
+/**
+ * A segment of the ring through three points of its centre line (A, M, B: [x, y, z] in the caller's frame), run on past
+ * its ends by `ext` [m, m] (an arch's legs into the ground), placed: ringSegment's options otherwise (w, h, round, seg,
+ * sseg, bands, open, ends, wall, floors, nFloors, joints, seed, detail, holes). `lie`: a ring lying down, its section's
+ * z the world's up; it then runs from B to A, so what is given from A (ext, ends, the bands' and openings' t, at()'s t)
+ * is mirrored here and reads from A as given. The parts, with `circle` (arcThrough's) and at(t, s, off) in the frame.
+ */
+export function ringThrough(o) {
+  const C = arcThrough(V(...o.A), V(...o.M), V(...o.B), { up: o.lie });
+  const f = C.flipped, ft = (r) => (f ? [1 - r[1], 1 - r[0]] : r), oe = o.ends ?? {};
+  const [e0, e1] = f ? [...(o.ext ?? [0, 0])].reverse() : o.ext ?? [0, 0];
+  const ends = f ? { ...(oe[1] !== undefined ? { 0: oe[1] } : {}), ...(oe[0] !== undefined ? { 1: oe[0] } : {}) } : oe;
+  const P = ringSegment({ R: C.R, a0: -e0 / C.R, a1: C.a[2] + e1 / C.R, w: o.w, h: o.h, round: o.round ?? 3, seg: o.seg ?? 5, sseg: o.sseg ?? 32,
+    bands: (o.bands ?? []).map((b) => ({ ...b, t: ft(b.t) })), open: (o.open ?? []).map((b) => ({ ...b, t: ft(b.t), up: (b.up ?? 1) * (f ? -1 : 1) })), ends,
+    wall: o.wall ?? 1.8, floors: o.floors ?? (o.lie ? 'z' : 'r'), nFloors: o.nFloors ?? 4, joints: o.joints ?? 0, seed: o.seed ?? 1, detail: o.detail ?? 1, holes: o.holes ?? 0, wrap: o.wrap ?? true });
+  placeRing(P, C.matrix);
+  if (f) { const at = P.at; P.at = (t, s, off) => at(1 - t, s, off); }
+  P.circle = C;
+  return P;
+}
+
 // ------------------------------------------------------------------ trees, from the hull's seams and on the plain
 /**
  * An umbrella tree, its foot at the origin, h high: a trunk leaning a little and forking, a layered crown of leaf masses
@@ -431,9 +452,9 @@ export const RING_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.35, uHatch: 0.35
 export const RING_DAY = ['#5d9fb6', '#a8c8cc', '#7d9aa4', '#fff8ea', '#fff3dc'];
 /** The surfaces' tones, read off the pictures. */
 export const RING_TONES = {
-  grass: '#9c9e58', grass2: '#a8ac64', grass3: '#868a4c', path: '#d8c9a0',
+  grass: '#8e9f56', grass2: '#9aac60', grass3: '#7a8a4a', path: '#d8c9a0',
   hull: '#f8e6c8', hull2: '#efdcbc', red: '#ef9a7c', red2: '#c9764e', cut: '#cdbfa0', inner: '#4d6f68', inner2: '#335450', floor: '#7a8a78',
   joint: '#e6d2b0', frame: '#3a3c38', green: '#3f4e2a', green2: '#33432a', bark: '#4a3a2a',
-  plaster: '#d8b88e', wood: '#8a5c38', woodDark: '#5a4028', dark: '#2e2a26', glow: '#ffc27a', cloth: '#efe2c4', cloth2: '#e8b48c', goods: '#c4664a',
+  plaster: '#d8b88e', wood: '#8a5c38', woodDark: '#5a4028', dark: '#2e2a26', glow: '#f4a868', cloth: '#efe2c4', cloth2: '#e8b48c', goods: '#c4664a',
   wool: '#ece2cc', woolDark: '#5a4a3c', far: '#d8d6c4', cloud: '#fffaf0',
 };

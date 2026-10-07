@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.85 — 2026-10-07
 
+- A new world off the route, the Fallen Ring: the pieces of a broken orbital ring lying across a sage-green plain. Walk under a great arch higher than the clouds, past a segment leaning on its crushed vermilion foot, to the long tube lying in the grass with a village built into its side; climb its service stairs to the crest, or step into its broken end, where the old street inside is lamplit and planted. A low segment rests on posts over a second village, a vault lies half sunk beside a tube broken open end-on, herds of woolly beasts graze everywhere and shy away if you come too close, and the rest of the ring stands pale on the horizon all round. Oro of Viridel and Emrys of the Garden of Spheres came to see it. It is on the galactic map from the start.
 - The References level has the Fallen Ring’s four pictures rebuilt as views: the colossal curved segments of a broken ring standing as arches over a sage-green plain, tubes lying in the grass with villages along their feet, broken ends opening on the streets and gardens inside, grazing beasts and great white cumulus.
 
 ## v0.84 — 2026-10-07

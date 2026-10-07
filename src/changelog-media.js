@@ -47,6 +47,7 @@ export const WORLDS = [
   ['saltharbour', 'The Salt Harbour', /Salt Harbour/],
   ['antennas', 'The Forest of Antennas', /Forest of Antennas/],
   ['references', 'References', /References level/],
+  ['fallenring', 'The Fallen Ring', /Fallen Ring/],
 ];
 
 /** The kinds of change, by their words. */
@@ -113,6 +114,31 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.85': [
+    { match: 'A new world off the route, the Fallen Ring', shots: [
+      { name: 'fallenring-arrival', only: 'after', caption: 'Out of the ship: the great arch over the plain, the long tube and its village, the segment leaning on its crushed vermilion foot', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'fallenring-village', only: 'after', caption: 'The village built into the long tube’s side, under its overhang, a service stair climbing to the crest', from: 'the world’s own screenshots, headless Chrome, High, 15:30 (7 October)' },
+      { name: 'fallenring-end', only: 'after', caption: 'The tube’s broken end: the old street inside, lamplit and planted, Oro in the garden, the ramp up from the grass', from: 'the world’s own screenshots, headless Chrome, High, 13:00 (7 October)' },
+      { name: 'fallenring-crest', only: 'after', caption: 'On the crest with Emrys: the arch’s leg with its storeys bared, the plain, the cumulus', from: 'the world’s own screenshots, headless Chrome, High, 16:30 (7 October)' },
+      { name: 'fallenring-band', only: 'after', caption: 'Under the low segment on its posts: the street between the two rings of houses', from: 'the world’s own screenshots, headless Chrome, High, 12:00 (7 October)' },
+      { name: 'fallenring-night', only: 'after', caption: 'The village at night, its windows lit under the tube', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the Fallen Ring on the galactic map (or open the game with ?level=fallenring). Follow the path north to the long tube’s village; its stairs climb to the crest, and its broken end is east, past the last houses. Walk toward a herd and the beasts trot off.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of frames, median of 3 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome on Metal, 1280 × 720', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 2.19, after: null },
+          { where: 'the Signal Market’s street (the budget)', before: 2.3, after: null },
+          { where: 'by the ship (spawn)', before: null, after: 1.61 },
+          { where: 'the path, toward the tube', before: null, after: 1.96 },
+          { where: 'the tube’s village', before: null, after: 2.01 },
+          { where: 'the crest', before: null, after: 1.83 },
+          { where: 'under the low segment', before: null, after: 2.33 },
+        ] },
+      ] },
+    { match: 'The References level has the Fallen Ring’s four pictures', shots: [
+      { name: 'fallenring-refs', only: 'after', size: [1608, 448], caption: 'The first picture (left) and its view in the game (right): the long tube and its village, the arch’s leg behind, the tilted segment', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'fallenring-refs-arch', only: 'after', size: [1608, 448], caption: 'The third: the arch swooping to its broken vermilion end, the slanted segment over the village', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=fallenring and step through its four views with [ and ]; \\ lays the picture over the view.' },
+  ],
   '0.84': [
     { match: 'A new world off the route, the Glass Dunes', shots: [
       { name: 'glass-camp', caption: 'The Glass Dunes: the west camp under its ramp of sand, the cliff of the giants behind (16:30, the Handheld preset)', commit: 'ac98118a', only: 'after',

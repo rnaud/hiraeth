@@ -32,6 +32,7 @@ export const EDGE_HINTS = {
   lab: 'The Lab ends here.',
   default: 'The wind pushes you back.',
   underwater: 'The water darkens into the deep and turns you back.',
+  fallenring: 'The plain runs on toward the far pieces of the ring, and the wind turns you back.',
 };
 
 /**

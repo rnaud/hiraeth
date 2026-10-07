@@ -27,6 +27,7 @@ export const PLANETS = {
   saltharbour: { body: '#f1e9e0', shade: '#b9c4dc', ink: '#c4664a', mark: 'bands' },
   antennas: { body: '#a98cd8', shade: '#7e68b2', ink: '#f1e6a2', mark: 'lights' },
   underwater: { body: '#2a7fae', shade: '#164f74', ink: '#f2a48e', mark: 'lights' },   // (a detour: the city on the sea floor)
+  fallenring: { body: '#9c9e58', shade: '#6a7a52', ink: '#f8e6c8', mark: 'bands' },   // (a detour: the fallen ring)
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };
 

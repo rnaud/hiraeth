@@ -7,6 +7,12 @@ import { REFERENCE_WORLDS, loadWorld, worldIndex } from '../src/levels/reference
 import { ringSegment, arcThrough, placeRing, ringPose, tree, village, grazer, cloudBank, puff, RING_LOOK, RING_DAY } from '../src/levels/fallen-ring-kit.js';
 import { sheetAt } from '../src/levels/reference-fallenring.js';
 import { mulberry32 } from '../src/noise.js';
+import { Physics } from '../src/physics.js';
+import { LEVELS } from '../src/levels/index.js';
+import { CONTENT, ORDER } from '../src/levels/content.js';
+import { SIDE } from '../src/levels/names.js';
+import { mapEntries } from '../src/ship/starmap.js';
+import { createFallenRing, RING_CONTENT, PATH, WEST, EAST, SHIP, HERDS, STAIR_S, STAIR_RUN } from '../src/levels/fallen-ring.js';
 
 const finite = (g) => { const p = g.attributes.position.array; for (let i = 0; i < p.length; i++) if (!Number.isFinite(p[i])) return false; return true; };
 const tris = (list) => list.reduce((n, g) => n + (g.index ? g.index.count : g.attributes.position.count) / 3, 0);
@@ -88,4 +94,88 @@ test('the views are placed off the sheets\' pixels: a point drawn at (px, py) d 
     const p = sheetAt(cam, px, py, d).project(camera);
     assert.ok(Math.abs((p.x + 1) * 728 - px) < 0.5 && Math.abs((1 - p.y) * 408 - py) < 0.5, `${px}, ${py}`);
   }
+});
+
+// ------------------------------------------------------------------ the world (src/levels/fallen-ring.js)
+let world = null;
+const built = () => world ??= (() => {
+  const scene = new THREE.Scene(), w = console.warn, e = console.error, errors = []; console.warn = () => {}; console.error = (...a) => errors.push(a.join(' '));
+  try { const level = createFallenRing(scene); return { scene, level, physics: new Physics(scene, level.ground), errors }; } finally { console.warn = w; console.error = e; }
+})();
+const along = (pts, step = 1.5) => {
+  const c = new THREE.CatmullRomCurve3(pts.map(([x, z]) => new THREE.Vector3(x, 0, z)), false, 'centripetal'), L = c.getLength(), out = [];
+  for (let s = 0; s <= L; s += step) out.push(c.getPointAt(s / L));
+  return out;
+};
+
+test('the Fallen Ring: off the route, on the map from the start, reached by ?level=fallenring', () => {
+  const L = LEVELS.find((l) => l.id === 'fallenring');
+  assert.ok(L && L.hidden && !L.dev, 'a world, not on the route');
+  assert.ok(SIDE.includes('fallenring') && !ORDER.includes('fallenring'));
+  assert.equal(CONTENT.fallenring, RING_CONTENT);
+  assert.ok(RING_CONTENT.story.manual, 'no story to follow: no beacon, never in the way home');
+  const entries = mapEntries({ order: ORDER, levels: LEVELS, side: SIDE, journal: { seen: () => false, storyDone: () => false }, current: 'desert', flag: () => undefined, home: () => true });
+  const e = entries.find((x) => x.id === 'fallenring');
+  assert.ok(e && e.known && e.side, 'charted, off the dotted line');
+  assert.ok(entries.at(-1).home, 'home still last');
+  assert.deepEqual(RING_CONTENT.npcs.filter((p) => p.id).map((p) => p.id).sort(), ['ivo', 'oro'], 'Oro of Viridel and Emrys of the Garden of Spheres');
+  for (const p of RING_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes && !p.talk.entry, `${p.id}: only words for the ring, no errands`);
+});
+
+test('the Fallen Ring builds: the path clear from the ship to the tube\'s village, the branches too', () => {
+  const { level, physics, errors } = built();
+  assert.equal(level.id, 'fallenring');
+  assert.deepEqual(errors, [], 'no errors building it');
+  const g = (x, z) => level.ground.heightAt(x, z);
+  assert.ok(Math.abs(level.spawn.y - g(level.spawn.x, level.spawn.z)) < 0.2, 'the traveller starts on the ground');
+  let lo = Infinity, hi = -Infinity;
+  for (let a = 0; a < 6.3; a += 0.4) for (const r of [0, 6, 12]) { const h = g(SHIP.x + Math.cos(a) * r, SHIP.z + Math.sin(a) * r); lo = Math.min(lo, h); hi = Math.max(hi, h); }
+  assert.ok(hi - lo < 1.5, `the ship's ground is level (${(hi - lo).toFixed(2)} m)`);
+  let n = 0;
+  for (const p of [...along(PATH, 1.2), ...along(WEST, 1.2), ...along(EAST, 1.2)]) {
+    assert.equal(physics.pushCapsule(new THREE.Vector3(p.x, g(p.x, p.z) + 0.05, p.z), 0.4, 0.6, 2.0), null, `nothing in the way on the path at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+    n++;
+  }
+  assert.ok(n > 200);
+  assert.ok(level.lights.length > 60, 'windows, lanterns and the lamps in the broken end');
+});
+
+test('the long tube is solid as drawn: its crest stood on, its stairs climbed, its broken end walked into', () => {
+  const { level, physics } = built();
+  const crest = level.parts.tube.at(0.5, 0.25);
+  const y = physics.groundAt(crest.p.x, crest.p.y + 3, crest.p.z, 8);
+  assert.ok(Number.isFinite(y) && Math.abs(y - crest.p.y) < 0.3, `the crest is stood on (${y?.toFixed(2)} by ${crest.p.y.toFixed(2)})`);
+  assert.ok(crest.p.y > 15, 'the crest is high over the grass');
+  // the stairs: step by step from the grass to the crest's flank
+  for (const t of [0.2, 0.47, 0.72]) {
+    const top = level.parts.tube.at(t, STAIR_S, 0.05), n = top.n.clone().setY(0).normalize(), foot = top.p.clone().addScaledVector(n, (top.p.y - level.ground.heightAt(top.p.x, top.p.z)) * STAIR_RUN);
+    foot.y = level.ground.heightAt(foot.x, foot.z);
+    let last = -Infinity, rises = 0;
+    for (let k = 0.06; k < 0.95; k += 0.04) {
+      const p = foot.clone().lerp(top.p, k), yy = physics.groundAt(p.x + 0.05, p.y + 2, p.z + 0.03, 5);
+      assert.ok(Number.isFinite(yy) && yy >= last - 0.1, `the stair at ${t} climbs at ${k.toFixed(2)} (${yy} after ${last})`);
+      if (yy > last + 0.01) rises++;
+      last = yy;
+    }
+    assert.ok(rises > 12 && last > top.p.y - 2.5, `step by step up (${t}: ${rises} rises, to ${last.toFixed(2)} of ${top.p.y.toFixed(2)})`);
+  }
+  // the floor in the broken end
+  const e = level.parts.tube.at(0.95, 0.75), fy = physics.groundAt(e.p.x, e.p.y + 6, e.p.z, 10);
+  assert.ok(Number.isFinite(fy) && fy > level.ground.heightAt(e.p.x, e.p.z) + 0.5, 'the old street inside the broken end is a floor');
+});
+
+test('the beasts graze in their herds and shy from the traveller; the far ring is one or two draws', () => {
+  const { level, scene, physics } = built();
+  const H = level.herds;
+  assert.equal(H.beasts.length, HERDS.reduce((s, h) => s + h[3], 0));
+  const b = H.beasts[0], [x0, z0] = H.at(0), eye = new THREE.Vector3(x0 + 2, 0, z0);
+  for (let i = 0; i < 40; i++) H.update(0.1, eye);
+  assert.ok(Math.hypot(b.x - eye.x, b.z - eye.z) > 6, 'it trots off from you');
+  for (let i = 0; i < 400; i++) H.update(0.5, null);
+  for (const q of H.beasts) assert.ok(Math.hypot(q.x - q.home[0], q.z - q.home[1]) < q.home[2] + 25, 'and grazes back near its herd');
+  let meshes = 0;
+  scene.traverse((o) => { if (o.isMesh && o.visible) meshes++; });
+  assert.ok(meshes < 200, `meshes ${meshes}`);
+  assert.ok(level.far.filter((m) => m.name.startsWith('the far ring')).length <= 2, 'the far ring: one or two draws');
+  assert.ok(physics.triangles < 160000, `collision triangles ${physics.triangles}`);
 });

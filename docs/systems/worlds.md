@@ -763,3 +763,55 @@ references.md). Its pieces are in `src/levels/underwater-kit.js`, shared with th
   in every pod; the pods can't be entered (only the cafés); nothing swims in the glass columns; the canal's water
   is the same sea (no darker water under the walkways as view 3 has it); the far city is plain cylinders; the mantas
   don't react to you; the cafés' people sit still at their tables.
+
+## The Fallen Ring (`fallenring`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The Fallen Ring/`; the views: references.md): a
+broken orbital ring lying across a vast sage-green plain, its colossal curved segments standing as arches into the sky,
+lying in the grass as tubes, leaning on their crushed ends; their cut sections showing the streets and gardens inside;
+the low pieces made into villages; herds of woolly beasts grazing through. No story to follow and no errands: two people
+from other worlds came to see it (Oro, who grows pyramids in Viridel, in the garden inside the tube's broken end; Emrys,
+the Garden of Spheres' climber, on the tube's crest), and five of the ring folk stand about with a couple of toned lines
+each. They speak Viridel's tongue (`lang: 'edena'`).
+
+- **Off the route** (`SIDE`, `src/levels/names.js`): on the galactic map from the start, `?level=fallenring`.
+- **The layout** (`src/levels/fallen-ring.js`): the ship lands on the open plain in the south (`SHIP`); a path runs 200 m
+  north to the long tube lying across the grass (`TUBE`: 22 m round, 300 m long, sunk 2 m), its village along its south
+  foot (rows of cabins under the overhang, built into the cut-away bottom of the hull, awnings and stalls out front),
+  three service stairs up its flank to the crest (`STAIR_S`, `STAIR_RUN`: each lands where the flank is 32° from level
+  and runs out far enough to clear the bulge), its east end broken open on the old street inside (a floor a metre over
+  the grass, lamps, a garden, a ramp up to it). Behind it the great arch (`ARCH`: a circle through three points, its
+  legs 540 m apart, its top 200 m up and leaning back, the storeys inside each leg bared behind ribs, machinery on the
+  inside wall); east of the tube's end the tilted segment leans on its crushed vermilion foot (`TILTED`), trees from
+  its seams. West, the low segment (`BAND`: an arc of 80 m radius) rests on timber posts 11 m over two rings of houses,
+  a street between them, a stair up onto its top and the grove there; east, the vault half sunk in the grass with its
+  village (`VAULT`), and behind it a great tube 44 m round broken open end-on (`BIG`). Groves of umbrella trees on the
+  plain; the rest of the ring far off all round (six pieces at 1.1-1.7 km, low-poly, one draw with its vermilion bands
+  another), where the land rises; cumulus banks at 0.95-1.4 km (instanced lumpy puffs).
+- **The pieces** are the views' kit (`fallen-ring-kit.js`, references.md "The Fallen Ring's pictures"): `ringThrough`
+  (a segment by three points of its centre line), `village`, `tree`, `serviceStair`, `grazer`, `cloudBank`.
+- **Built in cells**: each 220 m cell its own `RoomKit` (frustum-culled); the flat-coloured surfaces (timber, doors,
+  goods, trunks), the foliage and the awnings merged per vertex in each cell (`mergeWithMaterials`, S_VMAT); the
+  windows, rails, doors, goods, collars, broken edges, inside walls and floors cast no shadow. ~120 meshes in all.
+- **Solid as drawn where walked** (~90 k collision triangles): the hulls' skins (a few thousand faces each: the arc
+  rows are a few metres, the section 32-40 columns, so the contact audit finds the skin where it is drawn), their broken
+  edges, inside walls, floors, ribs and the houses inside, the village houses, the posts, the stairs and the floor in
+  the broken end. Drawn only: the trees' crowns (flora), the awnings, the far ring, the cumulus. Contact audit: feet
+  sink 2, climbs inside 13 (awnings), walks through 0 (`tests/contact-audit.test.js` KNOWN).
+- **The herds** (`Herds`): 45 beasts in five herds (`HERDS`), two instanced draws (the fleece, the legs and heads);
+  each walks slowly to a spot on its herd's ground and grazes there, nodding, and trots off when the traveller comes
+  within 7 m; past 160 m they stand still.
+- **The look**: `RING_LOOK` on the print preset (fallen-ring-kit.js): a teal-blue day, a rose dusk, a deep green-blue
+  night with the windows lit; passing rain. Grass blades from the ground's ticks. A pale moon. Birds overhead (two
+  flocks), pollen motes. Sound: footsteps on grass, the `birds` ambience.
+- **Cost** (Mac, M4 Pro, headless Chrome on Metal, Handheld preset at render scale 0.75, 1280 × 720, a synced loop of
+  `renderFrame`, median of 3 rounds alternating with the Signal Market): the market's spawn 2.19 ms (598-693 draws,
+  0.67-0.70 M triangles), its street 2.30 (334-656, 0.47-0.76 M); the ring by the ship 1.61 ms (457-525 draws,
+  0.37-0.61 M), on the path 1.96 (424, 0.35 M), at the tube's village 2.01 (448-670, 0.57 M), on the crest 1.83
+  (416-420, 0.48 M), under the low segment 2.33 (425, 0.58 M). At or under the market's frame time and draws. Before
+  the per-vertex merging and the shadow trims the same places drew 434-771 calls. The build in node: ~300 ms.
+- **Left to make it better**: the pictures' interiors are dense little cities, ours a few decks of boxes and gardens;
+  the hulls' fine panel work and stains are the built pen detail and the collars only; the beasts are plain lumps (no
+  wool, no legs moving); the arch and the tilted segment can't be climbed; the far ring is the same plain tubes; the
+  cumulus are lumpy balls that pale a little with distance; the tilted segment's foot is a clean cylinder where the
+  pictures crush it; nothing moves in the villages but the people standing there.

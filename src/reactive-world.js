@@ -31,6 +31,7 @@ export const WORLD_REACTIONS = {
   saltharbour: {kind:'flower',quiet:'#e6d2bc',awake:'#c4664a',radius:9},   // (none grow there: level.reactions false)
   antennas: {kind:'flower',quiet:'#9a7ccc',awake:'#ffcf72',radius:9},   // (none grow there: level.reactions false)
   underwater: {kind:'fungus',quiet:'#3f7a74',awake:'#9ff4ee',radius:9},   // (none grow there: level.reactions false)
+  fallenring: {kind:'flower',quiet:'#9c9e58',awake:'#ef9a7c',radius:9},   // (none grow there: level.reactions false)
 };
 
 // ------------------------------------------------------------------ room to bloom

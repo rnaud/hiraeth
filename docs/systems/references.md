@@ -656,6 +656,8 @@ the narrowest creases.
   shade is a grey-teal), little hatching, the cumulus as geometry (no horizon bank, no flat clouds), a light haze in
   bands from 220 m and a thin fog, the aerial perspective's greying cut to 0.35 (with the Moebius print's, the cumulus
   at 500–700 m came out grey; now white with a pale blue shade).
+- **On the world** (`src/levels/fallen-ring.js`, worlds.md "The Fallen Ring"): the same kit, `ringThrough` placing
+  each piece by three points of its centre line, the hulls and what is inside them solid as drawn.
 - **The scale**: the pictures' tubes 20–45 m round 50–200 m off, the arches' legs 50–75 m thick, their circles 250–900
   m round; the beasts 20–40 m off.
 - **Left**: the pictures' interiors are dense little cities (terraces, hanging gardens, lit windows by the hundred);

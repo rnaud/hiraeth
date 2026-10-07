@@ -22,6 +22,7 @@ import { SALT_CONTENT } from './salt-harbour.js';
 import { ANTENNAS_CONTENT } from './antennas.js';
 import { HOME_CONTENT } from './home.js';
 import { GLASS_CONTENT } from './glass-dunes.js';
+import { RING_CONTENT } from './fallen-ring.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
@@ -260,6 +261,7 @@ export const CONTENT = {
   edena: EDENA_CONTENT,
   // the swamp's story and its people: src/levels/perdide.js, src/story/perdide-data.js
   perdide: PERDIDE_CONTENT,
+  fallenring: RING_CONTENT,   // src/levels/fallen-ring.js: off the route (names.js SIDE), no quest
 };
 
 // Errands: villagers asking you to carry something to someone in another
