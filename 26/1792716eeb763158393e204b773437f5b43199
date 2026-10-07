@@ -1,0 +1,29 @@
+changelog.md
+  s_55b4bc53b812ec::t_e2e1fc18ea85a8 12
+docs/story-audit.md
+  s_55b4bc53b812ec::t_59ebd0506fc750 301,378,440,497-498
+docs/story-bible.md
+  s_55b4bc53b812ec::t_a60ca4b336b347 263,265-271
+src/changelog.js
+  s_55b4bc53b812ec::t_3b6333de627693 18
+src/story/buried-data.js
+  s_55b4bc53b812ec::t_8ec888714bb834 32,141-152,207
+tests/story-buried.test.js
+  s_55b4bc53b812ec::t_a4776f9e2905ef 267-280
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "261792716eeb763158393e204b773437f5b43199",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
