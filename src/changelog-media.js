@@ -46,6 +46,7 @@ export const WORLDS = [
   ['mangrove', 'The White Mangrove', /White Mangrove/],
   ['saltharbour', 'The Salt Harbour', /Salt Harbour/],
   ['antennas', 'The Forest of Antennas', /Forest of Antennas/],
+  ['moonfoundry', 'The Moon Foundry', /Moon Foundry/],
   ['references', 'References', /References level/],
 ];
 
@@ -113,6 +114,12 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.85': [
+    { match: 'The References level has the Moon Foundry’s four pictures', shots: [
+      { name: 'moonfoundry-refs-hung', only: 'after', size: [1938, 540], caption: 'The first picture (left) and its view in the game (right): the hung moon, the moon broken open round its courtyard, the bowl in its cradle', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'moonfoundry-refs-claws', only: 'after', size: [1938, 540], caption: 'The third: two moons in their claws, the far moon between the pillars, the bridge across', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=moonfoundry (or the worlds list, L, then the References and Tab to the Moon Foundry) and press \\ to set each picture beside its view.' },
+  ],
   '0.84': [
     { match: 'A new world off the route, the Glass Dunes', shots: [
       { name: 'glass-camp', caption: 'The Glass Dunes: the west camp under its ramp of sand, the cliff of the giants behind (16:30, the Handheld preset)', commit: 'ac98118a', only: 'after',

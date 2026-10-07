@@ -15,6 +15,7 @@ import { MANGROVE_DAY, MANGROVE_LOOK } from './mangrove-kit.js';
 import { WATERFALL_DAY, WATERFALL_WORLD_LOOK } from './waterfall-kit.js';
 import { SALT_DAY, SALT_LOOK } from './salt-harbour-kit.js';
 import { ANTENNAS_DAY, ANTENNAS_LOOK } from './antennas-kit.js';
+import { MF_DAY, MF_LOOK } from './moon-foundry-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
 
@@ -100,8 +101,9 @@ export function sunTurn(sun, yaw = 0) {
  * crosses the frame), fov (vertical, deg, for the panel's own proportions) }
  */
 export function viewCamera(cam) {
-  // horizon below the centre: looking up; or a pitch given outright (deg: steep views up or down a shaft)
-  const pitch = cam.pitch !== undefined ? cam.pitch * DEG : Math.atan((cam.horizon - 0.5) * 2 * Math.tan((cam.fov * DEG) / 2));
+  // horizon below the centre: looking up; or a pitch given outright (deg: steep views up or down a shaft);
+  // or a shifted lens (cam.shift: looking level, the frame a window of a taller one: lensShift)
+  const pitch = cam.shift ? 0 : cam.pitch !== undefined ? cam.pitch * DEG : Math.atan((cam.horizon - 0.5) * 2 * Math.tan((cam.fov * DEG) / 2));
   const yaw = (cam.yaw ?? 0) * DEG;
   const eye = new THREE.Vector3(...cam.eye);
   const dir = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
@@ -119,6 +121,23 @@ export function frameBox(W, H, aspect, fov) {
   }
   const h = W / aspect;
   return { x: 0, y: (H - h) / 2, w: W, h, fov: 2 * Math.atan(Math.tan((fov * DEG) / 2) * (H / h)) / DEG };
+}
+
+/**
+ * A panel drawn with a shifted lens (camera.shift: its verticals upright though its horizon is far off the middle, as
+ * the Moon Foundry's monumental sheets are): the camera looks level and the screen is a window of a taller frame
+ * centred on eye level (setViewOffset), so eye level crosses the panel's box at its `horizon`. W × H the screen, box
+ * its panel's frame (frameBox). Sets the camera's fov (the taller frame's) and offset; without shift, clears the offset.
+ */
+export function lensShift(camera, cam, W, H, box) {
+  let fov = box.fov;
+  if (cam.shift) {
+    const hs = (box.y + cam.horizon * box.h) / H, k = Math.max(hs, 1 - hs), full = 2 * k * H, y = hs >= 0.5 ? 0 : full - H;
+    fov = (2 * Math.atan(2 * k * Math.tan((box.fov * DEG) / 2))) / DEG;
+    const v = camera.view;
+    if (!v?.enabled || Math.abs(v.fullHeight - full) > 1e-3 || Math.abs(v.offsetY - y) > 1e-3 || v.fullWidth !== W || v.height !== H) { camera.fov = fov; camera.setViewOffset(W, full, 0, y, W, H); }
+  } else if (camera.view?.enabled) camera.clearViewOffset();
+  if (Math.abs(camera.fov - fov) > 1e-6) { camera.fov = fov; camera.updateProjectionMatrix(); }
 }
 
 /** A ground of rings round a point (local): fine under the camera, coarser out to the horizon. */
@@ -200,6 +219,7 @@ export const WORLD_LOOKS = {
   waterfall: { sky: WATERFALL_DAY, look: { ...WATERFALL_WORLD_LOOK } },
   saltharbour: { sky: SALT_DAY, look: { ...SALT_LOOK } },
   antennas: { sky: ANTENNAS_DAY, look: { ...ANTENNAS_LOOK } },
+  moonfoundry: { sky: MF_DAY, look: { ...MF_LOOK } },
 };
 
 const pageParams = () => (typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams());
@@ -395,6 +415,7 @@ export function* buildReferences(scene, { params = pageParams(), go = pageGo, se
     held = null;
     setHidden(ctx.player, false);
     const cam = ctx.camera;
+    if (cam?.view?.enabled) cam.clearViewOffset();   // (a shifted lens let go: lensShift)
     if (cam && baseFov !== null && cam.fov !== baseFov) { cam.fov = baseFov; cam.updateProjectionMatrix(); }
   }
   /** View i (its number across the worlds, 0-based): framed here if it is this world's, else the page goes to its world. */
@@ -495,7 +516,7 @@ export function* buildReferences(scene, { params = pageParams(), go = pageGo, se
         camera.up.copy(Y);
         camera.lookAt(v.target);
         if (v.cam.roll) camera.rotateZ(v.cam.roll);   // (a panel drawn at a slant)
-        if (Math.abs(camera.fov - box.fov) > 1e-6) { camera.fov = box.fov; camera.updateProjectionMatrix(); }
+        lensShift(camera, v.def.camera, window.innerWidth, window.innerHeight, box);   // (the fov, and the shifted lens's window)
         setHidden(player, true);
       }
       if (camera && here) updateUi(held?.view ?? here, camera);

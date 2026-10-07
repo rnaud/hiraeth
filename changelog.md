@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.85 — 2026-10-07
+
+- The References level has the Moon Foundry’s four pictures rebuilt as views: ivory moons hanging from cranes or held in orange claws, shells broken open round little courtyards of houses and mint trees, gantries between the workstations under a vast open roof. Their camera keeps every pillar upright, as the pictures do.
+
 ## v0.84 — 2026-10-07
 
 - A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.

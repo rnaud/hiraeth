@@ -9,6 +9,9 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.85', date: '2026-10-07', items: [
+    'The References level has the Moon Foundry’s four pictures rebuilt as views: ivory moons hanging from cranes or held in orange claws, shells broken open round little courtyards of houses and mint trees, gantries between the workstations under a vast open roof. Their camera keeps every pillar upright, as the pictures do.',
+  ] },
   { v: '0.84', date: '2026-10-07', items: [
     'A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.',
     'In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.',

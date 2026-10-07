@@ -626,6 +626,41 @@ the narrowest creases.
   view 3's canyon is a street, not the plate's dark water with walkways over it; the domes' glass draws only its
   rim (S_GLASS), where the plates draw reflections across it; the columns' swimmers are not there.
 
+## The Moon Foundry's sheets (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-moonfoundry.js`, world `moonfoundry`: `?level=references&world=moonfoundry&view=n`):
+  four 16:9 pictures (1456 × 816), one view each: the hung moon, the moon broken open round its courtyard, the bowl
+  in its cradle (1); the great hung moon, the cutaway shell on its platform, the cratered moon in its cradle (2); two
+  moons in their claws, the far moon between the pillars, the bridge across (3); the shells open on their gardens,
+  the moon on its pillar, the long bridge (4). One scene builder (`foundryScene`), everything placed off the sheet's
+  pixels (`sheetAt(cam, px, py, d)`: a moon is its centre and radius in pixels at a distance, a pillar its column at a
+  distance). The kit is `src/levels/moon-foundry-kit.js`, shared with the world (worlds.md "The Moon Foundry").
+- **A shifted lens** (`camera.shift`, references.js `lensShift`): these sheets put eye level low (0.81-0.935 down the
+  frame) under monumental things, and keep every vertical upright. Pitching the camera up to put the horizon there
+  made the pillars and cranes lean in like a fisheye. With `shift` the camera looks level and the screen is a window
+  of a taller frame centred on eye level (`camera.setViewOffset`, as the title vista's tall screens use): eye level
+  crosses the panel's box at its `horizon`, verticals stay vertical. Released with the held camera (the offset
+  cleared); views without `shift` are unchanged. tests/references.test.js applies it when it checks the horizon.
+- **The shapes** (the kit): `moon` (an ivory sphere; craters are shallow rimmed dents laid on it, each vertex on the
+  sphere, so their inner wall shades as the sheets' crescents; `cut` breaks it open: a ragged hole, the shell's
+  thickness, its inside in its own tone), `courtyard` (a floor across a broken moon just over the hole's lip, so the
+  lip hides its front edge and the houses fill the opening; houses up to four floors under the shell's curve, a
+  terrace on the back wall with its stair and a house, machinery on the inner wall, mint trees), `bowl` (a lower
+  half-shell, plated, its row of ports, a deck with houses and trees), `cradle` (a drum and claw arms gripping a moon
+  below its middle, knuckles, pistons, hoses, greebles round the drum), `hangRig` (the clamp ring on a moon's crown,
+  its claws, the yoke, the hook block, cables to the trolley), `pillar` (banded, pipes, a cage ladder, a platform
+  ring, greebles at its foot), `roof` (girder trusses both ways, a dark ceiling drawn as a grid, hanging cables),
+  `gantry` (a railed truss walkway on legs), `house`, `tree` (garden-kit's `leafCrown` in mint), `jibCrane` (the
+  antennas' lattice, no vines). The thin parts (trusses, rails, cables, ladders) are `thin` bars (src/thin.js).
+- **The look** (`MF_LOOK`, `MF_DAY` in the kit): no clouds, a pale blue-mint sky to cream, a cool grey shade, haze
+  layers from 130 m. Per view the sky's five colours read off the sheet (view 4 greener, its shells' insides mint).
+  **The roof casts no shadow** in the views: the sheets light everything under it.
+- **Molten metal**: the sheets show none (the foundry is abandoned); the world has one still-warm furnace of its own.
+- **Left**: the sheets' machinery is dense pen work everywhere (the cradles' claws, the pillars' fittings, the
+  stacked houses inside the shells); ours is cleaner and plainer. View 3's globes have their outer shell peeled off in
+  continents over a darker machine layer, ours a ragged hole; the far moons are paler than the sheets' crisp ivory;
+  the floor is plain where view 3 has grass and bushes along it.
+
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 
 The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had
