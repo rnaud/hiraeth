@@ -197,6 +197,7 @@ export class Terrain {
    */
   setHeights(changes) {
     if (!changes.length) return;
+    this.version = (this.version ?? 0) + 1;   // (what caches heights starts again: wind.js GroundCache)
     const g = this.mesh.geometry, pos = g.attributes.position.array, nrm = g.attributes.normal.array, n = this.n, seg = this.seg;
     const touched = new Set();
     for (const [i, h] of changes) {
