@@ -1,0 +1,45 @@
+changelog.md
+  s_55b4bc53b812ec::t_6218423af2a4ba 7
+docs/systems/references.md
+  s_55b4bc53b812ec::t_0b24c8e297cb9d 884-912
+src/changelog-media.js
+  s_55b4bc53b812ec::t_48b0db30f99cd1 53,154-157
+src/changelog.js
+  s_55b4bc53b812ec::t_0d373d6b712432 16
+src/levels/overnight-train-kit.js
+  s_55b4bc53b812ec::t_d8c84f202e760e 1-891
+src/levels/reference-overnighttrain.js
+  s_55b4bc53b812ec::t_f52daef4b260d0 1-187
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_21225923a36ee4 40
+src/levels/references.js
+  s_55b4bc53b812ec::t_a8589eba9b762f 23,232
+tests/overnight-train.test.js
+  s_55b4bc53b812ec::t_9e874cafe6e60b 1-103
+tests/spacecity.test.js
+  s_9580ea43ad13f6::t_e8fb2a8c48269d 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fd54848371231f21742d128abcb27ddffabbd71f",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9580ea43ad13f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6833479845d989f5",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
