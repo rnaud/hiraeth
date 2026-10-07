@@ -274,10 +274,115 @@ function levelModel() {
   return g;
 }
 
+// ---- the charms and the pass (October 2026: until then a gold gem; the game menu shows every item's model)
+
+function solesModel() {
+  // two thin grey soles, a small glyph under each heel
+  const g = new THREE.Group();
+  const sole = new THREE.Shape();
+  sole.moveTo(0, -0.12); sole.bezierCurveTo(0.045, -0.12, 0.05, -0.06, 0.04, 0); sole.bezierCurveTo(0.06, 0.07, 0.05, 0.13, 0, 0.13);
+  sole.bezierCurveTo(-0.05, 0.13, -0.06, 0.07, -0.04, 0); sole.bezierCurveTo(-0.05, -0.06, -0.045, -0.12, 0, -0.12);
+  for (const sx of [-1, 1]) {
+    const m = new THREE.Mesh(new THREE.ExtrudeGeometry(sole, { depth: 0.018, bevelEnabled: false }), flatM('#8f949a'));
+    m.position.set(sx * 0.065, 0, sx * 0.01); m.rotation.z = sx * 0.12;
+    g.add(m);
+    for (const x of [-0.016, 0, 0.016]) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.007, 6, 5).translate(sx * 0.065 + x + sx * 0.012, -0.075, 0.02), flatM('#dcecf2', { glow: 0.7 })));
+  }
+  g.rotation.x = -0.35;
+  return g;
+}
+
+function hushModel() {
+  // a soft grey cloth, folded twice, tied with a thread
+  const g = new THREE.Group();
+  for (let i = 0; i < 3; i++) g.add(new THREE.Mesh(roundedBox(0.13 - i * 0.008, 0.018, 0.09 - i * 0.006, 0.016, 4).translate(0, i * 0.034, 0), flatM(i % 2 ? '#a9a7a2' : '#bebcb5')));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.005, 4, 20).scale(1, 1.4, 1).translate(0, 0.035, 0), flatM('#c8483a')));
+  g.rotation.set(0.5, 0.3, 0);
+  return g;
+}
+
+function shellModel() {
+  // a small white spiral shell: a lathe of a cone that winds in
+  const pts = [];
+  for (let i = 0; i <= 12; i++) { const t = i / 12; pts.push(new THREE.Vector2(0.09 * Math.sin(t * Math.PI * 0.95) * (1 - t * 0.55), -0.1 + t * 0.22)); }
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.LatheGeometry(pts, 18), flatM('#f3eee2')));
+  for (let k = 0; k < 4; k++) g.add(new THREE.Mesh(new THREE.TorusGeometry(0.075 - k * 0.016, 0.006, 4, 18).rotateX(Math.PI / 2).translate(0, -0.05 + k * 0.04, 0), flatM('#d9c9a8')));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8).scale(1, 1.4, 0.5).translate(0, -0.06, 0.07), flatM('#e7a9a0')));
+  g.rotation.z = 0.5;
+  return g;
+}
+
+function mossModel() {
+  // a bead of glass on a brass pin, a sprig of glowing moss inside
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.075, 18, 14), flatM('#d9f2ea', { glow: 0.35 })));
+  for (let i = 0; i < 5; i++) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6).translate(Math.sin(i * 1.3) * 0.025, -0.02 + (i % 3) * 0.018, Math.cos(i * 1.3) * 0.02), flatM('#9fe07a', { glow: 0.9 })));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.004, 0.2, 8).translate(0, -0.15, 0), flatM(BRASS)));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.012, 14).translate(0, -0.07, 0), flatM(BRASS_DARK)));
+  return g;
+}
+
+function pouchModel() {
+  // a linen pouch, its neck tied, a few seeds spilt
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 12).scale(1, 0.85, 0.9), flatM('#d8c8a2')));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.06, 12).translate(0, 0.1, 0), flatM('#cdbb92')));
+  g.add(new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.05, 10, 1, true).rotateX(Math.PI).translate(0, 0.15, 0), flatM('#d8c8a2', { side: THREE.DoubleSide })));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.037, 0.008, 4, 16).rotateX(Math.PI / 2).translate(0, 0.11, 0), flatM('#7a5a3a')));
+  for (let i = 0; i < 4; i++) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 5).scale(1, 0.7, 1).translate(0.07 + i * 0.03, -0.085, 0.06 - i * 0.02), flatM('#8a6a3a')));
+  return g;
+}
+
+function scarfModel() {
+  // a fine white scarf in a lifting curl, the glyph woven at its end
+  const pts = [];
+  for (let i = 0; i <= 24; i++) { const t = i / 24; pts.push(new THREE.Vector3(-0.14 + t * 0.28, Math.sin(t * Math.PI * 1.6) * 0.06, Math.cos(t * Math.PI) * 0.04)); }
+  const g = new THREE.Group();
+  const band = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.03, 6).scale(1, 1, 0.3), flatM('#f6f2e8'));
+  band.rotation.x = 0.4;
+  g.add(band);
+  for (const x of [-0.02, 0, 0.02]) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.007, 6, 5).translate(0.125 + x, 0.03, 0.02), flatM(INK)));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.004, 3, 10, Math.PI).rotateZ(Math.PI).translate(0.125, 0.012, 0.02), flatM(INK)));
+  return g;
+}
+
+function reedModel() {
+  // a reed, crystal-tipped, to hold between your teeth
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.017, 0.26, 10).rotateZ(Math.PI / 2), flatM('#c9b27a')));
+  for (const x of [-0.06, 0.02]) g.add(new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.004, 3, 10).rotateY(Math.PI / 2).translate(x, 0, 0), flatM('#8a7448')));
+  g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.035, 0).scale(1.6, 1, 1).translate(0.16, 0, 0), flatM('#bfe8f2', { glow: 0.6 })));
+  g.rotation.z = 0.35;
+  return g;
+}
+
+function resinModel() {
+  // a small round tin, its lid off to one side, the amber resin inside
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.05, 24, 1, true), flatM(STEEL, { side: THREE.DoubleSide })));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.086, 0.086, 0.03, 24).translate(0, 0.005, 0), flatM('#e09a3a', { glow: 0.35 })));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.094, 0.094, 0.016, 24).rotateX(1.1).translate(0.07, 0.06, -0.07), flatM(STEEL)));
+  g.rotation.x = 0.45;
+  return g;
+}
+
+function passModel() {
+  // a stiff card, the palace seal in red, a name punched along it
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(roundedBox(0.15, 0.095, 0.006, 0.004, 3), flatM('#f1e3bf')));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.006, 18).rotateX(Math.PI / 2).translate(-0.085, 0.02, 0.008), flatM('#c8483a')));
+  for (let i = 0; i < 7; i++) g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.004, 6).rotateX(Math.PI / 2).translate(-0.02 + i * 0.022, -0.045, 0.007), flatM(INK)));
+  for (const y of [0.04, 0.012]) g.add(new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.008, 0.003).translate(0.05, y, 0.007), flatM('#7a6a55')));
+  g.rotation.set(-0.25, 0.2, 0.12);
+  return g;
+}
+
 const MODELS = {
   backpack: tankModel, jetpack: jetsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
   cell: cellModel, coil: coilModel, lantern: lanternModel, lens: () => lensModel('#d8d4c8', { glyph: true }), bell: whistleModel, star: starModel,
   bloom: bloomModel, echo: echoModel, level: levelModel,
+  soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,
 };
 
 /** A small model of an item for the hovering display (a generic gem for anything unknown). */

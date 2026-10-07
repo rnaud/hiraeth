@@ -6,7 +6,6 @@ import { Controller, padRide } from '../src/controller.js';
 import { Hoverbike } from '../src/bike.js';
 import { Bird } from '../src/bird.js';
 import { Taxi } from '../src/taxi.js';
-import { gearHtml } from '../src/items.js';
 
 const fakeWin = (ids = [], search = '', extra = {}) => ({ location: { search }, localStorage: { getItem: () => null }, navigator: { getGamepads: () => ids.map((id) => ({ id })) }, ...extra });
 
@@ -145,10 +144,18 @@ test('the cab drives itself: RT and the stick do nothing, X / □ asks where to'
   assert.equal(padRide({ KeyW: true }), null);
 });
 
-test('View / Select opens the sketchbook on your gear: each item and what it does', () => {
-  const html = gearHtml(['bell', 'backpack', 'jetpack'], { mode: 'Stilling' });
-  assert.ok(html.indexOf('Magic-fluid backpack') < html.indexOf('Fluid jets') && html.indexOf('Fluid jets') < html.indexOf('Bell-note whistle'), 'the backpack first');
-  assert.match(html, /Gear <span>3<\/span>/);
-  assert.match(html, /gun mode: Stilling/);
-  assert.match(gearHtml([]), /Nothing yet/);
+test('View / Select opens the game menu on your items: each one, the backpack first, the gun mode in use marked', async () => {
+  const { itemsData } = await import('../src/game-menu-data.js');
+  const { itemsPanel } = await import('../src/game-menu.js');
+  const d = itemsData({ owned: ['bell', 'stun', 'backpack', 'jetpack'], mode: 'stun', modes: ['shoot', 'stun'] });
+  assert.deepEqual(d.gear.map((g) => g.id), ['backpack', 'jetpack', 'stun', 'bell'], 'the backpack first, then by kind');
+  assert.equal(d.gear.find((g) => g.id === 'stun').inUse, true);
+  assert.equal(d.gear.find((g) => g.id === 'backpack').usable, true, 'plain fluid: A / × takes it');
+  assert.equal(d.gear.find((g) => g.id === 'bell').usable, false);
+  const { html, rows } = itemsPanel(d);
+  assert.match(html, /Gear <span>4 of \d+<\/span>/);
+  assert.match(html, /<em>in use<\/em>/);
+  assert.equal(rows[0][0].name, 'Magic-fluid backpack');
+  assert.match(rows[0][0].desc, /Aim \(LT \/ L2/, 'what it is and what it does, at the bottom');
+  assert.match(itemsPanel(itemsData({ owned: [] })).html, /Nothing to deliver|Nothing of value yet/);
 });

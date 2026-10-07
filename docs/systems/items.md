@@ -37,6 +37,10 @@ What the traveller carries and the boxes that give it.
     (lights `level.flammables`) and, since the temples, bloom (grows). A target that doesn't list a mode in
     `accepts` gets `'shoot'`, so every puzzle works in every mode.
   - Riding the hoverbike or skiff moves the tank into the vehicle's socket.
+- **In the game menu** (October 2026): the Items panel shows every item you have as a picture of
+  its own model (`src/item-icons.js`), the empty slots for the rest unnamed; every item has a model
+  now (`buildItemModel`: the charms and the cab pass were a gold gem). A gun mode's item, chosen
+  there, switches the tool to it (docs/systems/ui.md, "The game menu").
 - **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
   boxes, flags, teleport. Also `?items=all|none|a,b`.
 

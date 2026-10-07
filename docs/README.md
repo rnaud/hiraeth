@@ -45,7 +45,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [cinematics.md](systems/cinematics.md) | the ship's cutscenes and the burning tree, moments (first times, filmed) |
 | [scout.md](systems/scout.md) | the scout drone |
 | [items.md](systems/items.md) | items, the backpack and the makers' boxes |
-| [ui.md](systems/ui.md) | playing and settings, the changelog page, a quieter screen, the title screen and saves, nothing on the screen |
+| [ui.md](systems/ui.md) | playing and settings, the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (items, quests, sketchbook, worlds) |
 | [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world |
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |

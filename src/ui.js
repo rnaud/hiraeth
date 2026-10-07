@@ -64,7 +64,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['In a cab (it drives itself)', 'choose a stop: click it, or its number · SPACE choose again · E get out'],
       ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
       ['Push · gun mode', 'C or middle click · X'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
-      ['Sketchbook · menu · this page', 'J · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F · N'], ['Mute', 'M'],
+      ['Items, quests, sketchbook · menu · this page', 'J (Q / E turn its panels) · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F · N'], ['Mute', 'M'],
     ],
     pad: [
       ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1'],
@@ -72,7 +72,8 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Call your mount or a taxi', 'X / □'], ['The scout finds your objective', 'Y / △ (riding too)'],
       ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'hold RT / R2 without aiming: the left stick flies where you look (look down to dive, up to climb), the stick at rest hovers · A / × held climbs'],
       ['Push · gun mode', 'RB / R1 · D-pad left / right'], ['Photo mode · worlds', 'D-pad down · D-pad up'],
-      ['Gear and sketchbook · menu', 'View · Menu'],
+      ['Items, quests and sketchbook · menu', 'View · Menu'],
+      ['Their panels (items, quests, sketchbook, worlds)', 'LB / L1 · RB / R1'],
       ['Riding', 'RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off'],
       ['In a cab (it drives itself)', 'choose a stop: left stick and A / × · X / □ choose again · B / ○ get out'],
       ['Swimming', 'left stick swim (L3 sprints) · look down and swim forward to dive · A / × rise, climb out'],
@@ -81,31 +82,29 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
     touch: [
       ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'],
       ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · push · gun mode', '◎ · ✺ · ✋ · ◐'],
-      ['Sketchbook · menu', '❏ · the small ⚙ in the corner'],
+      ['Items, quests and sketchbook · menu', '❏ (its tabs turn the panels) · the small ⚙ in the corner'],
     ],
   };
 }
 
 /**
  * The Start menu: O, Esc (when nothing else is open), the small gear on a touch screen or Menu /
- * Start on a controller. Full screen: on the left Resume, Quests, the sketchbook, Settings,
- * Controls, what's new and Quit to title (with where you are: the save, the world, the time
- * played); on the right the page: the settings (where it opens), the quest log (o.quests():
- * the journal's quest-log section, main.js; choosing an active quest tracks it: o.onTrack(id)),
- * or every control (H opens it there). B / ○ or Esc closes it, from any page.
+ * Start on a controller. Full screen: on the left Resume, Items and Quests (they open the game menu,
+ * src/game-menu.js, on that panel: o.onBook(panel)), Settings, Controls, what's new and Quit to title
+ * (with where you are: the save, the world, the time played); on the right the page: the settings
+ * (where it opens) or every control (H opens it there). B / ○ or Esc closes it, from any page.
  * main.js pauses the game and plays the menu music while it is open.
  * The title screen (src/title.js) shows the same settings on its own element: { el, title: true }
  * (no game entries, no keys of its own; Controls is there too).
  * In the Android app the settings start with the game's updates (src/update-panel.js);
  * onBeforeRestart saves the game before an update restarts it.
  */
-export const MENU_PAGES = ['settings', 'quests', 'controls'];
+export const MENU_PAGES = ['settings', 'controls'];
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onDebug, onBeforeRestart, where, quests = null, onTrack = null, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onDebug, onBeforeRestart, where, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
     this.el = el;
     this.where = where;
-    this.quests = quests; this.onTrack = onTrack;
     this.current = 'settings';
     const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
     const game = !title;
@@ -118,8 +117,7 @@ export class SettingsMenu {
           <div class="where"></div>
           <nav class="menu-nav">
             <button data-a="close" class="primary">${game ? 'Resume' : 'Back'}</button>
-            ${game && quests ? go('quests', 'Quests') : ''}
-            ${game ? '<button data-a="book">Sketchbook</button>' : ''}
+            ${game ? '<button data-a="book" data-panel="items">Items</button><button data-a="book" data-panel="quests">Quests</button>' : ''}
             ${go('settings', 'Settings')}
             ${go('controls', 'Controls')}
             ${game ? `<button data-a="news">What's new</button>
@@ -150,7 +148,6 @@ export class SettingsMenu {
           </div>` : ''}
           <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
         </section>
-        ${game && quests ? '<section class="panel questlog" data-page="quests" hidden></section>' : ''}
         <section class="panel controls" data-page="controls" hidden></section>
       </div>`;
     // the controls page names the menu's confirm / back buttons, which follow the "Controller buttons" setting
@@ -184,7 +181,7 @@ export class SettingsMenu {
       if (a === 'close') this.toggle(false);
       if (a === 'page') this.page(at.dataset.page);
       if (a === 'news') { this.toggle(false); onNews?.(); }
-      if (a === 'book') { this.toggle(false); onBook?.(); }
+      if (a === 'book') { this.toggle(false); onBook?.(at.dataset.panel); }
       if (a === 'title') onQuit?.();
       if (a === 'debug') { this.toggle(false); onDebug?.(); }
       if (a === 'dev') { e.preventDefault(); this.toggle(false); onDev?.(); }
@@ -192,9 +189,6 @@ export class SettingsMenu {
       if (a === 'reset') this.askReset(true);
       if (a === 'reset-no') this.askReset(false);
       if (a === 'reset-yes') onResetProgress?.();
-      // the quest log: choosing an active quest tracks it (the scout finds it next)
-      const q = !a && e.target.closest?.('.questlog [data-quest]');
-      if (q && q.dataset.nav !== undefined) { this.onTrack?.(q.dataset.quest); this.renderQuests(); el.querySelector(`.questlog [data-quest="${q.dataset.quest}"]`)?.focus({ preventScroll: true }); }
     });
     if (game) {
       window.addEventListener('keydown', (e) => {
@@ -205,8 +199,6 @@ export class SettingsMenu {
           if (this.open) this.back();
           else if (!isBusy()) this.toggle(true);
         }
-        // (a quest in the log, focused: Enter or Space tracks it)
-        else if (this.open && (e.code === 'Enter' || e.code === 'Space') && document.activeElement?.matches?.('.questlog [data-quest][data-nav]')) { e.preventDefault(); document.activeElement.click(); }
       });
       document.getElementById('gear')?.addEventListener('click', () => this.toggle());
     }
@@ -214,24 +206,14 @@ export class SettingsMenu {
     this.updates = new UpdatePanel(el.querySelector('.updates'), { onBeforeRestart });
     settings.on(() => sound?.setVoices?.(this.s.voices, this.s.alienVoices));
   }
-  /** Show a page on the right: 'settings', 'quests' or 'controls'. */
+  /** Show a page on the right: 'settings' or 'controls'. */
   page(name = 'settings') {
     if (!this.el.querySelector(`[data-page="${name}"].panel`)) name = 'settings';
     this.current = name;
     for (const p of this.el.querySelectorAll('.panel[data-page]')) p.hidden = p.dataset.page !== name;
     for (const b of this.el.querySelectorAll('.menu-nav [data-page]')) b.classList.toggle('on', b.dataset.page === name);
-    if (name === 'quests') this.renderQuests();
     if (name === 'controls') this.syncControls();
     this.el.querySelector(`.panel[data-page="${name}"]`)?.scrollTo?.(0, 0);
-  }
-  /** The quest log page: the journal's quest-log section (main.js), its active quests focusable. */
-  renderQuests() {
-    const p = this.el.querySelector('.questlog');
-    if (!p) return;
-    let html = '';
-    try { html = this.quests?.() ?? ''; } catch (e) { console.warn(e); }
-    p.innerHTML = `<h1>QUESTS</h1>${html || '<p class="none">Nothing asked of you yet.</p>'}`;
-    for (const q of p.querySelectorAll('.quest[data-quest]:not(.finished)')) { q.tabIndex = 0; q.dataset.nav = ''; }
   }
   /**
    * Back (B / ○, Esc): first out of the "start over?" question, then out of the menu, whatever
@@ -274,7 +256,7 @@ export function controlsHtml(list = controlsList(), first = 'keyboard') {
 
 /**
  * Touch: a virtual stick on the left half, camera drag on the right half,
- * buttons for jump, interact, run, the scout's find, the sketchbook and the fluid tool (the
+ * buttons for jump, interact, run, the scout's find, the game menu (❏) and the fluid tool (the
  * menu is the small faint ⚙ in the corner, index.html #gear). Writes
  * into the same `input` object as the keyboard (input.stick is analog).
  */

@@ -12,12 +12,16 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   (Done: no driver in any cab; an open cabin with a seat under the canopy, the traveller seated in
   it, hands resting; the dash asks where to and the cab flies itself to the stop, where you step
   out. Wren is the old cab itself. docs/systems/movement.md "Riding a cab", tests/cab-ride.test.js.)
-- [ ] Replace the sketchbook interface with a game menu inspired by Ocarina of Time, with multiple
+- [x] Replace the sketchbook interface with a game menu inspired by Ocarina of Time, with multiple
   distinct panels and clear controller navigation. Include an Items panel showing collected items
   and a Quests panel. Use the game's own visual style and assets.
-- [ ] Simplify the current quest presentation: show only the overall goal and the next actionable
+  (Done: four panels, Items, Quests, Sketchbook, Worlds, turned with LB / RB, a cursor over each,
+  A / × uses or looks, B / ○ closes; items drawn from their own models; docs/systems/ui.md, "The game menu".)
+- [x] Simplify the current quest presentation: show only the overall goal and the next actionable
   step, updating as progress changes. Do not show the full quest log or accumulated history in the
   current quest view. Apply this to the Quests panel and any current-quest summary shown in play.
+  (Done: each quest's goal, src/story/quest-goals.js, and its current step only, in the Quests panel
+  and on the scout's find; finished quests a short list of titles; the Start menu's old quest log is gone.)
 
 # Questions for the author
 
