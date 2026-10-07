@@ -124,8 +124,9 @@ test('the level builds the world it opens on, a view a step, and goes to another
   assert.equal(level.held, level.views[5], 'a view of this world: framed here');
   assert.deepEqual(gone, []);
   level.jumpWorld(1); step();
-  assert.deepEqual(gone, ['?level=references&world=desert&view=1&look=bazaar'], 'the next world (round to the first): the page goes there, ?look kept');
-  assert.deepEqual(level.leaving, { k: 0, local: 0 });
+  { const k = (REFERENCE_WORLDS.findIndex((w) => w.id === 'market') + 1) % REFERENCE_WORLDS.length;
+    assert.deepEqual(gone, [`?level=references&world=${REFERENCE_WORLDS[k].id}&view=1&look=bazaar`], 'the next world (round to the first after the last): the page goes there, ?look kept');
+    assert.deepEqual(level.leaving, { k, local: 0 }); }
   step();
   assert.equal(gone.length, 1, 'once');
 });

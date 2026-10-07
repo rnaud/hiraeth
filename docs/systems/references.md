@@ -429,6 +429,27 @@ the narrowest creases.
   self-driving, round-bellied cab with its striped canopy and a rider).
 - **Left, scene level**: the sheets' stalls are a dense heap of goods and signs; ours are tidy rows.
 
+## The Glass Dunes' plates (references/The Glass Dunes/reference-1 … 4)
+
+- **The views** (`src/levels/reference-glassdunes.js`, world `glassdunes`, `?level=references&world=glassdunes&view=n`):
+  the four plates, one view each, after the Signal Market's. One scene builder (`dunesScene`) with the Glass Dunes'
+  kit (`src/levels/glass-dunes-kit.js`, shared with the world, worlds.md "The Glass Dunes"): ridges of glass
+  (`glassRidge`: a profile swept along a path, folded into leaning lobes), archways (`glassArch`), the glassworkers'
+  camp (`awningCamp`), dark stones (`boulders`), ramps of sand against the walls, low glass flows over the sand.
+- **The framing was measured off the plates**: the traveller's height in pixels and his feet below the horizon give
+  his distance and the eye's height (9, 11, 7 and 1.35 m), and from them the camps' and the walls' distances. The
+  scenes are smaller than they look: the walls 45–75 m off and 35–70 m high in plates 1–3, 300 m in plate 4.
+- **The look** (`GLASS_VIEW_LOOK`): a clean sky, the far sand in stepped warm bands, the shade printed flat
+  (`uShadowFlat` 0.85) in a teal-green shadow tint, so the glass's turned faces and the sand in its shade read as
+  one luminous teal, as the plates print the light come through the glass. The glass draws a hairline in its own
+  green (`line` 0.25, `lineTint` 1), never a spot black, a little self-light.
+- **Off-frame casters**: plate 1's foreground shadow and plate 3's streaks of low sun across the sand are cast by
+  glass mounds just outside the frame (the plates' light comes through dunes we don't see).
+- **Left**: the glass is opaque and lit as a surface; the plates' glow from within (light pooling lime at a wall's
+  foot, the luminous rims) is only its colours. Plate 4's breaking wave reads as a hood but not yet as the plate's
+  tall arch; plate 2's billows want deeper, rounder shading under each lobe. The plates' sand carries painted
+  bands of light and shade more than our cast shadows do.
+
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 
 The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had

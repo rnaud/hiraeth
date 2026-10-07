@@ -26,6 +26,7 @@ export const REFERENCE_WORLDS = [
   { id: 'spheres', name: 'The Garden of Spheres', count: 22, load: () => import('./reference-spheres.js') },
   { id: 'lorn', name: 'Lorn II', count: 23, load: () => import('./reference-lorn.js') },
   { id: 'market', name: 'The Signal Market', count: 21, load: () => import('./reference-market.js') },
+  { id: 'glassdunes', name: 'The Glass Dunes', count: 4, load: () => import('./reference-glassdunes.js') },
 ];
 
 /** The index of the first view of world k (0-based, across all the worlds). */
