@@ -9,7 +9,12 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The combo:** a press swings (`BLADE.swing` 0.3 s); a press during a swing or within `BLADE.chain` after it
   chains the next, up to three: right to left, left to right, then a heavier overhead (`BLADE.damage` 1, 1, 2),
   then `BLADE.cooldown`.
-- **The arm:** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
+- **The swings, from motion capture:** `SWINGS` plays the cut of three clips from Mixamo's Sword and
+  Shield pack on the upper body (`player.swingMove`, `Animator.playUpper`), 1.5× as fast, the hit at the
+  hand's fastest: `ss_slash_1` (right to left, down), `ss_slash_3` (a rising backhand), `ss_attack_1`
+  (overhead). The blade sits in the fist then (`GRIP`, the hand bone's +z leaning along +y), and the aim
+  pose only turns the body (`aim.noArm`). Until `moves.glb` has loaded, the arcs below stand in.
+- **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
 - **What it hits:** at `BLADE.hitAt` of the swing, `bladeHits()` takes the targets in a cone (`reach` 2.9 m,
@@ -70,6 +75,8 @@ blots, round and round, `WAVE.rest` s after the last one falls.
 ## Left to do
 
 - The machine's model is a first pass of boxes.
+- The packs hold more (blocks, impacts, deaths, kicks, the great sword's spins and jump attacks): a block,
+  a hit reaction or a charged spin could come from them.
 - Neither foe has an animation of its own beyond the procedural wobble, walk and arm raise.
 - Foes don't avoid each other.
 - No foe yet uses the temple kit (gusts, updrafts) or the open world's height.

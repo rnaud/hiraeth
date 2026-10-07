@@ -9,6 +9,9 @@
 //   node scripts/mocap/fetch-cmu.mjs          # once: the CMU takes (git-ignored)
 //   node scripts/mocap/build-library.mjs      # -> public/anim/locomotion.glb
 //   node scripts/mocap/build-library.mjs --stats   # what each take became, nothing written
+//   node scripts/mocap/build-library.mjs --add ss_slash_1,ss_slash_2   # only these Mixamo clips (use: clip),
+//        converted and added to public/anim/moves.glb beside the clips already in it (the others are not
+//        converted again: their sources need not be on this machine); the other two files are left as they are
 import { readFile, writeFile, readdir, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve, dirname, basename, extname } from 'node:path';
@@ -23,7 +26,7 @@ import { targetSkeleton, retarget, BONES, TRACKS as TRACKS_DB } from './retarget
 // (a clip of its own keeps the head's turn too: the looking about, the petting)
 const TRACKS_CLIP = [...TRACKS_DB.slice(0, 4), 'Head', ...TRACKS_DB.slice(4)];
 import { footContacts, cleanClip, findLoop, wholeLoop, rootMotion, sliceClip } from './process.js';
-import { writeGLB, toBase64 } from './glb.js';
+import { writeGLB, readGLB, toBase64 } from './glb.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
@@ -33,6 +36,7 @@ const OUT = resolve(ROOT, 'public/anim/locomotion.glb'), WALKS = resolve(ROOT, '
 const FPS = 30;
 const args = process.argv.slice(2);
 const STATS = args.includes('--stats');
+const ADD = args.includes('--add') ? args[args.indexOf('--add') + 1].split(',') : null;
 
 // how much of the matching database to ship (frames at 30 fps, before the runtime's mirrored copy)
 const DB_BUDGET = 9000;   // (the CMU takes fill ~5900 of it, Mixamo's starts, stops and turns ~1300: the rest is room)
@@ -49,7 +53,7 @@ const T = targetSkeleton(ual.scene);
 async function sources() {
   const list = [];
   const cmu = JSON.parse(await readFile(resolve(HERE, 'cmu-takes.json'), 'utf8'));
-  for (const [id, use, desc, opts = {}] of cmu.takes) {
+  if (!ADD) for (const [id, use, desc, opts = {}] of cmu.takes) {
     const s = id.split('_')[0];
     const asf = resolve(RAW, 'cmu', `${s}.asf`), amc = resolve(RAW, 'cmu', `${id}.amc`);
     if (!existsSync(asf) || !existsSync(amc)) continue;
@@ -63,7 +67,7 @@ async function sources() {
   // BVH: data/mocap/raw/bvh/*.bvh (role from bvh-clips.json if listed there, else for reference)
   const bvhDir = resolve(RAW, 'bvh');
   const bvhList = existsSync(resolve(HERE, 'bvh-clips.json')) ? JSON.parse(await readFile(resolve(HERE, 'bvh-clips.json'), 'utf8')) : {};
-  if (existsSync(bvhDir)) for (const f of (await readdir(bvhDir)).filter((x) => /\.bvh$/i.test(x)).sort()) {
+  if (existsSync(bvhDir) && !ADD) for (const f of (await readdir(bvhDir)).filter((x) => /\.bvh$/i.test(x)).sort()) {
     const key = basename(f, extname(f)), info = bvhList[key] ?? { use: 'ref', desc: key };
     list.push({ id: `bvh_${key.replace(/\W+/g, '_')}`, use: info.use, desc: info.desc, source: `BVH ${f}`, load: async () => bvhTake(await readFile(resolve(bvhDir, f), 'utf8'), { fps: FPS, name: key }) });
   }
@@ -73,6 +77,7 @@ async function sources() {
     const key = basename(f, extname(f));
     const info = mix.clips.find((c) => c.file.toLowerCase() === key.toLowerCase());
     if (!info) { console.warn(`  mixamo: ${f} is not in scripts/mocap/mixamo-clips.json; skipped`); continue; }
+    if (ADD && !ADD.includes(info.id)) continue;
     // (Mixamo's clips are single moves, many under a second: a loop is one whole cycle, a turn on the
     // spot 0.9 s. Standing ones (in place, or `root` in the table) keep their root still, so the hips'
     // sway and a get-up's rise stay in the pose instead of sliding the feet; `still`: an idle, smoothed
@@ -238,6 +243,17 @@ for (const { src, clips: cs } of results.filter((r) => goes(r.src, 'clip'))) {
 // the matching database (loaded when motion matching is on, and by the character studio)
 const extras = { generator: 'scripts/mocap/build-library.mjs', fps: FPS, tracks: TRACKS_DB, credits: 'CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu), created with funding from NSF EIA-0196217; Mixamo (Adobe) where listed. See docs/motion-data.md.' };
 await mkdir(dirname(OUT), { recursive: true });
+if (ADD) {
+  // only the new clips, added to the moves already shipped (a clip of the same name is replaced)
+  const old = readGLB(await readFile(MOVES));
+  if (old.nodes.length !== nodes.length || old.nodes.some((n, i) => n.name !== nodes[i].name)) throw new Error('moves.glb has another skeleton: rebuild it whole');
+  const names = new Set(moves.map((m) => m.name));
+  const merged = [...old.clips.filter((c) => !names.has(c.name)), ...moves];
+  const glb = writeGLB({ nodes, clips: merged, extras: { ...extras, ...old.extras } });
+  await writeFile(MOVES, glb);
+  console.log(`${MOVES}: ${(glb.length / 1024).toFixed(0)} KB, ${merged.length} clips (${moves.map((m) => m.name).join(', ')} added)`);
+  process.exit(0);
+}
 for (const [file, list] of [[OUT, sheets], [WALKS, walkSheets], [MOVES, moves]]) {
   const glb = writeGLB({ nodes, clips: list, extras });
   await writeFile(file, glb);

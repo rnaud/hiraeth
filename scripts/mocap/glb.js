@@ -86,3 +86,32 @@ export function writeGLB({ nodes, clips, extras = {} }) {
 
 /** Bytes <-> base64 (for small per-frame tags in extras). */
 export const toBase64 = (u8) => Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength).toString('base64');
+
+/**
+ * Read a file writeGLB made back into its input: { nodes, clips, extras } (rotations dequantised from
+ * their 16-bit form), so clips can be added to a library without converting the others again
+ * (build-library.mjs --add).
+ */
+export function readGLB(bytes) {
+  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  if (dv.getUint32(0, true) !== 0x46546c67) throw new Error('not a GLB');
+  const jsonLen = dv.getUint32(12, true);
+  const json = JSON.parse(new TextDecoder().decode(u8.subarray(20, 20 + jsonLen)));
+  const b0 = 20 + jsonLen, bin = u8.subarray(b0 + 8, b0 + 8 + dv.getUint32(b0, true));
+  const view = (acc) => {
+    const a = json.accessors[acc], v = json.bufferViews[a.bufferView], size = { SCALAR: 1, VEC3: 3, VEC4: 4 }[a.type];
+    const at = bin.byteOffset + v.byteOffset, len = a.count * size;
+    if (a.componentType === SHORT) { const s = new Int16Array(bin.buffer.slice(at, at + len * 2)); return Float32Array.from(s, (x) => Math.max(-1, x / 32767)); }
+    return new Float32Array(bin.buffer.slice(at, at + len * 4));
+  };
+  const parent = new Map();
+  json.nodes.forEach((n, i) => (n.children ?? []).forEach((c) => parent.set(c, i)));
+  const nodes = json.nodes.map((n, i) => ({ name: n.name, parent: parent.get(i) ?? -1, translation: n.translation, rotation: n.rotation }));
+  const fps = json.extras?.fps ?? 30;
+  const clips = (json.animations ?? []).map((a) => {
+    const n = json.accessors[a.samplers[0].input].count;
+    return { name: a.name, fps, n, extras: a.extras, channels: a.channels.map((ch) => ({ node: ch.target.node, path: ch.target.path, data: view(a.samplers[ch.sampler].output) })) };
+  });
+  return { nodes, clips, extras: json.extras ?? {} };
+}

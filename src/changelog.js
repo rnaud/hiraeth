@@ -21,6 +21,7 @@ export const CHANGELOG = [
     'On the Overnight Train the land runs past: the sleepers under the wheels, the telegraph poles and their wires, stones, far buttes, now and then a lit hut or a signal lamp. Every few minutes it slows into a lonely station, waits, and pulls out again; pink dust rolls back from the wheels and the pennants stream in the wind.',
     'Climb the ladder on any porch of the Overnight Train and walk the roofs from carriage to carriage over plank bridges, past the roof gardens, to the terrace and its little sky lounge.',
     'The Overnight Train sounds like a train: the wheels’ beat over the rail joints, ta-dum … ta-dum, slowing to nothing at a station, the rumble underfoot, the rush of the air on the roofs and the balcony, and a whistle as it pulls out or brakes.',
+    'The fluid blade swings like a sword: three cuts from motion capture, a slash down from the right, a rising backhand and an overhead cut, the blade held in the fist.',
   ] },
   { v: '0.86', date: '2026-10-07', items: [
     'A new world off the route, the City Floating in Space: rounded houses in cream, salmon and coral heaped on islands in the black of space, joined by pale arched bridges, with the stars all round you, even under your feet. Cross the crowded Market Bridge to the stalls of the plaza, climb to the Towers, rest under the dark trees of the Garden, and look out from the Balcony at the great planet, which turns its lit face toward the city as night comes. Step over a parapet and you fall into the void, and come back where you last stood.',

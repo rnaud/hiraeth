@@ -167,6 +167,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'overnighttrain-terrace', only: 'after', caption: 'The library carriage’s roof terrace, the sky lounge’s door, its pennants', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
     ], see: 'On a porch between two carriages, climb the ladder beside the door (or the end wall itself); the plank bridges join the roofs from the lounge back to the library, whose terrace carries the sky lounge.' },
     { match: 'The Overnight Train sounds like a train', see: 'Turn the effects up and stand at a window while the train runs: the beat of the joints keeps time with its speed, slows as it brakes into a station and stops; go out on the balcony or the roofs and the rush of the air comes up; listen for the whistle as it pulls out.' },
+    { match: 'The fluid blade swings like a sword', see: 'In the Arena, press F three times quickly: the three cuts, one after another.' },
   ],
   '0.86': [
     { match: 'A new world off the route, the City Floating in Space', shots: [

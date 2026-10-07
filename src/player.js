@@ -1429,7 +1429,7 @@ export class Player {
         this._feetGround ??= this.opts.dynamic ? standGround(this.physics, () => this.opts.dynamic(), () => this.ride) : this.physics;
         H.plantFeet(dt, this._feetGround, U, this.object.position, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n), o);
       } else H.resetFeet();
-      if (this.aim && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);
+      if (this.aim && !this.aim.noArm && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);   // (noArm: a captured blade swing moves the arm itself)
       if (this.wingK > 0.03) this.spreadArms();
       // the hand-off: both hands on the tank while it swings between the back and the socket
       const hk = this.handoffGrip();
@@ -2044,6 +2044,9 @@ export class Player {
         if (Gs.kind === 'pet') A.playUpper(GESTURES.pet.clip, GESTURES.pet.from + (Gs.t % GESTURES.pet.loop), Gs.w * GESTURES.pet.w);
       }
     }
+    // a swing of the fluid blade from motion capture, above the legs (src/fluid-blade.js: this.swingMove = { clip, t, w })
+    const Sw = this.swingMove;
+    if (Sw && !R && !this.down) A.playUpper(Sw.clip, Sw.t, Sw.w);
     // jumps, drops, the kick off a wall and a hard landing's stumble from motion capture (src/air-moves.js)
     const captured = this.locoMoves !== false && !!A.lib.motion?.clips?.length && !A.matching;
     A.idleMoves = captured;
