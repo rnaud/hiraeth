@@ -76,8 +76,8 @@ export const PROP_GRIPS = { staff: 'grip', parasol: 'grip', lamppole: 'grip', wr
   // the desert's own: the reed and the lute's neck held, the hook and the bell staff gripped like a staff
   ney: 'hold', oud: 'hold', hook: 'grip', bellstaff: 'grip' };
 
-/** Rides (player.ride.kind): handlebars, a stick or the reins. */
-export const RIDE_GRIPS = { bike: 'grip', skiff: 'grip', taxi: 'grip', bird: 'reins' };
+/** Rides (player.ride.kind): handlebars, a stick or the reins; in a cab (it drives itself) the hands rest. */
+export const RIDE_GRIPS = { bike: 'grip', skiff: 'grip', taxi: 'relaxed', bird: 'reins' };
 
 export const HANDS = {
   near: 30,         // m from the camera: hands driven (further off they keep their last pose)

@@ -133,12 +133,14 @@ test('the bird: RT flies on and takes off, the stick dives (forward) and climbs 
   assert.ok(bank.bank < -0.3, 'the stick banks');
 });
 
-test('the taxi: RT goes, the stick steers and tilts it up (back) or down (forward)', () => {
-  const drive = (o, n = 90) => { const t = new Taxi(flat, '#fff', 1, () => {}); t.mode = 'driven'; t.pos.set(0, 40, 0); t.heading = 0; for (let i = 0; i < n; i++) t.update(1 / 60, ride(o), i / 60); return t; };
-  assert.ok(drive({ Throttle: 1 }).speed > 10);
-  assert.ok(drive({ stick: { x: 0, y: 1 } }).speed < 1, 'the stick forward alone does not drive on');
-  assert.ok(drive({ stick: { x: 0, y: -1 } }).pos.y > 45 && drive({ stick: { x: 0, y: 1 } }).pos.y < 35);
-  assert.ok(drive({ Throttle: 1, stick: { x: 1, y: 0 } }).heading < -0.5);
+test('the cab drives itself: RT and the stick do nothing, X / □ asks where to', () => {
+  const seated = (o, n = 90) => { const t = new Taxi(flat, '#fff', 1, () => {}); t.pos.set(0, 40, 0); t.heading = 0; t.board(); t.asking = false; for (let i = 0; i < n; i++) t.update(1 / 60, ride(o), i / 60); return t; };
+  for (const o of [{ Throttle: 1 }, { stick: { x: 1, y: 1 } }, { Brake: 1, stick: { x: -1, y: -1 } }]) {
+    const t = seated(o);
+    assert.ok(t.speed < 0.01 && Math.hypot(t.pos.x, t.pos.z) < 0.01 && Math.abs(t.pos.y - 40) < 0.2 && t.heading === 0, `it waits where it is (${JSON.stringify(o)})`);
+    assert.equal(t.asking, false);
+  }
+  assert.equal(seated({ Space: true }, 2).asking, true, 'X / □ (the pad\'s Space while riding): where to?');
   assert.equal(padRide({ KeyW: true }), null);
 });
 

@@ -278,14 +278,14 @@ test('every world on MakeHuman bodies: its children children (no beards), its gr
   }
 });
 
-test('the City-Shaft\'s people are MakeHuman bodies: Pip a child of nine in a knit cap, the driver in an aviator\'s cap', async () => {
+test('the City-Shaft\'s people are MakeHuman bodies: Pip a child of nine in a knit cap (and no cab driver: cabs drive themselves)', async () => {
   assert.ok(MH_WORLDS.has('incal'));
   const { PEOPLE } = await import('../src/story/incal-data.js');
   assert.equal(yearsOf({ def: PEOPLE.pip }), 9);
   const pip = onBody('incal', PEOPLE.pip);
   assert.equal(pip.look.head, 'beanie');
   assert.notEqual(pip.look.mask, 'beard', 'a child: no beard (he had one)');
-  assert.equal(onBody('incal', PEOPLE.wren).look.head, 'aviator');
+  assert.equal(PEOPLE.wren, undefined, 'Wren is the old cab itself, not a driver (src/story/incal-data.js WREN)');
 });
 
 test('Vael\'s people are MakeHuman bodies: Tam, who copies you, a boy of seven', async () => {

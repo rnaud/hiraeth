@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { mulberry32 } from '../noise.js';
-import { Taxi } from '../taxi.js';
+import { Taxi, cruiseRoutes } from '../taxi.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { LINES as STORY_LINES } from '../story/bazaar-data.js';
 import { attachTemple } from '../temples/index.js';
@@ -20,6 +20,19 @@ export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#70969e', '#fff1cf', '#ffe1ae'
 export const MARKET_FLAT = 0.85;
 export const SIGNAL = { x: 0, z: -255, deckY: 44, approachZ: -234 };
 export const BRIDGES = [{ z: 25, y: 19 }, { z: -90, y: 25 }, { z: -190, y: 72 }, { z: -330, y: 64 }];
+/**
+ * Where the market's cabs take you (src/taxi.js, src/story/cab.js: they drive themselves): each
+ * hovers beside its place (at), you step out onto it (step). They fly up the avenue's middle at
+ * the first of the cruising heights that is clear (over the low skybridges, under the high ones).
+ */
+const V3c = (x, y, z) => new THREE.Vector3(x, y, z);
+export const CAB_STOPS = [
+  { id: 'market', name: 'The lantern market', at: V3c(8, 2.4, 82), heading: Math.PI / 2, step: V3c(3.2, 0.1, 82) },
+  { id: 'bridge', name: 'The skybridge over the old sign', at: V3c(8, 27.4, -83.6), heading: Math.PI / 2, step: V3c(8, 25.1, -90) },
+  { id: 'square', name: 'Signal Square', at: V3c(10, 2.4, -207), heading: Math.PI, step: V3c(5.4, 0.1, -207) },
+  { id: 'balcony', name: 'The cream balcony on the silent tower', at: V3c(-8, 46.4, -222.5), heading: Math.PI, step: V3c(-8, 44.1, -231.5) },
+];
+export const CAB_ROUTES = cruiseRoutes([30, 48, 58, 12]);
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 export function* buildBazaar(scene) {
   const rng = mulberry32(20261004), buckets = new Map(), reactiveScreens = [];
@@ -360,13 +373,15 @@ export function* buildBazaar(scene) {
         };
         // (the City-Shaft's cabs, at its smallest size: at 1 the awning came down to the traveller's chin)
         const taxi=new Taxi(physics,i%3?'#e9b45f':'#e5cba0',CAB,lane);
+        taxi.routes=CAB_ROUTES;
         taxi.update(0,null,0);scene.add(taxi.object);vehicles.push(taxi);
       }
-      // One parked cab makes vertical exploration available immediately.
-      vehicles[0].pos.set(8,1.2*CAB,82); vehicles[0].mode='parked';vehicles[0].parkY=1.2*CAB;vehicles[0].idle=0;
+      // One parked cab, waiting at the market's stop, makes vertical exploration available immediately.
+      vehicles[0].pos.copy(CAB_STOPS[0].at); vehicles[0].heading=CAB_STOPS[0].heading; vehicles[0].mode='parked';vehicles[0].parkY=CAB_STOPS[0].at.y;vehicles[0].idle=0;
       vehicles[0].update(0,null,0);
     },
     dynamic:()=>vehicles,
+    cabStops:CAB_STOPS, cabRoutes:CAB_ROUTES,
     update(dt,t,ctx){Taxi.playerPos=ctx?.player?.pos;},
   });
 }

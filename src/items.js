@@ -132,7 +132,7 @@ export const ITEMS = {
   cabpass: {
     name: 'Cab pass', kind: 'pass', quest: true,
     text: "A stiff card stamped with the palace seal, a name punched into it more or less like yours. Lio, the City-Shaft’s dispatcher, wrote it.",
-    use: 'Cabs stop for you now: whistle when one passes (X / □, or E with nothing near), or get in one that waits.',
+    use: 'Cabs stop for you now: whistle when one passes (X / □, or E with nothing near), or get in one that waits, and tell it where to go. It drives itself.',
   },
   star: {
     name: 'Pale star', kind: 'cosmetic',

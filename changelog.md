@@ -13,6 +13,9 @@ The same release notes shown in the game (press **N** or open settings).
 - Standing still, the traveller’s legs hold still: his right foot no longer snaps round and steps every second or so, and when he shifts his weight his hips go over the leg he stands on while the other knee relaxes forward, instead of the free foot stepping back and forth every few seconds.
 - The traveller stands as he is drawn, upright with his feet under him a little apart, instead of in a wide split stance that looked like a stride from the side.
 - Standing about, the traveller holds his head up and looks ahead, as in his drawings, instead of hanging it to stare at the ground, and running he keeps his eyes on the way ahead instead of on his feet; when he looks around, his head turns as far as the motion has it.
+- Cabs drive themselves now: nobody sits up front. You ride seated inside, in an open cabin under the striped canopy, and the camera watches from beside the cab so you see yourself sitting there as the city goes by. As you get in, a little screen on the dash asks where to: choose a stop with the mouse, a number key or the stick and A / ×, and the cab flies you there. At the stop press E (B / ○) to step out, or SPACE (X / □) to choose somewhere else.
+- The Signal Market’s cabs stop at the lantern market, the skybridge over the old sign, Signal Square and the cream balcony on the silent tower; the City-Shaft’s at the rim by the ship, the high terrace, the middle levels and the palace gate. Only Wren goes down to the bottom terrace, by the call-lamp.
+- Wren is the old cab itself now, not its driver: light the call-lamp at the bottom, get in, and Wren talks to you from its dash before it takes you up. The errand is called The Cab That Stops, and the City-Shaft’s people speak of cabs where they used to speak of drivers.
 
 ## v0.74 — 2026-10-06
 

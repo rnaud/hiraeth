@@ -14,7 +14,8 @@ import { page, screen } from './platform.js';
 /** A ride's controls show for this long after you get on (ms), then go. */
 export const RIDE_HINT_MS = 6000;
 export const RIDE_KEYS = {
-  taxi: 'E get out · W/S throttle · A/D steer · SPACE up · SHIFT down',
+  taxi: 'SPACE where to · E get out',              // a cab drives itself: you choose a stop (src/story/cab.js)
+  taxiRoute: 'SPACE another stop · E jump off',     // (on its way there)
   bird: 'E jump off · A/D bank · W dive · S pull up · SPACE flap',
   bike: 'E dismount (moving: jump off) · W/S throttle · A/D steer · SHIFT boost · SPACE hop',
   skiff: 'E step off (moving: jump off) · W/S throttle · A/D steer · SHIFT boost',
@@ -22,7 +23,8 @@ export const RIDE_KEYS = {
 // a pad rides on the triggers: RT goes, the stick steers (and tilts a flyer: forward dives, back climbs);
 // the bottom button jumps off (player.jumpOff), the left one is the vehicle's own hop / flap / rise
 export const RIDE_PAD = {
-  taxi: 'A / × jump off · B / ○ get out · RT / R2 go · LT / L2 brake · left stick steer, forward down, back up · X / □ up',
+  taxi: 'X / □ where to · B / ○ get out',
+  taxiRoute: 'X / □ another stop · A / × jump off',
   bird: 'A / × jump off · RT / R2 fly on · left stick bank, forward dive, back climb · X / □ flap',
   bike: 'A / × jump off · B / ○ dismount · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
   skiff: 'A / × jump off · B / ○ step off · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',

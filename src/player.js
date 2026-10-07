@@ -766,10 +766,10 @@ export class Player {
     this.boarding = this.unboarding = null;
     this.gliding = this.thrusting = this.climbing = false;
     this.wingK = 0;   // the wings fold away at once
-    v.board?.();
+    v.board?.(this.pos);
   }
 
-  /** Does this vehicle run on the backpack? (hoverbikes and skiffs; not the bird, who's alive, nor taxis, which someone else drives) */
+  /** Does this vehicle run on the backpack? (hoverbikes and skiffs; not the bird, who's alive, nor cabs, which drive themselves) */
   needsPower(v) { return !!v?.powered; }
 
   /**
@@ -801,8 +801,9 @@ export class Player {
   dismount(instant = false) {
     const v = this.ride;
     this.ride = null;
+    const out = this.exitSpot(v);   // (before it leaves: a cab says where its stop is while it still waits there)
     v.leave?.();
-    this.pos.copy(this.exitSpot(v));
+    this.pos.copy(out);
     this.vel.set(v.vel.x * 0.3, 0, v.vel.z * 0.3);
     this.heading = v.heading;
     this.onGround = false;
@@ -819,6 +820,8 @@ export class Player {
    * from the seat without passing through a wall.
    */
   exitSpot(v) {
+    const own = v.exitAt?.();   // (a cab waiting at a stop: the stop's own spot, src/taxi.js)
+    if (own) return own;
     const [fx, fz] = v.forward;
     const side = v.exitOffset ?? 1.8, P = this.physics;
     const seat = _g4.set(v.pos.x, v.pos.y + 0.6, v.pos.z);
@@ -902,6 +905,7 @@ export class Player {
     if (this.boarding || this.unboarding) return;
     if (this.ride) {
       const v = this.ride;
+      if (v.exitAt?.()) return this.dismount();   // a cab at a stop: you step out onto it, however high it hovers
       if (Math.abs(v.speed ?? 0) > JUMP_OFF.moving || this.rideHeight(v) > JUMP_OFF.air) return this.jumpOff();
       return this.dismount();
     }
@@ -1682,6 +1686,7 @@ export class Player {
     this._gait = null;
     for (const f of c.feet) f.rotation.set(0, 0, 0);
     const flow = Math.min(Math.abs(this.ride.speed) / 30, 1.3);
+    if (this.ride.kind === 'taxi') return this.animateSeated(flow);
     c.legs[0].rotation.set(-1.35, 0, 0.12);
     c.legs[1].rotation.set(-1.35, 0, -0.12);
     c.knees[0].rotation.x = c.knees[1].rotation.x = 1.45;
@@ -1693,6 +1698,28 @@ export class Player {
     c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.6;
     c.head.rotation.set(-0.15, 0, 0);
     c.hatTip.rotation.x = -0.55 - flow * 0.5 + Math.sin(this.time * 20) * 0.06 * flow;  // flaps in the wind
+    for (const fl of c.flames) fl.visible = false;
+  }
+
+  /**
+   * Seated in a cab (it drives itself): upright against the seat's back, thighs level on the
+   * cushion, shins down to the footrest, hands resting on the thighs; he looks about as it flies
+   * and sways a little into its turns.
+   */
+  animateSeated(flow) {
+    const c = this.char, t = this.time, bank = this.ride.bank ?? 0;
+    c.legs[0].rotation.set(-1.52, 0, 0.07);
+    c.legs[1].rotation.set(-1.52, 0, -0.07);
+    c.knees[0].rotation.x = c.knees[1].rotation.x = 1.5;
+    for (const f of c.feet) f.rotation.set(0.05, 0, 0);
+    c.body.position.set(0, 0, 0);
+    c.body.rotation.set(-0.04, 0, 0);
+    c.torso.rotation.set(0.02 + Math.sin(t * 1.1) * 0.01, 0, -bank * 0.35);
+    c.arms[0].rotation.set(-0.5, 0, -0.16);
+    c.arms[1].rotation.set(-0.5, 0, 0.16);
+    c.elbows[0].rotation.x = c.elbows[1].rotation.x = -0.72;
+    c.head.rotation.set(-0.06 - flow * 0.04, Math.sin(t * 0.27) * 0.32 * Math.sin(t * 0.09 + 1), bank * 0.2);
+    c.hatTip.rotation.x = -0.3 - flow * 0.35 + Math.sin(t * 16) * 0.04 * flow;  // the wind under the canopy
     for (const fl of c.flames) fl.visible = false;
   }
 
@@ -2312,14 +2339,19 @@ export class CameraRig {
     this.indoorK = this.indoor ? 1 : 0;
   }
 
-  /** While riding: swing behind the bike unless the mouse moved recently. */
-  follow(heading, dt, riding) {
+  /**
+   * While riding: swing behind the bike unless the mouse moved recently. A ride may ask for its own
+   * view (shot: { side, boost, pitch }): a cab, which drives itself, is watched from beside and a
+   * little above, where you see the traveller seated in it under its canopy.
+   */
+  follow(heading, dt, riding, shot = null) {
     this._riding = !!riding;
-    this._distBoost += ((riding ? 6 : 0) - this._distBoost) * (1 - Math.exp(-2 * dt));
+    this._distBoost += ((riding ? shot?.boost ?? 6 : 0) - this._distBoost) * (1 - Math.exp(-2 * dt));
     if (!riding || this._now - this._lastMouse < 1.5) return;
-    let d = heading + Math.PI - this.yaw;
+    let d = heading + (shot?.side ?? 0) + Math.PI - this.yaw;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     this.yaw += d * (1 - Math.exp(-2.2 * dt));
+    if (shot?.pitch != null) this.pitch += (shot.pitch - this.pitch) * (1 - Math.exp(-1.5 * dt));
   }
 
   /**

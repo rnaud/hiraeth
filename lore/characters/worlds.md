@@ -21,11 +21,14 @@ each formal sentence is a uniform he puts on. When the ration arrives, the
 uniform slips. Begin with clipped procedure, then let a food smell or family
 name undo him. Never play his poverty as the joke.
 
-**Wren — the taxi driver.** Established: still answers the old lamp in the
-depths when other drivers will not. Writing premise: she considers showing up
-a professional standard, even when it costs her. Her humour is brisk and
-practical; she can complain about a journey while making it. She does not need
-the traveller to teach her generosity.
+**Wren — the old cab that still stops.** Established: the City-Shaft's cabs
+drive themselves, and Wren is one of them, public cab nine-nine-one, speaking
+from the little screen on its dash. It still answers the old lamp in the
+depths when the other cabs will not: after the smog the palace rewrote every
+cab to stop no lower, and Wren's update never arrived. Writing premise: it
+considers showing up a professional standard, even when it costs it. Its
+humour is brisk and practical; it can complain about a journey while making
+it. It does not need the traveller to teach it generosity.
 
 | Person | Established history and performance premise | Voice |
 |---|---|---|

@@ -5,7 +5,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Taxi } from '../taxi.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { glyphGeometry, textGeometry } from './sign-text.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL } from './incal-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN } from './incal-data.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
 //
@@ -23,13 +23,14 @@ import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL } from '
 //
 // The cabs don't stop for you at all without a cab pass (src/taxi.js): the first refusal starts
 // Lio's errand (incal.pass); Hask's fare buys the pass. With it, they still don't stop in the
-// depths (below −200) until you have lit the call-lamp and met Wren; after that, hailing down
-// there brings her cab (hers is free: she stops for anyone).
+// depths (below −200) until you have lit the call-lamp and met Wren, the old cab that still stops
+// there; after that, hailing down there brings Wren (it is free: it stops for anyone). Cabs drive
+// themselves: Wren speaks from the little screen on its dash when you get in (src/story/cab.js).
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const Q = 'incal.light';
-const DEPTHS = -200;          // below this, the cabs don't stop (until Wren)
+const DEPTHS = -200;          // below this, the cabs don't stop (except Wren)
 const UP = V(0, 1, 0);
 const _v = V(0, 0, 0), _d = V(0, 0, 0);
 
@@ -57,7 +58,6 @@ export function setupIncal(ctx) {
   people.ossa = spawn(PEOPLE.ossa, { route: [onGround(P.ossa)], heading: facing(P.ossa, P.shrine), speed: 0.4 });
   people.pip = spawn(PEOPLE.pip, { route: around(P.pip, 2.6, 5, 0.4), speed: 2.1 });
   people.dov = spawn(PEOPLE.dov, { route: [onGround(P.palace.dov), onGround(P.palace.dov.clone().add(V(0, 0, -5)))], speed: 0.5 });
-  const wrenSpawn = () => { if (!people.wren) { people.wren = spawn(PEOPLE.wren, { route: [onGround(P.wren)], heading: facing(P.wren, P.cab) }); quests.locate('wren', () => people.wren.pos); } };
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
 
   // ---------------------------------------------------------------- the splinter
@@ -84,14 +84,18 @@ export function setupIncal(ctx) {
   const lampAt = P.lamp.clone().add(V(0, 1.4, 0));
   thing(THINGS.lamp, lampAt, { range: 3, prompt: 'look at the call-lamp' });
 
-  // ---------------------------------------------------------------- the call-lamp and Wren's cab
+  // ---------------------------------------------------------------- the call-lamp and Wren, the old cab
   const lampHead = P.lampHead, lampWorld = V(0, 0, 0);
   const lampLight = new THREE.Vector4(0, -1e5, 0, 0);
   level.lights.push(lampLight);
-  const cab = new Taxi(physics, '#f2c54b', 2.1, null, { fares: false, free: true });   // (she circles for a fare that never calls: no one aboard; she stops for anyone, pass or none)
-  cab.driverOut = () => !!people.wren;   // Wren drives it until she steps out by the lamp
+  const cab = new Taxi(physics, '#f2c54b', 2.1, null, { fares: false, free: true });   // (it circles for a fare that never calls: no one aboard; it stops for anyone, pass or none)
+  cab.routes = level.cabRoutes ?? null;
+  // its own voice and its own words as you get in (the first time: who it is), then where to
+  cab.voice = { id: WREN.id, name: WREN.name, title: WREN.title, voice: WREN.voice, kind: WREN.kind };
+  cab.talk = (where, { greet }) => (greet ? { entry: WREN.talk.entry, nodes: { ...WREN.talk.nodes, where } } : { entry: [{ node: 'where' }], nodes: { where } });
+  quests.locate('wren', () => cab.pos);
   const cabHome = P.cab.clone(), cabHeading = facing(P.cab, P.lamp) + Math.PI / 2;
-  // before the lamp: she circles low in the depths, looking for a fare that never calls
+  // before the lamp: it circles low in the depths, looking for a fare that never calls
   const circling = (t, taxi) => {
     const a = t * 0.045 + 1.3, rad = 150;
     taxi.pos.set(Math.cos(a) * rad, -255 + Math.sin(t * 0.3) * 6, Math.sin(a) * rad);
@@ -113,8 +117,7 @@ export function setupIncal(ctx) {
     sound.chime?.();
     // somewhere out in the depths, a cab turns toward it
     cab.lane = home;
-    if (cab.mode !== 'driven') { cab.target = cabHome.clone(); cab.targetHeading = cabHeading; cab.mode = 'hail'; }
-    setTimeout(() => wrenSpawn(), 2500);
+    if (cab.mode !== 'aboard' && cab.mode !== 'route') { cab.target = cabHome.clone(); cab.targetHeading = cabHeading; cab.mode = 'hail'; }
   };
   registerTarget({ kind: 'lamp', radius: 0.9, position: () => lampHead.mesh.getWorldPosition(lampWorld), enabled: () => !game.flag('incal.lamp.lit') && flat(player.pos, P.lamp) < 80,
     onHit: (mode) => {
@@ -122,7 +125,6 @@ export function setupIncal(ctx) {
       st.lampWobble = 1;
       return true;
     } });
-  if (game.flag('incal.lamp.lit')) wrenSpawn();
   quests.locate('lamp', () => lampAt);
 
   // ---------------------------------------------------------------- the goods hoist and Pip's tin
@@ -233,7 +235,7 @@ export function setupIncal(ctx) {
   Taxi.onRefuse = () => { if (!quests.isStarted('incal.pass')) quests.start('incal.pass'); };
   for (const id of ['lio', 'hask']) { const n = npcs.find((x) => x.def?.id === id); if (n) quests.locate(id, () => n.pos); }
 
-  // the cabs don't stop in the depths; after Wren, hailing down there brings her
+  // the cabs don't stop in the depths; after Wren, hailing down there brings Wren
   const refuse = () => {
     const now = performance.now?.() ?? 0;
     if (now - st.refuseT < 6000) return;
@@ -244,7 +246,7 @@ export function setupIncal(ctx) {
   for (const v of level.vehicles) {
     if (v.kind !== 'taxi') continue;
     const own = v.hail.bind(v), ownRefuses = v.refuses?.bind(v);
-    // (in the depths, once you know Wren, a whistle is for her: she comes, pass or none)
+    // (in the depths, once you know Wren, a whistle is for Wren: it comes, pass or none)
     if (ownRefuses) v.refuses = (who, how) => (how === 'hail' && who?.pos && who.pos.y <= DEPTHS && game.flag('incal.wren.met') ? false : ownRefuses(who, how));
     v.hail = (p, h) => {
       if (p.y > DEPTHS) return own(p, h);
@@ -278,7 +280,6 @@ export function setupIncal(ctx) {
       people.dov.lines = ['~playful~ I looked. On duty.', '~happy~ Worth it.', '~playful~ Eyes on the visitors. Mostly.'];
       people.pip.lines = ['~shout~ I SAW IT!', '~happy~ Twelve seconds! More!', '~surprised~ It’s still there!'];
     } else if (quests.has('splinter')) people.ossa.lines = ['~solemn~ Up, all the way up.', '~neutral~ Hold it higher.'];
-    if (game.flag('incal.wren.met') && people.wren) people.wren.lines = ['~curious~ Need a lift?', '~neutral~ Space to climb, Shift to drop.', '~happy~ She knows the way home.'];
   };
   say();
   game.on('flag', ({ name }) => { if (name.startsWith('incal.')) say(); });

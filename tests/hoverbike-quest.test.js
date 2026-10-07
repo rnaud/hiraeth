@@ -149,11 +149,11 @@ test('the new models keep their seats, sockets and lights, within a handheld bud
   }
   // the bike's seat is where the rider's pose expects it
   assert.deepEqual(buildBike().seatAnchor.position.toArray(), [0, -0.56, -0.4]);
-  // taxis: a driver up front, details hidden far away, shared geometry per colour
+  // taxis: no driver (they drive themselves), a seat inside, details hidden far away, shared geometry per colour
   // (a cab's passenger and trimmings are random: the triangles vary by a few hundred)
   const a = new Taxi(physics, '#f2c54b', 2, () => {}), b = new Taxi(physics, '#f2c54b', 2, () => {});
   assert.equal(a.parts.root.children[0].geometry, b.parts.root.children[0].geometry, 'one body geometry per colour');
-  assert.ok(a.parts.cabbie, 'a driver');
+  assert.ok(a.parts.seat && !('cabbie' in a.parts), 'a seat in its cabin, and nobody up front');
   Taxi.playerPos = V(0, 0, 0);
   a.mode = 'parked'; a.pos.set(0, 2, 0); a.update(1 / 30, null, 0);
   const near = budget(a.object);
@@ -161,7 +161,7 @@ test('the new models keep their seats, sockets and lights, within a handheld bud
   a.pos.set(800, 2, 0); a.update(1 / 30, null, 0);
   let shown = 0; a.object.traverseVisible((o) => { if (o.isMesh) shown++; });
   assert.ok(shown <= 2, `far: ${shown} meshes drawn`);
-  // the passenger gets out when you get in; the roof is the awning's crest
+  // the passenger gets out when you get in; the roof is the canopy's crest
   a.pos.set(0, 2, 0); a.board(); a.update(1 / 30, {}, 0);
   if (a.parts.pax) assert.equal(a.parts.pax.visible, false);
   assert.ok(a.solid.top - a.pos.y > 2.5);

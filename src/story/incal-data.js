@@ -15,7 +15,7 @@
 // looks up at once. Nima gives you the only thing she has: "look up once a day".
 //
 // Side errands: Pip's ration tin for his uncle Dov, the palace guard; the dead
-// taxi call-lamp at the bottom (shoot it) and Wren, the driver who still stops;
+// taxi call-lamp at the bottom (shoot it) and Wren, the old cab that still stops;
 // a cab pass from Lio, the dispatcher on the rim (the cabs fly past anyone
 // without one: src/taxi.js), for the fare Hask, the seller of views, owes him.
 // Clue: the splinter carries the glyph and hums the same note as the singing
@@ -33,7 +33,7 @@ export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ratio
 /** What a cab says in the City-Shaft when you have no pass yet (src/taxi.js Taxi.refusal). */
 export const PASS_REFUSAL = {
   hail: 'The cab slides past without slowing. A card in its window: PASS HOLDERS ONLY. Lio, the dispatcher on the rim, writes the passes.',
-  board: 'The driver taps the card on the dash: PASS HOLDERS ONLY. Lio, the dispatcher on the rim, writes the passes.',
+  board: 'The little screen on the dash blinks: PASS HOLDERS ONLY. Lio, the dispatcher on the rim, writes the passes.',
 };
 
 // ------------------------------------------------------------------ quests
@@ -69,11 +69,12 @@ export const QUESTS = [
     ],
   },
   {
-    id: 'incal.wren', title: 'The Driver Who Stops', world: 'incal',
-    outro: 'One cab still stops at the bottom. Now you know her name.',
+    // (Wren is the cab itself: cabs drive themselves; it speaks from the little screen on its dash, src/story/cab.js)
+    id: 'incal.wren', title: 'The Cab That Stops', world: 'incal',
+    outro: 'One cab still stops at the bottom. Now you know its name.',
     stages: [
       { id: 'lamp', text: 'Light the dead taxi call-lamp at the edge of the bottom terrace (shoot it with the fluid)', label: 'The call-lamp', flag: 'incal.lamp.lit', at: 'lamp' },
-      { id: 'wren', text: 'A cab is coming down to the lamp. Talk to its driver', label: 'The driver', talk: 'wren' },
+      { id: 'wren', text: 'A cab is coming down to the lamp. Get in, and hear what it has to say', label: 'Wren, the old cab', talk: 'wren' },
     ],
   },
 ];
@@ -135,7 +136,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ How do I get down?', goto: 'down' }, { text: '~neutral~ I’ll go down.', end: true }],
         },
         down: {
-          say: ["~angry~ *Glide down or take a cab.* Coming back is harder. Most drivers refuse to stop below the smog."],
+          say: ["~angry~ *Glide down or take a cab.* Coming back is harder. Most cabs refuse to stop below the smog."],
           choices: [{ text: '~neutral~ I’ll manage.', end: true }],
         },
         sweep: {
@@ -161,7 +162,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What happened, the night the sky rang?', if: { not: { flag: 'incal.rumour.light' } }, goto: 'rang' }, { text: '~neutral~ I will.', end: true }],
         },
         told: {
-          say: ["~happy~ My steps turned gold! Everyone looked up. Guards, drivers, rich men. One dropped his lunch. A generous day for the bottom.",
+          say: ["~happy~ My steps turned gold! Everyone looked up. Guards, cab passengers, rich men. One dropped his lunch. A generous day for the bottom.",
             '~curious~ What did you do, up there?'],
           choices: [
             { text: '~neutral~ I gave it back its splinter. And I looked up at it.', goto: 'keep' },
@@ -226,7 +227,7 @@ export const PEOPLE = {
         give: {
           say: ["~playful~ Take it *to the palace at the top*. The guards will object to your boots. Try showing them the miracle first.",
             "~solemn~ And tell them: *we are still down here, and we are still looking*. The light ought to hear it. So should the guards.",
-            "~neutral~ To get back up, light the old taxi call-lamp at the terrace edge. One driver used to answer it."],
+            "~neutral~ To get back up, light the old taxi call-lamp at the terrace edge. One old cab used to answer it."],
           do: [{ give: 'splinter' }, { set: { 'incal.splinter.given': true } }, { start: 'incal.wren' }, { stage: [Q, 'palace'] }, { track: Q }],
           choices: [{ text: '~solemn~ I’ll carry it up.', end: true }],
         },
@@ -358,40 +359,44 @@ export const PEOPLE = {
       },
     },
   },
+};
 
-  wren: {
-    id: 'wren', name: 'Wren', title: 'the driver who still stops', color: '#f2c54b', voice: 1.1, kind: 'f',
-    palette: { cloak: '#f2c54b', lining: '#34405e', cloth: '#34405e', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'hat', cape: 0.5, look: { head: 'aviator', mask: 'browgoggles' },
-    lines: ['~curious~ Need a lift?', '~neutral~ Space to climb, Shift to drop.', '~playful~ Mind the laundry.'],
-    talk: {
-      entry: [{ if: { quest: 'incal.wren', done: true }, node: 'after' }, { node: 'hello' }],
-      nodes: {
-        hello: {
-          say: ["~surprised~ You lit the lamp! I spotted it from the ninth lane. Nearly took someone’s trousers off a washing line.",
-            "~neutral~ Wren. Driver. I still stop at this lamp. Nobody’s lit it for eleven years because everybody knows drivers don’t stop here. Round and round we go."],
-          choices: [{ text: '~curious~ Why do you stop?', goto: 'why' }, { text: '~neutral~ I need to get to the top.', goto: 'ride' }],
-        },
-        why: {
-          say: ["~happy~ I was born on minus two-nine-zero. A driver took my mother up to a doctor. Didn’t charge a thing.",
-            "~solemn~ Can’t thank that driver now. Can stop for the next person."],
-          choices: [{ text: '~curious~ Did you see the singing light?', goto: 'light', once: true }, { text: '~neutral~ I need to get to the top.', goto: 'ride' }],
-        },
-        light: {
-          say: ["~scared~ The singing light passed above my cab. Slow, then a sharp turn. My compass spun for an hour. Worst directions I ever received.",
-            "~sad~ It flew over the rim toward the deserts. Afterwards, the Lodestar was dimmer. That’s what I saw.",
-            "~curious~ My compass twitches near your ship too. Whatever struck you left something in the metal."],
-          do: { set: { 'incal.rumour.light': true } },
-          choices: [{ text: '~neutral~ I need to get to the top.', goto: 'ride' }],
-        },
-        ride: {
-          say: ["~neutral~ Borrow the cab. *W moves forward, Space climbs, Shift descends.* Leave her anywhere; she’ll return to this lamp. Better manners than most owners.",
-            "~playful~ For the palace, fly straight up and land *beside the gate*. The guards will disapprove. They practise all day.",
-            "~sad~ If you hail a cab down here, it’ll be me. I’ll keep coming."],
-          do: [{ advance: ['incal.wren', 'wren'] }, { set: { 'incal.wren.met': true } }],
-          choices: [{ text: '~happy~ Thank you, Wren.', end: true }],
-        },
-        after: { say: ["~happy~ Need a lift? The lamp works now. So do I."], choices: [{ text: '~happy~ Thanks, Wren.', end: true }] },
+/**
+ * Wren: the old cab that still stops at the bottom's call-lamp (src/story/incal.js). Cabs drive
+ * themselves; Wren speaks from the little screen on its dash when you get in (src/story/cab.js
+ * asks where to after: each node here ends in its `where`). Its stops: every one, the bottom too.
+ */
+export const WREN = {
+  id: 'wren', name: 'Wren', title: 'the old cab that still stops', color: '#f2c54b', voice: 1.1, kind: 'f', lang: 'ship', speaks: true,
+  talk: {
+    entry: [{ if: { quest: 'incal.wren', done: true }, node: 'after' }, { if: { flag: 'incal.lamp.lit' }, node: 'hello' }, { node: 'early' }],
+    nodes: {
+      hello: {
+        say: ["~surprised~ (The screen on the dash flickers on, then steadies.) You lit the lamp! I saw it from the ninth lane. Nearly took a shirt off a washing line, coming down.",
+          "~neutral~ Wren. Public cab, nine-nine-one. I still stop at this lamp. Nobody has lit it in eleven years, because everybody knows cabs don’t stop down here. Round and round I go."],
+        choices: [{ text: '~curious~ Why do you still stop?', goto: 'why' }, { text: '~neutral~ I need to get to the top.', goto: 'ride' }],
       },
+      why: {
+        say: ["~happy~ My first fare was from minus two-nine-zero: a mother, to a doctor, at night. My meter was broken. I never had it mended.",
+          "~solemn~ After the smog, the palace rewrote every cab: no stops below it. My update never arrived. So I stop for the next person."],
+        choices: [{ text: '~curious~ Did you see the singing light?', goto: 'light', once: true }, { text: '~neutral~ I need to get to the top.', goto: 'ride' }],
+      },
+      light: {
+        say: ["~scared~ The singing light passed right over my canopy. Slow, then a sharp turn. My compass spun for an hour. Worst directions I ever received.",
+          "~sad~ It flew over the rim toward the deserts. Afterwards, the Lodestar was dimmer. That’s what I saw.",
+          "~curious~ My compass twitches near your ship too. Whatever struck you left something in the metal."],
+        do: { set: { 'incal.rumour.light': true } },
+        choices: [{ text: '~neutral~ I need to get to the top.', goto: 'ride' }],
+      },
+      ride: {
+        say: ["~neutral~ Sit back; I do the flying. Tell me a stop and I’ll take you there, then come home to this lamp.",
+          "~playful~ For the palace, I set you down *beside the gate*. The guards will disapprove. They practise all day.",
+          "~sad~ If you hail a cab down here, it’ll be me. I’ll keep coming."],
+        do: [{ advance: ['incal.wren', 'wren'] }, { set: { 'incal.wren.met': true } }],
+        next: 'where',
+      },
+      early: { say: ["~surprised~ (The screen on the dash flickers.) A passenger? Down here? Nobody calls me any more."], next: 'where' },
+      after: { say: ["~happy~ (The screen brightens.) Need a lift? The lamp works now. So do I."], next: 'where' },
     },
   },
 };
@@ -443,7 +448,7 @@ export const RIM = {
           choices: [{ text: '~happy~ Thank you, Lio.', end: true }],
         },
         why: { say: ["~neutral~ No profitable fares down there. Wren still goes if someone *lights the old call-lamp*. Please don’t make me calculate whether kindness breaks even."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
-        strange: { say: ["~scared~ When the sky rang, nine hundred compasses failed at once. You try routing nine hundred frightened drivers. I still hear the horns in my sleep."], do: { set: { 'incal.rumour.light': true } }, choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        strange: { say: ["~scared~ When the sky rang, nine hundred compasses failed at once. You try routing nine hundred lost cabs, every horn in the shaft going at once. I still hear them in my sleep."], do: { set: { 'incal.rumour.light': true } }, choices: [{ text: '~neutral~ Goodbye.', end: true }] },
       },
     },
   },
@@ -500,7 +505,7 @@ export const THINGS = {
       nodes: {
         dark: {
           say: ["~neutral~ TAXI, in flaking paint. The call-lamp’s dark glass contains a small history of unsuccessful moths.",
-            "~neutral~ *Shoot the lamp with fluid* to light it: aim, then G or left click. Drivers above will see it."],
+            "~neutral~ *Shoot the lamp with fluid* to light it: aim, then G or left click. The cabs above will see it."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         lit: { say: ["~neutral~ The yellow call-lamp shines up through the traffic lanes."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -536,7 +541,7 @@ export const CROWD_TALK = {
     ] } },
     { name: 'A tourist', title: 'from off-world', talk: { listen: [
       { if: { not: LOOKED }, say: "~tired~ The Lodestar is smaller than the postcard. Greyer too. I’d like to visit wherever they printed the postcard." },
-      '~curious~ I asked a cab to take me to the bottom. The driver laughed for a whole level.',
+      '~curious~ I asked a cab to take me to the bottom. Its little screen laughed for a whole level.',
       ['~playful~ Tip from one stranger to another: up here it’s rude to look up.', '~playful~ Down at the bottom it’s rude not to. I’ve had a stiff neck all week.'],
       '~tired~ I’m on holiday. Please don’t ask me for directions; I’ve been lost since I landed.',
     ] } },
@@ -579,7 +584,7 @@ export const CROWD_TALK = {
     { name: 'A laundry hanger', title: 'of the bottom terraces', talk: { listen: [
       "~playful~ The splinter landed in Behla’s washing. She now describes her vests as historically significant.",
       '~playful~ Down here the laundry never dries. We hang it out anyway. It’s a kind of prayer.',
-      { if: { not: { quest: 'incal.wren', done: true } }, say: '~neutral~ No cab stops below the smog. Except Wren, they say, if you *light the old call-lamp* at the edge of the terrace. Give it a shot.' },
+      { if: { not: { quest: 'incal.wren', done: true } }, say: '~neutral~ No cab stops below the smog. Except old Wren, they say, a cab that still answers *the old call-lamp* at the edge of the terrace. Light it. Give it a shot.' },
       '~tired~ Mind the sheets. That one is drier than you, and it’s still wet.',
     ] } },
     { name: 'A child', title: 'who wants to go up', talk: { listen: [
