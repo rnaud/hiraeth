@@ -1,0 +1,29 @@
+changelog.md
+  s_55b4bc53b812ec::t_f1a3a4ca00cb23 5-8
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_8f4353d77687c7 662-663,712-735
+src/changelog.js
+  s_55b4bc53b812ec::t_1f71cec914ffd8 10-12
+src/flora-grass.js
+  s_55b4bc53b812ec::t_4988c9e40f3eec 27-31,216,225-229,251
+tests/grass-fade.test.js
+  s_55b4bc53b812ec::t_fcdbae2eecafd4 69-71
+tests/materials-pass.test.js
+  s_55b4bc53b812ec::t_8c834e8293eec4 187-189
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "acd09b4f2ee9cef3d231de61865090e9b9bb86c3",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
