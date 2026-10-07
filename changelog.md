@@ -6,6 +6,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.
 - On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.
+- In the desert, letting the water out of the giant’s pool before anyone has sent you there no longer stalls the story: the steps that only led there pass on their own, and Ama still hands you her jar.
+- Qanat and its camps say a little more, and nothing that goes stale once the chest is open: Oum, Marrow, Rook, Tamsin, the sketcher and the townspeople have new lines, Pell wants to hear about the sleeping mask, and the Speaker has heard Ilo’s report of a monster.
+- Landing in Vael with the wings already yours, the drone finds Oïa first instead of the Aerie.
+- Notes that still pointed to the old sketchbook name the game menu now: a hidden box’s note sends you to the Quests page, and a delivered parcel names View (or J) for the Sketchbook.
 
 ## v0.79 — 2026-10-07
 

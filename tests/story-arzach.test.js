@@ -107,6 +107,25 @@ test('the tower’s steps are boost-jumps from the balcony up to the sill', () =
   for (let i = 0; i < pts.length - 1; i++) assert.equal(hop(pts[i], pts[i + 1], true), true, `step ${i + 1} is in a boost's reach`);
 });
 
+test('passing the Aerie on the way in starts its quest, but the scout still finds Oïa first', () => {
+  const door = rt.temple?.rt?.outside?.door?.at;
+  assert.ok(door, 'the Aerie has a door in the world');
+  // a save that has the wings already: the Aerie's quest did not start on arrival (the browser pass's old save)
+  game.set('quest.temple.arzach', undefined);
+  quests.def('temple.arzach').arrival = false;
+  assert.equal(quests.isStarted('temple.arzach'), false);
+  at(door.clone().add(V(0, 0, 20)));
+  step(2);
+  assert.equal(quests.isStarted('temple.arzach'), true, 'near its door the Aerie’s quest begins');
+  assert.equal(quests.objective()?.id, 'opener-arzach.bird', 'the opening talk keeps the scout');
+  // inside, it no longer counts as one that started on its own
+  game.set('temple.arzach.entered', true);
+  step(1);
+  assert.equal(!!quests.def('temple.arzach').arrival, false);
+  game.set('temple.arzach.entered', undefined);
+  at(V(0, 0, 0));
+});
+
 test('the main quest: Oïa, the wind up the tower, the flute on the sill, her call, the promise', () => {
   // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
   assert.equal(quests.stage('arzach.bird'), undefined);

@@ -44,12 +44,12 @@ export const ITEMS = {
   },
   fire: {
     name: 'Ember mode', kind: 'mode', needs: 'backpack',
-    text: "A flint ring that turns fluid into ember bursts. Useful fire, small enough to carry on your wrist.",
+    text: "A flint ring that turns fluid into ember bursts. Useful fire, small enough to wear on the glove.",
     use: 'Switch modes with X (on a controller, the D-pad left or right). Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
   bloom: {
     name: 'Bloom mode', kind: 'mode', needs: 'backpack',
-    text: "A green glass seed for the nozzle, with a tiny root curled inside. The makers grew their doorways as well as their gardens.",
+    text: "A green glass seed for the glove, with a tiny root curled inside. The makers grew their doorways as well as their gardens.",
     use: 'Switch modes with X (on a controller, the D-pad left or right). A bloom burst tells the makers’ plants to grow: seeds sprout, budded doorways open, vines climb glass and bridge a gap. Anywhere else, a few flowers come up where it lands.',
   },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
@@ -136,7 +136,7 @@ export const ITEMS = {
   },
   star: {
     name: 'Pale star', kind: 'cosmetic',
-    text: "A pale enamel star, like those on the chest lids. The makers’ sign for a traveller: a small light, a long way from home.",
+    text: "A pale enamel star, like the ones on the makers’ chests. The makers’ sign for a traveller: a small light, a long way from home.",
     use: 'Worn on the hood, over the brow. It does nothing at all, and it looks very good.',
   },
 };

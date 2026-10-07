@@ -115,13 +115,17 @@ export const CONTENT = {
           { after: { flag: 'world.desert.done' }, say: '~happy~ The tree burns again. I can walk home by it at night, the way I used to.' },
         ] } },
       { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['~whisper~ The mask sleeps. Don’t wake it.', '~neutral~ I counted the ribs once. Forty.'],
-        id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: { nodes: {
+        id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: {
+        entry: [{ if: { quest: 'desert.mask', done: true }, node: 'washed' }, { node: 'hello' }],
+        nodes: {
+          washed: { say: ["~surprised~ You cleaned its eyes? Both of them? I’ve walked past that face for twenty years and only ever counted its teeth.", "~whisper~ Did it look at you? Don’t answer. I’ll sleep better guessing."], choices: [
+            { text: '~curious~ What sleeps under the city?', goto: 'giant' }, { text: '~neutral~ Bye, Pell.', end: true }] },
           hello: { say: ["~playful~ Pell. I counted the great ribcage south of here. Forty ribs. The giant beneath Qanat is harder; people object when you count under their kitchens."], choices: [
             { text: '~surprised~ There’s a giant under the city?', goto: 'giant' }, { text: '~curious~ What sleeps in the south?', goto: 'mask' }] },
           giant: { say: ["~solemn~ Its head sticks out beyond Qanat’s back gate. The city stands above its body. An entire neighbourhood on somebody’s chest."], choices: [{ text: '~curious~ And the south?', goto: 'mask' }, { text: '~neutral~ Bye.', end: true }] },
           mask: { say: ["~whisper~ Find *the sleeping mask south, past the ribs*. Face toward the sky. I wouldn’t assume it can’t notice you."], do: { start: 'desert.mask' }, choices: [{ text: '~neutral~ I’ll look at it.', end: true }] },
         } } },
-      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ["~curious~ Seen a riderless bike? Mine has gone exploring."], shy: true,
+      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ["~curious~ Seen a riderless bike? Mine has gone exploring.", "~tired~ It had a red seat. It probably still thinks it has a red seat.", "~playful~ If you meet a bike with opinions, tell it I’ve forgiven it."], shy: true,
         id: 'rook', name: 'Rook', title: 'who lost a bike', color: '#8a6fb8', talk: {
           // before you have a hoverbike of your own, Rook sends you to Marrow for one (quest desert.bike)
           entry: [{ if: { not: { flag: 'desert.bike.found' } }, node: 'walk' }, { node: 'hello' }],
@@ -140,7 +144,7 @@ export const CONTENT = {
           '~neutral~ Lost in the dunes? Climb the tallest one and look for the tree. Everything here is measured from the tree.',
           { after: { flag: 'temple.desert.done' }, say: '~surprised~ Green, round Qanat. Twenty years I’ve walked people past those fields, and I never once saw them green.' },
         ] } },
-      { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.'],
+      { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.', '~whisper~ Listen. Lower than that. That’s the stones.', '~neutral~ Clear sky today. The stones agree, for once.'],
         id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { listen: [
           "~curious~ The stones hum before a storm. But that night before your crash, they hummed under clear skies. A light passed, singing their note.",
           '~scared~ Low, then rising, like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.',
@@ -148,7 +152,7 @@ export const CONTENT = {
           '~neutral~ When the stones hum, get behind something. The storms come quick off the flats, and the sand gets everywhere. Everywhere.',
           { after: { flag: 'world.desert.done' }, say: '~solemn~ They hum softer since the tree burned. As if somebody had put a hand on them.' },
         ] } },
-      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.'],
+      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.', '~playful~ Hold still. No, you moved. Never mind, you’re a smudge now.'],
         id: 'traveller', name: 'The traveller', title: 'sketching', color: '#697a98', talk: { nodes: {
           hello: { say: ["~sad~ East of camp: an observatory with a brass ring on top. I’ve drawn it a hundred times, always asleep. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
           how: { say: ["~playful~ Climb the six ledges and turn all three lenses toward its centre. Tell me what happens. My knees have retired from ledges."], choices: [{ text: '~happy~ I will.', end: true }] },
@@ -229,7 +233,7 @@ export const CONTENT = {
 // the City-Shaft, the Sealed Hangar.
 export const ERRANDS = [
   { id: 'sand', item: 'a jar of singing sand', from: ['desert', 1], to: ['arzach', 1],
-    ask: "~curious~ Vael is next for you? Take this singing sand to *Senn in Vael*, the woman who listens to stones. They say nothing there makes a sound. Let her hear something sing.",
+    ask: "~curious~ Vael is next for you? Take this sand from between the great ribs. It sings when the wind crosses it. Give it to *Senn in Vael*, the woman who listens to stones. They say nothing there makes a sound. Let her hear something sing.",
     wait: "~neutral~ *Senn, in Vael.* The one with her ear to the stones.",
     // Vael is quiet by choice: Senn answers the way Vael says anything, with her hands and a word
     thanks: "~happy~ (Senn holds the jar to her ear. The sand hums. She hums back, very softly.) *It sings.*" },
