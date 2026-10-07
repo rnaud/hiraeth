@@ -125,13 +125,21 @@ scene-level modelling and a few shader limits:
   - [x] Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes. Done
     (October 2026, world and views, `src/levels/wood-kit.js`): roots as braided strands, cave mouths framed in
     tangled arches with hanging roots and feet, bushes of leaf clumps, a woven nest of eggs under a ribbed dome.
-  - The Signal Market: the crowd, the stalls' goods, the cabs.
-  - The Buried Machine: the trench's pipe mass, the city's clustered hanging towers, the drum's
-    interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge.
-  - The City-Shaft: the game's is a round cream-and-blue pit with a spire, terraces and a hill-town,
+  - [x] The Signal Market: the crowd, the stalls' goods, the cabs. Done (October 2026): the views' crowd of
+    people in coats, hoods and hats with the quiet ones, full stalls with sellers, the game's own cabs; the
+    world's stalls heaped with goods (docs/systems/references.md, worlds.md). The sheets' stalls stay denser.
+  - [x] The Buried Machine: the trench's pipe mass, the city's clustered hanging towers, the drum's
+    interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge. Done
+    (October 2026, views and world): `pipeMass`, clustered `hangingTower`s, drums with arcades, machinery
+    and vaulted or flat ceilings, `ovalTunnel`, `archPortal` and the moon, `rockLedge`; the world's trench
+    walls U-bends, its drum's arcade and machinery, its city in clusters (references.md, worlds.md).
+  - [x] The City-Shaft: the game's is a round cream-and-blue pit with a spire, terraces and a hill-town,
     the sheets' a canyon of pink and cream stacked houses with water below; the views' houses are
     boxes (no pipes, balconies, laundry or plating under the overhangs), the cabs and blimps simple
-    capsules.
+    capsules. Done (October 2026): the views' blocks carry pipes, balconies with washing and plating under
+    their overhangs, blimps, the game's cabs; the world keeps its round pit (the story, quests and cab stops
+    stand on it) with half its walls pink, drainpipes, washing, plating under the terraces, three blimps and
+    turquoise water at the bottom, within 0.2 ms a frame on Handheld (worlds.md).
 
 ## MakeHuman bodies
 

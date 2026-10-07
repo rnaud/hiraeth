@@ -54,7 +54,15 @@ The reference pages for the four v0.30 worlds are in `references/`
     down the shaft's wall on steel brackets, a red pipe rail on the void side (as the plates' red stairs);
     a steel landing along the terrace's end, where no house is kept (`lane`). `places.stair.path` is its
     centre line; `tests/incal-stair.test.js` walks it down and up with a real `Player`, and glides it;
-  - flying taxis, landing pads, cables and an acid lake at the bottom;
+  - flying taxis, landing pads, cables, three blimps drifting round the shaft and turquoise water at the
+    bottom (a flat printed tone: the water shader's reflection pass cost the handheld ~2 ms a frame there);
+  - **toward its reference sheets** (docs/systems/references.md): half the walls pink among the cream
+    (`PASTELS`, `RUST`), drainpipes and gutters on some houses, washing hung over balcony rails, ribs,
+    machinery and a pipe under each terrace's slab. That small work draws from its own random numbers
+    (`work`), so the town's layout, the terraces and the story's places are as they were, and it goes into
+    the iron and the stalls' cloth buckets: no draws of its own (the blimps are three, left out of the far
+    shadow cascade). Handheld, M4 Pro, interleaved: frame time within 0.2 ms at the rim, the crowd and
+    across the shaft, ~+3 % triangles;
   - **jetpack:** hold Space in the air for about 10 s of thrust; you lean forward into the flight when steering;
   - **E** hails a taxi, then gets in (once Lio has written you a pass: docs/systems/progression.md). Driving: W/S throttle, A/D steer,
     Space up, Shift down.
@@ -213,6 +221,10 @@ Reaching the console completes **The Last Broadcast**. Five relics are spread
 between the market, a stall roof, two bridges and the balcony. The scout, saves,
 sketchbook, controller and touch controls use the existing game systems.
 
+The stalls carry goods (October 2026, toward the reference sheets): five brass bowls heaped with fruit
+and jars on each counter, strings of goods hanging under the awning's edge, three round pictures on the
+counter's front; their own random numbers, the existing buckets (no draws of their own), low-poly.
+
 Geometry is merged by street block and material for culling. Collision tests
 cover the avenue, bridge decks, climbing ledges, relic platforms and quest
 altitude. Browser checks cover rendering and story completion; phone-sized
@@ -243,6 +255,12 @@ Deep Wood's trunks, caps and arches and the Garden of Spheres' spheres and umbre
   that exposes blue-grey machine strata, a rust canyon with oval doors and lit
   portholes, and the oculus drum with its balcony goal. A ring wall with a rim
   city stands on the horizon, and an upside-down city hangs overhead.
+  Toward its reference sheets (October 2026): inverted U-bends stand on the trench walls' long blue-grey
+  runs (the pipe mass of IMG_3789 p1; solid, climbed as drawn, five-sided to keep the collision near
+  185 k triangles), the drum has an arcade of small dark bays under its rim over a cornice, slits and
+  panels between its tall windows and machinery at its wall's foot (flush or solid), and the city's inner
+  towers have two to four lesser towers packed round them, each ending in a bulb and a spike. All of it
+  draws from its own random numbers, so the layout and the story's places keep theirs.
 - **The Garden of Spheres** (`spheres`): umbrella trees with gill undersides,
   white pyramids and an overgrown terraced hill with stairs, and giant spheres
   whose crescents face the light. It also has a sphere-arch, a mirror lake with
