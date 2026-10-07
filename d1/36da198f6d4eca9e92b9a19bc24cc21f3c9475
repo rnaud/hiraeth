@@ -1,0 +1,49 @@
+.github/workflows/cloudflare.yml
+  s_55b4bc53b812ec::t_6e48e058b544d8 6-7,26,45-54
+changelog.md
+  s_55b4bc53b812ec::t_7e653c8010af0b 12
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_930695d945902f 17,98-108
+package.json
+  s_55b4bc53b812ec::t_3c9d23372346bb 12
+scripts/package-steam-deck.mjs
+  s_55b4bc53b812ec::t_4206bbea73bddc 17-18
+.github/workflows/steam-deck.yml
+  s_49cd91b776d109::t_1b923be2a7ecc8 41-44,46
+docs/cloudflare.md
+  s_49cd91b776d109::t_e0094c71c37b17 17-18
+scripts/deck-runtime.mjs
+  s_49cd91b776d109::t_3ecfb3f5daa73b 1-110
+scripts/steam-deck/deck.py
+  s_49cd91b776d109::t_e13814ca149d03 9-12,37,43-44,173-174,184-197,204-212,220-232
+src/changelog.js
+  s_49cd91b776d109::t_6fb9a5b8aebb6f 16
+tests/deck-runtime.test.js
+  s_49cd91b776d109::t_4264b901f3cc01 1-75
+tests/test_steam_deck.py
+  s_49cd91b776d109::t_6b0ec6b95d893b 352-410
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d136da198f6d4eca9e92b9a19bc24cc21f3c9475",
+  "prompts": {},
+  "sessions": {
+    "s_49cd91b776d109": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a92871400884d0dd0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
