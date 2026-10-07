@@ -23,7 +23,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
-import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
+import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -50,7 +50,7 @@ import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
 import { loadTravellerV1, createTravellerV1 } from './characters/traveller-v1.js';
 import { Changelog, VERSION } from './changelog.js';
-import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, ToolHud } from './ui.js';
+import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
@@ -74,7 +74,7 @@ import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as 
 import { slots, formatPlaytime } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
-import { slicer, runStepsAsync } from './load-steps.js';
+import { slicer, runStepsAsync, gpuPacer } from './load-steps.js';
 import { waterShared } from './water-shader.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
@@ -107,6 +107,8 @@ renderer.setPixelRatio(pixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
+// (hidden under the loading screen until the first frame: nothing for the compositor to bring along with the pen)
+renderer.domElement.style.visibility = 'hidden';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.3, 5000);
@@ -147,7 +149,8 @@ const gpuName = (() => {
   try { return String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? ''); } catch { return ''; }
 })();
 const handheld = detectHandheld({ native: isNativeApp, touch: isTouch, gpu: gpuName });
-let preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
+const deck = detectDeck({ app: isDeckApp, gpu: gpuName });   // (Auto runs the Steam Deck recipe there)
+let preset = resolveQuality(settings.quality, { handheld, deck, hiDPI: pixelRatio >= 2 });
 const quality = { renderScale: preset.scale };
 const composeRT = createComposeTarget();
 const blit = createBlit(composeRT.texture);
@@ -773,7 +776,7 @@ function applyDetail() {
   }
 }
 function applyQuality() {
-  preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
+  preset = resolveQuality(settings.quality, { handheld, deck, hiDPI: pixelRatio >= 2 });
   quality.renderScale = preset.scale;
   adapt.slow = adapt.fast = adapt.hold = 0; adapt.dropped = false;
   const S = preset.shadow;
@@ -788,10 +791,10 @@ function applyQuality() {
   blades.grow?.();
 }
 /** Dynamic resolution: the render scale follows the frame rate, inside the preset's range (Auto, Handheld; perf.js adaptScale). */
-function adaptQuality(fps, missed) {
+function adaptQuality(fps, missed, cpu, period) {
   const D = preset.dynamic;
   if (!D || document.hidden || busy() || photo.on) return;
-  const { scale, dropped } = adaptScale(adapt, { fps, missed }, D, quality.renderScale);
+  const { scale, dropped } = adaptScale(adapt, { fps, missed, cpu, period }, D, quality.renderScale);
   if (scale === quality.renderScale) return;
   quality.renderScale = scale;
   if (dropped && !adapt.dropped) { adapt.dropped = true; applyDetail(); }
@@ -1312,14 +1315,18 @@ function frameReadout(fps) {
   return `${ENGINE}${window.__benchLabel ? ` ${window.__benchLabel}` : ''} · ${Math.round(fps)} fps · ${(1000 / fps).toFixed(1)} ms (cpu ${(cpuMs / fpsN).toFixed(1)}${gpu !== null ? ` gpu ${gpu.toFixed(1)}` : ''})`
     + ` · ${quality.renderScale}× · ${Math.round(frameStats.calls / n)} calls · ${Math.round(frameStats.tris / n / 1000)}k tris · ${preset.key}`;
 }
-function frame() {
+function frame(ts) {
   const tFrame = performance.now();
-  if (lastFrameT && gaps.length < 200) gaps.push(tFrame - lastFrameT);
-  lastFrameT = tFrame;
+  // the missed refreshes from the animation frame's timestamp (when the frame is shown), not from when its
+  // callback starts: GeckoView starts a late frame's callback late and evenly (19-22 ms apart while the
+  // screen shows 17 and 33), which hid every missed refresh from dynamic resolution (docs/systems/performance.md)
+  const tShown = Number.isFinite(ts) ? ts : tFrame;
+  if (lastFrameT && gaps.length < 200) gaps.push(tShown - lastFrameT);
+  lastFrameT = tShown;
   if (++fpsN, tFrame - fpsT > 500) {
     const fps = (fpsN * 1000) / (tFrame - fpsT);
     if (settings.showFps) fpsEl.textContent = frameReadout(fps);
-    adaptQuality(fps, missedFrames());
+    adaptQuality(fps, missedFrames(), cpuMs / fpsN, Math.min(...gaps, 1000 / 60));   // (the main thread's time a frame, the refresh)
     fpsN = 0; fpsT = tFrame; cpuMs = 0; gaps.length = 0;
     frameStats.calls = frameStats.tris = frameStats.n = frameStats.culled = 0;
   }
@@ -1577,6 +1584,7 @@ const programKind = (o, m) => `${m.id}|${o.isInstancedMesh ? 1 : 0}${o.instanceC
 // (the scene a program's key is taken from: no lights, fog or environment, as the world's own; an
 // empty one, so each compile doesn't walk the whole world looking for lights)
 const keyScene = new THREE.Scene();
+const gpuPace = gpuPacer(renderer.getContext());
 async function warmShadersSliced(targetScene, targetCamera, target = null, { wear = null } = {}) {
   const reps = new Map();
   targetScene.traverse((o) => {
@@ -1592,6 +1600,7 @@ async function warmShadersSliced(targetScene, targetCamera, target = null, { wea
       for (const m of renderer.compile(o, targetCamera, keyScene)) mats.add(m);
     } finally { if (wear) o.material = own; }
     await slice();
+    await gpuPace();   // (one compile queued at a time: the loading screen's pen keeps turning)
   }
   renderer.setRenderTarget(prev);
   // the driver compiles in parallel (KHR_parallel_shader_compile): wait for it a while, yielding
@@ -1633,7 +1642,7 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
   const seen = warmDraw.meshes().filter((o) => o.visible !== false && (!o.isInstancedMesh || o.count > 0) && inView(o));
   const todo = [...warmDraw.near(dests), ...warmDraw.of(...(ship.parked?.indoor ?? [])), ...warmDraw.near([player.pos], 120), ...seen];
   let n = 0;
-  for (let i = 0; i < todo.length; i += 24) { n += warmDraw.draw(todo.slice(i, i + 24)); await slice(); }
+  for (let i = 0; i < todo.length; i += 8) { n += warmDraw.draw(todo.slice(i, i + 8)); await slice(); await gpuPace(); }   // (8 at a time: a batch's uploads are one piece of the GPU's work)
   // what the first frame would set up for itself: the rooms off the map, the levels of detail
   roomCull ??= makeRoomCull();
   await slice();
@@ -1648,6 +1657,7 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
+  renderer.domElement.style.visibility = '';
   frame(t);
   markBooted();   // the heartbeat: the Android app keeps a downloaded web build only once it gets here (native-app.js)
   const ld = document.getElementById('loading');

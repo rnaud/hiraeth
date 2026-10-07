@@ -50,7 +50,7 @@ if (opt.pen) {
   await page.evaluate(() => {
     document.getElementById('loading')?.remove();
     const l = document.body.appendChild(Object.assign(document.createElement('div'), { id: 'loading' }));
-    l.innerHTML = '<svg class="pen" viewBox="0 0 120 120" aria-hidden="true"><circle class="ring" cx="60" cy="60" r="44" /><circle class="ring r2" cx="60" cy="60" r="30" /><path class="nib" d="M60 14 L66 34 L60 40 L54 34 Z" /></svg><div class="msg">sketching the world…</div>';
+    l.innerHTML = '<div class="pen"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring" cx="60" cy="60" r="44" /><circle class="ring r2" cx="60" cy="60" r="30" /><path class="nib" d="M60 14 L66 34 L60 40 L54 34 Z" /></svg></div><div class="msg">sketching the world…</div>';
   });
   await sleep(500);
   const shots = [];

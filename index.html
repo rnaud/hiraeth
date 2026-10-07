@@ -160,8 +160,11 @@
         font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2; transition: opacity 0.8s;
       }
       #loading.done { opacity: 0; pointer-events: none; }
-      /* transform animations run on the compositor, so they keep moving while the world is built */
-      #loading .pen { width: 96px; height: 96px; animation: spin 2.4s linear infinite; }
+      /* transform animations run on the compositor, so they keep moving while the world is built: on an HTML
+         box of its own (will-change: its own layer from the start; a transform on an SVG root is not
+         run off the main thread by every engine), the drawing inside it static */
+      #loading .pen { width: 96px; height: 96px; animation: spin 2.4s linear infinite; will-change: transform; }
+      #loading .pen svg { display: block; width: 100%; height: 100%; }
       #loading .ring { fill: none; stroke: #2b211f; stroke-width: 2.2; stroke-dasharray: 18 9; }
       #loading .r2 { stroke-dasharray: 4 7; opacity: 0.6; }
       #loading .nib { fill: #c8483a; stroke: #2b211f; stroke-width: 2; }
@@ -404,11 +407,11 @@
   </head>
   <body>
     <div id="loading">
-      <svg class="pen" viewBox="0 0 120 120" aria-hidden="true">
+      <div class="pen"><svg viewBox="0 0 120 120" aria-hidden="true">
         <circle class="ring" cx="60" cy="60" r="44" />
         <circle class="ring r2" cx="60" cy="60" r="30" />
         <path class="nib" d="M60 14 L66 34 L60 40 L54 34 Z" />
-      </svg>
+      </svg></div>
       <div class="msg">sketching the world…</div>
     </div>
     <div id="journal"></div>

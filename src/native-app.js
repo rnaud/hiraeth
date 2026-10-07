@@ -1,5 +1,6 @@
 // The Android app around the game (android/.../MainActivity.java, WebBundles.java,
-// AppShellPlugin.java). In a browser all of this is a no-op.
+// AppShellPlugin.java), and the Steam Deck's (desktop/main.mjs: the update calls only). In a
+// browser all of this is a no-op.
 //
 // - The boot heartbeat: markBooted() after the first frame sets
 //   window.__moebiusBooted. A downloaded web build that doesn't get there in
@@ -18,16 +19,23 @@
 import { nativePad } from './native-pad.js';
 import { audioGuard, audioAway } from './audio-guard.js';
 
-const shell = (win) => (win?.Capacitor?.isNativePlatform?.() && win.Capacitor.nativePromise ? win.Capacitor : null);
-const ask = (win, method) => shell(win)?.nativePromise('AppShell', method).catch(() => null) ?? Promise.resolve(null);
+// The app around the page: Android's AppShell plugin, or the Steam Deck's runtime, which answers
+// the same calls at moebius://game/__app/<method> (desktop/main.mjs, desktop/deck-updates.mjs).
+const desktop = (win) => (win?.location?.protocol === 'moebius:' && typeof win.fetch === 'function' ? {
+  call: (method) => win.fetch(`/__app/${method}`, { method: 'POST', cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : r.text().then((t) => Promise.reject(new Error(t || `HTTP ${r.status}`))))),
+} : null);
+const shell = (win) => (win?.Capacitor?.isNativePlatform?.() && win.Capacitor.nativePromise
+  ? { call: (method) => win.Capacitor.nativePromise('AppShell', method) } : desktop(win));
+const ask = (win, method) => shell(win)?.call(method).catch(() => null) ?? Promise.resolve(null);
 
-/** Whether the page runs in the Android app (with its AppShell plugin). */
+/** Whether the page runs in an app that updates it: Android's (its AppShell plugin) or the Steam Deck's. */
 export const inApp = (win = globalThis.window) => !!shell(win);
 
-/** Ask the app (AppShellPlugin): rejects with the app's message, or when not in the app. */
+/** Ask the app (AppShellPlugin, or the Deck's runtime): rejects with the app's message, or when not in an app. */
 export function callApp(method, win = globalThis.window) {
   const s = shell(win);
-  return s ? s.nativePromise('AppShell', method) : Promise.reject(new Error('not in the app'));
+  return s ? s.call(method) : Promise.reject(new Error('not in the app'));
 }
 
 const APPLIED_KEY = 'moebius.appliedUpdate';
