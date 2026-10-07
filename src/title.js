@@ -12,7 +12,7 @@
 // Imports nothing that loads the game state: the summaries come from the raw saves.
 
 import { slots, SLOT_COUNT, formatPlaytime, formatDate, progressLine } from './save-slots.js';
-import { Settings, SettingsMenu, isNativeApp, isTouch } from './ui.js';
+import { Settings, SettingsMenu, isNativeApp, isDeckApp, isTouch } from './ui.js';
 import { Sound } from './audio.js';
 import { Controller, menuNavigate } from './controller.js';
 import { setFaces, padFaces } from './native-pad.js';
@@ -121,7 +121,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const root = doc.createElement('div');
     root.id = 'title';
     root.className = wantVista ? 'vista-wait' : '';   // (a warm sky colour until the 3D view fades in)
-    const fullscreen = !isNativeApp && doc.fullscreenEnabled;
+    const fullscreen = !isNativeApp && !isDeckApp && doc.fullscreenEnabled;   // (the Deck's app is fullscreen already)
     root.innerHTML = `${BACKDROP}<div class="veil" aria-hidden="true"></div>
       <div class="front">
         <header>${LOGO}</header>
