@@ -74,7 +74,7 @@ const ONE_HANDED = { point: 'talk', pinch: 'relaxed' };
 /** What each held prop (costumes.js PROPS) makes the right hand do. */
 export const PROP_GRIPS = { staff: 'grip', parasol: 'grip', lamppole: 'grip', wrench: 'grip', lantern: 'hook', basket: 'hook', bell: 'hook', flower: 'hold',
   // the desert's own: the reed and the lute's neck held, the hook and the bell staff gripped like a staff
-  ney: 'hold', oud: 'hold', hook: 'grip', bellstaff: 'grip' };
+  ney: 'hold', oud: 'hold', hook: 'grip', bellstaff: 'grip', discstaff: 'grip' };
 
 /** Rides (player.ride.kind): handlebars, a stick or the reins; in a cab (it drives itself) the hands rest. */
 export const RIDE_GRIPS = { bike: 'grip', skiff: 'grip', taxi: 'relaxed', bird: 'reins' };

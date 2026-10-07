@@ -157,7 +157,7 @@ export class Cape {
    * @param o.top / o.bottom  radius at the collar / hem, o.length, o.y (collar height in anchor space)
    * @param o.gap   half-angle of the opening at the front
    */
-  constructor(scene, anchor, { cols = 14, rows = 11, top = 0.19, bottom = 0.5, length = 1.5, y = 0.74, gap = 0.42, color = '#c8483a', color2 = null, heavy = true } = {}) {
+  constructor(scene, anchor, { cols = 14, rows = 11, top = 0.19, bottom = 0.5, length = 1.5, y = 0.74, gap = 0.42, color = '#c8483a', color2 = null, heavy = true, bells = 0, bellColor = BELLS.color } = {}) {
     this.anchor = anchor;
     this.scene = scene;
     this.cut = [cols, rows, top, bottom, length, y, gap, heavy].map((v) => (typeof v === 'number' ? v.toFixed(3) : v)).join('/');
@@ -234,6 +234,7 @@ export class Cape {
     this.mesh.userData.noCollide = true;
     this.mesh.userData.cape = true;   // (not a seat for anyone's cloth: NPC.seatField)
     scene.add(this.mesh);
+    this.bells = bells > 0 ? hemBells(this, bells, bellColor) : null;
     this.ready = false;
     this.capsules = [];
     this.time = 0;
@@ -405,7 +406,11 @@ export class Cape {
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();
     this.geo.computeBoundingSphere();
+    this.ringBells();
   }
+
+  /** The hem's bells (if it has any) where the hem is now. */
+  ringBells() { if (this.bells) placeBells(this); }
 
   /** How far the cloth moved in the last step (m, the most of any particle): ~0 at rest. */
   restless() {
@@ -445,6 +450,7 @@ export class Cape {
     if (k) { DRAPES.set(k, this.drape); this._ownDrape = false; }
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();
+    this.ringBells();
     return true;
   }
 
@@ -469,6 +475,7 @@ export class Cape {
     this.q.set(this.p);
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();
+    this.ringBells();
     return false;
   }
 
@@ -484,6 +491,7 @@ export class Cape {
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();
     this.geo.computeBoundingSphere();
+    this.ringBells();
     return true;
   }
 
@@ -569,5 +577,57 @@ export class Cape {
     this.mesh.removeFromParent();
     scene.remove(this.mesh);
     this.geo.dispose();
+    this.bells?.geometry.dispose();
   }
+}
+
+/**
+ * Bells sewn along a cape's hem (Sefa's sheet: small brass bells all round the cloak's edge). One small
+ * mesh, a child of the cape's, so it is in the cape's own space whatever that is (the world while the
+ * cloth is simulated, the anchor's while it hangs, carried by follow()); each bell hangs from a point of
+ * the hem's row, along the cloth's own fall there (the hem less the row above it), redone whenever the
+ * cloth's points are: `n` bells over the hem's points, `size` their mouth's radius (m).
+ */
+export const BELLS = { color: '#d9a94e', size: 0.022, drop: 0.004 };
+const BELL = (() => {
+  // a bell: a short flared cup, its loop at the top (origin), hanging down -y
+  const g = new THREE.CylinderGeometry(BELLS.size * 0.42, BELLS.size, BELLS.size * 1.5, 7, 1, false).translate(0, -BELLS.size * 0.75 - BELLS.drop, 0);
+  const s = new THREE.SphereGeometry(BELLS.size * 0.32, 5, 3).translate(0, -BELLS.size * 1.6 - BELLS.drop, 0);   // the clapper, below the mouth
+  const parts = [g.toNonIndexed(), s.toNonIndexed()];
+  const pos = new Float32Array(parts.reduce((n, p) => n + p.attributes.position.array.length, 0)), nor = new Float32Array(pos.length);
+  let o = 0;
+  for (const p of parts) { pos.set(p.attributes.position.array, o); nor.set(p.attributes.normal.array, o); o += p.attributes.position.array.length; }
+  return { pos, nor };
+})();
+function hemBells(cape, n, color) {
+  const { cols, rows } = cape, k = Math.max(1, Math.min(n, cols));
+  const at = Array.from({ length: k }, (_, i) => (rows - 1) * cols + Math.round((k === 1 ? 0.5 : i / (k - 1)) * (cols - 1)));
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(BELL.pos.length * k), 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(BELL.nor.length * k), 3));
+  const mesh = new THREE.Mesh(geo, makeMaterial({ color, figure: true }));
+  mesh.frustumCulled = false;
+  mesh.userData.noCollide = true;
+  mesh.userData.at = at;
+  cape.mesh.add(mesh);
+  return mesh;
+}
+const _bq = new THREE.Quaternion(), _down = new THREE.Vector3(0, -1, 0);
+function placeBells(cape) {
+  const { p, cols } = cape, mesh = cape.bells, at = mesh.userData.at;
+  const P = mesh.geometry.attributes.position.array, N = mesh.geometry.attributes.normal.array, m = BELL.pos.length;
+  at.forEach((i, b) => {
+    const j = i - cols;
+    _a.set(p[i * 3] - p[j * 3], p[i * 3 + 1] - p[j * 3 + 1], p[i * 3 + 2] - p[j * 3 + 2]);
+    if (_a.lengthSq() < 1e-10) _a.copy(_down); else _a.normalize();
+    _bq.setFromUnitVectors(_down, _a);
+    for (let v = 0; v < m; v += 3) {
+      _b.set(BELL.pos[v], BELL.pos[v + 1], BELL.pos[v + 2]).applyQuaternion(_bq);
+      P[b * m + v] = p[i * 3] + _b.x; P[b * m + v + 1] = p[i * 3 + 1] + _b.y; P[b * m + v + 2] = p[i * 3 + 2] + _b.z;
+      _b.set(BELL.nor[v], BELL.nor[v + 1], BELL.nor[v + 2]).applyQuaternion(_bq);
+      N[b * m + v] = _b.x; N[b * m + v + 1] = _b.y; N[b * m + v + 2] = _b.z;
+    }
+  });
+  mesh.geometry.attributes.position.needsUpdate = true;
+  mesh.geometry.attributes.normal.needsUpdate = true;
 }

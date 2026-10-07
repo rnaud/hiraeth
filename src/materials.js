@@ -2195,9 +2195,11 @@ const fragmentShader = /* glsl */ `
           vec2 s2 = uSunDir.xz / max(length(uSunDir.xz), 1e-3);
           float len = pebbleShadow(uSunDir.y), castK = smoothstep(uToon - 0.02, uToon + 0.12, L);
           float pk = smoothstep(${PEBBLES.patch[0].toFixed(2)}, ${PEBBLES.patch[1].toFixed(2)}, vnoise(gp * 0.04 + 23.0));
-          float peb = max(max(pebbleField(gp, gm, s2, len, castK, ${PEBBLES.grit.cell.toFixed(2)}, ${PEBBLES.grit.density.toFixed(3)}, vec2(${PEBBLES.grit.r[0].toFixed(3)}, ${PEBBLES.grit.r[1].toFixed(3)}), ${PEBBLES.grit.seed.toFixed(1)}),
-                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.pebble.cell.toFixed(2)}, ${PEBBLES.pebble.density.toFixed(3)} * pk, vec2(${PEBBLES.pebble.r[0].toFixed(3)}, ${PEBBLES.pebble.r[1].toFixed(3)}), ${PEBBLES.pebble.seed.toFixed(1)})),
-                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.stone.cell.toFixed(2)}, ${PEBBLES.stone.density.toFixed(3)}, vec2(${PEBBLES.stone.r[0].toFixed(3)}, ${PEBBLES.stone.r[1].toFixed(3)}), ${PEBBLES.stone.seed.toFixed(1)}));
+          // (a high sun: more of them, a little bigger, as its shadows shrink: ground-ink.js pebbleNoon)
+          float hk = smoothstep(${PEBBLES.noon.from.toFixed(2)}, ${PEBBLES.noon.to.toFixed(2)}, uSunDir.y), nc = 1.0 + ${PEBBLES.noon.count.toFixed(3)} * hk, ns = 1.0 + ${PEBBLES.noon.size.toFixed(3)} * hk;
+          float peb = max(max(pebbleField(gp, gm, s2, len, castK, ${PEBBLES.grit.cell.toFixed(2)}, ${PEBBLES.grit.density.toFixed(3)} * nc, vec2(${PEBBLES.grit.r[0].toFixed(3)}, ${PEBBLES.grit.r[1].toFixed(3)}) * ns, ${PEBBLES.grit.seed.toFixed(1)}),
+                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.pebble.cell.toFixed(2)}, ${PEBBLES.pebble.density.toFixed(3)} * pk * nc, vec2(${PEBBLES.pebble.r[0].toFixed(3)}, ${PEBBLES.pebble.r[1].toFixed(3)}) * ns, ${PEBBLES.pebble.seed.toFixed(1)})),
+                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.stone.cell.toFixed(2)}, ${PEBBLES.stone.density.toFixed(3)} * nc, vec2(${PEBBLES.stone.r[0].toFixed(3)}, ${PEBBLES.stone.r[1].toFixed(3)}) * ns, ${PEBBLES.stone.seed.toFixed(1)}));
           detail = max(detail, peb * uDots * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
         }
       }

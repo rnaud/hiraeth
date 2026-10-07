@@ -119,3 +119,22 @@ test('pebbles take the place of the dots and grains on rippled sand in the print
   assert.ok(f.includes('vec2 s2 = uSunDir.xz / max(length(uSunDir.xz), 1e-3);'), "the shadows from the world's light");
   assert.ok(!f.includes('0.55, 0.03, 0.06, 13.0)'), 'the coarse pen dots gone from the sand');
 });
+
+// "At noon the sand looks much emptier": as the sun climbs the pebbles' shadows shrink to stubs, so a high sun
+// lays more of them, a little bigger (PEBBLES.noon); dawn and dusk, their long shadows, are as they were.
+test('pebbles: a high sun lays more of them, a little bigger; a low sun none more', async () => {
+  const { PEBBLES, pebbleNoon, pebbleShadow, pebbleMean } = await import('../src/ground-ink.js');
+  for (const y of [0.05, 0.276, 0.515, 0.693]) assert.deepEqual(pebbleNoon(y), { count: 1, size: 1 }, `a lower sun (${y}: dawn, dusk, 8 and 9 h): as drawn`);
+  const noon = pebbleNoon(0.88);
+  assert.equal(noon.count, 1 + PEBBLES.noon.count); assert.equal(noon.size, 1 + PEBBLES.noon.size);
+  for (let y = 0.3; y < 1; y += 0.05) assert.ok(pebbleNoon(y + 0.05).count >= pebbleNoon(y).count, 'rising with the sun');
+  // the ink a patch of sand holds (the pebbles' scale): at noon at least what mid-morning (the sun at ~31°) held
+  const ink = (y) => { const { count, size } = pebbleNoon(y), P = PEBBLES.pebble, r = (P.r[0] + P.r[1]) / 2 * size; return pebbleMean(r * r, pebbleShadow(y), P.cell, P.density * count, 1); };
+  assert.ok(ink(0.88) >= ink(0.515), `noon ${ink(0.88).toFixed(5)} against mid-morning ${ink(0.515).toFixed(5)}`);
+  assert.ok(ink(0.88) < 2.2 * ink(0.515), 'and not a carpet');
+  // the shader's: the same numbers, on all three scales
+  const f = makeMaterial({ color: '#efd29b', mode: MODE_TERRAIN, ripples: true, sandInk: true, key: 't.pebbles.noon' }).fragmentShader;
+  assert.match(f, new RegExp(`smoothstep\\(${PEBBLES.noon.from.toFixed(2)}, ${PEBBLES.noon.to.toFixed(2)}, uSunDir\\.y\\)`));
+  assert.equal((f.match(/\* nc, vec2\(/g) ?? []).length, 3);
+  assert.equal((f.match(/\) \* ns, /g) ?? []).length, 3);
+});

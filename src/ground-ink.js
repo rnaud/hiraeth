@@ -53,7 +53,18 @@ export const PEBBLES = {
   minPx: 1.0,              // the smallest radius drawn (px); smaller, lighter instead
   rimPx: [3.0, 6.0],       // the rim drawn once the radius is this many px
   resolved: [3.0, 6.0],    // px per cell: below the first, only the average tone
+  // a high sun: more pebbles, a little bigger. Their shadows shrink to stubs as the sun climbs, and the sand round
+  // noon read a third emptier than at 10 or 15 h; from the light's height `from` to `to` (its sine: the desert's sun
+  // is at 0.81 at 10 h, 0.88 at noon), up to `count` more of them a cell and `size` bigger. Below `from` (mid-morning,
+  // the afternoon, dawn and dusk and their long shadows) they are as they were.
+  noon: { from: 0.78, to: 0.88, count: 0.35, size: 0.1 },
 };
+
+/** How much busier the sand is under a light this high (y: the sine of its height): { count, size } factors (1: as drawn). */
+export function pebbleNoon(y) {
+  const k = smoothstep(PEBBLES.noon.from, PEBBLES.noon.to, y);
+  return { count: 1 + PEBBLES.noon.count * k, size: 1 + PEBBLES.noon.size * k };
+}
 
 /** A pebble's cast shadow, in radii, for a light this high (y: the sine of its height over the horizon). */
 export function pebbleShadow(y) {

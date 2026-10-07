@@ -138,7 +138,9 @@ scene-level modelling and a few shader limits:
 Stages 1–3 are done (DONE.md, docs/makehuman.md): one parametric body, the Desert, then every world,
 the Lab's faces gallery, the face keys in one texture for every body, the headwear.
 
-- [ ] The props the desert's sheets show that the kit lacks (docs/makehuman.md, stage 2).
+- [x] The props the desert's sheets show that the kit lacks (docs/makehuman.md, stage 2). **Done:** Nour's
+  gourds, keys and disc staff, Marrow's salvage bag and pack (no cloak: his sheet's coat), the bells on Sefa's
+  hem, her oud's tassels and the oud kept out of her cloak, the Speaker's copper bell and streamers.
 - [ ] `scripts/unity-export` still reads the Quaternius bodies. **Reconciled:** the C# port's own game
   logic is retired (the JS bridge draws the live scene instead), so the export is only the bench
   scene's. The live question is the bridge's, below: it does not load MakeHuman bodies yet.
