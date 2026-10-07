@@ -1,0 +1,27 @@
+changelog.md
+  s_55b4bc53b812ec::t_8ce26ba473ff2c 26
+docs/systems/references.md
+  s_55b4bc53b812ec::t_2d742351b5b496 140-143
+src/changelog.js
+  s_55b4bc53b812ec::t_dd05e687202529 30
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_8e6d210e3498fb 35-36,730-731,739
+src/levels/reference-vael2.js
+  s_55b4bc53b812ec::t_b3d572272a3c72 6,64-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a5a6b41ce9339b907a1481ae28f65799bce6bfb6",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
