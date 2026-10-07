@@ -45,7 +45,9 @@ Steam starts `launch`, which execs `deck.py --launch`, which runs Electron and w
   the next way (`MOEBIUS_GPU`): `gl` (ANGLE on OpenGL, the default), `vulkan` (ANGLE on Vulkan;
   fine on X11 under gamescope, fails on Plasma's Wayland), `software` (SwiftShader). The way that
   worked is remembered per runtime build and session kind (`gpu.json`); when none works the
-  launcher exits 1 and Steam returns to its library.
+  launcher exits 1 and Steam returns to its library. A crash or kill once the window has been up a
+  minute (`PLAYED_SECONDS`) is not the way to draw failing: the launcher exits 1 and keeps that way
+  (a game killed after 9 h of Gaming Mode once came back on Vulkan, and `gpu.json` kept it).
 - **A clean exit.** Steam's Exit Game signals the launcher (SIGINT/SIGTERM); it sends SIGINT to
   the browser (which closes its helpers at once), kills whatever is left after 5 s, and after any exit kills Electron's leftover helpers (a
   zygote outliving its browser kept the game "running").

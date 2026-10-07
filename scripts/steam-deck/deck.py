@@ -741,6 +741,7 @@ RETRY_EXIT = 75      # desktop/main.mjs: its GPU process keeps crashing, try the
 RESTART_EXIT = 76    # desktop/main.mjs: the settings' Restart now, into the update (launched again)
 READY_SECONDS = 30   # no window by then: Electron hangs (a helper process died as it started)
 STOP_SECONDS = 5     # Steam's Exit Game (a signal): this long to close, then killed with its helpers
+PLAYED_SECONDS = 60  # a window up this long has drawn: a crash or kill after it is not the way to draw's fault
 
 
 def session_kind(env):
@@ -762,11 +763,14 @@ def group_alive(group):
         return False
 
 
-def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP_SECONDS, log=print):
+def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP_SECONDS, played_seconds=PLAYED_SECONDS, log=print):
     """Electron in its own process group, watched until it ends; none of its processes outlives it
     (Steam counts the game running, a black screen in Gaming Mode, while any of them does).
-    @return (how, code, shown): how is 'quit' (it closed, or Steam closed it) or 'retry' (it crashed,
-    hung before its window showed, or asked for another way to draw); shown, whether its window did"""
+    @return (how, code, shown): how is 'quit' (it closed, or Steam closed it), 'retry' (it crashed
+    soon, hung before its window showed, or asked for another way to draw) or 'ended' (it crashed or
+    was killed after its window had been up played_seconds: the way to draw worked, so no other is
+    tried; once a game killed after 9 h restarted on Vulkan and gpu.json kept that); shown, whether
+    its window did"""
     ready.unlink(missing_ok=True)
     process = subprocess.Popen(command, env=env, start_new_session=True)
     stopping = []
@@ -783,6 +787,7 @@ def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP
     handled = (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)
     previous = {number: signal.signal(number, stop) for number in handled}
     started, shown, hung, code = time.monotonic(), False, False, None
+    shown_at = None
     try:
         # (monotonic time stops while the Deck sleeps: a Deck put to sleep as the game starts doesn't count)
         while code is None:
@@ -791,6 +796,8 @@ def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP
             except subprocess.TimeoutExpired:
                 now = time.monotonic()
                 shown = shown or ready.exists()
+                if shown and shown_at is None:
+                    shown_at = now
                 if stopping and now - stopping[0] > stop_seconds:
                     signal_group(process.pid, signal.SIGKILL)
                 elif not shown and not stopping and not hung and now - started > ready_seconds:
@@ -811,6 +818,8 @@ def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP
         return 'quit', 0 if stopping else code, shown
     if code == RESTART_EXIT and not hung:
         return 'restart', code, shown
+    if code != RETRY_EXIT and not hung and shown_at is not None and time.monotonic() - shown_at >= played_seconds:
+        return 'ended', code, shown
     return 'retry', code, shown
 
 
@@ -922,6 +931,10 @@ def launch_once(root, arguments, run=run_game):
                 if shown:
                     gpu_remember(root, key, mode)
                 sys.exit(code)
+            if how == 'ended':
+                log(f'Ended ({mode}, exit {code}) after it had drawn: not tried another way.')
+                gpu_remember(root, key, mode)
+                sys.exit(1)
             log(f'Did not run ({mode}, exit {code}, window {"shown" if shown else "never shown"}).')
         # nothing worked: back to Steam's library rather than a black screen
         log('Gave up: no way to draw worked.')
