@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { colourScript } from '../timeofday.js';
-import { makeMaterial, MODE_TERRAIN } from '../materials.js';
+import { makeMaterial, MODE_TERRAIN, sharedUniforms } from '../materials.js';
 import { RoomKit } from './lab-kit.js';
 import { REFERENCE_WORLDS, loadWorld, loadedWorld, loadAllWorlds, startOf, findView, firstView, totalViews, locateView, viewSearch } from './reference-worlds.js';
 import { stepped } from '../load-steps.js';
@@ -20,6 +20,7 @@ import { RING_DAY, RING_LOOK } from './fallen-ring-kit.js';
 import { MF_DAY, MF_LOOK } from './moon-foundry-kit.js';
 import { UNDER_DAY, UNDER_LOOK } from './underside-kit.js';
 import { SPACE_DAY, SPACE_LOOK } from './space-city-kit.js';
+import { MARKET_NIGHT } from './market-night-kit.js';
 import { TRAIN_NIGHT, TRAIN_LOOK } from './overnight-train-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
@@ -229,6 +230,7 @@ export const WORLD_LOOKS = {
   moonfoundry: { sky: MF_DAY, look: { ...MF_LOOK } },
   underside: { sky: UNDER_DAY, look: { ...UNDER_LOOK } },
   spacecity: { sky: SPACE_DAY, look: { ...SPACE_LOOK } },
+  marketnight: { sky: MARKET_NIGHT, look: { ...MARKET_LOOK } },
   overnighttrain: { sky: TRAIN_NIGHT, look: { ...TRAIN_LOOK } },
 };
 
@@ -491,6 +493,9 @@ export function* buildReferences(scene, { params = pageParams(), go = pageGo, se
         here = viewAt(p.x, p.z);
       }
       if (here) show(here);
+      // a night view (def.night: the Signal Market's night sheets) holds the night on whatever its sun's hour
+      const night = (held?.view ?? here)?.def.night;
+      if (night) sharedUniforms.uNight.value = Math.max(sharedUniforms.uNight.value, night);
       if (leaving) {
         // to another world: a fade, then the page loads at its view (the world here goes with the page)
         if (!leaving.t) ctx.fade?.(0.95, PASS.in);

@@ -37,6 +37,7 @@ export const REFERENCE_WORLDS = [
   { id: 'moonfoundry', name: 'The Moon Foundry', count: 4, load: () => import('./reference-moonfoundry.js') },
   { id: 'underside', name: 'The Underside', count: 4, load: () => import('./reference-underside.js') },
   { id: 'spacecity', name: 'The City Floating in Space', count: 4, load: () => import('./reference-spacecity.js') },
+  { id: 'marketnight', name: 'The Signal Market at night', count: 4, load: () => import('./reference-marketnight.js') },
   { id: 'overnighttrain', name: 'The Overnight Train', count: 4, load: () => import('./reference-overnighttrain.js') },
 ];
 

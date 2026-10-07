@@ -1050,6 +1050,42 @@ their undersides hung with dark machinery and cables dangling into the void; sta
   three heights. The houses can't be entered; nothing moves under the islands (a lift, a cable car would suit it); the
   far islands are only seen.
 
+## The Signal Market at night (`bazaar` after dark, October 2026)
+
+The night sheets (`references/The Signal Market - Night`, the views: references.md "The Signal Market at night") are
+the Signal Market itself: the author's prompt is "the Signal Market at night", an alien screen market at midnight.
+So they are the bazaar's own night, not a world of their own: its street, story, quests, cabs and people are as they
+were, and by day nothing changes (a day screenshot before and after is the same but for the walkers). After dark:
+
+- **The billboards turn into the night sheets' screens** (`makeMaterial({ nightPaint })`, materials.js NIGHT_PAINT:
+  the geometry's `aNight` attribute, its colour by night and how far it glows then, mixed in by `uNight`). Every
+  poster's part (bazaar.js `poster`, its `plate(g, m, role)`) carries its night colour by its role in the picture:
+  the screen (`bg`), the figure (`fig`), its dark marks and its pale ones. `nightPaint(seed)` (market-night-kit.js)
+  picks the sheets' combinations for the poster's picture: a head on violet, scarlet or pink; a planet on cobalt,
+  orange or emerald; glyphs on lemon, white, magenta or acid green. The towers' great signs, the shop signs, the
+  forward signs all light up; the silent tower stays under its dark covers (its story).
+- **The sky and the walls**: the colour script's night (`MARKET_NIGHT`) is a black-indigo sky, a dark indigo shade
+  and a dim moonlight, so the towers are dark masses round their lit screens and the stars are out.
+- **The lanterns light pools**: the six nearest the traveller (`NIGHT_LIGHTS`) become local lights reaching 9 m, and
+  the street's surfaces (paving, sidewalks, shops, walls) take their warm apricot where they light them
+  (`lampTint`, `LANTERN_TINT`); `uLampsOn` follows the night. By day the level has none of them (the shader looks at
+  no light then). The Undertower's own lights stay in the list.
+- **Half the crowd goes home** (`crowdAway`: crowd.js `away`, set by main.js each frame): each person by their own
+  share, and only while far from the camera (over 45 m), so nobody vanishes in front of you; while gone they are
+  neither drawn nor moved. Those who stay walk and talk as by day.
+- **Steam off the stalls** (`Puffs`, one draw, 50 puffs over seven counters), drawn only after dark.
+- **Cost** (Handheld preset, render scale 0.75, 60 frames × 7 rounds, the day and the night alternated four times
+  at each place, the median; Mac M4 Pro, headless Chrome): the spawn 1.51 ms by day, 1.48 by night; the wide view
+  from 27 m up 1.24 / 1.19; the crowd 1.29 / 1.30; by the stalls 1.37 / 1.39; the square 1.62 / 1.58. Draw calls are
+  the same by day and night (a shadow cascade's cycle of 360 / 598 / 691 at the spawn, before and after). The night
+  costs what the day does: the lights' loop is paid for by the crowd that goes home.
+- `tests/marketnight.test.js`: the posters carry their night colours and glow, by day their colours are the old
+  ones, the lights come only at night and leave the temple's alone, the crowd thins at night, the steam is hidden
+  by day.
+- **Left**: the sheets' lane is narrow and packed with screens at eye level (CRTs on crates, small terminals); the
+  street's own screens are its billboards and shop signs, high or at the shops' tops; a lane of stacked screens in
+  one of the back alleys would bring the sheets into the street but changes the market's layout (not done). The
+  pools of light take one colour (the lanterns'), not each screen's.
 ## The Overnight Train (`overnighttrain`, off the route, October 2026)
 
 A long streamlined train crossing a flat lavender plain by night under two moons (`src/levels/overnight-train.js`,
@@ -1078,7 +1114,7 @@ after references/The Overnight Train/; its kit `overnight-train-kit.js` shared w
   Doors join the carriages through porches at their ends (railed at the sides); a ladder on each front porch climbs
   to the roof walk along the crowns, plank bridges join the roofs. Doors are 1.3 × 3 m (the traveller's capsule with
   its radius fits under the arch).
-- **Off the train** is the running land: `unsafe(p)` (under 1.2 m) puts you back where you last stood aboard (walking
+- **Off the train** is the running land (and no wilds: no foes, foes.js PEACEFUL): `unsafe(p)` (under 1.2 m) puts you back where you last stood aboard (walking
   off a roof, out of a window). The station's platform is drawn only; the porches and the balcony are railed, so you
   only reach the plain by jumping.
 - **Inside** every material keeps its own hue in shade (`shadeHue: 1`, lifted: the carriages are all in the moons'

@@ -627,6 +627,8 @@ export class Crowd {
     this.playerPos = new THREE.Vector3();
     this.stats = { people: n, groups: this.groups.length, near: 0, mid: 0, far: 0, shadow: 0, targets: 0, promoted: 0, demoted: 0 };
     this.farDirty = true;
+    // the share of the crowd gone home (0 … 1): a world's night thins its street (main.js sets it from level.crowdAway)
+    this.away = 0;
     if (typeof document !== 'undefined') {
       this.balloon = document.createElement('div');
       this.balloon.className = 'balloon';
@@ -711,6 +713,14 @@ export class Crowd {
     let anyTierChange = false;
     for (const p of this.people) {
       const dCam = p.pos.distanceTo(cam);
+      // gone home (this.away): each person by their own share, and only out of the way, far from the camera, so
+      // nobody vanishes or appears in front of you; while gone they are not drawn and not moved
+      const gone = ((p.id * 0.6180339887) % 1) < this.away;
+      if (gone !== !!p.gone && dCam > 45) {
+        p.gone = gone; anyTierChange = true;
+        if (gone && this.shout === p) this.shout = null;
+      }
+      if (p.gone && p.tier !== TIER.near) { p._dCam = dCam; p.tier = TIER.off; continue; }
       // far away people only move a few times a second
       let pdt = dt;
       if (dCam > 120) { p._acc = (p._acc ?? 0) + dt; if ((this.frame + p.id) % 6) { this.tierOf(p, dCam, midIn, midOut) && (anyTierChange = true); continue; } pdt = p._acc; }

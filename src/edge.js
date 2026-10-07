@@ -30,6 +30,7 @@ export const EDGE_HINTS = {
   incal: 'The wind up the shaft pushes you back.',
   atelier: 'The page ends here.',
   lab: 'The Lab ends here.',
+  arena: 'The Arena ends here.',
   default: 'The wind pushes you back.',
   underwater: 'The water darkens into the deep and turns you back.',
   eclipse: 'The dark beyond the lamps thickens and turns you back.',

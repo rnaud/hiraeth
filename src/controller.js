@@ -132,6 +132,7 @@ export class Controller {
         h.KeyE = down(EAST); h.PadE = h.KeyE;   // (the pad's interact never whistles: that's the left button's)
         // the fluid tool: hold LT to aim, RT shoots while aiming and fires the jets otherwise (triggers()), RB pushes; jump in the air boosts
         h.PadAim = down(LT); h.PadFire = down(RT); h.PadPush = down(RB);
+        h.PadBlade = down(LB);   // the fluid blade (src/fluid-blade.js); LB held with the right stick still zooms
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
         h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
         if (press(WEST)) this.action('call');

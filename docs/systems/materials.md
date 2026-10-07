@@ -414,3 +414,10 @@ Found in the Lab, where some materials looked slow; all of it applies to every w
   jump (a door, a portal) the new patch is placed over the next frames, `PLACE_MS` at a time,
   behind the fade (it had been a 60 ms frame).
 - **The Lab's hidden rooms** skip the frame's matrix update (each is brought up to date as it hides).
+
+## Painted by night (`nightPaint`, October 2026)
+
+`makeMaterial({ nightPaint: true })` compiles NIGHT_PAINT: the geometry carries `aNight` (vec4 per vertex: rgb its
+colour by night, a how far it glows then); the fragment mixes its vertex colour toward the night colour and its glow
+up by `uNight`, so one material is a painted billboard by day and a lit screen by night with nothing to switch. Used
+by the Signal Market's signs (worlds.md "The Signal Market at night"). A material without it compiles as before.

@@ -29,6 +29,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | File | What |
 |---|---|
 | [controls.md](systems/controls.md) | keyboard, mouse, touch and the tool; the controller layout by position, prompts; the controls of October 2026 |
+| [foes.md](systems/foes.md) | the fluid blade, the ink blots in the wilds, the makers' machines in the temples, the Enemies setting, the Arena |
 | [movement.md](systems/movement.md) | collision, contact (what you stand on and climb is what is drawn; the contact audit), mounts that come to you, footprints, the paraglider, hazards, health and falls, the hoverbike and vehicles, the feel of the jump and stamina |
 | [movement-and-camera.md](systems/movement-and-camera.md) | movement and the camera, the third feedback round: the jets fly like Superman, aiming straight up, ragdolls that end on the ground, the jump's shadow |
 | [animation.md](systems/animation.md) | climbing and mantling, the rig review, ragdolls, hands, locomotion (feet, starts, stops, turns), Vael's bird (standing, folding, flying), motion capture and motion matching, the Motion page |

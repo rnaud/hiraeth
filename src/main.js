@@ -71,6 +71,7 @@ import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
+import { Foes } from './foes.js';
 import { DevMenu } from './dev-menu.js';
 import { fillPicker } from './world-picker.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
@@ -605,6 +606,8 @@ blades.grow();
 await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
+// the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
+const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, notice: (t) => showToast(t) });
 await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
@@ -1303,7 +1306,7 @@ function missedFrames() {
   for (const g of gaps) if (g > quick * 1.5) n++;
   return n;
 }
-window.addEventListener('keydown', (e) => { if (e.code === 'KeyF' && !photo.on) settings.set('showFps', !settings.showFps); });
+window.addEventListener('keydown', (e) => { if (e.code === 'F3' && !photo.on) { e.preventDefault(); settings.set('showFps', !settings.showFps); } });   // (F is the fluid blade)
 // (first the engine, and a benchmark's label when it sets one: window.__benchLabel, e.g. "camps r2/3")
 const ENGINE = window.__fpsEngine = engineLabel(navigator.userAgent, location.search, window.Capacitor);
 function frameReadout(fps) {
@@ -1423,6 +1426,7 @@ function frame(ts) {
       }
     }
   }
+  if (crowd && level.crowdAway) crowd.away = level.crowdAway();   // (a world's night thins its street: bazaar.js)
   crowd?.update(dt, t, player, camera);
   for (const n of npcs) n.update(dt, player, camera);
   errands.update();
@@ -1477,6 +1481,7 @@ function frame(ts) {
   level.update(dt, t, { player, rig, camera, passage, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
+  foes.update(dt, busy() || photo.on || ship.playing);
   // levels with zones (the Hangar) switch ink style as you cross between them
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);
@@ -1689,5 +1694,5 @@ window.contactAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife,
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

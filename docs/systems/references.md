@@ -882,6 +882,38 @@ Ranked by how much they would close the gap to the sheets, across every world re
   on every deck); ours are plain rounded blocks and a few walkers. Their houses step down the islands' sides below
   the decks; ours stand on the decks. Picture 2's crowd fills its bridge; ours is a line of figures.
 
+## The Signal Market at night (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-marketnight.js`, world `marketnight`: `?level=references&world=marketnight&view=n`):
+  four 16:9 pictures (1456 × 816), four variations of one composition, one view each: the market's screen lane
+  after midnight, its walls stacked with second-hand screens, the great violet screen with a pale alien face high on
+  the left, a scarlet portrait on a bulky CRT and an acid-green terminal at its foot, a lemon fruit advert, the round
+  monitor's planet, a wide orange desert and a white screen of black glyphs on the right, pink and emerald screens
+  cracked across down the lane. (1) the lane at midnight with its awning; (2) the violet face tilted, a hung tarp, the
+  orange pool down the middle; (3) under the diagonal awning, the great scarlet portrait; (4) the repairer crouched by
+  the cracked screens, the sepia stacks, the desert. One scene builder (`laneScene`): the sheet's own screens placed
+  off its pixels (`sheetAt`, as the Moon Foundry's), the rest of each wall filled with screens of the sheets' colours
+  (columns stacked from the ground up, CRTs low, flat panels higher, a round monitor now and then, about one in six
+  switched off, kept clear of the sheet's own), the walls standing back behind the sheet's screens so none sinks into
+  them, the dark masses above with their skyline clutter, cloth awnings and tarps, vendors at the walls' feet bent
+  over their screens, cables over the paving and slung overhead, a few walkers far down the lane.
+- **The kit** (`src/levels/market-night-kit.js`, shared with the market's own night, worlds.md "The Signal Market
+  at night"): `SCREEN` (the sheets' lit colours), `picture(kind, w, h)` (face, portrait, terminal, food, planet,
+  desert, glyphs, cracked, bars, sepia: flat painted shapes laid a hair apart in front of the screen), `crt` (a deep
+  casing, its tapered back, the bezel's lip, a grille and knobs on a big one, vents), `panel`, `roundScreen`,
+  `tarp`, `vendor`, `groundCables`, `nightPaint` (the market's billboards' night colours).
+- **One draw for every lit screen**: the screens and their pictures are one vertex-coloured material that glows
+  (`glow` 0.6: lit flat in their own saturated colour, under the lights' pale core) with a line in a dark shade of
+  their own colour, as the sheets ink them; the casings, walls and paving are dark matte.
+- **Held at night** (`night: 1`, references.js): the views' hour is still picked by their sun (the tests want a
+  morning sun), so the level raises `uNight` after the sky is set each frame while you are in a night view: the
+  screens' halos widen, the stars come out, the haze thins. The sun stands behind the camera (`side: 180`), out of the
+  frame. The pools of screen light on the paving, the cloth and the people are the local lights (`kit.light` by the
+  big screens) in one colour per view (`lampTint`: violet-pink, orange, pink, pale lilac).
+- **Left**: the sheets draw every screen's picture in fine pen work (the alien face, the portrait, the fruit, the
+  desert); ours are a few flat shapes. Their walls carry dense machinery in the dark; ours are plain masses. Their
+  pools of light take each screen's own colour; ours one colour a view (the shader's lights have no colour). The
+  lane's far end glows warmer and busier on reference-2.
 ## The Overnight Train's pictures (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-overnighttrain.js`, world `overnighttrain`: `?level=references&world=overnighttrain&view=n`):

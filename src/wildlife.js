@@ -219,7 +219,7 @@ export class Creature {
     this.orient();
     const r = (herd.def.radius ?? 0.45) * this.size;
     this.offTarget = registerTarget({
-      kind: 'wildlife', radius: r, creature: this, accepts: ['stun', 'fire'],
+      kind: 'wildlife', radius: r, creature: this, accepts: ['stun', 'fire'],   // (the blade only scatters them: fluid-blade.js)
       position: () => this.center,
       enabled: () => this.alive && this.visible,
       onHit: (mode, point, dir, info) => this.hit(mode, point, dir, info),

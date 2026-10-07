@@ -2,13 +2,24 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v0.86 — 2026-10-07
+## v0.87 — 2026-10-07
 
 - The Overnight Train sounds like a train: the wheels’ beat over the rail joints, ta-dum … ta-dum, slowing to nothing at a station, the rumble underfoot, the rush of the air on the roofs and the balcony, and a whistle as it pulls out or brakes.
 - Climb the ladder on any porch of the Overnight Train and walk the roofs from carriage to carriage over plank bridges, past the roof gardens, to the terrace and its little sky lounge.
 - On the Overnight Train the land runs past: the sleepers under the wheels, the telegraph poles and their wires, stones, far buttes, now and then a lit hut or a signal lamp. Every few minutes it slows into a lonely station, waits, and pulls out again; pink dust rolls back from the wheels and the pennants stream in the wind.
 - A new world off the route, the Overnight Train: a long streamlined train crossing a lavender plain by night under two moons. The ship comes down on its landing wagon while the train waits at a lonely station; walk forward through the library, two sleeping cars and the dining car to the observation lounge and its railed balcony at the round nose, where the plain runs straight at you.
 - The References level has the Overnight Train’s four pictures rebuilt as views: a long streamlined train crossing a lavender plain at dusk under two moons, its round nose and railed balcony full of people, rows of lit orange windows, gardens on its roofs, pink pennants streaming back and a salmon cloud of dust rolling along its wheels.
+- The Arena, in the worlds list (Debug): a ring of sand where the foes come in waves, to try the blade.
+- The frame readout moved from F to F3 (F is the blade now).
+- No blow from a foe empties a healthy bar, and a new Enemies setting turns them all off for the calm game. There are none at home.
+- The makers’ machines stand guard in the temples’ rooms: heavier and slower, their slam drawn on the floor before it lands. The blade breaks them; fluid only staggers them. Once broken, they stay broken.
+- Ink blots gather in the wilds, away from people, the ship and the cities: loose ink and scribble that come at you and lunge. Their ring is drawn on the ground before they strike, so you can step out of it. The blade cuts them back into ink, a shot or an ember washes them away, stilling freezes them, and every one you cut gives the tank a charge back.
+- The fluid blade: the glove draws a blade of the tank’s fluid and swings it (F, LB / L1, or ⚔ on a touch screen). Press again to chain three swings, the last one heavier. It turns you toward the nearest foe and costs nothing.
+
+## v0.86 — 2026-10-07
+
+- The Signal Market has its night: after dark its billboards and shop signs light up as the old screens of a night market, each in its own colour (a pale face on violet, a planet on cobalt, glyphs on lemon or white, a head on scarlet), the towers go dark round them under a black sky, the lanterns throw warm pools on the street, steam rises off the stalls and half the crowd has gone home. By day the market is as it was.
+- The References level has the Signal Market at night: its four pictures rebuilt as views, a narrow lane of the market after midnight, its walls stacked with old screens of every age and size lit pink, violet, lemon, orange and green, each showing its own picture, vendors mending them at the walls’ feet.
 - Space is drawn the way the drawings draw it: a flat black all round, below you as well as above, printed with fine white and teal stars and a faint nebula, and a great planet hanging as an ink-ringed disc, full or a crescent.
 - The References level has the City Floating in Space’s four pictures rebuilt as views: rounded houses in cream, salmon and coral heaped on islands that float in the black of space, pale arched bridges between them, dark machinery and long cables hanging under them into the void, and a great pale planet over the roofs.
 - A new world off the route, the City Floating in Space: rounded houses in cream, salmon and coral heaped on islands in the black of space, joined by pale arched bridges, with the stars all round you, even under your feet. Cross the crowded Market Bridge to the stalls of the plaza, climb to the Towers, rest under the dark trees of the Garden, and look out from the Balcony at the great planet, which turns its lit face toward the city as night comes. Step over a parapet and you fall into the void, and come back where you last stood.

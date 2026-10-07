@@ -117,40 +117,19 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
-  '0.86': [
-    { match: 'A new world off the route, the City Floating in Space', shots: [
-      { name: 'spacecity-arrival', only: 'after', caption: 'Out of the ship on the Pier: the bridge to the Gate Quarter, the islands round it, the planet two-thirds lit over the roofs', from: 'the world’s own screenshots, headless Chrome, High, 8:30 (7 October)' },
-      { name: 'spacecity-bridge', only: 'after', caption: 'On the Market Bridge, the islands’ machinery hanging into the void below it', from: 'the world’s own screenshots, headless Chrome, High, 9:00 (7 October)' },
-      { name: 'spacecity-plaza', only: 'after', caption: 'The Market’s plaza: the stalls under their awnings, the tables, the crowd, the houses heaped round it', from: 'the world’s own screenshots, headless Chrome, High, 11:00 (7 October)' },
-      { name: 'spacecity-towers', only: 'after', caption: 'The Towers’ lane, the houses stacked storey on storey', from: 'the world’s own screenshots, headless Chrome, High, 15:00 (7 October)' },
-      { name: 'spacecity-garden', only: 'after', caption: 'The Garden terrace and its dark trees, the far islands past its parapet', from: 'the world’s own screenshots, headless Chrome, High, 16:00 (7 October)' },
-      { name: 'spacecity-balcony', only: 'after', caption: 'From the Balcony’s railing with Madame Sel: the far islands and their bridges, the planet behind them', from: 'the world’s own screenshots, headless Chrome, High, 8:30 (7 October)' },
-      { name: 'spacecity-underside', only: 'after', caption: 'Off the side of a bridge: the tanks, pipes and cables under an island, the stars below (a moment later you are back on the bridge)', from: 'the world’s own screenshots, headless Chrome, High, 10:00 (7 October)' },
-      { name: 'spacecity-night', only: 'after', caption: 'The Balcony at night, the planet nearly full, the windows and lamps lit', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
-    ], see: 'At the ship’s holo table, choose the City Floating in Space on the galactic map (or open the game with ?level=spacecity). Walk north off the Pier, through the Gate Quarter and over the Market Bridge; from the plaza the bridges go east to the Towers, west to the Garden and north to the Balcony.',
-      numbers: [
-        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), 90 synced frames a round, median of 7 rounds (the machine shared with other agents: compare within the run)', unit: 'ms', better: 'lower', device: 'Mac, headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The City Floating in Space”', rows: [
-          { where: 'the Signal Market’s start (the budget)', before: 9.9, after: null },
-          { where: 'the Signal Market’s crowd (the budget)', before: 8.2, after: null },
-          { where: 'by the ship', before: null, after: 9.1 },
-          { where: 'the Gate’s lane', before: null, after: 9.0 },
-          { where: 'on the Market Bridge', before: null, after: 5.9 },
-          { where: 'the plaza', before: null, after: 6.5 },
-          { where: 'the Balcony', before: null, after: 7.8 },
-          { where: 'looking back over the whole city', before: null, after: 5.2 },
-        ] },
-        { title: 'Draw calls, same views', unit: 'draws', better: 'lower', device: 'Mac, headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The City Floating in Space”', rows: [
-          { where: 'the Signal Market, start and crowd (the budget)', before: '329–366', after: null },
-          { where: 'the City Floating in Space, six views', before: null, after: '182–401' },
-        ] },
-      ] },
-    { match: 'The References level has the City Floating in Space’s four pictures', shots: [
-      { name: 'spacecity-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): from the balcony, the arched bridge over the void, the heaped quarters, the planet’s edge', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
-      { name: 'spacecity-refs-arches', only: 'after', size: [1928, 538], caption: 'The third: the two arches under the towers, the city running on under the great planet, its dark side mauve', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
-    ], see: 'Open ?level=references&world=spacecity and step through its four views with [ and ]; \\ lays the picture over the view.' },
-    { match: 'Space is drawn the way the drawings draw it', shots: [
-      { name: 'spacecity-sky', only: 'after', caption: 'Under the crescent: the stars printed all round, the planet’s lit edge, its dark side as black as the sky', from: 'the References’ second view of the City Floating in Space, headless Chrome, High (7 October)' },
-    ], see: 'Open ?level=references&world=spacecity&view=2; walk off the balcony’s edge with the camera and look down: the stars go on under the islands.' },
+  '0.87': [
+    { match: 'The fluid blade: the glove draws', shots: [
+      { name: 'blade-swing', only: 'after', caption: 'The blade mid-swing, among three ink blots in the Arena', from: 'headless Chrome against the dev server, High, 10:00 (7 October)' },
+    ], see: 'Anywhere with the backpack, press F (LB / L1 on a controller, ⚔ on a touch screen); press again quickly to chain the three swings.' },
+    { match: 'Ink blots gather in the wilds', shots: [
+      { name: 'blots-lunge', only: 'after', caption: 'Ink blots winding up: their rings drawn on the sand before they lunge, their eyes gone red', from: 'headless Chrome against the dev server, High, 10:00 (7 October)' },
+    ], see: 'In the desert, walk out into the dunes well away from the camps and the ship: a few seconds later the first blot comes in.' },
+    { match: 'The makers’ machines stand guard', shots: [
+      { name: 'machine', only: 'after', caption: 'A makers’ machine closing in, in the Arena’s third wave', from: 'headless Chrome against the dev server, High, 10:00 (7 October)' },
+    ], see: 'Go into any world’s temple: a machine stands by each room’s checkpoint stone past the first.' },
+    { match: 'No blow from a foe empties a healthy bar', see: 'Settings → Enemies (on by default). Take a hit at full health: the bar never goes below a sliver.' },
+    { match: 'The frame readout moved from F to F3', see: 'Press F3 in the game: the frame readout shows in the corner.' },
+    { match: 'The Arena, in the worlds list', see: 'On the title screen, choose Debug, then The Arena.' },
     { match: 'The References level has the Overnight Train’s four pictures', shots: [
       { name: 'overnighttrain-refs', only: 'after', size: [1608, 448], caption: 'The fourth picture (left) and its view in the game (right): the plum carriages along the track, their windows lit, the balcony, the dust at the wheels, the two moons', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'overnighttrain-refs-dusk', only: 'after', size: [1608, 448], caption: 'The third: the train coming on at dusk, its lounge lit through the round nose, the moons low on the right, a bank of cloud on the left', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
@@ -188,6 +167,64 @@ export const CHANGELOG_MEDIA = {
       { name: 'overnighttrain-terrace', only: 'after', caption: 'The library carriage’s roof terrace, the sky lounge’s door, its pennants', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
     ], see: 'On a porch between two carriages, climb the ladder beside the door (or the end wall itself); the plank bridges join the roofs from the lounge back to the library, whose terrace carries the sky lounge.' },
     { match: 'The Overnight Train sounds like a train', see: 'Turn the effects up and stand at a window while the train runs: the beat of the joints keeps time with its speed, slows as it brakes into a station and stops; go out on the balcony or the roofs and the rush of the air comes up; listen for the whistle as it pulls out.' },
+  ],
+  '0.86': [
+    { match: 'A new world off the route, the City Floating in Space', shots: [
+      { name: 'spacecity-arrival', only: 'after', caption: 'Out of the ship on the Pier: the bridge to the Gate Quarter, the islands round it, the planet two-thirds lit over the roofs', from: 'the world’s own screenshots, headless Chrome, High, 8:30 (7 October)' },
+      { name: 'spacecity-bridge', only: 'after', caption: 'On the Market Bridge, the islands’ machinery hanging into the void below it', from: 'the world’s own screenshots, headless Chrome, High, 9:00 (7 October)' },
+      { name: 'spacecity-plaza', only: 'after', caption: 'The Market’s plaza: the stalls under their awnings, the tables, the crowd, the houses heaped round it', from: 'the world’s own screenshots, headless Chrome, High, 11:00 (7 October)' },
+      { name: 'spacecity-towers', only: 'after', caption: 'The Towers’ lane, the houses stacked storey on storey', from: 'the world’s own screenshots, headless Chrome, High, 15:00 (7 October)' },
+      { name: 'spacecity-garden', only: 'after', caption: 'The Garden terrace and its dark trees, the far islands past its parapet', from: 'the world’s own screenshots, headless Chrome, High, 16:00 (7 October)' },
+      { name: 'spacecity-balcony', only: 'after', caption: 'From the Balcony’s railing with Madame Sel: the far islands and their bridges, the planet behind them', from: 'the world’s own screenshots, headless Chrome, High, 8:30 (7 October)' },
+      { name: 'spacecity-underside', only: 'after', caption: 'Off the side of a bridge: the tanks, pipes and cables under an island, the stars below (a moment later you are back on the bridge)', from: 'the world’s own screenshots, headless Chrome, High, 10:00 (7 October)' },
+      { name: 'spacecity-night', only: 'after', caption: 'The Balcony at night, the planet nearly full, the windows and lamps lit', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the City Floating in Space on the galactic map (or open the game with ?level=spacecity). Walk north off the Pier, through the Gate Quarter and over the Market Bridge; from the plaza the bridges go east to the Towers, west to the Garden and north to the Balcony.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), 90 synced frames a round, median of 7 rounds (the machine shared with other agents: compare within the run)', unit: 'ms', better: 'lower', device: 'Mac, headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The City Floating in Space”', rows: [
+          { where: 'the Signal Market’s start (the budget)', before: 9.9, after: null },
+          { where: 'the Signal Market’s crowd (the budget)', before: 8.2, after: null },
+          { where: 'by the ship', before: null, after: 9.1 },
+          { where: 'the Gate’s lane', before: null, after: 9.0 },
+          { where: 'on the Market Bridge', before: null, after: 5.9 },
+          { where: 'the plaza', before: null, after: 6.5 },
+          { where: 'the Balcony', before: null, after: 7.8 },
+          { where: 'looking back over the whole city', before: null, after: 5.2 },
+        ] },
+        { title: 'Draw calls, same views', unit: 'draws', better: 'lower', device: 'Mac, headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The City Floating in Space”', rows: [
+          { where: 'the Signal Market, start and crowd (the budget)', before: '329–366', after: null },
+          { where: 'the City Floating in Space, six views', before: null, after: '182–401' },
+        ] },
+      ] },
+    { match: 'The References level has the City Floating in Space’s four pictures', shots: [
+      { name: 'spacecity-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): from the balcony, the arched bridge over the void, the heaped quarters, the planet’s edge', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'spacecity-refs-arches', only: 'after', size: [1928, 538], caption: 'The third: the two arches under the towers, the city running on under the great planet, its dark side mauve', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=spacecity and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'Space is drawn the way the drawings draw it', shots: [
+      { name: 'spacecity-sky', only: 'after', caption: 'Under the crescent: the stars printed all round, the planet’s lit edge, its dark side as black as the sky', from: 'the References’ second view of the City Floating in Space, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=spacecity&view=2; walk off the balcony’s edge with the camera and look down: the stars go on under the islands.' },
+    { match: 'The References level has the Signal Market at night', shots: [
+      { name: 'marketnight-refs', only: 'after', size: [1464, 408], caption: 'The first picture (left) and its view in the game (right): the screen lane at midnight, the violet face, the scarlet portrait, the planet and the desert', from: 'the views\u2019 own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'marketnight-refs-awning', only: 'after', size: [1464, 408], caption: 'The third: under the diagonal awning, the great scarlet portrait, the round planet, the white glyphs', from: 'the views\u2019 own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=marketnight and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'The Signal Market has its night', shots: [
+      { name: 'marketnight-street', caption: 'The avenue at 23:00 from the cab stop: the towers\u2019 signs and the shop signs lit as screens, the black sky', commit: '6083d8e2',
+        view: { level: 'bazaar', hour: 23, player: [0, 0, 88], heading: 3.1416, eye: [0, 1.99, 97.5], target: [0, 1.79, 87.5], fov: 55 } },
+      { name: 'marketnight-square', caption: 'Signal Square at 23:00: the screens round the silent tower, which stays dark under its covers, and a thinner crowd', commit: '6083d8e2',
+        view: { level: 'bazaar', hour: 23, player: [8, 0, -150], heading: 3.1416, eye: [6, 2.4, -140], target: [2, 6, -200], fov: 55 } },
+      { name: 'marketnight-stalls', caption: 'Along the stalls at 23:00: a lantern\u2019s warm pool on the sidewalk and the shop front, a shop sign lit lemon', commit: '6083d8e2',
+        view: { level: 'bazaar', hour: 23, player: [-20, 0.3, 30], eye: [-18, 3, 30], target: [-24, 4, 0], fov: 55 } },
+      { name: 'marketnight-day', caption: 'And at 10:00 the same avenue as it was (only the walkers differ)', commit: '6083d8e2',
+        view: { level: 'bazaar', hour: 10, player: [0, 0, 88], heading: 3.1416, eye: [0, 1.99, 97.5], target: [0, 1.79, 87.5], fov: 55 } },
+    ], see: 'In the Signal Market (?level=bazaar), set the hour past 21:00 in the developer panel\u2019s Time of day, or wait for the night. The signs light up from dusk; half the crowd is gone by midnight, only out of your sight.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), 60 frames \u00d7 7 rounds, the day and the night alternated four times at each place, the median', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 \u00d7 720', source: 'docs/systems/worlds.md, \u201cThe Signal Market at night\u201d', rows: [
+          { where: 'the spawn: by day (before) and by night (after)', before: 1.51, after: 1.48 },
+          { where: 'the wide view from 27 m up', before: 1.24, after: 1.19 },
+          { where: 'in the crowd', before: 1.29, after: 1.3 },
+          { where: 'along the stalls', before: 1.37, after: 1.39 },
+          { where: 'Signal Square', before: 1.62, after: 1.58 },
+        ] },
+      ] },
   ],
   '0.85': [
     { match: 'A new world off the route, the City During the Eclipse', shots: [

@@ -34,8 +34,8 @@ export const AMBIENT_WIND = 0.4;
 // Each world's score lives in src/score.js (its mode, tempo, instruments, leitmotif, and the
 // father's theme in it); its instruments in src/score-voices.js. Here: the ground under your
 // feet (the footsteps) and each world's ambience bed.
-const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', home: 'grass', mangrove: 'stone', waterfall: 'stone', saltharbour: 'sand', antennas: 'grass', underwater: 'stone', eclipse: 'stone', fallenring: 'grass', moonfoundry: 'stone', underside: 'stone', spacecity: 'stone', overnighttrain: 'stone' };
-const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds', moonfoundry: 'machine', underside: 'highwind', spacecity: 'city', overnighttrain: 'rails' };
+const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', arena: 'sand', home: 'grass', mangrove: 'stone', waterfall: 'stone', saltharbour: 'sand', antennas: 'grass', underwater: 'stone', eclipse: 'stone', fallenring: 'grass', moonfoundry: 'stone', underside: 'stone', spacecity: 'stone', overnighttrain: 'stone' };
+const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', arena: 'wind', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds', moonfoundry: 'machine', underside: 'highwind', spacecity: 'city', overnighttrain: 'rails' };
 // the instruments audio.js plays itself (the rest are src/score-voices.js's)
 export const OWN_KINDS = new Set(['duduk', 'reed', 'flute', 'strings', 'synth', 'bell', 'marimba', 'oud', 'ney', 'chant', 'celesta', 'kalimba']);
 
@@ -1193,6 +1193,49 @@ export class Sound {
     this.burst(t, { dur: 0.16, type: 'lowpass', freq: 1500, q: 0.7, vol: 0.16, rate: 0.9 });
     this.sweep(t, 620, 150, 0.12, 0.08);
     if (target) [4, 9].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.07, 0.07, 'triangle', this.fx));
+  }
+
+  /** The fluid blade swings (n: the combo's swing, 0..2): a hiss that rises with each, the third deeper. */
+  fluidSlash(n = 0) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.2, type: 'bandpass', freq: 1800 + n * 500, q: 1.4, vol: 0.13, rate: 1.3 });
+    this.sweep(t, n === 2 ? 220 : 420 + n * 90, n === 2 ? 90 : 900 + n * 160, 0.18, 0.07, 'sawtooth');
+  }
+
+  /** The blade lands on something (a foe), or cuts the air. */
+  fluidSlashHit(hit = false) {
+    if (!this.ctx || !hit) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.12, type: 'lowpass', freq: 900, q: 0.8, vol: 0.22, rate: 0.7 });
+    this.sweep(t, 300, 110, 0.12, 0.1, 'triangle');
+  }
+
+  /** A foe (src/foes.js) winds up a strike: an ink blot's wet gurgle, a machine's grinding whine. */
+  foeWarn(kind = 'blot') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (kind === 'machine') { this.sweep(t, 140, 420, 0.7, 0.07, 'sawtooth'); this.burst(t, { dur: 0.5, type: 'bandpass', freq: 500, q: 3, vol: 0.06, rate: 0.5 }); return; }
+    this.sweep(t, 180, 90, 0.5, 0.08, 'triangle');
+    this.burst(t, { dur: 0.45, type: 'lowpass', freq: 400, q: 2, vol: 0.12, rate: 0.4 });
+  }
+
+  /** A foe takes a cut: a splat of ink, or a clang. */
+  foeHurt(kind = 'blot') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (kind === 'machine') { [1, 1.5].forEach((m, i) => this.sweep(t + i * 0.01, 620 * m, 540 * m, 0.25, 0.06, 'square')); return; }
+    this.burst(t, { dur: 0.14, type: 'lowpass', freq: 700, q: 0.6, vol: 0.2, rate: 0.6 });
+  }
+
+  /** A foe is done: an ink blot bursts back into ink (a wet pop and a falling sigh), a machine comes apart. */
+  foeBurst(kind = 'blot') {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (kind === 'machine') { this.burst(t, { dur: 0.6, type: 'bandpass', freq: 1200, q: 0.5, vol: 0.22, rate: 0.8 }); this.sweep(t, 520, 60, 0.7, 0.1, 'square'); return; }
+    this.burst(t, { dur: 0.3, type: 'lowpass', freq: 1200, q: 0.7, vol: 0.24, rate: 0.5 });
+    this.sweep(t, 700, 140, 0.4, 0.09);
+    [7, 11].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.08 + i * 0.08, 0.05, 'triangle', this.fx));
   }
 
   /** Push: a deep whump with a rush of spray. */

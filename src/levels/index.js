@@ -7,6 +7,7 @@ import { createEdena, buildEdena } from './edena.js';
 import { createPerdide, buildPerdide } from './perdide.js';
 import { createBazaar, buildBazaar } from './bazaar.js';
 import { createAtelier, buildAtelier } from './atelier.js';
+import { createArena, buildArena } from './arena.js';
 import { createLab, buildLab } from './lab.js';
 import { createArzach2, buildArzach2 } from './arzach2.js';
 import { createBuried, buildBuried } from './buried.js';
@@ -191,6 +192,13 @@ export const LEVELS = [
     title: 'The Lab', source: 'for looking closely',
     blurb: 'Every surface the game draws, on pedestals in a row, and four giant villagers to study faces by.',
     moves: 'walk · jetpack',
+  },
+  {
+    // a developer's world: the fluid blade against the foes, wave after wave (in the worlds list, L; never on the route)
+    id: 'arena', create: createArena, build: buildArena, hidden: true, dev: true,
+    title: 'The Arena', source: 'for testing the blade',
+    blurb: 'A ring of sand with a few standing stones, and the foes coming in waves round you: ink blots, then makers’ machines. F or LB / L1 swings the fluid blade.',
+    moves: 'the blade · walk · jetpack',
   },
   {
     // a developer's world: the reference pages' scenes rebuilt in the game's ink, each framed like its panel (in the worlds list, L; never on the route)

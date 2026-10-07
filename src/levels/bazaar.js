@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeMaterial } from '../materials.js';
+import { makeMaterial, sharedUniforms } from '../materials.js';
 import { mulberry32 } from '../noise.js';
 import { Taxi, cruiseRoutes } from '../taxi.js';
 import { glyphGeometry } from '../story/sign-text.js';
@@ -9,6 +9,8 @@ import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
 import { doorStainGeometry, stainColor } from '../door-stain.js';
+import { Puffs } from '../life.js';
+import { nightPaint, MARKET_NIGHT, LANTERN_TINT, NIGHT_LIGHTS, NIGHT_CROWD_AWAY } from './market-night-kit.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
@@ -39,17 +41,20 @@ export const CAB_ROUTES = cruiseRoutes([30, 48, 58, 12]);
 export function* buildBazaar(scene) {
   const rng = mulberry32(20261004), buckets = new Map(), reactiveScreens = [];
   const colors = ['#f0a083', '#e4bd83', '#8dbbb9', '#94a9bd', '#ebce98'];
+  // (the lanterns' pools by night: warm on the street's surfaces, makeMaterial lampTint; by day there are no lights)
+  const LT = { lampTint: LANTERN_TINT };
   const mat = (color, extra = {}) => makeMaterial({ color, flat: true, ...extra });
-  const PRINT = { shadeFlat: MARKET_FLAT };
+  const PRINT = { shadeFlat: MARKET_FLAT, ...LT };
   const coral = mat('#f0a083', { grid: 12, weathered: 0.7, ...PRINT }), teal = mat('#88b4b5', { grid: 9, weathered: 0.7, ...PRINT });   // (old painted plaster: materials.js WEATHER)
   const ink = mat('#465c65', { metal: 'painted' }), cream = mat('#f5dfab', PRINT), brass = mat('#c99758', { metal: 'brass' });
-  const paving = mat('#a4c1be', { grid: 10 }), lilac = mat('#b9a9c5', PRINT);
+  const paving = mat('#a4c1be', { grid: 10, ...LT }), lilac = mat('#b9a9c5', PRINT);
   const dark = mat('#3a535b', { metal: 'painted' }), glow = mat('#fff0bd', { glow: 0.75 });
   const shop = colors.map(c => mat(c, { weathered: 0.7, ...PRINT }));
   // the billboards' painted faces: a lighter line in a dark shade of their own colours, not the walls' ink (materials.js LINE)
   // (the painted colours in one material, by vertex colour: a material per colour and part cost ~130 more draw calls a frame)
   const SIGN = { line: 0.7, lineTint: 0.67 };
-  const signPaint = mat('#ffffff', { ...PRINT, ...SIGN, vertexColors: true });
+  // (by night every billboard turns into one of the night sheets' screens, lit in its own colour: nightPaint, aNight)
+  const signPaint = mat('#ffffff', { ...PRINT, ...SIGN, vertexColors: true, nightPaint: true });
   // the stains round the shops' openings: painted in each shop's colour, a hairline of their own (door-stain.js)
   const stainPaint = mat('#ffffff', { ...PRINT, vertexColors: true, line: 0.25, lineTint: 1 });
   const paint = (hex) => ({ paint: new THREE.Color(hex) });
@@ -73,7 +78,7 @@ export function* buildBazaar(scene) {
   box(0,-1, -130,1500,2,1500,paving);
   // Broad sidewalks leave a continuous 32 m central walking route.
   yield;
-  for (const side of [-1,1]) box(side*27,.15,-130,16,.3,600,mat('#d5c7a8',{grid:3}));
+  for (const side of [-1,1]) box(side*27,.15,-130,16,.3,600,mat('#d5c7a8',{grid:3,...LT}));
   // Inlaid tram lines lead the eye from the entrance to the relay.
   yield;
   for (const x of [-12,12]) box(x,.012,-100,.12,.02,480,brass,false);
@@ -84,23 +89,27 @@ export function* buildBazaar(scene) {
   // relief and all, or he hangs inside it; the ones that stand well clear of a wall stay drawn only.
   function poster(x,y,z,w,h,yaw,seed,solid=false) {
     reactiveScreens.push({pos:new THREE.Vector3(x-Math.sin(yaw)*-.9,y,z+Math.cos(yaw)*.9),w,h,yaw});
-    const plate = (g,m) => {
+    // by night: the night sheets' colours for this picture (market-night-kit.js nightPaint), each part's role in it
+    const night = nightPaint(seed), NIGHT_GLOW = .6, _n = new THREE.Color();
+    const plate = (g,m,role='bg') => {
       if (!m.paint) return local(g,x,y,z,yaw,m,solid);
-      const n = g.attributes.position.count, c = new Float32Array(n * 3);
-      for (let i = 0; i < n; i++) m.paint.toArray(c, i * 3);
+      const n = g.attributes.position.count, c = new Float32Array(n * 3), q = new Float32Array(n * 4);
+      _n.set(night[role]);
+      for (let i = 0; i < n; i++) { m.paint.toArray(c, i * 3); _n.toArray(q, i * 4); q[i * 4 + 3] = NIGHT_GLOW; }
       g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+      g.setAttribute('aNight', new THREE.BufferAttribute(q, 4));
       return local(g,x,y,z,yaw,signPaint,solid);
     };
     plate(new THREE.BoxGeometry(w+.9,h+.9,.8),ink);
-    plate(new THREE.BoxGeometry(w,h,.3).translate(0,0,.53),sign.shop[seed%sign.shop.length]);
+    plate(new THREE.BoxGeometry(w,h,.3).translate(0,0,.53),sign.shop[seed%sign.shop.length],'bg');
     const faceZ = .78;
     if (seed % 3 === 0) {
-      plate(new THREE.SphereGeometry(1,16,10).scale(w*.28,h*.22,.16).translate(0,h*.12,faceZ),sign.lilac);
+      plate(new THREE.SphereGeometry(1,16,10).scale(w*.28,h*.22,.16).translate(0,h*.12,faceZ),sign.lilac,'fig');
       plate(new THREE.SphereGeometry(1,12,8).scale(w*.39,h*.22,.13).translate(0,-h*.26,faceZ),sign.dark);
-      for(const sx of [-1,1]) plate(new THREE.BoxGeometry(w*.08,h*.025,.07).translate(sx*w*.1,h*.14,faceZ+.17),sign.cream);
+      for(const sx of [-1,1]) plate(new THREE.BoxGeometry(w*.08,h*.025,.07).translate(sx*w*.1,h*.14,faceZ+.17),sign.cream,'dark');
       plate(new THREE.TorusGeometry(w*.32,.12,4,32).scale(1,h/w*.7,1).translate(0,h*.12,faceZ+.2),sign.glow);
     } else if (seed % 3 === 1) {
-      plate(new THREE.CircleGeometry(w*.25,24).translate(0,h*.06,faceZ),sign.cream);
+      plate(new THREE.CircleGeometry(w*.25,24).translate(0,h*.06,faceZ),sign.cream,'fig');
       plate(new THREE.TorusGeometry(w*.34,.18,4,32).scale(1,.33,1).rotateZ(.4).translate(0,h*.06,faceZ+.1),sign.dark);
       for(let i=0;i<3;i++) plate(new THREE.BoxGeometry(w*(.55-i*.12),.3,.08).translate(0,-h*.31-i*.7,faceZ),sign.glow);
     } else {
@@ -110,7 +119,7 @@ export function* buildBazaar(scene) {
         plate(new THREE.BoxGeometry(.6,h*.1,.1).translate((i%2 ? 1:-1)*w*.13,yy-h*.05,faceZ),sign.glow);
       }
     }
-    for(let i=0;i<4;i++) plate(new THREE.BoxGeometry(w*.12,.25,.06).translate((i-1.5)*w*.2,-h*.43,faceZ+.02),sign.cream);
+    for(let i=0;i<4;i++) plate(new THREE.BoxGeometry(w*.12,.25,.06).translate((i-1.5)*w*.2,-h*.43,faceZ+.02),sign.cream,'light');
   }
 
   const frontPosters=[], towerPosters=[];   // for the story: signs that face the street; the silent tower's own screens
@@ -359,6 +368,13 @@ export function* buildBazaar(scene) {
     mesh.geometry.computeBoundingSphere(); scene.add(mesh);
     geos.forEach(g=>g.dispose());
   }
+  // by night: steam off a few of the stalls' counters (the night market's hot food), drawn only after dark
+  const steamAt = [3, 8, 13, 18, 22, 27, 31].map((i) => ({ x: (i % 2 ? 1 : -1) * (29 - 5.2), z: 100 - Math.floor(i / 2) * 27 - 2 }));
+  const steam = new Puffs(scene, { count: 50, color: '#e6e2f2', glow: .35, rise: .6, life: 3.6, size: .55,
+    area: (r) => { const s = steamAt[Math.floor(r() * steamAt.length)]; return new THREE.Vector3(s.x + (r() - .5) * .8, 2.7, s.z + (r() - .5) * 2.4); } });
+  steam.mesh.visible = false;
+  // by night: the lanterns light pools round them (the nearest few to the traveller: main.js sends 8 to the shader)
+  const lights = [], lanternLights = flammables.map((f) => new THREE.Vector4(f.at.x, f.at.y - .9, f.at.z, 0));
   const vehicles=[];
   // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
   yield;
@@ -367,10 +383,13 @@ export function* buildBazaar(scene) {
     reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:MARKET_LOOK},
-    sky:{script:{day:MARKET_DAY,dusk:['#9dabc3','#ffc5a2','#887b9e','#ffd6aa','#ffe5c2'],night:['#243e59','#587581','#55547c','#8daec0','#f9e3ac']}},
+    // (the night: a black-indigo sky, the towers dark masses, the screens lit; market-night-kit.js)
+    sky:{script:{day:MARKET_DAY,dusk:['#9dabc3','#ffc5a2','#887b9e','#ffd6aa','#ffe5c2'],night:MARKET_NIGHT}}, lights,
     lightAt(p,dir){ if(dir.y>0){dir.set(.12,1,.18).normalize();} },
     atmo:(x,z,y)=>({tint:[1,1,1],fog:.65,name:y>35?'Above the market':z<-190?'Signal Square':'The lantern market'}),
     life:{motes:{count:70,color:'#ffe3aa',size:.035,rise:.1,wind:[.2,0]}},
+    // after midnight half the market has gone home (crowd.js away: out of sight, far off), the rest stays on under the screens
+    crowdAway:()=>sharedUniforms.uNight.value*NIGHT_CROWD_AWAY,
     crowdLines:['~neutral~ The last broadcast is still waiting above the square.','~neutral~ The relay is above the stacked signs. Rest on the blue ledges.','~shout~ Fruit from seven moons! Pick one.','~playful~ Hail a cab if your feet get tired.','~curious~ Nobody remembers who drew the first advertisement.','~whisper~ The quiet ones listen with their whole heads.'],
     // The market crowd (crowd.js): conversation circles between the walking
     // lanes, strollers along the avenue, sidewalks, skybridges and round the
@@ -430,7 +449,20 @@ export function* buildBazaar(scene) {
     },
     dynamic:()=>vehicles,
     cabStops:CAB_STOPS, cabRoutes:CAB_ROUTES,
-    update(dt,t,ctx){Taxi.playerPos=ctx?.player?.pos;},
+    update(dt,t,ctx){
+      Taxi.playerPos=ctx?.player?.pos;
+      // after dark: the steam, the lanterns' pools (none by day: the shader looks at no light at all then)
+      const k=sharedUniforms.uNight.value;
+      sharedUniforms.uLampsOn.value=k;
+      steam.mesh.visible=k>.5;
+      if(steam.mesh.visible) steam.update(dt);
+      for(const l of lanternLights){ const i=lights.indexOf(l); if(i>=0) lights.splice(i,1); }   // (the Undertower's own lights stay: src/temples)
+      const p=ctx?.player?.pos;
+      if(k>.05&&p){
+        const near=lanternLights.map((l)=>[l,(l.x-p.x)**2+(l.z-p.z)**2]).sort((a,b)=>a[1]-b[1]);
+        for(let i=0;i<Math.min(NIGHT_LIGHTS.count,near.length);i++){ const l=near[i][0]; l.w=NIGHT_LIGHTS.r*Math.min(1,k*1.5); lights.push(l); }
+      }
+    },
   });
 }
 export const createBazaar = stepped(buildBazaar);

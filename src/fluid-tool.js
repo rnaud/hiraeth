@@ -8,6 +8,7 @@ import { items as sharedItems } from './items.js';
 import { triggers } from './controller.js';
 import { decalBasis, gatherTriangles, projectSplat, flatSplat, splatMaterial, drawnHit, DrawnSurfaces, SPLAT_REACH } from './splat-decal.js';
 import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes } from './fluid-kit.js';
+import { FluidBlade } from './fluid-blade.js';
 
 // The magic-fluid backpack: the traveller's signature tool. A glass tank of
 // shifting, lava-lamp fluid rides on the back; a ribbed hose runs from its cap
@@ -97,6 +98,7 @@ export function toolInput(c = {}) {
     fire: t.fire,
     quick: t.quick,
     push: !!(c.KeyC || c.MouseMiddle || c.PadPush),
+    blade: !!(c.KeyF || c.PadBlade || c.TouchBlade),   // the fluid blade (src/fluid-blade.js): F, LB / L1, touch ⚔
     mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode
     modeBack: !!c.PadModePrev,             // the previous one (D-pad left)
   };
@@ -699,7 +701,7 @@ export class FluidTool {
     this.reserve = new Reserve();
     this.k = 0; this.camK = 0; this.cooldown = 0; this.quick = 0; this.quickShoot = false;
     this.pending = null; this.time = 0; this._enabled = true;
-    this.held = { fire: false, quick: false, push: false, mode: false, modeBack: false };
+    this.held = { fire: false, quick: false, push: false, blade: false, mode: false, modeBack: false };
     this.mode = 'shoot'; this.modeFlash = 0; this.fluidTime = 0; this.rate = 1;
     this.appear = items.has('backpack') ? 1 : 0; this.jetBurnt = false; this.where = 'back'; this.power = new Map();
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1);
@@ -718,6 +720,7 @@ export class FluidTool {
     const globMat = (this.globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES }));
     this.globU = globMat.uniforms;
     this.globMeshes = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 2), globMat); m.visible = false; m.userData.noCollide = true; fx.add(m); return m; });
+    this.blade = new FluidBlade(this);   // the glove's blade of fluid (F, LB / L1)
     this.wear();
 
     // Things a glob wakes from afar: taxis cruising their lanes get hailed, and whatever the level offers.
@@ -805,6 +808,7 @@ export class FluidTool {
 
   dispose() {
     this.offs.forEach((off) => off()); this.offs = [];
+    this.blade?.dispose();
     this.fx.removeFromParent(); this.tank?.group.removeFromParent(); this.hose?.mesh.removeFromParent();
     if (this.glove?.show) this.glove.show(false); else for (const o of this.glove?.meshes ?? []) o.visible = false;
     const p = this.player;
@@ -921,6 +925,8 @@ export class FluidTool {
     const quickPress = input.quick && !this.held.quick;
     const shootPress = (input.shoot && !this.held.fire) || quickPress, pushPress = input.push && !this.held.push;
     const modePress = input.mode && !this.held.mode, modeBackPress = input.modeBack && !this.held.modeBack;
+    const bladePress = input.blade && !this.held.blade;
+    this.held.blade = input.blade;
     this.held.fire = input.fire; this.held.quick = input.quick; this.held.push = input.push; this.held.mode = input.mode; this.held.modeBack = input.modeBack;
     // X / D-pad right (left: back) / the touch button: the next owned gun mode (also while not aiming, and riding)
     if (!paused && this._enabled && this.owned && (modePress || modeBackPress)) this.cycleMode(modeBackPress ? -1 : 1);
@@ -956,6 +962,8 @@ export class FluidTool {
       else if (this.cooldown === 0 && this.pending === 'push' && this.k > 0.45) { this.pending = null; this.push(); }
     } else if (p) p.aim = null;
     if (this.rig) this.rig.aimK = smooth(Math.min(this.k, this.camK));
+    // the blade swings when the arm isn't up for a shot (it takes the aim pose for its arc)
+    this.blade.update(dt, bladePress && this.k < 0.3, ok && this.k < 0.5);
 
     this.updateGlobs(dt);
     const up = p?.frame.up ?? _y;
