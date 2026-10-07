@@ -29,7 +29,7 @@ export async function loadTravellerV1(base) {
 
 // Build in the same origin/rest frame as the fitted export and review. Gameplay
 // can spawn at any position and orientation (including a sphere's far side).
-export function createTravellerV1(char, { gltf, data, report, colors }) {
+export function createTravellerV1(char, { gltf, data, report, colors }, { gpu } = {}) {
   const skins = [];
   gltf.scene.traverse(o => { if (o.isSkinnedMesh) skins.push(o); });
   if (skins.length !== 1 || colors.length !== skins[0].geometry.attributes.position.count)
@@ -49,7 +49,7 @@ export function createTravellerV1(char, { gltf, data, report, colors }) {
     humanoid.body.parent.add(mesh);
     mesh.bind(humanoid.body.skeleton, humanoid.body.bindMatrix);
     humanoid.body.skeleton.pose(); root.updateMatrixWorld(true);
-    const cloth = makeTripoCloth(mesh, colors);
+    const cloth = makeTripoCloth(mesh, colors, gpu === undefined ? {} : { gpu });
     for (const part of [mesh, cloth.garment, cloth.underlayer, cloth.innerShirt]) {
       const standard = part.material;
       part.material = makeReviewInkMaterial(part, { lining: part === cloth.garment });
@@ -60,6 +60,9 @@ export function createTravellerV1(char, { gltf, data, report, colors }) {
     humanoid.drawnFace = wearTripoFace(mesh);
     humanoid.restExpression = cleanExpression(TRAVELLER.rest);
     humanoid.setExpression(humanoid.restExpression);
+    cloth.gpuMaterial(cloth.garment.material);   // (the game: skinned and moved by the cage on the GPU, tripo-cloth.js)
+    // (its shadow drawn the same shape by itself: the shadow passes' one plain material can't move it with the cage)
+    if (cloth.shadow) humanoid.noShadow.push(cloth.garment);
     cloth.garment.name = 'TravellerOvershirt';
     cloth.underlayer.name = 'TravellerTrousers';
     cloth.innerShirt.name = 'TravellerInnerShirt';
@@ -70,6 +73,7 @@ export function createTravellerV1(char, { gltf, data, report, colors }) {
     humanoid.tankAt = TRAVELLER_V1_TANK_AT;
     return {
       humanoid, mesh, cloth,
+      shadowCasters: cloth.shadow ? [cloth.shadow] : [],
       // Before Humanoid.update, while the fresh clip is still on the control rig.
       poseArms(player) {
         const w = player.animator?.w;

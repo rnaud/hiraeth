@@ -610,3 +610,37 @@ fast and too shared to settle it. Done, at no measured cost in load time:
 Still to measure on the Retroid (it was taken back mid-run): an `adb shell screenrecord` of a desert and a
 City-Shaft load, decoded in Chrome and read with `pen.mjs`'s `angles()`. Also left for the device: the
 speaker's portrait circle (TODO, Dialogue), the game menu's item pictures and the self-driving cab ride.
+
+## The traveller's overshirt on the GPU (October 2026)
+
+After the worker took the cage (above), the shirt still cost 2.4 ms of main-thread JS a frame on the
+Retroid. The cost came from three steps, each frame: every one of the garment's 10.8 k vertices was
+moved (eased between its skinned place and its place on the attachment bone, then offset by its cell
+of the cage and pushed off the legs), its normals were summed, and 260 kB of positions and normals
+were uploaded.
+
+- **The garment's vertex shader does it now** (`tripo-cloth.js` `garmentShader`, `GARMENT_GLSL`;
+  `gpu`, the game's path). The garment is a `SkinnedMesh`, so three's skinning chunk gives the skinned
+  place from the bone texture. `uGarmentRigid` gives the rest shape on the attachment bone. The
+  particles and the targets they were simulated against are two 495-texel float textures, 16 kB a
+  frame, read with `texelFetch`. Five leg capsules are uniforms. The static attributes `aCage` (the
+  cell, where the vertex sits in it, its freedom) and `aOutward` carry the rest. The normal is the rest
+  normal turned like the vertex: rigid or skinned, then by the cage's turn in its cell (its normal over
+  the targets to over the particles), and away from a leg's axis where the leg pressed the cloth. The
+  main-thread path stays for tests and pages without WebGL. `tests/tripo-cloth-gpu.test.js` runs the
+  shader's sums in JS against it, frame after frame with the hips swinging: every vertex lands within
+  0.2 mm.
+- **Its shadow is the same shape**: the shadow passes' single plain material would skin the garment
+  but not move it with the cage, and the misplaced shadow shaded the hem in patches. So the garment is
+  left out of those passes (`Humanoid.noShadow`), and a proxy with a depth-only version of the shader
+  (`garmentDepthMaterial`) is drawn into each cascade after the scene (`main.js shadowPass`, the
+  character's `shadowCasters`).
+- The worker's step messages hand their arrays over instead of copying them.
+
+Measured in headless Chrome on the Mac at the Handheld preset with the CPU throttled ×4 (the Retroid
+was not attached), timing `updateCloth` in the page: **3.5 ms → 0.5 ms** a frame (median 0.2–0.5).
+That figure does not include the old per-frame upload of positions and normals, which ran inside
+`render()` and is now 16 kB of texture. The frame's own CPU readout varied between 23 and 50 ms
+across runs of the same build on the Mac, so it can't show a 2–3 ms difference. The look is checked
+side by side (still and walking, front, sides and back).
+On the device the 2.4 ms should fall in the same ratio, to roughly 0.3–0.4 ms. Not yet measured there.

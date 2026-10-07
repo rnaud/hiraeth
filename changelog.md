@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The loading screen’s turning pen should keep turning smoothly while a world is built, instead of stopping for a moment now and then.
 - The traveller’s face moves now: he smiles, frowns, looks worried, surprised or tired with the tone of what is said, blinks, glances about with his eyes, and his mouth opens and shuts on the syllables when he speaks, as everyone else’s does. At rest he looks as he always did, with the corners of his mouth a little up.
 - The fluid tank is the glass jar of the traveller’s drawings now: a squat flask of green, living fluid on his upper back, its other colours turning through it in slow streams, the level falling a third with each charge you use, with a dark collar, brass fittings, a stoppered neck and leather straps over his shoulders. A gun mode tints the fluid its colour, and the Items panel shows the new flask.
+- On handhelds every world runs a little smoother around the traveller: his shirt now swings and falls round his legs on the graphics chip instead of the processor, and looks the same as before.
 
 ## v0.75 — 2026-10-07
 
