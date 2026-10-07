@@ -1,0 +1,33 @@
+src/eclipse.js
+  s_55b4bc53b812ec::t_1171d4206f15f0 1-87
+src/levels/eclipse-kit.js
+  s_55b4bc53b812ec::t_1aeac8e446d4bf 1-440
+src/levels/reference-eclipse.js
+  s_55b4bc53b812ec::t_cf799da4d29178 1-306
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_8c28b566018508 33
+src/levels/references.js
+  s_55b4bc53b812ec::t_faf54287e9450c 17,202
+src/main.js
+  s_55b4bc53b812ec::t_d42d50be551679 23,668-669
+src/materials.js
+  s_55b4bc53b812ec::t_2d86b0ef9e660a 1653-1657,2221-2223,2693-2698
+src/post.js
+  s_55b4bc53b812ec::t_2428413c77dfb2 263-270,316,563-608,619-632,650,719-721,728,1246-1249,1426-1427
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cf95cd5c86262f3ce2fec6a5977ca616fae8294d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
