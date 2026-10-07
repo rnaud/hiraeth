@@ -1,0 +1,129 @@
+LORE.md
+  s_55b4bc53b812ec::t_bb555a38a5fd9b 247,400,500,511-512,531,543,592,594,601,621,623-624,633,655,741,743,747,797,823,951-952,996,1010,1012,1058-1061,1086,1089,1290,1319,1321,1340,1348,1577,1624
+changelog.md
+  s_55b4bc53b812ec::t_f65a26b4cb6e79 13
+docs/makehuman.md
+  s_55b4bc53b812ec::t_fe7e19d216baf4 600-601
+docs/story-audit.md
+  s_55b4bc53b812ec::t_9a55893575c843 5-6,521-522
+docs/story-bible.md
+  s_55b4bc53b812ec::t_a2d06e4a79d390 209,486,488
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_81eb6af8f9c50b 819
+docs/systems/progression.md
+  s_55b4bc53b812ec::t_bcc216aaf6038b 36
+docs/systems/story.md
+  s_55b4bc53b812ec::t_e79b7851ca09f4 63,66,69-70,378,462,470,478-488,498,500,502
+lore/characters/desert.md
+  s_55b4bc53b812ec::t_fb88ceaaa48389 101,105
+lore/characters/temple-guides.md
+  s_55b4bc53b812ec::t_26613ecc154d2e 14,16,21
+lore/characters/worlds.md
+  s_55b4bc53b812ec::t_b1e3d3f84f0a4a 39,53,93-94,106,108,110,130,141-142,180
+prompts/buried-machine.md
+  s_55b4bc53b812ec::t_2e9c429e408d15 17
+prompts/garden-of-spheres.md
+  s_55b4bc53b812ec::t_048082d72d6ade 5,21
+prompts/lorn-ii.md
+  s_55b4bc53b812ec::t_18b3d34e41d6d4 9
+prompts/vael.md
+  s_55b4bc53b812ec::t_ef50517259d04d 17
+prompts/viridel.md
+  s_55b4bc53b812ec::t_9c4adf8511fe96 17
+src/changelog.js
+  s_55b4bc53b812ec::t_253bbd9f26de65 19
+src/levels/content.js
+  s_55b4bc53b812ec::t_c3750efcd81343 110-111,148,156-157,242-243,271-273
+src/levels/spheres.js
+  s_55b4bc53b812ec::t_e4cb30dbfe95d9 94
+src/observatory.js
+  s_55b4bc53b812ec::t_52266a701cd555 180-181
+src/save-migrate.js
+  s_55b4bc53b812ec::t_db104e86dfb09f 6
+src/story/aliens-data.js
+  s_55b4bc53b812ec::t_ec6fe05f48113c 24,57,131
+src/story/arzach-data.js
+  s_55b4bc53b812ec::t_395719c2c79ed5 67,187,207,233
+src/story/arzach.js
+  s_55b4bc53b812ec::t_5201c0fd740040 21,372
+src/story/bazaar-data.js
+  s_55b4bc53b812ec::t_3609020ee9e3e0 454
+src/story/buried-data.js
+  s_55b4bc53b812ec::t_c3800bcb451b47 4,57,60,90,136,141,148,254,258,270,282,311
+src/story/buried.js
+  s_55b4bc53b812ec::t_bd4ab9380d511a 13-14,54
+src/story/edena-data.js
+  s_55b4bc53b812ec::t_3f3e1ece9a4fe4 101,282,294
+src/story/edena.js
+  s_55b4bc53b812ec::t_9e4e14d7822b50 15
+src/story/garage-data.js
+  s_55b4bc53b812ec::t_bd89b02be45e5d 16,52,55-56,178,239
+src/story/garage.js
+  s_55b4bc53b812ec::t_8d9cf945bc57e3 11,14,94,151
+src/story/incal-data.js
+  s_55b4bc53b812ec::t_fa0af9503a8e67 20,27,31,67-68,439,444-445,449,460,468
+src/story/incal.js
+  s_55b4bc53b812ec::t_75fb9763271c36 12,25
+src/story/perdide.js
+  s_55b4bc53b812ec::t_dea8ef00068c7a 68
+src/story/perdide2-data.js
+  s_55b4bc53b812ec::t_0dd6b91f198a9d 109,171,227,252,255
+src/story/perdide2.js
+  s_55b4bc53b812ec::t_ab023118f59b0b 16,23
+src/story/quest-goals.js
+  s_55b4bc53b812ec::t_8e1dd5afcb63da 36,41
+src/story/spheres-data.js
+  s_55b4bc53b812ec::t_697e6639cca2db 41,70,82,145,212
+src/story/spheres.js
+  s_55b4bc53b812ec::t_ba4531cb65d71c 11,13,39,249
+src/temples/arzach2-data.js
+  s_55b4bc53b812ec::t_957e00698fdc8c 15,34,64,67
+src/temples/bazaar-data.js
+  s_55b4bc53b812ec::t_fd7d12ddc6c0be 3,16,29,35,48,60,65-66,69-70
+src/temples/buried-data.js
+  s_55b4bc53b812ec::t_8be7f8f21d0a6d 15,27,34,59,63,66,73
+src/temples/spheres-data.js
+  s_55b4bc53b812ec::t_ddb195fb1e0a3b 17,59
+src/temples/spheres.js
+  s_55b4bc53b812ec::t_2321e813931cac 10
+tests/errands-route.test.js
+  s_55b4bc53b812ec::t_04a0c99020671f 34
+tests/makehuman-worlds.test.js
+  s_55b4bc53b812ec::t_92e4446d7a8cd9 312,317,321,324,326,330,335,351,356
+tests/names.test.js
+  s_55b4bc53b812ec::t_0a6301b7e933ce 1-60
+tests/save-migrate.test.js
+  s_55b4bc53b812ec::t_cec00ca0495715 26,29
+tests/story-arzach.test.js
+  s_55b4bc53b812ec::t_b20461c2943e51 267
+tests/story-buried.test.js
+  s_55b4bc53b812ec::t_88bf48a50111fa 296,299,311
+tests/story-edena.test.js
+  s_55b4bc53b812ec::t_00fd021cd18859 60,182
+tests/story-garage.test.js
+  s_55b4bc53b812ec::t_1b3ee9fc659ccb 114,131,134
+tests/story-incal.test.js
+  s_55b4bc53b812ec::t_fdf06b10502994 265,291,297
+tests/story-perdide2.test.js
+  s_55b4bc53b812ec::t_61d22bda8ee808 74,167
+tests/story-spheres.test.js
+  s_55b4bc53b812ec::t_81af6af089cf99 183
+unity/README.md
+  s_55b4bc53b812ec::t_cc97f056a8883f 430-431
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b50c622b7d920d5129d579e199bf801f88cee51d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
