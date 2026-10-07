@@ -92,7 +92,9 @@ scene-level modelling and a few shader limits:
     another's cast shadow"); built walls only.
   - [x] Paper grain is screen-fixed, kept light (`uPaper` 0.7); the sheets' is heavier and on the page.
     Done: removed (it read as a filter stuck to the screen), with the vignette; the lines' wobble turns with the world.
-  - The gorge panels' walls are in cast shadow from the rim; ours are form-shaded.
+  - [x] The gorge panels' walls are in cast shadow from the rim; ours are form-shaded. Done: IMG_3775 p3's sun
+    low from the right (the walls cast through the shadow maps), so the right rim's shadow falls across the gorge and
+    up the left wall, the pillar further down catching the sun over it; the world's rose gorge casts the same by its hour.
   - [x] Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) have many vertical cracks and
     strokes down the face; our strata draw horizontal beds with sparse fissures. Done: a strata material's
     `cracks` (materials.md, "Cracks down a cliff's face"), on in the views' canyons and the desert's gorge and cliffs.

@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - A wall turned away from the sun now stays in full shadow when the building across the street also shades it, as in the drawings, instead of being lifted to a lighter half-tone.
 - Where sand has banked against an old wall, the band of dust at the wall’s foot is drawn along the top of the sand instead of disappearing under it.
 - The plaster is stained darker round the doors of Qanat’s houses, of both houses at home, of the Signal Market’s shops and of Vael II’s monastery and church, as walls are in the drawings.
+- In the References level the gorge under the rope bridges lies in the shadow of its rim, as drawn, the sun low over the right wall catching only the pillar further down.
 - In the References level the Signal Market’s panels have a crowd of people in coats, hoods and hats, the quiet ones among them, stalls full of goods with their sellers, and the game’s own cabs; the Buried Machine’s have the trench’s pipes, the hanging towers in clusters, the drums’ arcades and machinery under vaulted ceilings, the oval tunnel’s inside, the moon seen from the arched cave and the layered rock ledge; the City-Shaft’s houses have pipes, balconies with washing and machinery under their overhangs, with blimps and the game’s own cabs in the sky.
 
 ## v0.77 — 2026-10-07
