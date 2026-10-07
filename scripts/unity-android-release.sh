@@ -49,7 +49,7 @@ rm -f "$OUT"
 echo "Building $VERSION ($BUILD) from $(git rev-parse --short=12 HEAD)…"
 STATUS=0
 ANDROID_KEYSTORE_PATH=$KEYS/moebius-release.p12 ANDROID_KEYSTORE_PASSWORD=$(cat "$KEYS/password.txt") \
-  scripts/unity-export/unity-batch.sh BridgeBuild.AndroidRelease -version "$VERSION" -code "$BUILD" -out "$OUT" || STATUS=$?
+  scripts/unity-export/unity-batch.sh BridgeBuild.AndroidRelease -buildVersion "$VERSION" -androidVersionCode "$BUILD" -out "$OUT" || STATUS=$?
 # (the editor writes the build's settings back, the key's path among them: the committed ones stay as they were)
 [ "$SETTINGS_CLEAN" = 1 ] && git checkout -- "$SETTINGS"
 [ "$STATUS" = 0 ] && [ -f "$OUT" ] || { echo "no APK: unity/Memento/Logs/batch-BridgeBuild.AndroidRelease.log" >&2; exit 1; }

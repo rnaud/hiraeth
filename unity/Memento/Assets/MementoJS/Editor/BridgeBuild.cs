@@ -152,7 +152,7 @@ namespace Memento.EditorTools
         /// it, under its own identity so it installs next to the web game's app: com.rnaud.memento.unity, "Memento (Unity)",
         /// the game's icon (public/icons/icon-512.png), landscape, immersive, sound on and paused in the background, signed
         /// with the web app's release key (alias moebius) so every build installs over the last.
-        ///   -version 0.80 (or GameCI's -buildVersion)    versionName: the newest version in src/changelog.js
+        ///   -buildVersion 0.80 (GameCI passes it)        versionName: the newest version in src/changelog.js (not -version: the editor prints its own and quits)
         ///   -code 812 (or GameCI's -androidVersionCode)  versionCode: the commit count (scripts/release-info.mjs build)
         ///   -androidKeystoreName file                    the PKCS#12 keystore (relative: to unity/Memento), else $ANDROID_KEYSTORE_PATH
         ///   -androidKeystorePass, -androidKeyaliasPass   its password, else $ANDROID_KEYSTORE_PASSWORD
@@ -195,7 +195,7 @@ namespace Memento.EditorTools
         /// <summary>What the testers' APK adds to the bridge's Android player: its version, manners, icon and key.</summary>
         static bool Release()
         {
-            PlayerSettings.bundleVersion = NonEmpty(Arg("-version"), Arg("-buildVersion"), "0.1");
+            PlayerSettings.bundleVersion = NonEmpty(Arg("-buildVersion"), "0.1");
             // landscape (the handheld's way up), immersive (no bars), drawn under the cut-outs; the pads and keys come
             // through the Input System (the project's input handling; BridgeHost reads Gamepad.current)
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
