@@ -1,0 +1,75 @@
+TODO.md
+  s_55b4bc53b812ec::t_a06f93bc8c22ae 119-125,158-162
+changelog.md
+  s_55b4bc53b812ec::t_2172bc03bbbccc 13-14
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_58ba842385cc50 49-50,65-87
+docs/systems/app-icon.md
+  s_55b4bc53b812ec::t_7933271afd5f76 49-61
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_a953775fdd74a4 457-554
+scripts/bench/android-worlds-summary.mjs
+  s_55b4bc53b812ec::t_2a0d79ab0d0665 1-30
+scripts/bench/android-worlds.mjs
+  s_55b4bc53b812ec::t_f18a3495bcfddf 1-376
+scripts/bench/gecko-bridge.mjs
+  s_55b4bc53b812ec::t_f9a061fed45edc 28
+scripts/bench/results/android-worlds.json
+  s_55b4bc53b812ec::t_7757fe653938b9 1-7125
+scripts/bench/viewpoints-worlds.json
+  s_55b4bc53b812ec::t_3135fe02e99533 1-9180
+scripts/deck-runtime.mjs
+  s_55b4bc53b812ec::t_01afb967fce0f6 10,21-22
+scripts/package-steam-deck.mjs
+  s_55b4bc53b812ec::t_7d218a2a38b760 21-22
+scripts/steam-art.mjs
+  s_55b4bc53b812ec::t_571083cc6dac60 1-165
+scripts/steam-deck/deck.py
+  s_55b4bc53b812ec::t_c6e0d221fa2c11 151-163,174-208,559-631,633-634,637-638,712-716,871-876,887
+src/changelog.js
+  s_55b4bc53b812ec::t_ef76bd9da0d582 17-18
+src/characters/tripo-cloth-sim.js
+  s_55b4bc53b812ec::t_3c6cbf7f1bf877 1-94
+src/characters/tripo-cloth-worker.js
+  s_55b4bc53b812ec::t_e238a15c5644e5 1-8
+src/characters/tripo-cloth.js
+  s_55b4bc53b812ec::t_d114547da6c8bd 3,12,15-16,18,22-56,58-59,115-118,124,142-188,195-197,199-206,208,210-215,217-219,222-242,244-247,249-250
+src/main.js
+  s_55b4bc53b812ec::t_9f0247c91627d7 26,1096,1099,1179
+src/perf.js
+  s_55b4bc53b812ec::t_8b369634ca3d6d 517-538
+src/sand-drifts.js
+  s_55b4bc53b812ec::t_22a2adff50bdd3 175,211,232-235,257-259,261
+src/wind.js
+  s_55b4bc53b812ec::t_00aad4f2177829 11-38,178-179,204
+src/world.js
+  s_55b4bc53b812ec::t_e7764198c5980a 200
+tests/deck-runtime.test.js
+  s_55b4bc53b812ec::t_74e2fcb5043e53 5,33-34,77-97
+tests/render-frame-pin.test.js
+  s_55b4bc53b812ec::t_2d38f2b2165a8e 1-30
+tests/sand-drifts.test.js
+  s_55b4bc53b812ec::t_d9bbd875550598 134-169
+tests/test_steam_deck.py
+  s_55b4bc53b812ec::t_66d42dc6c6c17b 18,412-492,558
+tests/tripo-cloth-sim.test.js
+  s_55b4bc53b812ec::t_d225389c44d6a3 1-135
+tests/wind-ground.test.js
+  s_55b4bc53b812ec::t_e8343ab238f51e 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4cb5c648046508c6354beec8a4a045b58b233bdc",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
