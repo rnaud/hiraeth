@@ -1,0 +1,35 @@
+changelog.md
+  s_55b4bc53b812ec::t_fe81f8eb0fa60b 19
+docs/systems/references.md
+  s_55b4bc53b812ec::t_38d32b833658da 432-457
+src/changelog-media.js
+  s_55b4bc53b812ec::t_92111ec7274af7 151-154
+src/changelog.js
+  s_55b4bc53b812ec::t_73a020b2faa1ae 25
+src/levels/reference-waterfall.js
+  s_55b4bc53b812ec::t_adff40b30ca0c2 67,93,115,137,156,181,187,201,209,214,216,228-229
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_0d7bfa01affbeb 29
+src/levels/waterfall-kit.js
+  s_55b4bc53b812ec::t_3ae2059a1b0ead 372-373,384
+tests/reference-worlds.test.js
+  s_55b4bc53b812ec::t_6ae99b58d95c94 127-129
+tests/references.test.js
+  s_55b4bc53b812ec::t_1df12ae26b7fa6 312
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "924b78e0d73a6f01feb803a046009262f9c95521",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
