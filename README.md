@@ -9,6 +9,9 @@ and [the story bible](docs/story-bible.md); the writing room is [lore/](lore/REA
 
 **Play it:** https://memento.alexandria-rnaud.workers.dev/ (Cloudflare Workers).
 
+**[Interactive changelog](https://memento.alexandria-rnaud.workers.dev/changelog.html):**
+explore each release with before/after pictures, numbers and notes.
+
 ## Run it
 
 ```bash
