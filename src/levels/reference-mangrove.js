@@ -43,7 +43,7 @@ function materials(kit) {
     dark: kit.mat({ color: T.dark, flat: true }),
     far: kit.mat({ color: T.far, flat: true, hatch: 0.2, line: 0.6, lineTint: 1 }),
     farDeep: kit.mat({ color: T.farDeep, flat: true, hatch: 0.2, line: 0.5, lineTint: 1 }),
-    leaves: kit.mat({ color: T.leaves, pattern: 'leaves', shade: 0.4, hatch: 0.5 }),
+    leaves: kit.mat({ color: T.leaves, shade: 0.5, hatch: 0.25, line: 0.6, lineTint: 0.8 }),   // (soft pale masses, a light line of their own)
     bush: [kit.mat({ color: T.bush, pattern: 'leaves', hatch: 1.6, shade: 0.5, spot: 0 }), kit.mat({ color: T.bush2, pattern: 'leaves', hatch: 1.6, shade: 0.5, spot: 0 })],
     boat: kit.mat({ color: T.boat, flat: true, pattern: 'cracks' }),
     boatIn: kit.mat({ color: T.boatIn, flat: true }),

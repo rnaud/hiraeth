@@ -82,7 +82,8 @@ export function whiteTree({ seed = 1, h = 28, r = 2, crown = r * 2.4, roots = 12
     const ys = upper ? crown * (0.85 + rng() * 0.3) : crown * (0.42 + rng() * 0.2), r0 = bellR(ys) * 0.8;
     const d = reach * (upper ? 0.55 + rng() * 0.3 : 0.75 + rng() * 0.45), rr = r * (upper ? 0.22 + rng() * 0.08 : 0.26 + rng() * 0.12);
     const P = (t, y) => V(c * (r0 + (d - r0) * t), y, s * (r0 + (d - r0) * t));
-    const pts = [P(-0.05, ys + rr * 0.3), P(0.25, ys + crown * (upper ? 0.04 : 0.12)), P(0.58, ys * 0.8), P(0.86, ys * 0.32), P(1, -1.2)];
+    // (its first point inside the trunk, so it grows out of it: no cut end shows)
+    const pts = [V(c * r * 0.5, ys + crown * 0.3, s * r * 0.5), P(0.25, ys + crown * (upper ? 0.04 : 0.12)), P(0.58, ys * 0.8), P(0.86, ys * 0.32), P(1, -1.2)];
     out.roots.push(limb(pts, rr, 0.55, tub(18), rad));
     // its foot splits into fingers that grip the bed
     for (let f = 0; f < fingers; f++) {
@@ -95,7 +96,7 @@ export function whiteTree({ seed = 1, h = 28, r = 2, crown = r * 2.4, roots = 12
     const az = phase + ((k + 0.5) / small) * TAU + (rng() - 0.5) * 0.4, c = Math.cos(az), s = Math.sin(az);
     const ys = crown * (0.35 + rng() * 0.15), r0 = bellR(ys) * 0.85, d = r0 + reach * (0.12 + rng() * 0.25), rr = r * (0.1 + rng() * 0.07);
     const P = (t, y) => V(c * (r0 + (d - r0) * t), y, s * (r0 + (d - r0) * t));
-    out.roots.push(limb([P(-0.05, ys), P(0.35, ys * 0.85), P(0.8, ys * 0.35), P(1, -1)], rr, 0.6, tub(10), Math.max(5, rad - 2)));
+    out.roots.push(limb([V(c * r0 * 0.7, ys + crown * 0.1, s * r0 * 0.7), P(0.35, ys * 0.85), P(0.8, ys * 0.35), P(1, -1)], rr, 0.6, tub(10), Math.max(5, rad - 2)));
   }
   // the limbs: out of the fork, sweeping out and up, a branch or two off each
   const L = limbs ?? [
@@ -332,7 +333,7 @@ export const MANGROVE_DAY = ['#2a3068', '#6a5a9c', '#8a8ed0', '#ffe8ee', '#ffd8d
 /** The surfaces' tones. */
 export const MANGROVE_TONES = {
   bark: '#fbeff2', barkPale: '#dcdcf0', shell: '#f4eef4', wood: '#7a5a4e', plank: '#8a6a5a', plank2: '#7a5c50', stone: '#c9c6dc',
-  lamp: '#ffd27a', window: '#ffc070', dark: '#1b2238', far: '#3a4478', farDeep: '#2c3462', leaves: '#e4dcf2', bush: '#20384a', bush2: '#25424f',
+  lamp: '#ffd27a', window: '#ffc070', dark: '#1b2238', far: '#3a4478', farDeep: '#2c3462', leaves: '#efe0ee', bush: '#20384a', bush2: '#25424f',
   boat: '#7a5a4c', boatIn: '#4a3a3a', water: '#141a3a', shallow: '#1e2650',
   spots: ['#7fb8ff', '#ff9ad8', '#a0f0ff'],
 };
