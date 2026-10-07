@@ -205,7 +205,10 @@ export function frame(dt) {
       const nf = Math.max(backend.stats.frames - P.n0, 1);
       const split = { ...game.mirror.profile(), audio: +(S.audioMs / nf).toFixed(3), host: +(backend.stats.hostMs / nf).toFixed(3), apply: +(host.ApplyMs() / nf).toFixed(3), look: +(S.lookMs / nf).toFixed(3), lookSent: (backend.stats.looks ?? 0) - S.looks, clothWait: +((host.ClothMs?.() ?? 0) / nf).toFixed(3), mainWait: +((host.WaitMs?.() ?? 0) / nf).toFixed(3), threaded: !!host.Threaded?.() };   // (clothWait: the main thread waiting on the overshirt's job, BridgeCloth)
       if (S.args.split && host.GpuSplit) { try { split.gpu = JSON.parse(host.GpuSplit()); } catch { /* none */ } }
-      const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
+      // (the hitches: frames over twice the median, how many and how the script's time and the main thread's wait went then)
+      const med = q('dt', 0.5), hit = s.filter((x) => x.dt > 2 * med);
+      const hitches = { n: hit.length, vm: hit.length ? +(hit.reduce((a, x) => a + x.vm, 0) / hit.length).toFixed(2) : 0, every: hit.length > 1 ? +((s.indexOf(hit[hit.length - 1]) - s.indexOf(hit[0])) / (hit.length - 1)).toFixed(1) : 0 };
+      const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), frameP99: q('dt', 0.99), hitches, vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
       S.results.push(res);
       console.log(`[bench] ${JSON.stringify(res)}`);
       P.samples = null;

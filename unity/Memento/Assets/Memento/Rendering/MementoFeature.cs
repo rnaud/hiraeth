@@ -132,7 +132,8 @@ namespace Memento.Rendering
                 desc.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
                 data.albedo = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_GAlbedo", true, FilterMode.Point);
                 data.hatch = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_GHatch", true, FilterMode.Point);
-                desc.graphicsFormat = GraphicsFormat.R32G32B32A32_SFloat;
+                // (half floats, as the web's G-buffer (pipeline.js createGBuffer): its normal and distance read by every tap of
+                // the composite's edges, pockets and creases, half the bandwidth of full floats)
                 data.normal = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_GNormal", true, FilterMode.Point);
                 var ddesc = cam.cameraTargetDescriptor;
                 ddesc.msaaSamples = 1;

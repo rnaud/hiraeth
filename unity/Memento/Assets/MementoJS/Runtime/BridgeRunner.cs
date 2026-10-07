@@ -195,7 +195,9 @@ namespace Memento.Bridge
                 bool ok;
                 try { ok = Await(); }
                 catch (Exception e) { Debug.LogError("Memento bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); return; }
-                waitMs += (Time.realtimeSinceStartupAsDouble - t0) * 1000;
+                double wait = (Time.realtimeSinceStartupAsDouble - t0) * 1000;
+                waitMs += wait;
+                if (gpuSplit != null) Hitch(t0, wait);
                 if (exiting) return;
                 if (!ok)
                 {
@@ -215,6 +217,21 @@ namespace Memento.Bridge
                 js.Eval($"Memento.frame({Time.unscaledDeltaTime.ToString(System.Globalization.CultureInfo.InvariantCulture)})", "frame");
             }
             catch (Exception e) { Debug.LogError("Memento bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); }
+        }
+        // (a bench with -split: a frame over twice the usual said, with where it went: the wait on the script, the rest of
+        // Unity's frame before it, the GC's collections and Unity's render thread then)
+        double lastUpdate, usual = 5; int gc0; float hitchSaid;
+        void Hitch(double t0, double wait)
+        {
+            double dt = (t0 - lastUpdate) * 1000; lastUpdate = Time.realtimeSinceStartupAsDouble;
+            int gc = System.GC.CollectionCount(0);
+            if (dt > 0 && dt < 1000) usual += (Mathf.Min((float)dt, (float)usual * 3) - usual) * 0.02;
+            if (dt > 2.2 * usual && Time.realtimeSinceStartup > hitchSaid + 0.25f)
+            {
+                hitchSaid = Time.realtimeSinceStartup;
+                Debug.Log($"Memento bridge: hitch {dt:0.0} ms (usual {usual:0.0}): the wait {wait:0.0}, the rest {dt - wait:0.0}; GCs {gc - gc0}; cpu {timing[0].cpuFrameTime:0.0} main {timing[0].cpuMainThreadFrameTime:0.0} render {timing[0].cpuRenderThreadFrameTime:0.0} gpu {timing[0].gpuFrameTime:0.0}");
+            }
+            gc0 = gc;
         }
         /// <summary>The main thread's time waiting on the script (ms, summed; BridgeHost.WaitMs reads and clears it).</summary>
         public double waitMs;
