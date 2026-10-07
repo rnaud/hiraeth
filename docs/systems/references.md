@@ -881,3 +881,32 @@ Ranked by how much they would close the gap to the sheets, across every world re
 - **Left**: the pictures' every wall carries small detail (pipes, vents, signs, plants, washing by the dozen, crowds
   on every deck); ours are plain rounded blocks and a few walkers. Their houses step down the islands' sides below
   the decks; ours stand on the decks. Picture 2's crowd fills its bridge; ours is a line of figures.
+
+## The Overnight Train's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-overnighttrain.js`, world `overnighttrain`: `?level=references&world=overnighttrain&view=n`):
+  four 16:9 pictures (1456 × 816), one view each: the train across the plain under the two moons, its balcony full,
+  the dust trailing rose (1); under the great nose, its lit lounge and pennants, the pink billows behind (2); coming
+  on at dusk, the round window lit, the moons low on the right, a bank of cloud on the left (3); along the track, the
+  plum carriages, the dust rolling at the wheels (4). One scene builder (`trainScene`) with the world's kit
+  (`src/levels/overnight-train-kit.js`, worlds.md "The Overnight Train"): the train (`train()`: a list of carriages,
+  the lead's observation lounge furnished), the track bed and rails to the horizon, the dust, the plain and its
+  streaks, the moons, a cloud bank, stones.
+- **Placed off the pictures' pixels from two points**: the pictures look from under a metre up, so where the horizon
+  cuts the train decides everything. `camAt(cam, under, over)` takes the pixel where the wheels meet the plain under
+  the nose and the roof's crown straight over it; the two give how far off the nose stands and the eye's height. The
+  train's length runs to the picture's vanishing point (`vp`). The level wants every eye a metre over its ground, so
+  the hidden ground lies 1.2 m under the plain the scene lays (solid: walked on).
+- **The streaks** (the plain's long ink lines toward the horizon) are thin dark strips laid round the eye, each made
+  as wide as it must be to stand one to three pixels wide where the view's own camera sees it (projected through a
+  `PerspectiveCamera` of the view): a fixed width vanishes at such grazing angles or merges into a dark field.
+- **The moons** are glowing balls 2.8 km off where the picture has them (`moonGeo`); in the world they replace the
+  sky's own moon (`level.sky.moon: false`), which the game draws as a crescent.
+- **The look** (`TRAIN_LOOK`, `TRAIN_NIGHT` in the kit): no clouds in the sky (the dust is the cloud), a grain on it,
+  the shade printed flat in a deep blue-violet, light hatching, deep spot blacks under the carriages, a rose-lavender
+  haze in steps, **no pen dots on the plain** (`uDots: 0`: in the world they would stand still while the plain runs
+  past). `?look=overnighttrain`.
+- **Left**: the pictures' nose is a bulbous rounded prow with a round window, ours an open-fronted lounge under a hood;
+  their train is a dense mass of pen detail (rivets, flutes, machinery under every carriage), ours plain plates;
+  picture 2's dust is a towering pink cumulus, ours a rolling bank; their horizon glows in a broad rose band, our
+  sky's is narrow; picture 1 is backlit (its flank dark against the glow), ours lit from the side.

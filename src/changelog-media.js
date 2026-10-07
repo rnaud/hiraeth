@@ -50,6 +50,7 @@ export const WORLDS = [
   ['references', 'References', /References level/],
   ['fallenring', 'The Fallen Ring', /Fallen Ring/],
   ['spacecity', 'The City Floating in Space', /City Floating in Space/],
+  ['overnighttrain', 'The Overnight Train', /Overnight Train/],
 ];
 
 /** The kinds of change, by their words. */
@@ -150,6 +151,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'Space is drawn the way the drawings draw it', shots: [
       { name: 'spacecity-sky', only: 'after', caption: 'Under the crescent: the stars printed all round, the planet’s lit edge, its dark side as black as the sky', from: 'the References’ second view of the City Floating in Space, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=spacecity&view=2; walk off the balcony’s edge with the camera and look down: the stars go on under the islands.' },
+    { match: 'The References level has the Overnight Train’s four pictures', shots: [
+      { name: 'overnighttrain-refs', only: 'after', size: [1608, 448], caption: 'The fourth picture (left) and its view in the game (right): the plum carriages along the track, their windows lit, the balcony, the dust at the wheels, the two moons', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'overnighttrain-refs-dusk', only: 'after', size: [1608, 448], caption: 'The third: the train coming on at dusk, its lounge lit through the round nose, the moons low on the right, a bank of cloud on the left', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=overnighttrain and step through its four views with [ and ]; \\ lays the picture over the view.' },
   ],
   '0.85': [
     { match: 'A new world off the route, the City During the Eclipse', shots: [

@@ -20,6 +20,7 @@ import { RING_DAY, RING_LOOK } from './fallen-ring-kit.js';
 import { MF_DAY, MF_LOOK } from './moon-foundry-kit.js';
 import { UNDER_DAY, UNDER_LOOK } from './underside-kit.js';
 import { SPACE_DAY, SPACE_LOOK } from './space-city-kit.js';
+import { TRAIN_NIGHT, TRAIN_LOOK } from './overnight-train-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
 
@@ -228,6 +229,7 @@ export const WORLD_LOOKS = {
   moonfoundry: { sky: MF_DAY, look: { ...MF_LOOK } },
   underside: { sky: UNDER_DAY, look: { ...UNDER_LOOK } },
   spacecity: { sky: SPACE_DAY, look: { ...SPACE_LOOK } },
+  overnighttrain: { sky: TRAIN_NIGHT, look: { ...TRAIN_LOOK } },
 };
 
 const pageParams = () => (typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams());

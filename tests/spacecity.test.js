@@ -16,7 +16,7 @@ const kitOf = () => new RoomKit({ group: new THREE.Group(), centre: new THREE.Ve
 test('the City Floating in Space\'s pictures: four views, one per picture, in the References', async () => {
   const k = worldIndex('spacecity');
   assert.ok(k >= 0, 'a References world');
-  assert.equal(k, REFERENCE_WORLDS.length - 1, 'the newest world, at the end (the views before it keep their numbers)');
+  assert.equal(k, worldIndex('underside') + 1, 'after the Underside (the views before it keep their numbers; newer worlds come after it)');
   assert.equal(REFERENCE_WORLDS[k].name, 'The City Floating in Space');
   const w = await loadWorld(k);
   assert.equal(w.views.length, 4);
