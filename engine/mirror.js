@@ -12,10 +12,19 @@
 //   transforms(ids, mats, n)    the world matrices that moved, packed: n ids, 16 floats each
 //   visible(id, on)             shown / hidden (an ancestor hidden or the object left the scene)
 //   geometryOf(id, gid)         a drawable's geometry swapped or rewritten (sent again first)
-//   vertices(gid, positions, normals, n)   only a geometry's points and normals moved (cloth): those alone
+//   vertices(gid, positions, normals, n, alpha)   only a geometry's points and normals moved (cloth), or its points and
+//                               a per-vertex alpha (aAlpha: the wind's wisps, rebuilt each frame): those alone
 //   instances(id, count, mats, colors, attrs, time)   an InstancedMesh's instances, when they change: their
 //                               matrices, colours and per-instance attributes ({ aAnim: { array, itemSize }… }), the
-//                               game's clock then (mirror.time: the crowd's figures pose by it in their shader)
+//                               game's clock then (mirror.time: the crowd's figures pose by it in their shader).
+//                               A plain Mesh on an InstancedBufferGeometry (kind 'instgeo': the grass blades, flora-grass.js)
+//                               has no matrices: mats and colors are null, its attributes carry their version and
+//                               the range rewritten since they were last sent ({ array, itemSize, version, range: [start, count] | null })
+//   materialLive(mid, color, glow)   a material's colour or glow changed after it was sent (the answering plants
+//                               waking, a lamp lit, a beacon breathing): checked each frame a drawable using it is drawn
+//   materialFluid(mid, f)       the traveller's fluid on a material (fluid-tool.js): uFluidA, uFluidB, the six tones (26 floats), when they move
+//   drawState(id, object)       each frame an 'instgeo' drawable is drawn: the backend reads what moves on it (its
+//                               material's per-frame uniforms: the grass patch's centre and fades)
 //   skeleton(sid, mats, n)      a skeleton's bone matrices (bone world × inverse bind: three's boneMatrices), once a frame
 //                               it is drawn, however many meshes it moves; a skinned mesh's create says its skeleton
 //                               and its bind matrix (desc.skeleton, desc.bind, desc.attached). A backend with
@@ -72,7 +81,7 @@ export class SceneMirror {
     if (g && this.backend.vertices && sameShape(geo, g)) {
       g.version = version; g.versions = versionsOf(geo);
       const A = geo.attributes;
-      this.backend.vertices(g.gid, plain(A.position), A.normal ? plain(A.normal) : null, A.position.count);
+      this.backend.vertices(g.gid, plain(A.position), A.normal ? plain(A.normal) : null, A.position.count, A.aAlpha ? plain(A.aAlpha) : null);
       this.stats.vertexUpdates = (this.stats.vertexUpdates ?? 0) + 1;
       return g.gid;
     }
@@ -105,10 +114,36 @@ export class SceneMirror {
 
   _skeletonId(sk) { return sk.__mirrorId ??= this.nextSkeleton++; }
 
+  /** A material's colour and glow as last sent (once a frame, however many drawables use it): told when they moved. */
+  _live(m, f) {
+    if (m.__mirrorLiveF === f) return;
+    m.__mirrorLiveF = f;
+    const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow?.value;
+    // the traveller's fluid (fluid-tool.js): its fill, tones and clock move every frame it flows
+    if (U?.uFluidA && U.uFluidTones && this.backend.materialFluid) {
+      const F = m.__mirrorFluid ??= new Float32Array(26).fill(NaN), A = U.uFluidA.value, Bv = U.uFluidB?.value, T = U.uFluidTones.value;
+      let moved = false;
+      const put = (k, v) => { const x = Math.fround(v); if (F[k] !== x) { F[k] = x; moved = true; } };
+      put(0, A.x); put(1, A.y); put(2, A.z); put(3, A.w);
+      if (Bv) { put(4, Bv.x); put(5, Bv.y); put(6, Bv.z); put(7, Bv.w); }
+      for (let i = 0; i < 6 && i < T.length; i++) { put(8 + i * 3, T[i].r); put(9 + i * 3, T[i].g); put(10 + i * 3, T[i].b); }
+      const mid = this.mats.get(m);
+      if (moved && mid) this.backend.materialFluid(mid, F);
+    }
+    if (!c?.isColor && typeof g !== 'number') return;
+    const r = c?.isColor ? Math.fround(c.r) : 0, gr = c?.isColor ? Math.fround(c.g) : 0, b = c?.isColor ? Math.fround(c.b) : 0, gl = typeof g === 'number' ? Math.fround(g) : 0;
+    const L = m.__mirrorLive;
+    if (!L) { m.__mirrorLive = [r, gr, b, gl]; return; }   // (as sent with the material)
+    if (L[0] === r && L[1] === gr && L[2] === b && L[3] === gl) return;
+    L[0] = r; L[1] = gr; L[2] = b; L[3] = gl;
+    const mid = this.mats.get(m);
+    if (mid) this.backend.materialLive(mid, c?.isColor ? [c.r, c.g, c.b] : null, typeof g === 'number' ? g : null);
+  }
+
   _create(o) {
     const id = this.nextId++;
     this.ids.set(o, id);
-    const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
+    const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh && isInstGeo(o.geometry) ? 'instgeo' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
     const mats = Array.isArray(o.material) ? o.material : [o.material];
     const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind, geo: null, gv: -1 };
     o.__mirror = node;   // (the walk finds it on the object: no map lookups a frame)
@@ -121,6 +156,7 @@ export class SceneMirror {
       if (o.skeleton) { desc.skeleton = this._skeletonId(o.skeleton); desc.bind = Array.from(o.bindMatrix.elements); desc.attached = o.bindMode !== 'detached'; }
     }
     if (o.isInstancedMesh) desc.capacity = o.instanceMatrix.count;
+    if (kind === 'instgeo') { desc.capacity = o.geometry.instanceCount; desc.attrs = Object.keys(instancedAttributes(o.geometry)); }
     this.backend.create?.(id, desc, o);
     return id;
   }
@@ -134,7 +170,7 @@ export class SceneMirror {
     camera?.updateMatrixWorld();
     P.matrices += now() - t; t = now();
     let n = 0, drawn = 0, tb = 0;
-    const B = this.backend, perSkeleton = !!B.skeleton, filter = this.filter;
+    const B = this.backend, perSkeleton = !!B.skeleton, filter = this.filter, liveMats = !!B.materialLive;
     // (an explicit stack, not a recursive closure: ~3 000 objects a frame in the desert)
     const stack = this._stack; stack.length = 0; stack.push(scene);
     let visited = 0;
@@ -162,6 +198,7 @@ export class SceneMirror {
         // renderer would before drawing it, in the main pass (no override material)
         if (Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
         if (!node.shown) { node.shown = true; B.visible?.(id, true); }
+        if (liveMats) { const M = o.material; if (Array.isArray(M)) { for (const m of M) this._live(m, f); } else if (M) this._live(M, f); }
         const e = o.matrixWorld.elements, m = node.matrix;
         // (compared as the floats they are sent as: a double that floats can't hold is no move)
         let k = 0;
@@ -182,6 +219,27 @@ export class SceneMirror {
             for (const k in ia) (attrs ??= {})[k] = { array: geo.attributes[k].array, itemSize: geo.attributes[k].itemSize };
             B.instances?.(id, o.count, o.instanceMatrix.array, o.instanceColor?.array ?? null, attrs, this.time);
           }
+        }
+        if (node.kind === 'instgeo') {
+          // instances with no matrices (the grass): their attributes when they move (only the range rewritten), the count
+          const ia = node.instAttrs ??= instancedAttributes(geo);
+          let v = geo.instanceCount * 1e12;
+          for (const k in ia) v += geo.attributes[k].version * 1e3;
+          if (v !== node.instVersion) {
+            const first = node.instVersion === -1;
+            node.instVersion = v;
+            const attrs = {};
+            node.sentAttr ??= {};
+            for (const k in ia) {
+              const a = geo.attributes[k];
+              if (!first && node.sentAttr[k] === a.version) continue;
+              node.sentAttr[k] = a.version;
+              const r = a.updateRanges?.length ? a.updateRanges.reduce((m, x) => [Math.min(m[0], x.start), Math.max(m[1], x.start + x.count)], [Infinity, -Infinity]) : null;
+              attrs[k] = { array: a.array, itemSize: a.itemSize, version: a.version, range: !first && r ? [r[0], r[1] - r[0]] : null };
+            }
+            B.instances?.(id, geo.instanceCount, null, null, attrs, this.time);
+          }
+          B.drawState?.(id, o);
         }
         if (o.isSkinnedMesh && o.skeleton) {
           // (timed only when profiling: in Puerts the clock is a call into C#, ~5 µs each)
@@ -259,6 +317,9 @@ function attrVersion(geo, frame = -1) {
   return (v * 64 + L.length) + c.epoch * 1e12;
 }
 
+/** A plain mesh's instanced geometry with a count of its own (the grass blades: flora-grass.js). */
+function isInstGeo(geo) { return !!geo?.isInstancedBufferGeometry && Number.isFinite(geo.instanceCount); }
+
 /** A geometry's per-instance attributes (InstancedBufferAttribute), by name. */
 function instancedAttributes(geo) {
   const out = {};
@@ -272,14 +333,14 @@ function versionsOf(geo) {
   for (const k in geo.attributes) { const a = geo.attributes[k]; if (!a.isInstancedBufferAttribute) v[k] = a.isInterleavedBufferAttribute ? a.data.version : a.version; }
   return v;
 }
-/** Did only the positions and normals change since the geometry was last sent? */
+/** Did only the positions and normals (and a per-vertex alpha) change since the geometry was last sent? */
 function sameShape(geo, g) {
   const was = g.versions, now = versionsOf(geo);
   if (!was || now.__index !== was.__index || now.__indexRef !== was.__indexRef || now.__count !== was.__count) return false;
   const keys = Object.keys(now);
   if (keys.length !== Object.keys(was).length) return false;
-  for (const k of keys) if (now[k] !== was[k] && k !== 'position' && k !== 'normal') return false;
-  return now.position !== was.position || now.normal !== was.normal;
+  for (const k of keys) if (now[k] !== was[k] && k !== 'position' && k !== 'normal' && k !== 'aAlpha') return false;
+  return now.position !== was.position || now.normal !== was.normal || now.aAlpha !== was.aAlpha;
 }
 const plain = (a) => (a.isInterleavedBufferAttribute ? deinterleave(a) : a.array);
 

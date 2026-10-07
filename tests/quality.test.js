@@ -115,3 +115,46 @@ test('the frame readout starts with the engine, so a screenshot says which one i
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /return `\$\{ENGINE\}\$\{window\.__benchLabel \? ` \$\{window\.__benchLabel\}` : ''\} · \$\{Math\.round\(fps\)\} fps/);
 });
+
+test('dynamic resolution leaves the scale alone where the main thread is what is slow (Handheld cpuBound)', () => {
+  const D = QUALITY_PRESETS.handheld.dynamic;
+  assert.ok(D.cpuBound > 0.5 && D.cpuBound < 1);
+  // missing refreshes with 20 ms of JS a frame: fewer pixels can't help, the scale holds
+  let s = { slow: 0, fast: 0, hold: 0 };
+  assert.equal(windows(s, D, 0.75, rep(12, { fps: 46, missed: 6, cpu: 20, period: 16.6 })), 0.75);
+  assert.equal(windows(s, D, 0.75, rep(12, { fps: 30, missed: 6, cpu: 30, period: 16.6 })), 0.75, 'nor for a low frame rate');
+  // the same frames with the main thread at 9 ms: the GPU is behind, the scale drops
+  s = { slow: 0, fast: 0, hold: 0 };
+  assert.ok(windows(s, D, 0.75, rep(6, { fps: 46, missed: 6, cpu: 9, period: 16.6 })) < 0.75);
+  // a preset without it: as before
+  s = { slow: 0, fast: 0, hold: 0 };
+  assert.ok(windows(s, { ...D, cpuBound: undefined }, 0.75, rep(6, { fps: 46, missed: 6, cpu: 20, period: 16.6 })) < 0.75);
+});
+
+test('the missed refreshes are counted from the animation frame\'s timestamp (main.js frame)', () => {
+  const src = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.match(src, /function frame\(ts\)/);
+  assert.match(src, /const tShown = Number\.isFinite\(ts\) \? ts : tFrame;\s*\n\s*if \(lastFrameT && gaps\.length < 200\) gaps\.push\(tShown - lastFrameT\);/);
+});
+
+test('the Steam Deck has its own preset, between Handheld and Medium, and Auto picks it there', async () => {
+  const { detectDeck } = await import('../src/perf.js');
+  const d = QUALITY_PRESETS.deck, h = QUALITY_PRESETS.handheld, m = QUALITY_PRESETS.medium;
+  assert.equal(d.scale, 1, 'its own 1280×800');
+  assert.ok(d.dynamic.min < 1 && d.dynamic.max === 1);
+  assert.ok(d.crowdFar > h.crowdFar && d.propFar > h.propFar && d.propFar < m.propFar);
+  assert.ok(d.floraFar > h.floraFar && d.floraFar < m.floraFar);
+  assert.ok(d.shadow.fine > 0 && d.shadow.fine < m.shadow.fine);
+  assert.equal(resolveQuality('auto', { deck: true }).key, 'deck');
+  assert.equal(resolveQuality('auto', { deck: true, handheld: true }).key, 'deck');
+  assert.match(resolveQuality('auto', { deck: true }).label, /^Auto: Steam Deck/);
+  assert.equal(resolveQuality('high', { deck: true }).key, 'high', 'a preset picked by hand stays');
+  assert.equal(detectDeck({ gpu: 'ANGLE (AMD, AMD Custom GPU 0932 (radeonsi vangogh ACO), OpenGL 4.6)' }), true);
+  assert.equal(detectDeck({ gpu: 'ANGLE (AMD, Vulkan 1.4 (AMD Custom GPU 0405 (RADV VANGOGH)), radv)' }), true);
+  assert.equal(detectDeck({ app: true }), true);
+  assert.equal(detectDeck({ gpu: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro)' }), false);
+  const { GRASS_QUALITY } = await import('../src/flora-grass.js');
+  assert.ok(GRASS_QUALITY.deck, 'the grass has the preset too');
+  const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
+  assert.match(ui, /<option value="deck">Steam Deck<\/option>/);
+});

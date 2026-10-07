@@ -8,6 +8,11 @@ import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
   { v: '0.76', date: '2026-10-07', items: [
+    'The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.',
+    'On handhelds the City-Shaft runs smoother when you look across the shaft: its terrace railings are drawn in far fewer pieces, the same as before.',
+    'On handhelds the picture no longer goes soft for nothing: the automatic resolution now notices every stutter, but only lowers the sharpness where that can help, and keeps it in busy places where the processor, not the graphics, is what slows the game.',
+    'The desert’s camps and other crowded places run a little smoother: people standing or sitting still a little way off move their idle breathing on every other frame.',
+    'The loading screen’s turning pen should keep turning smoothly while a world is built, instead of stopping for a moment now and then.',
     'The Buried Machine’s great wheel is solid just as it is drawn, and turns with you on it: you stand on its teeth and in the gaps between them, climb its rim and spokes, and once it turns it carries you round with it; a spoke sweeps you aside instead of passing through you, and you no longer stand on an invisible disc over its spokes.',
     'In the Buried Machine’s rust canyon, the heavy rims round the two cross-walls’ great oval openings are solid, so you climb and stand on them as drawn, and the way through each opening is bare floor: sand no longer banks up across it.',
     'In Lorn II’s Deep Wood every root is solid as it is drawn: the gnarled roots sprawling along the banks, the thin roots whipping round the great arches and the small roots splaying from their feet. You climb and stand on them instead of walking through them.',

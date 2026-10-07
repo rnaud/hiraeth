@@ -180,6 +180,9 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
   falls back to the speaker's initial instead of showing an empty coloured disc. That fallback is
   also the answer to the question: **if the Retroid now shows the initial letter in the circle, the
   capture is coming back empty on the device** and the fault is the canvas read, not the framing.
+  (Planned for the second Retroid round in the GeckoView test app, with the Sketchbook's captures, the game
+  menu's item pictures and a cab ride; not reached: the device was taken back. The loading pen's fix is in,
+  its device measurement too is still to do: docs/systems/performance.md, "The Retroid, second round".)
 
 ## Android
 
@@ -205,22 +208,33 @@ the game's JS runs in Unity, which only draws: docs/systems/engine-bridge.md). I
 glows and lines, the crowd's GPU figures, the cave's rounded walls, and players for macOS, Linux (the
 Deck's) and Android. What still differs from the web (engine-bridge.md, "What still differs"):
 
-- [ ] The Signal Market's façades lack the web's newer surface marks (the port's Surface shader
-  predates them), and its light pillar.
-- [ ] The web's grass blades (flora-grass.js) and wind streaks (wind.js) are not drawn. Looked into
-  (2026-10-06, the bridge run and shot in `output/engine-bridge/unity-grass*/`): **building** the
-  blades in the VM is one line in `engine/game.js` (`buildGrass` beside `buildFlora`, then
-  `grass.update(camera)` in the frame) and it works — the Garden of Spheres builds its two grass
-  meshes in Puerts. **Drawing** them is the port's: `Grass` is a plain `THREE.Mesh` carrying
-  `geometry.instanceCount` and a per-instance `aGrass` vec4, which `engine/mirror.js` describes as
-  an ordinary mesh (`capacity` is only read off an `InstancedMesh`), so Unity draws one blade at the
-  origin and the field is invisible. It wants a mirror kind and a Surface variant of its own, as
-  `MEMENTO_INSTMAT` and `MEMENTO_CROWD` are. The one-line VM change was reverted meanwhile, so the
-  VM does not pay for blades nothing draws. The wind streaks are not scene geometry at all: `wind.js`
-  is a screen-space overlay drawn over the composite from a scene of its own, so they belong to the
-  port's look, not to the mirror.
-- [ ] The web wakes the answering flowers by the traveller's nearness sooner.
-- [ ] Some of the web's people are MakeHuman bodies the bridge does not load yet.
+- [x] The Signal Market's façades lack the web's newer surface marks (the port's Surface shader
+  predates them), and its light pillar. (2026-10-06: the port's Surface and composite brought up to
+  materials.js / post.js — weathering, pen detail, colour patches, plating, lit windows, each surface's
+  shade, spot blacks, ink shadows, lines by material, haze by depth and height, the world-anchored
+  wobble, pebbles, no paper grain or vignette; the pillar is the jetpack box's beacon: the makers'
+  boxes now built in engine/game.js. Not ported: hatching that follows the form, `S_FORM`.)
+- [x] The web's grass blades (flora-grass.js) and wind streaks (wind.js) are not drawn. (2026-10-06:
+  `engine/mirror.js` kind `instgeo` — a plain mesh on an InstancedBufferGeometry: its instance count,
+  its attributes when they move, only the range rewritten — and op 12/13 to the port's Surface
+  `MEMENTO_GRASS`, now grass-shader.js's own fades (thinning by rank, the blend into the ground, the
+  far layer growing in); `buildGrass` + `grass.update(camera)` back in engine/game.js. The wind is the
+  web's own (wind.js: the traveller's push, the plants' uWind), its wisps a mesh in the mirrored
+  scene on the port's Memento/Wisp, their points and alpha a frame through op 8.)
+- [x] The web wakes the answering flowers by the traveller's nearness sooner. (2026-10-06: two causes. The
+  bridge paused the answering plants (and the animals) at a fixed view, which main.js doesn't; and a
+  material's colour and glow changed after it was sent never reached Unity, so a waking flower opened
+  but stayed its quiet green. The mirror now sends a material's live colour and glow (op 15, to every
+  copy the port made of it: lamps, beacons, the temples' lights too), and a view settles 1.5 s.)
+- [x] Some of the web's people are MakeHuman bodies the bridge does not load yet. (2026-10-06: engine/game.js
+  loads the world's MakeHuman people as main.js does (`usesMakeHuman`, `loadPeople`: the story's people,
+  the crowd's pooled bodies, everyone the story makes); body.bin read through the host, packed with the
+  players. Their faces' shape keys (FACE_KEYS, a texture the port's Surface doesn't read) stay at rest.)
+- [ ] What the bridge still leaves out (engine-bridge.md, "The web's newer look and the rest of the
+  world"): hatching that follows the form (`S_FORM`: its per-vertex axis), the makers' boxes' star and
+  ray (`MAKERS_BOX`), the MakeHuman faces' shape keys (`FACE_KEYS`), the overshirt's lining; some people
+  near the camera hold their things out sideways in Unity (not understood yet). And the coral-shirt
+  traveller's overshirt cloth steps on the VM's thread (the web: a Worker): its sim as a C# job.
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached.
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering

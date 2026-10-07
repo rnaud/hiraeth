@@ -73,3 +73,32 @@ export async function runStepsAsync(gen, slice = slicer()) {
 
 /** A level's builder, sync: `create` (tests) runs `build` straight through. */
 export const stepped = (build) => (...args) => runSteps(build(...args));
+
+/**
+ * Pacing a load's GPU work by the GPU's own progress (docs/systems/performance.md, "The loading pen"). The
+ * slicer gives the main thread back by its own clock, but what each slice queued for the GPU process (a
+ * program compiled and linked, a mesh's buffers and textures uploaded) runs there later, and slice after
+ * slice it piles up: the GPU process, which also composites the page, works through a backlog, and the
+ * loading screen's pen stops for 100-240 ms at a time though it turns on the compositor. pace() after each
+ * piece of GPU work puts a fence after it; before going on it waits (a task at a time, at most `most` ms)
+ * only while a fence put more than `lag` ms ago is still unsignaled: the GPU is that far behind. A GPU that
+ * keeps up costs nothing (a fence's status is seen a frame late at best, so waiting on every one would add a
+ * frame a piece). Without fences (WebGL 1, a test) it does nothing.
+ */
+export function gpuPacer(gl, { lag = 40, most = 250 } = {}) {
+  const queue = [];   // [fence, when put]
+  const ok = !!gl && typeof gl.fenceSync === 'function';
+  const signaled = (s) => gl.getSyncParameter(s, gl.SYNC_STATUS) === gl.SIGNALED;
+  const drop = () => { while (queue.length && signaled(queue[0][0])) gl.deleteSync(queue.shift()[0]); };
+  const pace = async () => {
+    if (!ok) return;
+    drop();
+    const t0 = now();
+    while (queue.length && now() - queue[0][1] > lag && now() - t0 < most) { await new Promise((r) => setTimeout(r, 2)); drop(); }
+    pace.waited += now() - t0;
+    queue.push([gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0), now()]);
+    gl.flush();
+  };
+  pace.waited = 0;
+  return pace;
+}

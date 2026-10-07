@@ -108,6 +108,26 @@ namespace Memento
             Shader.SetGlobalFloat("_PixelRatio", 1f);
             Shader.SetGlobalFloat("_Debug", debugView);
             Shader.SetGlobalVector("_Ink", post.C("ink"));
+            // the web's newer look (post.js): each surface's shade (materials.js SHADE), spot blacks, cast shadows lifted
+            // or printed as ink, haze in layers and fog by height (absent from an older export: all off)
+            Shader.SetGlobalFloat("_ShadowFlat", post.F("uShadowFlat", 0));
+            Shader.SetGlobalFloat("_Crevice", post.F("uCrevice", 0));
+            Shader.SetGlobalFloat("_ShadeKeep", shared.F("uShadeKeep", post.F("uShadeKeep", 0)));
+            Shader.SetGlobalFloat("_Halftone", shared.F("uHalftone", post.F("uHalftone", 0)));
+            Shader.SetGlobalFloat("_Bounce", shared.F("uBounce", post.F("uBounce", 0)));
+            Shader.SetGlobalFloat("_WearLite", shared.F("uWearLite", 0));
+            Shader.SetGlobalFloat("_PostLite", post.F("uPostLite", 0));
+            Vector4 V4(string k, Vector4 d) { var l = post.L(k); if (l == null) return d; var v = d; for (int j = 0; j < l.Count && j < 4; j++) v[j] = Json.Num(l[j]); return v; }
+            Shader.SetGlobalVector("_Haze", V4("uHaze", new Vector4(1, 1, 1, 0)));
+            Shader.SetGlobalVector("_Spot", V4("uSpot", new Vector4(0, 2.5f, 0.5f, 0)));
+            Shader.SetGlobalVector("_SpotTone", V4("uSpotTone", new Vector4(0.17f, 0.15f, 0.19f, 0.4f)));
+            Shader.SetGlobalVector("_HazeLayers", V4("uHazeLayers", new Vector4(300, 2, 0, 0)));
+            Shader.SetGlobalVector("_HazeTone", V4("uHazeTone", new Vector4(1, 1, 1, 0)));
+            Shader.SetGlobalVector("_HeightFog", V4("uHeightFog", new Vector4(0, 20, 0, 0)));
+            Shader.SetGlobalVector("_HeightFogTone", V4("uHeightFogTone", new Vector4(1, 1, 1, 0)));
+            Shader.SetGlobalVector("_Cast", V4("uCast", Vector4.zero));
+            Shader.SetGlobalVector("_InkShadow", V4("uInkShadow", Vector4.zero));
+            Shader.SetGlobalTexture("_LineNoise", LineNoise());
             // what the metals see below the horizon: the world's ground (materials.js setEnvGround)
             Shader.SetGlobalVector("_EnvGround", look.Get("envGround") != null ? (Vector4)look.C("envGround") : new Vector4(0.79f, 0.66f, 0.47f, 1));
 
@@ -153,6 +173,9 @@ namespace Memento
             Shader.SetGlobalVector("_PlanetCraters", craters);
             float time = Application.isPlaying ? Time.time : 0f;
             Shader.SetGlobalFloat("_MTime", time);
+            // (the bridge's look carries the web's own wind, materials.js uWind: downwind x, z in three's space, strength, gust)
+            var sw = look.O("shared")?.L("uWind");
+            if (sw != null && sw.Count >= 4) { windDir = new Vector2(Json.Num(sw[0]), Json.Num(sw[1])); wind = Json.Num(sw[2]); gust = Json.Num(sw[3]); }
             Shader.SetGlobalVector("_Wind", new Vector4(windDir.x, windDir.y, wind, gust));
 
             // the local lights nearest the subject
@@ -166,6 +189,24 @@ namespace Memento
             Shader.SetGlobalVectorArray("_MLights", lightBuf);
             if (subject) { var s = Three(subject.position); Shader.SetGlobalVector("_Brush", new Vector4(s.x, s.y, s.z, 0)); }
         }
+
+        /// <summary>
+        /// The ink lines' noise (post.js lineNoiseTexture): 128² random RGBA texels from the same xorshift, tiling, bilinear;
+        /// the composite reads it on the view's direction, so the lines' wobble turns with the world.
+        /// </summary>
+        public static Texture2D LineNoise()
+        {
+            if (lineNoise) return lineNoise;
+            const int n = 128;
+            var data = new byte[n * n * 4];
+            uint x = 0x9e3779b9;
+            for (int i = 0; i < data.Length; i++) { x ^= x << 13; x ^= x >> 17; x ^= x << 5; data[i] = (byte)(x & 255); }
+            lineNoise = new Texture2D(n, n, TextureFormat.RGBA32, false, true) { name = "line noise", wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Bilinear };
+            lineNoise.SetPixelData(data, 0);
+            lineNoise.Apply(false, true);
+            return lineNoise;
+        }
+        static Texture2D lineNoise;
 
         public static Vector3 Three(Vector3 v) => new Vector3(-v.x, v.y, v.z);
         static readonly Matrix4x4 Mirror = Matrix4x4.Scale(new Vector3(-1, 1, 1));

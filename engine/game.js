@@ -19,11 +19,15 @@ import { CONTENT } from '../src/levels/content.js';
 import { Physics } from '../src/physics.js';
 import { Waters } from '../src/water.js';
 import { Ship } from '../src/ship/ship.js';
-import { buildFlora, floraKeep } from '../src/flora.js';
+import { buildFlora, floraKeep, FLORA_WORLDS } from '../src/flora.js';
+import { buildGrass } from '../src/flora-grass.js';
 import { Player, CameraRig } from '../src/player.js';
 import { Controller, mergeControls } from '../src/controller.js';
 import { loadAnimationLibrary, Animator } from '../src/animator.js';
 import { loadHuman, Humanoid } from '../src/humanoid.js';
+import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
+import { loadTravellerV1, createTravellerV1 } from '../src/characters/traveller-v1.js';
+import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, buildPeople } from '../src/crowd.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
@@ -40,6 +44,7 @@ import { ReactiveWorld } from '../src/reactive-world.js';
 import { Flammables, flammableSpots } from '../src/flammable.js';
 import { runSteps } from '../src/load-steps.js';
 import { Weather } from '../src/weather.js';
+import { WindStreaks } from '../src/wind.js';
 import { Shelter } from '../src/shelter.js';
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
@@ -51,6 +56,7 @@ import { toastSeconds } from '../src/quest.js';
 import { selfLitSkips } from '../src/shadows.js';
 import { plainValue } from './ink-spec.js';
 import { Sound } from '../src/audio.js';
+import { createBoxes } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
 
 export { page };
@@ -69,6 +75,42 @@ function makeSound(levelId, { sampleRate = 48000, volume = 1 } = {}) {
   return s;
 }
 
+/**
+ * The coral-shirt traveller's colours for an engine: his skin's texture is a JPEG no engine VM decodes, so its sampled
+ * colours (colors.json, sRGB, in the mesh's vertex order) go on as vertex colours, linear as the cloth's are; and every
+ * part is marked as carrying linear colour (tripo-material.js turns it to the game's display values in its shader:
+ * the engines' ink surfaces do the same by userData.albedoLinear).
+ */
+function engineColours(ch, { gltf, colors }) {
+  const parts = [ch.mesh, ch.cloth?.garment, ch.cloth?.underlayer, ch.cloth?.innerShirt].filter(Boolean);
+  let src = null;
+  gltf?.scene?.traverse((o) => { if (o.isSkinnedMesh && !src) src = o.geometry.attributes.position; });
+  if (!src || colors?.length !== src.count) return;
+  // (the cloth rebuilt the skin's geometry and cut the overshirt from it, at rest still, its seams split: each vertex
+  // finds its colour by its place)
+  const key = (a, i) => `${Math.round(a.getX(i) * 1e4)},${Math.round(a.getY(i) * 1e4)},${Math.round(a.getZ(i) * 1e4)}`;
+  const at = new Map();
+  for (let i = 0; i < src.count; i++) at.set(key(src, i), i);
+  const col = new THREE.Color();
+  for (const part of [ch.mesh, ch.cloth?.garment]) {
+    const P = part?.geometry?.attributes?.position;
+    if (!P || part.geometry.attributes.color || part.material.uniforms?.uMap?.value?.image) continue;
+    const c = new Float32Array(P.count * 3);
+    let found = 0;
+    for (let i = 0; i < P.count; i++) {
+      const j = at.get(key(P, i));
+      if (j === undefined) continue;
+      found++;
+      col.setRGB(colors[j][0] / 255, colors[j][1] / 255, colors[j][2] / 255).convertSRGBToLinear();
+      c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b;
+    }
+    if (found < P.count * 0.8) continue;   // (not the same places: left as it is)
+    part.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
+    part.material.vertexColors = true;
+  }
+  for (const p of parts) for (const m of Array.isArray(p.material) ? p.material : [p.material]) if (m) m.userData.albedoLinear = true;
+}
+
 /** A system the engine can do without: built if it can be, said once if not. */
 function optional(name, make) { try { return quiet(make); } catch (e) { console.warn(`[game] ${name} left out: ${e?.message ?? e}`); return null; } }
 
@@ -79,8 +121,10 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
   'uLineWidth', 'uLineVary', 'uDepthThresh', 'uNormalThresh', 'uAlbedoEdges', 'uShadowEdges', 'uWobble', 'uHaze', 'uAerial', 'uSkyFlat', 'uSkyBands', 'uHazeBands',
   'uHalftone', 'uBounce', 'uShadeKeep', 'uFlatten', 'uNight', 'uSunDisc', 'uPaper', 'uGrain', 'uSkyDots', 'uCrevice', 'uAO', 'uEnvGround',
   'uSunColor', 'uMoonDisc', 'uMoonVis'];
+/** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
+export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, log = () => {} } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', log = () => {} } = {}) {
   const T = {};
   const t0 = performance.now();
   // the save's flags to start from (the side-by-sides: the web bench's, scripts/bench/web-page.mjs prepareStorage)
@@ -91,8 +135,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const content = CONTENT[levelId];
   // start the loads the way main.js does: the clips, the traveller, the bodies
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
-  const travellerP = new GLTFLoader().loadAsync('anim/traveller.glb').then((g) => g.scene).catch(() => null);
+  // the traveller as main.js has him: the coral-shirt traveller (src/characters/traveller-v1.js), his overshirt's cloth
+  // stepped on this thread (no workers in the engines' VMs: tripo-cloth.js falls back); the old suit if he can't load
+  const travellerV1P = loadTravellerV1('').catch((e) => { log('traveller v1 unavailable', e?.message ?? e); return null; });
   const humansP = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { log('human models failed', e); return null; });
+  // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md), each world's as main.js has them
+  const mhP = people && usesMakeHuman(levelId) ? loadPeople('', levelId).catch((e) => { log('MakeHuman bodies unavailable', e?.message ?? e); return null; }) : null;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(55, width / height, 0.3, 5000);
@@ -112,14 +160,29 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   });
   const lib = await animLib;
   if (lib) player.animator = player._animator = new Animator(lib, player.char);
-  const humans = await humansP;
-  const travellerTemplate = await travellerP;
-  if (humans && travellerTemplate) player.humanoid = new Humanoid(humans[0], player.char, 'm', { outfit: travellerTemplate });
+  const humans0 = await humansP;
+  // (the people's templates: MakeHuman's man and woman where the world has them, else the Quaternius pair; the traveller
+  // keeps his own body)
+  const humans = humans0 && mhP ? ((await mhP)?.humans() ?? humans0) : humans0;
+  const generated = await travellerV1P;
+  if (generated) {
+    try {
+      player.character = createTravellerV1(player.char, generated);
+      player.humanoid = player.character.humanoid;
+      engineColours(player.character, generated);
+    } catch (e) { log('traveller v1 failed', e?.message ?? e); player.character = null; }
+  }
+  if (!player.humanoid && humans0) {
+    const travellerTemplate = await new GLTFLoader().loadAsync('anim/traveller.glb').then((g) => g.scene).catch(() => null);
+    if (travellerTemplate) player.humanoid = new Humanoid(humans0[0], player.char, 'm', { outfit: travellerTemplate });
+  }
   player.attach(scene);
   const heroMaterials = markHero(player.char.root);
   markHero(player.gear?.device, heroMaterials);
   markHero(player.cape?.mesh, heroMaterials);
   if (player.mount) scene.add(player.mount.object);
+  // the world's vehicles (the self-driving cabs: src/taxi.js), as main.js gives them to the traveller
+  player.vehicles.push(...(level.vehicles ?? []));
   stamp('traveller');
   const npcs = [];
   if (people && content?.npcs?.length && humans && lib) {
@@ -158,10 +221,17 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
   stamp('people');
+  // the makers' boxes (src/boxes/): each with its beacon, the pale pillar of light over a box that must be found
+  const boxes = optional('the boxes', () => createBoxes({ levelId, scene, physics, level, player, sound, quests: story?.quests ?? null, toast,
+    anchor: () => ship?.arrivalSpot?.() ?? null, quiet: () => !!story?.dialogue?.open, cam: null }));
   // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), before the flora keeps clear of them
   const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
-  const flora = quiet(() => buildFlora({ scene, level, levelId, physics, keep: floraKeep({ level, content, ship, npcs, crowd, reactiveWorld }) }));
+  const flora = quiet(() => buildFlora({ scene, level, levelId, physics, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
   if (flora?.noShadow) (level.noShadow ??= []).push(...flora.noShadow);
+  // grass blades round the camera on the grassy grounds (flora-grass.js), by the graphics preset (the bench's: High), as main.js grows them
+  const grass = optional('the grass blades', () => buildGrass({ scene, level, physics, presetKey: grassPreset, water: FLORA_WORLDS[levelId]?.water,
+    keep: [ship?.site && { x: ship.site.x, z: ship.site.z, r: 9 }, ship?.rampFoot && { x: ship.rampFoot.x, z: ship.rampFoot.z, r: 3 }] }));
+  if (grass) (level.noShadow ??= []).push(...grass.meshes);
   // the world's life and weather, the fluid tool and the drone, as main.js builds them
   // what burns (flammable.js: the brambles, the dry stands, the lamps a flame lights)
   const flammables = optional('what burns', () => new Flammables(scene, flammableSpots(level), { lights: (level.lights ??= []), sound }));
@@ -176,6 +246,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const wildlife = optional('wildlife', () => new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife }));
   const weather = optional('weather', () => new Weather(content.weather));
   const shelter = optional('shelter', () => new Shelter(physics));
+  // the wind (wind.js): its direction and gusts for the traveller, the plants and the grass, and its wisps of blown sand
+  // (on the page a screen overlay of their own; here a mesh in the mirrored scene, on the port's Memento/Wisp)
+  const wind = optional('the wind', () => new WindStreaks());
+  if (wind) {
+    wind.uniforms.uInk.value = new THREE.Color('#2b211f');
+    scene.add(wind.mesh);
+    (level.noShadow ??= []).push(wind.mesh);
+  }
   const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
   const scout = optional('the drone', () => new Scout({ scene, player, physics, sound, getTarget: () => nextObjective({ player, story: null, ship: level.ship, level, quest: () => story?.objective?.() }) }));
   stamp('life');
@@ -281,7 +359,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
 
   const lookOut = {};
   const game = {
-    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, sky, post, T, wildlife, weather, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, grass, wind, sky, post, T, wildlife, weather, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
@@ -305,7 +383,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
     /** The look with every number of the preset and the shared uniforms (the C# port's look format: unity/port-format.js portLook). */
     fullLook() {
-      const nums = (o) => { const out = {}; for (const [k, x] of Object.entries(o)) if (typeof x?.value === 'number') out[k] = x.value; return out; };
+      // (numbers, and the look's few vectors: the spot blacks, the haze by depth and height, the cast shadows lifted or inked)
+      const nums = (o) => { const out = {}; for (const [k, x] of Object.entries(o)) { if (typeof x?.value === 'number') out[k] = x.value; else if (LOOK_VECTORS.has(k)) { const v = plainValue(x?.value); if (v) out[k] = v; } } return out; };
       return { ...this.lookParams(), post: nums(U), shared: nums(sharedUniforms), preset: presetName, planets: level.sky?.planets ?? [] };
     },
     /**
@@ -344,6 +423,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (U.uStorm) U.uStorm.value = Wx.storm ?? 0;
         if (U.uFogMul) U.uFogMul.value *= 1 + (W.fog ?? 0) * 2.6 + (Wx.storm ?? 0) * 2.2 + (Wx.rain ?? 0) * 0.6;
       }
+      if (wind) {
+        // (main.js: the wind on the traveller, and the plants' and the grass's uWind)
+        wind.boost = Wx?.storm ?? 0;
+        const [wx, wz] = wind.windDir, st = Wx?.storm ?? 0, rn = Wx?.rain ?? 0;
+        const k = (level.features.wind ? 2.5 : 1.2) * (1 + st * 3.5 + rn * 0.6) * (1 - 0.8 * (shelter?.indoor ?? 0));
+        player.wind?.set(wx * k, 0, wz * k);
+        sharedUniforms.uWind.value.set(wx, wz, (level.features.wind ? 1 : 0.55) * (1 + st * 2 + rn * 0.4), wind.gust());
+        if (post.uniforms.uInk) wind.uniforms.uInk.value = post.uniforms.uInk.value;
+      }
       level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
       sharedUniforms.uTime.value = simT;
       crowd?.update(dt, simT, player, camera);
@@ -356,6 +444,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const busy = !!story?.busy?.();
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
       player.update(dt, pinned || busy ? noInput : ctl, rig.yaw, rig.pitch);
+      // the vehicles no one rides go about (the cabs on their lanes; main.js)
+      for (const v of player.vehicles) if (v !== player.ride) { try { v.update(dt, null, simT); } catch (e) { if (!game._vehiclesFailed) { game._vehiclesFailed = true; console.warn('[game] a vehicle failed', e?.stack ?? e); } } }
       if (pinned) {
         // a fixed view: the traveller stands (idle), the camera is pinned to the eye
         camera.position.copy(pinned.eye); camera.quaternion.copy(pinned.q);
@@ -367,6 +457,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         rig.update(player.pos, dt, player.frame);
         story?.frameCamera?.(camera);   // the two-shot while talking
       }
+      try { boxes?.update(dt, simT, { camera }); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
+      // the fingers (hands.js: relaxed, gripping, gesturing), the coral-shirt traveller's own hands after (main.js)
+      try { updateHands(dt, { player, npcs, camera }); player.character?.updateHands?.(); } catch (e) { if (!game._handsFailed) { game._handsFailed = true; console.warn('[game] the hands failed', e?.stack ?? e); } }
       hud(dt, busy);
       level.update?.(dt, simT, { player, rig, camera, passage: null, fade: () => {} });
       // the world's life, the tool and the drone (main.js's order)
@@ -376,8 +469,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         for (const f of flocks) f.update(dt, simT, player.pos, camera.position);
         motes?.update(dt, simT, camera.position);
         footprints?.update(dt);
-        wildlife?.update(dt, simT, player, camera, busy || !!pinned);
-        reactiveWorld?.update(dt, simT, player, camera, busy || !!pinned);
+        // (not paused at a fixed view, as main.js doesn't pause them for the bench's: the answering plants wake as the
+        // traveller stands by them, the animals go about)
+        wildlife?.update(dt, simT, player, camera, busy);
+        reactiveWorld?.update(dt, simT, player, camera, busy);
         flammables?.update(dt, simT, player.pos);
       } catch (e) { if (!game._lifeFailed) { game._lifeFailed = true; console.warn('[game] a system failed in its update', e?.stack ?? e); } }
       if (ctl.KeyQ && !qWasDown && scout && !busy) scout.ping?.();
@@ -385,7 +480,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // the sound's wind, rain and steps (main.js: sound.update; the gust as wind.js's)
       if (sound !== SILENT) {
         try {
-          const gust = Math.max(Math.min(Math.max(0.35 + 0.45 * Math.sin(simT * 0.21) + 0.3 * Math.sin(simT * 0.53 + 1.7), 0), 1), Wx?.storm ?? 0);
+          const gust = wind ? wind.gust() : Math.max(Math.min(Math.max(0.35 + 0.45 * Math.sin(simT * 0.21) + 0.3 * Math.sin(simT * 0.53 + 1.7), 0), 1), Wx?.storm ?? 0);
           const ground = level.ground?.heightAt ? level.ground.heightAt(player.pos.x, player.pos.z) : player.pos.y;
           sound.update(pinned || busy ? CALM : {
             speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust, storm: Wx?.storm ?? 0, rain: Wx?.rainOut ?? 0, rainRoof: Wx?.rainRoof ?? 0,
@@ -398,6 +493,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // the plants in view within their distance (main.js renderFrame: flora.update, before the frame is drawn)
       camera.updateMatrixWorld();
       flora?.update?.(camera, 1, null);
+      // the grass round the camera: the tufts that wrapped placed again (flora-grass.js; the patch placed whole on its first frame)
+      grass?.update(camera);
+      // the wind's wisps round the traveller (their ribbons turned to the camera, a pixel's width from its field of view)
+      if (wind && level.ground?.heightAt) wind.update(dt, player.pos, camera, level.ground, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height, !!level.features.wind);
+      // the traveller's feet for the plants and the grass to part round (the engine's own, a frame's worth: brush.js on the web)
+      backend?.brush?.(player.pos, Math.hypot(player.vel.x, player.vel.z));
       const tB = performance.now();
       mirror.time = simT;
       const stats = mirror.sync(scene, camera);
