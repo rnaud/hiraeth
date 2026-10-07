@@ -1,0 +1,76 @@
+TODO.md
+  s_0a0e834cfcfe52::t_5c4ca22423cac9 21-23
+changelog.md
+  s_0a0e834cfcfe52::t_c4a85a992335cd 5-13
+docs/README.md
+  s_0a0e834cfcfe52::t_8f60ea6a4f2166 32
+docs/systems/controls.md
+  s_0a0e834cfcfe52::t_f789aaa777aa7e 14,42
+docs/systems/foes.md
+  s_0a0e834cfcfe52::t_14e965841e6373 1-75
+index.html
+  s_0a0e834cfcfe52::t_085394d6cd118f 399,402
+src/audio.js
+  s_0a0e834cfcfe52::t_a578b683202801 37-38,1151-1193
+src/changelog-media.js
+  s_0a0e834cfcfe52::t_0acb208f0901b3 119-132
+src/changelog.js
+  s_0a0e834cfcfe52::t_ddb946194ae532 12-19
+src/controller.js
+  s_0a0e834cfcfe52::t_61bb2334dc5f9c 135
+src/costumes.js
+  s_0a0e834cfcfe52::t_e853bfdc5852bf 415-422
+src/edge.js
+  s_0a0e834cfcfe52::t_ed1fe2bccd1540 33
+src/fluid-blade.js
+  s_0a0e834cfcfe52::t_e649431477f54f 1-167
+src/fluid-tool.js
+  s_0a0e834cfcfe52::t_930766ee6af6b8 11,101,704,723,811,928-929,965-966
+src/foes.js
+  s_0a0e834cfcfe52::t_6698da3c233553 1-444
+src/levels/arena.js
+  s_0a0e834cfcfe52::t_5240f7004c611b 1-64
+src/levels/content.js
+  s_0a0e834cfcfe52::t_d54a412e7f8acf 121-131
+src/levels/index.js
+  s_0a0e834cfcfe52::t_6f2dd7c6afc56f 10,188-194
+src/main.js
+  s_0a0e834cfcfe52::t_95bca087904fbc 74,609-610,1309,1483,1696
+src/makehuman/people.js
+  s_0a0e834cfcfe52::t_ea14d71ed3aae8 166
+src/reactive-world.js
+  s_0a0e834cfcfe52::t_77ccc73ca2607f 25
+src/temples/boss.js
+  s_0a0e834cfcfe52::t_299c6a531eeeb0 81
+src/ui.js
+  s_0a0e834cfcfe52::t_026dd6ff42381d 28,72-73,76,80,90,147-148,285-286
+src/wildlife.js
+  s_0a0e834cfcfe52::t_0b4e89f752a27b 222
+tests/fluid-tool.test.js
+  s_0a0e834cfcfe52::t_7793389f09a370 72,80-81
+tests/foes.test.js
+  s_0a0e834cfcfe52::t_47bb898940e432 1-169
+tests/makehuman.test.js
+  s_0a0e834cfcfe52::t_045c04c3d6aa5a 88
+tests/scripts.test.js
+  s_0a0e834cfcfe52::t_9d99aef53e883a 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1e9e71390372e13e0c5545746951839d5f2c4373",
+  "prompts": {},
+  "sessions": {
+    "s_0a0e834cfcfe52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ade28b2d-b826-430e-b2e2-c43a0ae93ce3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
