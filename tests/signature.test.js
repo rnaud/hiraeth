@@ -7,7 +7,6 @@ import { TONES } from '../src/story/tone.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { LEVELS } from '../src/levels/index.js';
 import { ORDER } from '../src/levels/content.js';
-import { EXTRA } from '../src/levels/names.js';
 import { HOME_ID } from '../src/story/ending.js';
 
 test('every travel destination on the route carries the strike’s signature; home and the hidden places do not', () => {
@@ -16,8 +15,7 @@ test('every travel destination on the route carries the strike’s signature; ho
     assert.ok(SIGNATURE_WORLDS[id].reading && SIGNATURE_WORLDS[id].where, `${id} has a reading and a place`);
   }
   // every world you can choose on the map (not hidden) is a signature world
-  // (the worlds off the route, names.js EXTRA, are charted from the start: no signature led there)
-  for (const L of LEVELS.filter((l) => !l.hidden && !EXTRA.includes(l.id))) assert.ok(hasSignature(L.id), `${L.id} is on the map, so it carries the signature`);
+  for (const L of LEVELS.filter((l) => !l.hidden)) assert.ok(hasSignature(L.id), `${L.id} is on the map, so it carries the signature`);
   assert.deepEqual(Object.keys(SIGNATURE_WORLDS).sort(), [...ORDER].sort(), 'and nothing else does');
   for (const id of [HOME_ID, 'atelier', 'lab']) assert.ok(!hasSignature(id), `${id}: no signature`);
   assert.equal(signatureReading(HOME_ID), null);
@@ -29,7 +27,7 @@ test('every travel destination on the route carries the strike’s signature; ho
 test('the galactic map marks the signature on every world, not on home', () => {
   const journal = { storyDone: (id) => ORDER.slice(0, 6).includes(id), seen: () => false };
   const entries = mapEntries({ order: ORDER, levels: LEVELS, journal, current: 'buried', flag: () => undefined, home: () => true });
-  for (const e of entries.filter((x) => !x.home && !x.extra)) assert.equal(e.signature, true, e.id);
+  for (const e of entries.filter((x) => !x.home)) assert.equal(e.signature, true, e.id);
   assert.equal(entries.find((e) => e.home).signature, false);
 });
 

@@ -7,7 +7,7 @@ import { createWaterfall, CAVE, BALCONIES, SHIP_SITE, SHEETS, roarAt, groundHeig
 import { Physics } from '../src/physics.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
-import { EXTRA, TITLES } from '../src/levels/names.js';
+import { SIDE, TITLES } from '../src/levels/names.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { makeMaterial } from '../src/materials.js';
 import { FALL } from '../src/waterfall-shader.js';
@@ -23,15 +23,15 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
 test('the world is registered off the route: in the worlds list, on the galactic map from the start, never counted', () => {
   const meta = LEVELS.find((l) => l.id === 'waterfall');
-  assert.ok(meta && !meta.hidden && !meta.dev, 'a world of the list');
+  assert.ok(meta && !meta.dev, 'a world (hidden from the route\'s list, as the White Mangrove)');
   assert.equal(meta.title, TITLES.waterfall);
-  assert.ok(EXTRA.includes('waterfall') && !ORDER.includes('waterfall'), 'off the route');
+  assert.ok(SIDE.includes('waterfall') && !ORDER.includes('waterfall'), 'off the route');
   assert.equal(CONTENT.waterfall.relics.names.length, 0);
   assert.equal(CONTENT.waterfall.story.manual, true, 'no page closes by walking somewhere');
-  const entries = mapEntries({ order: ORDER, levels: LEVELS, flag: () => false, journal: null, current: 'desert', home: false });
+  const entries = mapEntries({ order: ORDER, levels: LEVELS, flag: () => false, journal: null, current: 'desert', home: false, side: SIDE });
   const e = entries.find((x) => x.id === 'waterfall');
-  assert.ok(e && e.known && e.extra, 'charted from the first world on');
-  assert.equal(entries.filter((x) => !x.extra && x.known).length, 3, 'the route itself is as before: the desert and the two ahead');
+  assert.ok(e && e.known && e.side, 'charted from the first world on');
+  assert.equal(entries.filter((x) => !x.side && x.known).length, 3, 'the route itself is as before: the desert and the two ahead');
 });
 
 test('the promenade, the bridges and the balconies are solid where they are drawn; the pool is under the curtain', () => {

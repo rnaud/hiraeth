@@ -43,6 +43,7 @@ export const WORLDS = [
   ['home', 'Home', /at home|houses at home/],
   ['viridel', 'Viridel', /Viridel/],
   ['garage', 'The Sealed Hangar', /First Garage|Sealed Hangar/],
+  ['mangrove', 'The White Mangrove', /White Mangrove/],
   ['references', 'References', /References level/],
 ];
 
@@ -110,6 +111,28 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.84': [
+    { match: 'A new world off the route, the City Behind the Waterfall', shots: [
+      { name: 'falls-promenade', caption: 'The promenade along the falls, the lower town climbing the back wall, the small fall at the deep end', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'falls-balcony', caption: 'From a balcony behind the water: the terraces of rounded houses, the cafés on the promenade', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'falls-night', caption: 'The deep quarter at night: the falls glowing, the houses’ lamps and lit doors', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'Open the ship’s galactic map: the City Behind the Waterfall is charted beside the route. Walk from the landing into the cavern, along the promenade, out onto a balcony, and down the quay’s stair to the pool.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of frames, median of 7 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The City Behind the Waterfall”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 2.03, after: null },
+          { where: 'the landing (spawn)', before: null, after: 1.1 },
+          { where: 'the promenade', before: null, after: 1.24 },
+          { where: 'the deep quarter', before: null, after: 1.12 },
+        ] },
+      ] },
+    { match: 'Waterfalls are drawn the way the drawings draw them', shots: [
+      { name: 'falls-curtain', caption: 'The curtain from the cavern mouth: the bands, the pen streaks and the slits of light', only: 'after', from: 'the world’s own screenshots, headless Chrome, High (7 October)' },
+    ], see: 'Stand by the parapet on the promenade and watch the water: the bands keep their places while their breaks stream down; walk toward the falls and back to hear the roar rise and fall.' },
+    { match: 'The References level has the City Behind the Waterfall’s four pictures', shots: [
+      { name: 'refs-waterfall-terraces', caption: 'The picture (left) and its view (right): the terraces of domes beside the great fall', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'refs-waterfall-pink', caption: 'The picture (left) and its view (right): the city’s slope at the pink hour, the falls on the left', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open the References (?level=references&world=waterfall) and press Tab for the quick menu: the City Behind the Waterfall’s four views; the backslash key (View on a pad) compares each with its picture.' },
+  ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [
       { name: 'relay-signal', caption: 'The galactic map six worlds along: the Signal Market, not charted yet, pulses as “a signal” (home’s panel says where it is)', commit: '1af87675',
@@ -148,10 +171,16 @@ export const CHANGELOG_MEDIA = {
         { where: 'the wide view down the shaft from the rim', before: 25.4, after: 27.3 },
       ], note: 'A second run: 22.7 → 24.3 and 27.0 → 28.8. The city’s crowd is about as large as before (1 373 → 1 505 people), spread round the whole ring.' },
     ], see: 'In the City-Shaft, look down into the pit from the rim, or fly out over the middle on the jets: every level’s terrace now rings the shaft, with only narrow gaps between its stretches.' },
-    { match: 'In the References level, a new world’s drawings: the City Behind the Waterfall', shots: [
-      { name: 'refs-waterfall-terraces', caption: 'The sheet (left) and its view (right): the terraces of domes beside the great fall', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
-      { name: 'refs-waterfall-pink', caption: 'The sheet (left) and its view (right): the city’s slope at the pink hour, the falls on the left', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
-    ], see: 'Open the References (?level=references&world=waterfall) and press Tab for the quick menu: the City Behind the Waterfall’s four views; the backslash key (View on a pad) compares each with its sheet.' },
+    { match: 'A new world off the route, the White Mangrove', shots: [
+      { name: 'mangrove-arrival', only: 'after', caption: 'Out of the ship on the White Mangrove’s landing island at dusk: the landing stage, Bram, the walk to the great tree', from: 'the world’s own screenshots, headless Chrome, High, 17:48 (7 October)' },
+      { name: 'mangrove-deck', only: 'after', caption: 'From the deck round the great tree: a house, the ring walk and a spoke, the next tree’s stair and its deck', from: 'the world’s own screenshots, headless Chrome, High, 17:48 (7 October)' },
+      { name: 'mangrove-water', only: 'after', caption: 'Swimming in the black lake among the roots, the bridges and stairs overhead', from: 'the world’s own screenshots, headless Chrome, High, 18:12 (7 October)' },
+      { name: 'mangrove-night', only: 'after', caption: 'The walk from the landing stage at night', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the White Mangrove on the galactic map (or open the game with ?level=mangrove). Walk north from the landing stage to the great tree and climb its stair; Oyo is on the deck, Fen by the stair of a tree to the north-west, Bram at the landing.' },
+    { match: 'The References level has the White Mangrove’s four pictures', shots: [
+      { name: 'mangrove-refs', only: 'after', size: [2920, 816], caption: 'The first picture (left) and its view in the game (right): the landing stage, the lit roots, the long walk', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'mangrove-refs-causeway', only: 'after', size: [2920, 816], caption: 'The fourth: the pale causeway and the tree towers', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=mangrove (or the worlds list, L, then the References and Tab to the White Mangrove) and press \\ to set each panel beside its view.' },
   ],
   '0.82': [
     { match: 'The camera follows closer', shots: [

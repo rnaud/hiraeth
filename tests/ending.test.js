@@ -9,7 +9,6 @@ import { mapEntries, consoleAction } from '../src/ship/starmap.js';
 import { HomecomingDirector } from '../src/ship/homecoming.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
-import { EXTRA } from '../src/levels/names.js';
 import { HOME_SPOTS, tombSlots, SLAB, tokenModel } from '../src/levels/home.js';
 import {
   ENDING_WORLDS, HOME_ID, NOTHING, ALL, endingUnlocked, homeOpen, homeEntry, tokenList, tokenLine, leaveTokens, chosenKeepsake,
@@ -61,7 +60,7 @@ test('Home appears on the galactic map once the ending is open, at the centre of
   const list = mapEntries({ ...base, home: () => true });
   const home = list.find((e) => e.id === HOME_ID);
   assert.ok(home && home.home && home.title === 'Home', 'Home is a destination');
-  assert.equal(list.length, ORDER.length + EXTRA.length + 1, 'the route, the worlds off it, home');
+  assert.equal(list.length, ORDER.length + 1);
   assert.ok(!home.current);
   assert.ok(homeEntry({ unlocked: false, current: HOME_ID })?.current, 'standing at home, it is on the map anyway');
   // the level exists, hidden like the Atelier, with its people

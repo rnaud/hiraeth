@@ -23,6 +23,7 @@ in [story.md](story.md)); `?level=<id>` and the dev menu still open any world. E
 | 9 | **The Buried Machine** (`buried`) | a machine under the dunes | climb, jetpack |
 | 10 | **The Garden of Spheres** (`spheres`) | spheres that answer | walk, climb |
 | 11 | **The Signal Market** (`bazaar`) | a market where everything talks | walk, taxis (with a pass) |
+| – | **The White Mangrove** (`mangrove`, off the route) | a village in the white roots | walk, climb, swim |
 
 Nothing in the game is named after a Moebius work (v0.39): the worlds, people and
 places all have names of their own. The level ids (`arzach`, `edena`, `garage`,
@@ -452,3 +453,97 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   The reel knows her too, never by name ("the little one"): one line from the mother in
   recording 5 ("She has your hands, love") and one from the father in the last recording
   (`src/story/calls.js`; `tests/ending.test.js`).
+
+## The White Mangrove (`mangrove`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The White Mangrove/`; the views:
+references.md): a settlement in a mangrove of enormous bone-white trees standing on arching roots in a
+black lake, houses on decks round the trunks, plank walks with lanterns, the lake's creatures glowing blue
+and pink. No story to follow and no errands: three people from other worlds came to see it (Oyo, the
+market's lantern seller, on the great tree's deck; Fen of the Deep Wood by a stair; Bram at the landing),
+and five of the lake's folk stand on its walks and decks, each with a few toned lines of their own.
+
+- **Off the route** (`SIDE` in `src/levels/names.js`): on the ship's galactic map from the start, after the
+  route's worlds and before home, off the dotted line (`mapEntries({ side })`, src/ship/starmap.js); never
+  counted toward the way home (`completedWorlds` reads `ORDER`); hidden in the worlds list until visited.
+  `?level=mangrove` opens it. Its people speak Lorn II's tongue (`lang: 'perdide2'`): a world off the route
+  borrows a neighbour's script (tests/scripts.test.js).
+- **The layout** (`src/levels/mangrove.js`): the landing island in the south (the ship's site, its ramp
+  toward the landing stage), a walk north to the great tree (r 4.5, its deck 11.3 m up), a ring walk 34 m round
+  it and spokes to five trees 68 m out, each with a stair from a platform on the water up to the deck round its
+  trunk (the stair off the line of the bridges), houses on each deck; rope bridges from the great tree's deck
+  to three of them; thirteen trees with no deck further out and between, houses in their forks; the banks and
+  the wood behind closing the world at ~300 m. The low walks run 1.2 m over the water, rail-less (you can fall
+  in: the lake is 2.6 m deep and swum, and the mantle climbs back out); stairs, bridges and decks are railed,
+  the railing open where a stair, bridge or house meets it (`ringDeck({ gaps })`).
+- **Solid as drawn**: the trees (trunks, skirts, roots, limbs, leaves), decks, houses, stairs and walks are the
+  collision (SAH BVH, ~218 k triangles, 20 k ground rays 7 ms and capsule pushes 10 ms, Lorn II's 16 and 25);
+  the decked trees spring no roots over their decks (`upperRoots: false`); planks overlap a little (no gap a
+  ray or a foot finds) and alternate by 6 mm (no flicker). Contact audit: climbs inside 6 (≤ 0.7 m), nothing
+  else. `tests/mangrove.test.js` walks every walk, deck and stair.
+- **Draws**: everything static is a dozen merged meshes (RoomKit buckets by material), the lake's 8 000
+  creatures one instanced draw (a colour each), the bushes one, four boats poled round the lake (movers). No
+  static mesh casts a shadow (the twilight's are lifted anyway: `uCast`).
+- **The look**: `MANGROVE_LOOK` (mangrove-kit.js) on the print preset; the day lilac, the dusk violet (the
+  sheets: the default hour is 17.8, the sun low behind the trees), the night indigo with its stars; fog
+  weather; the swamp's ambience, footsteps on stone (the planks); bats overhead, warm motes.
+- **Cost** (desktop, M-series Mac shared with other agents' jobs, Chrome on Metal, Handheld preset at render
+  scale 0.75, 1280 × 720, a loop of 90 `renderFrame` + a pixel read, median ms, two rounds alternating with the
+  Signal Market): the market's spawn 6.6 / 5.9 ms (363 / 598 draws, 0.43 / 0.69 M triangles); the mangrove's spawn
+  5.5 / 4.9 (353 / 381, 0.74 M), the landing stage 6.3 / 4.0 (329, 0.72 M), the great tree's deck 5.9 / 3.1
+  (137 / 304), out on the water 5.0 / 3.8 (161 / 289). At or under the market's frame time and draws; more
+  triangles at the spawn (the trees in the view and the shadows' passes).
+- **Left to make it better**: the water draws a shore's foam under the low walks (the bed map counts their
+  planks as the bed: a per-mesh "not a bed" mark in water.js would drop it); the lanterns light no colour on the
+  roots (the shader's local lights only lift the shade); the creatures are flat spots, not a soft glow under
+  the surface; the houses can't be entered; the boats pass through the stilts.
+
+
+## The City Behind the Waterfall (`waterfall`, off the route, October 2026)
+
+`src/levels/waterfall.js` (`?level=waterfall`; a SIDE world in `src/levels/names.js`, charted on the ship's map from the
+start, no quest, no relics: `manual: true`), after its four pictures (`references/The City Behind the Waterfall`,
+references.md). Its pieces are in `src/levels/waterfall-kit.js`, shared with the views.
+
+- **The layout**: a cavern running along x (−310 … 44), its back wall at z −100, its roof's lip at y 150 over the
+  curtain (z 40). The **landing** (x 44 … 214), a shelf of stone outside the east mouth, open to the sky: the ship
+  (`shipSite` 140, 2, its hatch toward the cavern), lamps, a low wall over the drop. The **promenade** (y 0, z −10 …
+  22) the whole length of the cavern, its parapet over the pool, cafés and pots by it; three short bridges out to
+  **balconies** standing behind slits in the water (`BALCONIES`, the curtain's `SHEETS` leave a gap before each),
+  looking out over the valley; a stair down to a quay on the **pool** (y −17, 4 m deep: swim in it). The **lower
+  town** (x −150 … 30) and the **deep quarter** (x −290 … −158): `quarter`s of six terraces each, every one a solid
+  block of stone with its street, rounded houses against the riser behind (pods, vaults, rounded blocks: arched
+  doors and round windows, a share lit amber, awnings, lamps), stairs climbing along the risers through gaps in the
+  parapets, copper pipes up the risers and the back wall (solid: you climb them). A small fall from the roof into a
+  basin at the deep end. The **valley** far below (y −230), drawn only; the ground is −600 past the edges
+  (`killY` −60).
+- **The falling water** (`src/waterfall-shader.js`, references.md): the curtain is one mesh of four sheets in one
+  material, drawn only, casting no shadow; mist banks at its foot breathe (movers); **spray**: 70 instanced drops
+  thrown up at the foot within 40 m of you (`updateSpray`); pale motes drift in from the falls (`life.motes`).
+- **Light**: the roof casts its shadow; the sun comes in from the falls' side under the lip (`lightAt`: from the
+  south, ~45° high, swinging a little east to west), so the promenade and the lower terraces are lit and the upper
+  ones and the deep quarter sit in the cavern's teal with their lamps. Day, dusk and night colour scripts
+  (`WATERFALL_DAY`, `_DUSK`, `_NIGHT`); the world's look `WATERFALL_WORLD_LOOK` (few strokes, no bounce, the teal
+  haze in stepped bands); the shade printed flat per material (`cityMats({ shadeFlat: 0.8 })`).
+- **Sound**: `level.roar(pos)` (0 … 1: near the curtain's foot, and the small fall) drives two new noise layers in
+  `audio.js` (`roar`, a low rumble, and `hiss`, the spray), passed by main.js; the ambience `falls` adds drips; the
+  footsteps are stone's.
+- **People and life**: a crowd in the falls' own costume set (`costumes.js` `waterfall`: hoods and wraps, baskets)
+  walks the promenade and every terrace street, sits at the cafés and leans on the parapets; four people with
+  ambient lines of their own (content.js); two creatures of their own (`species.js`: the spray newt, which blows a
+  bubble of spray, and the cup crab, which tips the water off its back and scuttles off).
+- **Contact**: solid as drawn but for the mist (`tests/contact-audit.test.js`: feet sink 2, climbs inside 2, all in
+  the mist banks); the static collision ~163 k triangles.
+- **Cost** (Mac M4 Pro, headless Chrome, 1280 × 720, the Handheld preset at render scale 0.75 without dynamic
+  resolution, a synced loop of 60 `renderFrame()`s closed by a readPixels, the median of 7 rounds, the machine shared
+  with other agents' jobs, load 49): the Signal Market (the budget) 2.03 ms / 597 draws at its spawn, 1.95 / 572 in
+  the street; the falls' landing 1.10 / 173, the promenade 1.24 / 180, a balcony 1.08 / 95, the deep quarter 1.12 /
+  157, an upper terrace 1.13 / 141 (~0.6 M triangles where the Market draws ~0.7 M).
+- `tests/waterfall.test.js`: registered off the route and charted, the promenade, bridges and balconies solid, the
+  pool deep, the ship's shelf flat and open to the sky, the streets solid, the roar, the crowd's routes, the toned
+  lines, the collision budget, the fall's material and uv, the four views.
+- **Left to make it better**: the houses are tidy rows where the pictures heap small volumes, balconies, goods and
+  plants at every scale; the retaining walls are plain; the roof is a few lumpy slabs, not a mass of blocky
+  overhangs; nothing flows on top of the lip seen from the landing (the river feeding the falls); the falls push
+  nothing (walking into the curtain from the pool you just pass through); the houses can't be entered; the inner
+  fall's basin is shallow and plain.

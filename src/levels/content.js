@@ -17,6 +17,7 @@ import { EDENA_CONTENT } from './edena.js';
 import { SPHERES_CONTENT } from './spheres.js';
 import { PERDIDE2_CONTENT } from './perdide2.js';
 import { PERDIDE_CONTENT } from './perdide.js';
+import { MANGROVE_CONTENT } from './mangrove.js';
 import { HOME_CONTENT } from './home.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
@@ -31,6 +32,7 @@ export const CONTENT = {
   buried: BURIED_CONTENT,
   spheres: SPHERES_CONTENT,
   perdide2: PERDIDE2_CONTENT,
+  mangrove: MANGROVE_CONTENT,
   home: HOME_CONTENT,   // src/levels/home.js: the parents at the door
   bazaar: {
     weather: [],
@@ -76,7 +78,7 @@ export const CONTENT = {
     relics: { spots: [], names: [] },
     get npcs() { return referencePeople(); },
   },
-  // src/levels/waterfall.js: off the route (names.js EXTRA), no quest, no relics; a few of the city's people by the water
+  // src/levels/waterfall.js: off the route (names.js SIDE), no quest, no relics; a few of the city's people by the water
   waterfall: {
     weather: [],
     story: { title: 'BEHIND THE WATER', intro: 'A city in a cavern behind a curtain of falling water. Nobody here is waiting for you; have a look round.', outro: 'You have seen the city behind the water.', label: 'the balconies', goal: [-126, 'ground', 34], radius: 6, manual: true },

@@ -5,9 +5,8 @@ import { mulberry32, createNoise2D } from '../noise.js';
 import { stepped } from '../load-steps.js';
 import { RoomKit, put } from './lab-kit.js';
 import {
-  fallSheet, fallMat, mistBank, cityMats, rockMass, quarter, framed, archBridge, stair, lamp, copperPipe, pottedPlant, terrace, roundHouse,
+  WATERFALL_WORLD_LOOK, WATERFALL_DAY, WATERFALL_DUSK, WATERFALL_NIGHT, fallSheet, fallMat, mistBank, cityMats, rockMass, quarter, framed, archBridge, stair, lamp, copperPipe, pottedPlant, terrace, roundHouse,
 } from './waterfall-kit.js';
-import { WATERFALL_HAZE } from './reference-waterfall.js';
 
 // ---------------------------------------------------------------------------
 // The City Behind the Waterfall (?level=waterfall): a long cavern city hidden behind a curtain of falling
@@ -41,12 +40,6 @@ export const SHEETS = [[-306, -242], [-230, -132], [-120, -28], [-16, 41]];
 /** The small fall at the deep end: from the roof into a basin. */
 export const INNER_FALL = { x: -306, z0: -6, z1: 12, top: 112 };
 
-/** The world's touches on the print preset (WATERFALL_LOOK's, without the views' clean sky): few strokes, no bounce, the teal haze. */
-export const WATERFALL_WORLD_LOOK = { uHalftone: 0.06, uBounce: 0, uHatch: 0.14, uLineWidth: 0.9, uShadeKeep: 0, uCumulus: 0, uClouds: 0.15, ...WATERFALL_HAZE };
-/** sky top, horizon, shadow (the cavern's teal), light, sun */
-export const WATERFALL_DAY = ['#a9dcd6', '#f2ead0', '#447f86', '#fff2dc', '#fff3d6'];
-export const WATERFALL_DUSK = ['#d9b9b4', '#f7d6bf', '#566f7e', '#ffe2cf', '#ffd0a8'];
-export const WATERFALL_NIGHT = ['#18303a', '#2f4f58', '#203a48', '#8fb5bd', '#e9f0e0'];
 
 const nV = createNoise2D(52011);
 const inRect = (x, z, x0, x1, z0, z1) => x >= x0 && x <= x1 && z >= z0 && z <= z1;
@@ -119,7 +112,7 @@ export function* buildWaterfall(scene) {
   const curtain = new THREE.Mesh(mergeGeometries(parts), mat);
   curtain.name = 'The curtain'; curtain.userData.noCollide = true; curtain.userData.waterfall = true;
   group.add(curtain); noShadow.push(curtain);
-  for (const [a, b] of SHEETS) mistBank(kit, { at: [(a + b) / 2, CAVE.poolY - 1.5, CAVE.fall - 2], w: b - a, h: 8, seed: a });
+  for (const [a, b] of SHEETS) mistBank(kit, { at: [(a + b) / 2, CAVE.poolY - 1.5, CAVE.fall - 1], w: b - a, h: 6, seed: a });
   // the small fall at the deep end, into its basin
   {
     const f = INNER_FALL, w = f.z1 - f.z0;
@@ -127,7 +120,7 @@ export function* buildWaterfall(scene) {
     const m = new THREE.Mesh(g, fallMat(kit, { speed: 6, column: 1.4, gaps: 0.1, mist: 4, height: f.top, seed: 9 }));
     m.name = 'The deep fall'; m.userData.noCollide = true; m.userData.waterfall = true;
     group.add(m); noShadow.push(m);
-    mistBank(kit, { at: [f.x + 4, -0.6, (f.z0 + f.z1) / 2], w: w * 1.1, yaw: Math.PI / 2, h: 4, seed: 77 });
+    mistBank(kit, { at: [f.x + 3, -0.4, (f.z0 + f.z1) / 2], w: w * 1.05, yaw: Math.PI / 2, h: 2.6, seed: 77 });
     for (const e of [-1, 1]) kit.add(M.wall, new THREE.BoxGeometry(12, 0.7, 0.6).translate(f.x + 6, 0.35, (f.z0 + f.z1) / 2 + e * (w / 2 + 1.5)), solid);
     kit.add(M.wall, new THREE.BoxGeometry(0.6, 0.7, w + 3.6).translate(f.x + 12, 0.35, (f.z0 + f.z1) / 2), solid);
     kit.mesh(new THREE.PlaneGeometry(11.4, w + 2.4).rotateX(-Math.PI / 2).translate(f.x + 6, 0.32, (f.z0 + f.z1) / 2),

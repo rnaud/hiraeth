@@ -23,6 +23,14 @@ import { leafCrown } from './garden-kit.js';
 // ---------------------------------------------------------------------------
 
 export const TAU = Math.PI * 2;
+/** The deep cavern fades into a teal haze in stepped bands (post.js 4b): the world's and its views'. */
+export const WATERFALL_HAZE = { uHazeLayers: [70, 1.9, 0.12, 4], uHazeTone: [0.36, 0.6, 0.62, 0.85] };
+/** The world's touches on the print preset (WATERFALL_LOOK's, without the views' clean sky): few strokes, no bounce, the teal haze. */
+export const WATERFALL_WORLD_LOOK = { uHalftone: 0.06, uBounce: 0, uHatch: 0.14, uLineWidth: 0.9, uShadeKeep: 0, uCumulus: 0, uClouds: 0.15, ...WATERFALL_HAZE };
+/** sky top, horizon, shadow (the cavern's teal), light, sun */
+export const WATERFALL_DAY = ['#a9dcd6', '#f2ead0', '#447f86', '#fff2dc', '#fff3d6'];
+export const WATERFALL_DUSK = ['#d9b9b4', '#f7d6bf', '#566f7e', '#ffe2cf', '#ffd0a8'];
+export const WATERFALL_NIGHT = ['#18303a', '#2f4f58', '#203a48', '#8fb5bd', '#e9f0e0'];
 const NS = { solid: false, shadow: false };
 
 /** The sheets' colours. */

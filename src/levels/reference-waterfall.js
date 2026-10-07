@@ -3,7 +3,7 @@ import { mulberry32, createNoise2D } from '../noise.js';
 import { MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { put, CLEAN_SKY } from './reference-kit.js';
 import {
-  waterfall, cityMats, rockMass, roundHouse, stair, archBridge, copperPipe, lamp, pottedPlant, resident, travellerFigure, framed, quarter,
+  WATERFALL_HAZE, waterfall, cityMats, rockMass, roundHouse, stair, archBridge, copperPipe, lamp, pottedPlant, resident, travellerFigure, framed, quarter,
 } from './waterfall-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -23,7 +23,6 @@ export const WATERFALL_SHEETS = { 'waterfall-1': sheet(1), 'waterfall-2': sheet(
  * barely hatched, no bounce lifting the rock's undersides, a clean sky; the deep cavern fades into a teal haze in
  * stepped bands (post.js 4b).
  */
-export const WATERFALL_HAZE = { uHazeLayers: [70, 1.9, 0.12, 4], uHazeTone: [0.36, 0.6, 0.62, 0.85] };
 export const WATERFALL_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.06, uBounce: 0, uHatch: 0.12, uLineWidth: 0.9, ...WATERFALL_HAZE };
 /** sky top, sky horizon, shadow (the cavern's teal), light (warm), sun */
 const SKY = {

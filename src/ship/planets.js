@@ -21,6 +21,7 @@ export const PLANETS = {
   perdide:  { body: '#6f5c9c', shade: '#4a3c72', ink: '#9fe0d6', mark: 'lights' },
   perdide2: { body: '#9064ad', shade: '#64457f', ink: '#c497d8', mark: 'bands' },
   bazaar:   { body: '#e6875f', shade: '#b35d3f', ink: '#f2c54b', mark: 'lights' },
+  mangrove: { body: '#3a3f78', shade: '#262a56', ink: '#f2e8f2', mark: 'lights' },
   waterfall: { body: '#6fc9cc', shade: '#3f8f98', ink: '#f1dcbd', mark: 'bands' },
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };

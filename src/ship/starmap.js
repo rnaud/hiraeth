@@ -23,7 +23,6 @@
 
 import { homeEntry } from '../story/ending.js';
 import { knownWorlds } from '../story/route.js';
-import { EXTRA } from '../levels/names.js';
 import { RELAY_TEXT } from '../story/relay.js';
 import { planetSvg } from './planets.js';
 import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
@@ -42,10 +41,9 @@ export function consoleAction({ at = 'dash', powered, pendingCall }) {
 /**
  * The list of worlds on the chart (`known`: named and choosable); Home is last, once the ending is open (src/story/ending.js).
  * `relay` (src/story/relay.js relaySignal, or a function giving it): the world it comes from carries `signal` ('far'),
- * named or a faint dot, and home carries the held recording (`held`). The worlds off the route (`extra`: names.js
- * EXTRA, those in `levels`) come after the route's, charted from the start (`extra: true`).
+ * named or a faint dot, and home carries the held recording (`held`).
  */
-export function mapEntries({ order, levels, flag, journal, current, home, relay, extra = EXTRA }) {
+export function mapEntries({ order, levels, flag, journal, current, home, relay, side = [] }) {
   const sig = typeof relay === 'function' ? relay() : relay ?? null;
   const isDone = (id) => !!(flag?.(`world.${id}.done`) || journal?.storyDone?.(id));
   const isVisited = (id) => !!(journal?.seen?.(id) || id === current || isDone(id));
@@ -55,9 +53,10 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay,
     return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id), signature: hasSignature(id),
       signal: sig?.stage === 'far' && sig.world === id ? 'far' : null };
   });
-  for (const id of extra) {
-    const L = levels.find((l) => l.id === id);
-    if (L && !order.includes(id)) out.push({ id, i: out.length, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: false, current: id === current, known: true, signature: false, signal: null, extra: true });
+  // the worlds off the route (names.js SIDE): charted from the start, off the dotted line
+  for (const id of side) {
+    const L = levels.find((l) => l.id === id) ?? { id, title: id };
+    out.push({ id, i: out.length, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: true, signature: hasSignature(id), side: true, signal: null });
   }
   const h = homeEntry({ unlocked: typeof home === 'function' ? home() : !!home, current });
   if (h) out.push({ ...h, i: out.length, known: true, signature: false, held: sig?.stage === 'held', relayFar: !!out.find((e) => e.signal && !e.known) });
@@ -284,7 +283,7 @@ export class StarMap {
         <h1>GALACTIC MAP</h1><div class="sub">${known.length} worlds charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${farSig ? ' · a faint signal further along the route' : ''}</div>
         ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
             <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}</span>
-            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.signal ? RELAY_TEXT.tag : e.visited ? '' : e.extra ? 'off the route' : 'new'}</span></button>` : '').join('')}
+            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.signal ? RELAY_TEXT.tag : e.visited ? '' : 'new'}</span></button>` : '').join('')}
         <button class="close">close ✕</button>
       </div>
       <div class="side">
@@ -323,8 +322,8 @@ export class StarMap {
       svg += [0.5, 0.78, 1.05].map((r) => `<ellipse cx="${L.centre[0]}" cy="${L.centre[1]}" rx="${r * (W / 2 - PAD)}" ry="${r * ((H - HEADER) / 2 - PAD)}" fill="none" stroke="rgba(247,236,210,.13)" stroke-width="1"/>`).join('');
       if (!home) svg += `<circle cx="${L.home[0]}" cy="${L.home[1]}" r="${L.box.disc * 0.2}" fill="#f2c54b" stroke="#2b211f" stroke-width="2"/>`;   // the sun home goes round
     }
-    for (let i = 1; i < worlds.length; i++) svg += seg(L.pts[i - 1], L.pts[i], !worlds[i].known || !worlds[i - 1].known);
-    if (home) svg += `<path d="M${L.pts[worlds.length - 1].join(' ')} L${L.home.join(' ')}${L.centre ? ` L${L.pts[0].join(' ')}` : ''}" fill="none" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="2 6"/>`;
+    for (let i = 1; i < worlds.length; i++) if (!worlds[i].side) svg += seg(L.pts[i - 1], L.pts[i], !worlds[i].known || !worlds[i - 1].known);
+    if (home) svg += `<path d="M${L.pts[worlds.filter((e) => !e.side).length - 1].join(' ')} L${L.home.join(' ')}${L.centre ? ` L${L.pts[0].join(' ')}` : ''}" fill="none" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="2 6"/>`;
     // the worlds not known yet: faint dots, no names
     for (const e of worlds) if (!e.known) svg += `<circle cx="${L.pts[e.i][0]}" cy="${L.pts[e.i][1]}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
     // the relay signal from a world not charted yet: a ring pulsing round its faint dot (src/story/relay.js)
