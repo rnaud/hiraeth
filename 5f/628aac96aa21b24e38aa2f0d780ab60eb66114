@@ -1,0 +1,53 @@
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_0820d69f38a869 709-748
+engine/mirror-freeze.js
+  s_55b4bc53b812ec::t_9095e9ad4d5249 1-227
+engine/mirror.js
+  s_55b4bc53b812ec::t_e04c0e9a28db10 44,61,63,82-83,173,207-213,216,227,232,240,248,299-300,309-310,312,314,335-346,371,376-377,407-421
+engine/unity/game.js
+  s_55b4bc53b812ec::t_9c0e90162709fe 190,198-199
+tests/mirror-freeze.test.js
+  s_55b4bc53b812ec::t_1b1eb64c6d068c 1-162
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_55b4bc53b812ec::t_34e07d5fcbc391 131-136,216
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_55b4bc53b812ec::t_d9fd17271b5850 25-30,476,478-479,481,574,579,642,653
+unity/Memento/Assets/MementoJS/Puerts.meta
+  s_55b4bc53b812ec::t_e08d25b0d2740f 1-8
+unity/Memento/Assets/MementoJS/Puerts/MainThreadLoader.cs
+  s_55b4bc53b812ec::t_aee3e09e7978a0 1-31
+unity/Memento/Assets/MementoJS/Puerts/MainThreadLoader.cs.meta
+  s_55b4bc53b812ec::t_83b4d5516903b2 1-2
+unity/Memento/Assets/MementoJS/Puerts/Memento.Bridge.Puerts.asmdef
+  s_55b4bc53b812ec::t_05285f4c8b7667 1-16
+unity/Memento/Assets/MementoJS/Puerts/Memento.Bridge.Puerts.asmdef.meta
+  s_55b4bc53b812ec::t_9e9adb1e6d3e17 1-7
+unity/Memento/Assets/MementoJS/Runtime/BridgeGpuSplit.cs
+  s_55b4bc53b812ec::t_d9c90592347163 1-74
+unity/Memento/Assets/MementoJS/Runtime/BridgeGpuSplit.cs.meta
+  s_55b4bc53b812ec::t_da00f9e7e1a159 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_55b4bc53b812ec::t_5e64586d48252b 1,3,6,16-20,25-75,78-79,81,83-86,96-97,100-105,108-109,114-121,124,128-130,144-147,156,168,177,179-182,184-189
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_1cd6a8e09762bd 4,18-22,34,37-42,61,96,100,104-177,190-211,219-220,268,270,279
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs
+  s_55b4bc53b812ec::t_5997d8f35a6d12 36-39,42-47
+unity/Memento/Assets/MementoJS/link.xml
+  s_55b4bc53b812ec::t_7890cf0e149eb9 3-4,8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5f628aac96aa21b24e38aa2f0d780ab60eb66114",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
