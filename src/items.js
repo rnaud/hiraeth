@@ -170,9 +170,10 @@ const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 const KIND_ORDER = ['core', 'movement', 'mode', 'upgrade', 'charm', 'pass', 'cosmetic'];
 
 /**
- * The gear you carry, for the top of the sketchbook (J, or View / Select on a
- * controller): each item's name and what it does, the backpack first; then what
- * you carry in your pack for the quests (the spark-stone, Ama's jar…).
+ * The gear you carry as a plain list: each item's name and what it does, the backpack
+ * first; then what you carry in your pack for the quests (the spark-stone, Ama's jar…).
+ * (The game's own screen is the game menu's Items panel, src/game-menu.js, which draws
+ * each item's model; this list is the same order in words, for the tests and tools.)
  * @param owned item ids (items.owned()) · mode: the gun mode in use, when there is a choice
  * · carried: the quest items' names (src/story/quests.js carried())
  */

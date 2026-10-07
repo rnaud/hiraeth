@@ -84,12 +84,7 @@ export function createStory(o) {
   });
   const marker = new QuestMarker(scene, makeMaterial);
 
-  // the quest log in the sketchbook; click a quest to track it
-  journal.sections.push(() => quests.journalHtml());
-  journal.el.addEventListener('click', (e) => {
-    const q = e.target.closest?.('[data-quest]');
-    if (q && quests.isActive(q.dataset.quest)) { quests.choose(q.dataset.quest); journal.render(); }
-  });
+  // (the quests in the game menu's Quests panel, where choosing one tracks it: main.js, src/game-menu.js)
 
   // a sketch of whoever you're talking to, for the panel: just them (and their cape) against a flat
   // colour of this world's (src/story/portrait-bg.js); returns { src, background }

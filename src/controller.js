@@ -16,6 +16,7 @@
 //             · top: the scout finds the objective, as on foot
 //   menus     the button printed A confirms, B goes back (Xbox: bottom / right; a
 //             Retroid, letters Nintendo-style: right / bottom) · View, Menu close
+//             · LB / RB the game menu's panel before / after
 //   talking   as menus; the interact button also goes on (so on Xbox, B talks and
 //             B carries on rather than walking away)
 //   photo     stick fly · LB / RB down / up · confirm saves · back or ↓ leaves
@@ -85,6 +86,8 @@ export class Controller {
       const talkOn = ctx === 'talk' && press(EAST);   // the interact button carries a conversation on
       if (press(MENU)) this.action('start');
       else if (press(VIEW)) this.action('select');
+      else if (press(LB)) this.action('tabPrev');   // the game menu's panels (main.js): the one before, the one after
+      else if (press(RB)) this.action('tabNext');
       else if (press(no) && !(ctx === 'talk' && no === EAST)) this.action('back');
       else if (press(ok) || talkOn) this.action('confirm');
       const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;

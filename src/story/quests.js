@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { questGoal } from './quest-goals.js';
 
 // Quests: ids, stages, objective text and a place in the world. Progress is
 // kept in the shared game state (game-state.js), so it survives reloads and
@@ -271,34 +272,51 @@ export class Quests {
     return `◆ ${o.label} · ${d < 1000 ? Math.round(d) + ' m' : (d / 1000).toFixed(1) + ' km'}`;
   }
 
-  /** A journal section: active then finished quests, the current step under each. */
-  journalHtml(world = null) {
+  /** The quest's overall goal, in a few words (src/story/quest-goals.js; the title if it has none). */
+  goal(id) { return questGoal(this.def(id)); }
+
+  /**
+   * What the Quests panel and the scout's find show (docs/systems/ui.md, "The game menu"): for each
+   * active quest only its overall goal and its next step, never the steps already done; the quests
+   * that ended, by title only (the newest first), for a short list.
+   *   → { active: [{ id, title, goal, step, label, main, tracked }], done: [{ id, title, outro }], failed: [{ id, title, outro }] }
+   */
+  summary(world = null) {
     const list = [...this.defs.values()].filter((d) => (!world || d.world === world) && this.isStarted(d.id));
-    if (!list.length) return '';
-    const tracked = this.tracked();
-    const act = list.filter((d) => this.isActive(d.id)), fin = list.filter((d) => this.isDone(d.id)), lost = list.filter((d) => this.isFailed(d.id));
-    const mark = (d) => (d.main || d.major ? '◆ ' : '◇ ');
-    const row = (d) => {
-      const done = this.isDone(d.id), st = this.current(d.id);
-      // failed: its own stamp, and how it went wrong
-      if (this.isFailed(d.id)) return `<div class="quest finished failed" data-quest="${d.id}">
-        <h3>${mark(d)}${d.title}<b class="stamp failed">✗ Failed</b></h3>
-        <ul><li class="outro">${d.failOutro ?? 'It went wrong.'}</li></ul></div>`;
-      const steps = d.stages.filter((s) => this.reached(d.id, s.id) && s !== st && !s.secret).map((s) => `<li class="done">${s.text}</li>`).join('');
-      // finished: a stamp, and only how it ended (its steps are history)
-      if (done) return `<div class="quest finished" data-quest="${d.id}">
-        <h3>${mark(d)}${d.title}<b class="stamp">✓ Complete</b></h3>
-        <ul><li class="outro">${d.outro ?? 'Done.'}</li></ul></div>`;
-      return `<div class="quest${d.id === tracked ? ' tracked' : ''}" data-quest="${d.id}">
-        <h3>${mark(d)}${d.title}${d.id === tracked ? ' <span>tracked</span>' : ''}</h3>
-        <ul>${steps}<li class="now">${st?.text ?? ''}</li></ul></div>`;
+    const tracked = this.tracked() ?? this.objective()?.quest ?? null;
+    const now = (d) => { const st = this.current(d.id); return { id: d.id, title: d.title, goal: this.goal(d.id), step: st?.text ?? '', label: st?.label ?? st?.text ?? '', main: !!(d.main || d.major), tracked: d.id === tracked }; };
+    // the one you are on first, then the main quests, then the rest in the order they were given
+    const active = list.filter((d) => this.isActive(d.id)).map(now).sort((a, b) => (b.tracked - a.tracked) || (b.main - a.main));
+    const ended = (d, outro) => ({ id: d.id, title: d.title, outro });
+    return {
+      active,
+      done: list.filter((d) => this.isDone(d.id)).map((d) => ended(d, d.outro ?? 'Done.')).reverse(),
+      failed: list.filter((d) => this.isFailed(d.id)).map((d) => ended(d, d.failOutro ?? 'It went wrong.')).reverse(),
     };
-    return `<section class="quests"><h2>Quests <span>${fin.length}/${list.length} complete</span></h2>${act.map(row).join('')}`
-      + (fin.length ? `<h4 class="qgroup">Completed</h4>${fin.map(row).join('')}` : '')
-      + (lost.length ? `<h4 class="qgroup failed">Failed</h4>${lost.map(row).join('')}` : '')
-      + `<p class="qhint">choose a quest to track it</p></section>`;
+  }
+
+  /**
+   * The quests as HTML (the Quests panel's text, and a plain list where there is no panel): each active
+   * quest's goal and next step, then the finished and failed ones by title, a short list.
+   */
+  journalHtml(world = null) {
+    const { active, done, failed } = this.summary(world);
+    if (!active.length && !done.length && !failed.length) return '';
+    const mark = (q) => (q.main ? '◆ ' : '◇ ');
+    const card = (q) => `<div class="quest${q.tracked ? ' tracked' : ''}" data-quest="${q.id}">
+        <h3>${mark(q)}${q.title}${q.tracked ? ' <span>tracked</span>' : ''}</h3>
+        <p class="goal">${q.goal}</p><p class="now">${q.step}</p></div>`;
+    const short = (list, cls, stamp) => list.slice(0, ENDED_SHOWN).map((q) => `<li class="quest finished${cls}" data-quest="${q.id}">${q.title}<b class="stamp${cls}">${stamp}</b></li>`).join('')
+      + (list.length > ENDED_SHOWN ? `<li class="more">and ${list.length - ENDED_SHOWN} more</li>` : '');
+    return `<section class="quests"><h2>Quests <span>${done.length}/${active.length + done.length + failed.length} complete</span></h2>${active.map(card).join('')}`
+      + (done.length ? `<h4 class="qgroup">Completed</h4><ul class="ended">${short(done, '', '✓ Complete')}</ul>` : '')
+      + (failed.length ? `<h4 class="qgroup failed">Failed</h4><ul class="ended">${short(failed, ' failed', '✗ Failed')}</ul>` : '')
+      + '</section>';
   }
 }
+
+/** How many finished (or failed) quests the short list names. */
+export const ENDED_SHOWN = 6;
 
 /**
  * The objective marker: a slowly turning diamond over the target, a thin beam below it. Fluid-cyan,

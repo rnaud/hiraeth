@@ -65,7 +65,8 @@ test('no keyboard-only "J to close" on a controller: every panel says how to clo
   assert.equal(closeHint('J or Esc', 'touch'), '', 'a touch screen: the ✕ says it');
   // the sketchbook, what's new and the worlds picker take theirs when they open; the skip tags too
   assert.doesNotMatch(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), />J to close</);
-  assert.match(src('quest.js'), /closeHint\('J or Esc'\)/);
+  assert.match(src('game-menu.js'), /`\$\{keyBadge\(back\)\} close`/, 'the game menu names the back button for closing');
+  assert.match(src('game-menu.js'), /`\$\{keyBadge\('Esc'\)\} close`/);
   assert.match(src('changelog.js'), /Close \(\$\{backKey\(\)\}\)/);
   assert.match(src('story/moment.js'), /`\$\{backKey\(\)\} skip`/, 'a moment\'s skip tag names the button printed B');
   const { holdToSkip } = await import('../src/ship/cinema.js');

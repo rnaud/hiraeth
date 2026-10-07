@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cueText, PlaceName, Fader, Cue, questsPageHtml, padCue, RIDE_HINT_MS, healthHud, staminaHud } from '../src/hud.js';
+import { cueText, PlaceName, Fader, Cue, findSummary, padCue, RIDE_HINT_MS, healthHud, staminaHud } from '../src/hud.js';
 import { Quests } from '../src/story/quests.js';
 import { Controller, menuNavigate } from '../src/controller.js';
 
@@ -141,7 +141,7 @@ test('the top button (Y / △) sends the scout on foot and riding; Q on the keyb
   assert.match(main, /name === 'ping' && !ship\.playing\) scout\.ping\(\)/);
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);
   // what it found: the cue, at once, and the quest marker for a while; nothing to find: a shrug, said
-  assert.match(main, /onFind: \(target, d\) => \{ scoutSays\(`◆ \$\{findText\(target, d\)\}`, 5\); storyRt\.marker\.reveal\(\); \}/);
+  assert.match(main, /onFind: \(target, d\) => \{ scoutSays\(findSummary\(\{ goal: findGoal\(target\), step: findText\(target, d\) \}\), 6, 'quest'\); storyRt\.marker\.reveal\(\); \}/);
   assert.match(main, /onShrug: \(\) => scoutSays\('Nothing to find here', 2\.5\)/);
 });
 
@@ -179,37 +179,39 @@ test('a makers\' box offered on arrival does not take the scout from the quest y
 
 // ---- the menu's Quests and Controls pages
 
-test('the menu\'s Quests page: where to go, then the quest log, steps done struck through, done and failed ones marked', () => {
+test('the scout\'s find says the current quest as its overall goal over its next step, nothing more', () => {
+  assert.equal(findSummary({ goal: 'Wake your ship with the fire of Qanat’s great tree', step: 'The dry well · 320 m' }), 'Wake your ship with the fire of Qanat’s great tree\n◆ The dry well · 320 m');
+  assert.equal(findSummary({ step: 'Back to the ship · 80 m' }), '◆ Back to the ship · 80 m', 'no goal (the ship): the step alone');
+  // the cue draws the goal small over the step (and escapes both)
+  const el = { innerHTML: '', classList: { s: new Set(), toggle(c, on) { on ? this.s.add(c) : this.s.delete(c); }, contains(c) { return this.s.has(c); } } };
+  const cue = new Cue(el);
+  cue.set(findSummary({ goal: 'Mend <Mira’s> clock', step: 'Mira · 12 m' }), 'quest');
+  assert.equal(el.innerHTML, '<small class="goal">Mend &lt;Mira’s&gt; clock</small><span class="step">◆ Mira · 12 m</span>');
+  assert.ok(el.classList.contains('quest') && el.classList.contains('show'));
+  cue.set('E go aboard');
+  assert.ok(!el.classList.contains('quest'), 'a prompt is a prompt again');
+  // as the quest moves on, the find says the new step under the same goal: no steps done, no log
   const flags = {}, game = { flag: (k) => flags[k], set: (k, v) => { flags[k] = v; }, emit() {} };
   const q = new Quests({ game });
-  q.define({ id: 'p', title: 'Power for the ship', main: true, stages: [{ id: 'a', text: 'Follow the smoke' }, { id: 'b', text: 'Talk to Ama' }] });
-  q.define({ id: 'd', title: 'The drum', outro: 'Teo drums again.', stages: [{ id: 'a', text: 'Find the drum' }] });
-  q.define({ id: 'f', title: 'Water for the terraces', failOutro: 'The terraces slid.', stages: [{ id: 'a', text: 'Ask Mira' }] });
-  q.start('p'); q.advance('p'); q.start('d'); q.complete('d'); q.start('f'); q.fail('f');
-  const html = questsPageHtml({ objective: 'Ama, by the fires', distance: '320 m', charge: '<section class="charge">✦</section>', quests: q.journalHtml(), carrying: 'carrying a brass gear → Edena' });
-  assert.match(html, /<h2>Where to<\/h2><p class="go">◆ Ama, by the fires <span>· 320 m<\/span><\/p>/);
-  assert.match(html, /Q, Y \/ △ on a controller/, 'how to send the scout, in Xbox / PlayStation form');
-  assert.match(html, /<li class="done">Follow the smoke<\/li><li class="now">Talk to Ama<\/li>/, 'a step done is struck through, the current one bold');
-  assert.match(html, /The drum<b class="stamp">✓ Complete<\/b>/);
-  assert.match(html, /Water for the terraces<b class="stamp failed">✗ Failed<\/b>/);
-  assert.match(html, /The terraces slid\./);
-  assert.ok(html.indexOf('class="charge"') < html.indexOf('class="quests"'), 'the father\'s charge first, as in the sketchbook');
-  assert.match(html, /Carrying<\/h2><p>carrying a brass gear → Edena/);
-  assert.match(questsPageHtml(), /Nothing to find here just now/);
-  // the struck-through and failed looks are the sketchbook's own, on the menu's page as well
-  const css = src('index.html');
-  assert.match(css, /:is\(#journal, \.questlog\) \.quests li\.done \{ text-decoration: line-through;/);
-  assert.match(css, /:is\(#journal, \.questlog\) \.quests \.stamp\.failed/);
+  q.define({ id: 'desert.power', title: 'The Tree That Drinks', main: true, stages: [{ id: 'a', text: 'Walk to Qanat', label: 'Qanat', at: [0, 0, 0] }, { id: 'b', text: 'Listen at the dry well', label: 'The dry well', at: [5, 0, 0] }] });
+  q.start('desert.power');
+  const say = () => findSummary({ goal: q.goal(q.objective().quest), step: q.objective().label });
+  assert.equal(say(), 'Wake your ship with the fire of Qanat’s great tree\n◆ Qanat');
+  q.advance('desert.power');
+  assert.equal(say(), 'Wake your ship with the fire of Qanat’s great tree\n◆ The dry well');
+  assert.doesNotMatch(say(), /Qanat\n|Walk to Qanat/, 'the step done is gone');
+  const main = src('src/main.js');
+  assert.match(main, /onFind: \(target, d\) => \{ scoutSays\(findSummary\(\{ goal: findGoal\(target\), step: findText\(target, d\) \}\), 6, 'quest'\)/);
 });
 
-test('the menu has Quests and Controls pages, reachable by controller, and H opens Controls', async () => {
+test('the Start menu opens the game menu on its Items and Quests, has a Controls page, and H opens Controls', async () => {
   const ui = src('src/ui.js'), main = src('src/main.js');
-  assert.match(ui, /go\('quests', 'Quests'\)/);
+  assert.match(ui, /<button data-a="book" data-panel="items">Items<\/button><button data-a="book" data-panel="quests">Quests<\/button>/);
+  assert.match(ui, /if \(a === 'book'\) \{ this\.toggle\(false\); onBook\?\.\(at\.dataset\.panel\); \}/);
   assert.match(ui, /go\('controls', 'Controls'\)/);
-  assert.match(ui, /<section class="panel questlog" data-page="quests" hidden><\/section>/);
-  assert.match(ui, /q\.tabIndex = 0; q\.dataset\.nav = '';/, 'active quests are focusable: a pad moves onto them and confirm tracks one');
+  assert.doesNotMatch(ui, /questlog/, 'no quest log page of its own any more');
   assert.match(ui, /e\.code === 'KeyH' && !isBusy\(\)\) \{ if \(this\.open && this\.current === 'controls'\) this\.toggle\(false\); else this\.toggle\(true, 'controls'\); \}/);
-  assert.match(main, /quests: \(\) => \{ const ob = scout\.getTarget\(\); return questsPageHtml\(\{[^}]*quests: storyRt\.quests\.journalHtml\(\)/, 'the journal\'s quest-log section');
+  assert.match(main, /onBook: \(panel\) => journal\.toggle\(true, panel\)/);
   assert.match(main, /onTrack: \(id\) => storyRt\.quests\.choose\(id\)/);   // (chosen: src/story/quests.js choose)
   // menuNavigate moves onto [data-nav] (the quests) as well as buttons and inputs
   const mk = (name, nav = false) => ({ name, disabled: false, getClientRects: () => [1], focus() { globalThis.document.activeElement = this; }, scrollIntoView() {}, nav });

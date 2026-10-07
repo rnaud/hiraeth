@@ -6,7 +6,8 @@
 //     cross into it;
 //   - the health bar while hurt or healing, the stamina wheel while not full, the tank's gauge
 //     while it is short (main.js, ui.js ToolHud), each lingering a moment (Fader);
-//   - the objective: the scout finds it (Q, Y / △: src/scout.js), the menu's Quests page lists it.
+//   - the objective: the scout finds it (Q, Y / △: src/scout.js) and the cue says its goal over its
+//     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
 import { badgeLine, escapeHtml } from './prompt-keys.js';
 import { page, screen } from './platform.js';
 
@@ -112,8 +113,12 @@ export class Cue {
     if (!this.el) return;
     if (text && (text !== this.text || kind !== this.kind)) {
       // (the place name is a plain line; a prompt badges its button: native-pad.js renames it in place)
-      this.el.innerHTML = kind === 'place' ? `<span>${escapeHtml(text)}</span>` : badgeLine(text);
+      // (the scout's find: its goal small, over its next step: findSummary)
+      const [goal, step] = kind === 'quest' && text.includes('\n') ? text.split('\n') : [null, text];
+      this.el.innerHTML = kind === 'place' ? `<span>${escapeHtml(text)}</span>`
+        : goal != null ? `<small class="goal">${escapeHtml(goal)}</small><span class="step">${escapeHtml(step)}</span>` : badgeLine(text);
       this.el.classList.toggle('place', kind === 'place');
+      this.el.classList.toggle('quest', kind === 'quest');
     }
     if (!!text !== !!this.text) this.el.classList.toggle('show', !!text);
     this.text = text; this.kind = kind;
@@ -121,15 +126,10 @@ export class Cue {
 }
 
 /**
- * The menu's Quests page (src/ui.js SettingsMenu): where to go now (what the scout would find),
- * then the journal's quest-log sections (the father's charge, the quests), then what you carry.
+ * The scout's find, as the cue says it (rule: the current quest is its overall goal and its next step,
+ * nothing else): the goal on a small line over "◆ the next step · how far". No goal (the ship, a bare
+ * world): the step alone, as before.
  */
-export function questsPageHtml({ objective = null, distance = '', charge = '', quests = '', carrying = '' } = {}) {
-  const now = objective
-    ? `<p class="go">◆ ${escapeHtml(objective)}${distance ? ` <span>· ${escapeHtml(distance)}</span>` : ''}</p>`
-    : '<p class="go none">Nothing to find here just now.</p>';
-  return `<section class="whereto"><h2>Where to</h2>${now}`
-    + '<p class="qhint">The scout finds it for you: Q, Y / △ on a controller, ping on a touch screen.</p></section>'
-    + (charge || '') + (quests || '')
-    + (carrying ? `<section class="carry"><h2>Carrying</h2><p>${escapeHtml(carrying)}</p></section>` : '');
+export function findSummary({ goal = '', step = '' } = {}) {
+  return goal ? `${goal}\n◆ ${step}` : `◆ ${step}`;
 }

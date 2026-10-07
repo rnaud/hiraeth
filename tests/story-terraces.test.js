@@ -133,12 +133,12 @@ test('the quest: the runnels top first, the gate at Esk’s asking, the flood; i
   assert.equal(quests.isDone(Q), false);
   assert.equal(game.flag(`failed.${Q}`), 'Water for the Tea Terraces');
   assert.ok(W.toasts.includes('Failed: Water for the Tea Terraces'));
-  // the sketchbook files it under Failed, with its own stamp and how it went
+  // the Quests panel files it under Failed, with its own stamp; how it went is said when you pick it
   const html = quests.journalHtml();
   assert.match(html, /qgroup failed">Failed/);
   assert.match(html, /class="quest finished failed" data-quest="edena.terraces"/);
   assert.match(html, /✗ Failed/);
-  assert.match(html, /the hill came down with the water/);
+  assert.match(quests.summary().failed[0].outro, /the hill came down with the water/);
   // it can't be retried
   assert.equal(quests.set(Q, 'runnels'), false);
   assert.equal(quests.isFailed(Q), true);

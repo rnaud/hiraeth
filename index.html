@@ -38,6 +38,10 @@
       #cue.place { background: none; border: 0; box-shadow: none; padding: 0; transition: opacity 0.9s;
         font: 300 clamp(13px, 2.4vh, 19px)/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
         letter-spacing: 0.32em; text-transform: uppercase; text-shadow: 0 0 2px #fffaf0, 0 0 6px #fffaf0, 0 0 14px rgba(255, 250, 240, 0.95); }
+      /* the scout's find: the quest's goal, small, over its next step (src/hud.js findSummary) */
+      #cue.quest { padding: 4px 16px 5px; border-radius: 12px; }
+      #cue.quest .goal { display: block; font: italic 500 clamp(10px, 1.7vh, 12px)/1.3 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.06em; opacity: 0.75; }
+      #cue.quest .step { display: block; font-weight: bold; }
       body.talking #cue, body.cine-on #cue { visibility: hidden; }
       /* health: a small inked bar, only while you're hurt (src/main.js) */
       #health { position: fixed; left: calc(16px + var(--safe-left, 0px)); top: calc(14px + var(--safe-top, 0px)); width: 150px; height: 11px; z-index: 30;
@@ -286,43 +290,7 @@
       /* the conversation is answered by tapping the panel: the game buttons would sit under and round it */
       body.talking #touch { visibility: hidden; }
       #touch .b-use.talk { font-size: 13px; }
-      /* the father's charge, pinned at the top of the sketchbook (src/story/charge.js): gold, its ✦, his words */
-      :is(#journal, .questlog) .charge { position: relative; max-width: 640px; margin: 0 0 26px; padding: 12px 16px 12px 18px; background: #fff6dc; border: 2px solid #2b211f; box-shadow: 5px 5px 0 #2b211f; transform: rotate(-0.4deg); }
-      :is(#journal, .questlog) .charge::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; background: #f2c54b; border-right: 2px solid #2b211f; }
-      :is(#journal, .questlog) .charge .k { margin: 0 0 4px; font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase; opacity: 0.75; }
-      :is(#journal, .questlog) .charge .k i { font-style: normal; color: #f2c54b; -webkit-text-stroke: .7px #2b211f; font-size: 14px; }
-      :is(#journal, .questlog) .charge h2 { margin: 0 0 6px; font: 300 22px/1.15 'Avenir Next', Futura, 'Helvetica Neue', sans-serif; letter-spacing: 0.16em; text-transform: uppercase; }
-      :is(#journal, .questlog) .charge blockquote { margin: 0 0 8px; font-style: italic; opacity: 0.85; }
-      :is(#journal, .questlog) .charge ul { margin: 0 0 6px; padding-left: 18px; }
-      :is(#journal, .questlog) .charge li.now { font-weight: bold; }
-      :is(#journal, .questlog) .charge li.now span { font-weight: normal; opacity: 0.6; margin-left: 6px; }
-      :is(#journal, .questlog) .charge li.done { text-decoration: line-through; opacity: 0.55; }
-      :is(#journal, .questlog) .charge .carry { margin: 0; font-size: 11px; }
-      :is(#journal, .questlog) .charge .carry b { letter-spacing: 0.12em; text-transform: uppercase; font-size: 10px; margin-right: 6px; opacity: 0.7; }
-      :is(#journal, .questlog) .charge .carry span { display: inline-block; margin: 2px 6px 0 0; padding: 0 7px; border: 1px solid #2b211f; border-radius: 9px; background: rgba(242, 197, 75, 0.35); }
-      :is(#journal, .questlog) .charge .carry.empty span { background: none; border-style: dashed; opacity: 0.6; }
-      :is(#journal, .questlog) .charge .stamp { display: inline-block; margin-left: 12px; padding: 1px 7px; font: 10px ui-monospace, Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; vertical-align: middle; border: 1.5px solid #3f8f6a; color: #2f7a55; transform: rotate(-3deg); }
-      /* the quest log in the sketchbook */
-      :is(#journal, .questlog) .quests .quest { border-left: 3px solid #2b211f; padding: 2px 0 2px 12px; margin: 0 0 12px; cursor: pointer; max-width: 640px; }
-      :is(#journal, .questlog) .quests .quest.tracked { border-left-color: #c8483a; background: rgba(242, 197, 75, 0.15); }
-      :is(#journal, .questlog) .quests .quest.finished { border-left-color: #3f8f6a; opacity: 0.85; }
-      :is(#journal, .questlog) .quests .quest.finished h3 { color: #4a5a52; }
-      :is(#journal, .questlog) .quests .stamp { display: inline-block; margin-left: 10px; padding: 1px 7px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
-        color: #2f7a55; border: 2px solid #2f7a55; border-radius: 4px; transform: rotate(-4deg); vertical-align: 2px; }
-      :is(#journal, .questlog) .quests li.outro { list-style: none; margin-left: -18px; font-style: italic; opacity: .75; }
-      /* a quest that failed (src/story/quests.js fail): an earth-brown rule, a crossed stamp */
-      :is(#journal, .questlog) .quests .quest.failed { border-left-color: #9a5a3c; border-left-style: dashed; }
-      :is(#journal, .questlog) .quests .quest.failed h3 { color: #6a4a3c; }
-      :is(#journal, .questlog) .quests .stamp.failed { color: #9a4a32; border-color: #9a4a32; transform: rotate(3deg); }
-      :is(#journal, .questlog) .quests .qgroup.failed { color: #9a4a32; }
-      :is(#journal, .questlog) .charge .carry.lost span { background: none; border-style: dashed; border-color: #9a4a32; color: #6a4a3c; }
-      :is(#journal, .questlog) .quests .qgroup { margin: 18px 0 8px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #2f7a55; }
-      :is(#journal, .questlog) .quests h3 { margin: 0 0 4px; font-size: 14px; letter-spacing: 0.04em; }
-      :is(#journal, .questlog) .quests h3 span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #c8483a; margin-left: 6px; }
-      :is(#journal, .questlog) .quests ul { margin: 0; padding-left: 18px; }
-      :is(#journal, .questlog) .quests li.done { text-decoration: line-through; opacity: 0.55; }
-      :is(#journal, .questlog) .quests li.now { font-weight: bold; }
-      :is(#journal, .questlog) .quests .qhint { font-size: 11px; opacity: 0.55; margin: 4px 0 0; }
+      /* the game menu (View / Select, J: src/game-menu.js): its styles are in src/menus.css */
 
       #toast {
         position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 8px 14px;
@@ -366,31 +334,6 @@
         #page .hint { font-size: 16px; }
       }
 
-      #journal {
-        position: fixed; inset: 0; z-index: 8500; display: none; overflow: auto; padding: 34px 44px;
-        background: #f3e7cc; color: #2b211f; font: 13px ui-monospace, Menlo, monospace;
-        background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(43, 33, 31, 0.07) 27px 28px);
-      }
-      #journal.open { display: block; }
-      #journal header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
-      #journal h1 { margin: 0; font-size: 26px; letter-spacing: 0.14em; }
-      #journal header .hint, #picker header .hint { font-style: normal; }
-      #journal .close { border: 1.5px solid #2b211f; background: none; font: inherit; padding: 4px 10px; cursor: pointer; }
-      #journal section { margin-bottom: 22px; }
-      #journal h2 { font-size: 15px; letter-spacing: 0.06em; margin: 0 0 8px; }
-      #journal h2 span { opacity: 0.55; font-weight: normal; }
-      #journal .row { display: flex; gap: 12px; flex-wrap: wrap; }
-      #journal .tile { margin: 0; width: 170px; }
-      #journal .tile img, #journal .tile.empty div {
-        display: block; width: 170px; height: 120px; object-fit: cover; border: 2px solid #2b211f; background: #efe3c6;
-      }
-      #journal .tile.story img, #journal .tile.story.empty div { width: 240px; }
-      #journal .tile.story { width: 240px; }
-      #journal .tile:nth-child(odd) img { transform: rotate(-0.8deg); }
-      #journal .tile:nth-child(even) img { transform: rotate(0.7deg); }
-      #journal .tile.empty div { display: grid; place-items: center; border-style: dashed; opacity: 0.45; font-size: 28px; }
-      #journal figcaption { margin-top: 4px; font-size: 11px; }
-
       /* The canvas fills the screen; interactive UI stays inside iOS safe areas. */
       #gear { right: calc(14px + var(--safe-right)); bottom: calc(14px + var(--safe-bottom)); }
       /* the frame-time readout (when asked for: F, the settings, ?fps=1) sits top right */
@@ -403,8 +346,9 @@
       #touch .b-book { right: calc(112px + var(--safe-right)); bottom: calc(120px + var(--safe-bottom)); }
       #changelog, #page { box-sizing: border-box; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
       #changelog .panel, #page .sheet { box-sizing: border-box; max-width: 100%; max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom)); overflow: auto; }
-      #picker, #journal { padding: calc(24px + var(--safe-top)) calc(20px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(20px + var(--safe-left)); }
+      #picker { padding: calc(24px + var(--safe-top)) calc(20px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(20px + var(--safe-left)); }
       #picker header { flex-wrap: wrap; gap: 12px; }
+      #picker header .hint { font-style: normal; }
       @media (display-mode: standalone) { .install-tip { display: none; } }
       #touch .b-ping { right: calc(112px + var(--safe-right)); bottom: calc(200px + var(--safe-bottom)); font-size: 13px; }
       #controller-hint { display: none; position: fixed; z-index: 1000; bottom: calc(8px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 7px 12px; background: #f7eed9ed; border: 1px solid #473d36; font: 12px monospace; pointer-events: none; }
@@ -467,10 +411,7 @@
       </svg>
       <div class="msg">sketching the world…</div>
     </div>
-    <div id="journal">
-      <header><h1>SKETCHBOOK</h1><span><em class="hint">J or Esc to close</em> <button class="close">close ✕</button></span></header>
-      <div class="pages"></div>
-    </div>
+    <div id="journal"></div>
     <div id="page"></div>
     <div id="toast"></div>
     <div id="dialogue"></div>

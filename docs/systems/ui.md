@@ -13,7 +13,7 @@ The title screen and saves, settings, the pause menus, the empty screen while pl
   - reset progress;
   - the developer shader panel is hidden unless you enable it here.
 - **Touch:** a floating stick on the left, drag on the right to look, and
-  buttons for jump, interact, run, sketchbook and worlds. Low graphics by
+  buttons for jump, interact, run and the game menu (❏). Low graphics by
   default.
 - **Ending:** find all seven story pages and all 35 relics for a closing page.
   It unlocks an eighth world, **The Atelier**: a blank page with pencil
@@ -52,8 +52,8 @@ update, a note points to it once. The same release notes are in
 - **Story pages wait for the talk to end** (`Story.showPage` in `src/quest.js`): a world's
   closing page, which comes a moment after the last line, used to open over the
   conversation and stay up while A turned the pages under it. It is now drawn and kept in
-  the sketchbook at once, and opens when the conversation closes (`story.waitFor`); a
-  controller press goes to whatever is on top (`menuRoot`).
+  the sketchbook (the game menu's Sketchbook panel) at once, and opens when the conversation
+  closes (`story.waitFor`); a controller press goes to whatever is on top (`menuRoot`).
 
 ## The title screen, five saves and the pause menus
 - **Boot order** (`src/boot.js`, the page's entry): the title screen (`src/title.js`) runs
@@ -103,9 +103,10 @@ update, a note points to it once. The same release notes are in
   copied into slot 1 once (`migrate()`); the old keys are left as they were, so an older
   build (an over-the-air update rolled back) still finds its save.
 - **Pause menus**: Menu / Start (O, Esc) opens the Start menu, now full screen (Resume,
-  Sketchbook, What's new, Quit to title, where you are and the time played, the settings,
+  Items, Quests, What's new, Quit to title, where you are and the time played, the settings,
   and "Restart this save from the prologue", which asks inline rather than with
-  `confirm()` and forgets only this slot). View / Select (J) opens the sketchbook. Start and
+  `confirm()` and forgets only this slot). View / Select (J) opens the game menu (below; its
+  Items and Quests entries open it on that panel). Start and
   Select work over a conversation or one of the ship's scenes too (holding B still skips a
   scene). While one of them (or What's new) is open, `frame()` skips the world entirely:
   player, people, crowds, wildlife, vehicles, the ship's scenes and the world's clock
@@ -156,6 +157,10 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   home and docks as before (`returnT` drives the safe recall now). Phases: docked → launch → seek →
   point → return. Nothing to find (`getTarget()` null): `shrug()`, the eye opens, it lifts a few
   centimetres off the dock and shakes itself (`FIND.shrug` s), "Nothing to find here".
+- **What it says** (since the game menu, October 2026): the cue gives the quest's overall goal on a
+  small line over "◆ the next step · how far" (`findSummary` in `src/hud.js`, `findGoal` in main.js:
+  the quest's goal from `src/story/quest-goals.js`, the observatory's, the world's story title), for
+  6 s, then fades; nothing about steps already done.
 - **What it finds** (`nextObjective`): the tracked quest's objective (or the main quest's, or the
   first active one: `Quests.objective`), routed through doorways; while the observatory expedition
   is under way its steps first; then the world's story goal (its beacon); once the story is told,
@@ -169,13 +174,54 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   part of the landscape, not the screen (a lighthouse you see across the dunes, drawn in the
   world's ink and light), it is the one way a world without step-by-step quests shows its goal
   before you think of asking, and it goes when the story is told.
-- **The menu's pages** (`SettingsMenu.page`): Quests, Settings (where it opens) and Controls, from
-  the side column. **Quests** (`o.quests()`, `questsPageHtml`): "Where to" (what the scout would
-  find, and how far), the father's charge and the quest log (the sketchbook's own sections:
-  `chargeJournalHtml`, `quests.journalHtml()`, steps done struck through, finished ones stamped,
-  failed ones under their own heading), and what you carry. Active quests are focusable
-  (`data-nav`, which `menuNavigate` steps onto): confirm or a click tracks one (`o.onTrack`).
-  **Controls** (`controlsList`, `controlsHtml`): every control for the pad (in Xbox / PlayStation
+- **The menu's pages** (`SettingsMenu.page`): Settings (where it opens) and Controls, from the side
+  column; its Items and Quests open the game menu on that panel (`o.onBook(panel)`; until October
+  2026 Quests was a page of its own with the whole quest log). **Controls** (`controlsList`, `controlsHtml`): every control for the pad (in Xbox / PlayStation
   form), the keyboard and touch, the one in your hands first; H opens the menu there. B / ○ or
   Esc on a page goes back to the settings, then out. The title's settings have Controls too.
-  The sketchbook (View, J) is unchanged.
+
+## The game menu: Items, Quests, Sketchbook, Worlds (October 2026)
+
+The author's call: the sketchbook becomes a game menu after Ocarina of Time's pause screen, with
+distinct panels and clear controller navigation, an Items panel and a Quests panel, in the game's own
+look; and the current quest is only its overall goal and its next step. Code: `src/game-menu.js` (the
+panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from the save),
+`src/game-menu.css`, `src/item-icons.js`; tests: `tests/game-menu.test.js`.
+
+- **Opening it**: whatever opened the sketchbook — View / Select, J, the touch ❏ — and the Start
+  menu's Items and Quests (on that panel). It draws into `#journal`: `Journal.toggle(on, panel)` in
+  `src/quest.js` opens it; the journal still keeps the relics, story pages, errands and the
+  observatory. It pauses the game like the Start menu, and opens where you left it.
+- **Panels** (`PANELS`), side by side in a ring: **Items** (the gear's grid, a slot for every item
+  there is, the empty ones dashed and unnamed; under it what you carry for the quests and the
+  father's keepsakes; beside it the picked one large), **Quests** (the father's charge, then each
+  quest under way, the tracked one first: its title, its goal, "Next" and its step, nothing more;
+  pending errands; on the right "Done", a short list of finished and failed titles, `ENDED` of each,
+  "and n more"), **Sketchbook** (a row per world you know: its story page, its relics, a ? until found;
+  then the observatory's sketch and the errands'), **Worlds** (the worlds you know in the route's order,
+  their picture from `thumbs/`, ✓ story, relics and makers' boxes found, "you are here").
+- **Look**: the panel's name in the Start menu's comic lettering among four tabs at the top; the sheet
+  of ruled paper between two side tabs naming the neighbours (with `LB / L1`, `RB / R1` on a pad); the
+  cursor a gold cell in a pulsing red ring; the strip at the bottom: the picked thing's name, kind and
+  words, and the buttons that do something here (`menuPrompts`: a pad's in Xbox / PlayStation form,
+  which `native-pad.js` renames, the keyboard's keys, none on a touch screen). Sizes follow the viewport
+  (`vh` clamps): 1280 × 720 and the Retroid's 730 × 410 CSS px both fit; a long panel scrolls inside
+  its sheet with the cursor.
+- **Controls**: LB / L1 and RB / R1 turn the panels (`Controller` sends `tabPrev` / `tabNext` in a
+  menu); the stick or the D-pad moves the cursor (`moveCursor`: along a row; off its end onto the side
+  tab, once more turns, as on the N64; up / down to the next row with that column, wrapping); A / ×
+  uses or looks: a gun mode's item takes that mode (`onUse` → `tool.setMode`), a quest becomes the
+  tracked one (`quests.choose`), a sketch is held up over the sheet (any move puts it back); B / ○
+  closes the whole menu from any panel. Keyboard: Q / E or [ ] turn, arrows or WASD move, Enter or
+  Space use, Esc or J close. Mouse: the tabs, the side tabs, a click picks, a click on the picked one
+  uses; hovering picks. Touch: a tap picks and says what it is, a second tap uses; the ✕ closes.
+- **The items' pictures** (`ItemIcons`): each item's own model (`buildItemModel`, the one that hovers
+  out of its box; every item has one now, the charms and the cab pass included) drawn by the game's
+  pipeline alone against the slot's paper (`captureView` with `keep` and `backdrop`, as portraits are),
+  one a frame while the menu is open (`pausedFrame`), kept for the session. Until its picture is ready
+  a slot shows its kind's mark; a blank capture keeps the mark.
+- **The quests' goals** (`src/story/quest-goals.js`): one line per quest (`QUEST_GOALS`, or the quest's
+  own `goal`), else a rule: a temple's "Find what the makers left in …", a makers' box's "Find the
+  makers' box and open it", else its title. `Quests.summary()` gives each active quest's goal and
+  current step and the ended ones by title; `journalHtml()` is the same as text. The steps already done
+  are never shown, in the menu or in play.
