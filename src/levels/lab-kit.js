@@ -4,6 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { mulberry32 } from '../noise.js';
 import { SandDrifts } from '../sand-drifts.js';
 import { FORM_ATTRS, keepForm, padForm } from '../form.js';
+import { THIN_ATTR, padThin } from '../thin.js';
 
 // ---------------------------------------------------------------------------
 // The Lab's room kit: what a biome room (src/levels/lab-rooms.js) builds with.
@@ -24,7 +25,7 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Eule
 export function mergeable(g, keepColor = true) {
   if (!g.attributes.normal) g.computeVertexNormals();   // (before un-indexing, so smooth shapes stay smooth)
   const n = g.index ? keepForm(g.toNonIndexed()) : g;
-  for (const k of Object.keys(n.attributes)) if (k !== 'position' && k !== 'normal' && !(keepColor && k === 'color') && !FORM_ATTRS.includes(k)) n.deleteAttribute(k);
+  for (const k of Object.keys(n.attributes)) if (k !== 'position' && k !== 'normal' && !(keepColor && k === 'color') && !FORM_ATTRS.includes(k) && k !== THIN_ATTR) n.deleteAttribute(k);
   return n;
 }
 
@@ -87,7 +88,7 @@ export class RoomKit {
   /** Merge the buckets into the room's meshes. */
   finish() {
     for (const b of this.buckets.values()) {
-      const m = new THREE.Mesh(mergeGeometries(padForm(b.list)), b.mat);
+      const m = new THREE.Mesh(mergeGeometries(padThin(padForm(b.list))), b.mat);
       if (!b.solid) m.userData.noCollide = true;
       if (!b.shadow) this.noShadow.push(m);
       this.group.add(m);

@@ -68,6 +68,8 @@ export function waterMaterial(mat, o = {}) {
     uBedRef: { value: new THREE.Vector2(0, 0) },              // the height the map is measured from, 1 once baked
     uWaterBed: { value: o.bed ? new THREE.Color(o.bed) : new THREE.Color(o.color2 ?? o.color).lerp(SAND, 0.55) },   // (by default: the shallows' tone, sandier)
     uWaterOpt: { value: new THREE.Vector4(o.waterDepth ?? 2.4, o.waterPrint ? 1 : 0, o.clarity ?? 1, o.sparkle ?? 1) },
+    // its underside, seen from below: the shallows' tone lifted toward this colour (o.below: [colour, how much])
+    uWaterBelow: { value: o.below ? (() => { const col = new THREE.Color(o.below[0]); return new THREE.Vector4(col.r, col.g, col.b, o.below[1]); })() : new THREE.Vector4(0.96, 0.98, 0.97, 0.45) },
   });
   return mat;
 }
@@ -78,6 +80,7 @@ export const WATER_GLSL = /* glsl */ `
   uniform vec2 uBedRef;
   uniform vec3 uWaterBed;
   uniform vec4 uWaterOpt;        // fallback depth · printed shape · clarity · sparkle
+  uniform vec4 uWaterBelow;      // the underside: lifted toward rgb by a
   uniform vec4 uWaterRings[${RINGS}];   // x, z, start time, strength
   uniform vec3 uWaterSky[2];
   uniform float uWaterLite;
@@ -152,7 +155,7 @@ export const WATER_GLSL = /* glsl */ `
 
     if (!front) {
       // the underside, seen while diving: a pale bright ceiling with its ripples
-      W.albedo = mix(shallow, vec3(0.96, 0.98, 0.97), 0.45);
+      W.albedo = mix(shallow, uWaterBelow.rgb, uWaterBelow.a);
       W.ink = ink * 0.75;
       W.lit = 1.0;
       W.glint = 0.0;

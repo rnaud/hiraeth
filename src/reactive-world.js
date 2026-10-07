@@ -29,6 +29,8 @@ export const WORLD_REACTIONS = {
   glassdunes: {kind:'fan',quiet:'#8fcfae',awake:'#e8f7a0',radius:10},   // (glass fans in the sand, opening lime as you pass)
   waterfall: {kind:'flower',quiet:'#4f8f5f',awake:'#b2ebe2',radius:9},   // (none grow there: level.reactions false)
   saltharbour: {kind:'flower',quiet:'#e6d2bc',awake:'#c4664a',radius:9},   // (none grow there: level.reactions false)
+  antennas: {kind:'flower',quiet:'#9a7ccc',awake:'#ffcf72',radius:9},   // (none grow there: level.reactions false)
+  underwater: {kind:'fungus',quiet:'#3f7a74',awake:'#9ff4ee',radius:9},   // (none grow there: level.reactions false)
 };
 
 // ------------------------------------------------------------------ room to bloom

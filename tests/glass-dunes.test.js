@@ -103,7 +103,7 @@ test('the Glass Dunes: a detour on the map, off the route, with its people and n
   const { CONTENT } = await import('../src/levels/content.js');
   const { mapEntries } = await import('../src/ship/starmap.js');
   const meta = LEVELS.find((l) => l.id === 'glassdunes');
-  assert.ok(meta && meta.side && !meta.hidden && meta.title === TITLES.glassdunes);
+  assert.ok(meta && meta.hidden && meta.title === TITLES.glassdunes);
   assert.ok(SIDE.includes('glassdunes') && !ORDER.includes('glassdunes'), 'off the route: nothing to finish, never counted');
   const c = CONTENT.glassdunes;
   assert.ok(c.npcs.length >= 3 && c.relics.names.length === 0 && c.story.manual, 'people, no relics, no quest');

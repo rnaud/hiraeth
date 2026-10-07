@@ -174,6 +174,7 @@ function resize() {
   post.uniforms.uRes.value.set(rw, rh);
   post.uniforms.uPixelRatio.value = pr;
   sharedUniforms.uPixelRatio.value = pr;
+  sharedUniforms.uViewH.value = rh;   // (thin bars' least width, src/thin.js)
   wind?.uniforms.uRes.value.set(rw, rh);
   HOLO.uniforms.uRes.value.set(rw, rh);
   if (overlays.motes) { overlays.motes.uniforms.uRes.value.set(rw, rh); overlays.motes.uniforms.uPR.value = pr; }
@@ -1467,6 +1468,7 @@ function frame(ts) {
     altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
     flying: player.gliding || player.thrusting, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
     roar: level.roar?.(player.pos) ?? 0,   // (a waterfall near: src/levels/waterfall.js)
+    hum: level.hum?.(player.pos) ?? 0,   // (masts and a receiver near: src/levels/antennas.js)
   });
 
   // sand: ambient gusts + dust behind the bike
@@ -1513,7 +1515,7 @@ function frame(ts) {
   // the water: its rings and splashes, its bed maps; the camera kept off its surface
   waters.update(dt, t, { player, vehicles: player.vehicles, things: wildlife.creatures, globs: tool.globs, sky: U });
   waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
-  breathMeter.update(player.breath, !!player.swim && (player.swim.under || player.breath < 0.999) && !busy());
+  breathMeter.update(player.breath, !!player.swim && ((player.swim.under && !player.swim.sea) || player.breath < 0.999) && !busy());   // (deep in a sea the pack gives air: swim.js SEA)
 
   gpuTimer.begin();
   renderFrame();

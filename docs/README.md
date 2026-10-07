@@ -37,7 +37,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [traveller-kit.md](systems/traveller-kit.md) | the traveller's kit: the rucksack, the flask and their hooks |
 | [aliens.md](systems/aliens.md) | the non-humanoid peoples: drifters, stilt-walkers, shellbacks and murmurs; their bodies, voices, tones without a face, reactions to the tool |
 | [faces.md](systems/faces.md) | the shader face, expressions and hairstyles, hair and talking faces, eyes, faces drawn the Moebius way, warmer faces |
-| [rendering.md](systems/rendering.md) | how the look is built (the passes), the developer panel, time of day, the print look, drawn textures, the beauty pass, who casts a shadow, stable in motion (the motion check) |
+| [rendering.md](systems/rendering.md) | how the look is built (the passes), the developer panel, time of day, the print look, drawn textures, the beauty pass, who casts a shadow, stable in motion (the motion check), thin bars at any distance |
 | [materials.md](systems/materials.md) | shade and hatching by surface, weathered walls, ground ink by distance, metals and the makers' inscriptions, faster surfaces and shader compiles |
 | [performance.md](systems/performance.md) | phone rendering, quality, culling and the Handheld preset, rooms off the map, levels of detail, hand-overs and loads without a hitch |
 | [worlds.md](systems/worlds.md) | the levels, regions and wind, interiors, the terrain, each world's places, sand drifts, the singing spheres, Qanat, the ship's deck, Home |

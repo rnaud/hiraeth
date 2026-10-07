@@ -550,6 +550,82 @@ the narrowest creases.
   sails layered three or four deep; the pictures' near ropes are a fan of hairlines, ours thicker strokes. Our
   views' compositions follow the pictures' masses (which hull where, lit or in shade), not every hull's exact turn.
 
+## The Forest of Antennas' pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-antennas.js`, world `antennas`: `?level=references&world=antennas&view=<1…4>`):
+  four single compositions (1456 × 816), one view each: the path to the workshops under the immense navy receiver,
+  backlit (1); under the great nest saucer, the workshops on their decks, the pink dish on its lattice, the
+  maintenance bridge (2); the vine-grown masts and their nests, the pink receiver on its block over the domes (3);
+  the great saucer over the egg and the domes, the stair to the observation platform (4). One scene builder
+  (`antennaScene`): lattice masts with nest saucers and birds, dishes on lattice legs, a pedestal or a block,
+  great saucers on their masts, the domes and the egg, vine-grown cables and plain wires, metal stairs and decks,
+  the path, dark bushes, grass strokes, and the forest beyond. `?look=antennas`.
+- **Placed off the sheets' pixels** (`sheetAt(cam, px, py, d)`, `sheetGround(cam, px, py)`, `sheetSpan`): a point
+  drawn at pixel (px, py) and standing d m down the line of sight is put where the view's camera (its fov and
+  horizon, so its pitch) sees it there; a mast is given by its foot and its saucer's rim in pixels (`mastAt`), a
+  dish by its centre and half-width. A pixel above the horizon never meets the ground (`sheetGround` behind the
+  eye): such a foot is placed with `sheetAt` at a distance instead. `tests/antennas.test.js` projects them back.
+- **The sheets' flattened perspective**: their high saucers are drawn nearly edge-on (a thin rim, little of the
+  underside) though they stand 25-40° up from the eye, which no camera does; the saucers are tipped toward the eye
+  by a share of that angle (`tipEye`: 0.4 a mast's, 0.85 a great one's), the birds on their rims with them.
+- **The shapes** (`src/levels/antennas-kit.js`, shared with the world): `latticeTower` (three or four tapering legs,
+  X-braced bays, one diagonal under detail 0.6, vines climbing the legs with leaf clumps on them, strands hanging
+  from the struts), `dish` (a paraboloid with its back shell to colour apart, the rim, a tripod, quad or boom feed
+  at the focus, ribs on its back; `aimAt` turns it to a direction about its vertex), `saucer` (the flat nest dish:
+  a shallow bowl on a conical underside, vines off the rim), `column`, `dome` (a workshop: round lit windows in
+  dark frames, an arched lit door under its hood, a vent and a little dish on top), `egg`, `vineCable`, `cable`,
+  `trussStair`, `deck` (railed, gaps where a stair meets it), `bird`, and unit far masts (`unitPole`, `unitSaucer`,
+  `unitDish`). Caps and bowls hatch radially (`form` 'cap'), columns and the egg wrap.
+- **The forest beyond** (`farForest`): 700-1100 masts from 70-140 m to 1.1 km, each a pole and a cap (a nest
+  saucer, a tilted dish, a flower dish on a stalk), four instanced draws, each mast its own tone from a mid lilac to
+  the haze's cream with distance. **No shimmer at distance**: a pole is never drawn thinner than `FAR_MIN_R` × its
+  distance (1.6 mm a metre: ~1.5 px on the handheld's frame), and the far masts and the dishes' frames draw a thin
+  line in a dark shade of their own colour (`line`, `lineTint`), not the world's black ink, so a mast a pixel or two
+  wide is a pale stroke, not a crawling black one; the lattices further off are a lighter rust with a thinner line
+  (`ironMid`).
+- **The look** (`ANTENNAS_LOOK`, `ANTENNAS_DAY`, `ANTENNAS_TONES` in the kit): no clouds, a flat pale yellow sky,
+  lavender shade, thin lines and light hatching, stepped haze in a pale cream from 90 m out, cast shadows lifted on
+  the grass. Per view: the sky's five colours read off the sheet (view 4 an amber sky), the grass's three tones.
+- **On the world** (`src/levels/antennas.js`, worlds.md "The Forest of Antennas"): the same kit at `detail` 0.6-0.85,
+  the masts' bottom bay left open (`open`), their legs' stand-ins, every bar kept 1.5 px wide (`thin`).
+- **Left, shader level**: the sheets' grass is a dense field of fine strokes, ours a few thousand instanced tufts
+  and the ground's ticks; their far forest dissolves into a glowing horizon haze, ours steps into it.
+- **Left, scene level**: the sheets' workshops are dense with machinery, decks and ladders, ours plain domes;
+  their mid-distance lattices are fine pen work at every bay, ours a few struts; view 2's stacked domes reach up
+  to the saucer's collar, ours stop lower.
+## The Underwater City's sheets (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-underwater.js`, world `underwater`: `?level=references&world=underwater&view=n`):
+  four 16:9 plates (1456 × 816), one view each, after the City Behind the Waterfall's: the two cafés under their
+  domes, the bridge and the towers of pods (1); the white bridge into the city, the spires beyond (2); the street of
+  pods down the canyon, the café shell on the left (3); the great café on the terrace and the lamps along the drop,
+  the open sea (4). One scene builder (`seaScene`) with the world's kit (`src/levels/underwater-kit.js`, shared with
+  the world, worlds.md "The Underwater City"). `?look=underwater` is not needed: the views use the world's own look.
+- **The shapes** (the kit): `tower` (a pale salmon shaft, a solid ring every storey, round windows flush with the
+  wall, some lit, a dome, spire or flat top, and pods round it: `podRing`), `pod` (a saucer underside, a band of
+  lit amber glass with its mullions, a pale rim; open (a deck with plants) or domed (a roof of amber panes on
+  ribs); on a stalk), `glassColumns` (tubes of luminous water, the bubbles one InstancedMesh of discs on the glass
+  rising, moved by one mover), `cafeDome` (a glass dome on ribs, or a shell (`'teal'`, `'pink'`) with glass windows
+  cut into it and a porthole, a door left open, its warm inside: the floor, tables and chairs, a counter and a
+  dresser of bottles, pendant lamps, people at the tables; its `air` test), `walkway` (decks on piers with globe
+  lamps), `lampPost`, `bush`, `kelp` (swaying), `rock`, `manta` (body and two wings beating, gliding round a loop or
+  held), `fishSchool`, `swimmer`, `farCity` (plain towers far off, for the haze). `seaSurface` lays the sea's
+  surface overhead (`userData.sea`: water.md "A sea").
+- **The look** (`UNDERWATER_LOOK`, `UNDERWATER_DAY` in the kit): no clouds, the sky the far water's blue (top lighter
+  toward the surface), the shade printed flat in the water's teal but the towers keep half their salmon in it,
+  no aerial greying (it turned the salmon grey), haze layers from 70 m (× 1.5, 0.22 each): the near city keeps its
+  colour, the far city goes to the water's blue. The sea's own pass (water.md) adds the banded tint from 25 m, the
+  shafts and the caustics.
+- **Light from within**: the pods' amber glass, the lit windows and the cafés' insides are self-lit just under the
+  bloom's threshold (glow 0.5–0.58: no halo, no lift to white) with their shade lifted to their own colour; a shell
+  casts no shadow on its inside, and is lined (a warm back-faced copy) so its windows show a warm room.
+- **The light** comes from behind the camera in all four (as the plates light the towers' faces toward you), 44–52°
+  high; the shafts lean away from it.
+- **Left**: the plates' cities are denser (pods on every storey, balconies, plants in every pod, figures inside the
+  amber glass); ours are tidy rings of pods. View 2's white bridge is a flat walkway, not the plate's arched span;
+  view 3's canyon is a street, not the plate's dark water with walkways over it; the domes' glass draws only its
+  rim (S_GLASS), where the plates draw reflections across it; the columns' swimmers are not there.
+
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 
 The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had

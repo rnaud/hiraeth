@@ -45,6 +45,7 @@ export const WORLDS = [
   ['garage', 'The Sealed Hangar', /First Garage|Sealed Hangar/],
   ['mangrove', 'The White Mangrove', /White Mangrove/],
   ['saltharbour', 'The Salt Harbour', /Salt Harbour/],
+  ['antennas', 'The Forest of Antennas', /Forest of Antennas/],
   ['references', 'References', /References level/],
 ];
 
@@ -159,6 +160,67 @@ export const CHANGELOG_MEDIA = {
       { name: 'saltharbour-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): the market in the cleft, the gangway, the terracotta hull and its ropes', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'saltharbour-refs-curtains', only: 'after', size: [1928, 538], caption: 'The third: the curtains hung from the high gangway, the arcade along the hull’s foot', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=saltharbour (or the worlds list, L, then the References and Tab to the Salt Harbour) and press \\ to set each panel beside its view.' },
+    { match: 'A new world off the route, the Forest of Antennas', shots: [
+      { name: 'antennas-arrival', only: 'after', caption: 'Out of the ship: the path winding north through the masts, the great nest saucers, the dishes on their lattices, Teb by the ship', from: 'the world’s own screenshots, headless Chrome, High, 15:30 (7 October)' },
+      { name: 'antennas-plaza', only: 'after', caption: 'The plaza among the workshops, under the immense receiver; the maintenance bridge crossing to its balcony; Ottla by her lamp', from: 'the world’s own screenshots, headless Chrome, High, 16:30 (7 October)' },
+      { name: 'antennas-deck', only: 'after', caption: 'On the observation deck with Lune at the end of the afternoon: the forest of masts to the haze, the bridge to the receiver', from: 'the world’s own screenshots, headless Chrome, High, 17:12 (7 October)' },
+      { name: 'antennas-night', only: 'after', caption: 'The workshops at night, their windows lit under the receiver', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the Forest of Antennas on the galactic map (or open the game with ?level=antennas). Follow the path north to the workshops; the observation tower’s stair rises from the grass west of the receiver, and Lune waits on its deck. The fallen dish by the path can be walked into.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of frames, median of 3 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The Forest of Antennas”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 2.31, after: null },
+          { where: 'the Signal Market’s street (the budget)', before: 2.42, after: null },
+          { where: 'by the ship (spawn)', before: null, after: 2.16 },
+          { where: 'the path, toward the receiver', before: null, after: 2.17 },
+          { where: 'the plaza', before: null, after: 2.39 },
+          { where: 'the observation deck', before: null, after: 2.15 },
+        ] },
+      ] },
+    { match: 'The Forest of Antennas hums', see: 'In the Forest of Antennas, walk from the ship toward the receiver: the hum rises as the masts close in and is loudest on the plaza and the balcony; listen for the crackle of static and, now and then, a thin whistle tuning in.' },
+    { match: 'In the Forest of Antennas, far-off masts, wires and lattice struts stay steady', numbers: [
+      { title: 'The motion check’s pan from the ship over the masts: pixels that flicker, per 10 000 a frame', unit: 'px', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720 (scripts/motion-check, the world frozen, a third of a pixel a frame)', source: 'docs/systems/rendering.md, “Thin bars at any distance”', rows: [
+        { where: 'Handheld preset, the pan', before: 62.1, after: 20.0 },
+        { where: 'Handheld preset, the drift', before: 8.9, after: 7.6 },
+        { where: 'Handheld preset, looking far through the haze', before: 34.3, after: 31.5 },
+        { where: 'High preset, the pan', before: 59.0, after: 39.0 },
+      ], note: 'Before: the same world with every bar drawn at its own thickness. The masts, struts, wires and vines are pushed out to 1.5 pixels wide wherever they would be thinner; what still flickers is leaves, bushes and grass.' },
+    ], see: 'Walk along the path and turn slowly: the thin struts of the far masts and the wires between them hold as lines instead of breaking into dots.' },
+    { match: 'The References level has the Forest of Antennas’ four pictures', shots: [
+      { name: 'antennas-refs', only: 'after', size: [1608, 448], caption: 'The first picture (left) and its view in the game (right): the path to the workshops under the immense receiver', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'antennas-refs-egg', only: 'after', size: [1608, 448], caption: 'The fourth: the great saucer over the egg and the domes, the stair to the platform', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=antennas and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'The References level has the Underwater City’s four pictures', shots: [
+      { name: 'refs-underwater-cafes', caption: 'The first picture (left) and its view (right): the two cafés under their domes, the towers of pods, the manta', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'refs-underwater-terrace', caption: 'The fourth: the great café lit warm through its window, the lamps along the drop, the open sea', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=underwater (or the worlds list, L, then the References and Tab to the Underwater City) and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'Under a sea, the water is drawn the way the drawings draw it', shots: [
+      { name: 'sea-look', caption: 'The terrace view: the haze in steps with distance, the shafts from the surface, the ripples of light on the street', only: 'after', from: 'the References’ fourth Underwater City view, headless Chrome, High (7 October)' },
+    ], see: 'In the References’ Underwater City views, or under any sea: walk and look about; the shafts stay where they are in the water as you move, and the lines of light drift slowly over what faces up.' },
+    { match: 'A new world off the route, the Underwater City', shots: [
+      { name: 'sea-avenue', caption: 'The avenue at dusk: the shell house and the glass café, the towers of pods, the glass columns, light falling in shafts', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 18:36 (7 October)' },
+      { name: 'sea-over-city', caption: 'Over the avenue, sinking back down: the canal’s bridge, the cafés, the towers and their columns', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 11:00 (7 October)' },
+      { name: 'sea-cafe', caption: 'The glass café: dry and lit warm inside, the sea outside', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 11:00 (7 October)' },
+      { name: 'sea-night', caption: 'The avenue at night: the shafts gone, the lamps and the cafés lit', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'Open the ship’s galactic map: the Underwater City is charted beside the route (or open ?level=underwater). Walk up from the ship along the lamps, into a café, over the canal’s bridge to the plaza, up the terrace’s stairs to the edge; jump and swim up among the towers.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of frames, median of 7 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The Underwater City”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 1.51, after: null },
+          { where: 'the Signal Market’s street', before: 1.6, after: null },
+          { where: 'the landing (spawn)', before: null, after: 1.53 },
+          { where: 'the avenue', before: null, after: 1.62 },
+          { where: 'swimming among the towers', before: null, after: 1.37 },
+          { where: 'in a café', before: null, after: 1.49 },
+        ] },
+        { title: 'Draw calls a frame, the same places', unit: 'draws', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The Underwater City”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 596, after: null },
+          { where: 'the landing (spawn)', before: null, after: 301 },
+          { where: 'the avenue', before: null, after: 241 },
+          { where: 'swimming among the towers', before: null, after: 128 },
+        ] },
+      ] },
+    { match: 'Deep under a sea you walk its floor', shots: [
+      { name: 'sea-swim', caption: 'Holding jump: rising off the avenue', only: 'after', from: 'the world’s own screenshots, headless Chrome, High (7 October)' },
+    ], see: 'In the Underwater City, walk the avenue, then jump (A / ×) and hold it to rise toward a tower’s pods; let go over a pod’s deck to land on it. Walk into a café’s door: you are out of the water.' },
   ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [

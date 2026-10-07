@@ -30,7 +30,10 @@ export const REFERENCE_WORLDS = [
   { id: 'glassdunes', name: 'The Glass Dunes', count: 4, load: () => import('./reference-glassdunes.js') },
   { id: 'waterfall', name: 'The City Behind the Waterfall', count: 4, load: () => import('./reference-waterfall.js') },
   { id: 'saltharbour', name: 'The Salt Harbour', count: 4, load: () => import('./reference-saltharbour.js') },
+  { id: 'antennas', name: 'The Forest of Antennas', count: 4, load: () => import('./reference-antennas.js') },
+  { id: 'underwater', name: 'The Underwater City', count: 4, load: () => import('./reference-underwater.js') },
   { id: 'eclipse', name: 'The City During the Eclipse', count: 4, load: () => import('./reference-eclipse.js') },
+||||||| 601f1fbc
 ];
 
 /** The index of the first view of world k (0-based, across all the worlds). */

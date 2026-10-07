@@ -650,3 +650,31 @@ things. On Handheld the Buried Machine's pipe is small enough on screen that the
 - `tests/motion-stable.test.js`: the grime's tone at its foot against the edge threshold and its width cut, no hard
   steps in the wear, the detail's blend, the terminator's fade and where it applies, the fog and haze by distance
   (a trunk turning to the side of the view keeps its veil), the composite's defines followed in place.
+
+
+## Thin bars at any distance (materials.js `S_THIN`, `src/thin.js`, October 2026)
+
+The Forest of Antennas is masts by the thousand: lattice struts 0.12-0.2 m thick, wires 0.1 m, vines, far poles.
+Past 60-100 m on the handheld (a pixel is ~0.002 × its distance there) such a bar is under a pixel wide, and a bar
+under a pixel is drawn on one frame and missed on the next as it slides under them: the motion check's pan from the
+ship flickered 62 pixels in 10 000 a frame on Handheld (the busiest world measured so far is the Garden at ~24).
+
+- **The bar keeps a least width**: each vertex of a bar carries the point of its axis it stands round (`aThin`: xyz,
+  w 1 on a bar; `thinBar` for a straight bar, `thinTube` for a tube along a curve, `thinRing` for a torus,
+  `thinPole` for the instanced far poles). In the vertex shader, where the bar would be thinner on screen than
+  `makeMaterial({ thin })` pixels (1.5), the vertex is pushed out from that point to that width: a pixel there is
+  `2 d / (P[1][1] × uViewH)` m (d the axis point's distance, `uViewH` the frame's height as drawn, main.js
+  `resize`). Only for a perspective camera (`P[2][3] = -1`): a shadow map draws the bar as it is. Near, nothing
+  changes; far off, the bar is a steady line 1.5 px wide that the haze fades into the sky, as the sheets' far masts.
+- **Carried through the builds**: a bar's axes move with it (`keepThin` chains `applyMatrix4`, so translate, rotate
+  and `aimAt` move them), RoomKit's `mergeable` keeps `aThin`, and `padThin` gives the rest of a bucket an empty one
+  (w 0: drawn as it is). Not one of `SURFACE_FEATURES` (as `S_VMAT`): a shader made without `SURFACE_SPEC` never
+  expects the attribute. The collision is baked from the drawn geometry on the CPU, unchanged.
+- **Results** (scripts/motion-check, 1280 × 720, the world frozen; flicker per 10 000 px, before → after, the before
+  the same build with every bar at its own thickness): Handheld pan 62.1 → 20.0, drift 8.9 → 7.6, haze 34.3 → 31.5;
+  High pan 59.0 → 39.0. What is left is the leaves on the vines and cables, the bushes' blades and the grass.
+  Drawing the far masts thicker on the CPU (`FAR_MIN_R`) and in a line of their own colour alone changed nothing
+  measurable (62.3 → 62.1): the near and middle lattices and the wires were the crawl.
+- **Cost**: a few multiply-adds a vertex of a thin material; nothing measurable at Handheld.
+- `tests/antennas.test.js`: the views' sheet projection; `tests/surface-spec.test.js` and `vertex-material.test.js`
+  unchanged.
