@@ -7,12 +7,18 @@ see docs/credits.md). On top of it come motion-captured takes from two sources, 
 | File | What | Size | Loaded |
 |---|---|---|---|
 | `public/anim/walks.glb` | 12 walking cycles of CMU subjects: the people's own walks | 81 KB | always (after the game starts, not waited for) |
-| `public/anim/moves.glb` | the traveller's own moves: 11 Mixamo clips (get-ups, jumps, a stumble, idles, a kneel, the petting) | 349 KB | always (after the game starts, not waited for) |
+| `public/anim/moves.glb` | the traveller's own moves: 21 Mixamo clips (get-ups, jumps, a stumble, idles, turns, a kneel, the petting, the fluid blade's three swings) | 486 KB | always (after the game starts, not waited for) |
 | `public/anim/locomotion.glb` | the motion-matching database: 75 CMU clips and 33 Mixamo ones (267 s; mirrored at load) | 1.39 MB | only with motion matching switched on (dev menu, `?mm=1`) and in the character studio |
 
-Only these processed files are in the repository. The raw downloads live in `data/mocap/raw/`
-and `data/mocap/mixamo/`, which git ignores; `node scripts/mocap/fetch-cmu.mjs` downloads the CMU
-takes again, and the Mixamo files are downloaded by hand (docs/mixamo-shopping-list.md).
+The raw downloads live in `data/mocap/raw/` and `data/mocap/mixamo/`, which git ignores;
+`node scripts/mocap/fetch-cmu.mjs` downloads the CMU takes again, and the Mixamo files are downloaded
+by hand (docs/mixamo-shopping-list.md). The exception is Mixamo's **packs**, kept in the (private)
+repository as downloaded so they can be processed again (the author's decision, October 2026):
+`data/mocap/packs/sword-and-shield.zip` and `great-sword.zip`. `node scripts/mocap/unpack-packs.mjs`
+puts the clips the table names (`pack`, `entry` in `scripts/mocap/mixamo-clips.json`) into
+`data/mocap/mixamo/`, and `node scripts/mocap/build-library.mjs --add <ids>` converts only those and
+adds them to `moves.glb` beside the clips already in it (the other clips' sources need not be on the
+machine).
 
 ## CMU Graphics Lab Motion Capture Database
 
@@ -84,8 +90,8 @@ takes again, and the Mixamo files are downloaded by hand (docs/mixamo-shopping-l
   non-profit projects (games, films, …), and may be used in a project you sell; what is not
   allowed is redistributing the raw Mixamo files themselves (the characters or animations as
   assets of their own, e.g. in an asset pack or a library others can download). Here only the
-  converted, retargeted clips inside the game's own files would ship, and the raw FBX files stay
-  out of git (`.gitignore`: `data/mocap/mixamo/*.fbx`). Re-read the FAQ when downloading: Adobe
-  may change it.
+  converted, retargeted clips inside the game's own files ship. Single FBX downloads stay out of git
+  (`.gitignore`: `data/mocap/mixamo/*.fbx`); the two packs above are kept in the private repository.
+  Re-read the FAQ when downloading: Adobe may change it.
 - This page records what the two sources publish; it is not a legal opinion. For a determination
   on whether a particular use is allowed, ask Legal (legal@findheadway.com, #legal-support).

@@ -21,6 +21,7 @@ export const CHANGELOG = [
     'On the Overnight Train the land runs past: the sleepers under the wheels, the telegraph poles and their wires, stones, far buttes, now and then a lit hut or a signal lamp. Every few minutes it slows into a lonely station, waits, and pulls out again; pink dust rolls back from the wheels and the pennants stream in the wind.',
     'Climb the ladder on any porch of the Overnight Train and walk the roofs from carriage to carriage over plank bridges, past the roof gardens, to the terrace and its little sky lounge.',
     'The Overnight Train sounds like a train: the wheels’ beat over the rail joints, ta-dum … ta-dum, slowing to nothing at a station, the rumble underfoot, the rush of the air on the roofs and the balcony, and a whistle as it pulls out or brakes.',
+    'The fluid blade swings like a sword: three cuts from motion capture, a slash down from the right, a rising backhand and an overhead cut, the blade held in the fist.',
     'On the Overnight Train the carriages’ ceilings have round lamps in a row instead of one long glowing strip, which drew a bright beam down the middle of the dining car and the library; the brackets of the library’s roof terrace no longer poke through its ceiling.',
   ] },
   { v: '0.86', date: '2026-10-07', items: [

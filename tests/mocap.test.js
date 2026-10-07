@@ -302,3 +302,19 @@ test('contacts and loops from a take: the ball low and still is down, a cycle fo
   const loop = findLoop(r);
   assert.ok(loop && Math.abs(loop.n - fps) <= 1, `one cycle (${loop?.n} frames)`);
 });
+
+test('the blade\'s swings are captured clips in moves.glb; the packs they came from are kept; the library reads back exactly', async () => {
+  const { readGLB, writeGLB } = await import('../scripts/mocap/glb.js');
+  const { SWINGS } = await import('../src/fluid-blade.js');
+  const { readFileSync: read, existsSync: exists } = await import('node:fs');
+  const bytes = read(new URL('../public/anim/moves.glb', import.meta.url));
+  const lib = readGLB(bytes);
+  assert.ok(Buffer.compare(Buffer.from(writeGLB(lib)), bytes) === 0, 'read and written again: the same bytes (build-library --add keeps the others as they were)');
+  for (const S of SWINGS) {
+    const c = lib.clips.find((x) => x.name === S.clip);
+    assert.ok(c, `${S.clip} is shipped`);
+    assert.ok(S.from < S.hit && S.hit < S.to && S.to <= (c.n - 1) / c.fps + 1e-6, `${S.clip}: its cut is inside the clip`);
+  }
+  const { clips } = JSON.parse(read(new URL('../scripts/mocap/mixamo-clips.json', import.meta.url), 'utf8'));
+  for (const c of clips.filter((x) => x.pack)) assert.ok(exists(new URL(`../data/mocap/packs/${c.pack}.zip`, import.meta.url)), `${c.id}: data/mocap/packs/${c.pack}.zip`);
+});

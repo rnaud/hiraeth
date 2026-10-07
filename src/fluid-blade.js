@@ -27,6 +27,21 @@ export const BLADE = {
   cooldown: 0.5,       // after the third swing
 };
 
+/**
+ * The three swings from motion capture (Mixamo's Sword and Shield pack, in public/anim/moves.glb:
+ * scripts/mocap/mixamo-clips.json): each clip's cut only, `from` → `to` (clip seconds), played `speed`
+ * times as fast, landing at `hit` (the hand's fastest). Right to left and down; a rising backhand, left
+ * to right; an overhead cut from above the head. Without the clips (not loaded yet) the arcs below.
+ */
+export const SWINGS = [
+  { clip: 'mixamo_ss_slash_1', from: 0.33, to: 0.85, hit: 0.6 },
+  { clip: 'mixamo_ss_slash_3', from: 0.53, to: 1.19, hit: 0.87 },
+  { clip: 'mixamo_ss_attack_1', from: 0.78, to: 1.5, hit: 1.15 },
+];
+export const SWING_SPEED = 1.5;
+/** The blade in the fist, in the hand bone's frame: out of the fist (+z), leaning along the fingers (+y). */
+const GRIP = new THREE.Vector3(0, 0.45, 1).normalize();
+
 /** The arc a swing's hand follows (u 0..1 along it): side to side (+1 the right), up and down, for the three swings. */
 export function swingArc(n, u) {
   const e = u * u * (3 - 2 * u);
@@ -85,17 +100,27 @@ export class FluidBlade {
       else if (this.cool === 0) this.start(this.chainT > 0 ? Math.min(this.last + 1, 2) : 0);
     }
     if (this.swinging) {
-      this.t += dt / BLADE.swing;
-      if (!this.hit && this.t >= BLADE.hitAt) { this.hit = true; this.strike(); }
+      this.t += dt / this.dur;
+      if (!this.hit && this.t >= this.hitAt) { this.hit = true; this.strike(); }
       if (this.t >= 1) {
-        this.last = this.n; this.n = -1;
+        this.last = this.n; this.n = -1; p.swingMove = null;
         if (this.last === 2) { this.cool = BLADE.cooldown; this.chainT = 0; }
         else { this.chainT = BLADE.chain; if (this.queued) this.start(this.last + 1); }
         this.queued = false;
       }
     }
+    // a captured swing: the clip moves the arm (above the legs), the aim pose only turns the body
+    if (this.swinging && this.move && T.k < 0.05) {
+      const S = this.move, u = Math.min(this.t, 1);
+      (p.swingMove ??= {}).clip = S.clip; p.swingMove.t = S.from + u * (S.to - S.from);
+      p.swingMove.w = THREE.MathUtils.clamp(Math.min((u + (this.chained ? 0.12 : 0)) / 0.12, (1 - u) / 0.18), 0, 1);
+      this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.dir, 3);
+      this.pose.k = 1; this.pose.noArm = true;
+      p.aim = this.pose;
+    }
     // the arm follows the arc (the tool's aim pose, unless the tool is aiming itself)
-    if (this.swinging && T.k < 0.05) {
+    else if (this.swinging && T.k < 0.05) {
+      this.pose.noArm = false;
       const U = p.frame.up, F = this.dir, R = _r.crossVectors(F, U).normalize();
       const a = swingArc(this.n, Math.min(this.t, 1));
       const chest = _o.copy(p.pos).addScaledVector(U, 1.35);
@@ -109,7 +134,13 @@ export class FluidBlade {
 
   start(n) {
     const T = this.tool, p = T.player, U = p.frame.up;
+    this.chained = this.n >= 0 || this.chainT > 0;
     this.n = n; this.t = 0; this.hit = false;
+    // the captured swing if the clip is there, else the arc
+    const S = SWINGS[n], A = p.animator;
+    this.move = S && A?.moveClip?.(S.clip) ? S : null;
+    this.dur = this.move ? (S.to - S.from) / SWING_SPEED : BLADE.swing;
+    this.hitAt = this.move ? (S.hit - S.from) / (S.to - S.from) : BLADE.hitAt;
     // the swing's way: toward the nearest foe in reach, else where the traveller faces
     const foe = lockTarget(p.pos);
     if (foe) this.dir.subVectors(foe.position(), p.pos); else p.frame.dir(p.heading, this.dir);
@@ -138,7 +169,7 @@ export class FluidBlade {
     return hits;
   }
 
-  stop() { this.n = -1; this.queued = false; }
+  stop() { this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
 
   fade(dt) { this.lit += (0 - this.lit) * (1 - Math.exp(-12 * dt)); this.place(dt); }
 
@@ -150,10 +181,11 @@ export class FluidBlade {
     if (!on) return;
     const hand = T.muzzle(_a);
     let along;
-    if (B?.upperarm_r) along = _f.subVectors(hand, B.upperarm_r.getWorldPosition(_b)).normalize();
+    if (this.move && B?.hand_r) along = _f.copy(GRIP).applyQuaternion(B.hand_r.getWorldQuaternion(_q));   // in the fist, as the capture holds its sword
+    else if (B?.upperarm_r) along = _f.subVectors(hand, B.upperarm_r.getWorldPosition(_b)).normalize();
     else along = _f.copy(this.point).sub(hand).normalize();
-    // lean it a little toward the swing's way, so a cut reads as a cut
-    along.addScaledVector(this.dir, 0.35).normalize();
+    // (an arc: lean it a little toward the swing's way, so a cut reads as a cut)
+    if (!this.move) along.addScaledVector(this.dir, 0.35).normalize();
     this.group.position.copy(hand);
     this.group.quaternion.copy(_q.setFromUnitVectors(_Y, along));
     this.group.scale.set(1, Math.max(0.05, this.lit), 1);
