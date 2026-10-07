@@ -1,0 +1,23 @@
+src/levels/buried.js
+  s_55b4bc53b812ec::t_362ba9438e627d 53,458-477,610-635,767-789
+src/levels/reference-buried.js
+  s_55b4bc53b812ec::t_072dc6ec95d138 67-74,111-164,225,235-257,261-283,285-351,390-459,517,519,525,538,582,746,774-775,823-824,828-834,866
+tests/buried.test.js
+  s_55b4bc53b812ec::t_3c0ffd8e49d744 86-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "86c6ee41d6da0538c6dab7c5d12722a35c2089f5",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
