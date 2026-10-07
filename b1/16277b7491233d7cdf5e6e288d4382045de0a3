@@ -1,0 +1,42 @@
+changelog.md
+  s_0a0e834cfcfe52::t_d0be5e9669c663 7
+docs/systems/foes.md
+  s_0a0e834cfcfe52::t_1f1247e57a378f 125-140
+src/changelog-media.js
+  s_0a0e834cfcfe52::t_22c1af38ec58e4 137-139
+src/changelog.js
+  s_0a0e834cfcfe52::t_7daba14739fff0 26
+src/fluid-tool.js
+  s_0a0e834cfcfe52::t_007d3e8b08952c 305
+src/foes.js
+  s_0a0e834cfcfe52::t_8f77ff24fc3782 7,56-61,75,84,326-327,414,416,418,427,505-511,584-585,604,684-687,716
+src/life.js
+  s_0a0e834cfcfe52::t_7971f084c39d0f 229,235
+src/main.js
+  s_0a0e834cfcfe52::t_2f324e5dd528c9 611
+src/materials.js
+  s_0a0e834cfcfe52::t_ea582116f99df1 1752,1817-1827,1909-1915,2626-2628,2741
+tests/foes.test.js
+  s_0a0e834cfcfe52::t_6436b71950f8ef 309-328
+src/shade.js
+  s_0a0e834cfcfe52::t_02c06e07b4bae4 1-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b116277b7491233d7cdf5e6e288d4382045de0a3",
+  "prompts": {},
+  "sessions": {
+    "s_0a0e834cfcfe52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ade28b2d-b826-430e-b2e2-c43a0ae93ce3",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
