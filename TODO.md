@@ -3,6 +3,24 @@
 Open work only. Finished items move to DONE.md (with how they were done); the changelog
 (src/changelog.js) says when they reached players.
 
+# Fun and story (docs/fun-and-story-review.md, October 2026)
+
+Ranked; each says why in the review. Playtest with two or three new players before building the big ones.
+
+- [ ] **The story's peak before the ending.** Home opens after any six worlds (`ENDING_WORLDS`), so a
+  player can see the credits without the jets (world 7) or Ilen (world 11). Open Home after the Signal
+  Market / Ilen, or make six worlds a first homecoming with a final chapter after it.
+- [ ] **Answer the singing light, tied to Ilen** (the author's decision first): what it is, and a last
+  stretch that goes and finds it.
+- [ ] **A fellow traveller who recurs**, three or four meetings along the route, each changed by the last.
+- [ ] **Two or three real choices** with consequences at the stone (Viridel's loss stays, as one of them).
+- [ ] **The desert's first hour shorter:** the three talk stages in a row, the empty Hearth ride.
+- [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
+- [ ] **Each world's climax staged as a moment** (only the desert has filmed moments).
+- [ ] **One trace of the singing light or of Ilen in each detour world.**
+- [ ] The gameplay loop: new concepts to try (the fluid blade, enemies outside the cities and in the
+  temples): in progress.
+
 # Carried over
 
 ## The References level
