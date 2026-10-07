@@ -781,7 +781,7 @@ function applyDetail() {
 function applyQuality() {
   preset = resolveQuality(settings.quality, { handheld, deck, hiDPI: pixelRatio >= 2 });
   quality.renderScale = preset.scale;
-  adapt.slow = adapt.fast = adapt.hold = 0; adapt.dropped = false;
+  adapt.slow = adapt.fast = adapt.hold = adapt.noProbe = 0; adapt.probe = null; adapt.dropped = false;
   const S = preset.shadow;
   cascades.fine.configure(S.fine || 256, cascades.fine.extent);
   if (!S.fine) cascades.fine.disable();

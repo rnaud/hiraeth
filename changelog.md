@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - The camera follows closer: out in the open it hangs low behind the traveller, a little over his head and looking a little down the way he faces, so he stands bigger in the lower middle of the view with the world ahead filling the rest. Zooming with the mouse wheel or LB / L1 and the right stick still works from there; gliding and the jets stand it further back so you see ahead and below.
 - In closed spaces (the ship, temples, caves, corridors, houses) the camera comes in close over a shoulder, about two metres back at shoulder height, and picks the shoulder with room beside it so the way ahead shows next to the traveller. It slides across only when a wall really closes in, eases in and out at doorways, stands a little further back in big halls, and aiming the fluid tool is always over the right shoulder.
+- On a handheld, looking down the City-Shaft no longer stutters: where the graphics chip is what holds a frame back, the picture softens a little to keep it smooth (about 44 frames a second before, 54 now); where softening would not help, it stays sharp.
 
 ## v0.81 — 2026-10-07
 

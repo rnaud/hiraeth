@@ -130,6 +130,16 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Signal Market’s crowd: the whole frame', before: 14.0, after: 13.2 },
         { where: 'the Signal Market’s crowd: the people’s update', before: 3.6, after: 2.9 },
       ] },
+      { title: 'On the device: the people’s update a frame (round 1 → 7 October, with v0.77–0.80 in)', unit: 'ms', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+        { where: 'the camps', before: 5.34, after: 3.88 },
+        { where: 'Qanat', before: 4.79, after: 3.94 },
+        { where: 'the walk through the camps', before: 5.61, after: 4.01 },
+      ] },
+      { title: 'On the device: frames a second (round 1 → 7 October)', unit: 'fps', better: 'higher', device: RETROID, rows: [
+        { where: 'the camps', before: 45, after: 56 },
+        { where: 'Qanat', before: 49, after: 57 },
+        { where: 'the walk through the camps', before: 44, after: 51 },
+      ] },
     ], see: 'Nothing looks different: the people are posed to the same float as before (checked bone by bone, frame by frame); it is the time each frame takes that went down.' },
     { match: 'On the Handheld and Steam Deck settings the grass grows further', see: 'On the Handheld or Steam Deck setting, walk into the Garden of Spheres’ meadows or the dry grass round home: the blades reach well ahead of the traveller instead of stopping a few steps in front of him. (A still picture barely shows it: the numbers say how far.)', numbers: [
       { title: 'How far the grass grows round you', unit: 'm', better: 'higher', device: 'the Handheld and Steam Deck settings', source: 'docs/systems/performance.md, “What the Handheld and the Deck lose next to High”', rows: [
@@ -232,7 +242,15 @@ export const CHANGELOG_MEDIA = {
         { where: 'the rim', before: 35.6, after: 31.3 },
         { where: 'the wide view across the shaft', before: 39.8, after: 37.3 },
       ] },
-    ], see: 'The towers look exactly as before (0.001–0.16 % of the pixels apart, the moving things): the gain is in how they are drawn.' },
+      { title: 'On the device: draw calls (the Retroid’s second round → 7 October)', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+        { where: 'the wide view', before: 1326, after: 1140 },
+        { where: 'the rim', before: 960, after: 868 },
+      ] },
+      { title: 'On the device: the G-buffer’s work on the processor a frame (round 1 → 7 October)', unit: 'ms', better: 'lower', device: RETROID, rows: [
+        { where: 'the wide view', before: 8.45, after: 5.92 },
+        { where: 'the rim', before: 6.67, after: 4.69 },
+      ] },
+    ], see: 'The towers look exactly as before (0.001–0.16 % of the pixels apart, the moving things; on the Retroid too, the same views merged and unmerged differ only where cabs, people and the airship moved): the gain is in how they are drawn.' },
   ],
   '0.77': [
     { match: 'The traveller’s face moves now', see: 'Talk to anyone and watch the traveller in the conversation’s close-up: he smiles, frowns or looks worried with what is said, blinks, glances about, and his mouth moves as he speaks.' },
@@ -243,6 +261,11 @@ export const CHANGELOG_MEDIA = {
       { title: 'The traveller’s shirt: its work on the processor a frame', unit: 'ms', better: 'lower', device: MAC_X4, source: 'docs/systems/performance.md, “The traveller’s overshirt on the GPU”', rows: [
         { where: 'the shirt’s update (median 0.2–0.5)', before: 3.5, after: 0.5 },
         { where: 'positions and normals sent to the graphics chip a frame (kB)', before: 260, after: 16 },
+      ] },
+      { title: 'On the device: the traveller’s whole update a frame, shirt and all (round 1 → 7 October)', unit: 'ms', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+        { where: 'the desert’s spawn', before: 2.81, after: 1.11 },
+        { where: 'the dunes', before: 3.5, after: 1.33 },
+        { where: 'the City-Shaft, wide', before: 2.99, after: 1.11 },
       ] },
     ] },
     { match: 'In the Garden of Spheres the white hill is carved', shots: [
@@ -331,7 +354,12 @@ export const CHANGELOG_MEDIA = {
     { match: 'The desert’s camps and other crowded places run a little smoother', numbers: [
       { title: 'The processor’s work a frame at the camps', unit: 'ms', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, second round”', rows: [{ where: 'the camps', before: 20.2, after: 19.6 }] },
     ] },
-    { match: 'The loading screen’s turning pen', see: 'Open a world on a handheld and watch the pen on the loading screen: it should turn without stopping. (Measured on a busy Mac it stopped 100–240 ms at a time before; the Retroid’s own measurement is still to do.)' },
+    { match: 'The loading screen’s turning pen', see: 'Open a world on a handheld and watch the pen on the loading screen: it turns without stopping. (On a busy Mac it stopped 100–240 ms at a time before. On the Retroid it turned smoothly through every load, before the change and after, with no stop over 50 ms: the stutter measured was the Mac’s.)', numbers: [
+      { title: 'The pen’s longest stop through a load (a refresh is 17 ms)', unit: 'ms', better: 'lower', device: 'Retroid Pocket Nova (GeckoView 157), a screen recording of the load', source: 'docs/systems/performance.md, “The Retroid, round 4”', rows: [
+        { where: 'the desert', before: 33, after: 49 },
+        { where: 'the City-Shaft', before: 32, after: 32 },
+      ] },
+    ] },
     { match: 'The Buried Machine’s great wheel is solid', numbers: [
       { title: 'Where the wheel’s solid and drawn shapes disagree', better: 'lower', device: AUDIT, source: 'the commit’s measurements (48b995e)', rows: [
         { where: 'feet sinking into it', before: 69, after: 37 },
