@@ -100,7 +100,13 @@ still differs"). What is left needs a device or a policy:
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached. (2026-10-07: the bridge's
   APK builds, 73 MB, `BridgeBuild.Android`; `scripts/bench/android-bridge.sh desert -views
   scripts/bench/viewpoints.json -bench 8 -split` installs and runs it, muted, and pulls its results.
-  The Linux player for the Deck builds too: engine-bridge.md, "The players again".)
+  The Linux player for the Deck builds too: engine-bridge.md, "The players again".) (2026-10-07, on the Retroid:
+  it starts, the world ready in 3.5 s, but it never ran its plan: the `unity` extra did not reach it, so neither
+  did `-mute` (it played the desert with its sound for ten minutes before the script's limit stopped it). Fixed,
+  not yet seen on the device: the script quotes the extra, `BridgeArgs.CommandLine` reads the activity's intent
+  on Android, and the script stops a player that has not logged its plan within 20 s, and refuses a locked
+  handheld (the second run met the lock screen: the device had locked itself; engine-bridge.md, "On the
+  Retroid".) Next: unlock, `android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split`.)
 - [x] The Unity player at the camps and the Market's crowd: 0.7–1.5 ms a frame behind the web (2026-10-07,
   engine-bridge.md "Speed"; level at the dunes, ahead at the City-Shaft). The script's thread is the frame
   there; next: the sound's synthesis off it, the people's bone matrices. (2026-10-07: the capes' cloth in Burst
@@ -108,7 +114,9 @@ still differs"). What is left needs a device or a policy:
   every view at or under the web; engine-bridge.md "The script's frame against the web's".)
 - [ ] The Android player's script thread and sound thread (BridgeRunner runs the script, and the sound's renderer,
   on threads of their own since 2026-10-07; checked on macOS only, no device): run it there once a device is free
-  (`-js-main`, `-audio-js` if they fail).
+  (`-js-main`, `-audio-js` if they fail). (2026-10-07, the Retroid: both started on their own threads and the game ran, "the script on its
+  own thread", "the sound on its own thread (24000 Hz)", the audio replay's node counts steady over 6 minutes;
+  their frame times wait for the bench run above.)
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
   unknown MCP servers (the configured UnityMCP server also fails to connect). The editor is driven in
   batch mode instead (`scripts/unity-export/unity-batch.sh`).

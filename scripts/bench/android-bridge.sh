@@ -19,6 +19,10 @@ LEVEL=${1:?a level: desert, bazaar, incal…}; shift
 OUT=${OUT:-$ROOT/output/engine-bridge/android-$LEVEL}
 DEV=/sdcard/Android/data/$PKG/files
 mkdir -p "$OUT"
+# (under a locked screen the player is paused as it starts and never runs its plan: say so and stop)
+if "$ADB" shell dumpsys window policy | grep -q "showingAndNotOccluded=true"; then
+  echo "the handheld is locked (or asleep at its lock screen): unlock it first" >&2; exit 1
+fi
 "$ADB" install -r "$APK" > /dev/null
 "$ADB" shell mkdir -p "$DEV/out"
 # the plan's files go to the app's own folder; a -views file is pushed and named by its place there
@@ -32,7 +36,17 @@ while [ $# -gt 0 ]; do
 done
 ACT=$("$ADB" shell cmd package resolve-activity --brief "$PKG" | tail -1 | tr -d '\r')
 "$ADB" logcat -c
-"$ADB" shell am start -W -n "$ACT" -e unity "$ARGS" > /dev/null
+"$ADB" shell am start -W -n "$ACT" -e unity "'$ARGS'" > /dev/null
+# The player must have read its plan (and so -mute) from the intent (BridgeArgs.CommandLine logs it); a
+# player that didn't (before 2026-10-07 none did: it played the desert with its sound on) is stopped at once.
+t=0
+until "$ADB" logcat -d -s Unity | grep -q "the plan from the intent: -level"; do
+  sleep 1; t=$((t + 1))
+  if [ $t -ge 20 ] || ! "$ADB" shell pidof "$PKG" > /dev/null 2>&1; then
+    "$ADB" shell am force-stop "$PKG"
+    echo "the player did not read its plan (-mute and all) from the intent: stopped" >&2; exit 1
+  fi
+done
 # (it exits itself when its plan is done: BridgeRunner.Exit; at most LIMIT seconds)
 LIMIT=${LIMIT:-600}; t=0
 while [ $t -lt "$LIMIT" ] && "$ADB" shell pidof "$PKG" > /dev/null 2>&1; do sleep 5; t=$((t + 5)); done
