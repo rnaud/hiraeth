@@ -1,0 +1,91 @@
+.github/workflows/unity-android.yml
+  s_55b4bc53b812ec::t_442bd77c7beb6f 14-18,30-31,37-38,48-49,51-52,71-90,92-93,97,132-137,140-163,178,180,195,220-231,246-248,252-263,287-289,292-295,313-319
+changelog.md
+  s_55b4bc53b812ec::t_351dc6992d353d 5-10,25-26
+docs/systems/references.md
+  s_55b4bc53b812ec::t_5acb0c8be419c7 96-102,435-468,472
+docs/systems/unity.md
+  s_55b4bc53b812ec::t_e8fbc098444b31 54-59,76-87,122-123
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_0e2eeb4c3f49d4 26,456-549
+src/audio.js
+  s_55b4bc53b812ec::t_3a6058ce6dfbe8 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_bb9840806e7b92 46,114-135,174-183
+src/changelog.js
+  s_55b4bc53b812ec::t_0ef4cd249167d7 12-16,30-31
+src/costumes.js
+  s_55b4bc53b812ec::t_23d36189c92916 303-320
+src/edge.js
+  s_55b4bc53b812ec::t_a53f1d0b8e427d 25-26
+src/levels/content.js
+  s_55b4bc53b812ec::t_052e89d53bb5e9 20,35,81
+src/levels/index.js
+  s_55b4bc53b812ec::t_8af54f9b7e7004 17,89-97
+src/levels/mangrove-kit.js
+  s_55b4bc53b812ec::t_bd9a9fcfda3e9f 1-375
+src/levels/mangrove.js
+  s_55b4bc53b812ec::t_fd1e7f9904af61 1-393
+src/levels/names.js
+  s_55b4bc53b812ec::t_ca31382d84e36d 19,27-28
+src/levels/reference-mangrove.js
+  s_55b4bc53b812ec::t_b1618899f3e3f6 1-371
+src/levels/reference-waterfall.js
+  s_55b4bc53b812ec::t_40f962eefe98e8 6
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_ae418ec897f0ba 29
+src/levels/references.js
+  s_55b4bc53b812ec::t_d46852a3224efa 14-15,197-198
+src/levels/waterfall-kit.js
+  s_55b4bc53b812ec::t_92d52c47a5e3c7 26-33
+src/levels/waterfall.js
+  s_55b4bc53b812ec::t_9bb842d3f5c3d3 8,115,123
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_4a6e69ce545949 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_b7b7325793d736 107-108
+src/reactive-world.js
+  s_55b4bc53b812ec::t_c3fa72813cea96 28
+src/ship/planets.js
+  s_55b4bc53b812ec::t_ad7b5db3a65e51 24
+src/ship/ship.js
+  s_55b4bc53b812ec::t_e58459eef4f47d 1,330
+src/ship/starmap.js
+  s_55b4bc53b812ec::t_961dc25fda00ce 44,46,56-59,286,325-326
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_934cf9b0036c5e 26-27
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_5e82195ca27752 129
+tests/ending.test.js
+  s_55b4bc53b812ec::t_e3b5b8901adc41 63
+tests/mangrove.test.js
+  s_55b4bc53b812ec::t_65d32ce320e8af 1-118
+tests/reference-worlds.test.js
+  s_55b4bc53b812ec::t_de0ad86905a0b6 127-129
+tests/references.test.js
+  s_55b4bc53b812ec::t_98ef793d17c9c0 312-313
+tests/scripts.test.js
+  s_55b4bc53b812ec::t_f3b62021b6c0e4 3,20
+tests/signature.test.js
+  s_55b4bc53b812ec::t_41614109c3290f 18,30
+tests/unity-ci.test.js
+  s_55b4bc53b812ec::t_26d7639c6f7424 13,15-19,22-42,60-61
+tests/waterfall.test.js
+  s_55b4bc53b812ec::t_bb3b8fad1a5a5c 10,26,28,31,33-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6977920e0fd4df168eab2b4b03754555e386bf61",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
