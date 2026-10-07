@@ -23,6 +23,7 @@ in [story.md](story.md)); `?level=<id>` and the dev menu still open any world. E
 | 9 | **The Buried Machine** (`buried`) | a machine under the dunes | climb, jetpack |
 | 10 | **The Garden of Spheres** (`spheres`) | spheres that answer | walk, climb |
 | 11 | **The Signal Market** (`bazaar`) | a market where everything talks | walk, taxis (with a pass) |
+| – | **The White Mangrove** (`mangrove`, off the route) | a village in the white roots | walk, climb, swim |
 
 Nothing in the game is named after a Moebius work (v0.39): the worlds, people and
 places all have names of their own. The level ids (`arzach`, `edena`, `garage`,
@@ -452,3 +453,48 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
   The reel knows her too, never by name ("the little one"): one line from the mother in
   recording 5 ("She has your hands, love") and one from the father in the last recording
   (`src/story/calls.js`; `tests/ending.test.js`).
+
+## The White Mangrove (`mangrove`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The White Mangrove/`; the views:
+references.md): a settlement in a mangrove of enormous bone-white trees standing on arching roots in a
+black lake, houses on decks round the trunks, plank walks with lanterns, the lake's creatures glowing blue
+and pink. No story to follow and no errands: three people from other worlds came to see it (Oyo, the
+market's lantern seller, on the great tree's deck; Fen of the Deep Wood by a stair; Bram at the landing),
+and five of the lake's folk stand on its walks and decks, each with a few toned lines of their own.
+
+- **Off the route** (`SIDE` in `src/levels/names.js`): on the ship's galactic map from the start, after the
+  route's worlds and before home, off the dotted line (`mapEntries({ side })`, src/ship/starmap.js); never
+  counted toward the way home (`completedWorlds` reads `ORDER`); hidden in the worlds list until visited.
+  `?level=mangrove` opens it. Its people speak Lorn II's tongue (`lang: 'perdide2'`): a world off the route
+  borrows a neighbour's script (tests/scripts.test.js).
+- **The layout** (`src/levels/mangrove.js`): the landing island in the south (the ship's site, its ramp
+  toward the landing stage), a walk north to the great tree (r 4.5, its deck 11.3 m up), a ring walk 34 m round
+  it and spokes to five trees 68 m out, each with a stair from a platform on the water up to the deck round its
+  trunk (the stair off the line of the bridges), houses on each deck; rope bridges from the great tree's deck
+  to three of them; thirteen trees with no deck further out and between, houses in their forks; the banks and
+  the wood behind closing the world at ~300 m. The low walks run 1.2 m over the water, rail-less (you can fall
+  in: the lake is 2.6 m deep and swum, and the mantle climbs back out); stairs, bridges and decks are railed,
+  the railing open where a stair, bridge or house meets it (`ringDeck({ gaps })`).
+- **Solid as drawn**: the trees (trunks, skirts, roots, limbs, leaves), decks, houses, stairs and walks are the
+  collision (SAH BVH, ~218 k triangles, 20 k ground rays 7 ms and capsule pushes 10 ms, Lorn II's 16 and 25);
+  the decked trees spring no roots over their decks (`upperRoots: false`); planks overlap a little (no gap a
+  ray or a foot finds) and alternate by 6 mm (no flicker). Contact audit: climbs inside 6 (≤ 0.7 m), nothing
+  else. `tests/mangrove.test.js` walks every walk, deck and stair.
+- **Draws**: everything static is a dozen merged meshes (RoomKit buckets by material), the lake's 8 000
+  creatures one instanced draw (a colour each), the bushes one, four boats poled round the lake (movers). No
+  static mesh casts a shadow (the twilight's are lifted anyway: `uCast`).
+- **The look**: `MANGROVE_LOOK` (mangrove-kit.js) on the print preset; the day lilac, the dusk violet (the
+  sheets: the default hour is 17.8, the sun low behind the trees), the night indigo with its stars; fog
+  weather; the swamp's ambience, footsteps on stone (the planks); bats overhead, warm motes.
+- **Cost** (desktop, M-series Mac shared with other agents' jobs, Chrome on Metal, Handheld preset at render
+  scale 0.75, 1280 × 720, a loop of 90 `renderFrame` + a pixel read, median ms, two rounds alternating with the
+  Signal Market): the market's spawn 6.6 / 5.9 ms (363 / 598 draws, 0.43 / 0.69 M triangles); the mangrove's spawn
+  5.5 / 4.9 (353 / 381, 0.74 M), the landing stage 6.3 / 4.0 (329, 0.72 M), the great tree's deck 5.9 / 3.1
+  (137 / 304), out on the water 5.0 / 3.8 (161 / 289). At or under the market's frame time and draws; more
+  triangles at the spawn (the trees in the view and the shadows' passes).
+- **Left to make it better**: the water draws a shore's foam under the low walks (the bed map counts their
+  planks as the bed: a per-mesh "not a bed" mark in water.js would drop it); the lanterns light no colour on the
+  roots (the shader's local lights only lift the shade); the creatures are flat spots, not a soft glow under
+  the surface; the houses can't be entered; the boats pass through the stilts.
+

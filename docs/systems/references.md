@@ -432,6 +432,41 @@ the narrowest creases.
   self-driving, round-bellied cab with its striped canopy and a rider).
 - **Left, scene level**: the sheets' stalls are a dense heap of goods and signs; ours are tidy rows.
 
+## The White Mangrove's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-mangrove.js`, world `mangrove`: `?level=references&world=mangrove&view=<1…4>`):
+  four single compositions (1456 × 816), one view each: the landing stage before the lit roots and the long
+  walk (1), the colonnade of root arches under the canopy (2), the stair between the two great trees down to
+  the boat (3), the pale causeway and the tree towers in the rose haze (4). One scene builder
+  (`mangroveScene`): the black lake (the water look, its bed 3 m down), the great white trees, root arches
+  between them, houses on decks, plank walks with lanterns, stairs, flat boats and their boatmen, the lake's
+  glowing creatures, the wood behind, the dark bushes at the frame's edges, the traveller with the
+  luminous pack on the landing stage. `?look=mangrove`.
+- **The shapes** (`src/levels/mangrove-kit.js`, shared with the world): `whiteTree` (a trunk rising out of a
+  flared skirt closed underneath, a dozen great prop roots growing out of it, the upper ones falling over the
+  skirt, each splitting into fingers at the bed, thinner feet between them, limbs sweeping out of a knot at the
+  fork, a branch off each, puffs of pale leaves at their ends when asked, and the forks where a house sits),
+  `rootArch`, `podHouse` (a lathed egg-dome with round windows and a lit arched door, a deck with a railing,
+  struts and a fringe of sticks, a lantern), `walkway` (planks across, rails, stilts, lanterns on alternate
+  sides; `sag` for a bridge), `stairs`, `punt`, `glowSpots`, `farTree`, `lantern`. Every root and limb is a
+  `limb`: a tapered tube whose shade strokes wrap round its own course (each ring carries the curve's point
+  and tangent as its form axis, src/form.js) and whose normals point straight out of the course (the tube's
+  seam no longer inks a crease along every root).
+- **The look** (`MANGROVE_LOOK`, `MANGROVE_DAY`, `MANGROVE_TONES` in the kit): no clouds, a violet sky, the
+  light pink (the sky's light slot), the shade lavender-blue, stepped haze of a deep blue over the wood
+  behind (view 4: a rose haze), a low mist on the water, cast shadows nearly lifted, few spot blacks.
+- **On the world** (`src/levels/mangrove.js`, worlds.md "The White Mangrove"): the same kit at `detail` 0.72, the
+  decked trees with no roots springing over their decks, the leaves round on the near trees and solid.
+- **The scale, from the sheets**: the traveller is ~8–17 m from a 3–5 m high eye; the trees stand 25–60 m
+  off, 2–4.5 m in radius, their roots springing 6–12 m up and reaching 8–15 m; the houses 2.5–5 m round.
+- **Left, shader level**: the sheets' twilight comes from below and inside (the lanterns throw warm orange
+  on the white roots); our local lights only lift the shade toward the lit tone, with no colour of their
+  own, so the trees are evenly pink-white. The sheets' stars shine over a lit scene; ours need the night
+  (`uNight`), so the views' sky is plain. The creatures glow with a soft bloom on the sheets; ours are
+  flat lit spots.
+- **Left, scene level**: the sheets' houses are a dense village (twenty or thirty in a view, on every limb),
+  ours six to eight; their decks are ragged with sticks and ladders; the boats carry crates and lamps.
+
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 
 The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had

@@ -15,6 +15,7 @@ export const TITLES = {
   perdide2: 'Lorn II: The Deep Wood',
   bazaar: 'The Signal Market',
   atelier: 'The Atelier',
+  mangrove: 'The White Mangrove',
   home: 'Home',
 };
 
@@ -22,5 +23,7 @@ export const TITLES = {
 // where the winds lift them); the jets wait in the later half (the City-Shaft's Warden's Well), and the
 // worlds that want them (the Hangar, the Buried Machine, the Signal Market) come after it.
 export const ORDER = ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'incal', 'garage', 'buried', 'spheres', 'bazaar'];
+// the worlds off the route: on the ship's map from the start, never needed on the way home (no story to follow)
+export const SIDE = ['mangrove'];
 // a world that follows another's story is only charted once that one is done (Vael II: the bird's promise)
 export const AFTER = { arzach2: 'arzach' };
