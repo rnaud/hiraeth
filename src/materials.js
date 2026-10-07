@@ -77,6 +77,7 @@ export const sharedUniforms = {
   // local lights (glowing crystals, eggs, portals, the jetpack flame): xyz + radius
   uLights: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, -1e5, 0, 0)) },
   uLightCount: { value: 0 },   // how many of uLights are lit (packed first)
+  uLampsOn: { value: 1 },      // how far the lamps' own colour shows in their pools (makeMaterial lampTint; src/eclipse.js dims it by day)
   uFormHatch: { value: 1 },      // strokes follow slopes / wrap round objects
   uDots: { value: 0 },           // pen dotting on the ground (print style)
   uCloudShadows: { value: 1 },
@@ -1676,6 +1677,7 @@ const fragmentShader = /* glsl */ `
   // the local lights' own colour on this surface (makeMaterial({ lampTint })): the lamplit pools warm on the walls
   // of a world lit cold (the eclipse's city, src/levels/eclipse-kit.js): rgb, a how far the albedo goes to it
   uniform vec4 uLampTint;
+  uniform float uLampsOn;
   #endif
   #ifdef DISSOLVE
   // A makers' box coming apart (src/boxes/scene.js; makeMaterial({ dissolve })): noise in world
@@ -2241,7 +2243,7 @@ const fragmentShader = /* glsl */ `
     }
     L = max(L, mix(L, 0.97, smoothstep(0.15, 0.5, local)));
     #ifdef LAMP_TINT
-      albedo = mix(albedo, uLampTint.rgb * mix(0.55, 1.0, dot(albedo, vec3(0.3, 0.55, 0.15))), uLampTint.a * smoothstep(0.08, 0.55, local));
+      albedo = mix(albedo, uLampTint.rgb * mix(0.55, 1.0, dot(albedo, vec3(0.3, 0.55, 0.15))), uLampTint.a * uLampsOn * smoothstep(0.08, 0.55, local));
     #endif
     #ifdef WATER
       L = mix(L, max(L, 0.8), wl.lit);

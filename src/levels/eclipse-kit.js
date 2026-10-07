@@ -60,7 +60,7 @@ export const ECL_TONES = {
  */
 export const ECLIPSE_TOTAL = ['#24386c', '#5a78ba', '#433f78', '#a49cec', '#fff2e0'];
 /** The eclipse in the sky: the corona and the rose band round the horizon (src/eclipse.js cfg). */
-export const ECLIPSE_SKY = { mid: 12, total: 0.75, partial: 2, el: 24, az: 180, size: 4.4, reach: 1.7, style: 0.55, corona: '#ffe2c8', glow: '#d89ad0', glowH: 0.06, stars: 0.7, lift: 0.6, night: 0.5 };
+export const ECLIPSE_SKY = { mid: 12, total: 0.75, partial: 2, el: 15, az: 180, size: 4.4, reach: 0.7, style: 0.45, corona: '#ffe2c8', glow: '#d89ad0', glowH: 0.05, stars: 0.35, lift: 0.6, night: 0.5 };
 /** Its uniforms for a view held in totality (post.js uEclipse, uCorona, uEclipseGlow): a disc of `size` deg, its corona `style`. */
 export function eclipseUniforms({ size = ECLIPSE_SKY.size, reach = ECLIPSE_SKY.reach, style = ECLIPSE_SKY.style, corona = ECLIPSE_SKY.corona, glow = ECLIPSE_SKY.glow, glowH = ECLIPSE_SKY.glowH, stars = ECLIPSE_SKY.stars, dir = null } = {}) {
   const c = new THREE.Color(corona), g = new THREE.Color(glow);
@@ -148,7 +148,7 @@ export function house(kit, M, rng, { x, y = 0, z, w = 7, d = w, h = 6, yaw = 0, 
     const dr = round ? R * 0.98 : Math.min(w, d) * 0.46, dk = dr * k;
     if (!round) kit.add(wall, put(new THREE.BoxGeometry(w - 0.1, 0.3, d - 0.1), x, y + h + 0.15, z, yaw), how);
     if (!round) kit.add(wall, put(new THREE.CylinderGeometry(dr, dr, 0.8, seg, 1, false), x, y + h + 0.7, z, yaw), how);
-    kit.add(wall, put(new THREE.SphereGeometry(dr, seg, Math.max(5, Math.round(9 * detail)), 0, TAU, 0, Math.PI / 2).scale(1, k, 1), x, y + h + (round ? 0 : 1.1), z, yaw), how);
+    kit.add(wall === M.tower ? M.lime[0] : wall, put(new THREE.SphereGeometry(dr, seg, Math.max(5, Math.round(9 * detail)), 0, TAU, 0, Math.PI / 2).scale(1, k, 1), x, y + h + (round ? 0 : 1.1), z, yaw), how);
     top = y + h + (round ? 0 : 1.1) + dk;
   } else if (roof === 'flat') {
     if (round) {
@@ -201,6 +201,14 @@ export function house(kit, M, rng, { x, y = 0, z, w = 7, d = w, h = 6, yaw = 0, 
   if (roof === 'flat' && rng() < flowers) flowerBox(kit, M, rng, round ? x + s * R * 0.5 : x + s * (d / 2 - 0.6), top + 0.65, round ? z + c * R * 0.5 : z + c * (d / 2 - 0.6), { w: Math.min(w * 0.6, 4), yaw, detail });
   if (rng() < antenna) { const ax = x + (rng() - 0.5) * w * 0.5, az = z + (rng() - 0.5) * d * 0.5; antennaPole(kit, M, rng, ax, top, az, 2.5 + rng() * 4); }
   return { top, front: round ? R : d / 2 };
+}
+
+/** A doorway in a flat wall at (x, y, z) (its foot), the wall facing yaw: the stain round it, the door (lit, wooden or dark); a lit one lights the ground before it. */
+export function doorway(kit, M, rng, x, y, z, { yaw = 0, w = 1.6, h = 2.6, lit = 0.5, wood = 0.3 } = {}) {
+  const r = rng(), m = r < lit ? M.doorLit : r < lit + wood ? M.door : M.dark, c = Math.cos(yaw), s = Math.sin(yaw);
+  kit.add(M.stain[0], put(doorStainGeometry(rng, w, h), x + s * 0.03, y, z + c * 0.03, yaw), NC);
+  kit.add(m, put(archShape(w, h), x + s * 0.05, y, z + c * 0.05, yaw), NC);
+  if (m === M.doorLit) kit.light(x + s * 1.2, y + 1.4, z + c * 1.2, 6.5);
 }
 
 /** A thin pole on a roof, a crossbar or two, a wire off it (the pictures' rooftop antennas). */
@@ -299,16 +307,18 @@ export function resident(kit, M, rng, x, y, z, { yaw = rng() * TAU, s = 0.95 + r
   else kit.add(M.skin, new THREE.SphereGeometry(0.09 * s, 6, 4).translate(x + sn * 0.08 * s, y + 1.56 * s, z + cc * 0.08 * s), NC);
 }
 /** Someone sat at a table at (x, y, z) facing yaw (toward the table): a stool, the body leaning in, the head, an arm on the table. */
-export function diner(kit, M, rng, x, y, z, yaw, { s = 0.95 + rng() * 0.1 } = {}) {
+export function diner(kit, M, rng, x, y, z, yaw, { s = 0.92 + rng() * 0.1 } = {}) {
   const m = kit.pick(M.cloaks), cc = Math.cos(yaw), sn = Math.sin(yaw), f = (d) => [x + sn * d, z + cc * d];
-  kit.add(M.wood, new THREE.CylinderGeometry(0.2, 0.18, 0.45, 6).translate(x, y + 0.22, z), NC);
-  const [bx, bz] = f(0.06);
-  kit.add(m, put(new THREE.CylinderGeometry(0.17 * s, 0.3 * s, 0.75 * s, 8).translate(0, 0.37 * s, 0), bx, y + 0.45, bz, yaw, 1, 0.12), NC);
+  kit.add(M.wood, new THREE.CylinderGeometry(0.18, 0.16, 0.45, 6).translate(x, y + 0.22, z), NC);
+  // the body: a cloak hunched toward the table, the shoulders, a hood or a bare head; the knees under the table
+  const body = new THREE.LatheGeometry([[0.02, 0], [0.3, 0.02], [0.28, 0.25], [0.21, 0.55], [0.17, 0.68], [0.06, 0.74], [0.02, 0.75]].map(([r, h]) => new THREE.Vector2(r * s, h * s)), 9);
+  const [bx, bz] = f(0.02);
+  kit.add(m, put(body, bx, y + 0.42, bz, yaw, 1, 0.22), NC);
   const [kx, kz] = f(0.3);
-  kit.add(m, put(new THREE.BoxGeometry(0.42 * s, 0.18 * s, 0.5 * s), kx, y + 0.5, kz, yaw), NC);
-  const [hx, hz] = f(0.16);
-  kit.add(m, new THREE.SphereGeometry(0.19 * s, 8, 5).scale(1.15, 0.7, 0.9).translate(hx, y + 1.18 * s, hz), NC);
-  kit.add(rng() < 0.5 ? m : M.skin, new THREE.SphereGeometry(0.13 * s, 8, 6).translate(hx + sn * 0.04, y + 1.38 * s, hz + cc * 0.04), NC);
+  kit.add(m, put(new THREE.CylinderGeometry(0.13 * s, 0.13 * s, 0.42 * s, 6).rotateX(Math.PI / 2), kx, y + 0.5, kz, yaw), NC);
+  const [hx, hz] = f(0.2), hood = rng() < 0.55;
+  kit.add(hood ? m : M.skin, new THREE.SphereGeometry(0.13 * s, 8, 6).scale(1, 1.1, 1).translate(hx, y + 1.3 * s, hz), NC);
+  if (hood) kit.add(m, put(new THREE.ConeGeometry(0.14 * s, 0.2 * s, 7), hx - sn * 0.05, y + 1.44 * s, hz - cc * 0.05, yaw, 1, -0.4), NC);
 }
 /**
  * A table outside at (x, y, z), its long side across yaw: a cloth over it to near the ground, stools, people sat at it
@@ -403,16 +413,18 @@ export function laundry(kit, M, rng, A, B, { n = 5, drop = [0.7, 1.4], sag = 0.4
 // ------------------------------------------------------------------ far off
 /**
  * A field of small limewashed houses far off (drawn only, few faces each): n houses over x0..x1 × z0..z1 on the
- * ground H(x, z) (or y), blocks and domes, some windows lit. For the distant city past the parapets.
+ * ground H(x, z) (or y), blocks and domes, some windows lit. For the distant city past the parapets (solid: inside the
+ * walked city, the roofs behind the streets).
  */
-export function farQuarter(kit, M, rng, { x0, x1, z0, z1, n = 60, y = 0, H = null, size = [4, 9], lit = 0.25, domes = 0.3, towers = 0.06, tall = [3, 10] }) {
+export function farQuarter(kit, M, rng, { x0, x1, z0, z1, n = 60, y = 0, H = null, size = [4, 9], lit = 0.25, domes = 0.3, towers = 0.06, tall = [3, 10], solid = false }) {
+  const how = solid ? SOLID : NC;
   const wall = M.lime[1], wall2 = M.lime[3];
   for (let i = 0; i < n; i++) {
     const x = x0 + rng() * (x1 - x0), z = z0 + rng() * (z1 - z0), gy = H ? H(x, z) : y, tower = rng() < towers;
     const w = tower ? size[0] * 0.8 : size[0] + rng() * (size[1] - size[0]), d = tower ? w : w * (0.7 + rng() * 0.6), h = tower ? tall[1] * (1.3 + rng() * 0.6) : tall[0] + rng() * (tall[1] - tall[0]);
     const m = rng() < 0.5 ? wall : wall2, a = (rng() - 0.5) * 0.4;
-    kit.add(m, put(new THREE.BoxGeometry(w, h, d), x, gy + h / 2 - 0.5, z, a), SH);
-    if (rng() < domes) kit.add(m, put(new THREE.SphereGeometry(Math.min(w, d) * 0.42, 8, 3, 0, TAU, 0, Math.PI / 2).scale(1, 0.85, 1), x, gy + h - 0.5, z, a), SH);
+    kit.add(m, put(new THREE.BoxGeometry(w, h, d), x, gy + h / 2 - 0.5, z, a), how);
+    if (rng() < domes) kit.add(m, put(new THREE.SphereGeometry(Math.min(w, d) * 0.42, 8, 3, 0, TAU, 0, Math.PI / 2).scale(1, 0.85, 1), x, gy + h - 0.5, z, a), how);
     if (rng() < lit) kit.add(M.lit, put(new THREE.PlaneGeometry(0.8, 1.1), x + Math.sin(a) * (d / 2 + 0.05), gy + 1.5 + rng() * (h - 2.5), z + Math.cos(a) * (d / 2 + 0.05), a), NC);
   }
 }

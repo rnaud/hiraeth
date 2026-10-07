@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { sharedUniforms } from './materials.js';
 
 // ---------------------------------------------------------------------------
 // An eclipse world's sky by the hour (the City During the Eclipse, src/levels/eclipse.js; the shader's
@@ -68,6 +69,8 @@ export function applyEclipse(hour, cfg, U, lightDir) {
   U.uEclipseGlow.value = [_g.r, _g.g, _g.b, c.glowH];
   U.uEclipseDir.value = [0, 0, 0];   // (at the sun itself)
   if (U.uNight) U.uNight.value = Math.max(U.uNight.value, c.night * total);
+  // the lamps' warm pools: as the moon's shadow comes on, and from dusk to dawn (in full day they are only lamps)
+  sharedUniforms.uLampsOn.value = Math.max(THREE.MathUtils.smoothstep(cover, 0.55, 1), 1 - THREE.MathUtils.smoothstep(sunEl, -1, 7));
 }
 
 /**
