@@ -1618,6 +1618,28 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
   uniform vec3 uFluidTones[6];   // the fluid's tones in the order they join the blend (fluid-tool.js sets them)
   vec3 fluidTone(int i) { return uFluidTones[i - 6 * (i / 6)]; }
+  uniform vec3 uFluidBase;       // the flask's own fluid, the colour the tones stream through (green; a gun mode's tone)
+  // The flask's living fluid (kind 0, fluid-tool.js buildFlask; the sheets' glass jar): a green body with
+  // the blend's tones turning through it in slow warped streams, dark veins where they meet the green.
+  // p: a point on the glass (object space, in glass heights), continuous all round (no seam at the back).
+  vec3 flaskFluid(vec2 p, float t, int n) {
+    p *= 4.2;
+    vec2 q = vec2(vnoise(p + vec2(0.0, t * 0.23)), vnoise(p + vec2(5.2, 1.3) - vec2(t * 0.19, 0.0)));
+    vec2 r = vec2(vnoise(p * 1.3 + 2.8 * q + vec2(1.7, 9.2) + t * 0.09), vnoise(p * 1.3 + 2.8 * q + vec2(8.3, 2.8) - t * 0.11));
+    float f = vnoise(p * 0.9 + 2.6 * r);
+    vec3 col = uFluidBase;
+    // the streams: where the warped field rises, one tone of the blend each (the stretch of r it falls in),
+    // and inside the widest of them a core of the next tone
+    const float EDGE = 0.45, CORE = 0.63;
+    int nn = max(n, 1), k = int(floor(fract(r.y * 1.7 + q.x * 0.8) * float(nn)));
+    if (f > EDGE) col = fluidTone(k);
+    if (f > CORE) col = fluidTone(k + 1 - nn * ((k + 1) / nn));
+    // dark veins where the streams meet the green, finer round the cores: one pen-width
+    float fw = max(fwidth(f), 1e-4);
+    col = mix(col, vec3(0.08, 0.19, 0.14), 0.85 * (1.0 - smoothstep(0.6, 1.4, abs(f - EDGE) / fw)));
+    col = mix(col, vec3(0.1, 0.12, 0.16), 0.6 * (1.0 - smoothstep(0.4, 1.0, abs(f - CORE) / fw)));
+    return col;
+  }
   // Round a vertical axis (angle a, height h 0..1, aspect = radius / height):
   // three stacked bands of one tone each, with metaball blobs of the other
   // tones rising, sinking and merging through them. Flat tones, so the post
@@ -1678,9 +1700,9 @@ const fragmentShader = /* glsl */ `
     float H = uFluidBox.y - uFluidBox.x;
     float h = (vBind.y - uFluidBox.x) / H;
     float a = atan(vBind.z, vBind.x);
-    vec3 col = fluidLava(a, h, uFluidBox.z / H, kind > 1.5 ? t * 4.0 : t, n, kind < 1.5);
-    if (kind > 1.5) return col;   // a glob in flight: blobs churning, no bands
-    // the tank: the fluid stands at the fill level (three charges = three bands), sloshing; empty glass above
+    if (kind > 1.5) return fluidLava(a, h, uFluidBox.z / H, t * 4.0, n, false);   // a glob in flight: blobs churning, no bands
+    // the flask: its living fluid stands at the fill level (a third of the glass a charge), sloshing; empty glass above
+    vec3 col = flaskFluid(vec2(vBind.x + 0.8 * vBind.z, vBind.y - uFluidBox.x) / H, t, n);
     float fill = uFluidA.x;
     float surf = max(fill, 0.07) + (0.012 + 0.05 * uFluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
     float w = uFluidB.y;
@@ -1690,12 +1712,21 @@ const fragmentShader = /* glsl */ `
       vec2 c = fract(g) - 0.5;
       if (hash(floor(g)) > 0.55 && dot(c, c) < 0.07) col = mix(col, vec3(1.0), 0.75 * w);
     }
-    if (h > surf) col = vec3(0.855, 0.925, 0.945);
+    if (h > surf) col = kind < 0.5 ? vec3(0.8, 0.9, 0.88) : vec3(0.855, 0.925, 0.945);   // (the flask's glass a little green)
     else if (h > surf - 0.04) col = mix(col, vec3(1.0), 0.35 + 0.4 * w);   // the meniscus
+    // the glass's edge, pale where it turns away from the eye (its thickness, seen through)
+    if (kind < 0.5) {
+      float fr = 1.0 - abs(dot(normalize(vNormal), normalize(cameraPosition - vWorldPos)));
+      col = mix(col, vec3(0.84, 0.94, 0.91), 0.8 * smoothstep(0.78, 0.86, fr));
+    }
+    // the glass's thick green foot, and a short etched mark at each third (the charges) on one side
+    if (h < 0.045) col = mix(col, vec3(0.2, 0.46, 0.36), 0.75);
+    float da = abs(a + 0.42);
+    if (da < 0.16 && (abs(h - 0.3333) < 0.008 || abs(h - 0.6667) < 0.008)) col = mix(col, vec3(0.12, 0.2, 0.17), 0.8);
     col = mix(col, vec3(1.0), uFluidB.x * 0.45);
     // a highlight streak down the glass
     float dh = abs(mod(a - uFluidBox.w + 3.14159, 6.28318) - 3.14159);
-    if (dh < 0.14 && h > 0.1 && h < 0.86) col = mix(col, vec3(1.0), h > surf ? 0.9 : 0.5);
+    if (dh < (kind < 0.5 ? 0.07 : 0.14) && h > 0.16 && h < 0.8) col = mix(col, vec3(1.0), h > surf ? 0.9 : 0.5);
     return col;
   }
   #endif
@@ -2398,6 +2429,7 @@ const cache = new Map();
  *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
  * @param {string[]} [o.fluidTones] the six tones (uFluidTones; the tool rewrites them as colours are added)
+ * @param {string}  [o.fluidBase] the flask's own fluid colour (uFluidBase: green; the tool sets a gun mode's tone)
  * @param {object}  [o.makersBox] a makers' box's shell (src/boxes/model.js; compiles the MAKERS_BOX block): { half: [x, y, z]
  *                              (m, as drawn), center (m over its foot), mark, light (colours), ray, glow (0..1) }. The star and
  *                              the compasses painted on, a ray of light travelling across it (uBoxA.w its clock), outline-only ink
@@ -2505,6 +2537,7 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidB = { value: new THREE.Vector4() };
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
+    mat.uniforms.uFluidBase = { value: new THREE.Color(o.fluidBase ?? '#5fb86a') };
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
   if (o.makersBox) {

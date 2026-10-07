@@ -11,6 +11,9 @@ import { wearTripoFace } from './tripo-face.js';
 import { cleanExpression } from '../expression.js';
 import { TRAVELLER } from '../traveller.js';
 
+/** The fluid flask's place on his back (the chest anchor's frame; fluid-tool.js TANK.at is the rucksack's). */
+export const TRAVELLER_V1_TANK_AT = [0, 0.4, -0.235];
+
 export async function loadTravellerV1(base) {
   const folder = `${base}characters/traveller-v1/`;
   const json = async name => {
@@ -63,6 +66,8 @@ export function createTravellerV1(char, { gltf, data, report, colors }) {
     // the fluid glove over his right hand (shown while the tank is worn: fluid-tool.js), on the skin as
     // the cloth left it (it gives the mesh its own geometry)
     humanoid.wearGlove(mesh);
+    // the flask (fluid-tool.js TANK) sits right on his back: he has no rucksack for it to sink into
+    humanoid.tankAt = TRAVELLER_V1_TANK_AT;
     return {
       humanoid, mesh, cloth,
       // Before Humanoid.update, while the fresh clip is still on the control rig.

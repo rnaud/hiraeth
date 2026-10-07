@@ -15,11 +15,28 @@ the rucksack's outer face. The look and its reasons:
   are `Humanoid.packPocket`; `FluidTool.updateWorn` hides them while the flask is
   on the back (`where === 'back'`) and shows them again when it is not found
   yet or sits in a vehicle's socket. The rucksack itself never hides.
-- **The flask** is the old lathe glass flattened (`TANK.squash` across,
-  `TANK.depth` front to back). The fluid shader works in the glass's own object
-  space, so the flattening does not change its bands or level. `TANK.straps` are
-  the leather bands' heights, kept below the fluid and at its brim so the three
-  charge bands always show from behind (the HUD relies on that).
+- **The flask** (2026-10-07, from the reference sheets) is a squat glass jar on the upper back,
+  about 26 cm wide, 29 cm tall and 14 cm front to back. Its lathe profile (`TANK.profile`) has a
+  rounded foot, straight sides and rounded shoulders, and is flattened by `TANK.depth`.
+  `buildFlask` builds the glass and its fittings and is shared by the worn tank and the item's
+  picture (`src/boxes/model.js`, the game menu). The fittings are a dark collar with a brass rim
+  and lid (`TANK.collar`), a brass neck with a cream stopper (`TANK.neck`, where the scout hops
+  when the wings open), the hose's brass elbow on the right of the collar with a pipe from the
+  neck (`TANK.outlet`), a brass foot ring, and, worn, two leather tabs from the collar up over the
+  shoulders. The two leather-bound uprights stay at the jar's sides. Their top and the scout's
+  dock are at the same place on the body as before (`TANK_RAIL.top`, `SCOUT_DOCK_Y`), so the arms
+  still never reach the scout.
+- **Its fluid** (`materials.js flaskFluid`, kind 0) is green and alive. `uFluidBase` is
+  `TANK.base`, or a gun mode's first tone: stilling's blue, ember's orange, bloom's leaf green.
+  The blend's tones turn through it in slow, domain-warped streams with a core of the next tone,
+  and pen-width dark veins mark where they meet the green. It stands at the charges (a third of
+  the glass each, a short etched mark at each third) under a pale glass edge and a highlight,
+  over a thick green glass foot. The lava bands of the old tank are gone (`fluidLava` still draws
+  the globs and the wings). `TANK.straps` is empty: no leather band crosses the fluid.
+- **Where it sits**: `Humanoid.tankAt` overrides `TANK.at`. The coral-shirt traveller
+  (`traveller-v1.js TRAVELLER_V1_TANK_AT`) has no rucksack, so the jar sits right on his back.
+  The old body keeps `TANK.at`, half sunk into its rucksack. A vehicle's socket and the hand-off
+  keep `TANK.scale` either way.
 - **The scout's dock**: without the flask, on the rucksack's lid (`kit.dock`,
   `Gear.packDock`); with it, clamped to the top of the flask's left upright
   (`TANK_RAIL`, `SCOUT_DOCK_*`), high enough that the arms don't swing into

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
-import { TANK, FLUID_TONES } from '../fluid-tool.js';
+import { TANK, FLUID_TONES, buildFlask } from '../fluid-tool.js';
 
 // What an item box looks like, and what comes out of it. All of it is inked
 // geometry through makeMaterial (the post pass draws the lines).
@@ -123,24 +123,12 @@ const METAL_OF = { [BRASS]: 'brass', [BRASS_DARK]: 'brass', [STEEL]: 'steel', [C
 const flatM = (color, o = {}) => makeMaterial({ color, flat: true, ...(METAL_OF[color] && !o.glow ? { metal: METAL_OF[color] } : {}), ...o });
 
 function tankModel() {
-  const g = new THREE.Group();
-  const pts = TANK.profile.map(([r, y]) => new THREE.Vector2(r, y));
-  const curve = new THREE.SplineCurve(pts);
+  // the flask as it is worn (fluid-tool.js buildFlask), in its own fluid material (not the worn tank's: the box animates its time)
   const R = TANK.profile.reduce((m, [r]) => Math.max(m, r), 0);
-  // its own fluid material (not the worn tank's): the box animates its time
-  const glass = new THREE.Mesh(new THREE.LatheGeometry(curve.getPoints(20), 24),
-    makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.6, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES, key: 'box.item.tank' }));
-  glass.scale.x = TANK.squash;
+  const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.6, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base, key: 'box.item.tank' }), { worn: false });
   glass.userData.fluid = true;
-  g.add(glass);
-  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.136, 0.16, 0.075, 24).translate(0, -0.03, 0).scale(TANK.squash, 1, 1), flatM(BRASS)));
-  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.103, 0.06, 20).translate(0, TANK.height + 0.024, 0).scale(TANK.squash, 1, 1), flatM(BRASS)));
-  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 7).translate(0, TANK.height + 0.07, 0), flatM(BRASS_DARK)));
-  for (const k of [1, 2]) g.add(new THREE.Mesh(new THREE.TorusGeometry(0.163, 0.01, 5, 24).rotateX(Math.PI / 2).translate(0, (TANK.full * k) / 3, 0).scale(TANK.squash, 1, 1), flatM(INK)));
-  // the straps' back plate
-  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.42, 0.022).translate(0, TANK.height / 2, -0.17), flatM(STEEL)));
-  g.position.y = -0.28;
-  const w = new THREE.Group(); w.add(g); w.scale.setScalar(0.6);
+  g.position.y = -0.22;
+  const w = new THREE.Group(); w.add(g); w.scale.setScalar(0.7);
   return w;
 }
 
