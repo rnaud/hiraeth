@@ -1,0 +1,43 @@
+changelog.md
+  s_55b4bc53b812ec::t_3582d3424234eb 14-15
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_a713d8c2b808e0 93,95,97
+src/levels/content.js
+  s_55b4bc53b812ec::t_168f96f4a65f80 202,241,243
+src/story/arzach-data.js
+  s_55b4bc53b812ec::t_a0bfe769542ca6 60,67,107,149,163,204
+src/story/arzach.js
+  s_55b4bc53b812ec::t_b665c53128479a 457-458
+src/story/arzach2-data.js
+  s_55b4bc53b812ec::t_c75364eb4b3b86 110,114,138,147,175-176,206
+src/temples/arzach2-data.js
+  s_55b4bc53b812ec::t_be39cc32baf90c 7,29,67
+src/temples/arzach2.js
+  s_55b4bc53b812ec::t_baadd554f62a24 312
+src/changelog.js
+  s_aec345bb888dba::t_4d973bc631098e 18-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "658dc760ff0ee7a959e1039351d70d18b6f967b0",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_aec345bb888dba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af14106e25009733c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
