@@ -128,7 +128,7 @@ export async function checkLimits(dir, { maxFile = MAX_FILE, maxFiles = MAX_FILE
 
 /** The References level's sheets (assets/IMG_<n>-<hash>.JPG, ~18 MB) stay out of the zip: the site serves
  * them to bundled games (src/levels/reference-sheets.js), and with them the zip passed Workers' 25 MiB. */
-export const SHEET_FILE = /^assets\/IMG_\d+-[\w-]+\.jpe?g$/i;
+export const SHEET_FILE = /^assets\/(IMG_\d+|reference-\d+)-[\w-]+\.jpe?g$/i;   // (the new worlds' sheets are reference-1 … 4.jpeg)
 /** The interactive changelog's pictures (changelog-media/, docs/systems/changelog.md) are the site's alone:
  * the build never holds them (the deploy copies them in after this zip and the Deck's runtime are made),
  * and if they ever were in dist/ they would still stay out of the zip, the APK and the Deck. */

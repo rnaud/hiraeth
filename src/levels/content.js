@@ -19,6 +19,7 @@ import { PERDIDE2_CONTENT } from './perdide2.js';
 import { PERDIDE_CONTENT } from './perdide.js';
 import { MANGROVE_CONTENT } from './mangrove.js';
 import { HOME_CONTENT } from './home.js';
+import { GLASS_CONTENT } from './glass-dunes.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
@@ -34,6 +35,7 @@ export const CONTENT = {
   perdide2: PERDIDE2_CONTENT,
   mangrove: MANGROVE_CONTENT,
   home: HOME_CONTENT,   // src/levels/home.js: the parents at the door
+  glassdunes: GLASS_CONTENT,   // src/levels/glass-dunes.js: a detour, no quest
   bazaar: {
     weather: [],
     // the Signal Market's story is a quest (src/story/bazaar-data.js): this page opens on the

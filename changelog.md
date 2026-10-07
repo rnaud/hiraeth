@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.84 — 2026-10-07
+
+- A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.
+- In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.
+
 ## v0.83 — 2026-10-07
 
 - The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.

@@ -111,6 +111,22 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.84': [
+    { match: 'A new world off the route, the Glass Dunes', shots: [
+      { name: 'glass-camp', caption: 'The Glass Dunes: the west camp under its ramp of sand, the cliff of the giants behind (16:30, the Handheld preset)', commit: 'ac98118a', only: 'after',
+        view: { level: 'glassdunes', quality: 'handheld', hour: 16.5, player: [-100, 2, 40], heading: -1.571, eye: [-80, 5, 55], target: [-140, 10, 25], fov: 55 } },
+      { name: 'glass-billows', caption: 'The billows in the morning, a glass flow over the sand and an archway at their foot', commit: 'ac98118a', only: 'after',
+        view: { level: 'glassdunes', hour: 9, player: [120, 2, 60], eye: [100, 5, 110], target: [180, 20, 20], fov: 60 } },
+      { name: 'glass-night', caption: 'The west camp at night: the kiln and the floats lit, an archway glowing in the glass', commit: 'ac98118a', only: 'after',
+        view: { level: 'glassdunes', hour: 22, player: [-100, 2, 40], heading: -1.571, eye: [-85, 6, 55], target: [-140, 8, 25], fov: 60 } },
+    ], see: 'On the ship, use the galactic map: the Glass Dunes are charted after the route from the start, tagged “a detour”. Or open ?level=glassdunes.' },
+    { match: 'In the References level (the worlds list), the Glass Dunes’ four plates', shots: [
+      { name: 'glass-ref-1', caption: 'The References: the Glass Dunes’ first plate, the green wall and the camp at the foot of its ramp (\\ compares it with the plate)', commit: 'ac98118a', only: 'after',
+        view: { ref: 'glass-1-wall-camp', query: 'world=glassdunes', hour: null } },
+      { name: 'glass-ref-4', caption: 'The fourth plate: the wave breaking over the camp, the walls and their silhouettes behind', commit: 'ac98118a', only: 'after',
+        view: { ref: 'glass-4-wave', query: 'world=glassdunes', hour: null } },
+    ], see: 'Open ?level=references&world=glassdunes and step through its four views with [ and ]; \\ lays the plate over the view.' },
+  ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [
       { name: 'relay-signal', caption: 'The galactic map six worlds along: the Signal Market, not charted yet, pulses as “a signal” (home’s panel says where it is)', commit: '1af87675',

@@ -393,6 +393,8 @@ export const COSTUMES = {
     palette: { accents: ['#2b211f'] },
   })] },
 };
+// the Glass Dunes' glassworkers dress as the desert's people (src/levels/glass-dunes.js: its crowd's costume is the desert's)
+COSTUMES.glassdunes = COSTUMES.desert;
 const INCAL = { TOP: 200, LEVELS: [150, 92, 36, -24, -86] };
 function zoneIncal(c) {
   const id = c.spot?.id;

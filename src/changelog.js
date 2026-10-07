@@ -9,6 +9,10 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.84', date: '2026-10-07', items: [
+    'A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.',
+    'In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.',
+  ] },
   { v: '0.83', date: '2026-10-07', items: [
     { text: 'The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.', see: 'Open the title screen to see Hiraeth above the clouds. Existing Steam shortcuts receive the new name when the updater next runs with Steam closed.' },
     'Once four worlds are behind you, a faint signal pulses on the galactic map further along the route, and the ship’s console mentions it: a broadcast worth hearing before you go home. After the Signal Market the recording you put off waits at the console as soon as you step outside, a second one follows it, the later worlds’ recordings find their own lines again, and the stone at home remembers Ilen even if you learn of her after the end.',

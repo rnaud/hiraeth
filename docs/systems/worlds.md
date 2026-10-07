@@ -498,3 +498,47 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
   roots (the shader's local lights only lift the shade); the creatures are flat spots, not a soft glow under
   the surface; the houses can't be entered; the boats pass through the stilts.
 
+## The Glass Dunes: a detour off the route (October 2026)
+
+`?level=glassdunes` (`src/levels/glass-dunes.js`), built from the References' plates
+(`references/The Glass Dunes/`, docs/systems/references.md "The Glass Dunes' plates") and the same kit
+(`src/levels/glass-dunes-kit.js`). No quest: people, light and wind, to see whether the world is worth more.
+
+- **Off the route** (`SIDE` in `src/levels/names.js`, the level's `side: true`): the galactic map charts the
+  detours after the route, always known, off its dotted line, tagged "a detour" ("A DETOUR, OFF THE
+  ROUTE" in the panel), with no signature (`mapEntries({ side })`, `src/ship/starmap.js`). They never count toward
+  the route (`knownWorlds`), home or the ending: those read `ORDER` only. The ship's travel is the same as to any
+  world. A detour borrows what route worlds own: the desert's crowd costume, bodies and script (Qanati), the
+  desert's crabs and jerboas (the wildlife and signature tests let detours share).
+- **The layout** (m, +z south): the ship on a flat in the south (`GLASS_SHIP`, 0, 250, hatch north); the valley
+  runs north between the cliffs of the giants (west: the cliff profile, silhouettes of giants, a head, a beast) and
+  the billows (east: domes), round a frozen wave in its middle, to the great breaking wave (north: the `curl`
+  profile, its hollow over the north camp). Low glass flows cross the sand in the east; five glass mounds to climb.
+  A ring of tall glass at ~610 m closes the basin in (drawn only: past the edge, `limit` 560, no shadow).
+- **The glass**: `glassRidge` meshes (the face lit as any surface, its colours in its vertices: a lime foot, mint,
+  a teal top, the silhouettes printed darker inside), solid as drawn (you walk round, climb and stand on them) and
+  kept out of the sand drifts (`withoutDrifts`: a long ridge's one convex hull would bank sand over the valley).
+  The glass and the sand print their shade flat (`shadeFlat` `GLASS_FLAT` 0.8) in the world's teal-green shadow, so
+  the shade reads as the light come through the glass; the camps, stones and kilns bank sand as in the desert.
+- **The camps** (`GLASS_CAMPS`): awnings on poles, rugs, crates, glass floats glowing green, a kiln with its
+  chimney and lit mouth (`awningCamp`), on ramps of sand against the walls. Four glassworkers with toned lines of
+  their own (`GLASS_CONTENT`), a crowd round the camps and a file of carriers walking the valley between them
+  (`glassCrowdSpots`, the desert's people and clothes), glass fans in the sand that open lime as you pass
+  (`WORLD_REACTIONS.glassdunes`).
+- **Light and weather**: the plates' sky (`GLASS_DAY`, dusk, night), a clean sky (no cumulus, no flat clouds:
+  `GLASS_WORLD_LOOK`), the desert's stepped warm haze, the low evening sun at 16:30 by default; archways glow in the
+  walls' feet and the kilns and floats light the camps at night; sandstorms (`weather: ['storm']`); green glints
+  in the air, birds, footprints. Sound: the defaults (wind, sand underfoot) and the desert's score.
+- **Cost** (Mac, headless Chrome on Metal, the Handheld preset at render scale 0.75, no dynamic resolution, a
+  tight loop of `renderFrame()`, three rounds, medians): the Glass Dunes 1.73–2.11 ms and 170–321 draws (spawn
+  1.83 ms / 321, the valley 2.11 / 277, the west camp 1.73 / 237, the breaker 1.73 / 215), the Signal Market
+  2.23–2.28 ms and 312–695 draws. About 0.38 M triangles drawn at the spawn on the Handheld preset (0.87 M on
+  High); the static collision ~45 k triangles. The load is the game's steps (a ridge a step).
+- **Tests** (`tests/glass-dunes.test.js`): the kit (finite, coloured, the face out, the ends sunk, the silhouettes
+  darker), the four views, the detour on the map and off the route, the build (the cliff solid, a mound stood on
+  where drawn, the ship's flat), the contact audit (5 climbs inside the arches' drawn-only rims, 1 walks through).
+- **Left / next**: the glass is opaque and lit as a surface (no glow from within, no light pooling lime at a
+  wall's foot beyond its colours); the silhouettes are soft vertex-colour masses (crisper shapes need finer
+  meshes or a shader mask); the archways are lit panels, not passages; the breaking wave reads as a great hood
+  from far but as a wall from inside its hollow; no sounds of its own (the kilns, the glass ringing in the wind),
+  no music of its own.
