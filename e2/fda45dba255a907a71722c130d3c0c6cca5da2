@@ -1,0 +1,46 @@
+.gitignore
+  s_0a0e834cfcfe52::t_6afc5ddc1dd84a 20
+changelog.md
+  s_0a0e834cfcfe52::t_e5815d52bfafa7 7
+docs/motion-data.md
+  s_0a0e834cfcfe52::t_9ad5b35727ad89 10,13-21,93-95
+docs/systems/foes.md
+  s_0a0e834cfcfe52::t_f5debf918fc350 12-17,78-79
+scripts/mocap/build-library.mjs
+  s_0a0e834cfcfe52::t_3056997d55096d 12-14,29,39,56,70,80,246-256
+scripts/mocap/glb.js
+  s_0a0e834cfcfe52::t_5d029b28521328 89-117
+scripts/mocap/mixamo-clips.json
+  s_0a0e834cfcfe52::t_926bf27dc58e7a 2,87-99
+scripts/mocap/unpack-packs.mjs
+  s_0a0e834cfcfe52::t_77858e909bdea2 1-26
+src/changelog-media.js
+  s_0a0e834cfcfe52::t_337b2a7d78917d 132
+src/changelog.js
+  s_0a0e834cfcfe52::t_21188ff22f4e7b 19
+src/fluid-blade.js
+  s_0a0e834cfcfe52::t_ca44563319ad39 30-44,103-104,106,112-120,122-123,137,139-143,172,184-185,187-188
+src/player.js
+  s_0a0e834cfcfe52::t_b937619419635c 1432,2047-2049
+tests/mocap.test.js
+  s_0a0e834cfcfe52::t_19145aec27f119 305-320
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e2fda45dba255a907a71722c130d3c0c6cca5da2",
+  "prompts": {},
+  "sessions": {
+    "s_0a0e834cfcfe52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ade28b2d-b826-430e-b2e2-c43a0ae93ce3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
