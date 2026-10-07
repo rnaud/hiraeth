@@ -755,6 +755,30 @@ numbers are work counted and pictures compared, timings only where the gap is la
   (instanced, 320 triangles each, 29-126 a set) about 130 k in the view and 90 k in the shadows, not simplified far
   off. The Retroid held 60 fps there (GPU 54-67 %), so they are as they were.
 
+## The City-Shaft's terraces round the ring (October 2026)
+
+The terraces' sectors were built on top of each other (docs/systems/worlds.md): fixed, each level's town goes
+round the whole ring, so more of it is in view and in the per-eighth meshes (the trees by terrace, kind and
+eighth, the towers by terrace and eighth: 820 → 982 meshes). Two things keep the cost down:
+
+- **the railings**, one mesh for each terrace's eighth, are in the terrace's iron bucket now (the same material as
+  the plating under it: no draws of their own), 64 meshes fewer (918 in all);
+- **the terraces' people**: the crowd used to keep one of each spot drawn two or three times over (1 373 people);
+  spread round the ring the same candidates gave 2 470, so the terraces' stalls, circles, strollers and people at
+  the edge are about half as dense along the promenade (`crowdSpots`): 1 505 people.
+
+Headless Chrome on the Mac, Handheld, render scale 0.75, the two builds side by side (`pair.mjs` in the agent's
+scratchpad), draws averaged over 12 frames, JS a frame at CPU ×4 in six alternating runs (load average 4-7):
+
+| view | draws: before → fixed → railings merged | JS a frame (CPU ×4), two runs |
+|---|---|---|
+| the rim, where you arrive | 841 → 1 005 → 950 | 23.2 → 25.2, 22.7 → 24.3 ms |
+| the wide view down the shaft | 1 113 → 1 290 → 1 201 | 25.4 → 27.3, 27.0 → 28.8 ms |
+
+(Fixed alone, before the railings and the people: 25.4 → 28.1 and 26.7 → 30.0 ms.) What is left is the trees
+(the rim's instanced trees and their shadow draws 99 → 190) and the towers (22 → 42): the town that was missing.
+Not measured on a device.
+
 ## What the Handheld and the Deck lose next to High (October 2026)
 
 Compared at the bench viewpoints (`viewpoints-worlds.json`: the desert, the City-Shaft, the Market, the

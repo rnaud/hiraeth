@@ -14,7 +14,7 @@ SHA=$(git rev-parse "${SHA:-HEAD}^{commit}")   # (the whole hash: the tag's move
 REPO=${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner -q .nameWithOwner)}
 TAG=unity-$PLATFORM
 NAME=$(node --input-type=module -e "import { UNITY_RELEASES as R } from './scripts/release-info.mjs'; console.log(R[process.argv[1]].file)" "$PLATFORM")
-case $PLATFORM in android) TITLE="Memento (Unity) for Android: testers' build" ;; *) TITLE="Memento (Unity) for Linux / Steam Deck: testers' build" ;; esac
+case $PLATFORM in android) TITLE="Hiraeth (Unity) for Android: testers' build" ;; *) TITLE="Hiraeth (Unity) for Linux / Steam Deck: testers' build" ;; esac
 gh api "repos/$REPO/commits/$SHA" --jq .sha > /dev/null 2>&1 || { echo "commit $SHA is not on GitHub: push it first" >&2; exit 1; }
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT

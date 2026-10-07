@@ -930,7 +930,7 @@ note(sPeople, '“Every walk”: each at its own captured pace (as the game pick
 const sShare = section('Share');
 sShare.append(el('div', { class: 'buttons' },
   el('button', { onclick: () => navigator.clipboard?.writeText(location.href).catch(() => {}) }, 'Copy the link'),
-  el('button', { onclick: () => { const a = el('a'); a.download = `memento-motion-${state.mode}.png`; a.href = renderer.domElement.toDataURL('image/png'); a.click(); } }, 'Save the picture'),
+  el('button', { onclick: () => { const a = el('a'); a.download = `hiraeth-motion-${state.mode}.png`; a.href = renderer.domElement.toDataURL('image/png'); a.click(); } }, 'Save the picture'),
   el('button', { onclick: () => { location.search = ''; } }, 'Reset everything')));
 
 // transport, over the picture: play / pause, a frame, slow motion, restart

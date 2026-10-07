@@ -46,7 +46,13 @@ The reference pages for the four v0.30 worlds are in `references/`
     the far side;
   - the sun comes in steeper inside the shaft so the terraces stay lit, and
     the spawn has a railing overlooking the town;
-  - a 520 m-wide pit, 580 m deep, with eight levels of terraces;
+  - a 520 m-wide pit, 580 m deep, with eight levels of terraces; each level is two or three sectors (slabs
+    with their town, stalls, railings and bridges to the spire) going round the ring one after the other with a
+    0.18-0.33 rad gap between them. Until October 2026 the angle never advanced between a level's sectors, so
+    they were all built at the same angle, on top of each other, and 40-70 % of every ring was empty (a bug
+    since the level was made, `ab4571ce`). The first sector of each level, which holds the story's places,
+    the cab stops and the stair's landing, is where it always was; `tests/incal-terraces.test.js` checks the
+    sectors never overlap, one slab top under every point of the ring, and every sector has its town;
   - a central spire with rings, bridges and a golden palace on top;
   - **the red stair** (`STAIR` in `src/levels/incal.js`): the way down on foot to the high terrace,
     where Nima (the drone's first find) sweeps. A cream gate with a terracotta lintel in a gap of the rim's

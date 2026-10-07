@@ -435,7 +435,7 @@ namespace Memento
             float w = 0;
             if (helpOn)
             {
-                var help = "<b>MEMENTO</b>\n" + (Pad.HasPad
+                var help = "<b>HIRAETH</b>\n" + (Pad.HasPad
                     ? "left stick move · L3 run · A / × jump · B / ○ talk, use\nRT / R2 shoot · RB / R1 push · D-pad mode · View sketchbook · Menu pause"
                     : "WASD move · SHIFT run · SPACE jump (again in the air: boost)\nE talk, use · G / click shoot · C push · X mode · J sketchbook · Esc pause · H help");
                 var hs = Ui.Set(statusHelp, help, maxW); Ui.Place(statusHelp.rectTransform, x, y, hs.x, hs.y); y += hs.y + 2; w = Mathf.Max(w, hs.x);

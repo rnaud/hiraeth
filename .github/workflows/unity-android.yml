@@ -3,7 +3,7 @@ name: Unity release (testers)
 # The Unity side of the engine bridge (docs/systems/engine-bridge.md: the web game's own JavaScript run in
 # Puerts' V8 inside Unity, drawn by the C# port's ink look) built for testing on the devices, next to the
 # players' builds (docs/systems/unity.md, "Building in GitHub Actions"):
-# - android: the testers' APK (BridgeBuild.AndroidRelease): com.rnaud.memento.unity, "Memento (Unity)", IL2CPP
+# - android: the testers' APK (BridgeBuild.AndroidRelease): com.rnaud.memento.unity, "Hiraeth (Unity)", IL2CPP
 #   ARM64, signed with the web app's release key, so it installs next to the app com.rnaud.moebius and each
 #   build over the last; published to the GitHub release unity-android (memento-unity.apk, replaced each run);
 # - linux: the bridge's Linux player (BridgeBuild.Linux -mono: x86_64, Vulkan) for the Steam Deck, to unity-linux.

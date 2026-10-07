@@ -133,6 +133,21 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'incal', eye: [211.93, -22.0, 27.45], target: [213.92, -22.5, 33.01], fov: 55, player: [212.98, -23.7, 23.16], save: saveAlong(6, { 'item.jetpack': true }) } },
     ], see: 'Take a cab to the middle levels (or fly down to the terrace at −24 m) and walk along the promenade: talk to Perrine, wash the mirror (shoot) and push its frame round from the side until it faces up the shaft. With the Lodestar lit, its glass glows, and Ossa at the bottom has something to say.' },
     { match: 'A few quiet places have something to say now', see: 'In Vael, walk up to the fallen giant’s face on the plain; in the desert, look up at the lintel of the Givers’ Hearth’s door, look at the little mask inside the masked head in the southern dunes, and read the slate by the hut at the crashed hull, then meet Marrow again.' },
+    { match: 'The City-Shaft’s terraces go all the way round the shaft now', shots: [
+      { name: 'shaft-rings-above', caption: 'The shaft from above the high terrace, looking down: before, each level’s sectors sat on top of each other and most of every ring was empty; after, they go round the pit', size: [1024, 768],
+        from: 'the fix’s own screenshots, the two builds side by side in headless Chrome, Handheld, the same camera and hour (7 October)' },
+      { name: 'shaft-rings-across', caption: 'From the far side of the rim, across the shaft toward the spire', size: [1024, 768],
+        from: 'the fix’s own screenshots, the two builds side by side in headless Chrome, Handheld, the same camera and hour (7 October)' },
+    ], numbers: [
+      { title: 'Draws a frame', unit: 'draws', better: 'lower', device: 'Mac, headless Chrome, Handheld preset, render scale 0.75 (averaged over 12 frames)', source: 'docs/systems/performance.md, “The City-Shaft’s terraces round the ring”', rows: [
+        { where: 'the rim, where you arrive', before: 841, after: 950 },
+        { where: 'the wide view down the shaft from the rim', before: 1113, after: 1201 },
+      ], note: 'More of the town is in view now that the rings are whole; the railings drawn with the terraces’ iron took back 55–90 of the draws it added.' },
+      { title: 'JavaScript a frame, the CPU slowed ×4', unit: 'ms', better: 'lower', device: 'Mac, headless Chrome, Handheld preset (six alternating runs, medians)', source: 'docs/systems/performance.md', rows: [
+        { where: 'the rim, where you arrive', before: 23.2, after: 25.2 },
+        { where: 'the wide view down the shaft from the rim', before: 25.4, after: 27.3 },
+      ], note: 'A second run: 22.7 → 24.3 and 27.0 → 28.8. The city’s crowd is about as large as before (1 373 → 1 505 people), spread round the whole ring.' },
+    ], see: 'In the City-Shaft, look down into the pit from the rim, or fly out over the middle on the jets: every level’s terrace now rings the shaft, with only narrow gaps between its stretches.' },
   ],
   '0.82': [
     { match: 'The camera follows closer', shots: [

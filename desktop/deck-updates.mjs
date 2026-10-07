@@ -57,7 +57,7 @@ export function deckInfo({ running, local, status, job = null, desktop, restarte
   else if (p.runtime || p.game) info.check = 'available';
   else {
     info.check = 'current';
-    if (p.waits) info.error = 'The newest game needs a newer Memento app, which isn\'t out yet.';
+    if (p.waits) info.error = 'The newest game needs a newer Hiraeth app, which isn\'t out yet.';
   }
   return info;
 }

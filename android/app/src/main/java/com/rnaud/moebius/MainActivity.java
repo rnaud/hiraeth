@@ -133,7 +133,7 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             // the port is taken (another app holds it): the saves live under this origin, so not another port
             Log.e(TAG, "the game's port " + PORT + " is taken", e);
-            Toast.makeText(this, "Memento couldn't start its engine (port " + PORT + " busy): using the system WebView this time.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Hiraeth couldn't start its engine (port " + PORT + " busy): using the system WebView this time.", Toast.LENGTH_LONG).show();
             toWebView();
             return;
         }

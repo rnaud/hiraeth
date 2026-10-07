@@ -26,7 +26,7 @@ namespace Memento.EditorTools
             return i >= 0 && i + 1 < a.Length ? a[i + 1] : fallback;
         }
 
-        [MenuItem("Memento/JS bridge/Rebuild the bridge's scene")]
+        [MenuItem("Hiraeth/JS bridge/Rebuild the bridge's scene")]
         public static void BuildScene()
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

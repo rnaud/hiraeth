@@ -160,7 +160,7 @@ async function start(exporting = false) {
       const blob = await exportFilm({ canvas: film, draw, schedule: scheduleScore, duration: DURATION,
         progress: p => { status.textContent = `Rendering 1440p video · ${Math.round(p * 100)}%`; } });
       const url = URL.createObjectURL(blob), a = document.createElement('a');
-      a.href = url; a.download = 'memento-trailer-1440p.webm'; a.click();
+      a.href = url; a.download = 'hiraeth-trailer-1440p.webm'; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       stop(); status.textContent = 'Exported · 1440p · 30 fps · 48 seconds'; return;
     }
@@ -172,7 +172,7 @@ async function start(exporting = false) {
       recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: mime }), url = URL.createObjectURL(blob), a = document.createElement('a');
-        a.href = url; a.download = `memento-trailer.${mime.includes('mp4') ? 'mp4' : 'webm'}`; a.click();
+        a.href = url; a.download = `hiraeth-trailer.${mime.includes('mp4') ? 'mp4' : 'webm'}`; a.click();
         setTimeout(() => URL.revokeObjectURL(url), 60000); stream.getTracks().forEach(t => t.stop());
       };
       recorder.onerror = event => { stop(); stream.getTracks().forEach(t => t.stop()); status.textContent = `Recording failed: ${event.error?.message ?? 'browser encoder error'}`; };

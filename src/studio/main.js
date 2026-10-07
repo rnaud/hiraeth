@@ -944,8 +944,8 @@ json.readOnly = true;
 buttons(sShare, [
   ['Copy settings as JSON', () => { json.value = settingsJSON(state, { yaw: +orbit.yaw.toFixed(3) }); navigator.clipboard?.writeText(json.value).catch(() => {}); }],
   ['Copy link', () => { navigator.clipboard?.writeText(`${location.origin}${location.pathname}?${encodeState(state)}`).catch(() => {}); }],
-  ['Save image', () => { const a = document.createElement('a'); a.download = `memento-${state.who}-${state.world}.png`; a.href = renderer.domElement.toDataURL('image/png'); a.click(); }],
-  ['Faces sheet', () => { const a = document.createElement('a'); a.download = `memento-faces-${state.lineup || state.who}.png`; a.href = sheet(); a.click(); }],
+  ['Save image', () => { const a = document.createElement('a'); a.download = `hiraeth-${state.who}-${state.world}.png`; a.href = renderer.domElement.toDataURL('image/png'); a.click(); }],
+  ['Faces sheet', () => { const a = document.createElement('a'); a.download = `hiraeth-faces-${state.lineup || state.who}.png`; a.href = sheet(); a.click(); }],
   ['Reset all', () => { location.search = ''; }],
 ]);
 sShare.append(json);
