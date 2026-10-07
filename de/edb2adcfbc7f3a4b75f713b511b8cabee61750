@@ -1,0 +1,55 @@
+.github/workflows/android.yml
+  s_55b4bc53b812ec::t_d6dab028cc11f3 79-82
+.github/workflows/cloudflare.yml
+  s_55b4bc53b812ec::t_f16e63a1c471f3 55-60
+changelog.html
+  s_55b4bc53b812ec::t_08cfa858c1924c 1-137
+changelog.md
+  s_55b4bc53b812ec::t_55766d8efa4384 9
+docs/README.md
+  s_55b4bc53b812ec::t_ecb4297700bd8e 56
+docs/systems/changelog.md
+  s_55b4bc53b812ec::t_2d07d04b7f15e6 1-102
+docs/systems/ui.md
+  s_55b4bc53b812ec::t_1f87368b6bf72b 28-29
+index.html
+  s_55b4bc53b812ec::t_d0808b511d8965 133-136
+scripts/changelog-md.mjs
+  s_55b4bc53b812ec::t_9880d6b782dcd4 7,15
+scripts/package-steam-deck.mjs
+  s_55b4bc53b812ec::t_22cd42157b09e6 17-19
+scripts/release-info.mjs
+  s_55b4bc53b812ec::t_48d195376ec2d9 15,76,125-126
+scripts/web-update.mjs
+  s_55b4bc53b812ec::t_05919d96572335 132-135,141
+src/changelog-media.js
+  s_55b4bc53b812ec::t_7fba44cb6f16d5 1-106
+src/changelog-page/main.js
+  s_55b4bc53b812ec::t_e3e3d7316d71ee 1-197
+src/changelog-page/view.js
+  s_55b4bc53b812ec::t_6a62ac0d5b64ab 1-107
+src/changelog.js
+  s_55b4bc53b812ec::t_292a2e5309ddc2 3-5,15,811-814,821-822,824-827,830,832-833,846-870,872
+src/main.js
+  s_55b4bc53b812ec::t_13be19f06d5695 1025-1026,1028
+tests/changelog-media.test.js
+  s_55b4bc53b812ec::t_edfef8ff44eed5 1-138
+vite.config.js
+  s_55b4bc53b812ec::t_26e503266bb77e 15-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "deedb2adcfbc7f3a4b75f713b511b8cabee61750",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
