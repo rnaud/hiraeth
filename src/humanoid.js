@@ -8,7 +8,7 @@ import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
 import { EAR_Z, noseSide, faceYouth } from './face-ink.js';
 import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { lookPieces, roleColor, BUILDS, browColour, PROP_BULK, BODY_BULK } from './costumes.js';
+import { lookPieces, roleColor, BUILDS, browColour, PROP_BULK, BODY_BULK, BACK_BULK, SHINS } from './costumes.js';
 import { suitGeometry, travellerKit, fluidGlove, TRAVELLER } from './traveller.js';
 import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, reshapeCopy, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
 import { cleanExpression, NEUTRAL_EXPRESSION, PEOPLE_REST } from './expression.js';
@@ -923,7 +923,11 @@ export class Humanoid {
     const dressed = !this.outfit && this.body;
     this._propBulk = dressed && PROP_BULK[look?.prop] ? { list: PROP_BULK[look.prop], id: look.prop, bone: 'hand_r', frame: () => this.handFrame() } : null;
     this._bodyBulk = dressed && BODY_BULK[look?.body] ? { list: BODY_BULK[look.body], id: look.body, bone: 'spine_03', frame: () => this.chestFrame() } : null;
-    this._propCap = this._bodyCap = null;
+    this._backBulk = dressed && BACK_BULK[look?.back] ? { list: BACK_BULK[look.back], id: look.back, bone: 'spine_03', frame: () => this.chestFrame() } : null;
+    this._propCap = this._bodyCap = this._backCap = null;
+    // (the held prop put away on the back while walking: stow)
+    this._stowLook = !!(dressed && look?.stow && look.back && look.back !== 'none');
+    this.stowed = false;
     for (const h of this.hood) h.visible = false;
     if (!look || this.outfit || !this.body) return;
     const base = this.costumeGeometry(look);
@@ -963,6 +967,23 @@ export class Humanoid {
     };
     make(base.main, makeMaterial({ color: '#ffffff', vertexColors: true, side: THREE.DoubleSide, figure: true }));
     make(base.glow, makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.85, side: THREE.DoubleSide, figure: true }));
+    // (a look that stows its prop: the held one and the slung one, their own meshes, one shown at a time)
+    const plain = makeMaterial({ color: '#ffffff', vertexColors: true, side: THREE.DoubleSide, figure: true });
+    this._held = this._slung = null;
+    if (base.held) { make(base.held, plain); this._held = this._costume.at(-1); }
+    if (base.stowed) { make(base.stowed, plain); this._slung = this._costume.at(-1); this._slung.visible = false; }
+  }
+
+  /**
+   * Put the held prop away on the back (walking) or take it in hand again (look.stow, costumes.js BACKS): the
+   * held and the slung meshes swap, the hand lets go (hands.js npcHands), the prop's cloth colliders go with it.
+   */
+  stow(on) {
+    on = !!on;
+    if (!this._stowLook || this.stowed === on) return;
+    this.stowed = on;
+    if (this._held) this._held.visible = !on;
+    if (this._slung) this._slung.visible = on;
   }
 
   /**
@@ -1019,7 +1040,7 @@ export class Humanoid {
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
     const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
-    const key = `${this.profile?.id ?? this.kind}|${this.build}${this.years ? `@${this.years}` : ''}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${robe}${this.profile?.lookKey?.(look) ?? ''}`;
+    const key = `${this.profile?.id ?? this.kind}|${this.build}${this.years ? `@${this.years}` : ''}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${look.back ?? 'none'}${look.stow ? '/stow' : ''}|${look.shins ?? 'none'}|${robe}${this.profile?.lookKey?.(look) ?? ''}`;
     const cache = (this.constructor._costumes ??= new Map());
     if (cache.has(key)) return cache.get(key);
     const B = this.b, bones = this.body.skeleton.bones;
@@ -1029,13 +1050,15 @@ export class Humanoid {
       head: { bone: bi('Head'), m: this.headFrame(restHead, look) },
       // (shoulder and chest pieces widen with the build)
       chest: { bone: bi('spine_03'), m: this.chestFrame() },
+      // what is carried on the back (costumes.js BACKS): the chest's frame, behind the body
+      back: { bone: bi('spine_03'), m: this.chestFrame() },
       // the hand frame: the arm hanging down; turned so a staff stands upright in the idle clip's grip
       hand: { bone: bi('hand_r'), m: this.handFrame() },
     };
-    const out = { main: [], glow: [] };
+    const out = { main: [], glow: [], held: [], stowed: [] };
     // (with a robe, every piece also gets the weights it has seated: sitRobe swaps them in)
     const sits = look.robe > 0;
-    const push = (geo, role, joints, weights, edge = null, seated = null, seatGeo = null) => {
+    const push = (geo, role, joints, weights, edge = null, seated = null, seatGeo = null, to = null) => {
       for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal') geo.deleteAttribute(k);
       if (!geo.index) geo.setIndex([...Array(geo.attributes.position.count).keys()]);
       const n = geo.attributes.position.count;
@@ -1054,14 +1077,30 @@ export class Humanoid {
         seat = { J: J.slice(), W: W.slice(), P: shape.attributes.position.array, N: shape.attributes.normal.array };
         if (seated) for (let i = 0; i < n; i++) { const [j, w] = seated(i, geo); seat.J.set(j, i * 4); seat.W.set(w, i * 4); }
       }
-      (role === 'lamp' ? out.glow : out.main).push({ geo, role, n, edge, seat });
+      (to ?? (role === 'lamp' ? out.glow : out.main)).push({ geo, role, n, edge, seat });
     };
     // (a MakeHuman body draws its own hair and beard, skinned shells: src/makehuman/hair.js)
     const pieces = this.profile?.lookPieces ? this.profile.lookPieces(look, this) : lookPieces(look, 1);
     for (const [f, list] of Object.entries(pieces)) {
       const F = frames[f], rigid = () => [[F.bone, 0, 0, 0], [1, 0, 0, 0]];
       if (!F) continue;   // (the skinned shells: below)
-      for (const pc of list) push(pc.geo.applyMatrix4(F.m), pc.role, rigid);
+      // (a look that stows its prop: the held and the slung pieces in their own meshes, Humanoid.stow)
+      const to = look.stow && f === 'hand' ? out.held : look.stow && f === 'back' ? out.stowed : null;
+      for (const pc of list) push(pc.geo.applyMatrix4(F.m), pc.role, rigid, null, null, null, null, to);
+    }
+    // leg pieces (costumes.js SHINS): each shin's frame from the knee down to the ankle, the shin's own girth
+    const shins = SHINS[look.shins];
+    if (shins && look.shins !== 'none') {
+      const girth = segmentGirths(this.body, 0.9, this.fullBody());
+      for (const sd of ['l', 'r']) {
+        const knee = B[`calf_${sd}`], ankle = B[`foot_${sd}`];
+        if (!knee || !ankle) continue;
+        const kp = this.rest.get(knee).p, len = kp.distanceTo(this.rest.get(ankle).p);
+        const r = girth[CAPSULES.findIndex(([a]) => a === `calf_${sd}`)] ?? 0.05;
+        const m = new THREE.Matrix4().compose(kp, new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), this.restDir(`calf_${sd}`, `foot_${sd}`)), new THREE.Vector3(1, 1, 1));
+        const ki = bi(`calf_${sd}`), rigid = () => [[ki, 0, 0, 0], [1, 0, 0, 0]];
+        for (const pc of shins(1, { len, r })) push(pc.geo.applyMatrix4(m), pc.role, rigid);
+      }
     }
     for (const part of pieces.skinned ?? []) push(part.geo, part.role, part.joints, null, part.edge ?? null);
     if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, part.role, part.joints, null, null, part.seated, part.seatGeo);
@@ -1085,7 +1124,7 @@ export class Humanoid {
       }
       return { geo: mergeGeometries(list.map((p) => p.geo)), roles, edge, seat };
     };
-    const r = { main: merged(out.main), glow: merged(out.glow) };
+    const r = { main: merged(out.main), glow: merged(out.glow), held: merged(out.held), stowed: merged(out.stowed) };
     cache.set(key, r);
     return r;
   }
@@ -1524,13 +1563,15 @@ export class Humanoid {
     spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
     const caps = this._robeLook && B.thigh_l && B.thigh_r && B.calf_l && B.calf_r ? this.robeCones() : this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
     // (a bulky held prop pushes the cloth aside too, and a bag worn over the cloak holds it under: bulkCapsules)
-    const prop = this._propBulk ? this.propCapsules() : null, worn = this._bodyBulk ? this.bodyCapsules() : null;
-    if (!prop && !worn) return caps;
+    const prop = this._propBulk && !this.stowed ? this.propCapsules() : null, worn = this._bodyBulk ? this.bodyCapsules() : null;
+    const back = this._backBulk && (!this._stowLook || this.stowed) ? this.bulkCapsules(this._backBulk, '_backCap') : null;
+    if (!prop && !worn && !back) return caps;
     const out = (this._capsProp ??= []);
     out.length = 0;
     for (const k of caps) out.push(k);
     for (const k of prop ?? []) out.push(k.cap);
     for (const k of worn ?? []) out.push(k.cap);
+    for (const k of back ?? []) out.push(k.cap);
     return out;
   }
 

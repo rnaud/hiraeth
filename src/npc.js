@@ -72,6 +72,9 @@ function faceOf(player) {
   return _face.copy(player.pos).addScaledVector(player.frame?.up ?? Y, 1.6);
 }
 
+/** How fast someone walks before they put a stowed prop on their back (m/s; Humanoid.stow). */
+export const STOW_AT = 0.3;
+
 export class NPC {
   /**
    * @param o.route   [Vector3] waypoints (on the ground)
@@ -554,6 +557,7 @@ export class NPC {
     // the eyes: on the player's face when they are near (or talking), else looking around
     if (this.humanoid && camD0 < 40) this.humanoid.updateEyes(dt, this.talkTo || dist < 10 * Math.max(1, this.object.scale.x) ? faceOf(player) : null);
 
+    this.humanoid?.stow?.(speed > STOW_AT);   // (walking, a stowed prop goes on the back: Humanoid.stow)
     this.updateCape(dt, player, camera, speed);
 
     // speech balloon: placed by placeBalloon() after the camera has moved this frame
@@ -634,6 +638,7 @@ export class NPC {
     _v.subVectors(player.pos, this.pos); _v.y = 0;
     const dist = _v.length();
     const moving = p.speed > 0.05;
+    this.humanoid?.stow?.(p.speed > STOW_AT);
     if (now < p.stumbleUntil) this.posture(dt, { stumble: true, still: now < (p.stunUntil ?? -1) });
     else {
       this._frozen = false;
@@ -834,7 +839,7 @@ export class NPC {
   drapeKey(pose = this.seat ? 4 : 0, field = null) {
     const seated = pose === 3 || pose === 4, H = this.humanoid, R = H?._robeLook;
     // (and what lies under the cloth: a story person's own body shape, a robe)
-    const under = `${H?.morph ? `~${JSON.stringify(H.morph)}` : ''}${R ? `~robe${R.hem.toFixed(2)}/${R.flare.toFixed(2)}` : ''}${H?._propBulk ? `~${H._propBulk.id}` : ''}${H?._bodyBulk ? `~${H._bodyBulk.id}` : ''}`;
+    const under = `${H?.morph ? `~${JSON.stringify(H.morph)}` : ''}${R ? `~robe${R.hem.toFixed(2)}/${R.flare.toFixed(2)}` : ''}${H?._propBulk ? `~${H._propBulk.id}` : ''}${H?._bodyBulk ? `~${H._bodyBulk.id}` : ''}${H?._backBulk ? `~${H._backBulk.id}` : ''}`;
     return `${H ? `${H.profile?.id ?? this.kind}/${H.build}${H.years ? `@${H.years}` : ''}` : 'rig'}${under}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
   }
 

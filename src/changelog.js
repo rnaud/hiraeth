@@ -24,6 +24,7 @@ export const CHANGELOG = [
     'The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.',
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
     'Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it.',
+    'Sefa slings her oud on her back over her cloak when she walks, and takes it in hand again when she stops; Marrow carries his pack on his back and walks on cloth-wrapped shins, as his drawings show.',
   ] },
   { v: '0.76', date: '2026-10-07', items: [
     'The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.',

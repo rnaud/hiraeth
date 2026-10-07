@@ -20,6 +20,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.
 - Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.
 - Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it.
+- Sefa slings her oud on her back over her cloak when she walks, and takes it in hand again when she stops; Marrow carries his pack on his back and walks on cloth-wrapped shins, as his drawings show.
 
 ## v0.76 — 2026-10-07
 

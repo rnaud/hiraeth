@@ -507,6 +507,25 @@ cape.js `OVER`, a collider's `under`), so the bag lies on the cloak (5 %; three-
 keys 0 % (three-quarters 12 %), Hessa's keys 0 %, Ama's fringe 1 % from the front; three-quarters the cloak's near
 edge crosses the keepers' hips (no sheet draws them), and the test holds only the sheets' pieces there.
 
+## A second carried slot and leg pieces (October 2026)
+
+- **The back** (`BACKS`, `look.back` in `src/costumes.js`): a piece carried on the back, in the chest frame
+  behind the body, beside the held prop. With `look.stow` it is the held prop put away: while walking (faster
+  than `STOW_AT`, 0.3 m/s, `src/npc.js`; the studio does the same) the held and the slung pieces swap
+  (`Humanoid.stow`: each is its own mesh, built only for such a look), the hand lets go (`hands.js npcHands`),
+  and the cloth colliders follow: the held prop's `PROP_BULK` while in hand, the slung piece's `BACK_BULK`
+  while on the back. Sefa's oud hangs on its strap over her cloak as her sheet draws her walking (`under`: the
+  cloth goes in behind it; it hangs a cloth's thickness out from the back's own collider, since further in the
+  two pushed the cloth back and forth and the cloak flew open); Marrow's pack moved from his chest piece to his
+  back (a cape would go over a pack). The oud is one model (`oudParts`) carried two ways (`slung`), its tassels
+  hanging straight down from the pegbox either way.
+- **Leg pieces** (`SHINS`, `look.shins`): built in a shin frame (the knee at the origin, the ankle at
+  `-len`, `r` the shin's measured girth, `segmentGirths`), rigid on each calf bone, so they follow the legs.
+  Marrow's wrapped shins: a bulky wrap from the ankle to under the knee, wound in bands, its end tucked in
+  (`FIXED.linen`).
+- Named people only (no tribe draws them), so the crowd's figures and their packing are untouched.
+  `tests/desert-props.test.js`.
+
 ## The desert's own pieces (October 2026)
 
 Four held props (`ney`, `oud`, `hook`, `bellstaff`) and three worn ones (`satchel`, `fringe`, `keys`),
