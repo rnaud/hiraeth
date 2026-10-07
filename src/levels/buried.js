@@ -487,7 +487,7 @@ export function* buildBuried(scene) {
         const P = (y, zz) => new THREE.Vector3(cx(zz) + s * (wallD(y, zz, s) - 1.0 - r * 0.8), y, zz);
         const pts = [P(y0, z), P(y1 - k, z), P(y1 - k * 0.3, z - k * 0.3), P(y1, z - k), P(y1, z2 + k), P(y1 - k * 0.3, z2 + k * 0.3), P(y1 - k, z2), P(y0, z2)];
         put(ur() < 0.3 ? M.steelFlat : M.steel, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), 12, r, 5, false));
-        for (const zz of [z, z2]) put(M.flange, cylBetween(P(y0 + 0.5, zz), P(y0 + 0.9, zz), r * 1.35, r * 1.35, 8), { solid: false });   // (a collar 0.15 m proud: drawn only)
+        for (const zz of [z, z2]) put(M.flange, cylBetween(P(y0 + 0.5, zz), P(y0 + 0.9, zz), r * 1.35, r * 1.35, 6));   // (solid: a climber holds its collar, not inside it)
       }
     }
 

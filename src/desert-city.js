@@ -299,7 +299,7 @@ export function buildDesertCity(scene, terrain) {
     const stainAt = (wm, w, h, R, d, face, x, z) => {
       if (srng() > 0.8) return;
       const st = doorStain(wm, w, h, R), [fx, fz] = [Math.sin(face), Math.cos(face)];
-      city.add({ paint: st.paint, material: stainMat }, T(st.geo, [x + fx * (d + 0.04), 0, z + fz * (d + 0.04)], [0, face, 0]));
+      city.add({ paint: st.paint, material: stainMat }, T(st.geo, [x + fx * (d + 0.02), 0, z + fz * (d + 0.02)], [0, face, 0]));
     };
     const DOME_MATS = [M.dWhite, M.dPink, M.dRose, M.dTeal, M.dLav, M.dWhite];
     const placed = [];
@@ -325,7 +325,6 @@ export function buildDesertCity(scene, terrain) {
         city.both(wm, new THREE.CylinderGeometry(r, r * 1.04, h, 16).translate(x, h / 2, z));
         { const sy = 0.75 + rng() * 0.5; city.both(dm, T(dome(r * 1.02, 16, 6), [x, h, z], [0, 0, 0], [1, sy, 1])); }
         city.add(M.dark, T(new THREE.BoxGeometry(1.3, 2.1, 0.3), [x + fx * r * 0.98, 1.05, z + fz * r * 0.98], [0, face, 0]));
-        stainAt(wm, 1.3, 2.1, r * 1.04, r * 1.04, face, x, z);   // (the drum's foot is 1.04 r)
       } else if (kind < 0.75) {
         // a block house, flat roof, a small dome and a parapet
         const h = 3.5 + rng() * 3.5;

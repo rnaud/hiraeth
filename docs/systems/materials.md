@@ -95,7 +95,9 @@ round walls, where the tangent of the interpolated normal had swept a column's m
 A door is a mesh of its own, so the wall's weathering cannot see it. Qanat's houses (`desert-city.js`
 `doorStain`) carry a smudge round 80 % of their doors: a fan from over the lintel out to a soft wavy outline
 (taller over the lintel, down to the foot either side), the wall's own colour 22-30 % toward a grime brown,
-laid 4 cm proud of the face, wrapped round a round house's or a tower's drum. Its material draws a hairline
+laid 2 cm proud of the face, wrapped round a tower-house's drum (`R`); on the block houses and the towers (not the
+round houses: their collider stands inside the drawn drum, and a stain over it reads to the contact audit as one more
+place a climber goes inside). Its material draws a hairline
 of its own colour (`line` 0.25, `lineTint` 1), so it reads as a stain, not an inked patch; painted (vertex
 colour), one material for the town: +1 draw (+ its shadow), drawn only. Its own random numbers.
 
