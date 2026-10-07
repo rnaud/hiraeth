@@ -280,7 +280,6 @@ export function* buildIncal(scene) {
   // ---------------------------------------------------------- terraces
   yield;
   const terraces = [];
-  const rails = new Map();   // terrace:eighth -> the railing's segments
   for (const [li, y] of LEVELS.entries()) {
     yield;
     const depth = li / (LEVELS.length - 1);              // 0 = top, 1 = bottom
@@ -348,11 +347,11 @@ export function* buildIncal(scene) {
       for (let k = 0; k < steps; k++) {
         if (rng() < 0.3) continue;
         const b0 = a0 + (k / steps) * span, b1 = b0 + span / steps * 0.85;
-        // (gathered by terrace and eighth of the ring, one mesh each, below: a mesh a segment was some 160
-        //  draws in a view across the shaft, twice with the shadows, docs/systems/performance.md)
-        const eighth = Math.floor((((b0 % TAU) + TAU) % TAU) / (TAU / 8)), key = `${li}:${eighth}`;
-        if (!rails.has(key)) rails.set(key, []);
-        rails.get(key).push(sectorGeometry(r0, r0 + 0.6, b0, b1, 1.2).translate(0, y + 1.2, 0));
+        // (drawn with the plating's iron under the terrace, the same material: no draws of their own. A mesh a
+        //  segment was some 160 draws in a view across the shaft, twice with the shadows; one an eighth of the
+        //  ring 64 once the sectors went round it, docs/systems/performance.md)
+        const g = sectorGeometry(r0, r0 + 0.6, b0, b1, 1.2).translate(0, y + 1.2, 0);
+        bucket('iron', ironMat).push(g.setIndex([...Array(g.attributes.position.count).keys()]));
       }
 
       // buildings on the terrace, below the next terrace up
@@ -380,11 +379,9 @@ export function* buildIncal(scene) {
         const ang = a0 + (k / (span * 60)) * span, rad = r0 + 2.5 + rng() * 1.5;
         trees.push([Math.cos(ang) * rad, y, Math.sin(ang) * rad, 0.75 + rng() * 0.5]);
       }
+      a += TAU / nSectors;   // the next sector round the ring, past this one's gap (tests/incal-terraces.test.js)
     }
-    a += TAU / nSectors;
   }
-  // the railings, one mesh for each terrace's eighth of the ring (the same segments, the same iron)
-  for (const geos of rails.values()) scene.add(new THREE.Mesh(mergeGeometries(geos), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' })));
 
   curGroup = 'misc'; curY = TOP;
   const bridges = [];   // spire ring → terrace: { y, phi, r0 } (for the story's routes)
@@ -1186,8 +1183,11 @@ export function* buildIncal(scene) {
       const size = () => 2 + Math.floor(r() ** 1.2 * 4);
       const groups = [], walks = [], edges = [];
       const avoid = [...trees.map(([x, y, z, s]) => ({ x, y, z, r: 1.05 * s + 0.2 })), ...stallSpots.map(([x, y, z]) => ({ x, y, z, r: 1.6 }))];
+      // (the terraces' people as many as before their sectors went round the ring, in October 2026: then the
+      //  sectors were built on top of each other and the crowd kept only one of each spot drawn twice or three
+      //  times, ~1 100 of them; now spread round the whole ring, about as sparse again: tests/crowd.test.js)
       // shoppers at the stalls
-      for (const [x, y, z] of stallSpots) if (r() < 0.55) {
+      for (const [x, y, z] of stallSpots) if (r() < 0.3) {
         const d = Math.hypot(x, z), k = (d - 2.15) / d;
         groups.push({ at: V(x * k, y, z * k), n: 2 + (r() < 0.3 ? 1 : 0) });
       }
@@ -1196,13 +1196,13 @@ export function* buildIncal(scene) {
         // the promenade: between the cypress row and the market stalls
         const rw = t.r0 + 6.1, pts = [];
         for (let a = t.a0 + 0.03; a <= t.a1 - 0.03; a += 2.5 / rw) pts.push(P(a, rw, t.y));
-        walks.push({ path: pts, n: Math.max(2, Math.round(span * rw / 15)), pair: 0.5, lateral: 0.6, keepRight: 0.4 });
+        walks.push({ path: pts, n: Math.max(2, Math.round(span * rw / 30)), pair: 0.5, lateral: 0.6, keepRight: 0.4 });
         // circles in the gaps of the cypress row, and in the lanes between the houses
-        for (let a = t.a0 + 0.02; a < t.a1 - 0.02; a += (10 + r() * 14) / t.r0) {
+        for (let a = t.a0 + 0.02; a < t.a1 - 0.02; a += (20 + r() * 28) / t.r0) {
           const rad = r() < 0.55 ? t.r0 + 2.4 + r() * 1.6 : t.r0 + 14 + r() * (t.width - 18);
           groups.push({ at: P(a, rad, t.y), n: size() });
         }
-        for (let a = t.a0 + 0.02; a < t.a1 - 0.02; a += (8 + r() * 12) / t.r0) {
+        for (let a = t.a0 + 0.02; a < t.a1 - 0.02; a += (16 + r() * 24) / t.r0) {
           if (r() < 0.45) continue;
           const sit = r() < 0.5, p = P(a, t.r0 + (sit ? 0.22 : 1.1), t.y);
           edges.push({ at: p, heading: inward(p), pose: sit ? 'sit' : 'rail' });
