@@ -1,0 +1,25 @@
+src/levels/reference-waterfall.js
+  s_55b4bc53b812ec::t_c5af925920abc8 1-227
+src/levels/waterfall-kit.js
+  s_55b4bc53b812ec::t_400b0a19dd0b68 1-413
+src/materials.js
+  s_55b4bc53b812ec::t_9d084a5d189546 13,1641-1643,1948-1951,2050-2052,2219-2221,2251-2253,2676
+src/waterfall-shader.js
+  s_55b4bc53b812ec::t_aa5a5f92c64279 1-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f51f5371d795710b9c251f7f6db4bebdc91e34c0",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
