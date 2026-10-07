@@ -5,6 +5,10 @@ The same release notes shown in the game (press **N** or open settings).
 ## v0.76 — 2026-10-07
 
 - The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.
+- On handhelds the City-Shaft runs smoother when you look across the shaft: its terrace railings are drawn in far fewer pieces, the same as before.
+- On handhelds the picture no longer goes soft for nothing: the automatic resolution now notices every stutter, but only lowers the sharpness where that can help, and keeps it in busy places where the processor, not the graphics, is what slows the game.
+- The desert’s camps and other crowded places run a little smoother: people standing or sitting still a little way off move their idle breathing on every other frame.
+- The loading screen’s turning pen should keep turning smoothly while a world is built, instead of stopping for a moment now and then.
 - In the Garden of Spheres the white hill is carved: each terrace is ringed with rounded pillows of white stone instead of a plain drum, and the white stone everywhere takes its shade as a flat pale blue, with almost no hatching, as in its drawings.
 - The Garden’s olives and shrubs are drawn as clusters of small leaf masses, each with its own outline, instead of single smooth lumps; the hedges round the plaza are clipped hedges heavy with fruit.
 - The undersides of the great umbrella trees show their branches: lighter veins forking out from the trunk to the rim, thicker toward the trunk.
