@@ -371,6 +371,7 @@ function animate(p, dt, t) {
   const c = p.char, a = p.animator, root = p.root;
   const dtA = state.paused ? 0 : dt * state.speed;
   const speed = gaitSpeed();
+  p.h?.stow?.(speed > 0.3);   // (walking, a stowed prop goes on the back, as NPC.update)
   // walking forward over the floor (wrapping round), or on the spot
   if (state.move && speed > 0 && !state.paused) {
     p.pos.z += speed * dtA;
@@ -442,7 +443,7 @@ function animate(p, dt, t) {
   const cn = clip?.name ?? '';
   H.hands?.update(state.paused ? dt : dtA, state.hands !== 'auto' ? { pose: state.hands } : {
     mode: seated ? 'seated' : /^Climb/.test(cn) ? 'climb' : /^Driving/.test(cn) ? 'ride' : /^Jump_(Loop|Start)/.test(cn) ? 'air' : 'ground',
-    ride: 'bike', air: 1, speed, prop: p.npc?.look?.prop,
+    ride: 'bike', air: 1, speed, prop: H.stowed ? null : p.npc?.look?.prop,
     talk: state.talk || state.anim === 'game:talk' ? { tone: state.tone, k: state.amount, beat: Math.min(1, (e.open ?? 0) * 1.6) } : null,
   });
   // cloth
