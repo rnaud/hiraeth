@@ -9,6 +9,12 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.89', date: '2026-10-07', items: [
+    'The Glass Dunes’ glass glows from within: the sun comes through its thin edges, its foot and the lips of its waves in bands of mint and lime, the more as you look toward the light, and the giants, heads and trees held inside it are crisp dark shapes instead of soft smudges.',
+    'In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.',
+    'Two archways in the Glass Dunes go through now: walk through the cliff of the giants to the sand behind it, and through the frozen wave in the middle of the valley, under a vault of glass lit green. The breaking wave’s hollow can be walked into from its camp, a long way under the lip.',
+    'In the References level the Glass Dunes’ fourth picture has its tall wave: it rises steep over the glassworkers’ camp, curls over its dark hollow and sweeps down to the sand, as drawn, instead of a low hood.',
+  ] },
   { v: '0.88', date: '2026-10-07', items: [
     'Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.',
     'A foe winding up out of sight shows a marker at the edge of the screen, on its side, filling as its strike comes.',

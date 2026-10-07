@@ -11,6 +11,7 @@ import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
 import { BRUSH_GLSL, brushUniforms } from './brush.js';
 import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
 import { FALL_GLSL, fallMaterial } from './waterfall-shader.js';
+import { DUNE_GLASS_GLSL, DUNE_GLASS_VERT_PARS, DUNE_GLASS_VERT, duneGlassMaterial, dunePoolMaterial } from './dune-glass-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -485,6 +486,7 @@ const vertexShader = /* glsl */ `
     in vec4 aNight;
     out vec4 vNight;
   #endif
+  ${DUNE_GLASS_VERT_PARS}
   #include <skinning_pars_vertex>
   #include <morphtarget_pars_vertex>
   #ifdef FACE_KEYS
@@ -598,6 +600,7 @@ const vertexShader = /* glsl */ `
     #ifdef NIGHT_PAINT
       vNight = aNight;
     #endif
+    ${DUNE_GLASS_VERT}
     vec4 pos = vec4(transformed, 1.0);
     vec3 nrm = objectNormal;
     #ifdef USE_INSTANCING
@@ -1675,6 +1678,7 @@ const fragmentShader = /* glsl */ `
   #ifdef FALL
   ${FALL_GLSL}
   #endif
+  ${DUNE_GLASS_GLSL}
 
   // ordered 4x4 dither threshold, for print-like dissolves
   float bayer4(vec2 p) {
@@ -2256,6 +2260,12 @@ const fragmentShader = /* glsl */ `
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);
     L = mix(L, 1.0, max(uGlow, emit));
+    #ifdef DUNE_GLASS
+      duneGlass(albedo, L, emit, n, ndl);   // (dune-glass-shader.js: the light through the Glass Dunes' glass)
+    #endif
+    #ifdef DUNE_POOL
+      dunePool(albedo, L);   // (and the light come through it, pooled on the sand)
+    #endif
     #ifdef METAL
       float metalInk;
       albedo = metalAlbedo(albedo, n, ndl > 0.0 ? smoothstep(0.4, 0.6, sh) : 0.0, metalInk);
@@ -2746,6 +2756,8 @@ export function makeMaterial(o) {
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
   if (o.fall) fallMaterial(mat, o);   // a falling sheet of water (waterfall-shader.js)
+  if (o.duneGlass) duneGlassMaterial(mat, o);   // the Glass Dunes' glass (dune-glass-shader.js)
+  if (o.dunePool) dunePoolMaterial(mat, o);   // the sand that takes its light
   if (o.makersBox) {
     const B = o.makersBox;
     mat.defines = { ...mat.defines, MAKERS_BOX: 1 };

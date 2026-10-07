@@ -6,7 +6,7 @@ import { stepped } from '../load-steps.js';
 import { RoomKit } from './lab-kit.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { DUNE_HAZE } from '../desert-sites.js';
-import { glassRidge, glassArch, awningCamp, boulders, glassOptions, withoutDrifts, SAND } from './glass-dunes-kit.js';
+import { glassRidge, glassArch, glassPassage, awningCamp, boulders, glassOptions, glassBatch, glassPools, SAND } from './glass-dunes-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes (?level=glassdunes; docs/systems/worlds.md "The Glass Dunes"): a world off the
@@ -33,12 +33,15 @@ export const GLASS_CAMPS = {
 };
 /** The day's colours: the plates' sky, a teal-green shade (the light come through the glass), warm amber light. */
 export const GLASS_DAY = ['#8fbcc8', '#f3dcb4', '#4f9a92', '#fff4e0', '#ffe6b8'];
-export const GLASS_DUSK = ['#7f9fc0', '#f2b98e', '#4d8a8a', '#ffe2c4', '#ffcf98'];
-export const GLASS_NIGHT = ['#14243a', '#2c4a58', '#21464a', '#7fb0a8', '#e8f2e6'];
+// (the late day's shade an emerald, not the grey a teal turns when the sun's going lifts it toward the warm light)
+export const GLASS_DUSK = ['#7f9fc0', '#f2b98e', '#3f9f86', '#ffe8c0', '#ffcf98'];
+export const GLASS_NIGHT = ['#14243a', '#2c4a58', '#1f5450', '#7fb0a8', '#e8f2e6'];
 /** How flat the glass's and the sand's shade is printed (makeMaterial shadeFlat): one luminous teal, as the plates. */
 export const GLASS_FLAT = 0.8;
+/** The glass's own: flatter than the hue's but keeping some of its colour, so its shade runs from a luminous mint foot to a deep teal top. */
+export const GLASS_GLASS_FLAT = 0.45;
 /** The world's ink: a clean sky (no cumulus bank, no flat clouds), the far sand in the desert's stepped warm bands, fewer strokes. */
-export const GLASS_WORLD_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.96, 0.92, 0.84, 0.5], ...DUNE_HAZE, uHatch: 0.6 };
+export const GLASS_WORLD_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.96, 0.92, 0.84, 0.5], ...DUNE_HAZE, uHatch: 0.6, uShadeKeep: 0 };
 
 const n1 = createNoise2D(5101), n2 = createNoise2D(5102);
 const ramp = (x, z, [cx, cz, rx, rz, h]) => h * Math.exp(-(((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2));
@@ -61,14 +64,16 @@ export const GLASS_RIDGES = [
   // the cliffs of the giants, west of the valley (reference-3), facing east
   { name: 'giants', path: [[-150, 210], [-170, 120], [-172, 30], [-185, -60], [-205, -150]], height: 52, depth: 70, profile: 'cliff', taper: [0.7, 1.2],
     folds: { width: 24, amp: 3, lean: 1.0, crest: 0.05 },
-    silhouettes: [{ shape: 'giant', u: 120, y: 0, s: 28 }, { shape: 'head', u: 215, y: 6, s: 22 }, { shape: 'beast', u: 300, y: 10, s: 30 }] },
+    silhouettes: [{ shape: 'giant', u: 120, y: 0, s: 28 }, { shape: 'head', u: 215, y: 6, s: 22 }, { shape: 'beast', u: 300, y: 10, s: 30 }],
+    passages: [{ at: [-171, 70], w: 7, h: 10 }] },
   // the billows, east (reference-2), facing west
   { name: 'billows', path: [[205, -150], [190, -60], [175, 30], [168, 120], [150, 205]], height: 58, depth: 150, profile: 'dome', taper: [1.2, 0.6],
     folds: { width: 26, amp: 10, lean: 0.25, crest: 0.05 }, colours: { mid: '#62c48c', top: '#3f9c7a' } },
   // the frozen wave in the valley's middle (reference-1), facing south
   { name: 'wave', path: [[-90, 70], [-40, 46], [20, 40], [80, 56]], height: 34, depth: 50, profile: 'wave',
     folds: { width: 20, amp: 4, lean: 0.8, crest: 0.15 },
-    silhouettes: [{ shape: 'head', u: 90, y: 2, s: 16 }] },
+    silhouettes: [{ shape: 'head', u: 90, y: 2, s: 16 }],
+    passages: [{ at: [-12, 44], w: 8, h: 11 }] },
   // the great breaking wave, north (reference-4), its hollow facing south over the north camp
   { name: 'breaker', path: [[-150, -232], [-80, -226], [0, -230], [80, -222], [170, -200]], height: 70, depth: 120, profile: 'curl', taper: [1.4, 0.4], ends: 70,
     folds: { width: 30, amp: 4, lean: 0.4, crest: 0.05 },
@@ -91,12 +96,12 @@ export const GLASS_FLOWS = [
   [[30, 190], [80, 170], [130, 176]], [[20, 120], [70, 100], [140, 108]], [[60, 10], [110, -10], [150, 0]],
   [[-100, 180], [-60, 196], [-20, 186]],
 ];
-/** Archways in the walls' feet: [x, z, yaw (the way out), width, height]. */
-export const GLASS_ARCHES = [[-171, 70, Math.PI / 2, 7, 10], [177, -20, -Math.PI / 2, 9, 12], [-70, -222, 0, 10, 16], [60, -218, 0, 8, 12], [0, -600, 0, 30, 60]];
+/** Archways in the walls' feet, drawn only (lit from beyond): [x, z, yaw (the way out), width, height]. The two you walk through are the ridges' `passages`. */
+export const GLASS_ARCHES = [[177, -20, -Math.PI / 2, 9, 12], [-70, -222, 0, 10, 16], [60, -218, 0, 8, 12], [0, -600, 0, 30, 60]];
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 export function* buildGlassDunes(scene) {
-  const sandMat = { color: SAND[0], color2: SAND[1], color3: SAND[2], mode: MODE_TERRAIN, ripples: true, sandInk: true, shadeFlat: GLASS_FLAT };
+  const sandMat = { color: SAND[0], color2: SAND[1], color3: SAND[2], mode: MODE_TERRAIN, ripples: true, sandInk: true, shadeFlat: GLASS_FLAT, dunePool: true };
   const terrain = yield* Terrain.make({ size: GLASS_SIZE, seg: 375, height: glassHeight, material: sandMat });
   scene.add(terrain.mesh);
   yield;
@@ -105,7 +110,7 @@ export function* buildGlassDunes(scene) {
   scene.add(group);
   const kit = new RoomKit({ group, ground: terrain, centre: new THREE.Vector3(), seed: 5100 });
   const M = {
-    glass: kit.mat(glassOptions({ shadeFlat: GLASS_FLAT })),
+    glass: kit.mat(glassOptions({ shadeFlat: GLASS_GLASS_FLAT })),
     glassFlow: kit.mat(glassOptions({ hatch: 0.1, glow: 0.2, shadeFlat: GLASS_FLAT })),
     light: kit.mat({ color: '#d4f8b4', glow: 0.95, flat: true, line: 0.25, lineTint: 1 }),
     dark: kit.mat({ color: '#2f5c4d', flat: true, spot: 0 }),
@@ -117,19 +122,26 @@ export function* buildGlassDunes(scene) {
     kiln: kit.mat({ color: '#cf9f76', flat: true, weathered: 0.4 }),
     rock: kit.mat({ color: '#3c4d47', flat: true, hatch: 0.6 }),
   };
-  // the glass: solid as drawn (you walk round it, climb it, stand on its mounds), never feeding the drifts
-  const ridges = [];
+  // the glass: solid as drawn (you walk round it, climb it, stand on its mounds), never feeding the drifts;
+  // merged per material in meshes of its own (the glass shader's attribute: glassBatch)
+  const ridges = [], glass = glassBatch(kit);
   for (const [i, r] of GLASS_RIDGES.entries()) {
     yield;
     const ridge = glassRidge({ H: (x, z) => terrain.heightAt(x, z), seed: 51 + i, ...r });
     ridges.push({ ...r, ridge });
-    withoutDrifts(() => kit.add(M.glass, ridge.geo, { shadow: r.shadow ?? true, solid: r.solid ?? true }));
+    glass.add(M.glass, ridge.geo, { shadow: r.shadow ?? true, solid: r.solid ?? true });
   }
   yield;
   for (const [i, path] of GLASS_FLOWS.entries()) {
-    const flow = glassRidge({ H: (x, z) => terrain.heightAt(x, z), seed: 80 + i, path, height: 0.5, depth: 4, depthVary: 0.8, profile: 'flow', folds: { width: 30, amp: 0.6, lean: 0, crest: 0 }, sink: 0.4, ends: 6 });
-    withoutDrifts(() => kit.add(M.glassFlow, flow.geo, { shadow: false }));
+    const flow = glassRidge({ H: (x, z) => terrain.heightAt(x, z), seed: 80 + i, path, height: 0.5, depth: 4, depthVary: 0.8, profile: 'flow', folds: { width: 30, amp: 0.6, lean: 0, crest: 0 }, sink: 0.4, ends: 6, thin: 0.9 });
+    glass.add(M.glassFlow, flow.geo, { shadow: false });
   }
+  // the passages' vaults (through the cliff of the giants, through the frozen wave)
+  for (const r of ridges) for (const q of r.ridge.passages) glass.add(M.glass, glassPassage(q), { shadow: true, solid: true });
+  glass.finish();
+  yield;
+  // the light come through the glass, pooled on the sand at the walls' feet (dune-glass-shader.js)
+  glassPools(terrain.mesh.geometry, ridges.filter((r) => !r.ring).map((r) => r.ridge));
   yield;
   // sand banked against the camps, the kilns and the stones (sand-drifts.js)
   const sand = SandDrifts.open({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 51 });
@@ -150,6 +162,8 @@ export function* buildGlassDunes(scene) {
   // the arches' and the camps' glow at night
   const lights = [...kit.lights];
   for (const [x, z, yaw, w, h] of GLASS_ARCHES) lights.push(new THREE.Vector4(x + Math.sin(yaw) * 2, terrain.heightAt(x, z) + h * 0.4, z + Math.cos(yaw) * 2, Math.max(5, w * 0.8)));
+  // (the passages glow at both mouths at night)
+  for (const r of ridges) for (const q of r.ridge.passages) for (const s of [0, q.d]) lights.push(new THREE.Vector4(q.x + q.nx * s, q.y + q.h * 0.4, q.z + q.nz * s, q.w * 1.2));
   for (const c of Object.values(GLASS_CAMPS)) lights.push(new THREE.Vector4(c.x, terrain.heightAt(c.x, c.z) + 2, c.z, 12));
 
   const spawn = new THREE.Vector3(GLASS_SHIP.x, 0, GLASS_SHIP.z - 24);

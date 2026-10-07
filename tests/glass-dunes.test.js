@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as THREE from 'three';
-import { glassRidge, silhouetteAt, SHAPES, PROFILES, GLASS, awningCamp, glassArch, boulders } from '../src/levels/glass-dunes-kit.js';
+import { glassRidge, silhouetteAt, silhouetteDistance, SHAPES, PROFILES, GLASS, awningCamp, glassArch, glassPassage, glassPools, boulders } from '../src/levels/glass-dunes-kit.js';
+import { makeMaterial } from '../src/materials.js';
+import { GLASS_ATTR } from '../src/dune-glass-shader.js';
 import { REFERENCE_WORLDS } from '../src/levels/reference-worlds.js';
 
 // The Glass Dunes: the kit (glass-dunes-kit.js), the References' four plates (reference-glassdunes.js)
@@ -31,10 +33,53 @@ test('a glass ridge: finite, coloured, its face looking out, its ends sunk in th
   }
   assert.ok(top > 30 && top < 60, `crest ${top}`);
   assert.ok(endTop < 12, `the ends sink into the sand (${endTop})`);
-  // the silhouette darkens what lies inside it
-  let dark = 0;
-  for (let i = 0; i < c.count; i++) if (c.getY(i) < new THREE.Color(GLASS.foot).g * 0.6) dark++;
-  assert.ok(dark > 20, 'the giant held inside is printed darker');
+  // the silhouette: its signed distance in the glass shader's attribute, negative inside (the shader cuts it hard)
+  const g = r.geo.attributes[GLASS_ATTR];
+  assert.ok(g && g.itemSize === 4 && g.count === p.count && g.array.every(Number.isFinite));
+  let inside = 0, thin = 0;
+  for (let i = 0; i < g.count; i++) { if (g.getX(i) < 0) inside++; if (g.getY(i) > 0.5) thin++; }
+  assert.ok(inside > 20, 'the giant held inside');
+  assert.ok(thin > 20 && thin < g.count * 0.8, 'thin glass at its foot and ends, not everywhere');
+  void GLASS;
+});
+
+test('a passage through a ridge: its opening cut from both faces, a vault through it', () => {
+  const H = () => 0;
+  const plain = glassRidge({ path: [[-60, 0], [0, 0], [60, 0]], height: 40, depth: 30, profile: 'cliff', H, step: 1.5 });
+  const r = glassRidge({ path: [[-60, 0], [0, 0], [60, 0]], height: 40, depth: 30, profile: 'cliff', H, step: 1.5, passages: [{ at: [0, 0], w: 8, h: 10 }] });
+  assert.ok(r.geo.index.count < plain.geo.index.count, 'triangles cut out');
+  const q = r.passages[0];
+  assert.ok(Math.abs(q.x) < 2 && Math.abs(q.z) < 0.5 && q.h === 10 && q.d > 20, JSON.stringify(q));
+  // no triangle of the ridge left inside the opening (u within the arch's legs, low)
+  const p = r.geo.attributes.position, ix = r.geo.index;
+  for (let t = 0; t < ix.count; t += 3) {
+    let cx = 0, cy = 0;
+    for (let k = 0; k < 3; k++) { cx += p.getX(ix.getX(t + k)) / 3; cy += p.getY(ix.getX(t + k)) / 3; }
+    assert.ok(!(Math.abs(cx) < 3 && cy > 0.5 && cy < 7), `a triangle left in the opening at ${cx.toFixed(1)}, ${cy.toFixed(1)}`);
+  }
+  const v = glassPassage(q);
+  assert.ok(v.attributes.position.array.every(Number.isFinite) && v.attributes.color && v.attributes[GLASS_ATTR]);
+  const b = new THREE.Box3().setFromBufferAttribute(v.attributes.position);
+  assert.ok(b.max.y > 10 && b.max.y < 14 && b.max.z - b.min.z > q.d, 'the vault spans the ridge, as high as the arch and its thickness');
+});
+
+test('the glass and its sand: the shader\'s defines, the pools of light at a wall\'s foot', () => {
+  const m = makeMaterial({ color: '#ffffff', vertexColors: true, duneGlass: true });
+  assert.ok(m.defines.DUNE_GLASS && m.uniforms.uDuneMint && m.defaultAttributeValues[GLASS_ATTR].length === 4);
+  const sand = makeMaterial({ color: '#f2c99c', mode: 1, dunePool: true });
+  assert.ok(sand.defines.DUNE_POOL && sand.uniforms.uPoolMint);
+  const r = glassRidge({ path: [[-60, 0], [0, 0], [60, 0]], height: 30, depth: 20, profile: 'cliff', H: () => 0 });
+  const ground = new THREE.PlaneGeometry(200, 200, 50, 50).rotateX(-Math.PI / 2);
+  glassPools(ground, [r]);
+  const a = ground.attributes[GLASS_ATTR], pos = ground.attributes.position;
+  let near = null, far = null;
+  for (let i = 0; i < a.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    if (Math.abs(x) < 3 && Math.abs(z + 4) < 3) near = [a.getX(i), a.getY(i), a.getZ(i)];
+    if (Math.abs(x) < 3 && Math.abs(z + 90) < 3) far = a.getX(i);
+  }
+  assert.ok(near[0] > 0.5 && near[2] > 0.5, `near the front foot: lit, the wall toward +z (${near})`);
+  assert.equal(far, 0, 'far from any wall: none');
 });
 
 test('silhouettes: inside 1, outside 0, a soft edge; every shape and profile is usable', () => {
@@ -52,7 +97,7 @@ test('silhouettes: inside 1, outside 0, a soft edge; every shape and profile is 
 
 test('the camp, the arches and the stones are drawn whole', () => {
   const adds = [];
-  const kit = { add: (m, g, o) => { adds.push({ m, g, o }); return g; }, H: () => 1 };
+  const kit = { add: (m, g, o) => { adds.push({ m, g, o }); return g; }, mesh: (g, m, o) => { adds.push({ m, g, o }); return {}; }, H: () => 1 };
   const M = { pole: 'pole', cloth: ['c1', 'c2'], rug: ['r'], crate: 'crate', float: 'float', kiln: 'kiln', dark: 'dark', glass: 'glass', light: 'light' };
   let s = 1; const rng = () => ((s = (s * 16807) % 2147483647) / 2147483647);
   const spots = awningCamp(kit, M, rng, { x: 0, z: 0, w: 12, n: 4 });
@@ -77,7 +122,7 @@ test('the References: the Glass Dunes\' four plates, one view each, registered a
     assert.deepEqual(v.crop, [0, 0, ...S.size], 'the whole plate');
     // the view builds: finite geometry, something glass in it
     const adds = [];
-    const kit = { add: (m, g) => { adds.push({ m, g }); return g; }, H: v.ground.height, mat: (o) => o, group: { children: [], add() {} }, rng: Math.random, light() {} };
+    const kit = { add: (m, g) => { adds.push({ m, g }); return g; }, mesh: (g, m) => { adds.push({ m, g }); return {}; }, H: v.ground.height, mat: (o) => o, group: { children: [], add() {} }, rng: Math.random, light() {} };
     v.build(kit, v);
     assert.ok(adds.length > 20, `${v.id}: something stands in it`);
     assert.ok(adds.some((a) => a.m.vertexColors), `${v.id}: glass`);
@@ -132,6 +177,22 @@ test('the Glass Dunes build: the glass solid as drawn, the camps, the arches lit
   const m = level.ridges.find((r) => r.name === 'mound 0'), p = m.ridge.at(m.ridge.length / 2, m.depth * 0.4);
   const top = physics.rayHit(new THREE.Vector3(p.x, 80, p.z), new THREE.Vector3(0, -1, 0), 120);
   assert.ok(top && top.point.y > H(p.x, p.z) + 4, `the mound is stood on where it is drawn (${top?.point.y})`);
+  // the passages: walk through the cliff of the giants and through the frozen wave, along their vaults
+  for (const name of ['giants', 'wave']) {
+    const q = level.ridges.find((r) => r.name === name).ridge.passages[0];
+    const from = new THREE.Vector3(q.x - q.nx * 6, q.y + 1.6, q.z - q.nz * 6), dir = new THREE.Vector3(q.nx, 0, q.nz);
+    const through = physics.rayHit(from, dir, q.d + 10);
+    assert.ok(!through, `${name}: the way through is open (${through?.point.toArray().map((v) => v.toFixed(1))})`);
+    const side = new THREE.Vector3(-q.nz, 0, q.nx), beside = from.clone().addScaledVector(side, q.w / 2 + 6);
+    assert.ok(physics.rayHit(beside, dir, q.d + 10), `${name}: beside the archway, the glass`);
+    const up = physics.rayHit(new THREE.Vector3(q.x + q.nx * q.d / 2, q.y + 1.6, q.z + q.nz * q.d / 2), new THREE.Vector3(0, 1, 0), 30);
+    assert.ok(up && up.point.y < q.y + q.h + 1, `${name}: the vault's roof over you`);
+  }
+  // the breaking wave's hollow: from the north camp you walk on into it, a long way under its lip
+  const into = physics.rayHit(new THREE.Vector3(10, H(10, -195) + 1.6, -195), new THREE.Vector3(0, 0, -1), 200);
+  assert.ok(into && into.point.z < -240, `the hollow goes in (${into?.point.z})`);
+  const lip = physics.rayHit(new THREE.Vector3(10, H(10, -238) + 1.6, -238), new THREE.Vector3(0, 1, 0), 200);
+  assert.ok(lip && lip.point.y > H(10, -238) + 20, `the lip overhead (${lip?.point.y})`);
   // the ring beyond the edge is drawn only (no collision to pay for), and the edge keeps you inside it
   assert.ok(level.limit < 600);
 });
@@ -142,6 +203,7 @@ test('the Glass Dunes: what you stand on and climb is the drawn glass (the conta
   const r = quiet(() => auditContact({ physics, scene, max: 12000 }));
   assert.ok(r.checked.walk > 400 && r.checked.wall > 1000, JSON.stringify(r.checked));
   const c = r.counts;
-  // (known: the camps' awnings and floats are drawn only; the kiln's mouth; the sand banked at a stone's foot)
-  assert.ok((c['feet sink'] ?? 0) <= 12 && (c['feet hover'] ?? 0) <= 6 && (c['climbs inside'] ?? 0) <= 12 && (c['walks through'] ?? 0) <= 30, formatContact(r));
+  // (known: the camps' awnings and floats are drawn only; the kiln's mouth; the sand banked at a stone's foot;
+  //  the archways' drawn-only rims that took 5 climbs are passages now)
+  assert.ok((c['feet sink'] ?? 0) <= 12 && (c['feet hover'] ?? 0) <= 6 && (c['climbs inside'] ?? 0) <= 4 && (c['walks through'] ?? 0) <= 8, formatContact(r));
 });

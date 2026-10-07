@@ -421,3 +421,34 @@ Found in the Lab, where some materials looked slow; all of it applies to every w
 colour by night, a how far it glows then); the fragment mixes its vertex colour toward the night colour and its glow
 up by `uNight`, so one material is a painted billboard by day and a lit screen by night with nothing to switch. Used
 by the Signal Market's signs (worlds.md "The Signal Market at night"). A material without it compiles as before.
+
+## Dune glass (`duneGlass`, `dunePool`, October 2026)
+
+The Glass Dunes' glass (`src/dune-glass-shader.js`, compiled into the G-buffer surface shader for a material
+made with `duneGlass`, the DUNE_GLASS define) and the sand that takes its light (`dunePool`, DUNE_POOL). A
+print, not refraction: like the rest it writes a flat albedo, a light term and a glow for post.js. Both read
+one vertex attribute, `aGlass` (vec4), written by the kit (`src/levels/glass-dunes-kit.js`):
+
+- **The glass** (`glassRidge`: x the silhouettes' signed distance in m, y how thin the glass is, z the lobe,
+  w the height up the ridge; 2 marks a passage's vault). The **silhouettes** held inside (giants, heads,
+  trees: unions of ellipses, `silhouetteDistance`) are cut at the distance's zero over a pixel: one flat dark
+  shape with a hard, slightly wavering edge whatever the mesh's spacing (they were soft vertex-colour
+  smudges). The **light through**: thin glass (the foot, the ridge's sinking ends, a wave's lip, the crest,
+  the low flows) and grazing edges (1 − |n·v|, a lobe turning from the eye) let the sun through, more as you
+  look toward it and more in shade, printed as two flat bands, a mint glow and a lime core, lifted out of the
+  shade (never hatched) and glowing a little; at night a faint mint band at the thinnest parts. The **deep
+  shade**: a face turned well from the sun or a lobe's crease prints a step darker (the billows, plate 2);
+  a pale streak runs up each lobe's belly.
+- **The sand** (`glassPools`: x how near a wall's foot, 0..1, within 10 m plus 0.35 × the wall's height; yz
+  the way to it, in the world's frame, so a turned References view passes its turn): the light come
+  through the glass pools beyond it, on the side away from the sun (the glass between the point and the
+  sun), a low sun's further; two bands, mint then lime, the lime lifted out of the wall's shadow; a faint
+  mint all round a foot. A grid of 16 m cells holds the feet near it, so the load stays a few ms.
+- **Meshes**: the room kit's merge keeps only position, normal and colour, so the ridges are merged by the
+  kit's own `glassBatch` into meshes of their own (per material, solid, shadow; indexed ridges apart from
+  non-indexed vaults). A geometry without the attribute reads `GLASS_DEFAULT` (no silhouette, thick).
+- **Cost**: a handful of ALU and one `fwidth` per band a pixel, no texture, no pass. Handheld preset at
+  render scale 0.75 (worlds.md "The Glass Dunes"): within a few hundredths of a ms of before.
+- The world's own colours went with it: the glass prints its shade less flat than the sand (`shadeFlat`
+  0.45, its mint foot and teal top kept in shade), the world keeps none of the print's warm grey in shade
+  (`uShadeKeep` 0: teal lifted toward a warm light turned grey), and its dusk shadow is an emerald.

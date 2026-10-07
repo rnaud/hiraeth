@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { createNoise2D, mulberry32, smoothstep } from '../noise.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SandDrifts } from '../sand-drifts.js';
+import { GLASS_ATTR } from '../dune-glass-shader.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes' kit (references/The Glass Dunes/, docs/systems/worlds.md "The Glass Dunes"): the
@@ -10,10 +12,14 @@ import { SandDrifts } from '../sand-drifts.js';
 //   glassRidge    a ridge of fused sand turned to glass: a cross-section (its profile: a cliff, a
 //                 frozen wave curling over, a billowing dome) swept along a path, folded into rounded
 //                 lobes that lean as they rise (the frozen waves), its crest scalloped by them, both
-//                 ends sinking into the sand. Opaque and lit as any surface; its colours are vertex
-//                 colours: a lime foot where the low sun shines through the thin glass, a cooler teal
-//                 up high, and the great dark silhouettes held inside it (giants, heads, trees) printed
-//                 as soft darker masses, the same seen from either side.
+//                 ends sinking into the sand. Opaque; its colours are vertex colours (a lime foot, mint,
+//                 a cooler teal up high), and what the glass shader needs is in its `aGlass` attribute
+//                 (src/dune-glass-shader.js): the great dark silhouettes held inside it (giants, heads,
+//                 trees) as a signed distance, cut hard by the shader, the same seen from either side;
+//                 how thin the glass is (the light comes through there); the lobes; the height.
+//   glassBatch    the ridges merged per material into a few meshes of their own (the room kit's
+//                 merge keeps only position, normal and colour)
+//   glassPools    the sand's `aGlass`: how near a wall's foot and the way to it (the light pooling).
 //   glassArch     an archway in a ridge's foot: a glass rim, its opening lit green from beyond.
 //   awningCamp    the glassworkers' camp: poles, sagging cloth awnings, crates, rugs, green glass
 //                 floats on stands, a kiln.
@@ -33,7 +39,7 @@ export const SAND = ['#f2c99c', '#eec092', '#e2ad80'];
  * shade of its own colour (glass, as rendering.md "Lines by material"), few strokes, never a spot black,
  * a little self-light so its shade stays a luminous teal and it glows faintly at night.
  */
-export const glassOptions = (o = {}) => ({ color: '#ffffff', vertexColors: true, line: 0.25, lineTint: 1, hatch: 0.22, spot: 0, glow: 0.12, shade: 0.25, ...o });
+export const glassOptions = (o = {}) => ({ color: '#ffffff', vertexColors: true, line: 0.25, lineTint: 1, hatch: 0.22, spot: 0, glow: 0.12, shade: 0.25, duneGlass: true, ...o });
 
 /** Profiles of a ridge's cross-section: [s (into the ridge, in depths), y (up, in heights)], front foot to back foot. */
 export const PROFILES = {
@@ -44,7 +50,8 @@ export const PROFILES = {
   // a billowing dome
   dome: [[0, -0.05], [0.04, 0.3], [0.13, 0.62], [0.27, 0.88], [0.45, 1.0], [0.65, 0.92], [0.85, 0.55], [1, -0.05]],
   // a wave breaking over its own hollow: the face sinks back under a lip that curls out past the foot
-  curl: [[0, -0.05, 0.7], [0.35, 0.08, 0.42], [0.52, 0.32, 0.34], [0.5, 0.6, 0.38], [0.32, 0.8, 0.6], [0.06, 0.9, 0.9], [-0.2, 0.86], [-0.27, 0.78], [-0.2, 0.93], [0.02, 1.03], [0.3, 1.0], [0.6, 0.78], [1, -0.05]],
+  // (a fourth value: how thin the glass is there, the lip's the thinnest; under 0: thick whatever its height, the hollow's floor)
+  curl: [[0, -0.05, 0.7, -0.1], [0.35, 0.08, 0.42, -0.1], [0.52, 0.32, 0.34, -0.1], [0.5, 0.6, 0.38], [0.32, 0.8, 0.6, 0.3], [0.06, 0.9, 0.9, 0.7], [-0.2, 0.86, 1, 1], [-0.27, 0.78, 1, 1], [-0.2, 0.93, 1, 1], [0.02, 1.03, 1, 0.6], [0.3, 1.0], [0.6, 0.78], [1, -0.05]],
   // a low flow of glass over the sand (the sheets' green bands on the ground)
   flow: [[0, -0.3], [0.05, 0.6], [0.2, 1.0], [0.8, 1.0], [0.95, 0.6], [1, -0.3]],
 };
@@ -59,6 +66,16 @@ export function silhouetteAt(sil, u, y, soft = 2) {
     if (k >= 1) break;
   }
   return k;
+}
+/**
+ * A silhouette's signed distance (m, negative inside; a union of ellipses [u, y, rx, ry]): what the glass
+ * shader cuts at zero. (Each ellipse's distance is its radius ratio's excess times its short radius: exact
+ * on its short axis, a little short of the truth along its long one; good enough for a printed edge.)
+ */
+export function silhouetteDistance(sil, u, y) {
+  let d = Infinity;
+  for (const [cu, cy, rx, ry] of sil) d = Math.min(d, (Math.hypot((u - cu) / rx, (y - cy) / ry) - 1) * Math.min(rx, ry));
+  return d;
 }
 /** The silhouettes the sheets hold in the glass, as unions of ellipses (u along the ridge, y up, m). */
 export const SHAPES = {
@@ -95,6 +112,7 @@ export function glassRidge(o) {
   const col = { ...GLASS, ...(o.colours ?? {}) };
   const noise = createNoise2D(9100 + seed), rng = mulberry32(seed);
   const curve = new THREE.CatmullRomCurve3(path.map(([x, z]) => new THREE.Vector3(x, 0, z)), false, 'centripetal');
+  const P0 = new THREE.Vector3();
   const sil = (o.silhouettes ?? []).flatMap((s) => (Array.isArray(s) ? s : SHAPES[s.shape](s.u, s.y, s.s)));
   // (finer where it holds silhouettes: their soft edges want a few points across)
   const L = curve.getLength(), step = o.step ?? Math.max(1.5, Math.min(sil.length ? 2.5 : 5, folds.width / 5));
@@ -114,7 +132,21 @@ export function glassRidge(o) {
     const tp = o.taper ? o.taper[0] + (o.taper[1] - o.taper[0]) * (u / L) : 1;
     return height * tp * (1 + 0.16 * noise(u * 0.008, 3.3)) * (0.08 + 0.92 * end);
   };
-  const pos = new Float32Array(nu * rows * 3 + 0), colr = new Float32Array(nu * rows * 3);
+  // passages through it (an archway you walk through: its opening cut out of both faces, glassPassage builds the vault)
+  const passages = (o.passages ?? []).map((q) => {
+    let u = q.u;
+    if (u === undefined) {
+      let best = Infinity;
+      for (let k = 0; k <= 400; k++) { curve.getPointAt(k / 400, P0); const dd = (P0.x - q.at[0]) ** 2 + (P0.z - q.at[1]) ** 2; if (dd < best) { best = dd; u = (k / 400) * L; } }
+    }
+    return { ...q, u, r: q.w / 2 };
+  });
+  const opening = (u, yr) => passages.some((q) => { const du = Math.abs(u - q.u); if (du > q.r + 0.6) return false; const top = q.h - q.r + Math.sqrt(Math.max(0, (q.r + 0.6) ** 2 - du * du)); return yr < top + 0.4; });
+  const cut = passages.length ? new Uint8Array(nu * rows) : null;
+  const pos = new Float32Array(nu * rows * 3 + 0), colr = new Float32Array(nu * rows * 3), gl = new Float32Array(nu * rows * 4);
+  const thinAt = (j) => { const t = (j / (rows - 1)) * (prof.length - 1), i = Math.min(prof.length - 2, Math.floor(t)), f = t - i; return (prof[i][3] ?? 0) * (1 - f) + (prof[i + 1][3] ?? 0) * f; };
+  const thickAt = (j) => { const t = (j / (rows - 1)) * (prof.length - 1), i = Math.min(prof.length - 2, Math.floor(t)); return (prof[i][3] ?? 0) < 0 && (prof[i + 1][3] ?? 0) <= 0; };
+  const hMax = height * (o.taper ? Math.max(...o.taper) : 1), small = 1 - smoothstep(8, 20, height), wobble = createNoise2D(9300 + seed);
   const P = new THREE.Vector3(), T = new THREE.Vector3();
   const frames = [];
   for (let i = 0; i < nu; i++) {
@@ -136,28 +168,37 @@ export function glassRidge(o) {
       const s = p.x * d - belly;
       const k = (i * rows + j) * 3;
       pos[k] = P.x + nx * s; pos[k + 1] = y; pos[k + 2] = P.z + nz * s;
+      if (cut && opening(u, y - g)) cut[i * rows + j] = 1;
       // colour: the foot's lime up to the mid's mint and the top's teal; a crest catches the light
       const hy = Math.max(0, p.y);
-      _a.set(col.foot).lerp(_b.set(col.mid), smoothstep(0.0, 0.45, hy));
+      _a.set(col.foot).lerp(_b.set(col.mid), smoothstep(0.0, 0.32, hy));
       _a.lerp(_b.set(col.top), smoothstep(0.45, 0.95, hy) * 0.85);
       if (p.x > crestS * 0.6 && p.x < crestS * 1.6 + 0.05) _a.lerp(_b.set(col.crest), 0.3 * smoothstep(0.85, 1, hy));
       // the lobes' creases a touch deeper, their bellies a touch lighter (the frozen waves' streaks)
       _a.multiplyScalar((0.92 + 0.08 * b + 0.06 * bf) * toneAt(j));
-      // what the glass holds: dark soft masses
-      const inside = sil.length ? silhouetteAt(sil, u, y0, o.soft ?? Math.max(1.0, height * 0.025)) : 0;
-      if (inside > 0) _a.multiply(_c.setRGB(1 - (1 - col.inside[0]) * inside, 1 - (1 - col.inside[1]) * inside, 1 - (1 - col.inside[2]) * inside));
       colr[k] = _a.r; colr[k + 1] = _a.g; colr[k + 2] = _a.b;
+      // what the glass shader reads (dune-glass-shader.js): the silhouettes' distance (its edge a little
+      // wavering, drawn by hand), how thin the glass is here, the lobe, the height
+      const q = ((i * rows + j) * 4);
+      gl[q] = sil.length ? Math.max(-60, Math.min(100, silhouetteDistance(sil, u, y0) + 0.5 * wobble(u * 0.09, y0 * 0.09) * Math.min(3, height * 0.04))) : 100;
+      const foot = 1 - smoothstep(0.0, 0.2, hy), crest = smoothstep(0.86, 1.0, hy) * 0.55;
+      const lowEnd = 1 - smoothstep(0.15, 0.7, Math.min(smoothstep(0, ends, u), smoothstep(0, ends, L - u)));   // (the ends, sinking: thin)
+      gl[q + 1] = thickAt(j) ? 0.05 : Math.min(1, Math.max(foot * 0.85, crest, lowEnd * 0.7, thinAt(j), small * 0.7, o.thin ?? 0) + 0.25 * b * onFace * (1 - foot));
+      gl[q + 2] = 0.7 * b + 0.3 * bf;
+      gl[q + 3] = hy;
     }
   }
   void rng;
   const idx = [];
   for (let i = 0; i < nu - 1; i++) for (let j = 0; j < rows - 1; j++) {
     const a = i * rows + j, b = a + rows;
+    if (cut && (cut[a] || cut[a + 1] || cut[b] || cut[b + 1])) continue;   // (a passage's opening)
     idx.push(a, a + 1, b, b, a + 1, b + 1);
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('color', new THREE.BufferAttribute(colr, 3));
+  geo.setAttribute(GLASS_ATTR, new THREE.BufferAttribute(gl, 4));
   geo.setIndex(idx);
   // (which way round: the face looks out of the ridge; flip the winding if it came out inward)
   geo.computeVertexNormals();
@@ -171,7 +212,100 @@ export function glassRidge(o) {
     const f = frames[Math.max(0, Math.min(nu - 1, Math.round((u / L) * (nu - 1))))];
     return { x: f.x + f.nx * s, z: f.z + f.nz * s, y: f.g, nx: f.nx, nz: f.nz, h: f.h, d: f.d, yaw: Math.atan2(-f.nx, -f.nz) };
   };
-  return { geo, length: L, heightAt, at, frames };
+  // each passage's frame: where its vault stands (the front foot at its u, the way in, the ridge's depth there)
+  for (const q of passages) { const f = at(q.u); Object.assign(q, { x: f.x, z: f.z, y: f.y, nx: f.nx, nz: f.nz, d: f.d, yaw: f.yaw }); }
+  return { geo, length: L, heightAt, at, frames, passages };
+}
+
+/**
+ * The vault of a passage through a ridge (glassRidge's `passages`): an arched sleeve of glass from a little out
+ * of the front face to a little out of the back, its inside the opening's round-headed arch (w wide, h high),
+ * `t` m thick, so its mouth covers the cut's ragged edge on both faces. Non-indexed, vertex-coloured and with
+ * the glass shader's attribute: thin glass (the light comes through the vault's walls), a pale belly.
+ * q: a glassRidge passage ({ x, z, y, nx, nz, d, w, h }).
+ */
+export function glassPassage(q, { t = 3, out = 2.2, color = GLASS.mid, sink = 1.5 } = {}) {
+  const r = q.w / 2, h = q.h;
+  // (one band round the opening: up the outer left leg, over, down the outer right, in, up the inner right, back over, down)
+  const outer = new THREE.Shape();
+  outer.moveTo(-r - t, -sink); outer.lineTo(-r - t, h - r); outer.absarc(0, h - r, r + t, Math.PI, 0, true); outer.lineTo(r + t, -sink);
+  outer.lineTo(r, -sink); outer.lineTo(r, h - r); outer.absarc(0, h - r, r, 0, Math.PI, false); outer.lineTo(-r, -sink); outer.lineTo(-r - t, -sink);
+  const len = q.d + 2 * out;
+  const g = new THREE.ExtrudeGeometry(outer, { depth: len, bevelEnabled: false, curveSegments: 14, steps: Math.max(2, Math.round(len / 4)) });
+  g.deleteAttribute('uv');
+  // (along +z out of the shape: turned to look along the way in, the front foot at its start; flat facets, a print's
+  // vault, its mouth one clean flat band)
+  const yaw = Math.atan2(q.nx, q.nz);
+  const w = g.translate(0, 0, -out).rotateY(yaw).translate(q.x, q.y, q.z);
+  w.computeVertexNormals();
+  painted(w, color);
+  // (thin glass, no grazing glow: inside a vault every wall is seen grazing, w over 1.5 says so to the shader)
+  const n = w.attributes.position.count, a = new Float32Array(n * 4);
+  for (let i = 0; i < n; i++) { a[i * 4] = 100; a[i * 4 + 1] = 0.5; a[i * 4 + 2] = 0.6; a[i * 4 + 3] = 2; }
+  w.setAttribute(GLASS_ATTR, new THREE.BufferAttribute(a, 4));
+  return w;
+}
+
+/**
+ * The ridges merged per material (and solid, shadow) into meshes of their own: the room kit's merge
+ * (kit.add) keeps only position, normal and colour, and the glass shader needs its `aGlass`. Ridges never
+ * feed the sand drifts (withoutDrifts' reason). `add(mat, geo, { solid, shadow })`, then `finish()`.
+ */
+export function glassBatch(kit) {
+  const buckets = new Map();
+  return {
+    add(mat, geo, { solid = true, shadow = true } = {}) {
+      const key = `${mat.uuid ?? mat}|${solid}|${shadow}|${geo.index ? 1 : 0}`;   // (indexed ridges, non-indexed vaults)
+      if (!buckets.has(key)) buckets.set(key, { mat, solid, shadow, list: [] });
+      buckets.get(key).list.push(geo);
+      return geo;
+    },
+    finish() {
+      const out = [];
+      for (const b of buckets.values()) {
+        const geo = b.list.length > 1 ? mergeGeometries(b.list) : b.list[0];
+        geo.computeBoundingSphere();
+        out.push(kit.mesh(geo, b.mat, { solid: b.solid, shadow: b.shadow }));
+      }
+      buckets.clear();
+      return out;
+    },
+  };
+}
+
+/**
+ * The sand's light from the glass (dune-glass-shader.js DUNE_POOL): on `geo` (a ground: its positions in
+ * the same frame as the ridges), aGlass = (how near a wall's foot, 0..1; the way to it, x and z). `ridges`
+ * are glassRidge results; a wall's light reaches `reach` m plus a share of its height out from its foot.
+ * A grid of cells (`cell` m) holds the feet near it, so each vertex looks at a few.
+ */
+export function glassPools(geo, ridges, { reach = 10, perHeight = 0.35, cell = 16, minHeight = 2, turn = 0 } = {}) {
+  // (turn: the frame's own turn about y, so the way to the wall is the world's: the References' views turn their group)
+  const tc = Math.cos(turn), ts = Math.sin(turn);
+  const feet = [];
+  for (const r of ridges) for (const f of r.frames) if (f.h > minHeight) {
+    const R = reach + perHeight * Math.min(f.h, 80);
+    // the front foot and the back foot (the light comes through either side)
+    feet.push([f.x, f.z, R], [f.x + f.nx * f.d, f.z + f.nz * f.d, R]);
+  }
+  const grid = new Map(), key = (i, j) => i * 73856093 ^ j * 19349663;
+  for (const [x, z, R] of feet) {
+    const i0 = Math.floor((x - R) / cell), i1 = Math.floor((x + R) / cell), j0 = Math.floor((z - R) / cell), j1 = Math.floor((z + R) / cell);
+    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const k = key(i, j); if (!grid.has(k)) grid.set(k, []); grid.get(k).push([x, z, R]); }
+  }
+  const p = geo.attributes.position, out = new Float32Array(p.count * 4);
+  for (let v = 0; v < p.count; v++) {
+    const x = p.getX(v), z = p.getZ(v), list = grid.get(key(Math.floor(x / cell), Math.floor(z / cell)));
+    if (!list) continue;
+    let best = 0, dx = 0, dz = 0;
+    for (const [fx, fz, R] of list) {
+      const d = Math.hypot(fx - x, fz - z), k = 1 - d / R;
+      if (k > best) { best = k; dx = (fx - x) / Math.max(d, 1e-3); dz = (fz - z) / Math.max(d, 1e-3); }
+    }
+    out[v * 4] = smoothstep(0, 1, best); out[v * 4 + 1] = dx * tc + dz * ts; out[v * 4 + 2] = -dx * ts + dz * tc;
+  }
+  geo.setAttribute(GLASS_ATTR, new THREE.BufferAttribute(out, 4));
+  return geo;
 }
 
 /**
