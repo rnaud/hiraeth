@@ -103,6 +103,56 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.76': [
+    { match: 'The Steam Deck gets its own Graphics setting', numbers: [
+      { title: 'What the Deck drew before, on High, against its own setting', device: 'Steam Deck OLED, SteamOS 3.8', source: 'docs/systems/performance.md, “The Steam Deck”', note: 'the frame rate on the new setting is still to be measured on the Deck', rows: [
+        { where: 'pixels drawn (thousands)', before: 2304, after: 1024 },
+        { where: 'props drawn out to (m)', before: 520, after: 380 },
+        { where: 'the fine shadow map (px)', before: 2048, after: 1024 },
+        { where: 'the desert’s spawn on High (fps)', before: '17–22', after: null },
+      ] },
+    ] },
+    { match: 'On handhelds the City-Shaft runs smoother', numbers: [
+      { title: 'Looking across the City-Shaft', better: 'higher', unit: 'fps', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, second round”', rows: [
+        { where: 'the wide view', before: '42–43', after: 45 },
+        { where: 'the rim', before: '50–51', after: 52 },
+      ] },
+      { title: 'Draw calls', better: 'lower', device: RETROID, rows: [
+        { where: 'the wide view', before: 1492, after: 1326 },
+        { where: 'the rim', before: 1025, after: 960 },
+      ] },
+    ] },
+    { match: 'On handhelds the picture no longer goes soft for nothing', numbers: [
+      { title: 'The resolution the game keeps in Qanat, the camps and the City-Shaft', unit: '× the screen', better: 'higher', device: RETROID.replace(', render scale held at 0.75', ', automatic resolution'), source: 'docs/systems/performance.md, “The Retroid, second round”', rows: [
+        { where: 'Qanat, the camps, the City-Shaft', before: '0.6–0.75', after: 0.75 },
+      ] },
+    ], see: 'On a handheld, stand in Qanat or the camps with the frame readout on (F): the picture stays sharp; it softens only where the graphics, not the processor, are behind.' },
+    { match: 'The desert’s camps and other crowded places run a little smoother', numbers: [
+      { title: 'The processor’s work a frame at the camps', unit: 'ms', better: 'lower', device: RETROID, source: 'docs/systems/performance.md, “The Retroid, second round”', rows: [{ where: 'the camps', before: 20.2, after: 19.6 }] },
+    ] },
+    { match: 'The loading screen’s turning pen', see: 'Open a world on a handheld and watch the pen on the loading screen: it should turn without stopping. (Measured on a busy Mac it stopped 100–240 ms at a time before; the Retroid’s own measurement is still to do.)' },
+    { match: 'The Buried Machine’s great wheel is solid', numbers: [
+      { title: 'Where the wheel’s solid and drawn shapes disagree', better: 'lower', device: AUDIT, source: 'the commit’s measurements (48b995e)', rows: [
+        { where: 'feet sinking into it', before: 69, after: 37 },
+        { where: 'climbing off it into nothing', before: 102, after: 11 },
+        { where: 'standing on an unseen floor', before: 18, after: 0 },
+      ] },
+    ], see: 'In the Buried Machine, climb onto the great wheel in the dunes and wait for it to turn: it carries you round, and a spoke sweeps you aside.' },
+    { match: 'In the Buried Machine’s rust canyon, the heavy rims', shots: [
+      { name: 'cross-wall', caption: 'The first cross-wall’s oval opening in the rust canyon', commit: 'ce7febb', view: { level: 'buried', player: [cx(-232), -33.9, -232], eye: [cx(-232), -30.5, -232], target: [cx(-262), -29, -262], fov: 60 } },
+    ] },
+    { match: 'In Lorn II’s Deep Wood every root is solid', see: 'In Lorn II, walk into the gnarled roots along the banks or the thin ones round the great arches: you climb them and stand on them instead of walking through.' },
+    { match: 'In the Garden of Spheres the olive trees’ trunks', numbers: [
+      { title: 'Climbs that came off a tree into nothing', better: 'lower', device: AUDIT, source: 'the commit’s measurements (ba26446)', rows: [{ where: 'the Garden’s olives and cypresses', before: 234, after: 10 }] },
+    ], see: 'Walk into a cypress in the Garden of Spheres: it stops you where it is drawn.' },
+    { match: 'In Lorn’s Hush-House the gates of jaws', see: 'In Lorn’s Hush-House, walk up to a shut gate of jaws: it stops you at its two halves, and still won’t let you by until it is stilled.' },
+    { match: 'You no longer sink into banked sand', numbers: [
+      { title: 'Places where you walked through the drawn sand', better: 'lower', device: AUDIT, source: 'the commit’s measurements (ba26446)', rows: [
+        { where: 'the desert', before: 46, after: 6 },
+        { where: 'Vael', before: 80, after: 28 },
+      ] },
+    ], see: 'Walk along a drift of sand banked against a wall or a rock: your feet stay on the sand as it is drawn.' },
+  ],
   '0.75': [
     { match: 'The sketchbook is now a game menu', shots: [
       { name: 'game-menu', caption: 'View / Select (J) in the desert: the sketchbook before, the game menu after', commit: '74fc72e', view: { level: 'desert', hud: true, save: SAVE_DESERT, setup: 'window.journal.toggle(true)', wait: 2500 } },
