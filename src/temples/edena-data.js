@@ -41,7 +41,7 @@ export const PEOPLE = {
         },
         go: {
           say: ["~neutral~ *Up the white steps, through the door.* The builders left it unlocked.", "~whisper~ If the gardener attacks, try to calm it. It’s lost everything that grew on it. That would frighten me too."],
-          choices: [{ text: '~happy~ Not at their best. I’ll remember.', end: true }],
+          choices: [{ text: '~solemn~ Frightened, not cruel. I’ll remember.', end: true }],
         },
         again: {
           say: ['~neutral~ Up the white steps. (She nods at the glass.)'],
@@ -60,7 +60,7 @@ export const PEOPLE = {
             "~happy~ Look at the ruins: vines to the top, flowers below. Oro sat down to stare. Says they were always meant to look like that.",
             "~solemn~ The gardener’s asleep beneath the glass. Covered in flowers, like Grandmother remembered."],
           choices: [
-            { text: '~solemn~ It was only bare. I bloomed it.', goto: 'bare' },
+            { text: '~solemn~ It was only bare. It needed help to bloom.', goto: 'bare' },
             { text: '~sad~ And Esk’s hill?', if: { flag: 'edena.terraces.flooded' }, goto: 'esk' },
             { text: '~neutral~ Goodbye, Sorrel.', end: true },
           ],

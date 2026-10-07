@@ -61,6 +61,12 @@ test('Lou runs to meet you, asks what you brought, and what she says follows how
   r.choose(0);   // "Show me your drawings."
   assert.equal(r.nodeId, 'drawings');
   assert.ok(r.pages.includes(DRAWING_LINES.bazaar.replace(/^~\w+~ /, '')), 'the tower that listens');
+  // every world has its drawing, the furthest along the route: the spheres, over Viridel's garden
+  const { r: r2 } = brought(9, { flags: { 'world.spheres.done': true, 'world.edena.done': true } });
+  while (!r2.lastPage) r2.advance();
+  r2.choose(0);
+  assert.ok(r2.pages.includes(DRAWING_LINES.spheres.replace(/^~\w+~ /, '')), 'the round spheres');
+  assert.ok(!r2.pages.includes(DRAWING_LINES.edena.replace(/^~\w+~ /, '')), 'one drawing only');
   for (const node of Object.values(PEOPLE.lou.talk.nodes)) assert.ok((node.choices ?? []).length <= 3, 'three choices at most');
   // a child, unmistakably: a big head on short limbs, a short torso, a round young face, a girl's voice on the slighter body
   const L = PEOPLE.lou;

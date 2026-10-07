@@ -75,6 +75,7 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _v = V(0, 0, 0), _w = V(0, 0, 0);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
+const CATCH_UP = ['elder', 'well', 'speaker', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
 
 /**
  * Old saves. v < 2: the stages before the cave moved (the box is in the city
@@ -119,7 +120,16 @@ export function setupDesert(ctx) {
   const lit = () => !!game.flag('desert.tree.lit');
   const skipSpark = () => { if (lit() && SPARK_STAGES.includes(quests.stage('desert.power'))) quests.set('desert.power', 'ship'); };
   skipSpark();
-  quests.onChange(({ id }) => { if (id === 'desert.power') skipSpark(); });
+  // the water let out before anyone sent you down (Ilo, Bako and Hessa all point at the giant's mouth): the steps
+  // that only lead there (Nour's sending, the dry well, the Speaker's old words, the way down) are passed over,
+  // and the quest goes on from what you did. Ama still gives the jar (her `lateJar`), so it can be filled.
+  const caughtUp = () => {
+    if (!game.flag('desert.channel.open') || !CATCH_UP.includes(quests.stage('desert.power'))) return;
+    for (const f of ['desert.elder.heard', 'desert.well.seen', 'desert.speaker.heard', 'desert.cave.seen']) if (!game.flag(f)) game.set(f, true);
+  };
+  caughtUp();
+  quests.onChange(({ id }) => { if (id === 'desert.power') { skipSpark(); caughtUp(); } });
+  game.on('flag:desert.channel.open', (v) => { if (v) caughtUp(); });
 
   const ground = (p, from = 4) => { const g = physics.groundAt(p.x, p.y + from, p.z); return Number.isFinite(g) ? g : p.y; };
   const onGround = (p) => V(p.x, ground(V(p.x, p.y, p.z), 3), p.z);
@@ -522,7 +532,7 @@ export function setupDesert(ctx) {
     if (item !== 'backpack') return;
     const empty = id === 'desert.backpack' && !open() && !game.flag('desert.pool.tinted');
     if (empty) game.set('tool.empty', true);
-    setTimeout(() => toast(empty ? 'The tank on your back is empty: dry glass, not a drop in it. Nothing to shoot, nothing to push. Not yet.' : 'Try shooting (G) or pushing (C).'), 3200);
+    setTimeout(() => toast(empty ? 'The tank on your back is empty: dry glass, not a drop in it. Nothing to shoot, nothing to push. Not yet.' : 'Try shooting (aim LT / L2, shoot RT / R2) or pushing (RB / R1).'), 3200);
   });
   quests.def('desert.power').onDone = () => {
     game.set('ship.powered', true);

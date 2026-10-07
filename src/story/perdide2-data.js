@@ -57,7 +57,7 @@ export const QUESTS = [
     outro: 'The skiff is Fen’s, and Fen says it is yours now, for as long as you need it.',
     stages: [
       { id: 'owner', text: 'Find the skiff’s owner: Bram thinks it’s the hermit in the far dome, out on the deep water', label: 'The far dome', talk: 'fen', at: 'fen' },
-      { id: 'home', text: 'Light Fen’s mooring-post lamp. Step off the skiff onto his landing, then push it into the berth (C, middle click, or RB / R1)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
+      { id: 'home', text: 'Light Fen’s bow-post lamp. Step off the skiff onto his landing, then push it into the berth (C, middle click, or RB / R1)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
     ],
   },
 ];
@@ -117,12 +117,12 @@ export const KEEPERS = [
         tell: {
           say: ["~happy~ Every pool is burning again. Those three have colours we’ve never seen. The path will remember your visit.", '~curious~ Tell me. What’s in the boat?'],
           choices: [
-            { text: "~solemn~ Two couches. Odile and Talo’s names. And a drawing of their garden, with white pyramids.", goto: 'names', if: { flag: 'perdide2.saucer.seen' } },
+            { text: "~solemn~ Two worn seats. Odile and Talo’s names. And a drawing of their garden, with white pyramids.", goto: 'names', if: { flag: 'perdide2.saucer.seen' } },
             { text: '~neutral~ I haven’t been out to it yet.', end: true, if: { not: { flag: 'perdide2.saucer.seen' } } },
           ],
         },
         names: {
-          say: ["~sad~ Odile and Talo. Yes. Those were their names.", "~tired~ So that was their home. Forty-one years waiting for them, and I never knew what they were trying to get back to.", "~happy~ Perhaps they reached it. I can hope that, even if they never come here again."],
+          say: ["~sad~ Odile and Talo. Yes. Those were their names.", "~tired~ So that was the garden they drew. Forty-one years waiting for them, and I never knew what they were trying to get back to.", "~happy~ Perhaps they reached it. I can hope that, even if they never come here again."],
           next: 'promise',
         },
         promise: {
@@ -143,7 +143,7 @@ export const KEEPERS = [
   },
   {
     at: [-24, -126], radius: 2, palette: P('#3f6a6a', '#a49cc8'), shy: true,
-    lines: ['~neutral~ We live in the domes. The moss keeps them cool.', "~playful~ The latch is on the roof. I put it somewhere safe again."],
+    lines: ['~neutral~ We live in the domes. The moss keeps them cool.', "~playful~ The latch is on the roof. I put it somewhere safe again.", "~scared~ Don’t look at the door. It can tell."],
     id: 'pim.perdide2', name: 'Pim', title: 'who lives in a moss dome', color: '#3f6a6a', voice: 1.25,
     talk: {
       entry: [
@@ -157,7 +157,7 @@ export const KEEPERS = [
         hello: {
           say: ["~scared~ A stranger! Hollin will need to sit down. Then stand up. Then sit down again.", "~playful~ I’m Pim. That mossy dome is mine. The door closes very nicely, then immediately reconsiders."],
           choices: [
-            { text: '~curious~ Why not?', goto: 'latch' },
+            { text: '~curious~ Reconsiders?', goto: 'latch' },
             { text: '~curious~ What are the domes?', goto: 'domes' },
           ],
         },
@@ -189,7 +189,7 @@ export const KEEPERS = [
   },
   {
     at: [-22, -406], radius: 2, palette: P('#f6b08a', '#3a4560'),
-    lines: ['~neutral~ The skiff is moored in the shallows by the cave.', '~neutral~ Whistle and it will come. It knows the deep water.'],
+    lines: ['~neutral~ The skiff is moored in the shallows by the cave.', '~neutral~ Whistle and it will come. It knows the deep water.', '~playful~ Sitting is a skill. I’ve trained for years.', '~tired~ Root cave. Still here.'],
     id: 'bram', name: 'Bram', title: 'who minds the cave mouth', color: '#f6b08a', voice: 0.95,
     talk: {
       entry: [{ if: { flag: 'met.bram' }, node: 'again' }, { node: 'hello' }],
@@ -205,6 +205,7 @@ export const KEEPERS = [
           say: ["~tired~ Still here. Cave too. A stable working relationship."],
           choices: [
             { text: '~curious~ Where did the two travellers go?', goto: 'two' },
+            { text: '~curious~ Whose skiff is that?', goto: 'skiff', if: { quest: 'perdide2.skiff', started: false } },
             { text: '~neutral~ Bye, Bram.', end: true },
           ],
         },
@@ -228,6 +229,7 @@ export const PEOPLE = {
     lines: ['~angry~ It won’t take my light.', '~shout~ Splash it! Go on!', '~neutral~ Mind the eggs.'],
     talk: {
       entry: [
+        { if: { quest: 'perdide2.lamps', done: true }, node: 'after' },
         { if: { flag: 'perdide2.pool.1' }, node: 'lit' },
         { if: { flag: 'met.wick' }, node: 'again' },
         { node: 'hello' },
@@ -247,6 +249,7 @@ export const PEOPLE = {
           choices: [{ text: '~solemn~ Something like that hit my ship.', goto: 'ship' }, { text: '~neutral~ I’ll light it again.', end: true }],
         },
         ship: { say: ["~playful~ You heard it sing too? Good. Tell Hollin. He’s very certain about things he slept through."], choices: [{ text: '~solemn~ It sang.', end: true }] },
+        after: { say: ["~happy~ Every pool lit. Hollin walked down to the root cave faster than I’ve ever seen him walk.", "~playful~ He says he wasn’t hurrying. He was."], choices: [{ text: '~happy~ Goodbye, Wick.', end: true }] },
         lit: {
           say: ["~surprised~ You lit it! And look at those colours. The pool’s borrowed your whole journey.", "~happy~ I’ll brighten the lamps ahead. Follow the pools; I’ll make sure you can see them!"],
           choices: [{ text: '~curious~ What happened the night the sky rang?', goto: 'night', if: { not: { flag: 'perdide2.rumour.light' } } }, { text: '~happy~ Thank you, Wick.', end: true }],
@@ -277,7 +280,7 @@ export const PEOPLE = {
           ],
         },
         where: {
-          say: ["~solemn~ They wanted to ask the Great Crystal about the light. If the Singer wouldn’t return, they’d visit its fallen piece.", "~sad~ Afterwards, home to a garden with white pyramids. Odile drew it inside the saucer. Didn’t want to forget."],
+          say: ["~solemn~ They wanted to ask the Great Crystal about the light. If the Singer wouldn’t return, they’d visit its fallen piece.", "~sad~ Afterwards? Odile drew a garden with white pyramids inside the saucer. Didn’t want to forget it. Where they went from here, nobody told me."],
           do: { set: { 'clue.perdide2.edena': true } },
           choices: [{ text: '~curious~ Do you want your skiff back?', goto: 'back' }],
         },
@@ -321,7 +324,7 @@ export const THINGS = {
   pool: {
     id: 'darkPool', name: 'A dark pool', title: 'gone out', color: '#3a4560', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~sad~ Cold water, grey eggs. A Welcome mark is painted beside the unlit pool: {glyph}", "~neutral~ *Shoot the pool with glowing fluid* to relight it: aim with right mouse or R, then left click or G."],
+      say: ["~sad~ Cold water, grey eggs. A Welcome mark is painted beside the unlit pool: {glyph}", "~neutral~ *Shoot the pool with glowing fluid* to relight it: aim (LT / L2, or right mouse), then shoot (RT / R2, or left click)."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

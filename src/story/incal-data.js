@@ -171,7 +171,7 @@ export const PEOPLE = {
         },
         keep: {
           say: ["~solemn~ So the light needed someone to look at it. I’ve been doing that forty years. Nice to know I wasn’t entirely wasting my mornings.",
-            "~solemn~ Here’s something to take with you: *look up once a day*. Wherever you go. Give the sky a chance to surprise you."],
+            "~solemn~ Here’s something to take with you: *look up once a day*. Wherever you are, whatever is up there. Give the sky a chance to surprise you."],
           do: [{ advance: [Q, 'tell'] },
             { keepsake: { id: 'incal.word', level: 'incal', name: 'Look up once a day', kind: 'word', text: '“Look up once a day. Wherever you are, whatever is up there.” Nima, who sweeps the high terrace.' } }],
           choices: [{ text: '~solemn~ I will, Nima.', end: true }],
@@ -209,7 +209,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What came down?', goto: 'splinter' }, { text: '~curious~ What’s the mark on your floor?', goto: 'glyph' }],
         },
         glyph: {
-          say: ["~solemn~ {glyph} *The Three Who Look Up.* Three people beneath the curve of the world, looking for light.",
+          say: ["~solemn~ {glyph} *The Three Who Look Up.* Three people standing on the curve of the world, looking up for light.",
             "~angry~ The palace stamps it on licences. We can see it under the Lodestar. Draw your own conclusion about who copied whom.", "~solemn~ It’s also on the blue star-box atop the lone stone pillar, up on the rim. They call it lost property. We think it’s waiting for someone."],
           choices: [{ text: '~curious~ What came down?', goto: 'splinter' }],
         },
@@ -332,16 +332,20 @@ export const PEOPLE = {
             "~solemn~ The splinter from Behla’s laundry. You brought it up from the bottom.",
             "~whisper~ Go *up the dome to the crown*, beneath the light. I’ll face the other way. Lots of visitors to inspect over there."],
           do: [{ advance: [Q, 'palace'] }, { set: { 'incal.dov.allowed': true } }],
+          choices: [{ text: '~solemn~ Ossa says: we are still down here, and we are still looking.', goto: 'message' }, { text: '~neutral~ You’re from the bottom.', goto: 'caught' }, { text: '~happy~ Thank you, Dov.', end: true }],
+        },
+        message: {
+          say: ["~whisper~ (Dov’s jaw works under the helmet strap.) Still looking. We said that at the bottom every night, eyes shut.", "~solemn~ Go *up the dome to the crown* and say it to the light. The guards will hear it from me."],
           choices: [{ text: '~neutral~ You’re from the bottom.', goto: 'caught' }, { text: '~happy~ Thank you, Dov.', end: true }],
         },
         caught: {
           say: ["~whisper~ Level minus two-nine-zero. Stall nineteen, above the cabbage man. That’s where I grew up. Go on. Before I start being a guard again."],
           choices: [{ text: '~whisper~ I won’t tell.', end: true }],
         },
-        allowed: { say: ["~playful~ *Use your jetpack to reach the dome’s crown.* No stairs. Very exclusive, stairs apparently."], choices: [{ text: '~neutral~ (go up)', end: true }] },
+        allowed: { say: ["~playful~ *Use your jets to reach the dome’s crown.* No stairs. Very exclusive, stairs apparently."], choices: [{ text: '~neutral~ (go up)', end: true }] },
         ration: {
           say: ["~surprised~ Smog-cabbage. My sister’s writing on the lid. I haven’t seen that in years.",
-            "~sad~ Pip sent it? Says he’s taller? Eleven years. Of course he is."],
+            "~sad~ Pip sent it? Says he’s taller? I left before he was born. Of course he’s taller."],
           do: [{ take: 'ration' }, { advance: 'incal.ration' }, { set: { 'incal.dov.fed': true } }],
           next: 'ration2',
         },
@@ -391,7 +395,7 @@ export const WREN = {
       ride: {
         say: ["~neutral~ Sit back; I do the flying. Tell me a stop and I’ll take you there, then come home to this lamp.",
           "~playful~ For the palace, I set you down *beside the gate*. The guards will disapprove. They practise all day.",
-          "~sad~ If you hail a cab down here, it’ll be me. I’ll keep coming."],
+          "~solemn~ If you hail a cab down here, it’ll be me. I’ll keep coming."],
         do: [{ advance: ['incal.wren', 'wren'] }, { set: { 'incal.wren.met': true } }],
         next: 'where',
       },
@@ -442,7 +446,7 @@ export const RIM = {
           choices: [{ text: '~neutral~ On my way.', end: true }],
         },
         paid: {
-          say: ["~surprised~ Hask paid? In a coin? I’ll frame it, next to the compliments.",
+          say: ["~surprised~ Hask paid? In a coin? And he says he tipped? I’ll frame it, next to the compliments.",
             "~neutral~ (Lio stamps a card with the palace seal and punches a name into it, more or less yours.) *Your cab pass.* Whistle when a cab goes by, and it stops. Get in one that waits, and it goes."],
           do: [{ take: 'fare' }, { give: 'cabpass' }, { advance: ['incal.pass', 'back'] }],
           choices: [{ text: '~happy~ Thank you, Lio.', end: true }],
@@ -505,7 +509,7 @@ export const THINGS = {
       nodes: {
         dark: {
           say: ["~neutral~ TAXI, in flaking paint. The call-lamp’s dark glass contains a small history of unsuccessful moths.",
-            "~neutral~ *Shoot the lamp with fluid* to light it: aim, then G or left click. The cabs above will see it."],
+            "~neutral~ *Shoot the lamp with fluid* to light it: aim (LT / L2), then shoot (RT / R2). The cabs above will see it."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         lit: { say: ["~neutral~ The yellow call-lamp shines up through the traffic lanes."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -537,7 +541,7 @@ export const CROWD_TALK = {
       "~tired~ It’s a palace light show, dear. There’s probably a switch somewhere. There generally is.",
       { if: { not: LOOKED }, say: '~tired~ Dimming, is it? I hadn’t looked. One doesn’t, really.' },
       '~angry~ Please don’t stand so near the edge. It makes the rest of us look reckless.',
-      '~neutral~ The cabs stop for anyone up here. Wave. Not at me.',
+      '~neutral~ The cabs stop for anyone up here with a pass. Wave it. Not at me.',
     ] } },
     { name: 'A tourist', title: 'from off-world', talk: { listen: [
       { if: { not: LOOKED }, say: "~tired~ The Lodestar is smaller than the postcard. Greyer too. I’d like to visit wherever they printed the postcard." },

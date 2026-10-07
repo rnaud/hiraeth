@@ -179,3 +179,20 @@ test('side quests: the lake’s reflection carried to the pole; the avenue walke
   assert.equal(quests.isDone('spheres.avenue'), true);
   clearInteractables(); clearTargets();
 });
+
+test('out of order: all three spheres heard before meeting Aube; her talk still sends you on', async () => {
+  const { GameState } = await import('../src/game-state.js');
+  const { Quests } = await import('../src/story/quests.js');
+  const { QUESTS } = await import('../src/story/spheres-data.js');
+  const m = new Map();
+  const g = new GameState({ getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) });
+  const q = new Quests({ game: g });
+  for (const d of QUESTS) q.define(d);
+  for (const f of ['spheres.heard.bell', 'spheres.heard.chant', 'spheres.heard.drum', 'spheres.heard.three']) g.set(f, true);
+  q.start('spheres.listen');
+  const r = new DialogueRunner(PEOPLE.aube, { game: g, quests: q });
+  assert.equal(r.nodeId, 'three');
+  while (!r.ended && r.advance());
+  for (let i = 0; i < 4; i++) q.update(null);
+  assert.ok(q.reached('spheres.listen', 'plaza'), `on to the plaza (${q.stage('spheres.listen')})`);
+});

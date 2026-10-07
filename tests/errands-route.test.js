@@ -18,6 +18,9 @@ test('every errand goes on to the next world on the route', () => {
     assert.ok(CONTENT[e.to[0]].npcs[e.to[1]], `${e.id}: its receiver is in ${e.to[0]}`);
   }
   assert.equal(new Set(ERRANDS.map((e) => e.from[0])).size, ERRANDS.length, 'one errand per world at most');
+  // every world but the last hands you something for the next (the later half too: Vael II, the Hangar, the Buried Machine, the spheres)
+  for (const w of ORDER.slice(0, -1)) assert.ok(ERRANDS.some((e) => e.from[0] === w), `${w} has an errand for the next world`);
+  assert.equal(new Set(ERRANDS.map((e) => e.to.join(':'))).size, ERRANDS.length, 'nobody receives two parcels');
 });
 
 test('the errands’ lines name the one it is for, and each carries a tone', () => {

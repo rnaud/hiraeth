@@ -1022,9 +1022,10 @@ const controller = new Controller({
   faces: () => padFaces(),
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
-  navigate: (x, y) => { const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
-  scroll: amount => { const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
+  navigate: (x, y) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
+  scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
+    if (changelog.pad(name)) return;   // (the interactive changelog over the game takes the controller: src/changelog.js)
     if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
     if (name === 'back') closeControllerMenu();
     // (in a menu, a conversation or a scene: Start toggles the Start menu, Select the sketchbook)
@@ -1548,7 +1549,7 @@ setInterval(() => {
   const imgs = shots.map(([e, l], i) => captureView(e, l, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
   const page = document.getElementById('page');
   page.innerHTML = `<div class="sheet">
-    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Seven worlds, thirty-five small things kept.</div></div>
+    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Every world, ${ORDER.reduce((n, id) => n + CONTENT[id].relics.names.length, 0)} small things kept.</div></div>
     <div class="p p2"><img src="${imgs[1]}" alt=""></div>
     <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">The final page has opened.<br>(L → The Atelier)</div></div>
     <div class="hint" aria-label="continue">▸</div></div>`;

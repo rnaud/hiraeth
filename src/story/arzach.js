@@ -454,7 +454,8 @@ export function setupArzach(ctx) {
 
   // ---------------------------------------------------------------- places for the quest markers
   quests.locate('oia', () => people.oia.pos);
-  quests.locate('bird', () => bird?.pos ?? people.oia.pos);
+  // (while she has not answered her call she is nowhere: the feathers wait for her at the tower's balcony, where she comes down)
+  quests.locate('bird', () => (bird && !bird.dormant ? bird.pos : bird ? T.balcony : people.oia.pos));
   quests.locate('balcony', () => T.balcony);
   quests.locate('wind', () => (player.pos.y < T.floor - 20 ? wind.foot : T.balcony));
   quests.locate('window', () => windowAt);
