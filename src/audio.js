@@ -34,8 +34,8 @@ export const AMBIENT_WIND = 0.4;
 // Each world's score lives in src/score.js (its mode, tempo, instruments, leitmotif, and the
 // father's theme in it); its instruments in src/score-voices.js. Here: the ground under your
 // feet (the footsteps) and each world's ambience bed.
-const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', home: 'grass' };
-const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', home: 'birds' };
+const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', home: 'grass', waterfall: 'stone' };
+const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', home: 'birds', waterfall: 'falls' };
 // the instruments audio.js plays itself (the rest are src/score-voices.js's)
 export const OWN_KINDS = new Set(['duduk', 'reed', 'flute', 'strings', 'synth', 'bell', 'marimba', 'oud', 'ney', 'chant', 'celesta', 'kalimba']);
 
@@ -291,6 +291,9 @@ export class Sound {
       rainRoof: this.noiseLayer('lowpass', 420, 0.8),   // the same rain heard from indoors: a dull drumming on the roof
       cloak: this.noiseLayer('bandpass', 240, 1.2),
       jet: this.noiseLayer('lowpass', 320, 0.7),
+      // a waterfall near (the level's roar: 0 far off .. 1 at its foot): a low rumble and the hiss of its spray
+      roar: this.noiseLayer('lowpass', 420, 0.6),
+      hiss: this.noiseLayer('bandpass', 2600, 0.5),
     };
     const eng = ctx.createOscillator(); eng.type = 'sawtooth'; eng.frequency.value = 50;
     const engF = ctx.createBiquadFilter(); engF.type = 'lowpass'; engF.frequency.value = 400;
@@ -550,6 +553,8 @@ export class Sound {
       if (R < 0.08) this.burst(t, { dur: 0.5, type: 'lowpass', freq: 140, q: 1, vol: 0.09, rate: 0.4 });
     } else if (A === 'highwind' && R < 0.12) {
       this.burst(t, { dur: 3, type: 'bandpass', freq: 600 + Math.random() * 500, q: 4, vol: 0.06, rate: 0.6 });
+    } else if (A === 'falls' && R < 0.3) {   // drips off the rock, now and then, under the roar
+      this.burst(t + Math.random() * spb, { dur: 0.05, type: 'bandpass', freq: 1800 + Math.random() * 1600, q: 8, vol: 0.02 });
     } else if (A === 'paper' && R < 0.15) {
       this.burst(t + Math.random() * spb, { dur: 0.4, type: 'highpass', freq: 2500, q: 0.6, vol: 0.03, rate: 0.7 });
     }
@@ -1524,6 +1529,9 @@ export class Sound {
     this.set('rainRoof', (s.rainRoof ?? 0) * 0.11);
     this.set('cloak', (s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07) * (0.5 + 0.5 * W));
     this.set('jet', s.thrusting ? 0.32 : 0);
+    const roar = Math.min(1, Math.max(0, s.roar ?? 0)) * (1 - 0.6 * (s.indoor ?? 0));
+    this.set('roar', roar * 0.2, 300 + roar * 260);
+    this.set('hiss', roar * roar * 0.035);
     const e = this.engine, t = this.ctx.currentTime;
     const motor = s.rideKind === 'bike' || s.rideKind === 'skiff' || s.rideKind === 'taxi';
     e.gain.gain.setTargetAtTime(motor ? 0.035 : 0, t, 0.2);

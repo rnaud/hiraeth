@@ -23,6 +23,7 @@
 
 import { homeEntry } from '../story/ending.js';
 import { knownWorlds } from '../story/route.js';
+import { EXTRA } from '../levels/names.js';
 import { RELAY_TEXT } from '../story/relay.js';
 import { planetSvg } from './planets.js';
 import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
@@ -41,9 +42,10 @@ export function consoleAction({ at = 'dash', powered, pendingCall }) {
 /**
  * The list of worlds on the chart (`known`: named and choosable); Home is last, once the ending is open (src/story/ending.js).
  * `relay` (src/story/relay.js relaySignal, or a function giving it): the world it comes from carries `signal` ('far'),
- * named or a faint dot, and home carries the held recording (`held`).
+ * named or a faint dot, and home carries the held recording (`held`). The worlds off the route (`extra`: names.js
+ * EXTRA, those in `levels`) come after the route's, charted from the start (`extra: true`).
  */
-export function mapEntries({ order, levels, flag, journal, current, home, relay }) {
+export function mapEntries({ order, levels, flag, journal, current, home, relay, extra = EXTRA }) {
   const sig = typeof relay === 'function' ? relay() : relay ?? null;
   const isDone = (id) => !!(flag?.(`world.${id}.done`) || journal?.storyDone?.(id));
   const isVisited = (id) => !!(journal?.seen?.(id) || id === current || isDone(id));
@@ -53,6 +55,10 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay 
     return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id), signature: hasSignature(id),
       signal: sig?.stage === 'far' && sig.world === id ? 'far' : null };
   });
+  for (const id of extra) {
+    const L = levels.find((l) => l.id === id);
+    if (L && !order.includes(id)) out.push({ id, i: out.length, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: false, current: id === current, known: true, signature: false, signal: null, extra: true });
+  }
   const h = homeEntry({ unlocked: typeof home === 'function' ? home() : !!home, current });
   if (h) out.push({ ...h, i: out.length, known: true, signature: false, held: sig?.stage === 'held', relayFar: !!out.find((e) => e.signal && !e.known) });
   return out;
@@ -278,7 +284,7 @@ export class StarMap {
         <h1>GALACTIC MAP</h1><div class="sub">${known.length} worlds charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${farSig ? ' · a faint signal further along the route' : ''}</div>
         ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
             <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}</span>
-            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.signal ? RELAY_TEXT.tag : e.visited ? '' : 'new'}</span></button>` : '').join('')}
+            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.signal ? RELAY_TEXT.tag : e.visited ? '' : e.extra ? 'off the route' : 'new'}</span></button>` : '').join('')}
         <button class="close">close ✕</button>
       </div>
       <div class="side">

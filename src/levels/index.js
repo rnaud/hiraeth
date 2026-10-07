@@ -14,6 +14,7 @@ import { createSpheres, buildSpheres } from './spheres.js';
 import { createPerdide2, buildPerdide2 } from './perdide2.js';
 import { createHome, buildHome } from './home.js';
 import { createReferences, buildReferences } from './references.js';
+import { createWaterfall, buildWaterfall } from './waterfall.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -82,6 +83,13 @@ export const LEVELS = [
     title: TITLES.bazaar, source: 'a city of a thousand broadcasts',
     blurb: 'Coral towers, illustrated signs and a busy alien bazaar. Climb the skybridges or hail a cab to the silent broadcast tower. Shop screens wake, recognize you and echo distant encounters.',
     moves: 'market streets · skybridges · jetpack · taxis',
+  },
+  {
+    // off the route (names.js EXTRA): on the galactic map from the start, no quest; a world to look at
+    id: 'waterfall', create: createWaterfall, build: buildWaterfall,
+    title: TITLES.waterfall, source: 'a city behind a curtain of water',
+    blurb: 'A long cavern city hidden behind a towering waterfall. Terraced streets of rounded houses, amber lamps in the deep quarter, and balconies behind slits in the water, looking out over a sunlit valley.',
+    moves: 'walk · climb · swim · jetpack',
   },
   {
     id: 'atelier', create: createAtelier, build: buildAtelier, hidden: true,

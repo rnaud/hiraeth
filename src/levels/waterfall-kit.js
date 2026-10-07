@@ -111,6 +111,7 @@ export function cityMats(kit, { shadeFlat = 0.8, windows = 0 } = {}) {
     stone: WF_PAL.stone.map((c) => kit.mat({ color: c, weathered: 0.35, ...PRINT, ...(windows ? { pattern: 'facade', windows } : {}) })),
     wall: kit.mat({ color: '#e6c9a3', flat: true, weathered: 0.5, ...PRINT }),
     paving: kit.mat({ color: '#d8c2a0', flat: true, grid: 2.4, ...PRINT }),
+    floor: kit.mat({ color: '#b9c4b4', flat: true, weathered: 0.5, ...PRINT }),   // (the big floors: worn stone, no slab lines)
     rock: kit.mat({ color: WF_PAL.rock[0], color2: WF_PAL.rock[1], color3: WF_PAL.rock[2], mode: MODE_STRATA, strataSize: 9, flat: true, cracks: 0.35, hatch: 0.3, ...PRINT }),
     step: kit.mat({ color: '#e2cba6', flat: true, spot: 0, hatch: 0.4, ...PRINT }),
     dark: kit.mat({ color: WF_PAL.dark, flat: true }),
@@ -226,7 +227,8 @@ export function lamp(kit, M, x, y, z, { post = false, yaw = 0, r = 9 } = {}) {
 }
 
 /** Copper pipes along a path (points [x, y, z]), corners rounded, a collar every few metres; r the pipe's radius; n pipes side by side. */
-export function copperPipe(kit, M, pts, { r = 0.3, n = 1, gap = 2.4, side = [1, 0, 0] } = {}) {
+export function copperPipe(kit, M, pts, { r = 0.3, n = 1, gap = 2.4, side = [1, 0, 0], solid = false } = {}) {
+  const how = solid ? { solid: true, shadow: true } : NS;   // (solid: up a wall you climb, so the climber holds the pipe, not the wall behind it)
   const P = pts.map((p) => new THREE.Vector3(...p)), off = new THREE.Vector3(...side).normalize();
   for (let k = 0; k < n; k++) {
     const o = off.clone().multiplyScalar((k - (n - 1) / 2) * r * gap);
@@ -242,12 +244,12 @@ export function copperPipe(kit, M, pts, { r = 0.3, n = 1, gap = 2.4, side = [1, 
     }
     const cr = new THREE.CatmullRomCurve3(pts2, false, 'centripetal');
     const L = cr.getLength();
-    kit.add(M.copper, new THREE.TubeGeometry(cr, Math.max(8, Math.ceil(L / 1.5)), r, 7, false), NS);
+    kit.add(M.copper, new THREE.TubeGeometry(cr, Math.max(8, Math.ceil(L / 1.5)), r, 7, false), how);
     for (let s = gap * 1.3; s < L - 0.5; s += 3.2 + (k % 2)) {
       const t = s / L, p = cr.getPointAt(t), d = cr.getTangentAt(t);
       const col = new THREE.CylinderGeometry(r * 1.3, r * 1.3, r * 0.8, 7);
       col.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d)).translate(p.x, p.y, p.z);
-      kit.add(M.copper, col, NS);
+      kit.add(M.copper, col, how);
     }
   }
 }
@@ -261,8 +263,9 @@ export function copperPipe(kit, M, pts, { r = 0.3, n = 1, gap = 2.4, side = [1, 
  */
 export function terrace(kit, M, { x0, x1, z0, z1, y, below = y - 6, parapet = 0.95, gaps = [], wall = true }) {
   const w = x1 - x0, cx = (x0 + x1) / 2, solid = { solid: true, shadow: true };
+  // the paving, and under it the terrace's whole block of stone down to `below` (its front the retaining wall)
   kit.add(M.paving, new THREE.BoxGeometry(w, 0.6, z1 - z0).translate(cx, y - 0.3, (z0 + z1) / 2), solid);
-  if (wall && y - 0.6 > below) kit.add(M.wall, new THREE.BoxGeometry(w, y - 0.6 - below, 1.2).translate(cx, (y - 0.6 + below) / 2, z1 - 0.6), solid);
+  if (wall && y - 0.6 > below) kit.add(M.wall, new THREE.BoxGeometry(w, y - 0.6 - below, z1 - z0).translate(cx, (y - 0.6 + below) / 2, (z0 + z1) / 2), solid);
   if (parapet > 0) {
     const cuts = [[x0, x0], ...gaps.slice().sort((a, b) => a[0] - b[0]), [x1, x1]];
     for (let i = 0; i < cuts.length - 1; i++) {
@@ -364,26 +367,34 @@ export function framed(kit, x, y, z, yaw = 0) {
 /**
  * A quarter of the city on the cavern's back wall, in its own frame: n terraces along x (x0 .. x1, each `shrink` m
  * narrower at both ends than the one under it), the first's front edge at z = z1 and y = y0, each one `rise` m higher
- * and `step` m further back (-z). Every terrace carries a row of rounded houses against the riser behind it and now
- * and then a low one or a pot at its front, a street between; a stair up to the next one every so often, lamps on the
- * house fronts, copper pipes up the risers, residents in the streets. Returns the streets ([{ x0, x1, z0, z1, y }]:
- * where people walk) and the stairs' feet.
+ * and `step` m further back (-z). Every terrace is a solid block of stone carrying a row of rounded houses against the
+ * riser behind it and now and then a low one or a pot at its front, a street between; stairs climb along the riser
+ * (toward -x) to the terrace over it, through a gap in its parapet; lamps on the house fronts, copper pipes up the
+ * risers, residents in the streets (people: a share per metre). Returns the streets ([{ x0, x1, z0, z1, y }]: where
+ * people walk) and the stairs ([{ x0, x1, z, y0, y1 }]: foot to top).
  */
 export function quarter(kit, M, rng, { x0, x1, z1 = 0, y0 = 0, n = 5, rise = 6, step = 9, shrink = 4, street = 4.5, lit = 0.35, people = 0.08, lamps = 0.5, pipes = 0.25,
   kinds = ['drum', 'vault', 'block', 'drum', 'block'], h = [rise * 0.75, rise * 1.3], awning = 0.35, stairEvery = 38, base = y0 - 3, front0 = true }) {
-  const streets = [], stairs = [];
+  const streets = [], stairs = [], RISE = 0.3, RUN = 0.36, SW = 2.4, L = Math.round(rise / RISE) * RUN;
+  // the stairs first: on terrace i, along its back riser, foot at sx, top at sx - L (a gap in terrace i+1's parapet there)
+  const ups = [];
+  for (let i = 0; i < n; i++) {
+    const a = x0 + i * shrink, b = x1 - i * shrink, a2 = x0 + (i + 1) * shrink, b2 = x1 - (i + 1) * shrink, list = [];
+    if (i < n - 1 && b2 - a2 >= 8) for (let sx = Math.max(a, a2) + L + 4 + rng() * 8; sx < Math.min(b, b2) - 4; sx += stairEvery * (0.7 + rng() * 0.6)) list.push(sx);
+    ups.push(list);
+  }
   for (let i = 0; i < n; i++) {
     const a = x0 + i * shrink, b = x1 - i * shrink, front = z1 - i * step, back = front - step, y = y0 + i * rise;
     if (b - a < 8) break;
-    const ups = [];   // the stairs up to the next terrace
-    if (i < n - 1) for (let sx = a + 6 + rng() * 8; sx < b - 8; sx += stairEvery * (0.7 + rng() * 0.6)) ups.push(sx);
-    terrace(kit, M, { x0: a, x1: b, z0: back, z1: front, y, below: i === 0 ? base : y - rise, parapet: i === 0 && !front0 ? 0 : 0.95, wall: i > 0 || front0 });
+    const below = i === 0 ? base : y - rise;
+    const gaps = i > 0 ? ups[i - 1].map((sx) => [sx - L - 0.4, sx - L + 2.4]) : [];
+    terrace(kit, M, { x0: a, x1: b, z0: back, z1: front, y, below, parapet: i === 0 && !front0 ? 0 : 0.95, wall: i > 0 || front0, gaps });
     streets.push({ x0: a, x1: b, z0: back, z1: front, y });
-    // the houses against the riser behind (the next terrace's wall)
+    const busy = (x0b, x1b) => ups[i].some((sx) => x1b > sx - L - 1.5 && x0b < sx + 1.5);   // (this terrace's stairs)
+    // the houses against the riser behind (the next terrace's wall), clear of the stairs
     for (let x = a + 0.8; x < b - 3;) {
       const kind = kinds[Math.floor(rng() * kinds.length)], w = 3.5 + rng() * 3.5, d = kind === 'drum' ? w : Math.min(step - street, 3.5 + rng() * 3);
-      const nearStair = ups.some((u) => Math.abs(x + w / 2 - u) < w / 2 + 2.2);
-      if (!nearStair && rng() < 0.92) {
+      if (!busy(x, x + w) && rng() < 0.92) {
         const hh = h[0] + rng() * (h[1] - h[0]);
         const r = roundHouse(kit, M, rng, { x: x + w / 2, y, z: back + d / 2 + 0.3, w, d, h: hh, kind, lit, awning });
         if (rng() < lamps) lamp(kit, M, x + w * (0.2 + rng() * 0.6), y + 2.6, back + 0.3 + (kind === 'drum' ? w / 2 : d) + 0.55);
@@ -393,19 +404,19 @@ export function quarter(kit, M, rng, { x0, x1, z1 = 0, y0 = 0, n = 5, rise = 6, 
     }
     // at the front: now and then a low house or a pot of plants, the street behind them
     for (let x = a + 4; x < b - 6; x += 9 + rng() * 14) {
-      if (ups.some((u) => Math.abs(x - u) < 6)) continue;
+      if (busy(x - 3, x + 3) || gaps.some(([g0, g1]) => x + 3 > g0 && x - 3 < g1)) continue;
       if (rng() < 0.3) {
         const w = 3 + rng() * 2.5;
         roundHouse(kit, M, rng, { x, y, z: front - 1.2 - w / 2, w, d: w, h: 2.4 + rng(), kind: rng() < 0.6 ? 'drum' : 'block', lit, awning: 0.6, yaw: Math.PI });
       } else if (rng() < 0.6) pottedPlant(kit, M, rng, x, y, front - 0.9, 0.8 + rng() * 0.6);
     }
-    for (const sx of ups) {
-      stair(kit, M, { x: sx, z: back + 0.05, y0: y, y1: y + rise, w: 2.6, rise: 0.32, run: 0.36, side: false });
-      stairs.push([sx, y, back]);
+    for (const sx of ups[i]) {
+      stair(kit, M, { x: sx, z: back + SW / 2 + 0.05, y0: y, y1: y + rise, w: SW, rise: RISE, run: RUN, yaw: Math.PI / 2, side: false });
+      stairs.push({ x0: sx, x1: sx - L, z: back + SW / 2 + 0.05, y0: y, y1: y + rise });
     }
-    // copper pipes up the riser under this terrace, bending back over its paving
-    if (i > 0) for (let px = a + 3; px < b - 3; px += 6 + rng() * 10) if (rng() < pipes) {
-      copperPipe(kit, M, [[px, y - rise - 0.5, front + 0.65], [px, y - 0.8, front + 0.65], [px + (rng() - 0.5) * 3, y + 3 + rng() * 4, back + 0.6]], { r: 0.22 + rng() * 0.15, n: rng() < 0.5 ? 2 : 1, gap: 2.6 });
+    // copper pipes up the riser under this terrace, turning into its parapet
+    if (i > 0) for (let px = a + 3; px < b - 3; px += 6 + rng() * 10) if (rng() < pipes && !gaps.some(([g0, g1]) => px > g0 - 1 && px < g1 + 1)) {
+      copperPipe(kit, M, [[px, y - rise - 0.3, front + 0.45], [px, y - 0.9, front + 0.45], [px, y - 0.5, front - 0.3]], { r: 0.18 + rng() * 0.12, n: rng() < 0.5 ? 2 : 1, gap: 2.6, solid: true });
     }
     for (let k = 0, m2 = Math.round((b - a) * people); k < m2; k++) resident(kit, M, rng, a + 2 + rng() * (b - a - 4), y, front - 1.2 - rng() * (street - 1), { yaw: rng() * 6.3 });
   }

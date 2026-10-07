@@ -25,6 +25,7 @@ export const WORLD_REACTIONS = {
   references: {kind:'flower',quiet:'#d9b88c',awake:'#71d7cf',radius:9},   // (none grow there: level.reactions false)
   atelier: {kind:'fan',quiet:'#c4beb0',awake:'#8cbdb7',radius:10},
   home: {kind:'flower',quiet:'#d9a37f',awake:'#5fd0c6',radius:9},
+  waterfall: {kind:'flower',quiet:'#4f8f5f',awake:'#b2ebe2',radius:9},   // (none grow there: level.reactions false)
 };
 
 // ------------------------------------------------------------------ room to bloom

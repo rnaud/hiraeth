@@ -840,6 +840,61 @@ const ticketFinch = {
   },
 };
 
+// =================================================================== the City Behind the Waterfall
+const FALLS_TEAL = '#4f9ea4', FALLS_CREAM = '#f1dcbd';
+// where they live: the promenade, along the parapet over the pool, and the landing's mouth (src/levels/waterfall.js)
+const fallsAnchors = () => [-280, -220, -160, -100, -40, 10].map((x) => ({ p: new THREE.Vector3(x, 0, 12), r: [2, 14], w: 1 }));
+
+const sprayNewt = {
+  id: 'sprayNewt', name: 'spray newt', main: FALLS_TEAL, size: 1.3, height: 0.07, radius: 0.3,
+  gait: 'walk', speed: 1.6, cadence: 16, lift: 0.03, stride: 0.05, turn: 6, notice: 7, wary: 4,
+  parts: {
+    body: merge(ell([0.06, 0.045, 0.19], FALLS_TEAL, [0, 0.06, 0]), ell([0.05, 0.025, 0.16], FALLS_CREAM, [0, 0.04, 0]),
+      [-0.09, -0.01, 0.07].map((z) => both((s) => ell([0.016, 0.01, 0.016], '#e8823e', [s * 0.035, 0.1, z])))),
+    head: { at: [0, 0.07, 0.18], geo: merge(ell([0.055, 0.035, 0.07], FALLS_TEAL, [0, 0, 0.04]), eyes(0.04, 0.025, 0.06, 0.013, '#f6e2a0')) },
+    throat: { at: [0, 0.045, 0.21], geo: ell([0.03, 0.025, 0.03], '#bfeee6', [0, 0, 0], null, [10, 7]) },
+    tail: { at: [0, 0.06, -0.18], geo: cone(0.03, 0.3, FALLS_TEAL, [0, 0, -0.15], [-PI / 2, 0, 0]) },
+    ...quad(0.05, 0.06, 0.1, -0.1, 0.14, FALLS_TEAL, 0.014),
+  },
+  idle(c, P, t) { P.throat.s.setScalar(1 + 0.25 * Math.max(0, Math.sin(t * 2.2 + c.seed))); },
+  trick: {
+    name: 'blows a bubble of spray from its throat that floats up and pops', dur: 4.5, end: 'recover', sound: 'plop', reach: 3,
+    pose(c, k, P, X) {
+      const blow = sm(seg(k, 0.05, 0.45)), lift = sm(seg(k, 0.45, 0.8));
+      P.head.r.x = -0.4 * blow * (1 - lift);
+      P.throat.s.setScalar(1 + 5 * blow * (1 - seg(k, 0.78, 0.8)));
+      P.throat.p.y += 0.6 * lift; P.throat.p.z += 0.1 * lift;
+      if (k > 0.8 && once(c, 'pop')) X.fx.burst(c.toWorld(0, 0.7, 0.3), c.up, { n: 14, color: ['#ffffff', '#bfeee6'], speed: 1.4, rise: 0.6, size: 0.03 * c.size, life: 0.7, gravity: 3 });
+      if (k > 0.8) P.throat.s.setScalar(sm(seg(k, 0.88, 1)));
+      P.throat.show = !(k > 0.8 && k < 0.88);
+    },
+  },
+};
+
+const cupCrab = {
+  id: 'cupCrab', name: 'cup crab', main: '#c46f4a', size: 1.35, height: 0.1, radius: 0.32,
+  gait: 'scuttle', speed: 2.2, cadence: 20, lift: 0.03, stride: 0.04, notice: 8, wary: 4.5, skittish: 1,
+  parts: {
+    body: merge(ell([0.13, 0.05, 0.1], '#c46f4a', [0, 0.09, 0]), cone(0.1, 0.08, FALLS_CREAM, [0, 0.16, 0], [PI, 0, 0]),
+      ell([0.075, 0.012, 0.075], '#8fdcd2', [0, 0.195, 0]), eyes(0.04, 0.12, 0.09, 0.014)),
+    claws: merge(both((s) => ell([0.04, 0.03, 0.05], '#c46f4a', [s * 0.15, 0.08, 0.1]))),
+    ...insectLegs(0.1, 0.07, [-0.05, 0, 0.05], 0.2, '#a85a3c', 0.012),
+  },
+  idle(c, P, t) { P.claws.r.y = Math.sin(t * 3 + c.seed) * 0.15; },
+  trick: {
+    name: 'tips the water from the cup on its back over itself and scuttles off sideways', dur: 3.8, end: 'gone', sound: 'squeak', reach: 8,
+    start(c, X) { landing(c, X, 3, 7); },
+    pose(c, k, P, X) {
+      const tip = bell(k, 0, 0.3);
+      P.body.r.z = 0.9 * tip;
+      if (k > 0.14 && once(c, 'tip')) X.fx.burst(c.toWorld(0.15, 0.2, 0), c.up, { n: 16, color: ['#ffffff', '#8fdcd2'], speed: 1.2, rise: 1.2, size: 0.03 * c.size, life: 0.6, gravity: 6 });
+      const L = c.data.L, run = sm(seg(k, 0.3, 0.85));
+      P.root.p.copy(L).multiplyScalar(run);
+      shrink(P, 1 - seg(k, 0.82, 0.95), 'body', 'claws', 'legsA', 'legsB');
+    },
+  },
+};
+
 // =================================================================== the Atelier
 const PAPER = '#f4ecd8';
 
@@ -896,6 +951,7 @@ export const WILDLIFE = {
     { ...signBug, count: 6, anchors: () => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ p: new THREE.Vector3(0, 0, 80 - i * 40), r: [3, 14], w: 1 })) },
     { ...ticketFinch, count: 7, anchors: () => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ p: new THREE.Vector3(0, 0, 70 - i * 40), r: [3, 14], w: 1 })) },
   ],
+  waterfall: [{ ...sprayNewt, count: 7, anchors: fallsAnchors }, { ...cupCrab, count: 6, anchors: fallsAnchors }],
   atelier: [{ ...doodleMouse, count: 5 }],
 };
 
