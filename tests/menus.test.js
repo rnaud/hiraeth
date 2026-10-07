@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import { LEVELS } from '../src/levels/index.js';
+import { PAGES } from '../src/world-picker.js';
 import { MENU_SCORE, MENU_HUSH, menuBeat, menuFreq } from '../src/audio.js';
 import { opensTitle } from '../src/save-slots.js';
 
@@ -19,6 +21,10 @@ test('the title screen opens the game, a world asked for directly skips it', () 
   assert.match(boot, /if \(worldsOnly\)[\s\S]*showWorldsOnly\(\)/);
   assert.match(boot, /if \(!worldsOnly\) await import\('\.\/main\.js'\)/);
   assert.doesNotMatch(src('world-picker.js'), /from '\.\/main\.js'|import\('\.\/main\.js'\)/);
+  // every world has its picture in the list (scripts/world-thumbs.mjs), and the other pages are linked from it
+  for (const l of LEVELS) assert.ok(existsSync(new URL(`../public/thumbs/${l.id}.jpg`, import.meta.url)), `thumbs/${l.id}.jpg`);
+  for (const p of PAGES) assert.ok(existsSync(new URL(`../${p.href}`, import.meta.url)), p.href);
+  assert.doesNotMatch(src('title.js'), /studio\.html/, 'the studio is in the worlds list, not on the title');
   // and What's new, the interactive changelog (its Play button comes back)
   assert.match(src('title.js'), /data-a="news"/);
   assert.match(src('title.js'), /'changelog\.html'/);

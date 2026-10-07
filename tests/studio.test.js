@@ -52,9 +52,9 @@ test('the studio is a page of the build, reachable from the title', () => {
   for (const p of Object.values(BUILD_INPUT)) assert.ok(existsSync(p), p);
   const html = readFileSync(new URL('../studio.html', import.meta.url), 'utf8');
   assert.match(html, /src="\/src\/studio\/main\.js"/);
-  const title = readFileSync(new URL('../src/title.js', import.meta.url), 'utf8');
-  assert.match(title, /data-a="studio"/);
-  assert.match(title, /'studio\.html'/);
+  // (opened from the worlds list's pages, src/world-picker.js: Debug on the title)
+  const picker = readFileSync(new URL('../src/world-picker.js', import.meta.url), 'utf8');
+  assert.match(picker, /href: 'studio\.html'/);
   // it loads only the people's assets: no world (levels/index.js) and no game boot
   const main = readFileSync(new URL('../src/studio/main.js', import.meta.url), 'utf8');
   assert.doesNotMatch(main, /levels\/index\.js|from '\.\.\/main\.js'|boot\.js/);

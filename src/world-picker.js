@@ -2,8 +2,20 @@
 // whatever you've found. Its cards are drawn here, for the game (src/main.js) and for the
 // title's Debug entry, which shows the list alone (?worlds=1, src/boot.js) without building a world.
 
-/** The cards (and Continue, to the world this save was left in) into the #picker element. */
+/** The game's other pages, at the top of the list (they leave the game). */
+export const PAGES = [
+  { href: 'studio.html', label: 'Character studio', hint: 'the people alone, to tune them' },
+  { href: 'motion.html', label: 'Motion', hint: 'the traveller\'s loops against motion matching' },
+  { href: 'trailer.html', label: 'Trailer', hint: 'the in-engine trailer' },
+  { href: 'changelog.html', label: 'What\'s new', hint: 'every change, with pictures' },
+];
+
+/** The cards (and Continue, to the world this save was left in, and the other pages) into the #picker element. */
 export function fillPicker(picker, { levels, current = null, cont = null }) {
+  const nav = document.createElement('nav');
+  nav.className = 'pages';
+  nav.innerHTML = PAGES.map((p) => `<a href="${p.href}" title="${p.hint}">${p.label}</a>`).join('');
+  picker.querySelector('header').after(nav);
   if (cont) {
     const btn = document.createElement('a');
     btn.className = 'continue';

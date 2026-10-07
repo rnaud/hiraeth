@@ -256,4 +256,6 @@ async function main() {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+// (scripts/world-thumbs.mjs takes the worlds list's pictures with the same Chrome, server and views)
+export { serve, chrome, shoot };
 export { MEDIA_DIR };

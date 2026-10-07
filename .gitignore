@@ -37,3 +37,4 @@ godot/gen/
 
 # Locally rendered trailer videos
 output/trailer/
+.vite-cache/

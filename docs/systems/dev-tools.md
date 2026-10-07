@@ -9,7 +9,10 @@ previous or next world's room, the hub between the last and the first. The Start
 **Debug** entry opens the worlds list over the world you're in. The title's opens it alone
 (`?worlds=1`, `src/world-picker.js`): `boot.js` draws the cards without loading `main.js`,
 so no world is built behind it (about 1 s on the dev server; on the Lab it took about 15 s).
-`?level=<id>&worlds=1` still opens a world with the list up.
+`?level=<id>&worlds=1` still opens a world with the list up. The list's top row links the game's other
+pages (`PAGES` in `src/world-picker.js`: the character studio, Motion, the trailer, What's new). Its
+pictures are `public/thumbs/<id>.jpg`, one per world: `node scripts/world-thumbs.mjs [ids]` takes them
+again (each world from its start at its own hour, headless Chrome as `scripts/changelog-shots.mjs`).
 
 
 `?level=lab` (`src/levels/lab.js`) is a developer's world (`dev: true` in

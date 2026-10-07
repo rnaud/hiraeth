@@ -92,7 +92,7 @@ export function changelogEntries(changelog, media = CHANGELOG_MEDIA) {
       const m = mediaFor(e.v, item, media);
       const text = lineText(item);
       return { v: e.v, i, text, tags: tagsOf(text, m?.tags), shots: (m?.shots ?? []).map((s) => ({ ...s, ...shotFiles(e.v, s) })), numbers: m?.numbers ?? [], see: m?.see ?? null };
-    }),
+    }).reverse(),   // (newest first, as the game shows them: src/changelog.js newestFirst)
   }));
 }
 

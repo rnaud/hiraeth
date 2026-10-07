@@ -84,13 +84,14 @@ test('the pictures are the site’s alone: never in the build, the update zip, t
 
 test('a line may carry its own pictures: the panel, changelog.md and the release notes keep its words only', () => {
   const entries = [{ v: '9.9', date: '2099-01-01', items: ['Plain words.', { text: 'With a picture.', shots: [{ name: 'x', caption: 'X', only: 'after' }], see: 'Look.' }] }];
-  assert.match(changelogMarkdown(entries), /- Plain words\.\n- With a picture\.\n/);
-  assert.deepEqual(releaseNotes(entries[0]), ['Plain words.', 'With a picture.']);
+  // (shown newest first: the line added last, at the end of its version, reads at the top)
+  assert.match(changelogMarkdown(entries), /- With a picture\.\n- Plain words\.\n/);
+  assert.deepEqual(releaseNotes(entries[0]), ['With a picture.', 'Plain words.']);
   const [e] = changelogEntries(entries, {});
-  assert.equal(e.lines[1].text, 'With a picture.');
-  assert.equal(e.lines[1].see, 'Look.');
-  assert.equal(e.lines[1].shots[0].after, `${MEDIA_DIR}/9.9/x-after.webp`);
-  assert.equal(e.lines[1].shots[0].before, null);
+  assert.equal(e.lines[0].text, 'With a picture.');
+  assert.equal(e.lines[0].see, 'Look.');
+  assert.equal(e.lines[0].shots[0].after, `${MEDIA_DIR}/9.9/x-after.webp`);
+  assert.equal(e.lines[0].shots[0].before, null);
   assert.equal(mediaFor('9.9', 'Plain words.', {}), null);
   assert.equal(lineText({ text: 'a' }), 'a');
 });

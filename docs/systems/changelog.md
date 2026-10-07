@@ -1,7 +1,9 @@
 # The interactive changelog: what changed, in pictures and numbers
 
 `changelog.html` (a page of the build, `src/changelog-page/`) shows every version's lines, as the game's
-own changelog (N) does, with what each one changed beside it:
+own changelog (N) does, with what each one changed beside it. Everywhere (the game, this page,
+`changelog.md`, the release notes) a version's lines read newest first: lines are added at the end of
+their version in `src/changelog.js` and shown reversed (`newestFirst`).
 
 - **before / after pictures**: a split you drag (or hover with a mouse), or Before, After and Side by side;
   several pictures for one line are tabs over it;

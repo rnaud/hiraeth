@@ -26,6 +26,8 @@ export const CHANGELOG = [
       see: 'On the title screen, choose Debug: the list of worlds shows in about a second. Esc or B / ○ goes back to the title.' },
     'A new world off the route, the Underside: a shelf of white rock jutting far out over a sea of cloud, with a town hung under it. Round white houses cling to the rock and hang from it like swallows’ nests, timber galleries are slung beneath it on rods, long red banners fall toward the clouds and baskets go up and down on their ropes. Walk down the great stair cut into the cliff, along the rope walk and the galleries under the shelf to the deck at its tip, and climb back up the timber stair on its north face. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came to see it.',
     'The References level has the Underside’s four pictures rebuilt as views: an immense shelf of pale rock jutting out over a sea of cloud, a town of round white houses and timber decks hung under it, long red banners falling toward the clouds, baskets let down on ropes, and the traveller on a stair cut into the cliff.',
+    { text: 'What’s new lists each version’s newest changes first, in the game and on the changelog page.', see: 'Press N in the game, or choose What’s new on the title screen: the change at the top of each version is its latest.' },
+    { text: 'The worlds list has a fresh picture of every world, the hidden ones included, and links at the top to the character studio, the Motion page, the trailer and What’s new. The character studio left the title screen for it.', see: 'On the title screen, choose Debug.' },
   ] },
   { v: '0.84', date: '2026-10-07', items: [
     'A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.',
@@ -899,6 +901,8 @@ export const VERSION = CHANGELOG[0].v;
 const SEEN_KEY = 'moebius.changelog.seen';
 /** A line's words: the line itself, or the text of a line written with its pictures. */
 export const lineText = (item) => (typeof item === 'string' ? item : item.text);
+/** A version's lines as they are shown, newest first: lines are added at the end of their version (CLAUDE.md), read from the top. */
+export const newestFirst = (entry) => [...entry.items].reverse();
 /** The interactive changelog, its pictures and numbers: the page beside the game, in a frame over it. */
 export const PICTURES_PAGE = 'changelog.html';
 
@@ -907,7 +911,7 @@ export class Changelog {
     const el = (this.el = document.createElement('div'));
     el.id = 'changelog';
     el.innerHTML = `<div class="panel"><h1>WHAT'S NEW <span>v${VERSION}</span></h1><div class="list">${
-      CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${r.items.map((i) => `<li>${lineText(i)}</li>`).join('')}</ul></section>`).join('')
+      CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${newestFirst(r).map((i) => `<li>${lineText(i)}</li>`).join('')}</ul></section>`).join('')
     }</div><div class="buttons"><button data-a="pictures">See what changed</button><button data-a="close">Close (N)</button></div></div>`;
     document.body.appendChild(el);
     el.addEventListener('click', (e) => {
