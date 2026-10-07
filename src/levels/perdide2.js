@@ -28,6 +28,10 @@ export const DEEP_WOOD_HAZE = { uHazeLayers: [25, 1.7, 0.14, 5], uHazeTone: [0.4
 export const DEEP_WOOD_CAST = { uCast: [0.6, 0.2] };
 export const DEEP_WOOD_LOOK = { uClouds: 0, uCumulus: 0, uFogDensity: 0.002, ...DEEP_WOOD_HAZE, ...DEEP_WOOD_CAST };
 /** The day's colours: violet / indigo / teal shade under a coral horizon. */
+/** The roots' and the bushes' hatch: over 1, denser strokes (materials.js), the sheets' dense hatched masses. */
+export const ROOT_HATCH = 1.8, BUSH_HATCH = 2.2;
+/** …and their shade: lifted a little and never a spot black, so the dense strokes show over it. */
+export const ROOT_INK = { hatch: ROOT_HATCH, shade: 0.25, spot: 0 }, BUSH_INK = { hatch: BUSH_HATCH, shade: 0.2, spot: 0 };
 export const DEEP_WOOD_DAY = ['#c48c98', '#f2a088', '#4a4f7a', '#ece2f2', '#fff0e0'];
 
 const WATER = 0;

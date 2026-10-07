@@ -4,8 +4,9 @@ import { createNoise2D, mulberry32 } from '../noise.js';
 import { V, tube, put, smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
 import { lumpy } from './sky-stones-kit.js';
 import { smooth } from './reference-vael2.js';
-import { shroomParts, lathe, buildSkiff, DEEP_WOOD_LOOK } from './perdide2.js';
+import { shroomParts, lathe, buildSkiff, DEEP_WOOD_LOOK, ROOT_INK, BUSH_INK } from './perdide2.js';
 import { formAxis } from '../form.js';
+import { braid, caveFrame, bankBush, nest as nestParts, taper } from './wood-kit.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II's reference sheets (references/Lorn II The Deep Wood/IMG_3797 … 3800): a dusk forest of giant
@@ -41,8 +42,9 @@ function materials(kit) {
     stalk: [kit.mat({ color: '#b9b0d8', shade: 0.6, hatch: 0.4, detail: 'organic', detailDensity: 0.7, form: true }), kit.mat({ color: '#a79ec9', shade: 0.6, hatch: 0.4, detail: 'organic', detailDensity: 0.7, form: true })],
     cap: [kit.mat({ color: '#c6bde6', flat: true, shade: 0.7, hatch: 0.3, form: true }), kit.mat({ color: '#b8aedd', flat: true, shade: 0.7, hatch: 0.3, form: true })],
     under: kit.mat({ color: '#9b8fbf', flat: true, side: THREE.DoubleSide, shade: 0.4, form: true }),
-    root: kit.mat({ color: '#2d5058', flat: true, pattern: 'cracks', side: THREE.DoubleSide, detail: 'organic' }),
-    rootPale: kit.mat({ color: '#4c6f7c', flat: true, pattern: 'cracks', side: THREE.DoubleSide }),
+    // (roots and bushes: dense hatched masses, as the sheets draw them: a hatch over 1 is a denser one)
+    root: kit.mat({ color: '#4a6a78', side: THREE.DoubleSide, detail: 'organic', ...ROOT_INK }),
+    rootPale: kit.mat({ color: '#6c809c', side: THREE.DoubleSide, detail: 'organic', ...ROOT_INK }),
     moss: kit.mat({ color: '#3f6a6a', flat: true, grid: 2.2 }),
     door: kit.mat({ color: '#9fe0d0', glow: 0.9 }),
     // (the reeds and crystals: pale blades drawn in a thin violet line of their own, not the ink)
@@ -52,7 +54,8 @@ function materials(kit) {
     pool: kit.mat({ color: '#f39a86', glow: 1 }),
     coral: kit.mat({ color: '#ef8a72', glow: 0.75, side: THREE.DoubleSide }),
     pad: kit.mat({ color: '#486a68', flat: true }),
-    bush: [kit.mat({ color: '#2e4f55', pattern: 'leaves' }), kit.mat({ color: '#365a5f', pattern: 'leaves' })],
+    bush: [kit.mat({ color: '#4d6f76', pattern: 'leaves', ...BUSH_INK }), kit.mat({ color: '#557a80', pattern: 'leaves', ...BUSH_INK })],
+    glassRib: kit.mat({ color: '#6fb3ad', flat: true, glow: 0.3 }),
     teal: kit.mat({ color: '#4fbcb0', flat: true, metal: 'painted' }),
     tealDeep: kit.mat({ color: '#3a8f8a', flat: true, metal: 'painted' }),
     dark: kit.mat({ color: '#13232c', flat: true }),
@@ -120,9 +123,11 @@ function mossDome(kit, M, { x, z, R, yaw = 0, lit = true }) {
 function rootArch(kit, M, rng, { x0, z0, x1, z1, h, r, pale = false }) {
   const A = V(x0, kit.H(x0, z0) - 1, z0), B = V(x1, kit.H(x1, z1) - 1, z1), mid = A.clone().lerp(B, 0.5);
   const pts = [A, A.clone().lerp(mid, 0.3).setY(A.y + h * 0.75), mid.clone().setY(mid.y + h), B.clone().lerp(mid, 0.3).setY(B.y + h * 0.75), B];
-  const g = tube(pts, r, 32, 10);
+  // a core and the strands tangled round it (wood-kit.js braid): the sheets' roots are bundles, not one tube
+  const g = tube(pts, r * 0.72, 32, 10);
   lumpy(g, 0.06, 0.15, x0);
   kit.add(pale ? M.rootPale : M.root, g, NO_CAST);
+  for (const b of braid(pts, r, { n: 6, seed: x0 + z0, turns: 2 })) kit.add(pale ? M.rootPale : M.root, b, NO_CAST);
   const curve = new THREE.CatmullRomCurve3(pts);
   for (let i = 0; i < 10; i++) {
     const t = 0.2 + rng() * 0.6, p = curve.getPoint(t), l = h * (0.15 + rng() * 0.35);
@@ -133,20 +138,15 @@ function rootArch(kit, M, rng, { x0, z0, x1, z1, h, r, pale = false }) {
     kit.add(M.root, tube([F.clone().add(V(0, r * 0.8, 0)), F.clone().add(V(Math.cos(a) * d * 0.6, r * 0.2, Math.sin(a) * d * 0.6)), F.clone().add(V(Math.cos(a) * d, -0.5, Math.sin(a) * d))], r * 0.18, 6, 5), { solid: false });
   }
 }
-/** A cave mouth in a root mass: a dark hollow r wide, coral glowing deep inside, a fringe of hanging roots. */
-function cave(kit, M, rng, { x, z, r, glow = true, yaw = 0 }) {
-  const y = kit.H(x, z) - 0.5;
-  const mass = lumpy(new THREE.SphereGeometry(r * 2.2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.4, 1, 1), 0.1, 0.1, x);
-  kit.add(M.root, put(mass, x, y, z - r * 1.8, yaw), NO_CAST);
-  kit.add(M.dark, put(new THREE.CircleGeometry(r, 24, 0, Math.PI).scale(1, 1.25, 1), x, y + 0.3, z - r * 0.15 + r * 2.2 * 0.1, yaw), { solid: false });
-  if (glow) {
-    kit.add(M.coral, put(new THREE.CircleGeometry(r * 0.55, 20, 0, Math.PI).scale(1, 1.3, 1), x, y + 0.3, z - r * 1.5, yaw), { solid: false, shadow: false });
-    kit.light(x, y + 2, z - r, r * 2.5);
-  }
-  for (let i = 0; i < 16; i++) {
-    const a = Math.PI * (0.1 + 0.8 * rng()), px = x + Math.cos(a) * r * 1.02, py = y + Math.sin(a) * r * 1.25, l = r * (0.15 + rng() * 0.35);
-    kit.add(M.root, put(new THREE.ConeGeometry(r * 0.04, l, 4).rotateX(Math.PI).translate(0, -l / 2, 0), px, py, z + 0.3, yaw), { solid: false, shadow: false });
-  }
+/** A cave mouth framed in roots (wood-kit.js caveFrame): a dark hollow r wide, arches of tangled roots over it, roots hanging in it, coral glowing at its back. */
+function cave(kit, M, rng, { x, z, r, glow = true, yaw = 0, arches = 7 }) {
+  const y = kit.H(x, z) - 0.3, F = caveFrame({ r, glow, arches, seed: x * 3 + z });
+  for (const g of F.roots) kit.add(M.root, put(g, x, y, z, yaw), NO_CAST);
+  for (const g of F.hang) kit.add(M.root, put(g, x, y, z, yaw), NO_CAST);
+  for (const g of F.dark) kit.add(M.dark, put(g, x, y, z, yaw), NO_CAST);
+  for (const g of F.glow) kit.add(M.coral, put(g, x, y, z, yaw), NO_CAST);
+  if (glow) kit.light(x - Math.sin(yaw) * r * 1.8, y + 2, z - Math.cos(yaw) * r * 1.8, r * 2.5);
+  void rng;
 }
 /** The crashed saucer, half sunk and tilted, its dark slot, a light on its rim. */
 function saucer(kit, M, { x, z, r, tilt = 0.18, yaw = 0 }) {
@@ -171,7 +171,7 @@ function skiff(kit, M, { x, z, yaw = 0, s = 1, riders = 0 }) {
 }
 /** A dark bush on the bank. */
 function bush(kit, M, rng, x, z, r) {
-  const g = smooth(lumpy(new THREE.IcosahedronGeometry(1, 2), 0.2, 1.3, x + z).scale(r, r * 0.7, r));
+  const g = bankBush(x + z).scale(r, r, r);   // (a mass of small leaf clumps, densely hatched: wood-kit.js)
   kit.add(M.bush[Math.floor(rng() * 2)], g.translate(x, Math.max(kit.H(x, z), 0) + r * 0.3, z), { solid: false });
 }
 
@@ -236,7 +236,7 @@ export const LORN_VIEWS = [
         seed: 37971, trunks: { n: 70, z0: -60, z1: -300, r: 2.4, far: 120 },
         mushrooms: [{ x: -22, z: -40, H: 26, capR: 12, dome: 0.3 }, { x: 24, z: -44, H: 28, capR: 12, dome: 0.25 }, { x: -6, z: -60, H: 22, capR: 10, dome: 0.4 }, { x: -50, z: -90, H: 30, capR: 14 }, { x: 4, z: -110, H: 8, capR: 3.5 }, { x: 12, z: -104, H: 9, capR: 4 }],
         domes: [{ x: -8, z: -24, R: 5, yaw: 0.6 }, { x: 13, z: -26, R: 4, yaw: -0.4 }],
-        reeds: [[-24, -22, { n: 200, r: 14, h: 4 }], [26, -26, { n: 200, r: 14, h: 4 }], [0, -60, { n: 120, r: 20, h: 3 }]],
+        reeds: [[-12, -19, { n: 220, r: 8, h: 4 }], [13, -21, { n: 220, r: 8, h: 4 }], [0, -60, { n: 120, r: 20, h: 3 }]],
       });
     },
   }),
@@ -262,10 +262,17 @@ export const LORN_VIEWS = [
     build(kit, v) {
       woodScene(kit, v, {
         seed: 37973, trunks: { n: 60, z0: -40, z1: -260, r: 2.2, far: 100 },
-        mushrooms: [{ x: -16, z: -16, H: 10, capR: 7, dome: 0.4, tilt: 0.15 }, { x: 10, z: -24, H: 12, capR: 10, dome: 0.2, tilt: -0.1 }, { x: -6, z: -60, H: 8, capR: 5, dome: 0.3 }, { x: 18, z: -70, H: 7, capR: 4 }],
+        mushrooms: [{ x: -16, z: -16, H: 10, capR: 7, dome: 0.4, tilt: 0.15 }, { x: 10, z: -24, H: 10, capR: 10, dome: 0.2 }, { x: -6, z: -60, H: 8, capR: 5, dome: 0.3 }, { x: 18, z: -70, H: 7, capR: 4 }],
         domes: [{ x: -10, z: -30, R: 4, yaw: 0.3 }],
         arches: [{ x0: -2, z0: -20, x1: 22, z1: -14, h: 11, r: 1.6 }],
-        extra(k, M, rng) { k.add(M.teal, new THREE.SphereGeometry(4, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).translate(12, k.H(12, -24) + 11.5, -24), { solid: false }); for (let i = 0; i < 18; i++) k.add(M.egg, new THREE.SphereGeometry(0.45, 10, 8).scale(1, 1.3, 1).translate(12 + (rng() - 0.5) * 5, k.H(12, -24) + 11.6 + rng(), -24 + (rng() - 0.5) * 4), { solid: false, shadow: false }); },
+        // the nest in the great cap: a woven bowl heaped with eggs under a ribbed glass dome (wood-kit.js nest)
+        extra(k, M) {
+          const P = shroomParts({ sr: 1.6, capR: 10, H: 10, dome: 0.2 }), y = k.base(10, -24, 3.2) - 0.4 + P.topY - 0.6, N = nestParts(4.2, { seed: 3797, eggs: 30 });
+          for (const g of N.bowl) k.add(M.root, g.translate(10, y, -24), NO_CAST);
+          for (const g of N.ribs) k.add(M.glassRib, g.translate(10, y, -24), NO_CAST);
+          for (const [x, ey, z, sz] of N.eggs) k.add(M.egg, new THREE.SphereGeometry(sz, 10, 8).scale(1, 1.3, 1).translate(10 + x, y + ey, -24 + z), NO_CAST);
+          k.light(10, y + 2, -24, 10);
+        },
       });
     },
   }),
@@ -277,8 +284,8 @@ export const LORN_VIEWS = [
     build(kit, v) {
       woodScene(kit, v, {
         seed: 37974, trunks: { n: 40, z0: -60, z1: -260, r: 2.4, far: 90 },
-        arches: [{ x0: -26, z0: -12, x1: 30, z1: -18, h: 22, r: 5 }, { x0: -18, z0: -40, x1: 22, z1: -44, h: 14, r: 2.6 }],
-        bushes: [[-14, -10, 3], [18, -14, 3.6], [24, -22, 3], [-20, -24, 2.6]],
+        arches: [{ x0: -26, z0: -12, x1: 30, z1: -18, h: 14, r: 5 }, { x0: -18, z0: -40, x1: 22, z1: -44, h: 10, r: 2.6 }],
+        bushes: [[-7, -9, 3], [9, -11, 3.6], [12, -19, 3], [-11, -21, 2.6], [-4, -14, 1.6], [6, -16, 1.8]],
       });
     },
   }),
@@ -286,12 +293,12 @@ export const LORN_VIEWS = [
     id: '3797-saucer', title: 'The saucer in the shallows', sheet: 'IMG_3797', panel: 5, where: 'bottom left', crop: [16, 763, 488, 248],
     camera: { eye: [0, 1.4, 0], yaw: 0, fov: 40, horizon: 0.55 },
     sun: { side: -14, el: 10 }, sky: SKY.coral,
-    ground: swamp({ path: 0.5 }),
+    ground: swamp({ path: 0 }),
     build(kit, v) {
       woodScene(kit, v, {
         seed: 37975, trunks: { n: 30, z0: -40, z1: -200, r: 2.6, far: 80, x0: -80, x1: 80 },
         saucers: [{ x: 2, z: -30, r: 7, tilt: 0.06 }],
-        bushes: [[-16, -12, 4], [-20, -18, 3.4], [16, -10, 3.6], [20, -16, 3]],
+        bushes: [[-8, -9, 3.4], [-12, -16, 3.4], [-15, -24, 4], [8, -8, 3.2], [11, -15, 3], [16, -26, 4.4], [-22, -40, 6], [24, -44, 6]],
       });
     },
   }),
@@ -304,7 +311,7 @@ export const LORN_VIEWS = [
     build(kit, v) {
       woodScene(kit, v, {
         seed: 37976, trunks: [],
-        caves: [{ x: 0, z: -16, r: 5, glow: false }],
+        caves: [{ x: 0, z: -12, r: 5.5, glow: false, arches: 9 }],
         arches: [{ x0: -10, z0: -8, x1: -4, z1: -18, h: 10, r: 2, pale: true }, { x0: 10, z0: -8, x1: 5, z1: -18, h: 10, r: 2, pale: true }],
       });
     },
@@ -373,7 +380,7 @@ export const LORN_VIEWS = [
       woodScene(kit, v, {
         seed: 37986, trunks: [[-9, -14, 1.8], [-4, -22, 1.3], [8, -20, 2], [-16, -40, 2.4], [16, -44, 2.6], [-30, -80, 3, true], [30, -90, 3, true], [0, -120, 4, true]],
         mushrooms: [{ x: 0, z: -70, H: 26, capR: 14, dome: 0.25 }],
-        bushes: [[-8, -6, 2.6], [-10, -12, 2.2], [8, -8, 2.4]],
+        bushes: [[-3, -6, 2.2], [-4, -11, 2], [3, -8, 2], [-6, -18, 2.4], [6, -20, 2.4]],
         extra(k, M) { k.add(M.root, new THREE.SphereGeometry(1.2, 10, 6).scale(1.4, 0.6, 1).translate(-1, 0, -5)); },
       });
     },
@@ -439,7 +446,7 @@ export const LORN_VIEWS = [
         domes: [{ x: -2, z: -22, R: 3.4, yaw: 0.2, lit: false }],
         reeds: [[6, -10, { n: 30, r: 4, h: 6, crystal: true }], [-6, -18, { n: 90, r: 7, h: 3 }]],
         pools: [[0, -14, 1.2]],
-        bushes: [[8, -6, 2.4], [5, -5, 1.8]],
+        bushes: [[2.5, -6, 2.2], [1.5, -4.5, 1.6]],
       });
     },
   }),
@@ -454,7 +461,7 @@ export const LORN_VIEWS = [
         seed: 37994, trunks: { n: 40, z0: -40, z1: -200, r: 2.6, far: 90 },
         arches: [{ x0: -20, z0: -10, x1: 24, z1: -36, h: 18, r: 4 }],
         pools: [[-3, -14, 1.6], [1, -24, 1.2], [-1, -34, 1]],
-        bushes: [[-10, -6, 3], [8, -12, 2.6], [-12, -14, 2.4]],
+        bushes: [[-4, -5, 2.6], [4.5, -9, 2.4], [-6, -12, 2.4], [7, -16, 2.6], [-8, -20, 2.8]],
       });
     },
   }),
@@ -525,7 +532,7 @@ export const LORN_VIEWS = [
         domes: [{ x: -6, z: -30, R: 9, yaw: 0.6 }],
         arches: [{ x0: -30, z0: -16, x1: 30, z1: -40, h: 20, r: 4 }],
         pools: [[-1, -8, 3], [2, -16, 2], [3, -22, 1.4], [5, -30, 1]],
-        bushes: [[-14, -6, 4], [-12, -12, 3.4]],
+        bushes: [[-6, -6, 3.4], [-8, -11, 3], [9, -10, 3], [11, -18, 3.4]],
       });
     },
   }),
@@ -551,7 +558,7 @@ export const LORN_VIEWS = [
     build(kit, v) {
       woodScene(kit, v, {
         seed: 38006, trunks: [[-24, -40, 3], [-34, -60, 4]],
-        caves: [{ x: 8, z: -30, r: 7 }],
+        caves: [{ x: 7, z: -26, r: 7, arches: 8 }],
         skiffs: [{ x: -4, z: -18, yaw: 1.4, s: 1.4, riders: 2 }],
         reeds: [[6, -10, { n: 20, r: 4, h: 1.5 }]],
       });

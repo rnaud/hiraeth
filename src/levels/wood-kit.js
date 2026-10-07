@@ -61,12 +61,18 @@ export function braid(pts, r, { n = 5, seed = 1, turns = 2.5, tubular = 40, radi
  * dark hollow behind (`depth` × r deep) and, at its back, a glowing end (when `glow`).
  * { roots: [geo], dark: [geo], glow: [geo], hang: [geo] }.
  */
-export function caveFrame({ r, depth = 2.2, arches = 7, hang = 14, seed = 1, glow = false }) {
+export function caveFrame({ r, depth = 2.2, arches = 7, hang = 14, feet = 6, seed = 1, glow = false }) {
   const rng = mulberry32(Math.floor(seed * 4129) + 7), roots = [], dark = [], glowG = [], hangG = [];
   const H = r * 1.25, D = r * depth;
   // the hollow: a dark half-tunnel (seen from inside) closed at its back
-  const tunnel = new THREE.CylinderGeometry(r * 0.98, r * 0.98, D, 20, 1, true, -Math.PI / 2, Math.PI).rotateX(Math.PI / 2).scale(1, H / r, 1).translate(0, 0, -D / 2);
+  // (mirrored, so its faces look inward: seen from the mouth)
+  const tunnel = new THREE.CylinderGeometry(r * 0.98, r * 0.98, D, 20, 1, true, -Math.PI / 2, Math.PI).rotateX(-Math.PI / 2).scale(-1, H / r, 1).translate(0, 0, -D / 2);
   dark.push(tunnel);
+  // the face of the root mass round the mouth, out to 3 r (the arches lie over it)
+  const face = new THREE.RingGeometry(r * 0.97, r * 3, 28, 3, 0, Math.PI), fp = face.attributes.position;
+  for (let i = 0; i < fp.count; i++) { const x = fp.getX(i), y = fp.getY(i), d = Math.hypot(x, y); fp.setXYZ(i, x, y * (H / r), -Math.max(0, d - r) * 0.35 + (rng() - 0.5) * r * 0.08); }
+  face.computeVertexNormals();
+  roots.push(face);
   const back = new THREE.CircleGeometry(r, 20, 0, Math.PI).scale(1, H / r, 1).translate(0, 0, -D + 0.05);
   (glow ? glowG : dark).push(back);
   // the frame: arches of tangled roots, each from the ground beside the mouth up over it and down the other side
@@ -86,6 +92,11 @@ export function caveFrame({ r, depth = 2.2, arches = 7, hang = 14, seed = 1, glo
     const p0 = V(-Math.cos(Math.PI * a) * R * sd * -1, Math.sin(Math.PI * a) * R * 1.1, -r * (0.2 + rng() * 1.2));
     const p2 = V(sd * R * (1.5 + rng() * 0.6), -0.6, p0.z + (rng() - 0.3) * r * 1.4);
     roots.push(...braid([p0, p0.clone().lerp(p2, 0.5).add(V(0, R * 0.25, 0)), p2], r * 0.14, { n: 3, seed: seed + 20 + k, turns: 1.2 }));
+  }
+  // the mass's feet: roots crawling out along the ground on either side of the mouth, toward the onlooker
+  for (let k = 0; k < feet; k++) {
+    const sd = k % 2 ? 1 : -1, x0 = sd * r * (1.05 + rng() * 0.5), y0 = H * (0.3 + rng() * 0.5), out = r * (0.9 + rng() * 1.4);
+    roots.push(...braid([V(x0, y0, -r * 0.2), V(x0 + sd * r * 0.3, y0 * 0.4, out * 0.4), V(x0 + sd * r * (0.5 + rng()), -0.5, out)], r * (0.16 + rng() * 0.1), { n: 3, seed: seed + 40 + k, turns: 1 }));
   }
   // roots hanging in the mouth from its lintel
   for (let i = 0; i < hang; i++) {
