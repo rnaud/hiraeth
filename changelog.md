@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 - At dusk and at night Vael II’s shadows keep the soft grey-teal of its day, warmer at dusk and deeper at night, instead of turning the old violet-blue.
 - The game menu’s Quests panel lists everything you have finished, in every world: after the desert, the Tree That Drinks is under Done in the worlds that follow, instead of “None yet”.
 - In the Sketchbook, a story you told on an older save, before story pages were drawn, now reads as told rather than “not told yet”.
+- Stepping out of a cab beside a building, the camera no longer ends up inside the cab: it sees the cabs as they are drawn, so it stays out of their hulls and canopies (never the one you are riding in).
 
 ## v0.78 — 2026-10-07
 

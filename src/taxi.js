@@ -613,6 +613,63 @@ export class Taxi {
     return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v;
   }
 
+  /** The underside of the cab's hull in its own units at (lx, lz), or Infinity off it (the spindle's lower half). */
+  static bottomLocal(lx, lz) {
+    if (lz <= -2 || lz >= 2.1) return Infinity;
+    const r = rAt(lz);
+    return Math.abs(lx) < r ? -0.1 - SY * Math.sqrt(r * r - lx * lx) : Infinity;
+  }
+
+  /** Is a point in the cab's own units inside it (between its hull's underside and its top)? */
+  static insideLocal(lx, ly, lz) {
+    if (ly < -0.7 || ly > CANOPY.y + 0.7) return false;
+    return ly >= Taxi.bottomLocal(lx, lz) && ly <= Taxi.topLocal(lx, lz);
+  }
+
+  /**
+   * Distance along a ray (world) to the cab as drawn, closely (its hull and canopy: topLocal and
+   * bottomLocal), or Infinity: for the camera, which never sees moving things in the level's collision
+   * (src/carriers.js cameraPhysics). Marched in its own frame inside its bounding sphere, then halved.
+   */
+  rayDistance(origin, dir, far) {
+    const s = this.scale, R = 2.4 * s;
+    _a.subVectors(this.pos, origin);
+    const tc = _a.dot(dir), d2 = _a.lengthSq() - tc * tc;
+    if (d2 > R * R) return Infinity;
+    const half = Math.sqrt(R * R - d2), t0 = Math.max(0, tc - half), t1 = Math.min(far, tc + half);
+    if (t1 <= t0) return Infinity;
+    const inv = (this._inv ??= new THREE.Matrix4()).copy(this.object.matrixWorld).invert();
+    const at = (t) => { _o.copy(origin).addScaledVector(dir, t).applyMatrix4(inv); return Taxi.insideLocal(_o.x, _o.y, _o.z); };
+    const step = 0.09 * s;
+    let prev = t0;
+    if (at(t0)) return t0;
+    for (let t = t0 + step; t <= t1 + 1e-6; t += step) {
+      if (at(t)) {
+        let lo = prev, hi = t;
+        for (let k = 0; k < 5; k++) { const m = (lo + hi) / 2; if (at(m)) hi = m; else lo = m; }
+        return lo;
+      }
+      prev = t;
+    }
+    return Infinity;
+  }
+
+  /**
+   * A point (the camera's lens) inside the cab, or within r of its side or top, moved out: sideways off
+   * the hull or up over its top, whichever is the shorter way. Returns whether it moved p.
+   */
+  pushPoint(p, r = 0) {
+    const s = this.scale, inv = (this._inv ??= new THREE.Matrix4()).copy(this.object.matrixWorld).invert(), R = r / s;
+    _o.copy(p).applyMatrix4(inv);
+    const near = (x, y, z) => Taxi.insideLocal(x, y, z) || Taxi.insideLocal(x + R, y, z) || Taxi.insideLocal(x - R, y, z) || Taxi.insideLocal(x, y - R, z);
+    if (!near(_o.x, _o.y, _o.z)) return false;
+    const side = Math.max(rAt(_o.z), CANOPY.r) + R, up = Taxi.topLocal(_o.x, _o.z) + R;
+    const bySide = side - Math.abs(_o.x), byUp = Number.isFinite(up) ? up - _o.y : Infinity;
+    if (bySide <= byUp) _o.x = (Math.sign(_o.x) || 1) * side; else _o.y = up;
+    p.copy(_o.applyMatrix4(this.object.matrixWorld));
+    return true;
+  }
+
   /** Height of the cab's top over world (x, z), as it is posed now (pitched and banked), or -Infinity. */
   topAt(x, z) {
     const M = this.object.matrixWorld, inv = (this._inv ??= new THREE.Matrix4()).copy(M).invert();

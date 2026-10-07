@@ -18,6 +18,7 @@ import { sharedUniforms, markHero, setEnvGround } from './materials.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
+import { cameraPhysics, keepLensOut } from './carriers.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
@@ -416,10 +417,11 @@ const edgeInk = new EdgeInk(wind.mesh.material);
 wind.scene.add(edgeInk.mesh);
 // the recordings' hologram (src/ship/hologram.js): light drawn over the composite, hidden behind what the G-buffer holds
 HOLO.uniforms.tNormal.value = gbuffer.textures[1];
-const rig = new CameraRig(camera, renderer.domElement, physics);
+// (the camera's view of the collision: the level's, and the cabs as drawn, never the one you ride: src/carriers.js)
+const rig = new CameraRig(camera, renderer.domElement, cameraPhysics(physics, () => player.vehicles, () => player.ride));
 rig.yaw = level.camYaw;
 rig.pitch = level.camPitch ?? rig.pitch;
-rig.constrain = level.constrainCamera;
+rig.constrain = (cam) => { level.constrainCamera?.(cam); keepLensOut(cam, () => player.vehicles, () => player.ride); };   // (and out of the cabs: src/carriers.js)
 await slice();
 
 // ------------------------------------------------------------------ sound, weather, people, story
