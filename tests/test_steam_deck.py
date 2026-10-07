@@ -3,10 +3,15 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import shutil
+import signal
+import sys
 import tarfile
 import tempfile
+import threading
+import time
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -313,15 +318,15 @@ class ContentUpdateTests(unittest.TestCase):
         deck.install_content(self.root, manifest, fetch)
         seen = {}
 
-        def run(command, check, env):
+        def run(command, env, ready, log):
             seen['env'] = env.get('MOEBIUS_GAME')
             with (self.root / 'web/601/.in-use').open('a') as lock:
                 with self.assertRaises(BlockingIOError):
                     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            return type('Done', (), {'returncode': 0})()
-        with patch.object(deck.subprocess, 'Popen'), patch.object(deck.subprocess, 'run', side_effect=run):
+            return 'quit', 0, True
+        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
             with self.assertRaises(SystemExit):
-                deck.launch(self.root, [])
+                deck.launch(self.root, [], run=run)
         self.assertEqual(seen['env'], str(self.root / 'web/601'))
 
     def test_installs_a_package_downloaded_by_hand(self):
@@ -342,6 +347,116 @@ class ContentUpdateTests(unittest.TestCase):
         source = (Path(__file__).resolve().parents[1] / 'scripts/package-steam-deck.mjs').read_text()
         self.assertIn('/source/build.json`, JSON.stringify({ build, version: VERSION }))', source)
         self.assertIn('/source/content.json`, JSON.stringify({ web: webBuild, desktop: desktopApi() }))', source)
+
+
+class LaunchTests(unittest.TestCase):
+    """Gaming Mode never left black: no Steam overlay in Chromium, a watched start, fallbacks, a clean exit."""
+
+    setUp_base = SteamDeckTests.setUp
+    bundle = SteamDeckTests.bundle
+
+    def setUp(self):
+        self.setUp_base()
+        runtime, fetch = self.bundle(1001, web=600)
+        deck.install_update(self.root, runtime, fetch)
+        self.ready = self.home / '.ready'
+
+    def script(self, body):
+        return [sys.executable, '-c', 'import os, sys, time, subprocess\n' + body]
+
+    def test_steam_overlay_is_kept_out_of_chromium(self):
+        steam = '/home/deck/.local/share/Steam'
+        base = {'LD_PRELOAD': f'{steam}/ubuntu12_32/gameoverlayrenderer.so:{steam}/ubuntu12_64/gameoverlayrenderer.so',
+                'HOME': '/home/deck', 'MOEBIUS_GPU': 'stale'}
+        env = deck.game_env(None, 'vulkan', self.ready, base=base)
+        self.assertNotIn('LD_PRELOAD', env)
+        self.assertEqual((env['MOEBIUS_GPU'], env['MOEBIUS_READY'], env['HOME']), ('vulkan', str(self.ready), '/home/deck'))
+        self.assertNotIn('MOEBIUS_GAME', env)
+        self.assertEqual(deck.without_overlay(f'/opt/libfoo.so {steam}/ubuntu12_64/gameoverlayrenderer.so'), '/opt/libfoo.so')
+
+    def test_gaming_mode_is_told_from_the_desktop(self):
+        self.assertEqual(deck.session_kind({'XDG_CURRENT_DESKTOP': 'gamescope', 'DISPLAY': ':1'}), 'gamescope')
+        self.assertEqual(deck.session_kind({'GAMESCOPE_WAYLAND_DISPLAY': 'gamescope-0'}), 'gamescope')
+        self.assertEqual(deck.session_kind({'XDG_CURRENT_DESKTOP': 'KDE', 'WAYLAND_DISPLAY': 'wayland-0'}), 'desktop')
+
+    def test_a_game_that_shows_its_window_and_closes_is_done(self):
+        how = deck.run_game(self.script(f'open({str(self.ready)!r}, "w").write("1")\ntime.sleep(0.5)'),
+                            dict(os.environ), self.ready, log=lambda _line: None)
+        self.assertEqual(how, ('quit', 0, True))
+        self.assertFalse(self.ready.exists())
+
+    def test_a_hung_start_is_killed_and_retried(self):
+        started = time.monotonic()
+        how = deck.run_game(self.script('time.sleep(60)'), dict(os.environ), self.ready, ready_seconds=1, log=lambda _line: None)
+        self.assertEqual(how[0], 'retry')
+        self.assertFalse(how[2])
+        self.assertLess(time.monotonic() - started, 10)
+
+    def test_the_retry_exit_asks_for_the_next_way_to_draw(self):
+        how = deck.run_game(self.script(f'sys.exit({deck.RETRY_EXIT})'), dict(os.environ), self.ready, log=lambda _line: None)
+        self.assertEqual(how, ('retry', deck.RETRY_EXIT, False))
+
+    def test_no_helper_outlives_the_game(self):
+        # a zygote left behind by a browser that died kept Steam's game "running" on a black screen
+        marker = self.home / 'helper.pid'
+        body = (f'child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])\n'
+                f'open({str(marker)!r}, "w").write(str(child.pid))\nos._exit(0)')
+        deck.run_game(self.script(body), dict(os.environ), self.ready, log=lambda _line: None)
+        helper = int(marker.read_text())
+        time.sleep(0.2)
+        with self.assertRaises(ProcessLookupError):
+            os.kill(helper, 0)
+
+    def test_steam_closing_the_game_closes_it_cleanly(self):
+        # Exit Game signals the launcher; it passes it on, then kills what's left
+        def close_soon():
+            time.sleep(1)
+            os.kill(os.getpid(), signal.SIGTERM)
+        closer = threading.Thread(target=close_soon)
+        closer.start()
+        how = deck.run_game(self.script('import signal\nsignal.signal(signal.SIGTERM, signal.SIG_IGN)\ntime.sleep(60)'),
+                            dict(os.environ), self.ready, stop_seconds=1, log=lambda _line: None)
+        closer.join()
+        self.assertEqual(how[:2], ('quit', 0))
+
+    def test_launch_falls_back_and_remembers_what_worked(self):
+        modes = []
+
+        def run(command, env, ready, log):
+            modes.append(env['MOEBIUS_GPU'])
+            return ('retry', -11, False) if env['MOEBIUS_GPU'] == 'gl' else ('quit', 0, True)
+        env = {key: value for key, value in os.environ.items() if key not in ('GAMESCOPE_WAYLAND_DISPLAY', 'XDG_CURRENT_DESKTOP')}
+        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), \
+                patch.dict(os.environ, {**env, 'XDG_CURRENT_DESKTOP': 'gamescope'}, clear=True):
+            for _ in range(2):
+                with self.assertRaises(SystemExit) as done:
+                    deck.launch(self.root, [], run=run)
+                self.assertEqual(done.exception.code, 0)
+        self.assertEqual(modes, ['gl', 'vulkan', 'vulkan'])
+        self.assertEqual(json.loads((self.root / 'gpu.json').read_text()), {'1001:gamescope': 'vulkan'})
+        self.assertIn('Starting (vulkan)', (self.root / 'launch.log').read_text())
+
+    def test_nothing_working_returns_to_steam(self):
+        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
+            with self.assertRaises(SystemExit) as done:
+                deck.launch(self.root, [], run=lambda command, env, ready, log: ('retry', -5, False))
+        self.assertEqual(done.exception.code, 1)
+        self.assertIn('Gave up', (self.root / 'launch.log').read_text())
+
+    def test_the_update_runs_outside_the_game(self):
+        # in its own systemd unit, so Steam doesn't wait for a download before it counts the game closed
+        current = (self.root / 'current').resolve()
+        with patch.object(deck.shutil, 'which', return_value='/usr/bin/systemd-run'), \
+                patch.object(deck.subprocess, 'run') as run, patch.object(deck.subprocess, 'Popen') as popen:
+            self.assertEqual(deck.start_updater(self.root, current), 'systemd')
+        command = run.call_args.args[0]
+        self.assertEqual(command[:2], ['/usr/bin/systemd-run', '--user'])
+        self.assertEqual(command[-2:], [str(current / 'resources/app/deck.py'), '--update'])
+        self.assertIn(f'StandardOutput=truncate:{self.root / "update.log"}', command)
+        popen.assert_not_called()
+        with patch.object(deck.shutil, 'which', return_value=None), patch.object(deck.subprocess, 'Popen') as popen:
+            self.assertEqual(deck.start_updater(self.root, current), 'child')
+        self.assertTrue(popen.call_args.kwargs['start_new_session'])
 
 
 if __name__ == '__main__':

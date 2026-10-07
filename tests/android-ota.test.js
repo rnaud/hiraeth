@@ -199,3 +199,19 @@ test('the Deck runs on Wayland on its desktop and on X11 under gamescope (Gaming
   assert.equal(ozonePlatform({ DISPLAY: ':0' }), 'x11', 'a plain X11 desktop');
   assert.match(main, /appendSwitch\('ozone-platform', ozonePlatform\(\)\)/);
 });
+
+test('the Deck has fallbacks when its GPU won\'t draw: Vulkan, then software; a crashing GPU asks deck.py for the next', () => {
+  const main = readFileSync(new URL('../desktop/main.mjs', import.meta.url), 'utf8');
+  const deck = readFileSync(new URL('../scripts/steam-deck/deck.py', import.meta.url), 'utf8');
+  const src = /export function gpuSwitches[\s\S]*?\n\}/.exec(main)[0].replace('export ', '');
+  const gpuSwitches = new Function(`${src}; return gpuSwitches;`)();
+  assert.deepEqual(gpuSwitches(undefined), []);
+  assert.deepEqual(gpuSwitches('gl'), []);
+  assert.deepEqual(gpuSwitches('vulkan'), [['use-angle', 'vulkan']]);
+  assert.deepEqual(gpuSwitches('software'), [['disable-gpu'], ['enable-unsafe-swiftshader']]);
+  // the modes and the retry exit are the same on both sides
+  assert.match(deck, /GPU_MODES = \('gl', 'vulkan', 'software'\)/);
+  const retry = /const RETRY_EXIT = (\d+);/.exec(main)[1];
+  assert.match(deck, new RegExp(`RETRY_EXIT = ${retry}\\b`));
+  assert.match(main, /writeFileSync\(process\.env\.MOEBIUS_READY/);
+});

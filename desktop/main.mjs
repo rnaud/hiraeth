@@ -28,6 +28,20 @@ export function ozonePlatform(env = process.env) {
   return env.WAYLAND_DISPLAY && !gamescope ? 'wayland' : 'x11';
 }
 if (process.platform === 'linux') app.commandLine.appendSwitch('ozone-platform', ozonePlatform());
+/**
+ * How Chromium draws (MOEBIUS_GPU, from deck.py, which tries them in turn while the game doesn't come
+ * up): 'gl' as Electron picks it (ANGLE on OpenGL), 'vulkan' (ANGLE on Vulkan), 'software'.
+ */
+export function gpuSwitches(mode) {
+  if (mode === 'vulkan') return [['use-angle', 'vulkan']];
+  if (mode === 'software') return [['disable-gpu'], ['enable-unsafe-swiftshader']];
+  return [];
+}
+for (const [name, value] of gpuSwitches(process.env.MOEBIUS_GPU)) app.commandLine.appendSwitch(name, value);
+/** deck.py's launcher: this exit asks it for the next way to draw (GPU_MODES, RETRY_EXIT in deck.py). */
+const RETRY_EXIT = 75;
+/** A GPU process that crashes this often won't draw the game: quit for the next way to draw. */
+const GPU_CRASHES = 2;
 
 const packaged = fileURLToPath(new URL('./game/', import.meta.url));
 /**
@@ -73,6 +87,19 @@ else {
     callback(permission === 'fullscreen' || permission === 'pointerLock');
   });
   app.on('window-all-closed', () => app.quit());
+  // deck.py watches for a window that never comes (Electron hung as it started) and for a GPU that
+  // keeps crashing: both send it to the next way to draw, and to Steam's library when none works
+  if (process.env.MOEBIUS_READY) {
+    window.webContents.once('did-finish-load', () => {
+      try { writeFileSync(process.env.MOEBIUS_READY, `${process.pid}\n`); } catch { /* the watchdog decides */ }
+    });
+    let gpuCrashes = 0;
+    app.on('child-process-gone', (_event, details) => {
+      if (details.type !== 'GPU' || details.reason === 'clean-exit') return;
+      console.error(`GPU process gone (${details.reason}, ${details.exitCode}) drawing with ${process.env.MOEBIUS_GPU ?? 'gl'}`);
+      if (++gpuCrashes >= GPU_CRASHES) app.exit(RETRY_EXIT);
+    });
+  }
   if (process.env.MOEBIUS_SMOKE === '1') {
     window.webContents.on('console-message', (_event, ...args) => console.log(...args));
     window.webContents.on('render-process-gone', (_event, details) => { console.error(details); app.exit(1); });

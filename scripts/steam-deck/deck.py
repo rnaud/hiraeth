@@ -22,6 +22,7 @@ import platform
 import re
 import shlex
 import shutil
+import signal
 import struct
 import subprocess
 import sys
@@ -409,11 +410,28 @@ def choose_content(root, current):
     return None
 
 
-def game_env(game):
-    """Electron's environment: MOEBIUS_GAME names the downloaded game to serve (desktop/main.mjs)."""
-    env = {key: value for key, value in os.environ.items() if key != 'MOEBIUS_GAME'}
+def without_overlay(preload):
+    """LD_PRELOAD without Steam's overlay (gameoverlayrenderer.so, which Steam preloads into every
+    game): on SteamOS 3.8 it crashes Chromium's zygote as it starts, so the window never opens, Gaming
+    Mode stays black, and the browser waits for ever. Gaming Mode draws Steam's overlay itself."""
+    kept = [lib for lib in re.split(r'[: ]+', preload or '') if lib and Path(lib).name != 'gameoverlayrenderer.so']
+    return ':'.join(kept)
+
+
+def game_env(game, gpu=None, ready=None, base=None):
+    """Electron's environment: MOEBIUS_GAME names the downloaded game to serve, MOEBIUS_GPU the way
+    to draw (GPU_MODES), MOEBIUS_READY the file it touches once its window is up (desktop/main.mjs)."""
+    env = {key: value for key, value in (os.environ if base is None else base).items()
+           if key not in ('MOEBIUS_GAME', 'MOEBIUS_GPU', 'MOEBIUS_READY', 'LD_PRELOAD')}
+    preload = without_overlay((os.environ if base is None else base).get('LD_PRELOAD'))
+    if preload:
+        env['LD_PRELOAD'] = preload
     if game:
         env['MOEBIUS_GAME'] = str(game)
+    if gpu:
+        env['MOEBIUS_GPU'] = gpu
+    if ready:
+        env['MOEBIUS_READY'] = str(ready)
     return env
 
 
@@ -510,7 +528,127 @@ def write_launchers(root):
     atomic_write(Path.home() / '.local/share/applications/moebius.desktop', entry.encode(), 0o755)
 
 
-def launch(root, arguments):
+# ---------------------------------------------------------------- launching
+
+# How Chromium draws, tried in turn while the game doesn't come up: the GPU as Electron picks it
+# (ANGLE on OpenGL), ANGLE on Vulkan, then software. desktop/main.mjs reads MOEBIUS_GPU.
+GPU_MODES = ('gl', 'vulkan', 'software')
+RETRY_EXIT = 75      # desktop/main.mjs: its GPU process keeps crashing, try the next mode
+READY_SECONDS = 30   # no window by then: Electron hangs (a helper process died as it started)
+STOP_SECONDS = 5     # Steam's Exit Game (a signal): this long to close, then killed with its helpers
+
+
+def session_kind(env):
+    return 'gamescope' if env.get('GAMESCOPE_WAYLAND_DISPLAY') or env.get('XDG_CURRENT_DESKTOP') == 'gamescope' else 'desktop'
+
+
+def signal_group(group, number):
+    try:
+        os.killpg(group, number)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
+def group_alive(group):
+    try:
+        os.killpg(group, 0)
+        return True
+    except (ProcessLookupError, PermissionError):
+        return False
+
+
+def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP_SECONDS, log=print):
+    """Electron in its own process group, watched until it ends; none of its processes outlives it
+    (Steam counts the game running, a black screen in Gaming Mode, while any of them does).
+    @return (how, code, shown): how is 'quit' (it closed, or Steam closed it) or 'retry' (it crashed,
+    hung before its window showed, or asked for another way to draw); shown, whether its window did"""
+    ready.unlink(missing_ok=True)
+    process = subprocess.Popen(command, env=env, start_new_session=True)
+    stopping = []
+
+    def stop(number, _frame):
+        if not stopping:
+            stopping.append(time.monotonic())
+            log(f'Signal {number}: closing the game.')
+        signal_group(process.pid, signal.SIGTERM)
+    handled = (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)
+    previous = {number: signal.signal(number, stop) for number in handled}
+    started, shown, hung, code = time.monotonic(), False, False, None
+    try:
+        # (monotonic time stops while the Deck sleeps: a Deck put to sleep as the game starts doesn't count)
+        while code is None:
+            try:
+                code = process.wait(timeout=0.25)
+            except subprocess.TimeoutExpired:
+                now = time.monotonic()
+                shown = shown or ready.exists()
+                if stopping and now - stopping[0] > stop_seconds:
+                    signal_group(process.pid, signal.SIGKILL)
+                elif not shown and not stopping and not hung and now - started > ready_seconds:
+                    log(f'No window after {ready_seconds} s: the game hangs.')
+                    hung = True
+                    signal_group(process.pid, signal.SIGKILL)
+        shown = shown or ready.exists()
+        # its helpers end with it; one left behind (a zygote outliving the browser) is killed
+        deadline = time.monotonic() + 2
+        while group_alive(process.pid) and time.monotonic() < deadline:
+            time.sleep(0.1)
+    finally:
+        signal_group(process.pid, signal.SIGKILL)
+        for number, handler in previous.items():
+            signal.signal(number, handler)
+        ready.unlink(missing_ok=True)
+    if stopping or (code == 0 and not hung):
+        return 'quit', 0 if stopping else code, shown
+    return 'retry', code, shown
+
+
+def gpu_start(root, key):
+    """The way to draw that worked last for this runtime build and session kind (gpu.json)."""
+    try:
+        mode = json.loads((root / 'gpu.json').read_text()).get(key)
+    except (OSError, ValueError, AttributeError):
+        mode = None
+    return GPU_MODES.index(mode) if mode in GPU_MODES else 0
+
+
+def gpu_remember(root, key, mode):
+    build = key.split(':')[0] + ':'
+    try:
+        data = json.loads((root / 'gpu.json').read_text())
+        data = {name: value for name, value in data.items() if name.startswith(build)} if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        data = {}
+    if data.get(key) != mode:
+        data[key] = mode
+        try:
+            atomic_write(root / 'gpu.json', json.dumps(data).encode())
+        except OSError:
+            pass
+
+
+def start_updater(root, current):
+    """The background update, in its own systemd unit when it can: outside the game's process tree,
+    so Steam doesn't wait for a download to finish before it counts the game closed (a black screen in
+    Gaming Mode), and a download carries on after the game. @return how it was started"""
+    log = root / 'update.log'
+    command = [sys.executable, str(current / 'resources/app/deck.py'), '--update']
+    runner = shutil.which('systemd-run')
+    if runner:
+        try:
+            subprocess.run([runner, '--user', '--quiet', '--collect', f'--unit=memento-update-{time.time_ns()}',
+                            '-p', f'StandardOutput=truncate:{log}', '-p', 'StandardError=inherit', '--', *command],
+                           stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                           timeout=10, check=True)
+            return 'systemd'
+        except (OSError, subprocess.SubprocessError):
+            pass
+    with log.open('w') as stream:
+        subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=stream, stderr=stream, start_new_session=True)
+    return 'child'
+
+
+def launch(root, arguments, run=run_game):
     # Resolve before starting the updater. This process runs its immutable build;
     # the background update only affects the next launch. Saves live elsewhere.
     # Hold the short activation lock, never the potentially long download lock.
@@ -523,13 +661,32 @@ def launch(root, arguments):
         game_pin = (game / '.in-use').open('a') if game else open(os.devnull)
         if game:
             fcntl.flock(game_pin, fcntl.LOCK_SH)
-    with pin, game_pin:
-        with (root / 'update.log').open('w') as log:
-            subprocess.Popen([sys.executable, str(current / 'resources/app/deck.py'), '--update'],
-                             stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True)
+    with pin, game_pin, (root / 'launch.log').open('w') as record:
+        def log(line):
+            print(f'Memento: {line}', file=sys.stderr, flush=True)
+            record.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {line}\n')
+            record.flush()
+        try:
+            start_updater(root, current)
+        except OSError as error:
+            log(f'No update check ({error}).')
         # Keep the pins until Electron exits, so updates cannot remove its assets.
-        result = subprocess.run([str(current / 'moebius'), *arguments], check=False, env=game_env(game))
-        sys.exit(result.returncode)
+        build = json.loads((current / 'resources/app/build.json').read_text()).get('build', 0)
+        key = f'{build}:{session_kind(os.environ)}'
+        ready = root / f'.ready-{os.getpid()}'
+        log(f'Runtime {build}, {session_kind(os.environ)}, game {game or "packaged"}.')
+        for mode in GPU_MODES[gpu_start(root, key):]:
+            log(f'Starting ({mode}).')
+            how, code, shown = run([str(current / 'moebius'), *arguments], game_env(game, mode, ready), ready, log=log)
+            if how == 'quit':
+                log(f'Closed ({mode}, exit {code}).')
+                if shown:
+                    gpu_remember(root, key, mode)
+                sys.exit(code)
+            log(f'Did not run ({mode}, exit {code}, window {"shown" if shown else "never shown"}).')
+        # nothing worked: back to Steam's library rather than a black screen
+        log('Gave up: no way to draw worked.')
+        sys.exit(1)
 
 
 def main():

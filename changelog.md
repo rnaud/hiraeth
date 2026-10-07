@@ -24,6 +24,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The traveller no longer holds a phone: the old handheld screen he carried in his right hand (in the character studio and on the Motion page) is gone, and his hand is empty.
 - With the tank on your back you now wear a dark leather glove on your right hand, as on the drawings: the hose runs down your arm into its cuff, its three knuckles light for the charges left and its plate glows in the fluid’s colour, and your shots and pushes leave from your fist. The wrist bracer, whose brass nozzle lay along your hand like a phone, is gone.
 - People sitting on benches, stones and kerbs wear their robes as seated people do: over the lap and falling from the knees in front of their shins, instead of standing out round their knees and through the bench. Robed people in the crowds no longer have their robe swing out with an arm as they walk, or rise over their head when they sit.
+- On the Steam Deck the game starts in Gaming Mode: it used to stay on a black screen you couldn’t close, because Steam’s overlay crashed it as it opened. If it ever can’t draw, it now tries another way and otherwise takes you back to your library, and Exit Game closes it at once.
 
 ## v0.72 — 2026-10-06
 
