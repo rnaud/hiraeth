@@ -19,7 +19,7 @@ export function itemsPage(items, placements, fallbacks, titles) {
       ? `<ul class="where">${where.map((w) => `<li><b>${esc(w.title)}</b>${w.temple ? ' (its temple)' : ''}: ${esc(w.note)}</li>`).join('')}</ul>`
       : `<ul class="where"><li>${it.kind === 'quest' || it.kind === 'pass' ? 'Given in a quest.' : 'Not in a box.'}</li></ul>`;
     const html = `<article data-id="${esc(id)}" data-kind="${esc(it.kind)}">
-      <div class="pic"><img src="item-pictures/${esc(id)}.webp" alt="" loading="lazy"></div>
+      <div class="pic" title="Drag to turn it; click to see it full screen"><img src="item-pictures/${esc(id)}.webp" alt="" loading="lazy"><canvas></canvas></div>
       <div class="txt"><h2>${esc(it.name)}</h2><div class="meta">${esc(KIND_NAMES[it.kind] ?? it.kind)}${it.needs ? ` · needs ${esc(items[it.needs]?.name ?? it.needs)}` : ''} · ${esc(id)}</div>
       <p>${esc(it.text)}</p>${it.use ? `<p class="use">${esc(it.use)}</p>` : ''}${whereHtml}</div>
     </article>`;

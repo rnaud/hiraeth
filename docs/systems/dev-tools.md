@@ -11,9 +11,14 @@ previous or next world's room, the hub between the last and the first. The Start
 so no world is built behind it (about 1 s on the dev server; on the Lab it took about 15 s).
 `?level=<id>&worlds=1` still opens a world with the list up. The list's top row links the game's other
 pages (`PAGES` in `src/world-picker.js`: the character studio, Motion, the trailer, What's new, Items). The
-items page (`items.html`, `src/items-page/`) shows every item of `src/items.js` with its picture
-(`public/item-pictures/<id>.webp`: `node scripts/item-pictures.mjs [ids]` has the game draw them as its menu
-does), what it does and where its boxes are (`src/boxes/placements.js` notes, the fallbacks by the ship). Its
+items page (`items.html`, `src/items-page/`) shows every item of `src/items.js` in 3D: its model
+(`buildItemModel`) drawn by the game's own pipeline (`viewer.js`: the G-buffer, a fine shadow map with the near
+and far ones made and switched off, the ink pass, FXAA) on the slots' paper. One renderer for the page: each
+card's canvas gets a picture as it scrolls into view and again while it is dragged; a click opens the
+full-screen view (live, drag to turn, wheel or pinch to zoom, ← → the other items, R turns it on its own, Esc).
+Without WebGL the cards keep the game's own pictures (`public/item-pictures/<id>.webp`: `node
+scripts/item-pictures.mjs [ids]`). With them: what it does and where its boxes are (`src/boxes/placements.js`
+notes, the fallbacks by the ship). Its
 pictures are `public/thumbs/<id>.jpg`, one per world: `node scripts/world-thumbs.mjs [ids]` takes them
 again (each world from its start at its own hour, headless Chrome as `scripts/changelog-shots.mjs`).
 

@@ -18,3 +18,12 @@ test('the items page: every item with its picture, what it does, and where it is
   assert.ok(whereFound('fire', PLACEMENTS, FALLBACKS, TITLES).some((x) => x.temple), 'ember: in a temple');
   assert.match(cards.find((c) => c.id === 'glider').html, /Fluid wings/);
 });
+
+test('the items in 3D: dragging turns them within limits, zoom stays within its range', async () => {
+  const { dragOrbit, zoomOrbit, VIEW } = await import('../src/items-page/viewer.js');
+  const o = { yaw: 0, pitch: 0, zoom: 1 };
+  dragOrbit(o, 100, 0); assert.ok(o.yaw < 0, 'a drag to the right turns it');
+  dragOrbit(o, 0, 10000); assert.equal(o.pitch, VIEW.maxPitch, 'never over the top');
+  zoomOrbit(o, 100); assert.equal(o.zoom, VIEW.maxZoom);
+  zoomOrbit(o, 1e-6); assert.equal(o.zoom, VIEW.minZoom);
+});

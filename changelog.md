@@ -16,7 +16,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the temples the makers’ machines meet the rooms’ workings: a gust shoves them down its hall, and one standing on a pressure plate presses it.
 - Where a blot falls, its ink stains the ground for a while; a shade’s cut leaves a dark arc of shadow in the air.
 - Fights have their own music: a drum and a low drone come in under the world’s music while foes chase you, and fade when the fight is over.
-- An items page, linked from the worlds list (Debug): every item with its picture, what it does, and where its boxes are, with a search and the kinds to filter by.
+- An items page, linked from the worlds list (Debug): every item in 3D, drawn in the game’s own ink, to drag round and turn, or to open full screen (zoom, and the next item with the arrow keys), with what it does and where its boxes are, a search and the kinds to filter by.
 - The fluid blade is a real sword now: a slim two-edged blade of the tank’s fluid tapering to a point, its edges bright, on a brass crossguard, a wrapped grip and a pommel, its edge leading every cut.
 - Locked on, the traveller faces the foe and strafes round it, side-stepping left and right or backing away in a sword stance, instead of running round it.
 - The Enemies setting has a Gentle choice: half the harm, slower wind-ups, one foe striking at a time and smaller, rarer packs. Normal and Off stay.

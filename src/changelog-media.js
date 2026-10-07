@@ -177,7 +177,7 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Swing the blade (F, RB / R1).' },
     { match: 'An items page, linked from the worlds list', shots: [
       { name: 'items-page', only: 'after', caption: 'The items page: each item’s picture, what it does and where it is found', from: 'headless Chrome against the dev server (7 October)' },
-    ], see: 'On the title screen, choose Debug, then Items at the top.' },
+    ], see: 'On the title screen, choose Debug, then Items at the top. Drag an item to turn it; click it for full screen.' },
     { match: 'Fights have their own music', see: 'In the Arena, as a wave comes in: the drum starts; it fades once the wave is down.' },
     { match: 'Where a blot falls, its ink stains the ground', see: 'Cut a blot down: dark stains on the sand where it was.' },
     { match: 'In the temples the makers’ machines meet the rooms’ workings', see: 'In a temple with gusts (Vael’s Aerie), lead a machine into the hall as it blows.' },
