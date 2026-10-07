@@ -10,7 +10,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 PLATFORM=${1:?android or linux}; FILE=${2:?the build}; BY=${3:-$(hostname -s)}
 [ -f "$FILE" ] || { echo "no build at $FILE" >&2; exit 1; }
-SHA=${SHA:-$(git rev-parse HEAD)}
+SHA=$(git rev-parse "${SHA:-HEAD}^{commit}")   # (the whole hash: the tag's move takes no short one)
 REPO=${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner -q .nameWithOwner)}
 TAG=unity-$PLATFORM
 NAME=$(node --input-type=module -e "import { UNITY_RELEASES as R } from './scripts/release-info.mjs'; console.log(R[process.argv[1]].file)" "$PLATFORM")

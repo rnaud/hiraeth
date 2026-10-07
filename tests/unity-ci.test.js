@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { UNITY_RELEASES, unityNotes } from '../scripts/release-info.mjs';
+import { UNITY_RELEASES, unityBuildOf, unityNotes } from '../scripts/release-info.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const workflow = read('.github/workflows/unity-android.yml');
@@ -91,7 +91,7 @@ test('the testers\' APK has its own identity: installed next to the web app, nev
   assert.match(release, /IconTexture\("icon-512\.png", ReleaseIcon\)/);
   assert.match(release, /IconTexture\("maskable-512\.png"/);
   assert.match(release, /AndroidIcons\(tex, maskable\)/);
-  assert.match(build, /new\[\] \{ "Legacy", "Round", "Adaptive" \}/);
+  assert.match(build, /new\[\] \{ "Adaptive" \}/);
   assert.match(build, /PlayerSettings\.SetPlatformIcons\(NamedBuildTarget\.Android, kind, icons\)/);
   for (const f of ['icon-512.png', 'maskable-512.png']) assert.ok(existsSync(new URL(`../public/icons/${f}`, import.meta.url)), f);
   // the bridge's Android player: IL2CPP, ARM64
@@ -112,4 +112,10 @@ test('the notes say which commit and web version a build came from', () => {
   assert.match(n, /`com\.rnaud\.moebius`/);
   assert.match(unityNotes({ platform: 'linux', sha: 'abc' }), /memento-unity-linux\.tar\.gz/);
   assert.throws(() => unityNotes({ platform: 'ios' }));
+});
+
+test('the notes take the version and build of the commit built, not of the checkout', () => {
+  const git = (cmd) => (cmd === 'show' ? `export const CHANGELOG = [\n  { v: '0.81', date: '2026-10-07', items: [\n` : cmd === 'rev-list' ? '1001' : '');
+  assert.deepEqual(unityBuildOf('1dc4626c', git), { version: '0.81', build: 1001 });
+  assert.match(read('scripts/unity-publish.sh'), /SHA=\$\(git rev-parse "\$\{SHA:-HEAD\}\^\{commit\}"\)/);   // (the whole hash, for the tag)
 });

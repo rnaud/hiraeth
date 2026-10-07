@@ -102,10 +102,11 @@ in seconds, naming it. The runs take one seat at a time (the Linux job waits for
 on 2026-10-07 with `UNITY_EMAIL` and `UNITY_PASSWORD`: each editor run logs "Licensing method:
 personal … ASSIGN_SEAT" and, at its end, "Successfully returned the entitlement license".)
 
-Two traps met on the way: `-version` on the editor's command line makes Unity print its version and
-quit, building nothing (the version goes in as GameCI's `-buildVersion`); and GameCI v6 fails a run
-whose log does not say "Build succeeded!" (its own build script's words), so `BridgeBuild`'s entries
-log that on success.
+Traps met on the way: `-version` on the editor's command line makes Unity print its version and
+quit, building nothing (the version goes in as GameCI's `-buildVersion`); GameCI v6 fails a run whose
+log does not say "Build succeeded!" (its own build script's words), so `BridgeBuild`'s entries log that
+on success; and an Android build ignores the default icon: with its adaptive icons left empty it
+draws Unity's cube, so `AndroidRelease` fills them (both layers: `public/icons/maskable-512.png`).
 
 Costs: the repository is private, so the minutes count (an Android IL2CPP build is 30–60 min from a
 cold `Library`, less from the cache; pushes to `main` that touch `src/` are frequent, and runs queue

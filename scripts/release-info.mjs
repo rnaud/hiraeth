@@ -135,6 +135,12 @@ export function unityNotes({ platform = 'android', sha, subject = '', version = 
   return `${what}\n\n${from}\n\nNot for players: the game itself is the Memento app and https://memento.alexandria-rnaud.workers.dev/.`;
 }
 
+/** A commit's web version (its newest changelog entry) and build number (its commit count, as gameBuild counts HEAD's). */
+export function unityBuildOf(sha, git) {
+  const version = /\{\s*v:\s*'([^']+)'/.exec(git('show', `${sha}:src/changelog.js`))?.[1] ?? CHANGELOG[0].v;
+  return { version, build: +git('rev-list', '--count', sha) };
+}
+
 function main(what = 'version', ...args) {
   const [latest] = CHANGELOG;
   if (what === 'version') console.log(latest.v);
@@ -147,7 +153,9 @@ function main(what = 'version', ...args) {
   else if (what === 'unity-notes') {
     const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8' }).trim();
     const sha = args[1] || git('rev-parse', 'HEAD');
-    console.log(unityNotes({ platform: args[0], sha, subject: git('log', '-1', '--format=%s', sha), build: gameBuild(), by: args[2] }));
+    // (the version and build of the commit built, which need not be the checkout's)
+    const at = unityBuildOf(sha, git);
+    console.log(unityNotes({ platform: args[0], sha, subject: git('log', '-1', '--format=%s', sha), ...at, by: args[2] }));
   }
   else if (what === 'notes') {
     console.log(`Memento v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online, from the game's own site.\n`);

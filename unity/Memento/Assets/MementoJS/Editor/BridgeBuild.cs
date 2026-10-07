@@ -222,7 +222,7 @@ namespace Memento.EditorTools
         }
 
         /// <summary>
-        /// Android's own icons (legacy, round, adaptive: every size). Their kinds live in the Android module's
+        /// Android's own icons (the adaptive ones, every size). Their kinds live in the Android module's
         /// assembly, found by name so this file compiles without it (the Linux build's editor has no Android module).
         /// </summary>
         static bool AndroidIcons(Texture2D icon, Texture2D maskable)
@@ -231,8 +231,9 @@ namespace Memento.EditorTools
                 .Select(a => a.GetTypes().FirstOrDefault(t => t.Name == "AndroidPlatformIconKind")).FirstOrDefault(t => t != null);
             if (kinds == null) { Debug.LogError("Memento: no Android module (AndroidPlatformIconKind)"); return false; }
             int set = 0;
-            // (Legacy and Round are marked obsolete in Unity 6, Adaptive is the one launchers since Android 8 draw)
-            foreach (var name in new[] { "Legacy", "Round", "Adaptive" })
+            // (Adaptive alone: the one launchers draw since Android 8, the APK's minimum; Legacy and Round are obsolete in
+            // Unity 6, their sizes no longer listed: setting them threw "the given key was not present")
+            foreach (var name in new[] { "Adaptive" })
                 try
                 {
                     var flags = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static;
@@ -260,8 +261,8 @@ namespace Memento.EditorTools
             PlayerSettings.Android.renderOutsideSafeArea = true;
             // played by hand: it pauses, and goes quiet, when the player leaves it (the bench players keep running)
             PlayerSettings.runInBackground = false;
-            // the game's icon (the web app's), copied in as textures the build reads: icon-512 for the legacy and round
-            // icons, the maskable one (its picture inside the launchers' safe zone) for both layers of the adaptive icon.
+            // the game's icon (the web app's), copied in as textures the build reads: icon-512 as the default icon, the
+            // maskable one (its picture inside the launchers' safe zone) for both layers of Android's adaptive icons.
             // (Android takes its platform icons only: with those left empty it draws Unity's own, whatever the default is.)
             var tex = IconTexture("icon-512.png", ReleaseIcon);
             var maskable = IconTexture("maskable-512.png", ReleaseIcon.Replace(".png", "-maskable.png"));
