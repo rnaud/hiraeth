@@ -22,6 +22,8 @@ export const TITLES = {
   home: 'Home',
   glassdunes: 'The Glass Dunes',
   underwater: 'The Underwater City',
+  eclipse: 'The City During the Eclipse',
+  fallenring: 'The Fallen Ring',
   moonfoundry: 'The Moon Foundry',
 };
 
@@ -30,6 +32,6 @@ export const TITLES = {
 // worlds that want them (the Hangar, the Buried Machine, the Signal Market) come after it.
 export const ORDER = ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'incal', 'garage', 'buried', 'spheres', 'bazaar'];
 // the worlds off the route: on the ship's map from the start, never needed on the way home (no story to follow)
-export const SIDE = ['mangrove', 'glassdunes', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'moonfoundry'];
+export const SIDE = ['mangrove', 'glassdunes', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry'];
 // a world that follows another's story is only charted once that one is done (Vael II: the bird's promise)
 export const AFTER = { arzach2: 'arzach' };

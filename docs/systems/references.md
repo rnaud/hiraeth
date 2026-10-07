@@ -626,6 +626,44 @@ the narrowest creases.
   view 3's canyon is a street, not the plate's dark water with walkways over it; the domes' glass draws only its
   rim (S_GLASS), where the plates draw reflections across it; the columns' swimmers are not there.
 
+## The Fallen Ring's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-fallenring.js`, world `fallenring`: `?level=references&world=fallenring&view=<1…4>`):
+  four single compositions (1456 × 816), one view each: the long tube in the grass with its village, the arch's leg
+  rising behind it, the tilted segment on its crushed vermilion foot (1); the tubes broken open end-on over the vault
+  and its village, the great arch overhead and a far one on the horizon (2); the arch swooping over to its broken
+  vermilion end, the slanted segment over the village (3); the low segment lying round the village on its posts, the
+  great arch rising out of it and down behind (4). One scene builder (`ringScene`): segments of the ring, villages
+  along their feet, service stairs, trees from the hull, the grazing beasts, the cumulus, the path, grass tufts and
+  the traveller. `?look=fallenring`.
+- **Placed off the sheets' pixels**, as the Forest of Antennas' views (`sheetAt`, `sheetGround`, `sheetSpan`, copied
+  in the module): a segment is given by three points of its centre line seen at three pixels and distances
+  (`arcThrough(A, M, B)`: the circle through them and its frame), run on past its ends (`ext`) into the ground. A ring
+  lying down (`lie`) has its frame turned so its section's z is up; it then runs from B to A, and `segment` mirrors
+  what was given from A (its ends, bands, openings, trees).
+- **The shapes** (`src/levels/fallen-ring-kit.js`, shared with the world): `ringSegment` (a superellipse section swept
+  along an arc: the skin by rows and columns, its outward faces by winding; painted `bands`; `open` regions where the
+  skin is cut away on the inside wall, the wall's thickness round the cut and ribs across it; broken `ends` ragged
+  column by column, the inside shown `deep` m in and closed by a bulkhead; collars between its segments (`joints`);
+  inside, floors across the section (`'r'`, the habitat's, concentric; `'z'`, level, for a tube lying down) or decks
+  across the tube (`mode: 'x'`, an upright leg's storeys), houses and gardens on them; `at(t, s, off)` a point of the
+  skin and its normal), `arcThrough`, `ringPose`, `tree` (an umbrella tree, its trunk forking under a layered
+  crown), `village` (a row of cabins against a wall: lit windows, upper storeys, railed roofs, awnings, stalls,
+  lanterns, crates), `serviceStair` (the antennas' truss stair), `grazer` (a woolly beast, head down), `puff` and
+  `cloudBank` (the great cumulus: welded lumpy puffs in clusters with towers on top). The skin wraps its hatching
+  round the tube (`aFormC` / `aFormA` per vertex: the centre line's point and tangent, kind wrap).
+- **The look** (`RING_LOOK`, `RING_DAY`, `RING_TONES`): a teal-blue sky, a blue-green shade (the pictures' ivory in
+  shade is a grey-teal), little hatching, the cumulus as geometry (no horizon bank, no flat clouds), a light haze in
+  bands from 220 m and a thin fog, the aerial perspective's greying cut to 0.35 (with the Moebius print's, the cumulus
+  at 500–700 m came out grey; now white with a pale blue shade).
+- **On the world** (`src/levels/fallen-ring.js`, worlds.md "The Fallen Ring"): the same kit, `ringThrough` placing
+  each piece by three points of its centre line, the hulls and what is inside them solid as drawn.
+- **The scale**: the pictures' tubes 20–45 m round 50–200 m off, the arches' legs 50–75 m thick, their circles 250–900
+  m round; the beasts 20–40 m off.
+- **Left**: the pictures' interiors are dense little cities (terraces, hanging gardens, lit windows by the hundred);
+  ours are a few decks of houses and gardens behind ribs. Their hulls carry fine panel work and stains; ours the
+  built pen detail and collars. Their beasts are woolly; ours plain lumps. The tilted segment of view 1 bends at its
+  crushed foot; ours is one arc.
 ## The Moon Foundry's sheets (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-moonfoundry.js`, world `moonfoundry`: `?level=references&world=moonfoundry&view=n`):
@@ -735,3 +773,30 @@ Ranked by how much they would close the gap to the sheets, across every world re
    material (`color2`, `color3` only in strata). **Done** (`patches`, docs/systems/materials.md "Colour
    across a wall"): each building's faces their own tone, repaints over one to three storeys, the odd
    storey in another render, world-anchored, a clean edge with no line, on every wall with built pen detail.
+
+## The City During the Eclipse's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-eclipse.js`, world `eclipse`: `?level=references&world=eclipse&view=n`): four
+  16:9 pictures (1456 × 816), one view each, after the Underwater City's: the square under the eclipse, the tables
+  along the walls, the stair, the round tower (1); from the top of the steps, the stair down and the far city to the
+  rose horizon, the terraces climbing on the left (2); the bowl of terraces round the square, the stars out at midday
+  (3); down the street of steps, the washing, the city falling away to the horizon (4). One scene builder
+  (`cityScene`) with the world's kit (`src/levels/eclipse-kit.js`, shared with the world, worlds.md): houses
+  (`house`: rounded blocks, drums, towers, flat or domed, arched doors with the door stain, windows some lit, flower
+  boxes, antennas), terraces of big masonry blocks, broad stairs with cheek walls, tables with their cloths,
+  lanterns and diners, lamps (globes, posts, hung, the big paper lanterns), awnings, the rooftops' poles and
+  sheets, washing, the pale figures (`paleFigure`: leaning out from a wall, hung over a parapet, standing), the far
+  city (`farQuarter`), the traveller with his glowing lantern pack.
+- **The eclipse where the picture has it**: each view's `eclipse` ({ side, el } from the line of sight, its disc's
+  size, the corona's reach, style and colour, the stars) becomes its look's eclipse uniforms (`eclipseUniforms`),
+  the direction through `eclipseAt` (references.js's sunTurn, so the disc lands where it should whatever the view's
+  sun); the view's `sun` stays high and lights the city from the sky (the pictures' faces toward the eclipse are
+  lit, not black). Picture 1's corona is a short ring of fine white rays under a plain blue sky; 2's a peach stipple;
+  3's a white stipple among stars; 4's long fine peach rays (rendering.md "The eclipse").
+- **The look** (`ECLIPSE_LOOK`, `ECLIPSE_TOTAL` in the kit): a flat sky, the limewash lit a cold lavender and its
+  shade printed flat in a deep violet (read off the pictures: lit walls #9589e6 … #5c4e99, shade #3c3a68), little
+  hatching, few spot blacks, cast shadows lifted on open ground, a rose-lavender haze in bands; the lamps' pools
+  amber on the walls (`lampTint`). `?look=eclipse`.
+- **Left**: the pictures' city is far denser (stairs everywhere, ledges, plants, crowds at every table); our walls
+  are plain masonry faces where the pictures carry deep detail; the pale figures are simpler; picture 3's pink
+  cloud streaks are left out; the compositions follow the pictures' masses, not every house.
