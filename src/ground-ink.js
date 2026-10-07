@@ -24,12 +24,69 @@ export const GROUND = {
   ripple: { period: 1.6, half: 0.03, patch: [0.66, 0.78] },   // patch: where the ripple patches are (of a 0..1 noise)
   wind: { period: 9.0, half: 0.08, keep: 0.62 },                // keep: the share of wind lines left out
   // the print look's coarse pen dots on sand: how many cells hold one, and only in patches
+  // (no longer drawn on sand with ripples: the pebbles below took their place; kept for the other ground)
   dots: { density: 0.1, patch: [0.55, 0.75] },
   // cracks in bare rock ground (terrain with pattern 'cracks'): long fissures, a finer net near
   fissures: { big: 7.5, bigHalf: 0.04, small: 2.4, smallHalf: 0.014 },
   grains: { cell: 0.12, r0: 0.005, r1: 0.01 },
   cracks: { big: 5.5, bigHalf: 0.035, small: 1.6, smallHalf: 0.012, edgePerArea: 2.0 },
 };
+
+/**
+ * Pebbles and stones on the sand (the print look, uDots): what Moebius's spots on sand are, small cast shadows
+ * of pebbles and rocks, not dots. Each is a little flattened disc with its side away from the light inked and
+ * the shadow it casts on the sand (only where the sand is lit) running away from the light, as long as the
+ * light is low (`cast` radii over the sun's tangent, `len` the bounds). Three scales: grit near (in place of
+ * the grains' dots), pebbles in patches and a few stones that still read far off. Close up the lit side keeps the sand's colour inside a fine rim; thinner
+ * than `minPx` radius it is drawn that wide and lighter (the ink it holds kept); a few px per cell and it hands
+ * over to that average tone (resolved, as the grains). cell (m), density (share of cells, at the patches' full),
+ * r (m): the radius' range (most near the small end), squash: across the light over along it.
+ */
+export const PEBBLES = {
+  grit: { cell: 0.32, density: 0.22, r: [0.009, 0.024], seed: 71.0 },   // (in place of the grains' dots, in the print look)
+  pebble: { cell: 0.9, density: 0.32, r: [0.022, 0.07], seed: 13.0 },
+  stone: { cell: 6.0, density: 0.16, r: [0.12, 0.42], seed: 57.0 },
+  patch: [0.35, 0.7],      // where the pebbles lie (of a 0..1 noise; the stones everywhere)
+  cast: 1.1, len: [0.6, 3.0],
+  squash: 0.72,
+  side: 1.15, shadow: 1.0, rim: 0.75,   // ink: the side away from the light, the cast shadow, the lit side's rim (post.js: over 1 is darker)
+  minPx: 1.0,              // the smallest radius drawn (px); smaller, lighter instead
+  rimPx: [3.0, 6.0],       // the rim drawn once the radius is this many px
+  resolved: [3.0, 6.0],    // px per cell: below the first, only the average tone
+};
+
+/** A pebble's cast shadow, in radii, for a light this high (y: the sine of its height over the horizon). */
+export function pebbleShadow(y) {
+  const s = Math.max(y, 0.05);
+  return clamp(PEBBLES.cast * Math.sqrt(Math.max(1 - s * s, 0)) / s, PEBBLES.len[0], PEBBLES.len[1]);
+}
+
+/**
+ * One pebble's ink (mirrors the GLSL): d (m, from its centre, [toward the light, across]), r its radius (m),
+ * len its shadow (radii), gm metres per px, castK how lit the sand is there (0..1).
+ */
+export function pebbleInk([dx, dy], r, len, gm, castK) {
+  const k = Math.max(1, PEBBLES.minPx * gm / r), rD = r * k, amt = 1 / (k * k);
+  const sq = PEBBLES.squash, ss = (a, b, v) => smoothstep(a, b, v);
+  const aa = gm / rD;
+  const bodyR = Math.hypot(dx, dy / sq) / rD;
+  const inBody = 1 - ss(1 - aa, 1 + aa, bodyR);
+  const darkSide = inBody * (1 - ss(-0.35, 0.25, dx / rD));
+  const L = len * rD;
+  const sl = Math.hypot((dx + 0.5 * L) / (0.5 * L + 0.6 * rD), dy / (0.8 * rD * sq));
+  const aaS = gm / (0.8 * rD * sq);
+  const inShadow = (1 - ss(1 - aaS, 1 + aaS, sl)) * (1 - inBody) * castK;
+  const rimK = ss(PEBBLES.rimPx[0], PEBBLES.rimPx[1], r / gm);
+  const rim = rimK * (1 - ss(0.5, 1.2, Math.abs(bodyR - 1) * rD / gm)) * ss(-0.2, 0.2, dx / rD);
+  return Math.max(darkSide * PEBBLES.side, inShadow * PEBBLES.shadow, rim * PEBBLES.rim) * amt;
+}
+
+/** The average ink a cell holds (what the far ground hands over to): a pebble of radius r, its shadow len radii. */
+export function pebbleMean(r2mean, len, cell, density, castK) {
+  const sq = PEBBLES.squash;
+  const area = Math.PI * r2mean * (0.5 * sq * PEBBLES.side + (0.5 * len + 0.6) * 0.8 * sq * PEBBLES.shadow * castK);
+  return density * area / (cell * cell);
+}
 
 const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
 const smoothstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -104,6 +161,48 @@ export const GROUND_GLSL = /* glsl */ `
     float dots = res > 0.0 ? (1.0 - smoothstep(rD - 0.5, rD + 0.5, d / gm)) * min(rPx * rPx / (rD * rD), 1.0) * step(hash(id + seed + 5.3), density) : 0.0;
     float meanR2 = (r0 * r0 + r0 * r1 + r1 * r1) / 3.0;
     return mix(density * 3.14159 * meanR2 / (cell * cell), dots, res);
+  }
+
+  // Pebbles and stones on the sand (PEBBLES): small cast shadows of pebbles and rocks, not dots. One per cell at
+  // most, centred so that it and its shadow stay inside the cell (one lookup a pixel); s2 the light's way on the
+  // ground (unit), len its shadow in radii, castK how lit the sand is here, gm metres per px.
+  float pebbleShadow(float y) {
+    float s = max(y, 0.05);
+    return clamp(${PEBBLES.cast.toFixed(2)} * sqrt(max(1.0 - s * s, 0.0)) / s, ${PEBBLES.len[0].toFixed(2)}, ${PEBBLES.len[1].toFixed(2)});
+  }
+  float pebbleInk(vec2 d, float r, float len, float gm, float castK) {
+    float k = max(1.0, ${PEBBLES.minPx.toFixed(2)} * gm / r), rD = r * k, amt = 1.0 / (k * k);
+    float aa = gm / rD;
+    float bodyR = length(vec2(d.x, d.y / ${PEBBLES.squash.toFixed(2)})) / rD;
+    float inBody = 1.0 - smoothstep(1.0 - aa, 1.0 + aa, bodyR);
+    float darkSide = inBody * (1.0 - smoothstep(-0.35, 0.25, d.x / rD));
+    float L = len * rD;
+    float sl = length(vec2((d.x + 0.5 * L) / (0.5 * L + 0.6 * rD), d.y / (0.8 * rD * ${PEBBLES.squash.toFixed(2)})));
+    float aaS = gm / (0.8 * rD * ${PEBBLES.squash.toFixed(2)});
+    float inShadow = (1.0 - smoothstep(1.0 - aaS, 1.0 + aaS, sl)) * (1.0 - inBody) * castK;
+    float rimK = smoothstep(${PEBBLES.rimPx[0].toFixed(1)}, ${PEBBLES.rimPx[1].toFixed(1)}, r / gm);
+    float rim = rimK * (1.0 - smoothstep(0.5, 1.2, abs(bodyR - 1.0) * rD / gm)) * smoothstep(-0.2, 0.2, d.x / rD);
+    return max(max(darkSide * ${PEBBLES.side.toFixed(2)}, inShadow * ${PEBBLES.shadow.toFixed(2)}), rim * ${PEBBLES.rim.toFixed(2)}) * amt;
+  }
+  float pebbleField(vec2 p, float gm, vec2 s2, float len, float castK, float cell, float density, vec2 rr, float seed) {
+    float res = smoothstep(${PEBBLES.resolved[0].toFixed(1)}, ${PEBBLES.resolved[1].toFixed(1)}, cell / gm);
+    float dr = rr.y - rr.x, r2m = rr.x * rr.x + 2.0 * rr.x * dr / 3.0 + dr * dr / 5.0;   // (the mean of r² for r = mix(r0, r1, h²))
+    float sq = ${PEBBLES.squash.toFixed(2)};
+    float tone = density * 3.14159 * r2m * (0.5 * sq * ${PEBBLES.side.toFixed(2)} + (0.5 * len + 0.6) * 0.8 * sq * ${PEBBLES.shadow.toFixed(2)} * castK) / (cell * cell);
+    float ink = 0.0;
+    if (res > 0.0) {
+      vec2 id = floor(p / cell), h = hash2(id + seed);
+      if (hash(id + seed + 5.3) < density) {
+        float r = mix(rr.x, rr.y, h.y * h.y);
+        vec2 perp = vec2(-s2.y, s2.x);
+        // (the pebble and its shadow centred in the cell, then jittered within what is left of it)
+        float ext = 0.5 * len * r + 1.6 * r, room = max(0.5 * cell - ext, 0.0);
+        vec2 c = (id + 0.5) * cell + s2 * (0.5 * len * r) + (vec2(hash(id + seed + 2.1), hash(id + seed + 8.3)) - 0.5) * 2.0 * room;
+        vec2 d = p - c;
+        ink = pebbleInk(vec2(dot(d, s2), dot(d, perp)), r, len, gm, castK);
+      }
+    }
+    return mix(tone, ink, res);
   }
 
   // Voronoi border distance (cell units, Inigo Quilez) and the border's normal.

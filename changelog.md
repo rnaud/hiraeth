@@ -7,6 +7,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the City-Shaft the shade is printed flat in the shaft’s blue, as in its drawings: a pink wall’s shaded side goes blue, while the trees stay green and people keep the shade of their own clothes. In the desert’s reference views of the dish city and the dunes, the shadows the dishes and cliffs throw on the sand are solid dark ink, as drawn, while the domes keep their blue shade.
 - No more filter stuck to the screen: the faint paper grain and the darkened corners that stayed put while the world moved under them are gone, and the slight wobble of the ink lines now turns with the world as you look around instead of sitting on the screen like rippled glass.
 - Old walls no longer shimmer as you look around: the small dark grime streaks on distant walls, such as Qanat’s, are a soft faint stain instead of tiny outlined drops that flickered, the chipped plaster has no flickering edge, and very fine hatching on far walls turns to a flat tone instead of crawling.
+- The spots on the desert sand are pebbles and stones now, as Moebius draws them: each a little stone with its side away from the sun in shadow and a short shadow on the sand pointing away from the sun, long at dawn and dusk and short at noon. Far off they become small dashes all pointing the same way instead of a scatter of dots.
 
 ## v0.73 — 2026-10-06
 

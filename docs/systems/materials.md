@@ -219,6 +219,19 @@ numbers, as `vObjRel` already was for the strokes).
   (the old pixel-width fade made ripples and cracks pop in a band ahead of you).
   Sand: grains near → wind ripples (1.6 m) → long wind lines over the dunes (9 m) → tone;
   in the dotted print style, world-sized dots replace the old pixel-sized stipple on sand.
+- **Pebbles and stones on the sand** (`PEBBLES`, `pebbleField` in `src/ground-ink.js`; the print look, `uDots`, on
+  rippled sand). The author's feedback (2026-10-06): the sand's spots read as spots, where in Moebius they are the
+  shadows of pebbles and rocks seen from afar. The grains' dots and the coarse pen dots are gone from rippled sand
+  in the print look; in their place, at most one pebble a cell at three scales (grit 0.32 m cells near, pebbles
+  0.9 m in patches, stones 6 m that still read far off): a flattened disc whose side away from the light is inked
+  and whose lit side keeps the sand's colour inside a fine rim (once its radius is 3-6 px), and the shadow it casts
+  on the sand running away from the light (`uSunDir`), `cast` radii over the sun's tangent (0.6-3 radii: long
+  dashes at dawn and dusk, stubs at noon), only where the sand is lit (a cast shadow from a building swallows it).
+  Each pebble and its shadow fit inside its cell (one lookup a pixel). Under a 1 px radius it is drawn that wide
+  and lighter (the ink it holds kept, `tests/ground-ink.test.js`); a few px a cell, its average tone. Seen from
+  far, a field of them is a scatter of short dark dashes all pointing the same way. Motion check (Medium, the
+  desert's spawn): drift 7.3 → 7.4, walking through the haze 38.1 → 34.8 flickering px per 10 000; Handheld
+  cost +0.03 ms (noise).
   Salt flats: small crust cracks near → the big dried-mud polygons → tone; the Voronoi
   search returns the border normal, so crack width comes from the true screen gradient.
   `penLine` / `lineField` have JS twins that `tests/ground-ink.test.js` checks.

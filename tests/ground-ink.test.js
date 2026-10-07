@@ -79,3 +79,43 @@ test('people are flagged for the outline pass; post.js decodes the flag before t
   assert.ok(flag > 0 && hero > flag, 'figure bit removed before the hero bit is read');
   assert.ok(post.includes('float figPx = 1.8 * uRes.y * 0.5 * uProj11'));
 });
+
+// Pebbles on the sand (ground-ink.js PEBBLES): the print's spots are small cast shadows of pebbles and stones
+test('pebbles: the shadow runs away from the light, longer as the light is low, and the lit side stays the sand', async () => {
+  const { PEBBLES, pebbleShadow, pebbleInk } = await import('../src/ground-ink.js');
+  // longer at a low sun, within its bounds
+  assert.ok(pebbleShadow(0.2) > pebbleShadow(0.6) && pebbleShadow(0.6) >= pebbleShadow(0.95));
+  assert.equal(pebbleShadow(0.01), PEBBLES.len[1]);
+  assert.equal(pebbleShadow(1), PEBBLES.len[0]);
+  const r = 0.05, gm = 0.005, len = pebbleShadow(0.3);   // a 10 px pebble, an afternoon sun
+  // (x toward the light) the side away from the light is inked, its lit side is not (bar the rim)
+  assert.ok(pebbleInk([-0.6 * r, 0], r, len, gm, 1) > 1, 'its dark side');
+  assert.equal(pebbleInk([0.5 * r, 0], r, len, gm, 1), 0, 'its lit side keeps the sand');
+  // the cast shadow behind it, away from the light, and none on the light's side
+  assert.ok(pebbleInk([-(1 + 0.5 * len) * r, 0], r, len, gm, 1) > 0.9, 'its shadow on the sand');
+  assert.equal(pebbleInk([2.5 * r, 0], r, len, gm, 1), 0, 'nothing toward the light');
+  assert.equal(pebbleInk([-(1 + 0.5 * len) * r, 0], r, len, gm, 0), 0, 'no cast shadow where the sand is already in shade');
+});
+
+test('pebbles: far off a pebble is drawn lighter, not thinner, so the ink it holds stays the same', async () => {
+  const { pebbleShadow, pebbleInk } = await import('../src/ground-ink.js');
+  const r = 0.02, len = pebbleShadow(0.4);
+  const inkOf = (gm) => {
+    let s = 0; const st = gm / 4, R = r * (len + 3) * 2;
+    for (let x = -R; x <= R; x += st) for (let y = -R; y <= R; y += st) s += pebbleInk([x, y], r, len, gm, 1) * st * st;
+    return s;
+  };
+  const near = inkOf(0.004);   // 5 px radius
+  for (const gm of [0.03, 0.06, 0.1]) {   // under a pixel
+    const far = inkOf(gm);
+    assert.ok(Math.abs(far - near) < near * 0.35, `at ${gm} m/px: ${far.toExponential(2)} vs ${near.toExponential(2)}`);
+  }
+});
+
+test('pebbles take the place of the dots and grains on rippled sand in the print look', () => {
+  const f = makeMaterial({ color: '#efd29b', mode: MODE_TERRAIN, ripples: true, sandInk: true, key: 't.pebbles' }).fragmentShader;
+  assert.equal((f.match(/pebbleField\(gp, gm, s2, len, castK,/g) ?? []).length, 3, 'grit, pebbles and stones');
+  assert.ok(f.includes('float grains = uDots > 0.0 ? 0.0 : sandGrains('), "the grains' dots only outside the print look");
+  assert.ok(f.includes('vec2 s2 = uSunDir.xz / max(length(uSunDir.xz), 1e-3);'), "the shadows from the world's light");
+  assert.ok(!f.includes('0.55, 0.03, 0.06, 13.0)'), 'the coarse pen dots gone from the sand');
+});

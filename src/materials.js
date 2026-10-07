@@ -5,7 +5,7 @@ import { EYE_TILT } from './eyes.js';
 import { CREASE_GLSL } from './creases.js';
 import { BIOME_GLSL } from './biome.js';
 import { CROWD_GLSL, TRIM_GLSL } from './crowd-shader.js';
-import { GROUND_GLSL, GROUND } from './ground-ink.js';
+import { GROUND_GLSL, GROUND, PEBBLES } from './ground-ink.js';
 import { GLYPH_GLSL } from './glyphs.js';
 import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
 import { BRUSH_GLSL, brushUniforms } from './brush.js';
@@ -2126,11 +2126,20 @@ const fragmentShader = /* glsl */ `
       if (uRipples > 0.5) {
         detail = max(detail, sandRipples(gp, slope) * sandK);
         // grains close up; in the dotted print style, coarser dots that last further out
-        float grains = sandGrains(gp, gm, 0.25, 0.12, 0.005, 0.01, 71.0) * 0.55;
-        // (the print's coarse pen dots: a few, in patches, not a screen over all the sand)
-        if (uDots > 0.0) grains = max(grains, sandGrains(gp, gm, ${GROUND.dots.density} * uDots, 0.55, 0.03, 0.06, 13.0) * 0.8
-                                              * smoothstep(${GROUND.dots.patch[0]}, ${GROUND.dots.patch[1]}, vnoise(gp * 0.04 + 23.0)));
+        // (not in the print look: its pebbles' grit takes their place, below)
+        float grains = uDots > 0.0 ? 0.0 : sandGrains(gp, gm, 0.25, 0.12, 0.005, 0.01, 71.0) * 0.55;
         detail = max(detail, grains * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
+        // (the print's spots on the sand: pebbles and stones, each with its dark side and the shadow it casts away
+        //  from the light, in patches; not dots. ground-ink.js PEBBLES)
+        if (uDots > 0.0) {
+          vec2 s2 = uSunDir.xz / max(length(uSunDir.xz), 1e-3);
+          float len = pebbleShadow(uSunDir.y), castK = smoothstep(uToon - 0.02, uToon + 0.12, L);
+          float pk = smoothstep(${PEBBLES.patch[0].toFixed(2)}, ${PEBBLES.patch[1].toFixed(2)}, vnoise(gp * 0.04 + 23.0));
+          float peb = max(max(pebbleField(gp, gm, s2, len, castK, ${PEBBLES.grit.cell.toFixed(2)}, ${PEBBLES.grit.density.toFixed(3)}, vec2(${PEBBLES.grit.r[0].toFixed(3)}, ${PEBBLES.grit.r[1].toFixed(3)}), ${PEBBLES.grit.seed.toFixed(1)}),
+                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.pebble.cell.toFixed(2)}, ${PEBBLES.pebble.density.toFixed(3)} * pk, vec2(${PEBBLES.pebble.r[0].toFixed(3)}, ${PEBBLES.pebble.r[1].toFixed(3)}), ${PEBBLES.pebble.seed.toFixed(1)})),
+                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.stone.cell.toFixed(2)}, ${PEBBLES.stone.density.toFixed(3)}, vec2(${PEBBLES.stone.r[0].toFixed(3)}, ${PEBBLES.stone.r[1].toFixed(3)}), ${PEBBLES.stone.seed.toFixed(1)}));
+          detail = max(detail, peb * uDots * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
+        }
       }
       #endif
       #ifdef S_BIOMES
