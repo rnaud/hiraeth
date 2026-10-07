@@ -51,6 +51,7 @@ import { toastSeconds } from '../src/quest.js';
 import { selfLitSkips } from '../src/shadows.js';
 import { plainValue } from './ink-spec.js';
 import { Sound } from '../src/audio.js';
+import { createBoxes } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
 
 export { page };
@@ -79,6 +80,8 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
   'uLineWidth', 'uLineVary', 'uDepthThresh', 'uNormalThresh', 'uAlbedoEdges', 'uShadowEdges', 'uWobble', 'uHaze', 'uAerial', 'uSkyFlat', 'uSkyBands', 'uHazeBands',
   'uHalftone', 'uBounce', 'uShadeKeep', 'uFlatten', 'uNight', 'uSunDisc', 'uPaper', 'uGrain', 'uSkyDots', 'uCrevice', 'uAO', 'uEnvGround',
   'uSunColor', 'uMoonDisc', 'uMoonVis'];
+/** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
+export const LOOK_VECTORS = new Set(['uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
 export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, log = () => {} } = {}) {
   const T = {};
@@ -158,9 +161,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
   stamp('people');
+  // the makers' boxes (src/boxes/): each with its beacon, the pale pillar of light over a box that must be found
+  const boxes = optional('the boxes', () => createBoxes({ levelId, scene, physics, level, player, sound, quests: story?.quests ?? null, toast,
+    anchor: () => ship?.arrivalSpot?.() ?? null, quiet: () => !!story?.dialogue?.open, cam: null }));
   // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), before the flora keeps clear of them
   const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
-  const flora = quiet(() => buildFlora({ scene, level, levelId, physics, keep: floraKeep({ level, content, ship, npcs, crowd, reactiveWorld }) }));
+  const flora = quiet(() => buildFlora({ scene, level, levelId, physics, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
   if (flora?.noShadow) (level.noShadow ??= []).push(...flora.noShadow);
   // the world's life and weather, the fluid tool and the drone, as main.js builds them
   // what burns (flammable.js: the brambles, the dry stands, the lamps a flame lights)
@@ -281,7 +287,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
 
   const lookOut = {};
   const game = {
-    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, sky, post, T, wildlife, weather, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, sky, post, T, wildlife, weather, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
@@ -305,7 +311,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
     /** The look with every number of the preset and the shared uniforms (the C# port's look format: unity/port-format.js portLook). */
     fullLook() {
-      const nums = (o) => { const out = {}; for (const [k, x] of Object.entries(o)) if (typeof x?.value === 'number') out[k] = x.value; return out; };
+      // (numbers, and the look's few vectors: the spot blacks, the haze by depth and height, the cast shadows lifted or inked)
+      const nums = (o) => { const out = {}; for (const [k, x] of Object.entries(o)) { if (typeof x?.value === 'number') out[k] = x.value; else if (LOOK_VECTORS.has(k)) { const v = plainValue(x?.value); if (v) out[k] = v; } } return out; };
       return { ...this.lookParams(), post: nums(U), shared: nums(sharedUniforms), preset: presetName, planets: level.sky?.planets ?? [] };
     },
     /**
@@ -367,6 +374,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         rig.update(player.pos, dt, player.frame);
         story?.frameCamera?.(camera);   // the two-shot while talking
       }
+      try { boxes?.update(dt, simT, { camera }); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
       hud(dt, busy);
       level.update?.(dt, simT, { player, rig, camera, passage: null, fade: () => {} });
       // the world's life, the tool and the drone (main.js's order)

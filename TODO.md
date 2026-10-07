@@ -188,8 +188,12 @@ the game's JS runs in Unity, which only draws: docs/systems/engine-bridge.md). I
 glows and lines, the crowd's GPU figures, the cave's rounded walls, and players for macOS, Linux (the
 Deck's) and Android. What still differs from the web (engine-bridge.md, "What still differs"):
 
-- [ ] The Signal Market's façades lack the web's newer surface marks (the port's Surface shader
-  predates them), and its light pillar.
+- [x] The Signal Market's façades lack the web's newer surface marks (the port's Surface shader
+  predates them), and its light pillar. (2026-10-06: the port's Surface and composite brought up to
+  materials.js / post.js — weathering, pen detail, colour patches, plating, lit windows, each surface's
+  shade, spot blacks, ink shadows, lines by material, haze by depth and height, the world-anchored
+  wobble, pebbles, no paper grain or vignette; the pillar is the jetpack box's beacon: the makers'
+  boxes now built in engine/game.js. Not ported: hatching that follows the form, `S_FORM`.)
 - [ ] The web's grass blades (flora-grass.js) and wind streaks (wind.js) are not drawn. Looked into
   (2026-10-06, the bridge run and shot in `output/engine-bridge/unity-grass*/`): **building** the
   blades in the VM is one line in `engine/game.js` (`buildGrass` beside `buildFlora`, then

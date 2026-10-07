@@ -72,6 +72,26 @@ test('the port\'s formats: a material as materialOf writes it, the look as world
   assert.equal(L.post.uFogDensity, 0.001);
 });
 
+test('the web\'s newer surface marks reach the port: weathering, pen detail, patches, the shade, the spot and line steps; the look\'s vectors', () => {
+  // a weathered house front (the Signal Market's walls): weathering, built pen detail and colour patches on by default
+  const wall = portMaterial(inkSpec(makeMaterial({ color: '#7fa79c', pattern: 'facade', windows: 0.5, shade: 0.3, shadeHue: 0.5, spot: 0, line: 0.45, lineTint: 1 })), 1);
+  assert.equal(wall.weather, 1, 'weathered');
+  assert.deepEqual(wall.detail, [1, 1], 'built pen detail');
+  assert.equal(wall.patch, 1, 'colour across the wall');
+  assert.equal(wall.windows, 0.5);
+  assert.deepEqual(wall.shade, [0.3, 0.5, 1, 0], 'the shade: lift, hue, hatch, strata strokes');
+  assert.equal(wall.spotStep, 1, 'no spot blacks (step 1: none)');
+  assert.equal(wall.lineStep, 2 + 4 * 3, 'a thin line in its own colour');
+  // a plain material: none of it, the world's shade, ink and spots
+  const plain = portMaterial(inkSpec(makeMaterial({ color: '#808080' })), 2);
+  assert.equal(plain.weather, 0); assert.deepEqual(plain.detail, [0, 0]); assert.equal(plain.patch, 0);
+  assert.equal(plain.spotStep, 0); assert.equal(plain.lineStep, 0); assert.deepEqual(plain.shade, [0, -1, 1, 0]);
+  // the look's vectors (spot blacks, haze by depth and height, cast shadows lifted or inked) go with its numbers
+  const L = portLook({ hour: 10, uSunDir: [0, 1, 0], post: { uSpot: [0.8, 2.5, 0.5, 0.3], uInkShadow: [1, 0] }, shared: {} });
+  assert.deepEqual(L.post.uSpot, [0.8, 2.5, 0.5, 0.3]);
+  assert.deepEqual(L.post.uInkShadow, [1, 0]);
+});
+
 test('the motes and the footprints go to the port\'s own shaders; a print\'s place, turn, size and fade as Puffs.Inst', () => {
   const scene = new THREE.Scene();
   const motes = new Motes(scene, { count: 8, color: '#e6cf9f', size: 0.05 });

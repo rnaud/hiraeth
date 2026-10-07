@@ -37,6 +37,12 @@ export function portMaterial(spec, id = 0) {
     vertexColors: spec.vertexColors ? 1 : 0,
     plain: spec.type === 'ink' ? 0 : 1,
   };
+  // the web's newer surface marks (materials.js): weathering, pen detail, colour across a wall, plating, the window
+  // share, banked sand, the shade (lift, hue, hatch, strata strokes), the spot-black and line steps
+  for (const [k, name] of [['weather', 'uWeather'], ['patch', 'uPatch'], ['plates', 'uPlates'], ['windows', 'uWindows'], ['drift', 'uDrift'], ['spotStep', 'uSpotStep'], ['lineStep', 'uLineStep']])
+    if (typeof u[name] === 'number') e[k] = r5(u[name]);
+  if (Array.isArray(u.uDetail)) e.detail = u.uDetail.map(r5);
+  if (Array.isArray(u.uShade)) e.shade = u.uShade.map(r5);
   const ps = v('uPaletteSize');
   if (ps > 0 && Array.isArray(u.uPalette)) for (let i = 0; i < ps; i++) e.palette.push(u.uPalette.slice(i * 3, i * 3 + 3).map(r5));
   if (spec.defines?.METAL && Array.isArray(u.uMetal)) { e.metal = u.uMetal.map((x) => +x.toFixed(4)); e.brushAxis = u.uBrushAxis ?? [0, 1, 0]; }

@@ -34,6 +34,15 @@ Shader "Memento/Surface"
     _WaterOpt ("Water (fallback depth, printed, clarity, sparkle; x 0: the old water)", Vector) = (0, 0, 1, 1)
     _WaterBed ("Water's bed colour", Vector) = (0.9, 0.86, 0.7, 1)
     _Bed ("Bed heights (three-space map, R: height)", 2D) = "black" {}
+    _Weather ("Weathered (0..1)", Float) = 0
+    _Detail ("Pen detail (kind, density)", Vector) = (0, 0, 0, 0)
+    _Patch ("Colour across a wall", Float) = 0
+    _Plates ("Plating", Float) = 0
+    _Windows ("Window share", Float) = 0.78
+    _Drift ("Banked sand", Float) = 0
+    _Shade ("Shade (lift, hue, hatch, strata strokes)", Vector) = (0, -1, 1, 0)
+    _SpotStep ("Spot step", Float) = 0
+    _LineStep ("Line step", Float) = 0
     _Cull ("Cull", Float) = 2
   }
   SubShader
@@ -44,6 +53,7 @@ Shader "Memento/Surface"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "MementoCommon.hlsl"
     #include "Figure.hlsl"
+    #include "Marks.hlsl"
 
     float4 _Color, _Color2, _Color3;
     float _Mode, _Flat, _StrataSize, _Grid, _Glyphs, _Biomes, _Ripples, _SandInk, _Ticks, _Glow, _Folds, _Scrub, _Pattern, _Figure, _Hero, _Sway, _StrataObject, _PaletteSize;
@@ -56,6 +66,9 @@ Shader "Memento/Surface"
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
     TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
+    float _Drift, _SpotStep, _LineStep;
+    float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
+    float _Halftone, _Bounce;   // the look's shade tones (globals)
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
 
     struct Attributes
@@ -527,6 +540,16 @@ Shader "Memento/Surface"
         float foldFw = fwidth(foldU);
         float faceX = abs(on.x) > abs(on.z) ? i.objPos.z : i.objPos.x;
         float fissFw = fwidth(faceX) / 9.0;
+        // the wall's own frame for weathering, pen detail and colour patches (materials.js): along it and up, world-anchored
+        float2 wqA = float2(i.worldPos.x, i.worldPos.y), wqB = float2(i.worldPos.z, i.worldPos.y);
+        float wfy = length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y)));
+        float2 wfqA = float2(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), wfy), wfqB = float2(length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))), wfy);
+        float2 wCell = floor(i.worldPos.xz / 9.0);
+        float wSeed = floor(hash(wCell + 7.0) * 61.0), wK = _Weather * (0.6 + 0.8 * hash(wCell + 3.0));
+        // strokes along the beds of rock (the strata's wavy horizontals)
+        float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
+        float2 strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
+        float strataFw = fwidth(strataCo.x);
         float2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
         float2 glyphFw = gw.x > max(gw.y, gw.z) ? gfw.zy : (gw.y > gw.z ? gfw.xz : gfw.xy);
 
@@ -576,25 +599,78 @@ Shader "Memento/Surface"
         } else if (mode == MODE_EYE) {
           albedo = eyeball(i.bind, _Color.rgb, _Color2.rgb, _Skin.rgb);
         }
+        // colour across a wall (materials.js PATCH): big flat patches, each building its own; none far off
+        UNITY_BRANCH if (_Patch > 0.0 && i.viewDepth < 380.0)
+        {
+          float pk = 1.0 - smoothstep(260.0, 380.0, i.viewDepth);
+          float3 dP = albedo * (wallPatch(i.worldPos, normalize(i.normal), _Patch, float3(wfqA.x, wfy, wfqB.x)) - 1.0);
+          albedo += dP * min(1.0, 0.15 / max(length(dP), 1e-5)) * pk;
+        }
         float patInk = 0.0;
+        float emit = 0.0;   // lit windows at night (facade)
         int pattern = (int)(_Pattern + 0.5);
         // (the material's options are uniform over a draw: derivatives inside these branches are safe)
-        UNITY_BRANCH if (pattern == 1) patInk = facade(i.worldPos, n, normalize(i.normal), albedo);
+        UNITY_BRANCH if (pattern == 1) patInk = facadeMarks(i.worldPos, n, normalize(i.normal), albedo, emit);
         else if (pattern == 2) patInk = roofTiles(i.worldPos);
         else if (pattern == 3) patInk = leaves(i.objPos);
         else if (pattern == 4) patInk = rockCracks(i.objPos);
+        // weathering (materials.js weatherInk): grime, chips, cracks, on upright faces
+        UNITY_BRANCH if (_Weather > 0.0 && abs(n.y) < 0.55)
+        {
+          float wUp = 1.0 - smoothstep(0.35, 0.55, abs(n.y));
+          float ax = abs(n.x), az = abs(n.z), wb = smoothstep(0.36, 0.64, ax / max(ax + az, 1e-4));
+          float litK = smoothstep(0.02, 0.15, dot(n, _SunDir));
+          float wi = 0.0;
+          if (wb < 0.999)
+          {
+            float3 aA = albedo;
+            wi = weatherInk(wqA, wfqA, float2(_SunDir.x, _SunDir.y), litK, wSeed, wK, aA) * (1.0 - wb);
+            albedo = lerp(albedo, aA, (1.0 - wb) * wUp);
+          }
+          if (wb > 0.001)
+          {
+            float3 aB = albedo;
+            wi = max(wi, weatherInk(wqB, wfqB, float2(_SunDir.z, _SunDir.y), litK, wSeed + 13.0, wK, aB) * wb);
+            albedo = lerp(albedo, aB, wb * wUp);
+          }
+          patInk = max(patInk, wi * wUp);
+        }
+        // pen detail at every scale (materials.js DETAIL): built seams, joints, vents, bolts; organic grain
+        float dFar = _Detail.x > 1.5 ? 130.0 : 260.0;
+        UNITY_BRANCH if (_Detail.x > 0.5 && abs(n.y) < 0.75 && i.viewDepth < dFar)
+        {
+          float dUp = (1.0 - smoothstep(0.55, 0.75, abs(n.y))) * (1.0 - smoothstep(dFar * 0.7, dFar, i.viewDepth));
+          bool facingX = abs(n.x) > abs(n.z);
+          float dSeed = floor(hash(floor(i.worldPos.xz / 9.0) + 11.0) * 53.0) + (facingX ? 29.0 : 0.0);
+          float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, _Detail.y, dSeed, _Detail.x > 1.5);
+          patInk = max(patInk, di * dUp * 1.35);
+        }
         if (_Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold);
         albedo *= instColor;
+        float plateInk = 0.0;
+        UNITY_BRANCH if (_Plates > 0.5 && _Grid > 0.0)
+        {
+          float plateTone;
+          plateInk = plateLines(gq, gfw, gw, plateTone);
+          albedo *= 1.0 + 0.09 * plateTone;
+        }
         if (i.crowdTrim.w > 0.5) albedo = outfitTrim(albedo, i.crowdTrim.rgb, i.crowdTrim.w, i.bind);
         if (_Folds > 0.0) albedo = (i.fold.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
 
         float ndl = dot(n, _SunDir);
+        // a flat facet edge-on to the sun goes to shade, whole (materials.js FACET_EDGE)
+        if (_Flat > 0.5 && ndl < 0.03) ndl = min(ndl, -0.03);
         float lambert = ndl * 0.5 + 0.5;
         float sh = 1.0;
         float shadowPx = max(length(ddx(i.posWS)), length(ddy(i.posWS)));   // (outside the branch: derivatives)
-        if (ndl > 0.0) sh = getShadow(i.posWS, toThree(n), ndl, shadowPx) * cloudShadow(i.worldPos);
+        float nTurn = length(fwidth(n));
+        // (the lit fraction steepened about its half, materials.js SHADOW_CUT: the toon threshold cuts at the shadow's true edge)
+        if (ndl > 0.0) sh = saturate((getShadow(i.posWS, toThree(n), ndl, shadowPx) - 0.5) * 3.0 + 0.5) * cloudShadow(i.worldPos);
+        // a big curved surface turning from the sun: its terminator is the light's own (TERMINATOR, TERMINATOR_TURN)
+        if (mode != MODE_TERRAIN && _Flat < 0.5)
+          sh = lerp(sh, lerp(1.0, sh, smoothstep(0.0, 0.08, ndl)), 1.0 - smoothstep(0.02, 0.06, nTurn));
         float L = lerp(min(lambert, 0.38), lambert, sh);
-        L = lerp(L, 1.0, _Glow);
+        L = lerp(L, 1.0, max(_Glow, emit));
         float local = 0.0;
         for (int li = 0; li < 8; li++) {
           float3 dl = _MLights[li].xyz - i.worldPos;
@@ -616,13 +692,13 @@ Shader "Memento/Surface"
         albedo = lerp(albedo, _DissolveColor.rgb, dEdge);
         L = lerp(L, 1.0, dEdge);
         GBufferOut o;
-        o.albedoLight = float4(albedo, L);
+        o.albedoLight = float4(albedo, saturate(L) + 2.0 * _LineStep);   // (the line's weight and colour over it: materials.js LINE)
         o.normalDepth = float4(n, _FarDepth.x > 0 && i.viewDepth > _FarDepth.x ? _FarDepth.x + (i.viewDepth - _FarDepth.x) * _FarDepth.y : i.viewDepth);
         o.hatch = 0;
 
         // drawn detail (gHatch.b)
         float detail = 0.0;
-        if (_Grid > 0.0) detail = gridLines(gq, gfw, gw);
+        if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
         if (_Glyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
         float2 gp = i.worldPos.xz;
         UNITY_BRANCH if (mode == MODE_TERRAIN) {
@@ -635,9 +711,19 @@ Shader "Memento/Surface"
           float sandK = 1.0 - bw.y;
           if (_Ripples > 0.5) {
             detail = max(detail, ripples * sandK);
-            float grains = sandGrains(gp, gm, 0.25, 0.12, 0.005, 0.01, 71.0) * 0.55;
-            if (_Dots > 0.0) grains = max(grains, sandGrains(gp, gm, 0.4 * _Dots, 0.55, 0.03, 0.06, 13.0) * 0.8);
+            // grains close up; in the print look its pebbles and stones instead (ground-ink.js PEBBLES): a dark side, a cast shadow
+            float grains = _Dots > 0.0 ? 0.0 : sandGrains(gp, gm, 0.25, 0.12, 0.005, 0.01, 71.0) * 0.55;
             detail = max(detail, grains * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
+            if (_Dots > 0.0)
+            {
+              float2 s2 = _SunDir.xz / max(length(_SunDir.xz), 1e-3);
+              float len = pebbleShadow(_SunDir.y), castK = smoothstep(_Toon - 0.02, _Toon + 0.12, L);
+              float pk = smoothstep(0.35, 0.7, vnoise(gp * 0.04 + 23.0));
+              float peb = max(max(pebbleField(gp, gm, s2, len, castK, 0.32, 0.22, float2(0.009, 0.024), 71.0),
+                                  pebbleField(gp, gm, s2, len, castK, 0.9, 0.32 * pk, float2(0.022, 0.07), 13.0)),
+                                  pebbleField(gp, gm, s2, len, castK, 6.0, 0.16, float2(0.12, 0.42), 57.0));
+              detail = max(detail, peb * _Dots * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
+            }
           }
           if (_Biomes > 0.5) {
             float k = smoothstep(0.3, 0.8, bw.y) * (1.0 - smoothstep(0.14, 0.22, slope));
@@ -667,12 +753,15 @@ Shader "Memento/Surface"
         if (mode == MODE_OUTFIT && i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16)
         {
           float frontal = smoothstep(0.15, 0.45, normalize(i.objNormal).z);
-          detail = max(detail, faceInk(float2(abs(i.bind.x), i.bind.y - _Face.x), fwBind, frontal, i.bind.x));
+          detail = max(detail, 2.0 * faceInk(float2(abs(i.bind.x), i.bind.y - _Face.x), fwBind, frontal, i.bind.x));   // (over 1: a pen line, darker)
         }
         detail = max(detail, patInk);
         detail = max(detail, metalInk);
-        o.hatch.b = detail;
-        o.hatch.a = max(max(_Glow, smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure;
+        // (packed over the detail: the material's spot-black step x4, weathered +16; materials.js SPOT, WEATHER)
+        o.hatch.b = detail + 4.0 * _SpotStep + (_Weather > 0.0 ? 16.0 : 0.0);
+        bool facePart = mode == MODE_EYE || (mode == MODE_OUTFIT && i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16);
+        // gHatch.a: glow + 2 hero + 4 figure (+ 8 soft ink) + 16 a face + 32 banked sand (post.js)
+        o.hatch.a = max(max(max(_Glow, emit), smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure + (facePart ? 16.0 : 0.0) + 32.0 * _Drift;
         #if defined(MEMENTO_GRASS)
           o.hatch.rgb = 0; o.hatch.a += 8.0 * i.grassSoft;   // blades: no hatching, no drawn detail; soft ink
           return o;
@@ -692,6 +781,25 @@ Shader "Memento/Surface"
           float h1 = h1s;
           if (_FormHatch > 0.0 && mode == MODE_TERRAIN) h1 = lerp(h1, hcs, smoothstep(0.1, 0.3, slope) * _FormHatch);
           o.hatch.rg = float2(h1, dark > 0.5 ? h2s : 0.0);
+        }
+        // rock in light keeps runs of strokes along its beds (materials.js strataHatch)
+        if (mode == MODE_STRATA && _Shade.w > 0.0 && L >= _Toon && i.viewDepth < 700.0 && abs(normalize(on).y) < 0.7)
+        {
+          float upright = 1.0 - smoothstep(0.45, 0.7, abs(normalize(on).y));
+          float runs = smoothstep(0.42, 0.66, vnoise(float2(strataCo.y * 0.09, strataCo.x * 0.55)));
+          o.hatch.r = max(o.hatch.r, strokes(strataCo, strataFw, hsp * 1.25, 0.85) * runs * upright * _Shade.w);
+        }
+        if (facePart) o.hatch.rg = 0;
+        // the shade's tone (materials.js SHADE), packed over the strokes: the material's lift, the half-tone of a form
+        // turned from the sun, the ground's light on faces turned down; the hue it keeps or its own flat print
+        if (L < _Toon)
+        {
+          float turned = ndl < 0.0 ? (ndl > -0.42 ? 1.0 : 0.6) : 0.0;
+          float lift = 1.0 - (1.0 - _Shade.x) * (1.0 - _Halftone * turned) * (1.0 - _Bounce * smoothstep(-0.1, -0.7, n.y));
+          float hatchK = mode == MODE_TERRAIN ? lerp(_Shade.z, 1.0, smoothstep(0.16, 0.36, slope)) : _Shade.z;
+          o.hatch.rg *= hatchK * float2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
+          float hq = _Shade.y < 0.0 ? 0.0 : _Shade.y >= 2.0 ? 10.0 + floor((_Shade.y - 2.0) * 5.0 + 0.5) : 1.0 + floor(_Shade.y * 8.0 + 0.5);
+          o.hatch.rg = min(o.hatch.rg, float2(1, 1)) + 2.0 * float2(hq, floor(saturate(lift) * 15.0 + 0.5));
         }
         return o;
       }
