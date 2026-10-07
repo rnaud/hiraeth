@@ -1,0 +1,59 @@
+TODO.md
+  s_55b4bc53b812ec::t_c5b201e06f1893 116-122,155-159
+changelog.md
+  s_55b4bc53b812ec::t_2157d417caecd7 13
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_1f6be9d0c2a130 457-554
+scripts/bench/android-worlds-summary.mjs
+  s_55b4bc53b812ec::t_ee42eebd0d7869 1-30
+scripts/bench/android-worlds.mjs
+  s_55b4bc53b812ec::t_474548998b34b8 1-376
+scripts/bench/gecko-bridge.mjs
+  s_55b4bc53b812ec::t_dcae4f32e01fa7 28
+scripts/bench/results/android-worlds.json
+  s_55b4bc53b812ec::t_4859371bbe49b6 1-7125
+scripts/bench/viewpoints-worlds.json
+  s_55b4bc53b812ec::t_8718d72325691a 1-9180
+src/changelog.js
+  s_55b4bc53b812ec::t_60b0502a7bcc35 17
+src/characters/tripo-cloth-sim.js
+  s_55b4bc53b812ec::t_030b8cd0a46971 1-94
+src/characters/tripo-cloth-worker.js
+  s_55b4bc53b812ec::t_306d2bf5f93bf0 1-8
+src/characters/tripo-cloth.js
+  s_55b4bc53b812ec::t_b720315e434fd6 3,12,15-16,18,22-56,58-59,115-118,124,142-188,195-197,199-206,208,210-215,217-219,222-242,244-247,249-250
+src/main.js
+  s_55b4bc53b812ec::t_92ce72ab24a437 26,1091,1094,1174
+src/perf.js
+  s_55b4bc53b812ec::t_fad8e2eed127d9 517-538
+src/sand-drifts.js
+  s_55b4bc53b812ec::t_a2e4a225a080d2 175,211,232-235,257-259,261
+src/wind.js
+  s_55b4bc53b812ec::t_966a58c08f0003 11-38,178-179,204
+src/world.js
+  s_55b4bc53b812ec::t_3f86a8321abac0 200
+tests/render-frame-pin.test.js
+  s_55b4bc53b812ec::t_b798c17295d657 1-30
+tests/sand-drifts.test.js
+  s_55b4bc53b812ec::t_423425b6031006 134-169
+tests/tripo-cloth-sim.test.js
+  s_55b4bc53b812ec::t_e2a73a47922df0 1-135
+tests/wind-ground.test.js
+  s_55b4bc53b812ec::t_2be78c71bc71a5 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c2a926426c4a02c0e51b38bd65d144ea84dd2bf4",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
