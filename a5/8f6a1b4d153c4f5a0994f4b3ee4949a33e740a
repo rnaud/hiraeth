@@ -1,0 +1,33 @@
+TODO.md
+  s_55b4bc53b812ec::t_9047422f5a79ce 141-142
+changelog.md
+  s_55b4bc53b812ec::t_bd286fc30b1db8 5-8
+docs/systems/faces.md
+  s_55b4bc53b812ec::t_30398a01c59a2a 245-283
+src/changelog.js
+  s_55b4bc53b812ec::t_ee54e00105492d 10-12
+src/characters/traveller-v1.js
+  s_55b4bc53b812ec::t_6a0a8ee3c8a316 10-12,55-59
+src/characters/tripo-face.js
+  s_55b4bc53b812ec::t_640c0f90c8c79b 1-214
+src/humanoid.js
+  s_55b4bc53b812ec::t_9b3da6502ba62e 712,1144-1146
+tests/tripo-face.test.js
+  s_55b4bc53b812ec::t_f6dd9a99cc9b0e 1-116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a58f6a1b4d153c4f5a0994f4b3ee4949a33e740a",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
