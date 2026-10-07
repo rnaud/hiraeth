@@ -12,7 +12,7 @@ test('the boot heartbeat flag is set after the first frame', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /import \{[^}]*\bmarkBooted\b[^}]*\} from '\.\/native-app\.js';/);
   const boot = main.slice(main.lastIndexOf("stage('ready')"));
-  assert.match(boot, /requestAnimationFrame\(\(t\) => \{\s*frame\(t\);\s*markBooted\(\);/);
+  assert.match(boot, /requestAnimationFrame\(\(t\) => \{\s*(?:renderer\.domElement\.style\.visibility = '';\s*)?frame\(t\);\s*markBooted\(\);/);   // (the canvas shown first: hidden under the loading screen)
   // and the app polls exactly that flag, in either engine (WebBundles asks its Host)
   const java = (f) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/moebius/${f}`, import.meta.url), 'utf8');
   assert.match(java('WebBundles.java'), /host\.booted\(\(v\) -> \{/);
