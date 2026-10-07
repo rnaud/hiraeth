@@ -1,13 +1,14 @@
 import { page, screen } from '../platform.js';
 import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
-import { pickTwoShot, pickLookShot, pullIn } from './shot.js';
+import { pickTwoShot, pickLookShot, pickSingle, pullIn } from './shot.js';
+import { Coverage } from './coverage.js';
 import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote, spokenMask } from './voice.js';
 import { scriptOf, lineChunks, chunkSvg } from './scripts.js';
 import { syllableOpen, syllableEnvelope } from '../talk-face.js';
 import { confirmKey } from '../native-pad.js';
 import { keyBadge } from '../prompt-keys.js';
-const _ac = new THREE.Vector3(), _bq = new THREE.Vector3();
+const _ac = new THREE.Vector3(), _bq = new THREE.Vector3(), _cv = new THREE.Vector3();
 
 // Conversations. People are data:
 //
@@ -223,6 +224,13 @@ export const LAG = 5, FADE = 5;
 
 /** The conversation camera: a re-pick this far from the eye (m) is a cut; cuts no closer together than CUT_GAP s (unless the page turns, or the shot is blocked). */
 export const CUT_FAR = 0.8, CUT_GAP = 2.5;
+/**
+ * The traveller's answer said before the reply (Dialogue.beat): his words in the panel with his portrait, the
+ * camera on his face, for as long as he says them (s, at least `min`, at most `max`; a press skips it).
+ */
+export const ANSWER_BEAT = { min: 0.9, max: 2.4, tail: 0.35 };
+/** The traveller in the panel on his own lines: his name tag and his chip's colour (his coral shirt). */
+export const TRAVELLER_TAG = { id: 'you', name: 'You', title: '', color: '#d9694a' };
 
 let _chunks = { text: null, list: [] };
 /**
@@ -270,11 +278,15 @@ export function revealHtml(full, { lang = null, shown = full.length, translated 
  * @param o.game, o.quests  state
  * @param o.sound           Sound (voice blips, chimes)
  * @param o.portrait        (person, npc) => dataURL | null: a live sketch of their face
+ * @param o.portraitYou     (tone) => dataURL | { src, background } | null: the traveller's, wearing that tone (his own lines)
  * @param o.onOpen/onClose  callbacks (pause the procession, let go of the pointer…)
  */
 export class Dialogue {
-  constructor({ game, quests, sound = null, portrait = null, toast = () => {}, onOpen = () => {}, onClose = () => {} }) {
-    Object.assign(this, { game, quests, sound, portrait, toast, onOpen, onClose });
+  constructor({ game, quests, sound = null, portrait = null, portraitYou = null, toast = () => {}, onOpen = () => {}, onClose = () => {} }) {
+    Object.assign(this, { game, quests, sound, portrait, portraitYou, toast, onOpen, onClose });
+    this.cover = new Coverage();   // who the camera frames (src/story/coverage.js)
+    this.beat = null;        // the answer he is saying before the reply comes: { text, tone, until }
+    this._you = new Map();   // his portraits this conversation, by tone
     this.open = false;
     this.blend = 0;          // the two-shot camera's weight: 1 while talking, 0 after (a cut both ways, never a swing)
     this.clock = 0;          // s, while open (the mouths' syllables are timed on it)
@@ -333,6 +345,8 @@ export class Dialogue {
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.revealed = 0; this.translated = -LAG;
     this._mouth.length = 0; this.answer = null;
+    this.beat = null; this._doneAt = null; this._you.clear(); this._chip = null;
+    this.cover.reset(this.clock); this._framed = null;
     // the camera cuts straight to the two-shot (frameCamera picks it on the next frame, after onOpen
     // has made room between the two): no swing round from the follow camera
     this.blend = 1; this._shot = null; this._across = null; this._cutAt = this.clock;
@@ -344,15 +358,7 @@ export class Dialogue {
     this.shot = null;
     try { this.shot = this.portrait?.(person, npc) ?? null; } catch { /* no sketch */ }
     if (this.el) {
-      this.q('.dlg-name').textContent = person.name;
-      this.q('.dlg-title').textContent = person.title ?? '';
-      const chip = this.q('.dlg-chip');
-      chip.style.background = person.color ?? '#d8a24a';
-      this.q('.dlg-chip span').textContent = person.name[0];
-      const img = this.q('.dlg-chip img');
-      img.hidden = true;
-      const shot = this.shot, src = typeof shot === 'string' ? shot : shot?.src;
-      if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
+      this.showChip();
       this.el.classList.add('open');
       page.bodyClass('talking', true);
       page.exitPointerLock();
@@ -361,8 +367,44 @@ export class Dialogue {
     return true;
   }
 
+  /** Whose line the panel shows now: 'player' on his own pages and while he says his answer. */
+  get voice() { return this.beat || this.runner?.speaker === 'player' ? 'player' : 'npc'; }
+
+  /** The tone of what is being said now (his answer's during the beat). */
+  get nowTone() { return this.beat ? this.beat.tone : this.runner?.tone ?? 'neutral'; }
+
+  /** His portrait wearing `tone` (captured once a conversation per tone: Dialogue's portraitYou). */
+  youShot(tone) {
+    if (!this._you.has(tone)) { let s = null; try { s = this.portraitYou?.(tone) ?? null; } catch { /* no sketch */ } this._you.set(tone, s); }
+    return this._you.get(tone);
+  }
+
+  /** The name tag and the portrait: the person's, or the traveller's on his own lines (the initial when there is no sketch). */
+  showChip() {
+    const you = this.voice === 'player';
+    const who = you ? TRAVELLER_TAG : this.person, shot = you ? this.youShot(this.nowTone) : this.shot;
+    const key = `${you ? 'you' : 'them'}:${typeof shot === 'string' ? shot.length : shot?.src?.length ?? 0}:${you ? this.nowTone : ''}`;
+    if (!this.el || this._chip === key) return;
+    this._chip = key;
+    this.q('.dlg-name').textContent = who.name;
+    this.q('.dlg-title').textContent = who.title ?? '';
+    const chip = this.q('.dlg-chip');
+    chip.style.background = who.color ?? '#d8a24a';
+    chip.classList.toggle('you', you);
+    this.q('.dlg-chip span').textContent = who.name[0];
+    const img = this.q('.dlg-chip img');
+    img.hidden = true;
+    const src = typeof shot === 'string' ? shot : shot?.src;
+    if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
+  }
+
+  /** His answer said: the reply begins. */
+  endBeat() { this.beat = null; }
+
   next() {
     if (!this.open) return;
+    // (a press while he says his answer: on to the reply)
+    if (this.beat) { this.endBeat(); if (this.revealed < this.runner.text.length) { this.render(); return; } }
     if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.translated = Infinity; this.render(); return; }
     if (this.runner.advance()) { this.revealed = 0; this.translated = -LAG; this.render(); return; }
     if (this.runner.ended) this.close();
@@ -371,6 +413,7 @@ export class Dialogue {
 
   choose(i) {
     if (!this.open) return;
+    if (this.beat) { this.endBeat(); if (this.revealed < this.runner.text.length) { this.render(); return; } }
     if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.translated = Infinity; this.render(); return; }
     const said = this.runner.choices().find((c) => c.index === i);
     this.runner.choose(i);
@@ -382,6 +425,9 @@ export class Dialogue {
       this.sound?.speak?.(plan, { channel: 'choice', gain: 0.8 });
       plan.syllables.forEach((syl, k, S) => this._mouth.push({ at: this.clock + syl.t, dur: Math.min(syl.dur, (S[k + 1]?.t ?? Infinity) - syl.t - 0.03), open: syllableOpen(syl), who: 'player' }));
       this.answer = plan.syllables.length ? { tone: said.tone ?? plan.tone, until: this.clock + plan.total + 0.1 } : null;
+      // and the reply waits until he has said it: his words in the panel, his face on the screen (src/story/coverage.js)
+      const B = ANSWER_BEAT;
+      if (this.answer && !this.runner.ended) this.beat = { text: said.text, tone: this.answer.tone, until: this.clock + Math.min(B.max, Math.max(B.min, plan.total + B.tail)) };
     }
     if (this.runner.ended) { this.close(); return; }
     this.revealed = 0; this.translated = -LAG;
@@ -391,6 +437,7 @@ export class Dialogue {
   close() {
     if (!this.open) return;
     this.open = false;
+    this.beat = null;
     this.blend = 0;   // and cuts back to the follow camera, which has kept its place behind the traveller all along
     this.closedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.el?.classList.remove('open');
@@ -419,7 +466,19 @@ export class Dialogue {
   render() {
     this.publish();
     if (!this.el) return;
-    const r = this.runner, full = r.text;
+    this.showChip();
+    const r = this.runner;
+    if (this.beat) {
+      // his answer, all of it (he chose the words), while he says it
+      const el = this.q('.dlg-text'), html = formatText(this.beat.text);
+      if (el._html !== html) { el.innerHTML = html; el._html = html; }
+      el.classList.add('player');
+      const box = this.q('.dlg-choices');
+      if (box.dataset.html !== '') { box.innerHTML = ''; box.dataset.html = ''; }
+      this.el.classList.remove('more');
+      return;
+    }
+    const full = r.text;
     const plan = this.voicePlan();
     // reveal letter by letter, keeping the motifs whole: the words come in the speaker's own
     // script as they are said, and turn into the translation a moment behind (revealHtml)
@@ -444,11 +503,14 @@ export class Dialogue {
   /** The panel as data (platform.js screen.dialogue): an engine draws its own from it; the page's is render(). */
   publish() {
     const r = this.runner, full = r.text, n = Math.floor(this.revealed), done = this.revealed >= full.length;
-    const choices = done ? r.choices() : [], p = this.person, shot = this.shot;
+    const choices = done && !this.beat ? r.choices() : [], you = this.voice === 'player';
+    const p = you ? TRAVELLER_TAG : this.person, shot = you ? this.youShot(this.nowTone) : this.shot;
+    // (while he says his answer: his words, all shown, and the reply after them)
+    const text = this.beat ? this.beat.text : full;
     screen.set('dialogue', {
-      name: p.name, title: p.title ?? '', color: p.color ?? '#d8a24a', speaker: r.speaker ?? 'npc',
+      name: p.name, title: p.title ?? '', color: p.color ?? '#d8a24a', speaker: you ? 'player' : r.speaker ?? 'npc',
       portrait: (typeof shot === 'string' ? shot : shot?.src) ?? null, backdrop: (typeof shot === 'object' && shot?.background) || null,
-      text: full, shown: n, done, more: done && !choices.length,
+      text, shown: this.beat ? text.length : n, done: this.beat ? true : done, more: this.beat ? true : done && !choices.length,
       choices: choices.map((c) => ({ text: c.text, tone: c.tone ?? null, index: c.index })),
     });
   }
@@ -461,6 +523,13 @@ export class Dialogue {
     if (!this.open) return;
     this.sound?.holdFloor?.();   // nobody else mumbles over a conversation
     const len = this.runner.text.length;
+    if (this.beat && this.clock >= this.beat.until) { this.endBeat(); this.render(); }
+    // who the camera frames (src/story/coverage.js): his face while he speaks, or taking in a strong line
+    const r = this.runner, done = !this.beat && this.revealed >= len;
+    if (!done) this._doneAt = null; else this._doneAt ??= this.clock;
+    this.cover.update({ t: this.clock, page: `${r.nodeId}:${r.page}`, speaker: r.speaker, tone: r.tone, answering: !!this.beat,
+      done, doneFor: done ? this.clock - this._doneAt : 0, letters: len, can: this._canSingle !== false });
+    if (this.beat) return;   // (the reply waits)
     if (this.revealed < len || this.translated < len + FADE) {
       // the voice keeps step with the letters: each syllable sounds as the reveal reaches it
       const plan = this.voicePlan();
@@ -504,13 +573,16 @@ export class Dialogue {
    * traveller's pages and spoken answers. { npc: { speaking, tone, mouth }, player: { … } }
    */
   faces() {
-    const r = this.runner, revealing = this.open && this.revealed < (r?.text.length ?? 0);
+    const r = this.runner, revealing = this.open && !this.beat && this.revealed < (r?.text.length ?? 0);
     const voiced = (this._plan?.syllables.length ?? 0) > 0 && !this._plan?.narrator;
     const ans = this.answering();
     const side = (who) => {
       const lines = this.open && r?.speaker === who && revealing;
       // (a line with no voice to follow, the mouth moves by itself: null)
-      return { speaking: !!(lines || (who === 'player' && ans)), tone: who === 'player' && ans ? ans.tone : r?.tone ?? 'neutral', mouth: lines && !voiced ? null : this.mouth(who) };
+      const f = { speaking: !!(lines || (who === 'player' && ans)), tone: who === 'player' && ans ? ans.tone : r?.tone ?? 'neutral', mouth: lines && !voiced ? null : this.mouth(who) };
+      // (the traveller taking in a strong line, the camera on him: the look he wears, src/story/coverage.js REACTS)
+      if (who === 'player' && !f.speaking && this.open && this.cover.reaction) f.look = this.cover.reaction.look;
+      return f;
     };
     return { npc: side('npc'), player: side('player') };
   }
@@ -525,19 +597,32 @@ export class Dialogue {
    * looked at again every so often (people walk into it) and on every new page:
    * a small change is eased over, a new angle is a cut (never a swing round the
    * pair): at once when the page turns or the shot is blocked, else at most every
-   * CUT_GAP seconds.
+   * CUT_GAP seconds. While the traveller speaks or takes a strong line in (this.cover:
+   * src/story/coverage.js), a closer three-quarter shot of his face from beside the other's
+   * shoulder (pickSingle), on the two-shot's side of the line between them; a framing change is
+   * always a cut, and when there is no clear close shot the two-shot stays.
    * @param o.sight         sightOf(physics), or null (no level geometry)
    * @param o.faceA/faceB   the faces (default: over the feet)
+   * @param o.single        the traveller's face as drawn (its centre), when a close shot of him may be had (null: never)
+   * @param o.singleFacing  the way his face looks (the close shot's angle is taken mostly off it)
+   * @param o.viewH         the view's height (CSS px: his face no taller than SINGLE.most px on a big screen)
+   * @param o.radiusB       the other's body radius (m: a giant is wider)
    * @param o.look          the thing looked at (no two-shot)
    * @param o.facing        which way the traveller faces (for a thing right overhead)
    */
   frameCamera(camera, player, npcPos, up = new THREE.Vector3(0, 1, 0), avoid = [], o = {}) {
-    if (this.blend < 0.002 || !(npcPos || o.look)) { this._side = 0; this._shot = null; this._across = null; return; }
+    if (this.blend < 0.002 || !(npcPos || o.look)) { this._side = 0; this._shot = null; this._two = null; this._across = null; this._framed = null; return; }
     const dt = Math.min(this._dt ?? 1 / 60, 0.1);
     this._shotT = (this._shotT ?? 0) - dt;
     const page = this.runner ? `${this.runner.nodeId}:${this.runner.page}` : '';
     const turned = page !== this._shotPage;
     if (turned) { this._shotPage = page; this._shotT = 0; }
+    // who is framed (src/story/coverage.js): the two-shot, or his face; a new framing is picked and cut to now
+    const single = !o.look && npcPos && o.single ? o.single : null;
+    this._canSingle = !!single;
+    const want = single && this.cover.who === 'traveller' ? 'traveller' : 'two';
+    const reframed = want !== this._framed;
+    if (reframed) { this._framed = want; this._framedOk = true; this._shotT = 0; }
     if (!this._shot || (this.open && this._shotT <= 0)) {
       // pick (or check again) the shot: the one with nothing in the way, near the one the camera is already on
       const people = typeof avoid === 'function' ? avoid() : avoid;
@@ -550,15 +635,30 @@ export class Dialogue {
         if (ac.lengthSq() > 0.3 * 0.3) (this._across ??= new THREE.Vector3()).copy(ac).normalize();
         else if (this._across) b = _bq.copy(player.pos).addScaledVector(this._across, 0.3).addScaledVector(up, up.dot(_ac.subVectors(npcPos, player.pos)));
       }
-      const pick = o.look
-        ? pickLookShot({ ...args, head: o.faceA, target: o.look, facing: o.facing })
-        : pickTwoShot({ ...args, b, faceA: o.faceA, faceB: o.faceB });
+      let pick = null;
+      if (want === 'traveller' && this._framedOk) {
+        // the side of the line between them the camera is on (the 180° rule): the shot's, or where it is now
+        const across = new THREE.Vector3().subVectors(b, player.pos); across.addScaledVector(up, -across.dot(up));
+        const sideNow = Math.sign(new THREE.Vector3().crossVectors(up, across).dot(_cv.subVectors(camera.position, player.pos))) || 1;
+        const fb = o.faceB ?? b.clone().addScaledVector(up, 1.55);
+        const s = pickSingle({ fa: single, fb, b, radius: o.radiusB ?? 0.3, up, aspect: camera.aspect, fov: camera.fov, side: this._side || sideNow, sight: o.sight ?? null, people, facing: o.singleFacing ?? null, height: o.viewH ?? null, prefer: this._shot?.kind === 'single' ? this._shot : null });
+        if (s.ok) pick = s;
+        else this._framedOk = false;   // (no clear close shot: the two-shot for the rest of this beat, not cut back to it later)
+      }
+      if (!pick) {
+        pick = o.look
+          ? pickLookShot({ ...args, head: o.faceA, target: o.look, facing: o.facing })
+          : pickTwoShot({ ...args, b, faceA: o.faceA, faceB: o.faceB, side: this._side || 0, prefer: this._two ?? this._shot });
+        if (!o.look) this._two = pick;
+      }
       const old = this._shot;
       // a new angle (another side, another kind of shot, or the eye somewhere else): a cut, not a swing
       const jump = !old || pick.kind !== old.kind || pick.side !== old.side || pick.eye.distanceTo(this._eye) > CUT_FAR;
       // (the old one blocked now: the candidate nearest it, as scored this time round)
       const stale = jump && old && pick.all?.find((c) => c.kind === old.kind && c.side === old.side && c.eye.distanceTo(old.eye) < 0.6)?.blocked;
-      const cut = !old || (jump && (turned || stale || this.clock - (this._cutAt ?? -1e9) >= CUT_GAP));
+      // (into or out of his close shot: always a cut, the coverage has already waited as long as it should)
+      const close = !!old && (pick.kind === 'single') !== (old.kind === 'single');
+      const cut = !old || close || (jump && (turned || stale || this.clock - (this._cutAt ?? -1e9) >= CUT_GAP));
       if (!jump || cut) {
         if (cut) { this._eye.copy(pick.eye); this._look.copy(pick.look); this._cutAt = this.clock; this.cuts = (this.cuts ?? 0) + 1; }
         this._shot = pick;

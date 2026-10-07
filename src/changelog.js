@@ -7,10 +7,7 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
-  { v: '0.80', date: '2026-10-07', items: [
-    'Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.',
-    'On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.',
-    'On the Steam Deck, a game that closes unexpectedly after you have been playing no longer starts again by itself in a different graphics mode: it returns to Steam, and the next launch draws the way that worked.',
+  { v: '0.81', date: '2026-10-07', items: [
     'In the desert, letting the water out of the giant’s pool before anyone has sent you there no longer stalls the story: the steps that only led there pass on their own, and Ama still hands you her jar.',
     'Qanat and its camps say a little more, and nothing that goes stale once the chest is open: Oum, Marrow, Rook, Tamsin, the sketcher and the townspeople have new lines, Pell wants to hear about the sleeping mask, and the Speaker has heard Ilo’s report of a monster.',
     'Landing in Vael with the wings already yours, the drone finds Oïa first instead of the Aerie.',
@@ -24,6 +21,14 @@ export const CHANGELOG = [
     'In the Signal Market, meeting Kip before Madame Sel no longer leaves the broadcast out of reach; the keepsake quotes what your father actually says, and Ferro’s prompt names the pad’s buttons. In the Garden of Spheres, hearing all three spheres before you meet Aube no longer stops her sending you on, and a few answers fit what was said to you.',
     'At home, Lou talks about the drawing of the furthest world you have written from, any of them, and the round window only speaks of singing once the reel has told you about it.',
     'Four new parcels to carry, so every world on the way hands you something for the next: Brother Calix’s muffled hand bell for Wendel in Lorn, Nikko’s gear grease for Tull’s squeaky doors under the sand, Ossa’s pipe whistle for Aube among the spheres, and Nell’s sliver of lake mirror for Oyo’s lantern stall in the Signal Market.',
+  ] },
+  { v: '0.80', date: '2026-10-07', items: [
+    'Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.',
+    'On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.',
+    'On the Steam Deck, a game that closes unexpectedly after you have been playing no longer starts again by itself in a different graphics mode: it returns to Steam, and the next launch draws the way that worked.',
+    'In conversations you see the traveller’s face now: when he answers, and sometimes when someone says something that moves him, the camera cuts to a close view of him, so his smile, frown or surprise shows. Otherwise it keeps its view of you both, and it never cuts on every line.',
+    'When you choose an answer the traveller says it before the reply comes, with his words, his name and his portrait in the panel. Press to go straight on to the reply.',
+    'The traveller’s expressions are drawn more strongly, so his smiles, frowns and raised brows read in a close view and in his portrait.',
   ] },
   { v: '0.79', date: '2026-10-07', items: [
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
