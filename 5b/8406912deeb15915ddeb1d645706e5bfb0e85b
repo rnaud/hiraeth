@@ -1,0 +1,45 @@
+changelog.md
+  s_55b4bc53b812ec::t_144715d45c9732 5-8
+src/changelog-media.js
+  s_55b4bc53b812ec::t_cc343e166ff11f 49,117-122
+src/changelog.js
+  s_55b4bc53b812ec::t_165e9d9cf97aeb 12-14
+src/levels/moon-foundry-kit.js
+  s_55b4bc53b812ec::t_452a79d0955864 1-541
+src/levels/reference-moonfoundry.js
+  s_55b4bc53b812ec::t_f0512f28bfbc46 1-292
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_93a3e163874a03 35
+src/levels/references.js
+  s_55b4bc53b812ec::t_7ea4da3dc02be3 18,104-106,126-142,222,418,519
+tests/moonfoundry.test.js
+  s_55b4bc53b812ec::t_dd0e6ddcaa6f5d 1-92
+tests/references.test.js
+  s_55b4bc53b812ec::t_8ad8b8a5f012f3 6,63,68-73
+docs/systems/references.md
+  s_d7d2274ec95e40::t_be863e54cd17c6 629-663
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b8406912deeb15915ddeb1d645706e5bfb0e85b",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d7d2274ec95e40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a392826a77bc5bfe5",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,107 @@
+.agents/skills/moebius-ai-characters/SKILL.md
+  s_55b4bc53b812ec::t_0d4f748c592b4c 1-35
+.agents/skills/moebius-ai-characters/agents/openai.yaml
+  s_55b4bc53b812ec::t_b7bbf329215a18 1-4
+.agents/skills/moebius-ai-characters/references/pipeline-and-failures.md
+  s_55b4bc53b812ec::t_d5316cf2df9786 1-78
+.agents/skills/moebius-ai-characters/references/repo-map.md
+  s_55b4bc53b812ec::t_96f567c7e0d8cd 1-39
+changelog.md
+  s_55b4bc53b812ec::t_d7da9bcee7cc85 14-21
+docs/README.md
+  s_55b4bc53b812ec::t_05793de006d7d5 40
+docs/systems/audio.md
+  s_55b4bc53b812ec::t_e792f077da3fb7 79-88
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_dfb471eefe89da 5-7
+docs/systems/references.md
+  s_55b4bc53b812ec::t_4eb5feda7c6901 553-628
+docs/systems/rendering.md
+  s_55b4bc53b812ec::t_850b6a0720bd93 653-680
+docs/systems/unity.md
+  s_55b4bc53b812ec::t_5e157eee3f6fa2 86-99
+docs/systems/water.md
+  s_55b4bc53b812ec::t_78c5e9b86f7488 84-88,94-116
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_33dd61db44ecca 651-765
+src/audio.js
+  s_55b4bc53b812ec::t_e775af905c2ec4 37-38,304-311,566-572,578-588,1562-1565
+src/changelog-media.js
+  s_55b4bc53b812ec::t_8e82efadbc6022 48,163-223
+src/changelog.js
+  s_55b4bc53b812ec::t_133c283ca99912 20-27
+src/costumes.js
+  s_55b4bc53b812ec::t_298645baace0de 434-451,455
+src/edge.js
+  s_55b4bc53b812ec::t_cd110b174dacf6 28,34
+src/levels/antennas-kit.js
+  s_55b4bc53b812ec::t_6352ba1346782d 1-364
+src/levels/antennas.js
+  s_55b4bc53b812ec::t_7ba0d274a64a0a 1-576
+src/levels/content.js
+  s_55b4bc53b812ec::t_fc181e642f598b 22,40,99-111
+src/levels/index.js
+  s_55b4bc53b812ec::t_1f9b627b93b393 21-22,113-119,128,133-139
+src/levels/lab-kit.js
+  s_55b4bc53b812ec::t_ab5df0e07218ca 7,28,91
+src/levels/names.js
+  s_55b4bc53b812ec::t_16d5e8bcae4795 21,24,32
+src/levels/reference-antennas.js
+  s_55b4bc53b812ec::t_aaa481911cf995 1-530
+src/levels/reference-underwater.js
+  s_55b4bc53b812ec::t_5209a7765338be 1-217
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_a7fcb7700c8bc2 33-34,36
+src/levels/references.js
+  s_55b4bc53b812ec::t_04f6307cd96a03 17,19,204,206
+src/levels/underwater-kit.js
+  s_55b4bc53b812ec::t_0362dab74af8cc 1-643
+src/levels/underwater.js
+  s_55b4bc53b812ec::t_433cba44b15e57 1-306
+src/main.js
+  s_55b4bc53b812ec::t_04a7c4b9086fac 177,1471,1518
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_28692f93de60b1 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_b0729c42037164 112,115
+src/materials.js
+  s_55b4bc53b812ec::t_82552364936b53 74,444,470-475,598-611,2669,2673
+src/reactive-world.js
+  s_55b4bc53b812ec::t_c24b17c627bb4a 32-33
+src/ship/planets.js
+  s_55b4bc53b812ec::t_109bbda245c32a 28-29
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_e0685bb7213a15 29-30
+src/swim.js
+  s_55b4bc53b812ec::t_074115a77d07d4 29-33,62-74,158-167,190,219,239,242,250,270,278,368-369
+src/thin.js
+  s_55b4bc53b812ec::t_21f244f2f1635f 1-56
+src/water-shader.js
+  s_55b4bc53b812ec::t_b5424eec6c2bfc 71-72,83,158
+src/water.js
+  s_55b4bc53b812ec::t_1c9770f8eab005 34-36,106,143,159,234,279-284,298,324,447-479,484-486,503-509,520-523,526-564,583-598,601-603,606-620,629-663,673
+tests/antennas.test.js
+  s_55b4bc53b812ec::t_2d9434098cf03b 1-197
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_38c3f4ebdb19cd 132-133
+tests/glass-dunes.test.js
+  s_55b4bc53b812ec::t_dc0d61a75024a6 106
+tests/underwater.test.js
+  s_55b4bc53b812ec::t_7ce6197a1aab6d 1-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c3f92043fd2c81bea36fec6c35eebc41403b95aa",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
