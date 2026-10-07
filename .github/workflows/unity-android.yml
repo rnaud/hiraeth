@@ -249,6 +249,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
+      # (the runner's disk is too small for the editor image as it comes: "no space left on device" pulling it)
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: false
+
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

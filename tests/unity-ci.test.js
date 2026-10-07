@@ -34,6 +34,11 @@ test('the workflow caches what makes a warm build short', () => {
   assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ hashFiles\('unity\/Memento\/Assets\/\*\*\/\*\.cs'/);
   assert.match(workflow, /if: steps\.glue\.outputs\.cache-hit != 'true'\n {8}uses: game-ci\/unity-builder@v6/);
   assert.match(workflow, /key: puerts-3\.0\.3/);
+  // (both build jobs make room first: the Linux one ran out of disk pulling the editor image)
+  for (const job of ['android', 'linux']) {
+    const body = workflow.split(new RegExp(`^ {2}${job}:\\n`, 'm'))[1].split(/^ {2}\w+:\n/m)[0];
+    assert.match(body, /uses: jlumbroso\/free-disk-space@/, job);
+  }
   assert.match(workflow, /cache: npm/);
 });
 
