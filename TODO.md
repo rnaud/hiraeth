@@ -97,11 +97,14 @@ scene-level modelling and a few shader limits:
   - [x] Paper grain is screen-fixed, kept light (`uPaper` 0.7); the sheets' is heavier and on the page.
     Done: removed (it read as a filter stuck to the screen), with the vignette; the lines' wobble turns with the world.
   - The gorge panels' walls are in cast shadow from the rim; ours are form-shaded.
-  - Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) have many vertical cracks and
-    strokes down the face; our strata draw horizontal beds with sparse fissures.
+  - [x] Canyon and cliff walls (IMG_3774 p5, IMG_3773 p3, IMG_3772 p3) have many vertical cracks and
+    strokes down the face; our strata draw horizontal beds with sparse fissures. Done: a strata material's
+    `cracks` (materials.md, "Cracks down a cliff's face"), on in the views' canyons and the desert's gorge and cliffs.
   - Weathering and drifts: stains round the doors are not drawn (the doors are separate meshes); the
     dust band at a wall's foot is hidden where sand banks against it; home's and the Market's walls
-    carry no weathering yet.
+    carry no weathering yet. Partly done (October 2026): Qanat's doors have their stains (materials.md, "Stains
+    round the doors"; other worlds' doors not yet); home's and the Market's walls have been weathered since
+    v0.69 (`weathered` 0.6–0.8). Left: the dust band under banked sand.
   - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
   - Vael II: the needles' and stalks' terminator is a clean band on the sheets, while flat facets with
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
@@ -130,13 +133,21 @@ scene-level modelling and a few shader limits:
   - [x] Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes. Done
     (October 2026, world and views, `src/levels/wood-kit.js`): roots as braided strands, cave mouths framed in
     tangled arches with hanging roots and feet, bushes of leaf clumps, a woven nest of eggs under a ribbed dome.
-  - The Signal Market: the crowd, the stalls' goods, the cabs.
-  - The Buried Machine: the trench's pipe mass, the city's clustered hanging towers, the drum's
-    interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge.
-  - The City-Shaft: the game's is a round cream-and-blue pit with a spire, terraces and a hill-town,
+  - [x] The Signal Market: the crowd, the stalls' goods, the cabs. Done (October 2026): the views' crowd of
+    people in coats, hoods and hats with the quiet ones, full stalls with sellers, the game's own cabs; the
+    world's stalls heaped with goods (docs/systems/references.md, worlds.md). The sheets' stalls stay denser.
+  - [x] The Buried Machine: the trench's pipe mass, the city's clustered hanging towers, the drum's
+    interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge. Done
+    (October 2026, views and world): `pipeMass`, clustered `hangingTower`s, drums with arcades, machinery
+    and vaulted or flat ceilings, `ovalTunnel`, `archPortal` and the moon, `rockLedge`; the world's trench
+    walls U-bends, its drum's arcade and machinery, its city in clusters (references.md, worlds.md).
+  - [x] The City-Shaft: the game's is a round cream-and-blue pit with a spire, terraces and a hill-town,
     the sheets' a canyon of pink and cream stacked houses with water below; the views' houses are
     boxes (no pipes, balconies, laundry or plating under the overhangs), the cabs and blimps simple
-    capsules.
+    capsules. Done (October 2026): the views' blocks carry pipes, balconies with washing and plating under
+    their overhangs, blimps, the game's cabs; the world keeps its round pit (the story, quests and cab stops
+    stand on it) with half its walls pink, drainpipes, washing, plating under the terraces, three blimps and
+    turquoise water at the bottom, within 0.2 ms a frame on Handheld (worlds.md).
 
 ## MakeHuman bodies
 

@@ -170,8 +170,8 @@ export function buildDesertLandmarks(scene, terrain) {
     pale: makeMaterial({ color: '#eef0ea', grid: 3 }),
     water: makeMaterial({ color: '#69d3c6', color2: '#a3e4d5', mode: MODE_WATER, flat: true }),
     salt: makeMaterial({ color: '#f6f3ec', flat: true }),
-    violet: makeMaterial({ color: '#b7a0bb', color2: '#a995b0', color3: '#d3bfd4', flat: true, mode: MODE_STRATA, strataSize: 7 }),
-    rose: makeMaterial({ color: '#e7a07f', color2: '#c97b63', color3: '#f1c9a0', flat: true, mode: MODE_STRATA, strataSize: 6 }),
+    violet: makeMaterial({ color: '#b7a0bb', color2: '#a995b0', color3: '#d3bfd4', flat: true, mode: MODE_STRATA, strataSize: 7, cracks: 0.8 }),   // (cracks down the faces: materials.js)
+    rose: makeMaterial({ color: '#e7a07f', color2: '#c97b63', color3: '#f1c9a0', flat: true, mode: MODE_STRATA, strataSize: 6, cracks: 0.8 }),
     canopy: makeMaterial({ color: '#e8a28c' }),
     canopyUnder: makeMaterial({ color: '#c98271' }),
     stem: makeMaterial({ color: '#ebb79f' }),

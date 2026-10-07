@@ -223,6 +223,13 @@ function buildTaxi(color, { fares = true, scale = 1 } = {}) {
   return { root: grp, tail, glow, lamps, seat, pax, near: [tail, seat, pax].filter(Boolean), mid: [glow, lamps] };
 }
 
+/** The cab as a still model (no physics, no lane), at its scale: the References' panels draw the game's own cab. */
+export function cabModel(color, scale = 1, { fares = true } = {}) {
+  const b = buildTaxi(color, { fares, scale });
+  b.root.scale.setScalar(scale);
+  return b.root;
+}
+
 /** The cab pass's item id (quests.give: a flag item.cabpass; src/items.js lists it in the gear). */
 export const CAB_PASS = 'cabpass';
 /** What a cab says when it won't stop for you, by what you tried: hailing it, or getting in. */
