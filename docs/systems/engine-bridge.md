@@ -890,6 +890,15 @@ mirror's scene.updateMatrixWorld 0.4–0.8 ms, and the people's own joints updat
 too), the mirror's walk (0.5–1.5) and the game's update. (The p95 above the display's rate is still the window's
 present: no frame waited on the script or on Unity's CPU then.)
 
+## The people's posing, cheaper on every side (2026-10-07)
+
+The people's posing stopped recomputing world matrices it had just made (src/world-read.js; performance.md, "The
+people posed without recomputing what was current"): the same poses to the float (tests/pose-exact.test.js), and
+cheaper on the web as well as here. The player's people at the camps went from 1.69 to 1.08 ms a frame, at the
+Market's crowd from 1.02 to 0.70; its frames from 6.4 to 5.6 ms and 3.5 to 2.9 (load 5–8). The players were built
+again with all of it (macOS 183 MB, the Android APK 76 MB, Linux 150 MB), ready for the Retroid and the Deck
+(`scripts/bench/android-bridge.sh`, "The players again" above); none installed.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
