@@ -1,0 +1,45 @@
+changelog.md
+  s_55b4bc53b812ec::t_81d58733191d33 9-12
+src/boxes/index.js
+  s_55b4bc53b812ec::t_669a01bb8afe1d 282
+src/changelog.js
+  s_55b4bc53b812ec::t_9ae35195ca9ad9 13-16
+src/items.js
+  s_55b4bc53b812ec::t_38203b95380c21 47,52,139
+src/levels/content.js
+  s_55b4bc53b812ec::t_25cd73cbf79bfc 118-122,128,147,155,236
+src/observatory.js
+  s_55b4bc53b812ec::t_324cf4cdb57ac9 108-109,153,180-181,183-184
+src/quest.js
+  s_55b4bc53b812ec::t_fd58b20a63fa2c 5,300-302,337
+src/story/desert-bike.js
+  s_55b4bc53b812ec::t_b38c4d3f50350c 160
+src/story/desert-data.js
+  s_55b4bc53b812ec::t_f0857db2fc6c4e 152-153,183,185,201,211,217-221,250,278,396,407,410,421,448-451,627,745,757-761
+src/story/desert.js
+  s_55b4bc53b812ec::t_8560489ccaf25e 78,123-132,535
+src/temples/index.js
+  s_55b4bc53b812ec::t_199ad0e40f7e83 210,214-222
+tests/boxes.test.js
+  s_55b4bc53b812ec::t_c86877c576a2ad 347
+tests/desert-story.test.js
+  s_55b4bc53b812ec::t_2d556911072e63 693-711
+tests/story-arzach.test.js
+  s_55b4bc53b812ec::t_ee063dfd9f0e2e 110-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f29c66b1234f3ba1ee7d1f46bbf21d728cb35425",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
