@@ -1,0 +1,47 @@
+.github/workflows/unity-android.yml
+  s_55b4bc53b812ec::t_26a0c808f444f3 1-227
+changelog.md
+  s_55b4bc53b812ec::t_9f3b53abc2ae39 9
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_e079c0e01f485d 48-50
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_5fc1b242fb24c3 637-641
+docs/systems/unity.md
+  s_55b4bc53b812ec::t_b941aff6c65871 50-101
+scripts/release-info.mjs
+  s_55b4bc53b812ec::t_0fa9b35e95d855 10,115-137,147-151
+scripts/steam-deck/deck.py
+  s_55b4bc53b812ec::t_251674514e3f7b 744,766,769-773,790,799-800,821-822,934-937
+scripts/unity-android-release.sh
+  s_55b4bc53b812ec::t_3455261959267b 1-69
+scripts/unity-publish.sh
+  s_55b4bc53b812ec::t_9c0f6183cdbc28 1-30
+src/changelog.js
+  s_55b4bc53b812ec::t_a007ef2a724fb3 13
+tests/test_steam_deck.py
+  s_55b4bc53b812ec::t_4cc573b8ba9c02 596-619
+tests/unity-ci.test.js
+  s_55b4bc53b812ec::t_8d6d6054cc2c8d 1-110
+unity/.gitignore
+  s_55b4bc53b812ec::t_d43ed1a4592cd0 35-37
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_f9db3e96090854 22-23,30-34,67-79,83,95,118,158-176,178-180,182-183,187-188,197,199,204-237
+unity/Memento/ProjectSettings/ProjectSettings.asset
+  s_55b4bc53b812ec::t_480c9534fa3012 173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ac437de989f71512d27c80318a5b54df9c0e3b8e",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
