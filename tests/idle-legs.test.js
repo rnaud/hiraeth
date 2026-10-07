@@ -85,4 +85,9 @@ test('standing still, the traveller\'s legs hold still: no twitch, no steps, the
     const moved = Math.max(...frames.map((f) => f.feet[s].ball.distanceTo(from)));
     assert.ok(moved < 0.003, `the ${s} foot's ball moved ${(moved * 1000).toFixed(1)} mm while planted`);
   }
+  // he stands upright with his feet under him, as drawn, not in the idle clip's split stance
+  // (one foot 43 cm ahead of the other: side on, a stride)
+  const { l, r } = frames.at(-1).feet;
+  assert.ok(Math.abs(l.ball.z - r.ball.z) < 0.2, `the feet ${Math.abs(l.ball.z - r.ball.z).toFixed(2)} m apart fore and aft`);
+  assert.ok(Math.abs(l.ball.x - r.ball.x) < 0.45, `the feet ${Math.abs(l.ball.x - r.ball.x).toFixed(2)} m apart side to side`);
 });

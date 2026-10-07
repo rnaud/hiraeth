@@ -159,6 +159,12 @@ below is laid over them procedurally, so no new motion data was needed (see TODO
   free thigh comes forward as its knee bends, so its foot stays where it is planted (it swung back
   25 cm and stepped there and back every 8 s). `tests/idle-legs.test.js` stands the shipped
   traveller still for 20 s: no leg bone turning over 2 rad/s, no settling step, the balls within 3 mm.
+- **The stance** (`Player.standUnder`, in the idle layer): the idle clip stands split and wide (the
+  left foot 13 cm ahead of its hip, the right 26 cm behind, both well out), which side on reads as a
+  stride; the drawings stand the traveller upright, feet under the hips. Each thigh swings its ankle
+  in (`IDLE_STANCE`: 30 % of the fore-aft offset kept, 40 % of the outward one) and the body rises by
+  what the legs gained, so the knees keep the clip's bend. A body that starts standing starts in this
+  stance (no settling step at the spawn); stopping, the feet settle into it with a step.
 - **The body** (`Locomotion`, after `Animator.apply`): the chest tips forward as the body speeds
   up and back (the hips dipping) as it brakes, banks into a curve by turn rate × speed, and the
   head and then the chest turn toward where you steer before the hips get there.
