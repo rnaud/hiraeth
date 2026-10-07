@@ -9,6 +9,14 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.87', date: '2026-10-07', items: [
+    'The fluid blade: the glove draws a blade of the tank’s fluid and swings it (F, LB / L1, or ⚔ on a touch screen). Press again to chain three swings, the last one heavier. It turns you toward the nearest foe and costs nothing.',
+    'Ink blots gather in the wilds, away from people, the ship and the cities: loose ink and scribble that come at you and lunge. Their ring is drawn on the ground before they strike, so you can step out of it. The blade cuts them back into ink, a shot or an ember washes them away, stilling freezes them, and every one you cut gives the tank a charge back.',
+    'The makers’ machines stand guard in the temples’ rooms: heavier and slower, their slam drawn on the floor before it lands. The blade breaks them; fluid only staggers them. Once broken, they stay broken.',
+    'No blow from a foe empties a healthy bar, and a new Enemies setting turns them all off for the calm game. There are none at home.',
+    'The frame readout moved from F to F3 (F is the blade now).',
+    'The Arena, in the worlds list (Debug): a ring of sand where the foes come in waves, to try the blade.',
+  ] },
   { v: '0.86', date: '2026-10-07', items: [
     'A new world off the route, the City Floating in Space: rounded houses in cream, salmon and coral heaped on islands in the black of space, joined by pale arched bridges, with the stars all round you, even under your feet. Cross the crowded Market Bridge to the stalls of the plaza, climb to the Towers, rest under the dark trees of the Garden, and look out from the Balcony at the great planet, which turns its lit face toward the city as night comes. Step over a parapet and you fall into the void, and come back where you last stood.',
     'The References level has the City Floating in Space’s four pictures rebuilt as views: rounded houses in cream, salmon and coral heaped on islands that float in the black of space, pale arched bridges between them, dark machinery and long cables hanging under them into the void, and a great pale planet over the roofs.',

@@ -11,7 +11,7 @@ npm run dev     # http://localhost:5173
 
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
-**F** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
+**F** swings the fluid blade (LB / L1 on a controller, ⚔ on touch: docs/systems/foes.md). **F3** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after
 five seconds; ping again to refresh it. The guide follows quest progress and
@@ -39,7 +39,7 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
 | riding | jump off (a hop, its speed carries you) | get off (moving or flying: jump off) | hop / flap / rise (a cab: where to?) | |
 
 - **Walking:** left stick moves; click it (L3) to run, until you let the stick go.
-  Right stick looks; hold LB / L1 and the right stick zooms. LT / L2 aims the fluid
+  Right stick looks; hold LB / L1 and the right stick zooms (a press of LB / L1 on its own swings the fluid blade). LT / L2 aims the fluid
   tool and RT / R2 shoots while it is held; RT / R2 without LT fires the **jets**
   (see "The controls of October 2026" below). RB / R1
   pushes, D-pad left / right changes the gun mode, up the worlds, down photo mode,

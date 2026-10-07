@@ -116,6 +116,20 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.87': [
+    { match: 'The fluid blade: the glove draws', shots: [
+      { name: 'blade-swing', only: 'after', caption: 'The blade mid-swing, among three ink blots in the Arena', from: 'headless Chrome against the dev server, High, 10:00 (7 October)' },
+    ], see: 'Anywhere with the backpack, press F (LB / L1 on a controller, ⚔ on a touch screen); press again quickly to chain the three swings.' },
+    { match: 'Ink blots gather in the wilds', shots: [
+      { name: 'blots-lunge', only: 'after', caption: 'Ink blots winding up: their rings drawn on the sand before they lunge, their eyes gone red', from: 'headless Chrome against the dev server, High, 10:00 (7 October)' },
+    ], see: 'In the desert, walk out into the dunes well away from the camps and the ship: a few seconds later the first blot comes in.' },
+    { match: 'The makers’ machines stand guard', shots: [
+      { name: 'machine', only: 'after', caption: 'A makers’ machine closing in, in the Arena’s third wave', from: 'headless Chrome against the dev server, High, 10:00 (7 October)' },
+    ], see: 'Go into any world’s temple: a machine stands by each room’s checkpoint stone past the first.' },
+    { match: 'No blow from a foe empties a healthy bar', see: 'Settings → Enemies (on by default). Take a hit at full health: the bar never goes below a sliver.' },
+    { match: 'The frame readout moved from F to F3', see: 'Press F3 in the game: the frame readout shows in the corner.' },
+    { match: 'The Arena, in the worlds list', see: 'On the title screen, choose Debug, then The Arena.' },
+  ],
   '0.86': [
     { match: 'A new world off the route, the City Floating in Space', shots: [
       { name: 'spacecity-arrival', only: 'after', caption: 'Out of the ship on the Pier: the bridge to the Gate Quarter, the islands round it, the planet two-thirds lit over the roofs', from: 'the world’s own screenshots, headless Chrome, High, 8:30 (7 October)' },

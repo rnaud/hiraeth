@@ -78,7 +78,7 @@ export function inArea(a, o, h, p) {
 }
 
 /** The warning drawn on the floor before a strike: a fill that grows, inside an outline that pulses. */
-class Telegraph {
+export class Telegraph {
   constructor(parent, color) {
     this.fillM = makeMaterial({ color, glow: 0.7, flat: true, side: THREE.DoubleSide, key: `tele.fill.${uid++}` });
     this.edgeM = makeMaterial({ color: '#2b211f', flat: true, side: THREE.DoubleSide, key: `tele.edge.${uid++}` });

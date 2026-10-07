@@ -416,6 +416,14 @@ export const COSTUMES = {
     capes: [0], robe: 0, size: [1, 1],
     palette: { tunics: ['#d8a24a', '#8a6fb8'], legs: ['#2b2f45'], skins: ['#e9cfb4', '#c98f64', '#8a5a3c'], accents: ['#f3ead8'] },
   })] },
+  // the arena has nobody in it (only the foes): the lab's plain set, should anyone be put there
+  arena: { tribes: [tribe({
+    name: 'the onlookers',
+    heads: { band: 1 }, as: { wrap: 'band', hat: 'band', hood: 'band' },
+    masks: { none: 1 }, body: { none: 1 }, props: { none: 1 }, trim: { none: 1 },
+    capes: [0], robe: 0, size: [1, 1],
+    palette: { tunics: ['#d8a24a', '#8a6fb8'], legs: ['#2b2f45'], skins: ['#e9cfb4', '#c98f64', '#8a5a3c'], accents: ['#f3ead8'] },
+  })] },
   // the references' walkers (src/levels/reference-views.js): small violet robed figures, hooded
   references: { tribes: [tribe({
     name: 'the walkers',

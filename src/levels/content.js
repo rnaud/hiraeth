@@ -118,6 +118,17 @@ export const CONTENT = {
       { at: [7, 118], y: -3, radius: 2, palette: pal('#5f8f7a', { cloth: '#efd2a6' }), lines: ['~surprised~ A ship, all the way down here? The last thing that sank onto this sand was a teapot.', '~playful~ The city’s up the slope, follow the lamps. You’ll see the lights before the towers.'] },
     ],
   },
+  arena: {
+    weather: [],
+    story: {
+      title: 'THE ARENA',
+      intro: 'The foes come in waves. Cut them down with the fluid blade.',
+      outro: 'That is the ring. They will keep coming.',
+      label: 'the ring', goal: [0, 'ground', 6], radius: 8,   // (at the start: told at once, no beacon over the ring)
+    },
+    relics: { spots: [], names: [] },
+    npcs: [],
+  },
   atelier: {
     weather: [],
     story: {

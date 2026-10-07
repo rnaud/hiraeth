@@ -2,6 +2,15 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.87 — 2026-10-07
+
+- The Arena, in the worlds list (Debug): a ring of sand where the foes come in waves, to try the blade.
+- The frame readout moved from F to F3 (F is the blade now).
+- No blow from a foe empties a healthy bar, and a new Enemies setting turns them all off for the calm game. There are none at home.
+- The makers’ machines stand guard in the temples’ rooms: heavier and slower, their slam drawn on the floor before it lands. The blade breaks them; fluid only staggers them. Once broken, they stay broken.
+- Ink blots gather in the wilds, away from people, the ship and the cities: loose ink and scribble that come at you and lunge. Their ring is drawn on the ground before they strike, so you can step out of it. The blade cuts them back into ink, a shot or an ember washes them away, stilling freezes them, and every one you cut gives the tank a charge back.
+- The fluid blade: the glove draws a blade of the tank’s fluid and swings it (F, LB / L1, or ⚔ on a touch screen). Press again to chain three swings, the last one heavier. It turns you toward the nearest foe and costs nothing.
+
 ## v0.86 — 2026-10-07
 
 - The Signal Market has its night: after dark its billboards and shop signs light up as the old screens of a night market, each in its own colour (a pale face on violet, a planet on cobalt, glyphs on lemon or white, a head on scarlet), the towers go dark round them under a black sky, the lanterns throw warm pools on the street, steam rises off the stalls and half the crowd has gone home. By day the market is as it was.

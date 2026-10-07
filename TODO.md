@@ -18,8 +18,9 @@ Ranked; each says why in the review. Playtest with two or three new players befo
 - [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
 - [ ] **Each world's climax staged as a moment** (only the desert has filmed moments).
 - [ ] **One trace of the singing light or of Ilen in each detour world.**
-- [ ] The gameplay loop: new concepts to try (the fluid blade, enemies outside the cities and in the
-  temples): in progress.
+- [ ] The gameplay loop: the fluid blade and the foes are in (v0.87, docs/systems/foes.md; try them in the
+  Arena). Next: captured sword swings for the blade (the Sword and Shield and Great Sword packs from
+  Mixamo), a better machine, foes that use the world's height and the temple kit.
 
 # Carried over
 
