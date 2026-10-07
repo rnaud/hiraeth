@@ -36,6 +36,7 @@ export const REFERENCE_WORLDS = [
   { id: 'fallenring', name: 'The Fallen Ring', count: 4, load: () => import('./reference-fallenring.js') },
   { id: 'moonfoundry', name: 'The Moon Foundry', count: 4, load: () => import('./reference-moonfoundry.js') },
   { id: 'underside', name: 'The Underside', count: 4, load: () => import('./reference-underside.js') },
+  { id: 'spacecity', name: 'The City Floating in Space', count: 4, load: () => import('./reference-spacecity.js') },
 ];
 
 /** The index of the first view of world k (0-based, across all the worlds). */

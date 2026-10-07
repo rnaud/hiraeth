@@ -32,6 +32,7 @@ export const BACKDROPS = {
   fallenring: ['#a8c8cc', '#f8e6c8', '#ef9a7c', '#c8d4a0', '#d0e4e4'],
   moonfoundry: ['#b4d0d6', '#efe2c8', '#9cc9b4', '#e8c4a4', '#d8dce0'],
   underside: ['#cfe0ee', '#f1e2c6', '#f0b89c', '#d8dce8', '#f6ece0'],
+  spacecity: ['#f8dcbc', '#f0ac94', '#8ec8c8', '#f6c4aa', '#d8c8e0'],
 };
 
 const rgb = (hex) => {

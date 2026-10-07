@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.86 — 2026-10-07
+
+- A new world off the route, the City Floating in Space: rounded houses in cream, salmon and coral heaped on islands in the black of space, joined by pale arched bridges, with the stars all round you, even under your feet. Cross the crowded Market Bridge to the stalls of the plaza, climb to the Towers, rest under the dark trees of the Garden, and look out from the Balcony at the great planet, which turns its lit face toward the city as night comes. Step over a parapet and you fall into the void, and come back where you last stood.
+- The References level has the City Floating in Space’s four pictures rebuilt as views: rounded houses in cream, salmon and coral heaped on islands that float in the black of space, pale arched bridges between them, dark machinery and long cables hanging under them into the void, and a great pale planet over the roofs.
+- Space is drawn the way the drawings draw it: a flat black all round, below you as well as above, printed with fine white and teal stars and a faint nebula, and a great planet hanging as an ink-ringed disc, full or a crescent.
+
 ## v0.85 — 2026-10-07
 
 - The worlds list has a fresh picture of every world, the hidden ones included, and links at the top to the character studio, the Motion page, the trailer and What’s new. The character studio left the title screen for it.

@@ -117,6 +117,7 @@ export const WORLD_BODIES = {
   fallenring: { proportions: 0.55, height: 0.53, weight: 0.05 },            // the ring folk: herders, out in the weather
   moonfoundry: { proportions: 0.52, height: 0.52, weight: 0.05 },            // the foundry's workers: sturdy
   underside: { proportions: 0.6, height: 0.54, weight: 0 },                  // the town under the rock: light, for the ropes
+  spacecity: { proportions: 0.6, height: 0.55, weight: 0.02 },              // the islands' folk, light on their feet
 };
 
 /**

@@ -36,6 +36,7 @@ export const EDGE_HINTS = {
   fallenring: 'The plain runs on toward the far pieces of the ring, and the wind turns you back.',
   moonfoundry: 'The plain runs on into the haze and the far moons, and turns you back.',
   underside: 'The wind off the cloud grows strong and turns you back.',
+  spacecity: 'Past the last islands there is only the dark, and it turns you back.',
 };
 
 /**

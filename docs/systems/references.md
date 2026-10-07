@@ -845,3 +845,39 @@ Ranked by how much they would close the gap to the sheets, across every world re
 - **Left**: the pictures' city is far denser (stairs everywhere, ledges, plants, crowds at every table); our walls
   are plain masonry faces where the pictures carry deep detail; the pale figures are simpler; picture 3's pink
   cloud streaks are left out; the compositions follow the pictures' masses, not every house.
+
+## The City Floating in Space's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-spacecity.js`, world `spacecity`: `?level=references&world=spacecity&view=n`):
+  four 16:9 pictures (1456 × 816), one view each, after the Fallen Ring's: from the balcony, the arched bridge over
+  the void to the heaped quarter, the planet's edge filling the upper right (1); under the crescent, the broad market
+  bridge crowded between two heaps, the far arches (2); the two arches one over the other from the towers to the
+  middle stack, the city running on under the great planet, its dark side mauve (3); the market island and the
+  bridges round it, the full planet behind the big houses (4). One scene builder (`spaceScene`) with the world's kit
+  (`src/levels/space-city-kit.js`, shared with the world): islands, heaps, bridges, the balcony's railing or parapet,
+  pipe stacks, walkers on the decks, the traveller with his glowing bottle.
+- **Over the void**: a view's ground is the balcony's floor near the camera and 900 m down everywhere else, and is not
+  drawn (`ground.hidden`, one line in references.js); the stars go on below the islands (rendering.md "Space").
+- **Placed off the pictures' pixels** (`sheetAt`, `sheetGround`, `sheetDir`, as the Forest of Antennas' views): the
+  balcony's line, the traveller's feet, a bridge's ends are pixels of the picture at a distance or on a deck's level.
+  **The planet** is given as its disc on the picture (centre and radius in pixels, fitted to the limb's pixels) and
+  lit from where its sun is in the picture's terms (`light: [right, up, toward us]`): `planetOf` turns it into the
+  view's planet (azimuth, height, angular radius: the mean of the angles to its limb on four sides, since the
+  projection stretches a disc off the axis) and its `uSpaceSun`, `uSpaceNight`. references.js carries a view's
+  `planets` into its zone (one word: they were always none).
+- **The shapes** (`space-city-kit.js`): `island` (a slab of a rounded outline, its deck a paving plate, a parapet
+  round it open at its gaps, under it the machinery: stepped masses of its outline shrinking, tanks and pipes hung
+  from them, greebles under the slab, cables straight down or sagging in loops, teal and amber lamps), `heap` (houses
+  over the deck heaped into a mound: each house carries more storeys the nearer it stands to the mound's top, each
+  a little smaller and set back; optional terraces), `quarter` (the houses: eclipse-kit.js's `house` with the city's
+  materials, `spaceMats` having eclipse-kit's keys; on the roofs dark round trees, chimneys, antennas, clutter,
+  awnings and washing), `bridge` (a side profile of a deck over an arch, extruded across and stood from one end to
+  the other, its parapets along it), `railing` (posts and rails or a solid parapet), `pipeStack`, `spaceTraveller`.
+- **The look** (`SPACE_LOOK`, `SPACE_DAY`, `SPACE_TONES`): space all round (`SPACE_SKY`), the walls cream, salmon and
+  coral (read off the pictures: lit #fae1bb #efa992 #dc8b69 #fc8b63), their shade a rose (#c28070 over #fae1bb), the
+  machinery dark slate and teal (#393e53, #295960), the balcony a dark teal (#24485a); little hatching, the shade
+  printed flat, spot blacks in the machinery, a rose haze in steps so far islands go paler, not darker. Each view
+  has its own light (picture 2 greyer, 4 more orange). `?look=spacecity`.
+- **Left**: the pictures' every wall carries small detail (pipes, vents, signs, plants, washing by the dozen, crowds
+  on every deck); ours are plain rounded blocks and a few walkers. Their houses step down the islands' sides below
+  the decks; ours stand on the decks. Picture 2's crowd fills its bridge; ours is a line of figures.

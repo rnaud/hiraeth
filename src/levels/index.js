@@ -24,6 +24,7 @@ import { createEclipse, buildEclipse } from './eclipse.js';
 import { createFallenRing, buildFallenRing } from './fallen-ring.js';
 import { createMoonFoundry, buildMoonFoundry } from './moon-foundry.js';
 import { createUnderside, buildUnderside } from './underside.js';
+import { createSpaceCity, buildSpaceCity } from './space-city.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -167,6 +168,13 @@ export const LEVELS = [
     id: 'underside', create: createUnderside, build: buildUnderside, hidden: true,
     title: TITLES.underside, source: 'a town hung under a shelf of rock',
     blurb: 'A shelf of white rock juts out over a sea of cloud, and a town hangs under it: round white houses stuck to the rock, timber decks slung on rods, long red banners falling toward the cloud. Go down the great stair, walk the galleries under the shelf to its tip, and climb back up the timber stair.',
+    moves: 'walk · climb',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'spacecity', create: createSpaceCity, build: buildSpaceCity, hidden: true,
+    title: TITLES.spacecity, source: 'a city of islands in the dark',
+    blurb: 'Rounded houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges, their machinery and cables hanging into the void, a great pale planet over the roofs. Cross the Market Bridge and look out from the Balcony.',
     moves: 'walk · climb',
   },
   {
