@@ -1,0 +1,23 @@
+src/levels/bazaar.js
+  s_55b4bc53b812ec::t_55ab526fb405d7 151,170-191
+src/levels/reference-market.js
+  s_55b4bc53b812ec::t_26a0b167f14b27 5,57,114,117-122,124-167,169,171-202,204-205,207-209,251-252,254,274,387,467
+src/taxi.js
+  s_55b4bc53b812ec::t_8c8cf127ca7dd1 206-212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "af8e8c6372d504437e7d4600caf4f831e6b2bda2",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
