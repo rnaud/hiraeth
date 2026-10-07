@@ -117,7 +117,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }, { text: '~curious~ Who do you sweep for?', goto: 'sweep' }],
         },
         rang: {
-          say: ["~solemn~ A light flew low across the shaft, singing like a finger round wet glass. Every window hummed.",
+          say: ["~solemn~ A light flew low across the shaft, singing one note so high the lamps rang with it. Every window hummed.",
             "~surprised~ The Lodestar answered. Then a splinter broke off and fell all the way to the bottom. I heard it singing long after I lost sight of it."],
           do: { set: { 'incal.rumour.light': true } },
           choices: [{ text: '~neutral~ Something struck my ship that night.', goto: 'ship' }, { text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' },
@@ -480,7 +480,7 @@ export const THINGS = {
       nodes: {
         full: {
           say: ["~neutral~ A brass bowl holds a hand-long splinter of the Lodestar. The familiar mark is cut into one facet: {glyph}",
-            "~whisper~ It hums like wet glass, leaning faintly toward the light above."],
+            "~whisper~ It hums, thin as a held breath, leaning faintly toward the light above."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         empty: { say: ["~solemn~ The bowl is empty of the splinter. Someone has put a candle in its place."], choices: [{ text: '~neutral~ (step back)', end: true }] },

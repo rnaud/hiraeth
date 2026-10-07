@@ -176,7 +176,7 @@ export const PEOPLE = {
         run: { say: ["~playful~ Letters, bills, threats. Fish orders, mostly. People pay in fruit. I could retire if retirement accepted pears."], choices: [{ text: '~neutral~ Sel says you have the last recording.', goto: 'recording' }] },
         recording: {
           say: ["~sad~ I’ve got Sel’s cylinder. Here. Since the night the sky rang.",
-            "~surprised~ It arrived *singing*. A note around the voice, like wet glass. Every street sign flashed the same mark. Cylinders aren’t supposed to do that.",
+            "~surprised~ It arrived *singing*. A note around the voice, like a tuning fork held to a speaker. Every street sign flashed the same mark. Cylinders aren’t supposed to do that.",
             "~scared~ I ran. Took it with me. It’s hummed against my back ever since. Not my cleverest escape."],
           do: [{ give: 'recording' }, { set: { 'bazaar.kip.gave': true } }, { advance: [Q, 'kip'] }],
           choices: [{ text: '~curious~ Did you hear what it said?', goto: 'said' }, { text: '~neutral~ I’ll take it up.', goto: 'up' }],

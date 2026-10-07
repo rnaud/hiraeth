@@ -155,7 +155,7 @@ export const KEEPERS = [
       ],
       nodes: {
         hello: {
-          say: ["~scared~ A stranger! Hollin will need to sit down. Then stand up. Then sit down again.", "~playful~ I’m Pim. That mossy dome is mine. The door closes very nicely, then immediately reconsiders."],
+          say: ["~scared~ A stranger! Don’t tell Hollin yet. He’ll start polishing lamps that are already clean.", "~playful~ I’m Pim. That mossy dome is mine. The door closes very nicely, then immediately reconsiders."],
           choices: [
             { text: '~curious~ Reconsiders?', goto: 'latch' },
             { text: '~curious~ What are the domes?', goto: 'domes' },

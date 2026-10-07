@@ -56,7 +56,7 @@ export const PEOPLE = {
         },
         stuck: { say: ['~sad~ Thirty years stuck. The same as the bell.', '~solemn~ Ring for her, sky-child. Somebody should.'], choices: [{ text: '~neutral~ I will.', end: true }] },
         after: {
-          say: ["~surprised~ The loose stones are settling! One landed on the kitchen roof. Calix laughed. I expect the cook’s response will be different.",
+          say: ["~surprised~ The loose stones are settling! One landed on the kitchen roof. Calix laughed out loud. I haven’t heard him laugh in years.",
             "~happy~ The Cloud-Mother came out this morning. Swam away across the sky. Some cloud followed her, just as the old stories said.",
             '~solemn~ I think the founders would have liked you.'],
           choices: [

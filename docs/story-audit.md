@@ -212,7 +212,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The chest's lid.
   - The feather errand's thanks.
   - A new errand out to Lorn: Calix's muffled hand bell for Wendel.
-- **Still open:** every Vael II voice ends on a dry quip, so they blur. A pass to vary them is for the author.
+- **Second pass:** the voices are varied: Aube keeps the dry wit; Calix, Ysolde, Ondine, Tiv and Agathe end differently (see "Voices that blur").
 
 ### Lorn: "The Great Crystal"
 
@@ -524,6 +524,8 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
   - every Vael II speaker ends on a dry quip;
   - "sitting down" is the punchline in Lorn, Lorn II and Viridel alike;
   - "like a bowl rubbed with a wet finger" and "wet glass" repeat (the voice guide warns about this).
+
+  *Done (second pass),* each line's tone and meaning kept. In Vael II, Sister Aube keeps the dry wit (the one who measures the cloud); Brother Calix is earnest now ("Every morning, just out of reach."; "It's heavier than I remembered."), Mother Ysolde fond ("They're in a box under my bed, in order."), Ondine warm ("Thirty years, and she still keeps my place."), Tiv a child ("I think mine is a thank-you. With feet."), and Agathe says plainly that she hasn't heard Calix laugh in years. "Sitting down" stays once, in Lorn (Wendel in the mud, which Ivo tells): the Hush-House guide's Wendel laughs out loud, Lorn II's Pim fears Hollin will polish lamps that are already clean, and the Greenhouse's Oro hasn't stopped staring (Sol's "Sit down. Have some tea." is an invitation, and stays). The singing light: the desert keeps its bowl rubbed with a wet finger; the City-Shaft hears a note so high the lamps rang, its splinter hums "thin as a held breath", Lorn's reed-cutter hears "a reed cut just right", the market "a tuning fork held to a speaker".
 - **Docs.** The bible's desert section and its quotations predate the built sequence; continuity.md and the live data win. Two small doc points:
   - `lore/voice-guide.md` and `lore/characters/worlds.md` give Oïa's third word as "Blow", where the build says "Play";
   - `prompts/vael.md` gives Oïa the flute, which the build leaves on the sill.
