@@ -1,0 +1,25 @@
+src/levels/garden-kit.js
+  s_55b4bc53b812ec::t_f27313ba0c356e 1-191
+src/levels/reference-spheres.js
+  s_55b4bc53b812ec::t_27efed03612f1a 7-8,35-38,49-56,62,65,67,133-134,136-137,141-145,158-159,162-164,167,171-172,179-183,198-201,204,206,208-215,219,221,238-257,262,271-275,284,328,345,356-357,361-364,414,430,432-433,445,456,460,462-463,482,513,531,545-547,557-558,562,565-566,582-585,632,665-667,681
+src/levels/spheres.js
+  s_55b4bc53b812ec::t_38b983ff3536f9 11,81-83,157,187-193,201-202,244-263,375,507-535,639-644,678,686-690,716-717,724-730,832-833,839-840,851,853-854
+src/materials.js
+  s_55b4bc53b812ec::t_f5d99db8fbf440 378-381,994-1016,2011,2286-2287,2343
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "702658c04ed29f7ce7123824a951a03209515b16",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
