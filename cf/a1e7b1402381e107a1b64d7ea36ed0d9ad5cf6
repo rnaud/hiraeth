@@ -1,0 +1,99 @@
+TODO.md
+  s_55b4bc53b812ec::t_1256a8319dcd84 183-185,211-237
+changelog.md
+  s_55b4bc53b812ec::t_b6625589c06d6a 7-11
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_d7a03e9ef618ce 34-36,506-572,641-642
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_7333efa09313da 555-612
+engine/game.js
+  s_55b4bc53b812ec::t_2256c483c36065 22-23,28-30,47,59,78-113,124-125,127,138-140,142-143,163-178,184-185,224-226,229,231-234,249-256,362,386-387,426-434,447-448,460-462,472-475,483,496-501
+engine/ink-spec.js
+  s_55b4bc53b812ec::t_925f077dc528ae 42
+engine/mirror.js
+  s_55b4bc53b812ec::t_2f49a1c07a9dac 15-16,19-27,84,117-142,146,159,173,201,223-243,320-322,336,342-343
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_9f80e75917d5c5 57-58,70-77,124-142,156-199,211-212,215-216,219
+engine/unity/game.js
+  s_55b4bc53b812ec::t_79f77c6485ed89 50-52,77-84,162-173
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_2abbd0d3a06f7a 30-31,50-51,77-78,80-85,100
+engine/unity/port-format.js
+  s_55b4bc53b812ec::t_a24376b1a57a5b 22-25,44-50
+index.html
+  s_55b4bc53b812ec::t_d59130e9ce0bcf 163-167,410,414
+scripts/bench/deck-run.sh
+  s_55b4bc53b812ec::t_baceb885c1ef2d 1-33
+scripts/bench/deck-worlds.mjs
+  s_55b4bc53b812ec::t_f0bda19abeaee4 1-175
+scripts/transition-perf/loading.mjs
+  s_55b4bc53b812ec::t_6df2f7503c546c 53
+scripts/transition-perf/pen.mjs
+  s_55b4bc53b812ec::t_ee491333a44899 1-91
+src/changelog.js
+  s_55b4bc53b812ec::t_3f378ea551e9e3 11-15
+src/flora-grass.js
+  s_55b4bc53b812ec::t_a139c1744d348c 28
+src/levels/incal.js
+  s_55b4bc53b812ec::t_844db3bd6eb64d 259,295-299,330-331
+src/load-steps.js
+  s_55b4bc53b812ec::t_599fe0290807c6 76-104
+src/main.js
+  s_55b4bc53b812ec::t_99b6665702653c 26,53,77,110-111,152-153,779,794,797,1318,1320-1325,1329,1588,1604,1646,1661
+src/npc.js
+  s_55b4bc53b812ec::t_da85adbae749a5 59-63,529-530,532
+src/perf.js
+  s_55b4bc53b812ec::t_184d211085da5b 368,373-378,395-400,403,444-448,461-462,465
+src/title-vista.js
+  s_55b4bc53b812ec::t_bd38c554fc9b6c 8,339-340,520
+src/ui.js
+  s_55b4bc53b812ec::t_c3f408e567bf8a 20,31,38,51,54-55,137
+tests/engine-bridge.test.js
+  s_55b4bc53b812ec::t_e4deeb798b77a0 181-256,401-402
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_00630b104f71c1 75-128,186
+tests/gpu-pacer.test.js
+  s_55b4bc53b812ec::t_0f528a82e9eafb 1-42
+tests/hud.test.js
+  s_55b4bc53b812ec::t_d62ce471240288 112-116
+tests/native-app.test.js
+  s_55b4bc53b812ec::t_7b704bc5de4fda 15
+tests/quality.test.js
+  s_55b4bc53b812ec::t_10e23b3b32d601 118-160
+unity/Memento/Assets/Memento/Runtime/Grass.cs
+  s_55b4bc53b812ec::t_c0d5da7c8b3b12 144-148
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_55b4bc53b812ec::t_d5a12cf1b8275e 111-130,176-178,193-210
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_55b4bc53b812ec::t_04a2d1acd4685e 181-193
+unity/Memento/Assets/Memento/Shaders/Bloom.shader
+  s_55b4bc53b812ec::t_88092fd7041ec5 41
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_55b4bc53b812ec::t_48e4631fba6d2a 9,50-55,99,118-122,126-131,136,150-151,157-173,196-198,203-243,340,344-346,351,382-393,422,426-443,446-447,451,456,463-472,480-481,483,485-486,497,499,505-508,510,513,517-518,521-524,528-531,538-540,542-556,561,563-568,577,581-592,595,598,600,604-605,607-609,612-628,630-643,648,652-654,656,659-666,709
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl
+  s_55b4bc53b812ec::t_85e7e0fe787d59 1-359
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl.meta
+  s_55b4bc53b812ec::t_a703daeec721f5 1-7
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_55b4bc53b812ec::t_e2bc6ab313ca81 37-46,57,70-72,201-204,227,269,271-272,275-284,286,288,290,294,303,307,309,311,555-564,614-620,622,625,629-659,662-678,683-684,688-693,695,717,723,736-737,739-748,778,782-786,788-789,808-826
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_5d7807d6339c1d 39-45
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_db4380f8977501 35-36,47-52,165-170,208,214-225,256-257,418-419,427,450-513,517,634-642,657
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cfa1e7b1402381e107a1b64d7ea36ed0d9ad5cf6",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
