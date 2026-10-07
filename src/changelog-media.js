@@ -103,6 +103,76 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.77': [
+    { match: 'The traveller’s face moves now', see: 'Talk to anyone and watch the traveller in the conversation’s close-up: he smiles, frowns or looks worried with what is said, blinks, glances about, and his mouth moves as he speaks.' },
+    { match: 'The fluid tank is the glass jar', shots: [
+      { name: 'flask', caption: 'The traveller from behind, the tank on his back', commit: 'c3cceb8', view: people([{ id: 'traveller', yaw: 2.6, dist: 2.6, height: 1.2 }, { id: 'traveller', yaw: 3.14, dist: 2.2, height: 1.3 }], { player: [29, 24.456, 132], heading: 0.6435 }) },
+    ] },
+    { match: 'On handhelds every world runs a little smoother around the traveller', numbers: [
+      { title: 'The traveller’s shirt: its work on the processor a frame', unit: 'ms', better: 'lower', device: MAC_X4, source: 'docs/systems/performance.md, “The traveller’s overshirt on the GPU”', rows: [
+        { where: 'the shirt’s update (median 0.2–0.5)', before: 3.5, after: 0.5 },
+        { where: 'positions and normals sent to the graphics chip a frame (kB)', before: 260, after: 16 },
+      ] },
+    ] },
+    { match: 'In the Garden of Spheres the white hill is carved', shots: [
+      { name: 'garden-white-hill', caption: 'The References’ view of the white hill and the stepped pyramid on top', commit: '8d8a6e4', before: '702658c^', view: { ref: '3793-white-hill' } },
+    ] },
+    { match: 'The Garden’s olives and shrubs', shots: [
+      { name: 'garden-olives', caption: 'The References’ view of the olive grove round the plaza', commit: '8d8a6e4', before: '702658c^', view: { ref: '3793-olive-plaza' } },
+      { name: 'garden-hedges', caption: 'The round plaza between the fruit hedges', commit: '8d8a6e4', before: '702658c^', view: { ref: '3795-plaza-hedges' } },
+    ] },
+    { match: 'The undersides of the great umbrella trees', shots: [
+      { name: 'garden-umbrellas', caption: 'The References’ view under the canopies, the pyramids beyond', commit: '8d8a6e4', before: '702658c^', view: { ref: '3794-canopies-pyramids' } },
+    ] },
+    { match: 'The round plaza is paved', shots: [
+      { name: 'garden-plaza', caption: 'The References’ view of the golden sphere setting behind the plaza', commit: '8d8a6e4', before: '702658c^', view: { ref: '3796-golden-sphere-plaza' } },
+    ] },
+    { match: 'The robot statue in the android wood', shots: [
+      { name: 'garden-robot', caption: 'The References’ view of the white ruins in the wood', commit: '8d8a6e4', before: '702658c^', view: { ref: '3794-wood-ruins' } },
+    ] },
+    { match: 'In Lorn II the great roots are tangles', shots: [
+      { name: 'lorn2-arches', caption: 'The References’ view under the root arches, the stream', commit: '799d4df', before: 'c04f540^', view: { ref: '3797-root-arches' } },
+      { name: 'lorn2-cave', caption: 'The traveller before the root cave', commit: '799d4df', before: 'c04f540^', view: { ref: '3797-cave-traveller' } },
+    ] },
+    { match: 'Lorn II’s roots and the bushes on its banks', shots: [
+      { name: 'lorn2-hatching', caption: 'The References’ view down the stream between the trunks', commit: '799d4df', before: 'c04f540^', view: { ref: '3798-stream-trunks' } },
+    ] },
+    { match: 'Look up near the start of Lorn II’s path', shots: [
+      { name: 'lorn2-nest', caption: 'The References’ view of the nest of eggs in the great mushroom', commit: '799d4df', before: 'c04f540^', view: { ref: '3797-nest-shroom' } },
+    ] },
+    { match: 'The desert’s people carry the rest', shots: [
+      { name: 'nour-marrow', caption: 'Nour and Marrow from in front and three-quarters, in the running game', commit: 'c69e864', view: people([{ id: 'nour' }, { id: 'nour', yaw: 0.8 }, { id: 'marrow' }, { id: 'marrow', yaw: 0.8 }]) },
+      { name: 'sefa-speaker', caption: 'Sefa and the Speaker', commit: 'c69e864', view: people([{ id: 'sefa' }, { id: 'sefa', yaw: -0.8 }, { id: 'speaker' }, { id: 'speaker', yaw: 0.8 }]) },
+    ] },
+    { match: 'Sefa’s oud no longer pokes through her cloak', see: 'In the desert, follow Sefa as she walks between the camps and Qanat: her cloak swings round the oud instead of the oud showing through it.' },
+    { match: 'The desert sand no longer looks bare at noon', shots: [
+      { name: 'noon-pebbles', caption: 'The sand at your feet on a dune’s crest at half past twelve', commit: 'e2b43ad', view: desertAt([-203, 23.5, 303], [-208, 21.2, 308], { fov: 28, hour: 12.5, player: [-198, 22, 298] }) },
+    ], numbers: [
+      { title: 'Pebbles on open sand (dark spots in 10 000 pixels)', better: 'higher', device: 'Mac, the clock fixed, cloud shadows and wind off', source: 'the commit’s measurements (e2b43ad)', rows: [
+        { where: 'noon, looking ahead', before: 30, after: 46 },
+        { where: 'noon, looking down', before: 23, after: 35 },
+        { where: '10 in the morning', before: 33, after: 35 },
+        { where: 'for comparison: 8 in the morning', before: 44, after: 44 },
+      ] },
+    ] },
+    { match: 'Lorn II’s bank bushes keep their leafy look', see: 'In Lorn II, look along the stream at the bushes on the far bank: their outline stays broken by leaves and their hatching stays strokes, instead of turning into smooth dark lumps.' },
+    { match: 'The Garden of Spheres’ olive trees have rounder', shots: [
+      { name: 'olive-crowns', caption: 'The References’ view of the olive grove round the plaza', commit: '2b81b29', view: { ref: '3793-olive-plaza' } },
+    ] },
+    { match: 'The Garden’s round plaza reads pale', shots: [
+      { name: 'plaza-pale', caption: 'The References’ view of the round plaza between the fruit hedges', commit: 'afc17bc', view: { ref: '3795-plaza-hedges' } },
+    ] },
+    { match: 'The floor of the Buried Machine’s rust canyon', shots: [
+      { name: 'canyon-floor', caption: 'Down the Buried Machine’s rust canyon toward the first cross-wall', commit: '37f6603', view: { level: 'buried', player: [cx(-170), -33.9, -170], eye: [cx(-170), -24, -170], target: [cx(-250), -34, -250], fov: 60 } },
+    ], numbers: [
+      { title: 'Sand over 10 cm deep on the canyon floor', unit: 'samples of 3 502', better: 'lower', source: 'the commit’s measurements (37f6603)', rows: [{ where: 'the rust canyon’s floor', before: 133, after: 40 }] },
+    ] },
+    { match: 'Climbing a wall where sand is banked', see: 'Walk up to a wall where the sand banks against its foot (Qanat’s, or the Buried Machine’s canyon) and climb: you take hold from the top of the bank, and climbing down you step off onto it.' },
+    { match: 'Cabs are solid just as they are drawn', numbers: [
+      { title: 'Where a cab’s solid and drawn shapes disagree', better: 'lower', device: AUDIT, source: 'the commit’s measurements (9098d88)', rows: [{ where: 'the City-Shaft’s cabs (share of samples, %)', before: 47, after: 2.9 }] },
+    ], see: 'In the Signal Market, climb onto a parked cab: you stand on its nose, tail or striped canopy where they are drawn.' },
+    { match: 'Climbing an olive tree in the Garden of Spheres', see: 'In the Garden of Spheres, climb an olive’s trunk: you stop under the crown, or climb round its leaves and stand on top.' },
+  ],
   '0.76': [
     { match: 'The Steam Deck gets its own Graphics setting', numbers: [
       { title: 'What the Deck drew before, on High, against its own setting', device: 'Steam Deck OLED, SteamOS 3.8', source: 'docs/systems/performance.md, “The Steam Deck”', note: 'the frame rate on the new setting is still to be measured on the Deck', rows: [
