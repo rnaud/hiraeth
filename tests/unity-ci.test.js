@@ -33,6 +33,8 @@ test('the workflow caches what makes a warm build short', () => {
   // Puerts' glue made again only when the C# changes: its editor run skipped on a hit
   assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ hashFiles\('unity\/Memento\/Assets\/\*\*\/\*\.cs'/);
   assert.match(workflow, /if: steps\.glue\.outputs\.cache-hit != 'true'\n {8}uses: game-ci\/unity-builder@v6/);
+  // (in both jobs: Puerts wants its glue even in the Linux player's Mono build)
+  assert.equal((workflow.match(/key: puerts-glue-3\.0\.3-/g) || []).length, 2);
   assert.match(workflow, /key: puerts-3\.0\.3/);
   // (both build jobs make room first: the Linux one ran out of disk pulling the editor image)
   for (const job of ['android', 'linux']) {
@@ -48,7 +50,7 @@ test('the workflow builds with GameCI on the local editor\'s Unity, licensed by 
   assert.match(workflow, /uses: game-ci\/unity-builder@v6/);
   // every GameCI step gets the account's sign-in (a Personal seat), never a licence file
   const steps = workflow.split('uses: game-ci/unity-builder@v6').slice(1);
-  assert.equal(steps.length, 3);
+  assert.equal(steps.length, 4);   // (the glue and the APK; the glue and the Linux player)
   for (const s of steps) {
     assert.match(s, /UNITY_EMAIL: \$\{\{ secrets\.UNITY_EMAIL \}\}/);
     assert.match(s, /UNITY_PASSWORD: \$\{\{ secrets\.UNITY_PASSWORD \}\}/);

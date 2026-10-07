@@ -294,7 +294,33 @@ jobs:
             unity-library-linux-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-
             unity-library-linux-
 
-      # (Mono: no IL2CPP glue, and the Deck's player as the docs build it)
+      # Puerts checks for its IL2CPP glue in every build, Mono too ("Required file 'Puerts_il2cpp.cpp' not
+      # found"): the APK's, from the cache, else made here
+      - name: Puerts' IL2CPP glue (cached)
+        id: glue
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PROJECT }}/Assets/Gen
+            ${{ env.PROJECT }}/Assets/Gen.meta
+          key: puerts-glue-3.0.3-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json') }}
+
+      - name: Puerts' IL2CPP glue
+        if: steps.glue.outputs.cache-hit != 'true'
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: StandaloneLinux64
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          versioning: None
+          allowDirtyBuild: true
+
+      # (Mono, the Deck's player as the docs build it)
       - name: The Linux player (x86_64, Vulkan, Mono)
         uses: game-ci/unity-builder@v6
         env:
