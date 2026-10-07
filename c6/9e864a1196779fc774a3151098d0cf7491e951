@@ -1,0 +1,45 @@
+TODO.md
+  s_55b4bc53b812ec::t_4528f5a6c44faa 116-118
+changelog.md
+  s_55b4bc53b812ec::t_22042b10bf7a17 5-9
+docs/makehuman.md
+  s_55b4bc53b812ec::t_000dac8c500b18 335-358,467,622
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_056f0d07755f56 491-503
+src/cape.js
+  s_55b4bc53b812ec::t_8f40700f221664 160,237,409,412-414,453,478,494,580,583-633
+src/changelog.js
+  s_55b4bc53b812ec::t_03500aa4d66918 10-13
+src/costumes.js
+  s_55b4bc53b812ec::t_a8c10fa791419a 46-48,54-56,60,460,598-599,1367-1407,1466-1471,1486-1491,1493-1503,1505-1513
+src/crowd.js
+  s_55b4bc53b812ec::t_e1391530243cd0 163
+src/hands.js
+  s_55b4bc53b812ec::t_c2c6f60997a7ef 77
+src/humanoid.js
+  s_55b4bc53b812ec::t_d50ca6acea83db 11,916-918,975-1002,1017,1507-1515
+src/npc.js
+  s_55b4bc53b812ec::t_b9f6b524872fd4 278,832
+src/story/desert-data.js
+  s_55b4bc53b812ec::t_ff379955218deb 266-267,447-449,588-589
+tests/desert-props.test.js
+  s_55b4bc53b812ec::t_0caa8df19b7d96 1-145
+tests/makehuman-desert.test.js
+  s_55b4bc53b812ec::t_f4acc5eaea2554 199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c69e864a1196779fc774a3151098d0cf7491e951",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
