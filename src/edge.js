@@ -29,6 +29,7 @@ export const EDGE_HINTS = {
   atelier: 'The page ends here.',
   lab: 'The Lab ends here.',
   default: 'The wind pushes you back.',
+  underwater: 'The water darkens into the deep and turns you back.',
 };
 
 /**

@@ -81,6 +81,11 @@ box as it rises). Each gets its own copy of the material, drawn from both sides.
   tumble, no hurt. The levels' old "unsafe" deep water (Lorn, the Garden) no
   longer sends you back to dry ground while you are in water.
 - Getting off a vehicle over deep water drops you in: you swim.
+- **Deep in a sea** (swim.js `SEA`, `deepSea`: more than 2.5 m under a body with `userData.sea`, the Underwater
+  City): you walk its bed (0.8 of the walk); the jump kicks you off it swimming (3.6 m/s up); Space rises (3 m/s);
+  letting go sinks you (1.5 m/s), upright, and you stand again where you touch ground; you climb out onto a ledge
+  in front even under water (the mantle), but walls are swum up, not climbed; the pack gives air (no breath used,
+  no breath meter). Near its surface it is ordinary water.
 - The Lab's water sample at the end of the materials row is a swimming pool: a ramp
   up to the rim, a beach, 3.8 m at the deep end, a rock through the surface and one
   just under it, a low wall to climb out over and a high one, and a 10 m tower to

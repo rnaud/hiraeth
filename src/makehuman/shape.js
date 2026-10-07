@@ -109,6 +109,7 @@ export const WORLD_BODIES = {
   waterfall: { proportions: 0.5, height: 0.5, weight: 0.04 },                // the falls' folk: sturdy stair climbers               // the lake folk: slight, long-armed (polers)
   bazaar: { proportions: 0.5, height: 0.5, weight: 0.07 },                    // the market: sturdier
   home: { proportions: 0.6, height: 0.55 },
+  underwater: { proportions: 0.6, height: 0.55, weight: 0 },                 // the sea floor's folk
 };
 
 /**

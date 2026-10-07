@@ -92,6 +92,19 @@ export const CONTENT = {
       { at: [70, 12], y: 0, radius: 2, palette: pal('#7a6e9e', { cloth: '#efe0c4' }), lines: ['~surprised~ A ship on the landing! The last thing that landed there was a heron, and it left offended.', '~playful~ The city’s that way, behind the water. You’ll hear it before you see it.'] },
     ],
   },
+  // src/levels/underwater.js: off the route (names.js SIDE), no quest, no relics; a few of the city's people, in the cafés and the streets
+  underwater: {
+    weather: [],
+    story: { title: 'UNDER THE SEA', intro: 'A city on the floor of a sea, its towers ringed with lit windows. Nobody here is waiting for you; have a look round.', outro: 'You have walked the city under the sea.', label: 'the great column', goal: [0, 'ground', -112], radius: 8, manual: true },
+    relics: { spots: [], names: [] },
+    npcs: [
+      { at: [22, 49], y: 0, radius: 1, facing: -Math.PI / 2, palette: pal('#d97a5e', { cloth: '#efd2a6' }), lines: ['~happy~ Come in, come in, you’re dripping on my step. It’s dry inside, it always is: the dome keeps the sea out.', '~playful~ Tea, or soup? Everything tastes a little of salt down here. We call it seasoning.'] },
+      { at: [2.5, -20], y: 0.9, radius: 2, facing: Math.PI / 2, palette: pal('#4f8f96', { cloth: '#f2e6d0' }), lines: ['~neutral~ I light the lamps on the bridge at dusk. The fish come to look at them, then they go home.', '~curious~ You walk like someone from up top. Lean into the water. It holds you.'] },
+      { at: [5, -104], y: 0, radius: 2, palette: pal('#e3b06a', { cloth: '#3f5a5e' }), lines: ['~surprised~ Did you see the manta? It goes round and round the city all day. I named it Biscuit.', '~whisper~ If you jump and keep going, you can swim right up to the top of the column. Don’t tell my mother.'] },
+      { at: [-80, -12], y: 6, radius: 2, facing: -Math.PI / 2, palette: pal('#7a6e9e', { cloth: '#efd2a6' }), lines: ['~solemn~ Past the terrace the floor falls away, deeper than anyone has been. We keep the lamps lit along the edge.', '~tired~ The kelp grows back faster than I can cut it. I have stopped minding.'] },
+      { at: [7, 118], y: -3, radius: 2, palette: pal('#5f8f7a', { cloth: '#efd2a6' }), lines: ['~surprised~ A ship, all the way down here? The last thing that sank onto this sand was a teapot.', '~playful~ The city’s up the slope, follow the lamps. You’ll see the lights before the towers.'] },
+    ],
+  },
   atelier: {
     weather: [],
     story: {

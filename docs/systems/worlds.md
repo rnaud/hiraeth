@@ -591,3 +591,63 @@ references.md). Its pieces are in `src/levels/waterfall-kit.js`, shared with the
   overhangs; nothing flows on top of the lip seen from the landing (the river feeding the falls); the falls push
   nothing (walking into the curtain from the pool you just pass through); the houses can't be entered; the inner
   fall's basin is shallow and plain.
+
+## The Underwater City (`underwater`, off the route, October 2026)
+
+`src/levels/underwater.js` (`?level=underwater`; a SIDE world in `src/levels/names.js`, charted on the ship's map from
+the start, no quest, no relics: `manual: true`), after its four pictures (`references/The Underwater City`,
+references.md). Its pieces are in `src/levels/underwater-kit.js`, shared with the views.
+
+- **Under the sea, the game's own movement** (the choice): the whole city is under a sea whose surface is 48 m up
+  (`SEA_Y`, a water body carrying `userData.sea`: water.md "A sea"). You walk its streets and the sand in the water
+  (swim.js `SEA`: 0.8 of the walk), the jump kicks you off swimming, Space rises, letting go sinks you back down to
+  stand where you touch ground: so the towers' pods and tops are reached by swimming up and landing on their decks.
+  The traveller's pack gives air (no breath runs out down there; near the surface the water is ordinary and you can
+  come up into the air). The **cafés** are air pockets (`sea.air`, one test per dome): walk in through the door and
+  you are dry, the tint and the muffled sound gone, the warm room lit inside. I chose this over air-filled streets
+  joined by swims: the sheets walk the traveller along open streets under the water, and the breath limit would
+  have made the city a string of dashes between domes.
+- **The layout**: the city's floor at y 0 (a heightfield of pale teal sand with ripples, 1 km, 4 m cells). The
+  **landing** (z ~146), a sandy hollow 3 m down, rocks, kelp and bushes, the ship on the sand (`shipSite` 0, 150, its
+  hatch north) and a lamplit path up to the **avenue** (x −7 … 7, z 84 … −132: paving drawn 3 cm over the bed, globe
+  lamps both sides). Either side the **towers** (14, 30–58 m, a ring of pods each: open pods are decks you land on,
+  `level.decks`) and **glass columns** of luminous water up to near the surface, their bubbles rising (one instanced
+  mesh; only the columns within 90 m of you move). The **canal** (z −20, 16 m wide, 10 m deep: walls with a low
+  parapet, kelp, rocks and fish down in it) crossed by the avenue's bridge and two footbridges. The **terrace** to
+  the west (y 6, stairs up from the city): the great café, two small pink houses, pods on stalks, benches, lamps
+  along its edge over the **drop** where the floor falls away 34 m into the deep. The **plaza** at the avenue's end:
+  the great column in its middle, benches and lamps round it, two pink houses. Low dunes rise round the city; past
+  the world's edge (300 m) the city goes on, drawn only, into the haze (`farCity`, flagged out of reach).
+- **The cafés**: two glass domes on ribs (S_GLASS draws only their rim and a highlight), a shell house with two
+  windows and a porthole, a pink one, the great café and three small pink houses: floors 4 cm over the street, the
+  counter and a dresser of bottles, tables, chairs and pendant lamps, people at the tables (the crowd's groups); a
+  shell casts no shadow on its inside and is lined warm.
+- **Life**: two mantas circling (one over the avenue at 34 m, one wide at 40), five schools of small fish, the
+  columns' bubbles, kelp swaying, marine snow (`life.motes`, rising slowly).
+- **Light and hours**: the sun is the sun (no `lightAt`); the colour scripts `UNDERWATER_DAY`, `_DUSK`, `_NIGHT`; the
+  sea's tint darkens with the night (`seaByHour`, from `uNight`), and the shafts and caustics fade out after dark,
+  the lamps and the cafés' windows left.
+- **Sound**: the city's ambience muffled under the water (`audio.js` `underwater()`, as anywhere under water),
+  clear again in the cafés; footsteps on stone.
+- **People**: a crowd in the falls' costume set (`COSTUMES.underwater = COSTUMES.waterfall`, in the city's own
+  palette) walks the avenue, the canal's banks, the plaza's ring, the terrace and the landing's path, sits in the
+  cafés and leans on the canal's parapet and the terrace's edge, with eight ambient lines; five people with lines of
+  their own (content.js): the glass café's keeper, the bridge's lamplighter, a child by the great column, the
+  terrace's gardener, someone at the landing.
+- **Contact** (`tests/contact-audit.test.js`): feet sink 46, climbs inside 150, walks through 93 (the cafés' chair
+  backs and the domes' ribs, drawn only; the plants on the decks are flora); the static collision ~63 k triangles.
+- **Cost** (Mac M4 Pro, headless Chrome, 1280 × 720, the Handheld preset at render scale 0.75 without dynamic
+  resolution, a synced loop of 60 `renderFrame()`s closed by a readPixels, the median of 7 rounds, the machine shared
+  with other agents' jobs): the Signal Market (the budget) 1.51 ms / 596 draws at its spawn, 1.60 / 627 in its
+  street; the landing 1.53 / 301, the avenue 1.62 / 241, the bridge 1.42 / 200, the plaza 1.38 / 206, swimming among
+  the towers 1.37 / 128, in a café 1.49 / 195, the terrace 1.54 / 246 (~0.4–0.7 M triangles; the Market ~0.7 M).
+- `tests/underwater.test.js`: a sea in a box (its surface over everything but its air pocket; the bed walked, the
+  kick, rising, sinking back and standing, the breath never running out, landing on a ledge, a long fall breaking
+  nothing, dry in the pocket), the shafts' lattice world-anchored; the world registered off the route and charted,
+  one sea, every café dry inside with the sea at its door and its door open, the avenue, bridge, terrace, stairs
+  and decks solid, the ship's hollow flat and clear overhead, the crowd's routes, the toned lines, the collision
+  budget, the four views.
+- **Left to make it better**: the city is tidy rings of pods where the pictures heap balconies, plants and figures
+  in every pod; the pods can't be entered (only the cafés); nothing swims in the glass columns; the canal's water
+  is the same sea (no darker water under the walkways as view 3 has it); the far city is plain cylinders; the mantas
+  don't react to you; the cafés' people sit still at their tables.

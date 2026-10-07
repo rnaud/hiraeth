@@ -26,6 +26,11 @@ import { STAMINA, spendStamina, restStamina, canSprint } from './stamina.js';
 //   falling in  water SWIM.cushion deep and more breaks any fall: no tumble, no
 //               hurt (player.js moveStep asks player.cushioned)
 //
+//   a sea       (a body with userData.sea: water.js SEA_LOOK, the Underwater City) deep under it you walk
+//               its bed (SEA.walk), the jump kicks you off it swimming (SEA.kick), Space rises, letting go
+//               sinks you back down (SEA.sink) and you stand where you touch ground again; the pack gives
+//               air (no breath runs out down there); near its surface it is ordinary water
+//
 // No jets and no wings in the water: they come back once you are out of it
 // (a kick at the surface is enough). player.water is the world's water (water.js
 // Waters: surfaceAt(x, z, y)); player.onSwim(event, info) hears 'enter',
@@ -53,6 +58,19 @@ export const SWIM = {
   hop: 7.5,          // m/s: Space at the surface kicks you up (onto a low ledge, out of the water)
   stroke: { tread: 0.55, breast: 0.85, crawl: 1.05 },   // strokes per second
 };
+
+/** Deep in a sea (more than SEA.deep under its surface): you walk its bed and swim off it. */
+export const SEA = {
+  deep: 2.5,         // m under a sea's surface where its bed is walked (water.js DEEP_UNDER: no splashes up there)
+  walk: 0.8,         // walking speed on the bed (× normal)
+  kick: 3.6,         // m/s up: the jump on the bed kicks you off it, swimming
+  up: 3.0,           // m/s: Space held rises
+  sink: 1.5,         // m/s: let go and you sink back down
+  land: 0.3,         // m over the ground, sinking: you stand
+};
+
+/** Is this water a sea you are deep in (walk its bed, swim off it)? */
+export const deepSea = (w) => !!w?.body?.sea && w.over > SEA.deep;
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _push = new THREE.Vector3();
 const sm = THREE.MathUtils.smoothstep, lerp = THREE.MathUtils.lerp, clamp = THREE.MathUtils.clamp;
@@ -137,6 +155,16 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   const w = waterHere(P);
   P.inWater = w;
   if (!w || (P.swim && w.over < 0.3)) { if (P.swim) leaveSwim(P, 'gone'); breathe(P, dt, false); return false; }   // (out of it: teleported, carried off)
+  const sea = deepSea(w);
+  if (!P.swim && sea) {
+    // a sea's bed: walk it; the jump kicks you off it (swimming); off a ledge you sink
+    breathe(P, dt, false);
+    const press = input.Space && !P._jumpHeld;
+    if (P.onGround && !press) { P.wadeSlow = SEA.walk; return false; }
+    if (!P.onGround && P.vel.y >= 0) { P.wadeSlow = SEA.walk; return false; }
+    enterSwim(P, w);
+    if (press) { P.vel.y = SEA.kick; P._jumpHeld = true; }
+  }
   if (!P.swim) {
     if (!shouldFloat(w, { onGround: P.onGround, vy: P.vel.y })) { P.wadeSlow = wadeFactor(w); breathe(P, dt, false); return false; }
     enterSwim(P, w);
@@ -159,6 +187,7 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   let look = 0;
   const cf = P.camFwd;
   if (cf && f > 0.2 && (under || cf.y < -0.55)) look = clamp(cf.y, -0.95, 0.95) * Math.min(f, 1);
+  if (sea && input.Space) rise = SEA.up / SWIM.dive;
   // out of air: up you go, and no diving again until you have your breath back
   if ((P.breath ?? 1) <= 0) S.gasping = true;
   else if (S.gasping && P.breath > 0.6) S.gasping = false;
@@ -187,7 +216,7 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   const diving = rise < 0 || look < -0.2 || under;
   if (diving) {
     let want = rise * SWIM.dive + look * speed;
-    if (!rise && Math.abs(look) < 0.2) want = SWIM.rise;              // let go: float back up
+    if (!rise && Math.abs(look) < 0.2) want = sea ? -SEA.sink : SWIM.rise;   // let go: float back up (in a sea: sink)
     P.vel.y += (want - P.vel.y) * (1 - Math.exp(-3 * dt));
   } else {
     // floating: a spring to the surface, the body bobbing a little with the strokes
@@ -207,10 +236,10 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
     if (vn < 0) P.vel.addScaledVector(n, -vn);
     if (move.dot(n) < -0.5 && Math.abs(n.y) < 0.5) {
       S.push += dt;
-      if (S.push > 0.2 && !under) {
+      if (S.push > 0.2 && (!under || sea)) {
         P.wallN.copy(n);
         if (P.tryMantle(U, _v1.copy(n).negate())) { leaveSwim(P, 'ledge'); return true; }
-        if (P.opts.climb && (P.stamina ?? 1) > 0.1 && !P.winded) { leaveSwim(P, 'climb'); P.startClimb(n); return true; }
+        if (!sea && P.opts.climb && (P.stamina ?? 1) > 0.1 && !P.winded) { leaveSwim(P, 'climb'); P.startClimb(n); return true; }
       }
     } else S.push = 0;
   } else S.push = 0;
@@ -218,7 +247,7 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   // ---- the bed: never through it; where it rises close under the surface, stand up
   const g = P.physics.groundAt(P.pos.x, P.pos.y + 1.2, P.pos.z);
   if (Number.isFinite(g) && P.pos.y < g) { P.pos.y = g; if (P.vel.y < 0) P.vel.y = 0; }
-  if (Number.isFinite(g) && w.surface - g < SWIM.stand && P.pos.y - g < 0.6) {
+  if (Number.isFinite(g) && ((w.surface - g < SWIM.stand && P.pos.y - g < 0.6) || (sea && P.pos.y - g < SEA.land && P.vel.y <= 0.3 && rise <= 0 && S.since > 0.25))) {
     P.pos.y = g;
     P.vel.y = 0;
     P.onGround = true;
@@ -238,6 +267,7 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   S.crawl += ((sprint ? 1 : 0) - S.crawl) * (1 - Math.exp(-3 * dt));
   S.hs = hs;
   S.under = under;
+  S.sea = sea;   // (deep in a sea: no breath meter, main.js)
   S.vy = P.vel.y;
   const rate = lerp(SWIM.stroke.tread, lerp(SWIM.stroke.breast, SWIM.stroke.crawl, S.crawl), S.k) * (0.75 + 0.25 * Math.min(Math.hypot(hs, P.vel.y) / SWIM.speed, 1.6));
   const before = S.ph;
@@ -245,7 +275,7 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   if (S.ph < before && S.k > 0.3) P.onSwim?.('stroke', { pos: P.pos.clone(), surface: w.surface, k: S.k, under, crawl: S.crawl });
   if (under && !S.wasUnder) P.onSwim?.('dive', { pos: P.pos.clone(), surface: w.surface });
   S.wasUnder = under;
-  const b = breathe(P, dt, under);
+  const b = breathe(P, dt, under && !sea);   // (deep in a sea the pack gives air)
   if (b) P.onSwim?.(b, { pos: P.pos.clone(), surface: w.surface });
   P.onGround = false;
   P.gliding = P.thrusting = false;
@@ -335,7 +365,8 @@ export function swimPose(P, dt) {
   const k = S.k, cr = S.crawl;
   // the body: upright treading (a little forward) → flat; under water it pitches with the way you go
   let pitch = lerp(0.18, 1.4, k);
-  if (S.under || S.vy < -0.5) pitch += Math.atan2(-(S.vy ?? 0), Math.max(S.hs, 0.4)) * k * 0.8;
+  // (sinking in a sea with nothing pressed, you go down feet first, upright: no dive)
+  if ((S.under || S.vy < -0.5) && !(S.sea && (S.vy ?? 0) < 0 && S.hs < 0.8)) pitch += Math.atan2(-(S.vy ?? 0), Math.max(S.hs, 0.4)) * k * 0.8;
   pitch = clamp(pitch, 0.1, 2.6);
   S.pitch += (pitch - S.pitch) * (1 - Math.exp(-5 * dt));
   const roll = cr * 0.45 * Math.sin(S.ph * TAU) * k;

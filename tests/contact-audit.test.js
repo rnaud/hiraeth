@@ -128,6 +128,7 @@ const KNOWN = {
   home: { sink: 0, hover: 0, inside: 3, walk: 13 },
   mangrove: { sink: 0, hover: 0, inside: 6, walk: 0 },   // (the White Mangrove: solid as drawn, roots, decks, leaves and all)
   waterfall: { sink: 2, hover: 0, inside: 2, walk: 0 },   // (its mist banks: drawn only, walked through on purpose)
+  underwater: { sink: 46, hover: 0, inside: 150, walk: 93 },   // (the cafés' chair backs and the domes' ribs, drawn only; the towers' tops)
 };
 const audits = new Map();
 function audit(id) {

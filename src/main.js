@@ -1511,7 +1511,7 @@ function frame(ts) {
   // the water: its rings and splashes, its bed maps; the camera kept off its surface
   waters.update(dt, t, { player, vehicles: player.vehicles, things: wildlife.creatures, globs: tool.globs, sky: U });
   waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
-  breathMeter.update(player.breath, !!player.swim && (player.swim.under || player.breath < 0.999) && !busy());
+  breathMeter.update(player.breath, !!player.swim && ((player.swim.under && !player.swim.sea) || player.breath < 0.999) && !busy());   // (deep in a sea the pack gives air: swim.js SEA)
 
   gpuTimer.begin();
   renderFrame();

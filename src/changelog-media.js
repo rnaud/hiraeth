@@ -153,6 +153,31 @@ export const CHANGELOG_MEDIA = {
     { match: 'Under a sea, the water is drawn the way the drawings draw it', shots: [
       { name: 'sea-look', caption: 'The terrace view: the haze in steps with distance, the shafts from the surface, the ripples of light on the street', only: 'after', from: 'the References’ fourth Underwater City view, headless Chrome, High (7 October)' },
     ], see: 'In the References’ Underwater City views, or under any sea: walk and look about; the shafts stay where they are in the water as you move, and the lines of light drift slowly over what faces up.' },
+    { match: 'A new world off the route, the Underwater City', shots: [
+      { name: 'sea-avenue', caption: 'The avenue at dusk: the shell house and the glass café, the towers of pods, the glass columns, light falling in shafts', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 18:36 (7 October)' },
+      { name: 'sea-over-city', caption: 'Over the avenue, sinking back down: the canal’s bridge, the cafés, the towers and their columns', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 11:00 (7 October)' },
+      { name: 'sea-cafe', caption: 'The glass café: dry and lit warm inside, the sea outside', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 11:00 (7 October)' },
+      { name: 'sea-night', caption: 'The avenue at night: the shafts gone, the lamps and the cafés lit', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'Open the ship’s galactic map: the Underwater City is charted beside the route (or open ?level=underwater). Walk up from the ship along the lamps, into a café, over the canal’s bridge to the plaza, up the terrace’s stairs to the edge; jump and swim up among the towers.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of frames, median of 7 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The Underwater City”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 1.51, after: null },
+          { where: 'the Signal Market’s street', before: 1.6, after: null },
+          { where: 'the landing (spawn)', before: null, after: 1.53 },
+          { where: 'the avenue', before: null, after: 1.62 },
+          { where: 'swimming among the towers', before: null, after: 1.37 },
+          { where: 'in a café', before: null, after: 1.49 },
+        ] },
+        { title: 'Draw calls a frame, the same places', unit: 'draws', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The Underwater City”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 596, after: null },
+          { where: 'the landing (spawn)', before: null, after: 301 },
+          { where: 'the avenue', before: null, after: 241 },
+          { where: 'swimming among the towers', before: null, after: 128 },
+        ] },
+      ] },
+    { match: 'Deep under a sea you walk its floor', shots: [
+      { name: 'sea-swim', caption: 'Holding jump: rising off the avenue', only: 'after', from: 'the world’s own screenshots, headless Chrome, High (7 October)' },
+    ], see: 'In the Underwater City, walk the avenue, then jump (A / ×) and hold it to rise toward a tower’s pods; let go over a pod’s deck to land on it. Walk into a café’s door: you are out of the water.' },
   ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [
