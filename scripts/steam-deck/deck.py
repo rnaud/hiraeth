@@ -709,7 +709,11 @@ def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP
         if not stopping:
             stopping.append(time.monotonic())
             log(f'Signal {number}: closing the game.')
-        signal_group(process.pid, signal.SIGTERM)
+        # (SIGINT to the browser alone: Chromium closes its helpers itself, at once and cleanly)
+        try:
+            os.kill(process.pid, signal.SIGINT)
+        except ProcessLookupError:
+            pass
     handled = (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)
     previous = {number: signal.signal(number, stop) for number in handled}
     started, shown, hung, code = time.monotonic(), False, False, None

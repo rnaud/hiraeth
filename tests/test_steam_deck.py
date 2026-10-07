@@ -555,7 +555,7 @@ class LaunchTests(unittest.TestCase):
             os.kill(os.getpid(), signal.SIGTERM)
         closer = threading.Thread(target=close_soon)
         closer.start()
-        how = deck.run_game(self.script('import signal\nsignal.signal(signal.SIGTERM, signal.SIG_IGN)\ntime.sleep(60)'),
+        how = deck.run_game(self.script('import signal\nsignal.signal(signal.SIGTERM, signal.SIG_IGN)\nsignal.signal(signal.SIGINT, signal.SIG_IGN)\ntime.sleep(60)'),
                             dict(os.environ), self.ready, stop_seconds=1, log=lambda _line: None)
         closer.join()
         self.assertEqual(how[:2], ('quit', 0))
