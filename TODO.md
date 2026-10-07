@@ -85,9 +85,13 @@ form-following hatching, cast shadows by world, colour variation across a wall. 
 scene-level modelling and a few shader limits:
 
 - [ ] Shader limits left:
-  - Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense
+  - [x] Spot blacks (`uSpot`) fill the shaded pockets our scenes have; the sheets' interiors are dense
     small machinery at every scale, so most of their black masses have no geometry to sit in here yet.
-    Vael II's spawn on High pays +1.7 ms for them (its many shaded overhangs).
+    Vael II's spawn on High pays +1.7 ms for them (its many shaded overhangs). Done (October 2026): a kit of small
+    machinery (`src/levels/greeble-kit.js`: pipe runs, valves, conduits, casings, plates, cables; rock knobs) dresses
+    the Buried Machine's drum and trench walls, the City-Shaft's terrace undersides, the Market's back alleys (solid
+    as drawn) and Vael II's cap undersides (drawn only), and the Buried Machine's and Vael II's views; each world
+    within ~0.5 ms at Handheld (references.md, "Small machinery at every scale").
   - [x] IMG_3774's cast shadows are near-black ink masses with a hard edge: a world-level "ink shadow"
     option is missing (`uCast` lightens, it does not blacken). Done: `uInkShadow` (rendering.md, "Ink shadows").
   - [x] Flat shadow per material: the City-Shaft's trees go grey-blue with `uShadowFlat` on, so the world
