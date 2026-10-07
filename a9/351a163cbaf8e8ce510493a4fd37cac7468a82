@@ -1,0 +1,87 @@
+TODO.md
+  s_55b4bc53b812ec::t_9a24e9dfb6a221 15,18-20,23-24
+changelog.md
+  s_55b4bc53b812ec::t_ff1204ac85fcc0 5-19
+docs/README.md
+  s_55b4bc53b812ec::t_8a73faa32e9c75 48
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_1bdabd37206a4f 148-176
+docs/systems/items.md
+  s_55b4bc53b812ec::t_d3fb64d60a5981 40-43
+docs/systems/ui.md
+  s_55b4bc53b812ec::t_c80041cd9ef3f6 16,55-56,106,108-109,160-163,177-179,182-227
+index.html
+  s_55b4bc53b812ec::t_f57a5c8e6c47a8 41-44,293,349,351,414
+src/animator.js
+  s_55b4bc53b812ec::t_35e56128be1b39 24-25,230,530-542
+src/boot.js
+  s_55b4bc53b812ec::t_82682f69ccfb05 8
+src/boxes/index.js
+  s_55b4bc53b812ec::t_ed37629d0b060d 336
+src/boxes/model.js
+  s_55b4bc53b812ec::t_61489732c7be17 277-380,385
+src/changelog.js
+  s_55b4bc53b812ec::t_3be11307ee9b18 10-23
+src/controller.js
+  s_55b4bc53b812ec::t_4de59ec0aeebfe 19,89-90
+src/feet.js
+  s_55b4bc53b812ec::t_4ceaa975603f24 41-57,59-61,154-155,225-227,252-259
+src/game-menu-data.js
+  s_55b4bc53b812ec::t_4dc5a97908ad32 1-89
+src/game-menu.css
+  s_55b4bc53b812ec::t_ecc83d9147caaa 1-222
+src/game-menu.js
+  s_55b4bc53b812ec::t_7ad8ce01890036 1-411
+src/hud.js
+  s_55b4bc53b812ec::t_5aefe09ced8633 9-10,118-121,123,131-133,135-136
+src/humanoid.js
+  s_55b4bc53b812ec::t_b8dac140918956 465
+src/item-icons.js
+  s_55b4bc53b812ec::t_346657849c8865 1-80
+src/items.js
+  s_55b4bc53b812ec::t_751aded6f1d968 27,173-176
+src/main.js
+  s_55b4bc53b812ec::t_f8a35f4e0727a9 11,64-67,73,500-511,514,532-547,815,837,966,1019,1027-1028,1033,1509
+src/menus.css
+  s_55b4bc53b812ec::t_0806cff7d5dee3 249
+src/player.js
+  s_55b4bc53b812ec::t_27f8719abfb51c 182-184,241,248-252,1994,2000,2004,2009-2010,2023-2051
+src/quest.js
+  s_55b4bc53b812ec::t_33e1f55a55c620 4,12-14,28-29,33-34,52-56,58-59,63-64
+src/story/index.js
+  s_55b4bc53b812ec::t_77b068858b8e6b 88
+src/story/quest-goals.js
+  s_55b4bc53b812ec::t_3adb0986afdb5a 1-70
+src/story/quests.js
+  s_55b4bc53b812ec::t_14d00af869f759 2,275-284,286-294,296-314,318-320
+src/ui.js
+  s_55b4bc53b812ec::t_5c143591edb694 67,75-76,85,92-95,102,104,120,184,209,259
+tests/game-menu.test.js
+  s_55b4bc53b812ec::t_e5f3c626bbce54 1-239
+tests/hud.test.js
+  s_55b4bc53b812ec::t_bda3ea6026c91d 4,144,182-193,196-204,207,209-210,212,214
+tests/idle-legs.test.js
+  s_55b4bc53b812ec::t_8c507d064b52d1 1-112
+tests/menus.test.js
+  s_55b4bc53b812ec::t_6184943cef4ddf 68-69
+tests/native-pad.test.js
+  s_55b4bc53b812ec::t_805d447eba46e0 147-160
+tests/story-terraces.test.js
+  s_55b4bc53b812ec::t_2772618c3496ef 136,141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a9351a163cbaf8e8ce510493a4fd37cac7468a82",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
