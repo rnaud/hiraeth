@@ -83,8 +83,20 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   symbol backups and stripped copies left out), a new entry each run restored from the newest and saved
   even when the build fails further on; Puerts' glue (`Assets/Gen`, keyed on the project's C#: its
   editor run skipped on a hit); Gradle's downloads (`~/.gradle`: GameCI mounts the runner's home as the
-  container's `/root`); Puerts' release; npm. The editor image (8 GB) is pulled each run (about 2
-  minutes from Docker Hub; larger than an Actions cache would take).
+  container's `/root`); Puerts' release; npm. The editor image (8 GB) is pulled each run, 2 to 6
+  minutes from Docker Hub (too large for an Actions cache): `scripts/unity-ci-docker.sh` frees the
+  runner's disk (these runners have no `/mnt` to put Docker on) and pulls it in the background while
+  the job checks out, bundles and restores.
+- **Measured** (2026-10-07, the hosted ubuntu runner, 4 cores): cold, no cache, the Android job 57
+  minutes (run 37617242382); warm (run 37649246951) the Android job 12 minutes and the Linux one 9: the
+  APK's editor run 3.3 minutes, Unity's build in it under 2 (nothing recompiled: the shaders and the
+  IL2CPP objects come from the cache), the Linux player's 2; the rest is waiting on the image (5
+  minutes: the disk's cleanup and the pull, beside the other steps) and the caches (1–2). A warm run
+  is so bounded by the hosted runner's image pull: a self-hosted runner (this Mac, with Unity
+  installed: GameCI's `providerStrategy: local-system`) would bring it to the build's few minutes.
+- **Retries**: the first editor start in a job's container is often killed right after it loads its
+  modules (exit 137, in 4 of the last 8 jobs; the same step passes when run again): each editor run has
+  `continue-on-error` and goes again once when it failed (20 seconds lost).
 - **A local build** does the same from the Mac: `scripts/unity-android-release.sh` (the key from
   `.local-tools/android-signing/`, here or in the main checkout; it checks the APK is signed with the
   release certificate, then uploads to `unity-android`; `NO_UPLOAD=1` builds only, `CLEAN=1` deletes

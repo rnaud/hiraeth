@@ -2,6 +2,9 @@
 
 The traveller and the people: bodies, outfits, costumes by world, cloth, the character studio and the MakeHuman bodies.
 
+The repository skill [moebius-ai-characters](../../.agents/skills/moebius-ai-characters/SKILL.md)
+captures the generation, rigging, cloth and integration workflow for future characters.
+
 ## The traveller: generated character v1 (v0.72)
 
 The default playable traveller is the reviewed coral-shirt Tripo character, without
