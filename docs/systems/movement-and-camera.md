@@ -1,5 +1,49 @@
 # Movement and camera (October 2026, third feedback round)
 
+## The follow camera: Ocarina in the open, Uncharted close in (v0.82, `CameraRig` in `src/player.js`)
+
+The author: "the default camera is a bit too far away; closer, like Ocarina of Time, and closer as well in
+closed spaces, like Uncharted." Measured in the running game (1280 × 720 and the Retroid's 730 × 410, the
+camera put behind the traveller, FOV 55°):
+
+| | arm | camera height | look down | traveller's height in frame |
+|---|---|---|---|---|
+| open, before | 9.5 m | 3.9 m | 12.6° | 0.17 (head at the centre) |
+| open, now | 6.4 m (`OPEN_DIST`) | 3.0 m | 7.4° (`OPEN_PITCH`) | 0.26, head at 0.55, feet at 0.81 |
+| close in, before | 2.6 m, right shoulder | 2.1 m | | 0.59 |
+| close in, now | 1.9 m (`TIGHT_DIST`), the shoulder with room | 1.75 m | | 0.68–0.84 (head to the thighs) |
+
+- **The open framing** looks at `OPEN_LOOK` (2.15 m, over the head), so the traveller stands in the lower
+  middle of the frame and the world ahead fills the rest; the look down a world starts with is `OPEN_PITCH`
+  (0.13 rad), which is also where the jets fly level (`JET.level`). The wheel and LB + the right stick still
+  zoom (`rig.zoom`, `ZOOM` 3–60 m), round the new default.
+- **Close in** (what was already found: the probes' `tightness`, the ship's and the houses' `indoor`, the
+  interiors' rooms; blended by `tightK` with its hysteresis, in quickly and out after a second of open) the
+  arm comes to `TIGHT_DIST` behind a look point at the shoulders (`TIGHT_LOOK`, 1.5 m), `TIGHT_SIDE`
+  (0.7 m) off a shoulder. In a **hall** (`hallness`: a ceiling over ~6–14 m and walls far apart every way
+  across: the giant's chest, a temple's big hall) it stands back to `HALL_DIST` (2.6 m, the old close arm),
+  eased (`hallK`), so it is never further than before.
+- **Which shoulder** (`pickShoulder`): the camera goes over the shoulder with room beside it (rays along
+  the camera's right from the look point and from part way back along the arm), so the traveller stands
+  toward the wall and the way ahead shows beside him. Coming in from the open (hardly offset yet) it picks
+  freely, the right unless the left has `SHOULDER.margin` more room; once over a shoulder it swaps only
+  when that side is cramped, the other has `SHOULDER.gain` more room, for `SHOULDER.hold` s, and not within
+  `SHOULDER.rest` s of the last swap. The offset is signed and eased, so a swap slides across behind the
+  head (`SHOULDER.rate`); a teleport or a hand-over (the paper sweep: `rig._lastP = null`) picks at once and
+  snaps the follow point to where you are. Aiming is always over the right shoulder, the arm `AIM_DIST`
+  (3.4 m in the open, 2.4 m close in).
+- **Walls beside the look point** (`sideRoom`): also sampled 0.7 and 1.4 m ahead, counted as more room the
+  further ahead, so the end of a pillar row or a door's jamb eases the offset in before you reach it; one
+  closing in is eased in quickly and pulled in at once only as far as keeps the look point off it (it used
+  to snap all the way in: a jump in the view).
+- **Wider arms** (`follow(…, wide)`, main.js): gliding +7 m, the jets +3.5 m, climbing +1.5 m, swimming
+  +0.8 m, eased and held 1.2 s after they drop (a tap of the jets doesn't pump the view); a ride's own
+  `shot.boost` otherwise (the bike +7 m, a cab +3.6 m: the ~10 m view it had).
+
+Tests: `tests/camera-framing.test.js` (the framing in the open, hallness, the shoulder in a corridor and its
+stability, a swap past a wall without a jump, the blend in and out without a snap, a hall, aiming and the
+wider arms); `tests/camera.test.js` and `tests/ship-camera.test.js` as before.
+
 ## The jets fly like Superman (`src/player.js`: `JET`, `jetFlight`, `jetPose`)
 
 Hold RT / R2 or the left mouse button (not aiming) to fire the jets. The left stick (WASD)

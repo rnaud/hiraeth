@@ -103,6 +103,20 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.82': [
+    { match: 'The camera follows closer', shots: [
+      { name: 'camera-desert', caption: 'Open desert, the camera as it starts: before 9.5 m back and high; after 6.4 m back, lower, the traveller a quarter of the view', from: 'the camera work’s own screenshots, before and after, the same spot, heading and hour (7 October)' },
+      { name: 'camera-qanat', caption: 'Qanat, inside the main gate', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
+      { name: 'camera-market', caption: 'The Signal Market’s street, where you arrive', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
+    ], numbers: [{ title: 'The open camera, as a world starts', unit: 'm', better: 'lower', device: 'any', rows: [
+      { where: 'arm (look point to camera)', before: 9.5, after: 6.4 },
+      { where: 'camera height over the feet', before: 3.9, after: 3.0 },
+    ], source: 'docs/systems/movement-and-camera.md' }] },
+    { match: 'In closed spaces (the ship, temples', shots: [
+      { name: 'camera-ship', caption: 'Inside the ship, by the hatch: before 2.6 m back over the right shoulder; after 1.9 m, at shoulder height', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
+      { name: 'camera-temple', caption: 'The desert temple’s first hall', from: 'the camera work’s own screenshots, before and after, the same spot and heading (7 October)' },
+    ], see: 'Walk up the ship’s ramp, or into a corridor with a wall close on your right: the camera eases in over your left shoulder and stays there; hold LT / L2 (or the right mouse button) to aim and it moves over the right.' },
+  ],
   '0.81': [
     { match: 'What’s new (N) has a See what changed button', shots: [
       { name: 'see-what-changed', caption: 'This page: a line of v0.77 with its before and after, the split dragged to the left', only: 'after', size: [1440, 900], from: 'a screenshot of changelog.html (7 October)' },
