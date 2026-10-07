@@ -1,0 +1,33 @@
+TODO.md
+  s_55b4bc53b812ec::t_5d4f0e162615a7 20-25
+changelog.md
+  s_55b4bc53b812ec::t_3c4e418e85df1d 5-8
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_83e6159deeb6ef 387-439
+src/changelog-media.js
+  s_55b4bc53b812ec::t_b6033509136c34 106-126
+src/changelog.js
+  s_55b4bc53b812ec::t_7eed7f47ca7bb0 12-14
+src/loco-moves.js
+  s_55b4bc53b812ec::t_35b6fcf94623e5 8-10,36,102,108,122
+src/player.js
+  s_55b4bc53b812ec::t_768f62e30efb77 1993
+tests/loco-moves.test.js
+  s_55b4bc53b812ec::t_76b6f8be75db2a 26-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5f622503649ab4231fdf776a8a3f8d70b08db869",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
