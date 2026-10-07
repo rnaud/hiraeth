@@ -264,7 +264,7 @@ export const PEOPLE = {
   sefa: {
     id: 'sefa', name: 'Sefa', title: 'oud player', color: '#8a6fb8', voice: 0.95, kind: 'f',
     // (her character sheet: a long purple cloak with bells along its hem over a cream tunic, baggy trousers, a long braid)
-    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'braidcap', cape: 1.45, look: { robe: 0.5, build: 'slim', trim: 'none', body: 'none', prop: 'oud', under: 'braid', capeBells: 10 },
+    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'braidcap', cape: 1.45, look: { robe: 0.5, build: 'slim', trim: 'none', body: 'none', prop: 'oud', under: 'braid', capeBells: 10, back: 'oud', stow: true },
     lines: ['~happy~ ♪', "~happy~ Stay for a tune. Leaving halfway makes it self-conscious.", "~curious~ You keep glancing behind you."],
     talk: { listen: [
       ["~playful~ You stopped! I was beginning to think I’d been mistaken for a decorative bush.", "~whisper~ I’m Sefa. I try to play what suits the listener. Yours keeps wandering away from the last note."],
@@ -586,7 +586,7 @@ export const PEOPLE = {
   marrow: {
     id: 'marrow', name: 'Marrow', title: 'salvager and liar', color: '#dca273', voice: 1.0, kind: 'm',
     // (his character sheet: a short, grinning scavenger in a patched cream coat and hood, goggles, a scarf, a salvage bag at his hip)
-    palette: { cloak: '#e6dcc0', lining: '#2b211f', cloth: '#e6dcc0', legs: '#4a3a2a', hat: '#d8a24a', accent: '#c9974a', hair: '#2b211f' }, head: 'raghood', cape: 0, look: { mask: 'browgoggles', body: 'scavbag', prop: 'hook', robe: 0.3, trim: 'patches', build: 'average', height: 0.92, faceType: 'round', mood: 'amused' },
+    palette: { cloak: '#e6dcc0', lining: '#2b211f', cloth: '#e6dcc0', legs: '#4a3a2a', hat: '#d8a24a', accent: '#c9974a', hair: '#2b211f' }, head: 'raghood', cape: 0, look: { mask: 'browgoggles', body: 'scavbag', prop: 'hook', back: 'pack', shins: 'wraps', robe: 0.3, trim: 'patches', build: 'average', height: 0.92, faceType: 'round', mood: 'amused' },
     lines: ["~shout~ Bones! Glass! Authenticated bits of sky!", "~playful~ Finders keepers. I find that very reasonable.", "~whisper~ Sky-person. Excellent timing. For me."],
     talk: {
       entry: [

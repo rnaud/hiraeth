@@ -2,9 +2,11 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
+import { mergeWithMaterials, restKey } from '../vertex-material.js';
 import { Taxi } from '../taxi.js';
 import { dropBuriedInstances, dropBuriedInstancesSteps } from '../physics.js';
 import { soften } from '../world.js';
+import { Paint, paintMaterial } from '../vehicle-kit.js';
 import { Banner, Puffs } from '../life.js';
 import { buildRoom } from '../interiors.js';
 import { glyphGeometry, textGeometry } from '../story/sign-text.js';
@@ -103,8 +105,9 @@ export function sectorGeometry(r0, r1, a0, a1, t) {
 }
 
 // a Mediterranean hill-town on blue-grey viaducts (after the reference plate)
-export const PASTELS = ['#f1e6cf', '#ead7b5', '#f3ead8', '#e6cfae', '#efe2c8', '#dcc6a4'];   // cream / ochre walls
-export const RUST = ['#d9c3a0', '#cdb38e', '#e2cfb0', '#c9b596', '#d6bfa0'];               // warmer, dustier lower down
+// (the reference sheets' canyon is pink and cream: half the walls pink, from pale to deep)
+export const PASTELS = ['#f1e6cf', '#eaa58e', '#f3ead8', '#efb7a2', '#efe2c8', '#e0937c'];   // cream and pink walls
+export const RUST = ['#d9a998', '#cdb38e', '#e2b9a6', '#c9b596', '#d39c8a'];               // warmer, dustier lower down
 export const ROOFS = ['#d9784f', '#c8673f', '#e08a5c', '#b9603e'];                         // terracotta
 export const STEEL = { color: '#9fb2c6', color2: '#8aa0b8', color3: '#b3c3d3' };            // blue-grey structure
 
@@ -141,6 +144,12 @@ export function* buildIncal(scene) {
   const roofMat = (i) => makeMaterial({ color: ROOFS[i % ROOFS.length], flat: true, pattern: 'tiles' });
   const ironMat = makeMaterial({ color: '#34405e', flat: true, metal: 'iron' });
   const doorMat = makeMaterial({ color: '#5a3a2c', flat: true });
+  // the houses' small work (the reference sheets: pipes down the walls, washing on the balconies, the
+  // plating under the terraces) draws from its own numbers, so the town's layout keeps its own, and
+  // goes into the iron and the stalls' cloth buckets: no draws of its own
+  const work = mulberry32(19772);
+  const WASH = ['#c8483a', '#f2c54b', '#5fb7ad', '#e6875f'];
+  const washMat = WASH.map((c) => makeMaterial({ color: c, side: THREE.DoubleSide }));   // (the same as the stalls' awnings: their buckets)
 
   /** A villa: block walls with a window grid, a hipped roof, a dome on a drum, or a roof garden. */
   function house(x, y, z) {
@@ -170,6 +179,15 @@ export function* buildIncal(scene) {
       bucket('iron', ironMat).push(placed(new THREE.BoxGeometry(bw, 0.06, 0.06).translate(bx, by + 0.95, -face * (d / 2 + 1.07)), x, y, z, rot));
       for (let k = 0; k <= Math.round(bw / 0.35); k++)
         bucket('iron', ironMat).push(placed(new THREE.BoxGeometry(0.04, 0.9, 0.04).translate(bx - bw / 2 + k * 0.35, by + 0.5, -face * (d / 2 + 1.07)), x, y, z, rot));
+      if (work() < 0.6 && curGroup !== 'misc') for (let u = -bw / 2 + 0.3; u < bw / 2 - 0.2; u += 0.45 + work() * 0.3) {   // washing hung over the rail (not on the viaducts: no awnings there to share a draw with)
+        const ci = Math.floor(work() * WASH.length), cw = 0.35 + work() * 0.3, ch = 0.5 + work() * 0.6;
+        bucket('awn' + ci, washMat[ci]).push(placed(new THREE.PlaneGeometry(cw, ch).translate(bx + u, by + 0.95 - ch / 2, -face * (d / 2 + 1.12)), x, y, z, rot));
+      }
+    }
+    if (work() < 0.28) {   // a drainpipe down a corner of the door's face, now and then a gutter along its top
+      const px = (work() < 0.5 ? -1 : 1) * (w / 2 - 0.35);
+      bucket('iron', ironMat).push(placed(new THREE.BoxGeometry(0.26, h, 0.26).translate(px, h / 2, face * (d / 2 + 0.13)), x, y, z, rot));
+      if (work() < 0.3) bucket('iron', ironMat).push(placed(new THREE.BoxGeometry(w * 0.9, 0.22, 0.3).translate(0, h - 0.25, face * (d / 2 + 0.15)), x, y, z, rot));
     }
     if (kind < 0.5 && rng() < 0.55) {
       const cx = (rng() - 0.5) * w * 0.5, cz = (rng() - 0.5) * d * 0.5;
@@ -213,6 +231,7 @@ export function* buildIncal(scene) {
   }
 
   // ---------------------------------------------------------- towers
+  const towers = new Map();   // terrace:eighth -> its towers, merged into one draw each (src/vertex-material.js)
   function tower(x, z, baseY, height, radius, palette, opts = {}) {
     const parts = [];
     const segs = 6 + Math.floor(rng() * 3) * 2;
@@ -245,11 +264,14 @@ export function* buildIncal(scene) {
       bulb.translate(0, y + r * 0.9, 0);
       parts.push(bulb, new THREE.CylinderGeometry(0.3, 0.3, r * 4, 4).translate(0, y + r * 2.5, 0));
     }
-    const mat = strata(pick(palette), pick(palette), pick(palette), 2.5 + rng() * 3, { grid: 2.5 + rng() * 2, flat: segs <= 8 });
-    const m = new THREE.Mesh(mergeGeometries(parts), mat);
-    m.position.set(x, baseY, z);
-    m.rotation.y = rng() * TAU;
-    if (!skip) scene.add(m);
+    const o = { color: pick(palette), color2: pick(palette), color3: pick(palette), mode: MODE_STRATA, strataSize: 2.5 + rng() * 3, grid: 2.5 + rng() * 2, flat: segs <= 8 };
+    const geometry = mergeGeometries(parts), rotY = rng() * TAU;
+    // (drawn with the others of its terrace's eighth of the ring, each its own colours and grid: below)
+    if (!skip) {
+      const key = `${curGroup}:${Math.floor((((Math.atan2(z, x) % TAU) + TAU) % TAU) / (TAU / 8))}`;
+      if (!towers.has(key)) towers.set(key, []);
+      towers.get(key).push({ geometry, x, y: baseY, z, rotY, material: makeMaterial(o), o });
+    }
     return baseY + y;
   }
 
@@ -278,6 +300,22 @@ export function* buildIncal(scene) {
       slab.position.y = y;
       scene.add(slab);
       terraces.push({ y, r0, a0, a1, width });
+      // the plating under the overhang (the sheets' blue undersides): ribs out to the edge, boxes and
+      // machinery hung under the slab, pipes slung along it
+      {
+        const under = y - 7, step = 20 / R;
+        for (let b = a0 + step / 2; b < a1; b += step)
+          bucket('iron', ironMat).push(placed(new THREE.BoxGeometry(R - r0 - 1, 1.1, 0.7).translate((R + r0) / 2, under - 0.55, 0), 0, 0, 0, -b));
+        for (let k = 0; k < span * 8; k++) {
+          const b = a0 + work() * span, rr = r0 + 3 + work() * (R - r0 - 6), sz = 1.2 + work() * 2.6;
+          bucket('iron', ironMat).push(placed(new THREE.BoxGeometry(sz, sz * (0.4 + work() * 0.6), sz * (0.6 + work() * 0.8)).translate(rr, under - sz * 0.3, 0), 0, 0, 0, -b));
+        }
+        {
+          const rr = r0 + 6 + work() * 12, pts = [];
+          for (let k = 0; k <= 12; k++) { const b = a0 + 0.01 + (span - 0.02) * (k / 12); pts.push(new THREE.Vector3(Math.cos(b) * rr, under - 1.6, Math.sin(b) * rr)); }
+          bucket('iron', ironMat).push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 28, 0.6, 4));
+        }
+      }
 
       // laundry and banners hanging off the edge
       for (let k = 0; k < Math.floor(span * 3); k++) {
@@ -491,17 +529,19 @@ export function* buildIncal(scene) {
     } });
   }
 
-  // ---------------------------------------------------------- acid steam
+  // ---------------------------------------------------------- mist off the water
   yield;
   const steam = new Puffs(scene, {
-    count: 70, color: '#cfe08a', glow: 0.35, rise: 4, life: 12, size: 10,
+    count: 70, color: '#d6ece6', glow: 0.25, rise: 4, life: 12, size: 10,   // (a pale mist off the water)
     area: (r) => { const a = r() * TAU, d = Math.sqrt(r()) * (R - 20); return new THREE.Vector3(Math.cos(a) * d, BOTTOM + 1, Math.sin(a) * d); },
   });
 
-  // ---------------------------------------------------------- the acid lake
+  // ---------------------------------------------------------- the lake
   yield;
   {
-    const lake = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 2, 96), makeMaterial({ color: '#b8d65a' }));
+    // turquoise water, as the sheets have it far down the shaft (it was an acid-green lake). A flat
+    // printed tone, not the water shader: its reflection pass cost the handheld ~2 ms a frame here
+    const lake = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 2, 96), makeMaterial({ color: '#3fb8b4', flat: true, hatch: 0.3 }));
     lake.position.y = BOTTOM - 1;
     scene.add(lake);
   }
@@ -517,6 +557,13 @@ export function* buildIncal(scene) {
       bucket('slab', strata('#f4f0e6', '#e3e8ee', '#d7dee8', 4, { grid: 3.5, flat: true }))
         .push(placed(new THREE.BoxGeometry(w, hh, w * (0.6 + rng() * 0.6)).translate(0, hh / 2, 0), Math.cos(a) * rad, TOP, Math.sin(a) * rad, rng() * TAU));
     } else tower(Math.cos(a) * rad, Math.sin(a) * rad, TOP, h, 6 + rng() * 16, PASTELS, { roof: true });
+  }
+  // the towers, one mesh for each terrace's eighth of the ring (and the rim's), every tower in it keeping its own
+  // colours, bands, grid and facets (a mesh and a material a tower: some 200 draws across the shaft)
+  for (const list of towers.values()) {
+    const byRest = new Map();
+    for (const t of list) { const k = restKey(t.material); if (!byRest.has(k)) byRest.set(k, []); byRest.get(k).push(t); }
+    for (const items of byRest.values()) scene.add(new THREE.Mesh(mergeWithMaterials(items), makeMaterial({ ...items[0].o, perVertex: true })));
   }
 
   // ---------------------------------------------------------- flying traffic
@@ -638,6 +685,33 @@ export function* buildIncal(scene) {
     m.position.set(-290, TOP + 175, 40);   // over the far side: framed when you look across (and clear of the Lodestar, seen from the palace)
     m.userData.noCollide = true;
     scene.add(m);
+  }
+
+  // ---------------------------------------------------------- blimps (IMG_3780, IMG_3782)
+  // three teardrop airships drifting slowly round the shaft, fins at the tail, a gondola under them:
+  // one mesh each (painted parts), drawn only, meant to hang in the air
+  yield;
+  {
+    const prof = [[0.01, -10], [2.2, -9], [3.6, -6.5], [4.2, -3], [4.1, 1], [3.2, 5], [1.8, 8], [0.5, 10], [0.01, 10.3]].map(([r, t]) => new THREE.Vector2(r, t));
+    for (const [i, [rad, y, speed, s, col]] of [[150, 120, 0.012, 1.3, '#c9774f'], [205, -40, -0.009, 1.0, '#d9874f'], [120, 40, 0.015, 0.8, '#e2a06a']].entries()) {
+      const p = new Paint();
+      p.add(new THREE.LatheGeometry(prof, 16).rotateX(Math.PI / 2), col);   // (along +z)
+      for (let k = 0; k < 4; k++) p.add(new THREE.BoxGeometry(0.18, 2.6, 3.4).translate(0, 2.6, -8.3).rotateZ((k * Math.PI) / 2), col);
+      p.add(new THREE.BoxGeometry(1.6, 1.4, 4.5).translate(0, -4.7, 0.5), '#5a3c38');
+      for (const e of [-1.6, 2.6]) p.add(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 3).translate(0, -3.9, e), '#4a3a3a');
+      const m = p.mesh({ smooth: true, metal: 'painted' });
+      m.scale.setScalar(s);
+      m.userData.noCollide = true; m.userData.floats = true;
+      scene.add(m);
+      small.push(m);   // (no shadow in the far cascade)
+      const ph = i * 2.1;
+      movers.push({ obj: m, update: (t) => {
+        const a = ph + speed * t;
+        m.position.set(Math.cos(a) * rad, y + Math.sin(t * 0.05 + i) * 6, Math.sin(a) * rad);
+        m.rotation.y = Math.atan2(-Math.sin(a) * speed, Math.cos(a) * speed);   // (nose along its way)
+      } });
+      movers[movers.length - 1].update(0);
+    }
   }
 
   // ---------------------------------------------------------- the story's places (src/story/incal.js)
@@ -907,7 +981,7 @@ export function* buildIncal(scene) {
     // (the crown held high on a tall trunk: you see the people under it, and the camera passes beneath)
     for (let k = 0; k < 7; k++) { const a = k * 2.39996, r = 0.9 + (k % 3) * 0.5; lobes.push(new THREE.IcosahedronGeometry(1.5 + (k % 2) * 0.5, 0).translate(Math.cos(a) * r, 5.4 + (k % 3) * 0.8, Math.sin(a) * r)); }
     lobes.push(new THREE.CylinderGeometry(0.22, 0.35, 5.6, 5).translate(0, 2.8, 0));
-    const olive = mergeGeometries(lobes.map((g) => g.toNonIndexed()));
+    const olive = mergeGeometries(lobes.map((g) => (g.index ? g.toNonIndexed() : g)));
     olive.computeVertexNormals();
     const greens = ['#5e7a3a', '#4f6b34', '#6f8a42', '#56733f'];
     const hash01 = (i) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
@@ -919,7 +993,7 @@ export function* buildIncal(scene) {
     // umbrella pine: a bare leaning trunk under a flat layered canopy
     const pineParts = [new THREE.CylinderGeometry(0.22, 0.4, 8, 5).translate(0, 4, 0).rotateZ(0.12)];
     for (let k = 0; k < 5; k++) { const a = k * 1.9, r = k ? 1.8 : 0; pineParts.push(new THREE.IcosahedronGeometry(2.2, 0).scale(1.2, 0.42, 1.2).translate(Math.cos(a) * r + 0.95, 8.4 + (k % 2) * 0.5, Math.sin(a) * r)); }
-    const pine = mergeGeometries(pineParts.map((g) => g.toNonIndexed()));
+    const pine = mergeGeometries(pineParts.map((g) => (g.index ? g.toNonIndexed() : g)));
     pine.computeVertexNormals();
     const kindOf = (i) => { const h = hash01(i); return h < 0.5 ? cypress : h < 0.82 ? olive : pine; };
     // one mesh per terrace, kind and eighth of the ring: a whole terrace's trees in one mesh

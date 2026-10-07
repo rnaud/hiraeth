@@ -349,9 +349,9 @@ sheets show no one close enough to carry anything):
   colliders in her hand (`PROP_BULK`), so the cloak swings round it.
 - **The Speaker**: his bell in copper, as drawn, and three streamers tied round the staff under its arm.
 
-Not done, and why: Sefa's sheet also slings the oud on her back and carries a pack as she walks (one held
-prop, carried in the hand); Marrow's sheet binds his shins in cloth (the costume kit's pieces are rigid on
-a bone, none follows a leg); every chest piece still goes under a cloak from behind. The coarse cloth
+Later (docs/systems/characters.md): the oud on Sefa's back while she walks and Marrow's pack (a second carried
+slot, `BACKS`), Marrow's wrapped shins (`SHINS`, leg pieces), Bako's bag over his cloak. A cloak still hides
+every chest piece from behind. The coarse cloth
 (10 × 8 points) keeps its points off the oud, but a face between two points can still graze the bowl's
 rim for a frame. Contact sheets before and after: the studio, each person from five sides, standing and
 walking, and in the running game.

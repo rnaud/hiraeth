@@ -30,7 +30,14 @@ export const SKY_STONES_HAZE = { uHazeLayers: [200, 2, 0.09, 4], uHazeTone: [1, 
 export const SKY_STONES_CAST = { uCast: [0.7, 0] };
 export const SKY_STONES_LOOK = { uCumulus: 0, uClouds: 0, uBounce: 0, uHalftone: 0.15, uShadeKeep: 0, ...SKY_STONES_HAZE, ...SKY_STONES_CAST };
 /** The day's colours: sky top, horizon, the shadow's grey-blue, light, sun. */
+/** The crevasses' and the plain's steep faces: a red-brown, lit and hatched as the sheets draw them, never spot black. */
+export const CREVASSE = { wall: '#c0664a', strokes: 1 };   // (strokes: the lit walls' strokes, materials.js S_TERRAIN)
+/** The sea of cloud's print: its shade a flat pale grey-blue (lifted, the look's own flat print), no strokes, no spot black. */
+export const CLOUD_PRINT = { shade: 0.55, shadeFlat: 1, hatch: 0, spot: 0 };
 export const SKY_STONES_DAY = ['#a3d0d2', '#f4cdb0', '#93a6ac', '#fff7ec', '#fff2dc'];
+/** Dusk's and night's colours, their shadow the day's grey-teal (warmer at dusk, deeper at night), not the old violet. */
+export const SKY_STONES_DUSK = ['#f2ae8c', '#f6c4a0', '#9a9fae', '#ffd9bc', '#ffe2c0'];
+export const SKY_STONES_NIGHT = ['#262a3c', '#4a4a5e', '#3a4752', '#a8a8c0', '#f2f0e6'];
 
 // ---------------------------------------------------------------- layout
 const CLOUD_Y = -36;          // the cloud deck; below UNSAFE_Y you are put back
@@ -163,7 +170,7 @@ export function* buildArzach2(scene) {
   const PRINT = { shadeFlat: SKY_STONES_FLAT };
   const terrain = yield* Terrain.make({
     size: 5200, seg: 320, height,
-    material: { color: '#eda584', color2: '#f2b48f', color3: '#c98f86', mode: MODE_TERRAIN, ripples: true, ...PRINT },
+    material: { color: '#eda584', color2: '#f2b48f', color3: CREVASSE.wall, mode: MODE_TERRAIN, ripples: true, spot: 0, strataHatch: CREVASSE.strokes, ...PRINT },
   });
   scene.add(terrain.mesh);
 
@@ -172,6 +179,9 @@ export function* buildArzach2(scene) {
     // (the needles' shade a flat tone with few strokes and no beds in the light, as the sheets draw them)
     // (form: a table's strokes radiate from its stalk under the cap and run down the stalk, src/form.js)
     bone: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, flat: true, side: DS, hatch: 0.4, strataHatch: 0, form: true, ...PRINT }),
+    // the needles: the bone, its shade by the stalk's own round form (sky-stones-kit.js needle: smooth normals without the
+    // flutes), so the terminator runs down a needle in one clean band as on the sheets, not facets lit in islands
+    needle: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, side: DS, hatch: 0.4, strataHatch: 0, form: true, ...PRINT }),
     cap: makeMaterial({ color: '#f5e5d1', color2: '#f3e0cb', color3: '#f6e9d8', mode: MODE_STRATA, strataSize: 5, side: DS, form: true, ...PRINT }),   // smooth: clean terminator under the caps
     rose: makeMaterial({ color: '#d9a59a', color2: '#c98f86', color3: '#e3b5a8', mode: MODE_STRATA, strataSize: 9, flat: true, side: DS, form: true, ...PRINT }),
     aq: makeMaterial({ color: '#ece3d3', color2: '#e0d5c4', color3: '#f2ebde', mode: MODE_STRATA, strataSize: 2.6, flat: true, side: DS, ...PRINT }),
@@ -191,7 +201,10 @@ export function* buildArzach2(scene) {
   // drawn caps and boulders and the traveller climbed half inside the needles (docs/systems/movement.md, "Contact")
   const add = (mat, g, solid = true) => {
     if (!vis.has(mat)) vis.set(mat, []);
-    vis.get(mat).push(clean(g, true));
+    const c = clean(g, true);
+    // (a needle's and a cap table's own smooth shading normals, by their round form without the flutes: sky-stones-kit.js)
+    if ((mat === M.needle || mat === M.cap) && g.attributes.normal) c.setAttribute('normal', g.getAttribute('normal').clone());
+    vis.get(mat).push(c);
     if (solid) col.push(clean(g));
   };
   const movers = [];
@@ -276,13 +289,14 @@ export function* buildArzach2(scene) {
   const cluster = (cx, cy, cz, H, Rr, n, seed, rubble = true, mat = M.bone) => {
     const r2 = mulberry32(seed * 97 + 3);
     const nd = needle({ x: cx, y: cy, z: cz, H, R: Rr, seed: seed + 0.1, seg: 18, rings: 28, lean: (r2() - 0.5) * 0.08 });
-    add(mat, nd.vis);
+    const nm = mat === M.bone ? M.needle : mat;
+    add(nm, nd.vis);
     for (let i = 0; i < n; i++) {
       // the first few lean on the main needle like wax drips, the rest stand apart
       const fused = i < Math.ceil(n / 2), a = r2() * TAU, d = Rr * (fused ? 0.55 + r2() * 0.4 : 1.3 + r2() * 1.5);
       const h = H * (fused ? 0.22 + r2() * 0.4 : 0.15 + Math.pow(r2(), 1.3) * 0.5), rr = Rr * (fused ? 0.4 + r2() * 0.25 : 0.3 + r2() * 0.35);
       const s = needle({ x: cx + Math.cos(a) * d, y: cy - 1, z: cz + Math.sin(a) * d, H: h, R: rr, seed: seed + i * 1.37 + 0.5, seg: 14, rings: 20, lean: (r2() - 0.5) * 0.25 });
-      add(mat, s.vis);
+      add(nm, s.vis);
     }
     if (!rubble) return nd;
     // rounded boulder piles at the foot
@@ -343,7 +357,7 @@ export function* buildArzach2(scene) {
   {
     const x = 128, z = -92;
     const col0 = needle({ x, y: -80, z, H: 120, R: 7, seed: 41, seg: 14, rings: 18, flute: 0.1, lean: 0 });
-    add(M.bone, col0.vis);
+    add(M.needle, col0.vis);
     const disc = (dx, y, dz, rr, th, lean = null) => {
       const t = tableOf({ x: x + dx, z: z + dz, R: rr, stalk: rr * 0.18, top: y, base: y - th * 2.5, capT: th, under: th * 0.6, dome: th * 0.3, seed: y * 0.1, rib: 0.4, ribK: 20, seg: 64, colSeg: 14, foot: 1, neckR: 1, waist: 0, lean });
       add(M.cap, t.vis);
@@ -641,9 +655,11 @@ export function* buildArzach2(scene) {
   yield;
   for (const [mat, geos] of vis) {
     yield;
+    const own = (mat === M.needle || mat === M.cap) && geos.every((x) => x.attributes.normal);
+    if (!own) for (const x of geos) x.deleteAttribute('normal');
     let g = mergeGeometries(padForm(geos));
-    if (mat === M.cap) g = mergeVertices(g, 1e-3);
-    g.computeVertexNormals();
+    if (mat === M.cap && !own) g = mergeVertices(g, 1e-3);
+    if (!own) g.computeVertexNormals();
     g.computeBoundingSphere();
     const m = new THREE.Mesh(g, mat);
     m.userData.noCollide = true;
@@ -714,23 +730,16 @@ export function* buildArzach2(scene) {
   const cloud = [];
   yield;
   {
-    const PAL = ['#fffbf4', '#f8e4d6', '#d8dbee'];
+    // (printed flat as the sheets print cloud: a warm white in light, one pale grey-blue in its shade, by the real
+    //  sun, no strokes; the puffs were pre-shaded in three fixed vertex tones, lit from one side whatever the hour)
     const puffGeo = (detail) => {
       const g = new THREE.IcosahedronGeometry(1, detail);
       lumpy(g, 0.17, 2.3, detail);   // (knobbly, not a ball: the sheets' cloud is cauliflower at every scale)
       g.computeVertexNormals();
-      const p = g.attributes.position, c = new Float32Array(p.count * 3), col3 = new THREE.Color();
-      for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-        const lit = (x * 0.7 + y * 0.69 + z * 0.19) / Math.hypot(x, y, z) + nB(x * 2.2, z * 2.2 + y) * 0.16;
-        col3.set(lit > -0.05 ? PAL[0] : lit > -0.3 ? PAL[1] : PAL[2]);
-        c[i * 3] = col3.r; c[i * 3 + 1] = col3.g; c[i * 3 + 2] = col3.b;
-      }
-      g.setAttribute('color', new THREE.BufferAttribute(c, 3));
       return g;
     };
     // (a thin line in its own shade's blue, not the ink: materials.js LINE)
-    const cloudMat = makeMaterial({ color: '#ffffff', vertexColors: true, palette: PAL, glow: 0.5, line: 0.45, lineTint: 1 });
+    const cloudMat = makeMaterial({ color: '#fffbf4', ...CLOUD_PRINT, line: 0.45, lineTint: 1 });
     const near = [], far = [];
     const inPlain = (x, z) => z < PLAIN_EDGE - 50 + nA(x * 0.004, 3.1) * 40;
     // cauliflower clusters: a big central puff, smaller lobes round it and on top
@@ -815,8 +824,10 @@ export function* buildArzach2(scene) {
       // aqua sky over a peach horizon; shadows go one grey-blue, as in the sheets (printed flat: PRINT)
       script: {
         day: SKY_STONES_DAY,
-        dusk: ['#f2ae8c', '#f6c4a0', '#8f88b8', '#ffd9bc', '#ffe2c0'],
-        night: ['#262a3c', '#4a4a5e', '#383650', '#a8a8c0', '#f2f0e6'],
+        // (the shadow the day's grey-teal at every hour, as the sheets print it, a touch warmer at dusk and deeper at
+        //  night: the old violet-blue of the print preset stayed in these two: SKY_STONES_DUSK, SKY_STONES_NIGHT)
+        dusk: SKY_STONES_DUSK,
+        night: SKY_STONES_NIGHT,
       },
       planets: [{ az: 200, el: 26, size: 6.5, color: '#f3ead8', craters: false }, { az: 222, el: 18, size: 2.2, color: '#e9c8b4', craters: false }],
     },

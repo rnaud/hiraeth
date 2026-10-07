@@ -479,6 +479,59 @@ incoming-segment curl axis for terminal phalanges on leafless rigs, which were p
 skipped. Hand pose diagnostics expose open, relaxed and fist poses; full contact grips still
 need refinement on the generated mesh.
 
+## Cloaks over the arms (October 2026)
+
+Hands and arms poked through capes: Bako's and the Speaker's arms lay over their cloaks, Nour's hand hung on
+the outside of hers. The cloth kept out of each collider by its nearest way out, so a cape falling from the
+collar inside the arms stayed under them, and the hands had no colliders at all. Now:
+
+- **The hands are colliders** (`CAPSULES` in `src/humanoid.js`: wrist to the middle of the fingers, measured
+  on each body as the others are).
+- **The cloth goes over the forearms and hands** (`CAPE_OVER`; `cape.js` `OVER`). Seen from the body's upright
+  line through the feet, a forearm shades a wedge in toward the body; cloth in that wedge (or in the arm) goes
+  out to the arm's far side, and so does cloth up to `OVER.reach` (10 cm) beside it. The cloth is coarse (10 ×
+  8 points), and a face between two points either side of a hand otherwise ran through it.
+- Not the upper arms (lifting the shoulders' cloth pulled the front edges onto a robe's legs once hung), and not
+  seated: the hands rest in the lap, and lifting the cloth over them stood it out over the seat.
+
+Measured in the studio on MakeHuman bodies (the share of hand and forearm points with the cloak between them
+and the body, idle / walking / talking): Bako 84 / 71 / 51 % → 0, the Speaker 65 / 64 / 51 → 0, Nour 41 / 31 /
+33 → 0, Ama and Hessa talking 42 and 31 → 0. Seated people still rest their forearms on the cloak in their
+laps. `tests/cape-arms.test.js`.
+
+**From the front, the chest pieces stay in sight** (`tests/cape-front.test.js`: the share of the pieces facing
+you that the cloak covers). A cloak may hide every chest piece from behind; from the front, where the sheets
+draw them, it must not. Bako's satchel lay inside his cloak's left edge (31 % of it covered); a piece worn over
+the cloak now has capsules the cloth goes *under* (`BODY_BULK` in `src/costumes.js`, the bag and its strap;
+cape.js `OVER`, a collider's `under`), so the bag lies on the cloak (5 %; three-quarters 21 %). Nour's gourds and
+keys 0 % (three-quarters 12 %), Hessa's keys 0 %, Ama's fringe 1 % from the front; three-quarters the cloak's near
+edge crosses the keepers' hips (no sheet draws them), and the test holds only the sheets' pieces there.
+
+## A second carried slot and leg pieces (October 2026)
+
+- **The back** (`BACKS`, `look.back` in `src/costumes.js`): a piece carried on the back, in the chest frame
+  behind the body, beside the held prop. With `look.stow` it is the held prop put away: while walking (faster
+  than `STOW_AT`, 0.3 m/s, `src/npc.js`; the studio does the same) the held and the slung pieces swap
+  (`Humanoid.stow`: each is its own mesh, built only for such a look), the hand lets go (`hands.js npcHands`),
+  and the cloth colliders follow: the held prop's `PROP_BULK` while in hand, the slung piece's `BACK_BULK`
+  while on the back. Sefa's oud hangs on its strap over her cloak as her sheet draws her walking (`under`: the
+  cloth goes in behind it; it hangs a cloth's thickness out from the back's own collider, since further in the
+  two pushed the cloth back and forth and the cloak flew open); Marrow's pack moved from his chest piece to his
+  back (a cape would go over a pack). The oud is one model (`oudParts`) carried two ways (`slung`), its tassels
+  hanging straight down from the pegbox either way.
+- **Leg pieces** (`SHINS`, `look.shins`): built in a shin frame (the knee at the origin, the ankle at
+  `-len`, `r` the shin's measured girth, `segmentGirths`), rigid on each calf bone, so they follow the legs.
+  Marrow's wrapped shins: a bulky wrap from the ankle to under the knee, wound in bands, its end tucked in
+  (`FIXED.linen`).
+- Named people only (no tribe draws them), so the crowd's figures and their packing are untouched.
+  `tests/desert-props.test.js`.
+- **Bako's bag, as his sheet draws it**: no longer a dark box on a thin strap but a big soft canvas shoulder bag
+  (`FIXED.canvas`) slouching at his left hip over his coat, its flap folded over the top with a toggle on its
+  edge, on a wide flat strap across the chest and over his right shoulder (`softBox`: a box rounded toward an
+  ellipsoid and sagging below; `strapRibbon`: a flat band along a path round the body). Its cloth colliders are
+  two flat capsules across its width, so its inner side meets the body's own collider: from the front 0.2 %
+  of it behind the cloak, three-quarters 1 %.
+
 ## The desert's own pieces (October 2026)
 
 Four held props (`ney`, `oud`, `hook`, `bellstaff`) and three worn ones (`satchel`, `fringe`, `keys`),

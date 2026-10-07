@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { MeshBVH, ExtendedTriangle } from 'three-mesh-bvh';
+import { MeshBVH, ExtendedTriangle, CENTER, AVERAGE, SAH } from 'three-mesh-bvh';
 import { GenerateMeshBVHWorker } from 'three-mesh-bvh/src/workers/GenerateMeshBVHWorker.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { runSteps, runStepsAsync } from './load-steps.js';
@@ -20,6 +20,12 @@ const _cap = new THREE.Vector3();
 const _dir = new THREE.Vector3();
 const _m = new THREE.Matrix4();
 const _Y = new THREE.Vector3(0, 1, 0);
+
+/** The BVH's options from a level's collision settings ({ strategy: 'CENTER' | 'AVERAGE' | 'SAH' }). */
+function bvhOptions({ strategy } = {}) {
+  const st = { CENTER, AVERAGE, SAH }[strategy];
+  return st === undefined ? {} : { strategy: st };
+}
 
 function isExcluded(obj) {
   for (let o = obj; o; o = o.parent) if (o.userData.noCollide) return true;
@@ -52,28 +58,33 @@ export class Physics {
    * @param base   optional heightfield with heightAt(x, z) (desert terrain),
    *               combined with the mesh collision in groundAt()
    */
-  /** Build the BVH in a web worker (keeps the page responsive while loading). */
-  static async create(scene, base = null, slice = null) {
+  /**
+   * Build the BVH in a web worker (keeps the page responsive while loading). o.strategy: how the BVH
+   * splits ('CENTER', the default, quick to build; 'SAH', three times slower to build and quicker to
+   * query where long thin shapes overlap: Lorn II's roots, level.collision, docs/systems/movement.md).
+   */
+  static async create(scene, base = null, slice = null, o = {}) {
     // (baked a mesh a step when given a slicer, src/load-steps.js: the copy of every triangle in the
     // world into one buffer was a single long task; the BVH itself is built in a worker)
     const p = Object.create(Physics.prototype);
+    p.bvhOptions = bvhOptions(o);
     if (slice) await runStepsAsync(p.bake(scene, base, true), slice); else runSteps(p.bake(scene, base, true));
     if (p.geometry.attributes.position) {
       try {
         const worker = new GenerateMeshBVHWorker();
-        p.bvh = await worker.generate(p.geometry);
+        p.bvh = await worker.generate(p.geometry, p.bvhOptions);
         worker.dispose();
       } catch (e) {
         // the worker took (transferred) the geometry's buffers with it, so
         // bake the scene again rather than building a BVH over nothing
         console.warn('BVH worker failed, building on the main thread', e);
-        return new Physics(scene, base);
+        return new Physics(scene, base, false, o);
       }
     }
     return p;
   }
 
-  constructor(scene, base = null, deferBVH = false) { runSteps(this.bake(scene, base, deferBVH)); }
+  constructor(scene, base = null, deferBVH = false, o = {}) { this.bvhOptions = bvhOptions(o); runSteps(this.bake(scene, base, deferBVH)); }
 
   /** Every solid triangle of the scene in one world-space geometry (and its BVH unless deferred), a mesh a step. */
   *bake(scene, base = null, deferBVH = false) {
@@ -98,7 +109,7 @@ export class Physics {
       }
     }
     this.geometry = geos.length ? yield* concatPositions(geos) : new THREE.BufferGeometry();
-    this.bvh = geos.length && !deferBVH ? new MeshBVH(this.geometry) : null;
+    this.bvh = geos.length && !deferBVH ? new MeshBVH(this.geometry, this.bvhOptions) : null;
     this.triangles = this.geometry.attributes.position ? this.geometry.attributes.position.count / 3 : 0;
   }
 

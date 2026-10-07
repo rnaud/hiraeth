@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { MODE_WATER } from '../materials.js';
 import { mulberry32 } from '../noise.js';
 import { V, tube, sagPts, put, smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
+import { cabModel } from '../taxi.js';
 
 // ---------------------------------------------------------------------------
 // The City-Shaft's reference sheets (references/The City-Shaft/IMG_3778 … 3782): a city of
@@ -46,6 +47,12 @@ function materials(kit, cream) {
     cab: kit.mat({ color: '#d9874f', metal: 'painted' }),
     glass: kit.mat({ color: '#4f6f86', flat: true }),
     ground: kit.mat({ color: '#e8a693', flat: true, weathered: 0.6 }),
+    // the houses' small work (pipes down the walls, the plating and machinery under the overhangs,
+    // washing on the balconies) and the blimps
+    pipe: kit.mat({ color: '#9b6a5a', flat: true, metal: 'painted' }),
+    plate: kit.mat({ color: '#8fa6bb', flat: true, grid: 1.2 }),
+    cloth: ['#f6f1e6', '#c95a45', '#e9c46a', '#7fb3c8', '#f3b9a4'].map((c) => kit.mat({ color: c, flat: true, side: THREE.DoubleSide, shade: 0.3, line: 0.6, lineTint: 0.7 })),
+    blimp: kit.mat({ color: '#c9774f', metal: 'painted' }),
   };
 }
 
@@ -57,11 +64,54 @@ function materials(kit, cream) {
 const NO_CAST = { shadow: false };
 
 /**
+ * A block's small work on its face (the sheets' houses are never plain boxes): pipes running down it,
+ * now and then a balcony with washing hung along its rail, and under an overhanging slab the plating:
+ * brackets, boxes and a pipe slung along its underside. The face looks toward +fx (fx = ±1) at
+ * x = fxAt, the block spans zc ± w/2 and y .. y + h; d its own random numbers (the layout keeps its own).
+ */
+function blockWork(kit, M, d, { fxAt, fx, zc, w, y, h, slab = 0 }) {
+  const nd = { solid: false, shadow: false };
+  for (let i = 0, n = h > 0 && d() < 0.6 ? 1 + Math.floor(d() * 3) : 0; i < n; i++) {
+    const pz = zc + (d() - 0.5) * w * 0.85, r = 0.25 + d() * 0.3;
+    kit.add(M.pipe, new THREE.CylinderGeometry(r, r, h + 0.6, 5).translate(fxAt + fx * (r + 0.05), y + h / 2, pz), nd);
+    if (d() < 0.5) kit.add(M.pipe, new THREE.BoxGeometry(r * 3, r * 2.4, r * 2.4).translate(fxAt + fx * r * 1.5, y + h * (0.3 + d() * 0.5), pz), nd);
+  }
+  if (h > 4.5 && d() < 0.3) {   // a balcony, washing along its rail
+    const bw = Math.min(w * 0.75, 3 + d() * 3), by = y + 1 + d() * (h - 3), bz = zc + (d() - 0.5) * (w - bw) * 0.8, bd = 1.6;
+    kit.add(M.slab, new THREE.BoxGeometry(bd, 0.3, bw).translate(fxAt + fx * bd / 2, by, bz), nd);
+    kit.add(M.rail, new THREE.BoxGeometry(0.08, 1.0, bw).translate(fxAt + fx * (bd - 0.05), by + 0.6, bz), nd);
+    for (const e of [-1, 1]) kit.add(M.rail, new THREE.BoxGeometry(bd, 1.0, 0.08).translate(fxAt + fx * bd / 2, by + 0.6, bz + e * bw / 2), nd);
+    if (d() < 0.8) for (let u = -bw / 2 + 0.45; u < bw / 2 - 0.3; u += 0.55 + d() * 0.4) {
+      const cw = 0.5 + d() * 0.5, ch = 0.6 + d() * 0.9;
+      kit.add(M.cloth[Math.floor(d() * M.cloth.length)], new THREE.PlaneGeometry(cw, ch).rotateY(Math.PI / 2).translate(fxAt + fx * (bd + 0.05), by + 1.15 - ch / 2, bz + u), nd);
+    }
+  }
+  if (slab > 0) {   // the plating under an overhanging slab: brackets back to the wall, boxes, a pipe along it
+    for (const e of [-0.45, 0.45]) kit.add(M.plate, new THREE.BoxGeometry(slab, 0.6, 0.3).translate(fxAt + fx * slab / 2, y - 0.3, zc + e * w), nd);
+    for (let i = 0, n = 2 + Math.floor(d() * 4); i < n; i++) {
+      const s = 0.8 + d() * 1.4;
+      kit.add(d() < 0.5 ? M.plate : M.dark, new THREE.BoxGeometry(s, s * (0.5 + d()), s).translate(fxAt + fx * (0.3 + d() * (slab - 0.6)), y - s * 0.4, zc + (d() - 0.5) * w * 0.8), nd);
+    }
+    if (d() < 0.6) kit.add(M.pipe, new THREE.CylinderGeometry(0.16, 0.16, w, 5).rotateX(Math.PI / 2).translate(fxAt + fx * (0.4 + d() * (slab - 0.6)), y - 0.35, zc), nd);
+  }
+}
+
+/** A blimp (IMG_3780, IMG_3782): a teardrop envelope with fins at its tail and a gondola under it, along +x before yaw; s its length / 20 m. */
+function blimp(kit, M, [x, y, z], yaw = 0, s = 1) {
+  const nd = { solid: false, shadow: false };
+  const prof = [[0.01, -10], [2.2, -9], [3.6, -6.5], [4.2, -3], [4.1, 1], [3.2, 5], [1.8, 8], [0.5, 10], [0.01, 10.3]].map(([r, t]) => new THREE.Vector2(r, t));
+  kit.add(M.blimp, put(new THREE.LatheGeometry(prof, 18).rotateZ(-Math.PI / 2).scale(s, s * 0.95, s), x, y, z, yaw), nd);
+  for (let i = 0; i < 4; i++) kit.add(M.blimp, put(new THREE.BoxGeometry(3.4, 0.18, 2.4).translate(-8.2, 0, 2.6).rotateX((i * Math.PI) / 2).scale(s, s, s), x, y, z, yaw), nd);
+  kit.add(M.dark, put(new THREE.BoxGeometry(4.5, 1.4, 1.6).translate(0.5, -4.7, 0).scale(s, s, s), x, y, z, yaw), nd);
+  for (const e of [-1.6, 2.6]) kit.add(M.cable, put(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 3).translate(e, -3.9, 0).scale(s, s, s), x, y, z, yaw), nd);
+}
+
+/**
  * A wall of houses along z (from z0 to z1) whose face stands at x, looking toward +side·x: columns of
  * stacked blocks (each jutting out by its own amount), slabs overhanging under some, awnings, little
  * boxes, a backing behind so no sky shows between them.
  */
-function houseWall(kit, M, rng, { x, side, z0, z1, y0, y1, depth = 10, jut = 3.5, over = 0.35, awn = 0.2, casts = true }) {
+function houseWall(kit, M, rng, { x, side, z0, z1, y0, y1, depth = 10, jut = 3.5, over = 0.35, awn = 0.2, casts = true, d = rng }) {
   const C = { solid: true, shadow: casts }, CS = { solid: false, shadow: casts };
   const dz = Math.sign(z1 - z0);
   kit.add(M.back, put(new THREE.BoxGeometry(60, y1 - y0, Math.abs(z1 - z0) + 20), x - side * (depth + 30), (y0 + y1) / 2, (z0 + z1) / 2), NO_CAST);
@@ -72,11 +122,14 @@ function houseWall(kit, M, rng, { x, side, z0, z1, y0, y1, depth = 10, jut = 3.5
       const h = 5 + rng() * 9, j = rng() < 0.15 ? jut * (1.4 + rng()) : jut * rng();
       const sx = depth + j, cx = x + side * (j - depth) / 2, zc = z + dz * cw / 2 + (rng() - 0.5) * 1.5, w = cw * (0.82 + rng() * 0.2);
       kit.add(M.walls[Math.floor(rng() * M.walls.length)], put(new THREE.BoxGeometry(sx, h, w), cx, y + h / 2, zc), NO_CAST);
+      let slab = 0;
       if (rng() < over) {   // a slab overhanging under the block: its underside the deepest blue
         const o = 1.5 + rng() * 2.5;
         kit.add(M.slab, put(new THREE.BoxGeometry(sx + o, 0.7, w * 1.12), cx + side * o / 2, y + 0.35, zc), C);
         if (rng() < 0.5) kit.add(M.rail, put(new THREE.BoxGeometry(0.12, 1.0, w * 1.1), x + side * (j + o), y + 1.2, zc), CS);
+        slab = o;
       }
+      blockWork(kit, M, d, { fxAt: x + side * j, fx: side, zc, w, y, h, slab });
       if (rng() < awn) {    // an awning, slanted out over the street
         const a = M.awn[Math.floor(rng() * M.awn.length)];
         kit.add(a, put(new THREE.BoxGeometry(2.8, 0.08, w * 0.8), x + side * (j + 1.3), y + h * 0.55, zc, 0, 1, 0, side * 0.35), CS);
@@ -89,14 +142,16 @@ function houseWall(kit, M, rng, { x, side, z0, z1, y0, y1, depth = 10, jut = 3.5
 }
 
 /** A free-standing stack of blocks round (x, z): a tower of houses, from y0 up to y1. */
-function stack(kit, M, rng, { x, z, w, y0, y1, jitter = 0.18, over = 0.22 }) {
+function stack(kit, M, rng, { x, z, w, y0, y1, jitter = 0.18, over = 0.22, d = rng }) {
   let y = y0;
   const wall = () => M.walls[Math.floor(rng() * M.walls.length)];
   while (y < y1) {
     const h = 4 + rng() * 11, bw = w * (0.6 + rng() * 0.55), bd = w * (0.6 + rng() * 0.55);
     const bx = x + (rng() - 0.5) * w * jitter * 2, bz = z + (rng() - 0.5) * w * jitter * 2, yaw = (rng() - 0.5) * 0.08;
     kit.add(wall(), put(new THREE.BoxGeometry(bw, h, bd), bx, y + h / 2, bz, yaw), NO_CAST);
-    if (rng() < over) kit.add(M.slab, put(new THREE.BoxGeometry(bw + 1.5 + rng() * 2, 0.7, bd + 1.5 + rng() * 2), bx, y + 0.35, bz, yaw));
+    const ov = rng() < over;
+    if (ov) kit.add(M.slab, put(new THREE.BoxGeometry(bw + 1.5 + rng() * 2, 0.7, bd + 1.5 + rng() * 2), bx, y + 0.35, bz, yaw));
+    for (const fx of [-1, 1]) blockWork(kit, M, d, { fxAt: bx + fx * bw / 2, fx, zc: bz, w: bd, y, h, slab: ov ? 0.75 : 0 });
     // houses of their own clinging to the storey: boxes of every size jutting off its faces
     const n = Math.floor(rng() * 4);
     for (let k = 0; k < n; k++) {
@@ -124,10 +179,11 @@ function walkway(kit, M, a, b, w = 2.6) {
   if (L > 30) kit.add(M.rail, put(new THREE.BoxGeometry(0.4, 2.4, L * 0.98), c.x, c.y - 1.6, c.z, yaw, 1, -Math.asin(d.y / L), 0), { solid: false });
 }
 
-/** A flying cab: an orange capsule, a dark canopy. */
+/** A flying cab: the game's own (taxi.js), in the shaft's yellow and cream; s its scale. */
 function cab(kit, M, [x, y, z], yaw = 0, s = 1) {
-  kit.add(M.cab, put(new THREE.SphereGeometry(1, 14, 8), x, y, z, yaw, [2.2 * s, 0.7 * s, 1.1 * s]), { solid: false });
-  kit.add(M.glass, put(new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), x + 0.3 * s, y + 0.35 * s, z, yaw, [0.9 * s, 0.6 * s, 0.7 * s]), { solid: false });
+  const c = cabModel(Math.abs(x * 3 + z) % 2 < 1 ? '#f2c54b' : '#f1e6cf', s * 1.1);
+  c.position.set(x, y, z); c.rotation.y = yaw + Math.PI / 2;
+  kit.group.add(c);
 }
 
 /**
@@ -137,12 +193,13 @@ function cab(kit, M, [x, y, z], yaw = 0, s = 1) {
  * (the paving where a figure stands), cream: 0..1 (the share of cream blocks), seed }
  */
 function shaftScene(kit, v, o) {
-  const rng = mulberry32(o.seed ?? 1), M = materials(kit, o.cream ?? 0.3);
+  const rng = mulberry32(o.seed ?? 1), M = materials(kit, o.cream ?? 0.3), d = mulberry32((o.seed ?? 1) + 7177);
   // a wall whose face is turned from the sun stands between it and the street: what juts off it
   // (slabs, awnings, rails) casts no shadow, or the street and the wall across, which the sheets keep in
   // the sun, would be in its shade from top to bottom
-  for (const w of o.walls ?? []) houseWall(kit, M, rng, { ...w, casts: w.side * Math.sign(v.sun.side) > 0 || Math.abs(v.sun.side) > 172 });
-  for (const s of o.stacks ?? []) stack(kit, M, rng, s);
+  for (const w of o.walls ?? []) houseWall(kit, M, rng, { ...w, d, casts: w.side * Math.sign(v.sun.side) > 0 || Math.abs(v.sun.side) > 172 });
+  for (const s of o.stacks ?? []) stack(kit, M, rng, { ...s, d });
+  for (const [x, y, z, yaw, s] of o.blimps ?? []) blimp(kit, M, [x, y, z], yaw, s);
   for (const [a, b, w] of o.walkways ?? []) walkway(kit, M, a, b, w);
   for (const [x, y, z, yaw, s] of (v.omitCabs ? [] : o.cabs ?? [])) cab(kit, M, [x, y, z], yaw, s);
   // cables across the gap: from one wall's face to the other's, sagging
@@ -300,7 +357,7 @@ export const SHAFT_VIEWS = [
         walls: [{ x: -14, side: 1, z0: 0, z1: -90, y0: -60, y1: 160, depth: 10, jut: 6, over: 0.6, awn: 0.25 }],
         stacks: [{ x: 30, z: -110, w: 24, y0: -200, y1: 160 }],
         walkways: [[[-6, 70, -40], [24, 76, -100], 2.6]],
-        cabs: [[10, 50, -60, 0.4, 1], [18, 30, -70, -0.3, 0.8]],
+        blimps: [[10, 50, -60, 0.4, 0.22], [18, 30, -70, -0.3, 0.18]],
       });
     },
   }),
@@ -343,7 +400,7 @@ export const SHAFT_VIEWS = [
         walls: [{ x: -16, side: 1, z0: 10, z1: -60, y0: -80, y1: 120, depth: 10, jut: 5, over: 0.5, awn: 0.3 }],
         stacks: [{ x: 18, z: -70, w: 20, y0: -150, y1: 110 }, { x: -2, z: -140, w: 14, y0: -150, y1: 70 }, { x: 40, z: -100, w: 16, y0: -150, y1: 140 }],
         walkways: [[[-10, 20, -40], [10, 22, -66], 2], [[-10, 50, -40], [8, 54, -70], 2]],
-        cabs: [[0, 70, -60, 0.2, 1.8], [24, 60, -90, -0.4, 1.2]],
+        blimps: [[2, 80, -70, 0.3, 0.45]], cabs: [[24, 60, -90, -0.4, 1.2]],
       });
     },
   }),
@@ -524,7 +581,7 @@ export const SHAFT_VIEWS = [
         walls: [{ x: -12, side: 1, z0: 10, z1: -180, y0: -200, y1: 90, depth: 10, jut: 4, over: 0.5, awn: 0.3 },
                 { x: 12, side: -1, z0: 10, z1: -180, y0: -200, y1: 90, depth: 10, jut: 4, over: 0.5, awn: 0.3 }],
         walkways: [[[-10, 2, -100], [10, 2, -104], 3]],
-        cabs: [[0, 40, -110, 0.3, 2.6], [-3, 18, -80, -0.5, 1], [4, 14, -90, 0.6, 1]],
+        blimps: [[0, 40, -110, 0.3, 0.7]], cabs: [[-3, 18, -80, -0.5, 1], [4, 14, -90, 0.6, 1]],
         cables: 6,
       });
     },

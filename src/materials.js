@@ -435,6 +435,7 @@ export function surfaceDefines(o) {
   on('S_GLASS', o.glass);
   on('S_MAP', o.map);
   on('METAL_BRUSHED', o.metal && o.brushed);
+  on('S_VMAT', o.perVertex);   // (merged meshes: their material values per vertex, src/vertex-material.js)
   delete d.undefined;
   return d;
 }
@@ -452,6 +453,14 @@ const vertexShader = /* glsl */ `
   out vec3 vBind;
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
+  #ifdef S_VMAT
+    // many meshes merged into one draw, each with its own material values and object space (src/vertex-material.js)
+    in vec3 aMatC1; in vec3 aMatC2; in vec3 aMatC3;
+    in vec3 aMatS;        // band size, grid, flat
+    in vec3 aObjP; in vec3 aObjN;   // its own object-space point and normal
+    in vec4 aObjM;        // its place (xyz) and turn about y (w)
+    flat out vec3 vMatC1; flat out vec3 vMatC2; flat out vec3 vMatC3; flat out vec3 vMatS;
+  #endif
   #ifdef S_FORM
     in vec4 aFormC;       // the part's axis (src/form.js): a point on it (object space), w its kind (FORM: 0 none, 1 a cap, 2 a cylinder)
     in vec3 aFormA;       // and its direction
@@ -612,6 +621,16 @@ const vertexShader = /* glsl */ `
     #ifdef GRASS
       vObjPos = transformed; vObjNormal = objectNormal; vObjRel = transformed - cameraPosition;   // (already in the world)
     #endif
+    #ifdef S_VMAT
+    {
+      vMatC1 = aMatC1; vMatC2 = aMatC2; vMatC3 = aMatC3; vMatS = aMatS;
+      vObjPos = aObjP; vObjNormal = aObjN;
+      // the camera in its own frame (its turn undone), as camL above does with its own model matrix
+      float c = cos(aObjM.w), s = sin(aObjM.w);
+      vec3 d = cameraPosition - aObjM.xyz;
+      vObjRel = aObjP - vec3(c * d.x - s * d.z, d.y, s * d.x + c * d.z);
+    }
+    #endif
     #ifdef S_FORM
     {
       // the point in the axis' frame, metric as vObjPos (its scale baked in); affine in the position, so it
@@ -652,6 +671,7 @@ const fragmentShader = /* glsl */ `
   uniform int uMode;
   uniform float uFlat;
   uniform float uStrataSize;
+  uniform float uCracks;   // strata rock: dense cracks and strokes down its faces (0: the sparse fissures only)
 
   uniform vec3 uSunDir;
   uniform highp sampler2DShadow uShadowMap;
@@ -715,6 +735,16 @@ const fragmentShader = /* glsl */ `
   in vec3 vBind;
   in vec2 vFold;
   in vec2 vTextureUV;
+  #ifdef S_VMAT
+    // (the material values from the vertex instead of the uniforms: every use below reads these)
+    flat in vec3 vMatC1; flat in vec3 vMatC2; flat in vec3 vMatC3; flat in vec3 vMatS;
+    #define uColor vMatC1
+    #define uColor2 vMatC2
+    #define uColor3 vMatC3
+    #define uStrataSize vMatS.x
+    #define uGrid vMatS.y
+    #define uFlat vMatS.z
+  #endif
   #ifdef S_FORM
     in vec4 vForm;
   #endif
@@ -1540,6 +1570,27 @@ const fragmentShader = /* glsl */ `
     return inkLine(d, 1.0) * runs * (1.0 - smoothstep(0.08, 0.2, fwq));
   }
 
+  // Cracks down a cliff's face (the desert canyons' sheets, IMG_3772-3774): long near-vertical lines a
+  // couple of metres apart, each its own length, wandering a little and thinning at its ends, with short
+  // strokes between them; denser with k. q = (horizontal coordinate on the face, height) in metres, fwx
+  // metres per pixel across the face.
+  float faceCracks(vec2 q, float fwx, float k) {
+    float ink = 0.0;
+    for (int f = 0; f < 2; f++) {
+      float sp = f == 0 ? mix(6.0, 2.0, k) : mix(3.0, 1.1, k);
+      float wob = (vnoise(vec2(q.y * 0.11 + float(f) * 9.0, q.x * 0.03)) - 0.5) * 0.45;
+      float u = q.x / sp + wob, id = floor(u + 0.5);
+      float off = (hash(vec2(id, 3.1 + float(f))) - 0.5) * 0.5;
+      float d = abs(fract(u + 0.5) - 0.5 - off) * sp / max(fwx, 1e-5);   // px
+      float len = f == 0 ? mix(0.03, 0.09, hash(vec2(id, 7.7))) : mix(0.25, 0.5, hash(vec2(id, 5.3)));   // 1 / its length's scale
+      float run = vnoise(vec2(id * 7.31 + float(f) * 13.0, q.y * len));
+      float on = smoothstep(f == 0 ? 0.42 : 0.62, f == 0 ? 0.55 : 0.72, run);
+      float w = (f == 0 ? 2.0 : 1.2) * mix(0.5, 1.0, smoothstep(0.42, 0.75, run));
+      ink = max(ink, inkLine(d, w) * on * (1.0 - smoothstep(0.035, 0.11, fwx / sp)));
+    }
+    return ink;
+  }
+
   ${GLYPH_GLSL}
 
   #ifdef METAL
@@ -2251,6 +2302,7 @@ const fragmentShader = /* glsl */ `
     #ifdef S_STRATA
     else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
+      if (uCracks > 0.0) detail = max(detail, faceCracks(vec2(faceX, vObjPos.y), fissFw * 9.0, uCracks) * 1.7);   // (over 1: a pen line, post.js drawnK)
     }
     #endif
     #ifdef S_SCRUB
@@ -2363,6 +2415,15 @@ const fragmentShader = /* glsl */ `
       gHatch.r = max(gHatch.r, beds);
     }
     #endif
+    #ifdef S_TERRAIN
+    // a steep face of the ground in light (a crevasse's wall) keeps runs of strokes down it, when its material asks
+    // (strataHatch on terrain): the ground's strokes are laid from above, so on a wall they fall straight down it,
+    // as the Sky Stones' sheets hatch their crevasses' lit red-brown walls
+    if (uMode == ${MODE_TERRAIN} && uShade.w > 0.0 && L >= uToon && vViewDepth < 400.0) {
+      float wall = smoothstep(0.45, 0.75, slope);
+      if (wall > 0.0) gHatch.r = max(gHatch.r, strokes(ce1, fw1, hsp * 1.1, 1.3) * wall * min(uShade.w, 1.0));
+    }
+    #endif
     // a face is flat colour and one shadow tone: its strokes are its own (faceInk)
     #ifdef S_FIGURE
     if (uMode == ${MODE_OUTFIT}) gHatch.rg *= 1.0 - faceFlat(vBind);
@@ -2433,6 +2494,8 @@ const cache = new Map();
  * @param {number}  [o.lineTint] 0..1: its line drawn in a dark shade of its own colour instead of the ink (glass 0.7, leaves 0.67)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
+ * @param {number}  [o.cracks]  strata rock: dense cracks and short strokes running down its faces, as the
+ *                              desert's canyon sheets draw their walls (0..1; 0 the sparse fissures only)
  * @param {boolean} [o.form]    its shade's strokes follow the form of the parts that carry an axis (src/form.js
  *                              formAxis: a cap's radiate from it, a cylinder's wrap round it; FORM, S_FORM)
  * @param {number|boolean} [o.patches] colour across a wall: big flat patches of another tone (PATCH; 0..1.5; on
@@ -2494,6 +2557,7 @@ export function makeMaterial(o) {
       uMode: { value: o.mode ?? MODE_PLAIN },
       uFlat: { value: o.flat ? 1 : 0 },
       uStrataSize: { value: o.strataSize ?? 4.0 },
+      uCracks: { value: o.cracks ?? 0 },
       uPlates: { value: o.plates ? 1 : 0 },
       uWindows: { value: o.windows ?? 0.78 },
       uWeather: { value: weatheredOf(o) },

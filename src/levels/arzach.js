@@ -309,7 +309,7 @@ export function* buildArzach(scene) {
       const ped = new THREE.CylinderGeometry(1.2 * s, 3.4 * s, 12 * s, 7, 4).translate(0, 6 * s, 0);
       const stone = new THREE.IcosahedronGeometry(5.5 * s, 1).scale(1.2, 0.8, 1).translate(0.8 * s, 12 * s + 3.6 * s, 0);
       jitter(ped, 0.15, 0.04, i); jitter(stone, 0.2, 0.05, i + 9);
-      const m = new THREE.Mesh(mergeGeometries([ped.toNonIndexed(), stone.toNonIndexed()]), bone(3));
+      const m = new THREE.Mesh(mergeGeometries([ped, stone].map((g) => (g.index ? g.toNonIndexed() : g))), bone(3));
       m.position.set(x, terrain.baseAt(x, z, 4 * s) - 1, z);
       m.rotation.y = rng() * 6;
       scene.add(m);

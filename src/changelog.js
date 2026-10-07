@@ -7,6 +7,21 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.78', date: '2026-10-07', items: [
+    'The City-Shaft looks more like its drawings: half its walls are pink now among the cream, drainpipes run down the houses, washing hangs over the balconies’ rails, the undersides of the terraces are hung with ribs, machinery and pipes, three orange blimps drift slowly round the shaft, and the lake at the bottom is turquoise water instead of acid green.',
+    'The Signal Market’s stalls are full now: brass bowls heaped with fruit, jars between them, strings of goods hanging under the awnings and round pictures painted on the counters.',
+    'In the Buried Machine the trench walls are a mass of pipes, bends rising over the long runs and dropping back; inside the drum an arcade of little dark bays runs under the rim, with slits, panels and machinery against the wall, some of it lit; and the city overhead hangs its towers in clusters, lesser towers round the great ones, each ending in a bulb.',
+    'The desert’s canyon walls and violet cliffs are drawn with many cracks running down their faces, as in their drawings, instead of a few far-apart fissures, and the doors of Qanat’s houses have the plaster stained darker round them.',
+    'In the References level the Signal Market’s panels have a crowd of people in coats, hoods and hats, the quiet ones among them, stalls full of goods with their sellers, and the game’s own cabs; the Buried Machine’s have the trench’s pipes, the hanging towers in clusters, the drums’ arcades and machinery under vaulted ceilings, the oval tunnel’s inside, the moon seen from the arched cave and the layered rock ledge; the City-Shaft’s houses have pipes, balconies with washing and machinery under their overhangs, with blimps and the game’s own cabs in the sky.',
+    'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
+    'Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it, and it is the bag of his drawings now: a big soft canvas shoulder bag with a flap, on a wide strap over his shoulder.',
+    'Sefa slings her oud on her back over her cloak when she walks, and takes it in hand again when she stops; Marrow carries his pack on his back and walks on cloth-wrapped shins, as his drawings show.',
+    'In Vael II the needle spires and the mushroom tables’ stalks take their shade in one clean band down their side, as in its drawings, instead of breaking into lit patches across their flutes.',
+    'The cracks in Vael II’s peach plain are no longer black holes: their walls are a lit red-brown, hatched with strokes running down them, as in its drawings.',
+    'Vael II’s sea of cloud is printed flat as in its drawings: a warm white in the light and one pale grey-blue in its shade, following the real sun through the day instead of being lit from the same side at every hour.',
+    'At dusk and at night Vael II’s shadows keep the soft grey-teal of its day, warmer at dusk and deeper at night, instead of turning the old violet-blue.',
+    'Looking across the City-Shaft is lighter on handhelds: its towers are drawn together, a few at a time, each with its own colours and bands exactly as before.',
+  ] },
   { v: '0.77', date: '2026-10-07', items: [
     'The traveller’s face moves now: he smiles, frowns, looks worried, surprised or tired with the tone of what is said, blinks, glances about with his eyes, and his mouth opens and shuts on the syllables when he speaks, as everyone else’s does. At rest he looks as he always did, with the corners of his mouth a little up.',
     'The fluid tank is the glass jar of the traveller’s drawings now: a squat flask of green, living fluid on his upper back, its other colours turning through it in slow streams, the level falling a third with each charge you use, with a dark collar, brass fittings, a stoppered neck and leather straps over his shoulders. A gun mode tints the fluid its colour, and the Items panel shows the new flask.',

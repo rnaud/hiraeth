@@ -107,3 +107,21 @@ test('every root is solid as drawn: the bank roots, the whip roots and the splay
   assert.ok(n > 300, `root tops checked: ${n}`);
   assert.ok(off <= n * 0.01, `${off} of ${n} root tops with no collision under them (up to ${worst.toFixed(2)} m)`);
 });
+
+test('Lorn II builds its collision split by area (SAH): the same answers, the roots quicker to query', () => {
+  assert.equal(level.collision?.strategy, 'SAH');
+  const sah = new Physics(scene, level.ground, false, level.collision);
+  let s = 5, alike = 0;
+  const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 400; i++) {
+    const x = (rnd() - 0.5) * 120, z = -rnd() * 440, from = 40;
+    const a = physics.groundAt(x, from, z, 80), b = sah.groundAt(x, from, z, 80);
+    assert.ok(Math.abs(a - b) < 1e-4, `ground at ${x.toFixed(1)}, ${z.toFixed(1)}: ${a} and ${b}`);
+    // (a capsule's push takes the triangles one by one in the tree's order: deep in a tangle the two trees
+    // can push it out on different sides; out of reach of anything, or touching one surface, they agree)
+    const p = new THREE.Vector3(x, a, z), q = p.clone();
+    physics.pushCapsule(p, 0.4, 0.6, 2.0); sah.pushCapsule(q, 0.4, 0.6, 2.0);
+    if (p.distanceTo(q) < 0.02) alike++;
+  }
+  assert.ok(alike >= 380, `capsules pushed alike: ${alike} of 400`);
+});
