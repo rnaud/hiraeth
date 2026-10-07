@@ -21,6 +21,7 @@ export const PLANETS = {
   perdide:  { body: '#6f5c9c', shade: '#4a3c72', ink: '#9fe0d6', mark: 'lights' },
   perdide2: { body: '#9064ad', shade: '#64457f', ink: '#c497d8', mark: 'bands' },
   bazaar:   { body: '#e6875f', shade: '#b35d3f', ink: '#f2c54b', mark: 'lights' },
+  glassdunes: { body: '#8fdcae', shade: '#4f9c86', ink: '#e4f6b0', mark: 'dunes' },   // (a detour: glass dunes)
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };
 

@@ -55,6 +55,7 @@ import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
+import { SIDE } from './levels/names.js';
 import { createStory } from './story/index.js';
 import { knownWorlds, newlyKnown } from './story/route.js';
 import { revealNote } from './story/signature.js';
@@ -603,7 +604,7 @@ await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 await slice();
-ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
+ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, side: SIDE, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
   const a = ship.arrivalSpot();
   player.respawn(a.pos);

@@ -16,6 +16,7 @@ export const TITLES = {
   bazaar: 'The Signal Market',
   atelier: 'The Atelier',
   home: 'Home',
+  glassdunes: 'The Glass Dunes',
 };
 
 // the route, world by world (src/story/route.js). The wings come first (Vael's Aerie, the second world,
@@ -24,3 +25,6 @@ export const TITLES = {
 export const ORDER = ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'incal', 'garage', 'buried', 'spheres', 'bazaar'];
 // a world that follows another's story is only charted once that one is done (Vael II: the bird's promise)
 export const AFTER = { arzach2: 'arzach' };
+// worlds off the route (detours): charted on the galactic map beside it, no story to finish, never counted
+// toward the route, home or the ending (src/ship/starmap.js mapEntries)
+export const SIDE = ['glassdunes'];

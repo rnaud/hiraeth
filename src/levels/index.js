@@ -14,6 +14,7 @@ import { createSpheres, buildSpheres } from './spheres.js';
 import { createPerdide2, buildPerdide2 } from './perdide2.js';
 import { createHome, buildHome } from './home.js';
 import { createReferences, buildReferences } from './references.js';
+import { createGlassDunes, buildGlassDunes } from './glass-dunes.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -88,6 +89,13 @@ export const LEVELS = [
     title: TITLES.atelier, source: 'the last page',
     blurb: 'A blank page where every world you crossed is sketched in pencil. Someone is still drawing. Pale paper-like growths stir when you look at them.',
     moves: 'off the route: a page for the curious',
+  },
+  {
+    // a detour off the route (names.js SIDE): charted on the galactic map, no story to finish
+    id: 'glassdunes', create: createGlassDunes, build: buildGlassDunes, side: true,
+    title: TITLES.glassdunes, source: 'a desert that turned to glass',
+    blurb: 'Dunes of fused green glass, great shapes held inside them, and the glassworkers’ camps at their feet. Walk the sandy paths between the walls while the low sun comes through.',
+    moves: 'walk · climb',
   },
   {
     // a developer's world: the game's surfaces and giant faces side by side (in the worlds list, L, for testing; never on the route)

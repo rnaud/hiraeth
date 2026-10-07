@@ -7,6 +7,7 @@ import { SCRIPTS, scriptOf, lineChunks, writeChunk, chunkSvg, lineSvg, glyphSvg,
 import { LANGUAGES, languageOf, planLine, spokenMask } from '../src/story/voice.js';
 import { revealHtml, LAG, FADE } from '../src/story/dialogue.js';
 
+import { SIDE } from '../src/levels/names.js';
 const LINE = 'The water has not risen this year. Go down to the *giant’s heart*, child, and see what lies across the channel.';
 const svgs = (html) => html.match(/<svg class="tg"[^>]*>/g) ?? [];
 
@@ -16,7 +17,7 @@ test('every world has its own script, each a real inventory of 20 to 40 glyphs; 
   for (const id of ids) {
     if (LANGUAGES[id]?.native) { assert.equal(scriptOf(id), null, `${id}: no translation`); continue; }
     assert.ok(scriptOf(languageOf(id)), `${id} has a script`);
-    if (id !== 'lab' && id !== 'references') assert.ok(SCRIPTS[id], `${id} has a script of its own`);   // (the dev levels borrow the desert's)
+    if (id !== 'lab' && id !== 'references' && !SIDE.includes(id)) assert.ok(SCRIPTS[id], `${id} has a script of its own`);   // (the dev levels and the detours borrow the desert's)
   }
   for (const [id, L] of Object.entries(LANGUAGES)) if (!L.native) assert.ok(SCRIPTS[id], `${L.name} is written`);
   for (const S of Object.values(SCRIPTS)) {

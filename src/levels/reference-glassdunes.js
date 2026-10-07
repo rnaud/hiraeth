@@ -3,7 +3,7 @@ import { MODE_TERRAIN, makeMaterial } from '../materials.js';
 import { mulberry32 } from '../noise.js';
 import { gauss, n2, smoothstep, CLEAN_SKY } from './reference-kit.js';
 import { DUNE_HAZE } from '../desert-sites.js';
-import { glassRidge, glassArch, awningCamp, boulders, glassOptions, painted, SAND } from './glass-dunes-kit.js';
+import { glassRidge, glassArch, awningCamp, boulders, glassOptions, painted, withoutDrifts, SAND } from './glass-dunes-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes' reference sheets (references/The Glass Dunes/reference-1 … 4.jpeg, one plate each):
@@ -101,7 +101,7 @@ function dunesScene(kit, v, o) {
   const M = materials(kit), rng = mulberry32(o.seed ?? 1), H = (x, z) => kit.H(x, z);
   for (const [i, r] of (o.ridges ?? []).entries()) {
     const ridge = glassRidge({ H, seed: (o.seed ?? 1) * 7 + i, ...r });
-    kit.add(r.profile === 'flow' ? M.glassFlow : M.glass, ridge.geo, { shadow: r.shadow ?? true, solid: r.solid ?? true });
+    withoutDrifts(() => kit.add(r.profile === 'flow' ? M.glassFlow : M.glass, ridge.geo, { shadow: r.shadow ?? true, solid: r.solid ?? true }));
   }
   for (const a of o.arches ?? []) glassArch(kit, M, a);
   for (const c of o.camps ?? []) awningCamp(kit, M, rng, c);

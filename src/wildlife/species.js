@@ -897,6 +897,8 @@ export const WILDLIFE = {
     { ...ticketFinch, count: 7, anchors: () => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ p: new THREE.Vector3(0, 0, 70 - i * 40), r: [3, 14], w: 1 })) },
   ],
   atelier: [{ ...doodleMouse, count: 5 }],
+  // a detour (src/levels/glass-dunes.js): the desert's crabs and jerboas, come over the glass
+  glassdunes: [{ ...sandCrab, count: 6 }, { ...jerboa, count: 5 }],
 };
 
 /** every species definition by id */

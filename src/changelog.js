@@ -9,6 +9,10 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.84', date: '2026-10-07', items: [
+    'A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.',
+    'In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.',
+  ] },
   { v: '0.83', date: '2026-10-07', items: [
     { text: 'The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.', see: 'Open the title screen to see Hiraeth above the clouds. Existing Steam shortcuts receive the new name when the updater next runs with Steam closed.' },
     'Once four worlds are behind you, a faint signal pulses on the galactic map further along the route, and the ship’s console mentions it: a broadcast worth hearing before you go home. After the Signal Market the recording you put off waits at the console as soon as you step outside, a second one follows it, the later worlds’ recordings find their own lines again, and the stone at home remembers Ilen even if you learn of her after the end.',
@@ -22,7 +26,6 @@ export const CHANGELOG = [
     'Halfway down the City-Shaft, by the middle levels’ cab stop, Perrine keeps a tea stall now, and the old mirror beside it wants washing and turning back up the shaft, so a little of the Lodestar’s light reaches the bottom again. One of the city’s five relics waits on her awning.',
     'A few quiet places have something to say now: Vael’s fallen giant on the plain, a carved frieze over the Givers’ Hearth’s door, the little mask in the masked head’s chamber, and an old salvager’s slate by the crashed hull in the southern dunes, which Marrow will want to talk about.',
     'The City-Shaft’s terraces go all the way round the shaft now. Each level’s two or three stretches of terrace were all built in the same place, one on top of another, so much of every ring stood empty; now they follow each other round the pit, with their houses, stalls, railings, bridges and people, and the story’s places stay where they were.',
-    'In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.',
   ] },
   { v: '0.82', date: '2026-10-07', items: [
     'The camera follows closer: out in the open it hangs low behind the traveller, a little over his head and looking a little down the way he faces, so he stands bigger in the lower middle of the view with the world ahead filling the rest. Zooming with the mouse wheel or LB / L1 and the right stick still works from there; gliding and the jets stand it further back so you see ahead and below.',

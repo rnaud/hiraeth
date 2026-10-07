@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.84 — 2026-10-07
+
+- A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.
+- In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.
+
 ## v0.83 — 2026-10-07
 
 - The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.
@@ -16,7 +21,6 @@ The same release notes shown in the game (press **N** or open settings).
 - Halfway down the City-Shaft, by the middle levels’ cab stop, Perrine keeps a tea stall now, and the old mirror beside it wants washing and turning back up the shaft, so a little of the Lodestar’s light reaches the bottom again. One of the city’s five relics waits on her awning.
 - A few quiet places have something to say now: Vael’s fallen giant on the plain, a carved frieze over the Givers’ Hearth’s door, the little mask in the masked head’s chamber, and an old salvager’s slate by the crashed hull in the southern dunes, which Marrow will want to talk about.
 - The City-Shaft’s terraces go all the way round the shaft now. Each level’s two or three stretches of terrace were all built in the same place, one on top of another, so much of every ring stood empty; now they follow each other round the pit, with their houses, stalls, railings, bridges and people, and the story’s places stay where they were.
-- In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.
 
 ## v0.82 — 2026-10-07
 

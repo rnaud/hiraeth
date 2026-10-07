@@ -35,6 +35,7 @@ test('every visible world has two or three species of its own, each with a diffe
     assert.ok(total >= 8 && total <= 20, `${meta.id} has ${total} creatures`);
     for (const d of defs) {
       assert.ok(d.trick?.pose && d.trick.dur > 0, `${d.id} has a surprise`);
+      if (meta.side) continue;   // (a detour off the route borrows a route world's creatures: names.js SIDE)
       assert.ok(!tricks.has(d.trick.name), `${d.id} repeats the surprise of ${tricks.get(d.trick.name)}`);
       tricks.set(d.trick.name, `${meta.id}/${d.id}`);
     }

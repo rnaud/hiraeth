@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createNoise2D, mulberry32, smoothstep } from '../noise.js';
+import { SandDrifts } from '../sand-drifts.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes' kit (references/The Glass Dunes/, docs/systems/worlds.md "The Glass Dunes"): the
@@ -143,7 +144,7 @@ export function glassRidge(o) {
       // the lobes' creases a touch deeper, their bellies a touch lighter (the frozen waves' streaks)
       _a.multiplyScalar((0.92 + 0.08 * b + 0.06 * bf) * toneAt(j));
       // what the glass holds: dark soft masses
-      const inside = sil.length ? silhouetteAt(sil, u, y0, o.soft ?? Math.max(1.5, height * 0.035)) : 0;
+      const inside = sil.length ? silhouetteAt(sil, u, y0, o.soft ?? Math.max(1.0, height * 0.025)) : 0;
       if (inside > 0) _a.multiply(_c.setRGB(1 - (1 - col.inside[0]) * inside, 1 - (1 - col.inside[1]) * inside, 1 - (1 - col.inside[2]) * inside));
       colr[k] = _a.r; colr[k + 1] = _a.g; colr[k + 2] = _a.b;
     }
@@ -171,6 +172,16 @@ export function glassRidge(o) {
     return { x: f.x + f.nx * s, z: f.z + f.nz * s, y: f.g, nx: f.nx, nz: f.nz, h: f.h, d: f.d, yaw: Math.atan2(-f.nx, -f.nz) };
   };
   return { geo, length: L, heightAt, at, frames };
+}
+
+/**
+ * Build without feeding the sand drifts (sand-drifts.js): a ridge's footprint is one convex hull, and a
+ * long curved ridge's would bank sand over the whole valley it bends round. (Its own ramps are the ground's.)
+ */
+export function withoutDrifts(fn) {
+  const open = SandDrifts.current;
+  SandDrifts.current = null;
+  try { return fn(); } finally { SandDrifts.current = open; }
 }
 
 /** A geometry painted one colour (for the glass's vertex-coloured material). */
@@ -250,7 +261,8 @@ export function awningCamp(kit, M, rng, { x, z, yaw = 0, w = 16, d = 6, n = 4, h
     kit.add(M.kiln, new THREE.SphereGeometry(1.5, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 1.1, 1).translate(X, Y - 0.1, Z));
     kit.add(M.kiln, new THREE.CylinderGeometry(0.25, 0.35, 2.2, 8).translate(X + 0.5, Y + 2.1, Z - 0.3));
     const [mx, mz] = W(w / 2 + 2.5, 1.45);
-    kit.add(M.float, put2(new THREE.CircleGeometry(0.45, 12), mx, Y + 0.45, mz, yaw), { solid: false, shadow: false }); }
+    kit.add(M.float, put2(new THREE.CircleGeometry(0.45, 12), mx, Y + 0.45, mz, yaw), { solid: false, shadow: false });
+    kit.light?.(mx, Y + 0.8, mz, 7); }
   return spots;
 }
 const put2 = (g, x, y, z, yaw) => g.rotateY(yaw).translate(x, y, z);

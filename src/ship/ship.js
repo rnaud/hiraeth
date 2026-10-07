@@ -322,7 +322,7 @@ export class Ship {
     // the recordings' hologram: the game's own people, drawn in light (needs the bodies and the mocap library)
     if (deps.lib && deps.humans && !this.holo) this.holo = new Hologram({ lib: deps.lib, humans: deps.humans });
     this.map = new StarMap({
-      order: deps.order, levels: deps.levels, journal: deps.journal, current: this.levelId,
+      order: deps.order, side: deps.side ?? [], levels: deps.levels, journal: deps.journal, current: this.levelId,
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
       home: () => homeOpen({ flag: (k) => game.flag(k), completed: this.completed() }) || this.levelId === HOME_ID,   // src/story/ending.js
       relay: () => this.relay(),

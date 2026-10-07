@@ -443,6 +443,8 @@ the narrowest creases.
   (`uShadowFlat` 0.85) in a teal-green shadow tint, so the glass's turned faces and the sand in its shade read as
   one luminous teal, as the plates print the light come through the glass. The glass draws a hairline in its own
   green (`line` 0.25, `lineTint` 1), never a spot black, a little self-light.
+- **On the world**: the Glass Dunes (`?level=glassdunes`, worlds.md "The Glass Dunes") are built from the same kit:
+  the giants' cliffs, the billows, a frozen wave and the breaking wave round a valley of sand, the two camps.
 - **Off-frame casters**: plate 1's foreground shadow and plate 3's streaks of low sun across the sand are cast by
   glass mounds just outside the frame (the plates' light comes through dunes we don't see).
 - **Left**: the glass is opaque and lit as a surface; the plates' glow from within (light pooling lime at a wall's
