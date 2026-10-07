@@ -1,0 +1,31 @@
+changelog.md
+  s_55b4bc53b812ec::t_bf9a5e326ca9ba 27
+desktop/main.mjs
+  s_55b4bc53b812ec::t_34d3eefe6388d2 31-44,90-102
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_d1f5e10b511a2f 33-59,117
+scripts/steam-deck/deck.py
+  s_55b4bc53b812ec::t_78f7ba44b5ce5c 25,413-428,431-434,531-651,664-672,674-689
+src/changelog.js
+  s_55b4bc53b812ec::t_df240b5dcd0608 31
+tests/android-ota.test.js
+  s_55b4bc53b812ec::t_18f6d4ba029bd6 202-217
+tests/test_steam_deck.py
+  s_55b4bc53b812ec::t_f707abe5ccf083 6,9-10,13-14,321,326-327,329,352-461
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3e4cf3af874e6d5a5fb5e641a5073f785eed5f6f",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
