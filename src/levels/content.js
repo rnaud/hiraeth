@@ -199,7 +199,7 @@ export const CONTENT = {
       // (Tam, who copies you: a boy of seven, src/story/arzach-data.js LOCALS)
       { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true, kind: 'm', age: 'child', years: 7, scale: 0.72 },
       { at: [-60, -40], palette: pal('#d8c7a6'), lines: ["~solemn~ The wind climbs the tower. Wings climb with it.", "~sad~ Her rider left. She keeps to the sky now."] },
-      { at: [120, -100], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say."] },
+      { at: [-130, -183], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say.", "~tired~ Small to tall. Always.", "~solemn~ (He taps his knuckles, little finger first, and listens.)"] },
     ],
   },
   garage: {
@@ -238,9 +238,9 @@ export const ERRANDS = [
     // Vael is quiet by choice: Senn answers the way Vael says anything, with her hands and a word
     thanks: "~happy~ (Senn holds the jar to her ear. The sand hums. She hums back, very softly.) *It sings.*" },
   { id: 'feather', item: 'a feather from the bird', from: ['arzach', 2], to: ['arzach2', 0],
-    ask: "~solemn~ (Hollin gives you a grey feather, then points past the tower, to the stones in the sky.) *The sky stones.*",
+    ask: "~solemn~ (Hollin gives you a long white feather, then points past the tower, to the stones in the sky.) *The sky stones.*",
     wait: "~neutral~ (Hollin points to the sky again: the feather goes on, to the sky stones.)",
-    thanks: "~happy~ One of her feathers, from Vael? Then she still flies. I’ll tie it to the whistle post, so she knows the way here." },
+    thanks: "~surprised~ A feather from Vael, off your bird? I’ll tie it over my door. If she ever comes up here without you, she’ll know which plateau is friendly." },
   { id: 'crystal', item: 'a humming crystal', from: ['perdide', 2], to: ['perdide2', 2],
     ask: "~neutral~ Going on into the deep wood? Take this crystal to *Bram, who keeps the skiff in Lorn II*. It hums before storms. Out on the water, he’ll want the warning.",
     wait: "~neutral~ *Bram, by the skiff in the shallows, in Lorn II.*",

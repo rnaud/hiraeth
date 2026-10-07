@@ -4,7 +4,7 @@
 
 export const QUEST = {
   id: 'temple.arzach2', title: 'The Founders’ Belfry', world: 'arzach2',
-  outro: 'The Cloud-Mother is calm, and the stones that fell up have come down.',
+  outro: 'The Cloud-Mother is calm, and the stones round the belfry have come down.',
   find: 'A tower rises out of the cloud beside the plateau where you landed: cross the bridge from the west rim',
   gadget: 'Find what the founders left inside their belfry',
   keeper: 'Something huge cries at the top of the belfry. Go up to it',
@@ -26,7 +26,7 @@ export const PEOPLE = {
         hello: {
           say: ["~whisper~ I keep this bridge. Very few crossings. Aube may already have complained about your arrival. Don’t worry; it’s how she welcomes things.",
             "~solemn~ Across it is *the founders’ belfry*, older than the monastery. Its room bells helped keep loose stones down.",
-            "~sad~ The bells stopped and the stones rose. Now something cries upstairs every evening. I hear it from the bridge."],
+            "~sad~ The bells stopped and loose stones rose round the belfry. Now something cries upstairs every evening. I hear it from the bridge."],
           do: { set: { 'met.ysel': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' },
@@ -64,7 +64,7 @@ export const PEOPLE = {
             { text: '~happy~ Keep the bridge, Ysel.', end: true },
           ],
         },
-        note: { say: ["~solemn~ A familiar sound helped her find her way. I understand that. I’ve missed the bells too.", '~happy~ Now somebody has.'], choices: [{ text: '~neutral~ Goodbye, Ysel.', end: true }] },
+        note: { say: ["~solemn~ A familiar sound helped her find her way. I understand that. I’ve missed the bells too.", '~happy~ Now somebody has rung one.'], choices: [{ text: '~neutral~ Goodbye, Ysel.', end: true }] },
       },
     },
   },

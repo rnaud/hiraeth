@@ -15,6 +15,8 @@ export const CHANGELOG = [
     'Qanat and its camps say a little more, and nothing that goes stale once the chest is open: Oum, Marrow, Rook, Tamsin, the sketcher and the townspeople have new lines, Pell wants to hear about the sleeping mask, and the Speaker has heard Ilo’s report of a monster.',
     'Landing in Vael with the wings already yours, the drone finds Oïa first instead of the Aerie.',
     'Notes that still pointed to the old sketchbook name the game menu now: a hidden box’s note sends you to the Quests page, and a delivered parcel names View (or J) for the Sketchbook.',
+    'In Vael, Hollin now waits beside his stone hand, where Oïa’s people say he is, and has a little more to say; the hand’s quest says the order and the buttons, and the shed feathers wait at the tower’s balcony until the bird has answered her call.',
+    'In Vael II, Mother Ysolde answers her sister’s lamp the old way and lays a place at supper once the bell has rung; Sister Aube, Brother Calix and Ondine say more in passing, Hollin’s feather gets a thanks that fits, and the belfry’s guardian brings down only the stones round her tower, as you can see.',
   ] },
   { v: '0.79', date: '2026-10-07', items: [
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',

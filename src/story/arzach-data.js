@@ -57,14 +57,14 @@ export const QUESTS = [
     outro: 'Three bright feathers flash in her wing.',
     stages: [
       { id: 'find', text: 'Find the three feathers the bird shed: two on the spires’ caps, one held by the stone hand', label: 'A shed feather', at: 'feather', when: (q) => (q.game.flag('item.feather') ?? 0) >= 3 || q.game.flag('arzach.feathers.given') },
-      { id: 'give', text: 'Bring the three feathers back to the bird', label: 'The bird', flag: 'arzach.feathers.given', at: 'bird' },
+      { id: 'give', text: 'Bring the three feathers back to the bird, once she has answered the rider’s call', label: 'The bird', flag: 'arzach.feathers.given', at: 'bird' },
     ],
   },
   {
     id: 'arzach.hand', title: 'The Stone Hand', world: 'arzach',
     outro: 'The hand rang, and gave.',
     stages: [
-      { id: 'ring', text: 'Ring the stone hand’s knuckles in the right order: shoot them (G, or left click while aiming)', label: 'The stone hand', flag: 'arzach.hand.rung', at: 'hand' },
+      { id: 'ring', text: 'Ring the stone hand’s knuckles smallest to tallest: aim (LT / L2) and shoot each one (RT / R2). Hollin, by the hand, shows the order', label: 'The stone hand', flag: 'arzach.hand.rung', at: 'hand' },
     ],
   },
 ];
@@ -104,7 +104,7 @@ export const PEOPLE = {
           choices: [{ text: '~sad~ And the bird is still waiting.', goto: 'track' }],
         },
         track: {
-          say: ["~solemn~ (She nods. In the sand she draws three dots over an arc.) {glyph}", "~neutral~ (She taps three toes and a curved heel, and looks up at the sky.) Her track.", "~whisper~ (Below it she draws a chest with *a star on its lid*. She points *north, to the needle spire*: look for the chest up there.)"],
+          say: ["~solemn~ (She nods. In the sand she draws three dots over an arc.) {glyph}", "~neutral~ (She taps three toes and a curved heel, and looks up at the sky.) Her track.", "~whisper~ (Below it she draws a chest with *a star on top*. She points *north, to the needle spire*: look for the chest up there.)"],
           do: { set: { 'arzach.glyph.drawn': true } },
           choices: [
             { text: '~surprised~ I’ve seen that mark before. On my ship.', goto: 'mark' },
@@ -146,7 +146,7 @@ export const LOCALS = [
       { if: { not: { quest: 'arzach.hand', done: true } }, say: ['~scared~ (You glance at the tower. He shakes his head hard and hugs himself: too high, too cold.)', '~playful~ (Then he points at the stone hand out on the plain and taps his own knuckles, the smallest first, up to the tallest, and grins.)'] },
       "~playful~ (He opens his mouth wide. An impressive amount of nothing comes out.)",
       '~angry~ (He turns his back on you, folds his arms and becomes a spire. The spire would like you to go away.)',
-      { if: { not: { flag: 'box.arzach.hush' } }, say: '~curious~ (He draws a square in the sand with a star on its lid, points north at the needle spire, and mimes climbing it. He falls off on purpose.)' },
+      { if: { not: { flag: 'box.arzach.hush' } }, say: '~curious~ (He draws a square in the sand with a star on top, points north at the needle spire, and mimes climbing it. He falls off on purpose.)' },
       { after: { flag: 'world.arzach.done' }, say: '~happy~ (He flaps his arms, points at the sky, then at you, and bows so low his hair sweeps the sand.)' },
       { after: { flag: 'temple.arzach.done' }, say: '~surprised~ (He points west, at the white house with the stone wings, then up, where the great birds wheel again, and spins until he sits down.)' },
     ] },
@@ -160,7 +160,7 @@ export const LOCALS = [
           say: ['~whisper~ Shh.', "~whisper~ (Her ear rests against a standing stone. One raised finger asks you to wait.)", "~whisper~ Listen. The stones have hummed since the light passed."],
           choices: [
             { text: '~curious~ What light?', goto: 'light' },
-            { text: '~curious~ The bird knows the way?', goto: 'bird' },
+            { text: '~curious~ The bird over the haze?', goto: 'bird' },
           ],
         },
         light: {
@@ -201,7 +201,7 @@ export const LOCALS = [
           do: { start: 'arzach.hand' },
           choices: [{ text: '~curious~ With the fluid?', goto: 'fluid' }, { text: '~curious~ What happens when it rings?', goto: 'gives' }],
         },
-        fluid: { say: ["~playful~ (He points at *your tank*, then the knuckles. Three teeth appear in a very confident grin.)"], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
+        fluid: { say: ["~playful~ (He points at *the flask on your back*, then the knuckles. Three teeth appear in a very confident grin.)"], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
         gives: { say: ["~solemn~ (He closes his fist around nothing, then opens it as though offering a gift.)", '~solemn~ Gives.'], choices: [{ text: '~neutral~ I’ll try.', end: true }] },
         again: {
           say: ["~tired~ (Hollin repeats the order: *little, first, ring, middle*. He waits for you to copy him.)", '~neutral~ Small to tall.'],
