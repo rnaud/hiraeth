@@ -1,0 +1,51 @@
+TODO.md
+  s_55b4bc53b812ec::t_8a6157baa73542 105,108-113,121-127
+changelog.md
+  s_55b4bc53b812ec::t_b1949223514035 21-28
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_1fba48f9538003 27-29
+docs/systems/references.md
+  s_55b4bc53b812ec::t_3faf8e6ff2fc72 205-242,258-282,284-286
+src/changelog.js
+  s_55b4bc53b812ec::t_0bd0f8734d7244 25-32
+src/levels/garden-kit.js
+  s_55b4bc53b812ec::t_633ed82cb12b5d 1-191
+src/levels/perdide2.js
+  s_55b4bc53b812ec::t_04a17c20a86ee1 11,32-35,279-280,300,329,486-487,494,496,528-531,649-656,661-681,774-775
+src/levels/reference-lorn.js
+  s_55b4bc53b812ec::t_fd9c1407d8b4e1 7,9,45-47,57-58,126-127,130,141-149,174,239,265,268-275,287-288,296,301,314,383,449,464,535,561
+src/levels/reference-spheres.js
+  s_55b4bc53b812ec::t_49de17a0c667b6 7-8,35-38,49-56,62,65,67,133-134,136-137,141-145,158-159,162-164,167,171-172,179-183,198-201,204,206,208-215,219,221,238-257,262,271-275,284,328,345,356-357,361-364,414,430,432-433,445,456,460,462-463,482,513,531,545-547,557-558,562,565-566,582-585,632,665-667,681
+src/levels/spheres.js
+  s_55b4bc53b812ec::t_25c35863ab7e5b 11,81-83,157,187-193,201-202,244-263,375,507-535,639-644,678,686-690,716-717,724-730,833-834,840-841,852,854-855
+src/levels/wood-kit.js
+  s_55b4bc53b812ec::t_c582d175b8cbe3 1-132
+src/materials.js
+  s_55b4bc53b812ec::t_4edc65587b9829 371-373,381-384,997-1019,2045,2320-2326,2330-2331,2334-2335,2339,2343,2347-2348,2380,2386-2387
+tests/form-hatch.test.js
+  s_55b4bc53b812ec::t_1e3a545208148a 19
+tests/garden-kit.test.js
+  s_55b4bc53b812ec::t_bf59c63c048e6f 1-82
+tests/perdide2.test.js
+  s_55b4bc53b812ec::t_d3babf44fd4720 82-84
+tests/spheres.test.js
+  s_55b4bc53b812ec::t_4701cd7d281df7 98-100
+tests/wood-kit.test.js
+  s_55b4bc53b812ec::t_23abd92407a8c2 1-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8d6ffba53190a36059f2149b02a9339083ad63f6",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
