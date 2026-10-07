@@ -626,6 +626,43 @@ the narrowest creases.
   view 3's canyon is a street, not the plate's dark water with walkways over it; the domes' glass draws only its
   rim (S_GLASS), where the plates draw reflections across it; the columns' swimmers are not there.
 
+## The Fallen Ring's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-fallenring.js`, world `fallenring`: `?level=references&world=fallenring&view=<1…4>`):
+  four single compositions (1456 × 816), one view each: the long tube in the grass with its village, the arch's leg
+  rising behind it, the tilted segment on its crushed vermilion foot (1); the tubes broken open end-on over the vault
+  and its village, the great arch overhead and a far one on the horizon (2); the arch swooping over to its broken
+  vermilion end, the slanted segment over the village (3); the low segment lying round the village on its posts, the
+  great arch rising out of it and down behind (4). One scene builder (`ringScene`): segments of the ring, villages
+  along their feet, service stairs, trees from the hull, the grazing beasts, the cumulus, the path, grass tufts and
+  the traveller. `?look=fallenring`.
+- **Placed off the sheets' pixels**, as the Forest of Antennas' views (`sheetAt`, `sheetGround`, `sheetSpan`, copied
+  in the module): a segment is given by three points of its centre line seen at three pixels and distances
+  (`arcThrough(A, M, B)`: the circle through them and its frame), run on past its ends (`ext`) into the ground. A ring
+  lying down (`lie`) has its frame turned so its section's z is up; it then runs from B to A, and `segment` mirrors
+  what was given from A (its ends, bands, openings, trees).
+- **The shapes** (`src/levels/fallen-ring-kit.js`, shared with the world): `ringSegment` (a superellipse section swept
+  along an arc: the skin by rows and columns, its outward faces by winding; painted `bands`; `open` regions where the
+  skin is cut away on the inside wall, the wall's thickness round the cut and ribs across it; broken `ends` ragged
+  column by column, the inside shown `deep` m in and closed by a bulkhead; collars between its segments (`joints`);
+  inside, floors across the section (`'r'`, the habitat's, concentric; `'z'`, level, for a tube lying down) or decks
+  across the tube (`mode: 'x'`, an upright leg's storeys), houses and gardens on them; `at(t, s, off)` a point of the
+  skin and its normal), `arcThrough`, `ringPose`, `tree` (an umbrella tree, its trunk forking under a layered
+  crown), `village` (a row of cabins against a wall: lit windows, upper storeys, railed roofs, awnings, stalls,
+  lanterns, crates), `serviceStair` (the antennas' truss stair), `grazer` (a woolly beast, head down), `puff` and
+  `cloudBank` (the great cumulus: welded lumpy puffs in clusters with towers on top). The skin wraps its hatching
+  round the tube (`aFormC` / `aFormA` per vertex: the centre line's point and tangent, kind wrap).
+- **The look** (`RING_LOOK`, `RING_DAY`, `RING_TONES`): a teal-blue sky, a blue-green shade (the pictures' ivory in
+  shade is a grey-teal), little hatching, the cumulus as geometry (no horizon bank, no flat clouds), a light haze in
+  bands from 220 m and a thin fog, the aerial perspective's greying cut to 0.35 (with the Moebius print's, the cumulus
+  at 500–700 m came out grey; now white with a pale blue shade).
+- **The scale**: the pictures' tubes 20–45 m round 50–200 m off, the arches' legs 50–75 m thick, their circles 250–900
+  m round; the beasts 20–40 m off.
+- **Left**: the pictures' interiors are dense little cities (terraces, hanging gardens, lit windows by the hundred);
+  ours are a few decks of houses and gardens behind ribs. Their hulls carry fine panel work and stains; ours the
+  built pen detail and collars. Their beasts are woolly; ours plain lumps. The tilted segment of view 1 bends at its
+  crushed foot; ours is one arc.
+
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 
 The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had

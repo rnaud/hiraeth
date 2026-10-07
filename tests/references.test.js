@@ -64,9 +64,12 @@ test('IMG_3775 has six views, each with a camera framed like its panel', async (
     const p = v.eye.clone().addScaledVector(fwd, 1000).project(cam);
     assert.ok(Math.abs((1 - p.y) / 2 - d.camera.horizon) < 1e-3, `${d.id}: horizon at ${d.camera.horizon}`);
   }
-  const all = worlds.flatMap(({ level }) => level.views);
-  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++)
-    assert.ok(all[i].centre.distanceTo(all[j].centre) > 3000, 'views far apart: only one is drawn');
+  // (one world is built at a time: past 196 views the grid's cells go round again, so only a world's own views must stand apart)
+  for (const { level } of worlds) {
+    const all = level.views;
+    for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++)
+      assert.ok(all[i].centre.distanceTo(all[j].centre) > 3000, 'views far apart: only one is drawn');
+  }
 });
 
 test('each view\'s sun comes from the side its panel is lit from', async () => {
