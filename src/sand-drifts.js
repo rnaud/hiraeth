@@ -41,6 +41,9 @@ export const DRIFT = {
   chunk: 160,         // m: the skirts are drawn in meshes this square (culled by the view)
   lift: 0.02,         // m over the ground (with a polygon offset: the skirt wins where it meets it)
   maxSlope: 0.6,      // the steepest its normals lean (the terrain draws rock past ~0.42 of slope)
+  split: 12,          // m: a part's hull this far round is checked for spanning open ground (footPieces)
+  gap: 3,             // m: an outline this far from every edge of the foot spans open ground
+  overlap: 1.5,       // m: the halves of a cut part overlap by this, so the pieces leave no seam open
 };
 
 /** The prevailing wind over the sand (the way it blows): the ripples' own direction (ground-ink.js). */
@@ -86,21 +89,85 @@ export function footprintsOf(geo, heightAt, o = DRIFT) {
     }
   }
   if (!any) return [];
-  const tri = (a, b, c) => { const f = [a, b, c].filter((i) => foot[i]); for (let k = 1; k < f.length; k++) join(f[0], f[k]); };
+  // (and the foot's own edges, where a triangle joins two foot vertices: what the hull is checked against)
+  const segs = [];
+  const tri = (a, b, c) => {
+    const f = [a, b, c].filter((i) => foot[i]);
+    for (let k = 1; k < f.length; k++) join(f[0], f[k]);
+    for (let k = 0; k < f.length; k++) for (let j = k + 1; j < f.length; j++) segs.push(f[k], f[j]);
+  };
   if (idx) for (let t = 0; t < idx.count; t += 3) tri(idx.getX(t), idx.getX(t + 1), idx.getX(t + 2));
   else for (let t = 0; t + 2 < n; t += 3) tri(t, t + 1, t + 2);
   const parts = new Map();
-  for (let i = 0; i < n; i++) if (foot[i]) { const r = find(i); if (!parts.has(r)) parts.set(r, []); parts.get(r).push([p.getX(i), p.getZ(i)]); }
+  for (let i = 0; i < n; i++) if (foot[i]) { const r = find(i); if (!parts.has(r)) parts.set(r, []); parts.get(r).push(i); }
+  const partSegs = new Map();
+  for (let k = 0; k < segs.length; k += 2) { const r = find(segs[k]); if (!partSegs.has(r)) partSegs.set(r, []); partSegs.get(r).push(segs[k], segs[k + 1]); }
   const out = [];
-  for (const pts of parts.values()) {
-    const poly = hull2(pts);
-    if (poly.length < 3 || area2(poly) < o.minArea) continue;
-    // its height over the ground at its middle: what barely rises gets none
-    const cx = poly.reduce((s, q) => s + q[0], 0) / poly.length, cz = poly.reduce((s, q) => s + q[1], 0) / poly.length;
-    if (maxY - heightAt(cx, cz) < o.minHeight) continue;
-    out.push(poly);
+  for (const [r, vs] of parts) {
+    // (one hull for the part, or, where that hull spans open ground, a long curved wall's foot, pieces)
+    const pieces = footPieces(vs, partSegs.get(r) ?? [], p, o);
+    const part = pieces.length > 1 ? {} : null;
+    for (const poly of pieces) {
+      if (poly.length < 3 || area2(poly) < o.minArea) continue;
+      // its height over the ground at its middle: what barely rises gets none
+      const cx = poly.reduce((s, q) => s + q[0], 0) / poly.length, cz = poly.reduce((s, q) => s + q[1], 0) / poly.length;
+      if (maxY - heightAt(cx, cz) < o.minHeight) continue;
+      if (part) poly.part = part;
+      out.push(poly);
+    }
   }
   return out;
+}
+
+/**
+ * A part's footprint: its convex hull, unless the hull spans open ground (somewhere along its outline nothing
+ * of the foot lies within DRIFT.gap: a long curved wall's foot, whose hull reached right across the canyon
+ * it stands in, and banked sand along its chords across the floor). Then the part is cut in two across its
+ * long axis, the halves overlapping by DRIFT.overlap, and each half the same way, down to pieces whose hull
+ * follows the foot. The pieces of one part are siblings (`part`): inside one, the others bank no sand.
+ */
+function footPieces(vs, segs, P, o, depth = 0) {
+  const pts = vs.map((i) => [P.getX(i), P.getZ(i)]);
+  const poly = hull2(pts);
+  if (poly.length < 3 || depth > 10) return [poly];
+  let cx = 0, cz = 0;
+  for (const [x, z] of pts) { cx += x; cz += z; }
+  cx /= pts.length; cz /= pts.length;
+  let R = 0;
+  for (const [x, z] of poly) R = Math.max(R, Math.hypot(x - cx, z - cz));
+  if (R < o.split || !spansOpen(poly, segs, P, o.gap)) return [poly];
+  // the long axis (the covariance's first eigenvector), cut at the middle
+  let sxx = 0, sxz = 0, szz = 0;
+  for (const [x, z] of pts) { const dx = x - cx, dz = z - cz; sxx += dx * dx; sxz += dx * dz; szz += dz * dz; }
+  const a = 0.5 * Math.atan2(2 * sxz, sxx - szz), ax = Math.cos(a), az = Math.sin(a);
+  const t = (i) => (P.getX(i) - cx) * ax + (P.getZ(i) - cz) * az;
+  const ts = vs.map(t).sort((u, v) => u - v), mid = ts[ts.length >> 1];
+  const lo = vs.filter((i) => t(i) <= mid + o.overlap), hi = vs.filter((i) => t(i) >= mid - o.overlap);
+  if (lo.length === vs.length || hi.length === vs.length || lo.length < 3 || hi.length < 3) return [poly];
+  const inLo = new Set(lo), inHi = new Set(hi);
+  const sub = (keep) => { const out = []; for (let k = 0; k < segs.length; k += 2) if (keep.has(segs[k]) && keep.has(segs[k + 1])) out.push(segs[k], segs[k + 1]); return out; };
+  return [...footPieces(lo, sub(inLo), P, o, depth + 1), ...footPieces(hi, sub(inHi), P, o, depth + 1)];
+}
+
+/** Does a hull's outline pass more than `gap` from every edge of the foot it was made from? */
+function spansOpen(poly, segs, P, gap) {
+  const g2 = gap * gap;
+  for (let e = 0; e < poly.length; e++) {
+    const a = poly[e], b = poly[(e + 1) % poly.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (L < gap * 2) continue;
+    for (let f = 1; f < 4; f++) {
+      const x = a[0] + (b[0] - a[0]) * f / 4, z = a[1] + (b[1] - a[1]) * f / 4;
+      let near = false;
+      for (let k = 0; k < segs.length && !near; k += 2) {
+        const px = P.getX(segs[k]), pz = P.getZ(segs[k]), qx = P.getX(segs[k + 1]) - px, qz = P.getZ(segs[k + 1]) - pz;
+        const q2 = qx * qx + qz * qz, u = q2 > 1e-9 ? Math.min(Math.max(((x - px) * qx + (z - pz) * qz) / q2, 0), 1) : 0;
+        const dx = x - px - qx * u, dz = z - pz - qz * u;
+        near = dx * dx + dz * dz < g2;
+      }
+      if (!near) return true;
+    }
+  }
+  return false;
 }
 
 /** Distance from (x, z) to a convex ccw polygon (negative inside) and the outward normal there. */
@@ -177,7 +244,25 @@ export class SandDrifts {
 
   /** A solid in world space (the Kits call this for every collider they add). */
   addGeometry(geo, extra = {}) {
-    for (const poly of footprintsOf(geo, this.ground, this.o)) this.addFootprint(poly, extra);
+    const parts = new Map();
+    for (const poly of footprintsOf(geo, this.ground, this.o)) {
+      const n = this.sources.length;
+      this.addFootprint(poly, extra);
+      if (poly.part && this.sources.length > n) { const s = this.sources[n]; if (!parts.has(poly.part)) parts.set(poly.part, []); parts.get(poly.part).push(s); }
+    }
+    // a cut part's pieces: siblings (inside one, the others give no drift) and no bigger drift at a seam's corners
+    for (const list of parts.values()) {
+      if (list.length < 2) continue;
+      for (const s of list) {
+        s.siblings = list.filter((q) => q !== s);
+        const inSib = (x, z) => s.siblings.some((q) => edgeDistance(q.edges, x, z).d < -0.05);
+        s.corners = s.corners.filter(([x, z]) => !s.siblings.some((q) => edgeDistance(q.edges, x, z).d < 0.05));
+        // its faces: the edges that are the solid's (a seam's edge runs inside the next piece)
+        const e = s.edges, keep = [];
+        for (let k = 0; k < e.length; k += 7) if (!inSib(e[k] + e[k + 2] / 2, e[k + 1] + e[k + 3] / 2)) for (let j = 0; j < 7; j++) keep.push(e[k + j]);
+        s.faceEdges = Float64Array.from(keep);
+      }
+    }
     return this;
   }
   /**
@@ -311,8 +396,23 @@ export class SandDrifts {
     // (outside the footprint by more than any of its drifts reaches: nothing, without the noise; the same field)
     const b = s.box;
     if (x < b[0] || x > b[1] || z < b[2] || z > b[3]) return 0;
-    const { d, nx, nz } = edgeDistance(s.edges, x, z);
+    let { d, nx, nz } = edgeDistance(s.edges, x, z);
     if (d >= s.most) return 0;
+    // a piece of a cut part (footPieces): outside it but inside a sibling is inside the solid; inside it,
+    // the band under the wall runs along its faces only, not along a seam with the next piece
+    if (s.siblings) {
+      if (d > 0) {
+        for (const q of s.siblings) {
+          const qb = q.box;
+          if (x >= qb[0] && x <= qb[1] && z >= qb[2] && z <= qb[3] && edgeDistance(q.edges, x, z).d < 0) return 0;
+        }
+      } else {
+        if (!s.faceEdges.length) return 0;
+        const f = edgeDistance(s.faceEdges, x, z);
+        const sg = f.d < 0 ? 1 : -1; d = -Math.abs(f.d); nx = sg * f.nx; nz = sg * f.nz;   // (the subset is open: its distance is all that is used, the normal toward the face)
+        if (d <= -2 * this.o.inside) return 0;
+      }
+    }
     let rise = this.riseAt(nx, nz, x, z, s.k);
     // a corner's bigger drift: the nearest such corner's boost (never compounded)
     let boost = 1;

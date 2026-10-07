@@ -113,7 +113,8 @@ test('a riding disc’s rise is not a step: the drawn body rides it without lagg
 //  - buried, desert, arzach: sand banked up a wall's foot is drawn in front of the wall a climb starts on;
 //    the canyon walls' footprints (one convex hull each, sand-drifts.js) cover the canyon floor;
 //  - home, bazaar: a lining drawn 0.06 m inside its shell, a market sign through an awning;
-//  - spheres: the meadow's walk-through flora tops (walks through);
+//  - spheres: the meadow's walk-through flora tops (walks through); the olives' crowns, leaves drawn round a
+//    20-faced blob standing in for them (feet sink, climbs inside: up to a metre of leaves over it);
 //  - temples everywhere: a shut door's edge, the oculus trim's 0.3 m lip over the opening (drawn-only on
 //    purpose: the oculus stays as open to the collision as its ceiling's hole), the balls (round);
 //  - taxis and the guardians' balls: a car's roof and a ball are a disc only in the middle (carrier counts).
@@ -121,7 +122,7 @@ const KNOWN = {
   desert: { sink: 8, hover: 3, inside: 15, walk: 30 }, incal: { sink: 0, hover: 0, inside: 2, walk: 0 },
   arzach: { sink: 5, hover: 0, inside: 5, walk: 34 }, arzach2: { sink: 3, hover: 1, inside: 4, walk: 2 },
   garage: { sink: 0, hover: 0, inside: 13, walk: 1 }, buried: { sink: 23, hover: 1, inside: 24, walk: 4 },
-  edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 4, hover: 0, inside: 14, walk: 172 },
+  edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },
   perdide: { sink: 3, hover: 0, inside: 4, walk: 7 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
   bazaar: { sink: 4, hover: 0, inside: 2, walk: 2 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },
   home: { sink: 0, hover: 0, inside: 3, walk: 13 },

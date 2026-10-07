@@ -126,3 +126,30 @@ test('the olives’ trunks and the cypresses collide as they are drawn, not as p
     assert.ok(worst < 0.05, `${name}: the collision parts from the drawn bark or foliage by up to ${worst.toFixed(2)} m`);
   }
 });
+
+test('climbing an olive’s trunk you stop under its crown or climb its leaves, never come out inside it', async () => {
+  const { Player } = await import('../src/player.js');
+  const trunks = scene.children.find((o) => o.isInstancedMesh && o.name === 'olive trunks');
+  const crowns = scene.children.find((o) => o.isInstancedMesh && o.name === 'olive crowns');
+  assert.ok(crowns?.userData.standIn && !crowns.userData.noCollide === false, 'the crowns are drawn walk-through, with a stand-in');
+  const m = new THREE.Matrix4(), c = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+  let climbed = 0;
+  for (const i of [0, 7, 40, 90, 150]) {
+    trunks.getMatrixAt(i, m); m.decompose(c, q, sc);
+    const k = sc.x, inBlob = (p) => Math.hypot((p.x - c.x) / (2.0 * k), (p.y - c.y - 5 * k) / (1.3 * k), (p.z - c.z) / (2.0 * k));
+    for (const [dx, dz, yaw] of [[3, 0, Math.PI / 2], [0, 3, 0]]) {
+      const P = new Player(physics, { health: false, climb: true });
+      P.respawn(new THREE.Vector3(c.x + dx, level.ground.heightAt(c.x + dx, c.z + dz), c.z + dz));
+      let deepest = Infinity, up = false;
+      for (let f = 0; f < 60 * 6; f++) {
+        P.update(1 / 60, { KeyW: true }, yaw);
+        if (P.climbing) up = true;
+        const chest = P.pos.clone(); chest.y += 1.2;
+        deepest = Math.min(deepest, inBlob(chest));
+      }
+      if (up) climbed++;
+      assert.ok(deepest > 0.75, `olive ${i}: the chest ${deepest.toFixed(2)} of the way into its crown's core`);
+    }
+  }
+  assert.ok(climbed >= 5, `climbs: ${climbed}`);
+});

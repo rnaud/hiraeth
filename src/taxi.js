@@ -35,6 +35,8 @@ const HULL = [[0.001, -2.0], [0.5, -1.85], [0.82, -1.3], [0.9, -0.4], [0.88, 0.6
 const SY = 0.55;
 /** The open cabin: the hull is open on top between these z (cab units), OPEN_HALF rad either side of the top. */
 export const CABIN = { z0: -0.8, z1: 0.3, half: 0.85 };
+/** The striped canopy over the cabin (cab units): its posts' top, its half-width, how flat its arch, where and how long. */
+export const CANOPY = { y: 1.05, r: 0.8, sy: 0.42, z: (CABIN.z0 + CABIN.z1) / 2, len: CABIN.z1 - CABIN.z0 + 0.3 };
 /** The seat, in cab units: your (and a passenger's) hips on its cushion. */
 export const SEAT = { y: 0.12, z: -0.45 };
 /** Seat to hip joint when standing: the traveller's origin is at his feet, his hips this far up (m). */
@@ -62,6 +64,24 @@ const slice = (z0, z1) => {
  * seat (people-sized in a cab of any size), the moving and the lit parts are small meshes of their own.
  */
 const CABS = new Map();
+
+/** The drawn cab's top in its own units on a grid (built once: TOP.map), for its solid (Taxi.topLocal). */
+const TOP = { map: null };
+function cabTop() {
+  const b = buildTaxi('#c8483a', { fares: false, scale: 1 });
+  const meshes = [];
+  b.root.updateMatrixWorld(true);
+  // (what stands still on every cab: the hull and its trims, the fins; not the lamps, the seat or a passenger)
+  b.root.traverse((o) => { if (o.isMesh && !b.mid.includes(o) && o !== b.seat && o !== b.pax && !(b.pax && o.parent === b.pax)) meshes.push(o); });
+  const step = 0.05, x0 = -1.5, z0 = -2.15, nx = Math.round(3 / step) + 1, nz = Math.round(4.4 / step) + 1;
+  const h = new Float32Array(nx * nz).fill(-1e10), rc = new THREE.Raycaster(), o = new THREE.Vector3(), down = new THREE.Vector3(0, -1, 0);
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+    rc.set(o.set(x0 + i * step, 5, z0 + j * step), down); rc.far = 10;
+    const hit = rc.intersectObjects(meshes, false)[0];
+    if (hit) h[j * nx + i] = hit.point.y;
+  }
+  return (TOP.map = { x0, z0, step, nx, nz, h });
+}
 function cabParts(color) {
   if (CABS.has(color)) return CABS.get(color);
   const smooth = new Paint(), flat = new Paint();
@@ -101,7 +121,7 @@ function cabParts(color) {
   flat.add(new THREE.TorusGeometry(0.62, 0.03, 3, 10, 1.7), INK, { at: [0, 0.59, -0.05], rot: [Math.PI / 2 - 0.3, 0, Math.PI / 2 - 0.85] });
   smooth.add(new THREE.SphereGeometry(0.15, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), INK, { at: [0, 0.27, 1.35], scale: [1, 0.75, 1] });
   // the canopy over the cabin on four posts, in red and cream stripes
-  const cz = (z0 + z1) / 2, cl = z1 - z0 + 0.3, CY = 1.05;
+  const cz = CANOPY.z, cl = CANOPY.len, CY = CANOPY.y;
   for (const x of [-0.62, 0.62]) for (const z of [z0 - 0.06, z1 + 0.06]) {
     const r = rAt(z), foot = Math.sqrt(Math.max(0, 1 - (x / r) ** 2)) * r * SY - 0.12;
     flat.add(new THREE.CylinderGeometry(0.025, 0.025, CY - foot, 4), INK, { at: [x, (CY + foot) / 2, z] });
@@ -553,10 +573,69 @@ export class Taxi {
     this.pitch = -_v.y * 0.3;
   }
 
-  /** Solid volume for characters: a vertical cylinder, its roof the canopy's crest. */
+  /**
+   * Solid for characters (src/carriers.js): the cab as drawn, closely and cheaply, where the
+   * cylinder it was had its top at the canopy's crest all round (you stood 1.4 m over the nose):
+   * its top (topAt) is the hull's spindle, the canopy's arch over the cabin and the sign on it, and
+   * a character beside it is pushed out of the hull's outline (pushOut). The seated rider is not
+   * pushed (Player leaves out the vehicle it rides). r: the radius it all fits in.
+   */
   get solid() {
-    const s = this.scale;
-    return { pos: this.pos, vel: this.vel, r: 1.45 * s, top: this.pos.y + 1.45 * s, bottom: this.pos.y - 0.6 * s };
+    const s = this.scale, d = (this._solid ??= {
+      pos: this.pos, vel: this.vel, r: 2.15, top: 0, bottom: 0,
+      topAt: (x, z) => this.topAt(x, z), pushOut: (p, r) => this.pushOut(p, r),
+    });
+    d.r = 2.15 * s; d.top = this.pos.y + (CANOPY.y + 0.6) * s; d.bottom = this.pos.y - 0.6 * s;
+    return d;
+  }
+
+  /**
+   * The cab's top in its own units at (lx, lz), or -Infinity off it: read from TOP, the drawn cab's
+   * own top (its hull, canopy, sign, windscreen, fins and wings, rays straight down the built model
+   * once), so you stand on what is drawn to a few centimetres.
+   */
+  static topLocal(lx, lz) {
+    const T = TOP.map ?? cabTop();
+    const fx = (lx - T.x0) / T.step, fz = (lz - T.z0) / T.step;
+    if (fx < 0 || fz < 0 || fx > T.nx - 1 || fz > T.nz - 1) return -Infinity;
+    const ix = Math.min(Math.floor(fx), T.nx - 2), iz = Math.min(Math.floor(fz), T.nz - 2), u = fx - ix, v = fz - iz;
+    const h = (i, j) => T.h[j * T.nx + i];
+    const a = h(ix, iz), b = h(ix + 1, iz), c = h(ix, iz + 1), d = h(ix + 1, iz + 1);
+    // (across an edge, where a corner is off the cab or a cliff down from the canopy, the nearest corner's: no blending into the air)
+    if (!(a > -1e9 && b > -1e9 && c > -1e9 && d > -1e9) || Math.max(a, b, c, d) - Math.min(a, b, c, d) > 0.25) { const n = h(Math.round(fx), Math.round(fz)); return n > -1e9 ? n : -Infinity; }
+    return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v;
+  }
+
+  /** Height of the cab's top over world (x, z), as it is posed now (pitched and banked), or -Infinity. */
+  topAt(x, z) {
+    const M = this.object.matrixWorld, inv = (this._inv ??= new THREE.Matrix4()).copy(M).invert();
+    // (banked or pitched, the vertical through (x, z) is not the cab's: found again at the height it meets)
+    let wy = this.pos.y, y = -Infinity;
+    for (let k = 0; k < 3; k++) {
+      _o.set(x, wy, z).applyMatrix4(inv);
+      y = Taxi.topLocal(_o.x, _o.z);
+      if (!Number.isFinite(y)) return k ? wy : -Infinity;
+      wy = _a.set(_o.x, y, _o.z).applyMatrix4(M).y;
+    }
+    return wy;
+  }
+
+  /**
+   * Push a character's foot point p (radius r) out of the hull's outline (an ellipse round it) where
+   * it stands lower than a step under the cab's top there. Returns whether it moved p.
+   */
+  pushOut(p, r) {
+    const M = this.object.matrixWorld, inv = (this._inv ??= new THREE.Matrix4()).copy(M).invert();
+    _o.copy(p).applyMatrix4(inv);
+    const R = r / this.scale, a = 0.92 + R, b = 2.05 + R, c = 0.05;
+    const qx = _o.x / a, qz = (_o.z - c) / b, q = Math.hypot(qx, qz);
+    if (q >= 1 || q < 1e-6) return false;
+    // (the top over the nearest point of the hull: standing on it is the carrier's business)
+    const top = Taxi.topLocal(Math.sign(_o.x) * Math.min(Math.abs(_o.x), 0.98 * rAt(_o.z)), THREE.MathUtils.clamp(_o.z, -1.95, 2.05));
+    if (Number.isFinite(top) && _a.set(_o.x, top, _o.z).applyMatrix4(M).y - p.y < 0.5) return false;
+    _o.set((qx / q) * a, _o.y, c + (qz / q) * b).applyMatrix4(M);
+    p.x = _o.x; p.z = _o.z;
+    return true;
   }
 
   flyToTarget(dt) {
