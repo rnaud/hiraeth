@@ -1,0 +1,71 @@
+.github/workflows/unity-android.yml
+  s_55b4bc53b812ec::t_b5503d763d8fa0 101-104,170-172,175,177-192,208-230,291-294,335-337,339,341-358,374-391
+changelog.md
+  s_55b4bc53b812ec::t_523acee139611a 12-13
+docs/systems/references.md
+  s_55b4bc53b812ec::t_7dd410b7ded754 517-552
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_42c9ea1ae8c983 595-651
+scripts/unity-ci-docker.sh
+  s_55b4bc53b812ec::t_2cc58509c7192f 1-40
+src/audio.js
+  s_55b4bc53b812ec::t_15f7606864a1e6 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_c96d33f94b19d1 47,150-161
+src/changelog.js
+  s_55b4bc53b812ec::t_499d7cfebfc813 18-19
+src/costumes.js
+  s_55b4bc53b812ec::t_ea68300af28276 303-320
+src/edge.js
+  s_55b4bc53b812ec::t_c716464631e340 27
+src/levels/content.js
+  s_55b4bc53b812ec::t_9dcaa681468d45 21,38
+src/levels/index.js
+  s_55b4bc53b812ec::t_b47b72e12dd23a 20,97-102,104
+src/levels/names.js
+  s_55b4bc53b812ec::t_f7b462ff309cfb 20,31
+src/levels/reference-saltharbour.js
+  s_55b4bc53b812ec::t_482508793b43cc 1-371
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_5536c502f130ea 32
+src/levels/references.js
+  s_55b4bc53b812ec::t_3f01136619e995 16,200
+src/levels/salt-harbour-kit.js
+  s_55b4bc53b812ec::t_556992b4c9d29f 1-426
+src/levels/salt-harbour.js
+  s_55b4bc53b812ec::t_dbdf4adce095f6 1-452
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_16ea5827fef889 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_9b1528163f7577 110-111
+src/reactive-world.js
+  s_55b4bc53b812ec::t_f8f5f02deb1fae 31
+src/ship/planets.js
+  s_55b4bc53b812ec::t_cfae97fd930914 27
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_c55fd793702acc 28
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_f192091f5e907b 131
+tests/saltharbour-world.test.js
+  s_55b4bc53b812ec::t_26d66dc94a75a5 1-85
+tests/saltharbour.test.js
+  s_55b4bc53b812ec::t_844cfe703126ce 1-71
+tests/unity-ci.test.js
+  s_55b4bc53b812ec::t_3915e884d1d3ed 35,39-41,43-45,47-49,59-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3a1aa312a17f187a0924fab96b28742aafb9bcde",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
