@@ -377,9 +377,24 @@ vertical folds held the cloth out flat like a board, so the lower half lay sprea
   (`drapeKey(pose, field)`: `sig`, to 5 cm), so people on one kind of seat share a drape and
   others bake their own. A person's first frame puts them on their seat at once (the drape is
   baked then). Probing costs ~0.2 ms a seat, the cloth's step no more than standing.
+- **The seat itself, seen or not** (`SEATED.seat`, `groundField(…, seat)`): the field always has the
+  seat under the hips (a stool, a crate the physics doesn't see), and where the physics finds
+  nothing just under the hips `NPC.seatField` lays the field over what is drawn there too
+  (`DrawnSurfaces` round the seat, `trianglesGround`): Sel's cape fell through her crate, its hem
+  out under the far side.
+- **Soft, one-sided bends and a gathered cut** (`SEATED.bend`, `fold`, `hem`): with no bends the
+  cloth crumpled into folded shards where it met the seat; with bends holding it straight it stood
+  out over the bench and off a ledge in stiff sheets. Seated, a bend only pushes two points two rows
+  (or columns) apart when they come closer than `fold` of their rest, so the cloth bends freely but
+  never creases back on itself; and the seated cut's hem is narrower (`localSeat`, `seatRest`), so it
+  hangs down the back and pools behind instead of spreading its whole width along a long bench. A
+  seated bake settles longer and less damped (`SEATED.bake`, `bakeDamp`: the standing one let the
+  cloth come only ~40 cm down from its cone). A point pushed out beside a step keeps its velocity
+  (its last place moves with it: pushed alone it flew out sideways).
 - `tests/cape.test.js` measures seated capes (Nour on her bench, Sel on a stool the physics
-  doesn't see, Hask on a broad ledge): the spread from the body's axis, cloth standing up over
-  the seat, how far the hem hangs below the collar, near and far.
+  doesn't see and on her drawn crate, Bako and Sefa on a camp log bench, Hask on a broad ledge): the
+  spread from the body's axis, cloth standing up over the seat, how far the hem hangs below the
+  collar, the share of it inside the seat and creased into shards, near and far.
 
 ## Seated robes sit on the seat, not in it
 

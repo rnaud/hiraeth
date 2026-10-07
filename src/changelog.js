@@ -7,6 +7,9 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.74', date: '2026-10-06', items: [
+    'Seated people’s capes rest on what they sit on: they fall down the back, over the bench’s edge and onto the ground behind, without crumpling into stiff folded sheets or spreading out along the bench, and they no longer pass through a crate, a stool or a stone the sitter is perched on.',
+  ] },
   { v: '0.73', date: '2026-10-06', items: [
     'The desert is solid where it is drawn: on the Givers’ Hearth butte and the Givers’ House tower you hang on the rough rock and the carved stone instead of half inside it, and your feet rest on the sunken leviathan’s ribs and skull, on the crashed hull and its salvage, on the fallen giant’s brow, cheeks, teeth and arm, and on the petal station’s great petals and its cage.',
     'Qanat’s dry well is a well again: an invisible floor used to cap its mouth a metre above the terrace, so you walked over the hole. The great tree’s roots spread over the terrace are solid under your feet now, and lie low enough to step over.',

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { buildCharacter } from './player.js';
-import { Cape, groundField } from './cape.js';
+import { Cape, groundField, trianglesGround, SEATED } from './cape.js';
+import { DrawnSurfaces } from './splat-decal.js';
 import { Animator } from './animator.js';
 import { Humanoid } from './humanoid.js';
 import { makeMaterial, sharedUniforms, MODE_OUTFIT, MODE_EYE } from './materials.js';
@@ -59,6 +60,7 @@ export const NPC_DETAIL = { feet: 22, every2: 30, every3: 60, quarter: 110 };
 let knockedDown = 0;   // bodies down at once (KNOCKOVER.most)
 
 const _face = new THREE.Vector3();
+const _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3(), _seatBox = new THREE.Box3();
 /** Where the player's eyes are (the traveller's head, or about there), for people to look at. */
 function faceOf(player) {
   const head = player.humanoid?.b?.Head;
@@ -806,7 +808,19 @@ export class NPC {
   seatField() {
     const o = this.object.position, F = this._field;
     if (F && Math.abs(F.ox - o.x) < 0.03 && Math.abs(F.oz - o.z) < 0.03 && Math.abs(F.oy - this.pos.y) < 0.03 && Math.abs(F.heading - this.heading) < 0.03) return F;
-    this._field = groundField((x, y, z, d) => this.physics.groundAt(x, y, z, d), _w.set(o.x, this.pos.y, o.z), this.heading);
+    const P = this.physics;
+    let ground = (x, y, z, d) => P.groundAt(x, y, z, d);
+    // sitting on something the physics doesn't see (a crate, a stool, a stone drawn but not solid): the
+    // cloth falls onto what is drawn there too (it fell through the crate, its hem out under the far side)
+    const under = P.groundAt(o.x, this.pos.y + 0.2, o.z, 0.6);
+    if (!(under > this.pos.y - 0.08) && this.scene) {
+      const box = _seatBox.set(_w2.set(o.x - 1.05, this.pos.y - 2.6, o.z - 1.05), _w3.set(o.x + 1.05, this.pos.y + 0.15, o.z + 1.05));
+      const tris = [];
+      new DrawnSurfaces(this.scene, { exclude: (m) => { for (let q = m; q; q = q.parent) if (q.userData.cape || q === this.object) return true; return false; } }).gather(box, tris, 6000);
+      const drawn = trianglesGround(tris);
+      ground = (x, y, z, d) => { const a = P.groundAt(x, y, z, d), b = drawn(x, y, z, d); return Number.isFinite(a) ? Math.max(a, b) : b; };
+    }
+    this._field = groundField(ground, _w.set(o.x, this.pos.y, o.z), this.heading, SEATED.seat);
     this._field.heading = this.heading;
     return this._field;
   }
