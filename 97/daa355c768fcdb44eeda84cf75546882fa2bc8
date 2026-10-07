@@ -1,0 +1,75 @@
+changelog.md
+  s_55b4bc53b812ec::t_996f1698414b24 24-25
+docs/systems/references.md
+  s_55b4bc53b812ec::t_4a8f5aceb56711 435-468
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_1bc1e1422c2e41 26,457-500,508
+src/audio.js
+  s_55b4bc53b812ec::t_09f2d6e56420a7 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_65129b1164d08b 46,168-177
+src/changelog.js
+  s_55b4bc53b812ec::t_345818741f4f38 29-30
+src/costumes.js
+  s_55b4bc53b812ec::t_991c883ec51877 303-320
+src/edge.js
+  s_55b4bc53b812ec::t_da63732a86d759 25
+src/levels/content.js
+  s_55b4bc53b812ec::t_bdeabcf7c545b5 20,36
+src/levels/index.js
+  s_55b4bc53b812ec::t_6eb47ab32439f4 17,88-94
+src/levels/mangrove-kit.js
+  s_55b4bc53b812ec::t_651a3d88789b2c 1-375
+src/levels/mangrove.js
+  s_55b4bc53b812ec::t_ad3d2a89e60b38 1-393
+src/levels/names.js
+  s_55b4bc53b812ec::t_707bb17ebb17dd 18,27-28
+src/levels/reference-mangrove.js
+  s_55b4bc53b812ec::t_73b8f79fb8c90a 1-371
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_2d9b0db19a33f9 29
+src/levels/references.js
+  s_55b4bc53b812ec::t_1a65d14fb9cddc 14,196
+src/main.js
+  s_55b4bc53b812ec::t_c7580d426ec99d 606
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_1995e3e8556e85 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_e805cbe1772ff3 108
+src/reactive-world.js
+  s_55b4bc53b812ec::t_052be17c696ee4 28
+src/ship/planets.js
+  s_55b4bc53b812ec::t_21574d6c645e2e 24
+src/ship/ship.js
+  s_55b4bc53b812ec::t_d7f94c1034541e 1,326,330
+src/ship/starmap.js
+  s_55b4bc53b812ec::t_60ff0be3489c5b 12,58,61,327-328
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_6990a7c836107e 26
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_196f425ec646bd 129
+tests/mangrove.test.js
+  s_55b4bc53b812ec::t_2376f4d911d9cf 1-118
+tests/reference-worlds.test.js
+  s_55b4bc53b812ec::t_bb8a75f162a8a3 127-129
+tests/references.test.js
+  s_55b4bc53b812ec::t_213702d993d57a 312-313
+tests/scripts.test.js
+  s_55b4bc53b812ec::t_1777287179996f 3,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "97daa355c768fcdb44eeda84cf75546882fa2bc8",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
