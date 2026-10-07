@@ -12,7 +12,7 @@ import { setupWaterClock } from './water-clock.js';
 //
 //   near the start  Mira (the water clock) and Sol, level people
 //   the ruins       Oro, who grows pyramids from seeds
-//   the trees       Lio, who climbs; the tallest tree, with Talo's lookout
+//   the trees       Rue, who climbs; the tallest tree, with Talo's lookout
 //                   on its floating crown (a boost from the upper canopy)
 //   the terraces    Esk's tea terraces and the builders' gate: the quest that
 //                   fails (src/story/terraces.js)

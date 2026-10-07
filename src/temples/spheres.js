@@ -7,7 +7,7 @@ import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Platform, Bridge, Mark, Pit } from './pieces.js';
 import { echoModel } from './guardians.js';
 
-// The Garden of Spheres' temple: the Footprint, the one Ivo speaks of. North
+// The Garden of Spheres' temple: the Footprint, the one Emrys speaks of. North
 // of the umbrella grove the meadow carries an enormous three-toed print, its
 // rim of white stone, as if something that walked through the sky putting the
 // spheres down had stepped here; in its heel stands a great pale sphere with a

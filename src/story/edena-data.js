@@ -98,7 +98,7 @@ export const QUESTS = [
     outro: 'From the crown you can see the whole garden, and the long green scar the ship ploughed across it.',
     stages: [
       { id: 'climb', text: 'Climb the tallest tree, north-west of the meadow. The crown floats above the upper canopy: boost up to it from the rim', label: 'The tallest tree’s crown', flag: 'edena.lookout.read', at: 'lookout' },
-      { id: 'tell', text: 'Tell Lio what is on the crown', label: 'Lio, under the trees', talk: 'lio', at: 'lio' },
+      { id: 'tell', text: 'Tell Rue what is on the crown', label: 'Rue, under the trees', talk: 'lio', at: 'lio' },
     ],
   },
 ];
@@ -279,7 +279,7 @@ export const PEOPLE = {
   },
 
   lio: {
-    id: 'lio.edena', name: 'Lio', title: 'who climbs', color: '#b5a7e6', voice: 1.4, kind: 'f', scale: 0.86, age: 'child', years: 9,
+    id: 'lio.edena', name: 'Rue', title: 'who climbs', color: '#b5a7e6', voice: 1.4, kind: 'f', scale: 0.86, age: 'child', years: 9,
     palette: { cloak: '#b5a7e6', lining: '#2b211f', cloth: '#f2c54b', legs: '#4a3a2a', hat: '#f2a7b5', hair: '#6e4a32' }, head: 'hair', cape: 0.5,
     lines: ['~happy~ Climb the trees. The view is worth it.', '~happy~ I’ve been to the second canopy. Twice!', '~surprised~ The crown floats. It FLOATS.'],
     talk: {
@@ -291,7 +291,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~happy~ I’m Lio. I’ve climbed every tree here except *the tallest*. I prefer to introduce myself before admitting that.", "~sad~ It’s *north-west*. I can reach the second canopy, but the crown is too high. Those thin branches won’t hold me."],
+          say: ["~happy~ I’m Rue. I’ve climbed every tree here except *the tallest*. I prefer to introduce myself before admitting that.", "~sad~ It’s *north-west*. I can reach the second canopy, but the crown is too high. Those thin branches won’t hold me."],
           choices: [
             { text: '~curious~ What’s on the crown?', goto: 'what' },
             { text: '~playful~ I can jump quite high.', goto: 'jump' },

@@ -18,7 +18,7 @@ import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, RIDER_CALL, RIDER
 //                for the first time; until then she is hidden and can't be
 //                ridden (bird.dormant)
 //   the plain    Senn listens to the standing stones (they hum as you pass);
-//                Hollin keeps the stone hand, whose knuckles ring
+//                Kesh keeps the stone hand, whose knuckles ring
 //   the spires   two shed feathers on the caps of two spires; the third
 //                drifts down from the stone hand's palm when it has rung
 //
@@ -369,7 +369,7 @@ export function setupArzach(ctx) {
           hand.seq = KNUCKLE_ORDER[0] === k.i ? [k.i] : [];
           hand.fail = 1;
           if (sound.ctx) sound.critter?.('clank', 0.8);
-          if (!hand.hinted && quests.isActive('arzach.hand')) { hand.hinted = true; toast('A dull knock. The knuckles go quiet. Small to tall, Hollin said.'); }
+          if (!hand.hinted && quests.isActive('arzach.hand')) { hand.hinted = true; toast('A dull knock. The knuckles go quiet. Small to tall, Kesh said.'); }
         } else if (n === KNUCKLE_ORDER.length) ringHand();
         return true;
       } });

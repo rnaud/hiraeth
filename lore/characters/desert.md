@@ -98,11 +98,11 @@ and a reason to speak.
 
 | Person | Anchor | Voice |
 |---|---|---|
-| Ysa | Walks dunes where the wind erases every track. | A guide’s clear landmarks, mild annoyance at the weather. |
+| Rima | Walks dunes where the wind erases every track. | A guide’s clear landmarks, mild annoyance at the weather. |
 | Pell | Counts bones; Nima’s desert cousin. | Enjoys numbers, knows how much of a giant cannot be counted from above. |
 | Rook | Lost a bike with a habit of wandering. | Embarrassed owner blaming an opinionated machine. |
 | Ennor | Guides toward the western salt flats. | Water first, directions second, one unsettling observation about shadows. |
-| Tamsin | Listens to stones before storms. | Reports the unusual dry-night song, does not interpret it as prophecy. |
+| Dalia | Listens to stones before storms. | Reports the unusual dry-night song, does not interpret it as prophecy. |
 | The sketching traveller | Has drawn the sleeping observatory repeatedly. | An artist’s curiosity and retired knees; wants to see it working. |
 | Tamra | Weaver. | Notices cloth, vibration, and what people insist cannot be touched. |
 | Idris | Potter. | Measures a miraculous chest as a very stubborn container. |

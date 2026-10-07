@@ -2,6 +2,8 @@
 
 This audit covers all thirteen levels. Eleven are worlds on the route. Home is the twelfth. The Atelier is a hidden developer page.
 
+(Since the second story pass some people have new names, so that each is used once: see "Shared names" at the end. The findings keep the names of their time.)
+
 For each world it sets the beat the bible asks for against what a player can do today. It lists what is thin or broken and how the world is paced. Each section ends with what the October 2026 story pass fixed and what is still open. The ranked additions and the proposals for the author come last.
 
 ## How it was checked
@@ -516,6 +518,8 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
   - Near-misses: Ysel, Ysolde, Ysse, Ysa; Tamsy and Tamsin; Ferro and Ferrol; Brann and Bram; Wick and the Wick.
   - Three nine-year-olds run in a row.
   - The desert's sketcher is listed as "The traveller", the protagonist's own word.
+
+  *Done (second pass):* every name is used once (`tests/names.test.js`). The name stays where it is most established (the most lines, a quest or keepsake in its name, the earlier world); the others took names in their world's style: the Hangar's Pip is **Zazie**; Viridel's Lio **Rue**; the City-Shaft's seller of views (Hask) **Tobin**; the Buried Machine's Ossa **Ket** and its Pim **Jot**; Vael's Hollin **Kesh**; the spheres' Ivo **Emrys** and Aube **Linnet**; the Undertower's Pell **Hobb** (and the spheres' drifter Slow Pell **Slow Orm**). Near-misses: Vael II's Ysel **Agathe** (beside Ysolde), the desert's Ysa **Rima** and Tamsin **Dalia**, the Hangar's Ferrol **Gaspard**, the Engine-House's Brann **Fisk**, Lorn II's Wick **Robin**. Ysolde and Ysse, Tamsy, Ferro and Bram keep theirs. The sketcher is **Naji**. Only the names changed: ids and flags are kept, so saves, quests and the errands carry on. The three nine-year-olds stay (a pattern of the worlds, not a clash of names). This audit's findings above keep the names of their time.
 - **Voices that blur:**
   - every Vael II speaker ends on a dry quip;
   - "sitting down" is the punchline in Lorn, Lorn II and Viridel alike;

@@ -2,7 +2,7 @@
 
 Umbrella trees shading white pyramids, great pale spheres sinking into a mirror lake, cypress avenues leading to a round stone plaza.
 
-## Aube, the listener
+## Linnet, the listener
 
 Character exploration sheet for a listener who hears the songs of giant spheres in a mirror lake, in a surreal science fiction adventure. Serene, a long pearl-grey robe with sleeves like bells, a halo-shaped headpiece of thin wire, a tuning fork staff, bare feet on the wet stone, eyes half closed. Six distinct variations exploring headpieces, robe sleeves, the staff and listening poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
 
@@ -18,6 +18,6 @@ Character exploration sheet for the keeper of a tall pole at the centre of a sto
 
 Character exploration sheet for a walker who paces a cypress avenue every day, in a surreal science fiction adventure. Tall, a long sage-green coat with a swinging hem, a walking stick of polished wood, a small sphere-shaped lantern, a scarf blowing back, a stride caught mid-step. Six distinct variations exploring coat cuts, the lantern, stick and walking poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
 
-## Ivo, who climbs the white hill
+## Emrys, who climbs the white hill
 
 Character exploration sheet for a cheerful climber of a white pyramid hill, in a surreal science fiction adventure. Stocky, a cream tunic with chalk dust, a rope coiled across the chest, a flat cap with ear flaps, a chalk bag, a little flag to plant at the top. Six distinct variations exploring outfits, rope gear, caps and climbing poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.

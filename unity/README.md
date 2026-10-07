@@ -427,8 +427,8 @@ lod.js's error-by-distance with its hysteresis):
   and Ilo following you, the rib (heaved, or pushed with the backpack), the
   stream and the rising pool, the jar, the ship; fire hurts.
 - The people near the start (`levels/content.js`, exported with the story's):
-  Ysa, Pell (who sends you to the mask), Rook (who sends you to Marrow), Ennor,
-  Tamsin and the traveller who sketches the observatory (`sketcher`: the
+  Rima, Pell (who sends you to the mask), Rook (who sends you to Marrow), Ennor,
+  Dalia and Naji, who sketches the observatory (id `traveller`, `sketcher` there: the
   player's figure is `traveller`).
 - `Observatory` (`observatory.js`): the sleeping observatory east of camp.
   Greeting the traveller starts it with a sketchbook page (three views of the

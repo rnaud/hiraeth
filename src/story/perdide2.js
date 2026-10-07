@@ -13,14 +13,14 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide2-data.js';
 //   the path     three pools gone dark (shoot them alight; they take your colours);
 //                Pim by the moss domes (her door, the latch back on, is held open by
 //                moss: wake the moss lamp over it with a shot, then push it shut),
-//                Wick at the second dark pool
+//                Robin at the second dark pool
 //   the water    the saucer in the deep pool (Odile and Talo's lifeboat), and old
 //                Fen in the far dome on its mud islet (the skiff is his: light the
 //                lamp on his mooring post, then nudge the empty skiff into its berth)
 //   the cave     Bram minds the mouth; Hollin walks down to wait there at the end
 //
 // The world notices you: once Hollin knows you're here, the lamp-keepers
-// brighten the pools ahead of you as you walk the path (Wick, once you've lit
+// brighten the pools ahead of you as you walk the path (Robin, once you've lit
 // hers, runs ahead and brightens them further); the saucer blinks back at the
 // third relit pool; at the end every pool on the path is lit for you.
 //

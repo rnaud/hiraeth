@@ -816,7 +816,7 @@ The rose gorge (its walls' cracks) and the City-Shaft from the rim, the web on t
   mirror sends the bones as three has them, so it was already in: in Node's VM the head's joint turns 54° into the
   look clip after a few seconds of idling, and Unity's close-ups catch him looking aside as the web's do.
 
-Teo's portrait, the web's (left) and Unity's (middle), and Ysa's in Unity's panel:
+Teo's portrait, the web's (left) and Unity's (middle), and Rima's (then Ysa) in Unity's panel:
 ![the portraits](../engine-bridge/sbs4-portrait.jpg)
 
 ## Faces close up: expressions (Unity + Puerts, 2026-10-07)

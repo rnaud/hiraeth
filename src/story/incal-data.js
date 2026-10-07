@@ -17,18 +17,18 @@
 // Side errands: Pip's ration tin for his uncle Dov, the palace guard; the dead
 // taxi call-lamp at the bottom (shoot it) and Wren, the old cab that still stops;
 // a cab pass from Lio, the dispatcher on the rim (the cabs fly past anyone
-// without one: src/taxi.js), for the fare Hask, the seller of views, owes him.
+// without one: src/taxi.js), for the fare Tobin, the seller of views, owes him.
 // Clue: the splinter carries the glyph and hums the same note as the singing
 // crystals of the swamp of lights (Lorn).
 //
 // Flags (game-state.js): incal.rumour.light, incal.splinter.given, incal.dov.allowed,
 // incal.lit (the Lodestar burns bright again), incal.lamp.lit, incal.wren.met,
 // incal.dov.fed, incal.hoist.pin, incal.hoist.in (the goods hoist, swung in); clue.incal.perdide. Items: splinter, ration,
-// fare (Hask's coin), cabpass (the cab pass: src/items.js lists it in the gear).
+// fare (Tobin's coin), cabpass (the cab pass: src/items.js lists it in the gear).
 
 const Q = 'incal.light';
 
-export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ration tin', fare: 'Hask’s bent coin', cabpass: 'a cab pass' };
+export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ration tin', fare: 'Tobin’s bent coin', cabpass: 'a cab pass' };
 
 /** What a cab says in the City-Shaft when you have no pass yet (src/taxi.js Taxi.refusal). */
 export const PASS_REFUSAL = {
@@ -64,8 +64,8 @@ export const QUESTS = [
     outro: 'A card with the palace seal and something like your name. The cabs stop for you now.',
     stages: [
       { id: 'lio', text: 'The cabs fly past you. Ask Lio, the cab dispatcher on the rim, how to get one to stop', label: 'Lio, the dispatcher', talk: 'lio' },
-      { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Hask, who sells views along the rim, owes him one: collect it', label: 'Hask, seller of views', talk: 'hask' },
-      { id: 'back', text: 'Bring Hask’s coin back to Lio for your cab pass', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio' },
+      { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Tobin, who sells views along the rim, owes him one: collect it', label: 'Tobin, seller of views', talk: 'hask' },
+      { id: 'back', text: 'Bring Tobin’s coin back to Lio for your cab pass', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio' },
     ],
   },
   {
@@ -436,17 +436,17 @@ export const RIM = {
         },
         pass: {
           say: ["~neutral~ I write them. One fare, paid in advance, and a name. Any name. Most people pick their own.",
-            "~playful~ No coin? Then fetch me one I’m owed. *Hask, who sells views along the rim*, took a cab on Tuesday and paid in compliments. *Collect his fare*, and the pass is yours."],
+            "~playful~ No coin? Then fetch me one I’m owed. *Tobin, who sells views along the rim*, took a cab on Tuesday and paid in compliments. *Collect his fare*, and the pass is yours."],
           do: [(ctx) => { const q = ctx.quests; if (!q.isStarted('incal.pass')) q.start('incal.pass'); if (q.stage('incal.pass') === 'lio') q.advance('incal.pass', 'lio'); }],
           choices: [{ text: '~happy~ I’ll collect it.', end: true }, { text: '~curious~ Why don’t the cabs stop below the smog?', goto: 'why' }],
         },
         waiting: {
-          say: [{ if: { quest: 'incal.pass', stage: 'fare' }, text: "~neutral~ *Hask, along the rim*, selling views of a hole. One fare. He’ll pretend he’s forgotten. He hasn’t." },
-            { if: { not: { quest: 'incal.pass', stage: 'fare' } }, text: "~curious~ Got Hask’s coin? No? Then the cabs and I will go on ignoring you together." }],
+          say: [{ if: { quest: 'incal.pass', stage: 'fare' }, text: "~neutral~ *Tobin, along the rim*, selling views of a hole. One fare. He’ll pretend he’s forgotten. He hasn’t." },
+            { if: { not: { quest: 'incal.pass', stage: 'fare' } }, text: "~curious~ Got Tobin’s coin? No? Then the cabs and I will go on ignoring you together." }],
           choices: [{ text: '~neutral~ On my way.', end: true }],
         },
         paid: {
-          say: ["~surprised~ Hask paid? In a coin? And he says he tipped? I’ll frame it, next to the compliments.",
+          say: ["~surprised~ Tobin paid? In a coin? And he says he tipped? I’ll frame it, next to the compliments.",
             "~neutral~ (Lio stamps a card with the palace seal and punches a name into it, more or less yours.) *Your cab pass.* Whistle when a cab goes by, and it stops. Get in one that waits, and it goes."],
           do: [{ take: 'fare' }, { give: 'cabpass' }, { advance: ['incal.pass', 'back'] }],
           choices: [{ text: '~happy~ Thank you, Lio.', end: true }],
@@ -457,7 +457,7 @@ export const RIM = {
     },
   },
   hask: {
-    id: 'hask', name: 'Hask', title: 'seller of views', color: '#f2c54b', head: 'hair', cape: 0,
+    id: 'hask', name: 'Tobin', title: 'seller of views', color: '#f2c54b', head: 'hair', cape: 0,
     talk: { listen: [
       ["~shout~ Views of the abyss! Very reasonable! Stand here, look down, discover how reasonable!", "~playful~ Up is free. Please stop demonstrating that in front of customers."],
       '~neutral~ Nine levels. Eleven if you count the smog and the lake. The rich at the top, the poor at the bottom, and a light in the middle that nobody pays for, so nobody looks at it.',
@@ -465,7 +465,7 @@ export const RIM = {
       { if: { not: { flag: 'box.incal.soles' } }, say: '~whisper~ A free one, since you’re not buying: there’s a box on top of *the lone stone pillar*, round the rim from your ship. A good climb. A terrible view, of a box.' },
       { after: LOOKED, if: { not: { quest: 'incal.pass', stage: 'fare' } }, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
       // (last: the list's places are the save's memory of what was said)
-      { after: { quest: 'incal.pass', stage: 'fare' }, say: ["~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.", "~tired~ (Hask counts out one bent coin, slowly, as if it were the last view on the rim.) *Take it to Lio.* Tell him I tipped."],
+      { after: { quest: 'incal.pass', stage: 'fare' }, say: ["~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.", "~tired~ (Tobin counts out one bent coin, slowly, as if it were the last view on the rim.) *Take it to Lio.* Tell him I tipped."],
         do: [{ give: 'fare' }, { advance: ['incal.pass', 'fare'] }] },
     ] },
   },

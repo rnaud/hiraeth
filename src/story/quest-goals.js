@@ -33,12 +33,12 @@ export const QUEST_GOALS = {
   // the Buried Machine
   'buried.tooth': 'Turn the great wheel one tooth for this year',
   'buried.key': 'Get Dun’s key back from the derrick',
-  'buried.gauges': 'Read the canyon’s three gauges for Ossa',
+  'buried.gauges': 'Read the canyon’s three gauges for Ket',
   'buried.window': 'Touch the warm window over the oculus',
   // the Hangar
   'garage.signal': 'Carry the signal to wherever the Major left it',
   'garage.machines': 'Start the three stopped machines again',
-  'garage.ball': 'Send Pip’s ball through the portal',
+  'garage.ball': 'Send Zazie’s ball through the portal',
   // Viridel
   'edena.garden': 'Find out what became of Odile and Talo’s ship',
   'edena.seed': 'Bring Oro’s pyramid seed home and plant it',

@@ -264,5 +264,5 @@ test('looking at the stone hand starts its quest and says what to do', () => {
   const look = THINGS.palm.talk.nodes.look;
   assert.equal(look.do?.start, 'arzach.hand', 'looking at it puts the knuckles in the journal');
   const strike = THINGS.palm.talk.nodes[look.choices.find((c) => c.goto)?.goto];
-  assert.ok(strike && /shoot/i.test(strike.say.join(' ')) && /Hollin/.test(strike.say.join(' ')), 'shoot a knuckle; Hollin knows the order');
+  assert.ok(strike && /shoot/i.test(strike.say.join(' ')) && /Kesh/.test(strike.say.join(' ')), 'shoot a knuckle; Kesh knows the order');
 });

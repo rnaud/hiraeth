@@ -451,7 +451,7 @@ export const CROWD_TALK = {
     { name: 'An old trader', title: 'in Signal Square', talk: { listen: [
       "~solemn~ That mark filled every sign when the sky sang. Grandmother says it was here before the market. Before there was anything to advertise.",
       '~solemn~ Every sign in this market lies a little. The silent tower was the only one that ever told the truth.',
-      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway*, where the paving turns to great old stones. Pell sits by it, listening. Ask him what he hears. He’ll say one word.' },
+      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway*, where the paving turns to great old stones. Hobb sits by it, listening. Ask him what he hears. He’ll say one word.' },
       '~angry~ In my day a sign was a sign. Now they sing, they dance, they follow you home.',
     ] } },
   ],

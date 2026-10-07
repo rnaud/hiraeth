@@ -10,8 +10,8 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, AMBER } from './buried-data.js';
 // The Buried Machine's story, alive (buried-data.js has the words).
 //
 //   the domes    Wen by the great dome, Hask on his bench, Dun among the
-//                chimneys, Pim near the start (a level person)
-//   the canyon   Ossa by the ledge, three gauges on posts (shoot the dials)
+//                chimneys, Jot near the start (a level person)
+//   the canyon   Ket by the ledge, three gauges on posts (shoot the dials)
 //   the oculus   Tull at the doorway; the Wick in the middle, its oil valve
 //                (push it open, then shoot the wick); the warm window above
 //   the derrick  floating east of the domes: its crane's jib has swung out over
@@ -51,7 +51,7 @@ export function setupBuried(ctx) {
   const Q = 'buried.tooth';
   // the main quest doesn't just appear: it starts when you talk to Wen (the scout finds them till then: src/story/quests.js opensWith)
   if (!quests.isStarted(Q)) quests.opensWith(Q, 'wen');
-  // the Wick lit before anyone sent you to it (Wen and Ossa both say where it is): the talks that only lead
+  // the Wick lit before anyone sent you to it (Wen and Ket both say where it is): the talks that only lead
   // there (Wen's Tooth Day, Hask's refusal) are passed over, and the quest goes on from what you did
   const caughtUp = () => {
     if (!game.flag('buried.oculus.lit') || !['wen', 'hask'].includes(quests.stage(Q))) return;

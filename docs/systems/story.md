@@ -60,14 +60,14 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
 - **Errands:** in every world but the last one villager asks you to carry something to
   someone in the next world on the route (`ORDER`), never back to one already
   done: Pell's singing sand from the desert to Senn in Vael (who listens to
-  stones); Hollin's feather of the bird from Vael to the sky stones of Vael II;
+  stones); Kesh's feather of the bird from Vael to the sky stones of Vael II;
   Brother Calix's muffled hand bell from Vael II to Wendel, Lorn's egg-warden;
   Ivo's storm crystal from Lorn to Bram, who minds Lorn II's root cave; Pim's brass
-  gear from Lorn II's domes to Mira's water clock in Viridel; Lio's glass seed
+  gear from Lorn II's domes to Mira's water clock in Viridel; Rue's glass seed
   from Viridel to Nima in the City-Shaft; Lio's taxi token from the City-Shaft
   to Clemence in the Sealed Hangar; Nikko's gear grease from the Hangar to Tull at
-  the Buried Machine's oval doors; Ossa's pipe whistle from the Buried Machine to
-  Aube, the spheres' listener; Nell's sliver of lake mirror from the Garden of
+  the Buried Machine's oval doors; Ket's pipe whistle from the Buried Machine to
+  Linnet, the spheres' listener; Nell's sliver of lake mirror from the Garden of
   Spheres to Oyo's lantern stall in the Signal Market (the last four since the story
   pass of October 2026, docs/story-audit.md). Greeting the giver hands you the parcel, and the HUD
   shows what you're carrying and where it goes (the receiver's world now, even
@@ -375,7 +375,7 @@ sound to make it clear I should chat with her".
   so their words are said with the quest under way); its "Quest:" toast waits for the end of
   the talk (`quests.opened()`), or comes with the stage the talk moves it to. Every world opens
   on its first stage's person (Oïa, Sister Aube, Madame Sel, Wen, Mira, Ambroise, Nima, Wendel,
-  Hollin, Aube); the desert on **Marrow**, who is at your ship when you step out, looking over
+  Hollin, Linnet); the desert on **Marrow**, who is at your ship when you step out, looking over
   the scar on its hull (`wreck` / `fire` nodes: the only fire that could wake a ship is the
   great tree's, in Qanat; ask Nour), or on Ama, the Speaker, Nour or Hessa if you walk past
   him. Once the quest is under way and you are 60 m off, he is back by his crates.
@@ -459,7 +459,7 @@ sound to make it clear I should chat with her".
     gear now ends on the clock: fit it (E), then fill its leaking bowl with three quick splashes
     so it tips and rings (quest `edena.clock`).
   - Left as they were, already hands-on: the bird's feathers and the stone hand, the cairn,
-    the machines and Pip's ball, the gauges, the seed (watered), the pools, the fireflies, the
+    the machines and Zazie's ball, the gauges, the seed (watered), the pools, the fireflies, the
     plants, the spheres and the pebble, the crates and the oldest sign. The other between-world
     errands stay light parcels (a greeting gives, a greeting takes), on purpose.
 - **The lore, one story** (LORE.md, section 10, has every decision): the light passed every
@@ -467,7 +467,7 @@ sound to make it clear I should chat with her".
   thirty years on the way; recording 4 is an old one made for him at ten; Odile and Talo were
   struck twice and went on across the swamp; the spheres came down out of the sky and the
   white builders copied them; the Hangar's board and Lorn II's Welcome draw the ∩; the bell
-  whistle is clay, not a second bone whistle; the Atelier no longer claims an unlock; Ivo's
+  whistle is clay, not a second bone whistle; the Atelier no longer claims an unlock; Emrys's
   Footprint points at the chest that exists; a few wrong directions are put right.
 - **People who share a name have ids of their own** (`hask.buried`, `ossa.buried`,
   `pip.garage`, `lio.edena`, `hollin.perdide2`, `pim.perdide2`, `aube.spheres`, `ivo.perdide`;
@@ -475,6 +475,17 @@ sound to make it clear I should chat with her".
   credits or the mother's "who did you meet". `src/save-migrate.js` brings old saves up once
   (flag `save.migrated`): a "met" carries over to the renamed person if the save has been to
   their world; Clemence's flags move outright. `tests/save-migrate.test.js`.
+- **Every name once** (the second story pass, October 2026): no two people share a name, nor
+  look alike. The name stays where it is most established; the others took names in their
+  world's style: the Hangar's Pip is **Zazie**, Viridel's Lio **Rue**, the City-Shaft's seller of
+  views (Hask) **Tobin**, the Buried Machine's Ossa **Ket** and its Pim **Jot**, Vael's Hollin
+  **Kesh**, the spheres' Ivo **Emrys** and Aube **Linnet**, the Undertower's Pell **Hobb**, the
+  spheres' drifter Slow Pell **Slow Orm**; the near-misses Ysel (Vael II's bridge) **Agathe**, Ysa
+  (the desert) **Rima**, Tamsin **Dalia**, Ferrol **Gaspard**, Brann **Fisk**, Lorn II's Wick
+  **Robin** (the Buried Machine's Wick is only the lamp now); the desert's sketcher, listed as
+  "The traveller", is **Naji**. Only names changed: ids and flags are kept (`hask`, `pip.garage`,
+  `wick`…), so saves carry on. `tests/names.test.js` fails if two people (story people, the
+  level people, the temple guides, the drifters) share a name or a name is "The traveller".
 
 ## Quests played out of order (the story pass, October 2026)
 
@@ -484,11 +495,11 @@ can be done in another order, the quest catches up instead (docs/story-audit.md)
 
 - **the desert**: the channel opened before Nour, the well, Ama or the Speaker sent you (`desert.js`
   `caughtUp`) passes those steps; Ama's `lateJar` still gives the jar;
-- **the Buried Machine**: the Wick lit before Wen or Hask (`buried.js` `caughtUp`); Ossa met after the
+- **the Buried Machine**: the Wick lit before Wen or Hask (`buried.js` `caughtUp`); Ket met after the
   gauges were read starts and ends her quest in that talk;
-- **Viridel**: telling Lio about the tallest tree after reading Talo's note first starts and ends
+- **Viridel**: telling Rue about the tallest tree after reading Talo's note first starts and ends
   `edena.tree`; **the Signal Market**: Kip met before Sel moves the quest on when you see him again;
-  **the Garden of Spheres**: Aube met after all three spheres still counts as heard;
+  **the Garden of Spheres**: Linnet met after all three spheres still counts as heard;
 - **the temples**: a temple's quest that starts as you pass its door (the ship lands beside Vael's
   Aerie) counts as one that started on its own until you go in, so the drone still finds the world's
   opening conversation (`src/temples/index.js`).

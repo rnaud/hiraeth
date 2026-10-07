@@ -106,7 +106,7 @@ export const KEEPERS = [
           do: { set: { 'perdide2.hollin.met': true } },
           choices: [{ text: '~neutral~ I’ll light them.', end: true }, { text: '~curious~ What happened the night the sky rang?', goto: 'rang' }],
         },
-        rang: { say: ["~playful~ Ask Wick beside the second dark pool, past the glass dome. She saw it happen. I was asleep. At my age, one defends a successful night’s sleep."], choices: [{ text: '~neutral~ I’ll light your pools.', end: true }] },
+        rang: { say: ["~playful~ Ask Robin beside the second dark pool, past the glass dome. She saw it happen. I was asleep. At my age, one defends a successful night’s sleep."], choices: [{ text: '~neutral~ I’ll light your pools.', end: true }] },
         again: {
           say: [{ if: { flag: 'perdide2.pools.lit', is: 1 }, text: "~surprised~ One pool lit! Two still need your fluid." },
             { if: { flag: 'perdide2.pools.lit', is: 2 }, text: "~happy~ Two burning! The last is *beside the root cave at the path’s end*." },
@@ -168,7 +168,7 @@ export const KEEPERS = [
         },
         thanks: { say: ["~playful~ It’s *a shell ring with a hook*, right at the top. Bring it down more gracefully than I came down, please."], choices: [{ text: '~neutral~ I’ll be careful.', end: true }] },
         waiting: { say: ["~neutral~ The glass dome down the path. On its roof. Careful: the ribs are slippery."], choices: [{ text: '~neutral~ Going.', end: true }] },
-        strange: { say: ["~playful~ You’re the strangest thing lately. Before you, the pools went dark when the sky sang. Wick saw it. She has an exhausting commitment to being awake."], choices: [{ text: '~curious~ And your door?', goto: 'latch', if: { quest: 'perdide2.latch', started: false } }, { text: '~neutral~ Bye, Pim.', end: true }] },
+        strange: { say: ["~playful~ You’re the strangest thing lately. Before you, the pools went dark when the sky sang. Robin saw it. She has an exhausting commitment to being awake."], choices: [{ text: '~curious~ And your door?', goto: 'latch', if: { quest: 'perdide2.latch', started: false } }, { text: '~neutral~ Bye, Pim.', end: true }] },
         back: {
           say: ['~surprised~ My latch! You went all the way up?', '~happy~ There, on it goes. Now: shut. Shut… Oh, come on.', "~sad~ The latch fits, but moss has grown into the frame. The door still won’t move."],
           do: [{ take: 'latch' }, { advance: 'perdide2.latch' }],
@@ -224,7 +224,7 @@ export const KEEPERS = [
 // ------------------------------------------------------------------ the story's own people
 export const PEOPLE = {
   wick: {
-    id: 'wick', name: 'Wick', title: 'a young lamp-keeper', color: '#ffd6a0', voice: 1.35, kind: 'f', age: 'teen', years: 15,
+    id: 'wick', name: 'Robin', title: 'a young lamp-keeper', color: '#ffd6a0', voice: 1.35, kind: 'f', age: 'teen', years: 15,
     palette: { cloak: '#ffd6a0', lining: '#2b211f', cloth: '#3a6a58', legs: '#2f3a4f', hat: '#f2a07a', hair: '#2b211f' }, head: 'hair', cape: 0.55, look: { prop: 'lantern' },
     lines: ['~angry~ It won’t take my light.', '~shout~ Splash it! Go on!', '~neutral~ Mind the eggs.'],
     talk: {
@@ -249,10 +249,10 @@ export const PEOPLE = {
           choices: [{ text: '~solemn~ Something like that hit my ship.', goto: 'ship' }, { text: '~neutral~ I’ll light it again.', end: true }],
         },
         ship: { say: ["~playful~ You heard it sing too? Good. Tell Hollin. He’s very certain about things he slept through."], choices: [{ text: '~solemn~ It sang.', end: true }] },
-        after: { say: ["~happy~ Every pool lit. Hollin walked down to the root cave faster than I’ve ever seen him walk.", "~playful~ He says he wasn’t hurrying. He was."], choices: [{ text: '~happy~ Goodbye, Wick.', end: true }] },
+        after: { say: ["~happy~ Every pool lit. Hollin walked down to the root cave faster than I’ve ever seen him walk.", "~playful~ He says he wasn’t hurrying. He was."], choices: [{ text: '~happy~ Goodbye, Robin.', end: true }] },
         lit: {
           say: ["~surprised~ You lit it! And look at those colours. The pool’s borrowed your whole journey.", "~happy~ I’ll brighten the lamps ahead. Follow the pools; I’ll make sure you can see them!"],
-          choices: [{ text: '~curious~ What happened the night the sky rang?', goto: 'night', if: { not: { flag: 'perdide2.rumour.light' } } }, { text: '~happy~ Thank you, Wick.', end: true }],
+          choices: [{ text: '~curious~ What happened the night the sky rang?', goto: 'night', if: { not: { flag: 'perdide2.rumour.light' } } }, { text: '~happy~ Thank you, Robin.', end: true }],
         },
       },
     },

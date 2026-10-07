@@ -262,7 +262,7 @@ test('side quests: the call-lamp and Wren, Pip’s ration for Dov', async () => 
   clearInteractables();
 });
 
-test('the cabs ignore you without a pass: Lio writes one for the fare Hask owes him', async () => {
+test('the cabs ignore you without a pass: Lio writes one for the fare Tobin owes him', async () => {
   const { Taxi, CAB_PASS } = await import('../src/taxi.js');
   const { Player } = await import('../src/player.js');
   const { items, gearHtml } = await import('../src/items.js');
@@ -288,13 +288,13 @@ test('the cabs ignore you without a pass: Lio writes one for the fare Hask owes 
   assert.match(notes.at(-1) ?? '', /PASS HOLDERS ONLY/);
   // Wren stops for anyone
   assert.equal(W.cab.refuses(p), false);
-  // Lio, then Hask's coin, then Lio again: the pass
+  // Lio, then Tobin's coin, then Lio again: the pass
   talk(RIM.lio, ['How do I get a pass']);
   assert.equal(quests.stage('incal.pass'), 'fare');
   const h = new DialogueRunner(RIM.hask, { game, quests });
   assert.match(h.text, /Lio sent you/);
   while (!h.ended && h.advance());
-  assert.ok(quests.has('fare'), 'Hask’s coin');
+  assert.ok(quests.has('fare'), 'Tobin’s coin');
   assert.equal(quests.stage('incal.pass'), 'back');
   const r = new DialogueRunner(RIM.lio, { game, quests });
   assert.equal(r.nodeId, 'paid');

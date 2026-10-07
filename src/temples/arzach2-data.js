@@ -12,7 +12,7 @@ export const QUEST = {
 
 export const PEOPLE = {
   ysel: {
-    id: 'ysel', name: 'Ysel', title: 'who keeps the founders’ bridge', color: '#d99072', voice: 1.08, kind: 'f',
+    id: 'ysel', name: 'Agathe', title: 'who keeps the founders’ bridge', color: '#d99072', voice: 1.08, kind: 'f',
     palette: { cloak: '#efe2cc', lining: '#d99072', cloth: '#f4efe2', legs: '#93abcc', hat: '#f4efe2', hair: '#4a3a2a' }, head: 'wrap', cape: 1.1,
     lines: ['~whisper~ Hush. Listen. There: she is crying again.', "~neutral~ No rail on the cloud side. Please admire it from this side.", '~solemn~ The founders built it before the monastery.'],
     talk: {
@@ -31,7 +31,7 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' },
             { text: '~curious~ What cries up there?', goto: 'cries' },
-            { text: '~neutral~ Goodbye, Ysel.', end: true },
+            { text: '~neutral~ Goodbye, Agathe.', end: true },
           ],
         },
         cries: {
@@ -61,10 +61,10 @@ export const PEOPLE = {
             '~solemn~ I think the founders would have liked you.'],
           choices: [
             { text: '~solemn~ She only needed a note to answer.', goto: 'note' },
-            { text: '~happy~ Keep the bridge, Ysel.', end: true },
+            { text: '~happy~ Keep the bridge, Agathe.', end: true },
           ],
         },
-        note: { say: ["~solemn~ A familiar sound helped her find her way. I understand that. I’ve missed the bells too.", '~happy~ Now somebody has rung one.'], choices: [{ text: '~neutral~ Goodbye, Ysel.', end: true }] },
+        note: { say: ["~solemn~ A familiar sound helped her find her way. I understand that. I’ve missed the bells too.", '~happy~ Now somebody has rung one.'], choices: [{ text: '~neutral~ Goodbye, Agathe.', end: true }] },
       },
     },
   },

@@ -1,6 +1,6 @@
 // The Signal Market's temple words (src/temples/bazaar.js builds the
 // Undertower): the local who points you there, and what he says after. The
-// market talks fast and sells everything; Pell is the one who listens.
+// market talks fast and sells everything; Hobb is the one who listens.
 // Conversation format: src/story/dialogue.js. Every line carries a tone.
 
 export const QUEST = {
@@ -13,7 +13,7 @@ export const QUEST = {
 
 export const PEOPLE = {
   pell: {
-    id: 'pell', name: 'Pell', title: 'who listens at the old stones', color: '#88b4b5', voice: 0.95, kind: 'm',
+    id: 'pell', name: 'Hobb', title: 'who listens at the old stones', color: '#88b4b5', voice: 0.95, kind: 'm',
     palette: { cloak: '#3a535b', lining: '#f0a083', cloth: '#f5dfab', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hair', cape: 0.7,
     lines: ['~whisper~ Shh. There. Did you hear it?', '~neutral~ One word. All night. Every night.', '~curious~ You’ve got good ears. Have you been down?'],
     talk: {
@@ -26,13 +26,13 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ["~whisper~ (A man has his ear against the paving at the tower’s foot. One raised finger asks you to wait.) Nearly. Listen.",
-            "~solemn~ *Somebody.* There it is again. I’m Pell. I listen to this stone. Everyone else here is trying to be louder than the next stall.",
+            "~solemn~ *Somebody.* There it is again. I’m Hobb. I listen to this stone. Everyone else here is trying to be louder than the next stall.",
             "~curious~ Below us is *the Undertower*, older than the market. They say it once spoke a whole sentence. Since the sky rang, it can only repeat that first word."],
           do: { set: { 'met.pell': true } },
           choices: [
             { text: '~neutral~ I’ll go down to it.', do: { start: 'temple.bazaar' }, goto: 'go' },
             { text: '~curious~ What was the whole line?', goto: 'line' },
-            { text: '~neutral~ Goodbye, Pell.', end: true },
+            { text: '~neutral~ Goodbye, Hobb.', end: true },
           ],
         },
         line: {
@@ -45,7 +45,7 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ In its own voice. I’ll try.', end: true }],
         },
         again: {
-          say: ["~whisper~ (Pell points to the rear doorway, keeping his ear on the stone.)"],
+          say: ["~whisper~ (Hobb points to the rear doorway, keeping his ear on the stone.)"],
           choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.bazaar', started: false }, do: { start: 'temple.bazaar' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
         },
         inside: {
@@ -57,17 +57,17 @@ export const PEOPLE = {
         },
         note: { say: ["~curious~ An echo. People used to hear the first sign in shells held to their ears. Look for something that can catch a sound.", "~neutral~ A makers’ shell, perhaps. They seemed reluctant to let anything be forgotten."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
-          say: ["~surprised~ (Pell sits upright beneath a newly lit tower lamp.) It stopped repeating. I thought it had gone silent for good.",
+          say: ["~surprised~ (Hobb sits upright beneath a newly lit tower lamp.) It stopped repeating. I thought it had gone silent for good.",
             "~happy~ Then the whole sentence came out: *Somebody out there is talking to you.* The market stopped to hear it. Even the noodle men.",
             "~solemn~ It will speak once each night now. I can listen standing up. My ear will appreciate the promotion."],
           choices: [
             { text: '~solemn~ It was stuck. I gave it its words back.', goto: 'words' },
-            { text: '~happy~ Somebody out there is talking to you, Pell.', goto: 'you' },
-            { text: '~neutral~ Goodbye, Pell.', end: true },
+            { text: '~happy~ Somebody out there is talking to you, Hobb.', goto: 'you' },
+            { text: '~neutral~ Goodbye, Hobb.', end: true },
           ],
         },
-        words: { say: ["~solemn~ At last it finished what it meant to say. I’m glad someone helped it."], choices: [{ text: '~neutral~ Goodbye, Pell.', end: true }] },
-        you: { say: ["~happy~ (Pell laughs.) Yes. You’re talking to me. I’m listening."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        words: { say: ["~solemn~ At last it finished what it meant to say. I’m glad someone helped it."], choices: [{ text: '~neutral~ Goodbye, Hobb.', end: true }] },
+        you: { say: ["~happy~ (Hobb laughs.) Yes. You’re talking to me. I’m listening."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
       },
     },
   },

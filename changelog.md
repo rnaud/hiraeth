@@ -10,6 +10,7 @@ The same release notes shown in the game (press **N** or open settings).
 - What happened at Esk’s terraces in Viridel is filed under “What happened” in the Quests page now, not marked failed; and coming back to Viridel later, Esk has decided there is one small job for you, down in the mud where her hill went.
 - Viridel closes with a few words of its own as the flowers close over the ship again, as Lorn and Lorn II do.
 - In the Buried Machine, Wen has thought about the old story now that the great wheel never stops turning: ask her about the last tooth after Tooth Day, and Hask has heard what she thinks.
+- Everyone has a name of their own now: where two people shared one, or nearly, one of them has a new name in their world’s way (the Hangar’s Zazie, Viridel’s Rue, the City-Shaft’s Tobin who sells views, Ket and Jot under the sand, Kesh by Vael’s stone hand, Emrys and Linnet among the spheres, Hobb at the Undertower, Agathe on Vael II’s bridge, Rima and Dalia in the desert, Gaspard, Fisk and Robin), and the desert’s sketcher is Naji.
 
 ## v0.81 — 2026-10-07
 

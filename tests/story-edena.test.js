@@ -57,7 +57,7 @@ const stand = (p, label, tol = 1.2) => {
   assert.ok(Number.isFinite(g) && Math.abs(g - p.y) < tol, `${label} has solid ground (${g?.toFixed?.(2)} vs ${p.y.toFixed(2)})`);
 };
 
-test('the gardeners stand on walkable ground; the errands still find Mira and Lio', () => {
+test('the gardeners stand on walkable ground; the errands still find Mira and Rue', () => {
   const W = rt.world.people;
   for (const id of ['mira', 'sol', 'oro', 'lio', 'vey']) assert.ok(W[id], `${id} is in the garden`);
   for (const [id, n] of Object.entries(W)) for (const [k, p] of n.route.entries()) {
@@ -179,7 +179,7 @@ test('side quests: the pyramid seed, planted and watered; the tallest tree’s c
   assert.equal(quests.stage('edena.tree'), 'tell');
   talk(PEOPLE.lio, ['A bench']);
   assert.equal(quests.isDone('edena.tree'), true);
-  // Talo's note read before Lio ever asked: telling him starts and ends the quest in that talk (it used to wait forever)
+  // Talo's note read before Rue ever asked: telling her starts and ends the quest in that talk (it used to wait forever)
   game.set('quest.edena.tree', undefined);
   assert.equal(quests.isStarted('edena.tree'), false);
   talk(PEOPLE.lio, ['The whole garden']);

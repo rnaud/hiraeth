@@ -206,7 +206,7 @@ written in).
   is from the lower levels himself); find Wren, the old cab that still stops for
   the poor (cabs drive themselves; Wren speaks from the little screen on its
   dash); carry a message up the shaft; earn a cab pass from Lio, the
-  dispatcher on the rim, by collecting the fare Hask owes him (until then no
+  dispatcher on the rim, by collecting the fare Tobin owes him (until then no
   cab answers your whistle or lets you in; Wren, at its lamp, stops for anyone).
   You ride seated inside a cab and tell it where to go.
 - **Gift**: the fluid jets, in the Warden's Well on the rim. The route brings the
@@ -483,9 +483,9 @@ gadget at its heart; half the makers' gifts wait inside them, half in the open
 | Hangar | the maker's rivets (Ottla), the Major's thumbprint (Clemence) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
 | Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) | thumb-boxes (Wen) |
 | Viridel | the Builders' mark (Oro) | the Singer (Talo's word, Sol) | Builders' gifts (Oro) |
-| Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) | left-behinds (Ivo) |
+| Garden of Spheres | the Footprint, under every sphere (Emrys) | an Answerer (Ume) | left-behinds (Emrys) |
 | Lorn | the Hush: three drops of rain over a shut mouth | Sedge saw it pass the night it went over, and climb away; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
-| Lorn II | the Welcome: three lamps over a hull | Wick saw it put the pools out | the traveller's chest (Hollin, the lamp-keeper; Vael's Hollin keeps the stone hand) |
+| Lorn II | the Welcome: three lamps over a hull | Robin saw it put the pools out | the traveller's chest (Hollin, the lamp-keeper) |
 | City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Lodestar rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
 | Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) | (no box of its own) |
 

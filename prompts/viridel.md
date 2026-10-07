@@ -14,7 +14,7 @@ Character exploration sheet for an old vine-tender who has looked after an overg
 
 Character exploration sheet for an architect-gardener who grows white step pyramids from seeds, in a surreal science fiction adventure. Tall, an ivory robe with a geometric hem, a square hat like a tiny pyramid, a bag of glowing seed-stones, a plumb line and a folding rule, careful measuring poses. Six distinct variations exploring hats, robe patterns, tools and poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
 
-## Lio, who climbs
+## Rue, who climbs
 
 Character exploration sheet for a fearless young tree climber on a planet of giant umbrella trees, in a surreal science fiction adventure. Agile, a sky-blue short tunic and leggings, a harness with ropes and wooden hooks, climbing gloves, a leaf parasol on the back, a scab on every knee. Six distinct variations exploring harness gear, the parasol, outfits and climbing poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
 

@@ -1,7 +1,7 @@
 // The Buried Machine's story as data: "One Tooth a Year" (docs/story-bible.md).
 //
 // Under the dunes a great wheel turns one tooth a year, and the dome people
-// count their lives by it: Wen is forty-one teeth old, Pim is nine. The wheel
+// count their lives by it: Wen is forty-one teeth old, Jot is nine. The wheel
 // turns when the Wick, the oil lamp at the bottom of the oculus, is lit, and
 // every Tooth Day old Hask goes down the canyon to light it. This year he
 // hasn't: a "Tuning Star" (the singing light) came over the canyon, humming
@@ -54,10 +54,10 @@ export const QUESTS = [
   },
   {
     id: 'buried.gauges', title: 'A Year’s Breath', world: 'buried',
-    outro: 'Ninety, ninety-one, ninety. Ossa says it is enough.',
+    outro: 'Ninety, ninety-one, ninety. Ket says it is enough.',
     stages: [
       { id: 'read', text: 'Read the three pressure gauges along the canyon floor: splash each dial (shoot)', label: 'A pressure gauge', flag: 'buried.gauges.read', at: 'gauge' },
-      { id: 'tell', text: 'Tell Ossa what the gauges say', label: 'Ossa, by the ledge', talk: 'ossa', at: 'ossa' },
+      { id: 'tell', text: 'Tell Ket what the gauges say', label: 'Ket, by the ledge', talk: 'ossa', at: 'ossa' },
     ],
   },
   {
@@ -87,7 +87,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~happy~ Welcome down! I’m Wen. Sit anywhere you like sand. That gives you a good choice.", "~neutral~ Today is *Tooth Day*. Once a year the great wheel turns one tooth. I’m forty-one teeth old. Pim is nine and negotiating."],
+          say: ["~happy~ Welcome down! I’m Wen. Sit anywhere you like sand. That gives you a good choice.", "~neutral~ Today is *Tooth Day*. Once a year the great wheel turns one tooth. I’m forty-one teeth old. Jot is nine and negotiating."],
           choices: [
             { text: '~curious~ What wheel?', goto: 'wheel' },
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
@@ -133,19 +133,19 @@ export const PEOPLE = {
         },
         turned: { say: ["~surprised~ The city swung! And the wheel’s still turning! It’s meant to stop after one tooth. I’ll need to rethink my counting.", "~playful~ Look *at the wheel’s feet*. It usually drops a metal sliver when it turns."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         count: {
-          say: ["~happy~ You found this year’s sliver. Still warm. They always are.", "~playful~ Forty-two for my string. Pim is ten now. He wanted the age until he heard about the water-carrying duties.", "~solemn~ Keep that sliver. You were here for the turn. It’s your year too."],
+          say: ["~happy~ You found this year’s sliver. Still warm. They always are.", "~playful~ Forty-two for my string. Jot is ten now. He wanted the age until he heard about the water-carrying duties.", "~solemn~ Keep that sliver. You were here for the turn. It’s your year too."],
           do: [{ advance: [Q, 'count'] }, { keepsake: KEEPSAKE }],
           next: 'given',
         },
         given: { say: ["~happy~ By our reckoning, you’re one tooth old. Welcome to the count."], choices: [{ text: '~happy~ Thank you, Wen.', end: true }] },
-        after: { say: ["~playful~ Come back when you’re two! The wheel’s still going. Pim says it’s catching up with you."],
+        after: { say: ["~playful~ Come back when you’re two! The wheel’s still going. Jot says it’s catching up with you."],
           choices: [{ text: '~curious~ And the last tooth? The city settling?', goto: 'last', once: true }, { text: '~happy~ I will.', end: true }] },
         // the wheel turns on now (its collider turns with it): what the old story's last tooth means, read the gentle way
         last: {
           say: [
             "~solemn~ I sat up with the old story all night. Then I saw it. A wheel hasn’t got a last tooth. It comes round.",
             "~happy~ So the last tooth is whichever one keeps it turning. This one, then the next. The Other Half stays up as long as it turns.",
-            "~playful~ We’ll keep Tooth Day once a year all the same. Otherwise Pim would be a hundred by supper.",
+            "~playful~ We’ll keep Tooth Day once a year all the same. Otherwise Jot would be a hundred by supper.",
           ],
           do: { set: { 'buried.wen.last': true } },
           choices: [{ text: '~happy~ Happy Tooth Day, Wen.', end: true }],
@@ -251,11 +251,11 @@ export const PEOPLE = {
 
   pim: {
     // (a small boy: nine teeth old is about six)
-    id: 'pim', name: 'Pim', title: 'nine teeth old', color: '#e9c9a8', voice: 1.7, kind: 'm', scale: 0.72, age: 'child', years: 6,
+    id: 'pim', name: 'Jot', title: 'nine teeth old', color: '#e9c9a8', voice: 1.7, kind: 'm', scale: 0.72, age: 'child', years: 6,
     palette: { cloak: '#e9c9a8', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#c8643f', hair: '#4a3226' }, head: 'hair', cape: 0.4,
     lines: ["~neutral~ The domes are chimneys. Most of the machine is beneath us.", "~neutral~ Follow the sandy ramp. Those canyon walls are pipes.", '~shout~ I’m nine teeth old!'],
     talk: { listen: [
-      { if: { not: { flag: 'world.buried.done' } }, say: ["~curious~ Are you a person? You arrived in a ball. I’m Pim. Nine teeth old. For now.", '~scared~ If the wheel turns today I’ll be ten teeth. Wen says it might not. If it doesn’t, I’ll be nine forever.'] },
+      { if: { not: { flag: 'world.buried.done' } }, say: ["~curious~ Are you a person? You arrived in a ball. I’m Jot. Nine teeth old. For now.", '~scared~ If the wheel turns today I’ll be ten teeth. Wen says it might not. If it doesn’t, I’ll be nine forever.'] },
       '~whisper~ Ten-teeth-olds are allowed down the ramp. The canyon walls are pipes, not stone: put your ear on them and you can hear the machine thinking.',
       '~happy~ That’s the Other Half, up there. When the wheel turns, it rocks. Last year a whole tower swung like a bell, and nobody heard it, because it’s too high to hear.',
       { if: { not: { quest: 'buried.key', done: true } }, say: '~whisper~ Dun’s key is stuck up on *the floating derrick*, everyone knows, but he says it isn’t. The crane only turns one way. Like me.' },
@@ -267,7 +267,7 @@ export const PEOPLE = {
   },
 
   ossa: {
-    id: 'ossa.buried', name: 'Ossa', title: 'who listens to the walls', color: '#7f93a3', voice: 0.9, kind: 'f',
+    id: 'ossa.buried', name: 'Ket', title: 'who listens to the walls', color: '#7f93a3', voice: 0.9, kind: 'f',
     palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#2b2f45', hat: '#d8dcc8', hair: '#2b211f' }, head: 'hood', cape: 1.2,
     lines: ['~whisper~ Listen. The walls are still warm.', "~neutral~ Two oval doors. The open-roofed room is beyond them.", '~whisper~ Shh.'],
     talk: {
@@ -279,7 +279,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~whisper~ Listen here. The pipes are warm. Every Tooth Day, the pressure rises from below.", "~solemn~ Ossa. I listen to the machine. It’s usually a quiet neighbour. Today it has something to report."],
+          say: ["~whisper~ Listen here. The pipes are warm. Every Tooth Day, the pressure rises from below.", "~solemn~ Ket. I listen to the machine. It’s usually a quiet neighbour. Today it has something to report."],
           choices: [
             { text: '~curious~ What do they say?', goto: 'say' },
             { text: '~curious~ Where does the canyon lead?', goto: 'lead' },
@@ -308,7 +308,7 @@ export const PEOPLE = {
           do: [(ctx) => { const q = ctx.quests; if (!q.isStarted('buried.gauges')) q.start('buried.gauges', 'tell'); q.advance('buried.gauges', 'tell'); }, { set: { 'clue.buried.mark': true } }],
           next: 'tell2',
         },
-        tell2: { say: ["~happy~ Still running after all this time. Thank you for checking. Now go see the wheel turn."], choices: [{ text: '~happy~ Thank you, Ossa.', end: true }] },
+        tell2: { say: ["~happy~ Still running after all this time. Thank you for checking. Now go see the wheel turn."], choices: [{ text: '~happy~ Thank you, Ket.', end: true }] },
         after: { say: ["~whisper~ Quiet again. Sometimes a machine just needs someone to hear it."], choices: [{ text: '~neutral~ (listen with her)', end: true }] },
       },
     },

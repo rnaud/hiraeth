@@ -293,10 +293,10 @@ test('an old save waiting at the hook (from before the crane swung) is sent to s
   clearInteractables(); clearTargets();
 });
 
-test('out of order: the Wick lit and the gauges read before anyone asked; Wen and Ossa still carry their quests on', () => {
+test('out of order: the Wick lit and the gauges read before anyone asked; Wen and Ket still carry their quests on', () => {
   clearInteractables(); clearTargets();
   game.reset();
-  // Wen's directions and Ossa's own lines say where the Wick is: a player can go down and light it first
+  // Wen's directions and Ket's own lines say where the Wick is: a player can go down and light it first
   for (const f of ['buried.canyon.seen', 'buried.oculus.seen', 'buried.valve.open', 'buried.oculus.lit', 'buried.gauges.read']) game.set(f, true);
   const scene4 = new THREE.Scene();
   const level4 = createBuried(scene4);
@@ -308,7 +308,7 @@ test('out of order: the Wick lit and the gauges read before anyone asked; Wen an
   say(PEOPLE.wen);
   for (let i = 0; i < 8; i++) rt4.update(1 / 30, i / 30, { camera });
   assert.equal(q4.stage('buried.tooth'), 'watch', 'Wen’s and Hask’s talks pass over: on to the wheel');
-  // Ossa, met after the three gauges were read: her reading starts and ends the quest
+  // Ket, met after the three gauges were read: her reading starts and ends the quest
   say(PEOPLE.ossa);
   assert.equal(q4.isDone('buried.gauges'), true);
   clearInteractables(); clearTargets();

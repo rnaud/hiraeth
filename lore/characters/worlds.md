@@ -36,7 +36,7 @@ it. It does not need the traveller to teach it generosity.
 | Pip | Dov's nephew; once saw the sky for eleven seconds. Premise: counts scarce good things precisely. | Concrete questions, unembarrassed wishes. |
 | Corvin Sale | Third generation on the rim. Premise: mistakes inherited comfort for superior judgment. | Polished dismissal; the joke is his certainty. |
 | Lio | Dispatches the cabs; witnessed their compasses fail together. Premise: an impossible event is first a scheduling problem. | Numbers and exasperation. |
-| Hask | Sells views. Premise: almost admires a beautiful thing he cannot charge for. | A sales pitch with an honest crack in it. |
+| Tobin | Sells views. Premise: almost admires a beautiful thing he cannot charge for. | A sales pitch with an honest crack in it. |
 
 ## Vael: room for silence
 
@@ -50,7 +50,7 @@ choice. She is not a machine unlocked by collecting feathers. Her rider's fate
 is unresolved; do not identify the rider as Ilen without a future plot decision.
 
 Tam copies movements because he is a child making contact. Senn listens to
-stones and reports what he hears, without decoding the universe. Hollin keeps
+stones and reports what he hears, without decoding the universe. Kesh keeps
 the stone hand: small, physical instructions, “small to tall.” Their economy
 should feel hospitable. Silence must not hide the puzzle's required action.
 
@@ -90,8 +90,8 @@ like a conscientious clerk, not a second Ottla.
 
 Clemence remembers a person with a pencil where others remember an authority.
 Lune reads the signal and watches the slit: careful descriptions, hypotheses
-labelled as hypotheses. Nikko notices friction. Ferrol notices that his own
-footprints are older than they should be. Pip mistrusts down for excellent
+labelled as hypotheses. Nikko notices friction. Gaspard notices that his own
+footprints are older than they should be. Zazie mistrusts down for excellent
 local reasons. Each gets one specific concern; none needs a universal maxim.
 
 ## The Buried Machine: people living inside a calendar
@@ -103,11 +103,11 @@ Days, is afraid the Tuning Star sought the wheel. His refusal comes from care,
 not cowardice. He must not know the Star's intent as fact.
 
 Dun keeps the domes breathing and wants the chimney key back: air before
-philosophy. Ossa listens to walls and calls the field a signature: curious,
+philosophy. Ket listens to walls and calls the field a signature: curious,
 methodical, willing to say she does not know. Tull talks to the warm window:
-familiarity with something alive is not proof she knows its identity. Pim,
+familiarity with something alive is not proof she knows its identity. Jot,
 nine teeth old, measures adult assurances against what the machine actually
-does. These Hask, Ossa, and Pim are distinct from their namesakes elsewhere.
+does. Every name here is used once in the game (the City-Shaft's seller of views is Tobin).
 
 ## Viridel: care does not guarantee control
 
@@ -127,7 +127,7 @@ and Talo as a boy. Premise: memories survive in the ordinary things people
 shared with him. His tea is an offer, not a magical cure. **Vey** has tended
 the ship's vines for forty years: protective, deliberate, asks before allowing
 access. **Oro** grows pyramids and distinguishes the white builders from the
-older things they copied. **Lio** wants the floating crown, with a child's
+older things they copied. **Rue** wants the floating crown, with a child's
 absolute conviction that a beautiful thing ought to be reachable.
 
 **Odile and Talo — absent travellers.** Their log and traces establish two
@@ -138,8 +138,8 @@ shared details. Their disappearance is not evidence of death or ascension.
 
 ## The Garden of Spheres: attentive, not all-knowing
 
-Aube listens and explains how to wake a sphere. Nell tests an idea against a
-reflection and enjoys the contradiction. Ivo climbs and notices marks on the
+Linnet listens and explains how to wake a sphere. Nell tests an idea against a
+reflection and enjoys the contradiction. Emrys climbs and notices marks on the
 undersides. Cael walks slowly because there is something to hear. Ume keeps
 the pole and remembers an Answerer turning over the plaza. Writing premise:
 each has a different practice of paying attention. Give them observations from
@@ -177,7 +177,7 @@ must leave the traveller free to answer honestly.
 
 **Fen** lent the travellers his skiff and got the boat back alone. Premise:
 he keeps caring for the surviving object without treating it as a substitute
-for its passengers. Plain and understated. **Wick** remembers the pools going
+for its passengers. Plain and understated. **Robin** remembers the pools going
 out one by one; a younger voice, urgent about work that older keepers turn into
 ceremony. **Pim** knows a home through its inconvenient door. **Bram** guards
 the cave mouth with the familiarity of someone watching a neighbour's doorway.

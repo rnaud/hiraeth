@@ -309,30 +309,30 @@ test('Vael II\'s people are MakeHuman bodies: Tiv a novice of ten, Mother Ysolde
   assert.equal(onBody('arzach2', PEOPLE.ysolde).look.mask, 'glasses');
 });
 
-test("The Hangar's people are MakeHuman bodies: Pip a child of nine, Ambroise's monocle", async () => {
+test("The Hangar's people are MakeHuman bodies: Zazie a child of nine, Ambroise's monocle", async () => {
   assert.ok(MH_WORLDS.has('garage'));
   const { PEOPLE } = await import('../src/story/garage-data.js');
   const pip = onBody('garage', PEOPLE.pip);
   assert.equal(ageClassOf({ def: PEOPLE.pip }), 'child');
-  assert.ok(pip.height > 1.05 && pip.height < 1.45, `Pip ${pip.height.toFixed(2)} m`);
+  assert.ok(pip.height > 1.05 && pip.height < 1.45, `Zazie ${pip.height.toFixed(2)} m`);
   assert.equal(onBody('garage', PEOPLE.ambroise).look.mask, 'monocle');
 });
 
-test("The Buried Machine's people are MakeHuman bodies: Pim a small boy, Hask under a hard hat", async () => {
+test("The Buried Machine's people are MakeHuman bodies: Jot a small boy, Hask under a hard hat", async () => {
   assert.ok(MH_WORLDS.has('buried'));
   const { PEOPLE } = await import('../src/story/buried-data.js');
-  assert.equal(ageClassOf({ def: PEOPLE.pim }), 'child', 'Pim was drawn as an elder: his face');
+  assert.equal(ageClassOf({ def: PEOPLE.pim }), 'child', 'Jot was drawn as an elder: his face');
   const pim = onBody('buried', PEOPLE.pim);
-  assert.ok(pim.height > 1.0 && pim.height < 1.3, `Pim ${pim.height.toFixed(2)} m`);
+  assert.ok(pim.height > 1.0 && pim.height < 1.3, `Jot ${pim.height.toFixed(2)} m`);
   assert.equal(onBody('buried', Object.values(PEOPLE).find((d) => d.id === 'hask.buried')).look.head, 'helmet');
 });
 
-test("Viridel's people are MakeHuman bodies: Lio a child of nine, Esk in a straw hat", async () => {
+test("Viridel's people are MakeHuman bodies: Rue a child of nine, Esk in a straw hat", async () => {
   assert.ok(MH_WORLDS.has('edena'));
   const { PEOPLE } = await import('../src/story/edena-data.js');
   assert.equal(ageClassOf({ def: Object.values(PEOPLE).find((d) => d.id === 'lio.edena') }), 'child');
   const lio = onBody('edena', Object.values(PEOPLE).find((d) => d.id === 'lio.edena'));
-  assert.ok(lio.height > 1.05 && lio.height < 1.45, `Lio ${lio.height.toFixed(2)} m`);
+  assert.ok(lio.height > 1.05 && lio.height < 1.45, `Rue ${lio.height.toFixed(2)} m`);
   assert.equal(onBody('edena', PEOPLE.esk).look.head, 'straw');
 });
 
@@ -348,12 +348,12 @@ test("Lorn's people are MakeHuman bodies: Corm under a wide drooping brim", asyn
   assert.equal(onBody('perdide', PEOPLE.corm).look.head, 'brim');
 });
 
-test("Lorn II's people are MakeHuman bodies: Wick a girl of fifteen", async () => {
+test("Lorn II's people are MakeHuman bodies: Robin a girl of fifteen", async () => {
   assert.ok(MH_WORLDS.has('perdide2'));
   const { PEOPLE } = await import('../src/story/perdide2-data.js');
   assert.equal(ageClassOf({ def: PEOPLE.wick }), 'teen');
   const wick = onBody('perdide2', PEOPLE.wick);
-  assert.ok(wick.height > 1.3 && wick.height < 1.7, `Wick ${wick.height.toFixed(2)} m`);
+  assert.ok(wick.height > 1.3 && wick.height < 1.7, `Robin ${wick.height.toFixed(2)} m`);
 });
 
 test("Home's people are MakeHuman bodies: Lou a child, Tove grown up", async () => {

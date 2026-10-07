@@ -31,7 +31,7 @@ test('the errands’ lines name the one it is for, and each carries a tone', () 
       assert.ok(TONES.includes(m[1]), `${e.id}.${k}: ${m[1]} is a tone`);
     }
     const npc = CONTENT[e.to[0]].npcs[e.to[1]];
-    const name = npc.id?.split('.')[0];
+    const name = (npc.name ?? npc.id?.split('.')[0])?.split(' ').pop().toLowerCase();   // (by the name, not the id: ids outlive renames)
     if (name) assert.match(stripTone(e.ask).toLowerCase(), new RegExp(name), `${e.id}: the ask names ${name}`);
   }
 });

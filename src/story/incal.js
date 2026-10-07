@@ -9,7 +9,7 @@ import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN } 
 
 // The City-Shaft's story, alive (incal-data.js has the words).
 //
-//   the rim          Corvin, Lio and Hask (content.js); the ship lands here
+//   the rim          Corvin, Lio and Tobin (content.js); the ship lands here
 //   the high terrace Nima sweeps the first terrace below the rim (y 150)
 //   the bottom       Ossa keeps the Upward Shrine (y −290), where the splinter
 //                    fell; Pip plays round it; the dead taxi call-lamp at the edge
@@ -22,7 +22,7 @@ import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN } 
 // down the lower terraces and the smog thins.
 //
 // The cabs don't stop for you at all without a cab pass (src/taxi.js): the first refusal starts
-// Lio's errand (incal.pass); Hask's fare buys the pass. With it, they still don't stop in the
+// Lio's errand (incal.pass); Tobin's fare buys the pass. With it, they still don't stop in the
 // depths (below −200) until you have lit the call-lamp and met Wren, the old cab that still stops
 // there; after that, hailing down there brings Wren (it is free: it stops for anyone). Cabs drive
 // themselves: Wren speaks from the little screen on its dash when you get in (src/story/cab.js).

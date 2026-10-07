@@ -21,7 +21,7 @@ export const ALIENS = {
       voice: 0.62, kind: 'm', color: '#d9b8d4', age: 'elder',
       lines: ['~solemn~ Walk softly. The grass is listening.', '~happy~ A new shape on the path. Hello, new shape.'],
       talk: { listen: [
-        { if: { quest: SPHERES, stage: 'aube' }, say: ['~solemn~ You found the umbrella trees. Good. They are almost as old as I am.', '~neutral~ The spheres are Aube’s work. Ask *Aube, in the grove*. She talks faster than I do.'] },
+        { if: { quest: SPHERES, stage: 'aube' }, say: ['~solemn~ You found the umbrella trees. Good. They are almost as old as I am.', '~neutral~ The spheres are Linnet’s work. Ask *Linnet, in the grove*. She talks faster than I do.'] },
         { if: { quest: SPHERES, stage: 'listen' }, say: '~whisper~ The spheres that remember hum under your feet. *Splash them* with your bright water, then keep still while they play.' },
         '~solemn~ We came down with the spheres, my mother said. They fell; we floated. We still argue about who was luckier.',
         '~solemn~ The night the light passed, every thread I have pointed the same way, like grass in a river. Then it turned, and they all fell slack.',
@@ -54,7 +54,7 @@ export const ALIENS = {
       ] },
     },
     {
-      id: 'pell.drifter', name: 'Slow Pell', title: 'walking the avenue', species: 'drifter', at: [-17, -380], route: [[-17, -560], [-17, -380]], pace: 0.45,
+      id: 'pell.drifter', name: 'Slow Orm', title: 'walking the avenue', species: 'drifter', at: [-17, -380], route: [[-17, -560], [-17, -380]], pace: 0.45,
       voice: 0.9, kind: 'f', color: '#d6c6a8', tint: { skin: '#ece2c8', rib: '#c9b48a', rim: '#a08a5c', glow: '#ffe2a0' },
       lines: ['~playful~ Pass me if you like. Everyone does.', '~solemn~ Slowly. It is that kind of road.'],
       talk: { listen: [
@@ -128,7 +128,7 @@ export const ALIENS = {
         '~whisper~ Pim says nobody built the domes, they were found. My grandmother says otherwise. She was a very large shellback. Don’t tell Pim.',
         '~curious~ You carry your house on your back too? (It looks at your tank.) A small house. With weather in it.',
         '~neutral~ (Its eyes go up their stalks, one, then the other.) Hello. Hello.',
-        '~playful~ Wick runs. Bram runs. I don’t run. I have never once been late, because I never said when.',
+        '~playful~ Robin runs. Bram runs. I don’t run. I have never once been late, because I never said when.',
       ] },
     },
     {
