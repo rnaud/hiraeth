@@ -452,3 +452,101 @@ bake takes about seven value-noise lookups a pixel off its lighter paper). The s
 numbers (`ab.mjs`: in-page experiments as page snippets and shader patches, picture diffs with the
 world held; `world.mjs`: builds side by side; `cpuprof.mjs`: the V8 profile of the game loop) live
 in the agent's scratchpad, after `scripts/bench/passes.mjs`.
+
+## Every world on the Retroid, in GeckoView (October 2026)
+
+"Worried about performance on the device": every world measured in the app's own engine, GeckoView 157,
+on the Retroid Pocket Nova (Handheld preset, render scale held at 0.75, the 60 Hz screen), with the
+GeckoView test app (`com.rnaud.moebius.gecko`, `scripts/bench/gecko-apk.sh`) and a new driver,
+`scripts/bench/android-worlds.mjs`: each world loaded in a fresh app, then each of its views
+(`viewpoints-worlds.json`, picked on the device: the boot camera, the two densest knots of people, a
+wide look up over them, a 40 m walk; the desert's are `viewpoints.json`'s) held 3 s and recorded 10 s,
+with the main thread's time by system (`--profile 1`: the world's updates and the passes of
+`renderFrame`), the GPU's busy share (kgsl), temperatures and the memory of the app's three processes.
+The game's frame readout (F) stays on; its sound is at 0.
+
+**What was slow: the traveller's new overshirt, in every world.** The coral-shirt traveller (v0.72) drives
+his shirt with a cloth cage (`src/characters/tripo-cloth.js`): 495 particles, 18 passes of 2 732 edges and
+five leg capsules at 90 Hz, then the 10.8 k vertices of the dense garment moved with it and their normals
+worked out, every frame. On the handheld that was 33–43 ms of JS a frame (the player's update: 35 of
+47 ms at the spawn), more the slower the frame (a slow frame owes the cloth more 90 Hz steps), so every
+world ran at 17–25 fps with 60–72 % of the refreshes missed and the GPU 14–40 % busy, waiting. Within it:
+a 57 k-vertex copy of the whole body rewritten, uploaded and its normals summed every frame though the
+shirt uses a sixth of it; three.js's per-vertex skinning (`applyBoneTransform`, a spread and two matrix
+products a bone); a closure and a vector made for every capsule test (100 000 a frame).
+- **The cage off the main thread** (`tripo-cloth-sim.js`, `tripo-cloth-worker.js`): the same steps on flat
+  arrays, run in a worker; each frame sends the targets and capsules with the steps due and uses the
+  newest positions back. The shirt's swing is a frame old, the body under it this frame's (the garment
+  follows `positions − the targets they were simulated against`). Without workers (tests) it steps here.
+  The arrays take exactly the steps the vectors took (bitwise; `tests/tripo-cloth-sim.test.js`).
+- **The garment only its own vertices** (`compactGeometry`: 57 282 → 10 771), its normals on the arrays
+  (`vertexNormals`, three's sums in three's order), the skinning from the bones' matrices once a frame
+  with the bind inverse folded in and each vertex's bind-space rest place worked out once, a vertex the
+  cloth moves by itself not skinned at all, capsules rejected by their box (the same positions to
+  3e-7 m). The shirt's main-thread cost: 33–43 ms → 1.8 ms.
+- **The wind's wisps** (`wind.js` `GroundCache`): in Qanat they asked the ground's height 2 600 times a
+  frame, each the sand banked against a dozen walls (124 k polygon edges, about 4 ms). They read exact
+  heights 0.5 m apart now, filled as they go and kept while the ground stays as it is (`Terrain.setHeights`
+  bumps a version): 99 % within a centimetre. The drift field itself gained exact quick outs and 8 m cells
+  (`sand-drifts.js`; the same heights, `tests/sand-drifts.test.js`).
+- **One renderer frame a game frame** (`perf.js` `pinRenderFrame`): three updates a skeleton and uploads its
+  bone texture once per `render()` call; the shadow maps and the G-buffer each counted, so the camps
+  uploaded 45 bone textures a frame for 28 skeletons (28 now): 0.2–0.3 ms.
+
+Before (5ded1fd) → after (a592cb9; the desert and the City-Shaft again on the merged main with the frame
+pin: within a frame or two of these), every view of every world (ranges over the views):
+
+| World (views) | fps | p95 ms | missed refreshes % | JS ms a frame | GPU busy % | draws | load s | memory MB |
+|---|---|---|---|---|---|---|---|---|
+| Desert (spawn, Qanat, camps, dunes, cave, ride, walk) | 17–25 → 44–60 | 50–67 → 17–33 | 59–72 → 0–27 | 42–58 → 13–22 | 17–27 → 41–77 | 68–465 | 8.0 → 8.0 | 1231 → 1225 |
+| City-Shaft (start, crowd, crowd2, wide, walk) | 18–20 → 44–60 | 67 → 17–33 | 67–70 → 1–26 | 50–57 → 13–22 | 19–39 → 61–88 | 352–1482 | 14.0 → 14.2 | 1268 → 1353 |
+| Signal Market | 18–24 → 59–60 | 50–67 → 17 | 59–70 → 0–2 | 42–57 → 13–14 | 20–36 → 64–82 | 316–572 | 5.1 → 5.4 | 1124 → 1128 |
+| Vael | 18–24 → 59–60 | 50–67 → 17 | 60–71 → 0–1 | 42–57 → 12–14 | 14–19 → 39–52 | 198–393 | 4.5 → 4.9 | 1020 → 1095 |
+| Vael II | 18–23 → 57–60 | 50–67 → 17–33 | 61–71 → 0–5 | 44–58 → 12–14 | 23–36 → 79–84 | 282–499 | 6.1 → 6.0 | 1263 → 1350 |
+| Sealed Hangar | 20–23 → 60 | 50 → 17 | 61–66 → 0–1 | 43–48 → 12–14 | 19–21 → 51–57 | 186–551 | 3.6 → 4.2 | 989 → 1004 |
+| Buried Machine | 21–22 → 59–60 | 50 → 17 | 63–66 → 0–2 | 44–47 → 12–14 | 21–24 → 54–67 | 242–479 | 7.8 → 7.1 | 1138 → 1218 |
+| Viridel | 21–23 → 60 | 50 → 17 | 62–65 → 0–1 | 43–46 → 12–13 | 14–21 → 38–57 | 190–459 | 5.4 → 5.3 | 1060 → 994 |
+| Garden of Spheres | 22–24 → 59–60 | 50 → 17 | 59–63 → 0–2 | 42–45 → 12–14 | 21–26 → 54–67 | 257–479 | 5.8 → 6.0 | 1235 → 1422 |
+| Lorn | 18–23 → 60 | 50–67 → 17 | 61–70 → 0–1 | 43–56 → 12–13 | 17–22 → 54–64 | 303–390 | 4.4 → 4.0 | 1030 → 964 |
+| Lorn II | 22–25 → 59–60 | 50 → 17 | 59–64 → 0–2 | 41–45 → 12–14 | 30–42 → 73–93 | 175–465 | 6.5 → 6.2 | 1129 → 1160 |
+| Home | 17–22 → 59–60 | 50–67 → 17 | 63–71 → 0–2 | 43–57 → 12 | 14–22 → 41–61 | 441–614 | 4.0 → 4.0 | 939 → 978 |
+
+(Load: navigation to the first frame, the game served from the Mac over USB; from the APK, as it ships, the
+same: the desert 8.5 s (12.3 s in 07af71c's run), the City-Shaft 14.2, the Signal Market 5.1. Memory: the
+three processes' PSS after load, content + GPU + parent; it moves by ±100 MB with the collector's timing.
+As shipped, with dynamic resolution, the same frame rates and the scale held at 0.75 (see below).
+Every view and both builds: `scripts/bench/results/android-worlds.json`, `android-worlds-summary.mjs`.)
+
+The shader test (`android-engines.mjs --engines gecko`: every program the desert links compiled again, made
+unique, one by one): 78 programs in 5.7 s, 81 ms median, 208 ms the worst, against 75 in 20.8 s and 367 ms
+in 07af71c's run; still no `KHR_parallel_shader_compile`.
+
+**Against the last GeckoView run** (07af71c, `android-gecko.json`, the desert only): the cave 52 → 60 fps
+(GPU 96 → 41 %: rooms off the map draw only themselves), the spawn and the dunes as then; Qanat 55 → 50,
+the camps 59 → 46, the walk through them 51 → 44: their JS 18–19 → 19–22 ms. The difference is the people
+(4.8–5.5 ms a frame in Qanat and the camps: 18 on MakeHuman bodies in view, posing, robes and capes) and
+the shirt's 1.8 ms. Memory is about 200 MB more than then (1.03 → 1.23 GB in the desert: the traveller's
+model and its copies, the MakeHuman bodies).
+
+**What is left** (the places under 55 fps; all CPU-bound, the GPU 48–88 % busy):
+- *Qanat, the camps, the ride and the walk through them* (44–51 fps): of 19–22 ms, the people 5, three.js's
+  G-buffer draw loop 4–5.5 (300–470 draws: in GeckoView every GL call is queued to its GPU process), the
+  shirt 1.8, the shadow maps 1.5–2.2, the rest (the loop, the HUD, hands and faces) about 3.
+- *The City-Shaft's rim and wide views* (43–52 fps): 1 000–1 500 draws, the G-buffer's CPU 6.7–8.5 ms and
+  the shadows' 2.6–4; the GPU 70–88 %. Fewer, bigger draws (static geometry merged by region) would be
+  the lever there.
+- *Dynamic resolution never sees the missed refreshes in GeckoView*: it counts a frame over 1.5x the
+  window's quickest (`missedFrames`, timed at the frame's start), but GeckoView starts a late frame's
+  callback late and evenly (19–22 ms apart at the camps while the screen shows 17 / 33 ms: the
+  requestAnimationFrame timestamps do say it), so only the fps test (under 34) can lower the scale. Left as
+  it is: the places that miss refreshes are CPU-bound, where a softer image wouldn't buy a frame. Counting
+  from the timestamps would make it drop there.
+- Tried and left out: world matrices only where they moved (a compare and a copy per object cost more
+  than three's multiply: 0.16 → 0.35 ms in a 5 000-object scene); the people's posing tiers brought nearer
+  on the smaller frame (no measurable gain at the camps, 19.2 against 19.3 ms).
+
+To repeat: `npx vite build && WORK=… scripts/bench/gecko-apk.sh`, `adb install` the test app, then
+`ANDROID_SERIAL=… node scripts/bench/android-worlds.mjs --serve dist [--worlds desert,incal] [--modes
+fixed,dynamic] [--profile 1] [--toggles base,noShadow,postAlbedo,scale05] [--apk 1] --raw <dir>` (it
+serves the game with the page bridge on 6253, starts and stops only the test app, removes its port
+rule), and `node scripts/bench/android-worlds-summary.mjs <before dir> <after dir>`.
