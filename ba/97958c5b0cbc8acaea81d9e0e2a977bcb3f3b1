@@ -1,0 +1,137 @@
+.github/workflows/unity-android.yml
+  s_55b4bc53b812ec::t_a12f5128d01f45 163-169,234
+CLAUDE.md
+  s_55b4bc53b812ec::t_96ded230fa4004 19-25
+TODO.md
+  s_55b4bc53b812ec::t_2b4e2139186dde 20-25,29-33,56-62,81-91,111-117,125-127
+changelog.md
+  s_55b4bc53b812ec::t_33553284e15e14 5,18-28
+docs/mixamo-shopping-list.md
+  s_55b4bc53b812ec::t_6d9126b982b22b 69,159-184
+docs/motion-data.md
+  s_55b4bc53b812ec::t_d910846802e21a 10-11,77-81
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_b92c9d77308254 135-139
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_37b575670409aa 307-372,428-480
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_2652c7840d2eb5 907-928
+docs/systems/movement-and-camera.md
+  s_55b4bc53b812ec::t_d4df151acdd6a3 3-46
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_61e2b3bfce0757 676-724,810-907
+docs/systems/unity.md
+  s_55b4bc53b812ec::t_f6ccb6d8215969 69-72,101-108
+scripts/bench/android-bridge.sh
+  s_55b4bc53b812ec::t_b65db94a40fea0 22-25,39-49
+scripts/bench/deck-pen.mjs
+  s_55b4bc53b812ec::t_5877f0af4e435c 1-89
+scripts/bench/deck-run.sh
+  s_55b4bc53b812ec::t_eaebb6feb5d882 5-8,20,22-25,27,32,38
+scripts/bench/deck-summary.mjs
+  s_55b4bc53b812ec::t_f7dfd39b7ab124 1-32
+scripts/bench/deck-worlds.mjs
+  s_55b4bc53b812ec::t_2d82f84eabeb25 52-57,61-64,73,182
+scripts/bench/results/android-worlds-round4.json
+  s_55b4bc53b812ec::t_34f7657ec68eb7 1-3713
+scripts/mocap/build-library.mjs
+  s_55b4bc53b812ec::t_a46c981443ed2d 22-25,32,38,76-83,92-94,102,104,144,163,193,206-207,219,229-235,237-239,241
+scripts/mocap/compare.mjs
+  s_55b4bc53b812ec::t_c1f70b0bb37e10 2-5,7-11,19-20,22-51,53,58-59,64-66,76-78,81,83-84,87-88
+scripts/mocap/mixamo-clips.json
+  s_55b4bc53b812ec::t_c4c8b5a0ec9150 2,4-5,13-14,20,22-23,30,79-87
+scripts/mocap/process.js
+  s_55b4bc53b812ec::t_40a86f0a81768b 93,101,103-104,106-107,115-127
+scripts/mocap/retarget.js
+  s_55b4bc53b812ec::t_fadb74293f30c1 81,127-134,147-148
+scripts/mocap/skeleton-take.js
+  s_55b4bc53b812ec::t_ca0aece933e0bb 19-21,27-30,45,52-53,55-56
+scripts/transition-perf/pen-android.mjs
+  s_55b4bc53b812ec::t_20a8b977076ee1 1-95
+scripts/transition-perf/pen-read.swift
+  s_55b4bc53b812ec::t_93d4332adb5950 1-37
+scripts/transition-perf/pen-stops.mjs
+  s_55b4bc53b812ec::t_6c37dedca08a95 1-31
+scripts/unity-publish.sh
+  s_55b4bc53b812ec::t_d940fc8d807861 25-27,30
+src/air-moves.js
+  s_55b4bc53b812ec::t_b4604a8bdcae05 1-97
+src/animator.js
+  s_55b4bc53b812ec::t_cc939e0e8f4d49 5,27-31,249,269-338,442-458,534-535,537-538,543-613,648-649,671-687,724
+src/changelog-media.js
+  s_55b4bc53b812ec::t_982ed5e8a408a5 105,113,137-192,206-215,229,319-327,339-343,406,410,431-436
+src/changelog.js
+  s_55b4bc53b812ec::t_bfdd94af540091 12,24-42
+src/dev-menu.js
+  s_55b4bc53b812ec::t_08caca278b243e 35-36,49,122-123
+src/interact.js
+  s_55b4bc53b812ec::t_1669cff2d51979 16,71-90,112-117
+src/jump.js
+  s_55b4bc53b812ec::t_b58bf0e25dff1d 106-109
+src/loco-moves.js
+  s_55b4bc53b812ec::t_fc10ba60240fb7 1-224
+src/main.js
+  s_55b4bc53b812ec::t_055413e404bbca 47,351,573-575,788,1033,1387-1389
+src/motion-match.js
+  s_55b4bc53b812ec::t_10e2ccf2198f44 45-47,51,76,85-126
+src/motion/main.js
+  s_55b4bc53b812ec::t_5d77b1da582530 22-25,42,120,123-125,140-142,150,157-158,171-222,232,292-297,438-441,470,658,709,716,766,793,881-897,979-1025,1027-1029
+src/motion/state.js
+  s_55b4bc53b812ec::t_0ae4a43c928fd0 22,26,34,42-43
+src/npc.js
+  s_55b4bc53b812ec::t_1be2a727b7d15d 17,78-80,371-375,379,384,386-387,923-928
+src/perf.js
+  s_55b4bc53b812ec::t_a517b7df96e263 365-367,371,379,403-404,408-419,434-449
+src/player.js
+  s_55b4bc53b812ec::t_4865e3f38edaf6 8-10,43-46,64-70,289,711-718,728,730,737-743,756-768,1116,1705,2026-2063,2081,2109-2110,2139-2140,2252-2268,2321-2333,2341-2342,2363-2364,2371-2375,2377,2388-2433,2481,2497,2508,2524-2525,2542-2543,2545,2547-2552,2610-2611,2628-2650,2668,2693-2695,2699-2722
+src/ragdoll.js
+  s_55b4bc53b812ec::t_e1fedad587aac3 400-443,485-495,502-508,510,521-524
+src/taxi.js
+  s_55b4bc53b812ec::t_f15dbaa9a5975e 337-338
+tests/air-gestures.test.js
+  s_55b4bc53b812ec::t_7f31fb863f0117 1-89
+tests/android-bridge.test.js
+  s_55b4bc53b812ec::t_6e92b9bf623fa0 1-31
+tests/android-ota.test.js
+  s_55b4bc53b812ec::t_895558b308e29b 10,81
+tests/camera-framing.test.js
+  s_55b4bc53b812ec::t_25e9ea9efc46af 1-178
+tests/gait-sim.js
+  s_55b4bc53b812ec::t_5fb0c4380b1326 15,26,30,36-57,61-67,73-75
+tests/getup.test.js
+  s_55b4bc53b812ec::t_ee34f83fc41648 1-64
+tests/idle-legs.test.js
+  s_55b4bc53b812ec::t_ead890e75e0a80 21,24,35,61,68-73
+tests/loco-moves.test.js
+  s_55b4bc53b812ec::t_00e6b2271fdad0 1-80
+tests/mixamo-import.test.js
+  s_55b4bc53b812ec::t_f25b0135edd705 1-109
+tests/pen-stops.test.js
+  s_55b4bc53b812ec::t_967ce8753bc9a7 1-40
+tests/quality.test.js
+  s_55b4bc53b812ec::t_b6d8d60d38774e 134-161
+tests/unity-ci.test.js
+  s_55b4bc53b812ec::t_0059b353bc3dc8 90-96
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_ad3a4b9434aa1c 205-251,263-268,270
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_55b4bc53b812ec::t_20b895e283dc73 19-25,27,29-59,63,86
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_d9fc33890bc5c3 64,106,119,354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ba97958c5b0cbc8acaea81d9e0e2a977bcb3f3b1",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
