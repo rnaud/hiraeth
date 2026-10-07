@@ -302,7 +302,7 @@ function mergeParts(group, keep = []) {
 }
 
 /** Instanced dots and dashes: droplets, sprays, the glob's wake. */
-class Dots {
+export class Dots {
   constructor(parent, max, material, geo = new THREE.SphereGeometry(1, 6, 4)) {
     this.mesh = new THREE.InstancedMesh(geo, material, max);
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3);

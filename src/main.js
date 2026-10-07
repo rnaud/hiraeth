@@ -608,7 +608,7 @@ await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
-const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, notice: (t) => showToast(t) });
+const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
 await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });

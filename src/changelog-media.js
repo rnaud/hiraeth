@@ -134,6 +134,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'The makers’ machines are rebuilt', shots: [
       { name: 'machine-breaks', only: 'after', caption: 'A machine coming apart: its shell, belt, arms and glowing glyph flying off', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
     ], see: 'In the Arena’s fifth wave, or any temple’s rooms: break a machine with the blade.' },
+    { match: 'A new foe, the shade', shots: [
+      { name: 'shade', only: 'after', caption: 'A shade: living shadow running down a person’s body, its feet melting into print dots, the pools it left behind', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'In the Arena’s sixth wave; out in the wilds, a later pack now and then.' },
     { match: 'The Enemies setting has a Gentle choice', see: 'Settings → Enemies: Normal, Gentle or Off.' },
     { match: 'Relics out in the wilds are guarded', see: 'In the desert, walk toward a relic out in the dunes: two blots gather round it.' },
     { match: 'Foes take turns', see: 'In the Arena’s second wave, three blots come: two wind up at most while the third circles.' },

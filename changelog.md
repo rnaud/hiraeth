@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.88 — 2026-10-07
 
+- A new foe, the shade: a person made of living shadow, near-black violet running down its body in streaks, its feet melting into the ground, dripping as it walks and leaving dark pools behind. It comes in later packs out in the wilds and cuts with a sword’s swing; five cuts bring it down, and it runs away into the ground.
 - The Enemies setting has a Gentle choice: half the harm, slower wind-ups, one foe striking at a time and smaller, rarer packs. Normal and Off stay.
 - The makers’ machines are rebuilt: a round brass shell on three spindly legs, two clawed arms, the makers’ glyph glowing for an eye. Broken, they come apart, their pieces flying and settling on the ground.
 - The frame freezes for an instant as a blow lands, longer on a heavy one and on a perfect parry, so every impact reads.

@@ -306,3 +306,23 @@ test('difficulty: gentle halves the harm, slows the wind-ups and lets one strike
   assert.equal(off.on, false);
   foes.dispose(); off.dispose(); clearTargets();
 });
+
+test('the shade: a person of living shadow, in later packs and in the Arena, tougher than a blot, cutting with a sword\'s swing', async () => {
+  const { packKinds, WAVES, waveWords } = await import('../src/foes.js');
+  const { SHADE_STRIKE } = await import('../src/shade.js');
+  assert.ok(FOES.shade.hp > FOES.blot.hp && FOES.shade.attack.shape === 'cone');
+  assert.ok(SHADE_STRIKE.from < SHADE_STRIKE.cut && SHADE_STRIKE.cut < SHADE_STRIKE.to, 'the clip winds up to its cut, then follows through');
+  assert.deepEqual(packKinds(3, 'desert', () => 0.05), ['shade'], 'a lone shade in a later pack');
+  assert.ok(!packKinds(1, 'desert', () => 0.05).includes('shade'), 'never early on');
+  assert.ok(WAVES.some((w) => w.includes('shade')), 'and in the Arena');
+  assert.equal(waveWords(['shade', 'shade', 'blot']), '2 shades and 1 ink blot');
+  // without the game's bodies (here, in node) it still fights, drawn as a blot
+  clearTargets();
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: player(v()), settings: { enemies: 'normal' }, game: new GameState(null) });
+  const s = foes.add('shade', v(0, 0, 2));
+  for (let i = 0; i < 4; i++) foes.hurt(s, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(s.alive, true, 'four cuts are not enough');
+  foes.hurt(s, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(s.alive, false);
+  foes.dispose(); clearTargets();
+});

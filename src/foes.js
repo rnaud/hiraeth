@@ -4,6 +4,7 @@ import { registerTarget } from './targets.js';
 import { Telegraph, strikeDamage, inArea } from './temples/boss.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
+import { ShadeBody, ShadePools } from './shade.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -52,6 +53,12 @@ export const FOES = {
     attack: { shape: 'lane', width: 1.7, range: 9, damage: 0.17, wind: 1.0, dive: true },
     recover: 1.7, cool: [1.8, 2.8], hit: 0.3,
   },
+  // a person made of living shadow (src/shade.js): it walks up and cuts with a sword's swing, dripping as it goes
+  shade: {
+    name: 'shade', hp: 5, radius: 0.45, height: 1.15, speed: 3.0, sight: 18, giveUp: 40, reach: 2.3,
+    attack: { shape: 'cone', range: 2.9, angle: 0.9, damage: 0.2, wind: 0.95 },
+    recover: 1.1, cool: [1.2, 2.2], hit: 0.4,
+  },
 };
 /** Worlds with no foes at all. */
 export const PEACEFUL = new Set(['home', 'lab', 'references', 'atelier', 'overnighttrain']);   // (the Arena has its own waves: level.foes; the Overnight Train has no wilds: off it is the running land)
@@ -65,6 +72,7 @@ export const SKY_WORLDS = new Set(['arzach', 'arzach2', 'glassdunes', 'fallenrin
 export function packKinds(n, levelId, rng = Math.random) {
   if (n === 0) return ['blot'];
   const r = rng(), size = PACK.size[0] + Math.floor(rng() * (PACK.size[1] - PACK.size[0] + 1));
+  if (n >= 3 && r < 0.1) return ['shade'];
   if (n >= 2 && r < 0.2) return Array(6).fill('swarm');
   if (n >= 1 && r < 0.45) return ['spitter', ...Array(size - 1).fill('blot')];
   if (SKY_WORLDS.has(levelId) && r < 0.7) return ['flyer', ...Array(size - 1).fill('blot')];
@@ -73,7 +81,7 @@ export function packKinds(n, levelId, rng = Math.random) {
 const STILL = 3.5;   // s a stilling glob holds a foe
 const PARRY_STUN = 2;   // s a perfect parry leaves it stunned
 /** The Arena's waves (level.foes.waves: src/levels/arena.js), round and round; they come in this far out, this long after the last. */
-export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['spitter', 'blot'], Array(6).fill('swarm'), ['machine'], ['flyer', 'flyer'], ['spitter', 'spitter', 'machine'], ['machine', 'machine', 'blot', 'blot', 'flyer']];
+export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['spitter', 'blot'], Array(6).fill('swarm'), ['machine'], ['shade'], ['flyer', 'flyer'], ['spitter', 'spitter', 'machine'], ['shade', 'shade', 'blot'], ['machine', 'machine', 'blot', 'blot', 'flyer']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /** How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. */
 export const TURNS = { strikers: 2, apart: 0.3 };
@@ -315,8 +323,8 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector
 
 /** Every foe in a world: the packs of ink blots in the wilds, the machines in the temple, their looks and their targets. */
 export class Foes {
-  constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, game = sharedGame, rng = Math.random }) {
-    Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, game, rng });
+  constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, game = sharedGame, rng = Math.random }) {
+    Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, game, rng });   // (lib, humans: a shade's body, src/shade.js)
     this.list = []; this.group = new THREE.Group(); this.group.name = 'Foes';
     this.group.userData.noCollide = true;
     scene?.add(this.group);
@@ -403,11 +411,11 @@ export class Foes {
 
   add(kind, at, o = {}) {
     const f = new Foe(kind, at, { rng: this.rng, ...o });
-    f.model = kind === 'machine' ? machineModel() : blotModel(kind);
+    f.model = kind === 'machine' ? machineModel() : kind === 'shade' && this.lib && this.humans?.[0] ? this.shadeModel() : blotModel(kind);
     f.model.group.position.copy(at);
-    this.group.add(f.model.group);
+    if (!f.model.shade) this.group.add(f.model.group);
     if (f.model.glob) this.group.add(f.model.glob);
-    f.tele = new Telegraph(this.group, kind === 'machine' ? '#e0703a' : kind === 'spitter' ? '#7f9a2e' : '#6d4fa8');
+    f.tele = new Telegraph(this.group, kind === 'machine' ? '#e0703a' : kind === 'spitter' ? '#7f9a2e' : kind === 'shade' ? '#3b2a5c' : '#6d4fa8');
     f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: f.def.radius + 0.15, accepts: ['blade', 'stun', 'fire'],
       position: () => f.chest, enabled: () => f.alive && f.model.group.visible,
       onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info) });
@@ -416,7 +424,7 @@ export class Foes {
   }
 
   remove(f) {
-    f.target?.(); f.tele?.group.removeFromParent(); f.model.group.removeFromParent(); f.model.glob?.removeFromParent();
+    f.target?.(); f.tele?.group.removeFromParent(); f.model.group.removeFromParent(); f.model.glob?.removeFromParent(); f.model.shade?.dispose();
     this.list.splice(this.list.indexOf(f), 1);
   }
 
@@ -494,6 +502,13 @@ export class Foes {
     this.notice?.(`Wave ${this.wave}: ${waveWords(kinds)}.`);
   }
 
+  /** A shade's body (src/shade.js): the game's skinned person in living shadow; the pools and drops shared by all. */
+  shadeModel() {
+    this.shadePools ??= new ShadePools(this.scene ?? this.group);
+    const body = new ShadeBody(this.scene ?? this.group, { lib: this.lib, human: this.humans[0], pools: this.shadePools });
+    return { group: body.group, shade: body, parts: [], eyeMat: null, size: 1 };
+  }
+
   /** A machine comes apart: its pieces fly off, bounce on the ground, settle and fade. */
   breakApart(f) {
     const floor = f.pos.y;
@@ -566,7 +581,8 @@ export class Foes {
     for (const f of this.list.slice()) {
       if (f.dead !== undefined) {   // bursting: shrink away, then gone
         f.dead -= dt;
-        f.model.group.scale.setScalar(Math.max(0.01, f.dead / 0.8));
+        if (f.model.shade) { f.model.shade.melt = 1 - f.dead / 0.8; f.model.shade.update(dt, f); }   // (a shade runs away into the ground)
+        else f.model.group.scale.setScalar(Math.max(0.01, f.dead / 0.8));
         f.tele.hide();
         if (f.dead <= 0) this.remove(f);
         continue;
@@ -585,6 +601,7 @@ export class Foes {
     this.warnings();
     this.updateLock();
     this.updateDebris(dt);
+    this.shadePools?.update(dt);
   }
 
   /** Foes don't stand inside each other: two too close are pushed apart, half each. */
@@ -664,7 +681,10 @@ export class Foes {
     g.position.copy(f.pos);
     g.rotation.y = f.heading;
     const moving = f.state === 'chase' || f.state === 'home';
-    if (f.kind !== 'machine') {
+    if (M.shade) {
+      M.shade.melt = Math.max(0, M.shade.melt - dt / 0.8);   // (it pours up out of the ground as it comes)
+      M.shade.update(dt, f);
+    } else if (f.kind !== 'machine') {
       const w = Math.sin(performance.now() / 160 + f.home.x) * 0.06;
       const squash = f.state === 'wind' && !f.def.hover ? 1 - 0.35 * f.k : 1;
       g.position.y += 0.15 + f.alt + Math.abs(Math.sin(performance.now() / 260 + f.home.z)) * (moving ? 0.25 : 0.08);
@@ -693,5 +713,5 @@ export class Foes {
     else f.tele.hide();
   }
 
-  dispose() { for (const f of this.list.slice()) this.remove(f); this.group.removeFromParent(); this.warnEl?.remove(); this.lockEl?.remove(); }
+  dispose() { for (const f of this.list.slice()) this.remove(f); this.group.removeFromParent(); this.warnEl?.remove(); this.lockEl?.remove(); this.shadePools?.dispose(); }
 }

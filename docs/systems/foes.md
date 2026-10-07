@@ -122,6 +122,22 @@ The count is said every 5 ink.
   stuns the foe `PARRY_STUN` s.
 - **Combos:** a stilled foe takes the blade double (and the stilling breaks); a push ends a swarm blot.
 
+## The shade (`src/shade.js`)
+
+A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
+- **Body:** the game's own skinned body (`buildCharacter`, `Humanoid`, `Animator`, `Locomotion`, as an NPC's).
+  It walks where its mind went, and plays the Sword and Shield pack's attack (`SHADE_STRIKE`): up to the cut
+  as it winds up, then the follow-through as it recovers.
+- **The shadow:** a new fluid kind in materials.js (`fluid: 'shadow'`, kind 5): near-black violet with streaks
+  running down the body (noise over bind-space y scrolling with time) and pale runnels. It darkens toward
+  the feet, which melt into print dots (bayer discard below 0.38 m), and holes drip down the body.
+  `uFluidB.y` is how much has run away: 1 → 0 as it pours up out of the ground, 0 → 1 as it dies.
+- **Eyes:** two pale violet glowing eyes; the brows are hidden.
+- **On the floor:** drops fall off it (`ShadePools.drops`, a `Dots`), and it leaves dark pools where it walks
+  (`ShadePools.pools`: a `Footprints` decal with a blob shape, so it darkens the ground and is never inked).
+- **Where:** a lone shade in a later pack (`packKinds`, n ≥ 3), and in the Arena. Without the game's bodies
+  (tests) it is drawn as a blot.
+
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes

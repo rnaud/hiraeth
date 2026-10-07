@@ -1749,7 +1749,7 @@ const fragmentShader = /* glsl */ `
   #ifdef FLUID
   // The traveller's magical fluid (fluid-tool.js; makeMaterial({ fluid })): a
   // lava lamp in flat print tones. Only materials made with o.fluid compile this.
-  uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, 1 hose, 2 glob
+  uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, 1 hose, 2 glob, 3 wing, 4 trail, 5 shadow
   uniform vec4 uFluidB;    // flash 0..1 · refill 0..1 (0 = none) · hose pulse head (0 tank -> 1 hand) · slosh 0..1
   uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
   uniform vec3 uFluidTones[6];   // the fluid's tones in the order they join the blend (fluid-tool.js sets them)
@@ -1814,6 +1814,17 @@ const fragmentShader = /* glsl */ `
   vec3 fluidAlbedo(vec3 base) {
     float t = uFluidA.z, kind = uFluidA.w;
     int n = int(uFluidA.y + 0.5);
+    if (kind > 4.5) {
+      // living shadow (a shade, src/foes.js): near-black violet that runs down the body in slow streaks,
+      // thin bright runnels sliding down it, pooling darker toward the feet (bind space: y up, metres)
+      float y = vBind.y, s = (vBind.x + vBind.z * 0.7);
+      float flow = vnoise(vec2(s * 6.0, y * 1.8 + t * 0.7)) * 0.65 + vnoise(vec2(s * 15.0 + 3.0, y * 4.0 + t * 1.6)) * 0.35;
+      float run = vnoise(vec2(s * 22.0, y * 0.9 + t * 2.2));
+      vec3 col = mix(vec3(0.045, 0.03, 0.075), vec3(0.15, 0.1, 0.24), smoothstep(0.42, 0.78, flow));
+      if (run > 0.74) col = mix(col, vec3(0.42, 0.3, 0.62), smoothstep(0.74, 0.86, run) * 0.75);
+      col *= 0.7 + 0.3 * smoothstep(0.0, 0.9, y);
+      return col;
+    }
     if (kind > 3.5) return base;   // the hover trail: its bands are drawn in the ribbon branch
     if (kind > 2.5) {
       // a wing's membrane (fluid-kit.js): a lobe of length 1 along y, half-width WING_W(y) along x;
@@ -1895,6 +1906,13 @@ const fragmentShader = /* glsl */ `
     #ifdef FLUID
     // the wings' tips dissolve into print dots (more while they bloom or fold: uFluidB.y)
     if (uFluidA.w > 2.5 && uFluidA.w < 3.5 && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.9, 1.02, vBind.y) * 0.5 + uFluidB.y * (0.3 + 0.7 * smoothstep(0.2, 1.0, vBind.y))) discard;
+    // a shade's shadow runs off it: its feet melt into print dots toward the floor, and holes drip down its body
+    if (uFluidA.w > 4.5) {
+      float melt = 1.0 - smoothstep(0.02, 0.38, vBind.y);
+      float drip = vnoise(vec2((vBind.x + vBind.z * 0.7) * 11.0, vBind.y * 2.6 + uFluidA.z * 1.3));
+      float hole = smoothstep(0.8, 0.9, drip) * (0.35 + 0.4 * (1.0 - smoothstep(0.4, 1.4, vBind.y)));
+      if (bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < melt * 0.92 + hole + uFluidB.y) discard;
+    }
     #endif
     // stroke coordinates + derivatives first, in uniform control flow
     vec3 on = uFlat > 0.5 ? cross(dFdx(vObjRel), dFdy(vObjRel)) : vObjNormal;
@@ -2605,7 +2623,9 @@ const cache = new Map();
  * @param {boolean} [o.swayLarge] with sway: a large plant (only its low leaves part as you brush past)
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
- * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js).
+ * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js);
+ *                               'shadow': a shade's living shadow (src/foes.js: streaks running down, melting into dots at the feet;
+ *                               uFluidA.z its time, uFluidB.y how much of it has run away: 0..1, its spawn and death).
  *                              Compiles the FLUID block (a lava-lamp albedo in flat tones) and adds
  *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
@@ -2718,7 +2738,7 @@ export function makeMaterial(o) {
   }
   if (o.fluid) {
     mat.defines = { ...mat.defines, FLUID: 1 };
-    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2, wing: 3, trail: 4 }[o.fluid] ?? 0) };
+    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2, wing: 3, trail: 4, shadow: 5 }[o.fluid] ?? 0) };
     mat.uniforms.uFluidB = { value: new THREE.Vector4() };
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
