@@ -1,0 +1,27 @@
+changelog.md
+  s_55b4bc53b812ec::t_e051f793356015 11
+docs/story-audit.md
+  s_55b4bc53b812ec::t_dcee086e8b92f4 496-497
+src/changelog.js
+  s_55b4bc53b812ec::t_f9c3a87900b03e 17
+src/story/edena.js
+  s_55b4bc53b812ec::t_c859f6020f021e 165-166
+tests/story-edena.test.js
+  s_55b4bc53b812ec::t_47a2ac1e9eb19f 139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "80d87631fade940476131c8cd0a7e70d1d905df5",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
