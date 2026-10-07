@@ -3,13 +3,24 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { LEVELS } from '../src/levels/index.js';
 import { ORDER, CONTENT } from '../src/levels/content.js';
-import { createReferences, viewCamera, frameBox, sunHour, sunTurn, cropStyle, VIEW_EXTENT } from '../src/levels/references.js';
+import { createReferences, viewCamera, frameBox, sunHour, sunTurn, cropStyle, worldPeople, VIEW_EXTENT } from '../src/levels/references.js';
 import { REFERENCE_VIEWS, REFERENCE_SHEETS } from '../src/levels/reference-views.js';
+import { REFERENCE_WORLDS, loadWorld, worldIndex } from '../src/levels/reference-worlds.js';
 import { COSTUMES } from '../src/costumes.js';
 import { applyTimeOfDay } from '../src/timeofday.js';
 
-let built = null;
-const refs = () => built ??= (() => { const scene = new THREE.Scene(); return { scene, level: createReferences(scene) }; })();
+// one world's views at a time, as the level builds them (each built once, then shared by the tests)
+const built = new Map();
+async function refs(id = 'desert') {
+  if (!built.has(id)) {
+    await loadWorld(worldIndex(id));
+    const scene = new THREE.Scene(), gone = [];
+    built.set(id, { scene, gone, level: createReferences(scene, { params: new URLSearchParams(`world=${id}`), search: `?level=references&world=${id}`, go: (q) => gone.push(q) }) });
+  }
+  return built.get(id);
+}
+/** Every world built: each world's level, in order. */
+const allWorlds = () => Promise.all(REFERENCE_WORLDS.map((w) => refs(w.id)));
 /** a stand-in player and camera the level can frame */
 function walker() {
   return {
@@ -19,24 +30,25 @@ function walker() {
 }
 globalThis.window ??= { innerWidth: 1260, innerHeight: 800 };
 
-test('the references: a developer world in the worlds list, never on the route or the star map', () => {
+test('the references: a developer world in the worlds list, never on the route or the star map', async () => {
   const L = LEVELS.find((l) => l.id === 'references');
   assert.ok(L && L.dev && L.hidden, 'dev only (?level=references, the worlds list)');
   assert.ok(!ORDER.includes('references'), 'not on the route');
   assert.ok(CONTENT.references && COSTUMES.references, 'its content and its people\'s clothes');
-  const { level } = refs();
+  const { level } = await refs();
   assert.equal(level.id, 'references');
   assert.equal(level.reactions, false, 'nothing grows into the panels');
 });
 
-test('IMG_3775 has six views, each with a camera framed like its panel', () => {
+test('IMG_3775 has six views, each with a camera framed like its panel', async () => {
   const sheet = REFERENCE_VIEWS.filter((v) => v.sheet === 'IMG_3775');
   assert.equal(sheet.length, 6);
   assert.deepEqual(sheet.map((v) => v.panel), [1, 2, 3, 4, 5, 6]);
-  const { level } = refs();
-  assert.equal(level.views.length, REFERENCE_VIEWS.length);
-  for (const v of level.views) {
+  const worlds = await allWorlds();
+  assert.equal(worlds.reduce((n, { level }) => n + level.views.length, 0), REFERENCE_VIEWS.length, 'every view, world by world');
+  for (const { level } of worlds) for (const v of level.views) {
     const d = v.def, [x, y, w, h] = d.crop, S = REFERENCE_SHEETS[d.sheet];
+    assert.equal(REFERENCE_VIEWS[v.i], d, `${d.id}: numbered across the worlds as before`);
     assert.ok(x >= 0 && y >= 0 && x + w <= S.size[0] && y + h <= S.size[1], `${d.id}: the crop lies on its sheet`);
     const steep = d.camera.pitch !== undefined;   // (a view up or down a shaft: its pitch given outright)
     assert.ok(d.camera.fov > 15 && d.camera.fov < 90 && (steep ? Math.abs(d.camera.pitch) < 85 : d.camera.horizon > 0 && d.camera.horizon < 1), `${d.id}: a field of view and a horizon or pitch`);
@@ -52,16 +64,17 @@ test('IMG_3775 has six views, each with a camera framed like its panel', () => {
     const p = v.eye.clone().addScaledVector(fwd, 1000).project(cam);
     assert.ok(Math.abs((1 - p.y) / 2 - d.camera.horizon) < 1e-3, `${d.id}: horizon at ${d.camera.horizon}`);
   }
-  for (let i = 0; i < level.views.length; i++) for (let j = i + 1; j < level.views.length; j++)
-    assert.ok(level.views[i].centre.distanceTo(level.views[j].centre) > 3000, 'views far apart: only one is drawn');
+  const all = worlds.flatMap(({ level }) => level.views);
+  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++)
+    assert.ok(all[i].centre.distanceTo(all[j].centre) > 3000, 'views far apart: only one is drawn');
 });
 
-test('each view\'s sun comes from the side its panel is lit from', () => {
-  const { level } = refs();
+test('each view\'s sun comes from the side its panel is lit from', async () => {
+  const views = (await allWorlds()).flatMap(({ level }) => level.views);
   const U = { uSunDisc: { value: new THREE.Vector3() }, uMoonDisc: { value: new THREE.Vector3() }, uFlatten: { value: 0 }, uNight: { value: 0 }, uMoonVis: { value: 0 },
     uSkyTop: { value: new THREE.Color() }, uSkyHorizon: { value: new THREE.Color() }, uFogMul: { value: 1 }, uShadowTint: { value: new THREE.Color() },
     uLightTint: { value: new THREE.Color() }, uSunColor: { value: new THREE.Color() }, uSunDir: { value: new THREE.Vector3() } };
-  for (const v of level.views) {
+  for (const v of views) {
     const sun = new THREE.Vector3();
     applyTimeOfDay(v.hour, sun, U, v.atmo, v.atmo.script);
     assert.ok(Math.abs(THREE.MathUtils.radToDeg(Math.asin(sun.y)) - v.def.sun.el) < 0.5, `${v.def.id}: sun ${v.def.sun.el}° high`);
@@ -73,8 +86,8 @@ test('each view\'s sun comes from the side its panel is lit from', () => {
   }
 });
 
-test('[ and ] frame the next and previous view; walking lets the camera go; \\ cycles the comparison', () => {
-  const { level } = refs();
+test('[ and ] frame the next and previous view; walking lets the camera go; \\ cycles the comparison', async () => {
+  const { level, gone } = await refs();
   const player = walker(), camera = new THREE.PerspectiveCamera(55, 1260 / 800, 0.3, 5000);
   const rig = { yaw: 0, pitch: 0.2, _lastMouse: 0, target: new THREE.Vector3() };
   const step = (n = 2) => { for (let i = 0; i < n; i++) level.update(1 / 60, i / 60, { player, camera, rig }); };
@@ -83,14 +96,21 @@ test('[ and ] frame the next and previous view; walking lets the camera go; \\ c
   assert.ok(camera.position.distanceTo(level.views[0].eye) < 1e-6 && player.hidden, 'the camera is the panel\'s, the traveller hidden');
   level.jump(1); step();
   assert.equal(level.held, level.views[1]);
-  level.jump(-1); level.update(1 / 60, 0, { player, camera, rig }); level.jump(-1); step();
-  assert.equal(level.held, level.views[level.views.length - 1], 'round from the first to the last');
+  level.jump(-1); step();
+  assert.equal(level.held, level.views[0]);
   player.pos.x += 2; step();
   assert.equal(level.held, null, 'walking: the camera is yours');
   assert.ok(!player.hidden && camera.fov === 55, 'the traveller back, the usual field of view');
   level.jump(1); step();
-  assert.equal(level.held, level.views[0], 'a switch frames the panel again');
+  assert.equal(level.held, level.views[1], 'a switch frames the panel again');
   assert.deepEqual([level.compare(), level.compare(), level.compare(), level.compare()], ['corner', 'overlay', 'half', 'off']);
+  // the world's last view, then past it: the page goes to the next world's first (the world here goes with it)
+  level.goTo(level.views.length - 1); step();
+  assert.equal(level.held, level.views[level.views.length - 1]);
+  assert.deepEqual(gone, [], 'still here');
+  level.jump(1); step();
+  assert.deepEqual(level.leaving, { k: 1, local: 0 });
+  assert.deepEqual(gone, ['?level=references&world=shaft&view=1'], 'to the City-Shaft\'s first view');
 });
 
 test('the frame on screen keeps the panel\'s proportions; the crop is drawn from the sheet', () => {
@@ -99,25 +119,31 @@ test('the frame on screen keeps the panel\'s proportions; the crop is drawn from
   assert.ok(tall.w === 800 && tall.fov > 40, 'narrower than the panel: a wider field of view keeps its width');
   const c = viewCamera({ eye: [0, 2, 0], yaw: 0, fov: 40, horizon: 0.5 });
   assert.ok(Math.abs(c.pitch) < 1e-9 && c.target.z < 0, 'the horizon in the middle: looking level, down -z');
-  const css = cropStyle(REFERENCE_VIEWS[0], 463, 294);
+  const css = cropStyle(REFERENCE_VIEWS[0], 463, 294, REFERENCE_SHEETS);
   assert.match(css.backgroundImage, /IMG_3775\.JPG/);
   assert.equal(css.backgroundSize, '1024px 1024px');
   assert.equal(css.backgroundPosition, '-42px -44px');
 });
 
-test('the panels\' figures stand on their view\'s ground, in their own clothes', () => {
-  const { level } = refs();
-  const people = CONTENT.references.npcs;
-  assert.ok(people.length >= 4);
-  for (const p of people) {
-    const v = level.viewAt(p.at[0], p.at[1]);
-    assert.ok(v, 'in a view');
-    assert.ok(Math.abs(level.ground.heightAt(p.at[0], p.at[1]) - p.y) < 0.05, 'on the ground');
-    assert.ok(p.lines.every((l) => /^~\w+~ /.test(l)), 'every line has a tone');
+test('the panels\' figures stand on their view\'s ground, in their own clothes: the people of the world built', async () => {
+  for (const { level } of await allWorlds()) {
+    const people = worldPeople(level.world);
+    assert.equal(people.length, level.views.reduce((n, v) => n + (v.def.people?.length ?? 0), 0), `${level.world.id}: its panels' people`);
+    for (const p of people) {
+      const v = level.viewAt(p.at[0], p.at[1]);
+      assert.ok(v, 'in a view');
+      assert.ok(Math.abs(level.ground.heightAt(p.at[0], p.at[1]) - p.y) < 0.05, 'on the ground');
+      assert.ok(p.lines.every((l) => /^~\w+~ /.test(l)), 'every line has a tone');
+    }
   }
+  // the level's people (content.js) are the world it built last, no other world's
+  built.delete('desert');
+  const { level } = await refs('desert');
+  assert.deepEqual(CONTENT.references.npcs, worldPeople(level.world));
+  assert.ok(CONTENT.references.npcs.length >= 4);
 });
 
-test('the other desert sheets: IMG_3772, 3773 and 3774 panel by panel, after IMG_3775, in order', () => {
+test('the other desert sheets: IMG_3772, 3773 and 3774 panel by panel, after IMG_3775, in order', async () => {
   const counts = { IMG_3775: 6, IMG_3772: 6, IMG_3773: 8, IMG_3774: 7 };
   for (const [s, n] of Object.entries(counts)) {
     const views = REFERENCE_VIEWS.filter((v) => v.sheet === s);
@@ -133,8 +159,9 @@ test('the other desert sheets: IMG_3772, 3773 and 3774 panel by panel, after IMG
   // [ ] cycles through all of them, sheet after sheet
   assert.deepEqual([...new Set(REFERENCE_VIEWS.map((v) => v.sheet))].slice(0, 4), ['IMG_3775', 'IMG_3772', 'IMG_3773', 'IMG_3774']);
   assert.equal(new Set(REFERENCE_VIEWS.map((v) => v.id)).size, REFERENCE_VIEWS.length, 'every view its own id');
-  const { level } = refs();
+  const { level } = await refs('desert');
   assert.equal(level.views.filter((v) => REFERENCE_SHEETS[v.def.sheet].name.startsWith('The Desert')).length, 27);
+  assert.equal(level.views.length, 27, 'the desert\'s views alone');
 });
 
 test('the City-Shaft\'s sheets after the desert\'s, grouped by world, each panel on its sheet', () => {
@@ -179,7 +206,7 @@ test('Vael II\'s sheets after the City-Shaft\'s, panel by panel, framed and labe
   // the sheets' look: shade printed flat, no bounce under the caps, a clean sky
   for (const v of vael) assert.ok(v.look.uShadowFlat > 0.5 && v.look.uBounce === 0 && v.look.uCumulus === 0, `${v.id}: the sheets' print`);
   // its views build (the scene builder's pieces: needles, tables, stones, islands, monasteries, aqueducts, cloud, the tower, the bird)
-  const { level } = refs();
+  const { level } = await refs('vael2');
   for (const v of level.views.filter((x) => vael.includes(x.def))) assert.ok(v.group.children.length > 1, `${v.def.id}: something stands in it`);
   const { WORLD_LOOKS } = await import('../src/levels/references.js');
   const { SKY_STONES_LOOK, SKY_STONES_DAY } = await import('../src/levels/arzach2.js');
@@ -188,8 +215,8 @@ test('Vael II\'s sheets after the City-Shaft\'s, panel by panel, framed and labe
   assert.ok(WORLD_LOOKS.desert, '?look=desert still');
 });
 
-test('Vael II\'s birds: one on the ground stands on its feet, wings folded; one in flight is well clear of the ground', () => {
-  const { level } = refs();
+test('Vael II\'s birds: one on the ground stands on its feet, wings folded; one in flight is well clear of the ground', async () => {
+  const { level } = await refs('vael2');
   const birds = [];
   for (const v of level.views.filter((x) => x.def.sheet?.startsWith('IMG_378'))) v.group.traverse((o) => { if (o.userData.bird) birds.push({ id: v.def.id, ...o.userData.bird }); });
   assert.ok(birds.filter((b) => !b.fly).length >= 2 && birds.filter((b) => b.fly).length >= 1, JSON.stringify(birds));
@@ -216,7 +243,7 @@ test('the Buried Machine\'s sheets after Vael II\'s, panel by panel, framed and 
   const buried = REFERENCE_VIEWS.filter((v, i) => world[i] === 'The Buried Machine');
   assert.equal(buried.length, 22);
   for (const v of buried) assert.ok(v.look.uSpot[0] > 0 && v.look.uSpot[3] > 0.3, `${v.id}: the sheets' spot blacks and dark cast shadows`);
-  const { level } = refs();
+  const { level } = await refs('buried');
   for (const v of level.views.filter((x) => buried.includes(x.def))) assert.ok(v.group.children.length > 1, `${v.def.id}: something stands in it`);
   const { WORLD_LOOKS } = await import('../src/levels/references.js');
   assert.ok(WORLD_LOOKS.buried.look.uSpot, '?look=buried');
@@ -241,7 +268,7 @@ test('the Garden of Spheres\' sheets after the Buried Machine\'s, panel by panel
   const { SPHERES_LOOK } = await import('../src/levels/spheres.js');
   assert.ok(SPHERES_LOOK.uBounce === 0 && SPHERES_LOOK.uSpotTone[1] > SPHERES_LOOK.uSpotTone[0], 'dark canopy undersides, green spot blacks');
   for (const v of garden) assert.equal(v.look.uSpotTone, SPHERES_LOOK.uSpotTone, `${v.id}: the world's look`);
-  const { level } = refs();
+  const { level } = await refs('spheres');
   for (const v of level.views.filter((x) => garden.includes(x.def))) assert.ok(v.group.children.length > 1, `${v.def.id}: something stands in it`);
   const { WORLD_LOOKS } = await import('../src/levels/references.js');
   assert.ok(WORLD_LOOKS.spheres, '?look=spheres');
@@ -262,7 +289,7 @@ test('Lorn II\'s sheets after the Garden of Spheres\', panel by panel, named for
   const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
   assert.deepEqual([...new Set(world)].slice(0, 6), ['The Desert', 'The City-Shaft', 'Vael II, the Sky Stones', 'The Buried Machine', 'The Garden of Spheres', 'Lorn II']);
   assert.equal(world.filter((w) => w === 'Lorn II').length, 23);
-  const { level } = refs();
+  const { level } = await refs('lorn');
   assert.ok(level.lights.length > 20, 'the views\' glowing eggs, pools and doors light what is near');
   for (const l of level.lights) assert.ok(level.viewAt(l.x, l.z), 'each light in its own view (turned with it)');
   const { WORLD_LOOKS } = await import('../src/levels/references.js');

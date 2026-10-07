@@ -909,3 +909,6 @@ export const BURIED_VIEWS = [
     },
   }),
 ];
+
+/** The world's sheets and views (the registry, reference-worlds.js, loads them by these names). */
+export { BURIED_SHEETS as SHEETS, BURIED_VIEWS as VIEWS };

@@ -75,7 +75,7 @@ async function capture(shots) {
         localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'items.v': 2 }, keepsakes: [] }));
         localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'high', showFps: false, music: 0, effects: 0, voices: 0 }));
       });
-      await page.goto(`${BASE}?level=references&view=1`, { waitUntil: 'load' });
+      await page.goto(`${BASE}?level=references&view=${encodeURIComponent(shot.view)}`, { waitUntil: 'load' });   // (a number or a view's id: the level opens on its world)
       await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame && window.player && window.level?.held, null, { timeout: 300000, polling: 200 });
       const n = await page.evaluate(({ view, rs }) => {
         window.sound?.setVolumes?.(0, 0);
@@ -85,7 +85,7 @@ async function capture(shots) {
         hide.textContent = 'body > *:not(canvas) { visibility: hidden !important; } canvas { visibility: visible !important; }';
         document.head.appendChild(hide);
         for (const p of window.npcs) { p.hide(); p.show = () => {}; p.cape?.mesh.removeFromParent(); }
-        const i = /^\d+$/.test(view) ? Number(view) - 1 : window.level.views.findIndex((v) => v.def.id === view);
+        const i = /^\d+$/.test(view) ? Number(view) - 1 : window.level.views.find((v) => v.def.id === view)?.i ?? -1;   // (level.views: the world built; v.i its number)
         if (i < 0) throw new Error(`no view ${view}`);
         window.level.goTo(i);
         return i + 1;

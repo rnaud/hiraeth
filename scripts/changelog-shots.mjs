@@ -142,7 +142,8 @@ async function shoot(c, base, v, file) {
   await c.send('Page.navigate', { url: `${base}manifest.webmanifest` }); await sleep(300);
   await c.ev(`${storage(v)}; true`);
   const page = v.page ?? '';
-  const query = v.ref ? `?level=references&view=1${v.query ? `&${v.query}` : ''}` : v.level ? `?level=${v.level}${v.query ? `&${v.query}` : ''}` : (v.query ? `?${v.query}` : '');
+  // (a References view: opened by its id, so the level builds its world; a commit from before the worlds were split builds them all)
+  const query = v.ref ? `?level=references&view=${encodeURIComponent(v.ref)}${v.query ? `&${v.query}` : ''}` : v.level ? `?level=${v.level}${v.query ? `&${v.query}` : ''}` : (v.query ? `?${v.query}` : '');
   if (page.startsWith('studio')) await c.send('Emulation.setDeviceMetricsOverride', { width: w + 340, height: h, deviceScaleFactor: 1, mobile: false });   // (the studio's panel beside the view)
   c.errors.length = 0;
   await c.send('Page.navigate', { url: `${base}${page}${query}` });
@@ -154,7 +155,7 @@ async function shoot(c, base, v, file) {
   if (!page) await c.ev(CONDITIONS(v));
   else if (page.startsWith('studio')) { v.clipTo ??= '#view'; await c.ev(`(() => { for (const e of document.querySelectorAll('#view > :not(canvas)')) e.style.visibility = 'hidden'; return true; })()`); }
   if (v.ref) {
-    await c.ev(`(() => { const i = window.level.views.findIndex((x) => x.def.id === ${JSON.stringify(v.ref)}); if (i < 0) throw new Error('no view ${v.ref}'); window.level.goTo(i); return i; })()`);
+    await c.ev(`(() => { const v = window.level.views.find((x) => x.def.id === ${JSON.stringify(v.ref)}); if (!v) throw new Error('no view ${v.ref}'); window.level.goTo(v.i); return v.i; })()`);
     await sleep(3500);
   }
   if (v.setup) await c.ev(`(async () => { ${v.setup} ; return true; })()`);

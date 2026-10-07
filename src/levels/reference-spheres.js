@@ -741,3 +741,6 @@ export const GARDEN_VIEWS = [
     },
   }),
 ];
+
+/** The world's sheets and views (the registry, reference-worlds.js, loads them by these names). */
+export { GARDEN_SHEETS as SHEETS, GARDEN_VIEWS as VIEWS };
