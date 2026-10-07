@@ -1240,6 +1240,13 @@ export class Player {
         const d = v.solid;
         const dx = this.pos.x - d.pos.x, dz = this.pos.z - d.pos.z, hd = Math.hypot(dx, dz);
         if (hd > d.r + RADIUS) continue;
+        if (d.topAt) {
+          // (a shaped solid, src/carriers.js: a cab's hull and canopy, a ball's dome)
+          const above = this.pos.y - (hd <= d.r ? d.topAt(this.pos.x, this.pos.z) : -Infinity);
+          if (above > -0.5 && above < 0.9 && this.vel.y - d.vel.y <= 0.5) { if (above < roofH) { roofH = above; carrier = d; } }
+          else if (this.pos.y + HEIGHT > d.bottom) d.pushOut?.(this.pos, RADIUS);
+          continue;
+        }
         const above = this.pos.y - d.top;
         if (above > -0.5 && above < 0.9 && this.vel.y - d.vel.y <= 0.5) {
           if (above < roofH) { roofH = above; carrier = d; }

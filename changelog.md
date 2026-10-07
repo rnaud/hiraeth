@@ -20,6 +20,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.
 - The floor of the Buried Machine’s rust canyon no longer has long straight bands of sand running across it: the sand banks against the canyon’s walls along their foot, where it belongs.
 - Climbing a wall where sand is banked against its foot, you take hold standing on the bank: your hands and knees no longer go into the sand, and climbing down you step off onto it.
+- Cabs are solid just as they are drawn: you stand on a parked cab’s nose, tail or striped canopy where they are, instead of on an invisible lid at the canopy’s height, and walking up to one you stop at its side rather than a step away from it. The rolling stone balls in the temples are round underfoot too.
 
 ## v0.76 — 2026-10-07
 

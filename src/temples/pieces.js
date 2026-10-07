@@ -202,7 +202,20 @@ export class Ball {
     this.spin.add(mesh([T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, 0, 0]), T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, Math.PI / 2, 0])], this.glow));
     noCollide(this.group);
     this.center = V();
-    this.solid = { pos: V(), r: this.r * 0.95, top: 0, bottom: 0, vel: V() };
+    // (round, src/carriers.js: its top a dome, where a disc at its crest had you stand on air at its sides)
+    this.solid = {
+      pos: V(), r: this.r, top: 0, bottom: 0, vel: V(),
+      // (its two glowing bands stand 0.06 m proud of the stone: the dome a little over the stone, between them)
+      // (out to 0.92 of its radius: past that it is too steep to stand on, and its faceted side parts from a true sphere)
+      topAt: (x, z) => { const R = this.r + 0.03, d2 = (x - this.center.x) ** 2 + (z - this.center.z) ** 2; return d2 < (0.92 * R) ** 2 ? this.center.y + Math.sqrt(R * R - d2) : -Infinity; },
+      pushOut: (p, rc) => {
+        const dx = p.x - this.center.x, dz = p.z - this.center.z, d = Math.hypot(dx, dz), R = this.r + rc;
+        // (beside it, below its crest by more than a step: out round it; higher up you stand on it)
+        if (d >= R || d < 1e-4 || p.y > this.center.y + Math.sqrt(Math.max(0, this.r * this.r - Math.min(d, this.r) ** 2)) - 0.5) return false;
+        p.x = this.center.x + (dx / d) * R; p.z = this.center.z + (dz / d) * R;
+        return true;
+      },
+    };
     this.place();
     this.off = registerTarget({
       kind: 'ball', radius: this.r + 0.15, position: () => this.center,

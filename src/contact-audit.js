@@ -286,14 +286,19 @@ export function auditContact({ physics, scene, solids = [], exclude = [], tol = 
     if (!d || !objs.length || !Number.isFinite(d.top)) continue;
     checked.carrier++;
     const name = v.id ?? v.constructor?.name ?? 'moving solid';
-    // (round the middle; a level disc, a riding floor, out to its rim: a car's roof or a ball is only a disc in the middle)
-    const rings = d.flat ? [0.45, 0.93] : [0.35];
-    for (const [f, a] of [[0, 0], ...rings.flatMap((f) => Array.from({ length: 8 }, (_, i) => [f, (i / 8) * Math.PI * 2]))]) {
-      _o.set(d.pos.x + Math.cos(a) * d.r * f, d.top + 1.5, d.pos.z + Math.sin(a) * d.r * f);
-      rc.set(_o, DOWN); rc.far = 3;
+    // (round the middle; a level disc, a riding floor, out to its rim: a car's roof or a ball is only a disc in the
+    // middle; a shaped solid, d.topAt, a cab's hull and canopy or a ball's dome: over a grid across it)
+    const at = d.topAt
+      ? Array.from({ length: 81 }, (_, i) => [((i % 9) / 4 - 1) * d.r * 0.95, (Math.floor(i / 9) / 4 - 1) * d.r * 0.95])
+      : [[0, 0], ...(d.flat ? [0.45, 0.93] : [0.35]).flatMap((f) => Array.from({ length: 8 }, (_, i) => [Math.cos((i / 8) * Math.PI * 2) * d.r * f, Math.sin((i / 8) * Math.PI * 2) * d.r * f]))];
+    for (const [ox, oz] of at) {
+      const x = d.pos.x + ox, z = d.pos.z + oz, top = d.topAt ? d.topAt(x, z) : d.top;
+      if (!Number.isFinite(top)) continue;
+      _o.set(x, d.top + 1.5, z);
+      rc.set(_o, DOWN); rc.far = d.top + 1.5 - top + 1.5;
       const hit = rc.intersectObjects(objs, true).find((h) => h.object.isMesh && shown(h.object));
       if (!hit) continue;
-      const dy = hit.point.y - d.top;
+      const dy = hit.point.y - top;
       if (dy > tol) flag('carrier sinks', name, hit.point, dy);
       else if (dy < -tol) flag('carrier hovers', name, hit.point, -dy);
     }

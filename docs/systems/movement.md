@@ -109,8 +109,8 @@ Left for later, with the reason (the third pass, below, settled all but the taxi
 - ~~**The cross-walls' opening rims**~~ are solid, their passages kept clear of sand (below).
 - ~~**Lorn II's bank roots and whip roots**~~ are solid as drawn (below).
 - ~~**The Garden's olive and cypress trunks**~~ collide as drawn (below).
-- **Taxi roofs and the guardians' balls**: a car's roof and a ball are a disc only in the middle. A taxi's
-  solid top is its awning's crest, 1.4 m over the cab in the middle, so a character standing on one floats.
+- ~~**Taxi roofs and the guardians' balls**~~ have their own shapes (below). The guardians themselves stay
+  upright cylinders: they rear, lunge and swim, and nobody stands on one.
 - ~~**The temple rotunda's oculus trim** and **the gates of Jaws**~~: the trim is solid over its ceiling, the
   jaws snap as moving colliders (below).
 - ~~**The sand skirts**~~ collide where they are drawn over the ground (below).
@@ -193,6 +193,21 @@ collider (a door, the wheel) whose box is nowhere near the capsule (`shapecast`'
   and in `tests/sand-drifts.test.js` on a bent wall). The canyon floor's sand over 10 cm 133 → 40 of 3 502 samples
   (what is left banks against the machinery standing on the floor); the desert's largest footprint 167 → 49 m
   round, skirts +17 k drawn triangles there (70 → 87 k), the Buried Machine's +13 k, Vael's +8 k.
+
+**Shaped moving solids.** A moving solid was a disc: `{ pos, r, top, bottom }`, its top level out to `r`. A cab's
+top was its canopy's crest all round (you stood 1.4 m over its nose) and a rolling ball's its crown (on air at its
+sides). A solid may now say its own shape: `topAt(x, z)` (its top there, or -Infinity off it) and `pushOut(p, r)`
+(a character beside it moved out of it), with `r` the radius it all fits in; `src/carriers.js` `solidTop` reads
+either kind for the feet, `Player.moveStep` for the body, the audit over a grid across it.
+- *A cab* (`src/taxi.js`): its top is the drawn cab's own, a grid of rays straight down the built model taken once
+  (`cabTop`: hull, canopy, sign, windscreen, fins and wings; not the lamps, the seat or a passenger), read in the
+  cab's frame as it is posed and found again along the vertical when it banks; beside it you are pushed out of an
+  ellipse round its hull, not a cylinder 1.45 of its lengths round. The seated rider is the vehicle's own and is
+  never pushed. The City-Shaft's 85 cabs: carrier mismatches 660 of ~1 400 samples → ~200 of ~6 900 (what is left
+  is the canopy's and the hull's edges, within a grid cell).
+- *A rolling ball* (`src/temples/pieces.js`): a dome 3 cm over the stone (its glowing bands), out to 0.92 of its
+  radius (past that too steep to stand on); beside it, out round it below its crest.
+(`tests/shaped-solids.test.js`.)
 
 ## Mounts come to you
 
