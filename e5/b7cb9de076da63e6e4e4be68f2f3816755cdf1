@@ -1,0 +1,107 @@
+TODO.md
+  s_55b4bc53b812ec::t_6f23398b1dbef4 37,41-49,51-57,61-68,212-238
+changelog.md
+  s_55b4bc53b812ec::t_285a2b64013ba3 12-17
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_74273c0a6f6d79 34-36,506-572,641-642
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_c778ee04da76b2 107-111,114-183
+engine/game.js
+  s_55b4bc53b812ec::t_3af061649421bf 22-23,28-30,47,59,78-113,124-125,127,138-140,142-143,163-178,184-185,224-226,229,231-234,249-256,362,386-387,426-434,447-448,460-462,472-475,483,496-501
+engine/ink-spec.js
+  s_55b4bc53b812ec::t_2ce7a89ffdde04 42
+engine/mirror.js
+  s_55b4bc53b812ec::t_8ecc9f20a9f784 15-16,19-27,84,117-142,146,159,173,201,223-243,320-322,336,342-343
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_052b4cb5757035 57-58,70-77,124-142,156-199,211-212,215-216,219
+engine/unity/game.js
+  s_55b4bc53b812ec::t_e899a28661e281 50-52,77-84,162-173
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_f86e8935b8a5a3 30-31,50-51,77-78,80-85,100
+engine/unity/port-format.js
+  s_55b4bc53b812ec::t_a4be871a8f1d8f 22-25,44-50
+scripts/bench/deck-run.sh
+  s_55b4bc53b812ec::t_884a462a312848 1-33
+scripts/bench/deck-worlds.mjs
+  s_55b4bc53b812ec::t_980cf003522581 1-175
+scripts/contact-report.mjs
+  s_55b4bc53b812ec::t_48211c4f9f70ad 17-21,24-33,38-44
+src/carriers.js
+  s_55b4bc53b812ec::t_eb29111fa8693b 2,44-54
+src/changelog.js
+  s_55b4bc53b812ec::t_6025f068870e32 16-21
+src/contact-audit.js
+  s_55b4bc53b812ec::t_77e707a7d34572 108-109
+src/levels/buried.js
+  s_55b4bc53b812ec::t_6d46d028e348da 54-67,373-374,507-509,516,818,867-870,990-993,1028,1042-1043
+src/levels/perdide2.js
+  s_55b4bc53b812ec::t_1fe7e2aee5338a 534,541,556-559,734-735
+src/levels/spheres.js
+  s_55b4bc53b812ec::t_35055005a37d27 738-739,755,798-799,801,811
+src/main.js
+  s_55b4bc53b812ec::t_00d2782d690889 1365
+src/physics.js
+  s_55b4bc53b812ec::t_47820287b514d2 2,126,131-180,189,196-197,213,222,264,375-391,393-400,407-411,417,424-428,433-447
+src/player.js
+  s_55b4bc53b812ec::t_f41bd3103fd6ad 15,1257-1258,1610-1611
+src/sand-drifts.js
+  s_55b4bc53b812ec::t_845bb5b1d0343a 212-220,223-267,427
+src/temples/kit.js
+  s_55b4bc53b812ec::t_2e5d6af03c07d0 237-240
+src/temples/pieces.js
+  s_55b4bc53b812ec::t_9f19fe054f548c 540-545,560-567,583-588,604
+tests/buried.test.js
+  s_55b4bc53b812ec::t_590ee236274508 4,6-8,13,80-81,90-93,101,121-234
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_e18216ad038a28 107-114,116-118,121-125,146-147
+tests/engine-bridge.test.js
+  s_55b4bc53b812ec::t_fa34be410c1a9b 181-256,401-402
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_8bf5d5e21b9430 75-128,186
+tests/mover.test.js
+  s_55b4bc53b812ec::t_9d544e26bb6b21 1-66
+tests/perdide2.test.js
+  s_55b4bc53b812ec::t_b23f6b1fc212e6 80-107
+tests/sand-drifts.test.js
+  s_55b4bc53b812ec::t_09f27333724cc0 170-198
+tests/spheres.test.js
+  s_55b4bc53b812ec::t_c96b004e36ee75 97-126
+tests/temples.test.js
+  s_55b4bc53b812ec::t_a8abb23dc51c31 29,338,453,683,768,864,938-988,997,1098,1256,1370,1414-1417
+unity/Memento/Assets/Memento/Runtime/Grass.cs
+  s_55b4bc53b812ec::t_2be221b7426f7f 144-148
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_55b4bc53b812ec::t_95a0d79687845e 111-130,176-178,193-210
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_55b4bc53b812ec::t_e535c7f0841aa8 181-193
+unity/Memento/Assets/Memento/Shaders/Bloom.shader
+  s_55b4bc53b812ec::t_3ec48ab81a0f93 41
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_55b4bc53b812ec::t_83dec9ef0059d9 9,50-55,99,118-122,126-131,136,150-151,157-173,196-198,203-243,340,344-346,351,382-393,422,426-443,446-447,451,456,463-472,480-481,483,485-486,497,499,505-508,510,513,517-518,521-524,528-531,538-540,542-556,561,563-568,577,581-592,595,598,600,604-605,607-609,612-628,630-643,648,652-654,656,659-666,709
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl
+  s_55b4bc53b812ec::t_6698e1ff3dc6a3 1-359
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl.meta
+  s_55b4bc53b812ec::t_e8104514c4ad92 1-7
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_55b4bc53b812ec::t_0c1f363bd7b804 37-46,57,70-72,201-204,227,269,271-272,275-284,286,288,290,294,303,307,309,311,555-564,614-620,622,625,629-659,662-678,683-684,688-693,695,717,723,736-737,739-748,778,782-786,788-789,808-826
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_bdcf7a20675dda 39-45
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_6c18c576cb9bd2 35-36,47-52,165-170,208,214-225,256-257,418-419,427,450-513,517,634-642,657
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e5b7cb9de076da63e6e4e4be68f2f3816755cdf1",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
