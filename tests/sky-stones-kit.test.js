@@ -80,3 +80,16 @@ test('the crevasses’ walls: red-brown, never spot black, hatched down in light
   assert.equal(shadeOf(o)[3], CREVASSE.strokes);
   assert.match(makeMaterial(o).fragmentShader, /a steep face of the ground in light/);
 });
+
+test('Vael II: the shadow keeps the day’s grey-teal at dusk and at night, and the views hang no planets', async () => {
+  const { SKY_STONES_DAY, SKY_STONES_DUSK, SKY_STONES_NIGHT } = await import('../src/levels/arzach2.js');
+  const hue = (h) => { const c = new THREE.Color(h), o = {}; c.getHSL(o); return o; };
+  const day = hue(SKY_STONES_DAY[2]);
+  for (const [name, s] of [['dusk', SKY_STONES_DUSK], ['night', SKY_STONES_NIGHT]]) {
+    const h = hue(s[2]);
+    assert.ok(Math.abs(h.h - day.h) < 0.12, `${name}'s shadow in the day's grey-teal (hue ${h.h.toFixed(2)} vs ${day.h.toFixed(2)}), not the old violet`);
+  }
+  // (the References level's views carry their own sky and no planets; the world keeps its own)
+  const src = (await import('node:fs')).readFileSync(new URL('../src/levels/references.js', import.meta.url), 'utf8');
+  assert.match(src, /planets: \[\], hour/);
+});

@@ -141,6 +141,11 @@ and bird too).
   fixed vertex tones, lit from one side whatever the hour, and self-lit; they now take the real sun with the print's
   flat shade (`shadeFlat` 1, lifted 0.55): a warm white in light, one pale grey-blue in shade, no strokes, no spot
   black. The views' clouds share it.
+- **The shadow's grey-teal at every hour** (round 3; `SKY_STONES_DUSK`, `SKY_STONES_NIGHT` in arzach2.js): dusk's and
+  night's colour scripts kept the print preset's old violet-blue shadow (`#8f88b8`, `#383650`); they now take the
+  day's grey-teal, a touch warmer at dusk (`#9a9fae`) and deeper at night (`#3a4752`).
+- **No planets in the views**: the References level's zones carry `planets: []` (references.js), so the views hang
+  none, as the sheets draw none; the world keeps its two. (Checked in round 3: nothing to change; a test holds it.)
 - **Cost** (M4 Pro, 1280 × 720, Vael II at spawn and turned, GPU median): High 11.4 → 8.6 and 9.5 →
   6.8 ms (the flat clouds gone), Handheld 2.1 → 2.0 and 1.6 → 1.5; the shader changes are a few
   selects, no new taps.

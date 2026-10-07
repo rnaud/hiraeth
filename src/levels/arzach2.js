@@ -35,6 +35,9 @@ export const CREVASSE = { wall: '#c0664a', strokes: 1 };   // (strokes: the lit 
 /** The sea of cloud's print: its shade a flat pale grey-blue (lifted, the look's own flat print), no strokes, no spot black. */
 export const CLOUD_PRINT = { shade: 0.55, shadeFlat: 1, hatch: 0, spot: 0 };
 export const SKY_STONES_DAY = ['#a3d0d2', '#f4cdb0', '#93a6ac', '#fff7ec', '#fff2dc'];
+/** Dusk's and night's colours, their shadow the day's grey-teal (warmer at dusk, deeper at night), not the old violet. */
+export const SKY_STONES_DUSK = ['#f2ae8c', '#f6c4a0', '#9a9fae', '#ffd9bc', '#ffe2c0'];
+export const SKY_STONES_NIGHT = ['#262a3c', '#4a4a5e', '#3a4752', '#a8a8c0', '#f2f0e6'];
 
 // ---------------------------------------------------------------- layout
 const CLOUD_Y = -36;          // the cloud deck; below UNSAFE_Y you are put back
@@ -821,8 +824,10 @@ export function* buildArzach2(scene) {
       // aqua sky over a peach horizon; shadows go one grey-blue, as in the sheets (printed flat: PRINT)
       script: {
         day: SKY_STONES_DAY,
-        dusk: ['#f2ae8c', '#f6c4a0', '#8f88b8', '#ffd9bc', '#ffe2c0'],
-        night: ['#262a3c', '#4a4a5e', '#383650', '#a8a8c0', '#f2f0e6'],
+        // (the shadow the day's grey-teal at every hour, as the sheets print it, a touch warmer at dusk and deeper at
+        //  night: the old violet-blue of the print preset stayed in these two: SKY_STONES_DUSK, SKY_STONES_NIGHT)
+        dusk: SKY_STONES_DUSK,
+        night: SKY_STONES_NIGHT,
       },
       planets: [{ az: 200, el: 26, size: 6.5, color: '#f3ead8', craters: false }, { az: 222, el: 18, size: 2.2, color: '#e9c8b4', craters: false }],
     },
