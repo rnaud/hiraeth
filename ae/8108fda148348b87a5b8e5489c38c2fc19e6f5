@@ -1,0 +1,121 @@
+changelog.md
+  s_55b4bc53b812ec::t_2650ec9d9b84fe 5,12-28,32-34
+docs/motion-data.md
+  s_55b4bc53b812ec::t_19a3cba4b74a87 10
+docs/systems/controls.md
+  s_55b4bc53b812ec::t_07f4cc123c15a5 14,21,42-47
+docs/systems/foes.md
+  s_55b4bc53b812ec::t_d1a49b5d30bf4a 20-26,63-67,70-140,143,145,159-161
+docs/systems/story.md
+  s_55b4bc53b812ec::t_abc55e9a37d792 131
+index.html
+  s_55b4bc53b812ec::t_e2508ced94f0da 398-399,403,412-413
+scripts/mocap/mixamo-clips.json
+  s_55b4bc53b812ec::t_a9e95cb75bd0a7 97,99-104
+src/audio.js
+  s_55b4bc53b812ec::t_ef72b0bf920445 1214-1221
+src/changelog-media.js
+  s_55b4bc53b812ec::t_ec0670f81fe012 120,155-178,231-235
+src/changelog.js
+  s_55b4bc53b812ec::t_e1b429c1278681 12,18-33,47-49
+src/characters/traveller-v1.js
+  s_55b4bc53b812ec::t_d9ecaac61df857 10,53
+src/characters/tripo-face.js
+  s_55b4bc53b812ec::t_1f566fd7c5e323 9-10,28,50,62,73,76,103-109,116-121,126-127,169,173,175,207-215,246
+src/characters/tripo-hair.js
+  s_55b4bc53b812ec::t_c2761ad31e843c 1-75
+src/controller.js
+  s_55b4bc53b812ec::t_7405d2a32ef398 51-52,106-107,134-137,145,148
+src/expression.js
+  s_55b4bc53b812ec::t_d74beee4751e41 21,24,30,34,46-55
+src/feel.js
+  s_55b4bc53b812ec::t_99274a206445e6 1-35
+src/fluid-blade.js
+  s_55b4bc53b812ec::t_da146ec7b6ee97 4-5,16-20,22-23,50-62,80-81,92,110-143,148-149,153-154,161,189-211,214-227,234-236,241,254-256,262,289,296
+src/fluid-kit.js
+  s_55b4bc53b812ec::t_a72edafd406ce6 11-12,19-20,26
+src/fluid-tool.js
+  s_55b4bc53b812ec::t_9131aceca1f22b 64,100-101,107,112,305,926-927,931,967
+src/foes.js
+  s_55b4bc53b812ec::t_a0da0147d5e44b 6-7,38-61,69-80,82,84,86-93,108,111,120-121,137-144,148-149,158-160,162,185-191,223-225,228,241-245,257,273-288,292-293,295,297,299-319,326-327,336-337,341-346,349-393,395,414,416-418,427,455,465,472-487,505-533,555,557-558,572,576,578,584-585,590,600-647,653-660,665,667,684-687,689-700,704,708,716
+src/ink.js
+  s_55b4bc53b812ec::t_5b031b12ac95f2 1-36
+src/levels/arena.js
+  s_55b4bc53b812ec::t_1280cd8a01510c 6,10,19-21,49,60
+src/life.js
+  s_55b4bc53b812ec::t_b65844efed357d 229,235
+src/main.js
+  s_55b4bc53b812ec::t_9b35d87bab12c0 75,259,611-612,1017,1052-1054,1314,1340-1341,1388,1492-1498
+src/materials.js
+  s_55b4bc53b812ec::t_3daf24fb798879 1756,1821-1831,1913-1919,2636-2638,2751
+src/player.js
+  s_55b4bc53b812ec::t_d18c4e7fd12d83 64-65,764-766,2052-2055,2057
+src/shade.js
+  s_55b4bc53b812ec::t_de5fa75cf51990 1-105
+src/story/arzach2-data.js
+  s_55b4bc53b812ec::t_54d7c8aa0c1811 62,298
+src/story/arzach2.js
+  s_55b4bc53b812ec::t_7691cc583040a6 284
+src/story/bazaar-data.js
+  s_55b4bc53b812ec::t_157a6483c3cc50 347,374
+src/story/bazaar.js
+  s_55b4bc53b812ec::t_fd8b6064fe5574 158
+src/story/buried-data.js
+  s_55b4bc53b812ec::t_f92b00fc3b57db 50,366,392
+src/story/buried.js
+  s_55b4bc53b812ec::t_c6ad8b70dddc45 181
+src/story/desert-data.js
+  s_55b4bc53b812ec::t_ace44c518dd962 98,713,727,768
+src/story/desert-errands.js
+  s_55b4bc53b812ec::t_e760dd87d58069 137
+src/story/desert-spark.js
+  s_55b4bc53b812ec::t_1b9e97725cdaf7 57
+src/story/desert.js
+  s_55b4bc53b812ec::t_f18be4193fc552 332,484,539
+src/story/edena-data.js
+  s_55b4bc53b812ec::t_2715610f869711 70,73
+src/story/garage-data.js
+  s_55b4bc53b812ec::t_3a6093f1b73e97 55
+src/story/incal-data.js
+  s_55b4bc53b812ec::t_f36ed6863e3e08 57,67,585,604
+src/story/perdide2-data.js
+  s_55b4bc53b812ec::t_306c68c7389c58 52,60
+src/studio/main.js
+  s_55b4bc53b812ec::t_b69da36346d63f 7,15,119,121,148-149,154,160,328,330,358,427,429,451-452,551,639-640,909-910
+src/ui.js
+  s_55b4bc53b812ec::t_9dfafdc45cdac2 28,56,73,77,81,91,148,286-288
+tests/abilities.test.js
+  s_55b4bc53b812ec::t_8fc100cc9c083b 70,87,180,182,184-186,191,203,445,447
+tests/controller.test.js
+  s_55b4bc53b812ec::t_20b05312179e5f 31-32,79,89-90,118-123
+tests/fluid-tool.test.js
+  s_55b4bc53b812ec::t_b9e61b1c7ff825 52-53,74,76-77,81,84,101,123,143,160,288
+tests/foes.test.js
+  s_55b4bc53b812ec::t_86832056b6767e 170-328
+tests/moment.test.js
+  s_55b4bc53b812ec::t_5c1f705de7554c 231
+tests/push-fx.test.js
+  s_55b4bc53b812ec::t_7a8522d2fbef09 42-43,48
+tests/touch.test.js
+  s_55b4bc53b812ec::t_ec429b84ab766d 25-26
+tests/tripo-face.test.js
+  s_55b4bc53b812ec::t_322806eac46eb7 132-167
+unity/Memento/Assets/Memento/Shaders/TripoFace.hlsl
+  s_55b4bc53b812ec::t_88323ef4c9b549 20-26,32-38,43-44,86,90,92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ae8108fda148348b87a5b8e5489c38c2fc19e6f5",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

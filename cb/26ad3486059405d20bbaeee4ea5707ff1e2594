@@ -1,0 +1,23 @@
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_6e12eaf8ed74da 549-551
+src/changelog-media.js
+  s_55b4bc53b812ec::t_88257e9867369f 120-154
+src/dune-glass-shader.js
+  s_55b4bc53b812ec::t_06b47530f0e9c3 15,56-57,97-98,108-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cb26ad3486059405d20bbaeee4ea5707ff1e2594",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

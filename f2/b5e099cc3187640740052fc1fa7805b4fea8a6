@@ -1,0 +1,25 @@
+changelog.md
+  s_55b4bc53b812ec::t_e03916d1b68827 7
+docs/systems/references.md
+  s_55b4bc53b812ec::t_d8cff9553dceab 487-495
+src/changelog.js
+  s_55b4bc53b812ec::t_3d8902f73a7e64 16
+src/levels/reference-glassdunes.js
+  s_55b4bc53b812ec::t_db08eab09f4976 224-225,238-246,248,252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f2b5e099cc3187640740052fc1fa7805b4fea8a6",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
