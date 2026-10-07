@@ -1,0 +1,29 @@
+docs/systems/references.md
+  s_55b4bc53b812ec::t_73bb8988db1041 470-511
+src/levels/antennas-kit.js
+  s_55b4bc53b812ec::t_848e6fc8cc2732 1-356
+src/levels/reference-antennas.js
+  s_55b4bc53b812ec::t_e49d7b3e3ed5fa 1-531
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_59bd0fe3349850 30
+src/levels/references.js
+  s_55b4bc53b812ec::t_300d318748d034 15,198
+tests/antennas.test.js
+  s_55b4bc53b812ec::t_58eb46d68c5f91 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b4958f7ff6fed36c0abf0af20d0e31fd7d34b32",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
