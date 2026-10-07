@@ -1,0 +1,38 @@
+changelog.md
+  s_0a0e834cfcfe52::t_9f5dcdbf89d14c 7-8
+docs/systems/foes.md
+  s_0a0e834cfcfe52::t_dbdc8b260fdfbc 77-95
+scripts/mocap/mixamo-clips.json
+  s_0a0e834cfcfe52::t_5e6f6ed9f7a58d 102-104
+src/changelog-media.js
+  s_0a0e834cfcfe52::t_3a5736f97d1251 123-126
+src/changelog.js
+  s_0a0e834cfcfe52::t_41821af1bee57b 16-17
+src/fluid-blade.js
+  s_0a0e834cfcfe52::t_9125d77a17325e 5,50-54,158,230-232,250-252,285
+src/foes.js
+  s_0a0e834cfcfe52::t_21ad5738fa590a 6,50-51,255-260,343-358,398-399,413
+tests/foes.test.js
+  s_0a0e834cfcfe52::t_3d3eb1ca6f5f0f 222-254
+src/ink.js
+  s_0a0e834cfcfe52::t_d1cdf57de1309b 1-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5eff1b05f1685a08a2e47d699bc3b7731f9eadce",
+  "prompts": {},
+  "sessions": {
+    "s_0a0e834cfcfe52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ade28b2d-b826-430e-b2e2-c43a0ae93ce3",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
