@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 
-// Taxis: the people aboard are people-sized in a cab of any size, and a cab that comes when
-// you call it comes empty (the bench is yours).
+// Taxis: they drive themselves (nobody up front); a passenger aboard is people-sized in a cab of
+// any size, and a cab that comes when you call it comes empty (the seat is yours).
 
-const { Taxi, FIGURE_H, CAB_PASS, PASS_REFUSAL } = await import('../src/taxi.js');
+const { Taxi, FIGURE_H, SEAT, CAB_PASS, PASS_REFUSAL } = await import('../src/taxi.js');
 const { game } = await import('../src/game-state.js');
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const physics = { groundAt: () => 0, pushCapsule: () => false, rayDistance: () => Infinity };
@@ -19,27 +19,26 @@ function cabWithFare(scale, opts) {
 const height = (o) => { const b = new THREE.Box3().setFromObject(o); return b.max.y - b.min.y; };
 const shown = (o) => { let v = o.visible; o.traverseAncestors((a) => { v &&= a.visible; }); return v; };
 
-test('drivers and passengers are human-sized whatever the cab’s size', () => {
+test('nobody drives: a passenger is human-sized and seated inside the cab, in the seat you sit in, whatever its size', () => {
   Taxi.playerPos = V(0, 30, 10);
   for (const s of [1, 2, 2.3, 2.6]) {
     const t = cabWithFare(s);
     t.update(1 / 30, null, 0);
-    const { cabbie, pax } = t.parts;
-    assert.ok(cabbie && pax, 'a driver and a passenger');
-    // seat to crown about the traveller's own, seated (~0.9 m), hats and caps on top
-    for (const [who, o] of [['driver', cabbie], ['passenger', pax]]) {
-      const h = height(o);
-      assert.ok(h > FIGURE_H * 0.95 && h < FIGURE_H * 1.3, `${who} in a cab at scale ${s}: ${h.toFixed(2)} m seated`);
-    }
-    // the passenger sits on the bench, where you sit (seatTransform: your hips on it)
-    const bench = t.pos.y + 0.49 * s, feet = new THREE.Vector3(), q = new THREE.Quaternion();
+    const { pax, seat } = t.parts;
+    assert.ok(pax && seat, 'a passenger, in the seat');
+    assert.ok(!('cabbie' in t.parts), 'no driver');
+    // seat to crown about the traveller's own, seated (~0.9 m), a hat on top
+    const h = height(pax);
+    assert.ok(h > FIGURE_H * 0.95 && h < FIGURE_H * 1.3, `passenger in a cab at scale ${s}: ${h.toFixed(2)} m seated`);
+    // the passenger sits on the seat's cushion, where you sit (seatTransform: your hips on it)
+    const cushion = t.pos.y + SEAT.y * s, feet = new THREE.Vector3(), q = new THREE.Quaternion();
     t.seatTransform(feet, q);
     const paxBottom = new THREE.Box3().setFromObject(pax).min.y;
-    assert.ok(Math.abs(paxBottom - bench) < 0.05, `passenger on the bench (${paxBottom.toFixed(2)} vs ${bench.toFixed(2)})`);
-    assert.ok(Math.abs(feet.y + 0.9 - bench) < 1e-6, 'your hips on the same bench');
-    // the driver's head clears the cockpit's rim
-    const top = new THREE.Box3().setFromObject(cabbie).max.y;
-    assert.ok(top > t.pos.y + 0.54 * s + 0.15, `the driver shows over the windscreen at scale ${s}`);
+    assert.ok(Math.abs(paxBottom - cushion) < 0.05, `passenger on the cushion (${paxBottom.toFixed(2)} vs ${cushion.toFixed(2)})`);
+    assert.ok(Math.abs(feet.y + 0.9 - cushion) < 1e-6, 'your hips on the same cushion');
+    // the seat is people-sized whatever the cab's (its footrest half a metre under the cushion)
+    const sb = new THREE.Box3().setFromObject(seat);
+    assert.ok(Math.abs(cushion - sb.min.y - 0.545) < 0.02, `the seat stands ${(cushion - sb.min.y).toFixed(2)} m under the hips at scale ${s}`);
   }
   Taxi.playerPos = null;
 });
@@ -62,6 +61,7 @@ test('a hailed taxi comes empty: no passenger on the cab coming for you', () => 
   assert.equal(shown(t.parts.pax), false, 'parked beside you, the bench is free');
   t.board(); t.update(1 / 30, {}, 0);
   assert.equal(shown(t.parts.pax), false, 'and while you ride');
+  assert.equal(t.mode, 'aboard');
   // left behind, it rejoins its lane; it takes a new fare only out of sight
   t.leave(); t.mode = 'lane'; t.update(1 / 30, null, 0);
   assert.equal(shown(t.parts.pax), false, 'no passenger popping in beside you');
@@ -88,7 +88,7 @@ test('no pass, no cab: hailing or getting in is refused (and said, now and then)
   assert.equal(t.mode, 'lane', 'a hail without a pass: it flies on');
   assert.deepEqual(refused, ['hail']);
   const free = new Taxi(physics, '#f2c54b', 2, null, { free: true });
-  assert.equal(free.refuses(who), false, 'a free cab (Wren’s) stops for anyone');
+  assert.equal(free.refuses(who), false, 'a free cab (Wren) stops for anyone');
   game.set(`item.${CAB_PASS}`, true);
   assert.equal(t.refuses(who), false, 'with the pass, it stops');
   t.hail(V(0, 0, 40), 0);
@@ -97,7 +97,7 @@ test('no pass, no cab: hailing or getting in is refused (and said, now and then)
   Taxi.onRefuse = null;
 });
 
-test('a cab sent for you some other way (Wren’s, to the lamp) comes empty too, and hers never carries anyone', () => {
+test('a cab sent for you some other way (Wren, to the lamp) comes empty too, and Wren never carries anyone', () => {
   Taxi.playerPos = V(0, 30, 10);
   const t = cabWithFare(2.1);
   t.update(1 / 30, null, 0);
@@ -105,6 +105,6 @@ test('a cab sent for you some other way (Wren’s, to the lamp) comes empty too,
   t.update(1 / 30, null, 0);
   assert.equal(shown(t.parts.pax), false);
   const wren = cabWithFare(2.1, { fares: false });
-  assert.equal(wren.parts.pax, null, 'Wren’s cab: no passenger');
+  assert.equal(wren.parts.pax, null, 'Wren: no passenger');
   Taxi.playerPos = null;
 });

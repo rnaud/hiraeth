@@ -5,10 +5,13 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Player decisions and menu redesign (2026-10-06)
 
-- [ ] Flying cabs are self-driving. Players ride seated inside the cab, not standing on its roof
+- [x] Flying cabs are self-driving. Players ride seated inside the cab, not standing on its roof
   or awning. Remove driver characters and references to human drivers; preserve usable boarding,
   destination selection, travel and disembarking with the player correctly seated during the ride.
   This answers the earlier question about where passengers should stand.
+  (Done: no driver in any cab; an open cabin with a seat under the canopy, the traveller seated in
+  it, hands resting; the dash asks where to and the cab flies itself to the stop, where you step
+  out. Wren is the old cab itself. docs/systems/movement.md "Riding a cab", tests/cab-ride.test.js.)
 - [ ] Replace the sketchbook interface with a game menu inspired by Ocarina of Time, with multiple
   distinct panels and clear controller navigation. Include an Items panel showing collected items
   and a Quests panel. Use the game's own visual style and assets.

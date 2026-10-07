@@ -486,9 +486,10 @@ for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
 await slice();
 // E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
-registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 6, at: () => player.nearestVehicle()?.pos,
-  prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the taxi' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
-  distance: (p) => { const v = p.nearestVehicle(); return v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; }, use: () => player.interact() });
+// (as far as the vehicle lets you board from: a cab hovering beside a terrace is further off than a bike)
+registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 9, at: () => player.nearestVehicle()?.pos,
+  prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the cab' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
+  distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? d : Infinity; }, use: () => player.interact() });
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 // the scout finds the objective (Q, Y / △, the touch "ping"; src/scout.js): the cue names it and
 // how far, at once (a toast would wait its turn), and the quest marker over it shows for a while
@@ -927,11 +928,15 @@ const cue = new Cue(), placeName = new PlaceName();
 const rideHint = { kind: null, at: 0 };
 function updateHud() {
   const now = performance.now();
-  if (player.ride) { if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = now; } }
+  // (a cab's cue says what it is doing: waiting for a stop, or on its way; it shows again at each stop it reaches)
+  const rideKind = player.ride ? (player.ride.kind === 'taxi' && player.ride.mode === 'route' ? 'taxiRoute' : player.ride.kind) : null;
+  const rideStamp = player.ride ? `${rideKind}.${player.ride.arrivals ?? 0}` : null;
+  if (player.ride) { if (rideHint.kind !== rideStamp) { rideHint.kind = rideStamp; rideHint.at = now; } }
   else rideHint.kind = null;
   const quiet = busy() || photo.on || player.dead;
+  if (quiet && player.ride) rideHint.at = now;   // (a ride's cue waits for the cab's question, a menu, to close)
   const lens = !player.ride && expedition?.state.started && !expedition.state.done && expedition.nearby(player) >= 0 ? expedition.hud(player) : null;
-  const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: now - rideHint.at, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
+  const text = cueText({ quiet, ride: rideKind, rideFor: now - rideHint.at, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
     prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
   const place = quiet || ship.playing || ship.inside ? '' : placeName.update(atmo?.name, now);
   const found = !quiet && now < scoutSaid.until ? scoutSaid.text : '';   // (what the scout found, a moment)
@@ -1332,7 +1337,7 @@ function frame() {
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
     player.update(dt, busy() ? noInput : ctl, rig.yaw, rig.pitch);   // (the pitch: the jets fly where the camera looks)
-    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
+    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding, player.ride?.shot ?? null);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking

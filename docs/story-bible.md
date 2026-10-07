@@ -203,10 +203,12 @@ written in).
   says it has faded a little every year since she was a girl (nobody looks up),
   and has been going out since "the night the sky rang".
 - **Quests**: deliver a ration from the lower levels to the palace guard (who
-  is from the lower levels himself); find the taxi driver who still stops for
-  the poor; carry a message up the shaft; earn a cab pass from Lio, the
+  is from the lower levels himself); find Wren, the old cab that still stops for
+  the poor (cabs drive themselves; Wren speaks from the little screen on its
+  dash); carry a message up the shaft; earn a cab pass from Lio, the
   dispatcher on the rim, by collecting the fare Hask owes him (until then no
-  cab answers your whistle or lets you in; Wren, at her lamp, stops for anyone).
+  cab answers your whistle or lets you in; Wren, at its lamp, stops for anyone).
+  You ride seated inside a cab and tell it where to go.
 - **Gift**: the fluid jets, in the Warden's Well on the rim. The route brings the
   City-Shaft in its later half (the seventh world), so the jets come long after
   the wings; right after the chest, a line, the drone and rings rising through

@@ -76,7 +76,8 @@ test('the city’s people and places stand on walkable ground', () => {
   stand(P.ossa, 'Ossa, by the shrine');
   stand(P.pip, 'Pip’s patch');
   stand(P.lamp, 'the call-lamp');
-  stand(P.wren, 'where Wren waits');
+  stand(P.wren, 'where you step out of Wren');
+  for (const c of level.cabStops) stand(c.step, `the cab stop ${c.id}`);
   stand(P.palace.landing, 'the palace landing');
   stand(P.palace.dov, 'Dov at the gate');
   stand(P.palace.crown, 'the crown on the dome');
@@ -190,12 +191,39 @@ test('side quests: the call-lamp and Wren, Pip’s ration for Dov', async () => 
   step(2);
   assert.equal(quests.stage('incal.wren'), 'wren');
   step(30 * 12, 1 / 30);
-  assert.ok(W.cab.pos.distanceTo(P.cab) < 1.5, `Wren’s cab parks at the lamp (${W.cab.pos.distanceTo(P.cab).toFixed(1)} m away)`);
-  await new Promise((r) => setTimeout(r, 2700));
-  assert.ok(W.people.wren, 'Wren is here');
-  talk(PEOPLE.wren, ['Why do you stop', 'Did you see', 'I need to get']);
+  assert.ok(W.cab.pos.distanceTo(P.cab) < 1.5, `Wren parks at the lamp (${W.cab.pos.distanceTo(P.cab).toFixed(1)} m away)`);
+  // Wren is the cab: nobody steps out of it (cabs drive themselves); you get in and its dash speaks
+  assert.equal(W.people.wren, undefined, 'no driver');
+  assert.ok(!npcs.some((n) => n.def?.id === 'wren'), 'nobody called Wren walks about');
+  at(P.wren.clone());
+  player.ride = W.cab; W.cab.board(player.pos.clone());
+  step(1);
+  const D = rt.dialogue;
+  assert.ok(D.open && D.person.name === 'Wren', 'getting in, the cab speaks');
+  const answer = (prefix) => {
+    while (!D.runner.choices().length && D.runner.advance());
+    const c = D.runner.choices().find((x) => x.text.startsWith(prefix));
+    assert.ok(c, `no answer "${prefix}" in ${JSON.stringify(D.runner.choices().map((x) => x.text))} at ${D.runner.nodeId}`);
+    D.revealed = Infinity; D.choose(c.index);
+  };
+  answer('Why do you still stop'); answer('Did you see'); answer('I need to get');
   assert.equal(quests.isDone('incal.wren'), true);
+  // then where to: every stop but the one it waits at (the bottom: only Wren goes below the smog)
+  while (!D.runner.choices().length && D.runner.advance());
+  const names = D.runner.choices().map((c) => c.text);
+  assert.ok(names.includes('The palace gate') && names.includes('The rim, by the ship') && !names.some((n) => /bottom/.test(n)), JSON.stringify(names));
+  answer('The palace gate');
+  assert.equal(D.open, false);
+  assert.equal(W.cab.mode, 'route', 'Wren flies you up');
+  for (let i = 0; i < 30 * 60 && W.cab.mode === 'route'; i++) { step(1); player.pos.copy(W.cab.pos); }
+  const gate = level.cabStops.find((x) => x.id === 'palace');
+  assert.equal(W.cab.mode, 'aboard', 'there, it waits for you to get out');
+  assert.ok(W.cab.pos.distanceTo(gate.at) < 0.6 && W.cab.stop === gate, `at the palace gate (${W.cab.pos.toArray().map((x) => x.toFixed(1))})`);
+  assert.ok(W.cab.exitAt().distanceTo(gate.step) < 1e-6, 'you step out beside the gate');
+  assert.ok(toasts.some((x) => /^Wren: The palace gate\./.test(x)), 'it says where you are');
+  player.ride = null; W.cab.leave();
   // now hailing at the bottom brings Wren
+  at(P.wren.clone());
   W.cab.pos.set(0, -250, 150); W.cab.mode = 'lane';
   const other = level.vehicles.find((v) => v.kind === 'taxi' && v !== W.cab);
   other.hail(player.pos, 0);

@@ -209,22 +209,49 @@ put away and the camera follows the body on the ground, lower and softer
 - **The skiff** (`buildSkiff`, Lorn): an open boat with a deck and a cream gunwale, its prow
   curled up with a swinging lantern, a teal float on outrigger arms, a striped lateen sail
   that fills with speed and trims into turns.
-- **The taxis** (`src/taxi.js`): a round-bellied cab in its colour with a checker band, a
-  bubble of ribs over a driver in a peaked cap who looks about, a striped awning over the
-  passenger bench (you ride there; the passenger gets out), V-fins that trim into turns,
-  wing-tip lamps and a "for hire" sign (lit while free, blinking while it waits, dark while
-  you ride), hover rings underneath. Geometry is built once per colour and shared; beyond
-  ~75–95 m only the body and its glow are drawn (3 calls), beyond ~135–170 m just the body
-  (2). The roof you can stand on is the awning's crest (`solid.top`). Wren's cab loses its
-  driver once she has stepped out by the lamp (`driverOut`).
-  **People aboard are people-sized** in a cab of any size: the driver and the passenger are
-  scaled by `FIGURE_H / scale` (0.9 m seat to crown, the traveller's own), the passenger's
-  hips on the bench where yours go. A passenger (`fare`) rides only in traffic: a cab that
-  comes when you call (`hail`, or Wren's flying to the lamp) arrives empty, a free cab answers
-  before a nearer one with a fare, and a cab back in its lane takes a new fare only out of
-  sight; the "for hire" lamps are dark while a fare is aboard. Wren's cab never carries anyone
-  (`fares: false`). The bazaar's cabs are the City-Shaft's size (2: at 1 the awning came down to
-  the traveller's chin). `tests/taxi.test.js`.
+- **The cabs** (`src/taxi.js`) drive themselves: nobody sits up front. A round-bellied body in
+  its colour with a checker band, open on top in the middle (`CABIN`): a cabin lined in cream,
+  a cream dash with a small glowing screen (the cab's voice) and a low windscreen ahead of it,
+  a striped canopy over it on four posts. A round sensor eye glows on the nose. V-fins that
+  trim into turns, wing-tip lamps and a "for hire" sign (lit while free, blinking while it
+  waits, dark while you ride), hover rings underneath. Geometry is built once per colour and
+  shared; beyond ~75–95 m only the body and its glow are drawn (3 calls), beyond ~135–170 m
+  just the body (2). The roof you can stand on is the canopy's crest (`solid.top`).
+  **Seated, people-sized**: the seat (`SEAT`: a red cushion and back, a base down to the
+  well's floor, a footrest half a metre under the cushion) is built in metres and drawn at
+  `1 / scale`, so it fits you in a cab of any size; a passenger is `FIGURE_H / scale` (0.9 m
+  seat to crown, the traveller's own) on the same cushion. You ride in it (`seatTransform`: your
+  hips on the cushion), in a seated pose of your own (`Player.animateSeated`: upright against
+  the back, thighs level, shins to the footrest, hands resting on the thighs, `RIDE_GRIPS.taxi`
+  relaxed; he looks about and sways into the turns). A passenger (`fare`) rides only in traffic:
+  a cab that comes when you call (`hail`, or Wren flying to its lamp) arrives empty, a free cab
+  answers before a nearer one with a fare, and a cab back in its lane takes a new fare only out
+  of sight. Wren never carries anyone (`fares: false`). The bazaar's cabs are the City-Shaft's
+  size (2). `tests/taxi.test.js`, `tests/cab-ride.test.js`.
+- **Riding a cab** (`src/taxi.js`, `src/story/cab.js`): getting in (E, B / ○) seats you and the
+  cab waits (`aboard`); its dash asks where to, as a conversation (`dialogue.start`, the cab's
+  voice: `CAB_VOICE`, the ship's chirp; words in `src/story/cab-lines.js`), so a stop is chosen
+  like any answer: the mouse, 1–9 or the arrows and E / Enter, or the stick / d-pad and A / ×.
+  The world's stops are `level.cabStops` (`{ id, name, at, heading, step, depths? }`: where it
+  hovers, where you step out; `depths`, below the smog, only for Wren): the Signal Market's four
+  (`CAB_STOPS`: the lantern market, the skybridge over the old sign, Signal Square, the cream
+  balcony), the City-Shaft's five (`shaftCabStops`: the rim by the ship, the high terrace, the
+  middle levels, the palace gate, the bottom terrace by the call-lamp). A stop chosen,
+  `goTo(stop)` picks the first of its world's candidate paths that is clear all along
+  (`planRoute`: five rays per leg, the centre, either side, above and below, `clearPath`), from
+  where it is or, failing that, from 6 or 15 m higher (rising clear of a parapet first): the
+  City-Shaft's go out to a ring of open air, up or down it and round it, at a few rings and
+  heights (`shaftRoutes`); the market's fly up the avenue at the first clear cruising height
+  (`cruiseRoutes([30, 48, 58, 12])`). No clear path: the cab says so and asks again. It flies
+  the path itself (`route`: up to 38 m/s, braking for the stop, facing the way it goes, turning
+  to the stop's heading as it comes in), still sweeping itself against the level; held up by
+  something it did not see, it stops and asks again. There it says where you are (a toast) and
+  waits: E / B / ○ steps you out onto the stop's own spot (`exitAt`: however high it hovers;
+  not yet gone anywhere, back where you got in); SPACE / X / □ asks again, on the way too
+  (another stop); A / × jumps off on the way, refused far up without wings or jets. RT and the
+  stick do nothing: it drives itself. The ride camera watches from beside and a little above
+  (`taxi.shot`, `CameraRig.follow`), where you see the traveller seated under the canopy; the
+  cue says the keys again for each stop reached. `tests/cab-ride.test.js`.
   `tests/hoverbike-quest.test.js` covers the quest, the migration and the budgets.
 
 ## Feel: the jump by its phase, one stamina, the world's edge (October 2026)
