@@ -1,0 +1,45 @@
+changelog.md
+  s_55b4bc53b812ec::t_667c3a3a1e8c4c 16
+docs/story-audit.md
+  s_55b4bc53b812ec::t_1f9b49cc58e4dd 147,180,507
+docs/systems/story.md
+  s_55b4bc53b812ec::t_13a348c6047d23 528-545
+src/changelog.js
+  s_55b4bc53b812ec::t_d41c4f295cf693 22
+src/desert-hearth.js
+  s_55b4bc53b812ec::t_6f874a5cf45afc 33-34,182-195,200,305
+src/desert-landmarks.js
+  s_55b4bc53b812ec::t_26b089bac54e4d 303-312
+src/levels/desert.js
+  s_55b4bc53b812ec::t_7758a5608af0ec 36,48,83
+src/story/arzach-data.js
+  s_55b4bc53b812ec::t_7efebf60954cf0 222-233
+src/story/arzach.js
+  s_55b4bc53b812ec::t_1acbd79b0416cd 177-184
+src/story/desert-data.js
+  s_55b4bc53b812ec::t_2a96fbb65123a8 610-611,636-643,731-762
+src/story/desert-spark.js
+  s_55b4bc53b812ec::t_2e480f24853177 49-52
+src/story/desert.js
+  s_55b4bc53b812ec::t_bb69ec51ace3c3 279-282
+tests/desert-story.test.js
+  s_55b4bc53b812ec::t_5a8e25fad88f38 18-19,66-99,749
+tests/story-arzach.test.js
+  s_55b4bc53b812ec::t_6a5828f757019f 64-77,283
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "52d041127b6772561970bda11a9fb047cc31a87f",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
