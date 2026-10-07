@@ -30,6 +30,33 @@ In Gaming Mode the game runs on X11 under gamescope; in Desktop Mode on Plasma's
 Xwayland crashed Chromium's GPU process and no window showed. The game also keeps the screen from
 dimming or sleeping while it runs (`powerSaveBlocker`).
 
+## Launching (`deck.py --launch`)
+
+Steam starts `launch`, which execs `deck.py --launch`, which runs Electron and watches it
+(`run_game`). Gaming Mode must never be left on a black screen:
+
+- **No Steam overlay in Chromium.** Steam preloads `gameoverlayrenderer.so` (`LD_PRELOAD`) into
+  every game; on SteamOS 3.8 it segfaults Chromium's zygote as it starts, and the browser then
+  either aborts or waits for ever with no window (Gaming Mode's black screen up to runtime
+  184001). `game_env` drops it; gamescope draws Steam's overlay itself.
+- **A watched start.** Electron runs in its own process group. `desktop/main.mjs` touches
+  `MOEBIUS_READY` once its page has loaded; no window within 30 s counts as a hang.
+- **Fallbacks.** A hang, a crash, or two GPU-process crashes (`main.mjs` exits 75) start it again
+  the next way (`MOEBIUS_GPU`): `gl` (ANGLE on OpenGL, the default), `vulkan` (ANGLE on Vulkan;
+  fine on X11 under gamescope, fails on Plasma's Wayland), `software` (SwiftShader). The way that
+  worked is remembered per runtime build and session kind (`gpu.json`); when none works the
+  launcher exits 1 and Steam returns to its library.
+- **A clean exit.** Steam's Exit Game signals the launcher (SIGINT/SIGTERM); it passes the signal
+  on, kills whatever is left after 5 s, and after any exit kills Electron's leftover helpers (a
+  zygote outliving its browser kept the game "running").
+- **The update check runs outside the game** (`systemd-run --user`, its own unit), so Steam doesn't
+  count the game running while a download finishes; without systemd-run it is a detached child.
+
+Each launch writes `launch.log` (what ran, which way, how it ended) next to `update.log`.
+Measured on a Steam Deck OLED (SteamOS 3.8.28, Mesa 26.1), title screen: Desktop Mode Wayland, ANGLE
+on radeonsi GLES, 90 fps; nested gamescope X11, ANGLE on radeonsi GL 4.6, 60 fps (nested gamescope's
+cap); `vulkan` on RADV and `software` on SwiftShader both draw under gamescope.
+
 Use the **Gamepad with Joystick Trackpad** Steam Input template. Do not force a
 Steam Play compatibility tool. The game starts fullscreen at a 1280×800 window
 size and uses its existing controller controls. Exit through Steam's **Exit Game**
@@ -87,7 +114,7 @@ while the repository is public): launch the game twice before the repository goe
 - Game files: `~/.local/share/moebius-deck/`
 - Save data and settings: `~/.config/moebius/` (separate from browser/Android saves)
 - Downloaded game updates: `~/.local/share/moebius-deck/web/<build>/`
-- Update diagnostics: `~/.local/share/moebius-deck/update.log`
+- Update and launch diagnostics: `~/.local/share/moebius-deck/update.log`, `launch.log`
 - Desktop launcher: `~/.local/share/applications/moebius.desktop`
 
 For a manual update or to retry Steam registration, rerun the installation command.
