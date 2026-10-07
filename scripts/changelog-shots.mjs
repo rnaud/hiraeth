@@ -176,15 +176,16 @@ const PEOPLE = (v) => `(async () => {
   const V = window.THREE.Vector3, list = ${JSON.stringify(v.people)}, [W, H] = ${JSON.stringify(v.size)};
   const w = Math.round(W / list.length), out = [];
   const find = (id) => id === 'traveller' ? { pos: window.player.pos, heading: window.player.heading, object: window.player.object } : window.npcs.find((q) => q.def?.id === id);
-  const first = find(list[0].id);
-  if (!first) throw new Error('no ' + list[0].id + ' among ' + window.npcs.map((q) => q.def?.id).filter(Boolean).join(','));
-  if (list[0].id !== 'traveller') {   // the traveller a few steps behind them (their cloth simulates near), out of the pictures
-    const h = first.heading ?? 0;
-    window.player.pos.copy(first.pos).addScaledVector(new V(Math.sin(h), 0, Math.cos(h)), -4);
-    await new Promise((r) => setTimeout(r, 2500));
-  }
+  let near = null;
   for (const p of list) {
-    const n = find(p.id); if (!n) throw new Error('no ' + p.id);
+    const n = find(p.id);
+    if (!n) throw new Error('no ' + p.id + ' among ' + window.npcs.map((q) => q.def?.id).filter(Boolean).join(','));
+    if (p.id !== 'traveller' && near !== p.id) {   // the traveller a few steps behind each (they are drawn and their cloth simulates near), out of the pictures
+      const h = n.heading ?? 0;
+      window.player.pos.copy(n.pos).addScaledVector(new V(Math.sin(h), 0, Math.cos(h)), -4);
+      near = p.id;
+      await new Promise((r) => setTimeout(r, 2500));
+    }
     // (from in front: the way the body faces, its object's +z, turned by yaw)
     const f = new V(); n.object.getWorldDirection(f);
     const h = Math.atan2(f.x, f.z) + (p.yaw ?? 0), s = n.object?.scale?.y ?? 1;

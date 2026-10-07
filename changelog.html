@@ -56,7 +56,8 @@
   .shot-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
   .shot-tabs button { font-size: 12px; padding: 1px 8px; background: transparent; border: 1px solid var(--ink); cursor: pointer; }
   .shot-tabs button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
-  .compare, .shot .side { max-width: min(100%, calc(64vh * var(--ar, 1.7778))); }
+  .compare { max-width: min(100%, calc(64vh * var(--ar, 1.7778))); }
+  .shot .side { max-width: min(100%, calc(64vh * var(--ar, 1.7778) * 2)); }
   .compare { position: relative; overflow: hidden; border: 1.5px solid var(--ink); background: #e8dcc0; aspect-ratio: var(--aspect, 16 / 9); touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: ew-resize; --split: 50%; }
   .compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
   .compare .before { clip-path: inset(0 calc(100% - var(--split)) 0 0); }
