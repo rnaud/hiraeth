@@ -1,0 +1,39 @@
+TODO.md
+  s_55b4bc53b812ec::t_9fc2277b7c7ddd 209-219
+changelog.md
+  s_55b4bc53b812ec::t_d51e83a49d6ad2 21-23
+docs/systems/references.md
+  s_55b4bc53b812ec::t_e0409efc0e12b9 209-211,227-231,246-251,279-281,288-290
+src/changelog.js
+  s_55b4bc53b812ec::t_a40747630a44cd 25-27
+src/levels/garden-kit.js
+  s_55b4bc53b812ec::t_03066825cf27da 57-70
+src/levels/reference-spheres.js
+  s_55b4bc53b812ec::t_edbba3c73f155d 8,158,176-181,187-188,296-347,433,439,531
+src/levels/spheres.js
+  s_55b4bc53b812ec::t_6dd90252708bc8 11,640-642,644-645,856-857
+src/levels/wood-kit.js
+  s_55b4bc53b812ec::t_b6638b634bf3eb 2,112-138
+src/materials.js
+  s_55b4bc53b812ec::t_55471641d034b7 372-373,2325-2326
+tests/garden-kit.test.js
+  s_55b4bc53b812ec::t_ab114c2811463e 7,83-98
+tests/wood-kit.test.js
+  s_55b4bc53b812ec::t_be7e6477c99ba2 52-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "38e657749dd52bbce32c43a0d2a38d13d65bdfc1",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
