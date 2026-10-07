@@ -497,7 +497,8 @@ await slice();
 // (as far as the vehicle lets you board from: a cab hovering beside a terrace is further off than a bike)
 registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 9, at: () => player.nearestVehicle()?.pos,
   prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the cab' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
-  distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? d : Infinity; }, use: () => player.interact() });
+  // (measured to its side, not its middle: a cab is four metres long, and a passer-by at your shoulder was nearer than its centre)
+  distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? Math.max(0.2, d - (v.halfWidth ?? 0)) : Infinity; }, use: () => player.interact() });
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 // the scout finds the objective (Q, Y / △, the touch "ping"; src/scout.js): the cue names it and
 // how far, at once (a toast would wait its turn), and the quest marker over it shows for a while

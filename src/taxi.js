@@ -336,6 +336,7 @@ export class Taxi {
     // the ride camera's view (CameraRig.follow): from beside and behind, a little above, closer than a bike's
     this.shot = { side: 1.05, boost: 0.5, pitch: 0.1 };
     this.boardDistance = 3 + 2.2 * scale;
+    this.halfWidth = 0.92 * scale;   // (its hull's half-width: E measures to its side, src/main.js)
     this.exitOffset = 1.6 * scale;
     this.routes = null;      // (from, stop, taxi) => candidate paths: its world's (the City-Shaft's go round the shaft), else Taxi.routes
     this.route = null;       // { stop, pts, i, stuckT } while it flies you somewhere

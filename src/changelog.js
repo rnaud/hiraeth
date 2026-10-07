@@ -18,6 +18,7 @@ export const CHANGELOG = [
     'The game menu’s Quests panel lists everything you have finished, in every world: after the desert, the Tree That Drinks is under Done in the worlds that follow, instead of “None yet”.',
     'In the Sketchbook, a story you told on an older save, before story pages were drawn, now reads as told rather than “not told yet”.',
     'Stepping out of a cab beside a building, the camera no longer ends up inside the cab: it sees the cabs as they are drawn, so it stays out of their hulls and canopies (never the one you are riding in).',
+    'E (B / ○) uses what you are facing: walk up to a cab with someone at your shoulder and it gets you in the cab instead of starting a chat, and the prompt over it always says what E will do. A cab counts as near from its side, not its middle.',
   ] },
   { v: '0.78', date: '2026-10-07', items: [
     'The City-Shaft looks more like its drawings: half its walls are pink now among the cream, drainpipes run down the houses, washing hangs over the balconies’ rails, the undersides of the terraces are hung with ribs, machinery and pipes, three orange blimps drift slowly round the shaft, and the lake at the bottom is turquoise water instead of acid green.',
