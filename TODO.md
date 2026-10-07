@@ -252,10 +252,15 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
     (targets, capsules, bones), the cage's steps, the garment's vertices and normals are a Burst job
     (BridgeCloth.cs, op 17; engine/cloth.js the same in JS, tested against the module). The camps' script
     update went from 13.6 to 4.8 ms a frame, the frame from 22.9 to 11.1, both on a loaded machine.)
-  - [ ] Hatching that follows the form (`S_FORM`: its per-vertex axis).
-  - [ ] The makers' boxes' star and ray (`MAKERS_BOX`).
-  - [ ] The MakeHuman faces' shape keys (`FACE_KEYS`).
-  - [ ] The overshirt's lining colour.
+  - [x] Hatching that follows the form (`S_FORM`: its per-vertex axis). (2026-10-07: the axis per vertex in
+    the geometry (flag 64, TEXCOORD5/6), Surface's formHatch, the dark caps' veins as branches, the
+    denser hatch (HATCH_DENSE), the lifted shade's keep.)
+  - [x] The makers' boxes' star and ray (`MAKERS_BOX`). (2026-10-07: boxMarks, boxRay, the outline-only
+    ink; the ray's clock sent live, op 18.)
+  - [x] The MakeHuman faces' shape keys (`FACE_KEYS`). (2026-10-07: the key texture's deltas, scaled by
+    the head, as the mesh's blend shapes (BridgeHost.FaceKeys); each face's weights a frame they move, op 19.)
+  - [x] The overshirt's lining colour. (2026-10-07: back faces in it, `_Lining`; the trousers' repaired
+    band in their fabric, in the vertex colours.)
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached.
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering

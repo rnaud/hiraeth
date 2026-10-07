@@ -44,6 +44,14 @@ Shader "Memento/Surface"
     _SpotStep ("Spot step", Float) = 0
     _LineStep ("Line step", Float) = 0
     _ToDisplay ("Linear colours to display values", Float) = 0
+    _FormOn ("Hatching that follows the form", Float) = 0
+    _Veins ("A dark cap's veins", Float) = 0
+    _Lining ("Back faces' colour (rgb, a 1: on)", Vector) = (0, 0, 0, 0)
+    _BoxOn ("A makers' box", Float) = 0
+    _BoxA ("Box: ray, glow, -, clock", Vector) = (0.6, 0.35, 0, 0)
+    _BoxB ("Box: half size, centre height", Vector) = (0.5, 0.5, 0.5, 0.5)
+    _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
+    _BoxLight ("Box: the ray", Vector) = (1, 0.98, 0.92, 1)
     _Cull ("Cull", Float) = 2
   }
   SubShader
@@ -67,7 +75,8 @@ Shader "Memento/Surface"
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
     TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
-    float _Drift, _SpotStep, _LineStep, _ToDisplay;
+    float _Drift, _SpotStep, _LineStep, _ToDisplay, _FormOn, _Veins, _BoxOn;
+    float4 _Lining, _BoxA, _BoxB, _BoxMark, _BoxLight;
     float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
     float _Halftone, _Bounce;   // the look's shade tones (globals)
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
@@ -82,6 +91,8 @@ Shader "Memento/Surface"
       float4 sway : TEXCOORD2;   // plants: anchor x, z (Unity world), bend per metre of wind, brush lean
       float3 bind : TEXCOORD3;   // people: the rest-pose position (outfit zones, face, eyes: Figures.cs)
       float3 bindN : TEXCOORD4;  // and its normal
+      float4 formC : TEXCOORD5;  // hatching that follows the form (src/form.js): a point on the part's axis (three's object space), w its kind
+      float3 formA : TEXCOORD6;  // and the axis' direction
       uint iid : SV_InstanceID;  // the crowd's instanced figures (MEMENTO_CROWD)
     };
 
@@ -225,6 +236,7 @@ Shader "Memento/Surface"
         float3 bind : TEXCOORD9;
         float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
         nointerpolation float3 grassLook : TEXCOORD11;   // a grass blade: its pen line, its outline's fade, its blend into the ground
+        float4 form : TEXCOORD12;       // the point about its part's axis (materials.js vForm): across it xy, along it z, w the kind
       };
 
       Varyings vert(Attributes v)
@@ -247,6 +259,17 @@ Shader "Memento/Surface"
         o.fold = v.fold;
         o.bind = toThree(v.bind);
         o.crowdTrim = 0;
+        o.form = 0;
+        if (_FormOn > 0.5 && v.formC.w > 0.5)
+        {
+          // (in three's object frame, metric: materials.js S_FORM; the position mirrored back)
+          float3 fa = v.formA * scl;
+          float fl = length(fa);
+          fa = fl > 1e-6 ? fa / fl : float3(0, 1, 0);
+          float3 fu = normalize(cross(fa, abs(fa.y) < 0.9 ? float3(0, 1, 0) : float3(1, 0, 0))), fv = cross(fa, fu);
+          float3 fr = (toThree(v.positionOS.xyz) - v.formC.xyz) * scl;
+          o.form = float4(dot(fr, fu), dot(fr, fv), dot(fr, fa), v.formC.w);
+        }
         #if defined(MEMENTO_CROWD)
           // an instanced crowd figure (crowd-shader.js): posed in figure space (three's), then mirrored and placed
           CrowdInst ci = _CrowdInst[v.iid];
@@ -562,6 +585,7 @@ Shader "Memento/Surface"
         float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
         float2 strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
         float strataFw = fwidth(strataCo.x);
+        float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
         float2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
         float2 glyphFw = gw.x > max(gw.y, gw.z) ? gfw.zy : (gw.y > gw.z ? gfw.xz : gfw.xy);
 
@@ -660,6 +684,7 @@ Shader "Memento/Surface"
         if (_Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold);
         albedo *= instColor;
         // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
+        if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
         if (_ToDisplay > 0.5) albedo = lerp(albedo * 12.92, 1.055 * pow(max(albedo, 0.0), 1.0 / 2.4) - 0.055, step(0.0031308, albedo));
         #if defined(MEMENTO_GRASS)
           // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
@@ -669,6 +694,28 @@ Shader "Memento/Surface"
             albedo = lerp(albedo, gpat > 0.6 ? _Color2.rgb : _Color.rgb, i.grassLook.z);
           }
         #endif
+        // a dark cap's underside: its veins drawn lighter, radiating from the stalk, as branches (materials.js FORM.veins)
+        UNITY_BRANCH if (_Veins > 0.0 && _FormHatch > 0.0 && i.form.w > 0.5 && i.form.w < 1.5)
+        {
+          const float K = 162.9747;
+          float r2 = max(dot(i.form.xy, i.form.xy), 1e-8);
+          float fwT = (abs(i.form.x * formDx.y - i.form.y * formDx.x) + abs(i.form.x * formDy.y - i.form.y * formDy.x)) / r2 * K;
+          float vein = veinLines(atan2(i.form.y, i.form.x) * K, fwT, _HatchSpacing * 2.2, 1.5, float2(sqrt(r2) * 0.5, 9.0), i.viewDepth);
+          albedo += min(albedo * 1.2, 0.15) * vein * _Veins;
+        }
+        // a makers' box: the star and the compasses painted on, a ray of light travelling across it (materials.js MAKERS_BOX)
+        UNITY_BRANCH if (_BoxOn > 0.5)
+        {
+          float3 bp = i.objPos - float3(0.0, _BoxB.w, 0.0);
+          float2 mark = boxMarks(i.objPos, i.objNormal, _BoxB);
+          float3 ray = boxRay(bp, _BoxA, _BoxB);
+          albedo *= lerp(0.72, 1.1, smoothstep(-0.7, 0.85, i.objNormal.y / max(length(i.objNormal), 1e-4)));
+          albedo = lerp(albedo, _BoxMark.rgb, mark.x);
+          albedo = lerp(albedo, lerp(albedo, _BoxMark.rgb, 0.45 + 0.4 * _BoxA.y), mark.y);
+          albedo = lerp(albedo, _BoxLight.rgb, saturate(ray.x + 0.45 * ray.y + 0.25 * ray.z));
+          emit = max(emit, max(mark.x * _BoxA.y, mark.y * _BoxA.y * 0.6));
+          emit = max(emit, max(ray.x * 0.97, max(ray.y * 0.75, ray.z * 0.4)));
+        }
         float plateInk = 0.0;
         UNITY_BRANCH if (_Plates > 0.5 && _Grid > 0.0)
         {
@@ -784,6 +831,7 @@ Shader "Memento/Surface"
         bool facePart = mode == MODE_EYE || (mode == MODE_OUTFIT && i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16);
         // gHatch.a: glow + 2 hero + 4 figure (+ 8 soft ink) + 16 a face + 32 banked sand (post.js)
         o.hatch.a = max(max(max(_Glow, emit), smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure + (facePart ? 16.0 : 0.0) + 32.0 * _Drift;
+        if (_BoxOn > 0.5) { o.hatch.rgb = float3(1, 0, 0); o.hatch.a += 8.0; return o; }   // (a box with no edges: its outline only)
         #if defined(MEMENTO_GRASS)
           // blades: no hatching, no drawn detail; soft ink (r its pen line's share, g its outline's fade with distance)
           o.hatch.rgb = float3(i.grassLook.x, i.grassLook.y, 0.0); o.hatch.a += 8.0;
@@ -791,8 +839,11 @@ Shader "Memento/Surface"
         #endif
 
         // hatching in the shade (finer close to the camera, coarser far away)
-        float dark = clamp((_Toon - L) / _Toon, 0.0, 1.0);
-        float hsp = _HatchSpacing * lerp(0.78, 1.4, smoothstep(6.0, 260.0, i.viewDepth));
+        float dark0 = clamp((_Toon - L) / _Toon, 0.0, 1.0);
+        // (a hatch over 1 is a denser one, a hatched mass: closer strokes, heavier; materials.js HATCH_DENSE)
+        float hDense = max(_Shade.z, 1.0);
+        float hsp = _HatchSpacing * lerp(0.78, 1.4, smoothstep(6.0, 260.0, i.viewDepth)) / min(hDense, 1.3);
+        float dark = min(dark0 * (1.0 + (hDense - 1.0) * 0.9), 1.0);
         float h1s = strokes(ce1, fw1, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
         float hcs = strokes(ceY, fwY, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
         bool rings = _FormHatch > 0.0 && _Flat < 0.5 && mode != MODE_TERRAIN;
@@ -800,6 +851,8 @@ Shader "Memento/Surface"
         float st = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
         if (dark > 0.0 && _HatchOn > 0.0 && _ShadeStyle > 0.5) {
           o.hatch.r = st;
+        } else if (dark > 0.0 && _HatchOn > 0.0 && i.form.w > 0.5 && _FormHatch > 0.0) {
+          o.hatch.rg = formHatch(i.form, formDx, formDy, hsp, dark, i.viewDepth);   // strokes radiating from its axis or wrapping round it
         } else if (dark > 0.0 && _HatchOn > 0.0) {
           float h1 = h1s;
           if (_FormHatch > 0.0 && mode == MODE_TERRAIN) h1 = lerp(h1, hcs, smoothstep(0.1, 0.3, slope) * _FormHatch);
@@ -819,8 +872,11 @@ Shader "Memento/Surface"
         {
           float turned = ndl < 0.0 ? (ndl > -0.42 ? 1.0 : 0.6) : 0.0;
           float lift = 1.0 - (1.0 - _Shade.x) * (1.0 - _Halftone * turned) * (1.0 - _Bounce * smoothstep(-0.1, -0.7, n.y));
-          float hatchK = mode == MODE_TERRAIN ? lerp(_Shade.z, 1.0, smoothstep(0.16, 0.36, slope)) : _Shade.z;
-          o.hatch.rg *= hatchK * float2(1.0 - 0.8 * lift, max(1.0 - 2.5 * lift, 0.0));
+          float hatchK = mode == MODE_TERRAIN ? lerp(min(_Shade.z, 1.0), 1.0, smoothstep(0.16, 0.36, slope)) : min(_Shade.z, 1.0);
+          float liftK = lift;
+          if (i.form.w > 0.5) liftK *= 1.0 - (i.form.w > 1.5 ? 0.2 : 0.45);   // (a cap's fan stays dense under a lifted shade)
+          liftK /= hDense * hDense;
+          o.hatch.rg *= hatchK * float2(1.0 - 0.8 * liftK, max(1.0 - 2.5 * liftK, 0.0));
           float hq = _Shade.y < 0.0 ? 0.0 : _Shade.y >= 2.0 ? 10.0 + floor((_Shade.y - 2.0) * 5.0 + 0.5) : 1.0 + floor(_Shade.y * 8.0 + 0.5);
           o.hatch.rg = min(o.hatch.rg, float2(1, 1)) + 2.0 * float2(hq, floor(saturate(lift) * 15.0 + 0.5));
         }

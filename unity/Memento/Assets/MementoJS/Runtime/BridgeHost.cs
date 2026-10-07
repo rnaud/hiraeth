@@ -21,6 +21,8 @@ namespace Memento.Bridge
         public static void Material(int mid, string json) => R?.Material(mid, json);
         /// <summary>The coral-shirt traveller's overshirt, done here (BridgeCloth): its description, once (engine/cloth.js packClothDesc).</summary>
         public static void Cloth(int id, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Cloth(id, b, n); }
+        /// <summary>A MakeHuman face's shape keys as the mesh's blend shapes (engine/unity/backend.js faceKeyDeltas).</summary>
+        public static void FaceKeys(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.FaceKeys(key, b, n); }
         public static double ClothMs() { var r = R; if (!r) return 0; var v = r.msCloth; r.msCloth = 0; return v; }
         public static void Create(int id, string json) => R?.Create(id, json);
         public static void SetMesh(int id, string key) => R?.SetMesh(id, key);

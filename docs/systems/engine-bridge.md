@@ -559,8 +559,7 @@ The same views, the web left, Unity right (after):
 ![Viridel](../engine-bridge/sbs2-viridel.jpg)
 ![the traveller and the cab](../engine-bridge/sbs2-traveller.jpg)
 
-What still differs: hatching that follows the form, the boxes' star and ray, the MakeHuman faces' shape keys,
-the overshirt's lining; which people stand where (another moment of the same code);
+What still differs: which people stand where (another moment of the same code);
 cloud shadows (the clock); the portraits in the conversation chip.
 
 (Some people near the camera held their things out sideways: the crowd's GPU figures, whose port, Crowd.hlsl,
@@ -580,6 +579,16 @@ as the packet arrives and completed before the frame is drawn; the garment's mes
 in x). `engine/cloth.js clothFrame` is the same steps in JS, which `tests/cloth-offload.test.js` checks against
 the module's own path. At the camps (load ~35) the script's update went from 13.6 to 4.8 ms, the frame from
 22.9 to 11.1 ms; the dunes from 6.7 to 1.5 and 13.2 to 5.4.
+
+**The rest of the gaps, closed** (2026-10-07). Hatching that follows the form: the part's axis per vertex
+(src/form.js `aFormC`, `aFormA`) rides the geometry (flag 64, TEXCOORD5 and 6) where a material says `S_FORM`,
+and Surface.shader builds materials.js's `vForm` from it: caps' strokes radiate, cylinders' wrap, a dark cap's
+veins are drawn lighter as branches, a denser hatch (HATCH_DENSE) is closer and heavier. The makers' boxes draw
+their star, compasses and travelling ray (`boxMarks`, `boxRay`), inked by their outline only; the ray's clock
+goes live (`materialVec`, op 18). A MakeHuman face's shape keys (body.js `keyTexture`) become the mesh's blend
+shapes, scaled by its head (`faceKeyDeltas`, `BridgeHost.FaceKeys`: only the vertices a key moves), and each
+face's weights go a frame they move (`keyWeights`, op 19). The overshirt's lining colours its back faces
+(`_Lining`); the trousers' repaired band is in their vertex colours.
 
 **What it costs** (before the overshirt's job, above): the VM's update grew with what it now runs. The coral-shirt traveller's overshirt cloth is
 the largest share: on the web it steps in a Web Worker, here on the VM's own thread (in Node's `vm` context,

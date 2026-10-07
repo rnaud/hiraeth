@@ -22,6 +22,8 @@
 //                               the range rewritten since they were last sent ({ array, itemSize, version, range: [start, count] | null })
 //   materialLive(mid, color, glow)   a material's colour or glow changed after it was sent (the answering plants
 //                               waking, a lamp lit, a beacon breathing): checked each frame a drawable using it is drawn
+//   materialVec(mid, which, v)  a material's vector moved (0: a makers' box's uBoxA, its ray and its clock)
+//   keyWeights(id, w)           a face's shape-key weights moved (face-keys.js mesh.userData.keyWeights)
 //   materialFluid(mid, f)       the traveller's fluid on a material (fluid-tool.js): uFluidA, uFluidB, the six tones (26 floats), when they move
 //   drawState(id, object)       each frame an 'instgeo' drawable is drawn: the backend reads what moves on it (its
 //                               material's per-frame uniforms: the grass patch's centre and fades)
@@ -119,6 +121,15 @@ export class SceneMirror {
     if (m.__mirrorLiveF === f) return;
     m.__mirrorLiveF = f;
     const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow?.value;
+    // a makers' box's ray and clock (boxes/: uBoxA), moving every frame
+    if (U?.uBoxA?.value?.isVector4 && this.backend.materialVec) {
+      const A = U.uBoxA.value, L2 = m.__mirrorBox ??= new Float32Array(4).fill(NaN);
+      if (L2[0] !== Math.fround(A.x) || L2[1] !== Math.fround(A.y) || L2[2] !== Math.fround(A.z) || L2[3] !== Math.fround(A.w)) {
+        L2[0] = A.x; L2[1] = A.y; L2[2] = A.z; L2[3] = A.w;
+        const mid = this.mats.get(m);
+        if (mid) this.backend.materialVec(mid, 0, [A.x, A.y, A.z, A.w]);
+      }
+    }
     // the traveller's fluid (fluid-tool.js): its fill, tones and clock move every frame it flows
     if (U?.uFluidA && U.uFluidTones && this.backend.materialFluid) {
       const F = m.__mirrorFluid ??= new Float32Array(26).fill(NaN), A = U.uFluidA.value, Bv = U.uFluidB?.value, T = U.uFluidTones.value;
@@ -199,6 +210,14 @@ export class SceneMirror {
         if (Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
         if (!node.shown) { node.shown = true; B.visible?.(id, true); }
         if (liveMats) { const M = o.material; if (Array.isArray(M)) { for (const m of M) this._live(m, f); } else if (M) this._live(M, f); }
+        // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), when they move
+        const KW = o.userData.keyWeights;
+        if (KW && B.keyWeights) {
+          const S = node.keys ??= new Float32Array(KW.length).fill(NaN);
+          let moved = false;
+          for (let i = 0; i < KW.length; i++) if (S[i] !== Math.fround(KW[i])) { S[i] = KW[i]; moved = true; }
+          if (moved) B.keyWeights(id, S);
+        }
         const e = o.matrixWorld.elements, m = node.matrix;
         // (compared as the floats they are sent as: a double that floats can't hold is no move)
         let k = 0;

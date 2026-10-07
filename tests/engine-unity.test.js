@@ -96,6 +96,29 @@ test('the web\'s newer surface marks reach the port: weathering, pen detail, pat
   assert.deepEqual(L.post.uInkShadow, [1, 0]);
 });
 
+test('hatching that follows the form, a box\'s marks, a lining and a face\'s keys reach the port', async () => {
+  // the part's axis per vertex (src/form.js aFormC, aFormA) in the geometry's buffer (flag 64), as they are
+  const P = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+  const g = { attributes: { position: { array: P, itemSize: 3 }, aFormC: { array: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]), itemSize: 4 }, aFormA: { array: new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0]), itemSize: 3 } }, index: null, groups: [] };
+  const u = new Uint32Array(unityGeometry(g, { form: true })), f = new Float32Array(u.buffer);
+  assert.equal(u[2] & 64, 64);
+  assert.equal(f[4 + 3 + 9 + 3], 1, 'the first axis point\'s kind');
+  assert.equal(new Uint32Array(unityGeometry(g))[2] & 64, 0, 'only where its material follows the form');
+  const cap = portMaterial(inkSpec(makeMaterial({ color: '#334', form: true, veins: 0.6 })), 1);
+  assert.equal(cap.form, 1); assert.equal(cap.veins, 0.6);
+  const box = portMaterial(inkSpec(makeMaterial({ color: '#1d2a52', makersBox: { half: [0.4, 0.3, 0.3], center: 0.3 } })), 2);
+  assert.equal(box.box, 1); assert.deepEqual(box.boxB, [0.4, 0.3, 0.3, 0.3]); assert.equal(box.boxMark.length, 3);
+  const shirt = makeMaterial({ color: '#ffffff', figure: true }).clone(); shirt.userData.lining = [0.45, 0.12, 0.06];
+  assert.deepEqual(portMaterial(inkSpec(shirt), 3).lining, [0.45, 0.12, 0.06, 1]);
+  // a face's keys: only the vertices each moves, mirrored in x and scaled by the head
+  const { faceKeyDeltas } = await import('../engine/unity/backend.js');
+  const data = new Float32Array(4 * 4 * 2); data[1 * 4] = 0.5; data[16 + 2 * 4 + 1] = 0.25;   // key 0 moves vertex 1 in x, key 1 vertex 2 in y
+  const kb = faceKeyDeltas({ names: ['smile', 'blink'], kHead: [2, 2, 2], texture: { image: { data, width: 4, height: 1, depth: 2 } } }, 4);
+  const ku = new Uint32Array(kb), kf = new Float32Array(kb);
+  assert.deepEqual([ku[0], ku[1], ku[2], ku[3], kf[4]], [2, 4, 1, 1, -1], 'key 0: vertex 1, x mirrored and doubled');
+  assert.deepEqual([ku[7], ku[8], kf[10]], [1, 2, 0.5], 'key 1: vertex 2 in y');
+});
+
 test('the port\'s crowd figures read the costume as costumes.js packs it (the pieces worn, not the wrong ones)', async () => {
   const { MASK_ID_LIMIT, BODY_ID_LIMIT, HEAD_ID_LIMIT } = await import('../src/costumes.js');
   const { readFileSync } = await import('node:fs');
@@ -173,6 +196,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     Now: () => performance.now(), ReadFile: null, StorageGet: () => null, StorageSet() {}, StorageRemove() {},
     Geometry(key, buf) { calls.Geometry++; calls.bytes += buf.byteLength; }, Material() { calls.Material++; },
     // the coral-shirt traveller's overshirt (BridgeCloth.cs): its description's header, for op 17's size
+    FaceKeys(key, buf) { const u = new Uint32Array(buf); calls.Keys = (calls.Keys ?? 0) + 1; calls.keyVerts = (calls.keyVerts ?? 0) + u[2]; },
     Cloth(id, buf) { const h = new Uint32Array(buf, 0, 7); cloths[id] = { N: h[0], K: h[5], B: h[6] }; }, Create() { calls.Create++; }, SetMesh() {},
     Frame(buf) { calls.Frame++; lastFrame = buf; }, Look(json) { calls.Look++; look = json; }, Screen(json) { calls.Screen = (calls.Screen ?? 0) + 1; screenJson = json; }, ApplyMs: () => 0,
     Keys: () => (calls.Frame > 3 ? 'KeyW' : ''), Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
@@ -199,9 +223,10 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;
-  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5, 16: () => 27, 17: () => 4 + clothWords(u[o]) };
+  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5, 16: () => 27, 17: () => 4 + clothWords(u[o]), 18: () => 6, 19: () => 2 + u[o + 1] };
   const skeletons = [];
   assert.equal(Object.keys(cloths).length, 1, 'the overshirt done by the C# side (BridgeCloth)');
+  assert.ok(calls.Keys > 0 && calls.keyVerts > 0, `the MakeHuman faces' shape keys as blend shapes: ${calls.Keys} meshes`);
   while (u[o] !== 0) { const op = u[o++]; assert.ok(size[op], `op ${op}`); if (op === 7) skeletons.push(u[o]); o += size[op](); ops++; }
   assert.ok(skeletons.length > 0, 'the people\'s skeletons');
   assert.equal(new Set(skeletons).size, skeletons.length, 'each skeleton once a frame, however many meshes it moves');

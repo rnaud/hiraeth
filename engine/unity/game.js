@@ -105,7 +105,9 @@ function aimed(game, v) {
   const n = game.npcs.find((x) => x.def?.id === v.npc);
   if (!n) { console.log(`[unity] no ${v.npc} here`); return v; }
   const p = n.pos, h = n.heading ?? 0, d = v.dist ?? 2.8, side = v.side ?? 0.6;
-  const fx = Math.sin(h), fz = Math.cos(h);
+  // (where they face: their object's -z, whatever the heading's convention)
+  const e = n.object?.matrixWorld?.elements, fl = e ? Math.hypot(e[8], e[10]) : 0;
+  const fx = fl > 1e-6 ? -e[8] / fl : Math.sin(h), fz = fl > 1e-6 ? -e[10] / fl : Math.cos(h);
   return { ...v, player: null, hidePlayer: true, eye: [p.x + fx * d + fz * side, p.y + 1.5, p.z + fz * d - fx * side], target: [p.x, p.y + 1.1, p.z], fov: v.fov ?? 45 };
 }
 

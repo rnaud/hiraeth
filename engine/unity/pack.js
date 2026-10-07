@@ -16,14 +16,15 @@ export function mirrorMatrix(e, eo = 0, out = new Float32Array(16), o = 0) {
 
 /**
  * A geometry for Unity, one ArrayBuffer (BridgeMeshes.cs reads it):
- *   u32 vertices, u32 indices, u32 flags (1 normal, 2 uv, 4 colour, 8 skin, 16 bind), u32 groups,
+ *   u32 vertices, u32 indices, u32 flags (1 normal, 2 uv, 4 colour, 8 skin, 16 bind, 32 rig, 64 form axis), u32 groups,
  *   groups × (u32 start, u32 count, u32 material index),
  *   f32 position × 3n (x mirrored), [normal × 3n], [uv × 2n], [colour rgba × 4n],
  *   [skin index × 4n (as floats), skin weight × 4n], [bind: the rest pose, three's space, × 3n], [rig × 4n: 32],
+ *   [form: aFormC × 4n then aFormA × 3n, three's object space as they are: 64 (src/form.js)],
  *   u32 index × m (wound for Unity).
  * colours: only when the material draws them (vertexColors); bind: for people (their outfit zones).
  */
-export function unityGeometry(g, { colors = false, bind = false, rig = false } = {}) {
+export function unityGeometry(g, { colors = false, bind = false, rig = false, form = false } = {}) {
   const A = g.attributes, P = A.position.array, n = P.length / 3;
   const N = A.normal?.itemSize === 3 ? A.normal.array : null;
   const UV = A.uv?.itemSize === 2 ? A.uv.array : null;
@@ -34,8 +35,9 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false } =
   const total = idx ? idx.length : n;
   const groups = g.groups?.length ? g.groups : [{ start: 0, count: total, materialIndex: 0 }];
   const R = rig && A.aRig ? A.aRig : null;   // (the crowd's figure: each vertex's part, zone and code, crowd.js)
-  const flags = (N ? 1 : 0) | (UV ? 2 : 0) | (C ? 4 : 0) | (skin ? 8 : 0) | (bind ? 16 : 0) | (R ? 32 : 0);
-  const floats = n * 3 + (N ? n * 3 : 0) + (UV ? n * 2 : 0) + (C ? n * 4 : 0) + (skin ? n * 8 : 0) + (bind ? n * 3 : 0) + (R ? n * 4 : 0);
+  const F = form && A.aFormC?.itemSize === 4 && A.aFormA?.itemSize === 3 ? [A.aFormC.array, A.aFormA.array] : null;
+  const flags = (N ? 1 : 0) | (UV ? 2 : 0) | (C ? 4 : 0) | (skin ? 8 : 0) | (bind ? 16 : 0) | (R ? 32 : 0) | (F ? 64 : 0);
+  const floats = n * 3 + (N ? n * 3 : 0) + (UV ? n * 2 : 0) + (C ? n * 4 : 0) + (skin ? n * 8 : 0) + (bind ? n * 3 : 0) + (R ? n * 4 : 0) + (F ? n * 7 : 0);
   const head = 4 + groups.length * 3;
   const buf = new ArrayBuffer((head + floats + total) * 4);
   const u32 = new Uint32Array(buf), f32 = new Float32Array(buf);
@@ -55,6 +57,7 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false } =
   }
   if (bind) { f32.set(P.subarray(0, n * 3), o); o += n * 3; }
   if (R) { const k = R.itemSize; for (let i = 0; i < n; i++) for (let c = 0; c < 4; c++) f32[o++] = c < k ? R.array[i * k + c] : 0; }
+  if (F) { f32.set(F[0].subarray(0, n * 4), o); o += n * 4; f32.set(F[1].subarray(0, n * 3), o); o += n * 3; }
   // (the mirror flips the winding: a, c, b)
   for (let t = 0; t + 2 < total; t += 3) {
     const a = idx ? idx[t] : t, b = idx ? idx[t + 1] : t + 1, c = idx ? idx[t + 2] : t + 2;
@@ -85,6 +88,8 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false } =
  *  17 cloth:      i32 cloth id, i32 the garment's geometry id, u32 steps, u32 flags (1 reset, 2 simulated), f32 targets 3N,
  *                 the cage's capsules 14K, the garment's 14K, the bones 16Bn (bind inverse folded in), the attachment 16:
  *                 the coral-shirt traveller's overshirt, a frame (BridgeCloth.cs; engine/cloth.js its sizes)
+ *  18 matVec:     i32 material id, u32 which (0 _BoxA: a makers' box's ray and clock), f32 × 4: a material's vector, live
+ *  19 keys:       i32 node id, u32 n, f32 × n: a face's shape-key weights (0..1; its mesh's blend shapes: BridgeRenderer FaceKeys)
  *  16 fluid:      i32 material id, f32 × 26: uFluidA, uFluidB, the six tones (rgb): the traveller's fluid, live
  *   0 end
  */
@@ -100,7 +105,7 @@ export class CommandWriter {
   take() { this.reserve(1); this.u32[this.n++] = 0; const out = this.buf.slice(0, this.n * 4); this.n = 0; return out; }
   get empty() { return this.n === 0; }
 }
-export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16, cloth: 17 };
+export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16, cloth: 17, matVec: 18, keys: 19 };
 
 /**
  * Instances as the port's Puffs.Inst (8 floats each, op 10: the footprints' decals): the position in Unity's
