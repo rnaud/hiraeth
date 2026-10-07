@@ -106,8 +106,7 @@ overhangs its wall by 0.4 m, is solid now, which cleans up every temple at once.
 
 Left for later, with the reason (the third pass, below, settled the first four):
 - ~~**The Buried Machine's great wheel**~~ collides as drawn and turns (moving colliders, below).
-- **The cross-walls' opening rims** there stay drawn-only: solid, `SandDrifts` gives them a footprint and
-  banks sand right across the passage.
+- ~~**The cross-walls' opening rims**~~ are solid, their passages kept clear of sand (below).
 - **Lorn II's bank roots and whip roots** stay walk-through: the 26 bank roots alone doubled every collision
   query (bake 60 → 120 ms, 20 k ground rays 25 → 50 ms) for about one audit sample.
 - **The Garden's olive and cypress trunks** collide as a cylinder inside the drawn tree (flora, brushed past),
@@ -139,6 +138,13 @@ fast its surface moves at p (what moved it since the last sync, over dt), and `s
 (`rayHit(...).mover`) carries you as a riding disc does, the feet and the step lag with you. The audit samples
 a mover where it stands. The Buried Machine: 69 → 37 feet sink, 102 → 11 climbs off, 18 → 0 unseen floor;
 ground rays and capsule pushes unchanged (`tests/buried.test.js`, `tests/mover.test.js`).
+
+**The cross-walls' openings.** The heavy rims round the two cross-walls' oval openings were drawn-only: solid,
+`SandDrifts` footprinted their foot and banked sand across the way through. They are solid now and the drifts'
+mask is 0 on the way through each opening (`passageMask` in `src/levels/buried.js`: a strip as wide as the
+opening at the floor, from 11 m before the wall to 11 m past it, feathered over 2 m); the wall's own drift had
+crossed it too (up to 0.57 m), and is gone there as well, while it still banks against the wall either side.
+Climbs inside 50 → 36 (`tests/buried.test.js` walks the traveller through both).
 
 ## Mounts come to you
 

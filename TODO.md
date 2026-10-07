@@ -42,8 +42,10 @@ The second pass made every world collide as it is drawn (DONE.md; docs/systems/m
   in its own frame, synced each frame), carrying you standing or climbing (`moverCarrier`); the audit
   69 → 37 feet sink, 102 → 11 climbs off, 18 → 0 unseen floor (what is left there is sand and the rims);
   queries unchanged (movement.md, "Moving colliders").
-- [ ] The Buried Machine's **cross-wall opening rims**: solid, `SandDrifts` gives them a footprint
-  and banks sand right across the passage you have to walk through.
+- [x] The Buried Machine's **cross-wall opening rims**: solid, `SandDrifts` gives them a footprint
+  and banks sand right across the passage you have to walk through. Done: solid, and the drifts' mask
+  is 0 on the way through each opening (`passageMask`: the opening's width at the floor, 11 m either
+  side; the wall's own drift crossed it too, up to 0.57 m); climbs inside 50 → 36.
 - [ ] **Lorn II's bank roots and whip roots**: solid, the 26 bank roots alone doubled every collision
   query (bake 60 → 120 ms, 20 k ground rays 25 → 50 ms, 20 k capsule pushes 46 → 93 ms) for about one
   audit sample. They sprawl 10–40 m off the path.

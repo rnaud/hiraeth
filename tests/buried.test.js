@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {createBuried, BURIED_CONTENT, OCULUS, canyonX, WHEEL} from '../src/levels/buried.js';
+import {createBuried, BURIED_CONTENT, OCULUS, canyonX, floorAt, WHEEL} from '../src/levels/buried.js';
 import {Physics} from '../src/physics.js';
 import {Player} from '../src/player.js';
 import {auditContact, formatContact} from '../src/contact-audit.js';
@@ -182,4 +182,51 @@ test('standing on the turning wheel carries you round with it; a spoke sweeps yo
     const now = spoke(2, 25, 0);   // (the spoke in the turned wheel's own frame)
     assert.ok(physics.pushCapsule(now.setY(now.y - 0.9), 0.4, 0.6, 1.8), 'where the spoke is now');
   } finally { spinTo(0); }
+});
+
+test('the cross-walls’ opening rims collide as drawn, and the way through them is the bare floor, no sand banked across it', () => {
+  const { passages, walls } = level.buried, T = level.ground;
+  assert.equal(passages.length, walls.length);
+  for (const p of passages) {
+    assert.ok(p.half > 5, `the way through is ${(2 * p.half).toFixed(1)} m wide`);
+    // (the wall's frame: u along it, v through it)
+    const at = (u, v) => [p.x + u * p.c + v * p.s, p.z - u * p.s + v * p.c];
+    for (let v = -9; v <= 9; v += 0.5) for (let u = -(p.half - 1.5); u <= p.half - 1.5; u += 1) {
+      const [x, z] = at(u, v);
+      assert.ok(T.drifts.fieldAt(x, z) < 1e-6, `sand ${T.drifts.fieldAt(x, z).toFixed(2)} m deep in the way through at u ${u.toFixed(1)}, v ${v}`);
+      // (nothing over the canyon's floor plate, 6 cm over the sand: the rim's foot is beside the way, under the floor across it)
+      const g = physics.groundAt(x, floorAt(z) + 3, z, 6) - floorAt(z);
+      assert.ok(g > 0 && g < 0.1, `the floor of the way through at u ${u.toFixed(1)}, v ${v}: ${g.toFixed(2)} m over the floor`);
+    }
+    // the rim stands 0.9 m proud of both faces, solid: a ray at it across the face meets it
+    for (const side of [-1, 1]) {
+      const [x, z] = at(p.half + 4, side * 3.7);
+      const [x1, z1] = at(0, side * 3.7);
+      const o = new THREE.Vector3(x1, floorAt(z1) + 1.2, z1), d = new THREE.Vector3(x - x1, 0, z - z1).normalize();
+      const hit = physics.rayHit(o, d, 20);
+      assert.ok(hit && hit.distance < p.half + 0.5, `the rim's side across the way through (${hit?.distance.toFixed(2)} m, the way ${p.half.toFixed(1)} m)`);
+    }
+  }
+  // the traveller walks straight through each, on the floor all the way, with nothing to step over
+  for (const p of passages) {
+    const P = new Player(physics, { health: false }), yaw = Math.atan2(p.s, p.c);
+    const from = new THREE.Vector3(p.x + 14 * p.s, 0, p.z + 14 * p.c);
+    from.y = physics.groundAt(from.x, floorAt(from.z) + 3, from.z, 6);
+    P.respawn(from);
+    let worst = 0;
+    for (let f = 0; f < 60 * 8; f++) {
+      P.update(1 / 60, { KeyW: true }, yaw);
+      if (P.onGround) worst = Math.max(worst, P.pos.y - floorAt(P.pos.z));
+    }
+    const v = (P.pos.x - p.x) * p.s + (P.pos.z - p.z) * p.c;
+    assert.ok(v < -10, `came out the far side (${v.toFixed(1)} m past the wall)`);
+    assert.ok(worst < 0.1, `on the floor all the way (up to ${worst.toFixed(2)} m over it)`);
+  }
+  // and next to them, against the walls' faces out of the opening, sand is still banked
+  let banked = 0;
+  for (const p of passages) for (const u of [p.half + 6, p.half + 10]) for (const side of [-1, 1]) {
+    const x = p.x + u * p.c + side * 4.2 * p.s, z = p.z - u * p.s + side * 4.2 * p.c;
+    if (T.drifts.fieldAt(x, z) > 0.05) banked++;
+  }
+  assert.ok(banked >= 2, `sand against the walls beside the openings (${banked} of 8)`);
 });

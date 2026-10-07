@@ -106,9 +106,8 @@ test('a riding disc’s rise is not a step: the drawn body rides it without lagg
 // Hangar 7 / 86, the First Garage 5 / 34, Viridel 18 / 31, home 23 / 15.
 // Known and left, by world (docs/systems/movement.md, "Contact"):
 //  - buried (the great wheel collides as drawn and turns with it since October 2026: 69 → 37 feet sink,
-//    102 → 11 climbs off, physics.addMover): the heavy rims round the cross-walls'
-//    openings stay drawn-only, because solid they give SandDrifts a footprint that banks sand across the
-//    passage; the sand skirts are drawn over coarser walls;
+//    102 → 11 climbs off, physics.addMover; the cross-walls' opening rims are solid, their passages kept
+//    clear of sand: 50 → 36 climbs inside): the sand skirts are drawn over coarser walls;
 //  - perdide: the gates of Jaws (organic halves on a box collider) and a few of the kit's pieces;
 //  - spheres: the olive and cypress trunk colliders stand inside their drawn trees (flora, left walk-through),
 //    which the audit counts as collision with nothing drawn;
@@ -121,7 +120,7 @@ test('a riding disc’s rise is not a step: the drawn body rides it without lagg
 const KNOWN = {
   desert: { sink: 8, hover: 3, inside: 23, walk: 54 }, incal: { sink: 0, hover: 0, inside: 2, walk: 0 },
   arzach: { sink: 5, hover: 0, inside: 4, walk: 99 }, arzach2: { sink: 3, hover: 1, inside: 4, walk: 2 },
-  garage: { sink: 0, hover: 0, inside: 13, walk: 1 }, buried: { sink: 37, hover: 1, inside: 50, walk: 19 },
+  garage: { sink: 0, hover: 0, inside: 13, walk: 1 }, buried: { sink: 43, hover: 1, inside: 36, walk: 23 },
   edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 6, hover: 0, inside: 6, walk: 166 },
   perdide: { sink: 13, hover: 0, inside: 7, walk: 16 }, perdide2: { sink: 8, hover: 0, inside: 1, walk: 21 },
   bazaar: { sink: 4, hover: 0, inside: 2, walk: 2 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },

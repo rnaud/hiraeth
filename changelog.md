@@ -5,6 +5,7 @@ The same release notes shown in the game (press **N** or open settings).
 ## v0.76 — 2026-10-07
 
 - The Buried Machine’s great wheel is solid just as it is drawn, and turns with you on it: you stand on its teeth and in the gaps between them, climb its rim and spokes, and once it turns it carries you round with it; a spoke sweeps you aside instead of passing through you, and you no longer stand on an invisible disc over its spokes.
+- In the Buried Machine’s rust canyon, the heavy rims round the two cross-walls’ great oval openings are solid, so you climb and stand on them as drawn, and the way through each opening is bare floor: sand no longer banks up across it.
 
 ## v0.75 — 2026-10-07
 

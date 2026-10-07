@@ -51,6 +51,20 @@ const cx = canyonX;
 const OX = cx(OZ);
 const clamp01 = (t) => Math.min(Math.max(t, 0), 1);
 const rampT = (z) => { const t = clamp01((CZ0 - z) / (CZ0 - CZ1)); return t * t * (3 - 2 * t); };
+/**
+ * 0 on the way through a cross-wall's opening, 1 away from it: the wall's own frame (u along it, v through
+ * it), a strip as wide as the opening at the floor, from 11 m before the wall to 11 m past it (the reach of
+ * the biggest drift past the wall's and the rim's faces), feathered over the last 2 m.
+ */
+export function passageMask(passages, x, z) {
+  let m = 1;
+  for (const p of passages) {
+    const dx = x - p.x, dz = z - p.z, u = dx * p.c - dz * p.s, v = dx * p.s + dz * p.c;
+    if (Math.abs(v) > 11 || Math.abs(u) > p.half + 2) continue;
+    m = Math.min(m, Math.max(smoothstep(p.half, p.half + 2, Math.abs(u)), smoothstep(9, 11, Math.abs(v))));
+  }
+  return m;
+}
 export const floorAt = (z) => 4 + (FLOOR - 4) * rampT(z);
 
 // The great wheel (src/story/buried.js turns it one tooth a year): a colossal
@@ -356,6 +370,8 @@ export function* buildBuried(scene) {
     }
   }
 
+  // the ways through the cross-walls' openings, kept clear of banked sand (the drifts' mask, below)
+  const passages = [];
   // ======================================================== the canyon: floor, leaning walls, machine strata
   yield;
   const zEnd = OZ + 26;   // where the canyon walls meet the drum
@@ -488,13 +504,16 @@ export function* buildBuried(scene) {
       const tan = Math.atan(28 / 95 * Math.cos((wz - CZ0) / 95));   // dx/dz of the centreline
       g.rotateY(tan).translate(cx(wz), 0, wz);
       put(M.rustWall, g);
+      // the way through: as wide as the opening (and its rim) where it meets the floor
+      const k = (floorAt(wz) - cy) / (ry + 0.6);
+      passages.push({ x: cx(wz), z: wz, c: Math.cos(tan), s: Math.sin(tan), half: (rx + 0.6) * Math.sqrt(Math.max(0, 1 - k * k)) });
       // a heavy rim round the opening, on both faces
       for (const side of [-1, 1]) {
         const curve = new THREE.EllipseCurve(0, cy, rx + 0.6, ry + 0.6, 0, TAU);
         const pts = curve.getPoints(40).slice(0, -1).map((p) => new THREE.Vector3(p.x, p.y, side * 3.7));
         const tube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 48, 0.9, 6, true);
         tube.rotateY(tan).translate(cx(wz), 0, wz);
-        put(M.rustDark, tube, { solid: false });   // (drawn only: solid, its foot banks sand across the opening you walk through)
+        put(M.rustDark, tube);   // (solid as drawn: the passage through the opening is kept clear of sand, below)
         // lit oval panes either side of the opening
         for (const ox of [-1, 1]) {
           if ((ox + side + wi) % 2 === 0) continue;
@@ -968,8 +987,10 @@ export function* buildBuried(scene) {
   // the Engine-House on the dunes west of the domes, and its rooms far overhead (src/temples/buried.js)
   yield;
   // sand banked against what stands on the sand: every collided mesh built so far (sand-drifts.js)
-  // (none round the great wheel: its sand slides away, story/buried.js)
-  const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 7, mask: (x, z) => smoothstep(WHEEL.R + 25, WHEEL.R + 40, Math.hypot(x - WHEEL.x, z - WHEEL.z)) }).addScene(scene);
+  // (none round the great wheel: its sand slides away, story/buried.js; none across the ways through the
+  // cross-walls' openings, which you walk through: the wall and the rim round the opening stand on the floor
+  // either side of it, and their footprints' drifts banked sand across it)
+  const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 7, mask: (x, z) => smoothstep(WHEEL.R + 25, WHEEL.R + 40, Math.hypot(x - WHEEL.x, z - WHEEL.z)) * passageMask(passages, x, z) }).addScene(scene);
   const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
@@ -1004,7 +1025,7 @@ export function* buildBuried(scene) {
     buried: {
       wheel, city, chimneys, stacks, gauges, wick, porthole, floorAt, canyonX: cx,
       oculus: { x: OX, z: OZ, r: OR, floor: FLOOR, balcony: BALCONY, top: OTOP },
-      walls: WALLS, ledge: new THREE.Vector3(LEDGE_X, LEDGE_Y, LEDGE_Z), heroDome: new THREE.Vector3(HERO_DOME[0], H(HERO_DOME[0], HERO_DOME[1]), HERO_DOME[1]),
+      walls: WALLS, passages, ledge: new THREE.Vector3(LEDGE_X, LEDGE_Y, LEDGE_Z), heroDome: new THREE.Vector3(HERO_DOME[0], H(HERO_DOME[0], HERO_DOME[1]), HERO_DOME[1]),
       tower: new THREE.Vector3(TOWER[0], H(TOWER[0], TOWER[1]) + 30, TOWER[1]),
       // the reachable derrick's crane (src/story/buried.js swings it): its post stands at `root` on the platform
       crane: { root: new THREE.Vector3(TOWER[0] - 3, H(TOWER[0], TOWER[1]) + 30 + 11, TOWER[1] + 3), mats: { arm: M.rustDark, rust: M.rust, cable: M.ink } },
