@@ -1,0 +1,45 @@
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_fd96444677483a 749-768
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_34d98cd02981b7 38-39,43,68-69,72
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_4af4838f6e6e5e 19,24-25,29-32,44-46,69
+engine/unity/port-format.js
+  s_55b4bc53b812ec::t_961e82496e144e 53-55
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_37f62d8cbbe85c 249-282
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_55b4bc53b812ec::t_9635f0caa07e5b 183,185-186
+unity/Memento/Assets/Memento/Shaders/MementoCommon.hlsl
+  s_55b4bc53b812ec::t_7031f7df193576 194-212
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_55b4bc53b812ec::t_80438eb52fa484 85-96,104-109,116,173,226-241,277-279,285-289,301-312,326,586-589,868,937-938
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_c8697ff3f2228e 170-189,208
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_8aeeaca52a8108::t_c5be55346b2c23 641-653
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "463534ed0261529e15b76cf6ba952ec1861b09ce",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_8aeeaca52a8108": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aeb3a14172e88a175",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
