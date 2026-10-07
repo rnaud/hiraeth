@@ -1,0 +1,177 @@
+TODO.md
+  s_55b4bc53b812ec::t_6359cac2f6d463 37,41-49,51-57,61-68,105,108-113,121-127,141-143,168-169,209-219,233-259
+changelog.md
+  s_55b4bc53b812ec::t_b4f843650afff2 5-21,29-34
+docs/makehuman.md
+  s_55b4bc53b812ec::t_e0ce72ac5f0eac 335-358,467,622
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_dd43a58852620d 491-503
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_7f9e41810d767e 34-36,506-572,641-642
+docs/systems/faces.md
+  s_55b4bc53b812ec::t_5195e33827d3db 245-283
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_81db17daa8cece 27-29,238-247
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_edb07a09976a72 107-111,114-183
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_ca81e59f4c6656 613-678
+docs/systems/references.md
+  s_55b4bc53b812ec::t_59128113910977 205-242,258-282,284-286
+docs/systems/traveller-kit.md
+  s_55b4bc53b812ec::t_e4aec098c78ffd 18-39
+engine/game.js
+  s_55b4bc53b812ec::t_cf111b6b568567 22-23,28-30,47,59,78-113,124-125,127,138-140,142-143,163-178,184-185,224-226,229,231-234,249-256,362,386-387,426-434,447-448,460-462,472-475,483,496-501
+engine/ink-spec.js
+  s_55b4bc53b812ec::t_edec74b5159bf7 42
+engine/mirror.js
+  s_55b4bc53b812ec::t_ee35153bd905e8 15-16,19-27,84,117-142,146,159,173,201,223-243,320-322,336,342-343
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_61e6e50c56ba4c 57-58,70-77,124-142,156-199,211-212,215-216,219
+engine/unity/game.js
+  s_55b4bc53b812ec::t_29ffbc41b14bb7 50-52,77-84,162-173
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_099d51df9990eb 30-31,50-51,77-78,80-85,100
+engine/unity/port-format.js
+  s_55b4bc53b812ec::t_7dff85cca37d43 22-25,44-50
+lore/characters/traveller-design.md
+  s_55b4bc53b812ec::t_ae2944cc5191d2 81-83
+scripts/contact-report.mjs
+  s_55b4bc53b812ec::t_1c83a1ffa342a1 17-21,24-33,38-44
+src/boxes/model.js
+  s_55b4bc53b812ec::t_c327f2753f1b4b 4,126,128,130-131
+src/cape.js
+  s_55b4bc53b812ec::t_74ad4e99758813 160,237,409,412-414,453,478,494,580,583-633
+src/carriers.js
+  s_55b4bc53b812ec::t_c27deddde52ae7 2,44-54
+src/changelog.js
+  s_55b4bc53b812ec::t_18b1a4c0ef2737 10-25,32-37
+src/characters/traveller-v1.js
+  s_55b4bc53b812ec::t_c2f8add00e32d2 10-15,32,52,58-65,72-73,76
+src/characters/tripo-cloth.js
+  s_55b4bc53b812ec::t_36a631ea6a5d4e 57-151,154-156,215-217,222-226,228-237,309,311-313,329-330,339,341-358,382-384
+src/characters/tripo-face.js
+  s_55b4bc53b812ec::t_b165e94b0b3af3 1-214
+src/contact-audit.js
+  s_55b4bc53b812ec::t_b4db86b8231479 108-109
+src/costumes.js
+  s_55b4bc53b812ec::t_46570ef0cdf28c 46-48,54-56,60,460,598-599,1367-1407,1466-1471,1486-1491,1493-1503,1505-1513
+src/crowd.js
+  s_55b4bc53b812ec::t_4b703ef63c27e8 163
+src/fluid-tool.js
+  s_55b4bc53b812ec::t_cd3cfb7a19b185 482-489,491-495,497-502,505,523-526,535-536,544-550,552,555,557-581,583-591,594-596,600-601,765,823-824,1037,1040,1127-1128
+src/ground-ink.js
+  s_55b4bc53b812ec::t_30e44977ae6bf5 56-60,63-68
+src/hands.js
+  s_55b4bc53b812ec::t_32734455f65a2a 77
+src/humanoid.js
+  s_55b4bc53b812ec::t_95ba4fe206feaf 11,712,917-919,976-1003,1018,1173-1175,1510-1518
+src/levels/buried.js
+  s_55b4bc53b812ec::t_49908d28033eeb 55-68,374-375,528-530,537,888,937-940,1060-1063,1098,1112-1113
+src/levels/garden-kit.js
+  s_55b4bc53b812ec::t_2b5d487c4a02d2 1-191
+src/levels/perdide2.js
+  s_55b4bc53b812ec::t_377763c605a556 11,32-35,279-280,300,329,486-487,494,496,528-531,546,553,568-571,649-656,661-681,774-777
+src/levels/reference-lorn.js
+  s_55b4bc53b812ec::t_78ead0c0a67861 7,9,45-47,57-58,126-127,130,141-149,174,239,265,268-275,287-288,296,301,314,383,449,464,535,561
+src/levels/reference-spheres.js
+  s_55b4bc53b812ec::t_b6daca72c7ffd6 7-8,35-38,49-56,62,65,67,133-134,136-137,141-145,158-159,162-164,167,171-172,179-183,198-201,204,206,208-215,219,221,238-257,262,271-275,284,328,345,356-357,361-364,414,430,432-433,445,456,460,462-463,482,513,531,545-547,557-558,562,565-566,582-585,632,665-667,681
+src/levels/spheres.js
+  s_55b4bc53b812ec::t_f55523773a3551 11,81-83,157,187-193,201-202,244-263,375,507-535,639-644,678,686-690,716-717,724-730,796-797,813,833-834,840-841,852,854-857,859,869
+src/levels/wood-kit.js
+  s_55b4bc53b812ec::t_6c6d1b4546eb39 1-132
+src/main.js
+  s_55b4bc53b812ec::t_6f47dd87d3c9b2 1119-1120,1365
+src/materials.js
+  s_55b4bc53b812ec::t_c22d706d6b192c 371-373,381-384,997-1019,1650-1671,1732-1734,1744,1746-1754,1758,2045,2198-2202,2322-2328,2332-2333,2336-2337,2341,2345,2349-2350,2382,2388-2389,2469,2577
+src/npc.js
+  s_55b4bc53b812ec::t_8ecf6556a9fedc 282,837
+src/physics.js
+  s_55b4bc53b812ec::t_e4e994ea7f0d91 2,126,131-180,189,196-197,213,222,264,375-391,393-400,407-411,417,424-428,433-447
+src/player.js
+  s_55b4bc53b812ec::t_fa0322c67053d6 15,1257-1258,1610-1611
+src/sand-drifts.js
+  s_55b4bc53b812ec::t_93d89ceff7219e 212-220,223-267,427
+src/story/desert-data.js
+  s_55b4bc53b812ec::t_840b93d46d25cb 266-267,447-449,588-589
+src/temples/kit.js
+  s_55b4bc53b812ec::t_edc67c606d1cfb 237-240
+src/temples/pieces.js
+  s_55b4bc53b812ec::t_618efdc5e23d89 540-545,560-567,583-588,604
+tests/abilities.test.js
+  s_55b4bc53b812ec::t_670d54af866393 192,202-203
+tests/buried.test.js
+  s_55b4bc53b812ec::t_2470ec5029d528 4,6-8,13,80-81,91-94,102,122-235
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_9ce4b50d7585be 107-114,116-118,121-125,146-147
+tests/desert-props.test.js
+  s_55b4bc53b812ec::t_f17a629e02d72c 1-145
+tests/engine-bridge.test.js
+  s_55b4bc53b812ec::t_43a3439892ba47 181-256,401-402
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_6dbea0f9d40db9 75-128,186
+tests/flask.test.js
+  s_55b4bc53b812ec::t_4cc44714fd6320 1-47
+tests/form-hatch.test.js
+  s_55b4bc53b812ec::t_73d2c8ec8a12a1 19
+tests/garden-kit.test.js
+  s_55b4bc53b812ec::t_54986be6b42bc1 1-82
+tests/ground-ink.test.js
+  s_55b4bc53b812ec::t_adcf9be4c544d9 122-140
+tests/makehuman-desert.test.js
+  s_55b4bc53b812ec::t_f9b84a3d4df648 199
+tests/mover.test.js
+  s_55b4bc53b812ec::t_cafecd8b70bec4 1-66
+tests/perdide2.test.js
+  s_55b4bc53b812ec::t_2d2de470c3f02f 80-108
+tests/sand-drifts.test.js
+  s_55b4bc53b812ec::t_83c62c0b2fad64 170-198
+tests/spheres.test.js
+  s_55b4bc53b812ec::t_3093e901fe8e5e 97-127
+tests/temples.test.js
+  s_55b4bc53b812ec::t_ad64191ba309e5 29,338,453,683,768,864,938-988,997,1098,1256,1370,1414-1417
+tests/traveller.test.js
+  s_55b4bc53b812ec::t_a222ce7ac4c649 351-352
+tests/tripo-cloth-gpu.test.js
+  s_55b4bc53b812ec::t_2acd2e2c3d698e 1-79
+tests/tripo-face.test.js
+  s_55b4bc53b812ec::t_efed39791521e2 1-116
+tests/wood-kit.test.js
+  s_55b4bc53b812ec::t_628cdc79387215 1-51
+unity/Memento/Assets/Memento/Runtime/Grass.cs
+  s_55b4bc53b812ec::t_0f77b95742eebe 144-148
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_55b4bc53b812ec::t_e421a77f1da1c7 111-130,176-178,193-210
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_55b4bc53b812ec::t_a9641265189873 181-193
+unity/Memento/Assets/Memento/Shaders/Bloom.shader
+  s_55b4bc53b812ec::t_0f373c7ab0c68b 41
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_55b4bc53b812ec::t_15038281cc820f 9,50-55,99,118-122,126-131,136,150-151,157-173,196-198,203-243,340,344-346,351,382-393,422,426-443,446-447,451,456,463-472,480-481,483,485-486,497,499,505-508,510,513,517-518,521-524,528-531,538-540,542-556,561,563-568,577,581-592,595,598,600,604-605,607-609,612-628,630-643,648,652-654,656,659-666,709
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl
+  s_55b4bc53b812ec::t_a166466b074672 1-359
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl.meta
+  s_55b4bc53b812ec::t_afb53cb8083ad3 1-7
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_55b4bc53b812ec::t_f738537b2f1cfe 37-46,57,70-72,201-204,227,269,271-272,275-284,286,288,290,294,303,307,309,311,555-564,614-620,622,625,629-659,662-678,683-684,688-693,695,717,723,736-737,739-748,778,782-786,788-789,808-826
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_fdb4266d67e9cc 39-45
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_78cb61d0267dbf 35-36,47-52,165-170,208,214-225,256-257,418-419,427,450-513,517,634-642,657
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "903110f5174b0fc444e70c168f40e0df5f14e755",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
