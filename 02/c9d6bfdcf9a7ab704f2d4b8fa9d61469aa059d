@@ -1,0 +1,99 @@
+TODO.md
+  s_55b4bc53b812ec::t_511c5e3aa1a9e7 6-24
+changelog.md
+  s_55b4bc53b812ec::t_de9a549a687ebf 5,12-22
+docs/README.md
+  s_55b4bc53b812ec::t_253910ae6a06f2 32
+docs/fun-and-story-review.md
+  s_55b4bc53b812ec::t_52778f1c5aa3d2 1-143
+docs/systems/controls.md
+  s_55b4bc53b812ec::t_35b2174b9f7305 14,42
+docs/systems/foes.md
+  s_55b4bc53b812ec::t_3e5b91fb84b18f 1-75
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_c63260846ed283 417-423
+docs/systems/references.md
+  s_55b4bc53b812ec::t_6d81c6034dddb8 885-916
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_8cb4e71bb27cff 1053-1088,1117
+index.html
+  s_55b4bc53b812ec::t_4954f9c2fb6e1d 399,402
+src/audio.js
+  s_55b4bc53b812ec::t_fae4252423a6dd 37-38,1198-1240
+src/changelog-media.js
+  s_55b4bc53b812ec::t_479cb934c58650 120-132,171-228
+src/changelog.js
+  s_55b4bc53b812ec::t_aa11f684bc2b26 12-18,24-30
+src/controller.js
+  s_55b4bc53b812ec::t_c2ca9173166f58 135
+src/costumes.js
+  s_55b4bc53b812ec::t_62cd7b78b6d2b8 418-425
+src/crowd.js
+  s_55b4bc53b812ec::t_8c3fe791767285 630-631,716-723
+src/edge.js
+  s_55b4bc53b812ec::t_cff94d49ffbbe2 33
+src/fluid-blade.js
+  s_55b4bc53b812ec::t_9d119eb6c8882e 1-167
+src/fluid-tool.js
+  s_55b4bc53b812ec::t_43c359108ed305 11,101,704,723,811,928-929,965-966
+src/foes.js
+  s_55b4bc53b812ec::t_a56cd2dba537d0 1-444
+src/levels/arena.js
+  s_55b4bc53b812ec::t_04d097f7ce16fa 1-64
+src/levels/bazaar.js
+  s_55b4bc53b812ec::t_b75524fa7fd920 3,12-13,44-45,47,50,56-57,81,92-94,96-98,100,104,107,109,112,122,371-377,386-387,391-392,452-465
+src/levels/content.js
+  s_55b4bc53b812ec::t_1ef481f45fe640 123-133
+src/levels/index.js
+  s_55b4bc53b812ec::t_b58ba432203c08 10,196-202
+src/levels/market-night-kit.js
+  s_55b4bc53b812ec::t_86e6f9dafb8abf 1-273
+src/levels/reference-marketnight.js
+  s_55b4bc53b812ec::t_ec2dbdbd294f1d 1-343
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_22fa566bf25b9b 40
+src/levels/references.js
+  s_55b4bc53b812ec::t_ea09ecc26e05bd 3,23,233,496-498
+src/main.js
+  s_55b4bc53b812ec::t_a4b885ff68f57f 74,609-610,1309,1429,1484,1697
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_4ae35010354633 166
+src/materials.js
+  s_55b4bc53b812ec::t_3f4bef44313fee 483-487,598-600,773-775,2006-2008,2111-2113,2619-2620,2737-2741
+src/reactive-world.js
+  s_55b4bc53b812ec::t_7df61afa92dc7f 25
+src/temples/boss.js
+  s_55b4bc53b812ec::t_a9640a51eaac2d 81
+src/ui.js
+  s_55b4bc53b812ec::t_1082104600a682 28,72-73,76,80,90,147-148,285-286
+src/wildlife.js
+  s_55b4bc53b812ec::t_57148f41f36084 222
+tests/fluid-tool.test.js
+  s_55b4bc53b812ec::t_1d7d4ba378fd61 72,80-81
+tests/foes.test.js
+  s_55b4bc53b812ec::t_b9eb4ab58d69ae 1-169
+tests/makehuman.test.js
+  s_55b4bc53b812ec::t_5f1e8843a4285c 88
+tests/marketnight.test.js
+  s_55b4bc53b812ec::t_9c6f3e9c0f5c02 1-160
+tests/scripts.test.js
+  s_55b4bc53b812ec::t_e1dccc0500d36a 20
+tests/spacecity.test.js
+  s_55b4bc53b812ec::t_4f748a53c352ff 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "02c9d6bfdcf9a7ab704f2d4b8fa9d61469aa059d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
