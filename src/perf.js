@@ -514,3 +514,25 @@ export function cacheUniformArrays(gl) {
   gl.__uniformArraysCached = true;
   return gl;
 }
+
+// ------------------------------------------------------------------ one frame's passes share one renderer frame
+/**
+ * three.js counts a "frame" per renderer.render() call (info.render.frame), and once per such frame it brings
+ * every skinned mesh's skeleton up to date and uploads its bone texture again (WebGLObjects.update). A game frame
+ * makes three to five calls (the shadow maps, the G-buffer, the overlays), so every visible person's bones were
+ * worked out and uploaded two or three times a frame, unchanged: 41 texture uploads a frame in the desert's camps
+ * on the handheld. Between begin() and end() every call sees the same frame number; end() moves on by one, so the
+ * next game frame updates them again. Anything rendered outside (a capture, a portrait) counts as before.
+ */
+export function pinRenderFrame(renderer) {
+  const render = renderer.render;
+  let pinned = null;
+  renderer.render = function (scene, camera) {
+    if (pinned !== null) this.info.render.frame = pinned;   // (render() adds one: every pass sees pinned + 1)
+    return render.call(this, scene, camera);
+  };
+  return {
+    begin() { pinned = renderer.info.render.frame; },
+    end() { if (pinned !== null) { renderer.info.render.frame = pinned + 1; pinned = null; } },
+  };
+}
