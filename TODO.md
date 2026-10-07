@@ -109,7 +109,9 @@ scene-level modelling and a few shader limits:
     monasteries have their stains (src/door-stain.js; materials.md, "Stains round the doors"); home's and the Market's walls have been weathered since
     v0.69 (`weathered` 0.6–0.8). The dust band is drawn on the sand bank's top edge where sand banks against a
     weathered wall (materials.md, "Dust at the foot").
-  - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
+  - [x] The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off). Decided
+    (October 2026): left as it is. The clouds belong to the worlds (their skies, their drifting cloud shadows,
+    the desert's few flat clouds); the views stay clean (`CLEAN_SKY`) to match their panels.
   - [x] Vael II: the needles' and stalks' terminator is a clean band on the sheets, while flat facets with
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
     on the sheets, ours dark; its cloud puffs are pre-shaded vertex colours (not the flat print), its
