@@ -50,6 +50,7 @@ export const canyonX = (z) => 28 * Math.sin((z - CZ0) / 95);   // canyon centrel
 const cx = canyonX;
 const OX = cx(OZ);
 const clamp01 = (t) => Math.min(Math.max(t, 0), 1);
+const range2 = (r, a, b) => a + r() * (b - a);
 const rampT = (z) => { const t = clamp01((CZ0 - z) / (CZ0 - CZ1)); return t * t * (3 - 2 * t); };
 /**
  * 0 on the way through a cross-wall's opening, 1 away from it: the wall's own frame (u along it, v through
@@ -470,6 +471,26 @@ export function* buildBuried(scene) {
         }
       }
     }
+    // the pipe mass in the strata (IMG_3789 p1): inverted U-bends rising up the walls' blue-grey band
+    // over the long runs and dropping back, flanged at their feet, against the runs (solid:
+    // you climb them); their own draws, so the canyon's layout keeps its own
+    {
+      const ur = mulberry32(19831);
+      for (const s of [-1, 1]) for (let z = -54; z >= zEnd + 6; z -= 6 + ur() * 5) {
+        const f = floorAt(z), top = rimY(z, s), wallH = top - f;
+        if (wallH < 4 || (s < 0 && Math.abs(z - LEDGE_Z) < 12)) continue;
+        if (WALLS.some((wz) => Math.abs(z - wz) < 8) || GAUGES.some(([gz, gs]) => gs === s && Math.abs(z - gz) < 8)) continue;
+        const y0 = Math.max(f + 0.6, top - 10 + ur() * 3), y1 = Math.min(top - 0.6, y0 + 2.5 + ur() * 6);
+        if (y1 - y0 < 2) continue;
+        const r = 0.45 + ur() * 0.45, z2 = z - (1.6 + ur() * 3), k = r * 1.6;
+        // (standing on the long runs' faces: they bulge ~1.1 m off the wall)
+        const P = (y, zz) => new THREE.Vector3(cx(zz) + s * (wallD(y, zz, s) - 1.0 - r * 0.8), y, zz);
+        const pts = [P(y0, z), P(y1 - k, z), P(y1 - k * 0.3, z - k * 0.3), P(y1, z - k), P(y1, z2 + k), P(y1 - k * 0.3, z2 + k * 0.3), P(y1 - k, z2), P(y0, z2)];
+        put(ur() < 0.3 ? M.steelFlat : M.steel, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), 12, r, 5, false));
+        for (const zz of [z, z2]) put(M.flange, cylBetween(P(y0 + 0.5, zz), P(y0 + 0.9, zz), r * 1.35, r * 1.35, 6));   // (solid: a climber holds its collar, not inside it)
+      }
+    }
+
     // round hatches and glowing portholes on the pillars, facing the canyon
     for (const p of pillarH) {
       const lit = rng() < 0.35, face = new THREE.Vector3(-p.s, 0, 0);
@@ -605,6 +626,32 @@ export function* buildBuried(scene) {
       const r = range(0.5, 1.1), rr = OR - r - 0.2;
       put(M.tealFlat, new THREE.CylinderGeometry(r, r, OTOP - FLOOR, 8, 1, true).translate(OX + dx * rr, (OTOP + FLOOR) / 2, OZ + dz * rr));
     }
+    // the drum's own small work (IMG_3791 p6, IMG_3792 p3): an arcade of little dark bays under the
+    // rim over a cornice, slits and dark panels stacked between the tall windows, machinery against the
+    // wall's foot, some of it lit (flush or solid, as you climb the wall; its own draws)
+    {
+      const ar = mulberry32(48011), clear = (a) => Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) > g + 0.18;
+      const onWall = (geo, a, y, inset = 0.05) => geo.rotateY(a + Math.PI).translate(OX + Math.sin(a) * (OR - inset), y, OZ + Math.cos(a) * (OR - inset));
+      const bay = (w, hh) => { const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(w / 2, hh - w / 2); sh.absarc(0, hh - w / 2, w / 2, 0, Math.PI, false); sh.lineTo(-w / 2, 0); return new THREE.ShapeGeometry(sh, 5); };
+      const yA = BALCONY + 35;
+      for (let k = 0; k < 72; k++) { const a = (k / 72) * TAU; if (clear(a)) put(ar() < 0.15 ? M.peach : M.tealFlat, onWall(bay(1.5, 4), a, yA)); }
+      put(M.tealMid, sectorGeometry(OR - 0.7, OR + 0.1, 0, TAU, 0.6, 72).translate(OX, yA - 0.4, OZ));
+      for (let k = 0; k < 18; k++) {
+        const a0 = (k / 18) * TAU + 0.17 + TAU / 36;
+        if (!clear(a0)) continue;
+        for (const [ya, yb] of [[FLOOR + 3, FLOOR + 21], [BALCONY + 4, BALCONY + 31]]) for (let y = ya; y < yb - 1.6; y += 2.2 + ar() * 1.4) {
+          const a = a0 + (ar() - 0.5) * 0.08, lit = ar() < 0.2;
+          put(lit ? M.peach : M.tealFlat, onWall(lit ? new THREE.PlaneGeometry(0.5, 1.3) : new THREE.PlaneGeometry(1.1 + ar() * 1.2, 0.8 + ar() * 1.2), a, y));
+        }
+      }
+      for (let i = 0; i < 34; i++) {
+        const a = ar() * TAU;
+        if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < g + 0.45) continue;
+        const w = range2(ar, 2, 5), hh = range2(ar, 1.5, 5), d = range2(ar, 1.4, 3), rr = OR - d / 2 + 0.2;
+        put(ar() < 0.5 ? M.teal : M.tealMid, new THREE.BoxGeometry(w, hh, d).rotateY(a).translate(OX + Math.sin(a) * rr, FLOOR + hh / 2, OZ + Math.cos(a) * rr));
+        if (ar() < 0.35) put(M.peach, onWall(new THREE.PlaneGeometry(w * 0.3, hh * 0.25), a, FLOOR + hh * 0.62, d - 0.18));
+      }
+    }
     for (let k = 0; k < 9; k++) {
       const a = rng() * TAU, rr = range(18, 27), dx = Math.sin(a), dz = Math.cos(a);
       if (Math.abs(Math.atan2(dx, dz)) < 0.6) continue;   // keep the doorway and the centre clear
@@ -734,6 +781,29 @@ export function* buildBuried(scene) {
       if (rng() < 0.18) {   // a dangling cable or aerial
         const l = range(15, 50);
         add(1, new THREE.CylinderGeometry(0.35, 0.35, l, 4).translate(x + rr * 0.4, y - spire * 0.4 - l / 2, z));
+      }
+    }
+    // the towers hang in clusters (IMG_3789 p2): lesser towers packed round the inner ones, each ending
+    // in a bulb and a short spike (their own draws: the city's layout keeps its own)
+    {
+      const cr = mulberry32(52011);
+      for (const t of towers) {
+        if (t.k < 0.35) continue;
+        for (let j = 0, m = 2 + Math.floor(cr() * 3); j < m; j++) {
+          const a = cr() * TAU, d = t.r * (1.05 + cr() * 0.35), r = t.r * (0.3 + cr() * 0.2), x = t.x + Math.cos(a) * d, z = t.z + Math.sin(a) * d;
+          const len = (40 + cr() * 90) * (0.4 + t.k), mat = Math.floor(cr() * 3);
+          let y = cY + 2, rr = r;
+          for (let q = 0; q < 2; q++) {
+            const th = len * (0.4 + cr() * 0.15);
+            add(mat, new THREE.CylinderGeometry(rr, rr * 0.9, th, 8, 1).translate(x, y - th / 2, z));
+            y -= th;
+            add(0, new THREE.CylinderGeometry(rr * 1.2, rr * 1.2, 1.6, 8).translate(x, y, z));
+            rr *= 0.8;
+          }
+          const br = rr * (1.4 + cr() * 0.4);
+          add(1, new THREE.SphereGeometry(br, 10, 6).scale(1, 0.8, 1).translate(x, y - br * 0.7, z));
+          add(mat, new THREE.ConeGeometry(br * 0.5, len * 0.1, 8).rotateX(Math.PI).translate(x, y - br * 1.35 - len * 0.05, z));
+        }
       }
     }
     // pipes slung between the towers

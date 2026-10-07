@@ -90,6 +90,29 @@ round walls, where the tangent of the interpolated normal had swept a column's m
   High 10.3 / 10.1 and 8.5 / 8.5 ms, Signal Market High 8.3 / 8.6 and 5.0 / 5.0, desert Handheld
   4.1 / 4.1 and 3.6 / 3.6, Market Handheld 8.6 / 8.4 and 7.1 / 7.2: within the run-to-run spread.
 
+### Stains round the doors (Qanat, October 2026)
+
+A door is a mesh of its own, so the wall's weathering cannot see it. Qanat's houses (`desert-city.js`
+`doorStain`) carry a smudge round 80 % of their doors: a fan from over the lintel out to a soft wavy outline
+(taller over the lintel, down to the foot either side), the wall's own colour 22-30 % toward a grime brown,
+laid 2 cm proud of the face, wrapped round a tower-house's drum (`R`); on the block houses and the towers (not the
+round houses: their collider stands inside the drawn drum, and a stain over it reads to the contact audit as one more
+place a climber goes inside). Its material draws a hairline
+of its own colour (`line` 0.25, `lineTint` 1), so it reads as a stain, not an inked patch; painted (vertex
+colour), one material for the town: +1 draw (+ its shadow), drawn only. Its own random numbers.
+
+## Cracks down a cliff's face (`cracks`)
+
+The desert's canyon sheets (IMG_3772 p3, IMG_3773 p3, IMG_3774 p5) draw their walls with many near-vertical
+cracks and strokes down the face; strata rock drew horizontal beds and a fissure every 9 m. A strata
+material's `cracks` (0..1, `uCracks`; 0 by default, the old look) adds `faceCracks` in materials.js: two
+families of lines, long ones 6 → 2 m apart and short strokes 3 → 1.1 m apart as `cracks` rises, each line
+its own length (its run of a value noise along the height), wandering, thinning at its ends, fading out by
+the pixel's size on the face. They are written over 1 in the drawn detail, so post.js draws them as pen lines
+(`drawnK`), on upright faces only. On: the References' `strataMat` (0.8), the desert's rose gorge and violet
+cliffs (`desert-landmarks.js`, `desert-vistas.js`). Two noise taps per family, only where `uCracks` > 0 on a
+strata face: Handheld, M4 Pro, the rose gorge within 0.2 ms GPU.
+
 ## Pen detail at every scale
 
 The reference sheets draw fine pen marks inside every surface, dense near and thinning with distance,

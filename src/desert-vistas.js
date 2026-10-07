@@ -14,7 +14,7 @@ export function buildDesertVistas(scene, terrain) {
   const root = new THREE.Group(); root.name = 'Desert reference landmarks'; scene.add(root);
   const cream = makeMaterial({ color: '#efdfc7', flat: true });
   const blue = makeMaterial({ color: '#a9c4d1', flat: true, metal: 'painted' });
-  const violet = makeMaterial({ color: '#b7a0bb', color2: '#a995b0', color3: '#d3bfd4', flat: true, mode: MODE_STRATA, strataSize: 7 });
+  const violet = makeMaterial({ color: '#b7a0bb', color2: '#a995b0', color3: '#d3bfd4', flat: true, mode: MODE_STRATA, strataSize: 7, cracks: 0.8 });   // (cracks down the cliffs' faces)
   const rope = makeMaterial({ color: '#716c70', flat: true, metal: 'iron' });
   function mesh(geometry, material, position, parent = root) {
     const m = new THREE.Mesh(geometry, material);m.position.copy(position);parent.add(m);return m;

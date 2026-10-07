@@ -7,6 +7,13 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.78', date: '2026-10-07', items: [
+    'The City-Shaft looks more like its drawings: half its walls are pink now among the cream, drainpipes run down the houses, washing hangs over the balconies’ rails, the undersides of the terraces are hung with ribs, machinery and pipes, three orange blimps drift slowly round the shaft, and the lake at the bottom is turquoise water instead of acid green.',
+    'The Signal Market’s stalls are full now: brass bowls heaped with fruit, jars between them, strings of goods hanging under the awnings and round pictures painted on the counters.',
+    'In the Buried Machine the trench walls are a mass of pipes, bends rising over the long runs and dropping back; inside the drum an arcade of little dark bays runs under the rim, with slits, panels and machinery against the wall, some of it lit; and the city overhead hangs its towers in clusters, lesser towers round the great ones, each ending in a bulb.',
+    'The desert’s canyon walls and violet cliffs are drawn with many cracks running down their faces, as in their drawings, instead of a few far-apart fissures, and the doors of Qanat’s houses have the plaster stained darker round them.',
+    'In the References level the Signal Market’s panels have a crowd of people in coats, hoods and hats, the quiet ones among them, stalls full of goods with their sellers, and the game’s own cabs; the Buried Machine’s have the trench’s pipes, the hanging towers in clusters, the drums’ arcades and machinery under vaulted ceilings, the oval tunnel’s inside, the moon seen from the arched cave and the layered rock ledge; the City-Shaft’s houses have pipes, balconies with washing and machinery under their overhangs, with blimps and the game’s own cabs in the sky.',
+  ] },
   { v: '0.77', date: '2026-10-07', items: [
     'The traveller’s face moves now: he smiles, frowns, looks worried, surprised or tired with the tone of what is said, blinks, glances about with his eyes, and his mouth opens and shuts on the syllables when he speaks, as everyone else’s does. At rest he looks as he always did, with the corners of his mouth a little up.',
     'The fluid tank is the glass jar of the traveller’s drawings now: a squat flask of green, living fluid on his upper back, its other colours turning through it in slow streams, the level falling a third with each charge you use, with a dark collar, brass fittings, a stoppered neck and leather straps over his shoulders. A gun mode tints the fluid its colour, and the Items panel shows the new flask.',
