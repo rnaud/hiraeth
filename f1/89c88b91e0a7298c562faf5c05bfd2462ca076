@@ -1,0 +1,29 @@
+TODO.md
+  s_55b4bc53b812ec::t_015298a7bf4e25 103-109,117-119
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_5f28248d635dc7 907-928
+scripts/bench/android-bridge.sh
+  s_55b4bc53b812ec::t_0ac211aa8c729c 22-25,39-49
+tests/android-bridge.test.js
+  s_55b4bc53b812ec::t_35fe4e8064bd03 1-31
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_55b4bc53b812ec::t_f9e579cbbecb23 19-25,27,29-59,63,86
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_4375808549f7da 64,106,119,354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f189c88b91e0a7298c562faf5c05bfd2462ca076",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
