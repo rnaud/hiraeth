@@ -177,6 +177,22 @@ test('the Glass Dunes build: the glass solid as drawn, the camps, the arches lit
   const m = level.ridges.find((r) => r.name === 'mound 0'), p = m.ridge.at(m.ridge.length / 2, m.depth * 0.4);
   const top = physics.rayHit(new THREE.Vector3(p.x, 80, p.z), new THREE.Vector3(0, -1, 0), 120);
   assert.ok(top && top.point.y > H(p.x, p.z) + 4, `the mound is stood on where it is drawn (${top?.point.y})`);
+  // the passages: walk through the cliff of the giants and through the frozen wave, along their vaults
+  for (const name of ['giants', 'wave']) {
+    const q = level.ridges.find((r) => r.name === name).ridge.passages[0];
+    const from = new THREE.Vector3(q.x - q.nx * 6, q.y + 1.6, q.z - q.nz * 6), dir = new THREE.Vector3(q.nx, 0, q.nz);
+    const through = physics.rayHit(from, dir, q.d + 10);
+    assert.ok(!through, `${name}: the way through is open (${through?.point.toArray().map((v) => v.toFixed(1))})`);
+    const side = new THREE.Vector3(-q.nz, 0, q.nx), beside = from.clone().addScaledVector(side, q.w / 2 + 6);
+    assert.ok(physics.rayHit(beside, dir, q.d + 10), `${name}: beside the archway, the glass`);
+    const up = physics.rayHit(new THREE.Vector3(q.x + q.nx * q.d / 2, q.y + 1.6, q.z + q.nz * q.d / 2), new THREE.Vector3(0, 1, 0), 30);
+    assert.ok(up && up.point.y < q.y + q.h + 1, `${name}: the vault's roof over you`);
+  }
+  // the breaking wave's hollow: from the north camp you walk on into it, a long way under its lip
+  const into = physics.rayHit(new THREE.Vector3(10, H(10, -195) + 1.6, -195), new THREE.Vector3(0, 0, -1), 200);
+  assert.ok(into && into.point.z < -240, `the hollow goes in (${into?.point.z})`);
+  const lip = physics.rayHit(new THREE.Vector3(10, H(10, -238) + 1.6, -238), new THREE.Vector3(0, 1, 0), 200);
+  assert.ok(lip && lip.point.y > H(10, -238) + 20, `the lip overhead (${lip?.point.y})`);
   // the ring beyond the edge is drawn only (no collision to pay for), and the edge keeps you inside it
   assert.ok(level.limit < 600);
 });
@@ -187,6 +203,7 @@ test('the Glass Dunes: what you stand on and climb is the drawn glass (the conta
   const r = quiet(() => auditContact({ physics, scene, max: 12000 }));
   assert.ok(r.checked.walk > 400 && r.checked.wall > 1000, JSON.stringify(r.checked));
   const c = r.counts;
-  // (known: the camps' awnings and floats are drawn only; the kiln's mouth; the sand banked at a stone's foot)
-  assert.ok((c['feet sink'] ?? 0) <= 12 && (c['feet hover'] ?? 0) <= 6 && (c['climbs inside'] ?? 0) <= 12 && (c['walks through'] ?? 0) <= 30, formatContact(r));
+  // (known: the camps' awnings and floats are drawn only; the kiln's mouth; the sand banked at a stone's foot;
+  //  the archways' drawn-only rims that took 5 climbs are passages now)
+  assert.ok((c['feet sink'] ?? 0) <= 12 && (c['feet hover'] ?? 0) <= 6 && (c['climbs inside'] ?? 0) <= 4 && (c['walks through'] ?? 0) <= 8, formatContact(r));
 });
