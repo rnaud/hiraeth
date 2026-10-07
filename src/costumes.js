@@ -358,6 +358,27 @@ export const COSTUMES = {
       accents: ['#f2c54b', '#2fa8a0', '#ff7a5c', '#f5dfab'],
     },
   })] },
+  // the City Behind the Waterfall (src/levels/waterfall.js): basket carriers and pot gardeners in rust, ochre
+  // and teal against the pale stone, hoods and wraps against the spray
+  waterfall: { tribes: [tribe({
+    name: 'the falls',
+    moods: { calm: 3, kind: 3, curious: 2, amused: 1.5, stern: 0.4 },
+    heads: { hood: 3, wrap: 2.5, hair: 2 },
+    headsF: { wrap: 3, hood: 2, hair: 2.4 },
+    hair: { m: { crop: 2, curls: 2, bald: 0.8 }, f: { braid: 2.5, bun: 2, flow: 1.5 } },
+    masks: { none: 1 }, body: { none: 3, badge: 1 }, props: { basket: 3, none: 3 }, trim: { stripes: 2, none: 2 },
+    more: { heads: { beanie: 1, hooddown: 1.2 }, headsF: { kerchief: 1.5, hooddown: 0.8 }, body: { muffler: 1 } },
+    capes: [0, 0.6, 1.0], robe: 0.7, robes: [0.3, 0.45], flare: [0.3, 0.36], size: [0.95, 1.05],
+    palette: {
+      cloaks: ['#c46b4e', '#4f7f86', '#d9a35e', '#7a6e9e', '#b5523e', '#e0c08a', '#5f8f7a', '#2f8a8f'],
+      tunics: ['#efe0c4', '#d9a35e', '#4f8f8a', '#c2603f', '#f2e6d0'],
+      legs: ['#3f5a5e', '#5a4a42', '#2f4a4f'],
+      skins: ['#c58c64', '#e9cfb4', '#8a5a40', '#d9a98a', '#a8714c', '#f1dccb'],
+      hair: ['#2b211f', '#4a3226', '#a8552e', '#e8dcc0'],
+      hats: ['#c46b4e', '#4f8f8a', '#d9a35e', '#efe0c4'],
+      accents: ['#d9a35e', '#2f8a8f', '#c2603f', '#efe0c4'],
+    },
+  })] },
   home: { tribes: [tribe({
     name: 'home',
     moods: { kind: 5, amused: 2, curious: 1, calm: 1, stern: 0 },

@@ -16,6 +16,7 @@ import { createHome, buildHome } from './home.js';
 import { createReferences, buildReferences } from './references.js';
 import { createMangrove, buildMangrove } from './mangrove.js';
 import { createGlassDunes, buildGlassDunes } from './glass-dunes.js';
+import { createWaterfall, buildWaterfall } from './waterfall.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -91,6 +92,13 @@ export const LEVELS = [
     title: TITLES.mangrove, source: 'a village in the white roots',
     blurb: 'Bone-white trees stand on arching roots in a black lake, and people live in them. Walk the lantern-lit planks, climb to the decks round the trunks, and look down: the lake glows like a second sky.',
     moves: 'walk · climb · swim',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'waterfall', create: createWaterfall, build: buildWaterfall, hidden: true,
+    title: TITLES.waterfall, source: 'a city behind a curtain of water',
+    blurb: 'A long cavern city hidden behind a towering waterfall. Terraced streets of rounded houses, amber lamps in the deep quarter, and balconies behind slits in the water, looking out over a sunlit valley.',
+    moves: 'walk · climb · swim · jetpack',
   },
   {
     id: 'atelier', create: createAtelier, build: buildAtelier, hidden: true,

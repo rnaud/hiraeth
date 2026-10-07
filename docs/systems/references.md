@@ -488,6 +488,31 @@ the narrowest creases.
   foot, the luminous rims) is only its colours. Plate 4's breaking wave reads as a hood but not yet as the plate's
   tall arch; plate 2's billows want deeper, rounder shading under each lobe. The plates' sand carries painted
   bands of light and shade more than our cast shadows do.
+## The City Behind the Waterfall's sheets (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-waterfall.js`, world `waterfall`: `?level=references&world=waterfall&view=n`):
+  four 16:9 plates (1456 × 816, one view each), after the White Mangrove's. One scene builder (`fallScene`)
+  with the world's own kit (`src/levels/waterfall-kit.js`, shared with the world, worlds.md): waterfalls
+  (`waterfall`: a sheet in the falling-water shader, `src/waterfall-shader.js`, and a mist bank at its foot),
+  lumpy faceted rock masses for the cavern's roof and walls (`rockMass`, casting their shade over the city),
+  quarters of rounded houses climbing the back wall (`quarter`, built in their own frame through `framed`:
+  terraces with their retaining walls and parapets, pods, vaults and rounded blocks with arched doors and
+  round windows, a share lit amber, awnings, pots, lamps, stairs, copper pipes up the risers, residents),
+  arched stone bridges, the sunlit valley far below seen past the falls (a terrain-mode plain). The look
+  `WATERFALL_LOOK`: the shade printed flat in the cavern's teal, almost no hatching or half-tone, no bounce,
+  a teal haze in stepped bands, a clean sky.
+- **The falling water** (`makeMaterial({ fall })`, the FALL define): columns of four flat tones fixed across
+  the sheet, their breaks streaming down at the fall's speed (long streaks, ~20:1), pen streaks falling a little
+  faster in their own lanes (gone once a lane is under ~3 px), see-through slits where a column runs thin
+  (discarded: the city or the valley shows through), a glassy lip under the top edge, a billowing pale mist band
+  at the foot. Its own light (L = 1, no spot black), a thin line in its own colour, a soft halo (glow 0.72). The
+  uv is in metres (`fallSheet`). Five value-noise taps a pixel, no texture.
+- **Choices**: the sheets' falls are luminous: the sheet is self-lit rather than shaded by the sun; the roof
+  casts its shadow, so most of the city sits in the teal shade with its lamps and lit doors, the sun slipping
+  under the lip onto the front of the terraces (views 1, 2); views 3 and 4 light the street from the falls' side.
+- **Left**: the sheets' houses are a dense heap of small volumes, balconies, plants and goods at every scale; ours
+  are tidy rows of pods on terraces whose retaining walls still show too plain. The sheets' roof is a mass of
+  blocky overhangs with deep pockets; ours a few lumpy slabs. View 3's and 4's cities stand a little far and low.
 
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 

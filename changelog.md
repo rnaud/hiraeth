@@ -6,6 +6,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 - A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.
 - In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.
+- A new world off the route, the City Behind the Waterfall: a long cavern city hidden behind a towering curtain of falling water. Walk the dry promenade along the falls, climb the terraced streets of rounded houses, look out over a sunlit valley from the balconies behind slits in the water, or swim in the pool at its foot. The ship’s map charts it from the start.
+- Waterfalls are drawn the way the drawings draw them: flat turquoise bands streaming down with fine pen streaks, slits of light where the water runs thin, mist and spray at the foot, and a roar that grows as you come near.
+- The References level has the City Behind the Waterfall’s four pictures rebuilt as views, to set beside the pictures they come from.
 
 ## v0.83 — 2026-10-07
 

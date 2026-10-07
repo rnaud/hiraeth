@@ -23,6 +23,7 @@ export const EDGE_HINTS = {
   perdide: 'The swamp’s mist thickens and turns you back.',
   perdide2: 'The swamp’s mist thickens and turns you back.',
   mangrove: 'The mist over the black water thickens and turns you back.',
+  waterfall: 'The spray thickens into a wall of white and turns you back.',
   bazaar: 'The wind between the towers pushes you back.',
   incal: 'The wind up the shaft pushes you back.',
   atelier: 'The page ends here.',

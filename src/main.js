@@ -1464,6 +1464,7 @@ function frame(ts) {
     thrusting: player.thrusting, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
     altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
     flying: player.gliding || player.thrusting, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
+    roar: level.roar?.(player.pos) ?? 0,   // (a waterfall near: src/levels/waterfall.js)
   });
 
   // sand: ambient gusts + dust behind the bike

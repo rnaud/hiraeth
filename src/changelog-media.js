@@ -126,6 +126,26 @@ export const CHANGELOG_MEDIA = {
       { name: 'glass-ref-4', caption: 'The fourth plate: the wave breaking over the camp, the walls and their silhouettes behind', commit: 'ac98118a', only: 'after',
         view: { ref: 'glass-4-wave', query: 'world=glassdunes', hour: null } },
     ], see: 'Open ?level=references&world=glassdunes and step through its four views with [ and ]; \\ lays the plate over the view.' },
+    { match: 'A new world off the route, the City Behind the Waterfall', shots: [
+      { name: 'falls-promenade', caption: 'The promenade along the falls, the lower town climbing the back wall, the small fall at the deep end', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'falls-balcony', caption: 'From a balcony behind the water: the terraces of rounded houses, the cafés on the promenade', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'falls-night', caption: 'The deep quarter at night: the falls glowing, the houses’ lamps and lit doors', only: 'after', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'Open the ship’s galactic map: the City Behind the Waterfall is charted beside the route. Walk from the landing into the cavern, along the promenade, out onto a balcony, and down the quay’s stair to the pool.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of frames, median of 7 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The City Behind the Waterfall”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 2.03, after: null },
+          { where: 'the landing (spawn)', before: null, after: 1.1 },
+          { where: 'the promenade', before: null, after: 1.24 },
+          { where: 'the deep quarter', before: null, after: 1.12 },
+        ] },
+      ] },
+    { match: 'Waterfalls are drawn the way the drawings draw them', shots: [
+      { name: 'falls-curtain', caption: 'The curtain from the cavern mouth: the bands, the pen streaks and the slits of light', only: 'after', from: 'the world’s own screenshots, headless Chrome, High (7 October)' },
+    ], see: 'Stand by the parapet on the promenade and watch the water: the bands keep their places while their breaks stream down; walk toward the falls and back to hear the roar rise and fall.' },
+    { match: 'The References level has the City Behind the Waterfall’s four pictures', shots: [
+      { name: 'refs-waterfall-terraces', caption: 'The picture (left) and its view (right): the terraces of domes beside the great fall', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'refs-waterfall-pink', caption: 'The picture (left) and its view (right): the city’s slope at the pink hour, the falls on the left', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open the References (?level=references&world=waterfall) and press Tab for the quick menu: the City Behind the Waterfall’s four views; the backslash key (View on a pad) compares each with its picture.' },
   ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [

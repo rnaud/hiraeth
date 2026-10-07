@@ -27,6 +27,7 @@ export const WORLD_REACTIONS = {
   home: {kind:'flower',quiet:'#d9a37f',awake:'#5fd0c6',radius:9},
   mangrove: {kind:'fungus',quiet:'#8a8ed0',awake:'#ff9ad8',radius:10,shy:true},   // (none grow there: level.reactions false)
   glassdunes: {kind:'fan',quiet:'#8fcfae',awake:'#e8f7a0',radius:10},   // (glass fans in the sand, opening lime as you pass)
+  waterfall: {kind:'flower',quiet:'#4f8f5f',awake:'#b2ebe2',radius:9},   // (none grow there: level.reactions false)
 };
 
 // ------------------------------------------------------------------ room to bloom

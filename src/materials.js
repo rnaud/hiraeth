@@ -10,6 +10,7 @@ import { GLYPH_GLSL } from './glyphs.js';
 import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
 import { BRUSH_GLSL, brushUniforms } from './brush.js';
 import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
+import { FALL_GLSL, fallMaterial } from './waterfall-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -1637,6 +1638,9 @@ const fragmentShader = /* glsl */ `
   #ifdef WATER
   ${WATER_GLSL}
   #endif
+  #ifdef FALL
+  ${FALL_GLSL}
+  #endif
 
   // ordered 4x4 dither threshold, for print-like dissolves
   float bayer4(vec2 p) {
@@ -1941,6 +1945,10 @@ const fragmentShader = /* glsl */ `
     #ifdef WATER
       WaterLook wl = waterLook(vWorldPos, gl_FrontFacing);   // (water-shader.js; derivatives here, in uniform flow)
     #endif
+    #ifdef FALL
+      FallLook fl = fallLook(vTextureUV);   // (waterfall-shader.js: a falling sheet, its uv in metres)
+      if (fl.gap > 0.5) discard;
+    #endif
     vec3 albedo = uColor;
     #ifdef S_MAP
     if (uHasMap > 0.5) albedo *= texture(uMap, vTextureUV).rgb;
@@ -2038,6 +2046,9 @@ const fragmentShader = /* glsl */ `
     #endif
     #ifdef FLUID
       albedo = fluidAlbedo(albedo);
+    #endif
+    #ifdef FALL
+      albedo = fl.albedo;
     #endif
     #ifdef S_PATCH
     // colour across a wall (PATCH): big flat patches, each building its own; none far off (nothing paid)
@@ -2205,6 +2216,9 @@ const fragmentShader = /* glsl */ `
     #ifdef WATER
       L = mix(L, max(L, 0.8), wl.lit);
     #endif
+    #ifdef FALL
+      L = 1.0;   // (the sheet is its own light: no shade, no strokes, no cast shadow on it)
+    #endif
     #ifdef DISSOLVE
     albedo = mix(albedo, uDissolveColor, dEdge);
     L = mix(L, 1.0, dEdge);
@@ -2234,6 +2248,9 @@ const fragmentShader = /* glsl */ `
     }
     #endif
     detail = max(detail, carve.z * 0.62);
+    #ifdef FALL
+      detail = max(detail, fl.ink);   // (the sheet's pen streaks)
+    #endif
     #ifdef METAL
       detail = max(detail, metalInk);
     #endif
@@ -2656,6 +2673,7 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidBase = { value: new THREE.Color(o.fluidBase ?? '#5fb86a') };
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
+  if (o.fall) fallMaterial(mat, o);   // a falling sheet of water (waterfall-shader.js)
   if (o.makersBox) {
     const B = o.makersBox;
     mat.defines = { ...mat.defines, MAKERS_BOX: 1 };

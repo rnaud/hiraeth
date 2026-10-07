@@ -23,6 +23,7 @@ export const PLANETS = {
   bazaar:   { body: '#e6875f', shade: '#b35d3f', ink: '#f2c54b', mark: 'lights' },
   mangrove: { body: '#3a3f78', shade: '#262a56', ink: '#f2e8f2', mark: 'lights' },
   glassdunes: { body: '#8fdcae', shade: '#4f9c86', ink: '#e4f6b0', mark: 'dunes' },   // (a detour: glass dunes)
+  waterfall: { body: '#6fc9cc', shade: '#3f8f98', ink: '#f1dcbd', mark: 'bands' },
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };
 

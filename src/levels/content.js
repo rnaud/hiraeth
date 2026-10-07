@@ -80,6 +80,18 @@ export const CONTENT = {
     relics: { spots: [], names: [] },
     get npcs() { return referencePeople(); },
   },
+  // src/levels/waterfall.js: off the route (names.js SIDE), no quest, no relics; a few of the city's people by the water
+  waterfall: {
+    weather: [],
+    story: { title: 'BEHIND THE WATER', intro: 'A city in a cavern behind a curtain of falling water. Nobody here is waiting for you; have a look round.', outro: 'You have seen the city behind the water.', label: 'the balconies', goal: [-126, 'ground', 34], radius: 6, manual: true },
+    relics: { spots: [], names: [] },
+    npcs: [
+      { at: [-123, 34.5], y: 0, radius: 1, facing: 0, palette: pal('#4f7f86', { cloth: '#efe0c4' }), lines: ['~whisper~ Shh. Listen. Under the roar there’s the valley: goats, a bell, somebody singing badly.', '~happy~ Every child in the city has stood on this balcony and shouted. The water always wins.'] },
+      { at: [-60, 12], y: 0, radius: 2, palette: pal('#c46b4e', { cloth: '#f2e6d0' }), lines: ['~tired~ Ferns, ferns and more ferns. They love the spray. I carry the pots out to it every morning.', '~curious~ You’re not wet. How did you get in without walking through the falls?'] },
+      { at: [-200, 4], y: 0, radius: 2, palette: pal('#d9a35e', { cloth: '#3f5a5e' }), lines: ['~solemn~ In the deep quarter we keep the lamps lit all day. The falls’ light gives out a street from the water.', '~neutral~ Follow the copper pipes up if you want the top terraces. They go where the water goes.'] },
+      { at: [70, 12], y: 0, radius: 2, palette: pal('#7a6e9e', { cloth: '#efe0c4' }), lines: ['~surprised~ A ship on the landing! The last thing that landed there was a heron, and it left offended.', '~playful~ The city’s that way, behind the water. You’ll hear it before you see it.'] },
+    ],
+  },
   atelier: {
     weather: [],
     story: {

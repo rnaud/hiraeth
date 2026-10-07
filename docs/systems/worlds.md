@@ -542,3 +542,52 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
   meshes or a shader mask); the archways are lit panels, not passages; the breaking wave reads as a great hood
   from far but as a wall from inside its hollow; no sounds of its own (the kilns, the glass ringing in the wind),
   no music of its own.
+
+## The City Behind the Waterfall (`waterfall`, off the route, October 2026)
+
+`src/levels/waterfall.js` (`?level=waterfall`; a SIDE world in `src/levels/names.js`, charted on the ship's map from the
+start, no quest, no relics: `manual: true`), after its four pictures (`references/The City Behind the Waterfall`,
+references.md). Its pieces are in `src/levels/waterfall-kit.js`, shared with the views.
+
+- **The layout**: a cavern running along x (−310 … 44), its back wall at z −100, its roof's lip at y 150 over the
+  curtain (z 40). The **landing** (x 44 … 214), a shelf of stone outside the east mouth, open to the sky: the ship
+  (`shipSite` 140, 2, its hatch toward the cavern), lamps, a low wall over the drop. The **promenade** (y 0, z −10 …
+  22) the whole length of the cavern, its parapet over the pool, cafés and pots by it; three short bridges out to
+  **balconies** standing behind slits in the water (`BALCONIES`, the curtain's `SHEETS` leave a gap before each),
+  looking out over the valley; a stair down to a quay on the **pool** (y −17, 4 m deep: swim in it). The **lower
+  town** (x −150 … 30) and the **deep quarter** (x −290 … −158): `quarter`s of six terraces each, every one a solid
+  block of stone with its street, rounded houses against the riser behind (pods, vaults, rounded blocks: arched
+  doors and round windows, a share lit amber, awnings, lamps), stairs climbing along the risers through gaps in the
+  parapets, copper pipes up the risers and the back wall (solid: you climb them). A small fall from the roof into a
+  basin at the deep end. The **valley** far below (y −230), drawn only; the ground is −600 past the edges
+  (`killY` −60).
+- **The falling water** (`src/waterfall-shader.js`, references.md): the curtain is one mesh of four sheets in one
+  material, drawn only, casting no shadow; mist banks at its foot breathe (movers); **spray**: 70 instanced drops
+  thrown up at the foot within 40 m of you (`updateSpray`); pale motes drift in from the falls (`life.motes`).
+- **Light**: the roof casts its shadow; the sun comes in from the falls' side under the lip (`lightAt`: from the
+  south, ~45° high, swinging a little east to west), so the promenade and the lower terraces are lit and the upper
+  ones and the deep quarter sit in the cavern's teal with their lamps. Day, dusk and night colour scripts
+  (`WATERFALL_DAY`, `_DUSK`, `_NIGHT`); the world's look `WATERFALL_WORLD_LOOK` (few strokes, no bounce, the teal
+  haze in stepped bands); the shade printed flat per material (`cityMats({ shadeFlat: 0.8 })`).
+- **Sound**: `level.roar(pos)` (0 … 1: near the curtain's foot, and the small fall) drives two new noise layers in
+  `audio.js` (`roar`, a low rumble, and `hiss`, the spray), passed by main.js; the ambience `falls` adds drips; the
+  footsteps are stone's.
+- **People and life**: a crowd in the falls' own costume set (`costumes.js` `waterfall`: hoods and wraps, baskets)
+  walks the promenade and every terrace street, sits at the cafés and leans on the parapets; four people with
+  ambient lines of their own (content.js); two creatures of their own (`species.js`: the spray newt, which blows a
+  bubble of spray, and the cup crab, which tips the water off its back and scuttles off).
+- **Contact**: solid as drawn but for the mist (`tests/contact-audit.test.js`: feet sink 2, climbs inside 2, all in
+  the mist banks); the static collision ~163 k triangles.
+- **Cost** (Mac M4 Pro, headless Chrome, 1280 × 720, the Handheld preset at render scale 0.75 without dynamic
+  resolution, a synced loop of 60 `renderFrame()`s closed by a readPixels, the median of 7 rounds, the machine shared
+  with other agents' jobs, load 49): the Signal Market (the budget) 2.03 ms / 597 draws at its spawn, 1.95 / 572 in
+  the street; the falls' landing 1.10 / 173, the promenade 1.24 / 180, a balcony 1.08 / 95, the deep quarter 1.12 /
+  157, an upper terrace 1.13 / 141 (~0.6 M triangles where the Market draws ~0.7 M).
+- `tests/waterfall.test.js`: registered off the route and charted, the promenade, bridges and balconies solid, the
+  pool deep, the ship's shelf flat and open to the sky, the streets solid, the roar, the crowd's routes, the toned
+  lines, the collision budget, the fall's material and uv, the four views.
+- **Left to make it better**: the houses are tidy rows where the pictures heap small volumes, balconies, goods and
+  plants at every scale; the retaining walls are plain; the roof is a few lumpy slabs, not a mass of blocky
+  overhangs; nothing flows on top of the lip seen from the landing (the river feeding the falls); the falls push
+  nothing (walking into the curtain from the pool you just pass through); the houses can't be entered; the inner
+  fall's basin is shallow and plain.

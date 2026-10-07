@@ -28,6 +28,7 @@ export const REFERENCE_WORLDS = [
   { id: 'market', name: 'The Signal Market', count: 21, load: () => import('./reference-market.js') },
   { id: 'mangrove', name: 'The White Mangrove', count: 4, load: () => import('./reference-mangrove.js') },
   { id: 'glassdunes', name: 'The Glass Dunes', count: 4, load: () => import('./reference-glassdunes.js') },
+  { id: 'waterfall', name: 'The City Behind the Waterfall', count: 4, load: () => import('./reference-waterfall.js') },
 ];
 
 /** The index of the first view of world k (0-based, across all the worlds). */
