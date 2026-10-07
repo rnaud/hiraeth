@@ -365,7 +365,7 @@ export class InteriorCuller {
 const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, ao: true, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false, floraFar: 1, floraDensity: 1, lodPx: 1 };
 export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
-  handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40 },
+  handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40, cpuBound: 0.85 },
     shadow: { fine: 0, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2 },
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
@@ -386,11 +386,15 @@ export const QUALITY_PRESETS = {
  * @param s  state { slow, fast, hold }, updated in place
  * @returns { scale, dropped } (dropped: this step went down)
  */
-export function adaptScale(s, { fps, missed = 0 }, D, scale) {
-  const jerky = D.steady ? missed >= D.steady : false;
+export function adaptScale(s, { fps, missed = 0, cpu = 0, period = 1000 / 60 }, D, scale) {
+  // (D.cpuBound: the main thread's own time a frame over that share of the refresh means the CPU is what's
+  //  slow, and fewer pixels can't help: no drop then, for missed refreshes or a low frame rate; GeckoView on
+  //  the handheld fell to its floor at no gain in fps, docs/systems/performance.md)
+  const cpuBound = D.cpuBound ? cpu > D.cpuBound * period : false;
+  const jerky = D.steady && !cpuBound ? missed >= D.steady : false;
   const clean = !D.steady || missed === 0;
   if (s.hold > 0) s.hold--;
-  if (fps < D.low || jerky) { s.slow++; s.fast = 0; } else if (fps > D.high && clean) { s.fast++; s.slow = 0; } else s.slow = s.fast = 0;
+  if ((fps < D.low && !cpuBound) || jerky) { s.slow++; s.fast = 0; } else if (fps > D.high && clean) { s.fast++; s.slow = 0; } else s.slow = s.fast = 0;
   if (s.slow >= 3 && scale > D.min) {
     const step = fps < D.low * 0.7 ? 0.1 : 0.05;   // well under: a bigger step
     s.slow = 0;

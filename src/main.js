@@ -761,10 +761,10 @@ function applyQuality() {
   blades.grow?.();
 }
 /** Dynamic resolution: the render scale follows the frame rate, inside the preset's range (Auto, Handheld; perf.js adaptScale). */
-function adaptQuality(fps, missed) {
+function adaptQuality(fps, missed, cpu, period) {
   const D = preset.dynamic;
   if (!D || document.hidden || busy() || photo.on) return;
-  const { scale, dropped } = adaptScale(adapt, { fps, missed }, D, quality.renderScale);
+  const { scale, dropped } = adaptScale(adapt, { fps, missed, cpu, period }, D, quality.renderScale);
   if (scale === quality.renderScale) return;
   quality.renderScale = scale;
   if (dropped && !adapt.dropped) { adapt.dropped = true; applyDetail(); }
@@ -1281,14 +1281,18 @@ function frameReadout(fps) {
   return `${ENGINE}${window.__benchLabel ? ` ${window.__benchLabel}` : ''} · ${Math.round(fps)} fps · ${(1000 / fps).toFixed(1)} ms (cpu ${(cpuMs / fpsN).toFixed(1)}${gpu !== null ? ` gpu ${gpu.toFixed(1)}` : ''})`
     + ` · ${quality.renderScale}× · ${Math.round(frameStats.calls / n)} calls · ${Math.round(frameStats.tris / n / 1000)}k tris · ${preset.key}`;
 }
-function frame() {
+function frame(ts) {
   const tFrame = performance.now();
-  if (lastFrameT && gaps.length < 200) gaps.push(tFrame - lastFrameT);
-  lastFrameT = tFrame;
+  // the missed refreshes from the animation frame's timestamp (when the frame is shown), not from when its
+  // callback starts: GeckoView starts a late frame's callback late and evenly (19-22 ms apart while the
+  // screen shows 17 and 33), which hid every missed refresh from dynamic resolution (docs/systems/performance.md)
+  const tShown = Number.isFinite(ts) ? ts : tFrame;
+  if (lastFrameT && gaps.length < 200) gaps.push(tShown - lastFrameT);
+  lastFrameT = tShown;
   if (++fpsN, tFrame - fpsT > 500) {
     const fps = (fpsN * 1000) / (tFrame - fpsT);
     if (settings.showFps) fpsEl.textContent = frameReadout(fps);
-    adaptQuality(fps, missedFrames());
+    adaptQuality(fps, missedFrames(), cpuMs / fpsN, Math.min(...gaps, 1000 / 60));   // (the main thread's time a frame, the refresh)
     fpsN = 0; fpsT = tFrame; cpuMs = 0; gaps.length = 0;
     frameStats.calls = frameStats.tris = frameStats.n = frameStats.culled = 0;
   }
