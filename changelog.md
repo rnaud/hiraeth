@@ -8,6 +8,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Your mother’s note in the ship’s galley ends differently now, with the lamp she keeps in the window.
 - At the stone at home, the listening shell and the echo shell go down with the other gifts, each with its own words.
 - What happened at Esk’s terraces in Viridel is filed under “What happened” in the Quests page now, not marked failed; and coming back to Viridel later, Esk has decided there is one small job for you, down in the mud where her hill went.
+- Viridel closes with a few words of its own as the flowers close over the ship again, as Lorn and Lorn II do.
 
 ## v0.81 — 2026-10-07
 

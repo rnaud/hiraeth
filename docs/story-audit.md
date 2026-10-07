@@ -493,6 +493,8 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
 
   *Done (second pass):* the Quests panel says "What happened" (a quiet dot, not ✗) and so does the toast. On a later visit Esk has decided: one small job, a tea cutting from the rows that held, pressed into the new mud by the stream ("A Cutting for the Mud", two steps, tested). The payoff stays small and quiet: the cutting stays there, "It won't be my grandmother's hill. It'll be this one.", and she checks it every morning. The terraces stay what happened.
 - **Viridel's closing toast**, matching Lorn's and Lorn II's "Something of value?".
+
+  *Done (second pass):* "The flowers close over the ship again, mostly. Something of value? Words you can carry: we tend the garden, and the garden tends us." (tested in `tests/story-edena.test.js`).
 - **The wheel that keeps turning.** What does Wen's "the city settles when the last tooth turns" mean now? Revise the bible's §9.
 - **Places to fill:**
   - a look-at on Vael's colossus;

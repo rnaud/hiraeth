@@ -162,6 +162,8 @@ export function setupEdena(ctx) {
   quests.def(Q).onDone = () => {
     game.set('world.edena.done', true);
     st.veilTo = 0.18;   // the flowers close over it again, mostly
+    // the closing toast, as Lorn's and Lorn II's (the keepsake: Mira's words)
+    toast('The flowers close over the ship again, mostly. Something of value? Words you can carry: we tend the garden, and the garden tends us.');
     setTimeout(() => story.complete?.(), 1200);
   };
 

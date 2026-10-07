@@ -136,6 +136,7 @@ test('the main quest: the fallen ship, the log, the flowers drawn aside, the sam
   talk(PEOPLE.mira, ['My ship has the same mark', 'Where did they go', 'What does it want']);
   assert.equal(quests.isDone(Q), true);
   assert.equal(game.flag('world.edena.done'), true);
+  assert.ok(toasts.some((t) => /Something of value\? Words you can carry/.test(t)), 'the closing toast, as Lorn’s');
   assert.equal(game.flag('clue.edena.struck'), true);
   assert.equal(game.flag('clue.edena.pod'), true);
   const k = game.keepsakes().find((x) => x.id === 'edena.word');
