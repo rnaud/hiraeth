@@ -96,6 +96,19 @@ function makePlan(args) {
   return { steps, i: 0, wait: 0, t: 0, samples: null };
 }
 
+/**
+ * A view aimed at someone (view.npc: their id; the side-by-sides' close-ups): the eye `dist` m off their front,
+ * a little to the side, looking at their chest, wherever they have walked to by now. Other views as they are.
+ */
+function aimed(game, v) {
+  if (!v?.npc) return v;
+  const n = game.npcs.find((x) => x.def?.id === v.npc);
+  if (!n) { console.log(`[unity] no ${v.npc} here`); return v; }
+  const p = n.pos, h = n.heading ?? 0, d = v.dist ?? 2.8, side = v.side ?? 0.6;
+  const fx = Math.sin(h), fz = Math.cos(h);
+  return { ...v, player: null, hidePlayer: true, eye: [p.x + fx * d + fz * side, p.y + 1.5, p.z + fz * d - fx * side], target: [p.x, p.y + 1.1, p.z], fov: v.fov ?? 45 };
+}
+
 /** This frame's keys from Unity (BridgeHost.Keys: the KeyboardEvent codes held), as the page's keydown / keyup. */
 function readInput(game) {
   const held = new Set((host.Keys() || '').split(',').filter(Boolean));
@@ -144,7 +157,7 @@ export function frame(dt) {
   if (!P) return;
   const step = P.steps[P.i];
   const next = () => { P.i++; P.wait = 0; P.t = 0; };
-  if (step.kind === 'pin') { game.pin(step.view); next(); }
+  if (step.kind === 'pin') { game.pin(aimed(game, step.view)); next(); }
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
   else if (step.kind === 'approach') {
     const people = game.npcs.filter((n) => n.def && !n.pooled);

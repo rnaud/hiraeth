@@ -213,11 +213,18 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
   loads the world's MakeHuman people as main.js does (`usesMakeHuman`, `loadPeople`: the story's people,
   the crowd's pooled bodies, everyone the story makes); body.bin read through the host, packed with the
   players. Their faces' shape keys (FACE_KEYS, a texture the port's Surface doesn't read) stay at rest.)
-- [ ] What the bridge still leaves out (engine-bridge.md, "The web's newer look and the rest of the
-  world"): hatching that follows the form (`S_FORM`: its per-vertex axis), the makers' boxes' star and
-  ray (`MAKERS_BOX`), the MakeHuman faces' shape keys (`FACE_KEYS`), the overshirt's lining; some people
-  near the camera hold their things out sideways in Unity (not understood yet). And the coral-shirt
-  traveller's overshirt cloth steps on the VM's thread (the web: a Worker): its sim as a C# job.
+- What the bridge still leaves out (engine-bridge.md, "The web's newer look and the rest of the world"):
+  - [x] Some people near the camera held their things out sideways in Unity. (2026-10-07: the crowd's
+    GPU figures, not the full people: the port's Crowd.hlsl read the costume with the old packing
+    (mask + 8 × piece + 128 × prop), so it showed the wrong pieces, several props at once. Ported again
+    from crowd-shader.js (costumes.js packDress, CROWD_BODY, the cape's arm clearance, the seated robe);
+    a test reads the shader's limits against costumes.js.)
+  - [ ] The coral-shirt traveller's overshirt cloth steps on the VM's thread (the web: a Worker): its sim
+    as a C# job.
+  - [ ] Hatching that follows the form (`S_FORM`: its per-vertex axis).
+  - [ ] The makers' boxes' star and ray (`MAKERS_BOX`).
+  - [ ] The MakeHuman faces' shape keys (`FACE_KEYS`).
+  - [ ] The overshirt's lining colour.
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached.
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering

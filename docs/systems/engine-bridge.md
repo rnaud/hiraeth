@@ -560,9 +560,12 @@ The same views, the web left, Unity right (after):
 ![the traveller and the cab](../engine-bridge/sbs2-traveller.jpg)
 
 What still differs: hatching that follows the form, the boxes' star and ray, the MakeHuman faces' shape keys,
-the overshirt's lining; some of the people near the camera hold their things out sideways in Unity (not yet
-understood: the props ride the same bones); which people stand where (another moment of the same code);
+the overshirt's lining; which people stand where (another moment of the same code);
 cloud shadows (the clock); the portraits in the conversation chip.
+
+(Some people near the camera held their things out sideways: the crowd's GPU figures, whose port, Crowd.hlsl,
+still read the costume in the old packing and so showed the wrong pieces, several props at once. Ported again
+from crowd-shader.js, 2026-10-07.)
 
 **What it costs**: the VM's update grew with what it now runs. The coral-shirt traveller's overshirt cloth is
 the largest share: on the web it steps in a Web Worker, here on the VM's own thread (in Node's `vm` context,

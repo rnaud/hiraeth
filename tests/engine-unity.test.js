@@ -96,6 +96,18 @@ test('the web\'s newer surface marks reach the port: weathering, pen detail, pat
   assert.deepEqual(L.post.uInkShadow, [1, 0]);
 });
 
+test('the port\'s crowd figures read the costume as costumes.js packs it (the pieces worn, not the wrong ones)', async () => {
+  const { MASK_ID_LIMIT, BODY_ID_LIMIT, HEAD_ID_LIMIT } = await import('../src/costumes.js');
+  const { readFileSync } = await import('node:fs');
+  const hlsl = readFileSync(new URL('../unity/Memento/Assets/Memento/Shaders/Crowd.hlsl', import.meta.url), 'utf8');
+  const num = (re) => { const m = hlsl.match(re); assert.ok(m, `${re}`); return +m[1]; };
+  assert.equal(num(/maskId = \(int\)\(cmod\(aDress\.y, ([\d.]+)\)/), MASK_ID_LIMIT);
+  assert.equal(num(/bodyId = \(int\)\(cmod\(floor\(aDress\.y \/ ([\d.]+) /), MASK_ID_LIMIT);
+  assert.equal(num(/bodyId = [^;]*?, ([\d.]+)\) \+ 0\.5\)/), BODY_ID_LIMIT);
+  assert.equal(num(/propId = \(int\)\(floor\(aDress\.y \/ ([\d.]+) /), MASK_ID_LIMIT * BODY_ID_LIMIT);
+  assert.equal(num(/headId = \(int\)\(cmod\(aDress\.x, ([\d.]+)\)/), HEAD_ID_LIMIT);
+});
+
 test('the grass for the port: its tufts (op 12: the root mirrored in x, the rest as it is), its fades (op 13), live colours (op 15)', () => {
   const created = [];
   const B = new UnityBackend({ Create: (id, json) => created.push(JSON.parse(json)), Geometry: () => {}, Material: () => {} });
