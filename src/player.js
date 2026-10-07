@@ -245,6 +245,8 @@ const _tq = new THREE.Quaternion(), _te = new THREE.Euler();
 const _sq1 = new THREE.Quaternion(), _sq2 = new THREE.Quaternion(), _sq3 = new THREE.Quaternion(), _sq4 = new THREE.Quaternion();
 // standing: how much of the idle clip's stance each foot keeps, fore-aft and outward from its hip (Player.standUnder)
 export const IDLE_STANCE = { ahead: 0.3, out: 0.4 };
+// standing: the head's pitch over the idle clip's (rad, + down): the clip looks 15° down, at the ground; he looks ahead, as drawn
+export const IDLE_HEAD = -0.2;
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const _mf = new THREE.Vector3(), _ml = new THREE.Vector3();   // (the matcher's frame: matchInput)
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
@@ -1988,7 +1990,7 @@ export class Player {
     }
     // glances: hold, turn the head, hold
     const look = Math.tanh(2.5 * Math.sin(t * 0.21)) * 0.45 + Math.sin(t * 0.9) * 0.03;
-    rot(c.head, -0.04 + Math.max(0, Math.sin(t * 0.13)) * 0.12, look, 0);
+    rot(c.head, IDLE_HEAD + Math.max(0, Math.sin(t * 0.13)) * 0.12, look, 0);
   }
 
   /**

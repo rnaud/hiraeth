@@ -164,7 +164,8 @@ below is laid over them procedurally, so no new motion data was needed (see TODO
   stride; the drawings stand the traveller upright, feet under the hips. Each thigh swings its ankle
   in (`IDLE_STANCE`: 30 % of the fore-aft offset kept, 40 % of the outward one) and the body rises by
   what the legs gained, so the knees keep the clip's bend. A body that starts standing starts in this
-  stance (no settling step at the spawn); stopping, the feet settle into it with a step.
+  stance (no settling step at the spawn); stopping, the feet settle into it with a step. The head is lifted over the clip's (`IDLE_HEAD`, 0.2 rad): the idle
+  clip looks 15° down, at the ground; he now looks 0–12° down (7° on average), ahead as drawn.
 - **The body** (`Locomotion`, after `Animator.apply`): the chest tips forward as the body speeds
   up and back (the hips dipping) as it brakes, banks into a curve by turn rate × speed, and the
   head and then the chest turn toward where you steer before the hips get there.
