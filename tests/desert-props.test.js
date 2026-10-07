@@ -209,3 +209,14 @@ test('Marrow carries his pack on his back and wears his shins wrapped, the wraps
   mesh.applyBoneTransform(k, after.fromBufferAttribute(P, k));
   assert.ok(before.distanceTo(after) > 0.05, `the wrap moves with the shin (${before.distanceTo(after).toFixed(3)} m)`);
 });
+
+test('Bako’s bag is his sheet’s: a big soft canvas bag at his hip, its flap, a wide strap over the other shoulder', () => {
+  const bag = BODIES.satchel(1);
+  assert.ok(FIXED.canvas && bag.every((pc) => pc.role === 'canvas' || pc.role === 'dark'), 'canvas, as drawn');
+  const all = box(bag);
+  assert.ok(all.max.y > 0.7 && all.min.x < -0.12, 'the strap over his right shoulder');
+  const sack = box([bag[0]]);
+  assert.ok(sack.max.x - sack.min.x > 0.28 && sack.max.y - sack.min.y > 0.24, `a big bag (${(sack.max.x - sack.min.x).toFixed(2)} m across)`);
+  const mid = sack.getCenter(V());
+  assert.ok(mid.x > 0.12 && mid.z > 0.2 && mid.y < 0.35, 'at his left hip, in front');
+});

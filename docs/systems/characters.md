@@ -525,6 +525,12 @@ edge crosses the keepers' hips (no sheet draws them), and the test holds only th
   (`FIXED.linen`).
 - Named people only (no tribe draws them), so the crowd's figures and their packing are untouched.
   `tests/desert-props.test.js`.
+- **Bako's bag, as his sheet draws it**: no longer a dark box on a thin strap but a big soft canvas shoulder bag
+  (`FIXED.canvas`) slouching at his left hip over his coat, its flap folded over the top with a toggle on its
+  edge, on a wide flat strap across the chest and over his right shoulder (`softBox`: a box rounded toward an
+  ellipsoid and sagging below; `strapRibbon`: a flat band along a path round the body). Its cloth colliders are
+  two flat capsules across its width, so its inner side meets the body's own collider: from the front 0.2 %
+  of it behind the cloak, three-quarters 1 %.
 
 ## The desert's own pieces (October 2026)
 

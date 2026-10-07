@@ -57,7 +57,7 @@ export const PROP_IDS = ['none', 'staff', 'lantern', 'basket', 'wrench', 'paraso
 /** Cloth patterns printed on the tunic (materials.js outfitTrim, the crowd's fragment hook). */
 export const TRIM_IDS = ['none', 'stripes', 'sash', 'yoke', 'bib', 'diamonds', 'patches', 'dots', 'hem'];
 /** Fixed colours of the material roles that aren't the person's own. */
-export const FIXED = { dark: '#2b211f', metal: '#a9a493', wood: '#8a6040', lamp: '#ffd98a', clay: '#b5562f', linen: '#c2b59b' };
+export const FIXED = { dark: '#2b211f', metal: '#a9a493', wood: '#8a6040', lamp: '#ffd98a', clay: '#b5562f', linen: '#c2b59b', canvas: '#d9bc8c' };
 
 // ------------------------------------------------------------------ the worlds
 // weights: { id: weight }; lists of colours; [min, max] ranges; robe: hem heights above the ground (m)
@@ -1331,13 +1331,22 @@ export const BODIES = {
     P('accent', box(0.055, 0.17, 0.016).rotateZ(-0.12).rotateX(-0.25).translate(-0.02, 0.63, 0.122)),
   ],
   // ---- the desert's own, from its character sheets (references/The Desert/characters)
-  // Bako's satchel: a flat bag on a strap across the chest, worn over the coat (not under it), the bag at the left hip
-  satchel: (q) => [
-    P('wood', box(0.05, 0.54, 0.014).rotateX(-0.36).rotateZ(0.74).translate(0.01, 0.54, 0.165), true),
-    P('wood', box(0.048, 0.52, 0.014).rotateX(-0.27).rotateZ(0.76).translate(0.015, 0.54, -0.055)),
-    P('cloth', box(0.22, 0.23, 0.1).rotateZ(-0.09).rotateY(-0.22).translate(0.178, 0.255, 0.245), true),
-    P('hat', box(0.228, 0.09, 0.108).rotateZ(-0.09).rotateY(-0.22).translate(0.175, 0.37, 0.245), true),
-  ],
+  // Bako's bag (his sheet): a big soft canvas shoulder bag, slouching at his left hip over his coat, its flap
+  // folded over the top and down the front, on a wide strap across his chest and over his right shoulder
+  // (canvas: FIXED.canvas)
+  satchel: (q) => {
+    const at = [0.2, 0.2, 0.255], turn = Math.atan2(at[0], at[2]);
+    const place = (g) => g.rotateY(turn).translate(...at);
+    const out = [
+      P('canvas', place(softBox(0.32, 0.28, 0.13, q, { slouch: 0.22 })), true),
+      // the flap: over the top and two thirds down the front, a little proud of the bag, its edge dipping
+      P('canvas', place(softBox(0.335, 0.2, 0.145, q, { slouch: 0.06, dip: 0.02 }).translate(0, 0.05, 0.008)), true),
+      ...Pq('dark', q < 1 ? null : place(cyl(0.009, 0.009, 0.034, q, 5).rotateZ(Math.PI / 2).translate(0, -0.072, 0.083))),   // (the toggle on the flap's edge)
+    ];
+    // the strap: from the bag's top over his right shoulder, down his back to the bag again
+    out.push(P('canvas', strapRibbon([[0.1, 0.32, 0.27], [0.02, 0.48, 0.21], [-0.09, 0.64, 0.13], [-0.16, 0.745, 0.01], [-0.11, 0.67, -0.12], [0.06, 0.47, -0.15], [0.23, 0.3, 0.07]], 0.045, q), true));
+    return out;
+  },
   // a keeper's bead fringe: a cord low on the hips with short strings of beads hanging from it round the front
   fringe: (q) => {
     const n = q < 1 ? 6 : 9, out = [P('accent', torus(0.15, 0.009, q, 14, 4).scale(1, 0.9, 1.05).rotateX(Math.PI / 2).translate(0, 0.3, 0.015))];
@@ -1409,6 +1418,40 @@ export const BODIES = {
     return [P('accent', g.translate(0, 0.75, 0))];
   },
 };
+
+/** A soft box (a bag): a box rounded toward an ellipsoid, wider and sagging below (`slouch`), its lower front edge dipping in the middle (`dip`). */
+function softBox(w, h, d, q, { slouch = 0, dip = 0 } = {}) {
+  const n = q < 1 ? 3 : 6, g = new THREE.BoxGeometry(w, h, d, n, n, Math.max(2, n >> 1)), P = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) {
+    v.fromBufferAttribute(P, i);
+    const e = new THREE.Vector3(v.x / (w / 2), v.y / (h / 2), v.z / (d / 2)), l = e.length() || 1;
+    v.lerp(new THREE.Vector3(v.x / l * Math.SQRT2, v.y / l * Math.SQRT2, v.z / l * Math.SQRT2), 0.5);
+    const t = 0.5 - v.y / h;   // 0 top, 1 bottom
+    v.x *= 1 + slouch * t; v.z *= 1 + slouch * 0.6 * t;
+    if (dip && v.y < 0) v.y -= dip * (1 - Math.min(1, Math.abs(v.x) / (w / 2)) ** 2) * (-v.y / (h / 2));
+    P.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeVertexNormals();
+  return g;
+}
+/** A flat strap along a path round the body (chest frame), `width` across, its face turned out from the body. */
+function strapRibbon(points, width, q) {
+  const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p))), n = sg(28, q);
+  const pos = [], idx = [], T = new THREE.Vector3(), O = new THREE.Vector3(), S = new THREE.Vector3();
+  for (let i = 0; i <= n; i++) {
+    const u = i / n, p = curve.getPointAt(u);
+    curve.getTangentAt(u, T);
+    O.set(p.x, 0, p.z).normalize();
+    S.crossVectors(T, O).normalize().multiplyScalar(width / 2);
+    pos.push(p.x - S.x + O.x * 0.003, p.y - S.y, p.z - S.z + O.z * 0.003, p.x + S.x + O.x * 0.003, p.y + S.y, p.z + S.z + O.z * 0.003);
+    if (i < n) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
 
 /** Held props (right hand frame). */
 export const PROPS = {
@@ -1583,7 +1626,10 @@ export const SHIN_IDS = Object.keys(SHINS);
  * the front the bag lies on the cloak as the sheets draw it instead of inside it. Its strap too.
  */
 export const BODY_BULK = {
-  satchel: [{ a: [0.17, 0.2, 0.25], b: [0.18, 0.33, 0.25], r: 0.1, under: true }, { a: [-0.02, 0.6, 0.17], b: [0.14, 0.38, 0.25], r: 0.03, under: true }],
+  // (Bako's bag: two capsules across its width, low and high, flat as the bag is, so its inner side meets the
+  //  body's own collider and the two do not push the cloth back and forth; its strap across the chest)
+  satchel: [{ a: [0.1, 0.12, 0.31], b: [0.3, 0.12, 0.18], r: 0.08, under: true }, { a: [0.1, 0.27, 0.3], b: [0.29, 0.27, 0.18], r: 0.075, under: true },
+    { a: [0.02, 0.48, 0.21], b: [0.1, 0.34, 0.26], r: 0.03, under: true }],
 };
 export const PROP_BULK = { oud: [{ a: [0.05, -0.08, 0.2], b: [0.15, 0.0, 0.23], r: 0.16 }, { a: [0.17, 0.03, 0.24], b: [0.42, 0.21, 0.285], r: 0.07 }] };
 

@@ -23,7 +23,7 @@ export const CHANGELOG = [
     'Sefa’s oud no longer pokes through her cloak as she walks: the cloth swings round it.',
     'The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.',
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
-    'Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it.',
+    'Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it, and it is the bag of his drawings now: a big soft canvas shoulder bag with a flap, on a wide strap over his shoulder.',
     'Sefa slings her oud on her back over her cloak when she walks, and takes it in hand again when she stops; Marrow carries his pack on his back and walks on cloth-wrapped shins, as his drawings show.',
   ] },
   { v: '0.76', date: '2026-10-07', items: [
