@@ -368,6 +368,9 @@ export function detailOf(o) {
  * about the axis (a turn is `turn` units: every power-of-two spacing up to it closes on itself, no seam)
  * or of the height along it, thinned by powers of two as the hatch is (every other one fades out).
  */
+/** A hatch over 1 (makeMaterial({ hatch })): a hatched mass. Its strokes up to `closer` times closer (no finer:
+ *  past ~4 px apart a pen's strokes only read as a tone), and its shade drawn as `heavier` × (hatch − 1) darker. */
+export const HATCH_DENSE = { closer: 1.3, heavier: 0.9 };
 export const FORM = {
   kinds: { cap: 1, wrap: 2 },
   turn: 1024,              // angle units a turn (2^10: the coarsest level is one stroke a turn)
@@ -2283,32 +2286,35 @@ const fragmentShader = /* glsl */ `
     #endif
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
     // detail by distance: finer marks close to the camera, coarser far away
-    // (a hatch over 1 is a denser one: its strokes that much closer, a dense hatched mass: Lorn II's roots and bushes)
-    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth)) / max(uShade.z, 1.0);
-    if (dark > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
-      gHatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
+    // (a hatch over 1 is a denser one, a hatched mass (Lorn II's roots and bushes): its strokes a little closer
+    // (never finer than a pen can draw: past ~4 px they would only be a tone) and heavier, cross-hatched sooner)
+    float hDense = max(uShade.z, 1.0);
+    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth)) / min(hDense, ${HATCH_DENSE.closer.toFixed(2)});
+    float darkH = min(dark * (1.0 + (hDense - 1.0) * ${HATCH_DENSE.heavier.toFixed(2)}), 1.0);
+    if (darkH > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
+      gHatch.r = stipple(ce1, fwd, hsp * 1.15, darkH) * smoothstep(0.02, 0.15, darkH);
     }
     #ifdef S_FORM
     // a part with an axis (a cap, a cylinder: FORM): strokes radiating from it or wrapping round it
-    else if (dark > 0.0 && uHatch > 0.0 && vForm.w > 0.5 && uFormHatch > 0.0) {
-      gHatch.rg = formHatch(vForm, formDx, formDy, hsp, dark);
+    else if (darkH > 0.0 && uHatch > 0.0 && vForm.w > 0.5 && uFormHatch > 0.0) {
+      gHatch.rg = formHatch(vForm, formDx, formDy, hsp, darkH);
     }
     #endif
-    else if (dark > 0.0 && uHatch > 0.0) {
-      float h1 = strokes(ce1, fw1, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+    else if (darkH > 0.0 && uHatch > 0.0) {
+      float h1 = strokes(ce1, fw1, hsp, mix(0.9, 2.2, darkH)) * smoothstep(0.02, 0.12, darkH);
       if (uFormHatch > 0.0 && uMode == ${MODE_TERRAIN}) {
         // on slopes the strokes become height contours wrapping round the dunes
         float sm = smoothstep(0.1, 0.3, slope) * uFormHatch;
-        float hc = strokes(ceY, fwY, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+        float hc = strokes(ceY, fwY, hsp, mix(0.9, 2.2, darkH)) * smoothstep(0.02, 0.12, darkH);
         h1 = mix(h1, hc, sm);
       }
       float h2 = 0.0;
-      if (dark > 0.5) {
+      if (darkH > 0.5) {
         // (on upright faces: under a cap or an overhang the height's contours wander into wood grain)
         bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN} && abs(n.y) < 0.6;
         // smooth objects: cross-hatch as rings round the form (trunks, ribs, domes)
-        h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, dark))
-                    : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
+        h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, darkH))
+                    : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, darkH))) * smoothstep(0.5, 0.65, darkH);
       }
       gHatch.rg = vec2(h1, h2);
     }
@@ -2346,6 +2352,8 @@ const fragmentShader = /* glsl */ `
       // (a cap's fan of strokes stays dense under a lifted shade, as the sheets draw a pale cap's gills)
       if (vForm.w > 0.5) liftK *= 1.0 - (vForm.w > 1.5 ? ${FORM.wrap.keep.toFixed(4)} : ${FORM.cap.keep.toFixed(4)});
       #endif
+      // (a dense hatch, over 1, keeps its strokes and cross-hatch under a half-tone: a hatched mass stays one)
+      liftK /= max(uShade.z, 1.0) * max(uShade.z, 1.0);
       gHatch.rg *= hatchK * vec2(1.0 - 0.8 * liftK, max(1.0 - 2.5 * liftK, 0.0));
       float hq = uShade.y < 0.0 ? 0.0 : uShade.y >= 2.0 ? ${SHADE.hues + 2}.0 + floor((uShade.y - 2.0) * ${SHADE.flats}.0 + 0.5) : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
       gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));

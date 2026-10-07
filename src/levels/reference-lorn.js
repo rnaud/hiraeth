@@ -141,7 +141,7 @@ function rootArch(kit, M, rng, { x0, z0, x1, z1, h, r, pale = false }) {
 /** A cave mouth framed in roots (wood-kit.js caveFrame): a dark hollow r wide, arches of tangled roots over it, roots hanging in it, coral glowing at its back. */
 function cave(kit, M, rng, { x, z, r, glow = true, yaw = 0, arches = 7 }) {
   const y = kit.H(x, z) - 0.3, F = caveFrame({ r, glow, arches, seed: x * 3 + z });
-  for (const g of F.roots) kit.add(M.root, put(g, x, y, z, yaw), NO_CAST);
+  for (const g of [F.face, ...F.roots]) kit.add(M.root, put(g, x, y, z, yaw), NO_CAST);
   for (const g of F.hang) kit.add(M.root, put(g, x, y, z, yaw), NO_CAST);
   for (const g of F.dark) kit.add(M.dark, put(g, x, y, z, yaw), NO_CAST);
   for (const g of F.glow) kit.add(M.coral, put(g, x, y, z, yaw), NO_CAST);
@@ -262,16 +262,16 @@ export const LORN_VIEWS = [
     build(kit, v) {
       woodScene(kit, v, {
         seed: 37973, trunks: { n: 60, z0: -40, z1: -260, r: 2.2, far: 100 },
-        mushrooms: [{ x: -16, z: -16, H: 10, capR: 7, dome: 0.4, tilt: 0.15 }, { x: 10, z: -24, H: 10, capR: 10, dome: 0.2 }, { x: -6, z: -60, H: 8, capR: 5, dome: 0.3 }, { x: 18, z: -70, H: 7, capR: 4 }],
+        mushrooms: [{ x: -16, z: -16, H: 10, capR: 7, dome: 0.4, tilt: 0.15 }, { x: 12, z: -32, H: 10, capR: 10, dome: 0.2 }, { x: -6, z: -60, H: 8, capR: 5, dome: 0.3 }, { x: 18, z: -70, H: 7, capR: 4 }],
         domes: [{ x: -10, z: -30, R: 4, yaw: 0.3 }],
         arches: [{ x0: -2, z0: -20, x1: 22, z1: -14, h: 11, r: 1.6 }],
         // the nest in the great cap: a woven bowl heaped with eggs under a ribbed glass dome (wood-kit.js nest)
         extra(k, M) {
-          const P = shroomParts({ sr: 1.6, capR: 10, H: 10, dome: 0.2 }), y = k.base(10, -24, 3.2) - 0.4 + P.topY - 0.6, N = nestParts(4.2, { seed: 3797, eggs: 30 });
-          for (const g of N.bowl) k.add(M.root, g.translate(10, y, -24), NO_CAST);
-          for (const g of N.ribs) k.add(M.glassRib, g.translate(10, y, -24), NO_CAST);
-          for (const [x, ey, z, sz] of N.eggs) k.add(M.egg, new THREE.SphereGeometry(sz, 10, 8).scale(1, 1.3, 1).translate(10 + x, y + ey, -24 + z), NO_CAST);
-          k.light(10, y + 2, -24, 10);
+          const P = shroomParts({ sr: 1.6, capR: 10, H: 10, dome: 0.2 }), y = k.base(12, -32, 3.2) - 0.4 + P.topY - 0.6, N = nestParts(4.2, { seed: 3797, eggs: 30 });
+          for (const g of N.bowl) k.add(M.root, g.translate(12, y, -32), NO_CAST);
+          for (const g of N.ribs) k.add(M.glassRib, g.translate(12, y, -32), NO_CAST);
+          for (const [x, ey, z, sz] of N.eggs) k.add(M.egg, new THREE.SphereGeometry(sz, 10, 8).scale(1, 1.3, 1).translate(12 + x, y + ey, -32 + z), NO_CAST);
+          k.light(12, y + 2, -32, 10);
         },
       });
     },

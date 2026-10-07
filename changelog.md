@@ -14,6 +14,9 @@ The same release notes shown in the game (press **N** or open settings).
 - The undersides of the great umbrella trees show their branches: lighter veins forking out from the trunk to the rim, thicker toward the trunk.
 - The round plaza is paved: the joints between its slabs are drawn in each ring.
 - The robot statue in the android wood is a proper statue now, with feet, knees, a chest plate, shoulder pads, hands and a visor, and the wood’s white ruins have arcades of round arches.
+- In Lorn II the great roots are tangles of strands twisting round each other, and the root cave’s mouth is framed in arches of roots, with roots crawling out along the ground and hanging in the mouth.
+- Lorn II’s roots and the bushes on its banks are drawn as dense hatched masses, as in its drawings, and the bushes are clusters of small leaf clumps.
+- Look up near the start of Lorn II’s path: on the flat cap of a giant mushroom sits a woven nest of glowing eggs under a ribbed glass dome.
 
 ## v0.75 — 2026-10-07
 

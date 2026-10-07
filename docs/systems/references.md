@@ -255,12 +255,35 @@ the narrowest creases.
   cave glows) to the shader, turned with the view; before, a view's lights were never used.
 - **On the world** (`perdide2.js`): the giant mushrooms are pale in their own shade too (`shade` 0.6,
   the gills 0.4, fewer strokes), as the sheets draw them; `DEEP_WOOD_LOOK`, `DEEP_WOOD_DAY` exported.
+- **Shapes from the sheets, October 2026** (`src/levels/wood-kit.js`, shared by the world and the views):
+  - *The roots' tangle* (`braid`): a root is a bundle of strands twisting round its course, splaying where it
+    meets the ground. The views' root arches are a core with six strands round it; the world's six great arches
+    keep their solid core and wear five strands hugging it (drawn only: they stay within ~0.3 of its radius).
+  - *The caves' framing* (`caveFrame`): a cave mouth is a dark half-tunnel (its faces looking in) in the face
+    of a root mass, arches of tangled roots over and round it, the outer ones larger and further back, roots
+    crawling down its sides, feet crawling out along the ground toward you, roots hanging in the mouth, coral at
+    its back when it glows. The views' caves (131, 137, 142, 147, 148) are built from it; the world's root cave
+    keeps its tunnel and gains five arches and four feet over its mouth (solid as drawn: the static collision
+    stays under its 170 k budget) and 22 roots hanging in it (walk-through).
+  - *The banks' bushes* (`bankBush`): a low mass of small leaf clumps; the world's 1 600 are four clumps of
+    20 faces (100, the old ball's 80), the views' seven.
+  - *The nest in the great cap* (`nest`): a woven bowl of root strands heaped with glowing eggs under a ribbed
+    glass dome; on the great cap of view 128, and in the world on the flat cap of a giant in sight of the path
+    north-west of the spawn (its bowl solid as drawn, the eggs and ribs not).
+  - The views' framing was checked panel by panel: the reeds round the domes (126), the bushes on the banks
+    brought into their panels (129, 130, 136, 140, 141, 146), the root arches lowered under the frame's top (129).
+- **Shading: roots and bushes as dense hatched masses** (`ROOT_INK`, `BUSH_INK` in perdide2.js; materials.js
+  `HATCH_DENSE`): a material's `hatch` over 1 is a hatched mass: its strokes up to 1.3 × closer (no finer: past
+  ~4 px apart strokes only read as a tone) and its shade drawn heavier (cross-hatched sooner), and a half-tone no
+  longer thins them away. Roots 1.8, bushes 2.2, their shade lifted a little (0.45, 0.55) and never a spot black,
+  so the strokes show over it; the cracks pattern and the flat facets are off the roots.
+- **Cost** (desktop, M4 Pro, Chrome on Metal, Handheld at render scale 0.75 without dynamic resolution, a tight
+  loop of frames, rounds alternating with the build before, median ms): spawn 4.46 → 4.18, under the arch 3.72 →
+  4.10, the bank 3.56 → 3.83, the cave mouth 2.67 → 2.79, the nest 2.63 → 2.83.
 - **Left, shader level**: the sheets' reeds are pale lavender blades in light; ours are thin cones whose
-  outlines dominate (an outline weight per material is missing, as for Vael II's clouds). The sheets'
-  far wood is layers of pale mist between trunks (our fog by distance gives one flat tint). Their roots
-  and bushes are dense hatched masses; ours are smooth tubes and lumps.
-- **Left, scene level**: the nest of eggs in the great cap, the cave mouths' framing, the roots' tangle,
-  the bushes on the banks and the lily pads are sketches.
+  outlines dominate. The sheets' far wood is layers of pale mist between trunks. Their hatched masses are drawn
+  stroke by stroke along each root's fibres; ours follow the screen's hatch directions.
+- **Left, scene level**: the lily pads; the views' egg heaps are fewer and larger than the sheets'.
 
 ## The Signal Market's sheets (IMG_3801–3808)
 

@@ -76,7 +76,7 @@ test('veins branch, a hatch over 1 is denser, the white stone prints flat with a
   const m = makeMaterial({ color: '#2b4535', form: true, veins: 1 });
   assert.match(m.fragmentShader, /veinLines\(/);
   assert.ok(FORM.veins.bough > 0 && FORM.veins.boughs >= 2);
-  assert.match(m.fragmentShader, /\/ max\(uShade\.z, 1\.0\)/);
+  assert.match(m.fragmentShader, /float darkH = min\(dark \* /);
   assert.equal(shadeOf({ hatch: 2 })[2], 2);
   assert.deepEqual(shadeOf({ color: '#fff', ...WHITE_SHADE }).slice(1, 3), [3, 0.08]);
 });

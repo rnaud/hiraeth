@@ -59,9 +59,10 @@ export function braid(pts, r, { n = 5, seed = 1, turns = 2.5, tubular = 40, radi
  * A cave mouth framed in roots, facing +z, its opening r wide and 1.25 r high from y = 0: arches of tangled roots
  * over and round it (`arches` of them, the outer ones larger and further back), roots hanging in the mouth, the
  * dark hollow behind (`depth` × r deep) and, at its back, a glowing end (when `glow`).
- * { roots: [geo], dark: [geo], glow: [geo], hang: [geo] }.
+ * { roots: [geo], face: the root mass's face round the mouth, dark: [geo], glow: [geo], hang: [geo] }.
  */
-export function caveFrame({ r, depth = 2.2, arches = 7, hang = 14, feet = 6, seed = 1, glow = false }) {
+export function caveFrame({ r, depth = 2.2, arches = 7, hang = 14, feet = 6, seed = 1, glow = false, strands = [3, 5], tubular = 40 }) {
+  const ns = (k) => strands[0] + Math.floor(mulberry32(seed * 31 + k)() * (strands[1] - strands[0] + 1));
   const rng = mulberry32(Math.floor(seed * 4129) + 7), roots = [], dark = [], glowG = [], hangG = [];
   const H = r * 1.25, D = r * depth;
   // the hollow: a dark half-tunnel (seen from inside) closed at its back
@@ -72,7 +73,7 @@ export function caveFrame({ r, depth = 2.2, arches = 7, hang = 14, feet = 6, see
   const face = new THREE.RingGeometry(r * 0.97, r * 3, 28, 3, 0, Math.PI), fp = face.attributes.position;
   for (let i = 0; i < fp.count; i++) { const x = fp.getX(i), y = fp.getY(i), d = Math.hypot(x, y); fp.setXYZ(i, x, y * (H / r), -Math.max(0, d - r) * 0.35 + (rng() - 0.5) * r * 0.08); }
   face.computeVertexNormals();
-  roots.push(face);
+
   const back = new THREE.CircleGeometry(r, 20, 0, Math.PI).scale(1, H / r, 1).translate(0, 0, -D + 0.05);
   (glow ? glowG : dark).push(back);
   // the frame: arches of tangled roots, each from the ground beside the mouth up over it and down the other side
@@ -84,26 +85,26 @@ export function caveFrame({ r, depth = 2.2, arches = 7, hang = 14, feet = 6, see
       pts.push(V(-Math.cos(a) * R * w, Math.sin(a) * R * (H / r) * (0.92 + rng() * 0.12) - 0.4, z + Math.sin(a) * R * lean));
     }
     pts[0].y = pts[8].y = -0.8;
-    roots.push(...braid(pts, r * (0.16 + t * 0.12) * (0.8 + rng() * 0.4), { n: 3 + Math.floor(rng() * 3), seed: seed + k * 1.7, turns: 1.6 }));
+    roots.push(...braid(pts, r * (0.16 + t * 0.12) * (0.8 + rng() * 0.4), { n: ns(k), seed: seed + k * 1.7, turns: 1.6, tubular }));
   }
   // roots crawling over the mass from the frame to the ground, round the sides
   for (let k = 0; k < 6; k++) {
     const sd = k % 2 ? 1 : -1, a = 0.25 + rng() * 0.5, R = r * (1.3 + rng() * 0.8);
     const p0 = V(-Math.cos(Math.PI * a) * R * sd * -1, Math.sin(Math.PI * a) * R * 1.1, -r * (0.2 + rng() * 1.2));
     const p2 = V(sd * R * (1.5 + rng() * 0.6), -0.6, p0.z + (rng() - 0.3) * r * 1.4);
-    roots.push(...braid([p0, p0.clone().lerp(p2, 0.5).add(V(0, R * 0.25, 0)), p2], r * 0.14, { n: 3, seed: seed + 20 + k, turns: 1.2 }));
+    roots.push(...braid([p0, p0.clone().lerp(p2, 0.5).add(V(0, R * 0.25, 0)), p2], r * 0.14, { n: ns(20 + k), seed: seed + 20 + k, turns: 1.2, tubular: tubular * 0.6 }));
   }
   // the mass's feet: roots crawling out along the ground on either side of the mouth, toward the onlooker
   for (let k = 0; k < feet; k++) {
     const sd = k % 2 ? 1 : -1, x0 = sd * r * (1.05 + rng() * 0.5), y0 = H * (0.3 + rng() * 0.5), out = r * (0.9 + rng() * 1.4);
-    roots.push(...braid([V(x0, y0, -r * 0.2), V(x0 + sd * r * 0.3, y0 * 0.4, out * 0.4), V(x0 + sd * r * (0.5 + rng()), -0.5, out)], r * (0.16 + rng() * 0.1), { n: 3, seed: seed + 40 + k, turns: 1 }));
+    roots.push(...braid([V(x0, y0, -r * 0.2), V(x0 + sd * r * 0.3, y0 * 0.4, out * 0.4), V(x0 + sd * r * (0.5 + rng()), -0.5, out)], r * (0.16 + rng() * 0.1), { n: ns(40 + k), seed: seed + 40 + k, turns: 1, tubular: tubular * 0.6 }));
   }
   // roots hanging in the mouth from its lintel
   for (let i = 0; i < hang; i++) {
     const x = (rng() - 0.5) * r * 1.6, top = Math.sqrt(Math.max(0, 1 - (x / (r * 1.05)) ** 2)) * H, l = H * (0.2 + rng() * 0.55), z = -rng() * r * 0.6;
     hangG.push(taper([V(x, top + 0.2, z), V(x + (rng() - 0.5) * 0.4, top - l * 0.5, z + 0.1), V(x + (rng() - 0.5) * 0.6, top - l, z)], r * (0.025 + rng() * 0.03), 0.3, 8, 4));
   }
-  return { roots, dark, glow: glowG, hang: hangG };
+  return { roots, face, dark, glow: glowG, hang: hangG };
 }
 
 /** A bank bush: a low mass of small leaf clumps, about a unit round, its foot at y ≈ −0.5 (garden-kit.js leafCrown). */

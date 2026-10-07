@@ -8,6 +8,7 @@ import { Terrain, jitter } from '../world.js';
 import { Hoverbike } from '../bike.js';
 import { KEEPERS } from '../story/perdide2-data.js';
 import { stepped } from '../load-steps.js';
+import { braid, caveFrame, bankBush, nest } from './wood-kit.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II: the Deep Wood. The far side of the swamp planet from
@@ -31,7 +32,7 @@ export const DEEP_WOOD_LOOK = { uClouds: 0, uCumulus: 0, uFogDensity: 0.002, ...
 /** The roots' and the bushes' hatch: over 1, denser strokes (materials.js), the sheets' dense hatched masses. */
 export const ROOT_HATCH = 1.8, BUSH_HATCH = 2.2;
 /** …and their shade: lifted a little and never a spot black, so the dense strokes show over it. */
-export const ROOT_INK = { hatch: ROOT_HATCH, shade: 0.25, spot: 0 }, BUSH_INK = { hatch: BUSH_HATCH, shade: 0.2, spot: 0 };
+export const ROOT_INK = { hatch: ROOT_HATCH, shade: 0.45, spot: 0 }, BUSH_INK = { hatch: BUSH_HATCH, shade: 0.55, spot: 0 };
 export const DEEP_WOOD_DAY = ['#c48c98', '#f2a088', '#4a4f7a', '#ece2f2', '#fff0e0'];
 
 const WATER = 0;
@@ -275,6 +276,8 @@ export function* buildPerdide2(scene) {
   yield;
   const shroomGeo = { stalk: {}, under: {}, top: {} };
   const STALK = ['#b9b3d9', '#a49cc8', '#c3bde2'];
+  let lastShroom = null;
+  const nestAt = [];   // the giants a nest could sit in: { pose, dp }
   function shroom(x, z, s, { glow = false, sink = 0.6, tilt = 0.12, seed = 0 } = {}) {
     const g0 = H(x, z);
     const parts = shroomParts(s);
@@ -294,6 +297,7 @@ export function* buildPerdide2(scene) {
       proxies.push(g.toNonIndexed());
     }
     if (glow) lights.push(new THREE.Vector4(x, g0 + parts.topY * 0.85, z, s.capR * 1.6));
+    lastShroom = { x, z, y: g0 - sink, topY: parts.topY, rx, ry, rz, s, glow };
     return g0 - sink + parts.topY;
   }
   // the relic mushroom and a spiral of stepping caps up to it
@@ -322,6 +326,7 @@ export function* buildPerdide2(scene) {
       const Hh = big ? R(28, 58) : R(10, 24);
       const capR = Hh * R(0.32, 0.45), sr = capR * R(0.15, 0.2);
       shroom(x, z, { H: Hh, capR, sr, dome: rng() < 0.5 ? R(0.08, 0.16) : R(0.3, 0.5) }, { glow: rng() < 0.35, seed: 30 + n });
+      if (Hh > 18 && Hh < 34 && dp > 25 && dp < 80 && lastShroom.s.dome < 0.2 && !lastShroom.glow) nestAt.push(lastShroom);
       n++;
     }
     // a few along the far half of the path too
@@ -478,17 +483,17 @@ export function* buildPerdide2(scene) {
     }
     inst(pad, makeMaterial({ color: '#ffffff', flat: true }), pads);
     // dark moss foliage crowding the banks and the root feet
-    const bush = new THREE.IcosahedronGeometry(1, 1);
-    jitter(bush, 0.25, 0.8, 5);
+    // (a mass of small leaf clumps, densely hatched: wood-kit.js bankBush, BUSH_INK; 100 faces, the old ball's 80)
+    const bush = bankBush(5, 0);
     const bushes = [];
     for (let tries = 0; tries < 8000 && bushes.length < 1600; tries++) {
       const k = Math.floor(rng() * N_PATH), q = pathPts[k], nn = pathNrm[k], off = (rng() < 0.5 ? -1 : 1) * R(5, 60);
       const x = q.x + nn.x * off + R(-3, 3), z = q.z + nn.z * off + R(-3, 3), g0 = H(x, z);
       if (pathDist(x, z) < 4 || g0 < -0.8 || !clear(x, z)) continue;
       const s = R(0.8, 2.6);
-      bushes.push([place(x, g0 - s * 0.3, z, s * R(1, 1.6), s * R(0.6, 1), s, 0, rng() * 6, 0), pick(['#24383f', '#2c4448', '#2a3e4a', '#33504f'])]);
+      bushes.push([place(x, g0 - s * 0.3, z, s * R(1, 1.6), s * R(0.6, 1), s, 0, rng() * 6, 0), pick(['#3a525c', '#425c62', '#3d5464', '#47645f'])]);
     }
-    inst(bush, makeMaterial({ color: '#ffffff', flat: true, pattern: 'leaves' }), bushes);
+    inst(bush, makeMaterial({ color: '#ffffff', flat: true, pattern: 'leaves', ...BUSH_INK }), bushes);
   }
 
   // ---------------------------------------------------------- root arches
@@ -520,7 +525,10 @@ export function* buildPerdide2(scene) {
     const at = (s, y, f = 0) => new THREE.Vector3(A.x + A.nx * s + along.x * f, y, A.z + A.nz * s + along.z * f);
     const footA = at(-half, H(A.x - A.nx * half, A.z - A.nz * half) - 1.2), footB = at(half, H(A.x + A.nx * half, A.z + A.nz * half) - 1.2);
     const wob = R(-3, 3);
-    tube([footA, at(-half * 0.72, A.apex * 0.55, wob), at(-half * 0.35, A.apex * 0.93, -wob * 0.5), at(0, A.apex, 0), at(half * 0.4, A.apex * 0.9, wob * 0.6), at(half * 0.75, A.apex * 0.5, -wob), footB], A.r, 64, 12, k);
+    const course = [footA, at(-half * 0.72, A.apex * 0.55, wob), at(-half * 0.35, A.apex * 0.93, -wob * 0.5), at(0, A.apex, 0), at(half * 0.4, A.apex * 0.9, wob * 0.6), at(half * 0.75, A.apex * 0.5, -wob), footB];
+    tube(course, A.r, 64, 12, k);
+    // the tangle: strands twisting round the arch, hugging it (drawn over its solid core: wood-kit.js braid)
+    for (const b of braid(course, A.r * 0.82, { n: 5, seed: 31 + k, turns: 3, tubular: 56, splay: 0.8 })) pick(Object.values(rootParts)).push(b.toNonIndexed());
     archTops.push(at(0, A.apex + A.r, 0));
     // a thinner root twisting around the main arch
     const twist = [];
@@ -635,8 +643,37 @@ export function* buildPerdide2(scene) {
       b.rotation.set(rng() * 6, rng() * 6, rng() * 6);
       scene.add(b);
     }
+    // the mouth framed as the sheets draw it (wood-kit.js caveFrame): arches of tangled roots over the root mass's
+    // face, feet crawling out along the ground either side (solid as drawn), roots hanging in the mouth (walk-through)
+    {
+      const at = (g) => g.translate(CAVE.x, CAVE.y - 0.3, CAVE.mouth + 0.4);
+      const F = caveFrame({ r: CAVE.r + CAVE.T * 0.55, arches: 5, hang: 0, feet: 4, seed: 3, strands: [2, 3], tubular: 22 });
+      for (const g of F.roots) { const n = at(g).toNonIndexed(); pick(Object.values(rootParts)).push(n); proxies.push(n); }
+      for (const g of caveFrame({ r: CAVE.r, arches: 0, hang: 22, feet: 0, seed: 4 }).hang) pick(Object.values(rootParts)).push(at(g).toNonIndexed());
+    }
     for (let i = 0; i < 4; i++) lights.push(new THREE.Vector4(CAVE.x, CAVE.y + 4, CAVE.z + CAVE.len / 2 - 4 - i * 10, 15));
     lights.push(new THREE.Vector4(CAVE.x, CAVE.y + 3, CAVE.mouth + 6, 16));
+  }
+
+  // the nest in a great cap (the sheets'): a woven bowl of roots heaped with glowing eggs under a ribbed glass
+  // dome, on the cap of a giant in sight of the path (its bowl solid as drawn, the dome's ribs and the eggs not)
+  if (nestAt.length) {
+    const P = nestAt[0], N = nest(P.s.capR * 0.45, { seed: 3797, eggs: 34 });
+    const M4 = new THREE.Matrix4().makeTranslation(P.x, P.y, P.z).multiply(new THREE.Matrix4().makeRotationZ(P.rz)).multiply(new THREE.Matrix4().makeRotationX(P.rx))
+      .multiply(new THREE.Matrix4().makeRotationY(P.ry)).multiply(new THREE.Matrix4().makeTranslation(0, P.topY - P.s.capR * 0.04, 0));
+    const pose = (g) => g.applyMatrix4(M4);
+    for (const g of N.bowl) { const n = pose(g).toNonIndexed(); pick(Object.values(rootParts)).push(n); proxies.push(n); }
+    const ribs = new THREE.Mesh(mergeGeometries(N.ribs.map((g) => pose(g).toNonIndexed())), makeMaterial({ color: '#6fb3ad', flat: true, glow: 0.3 }));
+    ribs.userData.noCollide = true;
+    scene.add(ribs);
+    const egg = new THREE.SphereGeometry(1, 10, 8).scale(1, 1.3, 1), list = [], c = new THREE.Vector3();
+    for (const [x, y, z, sz] of N.eggs) {
+      pose(c.set(x, y, z));
+      list.push([place(c.x, c.y, c.z, sz, sz, sz), pick(['#f6dcb0', '#ffd6a0', '#ffcf9a'])]);
+    }
+    inst(egg, makeMaterial({ color: '#ffffff', glow: 1 }), list);
+    pose(c.set(0, 2, 0));
+    lights.push(new THREE.Vector4(c.x, c.y, c.z, P.s.capR));
   }
 
   // ---------------------------------------------------------- moss domes
@@ -731,7 +768,8 @@ export function* buildPerdide2(scene) {
   yield;
   for (const [c, l] of Object.entries(rootParts)) if (l.length) {
     yield;
-    const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks', detail: 'organic' }));
+    // (dense hatched masses, as the sheets draw roots: ROOT_INK, a hatch over 1)
+    const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, detail: 'organic', ...ROOT_INK }));
     m.userData.noCollide = true;
     scene.add(m);
   }
