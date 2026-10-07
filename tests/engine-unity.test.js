@@ -14,6 +14,7 @@ import { makeMaterial, MODE_STRATA } from '../src/materials.js';
 import { Motes, Footprints } from '../src/life.js';
 import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
+import { capePacketWords } from '../engine/cape-job.js';
 
 THREE.ColorManagement.enabled = false;
 const X = new THREE.Matrix4().makeScale(-1, 1, 1);
@@ -201,7 +202,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   await bundle('unity', { out: [file] });
   const calls = { Geometry: 0, Material: 0, Create: 0, Frame: 0, Look: 0, bytes: 0 };
   let lastFrame = null, look = null, screenJson = null;
-  const cloths = {};
+  const cloths = {}, capes = {};
   const clothWords = (id) => { const c = cloths[id]; return 3 * c.N + 28 * c.K + 16 * c.B + 16; };
   // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
   const sound = { queued: 0, frames: 0, sumSq: 0, bad: 0 };
@@ -211,6 +212,8 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     // the coral-shirt traveller's overshirt (BridgeCloth.cs): its description's header, for op 17's size
     FaceKeys(key, buf) { const u = new Uint32Array(buf); calls.Keys = (calls.Keys ?? 0) + 1; calls.keyVerts = (calls.keyVerts ?? 0) + u[2]; },
     Cloth(id, buf) { const h = new Uint32Array(buf, 0, 7); cloths[id] = { N: h[0], K: h[5], B: h[6] }; }, Create() { calls.Create++; }, SetMesh() {},
+    // the people's capes (BridgeCape.cs): their descriptions' sizes, for op 20's; their points never read back here
+    Cape(id, buf) { const h = new Uint32Array(buf, 0, 2); capes[id] = h[0] * h[1]; }, CapeState: () => null,
     Frame(buf) { calls.Frame++; lastFrame = buf; }, Look(json) { calls.Look++; look = json; }, Screen(json) { calls.Screen = (calls.Screen ?? 0) + 1; screenJson = json; }, ApplyMs: () => 0,
     Keys: () => (calls.Frame > 3 ? 'KeyW' : ''), Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
@@ -236,10 +239,11 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;
-  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5, 16: () => 30, 17: () => 4 + clothWords(u[o]), 18: () => 6, 19: () => 2 + u[o + 1] };
+  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5, 16: () => 30, 17: () => 4 + clothWords(u[o]), 18: () => 6, 19: () => 2 + u[o + 1], 20: () => capePacketWords(u, o, capes[u[o]]) };
   const skeletons = [];
   assert.equal(Object.keys(cloths).length, 1, 'the overshirt done by the C# side (BridgeCloth)');
   assert.ok(calls.Keys > 0 && calls.keyVerts > 0, `the MakeHuman faces' shape keys as blend shapes: ${calls.Keys} meshes`);
+  assert.ok(Object.keys(capes).length > 3, `the capes done by the C# side (BridgeCape): ${Object.keys(capes).length}`);
   while (u[o] !== 0) { const op = u[o++]; assert.ok(size[op], `op ${op}`); if (op === 7) skeletons.push(u[o]); o += size[op](); ops++; }
   assert.ok(skeletons.length > 0, 'the people\'s skeletons');
   assert.equal(new Set(skeletons).size, skeletons.length, 'each skeleton once a frame, however many meshes it moves');

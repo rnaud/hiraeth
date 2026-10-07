@@ -55,6 +55,14 @@ namespace Memento.Bridge
         // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
         static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2" };
         public double msCloth;
+        /// <summary>The people's capes simulated here (BridgeCape: src/cape.js CAPE_HOST), by the script's id; read by its thread too.</summary>
+        public static readonly System.Collections.Concurrent.ConcurrentDictionary<int, BridgeCape> Capes = new();
+        public double msCape;
+        public void CapeDesc(int id, byte[] b, int count)
+        {
+            if (Capes.TryRemove(id, out var old)) old.Dispose();
+            Capes[id] = new BridgeCape(b, count);
+        }
         public void Cloth(int id, byte[] b, int count)
         {
             if (cloths.Remove(id, out var old)) old.Dispose();
@@ -98,6 +106,20 @@ namespace Memento.Bridge
         /// <summary>The cloths' jobs done, their garments into the meshes (before the frame is drawn).</summary>
         void FinishCloths()
         {
+            // the capes' jobs: their points and normals into the meshes of their geometry
+            var tk = Time.realtimeSinceStartupAsDouble;
+            foreach (var k in Capes.Values)
+            {
+                if (!k.Complete() || k.gid == 0 || !byGeometry.TryGetValue(k.gid, out var kl)) continue;
+                foreach (var md in kl)
+                {
+                    if (!md.mesh || md.pos.Length != k.n) continue;
+                    md.mesh.SetVertices(k.outPos);
+                    if (md.nrm != null) md.mesh.SetNormals(k.outNrm);
+                    md.mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
+                }
+            }
+            msCape += (Time.realtimeSinceStartupAsDouble - tk) * 1000;
             foreach (var c in cloths.Values)
             {
                 var t0 = Time.realtimeSinceStartupAsDouble;
@@ -611,6 +633,13 @@ namespace Memento.Bridge
                         else { Debug.LogError($"Memento bridge: no cloth {cid}"); o = words; }
                         break;
                     }
+                    case 20:   // a cape's update: its steps into its Burst job (BridgeCape)
+                    {
+                        int kid = (int)fu[o++], gid = (int)fu[o++];
+                        if (Capes.TryGetValue(kid, out var kc)) { kc.gid = gid; o += kc.Packet(fu, ff, o); }
+                        else { Debug.LogError($"Memento bridge: no cape {kid}"); o = words; }
+                        break;
+                    }
                     case 18:   // a material's vector, live (0: a makers' box's _BoxA)
                     {
                         int mid = (int)fu[o++], which = (int)fu[o++];
@@ -779,6 +808,8 @@ namespace Memento.Bridge
             foreach (var c in crowds.Values) { c.buf?.Release(); if (c.mat) Destroy(c.mat); }
             foreach (var g in grass.Values) { g.buf?.Release(); if (g.mat) Destroy(g.mat); }
             foreach (var c in cloths.Values) c.Dispose();
+            foreach (var k in Capes.Values) k.Dispose();
+            Capes.Clear();
             foreach (var n in nodes.Values) { if (n.inst) Destroy(n.inst); n.im?.Release(); n.puffs?.Release(); }
             foreach (var m in instMaterials.Values) if (m) Destroy(m);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);

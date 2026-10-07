@@ -28,6 +28,7 @@ import { loadHuman, Humanoid } from '../src/humanoid.js';
 import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
 import { loadTravellerV1, createTravellerV1 } from '../src/characters/traveller-v1.js';
 import { CLOTH_HOST } from '../src/characters/tripo-cloth.js';
+import { CAPE_HOST } from '../src/cape.js';
 import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, buildPeople } from '../src/crowd.js';
@@ -158,6 +159,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   level.id ??= levelId;
   stamp('level');
   const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
+  // (every cape and robe made from here on simulated by the engine where it can: Unity's Burst jobs; src/cape.js CAPE_HOST)
+  CAPE_HOST.offload = backend?.capeOffload?.() ?? null;
   quiet(() => level.init?.(physics));
   stamp('physics');
   const waters = quiet(() => new Waters(scene, { physics }));

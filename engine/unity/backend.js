@@ -7,6 +7,7 @@ import { unityGeometry, CommandWriter, OP, mirrorMatrix, crowdInstances, puffIns
 import { portMaterial } from './port-format.js';
 import { skinMatrices } from '../skin.js';
 import { packClothDesc } from '../cloth.js';
+import { packCapeDesc, writeCapePacket } from '../cape-job.js';
 
 const tally = (self, op, before) => { self._opWords[op] = (self._opWords[op] ?? 0) + self.w.n - before; };
 
@@ -231,6 +232,35 @@ export class UnityBackend {
         for (let i = 0; i < p.boneMesh.length; i++) w.f(p.boneMesh[i]);
         for (let i = 0; i < 16; i++) w.f(p.attach[i]);
         tally(B, 'cloth', b0);
+      },
+    };
+  }
+
+  /**
+   * The people's capes done in Unity (src/cape.js CAPE_HOST: engine/game.js sets it): each cape's description once
+   * (BridgeHost.Cape), then a packet an update in the command buffer (op 20), its steps a Burst job (BridgeCape.cs,
+   * engine/cape-job.js the same in JS); its points read back when the game asks (BridgeHost.CapeState).
+   */
+  capeOffload() {
+    const B = this;
+    if (!B.host.Cape || !B.host.CapeState) return null;
+    let next = 0;
+    return {
+      init(cape) {
+        const id = ++next;
+        B.host.Cape(id, B.toHost(packCapeDesc(cape)));
+        return {
+          id,
+          frame(pk) { const b0 = B.w.n; writeCapePacket(B.w, id, B.gidOf?.get(cape.geo) ?? 0, pk, cape); tally(B, 'cape', b0); },
+          state(c) {
+            const buf = B.host.CapeState(id);
+            if (!buf) return false;
+            const f = new Float32Array(buf), n3 = c.p.length;
+            if (f.length < n3 * 2) return false;
+            c.p.set(f.subarray(0, n3)); c.q.set(f.subarray(n3, n3 * 2));
+            return true;
+          },
+        };
       },
     };
   }

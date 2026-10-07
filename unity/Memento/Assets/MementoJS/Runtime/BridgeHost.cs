@@ -81,6 +81,11 @@ namespace Memento.Bridge
         public static void Cloth(int id, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Cloth(id, b, n)); }
         /// <summary>A MakeHuman face's shape keys as the mesh's blend shapes (engine/unity/backend.js faceKeyDeltas).</summary>
         public static void FaceKeys(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.FaceKeys(key, b, n)); }
+        /// <summary>A person's cape simulated here (src/cape.js CAPE_HOST, BridgeCape): its description, once.</summary>
+        public static void Cape(int id, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.CapeDesc(id, b, n)); }
+        /// <summary>A cape's latest points (P then Q, floats), or null: read on the script's thread, no wait.</summary>
+        public static object CapeState(int id) => BridgeRenderer.Capes.TryGetValue(id, out var k) ? JsRuntime.ToScript(k.State()) : null;
+        public static double CapeMs() { var r = R; if (r is null) return 0; var v = r.msCape; r.msCape = 0; return v; }
         public static double ClothMs() { var r = R; if (r is null) return 0; var v = r.msCloth; r.msCloth = 0; return v; }
         public static void Create(int id, string json) => On(() => R?.Create(id, json));
         public static void SetMesh(int id, string key) => On(() => R?.SetMesh(id, key));

@@ -38,6 +38,14 @@ export const OVER = { reach: 0.1 };
  * lag (1/s): carried, how much the cloth is held back by its wearer's walk, as the near cloth is.
  */
 export const CLOTH = { hMax: 1 / 30, maxSteps: 6, maxDt: 1 / 10, lag: 1 };
+/**
+ * An engine's own cloth (engine/cape-job.js; the Unity bridge's Burst job, BridgeCape.cs): with `offload` set when a
+ * cape is made, its simulated steps (the integration, the constraints, the colliders, the normals) are done there from
+ * a packet an update (Cape.update works out the collar's pins, the colliders, the air), and the cloth's points come
+ * back when the game needs them (its drape, its bells, easing onto the drape). The web leaves it null.
+ *   offload.init(cape) → a handle: { frame(packet), state(cape) → true if cape.p / cape.q now hold the latest points }
+ */
+export const CAPE_HOST = { offload: null };
 const DRAPES = new Map();          // drape key → Float32Array (anchor space), shared
 const BAKE_GAP_MS = 12;            // at most one bake every ~frame
 let lastBake = -1e9;
@@ -244,6 +252,8 @@ export class Cape {
     scene.add(this.mesh);
     this.bells = bells > 0 ? hemBells(this, bells, bellColor) : null;
     this.ready = false;
+    this.off = CAPE_HOST.offload ? CAPE_HOST.offload.init(this) : null;
+    this._push = true;   // (offloaded: the points changed here, sent with the next packet)
     this.capsules = [];
     this.time = 0;
   }
@@ -259,7 +269,11 @@ export class Cape {
       this.p[i] = this.q[i] = _a.x; this.p[i + 1] = this.q[i + 1] = _a.y; this.p[i + 2] = this.q[i + 2] = _a.z;
     }
     this.ready = true;
+    this._push = true;
   }
+
+  /** Offloaded: the engine's latest points into p and q (before they are read here). */
+  pull() { if (this.off) this.off.state(this); }
 
   /**
    * @param s.up     world up (against gravity)
@@ -280,6 +294,9 @@ export class Cape {
     _a.set(this.local[0], this.local[1], this.local[2]).applyMatrix4(m);
     const fresh = !this.ready || Math.hypot(_a.x - this.p[0], _a.y - this.p[1], _a.z - this.p[2]) > 3;
     if (fresh) this.reset(!!s.field);
+    // (offloaded, a bake's settling stays here: its points are sent with the next packet)
+    const off = this.off && !s.quiet ? this.off : null;
+    if (this.off && s.quiet) this._push = true;
     this.time += dt;
     // more substeps when the body moves fast, so limbs can't tunnel through the cloth
     const fast = Math.hypot(s.vel.x, s.vel.y, s.vel.z);
@@ -309,7 +326,7 @@ export class Cape {
       // body's own motion isn't simulated through the cloth, only the cloth's sway on it)
       _mc.multiplyMatrices(m, _mi.copy(this._mPrev).invert());
       const P = this.p, Q = this.q;
-      for (let i = 0; i < P.length; i += 3) {
+      if (!off) for (let i = 0; i < P.length; i += 3) {
         _a.set(P[i], P[i + 1], P[i + 2]).applyMatrix4(_mc); _b.set(Q[i], Q[i + 1], Q[i + 2]).applyMatrix4(_mc);
         P[i] += (_a.x - P[i]) * carry; P[i + 1] += (_a.y - P[i + 1]) * carry; P[i + 2] += (_a.z - P[i + 2]) * carry;
         Q[i] += (_b.x - Q[i]) * carry; Q[i + 1] += (_b.y - Q[i + 1]) * carry; Q[i + 2] += (_b.z - Q[i + 2]) * carry;
@@ -341,7 +358,19 @@ export class Cape {
         KP[o + 3] += (_b.x - KP[o + 3]) * carry; KP[o + 4] += (_b.y - KP[o + 4]) * carry; KP[o + 5] += (_b.z - KP[o + 5]) * carry;
       }
     }
-    for (let k = 0; k < steps; k++) {
+    const kv0 = this._h && !fresh && !s.quiet ? Math.min(4, Math.max(0.25, h / this._h)) : 1;
+    if (off) {
+      // the steps done by the engine: everything they need, as plain numbers
+      off.frame({
+        push: this._push, P: this.p, Q: this.q, carry, mc: carry > 0 ? _mc.elements : null, steps, iters: 5, h, damp, kv0, time: this.time,
+        gravity: this.gravity, drag: this.drag, flutter: this.flutter, up, air, lag, right, floor: s.floor, spread: s.spread ?? 0,
+        pins: pin, caps, from: lerpCaps ? KP : null, field: s.field ?? null,
+      });
+      this._push = false;
+      // (the collar as the steps leave it: where fresh looks)
+      for (let c = 0; c < cols; c++) { const i = c * 3, o = c * 6; this.p[i] = pin[o] + pin[o + 3]; this.p[i + 1] = pin[o + 1] + pin[o + 4]; this.p[i + 2] = pin[o + 2] + pin[o + 5]; }
+    }
+    for (let k = 0; !off && k < steps; k++) {
       const f = (k + 1) / steps;
       this.capsulesAt(caps, lerpCaps ? KP : null, f);
       // pin the collar row to the anchor, the second row softly (shoulder shape)
@@ -355,7 +384,7 @@ export class Cape {
         }
       }
       // integrate (the first step after a longer or shorter one: its velocity as a step of this length)
-      const kv = damp * (k === 0 && this._h && !fresh && !s.quiet ? Math.min(4, Math.max(0.25, h / this._h)) : 1);
+      const kv = damp * (k === 0 ? kv0 : 1);
       for (let r = 1; r < rows; r++) {
         const tr = r / (rows - 1);
         for (let c = 0; c < cols; c++) {
@@ -408,9 +437,10 @@ export class Cape {
     // the wearer standing still and the cloth at rest: that is its drape now (seated, leaning…)
     if (s.still) {
       this._still = (this._still ?? 0) + dt;
-      if (this._still > 1.5 && this.restless() < 1e-3) { this.capture(); this._still = 0.5; }
+      if (this._still > 1.5) { if (off) this.pull(); if (this.restless() < 1e-3) { this.capture(); this._still = 0.5; } }
     } else this._still = 0;
     if (s.quiet) return;   // (baking: no mesh to refresh until the end)
+    if (off) { if (this.bells) { this.pull(); this.ringBells(); } return; }   // (the engine's mesh: its own points and normals)
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();
     this.geo.computeBoundingSphere();
@@ -474,6 +504,8 @@ export class Cape {
     if (!this.ready) return this.hang();
     this._ease = (this._ease ?? 0) + dt;
     if (this._ease >= 0.5) return this.hang();
+    if (this._ease === dt) this.pull();   // (offloaded: from where the engine's cloth is)
+    this._push = true;
     this.anchor.updateWorldMatrix(true, false);
     const m = this.anchor.matrixWorld, k = 1 - Math.exp(-9 * dt);
     for (let i = 0; i < this.p.length; i += 3) {
@@ -495,6 +527,7 @@ export class Cape {
     this.hung = true;
     this._ease = 0;
     this.p.set(this.drape);
+    this._push = true;
     this.anchor.add(this.mesh);
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();

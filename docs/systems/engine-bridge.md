@@ -830,6 +830,32 @@ angry, surprised), the web above Unity:
 What still differs: the port's face ink draws Teo's forehead and cheek lines heavier than the web's at rest, and
 the traveller's hair is spikier; the expressions themselves read the same.
 
+## The script's frame against the web's (Unity + Puerts, 2026-10-07)
+
+Where the script's thread went, read from V8 itself: the player takes `-jsinspect <port>` (Puerts' V8 inspector on
+the script's own thread: a CPU profile through the DevTools protocol; scratchpad tools connect, start the
+profiler, stop it and keep the `.cpuprofile`), and the bench's `-split` now times the update's parts
+(engine/game.js `sections`: the crowd, the people, the story, the traveller, the level, life, flora, wind…). On the
+web the same parts, timed in the page round each person's update: at the camps the people took 1.9 ms a frame there
+and 3.8 ms in the player; three's matrix updates (the mirror's and the people's own) and the capes' cloth were
+the most of it.
+
+- **The people's capes in a Burst job** (src/cape.js `CAPE_HOST`; engine/cape-job.js, BridgeCape.cs). Cape.update
+  still works out what its steps need: the collar's pins from where the body was to where it is, the colliders
+  likewise, the air, the carry since its last update, the seat's field. With an engine's offload set (engine/game.js
+  sets Unity's for every cape made), those go into a packet (op 20) instead of the steps: the integration, the
+  constraints, the colliders, the ground or the seat, then the normals, a Burst job a cape, scheduled as the frame's
+  commands arrive and done before it is drawn; the cape's Unity mesh takes the points. The script keeps no copy of
+  the cloth: it reads the latest points back when it wants them (BridgeHost.CapeState, from its own thread, no wait:
+  the drape caught when the wearer has stood still, the bells on the hem, the ease onto the drape when the cape goes
+  out of the cloth's range), and a cape it moved itself (reset, baked, eased, hung) sends its points with the next
+  packet. engine/cape-job.js is the job in JavaScript, the C# one line for line; tests/cape-job.test.js runs the same
+  cape, walking, carried every 3rd frame, seated on a field and spread like wings, through cape.js and through the
+  packets: the same to 0.1 mm for 20 frames, the same cloth after (within 2 mm on average: the packets carry floats,
+  and the cloth's colliders amplify that). The people's update at the camps went from 3.8 to 1.9 ms a frame, the
+  Market crowd's from 2.4 to 1.1.
+- **The mirror's freezing off by default** (above).
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
