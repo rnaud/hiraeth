@@ -78,7 +78,7 @@ function materials(kit, o = {}) {
 const NC = { solid: false, shadow: true }, NS = { solid: false, shadow: false };
 /** Every role of a builder's parts added under its material (by: role → material overrides). */
 function addParts(kit, M, parts, by = {}) {
-  const map = { shell: M.shell, crater: M.crater, inner: M.inner, edge: M.edge, rust: M.rust, rust2: M.rust2, dark: M.dark, steel: M.steel, ceiling: M.ceiling, strut: M.strut, plank: M.plank, wall: M.wall, wall2: M.wall2, roofing: M.roofing, glow: M.glow, leaf: M.leaf, trunk: M.trunk, floor: M.floor, ...by };
+  const map = { shell: M.shell, crater: M.crater, inner: M.inner, edge: M.edge, rust: M.rust, rust2: M.rust2, dark: M.dark, steel: M.steel, ceiling: M.ceiling, strut: M.strut, rail: M.strut, plank: M.plank, wall: M.wall, wall2: M.wall2, roofing: M.roofing, glow: M.glow, leaf: M.leaf, trunk: M.trunk, floor: M.floor, gMetal: M.rust, gDark: M.dark, gPale: M.rust2, ...by };
   for (const [k, list] of Object.entries(parts)) if (Array.isArray(list) && map[k]) for (const g of list) if (g?.isBufferGeometry) kit.add(map[k], g, k === 'ceiling' || k === 'glow' || k === 'leaf' ? NS : NC);
 }
 

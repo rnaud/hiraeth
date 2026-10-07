@@ -31,14 +31,15 @@ import { bar, lathe, latticeTower, trussStair, moveParts, gather } from './anten
 // Each returns plain geometries by role in the caller's frame (no materials, no placing in a scene):
 //   shell, crater, inner, edge (a moon), rust, rust2 (the machinery's two oranges), dark (pistons, knuckles,
 //   greebles), steel (the roof's girders), ceiling, strut (thin bars: trusses, rails, cables, ladders), plank
-//   (walked decks), wall, wall2, roofing (houses), glow (windows), leaf, trunk, floor (a courtyard's).
+//   (walked decks), rail (railings: thin, but solid in the world), wall, wall2, roofing (houses), glow (windows), leaf,
+//   trunk, floor (a courtyard's), gMetal, gDark, gPale (machinery dressing, greeble-kit: drawn only in the world).
 // `detail` (1 the views' near shapes; under 1 the world's and the far ones) thins segments and pieces.
 // ---------------------------------------------------------------------------
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 const UP = V(0, 1, 0);
-const roles = () => ({ shell: [], crater: [], inner: [], edge: [], rust: [], rust2: [], dark: [], steel: [], ceiling: [], strut: [], plank: [], wall: [], wall2: [], roofing: [], glow: [], leaf: [], trunk: [], floor: [] });
+const roles = () => ({ shell: [], crater: [], inner: [], edge: [], rust: [], rust2: [], dark: [], steel: [], ceiling: [], strut: [], rail: [], plank: [], wall: [], wall2: [], roofing: [], glow: [], leaf: [], trunk: [], floor: [], gMetal: [], gDark: [], gPale: [] });
 export { gather, moveParts, bar };
 /** Plain geometry for merging: no uv, its own normals. */
 const plain = (g) => { if (g.attributes.uv) g.deleteAttribute('uv'); if (g.attributes.uv1) g.deleteAttribute('uv1'); return g; };
@@ -65,7 +66,7 @@ export const MF_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.12, uHatch: 0.42, 
 /** The day's colours (sky top, horizon, shadow, light, sun): a pale blue-mint sky, cream at the horizon, a cool grey shade. */
 export const MF_DAY = ['#b4d0d6', '#ece6d0', '#9a9cb6', '#fff6e4', '#fff0d0'];
 export const MF_DUSK = ['#9fa8c8', '#f2cfa6', '#8a80a8', '#ffe2c4', '#ffc890'];
-export const MF_NIGHT = ['#151a34', '#2a3050', '#343c6a', '#c4c8e4', '#eef0f8'];
+export const MF_NIGHT = ['#151a34', '#2a3050', '#30365e', '#7278a4', '#dce0f2'];
 /** The surfaces' tones, read off the sheets. */
 export const MF_TONES = {
   ivory: '#f4e4c8', ivory2: '#eedfc6', plated: '#bdb9b0', ivory3: '#f2e8d4', crater: '#d8c4a4', inner: '#a99a86', innerMint: '#9dc4b4', edge: '#f6eedc',
@@ -114,8 +115,9 @@ export function craterSpots(R, n, seed = 1, hole = null) {
 }
 /**
  * A moon: an ivory sphere of radius R about the origin, `craters` dents on it. cut: { dir, angle (the hole's half
- * angle, rad), ragged (0..0.5: how broken its edge), thick } breaks it open: the shell, its inside (inner) and the
- * edge's thickness (edge). { shell, crater, inner, edge, hole }.
+ * angle, rad), ragged (0..0.5: how broken its edge), thick, sill (rad: round the hole's lowest point the edge never
+ * comes in past the hole's angle, so its lip stays under a courtyard's floor and can be walked over) } breaks it
+ * open: the shell, its inside (inner) and the edge's thickness (edge). { shell, crater, inner, edge, hole }.
  */
 export function moon({ R = 20, seg = 56, craters = 40, seed = 1, cut = null, detail = 1 } = {}) {
   const out = roles(), rng = mulberry32(Math.floor(seed * 4271) + 3);
@@ -128,7 +130,12 @@ export function moon({ R = 20, seg = 56, craters = 40, seed = 1, cut = null, det
     const nP = seg, nT = Math.ceil(seg / 2), s0 = rng() * 10;
     // the hole's edge: its polar angle round the axis, broken (a few slow lobes and a jag at every vertex)
     const jag = Array.from({ length: nP }, () => (rng() - 0.5));
-    const edgeAt = (j) => { const p = (j / nP) * TAU; return cut.angle * (1 + ragged * (0.55 * Math.sin(3 * p + s0) + 0.35 * Math.sin(5 * p + 2 * s0) + 0.6 * jag[j % nP])); };
+    const bottom = b2.y > 0 ? Math.PI * 1.5 : Math.PI * 0.5, sill = cut.sill ?? 0;   // (the azimuth of the hole's lowest point)
+    const edgeAt = (j) => {
+      const p = (j / nP) * TAU, e = cut.angle * (1 + ragged * (0.55 * Math.sin(3 * p + s0) + 0.35 * Math.sin(5 * p + 2 * s0) + 0.6 * jag[j % nP]));
+      const off = Math.abs(Math.atan2(Math.sin(p - bottom), Math.cos(p - bottom)));
+      return off < sill ? Math.max(e, cut.angle * 1.02) : e;
+    };
     const at = (th, p, r) => d.clone().multiplyScalar(Math.cos(th) * r).addScaledVector(b1, Math.cos(p) * Math.sin(th) * r).addScaledVector(b2, Math.sin(p) * Math.sin(th) * r);
     const sheet = (r, flip) => {
       const pos = [], idx = [];
@@ -227,10 +234,15 @@ export function house({ x = 0, y = 0, z = 0, w = 6, d = 5, fh = 3, floors = 1, y
     const by = fh, q = P(0, by, d / 2 + 0.6);
     out.plank.push(box(w * 0.7, 0.14, 1.2, 0, 0, 0).rotateY(yaw).translate(q.x, q.y, q.z));
     const a = P(-w * 0.35, by + 0.95, d / 2 + 1.15), b = P(w * 0.35, by + 0.95, d / 2 + 1.15);
-    out.strut.push(bar(a, b, 0.035, 0.035, 4));
-    for (let k = 0; k <= 4; k++) { const p = a.clone().lerp(b, k / 4); out.strut.push(bar(p.clone().add(V(0, -0.95, 0)), p, 0.03, 0.03, 3)); }
+    out.rail.push(bar(a, b, 0.035, 0.035, 4));
+    for (let k = 0; k <= 4; k++) { const p = a.clone().lerp(b, k / 4); out.rail.push(bar(p.clone().add(V(0, -0.95, 0)), p, 0.03, 0.03, 3)); }
   }
   return { ...out, windows, top: y + top };
+}
+/** The height (over a broken moon's centre) of a courtyard's floor just over its hole's lip: ri the inner radius. */
+export function lipFloor(ri, dir, angle) {
+  const el = Math.asin(THREE.MathUtils.clamp(dir.y / dir.length(), -1, 1));
+  return Math.max(-0.82 * ri, ri * Math.sin(el - angle * 0.9) + 0.2);
 }
 /**
  * The life in a broken moon of radius R (its centre the origin): a floor across its inside just over the hole's lip
@@ -240,10 +252,7 @@ export function house({ x = 0, y = 0, z = 0, w = 6, d = 5, fh = 3, floors = 1, y
  */
 export function courtyard({ R, thick = 0.6, fy, hole = null, houses = 6, trees = 6, seed = 1, lit = 0.5, detail = 1, toward = V(0, 0, 1), terrace = true } = {}) {
   const out = roles(), rng = mulberry32(Math.floor(seed * 2207) + 9), ri = R - thick;
-  if (fy === undefined) {
-    const d = hole?.dir ?? toward, el = Math.asin(THREE.MathUtils.clamp(d.y, -1, 1));
-    fy = Math.max(-0.82 * ri, ri * Math.sin(el - (hole?.angle ?? 0.8) * 0.9) + 0.2);
-  }
+  if (fy === undefined) fy = lipFloor(ri, hole?.dir ?? toward, hole?.angle ?? 0.8);
   const fr = Math.sqrt(Math.max(1, ri * ri - fy * fy));
   // the floor: a disc meeting the inner wall, a little under the wall's line so no seam shows
   out.floor.push(plain(new THREE.CylinderGeometry(fr + 0.2, fr + 0.2, 0.5, Math.max(18, Math.round(40 * detail)))).translate(0, fy - 0.25, 0));
@@ -308,7 +317,7 @@ function renameParts(parts, map) {
  * The lower half of a shell in its cradle (sheet 1, left): a bowl of radius R, cut flat at height `cutY` over its centre
  * (the origin), its rim's thickness, plating seams; a deck across its top with houses and trees. { ...roles, deckY }.
  */
-export function bowl({ R = 14, cutY = R * 0.3, thick = 0.6, seed = 1, houses = 2, trees = 3, lit = 0.4, detail = 1 } = {}) {
+export function bowl({ R = 14, cutY = R * 0.3, thick = 0.6, seed = 1, houses = 2, trees = 3, lit = 0.4, detail = 1, below = 0.5 } = {}) {
   const out = roles(), rng = mulberry32(Math.floor(seed * 3313) + 7), seg = Math.max(24, Math.round(56 * detail));
   const a0 = Math.acos(THREE.MathUtils.clamp(cutY / R, -1, 1));   // polar angle of the cut from +y
   out.shell.push(plain(new THREE.SphereGeometry(R, seg, Math.ceil(seg / 2), 0, TAU, a0, Math.PI - a0)));
@@ -323,7 +332,7 @@ export function bowl({ R = 14, cutY = R * 0.3, thick = 0.6, seed = 1, houses = 2
     out.dark.push(g);
   }
   // the deck over it a little under the rim, houses and trees on it
-  const deckY = cutY - 0.5;
+  const deckY = cutY - below;   // (below: the deck that far under the rim; 0 level with it, walked onto)
   out.floor.push(plain(new THREE.CylinderGeometry(ri + 0.1, ri + 0.1, 0.4, seg)).translate(0, deckY - 0.2, 0));
   const windows = [];
   for (let i = 0; i < houses; i++) {
@@ -336,19 +345,20 @@ export function bowl({ R = 14, cutY = R * 0.3, thick = 0.6, seed = 1, houses = 2
 }
 
 // ------------------------------------------------------------------ the machinery
-/** Dress a rectangle of a face with greebles, their roles folded into ours (metal → rust3's dark, pale → pale, dark → dark). */
+/** Dress a rectangle of a face with greebles (greeble-kit), in their own roles: gMetal, gDark, gPale. */
 function dress(out, seed, o, u, v, n, w, h, opts) {
   const m = greebles(seed).patch(o, u, v, n, w, h, opts).merged();
-  if (m.metal) out.rust.push(m.metal);
-  if (m.dark) out.dark.push(m.dark);
-  if (m.pale) out.rust2.push(m.pale);
+  if (m.metal) out.gMetal.push(m.metal);
+  if (m.dark) out.gDark.push(m.dark);
+  if (m.pale) out.gPale.push(m.pale);
 }
 /**
  * The cradle a moon of radius R rests in, its centre `yc` over the floor at the origin: a low drum on the floor, `arms`
  * claw arms rising from it out and up to grip the moon below its middle, pistons from the drum to each arm's elbow,
- * knuckles at the joints, machinery round the drum. { rust, rust2, dark, strut, top (the drum's top) }.
+ * knuckles at the joints, machinery round the drum; skip: [azimuth, half width] leaves that side free. { rust, rust2, dark,
+ * strut, top (the drum's top) }.
  */
-export function cradle({ R = 20, yc = R * 1.15, arms = 4, rot = 0, seed = 1, detail = 1, drum = 0.62, dressing = 1 } = {}) {
+export function cradle({ R = 20, yc = R * 1.15, arms = 4, rot = 0, seed = 1, detail = 1, drum = 0.62, dressing = 1, skip = null } = {}) {
   const out = roles(), rng = mulberry32(Math.floor(seed * 5021) + 3), dh = Math.max(1.6, yc - R * 1.02), seg = Math.max(16, Math.round(32 * detail));
   // the drum: from the floor up to just under the moon, a flare at its foot and a collar at its top
   const r0 = R * drum;
@@ -363,9 +373,14 @@ export function cradle({ R = 20, yc = R * 1.15, arms = 4, rot = 0, seed = 1, det
   const W = R * 0.11, D = R * 0.075;
   for (let k = 0; k < arms; k++) {
     const a = rot + (k / arms) * TAU, ca = Math.cos(a), sa = Math.sin(a), P = (r, y) => V(ca * r, y, sa * r);
+    // (skip: [azimuth, half width]: no arm there, where a broken moon's hole is: it would cross the opening)
+    if (skip && Math.abs(Math.atan2(Math.sin(a - skip[0]), Math.cos(a - skip[0]))) < skip[1]) continue;
     const elG = -0.62 - rng() * 0.12, elT = -0.12 + rng() * 0.12;
-    const base = P(r0 * 0.9, dh * 0.6), elbow = P(R * 1.08, yc - R * 0.78), grip = P(R * Math.cos(elG) + D * 0.6, yc + R * Math.sin(elG)), tip = P(R * Math.cos(elT) + D * 0.6, yc + R * Math.sin(elT));
-    out.rust.push(beam(base, elbow, W, D), beam(elbow, grip, W * 0.9, D), beam(grip, tip, W * 0.7, D * 0.8));
+    const On = (el) => P((R + D * 0.9) * Math.cos(el), yc + (R + D * 0.9) * Math.sin(el));   // (a point standing off the moon along its normal)
+    const base = P(r0 * 0.9, dh * 0.6), elbow = P(R * 1.08, yc - R * 0.78), grip = On(elG), tip = On(elT);
+    // (the claw's finger follows the moon's curve in two pieces: one straight bar from grip to tip would cut a chord into it)
+    const mid = On((elG + elT) / 2);
+    out.rust.push(beam(base, elbow, W, D), beam(elbow, grip, W * 0.9, D), beam(grip, mid, W * 0.75, D * 0.85), beam(mid, tip, W * 0.65, D * 0.75));
     // a pad where it grips, and knuckles across the joints
     const tg = V(-sa, 0, ca);
     for (const [p, r] of [[base, W * 0.55], [elbow, W * 0.6], [grip, W * 0.5]]) out.dark.push(plain(new THREE.CylinderGeometry(r, r, D * 1.5, 12)).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(UP, tg)).translate(p.x, p.y, p.z));
@@ -426,8 +441,8 @@ export function pillar({ h = 80, r = 3, seed = 1, detail = 1, pipes = 3, ladder 
   // a cage ladder up the other side: two rails, hoops every 2.5 m
   if (ladder) {
     const a = side + Math.PI * 0.75, c = Math.cos(a), s = Math.sin(a), t = V(-s, 0, c), o = V(c * (r + 0.35), 0, s * (r + 0.35)), lh = h * 0.8;
-    for (const e of [-1, 1]) out.strut.push(bar(o.clone().addScaledVector(t, e * 0.25), o.clone().addScaledVector(t, e * 0.25).add(V(0, lh, 0)), 0.035, 0.035, 3));
-    if (detail >= 0.7) for (let y = 3; y < lh; y += 2.5) out.strut.push(plain(new THREE.TorusGeometry(0.42, 0.025, 3, 8, Math.PI)).rotateX(Math.PI / 2).rotateY(-a + Math.PI / 2).translate(o.x + c * 0.15, y, o.z + s * 0.15));
+    for (const e of [-1, 1]) out.rail.push(bar(o.clone().addScaledVector(t, e * 0.25), o.clone().addScaledVector(t, e * 0.25).add(V(0, lh, 0)), 0.035, 0.035, 3));
+    if (detail >= 0.7) for (let y = 3; y < lh; y += 2.5) out.rail.push(plain(new THREE.TorusGeometry(0.42, 0.025, 3, 8, Math.PI)).rotateX(Math.PI / 2).rotateY(-a + Math.PI / 2).translate(o.x + c * 0.15, y, o.z + s * 0.15));
   }
   // a platform ring partway up (planks and a rail)
   if (platform > 0) {
@@ -470,10 +485,12 @@ export function roof({ x0 = -100, x1 = 100, z0 = -100, z1 = 100, y = 60, bay = 2
 }
 /**
  * A railed truss walkway along pts ([x, y, z]…, its deck's top), w wide: a deck of planks per segment, a truss under
- * each side (chords, posts, diagonals), a railing, legs down to the floor (ground(x, z)) every `span` m.
+ * each side (chords, posts, diagonals), a railing (none within a gap: [[x, z, r]…], where another way meets it), legs
+ * down to the floor (ground(x, z)) every `span` m.
  * { plank (walked), rust (the legs and chords), strut (the web and the rails) }.
  */
-export function gantry(pts, { w = 2.6, truss = 1.4, rail = true, span = 16, ground = () => 0, legs = true, detail = 1, deck = 0.3 } = {}) {
+export function gantry(pts, { w = 2.6, truss = 1.4, rail = true, span = 16, ground = () => 0, legs = true, detail = 1, deck = 0.3, gaps = [] } = {}) {
+  const open = (p) => gaps.some(([x, z, r]) => Math.hypot(p.x - x, p.z - z) < r);
   const out = roles(), P = pts.map((p) => V(...p));
   let run = span * 0.5;
   for (let i = 0; i < P.length - 1; i++) {
@@ -488,10 +505,13 @@ export function gantry(pts, { w = 2.6, truss = 1.4, rail = true, span = 16, grou
         out.strut.push(bar(p.clone().add(top), p.clone().add(lo), 0.06, 0.06, 4));
         if (detail >= 0.6) out.strut.push(bar(k % 2 ? p.clone().add(top) : p.clone().add(lo), k % 2 ? q.clone().add(lo) : q.clone().add(top), 0.05, 0.05, 3));
       }
-      if (rail) {
-        const r0 = a.clone().add(o).add(V(0, 1.05, 0)), r1 = b.clone().add(o).add(V(0, 1.05, 0));
-        out.strut.push(bar(r0, r1, 0.045, 0.045, 4), bar(r0.clone().add(V(0, -0.5, 0)), r1.clone().add(V(0, -0.5, 0)), 0.03, 0.03, 3));
-        for (let k = 0; k <= n; k++) { const p = a.clone().lerp(b, k / n).add(o); out.strut.push(bar(p, p.clone().add(V(0, 1.05, 0)), 0.035, 0.035, 3)); }
+      if (rail) for (let k = 0; k < n; k++) {
+        // (a bay of railing at a time: none where a gap is)
+        const p = a.clone().lerp(b, k / n).add(o), q = a.clone().lerp(b, (k + 1) / n).add(o);
+        if (open(p) || open(q)) continue;
+        const r0 = p.clone().add(V(0, 1.05, 0)), r1 = q.clone().add(V(0, 1.05, 0));
+        out.rail.push(bar(r0, r1, 0.045, 0.045, 4), bar(r0.clone().add(V(0, -0.5, 0)), r1.clone().add(V(0, -0.5, 0)), 0.03, 0.03, 3), bar(p, r0, 0.035, 0.035, 3));
+        if (k === n - 1 || open(a.clone().lerp(b, (k + 2) / n).add(o))) out.rail.push(bar(q, r1, 0.035, 0.035, 3));
       }
     }
     // legs every `span` along the way: two posts down to the floor, braced

@@ -115,6 +115,31 @@ const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell
 
 export const CHANGELOG_MEDIA = {
   '0.85': [
+    { match: 'A new world off the route, the Moon Foundry', shots: [
+      { name: 'foundry-arrival', only: 'after', caption: 'Out of the ship on the apron: the hangar\u2019s mouth, the hung moons, the broken moon at the end of the aisle, the moon in its claws', from: 'the world\u2019s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'foundry-gantry', only: 'after', caption: 'On the gantry, 13 m up: the way straight into the broken moon, the bowl garden on the left, the moon on its pillar', from: 'the world\u2019s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'foundry-court', only: 'after', caption: 'Over the lip into the courtyard: the houses stacked under the shell\u2019s curve, mint trees, Wen counting moons', from: 'the world\u2019s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'foundry-quarter-dusk', only: 'after', caption: 'The workers\u2019 quarter at dusk: homes made in the old machinery, the polishing drum with its lit windows, the bowl garden beyond', from: 'the world\u2019s own screenshots, headless Chrome, High, 18:24 (7 October)' },
+    ], see: 'At the ship\u2019s holo table, choose the Moon Foundry on the galactic map (or open the game with ?level=moonfoundry). Walk north through the hangar\u2019s mouth; the gantry\u2019s stair rises on the right of the aisle, and the gantry goes straight into the broken moon, with a branch west to the bowl garden. Dun waits at the furnace, Wen in the courtyard, Emrys on the bowl.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of 60 frames, median of 7 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 \u00d7 720', source: 'docs/systems/worlds.md, \u201cThe Moon Foundry\u201d', rows: [
+          { where: 'the Signal Market\u2019s start (the budget)', before: 1.66, after: null },
+          { where: 'the Signal Market\u2019s crowd', before: 1.51, after: null },
+          { where: 'by the ship (spawn)', before: null, after: 1.51 },
+          { where: 'the hangar\u2019s mouth, the widest view', before: null, after: 1.47 },
+          { where: 'the gantry', before: null, after: 1.63 },
+          { where: 'the courtyard', before: null, after: 1.33 },
+          { where: 'the furnace', before: null, after: 1.44 },
+        ] },
+        { title: 'Draw calls, same views', unit: 'draws', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 \u00d7 720', rows: [
+          { where: 'the Signal Market\u2019s start (the budget)', before: '361\u2013692', after: null },
+          { where: 'the Moon Foundry, six views', before: null, after: '281\u2013391' },
+        ] },
+      ] },
+    { match: 'In the Moon Foundry the last furnace still pours', shots: [
+      { name: 'foundry-furnace', only: 'after', caption: 'The last furnace: the ladle tipped over the mould, the pour in bands of hot colour, the mouth glowing', from: 'the world\u2019s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'foundry-furnace-night', only: 'after', caption: 'The furnace at night', from: 'the world\u2019s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'In the Moon Foundry, walk east from the aisle near the hangar\u2019s mouth to the furnace and stand by the mould: the bands march down the stream, and the drone rises as you come close.' },
     { match: 'The References level has the Moon Foundry’s four pictures', shots: [
       { name: 'moonfoundry-refs-hung', only: 'after', size: [1938, 540], caption: 'The first picture (left) and its view in the game (right): the hung moon, the moon broken open round its courtyard, the bowl in its cradle', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'moonfoundry-refs-claws', only: 'after', size: [1938, 540], caption: 'The third: two moons in their claws, the far moon between the pillars, the bridge across', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },

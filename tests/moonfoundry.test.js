@@ -7,6 +7,12 @@ import { REFERENCE_WORLDS, loadWorld, worldIndex } from '../src/levels/reference
 import { lensShift, frameBox, viewCamera } from '../src/levels/references.js';
 import { moon, craterSpots, courtyard, bowl, cradle, hangRig, pillar, roof, gantry, house, jibCrane, pourStream, MF_LOOK, MF_DAY } from '../src/levels/moon-foundry-kit.js';
 import { sheetAt } from '../src/levels/reference-moonfoundry.js';
+import { Physics } from '../src/physics.js';
+import { LEVELS } from '../src/levels/index.js';
+import { CONTENT, ORDER } from '../src/levels/content.js';
+import { SIDE } from '../src/levels/names.js';
+import { mapEntries } from '../src/ship/starmap.js';
+import { createMoonFoundry, MOONFOUNDRY_CONTENT, SHIP, MOUTH, HALL, STAIR, G, COURT, COURT_Y, BOWL, FURNACE, CRADLE, HUNG } from '../src/levels/moon-foundry.js';
 
 const finite = (g) => { const p = g.attributes.position.array; for (let i = 0; i < p.length; i++) if (!Number.isFinite(p[i])) return false; return true; };
 const box = (list) => { const b = new THREE.Box3(); for (const g of list) { g.computeBoundingBox(); b.union(g.boundingBox); } return b; };
@@ -89,4 +95,107 @@ test('the foundry kit: a moon broken open, its craters, its courtyard at the lip
   assert.ok(jibCrane({ h: 30, jib: 15 }).strut.length > 20);
   const S = pourStream({ drop: 8, rings: 16 });
   assert.equal(S.segs.length, 16);
+});
+
+// ------------------------------------------------------------------ the world (src/levels/moon-foundry.js)
+let world = null;
+const built = () => world ??= (() => {
+  const scene = new THREE.Scene(), w = console.warn, e = console.error, errors = [], warns = []; console.warn = (...a) => warns.push(a.join(' ')); console.error = (...a) => errors.push(a.join(' '));
+  try { const level = createMoonFoundry(scene); return { scene, level, physics: new Physics(scene, level.ground), errors, warns }; } finally { console.warn = w; console.error = e; }
+})();
+const clearAt = (physics, p, y) => physics.pushCapsule(new THREE.Vector3(p.x, y + 0.05, p.z), 0.35, 0.6, 1.9) === null;
+const line = (a, b, step = 1) => { const A = V(...a), B = V(...b), n = Math.max(1, Math.ceil(A.distanceTo(B) / step)); return Array.from({ length: n + 1 }, (_, i) => A.clone().lerp(B, i / n)); };
+
+test('the Moon Foundry: off the route, on the map from the start, reached by ?level=moonfoundry', () => {
+  const L = LEVELS.find((l) => l.id === 'moonfoundry');
+  assert.ok(L && L.hidden && !L.dev, 'a world, not on the route');
+  assert.ok(SIDE.includes('moonfoundry') && !ORDER.includes('moonfoundry'));
+  assert.equal(CONTENT.moonfoundry, MOONFOUNDRY_CONTENT);
+  assert.ok(MOONFOUNDRY_CONTENT.story.manual, 'no story to follow: no beacon, never in the way home');
+  const entries = mapEntries({ order: ORDER, levels: LEVELS, side: SIDE, journal: { seen: () => false, storyDone: () => false }, current: 'desert', flag: () => undefined, home: () => true });
+  const e = entries.find((x) => x.id === 'moonfoundry');
+  assert.ok(e && e.known && e.side, 'charted, off the dotted line');
+  assert.ok(entries.at(-1).home, 'home still last');
+  const named = MOONFOUNDRY_CONTENT.npcs.filter((p) => p.id).map((p) => p.id).sort();
+  assert.deepEqual(named, ['dun', 'ivo', 'wen'], 'Dun and Wen of the Buried Machine, Emrys of the Garden of Spheres');
+  for (const p of MOONFOUNDRY_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes, `${p.id}: only words for the foundry, no errands`);
+  for (const p of MOONFOUNDRY_CONTENT.npcs) for (const l of p.lines) assert.match(l, /^~[a-z]+~ /, 'every line toned');
+});
+
+test('the Moon Foundry builds: the apron flat by the ship, the way in clear, the people where they stand', () => {
+  const { level, physics, errors, warns } = built();
+  assert.equal(level.id, 'moonfoundry');
+  assert.deepEqual(errors, [], 'no errors building it');
+  assert.deepEqual(warns.filter((w) => /moon foundry/.test(w)), [], 'the courtyard\'s floor and the gantry meet');
+  const g = (x, z) => level.ground.heightAt(x, z);
+  assert.ok(Math.abs(level.spawn.y - g(level.spawn.x, level.spawn.z)) < 0.2, 'the traveller starts on the ground');
+  let lo = Infinity, hi = -Infinity;
+  for (let a = 0; a < 6.3; a += 0.4) for (const r of [0, 8, 16]) { const h = g(SHIP.x + Math.cos(a) * r, SHIP.z + Math.sin(a) * r); lo = Math.min(lo, h); hi = Math.max(hi, h); }
+  assert.ok(hi - lo < 0.5, `the apron is flat (${(hi - lo).toFixed(2)} m)`);
+  assert.ok(SHIP.z - 20 > MOUTH, 'the ship lands outside the hangar: nothing over it');
+  // from the spawn in through the mouth and up the aisle to the stair's foot: nothing in the way
+  for (const p of [...line([0, 0, level.spawn.z], [0, 0, MOUTH - 10]), ...line([0, 0, MOUTH - 10], [STAIR.x - 3, 0, STAIR.z0 + 3])]) assert.ok(clearAt(physics, p, g(p.x, p.z)), `the way in is clear at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+  // the named people stand on something: Wen on the courtyard's floor, Emrys on the bowl's deck, Dun on the floor
+  for (const p of MOONFOUNDRY_CONTENT.npcs.filter((q) => q.id)) {
+    const y = p.y ?? g(p.at[0], p.at[1]), top = physics.groundAt(p.at[0] + 0.03, y + 2, p.at[1] + 0.02, 6);
+    assert.ok(Math.abs(top - y) < 0.3, `${p.id} stands on it (${top?.toFixed(2)} for ${y.toFixed(2)})`);
+  }
+  assert.ok(level.lights.length > 30, 'windows, lamps, the furnace');
+});
+
+test('the stair climbs to the gantry, the gantry crosses into the broken moon over its lip, the branch reaches the bowl', () => {
+  const { level, physics } = built();
+  assert.ok(Math.abs(G - COURT_Y) < 1e-9 && Math.abs(level.court.y - G) < 1e-6, 'the gantry at the courtyard\'s floor');
+  // up the stair: each step a little higher
+  let last = -Infinity, rises = 0;
+  for (let t = 0.03; t < 0.98; t += 0.02) {
+    const z = STAIR.z0 + (level.ways.top - STAIR.z0) * t, y = physics.groundAt(STAIR.x + 0.07, G + 3, z, G + 6);
+    assert.ok(Number.isFinite(y) && y >= last - 0.05, `the stair climbs at ${t.toFixed(2)}`);
+    if (y > last + 0.01) rises++;
+    last = y;
+  }
+  assert.ok(rises > 25 && last > G - 1, 'step by step up to the deck');
+  // along the gantry and the branch: a deck under foot, the way clear
+  for (const way of [level.ways.main, level.ways.branch]) for (let i = 1; i < way.length; i++) for (const p of line(way[i - 1], way[i], 1.5)) {
+    const y = physics.groundAt(p.x + 0.07, G + 3, p.z + 0.05, 5);
+    assert.ok(Math.abs(y - G) < 0.05, `the deck holds at ${p.x.toFixed(1)}, ${p.z.toFixed(1)} (${y?.toFixed(2)})`);
+    assert.ok(clearAt(physics, p, y), `the way along the gantry is clear at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+  }
+  // over the lip and into the courtyard, toward its middle
+  const end = level.ways.main.at(-1), mid = [COURT.x, G, COURT.z];
+  for (const p of line(end, [level.court.lip.x, G, level.court.lip.z], 0.5)) {
+    const y = physics.groundAt(p.x + 0.05, G + 3, p.z + 0.04, 4);
+    assert.ok(Math.abs(y - G) < 0.4, `over the lip at ${p.x.toFixed(1)}, ${p.z.toFixed(1)} (${y?.toFixed(2)})`);
+    assert.ok(clearAt(physics, p, y), `nothing in the way over the lip at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+  }
+  let walked = 0;
+  for (const p of line([level.court.lip.x, G, level.court.lip.z], mid, 1).slice(0, -6)) {
+    const y = physics.groundAt(p.x + 0.05, G + 3, p.z + 0.04, 4);
+    assert.ok(Math.abs(y - G) < 0.4 || y > G, `the courtyard's floor at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+    if (clearAt(physics, p, y)) walked++;
+  }
+  assert.ok(walked >= 10, `the courtyard's front is open ground (${walked} m)`);
+  // the bowl's deck, round its garden
+  const b = level.bowlDeck;
+  for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, y = physics.groundAt(b.x + Math.cos(a) * b.rim * 0.6, G + 3, b.z + Math.sin(a) * b.rim * 0.6, 5); assert.ok(Math.abs(y - G) < 0.4 || y > G, 'the bowl\'s deck all round'); }
+});
+
+test('solid as drawn: the pillars, the moons, the furnace; drawn only overhead; within the handheld\'s budget', () => {
+  const { scene, level, physics } = built();
+  const [px, pz] = level.pillars[0];
+  assert.ok(!clearAt(physics, V(px + 3.9, 0, pz), 0) && !clearAt(physics, V(px, 0, pz + 3.9), 0), 'you cannot walk into a pillar');
+  assert.ok(physics.groundAt(CRADLE.x + 0.1, 60, CRADLE.z + 0.1, 30) > CRADLE.yc + CRADLE.R - 1, 'the cradled moon\'s crown is solid');
+  assert.ok(physics.groundAt(HUNG.x + 0.1, HUNG.y + HUNG.R + 2, HUNG.z + 0.1, 4) > HUNG.y + HUNG.R - 1, 'the hung moon is solid');
+  assert.ok(!clearAt(physics, V(FURNACE.x + FURNACE.r + 0.2, 0, FURNACE.z), 0), "the furnace stops you");
+  assert.ok(!(physics.groundAt(0.1, HALL.roof + 5, 0.1, 10) > HALL.roof - 6), 'the roof is out of reach: drawn only');
+  let meshes = 0;
+  scene.traverse((o) => { if (o.isMesh && o.visible) meshes++; });
+  assert.ok(meshes < 260, `meshes ${meshes}`);
+  assert.ok(physics.triangles < 200000, `collision triangles ${physics.triangles}`);
+  // the furnace drones by its mouth; the pour's bands march down it
+  assert.ok(level.hum(V(FURNACE.x - 8, 1, FURNACE.z)) > 0.5 && level.hum(V(0, 1, 60)) === 0);
+  const stream = scene.getObjectByName('the pour'), C = stream.geometry.attributes.color;
+  level.update(0.016, 1); const a = C.array.slice(); level.update(0.016, 1.4);
+  assert.ok(C.array.some((v, i) => Math.abs(v - a[i]) > 1e-3), 'the bands move');
+  assert.ok(BOWL.R > 0 && level.far.every((m) => m.userData.floats), 'the far moons are out of reach');
 });

@@ -22,6 +22,7 @@ import { SALT_CONTENT } from './salt-harbour.js';
 import { ANTENNAS_CONTENT } from './antennas.js';
 import { HOME_CONTENT } from './home.js';
 import { GLASS_CONTENT } from './glass-dunes.js';
+import { MOONFOUNDRY_CONTENT } from './moon-foundry.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
@@ -40,6 +41,7 @@ export const CONTENT = {
   antennas: ANTENNAS_CONTENT,
   home: HOME_CONTENT,   // src/levels/home.js: the parents at the door
   glassdunes: GLASS_CONTENT,   // src/levels/glass-dunes.js: a detour, no quest
+  moonfoundry: MOONFOUNDRY_CONTENT,   // src/levels/moon-foundry.js: a detour, no quest
   bazaar: {
     weather: [],
     // the Signal Market's story is a quest (src/story/bazaar-data.js): this page opens on the

@@ -452,6 +452,7 @@ export const COSTUMES = {
 };
 // the Glass Dunes' glassworkers dress as the desert's people (src/levels/glass-dunes.js: its crowd's costume is the desert's)
 COSTUMES.glassdunes = COSTUMES.desert;
+COSTUMES.moonfoundry = COSTUMES.buried;   // (the Moon Foundry, src/levels/moon-foundry.js: the Buried Machine's workers' clothes, in the foundry's own colours)
 COSTUMES.underwater = COSTUMES.waterfall;   // (the Underwater City, src/levels/underwater.js: the falls' wraps and hoods, in the city's own colours)
 const INCAL = { TOP: 200, LEVELS: [150, 92, 36, -24, -86] };
 function zoneIncal(c) {
