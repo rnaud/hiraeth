@@ -1,0 +1,52 @@
+.gitignore
+  s_0a0e834cfcfe52::t_f4d51a78361947 40
+changelog.md
+  s_0a0e834cfcfe52::t_b8535211a9aee3 7-8,12-20,25-38,43-55,60-66,71-83,88-92,97-110,115-123,128-147,152-161,166-177,182-188,193-212,217-234,239-247,252-267,272-276,281-292,297-305,310-320,325-336,341-349,354-367,372-382,387-397,402-413,418-423,428-430,435-436,441-454,459-467,472-477,482-491,496-506,511-524,529-535,540-550,555-561,566-573,578-589,594-607,612-621,626-647,652-658,663-675,677-688,693-712,717-719,724-727,732-737,742-746,751-752,757-759,764-767,772-775,780-782,787-788,793-794,799-800,805,810,815,824-826,831-832,837-838,843-844,849-851,856-857,862-865,870-875,880-889,894-901,906-908,913-914,919-921,926-927,936,949
+docs/systems/changelog.md
+  s_0a0e834cfcfe52::t_713a8445153470 4-6
+docs/systems/dev-tools.md
+  s_0a0e834cfcfe52::t_ee931c3129eaec 12-15
+index.html
+  s_0a0e834cfcfe52::t_b8bc57dbf0b09b 137-139
+scripts/changelog-md.mjs
+  s_0a0e834cfcfe52::t_118067fd7c9eef 7,15
+scripts/changelog-shots.mjs
+  s_0a0e834cfcfe52::t_3bc17fcbf727d0 259-260
+scripts/release-info.mjs
+  s_0a0e834cfcfe52::t_06024a19509d18 16,77,162
+scripts/world-thumbs.mjs
+  s_0a0e834cfcfe52::t_e680f32a578f98 1-56
+src/changelog-media.js
+  s_0a0e834cfcfe52::t_edff5f8a9549ab 95
+src/changelog.js
+  s_0a0e834cfcfe52::t_eda97ed0ff383c 29-30,904-905,914
+src/world-picker.js
+  s_0a0e834cfcfe52::t_e5698c20802b70 5-13,15-18
+tests/android-ota.test.js
+  s_0a0e834cfcfe52::t_79ccee2abfe368 81
+tests/changelog-media.test.js
+  s_0a0e834cfcfe52::t_8a4dca702b9ef5 87-89,91-94
+tests/menus.test.js
+  s_0a0e834cfcfe52::t_cdcd7ec685dcd9 3-5,24-27
+tests/studio.test.js
+  s_0a0e834cfcfe52::t_ccbbbd169906fd 55-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bed5f7a817a03c3449cb21c23468835475af87d8",
+  "prompts": {},
+  "sessions": {
+    "s_0a0e834cfcfe52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ade28b2d-b826-430e-b2e2-c43a0ae93ce3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
