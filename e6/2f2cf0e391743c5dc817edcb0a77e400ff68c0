@@ -1,0 +1,29 @@
+.github/workflows/unity-android.yml
+  s_55b4bc53b812ec::t_901631edf22366 1-227
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_a119ad51e2e7b9 637-641
+docs/systems/unity.md
+  s_55b4bc53b812ec::t_4b87bd787063c3 50-101
+scripts/unity-android-release.sh
+  s_55b4bc53b812ec::t_35710db7d1df25 52
+tests/unity-ci.test.js
+  s_55b4bc53b812ec::t_ef6f5dac5e84a4 1-106
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_a11001e95a9319 155,198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e62f2cf0e391743c5dc817edcb0a77e400ff68c0",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
