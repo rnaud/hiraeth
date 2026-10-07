@@ -1,0 +1,37 @@
+changelog.md
+  s_55b4bc53b812ec::t_dd2d4b8d7e2daf 12-13
+docs/systems/references.md
+  s_55b4bc53b812ec::t_5dfc57f946e763 517-549
+docs/systems/water.md
+  s_55b4bc53b812ec::t_637edb98c7a6db 89-111
+src/changelog-media.js
+  s_55b4bc53b812ec::t_ea18c020eb3edd 149-155
+src/changelog.js
+  s_55b4bc53b812ec::t_4cb704ec7d690e 18-19
+src/levels/reference-underwater.js
+  s_55b4bc53b812ec::t_876abee707d585 1-217
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_d3956074c26b19 32
+src/levels/underwater-kit.js
+  s_55b4bc53b812ec::t_1fff5cf63e86c8 1-640
+src/water-shader.js
+  s_55b4bc53b812ec::t_c95b9afde5549f 71-72,83,158
+src/water.js
+  s_55b4bc53b812ec::t_c36cf5fe4cca9d 34-36,106,143,159,234,279-284,298,324,447-479,484-486,503-509,520-523,526-564,583-598,601-603,606-620,629-663,673
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e69c675a4b87ccb40a35ab65c7ea944486eef624",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
