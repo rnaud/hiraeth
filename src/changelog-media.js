@@ -184,6 +184,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'moonfoundry-refs-hung', only: 'after', size: [1938, 540], caption: 'The first picture (left) and its view in the game (right): the hung moon, the moon broken open round its courtyard, the bowl in its cradle', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'moonfoundry-refs-claws', only: 'after', size: [1938, 540], caption: 'The third: two moons in their claws, the far moon between the pillars, the bridge across', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=moonfoundry (or the worlds list, L, then the References and Tab to the Moon Foundry) and press \\ to set each picture beside its view.' },
+    { match: 'The References level has the Signal Market at night', shots: [
+      { name: 'marketnight-refs', only: 'after', size: [1464, 408], caption: 'The first picture (left) and its view in the game (right): the screen lane at midnight, the violet face, the scarlet portrait, the planet and the desert', from: 'the views\u2019 own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'marketnight-refs-awning', only: 'after', size: [1464, 408], caption: 'The third: under the diagonal awning, the great scarlet portrait, the round planet, the white glyphs', from: 'the views\u2019 own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=marketnight and step through its four views with [ and ]; \\ lays the picture over the view.' },
   ],
   '0.84': [
     { match: 'A new world off the route, the Glass Dunes', shots: [

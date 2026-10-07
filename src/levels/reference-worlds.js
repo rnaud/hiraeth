@@ -35,6 +35,7 @@ export const REFERENCE_WORLDS = [
   { id: 'eclipse', name: 'The City During the Eclipse', count: 4, load: () => import('./reference-eclipse.js') },
   { id: 'fallenring', name: 'The Fallen Ring', count: 4, load: () => import('./reference-fallenring.js') },
   { id: 'moonfoundry', name: 'The Moon Foundry', count: 4, load: () => import('./reference-moonfoundry.js') },
+  { id: 'marketnight', name: 'The Signal Market at night', count: 4, load: () => import('./reference-marketnight.js') },
 ];
 
 /** The index of the first view of world k (0-based, across all the worlds). */
