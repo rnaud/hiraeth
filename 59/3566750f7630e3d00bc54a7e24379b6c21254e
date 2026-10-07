@@ -1,0 +1,53 @@
+TODO.md
+  s_55b4bc53b812ec::t_7a1884f04b9778 141-143
+changelog.md
+  s_55b4bc53b812ec::t_f2ac8f2869793b 5-21
+docs/makehuman.md
+  s_55b4bc53b812ec::t_14ea088f048335 335-358,467,622
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_7b422ef5caf0a4 491-503
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_86efd991c98152 238-247
+src/cape.js
+  s_55b4bc53b812ec::t_66862f69dcc616 160,237,409,412-414,453,478,494,580,583-633
+src/changelog.js
+  s_55b4bc53b812ec::t_c6b24d5f0d6a89 10-25
+src/costumes.js
+  s_55b4bc53b812ec::t_17b97b0e7edae3 46-48,54-56,60,460,598-599,1367-1407,1466-1471,1486-1491,1493-1503,1505-1513
+src/crowd.js
+  s_55b4bc53b812ec::t_10d1229470c56c 163
+src/ground-ink.js
+  s_55b4bc53b812ec::t_b9ec031b55f10a 56-60,63-68
+src/hands.js
+  s_55b4bc53b812ec::t_0de9134af06dbd 77
+src/humanoid.js
+  s_55b4bc53b812ec::t_9997ae4b8ba3dc 11,917-919,976-1003,1018,1510-1518
+src/materials.js
+  s_55b4bc53b812ec::t_03c7924b6a2124 2198-2202
+src/npc.js
+  s_55b4bc53b812ec::t_62df9ef55585d5 282,837
+src/story/desert-data.js
+  s_55b4bc53b812ec::t_8a6785ef7cdec5 266-267,447-449,588-589
+tests/desert-props.test.js
+  s_55b4bc53b812ec::t_a3f02bbdc5a0e5 1-145
+tests/ground-ink.test.js
+  s_55b4bc53b812ec::t_52406ef73a1d1b 122-140
+tests/makehuman-desert.test.js
+  s_55b4bc53b812ec::t_df4e30057bad96 199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "593566750f7630e3d00bc54a7e24379b6c21254e",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
