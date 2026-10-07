@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 ## v0.88 — 2026-10-07
 
 - A new foe, the shade: a person made of living shadow, near-black violet running down its body in streaks, its feet melting into the ground, dripping as it walks and leaving dark pools behind. It comes in later packs out in the wilds and cuts with a sword’s swing; five cuts bring it down, and it runs away into the ground.
+- An items page, linked from the worlds list (Debug): every item with its picture, what it does, and where its boxes are, with a search and the kinds to filter by.
 - The fluid blade is a real sword now: a slim two-edged blade of the tank’s fluid tapering to a point, its edges bright, on a brass crossguard, a wrapped grip and a pommel, its edge leading every cut.
 - Locked on, the traveller faces the foe and strafes round it, side-stepping left and right or backing away in a sword stance, instead of running round it.
 - The Enemies setting has a Gentle choice: half the harm, slower wind-ups, one foe striking at a time and smaller, rarer packs. Normal and Off stay.

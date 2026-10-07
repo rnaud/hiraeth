@@ -10,7 +10,10 @@ previous or next world's room, the hub between the last and the first. The Start
 (`?worlds=1`, `src/world-picker.js`): `boot.js` draws the cards without loading `main.js`,
 so no world is built behind it (about 1 s on the dev server; on the Lab it took about 15 s).
 `?level=<id>&worlds=1` still opens a world with the list up. The list's top row links the game's other
-pages (`PAGES` in `src/world-picker.js`: the character studio, Motion, the trailer, What's new). Its
+pages (`PAGES` in `src/world-picker.js`: the character studio, Motion, the trailer, What's new, Items). The
+items page (`items.html`, `src/items-page/`) shows every item of `src/items.js` with its picture
+(`public/item-pictures/<id>.webp`: `node scripts/item-pictures.mjs [ids]` has the game draw them as its menu
+does), what it does and where its boxes are (`src/boxes/placements.js` notes, the fallbacks by the ship). Its
 pictures are `public/thumbs/<id>.jpg`, one per world: `node scripts/world-thumbs.mjs [ids]` takes them
 again (each world from its start at its own hour, headless Chrome as `scripts/changelog-shots.mjs`).
 

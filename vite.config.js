@@ -14,6 +14,8 @@ export const BUILD_INPUT = {
   motion: fileURLToPath(new URL('./motion.html', import.meta.url)),
   // the interactive changelog (src/changelog-page/; its pictures, changelog-media/, are the site's alone)
   changelog: fileURLToPath(new URL('./changelog.html', import.meta.url)),
+  // the items to review (src/items-page/: each item's picture, what it does, where it is found)
+  items: fileURLToPath(new URL('./items.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**

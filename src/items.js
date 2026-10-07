@@ -25,7 +25,7 @@ export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
     text: "A makers’ glass tank with a hose to a leather glove: the glove is what shoots. Fill it with living water. Someone built it for a traveller they would never meet.",
-    use: 'Aim (LT / L2, right click) and shoot bursts of fluid, push people and things away, and boost-jump. Three charges; they refill five seconds after the last use. It also powers vehicles.',
+    use: 'Aim (LT / L2, right click) and shoot bursts of fluid; switch the gun’s mode (X, the D-pad) to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: RB / R1 (F) swings it, LB / L1 (Ctrl) held guards. Three charges; they refill two seconds after the last use. It also powers vehicles.'
   },
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',

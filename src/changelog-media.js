@@ -175,6 +175,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'The fluid blade is a real sword now', shots: [
       { name: 'sword', only: 'after', caption: 'The sword mid-swing: the slim fluid blade on its brass guard and hilt', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
     ], see: 'Swing the blade (F, RB / R1).' },
+    { match: 'An items page, linked from the worlds list', shots: [
+      { name: 'items-page', only: 'after', caption: 'The items page: each item’s picture, what it does and where it is found', from: 'headless Chrome against the dev server (7 October)' },
+    ], see: 'On the title screen, choose Debug, then Items at the top.' },
     { match: 'A new foe, the shade', shots: [
       { name: 'shade', only: 'after', caption: 'A shade: living shadow running down a person’s body, its feet melting into print dots, the pools it left behind', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
     ], see: 'In the Arena’s sixth wave; out in the wilds, a later pack now and then.' },
