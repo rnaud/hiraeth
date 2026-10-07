@@ -1,0 +1,115 @@
+TODO.md
+  s_55b4bc53b812ec::t_6daf0fa88d28b4 95-97,100-102,106,108-111,224-230,286-305,307-310
+changelog.md
+  s_55b4bc53b812ec::t_81975bf5868391 5,17-29
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_1cf2fa0a198282 562,565-615,675-708
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_5b4e467a992f4a 76-79,97-118
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_7020f394de3b0d 679-710
+docs/systems/references.md
+  s_55b4bc53b812ec::t_7ff2931607b815 104-106
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_257c06fbb1348f 224-226
+engine/cloth.js
+  s_55b4bc53b812ec::t_4409ba95b36506 1-78
+engine/game.js
+  s_55b4bc53b812ec::t_85ca28163479f7 30,112-120,180-182
+engine/ink-spec.js
+  s_55b4bc53b812ec::t_f8d1c1d962dc49 42-43
+engine/mirror.js
+  s_55b4bc53b812ec::t_fcd90dbe06ae19 25-27,46-51,130-141,144,150,223-230
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_3e378e6f05475f 9,30,32-33,38-39,43,45-47,67-70,96,107,190,193,195,199-241,321-355
+engine/unity/game.js
+  s_55b4bc53b812ec::t_475e13bd53f73b 99-113,162,190,198
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_09cbe108ee4ff3 19,22-23,27,38-40,58-60,62,90-95,110
+engine/unity/port-format.js
+  s_55b4bc53b812ec::t_c393bf47f21202 49-56,79
+scripts/bench/android-bridge.sh
+  s_55b4bc53b812ec::t_77b05c02b2fb82 1-42
+scripts/unity-export/tripo-face-hlsl.mjs
+  s_55b4bc53b812ec::t_837a9e122b1c9f 1-36
+src/changelog.js
+  s_55b4bc53b812ec::t_57764a5bb0133a 10,21-32
+src/characters/tripo-cloth.js
+  s_55b4bc53b812ec::t_624add52cdab39 152-160,165-166,300-302,339-341,353-360
+src/desert-city.js
+  s_55b4bc53b812ec::t_ab0c087245712a 6,279-280
+src/door-stain.js
+  s_55b4bc53b812ec::t_47aea2b14bc348 1-38
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_8040c0eb7924f9 7,194,413-414,433-434,437-439,498,531-532
+src/levels/bazaar.js
+  s_55b4bc53b812ec::t_9bee21188514a2 10,52-53,161-166,179-197
+src/levels/home-houses.js
+  s_55b4bc53b812ec::t_e2160c13069ed7 4-5,120-129,327-328
+src/levels/incal.js
+  s_55b4bc53b812ec::t_2ffee0f0f0ed09 5,234,267-274,561-567
+src/levels/reference-market.js
+  s_55b4bc53b812ec::t_a69a5b1a4e64bd 137-141
+src/levels/reference-views.js
+  s_55b4bc53b812ec::t_16438769a93cb2 227-229
+src/materials.js
+  s_55b4bc53b812ec::t_22fe9033aeffb3 148-151,441,459-466,627-636,741-750,871-879,2453-2454
+src/post.js
+  s_55b4bc53b812ec::t_f9dfb91b6c4481 997-1011
+src/temples/guardians.js
+  s_55b4bc53b812ec::t_f1952087ffbefb 473
+src/vertex-material.js
+  s_55b4bc53b812ec::t_0fa777d5a97b79 1-53
+tests/cloth-offload.test.js
+  s_55b4bc53b812ec::t_21189417f2aa22 1-66
+tests/door-stain.test.js
+  s_55b4bc53b812ec::t_de7f2734f2b4ee 1-25
+tests/engine-bridge.test.js
+  s_55b4bc53b812ec::t_1687e05ea202db 257-273
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_74f517dc190f78 38,99-146,204-205,210-213,239,241-242
+tests/halftone-cast.test.js
+  s_55b4bc53b812ec::t_76d19be9615149 1-14
+tests/vertex-material.test.js
+  s_55b4bc53b812ec::t_3bf7fe141fb808 1-45
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_55b4bc53b812ec::t_d4001ba835b067 183,186-188
+unity/Memento/Assets/Memento/Shaders/Crowd.hlsl
+  s_55b4bc53b812ec::t_76ac2c0ca0a9a0 34-40,51-52,147-148,151,153-155,157,159,161,163-191,195,198-203,205-217,224,227,250
+unity/Memento/Assets/Memento/Shaders/Figure.hlsl
+  s_55b4bc53b812ec::t_771c11f81cb584 224,250-268,293-295,305,307-315,318
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl
+  s_55b4bc53b812ec::t_8c1d541dc0307e 359-469
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_55b4bc53b812ec::t_cdaa8b9f225ba7 47-55,67,80-81,96-97,241,264-274,590-591,687,690,692-693,702-723,839,847-852,860-861,881-885
+unity/Memento/Assets/Memento/Shaders/TripoFace.hlsl
+  s_55b4bc53b812ec::t_a17592e459fde0 1-97
+unity/Memento/Assets/Memento/Shaders/TripoFace.hlsl.meta
+  s_55b4bc53b812ec::t_0a69073f1490e0 1-7
+unity/Memento/Assets/MementoJS/Runtime/BridgeCloth.cs
+  s_55b4bc53b812ec::t_78090952d76656 1-214
+unity/Memento/Assets/MementoJS/Runtime/BridgeCloth.cs.meta
+  s_55b4bc53b812ec::t_d2024d6a718d2d 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_55b4bc53b812ec::t_58e01f121a762e 22-26
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_34e0a8cf59492c 18,53-106,163-169,187,570-572,577-606,682,751
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_ae122123008869 135-137,143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d660560195293b0d8cf8a0947b566d1e88178db0",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
