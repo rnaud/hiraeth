@@ -60,9 +60,9 @@ export class SceneMirror {
    * @param backend  the engine side (see above); missing methods are skipped
    * @param o.forgetAfter  frames an object may be out of the scene before it is removed
    * @param o.filter (o) => false to leave an object (and its children) out
-   * @param o.freeze  still subtrees taken whole, not walked (mirror-freeze.js)
+   * @param o.freeze  still subtrees taken whole, not walked (mirror-freeze.js; off: in Puerts its watches cost the game more than they saved)
    */
-  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = true } = {}) {
+  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false } = {}) {
     this.backend = backend;
     this.castsShadow = castsShadow;   // (o) → false: left out of the sun's shadow (the game's caster rules: shadows.js)
     this.forgetAfter = forgetAfter;

@@ -728,7 +728,10 @@ on the main thread. Three changes:
   script ten times slower: it asks for the main thread's class (`pthread_set_qos_class_self_np`,
   USER_INTERACTIVE). `-js-main` (or `"jsMain": true`) runs the script in Update as before. The bench's split
   says how long the main thread waited (`mainWait`) and that the thread ran (`threaded`).
-- **Still subtrees frozen** (engine/mirror-freeze.js). Every 30 frames the mirror looks for the largest
+- **Still subtrees frozen** (engine/mirror-freeze.js; **off by default since**: in Puerts' V8 the watches, accessors
+  put on objects and vectors and taken off again when they thaw, left those objects slow for every other use, and
+  the game's update grew more than the walk shrank: the camps 8.2 ms a frame without, 9.1–9.9 with; `-freeze`
+  turns it on). Every 30 frames the mirror looks for the largest
   subtrees whose drawables have not moved for 45 frames (plain groups and meshes: no bones, instances, lines,
   render hooks, face keys or own matrices) and freezes them: the walk takes such a subtree whole (its drawables
   seen, its materials' live colours still looked at) without going in, and three's matrix update stops at its

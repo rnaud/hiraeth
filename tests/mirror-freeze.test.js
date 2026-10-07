@@ -48,7 +48,7 @@ test('frozen subtrees: taken whole when still, and every change still sent the f
   for (const w of W) w.meshes.forEach((m, i) => { m.name = `mesh ${i}`; });
   const camera = new THREE.PerspectiveCamera();
   const A = believer(), B = believer();
-  const mA = new SceneMirror(A.backend), mB = new SceneMirror(B.backend, { freeze: false });
+  const mA = new SceneMirror(A.backend, { freeze: true }), mB = new SceneMirror(B.backend, { freeze: false });
   let f = 0;
   const removed = [new Set(), new Set()];
   const frame = () => {
@@ -111,7 +111,7 @@ test('frozen subtrees: taken whole when still, and every change still sent the f
 
 test('frozen subtrees: a geometry rewritten in place inside one is sent within a round of checks', () => {
   const { scene, meshes } = world(3);
-  const A = believer(), mA = new SceneMirror(A.backend);
+  const A = believer(), mA = new SceneMirror(A.backend, { freeze: true });
   for (let i = 0; i < STILL_FRAMES + 2 * SURVEY_EVERY; i++) mA.sync(scene, null);
   assert.ok(mA.stats.frozen >= 1);
   const own = new THREE.BoxGeometry(2, 2, 2);
@@ -130,7 +130,7 @@ test('frozen subtrees: the root\'s parent moving (a ship flying off) moves what 
   ship.add(hull); scene.add(ship);
   // (the ship itself a mover the survey never takes: it has its own render hook)
   const marker = new THREE.Mesh(geo, mat); marker.onBeforeRender = () => {}; ship.add(marker);
-  const A = believer(), mA = new SceneMirror(A.backend);
+  const A = believer(), mA = new SceneMirror(A.backend, { freeze: true });
   for (let i = 0; i < STILL_FRAMES + 2 * SURVEY_EVERY; i++) mA.sync(scene, null);
   assert.ok(mA.stats.frozen >= 1, 'the hull frozen');
   ship.position.z = 40;
@@ -146,7 +146,7 @@ test('a skeleton\'s bones are walked only down to what hangs on them, and a prop
   const bones = [root];
   for (let i = 0; i < 30; i++) { const c = new THREE.Bone(); c.position.y = 0.1; b.add(c); bones.push(c); b = c; }
   scene.add(root);
-  const A = believer(), mA = new SceneMirror(A.backend);
+  const A = believer(), mA = new SceneMirror(A.backend, { freeze: true });
   mA.sync(scene, null);
   const bare = mA.stats.visited;
   assert.ok(bare <= 3, `bare bones not walked: ${bare}`);

@@ -45,6 +45,7 @@ namespace Memento.Bridge
             if (Flag("-split")) args["split"] = true;
             if (Arg("-talk") != null) args["talk"] = Arg("-talk");
             if (Arg("-play") != null) args["play"] = Arg("-play");
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-freeze") >= 0) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             return JsonText(args);
         }

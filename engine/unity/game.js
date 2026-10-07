@@ -33,6 +33,7 @@ export function start(argsJson) {
   createGame({ levelId: args.level ?? 'desert', backend, people: args.people !== false, audio: rate ? { sampleRate: rate } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a) })
     .then((game) => {
       S.game = game;
+      if (args.freeze !== undefined) game.mirror.freeze = !!args.freeze;   // (-freeze: still subtrees frozen, mirror-freeze.js; off by default)
       console.log(`[unity] ready in ${(now() - t0).toFixed(0)} ms (in the VM: ${JSON.stringify(game.T)})`);
       if (args.split) {
         // what a call into C# costs, and how fast plain JS runs here (against Node's numbers in the docs)
@@ -195,7 +196,7 @@ export function frame(dt) {
   }
   else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }
   else if (step.kind === 'measure') {
-    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); host.WaitMs?.(); host.GpuSplit?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
+    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.sectionsOn = !!S.args.split; game.sections?.(); game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); host.WaitMs?.(); host.GpuSplit?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
     P.samples ??= [];
     P.samples.push({ dt: lastT ? tA - lastT : dt * 1000, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: host.LastFrameCpuMs(), gpu: host.LastFrameGpuMs(), moved: r.stats.moved });
     P.t += Math.min(dt, 0.1);   // (a load's long first frame counts as one)
@@ -204,6 +205,7 @@ export function frame(dt) {
       const q = (k, f) => { const a = s.map((x) => x[k]).sort((x, y) => x - y); return a.length ? +a[Math.floor(a.length * f)].toFixed(2) : 0; };
       const nf = Math.max(backend.stats.frames - P.n0, 1);
       const split = { ...game.mirror.profile(), audio: +(S.audioMs / nf).toFixed(3), host: +(backend.stats.hostMs / nf).toFixed(3), apply: +(host.ApplyMs() / nf).toFixed(3), look: +(S.lookMs / nf).toFixed(3), lookSent: (backend.stats.looks ?? 0) - S.looks, clothWait: +((host.ClothMs?.() ?? 0) / nf).toFixed(3), mainWait: +((host.WaitMs?.() ?? 0) / nf).toFixed(3), threaded: !!host.Threaded?.() };   // (clothWait: the main thread waiting on the overshirt's job, BridgeCloth)
+      if (S.args.split && game.sections) split.update = game.sections();
       if (S.args.split && host.GpuSplit) { try { split.gpu = JSON.parse(host.GpuSplit()); } catch { /* none */ } }
       // (the hitches: frames over twice the median, how many and how the script's time and the main thread's wait went then)
       const med = q('dt', 0.5), hit = s.filter((x) => x.dt > 2 * med);

@@ -36,7 +36,8 @@ namespace Memento.Bridge
         public JsRuntime() : this(null) { }
 
         /// <param name="onMain">made off the main thread: Puerts' own scripts read through this (MainThreadLoader)</param>
-        public JsRuntime(Func<Func<object>, object> onMain)
+        /// <param name="debugPort">V8's inspector there (Chrome's DevTools protocol over a WebSocket: a profile of the script), -1 none</param>
+        public JsRuntime(Func<Func<object>, object> onMain, int debugPort = -1)
         {
             if (!Find()) throw new InvalidOperationException("Puerts is not installed: scripts/unity-js-setup.sh");
             if (onMain == null) { env = Activator.CreateInstance(envType); return; }
@@ -44,7 +45,7 @@ namespace Memento.Bridge
                 ?? throw new InvalidOperationException("no Memento.Bridge.Puerts assembly (Assets/MementoJS/Puerts): the script cannot run off the main thread");
             var loader = Activator.CreateInstance(loaderType, onMain);
             var ctor = envType.GetConstructors().First(c => { var p = c.GetParameters(); return p.Length == 2 && p[1].ParameterType == typeof(int) && p[0].ParameterType.IsInstanceOfType(loader); });
-            env = ctor.Invoke(new[] { loader, (object)(-1) });
+            env = ctor.Invoke(new[] { loader, (object)debugPort });
         }
 
         public void Eval(string code, string name) => eval.Invoke(env, new object[] { code, name });

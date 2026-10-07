@@ -383,6 +383,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   rig.update(player.pos, 0, player.frame);
 
   const lookOut = {};
+  const SEC = { ms: {}, frames: 0 };
   const game = {
     scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, grass, wind, sky, post, T, wildlife, weather, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
@@ -429,8 +430,20 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       for (const [l] of ranked) { if (out.length >= 8) break; out.push([l.x, l.y, l.z, l.w]); }
       return out;
     },
+    /** The update's parts, ms a frame since the last call (with game.sectionsOn: the bench's -split). */
+    sections() {
+      const out = {}, n = Math.max(SEC.frames, 1);
+      for (const [k, v] of Object.entries(SEC.ms)) out[k] = +(v / n).toFixed(3);
+      SEC.ms = {}; SEC.frames = 0;
+      return out;
+    },
+    sectionsOn: false,
     frame(dtRaw) {
       const tA = performance.now();
+      const on = game.sectionsOn; let tL = tA;
+      // (a lap: the time since the last, to `name`; only when asked, a clock read each)
+      const lap = on ? (name) => { const t = performance.now(); SEC.ms[name] = (SEC.ms[name] ?? 0) + t - tL; tL = t; } : null;
+      if (on) SEC.frames++;
       const dt = Math.min(dtRaw, 1 / 20);
       simT += dt; frames++;
       page.tick(tA);
@@ -438,6 +451,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const ctl = mergeControls(latched(), pad);
       atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
       updateSky();
+      lap?.('sky');
       // weather into the look (main.js: rain, storm and the haze; the wind on the traveller and the plants)
       let Wx = null;
       if (weather) {
@@ -458,18 +472,23 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (post.uniforms.uInk) wind.uniforms.uInk.value = post.uniforms.uInk.value;
       }
       level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
+      lap?.('weather');
       sharedUniforms.uTime.value = simT;
       crowd?.update(dt, simT, player, camera);
+      lap?.('crowd');
       for (const n of npcs) n.update(dt, player, camera);
+      lap?.('people');
       // E goes to the nearest person or thing first (story/index.js, interact.js), as main.js does
       const ePressed = !!ctl.KeyE && !eWasDown && !pinned; eWasDown = !!ctl.KeyE;
       let handled = false;
       if (story) { try { handled = story.update(dt, simT, { camera, ePressed, paused: false }).handled; } catch (e) { if (!story.failed) log('story update failed', e?.message ?? e); story.failed = true; } }
       if (handled) player._eHeld = true;
+      lap?.('story');
       const busy = !!story?.busy?.();
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
       player.update(dt, pinned || busy ? noInput : ctl, rig.yaw, rig.pitch);
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
+      lap?.('traveller');
       for (const v of player.vehicles) if (v !== player.ride) { try { v.update(dt, null, simT); } catch (e) { if (!game._vehiclesFailed) { game._vehiclesFailed = true; console.warn('[game] a vehicle failed', e?.stack ?? e); } } }
       if (pinned) {
         // a fixed view: the traveller stands (idle), the camera is pinned to the eye
@@ -482,11 +501,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         rig.update(player.pos, dt, player.frame);
         story?.frameCamera?.(camera);   // the two-shot while talking
       }
+      lap?.('vehicles, camera');
       try { boxes?.update(dt, simT, { camera }); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
       // the fingers (hands.js: relaxed, gripping, gesturing), the coral-shirt traveller's own hands after (main.js)
       try { updateHands(dt, { player, npcs, camera }); player.character?.updateHands?.(); } catch (e) { if (!game._handsFailed) { game._handsFailed = true; console.warn('[game] the hands failed', e?.stack ?? e); } }
+      lap?.('boxes, hands');
       hud(dt, busy);
+      lap?.('hud');
       level.update?.(dt, simT, { player, rig, camera, passage: null, fade: () => {} });
+      lap?.('level');
       // the world's life, the tool and the drone (main.js's order)
       try {
         tool?.update(dt, pinned || busy ? noInput : ctl, busy || !!pinned);
@@ -500,6 +523,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         reactiveWorld?.update(dt, simT, player, camera, busy);
         flammables?.update(dt, simT, player.pos);
       } catch (e) { if (!game._lifeFailed) { game._lifeFailed = true; console.warn('[game] a system failed in its update', e?.stack ?? e); } }
+      lap?.('life');
       if (ctl.KeyQ && !qWasDown && scout && !busy) scout.ping?.();
       qWasDown = !!ctl.KeyQ;
       // the sound's wind, rain and steps (main.js: sound.update; the gust as wind.js's)
@@ -514,16 +538,20 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
           });
         } catch (e) { if (!game._soundFailed) { game._soundFailed = true; console.warn('[game] the sound failed in its update', e?.stack ?? e); } }
       }
+      lap?.('sound');
       // (the ship stands at its site: its scenes, inside and its console want the story's journal and the page: ship.attach)
       // the plants in view within their distance (main.js renderFrame: flora.update, before the frame is drawn)
       camera.updateMatrixWorld();
       flora?.update?.(camera, 1, null);
       // the grass round the camera: the tufts that wrapped placed again (flora-grass.js; the patch placed whole on its first frame)
+      lap?.('flora');
       grass?.update(camera);
+      lap?.('grass');
       // the wind's wisps round the traveller (their ribbons turned to the camera, a pixel's width from its field of view)
       if (wind && level.ground?.heightAt) wind.update(dt, player.pos, camera, level.ground, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height, !!level.features.wind);
       // the traveller's feet for the plants and the grass to part round (the engine's own, a frame's worth: brush.js on the web)
       backend?.brush?.(player.pos, Math.hypot(player.vel.x, player.vel.z));
+      lap?.('wind');
       const tB = performance.now();
       mirror.time = simT;
       const stats = mirror.sync(scene, camera);

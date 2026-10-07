@@ -122,7 +122,10 @@ namespace Memento.Bridge
         /// <summary>The bundle loaded and started (on the thread that runs it).</summary>
         void Boot(byte[] code)
         {
-            js = thread != null ? new JsRuntime(BridgeHost.OnMainThread) : new JsRuntime();
+            // (-jsinspect <port>: V8's inspector, for a profile of the script: scratchpad's cdp tools, Chrome's DevTools)
+            int port = BridgeArgs.Arg("-jsinspect") is string ps && int.TryParse(ps, out int pp) ? pp : -1;
+            js = thread != null ? new JsRuntime(BridgeHost.OnMainThread, port) : new JsRuntime();
+            if (port > 0) Debug.Log($"Memento bridge: V8's inspector on {port}");
             var t0 = DateTime.UtcNow;
             js.Eval("var __m = { exports: {} }; (function (module, exports, require) {\n" + System.Text.Encoding.UTF8.GetString(code)
                 + "\n})(__m, __m.exports, function (n) { throw new Error('the bundle asked for ' + n); }); globalThis.Memento = __m.exports;", "memento.cjs");
