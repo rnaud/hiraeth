@@ -16,6 +16,10 @@ export const CHANGELOG = [
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
     'Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it, and it is the bag of his drawings now: a big soft canvas shoulder bag with a flap, on a wide strap over his shoulder.',
     'Sefa slings her oud on her back over her cloak when she walks, and takes it in hand again when she stops; Marrow carries his pack on his back and walks on cloth-wrapped shins, as his drawings show.',
+    'In Vael II the needle spires and the mushroom tables’ stalks take their shade in one clean band down their side, as in its drawings, instead of breaking into lit patches across their flutes.',
+    'The cracks in Vael II’s peach plain are no longer black holes: their walls are a lit red-brown, hatched with strokes running down them, as in its drawings.',
+    'Vael II’s sea of cloud is printed flat as in its drawings: a warm white in the light and one pale grey-blue in its shade, following the real sun through the day instead of being lit from the same side at every hour.',
+    'At dusk and at night Vael II’s shadows keep the soft grey-teal of its day, warmer at dusk and deeper at night, instead of turning the old violet-blue.',
   ] },
   { v: '0.77', date: '2026-10-07', items: [
     'The traveller’s face moves now: he smiles, frowns, looks worried, surprised or tired with the tone of what is said, blinks, glances about with his eyes, and his mouth opens and shuts on the syllables when he speaks, as everyone else’s does. At rest he looks as he always did, with the corners of his mouth a little up.',

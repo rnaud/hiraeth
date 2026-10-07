@@ -106,10 +106,14 @@ scene-level modelling and a few shader limits:
     round the doors"; other worlds' doors not yet); home's and the Market's walls have been weathered since
     v0.69 (`weathered` 0.6–0.8). Left: the dust band under banked sand.
   - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
-  - Vael II: the needles' and stalks' terminator is a clean band on the sheets, while flat facets with
+  - [x] Vael II: the needles' and stalks' terminator is a clean band on the sheets, while flat facets with
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
     on the sheets, ours dark; its cloud puffs are pre-shaded vertex colours (not the flat print), its
-    planets stay (the sheets have none), and dusk and night keep the old blue shadow.
+    planets stay (the sheets have none), and dusk and night keep the old blue shadow. Done (October 2026,
+    world and views; references.md, Vael II's): needles and cap tables shaded by a flute-free twin's smooth
+    normals; the plain's steep faces red-brown, never spot black, hatched down in light (`CREVASSE`); the cloud
+    printed flat by the real sun (`CLOUD_PRINT`); dusk and night shadows in the day's grey-teal
+    (`SKY_STONES_DUSK`, `_NIGHT`); the views already hung no planets (`planets: []`, now tested).
   - [x] The Garden of Spheres: the canopies' undersides want dense radiating *branch* lines and foliage as
     clusters of small inked leaf masses (the form hatching radiates, but the shapes are smooth lumps);
     the white stone's shade a flat pale blue with almost no strokes; the spheres' printed crescent

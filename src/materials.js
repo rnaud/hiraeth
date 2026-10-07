@@ -2386,6 +2386,15 @@ const fragmentShader = /* glsl */ `
       gHatch.r = max(gHatch.r, beds);
     }
     #endif
+    #ifdef S_TERRAIN
+    // a steep face of the ground in light (a crevasse's wall) keeps runs of strokes down it, when its material asks
+    // (strataHatch on terrain): the ground's strokes are laid from above, so on a wall they fall straight down it,
+    // as the Sky Stones' sheets hatch their crevasses' lit red-brown walls
+    if (uMode == ${MODE_TERRAIN} && uShade.w > 0.0 && L >= uToon && vViewDepth < 400.0) {
+      float wall = smoothstep(0.45, 0.75, slope);
+      if (wall > 0.0) gHatch.r = max(gHatch.r, strokes(ce1, fw1, hsp * 1.1, 1.3) * wall * min(uShade.w, 1.0));
+    }
+    #endif
     // a face is flat colour and one shadow tone: its strokes are its own (faceInk)
     #ifdef S_FIGURE
     if (uMode == ${MODE_OUTFIT}) gHatch.rg *= 1.0 - faceFlat(vBind);
