@@ -1,0 +1,63 @@
+"references/The City Behind the Waterfall/prompt.txt"
+  s_55b4bc53b812ec::t_d09853a4bdbf15 1
+"references/The City Behind the Waterfall/source.txt"
+  s_55b4bc53b812ec::t_b6ba7cb809e337 1
+"references/The City During the Eclipse/source.txt"
+  s_55b4bc53b812ec::t_9ad740f551554e 1-3
+"references/The City Floating in Space/source.txt"
+  s_55b4bc53b812ec::t_345f5da83dfbbd 1-3
+"references/The Fallen Ring/prompt.txt"
+  s_55b4bc53b812ec::t_cb9cf8679987d4 1
+"references/The Fallen Ring/source.txt"
+  s_55b4bc53b812ec::t_fa8af6809de51a 1
+"references/The Forest of Antennas/prompt.txt"
+  s_55b4bc53b812ec::t_c2dbdb1bd419e1 1
+"references/The Forest of Antennas/source.txt"
+  s_55b4bc53b812ec::t_d72b9fcb18e56d 1
+"references/The Glass Dunes/prompt.txt"
+  s_55b4bc53b812ec::t_f2c49c12bb8a2f 1
+"references/The Glass Dunes/source.txt"
+  s_55b4bc53b812ec::t_27d972c6396222 1
+"references/The Moon Foundry/prompt.txt"
+  s_55b4bc53b812ec::t_66c82020831f4b 1
+"references/The Moon Foundry/source.txt"
+  s_55b4bc53b812ec::t_62469142cd4931 1
+"references/The Overnight Train/source.txt"
+  s_55b4bc53b812ec::t_89ace1ba265dc5 1-3
+"references/The Salt Harbour/source.txt"
+  s_55b4bc53b812ec::t_6f5742650a51dd 1-3
+"references/The Signal Market - Night/source.txt"
+  s_55b4bc53b812ec::t_0a14a32af71669 1-3
+"references/The Underside/source.txt"
+  s_55b4bc53b812ec::t_5e29082cbf343d 1-3
+"references/The Underwater City/source.txt"
+  s_55b4bc53b812ec::t_f4ebd6f8debc9f 1-3
+"references/The White Mangrove/prompt.txt"
+  s_55b4bc53b812ec::t_5ecad9308d144c 1
+"references/The White Mangrove/source.txt"
+  s_55b4bc53b812ec::t_1631190782b567 1
+"references/main character/Body Poses/prompt.txt"
+  s_55b4bc53b812ec::t_6d339c5015dd39 1
+"references/main character/Body Poses/source.txt"
+  s_55b4bc53b812ec::t_89b7b8c10893c2 1-2
+"references/main character/Facial Expressions/prompt.txt"
+  s_55b4bc53b812ec::t_eca45ad269de73 1-3
+"references/main character/Facial Expressions/source.txt"
+  s_55b4bc53b812ec::t_7b5746cf1efba5 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "33c07afca9c33c94ca455682bfd8ccfb6c793ab5",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
