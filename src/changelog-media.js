@@ -113,6 +113,24 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.85': [
+    { match: 'A new world off the route, the City During the Eclipse', shots: [
+      { name: 'eclipse-arrival', only: 'after', caption: 'Out of the ship on the esplanade at noon: the gate, the Lantern Square, the bowl and its house under the black sun', from: 'the world’s own screenshots, headless Chrome, High, 12:00 (7 October)' },
+      { name: 'eclipse-square', only: 'after', caption: 'The Lantern Square: the tables by lantern light, the west wall’s terraces and its pale figures, the street of lit doors', from: 'the world’s own screenshots, headless Chrome, High, 12:00 (7 October)' },
+      { name: 'eclipse-bowl', only: 'after', caption: 'Up the Great Stair: the bowl, its tiers climbing to the eclipse house, the great dome on the right', from: 'the world’s own screenshots, headless Chrome, High, 12:00 (7 October)' },
+      { name: 'eclipse-overlook', only: 'after', caption: 'The overlook: the lane of tables along the parapet, the lower city lit to the rose horizon', from: 'the world’s own screenshots, headless Chrome, High, 12:00 (7 October)' },
+      { name: 'eclipse-dusk', only: 'after', caption: 'The bowl at dusk, the sun back and setting', from: 'the world’s own screenshots, headless Chrome, High, 18:36 (7 October)' },
+      { name: 'eclipse-night', only: 'after', caption: 'The square at night', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the City During the Eclipse on the galactic map (or open the game with ?level=eclipse). Walk north through the gate into the Lantern Square; the Great Stair at its far end climbs to the bowl; the overlook is along the upper city’s west parapet. Mira sits by the west wall’s tables, Mother Ysolde in the bowl, Wen at the overlook.' },
+    { match: 'Eclipses are drawn the way the drawings draw them', shots: [
+      { name: 'eclipse-total', only: 'after', caption: 'Totality at noon: the black disc ringed with light, its corona in rays and dots, a few stars, the lamps lit', from: 'the world’s own screenshots, headless Chrome, High, 12:00 (7 October)' },
+      { name: 'eclipse-partial', only: 'after', caption: 'An hour before: the moon’s bite out of the sun, the light dimming, the lamps’ pools coming up', from: 'the world’s own screenshots, headless Chrome, High, 11:00 (7 October)' },
+    ], see: 'In the City During the Eclipse (?level=eclipse), the hour is noon, the middle of the eclipse. The developer panel’s Time of day (the hour) shows its phases: partial from 10:00, total from 11:15 to 12:45, the sun back by 14:00.' },
+    { match: 'The References level has the City During the Eclipse’s four pictures', shots: [
+      { name: 'eclipse-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): the square under the eclipse, the tables by the walls, the stair, the round tower', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'eclipse-refs-street', only: 'after', size: [1928, 538], caption: 'The fourth: down the street, the city falling away to the horizon, the corona in long fine rays', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ] },
+  ],
   '0.84': [
     { match: 'A new world off the route, the Glass Dunes', shots: [
       { name: 'glass-camp', caption: 'The Glass Dunes: the west camp under its ramp of sand, the cliff of the giants behind (16:30, the Handheld preset)', commit: 'ac98118a', only: 'after',

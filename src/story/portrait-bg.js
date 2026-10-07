@@ -28,6 +28,7 @@ export const BACKDROPS = {
   saltharbour: ['#f4ece2', '#c8daf0', '#f0d0c0', '#e8e0d0', '#d0dcec'],
   antennas: ['#f1e6a2', '#d8cff0', '#e9bab4', '#c9d4e0', '#e8d8f0'],
   underwater: ['#9fd0e0', '#f6c2b0', '#b0dce4', '#f0c8a8', '#a8d8d4'],
+  eclipse: ['#c8c4ec', '#f0d0dc', '#b8c4ec', '#f6e0c8', '#d8d0f0'],
 };
 
 const rgb = (hex) => {

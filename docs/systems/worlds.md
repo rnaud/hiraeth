@@ -763,3 +763,55 @@ references.md). Its pieces are in `src/levels/underwater-kit.js`, shared with th
   in every pod; the pods can't be entered (only the cafés); nothing swims in the glass columns; the canal's water
   is the same sea (no darker water under the walkways as view 3 has it); the far city is plain cylinders; the mantas
   don't react to you; the cafés' people sit still at their tables.
+
+## The City During the Eclipse (`eclipse`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The City During the Eclipse/`; the views:
+references.md): a city of limewashed houses, domes and round towers on terraces round great stairs, at midday
+under a total eclipse. The city has lit its lamps at noon and gone out to eat in its squares. No story to follow
+and no errands: three people from other worlds came for the eclipse (Mira of Viridel with her water clock, by
+the west wall's tables; Mother Ysolde of Vael II, in the bowl; Wen of the Buried Machine, counting the far city's
+lamps at the overlook), five of the city's folk with a few toned lines, a crowd in the lake folk's pale robes
+(`COSTUMES.eclipse = COSTUMES.mangrove`) strolling, talking between the tables, leaning on the overlook's parapet.
+
+- **Off the route** (`SIDE`, src/levels/names.js, after the Underwater City): on the galactic map from the start,
+  off the dotted line; `?level=eclipse`. Its folk speak the desert's tongue.
+- **The layout** (`src/levels/eclipse.js`; north is −z): the ship lands on the esplanade (`SHIP_SITE` 0, 96) south
+  of the gate (two domed towers, z 44). The Lantern Square (y 0): the great west wall (`WEST`) in two terraces of
+  houses (5.6 m and 10.4 m) over a row of tables, lamps hung on it, the pale figures leaning out over the diners and
+  hung over its parapets, a side stair along its foot to a landing and a second flight to the upper terrace; on the
+  east the round tower and a street of lit doors with tables and awnings; rows of tables in the middle round a pale
+  figure on its plinth. The Great Stair (`STAIR`, 8 m wide, 24 steps) climbs north to the upper city (y 6), past
+  cellar doors in the wall under it. There the bowl (`BOWL`): a square of tables under six tiers climbing north
+  (1.8 m each, a stair up their middle, lamps and pale figures along their edges, houses at their ends) to the
+  eclipse house, a great drum under its dome between two towers; the great dome east of the bowl; on its west the
+  overlook, a lane of houses and tables along the parapet over the lower city. The city stands on masonry walls
+  over a plain 22 m down (`LEVEL`, `BOUNDS`) spread with the lower city's houses to the horizon (drawn only, a few
+  faces each); the walls can be climbed back up.
+- **The sky by the hour** (`sky.eclipse`, src/eclipse.js; rendering.md "The eclipse"): the sun on a low path of its
+  own (15° at noon, toward the north: over the bowl from the square); the moon over it from 10:00 to 14:00, total
+  11:15–12:45. The traveller lands at 12:00 (`defaults.hour`): the black disc and its corona, a few stars, the rose
+  band round the horizon, the windows lit (uNight held at 0.5), the lamps' pools amber on the walls
+  (`lampTint`, `uLampsOn`). The colour script (`ECLIPSE_PALETTES`, `eclipseScript`): a pale blue morning over a
+  white city, the light dimming through the partial phase, the totality's deep blue and cold lavender, a rose dusk,
+  an indigo night.
+- **Solid as drawn**: walls, parapets, terraces, stairs, houses, tables and the roofs behind the streets (the
+  in-city `farQuarter`s, `solid: true`) are the collision (SAH BVH, ~17 k triangles); doors, windows, lamps, flowers,
+  cloths and figures are drawn only. Contact audit: feet sink 16 (the flower boxes on the roofs' edges, the figures
+  hung over the parapets), climbs inside 14 (≤ 0.6 m), walks through 3 (an antenna, a pole), nothing hovers.
+  `tests/eclipse-world.test.js` walks the way north, every step of the Great Stair, the bowl's tiers, the west
+  wall's stairs, and finds a parapet at each edge.
+- **Draws**: every static thing is merged per material (RoomKit buckets, the far city in the same buckets); the
+  terrain 135 k triangles (1300 m at 5 m: the step between the levels falls inside the wall between
+  them). Loads in steps (load-steps.js), ~1.6–2.2 s to the first frame in headless Chrome.
+- **Cost** (desktop, M-series Mac shared with other agents' jobs, Chrome on Metal, Handheld preset at render
+  scale 0.75, 1280 × 720, seven rounds of 90 `renderFrame` + a pixel read, the median round, the Signal Market
+  measured in the same runs): first run, the market's start 6.7 ms (601 draws, 0.71 M triangles), its crowd 5.3
+  (331); the city's arrival 7.8 (304, 0.59 M), the square 5.0 (260), the bowl 7.9 (217), the overlook 3.8 (205).
+  Second run: the market 6.1 / 4.7 (696 / 329 draws); the city 5.4 / 5.0 / 5.4 / 4.4 (340 / 283 / 236 / 141). The
+  rounds are bimodal on this busy Mac (4–5 ms or 7–8 ms); at or under the market's frame time, half its draws.
+- **Left to make it better**: the people at the tables are simple seated shapes (the pictures' diners lean, eat,
+  talk); the pale figures read as pale draped shapes more than the pictures' long-limbed watchers; the houses are
+  tidy blocks and drums where the pictures heap stairs, balconies, ledges and plants; the far city has no streets;
+  the houses can't be entered; the lamps' pools show as pale discs in full day (the local lights lift the shade in
+  every world).

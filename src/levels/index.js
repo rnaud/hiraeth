@@ -20,6 +20,7 @@ import { createWaterfall, buildWaterfall } from './waterfall.js';
 import { createSaltHarbour, buildSaltHarbour } from './salt-harbour.js';
 import { createAntennas, buildAntennas } from './antennas.js';
 import { createUnderwater, buildUnderwater } from './underwater.js';
+import { createEclipse, buildEclipse } from './eclipse.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -136,6 +137,13 @@ export const LEVELS = [
     title: TITLES.underwater, source: 'a city on the sea floor',
     blurb: 'Salmon towers ringed with amber pods stand on the sea floor, light falling on them in shafts from the surface far above. Walk the lamplit avenue, step into the dry cafés under their domes, and swim up among the towers while a manta glides over.',
     moves: 'walk the sea floor · swim',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'eclipse', create: createEclipse, build: buildEclipse, hidden: true,
+    title: TITLES.eclipse, source: 'a city at noon under a black sun',
+    blurb: 'A city of white domes and round towers at midday, the moon over the sun: the lamps lit, people eating outside by lantern light, pale figures leaning from the walls. Walk the Lantern Square, climb the Great Stair and the tiers of the bowl, and look out over the lit city on the plain.',
+    moves: 'walk · climb',
   },
   {
     // a developer's world: the game's surfaces and giant faces side by side (in the worlds list, L, for testing; never on the route)
