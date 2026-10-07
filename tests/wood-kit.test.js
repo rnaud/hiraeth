@@ -49,3 +49,13 @@ test('the nest view sits its nest in the great cap', () => {
   const v = LORN_VIEWS.find((x) => x.id === '3797-nest-shroom');
   assert.ok(v && /nestParts/.test(String(v.build)));
 });
+
+test('a bank bush breaks its outline with blades, two-sided, and its dense hatch keeps a pen's spacing far off', async () => {
+  const { frondTuft } = await import('../src/levels/wood-kit.js');
+  const t = frondTuft(2, 10);
+  assert.equal(t.index.count / 3, 20, 'ten blades, each two faces back to back');
+  t.computeBoundingBox();
+  assert.ok(t.boundingBox.max.y > 0.6, 'the blades stand out of the clumps');
+  assert.ok(bankBush(2, 0).index.count / 3 >= 100 + 20);
+  assert.ok(HATCH_DENSE.minPx >= 4, 'never closer than ~4 px: a tone, not strokes');
+});

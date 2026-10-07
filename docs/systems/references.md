@@ -266,15 +266,18 @@ the narrowest creases.
     keeps its tunnel and gains five arches and four feet over its mouth (solid as drawn: the static collision
     stays under its budget, ~190 k with the arches' strands and the nest) and 22 roots hanging in it (walk-through).
   - *The banks' bushes* (`bankBush`): a low mass of small leaf clumps; the world's 1 600 are four clumps of
-    20 faces (100, the old ball's 80), the views' seven.
+    20 faces (100, the old ball's 80), the views' seven. A fringe of thin two-sided blades (`frondTuft`: ten in the
+    world, 20 faces; thirty in the views) springs from their tops, so the silhouette stays ragged and leafy from
+    afar instead of a smooth lump, and the ink draws each blade.
   - *The nest in the great cap* (`nest`): a woven bowl of root strands heaped with glowing eggs under a ribbed
     glass dome; on the great cap of view 128, and in the world on the flat cap of a giant in sight of the path
     north-west of the spawn (its bowl solid as drawn, the eggs and ribs not).
   - The views' framing was checked panel by panel: the reeds round the domes (126), the bushes on the banks
     brought into their panels (129, 130, 136, 140, 141, 146), the root arches lowered under the frame's top (129).
 - **Shading: roots and bushes as dense hatched masses** (`ROOT_INK`, `BUSH_INK` in perdide2.js; materials.js
-  `HATCH_DENSE`): a material's `hatch` over 1 is a hatched mass: its strokes up to 1.3 × closer (no finer: past
-  ~4 px apart strokes only read as a tone) and its shade drawn heavier (cross-hatched sooner), and a half-tone no
+  `HATCH_DENSE`): a material's `hatch` over 1 is a hatched mass: its strokes up to 1.3 × closer, but never under
+  4.5 px apart (`minPx`: closer, as they were at a distance where the hatch's own spacing tightens, they only read as
+  a tone, and the bushes went smooth) and its shade drawn heavier (cross-hatched sooner), and a half-tone no
   longer thins them away. Roots 1.8, bushes 2.2, their shade lifted a little (0.45, 0.55) and never a spot black,
   so the strokes show over it; the cracks pattern and the flat facets are off the roots.
 - **Cost** (desktop, M4 Pro, Chrome on Metal, Handheld at render scale 0.75 without dynamic resolution, a tight

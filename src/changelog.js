@@ -22,6 +22,7 @@ export const CHANGELOG = [
     'The desert’s people carry the rest of what their drawings give them: Nour has clay gourds and a ring of keys at her belt and a tall staff with a pierced disc at its head; Marrow wears his long patched coat without a cloak, with a salvage bag at his hip (a bone and a pipe sticking out of it) and a pack on his back; Sefa’s cloak has little brass bells all along its hem and her oud has tassels; the Speaker’s bell is copper and his staff carries streamers.',
     'Sefa’s oud no longer pokes through her cloak as she walks: the cloth swings round it.',
     'The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.',
+    'Lorn II’s bank bushes keep their leafy look from further off: a fringe of blades breaks their outline, and their hatching stays drawn as strokes instead of melting into a smooth dark tone.',
   ] },
   { v: '0.76', date: '2026-10-07', items: [
     'The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.',
