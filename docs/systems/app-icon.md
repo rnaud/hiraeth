@@ -46,3 +46,16 @@ sea), and `docs/icon/candidates.png` shows all five at launcher and tab sizes.
 
 The icon before (v0.16 to v0.63) was a small drawn observatory from `scripts/generate-icons.py`,
 which this replaces.
+
+## Steam's library artwork (the Deck)
+
+The Steam Deck shortcut's capsules, hero and logo come the same way: `scripts/steam-art.mjs`
+captures References views at Steam's sizes (`capture`, its own Vite and headless Chrome on the GPU,
+muted; `docs/steam/capture-<art>.png`, committed) and `build` composes them with the title screen's
+own lettering (`LOGO` in `src/title.js`, cream with an ink hairline, on the sky) into
+`desktop/steam/`: the portrait capsule (600×900, `3786-island`, the floating island and its
+monastery under the title), the wide capsule (920×430, `3784-cliff-monastery`), the hero
+(1920×620, `3772-saucers`, no text) and the logo (1280×320, transparent, the same lettering inked,
+since Steam lays it over the hero's sand). The icon is this app icon (`icon-512.png`).
+`survey --views a,b --size WxH --out dir` captures candidates to choose from. They ship in the Deck
+package only (not the web game); `deck.py` puts them in Steam's `grid/` (docs/steam-deck.md).

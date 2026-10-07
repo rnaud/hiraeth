@@ -10,6 +10,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Old walls no longer shimmer as you look around: the small dark grime streaks on distant walls, such as Qanat’s, are a soft faint stain instead of tiny outlined drops that flickered, the chipped plaster has no flickering edge, and very fine hatching on far walls turns to a flat tone instead of crawling.
 - The spots on the desert sand are pebbles and stones now, as Moebius draws them: each a little stone with its side away from the sun in shadow and a short shadow on the sand pointing away from the sun, long at dawn and dusk and short at noon. Far off they become small dashes all pointing the same way instead of a scatter of dots.
 - The Steam Deck version updates all of itself from the game’s site again, not just the game: the app around it too, when it changes.
+- On the Steam Deck the game has its own pictures in the Steam library, drawn from the game itself: the floating island under the title on its cover, the cliff monastery on its banner, and the desert’s saucer city across the top of its page.
 
 ## v0.73 — 2026-10-06
 

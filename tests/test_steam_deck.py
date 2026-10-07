@@ -15,6 +15,7 @@ import time
 import unittest
 from unittest.mock import patch
 import zipfile
+import zlib
 
 spec = importlib.util.spec_from_file_location('deck', Path(__file__).resolve().parents[1] / 'scripts/steam-deck/deck.py')
 deck = importlib.util.module_from_spec(spec)
@@ -406,6 +407,50 @@ class SiteRuntimeTests(unittest.TestCase):
         self.assertEqual(deck.get_manifest(lambda url: site if url == deck.RUNTIME_SITE_URL else newer)['build'], 796001)
         with self.assertRaises(ValueError):
             deck.get_manifest(lambda url: (_ for _ in ()).throw(OSError('offline')))
+
+
+class SteamArtTests(unittest.TestCase):
+    """Steam's library artwork for the shortcut, in each account's config/grid/."""
+
+    setUp_base = SteamDeckTests.setUp
+
+    def setUp(self):
+        self.setUp_base()
+        self.app = self.home / 'app'
+        for name in deck.STEAM_ART.values():
+            (self.app / name).parent.mkdir(parents=True, exist_ok=True)
+            (self.app / name).write_bytes(f'art {name}'.encode())
+        deck.add_shortcut(self.config, self.root)
+
+    def test_the_shortcuts_app_id_names_the_art(self):
+        appid = deck.shortcut_appid(self.root)
+        self.assertEqual(appid, zlib.crc32((f'"{self.root / "launch"}"' + 'Moebius').encode()) | 0x80000000)
+        self.assertEqual(deck.shortcut_appids(self.config, self.root), [appid])
+        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 5)
+        grid = sorted(path.name for path in (self.config / 'grid').iterdir())
+        self.assertEqual(grid, sorted(f'{appid}{suffix}' for suffix in ('p.png', '.png', '_hero.png', '_logo.png', '_icon.png')))
+        self.assertEqual((self.config / f'grid/{appid}p.png').read_bytes(), b'art steam/portrait.png')
+        self.assertEqual((self.config / f'grid/{appid}_icon.png').read_bytes(), b'art game/icons/icon-512.png')
+        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 0, 'nothing to do the second time')
+
+    def test_new_art_replaces_ours_but_never_the_players(self):
+        appid = deck.shortcut_appid(self.root)
+        deck.install_art(self.root, [self.config], self.app)
+        (self.config / f'grid/{appid}_hero.png').write_bytes(b'the player\'s own hero')
+        for name in deck.STEAM_ART.values():
+            (self.app / name).write_bytes(f'new art {name}'.encode())
+        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 4)
+        self.assertEqual((self.config / f'grid/{appid}_hero.png').read_bytes(), b'the player\'s own hero')
+        self.assertEqual((self.config / f'grid/{appid}.png').read_bytes(), b'new art steam/wide.png')
+
+    def test_no_shortcut_no_art_and_shortcuts_vdf_untouched(self):
+        other = self.home / '.local/share/Steam/userdata/456/config'
+        other.mkdir(parents=True)
+        self.assertEqual(deck.install_art(self.root, [other], self.app), 0)
+        before = (self.config / 'shortcuts.vdf').read_bytes()
+        with patch.object(deck, 'steam_running', return_value=True):   # safe while Steam runs: files only
+            deck.install_art(self.root, [self.config], self.app)
+        self.assertEqual((self.config / 'shortcuts.vdf').read_bytes(), before)
 
 
 class LaunchTests(unittest.TestCase):

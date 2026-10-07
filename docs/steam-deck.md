@@ -62,6 +62,21 @@ Steam Play compatibility tool. The game starts fullscreen at a 1280×800 window
 size and uses its existing controller controls. Exit through Steam's **Exit Game**
 command, or Alt+F4 in Desktop Mode.
 
+## Library artwork
+
+The shortcut has its own artwork in Steam's library, from captures of the game and the title's
+lettering (`scripts/steam-art.mjs`, sources in `docs/steam/`, images in `desktop/steam/`, packaged
+as `resources/app/steam/`; see `docs/systems/app-icon.md`). `deck.py` (`install_art`) copies them
+into each account's `config/grid/` under the shortcut's app id (read from `shortcuts.vdf`, the id
+`add_shortcut` derives): `<id>p.png` the portrait capsule (600×900), `<id>.png` the wide capsule
+(920×430), `<id>_hero.png` (1920×620), `<id>_logo.png` (transparent, laid over the hero) and
+`<id>_icon.png` (the app icon; the shortcut's own `icon` field points at `icon.png` next to
+`launch`). It runs at install, at `--register-steam` and in every background update. Only files
+change, never `shortcuts.vdf`, so it is safe while Steam runs; Steam shows new artwork after it
+restarts (Steam → Exit, or a reboot to Gaming Mode). Artwork the player picks in Steam (a grid
+file we didn't write, `steam-art.json` keeps what we did) is never replaced. Re-running the
+installer for an account that has the shortcut no longer waits for Steam to close.
+
 ## Install by hand
 
 Once the repository is private, its release files need a GitHub login. Download the

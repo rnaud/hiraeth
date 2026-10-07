@@ -151,7 +151,7 @@ def add_shortcut(config, root):
     # Identity is the stable executable, not the display name. Keep user edits.
     if any(isinstance(value, list) and field(value, 'exe') == exe for _, value in entries):
         return False
-    appid = zlib.crc32((exe + 'Moebius').encode()) | 0x80000000   # (the old name: the id stays stable)
+    appid = shortcut_appid(root)   # (from the old name: the id stays stable)
     entries.append((str(len(entries)), [
         ('appid', appid), ('AppName', 'Memento'), ('Exe', exe),
         ('StartDir', f'"{root}"'), ('icon', str(root / 'icon.png')),
@@ -520,12 +520,72 @@ def install_content(root, manifest, downloader=download_content):
         return True
 
 
-def update_all(root, runtime=None, content=None):
+# ---------------------------------------------------------------- Steam's library artwork
+
+# Steam's names in an account's config/grid/, after the shortcut's app id → the runtime's files
+# (resources/app/; scripts/steam-art.mjs makes them): the portrait capsule, the wide one, the hero,
+# the logo laid over it, the icon.
+STEAM_ART = {'p.png': 'steam/portrait.png', '.png': 'steam/wide.png', '_hero.png': 'steam/hero.png',
+             '_logo.png': 'steam/logo.png', '_icon.png': 'game/icons/icon-512.png'}
+
+
+def shortcut_appid(root):
+    """The app id Steam gives our shortcut (add_shortcut writes it; Steam names its artwork after it)."""
+    return zlib.crc32((f'"{root / "launch"}"' + 'Moebius').encode()) | 0x80000000
+
+
+def shortcut_appids(config, root):
+    """Our shortcut's app ids in one account, read from its shortcuts.vdf (by the stable executable)."""
+    try:
+        document = parse_vdf((config / 'shortcuts.vdf').read_bytes())
+    except (OSError, ValueError):
+        return []
+    entries = field(document, 'shortcuts')
+    exe = f'"{root / "launch"}"'
+    return [field(value, 'appid') for _, value in (entries if isinstance(entries, list) else [])
+            if isinstance(value, list) and field(value, 'exe') == exe and type(field(value, 'appid')) is int]
+
+
+def install_art(root, configs, app=None):
+    """Steam's library artwork for our shortcut, in each account's config/grid/: files only, never
+    shortcuts.vdf, so it is safe while Steam runs (it shows them once it restarts). Artwork the player
+    chose in Steam (a file there that isn't one we wrote) is kept. @return how many files changed"""
+    app = app or root / 'current/resources/app'
+    record = root / 'steam-art.json'
+    try:
+        ours = set(json.loads(record.read_text()))
+    except (OSError, ValueError, TypeError):
+        ours = set()
+    changed = 0
+    for config in configs:
+        for appid in shortcut_appids(config, root):
+            for suffix, name in STEAM_ART.items():
+                source = app / name
+                if not source.is_file():
+                    continue
+                data = source.read_bytes()
+                digest = hashlib.sha256(data).hexdigest()
+                target = config / 'grid' / f'{appid}{suffix}'
+                if target.exists():
+                    there = hashlib.sha256(target.read_bytes()).hexdigest()
+                    if there == digest or there not in ours:
+                        continue
+                ours.add(digest)
+                atomic_write(target, data)
+                changed += 1
+    if changed:
+        atomic_write(record, json.dumps(sorted(ours)).encode())
+    return changed
+
+
+def update_all(root, runtime=None, content=None, art=None):
     """The background update: the runtime and the game separately, so one failing (the runtime's
-    feed once GitHub is out of reach, or offline) never holds back the other. @return what failed"""
+    feed once GitHub is out of reach, or offline) never holds back the other; and Steam's artwork
+    for the shortcut. @return what failed"""
     failures = []
     steps = (('runtime', runtime or (lambda: install_update(root, get_manifest()))),
-             ('game', content or (lambda: install_content(root, get_content_manifest()))))
+             ('game', content or (lambda: install_content(root, get_content_manifest()))),
+             ('artwork', art or (lambda: install_art(root, steam_configs(Path.home())) > 0)))
     for name, step in steps:
         try:
             changed = step()
@@ -754,6 +814,12 @@ def main():
     configs = steam_configs(Path.home())
     if not configs:
         raise RuntimeError('Game installed. Open Steam and sign in once, then rerun this installer to add it to the library.')
+    # accounts that have the shortcut already need nothing from Steam, only the artwork's files
+    missing = [config for config in configs if not shortcut_appids(config, ROOT)]
+    if not missing:
+        changed = install_art(ROOT, configs)
+        print('Memento is installed and in Steam' + (' with its library artwork: restart Steam to see it.' if changed else '.'), flush=True)
+        return
     if steam_running():
         print('Game installed. Exit Steam using Steam → Exit; this installer will add Memento automatically once Steam closes.', flush=True)
         deadline = time.monotonic() + 300
@@ -764,6 +830,7 @@ def main():
         time.sleep(2)  # allow Steam to finish flushing its configuration
     for config in configs:
         add_shortcut(config, ROOT)
+    install_art(ROOT, configs)
     print('Memento is installed and added to Steam. Reopen Steam or return to Gaming Mode. Updates download while you play and apply next launch.', flush=True)
 
 
