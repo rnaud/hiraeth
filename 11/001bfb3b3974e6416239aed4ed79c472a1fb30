@@ -1,0 +1,25 @@
+src/game-menu.css
+  s_55b4bc53b812ec::t_d3178f47137a37 76
+src/game-menu.js
+  s_55b4bc53b812ec::t_5b3a2d4d887f70 370-375
+src/main.js
+  s_55b4bc53b812ec::t_61813f06b7a4b5 533-535
+tests/game-menu.test.js
+  s_55b4bc53b812ec::t_165c8936e6456f 97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "11001bfb3b3974e6416239aed4ed79c472a1fb30",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
