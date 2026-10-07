@@ -1962,7 +1962,7 @@ export class Player {
     const rot = (j, x, y, z) => j.quaternion.multiply(_tq.setFromEuler(_te.set(x * k, y * k, z * k)));
     const w = Math.tanh(3 * Math.sin(t * 0.38 + 0.6));          // -1..1, dwells on each side
     const breath = Math.sin(t * 1.7);
-    c.body.position.x += w * 0.045 * k;
+    c.body.position.x -= w * 0.045 * k;
     c.body.position.y -= 0.015 * Math.abs(w) * k;
     rot(c.body, 0, w * 0.06, -w * 0.07);
     rot(c.torso, breath * 0.018, -w * 0.05, w * 0.09);
@@ -1970,7 +1970,7 @@ export class Player {
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;                               // which way is inward for this leg
       const free = THREE.MathUtils.smoothstep(-w * side, 0.1, 0.9);
-      rot(c.legs[i], 0.1 * free, 0.08 * free * side, side * 0.05);
+      rot(c.legs[i], -0.14 * free, 0.08 * free * side, side * 0.05);
       rot(c.knees[i], 0.3 * free, 0, 0);
     }
     // soft arms, a slow sway, one hand hooks the belt while the weight is on that side

@@ -38,11 +38,27 @@ export const FEET = {
 
 const newFoot = () => ({ locked: false, w: 0, pos: new THREE.Vector3(), yaw: new THREE.Vector3(0, 0, 1), n: null, released: false, lastHeight: undefined, step: null });
 
-/** The way a foot points (ankle -> ball), flat on the plane of `up`. */
-function flatWay(ankle, ball, up, out) {
-  out.subVectors(ball, ankle);
+/**
+ * The way a foot points, flat on the plane of `up`: the foot bone's own turn applied to its rest
+ * way (the rest ankle -> ball, laid flat). Returns how flat the foot lies (1: level, 0: toes
+ * straight down or up). (The ankle -> ball line itself won't do: on a body whose ankle sits high
+ * over the ball, the traveller's, it is steep, so a little roll of the foot swung its flat part
+ * through tens of degrees and its flatness hovered at the threshold: the way jumped between the
+ * foot's and the body's from frame to frame, the held foot snapped round and took a settling
+ * step, over and over: a leg twitching at idle.)
+ */
+function footWay(H, s, up, out) {
+  const foot = H.b[`foot_${s}`];
+  const local = ((H._footWay ??= {})[s] ??= (() => {
+    const r = H.rest.get(foot), v = H.rest.get(H.b[`ball_${s}`]).p.clone().sub(r.p);
+    v.y = 0;   // (character space: y is up at rest)
+    return v.normalize().applyQuaternion(r.q.clone().invert());
+  })());
+  out.copy(local).applyQuaternion(foot.getWorldQuaternion(_q3));
   out.addScaledVector(up, -out.dot(up));
-  return out.lengthSq() > 1e-8 ? out.normalize() : out.set(0, 0, 0);
+  const flat = out.length();
+  if (flat > 1e-4) out.divideScalar(flat); else out.set(0, 0, 0);
+  return flat;
 }
 
 /** Signed angle (about up) from a to b, both flat. */
@@ -135,8 +151,8 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     const gh = physics.heightAbove(_b.copy(ball).addScaledVector(up, 1.2), up, 0);
     const groundH = Number.isFinite(gh) ? 1.2 - gh : -hBall;   // how far the ground is above the ball (none found: the root's plane)
     // the way the foot points, flat on the ground (toes pointing down: the body's way, it flips there)
-    const flat = _b.subVectors(ball, ankle).addScaledVector(up, -_b.dot(up)).length() > 0.6 * _c.subVectors(ball, ankle).length();
-    const way = flat ? flatWay(ankle, ball, up, new THREE.Vector3()) : _b.copy(fwd).addScaledVector(up, -fwd.dot(up)).normalize().clone();
+    const way = new THREE.Vector3(), flat = footWay(H, s, up, way) > 0.6;
+    if (!flat) way.copy(fwd).addScaledVector(up, -fwd.dot(up)).normalize();
     // where this foot would stand on the ground now (the clip's place for it)
     const place = ball.clone().addScaledVector(up, groundH + ballRest);
     let planted;
@@ -206,6 +222,9 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         F.step.t += dt / (F.step.quick ? FEET.pivotStepTime : FEET.stepTime);
         const k = THREE.MathUtils.smootherstep(Math.min(F.step.t, 1), 0, 1);
         F.pos.lerpVectors(F.step.from, d.place, k).addScaledVector(up, Math.sin(Math.PI * Math.min(F.step.t, 1)) * FEET.stepLift * sc);
+        // (up onto a stair: the foot rises first and goes over, so its toe doesn't drag up the riser)
+        const rise = _b.subVectors(d.place, F.step.from).dot(up);
+        if (rise > 0.02 * sc) F.pos.addScaledVector(up, rise * (THREE.MathUtils.smootherstep(Math.min(F.step.t * 1.7, 1), 0, 1) - k));
         F.yaw.copy(F.step.fromYaw).lerp(d.way, k);
         if (F.yaw.lengthSq() > 1e-8) F.yaw.normalize();
         if (F.step.t >= 1) {
@@ -230,7 +249,14 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         onStep?.(_b.copy(d.place).addScaledVector(up, -ballRest), s, F.n);
       } else if (!d.planted) F.locked = false;
       // too far from the clip's foot (a stride that ran away, a teleport): let go (standing: set down again at once)
-      if (F.locked && F.pos.distanceTo(d.place) > FEET.release * sc) { F.locked = false; F.released = !standing; }
+      // (standing, as after a fast turn on the spot: it steps over there, once the other foot is down,
+      // rather than jumping there in a frame; only a real teleport lets go at once)
+      if (F.locked && F.pos.distanceTo(d.place) > FEET.release * sc) {
+        const other = S[s === 'l' ? 'r' : 'l'], far = F.pos.distanceTo(d.place) > 2 * FEET.release * sc;
+        if (still && !far && d.finite) {
+          if (!other.step) { F.step = { from: F.pos.clone(), fromYaw: F.yaw.clone(), t: 0, quick: pivoting }; F.locked = false; }
+        } else { F.locked = false; F.released = !standing; }
+      }
       // the body has left a held foot behind, out of the leg's reach (the hips can't come down that
       // fast): it goes with the stride now rather than being dragged along the ground
       if (F.locked && !standing) {

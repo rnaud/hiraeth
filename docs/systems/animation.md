@@ -145,7 +145,20 @@ below is laid over them procedurally, so no new motion data was needed (see TODO
   at a time (0.3 s, 7 cm up): the step after a stop mid-stride, the stepping round of a turn on the
   spot. A fast turn at low speed is a **pivot** (`Locomotion.pivot`: over 3.2 rad/s under 2.6 m/s):
   both feet stay down whatever the phase says, the more settled one turns on its ball and the other
-  steps round quickly (0.17 s).
+  steps round quickly (0.17 s). A standing foot left out of reach of its place (a 180° pivot) steps
+  there once the other is down, instead of jumping there in a frame; a settling step up onto a stair
+  rises first and then goes over, so the toe doesn't drag up the riser.
+- **The foot's way** (`footWay`): the foot bone's own turn applied to its rest way (the rest ankle →
+  ball, laid flat), not the ankle → ball line itself. The coral-shirt traveller's ankle sits high
+  over the ball, so that line is steep: a little roll of the foot swung its flat part through tens of
+  degrees and its flatness hovered at the 0.6 threshold, the way flipping between the foot's (47°
+  out) and the body's from frame to frame. The held foot snapped round (50 rad/s in a frame) and took
+  a settling step every second or so: the "twitching leg" at idle.
+- **The idle layer's weight shift** (`Player.idleLayer`): the hips go over the standing leg (they
+  went over the free one, so the free knee bent to 60° and the support leg ran out of reach) and the
+  free thigh comes forward as its knee bends, so its foot stays where it is planted (it swung back
+  25 cm and stepped there and back every 8 s). `tests/idle-legs.test.js` stands the shipped
+  traveller still for 20 s: no leg bone turning over 2 rad/s, no settling step, the balls within 3 mm.
 - **The body** (`Locomotion`, after `Animator.apply`): the chest tips forward as the body speeds
   up and back (the hips dipping) as it brakes, banks into a curve by turn rate × speed, and the
   head and then the chest turn toward where you steer before the hips get there.

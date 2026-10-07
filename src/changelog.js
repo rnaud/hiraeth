@@ -15,6 +15,7 @@ export const CHANGELOG = [
     'The spots on the desert sand are pebbles and stones now, as Moebius draws them: each a little stone with its side away from the sun in shadow and a short shadow on the sand pointing away from the sun, long at dawn and dusk and short at noon. Far off they become small dashes all pointing the same way instead of a scatter of dots.',
     'The Steam Deck version updates all of itself from the game’s site again, not just the game: the app around it too, when it changes.',
     'The game runs smoothly on handhelds again: the traveller’s new coral overshirt had pulled the Retroid down to about 20 frames a second in every world. Its cloth now moves exactly as before but is worked out several times faster, away from the rest of the game.',
+    'Standing still, the traveller’s legs hold still: his right foot no longer snaps round and steps every second or so, and when he shifts his weight his hips go over the leg he stands on while the other knee relaxes forward, instead of the free foot stepping back and forth every few seconds.',
   ] },
   { v: '0.73', date: '2026-10-06', items: [
     'The desert is solid where it is drawn: on the Givers’ Hearth butte and the Givers’ House tower you hang on the rough rock and the carved stone instead of half inside it, and your feet rest on the sunken leviathan’s ribs and skull, on the crashed hull and its salvage, on the fallen giant’s brow, cheeks, teeth and arm, and on the petal station’s great petals and its cage.',
