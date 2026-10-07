@@ -1,0 +1,35 @@
+changelog.md
+  s_55b4bc53b812ec::t_2826cdbce3ccfc 5-9
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_1ca7af9e1d42df 424-454
+src/changelog.js
+  s_55b4bc53b812ec::t_ca6a7a25d7a17c 12-15
+src/dune-glass-shader.js
+  s_55b4bc53b812ec::t_832a22097b9d7c 1-155
+src/levels/glass-dunes-kit.js
+  s_55b4bc53b812ec::t_819552d54cfa29 3,5,15-22,42,53-54,70-79,115,135-149,171,174,180-188,195,201,215-308
+src/levels/glass-dunes.js
+  s_55b4bc53b812ec::t_ecc57e8d659b8c 9,36-38,41-42,44,102,111,123-125,130,134-135,137-140
+src/levels/reference-glassdunes.js
+  s_55b4bc53b812ec::t_6422bf7fd85156 6,33,80,82,103,105-107,109-112
+src/materials.js
+  s_55b4bc53b812ec::t_866fbdf8dc096e 14,489,603,1681,2245-2250,2739-2740
+tests/glass-dunes.test.js
+  s_55b4bc53b812ec::t_84b02490dcc2db 6-8,36-82,100,125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1238fc8697b85aa3b440397a2e32892387c5cc3f",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
