@@ -107,8 +107,8 @@ export const CONTENT = {
     // the camps' people are in src/story/desert-data.js
     npcs: [
       { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ["~tired~ Wind’s erased my tracks. Again.", "~solemn~ Old walls under every dune."],
-        id: 'ysa', name: 'Ysa', title: 'dune walker', color: '#d8a24a', talk: { listen: [
-          "~tired~ Ysa. Dune walker. The wind erases my tracks every night. I try not to take it as criticism.",
+        id: 'ysa', name: 'Rima', title: 'dune walker', color: '#d8a24a', talk: { listen: [
+          "~tired~ Rima. Dune walker. The wind erases my tracks every night. I try not to take it as criticism.",
           { if: { not: { flag: 'item.backpack' } }, say: '~neutral~ Qanat is *north-east, past the low dunes*. Look for the great dark tree over the walls; the pilgrims are camped at its gate.' },
           "~solemn~ There are buried cities under these dunes. Qanat stayed above the sand. The old people say its tree’s roots hold it together.",
           '~playful~ Lost? Good. Walking only works if you get a little lost.',
@@ -145,7 +145,7 @@ export const CONTENT = {
           { after: { flag: 'temple.desert.done' }, say: '~surprised~ Green, round Qanat. Twenty years I’ve walked people past those fields, and I never once saw them green.' },
         ] } },
       { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.', '~whisper~ Listen. Lower than that. That’s the stones.', '~neutral~ Clear sky today. The stones agree, for once.'],
-        id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { listen: [
+        id: 'tamsin', name: 'Dalia', title: 'listener to stones', color: '#f3ead8', talk: { listen: [
           "~curious~ The stones hum before a storm. But that night before your crash, they hummed under clear skies. A light passed, singing their note.",
           '~scared~ Low, then rising, like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.',
           '~whisper~ Shh. A storm is coming. Or that’s my stomach. One of the two.',
@@ -153,8 +153,8 @@ export const CONTENT = {
           { after: { flag: 'world.desert.done' }, say: '~solemn~ They hum softer since the tree burned. As if somebody had put a hand on them.' },
         ] } },
       { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.', '~playful~ Hold still. No, you moved. Never mind, you’re a smudge now.'],
-        id: 'traveller', name: 'The traveller', title: 'sketching', color: '#697a98', talk: { nodes: {
-          hello: { say: ["~sad~ East of camp: an observatory with a brass ring on top. I’ve drawn it a hundred times, always asleep. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
+        id: 'traveller', name: 'Naji', title: 'who sketches the observatory', color: '#697a98', talk: { nodes: {
+          hello: { say: ["~sad~ Naji. I draw. East of camp: an observatory with a brass ring on top. I’ve drawn it a hundred times, always asleep. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
           how: { say: ["~playful~ Climb the six ledges and turn all three lenses toward its centre. Tell me what happens. My knees have retired from ledges."], choices: [{ text: '~happy~ I will.', end: true }] },
         } } },
     ],
@@ -170,7 +170,9 @@ export const CONTENT = {
       label: 'the Lodestar', goal: [0, 450, 0], radius: 34, manual: true,
     },
     relics: {
-      spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [150, 36, -150], snap: true }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
+      // (the third, the Smog lantern, over the awning of Perrine's halfway tea stall at the middle levels' cab
+      //  stop: src/story/halfway.js halfwayFrame, AWNING_TOP; tests/story-incal.test.js keeps it there)
+      spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [213.76, -20.28, 32.39] }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
       names: ['Taxi token', 'Palace key', 'Smog lantern', 'Smog-cabbage seed', 'Prayer bead'],
     },
     // the rim's people, and Nima on the high terrace (index 3: the desert's errand of
@@ -239,8 +241,8 @@ export const ERRANDS = [
     // Vael is quiet by choice: Senn answers the way Vael says anything, with her hands and a word
     thanks: "~happy~ (Senn holds the jar to her ear. The sand hums. She hums back, very softly.) *It sings.*" },
   { id: 'feather', item: 'a feather from the bird', from: ['arzach', 2], to: ['arzach2', 0],
-    ask: "~solemn~ (Hollin gives you a long white feather, then points past the tower, to the stones in the sky.) *The sky stones.*",
-    wait: "~neutral~ (Hollin points to the sky again: the feather goes on, to the sky stones.)",
+    ask: "~solemn~ (Kesh gives you a long white feather, then points past the tower, to the stones in the sky.) *The sky stones.*",
+    wait: "~neutral~ (Kesh points to the sky again: the feather goes on, to the sky stones.)",
     thanks: "~surprised~ A feather from Vael, off your bird? I’ll tie it over my door. If she ever comes up here without you, she’ll know which plateau is friendly." },
   { id: 'crystal', item: 'a humming crystal', from: ['perdide', 2], to: ['perdide2', 2],
     ask: "~neutral~ Going on into the deep wood? Take this crystal to *Bram, who minds the root cave’s mouth in Lorn II*. It hums before storms. He sits out in all weathers; he’ll want the warning.",
@@ -268,9 +270,9 @@ export const ERRANDS = [
     wait: "~neutral~ *Tull, at the oval doors, in the Buried Machine.* Don’t lean on the tin.",
     thanks: "~happy~ Grease from the Major’s own world? (Tull dabs the nearest hinge and swings the door. Not a sound.) No squeak. Lovely. Same smell as his boots." },
   { id: 'pipewhistle', item: 'a whistle cut from an old pipe', from: ['buried', 1], to: ['spheres', 0],
-    ask: "~whisper~ Going on? Take this whistle, cut from an old pipe. It sounds like the pipes on Tooth Day. *Aube, the listener, in the Garden of Spheres*, collects sounds. Give her one from down here.",
-    wait: "~whisper~ *Aube, in the Garden of Spheres’ umbrella grove.* Let her hear it first.",
-    thanks: "~happy~ A whistle from under the sand? (Aube blows it softly: one low note that outlasts her breath.) I don’t think any sphere here remembers that one. Thank you." },
+    ask: "~whisper~ Going on? Take this whistle, cut from an old pipe. It sounds like the pipes on Tooth Day. *Linnet, the listener, in the Garden of Spheres*, collects sounds. Give her one from down here.",
+    wait: "~whisper~ *Linnet, in the Garden of Spheres’ umbrella grove.* Let her hear it first.",
+    thanks: "~happy~ A whistle from under the sand? (Linnet blows it softly: one low note that outlasts her breath.) I don’t think any sphere here remembers that one. Thank you." },
   { id: 'mirror', item: 'a sliver of lake mirror', from: ['spheres', 1], to: ['bazaar', 1],
     ask: "~playful~ Going on to the market with all the signs? Take this *sliver of lake mirror* to *Oyo, who sells lanterns there*. It holds a little sky. He sells little suns. They should meet.",
     wait: "~neutral~ *Oyo, the lantern seller in the Signal Market.* Keep the sky side up.",

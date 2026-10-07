@@ -64,7 +64,7 @@ export const QUESTS = [
     id: 'arzach.hand', title: 'The Stone Hand', world: 'arzach',
     outro: 'The hand rang, and gave.',
     stages: [
-      { id: 'ring', text: 'Ring the stone hand’s knuckles smallest to tallest: aim (LT / L2) and shoot each one (RT / R2). Hollin, by the hand, shows the order', label: 'The stone hand', flag: 'arzach.hand.rung', at: 'hand' },
+      { id: 'ring', text: 'Ring the stone hand’s knuckles smallest to tallest: aim (LT / L2) and shoot each one (RT / R2). Kesh, by the hand, shows the order', label: 'The stone hand', flag: 'arzach.hand.rung', at: 'hand' },
     ],
   },
 ];
@@ -184,7 +184,7 @@ export const LOCALS = [
     },
   },
   {
-    id: 'hollin', name: 'Hollin', title: 'who keeps the hand', color: '#b0705a', voice: 0.65,
+    id: 'hollin', name: 'Kesh', title: 'who keeps the hand', color: '#b0705a', voice: 0.65,
     talk: {
       entry: [{ if: { flag: 'arzach.hand.rung' }, node: 'after' }, { if: { quest: 'arzach.hand', active: true }, node: 'again' }, { node: 'hello' }],
       nodes: {
@@ -204,7 +204,7 @@ export const LOCALS = [
         fluid: { say: ["~playful~ (He points at *the flask on your back*, then the knuckles. Three teeth appear in a very confident grin.)"], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
         gives: { say: ["~solemn~ (He closes his fist around nothing, then opens it as though offering a gift.)", '~solemn~ Gives.'], choices: [{ text: '~neutral~ I’ll try.', end: true }] },
         again: {
-          say: ["~tired~ (Hollin repeats the order: *little, first, ring, middle*. He waits for you to copy him.)", '~neutral~ Small to tall.'],
+          say: ["~tired~ (Kesh repeats the order: *little, first, ring, middle*. He waits for you to copy him.)", '~neutral~ Small to tall.'],
           choices: [{ text: '~neutral~ (nod)', end: true }],
         },
         after: { say: ["~happy~ (He opens his hand toward you. A gift received, a lesson learned.)", "~happy~ Heard it. At last."], choices: [{ text: '~neutral~ (nod)', end: true }] },
@@ -219,6 +219,18 @@ export const THINGS = {
     id: 'drawing', name: 'A drawing in the sand', title: 'by Oïa’s stone', color: '#d9c9a8', voice: 0.6,
     talk: { nodes: { look: { say: ["~neutral~ Oïa’s drawing: three dots over an arc. {glyph} She calls it the bird’s track.", "~sad~ The wind is already rubbing it out."], choices: [{ text: '~neutral~ (step back)', end: true }] } } },
   },
+  // the fallen colossus on the plain (src/levels/arzach.js colossus): Vael says little, so the stone says it
+  colossus: {
+    id: 'colossus', name: 'The fallen giant', title: 'asleep on the plain', color: '#f7f1e4', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~solemn~ A giant of pale stone lies on its side in the plain, one knee drawn up, as if it lay down to rest and the plain came up round it.",
+        "~neutral~ Its face is turned toward the lone tower. Swallows nest in the hollow of its ear.",
+        { if: { any: [{ flag: 'bird.promise' }, { flag: 'arzach.bird.called' }] }, text: "~whisper~ (When the bird goes over, her shadow crosses the stone face, and for a moment it seems to watch her go.)" },
+        { if: { not: { any: [{ flag: 'bird.promise' }, { flag: 'arzach.bird.called' }] } }, text: "~whisper~ (It looks at the tower the way Oïa does: waiting, without hurry.)" }],
+      do: { set: { 'arzach.colossus.seen': true } },
+      choices: [{ text: '~solemn~ (sit a moment in its shade)', end: true }],
+    } } },
+  },
   palm: {
     id: 'palm', name: 'The stone hand', title: 'reaching out of the plain', color: '#efe6d2', voice: 0.6,
     talk: {
@@ -230,7 +242,7 @@ export const THINGS = {
           choices: [{ text: '~curious~ (rap a knuckle)', goto: 'strike' }, { text: '~neutral~ (step back)', end: true }],
         },
         strike: {
-          say: ["~neutral~ Your fist makes no sound. Try your fluid: *aim and shoot a knuckle*.", "~curious~ The four notes need an order. *Hollin, beside the hand*, can show you."],
+          say: ["~neutral~ Your fist makes no sound. Try your fluid: *aim and shoot a knuckle*.", "~curious~ The four notes need an order. *Kesh, beside the hand*, can show you."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         open: { say: ["~scared~ The mark glows in the palm. Was that finger always bent?"], choices: [{ text: '~neutral~ (step back)', end: true }] },

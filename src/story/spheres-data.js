@@ -38,7 +38,7 @@ export const QUESTS = [
     id: Q, title: 'What the Spheres Remember', world: 'spheres', main: true,
     outro: 'Three sounds, carried to the pole, sounding together.',
     stages: [
-      { id: 'aube', text: 'Talk to Aube, the listener, in the umbrella grove', label: 'Aube, the listener', flag: 'spheres.aube.heard', at: 'aube' },
+      { id: 'aube', text: 'Talk to Linnet, the listener, in the umbrella grove', label: 'Linnet, the listener', flag: 'spheres.aube.heard', at: 'aube' },
       { id: 'listen', text: 'Splash the three spheres that remember with your fluid, and listen to each play its sound', label: 'A sphere that remembers', flag: 'spheres.heard.three', at: 'sphere' },
       { id: 'plaza', text: 'Carry the sounds through the sphere-arch and down the avenue to the round plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza' },
       { id: 'pole', text: 'Splash the humming pole, and listen', label: 'The humming pole', flag: 'spheres.chord.heard', at: 'pole' },
@@ -67,7 +67,7 @@ export const QUESTS = [
 // ------------------------------------------------------------------ the people
 export const PEOPLE = {
   aube: {
-    id: 'aube.spheres', name: 'Aube', title: 'the listener', color: '#9fd0c8', voice: 1.0, kind: 'f',
+    id: 'aube.spheres', name: 'Linnet', title: 'the listener', color: '#9fd0c8', voice: 1.0, kind: 'f',
     palette: { cloak: '#f3efe2', lining: '#2b211f', cloth: '#9fd0c8', legs: '#7f9a90', hat: '#f6efd0', hair: '#3d2a22', face: '#e8dcc8' }, head: 'wrap', cape: 1.2, look: { prop: 'parasol' },
     lines: ["~neutral~ The spheres fell here long ago. Now we mow around them.", '~neutral~ *Follow the pale path*. It goes through the arch.', '~whisper~ Shh. Listen.'],
     talk: {
@@ -79,7 +79,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~playful~ You look busy. A difficult habit to keep here. I’m Aube. I listen to the spheres.", "~solemn~ Each sphere holds the last sound it heard before it fell from the sky. Most people walk past. I like to hear where they’ve been."],
+          say: ["~playful~ You look busy. A difficult habit to keep here. I’m Linnet. I listen to the spheres.", "~solemn~ Each sphere holds the last sound it heard before it fell from the sky. Most people walk past. I like to hear where they’ve been."],
           choices: [
             { text: '~curious~ How do you hear it?', goto: 'how' },
             { text: '~curious~ What sounds do they remember?', goto: 'what' },
@@ -142,7 +142,7 @@ export const PEOPLE = {
   },
 
   ivo: {
-    id: 'ivo', name: 'Ivo', title: 'who climbs the white hill', color: '#f2c5b0', voice: 1.25, kind: 'm',
+    id: 'ivo', name: 'Emrys', title: 'who climbs the white hill', color: '#f2c5b0', voice: 1.25, kind: 'm',
     palette: { cloak: '#f2c5b0', lining: '#2b211f', cloth: '#4f6b3a', legs: '#3a3a3a', hat: '#f6efd0', hair: '#4a3226' }, head: 'hair', cape: 0.5,
     lines: ["~happy~ From the white hill’s middle terrace, you can reach the canopy.", '~curious~ Have you looked under a sphere?', '~shout~ The view! The VIEW.'],
     talk: { listen: [
@@ -209,7 +209,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~happy~ I’m Ume. This pole hums when the great sphere is on the horizon. I look after it. It requires very little dusting and a great deal of listening.", "~tired~ Aube sends listeners here with sounds from the smaller spheres. Have you heard them yourself? Descriptions won’t do."],
+          say: ["~happy~ I’m Ume. This pole hums when the great sphere is on the horizon. I look after it. It requires very little dusting and a great deal of listening.", "~tired~ Linnet sends listeners here with sounds from the smaller spheres. Have you heard them yourself? Descriptions won’t do."],
           choices: [
             { text: '~curious~ Why does the pole hum?', goto: 'why' },
             { text: '~curious~ Have you heard anything strange?', goto: 'strange' },

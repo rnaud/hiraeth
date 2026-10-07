@@ -467,5 +467,35 @@ export function setupTerraces(ctx) {
   // a save loaded already flooded never runs the flood (st.flood is FLOOD_S with the 'quiet' beat taken)
   if (flooded()) st.beats.add('quiet');
 
-  return { update, layout: L, runnels, wheelAt, gateStand, esk, state: st, shown: () => ({ after: after.visible, gate: gateGroup.visible, lane: lane.some((g) => g.visible) }) };
+  // ---------------------------------------------------------------- coming back: Esk's small job (edena.cutting)
+  // A later visit (the quest had already failed when this visit began: edena.esk.back), Esk has decided
+  // there is a small job: one tea cutting from the bushes that held, pressed into the mud where the
+  // stream runs slow. It stays there on every visit after (edena.cutting.planted).
+  if (quests.isFailed?.(Q)) game.set('edena.esk.back', true);
+  const cuttingAt = (() => { const [x, z] = path[Math.floor(path.length * 0.55)] ?? [T.hollow.x + 8, cz]; return V(x, H(x, z + 2.4), z + 2.4); })();   // (beside the stream, on the mud)
+  cuttingAt.y = H(cuttingAt.x, cuttingAt.z);
+  const cutting = new THREE.Group();
+  cutting.add(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.42, 6).translate(0, 0.21, 0), makeMaterial({ color: '#6f5a3a', flat: true })));
+  for (const [y, a] of [[0.34, 0.4], [0.27, 2.5], [0.4, 4.4]]) {
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.075, 6, 4).scale(1, 0.35, 0.55), bushMat);
+    leaf.position.set(Math.cos(a) * 0.06, y, Math.sin(a) * 0.06); leaf.rotation.y = -a;
+    cutting.add(leaf);
+  }
+  cutting.traverse((o) => { o.userData.noCollide = true; });
+  cutting.position.copy(cuttingAt);
+  cutting.visible = !!game.flag('edena.cutting.planted');
+  root.add(cutting);
+  quests.locate('cutting', () => cuttingAt);
+  registerInteractable({ id: 'edena.cutting', priority: PRIORITY.use, range: 2.6, prompt: 'press the tea cutting into the mud', at: () => cuttingAt.clone().add(V(0, 0.9, 0)),
+    enabled: () => quests.stage?.('edena.cutting') === 'plant' && !game.flag('edena.cutting.planted'),
+    distance: (p) => (Math.abs(p.pos.y - cuttingAt.y) < 3 ? flat(p.pos, cuttingAt) : Infinity),
+    use: () => {
+      game.set('edena.cutting.planted', true);
+      cutting.visible = true;
+      mud.burst?.(cuttingAt.clone().add(V(0, 0.1, 0)), { n: 6, rise: 0.4, size: 0.2, spread: 0.4, life: 1.2, gravity: 2 });
+      sound.chime?.();
+      toast('You press the mud round the cutting with both thumbs. The stream goes slowly past it.');
+    } });
+
+  return { update, layout: L, runnels, wheelAt, gateStand, esk, cutting, cuttingAt, state: st, shown: () => ({ after: after.visible, gate: gateGroup.visible, lane: lane.some((g) => g.visible) }) };
 }

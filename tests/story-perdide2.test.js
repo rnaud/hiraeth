@@ -71,7 +71,7 @@ test('the deep wood’s people and places stand on walkable or wadeable ground',
   assert.deepEqual(CONTENT.perdide2.npcs.map((n) => n.id), ['hollin.perdide2', 'pim.perdide2', 'bram']);
   assert.ok(PERDIDE2_CONTENT.story.manual, 'the quest closes the story page, not the beacon');
   for (const n of npcs.slice(0, 3)) for (const p of n.route) stand(p, n.def.name);   // the level's own (the story's are pushed after them)
-  for (const p of W.people.wick.route) stand(p, 'Wick');
+  for (const p of W.people.wick.route) stand(p, 'Robin');
   // Fen stands on his landing stage, a raft moored on the deep water: dry, above the water line
   for (const p of W.people.fen.route) {
     const g = physics.groundAt(p.x, p.y + 3, p.z, 8);
@@ -164,7 +164,7 @@ test('the main quest: three pools relit, the saucer answers, Hollin asks you to 
     assert.ok(!T.enabled(), 'once lit it stays lit');
     if (i === 1) talk(PEOPLE.wick, ['What happened the night']);
   }
-  assert.equal(game.flag('perdide2.rumour.light'), true, 'Wick saw the singing light');
+  assert.equal(game.flag('perdide2.rumour.light'), true, 'Robin saw the singing light');
   step(2);
   assert.equal(quests.stage('perdide2.lamps'), 'answer');
   assert.equal(game.flag('perdide2.saucer.answered'), true, 'the saucer blinks back');

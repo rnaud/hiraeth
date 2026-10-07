@@ -353,6 +353,7 @@ export class HomecomingDirector {
         break;
       }
       case 'tomb': {
+        if (game.flag('calls.ilen.told')) game.set('ending.ilen', true);   // (named at the stone: src/story/home.js doesn't again)
         this.lines = tombLines(this.items, { ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou, broke: !!game.flag('edena.terraces.flooded') });
         this.placeLou();
         this.tl = tombTimeline(this.lines);

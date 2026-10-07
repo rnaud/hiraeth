@@ -206,7 +206,7 @@ written in).
   is from the lower levels himself); find Wren, the old cab that still stops for
   the poor (cabs drive themselves; Wren speaks from the little screen on its
   dash); carry a message up the shaft; earn a cab pass from Lio, the
-  dispatcher on the rim, by collecting the fare Hask owes him (until then no
+  dispatcher on the rim, by collecting the fare Tobin owes him (until then no
   cab answers your whistle or lets you in; Wren, at its lamp, stops for anyone).
   You ride seated inside a cab and tell it where to go.
 - **Gift**: the fluid jets, in the Warden's Well on the rim. The route brings the
@@ -260,9 +260,15 @@ written in).
   Machine.
 
 ### 9. The Buried Machine — "One Tooth a Year"
-- **Local story**: Below the dunes a great wheel turns one tooth a year; the
+- **Local story**: Below the dunes a great wheel turned one tooth a year; the
   dome people time their lives by it. The hanging city above is "its other
-  half". The oculus window is warm: something inside is still alive.
+  half". The oculus window is warm: something inside is still alive. The
+  old story says the city settles onto the wheel when the last tooth turns.
+  Once the traveller lights the Wick the wheel turns on and does not stop (as
+  built: it turns forever, a real turning collider). The reading, Wen's, the
+  morning after: a wheel has no last tooth; the last tooth is whichever one
+  keeps it turning, and the Other Half stays up as long as it turns. They keep
+  Tooth Day once a year all the same.
 - **Quests**: read the pressure gauges along the canyon; return the dome
   keeper's key; light the oculus.
 - **Keepsake**: *thing*: a rust gear tooth, warm to the touch, the year it
@@ -395,8 +401,8 @@ father said later, sorrier.
 **Ilen.** The Signal Market's broadcast is the father's voice, years younger,
 to a child called Ilen. Afterwards the traveller asks the reel for the name
 (`calls.ilen.asked`). There is one recording, in the mother's voice, labelled
-"For when he asks." He is not ready: "Not here. Not yet." Once the ship has
-flown on, it is waiting (`calls.ilen`, `calls.ilen.told`): she made it knowing
+"For when he asks." He is not ready: "Not here. Not yet." Once he has stepped
+out of the ship or the ship has flown on, it is waiting (`calls.ilen`, `calls.ilen.told`): she made it knowing
 he would hear the broadcast one day. Ilen was his elder sister, grown and gone
 before he was born, sent out with the same words; she never came home; the
 father sent that message after her every night for a year; the last thing that
@@ -477,9 +483,9 @@ gadget at its heart; half the makers' gifts wait inside them, half in the open
 | Hangar | the maker's rivets (Ottla), the Major's thumbprint (Clemence) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
 | Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) | thumb-boxes (Wen) |
 | Viridel | the Builders' mark (Oro) | the Singer (Talo's word, Sol) | Builders' gifts (Oro) |
-| Garden of Spheres | the Footprint, under every sphere (Ivo) | an Answerer (Ume) | left-behinds (Ivo) |
+| Garden of Spheres | the Footprint, under every sphere (Emrys) | an Answerer (Ume) | left-behinds (Emrys) |
 | Lorn | the Hush: three drops of rain over a shut mouth | Sedge saw it pass the night it went over, and climb away; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
-| Lorn II | the Welcome: three lamps over a hull | Wick saw it put the pools out | the traveller's chest (Hollin, the lamp-keeper; Vael's Hollin keeps the stone hand) |
+| Lorn II | the Welcome: three lamps over a hull | Robin saw it put the pools out | the traveller's chest (Hollin, the lamp-keeper) |
 | City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Lodestar rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
 | Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) | (no box of its own) |
 

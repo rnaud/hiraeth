@@ -2,6 +2,8 @@
 
 This audit covers all thirteen levels. Eleven are worlds on the route. Home is the twelfth. The Atelier is a hidden developer page.
 
+(Since the second story pass some people have new names, so that each is used once: see "Shared names" at the end. The findings keep the names of their time.)
+
 For each world it sets the beat the bible asks for against what a player can do today. It lists what is thin or broken and how the world is paced. Each section ends with what the October 2026 story pass fixed and what is still open. The ranked additions and the proposals for the author come last.
 
 ## How it was checked
@@ -142,8 +144,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The bike line.
 - **Still open:**
   - The bible's desert section still describes the burning-tree and fill-and-go sequence (`lore/continuity.md` notes the drift).
-  - The Hearth has no carving or inscription.
-  - The masked head's inner chamber has no words.
+  - *(second pass: done)* The Hearth has a carved frieze; the masked head's chamber has words; the crashed hull has Marrow's slate.
   - Oum's cord is never used.
 
 ### Vael: "The Waiting Bird"
@@ -176,7 +177,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The lids.
   - Senn's choice.
   - The flask.
-- **Still open:** the colossus has nothing to look at (a proposal below).
+- **Second pass:** the colossus can be looked at now (it lies as if resting, turned to the tower; the bird's shadow crosses its face).
 
 ### Vael II: "The Bell Under the Cloud"
 
@@ -210,7 +211,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The chest's lid.
   - The feather errand's thanks.
   - A new errand out to Lorn: Calix's muffled hand bell for Wendel.
-- **Still open:** every Vael II voice ends on a dry quip, so they blur. A pass to vary them is for the author.
+- **Second pass:** the voices are varied: Aube keeps the dry wit; Calix, Ysolde, Ondine, Tiv and Agathe end differently (see "Voices that blur").
 
 ### Lorn: "The Great Crystal"
 
@@ -298,7 +299,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - Esk's words.
   - Sol, Oro and Sorrel.
   - The clock prompt.
-- **Still open:** the closing toast, and the failure's presentation (both proposals).
+- **Second pass:** the closing toast; the failure reads "What happened"; Esk's return visit and her small job (a cutting in the mud).
 
 ### The City-Shaft: "The Light Nobody Looks At"
 
@@ -326,7 +327,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The token errand that named nobody.
   - The glyph described upside down ("beneath the curve").
   - Lio and Hask with one balloon line each.
-- **Pacing:** the main quest takes about 20 min, the world 50–60. The return to Nima is a pure walk back, and the middle levels have little to do.
+- **Pacing:** the main quest takes about 20 min, the world 50–60. The return to Nima is a pure walk back, and the middle levels had little to do (the second pass put Perrine's halfway stall and mirror there).
 - **Fixed now:** all of the above. Dov now has a node that answers Ossa's message.
 - **Still open:** the repeated "eleven" (Pip's seconds, Wren's lamp, Dov's years, a commuter). Decide whether it means something; for the author.
 
@@ -375,9 +376,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - No errand in or out.
 - **Pacing:** the main quest takes about 20 min, the world 45–55. The 330 m climb back from the oculus to the wheel sags until the pipe-cart runs.
 - **Fixed now:** all of the above, with a test. Ossa gives a new errand: the pipe whistle for Aube.
-- **Still open:**
-  - The wheel now keeps turning, against Wen's "the city settles when the last tooth turns". What that means is for the author.
-  - The bible's §9 still says one tooth a year.
+- **Second pass:** the wheel turns on, and Wen reads the old story the gentle way (the last tooth is the one that keeps it turning); Hask agrees; the bible's §9 says so.
 
 ### The Garden of Spheres: "What the Spheres Remember"
 
@@ -439,7 +438,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The stone's tokens leave out the later charms (the listening shell, the echo shell).
   - "This space is for Ilen" exists only in the ending scene, so learning about Ilen afterwards never reaches the stone.
 - **Fixed now:** Lou's drawings follow the furthest world written from, any of the eleven (tested), and the window speaks only once the reel has said it.
-- **Still open:** the tokens and Ilen at the stone (proposals).
+- **Second pass:** the listening shell and the echo shell on the stone; Ilen named at the stone after the ending; the galley note no longer gives the last recording away; Lou's surprise kept for the yard.
 
 ### The Atelier
 
@@ -449,16 +448,19 @@ It is a developer page: it is hidden, off the route and off the map, reachable o
 
 1. *(done)* The five out-of-order soft-locks, with tests. These were the only places a player could lose a world's story for good.
 2. *(done)* The drone finds the world's opener even when the ship lands beside a temple.
-3. *(proposal)* A route to Ilen before Home (see below). It is the biggest gap between the story as written and as played.
+3. *(done, second pass)* A route to Ilen before Home (see below). It is the biggest gap between the story as written and as played.
 4. *(done)* The setups now get their payoffs: Ossa's message, Ondine's supper, Mira's clock, the mask, Ilo's monster, Hask's tip.
 5. *(done)* Errands in every world but the last, and the ones that didn't land now do.
 6. *(done)* The contradictions with the bible and with October's cabs, glove, flask and game menu.
 7. *(done)* Pad prompts wherever only keys were named.
 8. *(done)* More lines for one-line and stale people, in their worlds' voices.
-9. *(proposal)* Something to do in the empty stretches: Vael's colossus, the desert's far landmarks and the Hearth, the City-Shaft's middle levels, the spheres' android wood.
-10. *(proposal)* Esk's loss presented as what happened rather than as a failure stamp.
+9. *(started, second pass: the City-Shaft's middle levels)* Something to do in the empty stretches: Vael's colossus, the desert's far landmarks and the Hearth, the City-Shaft's middle levels, the spheres' android wood.
+10. *(done, second pass)* Esk's loss presented as what happened rather than as a failure stamp.
 
-## Proposals for the author (not done: each adds plot, changes a design decision, or renames)
+## Proposals for the author
+
+The author's answer: "go with your recommendations". The second story pass (October 2026) did
+them; each proposal below says what was chosen, marked *Done (second pass)*.
 
 - **Ilen before Home** (plot review §1). Today the Signal Market comes ninth and Home opens at six, so the revelation is post-game. Options:
   - chart the market earlier;
@@ -466,25 +468,43 @@ It is a developer page: it is hidden, off the route and off the map, reachable o
   - have the ship say once, after the market, that the mother's recording waits ("Recording held. It will wait at the console.").
 
   Whichever you choose, test the ending with and without it. The dead line in the last recording ("I told your sister…", `calls.js`) could then play.
+
+  *Done (second pass):* the second and third options, the worlds' order unchanged (`src/story/relay.js`, docs/systems/story.md "The relay signal"). From four worlds done the market's place on the galactic map pulses as "a signal", charted or not, and the console's screen and "No new messages" say a faint signal waits further along the route; "Come home" mentions it. After the market the recording is "held" and waits as soon as you step out of the ship, so flying straight home still leaves it at the console. The father's own recording on Ilen then waits on its own (no world is left to bring it), and holds the dead line ("I would have welcomed her back with empty hands."). The recordings after "Come home" now play the later worlds' reel lines too, which no run could hear before. `tests/relay.test.js` plays a run in the route's order: every world's reel line, the mother's and the father's recordings are heard before the stone; the ending without them is unchanged (`tests/ending.test.js`).
 - **Ilen at the stone after the ending.** In `home.js` `homage()`, if `calls.ilen.told` and the ending didn't include her, say "And this space is for Ilen, wherever she is." once.
+
+  *Done (second pass),* as written: the bible's "At the stone" gives the line. `ending.ilen` marks an ending that named her.
 - **Lou seeded earlier** (plot review §2):
   - a drawing of hers on the ship ("The ship, and a small red hood waving at the edge. Signed LOU.");
   - or the traveller's own line in recording 3 ("I was seven. Younger than Lou is now.").
 
   Either one gives away the surprise at Home sooner. Also: one ordinary act with her at home, such as hanging a drawing or mending the swing.
+
+  *Second pass: kept as it is.* The surprise at Home stays: no drawing on the ship, no line on the reel names her before the yard (the father's "the little one" in the last recording and the mother's "She has your hands" stay unnamed).
 - **The galley note** "We are proud of you already. — M." (`src/ship/art.js`) says the final recording's line in the first minute.
+
+  *Done (second pass):* it reads "The lamp stays on in the window. — M." now: as warm, and it sets up the lamp beat on the reel and the dark round window at home instead of giving the last recording away.
 - **The stone's tokens.** Add the listening shell and the echo shell (and any later charms) to `TOKEN_ITEMS`, each with its own line.
+
+  *Done (second pass):* both shells go on the stone with their own lines ("What was hidden hummed back, if you were quiet enough to hear it."; "It keeps the last note it heard, the way the reel kept their voices."), tested in `tests/ending.test.js`. The other box charms (soles, hush-cloth, moss pin, seed pouch, scarf, reed, resin, brass level) stay off: they are kit he wears or uses up, as the backpack is.
 - **Esk** (plot review §3):
   - the Quests panel's "Failed ✗" and the "Failed:" toast could read "What happened";
   - a return visit where Esk decides whether there is a small job.
+
+  *Done (second pass):* the Quests panel says "What happened" (a quiet dot, not ✗) and so does the toast. On a later visit Esk has decided: one small job, a tea cutting from the rows that held, pressed into the new mud by the stream ("A Cutting for the Mud", two steps, tested). The payoff stays small and quiet: the cutting stays there, "It won't be my grandmother's hill. It'll be this one.", and she checks it every morning. The terraces stay what happened.
 - **Viridel's closing toast**, matching Lorn's and Lorn II's "Something of value?".
+
+  *Done (second pass):* "The flowers close over the ship again, mostly. Something of value? Words you can carry: we tend the garden, and the garden tends us." (tested in `tests/story-edena.test.js`).
 - **The wheel that keeps turning.** What does Wen's "the city settles when the last tooth turns" mean now? Revise the bible's §9.
+
+  *Done (second pass):* the gentlest reading that fits the bible (nothing ends, nothing falls): a wheel has no last tooth, so the last tooth is whichever one keeps it turning, and the Other Half stays up as long as it turns. Wen says it once you ask, after Tooth Day ("A wheel hasn't got a last tooth. It comes round."); Hask has heard her and agrees ("That one wants a trimmed wick."); the quest's outro says it turned one tooth "and then it kept on turning"; the bible's §9 says so. Wen's "the city will settle onto the wheel when the last tooth turns", before the turn, stays as the setup.
 - **Places to fill:**
   - a look-at on Vael's colossus;
   - a carving at the Givers' Hearth and words in the masked head's chamber (it could echo Vael II's tower face);
   - a find at the desert's second wreck;
   - something on the City-Shaft's middle levels;
   - a different puzzle at the Hearth than the temple's stone ball.
+
+  *Second pass, one at a time:* **the City-Shaft's middle levels** first (the most passed): Perrine's halfway tea stall by the middle cab stop, and the halfway mirror her mother set to throw a coin of the Lodestar down to the bottom (wash it, turn it up the shaft; Ossa sees the coin at the bottom), with the Smog lantern relic moved onto the stall's awning (docs/systems/story.md, "Places to stop on the way"). Then, the same pass: a look at **Vael's fallen giant**; a carved **frieze on the Hearth's lintel** (figures passing a light to a tree; once you have carried the stone, you have been one of them); words for **the little mask in the masked head's chamber**, which knows the lone tower's face in Vael II; and at **the desert's crashed hull**, Marrow's old salvage slate ("NO MARK ON HER. FELL ON HER OWN."), which he brings up the next time you meet. Still to do: the android wood in the Garden of Spheres, and a puzzle at the Hearth other than the temple's stone ball (the ball stays).
 - **Shared names.** Renaming needs a coordinated text, save and export review, so for now each role is kept clear in its first greeting.
   - Shared names:
     - Pip (the City-Shaft's boy, the Hangar's girl);
@@ -499,10 +519,14 @@ It is a developer page: it is hidden, off the route and off the map, reachable o
   - Near-misses: Ysel, Ysolde, Ysse, Ysa; Tamsy and Tamsin; Ferro and Ferrol; Brann and Bram; Wick and the Wick.
   - Three nine-year-olds run in a row.
   - The desert's sketcher is listed as "The traveller", the protagonist's own word.
+
+  *Done (second pass):* every name is used once (`tests/names.test.js`). The name stays where it is most established (the most lines, a quest or keepsake in its name, the earlier world); the others took names in their world's style: the Hangar's Pip is **Zazie**; Viridel's Lio **Rue**; the City-Shaft's seller of views (Hask) **Tobin**; the Buried Machine's Ossa **Ket** and its Pim **Jot**; Vael's Hollin **Kesh**; the spheres' Ivo **Emrys** and Aube **Linnet**; the Undertower's Pell **Hobb** (and the spheres' drifter Slow Pell **Slow Orm**). Near-misses: Vael II's Ysel **Agathe** (beside Ysolde), the desert's Ysa **Rima** and Tamsin **Dalia**, the Hangar's Ferrol **Gaspard**, the Engine-House's Brann **Fisk**, Lorn II's Wick **Robin**. Ysolde and Ysse, Tamsy, Ferro and Bram keep theirs. The sketcher is **Naji**. Only the names changed: ids and flags are kept, so saves, quests and the errands carry on. The three nine-year-olds stay (a pattern of the worlds, not a clash of names). This audit's findings above keep the names of their time.
 - **Voices that blur:**
   - every Vael II speaker ends on a dry quip;
   - "sitting down" is the punchline in Lorn, Lorn II and Viridel alike;
   - "like a bowl rubbed with a wet finger" and "wet glass" repeat (the voice guide warns about this).
+
+  *Done (second pass),* each line's tone and meaning kept. In Vael II, Sister Aube keeps the dry wit (the one who measures the cloud); Brother Calix is earnest now ("Every morning, just out of reach."; "It's heavier than I remembered."), Mother Ysolde fond ("They're in a box under my bed, in order."), Ondine warm ("Thirty years, and she still keeps my place."), Tiv a child ("I think mine is a thank-you. With feet."), and Agathe says plainly that she hasn't heard Calix laugh in years. "Sitting down" stays once, in Lorn (Wendel in the mud, which Ivo tells): the Hush-House guide's Wendel laughs out loud, Lorn II's Pim fears Hollin will polish lamps that are already clean, and the Greenhouse's Oro hasn't stopped staring (Sol's "Sit down. Have some tea." is an invitation, and stays). The singing light: the desert keeps its bowl rubbed with a wet finger; the City-Shaft hears a note so high the lamps rang, its splinter hums "thin as a held breath", Lorn's reed-cutter hears "a reed cut just right", the market "a tuning fork held to a speaker".
 - **Docs.** The bible's desert section and its quotations predate the built sequence; continuity.md and the live data win. Two small doc points:
   - `lore/voice-guide.md` and `lore/characters/worlds.md` give Oïa's third word as "Blow", where the build says "Play";
   - `prompts/vael.md` gives Oïa the flute, which the build leaves on the sill.

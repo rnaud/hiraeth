@@ -14,6 +14,7 @@ import { StarMap, consoleAction } from './starmap.js';
 import { pendingCall, completedWorlds, callLines, callContext, applyCall, recordingLabel } from '../story/calls.js';
 import { Hologram } from './hologram.js';
 import { homeOpen, HOME_ID } from '../story/ending.js';
+import { relaySignal, RELAY_TEXT } from '../story/relay.js';
 import { MAP_LINE } from '../story/signature.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
@@ -324,6 +325,7 @@ export class Ship {
       order: deps.order, levels: deps.levels, journal: deps.journal, current: this.levelId,
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
       home: () => homeOpen({ flag: (k) => game.flag(k), completed: this.completed() }) || this.levelId === HOME_ID,   // src/story/ending.js
+      relay: () => this.relay(),
       onTravel: (id) => this.travel(id),
     });
     globalThis.addEventListener?.('keydown', (e) => { if (e.code === 'Escape') this._esc = true; this._keyT = performance.now(); });
@@ -495,6 +497,9 @@ export class Ship {
     return completedWorlds(this.order ?? [], { flag: (k) => game.flag(k), storyDone: (id) => this.journal?.storyDone(id) });
   }
 
+  /** The relay signal (src/story/relay.js): the broadcast heard from far off, or the mother's recording held. */
+  relay() { return relaySignal({ flag: (k) => game.flag(k), completed: this.completed() }); }
+
   /** The message waiting on the voicemail, or null. */
   waitingCall() { return pendingCall({ flag: (k) => game.flag(k), completed: this.completed().length }); }
 
@@ -511,7 +516,8 @@ export class Ship {
       return;
     }
     sfx.beep(this.sound);
-    this.cinema.say(NO_MESSAGES, { secs: 2.4 });
+    const sig = this.relay();
+    this.cinema.say(sig ? { who: 'ship', text: RELAY_TEXT.console[sig.stage], tone: 'neutral' } : NO_MESSAGES, { secs: sig ? 5.2 : 2.4 });
   }
 
   /** The holo table: the galactic map (shown but locked without power). */
@@ -559,7 +565,7 @@ export class Ship {
   messageWaiting() {
     const c = this.cinematic;
     if (c && !c.done) { this._waitT = 0; return c.waiting?.() ?? null; }   // (not while a message plays; asked again after)
-    if (!this._waitT || performance.now() - this._waitT > 500) { this._waitT = performance.now(); this._wait = this.order ? this.waitingCall() : null; }
+    if (!this._waitT || performance.now() - this._waitT > 500) { this._waitT = performance.now(); this._wait = this.order ? this.waitingCall() : null; this._relaySig = this.order ? this.relay() : null; }
     return this._wait ? this.parked : null;
   }
 
@@ -641,6 +647,9 @@ export class Ship {
     if (inside !== this.inside) {
       this.inside = inside;
       game.emit(inside ? 'ship:enter' : 'ship:exit', { level: this.levelId });
+      // the mother's recording, held after the broadcast ("Not here. Not yet."): it waits once he has stepped out (src/story/relay.js)
+      if (!inside && game.flag('calls.ilen.asked') && !game.flag('calls.ilen.told')) game.set('calls.ilen.later', true);
+      else if (!inside && game.flag('calls.ilen.told') && !game.flag('calls.beat.ilen.after')) game.set('calls.ilen.after.later', true);
       // a close, over-the-shoulder camera in the rooms (the rig's tight-space mode,
       // src/player.js CameraRig: it eases in and back out by itself), and no climbing
       // the curved walls of home
@@ -677,6 +686,7 @@ export class Ship {
       const mob = m.group.userData.mobile;
       if (mob) mob.rotation.y += dt * 0.15;
       this.blinkVoicemail(m, waiting === m, t);
+      m.callScreen?.set({ signal: m === this.parked && this._relaySig ? RELAY_TEXT.screen[this._relaySig.stage] : '' });   // (its standby says so)
     }
     // the map put away: the screen over the dash goes back to standby
     if (this.parked.callScreen?.state.who === 'map' && !this.map?.open && !this.playing) this.parked.callScreen.set({ who: 'idle' });

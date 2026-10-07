@@ -17,18 +17,18 @@
 // Side errands: Pip's ration tin for his uncle Dov, the palace guard; the dead
 // taxi call-lamp at the bottom (shoot it) and Wren, the old cab that still stops;
 // a cab pass from Lio, the dispatcher on the rim (the cabs fly past anyone
-// without one: src/taxi.js), for the fare Hask, the seller of views, owes him.
+// without one: src/taxi.js), for the fare Tobin, the seller of views, owes him.
 // Clue: the splinter carries the glyph and hums the same note as the singing
 // crystals of the swamp of lights (Lorn).
 //
 // Flags (game-state.js): incal.rumour.light, incal.splinter.given, incal.dov.allowed,
 // incal.lit (the Lodestar burns bright again), incal.lamp.lit, incal.wren.met,
 // incal.dov.fed, incal.hoist.pin, incal.hoist.in (the goods hoist, swung in); clue.incal.perdide. Items: splinter, ration,
-// fare (Hask's coin), cabpass (the cab pass: src/items.js lists it in the gear).
+// fare (Tobin's coin), cabpass (the cab pass: src/items.js lists it in the gear).
 
 const Q = 'incal.light';
 
-export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ration tin', fare: 'Hask’s bent coin', cabpass: 'a cab pass' };
+export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ration tin', fare: 'Tobin’s bent coin', cabpass: 'a cab pass' };
 
 /** What a cab says in the City-Shaft when you have no pass yet (src/taxi.js Taxi.refusal). */
 export const PASS_REFUSAL = {
@@ -59,13 +59,23 @@ export const QUESTS = [
     ],
   },
   {
+    // the middle levels, where everybody passes (src/story/halfway.js): Perrine's tea stall by the cab stop
+    id: 'incal.mirror', title: 'The Halfway Mirror', world: 'incal',
+    outro: 'The halfway mirror faces up the shaft again. When the Lodestar shines, a coin of its light goes down to the bottom terraces.',
+    stages: [
+      { id: 'wash', text: 'Wash the smog off the halfway mirror beside Perrine’s tea stall (shoot)', label: 'The halfway mirror', flag: 'incal.mirror.washed', at: 'mirror' },
+      { id: 'turn', text: 'Turn the mirror round on its pole until it faces up the shaft, toward the Lodestar (push it from the side: C, middle click, or RB / R1)', label: 'The halfway mirror', flag: 'incal.mirror.turned', at: 'mirror' },
+      { id: 'tell', text: 'Tell Perrine the mirror faces up again', label: 'Perrine, at the halfway stall', talk: 'perrine', at: 'perrine' },
+    ],
+  },
+  {
     // the cabs fly past anyone without a pass (src/taxi.js): Lio writes one, for a fare paid in advance
     id: 'incal.pass', title: 'A Pass for the Cabs', world: 'incal',
     outro: 'A card with the palace seal and something like your name. The cabs stop for you now.',
     stages: [
       { id: 'lio', text: 'The cabs fly past you. Ask Lio, the cab dispatcher on the rim, how to get one to stop', label: 'Lio, the dispatcher', talk: 'lio' },
-      { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Hask, who sells views along the rim, owes him one: collect it', label: 'Hask, seller of views', talk: 'hask' },
-      { id: 'back', text: 'Bring Hask’s coin back to Lio for your cab pass', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio' },
+      { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Tobin, who sells views along the rim, owes him one: collect it', label: 'Tobin, seller of views', talk: 'hask' },
+      { id: 'back', text: 'Bring Tobin’s coin back to Lio for your cab pass', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio' },
     ],
   },
   {
@@ -117,7 +127,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }, { text: '~curious~ Who do you sweep for?', goto: 'sweep' }],
         },
         rang: {
-          say: ["~solemn~ A light flew low across the shaft, singing like a finger round wet glass. Every window hummed.",
+          say: ["~solemn~ A light flew low across the shaft, singing one note so high the lamps rang with it. Every window hummed.",
             "~surprised~ The Lodestar answered. Then a splinter broke off and fell all the way to the bottom. I heard it singing long after I lost sight of it."],
           do: { set: { 'incal.rumour.light': true } },
           choices: [{ text: '~neutral~ Something struck my ship that night.', goto: 'ship' }, { text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' },
@@ -237,7 +247,8 @@ export const PEOPLE = {
         },
         after: {
           say: ["~happy~ The light reached us! I could open my eyes and look straight at it.",
-            "~solemn~ The smog hasn’t gone. But now the people above know we’re here."],
+            "~solemn~ The smog hasn’t gone. But now the people above know we’re here.",
+            { if: { flag: 'incal.mirror.done' }, text: "~surprised~ And a coin of light has come back on Behla’s wall, from halfway up. Somebody in the middle remembered us." }],
           choices: [{ text: '~happy~ Keep looking, Ossa.', end: true }],
         },
       },
@@ -293,6 +304,83 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I could take something up to your uncle.', if: { quest: 'incal.ration', started: false }, goto: 'take' }, { text: '~happy~ I saw it too.', end: true }],
         },
         after: { say: ["~happy~ Uncle Dov sent a message! TELL PIP HE IS TALLER. How does he know? Tell him he’s right!"], choices: [{ text: '~happy~ You are.', end: true }] },
+      },
+    },
+  },
+
+  perrine: {
+    // the middle levels' tea stall, by the cab stop (src/story/halfway.js)
+    id: 'perrine', name: 'Perrine', title: 'who keeps the halfway tea stall', color: '#c8483a', voice: 1.0, kind: 'f', scale: 0.98,
+    palette: { cloak: '#c8483a', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#e2b9a6', hair: '#5a3a2a' }, head: 'wrap', cape: 0.7, look: { prop: 'basket', under: 'bun' },
+    lines: ['~happy~ Halfway tea! Hot at the top, warm at the bottom.', '~tired~ Up or down? Everyone’s one or the other.', '~neutral~ Mind the cups. They’re my only ones.'],
+    talk: {
+      entry: [
+        { if: { all: [{ quest: Q, stage: 'palace' }, { has: 'splinter' }] }, node: 'carrying' },
+        { if: { quest: 'incal.mirror', stage: 'tell' }, node: 'turned' },
+        { if: { quest: 'incal.mirror', done: true }, node: 'after' },
+        { if: { quest: 'incal.mirror', active: true }, node: 'busy' },
+        { if: { all: [{ flag: 'incal.mirror.washed' }, { flag: 'incal.mirror.turned' }] }, node: 'already' },
+        { if: { flag: 'met.perrine' }, node: 'again' },
+        { node: 'hello' },
+      ],
+      nodes: {
+        hello: {
+          say: ["~happy~ Tea? Halfway tea. Hot at the top of the cup and warm at the bottom, like the city.",
+            "~neutral~ I’m Perrine. Everybody passes the middle levels on the way to somewhere else. I stop them one cup at a time."],
+          do: { set: { 'met.perrine': true } },
+          choices: [
+            { text: '~curious~ What’s the mirror on the pole?', goto: 'mirror' },
+            { text: '~curious~ Who stops here?', goto: 'who' },
+          ],
+        },
+        who: {
+          say: ["~neutral~ Porters going down with crates and coming up with nothing. Clerks from the rim who missed their cab. A guard on his day off, once, who wouldn’t say which gate.",
+            "~tired~ Nobody stays. That’s what the middle is for. I don’t mind. The tea goes on being hot."],
+          choices: [{ text: '~curious~ And the mirror?', goto: 'mirror' }, { text: '~neutral~ Some other time.', end: true }],
+        },
+        again: {
+          say: ["~happy~ Back again? Up or down today?"],
+          choices: [{ text: '~curious~ Tell me about the mirror.', goto: 'mirror' }, { text: '~neutral~ Just passing.', end: true }],
+        },
+        mirror: {
+          say: ["~solemn~ My mother put it up. It caught the Lodestar and threw a coin of its light down to the bottom terraces, so they could see it there without breaking their necks.",
+            "~sad~ Then the smog greased it over, and someone at the top had it turned to shine on a billboard. The bottom has had the billboard’s light ever since.",
+            "~curious~ Would you *wash it* for me (shoot), then *push it round from the side* until it faces up the shaft? My arms are for pouring."],
+          choices: [
+            { text: '~neutral~ I’ll see to it.', do: { start: 'incal.mirror' }, goto: 'thanks' },
+            { text: '~neutral~ Maybe later.', end: true },
+          ],
+        },
+        thanks: { say: ["~happy~ It clicks when it’s right. My mother said it sounded like someone remembering something."], choices: [{ text: '~neutral~ Wash, then turn.', end: true }] },
+        busy: {
+          say: [{ if: { not: { flag: 'incal.mirror.washed' } }, text: "~neutral~ *Wash it first* (shoot). You can’t send light down through twenty years of smog." },
+            { if: { flag: 'incal.mirror.washed' }, text: "~neutral~ Clean as a cup. Now *push it round from the side*, one notch at a time, until it faces up the shaft." }],
+          choices: [{ text: '~neutral~ On it.', end: true }],
+        },
+        already: {
+          say: ["~surprised~ Somebody’s washed my mother’s mirror and turned it up again. Was that you? Without even stopping for tea?",
+            "~happy~ Then this one’s on the stall."],
+          do: [{ set: { 'met.perrine': true } }, { start: 'incal.mirror' }, { stage: ['incal.mirror', 'tell'] }],
+          next: 'turned',
+        },
+        turned: {
+          say: [{ if: { flag: 'incal.lit' }, text: "~surprised~ Look at that. A coin of the Lodestar, going down past every level. Somebody at the bottom has it on their wall right now." },
+            { if: { not: { flag: 'incal.lit' } }, text: "~happy~ It faces up again. Now it only needs something up there worth catching. The light’s gone dim, they say." },
+            "~solemn~ My mother would have stood here all night watching it. I’ll stand here for both of us. I’m here anyway."],
+          do: [{ advance: 'incal.mirror' }, { set: { 'incal.mirror.done': true } }],
+          choices: [{ text: '~happy~ I’ll take that tea now.', goto: 'tea' }, { text: '~neutral~ Goodbye, Perrine.', end: true }],
+        },
+        tea: { say: ["~happy~ (Perrine pours. It is hot at the top and warm at the bottom, as promised.)", "~playful~ No charge. Halfway prices: half of nothing."], choices: [{ text: '~happy~ Thank you.', end: true }] },
+        carrying: {
+          say: ["~surprised~ That’s humming. Is that a piece of the light? Then don’t stop for tea. *Go up.* The tea will still be here when you come down."],
+          choices: [{ text: '~neutral~ I’m going up.', end: true }],
+        },
+        after: {
+          say: [{ if: { flag: 'incal.lit' }, text: "~happy~ The bottom sent a thank-you up on the goods hoist. A smog-cabbage. I’m choosing to take it kindly." },
+            { if: { not: { flag: 'incal.lit' } }, text: "~neutral~ The mirror’s waiting. All it needs is the Lodestar to wake up and give it something to catch." },
+            "~happy~ Up or down today?"],
+          choices: [{ text: '~neutral~ A bit of both.', end: true }],
+        },
       },
     },
   },
@@ -436,17 +524,17 @@ export const RIM = {
         },
         pass: {
           say: ["~neutral~ I write them. One fare, paid in advance, and a name. Any name. Most people pick their own.",
-            "~playful~ No coin? Then fetch me one I’m owed. *Hask, who sells views along the rim*, took a cab on Tuesday and paid in compliments. *Collect his fare*, and the pass is yours."],
+            "~playful~ No coin? Then fetch me one I’m owed. *Tobin, who sells views along the rim*, took a cab on Tuesday and paid in compliments. *Collect his fare*, and the pass is yours."],
           do: [(ctx) => { const q = ctx.quests; if (!q.isStarted('incal.pass')) q.start('incal.pass'); if (q.stage('incal.pass') === 'lio') q.advance('incal.pass', 'lio'); }],
           choices: [{ text: '~happy~ I’ll collect it.', end: true }, { text: '~curious~ Why don’t the cabs stop below the smog?', goto: 'why' }],
         },
         waiting: {
-          say: [{ if: { quest: 'incal.pass', stage: 'fare' }, text: "~neutral~ *Hask, along the rim*, selling views of a hole. One fare. He’ll pretend he’s forgotten. He hasn’t." },
-            { if: { not: { quest: 'incal.pass', stage: 'fare' } }, text: "~curious~ Got Hask’s coin? No? Then the cabs and I will go on ignoring you together." }],
+          say: [{ if: { quest: 'incal.pass', stage: 'fare' }, text: "~neutral~ *Tobin, along the rim*, selling views of a hole. One fare. He’ll pretend he’s forgotten. He hasn’t." },
+            { if: { not: { quest: 'incal.pass', stage: 'fare' } }, text: "~curious~ Got Tobin’s coin? No? Then the cabs and I will go on ignoring you together." }],
           choices: [{ text: '~neutral~ On my way.', end: true }],
         },
         paid: {
-          say: ["~surprised~ Hask paid? In a coin? And he says he tipped? I’ll frame it, next to the compliments.",
+          say: ["~surprised~ Tobin paid? In a coin? And he says he tipped? I’ll frame it, next to the compliments.",
             "~neutral~ (Lio stamps a card with the palace seal and punches a name into it, more or less yours.) *Your cab pass.* Whistle when a cab goes by, and it stops. Get in one that waits, and it goes."],
           do: [{ take: 'fare' }, { give: 'cabpass' }, { advance: ['incal.pass', 'back'] }],
           choices: [{ text: '~happy~ Thank you, Lio.', end: true }],
@@ -457,7 +545,7 @@ export const RIM = {
     },
   },
   hask: {
-    id: 'hask', name: 'Hask', title: 'seller of views', color: '#f2c54b', head: 'hair', cape: 0,
+    id: 'hask', name: 'Tobin', title: 'seller of views', color: '#f2c54b', head: 'hair', cape: 0,
     talk: { listen: [
       ["~shout~ Views of the abyss! Very reasonable! Stand here, look down, discover how reasonable!", "~playful~ Up is free. Please stop demonstrating that in front of customers."],
       '~neutral~ Nine levels. Eleven if you count the smog and the lake. The rich at the top, the poor at the bottom, and a light in the middle that nobody pays for, so nobody looks at it.',
@@ -465,7 +553,7 @@ export const RIM = {
       { if: { not: { flag: 'box.incal.soles' } }, say: '~whisper~ A free one, since you’re not buying: there’s a box on top of *the lone stone pillar*, round the rim from your ship. A good climb. A terrible view, of a box.' },
       { after: LOOKED, if: { not: { quest: 'incal.pass', stage: 'fare' } }, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
       // (last: the list's places are the save's memory of what was said)
-      { after: { quest: 'incal.pass', stage: 'fare' }, say: ["~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.", "~tired~ (Hask counts out one bent coin, slowly, as if it were the last view on the rim.) *Take it to Lio.* Tell him I tipped."],
+      { after: { quest: 'incal.pass', stage: 'fare' }, say: ["~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.", "~tired~ (Tobin counts out one bent coin, slowly, as if it were the last view on the rim.) *Take it to Lio.* Tell him I tipped."],
         do: [{ give: 'fare' }, { advance: ['incal.pass', 'fare'] }] },
     ] },
   },
@@ -480,7 +568,7 @@ export const THINGS = {
       nodes: {
         full: {
           say: ["~neutral~ A brass bowl holds a hand-long splinter of the Lodestar. The familiar mark is cut into one facet: {glyph}",
-            "~whisper~ It hums like wet glass, leaning faintly toward the light above."],
+            "~whisper~ It hums, thin as a held breath, leaning faintly toward the light above."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         empty: { say: ["~solemn~ The bowl is empty of the splinter. Someone has put a candle in its place."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -499,6 +587,28 @@ export const THINGS = {
         },
         loose: { say: ["~neutral~ The pin is out. *Push the counterweight sideways round the post* to swing the basket in. Pushing along the arm won’t help."], choices: [{ text: '~neutral~ (step back)', end: true }] },
         in: { say: ["~neutral~ The basket is safely over the terrace. On the tin’s lid, someone has scratched DOV."], choices: [{ text: '~neutral~ (step back)', end: true }] },
+      },
+    },
+  },
+  mirror: {
+    id: 'mirror', name: 'The halfway mirror', title: 'on its pole by the tea stall', color: '#d8a24a', voice: 0.6,
+    talk: {
+      entry: [{ if: { all: [{ flag: 'incal.mirror.washed' }, { flag: 'incal.mirror.turned' }] }, node: 'up' }, { if: { flag: 'incal.mirror.washed' }, node: 'clean' }, { node: 'grimy' }],
+      nodes: {
+        grimy: {
+          say: ["~neutral~ A round mirror on a pole, in a brass frame that turns on a ring of eight notches. Smog has greased it over until it reflects nothing at all.",
+            "~neutral~ *Wash it*: aim (LT / L2), then shoot (RT / R2)."],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
+        clean: {
+          say: [{ if: { not: { flag: 'incal.mirror.turned' } }, text: "~neutral~ Clean now. It faces sideways, at a billboard selling something bright. *Push the frame from the side* (C, middle click or RB / R1) to turn it, one notch at a time, until it faces up the shaft." }],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
+        up: {
+          say: [{ if: { flag: 'incal.lit' }, text: "~solemn~ The mirror looks up the shaft, at the Lodestar. A coin of its light goes down past you, toward the bottom." },
+            { if: { not: { flag: 'incal.lit' } }, text: "~neutral~ The mirror looks up the shaft, at the dim Lodestar, and holds what little it has." }],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
       },
     },
   },

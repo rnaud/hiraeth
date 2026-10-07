@@ -61,6 +61,20 @@ const stand = (p, label, tol = 1.2) => {
   return g;
 };
 
+
+test('the fallen giant on the plain can be looked at, from in front of its face', async () => {
+  const { allInteractables } = await import('../src/interact.js');
+  const e = allInteractables().find((x) => x.id === 'colossus');
+  assert.ok(e, 'the colossus has a look-at');
+  const foot = e.at();
+  const g = physics.groundAt(foot.x, foot.y + 3, foot.z, 8);
+  assert.ok(Number.isFinite(g) && Math.abs(g - foot.y) < 1.2, `in front of its face is walkable (${g?.toFixed?.(2)} vs ${foot.y.toFixed(2)})`);
+  assert.ok(foot.distanceTo(A.colossus.face) < 30, 'near its face');
+  const r = new DialogueRunner(THINGS.colossus, { game });
+  assert.match(r.pages.join(' '), /lies on its side in the plain/);
+  assert.equal(game.flag('arzach.colossus.seen'), true);
+});
+
 test('the people stand on the plain, and the tower’s balcony, steps and sill can be climbed', () => {
   for (const [id, n] of Object.entries(W.people)) stand(n.pos, id, 1.6);
   const T = A.tower;
@@ -264,5 +278,6 @@ test('looking at the stone hand starts its quest and says what to do', () => {
   const look = THINGS.palm.talk.nodes.look;
   assert.equal(look.do?.start, 'arzach.hand', 'looking at it puts the knuckles in the journal');
   const strike = THINGS.palm.talk.nodes[look.choices.find((c) => c.goto)?.goto];
-  assert.ok(strike && /shoot/i.test(strike.say.join(' ')) && /Hollin/.test(strike.say.join(' ')), 'shoot a knuckle; Hollin knows the order');
+  assert.ok(strike && /shoot/i.test(strike.say.join(' ')) && /Kesh/.test(strike.say.join(' ')), 'shoot a knuckle; Kesh knows the order');
 });
+

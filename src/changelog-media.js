@@ -102,7 +102,38 @@ const studio = (query, size = [960, 720]) => ({ page: 'studio.html', query: `${q
 const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 720], wait: 1500, ...o });
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
+// (the story's second pass, v0.83: a save six worlds along the route, everything charted and heard so far)
+const ROUTE = ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'incal', 'garage', 'buried', 'spheres', 'bazaar'];
+const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.powered': true, 'charge.given': true, 'charge.card': true,
+  ...Object.fromEntries(ROUTE.slice(0, n).map((w) => [`world.${w}.done`, true])), ...Object.fromEntries(Array.from({ length: n }, (_, i) => [`calls.${i + 1}`, true])),
+  ...(n >= 6 ? { 'calls.home': true } : {}), ...flags }, keepsakes: [] });
+const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
+
 export const CHANGELOG_MEDIA = {
+  '0.83': [
+    { match: 'Once four worlds are behind you, a faint signal pulses', shots: [
+      { name: 'relay-signal', caption: 'The galactic map six worlds along: the Signal Market, not charted yet, pulses as “a signal” (home’s panel says where it is)', commit: '1af87675',
+        view: { level: 'edena', hud: true, save: saveAlong(6), setup: 'window.ship.map.toggle(true)', wait: 2500 } },
+      { name: 'relay-charted', caption: 'Nine worlds along, the market charted: its panel says what the receiver hears from it', commit: '1af87675',
+        view: { level: 'buried', hud: true, save: saveAlong(9), setup: "window.ship.map.toggle(true); window.ship.map.select(window.ship.map.entries.findIndex((e) => e.id === 'bazaar'))", wait: 2500 } },
+    ], see: 'From four worlds done, open the galactic map at the ship’s holo table: the Signal Market’s place pulses, named or not. With no message waiting, the cockpit’s voicemail says where the signal comes from, and its screen reads RELAY SIGNAL. After the market, step out of the ship and back in: the held recording waits at the voicemail, and after it the father’s own.' },
+    { match: 'Your mother’s note in the ship’s galley', see: 'Aboard the ship, the note pinned to the rib by the galley.' },
+    { match: 'At the stone at home, the listening shell and the echo shell', shots: [
+      { name: 'stone-shells', caption: 'The slab after the ending, every gift on it: the listening shell (white) and the echo shell (brass) among them now', commit: 'f333d23b',
+        view: { level: 'home', eye: [-6.22, 1.25, 14.96], target: [-6.47, 0.3, 16.41], fov: 50, hour: 16, player: [-9, 0, 12],
+          save: saveAlong(11, { 'ending.done': true, 'ending.keepsake': 'all', ...Object.fromEntries(GIFTS.map((g) => [`item.${g}`, true])), 'home.stone': GIFTS.map((g) => `item.${g}`) }) } },
+    ], see: 'Find the listening shell and the echo shell in the makers’ boxes before you go home; or, after the ending, carry them to the stone and pay your respects.' },
+    { match: 'What happened at Esk’s terraces in Viridel', see: 'The game menu’s Quests page after the terraces have gone (“What happened”). Then leave Viridel, come back, and talk to Esk on the bottom terrace.' },
+    { match: 'Viridel closes with a few words of its own', see: 'Tell Mira what was under the flowers on Odile and Talo’s ship: the toast as the world’s quest ends.' },
+    { match: 'In the Buried Machine, Wen has thought about the old story', see: 'After Tooth Day, talk to Wen by the great dome and ask about the last tooth; then talk to Hask on his bench.' },
+    { match: 'Everyone has a name of their own now', see: 'The Hangar’s girl with the ball (Zazie), Viridel’s climbing child (Rue), the seller of views on the City-Shaft’s rim (Tobin), the Buried Machine’s listener (Ket) and boy (Jot), the keeper of Vael’s stone hand (Kesh), the spheres’ listener (Linnet) and hill-climber (Emrys), the Undertower’s guide (Hobb), Vael II’s bridge keeper (Agathe), the desert’s dune walker (Rima), stone listener (Dalia) and sketcher (Naji). The credits list them.' },
+    { match: 'Vael II’s people sound more like themselves', see: 'In Vael II, talk to Brother Calix, Mother Ysolde, Ondine on the plain, Tiv at the cairn, and Agathe on the founders’ bridge once the stones come down.' },
+    { match: 'Halfway down the City-Shaft, by the middle levels’ cab stop', shots: [
+      { name: 'halfway-stall', caption: 'The middle levels’ promenade, ten metres from the cab stop: Perrine’s halfway tea stall, the mirror on its pole, a relic on the awning', commit: 'dab14faa',
+        view: { level: 'incal', eye: [211.93, -22.0, 27.45], target: [213.92, -22.5, 33.01], fov: 55, player: [212.98, -23.7, 23.16], save: saveAlong(6, { 'item.jetpack': true }) } },
+    ], see: 'Take a cab to the middle levels (or fly down to the terrace at −24 m) and walk along the promenade: talk to Perrine, wash the mirror (shoot) and push its frame round from the side until it faces up the shaft. With the Lodestar lit, its glass glows, and Ossa at the bottom has something to say.' },
+    { match: 'A few quiet places have something to say now', see: 'In Vael, walk up to the fallen giant’s face on the plain; in the desert, look up at the lintel of the Givers’ Hearth’s door, look at the little mask inside the masked head in the southern dunes, and read the slate by the hut at the crashed hull, then meet Marrow again.' },
+  ],
   '0.82': [
     { match: 'The camera follows closer', shots: [
       { name: 'camera-desert', caption: 'Open desert, the camera as it starts: before 9.5 m back and high; after 6.4 m back, lower, the traveller a quarter of the view', from: 'the camera work’s own screenshots, before and after, the same spot, heading and hour (7 October)' },

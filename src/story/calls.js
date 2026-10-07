@@ -49,6 +49,7 @@
 
 import { ENDING_WORLDS, peopleOf, chosenKeepsake } from './ending.js';
 import { spoken } from './tone.js';
+import { relaySignal, RELAY_COME_HOME } from './relay.js';
 
 export const KINDS = ['thing', 'song', 'word', 'person', 'knowing'];
 export const isQuiet = (k) => !!k && k.kind !== 'thing' && k.kind !== 'nothing' && k.kind !== 'all';
@@ -82,6 +83,8 @@ export const REEL_FROM = 4;
 export const CALL_COUNT = 11;
 /** The mother's own recording, about Ilen ("For when he asks"). */
 export const ILEN_CALL = 'ilen';
+/** The father on Ilen, the next he finds after hers (it waits on its own when no world is left to finish). */
+export const ILEN_AFTER_CALL = 'ilen.after';
 
 const WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
 const name = (k) => k?.name ?? 'nothing';
@@ -312,6 +315,7 @@ const BEATS = [
       YOU("~solemn~ (You ask the reel to search for Ilen, the name from the market.)", { 'calls.ilen.asked': true, 'calls.ilen.at': f.here ?? true }),
       SHIP("~neutral~ One recording in your mother’s voice. Label: “For when he asks.” No match in your father’s voice."),
       YOU('~whisper~ Not here. Not yet.'),
+      SHIP('~neutral~ Recording held. It will wait at the console.'),
     ],
   },
   {
@@ -324,6 +328,8 @@ const BEATS = [
     body: () => [
       F('~sad~ Your mother says I should make one of these. So.'),
       F("~sad~ I said the same words to you at the port that I said to your sister. Heard them leaving my mouth. I knew what they’d done before, and I said them again."),
+      // (the line written for the last recording, which plays before the market in any run: it lives here now)
+      F("~sad~ I would have welcomed her back with empty hands. I never told her that."),
     ],
   },
   {
@@ -424,7 +430,7 @@ function beats(f, n, max = 2) {
 function motherAlone(f) {
   return [
     SHIP("~neutral~ Playing “For when he asks.” Your mother’s recording."),
-    M("~whisper~ Hello, love. Your father’s asleep. I need to tell you something without him interrupting.", { 'calls.ilen.told': true }),
+    M("~whisper~ Hello, love. Your father’s asleep. I need to tell you something without him interrupting.", { 'calls.ilen.told': true, 'calls.ilen.told.at': f.here ?? true }),
     M("~neutral~ If you’re asking about Ilen, perhaps you heard his message on an old relay. I should have told you myself, years ago."),
     M("~solemn~ Ilen was your sister. Your elder sister. She had grown up and left before you were born."),
     M("~sad~ He sent her off with the same words. Make us proud. Bring back something of value."),
@@ -438,10 +444,17 @@ function motherAlone(f) {
   ];
 }
 
+/** The father's own, on Ilen: the 'ilen.after' beat as a recording of its own (src/story/relay.js). */
+function fatherOnIlen(f) {
+  const b = BEATS.find((x) => x.id === 'ilen.after');
+  return [...b.intro(f), ...b.body(f), YOU('~whisper~ (Empty hands. He meant me too.)'), SHIP('~neutral~ Logged five years ago.')];
+}
+
 /** The label on the console's screen while recording n plays (src/ship/portrait.js). */
 export function recordingLabel(n, ctx = {}) {
   if (n === 'prologue') return '';
   if (n === ILEN_CALL) return 'FOR WHEN HE ASKS';
+  if (n === ILEN_AFTER_CALL) return 'LOGGED 5 YEARS AGO';
   if (n === 'final') return 'THE OLDEST RECORDING';
   const f = facts(ctx);
   if (typeof n === 'number' && n >= ENDING_WORLDS) {
@@ -454,7 +467,7 @@ export function recordingLabel(n, ctx = {}) {
 /** Who stands on the hologram for recording n: 'father' | 'mother' | 'both'. */
 export function onHologram(n) {
   if (n === ILEN_CALL) return 'mother';
-  if (n === 'prologue') return 'father';
+  if (n === 'prologue' || n === ILEN_AFTER_CALL) return 'father';
   return typeof n === 'number' && n < 3 ? 'father' : 'both';
 }
 
@@ -466,6 +479,7 @@ export function onHologram(n) {
 export function callLines(n, ctx = {}) {
   const f = facts(ctx);
   if (n === ILEN_CALL) return motherAlone(f);
+  if (n === ILEN_AFTER_CALL) return fatherOnIlen(f);
   const { k, quiet, flag } = f;
   f.shifted = f.ilenTold;   // once the truth is told, the recordings he finds are the sorrier ones
   f.tier = f.shifted ? 3 : Math.min(2, Math.floor(quiet / 2) + (n >= 4 ? 1 : 0));
@@ -496,10 +510,15 @@ export function callLines(n, ctx = {}) {
   if (f.ended || (n >= ENDING_WORLDS && f.asked)) {
     const old = OLDER[(n - ENDING_WORLDS - 1 + OLDER.length * 4) % OLDER.length];
     const c = f.ended ? (f.chosen ?? chosenKeepsake({ flag, keepsakes: () => f.all })) : null;
+    // the world's own word still finds its line (the later worlds' lines play here: their
+    // recordings all come after the last one on the reel), then the oldest side
+    const found = !leadBody && REEL[f.lastWorld] ? [...search, ...find, ...react] : [];
     return [
       ...leadIntro,
       ...(leadBody ?? []),
-      SHIP(f.ended ? '~neutral~ The oldest side of the reel. Playing.' : "~neutral~ No recordings remain on this side. Turning to the oldest side of the reel."),
+      ...found,
+      SHIP(found.length ? (f.ended ? '~neutral~ Then the oldest side of the reel. Playing.' : '~neutral~ Nothing newer on this side. Turning to the oldest side of the reel.')
+        : f.ended ? '~neutral~ The oldest side of the reel. Playing.' : "~neutral~ No recordings remain on this side. Turning to the oldest side of the reel."),
       ...old.lines,
       ...(k ? [YOU(`~neutral~ (You hold ${nameIn(k)} up to the projector anyway.)`)] : []),
       ...rest.slice(0, 1),
@@ -513,7 +532,9 @@ export function callLines(n, ctx = {}) {
   if (n >= ENDING_WORLDS) return [
     ...leadIntro,
     ...(leadBody ?? []),
-    YOU('~neutral~ (You ask the reel for the last thing they recorded.)'),
+    // the world's own word first, as every time (so the sixth world's line plays too), then the last of all
+    ...(!leadBody && REEL[f.lastWorld] ? [...search, ...find, ...react] : []),
+    YOU(`~neutral~ (${!leadBody && REEL[f.lastWorld] ? 'Then you' : 'You'} ask the reel for the last thing they recorded.)`),
     SHIP('~neutral~ The last recording on the reel. Playing.'),
     M('~solemn~ We are both here. He wants to say something.', { 'calls.home': true }),
     F('~solemn~ Son.'),
@@ -528,6 +549,8 @@ export function callLines(n, ctx = {}) {
     SHIP("~neutral~ That was the last recording on the reel. Logged two years ago, eleven days before the house went quiet."),
     YOU('~whisper~ I’m coming home.'),
     SHIP('~neutral~ Course for home available on the galactic map.'),
+    // the broadcast, still out there (src/story/relay.js): the way to Ilen before the stone
+    ...(relaySignal({ flag, completed: f.completed.length || n })?.stage === 'far' ? [SHIP(RELAY_COME_HOME)] : []),
   ];
   const A = AGE[n] ?? AGE[5];
   return [
@@ -566,17 +589,30 @@ export function completedWorlds(ids, { flag, storyDone }) {
 export function ilenPending(flag) {
   if (!flag('calls.ilen.asked') || flag('calls.ilen.told') || flag(`calls.${ILEN_CALL}`)) return false;
   const at = flag('calls.ilen.at');
-  return at === true || at === undefined || flag('ship.level') !== at;
+  // (it waits once he has stepped out of the ship, `calls.ilen.later`, or once the ship has flown)
+  return at === true || at === undefined || !!flag('calls.ilen.later') || flag('ship.level') !== at;
+}
+
+/**
+ * The father on Ilen waits on its own once the mother's has played and he has stepped out
+ * (`calls.ilen.after.later`) or the ship has flown, if no world's recording has brought it first
+ * (the market is the last world on the route, so in a run in order none is left to).
+ */
+export function ilenAfterPending(flag) {
+  if (!flag('calls.ilen.told') || flag('calls.beat.ilen.after') || flag(`calls.${ILEN_AFTER_CALL}`)) return false;
+  const at = flag('calls.ilen.told.at');
+  return at === true || at === undefined || !!flag('calls.ilen.after.later') || flag('ship.level') !== at;
 }
 
 /**
  * The recording waiting at the console, or null: the mother's own first (see
  * ilenPending), then the first unheard recording n with n <= the number of
- * completed worlds (one per completion, in order).
+ * completed worlds (one per completion, in order), then the father's own on Ilen (ilenAfterPending).
  */
 export function pendingCall({ flag, completed }) {
   if (ilenPending(flag)) return ILEN_CALL;
   for (let n = 1; n <= Math.min(CALL_COUNT, completed); n++) if (!flag(`calls.${n}`)) return n;
+  if (ilenAfterPending(flag)) return ILEN_AFTER_CALL;
   return null;
 }
 

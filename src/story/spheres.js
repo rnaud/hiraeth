@@ -8,9 +8,9 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, orbDegree } from './spheres-data
 
 // The Garden of Spheres' story, alive (spheres-data.js has the words).
 //
-//   the grove    Aube, the listener (a level person), near the start
+//   the grove    Linnet, the listener (a level person), near the start
 //   the lake     Nell on the south shore; the glint in the water (shoot it)
-//   the hill     Ivo, who has looked under a sphere
+//   the hill     Emrys, who has looked under a sphere
 //   the spheres  every great sphere rings its own note when the fluid touches
 //                it (shoot them: the garden is an instrument); three remember
 //                more: splashed, a ring of light closes round its foot, it
@@ -36,7 +36,7 @@ export function setupSpheres(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   const Q = 'spheres.listen';
-  // the main quest doesn't just appear: it starts when you talk to Aube (the scout finds them till then: src/story/quests.js opensWith)
+  // the main quest doesn't just appear: it starts when you talk to Linnet (the scout finds them till then: src/story/quests.js opensWith)
   if (!quests.isStarted(Q)) quests.opensWith(Q, 'aube.spheres', { at: 'aube' });
   const H = (x, z) => level.ground.heightAt(x, z);
   const onGround = (x, z, from = 30) => { const g = physics.groundAt(x, from, z, 80); return V(x, Number.isFinite(g) ? g : H(x, z), z); };
@@ -246,7 +246,7 @@ export function setupSpheres(ctx) {
     const grounded = player.onGround ?? true;
 
     // the spheres that remember: the ring round its foot flares when the fluid lands, and closes as it remembers
-    // (standing still beside one does nothing: it wants the fluid, Aube's "give one a splash")
+    // (standing still beside one does nothing: it wants the fluid, Linnet's "give one a splash")
     for (const s of L) {
       const d = flat(pp, s.centre), inRange = d < s.o.R + 30 && pp.y < s.centre.y + s.o.R + 3;
       if (inRange && !s.near && !heard(s.id) && !s.hinted && game.flag('spheres.aube.heard')) { s.hinted = true; toast('Give it a splash of your fluid, and listen.'); }

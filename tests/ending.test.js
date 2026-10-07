@@ -124,6 +124,12 @@ test('everything goes on the stone: the keepsakes, then the makers’ small gift
   assert.deepEqual(list.map((t) => t.id), [...ks.map((k) => k.id), 'item.fire', 'item.lens', 'item.star'], 'every keepsake once, in order, then the gifts');
   assert.ok(list.every((t) => t.name && t.kind), 'with names and kinds');
   assert.ok(!TOKEN_ITEMS.some((id) => ['backpack', 'jetpack', 'glider'].includes(id)), 'he wears those');
+  // the later charms go down too, each with its own line (the listening shell, the echo shell)
+  const shells = tokenList([], ['shell', 'echo']);
+  assert.deepEqual(shells.map((t) => t.id), ['item.shell', 'item.echo']);
+  const said = shells.map((t) => tokenLine(t).text);
+  assert.match(said[0], /listening shell/i); assert.match(said[1], /echo shell/i);
+  assert.equal(new Set(TOKEN_ITEMS.map((id) => tokenLine({ kind: 'item', item: id, name: id }).text)).size, TOKEN_ITEMS.length, 'every gift its own line');
   assert.equal(leaveTokens(game, list), ALL);
   assert.equal(game.flag('ending.keepsake'), 'all');
   assert.equal(game.flag('ending.tokens'), list.length);

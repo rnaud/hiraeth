@@ -18,7 +18,7 @@ import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, RIDER_CALL, RIDER
 //                for the first time; until then she is hidden and can't be
 //                ridden (bird.dormant)
 //   the plain    Senn listens to the standing stones (they hum as you pass);
-//                Hollin keeps the stone hand, whose knuckles ring
+//                Kesh keeps the stone hand, whose knuckles ring
 //   the spires   two shed feathers on the caps of two spires; the third
 //                drifts down from the stone hand's palm when it has rung
 //
@@ -174,6 +174,14 @@ export function setupArzach(ctx) {
   const palmFoot = H.palm.clone().addScaledVector(V(H.normal.x, 0, H.normal.z).normalize(), 9);
   palmFoot.y = ground(palmFoot.x, palmFoot.z, H.palm.y + 10);
   thing(THINGS.palm, palmFoot, { range: 6, prompt: 'look at the stone hand', look: H.palm });
+  // the fallen giant: a look from in front of its face (src/levels/arzach.js colossus)
+  if (A.colossus?.face) {
+    const C = A.colossus, out = V(C.face.x - C.head.x, 0, C.face.z - C.head.z).normalize();
+    const faceFoot = C.face.clone().addScaledVector(out, 14);
+    faceFoot.y = ground(faceFoot.x, faceFoot.z, C.face.y + 30);
+    thing(THINGS.colossus, faceFoot, { range: 9, prompt: 'look at the fallen giant', look: C.face, height: 6 });
+    quests.locate?.('colossus', () => faceFoot);
+  }
 
   // ---------------------------------------------------------------- the rider's flute, on the sill
   // a little bone flute with a white feather tied to it by a worn cord, lying on the sill by the window
@@ -369,7 +377,7 @@ export function setupArzach(ctx) {
           hand.seq = KNUCKLE_ORDER[0] === k.i ? [k.i] : [];
           hand.fail = 1;
           if (sound.ctx) sound.critter?.('clank', 0.8);
-          if (!hand.hinted && quests.isActive('arzach.hand')) { hand.hinted = true; toast('A dull knock. The knuckles go quiet. Small to tall, Hollin said.'); }
+          if (!hand.hinted && quests.isActive('arzach.hand')) { hand.hinted = true; toast('A dull knock. The knuckles go quiet. Small to tall, Kesh said.'); }
         } else if (n === KNUCKLE_ORDER.length) ringHand();
         return true;
       } });

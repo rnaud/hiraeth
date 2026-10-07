@@ -6,7 +6,7 @@ A violet wood under giant pale mushrooms: glowing eggs, crystal reeds, moss dome
 
 Character exploration sheet for the old keeper of the lit pools in a deep mushroom wood, in a surreal science fiction adventure. Thin and stooped, a long dusk-purple coat with a hem of tiny lamps, a tall hat like a mushroom cap, a long pole with a hooked lantern, a flask of glowing oil, white beard tucked into the belt. Six distinct variations exploring the mushroom hat, lamp hem, pole and poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
 
-## Wick, a young lamp-keeper
+## Robin, a young lamp-keeper
 
 Character exploration sheet for an eager apprentice lamp-keeper in a deep wood, in a surreal science fiction adventure. Small, a too-big dusk-purple coat, a little mushroom cap hat, a lantern held high with both hands, a satchel of wicks, soot on the nose, determined face. Six distinct variations exploring coat, hat, the lantern and poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
 

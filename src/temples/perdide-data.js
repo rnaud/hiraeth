@@ -56,7 +56,7 @@ export const PEOPLE = {
         still: { say: ["~solemn~ Find the makers’ cold tool inside. Something to slow her while you calm her. Wendel said they had a way."], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },
         after: {
           say: ["~surprised~ No snapping! And the dome’s flowering. White and blue, all opening at dusk.",
-            "~happy~ Every jaw-plant has flowers around its roots now. Wendel laughed until he sat down. Fortunately, somewhere clear of teeth.",
+            "~happy~ Every jaw-plant has flowers around its roots now. Wendel laughed out loud, and every jaw on the bed turned to look at him.",
             "~solemn~ The Mother’s sleeping. You can hear slow breathing through the stone."],
           choices: [
             { text: '~solemn~ She only wanted it quiet.', goto: 'quiet' },

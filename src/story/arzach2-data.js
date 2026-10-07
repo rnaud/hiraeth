@@ -90,7 +90,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~playful~ A visitor on a bird! The last rider walked down the aqueduct and never wrote. I hope the bird gave you better references.", "~sad~ I’m Ysolde. I write to my sister every winter. Thirty letters. None sent. A very reliable postal service, mine."],
+          say: ["~playful~ A visitor on a bird! The last rider walked down the aqueduct and never wrote. I hope the bird gave you better references.", "~sad~ I’m Ysolde. I write to my sister every winter. Thirty letters. None sent. They’re in a box under my bed, in order."],
           choices: [
             { text: '~curious~ Why not?', goto: 'why' },
             { text: '~curious~ Where is your sister?', goto: 'where' },
@@ -103,7 +103,7 @@ export const PEOPLE = {
           do: [{ give: 'letter' }, { start: 'arzach2.letter' }],
           choices: [{ text: '~neutral~ I’ll bring it to her.', end: true }],
         },
-        bell: { say: ["~playful~ Ask *Brother Calix at the monastery*. His bell stopped when the cloud rose. Which caused which? We’ve had thirty years of supper arguments."], choices: [{ text: '~happy~ I could carry a letter to your sister.', goto: 'carry' }, { text: '~happy~ Thank you.', end: true }] },
+        bell: { say: ["~playful~ Ask *Brother Calix at the monastery*. His bell stopped when the cloud rose. Which caused which? Ondine and I used to argue it over supper. I’ve missed the arguing."], choices: [{ text: '~happy~ I could carry a letter to your sister.', goto: 'carry' }, { text: '~happy~ Thank you.', end: true }] },
         waiting: { say: ["~scared~ Still carrying it? Good. No, bad. Take it to Ondine! *The aqueduct is past the needles.*"], choices: [{ text: '~neutral~ On my way.', end: true }] },
         watching: { say: ["~scared~ She has it? Don’t tell me what she said. I’ll watch *the tower* from our wall tonight. Just in case."], choices: [{ text: '~neutral~ Keep watching.', end: true }] },
         answered: { say: [
@@ -111,7 +111,7 @@ export const PEOPLE = {
           { if: { flag: 'arzach2.lamp.answered' }, text: "~playful~ I flashed back. No need to tell me what my letter said. I was there for the writing." },
           { if: { not: { flag: 'arzach2.lamp.answered' } }, text: "~happy~ What did she say? No, wait. She waved with both arms tonight. Let me keep that for a moment." }], choices: [{ text: '~happy~ She laughed.', goto: 'laughed' }, { text: '~happy~ (smile)', end: true }] },
         laughed: { say: ["~happy~ She laughed? Good. Next winter I’ll deliver the letter myself. You may remind me I said that."], choices: [{ text: '~neutral~ Goodbye, Mother.', end: true }] },
-        after: { say: ["~happy~ I’ve started another letter. *Come for supper.* I’m getting quite efficient.", { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ She said she’d come when the bell rang. It rang. I’ve laid two places at supper. Then took one away. Then put it back." }], choices: [{ text: '~happy~ She’ll come.', end: true }] },
+        after: { say: ["~happy~ I’ve started another letter. *Come for supper.* Three words, and I mean every one.", { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ She said she’d come when the bell rang. It rang. I’ve laid two places at supper. Then took one away. Then put it back." }], choices: [{ text: '~happy~ She’ll come.', end: true }] },
       },
     },
   },
@@ -144,7 +144,7 @@ export const PEOPLE = {
         again: { say: [{ if: { flag: 'arzach2.cairn.last', is: 'fell' }, text: "~angry~ Flat stone below, round stone next, egg on top. Feet, belly, head! Would you stand on your head in this wind?" }, { if: { not: { flag: 'arzach2.cairn.last', is: 'fell' } }, text: "~neutral~ Find my three stones *on the sky stones*. Double-jump between them. Bring them back and stack them *widest first*." }],
           choices: [{ text: '~neutral~ Got it.', end: true }] },
         after: {
-          say: ["~happy~ It stands! And it hums. I don’t remember teaching it that.", "~playful~ Calix calls a cairn a prayer in stone. Mine is a prayer with very good feet."],
+          say: ["~happy~ It stands! And it hums. I don’t remember teaching it that.", "~playful~ Calix calls a cairn a prayer in stone. I think mine is a thank-you. With feet."],
           choices: [{ text: '~happy~ It looks very nice.', end: true }],
         },
       },
@@ -160,7 +160,7 @@ export const LOCALS = [
       entry: [{ if: { flag: 'arzach2.bell.rung' }, node: 'after' }, { if: { flag: 'arzach2.aube.heard' }, node: 'again' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~playful~ Did you come out of the cloud? No? From above it? Good. I like to know which direction to worry about.", "~scared~ I’m Aube. I keep this hermitage and watch the cloud. It has crept higher since I was young. I’ve measured. Repeatedly."],
+          say: ["~playful~ Did you come out of the cloud? No? From above it? Good. I like to know which direction to worry about.", "~scared~ I’m Aube. I keep this hermitage and watch the cloud. It has crept higher since I was young. I mark it every spring, on the same stalk."],
           choices: [
             { text: '~curious~ Why is it higher?', goto: 'why' },
             { text: '~curious~ What are the floating stones?', goto: 'stones' },
@@ -173,7 +173,7 @@ export const LOCALS = [
         },
         stones: { say: ["~curious~ The sky stones were floating long before the bell stopped. They were here in my mother’s day. Monks have a talent for leaving out inconvenient stones."], choices: [{ text: '~curious~ Why is the cloud higher?', goto: 'why' }] },
         go: { say: ["~neutral~ *Whistle for the bird* (X / □). Fly *south-west to the white monastery on the rose cliff*. Stay clear of the cloud."], choices: [{ text: '~happy~ Thank you, Sister.', end: true }] },
-        again: { say: ["~playful~ Calix is at *the white monastery, on the south-western rose cliff*. He still tends the bell. Thirty years is a long time to polish a disappointment."], choices: [{ text: '~happy~ Thank you.', end: true }] },
+        again: { say: ["~playful~ Calix is at *the white monastery, on the south-western rose cliff*. He still tends the bell, every morning, whether it rings or not."], choices: [{ text: '~happy~ Thank you.', end: true }] },
         after: { say: ["~surprised~ The cloud has dropped! A whole hand’s width. I can see the table stalks again!", "~solemn~ Come back and ring it sometime. I’d like a better view before I die."], choices: [{ text: '~neutral~ I will.', end: true }] },
       },
     },
@@ -191,14 +191,14 @@ export const LOCALS = [
       ],
       nodes: {
         hello: {
-          say: ["~happy~ Welcome. Let me guess: you’ve come about the bell. Nobody comes about my lovely hinges.", "~sad~ Thirty years silent, up in that belfry. I oil the yoke every morning. A bell should be ready when its day comes."],
+          say: ["~happy~ Welcome, welcome. You’ve come about the bell, I expect. Everyone who climbs this far has.", "~sad~ Thirty years silent, up in that belfry. I oil the yoke every morning. A bell should be ready when its day comes."],
           choices: [
             { text: '~curious~ Why doesn’t it ring?', goto: 'why' },
             { text: '~neutral~ Sister Aube says the cloud rose when it stopped.', goto: 'why' },
           ],
         },
         why: {
-          say: ["~neutral~ It lost its *clapper*, the bronze piece that strikes inside. When the cloud rose, loose things fell up. Tiles. The clapper. A goat. A difficult morning.", "~sad~ The clapper landed *before the church door on the floating island*. I can see it through my glass. Seeing is considerably easier than fetching."],
+          say: ["~neutral~ It lost its *clapper*, the bronze piece that strikes inside. When the cloud rose, loose things fell up. Tiles. The clapper. A goat. A difficult morning.", "~sad~ The clapper landed *before the church door on the floating island*. I can see it through my glass. Every morning, just out of reach."],
           do: { set: { 'arzach2.calix.asked': true } },
           choices: [{ text: '~happy~ I do. I’ll bring it back.', goto: 'bring' }, { text: '~curious~ What’s that mark on the bell?', goto: 'mark' }],
         },
@@ -211,7 +211,7 @@ export const LOCALS = [
         bring: { say: ["~neutral~ Fly *east to the floating island*. Look for *the church with two towers*. The bronze clapper is outside its door. Mind the edge; the island tilts."], choices: [{ text: '~neutral~ I’ll be back.', end: true }] },
         again: { say: ["~neutral~ *East, on the floating island.* Find *the two-towered church*. The clapper lies at its door."], choices: [{ text: '~curious~ What’s that mark on the bell?', goto: 'mark' }, { text: '~neutral~ On my way.', end: true }] },
         clapper: {
-          say: ["~surprised~ You found it! Still bright where it struck the bell. Here, let me take that. Carefully. I’ve waited thirty years to drop it myself.", "~playful~ (Calix scrambles up the belfry stairs. Hammering follows, with a few words that do not sound like prayers.)", "~scared~ It’s fitted. Now *pull the rope at the tower’s foot*. You do it. My hands won’t stop shaking."],
+          say: ["~surprised~ You found it! Still bright where it struck the bell. Here, let me hold it. Thirty years. It’s heavier than I remembered.", "~playful~ (Calix scrambles up the belfry stairs. Hammering follows, with a few words that do not sound like prayers.)", "~scared~ It’s fitted. Now *pull the rope at the tower’s foot*. You do it. My hands won’t stop shaking."],
           do: [{ take: 'clapper' }, { set: { 'arzach2.clapper.hung': true } }, { advance: [Q, 'clapper'] }],
           choices: [{ text: '~neutral~ I’ll ring it.', end: true }],
         },
@@ -232,7 +232,7 @@ export const LOCALS = [
       entry: [{ if: { has: 'letter' }, node: 'letter' }, { if: { quest: 'arzach2.letter', stage: 'lamp' }, node: 'lamp' }, { if: { quest: 'arzach2.letter', started: true }, node: 'after' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~surprised~ Hello! Heading for the tower? Keep walking. It spends the first half of the journey pretending not to get closer.", "~playful~ I’m Ondine. Thirty years studying how old it is. All I’ve established is that we’re both older now."],
+          say: ["~surprised~ Hello! Someone out on the plain! Heading for the tower? It’s a long walk. I’ve made it every day for thirty years.", "~playful~ I’m Ondine. Thirty years studying how old it is. All I’ve established is that we’re both older now."],
           choices: [
             { text: '~curious~ What’s so special about the tower?', goto: 'tower' },
             { text: '~neutral~ Your sister is at the monastery.', goto: 'sister' },
@@ -241,7 +241,7 @@ export const LOCALS = [
         tower: { say: ["~solemn~ Look at *the face carved in its base*. The monastery didn’t make that. It was here long before them, with the same mark on its brow."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         sister: { say: ["~sad~ My sister Ysolde still writes letters she won’t send. Her lamp burns half the night every winter. I know her thinking light."], choices: [{ text: '~curious~ What’s at the tower?', goto: 'tower' }] },
         letter: {
-          say: ["~surprised~ For me? That’s her writing. She still crosses her sevens. I’d know them anywhere.", "~happy~ (Ondine reads the letter twice. Then she sits on the warm ground and laughs, wiping her eyes.)", "~happy~ *You were right about the tower. I was right about the bell. Come home for supper.* Thirty years to arrange a meal. That sounds like us."],
+          say: ["~surprised~ For me? That’s her writing. She still crosses her sevens. I’d know them anywhere.", "~happy~ (Ondine reads the letter twice. Then she sits on the warm ground and laughs, wiping her eyes.)", "~happy~ *You were right about the tower. I was right about the bell. Come home for supper.* Thirty years, and she still keeps my place."],
           do: [{ take: 'letter' }, { advance: ['arzach2.letter', 'carry'] }],
           next: 'clue',
         },
@@ -257,7 +257,7 @@ export const LOCALS = [
         lamp: { say: [{ if: { flag: 'arzach2.lamp.lit' }, text: "~curious~ It’s burning! Now *push the tiller from the side*. Turn the mirror toward *the carved bell* so Ysolde can see it." },
           { if: { not: { flag: 'arzach2.lamp.lit' } }, text: "~playful~ *Push the lamp’s tiller sideways*, aim its mirror at *the carved bell*, then *light it*. She’ll be watching from the monastery wall." }],
           choices: [{ text: '~neutral~ All right.', end: true }] },
-        after: { say: [{ if: { flag: 'arzach2.lamp.answered' }, text: "~happy~ Her window answered the moment we lit ours. All these years, and she was watching too." }, { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ I heard the bell! That means supper. Soon. I need a moment to remember how to arrive." }, { if: { not: { flag: 'arzach2.bell.rung' } }, text: "~playful~ I said I’d come when the bell rings. Now I find myself rather hoping it will." }],
+        after: { say: [{ if: { flag: 'arzach2.lamp.answered' }, text: "~happy~ Her window answered the moment we lit ours. All these years, and she was watching too." }, { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ I heard the bell! That means supper. I’ll set out at first light, and I won’t stop at the tower." }, { if: { not: { flag: 'arzach2.bell.rung' } }, text: "~playful~ I said I’d come when the bell rings. Now I find myself rather hoping it will." }],
           choices: [{ text: '~neutral~ Goodbye, Ondine.', end: true }] },
       },
     },

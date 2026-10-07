@@ -244,7 +244,7 @@ bell can be heard". Each world has its own name for them:
 | Hangar | (the Major found the mark, never its makers) | "for the next one" (the Major) | the maker's rivets; the Major's thumbprint |
 | Buried Machine | the Maker | thumb-boxes (Wen) | the Maker's Thumb |
 | Viridel | the Builders: the gardeners credit the white builders (androids), who in fact found the pyramids and the spheres already there and copied them, and the mark | Builders' gifts (Oro) | the Builders' mark ("a signature, or an apology"; copied from under the spheres, Oro thinks) |
-| Spheres | something that walked through the sky putting spheres down | left-behinds, presents (Ivo, Ume): the one here is up on the grove's umbrella tree | the Footprint (under every sphere, and round the chest's sides) |
+| Spheres | something that walked through the sky putting spheres down | left-behinds, presents (Emrys, Ume): the one here is up on the grove's umbrella tree | the Footprint (under every sphere, and round the chest's sides) |
 | Lorn | (not named) | the sky-egg (Wendel) | the Hush: three drops of rain over a shut mouth |
 | Lorn II | (not named) | the traveller's chest (Hollin) | the Welcome: three lamps over a hull |
 | Signal Market | (not named; "here before the market") | no chest | the First Sign; the tuning mark; three listeners and the edge of the world (Brush) |
@@ -397,7 +397,7 @@ People:
 - **Ilo**, a child who wants to see the cave: "Do you have a mother?"
 - **Oum**, the pilgrim who fell behind: saw the light sing, and turn, and the tree go dark under it; "ask it why it turned".
 - **Marrow**, salvager and liar: hid the hoverbike; has seen the glyph on things that fell before; his compass now points at your ship.
-- Near the start: **Ysa** the dune walker (the tree "burned every day of my life, until the night before your ball came down"), **Pell** the counter of bones ("Big things lie down and become places"), **Rook** who lost a bike, **Ennor** guide to the salt, **Tamsin** who listens to stones, and a blue-cloaked **traveller** sketching the Sleeping Observatory.
+- Near the start: **Rima** the dune walker (the tree "burned every day of my life, until the night before your ball came down"), **Pell** the counter of bones ("Big things lie down and become places"), **Rook** who lost a bike, **Ennor** guide to the salt, **Dalia** who listens to stones, and a blue-cloaked **traveller** sketching the Sleeping Observatory.
 - Qanat's people at the tree: Tamra the weaver, Idris the potter, Kito the boy, Lula the baker, Haro the guard, Mim the sweeper.
 
 Main quest (`desert.power`), in order:
@@ -497,7 +497,7 @@ People:
 - **Wren**, the old cab (it drives itself, as every cab does now, and speaks from the little screen on its dash) that still stops for anyone who lights the old lamp; its compass spun for an hour.
 - **Corvin Sale**, of the rim, third generation: "A light show. A story for tourists."
 - **Lio**, cab dispatcher: nine hundred cabs lost their compasses at once.
-- **Hask**, seller of views: "Up is free; I can't sell up."
+- **Tobin**, seller of views: "Up is free; I can't sell up."
 
 Main quest (`incal.light`): Nima; down to Ossa and the splinter of the
 Lodestar that fell into Behla's laundry; up to Dov at the palace gate; stand on
@@ -508,8 +508,8 @@ Side quests: carry Pip's ration up to Dov ("Dov's lift token"; first swing it in
 from the old goods hoist over the void: shoot the rusted pin, push the weight
 round the post); light Wren's
 lamp (Wren comes when you hail in the depths); a cab pass from Lio (`incal.pass`:
-the cabs stop for passes, not people; he writes one for the fare Hask owes him,
-which Hask pays in one bent coin). Errand: a taxi token for Vael.
+the cabs stop for passes, not people; he writes one for the fare Tobin owes him,
+which Tobin pays in one bent coin). Errand: a taxi token for Vael.
 
 Keepsakes: *word* "Look up once a day"; *thing* "Dov's lift token". Chest: the
 soft-fall soles on the makers' pillar (the fluid jets wait in the Warden's Well, §11).
@@ -528,7 +528,7 @@ People:
 - **Oïa**, who watches the tower: almost wordless ("Gone." "Her track." "Play."); draws in the sand, mimes the wind and the wings.
 - **Tam**, a boy who copies you.
 - **Senn**, who listens to stones: "They hum. Since the night the light went over."
-- **Hollin**, who keeps the stone hand: "Alive, once. Rang, once." "Small to tall."
+- **Kesh**, who keeps the stone hand: "Alive, once. Rang, once." "Small to tall."
 - **The bird**, unnamed; **the rider**, gone (a mural shows a small figure walking away along an aqueduct).
 
 Main quest (`arzach.bird`): sit with Oïa; ride the wind up the tower's side on
@@ -540,7 +540,7 @@ promises. Until then she is not seen and cannot be ridden.
 
 Side quests: three feathers she shed the night the light went over; ring the
 stone hand's knuckles small to tall (the third feather falls). Errand: a
-feather for the Major (Hollin gives it with his hands and two words).
+feather for the Major (Kesh gives it with his hands and two words).
 
 Keepsake: *person* "The bird's promise" (wherever there is sky, call, and she
 will come). Chest: the hush-cloth on the needle spire (the fluid wings wait in the
@@ -589,16 +589,16 @@ People:
 - **Ambroise**, clerk of the round: "Up is a matter of opinion." Has watched the board eleven years.
 - **Ottla**, mechanic of everything: "It's not broken. It's thinking about whether to be broken." "Habit is a kind of love."
 - **Lune**, who reads the signal at the ring's slit: saw the light go across and turn; three machines stopped that night.
-- **Pip**, a child who doesn't trust down.
+- **Zazie**, a child who doesn't trust down.
 - **Clemence**, who remembers the Major as "a man with a pencil and too many ideas".
-- **Nikko**, who greases the gears; **Ferrol**, who walked round the ring and came back to his own older footprints.
+- **Nikko**, who greases the gears; **Gaspard**, who walked round the ring and came back to his own older footprints.
 - **Major Brask**, absent.
 
 Main quest (`garage.signal`): Ambroise's tube; post it in the upside-down relay
 (stamped with the glyph); Lune shines it through the slit (nine dots: "It's a
 page number. Or a place."); the Major's note on his desk.
 
-Side quests: restart three stopped machines; push Pip's ball to where down stays
+Side quests: restart three stopped machines; push Zazie's ball to where down stays
 down. Errand: a brass gear for Viridel.
 
 Keepsake: *knowing* "The Major's note" ("I built it to see what I would do with
@@ -618,10 +618,10 @@ Half".
 
 People:
 - **Wen**, who counts the teeth (forty-one teeth old): gives the keepsake.
-- **Hask**, keeper of the Wick: has lit it for fifty-two Tooth Days and won't this year, afraid the Tuning Star "was looking for the wheel". (Not the City-Shaft's Hask: same name, his own id, `hask.buried`.)
+- **Hask**, keeper of the Wick: has lit it for fifty-two Tooth Days and won't this year, afraid the Tuning Star "was looking for the wheel". (Id `hask.buried`: the City-Shaft's seller of views shared the name until October 2026 and is Tobin now.)
 - **Dun**, who keeps the domes breathing: left his chimney key on the derrick hook the night the sky rang.
-- **Pim**, nine teeth old.
-- **Ossa**, who listens to the walls: "I call it a signature." (`ossa.buried`; the City-Shaft has its own Ossa.)
+- **Jot**, nine teeth old.
+- **Ket**, who listens to the walls: "I call it a signature." (Id `ossa.buried`: she was Ossa, as the City-Shaft's keeper of the shrine is, until October 2026.)
 - **Tull**, who oils the oval doors and talks to the warm window; saw the Major.
 
 Main quest (`buried.tooth`): Wen; Hask; down the sand ramp; through two oval
@@ -630,7 +630,7 @@ tank); watch the wheel turn; pick up the tooth it sheds; bring it to Wen ("You
 were here the year it turned, so that one is yours").
 
 Side quests: Dun's key (on a crane swung out over the drop: free the rusted
-collar with a splash, then ratchet the jib in with pushes); read Ossa's three
+collar with a splash, then ratchet the jib in with pushes); read Ket's three
 gauges; lay a hand on the warm window.
 The Major's scratched numbers on the drum wall: "FOUND IT. NOW WHAT?"
 
@@ -652,7 +652,7 @@ People:
 - **Mira**, who keeps the water clock: "A ball fell into the meadow and a person came out of it. That is twice in my life." Gives the keepsake.
 - **Sol**, who followed Odile and Talo about as a boy: "Tea keeps."
 - **Oro**, who grows pyramids; tells of the Builders.
-- **Lio**, a child who wants the floating crown of the tallest tree.
+- **Rue**, a child who wants the floating crown of the tallest tree.
 - **Vey**, who has tended the ship's vines for forty years: "It fell. It belongs to the ground now."
 - **Esk**, who keeps the tea terraces on the white builders' old steps above the dry hollow: every cup of tea in the garden comes from her hill.
 - **Odile and Talo**, absent: their log and Talo's lookout note.
@@ -738,13 +738,13 @@ and a mirror lake; an avenue to a round plaza with a humming pole. Each sphere
 remembers one sound, the last it heard before it came down.
 
 People:
-- **Aube**, the listener: explains the spheres. (`aube.spheres`; Vael II's Sister Aube keeps `aube`.)
+- **Linnet**, the listener: explains the spheres. (`aube.spheres`; Vael II's Sister Aube keeps `aube`.)
 - **Nell**, who looks into the lake: "Upside down is just another way up."
-- **Ivo**, who climbs the white hill: has seen the Footprint under every sphere, and the blue box up on the grove's umbrella tree. (`ivo` here; Lorn's Ivo is `ivo.perdide`.)
+- **Emrys**, who climbs the white hill: has seen the Footprint under every sphere, and the blue box up on the grove's umbrella tree. (Id `ivo`: he was Ivo, as Lorn's firefly watcher is, until October 2026; Lorn's keeps the name, `ivo.perdide`.)
 - **Cael**, who walks the avenue: "Walk slowly. It is that kind of road."
 - **Ume**, who keeps the pole: saw an Answerer turn over the plaza; gives the keepsake.
 
-Main quest (`spheres.listen`): Aube; wake the three remembering spheres (a
+Main quest (`spheres.listen`): Linnet; wake the three remembering spheres (a
 glass bell, far voices, a walking drum); the plaza; play them on the pole; the
 great sphere answers; tell Ume.
 
@@ -794,7 +794,7 @@ People:
 - **Hollin**, keeper of the lamps: "you're the first who ever came… I don't know what to do with my hands."
 - **Pim**, who lives in a moss dome ("Nobody built them; we found them").
 - **Bram**, who minds the cave mouth.
-- **Wick**, a young lamp-keeper: watched the pools go out under the light, "pop, pop, pop".
+- **Robin**, a young lamp-keeper: watched the pools go out under the light, "pop, pop, pop".
 - **Fen**, who lives in the far dome: lent Odile and Talo his skiff, which came home without them.
 
 Main quest (`perdide2.lamps`): Hollin; relight the three dark pools (they take
@@ -820,7 +820,7 @@ drawing in the saucer is the garden they came from (Viridel, with the furrow
 across its meadow), drawn so they wouldn't forget the way home. Where they went
 after the crystal, nobody knows; Hollin likes to think they got home; Viridel
 never saw them again. (The keepers' ids: `hollin.perdide2`, `pim.perdide2`;
-Vael's Hollin keeps the stone hand.)
+Vael's stone hand is kept by Kesh.)
 
 ### 11. The Signal Market: "You Are Not Alone"
 Coral towers, illustrated signs, a busy alien bazaar; a thousand signs speak,
@@ -948,8 +948,8 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
 - **When the light passed: one night everywhere**, the night the traveller's
   ship was struck. Witnesses say "the night the light passed" (or "the night
   the sky rang"); only the desert, where the ship came down the next morning,
-  says "the night before your ball came down". Changed: Tamsin (desert), Lune
-  (Hangar: was "the night before you came"), Sol (Viridel), Ume and Ivo
+  says "the night before your ball came down". Changed: Dalia (desert), Lune
+  (Hangar: was "the night before you came"), Sol (Viridel), Ume and Emrys
   (Spheres: were "three nights ago"), Sedge and Corm (Lorn: were "the night
   before your ball came down / fell"), Hask (Buried Machine: dropped "the next
   night your ship came down"). The traveller says "that was the night my ship
@@ -993,7 +993,7 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   mark from under them (Oro). The androids are not the makers.
 - **The Atelier**: the claim is removed. It is a page off the route, reached
   only from the worlds list; nothing in the story mentions or unlocks it.
-- **The Spheres' Footprint**: Ivo now points at what exists: the blue box up on
+- **The Spheres' Footprint**: Emrys now points at what exists: the blue box up on
   the grove's umbrella tree, with Footprints round its sides.
 - **The duplicate bone whistle**: the bell-note whistle is now blue-glazed clay,
   shaped like a bell; the rider's whistle is the only bone one. It stays in
@@ -1007,9 +1007,9 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   `malvina`). Names stay as they are. Old saves migrate once
   (`src/save-migrate.js`): a "met" carries over to the renamed person if the
   save has been to their world. The internal ids `stel` / `atan` in Viridel's
-  log and Lio's node are now `odile` / `talo` / `bench`.
+  log and Rue's node are now `odile` / `talo` / `bench`.
 - **Directions**: Ossa's chest is "on top of the lone stone pillar" (was
-  "behind the villas"); Hollin sends you to Wick "at the second dark pool, down
+  "behind the villas"); Hollin sends you to Robin "at the second dark pool, down
   the path past the glass dome"; Bram's far dome is "back toward the saucer's
   pool, this side of it".
 - **Giver's / Givers'**: the plural everywhere ("the Givers' mark"); the
@@ -1055,8 +1055,10 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   falling one).
 - **The words for the arc**: kept as they are. The docs and the ship say "arc";
   the locals say "three dots over a curve". The shape is ∩ everywhere.
-- **Names that look alike**: Wick (a Lorn II keeper) and the Buried Machine's
-  Wick (a lamp); Ferro (market) and Ferrol (Hangar). Different names, kept.
+- **Names that look alike**: were made unique in October 2026 (the second story
+  pass, docs/story-audit.md): no two people share a name, and the near-misses went
+  (Lorn II's young lamp-keeper is Robin, the Buried Machine's Wick is only a lamp;
+  the Hangar's Gaspard, not Ferrol, beside the market's Ferro). Ids and flags kept.
 - **How one light crossed worlds a journey apart in one night** is not
   explained, on purpose.
 - **Home after six worlds, eleven on the route** (decided while the author was
@@ -1081,10 +1083,10 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   Great Crystal and the market's lantern.
 - **The Spheres' stillness timer**: removed. Listening by standing still was
   the first design (the bible still said "stand still nearby"); the game moved
-  to splashing the spheres (Aube: "give one a splash"), and the test already
+  to splashing the spheres (Linnet: "give one a splash"), and the test already
   says standing does nothing. The timer and the ring that would have closed
   while you stood are gone; the bible now says "splash each with the fluid".
-- **The Vael feather errand**: Hollin gives it the Vael way, with his hands and
+- **The Vael feather errand**: Kesh gives it the Vael way, with his hands and
   two words ("(…draws a ring in the air: a world hollow as a cup.) The
   Major."); asked again, he only draws the ring. Senn's thanks for the taxi
   token are a gesture and "A city." The test checks that Vael's errand lines say
@@ -1285,7 +1287,7 @@ round it. The monks say the founders built it before the monastery to keep the
 stones down: a bell in every room, and the stones stayed where they were put.
 The bells stopped; the stones fell up; something in the top of the tower cries
 every evening "like a bell with nothing to ring it".
-- **The local: Ysel**, who keeps the founders' bridge (a quiet job: nobody
+- **The local: Agathe**, who keeps the founders' bridge (a quiet job: nobody
   crosses it). Afterwards: the stones coming down all over the sky, one on the
   monastery's kitchen roof ("Brother Calix laughed. I have never heard him
   laugh"); the Cloud-Mother swimming away over the cloud.
@@ -1314,9 +1316,9 @@ going into the sand round its foot, a teal cap; its oval door looks toward the
 start hollow. The dome people say the wheel's engine is inside, and the machine
 that minds it: it used to turn the wheel a tooth a day, not a tooth a year, and
 the pipe-cart ran down the canyon to the oculus and back.
-- **The local: Brann**, who greases the Engine-House door every Tooth Day the
+- **The local: Fisk**, who greases the Engine-House door every Tooth Day the
   way his father did ("A door wants grease anyway"). Afterwards: the pipe-cart
-  lifting out of the sand "like it had been asleep"; Pim rode it nine times and
+  lifting out of the sand "like it had been asleep"; Jot rode it nine times and
   says he is ten teeth old now, from the excitement.
 - **Inside**: the Threshold; the Piston Hall (three pistons that rise and fall
   out of step, still until you splash the valve's eye: ride them up to the
@@ -1335,7 +1337,7 @@ the pipe-cart ran down the canyon to the oculus and back.
   a pause at each end.
 
 ### The Footprint (the Garden of Spheres)
-The one Ivo speaks of, which the garden never had until now (this settles that
+The one Emrys speaks of, which the garden never had until now (this settles that
 loose end of section 10): north of the umbrella grove the meadow carries an
 enormous three-toed print, its rim of white stone, as if the thing that walked
 through the sky putting the spheres down had stepped here; its heel is a great
@@ -1343,7 +1345,7 @@ pale sphere, half sunk, with a round-headed door toward the grove.
 - **The local: Tessa**, who walks the Footprint's rim once a day, toes and
   heel. She has heard the one note under the grass ("as if it had forgotten all
   the others"). Afterwards: the toes full of still water, "I saw myself in every
-  toe"; the spheres humming together at dusk; "Aube cried".
+  toe"; the spheres humming together at dusk; "Linnet cried".
 - **Inside**: the Threshold; the Hall of Spheres (two white spheres in grooves,
   both onto their plates); the Still Pool (a sunken pool crossed on a riding
   disc that wakes when you splash the eye over the far door); the Lens Chamber
@@ -1572,7 +1574,7 @@ over it, and the market's belief that the silent tower was the only sign that
 ever told the truth may have come up through its floor. The night the sky rang
 it stuck on one word of its line; under the square at night you can hear it,
 if you put your ear to the stones.
-- **The local: Pell**, who lies on the paving with his ear to the old stones and
+- **The local: Hobb**, who lies on the paving with his ear to the old stones and
   listens ("Nobody else in this market listens to anything; they're all too busy
   being heard"). The word is *somebody*. Afterwards: the tower said the whole
   line over the square and everybody stopped selling, even the noodle men; he
@@ -1619,7 +1621,7 @@ if you put your ear to the stones.
   warden's dark lamp, a *thing*).
 - The recordings never mention the temples; a late one could ("Your
   grandfather swore there was a house in the dunes that the water came from").
-- Ossa (Buried Machine) still says a chest waits "on the chimney ring" (it does:
+- Ket (Buried Machine) still says a chest waits "on the chimney ring" (it does:
   the resin now). Nour's lines about the desert's makers do not mention the
   Givers' House; Sabri carries that.
 - The City-Shaft's main quest still reads as if you could reach Nima without

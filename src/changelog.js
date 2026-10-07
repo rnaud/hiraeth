@@ -9,6 +9,18 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.83', date: '2026-10-07', items: [
+    'Once four worlds are behind you, a faint signal pulses on the galactic map further along the route, and the ship’s console mentions it: a broadcast worth hearing before you go home. After the Signal Market the recording you put off waits at the console as soon as you step outside, a second one follows it, the later worlds’ recordings find their own lines again, and the stone at home remembers Ilen even if you learn of her after the end.',
+    'Your mother’s note in the ship’s galley ends differently now, with the lamp she keeps in the window.',
+    'At the stone at home, the listening shell and the echo shell go down with the other gifts, each with its own words.',
+    'What happened at Esk’s terraces in Viridel is filed under “What happened” in the Quests page now, not marked failed; and coming back to Viridel later, Esk has decided there is one small job for you, down in the mud where her hill went.',
+    'Viridel closes with a few words of its own as the flowers close over the ship again, as Lorn and Lorn II do.',
+    'In the Buried Machine, Wen has thought about the old story now that the great wheel never stops turning: ask her about the last tooth after Tooth Day, and Hask has heard what she thinks.',
+    'Everyone has a name of their own now: where two people shared one, or nearly, one of them has a new name in their world’s way (the Hangar’s Zazie, Viridel’s Rue, the City-Shaft’s Tobin who sells views, Ket and Jot under the sand, Kesh by Vael’s stone hand, Emrys and Linnet among the spheres, Hobb at the Undertower, Agathe on Vael II’s bridge, Rima and Dalia in the desert, Gaspard, Fisk and Robin), and the desert’s sketcher is Naji.',
+    'Vael II’s people sound more like themselves, and less alike: Brother Calix, Mother Ysolde, Ondine, Tiv and the bridge’s keeper each end their words their own way. A few jokes that three worlds shared now belong to one, and each world hears the singing light in its own words.',
+    'Halfway down the City-Shaft, by the middle levels’ cab stop, Perrine keeps a tea stall now, and the old mirror beside it wants washing and turning back up the shaft, so a little of the Lodestar’s light reaches the bottom again. One of the city’s five relics waits on her awning.',
+    'A few quiet places have something to say now: Vael’s fallen giant on the plain, a carved frieze over the Givers’ Hearth’s door, the little mask in the masked head’s chamber, and an old salvager’s slate by the crashed hull in the southern dunes, which Marrow will want to talk about.',
+  ] },
   { v: '0.82', date: '2026-10-07', items: [
     'The camera follows closer: out in the open it hangs low behind the traveller, a little over his head and looking a little down the way he faces, so he stands bigger in the lower middle of the view with the world ahead filling the rest. Zooming with the mouse wheel or LB / L1 and the right stick still works from there; gliding and the jets stand it further back so you see ahead and below.',
     'In closed spaces (the ship, temples, caves, corridors, houses) the camera comes in close over a shoulder, about two metres back at shoulder height, and picks the shoulder with room beside it so the way ahead shows next to the traveller. It slides across only when a wall really closes in, eases in and out at doorways, stands a little further back in big halls, and aiming the fluid tool is always over the right shoulder.',

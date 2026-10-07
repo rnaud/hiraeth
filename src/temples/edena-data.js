@@ -57,7 +57,7 @@ export const PEOPLE = {
         buds: { say: ["~curious~ Then they need more than water. The builders had a way to wake closed buds. A tool for telling them to grow.", "~neutral~ Look inside for that tool. They wouldn’t tend a whole garden without leaving something to work with."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
           say: ["~surprised~ (Green fills the seed rows. Sorrel stands with soil in both hands.) Every one. This morning. I didn’t have to beg a single seed.",
-            "~happy~ Look at the ruins: vines to the top, flowers below. Oro sat down to stare. Says they were always meant to look like that.",
+            "~happy~ Look at the ruins: vines to the top, flowers below. Oro hasn’t stopped staring. Says they were always meant to look like that.",
             "~solemn~ The gardener’s asleep beneath the glass. Covered in flowers, like Grandmother remembered."],
           choices: [
             { text: '~solemn~ It was only bare. It needed help to bloom.', goto: 'bare' },

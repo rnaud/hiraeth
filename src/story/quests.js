@@ -136,7 +136,7 @@ export class Quests {
     if (opening && prev === undefined && !end) { /* (said at the talk's end) */ }
     else {
       if (stage === DONE) { this.toast(`${d.main ? 'Completed' : 'Done'}: ${d.title}`); d.onDone?.(this); }
-      else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`Failed: ${d.title}`); d.onFail?.(this); }
+      else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`What happened: ${d.title}`); d.onFail?.(this); }
       else if (prev === undefined || opening) this.toast(`${d.main || d.major ? 'Quest' : 'New errand'}: ${d.title} · ${st.text}`);
       else this.toast(`${d.title}: ${st.text}`);
       if (stage === FAILED) this.sound?.fail?.(); else this.sound?.chime?.();
@@ -310,7 +310,7 @@ export class Quests {
       + (list.length > ENDED_SHOWN ? `<li class="more">and ${list.length - ENDED_SHOWN} more</li>` : '');
     return `<section class="quests"><h2>Quests <span>${done.length}/${active.length + done.length + failed.length} complete</span></h2>${active.map(card).join('')}`
       + (done.length ? `<h4 class="qgroup">Completed</h4><ul class="ended">${short(done, '', '✓ Complete')}</ul>` : '')
-      + (failed.length ? `<h4 class="qgroup failed">Failed</h4><ul class="ended">${short(failed, ' failed', '✗ Failed')}</ul>` : '')
+      + (failed.length ? `<h4 class="qgroup failed">What happened</h4><ul class="ended">${short(failed, ' failed', '· What happened')}</ul>` : '')
       + '</section>';
   }
 }

@@ -76,6 +76,15 @@ export const QUESTS = [
     ],
   },
   {
+    // coming back after the terraces went (src/story/terraces.js): Esk decides there is a small job
+    id: 'edena.cutting', title: 'A Cutting for the Mud', world: 'edena',
+    outro: 'One tea cutting from the rows that held, pressed into the new mud where the stream runs slow. It might take.',
+    stages: [
+      { id: 'plant', text: 'Esk gave you a tea cutting from the rows that held. Press it into the mud below the terraces, where the stream runs slow (E, or B / ○)', label: 'The mud by the stream', flag: 'edena.cutting.planted', at: 'cutting' },
+      { id: 'tell', text: 'Tell Esk the cutting is in', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
+    ],
+  },
+  {
     // Lorn II's errand ends here: the brass gear, fitted (src/story/water-clock.js)
     id: 'edena.clock', title: 'Mira’s Water Clock', world: 'edena',
     outro: 'The bowl fills, tips, and the bell rings: time to water. It always is.',
@@ -89,7 +98,7 @@ export const QUESTS = [
     outro: 'From the crown you can see the whole garden, and the long green scar the ship ploughed across it.',
     stages: [
       { id: 'climb', text: 'Climb the tallest tree, north-west of the meadow. The crown floats above the upper canopy: boost up to it from the rim', label: 'The tallest tree’s crown', flag: 'edena.lookout.read', at: 'lookout' },
-      { id: 'tell', text: 'Tell Lio what is on the crown', label: 'Lio, under the trees', talk: 'lio', at: 'lio' },
+      { id: 'tell', text: 'Tell Rue what is on the crown', label: 'Rue, under the trees', talk: 'lio', at: 'lio' },
     ],
   },
 ];
@@ -270,7 +279,7 @@ export const PEOPLE = {
   },
 
   lio: {
-    id: 'lio.edena', name: 'Lio', title: 'who climbs', color: '#b5a7e6', voice: 1.4, kind: 'f', scale: 0.86, age: 'child', years: 9,
+    id: 'lio.edena', name: 'Rue', title: 'who climbs', color: '#b5a7e6', voice: 1.4, kind: 'f', scale: 0.86, age: 'child', years: 9,
     palette: { cloak: '#b5a7e6', lining: '#2b211f', cloth: '#f2c54b', legs: '#4a3a2a', hat: '#f2a7b5', hair: '#6e4a32' }, head: 'hair', cape: 0.5,
     lines: ['~happy~ Climb the trees. The view is worth it.', '~happy~ I’ve been to the second canopy. Twice!', '~surprised~ The crown floats. It FLOATS.'],
     talk: {
@@ -282,7 +291,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~happy~ I’m Lio. I’ve climbed every tree here except *the tallest*. I prefer to introduce myself before admitting that.", "~sad~ It’s *north-west*. I can reach the second canopy, but the crown is too high. Those thin branches won’t hold me."],
+          say: ["~happy~ I’m Rue. I’ve climbed every tree here except *the tallest*. I prefer to introduce myself before admitting that.", "~sad~ It’s *north-west*. I can reach the second canopy, but the crown is too high. Those thin branches won’t hold me."],
           choices: [
             { text: '~curious~ What’s on the crown?', goto: 'what' },
             { text: '~playful~ I can jump quite high.', goto: 'jump' },
@@ -358,6 +367,11 @@ export const PEOPLE = {
     linesAfter: ['~tired~ …', '~sad~ The sides held. The sides held.', '~solemn~ It belongs to the ground now.'],   // (after the flood: src/story/terraces.js)
     talk: {
       entry: [
+        // coming back (a later visit): the small job, and what she says once it is done
+        { if: { quest: 'edena.cutting', stage: 'tell' }, node: 'planted' },
+        { if: { quest: 'edena.cutting', stage: 'plant' }, node: 'job' },
+        { if: { quest: 'edena.cutting', done: true }, node: 'kept' },
+        { if: { all: [{ quest: 'edena.terraces', failed: true }, { flag: 'edena.esk.back' }, { not: { quest: 'edena.cutting', started: true } }] }, node: 'back' },
         { if: { quest: 'edena.terraces', failed: true }, node: 'after' },
         { if: { quest: 'edena.terraces', stage: 'sorry' }, node: 'sorry' },
         { if: { quest: 'edena.terraces', stage: 'flood' }, node: 'flood' },
@@ -429,6 +443,40 @@ export const PEOPLE = {
           ],
           do: { set: { 'edena.esk.after': true } },
           choices: [{ text: '~sad~ (nod)', end: true }],
+        },
+        // a later visit: she has been deciding whether there is a job for you
+        back: {
+          say: [
+            "~tired~ You came back. I thought you might. I wasn’t sure I wanted you to.",
+            "~neutral~ Three rows held at the sides. I’ve been taking cuttings from them, for the mud. It’s what you do.",
+            "~solemn~ I’ve been deciding whether to give you one. I have. There’s a small job, if you want it.",
+          ],
+          choices: [
+            { text: '~curious~ What job?', goto: 'jobGive' },
+            { text: '~sad~ Are you sure you want my help?', goto: 'sure' },
+          ],
+        },
+        sure: {
+          say: ["~neutral~ No. That’s why it’s a small job.", "~tired~ You helped open the gate. You can help with what grows after. Both are true."],
+          next: 'jobGive',
+        },
+        jobGive: {
+          say: ["~neutral~ Take this cutting down *to the mud below the terraces, where the stream runs slow*. Press it in up to the second leaf. Don’t water it; the stream will.", "~solemn~ And don’t make a ceremony of it. It’s a cutting."],
+          do: { start: 'edena.cutting' },
+          choices: [{ text: '~neutral~ Up to the second leaf.', end: true }],
+        },
+        job: { say: ["~neutral~ *Down in the mud, where the stream runs slow.* Up to the second leaf."], choices: [{ text: '~neutral~ On my way.', end: true }] },
+        planted: {
+          say: [
+            "~neutral~ It’s in? Good. It might take. It might not. The mud doesn’t know what it is yet.",
+            "~solemn~ It won’t be my grandmother’s hill. It’ll be this one.",
+          ],
+          do: { advance: 'edena.cutting' },
+          choices: [{ text: '~neutral~ This one, then.', end: true }],
+        },
+        kept: {
+          say: ["~neutral~ (Esk looks down at the mud, where one small green thing stands by the stream.) It hasn’t died yet. I check every morning.", "~tired~ Sol says that’s how gardening starts. I told him I know how gardening starts."],
+          choices: [{ text: '~happy~ (nod)', end: true }],
         },
       },
     },

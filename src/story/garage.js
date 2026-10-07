@@ -8,10 +8,10 @@ import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, MACHINES, SIGNAL, BOARD_GLYPH } 
 //
 //   A, the plateau      Ambroise at the signal board (its nine lamps blink the
 //                       signal); Ottla by the stopped windmill; Clemence, Nikko and
-//                       Ferrol (the level's own people)
+//                       Gaspard (the level's own people)
 //   B, the upside-down  the relay box by the path, the stopped lamp pump, and at
 //                       the slab's far edge the Major's desk, its lamp still lit
-//   C, the ring         Lune near the entrance, the stopped turbine; Pip and her
+//   C, the ring         Lune near the entrance, the stopped turbine; Zazie and her
 //                       ball, which rolls forever on the curve (gravity is radial:
 //                       nothing ever pulls it back down) until you push it up the
 //                       wall and through the portal to the plateau
@@ -91,7 +91,7 @@ export function setupGarage(ctx) {
     return best;
   });
 
-  // ---------------------------------------------------------------- Pip's ball
+  // ---------------------------------------------------------------- Zazie's ball
   const ball = { r: 1.1, mode: 'ring', x: 0, phi: 0, vx: 0, vt: 0, pos: V(0, 0, 0), vel: V(0, 0, 0), spin: new THREE.Quaternion(), back: 0 };
   const START = { x: 3040, phi: -Math.PI / 2 - 0.08 };
   const Rb = R - ball.r;
@@ -148,7 +148,7 @@ export function setupGarage(ctx) {
         sound.critter?.('portal', 1);
         return;
       }
-      // off its lane (round the far side, toward the slit, off along the ring): Pip puts it back
+      // off its lane (round the far side, toward the slit, off along the ring): Zazie puts it back
       const fb = fromBottom();
       if (!quests.isDone('garage.ball') && (fb > 0.9 || fb < -2.3 || Math.abs(ball.x - START.x) > 150) && sp < 6) {
         ball.back += dt;

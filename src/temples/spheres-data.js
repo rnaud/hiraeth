@@ -14,7 +14,7 @@ export const PEOPLE = {
   tessa: {
     id: 'tessa', name: 'Tessa', title: 'who walks the Footprint’s rim', color: '#e8b9c4', voice: 1.1, kind: 'f',
     palette: { cloak: '#e8b9c4', lining: '#f7f3ea', cloth: '#a9c3cf', legs: '#3c4f80', hat: '#f7f3ea', hair: '#6b4a3a' }, head: 'hair', cape: 0.9,
-    lines: ["~curious~ One circuit. Three toes, one heel. Large foot.", "~whisper~ Hear that note beneath the grass?", "~neutral~ Ivo found little Footprints. This is the big one."],
+    lines: ["~curious~ One circuit. Three toes, one heel. Large foot.", "~whisper~ Hear that note beneath the grass?", "~neutral~ Emrys found little Footprints. This is the big one."],
     talk: {
       entry: [
         { if: { flag: 'temple.spheres.done' }, node: 'after' },
@@ -56,7 +56,7 @@ export const PEOPLE = {
         answer: { say: ["~solemn~ Try answering its notes in order. Listen first, then give each one back."], choices: [{ text: '~neutral~ I will.', end: true }] },
         after: {
           say: ["~surprised~ Water in every toe! And the heel! I can see the sky from the whole rim now.",
-            "~happy~ Light circles the spheres’ feet. They hum together at dusk. Aube cried. I walked another lap to hear it twice.",
+            "~happy~ Light circles the spheres’ feet. They hum together at dusk. Linnet cried. I walked another lap to hear it twice.",
             "~solemn~ No more single note. Whatever’s underneath has joined the others."],
           choices: [
             { text: '~solemn~ It only needed answering.', goto: 'needed' },

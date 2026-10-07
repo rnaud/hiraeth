@@ -14,7 +14,7 @@ Character exploration sheet for an accountant who counts the teeth of a great bu
 
 Character exploration sheet for a caretaker who keeps the air of buried domes moving, in a surreal science fiction adventure. Tall, a teal coverall with bellows strapped to the back, hoses looping to a breathing mask, a hand-crank on the hip, a scarf of filter cloth, slow deliberate gestures. Six distinct variations exploring bellows packs, masks, hoses and poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
 
-## Pim, nine teeth old
+## Jot, nine teeth old
 
 Character exploration sheet for a curious child of a people who live inside a buried machine, in a surreal science fiction adventure. Small, an oversized quilted dome-suit with the sleeves rolled many times, a helmet like a little upturned bowl, a collection of cogs on a string, a toy wheel pushed with a stick, wide eyes. Six distinct variations exploring the oversized suit, helmet, toys and playful poses. Full body, readable silhouettes, restrained detail, warm cream background. Franco-Belgian science fiction comic, ligne claire ink drawing, thin precise contours, flat pastel colors, subtle paper texture, sparse crosshatching, whimsical industrial design, quiet mystery. Preserve the handmade illustrated feeling of the reference. No text, no photorealism, no heavy black shadows. Moebius style.
 

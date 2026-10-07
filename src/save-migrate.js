@@ -3,7 +3,7 @@
 // People with the same name in two worlds used to share one id, so meeting one
 // marked the other as met too (the credits, the mother's "who did you meet"). The
 // later one of each pair now has an id of its own, '<name>.<world>'. A save that
-// met "hask" before cannot say which Hask it was: if the player has been to the
+// met "hask" before cannot say which Hask it was (the City-Shaft's seller of views is Tobin now): if the player has been to the
 // renamed person's world, they are taken to have met them too (a little generous,
 // never wrong the other way). Clemence's id was an old name (malvina): renamed outright.
 //

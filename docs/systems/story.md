@@ -60,14 +60,14 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
 - **Errands:** in every world but the last one villager asks you to carry something to
   someone in the next world on the route (`ORDER`), never back to one already
   done: Pell's singing sand from the desert to Senn in Vael (who listens to
-  stones); Hollin's feather of the bird from Vael to the sky stones of Vael II;
+  stones); Kesh's feather of the bird from Vael to the sky stones of Vael II;
   Brother Calix's muffled hand bell from Vael II to Wendel, Lorn's egg-warden;
   Ivo's storm crystal from Lorn to Bram, who minds Lorn II's root cave; Pim's brass
-  gear from Lorn II's domes to Mira's water clock in Viridel; Lio's glass seed
+  gear from Lorn II's domes to Mira's water clock in Viridel; Rue's glass seed
   from Viridel to Nima in the City-Shaft; Lio's taxi token from the City-Shaft
   to Clemence in the Sealed Hangar; Nikko's gear grease from the Hangar to Tull at
-  the Buried Machine's oval doors; Ossa's pipe whistle from the Buried Machine to
-  Aube, the spheres' listener; Nell's sliver of lake mirror from the Garden of
+  the Buried Machine's oval doors; Ket's pipe whistle from the Buried Machine to
+  Linnet, the spheres' listener; Nell's sliver of lake mirror from the Garden of
   Spheres to Oyo's lantern stall in the Signal Market (the last four since the story
   pass of October 2026, docs/story-audit.md). Greeting the giver hands you the parcel, and the HUD
   shows what you're carrying and where it goes (the receiver's world now, even
@@ -253,6 +253,27 @@ walkthroughs and local names; each data file's header lists its flags.
   (`OLDER`). Once-only beats (`calls.beat.<id>`) still follow the journey, and Ilen is a
   recording of the mother's labelled "For when he asks" (`calls.ilen.*`, as before). HUD:
   "E voicemail" (no word of a recording before the third message gives it away).
+- **The relay signal: Ilen before home** (`src/story/relay.js`, October 2026; docs/story-audit.md).
+  The Signal Market is the last world on the route and home opens after six, so the ship hears the
+  broadcast from far off instead of the worlds changing order. From `RELAY_FROM` (four) worlds done
+  until the broadcast is heard (`clue.bazaar.home`), the market's place on the galactic map pulses
+  with a dotted gold ring and the tag "a signal", whether it is charted yet or only a faint dot (the
+  map's sub line and home's panel say it is further along the route); the console's standby screen
+  says RELAY SIGNAL and its "No new messages" says where it comes from; "Come home" ends with the
+  ship's word of it. Once he has asked the reel for Ilen, the recording is **held** ("Recording held.
+  It will wait at the console.", RECORDING HELD on the screen, a line on home's panel) and it waits
+  as soon as he steps out of the ship (`calls.ilen.later`, set on `ship:exit`) or the ship flies, so
+  flying straight home from the market still leaves it at the console. After it, the father's own
+  recording on Ilen (the `ilen.after` beat, `ILEN_AFTER_CALL`) waits the same way
+  (`calls.ilen.after.later`) when no world is left to bring it; it now holds the line written for
+  "Come home", which plays before the market in any run ("I would have welcomed her back with empty
+  hands."). The recordings after "Come home" still ask the reel for the world's word first (so the
+  City-Shaft's, the Hangar's, the Buried Machine's, the spheres' and the market's lines play), and
+  "Come home" itself asks for the sixth world's before the last of all. After the ending, a player
+  who learns about Ilen hears "And this space is for Ilen, wherever she is." once at the stone
+  (`ilenAtStoneDue`; `ending.ilen` when the ending named her). `tests/relay.test.js` plays a run in
+  the route's order and checks every world's reel line, the mother's recording and the father's are
+  heard before the stone.
 - **The hologram** (`src/ship/hologram.js`): the parents are the game's own people (the
   human bodies, dressed by `costumes.js`, played by the mocap library) projected as
   **coloured busts**: head, neck, shoulders and the top of the chest (`BUST`: cut across the
@@ -279,8 +300,10 @@ walkthroughs and local names; each data file's header lists its flags.
   three busts (`REEL_HOLO`) rise over the reel, looking up at him.
 - **The stone** (`src/levels/home.js` `buildTomb`, `src/ship/homecoming.js`,
   `src/story/ending.js`): nobody waits at the door; the window is dark. The cargo check lists
-  everything (`tokenList`: the keepsakes, then the makers' small gifts, not the backpack,
-  jets or wings). He walks to the parents' stone in the front yard and sets each token on
+  everything (`tokenList`: the keepsakes, then the makers' small gifts in `TOKEN_ITEMS`, each with
+  its own line: the stilling lens, the ember ring, the fourth chamber, the quick coil, the lantern
+  charm, the glyph lens, the bell-note whistle, the listening shell and the echo shell (since the
+  second story pass), the pale star; not the backpack, jets or wings). He walks to the parents' stone in the front yard and sets each token on
   the slab (`tombSlots`, `tokenModel`; one short line each, `tombLines`, on a brisk
   `tombTimeline`), last the reel (`reelModel`), which plays `FINAL_RECORDING`, the oldest,
   as a hologram of the three of them over the stone. Then the closing line, an end card and
@@ -352,7 +375,7 @@ sound to make it clear I should chat with her".
   so their words are said with the quest under way); its "Quest:" toast waits for the end of
   the talk (`quests.opened()`), or comes with the stage the talk moves it to. Every world opens
   on its first stage's person (Oïa, Sister Aube, Madame Sel, Wen, Mira, Ambroise, Nima, Wendel,
-  Hollin, Aube); the desert on **Marrow**, who is at your ship when you step out, looking over
+  Hollin, Linnet); the desert on **Marrow**, who is at your ship when you step out, looking over
   the scar on its hull (`wreck` / `fire` nodes: the only fire that could wake a ship is the
   great tree's, in Qanat; ask Nour), or on Ama, the Speaker, Nour or Hessa if you walk past
   him. Once the quest is under way and you are 60 m off, he is back by his crates.
@@ -399,6 +422,14 @@ sound to make it clear I should chat with her".
   things (`calls.js` beat `broke`), and Viridel's own recording gets a different answer
   (`REEL.edena.youAfter`). At the stone the traveller names it, once, after the space for Ilen
   (`tombLines(tokens, { broke })`, from `edena.terraces.flooded`).
+  The Quests panel files it under **What happened** (a quiet `·`, not "Failed ✗"), and the toast
+  reads "What happened: Water for the Tea Terraces" (`quests.js`, `game-menu.js`: any quest that
+  fails; this is the only one). **Coming back** (a visit that began with the quest already
+  failed sets `edena.esk.back`), Esk has decided there is a small job: the quest
+  `edena.cutting` ("A Cutting for the Mud"): press one tea cutting from the rows that held into
+  the mud beside the stream (E, or B / ○, `edena.cutting.planted`), then tell her ("It won't be
+  my grandmother's hill. It'll be this one."). The cutting stays in the mud on every visit
+  after, and she checks it every morning.
   `tests/story-terraces.test.js` runs it end to end and reloads it.
 - **Hands-on steps in the fetch quests** (each one solvable with a plain shot and push; ember
   shots work where lighting fits; existing stage ids kept, so old saves carry on):
@@ -428,7 +459,7 @@ sound to make it clear I should chat with her".
     gear now ends on the clock: fit it (E), then fill its leaking bowl with three quick splashes
     so it tips and rings (quest `edena.clock`).
   - Left as they were, already hands-on: the bird's feathers and the stone hand, the cairn,
-    the machines and Pip's ball, the gauges, the seed (watered), the pools, the fireflies, the
+    the machines and Zazie's ball, the gauges, the seed (watered), the pools, the fireflies, the
     plants, the spheres and the pebble, the crates and the oldest sign. The other between-world
     errands stay light parcels (a greeting gives, a greeting takes), on purpose.
 - **The lore, one story** (LORE.md, section 10, has every decision): the light passed every
@@ -436,7 +467,7 @@ sound to make it clear I should chat with her".
   thirty years on the way; recording 4 is an old one made for him at ten; Odile and Talo were
   struck twice and went on across the swamp; the spheres came down out of the sky and the
   white builders copied them; the Hangar's board and Lorn II's Welcome draw the ∩; the bell
-  whistle is clay, not a second bone whistle; the Atelier no longer claims an unlock; Ivo's
+  whistle is clay, not a second bone whistle; the Atelier no longer claims an unlock; Emrys's
   Footprint points at the chest that exists; a few wrong directions are put right.
 - **People who share a name have ids of their own** (`hask.buried`, `ossa.buried`,
   `pip.garage`, `lio.edena`, `hollin.perdide2`, `pim.perdide2`, `aube.spheres`, `ivo.perdide`;
@@ -444,6 +475,17 @@ sound to make it clear I should chat with her".
   credits or the mother's "who did you meet". `src/save-migrate.js` brings old saves up once
   (flag `save.migrated`): a "met" carries over to the renamed person if the save has been to
   their world; Clemence's flags move outright. `tests/save-migrate.test.js`.
+- **Every name once** (the second story pass, October 2026): no two people share a name, nor
+  look alike. The name stays where it is most established; the others took names in their
+  world's style: the Hangar's Pip is **Zazie**, Viridel's Lio **Rue**, the City-Shaft's seller of
+  views (Hask) **Tobin**, the Buried Machine's Ossa **Ket** and its Pim **Jot**, Vael's Hollin
+  **Kesh**, the spheres' Ivo **Emrys** and Aube **Linnet**, the Undertower's Pell **Hobb**, the
+  spheres' drifter Slow Pell **Slow Orm**; the near-misses Ysel (Vael II's bridge) **Agathe**, Ysa
+  (the desert) **Rima**, Tamsin **Dalia**, Ferrol **Gaspard**, Brann **Fisk**, Lorn II's Wick
+  **Robin** (the Buried Machine's Wick is only the lamp now); the desert's sketcher, listed as
+  "The traveller", is **Naji**. Only names changed: ids and flags are kept (`hask`, `pip.garage`,
+  `wick`…), so saves carry on. `tests/names.test.js` fails if two people (story people, the
+  level people, the temple guides, the drifters) share a name or a name is "The traveller".
 
 ## Quests played out of order (the story pass, October 2026)
 
@@ -453,13 +495,51 @@ can be done in another order, the quest catches up instead (docs/story-audit.md)
 
 - **the desert**: the channel opened before Nour, the well, Ama or the Speaker sent you (`desert.js`
   `caughtUp`) passes those steps; Ama's `lateJar` still gives the jar;
-- **the Buried Machine**: the Wick lit before Wen or Hask (`buried.js` `caughtUp`); Ossa met after the
+- **the Buried Machine**: the Wick lit before Wen or Hask (`buried.js` `caughtUp`); Ket met after the
   gauges were read starts and ends her quest in that talk;
-- **Viridel**: telling Lio about the tallest tree after reading Talo's note first starts and ends
+- **Viridel**: telling Rue about the tallest tree after reading Talo's note first starts and ends
   `edena.tree`; **the Signal Market**: Kip met before Sel moves the quest on when you see him again;
-  **the Garden of Spheres**: Aube met after all three spheres still counts as heard;
+  **the Garden of Spheres**: Linnet met after all three spheres still counts as heard;
 - **the temples**: a temple's quest that starts as you pass its door (the ship lands beside Vael's
   Aerie) counts as one that started on its own until you go in, so the drone still finds the world's
   opening conversation (`src/temples/index.js`).
 
 Each has an out-of-order test in its world's story test.
+
+## Places to stop on the way (the second story pass, October 2026)
+
+The audit's empty stretches (docs/story-audit.md, "Places to fill"), one at a time, with the worlds'
+own kits and systems, a few draws each, and colliders baked from what is drawn (`physics.addCollider`).
+
+- **The halfway stall** (`src/story/halfway.js`; words in `incal-data.js`): the City-Shaft's middle
+  levels (y −24), ten metres along the promenade from the middle cab stop, on the stretch the houses
+  leave clearest (`HALFWAY`). Perrine's tea stall: a counter under a flat red awning, a kettle and
+  cups, a bench, HALFWAY TEA on the board, and Perrine behind it (her lines change while you carry
+  the splinter, and after). Beside it **the halfway mirror** on its pole: her mother set it to catch
+  the Lodestar and throw a coin of its light down to the bottom; the smog greased it and someone at
+  the top turned it to a billboard. Quest `incal.mirror` ("The Halfway Mirror"): wash it (shoot,
+  `incal.mirror.washed`), push the frame from the side a notch at a time (eight notches,
+  `incal.mirror.notch`, from 3) until it faces up the shaft (`incal.mirror.turned`; shoved straight
+  at the glass it only rocks), tell Perrine (`incal.mirror.done`). Done in another order, she
+  notices and it ends there. With the Lodestar lit, the glass glows, and Ossa at the bottom has seen
+  the coin of light come back on Behla's wall. The Smog lantern relic (the world's third) sits over
+  the awning's flat roof now (`content.js`, `AWNING_TOP`). Far above or below (160 m), the stall is
+  not drawn. `tests/story-incal.test.js` plays it.
+- **Vael's fallen giant** (`THINGS.colossus`, `src/story/arzach.js`): a look from in front of its
+  face, out on the plain: it lies as if it lay down to rest, turned toward the lone tower; once the
+  bird has come, her shadow crosses its face (`arzach.colossus.seen`).
+- **The Givers' Hearth's frieze** (`src/desert-hearth.js` `FRIEZE`, `THINGS.carving`,
+  `src/story/desert-spark.js`): along the porch's lintel, left of the Givers' mark, five small
+  figures pass a light hand to hand toward a tree (drawn on the lintel's face, the light in the
+  stone's own pulsing material). Once you have carried the spark-stone yourself, the look says
+  you have been one of them (`desert.carving.seen`).
+- **The masked head's chamber** (`level.maskRooms`, `THINGS.smallMask`): the little glowing mask on
+  the pedestal is the dunes' sleeping face made small; if you have seen the lone tower's carved face
+  in Vael II (`arzach2.face.seen` / `clue.arzach2.desert`), the look says so: somebody made it in more
+  than one world (the tower's look already names the desert's mask).
+- **The crashed hull's slate** (`src/desert-landmarks.js` `wreckSlate`, `THINGS.slate`): by the
+  salvage camp's hut in the southern dunes, Marrow's old tally: plates, wire, two pumps, one good
+  chair; "NO MARK ON HER. FELL ON HER OWN." (`desert.wreck.read`). Next time you meet him he brings it
+  up himself, once (`desert.marrow.hull`): most ships that come down just come down; he checks every
+  wreck for the mark since yours. `tests/desert-story.test.js` and `tests/story-arzach.test.js` check
+  each look-at stands on walkable ground and says what it should.

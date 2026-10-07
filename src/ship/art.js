@@ -56,12 +56,12 @@ export const familyDrawing = () => canvasTexture(256, 192, (g, w, h) => {
   g.fillStyle = INK; g.font = 'bold 15px ui-monospace, Menlo, monospace'; g.fillText('US', 16, 176);
 });
 
-/** The mother's note, pinned in the galley. */
+/** The mother's note, pinned in the galley (its last words are the lamp she keeps: the final recording's are its own, src/story/ending.js). */
 export const motherNote = () => canvasTexture(192, 160, (g, w, h) => {
   g.fillStyle = '#fff6dc'; g.fillRect(0, 0, w, h);
   g.fillStyle = '#e9998a'; g.fillRect(0, 0, w, 14);
   g.fillStyle = INK; g.font = '15px ui-monospace, Menlo, monospace';
-  ['Eat something warm.', 'Sleep in the bunk,', 'not in the chair.', '', 'We are proud of you', 'already.', '            — M.'].forEach((l, i) => g.fillText(l, 12, 36 + i * 18));
+  ['Eat something warm.', 'Sleep in the bunk,', 'not in the chair.', '', 'The lamp stays on', 'in the window.', '            — M.'].forEach((l, i) => g.fillText(l, 12, 36 + i * 18));
   g.strokeStyle = '#c8483a'; g.lineWidth = 2; g.beginPath(); g.arc(160, 132, 9, 0, Math.PI * 2); g.stroke();   // a little heart-ish circle
 });
 

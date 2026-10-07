@@ -30,6 +30,8 @@ import { STORY, hearthStones } from './desert-sites.js';
 // moves it. Interior local frame: +z toward the passage (the way out), y up from the floor.
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+/** The carved frieze on the porch's lintel, left of the Givers' mark (porch-local x of its middle). */
+const FRIEZE = { x: -2.3 };
 const UP = V(0, 1, 0);
 const PROXY = new THREE.MeshBasicMaterial();
 
@@ -177,10 +179,25 @@ export function buildDesertHearth(scene, terrain) {
     out.solid(box(PW - 4.8, PH - 1.6, 0.4, 0, doorY + (PH - 1.6) / 2, z1 - 1.2));
     // the Givers' mark over the door, and a pale step of fallen stones up to it
     out.add(M.glyph, glyphGeometry(1.6).translate(0, doorY + PH - 0.8, z1 + 0.05));
+    // the frieze along the lintel, left of the mark: five small figures passing a light hand to hand, to a tree
+    // (carved shallow: drawn on the lintel's face, which is the collider: docs/systems/story.md, "Places to stop on the way")
+    {
+      const fx = FRIEZE.x, parts = [], z = z1 + 0.04, y0 = doorY + PH - 1.45;
+      for (let i = 0; i < 5; i++) {
+        const x = fx - 1.05 + i * 0.4;
+        // (two legs, a body, a head apart from it, an arm held out to the next one)
+        parts.push(box(0.06, 0.3, 0.05, x - 0.05, y0 + 0.15, z), box(0.06, 0.3, 0.05, x + 0.05, y0 + 0.15, z), box(0.2, 0.34, 0.05, x, y0 + 0.46, z),
+          box(0.16, 0.16, 0.05, x, y0 + 0.8, z), box(0.24, 0.05, 0.05, x + 0.18, y0 + 0.55, z));
+      }
+      parts.push(box(0.1, 0.8, 0.05, fx + 1.0, y0 + 0.4, z), box(0.56, 0.42, 0.05, fx + 1.0, y0 + 0.98, z));   // the tree
+      out.add(M.ink, mergeGeometries(parts.map(prep)));
+      out.add(M.spark, box(0.12, 0.12, 0.06, fx - 1.05 + 3 * 0.4 + 0.3, y0 + 0.6, z + 0.01));   // the light, in the fourth one's hands
+    }
     for (let i = 0; i < 3; i++) out.both(M.stone, box(PW - 1 - i * 0.6, 0.35, 1.0, 0, doorY - 0.55 - i * 0.35, z1 + 3.2 + i * 1.0));
   }
   out.flush();
   const door = out.world(0, doorY, doorR + 1.2);
+  const carving = out.world(FRIEZE.x, doorY + 7.5 - 0.9, doorR + 0.1), carvingFoot = out.world(-2.6, doorY, doorR + 2.4);
   const doorFront = out.world(0, doorY, doorR + 4.5);
   const chimneyTop = out.world(-4, H + 38, -3);
   // the stone's light seeps up the chimney: a warm point at the slit (the story pulses it)
@@ -285,7 +302,7 @@ export function buildDesertHearth(scene, terrain) {
   );
 
   const H_ = {
-    root, site: V(S.x, doorG, S.z), door, doorFront, yaw: S.yaw, chimneyTop, stones, slitLight,
+    root, site: V(S.x, doorG, S.z), door, doorFront, carving, carvingFoot, yaw: S.yaw, chimneyTop, stones, slitLight,
     origin: O, local: L, inside, exit: exitAt, group: cave.group,
     grille, grilleRest: grille.position.clone(), ball, ballRest: ball.position.clone(), ballEnd: L(...HEARTH.ball.end.toArray()),
     stone, stoneRest: stone.position.clone(), stoneLight, plinthLight, doorLight,

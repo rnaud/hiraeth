@@ -6,15 +6,18 @@ import { Taxi } from '../taxi.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { glyphGeometry, textGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN } from './incal-data.js';
+import { setupHalfway } from './halfway.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
 //
-//   the rim          Corvin, Lio and Hask (content.js); the ship lands here
+//   the rim          Corvin, Lio and Tobin (content.js); the ship lands here
 //   the high terrace Nima sweeps the first terrace below the rim (y 150)
 //   the bottom       Ossa keeps the Upward Shrine (y −290), where the splinter
 //                    fell; Pip plays round it; the dead taxi call-lamp at the edge
 //   the palace       Dov guards the landing ring round the gold dome (y 320); the
 //                    crown on top of the dome, under the Lodestar
+//   the middle       Perrine's halfway tea stall and the halfway mirror, by the middle
+//                    levels' cab stop (y −24: src/story/halfway.js)
 //
 // The light: level.shaft.incal.k goes from 0 (dim, guttering) to 1 when the
 // splinter is given back and you look up at it from the palace. Then the city
@@ -22,7 +25,7 @@ import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN } 
 // down the lower terraces and the smog thins.
 //
 // The cabs don't stop for you at all without a cab pass (src/taxi.js): the first refusal starts
-// Lio's errand (incal.pass); Hask's fare buys the pass. With it, they still don't stop in the
+// Lio's errand (incal.pass); Tobin's fare buys the pass. With it, they still don't stop in the
 // depths (below −200) until you have lit the call-lamp and met Wren, the old cab that still stops
 // there; after that, hailing down there brings Wren (it is free: it stops for anyone). Cabs drive
 // themselves: Wren speaks from the little screen on its dash when you get in (src/story/cab.js).
@@ -59,6 +62,10 @@ export function setupIncal(ctx) {
   people.pip = spawn(PEOPLE.pip, { route: around(P.pip, 2.6, 5, 0.4), speed: 2.1 });
   people.dov = spawn(PEOPLE.dov, { route: [onGround(P.palace.dov), onGround(P.palace.dov.clone().add(V(0, 0, -5)))], speed: 0.5 });
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
+  // the middle levels: Perrine's halfway stall and its mirror (src/story/halfway.js)
+  const midT = S.terraces?.find((t) => t.y === S.LEVELS?.[3]);
+  const halfway = setupHalfway(ctx, { terrace: midT, ground: (x, z) => { const g = physics.groundAt(x, midT.y + 2, z, 6); return Number.isFinite(g) ? g : midT.y; }, onGround });
+  if (halfway?.perrine) people.perrine = halfway.perrine;
 
   // ---------------------------------------------------------------- the splinter
   // in the shrine's bowl until Ossa gives it; then it floats at your shoulder, humming,
@@ -413,6 +420,7 @@ export function setupIncal(ctx) {
     }
 
     updateHoist(dt, pp);
+    halfway?.update(dt, t, pp);
 
     // the call-lamp: lit, it sways a little and throws light; a push only rattles it
     st.lampK += ((game.flag('incal.lamp.lit') ? 1 : 0) - st.lampK) * (1 - Math.exp(-dt * 3));
@@ -428,7 +436,7 @@ export function setupIncal(ctx) {
   const _c = new THREE.Color();
 
   return {
-    people, update, state: st, cab, frameCamera,
+    people, update, state: st, cab, frameCamera, halfway,
     giveBack, lightLamp, hoist: { state: ho, rig: H, knockPin, turnHoist, takeTin, pinOut, swungIn },
     /** E on a crowd person: a short conversation, by where they live (and whether the light is back). */
     crowdTalk(p) {

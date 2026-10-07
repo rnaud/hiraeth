@@ -33,7 +33,7 @@ export function* buildDesert(scene) {
   const landmarks = buildDesertLandmarks(scene, terrain);
   yield;
   // inside the masked head: a glyph-carved chamber under an oculus, built high above the map
-  const portals = [];
+  const portals = [], maskRooms = [];
   for (const d of doors) {
     const room = buildRoom(scene, {
       pos: new THREE.Vector3(0, 1500, 0), w: 14, d: 14, h: 8, oculus: 3,
@@ -45,6 +45,7 @@ export function* buildDesert(scene) {
     const mask = new THREE.Mesh(new THREE.SphereGeometry(0.45, 14, 10).scale(0.9, 1.15, 0.5), makeGlow());
     mask.position.copy(room.group.localToWorld(new THREE.Vector3(0, 1.6, 0)));
     scene.add(mask);
+    maskRooms.push({ mask: mask.position.clone(), floor: room.group.localToWorld(new THREE.Vector3(0, 0, 2.2)) });
     lights.push(...room.lights, new THREE.Vector4(mask.position.x, mask.position.y, mask.position.z, 9));
     portals.push(...doorwayPortals(scene, { at: d.at, heading: d.heading, room }));
   }
@@ -79,6 +80,7 @@ export function* buildDesert(scene) {
     hearth,
     vistas,
     landmarks,
+    maskRooms,
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

@@ -33,7 +33,7 @@ Without the item `cabpass` (flag `item.cabpass`), `taxi.refuses(player, how)`
 says no to a hail (the whistle, a glob) and to boarding. It shows
 `Taxi.refusal` (the City-Shaft's text names Lio) at most every few seconds, and
 calls `Taxi.onRefuse`, which starts the quest `incal.pass`. Lio sends you to
-Hask for the fare he owes. Bring the coin back and Lio gives the pass
+Tobin, the seller of views, for the fare he owes. Bring the coin back and Lio gives the pass
 (`quests.give('cabpass')`). `ITEMS.cabpass` (kind `pass`, `quest: true`) lists
 it in the gear. A `free` cab (Wren, the old cab at the bottom's lamp) never asks. In
 the depths, once you know Wren, a hail brings Wren.

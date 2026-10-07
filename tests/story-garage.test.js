@@ -111,7 +111,7 @@ test('the main quest: the signal goes round A, B and C, and the Major’s note w
   assert.ok(k && k.kind === 'knowing' && /That is the point/.test(k.text), 'the keepsake: the Major’s note');
 });
 
-test('side quests: three machines restart when shot, and Pip’s ball crosses from the ring to the plateau', async () => {
+test('side quests: three machines restart when shot, and Zazie’s ball crosses from the ring to the plateau', async () => {
   talk(PEOPLE.ottla, ['Can I help']);
   assert.equal(quests.stage('garage.machines'), 'fix');
   const machines = allTargets().filter((t) => t.kind === 'machine');
@@ -128,10 +128,10 @@ test('side quests: three machines restart when shot, and Pip’s ball crosses fr
   assert.equal(quests.stage('garage.machines'), 'tell');
   talk(PEOPLE.ottla, ['They just needed']);
   assert.equal(quests.isDone('garage.machines'), true);
-  // Pip's ball: push it up the curve toward the portal on the wall, until it goes through
+  // Zazie's ball: push it up the curve toward the portal on the wall, until it goes through
   talk(PEOPLE.pip, ['I’ll push it', 'Up the curve']);
   assert.equal(quests.stage('garage.ball'), 'push');
-  const ballT = allTargets().find((t) => t.kind === 'ball' && t.position() === W.ball.pos);   // (Pip's: the First Garage's stone balls are 'ball' targets too)
+  const ballT = allTargets().find((t) => t.kind === 'ball' && t.position() === W.ball.pos);   // (Zazie's: the First Garage's stone balls are 'ball' targets too)
   const portal = G.portals.find((p) => p.zone === 'A');
   let pushes = 0;
   for (let i = 0; i < 40 && !game.flag('garage.ball.through'); i++) {

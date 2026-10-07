@@ -597,8 +597,8 @@ into `MH_WORLDS`; now every level is (`COSTUME_WORLDS`), and the traveller alone
 - **The children the story has**: the City-Shaft's Pip (9, at the bottom, in a knit cap: he had a beard,
   as any small man could; now a child or teenager never grows one: NPC passes `young` to the look), Vael's
   Tam (7: a spawn spot can give an age, `age` / `years` in content.js), Vael II's novice Tiv (10), the
-  Hangar's Pip (9), the Buried Machine's Pim (6: "nine teeth old"; his face's type had made him an elder,
-  1.33 m), Viridel's Lio (9), Lorn II's Wick (a girl of 15). Lou at home was one already (7.5).
+  Hangar's Zazie (9), the Buried Machine's Jot (6: "nine teeth old"; his face's type had made him an elder,
+  1.33 m), Viridel's Rue (9), Lorn II's Robin (a girl of 15). Lou at home was one already (7.5).
 - **A few named people in the new pieces**: the City-Shaft's cab driver Wren (an aviator's cap, goggles up),
   the dispatcher Lio (a peaked cap), Corvin of the rim (a bowler and a monocle); Vael II's Mother Ysolde
   (spectacles); the Hangar's clerk Ambroise (a monocle); Hask, keeper of the Wick (a hard hat with its lamp);

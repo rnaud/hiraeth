@@ -176,7 +176,7 @@ export const PEOPLE = {
         run: { say: ["~playful~ Letters, bills, threats. Fish orders, mostly. People pay in fruit. I could retire if retirement accepted pears."], choices: [{ text: '~neutral~ Sel says you have the last recording.', goto: 'recording' }] },
         recording: {
           say: ["~sad~ I’ve got Sel’s cylinder. Here. Since the night the sky rang.",
-            "~surprised~ It arrived *singing*. A note around the voice, like wet glass. Every street sign flashed the same mark. Cylinders aren’t supposed to do that.",
+            "~surprised~ It arrived *singing*. A note around the voice, like a tuning fork held to a speaker. Every street sign flashed the same mark. Cylinders aren’t supposed to do that.",
             "~scared~ I ran. Took it with me. It’s hummed against my back ever since. Not my cleverest escape."],
           do: [{ give: 'recording' }, { set: { 'bazaar.kip.gave': true } }, { advance: [Q, 'kip'] }],
           choices: [{ text: '~curious~ Did you hear what it said?', goto: 'said' }, { text: '~neutral~ I’ll take it up.', goto: 'up' }],
@@ -451,7 +451,7 @@ export const CROWD_TALK = {
     { name: 'An old trader', title: 'in Signal Square', talk: { listen: [
       "~solemn~ That mark filled every sign when the sky sang. Grandmother says it was here before the market. Before there was anything to advertise.",
       '~solemn~ Every sign in this market lies a little. The silent tower was the only one that ever told the truth.',
-      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway*, where the paving turns to great old stones. Pell sits by it, listening. Ask him what he hears. He’ll say one word.' },
+      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway*, where the paving turns to great old stones. Hobb sits by it, listening. Ask him what he hears. He’ll say one word.' },
       '~angry~ In my day a sign was a sign. Now they sing, they dance, they follow you home.',
     ] } },
   ],

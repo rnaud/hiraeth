@@ -176,7 +176,7 @@ export const LANDING = [
           choices: [{ text: '~happy~ Thanks, Sedge.', end: true }],
         },
         light: {
-          say: ["~whisper~ I was cutting late when the light passed. Low over the reeds, singing like wet glass. I know what I saw.", "~solemn~ The Great Crystal answered without any rain. Then the light climbed away. The jaws stayed shut till morning."],
+          say: ["~whisper~ I was cutting late when the light passed. Low over the reeds, singing one high note, like a reed cut just right. I know what I saw.", "~solemn~ The Great Crystal answered without any rain. Then the light climbed away. The jaws stayed shut till morning."],
           do: { set: { 'perdide.rumour.light': true } },
           choices: [{ text: '~solemn~ I think something like it hit my ship.', goto: 'ship' }, { text: '~happy~ I believe you.', goto: 'believe' }],
         },

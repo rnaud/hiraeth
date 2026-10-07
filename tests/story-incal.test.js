@@ -262,7 +262,7 @@ test('side quests: the call-lamp and Wren, Pip’s ration for Dov', async () => 
   clearInteractables();
 });
 
-test('the cabs ignore you without a pass: Lio writes one for the fare Hask owes him', async () => {
+test('the cabs ignore you without a pass: Lio writes one for the fare Tobin owes him', async () => {
   const { Taxi, CAB_PASS } = await import('../src/taxi.js');
   const { Player } = await import('../src/player.js');
   const { items, gearHtml } = await import('../src/items.js');
@@ -288,13 +288,13 @@ test('the cabs ignore you without a pass: Lio writes one for the fare Hask owes 
   assert.match(notes.at(-1) ?? '', /PASS HOLDERS ONLY/);
   // Wren stops for anyone
   assert.equal(W.cab.refuses(p), false);
-  // Lio, then Hask's coin, then Lio again: the pass
+  // Lio, then Tobin's coin, then Lio again: the pass
   talk(RIM.lio, ['How do I get a pass']);
   assert.equal(quests.stage('incal.pass'), 'fare');
   const h = new DialogueRunner(RIM.hask, { game, quests });
   assert.match(h.text, /Lio sent you/);
   while (!h.ended && h.advance());
-  assert.ok(quests.has('fare'), 'Hask’s coin');
+  assert.ok(quests.has('fare'), 'Tobin’s coin');
   assert.equal(quests.stage('incal.pass'), 'back');
   const r = new DialogueRunner(RIM.lio, { game, quests });
   assert.equal(r.nodeId, 'paid');
@@ -310,4 +310,52 @@ test('the cabs ignore you without a pass: Lio writes one for the fare Hask owes 
   cab.mode = 'parked'; cab.pos.copy(p.pos).add(V(2, 1, 0));
   assert.equal(p.board(cab), true);
   game.set(`item.${CAB_PASS}`, undefined);
+});
+
+test('the middle levels: Perrine’s halfway stall, its mirror washed and turned up the shaft, and the coin of light at the bottom', () => {
+  const H = W.halfway, MQ = 'incal.mirror';
+  const flat2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+  assert.ok(H, 'the halfway stall is built');
+  const stop = level.cabStops.find((c) => c.id === 'middle');
+  assert.ok(flat2(H.frame.position, stop.step) < 14, `beside the middle levels’ cab stop (${flat2(H.frame.position, stop.step).toFixed(1)} m)`);
+  stand(H.perrine.pos, 'Perrine, behind her counter');
+  // the awning's flat roof holds the Smog lantern (content.js keeps its place)
+  const relic = CONTENT.incal.relics.spots[2].at;
+  assert.ok(Math.hypot(relic[0] - H.awning.x, relic[2] - H.awning.z) < 0.3 && Math.abs(relic[1] - 1.1 - H.awning.y) < 0.2, 'the relic is over the awning');
+  const roof = physics.groundAt(H.awning.x, H.awning.y + 1, H.awning.z, 3);
+  assert.ok(Math.abs(roof - H.awning.y) < 0.05, `the awning is a roof you can stand on (${roof?.toFixed?.(2)})`);
+  // Perrine asks
+  assert.equal(quests.isStarted(MQ), false);
+  talk(PEOPLE.perrine, ['What’s the mirror', 'I’ll see to it.']);
+  assert.equal(quests.stage(MQ), 'wash');
+  const mirror = allTargets().find((t) => t.kind === 'mirror');
+  at(H.frame.position.clone()); step(2);
+  assert.ok(mirror.enabled());
+  mirror.onHit('shoot', mirror.position(), V(0, 0, 1));
+  step(2);
+  assert.equal(game.flag('incal.mirror.washed'), true);
+  assert.equal(quests.stage(MQ), 'turn');
+  // straight at the glass it only rocks; side-on it turns a notch at a time, to face up the shaft
+  const out = () => H.facing();
+  mirror.onHit('push', H.glassAt(), out());
+  assert.equal(H.notch(), 3, 'shoved straight, it won’t turn');
+  let n = 0;
+  while (H.notch() !== 0 && n++ < 8) { const rr = out(); mirror.onHit('push', H.glassAt(), V(-rr.z, 0, rr.x)); step(20); }
+  assert.equal(H.notch(), 0, `it came round to face up the shaft in ${n} pushes`);
+  step(30);
+  assert.equal(game.flag('incal.mirror.turned'), true);
+  assert.equal(quests.stage(MQ), 'tell');
+  // facing in, toward the shaft's middle (and tilted up)
+  const fwd = V(0, 0, 1).applyQuaternion(H.face.getWorldQuaternion(new THREE.Quaternion()));
+  const inward = V(-H.frame.position.x, 0, -H.frame.position.z).normalize();
+  assert.ok(fwd.y > 0.3 && V(fwd.x, 0, fwd.z).normalize().dot(inward) > 0.9, `the glass looks up and in, at the Lodestar (${fwd.toArray().map((v) => v.toFixed(2))})`);
+  talk(PEOPLE.perrine, ['Goodbye, Perrine.']);
+  assert.equal(quests.isDone(MQ), true);
+  assert.equal(game.flag('incal.mirror.done'), true);
+  // with the Lodestar lit, Ossa sees the coin of light at the bottom
+  game.set('incal.lit', true);
+  const r2 = new DialogueRunner(PEOPLE.ossa, { game, quests });
+  const said = [];
+  for (let i = 0; i < 6 && !r2.ended; i++) { said.push(r2.text); if (!r2.advance()) break; }
+  if (quests.isDone('incal.light')) assert.match(said.join(' '), /coin of light has come back on Behla’s wall/);
 });

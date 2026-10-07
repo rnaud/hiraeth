@@ -13,7 +13,7 @@
 //
 // Side quests: three machines stopped the night the light went over (the
 // windmill on the plateau, the lamp pump in the upside-down, the ring's
-// turbine); a shot of fluid restarts each. And Pip's ball: push it up the
+// turbine); a shot of fluid restarts each. And Zazie's ball: push it up the
 // ring's curve, where down keeps turning under you, and through the portal to
 // the plateau, where down stays down.
 //
@@ -49,11 +49,11 @@ export const QUESTS = [
     ],
   },
   {
-    id: 'garage.ball', title: 'Pip’s Ball', world: 'garage',
+    id: 'garage.ball', title: 'Zazie’s Ball', world: 'garage',
     outro: 'The ball went where down stays down.',
     stages: [
-      { id: 'push', text: 'Push Pip’s ball up the ring’s curve and through the portal on the wall (C, middle click, or RB / R1)', label: 'Pip’s ball', flag: 'garage.ball.through', at: 'ball' },
-      { id: 'tell', text: 'Tell Pip her ball got through', label: 'Pip', talk: 'pip', at: 'pip' },
+      { id: 'push', text: 'Push Zazie’s ball up the ring’s curve and through the portal on the wall (C, middle click, or RB / R1)', label: 'Zazie’s ball', flag: 'garage.ball.through', at: 'ball' },
+      { id: 'tell', text: 'Tell Zazie her ball got through', label: 'Zazie', talk: 'pip', at: 'pip' },
     ],
   },
 ];
@@ -175,7 +175,7 @@ export const PEOPLE = {
     },
   },
   pip: {
-    id: 'pip.garage', name: 'Pip', title: 'who doesn’t trust down', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7, age: 'child', years: 9,
+    id: 'pip.garage', name: 'Zazie', title: 'who doesn’t trust down', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7, age: 'child', years: 9,
     palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#e88fa6', legs: '#34405e', hat: '#62c3c9', hair: '#6e4a32' }, head: 'hair', cape: 0.55,
     lines: ['~angry~ Down keeps MOVING.', '~shout~ Push it! Go on!', '~curious~ Is it still a ball upside down?'],
     talk: {
@@ -236,7 +236,7 @@ export const LOCALS = [
     ] },
   },
   {
-    id: 'ferrol', name: 'Ferrol', title: 'who walked round the ring', color: '#f2c54b', voice: 0.8,
+    id: 'ferrol', name: 'Gaspard', title: 'who walked round the ring', color: '#f2c54b', voice: 0.8,
     talk: { listen: [
       "~tired~ I walked the whole ring once. Came back to my own footprints. They looked more rested than I did.",
       { if: { not: { flag: 'garage.note.read' } }, say: '~whisper~ I saw a desk once, at *the far edge of the upside-down*, with a lamp on it, still lit. Nobody sitting there. You don’t go near a desk like that. It might be waiting for you.' },

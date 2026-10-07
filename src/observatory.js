@@ -177,8 +177,8 @@ export class ObservatoryQuest {
     });
   }
   hud(player) {
-    if (!this.state.started) return 'Meet the sketcher beside camp';
-    if (this.state.done) return this.state.returned ? 'The stars remember · expedition complete' : 'Observatory awake · go back to the sketcher';
+    if (!this.state.started) return 'Meet Naji, the sketcher, beside camp';
+    if (this.state.done) return this.state.returned ? 'The stars remember · expedition complete' : 'Observatory awake · go back to Naji, the sketcher';
     const i = this.nearby(player);
     if (i >= 0) return `E (B / ○) turn lens ${i + 1} · ${this.state.turns.filter((v, j) => v === TARGETS[j]).length}/3 beams aligned`;
     return this.fragment || `Sleeping observatory · east · ${Math.round(player.pos.distanceTo(this.model.center))} m`;

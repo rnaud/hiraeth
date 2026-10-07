@@ -180,7 +180,7 @@ test('side quests: the lake’s reflection carried to the pole; the avenue walke
   clearInteractables(); clearTargets();
 });
 
-test('out of order: all three spheres heard before meeting Aube; her talk still sends you on', async () => {
+test('out of order: all three spheres heard before meeting Linnet; her talk still sends you on', async () => {
   const { GameState } = await import('../src/game-state.js');
   const { Quests } = await import('../src/story/quests.js');
   const { QUESTS } = await import('../src/story/spheres-data.js');

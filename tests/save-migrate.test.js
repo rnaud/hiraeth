@@ -23,10 +23,10 @@ test('no two people in different worlds share an id (meeting one never marks the
 test('an old save that met "hask" keeps him met, and the Buried Machine’s Hask only if it went there', () => {
   const a = { 'met.hask': true, 'met.ossa': true, 'quest.incal.light': 'done', 'quest.buried.tooth': 'down', 'buried.hask.asked': true, 'met.pip': true };
   assert.equal(migrateFlags(a), true);
-  assert.equal(a['met.hask'], true, 'the old id is kept (the City-Shaft’s Hask)');
+  assert.equal(a['met.hask'], true, 'the old id is kept (the City-Shaft’s seller of views, Tobin now)');
   assert.equal(a['met.hask.buried'], true, 'visited the Buried Machine: its Hask counts as met');
   assert.equal(a['met.ossa.buried'], true);
-  assert.equal(a['met.pip.garage'], undefined, 'never went to the Hangar: its Pip stays unmet');
+  assert.equal(a['met.pip.garage'], undefined, 'never went to the Hangar: its Zazie stays unmet');
   assert.equal(a['save.migrated'], MIGRATED());
   // runs once
   delete a['met.hask.buried'];
