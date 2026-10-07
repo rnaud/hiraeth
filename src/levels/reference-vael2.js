@@ -44,6 +44,9 @@ function materials(kit) {
     // (the spires' and the stones' shade: flat tone, few strokes)
     bone: strata('#fbe3ca', '#f8dcc2', '#fde9d4', { hatch: 0.35, strataHatch: 0 }),
     pink: strata('#f6d3c2', '#f2c8b6', '#f9dccd', { hatch: 0.35, strataHatch: 0 }),
+    // (the needles: shaded by their stalk's round form, one clean terminator band: sky-stones-kit.js needle)
+    boneNeedle: strata('#fbe3ca', '#f8dcc2', '#fde9d4', { hatch: 0.35, strataHatch: 0, flat: false }),
+    pinkNeedle: strata('#f6d3c2', '#f2c8b6', '#f9dccd', { hatch: 0.35, strataHatch: 0, flat: false }),
     // (smooth: the caps' and the overhangs' undersides, densely hatched)
     // (form: the strokes under a cap radiate from its stalk, src/form.js)
     cap: kit.mat({ color: '#fbe0c6', color2: '#f8d9bf', color3: '#fde8d3', mode: MODE_STRATA, strataSize: 5, side: DS, form: true }),
@@ -71,12 +74,12 @@ export const smooth = (g) => { const m = keepForm(mergeVertices(g, 1e-3)); m.com
 
 /** A cluster of needles round (x, z) from y: the main one H high, n round it (fused ones lean on it). */
 function spires(kit, M, { x, z, y, H, R, n = 5, seed = 1, rubble = true, mat = 'bone' }) {
-  const r2 = mulberry32(seed * 97 + 3), m = M[mat];
-  kit.add(m, needle({ x, y, z, H, R, seed: seed + 0.1, seg: 18, rings: 28, lean: (r2() - 0.5) * 0.08 }).vis);
+  const r2 = mulberry32(seed * 97 + 3), m = M[mat], mn = M[`${mat}Needle`] ?? m;
+  kit.add(mn, needle({ x, y, z, H, R, seed: seed + 0.1, seg: 18, rings: 28, lean: (r2() - 0.5) * 0.08 }).vis);
   for (let i = 0; i < n; i++) {
     const fused = i < Math.ceil(n / 2), a = r2() * TAU, d = R * (fused ? 0.55 + r2() * 0.4 : 1.3 + r2() * 1.8);
     const h = H * (fused ? 0.22 + r2() * 0.4 : 0.15 + Math.pow(r2(), 1.3) * 0.55), rr = R * (fused ? 0.4 + r2() * 0.25 : 0.3 + r2() * 0.35);
-    kit.add(m, needle({ x: x + Math.cos(a) * d, y: y - 1, z: z + Math.sin(a) * d, H: h, R: rr, seed: seed + i * 1.37 + 0.5, seg: 14, rings: 20, lean: (r2() - 0.5) * 0.25 }).vis);
+    kit.add(mn, needle({ x: x + Math.cos(a) * d, y: y - 1, z: z + Math.sin(a) * d, H: h, R: rr, seed: seed + i * 1.37 + 0.5, seg: 14, rings: 20, lean: (r2() - 0.5) * 0.25 }).vis);
   }
   if (!rubble) return;
   for (let i = 0; i < 8 + n; i++) {
@@ -99,7 +102,8 @@ function mushroom(kit, M, o) {
   const fit = (g) => (o.squash ? g.translate(-o.x, 0, -o.z).scale(o.squash[0], 1, o.squash[1]).translate(o.x, 0, o.z) : g);
   if (t.drip) kit.add(mat, fit(t.drip), { solid: false, shadow: false });   // the stalactites under its lip (drawn only)
   if (o.smooth === false) { kit.add(mat, fit(t.vis)); return t; }
-  kit.add(mat, smooth(fit(t.vis)), { shadow: false });
+  // (its own smooth normals, by its round form without the flutes and ribs: sky-stones-kit.js table)
+  kit.add(mat, t.vis.attributes.normal ? fit(t.vis) : smooth(fit(t.vis)), { shadow: false });
   kit.add(M.hidden, fit(t.shadow), { solid: false });
   return t;
 }
@@ -395,12 +399,12 @@ export const VAEL2_VIEWS = [
   view({
     id: '3783-egg-column', title: 'The column, its disc and its egg', sheet: 'IMG_3783', panel: 2, where: 'top, second', crop: [276, 38, 224, 451],
     camera: { eye: [0, 10, 0], yaw: 0, fov: 72, pitch: 9 },
-    sun: { side: 130, el: 40 },
+    sun: { side: -70, el: 35 },   // (from the left, as the panel lights its column: one clean terminator down it)
     ground: sky(-300),
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37832,
-        mushrooms: [{ x: 0, z: -70, R: 20, top: 32, base: -80, stalk: 4.3, capT: 2.4, under: 3, dome: 0.6, rib: 0.4, ribK: 22, flute: 0.14, fluteK: 7, foot: 1.5, neckR: 0.9, waist: 0.05, outline: 0.04, mat: 'bone', smooth: false }],
+        mushrooms: [{ x: 0, z: -70, R: 20, top: 32, base: -80, stalk: 4.3, capT: 2.4, under: 3, dome: 0.6, rib: 0.4, ribK: 22, flute: 0.14, fluteK: 7, foot: 1.5, neckR: 0.9, waist: 0.05, outline: 0.04, mat: 'boneNeedle', smooth: false }],
         stones: [[0.4, 42, -70, [[4.6, 2.7, 0.15, 0.26]]]],
         spires: [{ x: -16, z: -90, y: -40, H: 45, R: 4, n: 2, rubble: false }, { x: 14, z: -80, y: -40, H: 30, R: 3, n: 1, rubble: false }],
         clouds: [{ y: -30, near: 60, far: 1200, n: 240, size: [12, 30] }, { y: 10, near: 120, far: 400, n: 22, size: [24, 40], deck: false, spread: 30 }],

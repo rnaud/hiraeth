@@ -126,6 +126,12 @@ and bird too).
   little half-tone), a grey-teal shadow (`#93a6ac`, `SKY_STONES_DAY`), the needles with few shade
   strokes and no beds (`hatch` 0.4, `strataHatch` 0). `?look=vael2` draws the views in it
   (`WORLD_LOOKS`, with `?look=desert`).
+- **One clean terminator down the needles and stalks** (October 2026, round 3; `needle`, `table` in
+  sky-stones-kit.js): a needle's and a cap table's shading normals are a twin's, the same rings without the
+  flutes, the fine noise and the underside's ribs, welded and smooth; the flutes stay in the outline. The needles
+  draw in their own material without flat facets (`M.needle` in arzach2.js, `boneNeedle` / `pinkNeedle` in the
+  views), so the shade runs down a needle as one band where the facets used to break into lit islands. View 52's
+  column takes the same, lit from the left as its panel.
 - **Cost** (M4 Pro, 1280 × 720, Vael II at spawn and turned, GPU median): High 11.4 → 8.6 and 9.5 →
   6.8 ms (the flat clouds gone), Handheld 2.1 → 2.0 and 1.6 → 1.5; the shader changes are a few
   selects, no new taps.

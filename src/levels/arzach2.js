@@ -172,6 +172,9 @@ export function* buildArzach2(scene) {
     // (the needles' shade a flat tone with few strokes and no beds in the light, as the sheets draw them)
     // (form: a table's strokes radiate from its stalk under the cap and run down the stalk, src/form.js)
     bone: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, flat: true, side: DS, hatch: 0.4, strataHatch: 0, form: true, ...PRINT }),
+    // the needles: the bone, its shade by the stalk's own round form (sky-stones-kit.js needle: smooth normals without the
+    // flutes), so the terminator runs down a needle in one clean band as on the sheets, not facets lit in islands
+    needle: makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', mode: MODE_STRATA, strataSize: 7, side: DS, hatch: 0.4, strataHatch: 0, form: true, ...PRINT }),
     cap: makeMaterial({ color: '#f5e5d1', color2: '#f3e0cb', color3: '#f6e9d8', mode: MODE_STRATA, strataSize: 5, side: DS, form: true, ...PRINT }),   // smooth: clean terminator under the caps
     rose: makeMaterial({ color: '#d9a59a', color2: '#c98f86', color3: '#e3b5a8', mode: MODE_STRATA, strataSize: 9, flat: true, side: DS, form: true, ...PRINT }),
     aq: makeMaterial({ color: '#ece3d3', color2: '#e0d5c4', color3: '#f2ebde', mode: MODE_STRATA, strataSize: 2.6, flat: true, side: DS, ...PRINT }),
@@ -191,7 +194,10 @@ export function* buildArzach2(scene) {
   // drawn caps and boulders and the traveller climbed half inside the needles (docs/systems/movement.md, "Contact")
   const add = (mat, g, solid = true) => {
     if (!vis.has(mat)) vis.set(mat, []);
-    vis.get(mat).push(clean(g, true));
+    const c = clean(g, true);
+    // (a needle's and a cap table's own smooth shading normals, by their round form without the flutes: sky-stones-kit.js)
+    if ((mat === M.needle || mat === M.cap) && g.attributes.normal) c.setAttribute('normal', g.getAttribute('normal').clone());
+    vis.get(mat).push(c);
     if (solid) col.push(clean(g));
   };
   const movers = [];
@@ -276,13 +282,14 @@ export function* buildArzach2(scene) {
   const cluster = (cx, cy, cz, H, Rr, n, seed, rubble = true, mat = M.bone) => {
     const r2 = mulberry32(seed * 97 + 3);
     const nd = needle({ x: cx, y: cy, z: cz, H, R: Rr, seed: seed + 0.1, seg: 18, rings: 28, lean: (r2() - 0.5) * 0.08 });
-    add(mat, nd.vis);
+    const nm = mat === M.bone ? M.needle : mat;
+    add(nm, nd.vis);
     for (let i = 0; i < n; i++) {
       // the first few lean on the main needle like wax drips, the rest stand apart
       const fused = i < Math.ceil(n / 2), a = r2() * TAU, d = Rr * (fused ? 0.55 + r2() * 0.4 : 1.3 + r2() * 1.5);
       const h = H * (fused ? 0.22 + r2() * 0.4 : 0.15 + Math.pow(r2(), 1.3) * 0.5), rr = Rr * (fused ? 0.4 + r2() * 0.25 : 0.3 + r2() * 0.35);
       const s = needle({ x: cx + Math.cos(a) * d, y: cy - 1, z: cz + Math.sin(a) * d, H: h, R: rr, seed: seed + i * 1.37 + 0.5, seg: 14, rings: 20, lean: (r2() - 0.5) * 0.25 });
-      add(mat, s.vis);
+      add(nm, s.vis);
     }
     if (!rubble) return nd;
     // rounded boulder piles at the foot
@@ -343,7 +350,7 @@ export function* buildArzach2(scene) {
   {
     const x = 128, z = -92;
     const col0 = needle({ x, y: -80, z, H: 120, R: 7, seed: 41, seg: 14, rings: 18, flute: 0.1, lean: 0 });
-    add(M.bone, col0.vis);
+    add(M.needle, col0.vis);
     const disc = (dx, y, dz, rr, th, lean = null) => {
       const t = tableOf({ x: x + dx, z: z + dz, R: rr, stalk: rr * 0.18, top: y, base: y - th * 2.5, capT: th, under: th * 0.6, dome: th * 0.3, seed: y * 0.1, rib: 0.4, ribK: 20, seg: 64, colSeg: 14, foot: 1, neckR: 1, waist: 0, lean });
       add(M.cap, t.vis);
@@ -641,9 +648,11 @@ export function* buildArzach2(scene) {
   yield;
   for (const [mat, geos] of vis) {
     yield;
+    const own = (mat === M.needle || mat === M.cap) && geos.every((x) => x.attributes.normal);
+    if (!own) for (const x of geos) x.deleteAttribute('normal');
     let g = mergeGeometries(padForm(geos));
-    if (mat === M.cap) g = mergeVertices(g, 1e-3);
-    g.computeVertexNormals();
+    if (mat === M.cap && !own) g = mergeVertices(g, 1e-3);
+    if (!own) g.computeVertexNormals();
     g.computeBoundingSphere();
     const m = new THREE.Mesh(g, mat);
     m.userData.noCollide = true;

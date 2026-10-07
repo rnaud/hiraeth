@@ -52,3 +52,23 @@ test('a leaning table tips about its neck: the cap stays where it was asked, its
     for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); if (v.y < a.min.y + 5) { s.add(v); k++; } } return s.divideScalar(k); };
   assert.ok(footC(lean.vis).distanceTo(footC(flat.vis)) > 10, 'the stalk slants under it');
 });
+
+test('a needle and a cap table are shaded by their round form, not their flutes: one clean terminator', async () => {
+  const { needle: nd, table: tb } = await import('../src/levels/sky-stones-kit.js');
+  const n = nd({ x: 0, y: 0, z: 0, H: 60, R: 5, seed: 3, seg: 18, rings: 28 }).vis;
+  assert.ok(n.attributes.normal, 'its own shading normals');
+  // across one ring's faces at mid height, the normals turn smoothly round the stalk: no flute faces turned away
+  // across the faces at mid height, the shading normals turn round the stalk far more evenly than the faces do
+  const P = n.attributes.position, N = n.attributes.normal, a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  let face = 0, shade = 0;
+  for (let i = 0; i < P.count; i += 3) {
+    a.fromBufferAttribute(P, i); b.fromBufferAttribute(P, i + 1); c.fromBufferAttribute(P, i + 2);
+    const cy = (a.y + b.y + c.y) / 3; if (cy < 20 || cy > 40) continue;
+    const out = new THREE.Vector3((a.x + b.x + c.x) / 3, 0, (a.z + b.z + c.z) / 3).normalize();
+    const fn = b.clone().sub(a).cross(c.clone().sub(a)).setY(0).normalize();
+    const sn = new THREE.Vector3(N.getX(i) + N.getX(i + 1) + N.getX(i + 2), 0, N.getZ(i) + N.getZ(i + 1) + N.getZ(i + 2)).normalize();
+    face = Math.max(face, Math.acos(Math.min(1, fn.dot(out)))); shade = Math.max(shade, Math.acos(Math.min(1, sn.dot(out))));
+  }
+  assert.ok(shade < face * 0.75, `the shading normal turns away from the stalk by ${shade.toFixed(2)} rad at worst, its facets by ${face.toFixed(2)}`);
+  assert.ok(tb({ x: 0, z: 0, R: 20, stalk: 4, top: 30, flute: 0.14, fluteK: 7, rib: 0.4 }).vis.attributes.normal);
+});
