@@ -1,0 +1,77 @@
+changelog.md
+  s_55b4bc53b812ec::t_834c0597897b10 12-16
+docs/systems/dev-tools.md
+  s_55b4bc53b812ec::t_f879c78ae57ae5 8-12
+docs/systems/references.md
+  s_55b4bc53b812ec::t_84173540a75180 667-700
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_1cca017d967432 870-933
+src/audio.js
+  s_55b4bc53b812ec::t_492460e7f3a07e 37-38
+src/boot.js
+  s_55b4bc53b812ec::t_1c52447ebaa8ba 5,18-23,29
+src/changelog-media.js
+  s_55b4bc53b812ec::t_f4155686214ef4 49,159-187
+src/changelog.js
+  s_55b4bc53b812ec::t_49cd0101a317bd 18-26
+src/costumes.js
+  s_55b4bc53b812ec::t_ae9fef226402d7 473
+src/edge.js
+  s_55b4bc53b812ec::t_ef9beae687465a 37
+src/levels/content.js
+  s_55b4bc53b812ec::t_4a193880a3c1ff 27,46
+src/levels/index.js
+  s_55b4bc53b812ec::t_cdd8a4386632c0 25,157-163
+src/levels/moon-foundry-kit.js
+  s_55b4bc53b812ec::t_92c9dc05d7b60e 1-561
+src/levels/moon-foundry.js
+  s_55b4bc53b812ec::t_a43887c171eedd 1-592
+src/levels/names.js
+  s_55b4bc53b812ec::t_463d856f5a34b5 27,35
+src/levels/reference-moonfoundry.js
+  s_55b4bc53b812ec::t_4206f95d2f113a 1-292
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_5ed978533d020c 37
+src/levels/references.js
+  s_55b4bc53b812ec::t_f7a32387f9897c 20,107-109,129-145,227,425,526
+src/main.js
+  s_55b4bc53b812ec::t_c655482859f3f3 75,880,886
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_b45c8b70880915 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_f56f39485f1cd0 118
+src/reactive-world.js
+  s_55b4bc53b812ec::t_b25567d5bbc1f7 36
+src/ship/planets.js
+  s_55b4bc53b812ec::t_564edc6c9b93b6 32
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_1c05eecb73fea2 33
+src/title.js
+  s_55b4bc53b812ec::t_2496ec47a4be07 156,211-212,214,216-217
+src/world-picker.js
+  s_55b4bc53b812ec::t_556cc655e45b9d 1-64
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_9119cfc6273e05 136
+tests/menus.test.js
+  s_55b4bc53b812ec::t_32e6542b749a34 17-24
+tests/moonfoundry.test.js
+  s_55b4bc53b812ec::t_3d079bad918a5c 1-201
+tests/references.test.js
+  s_55b4bc53b812ec::t_62f9abb3964461 6,63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "74da624092cf60ea939f4c10fe05a8139c7f0534",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
