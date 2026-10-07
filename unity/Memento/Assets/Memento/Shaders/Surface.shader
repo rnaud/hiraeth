@@ -847,7 +847,8 @@ Shader "Memento/Surface"
         float dark0 = clamp((_Toon - L) / _Toon, 0.0, 1.0);
         // (a hatch over 1 is a denser one, a hatched mass: closer strokes, heavier; materials.js HATCH_DENSE)
         float hDense = max(_Shade.z, 1.0);
-        float hsp = _HatchSpacing * lerp(0.78, 1.4, smoothstep(6.0, 260.0, i.viewDepth)) / min(hDense, 1.3);
+        float hsp0 = _HatchSpacing * lerp(0.78, 1.4, smoothstep(6.0, 260.0, i.viewDepth));
+        float hsp = max(hsp0 / min(hDense, 1.3), min(hsp0, 4.5));   // (never closer than a pen can draw: HATCH_DENSE.minPx)
         float dark = min(dark0 * (1.0 + (hDense - 1.0) * 0.9), 1.0);
         float h1s = strokes(ce1, fw1, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
         float hcs = strokes(ceY, fwY, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
