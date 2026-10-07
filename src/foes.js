@@ -3,6 +3,7 @@ import { makeMaterial } from './materials.js';
 import { registerTarget } from './targets.js';
 import { Telegraph, strikeDamage, inArea } from './temples/boss.js';
 import { game as sharedGame } from './game-state.js';
+import { gainInk, INK_OF } from './ink.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -46,6 +47,8 @@ export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['machine'], ['machine
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /** How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. */
 export const TURNS = { strikers: 2, apart: 0.3 };
+/** Relics out in the wilds are guarded (placed, not by chance): a few blots gather round as you come near; cut down, they are gone for good. */
+export const GUARDS = { near: 32, size: 2, ring: 3.5 };
 
 /**
  * One foe's mind: idle at home (a slow drift round it), chase once you come into sight, wind up its
@@ -249,6 +252,12 @@ export class Foes {
       seen: (from, to) => !physics?.rayDistance || physics.rayDistance(from, _w.subVectors(_v.copy(to).setY(to.y + 1), from).normalize(), from.distanceTo(_v)) >= from.distanceTo(_v) - 0.5,
     };
     if (!this.peaceful) this.placeMachines();
+    // the relics' guards: a relic out in the wilds (src/levels/content.js relics.spots), once per save
+    this.guards = this.peaceful || level?.foes?.waves ? [] : (content?.relics?.spots ?? []).map((s, i) => {
+      const a = Array.isArray(s) ? s : s.at, x = a[0], z = a.length === 2 ? a[1] : a[2];
+      const y = a.length === 2 ? level?.ground?.heightAt?.(x, z) ?? 0 : a[1];
+      return { i, pos: new THREE.Vector3(x, y, z), id: `foes.${levelId}.r${i}` };
+    });
   }
 
   /** How many may strike at once. */
@@ -331,6 +340,22 @@ export class Foes {
     return made;
   }
 
+  /** A guarded relic you come near (in the wilds, not yet cleared, its guards not out): they gather round it. */
+  updateGuards() {
+    const P = this.player;
+    for (const g of this.guards) {
+      if (this.game.flag(g.id) || P.pos.distanceTo(g.pos) > GUARDS.near) continue;
+      if (this.list.some((f) => f.guard === g && f.alive)) continue;
+      if (!this.wild(g.pos)) { g.tame = true; continue; }
+      for (let k = 0; k < GUARDS.size; k++) {
+        const a = (k / GUARDS.size) * Math.PI * 2 + 0.7, x = g.pos.x + Math.sin(a) * GUARDS.ring, z = g.pos.z + Math.cos(a) * GUARDS.ring;
+        const y = this.physics ? this.physics.groundAt(x, g.pos.y + 4, z, 12) : g.pos.y;
+        const f = this.add('blot', new THREE.Vector3(x, Number.isFinite(y) ? y : g.pos.y, z));
+        f.guard = g;
+      }
+    }
+  }
+
   /** The Arena: once the last wave is down, a short rest, then the next round you (the list, round and round). */
   updateWaves(dt) {
     if (this.list.some((f) => f.alive)) { this.waveRest = WAVE.rest; return; }
@@ -370,6 +395,8 @@ export class Foes {
       if (tank) for (let i = 0; i < 10; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
     }
     if (f.id) this.game.set(f.id, true);
+    if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards are gone for good)
+    gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it)
     f.dead = 0.8;   // (the look fades out over this)
     this.game.emit?.('foe:burst', { kind: f.kind });
   }
@@ -383,6 +410,7 @@ export class Foes {
     // the wilds: after a few seconds out there, a pack comes in (the first time, just one); a pack
     // left far behind dissolves; after one is cut down, a rest before the next
     if (this.waves) this.updateWaves(dt);
+    this.updateGuards();
     const wild = !this.waves && !P.ride && !P.swim && this.wild(P.pos);
     this.wildFor = wild ? this.wildFor + dt : 0;
     this.packRest = Math.max(0, this.packRest - dt);

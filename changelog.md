@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.88 — 2026-10-07
 
+- Relics out in the wilds are guarded: ink blots gather round as you come near, and once cut down they are gone for good.
+- Cut-down foes leave ink, which runs into the glove, and the blade grows with it: at 8 ink it reaches further, at 20 its third swing becomes a whirl that cuts all round you, at 40 a swing begun at a run lunges into the cut.
 - Foes take turns: no more than two strike at once while the others circle, and they no longer stand inside each other.
 - A foe winding up out of sight shows a marker at the edge of the screen, on its side, filling as its strike comes.
 - Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.

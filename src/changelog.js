@@ -13,6 +13,8 @@ export const CHANGELOG = [
     'Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.',
     'A foe winding up out of sight shows a marker at the edge of the screen, on its side, filling as its strike comes.',
     'Foes take turns: no more than two strike at once while the others circle, and they no longer stand inside each other.',
+    'Cut-down foes leave ink, which runs into the glove, and the blade grows with it: at 8 ink it reaches further, at 20 its third swing becomes a whirl that cuts all round you, at 40 a swing begun at a run lunges into the cut.',
+    'Relics out in the wilds are guarded: ink blots gather round as you come near, and once cut down they are gone for good.',
   ] },
   { v: '0.87', date: '2026-10-07', items: [
     'The fluid blade: the glove draws a blade of the tank’s fluid and swings it (F, LB / L1, or ⚔ on a touch screen). Press again to chain three swings, the last one heavier. It turns you toward the nearest foe and costs nothing.',

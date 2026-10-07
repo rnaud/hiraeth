@@ -120,6 +120,10 @@ export const CHANGELOG_MEDIA = {
   '0.88': [
     { match: 'Blows land with weight', see: 'In the Arena, cut an ink blot: a brief catch and a jolt as the blade connects; the third swing of the combo sends it flying.' },
     { match: 'A foe winding up out of sight', see: 'In the Arena, turn the camera away from a blot as it comes: a round marker appears at the screen’s edge on its side.' },
+    { match: 'Cut-down foes leave ink', shots: [
+      { name: 'blade-whirl', only: 'after', caption: 'The whirl: the third swing, grown from the ink, the blade longer', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'Cut blots down: the count shows every 5 ink, and each step is announced as it is reached. Then press F three times quickly, or press it while running.' },
+    { match: 'Relics out in the wilds are guarded', see: 'In the desert, walk toward a relic out in the dunes: two blots gather round it.' },
     { match: 'Foes take turns', see: 'In the Arena’s second wave, three blots come: two wind up at most while the third circles.' },
   ],
   '0.87': [

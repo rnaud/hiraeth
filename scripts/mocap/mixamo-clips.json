@@ -99,6 +99,8 @@
     { "id": "ss_impact_3", "file": "ss_impact_3", "name": "Sword And Shield Impact", "desc": "Sword and Shield Pack: sword and shield impact (3)", "use": "ref", "inPlace": true, "root": "fixed", "pack": "sword-and-shield", "entry": "sword and shield impact (3).fbx" },
     { "id": "ss_block_1", "file": "ss_block_1", "name": "Sword And Shield Block", "desc": "Sword and Shield Pack: sword and shield block", "use": "clip", "inPlace": true, "root": "fixed", "pack": "sword-and-shield", "entry": "sword and shield block.fbx" },
     { "id": "ss_block_2", "file": "ss_block_2", "name": "Sword And Shield Block", "desc": "Sword and Shield Pack: sword and shield block (2)", "use": "clip", "inPlace": true, "root": "fixed", "pack": "sword-and-shield", "entry": "sword and shield block (2).fbx" },
-    { "id": "ss_block_idle", "file": "ss_block_idle", "name": "Sword And Shield Block Idle", "desc": "Sword and Shield Pack: sword and shield block idle (guard held)", "use": "clip", "inPlace": true, "root": "fixed", "loop": true, "still": true, "pack": "sword-and-shield", "entry": "sword and shield block idle.fbx" }
+    { "id": "ss_block_idle", "file": "ss_block_idle", "name": "Sword And Shield Block Idle", "desc": "Sword and Shield Pack: sword and shield block idle (guard held)", "use": "clip", "inPlace": true, "root": "fixed", "loop": true, "still": true, "pack": "sword-and-shield", "entry": "sword and shield block idle.fbx" },
+    { "id": "gs_high_spin", "file": "gs_high_spin", "name": "Great Sword High Spin Attack", "desc": "Great Sword Pack: great sword high spin attack", "use": "clip", "inPlace": true, "root": "fixed", "pack": "great-sword", "entry": "great sword high spin attack.fbx" },
+    { "id": "gs_slide_attack", "file": "gs_slide_attack", "name": "Great Sword Slide Attack", "desc": "Great Sword Pack: great sword slide attack", "use": "clip", "inPlace": true, "root": "fixed", "pack": "great-sword", "entry": "great sword slide attack.fbx" }
   ]
 }

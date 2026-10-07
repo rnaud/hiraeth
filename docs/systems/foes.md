@@ -75,6 +75,25 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
 - **Warnings:** a foe winding up off the screen (or behind the camera) shows a round marker at the screen's
   edge on its side, filling as its strike comes (`#foe-warn`, `Foes.warnings`).
 
+## Ink and the blade's growth (`src/ink.js`)
+
+The blots are the drawing's unfinished margins, gathered thickest where the singing light passed. Cut down,
+a foe leaves ink (`INK_OF`: a blot 1, a machine 3) that runs into the glove (flag `ink`, never down). At
+`UPGRADES` steps the blade grows, each said once:
+- **reach** (8): the blade 1.3× as long, its swing as far (`REACH_UP`);
+- **whirl** (20): the third swing is the Great Sword pack's high spin (`WHIRL`), cutting all round (half-angle
+  π), damage 2;
+- **lunge** (40): a swing begun at a run (not chained) is the pack's slide attack (`LUNGE`), carrying you
+  into the cut, reach 3.6 m, damage 2.
+
+The count is said every 5 ink.
+
+## Placed encounters
+
+- **Relic guards:** a relic out in the wilds (`content.relics.spots`, where `wild()` holds) gets `GUARDS.size`
+  blots round it as you come within `GUARDS.near` (32 m).
+- Cut down, they are gone for good (flag `foes.<world>.r<i>`).
+
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes

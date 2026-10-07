@@ -219,3 +219,36 @@ test('feel: a hit-stop nearly stops the world for its length, then lets go; four
   assert.ok(a.pos.distanceTo(b.pos) > 1, 'pushed apart');
   foes.dispose(); clearTargets();
 });
+
+test('ink: each foe cut down leaves ink, and the blade grows at its steps (reach, whirl, lunge), each said once', async () => {
+  const { gainInk, inkOf, hasUpgrade, UPGRADES } = await import('../src/ink.js');
+  const game = new GameState(null), notes = [];
+  assert.equal(hasUpgrade('reach', game), false);
+  gainInk(1, { game, notice: (t) => notes.push(t) });
+  assert.match(notes[0], /ink/i, 'the first ink is explained');
+  const reached = [];
+  for (let i = 1; i < 45; i++) reached.push(...gainInk(1, { game, notice: (t) => notes.push(t) }).map((u) => u.id));
+  assert.deepEqual(reached, UPGRADES.map((u) => u.id), 'each step once, in order');
+  assert.equal(inkOf(game), 45);
+  for (const u of UPGRADES) assert.ok(hasUpgrade(u.id, game) && notes.includes(u.text), u.id);
+});
+
+test('a relic out in the wilds is guarded: its blots gather as you come near, and once cut down they are gone for good', async () => {
+  clearTargets();
+  const game = new GameState(null);
+  const P = player(v(0, 0, 380));
+  const content = { npcs: [], relics: { spots: [{ at: [0, 0, 420] }], names: ['r'] } };
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', content, physics: flat, player: P, settings: { enemies: true }, game });
+  foes.packRest = 999;
+  foes.update(DT);
+  assert.equal(foes.list.length, 0, 'not yet: 40 m away');
+  P.pos.set(0, 0, 395);
+  foes.update(DT);
+  const guards = foes.list.filter((f) => f.guard);
+  assert.equal(guards.length, 2, 'two guards round it');
+  for (const f of guards) for (let i = 0; i < 2; i++) foes.hurt(f, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(game.flag('foes.desert.r0'), true, 'cleared');
+  for (let i = 0; i < 1 / DT; i++) foes.update(DT);
+  assert.equal(foes.list.filter((f) => f.guard && f.alive).length, 0, 'and they do not come back');
+  foes.dispose(); clearTargets();
+});

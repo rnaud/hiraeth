@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { allTargets, targetsInCone } from './targets.js';
 import { hitStop, kick } from './feel.js';
+import { hasUpgrade } from './ink.js';
 
 // The fluid blade: the glove draws a blade of the tank's fluid and swings it (F, LB / L1, touch ⚔).
 // It comes with the backpack and costs nothing: a press swings, presses in quick succession chain up
@@ -46,6 +47,11 @@ export const SWINGS = [
   { clip: 'mixamo_ss_attack_1', from: 0.78, to: 1.5, hit: 1.15 },
 ];
 export const SWING_SPEED = 1.5;
+/** The blade's grown moves (src/ink.js): the whirl replaces the third swing and cuts all round; the lunge is a swing begun at a run. */
+export const WHIRL = { clip: 'mixamo_gs_high_spin', from: 0.55, to: 1.45, hit: 1.06, angle: Math.PI, damage: 2 };
+export const LUNGE = { clip: 'mixamo_gs_slide_attack', from: 0.0, to: 0.9, hit: 0.5, dash: 9, damage: 2, reach: 3.6 };
+/** The reach step: the blade this much longer, its swing this much further. */
+export const REACH_UP = 1.3;
 /** The guard: the clips (block idle held round and round, the block played as a strike lands), how wide it covers, and the shield. */
 export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, angle: 1.3, rise: 0.12, radius: 0.5 };
 /** Is a strike from `from` in front of someone at `pos` facing `dir` (flat), within GUARD.angle? */
@@ -149,6 +155,7 @@ export class FluidBlade {
     }
     if (this.swinging) {
       this.t += dt / this.dur;
+      if (this.special === LUNGE && this.t < this.hitAt) p.vel?.addScaledVector(this.dir, LUNGE.dash * dt * 6);   // (the lunge carries you into the cut)
       if (!this.hit && this.t >= this.hitAt) { this.hit = true; this.strike(); }
       if (this.t >= 1) {
         this.last = this.n; this.n = -1; p.swingMove = null;
@@ -220,8 +227,9 @@ export class FluidBlade {
     const T = this.tool, p = T.player, U = p.frame.up;
     this.chained = this.n >= 0 || this.chainT > 0;
     this.n = n; this.t = 0; this.hit = false;
-    // the captured swing if the clip is there, else the arc
-    const S = SWINGS[n], A = p.animator;
+    // the captured swing if the clip is there, else the arc; grown: the whirl for the third, the lunge from a run
+    this.special = !this.chained && n === 0 && p.sprinting && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
+    const S = this.special ?? SWINGS[n], A = p.animator;
     this.move = S && A?.moveClip?.(S.clip) ? S : null;
     this.dur = this.move ? (S.to - S.from) / SWING_SPEED : BLADE.swing;
     this.hitAt = this.move ? (S.hit - S.from) / (S.to - S.from) : BLADE.hitAt;
@@ -239,8 +247,9 @@ export class FluidBlade {
   strike() {
     const T = this.tool, p = T.player, U = p.frame.up;
     const origin = _o.copy(p.pos).addScaledVector(U, 1.1);
-    const hits = bladeHits(origin, this.dir, T.physics);
-    const info = { ...T.info(), damage: BLADE.damage[this.n] ?? 1, combo: this.n };
+    const S = this.special, up = hasUpgrade('reach', T.state) ? REACH_UP : 1;
+    const hits = bladeHits(origin, this.dir, T.physics, { reach: (S?.reach ?? BLADE.reach) * up, angle: S?.angle ?? BLADE.angle });
+    const info = { ...T.info(), damage: S?.damage ?? BLADE.damage[this.n] ?? 1, combo: S ? 2 : this.n };
     for (const h of hits) h.target.onHit?.('blade', h.point, h.dir, { ...info, mode: 'blade' });
     // wildlife in the cone scatters (it doesn't list the blade: it never feels it, it just runs)
     for (const h of targetsInCone(origin, this.dir, BLADE.reach, BLADE.angle, T.physics)) if (h.target.kind === 'wildlife') h.target.onHit?.('push', h.point, h.dir, info);
@@ -273,7 +282,7 @@ export class FluidBlade {
     if (!this.move) along.addScaledVector(this.dir, 0.35).normalize();
     this.group.position.copy(hand);
     this.group.quaternion.copy(_q.setFromUnitVectors(_Y, along));
-    this.group.scale.set(1, Math.max(0.05, this.lit), 1);
+    this.group.scale.set(1, Math.max(0.05, this.lit) * (hasUpgrade('reach', T.state) ? REACH_UP : 1), 1);
     if (this.swinging && dt > 0) {
       const tip = _b.copy(hand).addScaledVector(along, BLADE.length * this.lit), tones = T.modeTones;
       for (let i = 0; i < 3; i++) T.glow.add({ pos: _o.lerpVectors(hand, tip, 0.45 + i * 0.27), vel: _r.set(0, 0, 0), drag: 6, size: 0.05 + i * 0.015, life: 0.16, color: tones[(this.n + i) % tones.length], grow: false });
