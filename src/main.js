@@ -74,7 +74,7 @@ import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as 
 import { slots, formatPlaytime } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
-import { slicer, runStepsAsync } from './load-steps.js';
+import { slicer, runStepsAsync, gpuPacer } from './load-steps.js';
 import { waterShared } from './water-shader.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
@@ -107,6 +107,8 @@ renderer.setPixelRatio(pixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
+// (hidden under the loading screen until the first frame: nothing for the compositor to bring along with the pen)
+renderer.domElement.style.visibility = 'hidden';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.3, 5000);
@@ -1581,6 +1583,7 @@ const programKind = (o, m) => `${m.id}|${o.isInstancedMesh ? 1 : 0}${o.instanceC
 // (the scene a program's key is taken from: no lights, fog or environment, as the world's own; an
 // empty one, so each compile doesn't walk the whole world looking for lights)
 const keyScene = new THREE.Scene();
+const gpuPace = gpuPacer(renderer.getContext());
 async function warmShadersSliced(targetScene, targetCamera, target = null, { wear = null } = {}) {
   const reps = new Map();
   targetScene.traverse((o) => {
@@ -1596,6 +1599,7 @@ async function warmShadersSliced(targetScene, targetCamera, target = null, { wea
       for (const m of renderer.compile(o, targetCamera, keyScene)) mats.add(m);
     } finally { if (wear) o.material = own; }
     await slice();
+    await gpuPace();   // (one compile queued at a time: the loading screen's pen keeps turning)
   }
   renderer.setRenderTarget(prev);
   // the driver compiles in parallel (KHR_parallel_shader_compile): wait for it a while, yielding
@@ -1637,7 +1641,7 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
   const seen = warmDraw.meshes().filter((o) => o.visible !== false && (!o.isInstancedMesh || o.count > 0) && inView(o));
   const todo = [...warmDraw.near(dests), ...warmDraw.of(...(ship.parked?.indoor ?? [])), ...warmDraw.near([player.pos], 120), ...seen];
   let n = 0;
-  for (let i = 0; i < todo.length; i += 24) { n += warmDraw.draw(todo.slice(i, i + 24)); await slice(); }
+  for (let i = 0; i < todo.length; i += 8) { n += warmDraw.draw(todo.slice(i, i + 8)); await slice(); await gpuPace(); }   // (8 at a time: a batch's uploads are one piece of the GPU's work)
   // what the first frame would set up for itself: the rooms off the map, the levels of detail
   roomCull ??= makeRoomCull();
   await slice();
@@ -1652,6 +1656,7 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
+  renderer.domElement.style.visibility = '';
   frame(t);
   markBooted();   // the heartbeat: the Android app keeps a downloaded web build only once it gets here (native-app.js)
   const ld = document.getElementById('loading');
