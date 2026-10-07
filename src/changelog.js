@@ -7,6 +7,10 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.76', date: '2026-10-07', items: [
+    'The desert’s people carry the rest of what their drawings give them: Nour has clay gourds and a ring of keys at her belt and a tall staff with a pierced disc at its head; Marrow wears his long patched coat without a cloak, with a salvage bag at his hip (a bone and a pipe sticking out of it) and a pack on his back; Sefa’s cloak has little brass bells all along its hem and her oud has tassels; the Speaker’s bell is copper and his staff carries streamers.',
+    'Sefa’s oud no longer pokes through her cloak as she walks: the cloth swings round it.',
+  ] },
   { v: '0.75', date: '2026-10-07', items: [
     'The sketchbook is now a game menu in the spirit of Ocarina of Time’s pause screen, drawn in the game’s own ink and paper: four panels side by side, Items, Quests, Sketchbook and Worlds. View / Select (J, or the ❏ button) opens it; LB / L1 and RB / R1 (Q and E, or the tabs) turn from panel to panel, the stick or the D-pad moves a cursor, the strip at the bottom says what you have picked, and B / ○ closes it from anywhere.',
     'Items shows what you have found as pictures of the things themselves, with an empty slot for each thing still to find; the one you pick shows large, with what it is and what it does. A / × on a fluid mode switches your tank to it. Under them: what you carry for a quest, and your keepsakes.',

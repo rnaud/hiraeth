@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.76 — 2026-10-07
+
+- The desert’s people carry the rest of what their drawings give them: Nour has clay gourds and a ring of keys at her belt and a tall staff with a pierced disc at its head; Marrow wears his long patched coat without a cloak, with a salvage bag at his hip (a bone and a pipe sticking out of it) and a pack on his back; Sefa’s cloak has little brass bells all along its hem and her oud has tassels; the Speaker’s bell is copper and his staff carries streamers.
+- Sefa’s oud no longer pokes through her cloak as she walks: the cloth swings round it.
+
 ## v0.75 — 2026-10-07
 
 - The sketchbook is now a game menu in the spirit of Ocarina of Time’s pause screen, drawn in the game’s own ink and paper: four panels side by side, Items, Quests, Sketchbook and Worlds. View / Select (J, or the ❏ button) opens it; LB / L1 and RB / R1 (Q and E, or the tabs) turn from panel to panel, the stick or the D-pad moves a cursor, the strip at the bottom says what you have picked, and B / ○ closes it from anywhere.
