@@ -1,0 +1,23 @@
+src/main.js
+  s_55b4bc53b812ec::t_41068ab9f3eff2 26,1092,1095,1176
+src/perf.js
+  s_55b4bc53b812ec::t_3786c5d87ebfea 517-538
+tests/render-frame-pin.test.js
+  s_55b4bc53b812ec::t_711230f3af48c3 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8a27f2e0ff51f3f1fdc33823625f035615395ed1",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
