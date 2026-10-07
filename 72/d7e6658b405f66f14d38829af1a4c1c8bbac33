@@ -1,0 +1,45 @@
+changelog.md
+  s_55b4bc53b812ec::t_bd1651c8494dc9 13
+docs/systems/app-icon.md
+  s_55b4bc53b812ec::t_20fb8b96f5e61b 49-61
+scripts/deck-runtime.mjs
+  s_55b4bc53b812ec::t_afa6fedab93c3f 10,21-22
+scripts/package-steam-deck.mjs
+  s_55b4bc53b812ec::t_da7300fe47577b 21-22
+scripts/steam-art.mjs
+  s_55b4bc53b812ec::t_ed0eb1936b41b3 1-165
+scripts/steam-deck/deck.py
+  s_55b4bc53b812ec::t_f263d2ff954d39 154,523-581,583-584,587-588,817-822,833
+src/changelog.js
+  s_55b4bc53b812ec::t_b18383141d90d1 17
+tests/deck-runtime.test.js
+  s_55b4bc53b812ec::t_4de0757c2daebe 5,33-34,77-97
+tests/test_steam_deck.py
+  s_55b4bc53b812ec::t_68492c5a74aa9d 18,412-455
+docs/steam-deck.md
+  s_49cd91b776d109::t_68999bfc4b9c03 65-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "72d7e6658b405f66f14d38829af1a4c1c8bbac33",
+  "prompts": {},
+  "sessions": {
+    "s_49cd91b776d109": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a92871400884d0dd0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
