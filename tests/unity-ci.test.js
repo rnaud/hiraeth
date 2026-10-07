@@ -10,12 +10,31 @@ const workflow = read('.github/workflows/unity-android.yml');
 const build = read('unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs');
 const settings = read('unity/Memento/ProjectSettings/ProjectSettings.asset');
 
-test('the workflow runs on pushes that touch the bridge, and by hand', () => {
+test('the workflow runs on pushes that touch the Unity side, nightly when the game moved, and by hand', () => {
   assert.match(workflow, /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths:/m);
-  for (const p of ['unity/**', 'engine/**', 'src/**', 'scripts/unity-*', 'scripts/unity-*/**'])
-    assert.ok(workflow.includes(`- '${p}'`), p);
+  const paths = /paths:\n((?: {6}- .*\n)+)/.exec(workflow)[1];
+  for (const p of ['unity/**', 'engine/**', 'scripts/unity-*', 'scripts/unity-*/**', 'scripts/engine-bundle.mjs'])
+    assert.ok(paths.includes(`- '${p}'`), p);
+  assert.ok(!paths.includes("'src/**'"));   // (the game's pushes are too frequent: the nightly run takes them)
+  assert.match(workflow, /^ {2}schedule:\n {4}- cron: '\d+ \d+ \* \* \*'/m);
   assert.match(workflow, /^ {2}workflow_dispatch:/m);
   assert.match(workflow, /cancel-in-progress: false/);
+  // the nightly run builds only when the build's inputs moved since the commit the release names
+  assert.match(workflow, /git diff --quiet "\$last" HEAD -- unity engine src public scripts/);
+  assert.match(workflow, /if: needs\.check\.outputs\.build == 'true'/);
+});
+
+test('the workflow caches what makes a warm build short', () => {
+  // Unity's Library (imports, shader cache, the IL2CPP build's objects): restored from the newest, saved every run
+  assert.match(workflow, /uses: actions\/cache\/restore@v4[\s\S]*?\$\{\{ env\.PROJECT \}\}\/Library\n[\s\S]*?key: unity-library-android-[^\n]*\$\{\{ github\.run_id \}\}\n {10}restore-keys: \|\n {12}unity-library-android-/);
+  assert.match(workflow, /uses: actions\/cache\/save@v4[\s\S]*?key: \$\{\{ steps\.library\.outputs\.cache-primary-key \}\}/);
+  assert.match(workflow, /key: unity-library-linux-/);
+  assert.match(workflow, /~\/\.gradle\/caches/);
+  // Puerts' glue made again only when the C# changes: its editor run skipped on a hit
+  assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ hashFiles\('unity\/Memento\/Assets\/\*\*\/\*\.cs'/);
+  assert.match(workflow, /if: steps\.glue\.outputs\.cache-hit != 'true'\n {8}uses: game-ci\/unity-builder@v6/);
+  assert.match(workflow, /key: puerts-3\.0\.3/);
+  assert.match(workflow, /cache: npm/);
 });
 
 test('the workflow builds with GameCI on the local editor\'s Unity, licensed by the Unity account', () => {
@@ -33,8 +52,8 @@ test('the workflow builds with GameCI on the local editor\'s Unity, licensed by 
   // the secrets are checked first and a missing one fails the run at once, by name
   assert.match(workflow, /for s in UNITY_EMAIL UNITY_PASSWORD ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD/);
   assert.match(workflow, /::error title=Missing secrets::/);
-  assert.match(workflow, /android:\n {4}needs: secrets/);
-  assert.match(workflow, /linux:\n(?: {4}#.*\n)* {4}needs: android/);   // (one Personal seat at a time)
+  assert.match(workflow, /android:\n {4}needs: check/);
+  assert.match(workflow, /linux:\n(?: {4}#.*\n)* {4}needs: \[check, android\]/);   // (one Personal seat at a time)
 });
 
 test('the workflow prepares the bridge as the local players do, then builds the APK and the Linux player', () => {

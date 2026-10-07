@@ -11,6 +11,11 @@ name: Unity release (testers)
 # Unity is licensed by GameCI (unity-builder v6, which activates a Personal seat from UNITY_EMAIL and
 # UNITY_PASSWORD and returns it after); without those secrets the first job fails at once and says so.
 # The same APK can be built and published from a Mac with scripts/unity-android-release.sh.
+#
+# When: a push that touches the Unity side (unity/, engine/, the bridge's scripts, this file), by hand, and
+# every night, when the game (src/, public/) moved since the last published build: the game's pushes are too
+# frequent to build each one. Fast when warm: Unity's Library (its imports, shader cache and the IL2CPP build's
+# objects in Library/Bee), Puerts' IL2CPP glue, Gradle's caches and Puerts are all cached between runs.
 
 on:
   push:
@@ -18,18 +23,19 @@ on:
     paths:
       - 'unity/**'
       - 'engine/**'
-      - 'src/**'
-      - 'public/**'
       - 'scripts/unity-*'
       - 'scripts/unity-*/**'
       - 'scripts/engine-bundle.mjs'
       - '.github/workflows/unity-android.yml'
+  schedule:
+    - cron: '17 3 * * *'   # (nightly; skipped when nothing the build takes changed since the last one)
   workflow_dispatch:
 
 permissions:
   contents: write
 
-# (one build at a time, never cancelled once started: a newer push waits, and GitHub keeps only the newest waiting)
+# (one build at a time, never cancelled once started: a newer trigger waits, and GitHub keeps only the newest
+# waiting one, cancelling those between: they would have built an older tree)
 concurrency:
   group: unity-release
   cancel-in-progress: false
@@ -39,9 +45,11 @@ env:
   PROJECT: unity/Memento
 
 jobs:
-  # the secrets first, in seconds, before an hour of build
-  secrets:
+  # the secrets first, in seconds, before the build; and whether a nightly run has anything new to build
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.changed.outputs.build }}
     steps:
       - name: Unity licence and signing key
         env:
@@ -60,12 +68,33 @@ jobs:
           fi
           echo "Unity licence (Personal from UNITY_EMAIL + UNITY_PASSWORD) and the release key are set"
 
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Anything new since the last build?
+        id: changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          # (a push or a run by hand always builds; the nightly one only when the build's inputs moved)
+          if [ "$EVENT" != schedule ]; then echo "build=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          last=$(gh release view unity-android --json body --jq .body | sed -n 's/.*Built from commit `\([0-9a-f]*\)`.*/\1/p' | head -1)
+          if [ -n "$last" ] && git cat-file -e "$last^{commit}" 2>/dev/null \
+            && git diff --quiet "$last" HEAD -- unity engine src public scripts .github/workflows/unity-android.yml; then
+            echo "Nothing new since $last: no build tonight"; echo "build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes since ${last:-the start}: building"; echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+
   android:
-    needs: secrets
+    needs: check
+    if: needs.check.outputs.build == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      # (the Android editor image is 8 GB, the IL2CPP build 4-6 GB more: the runner's preinstalled SDKs go first)
+      # (the Android editor image is 8 GB, the cached Library 6 GB unpacked: the runner's preinstalled SDKs go first)
       - name: Free disk space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
@@ -100,12 +129,38 @@ jobs:
           scripts/unity-js-setup.sh
           node scripts/engine-bundle.mjs unity
 
-      - name: The Unity Library (cached)
-        uses: actions/cache@v4
+      # Unity's Library: the imported assets, the shader cache (12 minutes of shaders cold), the IL2CPP build's
+      # objects (Library/Bee: 20 minutes of C++ cold, rebuilt only where the code changed). A new entry each run,
+      # restored from the newest; the IL2CPP symbol backups and stripped copies are left out (rebuilt in seconds).
+      - name: Unity Library (restore)
+        id: library
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: unity-library-android-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.shader', 'unity/Memento/Assets/**/*.hlsl') }}
-          restore-keys: unity-library-android-
+          key: unity-library-android-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
+          restore-keys: |
+            unity-library-android-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-
+            unity-library-android-
+
+      # Gradle's downloads (the container's /root is the runner's home: GameCI mounts it)
+      - name: Gradle (cached)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: unity-gradle-${{ github.run_id }}
+          restore-keys: unity-gradle-
+
+      # Puerts' IL2CPP glue (Assets/Gen) depends on the project's C# and Puerts: made again only when they change
+      - name: Puerts' IL2CPP glue (cached)
+        id: glue
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PROJECT }}/Assets/Gen
+            ${{ env.PROJECT }}/Assets/Gen.meta
+          key: puerts-glue-3.0.3-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json') }}
 
       - name: Version
         id: meta
@@ -120,8 +175,9 @@ jobs:
           mkdir -p .local-tools
           echo "$KEYSTORE_BASE64" | base64 -d > .local-tools/ci-release.p12
 
-      # Puerts' IL2CPP glue (Assets/Gen) in an editor run of its own: it is C# as well as C++
+      # Puerts' IL2CPP glue in an editor run of its own: it is C# as well as C++ (skipped when cached)
       - name: Puerts' IL2CPP glue
+        if: steps.glue.outputs.cache-hit != 'true'
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -136,6 +192,7 @@ jobs:
           allowDirtyBuild: true
 
       - name: The testers' APK (IL2CPP ARM64)
+        id: apk
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -160,6 +217,18 @@ jobs:
         if: always()
         run: rm -f .local-tools/ci-release.p12
 
+      # (saved even when the build failed further on: what was imported and compiled is not lost)
+      - name: Unity Library (trim)
+        if: always() && steps.library.outcome == 'success'
+        run: sudo rm -rf "$PROJECT/Library/Bee/Android/Prj/IL2CPP/Il2CppBackup" "$PROJECT"/Library/Bee/artifacts/objcopy_*
+
+      - name: Unity Library (save)
+        if: always() && steps.library.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.PROJECT }}/Library
+          key: ${{ steps.library.outputs.cache-primary-key }}
+
       # (kept with the run too: a week, in case the release can't be written)
       - uses: actions/upload-artifact@v5
         with:
@@ -174,8 +243,9 @@ jobs:
         run: scripts/unity-publish.sh android "$PROJECT/Builds/unity-android/memento-unity.apk" "GitHub Actions (run ${{ github.run_number }})"
 
   linux:
-    # (after the APK, not beside it: one Personal seat held at a time)
-    needs: android
+    # (after the APK, not beside it: one Personal seat held at a time; also when the APK failed)
+    needs: [check, android]
+    if: always() && needs.check.outputs.build == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -202,12 +272,15 @@ jobs:
           scripts/unity-js-setup.sh
           node scripts/engine-bundle.mjs unity
 
-      - name: The Unity Library (cached)
-        uses: actions/cache@v4
+      - name: Unity Library (restore)
+        id: library
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: unity-library-linux-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.shader', 'unity/Memento/Assets/**/*.hlsl') }}
-          restore-keys: unity-library-linux-
+          key: unity-library-linux-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
+          restore-keys: |
+            unity-library-linux-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-
+            unity-library-linux-
 
       # (Mono: no IL2CPP glue, and the Deck's player as the docs build it)
       - name: The Linux player (x86_64, Vulkan, Mono)
@@ -224,6 +297,13 @@ jobs:
           versioning: None
           customParameters: -mono -out Builds/bridge-linux/memento-js.x86_64
           allowDirtyBuild: true
+
+      - name: Unity Library (save)
+        if: always() && steps.library.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.PROJECT }}/Library
+          key: ${{ steps.library.outputs.cache-primary-key }}
 
       - name: Publish to the release unity-linux
         env:
