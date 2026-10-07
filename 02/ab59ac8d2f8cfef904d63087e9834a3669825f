@@ -1,0 +1,23 @@
+engine/unity/game.js
+  s_55b4bc53b812ec::t_d0f263ebc9c7ed 208-211
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_55b4bc53b812ec::t_fa955dcfd905a0 135-136
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_2eead4a57f6aea 198-200,221-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "02ab59ac8d2f8cfef904d63087e9834a3669825f",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
