@@ -6,6 +6,7 @@
 import { unityGeometry, CommandWriter, OP, mirrorMatrix, crowdInstances, puffInstances } from './pack.js';
 import { portMaterial } from './port-format.js';
 import { skinMatrices } from '../skin.js';
+import { packClothDesc } from '../cloth.js';
 
 const tally = (self, op, before) => { self._opWords[op] = (self._opWords[op] ?? 0) + self.w.n - before; };
 
@@ -26,8 +27,9 @@ export class UnityBackend {
     this._opWords = {};
   }
 
-  geometry(gid, g) {
+  geometry(gid, g, geo) {
     this.geoms.set(gid, g);
+    if (geo) (this.gidOf ??= new WeakMap()).set(geo, gid);   // (the overshirt's frame names its garment's: clothOffload)
     // (a geometry rewritten: its variants go again when next drawn)
     for (const k of [...this.sent]) if (k.startsWith(`${gid}:`)) { this.sent.delete(k); this._resend = true; }
   }
@@ -185,6 +187,32 @@ export class UnityBackend {
     w.u(OP.fluid); w.i(mid);
     for (let i = 0; i < 26; i++) w.f(f[i]);
     tally(this, 'fluid', b0);
+  }
+
+  /**
+   * The coral-shirt traveller's overshirt done in Unity (tripo-cloth.js CLOTH_HOST: engine/game.js sets it): its
+   * description once (BridgeHost.Cloth), then a packet a frame in the command buffer (op 17), the cage stepped, the
+   * garment's vertices and normals worked out by a Burst job (BridgeCloth.cs), not on the script's thread.
+   */
+  clothOffload() {
+    const B = this;
+    let id = 0, desc = null;
+    return {
+      init(d) { desc = d; id = (B._cloths = (B._cloths ?? 0) + 1); B.host.Cloth(id, B.toHost(packClothDesc(d))); },
+      frame(p) {
+        const gid = B.gidOf?.get(desc.garment.geometry);
+        if (!gid) return;   // (not mirrored yet: its first frames are the garment as made)
+        const w = B.w, b0 = w.n, N3 = desc.N * 3, K = desc.caps * 14;
+        w.reserve(5 + N3 + 2 * K + p.boneMesh.length + 16);
+        w.u(OP.cloth); w.i(id); w.i(gid); w.u(p.simulated ? p.steps : 0); w.u((p.reset ? 1 : 0) | (p.simulated ? 2 : 0));
+        for (let i = 0; i < N3; i++) w.f(p.G[i]);
+        for (let i = 0; i < K; i++) w.f(p.simCaps[i]);
+        for (let i = 0; i < K; i++) w.f(p.mapCaps[i]);
+        for (let i = 0; i < p.boneMesh.length; i++) w.f(p.boneMesh[i]);
+        for (let i = 0; i < 16; i++) w.f(p.attach[i]);
+        tally(B, 'cloth', b0);
+      },
+    };
   }
 
   /** The traveller's feet and speed (three's space: the grass parts round them, the plants lean away), when they move: op 14. */

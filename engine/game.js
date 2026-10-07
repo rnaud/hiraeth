@@ -27,6 +27,7 @@ import { loadAnimationLibrary, Animator } from '../src/animator.js';
 import { loadHuman, Humanoid } from '../src/humanoid.js';
 import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
 import { loadTravellerV1, createTravellerV1 } from '../src/characters/traveller-v1.js';
+import { CLOTH_HOST } from '../src/characters/tripo-cloth.js';
 import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, buildPeople } from '../src/crowd.js';
@@ -167,7 +168,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const generated = await travellerV1P;
   if (generated) {
     try {
-      player.character = createTravellerV1(player.char, generated);
+      // (his overshirt done by the engine where it can: Unity's Burst job, not this thread; tripo-cloth.js CLOTH_HOST)
+      CLOTH_HOST.offload = backend?.clothOffload?.() ?? null;
+      try { player.character = createTravellerV1(player.char, generated); } finally { CLOTH_HOST.offload = null; }
       player.humanoid = player.character.humanoid;
       engineColours(player.character, generated);
     } catch (e) { log('traveller v1 failed', e?.message ?? e); player.character = null; }

@@ -19,6 +19,9 @@ namespace Memento.Bridge
         // ---------------------------------------------------------------- the mirror's ops
         public static void Geometry(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Geometry(key, b, n); }
         public static void Material(int mid, string json) => R?.Material(mid, json);
+        /// <summary>The coral-shirt traveller's overshirt, done here (BridgeCloth): its description, once (engine/cloth.js packClothDesc).</summary>
+        public static void Cloth(int id, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); R?.Cloth(id, b, n); }
+        public static double ClothMs() { var r = R; if (!r) return 0; var v = r.msCloth; r.msCloth = 0; return v; }
         public static void Create(int id, string json) => R?.Create(id, json);
         public static void SetMesh(int id, string key) => R?.SetMesh(id, key);
         /// <summary>Does the script box its buffers ({ b: buffer })? In an IL2CPP player Puerts hands an `object` over as a ScriptObject.</summary>

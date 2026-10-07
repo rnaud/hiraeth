@@ -50,6 +50,35 @@ namespace Memento.Bridge
         struct GrassInst { public Vector4 at, b; }
         class GrassLayer { public Mesh mesh; public Material mat; public GraphicsBuffer buf; public GrassInst[] insts = new GrassInst[0]; public int n; public bool dirty, said; }
         readonly Dictionary<int, GrassLayer> grass = new();
+        // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
+        readonly Dictionary<int, BridgeCloth> cloths = new();
+        public double msCloth;
+        public void Cloth(int id, byte[] b, int count)
+        {
+            if (cloths.Remove(id, out var old)) old.Dispose();
+            cloths[id] = new BridgeCloth(b, count);
+            Debug.Log($"Memento bridge: cloth {id}: {cloths[id].N} particles, {cloths[id].M} garment vertices, in a Burst job");
+        }
+        /// <summary>What the frame still has running (a shot renders between Update and LateUpdate).</summary>
+        public void FinishFrame() => FinishCloths();
+        /// <summary>The cloths' jobs done, their garments into the meshes (before the frame is drawn).</summary>
+        void FinishCloths()
+        {
+            foreach (var c in cloths.Values)
+            {
+                var t0 = Time.realtimeSinceStartupAsDouble;
+                if (!c.Complete()) continue;
+                msCloth += (Time.realtimeSinceStartupAsDouble - t0) * 1000;
+                if (!byGeometry.TryGetValue(c.gid, out var list)) continue;
+                foreach (var md in list)
+                {
+                    if (!md.mesh || md.pos.Length != c.V) continue;
+                    md.mesh.SetVertices(c.outPos);
+                    if (md.nrm != null) md.mesh.SetNormals(c.outNrm);
+                    md.mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 8f);
+                }
+            }
+        }
         readonly Dictionary<string, Mesh> bound = new();             // a mesh with a bind pose, by mesh and bind
 
         /// <summary>For a look into what is drawn (BridgeBatch -probe): the nodes whose name holds `sub`, as Unity has them.</summary>
@@ -511,6 +540,13 @@ namespace Memento.Bridge
                         if (copies.TryGetValue(mid, out var fl)) foreach (var c in fl) SetF(c);
                         break;
                     }
+                    case 17:   // the overshirt's frame: its packet into its Burst job (BridgeCloth)
+                    {
+                        int cid = (int)fu[o++], gid = (int)fu[o++];
+                        if (cloths.TryGetValue(cid, out var cl)) { cl.gid = gid; o += cl.Packet(fu, ff, o); }
+                        else { Debug.LogError($"Memento bridge: no cloth {cid}"); o = words; }
+                        break;
+                    }
                     case 6:   // remove
                     {
                         int id = (int)fu[o++];
@@ -586,7 +622,7 @@ namespace Memento.Bridge
             nd.mf.sharedMesh = mesh;
         }
 
-        void LateUpdate() => DrawCrowds();
+        void LateUpdate() { FinishCloths(); DrawCrowds(); }
 
         /// <summary>The motes' quads, turned to the camera: clamp(size × 900 / depth, 1.5, 14) px across, as life.js's gl_PointSize.</summary>
         void PointQuads()
@@ -655,6 +691,7 @@ namespace Memento.Bridge
         {
             foreach (var c in crowds.Values) { c.buf?.Release(); if (c.mat) Destroy(c.mat); }
             foreach (var g in grass.Values) { g.buf?.Release(); if (g.mat) Destroy(g.mat); }
+            foreach (var c in cloths.Values) c.Dispose();
             foreach (var n in nodes.Values) { if (n.inst) Destroy(n.inst); n.im?.Release(); n.puffs?.Release(); }
             foreach (var m in instMaterials.Values) if (m) Destroy(m);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);

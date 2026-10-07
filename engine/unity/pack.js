@@ -82,6 +82,9 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false } =
  *  13 grassView:  i32 id, f32 × 18: uGrassView (its centre in three's space), uGrassLod, uGrassLook, uColor, uColor2
  *  14 brush:      f32 × 4: the traveller's feet (three's space) and speed (the port's _Brush)
  *  15 material:   i32 material id, f32 r, g, b, glow (NaN: unchanged): a material's colour or glow, live
+ *  17 cloth:      i32 cloth id, i32 the garment's geometry id, u32 steps, u32 flags (1 reset, 2 simulated), f32 targets 3N,
+ *                 the cage's capsules 14K, the garment's 14K, the bones 16Bn (bind inverse folded in), the attachment 16:
+ *                 the coral-shirt traveller's overshirt, a frame (BridgeCloth.cs; engine/cloth.js its sizes)
  *  16 fluid:      i32 material id, f32 × 26: uFluidA, uFluidB, the six tones (rgb): the traveller's fluid, live
  *   0 end
  */
@@ -97,7 +100,7 @@ export class CommandWriter {
   take() { this.reserve(1); this.u32[this.n++] = 0; const out = this.buf.slice(0, this.n * 4); this.n = 0; return out; }
   get empty() { return this.n === 0; }
 }
-export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16 };
+export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16, cloth: 17 };
 
 /**
  * Instances as the port's Puffs.Inst (8 floats each, op 10: the footprints' decals): the position in Unity's

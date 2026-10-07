@@ -137,6 +137,7 @@ namespace Memento.Bridge
             var prev = cam.targetTexture;
             cam.targetTexture = rt;
             // (the HUD's letters: a dynamic font rasterises new ones on a canvas rebuild, so build, draw, and again)
+            scene.FinishFrame();
             Canvas.ForceUpdateCanvases();
             scene.DrawCrowds(); cam.Render();
             Canvas.ForceUpdateCanvases();

@@ -247,8 +247,11 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
     (mask + 8 × piece + 128 × prop), so it showed the wrong pieces, several props at once. Ported again
     from crowd-shader.js (costumes.js packDress, CROWD_BODY, the cape's arm clearance, the seated robe);
     a test reads the shader's limits against costumes.js.)
-  - [ ] The coral-shirt traveller's overshirt cloth steps on the VM's thread (the web: a Worker): its sim
-    as a C# job.
+  - [x] The coral-shirt traveller's overshirt cloth steps on the VM's thread (the web: a Worker): its sim
+    as a C# job. (2026-10-07: tripo-cloth.js `CLOTH_HOST.offload`: the module works out the frame's packet
+    (targets, capsules, bones), the cage's steps, the garment's vertices and normals are a Burst job
+    (BridgeCloth.cs, op 17; engine/cloth.js the same in JS, tested against the module). The camps' script
+    update went from 13.6 to 4.8 ms a frame, the frame from 22.9 to 11.1, both on a loaded machine.)
   - [ ] Hatching that follows the form (`S_FORM`: its per-vertex axis).
   - [ ] The makers' boxes' star and ray (`MAKERS_BOX`).
   - [ ] The MakeHuman faces' shape keys (`FACE_KEYS`).

@@ -567,7 +567,21 @@ cloud shadows (the clock); the portraits in the conversation chip.
 still read the costume in the old packing and so showed the wrong pieces, several props at once. Ported again
 from crowd-shader.js, 2026-10-07.)
 
-**What it costs**: the VM's update grew with what it now runs. The coral-shirt traveller's overshirt cloth is
+**The overshirt in a Burst job** (2026-10-07). The coral-shirt traveller's cloth was most of the script's
+frame (the web steps its cage in a Worker and, since, moves the garment in its vertex shader; the engines' VMs
+have no Worker). `src/characters/tripo-cloth.js` takes an engine's offload (`CLOTH_HOST.offload`, set by
+engine/game.js from the backend's `clothOffload()`): once, the cage's constants and the garment's flat arrays
+(`engine/cloth.js packClothDesc`, `BridgeHost.Cloth`); each frame, the packet the module still works out on the
+VM's thread from the bones (the cage's targets, the leg capsules, the bones' matrices with the bind inverse
+folded in, the attachment: op 17, ~3 KB). `BridgeCloth.cs` steps the cage (90 Hz Verlet, 18 passes over the
+edges and the capsules), places every garment vertex (rigid on the attachment, eased into its skinned place,
+plus its cell's displacement, pushed out of the legs) and works out the normals in one Burst job, scheduled
+as the packet arrives and completed before the frame is drawn; the garment's meshes take the result (mirrored
+in x). `engine/cloth.js clothFrame` is the same steps in JS, which `tests/cloth-offload.test.js` checks against
+the module's own path. At the camps (load ~35) the script's update went from 13.6 to 4.8 ms, the frame from
+22.9 to 11.1 ms; the dunes from 6.7 to 1.5 and 13.2 to 5.4.
+
+**What it costs** (before the overshirt's job, above): the VM's update grew with what it now runs. The coral-shirt traveller's overshirt cloth is
 the largest share: on the web it steps in a Web Worker, here on the VM's own thread (in Node's `vm` context,
 35 of a 49 ms frame at the garage; in Puerts' V8 a few ms). On a busy machine (load 21–27) the editor's frame
 at the camps was 22.9 ms (update 13.6, mirror 5.0), the dunes 13.2 (6.7, 2.8), the Garden of Spheres' start
