@@ -200,7 +200,7 @@ export function sketchesPanel({ worlds = [], extra = [] } = {}) {
   const sections = [];
   for (const w of worlds) {
     const r = rows.length, cells = [];
-    cells.push({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: w.story?.img ? `${w.title} · the story, told` : `${w.title} · a story not told yet`, desc: w.story?.img ? 'The moment the story ended, drawn as it happened.' : 'Its page is drawn when the story is told.', act: w.story?.img ? 'look' : null, img: w.story?.img ?? null });
+    cells.push({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: w.story?.img || w.story?.told ? `${w.title} · the story, told` : `${w.title} · a story not told yet`, desc: w.story?.img ? 'The moment the story ended, drawn as it happened.' : w.story?.told ? 'Told before its page was drawn: an older save.' : 'Its page is drawn when the story is told.', act: w.story?.img ? 'look' : null, img: w.story?.img ?? null });
     (w.relics ?? []).forEach((t, i) => cells.push({ col: 1 + i, kind: 'relic', id: `${w.id}.${i}`, name: t.img ? t.name : 'Not found yet', sub: `${w.title} · relic ${i + 1} of ${w.relics.length}`, desc: t.img ? 'Sketched the moment you found it.' : 'Somewhere in this world, often on top of something you have to climb.', act: t.img ? 'look' : null, img: t.img ?? null }));
     rows.push(cells);
     sections.push(`<section class="world"><h2>${esc(w.title)} <span>${w.found ?? 0}/${w.of ?? (w.relics ?? []).length}</span></h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, c === 0)).join('')}</div></section>`);

@@ -8,6 +8,7 @@
 
 import { ITEMS } from './items.js';
 import { CHARGE, chargeStep } from './story/charge.js';
+import { ALL_QUESTS } from './story/all-quests.js';
 
 const KIND_ORDER = ['core', 'movement', 'mode', 'upgrade', 'charm', 'pass', 'cosmetic'];
 /** Each gun mode's item (the backpack shoots plain fluid). */
@@ -37,14 +38,21 @@ export function chargeCard(st) {
 }
 
 /** Quests: { charge, active, errands, done, failed } for questsPanel (quests: src/story/quests.js). */
-export function questsData({ quests = null, charge = null, errands = {}, defs = [], titles = {} } = {}) {
+export function questsData({ quests = null, charge = null, errands = {}, defs = [], titles = {}, everyQuest = ALL_QUESTS } = {}) {
   const s = quests?.summary?.() ?? { active: [], done: [], failed: [] };
   const parcels = Object.entries(errands ?? {}).filter(([, e]) => !e.done).map(([id, e]) => {
     const to = defs.find((d) => d.id === id)?.to?.[0];
     const where = (to && titles[to]) ?? e.toTitle ?? 'its world';
     return { id: `errand.${id}`, title: `Errand: ${cap(String(e.item).replace(/^an? /, ''))}`, goal: `Carry ${e.item} to ${where}`, step: `Take it to ${where}, and to whoever is waiting for it there` };
   });
-  return { charge: chargeCard(charge), active: s.active, errands: parcels, done: s.done, failed: s.failed };
+  // (and what ended in other worlds: their quests are only defined while you are there, src/story/all-quests.js)
+  const done = [...s.done], failed = [...s.failed], have = new Set([...done, ...failed, ...s.active].map((q) => q.id));
+  for (const d of everyQuest) {
+    if (have.has(d.id)) continue;
+    if (quests?.isDone?.(d.id)) done.push({ id: d.id, title: d.title, outro: d.outro ?? 'Done.' });
+    else if (quests?.isFailed?.(d.id)) failed.push({ id: d.id, title: d.title, outro: d.failOutro ?? 'It went wrong.' });
+  }
+  return { charge: chargeCard(charge), active: s.active, errands: parcels, done, failed };
 }
 
 /**
@@ -55,7 +63,7 @@ export function sketchesData({ data = {}, levels = [], known = () => true } = {}
   const worlds = levels.filter((L) => (!L.hidden || data.completed) && known(L.id)).map((L) => {
     const relics = (L.relicNames ?? []).map((name, i) => ({ name, img: data.relics?.[L.id]?.[i]?.img ?? null }));
     const st = data.stories?.[L.id];
-    return { id: L.id, title: L.title, story: { title: L.storyTitle ?? L.title, img: st?.img || null }, relics, found: relics.filter((r) => r.img).length, of: relics.length };
+    return { id: L.id, title: L.title, story: { title: L.storyTitle ?? L.title, img: st?.img || null, told: !!st }, relics, found: relics.filter((r) => r.img).length, of: relics.length };
   });
   const extra = [];
   const obs = data.observatory;
