@@ -46,6 +46,10 @@ export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {
     st.roll = 0;
     sound.whoosh?.();
   };
+  // the frieze on the porch, beside the door (src/desert-hearth.js)
+  if (H.carving) registerInteractable({ id: 'hearth.carving', priority: PRIORITY.use, range: 3.2, at: () => H.carvingFoot, prompt: 'look at the carved frieze',
+    distance: (p) => (Math.abs(p.pos.y - H.carvingFoot.y) < 3 ? flat(p.pos, H.carvingFoot) : Infinity),
+    use: () => dialogue.start(THINGS.carving, null, H.carvingFoot.clone(), H.carving.clone()) });
   registerTarget({ kind: 'weight', radius: 0.95, position: () => H.ball.position, enabled: () => !opened() && st.roll < 0 && inside(),
     onHit: (mode) => {
       if (mode === 'push') { roll(); return true; }

@@ -607,6 +607,8 @@ export const PEOPLE = {
         { if: { quest: 'desert.bike', stage: 'ask' }, node: 'bike' },
         { if: { quest: 'desert.bike', stage: ['find', 'wake'] }, node: 'bikeWhere' },
         { if: { all: [{ flag: 'desert.bike.found' }, { not: { flag: 'desert.marrow.bike' } }] }, node: 'bikeAfter' },
+        // once you have read his slate at the crashed hull in the south (THINGS.slate), he brings it up himself
+        { if: { all: [{ flag: 'met.marrow' }, { flag: 'desert.wreck.read' }, { not: { flag: 'desert.marrow.hull' } }] }, node: 'hull' },
         { node: 'hello' },
       ],
       nodes: {
@@ -630,6 +632,14 @@ export const PEOPLE = {
             { text: '~curious~ Got anything faster than walking?', if: { all: [{ quest: 'desert.bike', started: false }, { not: { flag: 'desert.bike.found' } }] }, goto: 'bike' },
             { text: '~angry~ Stay away from my ship.', end: true },
           ],
+        },
+        // the crashed hull in the south: his old camp, picked clean years ago (the slate: THINGS.slate)
+        hull: {
+          say: ["~playful~ Blue dust on your boots. Hull paint. You found my old camp in the south! Best chair I ever sold came off that wreck. The buyer thinks it was a throne.",
+            "~solemn~ No mark on that one. I looked, then I looked again. Most ships that come down just come down. Yours didn’t.",
+            "~whisper~ I check every wreck for it now. Since yours. I’d rather be the one who knows."],
+          do: { set: { 'desert.marrow.hull': true } },
+          choices: [{ text: '~neutral~ So would I.', end: true }],
         },
         // the hoverbike (quest desert.bike): he found it, hid it, and can't start it
         bike: {
@@ -715,6 +725,38 @@ export const THINGS = {
     id: 'bone', name: 'The fallen rib', title: 'across the channel', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~neutral~ A fallen rib blocks the dry channel. Behind it, a crack in the wall is damp. The water is trapped on the other side.", "~neutral~ Too heavy to lift. Find *the keepers’ pole by the mural* and lever it over the carved post. With a filled tank, *Push* also works: C, middle click or RB / R1."],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  // the Givers' Hearth's porch: the frieze beside the door (src/desert-hearth.js)
+  carving: {
+    id: 'carving', name: 'The carved frieze', title: 'beside the Hearth’s door', color: '#e7a587', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~solemn~ Carved shallow into the porch beside the door, worn soft by sand: five small figures in a line, passing a light from hand to hand, toward a tree.",
+        "~neutral~ The figure under the tree has its hands open and empty. The light is always one pair of hands from the end.",
+        { if: { any: [{ flag: 'desert.stone.taken' }, { flag: 'world.desert.done' }] }, text: "~whisper~ (You have been one of them now. The stone went from your hands to the tree.)" }],
+      do: { set: { 'desert.carving.seen': true } },
+      choices: [{ text: '~solemn~ (trace the line with a finger)', end: true }],
+    } } },
+  },
+  // inside the masked head: the little mask on the chamber's pedestal (src/levels/desert.js maskRooms)
+  smallMask: {
+    id: 'smallMask', name: 'The little mask', title: 'on the chamber’s pedestal', color: '#f2c54b', voice: 0.55,
+    talk: { nodes: { look: {
+      say: ["~solemn~ On the pedestal, a small mask glows: the sleeping face from the dunes outside, made small enough to hold. Its eyes are shut. On its brow: {glyph}",
+        { if: { any: [{ flag: 'arzach2.face.seen' }, { flag: 'clue.arzach2.desert' }] }, text: "~surprised~ You have seen this face before, carved on the lone tower’s plinth in Vael II, high over the cloud. Somebody made it in more than one world." },
+        { if: { not: { any: [{ flag: 'arzach2.face.seen' }, { flag: 'clue.arzach2.desert' }] } }, text: "~whisper~ The glow rises and falls, very slowly, like someone breathing in their sleep." }],
+      do: { set: { 'desert.smallmask.seen': true } },
+      choices: [{ text: '~neutral~ (leave it sleeping)', end: true }],
+    } } },
+  },
+  // the crashed hull in the southern dunes: a salvager's slate by the old camp's hut (src/desert-landmarks.js)
+  slate: {
+    id: 'slate', name: 'A salvager’s slate', title: 'by the hut at the crashed hull', color: '#34405e', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~neutral~ A slate on an easel, chalked in a tidy hand: *PLATES. WIRE. TWO PUMPS. ONE GOOD CHAIR.*",
+        "~solemn~ Underlined twice, at the bottom: *NO MARK ON HER. FELL ON HER OWN.* And smaller: *Checked. M.*"],
+      do: { set: { 'desert.wreck.read': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

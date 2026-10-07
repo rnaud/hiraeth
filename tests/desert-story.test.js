@@ -15,7 +15,8 @@ const { DialogueRunner } = await import('../src/story/dialogue.js');
 const { PEOPLE, THINGS, LINES, ITEMS } = await import('../src/story/desert-data.js');
 const { COOL_FIRE } = await import('../src/story/flames.js');
 const { STORY } = await import('../src/desert-sites.js');
-const { clearInteractables, bestInteractable } = await import('../src/interact.js');
+const INTERACT = await import('../src/interact.js');
+const { clearInteractables, bestInteractable } = INTERACT;
 const { allTargets } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
 
@@ -61,6 +62,40 @@ const stand = (p, label) => {
   assert.ok(Number.isFinite(g) && Math.abs(g - p.y) < 1.2, `${label} has solid ground (${g?.toFixed?.(2)} vs ${p.y.toFixed(2)})`);
   return g;
 };
+
+
+test('places to stop: the Hearth’s frieze, the little mask in the head’s chamber, the salvager’s slate at the crashed hull', () => {
+  const { allInteractables } = INTERACT;
+  const H = level.hearth, LM = level.landmarks, R = level.maskRooms[0];
+  const find = (id) => allInteractables().find((e) => e.id === id);
+  for (const [id, foot, label] of [['hearth.carving', H.carvingFoot, 'before the frieze'], ['slate', LM.wreckSlateFoot, 'by the slate'], ['smallMask', R.floor, 'the chamber’s floor']]) {
+    const e = find(id);
+    assert.ok(e, `${id} can be looked at`);
+    const g = physics.groundAt(foot.x, foot.y + 3, foot.z, 8);
+    assert.ok(Number.isFinite(g) && Math.abs(g - foot.y) < 1.2, `${label} is walkable (${g?.toFixed?.(2)} vs ${foot.y.toFixed(2)})`);
+    assert.ok(e.distance({ pos: foot.clone() }) < 3.2, `${id} answers from ${label}`);
+  }
+  // the frieze knows when you have carried the stone yourself; the mask, when you have seen its face in Vael II
+  const said = (def) => { const r = new DialogueRunner(def, { game, quests }); return r.pages.join(' '); };
+  assert.ok(!/You have been one of them/.test(said(THINGS.carving)) || game.flag('desert.stone.taken') || game.flag('world.desert.done'));
+  const was = game.flag('arzach2.face.seen');
+  game.set('arzach2.face.seen', true);
+  assert.match(said(THINGS.smallMask), /lone tower’s plinth in Vael II/);
+  game.set('arzach2.face.seen', was ?? false);
+  // the slate, then Marrow about it, once
+  new DialogueRunner(THINGS.slate, { game, quests });
+  assert.equal(game.flag('desert.wreck.read'), true);
+  const metBefore = game.flag('met.marrow');
+  game.set('met.marrow', true);
+  const r = new DialogueRunner(PEOPLE.marrow, { game, quests });
+  if (!quests.isActive('desert.bike') && !(game.flag('desert.bike.found') && !game.flag('desert.marrow.bike'))) {
+    assert.equal(r.nodeId, 'hull', 'Marrow brings up his old camp himself');
+    assert.match(r.pages.join(' '), /Most ships that come down just come down/);
+    assert.equal(game.flag('desert.marrow.hull'), true);
+    assert.notEqual(new DialogueRunner(PEOPLE.marrow, { game, quests }).nodeId, 'hull', 'once');
+  }
+  game.set('met.marrow', metBefore ?? false);
+});
 
 test('the city, its camps, the giant and the cave stand on solid ground, 300–600 m from the start', () => {
   const c = Q.city.center, d = Math.hypot(c.x, c.z);
@@ -711,3 +746,4 @@ test('the water let out before anyone sent you down: the steps that lead there p
   assert.equal(quests.stage('desert.power'), 'fill', 'the Speaker and the way down pass too: on to the pool');
   clearInteractables();
 });
+

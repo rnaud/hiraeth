@@ -219,6 +219,18 @@ export const THINGS = {
     id: 'drawing', name: 'A drawing in the sand', title: 'by Oïa’s stone', color: '#d9c9a8', voice: 0.6,
     talk: { nodes: { look: { say: ["~neutral~ Oïa’s drawing: three dots over an arc. {glyph} She calls it the bird’s track.", "~sad~ The wind is already rubbing it out."], choices: [{ text: '~neutral~ (step back)', end: true }] } } },
   },
+  // the fallen colossus on the plain (src/levels/arzach.js colossus): Vael says little, so the stone says it
+  colossus: {
+    id: 'colossus', name: 'The fallen giant', title: 'asleep on the plain', color: '#f7f1e4', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~solemn~ A giant of pale stone lies on its side in the plain, one knee drawn up, as if it lay down to rest and the plain came up round it.",
+        "~neutral~ Its face is turned toward the lone tower. Swallows nest in the hollow of its ear.",
+        { if: { any: [{ flag: 'bird.promise' }, { flag: 'arzach.bird.called' }] }, text: "~whisper~ (When the bird goes over, her shadow crosses the stone face, and for a moment it seems to watch her go.)" },
+        { if: { not: { any: [{ flag: 'bird.promise' }, { flag: 'arzach.bird.called' }] } }, text: "~whisper~ (It looks at the tower the way Oïa does: waiting, without hurry.)" }],
+      do: { set: { 'arzach.colossus.seen': true } },
+      choices: [{ text: '~solemn~ (sit a moment in its shade)', end: true }],
+    } } },
+  },
   palm: {
     id: 'palm', name: 'The stone hand', title: 'reaching out of the plain', color: '#efe6d2', voice: 0.6,
     talk: {

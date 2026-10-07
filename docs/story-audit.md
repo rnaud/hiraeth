@@ -144,8 +144,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The bike line.
 - **Still open:**
   - The bible's desert section still describes the burning-tree and fill-and-go sequence (`lore/continuity.md` notes the drift).
-  - The Hearth has no carving or inscription.
-  - The masked head's inner chamber has no words.
+  - *(second pass: done)* The Hearth has a carved frieze; the masked head's chamber has words; the crashed hull has Marrow's slate.
   - Oum's cord is never used.
 
 ### Vael: "The Waiting Bird"
@@ -178,7 +177,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The lids.
   - Senn's choice.
   - The flask.
-- **Still open:** the colossus has nothing to look at (a proposal below).
+- **Second pass:** the colossus can be looked at now (it lies as if resting, turned to the tower; the bird's shadow crosses its face).
 
 ### Vael II: "The Bell Under the Cloud"
 
@@ -505,7 +504,7 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
   - something on the City-Shaft's middle levels;
   - a different puzzle at the Hearth than the temple's stone ball.
 
-  *Second pass, one at a time:* **the City-Shaft's middle levels** first (the most passed): Perrine's halfway tea stall by the middle cab stop, and the halfway mirror her mother set to throw a coin of the Lodestar down to the bottom (wash it, turn it up the shaft; Ossa sees the coin at the bottom), with the Smog lantern relic moved onto the stall's awning (docs/systems/story.md, "Places to stop on the way").
+  *Second pass, one at a time:* **the City-Shaft's middle levels** first (the most passed): Perrine's halfway tea stall by the middle cab stop, and the halfway mirror her mother set to throw a coin of the Lodestar down to the bottom (wash it, turn it up the shaft; Ossa sees the coin at the bottom), with the Smog lantern relic moved onto the stall's awning (docs/systems/story.md, "Places to stop on the way"). Then, the same pass: a look at **Vael's fallen giant**; a carved **frieze on the Hearth's lintel** (figures passing a light to a tree; once you have carried the stone, you have been one of them); words for **the little mask in the masked head's chamber**, which knows the lone tower's face in Vael II; and at **the desert's crashed hull**, Marrow's old salvage slate ("NO MARK ON HER. FELL ON HER OWN."), which he brings up the next time you meet. Still to do: the android wood in the Garden of Spheres, and a puzzle at the Hearth other than the temple's stone ball (the ball stays).
 - **Shared names.** Renaming needs a coordinated text, save and export review, so for now each role is kept clear in its first greeting.
   - Shared names:
     - Pip (the City-Shaft's boy, the Hangar's girl);

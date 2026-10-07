@@ -525,3 +525,21 @@ own kits and systems, a few draws each, and colliders baked from what is drawn (
   the coin of light come back on Behla's wall. The Smog lantern relic (the world's third) sits over
   the awning's flat roof now (`content.js`, `AWNING_TOP`). Far above or below (160 m), the stall is
   not drawn. `tests/story-incal.test.js` plays it.
+- **Vael's fallen giant** (`THINGS.colossus`, `src/story/arzach.js`): a look from in front of its
+  face, out on the plain: it lies as if it lay down to rest, turned toward the lone tower; once the
+  bird has come, her shadow crosses its face (`arzach.colossus.seen`).
+- **The Givers' Hearth's frieze** (`src/desert-hearth.js` `FRIEZE`, `THINGS.carving`,
+  `src/story/desert-spark.js`): along the porch's lintel, left of the Givers' mark, five small
+  figures pass a light hand to hand toward a tree (drawn on the lintel's face, the light in the
+  stone's own pulsing material). Once you have carried the spark-stone yourself, the look says
+  you have been one of them (`desert.carving.seen`).
+- **The masked head's chamber** (`level.maskRooms`, `THINGS.smallMask`): the little glowing mask on
+  the pedestal is the dunes' sleeping face made small; if you have seen the lone tower's carved face
+  in Vael II (`arzach2.face.seen` / `clue.arzach2.desert`), the look says so: somebody made it in more
+  than one world (the tower's look already names the desert's mask).
+- **The crashed hull's slate** (`src/desert-landmarks.js` `wreckSlate`, `THINGS.slate`): by the
+  salvage camp's hut in the southern dunes, Marrow's old tally: plates, wire, two pumps, one good
+  chair; "NO MARK ON HER. FELL ON HER OWN." (`desert.wreck.read`). Next time you meet him he brings it
+  up himself, once (`desert.marrow.hull`): most ships that come down just come down; he checks every
+  wreck for the mark since yours. `tests/desert-story.test.js` and `tests/story-arzach.test.js` check
+  each look-at stands on walkable ground and says what it should.

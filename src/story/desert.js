@@ -276,6 +276,10 @@ export function setupDesert(ctx) {
   const browAt = Q.giant.door.clone().add(V(Math.sin(Q.giant.yaw) * 3, 0, Math.cos(Q.giant.yaw) * 3));
   thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull', look: Q.giant.brow });
   thing(THINGS.mural, cave.mural.clone().setY(cave.origin.y), { range: 4, prompt: 'look at the mural', look: cave.local(-17.5, 3.2, 20.5) });
+  // the little mask in the masked head's chamber (src/levels/desert.js maskRooms), and the salvager's slate at the crashed hull
+  for (const r of level.maskRooms ?? []) thing(THINGS.smallMask, r.floor, { range: 3.4, prompt: 'look at the little mask', look: r.mask });
+  const LM = level.landmarks ?? {};
+  if (LM.wreckSlate) thing(THINGS.slate, LM.wreckSlateFoot, { range: 3.2, prompt: 'read the slate', look: LM.wreckSlate });
 
   // the story's running state; the water (open) and the fire (lit) are flags
   const st = { level: cave.levels.dry, flow: 0, flowT: 0, boneT: 0, flare: 0, drink: 0, approached: false, campsIn: false, clock: 0, fire: lit() ? 1 : 0 };

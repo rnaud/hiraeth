@@ -300,6 +300,16 @@ export function buildDesertLandmarks(scene, terrain) {
       const sz = 1.2 + rng() * 1.2, x = -6 + rng() * 14, z = cz - 8 + rng() * 6;
       k.both(i % 2 ? M.rust : M.cream, T(new THREE.BoxGeometry(sz * 1.4, sz, sz), [x, g(x, z) + sz / 2 - 0.2, z], [0, rng() * 3, 0]));
     }
+    // a salvager's slate on an easel by the hut's door, chalked with what was taken (and what was checked)
+    {
+      const bx = -5.6, bz = 29.2, by = g(bx, bz);
+      k.both(M.ink, T(new THREE.BoxGeometry(1.7, 1.15, 0.08), [bx, by + 1.25, bz], [-0.18, 0.3 + Math.PI / 2, 0]));
+      for (const s of [-1, 1]) k.both(M.rope, T(new THREE.BoxGeometry(0.08, 1.9, 0.08), [bx + Math.cos(0.3) * 0.12, by + 0.9, bz - Math.sin(0.3) * 0.12 + s * 0.7], [-0.25, 0.3, 0]));
+      // (the chalk on its face, a little out along the board's own +z)
+      for (let i = 0; i < 4; i++) k.add(M.cream, T(new THREE.BoxGeometry(1.0 - (i % 2) * 0.35, 0.06, 0.02).translate(0, 0.33 - i * 0.22, 0.05), [bx, by + 1.25, bz], [-0.18, 0.3 + Math.PI / 2, 0]));
+      out.wreckSlate = k.world(bx, by + 1.25, bz);
+      out.wreckSlateFoot = k.world(bx + 1.6, by, bz - 0.5);
+    }
     out.wreck = k.origin.clone().add(V(0, 15, 0));
     k.flush();
   }
