@@ -87,8 +87,9 @@ scene-level modelling and a few shader limits:
     option is missing (`uCast` lightens, it does not blacken). Done: `uInkShadow` (rendering.md, "Ink shadows").
   - [x] Flat shadow per material: the City-Shaft's trees go grey-blue with `uShadowFlat` on, so the world
     does not use it. Done: the world prints flat at 0.8, its trees say `shadeFlat: 0`, people keep their shade.
-  - The half-tone cannot tell a back wall inside another's cast shadow (it reads as half-tone, the
-    panel's is full shadow).
+  - [x] The half-tone cannot tell a back wall inside another's cast shadow (it reads as half-tone, the
+    panel's is full shadow). Done: `castBeyond`, one shadow tap toward the sun (materials.md, "The half-tone and
+    another's cast shadow"); built walls only.
   - [x] Paper grain is screen-fixed, kept light (`uPaper` 0.7); the sheets' is heavier and on the page.
     Done: removed (it read as a filter stuck to the screen), with the vignette; the lines' wobble turns with the world.
   - The gorge panels' walls are in cast shadow from the rim; ours are form-shaded.

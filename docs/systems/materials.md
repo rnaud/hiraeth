@@ -94,6 +94,17 @@ round walls, where the tangent of the interpolated normal had swept a column's m
   High 10.3 / 10.1 and 8.5 / 8.5 ms, Signal Market High 8.3 / 8.6 and 5.0 / 5.0, desert Handheld
   4.1 / 4.1 and 3.6 / 3.6, Market Handheld 8.6 / 8.4 and 7.1 / 7.2: within the run-to-run spread.
 
+### The half-tone and another's cast shadow (October 2026)
+
+A face turned from the sun is lifted toward its lit colour (`uHalftone`, the half-tone of a form under no cast
+shadow), but a back wall standing in the shade of the building across was lifted too, where the sheets keep it
+in full shadow. The shadow map is not read on a turned face (its own body shades it), so `castBeyond` tests the
+middle cascade once at a point `HALFTONE_REACH` (16 m) toward the sun: still in shadow there means something
+stands beyond the form's own body, and the half-tone is not given. Built walls only (not strata rock, not the
+ground, not faces turned up or down: a cliff or a tower deeper than the reach along the light would read its own
+body as another's), only in a look with `uHalftone`. One shadow tap on turned shaded wall pixels: Handheld, the
+Market and the City-Shaft within the run-to-run spread. `tests/halftone-cast.test.js`.
+
 ### Stains round the doors (October 2026)
 
 `src/door-stain.js`: `doorStainGeometry(rng, w, h, R)` (the patch in the door's frame, flat or round a drum of

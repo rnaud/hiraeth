@@ -145,7 +145,10 @@ export const HATCH_AA = [0.25, 0.45];
 export const SHADOW_CUT = 3;
 /** The steepening, as the shader does it (getShadow). */
 export const shadowCut = (s) => Math.min(1, Math.max(0, (s - 0.5) * SHADOW_CUT + 0.5));
-export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
+export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };
+/** A face turned from the sun is half-toned only under no cast shadow of another's: the shadow map tested this
+ *  many metres toward the sun from it (past its own body) still in shadow means something else stands there. */
+export const HALFTONE_REACH = 16;   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * Line weight and colour by material (post.js 1b; docs/systems/rendering.md, "The G-buffer's layout"): the sheets draw
  * soft things (clouds, reeds, foliage, glass, painted signs) in thin, lighter lines in a dark shade of their own
@@ -835,6 +838,15 @@ const fragmentShader = /* glsl */ `
       s0 = mix(mix(1.0, s1, i1), s0, i0);
     }
     return mix(s0, sF, iF);
+  }
+  // A face turned from the sun: is it also inside another's cast shadow? (the half-tone is a form's turned side
+  // under no cast shadow: a back wall in the shade of the building across keeps the full shadow, as drawn.) One
+  // tap of the middle cascade at a point HALFTONE_REACH m toward the sun, past the form's own body.
+  float castBeyond(vec3 wp) {
+    vec4 sc = uShadowMatrix * vec4(wp + uSunDir * ${HALFTONE_REACH.toFixed(1)}, 1.0);
+    vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
+    if (p.z > 1.0 || p.x < 0.0 || p.y < 0.0 || p.x > 1.0 || p.y > 1.0) return 0.0;
+    return 1.0 - texture(uShadowMap, vec3(p.xy, p.z - uShadowBias * 4.0));
   }
   // the lit fraction steepened about its half (SHADOW_CUT): the toon threshold cuts the shadow at its true edge
   float getShadow(vec3 wp, vec3 n, float ndl, float px) {
@@ -2400,6 +2412,8 @@ const fragmentShader = /* glsl */ `
     // (no cast shadow on it: those keep the full shadow), the ground's light on faces turned down
     if (L < uToon) {
       float turned = ndl < 0.0 ? (ndl > -${SHADE.band} ? 1.0 : 0.6) : 0.0;
+      // (built walls only: a cliff or a tower deeper than the reach along the light would read its own body as another's)
+      if (turned > 0.0 && uHalftone > 0.0 && uSunDir.y > 0.0 && uMode != ${MODE_STRATA} && uMode != ${MODE_TERRAIN} && abs(n.y) < 0.5) turned *= 1.0 - castBeyond(vWorldPos);
       float lift = 1.0 - (1.0 - uShade.x) * (1.0 - uHalftone * turned) * (1.0 - uBounce * smoothstep(-0.1, -0.7, n.y));
       // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
       // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)
