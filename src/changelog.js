@@ -20,6 +20,9 @@ export const CHANGELOG = [
     'The push is a gun mode now, beside fluid, stilling, ember and bloom: switch to it with X or the D-pad and fire it as you shoot. C and the middle click do nothing now.',
     'Three new foes: a spitting blot that keeps its distance and lobs ink where you stand, a swarm of tiny blots that a push scatters, and winged blots that fly out of reach under open skies and dive along a lane drawn on the ground.',
     'A perfect parry: raise the guard just as a strike comes and it costs nothing and leaves the foe stunned. A foe frozen by stilling takes the blade double.',
+    'The frame freezes for an instant as a blow lands, longer on a heavy one and on a perfect parry, so every impact reads.',
+    'The makers’ machines are rebuilt: a round brass shell on three spindly legs, two clawed arms, the makers’ glyph glowing for an eye. Broken, they come apart, their pieces flying and settling on the ground.',
+    'The Enemies setting has a Gentle choice: half the harm, slower wind-ups, one foe striking at a time and smaller, rarer packs. Normal and Off stay.',
   ] },
   { v: '0.87', date: '2026-10-07', items: [
     'The fluid blade: the glove draws a blade of the tank’s fluid and swings it (F, LB / L1, or ⚔ on a touch screen). Press again to chain three swings, the last one heavier. It turns you toward the nearest foe and costs nothing.',

@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.88 — 2026-10-07
 
+- The Enemies setting has a Gentle choice: half the harm, slower wind-ups, one foe striking at a time and smaller, rarer packs. Normal and Off stay.
+- The makers’ machines are rebuilt: a round brass shell on three spindly legs, two clawed arms, the makers’ glyph glowing for an eye. Broken, they come apart, their pieces flying and settling on the ground.
+- The frame freezes for an instant as a blow lands, longer on a heavy one and on a perfect parry, so every impact reads.
 - A perfect parry: raise the guard just as a strike comes and it costs nothing and leaves the foe stunned. A foe frozen by stilling takes the blade double.
 - Three new foes: a spitting blot that keeps its distance and lobs ink where you stand, a swarm of tiny blots that a push scatters, and winged blots that fly out of reach under open skies and dive along a lane drawn on the ground.
 - The push is a gun mode now, beside fluid, stilling, ember and bloom: switch to it with X or the D-pad and fire it as you shoot. C and the middle click do nothing now.

@@ -211,7 +211,7 @@ test('feel: a hit-stop nearly stops the world for its length, then lets go; four
   const { hitStop, feelDt, resetFeel, FEEL } = await import('../src/feel.js');
   resetFeel();
   hitStop(0.05);
-  assert.ok(Math.abs(feelDt(DT) - DT * FEEL.slow) < 1e-9, 'slowed');
+  assert.ok(feelDt(DT) <= Math.max(DT * FEEL.slow, 1e-5), 'the frame freezes');
   for (let i = 0; i < 5; i++) feelDt(DT);
   assert.equal(feelDt(DT), DT, 'and back to its pace');
   clearTargets();
@@ -286,4 +286,23 @@ test('more foes: the spitter keeps its distance and lobs at where you stand, the
   for (let i = 0; i < 40; i++) assert.ok(!packKinds(3, 'desert', () => (i % 10) / 10).includes('flyer'), 'no flyers in the desert');
   assert.ok([...Array(40)].some((_, i) => packKinds(3, 'arzach', () => (i % 10) / 10).includes('flyer')), 'flyers in Vael');
   assert.equal(waveWords(['machine', 'machine', 'blot', 'blot', 'flyer']), '2 machines, 1 winged blot and 2 ink blots');
+});
+
+test('difficulty: gentle halves the harm, slows the wind-ups and lets one strike at a time; off has none; an old on / off setting carries over', async () => {
+  const { GENTLE } = await import('../src/foes.js');
+  globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget();   // (ui.js reads them at import)
+  const { migrateSettings } = await import('../src/ui.js');
+  assert.equal(migrateSettings({ enemies: true }).enemies, 'normal');
+  assert.equal(migrateSettings({ enemies: false }).enemies, 'off');
+  clearTargets();
+  const P = player(v(0, 0, 0));
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'desert', physics: flat, player: P, settings: { enemies: 'gentle' }, game: new GameState(null) });
+  assert.equal(foes.strikers, 1);
+  const f = foes.add('blot', v(0, 0, 1.5));
+  P.health = 0.2; foes.strike(f);
+  assert.ok(Math.abs(P.hurts.at(-1) - FOES.blot.attack.damage * GENTLE.harm) < 1e-9, 'half the harm');
+  assert.equal(foes.env.slow(), GENTLE.wind);
+  const off = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', physics: flat, player: P, settings: { enemies: 'off' }, game: new GameState(null) });
+  assert.equal(off.on, false);
+  foes.dispose(); off.dispose(); clearTargets();
 });

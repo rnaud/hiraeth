@@ -139,7 +139,7 @@ export class FluidBlade {
     T.rings?.add({ from: at, dir: this.dir, reach: 0.1, r0: 0.2, r1: 1.1, life: 0.3, color: tones[0], thick: 1 });
     for (let i = 0; i < 18; i++) T.drops?.add({ pos: at, vel: _a.copy(this.dir).multiplyScalar(-2).add(_b.randomDirection().multiplyScalar(3)), drag: 3, grav: 6, size: 0.03, life: 0.4, color: tones[i % tones.length] });
     p.vel?.addScaledVector(this.dir, -2);   // pushed back a step
-    if (perfect) { hitStop(0.11); kick(0.5); T.sound?.fluidMode?.('stun'); for (let i = 0; i < 12; i++) T.glow?.add({ pos: at, vel: _a.randomDirection().multiplyScalar(2), drag: 3, size: 0.07, life: 0.5, color: '#fff6dc', grow: true }); }
+    if (perfect) { hitStop(0.14); kick(0.5); T.sound?.fluidMode?.('stun'); for (let i = 0; i < 12; i++) T.glow?.add({ pos: at, vel: _a.randomDirection().multiplyScalar(2), drag: 3, size: 0.07, life: 0.5, color: '#fff6dc', grow: true }); }
     return perfect ? 'perfect' : true;
   }
 
@@ -259,7 +259,7 @@ export class FluidBlade {
     for (const h of targetsInCone(origin, this.dir, BLADE.reach, BLADE.angle, T.physics)) if (h.target.kind === 'wildlife') h.target.onHit?.('push', h.point, h.dir, info);
     if (hits.length) {
       T.lastHit = 'target';
-      hitStop(this.n === 2 ? 0.09 : 0.05); kick(this.n === 2 ? 0.5 : 0.25);   // (the cut lands: src/feel.js)
+      hitStop(this.n === 2 || this.special ? 0.11 : 0.06); kick(this.n === 2 || this.special ? 0.5 : 0.25);   // (the cut lands: the frame freezes, src/feel.js)
       for (const h of hits) T.splash(h.point, h.dir.clone().negate(), 0.6);
       p.vel?.addScaledVector(this.dir, 1.2);   // a step into the cut
     }

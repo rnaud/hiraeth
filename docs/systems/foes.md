@@ -60,13 +60,18 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
   - placed where there is footing and nothing between it and the stone;
   - they stir only while you are inside the temple;
   - broken, they stay broken (flag `foes.<world>.m<i>`).
-- **Off:** the Enemies setting (`settings.enemies`). Home, the Lab, the References and the Atelier
+- **The Enemies setting** (`settings.enemies`): `normal`, `gentle` (`GENTLE`: wind-ups 1.35× slower, half
+  the harm, one striking at a time, packs of two at most and 1.6× rarer) or `off` (v0.87's on / off carries
+  over: `migrateSettings`).
+- **The machine's look:** a round brass shell on three legs, clawed arms, the glyph for an eye; broken, its
+  parts fly apart, bounce and fade (`breakApart`, `updateDebris`). Home, the Lab, the References and the Atelier
   (`PEACEFUL`) never have any.
 
 ## Feel (`src/feel.js`)
 
-- **Hit-stop:** `hitStop(s)` slows the world's time step to `FEEL.slow` of real time (main.js `feelDt`):
-  0.05 s on a cut, 0.09 s on the heavy third swing, 0.07 s on a block.
+- **Hit-stop (frame freeze):** `hitStop(s)` freezes the world (`FEEL.slow` 0: main.js `feelDt` passes a
+  1e-5 s step, never zero): 0.06 s on a cut, 0.11 s on the heavy third swing, the whirl and the lunge, 0.07 s
+  on a block, 0.14 s on a perfect parry.
 - **Camera kick:** `kick(k)` jolts the camera after the rig places it (`shakeCamera`), settling over
   `FEEL.settle`; a foe's hit kicks harder (main.js `onHurt`).
 - **Knockback:** the heavy third swing throws a foe 2.2× as far.
@@ -135,7 +140,7 @@ blots, a spitter, a swarm, a machine, flyers, spitters with a machine, and a mix
 
 ## Left to do
 
-- The machine's model is a first pass of boxes.
+- Not measured on the Retroid yet (no device attached): each foe's meshes and its ground telegraph.
 - The packs hold more (deaths, kicks, the great sword's spins and jump attacks): a charged spin could come
   from them.
 - Neither foe has an animation of its own beyond the procedural wobble, walk and arm raise.

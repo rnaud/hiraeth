@@ -81,6 +81,8 @@ export const TURNS = { strikers: 2, apart: 0.3 };
 export const GUARDS = { near: 32, size: 2, ring: 3.5 };
 /** The lock-on (R3 / Tab): a foe within `reach` (the nearest in front first); lost past `lose` or when it falls. */
 export const LOCK = { reach: 18, lose: 26 };
+/** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
+export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
 
 /**
  * One foe's mind: idle at home (a slow drift round it), chase once you come into sight, wind up its
@@ -145,8 +147,9 @@ export class Foe {
       }
       case 'wind': {
         const a = D.attack;
-        this.timer += dt; this.k = Math.min(1, this.timer / a.wind);
-        if (this.timer >= a.wind) {
+        const wind = a.wind * (env.slow?.() ?? 1);
+        this.timer += dt; this.k = Math.min(1, this.timer / wind);
+        if (this.timer >= wind) {
           if (a.lunge) this.step(Math.sin(this.attackH) * a.lunge, Math.cos(this.attackH) * a.lunge, env);
           if (a.dive) { for (let i = 0; i < 12; i++) this.step(Math.sin(this.attackH) * a.range / 12, Math.cos(this.attackH) * a.range / 12, env); this.alt = 0.35; }   // (down the lane, and low)
           const hit = playerOk && P.pos.y - this.pos.y < 1.6 && inArea(a, this.attackAt, this.attackH, P.pos);
@@ -278,17 +281,34 @@ function blotModel(kind = 'blot') {
 }
 
 function machineModel() {
+  // a makers' construct gone wrong: a round brass shell on three spindly legs, two arms with claws, the
+  // makers' glyph (three dots over an arc) glowing on its face, plates riveted round its belly
   const g = new THREE.Group();
-  const brass = makeMaterial({ color: '#a8824a', metal: 'brass', key: 'foe-brass' });
+  const brass = makeMaterial({ color: '#b08a4a', metal: 'brass', key: 'foe-brass' });
   const dark = makeMaterial({ color: '#3a3330', flat: true, key: 'foe-dark' });
+  const plate = makeMaterial({ color: '#8f6f3e', metal: 'copper', key: 'foe-plate' });
   const core = makeMaterial({ color: '#70e7df', flat: true, glow: 0.9, key: 'foe-core' });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 0.8), brass); body.position.y = 1.15; g.add(body);
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.32, 0.45), dark); head.position.set(0, 1.72, 0.05); g.add(head);
-  const eye = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.06, 0.05), core); eye.position.set(0, 1.74, 0.29); g.add(eye);
-  const heart = new THREE.Mesh(new THREE.OctahedronGeometry(0.16), core); heart.position.set(0, 1.15, 0.42); g.add(heart);
-  const arms = [-1, 1].map((s) => { const a = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.9, 0.26), brass); a.geometry.translate(0, -0.4, 0); a.position.set(s * 0.68, 1.45, 0); g.add(a); return a; });
-  const legs = [-1, 1].map((s) => { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.8, 8), dark); l.geometry.translate(0, -0.4, 0); l.position.set(s * 0.3, 0.8, 0); g.add(l); return l; });
-  return { group: g, body, head, arms, legs, heart, eyeMat: core, parts: [body, head, eye, heart, ...arms, ...legs] };
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.62, 18, 12).scale(1, 0.85, 0.95), brass); body.position.y = 1.35; g.add(body);
+  const belt = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.07, 6, 24).rotateX(Math.PI / 2), plate); belt.position.y = 1.22; g.add(belt);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), dark); cap.position.y = 1.82; g.add(cap);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.45, 4), dark); mast.position.y = 2.1; g.add(mast);
+  // the glyph for an eye: three dots over an upturned arc
+  const heart = new THREE.Group(); heart.position.set(0, 1.42, 0.55); g.add(heart);
+  heart.add(new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.025, 4, 16, Math.PI).rotateZ(0), core));
+  for (const x of [-0.12, 0, 0.12]) { const d = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), core); d.position.set(x, 0.22, 0); heart.add(d); }
+  const arms = [-1, 1].map((s) => {
+    const a = new THREE.Group(); a.position.set(s * 0.66, 1.45, 0); g.add(a);
+    const up = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.75, 6).translate(0, -0.37, 0), dark); a.add(up);
+    const claw = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.26, 0.22).translate(0, -0.85, 0.04), brass); a.add(claw);
+    return a;
+  });
+  const legs = [0, 1, 2].map((k) => {
+    const ang = (k / 3) * Math.PI * 2 + Math.PI / 6, l = new THREE.Group();
+    l.position.set(Math.sin(ang) * 0.32, 0.95, Math.cos(ang) * 0.32); l.rotation.y = ang; g.add(l);
+    l.add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.03, 1.0, 5).translate(0, -0.5, 0).rotateX(-0.28), dark));
+    return l;
+  });
+  return { group: g, body, head: cap, arms, legs, heart, eyeMat: core, parts: [body, belt, cap, mast, heart, ...arms, ...legs] };
 }
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
@@ -305,6 +325,7 @@ export class Foes {
     this.people = (content?.npcs ?? []).filter((n) => n.at).map((n) => ({ x: n.at[0], z: n.at[1] }));
     this.env = {
       ground: (x, y, z) => { const g = physics?.groundAt?.(x, y, z, 6); return g == null || !Number.isFinite(g) ? null : g; },
+      slow: () => (this.difficulty === 'gentle' ? GENTLE.wind : 1),
       mayStrike: (f) => this.list.filter((x) => x !== f && x.alive && x.state === 'wind').length < this.strikers,
       seen: (from, to) => !physics?.rayDistance || physics.rayDistance(from, _w.subVectors(_v.copy(to).setY(to.y + 1), from).normalize(), from.distanceTo(_v)) >= from.distanceTo(_v) - 0.5,
     };
@@ -358,10 +379,12 @@ export class Foes {
   }
 
   /** How many may strike at once. */
-  get strikers() { return TURNS.strikers; }
+  get strikers() { return this.difficulty === 'gentle' ? 1 : TURNS.strikers; }
 
+  /** The Enemies setting: 'normal', 'gentle' (half the harm, slower wind-ups, one striking at a time, smaller and rarer packs) or 'off'. */
+  get difficulty() { const e = this.settings?.enemies; return e === false || e === 'off' ? 'off' : e === 'gentle' ? 'gentle' : 'normal'; }
   /** On (the Enemies setting, not a peaceful world; the Arena's waves always). */
-  get on() { return !!this.level?.foes?.waves || (!this.peaceful && this.settings?.enemies !== false); }
+  get on() { return !!this.level?.foes?.waves || (!this.peaceful && this.difficulty !== 'off'); }
   get waves() { return !!this.level?.foes?.waves; }
 
   /** Where people are now (the spawned ones move about), and where they were placed. */
@@ -421,7 +444,7 @@ export class Foes {
 
   /** A pack of ink blots comes in, out of sight round you, where there is footing and nothing between. */
   spawnPack() {
-    const P = this.player, phys = this.physics, kinds = packKinds(this.packs, this.levelId, this.rng), n = kinds.length;
+    const P = this.player, phys = this.physics, kinds = packKinds(this.packs, this.levelId, this.rng).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
     const base = this.rng() * Math.PI * 2;
     let made = 0;
     for (let tries = 0; tries < 24 && made < n; tries++) {
@@ -471,6 +494,28 @@ export class Foes {
     this.notice?.(`Wave ${this.wave}: ${waveWords(kinds)}.`);
   }
 
+  /** A machine comes apart: its pieces fly off, bounce on the ground, settle and fade. */
+  breakApart(f) {
+    const floor = f.pos.y;
+    for (const part of f.model.parts) {
+      this.group.attach(part);
+      (this.debris ??= []).push({ o: part, floor, t: 0, vel: new THREE.Vector3((this.rng() - 0.5) * 6, 3 + this.rng() * 4, (this.rng() - 0.5) * 6), spin: new THREE.Vector3(this.rng() * 8 - 4, this.rng() * 8 - 4, this.rng() * 8 - 4) });
+    }
+  }
+
+  updateDebris(dt) {
+    for (const d of this.debris ?? []) {
+      d.t += dt;
+      d.vel.y -= 9.8 * dt;
+      d.o.position.addScaledVector(d.vel, dt);
+      d.o.rotation.x += d.spin.x * dt; d.o.rotation.y += d.spin.y * dt; d.o.rotation.z += d.spin.z * dt;
+      if (d.o.position.y < d.floor + 0.12) { d.o.position.y = d.floor + 0.12; d.vel.y *= -0.3; d.vel.x *= 0.6; d.vel.z *= 0.6; d.spin.multiplyScalar(0.5); }
+      if (d.t > 2.4) d.o.scale.multiplyScalar(Math.max(0, 1 - dt * 3));
+      if (d.t > 3.4) d.o.removeFromParent();
+    }
+    if (this.debris) this.debris = this.debris.filter((d) => d.t <= 3.4);
+  }
+
   /** The fluid tool touched a foe (targets.js): its mind decides; the look, the sound and the reward follow. */
   hurt(f, mode, dir, info) {
     const r = f.hit(mode, dir, info);
@@ -492,6 +537,7 @@ export class Foes {
       const tank = T.tank?.group ? T.tank.group.localToWorld(_w.set(0, 0.3, 0)) : null;
       if (tank) for (let i = 0; i < 10; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
     }
+    if (f.kind === 'machine') this.breakApart(f);
     if (f.id) this.game.set(f.id, true);
     if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards are gone for good)
     gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it)
@@ -514,7 +560,7 @@ export class Foes {
     this.packRest = Math.max(0, this.packRest - dt);
     const blots = this.list.filter((f) => f.kind !== 'machine' && !f.guard && f.alive);   // (the wilds' own: not the temple's, not a relic's guards)
     if (wild && this.wildFor > PACK.settle && this.packRest === 0 && blots.length === 0) {
-      if (this.spawnPack()) { this.packRest = PACK.rest[0] + this.rng() * (PACK.rest[1] - PACK.rest[0]); this.firstSeen(); }
+      if (this.spawnPack()) { this.packRest = (PACK.rest[0] + this.rng() * (PACK.rest[1] - PACK.rest[0])) * (this.difficulty === 'gentle' ? GENTLE.rest : 1); this.firstSeen(); }
       else this.packRest = 3;
     }
     for (const f of this.list.slice()) {
@@ -538,6 +584,7 @@ export class Foes {
     this.keepApart();
     this.warnings();
     this.updateLock();
+    this.updateDebris(dt);
   }
 
   /** Foes don't stand inside each other: two too close are pushed apart, half each. */
@@ -593,7 +640,7 @@ export class Foes {
       if (guarded === 'perfect') { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
       return false;
     }
-    const dmg = strikeDamage(P.health ?? 1, a.damage);
+    const dmg = strikeDamage(P.health ?? 1, a.damage * (this.difficulty === 'gentle' ? GENTLE.harm : 1));
     _v.subVectors(P.pos, f.pos).setY(0);
     if (_v.lengthSq() < 1e-4) _v.set(Math.sin(f.heading), 0, Math.cos(f.heading));
     _v.normalize();
@@ -634,11 +681,11 @@ export class Foes {
     } else {
       const s = performance.now() / 220;
       const walk = moving ? Math.sin(s * 2) * 0.45 : 0;
-      M.legs[0].rotation.x = walk; M.legs[1].rotation.x = -walk;
+      M.legs.forEach((l, k) => { l.rotation.x = Math.sin(s * 2 + (k * Math.PI * 2) / 3) * (moving ? 0.35 : 0); });
       const raise = f.state === 'wind' ? -2.4 * f.k : f.state === 'recover' ? -0.3 : walk * 0.3;
       M.arms[0].rotation.x = raise; M.arms[1].rotation.x = raise;
       M.eyeMat.uniforms.uColor.value.set(f.state === 'wind' ? '#f0a04b' : f.stunned > 0 ? '#bfe9ff' : '#70e7df');
-      M.heart.rotation.y += dt * (f.state === 'chase' ? 4 : 1);
+      M.heart.rotation.z = Math.sin(performance.now() / 300) * (f.state === 'chase' ? 0.2 : 0.05);
       g.scale.setScalar(1);
     }
     if (f.flash > 0) g.position.x += Math.sin(performance.now() / 18) * 0.04 * f.flash;

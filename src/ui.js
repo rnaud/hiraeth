@@ -25,7 +25,7 @@ const DEFAULTS = {
   effects: 1,
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
   alienVoices: true,    // off: conversations go back to plain soft blips
-  enemies: true,        // the ink blots in the wilds and the machines in the temples (src/foes.js); off: the calm game
+  enemies: 'normal',    // the foes (src/foes.js): normal | gentle (half the harm, slower, one at a time) | off (the calm game)
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
   hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
@@ -53,6 +53,7 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
   const out = { ...saved };
   if (!(out.hudV >= 1)) { delete out.showFps; out.hudV = 1; }
   // (High was only ever the default there: a player who picked a lighter preset keeps it)
+  if (typeof out.enemies === 'boolean') out.enemies = out.enemies ? 'normal' : 'off';   // (v0.87 saved it as on / off)
   if (deck && !(out.deckV >= 1)) { if (['high', 'medium', undefined].includes(out.quality)) out.quality = 'auto'; out.deckV = 1; }
   return out;
 }
@@ -144,7 +145,7 @@ export class SettingsMenu {
           ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
           ${row('Alien voices (heard through your translator)', `<input data-k="alienVoices" type="checkbox">`)}
           ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
-          ${row('Enemies (ink blots in the wilds, machines in the temples)', `<input data-k="enemies" type="checkbox">`)}
+          ${row('Enemies (ink blots in the wilds, machines in the temples)', `<select data-k="enemies"><option value="normal">Normal</option><option value="gentle">Gentle (half the harm, slower, one at a time)</option><option value="off">Off (the calm game)</option></select>`)}
           ${row('Show FPS and frame time (F3)', `<input data-k="showFps" type="checkbox">`)}
           ${game ? `${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
           ${row('Dev menu: items, boxes, worlds (\`)', `<button data-a="dev" type="button">open</button>`)}
