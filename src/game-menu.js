@@ -367,7 +367,12 @@ export class GameMenu {
     if (at.edge) { this.turn(at.edge); return; }
     const cell = this.state.cell(this.rows);
     if (!cell?.act) return;
-    if (cell.act === 'track') { this.onTrack?.(cell.id); this.render(); }
+    if (cell.act === 'track') {
+      this.onTrack?.(cell.id); this.render();
+      // (the one you are on moves to the top: the cursor goes with it)
+      const r = this.rows.findIndex((row) => row.some((x) => x.id === cell.id && x.kind === cell.kind));
+      if (r >= 0) this.select(r, this.rows[r].findIndex((x) => x.id === cell.id));
+    }
     else if (cell.act === 'use') { this.onUse?.(cell.id); this.render(); }
     else if (cell.act === 'look') this.look(this.looking === cell.id ? false : cell);
   }

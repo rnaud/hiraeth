@@ -73,7 +73,7 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 #journal .gm-body button { font: inherit; color: inherit; cursor: pointer; }
 
 /* the cursor: a gold cell, lifted, in a pulsing red ring (the browser's own focus ring is not used) */
-#journal [data-at] { outline: none; transition: transform 0.1s, box-shadow 0.1s, background 0.1s; }
+#journal [data-at] { outline: none; scroll-margin: clamp(26px, 6vh, 44px) 12px 12px; transition: transform 0.1s, box-shadow 0.1s, background 0.1s; }
 #journal [data-at].at { position: relative; z-index: 1; outline: 3px solid var(--red); outline-offset: 3px; animation: gm-pulse 1.1s ease-in-out infinite; }
 @keyframes gm-pulse { 50% { outline-offset: 6px; outline-color: #e5896d; } }
 @media (prefers-reduced-motion: reduce) {

@@ -94,6 +94,7 @@ test('the menu without a page: open on a panel, move, turn with the shoulders, A
   assert.deepEqual(tracked, ['desert.power']);
   assert.equal(q.tracked(), 'desert.power');
   assert.equal(m.rows[1][0].id, 'desert.power', 'the one you are on comes first');
+  assert.equal(m.state.cell(m.rows).id, 'desert.power', 'and the cursor goes with it');
   // LB / L1 back to Items; past the row's start, the Worlds tab
   m.turn(-1); assert.equal(m.panel, 'items');
   m.state.at.items = { r: 0, c: 0 }; m.navigate(-1, 0);

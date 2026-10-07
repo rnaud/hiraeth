@@ -530,7 +530,9 @@ const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.ke
   failed: Object.entries(game.data.flags).filter(([k, v]) => k.startsWith('failed.') && v).map(([, v]) => v) });   // (quests that went wrong: src/story/quests.js)
 // the game menu (View / Select, J: src/game-menu.js): what fills its four panels (src/game-menu-data.js),
 // and the items' pictures, drawn one a frame while it is open (src/item-icons.js)
-const itemIcons = new ItemIcons({ scene, capture: (...a) => captureView(...a), build: buildItemModel,
+// (drawn in the late-morning light whatever the hour, so a picture made at night is not a dark one for the session)
+const itemIcons = new ItemIcons({ scene, build: buildItemModel,
+  capture: (...a) => { const h = sky.hour; sky.hour = 10.5; updateSky(); try { return captureView(...a); } finally { sky.hour = h; updateSky(); } },
   place: () => ({ at: player.pos.clone().addScaledVector(player.frame.up, 140), up: player.frame.up.clone() }),
   onReady: (id, url) => journal.menu.iconReady(id, url) });
 Object.assign(journal.menu, {
