@@ -126,13 +126,13 @@ export function unityNotes({ platform = 'android', sha, subject = '', version = 
   const r = UNITY_RELEASES[platform];
   if (!r) throw new Error(`unknown platform: ${platform}`);
   const what = platform === 'android'
-    ? `Memento (Unity), for testing: the game's own JavaScript run inside Unity (the engine bridge) and drawn by Unity, on Android. `
-      + `Package \`${r.package}\`: it installs next to the Memento app (\`com.rnaud.moebius\`) and never replaces it; each new build installs over the last (the same release key) and keeps its saves. `
+    ? `Hiraeth (Unity), for testing: the game's own JavaScript run inside Unity (the engine bridge) and drawn by Unity, on Android. `
+      + `Package \`${r.package}\`: it installs next to the Hiraeth app (\`com.rnaud.moebius\`) and never replaces it; each new build installs over the last (the same release key) and keeps its saves. `
       + `Download \`${r.file}\` below and open it on the device.`
-    : `Memento (Unity), for testing: the engine bridge's Linux player (x86_64, Vulkan, Mono), for the Steam Deck. `
+    : `Hiraeth (Unity), for testing: the engine bridge's Linux player (x86_64, Vulkan, Mono), for the Steam Deck. `
       + `Download \`${r.file}\`, unpack it and run \`memento-js.x86_64\`.`;
   const from = `Built from commit ${sha ? `\`${sha.slice(0, 12)}\`` : '(unknown)'}${subject ? ` (${subject})` : ''}, web version v${version}${build ? `, build ${build}` : ''}, by ${by} on ${date}.`;
-  return `${what}\n\n${from}\n\nNot for players: the game itself is the Memento app and https://memento.alexandria-rnaud.workers.dev/.`;
+  return `${what}\n\n${from}\n\nNot for players: the game itself is the Hiraeth app and https://memento.alexandria-rnaud.workers.dev/.`;
 }
 
 /** A commit's web version (its newest changelog entry) and build number (its commit count, as gameBuild counts HEAD's). */
@@ -158,7 +158,7 @@ function main(what = 'version', ...args) {
     console.log(unityNotes({ platform: args[0], sha, subject: git('log', '-1', '--format=%s', sha), ...at, by: args[2] }));
   }
   else if (what === 'notes') {
-    console.log(`Memento v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online, from the game's own site.\n`);
+    console.log(`Hiraeth v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online, from the game's own site.\n`);
     console.log(latest.items.map((i) => `- ${lineText(i)}`).join('\n'));
     console.log(`\nBefore and after pictures of what changed: https://memento.alexandria-rnaud.workers.dev/changelog.html#v${latest.v}`);
     console.log('\nThe game runs fully offline. Built from the web version that is also playable at https://memento.alexandria-rnaud.workers.dev/.');

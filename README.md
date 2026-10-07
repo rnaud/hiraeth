@@ -1,4 +1,4 @@
-# Memento
+# Hiraeth
 
 A three.js exploration game in ligne claire, drawn after Moebius and the game *Sable*
 (formerly the Moebius / Sable shader PoC: the repository and internal ids keep the old
@@ -8,6 +8,12 @@ ship; its foundation is a world that feels organic, responsive, mysterious and c
 and [the story bible](docs/story-bible.md); the writing room is [lore/](lore/README.md).
 
 **Play it:** https://memento.alexandria-rnaud.workers.dev/ (Cloudflare Workers).
+
+**[Interactive changelog](https://memento.alexandria-rnaud.workers.dev/changelog.html):**
+explore each release with before/after pictures, numbers and notes.
+
+The game is now named **Hiraeth**. Existing technical identifiers, save keys, and the
+`memento.alexandria-rnaud.workers.dev` address remain stable for installed copies.
 
 ## Run it
 

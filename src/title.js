@@ -1,4 +1,4 @@
-// The title screen: the game's name (Memento) over a live view of the land above the clouds
+// The title screen: the game's name (Hiraeth) over a live view of the land above the clouds
 // (src/title-vista.js, faded in once it is ready; the drawn backdrop below when WebGL
 // can't), then Continue (the
 // save played last), Saves (five slots: continue one, start a new game in an empty one,
@@ -74,7 +74,7 @@ export const BACKDROP = `
 
 /** The name, light and airy: thin capitals spaced wide, cream with a hairline of ink and a soft glow. */
 export const LOGO = `
-<svg class="logo" viewBox="0 0 1000 250" role="img" aria-label="Memento">
+<svg class="logo" viewBox="0 0 1000 250" role="img" aria-label="Hiraeth">
   <defs>
     <filter id="logo-glow" x="-10%" y="-40%" width="120%" height="180%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="b"/>
@@ -83,7 +83,7 @@ export const LOGO = `
     </filter>
   </defs>
   <g font-family="'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', 'Roboto', sans-serif" font-weight="200" font-size="128" text-anchor="middle" filter="url(#logo-glow)">
-    <text x="500" y="170" textLength="820" lengthAdjust="spacing" fill="#fffaf0" stroke="#2b211f" stroke-width="1.4" stroke-opacity="0.75" paint-order="stroke">MEMENTO</text>
+    <text x="500" y="170" textLength="820" lengthAdjust="spacing" fill="#fffaf0" stroke="#2b211f" stroke-width="1.4" stroke-opacity="0.75" paint-order="stroke">HIRAETH</text>
   </g>
   <path d="M330 206 L670 206" fill="none" stroke="#fffaf0" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>
   <circle cx="500" cy="206" r="3" fill="#f2c54b" stroke="#2b211f" stroke-width="0.8"/>

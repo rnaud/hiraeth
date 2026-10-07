@@ -29,7 +29,7 @@ neighbours stay over 3 km apart.
   the camera, fine underfoot and coarse at the horizon), what stands on it (built with the Lab's
   `RoomKit`), its colours (the colour script's five, read off the panel: sky, shadow tint, light,
   the same at every hour), its ink touches (`look`) and its people (small violet figures:
-  ordinary NPCs, `REFERENCE_PEOPLE` in content.js). Its camera is `{ eye, yaw, fov, horizon }`:
+  ordinary NPCs, `referencePeople()` in content.js: the built world's). Its camera is `{ eye, yaw, fov, horizon }`:
   `horizon` is where eye level crosses the frame (0 top, 1 bottom), the pitch follows from it.
 - **The sun** is given as the panel shows it, `{ side, el }` (degrees right of the line of sight,
   and high): the view's hour is the morning hour of that elevation (`sunHour`) and its group is
@@ -38,7 +38,7 @@ neighbours stay over 3 km apart.
 - **The views** lie on a square grid, 3.3 km apart (`VIEW_SPACING`); only the one you are in is drawn.
   `[` and `]` (L3 / R3 on a pad) fade to the previous / next view and hold the camera on its
   panel (the traveller hidden where the camera stands); walk or look and the camera is yours
-  again. `?view=<n>` opens on view n. The frame keeps the panel's proportions: on a screen
+  again. `?view=<n>` opens on view n (`&world=<id>&view=<n>`: see "One world at a time"). The frame keeps the panel's proportions: on a screen
   narrower than the panel the field of view widens so its width still fits (`frameBox`).
 - **Comparing:** `\` (View on a pad) cycles off → the panel in a corner → the panel over the frame,
   half seen through → the panel over the left half of the frame (a wipe). A label names the view,
@@ -70,6 +70,68 @@ panel, its number (as the label and `?view=n` count) and its title; the view you
   (`drawThumb`, `thumbSize`: the crop fitted into 132 × 84).
 - `tests/reference-picker.test.js`: one entry per view, under its world and sheet, numbered as the
   level counts, its thumbnail drawn from exactly the view's crop of its own sheet.
+
+### One world at a time (October 2026)
+
+The level holds every world's views (169 over seven worlds when this landed) but loads and builds only
+the world you go to. Building all of them made it the slowest load in the game (12–15 s to the first
+view in headless Chrome on this Mac's GPU); one world is 2.0–4.4 s.
+
+- **The registry**, `src/levels/reference-worlds.js` (`REFERENCE_WORLDS`): one entry per world,
+  `{ id, name, count, load: () => import('./reference-<world>.js') }`, in the order the views are
+  numbered. Each world's module exports `SHEETS` (its sheets by key) and `VIEWS` (its views, in order;
+  the fields are described in `reference-views.js`). The level imports the registry only; a world's
+  module is a dynamic import, a chunk of its own in the build.
+- **Building:** `buildReferences` yields the world's import (the async runner waits for it,
+  `src/load-steps.js`), then builds its views one step each. `createReferences` (sync, the tests)
+  needs the world loaded first: `await loadWorld(k)`.
+- **Going to another world** is another load of the page, at
+  `?level=references&world=<id>&view=<n>` (`level.address`, after a fade): the world you leave goes
+  with the page, and the new one gets everything a world gets on its load (its collisions, its
+  water's bed maps, its people). `[ ]` past a world's end goes on into the next (or previous) world;
+  `{ }` (shift + `[ ]`) jumps to the previous / next world's first view.
+- **Numbers and places stay put:** views are numbered across the worlds (the label's "REFERENCE n /
+  169", `?view=n`, `level.goTo(i)`), each world's first being 1 + the counts before it. View n stands
+  in grid cell n − 1, its seeds as before; the grid stays 14 × 14 (past 196 views the cells go round
+  again: one world is built at a time and no world has that many views). Sampling 18 views (two or
+  three a world) before and after, 13 rendered pixel-identical and 4 within 0.4 % (people mid-step,
+  water); the one that differed more had its lake's bed map baked sooner (one world's waters bake in
+  seconds, all seven's took longer than the shot's wait).
+- **The address:** `world=<id>&view=<n>` is the n-th view of that world (no `view`: its first);
+  `view=<n>` alone the n-th across the worlds; `view=<a view's id>` that view, whichever world.
+  Scripts that open a view (`scripts/changelog-shots.mjs`, `icons.mjs`, `steam-art.mjs`) open it by
+  its id or number and find it in `level.views` (this world's) by `v.i`, its number.
+- **The people** (`content.js`, `CONTENT.references.npcs`) are the built world's (`referencePeople`).
+- **The quick menu** loads every world's module on its first opening (their code only: nothing is
+  built), lists all their views, and draws the thumbnails of your world first and the others as
+  their part of the list scrolls near. The worlds' names along its top, Page Up / Page Down and
+  LB / RB jump between worlds; choosing another world's view loads the page there.
+- **Everything at once:** `reference-views.js` still exports `REFERENCE_VIEWS` and
+  `REFERENCE_SHEETS`, every world's, loaded through the registry (a top-level await): for the tests,
+  the trailer's scenes and tools. The game never imports it.
+- `tests/reference-worlds.test.js`: each entry's count matches its module, every sheet named for its
+  world, the numbering and the address round trip, no world module imported statically by the game,
+  a world built in steps only after its import.
+
+### Adding a world
+
+One new file and one registry line (the views keep their numbers: a new world goes at the end):
+
+1. Write `src/levels/reference-<world>.js` (copy `reference-market.js`'s head): its sheets, named
+   `'<World name> / <file>.JPG'` with the sheet's size and its bundled URL
+   (`new URL('../../references/<folder>/<file>.JPG', import.meta.url).href`), and its views; end with
+   `export { MY_SHEETS as SHEETS, MY_VIEWS as VIEWS };`. Build with `reference-kit.js`'s pieces and
+   the world's own kit; give every view a unique `id`.
+2. Add its entry at the end of `REFERENCE_WORLDS` in `src/levels/reference-worlds.js`:
+   `{ id: '<world>', name: '<World name>', count: <its views>, load: () => import('./reference-<world>.js') }`.
+   `name` must be the start of its sheets' names (the quick menu groups by it).
+3. Open `?level=references&world=<world>` (`&view=<n>` for its n-th view). `node --test
+   tests/reference-worlds.test.js tests/references.test.js` checks the count, the sheets and the
+   build; add the world's own checks there.
+
+Adding views to a world: add them to its module and raise its `count` (the test fails until it is).
+Views added to a world before the last renumber the later worlds' views (`world=<id>&view=<n>`
+addresses keep working).
 
 ### The City-Shaft's sheets, and three desert touches
 

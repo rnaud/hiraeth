@@ -1,4 +1,4 @@
-# Memento on the Mac: the web game (three.js) against the Unity port
+# Hiraeth on the Mac: the web game (three.js) against the Unity port
 
 The same desert, the same viewpoints and paths, the same hour and weather, the same number of pixels, measured on
 three sides: the web game in Chrome, the Unity port as a macOS player, and the Unity port built for the browser
@@ -77,7 +77,7 @@ same device is 154 (V8 15.4). Same game build (`07af71c`), same desert viewpoint
 measured in both on 2026-10-05 (`scripts/bench/results/android-webview-vs-chrome.json`).
 
 - **WebView side:** a side-by-side debug build of the app itself (`scripts/bench/webview-apk.sh`:
-  `com.rnaud.moebius.perf`, "Memento (perf)", the same `MainActivity`, gamepad bridge and WebView settings,
+  `com.rnaud.moebius.perf`, "Hiraeth (perf)", the same `MainActivity`, gamepad bridge and WebView settings,
   WebView debugging on, the APK updater off), loading the game from the Mac, driven over DevTools
   (`webview_devtools_remote_<pid>`). The player's `com.rnaud.moebius` was never touched.
 - **Chrome side:** a tab of its own in the device's Chrome, same URL (`http://localhost:5253/`, the Mac's
@@ -198,7 +198,7 @@ cooling rule as the WebView/Chrome run above, measured on 2026-10-05
 (`scripts/bench/results/android-gecko.json`).
 
 - **GeckoView side:** a test app of its own (`scripts/bench/gecko-apk.sh` builds `scripts/bench/gecko-app/`:
-  `com.rnaud.moebius.gecko`, "Memento (Gecko)", 108 MB as a debug APK), the page's bridge as the shipped app
+  `com.rnaud.moebius.gecko`, "Hiraeth (Gecko)", 108 MB as a debug APK), the page's bridge as the shipped app
   would have it (a built-in WebExtension with a native port: `window.Capacitor`, the gamepad, pause / resume).
   It loaded the game from the Mac like the other two (`http://localhost:6253/`, 9.6 MB over USB), and in a
   fourth run from its own APK (`gecko-apk`: the game in the APK's assets, served by the app on

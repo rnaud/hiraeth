@@ -14,7 +14,7 @@ export const DESKTOP_API = 1;
 const BOOT_TIMEOUT_MS = 60_000;
 
 // A fixed origin and profile keep saves independent of the installed build.
-app.setName('Memento');   // (saves stay in the old 'moebius' profile folder, set just below)
+app.setName('Hiraeth');   // (saves stay in the old 'moebius' profile folder, set just below)
 app.setPath('userData', path.join(app.getPath('appData'), 'moebius'));
 protocol.registerSchemesAsPrivileged([{ scheme: 'moebius', privileges: {
   standard: true, secure: true, supportFetchAPI: true, corsEnabled: true,
@@ -97,7 +97,7 @@ else {
   });
   window = new BrowserWindow({
     // (MOEBIUS_HIDDEN: a test run on a desktop that mustn't take over its screen, driven over remote debugging)
-    title: 'Memento', width: 1280, height: 800, fullscreen: process.env.MOEBIUS_HIDDEN !== '1', show: process.env.MOEBIUS_HIDDEN !== '1',
+    title: 'Hiraeth', width: 1280, height: 800, fullscreen: process.env.MOEBIUS_HIDDEN !== '1', show: process.env.MOEBIUS_HIDDEN !== '1',
     autoHideMenuBar: true, backgroundColor: '#fffaf0',
     icon: path.join(packaged, 'icons/icon-512.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true },

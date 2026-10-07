@@ -1,4 +1,4 @@
-# Memento's documentation
+# Hiraeth's documentation
 
 The repository's [README](../README.md) says what the game is and how to run, test and ship it.
 Everything else is here.

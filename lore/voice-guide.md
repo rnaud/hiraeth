@@ -3,7 +3,7 @@
 The reference blend is the readable adventure and village warmth of Ocarina of
 Time, the spacious visual imagination of Moebius, and the bodily, sacred,
 impossible machinery of visionary science fiction. Use those broad qualities to
-make Memento’s own voice. Nobody needs to quote another work to belong here.
+make Hiraeth’s own voice. Nobody needs to quote another work to belong here.
 
 ## The conversation contract
 

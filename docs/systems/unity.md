@@ -54,7 +54,7 @@ The engine bridge's Unity player (docs/systems/engine-bridge.md, "Players"), bui
 devices next to the players' builds, by `.github/workflows/unity-android.yml` on every push to `main`
 that touches `unity/`, `engine/`, `src/`, `public/` or `scripts/unity-*` (and by hand: Actions ▸ Unity
 release (testers) ▸ Run workflow):
-- **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.memento.unity`, named "Memento
+- **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.memento.unity`, named "Hiraeth
   (Unity)", the game's icon (`public/icons/icon-512.png`), landscape, immersive, sound on (paused when
   left), the pads through the Input System; IL2CPP ARM64, Vulkan then GLES3; versionName the newest
   version in `src/changelog.js`, versionCode the commit count (`release-info.mjs build`); signed with the

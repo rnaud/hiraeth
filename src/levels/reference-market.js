@@ -514,3 +514,6 @@ export const MARKET_VIEWS = [
     },
   }),
 ];
+
+/** The world's sheets and views (the registry, reference-worlds.js, loads them by these names). */
+export { MARKET_SHEETS as SHEETS, MARKET_VIEWS as VIEWS };

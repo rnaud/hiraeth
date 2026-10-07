@@ -599,3 +599,6 @@ export const SHAFT_VIEWS = [
     },
   }),
 ];
+
+/** The world's sheets and views (the registry, reference-worlds.js, loads them by these names). */
+export { SHAFT_SHEETS as SHEETS, SHAFT_VIEWS as VIEWS };

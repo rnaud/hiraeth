@@ -33,7 +33,7 @@ namespace Memento.EditorTools
             return i >= 0 && i + 1 < a.Length ? a[i + 1] : fallback;
         }
 
-        [MenuItem("Memento/Set up project")]
+        [MenuItem("Hiraeth/Set up project")]
         public static void Setup()
         {
             PlayerSettings.colorSpace = ColorSpace.Linear;
@@ -99,7 +99,7 @@ namespace Memento.EditorTools
             Debug.Log("Memento: project set up");
         }
 
-        [MenuItem("Memento/Rebuild scenes")]
+        [MenuItem("Hiraeth/Rebuild scenes")]
         public static void BuildScenes()
         {
             Directory.CreateDirectory("Assets/Memento/Scenes");
@@ -228,7 +228,7 @@ namespace Memento.EditorTools
         {
             var outPath = Path.GetFullPath(Arg("-out", "Builds/macOS/Memento.app"));
             IncludeShaders();
-            PlayerSettings.productName = "Memento";
+            PlayerSettings.productName = "Hiraeth";
             PlayerSettings.companyName = "rnaud";
             PlayerSettings.bundleVersion = Arg("-version", "0.1");
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, "com.rnaud.memento.unity");
