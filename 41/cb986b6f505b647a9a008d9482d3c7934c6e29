@@ -1,0 +1,25 @@
+TODO.md
+  s_55b4bc53b812ec::t_a1563b6faac90d 69-79
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_bb087557b9a3be 135-139
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_fb1d53214182fa 676-724
+src/changelog-media.js
+  s_55b4bc53b812ec::t_c54b9f4354d4ce 132,296,300
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "41cb986b6f505b647a9a008d9482d3c7934c6e29",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
