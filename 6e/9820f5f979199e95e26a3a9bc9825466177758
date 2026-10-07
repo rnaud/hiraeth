@@ -1,0 +1,35 @@
+changelog.md
+  s_55b4bc53b812ec::t_1093bbe94344a4 5-8
+src/changelog.js
+  s_55b4bc53b812ec::t_0850ef95d7d3ad 10-12
+src/flora-grass.js
+  s_55b4bc53b812ec::t_c70fc28b7fa58d 28
+src/main.js
+  s_55b4bc53b812ec::t_6b4716aba275bc 26,53,150-151,777
+src/perf.js
+  s_55b4bc53b812ec::t_317b7bc9ee0193 373-378,440-444,457-458,461
+src/title-vista.js
+  s_55b4bc53b812ec::t_885b415385d615 8,339-340,520
+src/ui.js
+  s_55b4bc53b812ec::t_215435cb641385 20,31,38,51,54-55,137
+tests/hud.test.js
+  s_55b4bc53b812ec::t_c128b534e46259 112-116
+tests/quality.test.js
+  s_55b4bc53b812ec::t_53cfa47e1213a5 118-139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e9820f5f979199e95e26a3a9bc9825466177758",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
