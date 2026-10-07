@@ -1,0 +1,81 @@
+TODO.md
+  s_55b4bc53b812ec::t_56884ff971de50 8,12-14
+changelog.md
+  s_55b4bc53b812ec::t_8f49be1b99623d 13-15
+docs/game-brief.md
+  s_55b4bc53b812ec::t_b7c3e2a6628f22 131
+docs/story-bible.md
+  s_55b4bc53b812ec::t_269c0c506c7de9 206-208,210-211
+docs/systems/controls.md
+  s_55b4bc53b812ec::t_61803bc86de13a 39,52,55-57
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_f8595ce679c074 212-254
+docs/systems/progression.md
+  s_55b4bc53b812ec::t_53b9e74b8b8fe2 38-39
+lore/characters/worlds.md
+  s_55b4bc53b812ec::t_cc9623252320ce 24-31
+prompts/city-shaft.md
+  s_55b4bc53b812ec::t_06721b43429e77 17,19
+src/changelog.js
+  s_55b4bc53b812ec::t_4eee617823e498 17-19
+src/hands.js
+  s_55b4bc53b812ec::t_c66dfefd0083d6 79-80
+src/hud.js
+  s_55b4bc53b812ec::t_98fde63cda02ac 16-17,25-26
+src/items.js
+  s_55b4bc53b812ec::t_9f78b83e5559a2 135
+src/levels/bazaar.js
+  s_55b4bc53b812ec::t_5d5c9e5ee506c1 5,23-35,376,379-380,384
+src/levels/incal.js
+  s_55b4bc53b812ec::t_6a1fda4c934bf2 38-81,657-660,1035,1070-1072
+src/main.js
+  s_55b4bc53b812ec::t_edd47a055cd241 489-492,931-934,937,939,1340
+src/player.js
+  s_55b4bc53b812ec::t_4aedbe28bf403e 761,764,796,798,815-816,900,1681,1696-1717,2305-2310,2312,2314,2317
+src/story/cab-lines.js
+  s_55b4bc53b812ec::t_fabc1eedc3b8d2 1-31
+src/story/cab.js
+  s_55b4bc53b812ec::t_5ca9f7c65e0031 1-63
+src/story/incal-data.js
+  s_55b4bc53b812ec::t_f0487bb84f0498 18,36,72-74,77,139,165,230,362,364-396,398-399,451,508,544,587
+src/story/incal.js
+  s_55b4bc53b812ec::t_4677d534a85bcf 8,26-28,33,87,91-96,98,120,238,249
+src/story/index.js
+  s_55b4bc53b812ec::t_15b4d8a0d1bb2a 28,147-148,231,252
+src/taxi.js
+  s_55b4bc53b812ec::t_6828a8a8b93ceb 8-10,14-20,25,27,32,36-41,47-53,56-62,68-74,76-88,99-108,112,114-116,119,125-126,130-132,134,143-163,166,170,177,187-191,193-194,198-199,203,211,214-268,278-279,283-284,286,290-291,309-310,313-319,328-330,347,353,357-362,364-368,371,375-412,417,423-426,436,447-448,453,457-461,466,479-540,556
+src/ui.js
+  s_55b4bc53b812ec::t_33bc24dcf52eec 64,77
+tests/cab-ride.test.js
+  s_55b4bc53b812ec::t_28455a2c0cd9f5 1-188
+tests/collision.test.js
+  s_55b4bc53b812ec::t_63e1dd774b40cf 111,113-129
+tests/controls.test.js
+  s_55b4bc53b812ec::t_8977350b2ae8fa 168,170,172
+tests/hoverbike-quest.test.js
+  s_55b4bc53b812ec::t_bdbd75dc639538 152,156,164
+tests/makehuman-worlds.test.js
+  s_55b4bc53b812ec::t_2729923534f4de 281,288
+tests/native-pad.test.js
+  s_55b4bc53b812ec::t_7c1cb0bb97424a 137-144
+tests/story-incal.test.js
+  s_55b4bc53b812ec::t_04c6019d3ea77a 79-80,194-209,211-224,226
+tests/taxi.test.js
+  s_55b4bc53b812ec::t_d9aee7bf9442a5 5-6,8,22,27-34,37-41,64,91,100,108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c872cf46ee4c492338ce6f0f6e887957f2cd3e03",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
