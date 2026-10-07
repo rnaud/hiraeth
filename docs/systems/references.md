@@ -206,7 +206,9 @@ the narrowest creases.
   - *Foliage in leaf masses* (`leafCrown`): a crown is a core and a few smaller balls bulging from it, each
     welded and smooth, so the ink draws each mass's own outline, as the sheets' olives, shrubs and woods. The
     world's shrubs are a core and three lobes (320 faces, the old lump's 180: there are 1 800 of them), its olive
-    crowns a core and seven (640, the four lumps' 720); the views' have more and smaller.
+    crowns are layered (`layeredCrown`: a broad tier, a narrower one over it a little to one side, a small cap,
+    each its own leaf masses), round and about as tall as wide as the sheets' olives (800 faces, the four lumps'
+    720); the views' have more and smaller masses.
   - *Spheres printed whatever the sun* (`crescentSphere`): two flat tones, the line between them one ring of
     vertices (the poles along the light), self-lit (`glow` 0.6), so the pale blue crescent stays where the panel
     has it. The world's spheres already were (`CRESCENT`); the views now are too, each sphere with its `lit`

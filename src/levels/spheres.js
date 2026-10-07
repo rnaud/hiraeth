@@ -8,7 +8,7 @@ import { Terrain, jitter, soften } from '../world.js';
 import { PEOPLE } from '../story/spheres-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
-import { leafCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
+import { leafCrown, layeredCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -851,8 +851,8 @@ export function* buildSpheres(scene) {
     ].map((g) => prep(g)));
     // (a crown of small leaf masses, each with its own outline, as the sheets draw olives: garden-kit.js leafCrown)
     const crown = mergeGeometries([
-      leafCrown(1, { lobes: 7, core: 0.75, size: [0.26, 0.38] }).scale(2.4, 1.8, 2.4).translate(0, 5, 0),
-    ]);   // (640 faces, the four lumps' 720)
+      layeredCrown(1).scale(2.3, 2.0, 2.3).translate(0, 5.0, 0),
+    ]);   // (round and layered, as the sheets' olives: 800 faces, the four lumps' 720)
     // (the trunk and its two boughs collide as drawn, leaning and turned as each is: an upright 0.4 m post stood
     // in for them, out of the drawn bark at the top and turned the other way; the crown stays walk-through)
     instanced(trunk, makeMaterial({ color: '#ffffff', detail: 'organic' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })),

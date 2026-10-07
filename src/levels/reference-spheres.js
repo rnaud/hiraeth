@@ -5,7 +5,7 @@ import { V, tube, lathe, put, smoothstep, PERSON, CLEAN_SKY, groundRibbon } from
 import { lumpy } from './sky-stones-kit.js';
 import { cloudSea, smooth } from './reference-vael2.js';
 import { SPHERES_LOOK, WHITE_SHADE } from './spheres.js';
-import { leafCrown, crescentSphere, paintTris, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
+import { leafCrown, layeredCrown, crescentSphere, paintTris, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 import { formAxis } from '../form.js';
 
 // ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ function cypress(kit, M, x, z, h, w = h * 0.12) {
 function olive(kit, M, rng, x, z, s = 1) {
   const y = kit.H(x, z) - 0.2, lean = (rng() - 0.5) * 0.8;
   kit.add(M.oliveTrunk, tube([V(x, y, z), V(x + lean * s, y + 1.4 * s, z), V(x + lean * 0.5 * s, y + 2.6 * s, z + 0.3 * s)], 0.22 * s, 6, 5), { solid: false });
-  const g = leafCrown(x + z, { lobes: 12, core: 0.75, size: [0.22, 0.34] }).scale(2.3 * s, 1.6 * s, 2.3 * s);   // (small inked leaf masses)
+  const g = layeredCrown(x + z, { lobes: [8, 6, 2], size: [0.22, 0.34] }).scale(2.2 * s, 2.0 * s, 2.2 * s);   // (round and layered, of small inked leaf masses)
   kit.add(M.olive[Math.floor(rng() * M.olive.length)], g.translate(x + lean * 0.5 * s, y + 3.3 * s, z + 0.3 * s), { solid: false });
 }
 /** A round dark shrub (or a thicket of them). */

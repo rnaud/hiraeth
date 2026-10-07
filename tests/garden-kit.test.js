@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { leafCrown, crescentSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from '../src/levels/garden-kit.js';
+import { leafCrown, layeredCrown, crescentSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from '../src/levels/garden-kit.js';
 import { makeMaterial, shadeOf, FORM } from '../src/materials.js';
 import { WHITE_SHADE } from '../src/levels/spheres.js';
 
@@ -79,4 +79,11 @@ test('veins branch, a hatch over 1 is denser, the white stone prints flat with a
   assert.match(m.fragmentShader, /float darkH = min\(dark \* /);
   assert.equal(shadeOf({ hatch: 2 })[2], 2);
   assert.deepEqual(shadeOf({ color: '#fff', ...WHITE_SHADE }).slice(1, 3), [3, 0.08]);
+});
+
+test('an olive crown is round and layered: about as tall as it is wide, in three tiers of leaf masses', () => {
+  const g = layeredCrown(4), b = box(g);
+  const w = b.max.x - b.min.x, h = b.max.y - b.min.y;
+  assert.ok(h > w * 0.85 && h < w * 1.3, `${w.toFixed(2)} wide, ${h.toFixed(2)} tall`);
+  assert.equal(g.index.count / 3, (6 + 5 + 2) * 80);
 });
