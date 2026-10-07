@@ -44,6 +44,8 @@ const STILL = 3.5;   // s a stilling glob holds a foe
 /** The Arena's waves (level.foes.waves: src/levels/arena.js), round and round; they come in this far out, this long after the last. */
 export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['machine'], ['machine', 'machine', 'blot', 'blot']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
+/** How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. */
+export const TURNS = { strikers: 2, apart: 0.3 };
 
 /**
  * One foe's mind: idle at home (a slow drift round it), chase once you come into sight, wind up its
@@ -85,7 +87,12 @@ export class Foe {
         if (!playerOk || away > D.giveUp || d > D.sight * 2) { this.state = 'home'; ev.push('home'); break; }
         this.face(dx, dz, dt, 8);
         if (d > D.reach) this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, D.reach * 0.8);
-        else if (this.cool === 0) {
+        else if (this.cool === 0 && !(env.mayStrike?.(this) ?? true)) {
+          // another is striking: circle round at a step's distance, waiting a turn
+          const a = Math.atan2(this.pos.x - P.pos.x, this.pos.z - P.pos.z) + dt * 0.6 * (this.side ??= this.rng() < 0.5 ? -1 : 1), r = D.reach + 1.4;
+          this.walkTo(P.pos.x + Math.sin(a) * r, P.pos.z + Math.cos(a) * r, D.speed * 0.5, dt, env);
+          this.face(dx, dz, dt, 8);
+        } else if (this.cool === 0) {
           this.state = 'wind'; this.timer = 0;
           const a = D.attack, f = [Math.sin(this.heading), Math.cos(this.heading)];
           // a ring lands ahead of it (the blot's lunge), a cone fans out from it (the machine's slam)
@@ -165,7 +172,7 @@ export class Foe {
     else if (mode === 'shoot' || mode === 'fire') dmg = this.kind === 'blot' ? 1 : 0;
     else if (mode === 'stun') { this.stunned = STILL; this.state = this.state === 'wind' ? 'chase' : this.state; this.k = 0; this.flash = 0.6; return true; }
     if (mode === 'push' && dir) { this.vel.set(dir.x, 0, dir.z).multiplyScalar((info.shove ?? 2.4) * (this.kind === 'machine' ? 1.2 : 3)); }
-    if (dir && mode !== 'push') this.vel.set(dir.x, 0, dir.z).multiplyScalar(this.kind === 'machine' ? 1.5 : 4);
+    if (dir && mode !== 'push') this.vel.set(dir.x, 0, dir.z).multiplyScalar((this.kind === 'machine' ? 1.5 : 4) * (info.combo === 2 ? 2.2 : 1));   // (the heavy third swing throws them)
     this.flash = 1;
     // a cut interrupts a wind-up (a machine only on its last third)
     if (this.state === 'wind' && (this.kind === 'blot' || this.k < 0.66)) { this.state = 'recover'; this.timer = D.hit; this.k = 0; }
@@ -228,8 +235,8 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector
 
 /** Every foe in a world: the packs of ink blots in the wilds, the machines in the temple, their looks and their targets. */
 export class Foes {
-  constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, game = sharedGame, rng = Math.random }) {
-    Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, game, rng });
+  constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, game = sharedGame, rng = Math.random }) {
+    Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, game, rng });
     this.list = []; this.group = new THREE.Group(); this.group.name = 'Foes';
     this.group.userData.noCollide = true;
     scene?.add(this.group);
@@ -238,10 +245,14 @@ export class Foes {
     this.people = (content?.npcs ?? []).filter((n) => n.at).map((n) => ({ x: n.at[0], z: n.at[1] }));
     this.env = {
       ground: (x, y, z) => { const g = physics?.groundAt?.(x, y, z, 6); return g == null || !Number.isFinite(g) ? null : g; },
+      mayStrike: (f) => this.list.filter((x) => x !== f && x.alive && x.state === 'wind').length < this.strikers,
       seen: (from, to) => !physics?.rayDistance || physics.rayDistance(from, _w.subVectors(_v.copy(to).setY(to.y + 1), from).normalize(), from.distanceTo(_v)) >= from.distanceTo(_v) - 0.5,
     };
     if (!this.peaceful) this.placeMachines();
   }
+
+  /** How many may strike at once. */
+  get strikers() { return TURNS.strikers; }
 
   /** On (the Enemies setting, not a peaceful world; the Arena's waves always). */
   get on() { return !!this.level?.foes?.waves || (!this.peaceful && this.settings?.enemies !== false); }
@@ -398,6 +409,51 @@ export class Foes {
       }
       this.look(f, dt);
     }
+    this.keepApart();
+    this.warnings();
+  }
+
+  /** Foes don't stand inside each other: two too close are pushed apart, half each. */
+  keepApart() {
+    const L = this.list;
+    for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) {
+      const a = L[i], b = L[j];
+      if (!a.alive || !b.alive) continue;
+      const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z, d = Math.hypot(dx, dz), want = a.def.radius + b.def.radius + TURNS.apart;
+      if (d >= want || d < 1e-4) continue;
+      const push = (want - d) / 2 / d;
+      a.step(-dx * push, -dz * push, this.env); b.step(dx * push, dz * push, this.env);
+    }
+  }
+
+  /**
+   * A foe winding up where you can't see it (behind the camera, off the side): a marker at the edge of
+   * the screen on its side, filling as its strike comes.
+   */
+  warnings() {
+    if (typeof document === 'undefined' || !this.camera) return;
+    if (!this.warnEl) {
+      this.warnEl = document.createElement('div');
+      this.warnEl.id = 'foe-warn';
+      this.warnEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:25';
+      document.body.appendChild(this.warnEl);
+      this.chips = [];
+    }
+    const cam = this.camera, fwd = cam.getWorldDirection(_w), out = this.list.filter((f) => f.alive && f.state === 'wind');
+    let n = 0;
+    for (const f of out) {
+      const c = f.chest, ahead = _v.subVectors(c, cam.position).dot(fwd) > 0;
+      const p = c.clone().project(cam);
+      if (ahead && Math.abs(p.x) < 0.9 && Math.abs(p.y) < 0.85) continue;   // on the screen: its ring says it all
+      let x = ahead ? p.x : -p.x, y = ahead ? p.y : -p.y;
+      if (!ahead && Math.hypot(x, y) < 0.2) y = -1;   // straight behind: at the bottom
+      const k = 1 / Math.max(Math.abs(x) / 0.9, Math.abs(y) / 0.82, 1e-3);
+      x *= k; y *= k;
+      const chip = this.chips[n] ?? (this.chips[n] = this.warnEl.appendChild(Object.assign(document.createElement('div'), { className: 'foe-chip' })));
+      chip.style.cssText = `position:absolute;left:${(x * 0.5 + 0.5) * 100}%;top:${(0.5 - y * 0.5) * 100}%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #2b211f;background:radial-gradient(circle, ${f.kind === 'machine' ? '#e0703a' : '#8e64d6'} ${Math.round(f.k * 70)}%, rgba(247,236,210,0.85) ${Math.round(f.k * 70) + 1}%);box-shadow:2px 2px 0 #2b211f`;
+      n++;
+    }
+    for (let i = n; i < (this.chips?.length ?? 0); i++) this.chips[i].style.display = 'none';
   }
 
   /** A strike that caught the traveller: a bite of the bar (never all of a healthy one), a shove, a machine knocks you down. */
@@ -450,5 +506,5 @@ export class Foes {
     else f.tele.hide();
   }
 
-  dispose() { for (const f of this.list.slice()) this.remove(f); this.group.removeFromParent(); }
+  dispose() { for (const f of this.list.slice()) this.remove(f); this.group.removeFromParent(); this.warnEl?.remove(); }
 }

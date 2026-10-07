@@ -9,6 +9,11 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.88', date: '2026-10-07', items: [
+    'Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.',
+    'A foe winding up out of sight shows a marker at the edge of the screen, on its side, filling as its strike comes.',
+    'Foes take turns: no more than two strike at once while the others circle, and they no longer stand inside each other.',
+  ] },
   { v: '0.87', date: '2026-10-07', items: [
     'The fluid blade: the glove draws a blade of the tank’s fluid and swings it (F, LB / L1, or ⚔ on a touch screen). Press again to chain three swings, the last one heavier. It turns you toward the nearest foe and costs nothing.',
     'Ink blots gather in the wilds, away from people, the ship and the cities: loose ink and scribble that come at you and lunge. Their ring is drawn on the ground before they strike, so you can step out of it. The blade cuts them back into ink, a shot or an ember washes them away, stilling freezes them, and every one you cut gives the tank a charge back.',

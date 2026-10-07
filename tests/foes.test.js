@@ -197,3 +197,25 @@ test('held, the blade button raises the guard after the swing: a strike from in 
   assert.equal(tool.blade.guarding, false);
   tool.dispose(); foes.dispose(); clearTargets();
 });
+
+test('feel: a hit-stop nearly stops the world for its length, then lets go; four foes round you take turns, two striking at most, and keep apart', async () => {
+  const { hitStop, feelDt, resetFeel, FEEL } = await import('../src/feel.js');
+  resetFeel();
+  hitStop(0.05);
+  assert.ok(Math.abs(feelDt(DT) - DT * FEEL.slow) < 1e-9, 'slowed');
+  for (let i = 0; i < 5; i++) feelDt(DT);
+  assert.equal(feelDt(DT), DT, 'and back to its pace');
+  clearTargets();
+  const P = player(v(0, 0, 0));
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: true }, game: new GameState(null) });
+  foes.waveRest = 999;
+  for (const [x, z] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) foes.add('blot', v(x, 0, z));
+  let most = 0;
+  for (let i = 0; i < 6 / DT; i++) { foes.update(DT); most = Math.max(most, foes.list.filter((f) => f.state === 'wind').length); P.health = 1; }
+  assert.ok(most >= 1 && most <= 2, `at most two wind up at once (${most})`);
+  const [a, b] = foes.list;
+  a.pos.set(5, 0, 5); b.pos.set(5.1, 0, 5);
+  foes.keepApart();
+  assert.ok(a.pos.distanceTo(b.pos) > 1, 'pushed apart');
+  foes.dispose(); clearTargets();
+});

@@ -63,6 +63,18 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
 - **Off:** the Enemies setting (`settings.enemies`). Home, the Lab, the References and the Atelier
   (`PEACEFUL`) never have any.
 
+## Feel (`src/feel.js`)
+
+- **Hit-stop:** `hitStop(s)` slows the world's time step to `FEEL.slow` of real time (main.js `feelDt`):
+  0.05 s on a cut, 0.09 s on the heavy third swing, 0.07 s on a block.
+- **Camera kick:** `kick(k)` jolts the camera after the rig places it (`shakeCamera`), settling over
+  `FEEL.settle`; a foe's hit kicks harder (main.js `onHurt`).
+- **Knockback:** the heavy third swing throws a foe 2.2× as far.
+- **Turns:** `TURNS.strikers` (2) may wind up at once (`env.mayStrike`); the others circle at a step past
+  their reach. `keepApart()` pushes foes standing inside each other apart.
+- **Warnings:** a foe winding up off the screen (or behind the camera) shows a round marker at the screen's
+  edge on its side, filling as its strike comes (`#foe-warn`, `Foes.warnings`).
+
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes

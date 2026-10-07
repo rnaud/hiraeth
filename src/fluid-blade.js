@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { allTargets, targetsInCone } from './targets.js';
+import { hitStop, kick } from './feel.js';
 
 // The fluid blade: the glove draws a blade of the tank's fluid and swings it (F, LB / L1, touch ⚔).
 // It comes with the backpack and costs nothing: a press swings, presses in quick succession chain up
@@ -123,6 +124,7 @@ export class FluidBlade {
     if (!p || !this.guarding || !inGuard(p.pos, this.dir, from)) return false;
     if (!T.reserve.use()) { T.sputter?.(); return false; }
     this.parry = GUARD.parryFor;
+    hitStop(0.07); kick(0.35);
     T.used('block', p.pos);
     T.sound?.fluidBlock?.();
     const at = this.shield.position, tones = T.modeTones;
@@ -244,6 +246,7 @@ export class FluidBlade {
     for (const h of targetsInCone(origin, this.dir, BLADE.reach, BLADE.angle, T.physics)) if (h.target.kind === 'wildlife') h.target.onHit?.('push', h.point, h.dir, info);
     if (hits.length) {
       T.lastHit = 'target';
+      hitStop(this.n === 2 ? 0.09 : 0.05); kick(this.n === 2 ? 0.5 : 0.25);   // (the cut lands: src/feel.js)
       for (const h of hits) T.splash(h.point, h.dir.clone().negate(), 0.6);
       p.vel?.addScaledVector(this.dir, 1.2);   // a step into the cut
     }

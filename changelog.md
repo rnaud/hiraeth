@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.88 — 2026-10-07
+
+- Foes take turns: no more than two strike at once while the others circle, and they no longer stand inside each other.
+- A foe winding up out of sight shows a marker at the edge of the screen, on its side, filling as its strike comes.
+- Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.
+
 ## v0.87 — 2026-10-07
 
 - On the Overnight Train the carriages’ ceilings have round lamps in a row instead of one long glowing strip, which drew a bright beam down the middle of the dining car and the library; the brackets of the library’s roof terrace no longer poke through its ceiling.
