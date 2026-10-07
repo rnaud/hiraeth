@@ -21,6 +21,8 @@ export const CHANGELOG = [
     'Under the City-Shaft’s terraces, between the ribs of their blue undersides, hang pipes, casings and plates on their rods, as in its drawings.',
     'The undersides of Vael II’s mushroom tables are lumpy and pocketed rock, as in its drawings, their hollows filled with deep shadow, instead of smooth.',
     'The Signal Market’s back alleys are crowded with pipes, valves, conduits and casings up their walls, as in its drawings, and you can climb them.',
+    'Stepping out of a cab beside a building, the camera no longer ends up inside the cab: it sees the cabs as they are drawn, so it stays out of their hulls and canopies (never the one you are riding in).',
+    'E (B / ○) uses what you are facing: walk up to a cab with someone at your shoulder and it gets you in the cab instead of starting a chat, and the prompt over it always says what E will do. A cab counts as near from its side, not its middle.',
   ] },
   { v: '0.78', date: '2026-10-07', items: [
     'The City-Shaft looks more like its drawings: half its walls are pink now among the cream, drainpipes run down the houses, washing hangs over the balconies’ rails, the undersides of the terraces are hung with ribs, machinery and pipes, three orange blimps drift slowly round the shaft, and the lake at the bottom is turquoise water instead of acid green.',

@@ -63,3 +63,34 @@ export function moverCarrier(mover, p, out = { vel: new THREE.Vector3() }) {
   moverVelocity(mover, p, out.vel);
   return out;
 }
+
+/**
+ * The level's Physics as the camera sees it: the same, but a ray also meets the moving things that
+ * have a shape of their own (a cab's hull and canopy: Taxi.rayDistance), which the level's collision
+ * leaves out, so stepping out of a cab beside a wall the camera does not end up inside its hull. Never
+ * the one you ride (skip()). The cabs' own route checks and everyone's walking use the level's Physics
+ * untouched; this is the camera's alone (main.js CameraRig).
+ */
+export function cameraPhysics(physics, things, skip = () => null) {
+  const view = Object.create(physics);
+  view.rayDistance = (origin, dir, far) => {
+    let d = physics.rayDistance(origin, dir, far);
+    const ride = skip();
+    for (const v of things?.() ?? []) {
+      if (v === ride || typeof v?.rayDistance !== 'function' || v.object?.visible === false) continue;
+      d = Math.min(d, v.rayDistance(origin, dir, Math.min(far, d)));
+    }
+    return d;
+  };
+  return view;
+}
+
+/**
+ * The camera's lens kept out of the moving things with a shape (a cab's hull and canopy: Taxi.pushPoint):
+ * the rig keeps a short arm (it never comes closer than ~1.5 m), so a cab right behind you would still
+ * have it inside; moved off its side or over its top. Never the one you ride. For CameraRig.constrain.
+ */
+export function keepLensOut(cam, things, skip = () => null, r = 0.25) {
+  const ride = skip();
+  for (const v of things?.() ?? []) if (v !== ride && typeof v?.pushPoint === 'function' && v.object?.visible !== false) v.pushPoint(cam, r);
+}

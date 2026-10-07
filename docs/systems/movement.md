@@ -215,6 +215,13 @@ either kind for the feet, `Player.moveStep` for the body, the audit over a grid 
 - *A rolling ball* (`src/temples/pieces.js`): a dome 3 cm over the stone (its glowing bands), out to 0.92 of its
   radius (past that too steep to stand on); beside it, out round it below its crest.
 (`tests/shaped-solids.test.js`.)
+- *The camera and the cabs.* The camera sees only the level's collision, which leaves every moving thing out:
+  stepping out of a cab at a stop beside a building, it ended up inside the cab's hull. It has a view of its own
+  now (`src/carriers.js` `cameraPhysics`: a ray also meets a cab as drawn, `Taxi.rayDistance`, marched in the
+  cab's frame between its hull's underside and its top, the open cabin counted as filled), and its lens is kept
+  out of a cab (`keepLensOut`, `Taxi.pushPoint`: off its side or over its top, as `CameraRig.constrain`), since
+  the arm never comes in closer than ~1.5 m. Never the cab you ride; the cabs' own route checks and everyone's
+  walking use the level's collision untouched.
 
 **What the collision costs a frame (October 2026).** Every query on the world's `Physics` in the running game
 (the traveller's, the camera's, the people's and the creatures', all on the same instance), timed per frame while

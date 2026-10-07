@@ -31,6 +31,8 @@ const crowd = new Crowd(scene, physics, { spots: level.crowdSpots(), makeNPC: fa
 // a stand-in player who can be put anywhere
 const player = { pos: V(0, terrain.heightAt(0, 0), 0), vel: V(), wind: V(), heading: 0, riding: false, frame: { up: V(0, 1, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)) } };
 const at = (p) => { player.pos.copy(p); return player; };
+/** Turned toward a point, as a player walking up to it is (E picks what you face: src/interact.js). */
+const facing = (p) => { const d = p.clone().sub(player.pos); d.y = 0; if (d.lengthSq() > 1e-6) player.heading = Math.atan2(d.x, d.z); return player; };   // (the stub frame: dir(h) = (sin h, 0, cos h))
 const sound = { setBands() {}, setBandMode() {}, band: () => null, chime() {}, listen() {}, whoosh() {}, pssts: 0, psst() { this.pssts++; } };
 const toasts = [];
 const camera = new THREE.PerspectiveCamera();
@@ -429,7 +431,7 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.equal(W.toolHasPush(), false, 'an empty tank pushes nothing');
   const bone = allTargets().find((t) => t.kind === 'bone');
   assert.ok(quests.objective().position.distanceTo(Q.cave.bone.position) < 0.01, 'the marker is on the rib');
-  at(Q.cave.bone.position.clone().setY(Q.cave.origin.y).add(V(-1.5, 0, 1.5)));
+  at(Q.cave.bone.position.clone().setY(Q.cave.origin.y).add(V(-1.5, 0, 1.5))); facing(Q.cave.bone.position);
   const heaveIt = bestInteractable(player);
   assert.equal(heaveIt?.entry.id, 'bone');
   assert.equal(promptOf(heaveIt), 'heave the fallen rib');
@@ -645,7 +647,7 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
   assert.equal(quests.stage('desert.drum'), 'free', 'found: jammed against a rib');
   // (src/story/desert-errands.js: heaved by hand from the side, the knuckle rolls off and the drum rolls out)
   const D = rt.world.drum;
-  at(D.knuckle.position.clone().addScaledVector(D.along, -1.6).setY(drumAt.y));
+  at(D.knuckle.position.clone().addScaledVector(D.along, -1.6).setY(drumAt.y)); facing(D.knuckle.position);
   const k = bestInteractable(player);
   assert.equal(k?.entry.id, 'knuckle');
   k.entry.use(player);

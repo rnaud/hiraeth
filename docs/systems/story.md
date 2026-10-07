@@ -133,8 +133,11 @@ Every system talks through it, and its header lists the flags and events.
   - `src/story/quests.js`: quests with goto / talk / bring / flag stages,
     markers, HUD, the Q ping, and a journal section.
   - `src/interact.js`: decides who gets the E key. The ship wins inside it and
-    at its ramp. Otherwise the nearest person, vehicle or thing wins, and only
-    after that the player's whistle.
+    at its ramp. Otherwise the nearest person, vehicle or thing *in the way you
+    face* wins (its distance weighed ×1 ahead, ×2 to the side, ×3 behind:
+    `facingWeight`; a vehicle measured from its side, `halfWidth`), so E boards
+    the cab you walk up to with a passer-by at your shoulder; the prompt shown is
+    always the one E will use; only after that the player's whistle.
 - **The desert story** (`src/story/desert.js`, `src/desert-city.js`, `magic-water.js`):
   "The Tree That Drinks" (see the story bible). It has the city of Qanat with the
   burning tree, the pilgrims' camps with positional music, a 72-person procession
