@@ -559,12 +559,60 @@ The same views, the web left, Unity right (after):
 ![Viridel](../engine-bridge/sbs2-viridel.jpg)
 ![the traveller and the cab](../engine-bridge/sbs2-traveller.jpg)
 
-What still differs: hatching that follows the form, the boxes' star and ray, the MakeHuman faces' shape keys,
-the overshirt's lining; some of the people near the camera hold their things out sideways in Unity (not yet
-understood: the props ride the same bones); which people stand where (another moment of the same code);
+What still differs: which people stand where (another moment of the same code);
 cloud shadows (the clock); the portraits in the conversation chip.
 
-**What it costs**: the VM's update grew with what it now runs. The coral-shirt traveller's overshirt cloth is
+(Some people near the camera held their things out sideways: the crowd's GPU figures, whose port, Crowd.hlsl,
+still read the costume in the old packing and so showed the wrong pieces, several props at once. Ported again
+from crowd-shader.js, 2026-10-07.)
+
+**The overshirt in a Burst job** (2026-10-07). The coral-shirt traveller's cloth was most of the script's
+frame (the web steps its cage in a Worker and, since, moves the garment in its vertex shader; the engines' VMs
+have no Worker). `src/characters/tripo-cloth.js` takes an engine's offload (`CLOTH_HOST.offload`, set by
+engine/game.js from the backend's `clothOffload()`): once, the cage's constants and the garment's flat arrays
+(`engine/cloth.js packClothDesc`, `BridgeHost.Cloth`); each frame, the packet the module still works out on the
+VM's thread from the bones (the cage's targets, the leg capsules, the bones' matrices with the bind inverse
+folded in, the attachment: op 17, ~3 KB). `BridgeCloth.cs` steps the cage (90 Hz Verlet, 18 passes over the
+edges and the capsules), places every garment vertex (rigid on the attachment, eased into its skinned place,
+plus its cell's displacement, pushed out of the legs) and works out the normals in one Burst job, scheduled
+as the packet arrives and completed before the frame is drawn; the garment's meshes take the result (mirrored
+in x). `engine/cloth.js clothFrame` is the same steps in JS, which `tests/cloth-offload.test.js` checks against
+the module's own path. At the camps (load ~35) the script's update went from 13.6 to 4.8 ms, the frame from
+22.9 to 11.1 ms; the dunes from 6.7 to 1.5 and 13.2 to 5.4.
+
+**The rest of the gaps, closed** (2026-10-07). Hatching that follows the form: the part's axis per vertex
+(src/form.js `aFormC`, `aFormA`) rides the geometry (flag 64, TEXCOORD5 and 6) where a material says `S_FORM`,
+and Surface.shader builds materials.js's `vForm` from it: caps' strokes radiate, cylinders' wrap, a dark cap's
+veins are drawn lighter as branches, a denser hatch (HATCH_DENSE) is closer and heavier. The makers' boxes draw
+their star, compasses and travelling ray (`boxMarks`, `boxRay`), inked by their outline only; the ray's clock
+goes live (`materialVec`, op 18). A MakeHuman face's shape keys (body.js `keyTexture`) become the mesh's blend
+shapes, scaled by its head (`faceKeyDeltas`, `BridgeHost.FaceKeys`: only the vertices a key moves), and each
+face's weights go a frame they move (`keyWeights`, op 19). The overshirt's lining colours its back faces
+(`_Lining`); the trousers' repaired band is in their vertex colours.
+
+Side by side after all of it (the web left, Unity right, the same views; the editor):
+
+![the Signal Market](../engine-bridge/sbs3-market.jpg)
+![the desert](../engine-bridge/sbs3-desert.jpg)
+![the traveller's drawn face](../engine-bridge/sbs3-face.jpg)
+![the City-Shaft](../engine-bridge/sbs3-shaft.jpg)
+![the Garden of Spheres](../engine-bridge/sbs3-spheres.jpg)
+
+(Once, with the machine's load at 150, the editor's shots after the first came out black; the same run again,
+the load at 20, drew every view. `-look` logs the frame's look at each shot.)
+
+**The newer pieces from the web** (2026-10-07). The coral-shirt traveller's drawn face (characters/tripo-face.js:
+brows, eyes and mouth drawn in his body's shader, moved by his expression): its GLSL is turned into HLSL by
+`scripts/unity-export/tripo-face-hlsl.mjs` (`TripoFace.hlsl`, generated; a test checks it is current) and its four
+vectors go live with the boxes' (`LIVE_VECTORS`, op 18). The glass flask (fluid-tool.js buildFlask): its living
+fluid (`flaskFluid`, the green base the tones stream through, op 16 carries it), the glass's tint, its pale rim,
+its foot and its etched thirds; the fluid's meshes now upload their rest place, which the shader reads its box by.
+And a fix found on the way: the bridge sent every figure's rest pose unmirrored where the port's shader expects
+it mirrored like the points (the port's own figures keep it so), so faces, sashes and the flask were drawn the
+other way round. The Garden's and Lorn II's kits (garden-kit.js, wood-kit.js) need nothing of their own: vertex
+colours and a palette, which the port draws.
+
+**What it costs** (before the overshirt's job, above): the VM's update grew with what it now runs. The coral-shirt traveller's overshirt cloth is
 the largest share: on the web it steps in a Web Worker, here on the VM's own thread (in Node's `vm` context,
 35 of a 49 ms frame at the garage; in Puerts' V8 a few ms). On a busy machine (load 21–27) the editor's frame
 at the camps was 22.9 ms (update 13.6, mirror 5.0), the dunes 13.2 (6.7, 2.8), the Garden of Spheres' start
@@ -623,6 +671,40 @@ The player is within 6–30 % of the web at the busy views and 1–1.5 ms behind
 difference is the game's own update (5.4 ms at the camps in Puerts' V8, the same modules) and the
 mirror, which the web does not pay. The C# apply is 0.1–0.3 ms. The Android numbers on a
 device wait for the Retroid.
+
+### The players again, and the web against the macOS player (2026-10-07)
+
+With everything above in (the overshirt in its Burst job, the surface marks, grass, wind, people, the boxes),
+built again from the same tree (`scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp`, then `.Mac`,
+`.Android`, `BridgeBuild.Linux -mono`): the macOS app 173 MB, the Android APK 73 MB, the Linux player 141 MB.
+Not installed anywhere. On a device they are one command each:
+
+```sh
+scripts/bench/android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split   # the Retroid: installs com.rnaud.memento.bridge only, muted
+# the Deck: copy unity/Memento/Builds/bridge-linux/ over, then
+./memento-js.x86_64 -mute -screen-width 1280 -screen-height 800 -level desert -views viewpoints.json -bench 8 -split -out out
+```
+
+(`android-bridge.sh` pushes the views to the app's own folder, starts it with the plan as Unity's `-e unity`
+arguments, waits for it to exit and pulls its pictures and `unity-bench.json`; written without a device to run
+it on.) The four views of the comparison, each side back to back as the machine went quiet (load 8–10; a
+second round at load 8–19 in brackets): the web game in Chrome (High, render scale 1, 1280 × 720, uncapped)
+and the macOS player (IL2CPP, uncapped), medians in ms; the player's script in its frame split into the game's
+update and the mirror:
+
+| view | web: frame (CPU, GPU) | macOS player: frame | its script (update + mirror) | its GPU |
+|---|---|---|---|---|
+| the camps | 8.8 (8.6, 3.5) [7.4] | 11.9 [13.5] | 8.7 (5.3 + 2.9) | 5.9 |
+| the dunes | 4.0 (3.8, 2.6) [2.9] | 4.7 [7.8] | 2.7 (1.3 + 1.2) | 6.3 |
+| the Signal Market's crowd | 4.4 (4.3, 2.8) [6.5] | 6.6 [7.7] | 4.3 (2.9 + 1.1) | 5.4 |
+| the City-Shaft, wide | 8.7 (8.4, 5.7) [10.5] | 11.5 [14.1] | 5.6 (2.7 + 2.5) | 12.8 |
+
+The player is 1–3 ms behind the web at every view. Its script costs about what the web's whole frame costs
+(the same game update, plus the mirror the web doesn't pay); the overshirt's job adds 0.5–0.8 ms of waiting
+on the main thread. Its GPU is now the heavier side: the port's composite took on the web's newer passes
+(spot blacks' enclosure, haze, the lines by material), and at the City-Shaft's wide view the frame is the
+GPU's (12.8 ms). Next for speed: the mirror's walk (static subtrees skipped), and the composite's passes
+compiled in only where a look asks for them, as post.js does (`inkFeatures`).
 
 ## Status
 

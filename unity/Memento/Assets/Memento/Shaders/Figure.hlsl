@@ -221,6 +221,7 @@ float4 _FluidA;    // fill · tones in the blend · time · kind (0 tank, 1 hose
 float4 _FluidB;    // flash · refill · hose pulse head · slosh
 float4 _FluidBox;  // object space: glass bottom y, top y, radius, highlight angle
 float4 _FluidTones[6];
+float4 _FluidBase;   // the flask's own fluid, the colour the tones stream through (materials.js uFluidBase)
 float3 fluidTone(int i) { return _FluidTones[i - 6 * (i / 6)].rgb; }
 float fmod2(float x, float y) { return x - y * floor(x / y); }
 float3 fluidLava(float a, float h, float aspect, float t, int n, bool banded)
@@ -246,7 +247,25 @@ float3 fluidLava(float a, float h, float aspect, float t, int n, bool banded)
   [unroll] for (int c = 0; c < 6; c++) { if (c < n && c != base && F[c] > best) { best = F[c]; pick = c; } }
   return fluidTone(pick);
 }
-float3 fluidAlbedo(float3 base, float3 b, float2 fold)
+// the flask's living fluid (materials.js flaskFluid): a green body with the blend's tones turning through it in slow
+// warped streams, dark veins where they meet the green; p on the glass in glass heights, continuous all round
+float3 flaskFluid(float2 p, float t, int n)
+{
+  p *= 4.2;
+  float2 q = float2(vnoise(p + float2(0.0, t * 0.23)), vnoise(p + float2(5.2, 1.3) - float2(t * 0.19, 0.0)));
+  float2 r = float2(vnoise(p * 1.3 + 2.8 * q + float2(1.7, 9.2) + t * 0.09), vnoise(p * 1.3 + 2.8 * q + float2(8.3, 2.8) - t * 0.11));
+  float f = vnoise(p * 0.9 + 2.6 * r);
+  float3 col = _FluidBase.rgb;
+  const float EDGE = 0.45, CORE = 0.63;
+  int nn = max(n, 1), k = (int)floor(frac(r.y * 1.7 + q.x * 0.8) * (float)nn);
+  if (f > EDGE) col = fluidTone(k);
+  if (f > CORE) col = fluidTone(k + 1 - nn * ((k + 1) / nn));
+  float fw = max(fwidth(f), 1e-4);
+  col = lerp(col, float3(0.08, 0.19, 0.14), 0.85 * (1.0 - smoothstep(0.6, 1.4, abs(f - EDGE) / fw)));
+  col = lerp(col, float3(0.1, 0.12, 0.16), 0.6 * (1.0 - smoothstep(0.4, 1.0, abs(f - CORE) / fw)));
+  return col;
+}
+float3 fluidAlbedo(float3 base, float3 b, float2 fold, float3 nrm, float3 toEye)
 {
   float t = _FluidA.z, kind = _FluidA.w;
   int n = max(1, (int)(_FluidA.y + 0.5));
@@ -271,8 +290,9 @@ float3 fluidAlbedo(float3 base, float3 b, float2 fold)
   float H = _FluidBox.y - _FluidBox.x;
   float h = (b.y - _FluidBox.x) / H;
   float a = atan2(b.z, b.x);
-  float3 col = fluidLava(a, h, _FluidBox.z / H, kind > 1.5 ? t * 4.0 : t, n, kind < 1.5);
-  if (kind > 1.5) return col;
+  if (kind > 1.5) return fluidLava(a, h, _FluidBox.z / H, t * 4.0, n, false);   // a glob in flight
+  // the flask: its living fluid at the fill level, sloshing; empty glass above (buildFlask)
+  float3 col = flaskFluid(float2(b.x + 0.8 * b.z, b.y - _FluidBox.x) / H, t, n);
   float fill = _FluidA.x;
   float surf = max(fill, 0.07) + (0.012 + 0.05 * _FluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
   float w = _FluidB.y;
@@ -282,11 +302,20 @@ float3 fluidAlbedo(float3 base, float3 b, float2 fold)
     float2 c = frac(g) - 0.5;
     if (hash(floor(g)) > 0.55 && dot(c, c) < 0.07) col = lerp(col, 1.0, 0.75 * w);
   }
-  if (h > surf) col = float3(0.855, 0.925, 0.945);
+  if (h > surf) col = kind < 0.5 ? float3(0.8, 0.9, 0.88) : float3(0.855, 0.925, 0.945);   // (the flask's glass a little green)
   else if (h > surf - 0.04) col = lerp(col, 1.0, 0.35 + 0.4 * w);
+  if (kind < 0.5)
+  {
+    // the glass's edge, pale where it turns away from the eye; its thick green foot; an etched mark at each third
+    float fr = 1.0 - abs(dot(nrm, toEye));
+    col = lerp(col, float3(0.84, 0.94, 0.91), 0.8 * smoothstep(0.78, 0.86, fr));
+  }
+  if (h < 0.045) col = lerp(col, float3(0.2, 0.46, 0.36), 0.75);
+  float da = abs(a + 0.42);
+  if (da < 0.16 && (abs(h - 0.3333) < 0.008 || abs(h - 0.6667) < 0.008)) col = lerp(col, float3(0.12, 0.2, 0.17), 0.8);
   col = lerp(col, 1.0, _FluidB.x * 0.45);
   float dh = abs(fmod2(a - _FluidBox.w + 3.14159, 6.28318) - 3.14159);
-  if (dh < 0.14 && h > 0.1 && h < 0.86) col = lerp(col, 1.0, h > surf ? 0.9 : 0.5);
+  if (dh < (kind < 0.5 ? 0.07 : 0.14) && h > 0.16 && h < 0.8) col = lerp(col, 1.0, h > surf ? 0.9 : 0.5);
   return col;
 }
 

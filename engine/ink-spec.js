@@ -39,7 +39,8 @@ export function inkSpec(m) {
     vertexColors: !!m.vertexColors, depthWrite: m.depthWrite !== false, depthTest: m.depthTest !== false,
     defines: {}, u: {},
   };
-  if (m.userData?.albedoLinear) spec.albedoLinear = true;   // (its colours linear: the shader turns them to display values)
+  if (m.userData?.albedoLinear) spec.albedoLinear = true;
+  if (Array.isArray(m.userData?.lining)) spec.lining = m.userData.lining.slice(0, 3);   // (back faces in this colour: the overshirt's lining)   // (its colours linear: the shader turns them to display values)
   if (m.defines) for (const [k, v] of Object.entries(m.defines)) spec.defines[k] = typeof v === 'number' ? v : v === '' || v === true ? 1 : String(v);
   if (m.uniforms) {
     spec.type = m.uniforms.uMode ? 'ink' : 'shader';

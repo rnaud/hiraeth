@@ -4,6 +4,7 @@ import { formAxis, padForm } from '../form.js';
 import { fbm, mulberry32, smoothstep, lerp } from '../noise.js';
 import { TAU, nA, nB, nC, clean, place, lumpy, solid, table, needle, boulder, drips } from './sky-stones-kit.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
+import { doorStainGeometry, stainColor, stainMaterial } from '../door-stain.js';
 import { Terrain } from '../world.js';
 import { Bird, STAND } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
@@ -190,6 +191,7 @@ export function* buildArzach2(scene) {
     roof: makeMaterial({ color: '#c9765c', flat: true, pattern: 'tiles', ...PRINT }),
     dome: makeMaterial({ color: '#cf8164', flat: true, ...PRINT }),
     dark: makeMaterial({ color: '#3c4660', flat: true }),
+    stain: stainMaterial(stainColor('#f8f3ea', 0.2), PRINT),   // round the monasteries' doors (door-stain.js)
     tree: makeMaterial({ color: '#5d7562', flat: true }),
     tower: makeMaterial({ color: '#f4ecdc', color2: '#ebdfc8', color3: '#f8f2e6', mode: MODE_STRATA, strataSize: 9, flat: true, ...PRINT }),
   };
@@ -408,7 +410,8 @@ export function* buildArzach2(scene) {
 
   // ---------------------------------------------------------- monasteries
   yield;
-  const building = { walls: [], plain: [], roofs: [], domes: [], dark: [], trees: [] };
+  const building = { walls: [], plain: [], roofs: [], domes: [], dark: [], trees: [], stains: [] };
+  const srng = mulberry32(7731);   // (the stains' own numbers)
   const box = (list, x, y, z, w, h, d, ry = 0) => list.push(place(new THREE.BoxGeometry(w, h, d), x, y + h / 2, z, ry));
   // (the sheets' roofs are shallow red tile with a course of eaves overhanging the wall head)
   const gable = (x, y, z, w, d, ry = 0) => {
@@ -427,10 +430,13 @@ export function* buildArzach2(scene) {
     }
     box(building.walls, x, y + h + w * 0.8, z, n * sp + w, 0.8, d * 1.15, ry);
   };
-  /** An arched door or window, sunk into a wall face. */
-  const arch = (x, y, z, w, h, ry = 0) => {
+  /** An arched door or window, sunk into a wall face; face (±1): which way along its local z the wall looks, the plaster stained round it. */
+  const arch = (x, y, z, w, h, ry = 0, face = 1) => {
     box(building.dark, x, y, z, w, h, 0.4, ry);
     building.dark.push(place(new THREE.CylinderGeometry(w / 2, w / 2, 0.4, 9).rotateX(Math.PI / 2), x, y + h, z, ry, 1, 0.9, 1));
+    const st = doorStainGeometry(srng, w, h + w / 2);
+    if (face < 0) st.rotateY(Math.PI);
+    building.stains.push(place(st.translate(0, 0, -face * 0.18), x, y, z, ry));   // (on the wall's face: the arch stands 0.4 proud of it)
   };
   /** The ball and spike every dome carries on the sheets. */
   const finial = (x, y, z, r) => {
@@ -489,7 +495,7 @@ export function* buildArzach2(scene) {
     house(x + 14, y, z - 2, 8, 7, 9, 0.35);
     box(building.walls, x - 5, y - 1, z - 30, 28, 3.2, 1.2, 0.35);   // a low courtyard wall
     arcade(x + 2.6, y, z - 14.5, 5, 2.2, 4.4, 1.6, 0.35);             // the cloister along its south range
-    arch(x - 7.2, y, z - 15.5, 2, 3.4, 0.35); arch(x - 16, y + 0.1, z - 0.2, 2.2, 3.6, 0);
+    arch(x - 7.2, y, z - 15.5, 2, 3.4, 0.35, -1); arch(x - 16, y + 0.1, z - 0.2, 2.2, 3.6, 0, -1);
     cypress(x - 32, y, z + 6, 11); cypress(x - 35, y, z + 2, 9); cypress(x + 30, y, z - 4, 10);
     cypress(x - 26, y, z - 22, 12); cypress(x - 22, y, z - 26, 9.5); cypress(x + 20, y, z + 16, 10.5);
   }
@@ -522,8 +528,8 @@ export function* buildArzach2(scene) {
   yield;
   for (const [k, list] of Object.entries(building)) {
     yield;
-    const mat = { walls: M.wall, plain: M.plainWall, roofs: M.roof, domes: M.dome, dark: M.dark, trees: M.tree }[k];
-    for (const g of list) add(mat, g);
+    const mat = { walls: M.wall, plain: M.plainWall, roofs: M.roof, domes: M.dome, dark: M.dark, trees: M.tree, stains: M.stain }[k];
+    for (const g of list) add(mat, g, k !== 'stains');   // (the stains are drawn only)
   }
 
   // ---------------------------------------------------------- the lone tower

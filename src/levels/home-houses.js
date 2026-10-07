@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
+import { mulberry32 } from '../noise.js';
+import { doorStainGeometry, stainColor, stainMaterial } from '../door-stain.js';
 import { drawingMaterial } from './home-drawings.js';
 
 // The two houses at home (src/levels/home.js), both walked into, with their
@@ -115,6 +117,16 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
   add(tunnel, terracotta, 0, FLOOR, front - 0.45);
   const door = doorLeaf(g, { w: DW, h: DH + DW / 2, at: V(0, FLOOR, front + 0.35), hingeSide: 1, color: '#3b2a24', swing: 1.5 });
   door.open(0);
+  // the plaster stained round the doorway (door-stain.js), laid on the dome's curve: drawn only
+  {
+    const st = doorStainGeometry(mulberry32(9101), DW + 1.0, DH + DW / 2).rotateY(Math.PI), p = st.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), r = R * Math.sqrt(Math.max(0, 1 - (y / (R * SY)) ** 2));
+      p.setXYZ(i, x, y + FLOOR, -Math.sqrt(Math.max(0, r * r - x * x)) - 0.03);
+    }
+    st.computeVertexNormals();
+    add(st, stainMaterial(stainColor('#f3ead8', 0.24))).userData.noCollide = true;
+  }
   // two steps up to it
   add(new THREE.BoxGeometry(3.0, 0.45, 1.1), stone, 0, 0.225, -10.3);
   // the round window: dark glass outside; inside, the dusk through it
@@ -312,6 +324,8 @@ export function buildFamilyHouse(scene, { centre, heading, mat }) {
   // the door stands open, swung in against the wall
   const door = doorLeaf(g, { w: dw - 0.1, h: dh, at: V(0, FLOOR, R * Math.cos(DOOR) - 0.18), hingeSide: -1, color: '#5fb7ad', swing: 2.3 });
   door.open(1);
+  // the plaster stained round the doorway (door-stain.js), round the wall's curve: drawn only
+  add(doorStainGeometry(mulberry32(9102), dw + 0.44, 2.2, R + T / 2 + 0.02), stainMaterial(stainColor('#f1e3c6', 0.22)), 0, FLOOR, R + T / 2 + 0.02).userData.noCollide = true;
   // windows: a deep sill and a frame, warm light behind them
   for (const [a] of WINDOWS) {
     const sill = add(new THREE.BoxGeometry(1.2, 0.06, T + 0.3), terracotta, Math.sin(a) * R, FLOOR + 1.06, Math.cos(a) * R);

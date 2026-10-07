@@ -7,6 +7,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { LINES as STORY_LINES } from '../story/bazaar-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { doorStainGeometry, stainColor } from '../door-stain.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
@@ -48,6 +49,8 @@ export function* buildBazaar(scene) {
   // (the painted colours in one material, by vertex colour: a material per colour and part cost ~130 more draw calls a frame)
   const SIGN = { line: 0.7, lineTint: 0.67 };
   const signPaint = mat('#ffffff', { ...PRINT, ...SIGN, vertexColors: true });
+  // the stains round the shops' openings: painted in each shop's colour, a hairline of their own (door-stain.js)
+  const stainPaint = mat('#ffffff', { ...PRINT, vertexColors: true, line: 0.25, lineTint: 1 });
   const paint = (hex) => ({ paint: new THREE.Color(hex) });
   // (the dark rings' and the lit strips' lines stay the walls': a dark line on dark paint is the ink, a light's is thinned anyway)
   const sign = { shop: colors.map(paint), lilac: paint('#b9a9c5'), dark, cream: paint('#f5dfab'), glow };
@@ -155,6 +158,12 @@ export function* buildBazaar(scene) {
     const body=shop[i%5], yaw=-side*Math.PI/2;
     box(x,2,z,8,4,12,body);
     box(x-side*4.05,2,z,.12,2.9,10,dark);   // (the fascia stands 0.11 m proud of the shop front you climb)
+    {   // the plaster stained round the shop's opening (door-stain.js): its own colour darkened, flush on its front
+      const st=doorStainGeometry(gr,10,2.9), n=st.attributes.position.count, c=new Float32Array(n*3), k=stainColor(colors[i%5],.22+gr()*.08);
+      for(let q=0;q<n;q++) k.toArray(c,q*3);
+      st.setAttribute('color',new THREE.BufferAttribute(c,3));
+      local(st,x-side*4.02,0.55,z,yaw,stainPaint);
+    }
     box(x-side*5,1.1,z,2.6,2.2,10,teal);
     // Tilted canopy, with a scalloped edge made from alternating strips.
     for(let k=0;k<7;k++) {
@@ -167,17 +176,26 @@ export function* buildBazaar(scene) {
       sphere(x-side*6.5,3.9,z+dz,.45,.6,.45,glow);
       flammables.push({at:new THREE.Vector3(x-side*6.5,3.9,z+dz),kind:'lantern',r:.7,top:.55});
     }
-    // the goods (the sheets' stalls: IMG_3805 p4, IMG_3808 p3): brass bowls heaped with fruit, jars
-    // between them, strings of goods hung from the awning, round pictures painted on the counter's front
-    for(let k=0;k<5;k++) {
-      const zz=z-4+k*2+(gr()-.5)*.4, bx=x-side*(4.6+gr()*.9), fruit=shop[(i+k)%5];
-      add(new THREE.CylinderGeometry(.42,.28,.2,8,1,true).translate(bx,2.3,zz),brass,false);
-      for(let j=0;j<7;j++) {
-        const a=j/6*Math.PI*2, r=j?.24:0;
-        add(new THREE.SphereGeometry(.15+gr()*.05,5,3).translate(bx+Math.cos(a)*r,2.48+(j?0:.14),zz+Math.sin(a)*r),fruit,false);
+    // the goods (the sheets' stalls: IMG_3805 p4, IMG_3808 p3): heaps of fruit mounded high over brass
+    // bowls (a cone of the fruit's colour under the fruit on its slopes, so the pile reads full), crates
+    // stacked and sacks slumped between them, strings of goods hung from the awning, round pictures painted
+    // on the counter's front
+    for(let k=0;k<4;k++) {
+      const zz=z-3.6+k*2.4+(gr()-.5)*.3, bx=x-side*(4.75+gr()*.6), fruit=shop[(i+k)%5], R=.45+gr()*.15, H=.45+gr()*.25;
+      add(new THREE.CylinderGeometry(R+.06,R*.7,.18,8,1,true).translate(bx,2.29,zz),brass,false);
+      add(new THREE.ConeGeometry(R,H,8,1,true).translate(bx,2.38+H/2,zz),fruit,false);
+      for(let j=0;j<11;j++) {   // fruit on the slopes, smaller toward the top
+        const t=Math.sqrt(gr())*.92, a=gr()*Math.PI*2, rr=R*(1-t), fr=.11+.06*(1-t)+gr()*.03;
+        add(new THREE.IcosahedronGeometry(fr,0).translate(bx+Math.cos(a)*rr,2.38+H*t+fr*.4,zz+Math.sin(a)*rr),fruit,false);
       }
-      const jz=zz+1, jh=.35+gr()*.3;
-      add(new THREE.CylinderGeometry(.14,.19,jh,7).translate(x-side*(4.3+gr()*1.2),2.2+jh/2,jz),k%2?cream:shop[(i+k+2)%5],false);
+      const cz=zz+1.2, cx=x-side*(4.4+gr()*1.0);
+      if(k%2) {   // crates, two or three high, each a turn askew
+        for(let q=0,n=2+Math.floor(gr()*2);q<n;q++) local(new THREE.BoxGeometry(.5,.36,.42),cx,2.2+.18+q*.36,cz,gr()*.5-.25,q%2?cream:brass);
+      } else {   // a sack slumped against a jar
+        add(new THREE.SphereGeometry(.3,6,4).scale(1,.75,.9).translate(cx,2.42,cz),cream,false);
+        const jh=.35+gr()*.3;
+        add(new THREE.CylinderGeometry(.14,.19,jh,7).translate(cx-side*.45,2.2+jh/2,cz+.2),shop[(i+k+2)%5],false);
+      }
     }
     for(let k=0;k<4;k++) {
       const hz=z-4.2+k*2.8+gr()*.6, hx=x-side*(6+gr()*.25), n=3+Math.floor(gr()*3), goods=shop[(i+k+1)%5];

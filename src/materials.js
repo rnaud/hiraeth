@@ -145,7 +145,10 @@ export const HATCH_AA = [0.25, 0.45];
 export const SHADOW_CUT = 3;
 /** The steepening, as the shader does it (getShadow). */
 export const shadowCut = (s) => Math.min(1, Math.max(0, (s - 0.5) * SHADOW_CUT + 0.5));
-export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };   // slip: the ground's slope (1 - n.y) over which sand hatches fully
+export const SHADE = { lifts: 15, hues: 8, flats: 5, band: 0.42, warm: [1.06, 0.98, 0.9], slip: [0.16, 0.36] };
+/** A face turned from the sun is half-toned only under no cast shadow of another's: the shadow map tested this
+ *  many metres toward the sun from it (past its own body) still in shadow means something else stands there. */
+export const HALFTONE_REACH = 16;   // slip: the ground's slope (1 - n.y) over which sand hatches fully
 /**
  * Line weight and colour by material (post.js 1b; docs/systems/rendering.md, "The G-buffer's layout"): the sheets draw
  * soft things (clouds, reeds, foliage, glass, painted signs) in thin, lighter lines in a dark shade of their own
@@ -435,6 +438,7 @@ export function surfaceDefines(o) {
   on('S_GLASS', o.glass);
   on('S_MAP', o.map);
   on('METAL_BRUSHED', o.metal && o.brushed);
+  on('S_VMAT', o.perVertex);   // (merged meshes: their material values per vertex, src/vertex-material.js)
   delete d.undefined;
   return d;
 }
@@ -452,6 +456,14 @@ const vertexShader = /* glsl */ `
   out vec3 vBind;
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
+  #ifdef S_VMAT
+    // many meshes merged into one draw, each with its own material values and object space (src/vertex-material.js)
+    in vec3 aMatC1; in vec3 aMatC2; in vec3 aMatC3;
+    in vec3 aMatS;        // band size, grid, flat
+    in vec3 aObjP; in vec3 aObjN;   // its own object-space point and normal
+    in vec4 aObjM;        // its place (xyz) and turn about y (w)
+    flat out vec3 vMatC1; flat out vec3 vMatC2; flat out vec3 vMatC3; flat out vec3 vMatS;
+  #endif
   #ifdef S_FORM
     in vec4 aFormC;       // the part's axis (src/form.js): a point on it (object space), w its kind (FORM: 0 none, 1 a cap, 2 a cylinder)
     in vec3 aFormA;       // and its direction
@@ -612,6 +624,16 @@ const vertexShader = /* glsl */ `
     #ifdef GRASS
       vObjPos = transformed; vObjNormal = objectNormal; vObjRel = transformed - cameraPosition;   // (already in the world)
     #endif
+    #ifdef S_VMAT
+    {
+      vMatC1 = aMatC1; vMatC2 = aMatC2; vMatC3 = aMatC3; vMatS = aMatS;
+      vObjPos = aObjP; vObjNormal = aObjN;
+      // the camera in its own frame (its turn undone), as camL above does with its own model matrix
+      float c = cos(aObjM.w), s = sin(aObjM.w);
+      vec3 d = cameraPosition - aObjM.xyz;
+      vObjRel = aObjP - vec3(c * d.x - s * d.z, d.y, s * d.x + c * d.z);
+    }
+    #endif
     #ifdef S_FORM
     {
       // the point in the axis' frame, metric as vObjPos (its scale baked in); affine in the position, so it
@@ -716,6 +738,16 @@ const fragmentShader = /* glsl */ `
   in vec3 vBind;
   in vec2 vFold;
   in vec2 vTextureUV;
+  #ifdef S_VMAT
+    // (the material values from the vertex instead of the uniforms: every use below reads these)
+    flat in vec3 vMatC1; flat in vec3 vMatC2; flat in vec3 vMatC3; flat in vec3 vMatS;
+    #define uColor vMatC1
+    #define uColor2 vMatC2
+    #define uColor3 vMatC3
+    #define uStrataSize vMatS.x
+    #define uGrid vMatS.y
+    #define uFlat vMatS.z
+  #endif
   #ifdef S_FORM
     in vec4 vForm;
   #endif
@@ -835,6 +867,15 @@ const fragmentShader = /* glsl */ `
       s0 = mix(mix(1.0, s1, i1), s0, i0);
     }
     return mix(s0, sF, iF);
+  }
+  // A face turned from the sun: is it also inside another's cast shadow? (the half-tone is a form's turned side
+  // under no cast shadow: a back wall in the shade of the building across keeps the full shadow, as drawn.) One
+  // tap of the middle cascade at a point HALFTONE_REACH m toward the sun, past the form's own body.
+  float castBeyond(vec3 wp) {
+    vec4 sc = uShadowMatrix * vec4(wp + uSunDir * ${HALFTONE_REACH.toFixed(1)}, 1.0);
+    vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
+    if (p.z > 1.0 || p.x < 0.0 || p.y < 0.0 || p.x > 1.0 || p.y > 1.0) return 0.0;
+    return 1.0 - texture(uShadowMap, vec3(p.xy, p.z - uShadowBias * 4.0));
   }
   // the lit fraction steepened about its half (SHADOW_CUT): the toon threshold cuts the shadow at its true edge
   float getShadow(vec3 wp, vec3 n, float ndl, float px) {
@@ -2409,6 +2450,8 @@ const fragmentShader = /* glsl */ `
     // (no cast shadow on it: those keep the full shadow), the ground's light on faces turned down
     if (L < uToon) {
       float turned = ndl < 0.0 ? (ndl > -${SHADE.band} ? 1.0 : 0.6) : 0.0;
+      // (built walls only: a cliff or a tower deeper than the reach along the light would read its own body as another's)
+      if (turned > 0.0 && uHalftone > 0.0 && uSunDir.y > 0.0 && uMode != ${MODE_STRATA} && uMode != ${MODE_TERRAIN} && abs(n.y) < 0.5) turned *= 1.0 - castBeyond(vWorldPos);
       float lift = 1.0 - (1.0 - uShade.x) * (1.0 - uHalftone * turned) * (1.0 - uBounce * smoothstep(-0.1, -0.7, n.y));
       // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
       // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)

@@ -6,6 +6,7 @@
 import { unityGeometry, CommandWriter, OP, mirrorMatrix, crowdInstances, puffInstances } from './pack.js';
 import { portMaterial } from './port-format.js';
 import { skinMatrices } from '../skin.js';
+import { packClothDesc } from '../cloth.js';
 
 const tally = (self, op, before) => { self._opWords[op] = (self._opWords[op] ?? 0) + self.w.n - before; };
 
@@ -26,19 +27,24 @@ export class UnityBackend {
     this._opWords = {};
   }
 
-  geometry(gid, g) {
+  geometry(gid, g, geo) {
     this.geoms.set(gid, g);
+    if (geo) (this.gidOf ??= new WeakMap()).set(geo, gid);
+    if (geo?.userData?.faceKeys?.texture) (this.keysOf ??= new Map()).set(gid, geo.userData.faceKeys); else this.keysOf?.delete(gid);   // (the overshirt's frame names its garment's: clothOffload)
     // (a geometry rewritten: its variants go again when next drawn)
     for (const k of [...this.sent]) if (k.startsWith(`${gid}:`)) { this.sent.delete(k); this._resend = true; }
   }
 
-  _variant(gid, colors, bind, rig = false) {
-    const key = `${gid}:${colors ? 1 : 0}:${bind ? 1 : 0}${rig ? ':r' : ''}`;
+  _variant(gid, colors, bind, rig = false, form = false) {
+    const key = `${gid}:${colors ? 1 : 0}:${bind ? 1 : 0}${rig ? ':r' : ''}${form ? ':f' : ''}`;
     if (!this.sent.has(key)) {
       const g = this.geoms.get(gid);
       if (!g) return null;
-      const buf = unityGeometry(g, { colors, bind, rig });
+      const buf = unityGeometry(g, { colors, bind, rig, form });
       this.host.Geometry(key, this.toHost(buf));
+      // a MakeHuman face's shape keys (body.js keyTexture): the mesh's blend shapes, only the vertices they move
+      const fk = this.keysOf?.get(gid);
+      if (fk && this.host.FaceKeys) { const kb = faceKeyDeltas(fk, g.attributes.position.array.length / 3); if (kb) this.host.FaceKeys(key, this.toHost(kb)); }
       this.sent.add(key); this.sentGids.add(gid);
       this.stats.geometries++; this.stats.bytes += buf.byteLength;
     }
@@ -58,7 +64,10 @@ export class UnityBackend {
     const colors = specs.some((s) => s?.vertexColors) || d.mids.some((m) => this.ports.get(m) === 'wisp');
     const crowd = d.kind === 'instanced' && specs.some((s) => s?.defines?.CROWD);
     const figure = !crowd && specs.some((s) => (s?.u?.uMode === 4 || s?.u?.uFigure > 0 || s?.u?.uMode === 6 || s?.defines?.FACE_PART));
-    const mesh = d.gid ? this._variant(d.gid, colors, figure || d.kind === 'skinned', crowd) : null;
+    const form = specs.some((s) => s?.defines?.S_FORM);
+    // (the fluid's flask, hose and globs read their own rest place too: their box, the glass's height, materials.js FLUID)
+    const fluid = specs.some((s) => s?.defines?.FLUID);
+    const mesh = d.gid ? this._variant(d.gid, colors, figure || fluid || d.kind === 'skinned', crowd, form) : null;
     if (d.kind === 'instanced' && d.mids.some((m) => this.ports.get(m) === 'print')) {
       // the footprints: the port's Puffs (its Print decal), instanced from op 10
       (this.puffs ??= new Set()).add(id);
@@ -84,7 +93,7 @@ export class UnityBackend {
       return;
     }
     this.nodes ??= new Map();
-    this.nodes.set(id, { gid: d.gid, colors, bind: figure || d.kind === 'skinned', kind: d.kind });
+    this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || d.kind === 'skinned', kind: d.kind, form });
     const desc = { kind: d.kind, mesh, mids: d.mids, name: d.name, shadow: d.shadow !== false, bones: d.bones ?? 0 };
     // (a skinned mesh bound "attached": its skeleton's bones are shared, its bind matrix is its bind pose)
     if (d.kind === 'skinned' && d.skeleton && d.attached) { desc.skeleton = d.skeleton; desc.bind = Array.from(mirrorMatrix(d.bind)); }
@@ -95,7 +104,7 @@ export class UnityBackend {
     const n = this.nodes?.get(id);
     if (!n) return;
     n.gid = gid;
-    const mesh = this._variant(gid, n.colors, n.bind);
+    const mesh = this._variant(gid, n.colors, n.bind, false, n.form);
     if (mesh) this.host.SetMesh(id, mesh);
   }
 
@@ -178,13 +187,56 @@ export class UnityBackend {
     tally(this, 'material', b0);
   }
 
-  /** The fluid on a material (fluid-tool.js uFluidA, uFluidB, uFluidTones: 26 floats), when it moves: op 16. */
+  /** The fluid on a material (fluid-tool.js uFluidA, uFluidB, uFluidTones, uFluidBase: 29 floats), when it moves: op 16. */
   materialFluid(mid, f) {
     const w = this.w, b0 = w.n;
-    w.reserve(28);
+    w.reserve(31);
     w.u(OP.fluid); w.i(mid);
-    for (let i = 0; i < 26; i++) w.f(f[i]);
+    for (let i = 0; i < 29; i++) w.f(f[i]);
     tally(this, 'fluid', b0);
+  }
+
+  /**
+   * The coral-shirt traveller's overshirt done in Unity (tripo-cloth.js CLOTH_HOST: engine/game.js sets it): its
+   * description once (BridgeHost.Cloth), then a packet a frame in the command buffer (op 17), the cage stepped, the
+   * garment's vertices and normals worked out by a Burst job (BridgeCloth.cs), not on the script's thread.
+   */
+  clothOffload() {
+    const B = this;
+    let id = 0, desc = null;
+    return {
+      init(d) { desc = d; id = (B._cloths = (B._cloths ?? 0) + 1); B.host.Cloth(id, B.toHost(packClothDesc(d))); },
+      frame(p) {
+        const gid = B.gidOf?.get(desc.garment.geometry);
+        if (!gid) return;   // (not mirrored yet: its first frames are the garment as made)
+        const w = B.w, b0 = w.n, N3 = desc.N * 3, K = desc.caps * 14;
+        w.reserve(5 + N3 + 2 * K + p.boneMesh.length + 16);
+        w.u(OP.cloth); w.i(id); w.i(gid); w.u(p.simulated ? p.steps : 0); w.u((p.reset ? 1 : 0) | (p.simulated ? 2 : 0));
+        for (let i = 0; i < N3; i++) w.f(p.G[i]);
+        for (let i = 0; i < K; i++) w.f(p.simCaps[i]);
+        for (let i = 0; i < K; i++) w.f(p.mapCaps[i]);
+        for (let i = 0; i < p.boneMesh.length; i++) w.f(p.boneMesh[i]);
+        for (let i = 0; i < 16; i++) w.f(p.attach[i]);
+        tally(B, 'cloth', b0);
+      },
+    };
+  }
+
+  /** A material's vector changed after it was sent (which: 0 a makers' box's uBoxA, its ray's clock): op 18. */
+  materialVec(mid, which, v) {
+    const w = this.w, b0 = w.n;
+    w.reserve(7);
+    w.u(OP.matVec); w.i(mid); w.u(which); w.f(v[0]); w.f(v[1]); w.f(v[2]); w.f(v[3]);
+    tally(this, 'matVec', b0);
+  }
+
+  /** A face's shape-key weights, when they change (face-keys.js: mesh.userData.keyWeights): op 19, its blend shapes. */
+  keyWeights(id, W) {
+    const w = this.w, b0 = w.n;
+    w.reserve(3 + W.length);
+    w.u(OP.keys); w.i(id); w.u(W.length);
+    for (let i = 0; i < W.length; i++) w.f(W[i]);
+    tally(this, 'keys', b0);
   }
 
   /** The traveller's feet and speed (three's space: the grass parts round them, the plants lean away), when they move: op 14. */
@@ -266,3 +318,38 @@ export class UnityBackend {
 }
 
 export { mirrorMatrix };
+
+/**
+ * A face's shape keys as blend shapes for Unity (BridgeRenderer FaceKeys): from the shared key texture (body.js keyTexture:
+ * half floats, a layer a key, a texel a vertex), scaled by its head (kHead) and mirrored in x, only the vertices a key
+ * moves. u32 keys, u32 vertices, then for each key u32 n, n × (u32 vertex, f32 dx, dy, dz). null: nothing to send.
+ */
+export function faceKeyDeltas(fk, nv) {
+  const T = fk.texture, img = T?.image, data = img?.data;
+  if (!data || !fk.names?.length) return null;
+  const w = img.width, h = img.height, layer = w * h * 4, nk = Math.min(fk.names.length, img.depth ?? fk.names.length);
+  const half = data instanceof Uint16Array, toF = (x) => (half ? fromHalf(x) : x);
+  const k = fk.kHead ?? [1, 1, 1], count = Math.min(nv, w * h);
+  const lists = [];
+  let words = 2;
+  for (let key = 0; key < nk; key++) {
+    const o = key * layer, L = [];
+    for (let v = 0; v < count; v++) {
+      const x = toF(data[o + v * 4]), y = toF(data[o + v * 4 + 1]), z = toF(data[o + v * 4 + 2]);
+      if (x !== 0 || y !== 0 || z !== 0) L.push(v, -x * k[0], y * k[1], z * k[2]);
+    }
+    lists.push(L); words += 1 + L.length;
+  }
+  const buf = new ArrayBuffer(words * 4), u = new Uint32Array(buf), f = new Float32Array(buf);
+  let o = 0;
+  u[o++] = nk; u[o++] = nv;
+  for (const L of lists) { u[o++] = L.length / 4; for (let i = 0; i < L.length; i += 4) { u[o++] = L[i]; f[o++] = L[i + 1]; f[o++] = L[i + 2]; f[o++] = L[i + 3]; } }
+  return buf;
+}
+/** A half float's value (three's DataUtils.fromHalfFloat, without three). */
+function fromHalf(h) {
+  const s = h & 0x8000 ? -1 : 1, e = (h >> 10) & 0x1f, m = h & 0x3ff;
+  if (e === 0) return s * m * 2 ** -24;
+  if (e === 31) return m ? NaN : s * Infinity;
+  return s * (1 + m / 1024) * 2 ** (e - 15);
+}

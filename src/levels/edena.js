@@ -472,7 +472,7 @@ export function* buildEdena(scene) {
       scene.add(m);
     }
     const byMat = new Map();
-    const add = (mat, g) => { if (!byMat.has(mat)) byMat.set(mat, []); byMat.get(mat).push(g.toNonIndexed()); };
+    const add = (mat, g) => { if (!byMat.has(mat)) byMat.set(mat, []); byMat.get(mat).push(g.index ? g.toNonIndexed() : g); };
     for (let i = 0; i < 70; i++) {
       // in loose rows, like a garden laid out by machines
       const row = Math.floor(i / 10), k = i % 10;

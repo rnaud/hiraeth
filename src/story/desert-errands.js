@@ -69,7 +69,7 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
     new THREE.IcosahedronGeometry(DRUM.knuckleR, 1).scale(1, 0.82, 1.12),
     new THREE.ConeGeometry(0.22, 0.6, 6).translate(0, 0.72, -0.1).rotateX(-0.3),
     new THREE.SphereGeometry(0.3, 7, 5).translate(0.55, -0.1, 0.35),
-  ].map((x) => x.toNonIndexed())), bone);
+  ].map((x) => (x.index ? x.toNonIndexed() : x))), bone);
   for (const o of [g, kn]) { o.traverse((m) => { m.userData.noCollide = true; }); scene.add(o); }
   const sand = new Puffs(scene, { color: '#e6cf9f', max: 28, glow: 0.4 });
 

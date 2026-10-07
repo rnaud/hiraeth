@@ -994,6 +994,21 @@ const fragmentShader = /* glsl */ `
           col = mix(col, col * vec3(0.82, 0.78, 0.73), band * ${(WEATHER.foot.dark * 4).toFixed(2)});
         }
       }
+      // ...and where sand banks against a weathered wall that band is buried: the dust is drawn on the bank's
+      // top edge instead, the sand within a band's height below where it meets the wall darkened, raggedly.
+      // Drift pixels only (sand-drifts.js), two taps: a probe up the screen that lands on a weathered wall
+      // just behind.
+      if (drift > 0.5 && depth < 220.0) {
+        vec3 wpD = uCamWorld[3].xyz + rd * depth / max(dot(rd, -uCamWorld[2].xyz), 0.2);
+        float rag = 0.75 + 0.5 * vnoise(vec2(wpD.x + wpD.z, wpD.y) * 1.7);
+        float dyPx = clamp(${WEATHER.foot.height} * 0.6 * rag * uProj11 * 0.5 * uRes.y / depth, 1.0, 90.0);
+        vec2 puv = uv + vec2(0.0, dyPx / uRes.y);
+        vec4 Np = texture(tNormal, puv);
+        if (Np.w > depth - 0.5 && Np.w < depth + 3.0 && abs(Np.y) < 0.5) {
+          float wearP = step(15.5, texture(tHatch, puv).b);
+          col = mix(col, col * vec3(0.82, 0.78, 0.73), wearP * ${(WEATHER.foot.dark * 4).toFixed(2)} * (1.0 - smoothstep(150.0, 220.0, depth)));
+        }
+      }
 
       // ---- 3c. spot blacks: the third tier of value. A shaded point enclosed at the scale of a pocket
       // (between ribs or pipes, into a hull, a city's recesses) is filled with a near-black mass of the
