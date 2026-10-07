@@ -134,9 +134,11 @@ function stall(kit, M, rng, { x, z, w = 4, face = 1 }) {
   // bowls heaped with goods, jars between them
   for (let u = -w / 2 + 0.45; u < w / 2 - 0.3; u += 0.7 + rng() * 0.3) {
     const bx = x + fx * (0.55 + rng() * 0.6), bz = z + u, g = pick(M.goods);
-    if (rng() < 0.7) {
-      kit.add(M.rail, new THREE.CylinderGeometry(0.3, 0.2, 0.14, 10).translate(bx, 1.25, bz), nd);
-      for (let i = 0; i < 6; i++) { const t = (i / 6) * Math.PI * 2, rr = i ? 0.17 : 0; kit.add(g, new THREE.SphereGeometry(0.1 + rng() * 0.04, 6, 4).translate(bx + Math.cos(t) * rr, 1.36 + (i ? 0 : 0.1), bz + Math.sin(t) * rr), nd); }
+    if (rng() < 0.7) {   // a heap mounded over its bowl: a cone of the fruit's colour, fruit on its slopes
+      const R = 0.28 + rng() * 0.08, H = 0.3 + rng() * 0.2;
+      kit.add(M.rail, new THREE.CylinderGeometry(R + 0.04, R * 0.7, 0.14, 10).translate(bx, 1.25, bz), nd);
+      kit.add(g, new THREE.ConeGeometry(R, H, 8, 1, true).translate(bx, 1.3 + H / 2, bz), nd);
+      for (let i = 0; i < 9; i++) { const t = Math.sqrt(rng()) * 0.9, a = rng() * Math.PI * 2, rr = R * (1 - t), fr = 0.07 + 0.04 * (1 - t); kit.add(g, new THREE.IcosahedronGeometry(fr, 0).translate(bx + Math.cos(a) * rr, 1.3 + H * t + fr * 0.4, bz + Math.sin(a) * rr), nd); }
     } else kit.add(g, new THREE.CylinderGeometry(0.12, 0.15, 0.4 + rng() * 0.2, 8).translate(bx, 1.38, bz), nd);
   }
   // shelves of crates and pots against the wall behind
