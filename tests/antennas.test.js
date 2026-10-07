@@ -87,8 +87,8 @@ test('the antennas kit: a lattice mast, its dishes, its workshops, its stairs', 
 // ------------------------------------------------------------------ the world (src/levels/antennas.js)
 let world = null;
 const built = () => world ??= (() => {
-  const scene = new THREE.Scene(), w = console.warn; console.warn = () => {};
-  try { const level = createAntennas(scene); return { scene, level, physics: new Physics(scene, level.ground) }; } finally { console.warn = w; }
+  const scene = new THREE.Scene(), w = console.warn, e = console.error, errors = []; console.warn = () => {}; console.error = (...a) => errors.push(a.join(' '));
+  try { const level = createAntennas(scene); return { scene, level, physics: new Physics(scene, level.ground), errors }; } finally { console.warn = w; console.error = e; }
 })();
 const along = (pts, step = 1.5) => {
   const c = new THREE.CatmullRomCurve3(pts.map(([x, z]) => new THREE.Vector3(x, 0, z)), false, 'centripetal'), L = c.getLength(), out = [];
@@ -124,6 +124,7 @@ test('the forest\'s layout keeps the paths, the settlement and the ship clear, a
 test('the Forest of Antennas builds: the ship\'s rise, the path walkable to the plaza, nothing in the way', () => {
   const { level, physics } = built();
   assert.equal(level.id, 'antennas');
+  assert.deepEqual(built().errors, [], 'no errors building it');
   const g = (x, z) => level.ground.heightAt(x, z);
   assert.ok(Math.abs(level.spawn.y - g(level.spawn.x, level.spawn.z)) < 0.2, 'the traveller starts on the ground');
   // the ship's site is level enough to land on

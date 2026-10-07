@@ -648,3 +648,59 @@ street, talks at the shops and leans on the decks' rails (`crowdSpots`, crowd.js
   houses read as homes); the sailcloths are smooth undersides from the street (the pictures' are layered and
   folded); the crowd hauls nothing aboard (a basket at most); the ropes are drawn only and the crowd walks
   through them; the far ships have no people.
+
+
+## The Forest of Antennas (`antennas`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The Forest of Antennas/`; the views:
+references.md): abandoned radio masts by the thousand on a rolling plain of violet grass, great dishes tilted every
+way, lattice towers joined by vine-grown cables, birds nesting on the rims, and a small settlement of rounded repair
+workshops under one immense receiver. No story to follow and no errands: three people from other worlds came to hear
+it (Lune, who reads the Sealed Hangar's signal, on the observation deck; Ottla, its mechanic, on the plaza; Teb, the
+Signal Market's cab tout, by the ship), and five of the mast-menders stand about with a few toned lines each. Its folk
+speak the Sealed Hangar's tongue (`lang: 'garage'`: a world off the route borrows a neighbour's script).
+
+- **Off the route** (`SIDE`, `src/levels/names.js`): on the galactic map from the start, `?level=antennas`.
+- **The layout** (`src/levels/antennas.js`): the ship lands on a low rise in the south (`SHIP`); a path winds 200 m
+  north through the masts to the workshops round a plaza on their mound (`SETTLEMENT`: seven domes, their doors to
+  the plaza, a lamp on a post, crates, a bench), under the receiver (`RECEIVER`: a navy dish 24 m round on a column,
+  a turret with lit portholes, a railed balcony round it 12 m up, its face turned to the path). West of it the
+  observation tower (`OBS`): one long truss stair from the grass to its railed deck 12 m up, two tall masts with
+  beacons over it, and a maintenance bridge from the deck to the receiver's balcony on a lattice leg. A branch of the
+  path goes west to a hamlet under a great nest saucer on its egg (`HAMLET`); a fallen dish lies tipped toward the
+  path (`FALLEN`), walked into. 92 masts and dishes stand in the walked land (`forestLayout`: masts with nest saucers,
+  dishes, spikes or nothing, 14-52 m; dishes 5-11 m round on lattice legs), cables and wires between neighbours, and
+  2 600 more beyond, out to ~800 m, where the land rises into hills.
+- **Built in cells**: each 170 m cell is its own `RoomKit` (a mesh per material and cell, so the frustum culls
+  them); the dishes' tones and the workshops' (two surfaces, six and three tones) are merged per vertex in each cell
+  (`mergeWithMaterials`, `S_VMAT`: a draw for all the tones of one surface); the forest beyond is four instanced
+  draws (poles, saucers, dishes, flower dishes), each mast its own tone toward the haze's cream with distance; the
+  bushes one instanced draw. ~125 meshes in all.
+- **Collision only where walked** (31 k triangles): the terrain (exact), the workshops, the egg, the receiver's
+  column, turret, balcony and dish, the decks, stair and bridge, the fallen dish, the masts on the deck. A mast or a
+  dish's lattice is drawn only; an invisible cone round each leg's foot (65° steep: neither stood on, ny < 0.7, nor
+  climbed, ny > 0.35, so the contact audit samples neither) keeps you out of the legs, and the bottom 3.6 m of each
+  lattice is left unbraced (`latticeTower({ open })`), so you walk in under a mast between its legs and nothing drawn
+  passes through you. On a slope a mast stands on the highest ground under its legs, its legs reaching the lowest.
+  The vines are marked `flora` (walked through, as plants are). Contact audit: feet sink 1, climbs inside 3, walks
+  through 1, each under a metre (`tests/contact-audit.test.js` KNOWN).
+- **Thin bars at any distance**: the lattices, wires, vines and far masts are drawn at least 1.5 px wide wherever
+  they would be thinner (`makeMaterial({ thin })`, src/thin.js; rendering.md "Thin bars at any distance"), and the
+  far masts and dishes' frames draw a line in a dark shade of their own colour, not the world's black.
+- **The look**: `ANTENNAS_LOOK` on the print preset (antennas-kit.js); the day pale yellow, the dusk with a violet top
+  (so the dusk going to night stays violet, never brown), the night indigo with the workshops' windows and the masts'
+  red beacons lit; fog weather. Two moons. Grass blades from the ground's ticks (flora-grass.js), kept off the path.
+- **Sound**: the ambience `signals` (audio.md): the masts' hum (`level.hum(pos)`: 0 on the open plain, up to 0.55 by
+  a mast, 1 under the receiver), static crackling in clusters, and now and then a far signal whistling as it tunes
+  in; footsteps on grass. Birds overhead (two flocks), pale motes.
+- **Cost** (Mac, M4 Pro, headless Chrome on Metal, Handheld preset at render scale 0.75, 1280 × 720, a synced loop of
+  `renderFrame`, median of 3 rounds alternating with the Signal Market): the market's spawn 2.31 ms (361-598 draws,
+  0.43-0.70 M triangles), its street 2.42 (334-656, 0.47-0.76 M); the forest by the ship 2.16 ms (350 draws, 0.82 M),
+  on the path 2.17 (208-327, 0.45-0.70 M), on the plaza 2.39 (271-304, 0.59 M), on the deck 2.15 (199-313, 0.37-0.60 M).
+  At or under the market's frame time and draws; more triangles by the ship, where the whole forest is in view. The
+  build in node: ~350 ms.
+- **Left to make it better**: the receiver doesn't turn (the folk say it does, at night); the workshops can't be
+  entered; the birds on the rims are still (the flocks fly); the leaves on the vines and the bushes' blades still
+  flicker a little at a distance (the motion check's residual); the cables don't sway; the far forest is the same
+  four shapes; no wildlife of its own (the game's flocks and motes only); the domes are plain where the pictures
+  dress them with machinery, decks and ladders.

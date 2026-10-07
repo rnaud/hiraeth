@@ -45,6 +45,7 @@ export const WORLDS = [
   ['garage', 'The Sealed Hangar', /First Garage|Sealed Hangar/],
   ['mangrove', 'The White Mangrove', /White Mangrove/],
   ['saltharbour', 'The Salt Harbour', /Salt Harbour/],
+  ['antennas', 'The Forest of Antennas', /Forest of Antennas/],
   ['references', 'References', /References level/],
 ];
 
@@ -159,6 +160,35 @@ export const CHANGELOG_MEDIA = {
       { name: 'saltharbour-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): the market in the cleft, the gangway, the terracotta hull and its ropes', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'saltharbour-refs-curtains', only: 'after', size: [1928, 538], caption: 'The third: the curtains hung from the high gangway, the arcade along the hull’s foot', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=saltharbour (or the worlds list, L, then the References and Tab to the Salt Harbour) and press \\ to set each panel beside its view.' },
+    { match: 'A new world off the route, the Forest of Antennas', shots: [
+      { name: 'antennas-arrival', only: 'after', caption: 'Out of the ship: the path winding north through the masts, the great nest saucers, the dishes on their lattices, Teb by the ship', from: 'the world’s own screenshots, headless Chrome, High, 15:30 (7 October)' },
+      { name: 'antennas-plaza', only: 'after', caption: 'The plaza among the workshops, under the immense receiver; the maintenance bridge crossing to its balcony; Ottla by her lamp', from: 'the world’s own screenshots, headless Chrome, High, 16:30 (7 October)' },
+      { name: 'antennas-deck', only: 'after', caption: 'On the observation deck with Lune at the end of the afternoon: the forest of masts to the haze, the bridge to the receiver', from: 'the world’s own screenshots, headless Chrome, High, 17:12 (7 October)' },
+      { name: 'antennas-night', only: 'after', caption: 'The workshops at night, their windows lit under the receiver', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the Forest of Antennas on the galactic map (or open the game with ?level=antennas). Follow the path north to the workshops; the observation tower’s stair rises from the grass west of the receiver, and Lune waits on its deck. The fallen dish by the path can be walked into.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of frames, median of 3 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The Forest of Antennas”', rows: [
+          { where: 'the Signal Market’s spawn (the budget)', before: 2.31, after: null },
+          { where: 'the Signal Market’s street (the budget)', before: 2.42, after: null },
+          { where: 'by the ship (spawn)', before: null, after: 2.16 },
+          { where: 'the path, toward the receiver', before: null, after: 2.17 },
+          { where: 'the plaza', before: null, after: 2.39 },
+          { where: 'the observation deck', before: null, after: 2.15 },
+        ] },
+      ] },
+    { match: 'The Forest of Antennas hums', see: 'In the Forest of Antennas, walk from the ship toward the receiver: the hum rises as the masts close in and is loudest on the plaza and the balcony; listen for the crackle of static and, now and then, a thin whistle tuning in.' },
+    { match: 'In the Forest of Antennas, far-off masts, wires and lattice struts stay steady', numbers: [
+      { title: 'The motion check’s pan from the ship over the masts: pixels that flicker, per 10 000 a frame', unit: 'px', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 × 720 (scripts/motion-check, the world frozen, a third of a pixel a frame)', source: 'docs/systems/rendering.md, “Thin bars at any distance”', rows: [
+        { where: 'Handheld preset, the pan', before: 62.1, after: 20.0 },
+        { where: 'Handheld preset, the drift', before: 8.9, after: 7.6 },
+        { where: 'Handheld preset, looking far through the haze', before: 34.3, after: 31.5 },
+        { where: 'High preset, the pan', before: 59.0, after: 39.0 },
+      ], note: 'Before: the same world with every bar drawn at its own thickness. The masts, struts, wires and vines are pushed out to 1.5 pixels wide wherever they would be thinner; what still flickers is leaves, bushes and grass.' },
+    ], see: 'Walk along the path and turn slowly: the thin struts of the far masts and the wires between them hold as lines instead of breaking into dots.' },
+    { match: 'The References level has the Forest of Antennas’ four pictures', shots: [
+      { name: 'antennas-refs', only: 'after', size: [1608, 448], caption: 'The first picture (left) and its view in the game (right): the path to the workshops under the immense receiver', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'antennas-refs-egg', only: 'after', size: [1608, 448], caption: 'The fourth: the great saucer over the egg and the domes, the stair to the platform', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=antennas and step through its four views with [ and ]; \\ lays the picture over the view.' },
   ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [

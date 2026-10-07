@@ -76,3 +76,13 @@ Chrome / WebView 109 has.
   scripts/render-score.mjs <outDir> [seconds]` writes `score_<world>.wav` (`MUSIC_ONLY=1`
   without the ambience and wind, `WORLDS=` to choose). It starts its own dev server (port
   5847).
+
+
+## The Forest of Antennas' signals (October 2026)
+
+The ambience `signals` (`AMBIENCE.antennas`): static crackling in clusters of two to six clicks on the beat
+(`ambienceTick`), now and then a far signal tuning in (`tuning`: a thin sine gliding down to its note and wavering,
+under a second), and the masts' hum: a 98 Hz drone and its second harmonic 196.6 Hz a little off, so it beats slowly,
+through a low-pass, with a faint band of static over it (the `static` noise layer), its level the world's
+`level.hum(pos)` (main.js passes it every frame: 0 on the open plain, ~0.5 by a mast, 1 under the receiver), halved
+indoors. Quiet by design (the hum at most 0.022, the static 0.012): it sits under the score.

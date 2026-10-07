@@ -586,6 +586,8 @@ the narrowest creases.
 - **The look** (`ANTENNAS_LOOK`, `ANTENNAS_DAY`, `ANTENNAS_TONES` in the kit): no clouds, a flat pale yellow sky,
   lavender shade, thin lines and light hatching, stepped haze in a pale cream from 90 m out, cast shadows lifted on
   the grass. Per view: the sky's five colours read off the sheet (view 4 an amber sky), the grass's three tones.
+- **On the world** (`src/levels/antennas.js`, worlds.md "The Forest of Antennas"): the same kit at `detail` 0.6-0.85,
+  the masts' bottom bay left open (`open`), their legs' stand-ins, every bar kept 1.5 px wide (`thin`).
 - **Left, shader level**: the sheets' grass is a dense field of fine strokes, ours a few thousand instanced tufts
   and the ground's ticks; their far forest dissolves into a glowing horizon haze, ours steps into it.
 - **Left, scene level**: the sheets' workshops are dense with machinery, decks and ladders, ours plain domes;
