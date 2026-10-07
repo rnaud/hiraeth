@@ -1,0 +1,79 @@
+TODO.md
+  s_55b4bc53b812ec::t_ca2670fbb7ca5d 28,31-35,109,112-116
+changelog.md
+  s_55b4bc53b812ec::t_99de3d7b698605 12-18
+docs/makehuman.md
+  s_55b4bc53b812ec::t_6b5709785508e8 352-354
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_5ea399db325950 482-534
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_d6264600341229 219-239
+docs/systems/references.md
+  s_55b4bc53b812ec::t_8f95101c660e21 136-155
+src/cape.js
+  s_55b4bc53b812ec::t_87f7c3f2e5f265 25-33,557,574-600
+src/changelog.js
+  s_55b4bc53b812ec::t_3383a7c9ea0a4c 16-22
+src/costumes.js
+  s_55b4bc53b812ec::t_09a8dc33e2f0ea 60,460-462,601,1334-1349,1397-1398,1401,1422-1455,1489,1529-1633,1657
+src/crowd.js
+  s_55b4bc53b812ec::t_b30efaf5960971 163
+src/hands.js
+  s_55b4bc53b812ec::t_6eeb41980ce5df 363
+src/humanoid.js
+  s_55b4bc53b812ec::t_a9e9034d6b59ad 11,313-314,316-317,326,922-930,970-986,1010-1014,1016-1018,1020-1026,1028,1030-1032,1035,1037-1038,1043,1052-1054,1058,1061,1080,1087-1103,1127,1561,1565-1568,1572-1574
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_bc73e309444f86 33-36,38-40,173,182-184,204-207,292-293,299,360,658-659,661-662,733-734,742,827-830
+src/levels/perdide2.js
+  s_55b4bc53b812ec::t_e8bb9f0081e7d8 796-799
+src/levels/reference-vael2.js
+  s_55b4bc53b812ec::t_6cdea7e48c602f 6,47-49,64-65,77-78,82,105-106,345-347,404,409,592
+src/levels/sky-stones-kit.js
+  s_55b4bc53b812ec::t_d9975180d5fe37 2,123-131,201,229-239
+src/main.js
+  s_55b4bc53b812ec::t_bac5c63168bca2 216
+src/makehuman/hair.js
+  s_55b4bc53b812ec::t_f222ec6f8ba2d1 16,296
+src/materials.js
+  s_55b4bc53b812ec::t_bf90045df95667 2418-2426
+src/npc.js
+  s_55b4bc53b812ec::t_69abb938515228 75-77,560,641,842
+src/physics.js
+  s_55b4bc53b812ec::t_d83605c9b63b71 2,24-29,61-66,70,75,81,87,112
+src/story/desert-data.js
+  s_55b4bc53b812ec::t_f61055c43a59b6 267,589
+src/studio/main.js
+  s_55b4bc53b812ec::t_337305ca8246da 374,446
+tests/cape-arms.test.js
+  s_55b4bc53b812ec::t_0d559fcaf14b18 1-96
+tests/cape-front.test.js
+  s_55b4bc53b812ec::t_6d338920761313 1-71
+tests/costumes.test.js
+  s_55b4bc53b812ec::t_25ec528cb2e3d9 138
+tests/desert-props.test.js
+  s_55b4bc53b812ec::t_52527634039067 12,50,54-56,147-222
+tests/load-steps.test.js
+  s_55b4bc53b812ec::t_1ce919b7e3cb27 99
+tests/perdide2.test.js
+  s_55b4bc53b812ec::t_7c3ab1aae1bad9 110-127
+tests/push-fx.test.js
+  s_55b4bc53b812ec::t_ff608d643b637d 1-61
+tests/sky-stones-kit.test.js
+  s_55b4bc53b812ec::t_5f17fe89b63f8c 55-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e217572c9dc73601a87babdcac5c70228db3721a",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
