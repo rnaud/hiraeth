@@ -8,7 +8,7 @@ import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
 import { EAR_Z, noseSide, faceYouth } from './face-ink.js';
 import { EyeLook, EYE_WHITE, EYE_TILT, TRAVELLER_IRIS, eyeballOf } from './eyes.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { lookPieces, roleColor, BUILDS, browColour } from './costumes.js';
+import { lookPieces, roleColor, BUILDS, browColour, PROP_BULK } from './costumes.js';
 import { suitGeometry, travellerKit, fluidGlove, TRAVELLER } from './traveller.js';
 import { BUILD_SHAPE, radialFactors, boneMorph, warpFace, faceLandmarks, browPositions, plainGeometry, reshapeCopy, morphKey, cleanMorph, isNeutral, FACE_MORPHS, NEUTRAL_FACE } from './morph.js';
 import { cleanExpression, NEUTRAL_EXPRESSION, PEOPLE_REST } from './expression.js';
@@ -914,6 +914,9 @@ export class Humanoid {
     this._robeSeated = false;
     // (the robe's shape, for the cloth's colliders: robeCones)
     this._robeLook = look?.robe > 0 && !this.outfit && this.body ? { hem: look.robe, flare: look.flare ?? 0.3, belt: this.outfitRest[1] } : null;
+    // (a bulky held prop, for the cloth's colliders too: propCapsule)
+    this._propBulk = !this.outfit && this.body && PROP_BULK[look?.prop] ? { list: PROP_BULK[look.prop], id: look.prop } : null;
+    this._propCap = null;
     for (const h of this.hood) h.visible = false;
     if (!look || this.outfit || !this.body) return;
     const base = this.costumeGeometry(look);
@@ -970,6 +973,34 @@ export class Humanoid {
     for (const m of meshes) m.geometry = on ? m.userData.poses.seat : m.userData.poses.stand;
   }
 
+  /** The held props' frame in bind space: the arm hanging down, turned so a staff stands upright in the idle clip's grip. */
+  handFrame() {
+    return new THREE.Matrix4().compose(this.rest.get(this.b.hand_r).p,
+      new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), this.restDir('lowerarm_r', 'hand_r')).multiply(HAND_GRIP), new THREE.Vector3(1, 1, 1));
+  }
+
+  /**
+   * A bulky held prop as cloth colliders (world space): costumes.js PROP_BULK's capsules in the hand
+   * frame, carried by the hand bone as the prop's own mesh is (rigid on it), at the body's size.
+   */
+  propCapsules() {
+    const P = this._propBulk, hand = this.b.hand_r;
+    if (!P || !hand) return null;
+    if (!this._propCap) {
+      const r = this.rest.get(hand);
+      const toBone = new THREE.Matrix4().compose(r.p, r.q, new THREE.Vector3(1, 1, 1)).invert().multiply(this.handFrame());
+      this._propCap = P.list.map((k) => ({ la: new THREE.Vector3(...k.a).applyMatrix4(toBone), lb: new THREE.Vector3(...k.b).applyMatrix4(toBone), r: k.r, cap: { a: new THREE.Vector3(), b: new THREE.Vector3(), r: k.r } }));
+    }
+    hand.updateWorldMatrix(true, false);
+    const s = this.profile ? this.char.root.getWorldScale(_c).x : 1;
+    for (const C of this._propCap) {
+      C.cap.a.copy(C.la).applyMatrix4(hand.matrixWorld);
+      C.cap.b.copy(C.lb).applyMatrix4(hand.matrixWorld);
+      C.cap.r = C.r * s;
+    }
+    return this._propCap;
+  }
+
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
     const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
@@ -979,14 +1010,12 @@ export class Humanoid {
     const B = this.b, bones = this.body.skeleton.bones;
     const bi = (name) => Math.max(0, bones.indexOf(B[name]));
     const restHead = this.rest.get(B.Head).p;
-    const handDir = this.restDir('lowerarm_r', 'hand_r');
     const frames = {
       head: { bone: bi('Head'), m: this.headFrame(restHead, look) },
       // (shoulder and chest pieces widen with the build)
       chest: { bone: bi('spine_03'), m: new THREE.Matrix4().makeTranslation(0, this.rest.get(B.neck_01).p.y - 0.76, 0).multiply(new THREE.Matrix4().makeScale(BUILDS[this.build].width * (this.morph?.shoulders ?? 1), 1, Math.sqrt(BUILDS[this.build].girth) * (this.morph?.chest ?? 1))) },
       // the hand frame: the arm hanging down; turned so a staff stands upright in the idle clip's grip
-      hand: { bone: bi('hand_r'), m: new THREE.Matrix4().compose(this.rest.get(B.hand_r).p,
-        new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), handDir).multiply(HAND_GRIP), new THREE.Vector3(1, 1, 1)) },
+      hand: { bone: bi('hand_r'), m: this.handFrame() },
     };
     const out = { main: [], glow: [] };
     // (with a robe, every piece also gets the weights it has seated: sitRobe swaps them in)
@@ -1478,8 +1507,15 @@ export class Humanoid {
         r: own ? (own[i] + CAPSULE_MARGIN[i]) * s : r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)) }));
     }
     spec.forEach(([a, b], i) => { B[a].getWorldPosition(this._caps[i].a); B[b].getWorldPosition(this._caps[i].b); });
-    if (this._robeLook && B.thigh_l && B.thigh_r && B.calf_l && B.calf_r) return this.robeCones();
-    return this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
+    const caps = this._robeLook && B.thigh_l && B.thigh_r && B.calf_l && B.calf_r ? this.robeCones() : this._caps;   // the jetpack sits on top of the cloth, so it isn't a collider
+    // (a bulky held prop pushes the cloth aside too: propCapsules)
+    const prop = this._propBulk ? this.propCapsules() : null;
+    if (!prop) return caps;
+    const out = (this._capsProp ??= []);
+    out.length = 0;
+    for (const k of caps) out.push(k);
+    for (const k of prop) out.push(k.cap);
+    return out;
   }
 
   /**

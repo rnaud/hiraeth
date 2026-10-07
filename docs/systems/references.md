@@ -202,13 +202,54 @@ the narrowest creases.
   thickets, no warm grey kept in the white stone's shade (the sheets' pale blue), the spot blacks in a
   deep green (`uSpotTone`). Uniforms only: no cost. The real umbrella trees already carry branches under
   their canopies, so no greebles were added there.
-- **Left, shader level**: the sheets draw the canopies' undersides as dense radiating branch lines
-  over the dark green, and foliage as clusters of small inked leaf masses; ours are smooth lumps with
-  the `leaves` pattern. The white stone's shade on the sheets is a flat pale blue with almost no
-  strokes (ours keeps a few). Spheres print a crescent of pale blue on the sheets whatever the sun;
-  ours follow the view's sun. The lakes' reflections (the world has them, the views don't).
-- **Left, scene level**: the white hill's sculpted rock, the ruins' arcades, the robot statue, the
-  hedges' fruit, the avenue's grasses, the plaza's paving pattern are sketches.
+- **Shapes from the sheets, October 2026** (`src/levels/garden-kit.js`, shared by the world and the views):
+  - *Foliage in leaf masses* (`leafCrown`): a crown is a core and a few smaller balls bulging from it, each
+    welded and smooth, so the ink draws each mass's own outline, as the sheets' olives, shrubs and woods. The
+    world's shrubs are a core and three lobes (320 faces, the old lump's 180: there are 1 800 of them), its olive
+    crowns are layered (`layeredCrown`: a broad tier, a narrower one over it a little to one side, a small cap,
+    each its own leaf masses), round and about as tall as wide as the sheets' olives (800 faces, the four lumps'
+    720); the views' have more and smaller masses.
+  - *Spheres printed whatever the sun* (`crescentSphere`): two flat tones, the line between them one ring of
+    vertices (the poles along the light), self-lit (`glow` 0.6), so the pale blue crescent stays where the panel
+    has it. The world's spheres already were (`CRESCENT`); the views now are too, each sphere with its `lit`
+    side (the view's sun by default), the sphere-arches painted the same way.
+  - *The white hill's sculpted rock* (`pillowRock`): rounded pillows of stone, flattened on top, ring each
+    terrace's wall (clear of the stairs, the canopy step and the cave doors), a few smaller ones stacked on
+    them. In the world they collide as drawn (the contact audit): with the robot and the arcades the static
+    collision is ~200 k triangles (179 k before; tests/spheres.test.js budget 215 k).
+  - *Arcades* (`arcade`): a wall pierced by round arches, its top broken bay by bay; three in the android
+    wood (solid as drawn), and in views 106, 110, 112 and 117 (the vaulted gallery is a great arcade now).
+  - *The robot statue* (`robotParts`): feet, shins, knees, thighs, hips, a chest with its plate and vents,
+    shoulder pads, arms to the hands, a domed head with its visor and an antenna; the world's and view 110's.
+  - *The hedges' fruit* (`hedge`): clipped hedges of leaf masses with their fruit on the top and the long
+    faces; the world's ring round the plaza (instanced: walk-through, as the shrubs were) and view 119's
+    foreground rows, with the orange trees behind its plaza.
+  - *The plaza's paving* (`paintPaving`): each ring's slabs a hair apart in tone, so the joints read; the world's
+    plaza and the views'. Seen at a person's height across the rings, joints drawn as full ink lines crowded into
+    dark bands (the plaza looked as though it lay in shade, round 2): the slabs are now 4.5 m (world) and 5 m (views,
+    `PAVE`) wide and their tones only just apart, a light joint or a change of tone, and the sheets' pale plaza holds.
+    Views 107 and 113 also take a higher sun from the side (el 50–55), so the avenue's shadows fall short of it.
+- **Shading, October 2026**:
+  - *The white stone's shade* (`WHITE_SHADE` in spheres.js: `shadeFlat` 1, `hatch` 0.08): printed flat in the
+    day's pale blue with almost no strokes, on the world's and the views' white stone, rock, pillars, stairs.
+  - *The canopies' undersides as branches* (`FORM.veins`, materials.js `veinLines`): the veins are a cap's
+    radiating strokes drawn lighter, and now a vein that carries on to the coarser levels (toward the trunk) is
+    drawn thicker, a bough the finer ones fork from, every vein wandering along its length. The world's
+    umbrellas draw their underside in a veined material of its own (`M.under`) instead of painted stripes.
+  - The views' compositions were checked against their panels: the grove's trunk (104), the lakes brought to
+    the foreground (106, 112, 118), the ruins' wood behind the robot (110), the trees framing the lake temple
+    (118), the monolith over a lower wood (124).
+- **Cost** (desktop, M4 Pro, Chrome on Metal, the Handheld preset at render scale 0.75 without dynamic resolution,
+  a tight loop of frames, five rounds alternating with the build before, median ms): spawn 4.27 → 4.75, under an
+  umbrella 3.44 → 3.63, before the hill 4.13 → 4.32, the avenue 3.37 → 3.27, the plaza 3.01 → 3.07, the android
+  wood 3.29 → 3.16 (the world's triangles 1.28 → 1.59 M, most of it the shrubs' leaf masses).
+- **The lakes' printed reflections in the views** (`mirror` in reference-spheres.js, October 2026): what stands
+  beyond a view's lake is mirrored in the water plane and projected back onto it along the line of sight from the
+  view's camera (the world's mirror lake, spheres.js, does the same from the south shore), laid on the water as
+  flat `waterPrint` shapes in each thing's own colour 38 % toward the water's, the nearer printed over the farther.
+  Plain geometry built once: no reflection pass. Views 106, 112, 118, 123 (and 111's pool).
+- **Left**: the avenue's grasses; the views' far woods are round trees, the
+  sheets' dense tall trunks.
 
 ## Lorn II's sheets (IMG_3797–3800)
 
@@ -224,12 +265,38 @@ the narrowest creases.
   cave glows) to the shader, turned with the view; before, a view's lights were never used.
 - **On the world** (`perdide2.js`): the giant mushrooms are pale in their own shade too (`shade` 0.6,
   the gills 0.4, fewer strokes), as the sheets draw them; `DEEP_WOOD_LOOK`, `DEEP_WOOD_DAY` exported.
+- **Shapes from the sheets, October 2026** (`src/levels/wood-kit.js`, shared by the world and the views):
+  - *The roots' tangle* (`braid`): a root is a bundle of strands twisting round its course, splaying where it
+    meets the ground. The views' root arches are a core with six strands round it; the world's six great arches
+    keep their solid core and wear four strands hugging it, solid as drawn as every root is.
+  - *The caves' framing* (`caveFrame`): a cave mouth is a dark half-tunnel (its faces looking in) in the face
+    of a root mass, arches of tangled roots over and round it, the outer ones larger and further back, roots
+    crawling down its sides, feet crawling out along the ground toward you, roots hanging in the mouth, coral at
+    its back when it glows. The views' caves (131, 137, 142, 147, 148) are built from it; the world's root cave
+    keeps its tunnel and gains five arches and four feet over its mouth (solid as drawn: the static collision
+    stays under its budget, ~190 k with the arches' strands and the nest) and 22 roots hanging in it (walk-through).
+  - *The banks' bushes* (`bankBush`): a low mass of small leaf clumps; the world's 1 600 are four clumps of
+    20 faces (100, the old ball's 80), the views' seven. A fringe of thin two-sided blades (`frondTuft`: ten in the
+    world, 20 faces; thirty in the views) springs from their tops, so the silhouette stays ragged and leafy from
+    afar instead of a smooth lump, and the ink draws each blade.
+  - *The nest in the great cap* (`nest`): a woven bowl of root strands heaped with glowing eggs under a ribbed
+    glass dome; on the great cap of view 128, and in the world on the flat cap of a giant in sight of the path
+    north-west of the spawn (its bowl solid as drawn, the eggs and ribs not).
+  - The views' framing was checked panel by panel: the reeds round the domes (126), the bushes on the banks
+    brought into their panels (129, 130, 136, 140, 141, 146), the root arches lowered under the frame's top (129).
+- **Shading: roots and bushes as dense hatched masses** (`ROOT_INK`, `BUSH_INK` in perdide2.js; materials.js
+  `HATCH_DENSE`): a material's `hatch` over 1 is a hatched mass: its strokes up to 1.3 × closer, but never under
+  4.5 px apart (`minPx`: closer, as they were at a distance where the hatch's own spacing tightens, they only read as
+  a tone, and the bushes went smooth) and its shade drawn heavier (cross-hatched sooner), and a half-tone no
+  longer thins them away. Roots 1.8, bushes 2.2, their shade lifted a little (0.45, 0.55) and never a spot black,
+  so the strokes show over it; the cracks pattern and the flat facets are off the roots.
+- **Cost** (desktop, M4 Pro, Chrome on Metal, Handheld at render scale 0.75 without dynamic resolution, a tight
+  loop of frames, rounds alternating with the build before, median ms): spawn 4.46 → 4.18, under the arch 3.72 →
+  4.10, the bank 3.56 → 3.83, the cave mouth 2.67 → 2.79, the nest 2.63 → 2.83.
 - **Left, shader level**: the sheets' reeds are pale lavender blades in light; ours are thin cones whose
-  outlines dominate (an outline weight per material is missing, as for Vael II's clouds). The sheets'
-  far wood is layers of pale mist between trunks (our fog by distance gives one flat tint). Their roots
-  and bushes are dense hatched masses; ours are smooth tubes and lumps.
-- **Left, scene level**: the nest of eggs in the great cap, the cave mouths' framing, the roots' tangle,
-  the bushes on the banks and the lily pads are sketches.
+  outlines dominate. The sheets' far wood is layers of pale mist between trunks. Their hatched masses are drawn
+  stroke by stroke along each root's fibres; ours follow the screen's hatch directions.
+- **Left, scene level**: the lily pads; the views' egg heaps are fewer and larger than the sheets'.
 
 ## The Signal Market's sheets (IMG_3801–3808)
 

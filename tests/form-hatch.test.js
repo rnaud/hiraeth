@@ -16,7 +16,7 @@ test('hatching that follows the form: a material asks for it, never a person, th
   // a part with no axis reads kind 0: plain hatching
   assert.deepEqual(m.defaultAttributeValues.aFormC, [0, 0, 0, 0]);
   assert.ok(m.vertexShader.includes('in vec4 aFormC') && m.fragmentShader.includes('vec2 formHatch('));
-  assert.ok(/else if \(dark > 0\.0 && uHatch > 0\.0 && vForm\.w > 0\.5 && uFormHatch > 0\.0\)/.test(m.fragmentShader), 'only parts with an axis, only in shade');
+  assert.ok(/else if \(darkH > 0\.0 && uHatch > 0\.0 && vForm\.w > 0\.5 && uFormHatch > 0\.0\)/.test(m.fragmentShader), 'only parts with an axis, only in shade (darkH: the shade, heavier for a hatched mass)');
 });
 
 test('a part carries its axis through translate, rotate, put and the merge', () => {

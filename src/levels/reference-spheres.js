@@ -4,7 +4,8 @@ import { createNoise2D, mulberry32 } from '../noise.js';
 import { V, tube, lathe, put, smoothstep, PERSON, CLEAN_SKY, groundRibbon } from './reference-kit.js';
 import { lumpy } from './sky-stones-kit.js';
 import { cloudSea, smooth } from './reference-vael2.js';
-import { SPHERES_LOOK } from './spheres.js';
+import { SPHERES_LOOK, WHITE_SHADE } from './spheres.js';
+import { leafCrown, layeredCrown, crescentSphere, paintTris, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 import { formAxis } from '../form.js';
 
 // ---------------------------------------------------------------------------
@@ -31,6 +32,10 @@ const SKY = {
   mint: ['#c6dccd', '#d5e5d8', TINT, '#ffffff', '#fff8e0'],
 };
 const nG = createNoise2D(37931), nH = createNoise2D(37932);
+/** The spheres' two printed tones (cream and gold, each over the pale blue-green of its crescent). */
+const SPHERE_LIT = '#f6efd6', SPHERE_SHADE = '#aecbc6', GOLD_LIT = '#fde6a4', GOLD_SHADE = '#a9cdb5';
+/** The side a view's sun lights, in its own frame (camera down -z, x to the right). */
+const sunDir = (v) => { const a = (v.sun?.side ?? 0) * Math.PI / 180, e = (v.sun?.el ?? 40) * Math.PI / 180; return [Math.sin(a) * Math.cos(e), Math.sin(e), -Math.cos(a) * Math.cos(e)]; };
 
 function materials(kit) {
   const leaves = (c) => kit.mat({ color: c, pattern: 'leaves' });
@@ -41,22 +46,25 @@ function materials(kit) {
     // (the canopy's underside: deep green, its strokes the radiating gills, the spot blacks in its pockets)
     under: kit.mat({ color: '#2f4d33', side: THREE.DoubleSide, form: true, veins: 1 }),
     branch: kit.mat({ color: '#486a50', form: true }),
-    white: kit.mat({ color: '#f1ead7', flat: true, hatch: 0.15 }),
-    whiteSmooth: kit.mat({ color: '#f3eddc', hatch: 0 }),
-    rock: kit.mat({ color: '#eee6d2', pattern: 'cracks', hatch: 0.15 }),
-    stair: kit.mat({ color: '#ece3cc', flat: true, grid: 0.6 }),
-    sphere: kit.mat({ color: '#f6efd6', hatch: 0 }),
-    yellow: kit.mat({ color: '#fde6a4', hatch: 0 }),
+    // (the white stone prints its shade flat in the pale blue, with almost no strokes: spheres.js WHITE_SHADE)
+    white: kit.mat({ color: '#f1ead7', flat: true, ...WHITE_SHADE }),
+    whiteSmooth: kit.mat({ color: '#f3eddc', ...WHITE_SHADE }),
+    rock: kit.mat({ color: '#eee6d2', ...WHITE_SHADE }),
+    stair: kit.mat({ color: '#ece3cc', flat: true, grid: 0.6, ...WHITE_SHADE }),
+    // (the spheres print their crescent of pale blue whatever the sun: two flat tones, self-lit, garden-kit.js)
+    sphere: kit.mat({ color: '#ffffff', vertexColors: true, palette: [SPHERE_LIT, SPHERE_SHADE], glow: 0.6 }),
+    yellow: kit.mat({ color: '#ffffff', vertexColors: true, palette: [GOLD_LIT, GOLD_SHADE], glow: 0.6 }),
     cave: kit.mat({ color: '#35503f', flat: true }),
     dark: [leaves('#3f6b45'), leaves('#355e3c'), leaves('#4a7346')],
     olive: [leaves('#8a9a4c'), leaves('#7f9048'), leaves('#9aa65a')],
     oliveTrunk: kit.mat({ color: '#9a583a', detail: 'organic' }),
     cypress: leaves('#3c6447'),
+    autumn: [leaves('#e0a03c'), leaves('#d68f34'), leaves('#e8b049')],
     orange: kit.mat({ color: '#ec8f3a', flat: true }),
     path: kit.mat({ color: '#efe6cd', mode: MODE_TERRAIN }),
-    plaza: kit.mat({ color: '#f6e8cf', flat: true }),
+    plaza: kit.mat({ color: '#ffffff', vertexColors: true, flat: true, shade: 0.65, hatch: 0.2 }),   // (pale stone, pale in shade too)
     water: kit.mat({ color: '#a9d2d8', color2: '#bfdcdc', mode: MODE_WATER }),
-    pole: kit.mat({ color: '#f4efe4' }),
+    pole: kit.mat({ color: '#f4efe4', ...WHITE_SHADE }),
     roof: kit.mat({ color: '#e7dfc8', flat: true }),
     cloud: kit.mat({ color: '#fbe0cc', shade: 0.6, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
     pinkCloud: kit.mat({ color: '#fbd6c0', shade: 0.6, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
@@ -122,17 +130,19 @@ function smoothPyramid(kit, M, { x, z, half, height, yaw = 0, top = 0.12 }) {
   }
 }
 
-/** A giant sphere R wide, sunk by `sink` × R into the grass (yellow: the golden ones). */
-function sphere(kit, M, { x, z, R, sink = 0.3, yellow = false, y = null }) {
+/** A giant sphere R wide, sunk by `sink` × R into the grass (yellow: the golden ones), printed lit toward `lit` (its frame). */
+function sphere(kit, M, { x, z, R, sink = 0.3, yellow = false, y = null, lit }) {
   const cy = y ?? kit.base(x, z, R * 0.5) + R * (1 - 2 * sink);
-  kit.add(yellow ? M.yellow : M.sphere, new THREE.SphereGeometry(R, 64, 40).translate(x, cy, z), { shadow: true });
+  const g = crescentSphere(R, 72, 44, yellow ? GOLD_LIT : SPHERE_LIT, yellow ? GOLD_SHADE : SPHERE_SHADE, lit);
+  kit.add(yellow ? M.yellow : M.sphere, g.translate(x, cy, z), { shadow: true });
 }
 
 /** A sphere-arch: a great ring standing on the ground (a sphere with a round tunnel, seen side on). */
-function sphereArch(kit, M, { x, z, R, yaw = 0, yellow = false, depth = 0.5 }) {
-  const y = kit.base(x, z, R) - R * 0.15;
-  const g = new THREE.TorusGeometry(R * 0.72, R * 0.28, 24, 64, Math.PI).scale(1, 1, depth / 0.28);
-  kit.add(yellow ? M.yellow : M.sphere, put(g, x, y, z, yaw));
+function sphereArch(kit, M, { x, z, R, yaw = 0, yellow = false, depth = 0.5, lit }) {
+  const y = kit.base(x, z, R) - R * 0.15, d = new THREE.Vector3(...lit).normalize();
+  const g = put(new THREE.TorusGeometry(R * 0.72, R * 0.28, 24, 64, Math.PI).scale(1, 1, depth / 0.28).toNonIndexed(), x, y, z, yaw);
+  // (printed as the spheres: its lit side and its pale crescent, by the side each face looks)
+  kit.add(yellow ? M.yellow : M.sphere, paintTris(g, (c, n) => (n.dot(d) > 0.05 ? (yellow ? GOLD_LIT : SPHERE_LIT) : (yellow ? GOLD_SHADE : SPHERE_SHADE))));
 }
 
 /** A cypress: a tall dark green flame. */
@@ -145,29 +155,38 @@ function cypress(kit, M, x, z, h, w = h * 0.12) {
 function olive(kit, M, rng, x, z, s = 1) {
   const y = kit.H(x, z) - 0.2, lean = (rng() - 0.5) * 0.8;
   kit.add(M.oliveTrunk, tube([V(x, y, z), V(x + lean * s, y + 1.4 * s, z), V(x + lean * 0.5 * s, y + 2.6 * s, z + 0.3 * s)], 0.22 * s, 6, 5), { solid: false });
-  const g = lumpy(new THREE.IcosahedronGeometry(1, 2), 0.18, 1.6, x + z).scale(2.2 * s, 1.5 * s, 2.2 * s);
-  kit.add(M.olive[Math.floor(rng() * M.olive.length)], smoothG(g).translate(x + lean * 0.5 * s, y + 3.3 * s, z + 0.3 * s), { solid: false });
+  const g = layeredCrown(x + z, { lobes: [8, 6, 2], size: [0.22, 0.34] }).scale(2.2 * s, 2.0 * s, 2.2 * s);   // (round and layered, of small inked leaf masses)
+  kit.add(M.olive[Math.floor(rng() * M.olive.length)], g.translate(x + lean * 0.5 * s, y + 3.3 * s, z + 0.3 * s), { solid: false });
 }
 /** A round dark shrub (or a thicket of them). */
-function shrub(kit, M, rng, x, z, r) {
-  const g = lumpy(new THREE.IcosahedronGeometry(1, 2), 0.2, 1.4, x * 3 + z).scale(r, r * 0.85, r);
-  kit.add(M.dark[Math.floor(rng() * M.dark.length)], smoothG(g).translate(x, kit.H(x, z) + r * 0.55, z), { solid: false });
+function shrub(kit, M, rng, x, z, r, y = kit.H(x, z)) {
+  const g = leafCrown(x * 3 + z, { lobes: 8, size: [0.26, 0.38] }).scale(r, r, r);
+  kit.add(M.dark[Math.floor(rng() * M.dark.length)], g.translate(x, y + r * 0.55, z), { solid: false });
 }
 /** A rounded tree: a short trunk and a cluster of dark crowns (the woods, the lake's far shore). */
-function roundTree(kit, M, rng, x, z, h) {
+function roundTree(kit, M, rng, x, z, h, crowns = M.dark) {
   const y = kit.H(x, z) - 0.2;
   kit.add(M.oliveTrunk, tube([V(x, y, z), V(x, y + h * 0.5, z)], h * 0.04, 2, 5), { solid: false });
   for (let k = 0; k < 4; k++) {
-    const g = lumpy(new THREE.IcosahedronGeometry(1, 2), 0.15, 1.6, x + k).scale(h * 0.3, h * 0.26, h * 0.3);
-    kit.add(M.dark[Math.floor(rng() * M.dark.length)], smoothG(g).translate(x + (rng() - 0.5) * h * 0.35, y + h * (0.55 + rng() * 0.3), z + (rng() - 0.5) * h * 0.35), { solid: false });
+    const g = leafCrown(x + k, { lobes: 8, size: [0.26, 0.38] }).scale(h * 0.3, h * 0.3, h * 0.3);
+    kit.add(crowns[Math.floor(rng() * crowns.length)], g.translate(x + (rng() - 0.5) * h * 0.35, y + h * (0.55 + rng() * 0.3), z + (rng() - 0.5) * h * 0.35), { solid: false });
   }
 }
 
+/**
+ * The panels' plazas read pale, their joints fine: seen low across the rings (the views' eyes are at a person's
+ * height) many joints crowd into dark bands, so the views' slabs are wide and a tone apart only just past post.js's
+ * colour-edge threshold (a light joint, not a full ink line).
+ */
+const PAVE = { slab: 5, tones: [['#f6e8cf', '#eee0c6'], ['#ecdcc2', '#e4d4b9']] };
 /** The round plaza: concentric stone rings, a thin pole in the middle. */
 function plaza(kit, M, { x, z, r, pole = 9 }) {
   const y = kit.H(x, z) + 0.05;
-  kit.add(M.plaza, new THREE.CylinderGeometry(r, r, 0.25, 64).translate(x, y, z));
-  for (const [i, k] of [0.75, 0.5, 0.25].entries()) kit.add(M.plaza, new THREE.CylinderGeometry(r * k, r * k, 0.25 + 0.06 * (i + 1), 64).translate(x, y + 0.03 * (i + 1), z));
+  // (paved: each ring's slabs a hair apart in tone, so the ink draws their joints: garden-kit.js paintPaving)
+  [1, 0.75, 0.5, 0.25].forEach((k, i) => {
+    const g = new THREE.CylinderGeometry(r * k, r * k, 0.25 + 0.06 * i, pavingSegments(r * k, PAVE.slab), 1).toNonIndexed().translate(x, y + 0.03 * i, z);
+    kit.add(M.plaza, paintPaving(g, x, z, r * k, i, { tones: PAVE.tones[i % 2], side: '#efe1c8', slab: PAVE.slab }));
+  });
   if (pole) kit.add(M.pole, new THREE.CylinderGeometry(0.12, 0.18, pole, 6).translate(x, y + pole / 2, z));
 }
 
@@ -182,21 +201,30 @@ function ruins(kit, M, rng, { x0, z0, x1, z1, n = 14, h = 8, doors = 0.3 }) {
   }
 }
 
-/** The white hill: terraces of sculpted rock, boulders, cave doors, round dark shrubs. */
+/**
+ * The white hill: terraces of sculpted rock (each a core ringed by rounded pillows of white stone, garden-kit.js
+ * pillowRock), a few boulders, cave doors, round dark shrubs.
+ */
 function whiteHill(kit, M, rng, { x, z, r, tiers = [[1, 0.35], [0.72, 0.65], [0.46, 0.9]], h }) {
   const y0 = kit.base(x, z, r * 0.5) - 1;
+  let lo = 0;
   tiers.forEach(([k, t], i) => {
-    const g = lumpy(new THREE.CylinderGeometry(r * k * 0.92, r * k, h * t, 40, 4), 0.08, 0.05, i + x);
+    const g = lumpy(new THREE.CylinderGeometry(r * k * 0.86, r * k * 0.92, h * t, 40, 4), 0.06, 0.05, i + x);
     kit.add(M.rock, smoothG(g).translate(x, y0 + h * t / 2, z));
-    for (let j = 0; j < 12; j++) {
-      const a = rng() * Math.PI * 2, br = r * 0.06 * (0.6 + rng());
-      kit.add(M.rock, smoothG(lumpy(new THREE.IcosahedronGeometry(br, 1), 0.15, 0.4, j)).translate(x + Math.cos(a) * r * k, y0 + h * t * (0.4 + rng() * 0.6), z + Math.sin(a) * r * k));
-      if (rng() < 0.6) shrub(kit, M, rng, x + Math.cos(a + 0.2) * r * k * 0.95, z + Math.sin(a + 0.2) * r * k * 0.95, r * 0.05 * (0.8 + rng()));
+    const tall = h * (t - lo), R0 = r * k * 0.9;
+    for (let a = rng() * 0.3; a < Math.PI * 2;) {
+      if ([-1, 0, 1].some((j) => Math.abs(a - (Math.PI / 2 + j * 0.35)) < 0.07)) { a += 0.05; continue; }   // (the cave doors)
+      const sx = r * (0.1 + rng() * 0.08), sy = tall * (0.7 + rng() * 0.35), sz = r * (0.07 + rng() * 0.05);
+      kit.add(M.rock, put(pillowRock(rng() * 100, sx * 0.5, sy * 0.5, sz * 0.5), x + Math.cos(a) * R0, y0 + h * lo - 0.5, z + Math.sin(a) * R0, -a + Math.PI / 2));
+      if (rng() < 0.4) kit.add(M.rock, put(pillowRock(rng() * 100, sx * 0.3, sy * 0.25, sz * 0.4), x + Math.cos(a) * R0 * 1.02, y0 + h * lo + sy * 0.6, z + Math.sin(a) * R0 * 1.02, -a + Math.PI / 2));
+      if (rng() < 0.55) shrub(kit, M, rng, x + Math.cos(a + 0.05) * R0 * 0.93, z + Math.sin(a + 0.05) * R0 * 0.93, r * 0.05 * (0.8 + rng()), y0 + h * t);
+      a += sx * 0.7 / R0;
     }
     for (let j = 0; j < 3; j++) {
       const a = Math.PI / 2 + (j - 1) * 0.35;
-      kit.add(M.cave, put(new THREE.CylinderGeometry(r * 0.04, r * 0.04, 0.3, 12, 1, false, 0, Math.PI).rotateX(Math.PI / 2).scale(1, 1.4, 1), x + Math.cos(a) * r * k * 0.99, y0 + h * t * 0.35, z + Math.sin(a) * r * k * 0.99, -a + Math.PI / 2), { solid: false });
+      kit.add(M.cave, put(new THREE.CylinderGeometry(r * 0.04, r * 0.04, 0.3, 12, 1, false, 0, Math.PI).rotateX(Math.PI / 2).scale(1, 1.4, 1), x + Math.cos(a) * (R0 + r * 0.01), y0 + h * lo + tall * 0.3, z + Math.sin(a) * (R0 + r * 0.04), -a + Math.PI / 2), { solid: false });
     }
+    lo = t;
   });
 }
 
@@ -213,11 +241,31 @@ function temple(kit, M, { x, z, s = 1 }) {
   kit.add(M.white, new THREE.BoxGeometry(6 * s, 4 * s, 6 * s).translate(x - 9 * s, y + 2 * s, z + 1 * s));
 }
 
+/** A ruin's arcade: a white wall of round arches (garden-kit.js arcade) standing at (x, z), turned by yaw. */
+function arcadeWall(kit, M, { x, z, yaw = 0, bays = 4, span = 6, h = 9, depth = 1.6, pier = 1.4, ruin = 0.4, spring = 0.55 }) {
+  kit.add(M.white, put(arcade({ bays, span, h, depth, pier, ruin, spring, seed: x + z }), x, kit.base(x, z, bays * span * 0.4) - 0.4, z, yaw));
+}
+/** The white robot statue (garden-kit.js robotParts), s its scale, leaning a little. */
+function robot(kit, M, { x, z, yaw = 0, s = 1, lean = 0.06 }) {
+  const { parts, slots } = robotParts(), y = kit.base(x, z, 4 * s) - 0.4;
+  for (const g of parts) kit.add(M.whiteSmooth, put(g, x, y, z, yaw, s, 0, lean));
+  for (const g of slots) kit.add(M.cave, put(g, x, y, z, yaw, s, 0, lean), { solid: false });
+}
+/** A row of clipped hedges heavy with orange fruit (garden-kit.js hedge): n of them from (x, z) along yaw. */
+function fruitHedge(kit, M, rng, { x, z, yaw = 0, n = 6, w = 2.6, h = 1.5, d = 1.8 }) {
+  const c = Math.cos(yaw), sn = Math.sin(yaw);
+  for (let i = 0; i < n; i++) {
+    const hx = x + c * i * w, hz = z - sn * i * w, y = kit.H(hx, hz) - 0.1, H = hedge(hx + hz, w * 1.02, h, d, 26);
+    kit.add(M.dark[i % 3], put(H.hedge, hx, y, hz, yaw), { solid: false });
+    for (const [fx, fy, fz] of H.fruit) kit.add(M.orange, new THREE.IcosahedronGeometry(0.09 + rng() * 0.04, 1).translate(hx + fx * c + fz * sn, y + fy, hz - fx * sn + fz * c), { solid: false });
+  }
+}
+
 /** A thin white pillar standing h high. */
 const pillar = (kit, M, x, z, h, r = 0.6) => kit.add(M.pole, new THREE.CylinderGeometry(r, r * 1.1, h, 10).translate(x, kit.H(x, z) + h / 2 - 0.5, z));
 
 /**
- * A panel's scene. o: { umbrellas, stepped, smooth, spheres, arches, hills, ruins, temples, pillars: [[x, z, h, r]…],
+ * A panel's scene. o: { umbrellas, arcades: [{ x, z, yaw, bays, span, h, ruin }…], robots: [{ x, z, yaw, s, lean }…], hedges: [{ x, z, yaw, n, w }…], stepped, smooth, spheres, arches, hills, ruins, temples, pillars: [[x, z, h, r]…],
  * cypresses: [[x, z, h]…], olives: [[x, z, s]…], shrubs: [[x, z, r]…], trees: [[x, z, h]…], plaza, lake, paths: [[pts, w]…],
  * clouds, extra }
  */
@@ -226,8 +274,11 @@ function gardenScene(kit, v, o) {
   for (const u of o.umbrellas ?? []) umbrella(kit, M, { seed: (o.seed ?? 1) + u.x, ...u });
   for (const p of o.stepped ?? []) steppedPyramid(kit, M, p);
   for (const p of o.smooth ?? []) smoothPyramid(kit, M, p);
-  for (const s of o.spheres ?? []) sphere(kit, M, s);
-  for (const a of o.arches ?? []) sphereArch(kit, M, a);
+  for (const s of o.spheres ?? []) sphere(kit, M, { lit: sunDir(v), ...s });
+  for (const a of o.arches ?? []) sphereArch(kit, M, { lit: sunDir(v), ...a });
+  for (const a of o.arcades ?? []) arcadeWall(kit, M, a);
+  for (const r of o.robots ?? []) robot(kit, M, r);
+  for (const h of o.hedges ?? []) fruitHedge(kit, M, rng, h);
   for (const h of o.hills ?? []) whiteHill(kit, M, rng, h);
   for (const r of o.ruins ?? []) ruins(kit, M, rng, r);
   for (const t of o.temples ?? []) temple(kit, M, t);
@@ -236,11 +287,64 @@ function gardenScene(kit, v, o) {
   for (const [x, z, s] of o.olives ?? []) olive(kit, M, rng, x, z, s);
   for (const [x, z, r] of o.shrubs ?? []) shrub(kit, M, rng, x, z, r);
   for (const [x, z, h] of o.trees ?? []) roundTree(kit, M, rng, x, z, h);
+  for (const [x, z, h] of o.autumn ?? []) roundTree(kit, M, rng, x, z, h, M.autumn);
   if (o.plaza) plaza(kit, M, o.plaza);
   if (o.lake) lake(kit, M, o.lake);
   for (const [pts, w] of o.paths ?? []) kit.add(M.path, groundRibbon(kit.H.bind(kit), pts, w, 0.04), { solid: false });
   for (const c of [o.clouds ?? []].flat()) cloudSea(kit, M, { at: [v.camera.eye[0], v.camera.eye[2]], yaw: v.camera.yaw ?? 0, deck: false, seed: o.seed ?? 1, pink: true, ...c });
   o.extra?.(kit, M, rng);
+  if (o.lake) mirror(kit, M, v, o.lake);
+}
+
+/**
+ * The still water's printed reflection (the sheets' and the world's mirror lake, spheres.js): what stands beyond
+ * the lake mirrored in its plane and laid on the water as flat shapes in a paler, watery tone of each thing's own
+ * colour, exactly where the reflection is seen from the view's camera. Every vertex is mirrored in the water
+ * plane and projected back onto it along the line of sight; the shapes nearest the camera print over the farther.
+ * No reflection pass: plain geometry, drawn once.
+ */
+const MIRROR = { mix: 0.38, darker: 0.9, over: 0.3 };   // (toward the water's colour; the second tone; how far above the water a part must stand)
+function mirror(kit, M, v, { x0, x1, z0, z1, y: W = -0.4 }) {
+  const E = new THREE.Vector3(...v.camera.eye), water = M.water.uniforms.uColor.value, skip = new Set([M.water, M.path, M.plaza, M.cloud, M.pinkCloud, M.cloak]);
+  const parts = [], p = new THREE.Vector3(), c = new THREE.Color();
+  for (const b of kit.buckets.values()) {
+    if (skip.has(b.mat) || !b.mat.uniforms?.uColor) continue;
+    for (const g of b.list) {
+      const P = g.attributes.position, C = g.attributes.color, out = [];
+      let d = 0;
+      for (let i = 0; i < P.count; i += 3) {
+        const tri = [];
+        for (let k = 0; k < 3; k++) {
+          p.fromBufferAttribute(P, i + k);
+          if (p.y < W + MIRROR.over) break;
+          const my = 2 * W - p.y, t = (E.y - W) / (E.y - my);
+          tri.push(E.x + (p.x - E.x) * t, 0, E.z + (p.z - E.z) * t);
+        }
+        if (tri.length < 9) continue;
+        const cx = (tri[0] + tri[3] + tri[6]) / 3, cz = (tri[2] + tri[5] + tri[8]) / 3;
+        if (cx < x0 || cx > x1 || cz < z0 || cz > z1) continue;
+        // (facing up whatever the mirror did to its winding)
+        const ax = tri[3] - tri[0], az = tri[5] - tri[2], bx = tri[6] - tri[0], bz = tri[8] - tri[2];
+        if (az * bx - ax * bz > 0) out.push(...tri); else out.push(tri[0], tri[1], tri[2], tri[6], tri[7], tri[8], tri[3], tri[4], tri[5]);
+        d += Math.hypot(cx - E.x, cz - E.z);
+      }
+      if (!out.length) continue;
+      c.copy(b.mat.uniforms.uColor.value);
+      if (C) c.setRGB(C.getX(0), C.getY(0), C.getZ(0)).multiply(b.mat.uniforms.uColor.value);
+      parts.push({ out, d: d / (out.length / 9), color: c.clone().lerp(water, MIRROR.mix) });
+    }
+  }
+  // the farthest first, each a hair higher than the last: the nearer shapes print over the farther
+  parts.sort((a, b) => b.d - a.d).forEach(({ out, color }, i) => {
+    const y = W + 0.02 + i * 0.004;
+    for (let k = 1; k < out.length; k += 3) out[k] = y;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+    const n = new Float32Array(out.length); for (let k = 1; k < n.length; k += 3) n[k] = 1;
+    g.setAttribute('normal', new THREE.BufferAttribute(n, 3));
+    const hex = `#${color.getHexString()}`, dark = `#${color.clone().multiplyScalar(MIRROR.darker).getHexString()}`;
+    kit.mesh(g, kit.mat({ color: hex, color2: dark, mode: MODE_WATER, waterPrint: true }), { solid: false, shadow: false });
+  });
 }
 
 /** Rows of a kind along an avenue: from z0 to z1, at x = ±off, every `step` m (with a little jitter). */
@@ -279,7 +383,7 @@ export const GARDEN_VIEWS = [
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37931,
-        umbrellas: [{ x: -26, z: -32, h: 30, R: 22 }, { x: -16, z: -75, h: 24, R: 18 }, { x: 34, z: -95, h: 20, R: 16 }, { x: -40, z: -150, h: 18, R: 14 }, { x: -20, z: -190, h: 14, R: 12 }, { x: 40, z: -180, h: 12, R: 12 }],
+        umbrellas: [{ x: -13, z: -30, h: 30, R: 22 }, { x: -12, z: -72, h: 24, R: 18 }, { x: 34, z: -95, h: 20, R: 16 }, { x: -40, z: -150, h: 18, R: 14 }, { x: -20, z: -190, h: 14, R: 12 }, { x: 40, z: -180, h: 12, R: 12 }],
         smooth: [{ x: 4, z: -120, half: 26, height: 26, yaw: 0.35 }],
         shrubs: [[30, -60, 4], [36, -64, 3], [26, -56, 2.6], [-30, -40, 2], [-24, -36, 1.6]],
         paths: [[[[-40, -24], [-10, -22], [20, -30], [60, -34]], 1.2]],
@@ -296,7 +400,7 @@ export const GARDEN_VIEWS = [
         seed: 37932,
         hills: [{ x: 14, z: -150, r: 64, h: 62 }],
         stepped: [{ x: 14, z: -165, half: 15, height: 24, tiers: 10, yaw: -0.2, temple: true, y: 60 }],
-        spheres: [{ x: -50, z: -320, R: 60, sink: 0.05, y: 95 }],
+        spheres: [{ x: -50, z: -320, R: 60, sink: 0.05, y: 95, lit: [-0.75, 0.65, -0.1] }],
         shrubs: scatter(40, 3793, 0, -60, 12, 70, -60, 60, (x, z, r) => [x, z, 2 + r() * 4]),
         trees: scatter(24, 37932, 14, -150, 30, 70, -120, 120, (x, z, r) => [x, z, 10 + r() * 8]),
         extra(k, M) { k.add(M.pole, tube([V(-90, 60, -260), V(60, 140, -220)], 0.3, 2, 4), { solid: false }); },
@@ -307,14 +411,15 @@ export const GARDEN_VIEWS = [
     id: '3793-arch-lake', title: 'The sphere-arch over the lake', sheet: 'IMG_3793', panel: 3, where: 'bottom left', crop: [33, 526, 466, 467],
     camera: { eye: [0, 3, 0], yaw: 0, fov: 54, horizon: 0.6 },
     sun: { side: 130, el: 40 },
-    ground: meadow({ lake: [0, -70, 90, 50] }),
-    people: [{ at: [8, -6], facing: 3.1, ...CLOAKED }],
+    ground: meadow({ lake: [0, -56, 90, 48] }),
+    people: [{ at: [8, -4], facing: 3.1, ...CLOAKED }],
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37933,
-        lake: { x0: -120, x1: 120, z0: -125, z1: -15, y: -0.6 },
-        arches: [{ x: -48, z: -150, R: 72, yaw: 0.4 }],
-        ruins: [{ x0: -8, z0: -150, x1: 40, z1: -158, n: 12, h: 10 }],
+        lake: { x0: -120, x1: 120, z0: -125, z1: -5, y: -0.6 },
+        arches: [{ x: -48, z: -150, R: 72, yaw: 0.4, lit: [0.3, 0.8, 0.5] }],
+        ruins: [{ x0: -8, z0: -150, x1: 40, z1: -158, n: 16, h: 14 }],
+        arcades: [{ x: 14, z: -146, bays: 4, span: 5, h: 8, ruin: 0.3 }],
         cypresses: [[-70, -140, 22], [-62, -148, 26], [-24, -140, 18], [-30, -150, 20], [64, -140, 30], [70, -146, 34], [56, -150, 24]],
         shrubs: [[-20, -12, 2], [-26, -10, 1.6], [24, -14, 2.4], [-60, -8, 3]],
         pillars: [[18, -150, 20, 0.3]],
@@ -325,13 +430,13 @@ export const GARDEN_VIEWS = [
   view({
     id: '3793-olive-plaza', title: 'The olive grove round the plaza', sheet: 'IMG_3793', panel: 4, where: 'bottom right', crop: [515, 525, 475, 467],
     camera: { eye: [0, 2.2, 0], yaw: 0, fov: 54, horizon: 0.55 },
-    sun: { side: 150, el: 35 },
+    sun: { side: 125, el: 55 },   // (high and to the side: the plaza lit, as the panel draws it, the olives' shadows short)
     ground: meadow(),
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37934,
         plaza: { x: 2, z: -42, r: 18, pole: 14 },
-        olives: [...scatter(40, 3793, 2, -42, 22, 70, -110, 110, (x, z, r) => [x, z, 1.2 + r() * 0.8]), [-12, -14, 1.8], [-6, -10, 2], [14, -14, 1.6], [-18, -20, 1.4]],
+        olives: [...scatter(40, 3793, 2, -42, 22, 70, -110, 110, (x, z, r) => [x, z, 1.2 + r() * 0.8]), [-9, -15, 1.3], [-6.5, -11, 1.1], [8, -14, 1.2], [11, -19, 1.3]],
         trees: [[-24, -16, 22], [-28, -26, 26], [26, -22, 24]],
         spheres: [{ x: 120, z: -420, R: 22, sink: 0.4 }],
         paths: [[[[0, -2], [1, -30]], 2.6]],
@@ -364,7 +469,7 @@ export const GARDEN_VIEWS = [
       gardenScene(kit, v, {
         seed: 37942,
         pillars: [[-13, -40, 80, 1.6], [-4, -60, 80, 0.5], [12, -45, 80, 1.3]],
-        spheres: [{ x: 18, z: -160, R: 40, sink: 0.35 }, { x: -8, z: -260, R: 14, sink: 0.4 }],
+        spheres: [{ x: 18, z: -160, R: 40, sink: 0.35, lit: [0.4, 0.6, -0.7] }, { x: -8, z: -260, R: 14, sink: 0.4, lit: [0.4, 0.6, -0.7] }],
         trees: [[-16, -22, 14], [26, -26, 16], [30, -36, 12]],
         shrubs: [[-14, -12, 3], [18, -10, 3], [22, -14, 2.4]],
         paths: [[[[-20, -6], [-4, -20], [10, -60]], 1.4]],
@@ -380,14 +485,10 @@ export const GARDEN_VIEWS = [
       gardenScene(kit, v, {
         seed: 37943,
         ruins: [{ x0: -30, z0: -70, x1: 30, z1: -80, n: 24, h: 10, doors: 0.5 }],
-        trees: [...scatter(40, 3794, 0, -70, 18, 80, -90, 90, (x, z, r) => [x, z, 14 + r() * 14]), [-40, -40, 18], [36, -40, 16]],
+        trees: [...scatter(40, 3794, 0, -84, 8, 70, -90, 90, (x, z, r) => [x, z, 16 + r() * 14]), [-40, -40, 18], [36, -40, 16]],
         shrubs: scatter(30, 37943, 0, -40, 8, 40, -80, 80, (x, z, r) => [x, z, 1.5 + r() * 2.5]),
-        extra(k, M) {
-          // the robot statue: blocks and a round head, leaning a little
-          const y = k.H(-12, -72);
-          for (const [dx, dy, w, h] of [[0, 0, 4, 8], [0, 8, 6, 6], [-3.6, 8, 1.8, 6], [3.6, 8, 1.8, 6], [-1.2, -8, 1.6, 8], [1.2, -8, 1.6, 8]]) k.add(M.white, put(new THREE.BoxGeometry(w, h, 3), -12 + dx, y + 8 + dy + h / 2, -72, 0, 1, 0, 0.08));
-          k.add(M.whiteSmooth, new THREE.SphereGeometry(2.4, 24, 16).translate(-11, y + 24, -72));
-        },
+        robots: [{ x: -12, z: -70, yaw: 0.25, s: 1, lean: 0.08 }],
+        arcades: [{ x: 16, z: -80, yaw: -0.1, bays: 4, span: 5, h: 10, ruin: 0.7 }, { x: -34, z: -84, yaw: 0.3, bays: 3, span: 5, h: 12, ruin: 0.5 }],
       });
     },
   }),
@@ -399,7 +500,7 @@ export const GARDEN_VIEWS = [
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37944,
-        spheres: [{ x: -95, z: -150, R: 60, sink: 0.3 }, { x: 90, z: -170, R: 60, sink: 0.25 }, { x: 18, z: -260, R: 12, sink: 0.4 }],
+        spheres: [{ x: -95, z: -150, R: 60, sink: 0.3, lit: [0.3, 0.7, -0.6] }, { x: 90, z: -170, R: 60, sink: 0.25, lit: [0.3, 0.7, -0.6] }, { x: 18, z: -260, R: 12, sink: 0.4, lit: [0.3, 0.7, -0.6] }],
         pillars: [[-30, -150, 60, 0.6], [6, -170, 60, 0.6], [30, -150, 60, 0.6], [52, -160, 60, 0.6]],
         lake: { x0: -40, x1: 60, z0: -50, z1: -30, y: -0.3 },
         shrubs: [[50, -60, 6], [60, -70, 5], [-40, -80, 4]],
@@ -410,13 +511,14 @@ export const GARDEN_VIEWS = [
     id: '3794-lake-buildings', title: 'The white buildings and their sphere over the lake', sheet: 'IMG_3794', panel: 5, where: 'bottom left', crop: [35, 649, 309, 339],
     camera: { eye: [0, 2, 0], yaw: 0, fov: 54, horizon: 0.55 },
     sun: { side: -80, el: 45 },
-    ground: meadow({ lake: [-10, -45, 40, 30] }),
+    ground: meadow({ lake: [-10, -40, 40, 32] }),
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37945,
-        lake: { x0: -60, x1: 40, z0: -75, z1: -15, y: -0.6 },
+        lake: { x0: -60, x1: 40, z0: -75, z1: -9, y: -0.6 },
         ruins: [{ x0: -50, z0: -90, x1: 0, z1: -95, n: 16, h: 10, doors: 0 }],
-        spheres: [{ x: -26, z: -110, R: 26, sink: 0.15 }],
+        arcades: [{ x: -22, z: -84, bays: 6, span: 4, h: 7, ruin: 0.2 }],
+        spheres: [{ x: -34, z: -120, R: 20, sink: 0.15, lit: [0.75, 0.4, 0.5] }],
         pillars: [[-50, -90, 50, 1.8]],
         trees: [[22, -40, 26], [18, -24, 18]],
         shrubs: [[-30, -10, 2], [10, -8, 2.4]],
@@ -426,7 +528,7 @@ export const GARDEN_VIEWS = [
   view({
     id: '3794-avenue-sphere', title: 'The avenue to the plaza, the great sphere setting', sheet: 'IMG_3794', panel: 6, where: 'bottom right, wide', crop: [366, 649, 624, 340],
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 36, horizon: 0.62 },
-    sun: { side: 170, el: 25 },
+    sun: { side: 140, el: 50 },   // (high enough that the avenue's shadows fall short of the plaza: lit, as on the panel)
     ground: meadow(),
     people: [{ at: [0.3, -9], facing: 3.1, ...CLOAKED }],
     build(kit, v) {
@@ -435,7 +537,7 @@ export const GARDEN_VIEWS = [
         plaza: { x: 0, z: -40, r: 15, pole: 0 },
         olives: [...avenue(-14, -150, 8, 8, (x, z) => [x, z, 1.3]), ...scatter(30, 3794, 0, -40, 18, 40, -100, 100, (x, z, r) => [x, z, 1 + r() * 0.6])],
         cypresses: [...avenue(-30, -200, 14, 14, (x, z) => [x, z, 16]), [-28, -10, 30], [30, -12, 34]],
-        spheres: [{ x: 10, z: -700, R: 90, sink: 0.45 }],
+        spheres: [{ x: 10, z: -700, R: 90, sink: 0.45, lit: [0.85, 0.3, -0.45] }],
         paths: [[[[0, 0], [0, -26]], 2], [[[0, -54], [0, -240]], 2]],
       });
     },
@@ -466,7 +568,7 @@ export const GARDEN_VIEWS = [
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37952,
-        spheres: [{ x: 10, z: -260, R: 120, sink: 0.05 }],
+        spheres: [{ x: 10, z: -260, R: 120, sink: 0.05, lit: [0, 0.55, -0.85] }],
         cypresses: [[-14, -50, 30], [-6, -60, 34], [10, -55, 38], [16, -45, 30], [-10, -90, 40]],
         ruins: [{ x0: -6, z0: -40, x1: 10, z1: -42, n: 6, h: 6, doors: 0.8 }],
         pillars: [[-20, -60, 30, 1.2]],
@@ -484,7 +586,7 @@ export const GARDEN_VIEWS = [
       gardenScene(kit, v, {
         seed: 37953,
         ruins: [{ x0: -20, z0: -60, x1: 30, z1: -64, n: 12, h: 8, doors: 0.5 }],
-        spheres: [{ x: 20, z: -70, R: 9, sink: 0.1, y: 16 }, { x: 14, z: -62, R: 4, sink: 0.1, y: 8 }, { x: -2, z: -58, R: 3, sink: 0.1, y: 8 }],
+        spheres: [{ x: 20, z: -70, R: 9, sink: 0.1, y: 16, lit: [-0.5, 0.6, 0.6] }, { x: 14, z: -62, R: 4, sink: 0.1, y: 8, lit: [-0.5, 0.6, 0.6] }, { x: -2, z: -58, R: 3, sink: 0.1, y: 8, lit: [-0.5, 0.6, 0.6] }],
         extra(k, M) { k.add(M.white, new THREE.BoxGeometry(10, 60, 8).translate(-12, 30, -70)); k.add(M.white, new THREE.BoxGeometry(4, 60, 4).translate(-4, 30, -66)); },
         shrubs: [[-14, -50, 2.4], [-6, -52, 1.8], [24, -54, 2]],
       });
@@ -498,13 +600,9 @@ export const GARDEN_VIEWS = [
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37954,
-        extra(k, M) {
-          // a vaulted gallery: piers and round arches, a half-dome
-          for (const x of [-14, 4, 22]) k.add(M.white, new THREE.BoxGeometry(4, 50, 6).translate(x, 25, -40));
-          for (const x of [-5, 13]) k.add(M.white, put(new THREE.TorusGeometry(7, 2, 8, 24, Math.PI), x, 30, -40, 0, [1, 1.6, 1.5]));
-          k.add(M.white, new THREE.BoxGeometry(46, 6, 6).translate(4, 50, -40));
-        },
-        spheres: [{ x: -6, z: -60, R: 6, sink: 0.2 }, { x: 8, z: -58, R: 4.5, sink: 0.2 }],
+        // the vaulted gallery: a great arcade of two round arches (garden-kit.js arcade)
+        arcades: [{ x: 4, z: -40, bays: 2, span: 18, h: 54, depth: 6, pier: 4, spring: 0.62, ruin: 0 }],
+        spheres: [{ x: -6, z: -60, R: 6, sink: 0.2, lit: [0.2, 0.8, -0.4] }, { x: 8, z: -58, R: 4.5, sink: 0.2, lit: [0.2, 0.8, -0.4] }],
         ruins: [{ x0: -10, z0: -55, x1: 16, z1: -58, n: 10, h: 3, doors: 0 }],
         trees: [[24, -30, 20], [-22, -26, 16]],
       });
@@ -514,16 +612,16 @@ export const GARDEN_VIEWS = [
     id: '3795-lake-temple', title: 'The temple, the pagoda and the sphere over the lake', sheet: 'IMG_3795', panel: 5, where: 'bottom left', crop: [44, 597, 442, 383],
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 50, horizon: 0.55 },
     sun: { side: -130, el: 40 }, sky: SKY.mint,
-    ground: meadow({ lake: [0, -48, 90, 30] }),
-    people: [{ at: [-12, -10], facing: 0.4, ...CLOAKED }],
+    ground: meadow({ lake: [0, -42, 90, 30] }),
+    people: [{ at: [-8, -8], facing: 0.4, ...CLOAKED }],
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37955,
-        lake: { x0: -120, x1: 120, z0: -80, z1: -16, y: -0.6 },
+        lake: { x0: -120, x1: 120, z0: -80, z1: -10, y: -0.6 },
         temples: [{ x: -4, z: -110, s: 1.4 }],
         ruins: [{ x0: -50, z0: -110, x1: -30, z1: -112, n: 5, h: 12, doors: 0.6 }, { x0: 20, z0: -115, x1: 60, z1: -118, n: 8, h: 5, doors: 0 }],
-        spheres: [{ x: 32, z: -125, R: 14, sink: 0.2 }],
-        trees: [[-56, -40, 30], [-60, -60, 26], [-46, -25, 22], [50, -30, 24], [56, -14, 20]],
+        spheres: [{ x: 32, z: -125, R: 14, sink: 0.2, lit: [-0.6, 0.5, 0.4] }],
+        trees: [[-12, -16, 13], [-16, -26, 16], [-9, -10, 9], [12, -15, 12], [17, -24, 15]],
         shrubs: [[30, -8, 4], [38, -12, 3.4], [-36, -14, 3]],
       });
     },
@@ -539,12 +637,10 @@ export const GARDEN_VIEWS = [
         plaza: { x: 0, z: -26, r: 14, pole: 0 },
         olives: scatter(40, 3795, 0, -40, 22, 60, -90, 90, (x, z, r) => [x, z, 1.2 + r() * 0.8]),
         trees: [[-24, -12, 18], [-28, -24, 22]],
-        extra(k, M, rng) {
-          for (const sx of [-1, 1]) for (let i = 0; i < 8; i++) {
-            const x = sx * (13 + i * 1.4), z = -10 - i * 0.8;
-            k.add(M.dark[i % 3], new THREE.BoxGeometry(2.2, 1.6, 2.2).translate(x, k.H(x, z) + 0.8, z), { solid: false });
-            for (let j = 0; j < 4; j++) k.add(M.orange, new THREE.IcosahedronGeometry(0.16, 0).translate(x + (rng() - 0.5) * 2, k.H(x, z) + 0.6 + rng(), z + 1.15), { solid: false });
-          }
+        autumn: scatter(22, 37956, 0, -26, 22, 34, -75, 75, (x, z, r) => [x, z, 5 + r() * 3]),
+        // the fruit hedges in the foreground (garden-kit.js hedge)
+        hedges: [{ x: -9.4, z: -5.2, n: 4, h: 1.1 }, { x: 1.6, z: -5.2, n: 4, h: 1.1 }],
+        extra(k, M) {
           k.add(M.white, new THREE.BoxGeometry(14, 90, 10).translate(32, 45, -80));
           k.add(M.white, new THREE.CylinderGeometry(1.2, 2.4, 18, 8).translate(14, k.H(14, -150) + 9, -150));
           k.add(M.white, new THREE.CylinderGeometry(0.5, 1.2, 8, 8).translate(14, k.H(14, -150) + 22, -150));
@@ -591,7 +687,7 @@ export const GARDEN_VIEWS = [
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37963,
-        arches: [{ x: 2, z: -110, R: 60, yaw: 0, yellow: true, depth: 0.6 }],
+        arches: [{ x: 2, z: -110, R: 60, yaw: 0, yellow: true, depth: 0.6, lit: [0, 0.9, 0.3] }],
         ruins: [{ x0: -20, z0: -100, x1: 26, z1: -104, n: 10, h: 14, doors: 0.3 }],
         pillars: [[10, -90, 18, 1.2], [-4, -95, 22, 1.4]],
         shrubs: [[-22, -40, 4], [26, -36, 5], [20, -40, 3]],
@@ -624,9 +720,9 @@ export const GARDEN_VIEWS = [
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37965,
-        trees: [...scatter(20, 37965, 0, -30, 14, 60, -70, 70, (x, z, r) => [x, z, 10 + r() * 10]), [20, -16, 26]],
-        olives: scatter(16, 3796, 0, -20, 12, 30, -60, 60, (x, z, r) => [x, z, 1 + r() * 0.5]),
-        extra(k, M) { k.add(M.whiteSmooth, new THREE.CapsuleGeometry(4, 40, 6, 16).translate(-6, 22, -140)); },
+        trees: [...scatter(20, 37965, 0, -40, 20, 60, -70, 70, (x, z, r) => [x, z, 6 + r() * 5]), [20, -16, 22]],
+        olives: scatter(16, 3796, 0, -24, 14, 30, -60, 60, (x, z, r) => [x, z, 0.9 + r() * 0.4]),
+        extra(k, M) { k.add(M.whiteSmooth, new THREE.CapsuleGeometry(5, 58, 6, 16).translate(-8, 36, -140)); },
       });
     },
   }),
@@ -640,7 +736,7 @@ export const GARDEN_VIEWS = [
         seed: 37966,
         plaza: { x: 0, z: -30, r: 12, pole: 2.4 },
         olives: scatter(60, 3797, 0, -70, 26, 90, -80, 80, (x, z, r) => [x, z, 1.6 + r() * 0.8]),
-        spheres: [{ x: 0, z: -420, R: 150, sink: 0.5, yellow: true }],
+        spheres: [{ x: 0, z: -420, R: 150, sink: 0.5, yellow: true, lit: [0, 0.3, 1] }],
       });
     },
   }),

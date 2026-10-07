@@ -102,11 +102,15 @@ scene-level modelling and a few shader limits:
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
     on the sheets, ours dark; its cloud puffs are pre-shaded vertex colours (not the flat print), its
     planets stay (the sheets have none), and dusk and night keep the old blue shadow.
-  - The Garden of Spheres: the canopies' undersides want dense radiating *branch* lines and foliage as
+  - [x] The Garden of Spheres: the canopies' undersides want dense radiating *branch* lines and foliage as
     clusters of small inked leaf masses (the form hatching radiates, but the shapes are smooth lumps);
     the white stone's shade a flat pale blue with almost no strokes; the spheres' printed crescent
-    whatever the sun.
-  - Lorn II: roots and bushes as dense hatched masses.
+    whatever the sun. Done (October 2026, world and views): veins drawn as forking boughs (`FORM.veins`), the
+    world's undersides veined; foliage as clusters of welded leaf masses (`leafCrown`); `WHITE_SHADE` (flat,
+    hatch 0.08); the views' spheres printed in two tones with their crescent (references.md, the Garden's).
+  - [x] Lorn II: roots and bushes as dense hatched masses. Done (October 2026, world and views): a hatch over 1
+    is a hatched mass (`HATCH_DENSE`: closer, heavier strokes that a half-tone keeps), `ROOT_INK` and
+    `BUSH_INK` (references.md, Lorn II's).
 - [ ] Scene-level, world by world (modelling, not shading):
   - [x] Vael II: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's framing, the
     monasteries' detail (arcades, cypresses, roofs), the mushrooms' lean, the bird's standing pose
@@ -114,9 +118,13 @@ scene-level modelling and a few shader limits:
     rooted in the undersides and printed in their shade, cracked eggs and stones, the cave mouth hung
     with stalactites, arcades, eaves, finials and cypresses, leaning tables, the bird on long legs with
     her wings folded along her sides (`poseWings`), knobbly cloud; docs/systems/worlds.md, animation.md.)
-  - The Garden of Spheres: the white hill's sculpted rock, the ruins' arcades, the robot, the hedges'
-    fruit, the plaza's paving are sketches.
-  - Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes.
+  - [x] The Garden of Spheres: the white hill's sculpted rock, the ruins' arcades, the robot, the hedges'
+    fruit, the plaza's paving are sketches. Done (October 2026, world and views, `src/levels/garden-kit.js`):
+    pillows of stone round the terraces, arcades of round arches, a robot of 28 parts, fruit hedges, paved
+    rings whose joints the ink draws; the views' framing checked panel by panel.
+  - [x] Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes. Done
+    (October 2026, world and views, `src/levels/wood-kit.js`): roots as braided strands, cave mouths framed in
+    tangled arches with hanging roots and feet, bushes of leaf clumps, a woven nest of eggs under a ribbed dome.
   - The Signal Market: the crowd, the stalls' goods, the cabs.
   - The Buried Machine: the trench's pipe mass, the city's clustered hanging towers, the drum's
     interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge.
@@ -130,7 +138,9 @@ scene-level modelling and a few shader limits:
 Stages 1–3 are done (DONE.md, docs/makehuman.md): one parametric body, the Desert, then every world,
 the Lab's faces gallery, the face keys in one texture for every body, the headwear.
 
-- [ ] The props the desert's sheets show that the kit lacks (docs/makehuman.md, stage 2).
+- [x] The props the desert's sheets show that the kit lacks (docs/makehuman.md, stage 2). **Done:** Nour's
+  gourds, keys and disc staff, Marrow's salvage bag and pack (no cloak: his sheet's coat), the bells on Sefa's
+  hem, her oud's tassels and the oud kept out of her cloak, the Speaker's copper bell and streamers.
 - [ ] `scripts/unity-export` still reads the Quaternius bodies. **Reconciled:** the C# port's own game
   logic is retired (the JS bridge draws the live scene instead), so the export is only the bench
   scene's. The live question is the bridge's, below: it does not load MakeHuman bodies yet.
@@ -195,6 +205,17 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
   installed app are still to do: the measuring never touches the player's app.)
 - [x] Make the repository private (done 2026-10-07 on the author's word: the Retroid runs a NATIVE_API 6
   app; android.yml's TRANSITION step, the GitHub web zips and web.json, and the Pages workflow removed).
+
+## Steam Deck (waiting on the device: it was asleep, 2026-10-07)
+
+- [ ] Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
+  fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
+  then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the
+  before/after table.
+- [ ] Decide the Retroid's `cpuBound` guard (0.85) for the Deck preset from those numbers (left on: the
+  one reading so far, the desert at 17–22 fps with the renderer at 100 %+ of a core, points to CPU-bound).
+- [ ] Compare ANGLE's GL and Vulkan backends under gamescope; check the loading pen turns smoothly in a
+  Deck load; check the new Updates section on the Deck itself (runtime 830001 and later).
 
 ## The Unity bridge
 

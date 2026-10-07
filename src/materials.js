@@ -368,6 +368,9 @@ export function detailOf(o) {
  * about the axis (a turn is `turn` units: every power-of-two spacing up to it closes on itself, no seam)
  * or of the height along it, thinned by powers of two as the hatch is (every other one fades out).
  */
+/** A hatch over 1 (makeMaterial({ hatch })): a hatched mass. Its strokes up to `closer` times closer (no finer:
+ *  past ~4 px apart a pen's strokes only read as a tone: `minPx`), and its shade drawn as `heavier` × (hatch − 1) darker. */
+export const HATCH_DENSE = { closer: 1.3, heavier: 0.9, minPx: 4.5 };   // minPx: never closer than this (px)
 export const FORM = {
   kinds: { cap: 1, wrap: 2 },
   turn: 1024,              // angle units a turn (2^10: the coarsest level is one stroke a turn)
@@ -375,7 +378,10 @@ export const FORM = {
   wrap: { spacing: 1.0, along: 1.25, keep: 0.2 },
   waver: 0.22,             // how far a stroke wanders, in its spacing
   waverFar: 90,            // m: past this (and on the handheld) no waver, a stroke's own offset only
-  veins: { spacing: 2.4, width: 1.4, lift: 0.12 },   // a dark cap's veins (veins: 0..1): lighter lines radiating, lit or not (under the colour-edge threshold)
+  // a dark cap's veins (veins: 0..1): lighter lines radiating, lit or not (under the colour-edge threshold), drawn as
+  // branches: a line that carries on to the coarser levels (toward the stalk) is a bough, thicker by `bough` a level
+  // (up to `boughs` levels), and every line wanders `waver` of its spacing along its length
+  veins: { spacing: 2.2, width: 1.5, lift: 0.15, bough: 0.7, boughs: 3, waver: 0.45 },
 };
 /**
  * Colour across a wall (S_PATCH, wallPatch): the sheets break a building's colour into a few big flat
@@ -1016,6 +1022,29 @@ const fragmentShader = /* glsl */ `
     float a = formLevel(c, fw, s0, s0, period, widthPx, nq);
     float b = formLevel(c, fw, s0 * 2.0, s0, period, widthPx, nq);
     return mix(a, b, fract(lvl)) * keep;
+  }
+  // A dark cap's veins as branches (FORM.veins): formLines' strokes, but a stroke that carries on to the coarser
+  // levels (its index divisible by two, four, …: it reaches further toward the stalk) is drawn thicker, a bough the
+  // finer ones fork from; and each wanders further along its length.
+  float veinLevel(float c, float fw, float s, float sRef, float widthPx, vec2 nq) {
+    float k = floor(c / s + 0.5), id = mod(k * s, ${FORM.turn}.0);
+    float h = hash(vec2(id, 3.17)), rank = 0.0, kk = abs(k);
+    for (int i = 0; i < ${FORM.veins.boughs}; i++) { if (mod(kk, 2.0) > 0.5) break; rank += 1.0; kk *= 0.5; }
+    float wob = (vnoise(nq + vec2(id * 0.37, h * 19.0)) - 0.5) * ${FORM.veins.waver.toFixed(4)};
+    float f = fw / s;
+    float d = abs(c - k * s - wob * sRef) / s;
+    float hw = 0.5 * widthPx * (0.7 + 0.6 * h) * (1.0 + ${FORM.veins.bough.toFixed(4)} * rank) * f;
+    float line = 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+    return mix(line, min(2.0 * hw, 1.0), smoothstep(${HATCH_AA[0].toFixed(3)}, ${HATCH_AA[1].toFixed(3)}, f));
+  }
+  float veinLines(float c, float fw, float spacingPx, float widthPx, vec2 nq) {
+    float lvl = log2(max(fw * spacingPx * uPixelRatio, 1e-6));
+    float top = log2(${FORM.turn}.0) - 1.0;
+    float keep = 1.0 - smoothstep(top - 1.0, top, lvl);
+    if (keep <= 0.0) return 0.0;
+    float s0 = exp2(floor(lvl));
+    widthPx *= uPixelRatio;
+    return mix(veinLevel(c, fw, s0, s0, widthPx, nq), veinLevel(c, fw, s0 * 2.0, s0, widthPx, nq), fract(lvl)) * keep;
   }
   // The shade's two families of strokes on a part with an axis: x the strokes, y the cross-hatch (dark > 0.5).
   // f the point about the axis (vForm), fdx / fdy its screen derivatives (taken in uniform flow).
@@ -2042,7 +2071,7 @@ const fragmentShader = /* glsl */ `
       const float K = ${(FORM.turn / (2 * Math.PI)).toFixed(4)};
       float r2 = max(dot(vForm.xy, vForm.xy), 1e-8);
       float fwT = (abs(vForm.x * formDx.y - vForm.y * formDx.x) + abs(vForm.x * formDy.y - vForm.y * formDy.x)) / r2 * K;
-      float vein = formLines(atan(vForm.y, vForm.x) * K, fwT, ${FORM.turn}.0, uHatchSpacing * ${FORM.veins.spacing.toFixed(4)}, ${FORM.veins.width.toFixed(4)}, vec2(sqrt(r2) * 0.35, 9.0));
+      float vein = veinLines(atan(vForm.y, vForm.x) * K, fwT, uHatchSpacing * ${FORM.veins.spacing.toFixed(4)}, ${FORM.veins.width.toFixed(4)}, vec2(sqrt(r2) * 0.5, 9.0));
       albedo += min(albedo * 1.2, vec3(${FORM.veins.lift.toFixed(4)})) * vein * uVeins;
     }
     #endif
@@ -2195,9 +2224,11 @@ const fragmentShader = /* glsl */ `
           vec2 s2 = uSunDir.xz / max(length(uSunDir.xz), 1e-3);
           float len = pebbleShadow(uSunDir.y), castK = smoothstep(uToon - 0.02, uToon + 0.12, L);
           float pk = smoothstep(${PEBBLES.patch[0].toFixed(2)}, ${PEBBLES.patch[1].toFixed(2)}, vnoise(gp * 0.04 + 23.0));
-          float peb = max(max(pebbleField(gp, gm, s2, len, castK, ${PEBBLES.grit.cell.toFixed(2)}, ${PEBBLES.grit.density.toFixed(3)}, vec2(${PEBBLES.grit.r[0].toFixed(3)}, ${PEBBLES.grit.r[1].toFixed(3)}), ${PEBBLES.grit.seed.toFixed(1)}),
-                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.pebble.cell.toFixed(2)}, ${PEBBLES.pebble.density.toFixed(3)} * pk, vec2(${PEBBLES.pebble.r[0].toFixed(3)}, ${PEBBLES.pebble.r[1].toFixed(3)}), ${PEBBLES.pebble.seed.toFixed(1)})),
-                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.stone.cell.toFixed(2)}, ${PEBBLES.stone.density.toFixed(3)}, vec2(${PEBBLES.stone.r[0].toFixed(3)}, ${PEBBLES.stone.r[1].toFixed(3)}), ${PEBBLES.stone.seed.toFixed(1)}));
+          // (a high sun: more of them, a little bigger, as its shadows shrink: ground-ink.js pebbleNoon)
+          float hk = smoothstep(${PEBBLES.noon.from.toFixed(2)}, ${PEBBLES.noon.to.toFixed(2)}, uSunDir.y), nc = 1.0 + ${PEBBLES.noon.count.toFixed(3)} * hk, ns = 1.0 + ${PEBBLES.noon.size.toFixed(3)} * hk;
+          float peb = max(max(pebbleField(gp, gm, s2, len, castK, ${PEBBLES.grit.cell.toFixed(2)}, ${PEBBLES.grit.density.toFixed(3)} * nc, vec2(${PEBBLES.grit.r[0].toFixed(3)}, ${PEBBLES.grit.r[1].toFixed(3)}) * ns, ${PEBBLES.grit.seed.toFixed(1)}),
+                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.pebble.cell.toFixed(2)}, ${PEBBLES.pebble.density.toFixed(3)} * pk * nc, vec2(${PEBBLES.pebble.r[0].toFixed(3)}, ${PEBBLES.pebble.r[1].toFixed(3)}) * ns, ${PEBBLES.pebble.seed.toFixed(1)})),
+                          pebbleField(gp, gm, s2, len, castK, ${PEBBLES.stone.cell.toFixed(2)}, ${PEBBLES.stone.density.toFixed(3)} * nc, vec2(${PEBBLES.stone.r[0].toFixed(3)}, ${PEBBLES.stone.r[1].toFixed(3)}) * ns, ${PEBBLES.stone.seed.toFixed(1)}));
           detail = max(detail, peb * uDots * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
         }
       }
@@ -2317,31 +2348,36 @@ const fragmentShader = /* glsl */ `
     #endif
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
     // detail by distance: finer marks close to the camera, coarser far away
-    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
-    if (dark > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
-      gHatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
+    // (a hatch over 1 is a denser one, a hatched mass (Lorn II's roots and bushes): its strokes a little closer
+    // (never finer than a pen can draw: past ~4 px they would only be a tone) and heavier, cross-hatched sooner)
+    float hDense = max(uShade.z, 1.0);
+    float hsp0 = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
+    float hsp = max(hsp0 / min(hDense, ${HATCH_DENSE.closer.toFixed(2)}), min(hsp0, ${HATCH_DENSE.minPx.toFixed(1)}));
+    float darkH = min(dark * (1.0 + (hDense - 1.0) * ${HATCH_DENSE.heavier.toFixed(2)}), 1.0);
+    if (darkH > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
+      gHatch.r = stipple(ce1, fwd, hsp * 1.15, darkH) * smoothstep(0.02, 0.15, darkH);
     }
     #ifdef S_FORM
     // a part with an axis (a cap, a cylinder: FORM): strokes radiating from it or wrapping round it
-    else if (dark > 0.0 && uHatch > 0.0 && vForm.w > 0.5 && uFormHatch > 0.0) {
-      gHatch.rg = formHatch(vForm, formDx, formDy, hsp, dark);
+    else if (darkH > 0.0 && uHatch > 0.0 && vForm.w > 0.5 && uFormHatch > 0.0) {
+      gHatch.rg = formHatch(vForm, formDx, formDy, hsp, darkH);
     }
     #endif
-    else if (dark > 0.0 && uHatch > 0.0) {
-      float h1 = strokes(ce1, fw1, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+    else if (darkH > 0.0 && uHatch > 0.0) {
+      float h1 = strokes(ce1, fw1, hsp, mix(0.9, 2.2, darkH)) * smoothstep(0.02, 0.12, darkH);
       if (uFormHatch > 0.0 && uMode == ${MODE_TERRAIN}) {
         // on slopes the strokes become height contours wrapping round the dunes
         float sm = smoothstep(0.1, 0.3, slope) * uFormHatch;
-        float hc = strokes(ceY, fwY, hsp, mix(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+        float hc = strokes(ceY, fwY, hsp, mix(0.9, 2.2, darkH)) * smoothstep(0.02, 0.12, darkH);
         h1 = mix(h1, hc, sm);
       }
       float h2 = 0.0;
-      if (dark > 0.5) {
+      if (darkH > 0.5) {
         // (on upright faces: under a cap or an overhang the height's contours wander into wood grain)
         bool rings = uFormHatch > 0.0 && uFlat < 0.5 && uMode != ${MODE_TERRAIN} && abs(n.y) < 0.6;
         // smooth objects: cross-hatch as rings round the form (trunks, ribs, domes)
-        h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, dark))
-                    : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
+        h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, mix(0.6, 1.7, darkH))
+                    : strokes(ce2, fw2, hsp * 1.2, mix(0.6, 1.7, darkH))) * smoothstep(0.5, 0.65, darkH);
       }
       gHatch.rg = vec2(h1, h2);
     }
@@ -2373,12 +2409,14 @@ const fragmentShader = /* glsl */ `
       float lift = 1.0 - (1.0 - uShade.x) * (1.0 - uHalftone * turned) * (1.0 - uBounce * smoothstep(-0.1, -0.7, n.y));
       // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
       // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)
-      float hatchK = uMode == ${MODE_TERRAIN} ? mix(uShade.z, 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : uShade.z;
+      float hatchK = uMode == ${MODE_TERRAIN} ? mix(min(uShade.z, 1.0), 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : min(uShade.z, 1.0);
       float liftK = lift;
       #ifdef S_FORM
       // (a cap's fan of strokes stays dense under a lifted shade, as the sheets draw a pale cap's gills)
       if (vForm.w > 0.5) liftK *= 1.0 - (vForm.w > 1.5 ? ${FORM.wrap.keep.toFixed(4)} : ${FORM.cap.keep.toFixed(4)});
       #endif
+      // (a dense hatch, over 1, keeps its strokes and cross-hatch under a half-tone: a hatched mass stays one)
+      liftK /= max(uShade.z, 1.0) * max(uShade.z, 1.0);
       gHatch.rg *= hatchK * vec2(1.0 - 0.8 * liftK, max(1.0 - 2.5 * liftK, 0.0));
       float hq = uShade.y < 0.0 ? 0.0 : uShade.y >= 2.0 ? ${SHADE.hues + 2}.0 + floor((uShade.y - 2.0) * ${SHADE.flats}.0 + 0.5) : 1.0 + floor(uShade.y * ${SHADE.hues}.0 + 0.5);
       gHatch.rg = min(gHatch.rg, vec2(1.0)) + 2.0 * vec2(hq, floor(clamp(lift, 0.0, 1.0) * ${SHADE.lifts}.0 + 0.5));
