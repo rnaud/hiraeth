@@ -330,6 +330,47 @@ and half their turn, about the feet: a body lying down went a metre to the side,
 page's **Moves** mode plays each on the traveller and on a MakeHuman person, with a scrubber, and
 `motionPage.sheet()` makes a frame strip of it (or of a scripted run in the other modes).
 
+**The traveller's captured moves** (2026-10-07, `moves.glb`; with the starts, stops and turns,
+switched off by `?moves=0` and the dev menu, which leaves the loops, the kneel and the jump's own
+layers as they were). Strips of each are made on the Motion page (`motionPage.sheet`, with `setup` /
+`at` hooks for a knockdown, a jump or a gesture on the way):
+
+- **Getting up** (`src/ragdoll.js`: `GET_UP`, `lyingOn`, `Knockdown.chooseGetUp`, `getUpPlacement`):
+  face up (the trunk's front, left hip x chest, toward the sky) the get-up from the back, else from
+  the stomach; the part of each from its first stir to standing (back 2.65–5.55 s, stomach
+  1.35–5.45 s: past that the clip's fists come up into a guard) at twice its pace: 1.45 s and 2.05 s
+  (the kneel was 1.25 s). Before it starts the clip's first frame is posed on the Animator and turned
+  and placed so its hips-to-head lies along the ragdoll's pelvis-to-chest, its hips over the
+  ragdoll's pelvis (the root moves to there, pushed out of walls as before); the ragdoll's pose is
+  blended into it over 0.3 s, and once up its last frame eases out over 0.35 s. People
+  (`NPC.updateDown`) get up the same way. `tests/getup.test.js`.
+- **In the air** (`src/air-moves.js`, `AirMoves`, Player.animateClips), each played by the flight
+  (the share of it done) with its own rise off the floor left out (`Animator.play` `ground`), the
+  jump's procedural layer kept at 40 %: a jump over 1.5 m/s the running jump (take-off to touchdown,
+  then its landing at 1.2x); a standing jump its landing only, from touchdown (the game's jump goes
+  2.6 m up, four times the capture's straight-legged reach, which held through the flight read as
+  floating); a drop of over 0.22 s in the air under 3 m/s the 4-foot drop's landing, from 0.25 s
+  before touchdown; kicking off a wall (`_wallKick` from `updateClimb`) the wall jump's push and
+  flight at 1.5x; landing over 15 m/s down at over 2.6 m/s (and under the knockdown's 32) the
+  stumble, above the legs. `tests/air-gestures.test.js` (with the path unchanged).
+- **Idle variants** (`Animator.idleMoves`, `IDLE_VARIANTS`): standing 7 s, Mixamo's looking about,
+  then its breathing idle, then the library's look-around, 10 s apart, above the legs (`legs:
+  false`), the head's own turn kept and the idle layer's glances eased off meanwhile;
+  `tests/idle-legs.test.js` stands him 36 s with them: no twitch, no step, the balls within 3 mm.
+- **Gestures** (`Player.gesture(kind)`; `src/interact.js` `gestureOf`): using something whose prompt
+  picks up or takes something under 1.1 m over the feet kneels (Mixamo's kneeling inspection, the
+  feet let go to follow it, `play` `free`), *pet* kneels and lays the petting's reaching arm over it
+  (`Animator.playUpper`: a second move above the legs); in over 0.45 s, held 1.1 s (petting 1.8),
+  out over 0.5 s, walking off ends it; an interactable may name its own (`gesture`). Mixamo's
+  petting is of a tall animal (the arm out at shoulder height): kneeling brings the hand to a dog's
+  head.
+
+**What it costs**: nothing measurable. In headless Chrome at CPU x4 (the Handheld preset, the desert,
+walking, stopping, turning and jumping for 15 s; `?moves=1` against `?moves=0`, two runs each) the
+player's whole update was 1.43 / 1.71 ms a frame with the moves against 1.64 / 1.76 without, the
+Animator 0.21–0.25 against 0.22–0.26 ms; in Node (the gait harness, the coral-shirt traveller, three
+runs each) 2.26–2.34 against 2.27–2.35 ms. `moves.glb` is 446 KB, loaded after the game starts.
+
 **The people's walks** (`Animator.useWalk`, `locomotion.js walkFor`): a nearby person may walk one
 of twelve captured walks instead of the library's: picked (seeded, like the rest of their gait) among
 those whose own pace is within 0.8–1.25 of theirs, an older walker's, a heavy build's, a woman's or a

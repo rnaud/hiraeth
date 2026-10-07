@@ -979,9 +979,10 @@ updatePanel();
 /**
  * A frame strip (a contact sheet) as a PNG data URL: in the moves mode, `frames` poses evenly
  * through the move (or at `times`, s); in the others, the current run from its start, stepped to
- * each of `times` (s). Each tile is the middle of the view, w x h CSS px, labelled with its time.
+ * each of `times` (s); `setup(player)` runs first and `at(t, player)` before each step (a knockdown, a
+ * jump). Each tile is the middle of the view, w x h CSS px, labelled with its time.
  */
-function sheet({ frames = 8, times = null, cols = null, w = 300, h = 420, label = '' } = {}) {
+function sheet({ frames = 8, times = null, cols = null, w = 300, h = 420, label = '', setup = null, at = null } = {}) {
   const moves = state.mode === 'moves', clip = moveClip();
   const ts = times ?? Array.from({ length: frames }, (_, i) => (moves ? (clip?.duration ?? 1) * i / Math.max(frames - 1, 1) : i * 0.25));
   const n = ts.length, C = cols ?? n, R = Math.ceil(n / C), pr = dpr();
@@ -995,7 +996,9 @@ function sheet({ frames = 8, times = null, cols = null, w = 300, h = 420, label 
   const was = state.paused;
   state.paused = true;
   if (!moves) restart();
-  let at = 0;
+  // (setup(traveller): something to happen first, as a knockdown; at(s): an event on the way, called each step with the time)
+  if (setup) setup(travellers.loops.p);
+  let clock = 0;
   ts.forEach((t, i) => {
     if (moves) {
       // (stepped up to it, so the cloth follows)
@@ -1003,7 +1006,7 @@ function sheet({ frames = 8, times = null, cols = null, w = 300, h = 420, label 
       for (let x = from; x < t; x += DT) poseMoves(x);
       poseMoves(t);
       moveClock = t;
-    } else for (; at < t - 1e-6; at += DT) simStep();
+    } else for (; clock < t - 1e-6; clock += DT) { at?.(clock, travellers.loops.p); simStep(); }
     const vs = views(1);   // (the camera on the body at once: dt 1 s)
     renderer.setRenderTarget(null);
     renderer.setViewport(0, 0, cssW * pr, cssH * pr);
@@ -1021,7 +1024,9 @@ function sheet({ frames = 8, times = null, cols = null, w = 300, h = 420, label 
 }
 
 window.motionPage = {
-  state: () => state, sheet, poseMoves, moveBodies, motion, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); buildWalkers(); renderWalkers(); applyMode(); updatePanel(); },
+  state: () => state, sheet, poseMoves, moveBodies, motion,
+  // (your control's input, set by a script: held until the next frame reads the keys and the pad)
+  input: (i) => { liveInput = i ?? {}; }, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); buildWalkers(); renderWalkers(); applyMode(); updatePanel(); },
   travellers, walkers: () => walkers, lib, db, scene, cameras, renderer, physics, step: (n = 1) => { for (let i = 0; i < n; i++) simStep(); liveNumbers(); }, restart, liveNumbers,
 };
 requestAnimationFrame((t) => { last = t; frame(t); });

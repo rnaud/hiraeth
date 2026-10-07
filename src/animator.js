@@ -24,6 +24,9 @@ const CLIPS = { idle: 'Idle_Loop', walk: 'Walk_Loop', jog: 'Jog_Fwd_Loop', sprin
   climbIdle: 'Climb_Idle_Loop', climbUp: 'Climb_Up_Loop', climbDown: 'Climb_Down_Loop', climbLeft: 'Climb_Left_Loop', climbRight: 'Climb_Right_Loop' };
 // the clips whose head turns on the neck as captured (Animator.apply): on foot
 const HEAD_NOD = ['idle', 'walk', 'jog', 'sprint', 'talk', 'look'];
+// the traveller's idle variants after standing 7 s (Animator.idleMoves), in turn with IDLE_GAP s between
+const IDLE_VARIANTS = ['looking_around', 'breathing_idle', 'look'];
+const IDLE_GAP = 10;
 // the rig's hips over its body's origin (player.js buildCharacter: the thighs' pivots, the pelvis)
 const HIP_PIVOT = 0.97;
 const CLIMB = ['climbIdle', 'climbUp', 'climbDown', 'climbLeft', 'climbRight'];
@@ -297,12 +300,24 @@ export class Animator {
    * sweep from the clip's own path and its playback `rate`, clip s a s, so the feet plant as the
    * loops' do); o.legs false: the body above the hips only (and the hips' height), the legs and the
    * feet left to the loops (a stop's braking, a start's lean, the pivot's twist at speeds the clips
-   * don't walk at). Returns false when the clip isn't there (moves.glb not loaded).
+   * don't walk at); o.free: the feet let go of where they stand and follow the clip's (a kneel: one
+   * goes back, a knee down). Returns false when the clip isn't there (moves.glb not loaded).
    */
-  play(name, t, w, { full = true, ground = false, head = true, walks = false, rate = 1, legs = true } = {}) {
+  play(name, t, w, { full = true, ground = false, head = true, walks = false, rate = 1, legs = true, free = false } = {}) {
     const clip = this.moveClip(name);
     if (!clip || !(w > 0.001)) return !!clip;
-    this.moveReq = { clip, t: THREE.MathUtils.clamp(t, 0, clip.duration), w: Math.min(w, 1), full: full && legs, ground, head, walks: walks && legs, rate, legs };
+    this.moveReq = { clip, t: THREE.MathUtils.clamp(t, 0, clip.duration), w: Math.min(w, 1), full: full && legs, ground, head, walks: walks && legs, rate, legs, free };
+    return true;
+  }
+
+  /**
+   * A second move this frame above the legs only (on top of play()'s, which may hold the legs: the
+   * petting's arms over the kneel). Same names and times as play().
+   */
+  playUpper(name, t, w) {
+    const clip = this.moveClip(name);
+    if (!clip || !(w > 0.001)) return !!clip;
+    this.upperReq = { clip, t: THREE.MathUtils.clamp(t, 0, clip.duration), w: Math.min(w, 1), legs: false, head: true };
     return true;
   }
 
@@ -424,7 +439,23 @@ export class Animator {
     // standing a while: now and then look around properly
     this.idleT = tw.idle > 0.99 ? this.idleT + dt : 0;
     const look = this.clips.look;
-    if (look && this.idleT > 7) {
+    // (the traveller, idleMoves: Mixamo's looking about and breathing idle take turns with the
+    // library's look-around, above the legs, so the feet stay as they stand: IDLE_VARIANTS)
+    const variants = this.idleMoves ? IDLE_VARIANTS.map((v) => (v === 'look' ? (look ? { look, d: look.duration } : null) : (() => { const c = this.moveClip(v); return c && { clip: c, d: c.duration }; })())).filter(Boolean) : null;
+    if (variants?.length && this.idleT > 7) {
+      const gap = IDLE_GAP, cycle = variants.reduce((a, v) => a + v.d + gap, 0);
+      let lt = (this.idleT - 7) % cycle;
+      for (const v of variants) {
+        if (lt < v.d) {
+          const k = Math.min(lt / 0.8, (v.d - lt) / 0.8, 1);
+          if (v.look) { tw.look = k; tw.idle = 1 - k; this.actions.look.time = lt; }
+          else if (!this.moveReq && k > 0.001) this.moveReq = { clip: v.clip, t: lt, w: k, full: false, ground: false, head: true, walks: false, rate: 1, legs: false };
+          break;
+        }
+        lt -= v.d + gap;
+        if (lt < 0) break;
+      }
+    } else if (look && this.idleT > 7) {
       const lt = (this.idleT - 7) % (look.duration + 14);
       if (lt < look.duration) {
         const k = Math.min(lt / 0.6, (look.duration - lt) / 0.6, 1);
@@ -503,7 +534,8 @@ export class Animator {
     this.cps = cps;
     this.layMove(size);
     this.mixer.update(0);
-    this.overlayMove();
+    if (this.move?.legs === false) this.overlayMove(this.move);
+    if (this.upperReq) { this.overlayMove(this.upperReq); this.headW = Math.max(this.headW, this.upperReq.w); this.upperReq = null; }
     this.match(dt, s, landing, size);
     this.src.updateMatrixWorld(true);
   }
@@ -524,7 +556,7 @@ export class Animator {
     a.setEffectiveWeight(w);
     a.time = M.t;
     // (the feet: the move's own contacts; no gait, no landing to wait for)
-    const c = this.moveContact(M.clip, M.t, (this._mc ??= { l: 1, r: 1 }));
+    const c = M.free ? Object.assign(this._mc ??= {}, { l: 0, r: 0 }) : this.moveContact(M.clip, M.t, (this._mc ??= { l: 1, r: 1 }));
     const P = M.clip.userData?.path, fps = M.clip.userData?.fps ?? 30;
     for (const f of ['l', 'r']) {
       this.contact[f] += (c[f] - this.contact[f]) * w;
@@ -542,9 +574,8 @@ export class Animator {
   }
 
   /** A move on the body above the legs (play's legs: false), over the blend the mixer made: each bone turned toward the clip's by its weight. */
-  overlayMove() {
-    const M = this.move;
-    if (!M || M.legs !== false) return;
+  overlayMove(M) {
+    if (!M) return;
     const ud = M.clip.userData ?? (M.clip.userData = {});
     ud.upper ??= M.clip.tracks.flatMap((t) => {
       const dot = t.name.lastIndexOf('.'), bone = t.name.slice(0, dot), prop = t.name.slice(dot + 1);

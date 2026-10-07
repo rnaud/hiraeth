@@ -5,6 +5,10 @@ The same release notes shown in the game (press **N** or open settings).
 ## v0.82 — 2026-10-07
 
 - The traveller moves more like a person at the moments that used to look mechanical: setting off at a walk he straightens and swings his arms instead of hunching into a jog, stopping he throws his arms out to brake, and turning on the spot or doubling back at a run his head and shoulders lead the turn. His feet land and hold exactly as before, and the controls answer just as fast.
+- Knocked down, the traveller gets up as a person does, by how he landed: face down he pushes up and gets his feet under him, on his back he sits up and rises, instead of always coming up through the same stiff kneel. People knocked over get up the same way.
+- Jumps and landings look caught from life: a running jump is a long stride through the air, dropping off a ledge he lands in a deep crouch, landing hard at a run makes him stumble, and kicking off a wall he pushes away with his whole body.
+- Standing still a while, he now and then looks about him or just breathes, his feet staying where they are.
+- Picking something up off the ground he goes down on one knee for it, and petting Moustache he kneels and reaches out to him.
 
 ## v0.81 — 2026-10-07
 

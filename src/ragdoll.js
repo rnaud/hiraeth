@@ -397,6 +397,50 @@ export const KNOCKOVER = { strength: 0.3, most: 4 };
  */
 export const KNOCK = { blendIn: 0.12, lie: 0.7, rise: 1.25, maxFall: 3.5, maxAir: 30 };
 
+/**
+ * The captured get-ups (Mixamo's, moves.glb; Animator.play): from the back or from the stomach, as
+ * the body lies; the part of each from its first stir (`from`, s) to standing (`to`, before the
+ * clip's fists come up), played `rate` times as fast (a fall costs no longer than the kneel did, much),
+ * the lying ragdoll blended into its first frame over `blend` s.
+ */
+export const GET_UP = {
+  back: { clip: 'get_up_back', from: 2.65, to: 5.55 },
+  stomach: { clip: 'get_up_stomach', from: 1.35, to: 5.45 },
+  rate: 2, blend: 0.3, out: 0.35,
+};
+
+/** Which way a body lies: 'back' (face up) or 'stomach' (face down), from its trunk (the ragdoll's joints). */
+export function lyingOn(rag, up) {
+  const x = rag.x;
+  const L = _X.subVectors(x[J.hipL], x[J.hipR]).normalize();
+  const U = _Y.subVectors(x[J.chest], x[J.pelvis]).normalize();
+  return _Z.crossVectors(L, U).dot(up) > 0 ? 'back' : 'stomach';
+}
+
+const _gp = new THREE.Vector3(), _gh = new THREE.Vector3(), _gd = new THREE.Vector3(), _gx = new THREE.Vector3(), _gv = new THREE.Vector3();
+/**
+ * Where to stand and which way to face so a get-up's first frame lies where the ragdoll lies: the
+ * clip played on the Animator `A` at its first frame (its body in the clip's space, facing +z), its
+ * hips-to-head turned onto the ragdoll's pelvis-to-chest. `frame`: { up, dir(heading, out),
+ * headingOf(v) } (the player's Frame, or a plain one). Returns { heading, pos } (pos: the root, on
+ * the ground under the ragdoll's pelvis less the clip's own hips' offset) or null without the clip.
+ */
+export function getUpPlacement(D, A, frame, ground) {
+  const G = D.getUp;
+  if (!G || !A?.play(G.clip, G.from, 1, { full: true })) return null;
+  A.update(0, { speed: 0, onGround: true, mode: 'ground', walkAt: 1, jogAt: 2, sprintAt: 3 });
+  const hips = A.hips.getWorldPosition(_gp), head = A.bone('Head').getWorldPosition(_gh);
+  const up = frame.up, x = D.rag.x;
+  const lie = _gv.subVectors(x[J.chest], x[J.pelvis]);
+  lie.addScaledVector(up, -lie.dot(up));
+  const along = Math.atan2(head.x - hips.x, head.z - hips.z);
+  const heading = frame.headingOf(lie) - along;
+  // the clip's hips off its root, in the world: x along up x facing, z along the facing
+  const d = frame.dir(heading, _gd), side = _gx.crossVectors(up, d);
+  const pos = ground.clone().addScaledVector(side, -hips.x).addScaledVector(d, -hips.z);
+  return { heading, pos };
+}
+
 export class Knockdown {
   constructor(H, { dead = false, lie = KNOCK.lie } = {}) {
     this.H = H;
@@ -438,14 +482,32 @@ export class Knockdown {
     return false;
   }
 
+  /**
+   * The captured get-up for how the body lies (GET_UP: from the back or the stomach), if the clip is
+   * there (`has(name)`: the Animator's moves): set as this.getUp, else none (the kneel, as before).
+   */
+  chooseGetUp(up, has = () => false) {
+    const how = this.H ? lyingOn(this.rag, up) : null;
+    const g = how && GET_UP[how];
+    this.getUp = g && has(g.clip) ? { how, ...g, rate: GET_UP.rate } : null;
+    return this.getUp;
+  }
+
   /** Lying done: remember the pose to rise from. */
   beginRise() {
     this.phase = 'rise'; this.t = 0;
     if (this.H) this.rag.snapshot(this.H);
   }
 
-  /** The rise's kneel (0..1) at its time: down on one knee first, then up to standing. */
+  /** How long the rise takes (s): the get-up's part at its rate, or the kneel's. */
+  get riseTime() { const G = this.getUp; return G ? (G.to - G.from) / G.rate : KNOCK.rise; }
+
+  /** The get-up's clip time now (s), or null without one. */
+  get riseClipT() { const G = this.getUp; return G ? Math.min(G.from + this.t * G.rate, G.to) : null; }
+
+  /** The rise's kneel (0..1) at its time: down on one knee first, then up to standing (none with a get-up clip). */
   get kneel() {
+    if (this.getUp) return 0;
     const k = this.t / KNOCK.rise;
     return 1 - THREE.MathUtils.smoothstep(k, 0.42, 1);
   }
@@ -456,8 +518,9 @@ export class Knockdown {
    */
   rise(dt, up) {
     this.t += dt; this.age += dt;
-    const w = THREE.MathUtils.smoothstep(this.t / KNOCK.rise, 0, 0.45);
-    if (this.H) this.rag.blend(this.H, w, { up, lift: 0.08 });
-    return this.t >= KNOCK.rise;
+    // (a get-up clip starts lying as the body lies: blended in quickly, no lift)
+    const w = this.getUp ? THREE.MathUtils.smoothstep(this.t, 0, GET_UP.blend) : THREE.MathUtils.smoothstep(this.t / KNOCK.rise, 0, 0.45);
+    if (this.H) this.rag.blend(this.H, w, { up, lift: this.getUp ? 0 : 0.08 });
+    return this.t >= this.riseTime;
   }
 }
