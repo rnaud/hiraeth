@@ -7,6 +7,13 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.76', date: '2026-10-07', items: [
+    'The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.',
+    'On handhelds the City-Shaft runs smoother when you look across the shaft: its terrace railings are drawn in far fewer pieces, the same as before.',
+    'On handhelds the picture no longer goes soft for nothing: the automatic resolution now notices every stutter, but only lowers the sharpness where that can help, and keeps it in busy places where the processor, not the graphics, is what slows the game.',
+    'The desert’s camps and other crowded places run a little smoother: people standing or sitting still a little way off move their idle breathing on every other frame.',
+    'The loading screen’s turning pen should keep turning smoothly while a world is built, instead of stopping for a moment now and then.',
+  ] },
   { v: '0.75', date: '2026-10-07', items: [
     'The sketchbook is now a game menu in the spirit of Ocarina of Time’s pause screen, drawn in the game’s own ink and paper: four panels side by side, Items, Quests, Sketchbook and Worlds. View / Select (J, or the ❏ button) opens it; LB / L1 and RB / R1 (Q and E, or the tabs) turn from panel to panel, the stick or the D-pad moves a cursor, the strip at the bottom says what you have picked, and B / ○ closes it from anywhere.',
     'Items shows what you have found as pictures of the things themselves, with an empty slot for each thing still to find; the one you pick shows large, with what it is and what it does. A / × on a fluid mode switches your tank to it. Under them: what you carry for a quest, and your keepsakes.',
@@ -20,6 +27,7 @@ export const CHANGELOG = [
     'Cabs drive themselves now: nobody sits up front. You ride seated inside, in an open cabin under the striped canopy, and the camera watches from beside the cab so you see yourself sitting there as the city goes by. As you get in, a little screen on the dash asks where to: choose a stop with the mouse, a number key or the stick and A / ×, and the cab flies you there. At the stop press E (B / ○) to step out, or SPACE (X / □) to choose somewhere else.',
     'The Signal Market’s cabs stop at the lantern market, the skybridge over the old sign, Signal Square and the cream balcony on the silent tower; the City-Shaft’s at the rim by the ship, the high terrace, the middle levels and the palace gate. Only Wren goes down to the bottom terrace, by the call-lamp.',
     'Wren is the old cab itself now, not its driver: light the call-lamp at the bottom, get in, and Wren talks to you from its dash before it takes you up. The errand is called The Cab That Stops, and the City-Shaft’s people speak of cabs where they used to speak of drivers.',
+    'On the Steam Deck the settings have the same Updates section as the Android app: what you are playing, Check for updates, what the new version brings, Download and restart with a progress bar, Restart now and the update details. Restarting keeps your saves and comes back at the title screen.',
   ] },
   { v: '0.74', date: '2026-10-06', items: [
     'Seated people’s capes rest on what they sit on: they fall down the back, over the bench’s edge and onto the ground behind, without crumpling into stiff folded sheets or spreading out along the bench, and they no longer pass through a crate, a stool or a stone the sitter is perched on.',

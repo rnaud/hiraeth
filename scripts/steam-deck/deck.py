@@ -251,6 +251,23 @@ def validate_manifest(manifest):
         raise ValueError('Missing release version')
 
 
+PROGRESS = None   # a file the settings follow a download in (--progress; desktop/deck-updates.mjs)
+
+
+def progress(step, got, total, done=False):
+    """{step, got, total} for the settings' progress bar, at most four times a second."""
+    if PROGRESS is None:
+        return
+    now = time.monotonic()
+    if not done and now - getattr(progress, 'last', 0) < 0.25:
+        return
+    progress.last = now
+    try:
+        atomic_write(PROGRESS, json.dumps({'step': step, 'got': got, 'total': total or 0}).encode())
+    except OSError:
+        pass
+
+
 def download(manifest, destination):
     digest, size = hashlib.sha256(), 0
     deadline = time.monotonic() + 900
@@ -262,6 +279,7 @@ def download(manifest, destination):
                     size += len(chunk)
                     if size > MAX_ARCHIVE or time.monotonic() > deadline:
                         raise ValueError('Download exceeded its size or time limit')
+                    progress('runtime', size, manifest.get('size'))
                     digest.update(chunk)
                     output.write(chunk)
     if 'size' in manifest and size != manifest['size']:
@@ -407,6 +425,7 @@ def download_content(manifest, destination):
             size += len(chunk)
             if size > MAX_CONTENT or time.monotonic() > deadline:
                 raise ValueError('Content download exceeded its size or time limit')
+            progress('game', size, manifest.get('size'))
             digest.update(chunk)
             output.write(chunk)
     if digest.hexdigest() != manifest['sha256']:
@@ -614,6 +633,52 @@ def install_art(root, configs, app=None):
     return changed
 
 
+# ---------------------------------------------------------------- the settings' Updates section
+
+def local_state(root):
+    """What the next launch would run (desktop/deck-updates.mjs compares it with what runs): the
+    installed runtime, and the game it would serve (a downloaded one choose_content picks, else the
+    runtime's own)."""
+    current = (root / 'current').resolve(strict=True)
+    carried = runtime_content(current)
+    try:
+        version = json.loads((current / 'resources/app/build.json').read_text()).get('version', '')
+    except (OSError, ValueError, AttributeError):
+        version = ''
+    state = {'runtime': installed_build(root), 'runtimeVersion': version, 'desktop': carried['desktop'],
+             'nextWeb': carried['web'], 'nextVersion': version}
+    game = choose_content(root, current)
+    if game:
+        try:
+            bundle = json.loads((game / 'bundle.json').read_text())
+            state['nextWeb'], state['nextVersion'] = bundle['build'], bundle.get('version', '')
+        except (OSError, ValueError, KeyError):
+            pass
+    return state
+
+
+def offline(error):
+    import urllib.error
+    return isinstance(error, (OSError, urllib.error.URLError)) and not isinstance(error, urllib.error.HTTPError)
+
+
+def status(root, content=None, runtime=None):
+    """The settings' check: what is here, and the newest game and runtime on the feeds (no download)."""
+    state = local_state(root)
+    state['checkedAt'] = int(time.time() * 1000)
+    try:
+        game = (content or get_content_manifest)()
+        state['game'] = {key: game.get(key) for key in ('build', 'version', 'size', 'minDesktop', 'notes')}
+    except Exception as error:
+        state['gameError'], state['offline'] = str(error), offline(error)
+    try:
+        feed = (runtime or get_manifest)()
+        state['runtimeFeed'] = {key: feed.get(key) for key in ('build', 'version', 'size')}
+    except Exception as error:
+        state['runtimeError'] = str(error)   # (GitHub private, or offline: quiet)
+    return state
+
+
 def steam_entry(root, configs):
     """Our shortcut's artwork and, while Steam is closed (it rewrites shortcuts.vdf from memory as it
     exits), its name and icon in accounts that have it under the old name. @return whether anything changed"""
@@ -673,6 +738,7 @@ def write_launchers(root):
 # (ANGLE on OpenGL), ANGLE on Vulkan, then software. desktop/main.mjs reads MOEBIUS_GPU.
 GPU_MODES = ('gl', 'vulkan', 'software')
 RETRY_EXIT = 75      # desktop/main.mjs: its GPU process keeps crashing, try the next mode
+RESTART_EXIT = 76    # desktop/main.mjs: the settings' Restart now, into the update (launched again)
 READY_SECONDS = 30   # no window by then: Electron hangs (a helper process died as it started)
 STOP_SECONDS = 5     # Steam's Exit Game (a signal): this long to close, then killed with its helpers
 
@@ -743,6 +809,8 @@ def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP
         ready.unlink(missing_ok=True)
     if stopping or (code == 0 and not hung):
         return 'quit', 0 if stopping else code, shown
+    if code == RESTART_EXIT and not hung:
+        return 'restart', code, shown
     return 'retry', code, shown
 
 
@@ -791,10 +859,30 @@ def start_updater(root, current):
     return 'child'
 
 
-def launch(root, arguments, run=run_game):
+def launch(root, arguments, run=run_game, relaunch=None):
+    """Electron, watched (run_game), until it closes; the settings' Restart now launches again
+    (relaunch: this same process becomes the new current runtime's launcher, so Steam keeps
+    tracking the game, and the next pin takes the update)."""
+    restart = launch_once(root, arguments, run)
+    marker = root / '.restart'
+    try:
+        wanted = marker.read_text().strip()
+        marker.unlink()
+    except OSError:
+        wanted = ''
+    # (the update the settings restarted for: if it isn't what runs next, they don't offer it again)
+    os.environ['MOEBIUS_RESTARTED_FOR'] = wanted or str(restart)
+    command = [sys.executable, str((root / 'current').resolve() / 'resources/app/deck.py'), '--launch', *arguments]
+    (relaunch or (lambda argv: os.execv(argv[0], argv)))(command)
+
+
+def launch_once(root, arguments, run=run_game):
+    """One launch: exits the process when the game closes or can't draw. @return the runtime build
+    that ran, when the settings asked to restart into an update"""
     # Resolve before starting the updater. This process runs its immutable build;
     # the background update only affects the next launch. Saves live elsewhere.
     # Hold the short activation lock, never the potentially long download lock.
+    restarted = 'MOEBIUS_RESTARTED_FOR' in os.environ
     with (root / 'state.lock').open('a') as state:
         fcntl.flock(state, fcntl.LOCK_SH)
         current = (root / 'current').resolve(strict=True)
@@ -804,13 +892,14 @@ def launch(root, arguments, run=run_game):
         game_pin = (game / '.in-use').open('a') if game else open(os.devnull)
         if game:
             fcntl.flock(game_pin, fcntl.LOCK_SH)
-    with pin, game_pin, (root / 'launch.log').open('w') as record:
+    with pin, game_pin, (root / 'launch.log').open('a' if restarted else 'w') as record:
         def log(line):
             print(f'Memento: {line}', file=sys.stderr, flush=True)
             record.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {line}\n')
             record.flush()
         try:
-            start_updater(root, current)
+            if not restarted:   # (a restart into an update: it has just been checked)
+                start_updater(root, current)
         except OSError as error:
             log(f'No update check ({error}).')
         # Keep the pins until Electron exits, so updates cannot remove its assets.
@@ -820,7 +909,14 @@ def launch(root, arguments, run=run_game):
         log(f'Runtime {build}, {session_kind(os.environ)}, game {game or "packaged"}.')
         for mode in GPU_MODES[gpu_start(root, key):]:
             log(f'Starting ({mode}).')
-            how, code, shown = run([str(current / 'moebius'), *arguments], game_env(game, mode, ready), ready, log=log)
+            env = game_env(game, mode, ready)
+            # the settings' Updates section (desktop/deck-updates.mjs) runs this updater on this install
+            env.update(MOEBIUS_ROOT=str(root), MOEBIUS_PYTHON=sys.executable)
+            how, code, shown = run([str(current / 'moebius'), *arguments], env, ready, log=log)
+            if how == 'restart':
+                log(f'Restarting into the update ({mode}).')
+                gpu_remember(root, key, mode)
+                return build
             if how == 'quit':
                 log(f'Closed ({mode}, exit {code}).')
                 if shown:
@@ -839,17 +935,30 @@ def main():
     parser.add_argument('--register-steam', action='store_true')
     parser.add_argument('--from', dest='source', metavar='DIR',
                         help='install the package downloaded by hand into DIR (steam-deck.json and its .tar.gz)')
+    # the settings' Updates section (desktop/deck-updates.mjs): --status, and --update --progress
+    parser.add_argument('--status', action='store_true', help='print what is here and the newest on the feeds, as JSON')
+    parser.add_argument('--status-local', action='store_true', help='print only what is here (no network), as JSON')
+    parser.add_argument('--progress', metavar='FILE', help='with --update: follow the downloads in FILE')
+    parser.add_argument('--root', metavar='DIR', help='the install (default ~/.local/share/moebius-deck)')
     args, extra = parser.parse_known_args()
-    if platform.system() != 'Linux' or platform.machine() not in ('x86_64', 'AMD64'):
+    root = Path(args.root).expanduser() if args.root else ROOT
+    # (--status and --update on an explicit --root run anywhere: the settings' tests on a Mac)
+    if (platform.system() != 'Linux' or platform.machine() not in ('x86_64', 'AMD64')) and not (args.root and (args.status or args.status_local or args.update)):
         parser.error('This package requires Linux x86-64 (Steam Deck).')
     if args.launch:
-        launch(ROOT, extra)
+        launch(root, extra)
         return
     if extra:
         parser.error('Unknown arguments: ' + ' '.join(extra))
-    if args.update:
-        update_all(ROOT)
+    if args.status or args.status_local:
+        print(json.dumps(status(root) if args.status else local_state(root)), flush=True)
         return
+    if args.update:
+        global PROGRESS
+        PROGRESS = Path(args.progress) if args.progress else None
+        failures = update_all(root)
+        progress('done', 0, 0, done=True)
+        sys.exit(1 if 'runtime' in failures and 'game' in failures else 0)
     if not args.register_steam:
         if args.source:
             manifest, copy = local_package(args.source)

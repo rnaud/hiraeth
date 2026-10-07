@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.76 — 2026-10-07
+
+- The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.
+- On handhelds the City-Shaft runs smoother when you look across the shaft: its terrace railings are drawn in far fewer pieces, the same as before.
+- On handhelds the picture no longer goes soft for nothing: the automatic resolution now notices every stutter, but only lowers the sharpness where that can help, and keeps it in busy places where the processor, not the graphics, is what slows the game.
+- The desert’s camps and other crowded places run a little smoother: people standing or sitting still a little way off move their idle breathing on every other frame.
+- The loading screen’s turning pen should keep turning smoothly while a world is built, instead of stopping for a moment now and then.
+
 ## v0.75 — 2026-10-07
 
 - The sketchbook is now a game menu in the spirit of Ocarina of Time’s pause screen, drawn in the game’s own ink and paper: four panels side by side, Items, Quests, Sketchbook and Worlds. View / Select (J, or the ❏ button) opens it; LB / L1 and RB / R1 (Q and E, or the tabs) turn from panel to panel, the stick or the D-pad moves a cursor, the strip at the bottom says what you have picked, and B / ○ closes it from anywhere.
@@ -16,6 +24,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Cabs drive themselves now: nobody sits up front. You ride seated inside, in an open cabin under the striped canopy, and the camera watches from beside the cab so you see yourself sitting there as the city goes by. As you get in, a little screen on the dash asks where to: choose a stop with the mouse, a number key or the stick and A / ×, and the cab flies you there. At the stop press E (B / ○) to step out, or SPACE (X / □) to choose somewhere else.
 - The Signal Market’s cabs stop at the lantern market, the skybridge over the old sign, Signal Square and the cream balcony on the silent tower; the City-Shaft’s at the rim by the ship, the high terrace, the middle levels and the palace gate. Only Wren goes down to the bottom terrace, by the call-lamp.
 - Wren is the old cab itself now, not its driver: light the call-lamp at the bottom, get in, and Wren talks to you from its dash before it takes you up. The errand is called The Cab That Stops, and the City-Shaft’s people speak of cabs where they used to speak of drivers.
+- On the Steam Deck the settings have the same Updates section as the Android app: what you are playing, Check for updates, what the new version brings, Download and restart with a progress bar, Restart now and the update details. Restarting keeps your saves and comes back at the title screen.
 
 ## v0.74 — 2026-10-06
 

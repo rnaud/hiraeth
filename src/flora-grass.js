@@ -25,6 +25,7 @@ export const GRASS_QUALITY = {
   auto: { radius: 19, density: 4, far: { radius: 48, density: 0.26 } },
   low: { radius: 13.5, density: 3.4, far: { radius: 30, density: 0.2 } },
   handheld: { radius: 11.5, density: 3, far: { radius: 26, density: 0.16 } },
+  deck: { radius: 13.5, density: 3.4, far: { radius: 30, density: 0.2 } },   // (the low preset's: perf.js QUALITY_PRESETS.deck)
 };
 
 /** The far layer's tuft: two broader blades. */
