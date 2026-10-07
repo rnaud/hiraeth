@@ -1,0 +1,39 @@
+changelog.md
+  s_55b4bc53b812ec::t_5c6ab6209ef850 14
+docs/story-audit.md
+  s_55b4bc53b812ec::t_b8b42c685882db 215,527-528
+src/changelog.js
+  s_55b4bc53b812ec::t_7dfed93a85e62c 20
+src/story/arzach2-data.js
+  s_55b4bc53b812ec::t_1a8a46626e0e3c 93,106,114,147,163,176,194,201,214,235,244,260
+src/story/bazaar-data.js
+  s_55b4bc53b812ec::t_abd5fb2aaa7f68 179
+src/story/incal-data.js
+  s_55b4bc53b812ec::t_a89cea52b68c0a 120,483
+src/story/perdide-data.js
+  s_55b4bc53b812ec::t_16916b2454a1f7 179
+src/story/perdide2-data.js
+  s_55b4bc53b812ec::t_82f48349d2cb25 158
+src/temples/arzach2-data.js
+  s_55b4bc53b812ec::t_5abe23046881fa 59
+src/temples/edena-data.js
+  s_55b4bc53b812ec::t_8378015043757b 60
+src/temples/perdide-data.js
+  s_55b4bc53b812ec::t_7c00b7134c4b52 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3837d93d9c9393df06966c1ba3f3c16bdd959e33",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
