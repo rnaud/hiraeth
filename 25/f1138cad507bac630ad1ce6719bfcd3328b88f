@@ -1,0 +1,29 @@
+src/levels/arzach.js
+  s_55b4bc53b812ec::t_02c83d82ac5990 312
+src/levels/edena.js
+  s_55b4bc53b812ec::t_311cc7d92516f9 475
+src/levels/incal.js
+  s_55b4bc53b812ec::t_37e6328dc3047b 972,984
+src/story/desert-errands.js
+  s_55b4bc53b812ec::t_2476bae091ef0a 72
+src/temples/guardians.js
+  s_55b4bc53b812ec::t_3cbc3328122764 473
+tests/console-clean.test.js
+  s_55b4bc53b812ec::t_4374b8ba369ac4 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "25f1138cad507bac630ad1ce6719bfcd3328b88f",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
