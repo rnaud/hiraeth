@@ -22,6 +22,8 @@ export const CHANGELOG = [
     'The desert’s people carry the rest of what their drawings give them: Nour has clay gourds and a ring of keys at her belt and a tall staff with a pierced disc at its head; Marrow wears his long patched coat without a cloak, with a salvage bag at his hip (a bone and a pipe sticking out of it) and a pack on his back; Sefa’s cloak has little brass bells all along its hem and her oud has tassels; the Speaker’s bell is copper and his staff carries streamers.',
     'Sefa’s oud no longer pokes through her cloak as she walks: the cloth swings round it.',
     'The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.',
+    'The floor of the Buried Machine’s rust canyon no longer has long straight bands of sand running across it: the sand banks against the canyon’s walls along their foot, where it belongs.',
+    'Climbing a wall where sand is banked against its foot, you take hold standing on the bank: your hands and knees no longer go into the sand, and climbing down you step off onto it.',
   ] },
   { v: '0.76', date: '2026-10-07', items: [
     'The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.',
@@ -35,7 +37,6 @@ export const CHANGELOG = [
     'In the Garden of Spheres the olive trees’ trunks and the dark cypresses are solid just as they are drawn: you no longer walk half a metre into a cypress before it stops you, or bump into an invisible post beside an olive’s leaning trunk.',
     'In Lorn’s Hush-House the gates of jaws are solid exactly where their two snapping halves are, and they still will not let you by until they are stilled.',
     'You no longer sink into banked sand: where a drift of sand against a wall or a rock rose above the ground you walked on, your feet now stand on the sand as it is drawn, in the desert, on Vael and in the Buried Machine’s canyon. The trim round a temple rotunda’s open roof is solid where it lies on the roof.',
-    'The floor of the Buried Machine’s rust canyon no longer has long straight bands of sand running across it: the sand banks against the canyon’s walls along their foot, where it belongs.',
   ] },
   { v: '0.75', date: '2026-10-07', items: [
     'The sketchbook is now a game menu in the spirit of Ocarina of Time’s pause screen, drawn in the game’s own ink and paper: four panels side by side, Items, Quests, Sketchbook and Worlds. View / Select (J, or the ❏ button) opens it; LB / L1 and RB / R1 (Q and E, or the tabs) turn from panel to panel, the stick or the D-pad moves a cursor, the strip at the bottom says what you have picked, and B / ○ closes it from anywhere.',

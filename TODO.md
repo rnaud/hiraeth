@@ -63,7 +63,7 @@ The second pass made every world collide as it is drawn (DONE.md; docs/systems/m
   while shut, with a thin slot that keeps the way; the oculus trim is solid over its ceiling, its 0.3 m
   lip over the opening drawn-only so the oculus stays as open as before; a skirt's triangles drawn over
   the ground collide (`SandDrifts.misfits`; the error was between the skirt's points, not at them).
-  Left: sand banked up a wall's foot hides where a climb starts. The canyon walls' single convex
+  A climb where sand is banked up a wall starts on the bank (`Player.climbFloor`). The canyon walls' single convex
   footprints (sand banked in straight lines across the floor) are cut into pieces that follow the foot
   now (`footPieces`; the seams raise nothing inside the walls: movement.md, "Long curved footprints").
 

@@ -176,8 +176,13 @@ collider (a door, the wheel) whose box is nowhere near the capsule (`shapecast`'
   inside a smaller footprint, where it is inside a solid): desert ~7 k of its 70 k skirt triangles, Vael ~9 k of
   101 k, the Buried Machine ~45 k of 176 k (the canyon). The cost: the bake +15 ms in the Buried Machine, queries
   unchanged within noise. Sand-skirt *walks through* 46 → 6 in the desert and 80 → 28 on Vael, the Buried
-  Machine's feet sink 34 → 16. Left: sand banked up a wall's foot is drawn in front of the wall a climb starts on
-  (the hands go through the top of the bank; see "Climbs over banked sand" if settled).
+  Machine's feet sink 34 → 16.
+- *Climbs over banked sand.* Sand banks highest right at a wall's face, and the climber hangs 0.27 m out (0.48 m
+  without the animator), where the bank is lower: his knees and hands went into the drawn sand, and climbing down
+  he stood under it. `Player.climbFloor` is the ground just off the face when it stands over his feet by no more
+  than a step (not a sill passed on the way): he takes hold standing on it (`startClimb`), never hangs below it
+  (`updateClimb`), and climbing down onto it he stands (`tests/sand-drifts.test.js`). The audit still counts these
+  walls as *climbs inside* (it compares surfaces, not the climber).
 - *Long curved footprints.* A footprint was each part's convex hull, and the Buried Machine's canyon walls are one
   solid each, so their hulls reached right across the canyon and sand banked in straight lines across its floor
   (along the hulls' chords). `footprintsOf` now cuts a part whose hull spans open ground (`footPieces`: an outline
