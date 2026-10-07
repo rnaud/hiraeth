@@ -42,6 +42,20 @@ export function resetDrapes() { DRAPES.clear(); lastBake = -1e9; }
 
 // what a seated cape falls onto: the seat's top under the hips, its edges, the ground beyond
 const FIELD = { half: 0.96, step: 0.12, probe: 0.2, drop: 2.5, edge: 0.1 };
+/**
+ * Seated cloth (Cape: the people sitting on a bench, a stone, a crate, a kerb). `seat`: the seat itself,
+ * round the hips in the body's frame (m: half its width, its front edge ahead of the hips, its back
+ * behind them), always under the cloth even where the physics doesn't see it (a stool, a crate, a
+ * stone drawn but not solid: the cloth fell through it to the ground). `bend`, `fold`: seated, the
+ * bends only keep the cloth from creasing back on itself, pushing two points two rows (or columns)
+ * apart when they come closer than `fold` of their rest, with that stiffness (with no bends it
+ * crumpled into folded shards where it met the seat and the ground; with the standing bends, or any
+ * bends holding it straight, it stood out from the back, over the bench and off a ledge in stiff
+ * sheets). `hem`: the seated cut's hem, a share of the standing one's. `bake`, `bakeDamp`: a seated drape's
+ * settling updates and their damping (BAKE's, standing: the cloth came only ~40 cm down from its
+ * cone, and the drape far off kept it in sheets standing out round the sitter).
+ */
+export const SEATED = { seat: { half: 0.26, front: 0.12, back: 0.3 }, bend: 1, fold: 0.6, hem: 0.45, bake: 24, bakeDamp: 0.92 };
 
 /**
  * The ground round a seated body: heights on a small grid (±0.96 m, 12 cm) in the body's frame, so
@@ -49,9 +63,10 @@ const FIELD = { half: 0.96, step: 0.12, probe: 0.2, drop: 2.5, edge: 0.1 };
  * (a flat floor at the seat's height laid the cape out round them like a sheet). Probed once from
  * just above the seat (`groundAt(x, fromY, z, maxDrop)`, as Physics.groundAt); `at` is the hips
  * over the seat, `heading` the way they face. World up is +y. `sig` names its shape (to 5 cm), for
- * sharing a drape between people on the same kind of seat.
+ * sharing a drape between people on the same kind of seat. `seat` (SEATED.seat): the seat round the
+ * hips is there whatever the probes find.
  */
-export function groundField(groundAt, at, heading) {
+export function groundField(groundAt, at, heading, seat = null) {
   const { half, step, probe, drop } = FIELD, n = Math.round((half * 2) / step) + 1;
   const fx = Math.sin(heading), fz = Math.cos(heading), rx = fz, rz = -fx;
   const h = new Float32Array(n * n), top = at.y + probe;
@@ -60,11 +75,41 @@ export function groundField(groundAt, at, heading) {
     for (let i = 0; i < n; i++) {
       const u = -half + i * step, v = -half + j * step;
       const g = groundAt(at.x + rx * u + fx * v, top, at.z + rz * u + fz * v, probe + drop);
-      const y = Number.isFinite(g) ? Math.max(g - at.y, -drop) : -drop;
+      let y = Number.isFinite(g) ? Math.max(g - at.y, -drop) : -drop;
+      // the seat under the hips, seen or not (to the cell's middle)
+      if (seat && Math.abs(u) <= seat.half && v <= seat.front && v >= -seat.back) y = Math.max(y, -0.02);
       h[j * n + i] = y;
       sig += String.fromCharCode(48 + Math.max(0, Math.min(60, Math.round(-y / 0.05))));
     }
   return { ox: at.x, oy: at.y, oz: at.z, fx, fz, rx, rz, n, half, step, h, sig };
+}
+
+/**
+ * A groundAt (as Physics.groundAt: x, fromY, z, maxDrop -> the highest surface under fromY, or
+ * -Infinity) over a soup of drawn triangles (9 numbers each, world space): what a seat the physics
+ * doesn't see is made of (NPC.seatField). Faces of any facing count (a crate's top, a stone's).
+ */
+export function trianglesGround(tris) {
+  const n = (tris.length / 9) | 0, bb = new Float32Array(n * 4);
+  for (let t = 0; t < n; t++) {
+    const o = t * 9;
+    bb[t * 4] = Math.min(tris[o], tris[o + 3], tris[o + 6]); bb[t * 4 + 1] = Math.max(tris[o], tris[o + 3], tris[o + 6]);
+    bb[t * 4 + 2] = Math.min(tris[o + 2], tris[o + 5], tris[o + 8]); bb[t * 4 + 3] = Math.max(tris[o + 2], tris[o + 5], tris[o + 8]);
+  }
+  return (x, fromY, z, maxDrop = Infinity) => {
+    let best = -Infinity;
+    for (let t = 0; t < n; t++) {
+      if (x < bb[t * 4] || x > bb[t * 4 + 1] || z < bb[t * 4 + 2] || z > bb[t * 4 + 3]) continue;
+      const o = t * 9, ax = tris[o], az = tris[o + 2], bx = tris[o + 3] - ax, bz = tris[o + 5] - az, cx = tris[o + 6] - ax, cz = tris[o + 8] - az;
+      const det = bx * cz - cx * bz;
+      if (Math.abs(det) < 1e-9) continue;   // (a wall seen edge-on from above)
+      const px = x - ax, pz = z - az, u = (px * cz - cx * pz) / det, v = (bx * pz - px * bz) / det;
+      if (u < 0 || v < 0 || u + v > 1) continue;
+      const y = tris[o + 1] + u * (tris[o + 4] - tris[o + 1]) + v * (tris[o + 7] - tris[o + 1]);
+      if (y <= fromY && y >= fromY - maxDrop && y > best) best = y;
+    }
+    return best;
+  };
 }
 
 /**
@@ -96,7 +141,9 @@ function onField(F, P, Q, i) {
         if (dist < best) { best = dist; du = su * (dist + 0.02); dv = sv * (dist + 0.02); }
       }
       if (best < Infinity) {
-        P[i] += (du * F.rx + dv * F.fx) * F.step; P[i + 2] += (du * F.rz + dv * F.fz) * F.step;
+        // (and its last place with it: pushed out without, it flew out sideways, the cloth standing out round the seat in sheets)
+        const ox = (du * F.rx + dv * F.fx) * F.step, oz = (du * F.rz + dv * F.fz) * F.step;
+        P[i] += ox; P[i + 2] += oz; Q[i] += ox; Q[i + 2] += oz;
         return;
       }
     }
@@ -128,25 +175,30 @@ export class Cape {
     this.p = new Float32Array(n * 3);      // positions
     this.q = new Float32Array(n * 3);      // previous positions
     this.local = new Float32Array(n * 3);  // rest shape in anchor space
+    // seated, its cut gathered in: the hem narrower (SEATED.hem), so it hangs down the back and pools
+    // behind the seat (its whole width spread out over a long bench beside the sitter in sheets)
+    this.localSeat = new Float32Array(n * 3);
     for (let r = 0; r < rows; r++) {
       const t = r / (rows - 1);
-      const rad = top + (bottom - top) * Math.pow(t, 0.8);
+      const rad = top + (bottom - top) * Math.pow(t, 0.8), radS = top + (Math.max(top, bottom * SEATED.hem) - top) * Math.pow(t, 0.8);
       for (let c = 0; c < cols; c++) {
         const ang = gap + (c / (cols - 1)) * (Math.PI * 2 - gap * 2);   // 0 = front
         const i = (r * cols + c) * 3;
         this.local[i] = Math.sin(ang) * rad;
         this.local[i + 1] = y - t * length;
         this.local[i + 2] = Math.cos(ang) * rad;
+        this.localSeat[i] = Math.sin(ang) * radS; this.localSeat[i + 1] = y - t * length; this.localSeat[i + 2] = Math.cos(ang) * radS;
       }
     }
-    // constraints: [i, j, rest, stiffness]
-    const cons = [], seated = [];
+    // constraints: [i, j, rest, stiffness]; seated: their stiffness and rest length on the seated cut
+    const cons = [], seated = [], seatRest = [];
     const add = (r0, c0, r1, c1, k, bend = false) => {
       if (r1 >= rows || c1 >= cols || c1 < 0) return;
       const i = r0 * cols + c0, j = r1 * cols + c1;
-      const dx = this.local[i * 3] - this.local[j * 3], dy = this.local[i * 3 + 1] - this.local[j * 3 + 1], dz = this.local[i * 3 + 2] - this.local[j * 3 + 2];
-      cons.push(i, j, Math.hypot(dx, dy, dz), k);
-      seated.push(bend ? 0 : k);
+      const L = this.local, S = this.localSeat;
+      cons.push(i, j, Math.hypot(L[i * 3] - L[j * 3], L[i * 3 + 1] - L[j * 3 + 1], L[i * 3 + 2] - L[j * 3 + 2]), k);
+      seated.push(bend ? -SEATED.bend : k);   // (negative: one-sided, see update)
+      seatRest.push(Math.hypot(S[i * 3] - S[j * 3], S[i * 3 + 1] - S[j * 3 + 1], S[i * 3 + 2] - S[j * 3 + 2]));
     };
     for (let r = 0; r < rows; r++)
       for (let c = 0; c < cols; c++) {
@@ -158,9 +210,11 @@ export class Cape {
         add(r, c, r, c + 2, 0.15, true);
       }
     this.cons = new Float32Array(cons);
-    // seated, the cloth has to fold where it meets the seat and the ground: no bends (stiff
-    // downward, a seated cape stood out from the body like a plank, or heaped up on the seat)
+    // seated, the cloth has to fold where it meets the seat and the ground: soft bends (stiff
+    // downward, a seated cape stood out from the body like a plank, or heaped up on the seat; with
+    // none it crumpled into folded shards: SEATED.bend)
     this.seatedK = new Float32Array(seated);
+    this.seatRest = new Float32Array(seatRest);
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.p, 3));
@@ -178,18 +232,19 @@ export class Cape {
     this.mesh = new THREE.Mesh(geo, makeMaterial({ color, color2: color2 ?? color, side: THREE.DoubleSide, folds: cols * 0.9 }));
     this.mesh.frustumCulled = false;
     this.mesh.userData.noCollide = true;
+    this.mesh.userData.cape = true;   // (not a seat for anyone's cloth: NPC.seatField)
     scene.add(this.mesh);
     this.ready = false;
     this.capsules = [];
     this.time = 0;
   }
 
-  /** Start the cloth over: on its drape if it has one (already settled), else the cut's cone. */
-  reset() {
+  /** Start the cloth over: on its drape if it has one (already settled), else the cut's cone (seated: its gathered cut). */
+  reset(seated = false) {
     this.unhang();
     this.anchor.updateWorldMatrix(true, false);
     const m = this.anchor.matrixWorld;
-    const src = this.drape ?? this.local;
+    const src = this.drape ?? (seated ? this.localSeat : this.local);
     for (let i = 0; i < this.p.length; i += 3) {
       _a.set(src[i], src[i + 1], src[i + 2]).applyMatrix4(m);
       this.p[i] = this.q[i] = _a.x; this.p[i + 1] = this.q[i + 1] = _a.y; this.p[i + 2] = this.q[i + 2] = _a.z;
@@ -215,7 +270,7 @@ export class Cape {
     const m = this.anchor.matrixWorld;
     _a.set(this.local[0], this.local[1], this.local[2]).applyMatrix4(m);
     const fresh = !this.ready || Math.hypot(_a.x - this.p[0], _a.y - this.p[1], _a.z - this.p[2]) > 3;
-    if (fresh) this.reset();
+    if (fresh) this.reset(!!s.field);
     this.time += dt;
     // more substeps when the body moves fast, so limbs can't tunnel through the cloth
     const fast = Math.hypot(s.vel.x, s.vel.y, s.vel.z);
@@ -236,7 +291,7 @@ export class Cape {
     const steps = s.quiet ? BAKE.steps : Math.max(fast > 6 ? 5 : 3, Math.min(CLOTH.maxSteps, Math.ceil(span / CLOTH.hMax - 1e-6))), h = span / steps;
     // damping per step; carried, the same per second whatever the step (as tuned, at 1/180 s steps:
     // the near cloth's damping slows it against the world, which held a cloth of longer steps back)
-    const damp = s.quiet ? BAKE.damp : carry > 0 ? Math.pow(this.damp, h * 180) : this.damp;
+    const damp = s.quiet ? (s.field ? SEATED.bakeDamp : BAKE.damp) : carry > 0 ? Math.pow(this.damp, h * 180) : this.damp;
     const caps = s.capsules, nc = caps.length;
     if (!this._mPrev) this._mPrev = new THREE.Matrix4().copy(m);
     if (fresh || s.quiet) this._mPrev.copy(m);
@@ -315,11 +370,14 @@ export class Cape {
       // constraints, then collisions
       const iters = s.quiet ? BAKE.iters : 5;
       for (let it = 0; it < iters; it++) {
-        const C = this.cons, SK = s.field ? this.seatedK : null;
+        const C = this.cons, SK = s.field ? this.seatedK : null, SR = this.seatRest;
         for (let k2 = 0; k2 < C.length; k2 += 4) {
-          const i = C[k2] * 3, j = C[k2 + 1] * 3, rest = C[k2 + 2], st = SK ? SK[k2 >> 2] : C[k2 + 3];
+          const i = C[k2] * 3, j = C[k2 + 1] * 3;
+          let rest = SK ? SR[k2 >> 2] : C[k2 + 2], st = SK ? SK[k2 >> 2] : C[k2 + 3];
           const dx = this.p[j] - this.p[i], dy = this.p[j + 1] - this.p[i + 1], dz = this.p[j + 2] - this.p[i + 2];
           const d = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1e-6;
+          // seated, a bend only keeps the cloth from folding back on itself (SEATED.fold): it bends freely short of that
+          if (st < 0) { rest *= SEATED.fold; if (d >= rest) continue; st = -st; }
           const diff = ((d - rest) / d) * 0.5 * st;
           const pinI = i < cols * 3, pinJ = j < cols * 3;
           const wi = pinI ? 0 : pinJ ? 2 : 1, wj = pinJ ? 0 : pinI ? 2 : 1;
@@ -382,7 +440,7 @@ export class Cape {
     const still = { up: s.up, floor: s.floor, field: s.field ?? null, capsules: s.capsules, vel: ZERO, wind: ZERO, quiet: true };
     this.drape = null; this._ownDrape = false;
     this.ready = false;
-    for (let i = 0; i < BAKE.n; i++) this.update(1 / 30, still);
+    for (let i = 0, n = s.field ? SEATED.bake : BAKE.n; i < n; i++) this.update(1 / 30, still);
     this.capture();
     if (k) { DRAPES.set(k, this.drape); this._ownDrape = false; }
     this.geo.attributes.position.needsUpdate = true;

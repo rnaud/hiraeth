@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.74 — 2026-10-06
+
+- Seated people’s capes rest on what they sit on: they fall down the back, over the bench’s edge and onto the ground behind, without crumpling into stiff folded sheets or spreading out along the bench, and they no longer pass through a crate, a stool or a stone the sitter is perched on.
+
 ## v0.73 — 2026-10-06
 
 - The desert is solid where it is drawn: on the Givers’ Hearth butte and the Givers’ House tower you hang on the rough rock and the carved stone instead of half inside it, and your feet rest on the sunken leviathan’s ribs and skull, on the crashed hull and its salvage, on the fallen giant’s brow, cheeks, teeth and arm, and on the petal station’s great petals and its cage.
