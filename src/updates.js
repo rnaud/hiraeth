@@ -1,4 +1,4 @@
-// The game's updates in the Android app, as the settings show them (src/update-panel.js).
+// The game's updates in the Android app and on the Steam Deck, as the settings show them (src/update-panel.js).
 // Pure: what the app reports (AppShell.info, android/.../WebBundles.java fill()) in, what
 // to say and which buttons to offer out. The states are the app's (UpdateRules.java):
 //
@@ -29,7 +29,8 @@ export function compareVersions(a, b) {
 }
 
 /** Whether `build` (release-info.mjs gameBuild: the commit's number) is newer than every build on the device. */
-export const isNewerBuild = (build, info) => (build || 0) > Math.max(info?.web || 0, info?.app || 0, info?.ready || 0);
+export const isNewerBuild = (build, info) => (build || 0) > Math.max(info?.web || 0, info?.platform === 'deck' ? 0 : info?.app || 0, info?.ready || 0);
+// (on the Steam Deck `app` is the runtime's build, on its own scale: platform 'deck', desktop/deck-updates.mjs)
 
 /** 4.6 MB, 820 KB. */
 export function formatBytes(n) {
@@ -63,8 +64,9 @@ const vb = (version, build) => [version && `v${version}`, build && `build ${buil
  */
 export function updateView(info, { version = '', now = Date.now(), armed = false, restarting = false, failed = '', maxNotes = 4 } = {}) {
   if (!info?.web) return null;
-  const legacy = !(info.native >= SETTINGS_NATIVE);
-  const running = `${vb(version, info.web)}${info.bundle ? '' : ' (built in)'} · app ${info.app}`;
+  const deck = info.platform === 'deck';   // (the Steam Deck's runtime: every one has the buttons)
+  const legacy = !deck && !(info.native >= SETTINGS_NATIVE);
+  const running = `${vb(version, info.web)}${info.bundle ? '' : ' (built in)'} · ${deck ? 'runtime' : 'app'} ${info.app}`;
   const state = STATES.includes(info.check) ? info.check : 'idle';
   const latest = vb(info.latestVersion, info.latest);
   const size = formatBytes(info.size || info.total);

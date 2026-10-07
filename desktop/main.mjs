@@ -1,7 +1,8 @@
 import { app, BrowserWindow, net, powerSaveBlocker, protocol } from 'electron';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { deckUpdates, RESTART_EXIT } from './deck-updates.mjs';
 
 /**
  * The runtime's level, like Android's NATIVE_API: raise it when this file or Electron changes in a way
@@ -63,15 +64,40 @@ else {
   // Do not top-level-await whenReady(), which would deadlock startup.
   app.whenReady().then(async () => {
   let download = pickGame(), root = download ?? packaged;
+  // the settings' Updates section, when deck.py launched us (MOEBIUS_ROOT: the install it updates)
+  const appDir = path.dirname(fileURLToPath(import.meta.url));
+  const buildOf = (file, key) => { try { return JSON.parse(readFileSync(file, 'utf8'))[key] || 0; } catch { return 0; } };
+  const running = {
+    runtime: buildOf(path.join(appDir, 'build.json'), 'build'),
+    get web() { return root === packaged ? buildOf(path.join(appDir, 'content.json'), 'web') : buildOf(path.join(root, 'bundle.json'), 'build'); },
+    get bundle() { return root !== packaged; },
+  };
+  const updates = process.env.MOEBIUS_ROOT ? deckUpdates({
+    root: process.env.MOEBIUS_ROOT, deckPy: path.join(appDir, 'deck.py'), python: process.env.MOEBIUS_PYTHON || 'python3',
+    running, desktop: DESKTOP_API,
+  }) : null;
+  const answer = async (method) => {
+    if (!updates || !['info', 'check', 'download', 'restart'].includes(method)) return new Response('Not on this app', { status: 404 });
+    try {
+      const body = await updates[method]();
+      // (deck.py launches again into the update once the page has its answer)
+      if (method === 'restart') setTimeout(() => app.exit(RESTART_EXIT), 150);
+      return new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+    } catch (error) {
+      return new Response(String(error?.message ?? error), { status: 500 });
+    }
+  };
   protocol.handle('moebius', (request) => {
     const url = new URL(request.url);
+    if (url.hostname === 'game' && url.pathname.startsWith('/__app/')) return answer(url.pathname.slice('/__app/'.length));
     const relative = decodeURIComponent(url.pathname).replace(/^\/+/, '') || 'index.html';
     const target = path.resolve(root, relative);
     if (url.hostname !== 'game' || !target.startsWith(root)) return new Response('Forbidden', { status: 403 });
     return net.fetch(pathToFileURL(target).href);
   });
   window = new BrowserWindow({
-    title: 'Memento', width: 1280, height: 800, fullscreen: true,
+    // (MOEBIUS_HIDDEN: a test run on a desktop that mustn't take over its screen, driven over remote debugging)
+    title: 'Memento', width: 1280, height: 800, fullscreen: process.env.MOEBIUS_HIDDEN !== '1', show: process.env.MOEBIUS_HIDDEN !== '1',
     autoHideMenuBar: true, backgroundColor: '#fffaf0',
     icon: path.join(packaged, 'icons/icon-512.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true },
@@ -129,6 +155,8 @@ else {
     }, 1000);
     window.webContents.on('render-process-gone', () => { clearInterval(watch); fallBack('crashed before it started'); });
   }
+  // the settings know what is new without a press, as on Android (deck.py's own update runs at launch too)
+  if (updates) setTimeout(() => updates.check().catch(() => {}), 20_000);
   try { await window.loadURL('moebius://game/index.html'); }
   catch (error) { if (fallBack && root !== packaged) fallBack(`didn't load (${error.message})`); else throw error; }
   // CI exercises the packaged browser, local protocol, WebGL and game loading: the title
