@@ -1583,7 +1583,20 @@ export class Player {
   // ------------------------------------------------------------------ climbing
   // Sable-style: push into a steep wall to grab it; W/S climb, A/D shuffle,
   // Space jumps off, reaching the top mantles over it. Uses stamina.
+  /**
+   * The ground at a wall's face (x, z just off it) when it stands over the climber's feet by no more than a
+   * step (sand banked up the wall: src/sand-drifts.js), else null: where his feet may not go below.
+   */
+  climbFloor(x, z) {
+    if (this.frame.up.y < 0.999) return null;
+    const g = this.physics.groundAt(x, this.pos.y + 1.0, z, 2.5);
+    return Number.isFinite(g) && g > this.pos.y && g - this.pos.y < 0.7 ? g : null;   // (a step at most: not a sill passed on the way)
+  }
+
   startClimb(n) {
+    // (where sand is banked up the wall, he takes hold standing on the bank at its face)
+    const face = this.climbFloor(this.pos.x - n.x * (RADIUS - 0.06), this.pos.z - n.z * (RADIUS - 0.06));
+    if (face !== null) this.pos.y = face;
     this.climbing = true;
     this.wallN.copy(n);
     this.vel.set(0, 0, 0);
@@ -1609,6 +1622,14 @@ export class Player {
     this.pos.copy(hit.point).addScaledVector(n, this.animator ? 0.27 : RADIUS + 0.08).addScaledVector(U, -1.2);
     // (a wall that moves, the great wheel's turning rim: the hands go with it)
     if (hit.mover) this.pos.addScaledVector(moverCarrier(hit.mover, hit.point, this._moverRide ??= { vel: new THREE.Vector3() }).vel, dt);
+    // where sand is banked up the wall's foot (src/sand-drifts.js), the climb starts on the bank: the ground
+    // right at the face is higher than where the climber hangs, 0.27 m out, and his hands and knees went
+    // into the drawn sand. Never below the ground at the face; climbing down onto it, he stands.
+    const face = this.climbFloor(hit.point.x + n.x * 0.06, hit.point.z + n.z * 0.06);
+    if (face !== null) {
+      this.pos.y = face;
+      if (f < 0) { this.stopClimb(true); return; }
+    }
 
     // reached the top: nothing in front at head height -> mantle over
     const head = _v2.copy(this.pos).addScaledVector(U, 2.3);

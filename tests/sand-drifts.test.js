@@ -231,3 +231,33 @@ test('a long curved wall is footprinted in pieces that follow its foot: no sand 
   // a plain box is still one footprint
   assert.equal(footprintsOf(new THREE.BoxGeometry(30, 4, 2).translate(0, 2, 0), flat).length, 1);
 });
+
+test('a climb that starts where sand is banked up a wall starts on the bank: never under the sand at the wall’s face', async () => {
+  const { Physics } = await import('../src/physics.js');
+  const { Player } = await import('../src/player.js');
+  const scene = new THREE.Scene();
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 2).translate(0, 5, 1), new THREE.MeshBasicMaterial());
+  scene.add(wall);
+  scene.updateMatrixWorld(true);
+  const ground = { heightAt: flat };
+  // the wind blows into the wall's face (z = 0, facing -z): the biggest drift is on that side
+  const d = new SandDrifts({ heightAt: flat, wind: [0, 1], seed: 4 }).addScene(scene);
+  scene.add(d.build(new THREE.MeshBasicMaterial()));
+  d.raise(ground);
+  const physics = new Physics(scene, ground);
+  const faceAt = (x) => ground.heightAt(x, -0.06);
+  assert.ok(faceAt(0) - ground.heightAt(0, -0.35) > 0.05, `a bank against the face (${faceAt(0).toFixed(2)} m at it)`);
+  for (const x of [-4, 0, 3]) {
+    const P = new Player(physics, { health: false, climb: true });
+    P.respawn(new THREE.Vector3(x, ground.heightAt(x, -4), -4));
+    let climbed = false, under = 0;
+    for (let f = 0; f < 60 * 4; f++) {
+      P.update(1 / 60, { KeyW: true }, Math.PI);   // (toward +z, into the wall)
+      if (P.climbing) { climbed = true; under = Math.max(under, faceAt(P.pos.x) - P.pos.y); }
+    }
+    assert.ok(climbed, `at x ${x}: climbs`);
+    // and down again: he stands on the bank at the wall
+    for (let f = 0; f < 60 * 8 && P.climbing; f++) { P.update(1 / 60, { KeyS: true }, Math.PI); if (P.climbing) under = Math.max(under, faceAt(P.pos.x) - P.pos.y); }
+    assert.ok(under < 0.03, `at x ${x}: the climber's feet up to ${under.toFixed(2)} m under the sand at the wall`);
+  }
+});
