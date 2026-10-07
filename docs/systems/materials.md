@@ -24,6 +24,9 @@ all of it is in the game's own materials and post pass (every world uses it), no
   0.55 by default, the references' bones and sails fewer); a lifted shade gets fewer strokes and no
   cross-hatching (a whole wall in half-tone is no longer a field of crossed lines); strata rock
   (`strataHatch`, on by default) keeps runs of strokes along its beds in the light.
+- **A hatched mass** (`hatch` over 1, `HATCH_DENSE`, October 2026): strokes up to 1.3 × closer (no finer: past
+  ~4 px apart strokes only read as a tone), the shade drawn heavier (cross-hatched sooner), and a half-tone no longer
+  thins them; Lorn II's roots (1.8) and bushes (2.2), references.md "Lorn II's sheets". Under 1 it is the amount, as before.
 - **Calmer ground** (`GROUND` in `src/ground-ink.js`): rarer ripple patches, fewer long wind lines,
   the print look's coarse dots only in patches (`GROUND.dots`), and bare rock ground (terrain with
   `pattern: 'cracks'`) draws long fissures and a finer broken net close by (`rockFissures`) instead of

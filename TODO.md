@@ -102,11 +102,15 @@ scene-level modelling and a few shader limits:
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
     on the sheets, ours dark; its cloud puffs are pre-shaded vertex colours (not the flat print), its
     planets stay (the sheets have none), and dusk and night keep the old blue shadow.
-  - The Garden of Spheres: the canopies' undersides want dense radiating *branch* lines and foliage as
+  - [x] The Garden of Spheres: the canopies' undersides want dense radiating *branch* lines and foliage as
     clusters of small inked leaf masses (the form hatching radiates, but the shapes are smooth lumps);
     the white stone's shade a flat pale blue with almost no strokes; the spheres' printed crescent
-    whatever the sun.
-  - Lorn II: roots and bushes as dense hatched masses.
+    whatever the sun. Done (October 2026, world and views): veins drawn as forking boughs (`FORM.veins`), the
+    world's undersides veined; foliage as clusters of welded leaf masses (`leafCrown`); `WHITE_SHADE` (flat,
+    hatch 0.08); the views' spheres printed in two tones with their crescent (references.md, the Garden's).
+  - [x] Lorn II: roots and bushes as dense hatched masses. Done (October 2026, world and views): a hatch over 1
+    is a hatched mass (`HATCH_DENSE`: closer, heavier strokes that a half-tone keeps), `ROOT_INK` and
+    `BUSH_INK` (references.md, Lorn II's).
 - [ ] Scene-level, world by world (modelling, not shading):
   - [x] Vael II: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's framing, the
     monasteries' detail (arcades, cypresses, roofs), the mushrooms' lean, the bird's standing pose
@@ -114,9 +118,13 @@ scene-level modelling and a few shader limits:
     rooted in the undersides and printed in their shade, cracked eggs and stones, the cave mouth hung
     with stalactites, arcades, eaves, finials and cypresses, leaning tables, the bird on long legs with
     her wings folded along her sides (`poseWings`), knobbly cloud; docs/systems/worlds.md, animation.md.)
-  - The Garden of Spheres: the white hill's sculpted rock, the ruins' arcades, the robot, the hedges'
-    fruit, the plaza's paving are sketches.
-  - Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes.
+  - [x] The Garden of Spheres: the white hill's sculpted rock, the ruins' arcades, the robot, the hedges'
+    fruit, the plaza's paving are sketches. Done (October 2026, world and views, `src/levels/garden-kit.js`):
+    pillows of stone round the terraces, arcades of round arches, a robot of 28 parts, fruit hedges, paved
+    rings whose joints the ink draws; the views' framing checked panel by panel.
+  - [x] Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes. Done
+    (October 2026, world and views, `src/levels/wood-kit.js`): roots as braided strands, cave mouths framed in
+    tangled arches with hanging roots and feet, bushes of leaf clumps, a woven nest of eggs under a ribbed dome.
   - The Signal Market: the crowd, the stalls' goods, the cabs.
   - The Buried Machine: the trench's pipe mass, the city's clustered hanging towers, the drum's
     interior machinery and arcades, the oval tunnel's interior, the moon cave and the rock ledge.
