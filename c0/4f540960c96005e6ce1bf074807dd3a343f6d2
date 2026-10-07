@@ -1,0 +1,23 @@
+src/levels/perdide2.js
+  s_55b4bc53b812ec::t_ac931e38d207f2 31-34
+src/levels/reference-lorn.js
+  s_55b4bc53b812ec::t_54edacd2381fbc 7,9,45-47,57-58,126-127,130,141-149,174,239,265,268-275,287-288,296,301,314,383,449,464,535,561
+src/levels/wood-kit.js
+  s_55b4bc53b812ec::t_effa05e66f748a 64,68-69,71-75,96-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c04f540960c96005e6ce1bf074807dd3a343f6d2",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
