@@ -196,7 +196,7 @@ test('a body\'s reshaped copies share its skin, triangles and face keys', () => 
 test('the named desert people follow their character sheets', () => {
   const at = (id, def = PEOPLE[id]) => namedLook({ world: 'desert', id, palette: def.palette, head: def.head, cape: def.cape, look: def.look, kind: def.body ?? def.kind });
   assert.equal(at('bako').mask, 'beard'); assert.equal(at('bako').head, 'wrap');
-  assert.equal(at('nour').head, 'sunhat'); assert.equal(at('nour').mask, 'veil'); assert.equal(at('nour').prop, 'staff');
+  assert.equal(at('nour').head, 'sunhat'); assert.equal(at('nour').mask, 'veil'); assert.equal(at('nour').prop, 'discstaff');
   assert.equal(at('marrow').mask, 'browgoggles'); assert.equal(at('marrow').head, 'raghood'); assert.notEqual(ageClassOf({ def: PEOPLE.marrow, dress: at('marrow') }), 'elder');
   // her sheet: a cap over her braid, the oud on its strap (the cap is worn on the braid, not instead of it)
   assert.equal(at('sefa').head, 'braidcap'); assert.equal(underOf(at('sefa')), 'braid'); assert.equal(at('sefa').prop, 'oud'); assert.equal(at('sefa').capeLen, 1.45);

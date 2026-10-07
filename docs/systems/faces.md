@@ -242,3 +242,42 @@ ticked down and a blue-violet shade over the skin. They stay ligne claire, but k
   at night. The parents' holograms draw a lighter lid and a mouth a little up.
 - `tests/warm-faces.test.js`; `tests/face-ink.test.js` checks the lashes are folded and measures the brows'
   taper across the stroke.
+
+## The coral-shirt traveller's drawn face
+
+The game's traveller is the Tripo body (`src/characters/traveller-v1.js`): one mesh with his face
+painted into its texture and no expression rig, so he wore none of the tones. Choice (2026-10-07): a
+face drawn in his body's own fragment shader, not morph targets or a retopologised head. The GLB stays
+as it is, the paint's look is kept, and the cost is one box test per pixel of his body and four
+uniforms a frame.
+
+- **Where** (`src/characters/tripo-face.js`, `TRIPO_FACE`): in the head's bind space (`vBind`, skinned
+  with the head as the paint is), measured off a front orthographic render of the painted texture. The
+  centre line is x = -0.001, the eyes at y 1.6415 (x ±0.033), the brows from x 0.011 to 0.062 round
+  y 1.66, the mouth at y 1.5805. Only in front of z 0.035, since the back of the head has the same x, y.
+- **Covering the paint**: over each painted feature's oval, a pixel that isn't skin (more than ~0.03
+  from the skin colour round it, sRGB as the texture holds it) is painted with that skin. The paint's
+  soft edges go with it, and the skin's own pixels are kept. The lid band between brow and eye has a
+  slightly darker fill.
+- **Drawing it again, in the same hand**: thick black brows, square at the inner end and tapering
+  out; an almond of white with a large dark iris, a pupil and a catchlight (dropped once the face is
+  too small for it); a heavy upper lid line with a flick past the outer corner and a fine lower lid;
+  a mouth line with corner ticks and a lower-lip stroke, which opens into a dark shape with teeth at
+  the top. Widths are in metres with a floor of about 0.6 px, so the face still reads in a portrait
+  circle.
+- **The channels** (`tripoFaceState`, pure): `smile` turns the corners up or down, widens the mouth
+  and lifts the lower lids. `open` drops the lower lip. `brow` raises the brows, or lowers them and
+  draws them together; raised past 0.4 it also widens the eyes. `browTilt` moves the inner ends up
+  (worry) or down (anger). `squint` brings both lids in. `gaze` and the eyes' own glances move the
+  irises (clamped to the eye). The blink shuts the upper lid onto the lower one, which draws a single arc.
+- **Plumbing**: `Humanoid.drawnFace` (set by `createTravellerV1`). `setExpression` passes the
+  expression on, and `updateEyes` passes the blink, the squint and the look before `EYE_TILT`. So
+  `talkFaces.drive` (the conversations, the moments, his answers) works on him unchanged. He rests
+  with `TRAVELLER.rest` (a little smile). The uniforms are looked up on the mesh's material each push,
+  because `markHero` gives the player copies of his materials.
+- **Cost**: at the Handheld preset in headless Chrome on the Mac, the GPU time with the face on and
+  off was the same within noise (about 6.9 against 7.1 ms over the normal follow camera). The CPU
+  work is a few multiplies a frame with no allocation, and none of it touches the cloth worker.
+- `tests/tripo-face.test.js` checks each channel on the state, the blink and gaze, and the shader's
+  uniforms. On the real body it checks the expression, the blink and the talking mouth reaching his
+  material, through `markHero`.

@@ -31,6 +31,9 @@ first time it is seen, every geometry and material theirs, and calls the backend
 | `visible(id, on)` | an object (or an ancestor) shown or hidden, or out of the scene | |
 | `instances(id, count, mats, colors)` | an `InstancedMesh`'s matrices or count changed | three's `instanceMatrix` (16 a instance) and `instanceColor` |
 | `geometryOf(id, gid)` | a drawable's geometry swapped or rewritten (cloth, trails) | the geometry's id (sent again first) |
+| `instances(id, count, null, null, attrs)` | a mesh on an instanced geometry (kind `instgeo`: the grass) whose attributes moved | each per-instance attribute that moved, with the range rewritten (`updateRanges`) |
+| `drawState(id, o)` | each frame an `instgeo` drawable is drawn | the object: the backend reads what moves on it (the grass patch's centre and fades) |
+| `materialLive(mid, color, glow)` / `materialFluid(mid, f)` | a material's colour, glow or fluid moved after it was sent | the new values (a flower waking, a lamp lit, the tank's fluid) |
 | `bones(id, mats, n, bind, bindInverse)` | each frame a skinned mesh is seen | three's `skeleton.boneMatrices` (bone world × inverse bind) and the mesh's bind matrices (`engine/skin.js` folds them into one matrix a bone) |
 | `remove(id)` | out of the scene for `forgetAfter` frames | |
 | `camera(c)` | each frame | world matrix, vertical fov, near, far, aspect |
@@ -500,22 +503,73 @@ fluid tool's shot and the drone at the start:
 
 (`scripts/unity-js-run.sh <name> -play tool,drone -out …` plays the second; the views with `-views`.)
 
-What still differs: the Signal Market's façades lack the web's newer surface marks (the port's
-Surface shader predates them), and its light pillar; the web's grass blades and wind streaks are not
-drawn; the web wakes the answering flowers by the traveller's nearness sooner; some of the web's
-people are MakeHuman bodies the bridge does not load yet.
+(What still differed then, and what closed it: the next section.)
 
-**The grass and the wind, looked into** (2026-10-06). *Building* the blades in the VM is one line in
-`engine/game.js` (`buildGrass` beside `buildFlora`, `grass.update(camera)` in the frame), and it
-works: the Garden of Spheres builds its two grass meshes inside Puerts. *Drawing* them is the port's
-side: `Grass` (src/flora-grass.js) is a plain `THREE.Mesh` carrying `geometry.instanceCount` and a
-per-instance `aGrass` vec4, and `engine/mirror.js` describes a plain mesh as a plain mesh — only an
-`InstancedMesh` gets a `capacity` — so Unity draws one blade at the origin and the field is
-invisible. It wants a mirror kind and a Surface variant of its own, as `MEMENTO_INSTMAT` and
-`MEMENTO_CROWD` are. The one-line VM change was taken out again meanwhile, so the VM does not pay
-for blades nothing draws. The wind streaks are not scene geometry at all: `src/wind.js` is a
-screen-space overlay drawn over the composite from a scene of its own, so they belong to the port's
-look and not to the mirror.
+## The web's newer look and the rest of the world (Unity + Puerts, 2026-10-06)
+
+What the side-by-sides above still showed, closed:
+
+- **The port's look brought up to the web's** (`Surface.shader`, `Marks.hlsl`, `Composite.shader`). The port's
+  shaders dated from 2026-10-05 morning; materials.js and post.js had moved on. Now ported: weathering
+  (`weatherInk`: grime streaks, the small ones soft and faint, chips with their lip's shadow, cracks with a
+  shadow side, the dust at a wall's foot in the composite), pen detail at every scale (`detailLod`: built
+  seams, joints, vents, plates and bolts; organic grain), colour across a wall (`wallPatch`), plating, the
+  house fronts' lit windows at night and cracked corners, the print look's pebbles and stones on the sand
+  (ground-ink.js `PEBBLES`), the shadow map's lit fraction steepened (`SHADOW_CUT`), flat facets edge-on to
+  the sun shaded whole, big curved forms' terminators; and the G-buffer's newer packing, read by a composite
+  that is now post.js's main (each surface's shade: its lift, hue or flat print; spot blacks; cast shadows
+  lifted or printed as ink masses, `uInkShadow`; lines by material, `uLineStep`; the face's warm shade;
+  banked sand's soft line; haze in layers and fog by height; the lines' noise on the view's direction, from
+  the same 128² texels: `MementoLook.LineNoise`; no paper grain or vignette). The materials carry the new
+  options through `port-format.js` (`weather`, `detail`, `patch`, `plates`, `windows`, `drift`, `shade`,
+  `spotStep`, `lineStep`) and the look its vectors (`LOOK_VECTORS`: `uSpot`, `uInkShadow`, the haze's). Not
+  ported: hatching that follows the form (`S_FORM`: its per-vertex axis isn't uploaded), the makers' boxes'
+  own star and ray (`MAKERS_BOX`: the shell is drawn plain), MakeHuman faces' shape keys (`FACE_KEYS`).
+- **The light pillar** was the jetpack box's beacon by the ship: engine/game.js now builds the makers' boxes
+  (`createBoxes`), their beacons with them.
+- **Grass**: `engine/mirror.js` kind `instgeo`, a plain mesh on an `InstancedBufferGeometry` with a count of its
+  own (flora-grass.js `Grass`): `create` says its capacity and attributes, `instances(id, count, null, null,
+  attrs)` sends them when their versions move, only the range rewritten (`updateRanges`), `drawState(id, o)`
+  each frame. In Unity (ops 12, 13) the port's `MEMENTO_GRASS` places the tufts, now with grass-shader.js's
+  own fades (thinning by rank, the blend into the ground's tones, the far layer growing in, a few pen-lined
+  tufts). `buildGrass` and `grass.update(camera)` are back in engine/game.js, on the bench's preset (High).
+- **Wind**: the web's own (`WindStreaks`: the traveller's push, the plants' and blades' `uWind`, sent with the
+  look), and its wisps, which on the page are an overlay of their own, as a mesh in the mirrored scene on the
+  port's `Memento/Wisp`; their points and alpha go each frame as cloth's do (op 8, `aAlpha`).
+- **The answering flowers**: the bridge paused the answering plants (and the animals) at a fixed view, which
+  main.js doesn't; and a material's colour and glow changed after it was sent never reached Unity, so a
+  waking flower opened but stayed its quiet green. The mirror now sends them live (`materialLive`, op 15,
+  to each copy the port drew a material with: lamps, beacons, the temples' lights too), and the traveller's
+  fluid on the tank, hose and globs (`materialFluid`, op 16). A view settles 1.5 s of the game's time.
+- **People**: the world's MakeHuman bodies, as main.js loads them (`usesMakeHuman`, `loadPeople`).
+- **The coral-shirt traveller** (characters/traveller-v1.js): built as main.js builds him; his overshirt's
+  cloth steps on the VM's own thread (tripo-cloth.js falls back where there is no `Worker`). His skin's
+  texture is a JPEG no engine VM decodes, so its sampled colours (colors.json) go on as vertex colours,
+  found by place (the cloth rebuilt the skin and cut the overshirt from it); his parts' linear colours are
+  turned to display values in the port's shader (`albedoLinear` → `_ToDisplay`, as tripo-material.js does).
+  Not carried: the overshirt's lining colour on its back faces, the trousers' repair band. The glove, the
+  fingers (hands.js), the self-driving cabs on their lanes and a seated ride (`-play cab`), seated robes and
+  capes all draw.
+
+The same views, the web left, Unity right (after):
+
+![the Signal Market](../engine-bridge/sbs2-market.jpg)
+![the desert](../engine-bridge/sbs2-desert.jpg)
+![the Garden of Spheres](../engine-bridge/sbs2-spheres.jpg)
+![Viridel](../engine-bridge/sbs2-viridel.jpg)
+![the traveller and the cab](../engine-bridge/sbs2-traveller.jpg)
+
+What still differs: hatching that follows the form, the boxes' star and ray, the MakeHuman faces' shape keys,
+the overshirt's lining; some of the people near the camera hold their things out sideways in Unity (not yet
+understood: the props ride the same bones); which people stand where (another moment of the same code);
+cloud shadows (the clock); the portraits in the conversation chip.
+
+**What it costs**: the VM's update grew with what it now runs. The coral-shirt traveller's overshirt cloth is
+the largest share: on the web it steps in a Web Worker, here on the VM's own thread (in Node's `vm` context,
+35 of a 49 ms frame at the garage; in Puerts' V8 a few ms). On a busy machine (load 21–27) the editor's frame
+at the camps was 22.9 ms (update 13.6, mirror 5.0), the dunes 13.2 (6.7, 2.8), the Garden of Spheres' start
+5.8 (3.0, 1.3): to be measured again quietly, and the cloth moved off the script's thread (a C# job over the
+same flat arrays tripo-cloth-sim.js steps) before the Retroid's run.
 
 ## Players (Unity + Puerts, next stage 4)
 
@@ -584,3 +638,5 @@ device wait for the Retroid.
 - **Unity, stage 3 (the rest of the picture and the play: sound, life, weather, the tool and the
   drone, lights, motes, prints)**: above.
 - **Unity, stage 4 (players: macOS, Linux, Android)**: above.
+- **Unity, the web's newer look and the rest of the world** (the surface marks, the boxes, grass, wind, the
+  answering flowers, MakeHuman people, the coral-shirt traveller, the cabs): above.

@@ -38,7 +38,7 @@ Shader "Hidden/Memento/Bloom"
           for (int x = 0; x < 4; x++)
           {
             int2 p = min(base + int2(x, y), size - 1);
-            float a = _GHatch.Load(int3(p, 0)).a;
+            float a = fmod(_GHatch.Load(int3(p, 0)).a, 16.0);   // (+16 a face, +32 banked sand: post.js)
             a -= 8.0 * step(7.5, a); a -= 4.0 * step(3.5, a); a -= 2.0 * step(1.5, a);
             float e = smoothstep(0.62, 0.9, a);
             if (e > 0.0) { float3 c = _GAlbedo.Load(int3(p, 0)).rgb * e; sum += c; mx = max(mx, c); }

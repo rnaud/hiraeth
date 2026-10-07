@@ -610,3 +610,69 @@ fast and too shared to settle it. Done, at no measured cost in load time:
 Still to measure on the Retroid (it was taken back mid-run): an `adb shell screenrecord` of a desert and a
 City-Shaft load, decoded in Chrome and read with `pen.mjs`'s `angles()`. Also left for the device: the
 speaker's portrait circle (TODO, Dialogue), the game menu's item pictures and the self-driving cab ride.
+
+## The traveller's overshirt on the GPU (October 2026)
+
+After the worker took the cage (above), the shirt still cost 2.4 ms of main-thread JS a frame on the
+Retroid. The cost came from three steps, each frame: every one of the garment's 10.8 k vertices was
+moved (eased between its skinned place and its place on the attachment bone, then offset by its cell
+of the cage and pushed off the legs), its normals were summed, and 260 kB of positions and normals
+were uploaded.
+
+- **The garment's vertex shader does it now** (`tripo-cloth.js` `garmentShader`, `GARMENT_GLSL`;
+  `gpu`, the game's path). The garment is a `SkinnedMesh`, so three's skinning chunk gives the skinned
+  place from the bone texture. `uGarmentRigid` gives the rest shape on the attachment bone. The
+  particles and the targets they were simulated against are two 495-texel float textures, 16 kB a
+  frame, read with `texelFetch`. Five leg capsules are uniforms. The static attributes `aCage` (the
+  cell, where the vertex sits in it, its freedom) and `aOutward` carry the rest. The normal is the rest
+  normal turned like the vertex: rigid or skinned, then by the cage's turn in its cell (its normal over
+  the targets to over the particles), and away from a leg's axis where the leg pressed the cloth. The
+  main-thread path stays for tests and pages without WebGL. `tests/tripo-cloth-gpu.test.js` runs the
+  shader's sums in JS against it, frame after frame with the hips swinging: every vertex lands within
+  0.2 mm.
+- **Its shadow is the same shape**: the shadow passes' single plain material would skin the garment
+  but not move it with the cage, and the misplaced shadow shaded the hem in patches. So the garment is
+  left out of those passes (`Humanoid.noShadow`), and a proxy with a depth-only version of the shader
+  (`garmentDepthMaterial`) is drawn into each cascade after the scene (`main.js shadowPass`, the
+  character's `shadowCasters`).
+- The worker's step messages hand their arrays over instead of copying them.
+
+Measured in headless Chrome on the Mac at the Handheld preset with the CPU throttled ×4 (the Retroid
+was not attached), timing `updateCloth` in the page: **3.5 ms → 0.5 ms** a frame (median 0.2–0.5).
+That figure does not include the old per-frame upload of positions and normals, which ran inside
+`render()` and is now 16 kB of texture. The frame's own CPU readout varied between 23 and 50 ms
+across runs of the same build on the Mac, so it can't show a 2–3 ms difference. The look is checked
+side by side (still and walking, front, sides and back).
+On the device the 2.4 ms should fall in the same ratio, to roughly 0.3–0.4 ms. Not yet measured there.
+
+## The Steam Deck (October 2026)
+
+**What it ran.** The Deck's app had no preset of its own: the settings' default there was High (no
+Android app, and a mouse-like pointer), which renders at 1.5× (1920 × 1200 for its 1280 × 800 screen)
+with the full recipe (every crowd figure, props out to 520 m, all plants, the fine 2 k cascade). Measured
+once on the runtime of v0.73 (Steam Deck OLED, SteamOS 3.8.28, Mesa 26.1, ANGLE on radeonsi): the
+title screen at 90 fps (Desktop Mode, the 90 Hz panel) and 60 (nested gamescope's cap), the desert's
+spawn at 17–22 fps with the renderer process at 100 %+ of a core, so the main thread was the limit.
+
+**The Steam Deck preset** (`QUALITY_PRESETS.deck`, v0.76): between Handheld and Medium. The Deck's own
+resolution (scale 1, adapting down to 0.6 with the Handheld's missed-refresh rule and its `cpuBound`
+guard), crease shading and both ink passes as on Medium; the Handheld's lighter CPU side where the Deck
+pays for it: crowd figures out to 260 m (full figures 45 m), props out to 380 m and over 1.5 px, plants at
+0.75 of their range and 0.65 of their density, LOD at 1.5 px, a 1 k fine cascade, the near and far maps
+every 2nd and 4th frame, 4 PCF taps, no cloud shadows. The grass is Low's. Auto picks it on the Deck
+(`detectDeck`: the page at `moebius:`, or a Van Gogh GPU, `AMD Custom GPU 0405` / `0932`), and a Deck
+whose settings were saved on High or Medium moves to Auto once (`deckV`); a lighter choice is kept.
+
+**Measuring.** `scripts/bench/deck-run.sh start [desktop|gamescope] [game dir on the Deck]` starts the
+game over ssh (muted, remote debugging on 9222, a tunnel to the Mac's 5310; only its own unit,
+`memento-bench`), and `node scripts/bench/deck-worlds.mjs --quality deck|high --modes fixed,dynamic
+[--scale 1.5] [--profile 1]` runs every world's views as the Retroid run does (`viewpoints-worlds.json`,
+the desert's `viewpoints.json`): fps, p95, missed refreshes, the JS and GPU time a frame, draws, the
+scale the game chose, and with `--profile` the main thread by system. Checked on the Mac (Electron 44,
+the fake install of `docs/steam-deck.md`): the desert's spawn on the Steam Deck preset 575 draws, 12 ms
+of JS (the G-buffer 3.2, the player 2.2, the shadows 1.8, people 1.1).
+
+**Not yet measured on the Deck**: the Deck was asleep through this round, so the before/after table
+for every world, whether the `cpuBound` guard is right there (keep it if the main thread is the limit,
+as the v0.73 reading suggests; drop it if the GPU turns out to be), the GL against the Vulkan backend
+under gamescope for frame rate, and the loading pen during a load are still to do.

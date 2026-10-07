@@ -279,7 +279,7 @@ export class NPC {
     this.cape?.dispose(this.scene);
     const wide = s.capeWide ?? 1;
     this.cape = s.capeLen > 0
-      ? new Cape(this.scene, c.capeAnchor ?? c.torso, { color: s.cloak, cols: 10, rows: s.capeLen > 1 ? 8 : 6, length: s.capeLen, bottom: (0.25 + s.capeLen * 0.17) * wide * (BUILDS[s.build]?.width ?? 1) })
+      ? new Cape(this.scene, c.capeAnchor ?? c.torso, { color: s.cloak, cols: 10, rows: s.capeLen > 1 ? 8 : 6, length: s.capeLen, bottom: (0.25 + s.capeLen * 0.17) * wide * (BUILDS[s.build]?.width ?? 1), bells: s.capeBells ?? 0 })
       : null;
     if (this.cape && this.pooled) this.cape.mesh.visible = false;
     // the cape's rolled collar in the cape's own colour
@@ -834,7 +834,7 @@ export class NPC {
   drapeKey(pose = this.seat ? 4 : 0, field = null) {
     const seated = pose === 3 || pose === 4, H = this.humanoid, R = H?._robeLook;
     // (and what lies under the cloth: a story person's own body shape, a robe)
-    const under = `${H?.morph ? `~${JSON.stringify(H.morph)}` : ''}${R ? `~robe${R.hem.toFixed(2)}/${R.flare.toFixed(2)}` : ''}`;
+    const under = `${H?.morph ? `~${JSON.stringify(H.morph)}` : ''}${R ? `~robe${R.hem.toFixed(2)}/${R.flare.toFixed(2)}` : ''}${H?._propBulk ? `~${H._propBulk.id}` : ''}`;
     return `${H ? `${H.profile?.id ?? this.kind}/${H.build}${H.years ? `@${H.years}` : ''}` : 'rig'}${under}/${seated ? pose : 0}${seated && field ? `|${field.sig}` : ''}`;
   }
 

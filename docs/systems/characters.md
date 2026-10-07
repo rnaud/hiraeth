@@ -488,3 +488,16 @@ kit's `staff` and `bell` reused rather than copied. Every held prop needs an ent
 (`src/hands.js`) or `tests/hands.test.js` fails. The chest pieces outgrew sixteen: `BODY_ID_LIMIT` is
 32 and `src/crowd-shader.js` reads the prop from 512. Marrow's hand-cart is world geometry, not a
 piece: it stands in the camps (`src/desert-city.js`) at his pitch.
+
+A second pass (docs/makehuman.md, "The rest of what the sheets draw") added `gourds` and `scavbag`
+(chest), `discstaff` (held), the bell staff's streamers, the oud's tassels, and two small systems:
+
+- **Bells on a cape's hem** (`src/cape.js`, `bells` / `BELLS`; a look's `capeBells`, drawn from no random
+  number so nobody else's look changes): one small mesh, a child of the cape's, so it is in the cape's own
+  space whether the cloth is simulated (world), hung (the anchor's) or carried between updates
+  (`follow`); each bell is placed on a hem point along the cloth's fall there, every time the cloth's points
+  are written (`ringBells`). `tests/desert-props.test.js`.
+- **Bulky held props push cloth** (`PROP_BULK` in `src/costumes.js`: capsules in the hand frame;
+  `Humanoid.propCapsules`, added to `capsules()`): the oud's bowl and neck, so Sefa's cloak swings round
+  it instead of through it. A cape baked round one has its own drape key (`~oud`). The radii cover the
+  bowl's rim, not just its depth: the cloth's faces between points cut a little inside the colliders.

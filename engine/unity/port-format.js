@@ -19,6 +19,10 @@ export function portMaterial(spec, id = 0) {
   if (spec.type === 'shader' && typeof u.uDepth === 'number' && spec.transparent && !spec.depthWrite) {
     return { id, name: spec.name ?? '', port: 'print', depth: r5(u.uDepth), side: 2, plain: 1 };
   }
+  // the wind's wisps (wind.js WindStreaks: ribbons of ink with an alpha per vertex, tested against the G-buffer) → Memento/Wisp
+  if (spec.type === 'shader' && 'uRes' in u && 'uInk' in u && spec.transparent && !('uMode' in u) && !('uColor' in u)) {
+    return { id, name: spec.name ?? '', port: 'wisp', side: 2, plain: 1 };
+  }
   // another of the game's shaders that the port has its own of: the fire's (story/flames.js → Memento/Flame)
   if (spec.type === 'shader' && Array.isArray(u.uPal) && u.uPal.length >= 15) {
     return { id, name: spec.name ?? '', port: 'flame', pal: u.uPal.slice(0, 15).map(r5), seed: typeof u.uSeed === 'number' ? u.uSeed : 0, k: typeof u.uK === 'number' ? u.uK : 1, side: 2, plain: 1 };
@@ -37,6 +41,13 @@ export function portMaterial(spec, id = 0) {
     vertexColors: spec.vertexColors ? 1 : 0,
     plain: spec.type === 'ink' ? 0 : 1,
   };
+  // the web's newer surface marks (materials.js): weathering, pen detail, colour across a wall, plating, the window
+  // share, banked sand, the shade (lift, hue, hatch, strata strokes), the spot-black and line steps
+  for (const [k, name] of [['weather', 'uWeather'], ['patch', 'uPatch'], ['plates', 'uPlates'], ['windows', 'uWindows'], ['drift', 'uDrift'], ['spotStep', 'uSpotStep'], ['lineStep', 'uLineStep']])
+    if (typeof u[name] === 'number') e[k] = r5(u[name]);
+  if (Array.isArray(u.uDetail)) e.detail = u.uDetail.map(r5);
+  if (spec.albedoLinear) e.toDisplay = 1;   // (the coral-shirt traveller: linear colours, turned to display values in the shader)
+  if (Array.isArray(u.uShade)) e.shade = u.uShade.map(r5);
   const ps = v('uPaletteSize');
   if (ps > 0 && Array.isArray(u.uPalette)) for (let i = 0; i < ps; i++) e.palette.push(u.uPalette.slice(i * 3, i * 3 + 3).map(r5));
   if (spec.defines?.METAL && Array.isArray(u.uMetal)) { e.metal = u.uMetal.map((x) => +x.toFixed(4)); e.brushAxis = u.uBrushAxis ?? [0, 1, 0]; }
