@@ -32,6 +32,8 @@ export const SKY_STONES_LOOK = { uCumulus: 0, uClouds: 0, uBounce: 0, uHalftone:
 /** The day's colours: sky top, horizon, the shadow's grey-blue, light, sun. */
 /** The crevasses' and the plain's steep faces: a red-brown, lit and hatched as the sheets draw them, never spot black. */
 export const CREVASSE = { wall: '#c0664a', strokes: 1 };   // (strokes: the lit walls' strokes, materials.js S_TERRAIN)
+/** The sea of cloud's print: its shade a flat pale grey-blue (lifted, the look's own flat print), no strokes, no spot black. */
+export const CLOUD_PRINT = { shade: 0.55, shadeFlat: 1, hatch: 0, spot: 0 };
 export const SKY_STONES_DAY = ['#a3d0d2', '#f4cdb0', '#93a6ac', '#fff7ec', '#fff2dc'];
 
 // ---------------------------------------------------------------- layout
@@ -725,23 +727,16 @@ export function* buildArzach2(scene) {
   const cloud = [];
   yield;
   {
-    const PAL = ['#fffbf4', '#f8e4d6', '#d8dbee'];
+    // (printed flat as the sheets print cloud: a warm white in light, one pale grey-blue in its shade, by the real
+    //  sun, no strokes; the puffs were pre-shaded in three fixed vertex tones, lit from one side whatever the hour)
     const puffGeo = (detail) => {
       const g = new THREE.IcosahedronGeometry(1, detail);
       lumpy(g, 0.17, 2.3, detail);   // (knobbly, not a ball: the sheets' cloud is cauliflower at every scale)
       g.computeVertexNormals();
-      const p = g.attributes.position, c = new Float32Array(p.count * 3), col3 = new THREE.Color();
-      for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-        const lit = (x * 0.7 + y * 0.69 + z * 0.19) / Math.hypot(x, y, z) + nB(x * 2.2, z * 2.2 + y) * 0.16;
-        col3.set(lit > -0.05 ? PAL[0] : lit > -0.3 ? PAL[1] : PAL[2]);
-        c[i * 3] = col3.r; c[i * 3 + 1] = col3.g; c[i * 3 + 2] = col3.b;
-      }
-      g.setAttribute('color', new THREE.BufferAttribute(c, 3));
       return g;
     };
     // (a thin line in its own shade's blue, not the ink: materials.js LINE)
-    const cloudMat = makeMaterial({ color: '#ffffff', vertexColors: true, palette: PAL, glow: 0.5, line: 0.45, lineTint: 1 });
+    const cloudMat = makeMaterial({ color: '#fffbf4', ...CLOUD_PRINT, line: 0.45, lineTint: 1 });
     const near = [], far = [];
     const inPlain = (x, z) => z < PLAIN_EDGE - 50 + nA(x * 0.004, 3.1) * 40;
     // cauliflower clusters: a big central puff, smaller lobes round it and on top

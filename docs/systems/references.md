@@ -137,6 +137,10 @@ and bird too).
   strokes falling straight down them (a terrain material's `strataHatch`: the ground's strokes are laid from above,
   so on a wall they run down it). The world's fissures and the views' plains; view 65's crevasses widened to the
   panel's.
+- **The cloud printed flat** (round 3; `CLOUD_PRINT` in arzach2.js): the world's puffs were pre-shaded in three
+  fixed vertex tones, lit from one side whatever the hour, and self-lit; they now take the real sun with the print's
+  flat shade (`shadeFlat` 1, lifted 0.55): a warm white in light, one pale grey-blue in shade, no strokes, no spot
+  black. The views' clouds share it.
 - **Cost** (M4 Pro, 1280 × 720, Vael II at spawn and turned, GPU median): High 11.4 → 8.6 and 9.5 →
   6.8 ms (the flat clouds gone), Handheld 2.1 → 2.0 and 1.6 → 1.5; the shader changes are a few
   selects, no new taps.

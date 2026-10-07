@@ -3,7 +3,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MODE_STRATA, MODE_TERRAIN } from '../materials.js';
 import { createNoise2D, mulberry32 } from '../noise.js';
 import { table, needle, boulder, drips, lumpy, place, TAU } from './sky-stones-kit.js';
-import { bridge, SKY_STONES_HAZE, CREVASSE } from './arzach2.js';
+import { bridge, SKY_STONES_HAZE, CREVASSE, CLOUD_PRINT } from './arzach2.js';
 import { buildBird, poseWings, FOOT, STAND } from '../bird.js';
 import { formAxis, keepForm } from '../form.js';
 import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
@@ -61,8 +61,8 @@ function materials(kit) {
     tree: kit.mat({ color: '#4f6a58', flat: true }),
     tower: strata('#f9ecda', '#f2e1cb', '#fcf3e6', { strataSize: 9, side: THREE.FrontSide }),
     // the cloud: a warm white, its shade a pale grey-blue (lifted), no strokes, a thin line in its own shade's blue
-    cloud: kit.mat({ color: '#fff4ea', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
-    pinkCloud: kit.mat({ color: '#fbdccd', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
+    cloud: kit.mat({ color: '#fff4ea', ...CLOUD_PRINT, line: 0.45, lineTint: 1 }),
+    pinkCloud: kit.mat({ color: '#fbdccd', ...CLOUD_PRINT, line: 0.45, lineTint: 1 }),
     cloak: kit.mat({ color: PERSON.cloak, flat: true }),
     hidden: new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }),
   };
