@@ -7,6 +7,9 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.76', date: '2026-10-07', items: [
+    'The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.',
+  ] },
   { v: '0.75', date: '2026-10-07', items: [
     'The sketchbook is now a game menu in the spirit of Ocarina of Time’s pause screen, drawn in the game’s own ink and paper: four panels side by side, Items, Quests, Sketchbook and Worlds. View / Select (J, or the ❏ button) opens it; LB / L1 and RB / R1 (Q and E, or the tabs) turn from panel to panel, the stick or the D-pad moves a cursor, the strip at the bottom says what you have picked, and B / ○ closes it from anywhere.',
     'Items shows what you have found as pictures of the things themselves, with an empty slot for each thing still to find; the one you pick shows large, with what it is and what it does. A / × on a fluid mode switches your tank to it. Under them: what you carry for a quest, and your keepsakes.',

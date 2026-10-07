@@ -23,7 +23,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
-import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
+import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -50,7 +50,7 @@ import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
 import { loadTravellerV1, createTravellerV1 } from './characters/traveller-v1.js';
 import { Changelog, VERSION } from './changelog.js';
-import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, ToolHud } from './ui.js';
+import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
@@ -147,7 +147,8 @@ const gpuName = (() => {
   try { return String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? ''); } catch { return ''; }
 })();
 const handheld = detectHandheld({ native: isNativeApp, touch: isTouch, gpu: gpuName });
-let preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
+const deck = detectDeck({ app: isDeckApp, gpu: gpuName });   // (Auto runs the Steam Deck recipe there)
+let preset = resolveQuality(settings.quality, { handheld, deck, hiDPI: pixelRatio >= 2 });
 const quality = { renderScale: preset.scale };
 const composeRT = createComposeTarget();
 const blit = createBlit(composeRT.texture);
@@ -773,7 +774,7 @@ function applyDetail() {
   }
 }
 function applyQuality() {
-  preset = resolveQuality(settings.quality, { handheld, hiDPI: pixelRatio >= 2 });
+  preset = resolveQuality(settings.quality, { handheld, deck, hiDPI: pixelRatio >= 2 });
   quality.renderScale = preset.scale;
   adapt.slow = adapt.fast = adapt.hold = 0; adapt.dropped = false;
   const S = preset.shadow;
