@@ -141,7 +141,11 @@ namespace Memento
             Placed = placed;
             if (Application.isBatchMode && Time.time > logT) { logT = Time.time + 4; int grown = 0; foreach (var q in inst) if (q.at.w > 0) grown++; Debug.Log($"Memento: grass: {grown}/{inst.Length} tufts growing round {cp}"); }
             if (placed > 0) buf.SetData(inst);
-            mat.SetVector("_GrassView", new Vector4(-cx, cz, R * 0.45f, R * 0.9f));
+            // grass-shader.js grassLod for a near patch with no far layer: the edge fade round the centre, the thinning
+            // from the camera down to none, the blend into the ground's colour
+            mat.SetVector("_GrassView", new Vector4(-cx, cz, R * 0.62f, R * 0.9f));
+            mat.SetVector("_GrassLod", new Vector4(R * 0.4f, R * 1.2f, 0, 0));
+            mat.SetVector("_GrassLook", new Vector4(R * 0.55f, R * 1.0f, 0.55f, 0.12f));
             var rp = new RenderParams(mat) { worldBounds = new Bounds(cp, Vector3.one * S * 2), shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true };
             Graphics.RenderMeshPrimitives(rp, tuft, 0, inst.Length);
         }

@@ -178,6 +178,47 @@ test('mirror: instanced meshes send their instances when they change', () => {
   assert.equal(R.ops('instances')[1][3][2 * 16 + 12], 9);
 });
 
+test('mirror: a mesh on an instanced geometry (the grass blades) is its own kind; its tufts go when they move, only the range rewritten', async () => {
+  const { Grass, GRASS_QUALITY } = await import('../src/flora-grass.js');
+  const log = [];
+  const backend = {
+    create: (id, d) => log.push(['create', id, d]),
+    instances: (id, count, mats, colors, attrs) => log.push(['instances', id, count, mats, attrs]),
+    drawState: (id, o) => log.push(['drawState', id, o]),
+  };
+  const mirror = new SceneMirror(backend);
+  const scene = new THREE.Scene();
+  const field = { heightAt: () => 0, color: '#8cc77e', color2: '#9fd08a', inside: () => true };
+  const grass = new Grass({ scene, fields: [field], quality: { radius: 6, density: 2 } });   // (no far layer)
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
+  camera.position.set(0, 1.7, 0); camera.lookAt(0, 0, -5); camera.updateMatrixWorld();
+  grass.update(camera, 0);
+  mirror.sync(scene, camera);
+  const made = log.filter((e) => e[0] === 'create');
+  assert.equal(made.length, 1);
+  assert.equal(made[0][2].kind, 'instgeo', 'not a plain mesh: one blade at the origin');
+  assert.equal(made[0][2].capacity, grass.count);
+  assert.deepEqual(made[0][2].attrs.sort(), ['aGrass', 'aGrass2']);
+  let inst = log.filter((e) => e[0] === 'instances');
+  assert.equal(inst.length, 1);
+  assert.equal(inst[0][2], grass.count, 'every tuft');
+  assert.equal(inst[0][3], null, 'no matrices');
+  assert.equal(inst[0][4].aGrass.range, null, 'the first time: all of it');
+  assert.ok(inst[0][4].aGrass2, 'and the tufts\' own turn, tint, lean and rank');
+  assert.equal(log.filter((e) => e[0] === 'drawState').length, 1, 'its per-frame state each frame it is drawn');
+  mirror.sync(scene, camera);
+  assert.equal(log.filter((e) => e[0] === 'instances').length, 1, 'standing still: nothing sent again');
+  // a step: the tufts that wrapped are placed again, and only their range goes (aGrass2 never changes)
+  camera.position.x += 3; camera.updateMatrixWorld();
+  grass.update(camera, 100);
+  mirror.sync(scene, camera);
+  inst = log.filter((e) => e[0] === 'instances');
+  assert.equal(inst.length, 2);
+  const a = inst[1][4].aGrass;
+  assert.ok(a.range && a.range[1] > 0 && a.range[1] <= grass.count * 4, `a range: ${a.range}`);
+  assert.equal(inst[1][4].aGrass2, undefined, 'the unchanged attribute not sent again');
+});
+
 test('ink spec: makeMaterial read back as plain numbers, the shared uniforms left out', () => {
   const m = makeMaterial({ color: '#ff8000', color2: '#0000ff', mode: MODE_STRATA, strataSize: 6, glow: 0.5, metal: 'steel' });
   const s = inkSpec(m);

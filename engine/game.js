@@ -19,7 +19,8 @@ import { CONTENT } from '../src/levels/content.js';
 import { Physics } from '../src/physics.js';
 import { Waters } from '../src/water.js';
 import { Ship } from '../src/ship/ship.js';
-import { buildFlora, floraKeep } from '../src/flora.js';
+import { buildFlora, floraKeep, FLORA_WORLDS } from '../src/flora.js';
+import { buildGrass } from '../src/flora-grass.js';
 import { Player, CameraRig } from '../src/player.js';
 import { Controller, mergeControls } from '../src/controller.js';
 import { loadAnimationLibrary, Animator } from '../src/animator.js';
@@ -40,6 +41,7 @@ import { ReactiveWorld } from '../src/reactive-world.js';
 import { Flammables, flammableSpots } from '../src/flammable.js';
 import { runSteps } from '../src/load-steps.js';
 import { Weather } from '../src/weather.js';
+import { WindStreaks } from '../src/wind.js';
 import { Shelter } from '../src/shelter.js';
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
@@ -81,9 +83,9 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
   'uHalftone', 'uBounce', 'uShadeKeep', 'uFlatten', 'uNight', 'uSunDisc', 'uPaper', 'uGrain', 'uSkyDots', 'uCrevice', 'uAO', 'uEnvGround',
   'uSunColor', 'uMoonDisc', 'uMoonVis'];
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
-export const LOOK_VECTORS = new Set(['uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
+export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, log = () => {} } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', log = () => {} } = {}) {
   const T = {};
   const t0 = performance.now();
   // the save's flags to start from (the side-by-sides: the web bench's, scripts/bench/web-page.mjs prepareStorage)
@@ -168,6 +170,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
   const flora = quiet(() => buildFlora({ scene, level, levelId, physics, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
   if (flora?.noShadow) (level.noShadow ??= []).push(...flora.noShadow);
+  // grass blades round the camera on the grassy grounds (flora-grass.js), by the graphics preset (the bench's: High), as main.js grows them
+  const grass = optional('the grass blades', () => buildGrass({ scene, level, physics, presetKey: grassPreset, water: FLORA_WORLDS[levelId]?.water,
+    keep: [ship?.site && { x: ship.site.x, z: ship.site.z, r: 9 }, ship?.rampFoot && { x: ship.rampFoot.x, z: ship.rampFoot.z, r: 3 }] }));
+  if (grass) (level.noShadow ??= []).push(...grass.meshes);
   // the world's life and weather, the fluid tool and the drone, as main.js builds them
   // what burns (flammable.js: the brambles, the dry stands, the lamps a flame lights)
   const flammables = optional('what burns', () => new Flammables(scene, flammableSpots(level), { lights: (level.lights ??= []), sound }));
@@ -182,6 +188,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const wildlife = optional('wildlife', () => new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife }));
   const weather = optional('weather', () => new Weather(content.weather));
   const shelter = optional('shelter', () => new Shelter(physics));
+  // the wind (wind.js): its direction and gusts for the traveller, the plants and the grass, and its wisps of blown sand
+  // (on the page a screen overlay of their own; here a mesh in the mirrored scene, on the port's Memento/Wisp)
+  const wind = optional('the wind', () => new WindStreaks());
+  if (wind) {
+    wind.uniforms.uInk.value = new THREE.Color('#2b211f');
+    scene.add(wind.mesh);
+    (level.noShadow ??= []).push(wind.mesh);
+  }
   const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
   const scout = optional('the drone', () => new Scout({ scene, player, physics, sound, getTarget: () => nextObjective({ player, story: null, ship: level.ship, level, quest: () => story?.objective?.() }) }));
   stamp('life');
@@ -287,7 +301,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
 
   const lookOut = {};
   const game = {
-    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, sky, post, T, wildlife, weather, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, grass, wind, sky, post, T, wildlife, weather, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
@@ -351,6 +365,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (U.uStorm) U.uStorm.value = Wx.storm ?? 0;
         if (U.uFogMul) U.uFogMul.value *= 1 + (W.fog ?? 0) * 2.6 + (Wx.storm ?? 0) * 2.2 + (Wx.rain ?? 0) * 0.6;
       }
+      if (wind) {
+        // (main.js: the wind on the traveller, and the plants' and the grass's uWind)
+        wind.boost = Wx?.storm ?? 0;
+        const [wx, wz] = wind.windDir, st = Wx?.storm ?? 0, rn = Wx?.rain ?? 0;
+        const k = (level.features.wind ? 2.5 : 1.2) * (1 + st * 3.5 + rn * 0.6) * (1 - 0.8 * (shelter?.indoor ?? 0));
+        player.wind?.set(wx * k, 0, wz * k);
+        sharedUniforms.uWind.value.set(wx, wz, (level.features.wind ? 1 : 0.55) * (1 + st * 2 + rn * 0.4), wind.gust());
+        if (post.uniforms.uInk) wind.uniforms.uInk.value = post.uniforms.uInk.value;
+      }
       level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
       sharedUniforms.uTime.value = simT;
       crowd?.update(dt, simT, player, camera);
@@ -393,7 +416,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // the sound's wind, rain and steps (main.js: sound.update; the gust as wind.js's)
       if (sound !== SILENT) {
         try {
-          const gust = Math.max(Math.min(Math.max(0.35 + 0.45 * Math.sin(simT * 0.21) + 0.3 * Math.sin(simT * 0.53 + 1.7), 0), 1), Wx?.storm ?? 0);
+          const gust = wind ? wind.gust() : Math.max(Math.min(Math.max(0.35 + 0.45 * Math.sin(simT * 0.21) + 0.3 * Math.sin(simT * 0.53 + 1.7), 0), 1), Wx?.storm ?? 0);
           const ground = level.ground?.heightAt ? level.ground.heightAt(player.pos.x, player.pos.z) : player.pos.y;
           sound.update(pinned || busy ? CALM : {
             speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust, storm: Wx?.storm ?? 0, rain: Wx?.rainOut ?? 0, rainRoof: Wx?.rainRoof ?? 0,
@@ -406,6 +429,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // the plants in view within their distance (main.js renderFrame: flora.update, before the frame is drawn)
       camera.updateMatrixWorld();
       flora?.update?.(camera, 1, null);
+      // the grass round the camera: the tufts that wrapped placed again (flora-grass.js; the patch placed whole on its first frame)
+      grass?.update(camera);
+      // the wind's wisps round the traveller (their ribbons turned to the camera, a pixel's width from its field of view)
+      if (wind && level.ground?.heightAt) wind.update(dt, player.pos, camera, level.ground, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height, !!level.features.wind);
+      // the traveller's feet for the plants and the grass to part round (the engine's own, a frame's worth: brush.js on the web)
+      backend?.brush?.(player.pos, Math.hypot(player.vel.x, player.vel.z));
       const tB = performance.now();
       mirror.time = simT;
       const stats = mirror.sync(scene, camera);

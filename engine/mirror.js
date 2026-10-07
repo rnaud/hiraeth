@@ -12,10 +12,16 @@
 //   transforms(ids, mats, n)    the world matrices that moved, packed: n ids, 16 floats each
 //   visible(id, on)             shown / hidden (an ancestor hidden or the object left the scene)
 //   geometryOf(id, gid)         a drawable's geometry swapped or rewritten (sent again first)
-//   vertices(gid, positions, normals, n)   only a geometry's points and normals moved (cloth): those alone
+//   vertices(gid, positions, normals, n, alpha)   only a geometry's points and normals moved (cloth), or its points and
+//                               a per-vertex alpha (aAlpha: the wind's wisps, rebuilt each frame): those alone
 //   instances(id, count, mats, colors, attrs, time)   an InstancedMesh's instances, when they change: their
 //                               matrices, colours and per-instance attributes ({ aAnim: { array, itemSize }… }), the
-//                               game's clock then (mirror.time: the crowd's figures pose by it in their shader)
+//                               game's clock then (mirror.time: the crowd's figures pose by it in their shader).
+//                               A plain Mesh on an InstancedBufferGeometry (kind 'instgeo': the grass blades, flora-grass.js)
+//                               has no matrices: mats and colors are null, its attributes carry their version and
+//                               the range rewritten since they were last sent ({ array, itemSize, version, range: [start, count] | null })
+//   drawState(id, object)       each frame an 'instgeo' drawable is drawn: the backend reads what moves on it (its
+//                               material's per-frame uniforms: the grass patch's centre and fades)
 //   skeleton(sid, mats, n)      a skeleton's bone matrices (bone world × inverse bind: three's boneMatrices), once a frame
 //                               it is drawn, however many meshes it moves; a skinned mesh's create says its skeleton
 //                               and its bind matrix (desc.skeleton, desc.bind, desc.attached). A backend with
@@ -72,7 +78,7 @@ export class SceneMirror {
     if (g && this.backend.vertices && sameShape(geo, g)) {
       g.version = version; g.versions = versionsOf(geo);
       const A = geo.attributes;
-      this.backend.vertices(g.gid, plain(A.position), A.normal ? plain(A.normal) : null, A.position.count);
+      this.backend.vertices(g.gid, plain(A.position), A.normal ? plain(A.normal) : null, A.position.count, A.aAlpha ? plain(A.aAlpha) : null);
       this.stats.vertexUpdates = (this.stats.vertexUpdates ?? 0) + 1;
       return g.gid;
     }
@@ -108,7 +114,7 @@ export class SceneMirror {
   _create(o) {
     const id = this.nextId++;
     this.ids.set(o, id);
-    const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
+    const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh && isInstGeo(o.geometry) ? 'instgeo' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
     const mats = Array.isArray(o.material) ? o.material : [o.material];
     const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind, geo: null, gv: -1 };
     o.__mirror = node;   // (the walk finds it on the object: no map lookups a frame)
@@ -121,6 +127,7 @@ export class SceneMirror {
       if (o.skeleton) { desc.skeleton = this._skeletonId(o.skeleton); desc.bind = Array.from(o.bindMatrix.elements); desc.attached = o.bindMode !== 'detached'; }
     }
     if (o.isInstancedMesh) desc.capacity = o.instanceMatrix.count;
+    if (kind === 'instgeo') { desc.capacity = o.geometry.instanceCount; desc.attrs = Object.keys(instancedAttributes(o.geometry)); }
     this.backend.create?.(id, desc, o);
     return id;
   }
@@ -182,6 +189,27 @@ export class SceneMirror {
             for (const k in ia) (attrs ??= {})[k] = { array: geo.attributes[k].array, itemSize: geo.attributes[k].itemSize };
             B.instances?.(id, o.count, o.instanceMatrix.array, o.instanceColor?.array ?? null, attrs, this.time);
           }
+        }
+        if (node.kind === 'instgeo') {
+          // instances with no matrices (the grass): their attributes when they move (only the range rewritten), the count
+          const ia = node.instAttrs ??= instancedAttributes(geo);
+          let v = geo.instanceCount * 1e12;
+          for (const k in ia) v += geo.attributes[k].version * 1e3;
+          if (v !== node.instVersion) {
+            const first = node.instVersion === -1;
+            node.instVersion = v;
+            const attrs = {};
+            node.sentAttr ??= {};
+            for (const k in ia) {
+              const a = geo.attributes[k];
+              if (!first && node.sentAttr[k] === a.version) continue;
+              node.sentAttr[k] = a.version;
+              const r = a.updateRanges?.length ? a.updateRanges.reduce((m, x) => [Math.min(m[0], x.start), Math.max(m[1], x.start + x.count)], [Infinity, -Infinity]) : null;
+              attrs[k] = { array: a.array, itemSize: a.itemSize, version: a.version, range: !first && r ? [r[0], r[1] - r[0]] : null };
+            }
+            B.instances?.(id, geo.instanceCount, null, null, attrs, this.time);
+          }
+          B.drawState?.(id, o);
         }
         if (o.isSkinnedMesh && o.skeleton) {
           // (timed only when profiling: in Puerts the clock is a call into C#, ~5 µs each)
@@ -259,6 +287,9 @@ function attrVersion(geo, frame = -1) {
   return (v * 64 + L.length) + c.epoch * 1e12;
 }
 
+/** A plain mesh's instanced geometry with a count of its own (the grass blades: flora-grass.js). */
+function isInstGeo(geo) { return !!geo?.isInstancedBufferGeometry && Number.isFinite(geo.instanceCount); }
+
 /** A geometry's per-instance attributes (InstancedBufferAttribute), by name. */
 function instancedAttributes(geo) {
   const out = {};
@@ -272,14 +303,14 @@ function versionsOf(geo) {
   for (const k in geo.attributes) { const a = geo.attributes[k]; if (!a.isInstancedBufferAttribute) v[k] = a.isInterleavedBufferAttribute ? a.data.version : a.version; }
   return v;
 }
-/** Did only the positions and normals change since the geometry was last sent? */
+/** Did only the positions and normals (and a per-vertex alpha) change since the geometry was last sent? */
 function sameShape(geo, g) {
   const was = g.versions, now = versionsOf(geo);
   if (!was || now.__index !== was.__index || now.__indexRef !== was.__indexRef || now.__count !== was.__count) return false;
   const keys = Object.keys(now);
   if (keys.length !== Object.keys(was).length) return false;
-  for (const k of keys) if (now[k] !== was[k] && k !== 'position' && k !== 'normal') return false;
-  return now.position !== was.position || now.normal !== was.normal;
+  for (const k of keys) if (now[k] !== was[k] && k !== 'position' && k !== 'normal' && k !== 'aAlpha') return false;
+  return now.position !== was.position || now.normal !== was.normal || now.aAlpha !== was.aAlpha;
 }
 const plain = (a) => (a.isInterleavedBufferAttribute ? deinterleave(a) : a.array);
 

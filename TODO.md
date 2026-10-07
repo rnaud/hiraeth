@@ -194,18 +194,13 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
   shade, spot blacks, ink shadows, lines by material, haze by depth and height, the world-anchored
   wobble, pebbles, no paper grain or vignette; the pillar is the jetpack box's beacon: the makers'
   boxes now built in engine/game.js. Not ported: hatching that follows the form, `S_FORM`.)
-- [ ] The web's grass blades (flora-grass.js) and wind streaks (wind.js) are not drawn. Looked into
-  (2026-10-06, the bridge run and shot in `output/engine-bridge/unity-grass*/`): **building** the
-  blades in the VM is one line in `engine/game.js` (`buildGrass` beside `buildFlora`, then
-  `grass.update(camera)` in the frame) and it works — the Garden of Spheres builds its two grass
-  meshes in Puerts. **Drawing** them is the port's: `Grass` is a plain `THREE.Mesh` carrying
-  `geometry.instanceCount` and a per-instance `aGrass` vec4, which `engine/mirror.js` describes as
-  an ordinary mesh (`capacity` is only read off an `InstancedMesh`), so Unity draws one blade at the
-  origin and the field is invisible. It wants a mirror kind and a Surface variant of its own, as
-  `MEMENTO_INSTMAT` and `MEMENTO_CROWD` are. The one-line VM change was reverted meanwhile, so the
-  VM does not pay for blades nothing draws. The wind streaks are not scene geometry at all: `wind.js`
-  is a screen-space overlay drawn over the composite from a scene of its own, so they belong to the
-  port's look, not to the mirror.
+- [x] The web's grass blades (flora-grass.js) and wind streaks (wind.js) are not drawn. (2026-10-06:
+  `engine/mirror.js` kind `instgeo` — a plain mesh on an InstancedBufferGeometry: its instance count,
+  its attributes when they move, only the range rewritten — and op 12/13 to the port's Surface
+  `MEMENTO_GRASS`, now grass-shader.js's own fades (thinning by rank, the blend into the ground, the
+  far layer growing in); `buildGrass` + `grass.update(camera)` back in engine/game.js. The wind is the
+  web's own (wind.js: the traveller's push, the plants' uWind), its wisps a mesh in the mirrored
+  scene on the port's Memento/Wisp, their points and alpha a frame through op 8.)
 - [ ] The web wakes the answering flowers by the traveller's nearness sooner.
 - [ ] Some of the web's people are MakeHuman bodies the bridge does not load yet.
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge

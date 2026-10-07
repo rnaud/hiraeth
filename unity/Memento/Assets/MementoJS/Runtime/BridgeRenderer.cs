@@ -42,6 +42,12 @@ namespace Memento.Bridge
         struct CrowdInst { public Vector4 at, anim, react, look0, look1, dress, body, scale; }
         class Crowd { public Mesh mesh; public Material mat; public GraphicsBuffer buf; public CrowdInst[] insts = new CrowdInst[0]; public int n; public float time; public bool dirty, said; public readonly MaterialPropertyBlock mpb = new(); }
         readonly Dictionary<int, Crowd> crowds = new();
+        // the grass blades round the camera (flora-grass.js): tufts placed by the Surface shader's MEMENTO_GRASS from their
+        // instance data (op 12: root in Unity's space and height; turn, tint, lean, rank), its fades per layer (op 13)
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        struct GrassInst { public Vector4 at, b; }
+        class GrassLayer { public Mesh mesh; public Material mat; public GraphicsBuffer buf; public GrassInst[] insts = new GrassInst[0]; public int n; public bool dirty, said; }
+        readonly Dictionary<int, GrassLayer> grass = new();
         readonly Dictionary<string, Mesh> bound = new();             // a mesh with a bind pose, by mesh and bind
 
         /// <summary>For a look into what is drawn (BridgeBatch -probe): the nodes whose name holds `sub`, as Unity has them.</summary>
@@ -154,6 +160,12 @@ namespace Memento.Bridge
                 materials[mid] = mm; moteSizes[mid] = m.F("size", 0.05f);
                 return;
             }
+            if (m.S("port") == "wisp")
+            {
+                // the wind's wisps (wind.js): ink ribbons over the page, each tested against the G-buffer's depth
+                materials[mid] = new Material(Shader.Find("Memento/Wisp")) { name = "wind wisps (bridge)" };
+                return;
+            }
             if (m.S("port") == "print")
             {
                 var pm = new Material(Shader.Find("Memento/Print")) { name = "prints (bridge)" };
@@ -194,6 +206,18 @@ namespace Memento.Bridge
                 var mat = cm ? new Material(cm) : new Material(surface);
                 mat.name = "crowd figures"; mat.EnableKeyword("MEMENTO_CROWD"); mat.SetFloat("_Figure", 1); mat.SetFloat("_Cull", (float)CullMode.Off);
                 crowds[id] = new Crowd { mesh = md?.mesh, mat = mat };
+                nodes[id] = n;
+                return;
+            }
+            if (n.kind == "grass")
+            {
+                materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var gm0);
+                var gmat = gm0 ? new Material(gm0) : new Material(surface);
+                gmat.name = "grass (bridge)"; gmat.EnableKeyword("MEMENTO_GRASS"); gmat.SetFloat("_Cull", (float)CullMode.Off);
+                gmat.SetFloat("_GrassMirrored", 1);   // (the tuft arrives mirrored in x, as every mesh: the shader takes it back to three's)
+                int cap = Mathf.Max(d.I("capacity"), 1);
+                if (md != null) md.mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
+                grass[id] = new GrassLayer { mesh = md?.mesh, mat = gmat, insts = new GrassInst[cap] };
                 nodes[id] = n;
                 return;
             }
@@ -388,8 +412,8 @@ namespace Memento.Bridge
                     }
                     case 8:   // a geometry's points (and normals) moved: cloth, in place
                     {
-                        int gid = (int)fu[o++], n = (int)fu[o++]; bool hasN = fu[o++] != 0;
-                        int po = o; o += n * 3; int no = o; if (hasN) o += n * 3;
+                        int gid = (int)fu[o++], n = (int)fu[o++]; uint vf = fu[o++]; bool hasN = (vf & 1) != 0, hasA = (vf & 2) != 0;
+                        int po = o; o += n * 3; int no = o; if (hasN) o += n * 3; int ao = o; if (hasA) o += n;
                         if (byGeometry.TryGetValue(gid, out var list))
                             foreach (var md in list)
                             {
@@ -397,6 +421,7 @@ namespace Memento.Bridge
                                 for (int i = 0; i < n; i++) md.pos[i] = new Vector3(ff[po + i * 3], ff[po + i * 3 + 1], ff[po + i * 3 + 2]);
                                 md.mesh.SetVertices(md.pos);
                                 if (hasN && md.nrm != null) { for (int i = 0; i < n; i++) md.nrm[i] = new Vector3(ff[no + i * 3], ff[no + i * 3 + 1], ff[no + i * 3 + 2]); md.mesh.SetNormals(md.nrm); }
+                                if (hasA && md.col != null) { for (int i = 0; i < n; i++) md.col[i].a = ff[ao + i]; md.mesh.SetColors(md.col); }
                                 md.mesh.RecalculateBounds();
                             }
                         break;
@@ -419,9 +444,47 @@ namespace Memento.Bridge
                         o += cnt * 32;
                         break;
                     }
+                    case 12:   // grass: a tuft attribute's range (0 aGrass, 1 aGrass2, 2 the count alone)
+                    {
+                        int id = (int)fu[o++], cnt = (int)fu[o++], which = (int)fu[o++], start = (int)fu[o++], n = (int)fu[o++];
+                        if (grass.TryGetValue(id, out var g))
+                        {
+                            if (g.insts.Length < cnt) System.Array.Resize(ref g.insts, cnt);
+                            for (int i = 0; i < n && start + i < g.insts.Length; i++)
+                            {
+                                int k = o + i * 4;
+                                var v = new Vector4(ff[k], ff[k + 1], ff[k + 2], ff[k + 3]);
+                                if (which == 0) g.insts[start + i].at = v; else if (which == 1) g.insts[start + i].b = v;
+                            }
+                            g.n = cnt; g.dirty = true;
+                        }
+                        o += n * 4;
+                        break;
+                    }
+                    case 13:   // grass: the layer's patch centre and fades, the ground's two tones
+                    {
+                        int id = (int)fu[o++];
+                        if (grass.TryGetValue(id, out var g))
+                        {
+                            g.mat.SetVector("_GrassView", new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]));
+                            g.mat.SetVector("_GrassLod", new Vector4(ff[o + 4], ff[o + 5], ff[o + 6], ff[o + 7]));
+                            g.mat.SetVector("_GrassLook", new Vector4(ff[o + 8], ff[o + 9], ff[o + 10], ff[o + 11]));
+                            g.mat.SetVector("_Color", new Vector4(ff[o + 12], ff[o + 13], ff[o + 14], 1));
+                            g.mat.SetVector("_Color2", new Vector4(ff[o + 15], ff[o + 16], ff[o + 17], 1));
+                        }
+                        o += 18;
+                        break;
+                    }
+                    case 14:   // the traveller's feet and speed (three's space): the grass and the plants part round them
+                    {
+                        Shader.SetGlobalVector("_Brush", new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]));
+                        o += 4;
+                        break;
+                    }
                     case 6:   // remove
                     {
                         int id = (int)fu[o++];
+                        if (grass.Remove(id, out var gl)) { gl.buf?.Release(); if (gl.mat) Destroy(gl.mat); }
                         if (nodes.TryGetValue(id, out var nd)) { if (nd.inst) Destroy(nd.inst); nd.puffs?.Release(); nd.im?.Release(); if (instMaterials.Remove(id, out var im0) && im0) Destroy(im0); Destroy(nd.go); nodes.Remove(id); }
                         break;
                     }
@@ -538,6 +601,15 @@ namespace Memento.Bridge
                 }
                 n.im.Draw(around, n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off);
             }
+            foreach (var (id, g) in grass)
+            {
+                if (g.n == 0 || !g.mesh || !nodes.TryGetValue(id, out var nd) || !nd.go.activeSelf) continue;
+                if (g.buf == null || g.buf.count < g.insts.Length) { g.buf?.Release(); g.buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, Mathf.Max(g.insts.Length, 1), System.Runtime.InteropServices.Marshal.SizeOf<GrassInst>()); g.mat.SetBuffer("_GrassInst", g.buf); g.dirty = true; }
+                if (g.dirty) { g.buf.SetData(g.insts, 0, 0, Mathf.Min(g.n, g.insts.Length)); g.dirty = false; }
+                if (!g.said) { g.said = true; Debug.Log($"Memento bridge: grass {id}: {g.n} tufts, mesh {g.mesh.name}"); }
+                var rp = new RenderParams(g.mat) { worldBounds = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f), shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true };
+                Graphics.RenderMeshPrimitives(rp, g.mesh, 0, Mathf.Min(g.n, g.insts.Length));
+            }
             foreach (var (id, c) in crowds)
             {
                 if (c.n == 0 || !c.mesh || !nodes.TryGetValue(id, out var nd) || !nd.go.activeSelf) continue;
@@ -552,6 +624,7 @@ namespace Memento.Bridge
         void OnDestroy()
         {
             foreach (var c in crowds.Values) { c.buf?.Release(); if (c.mat) Destroy(c.mat); }
+            foreach (var g in grass.Values) { g.buf?.Release(); if (g.mat) Destroy(g.mat); }
             foreach (var n in nodes.Values) { if (n.inst) Destroy(n.inst); n.im?.Release(); n.puffs?.Release(); }
             foreach (var m in instMaterials.Values) if (m) Destroy(m);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);

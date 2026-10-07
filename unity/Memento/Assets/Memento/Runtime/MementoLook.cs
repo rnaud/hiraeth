@@ -173,6 +173,9 @@ namespace Memento
             Shader.SetGlobalVector("_PlanetCraters", craters);
             float time = Application.isPlaying ? Time.time : 0f;
             Shader.SetGlobalFloat("_MTime", time);
+            // (the bridge's look carries the web's own wind, materials.js uWind: downwind x, z in three's space, strength, gust)
+            var sw = look.O("shared")?.L("uWind");
+            if (sw != null && sw.Count >= 4) { windDir = new Vector2(Json.Num(sw[0]), Json.Num(sw[1])); wind = Json.Num(sw[2]); gust = Json.Num(sw[3]); }
             Shader.SetGlobalVector("_Wind", new Vector4(windDir.x, windDir.y, wind, gust));
 
             // the local lights nearest the subject
