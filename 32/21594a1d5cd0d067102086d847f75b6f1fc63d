@@ -1,0 +1,29 @@
+changelog.md
+  s_55b4bc53b812ec::t_bedc627da0368a 22
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_c13e913f58b81b 528-533
+src/changelog.js
+  s_55b4bc53b812ec::t_4a8e2716f4274b 26
+src/costumes.js
+  s_55b4bc53b812ec::t_8db3e8cca9b01d 60,1334-1349,1422-1455,1629-1632
+src/crowd.js
+  s_55b4bc53b812ec::t_11560102c3dde8 163
+tests/desert-props.test.js
+  s_55b4bc53b812ec::t_07e97a1d0d8b87 212-222
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3221594a1d5cd0d067102086d847f75b6f1fc63d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
