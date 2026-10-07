@@ -196,3 +196,38 @@ test('where a skirt is drawn over the ground between its points (a chord over a 
   assert.ok(worstPlain > 0.1, `(the ground's height alone: the drawn sand up to ${worstPlain.toFixed(2)} m over it)`);
   assert.ok(worst < 0.065, `the feet up to ${worst.toFixed(3)} m under the drawn sand`);
 });
+
+test('a long curved wall is footprinted in pieces that follow its foot: no sand banked along the hull’s chord across open ground', () => {
+  // a wall 4 m thick and 3 m high bent round half a circle 40 m across (a canyon's wall seen from above)
+  const pts = [], idx = [], N = 48, R0 = 20, R1 = 24;
+  for (let i = 0; i <= N; i++) {
+    const a = Math.PI * (i / N);
+    for (const [r, y] of [[R0, 0], [R1, 0], [R0, 3], [R1, 3]]) pts.push(Math.cos(a) * r, y, Math.sin(a) * r);
+    if (i) {
+      const b = (i - 1) * 4, c = i * 4;
+      for (const [p, q] of [[0, 1], [2, 3], [0, 2], [1, 3]]) idx.push(b + p, c + p, b + q, b + q, c + p, c + q);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  geo.setIndex(idx);
+  const polys = footprintsOf(geo, flat);
+  assert.ok(polys.length >= 4 && polys.every((p) => p.part === polys[0].part), `pieces of one part: ${polys.length}`);
+  const d = new SandDrifts({ heightAt: flat, seed: 2 }).addGeometry(geo);
+  // the open ground inside the bend, where the one hull's chord ran: no sand
+  let most = 0;
+  for (let x = -16; x <= 16; x += 1) for (let z = 1; z <= 15; z += 1) if (Math.hypot(x, z) < R0 - 5) most = Math.max(most, d.fieldAt(x, z));
+  assert.ok(most < 0.01, `sand on the open ground inside the bend: ${most.toFixed(2)} m`);
+  // banked against the wall on both sides, and nothing inside the wall away from its faces
+  let inner = 0, outer = 0, inWall = 0;
+  for (let i = 2; i < N - 2; i++) {
+    const a = Math.PI * (i / N), c = Math.cos(a), s = Math.sin(a);
+    inner = Math.max(inner, d.fieldAt(c * (R0 - 0.3), s * (R0 - 0.3)));
+    outer = Math.max(outer, d.fieldAt(c * (R1 + 0.3), s * (R1 + 0.3)));
+    inWall = Math.max(inWall, d.fieldAt(c * (R0 + R1) / 2, s * (R0 + R1) / 2));
+  }
+  assert.ok(inner > 0.2 && outer > 0.2, `banked against both faces (${inner.toFixed(2)}, ${outer.toFixed(2)})`);
+  assert.ok(inWall < 0.01, `no sand raised inside the wall at the pieces' seams (${inWall.toFixed(2)} m)`);
+  // a plain box is still one footprint
+  assert.equal(footprintsOf(new THREE.BoxGeometry(30, 4, 2).translate(0, 2, 0), flat).length, 1);
+});

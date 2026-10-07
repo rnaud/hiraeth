@@ -177,10 +177,17 @@ collider (a door, the wheel) whose box is nowhere near the capsule (`shapecast`'
   101 k, the Buried Machine ~45 k of 176 k (the canyon). The cost: the bake +15 ms in the Buried Machine, queries
   unchanged within noise. Sand-skirt *walks through* 46 → 6 in the desert and 80 → 28 on Vael, the Buried
   Machine's feet sink 34 → 16. Left: sand banked up a wall's foot is drawn in front of the wall a climb starts on
-  (the hands go through the top of the bank), and the Buried Machine's canyon walls, each one solid, have a single
-  convex hull for a footprint that covers the canyon floor, so sand banks along its chords across the floor.
-  Splitting long footprints would fix that, but the seams between the pieces raise the ground inside the walls
-  and want a look in the game first.
+  (the hands go through the top of the bank; see "Climbs over banked sand" if settled).
+- *Long curved footprints.* A footprint was each part's convex hull, and the Buried Machine's canyon walls are one
+  solid each, so their hulls reached right across the canyon and sand banked in straight lines across its floor
+  (along the hulls' chords). `footprintsOf` now cuts a part whose hull spans open ground (`footPieces`: an outline
+  more than `DRIFT.gap` 3 m from every edge of the foot) in two across its long axis, the halves overlapping by
+  1.5 m, and each half again, until each piece's hull follows the foot. The pieces of one part are siblings: outside
+  a piece but inside a sibling is inside the solid (no sand), and inside a piece the band under the wall runs along
+  its faces only (`faceEdges`), not along a seam, so the seams raise nothing inside the walls (checked in the game
+  and in `tests/sand-drifts.test.js` on a bent wall). The canyon floor's sand over 10 cm 133 → 40 of 3 502 samples
+  (what is left banks against the machinery standing on the floor); the desert's largest footprint 167 → 49 m
+  round, skirts +17 k drawn triangles there (70 → 87 k), the Buried Machine's +13 k, Vael's +8 k.
 
 ## Mounts come to you
 

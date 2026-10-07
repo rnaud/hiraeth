@@ -15,6 +15,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Garden of Spheres the olive trees’ trunks and the dark cypresses are solid just as they are drawn: you no longer walk half a metre into a cypress before it stops you, or bump into an invisible post beside an olive’s leaning trunk.
 - In Lorn’s Hush-House the gates of jaws are solid exactly where their two snapping halves are, and they still will not let you by until they are stilled.
 - You no longer sink into banked sand: where a drift of sand against a wall or a rock rose above the ground you walked on, your feet now stand on the sand as it is drawn, in the desert, on Vael and in the Buried Machine’s canyon. The trim round a temple rotunda’s open roof is solid where it lies on the roof.
+- The floor of the Buried Machine’s rust canyon no longer has long straight bands of sand running across it: the sand banks against the canyon’s walls along their foot, where it belongs.
 
 ## v0.75 — 2026-10-07
 
