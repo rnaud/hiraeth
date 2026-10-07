@@ -64,7 +64,7 @@ function valley(kit, { y = -120, z0 = -200, yaw = 0, tones = ['#ecdcab', '#e2cf9
 function fallScene(kit, v, o) {
   const rng = mulberry32(o.seed ?? 1), M = cityMats(kit, { shadeFlat: 0 });
   for (const f of o.falls ?? []) waterfall(kit, { ...f, seed: f.seed ?? rng() * 50 });
-  for (const [x, y, z, w, h, d, seed = rng() * 99, yaw = 0, lump = 0.12] of o.rock ?? []) kit.add(M.rock, put(rockMass(seed, w, h, d, { lump }), x, y, z, yaw), { solid: true, shadow: false });
+  for (const [x, y, z, w, h, d, seed = rng() * 99, yaw = 0, lump = 0.12] of o.rock ?? []) kit.add(M.rock, put(rockMass(seed, w, h, d, { lump }), x, y, z, yaw), { solid: true, shadow: true });
   for (const { at, yaw = 0, ...q } of o.quarters ?? []) quarter(framed(kit, at[0], at[1], at[2], yaw), M, rng, q);
   for (const [x, y, z, w, h, yaw = 0, kind = 'drum', d] of o.houses ?? []) roundHouse(kit, M, rng, { x, y, z, w, d: d ?? w, h, yaw, kind, lit: 0.4, awning: 0.4 });
   for (const [a, b, opt] of o.bridges ?? []) archBridge(kit, M, a, b, opt);
@@ -90,7 +90,7 @@ export const WATERFALL_VIEWS = [
   view({
     id: 'waterfall-1-arch', title: 'The arched bridge, the falls and the valley through them', sheet: 'waterfall-1', panel: 1, where: 'the whole plate', crop: [0, 0, 1456, 816],
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 60, horizon: 0.84 },
-    sun: { side: 120, el: 30 },
+    sun: { side: 115, el: 17 },
     edge: -170,
     build(kit, v) {
       fallScene(kit, v, {
@@ -112,7 +112,7 @@ export const WATERFALL_VIEWS = [
         ],
         quarters: [
           // the city climbing the left wall, its fronts toward the falls
-          { at: [-14, 0, -10], yaw: Math.PI / 2 - 0.3, x0: 0, x1: 110, n: 9, rise: 10, step: 8.5, shrink: 3, lit: 0.5, people: 0.06, pipes: 0.4, lamps: 0.6 },
+          { at: [-24, 0, -26], yaw: Math.PI / 2 - 0.3, x0: 0, x1: 110, n: 10, rise: 6, step: 7, shrink: 3, lit: 0.5, people: 0.06, pipes: 0.4, lamps: 0.6 },
           // beyond the arch: the low quarter by the falls
           { at: [-6, 0, -150], yaw: 0, x0: 0, x1: 40, n: 3, rise: 9, step: 10, shrink: 4, lit: 0.4, people: 0.05, h: [5, 10] },
         ],
@@ -134,7 +134,7 @@ export const WATERFALL_VIEWS = [
   view({
     id: 'waterfall-2-terraces', title: 'The terraces of domes beside the great fall', sheet: 'waterfall-2', panel: 1, where: 'the whole plate', crop: [0, 0, 1456, 816],
     camera: { eye: [0, 1.6, 0], yaw: 0, fov: 58, horizon: 0.86 },
-    sun: { side: 70, el: 30 },
+    sun: { side: 75, el: 16 },
     sky: SKY.warm,
     edge: -200,
     floor: ['#4f7f82', '#4a7a7d', '#456f72'],
@@ -153,7 +153,7 @@ export const WATERFALL_VIEWS = [
           [70, 50, -30, 44, 140, 70, 29], [54, 6, -46, 16, 12, 30, 31, 0, 0.04],
         ],
         quarters: [
-          { at: [-14, 0, -12], yaw: 0.85, x0: -40, x1: 110, n: 9, rise: 7.5, step: 10, shrink: 2, lit: 0.55, people: 0.07, awning: 0.55, lamps: 0.6, pipes: 0.2 },
+          { at: [-30, 0, -40], yaw: 0.85, x0: -40, x1: 110, n: 11, rise: 6, step: 8, shrink: 2, lit: 0.55, people: 0.07, awning: 0.55, lamps: 0.6, pipes: 0.2 },
           { at: [-34, 0, -176], yaw: 0, x0: 0, x1: 30, n: 1, lit: 0.5, h: [3, 5] },
         ],
         bridges: [[[-18, 12, -170], [22, 12, -172], { w: 4, rise: 8 }]],
@@ -178,13 +178,13 @@ export const WATERFALL_VIEWS = [
       fallScene(kit, v, {
         seed: 3003,
         falls: [
-          { at: [-52, -6, -60], w: 70, h: 220, yaw: 0.85, bow: 3, lean: 3, column: 2.6, gaps: 0.12, mist: 8 },
+          { at: [-74, -6, -96], w: 60, h: 220, yaw: 0.8, bow: 3, lean: 3, column: 2.6, gaps: 0.12, mist: 8 },
           { at: [-26, -6, -150], w: 50, h: 240, yaw: 0.5, column: 2.2, gaps: 0.1, mist: 8, tones: { deep: '#4a96a0', mid: '#77c8ca', pale: '#ace6de' } },
         ],
         valley: { y: -110, z0: -120, yaw: 0.9, tones: ['#f2e4b0', '#ead79c', '#d5c592'] },
         rock: [[40, 118, -90, 220, 60, 220, 41, 0, 0.12], [64, 60, -50, 40, 120, 70, 43]],
         quarters: [
-          { at: [1, 0, -150], yaw: -Math.PI / 2, x0: 0, x1: 146, n: 5, rise: 8, step: 9, shrink: 0, lit: 0.35, people: 0.06, lamps: 0.7, awning: 0.5, pipes: 0.3, front0: false },
+          { at: [-18, 0, -130], yaw: -1.28, x0: 0, x1: 130, n: 7, rise: 7, step: 8, shrink: 0, lit: 0.35, people: 0.06, lamps: 0.7, awning: 0.5, pipes: 0.3, front0: false },
         ],
         bridges: [[[-46, 2, -96], [-14, 2, -84], { w: 2.4 }]],
         pipes: [[[[60, 84, -40], [34, 74, -40], [30, 40, -46]], { r: 0.7, n: 2, side: [0, 0, 1] }]],
@@ -198,7 +198,7 @@ export const WATERFALL_VIEWS = [
   view({
     id: 'waterfall-4-pink', title: 'The city’s slope at the pink hour, the arch in the falls', sheet: 'waterfall-4', panel: 1, where: 'the whole plate', crop: [0, 0, 1456, 816],
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 60, horizon: 0.88 },
-    sun: { side: -50, el: 18 },
+    sun: { side: -110, el: 20 },
     sky: SKY.pink,
     edge: -400,
     floor: ['#e8c4b4', '#e2beae', '#d6b2a4'],
@@ -206,14 +206,14 @@ export const WATERFALL_VIEWS = [
       fallScene(kit, v, {
         seed: 4004,
         falls: [
-          { at: [-46, -6, -60], w: 60, h: 220, yaw: 0.45, bow: 3, column: 3.0, gaps: 0.04, mist: 8 },
+          { at: [-62, -6, -76], w: 50, h: 220, yaw: 0.45, bow: 3, column: 3.0, gaps: 0.04, mist: 8 },
           { at: [-6, -6, -170], w: 46, h: 260, column: 2.6, gaps: 0.04, mist: 8, tones: DARK_TEAL },
           { at: [40, -6, -230], w: 60, h: 260, column: 2.6, gaps: 0.04, mist: 8, tones: { deep: '#4f9ea4', mid: '#7cc6c8', pale: '#ace0dc' } },
         ],
         valley: { y: -90, z0: -160, tones: ['#f2c8b4', '#ecc0ae', '#dcb0a2'] },
-        rock: [[20, 120, -120, 260, 60, 260, 51, 0, 0.12], [42, 40, -16, 16, 140, 26, 53, 0, 0.06], [-24, 60, -110, 20, 140, 16, 55]],
+        rock: [[20, 120, -120, 260, 60, 260, 51, 0, 0.12], [42, 40, -16, 16, 140, 26, 53, 0, 0.06], [70, 40, -60, 30, 140, 40, 55]],
         quarters: [
-          { at: [-2, 0, -40], yaw: -0.52, x0: 0, x1: 80, n: 7, rise: 8, step: 9, shrink: 3, lit: 0.5, people: 0.05, lamps: 0.6, pipes: 0.3 },
+          { at: [-8, 0, -34], yaw: -0.52, x0: 0, x1: 80, n: 9, rise: 7, step: 7.5, shrink: 3, lit: 0.5, people: 0.05, lamps: 0.6, pipes: 0.3 },
         ],
         bridges: [[[-60, -1, -70], [-28, -1, -60], { w: 2.2 }]],
         pipes: [[[[36, 70, -10], [36, 20, -10], [32, 8, -6]], { r: 0.7, n: 2, side: [1, 0, 0] }]],
@@ -225,3 +225,5 @@ export const WATERFALL_VIEWS = [
     },
   }),
 ];
+
+export { WATERFALL_SHEETS as SHEETS, WATERFALL_VIEWS as VIEWS };

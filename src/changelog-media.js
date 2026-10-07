@@ -148,6 +148,10 @@ export const CHANGELOG_MEDIA = {
         { where: 'the wide view down the shaft from the rim', before: 25.4, after: 27.3 },
       ], note: 'A second run: 22.7 → 24.3 and 27.0 → 28.8. The city’s crowd is about as large as before (1 373 → 1 505 people), spread round the whole ring.' },
     ], see: 'In the City-Shaft, look down into the pit from the rim, or fly out over the middle on the jets: every level’s terrace now rings the shaft, with only narrow gaps between its stretches.' },
+    { match: 'In the References level, a new world’s drawings: the City Behind the Waterfall', shots: [
+      { name: 'refs-waterfall-terraces', caption: 'The sheet (left) and its view (right): the terraces of domes beside the great fall', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'refs-waterfall-pink', caption: 'The sheet (left) and its view (right): the city’s slope at the pink hour, the falls on the left', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open the References (?level=references&world=waterfall) and press Tab for the quick menu: the City Behind the Waterfall’s four views; the backslash key (View on a pad) compares each with its sheet.' },
   ],
   '0.82': [
     { match: 'The camera follows closer', shots: [

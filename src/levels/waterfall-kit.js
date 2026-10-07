@@ -369,8 +369,8 @@ export function framed(kit, x, y, z, yaw = 0) {
  * house fronts, copper pipes up the risers, residents in the streets. Returns the streets ([{ x0, x1, z0, z1, y }]:
  * where people walk) and the stairs' feet.
  */
-export function quarter(kit, M, rng, { x0, x1, z1 = 0, y0 = 0, n = 5, rise = 8, step = 14, shrink = 4, street = 4.5, lit = 0.35, people = 0.08, lamps = 0.5, pipes = 0.25,
-  kinds = ['drum', 'vault', 'block', 'drum', 'block'], h = [rise * 0.7, rise * 1.15], awning = 0.35, stairEvery = 38, base = y0 - 3, front0 = true }) {
+export function quarter(kit, M, rng, { x0, x1, z1 = 0, y0 = 0, n = 5, rise = 6, step = 9, shrink = 4, street = 4.5, lit = 0.35, people = 0.08, lamps = 0.5, pipes = 0.25,
+  kinds = ['drum', 'vault', 'block', 'drum', 'block'], h = [rise * 0.75, rise * 1.3], awning = 0.35, stairEvery = 38, base = y0 - 3, front0 = true }) {
   const streets = [], stairs = [];
   for (let i = 0; i < n; i++) {
     const a = x0 + i * shrink, b = x1 - i * shrink, front = z1 - i * step, back = front - step, y = y0 + i * rise;
@@ -381,7 +381,7 @@ export function quarter(kit, M, rng, { x0, x1, z1 = 0, y0 = 0, n = 5, rise = 8, 
     streets.push({ x0: a, x1: b, z0: back, z1: front, y });
     // the houses against the riser behind (the next terrace's wall)
     for (let x = a + 0.8; x < b - 3;) {
-      const kind = kinds[Math.floor(rng() * kinds.length)], w = 4 + rng() * 4.5, d = kind === 'drum' ? w : 4 + rng() * 3.5;
+      const kind = kinds[Math.floor(rng() * kinds.length)], w = 3.5 + rng() * 3.5, d = kind === 'drum' ? w : Math.min(step - street, 3.5 + rng() * 3);
       const nearStair = ups.some((u) => Math.abs(x + w / 2 - u) < w / 2 + 2.2);
       if (!nearStair && rng() < 0.92) {
         const hh = h[0] + rng() * (h[1] - h[0]);

@@ -309,7 +309,7 @@ test('the Signal Market\'s sheets after Lorn II\'s, every panel, and the world\'
     }
   }
   const world = REFERENCE_VIEWS.map((v) => REFERENCE_SHEETS[v.sheet].name.split(' / ')[0]);
-  assert.equal([...new Set(world)].at(-1), 'The Signal Market');
+  assert.equal([...new Set(world)].indexOf('The Signal Market'), [...new Set(world)].indexOf('Lorn II') + 1, 'after Lorn II');
   assert.equal(world.filter((w) => w === 'The Signal Market').length, 21);
   const { MARKET_FLAT } = await import('../src/levels/bazaar.js');
   assert.ok(MARKET_FLAT > 0.5);

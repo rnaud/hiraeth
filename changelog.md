@@ -16,6 +16,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Halfway down the City-Shaft, by the middle levels’ cab stop, Perrine keeps a tea stall now, and the old mirror beside it wants washing and turning back up the shaft, so a little of the Lodestar’s light reaches the bottom again. One of the city’s five relics waits on her awning.
 - A few quiet places have something to say now: Vael’s fallen giant on the plain, a carved frieze over the Givers’ Hearth’s door, the little mask in the masked head’s chamber, and an old salvager’s slate by the crashed hull in the southern dunes, which Marrow will want to talk about.
 - The City-Shaft’s terraces go all the way round the shaft now. Each level’s two or three stretches of terrace were all built in the same place, one on top of another, so much of every ring stood empty; now they follow each other round the pit, with their houses, stalls, railings, bridges and people, and the story’s places stay where they were.
+- In the References level, a new world’s drawings: the City Behind the Waterfall, four views of a cavern city behind a curtain of falling water, the water in streaming bands of turquoise with its mist, rounded houses climbing the walls, copper pipes and amber lamps.
 
 ## v0.82 — 2026-10-07
 
