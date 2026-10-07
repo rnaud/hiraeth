@@ -230,7 +230,8 @@ export const CONTENT = {
 // world. Greeting the giver hands you the parcel; greeting the receiver
 // (npc index into that world's `npcs`) delivers it. Each goes on to the next
 // world on the route (ORDER): the desert, Vael, Vael II, Lorn, Lorn II, Viridel,
-// the City-Shaft, the Sealed Hangar.
+// the City-Shaft, the Sealed Hangar, the Buried Machine, the Garden of Spheres, the
+// Signal Market (every world but the last gives one).
 export const ERRANDS = [
   { id: 'sand', item: 'a jar of singing sand', from: ['desert', 1], to: ['arzach', 1],
     ask: "~curious~ Vael is next for you? Take this sand from between the great ribs. It sings when the wind crosses it. Give it to *Senn in Vael*, the woman who listens to stones. They say nothing there makes a sound. Let her hear something sing.",
@@ -257,4 +258,21 @@ export const ERRANDS = [
     ask: "~playful~ The Sealed Hangar next? Take this taxi token to *Clemence* there. They’ve never seen a cab. Show them what a real city runs on.",
     wait: "~neutral~ *Clemence, in the Sealed Hangar.* The one who remembers the man who built it.",
     thanks: "~playful~ A cab token? We don’t have cabs. We have walls that turn into floors. The Major would have taken it apart to see how it paid. I’ll keep it whole." },
+  // the later half: Vael II → Lorn, the Hangar → the Buried Machine → the Garden of Spheres → the Signal Market
+  { id: 'handbell', item: 'a muffled hand bell', from: ['arzach2', 1], to: ['perdide', 0],
+    ask: "~playful~ Going on, after the sky stones? Take my little hand bell to *Wendel, the egg-warden at Lorn’s landing*. I stuffed it with cloth thirty years ago so it would stop reminding me. Someone down there may want a quiet one.",
+    wait: "~neutral~ *Wendel, the egg-warden, at Lorn’s landing.* Leave the cloth in. He’ll know when to take it out.",
+    thanks: "~playful~ A bell with a sock in it, from the monks over the cloud? Very considerate. I’ll hang it over the eggs, and take the sock out on a special occasion." },
+  { id: 'grease', item: 'a tin of gear grease', from: ['garage', 1], to: ['buried', 2],
+    ask: "~happy~ Off to the Major’s wheel under the sand? Take this tin of my gear grease to *Tull, who oils the oval doors in the Buried Machine*. The Major said they squeal. Grease is how we say hello.",
+    wait: "~neutral~ *Tull, at the oval doors, in the Buried Machine.* Don’t lean on the tin.",
+    thanks: "~happy~ Grease from the Major’s own world? (Tull dabs the nearest hinge and swings the door. Not a sound.) No squeak. Lovely. Same smell as his boots." },
+  { id: 'pipewhistle', item: 'a whistle cut from an old pipe', from: ['buried', 1], to: ['spheres', 0],
+    ask: "~whisper~ Going on? Take this whistle, cut from an old pipe. It sounds like the pipes on Tooth Day. *Aube, the listener, in the Garden of Spheres*, collects sounds. Give her one from down here.",
+    wait: "~whisper~ *Aube, in the Garden of Spheres’ umbrella grove.* Let her hear it first.",
+    thanks: "~happy~ A whistle from under the sand? (Aube blows it softly: one low note that outlasts her breath.) I don’t think any sphere here remembers that one. Thank you." },
+  { id: 'mirror', item: 'a sliver of lake mirror', from: ['spheres', 1], to: ['bazaar', 1],
+    ask: "~playful~ Going on to the market with all the signs? Take this *sliver of lake mirror* to *Oyo, who sells lanterns there*. It holds a little sky. He sells little suns. They should meet.",
+    wait: "~neutral~ *Oyo, the lantern seller in the Signal Market.* Keep the sky side up.",
+    thanks: "~surprised~ A bit of sky, from a garden of spheres? (He sets it under a lantern. Two little suns look back.) Not for sale. The first thing on my stall that isn’t." },
 ];
