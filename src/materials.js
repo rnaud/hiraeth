@@ -375,7 +375,10 @@ export const FORM = {
   wrap: { spacing: 1.0, along: 1.25, keep: 0.2 },
   waver: 0.22,             // how far a stroke wanders, in its spacing
   waverFar: 90,            // m: past this (and on the handheld) no waver, a stroke's own offset only
-  veins: { spacing: 2.4, width: 1.4, lift: 0.12 },   // a dark cap's veins (veins: 0..1): lighter lines radiating, lit or not (under the colour-edge threshold)
+  // a dark cap's veins (veins: 0..1): lighter lines radiating, lit or not (under the colour-edge threshold), drawn as
+  // branches: a line that carries on to the coarser levels (toward the stalk) is a bough, thicker by `bough` a level
+  // (up to `boughs` levels), and every line wanders `waver` of its spacing along its length
+  veins: { spacing: 2.2, width: 1.5, lift: 0.15, bough: 0.7, boughs: 3, waver: 0.45 },
 };
 /**
  * Colour across a wall (S_PATCH, wallPatch): the sheets break a building's colour into a few big flat
@@ -987,6 +990,29 @@ const fragmentShader = /* glsl */ `
     float a = formLevel(c, fw, s0, s0, period, widthPx, nq);
     float b = formLevel(c, fw, s0 * 2.0, s0, period, widthPx, nq);
     return mix(a, b, fract(lvl)) * keep;
+  }
+  // A dark cap's veins as branches (FORM.veins): formLines' strokes, but a stroke that carries on to the coarser
+  // levels (its index divisible by two, four, …: it reaches further toward the stalk) is drawn thicker, a bough the
+  // finer ones fork from; and each wanders further along its length.
+  float veinLevel(float c, float fw, float s, float sRef, float widthPx, vec2 nq) {
+    float k = floor(c / s + 0.5), id = mod(k * s, ${FORM.turn}.0);
+    float h = hash(vec2(id, 3.17)), rank = 0.0, kk = abs(k);
+    for (int i = 0; i < ${FORM.veins.boughs}; i++) { if (mod(kk, 2.0) > 0.5) break; rank += 1.0; kk *= 0.5; }
+    float wob = (vnoise(nq + vec2(id * 0.37, h * 19.0)) - 0.5) * ${FORM.veins.waver.toFixed(4)};
+    float f = fw / s;
+    float d = abs(c - k * s - wob * sRef) / s;
+    float hw = 0.5 * widthPx * (0.7 + 0.6 * h) * (1.0 + ${FORM.veins.bough.toFixed(4)} * rank) * f;
+    float line = 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+    return mix(line, min(2.0 * hw, 1.0), smoothstep(${HATCH_AA[0].toFixed(3)}, ${HATCH_AA[1].toFixed(3)}, f));
+  }
+  float veinLines(float c, float fw, float spacingPx, float widthPx, vec2 nq) {
+    float lvl = log2(max(fw * spacingPx * uPixelRatio, 1e-6));
+    float top = log2(${FORM.turn}.0) - 1.0;
+    float keep = 1.0 - smoothstep(top - 1.0, top, lvl);
+    if (keep <= 0.0) return 0.0;
+    float s0 = exp2(floor(lvl));
+    widthPx *= uPixelRatio;
+    return mix(veinLevel(c, fw, s0, s0, widthPx, nq), veinLevel(c, fw, s0 * 2.0, s0, widthPx, nq), fract(lvl)) * keep;
   }
   // The shade's two families of strokes on a part with an axis: x the strokes, y the cross-hatch (dark > 0.5).
   // f the point about the axis (vForm), fdx / fdy its screen derivatives (taken in uniform flow).
@@ -1982,7 +2008,7 @@ const fragmentShader = /* glsl */ `
       const float K = ${(FORM.turn / (2 * Math.PI)).toFixed(4)};
       float r2 = max(dot(vForm.xy, vForm.xy), 1e-8);
       float fwT = (abs(vForm.x * formDx.y - vForm.y * formDx.x) + abs(vForm.x * formDy.y - vForm.y * formDy.x)) / r2 * K;
-      float vein = formLines(atan(vForm.y, vForm.x) * K, fwT, ${FORM.turn}.0, uHatchSpacing * ${FORM.veins.spacing.toFixed(4)}, ${FORM.veins.width.toFixed(4)}, vec2(sqrt(r2) * 0.35, 9.0));
+      float vein = veinLines(atan(vForm.y, vForm.x) * K, fwT, uHatchSpacing * ${FORM.veins.spacing.toFixed(4)}, ${FORM.veins.width.toFixed(4)}, vec2(sqrt(r2) * 0.5, 9.0));
       albedo += min(albedo * 1.2, vec3(${FORM.veins.lift.toFixed(4)})) * vein * uVeins;
     }
     #endif
@@ -2257,7 +2283,8 @@ const fragmentShader = /* glsl */ `
     #endif
     float dark = clamp((uToon - L) / uToon, 0.0, 1.0);
     // detail by distance: finer marks close to the camera, coarser far away
-    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
+    // (a hatch over 1 is a denser one: its strokes that much closer, a dense hatched mass: Lorn II's roots and bushes)
+    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth)) / max(uShade.z, 1.0);
     if (dark > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
       gHatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
     }
@@ -2313,7 +2340,7 @@ const fragmentShader = /* glsl */ `
       float lift = 1.0 - (1.0 - uShade.x) * (1.0 - uHalftone * turned) * (1.0 - uBounce * smoothstep(-0.1, -0.7, n.y));
       // (a lifted shade is a half-tone: few strokes, and no cross-hatching over a whole wall)
       // a sand ground hatches little in shade on its flats, fully on a steep slip face (SHADE.slip)
-      float hatchK = uMode == ${MODE_TERRAIN} ? mix(uShade.z, 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : uShade.z;
+      float hatchK = uMode == ${MODE_TERRAIN} ? mix(min(uShade.z, 1.0), 1.0, smoothstep(${SHADE.slip[0]}, ${SHADE.slip[1]}, slope)) : min(uShade.z, 1.0);
       float liftK = lift;
       #ifdef S_FORM
       // (a cap's fan of strokes stays dense under a lifted shade, as the sheets draw a pale cap's gills)

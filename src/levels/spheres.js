@@ -8,6 +8,7 @@ import { Terrain, jitter, soften } from '../world.js';
 import { PEOPLE } from '../story/spheres-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { leafCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -76,6 +77,9 @@ function height(x, z) {
 /** The day's colours: sky top, horizon, shadow, light, sun. */
 export const SPHERES_DAY = ['#9cc4dc', '#f1d9cb', '#a9c3cf', '#fffdf4', '#fff8e0'];
 export const SPHERES_LOOK = { uLineWidth: 1.0, uLineVary: 0.1, uWobble: 0.12, uHatch: 0.5, uDots: 0, uSkyDots: 0.3, uBounce: 0, uShadeKeep: 0, uSpotTone: [0.1, 0.17, 0.11, 0.5], uCast: [0.4, 0] };   // (uCast: the lawns' shadows lighter, as the sheets: post.js CAST)
+
+/** The white stone's shade: flat, in the day's pale blue, and almost no strokes (the sheets). */
+export const WHITE_SHADE = { shadeFlat: 1, hatch: 0.08 };
 
 // light direction the spheres' printed crescents are drawn for (morning sun from +x)
 export const CRESCENT = new THREE.Vector3(0.75, 0.42, 0.5).normalize();
@@ -150,6 +154,7 @@ export function* buildSpheres(scene) {
   const rng = mulberry32(1986);
   const R = (a, b) => a + rng() * (b - a);
   const pick = (a) => a[Math.floor(rng() * a.length)];
+  const R2 = (r, a, b) => a + r() * (b - a);   // (with an rng of its own)
   const terrain = yield* Terrain.make({
     size: 4000, seg: 440, height,
     material: { color: '#c8d65a', color2: '#b5c94f', color3: '#8fae55', mode: MODE_TERRAIN, ticks: true },
@@ -179,10 +184,13 @@ export function* buildSpheres(scene) {
     trunk: makeMaterial({ color: '#9fb5a8', detail: 'organic', form: true }),   // (bark: grain strokes, materials.js DETAIL)
     branch: makeMaterial({ color: '#7f9a90', form: true }),
     canopy: makeMaterial({ color: '#ffffff', vertexColors: true, form: true, line: 0.7, lineTint: 0.67 }),   // (foliage: a dark green line, lighter)
-    white: makeMaterial({ color: '#f3efe2', flat: true }),
-    whiteSmooth: makeMaterial({ color: '#f5f2e8' }),
-    rock: makeMaterial({ color: '#f1ede2', pattern: 'cracks' }),
-    boulder: makeMaterial({ color: '#f3f0e6', pattern: 'cracks' }),
+    // the umbrellas' undersides: a deep green, their veins drawn lighter as branches forking out to the rim (FORM.veins)
+    under: makeMaterial({ color: '#2b4535', form: true, veins: 1 }),
+    // (the white stone prints its shade flat in the day's pale blue, with almost no strokes, as the sheets)
+    white: makeMaterial({ color: '#f3efe2', flat: true, ...WHITE_SHADE }),
+    whiteSmooth: makeMaterial({ color: '#f5f2e8', ...WHITE_SHADE }),
+    rock: makeMaterial({ color: '#f1ede2', ...WHITE_SHADE }),
+    boulder: makeMaterial({ color: '#f3f0e6', ...WHITE_SHADE }),
     cave: makeMaterial({ color: '#3a5246', flat: true }),
     cream: makeMaterial({ color: '#ffffff', vertexColors: true, palette: ['#f6efd0', '#a9c9c4'], glow: 0.6 }),
     yellow: makeMaterial({ color: '#ffffff', vertexColors: true, palette: ['#f3e3a0', '#a9c9c4'], glow: 0.6 }),
@@ -190,7 +198,8 @@ export function* buildSpheres(scene) {
     stone: makeMaterial({ color: '#efe7d4' }),
     stone2: makeMaterial({ color: '#e0d4bc' }),
     path: makeMaterial({ color: '#efe8cc' }),
-    pole: makeMaterial({ color: '#f6f3ea' }),
+    pole: makeMaterial({ color: '#f6f3ea', ...WHITE_SHADE }),
+    paving: makeMaterial({ color: '#ffffff', vertexColors: true }),
     water: makeMaterial({ color: '#a8d0d6', color2: '#9fd0c8', mode: MODE_WATER }),
   };
 
@@ -232,7 +241,26 @@ export function* buildSpheres(scene) {
       return noise(c.x * 0.06 + seed, c.z * 0.06) > 0.35 ? '#c6d07c' : top;
     });
     g.translate(x, base, z);
-    add(M.canopy, g);
+    // drawn in two: the lime top (its painted faces) and the deep green underside, veined (M.under)
+    {
+      const p = g.attributes.position, top = [], under = [], a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+      for (let i = 0; i < p.count; i += 3) {
+        a.fromBufferAttribute(p, i); b.fromBufferAttribute(p, i + 1); c.fromBufferAttribute(p, i + 2);
+        (b.sub(a).cross(c.sub(a)).normalize().y < -0.05 ? under : top).push(i);
+      }
+      const pick = (list) => {
+        const o = new THREE.BufferGeometry();
+        for (const [k, attr] of Object.entries(g.attributes)) {
+          const n = attr.itemSize, arr = new Float32Array(list.length * 3 * n);
+          list.forEach((i, j) => { for (let v = 0; v < 3; v++) for (let q = 0; q < n; q++) arr[(j * 3 + v) * n + q] = attr.array[(i + v) * n + q]; });
+          o.setAttribute(k, new THREE.BufferAttribute(arr, n));
+        }
+        return o;
+      };
+      add(M.canopy, pick(top));
+      const u = pick(under); u.deleteAttribute('color');
+      add(M.under, u);
+    }
     // trunk: pinched waist, flaring roots and crown
     const tl = yJ + 1.5;
     const trunk = formAxis(new THREE.CylinderGeometry(rT, rB, tl, 14, 8, true), 'wrap').translate(0, tl / 2, 0);
@@ -344,11 +372,7 @@ export function* buildSpheres(scene) {
   // poles along the light: the terminator is then exactly one ring of vertices,
   // so the printed crescent has a clean round edge
   yield;
-  const toLight = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), CRESCENT);
-  function crescentSphere(Rs, w, h, lit) {
-    const g = new THREE.SphereGeometry(Rs, w, h % 2 ? h + 1 : h).toNonIndexed().applyQuaternion(toLight);
-    return paintFaces(g, (c) => (c.dot(CRESCENT) > 0 ? lit : '#a9c9c4'));
-  }
+  const crescentSphere = (Rs, w, h, lit) => printedSphere(Rs, w, h, lit, '#a9c9c4', CRESCENT);
   function sphere(x, z, Rs, lift, { yellow = false, collide = true, reflectIt = false, y } = {}) {
     const cy = y ?? terrain.baseAt(x, z, Rs * 0.6) + Rs * lift;
     const seg = Rs > 60 ? 96 : 64;
@@ -480,6 +504,35 @@ export function* buildSpheres(scene) {
       add(M.rock, g, true);
       prev = top;
     }
+    // the sculpted rock: each terrace's wall a row of rounded pillows of white stone bulging from it (the sheets'
+    // hill is carved lobes, not a drum), a few smaller ones stacked on them; clear of the stairs, the canopy step and
+    // the cave doors. Solid as drawn (src/contact-audit.js). (Their own rng: the world's scatter stays where it was.)
+    {
+      const rs = mulberry32(19861), doors = [[0.9, 0], [1.25, 0], [0.4, 0], [2.0, 1], [2.4, 1], [-0.4, 1]];
+      const off = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+      let lo = 0;
+      for (let i = 0; i < 3; i++) {
+        const r = Hl.r[i], top = Hl.top[i], h = top - lo;
+        for (let a = rs() * 0.2; a < Math.PI * 2; ) {
+          const sx = R2(rs, 5, 10), da = sx * 0.62 / r;
+          const clearOf = (b, w) => off(a, b) > w + sx * 0.5 / r;
+          if (clearOf(Math.PI / 2, 4.5 / r) && (i !== 1 || clearOf(0, 0.3)) && doors.every(([b, t]) => t !== i || clearOf(b, 2.6 / r))) {
+            const sy = h * R2(rs, 0.62, 0.86), sz = R2(rs, 3, 5.5), rr = r + sz * R2(rs, 0.05, 0.3);
+            const g = pillowRock(rs() * 100, sx * 0.5, sy * 0.5, sz * 0.5).rotateY(-a + Math.PI / 2)
+              .translate(Hl.x + Math.cos(a) * rr, hillBase + lo - 0.6, Hl.z + Math.sin(a) * rr);
+            add(M.rock, g); proxy(g.clone());
+            if (rs() < 0.35) {
+              const s2 = sx * R2(rs, 0.4, 0.6), sy2 = h * R2(rs, 0.3, 0.45), r2 = r + sz * 0.1;
+              const u = pillowRock(rs() * 100, s2 * 0.5, sy2 * 0.5, sz * 0.4).rotateY(-a + Math.PI / 2)
+                .translate(Hl.x + Math.cos(a + (rs() - 0.5) * da) * r2, hillBase + lo + sy * 0.55, Hl.z + Math.sin(a + (rs() - 0.5) * da) * r2);
+              add(M.rock, u); proxy(u.clone());
+            }
+          }
+          a += da * R2(rs, 0.9, 1.25);
+        }
+        lo = top;
+      }
+    }
     // boulders tumbling down the terrace edges
     for (let i = 0; i < 70; i++) {
       const tier = i % 3, r0 = Hl.r[tier], a = rng() * Math.PI * 2;
@@ -583,7 +636,12 @@ export function* buildSpheres(scene) {
     // the plaza: concentric stone rings around a thin pole
     const by = H(Pz.x, Pz.z);
     const rings = [[Pz.r, 0.32, M.stone], [Pz.r * 0.8, 0.46, M.stone2], [Pz.r * 0.74, 0.5, M.stone], [Pz.r * 0.46, 0.62, M.stone2], [Pz.r * 0.4, 0.66, M.stone], [4, 0.8, M.stone2]];
-    for (const [r, h, m] of rings) add(m, new THREE.CylinderGeometry(r, r, h + 0.5, 72, 1).translate(Pz.x, by + h / 2 - 0.25, Pz.z), true);
+    // (paved: each ring's slabs a hair apart in tone, so the ink draws their joints; garden-kit.js paintPaving)
+    const TONES = new Map([[M.stone, ['#efe7d4', '#e0d5bf']], [M.stone2, ['#e0d4bc', '#d0c3a8']]]);
+    rings.forEach(([r, h, m], i) => {
+      const g = new THREE.CylinderGeometry(r, r, h + 0.5, pavingSegments(r), 1).toNonIndexed().translate(Pz.x, by + h / 2 - 0.25, Pz.z);
+      add(M.paving, paintPaving(g, Pz.x, Pz.z, r, i, { tones: TONES.get(m), side: TONES.get(m)[0] }), true);
+    });
     add(M.pole, new THREE.CylinderGeometry(0.18, 0.3, 16, 8).translate(Pz.x, by + 8.8, Pz.z), true);
     plaza.ground = by; plaza.top = by + 17.2; plaza.inner = by + 0.8;
     add(M.cream, crescentSphere(0.7, 16, 10, '#f6efd0').translate(Pz.x, by + 17.2, Pz.z));
@@ -617,7 +675,7 @@ export function* buildSpheres(scene) {
     cypresses.push([x, z, R(1.1, 1.7)]);
   }
   // orange-fruit hedges round the plaza
-  const fruit = [];
+  const fruit = [], hedges = [];
   yield;
   for (let i = 0; i < 64; i++) {
     yield;
@@ -625,8 +683,11 @@ export function* buildSpheres(scene) {
     if (Math.abs(Math.sin(a)) > 0.97) continue;   // openings north and south (z axis)
     const x = Pz.x + Math.cos(a) * r, z = Pz.z + Math.sin(a) * r;
     if (Math.abs(x) < 5) continue;
-    shrubs.push({ x, y: H(x, z) - 0.2, z, s: 1.7, sy: 0.75, color: '#5f7f3e' });
-    for (let k = 0; k < 4; k++) fruit.push([x + R(-1.4, 1.4), H(x, z) + R(0.6, 1.3), z + R(-1.4, 1.4)]);
+    // a clipped hedge along the ring, its fruit on its top and faces (the sheets'; garden-kit.js hedge)
+    const ry = Math.PI / 2 - a, y = H(x, z) - 0.15, c = Math.cos(ry), sn = Math.sin(ry);
+    hedges.push({ x, y, z, ry, s: 1 });
+    for (const [fx, fy, fz] of hedge(i + 1, 3.4, 1.6, 1.9, 9).fruit) fruit.push([x + fx * c + fz * sn, y + fy, z - fx * sn + fz * c]);
+    for (let k = 0; k < 12; k++) rng();   // (the draws the old shrubs took: the world's scatter stays where it was)
   }
 
   // ==========================================================================
@@ -652,24 +713,21 @@ export function* buildSpheres(scene) {
     }
     // the white robot statue, leaning a little
     const sx = -150, sz = -478, sb = terrain.baseAt(sx, sz, 6) - 0.5;
-    const bot = new THREE.Group();
-    const part = (w, h, d, x, y, z, r = 0.25) => {
-      const g = new RoundedBoxGeometry(w, h, d, 3, Math.min(w, h, d) * r).translate(x, y, z);
-      return g;
-    };
-    const parts = [
-      part(3, 9, 3.2, -2.3, 4.5, 0), part(3, 9, 3.2, 2.3, 4.5, 0), part(8.5, 3, 4.5, 0, 10, 0),
-      part(9.5, 8, 5.5, 0, 15.5, 0), part(13.5, 3, 5.6, 0, 20.5, 0), part(2.8, 10, 2.8, -7.6, 14.2, 0.4), part(2.8, 10, 2.8, 7.6, 15.5, -1.5),
-      part(2, 2, 2, 0, 22.6, 0, 0.4), part(4.6, 4.4, 4.6, 0, 25, 0, 0.42),
-    ];
+    // (garden-kit.js robotParts: legs and feet, hips, a chest with its plate, shoulder pads, arms to the hands, a domed head)
+    const { parts, slots } = robotParts();
     const tilt = new THREE.Matrix4().makeRotationZ(0.06).premultiply(new THREE.Matrix4().makeRotationY(0.5)).premultiply(new THREE.Matrix4().makeTranslation(sx, sb, sz));
     for (const g of parts) {
       g.applyMatrix4(tilt);
       proxy(g.clone());   // (as drawn: each part's bounding box stood outside its rounded sides)
       add(M.whiteSmooth, g);
     }
-    add(M.cave, new THREE.BoxGeometry(3.4, 0.7, 0.3).translate(0, 25.4, 2.35).applyMatrix4(tilt));
-    void bot;
+    for (const g of slots) add(M.cave, g.applyMatrix4(tilt));
+    // the ruins' arcades: white walls pierced by round arches, their tops broken (solid as drawn)
+    for (const [x, z, ry, bays, span, h, ruin] of [[-205, -428, 0.35, 5, 6.5, 11, 0.5], [-158, -505, -0.7, 3, 7, 13, 0.3], [-122, -455, 1.2, 4, 5.5, 9, 0.6]]) {
+      const g = arcade({ bays, span, h, depth: 1.8, pier: 1.6, ruin, seed: x }).rotateY(ry).translate(x, terrain.baseAt(x, z, bays * span * 0.5) - 0.6, z);
+      add(M.white, g); proxy(g.clone());
+      avoid.push([x, z, bays * span * 0.5 + 2]);
+    }
     avoid.push([sx, sz, 9]);
     // white archways through the wood
     for (const [x, z, ry] of [[-110, -412, 1.4], [-205, -470, 0.3]]) {
@@ -771,13 +829,15 @@ export function* buildSpheres(scene) {
   // round shrubs
   yield;
   {
-    const g = lumpy(2, 0.12, 4).scale(1, 0.82, 1);
+    // (foliage as clusters of small inked leaf masses: garden-kit.js leafCrown)
+    const g = leafCrown(4, { lobes: 3, core: 0.74, size: [0.36, 0.5] });   // (320 faces, a lump's 180: the shrubs are many)
     const DARK = ['#3f6b45', '#355f3c', '#2f5a3a', '#4a7346'], MID = ['#5f8a4f', '#6f9a52', '#7f9a4a'];
     instanced(g, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), shrubs.map((s) => ({
       x: s.x, y: s.y + s.s * 0.45 * (s.sy ?? 1), z: s.z, s: s.s, sy: s.s * (s.sy ?? 0.85), ry: rng() * 6,
       color: s.color ?? (s.dark ? pick(DARK) : pick(MID)),
     })));
-    instanced(new THREE.IcosahedronGeometry(0.22, 0), makeMaterial({ color: '#ffffff', glow: 0.3 }), fruit.map(([x, y, z]) => ({ x, y, z, s: 1, color: pick(['#e8872f', '#f0a040', '#e27428']) })));
+    instanced(hedge(0, 3.4, 1.6, 1.9).hedge, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), hedges.map((h) => ({ ...h, color: pick(['#4f6f38', '#55763c', '#4a6a36']) })));
+    instanced(new THREE.IcosahedronGeometry(0.2, 0), makeMaterial({ color: '#ffffff', glow: 0.3 }), fruit.map(([x, y, z]) => ({ x, y, z, s: 1, color: pick(['#e8872f', '#f0a040', '#e27428']) })));
   }
   // olive trees: reddish twisting trunks under round lumpy crowns
   yield;
@@ -788,12 +848,10 @@ export function* buildSpheres(scene) {
       new THREE.CylinderGeometry(0.12, 0.2, 1.8, 5).rotateZ(-0.7).translate(0.7, 3.4, 0).toNonIndexed(),
       new THREE.CylinderGeometry(0.12, 0.2, 1.8, 5).rotateX(0.7).translate(0, 3.4, -0.6).toNonIndexed(),
     ].map((g) => prep(g)));
+    // (a crown of small leaf masses, each with its own outline, as the sheets draw olives: garden-kit.js leafCrown)
     const crown = mergeGeometries([
-      lumpy(2, 0.14, 1).scale(2.3, 1.6, 2.3).translate(0, 4.7, 0),
-      lumpy(2, 0.14, 2).scale(1.6, 1.25, 1.6).translate(1.4, 5.5, 0.8),
-      lumpy(2, 0.14, 3).scale(1.5, 1.15, 1.5).translate(-1.3, 5.3, -0.8),
-      lumpy(2, 0.14, 5).scale(1.4, 1.1, 1.4).translate(0.2, 6.1, -1.2),
-    ].map((g) => prep(g)));
+      leafCrown(1, { lobes: 7, core: 0.75, size: [0.26, 0.38] }).scale(2.4, 1.8, 2.4).translate(0, 5, 0),
+    ]);   // (640 faces, the four lumps' 720)
     instanced(trunk, makeMaterial({ color: '#ffffff', detail: 'organic' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })),
       { collideGeo: new THREE.CylinderGeometry(0.4, 0.4, 3, 6, 1).translate(0, 1.5, 0) });
     instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })));
