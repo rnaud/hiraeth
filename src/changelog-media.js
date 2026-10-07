@@ -155,6 +155,39 @@ export const CHANGELOG_MEDIA = {
       { name: 'overnighttrain-refs', only: 'after', size: [1608, 448], caption: 'The fourth picture (left) and its view in the game (right): the plum carriages along the track, their windows lit, the balcony, the dust at the wheels, the two moons', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'overnighttrain-refs-dusk', only: 'after', size: [1608, 448], caption: 'The third: the train coming on at dusk, its lounge lit through the round nose, the moons low on the right, a bank of cloud on the left', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=overnighttrain and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'A new world off the route, the Overnight Train', shots: [
+      { name: 'overnighttrain-arrival', only: 'after', caption: 'The train waiting at its station by night: the lounge lit at the nose, the ship on the landing wagon behind, the telegraph wires', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+      { name: 'overnighttrain-lounge', only: 'after', caption: 'The observation lounge: armchairs and lamps down both rows of windows, the balcony at the end', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+      { name: 'overnighttrain-dining', only: 'after', caption: 'The dining car, its tables laid and lit, the plain running past the windows', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+      { name: 'overnighttrain-sleeper', only: 'after', caption: 'A sleeping car’s corridor, the compartments’ doors along it', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+      { name: 'overnighttrain-balcony', only: 'after', caption: 'On the balcony at the nose: the track and the poles coming at you out of the dark', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+      { name: 'overnighttrain-deck', only: 'after', caption: 'The landing wagon: the ship on its deck, the railing, people come to look', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+      { name: 'overnighttrain-moons', only: 'after', caption: 'From the plain beside it: the lit carriages, the two moons ahead of the train', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the Overnight Train on the galactic map (or open the game with ?level=overnighttrain). From the ship walk forward through the porches and the carriages to the lounge at the front.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), 12 synced frames a sample, median of 3 rounds (the machine shared with other agents: compare within the run)', unit: 'ms', better: 'lower', device: 'Mac, headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The Overnight Train”', rows: [
+          { where: 'the Signal Market’s start (the budget)', before: 2.26, after: null },
+          { where: 'the Signal Market’s street (the budget)', before: 2.19, after: null },
+          { where: 'by the ship', before: null, after: 1.77 },
+          { where: 'the lounge', before: null, after: 1.77 },
+          { where: 'the dining car', before: null, after: 1.67 },
+          { where: 'on the roofs', before: null, after: 1.91 },
+          { where: 'the landing wagon', before: null, after: 1.69 },
+          { where: 'the balcony', before: null, after: 1.73 },
+        ] },
+        { title: 'Draw calls, same views', unit: 'draws', better: 'lower', device: 'Mac, headless Chrome, 1280 × 720', source: 'docs/systems/worlds.md, “The Overnight Train”', rows: [
+          { where: 'the Signal Market, three views (the budget)', before: '334–693', after: null },
+          { where: 'the Overnight Train, six views', before: null, after: '116–273' },
+        ] },
+      ] },
+    { match: 'On the Overnight Train the land runs past', shots: [
+      { name: 'overnighttrain-station', only: 'after', caption: 'Halted at a station: its house and lamps, the waiting people, the platform along the carriages', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+    ], see: 'Open ?level=overnighttrain and wait by a window: the train leaves its station after half a minute, runs at speed for two and a half minutes, and brakes into the next. Off the train is the running land: step off and you are put back aboard.' },
+    { match: 'Climb the ladder on any porch of the Overnight Train', shots: [
+      { name: 'overnighttrain-roofs', only: 'after', caption: 'Along the roofs toward the nose: the walk over the crowns, the gardens either side, the plain racing past', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+      { name: 'overnighttrain-terrace', only: 'after', caption: 'The library carriage’s roof terrace, the sky lounge’s door, its pennants', from: 'the world’s own screenshots, headless Chrome, High, 22:00 (7 October)' },
+    ], see: 'On a porch between two carriages, climb the ladder beside the door (or the end wall itself); the plank bridges join the roofs from the lounge back to the library, whose terrace carries the sky lounge.' },
+    { match: 'The Overnight Train sounds like a train', see: 'Turn the effects up and stand at a window while the train runs: the beat of the joints keeps time with its speed, slows as it brakes into a station and stops; go out on the balcony or the roofs and the rush of the air comes up; listen for the whistle as it pulls out.' },
   ],
   '0.85': [
     { match: 'A new world off the route, the City During the Eclipse', shots: [

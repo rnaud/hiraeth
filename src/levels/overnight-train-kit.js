@@ -44,7 +44,7 @@ export const LAMP_TINT = ['#ffa860', 0.55];
 export const TRAIN_TONES = {
   hull: '#7c6ca8', hull2: '#70609c', hull3: '#8a7ab4', plum: '#7a5080', plum2: '#6a4474', roof: '#6a5c96', skirt: '#4a4078',
   frame: '#3a2e4c', iron: '#2c2638', steel: '#6e6890', brass: '#c89a5a',
-  glow: '#ff8a3a', pane: '#ff8a34', lamp: '#ffc878', ceil: '#ff9c5c',
+  glow: '#ff8a3a', pane: '#ffa24a', lamp: '#ffc878', ceil: '#ff9c5c',
   wood: '#7a3e30', wood2: '#94523c', panel: '#b85a3a', floor: '#5e3a34', rug: '#9a3a40', plush: '#8a2e3c', plush2: '#5e4a7a', linen: '#f4ece0', brassDark: '#8a6a3a',
   plank: '#6e5a62', shrub: '#3e5a48', shrub2: '#4e6a4e', leaves: '#5a7a52', pot: '#9a5a44', pennant: '#ec8a86', pennant2: '#f2a088',
   dust: '#f49c88', dust2: '#f6b49a',
@@ -74,6 +74,9 @@ export const TRAIN_LOOK = {
 /** The train's materials, made by the kit (shared per option set). */
 export function trainMats(kit, { lamps = true } = {}) {
   const T = TRAIN_TONES, DS = THREE.DoubleSide, LT = lamps ? { lampTint: LAMP_TINT } : {};
+  // (inside, everything is in the moons' shade under the roof: lit by the lamps, it keeps its own hue, lifted, instead of
+  // the world's flat blue-violet print that would turn the whole carriage to one tone)
+  const IN = { shadeHue: 1, shade: 0.55, ...LT };
   return {
     // the hull: painted steel plates, their seams drawn; the roof a shade deeper; the skirt and the frames dark
     hull: kit.mat({ color: T.hull, color2: T.hull3, plates: 2.4, flat: true, hatch: 0.45, ...LT }),
@@ -86,19 +89,19 @@ export function trainMats(kit, { lamps = true } = {}) {
     brass: kit.mat({ color: T.brass, flat: true, metal: 'brass', ...LT }),
     rod: kit.mat({ color: T.frame, flat: true, thin: 1.3 }),
     // the light: the windows of the closed carriages, the lamps' shades, the ceilings' lamp strips
-    pane: kit.mat({ color: T.pane, glow: 0.85, flat: true, spot: 0 }),
+    pane: kit.mat({ color: T.pane, glow: 1, flat: true, spot: 0 }),
     glow: kit.mat({ color: T.glow, glow: 0.9, flat: true, spot: 0 }),
     lamp: kit.mat({ color: T.lamp, glow: 1, flat: true, spot: 0, line: 0.5, lineTint: 0.6 }),
     // inside: a warm cream ceiling lit from within (it reads as light through the windows), wood panels, plush
-    ceil: kit.mat({ color: T.ceil, glow: 0.5, flat: true, hatch: 0.2, spot: 0, ...LT }),
-    panel: kit.mat({ color: T.panel, glow: 0.22, flat: true, pattern: 'cracks', ...LT }),
-    wood: kit.mat({ color: T.wood, flat: true, ...LT }),
-    wood2: kit.mat({ color: T.wood2, flat: true, ...LT }),
-    floor: kit.mat({ color: T.floor, flat: true, ...LT }),
-    rug: kit.mat({ color: T.rug, flat: true, hatch: 0.3, ...LT }),
-    plush: kit.mat({ color: T.plush, flat: true, shade: 0.4, ...LT }),
-    plush2: kit.mat({ color: T.plush2, flat: true, shade: 0.4, ...LT }),
-    linen: kit.mat({ color: T.linen, flat: true, shade: 0.3, ...LT }),
+    ceil: kit.mat({ color: T.ceil, glow: 0.5, flat: true, hatch: 0.2, spot: 0, ...IN }),
+    panel: kit.mat({ color: T.panel, glow: 0.22, flat: true, pattern: 'cracks', ...IN }),
+    wood: kit.mat({ color: T.wood, flat: true, glow: 0.06, ...IN }),
+    wood2: kit.mat({ color: T.wood2, flat: true, glow: 0.06, ...IN }),
+    floor: kit.mat({ color: T.floor, flat: true, glow: 0.05, ...IN }),
+    rug: kit.mat({ color: T.rug, flat: true, hatch: 0.3, glow: 0.08, ...IN }),
+    plush: kit.mat({ color: T.plush, flat: true, glow: 0.08, ...IN }),
+    plush2: kit.mat({ color: T.plush2, flat: true, glow: 0.08, ...IN }),
+    linen: kit.mat({ color: T.linen, flat: true, glow: 0.12, ...IN }),
     plank: kit.mat({ color: T.plank, flat: true, line: 0.6, lineTint: 0.5, ...LT }),
     // the gardens on the roofs, the pennants (soft long shapes: a light line of their own)
     shrub: [T.shrub, T.shrub2].map((c) => kit.mat({ color: c, pattern: 'leaves', hatch: 0.5, shade: 0.35, line: 0.6, lineTint: 0.7 })),
@@ -245,7 +248,17 @@ export function bar(a, b, r = 0.05) {
   const q = new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), d.normalize());
   return g.applyQuaternion(q).translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
 }
-/** A round thin bar from a to b (a rail, a wire): drawn at least a pixel and a bit wide (src/thin.js). */
+/**
+ * The two rails from x0 to x1 at the rails' height, in pieces of `piece` m: a thin bar is widened to a pixel at each of
+ * its ends' distance (src/thin.js), so one bar kilometres long grew metres wide at its far end and its long wedge
+ * cut through everything near.
+ */
+export function railsGeo(x0, x1, { y = TR.rail - 0.03, gauge = TR.gauge, piece = 30 } = {}) {
+  const out = [];
+  for (const s of [-1, 1]) for (let x = x0; x < x1; x += piece) out.push(rodGeo(V(x, y, (s * gauge) / 2), V(Math.min(x1, x + piece), y, (s * gauge) / 2), 0.06));
+  return out;
+}
+/** A round thin bar from a to b (a rail, a wire): drawn at least a pixel and a bit wide (src/thin.js). Keep it short. */
 export function rodGeo(a, b, r = 0.04, radial = 4) { return thinBar(stick(a, b, r, radial), a, b); }
 
 /** The outline of a profile, both sides (a THREE.Shape in z, y over the floor: an end wall's). */
@@ -266,7 +279,7 @@ function doorPath(z, w, h) {
  * A carriage's end wall at x (its face toward `dir`: +1 the front, -1 the back), a door through it (door: false, a
  * closed end). { hull: [geo] (outside, the skin's thickness), panel: [geo] (its inside face) }.
  */
-export function endWall(x, dir, { y0 = TR.floor, P = profile(), door = true, dw = 1.1, dh = 2.15, inside = true } = {}) {
+export function endWall(x, dir, { y0 = TR.floor, P = profile(), door = true, dw = 1.3, dh = 3.0, inside = true } = {}) {
   const out = {}, s = outline(P.out);
   if (door) s.holes.push(doorPath(0, dw, dh));
   // (the shape in its plane: its x is the carriage's z; turned so it stands across the carriage, extruded inward)
@@ -347,7 +360,7 @@ export function bogie(x, { r = 0.55, axles = 2, base = 1.9, spokes = false, gaug
       const z = (s * gauge) / 2;
       push(out, 'iron', new THREE.CylinderGeometry(r, r, 0.16, seg).rotateX(Math.PI / 2).translate(ax, y, z + s * 0.06));
       push(out, 'steel', new THREE.CylinderGeometry(r * 0.9, r * 0.9, 0.04, seg).rotateX(Math.PI / 2).translate(ax, y, z + s * 0.15));
-      if (spokes) for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; push(out, 'iron', new THREE.BoxGeometry(r * 1.7, 0.06, 0.05).rotateZ(a).translate(ax, y, z + s * 0.18)); }
+      if (spokes) for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; push(out, 'spokes', new THREE.BoxGeometry(r * 1.7, 0.06, 0.05).rotateZ(a).translate(ax, y, z + s * 0.18)); }
       out.wheels.push({ x: ax, y, z: z + s * 0.06, r });
     }
     push(out, 'iron', new THREE.CylinderGeometry(0.08, 0.08, gauge + 0.4, 6).rotateX(Math.PI / 2).translate(ax, y, 0));
@@ -489,10 +502,10 @@ export function pennantWave(g, t, k = 1) {
   p.needsUpdate = true;
 }
 /** A planter box along x from x0 to x1 at height y, its bushes (the roofs' gardens). { pot: [geo], shrub: [geo] }. */
-export function planter(x0, x1, y, z, { w = 0.7, seed = 1, n = null, s = [0.5, 1.1], detail = 1 } = {}) {
+export function planter(x0, x1, y, z, { w = 0.7, seed = 1, n = null, s = [0.32, 0.62], detail = 1 } = {}) {
   const out = {}, L = x1 - x0;
   push(out, 'pot', new THREE.BoxGeometry(L, 0.45, w).translate((x0 + x1) / 2, y + 0.22, z));
-  for (const g of shrubs([x0 + 0.3, y + 0.3, z], [x1 - 0.3, y + 0.3, z], { n: n ?? Math.max(1, Math.round(L / 0.9)), s, seed, jitter: 0.2, detail })) push(out, 'shrub', g);
+  for (const g of shrubs([x0 + 0.25, y + 0.32, z], [x1 - 0.25, y + 0.32, z], { n: n ?? Math.max(2, Math.round(L / 0.5)), s, seed, jitter: 0.15, detail: 1 })) push(out, 'shrub', g);
   return out;
 }
 
@@ -637,7 +650,7 @@ export const CAR_KINDS = {
  * Returns { cars: [{ kind, x0, x1, xc, L }], wheels: [{ x, y, z, r, drive }], ladders: [...], pennants: [geo],
  * lamps: [[x, y, z]], xTail }.
  */
-export function train(kit, M, cars, { x = 0, detail = 1, solid = true, seed = 1, people = 0, furnish = null } = {}) {
+export function train(kit, M, cars, { x = 0, detail = 1, solid = true, seed = 1, furnish = null, turning = false } = {}) {
   const rng = mulberry32(Math.floor(seed * 1229) + 7), P = profile({ roof: detail >= 1 ? 7 : 5 });
   const S = solid ? SOLID : SH;
   const res = { cars: [], wheels: [], ladders: [], pennants: [], lamps: [], terraces: [] };
@@ -669,20 +682,21 @@ export function train(kit, M, cars, { x = 0, detail = 1, solid = true, seed = 1,
     // the floor inside (and the gaps' plates come with the porches)
     if (!closed) kit.add(M.floor, new THREE.BoxGeometry(L - 0.1, 0.26, (P.half - TR.wall) * 2).translate(xc, TR.floor - 0.13, 0), S);
     // the porches at its ends (none in front of the nose; the tail's back one railed shut)
-    if (!lead) { const Pf = porch(x1, 1, { ladder: (i % 2 ? -1 : 1), gates: closed }); addParts(kit, M, Pf, { floor: M.plank, rail: M.brass, iron: M.iron }, S); res.ladders.push(...Pf.ladder); }
-    { const Pb = porch(x0, -1, { ladder: 0, gates: closed || last }); addParts(kit, M, Pb, { floor: M.plank, rail: M.brass, iron: M.iron }, S); }
+    if (!lead) { const Pf = porch(x1, 1, { ladder: (i % 2 ? -1 : 1) }); addParts(kit, M, Pf, { floor: M.plank, rail: M.brass, iron: M.iron }, S); res.ladders.push(...Pf.ladder); }
+    { const Pb = porch(x0, -1, { ladder: 0, gates: last }); addParts(kit, M, Pb, { floor: M.plank, rail: M.brass, iron: M.iron }, S); }
     // under it: the bogies (the lead's great drive wheels), the underframe
     const bx = lead ? [x1 - 4.2, x0 + 3.6] : [x1 - 3.3, x0 + 3.3];
     for (const [k, b] of bx.entries()) {
       const drive = lead && k === 0, B = bogie(b, drive ? { r: 0.85, axles: 3, base: 1.95, spokes: true } : { seg: detail >= 1 ? 14 : 10 });
       for (const g of B.iron ?? []) kit.add(M.iron, g, SH); for (const g of B.steel ?? []) kit.add(M.steel, g, SH);
+      if (!turning) for (const g of B.spokes ?? []) kit.add(M.iron, g, SH);
       res.wheels.push(...B.wheels.map((w) => ({ ...w, drive })));
     }
     const U = underframe(x0, x1, { seed: seed + i, bogies: bx });
     for (const [k, m] of [['frame', M.frame], ['iron', M.iron], ['steel', M.steel]]) for (const g of U[k] ?? []) kit.add(m, g, SH);
     // the roof walk along its crown (the plates over the gaps join them all)
     kit.add(M.plank, new THREE.BoxGeometry(L - 0.2, 0.12, 0.9).translate(xc, TR.floor + TR.walk - 0.06, 0), S);
-    if (!last) kit.add(M.plank, new THREE.BoxGeometry(TR.gap + 0.6, 0.1, 0.8).translate(x0 - TR.gap / 2, TR.floor + TR.walk - 0.05, 0), S);
+    if (!last && cars[i + 1].kind !== 'landing') kit.add(M.plank, new THREE.BoxGeometry(TR.gap + 0.6, 0.1, 0.8).translate(x0 - TR.gap / 2, TR.floor + TR.walk - 0.05, 0), S);
     roofTop(kit, M, rng, c, { x0, x1, xc, L, detail, res, S });
     furnish?.(kit, M, c, { x0, x1, xc, L, i, P, rng, res });
     res.cars.push({ kind: c.kind, x0, x1, xc, L, i });
@@ -701,7 +715,7 @@ function roofTop(kit, M, rng, c, { x0, x1, xc, L, detail, res, S }) {
     // planters either side of the walk, sitting on the curve (their feet sunk into it)
     for (const s of [-1, 1]) for (let x = x0 + 1.5; x < x1 - 3; x += 3.6 + rng() * 2) {
       const len = 1.6 + rng() * 1.6, P = planter(x, Math.min(x1 - 1, x + len), yr - 0.32, s * 0.95, { seed: x * 3 + s, w: 0.6, detail });
-      for (const g of P.pot) kit.add(M.pot, g, SH);
+      for (const g of P.pot) kit.add(M.pot, g, S);
       for (const g of P.shrub) kit.add(M.shrub[Math.floor(rng() * 2)], g, SH);
     }
   }
@@ -738,7 +752,7 @@ function skyLounge(kit, M, rng, { x0, x1, xc, L, detail, res, S }) {
   for (const [k, m] of [['hull', M.plum], ['roof', M.roof], ['skirt', M.skirt], ['frame', M.frame], ['wain', M.wood], ['panel', M.panel], ['ceil', M.ceil]]) for (const g of body[k] ?? []) kit.add(m, g, S);
   const N = nose(lx1, { y0: yd, P: P2, k: 1.15, open: 1.0, reach: 2.8 });
   for (const [k, m] of [['hull', M.plum], ['roof', M.roof], ['skirt', M.skirt], ['ceil', M.ceil], ['panel', M.panel], ['frame', M.frame], ['floor', M.plank], ['rail', M.brass]]) for (const g of N[k] ?? []) kit.add(m, g, S);
-  const E = endWall(lx0, -1, { y0: yd, P: P2, dw: 1, dh: 1.9 });
+  const E = endWall(lx0, -1, { y0: yd, P: P2, dw: 1.25, dh: 2.75 });
   for (const g of E.hull) kit.add(M.plum, g, S); for (const g of E.panel) kit.add(M.panel, g, S);
   kit.add(M.floor, new THREE.BoxGeometry(lx1 - lx0, 0.06, (P2.half - TR.wall) * 2).translate((lx0 + lx1) / 2, yd + 0.03, 0), S);
   // inside: two armchairs at the round window, a lamp
@@ -749,7 +763,7 @@ function skyLounge(kit, M, rng, { x0, x1, xc, L, detail, res, S }) {
   kit.add(M.lamp, new THREE.BoxGeometry(lx1 - lx0 - 1, 0.06, 0.2).translate((lx0 + lx1) / 2, yd + P2.crown - TR.wall - 0.04, 0), NC);
   res.lamps.push([(lx0 + lx1) / 2, yd + 2.2, 0]);
   // the deck's garden behind the cabin: planters along the rails, a bench
-  for (const s of [-1, 1]) for (const g of [planter(dx0 + 0.6, lx0 - 1, yd, s * 1.6, { seed: s + 3, w: 0.7, detail })]) { for (const p of g.pot) kit.add(M.pot, p, SH); for (const p of g.shrub) kit.add(M.shrub[Math.floor(rng() * 2)], p, SH); }
+  for (const s of [-1, 1]) for (const g of [planter(dx0 + 0.6, lx0 - 1, yd, s * 1.6, { seed: s + 3, w: 0.7, detail })]) { for (const p of g.pot) kit.add(M.pot, p, S); for (const p of g.shrub) kit.add(M.shrub[Math.floor(rng() * 2)], p, SH); }
   kit.add(M.wood, new THREE.BoxGeometry(0.5, 0.45, 2.2).translate(dx0 + 2.6, yd + 0.22, 0.9), S);
   res.terraces.push({ x0: dx0, x1: dx1, y: yd, w: wd, cabin: [lx0, lx1] });
 }
@@ -827,9 +841,9 @@ export function furnishCar(kit, M, c, { x0, x1, xc, L, rng, res }, { solid = tru
       if (((x - x0) / 2.4) % 2 < 1) { const T = table(x + 0.45, y, s * 2.35, { w: 0.55, round: true, cloth: false, h: 0.62 }); addParts(kit, M, T, FURN, S); lamp(T.lamp, 4); }
     }
     // the bar across the back, its bottles, a palm in a pot by the nose
-    kit.add(M.wood, new THREE.BoxGeometry(0.7, 1.05, 2.2).translate(x0 + 1.4, y + 0.52, 1.2), S);
-    kit.add(M.brass, new THREE.BoxGeometry(0.8, 0.05, 2.3).translate(x0 + 1.4, y + 1.07, 1.2), S);
-    for (let i = 0; i < 9; i++) kit.add(i % 3 ? M.glow : M.plush2, new THREE.CylinderGeometry(0.04, 0.05, 0.28, 5).translate(x0 + 1.25 + (i % 2) * 0.2, y + 1.24, 0.3 + i * 0.22), NC);
+    kit.add(M.wood, new THREE.BoxGeometry(0.7, 1.05, 1.6).translate(x0 + 1.4, y + 0.52, 1.85), S);
+    kit.add(M.brass, new THREE.BoxGeometry(0.8, 0.05, 1.7).translate(x0 + 1.4, y + 1.07, 1.85), S);
+    for (let i = 0; i < 7; i++) kit.add(i % 3 ? M.glow : M.plush2, new THREE.CylinderGeometry(0.04, 0.05, 0.28, 5).translate(x0 + 1.25 + (i % 2) * 0.2, y + 1.24, 1.2 + i * 0.2), NC);
     for (const s of [-1, 1]) { kit.add(M.pot, new THREE.CylinderGeometry(0.28, 0.22, 0.5, 8).translate(x1 + 0.6, y + 0.25, s * 2.4), S); for (const g of shrubs([x1 + 0.6, y + 0.6, s * 2.4], [x1 + 0.6, y + 1.4, s * 2.4], { n: 2, s: [0.4, 0.6], seed: s + 9, jitter: 0.1, detail })) kit.add(M.leaves, g, NC); }
   } else if (c.kind === 'dining') {
     // tables for four at each pair of windows, the aisle kept clear; the counter and its shelves at the back
@@ -844,20 +858,21 @@ export function furnishCar(kit, M, c, { x0, x1, xc, L, rng, res }, { solid = tru
     }
     kit.add(M.wood, new THREE.BoxGeometry(2.4, 1.05, 0.6).translate(x0 + 1.6, y + 0.52, -2.3), S);
     kit.add(M.brass, new THREE.BoxGeometry(2.5, 0.05, 0.7).translate(x0 + 1.6, y + 1.07, -2.3), S);
-    kit.add(M.wood2, new THREE.BoxGeometry(0.3, 1.6, 2.2).translate(x0 + 0.35, y + 1.6, -1.3), S);
-    for (let i = 0; i < 12; i++) kit.add(i % 4 ? M.glow : M.linen, new THREE.CylinderGeometry(0.04, 0.05, 0.26, 5).translate(x0 + 0.42, y + 1.05 + Math.floor(i / 6) * 0.5, -2.2 + (i % 6) * 0.18), NC);
+    kit.add(M.wood2, new THREE.BoxGeometry(0.3, 1.6, 1.4).translate(x0 + 0.35, y + 1.6, -1.75), S);
+    for (let i = 0; i < 12; i++) kit.add(i % 4 ? M.glow : M.linen, new THREE.CylinderGeometry(0.04, 0.05, 0.26, 5).translate(x0 + 0.42, y + 1.05 + Math.floor(i / 6) * 0.5, -2.35 + (i % 6) * 0.2), NC);
   } else if (c.kind === 'sleeper') {
-    // the corridor along -z behind a partition, the compartments along +z (one per window), their doors open
-    const zw = -1.35, H2 = 2.6, win = CAR_KINDS.sleeper.windows(L)[1].map(([a, b]) => [xc + a, xc + b]);
+    // the corridor along -z behind a partition, the compartments along +z (one per window), their doors open (or a few
+    // shut); a vestibule at each end, where the end doors open, onto the corridor
+    const zw = -1.35, H2 = 2.6, win = CAR_KINDS.sleeper.windows(L)[1].map(([a, b]) => [xc + a, xc + b]).filter(([a, b]) => a > x0 + 2.1 && b < x1 - 2.1);
     const cuts = [];
     for (let k = 0; k <= win.length; k++) {
-      const xb = k === 0 ? x0 + 0.15 : k === win.length ? x1 - 0.15 : (win[k - 1][1] + win[k][0]) / 2;
+      const xb = k === 0 ? win[0][0] - 0.6 : k === win.length ? win[k - 1][1] + 0.6 : (win[k - 1][1] + win[k][0]) / 2;
       cuts.push(xb);
-      // the walls between compartments
-      if (k > 0 && k < win.length) kit.add(M.panel, new THREE.BoxGeometry(0.08, H2, zi - zw).translate(xb, y + H2 / 2, (zi + zw) / 2), S);
+      // the walls between compartments, and at the ends of their row (the vestibules beyond)
+      kit.add(M.panel, new THREE.BoxGeometry(0.08, H2, zi - zw).translate(xb, y + H2 / 2, (zi + zw) / 2), S);
     }
     for (let k = 0; k < win.length; k++) {
-      const a = cuts[k], b = cuts[k + 1], xm = (a + b) / 2, dw = 0.8, closed = rng() < 0.3;
+      const a = cuts[k], b = cuts[k + 1], xm = (a + b) / 2, dw = 1.0, closed = rng() < 0.3;
       // the partition along the corridor, its door open (or a few shut)
       for (const [p, q] of [[a, xm - dw / 2], [xm + dw / 2, b]]) kit.add(M.panel, new THREE.BoxGeometry(q - p, H2, 0.08).translate((p + q) / 2, y + H2 / 2, zw), S);
       kit.add(M.panel, new THREE.BoxGeometry(dw, H2 - 2.1, 0.08).translate(xm, y + 2.1 + (H2 - 2.1) / 2, zw), S);

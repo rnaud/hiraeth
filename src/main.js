@@ -668,7 +668,7 @@ let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
 const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
 // (a level with rooms of its own sky, the Lab's biome rooms, hands its colour script over with atmo)
 // (an eclipse world's sun on its own path, the moon over it by the hour: src/eclipse.js)
-const updateSky = () => { applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, atmo?.script ?? script); if (level.sky?.eclipse) applyEclipse(sky.hour, level.sky.eclipse, post.uniforms, sharedUniforms.uSunDir.value); };
+const updateSky = () => { applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, atmo?.script ?? script); if (level.sky?.eclipse) applyEclipse(sky.hour, level.sky.eclipse, post.uniforms, sharedUniforms.uSunDir.value); if (level.sky?.moon === false) post.uniforms.uMoonVis.value = 0; };   // (moon: false, a world with moons of its own: the Overnight Train)
 // planets hanging in this level's sky (a zone may bring its own: the Lab's biome rooms)
 function setPlanets(list = []) {
   for (let i = 0; i < 3; i++) {
@@ -1451,6 +1451,7 @@ function frame(ts) {
     flying: player.gliding || player.thrusting, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
     roar: level.roar?.(player.pos) ?? 0,   // (a waterfall near: src/levels/waterfall.js)
     hum: level.hum?.(player.pos) ?? 0,   // (masts and a receiver near: src/levels/antennas.js)
+    rails: level.rails?.(player.pos) ?? null,   // (a train's wheels under you: src/levels/overnight-train.js)
   });
 
   // sand: ambient gusts + dust behind the bike

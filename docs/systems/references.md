@@ -906,6 +906,8 @@ Ranked by how much they would close the gap to the sheets, across every world re
   the shade printed flat in a deep blue-violet, light hatching, deep spot blacks under the carriages, a rose-lavender
   haze in steps, **no pen dots on the plain** (`uDots: 0`: in the world they would stand still while the plain runs
   past). `?look=overnighttrain`.
+- **On the world** (`src/levels/overnight-train.js`, worlds.md "The Overnight Train"): the same kit, its carriages
+  furnished and solid, the train standing still while the land runs past it in bands.
 - **Left**: the pictures' nose is a bulbous rounded prow with a round window, ours an open-fronted lounge under a hood;
   their train is a dense mass of pen detail (rivets, flutes, machinery under every carriage), ours plain plates;
   picture 2's dust is a towering pink cumulus, ours a rolling bank; their horizon glows in a broad rose band, our

@@ -36,6 +36,7 @@ export const WORLD_REACTIONS = {
   moonfoundry: {kind:'flower',quiet:'#9cc9b4',awake:'#ffd466',radius:9},   // (none grow there: level.reactions false)
   underside: {kind:'flower',quiet:'#c8643e',awake:'#ffb466',radius:9},   // (none grow there: level.reactions false)
   spacecity: {kind:'flower',quiet:'#f0ac94',awake:'#8ef0e4',radius:9},   // (none grow there: level.reactions false)
+  overnighttrain: {kind:'flower',quiet:'#8c6494',awake:'#ff9a48',radius:9},   // (none grow there: level.reactions false)
 };
 
 // ------------------------------------------------------------------ room to bloom

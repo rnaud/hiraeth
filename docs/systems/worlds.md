@@ -1049,3 +1049,64 @@ their undersides hung with dark machinery and cables dangling into the void; sta
   below the decks, and their islands sit at many more heights with stairs between them; ours stand on six decks at
   three heights. The houses can't be entered; nothing moves under the islands (a lift, a cable car would suit it); the
   far islands are only seen.
+
+## The Overnight Train (`overnighttrain`, off the route, October 2026)
+
+A long streamlined train crossing a flat lavender plain by night under two moons (`src/levels/overnight-train.js`,
+after references/The Overnight Train/; its kit `overnight-train-kit.js` shared with its References views, its run
+`overnight-train-run.js`). On the galactic map from the start (names.js SIDE), no story, no beacon.
+
+- **The train stands still; the land runs past.** The world's frame is the train's: its carriages, floors, walls,
+  rails and roofs are ordinary static collision (27 k triangles), the crowd and the traveller walk them as any town.
+  What moves is the land, in bands that each repeat a pattern every P m and shift by `-(s mod P)` as the run's
+  distance `s` grows (`bandShift`): the sleepers under the wheels (0.9 m), the plain's streaks and stones (300 m), the
+  telegraph poles on the -z side and their wires (50 m), far buttes (7.2 km), lit huts and signal masts (2.4 km). The
+  rails and the track's bed are long and uniform, so they stand still. The plain's own ground carries no pen dots
+  (`uDots: 0`: they would stand still while everything else runs). The two moons hang 3.2 km off ahead of the train
+  (`MOONS`: glowing balls; `sky.moon: false` takes the sky's own crescent away: main.js `updateSky`).
+- **The run** (`runAt(t)`, pure): a cycle of a 42 s halt at a station, 46 s pulling out to 28 m/s, 150 s at speed, 34 s
+  braking into the next (5.3 km between stations, 4.5 minutes a cycle). The level starts 6 s into a halt, so the ship
+  comes down while the train waits. The one station (platform, house with lit windows, lamp posts, water tower,
+  waiting figures) is placed by the run: beside the passenger carriages at every halt (`stationOffset`), sliding away
+  behind, hidden past 2.6 km and coming in from ahead. `level.setRunTime(t)` puts the run anywhere (the shots, the tests).
+- **The layout** (nose at x ≈ 0, toward +x): the observation lounge (armchairs at the windows, lamps, a bar), open at
+  its round nose onto a railed balcony; the dining car (tables for four with cloths and lamps, the counter); two
+  sleeping cars (a corridor along -z behind a partition, compartments with two bunks each along +z, a vestibule at
+  each end where the end doors open); the library (shelves, sofas) with a railed terrace on its roof, planters and the
+  little sky lounge (its round window forward, its door onto the terrace); the landing wagon (a 44 × 30 m railed deck
+  on four bogies, the ship on it, its hatch toward the front); then six closed carriages (lit panes, roofs walkable).
+  Doors join the carriages through porches at their ends (railed at the sides); a ladder on each front porch climbs
+  to the roof walk along the crowns, plank bridges join the roofs. Doors are 1.3 × 3 m (the traveller's capsule with
+  its radius fits under the arch).
+- **Off the train** is the running land: `unsafe(p)` (under 1.2 m) puts you back where you last stood aboard (walking
+  off a roof, out of a window). The station's platform is drawn only; the porches and the balcony are railed, so you
+  only reach the plain by jumping.
+- **Inside** every material keeps its own hue in shade (`shadeHue: 1`, lifted: the carriages are all in the moons'
+  shade under their roofs, and the world's flat blue-violet print, `uShadowFlat` 0.8, turned the whole interior one
+  tone); the ceilings and panels glow a little (seen through the windows from outside as light), the lamps' pools are
+  amber (`lampTint`, `uLampsOn` by the sun's height). Lights every 8 m and at the tables (60 in all; the 8 nearest drawn).
+- **Moving pieces**: the dust (300 instanced puffs streaming back from the wheels, swelling, faster and more of it the
+  faster the train; it settles away at a halt; kept low under the landing deck), the lead's great spoked drive wheels
+  (instanced spokes turned by `s / r`), the pennants (their cloth waved by the speed: `pennantWave`).
+- **A thin bar must be short.** The rails were first one 9 km thin bar each: src/thin.js widens a bar to a pixel at each
+  of its ends' distance, so the far end grew metres wide and its long wedge cut through the carriages (the interior
+  read as one lavender V). `railsGeo` lays them in 30 m pieces (the views too).
+- **People**: Saba the Listener (Viridel) in the dining car, counting the rails' phrase; Oïa (the tower in Vael) on the
+  roof terrace by the sky lounge; Sol (the Garden) in the lounge, counting stations by the cup of tea; five of the
+  train's own folk (the cook, a sleeping-car attendant, a deckhand by the ship, the librarian, a passenger on the
+  balcony); a crowd in the Signal Market's clothes (`COSTUMES.overnighttrain`) along the aisles, the deck and the
+  rails; drawn sitters in a third of the seats. New lines only, toned; no errands.
+- **Sound** (audio.md "The rails"): the beat over the joints by the run's speed, the rumble, the rush outside, the whistle.
+- **Budget** (Handheld, render scale 0.75, no dynamic resolution, 12 synced frames a sample, median of 3 rounds, Mac,
+  headless Chrome, 1280 × 720, the machine shared): by the ship 1.77 ms (154–247 draws), the lounge 1.77, the dining car
+  1.67, the roofs 1.91, the landing wagon 1.69, the balcony 1.73; the Signal Market in the same run 2.19–2.26 ms
+  (334–693 draws). 197 k triangles built (the dust and furniture included), 79 meshes.
+- **Contact audit**: 2 / 0 / 1 / 1 (a drawn sitter at a dining table, a planter's edge). `tests/overnight-train-world.test.js`
+  walks every carriage, every door from porch to aisle, the balcony, the deck, the roof walk and its bridges, finds the
+  rails, and runs the run; `tests/overnight-train.test.js` the kit and the views.
+- **Left / next**: the pictures' train is dense with pen detail (rivets, flutes, machinery under every carriage) and
+  its nose is a bulbous prow with a round window, ours an open-fronted lounge under a hood; the dust is a rolling bank
+  of puffs where the pictures draw a towering salmon cloud; the ship is huge on its wagon (26 m, the game's own); the
+  stations are all the same one; there is no stepping off at a station (the platform could be a moving collider:
+  physics.addMover, with an "all aboard" fade back before it leaves); the closed tail carriages can't be entered;
+  the wind on the roofs is the game's own (its direction isn't the train's); no wheels but the lead's turn.

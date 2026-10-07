@@ -3,7 +3,7 @@ import { mulberry32 } from '../noise.js';
 import { CLEAN_SKY } from './reference-kit.js';
 import { framed } from './underside-kit.js';
 import {
-  TR, trainMats, train, furnishCar, dustPuffs, dustMeshes, moonGeo, rider, butte, stone, pennant, rodGeo, TRAIN_LOOK, TRAIN_TONES,
+  TR, trainMats, train, furnishCar, railsGeo, dustPuffs, dustMeshes, moonGeo, rider, butte, stone, pennant, rodGeo, TRAIN_LOOK, TRAIN_TONES,
 } from './overnight-train-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -69,7 +69,7 @@ function trainScene(kit, v, o) {
   for (const t of T.terraces) for (let i = 0; i < (o.terrace ?? 3); i++) rider(fk, M, rng, t.x0 + 1 + rng() * 3, t.y, (rng() - 0.5) * 3, { s: 1 });
   // the track: the dark bed under it to the horizon both ways, the rails
   fk.add(M.ballast, new THREE.BoxGeometry(5000, TR.rail - 0.1, 4.6).translate(-2400, (TR.rail - 0.1) / 2, 0), NC);
-  for (const s of [-1, 1]) fk.add(M.rails, rodGeo(new THREE.Vector3(-4800, TR.rail, (s * TR.gauge) / 2), new THREE.Vector3(200, TR.rail, (s * TR.gauge) / 2), 0.06), NC);
+  for (const g of railsGeo(-4800, 200)) fk.add(M.rails, g, NC);
   // the dust along the wheels, heaping up behind
   for (const im of dustMeshes(M, dustPuffs({ x0: lead.x1 - 2, x1: T.xTail, seed: o.seed, ...(o.plume ?? {}) }), { seed: o.seed })) { im.applyMatrix4(fk.matrix); kit.group.add(im); kit.noShadow.push(im); }
   // the plain: flat to the horizon, its long streaks along the line, dense near it and thinning out

@@ -475,6 +475,7 @@ COSTUMES.spacecity = COSTUMES.incal;   // (the City Floating in Space, src/level
 COSTUMES.underwater = COSTUMES.waterfall;   // (the Underwater City, src/levels/underwater.js: the falls' wraps and hoods, in the city's own colours)
 COSTUMES.eclipse = COSTUMES.mangrove;   // (the City During the Eclipse, src/levels/eclipse.js: the lake folk's pale robes and hoods, their lanterns)
 COSTUMES.underside = COSTUMES.saltharbour;   // (the Underside, src/levels/underside.js: the harbour folk's terracotta cloaks and hoods)
+COSTUMES.overnighttrain = COSTUMES.bazaar;   // (the Overnight Train, src/levels/overnight-train.js: the Signal Market's townsfolk, out for the night)
 const INCAL = { TOP: 200, LEVELS: [150, 92, 36, -24, -86] };
 function zoneIncal(c) {
   const id = c.spot?.id;

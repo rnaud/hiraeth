@@ -32,6 +32,7 @@ export const PLANETS = {
   moonfoundry: { body: '#efe2c8', shade: '#c9a888', ink: '#d4763c', mark: 'craters' },   // (a detour: the workshop of moons)
   underside: { body: '#f6efe6', shade: '#9caccc', ink: '#c8643e', mark: 'bands' },   // (a detour: the town under the rock, over the cloud)
   spacecity: { body: '#f4b49a', shade: '#a8686a', ink: '#8ef0e4', mark: 'lights' },   // (a detour: the city floating in space)
+  overnighttrain: { body: '#8e7ec4', shade: '#4c4a90', ink: '#ff9a48', mark: 'bands' },   // (a detour: the train across the plain by night)
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };
 

@@ -29,6 +29,7 @@ const fromStart = (eye, at) => `${OWN_HOUR}
 /** A world's own view where its start isn't the picture. */
 export const THUMB_VIEWS = {
   home: { setup: fromStart([0, 4, -10], [0, 1.5, 25]) },   // (it starts on a close-up of the traveller: the houses over his shoulder)
+  overnighttrain: { setup: fromStart([178, 0.6, -24], [82, 3.2, 3]) },   // (it starts on the landing wagon by the ship: the train from outside, its nose and the station)
 };
 // (to try a view: THUMB_VIEW='{"setup":"…"}' node scripts/world-thumbs.mjs home)
 const tryView = process.env.THUMB_VIEW ? JSON.parse(process.env.THUMB_VIEW) : {};

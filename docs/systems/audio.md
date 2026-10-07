@@ -86,3 +86,17 @@ under a second), and the masts' hum: a 98 Hz drone and its second harmonic 196.6
 through a low-pass, with a faint band of static over it (the `static` noise layer), its level the world's
 `level.hum(pos)` (main.js passes it every frame: 0 on the open plain, ~0.5 by a mast, 1 under the receiver), halved
 indoors. Quiet by design (the hum at most 0.022, the static 0.012): it sits under the score.
+
+## The rails (the Overnight Train, October 2026)
+
+A level that carries you on a train says so with `level.rails(pos)` → `{ speed, full, out, roof, whistle, halt }`
+(main.js passes it to `sound.update` as `rails`; src/levels/overnight-train.js). `Sound.railsUpdate`:
+
+- **the beat over the joints**: every 26 m of rail one carriage's two bogies pass a joint, two axles each, ta-dum …
+  ta-dum (`clack`: a dull low knock and a short ring of steel), scheduled up to 0.25 s ahead on the audio clock so the
+  beat stays even; its period is 26 m over the speed, so it slows as the train brakes and stops at a halt;
+- **the rumble** (a noise layer low-passed at 90–210 Hz) and **the rush** of the air (band-passed 0.7–1.6 kHz), both by
+  the speed, louder outside (`out`: the balcony, the porches, the deck; `roof`) and softer indoors (shelter);
+- **the whistle** (three sawtooth notes through a band-pass, swelling and falling over 2.4 s) each time `whistle`
+  counts up: the level counts one as it pulls out of a station and one as it starts to brake;
+- the world's ambience is `rails`: now and then another train's horn far across the plain while it runs.

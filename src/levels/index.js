@@ -25,6 +25,7 @@ import { createFallenRing, buildFallenRing } from './fallen-ring.js';
 import { createMoonFoundry, buildMoonFoundry } from './moon-foundry.js';
 import { createUnderside, buildUnderside } from './underside.js';
 import { createSpaceCity, buildSpaceCity } from './space-city.js';
+import { createOvernightTrain, buildOvernightTrain } from './overnight-train.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -175,6 +176,13 @@ export const LEVELS = [
     id: 'spacecity', create: createSpaceCity, build: buildSpaceCity, hidden: true,
     title: TITLES.spacecity, source: 'a city of islands in the dark',
     blurb: 'Rounded houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges, their machinery and cables hanging into the void, a great pale planet over the roofs. Cross the Market Bridge and look out from the Balcony.',
+    moves: 'walk · climb',
+  },
+  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'overnighttrain', create: createOvernightTrain, build: buildOvernightTrain, hidden: true,
+    title: TITLES.overnighttrain, source: 'a train across a plain by night',
+    blurb: 'A long streamlined train crosses a lavender plain by night under two moons, its windows lit, gardens on its roofs. The ship comes down on its landing wagon at a station; walk forward through the library, the sleeping cars and the dining car to the lounge and its balcony at the nose, or climb a porch ladder and walk the roofs in the wind.',
     moves: 'walk · climb',
   },
   {

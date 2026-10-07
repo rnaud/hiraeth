@@ -27,6 +27,7 @@ import { RING_CONTENT } from './fallen-ring.js';
 import { MOONFOUNDRY_CONTENT } from './moon-foundry.js';
 import { UNDERSIDE_CONTENT } from './underside.js';
 import { SPACECITY_CONTENT } from './space-city.js';
+import { TRAIN_CONTENT } from './overnight-train.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
@@ -48,6 +49,7 @@ export const CONTENT = {
   moonfoundry: MOONFOUNDRY_CONTENT,   // src/levels/moon-foundry.js: a detour, no quest
   underside: UNDERSIDE_CONTENT,   // src/levels/underside.js: off the route (names.js SIDE), no quest
   spacecity: SPACECITY_CONTENT,   // src/levels/space-city.js: a detour, no quest
+  overnighttrain: TRAIN_CONTENT,   // src/levels/overnight-train.js: off the route (names.js SIDE), no quest
   bazaar: {
     weather: [],
     // the Signal Market's story is a quest (src/story/bazaar-data.js): this page opens on the

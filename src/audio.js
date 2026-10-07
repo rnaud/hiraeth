@@ -34,8 +34,8 @@ export const AMBIENT_WIND = 0.4;
 // Each world's score lives in src/score.js (its mode, tempo, instruments, leitmotif, and the
 // father's theme in it); its instruments in src/score-voices.js. Here: the ground under your
 // feet (the footsteps) and each world's ambience bed.
-const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', home: 'grass', mangrove: 'stone', waterfall: 'stone', saltharbour: 'sand', antennas: 'grass', underwater: 'stone', eclipse: 'stone', fallenring: 'grass', moonfoundry: 'stone', underside: 'stone', spacecity: 'stone' };
-const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds', moonfoundry: 'machine', underside: 'highwind', spacecity: 'city' };
+const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', home: 'grass', mangrove: 'stone', waterfall: 'stone', saltharbour: 'sand', antennas: 'grass', underwater: 'stone', eclipse: 'stone', fallenring: 'grass', moonfoundry: 'stone', underside: 'stone', spacecity: 'stone', overnighttrain: 'stone' };
+const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds', moonfoundry: 'machine', underside: 'highwind', spacecity: 'city', overnighttrain: 'rails' };
 // the instruments audio.js plays itself (the rest are src/score-voices.js's)
 export const OWN_KINDS = new Set(['duduk', 'reed', 'flute', 'strings', 'synth', 'bell', 'marimba', 'oud', 'ney', 'chant', 'celesta', 'kalimba']);
 
@@ -294,6 +294,9 @@ export class Sound {
       // a waterfall near (the level's roar: 0 far off .. 1 at its foot): a low rumble and the hiss of its spray
       roar: this.noiseLayer('lowpass', 420, 0.6),
       hiss: this.noiseLayer('bandpass', 2600, 0.5),
+      // a train under you (the level's rails: its speed): the deep rumble of the wheels, the rush of the air past it
+      rumble: this.noiseLayer('lowpass', 140, 0.8),
+      rush: this.noiseLayer('bandpass', 1100, 0.6),
     };
     const eng = ctx.createOscillator(); eng.type = 'sawtooth'; eng.frequency.value = 50;
     const engF = ctx.createBiquadFilter(); engF.type = 'lowpass'; engF.frequency.value = 400;
@@ -570,9 +573,53 @@ export class Sound {
         for (let i = 0; i < n; i++) this.burst(t0 + i * (0.02 + Math.random() * 0.06), { dur: 0.01 + Math.random() * 0.02, type: 'highpass', freq: 2400 + Math.random() * 3200, q: 0.7, vol: 0.01 + Math.random() * 0.012 });
       }
       if (R > 0.92) this.tuning(t + Math.random() * spb);
+    } else if (A === 'rails' && R < 0.05 && !this._railsHalt) {   // far off, another train's horn across the plain
+      this.horn(t + Math.random() * spb);
     } else if (A === 'paper' && R < 0.15) {
       this.burst(t + Math.random() * spb, { dur: 0.4, type: 'highpass', freq: 2500, q: 0.6, vol: 0.03, rate: 0.7 });
     }
+  }
+
+  /**
+   * The rails under a train (level.rails: { speed, full, out, roof, whistle, halt }): the wheels' rumble and the air's rush
+   * by its speed, and their beat over the joints: each carriage's two bogies passing a joint, ta-dum … ta-dum, every
+   * 26 m of rail (scheduled a little ahead on the audio clock, so the beat stays even), slowing to nothing at a
+   * station. Outside (on the roofs, the porches, the balcony) louder and with the wind; a whistle when it pulls out
+   * or brakes.
+   */
+  railsUpdate(r, indoor) {
+    const ctx = this.ctx, t = ctx.currentTime;
+    if (!r) { if (this._rails) { this.set('rumble', 0); this.set('rush', 0); this._rails = null; } return; }
+    const R = (this._rails ??= { next: t + 0.2, whistle: r.whistle, bar: 0 }), k = Math.min(1, r.speed / (r.full || 28)), out = r.out ?? 0;
+    this._railsHalt = r.halt;
+    this.set('rumble', (0.05 + 0.13 * k) * k * (0.75 + 0.5 * out) * (this.muted ? 0 : 1), 90 + 120 * k);
+    this.set('rush', (0.012 + 0.06 * out + 0.05 * (r.roof ?? 0)) * k * k * (1 - 0.5 * indoor), 700 + 900 * k);
+    if (r.whistle !== R.whistle) { R.whistle = r.whistle; this.trainWhistle(t + 0.05); }
+    if (r.speed < 0.6) { R.next = t + 0.2; return; }
+    // (one rail's length, 26 m; a carriage's two bogies 18 m apart, their two axles 2.5 m)
+    const per = 26 / r.speed, gapA = 2.5 / r.speed, gapB = 18 / r.speed;
+    const vol = (0.035 + 0.05 * k) * (0.6 + 0.6 * out) * (1 - 0.35 * indoor);
+    while (R.next < t + 0.25) {
+      for (const [dt, v] of [[0, 1], [gapA, 0.8], [gapB, 0.9], [gapB + gapA, 0.75]]) if (dt < per) this.clack(R.next + dt, vol * v * (0.9 + Math.random() * 0.2));
+      R.next += per;
+    }
+  }
+
+  /** One wheel over a rail joint: a short dull knock and a ring of steel. */
+  clack(t, vol) {
+    if (this.muted) return;
+    this.burst(t, { dur: 0.05, type: 'lowpass', freq: 380, q: 1.2, vol });
+    this.burst(t + 0.004, { dur: 0.03, type: 'bandpass', freq: 2300 + Math.random() * 500, q: 5, vol: vol * 0.35 });
+  }
+
+  /** The locomotive's whistle: two notes a minor third apart, swelling and falling off, far ahead. */
+  trainWhistle(t) {
+    if (this.muted) return;
+    const ctx = this.ctx, g = ctx.createGain(), f = ctx.createBiquadFilter();
+    f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.4;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.25); g.gain.setValueAtTime(0.05, t + 1.4); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
+    for (const fr of [370, 440, 554]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = fr; o.connect(f); o.start(t); o.stop(t + 2.5); }
+    f.connect(g).connect(this.fx);
   }
 
   /** A far signal tuning in: a thin whistle gliding down to its note, wavering, then gone. */
@@ -1563,6 +1610,7 @@ export class Sound {
     this.hum.gain.gain.setTargetAtTime(hum * 0.022, t, 0.5);
     this.hum.osc[1].detune.setTargetAtTime(Math.sin(t * 0.21) * 9, t, 0.5);
     this.set('static', hum * hum * 0.012);
+    this.railsUpdate(s.rails, s.indoor ?? 0);
     const motor = s.rideKind === 'bike' || s.rideKind === 'skiff' || s.rideKind === 'taxi';
     e.gain.gain.setTargetAtTime(motor ? 0.035 : 0, t, 0.2);
     e.osc.frequency.setTargetAtTime(38 + Math.abs(s.rideSpeed) * 2.2, t, 0.2);
