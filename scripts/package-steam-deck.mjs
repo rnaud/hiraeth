@@ -14,7 +14,8 @@ if (!Number.isSafeInteger(webBuild) || webBuild < 0) throw new Error('Invalid WE
 const output = 'output/steam-deck';
 await rm(output, { recursive: true, force: true });
 await mkdir(`${output}/source`, { recursive: true });
-await cp('dist', `${output}/source/game`, { recursive: true });
+// (not dist/updates/, the site's content updates and runtime, when the Cloudflare deploy packages it)
+await cp('dist', `${output}/source/game`, { recursive: true, filter: (src) => !/^dist[\\/]updates([\\/]|$)/.test(src) });
 await cp('desktop/main.mjs', `${output}/source/main.mjs`);
 await cp('scripts/steam-deck/deck.py', `${output}/source/deck.py`);
 await writeFile(`${output}/source/package.json`, JSON.stringify({ name: 'moebius', version: `${VERSION}.0`, type: 'module', main: 'main.mjs' }));

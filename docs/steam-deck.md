@@ -14,7 +14,7 @@ In Desktop Mode, sign in to Steam at least once. Open Konsole and run:
 curl --fail --location --output /tmp/install-moebius.py https://github.com/rnaud/moebius/releases/download/steam-deck/install-moebius.py && python3 /tmp/install-moebius.py
 ```
 
-(While the repository is public. Once it is private, see "Install by hand" below.)
+(The repository is private now: this download needs a GitHub login, see "Install by hand" below.)
 The installer downloads the latest package. When it asks, choose **Steam → Exit**
 and leave the installer open. It waits up to five minutes, then adds Moebius to
 each existing local Steam account. Reopen Steam or return to Gaming Mode and
@@ -95,12 +95,17 @@ holds back the other; see `update.log`):
   never taken again. A build that needs a newer runtime (`minDesktop` above the runtime's
   `DESKTOP_API`) waits for one. The newest two and any one running are kept.
 - **The runtime** (Electron, `main.mjs`, this updater and a packaged copy of the game): the
-  `steam-deck.json` feed on the dedicated `steam-deck` GitHub release. A new build is
-  downloaded into a temporary directory, SHA-256 verified, and unpacked before the
-  `current` symlink is atomically changed. The newest two builds and any build still running
-  are retained. Its build number (run × 1000 + attempt) advances even when the in-game
-  version has not changed. Once the repository is private this check fails quietly; update
-  the runtime by hand (above) when `DESKTOP_API` changes.
+  newer of two feeds, the game's site (`/updates/steam-deck.json`, the package in 20 MiB
+  parts, put there by the Cloudflare deploy: `scripts/deck-runtime.mjs`, see
+  `docs/cloudflare.md`) and the dedicated `steam-deck` GitHub release (private now: that
+  check fails quietly, a line in `update.log`). A new build is downloaded into a temporary
+  directory, size and SHA-256 verified, and unpacked before the `current` symlink is
+  atomically changed. The newest two builds and any build still running are retained. A
+  runtime's build number is its commit's (`release-info.mjs build` × 1000 + attempt, the same
+  in both feeds; run-numbered up to 189001 before). The site's runtime only changes when what
+  it runs does (`main.mjs`, `deck.py`, the packaging, Electron's lockfile: its `key`); the game
+  inside updates through the content feed meanwhile. Runtimes up to 189001 only know GitHub:
+  install the first site-aware one by hand (above).
 
 The running game keeps using what it started with; the next launch uses the update. Network
 failures never prevent an installed game from starting. The checksums detect

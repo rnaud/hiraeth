@@ -349,6 +349,65 @@ class ContentUpdateTests(unittest.TestCase):
         self.assertIn('/source/content.json`, JSON.stringify({ web: webBuild, desktop: desktopApi() }))', source)
 
 
+class SiteRuntimeTests(unittest.TestCase):
+    """The runtime from the game's site, in parts (scripts/deck-runtime.mjs): the GitHub release is private."""
+
+    setUp_base = SteamDeckTests.setUp
+    bundle = SteamDeckTests.bundle
+
+    def site_manifest(self, build, part=7):
+        github, _ = self.bundle(build)
+        data = (self.home / f'{build}.tar.gz').read_bytes()
+        chunks = [data[i:i + part] for i in range(0, len(data), part)]
+        manifest = {'build': build, 'version': '0.34', 'sha256': github['sha256'], 'size': len(data), 'key': 'k',
+                    'parts': [deck.CONTENT_URL + f'steam-deck-{build}.tar.gz.{i:03d}' for i in range(len(chunks))]}
+        return manifest, dict(zip(manifest['parts'], chunks))
+
+    def setUp(self):
+        self.setUp_base()
+
+    def test_installs_from_the_sites_parts(self):
+        manifest, served = self.site_manifest(795001)
+        deck.validate_manifest(manifest)
+        opened = []
+
+        def urlopen(request, timeout):
+            opened.append(request.full_url)
+            return io.BytesIO(served[request.full_url])
+        with patch.object(deck.urllib.request, 'urlopen', side_effect=urlopen):
+            self.assertTrue(deck.install_update(self.root, manifest))
+        self.assertEqual(opened, manifest['parts'])
+        self.assertEqual(deck.installed_build(self.root), 795001)
+
+    def test_a_missing_or_foreign_part_changes_nothing(self):
+        manifest, served = self.site_manifest(795001)
+        short = dict(served)
+        short[manifest['parts'][-1]] = b''
+        with patch.object(deck.urllib.request, 'urlopen', side_effect=lambda request, timeout: io.BytesIO(short[request.full_url])):
+            with self.assertRaises(ValueError):
+                deck.install_update(self.root, manifest)
+        self.assertFalse((self.root / 'current').exists())
+        for bad in ({'parts': ['https://example.com/steam-deck-795001.tar.gz.000']},
+                    {'parts': manifest['parts'][1:]}, {'parts': []}, {'size': 0}):
+            with self.assertRaises(ValueError):
+                deck.validate_manifest({**manifest, **bad})
+
+    def test_the_newest_feed_wins_and_github_failing_is_quiet(self):
+        site, _ = self.site_manifest(795001)
+        github, _ = self.bundle(189001)
+
+        def fetch(url):
+            if url == deck.RUNTIME_SITE_URL:
+                return site
+            raise OSError('HTTP Error 404: Not Found')   # the private repository
+        self.assertEqual(deck.get_manifest(fetch)['build'], 795001)
+        self.assertEqual(deck.get_manifest(lambda url: site if url == deck.RUNTIME_SITE_URL else github)['build'], 795001)
+        newer, _ = self.bundle(796001)
+        self.assertEqual(deck.get_manifest(lambda url: site if url == deck.RUNTIME_SITE_URL else newer)['build'], 796001)
+        with self.assertRaises(ValueError):
+            deck.get_manifest(lambda url: (_ for _ in ()).throw(OSError('offline')))
+
+
 class LaunchTests(unittest.TestCase):
     """Gaming Mode never left black: no Steam overlay in Chromium, a watched start, fallbacks, a clean exit."""
 

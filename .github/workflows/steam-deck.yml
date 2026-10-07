@@ -38,10 +38,12 @@ jobs:
           npm ci
           npm --prefix desktop ci --ignore-scripts
           npm run build
-          # the runtime package's number (installed updaters compare it), and the packaged game's,
-          # on the scale of the content updates from the game's site (deck.py, scripts/web-update.mjs)
-          export DECK_BUILD=$((GITHUB_RUN_NUMBER * 1000 + GITHUB_RUN_ATTEMPT))
+          # the packaged game's number, on the scale of the content updates from the game's site
+          # (deck.py, scripts/web-update.mjs), and the runtime package's (installed updaters compare
+          # it): the commit's, as the Cloudflare deploy numbers the runtime it puts on the site
+          # (scripts/deck-runtime.mjs); above the run-numbered packages before it (up to 189001)
           export WEB_BUILD=$(node scripts/release-info.mjs build)
+          export DECK_BUILD=$((WEB_BUILD * 1000 + GITHUB_RUN_ATTEMPT))
           node scripts/package-steam-deck.mjs
 
       - name: Exercise the packaged game

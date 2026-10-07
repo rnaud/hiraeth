@@ -6,9 +6,10 @@ Two kinds of update, both checked in the background at each launch:
   game's site (CONTENT_MANIFEST_URL, published by the Cloudflare deploy). It is
   verified, unpacked to web/<build>/ and served by the runtime from the next launch
   (desktop/main.mjs, MOEBIUS_GAME), unless it needs a newer runtime (minDesktop).
-- the runtime (Electron, main.mjs, this updater, a packaged copy of the game): the
-  package on the steam-deck GitHub release. Once the repository is private that
-  feed is out of reach: install a new package by hand with --from (docs/steam-deck.md).
+- the runtime (Electron, main.mjs, this updater, a packaged copy of the game): from the
+  game's site too (RUNTIME_SITE_URL, in parts: scripts/deck-runtime.mjs), else the
+  steam-deck GitHub release, out of reach while the repository is private; a package
+  downloaded by hand installs with --from (docs/steam-deck.md).
 
 Standard-library only; no root, FUSE, Proton, or SteamOS system changes.
 """
@@ -33,12 +34,14 @@ import urllib.request
 import zipfile
 import zlib
 
-# The runtime package (GitHub; by hand with --from once the repository is private)
+# The runtime package: the GitHub release (private: by hand with --from), and the game's site
 BASE_URL = 'https://github.com/rnaud/moebius/releases/download/steam-deck/'
 MANIFEST_URL = BASE_URL + 'steam-deck.json'
 # The game's content updates, next to the web game (scripts/web-update.mjs)
 CONTENT_URL = 'https://memento.alexandria-rnaud.workers.dev/updates/'
 CONTENT_MANIFEST_URL = CONTENT_URL + 'web.json'
+# ... and the runtime there, in parts (scripts/deck-runtime.mjs)
+RUNTIME_SITE_URL = CONTENT_URL + 'steam-deck.json'
 ROOT = Path.home() / '.local/share/moebius-deck'
 MAX_ARCHIVE = 1024 * 1024 * 1024
 MAX_CONTENT = 300 * 1024 * 1024
@@ -167,8 +170,8 @@ def add_shortcut(config, root):
     return True
 
 
-def get_manifest():
-    request = urllib.request.Request(MANIFEST_URL, headers={'User-Agent': 'Moebius-Updater'})
+def fetch_manifest(url):
+    request = urllib.request.Request(f'{url}?t={time.time_ns()}', headers={'User-Agent': 'Moebius-Updater', 'Cache-Control': 'no-cache'})
     with urllib.request.urlopen(request, timeout=8) as response:
         data = response.read(65537)
     if len(data) > 65536:
@@ -178,29 +181,55 @@ def get_manifest():
     return manifest
 
 
+def get_manifest(fetch=fetch_manifest):
+    """The newest runtime of the two feeds: the game's site and the GitHub release (a 404 while the
+    repository is private). Raises only when neither answers."""
+    found, errors = [], []
+    for url in (RUNTIME_SITE_URL, MANIFEST_URL):
+        try:
+            found.append(fetch(url))
+        except Exception as error:
+            errors.append(f'{url}: {error}')
+    if not found:
+        raise ValueError('; '.join(errors))
+    return max(found, key=lambda manifest: manifest['build'])
+
+
 def validate_manifest(manifest):
     build = manifest.get('build')
     if type(build) is not int or build < 1:
         raise ValueError('Invalid release build number')
     if not re.fullmatch(r'[0-9a-f]{64}', manifest.get('sha256', '')):
         raise ValueError('Invalid release checksum')
-    if manifest.get('url') != BASE_URL + f'moebius-steam-deck-{build}.tar.gz':
+    if 'parts' in manifest:
+        # the game's site: the package in parts, steam-deck-<build>.tar.gz.000, .001…
+        parts, size = manifest['parts'], manifest.get('size')
+        if (not isinstance(parts, list) or not 0 < len(parts) <= 100
+                or parts != [CONTENT_URL + f'steam-deck-{build}.tar.gz.{i:03d}' for i in range(len(parts))]):
+            raise ValueError('Unexpected release parts')
+        if type(size) is not int or not 0 < size <= MAX_ARCHIVE:
+            raise ValueError('Invalid release size')
+    elif manifest.get('url') != BASE_URL + f'moebius-steam-deck-{build}.tar.gz':
         raise ValueError('Unexpected release URL')
     if not isinstance(manifest.get('version'), str):
         raise ValueError('Missing release version')
 
 
 def download(manifest, destination):
-    request = urllib.request.Request(manifest['url'], headers={'User-Agent': 'Moebius-Updater'})
     digest, size = hashlib.sha256(), 0
-    deadline = time.monotonic() + 600
-    with urllib.request.urlopen(request, timeout=30) as response, destination.open('wb') as output:
-        while chunk := response.read(1024 * 1024):
-            size += len(chunk)
-            if size > MAX_ARCHIVE or time.monotonic() > deadline:
-                raise ValueError('Download exceeded its size or time limit')
-            digest.update(chunk)
-            output.write(chunk)
+    deadline = time.monotonic() + 900
+    with destination.open('wb') as output:
+        for url in manifest.get('parts') or [manifest['url']]:
+            request = urllib.request.Request(url, headers={'User-Agent': 'Moebius-Updater'})
+            with urllib.request.urlopen(request, timeout=30) as response:
+                while chunk := response.read(1024 * 1024):
+                    size += len(chunk)
+                    if size > MAX_ARCHIVE or time.monotonic() > deadline:
+                        raise ValueError('Download exceeded its size or time limit')
+                    digest.update(chunk)
+                    output.write(chunk)
+    if 'size' in manifest and size != manifest['size']:
+        raise ValueError('Download size mismatch; installed game unchanged')
     if digest.hexdigest() != manifest['sha256']:
         raise ValueError('Download checksum mismatch; installed game unchanged')
 

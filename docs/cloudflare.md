@@ -14,6 +14,8 @@ Android app and the Steam Deck updater:
 | `/updates/web.json` | the manifest: `version`, `build`, `sha256`, `zip`, `size`, `notes`, `minNative` (the Android bridge the game needs, `WebBundles.WEB_MIN_NATIVE`), `minDesktop` (the Deck runtime it needs, `DESKTOP_API` in `desktop/main.mjs`) |
 | `/updates/web-<build>.zip` | this build's `dist/` (without `updates/`), deterministic: the same build gives the same bytes |
 | `/updates/web-<previous>.zip` | the previous build's zip, fetched from the live site before deploying and checked against the live `web.json`, so a device that read the old manifest a moment ago can finish its download |
+| `/updates/steam-deck.json` | the Steam Deck runtime (Electron, `main.mjs`, `deck.py`, a packaged game): `build`, `version`, `sha256`, `size`, `key`, `parts` (`scripts/deck-runtime.mjs`, read by `deck.py`) |
+| `/updates/steam-deck-<build>.tar.gz.<nnn>` | its package in 20 MiB parts (the 25 MiB file limit). While `key` (a hash of what the runtime runs) is unchanged, the live parts are fetched, checked and published again, so a deploy uploads nothing for them; otherwise the deploy packages a new runtime (`npm --prefix desktop ci`, `package-steam-deck.mjs`, `DECK_BUILD` as `steam-deck.yml` numbers it) |
 
 `scripts/web-update.mjs` writes them into `dist/updates/` after the build. The build number
 is `node scripts/release-info.mjs build`, the commit count up to HEAD, the same in every

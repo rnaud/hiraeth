@@ -3,7 +3,8 @@ name: Deploy to Cloudflare Workers
 # The game's site, and its content updates next to it: /updates/web.json and
 # /updates/web-<build>.zip (scripts/web-update.mjs), which the Android app
 # (WebBundles.MANIFEST) and the Steam Deck updater (deck.py) read. This is the only
-# workflow that deploys the Worker: a deploy replaces every asset.
+# workflow that deploys the Worker: a deploy replaces every asset. The Steam Deck runtime
+# (Electron and the launcher, /updates/steam-deck.json and its parts) is on it too.
 
 on:
   push:
@@ -22,7 +23,7 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30   # (a new Deck runtime: Electron packaged and 150 MB uploaded and checked)
     steps:
       - uses: actions/checkout@v5
         with:
@@ -41,6 +42,16 @@ jobs:
           # (a device that read the old web.json a moment ago can finish its download)
           node scripts/web-update.mjs --live https://memento.alexandria-rnaud.workers.dev/
           cat dist/updates/web.json
+      - name: The Steam Deck runtime on the site
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+        run: |
+          # the live one again while main.mjs, deck.py and Electron are unchanged, else a new package
+          # numbered as steam-deck.yml numbers this commit's (the GitHub release is private)
+          export WEB_BUILD=$(node scripts/release-info.mjs build)
+          export DECK_BUILD=$((WEB_BUILD * 1000 + GITHUB_RUN_ATTEMPT))
+          node scripts/deck-runtime.mjs --live https://memento.alexandria-rnaud.workers.dev/
+          cat dist/updates/steam-deck.json
       - name: Deploy
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
