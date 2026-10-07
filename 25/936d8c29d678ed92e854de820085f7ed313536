@@ -1,0 +1,43 @@
+.github/workflows/android.yml
+  s_55b4bc53b812ec::t_a8bc2d216aabf6 10-11,24-25,100,105-106,109,118,120-121,125-126
+README.md
+  s_55b4bc53b812ec::t_260de53144ace7 10,63
+TODO.md
+  s_55b4bc53b812ec::t_f333ad58557406 151-152
+changelog.md
+  s_55b4bc53b812ec::t_06c8f1cffb10f2 7
+docs/cloudflare.md
+  s_55b4bc53b812ec::t_5a7938ca90b43d 87-89
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_ac493682194e47 380-393,395-397
+docs/systems/platforms.md
+  s_55b4bc53b812ec::t_cab31dcb7b3104 7
+src/cape.js
+  s_55b4bc53b812ec::t_2fb3b0729a04cc 45-58,66-67,69,78-80,87-114,144-146,178-180,183,190,193-194,198-201,213-215,217,235,242-243,247,273,294,373,375-376,379-380,443
+src/changelog.js
+  s_55b4bc53b812ec::t_73648d1e0e0202 11
+src/npc.js
+  s_55b4bc53b812ec::t_fdd6a89edd9737 3-4,63,811-823
+tests/android-ota.test.js
+  s_55b4bc53b812ec::t_092f456a65e156 163,165-166,168-169,171-172
+tests/cape.test.js
+  s_55b4bc53b812ec::t_edbd478ab5c74c 138,143-147,153-154,156-160,173-180,184-186,188,190,192,194-203,205-213,215,227-228,249-272,287-290
+tests/web-update.test.js
+  s_55b4bc53b812ec::t_2094230bb4d091 121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "25936d8c29d678ed92e854de820085f7ed313536",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
