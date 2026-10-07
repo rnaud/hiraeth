@@ -13,6 +13,12 @@ export const CHANGELOG = [
     'A new world off the route, the City During the Eclipse: a city of white domes and round towers at midday, with the moon over the sun. The lamps are lit at noon and people eat outside at their tables by lantern light, pale figures lean out from the walls, and the stars are out. Walk the Lantern Square, climb the Great Stair and the tiers of the bowl, and look out from the overlook over the lit city on the plain. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came for the eclipse.',
     'Eclipses are drawn the way the drawings draw them: the moon’s black disc ringed with light, its corona in fine pen rays or a stipple of dots, a band of rose light all round the horizon, and in a city lit cold by it, the lamps throw warm amber pools on the walls.',
     'The References level has the City During the Eclipse’s four pictures rebuilt as views, to set beside the pictures they come from.',
+    { text: 'The title screen has a What’s new button: every change, with its before and after pictures, without starting a game.', see: 'On the title screen, choose What’s new under Settings; Play brings you back.' },
+    { text: 'Debug on the title screen opens the worlds list straight away, instead of loading a whole world behind it first.',
+      numbers: [{ title: 'From Debug on the title screen to the worlds list', unit: 's', better: 'lower', device: 'MacBook, headless Chrome, dev server (modules cached)', source: 'docs/systems/dev-tools.md, “The Lab”', rows: [
+        { where: 'Debug → worlds list', before: 15.1, after: 1.0 },
+      ] }],
+      see: 'On the title screen, choose Debug: the list of worlds shows in about a second. Esc or B / ○ goes back to the title.' },
   ] },
   { v: '0.84', date: '2026-10-07', items: [
     'A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.',

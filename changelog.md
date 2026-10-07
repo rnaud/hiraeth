@@ -7,6 +7,8 @@ The same release notes shown in the game (press **N** or open settings).
 - A new world off the route, the City During the Eclipse: a city of white domes and round towers at midday, with the moon over the sun. The lamps are lit at noon and people eat outside at their tables by lantern light, pale figures lean out from the walls, and the stars are out. Walk the Lantern Square, climb the Great Stair and the tiers of the bowl, and look out from the overlook over the lit city on the plain. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came for the eclipse.
 - Eclipses are drawn the way the drawings draw them: the moon’s black disc ringed with light, its corona in fine pen rays or a stipple of dots, a band of rose light all round the horizon, and in a city lit cold by it, the lamps throw warm amber pools on the walls.
 - The References level has the City During the Eclipse’s four pictures rebuilt as views, to set beside the pictures they come from.
+- The title screen has a What’s new button: every change, with its before and after pictures, without starting a game.
+- Debug on the title screen opens the worlds list straight away, instead of loading a whole world behind it first.
 
 ## v0.84 — 2026-10-07
 

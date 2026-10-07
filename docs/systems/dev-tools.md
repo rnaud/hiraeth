@@ -5,8 +5,11 @@ Developer levels and checks: the Lab, the clipping audit.
 ## The Lab (v0.39)
 
 In the Lab, `[` and `]` (L3 and R3 on a pad) call `level.jump(∓1)`: a fade, then the
-previous or next world's room, the hub between the last and the first. The title's and the
-Start menu's **Debug** entry opens the worlds list (`?level=lab&worlds=1` from the title).
+previous or next world's room, the hub between the last and the first. The Start menu's
+**Debug** entry opens the worlds list over the world you're in. The title's opens it alone
+(`?worlds=1`, `src/world-picker.js`): `boot.js` draws the cards without loading `main.js`,
+so no world is built behind it (about 1 s on the dev server; on the Lab it took about 15 s).
+`?level=<id>&worlds=1` still opens a world with the list up.
 
 
 `?level=lab` (`src/levels/lab.js`) is a developer's world (`dev: true` in

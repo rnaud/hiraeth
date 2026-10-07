@@ -14,6 +14,14 @@ test('the title screen opens the game, a world asked for directly skips it', () 
   assert.match(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), /<script type="module" src="\/src\/boot\.js"><\/script>/);
   const boot = src('boot.js');
   assert.ok(boot.indexOf("await showTitle()") < boot.indexOf("await import('./main.js')"));
+  // the title's Debug entry: the worlds list alone (?worlds=1), without the game (no world built behind it)
+  assert.match(src('title.js'), /pathname\}\?worlds=1`/);
+  assert.match(boot, /if \(worldsOnly\)[\s\S]*showWorldsOnly\(\)/);
+  assert.match(boot, /if \(!worldsOnly\) await import\('\.\/main\.js'\)/);
+  assert.doesNotMatch(src('world-picker.js'), /from '\.\/main\.js'|import\('\.\/main\.js'\)/);
+  // and What's new, the interactive changelog (its Play button comes back)
+  assert.match(src('title.js'), /data-a="news"/);
+  assert.match(src('title.js'), /'changelog\.html'/);
   // the title imports nothing that loads the game state (it would read the slot before the choice)
   const title = src('title.js');
   for (const m of title.matchAll(/from '\.\/([\w/-]+)\.js'/g)) assert.ok(!['game-state', 'items', 'quest', 'main', 'levels/index', 'levels/content'].includes(m[1]), m[1]);
