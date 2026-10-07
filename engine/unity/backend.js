@@ -65,7 +65,9 @@ export class UnityBackend {
     const crowd = d.kind === 'instanced' && specs.some((s) => s?.defines?.CROWD);
     const figure = !crowd && specs.some((s) => (s?.u?.uMode === 4 || s?.u?.uFigure > 0 || s?.u?.uMode === 6 || s?.defines?.FACE_PART));
     const form = specs.some((s) => s?.defines?.S_FORM);
-    const mesh = d.gid ? this._variant(d.gid, colors, figure || d.kind === 'skinned', crowd, form) : null;
+    // (the fluid's flask, hose and globs read their own rest place too: their box, the glass's height, materials.js FLUID)
+    const fluid = specs.some((s) => s?.defines?.FLUID);
+    const mesh = d.gid ? this._variant(d.gid, colors, figure || fluid || d.kind === 'skinned', crowd, form) : null;
     if (d.kind === 'instanced' && d.mids.some((m) => this.ports.get(m) === 'print')) {
       // the footprints: the port's Puffs (its Print decal), instanced from op 10
       (this.puffs ??= new Set()).add(id);
@@ -91,7 +93,7 @@ export class UnityBackend {
       return;
     }
     this.nodes ??= new Map();
-    this.nodes.set(id, { gid: d.gid, colors, bind: figure || d.kind === 'skinned', kind: d.kind, form });
+    this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || d.kind === 'skinned', kind: d.kind, form });
     const desc = { kind: d.kind, mesh, mids: d.mids, name: d.name, shadow: d.shadow !== false, bones: d.bones ?? 0 };
     // (a skinned mesh bound "attached": its skeleton's bones are shared, its bind matrix is its bind pose)
     if (d.kind === 'skinned' && d.skeleton && d.attached) { desc.skeleton = d.skeleton; desc.bind = Array.from(mirrorMatrix(d.bind)); }
@@ -185,12 +187,12 @@ export class UnityBackend {
     tally(this, 'material', b0);
   }
 
-  /** The fluid on a material (fluid-tool.js uFluidA, uFluidB, uFluidTones: 26 floats), when it moves: op 16. */
+  /** The fluid on a material (fluid-tool.js uFluidA, uFluidB, uFluidTones, uFluidBase: 29 floats), when it moves: op 16. */
   materialFluid(mid, f) {
     const w = this.w, b0 = w.n;
-    w.reserve(28);
+    w.reserve(31);
     w.u(OP.fluid); w.i(mid);
-    for (let i = 0; i < 26; i++) w.f(f[i]);
+    for (let i = 0; i < 29; i++) w.f(f[i]);
     tally(this, 'fluid', b0);
   }
 

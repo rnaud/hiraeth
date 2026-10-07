@@ -22,9 +22,9 @@
 //                               the range rewritten since they were last sent ({ array, itemSize, version, range: [start, count] | null })
 //   materialLive(mid, color, glow)   a material's colour or glow changed after it was sent (the answering plants
 //                               waking, a lamp lit, a beacon breathing): checked each frame a drawable using it is drawn
-//   materialVec(mid, which, v)  a material's vector moved (0: a makers' box's uBoxA, its ray and its clock)
+//   materialVec(mid, which, v)  a material's vector moved (LIVE_VECTORS[which]: a box's ray, the traveller's drawn face)
 //   keyWeights(id, w)           a face's shape-key weights moved (face-keys.js mesh.userData.keyWeights)
-//   materialFluid(mid, f)       the traveller's fluid on a material (fluid-tool.js): uFluidA, uFluidB, the six tones (26 floats), when they move
+//   materialFluid(mid, f)       the traveller's fluid on a material (fluid-tool.js): uFluidA, uFluidB, the six tones, its base (29 floats), when they move
 //   drawState(id, object)       each frame an 'instgeo' drawable is drawn: the backend reads what moves on it (its
 //                               material's per-frame uniforms: the grass patch's centre and fades)
 //   skeleton(sid, mats, n)      a skeleton's bone matrices (bone world × inverse bind: three's boneMatrices), once a frame
@@ -42,6 +42,12 @@
 // keeps one must copy it.
 import { inkSpec } from './ink-spec.js';
 
+
+/**
+ * A material's vectors that move after it is made, sent live (materialVec's `which` is the index): a makers' box's
+ * ray and clock (boxes/), the coral-shirt traveller's drawn face (characters/tripo-face.js: brows, eyes, mouth).
+ */
+export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth'];
 
 /** What a render hook is handed for the renderer: nothing it can draw with (hooks here read the scene, not it). */
 const RENDERER_STUB = Object.freeze({ isWebGLRenderer: false, info: { render: { frame: 0 } } });
@@ -121,23 +127,27 @@ export class SceneMirror {
     if (m.__mirrorLiveF === f) return;
     m.__mirrorLiveF = f;
     const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow?.value;
-    // a makers' box's ray and clock (boxes/: uBoxA), moving every frame
-    if (U?.uBoxA?.value?.isVector4 && this.backend.materialVec) {
-      const A = U.uBoxA.value, L2 = m.__mirrorBox ??= new Float32Array(4).fill(NaN);
-      if (L2[0] !== Math.fround(A.x) || L2[1] !== Math.fround(A.y) || L2[2] !== Math.fround(A.z) || L2[3] !== Math.fround(A.w)) {
+    // the vectors that move every frame (LIVE_VECTORS: a makers' box's ray and clock, the coral-shirt traveller's drawn face)
+    if (this.backend.materialVec && U) {
+      for (let w = 0; w < LIVE_VECTORS.length; w++) {
+        const A = U[LIVE_VECTORS[w]]?.value;
+        if (!A?.isVector4) continue;
+        const L2 = (m.__mirrorVec ??= {})[w] ??= new Float32Array(4).fill(NaN);
+        if (L2[0] === Math.fround(A.x) && L2[1] === Math.fround(A.y) && L2[2] === Math.fround(A.z) && L2[3] === Math.fround(A.w)) continue;
         L2[0] = A.x; L2[1] = A.y; L2[2] = A.z; L2[3] = A.w;
         const mid = this.mats.get(m);
-        if (mid) this.backend.materialVec(mid, 0, [A.x, A.y, A.z, A.w]);
+        if (mid) this.backend.materialVec(mid, w, [A.x, A.y, A.z, A.w]);
       }
     }
     // the traveller's fluid (fluid-tool.js): its fill, tones and clock move every frame it flows
     if (U?.uFluidA && U.uFluidTones && this.backend.materialFluid) {
-      const F = m.__mirrorFluid ??= new Float32Array(26).fill(NaN), A = U.uFluidA.value, Bv = U.uFluidB?.value, T = U.uFluidTones.value;
+      const F = m.__mirrorFluid ??= new Float32Array(29).fill(NaN), A = U.uFluidA.value, Bv = U.uFluidB?.value, T = U.uFluidTones.value, FB = U.uFluidBase?.value;
       let moved = false;
       const put = (k, v) => { const x = Math.fround(v); if (F[k] !== x) { F[k] = x; moved = true; } };
       put(0, A.x); put(1, A.y); put(2, A.z); put(3, A.w);
       if (Bv) { put(4, Bv.x); put(5, Bv.y); put(6, Bv.z); put(7, Bv.w); }
       for (let i = 0; i < 6 && i < T.length; i++) { put(8 + i * 3, T[i].r); put(9 + i * 3, T[i].g); put(10 + i * 3, T[i].b); }
+      if (FB?.isColor) { put(26, FB.r); put(27, FB.g); put(28, FB.b); }
       const mid = this.mats.get(m);
       if (moved && mid) this.backend.materialFluid(mid, F);
     }

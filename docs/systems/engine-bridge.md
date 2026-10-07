@@ -590,6 +590,17 @@ shapes, scaled by its head (`faceKeyDeltas`, `BridgeHost.FaceKeys`: only the ver
 face's weights go a frame they move (`keyWeights`, op 19). The overshirt's lining colours its back faces
 (`_Lining`); the trousers' repaired band is in their vertex colours.
 
+**The newer pieces from the web** (2026-10-07). The coral-shirt traveller's drawn face (characters/tripo-face.js:
+brows, eyes and mouth drawn in his body's shader, moved by his expression): its GLSL is turned into HLSL by
+`scripts/unity-export/tripo-face-hlsl.mjs` (`TripoFace.hlsl`, generated; a test checks it is current) and its four
+vectors go live with the boxes' (`LIVE_VECTORS`, op 18). The glass flask (fluid-tool.js buildFlask): its living
+fluid (`flaskFluid`, the green base the tones stream through, op 16 carries it), the glass's tint, its pale rim,
+its foot and its etched thirds; the fluid's meshes now upload their rest place, which the shader reads its box by.
+And a fix found on the way: the bridge sent every figure's rest pose unmirrored where the port's shader expects
+it mirrored like the points (the port's own figures keep it so), so faces, sashes and the flask were drawn the
+other way round. The Garden's and Lorn II's kits (garden-kit.js, wood-kit.js) need nothing of their own: vertex
+colours and a palette, which the port draws.
+
 **What it costs** (before the overshirt's job, above): the VM's update grew with what it now runs. The coral-shirt traveller's overshirt cloth is
 the largest share: on the web it steps in a Web Worker, here on the VM's own thread (in Node's `vm` context,
 35 of a 49 ms frame at the garage; in Puerts' V8 a few ms). On a busy machine (load 21–27) the editor's frame

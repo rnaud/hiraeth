@@ -19,7 +19,7 @@ export function mirrorMatrix(e, eo = 0, out = new Float32Array(16), o = 0) {
  *   u32 vertices, u32 indices, u32 flags (1 normal, 2 uv, 4 colour, 8 skin, 16 bind, 32 rig, 64 form axis), u32 groups,
  *   groups × (u32 start, u32 count, u32 material index),
  *   f32 position × 3n (x mirrored), [normal × 3n], [uv × 2n], [colour rgba × 4n],
- *   [skin index × 4n (as floats), skin weight × 4n], [bind: the rest pose, three's space, × 3n], [rig × 4n: 32],
+ *   [skin index × 4n (as floats), skin weight × 4n], [bind: the rest pose, x mirrored, × 3n], [rig × 4n: 32],
  *   [form: aFormC × 4n then aFormA × 3n, three's object space as they are: 64 (src/form.js)],
  *   u32 index × m (wound for Unity).
  * colours: only when the material draws them (vertexColors); bind: for people (their outfit zones).
@@ -55,7 +55,9 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
   if (skin) {
     for (const a of [A.skinIndex, A.skinWeight]) { const k = a.itemSize, src = a.array; for (let i = 0; i < n; i++) for (let c = 0; c < 4; c++) f32[o++] = c < k ? src[i * k + c] : 0; }
   }
-  if (bind) { f32.set(P.subarray(0, n * 3), o); o += n * 3; }
+  // (mirrored like every point, as the port's own figures keep it: Surface.shader takes it back to three's, toThree;
+  // unmirrored, every face, sash and flask was drawn the other way round)
+  if (bind) for (let i = 0; i < n; i++) { f32[o++] = -P[i * 3]; f32[o++] = P[i * 3 + 1]; f32[o++] = P[i * 3 + 2]; }
   if (R) { const k = R.itemSize; for (let i = 0; i < n; i++) for (let c = 0; c < 4; c++) f32[o++] = c < k ? R.array[i * k + c] : 0; }
   if (F) { f32.set(F[0].subarray(0, n * 4), o); o += n * 4; f32.set(F[1].subarray(0, n * 3), o); o += n * 3; }
   // (the mirror flips the winding: a, c, b)
@@ -90,7 +92,7 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
  *                 the coral-shirt traveller's overshirt, a frame (BridgeCloth.cs; engine/cloth.js its sizes)
  *  18 matVec:     i32 material id, u32 which (0 _BoxA: a makers' box's ray and clock), f32 × 4: a material's vector, live
  *  19 keys:       i32 node id, u32 n, f32 × n: a face's shape-key weights (0..1; its mesh's blend shapes: BridgeRenderer FaceKeys)
- *  16 fluid:      i32 material id, f32 × 26: uFluidA, uFluidB, the six tones (rgb): the traveller's fluid, live
+ *  16 fluid:      i32 material id, f32 × 29: uFluidA, uFluidB, the six tones (rgb), the flask's base colour: the traveller's fluid, live
  *   0 end
  */
 export class CommandWriter {

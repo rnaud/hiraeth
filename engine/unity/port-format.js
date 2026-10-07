@@ -50,6 +50,8 @@ export function portMaterial(spec, id = 0) {
   if (spec.lining) e.lining = [...spec.lining.map(r5), 1];
   // hatching that follows the form (S_FORM: its axis per vertex, src/form.js), a dark cap's veins
   if (spec.defines?.S_FORM) { e.form = 1; e.veins = v('uVeins'); }
+  // the coral-shirt traveller's drawn face (characters/tripo-face.js: its uniforms live, op 18)
+  if (Array.isArray(u.uTfBrowA)) { e.tripoFace = 1; for (const [k, name] of [['tfBrowA', 'uTfBrowA'], ['tfBrowB', 'uTfBrowB'], ['tfEye', 'uTfEye'], ['tfMouth', 'uTfMouth']]) if (Array.isArray(u[name])) e[k] = u[name].map(r5); }
   // a makers' box (MAKERS_BOX: boxes/model.js): its ray and clock, size, the marks' and the ray's colours
   if (spec.defines?.MAKERS_BOX) { e.box = 1; for (const [k, name] of [['boxA', 'uBoxA'], ['boxB', 'uBoxB'], ['boxMark', 'uBoxMark'], ['boxLight', 'uBoxLight']]) if (Array.isArray(u[name])) e[k] = u[name].map(r5); }   // (the coral-shirt traveller: linear colours, turned to display values in the shader)
   if (Array.isArray(u.uShade)) e.shade = u.uShade.map(r5);
@@ -74,6 +76,7 @@ export function portMaterial(spec, id = 0) {
     e[k] = typeof x === 'number' ? x : x.map(r5);
   }
   if (spec.defines?.FLUID) e.fluid = 1;
+  if (Array.isArray(u.uFluidBase)) e.fluidBase = u.uFluidBase.map(r5);
   if (spec.defines?.DISSOLVE) e.dissolveOn = 1;
   return e;
 }

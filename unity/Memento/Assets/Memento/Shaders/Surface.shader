@@ -48,6 +48,7 @@ Shader "Memento/Surface"
     _Veins ("A dark cap's veins", Float) = 0
     _Lining ("Back faces' colour (rgb, a 1: on)", Vector) = (0, 0, 0, 0)
     _BoxOn ("A makers' box", Float) = 0
+    _TripoFace ("The coral-shirt traveller's drawn face", Float) = 0
     _BoxA ("Box: ray, glow, -, clock", Vector) = (0.6, 0.35, 0, 0)
     _BoxB ("Box: half size, centre height", Vector) = (0.5, 0.5, 0.5, 0.5)
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
@@ -63,6 +64,7 @@ Shader "Memento/Surface"
     #include "MementoCommon.hlsl"
     #include "Figure.hlsl"
     #include "Marks.hlsl"
+    #include "TripoFace.hlsl"
 
     float4 _Color, _Color2, _Color3;
     float _Mode, _Flat, _StrataSize, _Grid, _Glyphs, _Biomes, _Ripples, _SandInk, _Ticks, _Glow, _Folds, _Scrub, _Pattern, _Figure, _Hero, _Sway, _StrataObject, _PaletteSize;
@@ -75,7 +77,7 @@ Shader "Memento/Surface"
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
     TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
-    float _Drift, _SpotStep, _LineStep, _ToDisplay, _FormOn, _Veins, _BoxOn;
+    float _Drift, _SpotStep, _LineStep, _ToDisplay, _FormOn, _Veins, _BoxOn, _TripoFace;
     float4 _Lining, _BoxA, _BoxB, _BoxMark, _BoxLight;
     float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
     float _Halftone, _Bounce;   // the look's shade tones (globals)
@@ -586,6 +588,7 @@ Shader "Memento/Surface"
         float2 strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
         float strataFw = fwidth(strataCo.x);
         float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
+        float tfAA = max(fwidth(i.bind.x) + fwidth(i.bind.y), 1e-6) * 0.75;   // (the drawn face's pixel, in its bind space)
         float2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
         float2 glyphFw = gw.x > max(gw.y, gw.z) ? gfw.zy : (gw.y > gw.z ? gfw.xz : gfw.xy);
 
@@ -681,11 +684,13 @@ Shader "Memento/Surface"
           float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, _Detail.y, dSeed, _Detail.x > 1.5);
           patInk = max(patInk, di * dUp * 1.35);
         }
-        if (_Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold);
+        if (_Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold, normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos));
         albedo *= instColor;
         // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
         if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
         if (_ToDisplay > 0.5) albedo = lerp(albedo * 12.92, 1.055 * pow(max(albedo, 0.0), 1.0 / 2.4) - 0.055, step(0.0031308, albedo));
+        // the coral-shirt traveller's drawn face (tripo-face.js, generated: TripoFace.hlsl), after his colours are display values
+        UNITY_BRANCH if (_TripoFace > 0.5) albedo = tripoFace(albedo, i.bind, tfAA);
         #if defined(MEMENTO_GRASS)
           // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
           if (i.grassLook.z > 0.0)

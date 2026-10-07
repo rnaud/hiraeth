@@ -35,7 +35,7 @@ test('the mirror in x: X·M·X, points mirrored, the winding flipped', () => {
   const o = 4 + 3;
   assert.deepEqual(Array.from(f.subarray(o, o + 3)), [-1, 0, 0], 'x mirrored');
   assert.equal(f[o + 9], -1, 'the normal too');
-  assert.deepEqual(Array.from(f.subarray(o + 18, o + 21)), [1, 0, 0], 'the rest pose stays in three\'s space');
+  assert.deepEqual(Array.from(f.subarray(o + 18, o + 21)), [-1, 0, 0], 'the rest pose mirrored too, as the port\'s figures keep it (the shader takes it back)');
   assert.deepEqual(Array.from(u.subarray(o + 27, o + 30)), [0, 2, 1], 'wound a, c, b');
 });
 
@@ -117,6 +117,19 @@ test('hatching that follows the form, a box\'s marks, a lining and a face\'s key
   const ku = new Uint32Array(kb), kf = new Float32Array(kb);
   assert.deepEqual([ku[0], ku[1], ku[2], ku[3], kf[4]], [2, 4, 1, 1, -1], 'key 0: vertex 1, x mirrored and doubled');
   assert.deepEqual([ku[7], ku[8], kf[10]], [1, 2, 0.5], 'key 1: vertex 2 in y');
+});
+
+test('the coral-shirt traveller\'s drawn face and the flask reach the port (TripoFace.hlsl made from tripo-face.js\'s own shader)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { tripoFaceHlsl, TRIPO_FACE_HLSL_PATH } = await import('../scripts/unity-export/tripo-face-hlsl.mjs');
+  assert.equal(readFileSync(TRIPO_FACE_HLSL_PATH, 'utf8'), tripoFaceHlsl(), 'TripoFace.hlsl is out of date: node scripts/unity-export/tripo-face-hlsl.mjs');
+  assert.ok(!/\b(vec[234]|mix|uTf)\b/.test(tripoFaceHlsl()), 'no GLSL left in it');
+  const face = makeMaterial({ color: '#ffffff', figure: true }).clone();
+  Object.assign(face.uniforms, { uTfBrowA: { value: new THREE.Vector4(0.01, 1.66, 0.03, 1.665) }, uTfBrowB: { value: new THREE.Vector4(0.06, 1.66, 1, 0) }, uTfEye: { value: new THREE.Vector4() }, uTfMouth: { value: new THREE.Vector4(0.02, 0, 0, 0) } });
+  const p = portMaterial(inkSpec(face), 1);
+  assert.equal(p.tripoFace, 1); assert.deepEqual(p.tfBrowA, [0.01, 1.66, 0.03, 1.665]);
+  const flask = portMaterial(inkSpec(makeMaterial({ color: '#ffffff', fluid: 'tank', fluidBase: '#5fb86a' })), 2);
+  assert.equal(flask.fluidBase.length, 3);
 });
 
 test('the port\'s crowd figures read the costume as costumes.js packs it (the pieces worn, not the wrong ones)', async () => {
@@ -223,7 +236,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;
-  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5, 16: () => 27, 17: () => 4 + clothWords(u[o]), 18: () => 6, 19: () => 2 + u[o + 1] };
+  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5, 16: () => 30, 17: () => 4 + clothWords(u[o]), 18: () => 6, 19: () => 2 + u[o + 1] };
   const skeletons = [];
   assert.equal(Object.keys(cloths).length, 1, 'the overshirt done by the C# side (BridgeCloth)');
   assert.ok(calls.Keys > 0 && calls.keyVerts > 0, `the MakeHuman faces' shape keys as blend shapes: ${calls.Keys} meshes`);

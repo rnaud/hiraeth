@@ -52,6 +52,8 @@ namespace Memento.Bridge
         readonly Dictionary<int, GrassLayer> grass = new();
         // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
         readonly Dictionary<int, BridgeCloth> cloths = new();
+        // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth" };
         public double msCloth;
         public void Cloth(int id, byte[] b, int count)
         {
@@ -565,8 +567,9 @@ namespace Memento.Bridge
                         var fa = new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]); var fb = new Vector4(ff[o + 4], ff[o + 5], ff[o + 6], ff[o + 7]);
                         var tones = new Vector4[6];
                         for (int t = 0; t < 6; t++) tones[t] = new Vector4(ff[o + 8 + t * 3], ff[o + 9 + t * 3], ff[o + 10 + t * 3], 1);
-                        o += 26;
-                        void SetF(Material m) { if (!m) return; m.SetVector("_FluidA", fa); m.SetVector("_FluidB", fb); m.SetVectorArray("_FluidTones", tones); }
+                        var fbase = new Vector4(ff[o + 26], ff[o + 27], ff[o + 28], 1);
+                        o += 29;
+                        void SetF(Material m) { if (!m) return; m.SetVector("_FluidA", fa); m.SetVector("_FluidB", fb); m.SetVectorArray("_FluidTones", tones); if (!float.IsNaN(fbase.x)) m.SetVector("_FluidBase", fbase); }
                         if (materials.TryGetValue(mid, out var fm)) SetF(fm);
                         if (copies.TryGetValue(mid, out var fl)) foreach (var c in fl) SetF(c);
                         break;
@@ -582,7 +585,7 @@ namespace Memento.Bridge
                     {
                         int mid = (int)fu[o++], which = (int)fu[o++];
                         var vv = new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]); o += 4;
-                        string prop = which == 0 ? "_BoxA" : null;
+                        string prop = which >= 0 && which < LiveVectors.Length ? LiveVectors[which] : null;
                         if (prop != null)
                         {
                             if (materials.TryGetValue(mid, out var vm) && vm) vm.SetVector(prop, vv);
