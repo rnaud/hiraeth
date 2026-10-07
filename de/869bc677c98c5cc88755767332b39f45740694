@@ -1,0 +1,27 @@
+src/levels/reference-underside.js
+  s_55b4bc53b812ec::t_ea0208315084f6 1-241
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_3bc9fbcb15e4c6 36
+src/levels/references.js
+  s_55b4bc53b812ec::t_731038940fd45b 19,206
+src/levels/underside-kit.js
+  s_55b4bc53b812ec::t_d16474bd5bfc53 1-657
+tests/underside.test.js
+  s_55b4bc53b812ec::t_cc4f77823c61a9 1-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de869bc677c98c5cc88755767332b39f45740694",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

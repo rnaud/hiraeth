@@ -1,0 +1,35 @@
+.github/workflows/cloudflare.yml
+  s_55b4bc53b812ec::t_fced3d2cfa1db3 23-44,47
+changelog.md
+  s_55b4bc53b812ec::t_1731c3e6a9dde5 15-16
+docs/systems/dev-tools.md
+  s_55b4bc53b812ec::t_685de8dc3fc8c0 8-12
+src/boot.js
+  s_55b4bc53b812ec::t_560ac8f7450f42 5,18-23,29
+src/changelog.js
+  s_55b4bc53b812ec::t_57210100816f3d 21-26
+src/main.js
+  s_55b4bc53b812ec::t_68b9f18df82ffc 75,880,886
+src/title.js
+  s_55b4bc53b812ec::t_f6842643d54086 156,211-212,214,216-217
+src/world-picker.js
+  s_55b4bc53b812ec::t_5d30fd1691fa48 1-64
+tests/menus.test.js
+  s_55b4bc53b812ec::t_f3f0230f22b0a1 17-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9a34de0d967dd90146997a3b2f13ecdc6f2f4ec6",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

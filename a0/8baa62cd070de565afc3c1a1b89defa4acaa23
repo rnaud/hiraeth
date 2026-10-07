@@ -1,0 +1,41 @@
+changelog.md
+  s_55b4bc53b812ec::t_0afd698589fa6b 12-13
+docs/systems/references.md
+  s_55b4bc53b812ec::t_3e135da697a646 769-804
+docs/systems/rendering.md
+  s_55b4bc53b812ec::t_d558c1d9e865a1 708-732
+src/changelog-media.js
+  s_55b4bc53b812ec::t_7aea49c697ed46 51,158-164
+src/changelog.js
+  s_55b4bc53b812ec::t_50dcfce579dca5 18-19
+src/levels/reference-spacecity.js
+  s_55b4bc53b812ec::t_2435e388ca3bf8 1-294
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_333afbef2a5bec 37
+src/levels/references.js
+  s_55b4bc53b812ec::t_b451c2da4156a7 20,208,243,277
+src/levels/space-city-kit.js
+  s_55b4bc53b812ec::t_8818a9b7040c59 1-474
+src/post.js
+  s_55b4bc53b812ec::t_8483a5ff60a146 271-278,324,545-546,548,618-650,673,692,701,764,1294-1297,1475
+tests/sky-stones-kit.test.js
+  s_55b4bc53b812ec::t_f6b32d33f55329 92-93,95-97
+tests/spacecity.test.js
+  s_55b4bc53b812ec::t_e91fad7d961160 1-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a08baa62cd070de565afc3c1a1b89defa4acaa23",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
