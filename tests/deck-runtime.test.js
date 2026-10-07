@@ -30,7 +30,7 @@ test('the runtime goes up in parts under the Workers file limit, named as deck.p
 });
 
 test('the runtime\'s key is what it runs: the launcher, the updater, the packaging and Electron', async () => {
-  assert.deepEqual(KEY_FILES.slice(0, 4), ['desktop/main.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json']);
+  assert.deepEqual(KEY_FILES.slice(0, 5), ['desktop/main.mjs', 'desktop/deck-updates.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json']);
   assert.ok(KEY_FILES.includes('desktop/steam/hero.png'), 'and Steam\'s artwork it carries');
   const files = Object.fromEntries(KEY_FILES.map((name) => [name, Buffer.from(name)]));
   const key = await runtimeKey(async (name) => files[name]);

@@ -192,7 +192,7 @@ test('callApp: the app\'s answer or its refusal', async () => {
 
 test('the settings carry the update section in the app, and save before an update restarts', () => {
   const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
-  assert.match(ui, /\$\{isNativeApp \? '<section class="updates" hidden><\/section>' : ''\}/);
+  assert.match(ui, /\$\{isNativeApp \|\| isDeckApp \? '<section class="updates" hidden><\/section>' : ''\}/, 'the Android app and the Steam Deck');
   assert.match(ui, /new UpdatePanel\(el\.querySelector\('\.updates'\), \{ onBeforeRestart \}\)/);
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /onBeforeRestart: \(\) => \{ if \(!player\.riding && !ship\.playing\) writeSave\(\); flushPlay\(\); reactiveWorld\.flush\(\); \}/);

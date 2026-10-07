@@ -17,6 +17,7 @@ await mkdir(`${output}/source`, { recursive: true });
 // (not dist/updates/, the site's content updates and runtime, when the Cloudflare deploy packages it)
 await cp('dist', `${output}/source/game`, { recursive: true, filter: (src) => !/^dist[\\/]updates([\\/]|$)/.test(src) });
 await cp('desktop/main.mjs', `${output}/source/main.mjs`);
+await cp('desktop/deck-updates.mjs', `${output}/source/deck-updates.mjs`);   // (the settings' Updates section)
 await cp('scripts/steam-deck/deck.py', `${output}/source/deck.py`);
 // Steam's library artwork for the shortcut (scripts/steam-art.mjs; deck.py puts it in Steam's grid/)
 await cp('desktop/steam', `${output}/source/steam`, { recursive: true });
