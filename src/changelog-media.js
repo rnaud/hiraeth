@@ -48,6 +48,7 @@ export const WORLDS = [
   ['antennas', 'The Forest of Antennas', /Forest of Antennas/],
   ['references', 'References', /References level/],
   ['fallenring', 'The Fallen Ring', /Fallen Ring/],
+  ['spacecity', 'The City Floating in Space', /City Floating in Space/],
 ];
 
 /** The kinds of change, by their words. */
@@ -154,6 +155,13 @@ export const CHANGELOG_MEDIA = {
       { name: 'fallenring-refs', only: 'after', size: [1608, 448], caption: 'The first picture (left) and its view in the game (right): the long tube and its village, the arch’s leg behind, the tilted segment', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'fallenring-refs-arch', only: 'after', size: [1608, 448], caption: 'The third: the arch swooping to its broken vermilion end, the slanted segment over the village', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=fallenring and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'The References level has the City Floating in Space’s four pictures', shots: [
+      { name: 'spacecity-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): from the balcony, the arched bridge over the void, the heaped quarters, the planet’s edge', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'spacecity-refs-arches', only: 'after', size: [1928, 538], caption: 'The third: the two arches under the towers, the city running on under the great planet, its dark side mauve', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=spacecity and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'Space is drawn the way the drawings draw it', shots: [
+      { name: 'spacecity-sky', only: 'after', caption: 'Under the crescent: the stars printed all round, the planet’s lit edge, its dark side as black as the sky', from: 'the References’ second view of the City Floating in Space, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=spacecity&view=2; walk off the balcony’s edge with the camera and look down: the stars go on under the islands.' },
   ],
   '0.84': [
     { match: 'A new world off the route, the Glass Dunes', shots: [

@@ -268,6 +268,14 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uCorona;
   uniform vec4 uEclipseGlow;
   uniform vec3 uEclipseDir;   // where the eclipsed sun stands, if not at the sun's own place (0: at uSunDisc; the References' views)
+  // space all round (src/space-sky.js, docs/systems/rendering.md "Space"): the sky's own colours down past the horizon,
+  // printed stars over the whole sphere, a nebula in flat bands. x on (0 off), y the stars' density (0 … 1), z the share
+  // of teal stars, w the nebula's amount; the nebula's colour (a: the stars' size); the planets' own light (xyz its
+  // direction, w 1 to use it: 0 the sun's); the planets' night side (rgb, a how much of it over the shadow tint's)
+  uniform vec4 uSpace;
+  uniform vec4 uSpaceTone;
+  uniform vec4 uSpaceSun;
+  uniform vec4 uSpaceNight;
   uniform vec4 uBackdrop;         // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait)
   uniform float uCrevice;         // the deepest crevices filled with ink (0..1)
   uniform float uShadowFlat;      // shadows printed in their own colour (0: albedo × tint .. 1: the tint at the surface's value)
@@ -313,7 +321,7 @@ const fragmentShader = /* glsl */ `
     // flat printed sky: one tint down to the horizon, only a narrow paler band right on it
     c = mix(c, mix(uSkyHorizon, uSkyTop, mix(0.45, 1.0, smoothstep(0.0, 0.03, h))), uSkyFlat);
     float sd = max(dot(rd, uSunDisc), 0.0);
-    c = mix(c, uSkyHorizon * vec3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - uNight) * (1.0 - step(1e-5, uEclipse.y) * uEclipse.x));
+    c = mix(c, uSkyHorizon * vec3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - uNight) * (1.0 - step(1e-5, uEclipse.y) * uEclipse.x) * (1.0 - uSpace.x));
     return c;
   }
 
@@ -534,9 +542,10 @@ const fragmentShader = /* glsl */ `
     if (hasRing && !front && r < 1.0) ringMask = 0.0;
     if (r < 1.0 + fw) {
       vec3 n = normalize(q.x * e1 + q.y * e2 - sqrt(max(1.0 - r * r, 0.0)) * dir);
-      float lit = smoothstep(-0.02, 0.02, dot(n, uSunDisc));
+      vec3 Lp = uSpaceSun.w > 0.5 ? normalize(uSpaceSun.xyz) : uSunDisc;   // (a space world's planets lit by their own sun)
+      float lit = smoothstep(-0.02, 0.02, dot(n, Lp));
       vec3 base = C.rgb;
-      vec3 pc = mix(base * uShadowTint * 0.9, base * mix(vec3(1.0), uLightTint, 0.3), lit);
+      vec3 pc = mix(mix(base * uShadowTint * 0.9, uSpaceNight.rgb, uSpaceNight.a), base * mix(vec3(1.0), uLightTint, 0.3), lit);
       // craters
       vec2 cq = q * 4.0;
       vec2 cid = floor(cq);
@@ -606,6 +615,39 @@ const fragmentShader = /* glsl */ `
     ink = max(ink, (1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ma - R))) * inSun * step(0.001, cover) * (1.0 - total));
   }
 
+  // Space all round (uSpace): the sky's flat dark down past the horizon, a nebula in two flat steps of its colour,
+  // and printed stars over the whole sphere (two stereographic caps, one per hemisphere, meeting at the horizon),
+  // most of them fine dots, some teal, a few larger with a short fine cross. Drawn before the planets, which hide
+  // what is behind them.
+  void drawSpace(vec3 rd, inout vec3 col) {
+    float px = uPixelRatio;
+    vec2 sp = rd.xz / (1.0 + abs(rd.y));
+    vec2 hemi = rd.y < 0.0 ? vec2(37.1, 11.3) : vec2(0.0);
+    // the nebula: a slow noise on the sphere and a band across the sky, in two flat steps
+    if (uSpace.w > 0.0) {
+      float band = 1.0 - smoothstep(0.0, 0.55, abs(dot(rd, normalize(vec3(0.35, 0.22, -0.91)))));
+      float f = fbm(sp * 2.6 + 5.0) * 0.75 + band * 0.45;
+      float fw = fwidth(f) * 1.2 + 1e-4;
+      float s1 = smoothstep(0.62 - fw, 0.62 + fw, f), s2 = smoothstep(0.76 - fw, 0.76 + fw, f);
+      col = mix(col, mix(col, uSpaceTone.rgb, 0.55), s1 * uSpace.w);
+      col = mix(col, uSpaceTone.rgb, s2 * uSpace.w);
+    }
+    // the stars: a grid of cells on the cap, one star or none a cell
+    vec2 g = sp * 300.0 + hemi;
+    vec2 cell = floor(g);
+    float hs = hash(cell), kind = hash(cell + 9.1);
+    vec2 o = vec2(hash(cell + 3.3), hash(cell + 7.7)) * 0.6 + 0.2;
+    float cw = max(max(fwidth(sp.x), fwidth(sp.y)) * 300.0, 1e-5);   // (from the caps' own mapping: no seam at the horizon)
+    float dpx = length(fract(g) - o) / cw;   // (the distance to the star, in device pixels)
+    float on = step(1.0 - mix(0.004, 0.05, uSpace.y), hs);
+    float big = step(0.93, kind), size = mix(0.45, 0.9, hash(cell + 2.2)) * (1.0 + big * 0.9) * max(uSpaceTone.a, 0.3) * px;
+    float star = on * (1.0 - smoothstep(size, size + 0.9, dpx));
+    vec2 d = abs(fract(g) - o) / cw;
+    float crossK = big * on * (1.0 - smoothstep(0.3, 0.9, min(d.x, d.y))) * (1.0 - smoothstep(size * 2.0, size * 3.6, max(d.x, d.y)));
+    vec3 sc = hash(cell + 5.5) < uSpace.z ? vec3(0.3, 0.84, 0.86) : vec3(1.0, 0.97, 0.9);
+    col = mix(col, sc, clamp(max(star, crossK * 0.8), 0.0, 1.0));
+  }
+
   // ---------------------------------------------------------------- sky
   vec3 renderSky(vec3 rd, vec2 fc, out float ink) {
     vec3 col = skyBase(rd);
@@ -628,7 +670,7 @@ const fragmentShader = /* glsl */ `
     }
     col = mix(col, uSunColor, (1.0 - smoothstep(r - aa, r + aa, ang)) * (1.0 - smoothstep(0.93, 1.0, eCover)));
     ink = max(ink, (1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ang - r))) * (1.0 - eCover));
-    ink = max(ink, 0.5 * (1.0 - uNight) * (1.0 - smoothstep(0.0, aa * 0.7 * px, abs(ang - r * 1.6))) * (1.0 - eclipse));
+    ink = max(ink, 0.5 * (1.0 - uNight) * (1.0 - smoothstep(0.0, aa * 0.7 * px, abs(ang - r * 1.6))) * (1.0 - eclipse) * (1.0 - uSpace.x));
     if (eclipse > 0.0) drawEclipse(rd, sunAt, ang, aa, r, col, ink);
 
     // Moon: smaller pale disc with a crescent shadow, drawn separately so it
@@ -647,7 +689,7 @@ const fragmentShader = /* glsl */ `
 
     // Sun rays: pale wedges fanning from a low sun.
     if (uRays > 0.0 && uSunDisc.y > -0.05) {
-      float low = (1.0 - smoothstep(0.08, 0.45, uSunDisc.y)) * (1.0 - uNight) * (1.0 - eCover);
+      float low = (1.0 - smoothstep(0.08, 0.45, uSunDisc.y)) * (1.0 - uNight) * (1.0 - eCover) * (1.0 - uSpace.x);
       vec3 s1 = normalize(cross(uSunDisc, vec3(0.0, 1.0, 0.0)));
       vec3 s2 = cross(s1, uSunDisc);
       float phi = atan(dot(rd, s2), dot(rd, s1));
@@ -656,6 +698,7 @@ const fragmentShader = /* glsl */ `
       col = mix(col, mix(col, uSunColor, 0.6), wedge * near * low * uRays);
     }
 
+    if (uSpace.x > 0.0) drawSpace(rd, col);
     for (int i = 0; i < 3; i++) drawPlanet(rd, uPlanet[i], uPlanetColor[i], uPlanetCraters[i], col, ink);
 
     // printed sky: a field of fine dots, a bit denser up high
@@ -718,6 +761,7 @@ const fragmentShader = /* glsl */ `
     // Stars: sparse inked-paper dots at night.
     // (and in an eclipse's totality, uCorona.a: not on the moon's disc)
     float starsK = max(uNight, uCorona.a * eclipse * step(uEclipse.y * 1.02, ang));
+    starsK *= 1.0 - uSpace.x;   // (space draws its own, all round: drawSpace)
     if (starsK > 0.0 && rd.y > 0.0) {
       vec2 sp = rd.xz / (rd.y + 1.0) * 260.0;
       vec2 cell = floor(sp);
@@ -1247,6 +1291,10 @@ export function createPost() {
     uCorona: { value: new THREE.Vector4(1, 1, 1, 0) },
     uEclipseGlow: { value: new THREE.Vector4(1, 1, 1, 0) },
     uEclipseDir: { value: new THREE.Vector3(0, 0, 0) },
+    uSpace: { value: new THREE.Vector4(0, 0, 0, 0) },
+    uSpaceTone: { value: new THREE.Vector4(0.1, 0.16, 0.22, 1) },
+    uSpaceSun: { value: new THREE.Vector4(0, 1, 0, 0) },
+    uSpaceNight: { value: new THREE.Vector4(0, 0, 0, 0) },
 
     uFogDensity: { value: 0.0011 },
     uFogStart: { value: 120 },
@@ -1424,7 +1472,7 @@ export function createBloom(gbuffer, { spread = 1.3, wideSpread = 3.0 } = {}) {
 // (every preset says the haze: a zone's or a world's touches never carry into the next)
 // (and the cast shadows: every world keeps them unless it says)
 // (and the eclipse: off, unless a world's look or src/eclipse.js says)
-const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0], uCast: [0, 0], uInkShadow: [0, 0], uEclipse: [0, 0, 0, 0], uCorona: [1, 1, 1, 0], uEclipseGlow: [1, 1, 1, 0], uEclipseDir: [0, 0, 0] });
+const hazeOff = () => ({ uHazeLayers: [300, 2, 0, 0], uHazeTone: [1, 1, 1, 0], uHeightFog: [0, 20, 0, 0], uHeightFogTone: [1, 1, 1, 0], uCast: [0, 0], uInkShadow: [0, 0], uEclipse: [0, 0, 0, 0], uCorona: [1, 1, 1, 0], uEclipseGlow: [1, 1, 1, 0], uEclipseDir: [0, 0, 0], uSpace: [0, 0, 0, 0], uSpaceSun: [0, 1, 0, 0], uSpaceNight: [0, 0, 0, 0] });
 export const PRESETS = {
   Moebius: {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
