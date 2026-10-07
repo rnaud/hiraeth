@@ -232,6 +232,16 @@ numbers, as `vObjRel` already was for the strokes).
   far, a field of them is a scatter of short dark dashes all pointing the same way. Motion check (Medium, the
   desert's spawn): drift 7.3 → 7.4, walking through the haze 38.1 → 34.8 flickering px per 10 000; Handheld
   cost +0.03 ms (noise).
+  **A high sun lays more of them** (`PEBBLES.noon`, `pebbleNoon`; the author, 2026-10-07: "at noon the sand looks
+  much emptier"). As the sun climbs the shadows shrink to stubs (0.6 radii), so from the sun's sine 0.78 to 0.88
+  (the desert's 10 h to noon) up to 35 % more pebbles a cell, 10 % bigger, at all three scales (the far tone
+  follows: it is computed from the same density and radii). Below that, mid-morning, the afternoon, dawn and dusk
+  are drawn exactly as before (the same pixels at 7, 8, 9, 15 and 18 h). Measured on open sand, four headings
+  (ink: px well darker than the 21 × 21 round them, per 10 000; cloud shadows and the wind's streaks off): noon
+  near 30 → 46, looking down 23 → 35, about mid-morning's (8 h: 44, 34); 10 h 33 → 35. Motion check at 12.5 h
+  (Medium, 1280 × 720, two runs each, the streaks and cloud shadows off): still 2.4 → 2.1, pan 31.7 → 31.8, drift
+  6.7 → 6.9, haze 34.0 → 34.5 flickering px per 10 000 (noise). (Found on the way: a cloud's shadow over the spot
+  made noon read a third emptier than it was; the measure turns cloud shadows off.)
   Salt flats: small crust cracks near → the big dried-mud polygons → tone; the Voronoi
   search returns the border normal, so crack width comes from the true screen gradient.
   `penLine` / `lineField` have JS twins that `tests/ground-ink.test.js` checks.
