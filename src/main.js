@@ -23,7 +23,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
-import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel, cacheUniformArrays } from './perf.js';
+import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -1093,8 +1093,10 @@ function shadowPass(c, reach, hide = []) {
 
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subjUp = new THREE.Vector3(0, 1, 0);
+const framePin = pinRenderFrame(renderer);   // (the passes of a frame update the skeletons once: perf.js)
 function renderFrame() {
   renderer.info.reset();
+  framePin.begin();
   // the scene graph's matrices once per frame, not once per pass: renderer.render() walks the
   // whole scene to update them every call, and a frame makes four or five calls (~1 ms of CPU)
   scene.matrixWorldAutoUpdate = true;
@@ -1174,6 +1176,7 @@ function renderFrame() {
   renderer.setRenderTarget(null);
   renderer.render(blit.scene, post.camera);
   for (const o of frameHidden) o.visible = true;
+  framePin.end();
   frameStats.calls += renderer.info.render.calls; frameStats.tris += renderer.info.render.triangles; frameStats.n++;
   scene.matrixWorldAutoUpdate = true;   // (anything else that renders the scene keeps the usual behaviour)
 }

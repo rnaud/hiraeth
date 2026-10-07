@@ -116,8 +116,13 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 
 ## Animation
 
-- [ ] Measure frame times, animation CPU cost, loading time and memory on the Retroid with
-  representative crowds. **Blocked**: no Android device is attached (`adb devices` is empty).
+- [x] Measure frame times, animation CPU cost, loading time and memory on the Retroid with
+  representative crowds. (Done in GeckoView, every world's start, two densest knots of people, a wide
+  view and a walk: docs/systems/performance.md, "Every world on the Retroid, in GeckoView". The
+  traveller's overshirt cloth had pulled every world to 17–25 fps; fixed, now 57–60 fps in ten worlds,
+  44–52 in Qanat, the camps and the City-Shaft's rim, where the people cost ~5 ms a frame and the draw
+  loop 5–8 ms; loads 4–14 s; 1.0–1.4 GB over the app's three processes.) Previously **blocked**: no
+  Android device was attached.
   The desktop half is done (docs/systems/animation.md, "Locomotion"): frame times and the animation
   CPU in the Signal Market and the City-Shaft, and now the load and the memory for the three
   crowd worlds (`node scripts/bench/web-load.mjs`) — the Market 586 people, ready in 1.2 s, 147 MB;
@@ -150,7 +155,11 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 ## Android
 
 - [ ] On the Retroid: GeckoView with the real buttons, the upgrade over the installed app, the cave's
-  FPS and the shader cost. **Blocked**: no Android device is attached.
+  FPS and the shader cost. **Blocked**: no Android device is attached. (The cave's FPS and the shader
+  cost are measured, in the GeckoView test app: the cave 60 fps, GPU 41 %, docs/systems/performance.md
+  "Every world on the Retroid, in GeckoView"; the game's 78 programs compile in 5.7 s one by one, 81 ms
+  median, 208 worst, against 20.8 s and 367 ms in 07af71c's run. The real buttons and the upgrade over the
+  installed app are still to do: the measuring never touches the player's app.)
 - [x] Make the repository private (done 2026-10-07 on the author's word: the Retroid runs a NATIVE_API 6
   app; android.yml's TRANSITION step, the GitHub web zips and web.json, and the Pages workflow removed).
 
