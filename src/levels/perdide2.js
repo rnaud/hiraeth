@@ -793,6 +793,10 @@ export function* buildPerdide2(scene) {
   yield;
   return attachTemple('perdide2', scene, {
     id: 'perdide2',
+    // (the roots and the arches' strands are long thin tubes lining the path: a BVH split by area (SAH)
+    // queries them 40–65 % quicker than one split at the middle, for ~0.25 s more to build in its worker:
+    // docs/systems/movement.md "Contact", "What the collision costs a frame")
+    collision: { strategy: 'SAH' },
     floraAvoid: (x, z, r) => !clear(x, z, r + 2) || pathDist(x, z) < 3.6 + r,   // off the lit path and the keep-outs (src/flora.js)
     ground: terrain,
     spawn: new THREE.Vector3(0, spawnY, 0),

@@ -96,7 +96,7 @@ test('every world has a build in steps, and its create runs it straight through'
 test('the game loads in steps; the loading screen turns on the compositor', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /meta\.build \? await runStepsAsync\(meta\.build\(scene\), slice\)/, 'the world built a slice at a time');
-  assert.match(main, /Physics\.create\(scene, [^)]*, slice\)/, 'the collision baked a slice at a time');
+  assert.match(main, /Physics\.create\(scene, [^;]*, slice[,)]/, 'the collision baked a slice at a time');   // (then the level's collision settings)
   for (const step of ['spawnNPCsSteps', 'buildFloraSteps', 'tileSceneSteps', 'dropBuriedFloraSteps', 'buildPeopleSteps', 'ReactiveWorld.make', 'warmShadersSliced']) assert.ok(main.includes(step), step);
   assert.ok((main.match(/await slice\(\)/g) ?? []).length >= 20, 'and gives the main thread back between its parts');
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');

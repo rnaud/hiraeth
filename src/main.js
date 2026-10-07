@@ -213,7 +213,7 @@ await slice();
 await stage('inking the collisions…');
 // Collision against the real level geometry (built before the player / vehicles join the scene).
 const t0 = performance.now();
-const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null, slice);
+const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null, slice, level.collision ?? {});
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 if (level.initSteps) await runStepsAsync(level.initSteps(physics), slice); else level.init?.(physics);
 await slice();
