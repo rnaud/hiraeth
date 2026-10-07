@@ -208,9 +208,10 @@ export class Physics {
     _ray.direction.copy(dir);
     const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, far);
     if (!hit) return null;
-    const normal = hit.face.normal.clone();
-    if (normal.dot(dir) > 0) normal.negate();
-    return { distance: hit.distance, point: hit.point.clone(), normal, mover: hit.mover ?? null };
+    const normal = hit.face.normal.clone(), front = normal.dot(dir) < 0;
+    if (!front) normal.negate();
+    // (front: met from outside, by the side its face is turned to; a floor met from inside a closed solid is not)
+    return { distance: hit.distance, point: hit.point.clone(), normal, front, mover: hit.mover ?? null };
   }
 
   /**

@@ -55,7 +55,7 @@ test('a cab’s top is the drawn cab’s: its hull, its canopy and sign, not a d
 
 test('the traveller dropped on a cab stands on what is drawn there, and walking into its flank stops at the hull', () => {
   const { physics, cab } = cabWorld(2);
-  for (const lz of [1.5, -1.5, -0.25]) {   // the nose, the stern, the canopy
+  for (const lz of [1.5, -1.5, -0.6]) {   // the nose, the stern, the canopy (off its sign, whose lamp is lit only for hire)
     const at = cab.object.localToWorld(V(0, 0, lz));
     const P = new Player(physics, { health: false, dynamic: () => [cab] });
     P.respawn(V(at.x, cab.pos.y + 5, at.z));

@@ -1524,6 +1524,9 @@ export class Player {
       if (!hit || hit.normal.dot(U) < 0.45) continue;
       const rise = _g4.subVectors(hit.point, this.pos).dot(U);
       if (rise < -0.3 || rise > 2.8) continue;
+      // (and room to stand there: not a floor met from inside something, an olive's crown, or under a ceiling)
+      if (this.physics.rayDistance(_g5.copy(hit.point).addScaledVector(U, 0.05), U, 1.7) < 1.6) continue;
+      if (hit.front === false || this.physics.rayHit(_g5.copy(hit.point).addScaledVector(U, 0.05), U, 4)?.front === false) continue;   // (inside a closed solid: met from within, or the way up leaves through its back)
       this.climbing = false;
       this.mantle = { from: this.pos.clone(), to: hit.point.clone(), edge: this.pos.clone().addScaledVector(U, Math.max(rise, 0)).addScaledVector(into, 0.32), rise, t: 0, n: this.wallN.clone() };
       this.vel.set(0, 0, 0);
@@ -1637,6 +1640,9 @@ export class Player {
       this.pos.y = face;
       if (f < 0) { this.stopClimb(true); return; }
     }
+
+    // a ceiling over the head (an olive's crown over its trunk, a beam): no higher
+    if (f > 0 && this.physics.rayDistance(_v2.copy(this.pos).addScaledVector(U, 1.2), U, 0.8) < 0.7) f = 0;
 
     // reached the top: nothing in front at head height -> mantle over
     const head = _v2.copy(this.pos).addScaledVector(U, 2.3);

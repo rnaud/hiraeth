@@ -157,6 +157,13 @@ collider (a door, the wheel) whose box is nowhere near the capsule (`shapecast`'
   Both collide as drawn now (`instanced(..., { solid: true })` in `src/levels/spheres.js`): the olive's trunk
   and its two boughs, leaning and turned as each instance is; its crown stays walk-through; the whole cypress,
   a dense flame. ~181 k → ~201 k triangles, the bake +4 ms, queries unchanged; climbs off 234 → ~10.
+  Climbed up an olive's trunk you came out inside its crown. The crown (~640 faces of leaf masses a tree, 155 k
+  for the 243) stays walk-through, with a 20-faced blob of its core standing in for it inside the leaves
+  (~5 k triangles in all; `userData.standIn`: the audit counts the crown as drawn over it, so the metre of leaves
+  round the blob shows as feet sink and climbs inside). A climb stops under a ceiling over the head
+  (`updateClimb`), and a mantle needs room to stand that is not inside a closed solid (`tryMantle`: neither met
+  from within, `rayHit(...).front`, nor with the way up leaving through a solid's back), so you stop under the
+  crown or climb its leaves and stand on top (`tests/spheres.test.js`).
 - *The gates of Jaws* (Lorn's Hush-House) were a box the size of the doorway, the two round halves up to 0.75 m
   inside it. While shut each half is a moving collider (`addMover(half, { all: true })`: the pieces flag their
   meshes noCollide to stay out of the bake) that snaps with the drawn half, and a thin still slot down the

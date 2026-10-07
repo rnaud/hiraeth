@@ -857,7 +857,14 @@ export function* buildSpheres(scene) {
     // in for them, out of the drawn bark at the top and turned the other way; the crown stays walk-through)
     instanced(trunk, makeMaterial({ color: '#ffffff', detail: 'organic' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })),
       { solid: true }).name = 'olive trunks';
-    instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })));
+    // (the crown is leaves, brushed past; but climbed up its trunk you came out inside it: a convex blob of its
+    // core, 20 faces, inside the drawn leaves, is a ceiling the climb stops under (Player.updateClimb) and
+    // holds you on top; the whole crown as drawn would be ~640 faces a tree, 155 k for the 243)
+    const blob = new THREE.IcosahedronGeometry(1, 0).scale(2.0, 1.3, 2.0).translate(0, 5, 0);
+    const cm = instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })),
+      { collideGeo: blob });
+    cm.name = 'olive crowns';
+    cm.userData.standIn = true;   // (drawn, with a collider standing in for it: src/contact-audit.js)
   }
   // cypresses: tall dark green flames
   yield;

@@ -80,7 +80,8 @@ export function drawnSurfaces(scene, { exclude = [], maxInstances = 4000 } = {})
     if (!mat || mat.visible === false || mat.colorWrite === false || mat.transparent || mat.depthWrite === false || mat.blending === THREE.AdditiveBlending) return;
     if (o.userData.water || mat.uniforms?.uMode?.value === MODE_WATER) return;   // (water is swum, not stood on)
     if (o.isInstancedMesh) {
-      if (walkThrough(o) || o.count > maxInstances || o.instanceMatrix.usage === THREE.DynamicDrawUsage) return;
+      // (walk-through scatter is not stood on; but foliage with a collider standing in for it, an olive's crown, is)
+      if ((walkThrough(o) && !o.userData.standIn) || o.count > maxInstances || o.instanceMatrix.usage === THREE.DynamicDrawUsage) return;
       for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, _m); _m.premultiply(o.matrixWorld); add(o, o.geometry, _m.clone()); }
     } else add(o, o.geometry, o.matrixWorld);
   });
