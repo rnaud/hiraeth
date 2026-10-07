@@ -931,3 +931,63 @@ moons: the moons were never finished and nobody came for them; the workers live 
   are stacked boxes (the pictures heap balconies, stairs and plants); the hung moons don't turn (Wen says they do, at
   night); the houses can't be entered; the floor has no grass or bushes where the third picture has them; the far moons
   are plain spheres; no wildlife of its own beyond a flock.
+
+## The City Floating in Space (`spacecity`, off the route, October 2026)
+
+`src/levels/space-city.js`, after the pictures in `references/The City Floating in Space/` (their views:
+references.md; the shapes and the look: `src/levels/space-city-kit.js`, shared with the views). A city of rounded adobe
+houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges,
+their undersides hung with dark machinery and cables dangling into the void; stars all round, below as well as above
+(rendering.md "Space"); a great pale planet hangs to the north over the roofs. On the galactic map from the start
+(names.js `SIDE`, one entry at the end of each shared list), `?level=spacecity`.
+
+- **The layout** (north is -z, `ISLANDS`, `BRIDGES`): the ship lands on the Pier, a round dock at the south (deck y 0).
+  A bridge north to the Gate Quarter and its lane between heaped houses, washing over it; the broad Market Bridge,
+  crowded, to the Market island in the middle (its plaza of stalls under awnings and tables round lamps, `PLAZA`); from
+  the market east up to the Towers (y 6), west down to the Garden terrace (y -4: dark round trees, benches, an
+  overlook), north to the Balcony island, whose dark teal railing looks out over the void at the far islands and the
+  planet (the pictures' composition). Twelve far islands round it all, 150-500 m off and from 90 m below to 70 m above,
+  some joined by bridges: drawn only, no shadows, no collision.
+- **No ground**: `ground.heightAt` is -Infinity (as the Sealed Hangar); you stand on the decks, the bridges and the
+  houses, found by the physics as meshes. Each island has a parapet round its edge, open where a bridge lands (the
+  Balcony's north edge has the railing). Over it you fall into the void, and below `UNSAFE_Y` (-40 m, about a second
+  and a half of falling) `level.unsafe` puts you back where you last stood. No jets, no mount; the game's own gravity
+  (the pictures' cables and washing hang straight down: nothing there says the gravity is low).
+- **The houses** (`quarter` with the world's `LANES`): each island keeps its lanes from bridge to bridge and its squares
+  clear; the houses face the nearest lane, and the farther from it they stand, the more storeys they carry (`levels`),
+  so the islands heap up toward their middles and backs as in the pictures. Roofs carry trees, chimneys (solid),
+  antennas, clutter; awnings and washing over the lanes.
+- **The sky by the hour** (`SPACECITY_SCRIPT`): black at every hour; the light warm by day, rose at dusk, the planet's
+  cool light at night. The planet (`PLANET`, 44° across, plain) is lit by the city's own sun (`uSpaceSun` off), so it is
+  two-thirds lit in the morning (the arrival hour, 8:30), a thin crescent through the afternoon and nearly full at
+  night; its dark side a dim mauve (`uSpaceNight`), a disc against the stars. The sun crosses the sky and at night is
+  under the city (you can see it below the islands); the lamps, the lit doors and windows and the glows under the
+  islands are the night's light.
+- **People**: Kip of the Signal Market on the Market Bridge (a courier, in a city of nothing but bridges), Nima of the
+  City-Shaft sweeping the Gate's lane, Madame Sel of the Signal Market listening to the planet from the Balcony (their
+  own words: `talk.listen`, no errands); five of the city's folk with toned lines (the City-Shaft's tongue), and a crowd
+  in the City-Shaft's clothes (`COSTUMES.spacecity`) over the bridges, along the lanes, round the plaza, at the railing.
+- **Life and sound**: no birds in space; glowing dust hanging in the light (motes). Footsteps on stone, the ambience
+  `city`.
+- **Built** in kits by island (each frustum-culled on its own), the bridges in one, the far islands in one; ~250 meshes,
+  ~0.42 M triangles (the far islands 0.19 M: their trees one ball of a few faces, no flower boxes); built in steps in
+  ~0.8 s in node. Solid as drawn where walked: decks, parapets, bridges and their parapets, houses, chimneys, the pipe
+  stacks over the decks, tables, benches, crates, bollards. Drawn only: everything under the islands (you fall past
+  it), the trees (flora), awnings, washing, lamps, the diners. Contact audit: feet sink 16, climbs inside 113 (awnings,
+  washing and wall lamps in front of the walls they hang on; the diners at their tables; the machinery under the
+  islands where the bridges' arches meet it, out of reach), walks through 0.
+- **Cost** (Mac, headless Chrome, 1280 × 720, Handheld at render scale 0.75 without dynamic resolution, 90 synced
+  frames a round, 7 rounds; the machine heavily shared with other agents, so the rounds spread 5-10 ms and only the
+  comparison in the same run means anything): the Signal Market (the budget) median 9.9 ms / best round 5.9 / 366 draws
+  at its start, 8.2 / 5.0 / 329 in its crowd; the city by the ship 9.1 / 5.9 / 366, the Gate's lane 9.0 / 6.5 / 347, on
+  the Market Bridge 5.9 / 5.0 / 256, the plaza 6.5 / 5.1 / 212, the Balcony 7.8 / 4.6 / 182, looking back south over
+  the whole city 5.2 / 4.6 / 401 (0.44-0.64 M triangles in view; the Market 0.44-0.67 M).
+- `tests/spacecity.test.js` (the kit, the sky, the views) and `tests/spacecity-world.test.js`: registered off the route
+  and charted; built without errors; the Pier flat under the ship; every island's deck and every bridge underfoot from
+  end to end and clear; the way from the ship along the lanes and over the bridges to the Balcony, the Towers and the
+  Garden clear; the plaza open; a parapet round every island but at the bridges; the void below unsafe, the decks safe.
+- **Left to make it better**: the pictures' houses carry dense small detail (pipes, vents, signs, plants, washing by the
+  dozen) and their decks crowds; ours are clean rounded blocks. The pictures' houses also step down the islands' sides
+  below the decks, and their islands sit at many more heights with stairs between them; ours stand on six decks at
+  three heights. The houses can't be entered; nothing moves under the islands (a lift, a cable car would suit it); the
+  far islands are only seen.

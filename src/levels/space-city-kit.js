@@ -81,7 +81,7 @@ export function spaceMats(kit) {
     stone: kit.mat({ color: T.stone, flat: true, weathered: 0.25 }),
     masonry: kit.mat({ color: T.masonry, flat: true, patches: 0.4 }),
     tower: kit.mat({ color: T.lime[0], flat: true, grid: 2.4, patches: 0.4 }),
-    paving: kit.mat({ color: T.paving, flat: true, grid: 1.8 }),
+    paving: kit.mat({ color: T.paving, flat: true, grid: 3 }),
     bridge: kit.mat({ color: T.bridge, flat: true, grid: 1.6 }),
     step: kit.mat({ color: T.stone, flat: true, hatch: 0.4 }),
     dark: kit.mat({ color: T.dark, flat: true }),
@@ -163,7 +163,7 @@ export function inPoly(pts, x, z) {
  * (inside: a world point m in from the edge).
  */
 export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, w = 30, d = 24, cr, wob = 0.8, thick = 3.2, rim = 0.95, gaps = [], deep = 18, cables = 14, lights = 4, detail = 1, deck = true, seed = 1 }) {
-  pts ??= outline(w, d, { cr, wob, n: Math.max(24, Math.round((w + d) * 1.1)), seed });
+  pts ??= outline(w, d, { cr, wob, n: Math.max(24, Math.round((w + d) * 1.1 * Math.min(1, detail + 0.2))), seed });
   const c = Math.cos(yaw), s = Math.sin(yaw);
   const W = (lx, lz) => [x + c * lx + s * lz, z - s * lx + c * lz];   // local → world (x, z)
   const place = (g) => put(g, x, 0, z, yaw);
@@ -182,7 +182,7 @@ export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, 
   const tiers = [[0.86, 2.4], [0.66, 3], [0.42, 3.6], [0.22, 4.2]].slice(0, deep > 22 ? 4 : deep > 12 ? 3 : 2);
   let yy = bottom;
   for (const [k, h] of tiers) {
-    kit.add(M.under, place(extruded(pts, h, k).translate(0, yy - h, 0)), SH);
+    kit.add(M.under, place(extruded(pts, h, k).translate(0, yy - h, 0)), SH);   // (drawn only, as all that hangs under: you fall past it into the void and come back where you stood)
     yy -= h;
   }
   // a bulb or drum at the very bottom
@@ -324,16 +324,17 @@ export function bridge(kit, M, A, B, { w = 3.4, rail = 0.95, end = 5, mid = 1.1,
 
 // ------------------------------------------------------------------ houses
 /** A dark round tree at (x, y, z) (its foot), s its crown's half-width. */
-export function crownTree(kit, M, rng, x, y, z, s = 1.6, { trunk = s * 0.9 } = {}) {
+export function crownTree(kit, M, rng, x, y, z, s = 1.6, { trunk = s * 0.9, detail = 1 } = {}) {
   kit.add(M.bark, new THREE.CylinderGeometry(0.08 * s, 0.13 * s, trunk, 5).translate(x, y + trunk / 2, z), NC);
-  const g = layeredCrown(Math.floor(rng() * 1e4), { lobes: [5, 3, 1] }).scale(s, s * 0.8, s).translate(x, y + trunk + s * 0.45, z);
+  // (far off, under detail 0.6: one lumpy ball of a few faces, not the layered masses)
+  const g = (detail < 0.6 ? new THREE.IcosahedronGeometry(1, 0).scale(1, 0.85, 1) : layeredCrown(Math.floor(rng() * 1e4), { lobes: detail < 0.9 ? [4, 2, 1] : [5, 3, 1] })).scale(s, s * 0.8, s).translate(x, y + trunk + s * 0.45, z);
   kit.add(kit.pick(M.crown), g, NC);
 }
 /** A chimney or a vent pipe on a roof at (x, y, z), h high. */
 export function chimney(kit, M, rng, x, y, z, h = 2.5) {
   const r = 0.25 + rng() * 0.3;
-  kit.add(rng() < 0.5 ? M.lime[0] : M.stone, new THREE.CylinderGeometry(r, r * 1.05, h, 8).translate(x, y + h / 2, z), NC);
-  kit.add(M.iron, new THREE.CylinderGeometry(r * 1.15, r * 1.15, 0.18, 8).translate(x, y + h, z), NC);
+  kit.add(rng() < 0.5 ? M.lime[0] : M.stone, new THREE.CylinderGeometry(r, r * 1.05, h, 8).translate(x, y + h / 2, z), { solid: true, shadow: true });
+  kit.add(M.iron, new THREE.CylinderGeometry(r * 1.15, r * 1.15, 0.18, 8).translate(x, y + h, z), { solid: true, shadow: true });
 }
 
 /**
@@ -343,7 +344,7 @@ export function chimney(kit, M, rng, x, y, z, h = 2.5) {
  * chimneys, washing, awnings and clutter. size: [min, max] footprint, tall: [min, max] storey height. Returns the
  * houses placed ([{ x, z, r, top }…]).
  */
-export function quarter(kit, M, rng, { x0, x1, z0, z1, y = 0, yAt = null, yaw = 0, n = 20, size = [4, 8], tall = [3.2, 6], stack = 0.5, stack2 = 0.2, clear = [], inside = null, round = 0.25, towers = 0.06, domes = 0.25, trees = 0.3, detail = 1, lit = 0.45, solid = true, antenna = 0.25, awnings = 0.25, wash = 0.15, gap = 0.4, placed = [], levels = null }) {
+export function quarter(kit, M, rng, { x0, x1, z0, z1, y = 0, yAt = null, yaw = 0, n = 20, size = [4, 8], tall = [3.2, 6], stack = 0.5, stack2 = 0.2, clear = [], inside = null, round = 0.25, towers = 0.06, domes = 0.25, trees = 0.3, detail = 1, lit = 0.45, solid = true, antenna = 0.25, awnings = 0.25, wash = 0.15, gap = 0.4, placed = [], levels = null, face = null, light = true }) {
   const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, c = Math.cos(yaw), s = Math.sin(yaw), out = [];
   for (let tries = 0; tries < n * 12 && out.length < n; tries++) {
     const lx = x0 + rng() * (x1 - x0) - cx, lz = z0 + rng() * (z1 - z0) - cz, px = cx + c * lx + s * lz, pz = cz - s * lx + c * lz;
@@ -353,9 +354,9 @@ export function quarter(kit, M, rng, { x0, x1, z0, z1, y = 0, yAt = null, yaw = 
     if ([...placed, ...out].some((h) => Math.hypot(px - h.x, pz - h.z) < (h.r + r) * 0.72 + gap)) continue;
     const gy = yAt ? yAt(px, pz) : y, kr = rng(), kind = kr < towers ? 'tower' : kr < towers + round ? 'drum' : 'block';
     const h = kind === 'tower' ? tall[1] * (1.6 + rng()) : tall[0] + rng() * (tall[1] - tall[0]);
-    const a = yaw + (rng() - 0.5) * 0.3;
+    const a = face ? face(px, pz) + (rng() - 0.5) * 0.2 : yaw + (rng() - 0.5) * 0.3;
     const roof = rng() < domes ? 'dome' : 'flat';
-    const H1 = house(kit, M, rng, { x: px, y: gy, z: pz, w, d, h, yaw: a, kind, roof, k: 0.55 + rng() * 0.3, doors: 1, windows: 2 + Math.floor(rng() * 3), lit, wood: 0.3, flowers: 0.15, antenna: 0, detail, cr: 0.8 + rng() * 1.2, solid });
+    const H1 = house(kit, M, rng, { x: px, y: gy, z: pz, w, d, h, yaw: a, kind, roof, k: 0.55 + rng() * 0.3, doors: 1, windows: 2 + Math.floor(rng() * 3), lit, wood: 0.3, flowers: detail < 0.6 ? 0 : 0.15, antenna: 0, detail, cr: 0.8 + rng() * 1.2, solid, light });
     let topY = H1.top;
     const tops = [[px, pz, w, d, topY, roof]];
     if (levels) {
@@ -366,7 +367,7 @@ export function quarter(kit, M, rng, { x0, x1, z0, z1, y = 0, yAt = null, yaw = 
         const sw = cw * (0.7 + rng() * 0.24), sd = cd * (0.7 + rng() * 0.24), ox = (rng() - 0.5) * (cw - sw), oz = -(cd - sd) * (0.2 + rng() * 0.5);
         sx += Math.cos(a) * ox + Math.sin(a) * oz; sz += -Math.sin(a) * ox + Math.cos(a) * oz;
         const rf = j === L - 1 && rng() < domes * 1.5 ? 'dome' : 'flat';
-        const Hn = house(kit, M, rng, { x: sx, y: ty, z: sz, w: sw, d: sd, h: tall[0] * (0.85 + rng() * 0.45), yaw: a, kind: rng() < round * 0.5 ? 'drum' : 'block', roof: rf, doors: rng() < 0.2 ? 1 : 0, windows: 1 + Math.floor(rng() * 3), lit, flowers: 0.2, antenna: 0, detail, cr: 0.5 + rng() * 0.7, solid });
+        const Hn = house(kit, M, rng, { x: sx, y: ty, z: sz, w: sw, d: sd, h: tall[0] * (0.85 + rng() * 0.45), yaw: a, kind: rng() < round * 0.5 ? 'drum' : 'block', roof: rf, doors: rng() < 0.2 ? 1 : 0, windows: 1 + Math.floor(rng() * 3), lit, flowers: detail < 0.6 ? 0 : 0.2, antenna: 0, detail, cr: 0.5 + rng() * 0.7, solid, light: false });
         tops.push([sx, sz, sw, sd, Hn.top, rf]);
         ty = Hn.top; cw = sw; cd = sd;
         if (rf !== 'flat' || cw < 2.6) break;
@@ -376,11 +377,11 @@ export function quarter(kit, M, rng, { x0, x1, z0, z1, y = 0, yAt = null, yaw = 
       // a storey or two more, set back toward the back
       const w2 = w * (0.55 + rng() * 0.3), d2 = d * (0.55 + rng() * 0.3), back = (d - d2) * 0.4, sx = px - Math.sin(a) * back, sz = pz - Math.cos(a) * back;
       const roof2 = rng() < domes * 1.4 ? 'dome' : 'flat';
-      const H2 = house(kit, M, rng, { x: sx, y: topY, z: sz, w: w2, d: d2, h: tall[0] * (0.8 + rng() * 0.5), yaw: a, kind: rng() < round ? 'drum' : 'block', roof: roof2, doors: rng() < 0.6 ? 1 : 0, windows: 2, lit, flowers: 0.2, antenna: 0, detail, cr: 0.7, solid });
+      const H2 = house(kit, M, rng, { x: sx, y: topY, z: sz, w: w2, d: d2, h: tall[0] * (0.8 + rng() * 0.5), yaw: a, kind: rng() < round ? 'drum' : 'block', roof: roof2, doors: rng() < 0.6 ? 1 : 0, windows: 2, lit, flowers: 0.2, antenna: 0, detail, cr: 0.7, solid, light: false });
       tops.push([sx, sz, w2, d2, H2.top, roof2]);
       topY = H2.top;
       if (roof2 === 'flat' && rng() < stack2) {
-        const H3 = house(kit, M, rng, { x: sx, y: H2.top, z: sz, w: w2 * 0.6, d: d2 * 0.6, h: tall[0] * 0.8, yaw: a, kind: 'block', roof: rng() < 0.5 ? 'dome' : 'flat', doors: 0, windows: 1, lit, antenna: 0, detail, cr: 0.5, solid });
+        const H3 = house(kit, M, rng, { x: sx, y: H2.top, z: sz, w: w2 * 0.6, d: d2 * 0.6, h: tall[0] * 0.8, yaw: a, kind: 'block', roof: rng() < 0.5 ? 'dome' : 'flat', doors: 0, windows: 1, lit, antenna: 0, detail, cr: 0.5, solid, light: false });
         tops.push([sx, sz, w2 * 0.6, d2 * 0.6, H3.top, 'dome']);
         topY = H3.top;
       }
@@ -390,7 +391,7 @@ export function quarter(kit, M, rng, { x0, x1, z0, z1, y = 0, yAt = null, yaw = 
       if (tr !== 'flat') continue;
       const ox = (rng() - 0.5) * tw * 0.4, oz = (rng() - 0.5) * td * 0.4;
       const q = rng();
-      if (q < trees) crownTree(kit, M, rng, tx + ox, ty + 0.4, tz + oz, 0.9 + rng() * 0.9);
+      if (q < trees) crownTree(kit, M, rng, tx + ox, ty + 0.4, tz + oz, 0.9 + rng() * 0.9, { detail });
       else if (q < trees + 0.25) chimney(kit, M, rng, tx + ox, ty, tz + oz, 1.5 + rng() * 3);
       else if (q < trees + 0.4 && detail >= 0.8) roofClutter(kit, M, Math.floor(rng() * 1e4), tx - tw * 0.3, tx + tw * 0.3, tz - td * 0.3, tz + td * 0.3, ty);
       if (rng() < antenna) antennaPole(kit, M, rng, tx - ox, ty, tz - oz, 2.5 + rng() * 5);
@@ -430,10 +431,10 @@ export function pipeStack(kit, M, rng, x, y0, z, h = 12, { n = 4, R = 0.9, solid
   kit.add(M.rail, new THREE.CylinderGeometry(R, R, h, 10).translate(x, y0 + h / 2, z), how);
   for (let i = 0; i < n; i++) {
     const a = (i / n) * TAU + rng() * 0.4, r = 0.18 + rng() * 0.2, px = x + Math.cos(a) * (R + r + 0.05), pz = z + Math.sin(a) * (R + r + 0.05);
-    kit.add(M.rail, new THREE.CylinderGeometry(r, r, h, 6).translate(px, y0 + h / 2, pz), NC);
+    kit.add(M.rail, new THREE.CylinderGeometry(r, r, h, 6).translate(px, y0 + h / 2, pz), how);
   }
-  for (let yy = y0 + 1.5 + rng() * 2; yy < y0 + h; yy += 2.5 + rng() * 3) kit.add(M.iron, new THREE.CylinderGeometry(R * 1.5, R * 1.5, 0.35, 10).translate(x, yy, z), NC);
-  if (rng() < 0.8) kit.add(M.iron, put(new THREE.BoxGeometry(R * 2.4, R * 2, R * 1.6), x + R * 0.6, y0 + h * (0.3 + rng() * 0.4), z, rng()), NC);
+  for (let yy = y0 + 1.5 + rng() * 2; yy < y0 + h; yy += 2.5 + rng() * 3) kit.add(M.iron, new THREE.CylinderGeometry(R * 1.5, R * 1.5, 0.35, 10).translate(x, yy, z), how);
+  if (rng() < 0.8) kit.add(M.iron, put(new THREE.BoxGeometry(R * 2.4, R * 2, R * 1.6), x + R * 0.6, y0 + h * (0.3 + rng() * 0.4), z, rng()), how);
 }
 
 /**

@@ -34,6 +34,7 @@ export const WORLD_REACTIONS = {
   eclipse: {kind:'flower',quiet:'#8a7ac8',awake:'#ffb25c',radius:9},   // (none grow there: level.reactions false)
   fallenring: {kind:'flower',quiet:'#9c9e58',awake:'#ef9a7c',radius:9},   // (none grow there: level.reactions false)
   moonfoundry: {kind:'flower',quiet:'#9cc9b4',awake:'#ffd466',radius:9},   // (none grow there: level.reactions false)
+  spacecity: {kind:'flower',quiet:'#f0ac94',awake:'#8ef0e4',radius:9},   // (none grow there: level.reactions false)
 };
 
 // ------------------------------------------------------------------ room to bloom
