@@ -24,7 +24,11 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Dialogue
 
-- [ ] The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: a blank
+- [x] (2026-10-07, the Retroid in the GeckoView test app: the portrait draws the person in all four
+  conversations tried, 210 × 210, 280–440 colours; the Sketchbook's relic sketches and the game menu's 23 item
+  pictures draw too. So in the app's engine the canvas read works and the capture path stays as it is; the blank
+  disc was the device's Chrome, not measured this round. docs/systems/performance.md, "The Retroid, round 4".)
+  The speaker's portrait circle shows empty on the Retroid (seen in the device's Chrome: a blank
   yellow disc — that is `person.color ?? '#d8a24a'`, the chip's background, with `img.hidden` left
   true or the image blank). **Not reproduced on the desktop**: a headless Chrome 154 (the device's
   version) at the Handheld preset and device pixel ratio 2 draws the person — 210 × 210, 265 distinct
@@ -47,7 +51,13 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Android
 
-- [ ] Next time the Retroid is attached, in the GeckoView test app (never the player's app): measure the
+- [x] (2026-10-07, docs/systems/performance.md "The Retroid, round 4": the pen never stopped over 50 ms in seven
+  loads, before 6b10cc0 and after; the merged towers draw as unmerged on the Adreno; portraits, the Sketchbook and
+  the item pictures draw, the pictures cost one 15–29 ms frame each for 23 frames as the Items panel opens; cab
+  rides at 59–60 fps, the route planned in 0.2–0.4 ms; every world again: the traveller's update 2.7–3.6 → 1.0–1.4
+  ms, the camps 45 → 56 fps, Qanat 49 → 57, the City-Shaft's rim 50 → 59. Found and fixed: dynamic resolution
+  held 0.75 looking down the City-Shaft, GPU-bound at 44 fps; it probes a step down now, 53.5 fps at 0.55.)
+  Next time the Retroid is attached, in the GeckoView test app (never the player's app): measure the
   loading pen through a desert and a City-Shaft load (`adb shell screenrecord`, then
   `scripts/transition-perf/pen.mjs`'s `angles()`); check the City-Shaft's merged towers (`S_VMAT`, checked
   in Firefox / Chrome Metal / SwiftShader on the Mac) draw as unmerged; the speaker's portrait and the
