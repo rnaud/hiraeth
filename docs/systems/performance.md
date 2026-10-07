@@ -644,3 +644,35 @@ That figure does not include the old per-frame upload of positions and normals, 
 across runs of the same build on the Mac, so it can't show a 2–3 ms difference. The look is checked
 side by side (still and walking, front, sides and back).
 On the device the 2.4 ms should fall in the same ratio, to roughly 0.3–0.4 ms. Not yet measured there.
+
+## The Steam Deck (October 2026)
+
+**What it ran.** The Deck's app had no preset of its own: the settings' default there was High (no
+Android app, and a mouse-like pointer), which renders at 1.5× (1920 × 1200 for its 1280 × 800 screen)
+with the full recipe (every crowd figure, props out to 520 m, all plants, the fine 2 k cascade). Measured
+once on the runtime of v0.73 (Steam Deck OLED, SteamOS 3.8.28, Mesa 26.1, ANGLE on radeonsi): the
+title screen at 90 fps (Desktop Mode, the 90 Hz panel) and 60 (nested gamescope's cap), the desert's
+spawn at 17–22 fps with the renderer process at 100 %+ of a core, so the main thread was the limit.
+
+**The Steam Deck preset** (`QUALITY_PRESETS.deck`, v0.76): between Handheld and Medium. The Deck's own
+resolution (scale 1, adapting down to 0.6 with the Handheld's missed-refresh rule and its `cpuBound`
+guard), crease shading and both ink passes as on Medium; the Handheld's lighter CPU side where the Deck
+pays for it: crowd figures out to 260 m (full figures 45 m), props out to 380 m and over 1.5 px, plants at
+0.75 of their range and 0.65 of their density, LOD at 1.5 px, a 1 k fine cascade, the near and far maps
+every 2nd and 4th frame, 4 PCF taps, no cloud shadows. The grass is Low's. Auto picks it on the Deck
+(`detectDeck`: the page at `moebius:`, or a Van Gogh GPU, `AMD Custom GPU 0405` / `0932`), and a Deck
+whose settings were saved on High or Medium moves to Auto once (`deckV`); a lighter choice is kept.
+
+**Measuring.** `scripts/bench/deck-run.sh start [desktop|gamescope] [game dir on the Deck]` starts the
+game over ssh (muted, remote debugging on 9222, a tunnel to the Mac's 5310; only its own unit,
+`memento-bench`), and `node scripts/bench/deck-worlds.mjs --quality deck|high --modes fixed,dynamic
+[--scale 1.5] [--profile 1]` runs every world's views as the Retroid run does (`viewpoints-worlds.json`,
+the desert's `viewpoints.json`): fps, p95, missed refreshes, the JS and GPU time a frame, draws, the
+scale the game chose, and with `--profile` the main thread by system. Checked on the Mac (Electron 44,
+the fake install of `docs/steam-deck.md`): the desert's spawn on the Steam Deck preset 575 draws, 12 ms
+of JS (the G-buffer 3.2, the player 2.2, the shadows 1.8, people 1.1).
+
+**Not yet measured on the Deck**: the Deck was asleep through this round, so the before/after table
+for every world, whether the `cpuBound` guard is right there (keep it if the main thread is the limit,
+as the v0.73 reading suggests; drop it if the GPU turns out to be), the GL against the Vulkan backend
+under gamescope for frame rate, and the loading pen during a load are still to do.
