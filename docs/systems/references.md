@@ -258,13 +258,13 @@ the narrowest creases.
 - **Shapes from the sheets, October 2026** (`src/levels/wood-kit.js`, shared by the world and the views):
   - *The roots' tangle* (`braid`): a root is a bundle of strands twisting round its course, splaying where it
     meets the ground. The views' root arches are a core with six strands round it; the world's six great arches
-    keep their solid core and wear five strands hugging it (drawn only: they stay within ~0.3 of its radius).
+    keep their solid core and wear four strands hugging it, solid as drawn as every root is.
   - *The caves' framing* (`caveFrame`): a cave mouth is a dark half-tunnel (its faces looking in) in the face
     of a root mass, arches of tangled roots over and round it, the outer ones larger and further back, roots
     crawling down its sides, feet crawling out along the ground toward you, roots hanging in the mouth, coral at
     its back when it glows. The views' caves (131, 137, 142, 147, 148) are built from it; the world's root cave
     keeps its tunnel and gains five arches and four feet over its mouth (solid as drawn: the static collision
-    stays under its 170 k budget) and 22 roots hanging in it (walk-through).
+    stays under its budget, ~190 k with the arches' strands and the nest) and 22 roots hanging in it (walk-through).
   - *The banks' bushes* (`bankBush`): a low mass of small leaf clumps; the world's 1 600 are four clumps of
     20 faces (100, the old ball's 80), the views' seven.
   - *The nest in the great cap* (`nest`): a woven bowl of root strands heaped with glowing eggs under a ribbed

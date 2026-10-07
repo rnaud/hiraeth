@@ -167,3 +167,32 @@ test('the drift field with its quick outs is the field of every footprint tried 
   }
   assert.ok(some > 1000, `many points had sand (${some})`);
 });
+
+test('where a skirt is drawn over the ground between its points (a chord over a bend), those triangles collide, and only those', async () => {
+  const { Physics } = await import('../src/physics.js');
+  // a flat floor turning up into a slope at x = 2 (a canyon's floor meeting its wall), a block standing on it
+  const ground = { heightAt: (x, z) => Math.max(0, x - 2) * 0.9 + 0 * z };
+  const d = new SandDrifts({ heightAt: (x, z) => ground.heightAt(x, z), seed: 3 });
+  d.addFootprint([[-1.5, -6], [1.5, -6], [1.5, 6], [-1.5, 6]], { rise: 2 });
+  const scene = new THREE.Scene();
+  scene.add(d.build(new THREE.MeshBasicMaterial()));
+  d.raise(ground);
+  const fit = d.group.children.find((m) => !m.userData.drifts);
+  assert.ok(fit && fit.visible === false, 'a hidden collision mesh beside the skirts');
+  const n = fit.geometry.attributes.position.count / 3, all = d.group.userData.triangles;
+  assert.ok(n > 0 && n < all * 0.4, `${n} of ${all} skirt triangles collide`);
+  const physics = new Physics(scene, ground);
+  // on every skirt triangle, the feet stand on the drawn sand (within the audit's 6 cm), never under it
+  const m = d.group.children.find((c) => c.userData.drifts), P = m.geometry.attributes.position, I = m.geometry.index;
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), p = new THREE.Vector3();
+  let worst = 0, worstPlain = 0;
+  for (let t = 0; t < I.count; t += 3) {
+    a.fromBufferAttribute(P, I.getX(t)); b.fromBufferAttribute(P, I.getX(t + 1)); c.fromBufferAttribute(P, I.getX(t + 2));
+    p.copy(a).add(b).add(c).divideScalar(3);
+    if (Math.abs(p.x) < 1.6 && Math.abs(p.z) < 6.1) continue;   // (inside the block)
+    worst = Math.max(worst, p.y - DRIFT.lift - physics.groundAt(p.x, p.y + 1, p.z, 3));
+    worstPlain = Math.max(worstPlain, p.y - DRIFT.lift - ground.heightAt(p.x, p.z));
+  }
+  assert.ok(worstPlain > 0.1, `(the ground's height alone: the drawn sand up to ${worstPlain.toFixed(2)} m over it)`);
+  assert.ok(worst < 0.065, `the feet up to ${worst.toFixed(3)} m under the drawn sand`);
+});

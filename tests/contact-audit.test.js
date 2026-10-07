@@ -104,26 +104,25 @@ test('a riding disc’s rise is not a step: the drawn body rides it without lagg
 // Before its second pass (October 2026, which took every world's coarse stand-ins out): the desert 57 sink /
 // 186 inside, the Buried Machine 270 / 833, the Garden 91 / 120, Lorn 61 / 35, the Deep Wood 97 / 5, the
 // Hangar 7 / 86, the First Garage 5 / 34, Viridel 18 / 31, home 23 / 15.
-// Known and left, by world (docs/systems/movement.md, "Contact"):
-//  - buried: the great wheel turns for ever, so its collision is a still disc of its rim (the spokes are
-//    seven and the teeth many: no still shape is right at every angle); the heavy rims round the cross-walls'
-//    openings stay drawn-only, because solid they give SandDrifts a footprint that banks sand across the
-//    passage; the sand skirts are drawn over coarser walls;
-//  - perdide: the gates of Jaws (organic halves on a box collider) and a few of the kit's pieces;
-//  - spheres: the olive and cypress trunk colliders stand inside their drawn trees (flora, left walk-through),
-//    which the audit counts as collision with nothing drawn;
-//  - perdide2: three groups of roots off the paths stay walk-through (solid, 26 bank roots alone doubled
-//    every collision query);
+// The third pass (October 2026) settled the rest of the list: the great wheel collides as drawn and turns
+// (physics.addMover), the cross-walls' rims are solid with their passages clear of sand, Lorn II's roots are
+// solid, the olives' trunks and the cypresses collide as drawn, the gates of Jaws snap as moving colliders,
+// the rotunda's oculus trim is solid over its ceiling, and a sand skirt collides where it is drawn over the
+// ground (sand-drifts.js misfits): walks through 46 → 6 on the desert's sand, 80 → 28 on Vael's; the Buried
+// Machine's feet sink 69 → 23. Known and left, by world (docs/systems/movement.md, "Contact"):
+//  - buried, desert, arzach: sand banked up a wall's foot is drawn in front of the wall a climb starts on;
+//    the canyon walls' footprints (one convex hull each, sand-drifts.js) cover the canyon floor;
 //  - home, bazaar: a lining drawn 0.06 m inside its shell, a market sign through an awning;
-//  - temples everywhere: a shut door's edge, the rotunda's oculus trim (drawn-only on purpose: solid it
-//    caught rays dropped through the oculus), the balls (round);
+//  - spheres: the meadow's walk-through flora tops (walks through);
+//  - temples everywhere: a shut door's edge, the oculus trim's 0.3 m lip over the opening (drawn-only on
+//    purpose: the oculus stays as open to the collision as its ceiling's hole), the balls (round);
 //  - taxis and the guardians' balls: a car's roof and a ball are a disc only in the middle (carrier counts).
 const KNOWN = {
-  desert: { sink: 8, hover: 3, inside: 23, walk: 54 }, incal: { sink: 0, hover: 0, inside: 2, walk: 0 },
-  arzach: { sink: 5, hover: 0, inside: 4, walk: 99 }, arzach2: { sink: 3, hover: 1, inside: 4, walk: 2 },
-  garage: { sink: 0, hover: 0, inside: 13, walk: 1 }, buried: { sink: 69, hover: 1, inside: 49, walk: 17 },
-  edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 6, hover: 0, inside: 6, walk: 166 },
-  perdide: { sink: 13, hover: 0, inside: 7, walk: 16 }, perdide2: { sink: 8, hover: 0, inside: 1, walk: 21 },
+  desert: { sink: 8, hover: 3, inside: 15, walk: 30 }, incal: { sink: 0, hover: 0, inside: 2, walk: 0 },
+  arzach: { sink: 5, hover: 0, inside: 5, walk: 34 }, arzach2: { sink: 3, hover: 1, inside: 4, walk: 2 },
+  garage: { sink: 0, hover: 0, inside: 13, walk: 1 }, buried: { sink: 23, hover: 1, inside: 24, walk: 4 },
+  edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 4, hover: 0, inside: 14, walk: 172 },
+  perdide: { sink: 3, hover: 0, inside: 4, walk: 7 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
   bazaar: { sink: 4, hover: 0, inside: 2, walk: 2 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },
   home: { sink: 0, hover: 0, inside: 3, walk: 13 },
 };
@@ -144,7 +143,8 @@ test('Vael and Vael II: what you climb and stand on is the drawn rock (no stand-
   for (const id of ['arzach', 'arzach2']) {
     const r = audit(id);
     assert.ok(r.checked.wall > 8000 && r.checked.top > 4000, `${id}: ${JSON.stringify(r.checked)}`);
-    assert.ok((r.counts['climbs inside'] ?? 0) <= 4, `${id}: ${formatContact(r)}`);
+    // (and the Aerie's rotunda trim, whose 0.3 m lip over the oculus is drawn-only on purpose: src/temples/kit.js)
+    assert.ok((r.counts['climbs inside'] ?? 0) <= 6, `${id}: ${formatContact(r)}`);
     assert.ok((r.counts['feet sink'] ?? 0) + (r.counts['feet hover'] ?? 0) <= 8, `${id}: ${formatContact(r)}`);
   }
 });

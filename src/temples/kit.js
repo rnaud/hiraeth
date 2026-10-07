@@ -234,7 +234,10 @@ export class TempleKit {
     this.both(this.M.trim, T(annulus(r - 0.1, r + t + 0.4, 0.5, seg * 2), [x, y + h, z]));
     if (oculus > 0) {
       this.both(this.M.wall, T(annulus(r * oculus, r + t, 0.9, seg * 2), [x, y + h + 0.9, z]));
-      this.add(this.M.trim, T(annulus(r * oculus - 0.3, r * oculus + 0.4, 0.4, seg * 2), [x, y + h + 1.1, z]));   // (drawn only: the ceiling's, out of reach, and solid it caught rays dropped through the oculus)
+      // the trim round the oculus: solid where it lies on the ceiling, as drawn; the 0.3 m it overhangs the
+      // opening stays drawn-only, so the oculus is as wide to the collision as the ceiling's hole (solid, the
+      // lip caught what is dropped or flown up through the oculus)
+      this.both(this.M.trim, T(annulus(r * oculus - 0.3, r * oculus + 0.4, 0.4, seg * 2), [x, y + h + 1.1, z]), T(annulus(r * oculus, r * oculus + 0.4, 0.4, seg * 2), [x, y + h + 1.1, z]));
     } else if (oculus === 0) this.both(this.M.wall, T(new THREE.CylinderGeometry(r + t, r + t, 0.9, seg), [x, y + h + 0.45, z]));
     if (frieze) for (let i = 0; i < seg; i += 2) {
       const a = (i + 0.5) * step;
