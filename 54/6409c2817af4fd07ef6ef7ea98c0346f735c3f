@@ -1,0 +1,29 @@
+scripts/release-info.mjs
+  s_55b4bc53b812ec::t_b131f9e02323f2 10,115-137,147-151
+scripts/unity-android-release.sh
+  s_55b4bc53b812ec::t_ed237f81c59b18 1-69
+scripts/unity-publish.sh
+  s_55b4bc53b812ec::t_8af376c84c982f 1-30
+unity/.gitignore
+  s_55b4bc53b812ec::t_c4084fe04f0552 35-37
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_55b4bc53b812ec::t_0f0d87dc3beedc 22-23,30-34,67-69,73,85,148-166,168-170,172-173,177-178,187,189,194-227
+unity/Memento/ProjectSettings/ProjectSettings.asset
+  s_55b4bc53b812ec::t_4628f5ab9a2214 173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "546409c2817af4fd07ef6ef7ea98c0346f735c3f",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
