@@ -1,0 +1,75 @@
+TODO.md
+  s_55b4bc53b812ec::t_f96665c24bb02d 12,15-17,20-21
+changelog.md
+  s_55b4bc53b812ec::t_e75fca2f8e1941 13-18
+docs/README.md
+  s_55b4bc53b812ec::t_419bcc9902649c 48
+docs/systems/items.md
+  s_55b4bc53b812ec::t_5ebd9a08c9bdaf 40-43
+docs/systems/ui.md
+  s_55b4bc53b812ec::t_35185c43ee6b03 16,55-56,106,108-109,160-163,177-179,182-227
+index.html
+  s_55b4bc53b812ec::t_f3b3f3ae67ccfc 41-44,293,349,351,414
+src/boot.js
+  s_55b4bc53b812ec::t_0b4c5c082a4233 8
+src/boxes/index.js
+  s_55b4bc53b812ec::t_360ef9a831ba12 336
+src/boxes/model.js
+  s_55b4bc53b812ec::t_4f9070a907de4c 277-380,385
+src/changelog.js
+  s_55b4bc53b812ec::t_8c5657482e681b 17-22
+src/controller.js
+  s_55b4bc53b812ec::t_a5320cb2ac33e0 19,89-90
+src/game-menu-data.js
+  s_55b4bc53b812ec::t_13824fc95fae80 1-89
+src/game-menu.css
+  s_55b4bc53b812ec::t_312be17d53a5c2 1-222
+src/game-menu.js
+  s_55b4bc53b812ec::t_6142a6c6c79455 1-406
+src/hud.js
+  s_55b4bc53b812ec::t_46bab9d608076a 9-10,116-119,121,129-131,133-134
+src/item-icons.js
+  s_55b4bc53b812ec::t_3aea7b147f7e22 1-80
+src/items.js
+  s_55b4bc53b812ec::t_c5b897018724ce 173-176
+src/main.js
+  s_55b4bc53b812ec::t_6f0f57efeab571 11,64-67,73,499-510,513,531-544,812,834,959,1012,1020-1021,1026,1499
+src/menus.css
+  s_55b4bc53b812ec::t_30cf6f954674a8 249
+src/quest.js
+  s_55b4bc53b812ec::t_7a6cc6907acfc5 4,12-14,28-29,33-34,52-56,58-59,63-64
+src/story/index.js
+  s_55b4bc53b812ec::t_31ddff2cdf773b 87
+src/story/quest-goals.js
+  s_55b4bc53b812ec::t_ce975de9a5a141 1-70
+src/story/quests.js
+  s_55b4bc53b812ec::t_d157036213d7b9 2,275-284,286-294,296-314,318-320
+src/ui.js
+  s_55b4bc53b812ec::t_7d2919ec2187f4 66,74-75,83,90-93,100,102,118,182,207,257
+tests/game-menu.test.js
+  s_55b4bc53b812ec::t_77fca1d229cea2 1-238
+tests/hud.test.js
+  s_55b4bc53b812ec::t_acafbe4b00f0e0 4,144,182-193,196-204,207,209-210,212,214
+tests/menus.test.js
+  s_55b4bc53b812ec::t_56e19f63a743a7 68-69
+tests/native-pad.test.js
+  s_55b4bc53b812ec::t_9df8102c6ff2a0 145-158
+tests/story-terraces.test.js
+  s_55b4bc53b812ec::t_25627ea28a8fe3 136,141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "74fc72e002dde945b24bf0042bcac73ed70f5106",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
