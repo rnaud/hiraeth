@@ -470,7 +470,7 @@ export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5
   upper.add(new THREE.Mesh(merge(dome([2.3, 1.4, 2.5], head, [0, 0, 1.6], null, [16, 6]), ell([2.25, 0.08, 2.45], lip, [0, 0, 1.6], null, [16, 3]), ell([1.9, 0.9, 2.1], inside, [0, -0.02, 1.6], [Math.PI, 0, 0], [12, 5]), teeth(-0.25, true)), mat));
   lower.add(new THREE.Mesh(merge(dome([2.2, 1.1, 2.4], head, [0, 0, 1.6], [Math.PI, 0, 0], [16, 6]), ell([2.15, 0.08, 2.35], lip, [0, 0, 1.6], null, [16, 3]), ell([1.8, 0.7, 2.0], inside, [0, 0.02, 1.6], null, [12, 5]), teeth(0.25, false)), mat));
   const crown = [];
-  for (let i = 0; i < 5; i++) { const a = -0.8 + (i / 4) * 1.6; crown.push(new THREE.OctahedronGeometry(1, 0).scale(0.28, 0.9 + (i % 2) * 0.35, 0.28).rotateZ(-a * 0.5).translate(Math.sin(a) * 1.1, 1.55, 1.2 + Math.cos(a) * 0.3)); }   // (an octahedron is non-indexed already)
+  for (let i = 0; i < 5; i++) { const a = -0.8 + (i / 4) * 1.6; crown.push(new THREE.OctahedronGeometry(1, 0).scale(0.28, 0.9 + (i % 2) * 0.35, 0.28).rotateZ(-a * 0.5).translate(Math.sin(a) * 1.1, 1.55, 1.2 + Math.cos(a) * 0.3)); }   // (an octahedron has no index: no toNonIndexed)
   upper.add(new THREE.Mesh(merge(...crown), glowM));
   noCollide(group);
   // where the head goes (group frame), how wide the jaws, its pitch and turn: eased toward these

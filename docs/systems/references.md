@@ -101,6 +101,9 @@ panel, its number (as the label and `?view=n` count) and its title; the view you
   world itself (`DESERT_WORLD_LOOK`, since v0.73) keeps the bank off but lets a few of the flat
   inked clouds back (`uClouds` `DESERT_CLOUDS` = 0.25, the print's 0.45), and with them the cloud
   shadows drifting over the dunes; the views and `?look=desert` keep the plates' clear sky.
+- **The gorge in its rim's shadow** (October 2026): IMG_3775 p3's sun stands low on the right (`{ side: 95, el: 22 }`),
+  so the right rim's cast shadow covers the gorge and climbs the left wall, the pink pillar further down lit over
+  it, as the panel has it (the walls were form-shaded under a high sun ahead). No new shading: the shadow maps.
 - **Slip faces**: sand's few shadow strokes (`hatch` 0.55) go back to full on steep slopes
   (`SHADE.slip`), so a shaded slip face is hatched and flat sand isn't.
 - A zone's touches (`zone.look`) now start from the preset each time, so one view's never carry

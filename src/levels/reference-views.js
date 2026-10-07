@@ -224,7 +224,9 @@ export const REFERENCE_VIEWS = [
   {
     id: 'bridges', title: 'Bridges over the gorge', sheet: 'IMG_3775', panel: 3, where: 'middle left', crop: [42, 353, 463, 294],
     camera: { eye: [0, 3.2, 0], yaw: 0, fov: 56, horizon: 0.72 },
-    sun: { side: 0, el: 48 },
+    // (low from the right: the right rim's shadow falls across the gorge and up the left wall, as the panel has
+    // it, only the pillar standing out further down catching the sun over it)
+    sun: { side: 95, el: 22 },
     sky: ['#a5bdcf', '#b3cad3', '#a29b8e', '#ffffff', '#fff6dc'],
     look: DUNES,   // (the far dunes in stepped bands, as the desert's other sheets)
     fog: 0.3,

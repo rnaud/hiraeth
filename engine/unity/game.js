@@ -96,6 +96,21 @@ function makePlan(args) {
   return { steps, i: 0, wait: 0, t: 0, samples: null };
 }
 
+/**
+ * A view aimed at someone (view.npc: their id; the side-by-sides' close-ups): the eye `dist` m off their front,
+ * a little to the side, looking at their chest, wherever they have walked to by now. Other views as they are.
+ */
+function aimed(game, v) {
+  if (!v?.npc) return v;
+  const n = game.npcs.find((x) => x.def?.id === v.npc);
+  if (!n) { console.log(`[unity] no ${v.npc} here`); return v; }
+  const p = n.pos, h = n.heading ?? 0, d = v.dist ?? 2.8, side = v.side ?? 0.6;
+  // (where they face: their object's -z, whatever the heading's convention)
+  const e = n.object?.matrixWorld?.elements, fl = e ? Math.hypot(e[8], e[10]) : 0;
+  const fx = fl > 1e-6 ? -e[8] / fl : Math.sin(h), fz = fl > 1e-6 ? -e[10] / fl : Math.cos(h);
+  return { ...v, player: null, hidePlayer: true, eye: [p.x + fx * d + fz * side, p.y + 1.5, p.z + fz * d - fx * side], target: [p.x, p.y + 1.1, p.z], fov: v.fov ?? 45 };
+}
+
 /** This frame's keys from Unity (BridgeHost.Keys: the KeyboardEvent codes held), as the page's keydown / keyup. */
 function readInput(game) {
   const held = new Set((host.Keys() || '').split(',').filter(Boolean));
@@ -144,7 +159,7 @@ export function frame(dt) {
   if (!P) return;
   const step = P.steps[P.i];
   const next = () => { P.i++; P.wait = 0; P.t = 0; };
-  if (step.kind === 'pin') { game.pin(step.view); next(); }
+  if (step.kind === 'pin') { game.pin(aimed(game, step.view)); next(); }
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
   else if (step.kind === 'approach') {
     const people = game.npcs.filter((n) => n.def && !n.pooled);
@@ -172,7 +187,7 @@ export function frame(dt) {
   }
   else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }
   else if (step.kind === 'measure') {
-    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
+    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
     P.samples ??= [];
     P.samples.push({ dt: lastT ? tA - lastT : dt * 1000, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: host.LastFrameCpuMs(), gpu: host.LastFrameGpuMs(), moved: r.stats.moved });
     P.t += Math.min(dt, 0.1);   // (a load's long first frame counts as one)
@@ -180,7 +195,7 @@ export function frame(dt) {
       const s = P.samples.slice(5);
       const q = (k, f) => { const a = s.map((x) => x[k]).sort((x, y) => x - y); return a.length ? +a[Math.floor(a.length * f)].toFixed(2) : 0; };
       const nf = Math.max(backend.stats.frames - P.n0, 1);
-      const split = { ...game.mirror.profile(), audio: +(S.audioMs / nf).toFixed(3), host: +(backend.stats.hostMs / nf).toFixed(3), apply: +(host.ApplyMs() / nf).toFixed(3), look: +(S.lookMs / nf).toFixed(3), lookSent: (backend.stats.looks ?? 0) - S.looks };
+      const split = { ...game.mirror.profile(), audio: +(S.audioMs / nf).toFixed(3), host: +(backend.stats.hostMs / nf).toFixed(3), apply: +(host.ApplyMs() / nf).toFixed(3), look: +(S.lookMs / nf).toFixed(3), lookSent: (backend.stats.looks ?? 0) - S.looks, clothWait: +((host.ClothMs?.() ?? 0) / nf).toFixed(3) };   // (clothWait: the main thread waiting on the overshirt's job, BridgeCloth)
       const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
       S.results.push(res);
       console.log(`[bench] ${JSON.stringify(res)}`);

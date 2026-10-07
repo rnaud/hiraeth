@@ -15,7 +15,7 @@ namespace Memento.Bridge
     /// </summary>
     public class BridgeRenderer : MonoBehaviour
     {
-        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public int[][] subs; public int[] subMat; public int bones = -1; }
+        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; }
         class Node
         {
             public GameObject go; public string kind, mesh; public int[] mids; public MeshFilter mf; public Renderer r;
@@ -50,6 +50,60 @@ namespace Memento.Bridge
         struct GrassInst { public Vector4 at, b; }
         class GrassLayer { public Mesh mesh; public Material mat; public GraphicsBuffer buf; public GrassInst[] insts = new GrassInst[0]; public int n; public bool dirty, said; }
         readonly Dictionary<int, GrassLayer> grass = new();
+        // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
+        readonly Dictionary<int, BridgeCloth> cloths = new();
+        // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth" };
+        public double msCloth;
+        public void Cloth(int id, byte[] b, int count)
+        {
+            if (cloths.Remove(id, out var old)) old.Dispose();
+            cloths[id] = new BridgeCloth(b, count);
+            Debug.Log($"Memento bridge: cloth {id}: {cloths[id].N} particles, {cloths[id].M} garment vertices, in a Burst job");
+        }
+        /// <summary>What the frame still has running (a shot renders between Update and LateUpdate).</summary>
+        public void FinishFrame() => FinishCloths();
+        /// <summary>
+        /// A MakeHuman face's shape keys as the mesh's blend shapes (engine/unity/backend.js faceKeyDeltas: per key the
+        /// vertices it moves, Unity's frame); op 19 sets their weights a node.
+        /// </summary>
+        public void FaceKeys(string key, byte[] b, int count)
+        {
+            if (!meshes.TryGetValue(key, out var md) || !md.mesh) return;
+            var u = new uint[count / 4]; System.Buffer.BlockCopy(b, 0, u, 0, count - count % 4);
+            var f = new float[u.Length]; System.Buffer.BlockCopy(b, 0, f, 0, count - count % 4);
+            int o = 0, nk = (int)u[o++], nv = (int)u[o++];
+            if (nv != md.mesh.vertexCount) { Debug.LogWarning($"Memento bridge: keys for {key}: {nv} vertices, the mesh has {md.mesh.vertexCount}"); return; }
+            md.mesh.ClearBlendShapes();
+            var delta = new Vector3[nv];
+            for (int k = 0; k < nk; k++)
+            {
+                System.Array.Clear(delta, 0, nv);
+                int n = (int)u[o++];
+                for (int i = 0; i < n; i++, o += 4) delta[u[o]] = new Vector3(f[o + 1], f[o + 2], f[o + 3]);
+                md.mesh.AddBlendShapeFrame("key" + k, 1f, delta, null, null);
+            }
+            md.keys = nk;
+        }
+
+        /// <summary>The cloths' jobs done, their garments into the meshes (before the frame is drawn).</summary>
+        void FinishCloths()
+        {
+            foreach (var c in cloths.Values)
+            {
+                var t0 = Time.realtimeSinceStartupAsDouble;
+                if (!c.Complete()) continue;
+                msCloth += (Time.realtimeSinceStartupAsDouble - t0) * 1000;
+                if (!byGeometry.TryGetValue(c.gid, out var list)) continue;
+                foreach (var md in list)
+                {
+                    if (!md.mesh || md.pos.Length != c.V) continue;
+                    md.mesh.SetVertices(c.outPos);
+                    if (md.nrm != null) md.mesh.SetNormals(c.outNrm);
+                    md.mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 8f);
+                }
+            }
+        }
         readonly Dictionary<string, Mesh> bound = new();             // a mesh with a bind pose, by mesh and bind
 
         /// <summary>For a look into what is drawn (BridgeBatch -probe): the nodes whose name holds `sub`, as Unity has them.</summary>
@@ -106,6 +160,13 @@ namespace Memento.Bridge
             if ((flags & 16) != 0) { d.bind = new Vector3[n]; for (int i = 0; i < n; i++, o += 3) d.bind[i] = new Vector3(f[o], f[o + 1], f[o + 2]); }
             Vector4[] rig = null;
             if ((flags & 32) != 0) { rig = new Vector4[n]; for (int i = 0; i < n; i++, o += 4) rig[i] = new Vector4(f[o], f[o + 1], f[o + 2], f[o + 3]); }
+            Vector4[] formC = null; Vector3[] formA = null;
+            if ((flags & 64) != 0)
+            {
+                // hatching that follows the form (src/form.js): the part's axis per vertex, three's object space (Surface.shader TEXCOORD5, 6)
+                formC = new Vector4[n]; for (int i = 0; i < n; i++, o += 4) formC[i] = new Vector4(f[o], f[o + 1], f[o + 2], f[o + 3]);
+                formA = new Vector3[n]; for (int i = 0; i < n; i++, o += 3) formA[i] = new Vector3(f[o], f[o + 1], f[o + 2]);
+            }
             var idx = new int[ni];
             for (int i = 0; i < ni; i++) idx[i] = (int)u[o + i];
             d.subs = new int[ng][]; d.subMat = new int[ng];
@@ -123,6 +184,7 @@ namespace Memento.Bridge
             if (d.uv != null) mesh.SetUVs(0, d.uv);
             if (d.col != null) mesh.SetColors(d.col);
             if (d.bind != null) mesh.SetUVs(3, d.bind);
+            if (formC != null) { mesh.SetUVs(5, formC); mesh.SetUVs(6, formA); }
             if (weights != null) mesh.boneWeights = weights;
             if (rig != null)
             {
@@ -505,10 +567,41 @@ namespace Memento.Bridge
                         var fa = new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]); var fb = new Vector4(ff[o + 4], ff[o + 5], ff[o + 6], ff[o + 7]);
                         var tones = new Vector4[6];
                         for (int t = 0; t < 6; t++) tones[t] = new Vector4(ff[o + 8 + t * 3], ff[o + 9 + t * 3], ff[o + 10 + t * 3], 1);
-                        o += 26;
-                        void SetF(Material m) { if (!m) return; m.SetVector("_FluidA", fa); m.SetVector("_FluidB", fb); m.SetVectorArray("_FluidTones", tones); }
+                        var fbase = new Vector4(ff[o + 26], ff[o + 27], ff[o + 28], 1);
+                        o += 29;
+                        void SetF(Material m) { if (!m) return; m.SetVector("_FluidA", fa); m.SetVector("_FluidB", fb); m.SetVectorArray("_FluidTones", tones); if (!float.IsNaN(fbase.x)) m.SetVector("_FluidBase", fbase); }
                         if (materials.TryGetValue(mid, out var fm)) SetF(fm);
                         if (copies.TryGetValue(mid, out var fl)) foreach (var c in fl) SetF(c);
+                        break;
+                    }
+                    case 17:   // the overshirt's frame: its packet into its Burst job (BridgeCloth)
+                    {
+                        int cid = (int)fu[o++], gid = (int)fu[o++];
+                        if (cloths.TryGetValue(cid, out var cl)) { cl.gid = gid; o += cl.Packet(fu, ff, o); }
+                        else { Debug.LogError($"Memento bridge: no cloth {cid}"); o = words; }
+                        break;
+                    }
+                    case 18:   // a material's vector, live (0: a makers' box's _BoxA)
+                    {
+                        int mid = (int)fu[o++], which = (int)fu[o++];
+                        var vv = new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]); o += 4;
+                        string prop = which >= 0 && which < LiveVectors.Length ? LiveVectors[which] : null;
+                        if (prop != null)
+                        {
+                            if (materials.TryGetValue(mid, out var vm) && vm) vm.SetVector(prop, vv);
+                            if (copies.TryGetValue(mid, out var vl)) foreach (var c in vl) if (c) c.SetVector(prop, vv);
+                        }
+                        break;
+                    }
+                    case 19:   // a face's shape-key weights (0..1, the blend shapes' frames at 1)
+                    {
+                        int id = (int)fu[o++], n = (int)fu[o++];
+                        if (nodes.TryGetValue(id, out var kn) && kn.smr && kn.smr.sharedMesh)
+                        {
+                            int have = kn.smr.sharedMesh.blendShapeCount;
+                            for (int i = 0; i < n && i < have; i++) kn.smr.SetBlendShapeWeight(i, ff[o + i]);
+                        }
+                        o += n;
                         break;
                     }
                     case 6:   // remove
@@ -586,7 +679,7 @@ namespace Memento.Bridge
             nd.mf.sharedMesh = mesh;
         }
 
-        void LateUpdate() => DrawCrowds();
+        void LateUpdate() { FinishCloths(); DrawCrowds(); }
 
         /// <summary>The motes' quads, turned to the camera: clamp(size × 900 / depth, 1.5, 14) px across, as life.js's gl_PointSize.</summary>
         void PointQuads()
@@ -655,6 +748,7 @@ namespace Memento.Bridge
         {
             foreach (var c in crowds.Values) { c.buf?.Release(); if (c.mat) Destroy(c.mat); }
             foreach (var g in grass.Values) { g.buf?.Release(); if (g.mat) Destroy(g.mat); }
+            foreach (var c in cloths.Values) c.Dispose();
             foreach (var n in nodes.Values) { if (n.inst) Destroy(n.inst); n.im?.Release(); n.puffs?.Release(); }
             foreach (var m in instMaterials.Values) if (m) Destroy(m);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);

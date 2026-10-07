@@ -73,6 +73,10 @@ round walls, where the tangent of the interpolated normal had swept a column's m
 - **Dust at the foot** (post.js): a weathered pixel is flagged in `gHatch.b` (+16); a probe the band's
   height below it on screen that lands on the ground (facing up) less than 0.62 m under it in the
   world puts it in a flat darker band, its top a little ragged. One tap, within 220 m.
+  Where sand banks against the wall (sand-drifts.js) the band would be buried, so it is drawn on the bank's top
+  edge instead (October 2026): a drift pixel whose probe ~0.37 m up the screen (ragged by a noise) lands on a
+  weathered wall just behind it (within 0.5 m before, 3 m behind) takes the same dust tone. Drift pixels only,
+  two taps, within 220 m.
 - **Each building its own**: an amount (0.6–1.4 × `weathered`) and a pattern seed from where it stands
   (9 m cells).
 - **By distance**: the pen marks fade out at 0.03–0.075 m a pixel, the tone marks (grime, the chips'
@@ -90,7 +94,28 @@ round walls, where the tangent of the interpolated normal had swept a column's m
   High 10.3 / 10.1 and 8.5 / 8.5 ms, Signal Market High 8.3 / 8.6 and 5.0 / 5.0, desert Handheld
   4.1 / 4.1 and 3.6 / 3.6, Market Handheld 8.6 / 8.4 and 7.1 / 7.2: within the run-to-run spread.
 
-### Stains round the doors (Qanat, October 2026)
+### The half-tone and another's cast shadow (October 2026)
+
+A face turned from the sun is lifted toward its lit colour (`uHalftone`, the half-tone of a form under no cast
+shadow), but a back wall standing in the shade of the building across was lifted too, where the sheets keep it
+in full shadow. The shadow map is not read on a turned face (its own body shades it), so `castBeyond` tests the
+middle cascade once at a point `HALFTONE_REACH` (16 m) toward the sun: still in shadow there means something
+stands beyond the form's own body, and the half-tone is not given. Built walls only (not strata rock, not the
+ground, not faces turned up or down: a cliff or a tower deeper than the reach along the light would read its own
+body as another's), only in a look with `uHalftone`. One shadow tap on turned shaded wall pixels: Handheld, the
+Market and the City-Shaft within the run-to-run spread. `tests/halftone-cast.test.js`.
+
+### Stains round the doors (October 2026)
+
+`src/door-stain.js`: `doorStainGeometry(rng, w, h, R)` (the patch in the door's frame, flat or round a drum of
+radius R), `stainColor(wall, k)` (the wall's colour k toward grime), `stainMaterial(color)` (flat, a hairline of
+its own colour). Laid round the doors of Qanat (below), home's two houses (the round house's on the dome's
+curve, the small house's round its wall), the Signal Market's shop openings (painted in each shop's colour, one
+material) and Vael II's monastery and church arches (`arch(…, face)`: which way its wall looks). All drawn
+only, flush (≤ 3 cm) on the face; one material per world. Lorn has no houses (Lorn II's moss domes and their lit
+round doors are left as drawn).
+
+#### Qanat
 
 A door is a mesh of its own, so the wall's weathering cannot see it. Qanat's houses (`desert-city.js`
 `doorStain`) carry a smudge round 80 % of their doors: a fan from over the lintel out to a soft wavy outline

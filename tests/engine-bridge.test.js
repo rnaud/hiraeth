@@ -254,6 +254,23 @@ test('mirror: the traveller\'s fluid on a material (its fill, clock and tones) g
   assert.ok(Math.abs(sent[1][8 + 6] - new THREE.Color('#263c37').r) < 1e-6, 'its third tone');
 });
 
+test('mirror: a makers\' box\'s ray (uBoxA) and a face\'s shape-key weights go live when they move', () => {
+  const vecs = [], keys = [];
+  const mirror = new SceneMirror({ material: () => {}, materialLive: () => {}, materialVec: (mid, which, v) => vecs.push([which, ...v]), keyWeights: (id, w) => keys.push(Array.from(w)) });
+  const scene = new THREE.Scene();
+  const box = new THREE.Mesh(new THREE.BoxGeometry(), makeMaterial({ color: '#1d2a52', makersBox: { half: [0.4, 0.3, 0.3] } }));
+  const face = new THREE.Mesh(new THREE.BoxGeometry(), makeMaterial({ color: '#c08060' }));
+  face.userData.keyWeights = new Float32Array([0, 0, 0]);
+  scene.add(box, face);
+  mirror.sync(scene, null); mirror.sync(scene, null);
+  assert.equal(vecs.length, 1, 'the box\'s vector as it is, once');
+  assert.equal(keys.length, 1, 'the face\'s weights as they are, once');
+  box.material.uniforms.uBoxA.value.w = 2.5; face.userData.keyWeights[1] = 0.7;
+  mirror.sync(scene, null);
+  assert.deepEqual(vecs[1].slice(0, 1).concat(vecs[1][4]), [0, 2.5], 'its clock');
+  assert.ok(Math.abs(keys[1][1] - 0.7) < 1e-6, 'a smile');
+});
+
 test('ink spec: makeMaterial read back as plain numbers, the shared uniforms left out', () => {
   const m = makeMaterial({ color: '#ff8000', color2: '#0000ff', mode: MODE_STRATA, strataSize: 6, glow: 0.5, metal: 'steel' });
   const s = inkSpec(m);

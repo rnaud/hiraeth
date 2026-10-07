@@ -676,3 +676,35 @@ of JS (the G-buffer 3.2, the player 2.2, the shadows 1.8, people 1.1).
 for every world, whether the `cpuBound` guard is right there (keep it if the main thread is the limit,
 as the v0.73 reading suggests; drop it if the GPU turns out to be), the GL against the Vulkan backend
 under gamescope for frame rate, and the loading pen during a load are still to do.
+
+## Round 3, on the Mac: the City-Shaft's towers in one draw, the people's costs, the load's warnings (October 2026)
+
+The Retroid gone, measured in headless Chrome (Handheld, the CPU slowed ×4) on a Mac shared with other agents'
+jobs (load average 25-63 all along: two runs of one build differ by more than most of what follows, so the
+numbers are work counted and pictures compared, timings only where the gap is large).
+
+- **The towers** (`src/vertex-material.js`, `materials.js` `S_VMAT`, `makeMaterial({ perVertex: true })`): the
+  City-Shaft's towers were a mesh and a material each (random pastels, bands, grid, facets), about 200 draws
+  across the shaft and their shadow draws. They are one mesh for each terrace's eighth of the ring now, every
+  tower in it carrying its own material values per vertex: the colours, the band size, the grid and flat shading
+  (flat varyings; the fragment shader's names for those uniforms `#define`d to them), and the object-space point
+  and normal and its place and turn, so the grid, the strata strokes, the hatching and the facet normals stay
+  anchored to each tower as before. Towers share a draw only when every other uniform agrees (`restKey`).
+  Close views of towers, the two builds side by side with the world held (`pair.mjs`, in the agent's scratchpad):
+  0.001-0.16 % of the pixels apart (moving things), draws 313 → 141, 328 → 110, 547 → 115 there; the rim and the
+  wide view ~200 draws fewer. JS a frame (CPU ×4, in turns): the rim 35.6 → 31.3 ms, the wide view 39.8 → 37.3.
+  Tests: `tests/vertex-material.test.js`.
+- **The people near the camera** at the camps (CPU ×4, in-page, the self time of each method a frame): the
+  capes 2.4 ms (2.5 simulations a frame: most of the near ones are the crowd's people, already simulated every
+  other frame within 5 m), the body following the rig 1.3, the animation's retargeting 1.5 and its mixer 1.0
+  (8 posed), the feet 0.45, the crowd 0.85. The capes' every-frame radius brought from 12 to 5 m on the handheld
+  changed nothing there (still 2.5 simulations: the one at 8 m is a crowd person), so it was left out; the
+  cloth's arithmetic is already flat arrays. The bodies are skinned on the GPU already; what is left is the
+  retargeting from the rig to the MakeHuman skeleton and its matrices, a few tenths of a millisecond a person.
+- **The load's `toNonIndexed()` warnings** (three.js: "already non-indexed"): six places called it on icosahedra
+  and octahedra, which have no index (the desert's errand props, the City-Shaft's olives and pines, Vael's
+  pedestals, Viridel's crystals, Lorn's snapper's crown): they take them as they are now. None left in the worlds
+  that had them.
+- **The Garden of Spheres' triangles**: at its start 1.03 M a frame on Handheld, of which the round leaf masses
+  (instanced, 320 triangles each, 29-126 a set) about 130 k in the view and 90 k in the shadows, not simplified far
+  off. The Retroid held 60 fps there (GPU 54-67 %), so they are as they were.
