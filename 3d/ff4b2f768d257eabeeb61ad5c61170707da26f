@@ -1,0 +1,77 @@
+changelog.md
+  s_55b4bc53b812ec::t_b274551651795a 7-9
+docs/systems/references.md
+  s_55b4bc53b812ec::t_997cb1dd004bad 742-768
+docs/systems/rendering.md
+  s_55b4bc53b812ec::t_f14f19e744f8b5 681-707
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_9ddf28e7b2cdbc 767-818
+src/audio.js
+  s_55b4bc53b812ec::t_e0e477e38afe9a 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_9077ef17575b23 118-133
+src/changelog.js
+  s_55b4bc53b812ec::t_104e61982cc847 13-15
+src/costumes.js
+  s_55b4bc53b812ec::t_c6ad55dbef8200 474
+src/eclipse.js
+  s_55b4bc53b812ec::t_6faf350b1eeda0 1-90
+src/edge.js
+  s_55b4bc53b812ec::t_3e85017589e894 35
+src/levels/content.js
+  s_55b4bc53b812ec::t_fea0470f59c975 23,101
+src/levels/eclipse-kit.js
+  s_55b4bc53b812ec::t_eb15e39f6d570b 1-452
+src/levels/eclipse.js
+  s_55b4bc53b812ec::t_544129242533ab 1-387
+src/levels/index.js
+  s_55b4bc53b812ec::t_c2cd908c79f7d0 23,142-148
+src/levels/names.js
+  s_55b4bc53b812ec::t_02f2eb10cb72f5 25,34
+src/levels/reference-eclipse.js
+  s_55b4bc53b812ec::t_c3edff89044434 1-306
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_9138a9cfb15d08 35
+src/levels/references.js
+  s_55b4bc53b812ec::t_ff156c2c584ea7 18,205
+src/main.js
+  s_55b4bc53b812ec::t_be54ea54a6ffec 23,669-670
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_e4ad05b09a1d84 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_1a5d1713e385ea 116
+src/materials.js
+  s_55b4bc53b812ec::t_4bcc18f5bd0827 80,1676-1681,2245-2247,2718-2723
+src/post.js
+  s_55b4bc53b812ec::t_37f821b0a4761b 263-270,316,563-608,619-632,650,719-721,728,1246-1249,1426-1427
+src/reactive-world.js
+  s_55b4bc53b812ec::t_f7598e1be5f174 34
+src/ship/planets.js
+  s_55b4bc53b812ec::t_0f02ba0f86027e 30
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_5854d07a406e85 31
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_9440e5b23d03c5 134
+tests/eclipse-world.test.js
+  s_55b4bc53b812ec::t_b974413d1a77de 1-82
+tests/eclipse.test.js
+  s_55b4bc53b812ec::t_4bdd6c35bcbf07 1-116
+tests/references.test.js
+  s_55b4bc53b812ec::t_83c124c2c2fb0c 67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3dff4b2f768d257eabeeb61ad5c61170707da26f",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
