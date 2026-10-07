@@ -1,0 +1,27 @@
+changelog.md
+  s_55b4bc53b812ec::t_f8774fbc017390 9
+docs/steam-deck.md
+  s_55b4bc53b812ec::t_288974d7e2c44f 48-50
+scripts/steam-deck/deck.py
+  s_55b4bc53b812ec::t_ae93fd5260f17a 744,766,769-773,790,799-800,821-822,934-937
+src/changelog.js
+  s_55b4bc53b812ec::t_48d16bf38ffc72 13
+tests/test_steam_deck.py
+  s_55b4bc53b812ec::t_120c30cb6c5e08 596-619
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4b2060153519160169b03521f5855390a947e741",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
