@@ -10,6 +10,7 @@ import { GLYPH_GLSL } from './glyphs.js';
 import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
 import { BRUSH_GLSL, brushUniforms } from './brush.js';
 import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
+import { FALL_GLSL, fallMaterial } from './waterfall-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -70,6 +71,7 @@ export const sharedUniforms = {
   uHatch: { value: 1 },
   uHatchSpacing: { value: 5.5 },
   uPixelRatio: { value: 1 },
+  uViewH: { value: 720 },        // the frame's height in pixels as drawn (main.js resize): thin bars' least width (S_THIN, src/thin.js)
   uShadeStyle: { value: 0 }, // 0 = hatching, 1 = stipple (Sable-style dotting)
   uClouds: { value: 0.6 },       // cloud cover, shared with the sky in post.js
   // local lights (glowing crystals, eggs, portals, the jetpack flame): xyz + radius
@@ -439,6 +441,7 @@ export function surfaceDefines(o) {
   on('S_MAP', o.map);
   on('METAL_BRUSHED', o.metal && o.brushed);
   on('S_VMAT', o.perVertex);   // (merged meshes: their material values per vertex, src/vertex-material.js)
+  on('S_THIN', o.thin);        // (thin bars kept a least width on screen, src/thin.js)
   delete d.undefined;
   return d;
 }
@@ -463,6 +466,12 @@ const vertexShader = /* glsl */ `
     in vec3 aObjP; in vec3 aObjN;   // its own object-space point and normal
     in vec4 aObjM;        // its place (xyz) and turn about y (w)
     flat out vec3 vMatC1; flat out vec3 vMatC2; flat out vec3 vMatC3; flat out vec3 vMatS;
+  #endif
+  #ifdef S_THIN
+    // a thin bar's axis (src/thin.js): the point of it this vertex stands round (object space), w 1 on a bar
+    in vec4 aThin;
+    uniform float uThinPx;   // the least width it is drawn (pixels)
+    uniform float uViewH;
   #endif
   #ifdef S_FORM
     in vec4 aFormC;       // the part's axis (src/form.js): a point on it (object space), w its kind (FORM: 0 none, 1 a cap, 2 a cylinder)
@@ -585,6 +594,20 @@ const vertexShader = /* glsl */ `
     #ifdef USE_INSTANCING
       pos = instanceMatrix * pos;
       nrm = mat3(instanceMatrix) * nrm;
+    #endif
+    #ifdef S_THIN
+    // a thin bar (a mast's strut, a wire, a vine) kept at least uThinPx pixels wide however far off: pushed out from
+    // its axis where it would be thinner, so it never breaks into pixels that come and go as it slides under them
+    // (a perspective view only: a shadow map's orthographic camera draws it as it is)
+    if (aThin.w > 0.5 && projectionMatrix[2][3] < -0.5) {
+      vec4 ax = vec4(aThin.xyz, 1.0);
+      #ifdef USE_INSTANCING
+        ax = instanceMatrix * ax;
+      #endif
+      float r = length(pos.xyz - ax.xyz);
+      float want = uThinPx * length((modelMatrix * ax).xyz - cameraPosition) / (projectionMatrix[1][1] * uViewH);
+      if (r > 1e-5 && want > r) pos.xyz = ax.xyz + (pos.xyz - ax.xyz) * (want / r);
+    }
     #endif
     vInstColor = vec3(1.0);
     #ifdef GRASS
@@ -1637,6 +1660,9 @@ const fragmentShader = /* glsl */ `
   #ifdef WATER
   ${WATER_GLSL}
   #endif
+  #ifdef FALL
+  ${FALL_GLSL}
+  #endif
 
   // ordered 4x4 dither threshold, for print-like dissolves
   float bayer4(vec2 p) {
@@ -1941,6 +1967,10 @@ const fragmentShader = /* glsl */ `
     #ifdef WATER
       WaterLook wl = waterLook(vWorldPos, gl_FrontFacing);   // (water-shader.js; derivatives here, in uniform flow)
     #endif
+    #ifdef FALL
+      FallLook fl = fallLook(vTextureUV);   // (waterfall-shader.js: a falling sheet, its uv in metres)
+      if (fl.gap > 0.5) discard;
+    #endif
     vec3 albedo = uColor;
     #ifdef S_MAP
     if (uHasMap > 0.5) albedo *= texture(uMap, vTextureUV).rgb;
@@ -2038,6 +2068,9 @@ const fragmentShader = /* glsl */ `
     #endif
     #ifdef FLUID
       albedo = fluidAlbedo(albedo);
+    #endif
+    #ifdef FALL
+      albedo = fl.albedo;
     #endif
     #ifdef S_PATCH
     // colour across a wall (PATCH): big flat patches, each building its own; none far off (nothing paid)
@@ -2205,6 +2238,9 @@ const fragmentShader = /* glsl */ `
     #ifdef WATER
       L = mix(L, max(L, 0.8), wl.lit);
     #endif
+    #ifdef FALL
+      L = 1.0;   // (the sheet is its own light: no shade, no strokes, no cast shadow on it)
+    #endif
     #ifdef DISSOLVE
     albedo = mix(albedo, uDissolveColor, dEdge);
     L = mix(L, 1.0, dEdge);
@@ -2234,6 +2270,9 @@ const fragmentShader = /* glsl */ `
     }
     #endif
     detail = max(detail, carve.z * 0.62);
+    #ifdef FALL
+      detail = max(detail, fl.ink);   // (the sheet's pen streaks)
+    #endif
     #ifdef METAL
       detail = max(detail, metalInk);
     #endif
@@ -2619,10 +2658,11 @@ export function makeMaterial(o) {
       uShade: { value: new THREE.Vector4(...shadeOf(o)) },
       uSpotStep: { value: spotStep(o.spot ?? (o.glow > 0 || o.glass ? 0 : undefined)) },   // (a self-lit or glass surface never goes black)
       uLineStep: { value: lineStep(o) },   // (glass: a thin line in its own colour, unless it says)
+      uThinPx: { value: o.thin === true ? 1.5 : +o.thin || 0 },
     },
   });
   mat.vertexColors = !!o.vertexColors;
-  mat.defaultAttributeValues = { ...mat.defaultAttributeValues, aFormC: [0, 0, 0, 0], aFormA: [0, 1, 0] };   // (a part with no axis: plain hatching)
+  mat.defaultAttributeValues = { ...mat.defaultAttributeValues, aFormC: [0, 0, 0, 0], aFormA: [0, 1, 0], aThin: [0, 0, 0, 0] };   // (a part with no axis: plain hatching; no bar: drawn as it is)
   mat.defines = surfaceDefines(o);   // only the features this material uses are compiled
   if (o.crowd) mat.defines = { ...mat.defines, CROWD: 1 };
   if (o.facePart) mat.defines = { ...mat.defines, FACE_PART: 1 };
@@ -2656,6 +2696,7 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidBase = { value: new THREE.Color(o.fluidBase ?? '#5fb86a') };
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
+  if (o.fall) fallMaterial(mat, o);   // a falling sheet of water (waterfall-shader.js)
   if (o.makersBox) {
     const B = o.makersBox;
     mat.defines = { ...mat.defines, MAKERS_BOX: 1 };

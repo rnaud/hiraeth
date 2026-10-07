@@ -2,6 +2,20 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.84 — 2026-10-07
+
+- A new world off the route, the Glass Dunes: a desert turned to green glass, its frozen waves, cliffs and billows holding great dark shapes inside them, sandy paths winding between the walls to a wave breaking over a camp. The glassworkers live at the walls’ feet under fabric awnings; archways glow in the glass at night, and sandstorms blow through. It is on the galactic map from the start, marked as a detour: no quest, just somewhere to walk.
+- In the References level (the worlds list), the Glass Dunes’ four plates are rebuilt as views: walls and frozen waves of green glass with giants held inside them, the glassworkers’ camps under their ramps of sand, archways in the walls’ feet and the low sun through the glass on the amber sand.
+- A new world off the route, the City Behind the Waterfall: a long cavern city hidden behind a towering curtain of falling water. Walk the dry promenade along the falls, climb the terraced streets of rounded houses, look out over a sunlit valley from the balconies behind slits in the water, or swim in the pool at its foot. The ship’s map charts it from the start.
+- Waterfalls are drawn the way the drawings draw them: flat turquoise bands streaming down with fine pen streaks, slits of light where the water runs thin, mist and spray at the foot, and a roar that grows as you come near.
+- The References level has the City Behind the Waterfall’s four pictures rebuilt as views, to set beside the pictures they come from.
+- A new world off the route, the Salt Harbour: huge old ships standing on their keels in a dry white salt basin, with people living in them. Walk the street between their hulls under the sailcloth, past shops cut into their feet and houses built out from the plating, climb the timber stair to a deck and cross the gangway high over the street, and walk on to the ship that stands on its stern. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came to see it too.
+- The References level has the Salt Harbour’s four pictures rebuilt as views: huge ships standing on their keels in a white salt basin, the streets between their hulls shaded by sailcloth, gangways overhead, shops and houses built onto the plating, mooring ropes staked into the salt.
+- A new world off the route, the Forest of Antennas: abandoned masts by the thousand on a plain of violet grass, great dishes turned up like flowers with birds nesting in them, vine-grown cables strung between the towers, and a small settlement of rounded workshops under one immense receiver. Climb the long stair to the observation deck and cross the maintenance bridge to the receiver’s balcony; Lune and Ottla of the Sealed Hangar and Teb of the Signal Market came to hear it. It is on the galactic map from the start.
+- The Forest of Antennas hums: a low drone that swells near the masts and under the great receiver, static crackling in the air, and now and then a far signal whistling as it tunes in.
+- In the Forest of Antennas, far-off masts, wires and lattice struts stay steady lines as you walk and turn, instead of breaking into flickering pixels.
+- The References level has the Forest of Antennas’ four pictures rebuilt as views, to set beside the pictures they come from.
+
 ## v0.83 — 2026-10-07
 
 - The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.

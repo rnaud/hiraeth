@@ -466,6 +466,133 @@ the narrowest creases.
   flat lit spots.
 - **Left, scene level**: the sheets' houses are a dense village (twenty or thirty in a view, on every limb),
   ours six to eight; their decks are ragged with sticks and ladders; the boats carry crates and lamps.
+## The Glass Dunes' plates (references/The Glass Dunes/reference-1 … 4)
+
+- **The views** (`src/levels/reference-glassdunes.js`, world `glassdunes`, `?level=references&world=glassdunes&view=n`):
+  the four plates, one view each, after the Signal Market's. One scene builder (`dunesScene`) with the Glass Dunes'
+  kit (`src/levels/glass-dunes-kit.js`, shared with the world, worlds.md "The Glass Dunes"): ridges of glass
+  (`glassRidge`: a profile swept along a path, folded into leaning lobes), archways (`glassArch`), the glassworkers'
+  camp (`awningCamp`), dark stones (`boulders`), ramps of sand against the walls, low glass flows over the sand.
+- **The framing was measured off the plates**: the traveller's height in pixels and his feet below the horizon give
+  his distance and the eye's height (9, 11, 7 and 1.35 m), and from them the camps' and the walls' distances. The
+  scenes are smaller than they look: the walls 45–75 m off and 35–70 m high in plates 1–3, 300 m in plate 4.
+- **The look** (`GLASS_VIEW_LOOK`): a clean sky, the far sand in stepped warm bands, the shade printed flat
+  (`uShadowFlat` 0.85) in a teal-green shadow tint, so the glass's turned faces and the sand in its shade read as
+  one luminous teal, as the plates print the light come through the glass. The glass draws a hairline in its own
+  green (`line` 0.25, `lineTint` 1), never a spot black, a little self-light.
+- **On the world**: the Glass Dunes (`?level=glassdunes`, worlds.md "The Glass Dunes") are built from the same kit:
+  the giants' cliffs, the billows, a frozen wave and the breaking wave round a valley of sand, the two camps.
+- **Off-frame casters**: plate 1's foreground shadow and plate 3's streaks of low sun across the sand are cast by
+  glass mounds just outside the frame (the plates' light comes through dunes we don't see).
+- **Left**: the glass is opaque and lit as a surface; the plates' glow from within (light pooling lime at a wall's
+  foot, the luminous rims) is only its colours. Plate 4's breaking wave reads as a hood but not yet as the plate's
+  tall arch; plate 2's billows want deeper, rounder shading under each lobe. The plates' sand carries painted
+  bands of light and shade more than our cast shadows do.
+## The City Behind the Waterfall's sheets (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-waterfall.js`, world `waterfall`: `?level=references&world=waterfall&view=n`):
+  four 16:9 plates (1456 × 816, one view each), after the White Mangrove's. One scene builder (`fallScene`)
+  with the world's own kit (`src/levels/waterfall-kit.js`, shared with the world, worlds.md): waterfalls
+  (`waterfall`: a sheet in the falling-water shader, `src/waterfall-shader.js`, and a mist bank at its foot),
+  lumpy faceted rock masses for the cavern's roof and walls (`rockMass`, casting their shade over the city),
+  quarters of rounded houses climbing the back wall (`quarter`, built in their own frame through `framed`:
+  terraces with their retaining walls and parapets, pods, vaults and rounded blocks with arched doors and
+  round windows, a share lit amber, awnings, pots, lamps, stairs, copper pipes up the risers, residents),
+  arched stone bridges, the sunlit valley far below seen past the falls (a terrain-mode plain). The look
+  `WATERFALL_LOOK`: the shade printed flat in the cavern's teal, almost no hatching or half-tone, no bounce,
+  a teal haze in stepped bands, a clean sky.
+- **The falling water** (`makeMaterial({ fall })`, the FALL define): columns of four flat tones fixed across
+  the sheet, their breaks streaming down at the fall's speed (long streaks, ~20:1), pen streaks falling a little
+  faster in their own lanes (gone once a lane is under ~3 px), see-through slits where a column runs thin
+  (discarded: the city or the valley shows through), a glassy lip under the top edge, a billowing pale mist band
+  at the foot. Its own light (L = 1, no spot black), a thin line in its own colour, a soft halo (glow 0.72). The
+  uv is in metres (`fallSheet`). Five value-noise taps a pixel, no texture.
+- **Choices**: the sheets' falls are luminous: the sheet is self-lit rather than shaded by the sun; the roof
+  casts its shadow, so most of the city sits in the teal shade with its lamps and lit doors, the sun slipping
+  under the lip onto the front of the terraces (views 1, 2); views 3 and 4 light the street from the falls' side.
+- **Left**: the sheets' houses are a dense heap of small volumes, balconies, plants and goods at every scale; ours
+  are tidy rows of pods on terraces whose retaining walls still show too plain. The sheets' roof is a mass of
+  blocky overhangs with deep pockets; ours a few lumpy slabs. View 3's and 4's cities stand a little far and low.
+
+## The Salt Harbour's pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-saltharbour.js`, world `saltharbour`:
+  `?level=references&world=saltharbour&view=<1…4>`): four single compositions (1456 × 816), one view each: the
+  street between the hulls, the market in the cleft, the gangway and the terracotta hull's ropes (1); the canyon of
+  hulls with two gangways overhead and the ropes meeting in the street (2); the curtains hung from the high gangway,
+  the arcade at the hull's foot, the ship at the street's end (3); the hulls' terracotta feet, the upright ships, the
+  open salt beyond (4). One scene builder (`harbourScene`): ships (each a hull with portholes, house stacks on its
+  flanks, shops and doors at its foot, herbs on ledges, upper works, mooring ropes from its flank to stakes in the
+  salt), free house stacks against a plastered wall, sailcloths, curtains, gangways with people on them, ropes,
+  shops, residents, the traveller with the luminous pack. The ground is the salt (`salt(mounds)`: barely rolling,
+  mounds banked where asked, the crust's cracks and the sand's sparse ink, drifts banked against the hulls by
+  `SandDrifts`). A ship behind the camera casts view 1's foreground shadow. `?look=saltharbour`.
+- **The shapes** (`src/levels/salt-harbour-kit.js`, shared with the world): `hull` (a lofted hull on its keel:
+  sections of a superellipse, the keel rising at the ends, `tumble` drawing the side in again over its widest as
+  the pictures' round-shouldered hulls; painted white over a terracotta bottom `band` and/or under a terracotta
+  `top`, each band its own geometry at a level line; `upright` stands it on its stern; `at(t, y)` finds a point of
+  its side and the normal there, for everything built onto it), `portholes`, `archDoor`, `herbs`, `houseStack`
+  (storeys of cabins out from a wall: balconies with rails and struts, doors and windows, shutters, washing, herbs;
+  it reports its balconies' decks), `superstructure`, `cloth` (between four corners, sagging and folded),
+  `curtain` (from a sagging top edge, in folds, its hem gently scalloped), `gangway` (planks, rails, a truss under
+  it), `rope` and `stake`, `stall`, `figure`.
+- **The look** (`SALT_LOOK`, `SALT_DAY`, `SALT_TONES` in the kit): a clean deep blue sky over a blinding salt, the
+  shade printed flat in one blue-grey (`uShadowFlat` 0.85, as the pictures print every shadow on the salt and the
+  hulls alike), little hatching, a warm pale haze in bands down the long streets, cast shadows kept whole. The hulls
+  are plated (`plates`: rows of plates, staggered joints, each a shade apart), no weathering pen detail (its small
+  rectangles read as stuck-on marks at this scale).
+- **On the world** (`src/levels/salt-harbour.js`, worlds.md "The Salt Harbour"): the same kit at `detail` 0.7, the
+  hull's `at()` on its facets (what is put on the plating sits on what collides), the street's ships solid.
+- **The scale, from the pictures**: the traveller ~10–12 m from a 2.1–2.4 m eye; the near hulls 40–75 m high,
+  40–60 m in the beam, 100–160 m long, 15–40 m off; the gangways 22–50 m up; the streets 25–40 m wide.
+- **Left**: the pictures' hulls carry dense small work (rivets, hatches, vents, stains running down from the
+  portholes) that our plating only hints at; their houses are many more and finer (a village on every flank), their
+  sails layered three or four deep; the pictures' near ropes are a fan of hairlines, ours thicker strokes. Our
+  views' compositions follow the pictures' masses (which hull where, lit or in shade), not every hull's exact turn.
+
+## The Forest of Antennas' pictures (reference-1 … 4, October 2026)
+
+- **The views** (`src/levels/reference-antennas.js`, world `antennas`: `?level=references&world=antennas&view=<1…4>`):
+  four single compositions (1456 × 816), one view each: the path to the workshops under the immense navy receiver,
+  backlit (1); under the great nest saucer, the workshops on their decks, the pink dish on its lattice, the
+  maintenance bridge (2); the vine-grown masts and their nests, the pink receiver on its block over the domes (3);
+  the great saucer over the egg and the domes, the stair to the observation platform (4). One scene builder
+  (`antennaScene`): lattice masts with nest saucers and birds, dishes on lattice legs, a pedestal or a block,
+  great saucers on their masts, the domes and the egg, vine-grown cables and plain wires, metal stairs and decks,
+  the path, dark bushes, grass strokes, and the forest beyond. `?look=antennas`.
+- **Placed off the sheets' pixels** (`sheetAt(cam, px, py, d)`, `sheetGround(cam, px, py)`, `sheetSpan`): a point
+  drawn at pixel (px, py) and standing d m down the line of sight is put where the view's camera (its fov and
+  horizon, so its pitch) sees it there; a mast is given by its foot and its saucer's rim in pixels (`mastAt`), a
+  dish by its centre and half-width. A pixel above the horizon never meets the ground (`sheetGround` behind the
+  eye): such a foot is placed with `sheetAt` at a distance instead. `tests/antennas.test.js` projects them back.
+- **The sheets' flattened perspective**: their high saucers are drawn nearly edge-on (a thin rim, little of the
+  underside) though they stand 25-40° up from the eye, which no camera does; the saucers are tipped toward the eye
+  by a share of that angle (`tipEye`: 0.4 a mast's, 0.85 a great one's), the birds on their rims with them.
+- **The shapes** (`src/levels/antennas-kit.js`, shared with the world): `latticeTower` (three or four tapering legs,
+  X-braced bays, one diagonal under detail 0.6, vines climbing the legs with leaf clumps on them, strands hanging
+  from the struts), `dish` (a paraboloid with its back shell to colour apart, the rim, a tripod, quad or boom feed
+  at the focus, ribs on its back; `aimAt` turns it to a direction about its vertex), `saucer` (the flat nest dish:
+  a shallow bowl on a conical underside, vines off the rim), `column`, `dome` (a workshop: round lit windows in
+  dark frames, an arched lit door under its hood, a vent and a little dish on top), `egg`, `vineCable`, `cable`,
+  `trussStair`, `deck` (railed, gaps where a stair meets it), `bird`, and unit far masts (`unitPole`, `unitSaucer`,
+  `unitDish`). Caps and bowls hatch radially (`form` 'cap'), columns and the egg wrap.
+- **The forest beyond** (`farForest`): 700-1100 masts from 70-140 m to 1.1 km, each a pole and a cap (a nest
+  saucer, a tilted dish, a flower dish on a stalk), four instanced draws, each mast its own tone from a mid lilac to
+  the haze's cream with distance. **No shimmer at distance**: a pole is never drawn thinner than `FAR_MIN_R` × its
+  distance (1.6 mm a metre: ~1.5 px on the handheld's frame), and the far masts and the dishes' frames draw a thin
+  line in a dark shade of their own colour (`line`, `lineTint`), not the world's black ink, so a mast a pixel or two
+  wide is a pale stroke, not a crawling black one; the lattices further off are a lighter rust with a thinner line
+  (`ironMid`).
+- **The look** (`ANTENNAS_LOOK`, `ANTENNAS_DAY`, `ANTENNAS_TONES` in the kit): no clouds, a flat pale yellow sky,
+  lavender shade, thin lines and light hatching, stepped haze in a pale cream from 90 m out, cast shadows lifted on
+  the grass. Per view: the sky's five colours read off the sheet (view 4 an amber sky), the grass's three tones.
+- **On the world** (`src/levels/antennas.js`, worlds.md "The Forest of Antennas"): the same kit at `detail` 0.6-0.85,
+  the masts' bottom bay left open (`open`), their legs' stand-ins, every bar kept 1.5 px wide (`thin`).
+- **Left, shader level**: the sheets' grass is a dense field of fine strokes, ours a few thousand instanced tufts
+  and the ground's ticks; their far forest dissolves into a glowing horizon haze, ours steps into it.
+- **Left, scene level**: the sheets' workshops are dense with machinery, decks and ladders, ours plain domes;
+  their mid-distance lattices are fine pen work at every bay, ours a few struts; view 2's stacked domes reach up
+  to the saucer's collar, ours stop lower.
 
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 

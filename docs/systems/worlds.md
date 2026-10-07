@@ -498,3 +498,209 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
   roots (the shader's local lights only lift the shade); the creatures are flat spots, not a soft glow under
   the surface; the houses can't be entered; the boats pass through the stilts.
 
+## The Glass Dunes: a detour off the route (October 2026)
+
+`?level=glassdunes` (`src/levels/glass-dunes.js`), built from the References' plates
+(`references/The Glass Dunes/`, docs/systems/references.md "The Glass Dunes' plates") and the same kit
+(`src/levels/glass-dunes-kit.js`). No quest: people, light and wind, to see whether the world is worth more.
+
+- **Off the route** (`SIDE` in `src/levels/names.js`, the level's `side: true`): the galactic map charts the
+  detours after the route, always known, off its dotted line, tagged "a detour" ("A DETOUR, OFF THE
+  ROUTE" in the panel), with no signature (`mapEntries({ side })`, `src/ship/starmap.js`). They never count toward
+  the route (`knownWorlds`), home or the ending: those read `ORDER` only. The ship's travel is the same as to any
+  world. A detour borrows what route worlds own: the desert's crowd costume, bodies and script (Qanati), the
+  desert's crabs and jerboas (the wildlife and signature tests let detours share).
+- **The layout** (m, +z south): the ship on a flat in the south (`GLASS_SHIP`, 0, 250, hatch north); the valley
+  runs north between the cliffs of the giants (west: the cliff profile, silhouettes of giants, a head, a beast) and
+  the billows (east: domes), round a frozen wave in its middle, to the great breaking wave (north: the `curl`
+  profile, its hollow over the north camp). Low glass flows cross the sand in the east; five glass mounds to climb.
+  A ring of tall glass at ~610 m closes the basin in (drawn only: past the edge, `limit` 560, no shadow).
+- **The glass**: `glassRidge` meshes (the face lit as any surface, its colours in its vertices: a lime foot, mint,
+  a teal top, the silhouettes printed darker inside), solid as drawn (you walk round, climb and stand on them) and
+  kept out of the sand drifts (`withoutDrifts`: a long ridge's one convex hull would bank sand over the valley).
+  The glass and the sand print their shade flat (`shadeFlat` `GLASS_FLAT` 0.8) in the world's teal-green shadow, so
+  the shade reads as the light come through the glass; the camps, stones and kilns bank sand as in the desert.
+- **The camps** (`GLASS_CAMPS`): awnings on poles, rugs, crates, glass floats glowing green, a kiln with its
+  chimney and lit mouth (`awningCamp`), on ramps of sand against the walls. Four glassworkers with toned lines of
+  their own (`GLASS_CONTENT`), a crowd round the camps and a file of carriers walking the valley between them
+  (`glassCrowdSpots`, the desert's people and clothes), glass fans in the sand that open lime as you pass
+  (`WORLD_REACTIONS.glassdunes`).
+- **Light and weather**: the plates' sky (`GLASS_DAY`, dusk, night), a clean sky (no cumulus, no flat clouds:
+  `GLASS_WORLD_LOOK`), the desert's stepped warm haze, the low evening sun at 16:30 by default; archways glow in the
+  walls' feet and the kilns and floats light the camps at night; sandstorms (`weather: ['storm']`); green glints
+  in the air, birds, footprints. Sound: the defaults (wind, sand underfoot) and the desert's score.
+- **Cost** (Mac, headless Chrome on Metal, the Handheld preset at render scale 0.75, no dynamic resolution, a
+  tight loop of `renderFrame()`, three rounds, medians): the Glass Dunes 1.73–2.11 ms and 170–321 draws (spawn
+  1.83 ms / 321, the valley 2.11 / 277, the west camp 1.73 / 237, the breaker 1.73 / 215), the Signal Market
+  2.23–2.28 ms and 312–695 draws. About 0.38 M triangles drawn at the spawn on the Handheld preset (0.87 M on
+  High); the static collision ~45 k triangles. The load is the game's steps (a ridge a step).
+- **Tests** (`tests/glass-dunes.test.js`): the kit (finite, coloured, the face out, the ends sunk, the silhouettes
+  darker), the four views, the detour on the map and off the route, the build (the cliff solid, a mound stood on
+  where drawn, the ship's flat), the contact audit (5 climbs inside the arches' drawn-only rims, 1 walks through).
+- **Left / next**: the glass is opaque and lit as a surface (no glow from within, no light pooling lime at a
+  wall's foot beyond its colours); the silhouettes are soft vertex-colour masses (crisper shapes need finer
+  meshes or a shader mask); the archways are lit panels, not passages; the breaking wave reads as a great hood
+  from far but as a wall from inside its hollow; no sounds of its own (the kilns, the glass ringing in the wind),
+  no music of its own.
+
+## The City Behind the Waterfall (`waterfall`, off the route, October 2026)
+
+`src/levels/waterfall.js` (`?level=waterfall`; a SIDE world in `src/levels/names.js`, charted on the ship's map from the
+start, no quest, no relics: `manual: true`), after its four pictures (`references/The City Behind the Waterfall`,
+references.md). Its pieces are in `src/levels/waterfall-kit.js`, shared with the views.
+
+- **The layout**: a cavern running along x (−310 … 44), its back wall at z −100, its roof's lip at y 150 over the
+  curtain (z 40). The **landing** (x 44 … 214), a shelf of stone outside the east mouth, open to the sky: the ship
+  (`shipSite` 140, 2, its hatch toward the cavern), lamps, a low wall over the drop. The **promenade** (y 0, z −10 …
+  22) the whole length of the cavern, its parapet over the pool, cafés and pots by it; three short bridges out to
+  **balconies** standing behind slits in the water (`BALCONIES`, the curtain's `SHEETS` leave a gap before each),
+  looking out over the valley; a stair down to a quay on the **pool** (y −17, 4 m deep: swim in it). The **lower
+  town** (x −150 … 30) and the **deep quarter** (x −290 … −158): `quarter`s of six terraces each, every one a solid
+  block of stone with its street, rounded houses against the riser behind (pods, vaults, rounded blocks: arched
+  doors and round windows, a share lit amber, awnings, lamps), stairs climbing along the risers through gaps in the
+  parapets, copper pipes up the risers and the back wall (solid: you climb them). A small fall from the roof into a
+  basin at the deep end. The **valley** far below (y −230), drawn only; the ground is −600 past the edges
+  (`killY` −60).
+- **The falling water** (`src/waterfall-shader.js`, references.md): the curtain is one mesh of four sheets in one
+  material, drawn only, casting no shadow; mist banks at its foot breathe (movers); **spray**: 70 instanced drops
+  thrown up at the foot within 40 m of you (`updateSpray`); pale motes drift in from the falls (`life.motes`).
+- **Light**: the roof casts its shadow; the sun comes in from the falls' side under the lip (`lightAt`: from the
+  south, ~45° high, swinging a little east to west), so the promenade and the lower terraces are lit and the upper
+  ones and the deep quarter sit in the cavern's teal with their lamps. Day, dusk and night colour scripts
+  (`WATERFALL_DAY`, `_DUSK`, `_NIGHT`); the world's look `WATERFALL_WORLD_LOOK` (few strokes, no bounce, the teal
+  haze in stepped bands); the shade printed flat per material (`cityMats({ shadeFlat: 0.8 })`).
+- **Sound**: `level.roar(pos)` (0 … 1: near the curtain's foot, and the small fall) drives two new noise layers in
+  `audio.js` (`roar`, a low rumble, and `hiss`, the spray), passed by main.js; the ambience `falls` adds drips; the
+  footsteps are stone's.
+- **People and life**: a crowd in the falls' own costume set (`costumes.js` `waterfall`: hoods and wraps, baskets)
+  walks the promenade and every terrace street, sits at the cafés and leans on the parapets; four people with
+  ambient lines of their own (content.js); two creatures of their own (`species.js`: the spray newt, which blows a
+  bubble of spray, and the cup crab, which tips the water off its back and scuttles off).
+- **Contact**: solid as drawn but for the mist (`tests/contact-audit.test.js`: feet sink 2, climbs inside 2, all in
+  the mist banks); the static collision ~163 k triangles.
+- **Cost** (Mac M4 Pro, headless Chrome, 1280 × 720, the Handheld preset at render scale 0.75 without dynamic
+  resolution, a synced loop of 60 `renderFrame()`s closed by a readPixels, the median of 7 rounds, the machine shared
+  with other agents' jobs, load 49): the Signal Market (the budget) 2.03 ms / 597 draws at its spawn, 1.95 / 572 in
+  the street; the falls' landing 1.10 / 173, the promenade 1.24 / 180, a balcony 1.08 / 95, the deep quarter 1.12 /
+  157, an upper terrace 1.13 / 141 (~0.6 M triangles where the Market draws ~0.7 M).
+- `tests/waterfall.test.js`: registered off the route and charted, the promenade, bridges and balconies solid, the
+  pool deep, the ship's shelf flat and open to the sky, the streets solid, the roar, the crowd's routes, the toned
+  lines, the collision budget, the fall's material and uv, the four views.
+- **Left to make it better**: the houses are tidy rows where the pictures heap small volumes, balconies, goods and
+  plants at every scale; the retaining walls are plain; the roof is a few lumpy slabs, not a mass of blocky
+  overhangs; nothing flows on top of the lip seen from the landing (the river feeding the falls); the falls push
+  nothing (walking into the curtain from the pool you just pass through); the houses can't be entered; the inner
+  fall's basin is shallow and plain.
+
+## The Salt Harbour (`saltharbour`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The Salt Harbour/`; the views:
+references.md): huge weathered ships standing on their keels in a vast dry white salt basin, made into
+apartment buildings, a street between their hulls. No story to follow and no errands: three people from other
+worlds came to see it (Marrow, the desert's salvager, by the ship; Corvin Sale of the City-Shaft's rim on the
+terracotta hull's deck; Pip, from the bottom of the shaft, under the ship stood on its stern), six of the
+harbour's folk stand in the street and on the decks with a few toned lines of their own, and a crowd walks the
+street, talks at the shops and leans on the decks' rails (`crowdSpots`, crowd.js; `CROWD_LINES`).
+
+- **Off the route** (`SIDE`, src/levels/names.js, after the White Mangrove): on the galactic map from the start,
+  off the dotted line, never counted toward the way home; `?level=saltharbour` opens it. Its folk speak the
+  desert's tongue (`lang: 'desert'`); Corvin and Pip the City-Shaft's.
+- **The layout** (`src/levels/salt-harbour.js`, `SHIPS`): the ship lands on the open salt in the south
+  (`SHIP_SITE`, 0, 92); the street runs north ~30 m wide between two hulls each side (w1, w2 to the west; e1, the
+  terracotta one, and e2 to the east), a cross-street between them out to the flats at z −130, to the ship
+  stood on its stern at the end (z −372, its keel's terracotta stripe toward the street, its deck turned away).
+  Five more ships lie out on the flats (one stood up, one sunk deep with rounded ridges in the crust round it),
+  and the basin's rim closes the world at ~450 m (`limit` 430).
+- **On the hulls** (the kit's `hull().at(t, y)`: a point of the drawn, faceted side and its normal): house stacks
+  out from the plating where it is widest (their storeys hang over the shops at the hull's foot), shops with
+  sailcloth awnings and lanterns, arched doors (some lit), ledges of herbs at the portholes, mooring ropes fanned
+  from the flanks to stakes in the salt (e1's toward the street, the upright ship's all round). Up on the decks:
+  upper works, railings along the walked decks' gunwales, houses on w1's deck round its upper works, crates,
+  planters and washing lines. Sailcloths stretched across the street between the hulls, tied off to them.
+- **Up and across**: a timber stair tower (`TOWER`: switchback flights, landings, posts, braces) climbs w1's
+  flank at its middle to its deck (40.7 m), a short bridge over the gunwale onto it; a gangway (planks, rails,
+  a truss) crosses the street from w1's deck to e1's (45.6 m); two more gangways overhead are drawn and solid
+  too. The decks sit 0.35 m under their gunwales (a lip you step over); the gangways' ends lie over the decks.
+- **The salt** (`height`): flat, barely rolling; a bank of salt up each hull's foot (its footprint an ellipse
+  where the salt cuts the hull, the bank 4 m high at the plating and gone 15 m out), the ridges round f3, the
+  basin's rim. The terrain's ink is the desert's (`sandInk`) over cracks.
+- **Solid as drawn**: hulls, decks, upper works, houses, balconies, shops, stairs, gangways and rails are the
+  collision (SAH BVH, ~90 k triangles); portholes, doors and herbs are put on the hull's facets, not the curve
+  they are cut from, so nothing stands proud of the plating by more than the audit's 6 cm (the herbs are flora:
+  walked through). Contact audit: climbs inside 12 (a porthole or two on a facet's edge, ≤ 0.5 m), walks
+  through 6 (≤ 1 m: the tower's braces and a balcony's washing), nothing else. `tests/saltharbour-world.test.js`
+  walks the street, the tower, both decks and the gangway.
+- **Draws**: every static thing is ~30 merged meshes (RoomKit buckets by material); the terrain 80 k triangles
+  (1200 m at 6 m); the hulls cast the shadows (the pictures' great blue shadows on the salt).
+- **The look**: `SALT_LOOK` (salt-harbour-kit.js) on the print preset: the shade printed flat in one blue-grey,
+  little hatching, a warm pale haze down the street; the day deep blue over a blinding salt (default hour
+  10.5), the dusk rose and terracotta, the night indigo with its stars and the lit portholes and doors; no
+  weather; the desert's wind ambience, footsteps on sand; gulls overhead, salt glints in the air.
+- **Cost** (desktop, M-series Mac shared with other agents' jobs, Chrome on Metal, Handheld preset at render
+  scale 0.75, 1280 × 720, rounds of 90 `renderFrame` + a pixel read each, the median round, the Signal Market's
+  start and crowd views measured in the same runs, alternating): first run (five rounds, the terrain then at 5 m
+  cells, 135 k triangles) the market's start 7.1 / 6.3 ms (700 draws, 0.67 M triangles), its crowd 8.0 (330); the
+  harbour's spawn 8.7 (317 draws, 0.61 M), the street 5.4 / 6.0 (171 / 245), the cross-street 5.7 (220), w1's deck
+  6.1 (202). Second run (seven rounds, the terrain at 6 m, 80 k; the Mac busier): the market's start 9.6 / 9.4
+  (698 draws), its crowd 6.1 (140); the harbour's spawn 9.1 / 9.2 (321 / 213 draws, 0.61 / 0.35 M), the street 6.6
+  (173), w1's deck 3.9 (235). At or under the market's frame time, under half its draws at the spawn.
+- **Left to make it better**: the hulls have no inside (the doors are drawn; a cabin you walk into would make the
+  houses read as homes); the sailcloths are smooth undersides from the street (the pictures' are layered and
+  folded); the crowd hauls nothing aboard (a basket at most); the ropes are drawn only and the crowd walks
+  through them; the far ships have no people.
+
+
+## The Forest of Antennas (`antennas`, off the route, October 2026)
+
+A world to look at, after its four reference pictures (`references/The Forest of Antennas/`; the views:
+references.md): abandoned radio masts by the thousand on a rolling plain of violet grass, great dishes tilted every
+way, lattice towers joined by vine-grown cables, birds nesting on the rims, and a small settlement of rounded repair
+workshops under one immense receiver. No story to follow and no errands: three people from other worlds came to hear
+it (Lune, who reads the Sealed Hangar's signal, on the observation deck; Ottla, its mechanic, on the plaza; Teb, the
+Signal Market's cab tout, by the ship), and five of the mast-menders stand about with a few toned lines each. Its folk
+speak the Sealed Hangar's tongue (`lang: 'garage'`: a world off the route borrows a neighbour's script).
+
+- **Off the route** (`SIDE`, `src/levels/names.js`): on the galactic map from the start, `?level=antennas`.
+- **The layout** (`src/levels/antennas.js`): the ship lands on a low rise in the south (`SHIP`); a path winds 200 m
+  north through the masts to the workshops round a plaza on their mound (`SETTLEMENT`: seven domes, their doors to
+  the plaza, a lamp on a post, crates, a bench), under the receiver (`RECEIVER`: a navy dish 24 m round on a column,
+  a turret with lit portholes, a railed balcony round it 12 m up, its face turned to the path). West of it the
+  observation tower (`OBS`): one long truss stair from the grass to its railed deck 12 m up, two tall masts with
+  beacons over it, and a maintenance bridge from the deck to the receiver's balcony on a lattice leg. A branch of the
+  path goes west to a hamlet under a great nest saucer on its egg (`HAMLET`); a fallen dish lies tipped toward the
+  path (`FALLEN`), walked into. 92 masts and dishes stand in the walked land (`forestLayout`: masts with nest saucers,
+  dishes, spikes or nothing, 14-52 m; dishes 5-11 m round on lattice legs), cables and wires between neighbours, and
+  2 600 more beyond, out to ~800 m, where the land rises into hills.
+- **Built in cells**: each 170 m cell is its own `RoomKit` (a mesh per material and cell, so the frustum culls
+  them); the dishes' tones and the workshops' (two surfaces, six and three tones) are merged per vertex in each cell
+  (`mergeWithMaterials`, `S_VMAT`: a draw for all the tones of one surface); the forest beyond is four instanced
+  draws (poles, saucers, dishes, flower dishes), each mast its own tone toward the haze's cream with distance; the
+  bushes one instanced draw. ~125 meshes in all.
+- **Collision only where walked** (31 k triangles): the terrain (exact), the workshops, the egg, the receiver's
+  column, turret, balcony and dish, the decks, stair and bridge, the fallen dish, the masts on the deck. A mast or a
+  dish's lattice is drawn only; an invisible cone round each leg's foot (65° steep: neither stood on, ny < 0.7, nor
+  climbed, ny > 0.35, so the contact audit samples neither) keeps you out of the legs, and the bottom 3.6 m of each
+  lattice is left unbraced (`latticeTower({ open })`), so you walk in under a mast between its legs and nothing drawn
+  passes through you. On a slope a mast stands on the highest ground under its legs, its legs reaching the lowest.
+  The vines are marked `flora` (walked through, as plants are). Contact audit: feet sink 1, climbs inside 3, walks
+  through 1, each under a metre (`tests/contact-audit.test.js` KNOWN).
+- **Thin bars at any distance**: the lattices, wires, vines and far masts are drawn at least 1.5 px wide wherever
+  they would be thinner (`makeMaterial({ thin })`, src/thin.js; rendering.md "Thin bars at any distance"), and the
+  far masts and dishes' frames draw a line in a dark shade of their own colour, not the world's black.
+- **The look**: `ANTENNAS_LOOK` on the print preset (antennas-kit.js); the day pale yellow, the dusk with a violet top
+  (so the dusk going to night stays violet, never brown), the night indigo with the workshops' windows and the masts'
+  red beacons lit; fog weather. Two moons. Grass blades from the ground's ticks (flora-grass.js), kept off the path.
+- **Sound**: the ambience `signals` (audio.md): the masts' hum (`level.hum(pos)`: 0 on the open plain, up to 0.55 by
+  a mast, 1 under the receiver), static crackling in clusters, and now and then a far signal whistling as it tunes
+  in; footsteps on grass. Birds overhead (two flocks), pale motes.
+- **Cost** (Mac, M4 Pro, headless Chrome on Metal, Handheld preset at render scale 0.75, 1280 × 720, a synced loop of
+  `renderFrame`, median of 3 rounds alternating with the Signal Market): the market's spawn 2.31 ms (361-598 draws,
+  0.43-0.70 M triangles), its street 2.42 (334-656, 0.47-0.76 M); the forest by the ship 2.16 ms (350 draws, 0.82 M),
+  on the path 2.17 (208-327, 0.45-0.70 M), on the plaza 2.39 (271-304, 0.59 M), on the deck 2.15 (199-313, 0.37-0.60 M).
+  At or under the market's frame time and draws; more triangles by the ship, where the whole forest is in view. The
+  build in node: ~350 ms.
+- **Left to make it better**: the receiver doesn't turn (the folk say it does, at night); the workshops can't be
+  entered; the birds on the rims are still (the flocks fly); the leaves on the vines and the bushes' blades still
+  flicker a little at a distance (the motion check's residual); the cables don't sway; the far forest is the same
+  four shapes; no wildlife of its own (the game's flocks and motes only); the domes are plain where the pictures
+  dress them with machinery, decks and ladders.

@@ -18,7 +18,10 @@ import { SPHERES_CONTENT } from './spheres.js';
 import { PERDIDE2_CONTENT } from './perdide2.js';
 import { PERDIDE_CONTENT } from './perdide.js';
 import { MANGROVE_CONTENT } from './mangrove.js';
+import { SALT_CONTENT } from './salt-harbour.js';
+import { ANTENNAS_CONTENT } from './antennas.js';
 import { HOME_CONTENT } from './home.js';
+import { GLASS_CONTENT } from './glass-dunes.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
@@ -33,7 +36,10 @@ export const CONTENT = {
   spheres: SPHERES_CONTENT,
   perdide2: PERDIDE2_CONTENT,
   mangrove: MANGROVE_CONTENT,
+  saltharbour: SALT_CONTENT,
+  antennas: ANTENNAS_CONTENT,
   home: HOME_CONTENT,   // src/levels/home.js: the parents at the door
+  glassdunes: GLASS_CONTENT,   // src/levels/glass-dunes.js: a detour, no quest
   bazaar: {
     weather: [],
     // the Signal Market's story is a quest (src/story/bazaar-data.js): this page opens on the
@@ -77,6 +83,18 @@ export const CONTENT = {
     story: { title: 'THE REFERENCES', intro: 'The pages this world is drawn after, rebuilt in its own ink. Hold them side by side.', outro: 'Done comparing.', label: 'the first panel', goal: [0, 'ground', 0], radius: 6, manual: true },
     relics: { spots: [], names: [] },
     get npcs() { return referencePeople(); },
+  },
+  // src/levels/waterfall.js: off the route (names.js SIDE), no quest, no relics; a few of the city's people by the water
+  waterfall: {
+    weather: [],
+    story: { title: 'BEHIND THE WATER', intro: 'A city in a cavern behind a curtain of falling water. Nobody here is waiting for you; have a look round.', outro: 'You have seen the city behind the water.', label: 'the balconies', goal: [-126, 'ground', 34], radius: 6, manual: true },
+    relics: { spots: [], names: [] },
+    npcs: [
+      { at: [-123, 34.5], y: 0, radius: 1, facing: 0, palette: pal('#4f7f86', { cloth: '#efe0c4' }), lines: ['~whisper~ Shh. Listen. Under the roar there’s the valley: goats, a bell, somebody singing badly.', '~happy~ Every child in the city has stood on this balcony and shouted. The water always wins.'] },
+      { at: [-60, 12], y: 0, radius: 2, palette: pal('#c46b4e', { cloth: '#f2e6d0' }), lines: ['~tired~ Ferns, ferns and more ferns. They love the spray. I carry the pots out to it every morning.', '~curious~ You’re not wet. How did you get in without walking through the falls?'] },
+      { at: [-200, 4], y: 0, radius: 2, palette: pal('#d9a35e', { cloth: '#3f5a5e' }), lines: ['~solemn~ In the deep quarter we keep the lamps lit all day. The falls’ light gives out a street from the water.', '~neutral~ Follow the copper pipes up if you want the top terraces. They go where the water goes.'] },
+      { at: [70, 12], y: 0, radius: 2, palette: pal('#7a6e9e', { cloth: '#efe0c4' }), lines: ['~surprised~ A ship on the landing! The last thing that landed there was a heron, and it left offended.', '~playful~ The city’s that way, behind the water. You’ll hear it before you see it.'] },
+    ],
   },
   atelier: {
     weather: [],

@@ -300,6 +300,24 @@ export const COSTUMES = {
       accents: ['#c7a6f2', '#7fe0d0', '#d6ff9a'],
     },
   })] },
+  // the Salt Harbour's folk (src/levels/salt-harbour.js): sun-bleached wraps and hoods against the glare, terracotta and sailcloth
+  saltharbour: { tribes: [tribe({
+    name: 'the harbour folk',
+    moods: { kind: 3, calm: 3, amused: 2, curious: 1.5, stern: 0.4 },
+    heads: { hood: 3, wrap: 3, hat: 1, hair: 1 }, as: { hat: 'hood' },
+    hair: { m: { short: 2, tail: 1 }, f: { long: 2, braid: 2, bun: 1 } },
+    masks: { none: 3, goggles: 1 }, body: { mantle: 2, none: 2 }, props: { none: 3, basket: 1.5 }, trim: { none: 1 },
+    capes: [0.8, 1.1, 1.3], robe: 0.6, robes: [0.2, 0.3], flare: [0.28, 0.34], size: [0.96, 1.04],
+    palette: {
+      cloaks: ['#efe2cc', '#e2c8a8', '#c4664a', '#a0644a', '#d8d0c4'],
+      tunics: ['#7c4a38', '#8a6448', '#5e5068', '#4d6a9a'],
+      legs: ['#4a3a2a', '#3a3448'],
+      skins: ['#d8a888', '#c89878', '#b88868', '#e8c0a0'],
+      hair: ['#2b211f', '#4a3226', '#d8c8b0'],
+      hats: ['#efe2cc', '#c4664a', '#e2c8a8'],
+      accents: ['#c4664a', '#6f8f5a', '#4d6a9a'],
+    },
+  })] },
   // the White Mangrove's folk (src/levels/mangrove.js): pale robes and hoods, lanterns, the lake's violet and rose
   mangrove: { tribes: [tribe({
     name: 'the lake folk',
@@ -358,6 +376,27 @@ export const COSTUMES = {
       accents: ['#f2c54b', '#2fa8a0', '#ff7a5c', '#f5dfab'],
     },
   })] },
+  // the City Behind the Waterfall (src/levels/waterfall.js): basket carriers and pot gardeners in rust, ochre
+  // and teal against the pale stone, hoods and wraps against the spray
+  waterfall: { tribes: [tribe({
+    name: 'the falls',
+    moods: { calm: 3, kind: 3, curious: 2, amused: 1.5, stern: 0.4 },
+    heads: { hood: 3, wrap: 2.5, hair: 2 },
+    headsF: { wrap: 3, hood: 2, hair: 2.4 },
+    hair: { m: { crop: 2, curls: 2, bald: 0.8 }, f: { braid: 2.5, bun: 2, flow: 1.5 } },
+    masks: { none: 1 }, body: { none: 3, badge: 1 }, props: { basket: 3, none: 3 }, trim: { stripes: 2, none: 2 },
+    more: { heads: { beanie: 1, hooddown: 1.2 }, headsF: { kerchief: 1.5, hooddown: 0.8 }, body: { muffler: 1 } },
+    capes: [0, 0.6, 1.0], robe: 0.7, robes: [0.3, 0.45], flare: [0.3, 0.36], size: [0.95, 1.05],
+    palette: {
+      cloaks: ['#c46b4e', '#4f7f86', '#d9a35e', '#7a6e9e', '#b5523e', '#e0c08a', '#5f8f7a', '#2f8a8f'],
+      tunics: ['#efe0c4', '#d9a35e', '#4f8f8a', '#c2603f', '#f2e6d0'],
+      legs: ['#3f5a5e', '#5a4a42', '#2f4a4f'],
+      skins: ['#c58c64', '#e9cfb4', '#8a5a40', '#d9a98a', '#a8714c', '#f1dccb'],
+      hair: ['#2b211f', '#4a3226', '#a8552e', '#e8dcc0'],
+      hats: ['#c46b4e', '#4f8f8a', '#d9a35e', '#efe0c4'],
+      accents: ['#d9a35e', '#2f8a8f', '#c2603f', '#efe0c4'],
+    },
+  })] },
   home: { tribes: [tribe({
     name: 'home',
     moods: { kind: 5, amused: 2, curious: 1, calm: 1, stern: 0 },
@@ -392,7 +431,27 @@ export const COSTUMES = {
     capes: [0], robe: 1, robes: [0.5], flare: [0.27, 0.27], size: [1, 1],
     palette: { accents: ['#2b211f'] },
   })] },
+  // the Forest of Antennas' folk (src/levels/antennas.js): menders of the masts, in lilac and rust, goggles up, tools on their belts
+  antennas: { tribes: [tribe({
+    name: 'the mast-menders',
+    moods: { calm: 3, kind: 3, curious: 2, amused: 1.5, stern: 0.4 },
+    heads: { antenna: 2, hood: 2, hair: 1.5 }, as: { hat: 'hood', wrap: 'hood' },
+    hair: { m: { tail: 2, swept: 1 }, f: { long: 2, twin: 2 } },
+    masks: { browgoggles: 2, none: 3 }, body: { toolbelt: 3, mantle: 1, none: 1 }, props: { wrench: 2, lantern: 1, none: 3 }, trim: { none: 1 },
+    capes: [0.6, 0.9, 1.1], robe: 0.4, robes: [0.18, 0.28], flare: [0.28, 0.34], size: [0.95, 1.04],
+    palette: {
+      cloaks: ['#b8a6d8', '#8a7ab8', '#d8a184', '#e9bab4'],
+      tunics: ['#5a4a3f', '#4b3e39', '#6a5a8a', '#3c4a2e'],
+      legs: ['#34304a', '#2f2a3a'],
+      skins: ['#e6c8b8', '#d8b098', '#c09878', '#f0d8c8'],
+      hair: ['#2b211f', '#e8dcc0', '#5a4a3a'],
+      hats: ['#b8a6d8', '#d8a184', '#8a7ab8'],
+      accents: ['#ffcf72', '#ff8a6a', '#8ea2b0'],
+    },
+  })] },
 };
+// the Glass Dunes' glassworkers dress as the desert's people (src/levels/glass-dunes.js: its crowd's costume is the desert's)
+COSTUMES.glassdunes = COSTUMES.desert;
 const INCAL = { TOP: 200, LEVELS: [150, 92, 36, -24, -86] };
 function zoneIncal(c) {
   const id = c.spot?.id;
