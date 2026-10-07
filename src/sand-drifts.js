@@ -172,7 +172,7 @@ export class SandDrifts {
     this.o = { ...DRIFT, ...opts };
     this.noise = createNoise2D(seed * 7919 + 13);
     this.sources = [];
-    this.cell = 24; this.grid = new Map();
+    this.cell = 8; this.grid = new Map();   // (8 m cells: a lookup tries the footprints whose reach touches its cell, a third of 24 m's)
   }
 
   /** A solid in world space (the Kits call this for every collider they add). */
@@ -208,6 +208,7 @@ export class SandDrifts {
     const base = ground.heightAt.bind(ground);
     this.ground = base;
     ground.heightAt = (x, z) => base(x, z) + this.fieldAt(x, z);
+    ground.drifts = this;   // (for measuring: the field behind the height)
     return this;
   }
   /** A round footprint (a dome, a rock): centre, radius. */
@@ -228,6 +229,10 @@ export class SandDrifts {
     for (const [x, z] of poly) R = Math.max(R, Math.hypot(x - cx, z - cz));
     const s = { id, poly, edges: polyEdges(poly), cx, cz, R, k: rise, corners };
     s.reach = this.o.rise[1] * this.o.big * rise * this.o.reach;
+    // the farthest any rise of this footprint can reach (riseAt's noise term is under 1.5, a corner's boost
+    // under `big`), and the footprint's own box: a point that far from it gets nothing (driftOf's quick outs)
+    s.most = Math.max(this.o.rise[0], this.o.rise[1]) * 1.6 * Math.max(1, this.o.big) * rise * this.o.reach;
+    s.box = [Math.min(...poly.map((q) => q[0])) - s.most, Math.max(...poly.map((q) => q[0])) + s.most, Math.min(...poly.map((q) => q[1])) - s.most, Math.max(...poly.map((q) => q[1])) + s.most];
     this.sources.push(s);
     // (a grid of cells each source's reach touches, for the field's lookups)
     const r = R + s.reach;
@@ -249,7 +254,11 @@ export class SandDrifts {
   /** One source's drift at (x, z) (m over the ground). */
   driftOf(s, x, z) {
     if (Math.abs(x - s.cx) > s.R + s.reach || Math.abs(z - s.cz) > s.R + s.reach) return 0;
+    // (outside the footprint by more than any of its drifts reaches: nothing, without the noise; the same field)
+    const b = s.box;
+    if (x < b[0] || x > b[1] || z < b[2] || z > b[3]) return 0;
     const { d, nx, nz } = edgeDistance(s.edges, x, z);
+    if (d >= s.most) return 0;
     let rise = this.riseAt(nx, nz, x, z, s.k);
     // a corner's bigger drift: the nearest such corner's boost (never compounded)
     let boost = 1;

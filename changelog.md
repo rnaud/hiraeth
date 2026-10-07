@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The spots on the desert sand are pebbles and stones now, as Moebius draws them: each a little stone with its side away from the sun in shadow and a short shadow on the sand pointing away from the sun, long at dawn and dusk and short at noon. Far off they become small dashes all pointing the same way instead of a scatter of dots.
 - The Steam Deck version updates all of itself from the game’s site again, not just the game: the app around it too, when it changes.
 - On the Steam Deck the game has its own pictures in the Steam library, drawn from the game itself: the floating island under the title on its cover, the cliff monastery on its banner, and the desert’s saucer city across the top of its page.
+- The game runs smoothly on handhelds again: the traveller’s new coral overshirt had pulled the Retroid down to about 20 frames a second in every world. Its cloth now moves exactly as before but is worked out several times faster, away from the rest of the game.
 
 ## v0.73 — 2026-10-06
 

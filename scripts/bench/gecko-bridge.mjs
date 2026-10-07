@@ -25,7 +25,7 @@ const CLIENT = `(() => {
   const run = async (job) => {
     let out;
     try { const v = await (0, eval)(job.expr); out = { id: job.id, value: v === undefined ? null : v }; }
-    catch (e) { out = { id: job.id, error: String((e && e.stack) || e) }; }
+    catch (e) { out = { id: job.id, error: String(e) + ' ' + String(e && e.stack) }; }
     let s;
     try { s = JSON.stringify(out); } catch (e) { s = JSON.stringify({ id: job.id, error: 'unserialisable: ' + e }); }
     fetch(BR + '/result', { method: 'POST', body: s }).catch(() => 0);
