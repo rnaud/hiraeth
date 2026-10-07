@@ -13,7 +13,7 @@
 // shoulder pieces and props stay the game's, fitted to the skull (profile.headScale); the beard mask
 // is the jaw's own shell.
 import * as THREE from 'three';
-import { HEADS, MASKS, BODIES, PROPS, hairCap, hashSeed, squashUnder, underOf } from '../costumes.js';
+import { HEADS, MASKS, BODIES, PROPS, BACKS, hairCap, hashSeed, squashUnder, underOf } from '../costumes.js';
 
 /** MakeHuman's styles (scripts/makehuman/hair.py STYLES) and the beard. */
 export const MH_STYLES = ['short01', 'short02', 'short03', 'short04', 'bob01', 'bob02', 'long01', 'ponytail01', 'braid01', 'afro01'];
@@ -293,5 +293,5 @@ export function mhLookPieces(look, h) {
     const b = hairFor(h.profile, 'beard');
     if (b) skinned.push(skinnedPiece(h, b));
   } else head.push(...(MASKS[look.mask] ?? MASKS.none)(1));
-  return { head, chest: [...(H.chest && !M ? H.chest(1, look) : []), ...(BODIES[look.body] ?? BODIES.none)(1)], hand: (PROPS[look.prop] ?? PROPS.none)(1), skinned };
+  return { head, chest: [...(H.chest && !M ? H.chest(1, look) : []), ...(BODIES[look.body] ?? BODIES.none)(1)], hand: (PROPS[look.prop] ?? PROPS.none)(1), back: (BACKS[look.back] ?? BACKS.none)(1), skinned };
 }

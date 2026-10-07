@@ -57,7 +57,7 @@ export const PROP_IDS = ['none', 'staff', 'lantern', 'basket', 'wrench', 'paraso
 /** Cloth patterns printed on the tunic (materials.js outfitTrim, the crowd's fragment hook). */
 export const TRIM_IDS = ['none', 'stripes', 'sash', 'yoke', 'bib', 'diamonds', 'patches', 'dots', 'hem'];
 /** Fixed colours of the material roles that aren't the person's own. */
-export const FIXED = { dark: '#2b211f', metal: '#a9a493', wood: '#8a6040', lamp: '#ffd98a', clay: '#b5562f' };
+export const FIXED = { dark: '#2b211f', metal: '#a9a493', wood: '#8a6040', lamp: '#ffd98a', clay: '#b5562f', linen: '#c2b59b', canvas: '#d9bc8c' };
 
 // ------------------------------------------------------------------ the worlds
 // weights: { id: weight }; lists of colours; [min, max] ranges; robe: hem heights above the ground (m)
@@ -457,7 +457,9 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   s.flare = look.flare ?? range(rng, T.flare);
   s.capeLen = cape ?? pick(rng, T.capes);
   s.capeWide = range(rng, T.wide);
-  s.capeBells = look.capeBells ?? 0;   // bells sewn along the cape's hem (Sefa's sheet: cape.js bells; no rng, so the looks drawn after are unchanged)
+  s.capeBells = look.capeBells ?? 0;
+  // the second carried slot and the leg pieces (BACKS, SHINS): named people's, drawn from no random number either
+  s.back = look.back ?? 'none'; s.stow = !!look.stow; s.shins = look.shins ?? 'none';   // bells sewn along the cape's hem (Sefa's sheet: cape.js bells; no rng, so the looks drawn after are unchanged)
   s.bulk = T.bulk ?? 0;
   s.sleeveless = !!T.sleeveless;
   s.size = range(rng, T.size);
@@ -596,7 +598,7 @@ const cone = (r, h, q, n = 12, open = false) => new THREE.ConeGeometry(r, h, sg(
 const torus = (r, t, q, n = 16, m = 6, arc = Math.PI * 2) => new THREE.TorusGeometry(r, t, sg(m, q), sg(n, q), arc);
 const box = (x, y, z) => new THREE.BoxGeometry(x, y, z);
 const _X = new THREE.Vector3(1, 0, 0), _Z = new THREE.Vector3(0, 0, 1);
-const PACK_Z = -0.2;   // (a pack's middle behind the chest frame: Marrow's scavbag)
+const PACK_Z = -0.2;   // (a pack's middle behind the chest frame: BACKS.pack)
 /** A ring of small blossoms (flower crowns and garlands): alternating roles. */
 function blossoms(n, r, y, tilt, size, q, roles) {
   const out = [];
@@ -1329,13 +1331,22 @@ export const BODIES = {
     P('accent', box(0.055, 0.17, 0.016).rotateZ(-0.12).rotateX(-0.25).translate(-0.02, 0.63, 0.122)),
   ],
   // ---- the desert's own, from its character sheets (references/The Desert/characters)
-  // Bako's satchel: a flat bag on a strap across the chest, worn over the coat (not under it), the bag at the left hip
-  satchel: (q) => [
-    P('wood', box(0.05, 0.54, 0.014).rotateX(-0.36).rotateZ(0.74).translate(0.01, 0.54, 0.165), true),
-    P('wood', box(0.048, 0.52, 0.014).rotateX(-0.27).rotateZ(0.76).translate(0.015, 0.54, -0.055)),
-    P('cloth', box(0.22, 0.23, 0.1).rotateZ(-0.09).rotateY(-0.22).translate(0.178, 0.255, 0.245), true),
-    P('hat', box(0.228, 0.09, 0.108).rotateZ(-0.09).rotateY(-0.22).translate(0.175, 0.37, 0.245), true),
-  ],
+  // Bako's bag (his sheet): a big soft canvas shoulder bag, slouching at his left hip over his coat, its flap
+  // folded over the top and down the front, on a wide strap across his chest and over his right shoulder
+  // (canvas: FIXED.canvas)
+  satchel: (q) => {
+    const at = [0.2, 0.2, 0.255], turn = Math.atan2(at[0], at[2]);
+    const place = (g) => g.rotateY(turn).translate(...at);
+    const out = [
+      P('canvas', place(softBox(0.32, 0.28, 0.13, q, { slouch: 0.22 })), true),
+      // the flap: over the top and two thirds down the front, a little proud of the bag, its edge dipping
+      P('canvas', place(softBox(0.335, 0.2, 0.145, q, { slouch: 0.06, dip: 0.02 }).translate(0, 0.05, 0.008)), true),
+      ...Pq('dark', q < 1 ? null : place(cyl(0.009, 0.009, 0.034, q, 5).rotateZ(Math.PI / 2).translate(0, -0.072, 0.083))),   // (the toggle on the flap's edge)
+    ];
+    // the strap: from the bag's top over his right shoulder, down his back to the bag again
+    out.push(P('canvas', strapRibbon([[0.1, 0.32, 0.27], [0.02, 0.48, 0.21], [-0.09, 0.64, 0.13], [-0.16, 0.745, 0.01], [-0.11, 0.67, -0.12], [0.06, 0.47, -0.15], [0.23, 0.3, 0.07]], 0.045, q), true));
+    return out;
+  },
   // a keeper's bead fringe: a cord low on the hips with short strings of beads hanging from it round the front
   fringe: (q) => {
     const n = q < 1 ? 6 : 9, out = [P('accent', torus(0.15, 0.009, q, 14, 4).scale(1, 0.9, 1.05).rotateX(Math.PI / 2).translate(0, 0.3, 0.015))];
@@ -1383,11 +1394,11 @@ export const BODIES = {
     return out;
   },
   // Marrow's kit (his sheet): a soft salvage bag on a strap across the chest at his left hip, a bone and a
-  // length of pipe sticking out of it, and a pack on his back; worn with his scarf (a look has one chest
-  // piece). He wears no cape over it: his sheet draws a long patched coat (his robe), not a cloak.
+  // length of pipe sticking out of it, worn with his scarf (a look has one chest piece; his pack is on his
+  // back: BACKS.pack). He wears no cape: his sheet draws a long patched coat (his robe), not a cloak.
   scavbag: (q) => [
     // (the scarf's wound collar, and its end tucked down the front: the long tail of `scarf` was cut for a
-    // cape to fall over, and over his pack it stood out across his back)
+    // cape to fall over, and over a pack it stood out across the back)
     BODIES.scarf(q)[0],
     P('accent', box(0.075, 0.15, 0.022).rotateZ(0.12).rotateX(-0.18).translate(-0.06, 0.665, 0.125), true),
     P('wood', box(0.04, 0.5, 0.012).rotateX(-0.34).rotateZ(0.7).translate(0.02, 0.53, 0.168), true),
@@ -1397,13 +1408,6 @@ export const BODIES = {
     ...Pq('cloth', q < 1 ? null : sphere(0.019, q, 6, 4).scale(1.4, 1, 1).rotateZ(0.42).translate(0.1, 0.495, 0.205)),
     P('metal', cyl(0.015, 0.015, 0.15, q, 6).rotateZ(-0.35).translate(0.215, 0.4, 0.2), true),
     ...Pq('dark', q < 1 ? null : cyl(0.009, 0.009, 0.004, q, 6).rotateZ(-0.35).translate(0.24, 0.47, 0.2)),
-    // and his pack: a soft sack high on the back, a bedroll strapped over it and a long bone out of the top
-    P('wood', sphere(0.16, q, 10, 8).scale(0.95, 1.12, 0.52).translate(0, 0.43, PACK_Z), true),
-    P('accent', sphere(0.16, q, 10, 4, 0, Math.PI * 2, 0, Math.PI * 0.4).scale(1.0, 0.72, 0.58).translate(0, 0.5, PACK_Z), true),
-    P('cloth', cyl(0.045, 0.045, 0.32, q, 8).rotateZ(Math.PI / 2).translate(0, 0.6, PACK_Z - 0.03), true),
-    P('cloth', cyl(0.012, 0.014, 0.26, q, 5).rotateZ(-0.3).rotateX(-0.15).translate(0.085, 0.66, PACK_Z - 0.04), true),
-    ...Pq('cloth', q < 1 ? null : sphere(0.02, q, 6, 4).scale(1.4, 1, 1).rotateZ(-0.3).translate(0.125, 0.78, PACK_Z - 0.06)),
-    ...[-1, 1].map((sd) => P('wood', box(0.035, 0.3, 0.012).rotateX(0.25).translate(sd * 0.1, 0.56, PACK_Z + 0.08))),
   ],
   // the Garden of Spheres: a pleated ruff
   ruff: (q) => {
@@ -1414,6 +1418,40 @@ export const BODIES = {
     return [P('accent', g.translate(0, 0.75, 0))];
   },
 };
+
+/** A soft box (a bag): a box rounded toward an ellipsoid, wider and sagging below (`slouch`), its lower front edge dipping in the middle (`dip`). */
+function softBox(w, h, d, q, { slouch = 0, dip = 0 } = {}) {
+  const n = q < 1 ? 3 : 6, g = new THREE.BoxGeometry(w, h, d, n, n, Math.max(2, n >> 1)), P = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < P.count; i++) {
+    v.fromBufferAttribute(P, i);
+    const e = new THREE.Vector3(v.x / (w / 2), v.y / (h / 2), v.z / (d / 2)), l = e.length() || 1;
+    v.lerp(new THREE.Vector3(v.x / l * Math.SQRT2, v.y / l * Math.SQRT2, v.z / l * Math.SQRT2), 0.5);
+    const t = 0.5 - v.y / h;   // 0 top, 1 bottom
+    v.x *= 1 + slouch * t; v.z *= 1 + slouch * 0.6 * t;
+    if (dip && v.y < 0) v.y -= dip * (1 - Math.min(1, Math.abs(v.x) / (w / 2)) ** 2) * (-v.y / (h / 2));
+    P.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeVertexNormals();
+  return g;
+}
+/** A flat strap along a path round the body (chest frame), `width` across, its face turned out from the body. */
+function strapRibbon(points, width, q) {
+  const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p))), n = sg(28, q);
+  const pos = [], idx = [], T = new THREE.Vector3(), O = new THREE.Vector3(), S = new THREE.Vector3();
+  for (let i = 0; i <= n; i++) {
+    const u = i / n, p = curve.getPointAt(u);
+    curve.getTangentAt(u, T);
+    O.set(p.x, 0, p.z).normalize();
+    S.crossVectors(T, O).normalize().multiplyScalar(width / 2);
+    pos.push(p.x - S.x + O.x * 0.003, p.y - S.y, p.z - S.z + O.z * 0.003, p.x + S.x + O.x * 0.003, p.y + S.y, p.z + S.z + O.z * 0.003);
+    if (i < n) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
 
 /** Held props (right hand frame). */
 export const PROPS = {
@@ -1448,28 +1486,7 @@ export const PROPS = {
     return out.map((pc) => P(pc.role, pc.geo.rotateX(0.22).rotateZ(-0.14).translate(0.02, 0.0, 0.17), pc.far));
   },
   // Sefa's oud: a deep pear bowl, a flat soundboard with a rosette, a short neck and a pegbox bent back
-  oud: (q) => {
-    const bowl = [[0, 0], [0.062, 0.014], [0.102, 0.055], [0.124, 0.125], [0.122, 0.205], [0.094, 0.277], [0.052, 0.325], [0, 0.34]];
-    const out = [
-      P('wood', lathe(bowl, q, 12).scale(1, 1, 0.58).translate(0, -0.17, 0), true),
-      P('cloth', cyl(0.098, 0.098, 0.012, q, 12).rotateX(Math.PI / 2).scale(1, 1.28, 1).translate(0, -0.015, 0.072), true),
-      P('dark', torus(0.029, 0.007, q, 10, 4).translate(0, 0.02, 0.074)),
-      P('wood', box(0.042, 0.24, 0.03).translate(0, 0.27, 0.042), true),
-      P('dark', box(0.028, 0.235, 0.006).translate(0, 0.27, 0.059)),
-      P('wood', box(0.05, 0.12, 0.026).rotateX(-1.2).translate(0, 0.425, 0.016), true),
-      P('dark', box(0.042, 0.012, 0.009).translate(0, -0.1, 0.075)),
-    ];
-    if (q >= 1) {
-      out.push(P('dark', box(0.024, 0.16, 0.004).translate(0, 0.07, 0.08)));
-      for (const sx of [-1, 1]) out.push(P('metal', cyl(0.005, 0.005, 0.05, q, 4).rotateZ(Math.PI / 2).rotateX(-1.2).translate(sx * 0.03, 0.455, -0.012)));
-    }
-    const held = out.map((pc) => P(pc.role, pc.geo.rotateZ(-0.88).rotateX(0.22).translate(0.1, -0.04, 0.21), pc.far));
-    // the tassels her sheets hang from the pegbox: two long ribbons and a knot, falling as the instrument is held
-    const peg = new THREE.Vector3(0, 0.4, 0.03).applyAxisAngle(_Z, -0.88).applyAxisAngle(_X, 0.22).add(new THREE.Vector3(0.1, -0.04, 0.21));
-    held.push(P('dark', sphere(0.014, q, 6, 4).translate(peg.x, peg.y - 0.01, peg.z)));
-    for (const [dx, len, role] of [[-0.008, 0.19, 'cloth'], [0.01, 0.15, 'hat']]) held.push(P(role, box(0.016, len, 0.004).translate(peg.x + dx, peg.y - 0.02 - len / 2, peg.z + 0.004), true));
-    return held;
-  },
+  oud: (q) => slung(oudParts(q), HELD_OUD, q),
   // Marrow's hook: a salvager's iron hook on a short shaft, carried upright and held out in front of
   // him (the last translate), so the shaft reads against his cloak instead of disappearing inside it
   hook: (q) => [
@@ -1509,6 +1526,111 @@ export const PROPS = {
  * the cloth's colliders, so Sefa's oud swings against her cloak as she walks instead of through it (the
  * thin props need none).
  */
+/** Sefa's oud in its own frame (the bowl's middle at the origin, the neck up +y, the soundboard facing +z). */
+function oudParts(q) {
+  const bowl = [[0, 0], [0.062, 0.014], [0.102, 0.055], [0.124, 0.125], [0.122, 0.205], [0.094, 0.277], [0.052, 0.325], [0, 0.34]];
+  const out = [
+    P('wood', lathe(bowl, q, 12).scale(1, 1, 0.58).translate(0, -0.17, 0), true),
+    P('cloth', cyl(0.098, 0.098, 0.012, q, 12).rotateX(Math.PI / 2).scale(1, 1.28, 1).translate(0, -0.015, 0.072), true),
+    P('dark', torus(0.029, 0.007, q, 10, 4).translate(0, 0.02, 0.074)),
+    P('wood', box(0.042, 0.24, 0.03).translate(0, 0.27, 0.042), true),
+    P('dark', box(0.028, 0.235, 0.006).translate(0, 0.27, 0.059)),
+    P('wood', box(0.05, 0.12, 0.026).rotateX(-1.2).translate(0, 0.425, 0.016), true),
+    P('dark', box(0.042, 0.012, 0.009).translate(0, -0.1, 0.075)),
+  ];
+  if (q >= 1) {
+    out.push(P('dark', box(0.024, 0.16, 0.004).translate(0, 0.07, 0.08)));
+    for (const sx of [-1, 1]) out.push(P('metal', cyl(0.005, 0.005, 0.05, q, 4).rotateZ(Math.PI / 2).rotateX(-1.2).translate(sx * 0.03, 0.455, -0.012)));
+  }
+  return out;
+}
+/** How the oud is carried: held across the body (hand frame), or slung on the back over the cloak (chest frame). */
+const HELD_OUD = { turn: (g) => g.rotateZ(-0.88).rotateX(0.22), at: [0.1, -0.04, 0.21] };
+const SLUNG_OUD = { turn: (g) => g.rotateY(Math.PI).rotateZ(0.42), at: [0.08, 0.36, -0.31] };
+/**
+ * The oud turned and placed as it is carried, with the tassels her sheets hang from its pegbox (two long
+ * ribbons and a knot): they fall straight down from the pegbox however the instrument is turned.
+ */
+function slung(parts, how, q) {
+  const at = new THREE.Vector3(...how.at);
+  const out = parts.map((pc) => P(pc.role, how.turn(pc.geo).translate(at.x, at.y, at.z), pc.far));
+  const peg = how.turn(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 0.4, 0.03], 3)));
+  const pg = new THREE.Vector3().fromBufferAttribute(peg.attributes.position, 0).add(at);
+  out.push(P('dark', sphere(0.014, q, 6, 4).translate(pg.x, pg.y - 0.01, pg.z)));
+  for (const [dx, len, role] of [[-0.008, 0.19, 'cloth'], [0.01, 0.15, 'hat']]) out.push(P(role, box(0.016, len, 0.004).translate(pg.x + dx, pg.y - 0.02 - len / 2, pg.z + 0.004), true));
+  return out;
+}
+
+/**
+ * What is carried on the back (the chest frame: behind the body, -z), a second slot beside the held prop
+ * (look.back). With look.stow the back piece is the held prop put away: shown while walking, the held one while
+ * standing (Humanoid.stow). Sefa's oud slung on its strap over her cloak, as her sheet draws her walking;
+ * Marrow's pack.
+ */
+export const BACKS = {
+  none: () => [],
+  oud: (q) => [
+    ...slung(oudParts(q), SLUNG_OUD, q),
+    // its strap: from the neck over her right shoulder, across the chest to her left side
+    P('dark', box(0.024, 0.5, 0.008).rotateZ(0.78).translate(0.01, 0.56, 0.155)),
+    P('dark', box(0.024, 0.28, 0.008).rotateX(0.35).translate(-0.13, 0.72, 0.0)),
+  ],
+  // Marrow's pack (his sheet): a soft sack high on the back, a bedroll strapped over it and a long bone out of the top
+  pack: (q) => [
+    P('wood', sphere(0.16, q, 10, 8).scale(0.95, 1.12, 0.52).translate(0, 0.43, PACK_Z), true),
+    P('accent', sphere(0.16, q, 10, 4, 0, Math.PI * 2, 0, Math.PI * 0.4).scale(1.0, 0.72, 0.58).translate(0, 0.5, PACK_Z), true),
+    P('cloth', cyl(0.045, 0.045, 0.32, q, 8).rotateZ(Math.PI / 2).translate(0, 0.6, PACK_Z - 0.03), true),
+    P('cloth', cyl(0.012, 0.014, 0.26, q, 5).rotateZ(-0.3).rotateX(-0.15).translate(0.085, 0.66, PACK_Z - 0.04), true),
+    ...Pq('cloth', q < 1 ? null : sphere(0.02, q, 6, 4).scale(1.4, 1, 1).rotateZ(-0.3).translate(0.125, 0.78, PACK_Z - 0.06)),
+    ...[-1, 1].map((sd) => P('wood', box(0.035, 0.3, 0.012).rotateX(0.25).translate(sd * 0.1, 0.56, PACK_Z + 0.08))),
+  ],
+};
+export const BACK_IDS = Object.keys(BACKS);
+/**
+ * The back pieces as cloth colliders (chest frame). The oud is slung over the cloak (`under`: the cloth goes in
+ * behind it), so it hangs a cloth's thickness out from the body's own collider (its bowl's inner side at the
+ * back's collider: further in, the two pushed the cloth to and fro and the cloak flew open). A pack goes under
+ * a cloak (the cloth goes over it).
+ */
+export const BACK_BULK = {
+  oud: [{ a: [0.105, 0.24, -0.31], b: [0.03, 0.46, -0.31], r: 0.08, under: true }, { a: [-0.01, 0.57, -0.29], b: [-0.11, 0.79, -0.25], r: 0.035, under: true }],
+  pack: [{ a: [0, 0.38, -0.2], b: [0, 0.6, -0.21], r: 0.17 }],
+};
+
+/**
+ * Leg pieces (look.shins): built in a shin frame, the knee at the origin and the shin down -y to the ankle at
+ * y = -len, `r` the shin's own radius there (Humanoid measures both on the body: segmentGirths); rigid on the
+ * calf bone, so they follow the leg as it walks. Marrow's cloth-wrapped shins (his sheet): a bulky wrap from the
+ * ankle to under the knee, wound in a few bands, a loose end tucked at the top.
+ */
+export const SHINS = {
+  none: () => [],
+  wraps: (q, { len, r }) => {
+    const prof = [[r * 0.86 + 0.026, -len * 0.95], [r * 0.98 + 0.032, -len * 0.78], [r * 1.08 + 0.034, -len * 0.55], [r * 1.02 + 0.03, -len * 0.36], [r * 0.95 + 0.026, -len * 0.24]];
+    const out = [P('linen', new THREE.LatheGeometry(prof.map(([a, y]) => new THREE.Vector2(a, y)), sg(12, q)), true)];
+    const n = q < 1 ? 3 : 6;
+    for (let k = 0; k < n; k++) {
+      const t = (k + 0.5) / n, y = -len * (0.93 - 0.66 * t);
+      const i = Math.min(prof.length - 2, Math.floor(t * (prof.length - 1))), f = t * (prof.length - 1) - i;
+      const rad = prof[i][0] + (prof[i + 1][0] - prof[i][0]) * f + 0.004;
+      out.push(P('linen', torus(rad, 0.009, q, 12, 4).rotateX(Math.PI / 2 + 0.22 * (k % 2 ? 1 : -1)).translate(0, y, 0)));
+    }
+    if (q >= 1) out.push(P('linen', box(0.035, 0.07, 0.008).rotateZ(0.3).translate(0.02, -len * 0.27, prof[4][0] + 0.004)));
+    return out;
+  },
+};
+export const SHIN_IDS = Object.keys(SHINS);
+
+/**
+ * The chest pieces worn over the cloak (chest frame, m): capsules the cloth goes under (cape.js OVER), so from
+ * the front the bag lies on the cloak as the sheets draw it instead of inside it. Its strap too.
+ */
+export const BODY_BULK = {
+  // (Bako's bag: two capsules across its width, low and high, flat as the bag is, so its inner side meets the
+  //  body's own collider and the two do not push the cloth back and forth; its strap across the chest)
+  satchel: [{ a: [0.1, 0.12, 0.31], b: [0.3, 0.12, 0.18], r: 0.08, under: true }, { a: [0.1, 0.27, 0.3], b: [0.29, 0.27, 0.18], r: 0.075, under: true },
+    { a: [0.02, 0.48, 0.21], b: [0.1, 0.34, 0.26], r: 0.03, under: true }],
+};
 export const PROP_BULK = { oud: [{ a: [0.05, -0.08, 0.2], b: [0.15, 0.0, 0.23], r: 0.16 }, { a: [0.17, 0.03, 0.24], b: [0.42, 0.21, 0.285], r: 0.07 }] };
 
 function lantern(q, y, z) {
@@ -1532,6 +1654,7 @@ export function lookPieces(s, q = 1) {
     // (a headwear's pieces that rest on the shoulders: a hood thrown back, H.chest)
     chest: [...(H.chest ? H.chest(q, s) : []), ...(BODIES[s.body] ?? BODIES.none)(q)],
     hand: (PROPS[s.prop] ?? PROPS.none)(q),
+    back: (BACKS[s.back] ?? BACKS.none)(q),
   };
 }
 

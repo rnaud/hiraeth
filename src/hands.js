@@ -360,7 +360,7 @@ export function npcHands(n) {
   return {
     mode: n.down ? 'down' : pose === 3 || pose === 4 ? 'seated' : pose === 2 ? 'rail' : 'ground',
     speed: p ? p.speed : undefined,
-    prop: n.look?.prop,
+    prop: n.humanoid?.stowed ? null : n.look?.prop,   // (put away on the back while walking: nothing in hand)
     startle: stumble ? 1 : since >= 0 && since < 0.9 ? 1 - since / 0.9 : 0,
   };
 }

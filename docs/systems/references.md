@@ -133,6 +133,26 @@ and bird too).
   little half-tone), a grey-teal shadow (`#93a6ac`, `SKY_STONES_DAY`), the needles with few shade
   strokes and no beds (`hatch` 0.4, `strataHatch` 0). `?look=vael2` draws the views in it
   (`WORLD_LOOKS`, with `?look=desert`).
+- **One clean terminator down the needles and stalks** (October 2026, round 3; `needle`, `table` in
+  sky-stones-kit.js): a needle's and a cap table's shading normals are a twin's, the same rings without the
+  flutes, the fine noise and the underside's ribs, welded and smooth; the flutes stay in the outline. The needles
+  draw in their own material without flat facets (`M.needle` in arzach2.js, `boneNeedle` / `pinkNeedle` in the
+  views), so the shade runs down a needle as one band where the facets used to break into lit islands. View 52's
+  column takes the same, lit from the left as its panel.
+- **The crevasses' walls lit red-brown and hatched** (round 3; `CREVASSE` in arzach2.js, materials.js S_TERRAIN):
+  the plain's steep faces take a red-brown (the terrain's third tone), never a spot black, and in light keep runs of
+  strokes falling straight down them (a terrain material's `strataHatch`: the ground's strokes are laid from above,
+  so on a wall they run down it). The world's fissures and the views' plains; view 65's crevasses widened to the
+  panel's.
+- **The cloud printed flat** (round 3; `CLOUD_PRINT` in arzach2.js): the world's puffs were pre-shaded in three
+  fixed vertex tones, lit from one side whatever the hour, and self-lit; they now take the real sun with the print's
+  flat shade (`shadeFlat` 1, lifted 0.55): a warm white in light, one pale grey-blue in shade, no strokes, no spot
+  black. The views' clouds share it.
+- **The shadow's grey-teal at every hour** (round 3; `SKY_STONES_DUSK`, `SKY_STONES_NIGHT` in arzach2.js): dusk's and
+  night's colour scripts kept the print preset's old violet-blue shadow (`#8f88b8`, `#383650`); they now take the
+  day's grey-teal, a touch warmer at dusk (`#9a9fae`) and deeper at night (`#3a4752`).
+- **No planets in the views**: the References level's zones carry `planets: []` (references.js), so the views hang
+  none, as the sheets draw none; the world keeps its two. (Checked in round 3: nothing to change; a test holds it.)
 - **Cost** (M4 Pro, 1280 × 720, Vael II at spawn and turned, GPU median): High 11.4 → 8.6 and 9.5 →
   6.8 ms (the flat clouds gone), Handheld 2.1 → 2.0 and 1.6 → 1.5; the shader changes are a few
   selects, no new taps.

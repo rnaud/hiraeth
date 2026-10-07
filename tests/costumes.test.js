@@ -135,6 +135,7 @@ test('the desert’s own props and worn pieces build on every head and every qua
       const s = dressFor('desert', mulberry32(5), { kind, look: { head, prop, body, mask: 'none' } });
       const pieces = lookPieces(s, q);
       for (const [where, list] of Object.entries(pieces)) {
+        if (where === 'back') continue;   // (nothing on the back unless the look carries something there)
         assert.ok(list.length, `${kind} ${head} ${prop}/${body} q${q}: nothing in the ${where} frame`);
         for (const pc of list) assert.ok(pc.geo.attributes.position.count > 0 && finite(pc.geo), `${kind} ${head} ${prop}/${body} q${q} ${where}`);
       }
