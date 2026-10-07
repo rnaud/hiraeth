@@ -1,0 +1,49 @@
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_ac7c14a3a158e0 833-858
+engine/game.js
+  s_55b4bc53b812ec::t_e751254dad0a63 31,162-163
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_b39ba64080a174 10,239-267
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_838168efe5a0cb 117
+src/cape.js
+  s_55b4bc53b812ec::t_8035859d6a87d4 41-48,255-256,272,275-277,297-299,329,361-373,387,440,443,507-508,530
+tests/cape-job.test.js
+  s_55b4bc53b812ec::t_dd3aa80d8dc176 1-97
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_d00c09ad07372a 17,205,215-216,242,246
+unity/Memento/Assets/MementoJS/Runtime/BridgeCape.cs.meta
+  s_55b4bc53b812ec::t_d478414f7897b4 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_55b4bc53b812ec::t_2dfa8f11cbddd2 84-88
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_9eab8a580f3e9d 58-65,109-122,636-642,811-812
+engine/cape-job.js
+  s_8aeeaca52a8108::t_eb0a30c40b96d8 1-269
+unity/Memento/Assets/MementoJS/Runtime/BridgeCape.cs
+  s_8aeeaca52a8108::t_b9873c5b0a2275 1-285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1caa76d7fbbac49ac55c089232fca5170ad76d8b",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_8aeeaca52a8108": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aeb3a14172e88a175",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
