@@ -84,6 +84,9 @@ by the checked-in Wrangler version.
 
 ## Making the repository private
 
+**Done on 2026-10-07**: the repository is private, the steps below were followed and the workflow
+clean-up under "After the flip" is in. Kept as a record.
+
 The Worker serves uploaded assets without fetching anything from GitHub at request
 time. GitHub Actions can still check out a private repository and publish with its
 Actions secrets: keep Actions enabled and check the account's private-repository

@@ -4,7 +4,7 @@ Installing on iPhone as a web app; the Steam Deck package (full guide: docs/stea
 
 ## Install on iPhone
 
-Open [the game](https://rnaud.github.io/moebius/) in Safari, tap **Share → Add
+Open [the game](https://memento.alexandria-rnaud.workers.dev/) in Safari, tap **Share → Add
 to Home Screen**, leave **Open as Web App** enabled if shown, and tap **Add**.
 Launch the **Moebius** icon to play without Safari's address and bottom bars.
 The game fills the screen; controls account for the notch and home indicator
