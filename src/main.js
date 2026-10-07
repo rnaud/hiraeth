@@ -361,7 +361,6 @@ if (generatedTraveller) {
 player.attach(scene);
 await slice();
 const heroMaterials = markHero(player.char.root);
-markHero(player.gear?.device, heroMaterials);
 markHero(player.cape?.mesh, heroMaterials);
 if (player.mount) scene.add(player.mount.object);
 await slice();

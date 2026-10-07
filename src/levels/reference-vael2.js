@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MODE_STRATA, MODE_TERRAIN } from '../materials.js';
 import { createNoise2D, mulberry32 } from '../noise.js';
-import { table, needle, boulder, lumpy, place, TAU } from './sky-stones-kit.js';
+import { table, needle, boulder, drips, lumpy, place, TAU } from './sky-stones-kit.js';
 import { bridge, SKY_STONES_HAZE } from './arzach2.js';
-import { buildBird } from '../bird.js';
+import { buildBird, poseWings, FOOT, STAND } from '../bird.js';
 import { formAxis, keepForm } from '../form.js';
 import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
 
@@ -97,6 +97,7 @@ function mushroom(kit, M, o) {
   formAxis(t.vis, 'cap', { centre: [o.x, 0, o.z] });
   // squash: [sx, sz] about its axis (a cliff's overhang wider than it is deep)
   const fit = (g) => (o.squash ? g.translate(-o.x, 0, -o.z).scale(o.squash[0], 1, o.squash[1]).translate(o.x, 0, o.z) : g);
+  if (t.drip) kit.add(mat, fit(t.drip), { solid: false, shadow: false });   // the stalactites under its lip (drawn only)
   if (o.smooth === false) { kit.add(mat, fit(t.vis)); return t; }
   kit.add(mat, smooth(fit(t.vis)), { shadow: false });
   kit.add(M.hidden, fit(t.shadow), { solid: false });
@@ -107,10 +108,10 @@ function mushroom(kit, M, o) {
 function stones(kit, M, x, y, z, list, seed, mat = 'bone') {
   const r2 = mulberry32(seed * 31 + 1);
   let yy = y, ox = 0, oz = 0;
-  for (const [r, sy, egg] of list) {
+  for (const [r, sy, egg, crack = 0] of list) {
     const tilt = (r2() - 0.5) * 0.25;
     yy += r * sy * 0.92;
-    kit.add(M[mat], place(boulder(r, 1 + r2() * 0.25, sy, 0.85 + r2() * 0.3, egg, seed + yy), x + ox, yy, z + oz, r2() * TAU, 1, 1, 1, tilt, -tilt));
+    kit.add(M[mat], place(boulder(r, 1 + r2() * 0.25, sy, 0.85 + r2() * 0.3, egg, seed + yy, true, crack), x + ox, yy, z + oz, r2() * TAU, 1, 1, 1, tilt, -tilt));
     yy += r * sy * 0.92;
     ox += (r2() - 0.5) * r * 0.35; oz += (r2() - 0.5) * r * 0.35;
   }
@@ -151,13 +152,47 @@ function monastery(kit, M, { x, y, z, yaw = 0, kind = 'tower', s = 1 }) {
   const c = Math.cos(yaw), sn = Math.sin(yaw);
   const P = (dx, dz) => [x + (dx * c + dz * sn) * s, z + (-dx * sn + dz * c) * s];
   const box = (m, dx, dy, dz, w, h, d, ry = 0) => { const [px, pz] = P(dx, dz); kit.add(M[m], place(new THREE.BoxGeometry(w * s, h * s, d * s), px, y + (dy + h / 2) * s, pz, yaw + ry)); };
-  const gable = (dx, dy, dz, w, d, ry = 0) => { const [px, pz] = P(dx, dz); kit.add(M.roof, place(new THREE.BoxGeometry(w * 0.7071 * 1.08 * s, w * 0.7071 * 1.08 * s, d * 1.06 * s).rotateZ(Math.PI / 4).scale(1, 0.42, 1), px, y + dy * s, pz, yaw + ry)); };
+  // (the sheets' roofs are shallow red tile with a course of eaves overhanging the wall head)
+  const gable = (dx, dy, dz, w, d, ry = 0) => {
+    const [px, pz] = P(dx, dz);
+    kit.add(M.roof, place(new THREE.BoxGeometry(w * 0.7071 * 1.08 * s, w * 0.7071 * 1.08 * s, d * 1.06 * s).rotateZ(Math.PI / 4).scale(1, 0.42, 1), px, y + dy * s, pz, yaw + ry));
+    kit.add(M.roof, place(new THREE.BoxGeometry(w * 1.18 * s, 0.4 * s, d * 1.22 * s), px, y + (dy - 0.15) * s, pz, yaw + ry));
+  };
   const house = (dx, dz, w, h, d, ry = 0) => { box('wall', dx, -2, dz, w, h + 2, d, ry); gable(dx, h, dz, w, d, ry); };
+  /** A loggia: a shaded recess behind a row of piers under round arches (the sheets' monastery ranges). */
+  const arcade = (dx, dy, dz, n, w, h, d, ry = 0) => {
+    const sp = w * 1.75, c2 = Math.cos(ry), s2 = -Math.sin(ry);
+    box('dark', dx, dy, dz, n * sp, h + w * 0.8, d * 0.4, ry);
+    for (let i = 0; i <= n; i++) box('wall', dx + (i - n / 2) * sp * c2, dy, dz + (i - n / 2) * sp * s2, w * 0.52, h, d, ry);
+    for (let i = 0; i < n; i++) {
+      const t = (i - (n - 1) / 2) * sp, [px, pz] = P(dx + t * c2, dz + t * s2);
+      kit.add(M.wall, place(new THREE.TorusGeometry(w * 0.74 * s, w * 0.17 * s, 4, 8, Math.PI), px, y + (dy + h) * s, pz, yaw + ry));
+    }
+    box('wall', dx, dy + h + w * 0.8, dz, n * sp + w, 0.8, d * 1.15, ry);
+  };
+  /** An arched door or window sunk into a wall face. */
+  const arch = (dx, dy, dz, w, h, ry = 0) => {
+    box('dark', dx, dy, dz, w, h, 0.4, ry);
+    const [px, pz] = P(dx, dz);
+    kit.add(M.dark, place(new THREE.CylinderGeometry(w / 2 * s, w / 2 * s, 0.4 * s, 9).rotateX(Math.PI / 2), px, y + (dy + h) * s, pz, yaw + ry, 1, 0.9, 1));
+  };
+  /** The ball and spike every dome carries on the sheets. */
+  const finial = (dx, dy, dz, r) => {
+    const [px, pz] = P(dx, dz);
+    kit.add(M.wall, place(new THREE.SphereGeometry(r * 0.42 * s, 7, 5), px, y + (dy + r * 0.5) * s, pz));
+    kit.add(M.wall, place(new THREE.ConeGeometry(r * 0.17 * s, r * 1.5 * s, 6), px, y + (dy + r * 1.35) * s, pz));
+  };
   const domed = (dx, dy, dz, r, drum) => {
     const [px, pz] = P(dx, dz);
     kit.add(M.plain, place(new THREE.CylinderGeometry(r * s, r * s, drum * s, 16), px, y + (dy + drum / 2) * s, pz));
     kit.add(M.dome, place(new THREE.SphereGeometry(r * 1.06 * s, 16, 8, 0, TAU, 0, Math.PI / 2), px, y + (dy + drum) * s, pz, 0, 1, 0.9, 1));
     kit.add(M.wall, place(new THREE.CylinderGeometry(r * 0.12 * s, r * 0.16 * s, r * 0.6 * s, 6), px, y + (dy + drum + r * 1.25) * s, pz));
+    // the drum's little columns and the dome's finial (IMG_3787 panel 3)
+    if (r >= 4.5) for (let i = 0; i < 12; i++) {
+      const a = i * TAU / 12, [cx, cz] = P(dx + Math.cos(a) * r * 1.03, dz + Math.sin(a) * r * 1.03);
+      kit.add(M.wall, place(new THREE.CylinderGeometry(r * 0.075 * s, r * 0.075 * s, drum * 0.74 * s, 5), cx, y + (dy + drum * 0.37) * s, cz));
+    }
+    finial(dx, dy + drum + r * 1.55, dz, r * 0.5);
   };
   const belltower = (dx, dz, w, h, round = false) => {
     const [px, pz] = P(dx, dz);
@@ -172,17 +207,25 @@ function monastery(kit, M, { x, y, z, yaw = 0, kind = 'tower', s = 1 }) {
     belltower(-6, 0, 5, 30);
     house(4, 2, 12, 8, 16); domed(-16, 0, 8, 5, 7); box('wall', -16, -2, 8, 12, 9, 12);
     house(14, -4, 8, 6, 9, Math.PI / 2); house(-24, -6, 8, 5, 8, 0.2);
-    cypress(-28, 6, 9); cypress(22, 4, 8);
+    arcade(4, 0, -7, 5, 1.7, 3.6, 1.3); arch(-16, 0, 2.2, 1.8, 2.8); arch(14, 0, -9, 1.4, 2.4);
+    cypress(-28, 6, 9); cypress(22, 4, 8); cypress(-21, 9, 7); cypress(10, 12, 8.5);
   } else if (kind === 'chapel') {
     box('wall', 0, -2, 0, 8, 9, 8); domed(0, 7, 0, 3.4, 2.5); house(7, 1, 5, 4, 7, Math.PI / 2); house(-6, -2, 5, 4, 5);
+    arcade(0, 0, 4.3, 3, 1.2, 2.6, 1.1); arch(-6, 0, 1.6, 1.2, 2.2);
+    cypress(-10, 3, 7); cypress(-12, -1, 5.5);
   } else if (kind === 'palace') {
     box('wall', 0, -2, 0, 16, 14, 14); domed(0, 12, 0, 6.5, 5);
     belltower(-14, 2, 4, 26, true); belltower(16, -2, 4, 32, true); belltower(26, 0, 3.4, 20, true);
     house(-24, 0, 10, 8, 12); house(8, 10, 12, 7, 8, Math.PI / 2); box('wall', 34, -2, 2, 10, 8, 12); domed(34, 6, 2, 3.6, 2);
     house(-34, 2, 8, 5, 8, 0.3);
+    arcade(22, 0, 8, 6, 2, 4.2, 1.5); arcade(-24, 0, 17.2, 4, 1.8, 3.4, 1.3);
+    arch(0, 0, 7.4, 2.4, 4, 0); arch(-34, 0, 6.3, 1.6, 2.6, 0.3);
+    cypress(-30, 12, 9); cypress(-26, 15, 7); cypress(12, 17, 8); cypress(40, 9, 7.5);
   } else if (kind === 'church') {
     box('wall', 0, -2, 0, 14, 12, 14); domed(0, 10, 0, 6, 4.5); house(0, 11, 10, 8, 10, Math.PI / 2);
     belltower(-11, -6, 4.5, 22, true); belltower(11, -6, 4.5, 18, true);
+    arcade(0, 0, 17.4, 4, 1.6, 3.4, 1.4); arch(0, 0, 7.3, 2, 3.2);
+    cypress(-10, 13, 8); cypress(10.5, 10, 6.5);
     box('wall', -0.25, 21, -0.25, 0.5, 3.2, 0.5); box('wall', -1, 22.6, -0.25, 2, 0.5, 0.5);
   }
 }
@@ -220,7 +263,8 @@ function loneTower(kit, M, x, z, s = 1) {
  */
 export function cloudSea(kit, M, { y, near = 40, far = 1600, spread = 70, at = [0, 0], yaw = 0, n = 260, size = [10, 26], seed = 1, pink = false, deck = true, avoid = [] }) {
   const r2 = mulberry32(seed * 13 + 5), mat = pink ? M.pinkCloud : M.cloud;
-  const geo = (detail) => { const g = new THREE.IcosahedronGeometry(1, detail); lumpy(g, 0.09, 1.8, detail + seed); return smooth(g); };
+  // (a puff's own surface is knobbly, not a ball: the sheets' cloud is cauliflower at every scale)
+  const geo = (detail) => { const g = new THREE.IcosahedronGeometry(1, detail); lumpy(g, 0.17, 2.3, detail + seed); return smooth(g); };
   const fine = geo(3), hi = geo(2), lo = geo(1);
   for (let i = 0; i < n; i++) {
     const u = r2(), d = near * Math.pow(far / near, u), a = (yaw + (r2() * 2 - 1) * spread) * Math.PI / 180;
@@ -234,9 +278,16 @@ export function cloudSea(kit, M, { y, near = 40, far = 1600, spread = 70, at = [
     const lobes = 2 + Math.floor(r2() * 4);
     for (let k = 0; k < lobes; k++) {
       const b = r2() * TAU, rr = s * (0.6 + r2() * 0.45), ls = s * (0.4 + r2() * 0.3);
-      puff(x + Math.cos(b) * rr, y0 - ls * 0.2, z + Math.sin(b) * rr, ls, 0.65 + r2() * 0.2);
+      const lx = x + Math.cos(b) * rr, lz = z + Math.sin(b) * rr, ly = y0 - ls * 0.2;
+      puff(lx, ly, lz, ls, 0.65 + r2() * 0.2);
+      // a second growth of smaller bumps on each lobe's shoulder: the cauliflower's own cauliflowers
+      if (r2() < 0.7) {
+        const c = b + (r2() - 0.5), bs = ls * (0.42 + r2() * 0.24);
+        puff(lx + Math.cos(c) * ls * 0.6, ly + ls * 0.45, lz + Math.sin(c) * ls * 0.6, bs, 0.75);
+      }
     }
     if (r2() < 0.55) puff(x + (r2() - 0.5) * 0.4 * s, y0 + s * 0.42, z + (r2() - 0.5) * 0.4 * s, s * (0.45 + r2() * 0.15), 0.8);
+    if (r2() < 0.5) puff(x + (r2() - 0.5) * 0.9 * s, y0 + s * 0.6, z + (r2() - 0.5) * 0.9 * s, s * (0.3 + r2() * 0.12), 0.85);
   }
   // a deck between the puffs hides the chasm's floor
   if (deck) kit.add(mat, new THREE.CircleGeometry(far * 1.3, 48).rotateX(-Math.PI / 2).translate(at[0], y - 4, at[1]), { solid: false, shadow: false });
@@ -246,18 +297,23 @@ export function cloudSea(kit, M, { y, near = 40, far = 1600, spread = 70, at = [
 function bird(kit, M, { at, yaw = 0, s = 1, fly = false, rider = false }) {
   const b = buildBird();
   // ([x, z]: standing on the ground; [x, y, z]: in the air)
-  b.root.position.set(...(at.length === 2 ? [at[0], kit.H(at[0], at[1]) + 0.92 * s, at[1]] : at));
+  b.root.position.set(...(at.length === 2 ? [at[0], kit.H(at[0], at[1]) + STAND * s, at[1]] : at));
   b.root.rotation.y = yaw;
   b.root.scale.setScalar(s);
-  // (bird.js' poses: wings folded on the ground, spread and the legs tucked in the air)
-  if (fly) { for (const w of b.wings) { w.shoulder.rotation.z = w.side * 0.12; w.elbow.rotation.y = w.side * 0.12; } for (const l of b.legs) l.rotation.x = -1.25; }
-  else for (const w of b.wings) { w.shoulder.rotation.set(0, w.side * 1.12, -w.side * 0.24); w.elbow.rotation.y = w.side * 1.5; }
+  // (bird.js' poses: on the ground she stands on her legs, wings folded along her flanks; in the air
+  //  her wings are spread, a little up, and her legs tucked)
+  if (fly) { poseWings(b.wings, 0, 0.08, 0.5); for (const l of b.legs) l.rotation.x = -1.25; }
+  else poseWings(b.wings, 1);
   if (rider) {
     const cloak = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.2, 10).translate(0, 0.5, 0), M.cloak);
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8).translate(0, 1.22, 0), M.cloak);
     b.seat.add(cloak, head);
   }
   b.root.traverse((o) => { o.userData.noCollide = true; });
+  // (how far her lowest foot is off the ground under it: 0 standing, well clear flying; tests/references.test.js)
+  b.root.updateMatrixWorld(true);
+  const feet = b.legs.map((l) => l.localToWorld(FOOT.clone()));
+  b.root.userData.bird = { fly, clear: Math.min(...feet.map((f) => f.y - kit.H(f.x, f.z))) };
   kit.group.add(b.root);
 }
 
@@ -345,7 +401,7 @@ export const VAEL2_VIEWS = [
       vaelScene(kit, v, {
         seed: 37832,
         mushrooms: [{ x: 0, z: -70, R: 20, top: 32, base: -80, stalk: 4.3, capT: 2.4, under: 3, dome: 0.6, rib: 0.4, ribK: 22, flute: 0.14, fluteK: 7, foot: 1.5, neckR: 0.9, waist: 0.05, outline: 0.04, mat: 'bone', smooth: false }],
-        stones: [[0.4, 42, -70, [[4.6, 2.7, 0.15]]]],
+        stones: [[0.4, 42, -70, [[4.6, 2.7, 0.15, 0.26]]]],
         spires: [{ x: -16, z: -90, y: -40, H: 45, R: 4, n: 2, rubble: false }, { x: 14, z: -80, y: -40, H: 30, R: 3, n: 1, rubble: false }],
         clouds: [{ y: -30, near: 60, far: 1200, n: 240, size: [12, 30] }, { y: 10, near: 120, far: 400, n: 22, size: [24, 40], deck: false, spread: 30 }],
       });
@@ -365,7 +421,7 @@ export const VAEL2_VIEWS = [
         ],
         spires: [{ x: -51, z: -178, y: 0.5, H: 54, R: 5, n: 1, rubble: false }],
         monasteries: [{ x: -29, y: 1, z: -170, yaw: 0.2, kind: 'chapel', s: 1.8 }, { x: 40, y: 35.5, z: -165, yaw: -0.3, kind: 'tower', s: 1.9 }],
-        stones: [[-5, 52, -180, [[5, 7, 0.15]]], [-5, 42, -180, [[1.4, 1, 0]]]],
+        stones: [[-5, 52, -180, [[5, 7, 0.15, 0.22]]], [-5, 42, -180, [[1.4, 1, 0]]]],
         clouds: { y: -40, near: 120, far: 1500, n: 260, size: [14, 32] },
       });
     },
@@ -394,10 +450,10 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37835,
-        mushrooms: [{ x: -7.7, z: -14, R: 5.8, top: 10.3, base: -3, stalk: 1.5, off: [3.3, 0], capT: 1.8, under: 2.4, dome: 0.8 }],
+        mushrooms: [{ x: -7.7, z: -14, R: 5.8, top: 10.3, base: -3, stalk: 1.5, off: [3.3, 0], capT: 1.8, under: 2.4, dome: 0.8, lean: [0.05, -0.15], drips: { n: 10, len: [0.0496, 0.1392], r: 0.051, band: [0.45, 0.94] } }],
         towers: [[234, -900, 1.05]],
         clouds: [{ y: -6, near: 1300, far: 2600, n: 70, spread: 35, yaw: -18, size: [30, 60], deck: false }, { y: -6, near: 1500, far: 2600, n: 30, spread: 8, yaw: 33, size: [30, 60], deck: false }],
-        birds: [{ at: [-3, -9], yaw: -2.6, s: 0.7, fly: true }],
+        birds: [{ at: [-3, -9], yaw: -2.6, s: 0.7 }],
       });
     },
   }),
@@ -422,7 +478,7 @@ export const VAEL2_VIEWS = [
         spires: [{ x: -28, z: -130, y: -90, H: 115, R: 7, n: 0, rubble: false }],
         discs: [[-32, 58, -130, 18, 2.2], [-30, 24.5, -130, 12.5, 1.6]],
         stones: [[-30, 25.5, -130, [[4.2, 0.8, 0.1], [3.8, 0.9, 0.15], [3.2, 0.75, 0.05], [2.6, 0.9, 0.1]]], [-32, 59.5, -130, [[3.4, 0.8, 0.2], [2.4, 0.9, 0.2]]],
-          [21, -40, -95, [[12, 0.8, 0.05], [10.5, 0.85, 0.1], [11, 0.8, 0.1], [9.5, 0.9, 0.15], [9, 0.85, 0.1], [7.5, 0.9, 0.2]], 'rose']],
+          [21, -40, -95, [[12, 0.8, 0.05, 0.2], [10.5, 0.85, 0.1], [11, 0.8, 0.1, 0.24], [9.5, 0.9, 0.15], [9, 0.85, 0.1, 0.22], [7.5, 0.9, 0.2]], 'rose']],
         mushrooms: [{ x: 30, z: -95, R: 30, top: -38, stalk: 24, capT: 6, under: 6, dome: 0.8, base: -200, mat: 'rose', smooth: false, foot: 0.95, neckR: 0.97, waist: 0.03 }],
         clouds: [{ y: -60, near: 80, far: 1400, n: 240, size: [12, 30] }, { y: 0, near: 160, far: 400, n: 18, size: [22, 38], deck: false, spread: 25 }],
       });
@@ -451,7 +507,7 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37844,
-        mushrooms: [{ x: 3, z: -95, R: 50, top: 20, dome: 4.8, stalk: 13, capT: 6, under: 19, base: -100 }, { x: -18, z: -62, R: 14, top: 1.5, dome: 1.3, stalk: 4.5, capT: 2, under: 5, base: -100 }],
+        mushrooms: [{ x: 3, z: -95, R: 50, top: 20, dome: 4.8, stalk: 13, capT: 6, under: 19, base: -100, lean: [0.04, -0.12], drips: { n: 24, len: [0.0372, 0.0986], r: 0.0272, band: [0.4, 0.95] } }, { x: -18, z: -62, R: 14, top: 1.5, dome: 1.3, stalk: 4.5, capT: 2, under: 5, base: -100, lean: [-0.03, 0.14] }],
         aqueducts: [{ a: [-220, -320], b: [220, -330], y0: 177, W: 50, bays: 3, pier: 0.3, rise: 1.5, thick: 40, rough: 3, seed: 7, ends: 0.04, bottom: -120, mat: 'rose', flare: 0.3 }],
         clouds: [{ y: -25, near: 40, far: 1400, n: 280, size: [10, 26] }, { y: 45, near: 240, far: 300, n: 40, size: [18, 34], deck: false, spread: 40 }],
       });
@@ -483,10 +539,12 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37852,
-        mushrooms: [{ x: -60, z: -170, R: 115, top: 75, stalk: 80, capT: 12, under: 12, dome: 1, rib: 1.6, ribK: 44, foot: 0.9, neckR: 0.9, waist: 0.03, base: -250, mat: 'cap', squash: [1, 0.5] }],
+        mushrooms: [{ x: -60, z: -170, R: 115, top: 75, stalk: 80, capT: 12, under: 12, dome: 1, rib: 1.6, ribK: 44, foot: 0.9, neckR: 0.9, waist: 0.03, base: -250, mat: 'cap', squash: [1, 0.5],
+          drips: { n: 30, len: [0.0248, 0.0638], r: 0.0187, band: [0.6, 0.98] } }],
         monasteries: [{ x: 0, y: 75.6, z: -175, yaw: 0.4, kind: 'tower', s: 1.2 }],
-        discs: [[48, 104, -168, 14, 2.5], [48, 136, -168, 9, 2]],
-        stones: [[48, 75.5, -168, [[8, 1.2, 0.1], [4, 0.9, 0.1]]], [48.5, 106, -168, [[9, 0.9, 0.15]]], [48.5, 137.5, -168, [[4, 1, 0.2]]]],
+        // (each piece rests on the one under it, as the sheet stacks them: no disc held up in the air)
+        discs: [[48, 104, -168, 14, 2.5], [48, 124, -168, 9, 2]],
+        stones: [[48, 75.5, -168, [[8, 1.2, 0.1, 0.22], [4, 0.9, 0.1]]], [48.5, 104.4, -168, [[9, 0.9, 0.15, 0.24]]], [48.5, 124.3, -168, [[4, 1, 0.2, 0.2]]]],
         aqueducts: [{ a: [-200, -210], b: [200, -230], y0: 8, W: 9, bays: 6, pier: 0.3, thick: 4, seed: 3, ends: 0, bottom: -80, parapets: true }],
         clouds: { y: -55, near: 60, far: 1500, n: 260, size: [12, 30] },
       });
@@ -501,7 +559,7 @@ export const VAEL2_VIEWS = [
       vaelScene(kit, v, {
         seed: 37853,
         mushrooms: [{ x: 35, z: -130, R: 52, top: 45, stalk: 40, capT: 7, under: 12, dome: 0.8, rib: 1.2, ribK: 40, foot: 0.95, neckR: 0.97, waist: 0.03, base: -250, mat: 'rose', smooth: false, off: [-10, 4], squash: [1, 0.6] }],
-        monasteries: [{ x: 24, y: 45.6, z: -128, yaw: -0.2, kind: 'palace', s: 1.4 }],
+        monasteries: [{ x: 26, y: 45.6, z: -128, yaw: -0.2, kind: 'palace', s: 1.2 }],   // (all of it on the cap: nothing built out over the lip)
         birds: [{ at: [-5, 22.6, -26], yaw: 1.9, s: 1.6, fly: true, rider: true }],
         clouds: { y: -20, near: 160, far: 1500, n: 260, size: [10, 26], pink: true },
       });
@@ -515,7 +573,7 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37854,
-        mushrooms: [{ x: 3, z: -120, R: 68, top: 65, dome: 7, stalk: 16, capT: 10, under: 25, base: -100 }],
+        mushrooms: [{ x: 3, z: -120, R: 68, top: 65, dome: 7, stalk: 16, capT: 10, under: 25, base: -100, lean: [0.05, 0.11], drips: { n: 28, len: [0.031, 0.087], r: 0.0238, band: [0.4, 0.95] } }],
         spires: [{ x: -35, z: -90, y: -40, H: 85, R: 8, n: 1, rubble: false }],
         clouds: { y: -22, near: 50, far: 1500, n: 280, size: [12, 30] },
       });
@@ -553,7 +611,7 @@ export const VAEL2_VIEWS = [
         seed: 37862,
         spires: [{ x: 6, z: -70, y: -70, H: 98, R: 3.2, n: 0, rubble: false }],
         discs: [[9, 27, -70, 12.5, 2, 'peach']],
-        stones: [[9.3, 30, -70, [[8, 2.6, 0.14]]]],
+        stones: [[9.3, 30, -70, [[8, 2.6, 0.14, 0.3]]]],
         extra(k, M) {
           // the flank on the left, a great rounded rock rising out of the frame
           k.add(M.bone, place(boulder(1, 1, 1, 1, 0.05, 7), -52, 5, -62, 0.3, 42, 80, 40));
@@ -588,7 +646,7 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37864,
-        mushrooms: [{ x: 3, z: -62, R: 80, top: 70, stalk: 9, capT: 6, under: 40, base: -100 }],
+        mushrooms: [{ x: 3, z: -62, R: 80, top: 70, stalk: 9, capT: 6, under: 40, base: -100, lean: [0.03, 0.08], drips: { n: 34, len: [0.031, 0.0812], r: 0.0204, band: [0.35, 0.95] } }],
         spires: [{ x: -15, z: -42, y: -100, H: 175, R: 8, n: 0, rubble: false }],
         birds: [{ at: [3, -11], yaw: 2.2, s: 0.8 }, { at: [5, -12.5], yaw: -2.6, s: 0.7 }],
         clouds: { y: -30, near: 30, far: 1200, n: 240, size: [10, 26] },
@@ -603,7 +661,7 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37865,
-        mushrooms: [{ x: -13, z: -62, R: 24, top: 11, dome: 2, stalk: 6, capT: 4, under: 13, base: -100, off: [11, 0], mat: 'peach' }],
+        mushrooms: [{ x: -13, z: -62, R: 24, top: 11, dome: 2, stalk: 6, capT: 4, under: 13, base: -100, off: [11, 0], mat: 'peach', lean: [0.04, -0.13], drips: { n: 18, len: [0.0434, 0.116], r: 0.0374, band: [0.4, 0.95] } }],
         aqueducts: [{ a: [-200, -250], b: [200, -260], y0: 140, W: 12, bays: 5, pier: 0.3, rise: 1.4, thick: 15, seed: 6, ends: 0, bottom: -120 }],
         clouds: [{ y: -30, near: 40, far: 1400, n: 240, size: [10, 26] }, { y: 50, near: 140, far: 400, n: 20, size: [20, 36], deck: false, spread: 30 }],
         extra(k, M) { for (const [x, z, r] of [[-8, -10, 1.6], [6, -14, 1.2], [-3, -20, 2.2], [10, -6, 0.9]]) k.add(M.peach, place(boulder(r, 1.2, 0.7, 1, 0, x), x, k.H(x, z) + r * 0.3, z)); },
@@ -638,10 +696,12 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37872,
-        mushrooms: [{ x: -50, z: -100, R: 54, top: 115, stalk: 30, capT: 70, under: 15, dome: 4, base: -150, foot: 1.2, mat: 'peach', squash: [1, 0.6] }],
-        stones: [[44, 50, -120, [[9, 1.75, 0.15], [8.5, 1.7, 0.12]]]],
+        mushrooms: [{ x: -50, z: -100, R: 54, top: 115, stalk: 30, capT: 70, under: 15, dome: 4, base: -150, foot: 1.2, mat: 'peach', squash: [1, 0.6], lean: [0.03, -0.06],
+          drips: { n: 24, len: [0.0496, 0.1508], r: 0.034, band: [0.45, 0.97] } }],
+        stones: [[44, 50, -120, [[9, 1.75, 0.15, 0.24], [8.5, 1.7, 0.12, 0.2]]]],
         aqueducts: [{ a: [-90, -150], b: [100, -150], y0: -10, W: 22, bays: 1, pier: 0.04, rise: 0.6, thick: 10, rough: 2.4, seed: 8, ends: 0.2, flare: 0.5, bulge: 0.3, bottom: -120, mat: 'bone' }],
         spires: [{ x: -5, z: -250, y: -9, H: 15, R: 2, n: 2, rubble: false }, { x: -40, z: -260, y: -9, H: 12, R: 2, n: 1, rubble: false }],
+        extra(k, M) { k.add(M.bone, drips([[6, -20, -150, 15], [-14, -19.4, -150, 7]], { r: 0.75, seed: 12 }), { solid: false, shadow: false }); },
         clouds: [{ y: -60, near: 60, far: 1400, n: 260, size: [12, 30] }, { y: 15, near: 180, far: 360, n: 16, size: [28, 44], deck: false, spread: 18, yaw: 18 }],
       });
     },
@@ -654,8 +714,9 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37873,
-        mushrooms: [{ x: 30, z: -140, R: 72, top: 78, stalk: 28, capT: 8, under: 33, dome: 0.8, rib: 1.6, ribK: 44, base: -200, foot: 1.4, neckR: 1, waist: 0.05, squash: [1, 0.6] }],
-        monasteries: [{ x: 4, y: 78.6, z: -140, yaw: 0, kind: 'palace', s: 1.8 }],
+        mushrooms: [{ x: 30, z: -140, R: 72, top: 78, stalk: 28, capT: 8, under: 33, dome: 0.8, rib: 1.6, ribK: 44, base: -200, foot: 1.4, neckR: 1, waist: 0.05, squash: [1, 0.6],
+          drips: { n: 26, len: [0.031, 0.0812], r: 0.0221, band: [0.45, 0.96] } }],
+        monasteries: [{ x: 18, y: 78.6, z: -140, yaw: 0, kind: 'palace', s: 1.5 }],   // (on the cap, as the sheet sets it: no house hung off its edge)
         clouds: { y: -10, near: 80, far: 1600, n: 260, size: [14, 32] },
       });
     },
@@ -668,10 +729,31 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37874,
-        mushrooms: [{ x: -5, z: -125, R: 22, top: 40, stalk: 5, capT: 5, under: 8, base: -60 }, { x: -30, z: -115, R: 11.5, top: 5, stalk: 3, capT: 2.4, under: 4, base: -60 }],
-        aqueducts: [{ a: [-30, -20], b: [14, -22], y0: 24, W: 18, bays: 1, pier: 0.04, rise: 0.5, thick: 10, rough: 3, seed: 9, ends: 0, flare: 0.5, bulge: 0.4, bottom: -40, mat: 'bone' }],
-        spires: [{ x: 9, z: -22, y: -40, H: 70, R: 6, n: 1, rubble: false }],
+        mushrooms: [{ x: -5, z: -125, R: 22, top: 40, stalk: 5, capT: 5, under: 8, base: -60, lean: [0.05, -0.14], drips: { n: 16, len: [0.0496, 0.1276], r: 0.0408, band: [0.45, 0.95] } }, { x: -30, z: -115, R: 11.5, top: 5, stalk: 3, capT: 2.4, under: 4, base: -60, lean: [-0.04, 0.15], drips: { n: 11, len: [0.0496, 0.1276], r: 0.051, band: [0.5, 0.95] } }],
         clouds: { y: -14, near: 70, far: 1400, n: 280, size: [8, 22] },
+        // the mouth itself: a lumpy roof of rock low overhead with a ragged row of drips along its
+        // lip, and a bulging jamb down the right, the two of them framing the cloud (IMG_3787 p4)
+        extra(k, M) {
+          const lobe = (x, y, z, sx, sy, sz, sd) => k.add(M.rose, place(boulder(1, 1, 1, 1, 0.04, sd), x, y, z, sd * 0.7, sx, sy, sz));
+          for (const [x, y, z, sx, sy, sz, sd] of [
+            [-14, 30, -26, 30, 11, 15, 3], [12, 32, -30, 26, 12, 14, 7], [-40, 27, -20, 20, 9, 13, 11],
+            [-2, 36, -12, 34, 13, 12, 17], [30, 30, -17, 16, 9, 11, 23],
+          ]) lobe(x, y, z, sx, sy, sz, sd);
+          const roofDrips = [];
+          for (let i = 0; i < 30; i++) {
+            const u = i / 29, x = -48 + u * 78 + nV(i * 1.3, 2) * 3;
+            const y = 20.5 + 2.6 * nW(i * 0.7, 5) - Math.abs(x + 6) * 0.045;
+            roofDrips.push([x, y, -24 + nV(i, 9) * 6, 1.4 + Math.pow(Math.abs(nW(i * 2.1, 1)), 1.5) * 7]);
+          }
+          k.add(M.rose, drips(roofDrips, { r: 1.05, seed: 4 }), { solid: false, shadow: false });
+          // the right jamb: a pillar of rock lobes falling out of the roof past the cloud
+          for (const [x, y, z, sx, sy, sz, sd] of [
+            [21, 14, -27, 8, 15, 8, 31], [23, -8, -28, 7, 13, 7, 37], [19, -28, -26, 6, 12, 6, 41],
+            [24, 26, -26, 8, 10, 7, 43], [27, 2, -30, 6, 12, 6, 47],
+          ]) lobe(x, y, z, sx, sy, sz, sd);
+          // a long drip from the roof's deepest lobe, as the sheet hangs one from the arch's crown
+          k.add(M.rose, drips([[-9, 19, -20, 16], [14, 20.5, -22, 11]], { r: 1.3, seed: 8 }), { solid: false, shadow: false });
+        },
       });
     },
   }),
@@ -683,7 +765,7 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37875,
-        mushrooms: [{ x: 0, z: -50, R: 44, top: 60, stalk: 7, capT: 7, under: 40, base: -140, foot: 1.6, mat: 'peach', off: [-8, 10] }],
+        mushrooms: [{ x: 0, z: -50, R: 44, top: 60, stalk: 7, capT: 7, under: 40, base: -140, foot: 1.6, mat: 'peach', off: [-8, 10], lean: [-0.05, 0.1], drips: { n: 26, len: [0.0372, 0.0986], r: 0.0272, band: [0.3, 0.95] } }],
         spires: [{ x: -30, z: -60, y: -40, H: 26, R: 3, n: 1, rubble: false }, { x: 28, z: -55, y: -40, H: 22, R: 3, n: 1, rubble: false }],
         clouds: { y: -26, near: 40, far: 1400, n: 240, size: [10, 26] },
       });
@@ -724,10 +806,10 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37882,
-        mushrooms: [{ x: -12, z: -150, R: 13, top: 71, stalk: 12, capT: 6, under: 1, dome: 8, base: -120, mat: 'bone', smooth: false, foot: 1.05, neckR: 1, waist: 0.03, rib: 0, outline: 0.06 }],
+        mushrooms: [{ x: -12, z: -150, R: 13, top: 71, stalk: 12, capT: 6, under: 1, dome: 8, base: -120, mat: 'bone', smooth: false, foot: 1.05, neckR: 1, waist: 0.03, rib: 0, outline: 0.06, lean: [0.03, 0.09] }],
         spires: [{ x: -45, z: -170, y: -40, H: 70, R: 6, n: 2, rubble: false }],
         discs: [[-2, 92, -150, 12, 3.5]],
-        stones: [[-2, 80, -150, [[1.6, 1.4, 0.2]]], [26, 58, -150, [[1.8, 2.2, 0.15]]]],
+        stones: [[-2, 80, -150, [[1.6, 1.4, 0.2, 0.24]]], [26, 58, -150, [[1.8, 2.2, 0.15, 0.26]]]],
         aqueducts: [{ a: [-160, -120], b: [160, -125], y0: -3, W: 10, bays: 5, pier: 0.32, rise: 1.2, thick: 6, seed: 4, ends: 0, bottom: -150 }],
         clouds: { y: -50, near: 60, far: 1400, n: 260, size: [12, 30], pink: true },
       });
@@ -758,7 +840,7 @@ export const VAEL2_VIEWS = [
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37884,
-        mushrooms: [{ x: -2.3, z: -14, R: 6.3, top: 6, dome: 0.6, stalk: 2.1, foot: 1.25, capT: 1.4, under: 1.6, base: -3, off: [-0.7, 0] }, { x: -14, z: -26, R: 3.6, top: 3.8, dome: 0.4, stalk: 1.2, capT: 0.9, under: 1.1, base: -3 }],
+        mushrooms: [{ x: -2.3, z: -14, R: 6.3, top: 6, dome: 0.6, stalk: 2.1, foot: 1.25, capT: 1.4, under: 1.6, base: -3, off: [-0.7, 0], lean: [0.04, -0.12], drips: { n: 12, len: [0.0496, 0.1392], r: 0.051, band: [0.4, 0.94] } }, { x: -14, z: -26, R: 3.6, top: 3.8, dome: 0.4, stalk: 1.2, capT: 0.9, under: 1.1, base: -3, lean: [-0.03, 0.13], drips: { n: 8, len: [0.0558, 0.145], r: 0.0595, band: [0.45, 0.94] } }],
         spires: [{ x: -12, z: -15, H: 14, R: 1.6, n: 0, rubble: false }],
         towers: [[725, -1300, 1]],
         clouds: { y: 0, near: 1500, far: 2600, n: 80, spread: 20, yaw: 22, size: [30, 60], deck: false },

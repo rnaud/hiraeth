@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {Flock} from '../src/life.js';
-import {Bird,TAKEOFF,LANDING,FOOT} from '../src/bird.js';
+import {Bird,TAKEOFF,LANDING,FOOT,STAND,buildBird,poseWings} from '../src/bird.js';
 const physics={groundAt:()=>0,pushCapsule:()=>false};
 test('small birds have separate bodies and feathered wings, with bounded distance scaling',()=>{
  const scene=new THREE.Scene(),flock=new Flock(scene,{count:5,size:1});
@@ -21,6 +21,26 @@ test('mount unfolds smoothly for flight and folds to a narrower landed silhouett
  assert.ok(bird.legs.every(l=>l.rotation.x<-1));
  bird.flapPower=1;bird.pose(.1);const a=bird.wings[0].shoulder.rotation.z;bird.pose(.2);assert.notEqual(bird.wings[0].shoulder.rotation.z,a);
  bird.landed=true;for(let i=0;i<180;i++)bird.pose(1/60);assert.ok(bird.wingFold>.99);
+});
+// Standing, her wings are folded along her flanks as the sheets draw her (IMG_3786 panel 4), not
+// held out flat behind her: each wing within a hand of her side, ending at her tail, clear of her legs.
+const inBody=(bird,o)=>{bird.object.updateMatrixWorld(true);const inv=bird.body.matrixWorld.clone().invert(),bb=new THREE.Box3(),v=new THREE.Vector3();
+ o.traverse(m=>{if(!m.isMesh)return;const g=m.geometry.attributes.position;for(let i=0;i<g.count;i++)bb.expandByPoint(v.fromBufferAttribute(g,i).applyMatrix4(m.matrixWorld).applyMatrix4(inv));});return bb;};
+test('standing, her wings lie folded along her flanks, and her feet are on the ground',()=>{
+ const bird=new Bird(physics);bird.update(1/60,null);
+ for(const w of bird.wings){
+  const b=inBody(bird,w.shoulder);
+  assert.ok(Math.max(Math.abs(b.min.x),Math.abs(b.max.x))<1.15,`against her side: ${b.min.x.toFixed(2)}..${b.max.x.toFixed(2)}`);
+  assert.ok(b.min.z>-3.4,`ending at her tail (its tip at -3): ${b.min.z.toFixed(2)}`);
+  assert.ok(b.min.y>-0.9,`clear of her legs: ${b.min.y.toFixed(2)}`);
+ }
+ for(const l of bird.legs){const f=l.localToWorld(FOOT.clone());assert.ok(Math.abs(f.y)<0.08,`a foot on the ground: ${f.y.toFixed(3)}`);}
+ // a bird built for a picture (the reference views) is folded the same way, and spreads the same way
+ const b=buildBird();b.root.updateMatrixWorld(true);
+ const w0=new THREE.Box3().expandByObject(b.wings[1].shoulder,true);
+ poseWings(b.wings,0);b.root.updateMatrixWorld(true);
+ const w1=new THREE.Box3().expandByObject(b.wings[1].shoulder,true);
+ assert.ok(w0.max.x<1.15&&w1.max.x>6,`folded ${w0.max.x.toFixed(2)}, spread ${w1.max.x.toFixed(2)}`);
 });
 test('mount can still board, take off, fly and provide a finite rider seat',()=>{
  const bird=new Bird(physics);bird.board();for(let i=0;i<120;i++)bird.update(1/60,{Space:true});
@@ -71,7 +91,7 @@ test('taking off she crouches, leaps, and beats her wings only at the top of the
 const feetY=(bird)=>{bird.object.updateMatrixWorld(true);return bird.legs.map(l=>l.localToWorld(FOOT.clone()));};
 function comeIn(ground,{h=6,speed=12}={}){
  const bird=new Bird({groundAt:(x,y,z)=>ground(x,z),pushCapsule:()=>false});
- bird.pos.set(0,ground(0,0)+1.4+h,0);bird.heading=0;bird.landed=false;bird.speed=speed;bird.board();
+ bird.pos.set(0,ground(0,0)+STAND+h,0);bird.heading=0;bird.landed=false;bird.speed=speed;bird.board();
  const log=[];
  let down=-1;
  for(let i=0;i<600&&(down<0||i<down+150);i++){
@@ -117,7 +137,7 @@ test('on a slope each foot finds the ground under it (no sinking, no floating)',
  for(const f of feetY(bird))assert.ok(Math.abs(f.y-slope(f.x))<0.08,`after a walk: ${f.y.toFixed(2)} vs ${slope(f.x).toFixed(2)}`);
 });
 test('flying level low over the ground, or skimming fast, she keeps her legs tucked',()=>{
- const bird=new Bird(physics);bird.pos.set(0,1.4+3,0);bird.landed=false;bird.speed=20;bird.board();
+ const bird=new Bird(physics);bird.pos.set(0,STAND+3,0);bird.landed=false;bird.speed=20;bird.board();
  for(let i=0;i<60;i++)bird.update(1/60,{});
  assert.ok(bird.landK<0.1,`legs tucked flying level: ${bird.landK.toFixed(2)}`);
  assert.ok(bird.legs.every(l=>l.rotation.x<-1),'tucked');

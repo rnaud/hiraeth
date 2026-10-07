@@ -84,9 +84,12 @@ scene-level modelling and a few shader limits:
     whatever the sun.
   - Lorn II: roots and bushes as dense hatched masses.
 - [ ] Scene-level, world by world (modelling, not shading):
-  - Vael II: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's framing, the
+  - [x] Vael II: the overhangs' drips and stalactites, the cracked eggs, the cave mouth's framing, the
     monasteries' detail (arcades, cypresses, roofs), the mushrooms' lean, the bird's standing pose
-    (buildBird's rest pose lies low), the cloud sea's cauliflower detail.
+    (buildBird's rest pose lies low), the cloud sea's cauliflower detail. (Done, October 2026: drips
+    rooted in the undersides and printed in their shade, cracked eggs and stones, the cave mouth hung
+    with stalactites, arcades, eaves, finials and cypresses, leaning tables, the bird on long legs with
+    her wings folded along her sides (`poseWings`), knobbly cloud; docs/systems/worlds.md, animation.md.)
   - The Garden of Spheres: the white hill's sculpted rock, the ruins' arcades, the robot, the hedges'
     fruit, the plaza's paving are sketches.
   - Lorn II: the nest in the great cap, the caves' framing, the roots' tangle, the banks' bushes.

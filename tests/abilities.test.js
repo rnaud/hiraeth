@@ -56,7 +56,7 @@ function setup({ up = null, physics = ground(), mount = null } = {}) {
   return { p, tool, scene, camera, state, step, calls };
 }
 
-test('no backpack: no tank, hose or bracer, nothing fires, nothing throws; found, it shimmers onto the back and works', () => {
+test('no backpack: no tank, hose or glove, nothing fires, nothing throws; found, it shimmers onto the back and works', () => {
   own();
   const { p, tool, step } = setup();
   const pocket = new THREE.Object3D(); p.humanoid.packPocket = [pocket];   // (the rucksack's outer pocket, traveller.js)
@@ -65,7 +65,7 @@ test('no backpack: no tank, hose or bracer, nothing fires, nothing throws; found
   assert.equal(tool.tank.group.visible, false, 'a bare back');
   assert.equal(pocket.visible, true, 'the rucksack keeps its outer pocket');
   assert.equal(tool.hose.mesh.visible, false);
-  assert.equal(tool.bracer.group.visible, false);
+  assert.equal(tool.glove.visible, false, 'a bare hand');
   assert.deepEqual(tool.modes, [], 'no gun modes');
   step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true }); step(1, { KeyC: true }); step(10);
   assert.equal(tool.k, 0, 'the arm never comes up');
@@ -82,7 +82,7 @@ test('no backpack: no tank, hose or bracer, nothing fires, nothing throws; found
   step(70);
   assert.ok(Math.abs(tool.tank.group.scale.x - TANK.scale) < 1e-6 && tool.appear === 1);
   assert.equal(pocket.visible, false, 'the flask sits over the pocket');
-  assert.equal(tool.bracer.group.visible, true); assert.equal(tool.hose.mesh.visible, true);
+  assert.equal(tool.glove.visible, true, 'the glove on'); assert.equal(tool.hose.mesh.visible, true);
   p.pos.set(0, 0, 0); p.onGround = true; step(5);
   step(1, { KeyC: true }); step(12);
   assert.equal(tool.charges, 2, 'the push works now');
@@ -189,7 +189,6 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'stun');
   assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.stun.tones[0], 'cold blue in the tank');
-  assert.equal('#' + tool.bracer.lens.material.uniforms.uColor.value.getHexString(), MODES.stun.tones[0], 'and on the bracer');
   step(1, { PadModeNext: true }); step(1);
   assert.equal(tool.mode, 'fire', 'D-pad right');
   assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.fire.tones[0], 'ember orange');

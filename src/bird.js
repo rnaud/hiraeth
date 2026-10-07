@@ -20,7 +20,7 @@ import { padRide } from './controller.js';
 const MIN_SPEED = 9;
 const MAX_SPEED = 55;
 /** Walking on the ground: speed (m/s), strides (rad of the step cycle a second; turning on the spot: slower), leg swing, lift, bob. */
-export const GAIT = { speed: 5, stride: 9.5, turnStride: 6, swing: 0.55, lift: 0.14, bob: 0.07, sway: 0.05 };
+export const GAIT = { speed: 5, stride: 9.5, turnStride: 6, swing: 0.55, lift: 0.22, bob: 0.09, sway: 0.05 };
 /** Taking off: the crouch (s), the leap's speed up and forward (m/s), gravity on it, the first wingbeat's speed. */
 export const TAKEOFF = { crouch: 0.22, up: 8.5, forward: 7, gravity: 14, flight: 16 };
 /**
@@ -30,9 +30,43 @@ export const TAKEOFF = { crouch: 0.22, up: 8.5, forward: 7, gravity: 14, flight:
  * ground. Touching down she sinks into her knees (`dip` m, over `settle` s) and walks out up to
  * `runout` m/s of her speed.
  */
-export const LANDING = { height: 5, descent: 0.6, ttc: 1.6, rate: 5, reach: 0.5, lower: 0.12, flare: 0.42, brake: 9, touch: 2.2, dip: 0.28, settle: 0.5, runout: 5, footReach: 0.45 };
+export const LANDING = { height: 5, descent: 0.6, ttc: 1.6, rate: 5, reach: 0.5, lower: 0.12, flare: 0.42, brake: 9, touch: 2.2, dip: 0.42, settle: 0.5, runout: 5, footReach: 0.6 };
 /** Where her feet are on the leg (the leg's own frame: the middle toe's base), and the ground under it. */
-export const FOOT = new THREE.Vector3(0, -0.91, 0.25);
+export const FOOT = new THREE.Vector3(0, -1.66, 0.22);
+/**
+ * How high her body rides over the ground standing (m, and flying: the pos she is held at). The sheets
+ * draw her standing tall on long legs, her belly well clear of the rock (IMG_3786 panel 4), so the
+ * legs reach LEG m below the body's centre and she is held LEG + a toe's thickness over the ground.
+ */
+export const LEG = 0.54 - FOOT.y;
+export const STAND = LEG + 0.04;
+/**
+ * Her wings folded (the sheets: laid along her flanks, the tips crossing over the tail, IMG_3786 panel 4):
+ * each arm `roll`s about its own length until the feathers hang down her side, sweeps back (`sweep`)
+ * along the flank, a little `droop`; the feathers draw in to `chord` of their depth and the hand,
+ * tucked in (`tuck`, `hand`), to `handScale` of its size, so the folded wing ends near her tail.
+ */
+export const FOLD = { roll: 1.3, sweep: 1.47, droop: 0.05, chord: 0.5, tuck: 0.1, hand: 0.3, handScale: 0.32 };
+/**
+ * The wings' pose: `fold` 0 (spread, beating with `flap`'s phase and `amp`) to 1 (folded, FOLD);
+ * `flare` cups them against the air coming in to land. (The shoulder turns in YXZ order: roll about
+ * the arm first, then the sweep, so a folded wing lies against her side instead of out flat.)
+ */
+export function poseWings(wings, fold, flap = 0, amp = 0, flare = 0, flapPower = 0) {
+  const F = FOLD;
+  for (const w of wings) {
+    // Shoulder powers the stroke; the wrist follows and twists on recovery.
+    w.shoulder.rotation.order = 'YXZ';
+    w.shoulder.rotation.x = -fold * F.roll - flare * 0.25;
+    w.shoulder.rotation.y = w.side * (fold * F.sweep - flare * 0.3);
+    w.shoulder.rotation.z = w.side * (Math.sin(flap) * amp + .08 * (1 - fold) - fold * F.droop + flare * 0.3);
+    w.shoulder.scale.set(1, 1, 1 - (1 - F.chord) * fold);
+    w.elbow.rotation.y = w.side * (fold * F.tuck + (1 - fold) * (.12 + Math.max(0, Math.cos(flap)) * .22 * flapPower));
+    w.elbow.rotation.z = w.side * (Math.sin(flap - .65) * amp * .48 + fold * F.hand);
+    w.elbow.rotation.x = Math.cos(flap - .35) * amp * .18;
+    w.elbow.scale.setScalar(1 - (1 - F.handScale) * fold);
+  }
+}
 const _v = new THREE.Vector3(), _from = new THREE.Vector3(), _f = new THREE.Vector3();
 
 export function buildBird() {
@@ -87,16 +121,24 @@ export function buildBird() {
     for(let i=0;i<7;i++) feather(shoulder,.9,.46,side*(.3+i*.34),.16,.16,-side*.35,cover);
     shoulder.add(elbow);body.add(shoulder);wings.push({shoulder,elbow,side});
   }
+  poseWings(wings,1);   // (built folded, as she stands)
+  // Long wading legs: a feathered drumstick out of the belly, a knuckled hock, a bare tarsus down to
+  // a three-toed foot. She stands on them, her belly a body's depth clear of the ground (the sheets).
   const legs=[];
   for(const side of [-1,1]) {
-    const leg=new THREE.Group();leg.position.set(side*.42,-.45,-.45);
-    ellipsoid(leg,0,-.18,0,.22,.4,.32,white);
-    const shin=new THREE.Mesh(new THREE.CylinderGeometry(.075,.055,.6,7),ochre);shin.position.set(0,-.58,.08);leg.add(shin);
+    const leg=new THREE.Group();leg.position.set(side*.44,-.54,-.4);
+    ellipsoid(leg,0,-.3,-.02,.27,.54,.4,white);                                       // the drumstick, feathered
+    for(let k=0;k<3;k++) feather(leg,.56,.3,side*.12,-.1-k*.19,-.12,side*.55,featherWhite);   // its covert feathers
+    ellipsoid(leg,0,-.86,.05,.115,.14,.13,ochre);                                     // the hock
+    const shin=new THREE.Mesh(new THREE.CylinderGeometry(.085,.062,.82,7),ochre);shin.position.set(0,-1.26,.1);leg.add(shin);
+    ellipsoid(leg,0,-1.64,.1,.09,.085,.12,ochre);                                     // the ankle over the foot
     for(let i=-1;i<=1;i++) {
-      const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,-.85,.08),new THREE.Vector3(i*.13,-.91,.28),new THREE.Vector3(i*.22,-.91,.58)]);
-      leg.add(new THREE.Mesh(new THREE.TubeGeometry(curve,4,.045,5,false),ochre));
-      const claw=new THREE.Mesh(new THREE.ConeGeometry(.05,.18,5).rotateX(Math.PI/2),dark);claw.position.set(i*.22,-.91,.65);leg.add(claw);
+      const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,-1.6,.08),new THREE.Vector3(i*.14,-1.66,.26),new THREE.Vector3(i*.24,-1.66,.56)]);
+      leg.add(new THREE.Mesh(new THREE.TubeGeometry(curve,4,.05,5,false),ochre));
+      const claw=new THREE.Mesh(new THREE.ConeGeometry(.055,.2,5).rotateX(Math.PI/2),dark);claw.position.set(i*.24,-1.66,.64);leg.add(claw);
     }
+    const back=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0,-1.6,.06),new THREE.Vector3(0,-1.66,-.1),new THREE.Vector3(0,-1.64,-.22)]),3,.04,5,false),ochre);
+    leg.add(back);                                                                     // the back toe
     body.add(leg);legs.push(leg);
   }
   const seat=new THREE.Group();seat.position.set(0,.88-.56,.2);body.add(seat);
@@ -128,7 +170,7 @@ export class Bird {
     this.tail = b.tail;
     this.wingFold = 1;
     this.pos = new THREE.Vector3(10, 0, 6);
-    this.pos.y = physics.groundAt(10, 1e4, 6) + 1.4;
+    this.pos.y = physics.groundAt(10, 1e4, 6) + STAND;
     this.vel = new THREE.Vector3();
     this.heading = Math.PI;
     this.pitch = 0;
@@ -171,7 +213,7 @@ export class Bird {
     }
     // land on the ground at the player's level (not on an arch above them)
     const from = near ? near.y + 4 : 1e4;
-    this.target = new THREE.Vector3(x, this.physics.groundAt(x, from, z) + 1.4, z);
+    this.target = new THREE.Vector3(x, this.physics.groundAt(x, from, z) + STAND, z);
     this.targetHeading = heading;
     if (this.pos.distanceTo(this.target) > 600) this.pos.set(x - 200, this.target.y + 120, z - 200);
     this.landed = false;
@@ -201,10 +243,10 @@ export class Bird {
     this.pose(dt);
   }
 
-  /** Height of her feet over the ground under her (m; the body rides 1.4 m over it). */
+  /** Height of her feet over the ground under her (m; the body rides STAND m over it, on her legs). */
   heightOver() {
     const g = this.physics.groundAt(this.pos.x, this.pos.y + 0.5, this.pos.z);
-    return Number.isFinite(g) ? this.pos.y - 1.4 - g : Infinity;
+    return Number.isFinite(g) ? this.pos.y - STAND - g : Infinity;
   }
 
   /** Coming in to land (LANDING): how much her legs are out and her wings flared, from her height and her sink. */
@@ -248,7 +290,7 @@ export class Bird {
     this.pitch *= Math.exp(-4 * dt);
     this.bank *= Math.exp(-4 * dt);
     const g = this.physics.groundAt(this.pos.x, this.pos.y + 1, this.pos.z);
-    this.pos.y += (g + 1.4 - this.pos.y) * (1 - Math.exp(-6 * dt));
+    this.pos.y += (g + STAND - this.pos.y) * (1 - Math.exp(-6 * dt));
     this.flapPower *= Math.exp(-3 * dt);
   }
 
@@ -260,7 +302,7 @@ export class Bird {
     this.pos.z += fz * 14 * dt;
     this.pos.y -= 6 * (1 - 0.7 * this.landK) * dt;   // (the flare: slower over the last metres)
     const g = this.physics.groundAt(this.pos.x, this.pos.y + 1, this.pos.z);
-    if (this.pos.y < g + 1.4) { this.pos.y = g + 1.4; this.landed = true; this.mode = 'idle'; }
+    if (this.pos.y < g + STAND) { this.pos.y = g + STAND; this.landed = true; this.mode = 'idle'; }
     this.bank = 0.3;
   }
 
@@ -277,7 +319,7 @@ export class Bird {
     // rise smoothly over hills and roofs on the way instead of through them
     const g = this.physics.groundAt(this.pos.x, this.pos.y + 3, this.pos.z);
     if (d > 4 && this.pos.y < g + 3) this.pos.y += (g + 3 - this.pos.y) * (1 - Math.exp(-8 * dt));
-    if (this.pos.y < g + 1.4) this.pos.y = g + 1.4;
+    if (this.pos.y < g + STAND) this.pos.y = g + STAND;
     let dh = Math.atan2(aim.x, aim.z) - this.heading;
     dh = Math.atan2(Math.sin(dh), Math.cos(dh));
     this.heading += dh * (1 - Math.exp(-3 * dt));
@@ -304,7 +346,7 @@ export class Bird {
     // (quick to speed up: a rider who jumped off falls ever faster, player.js watchFall)
     this.speed = THREE.MathUtils.lerp(this.speed, Math.max(vlen + 18, Math.min(70, d * 2 + 10)), 1 - Math.exp(-6 * dt));
     this.pos.addScaledVector(aim, Math.min(this.speed * dt, d));
-    if (this.pos.y < g + 1.4) this.pos.y = g + 1.4;
+    if (this.pos.y < g + STAND) this.pos.y = g + STAND;
     let dh = Math.atan2(aim.x, aim.z) - this.heading;
     dh = Math.atan2(Math.sin(dh), Math.cos(dh));
     this.heading += dh * (1 - Math.exp(-5 * dt));
@@ -374,8 +416,8 @@ export class Bird {
     if (this.physics.embedded?.(this.pos)) { unbury(this, from, 1.4); this.speed = MIN_SPEED; }
     // the ground below, looked for from the height it flew in at (never under a roof it dived through)
     const g = this.physics.groundAt(this.pos.x, Math.max(from.y, this.pos.y) + 0.5, this.pos.z);
-    if (this.pos.y < g + 1.4) {
-      this.pos.y = g + 1.4;
+    if (this.pos.y < g + STAND) {
+      this.pos.y = g + STAND;
       if (this.speed < 22 || dive >= 0) { this.landed = true; this.speed = 0; }
       else this.pitch = Math.min(this.pitch, -0.1);   // skim and pull up
     }
@@ -406,7 +448,7 @@ export class Bird {
     this.crouchK = -Math.min(1, (T.t - K.crouch) / 0.2);   // the legs push off, and trail
     if (sweepCapsule(this.physics, this.pos, from, 1.4, -1.0, 1.4, this._push)) T.speed *= 0.7;
     const g = this.physics.groundAt(this.pos.x, Math.max(from.y, this.pos.y) + 0.5, this.pos.z);
-    if (this.pos.y < g + 1.4) this.pos.y = g + 1.4;
+    if (this.pos.y < g + STAND) this.pos.y = g + STAND;
     // the top of the leap: the wings open and the first beat comes down
     if (T.vy <= 0.5) {
       this.takeoff = null; this.crouchK = 0;
@@ -430,15 +472,7 @@ export class Bird {
     const amp = this.takeoff ? 0 : (1-fold) * (.12 + Math.max(this.flapPower, 0.6 * Lk) * .65);
     // the flare: wings up and forward, cupped against the air
     const flare = Lk * (1 - fold);
-    for (const w of this.wings) {
-      // Shoulder powers the stroke; the wrist follows and twists on recovery.
-      w.shoulder.rotation.y = w.side * (fold * 1.12 - flare * 0.3);
-      w.shoulder.rotation.z = w.side * (Math.sin(this.flap) * amp - fold * .32 + .08 + flare * 0.3);
-      w.shoulder.rotation.x = -flare * 0.25;
-      w.elbow.rotation.y = w.side * (fold * 1.5 + (1-fold)*(.12 + Math.max(0,Math.cos(this.flap))*.22*this.flapPower));
-      w.elbow.rotation.z = w.side * Math.sin(this.flap-.65) * amp * .48;
-      w.elbow.rotation.x = Math.cos(this.flap-.35) * amp * .18;
-    }
+    poseWings(this.wings, fold, this.flap, amp, flare, this.flapPower);
     // the gait: walking on the ground (or stepping round on the spot), legs in turn, body bobbing
     const walking = this.landed && !this.takeoff && (this.groundSpeed > 0 || this.turning);
     this.walkK += ((walking ? (this.groundSpeed > 0 ? 1 : 0.6) : 0) - this.walkK) * (1 - Math.exp(-8 * dt));
@@ -455,7 +489,8 @@ export class Bird {
     const F = this.flareK, h = this.landed ? 0 : this.heightOver();
     const near = 1 - THREE.MathUtils.smoothstep(h, 0.2, 1.6);   // the last metre: the feet come level for the ground
     this.body.rotation.set(this.pitch + Math.sin(ph * 2) * 0.035 * W + (C > 0 ? 0.14 * C : 0.12 * C) - LANDING.flare * F + 0.08 * S, 0, this.bank + Math.sin(ph) * GAIT.sway * W);
-    this.body.position.y = -GAIT.bob * W * (0.5 - 0.5 * Math.cos(ph * 2)) - (C > 0 ? 0.42 * C : 0) - LANDING.dip * S;
+    // (tall legs: the crouch and the settle drop the body further, and the legs fold up with it)
+    this.body.position.y = -GAIT.bob * W * (0.5 - 0.5 * Math.cos(ph * 2)) - (C > 0 ? 0.62 * C : 0) - LANDING.dip * S;
     // legs: flying, tucked; coming in to land, down and reaching forward; walking, forward and back in
     // turn, lifted as it swings forward; the crouch and the settle bend them, the leap pushes back
     const legOut = Math.max(Lk, this.landed ? 1 : 0);
@@ -467,7 +502,7 @@ export class Bird {
       // (reaching forward, then, close to the ground, the toes brought level against the body's nose-up)
       const tucked = -(1 - fold) * 1.25 * (1 - legOut) + F * (-LANDING.reach * (1 - near) + (LANDING.flare - 0.1) * near);
       l.rotation.x = tucked + s * GAIT.swing * W + (C > 0 ? 0.45 * C : 0.7 * C) + 0.4 * S;
-      l.position.y = l.userData.y0 - LANDING.lower * F + (C > 0 ? 0.12 * C : 0);
+      l.position.y = l.userData.y0 - LANDING.lower * F + (C > 0 ? 0.5 * C : 0) + 0.3 * S;
       // the foot on the ground under it (its own ray: on a slope one reaches down, the other draws up)
       let drop = 0;
       if (plant > 0.01 && this.object.visible) {   // (not for a bird no one sees: the promised one, far off)
@@ -502,7 +537,7 @@ export function promisedBird(physics, spawn) {
   const b = new Bird(physics);
   const x = (spawn?.x ?? 0) - 480, z = (spawn?.z ?? 0) - 480;
   const g = physics.groundAt(x, 1e4, z);
-  b.pos.set(x, (Number.isFinite(g) ? g : spawn?.y ?? 0) + 1.4, z);
+  b.pos.set(x, (Number.isFinite(g) ? g : spawn?.y ?? 0) + STAND, z);
   b.object.visible = false;
   const summon = b.summon.bind(b);
   b.summon = (...args) => { b.object.visible = true; return summon(...args); };

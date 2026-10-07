@@ -11,9 +11,10 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 
 // The magic-fluid backpack: the traveller's signature tool. A glass tank of
 // shifting, lava-lamp fluid rides on the back; a ribbed hose runs from its cap
-// over the right shoulder and down the arm to a brass nozzle on a bracer. Three abilities share one reserve
+// over the right shoulder and down the arm into the cuff of a glove on the right hand: the glove is
+// what shoots, the fluid leaving from just in front of its knuckles. Three abilities share one reserve
 // of three charges (docs/game-brief.md, working decision 4):
-//   shoot  a glob of fluid, straight from the nozzle to the crosshair (no arc, no
+//   shoot  a glob of fluid, straight from the glove to the crosshair (no arc, no
 //          preview): it splashes on whatever it meets and leaves a short-lived
 //          colourful splat on surfaces (targets: onHit('shoot', point, dir, info)).
 //          Only while aiming (LT / L2, right mouse, R): the trigger that shoots
@@ -29,7 +30,7 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 // Two seconds after the last use, all three charges refill at once.
 //
 // Everything runs on the backpack (src/items.js): without items.has('backpack')
-// the tank, hose and bracer are not worn and nothing fires. The other items
+// the tank, hose and glove are not worn and nothing fires. The other items
 // grow out of it (fluid-kit.js):
 //   jetpack  two nozzles under the tank. Thrust burns the same reserve as a
 //            smooth gauge (FLUID.jet.drain charges a second: a full tank is
@@ -43,8 +44,8 @@ import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextM
 // Vehicles run on it too: boarding a powered vehicle swings the tank off the back into
 // its socket (the player's boarding / unboarding timers, HANDOFF), and back on when you
 // step off. While it is in a socket the tool is unavailable.
-// The tank shows the fill as three stacked bands of colour; the bracer has
-// three rings that light for the charges left. Magical water (the desert's
+// The tank shows the fill as three stacked bands of colour; the glove's three
+// knuckles light for the charges left, the plate on its back in the mode's tone. Magical water (the desert's
 // cave) refills it and adds a colour band for good: tool.refill({ addColour: true }).
 // An empty tank (game flag tool.empty: the desert's backpack comes out of its box dry,
 // src/story/desert.js) holds nothing and never refills by itself: no charges, nothing
@@ -571,34 +572,26 @@ function buildTank() {
   return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + (TANK.height + 0.11) * TANK.scale };
 }
 
-// The bracer, in the right forearm's outfit frame (Humanoid.forearm.r, as the outfit's own rig had it: +y
-// along the forearm toward the hand, -x the thumb side (up when aiming), +z
-// outward).
-const BRACER = { nozzle: [-0.056, 0.2, 0.0], muzzle: [-0.056, 0.335, 0.0], inlet: [-0.012, 0.075, 0.05], rings: [0.215, 0.248, 0.281] };
-
-function buildBracer() {
-  const g = new THREE.Group();
-  g.name = 'Fluid bracer';
-  const add = (geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
-  add(new THREE.CylinderGeometry(0.054, 0.05, 0.12, 14), flatMat(STEEL_DARK), 0, 0.13, 0);
-  for (const y of [0.074, 0.188]) add(new THREE.TorusGeometry(0.054, 0.009, 4, 16).rotateX(Math.PI / 2), flatMat(BRASS), 0, y, 0);
-  const [nx, ny, nz] = BRACER.nozzle;
-  add(new THREE.BoxGeometry(0.04, 0.07, 0.034), flatMat(BRASS_DARK), nx * 0.7, 0.16, nz);                                  // the saddle
-  add(new THREE.CylinderGeometry(0.02, 0.024, 0.15, 10), flatMat(BRASS), nx, ny + 0.06, nz);                                // barrel
-  add(new THREE.CylinderGeometry(0.038, 0.02, 0.04, 12, 1, true), flatMat(BRASS, { side: THREE.DoubleSide }), nx, ny + 0.145, nz);   // flared muzzle
-  const lens = add(new THREE.SphereGeometry(0.019, 10, 8), makeMaterial({ color: FLUID_TONES[0], flat: true, glow: 0.9 }), nx, ny + 0.13, nz);
-  const rings = BRACER.rings.map((y) => {
-    const m = makeMaterial({ color: INK, flat: true }).clone();
-    m.uniforms = { ...m.uniforms, uColor: { value: new THREE.Color(INK) }, uGlow: { value: 0 } };
-    return add(new THREE.TorusGeometry(0.03, 0.01, 6, 16).rotateX(Math.PI / 2), m, nx, y, nz);
-  });
-  const [ix, iy, iz] = BRACER.inlet;
-  add(new THREE.CylinderGeometry(0.02, 0.02, 0.05, 8), flatMat(BRASS), ix, iy, iz);
-  mergeParts(g, [lens, ...rings]);
-  return { group: noCollide(g), rings, lens, muzzle: new THREE.Vector3(...BRACER.muzzle), inlet: new THREE.Vector3(ix, iy - 0.03, iz) };
+/**
+ * The glove the fluid comes out of: the traveller wears it on his right hand (traveller.js
+ * fluidGlove: meshes skinned to the hand, hidden until the tank is worn, a plate and three charge
+ * lights; Humanoid.glove: their meshes and two anchors, the fluid's mouth in front of the knuckles
+ * and the hose's end on the cuff). A body without one (an NPC's, the tests' bare rig) still shoots
+ * from its right hand: the mouth a hand's length past the wrist, the hose to the wrist.
+ */
+function gloveOf(H) {
+  const G = H?.glove;
+  return { meshes: G?.meshes ?? [], plate: G?.plate ?? null, lights: G?.lights ?? [], muzzle: G?.muzzle ?? null, inlet: G?.inlet ?? null, show: G?.show ?? null, visible: false };
+}
+/** A lit part of the glove: its colour (from ink to `tone` by `k`) and glow. (Read off the mesh each time: markHero swaps its material.) */
+function lightGlove(mesh, tone, k, glow) {
+  const u = mesh?.material?.uniforms;
+  if (!u) return;
+  u.uColor.value.set(INK).lerp(_c.set(tone), k);
+  u.uGlow.value = glow * k;
 }
 
-/** The hose: a ribbed tube re-laid every frame along a Catmull-Rom curve through the tank, the arm and the bracer. */
+/** The hose: a ribbed tube re-laid every frame along a Catmull-Rom curve through the tank, the arm and the glove's cuff. */
 class Hose {
   constructor(parent, { rings = 48, sides = 7, radius = 0.02 } = {}) {
     Object.assign(this, { R: rings, S: sides, radius });
@@ -733,7 +726,7 @@ export class FluidTool {
     if (player) { player.onAirJump = (since, o) => this.boost(since, o); player.fuelSource = this; player.handoff = this; }
   }
 
-  /** Put the tank, hose and bracer on the traveller (needs the humanoid's chest anchor and arm bones). */
+  /** Put the tank, hose and glove on the traveller (needs the humanoid's chest anchor and arm bones). */
   wear() {
     const p = this.player, H = p?.humanoid;
     if (!H?.chestAnchor) return;
@@ -743,19 +736,12 @@ export class FluidTool {
     H.chestAnchor.add(tank.group);
     // the scout clings to the tank's left side (the cap would hide the helmet), folded, its foot on the glass
     this.placeDock(this.owned);
-    const fore = H.forearm?.r ?? H.b.lowerarm_r;
-    if (fore) {
-      this.bracer = buildBracer();
-      fore.add(this.bracer.group);
-    }
-    // the handheld device stays in the gear but the bracer replaces it in the hand
-    for (const o of p.gear?.device?.children ?? []) o.visible = false;
+    this.glove = gloveOf(H);
     this.hose = new Hose(this.scene ?? tank.group);
     const copies = new Map(), glassMat = tank.glass.material;
     markHero(tank.group, copies);
     // the fluid stays out of the player's soft-ink mask, so the post pass inks its blobs like print
     if (TANK.inked) tank.glass.material = glassMat;
-    if (this.bracer) markHero(this.bracer.group, copies);
     markHero(this.hose.mesh, copies);
     this.tankU = tank.glass.material.uniforms;
     this.hoseU = this.hose.mesh.material.uniforms;
@@ -789,7 +775,8 @@ export class FluidTool {
 
   dispose() {
     this.offs.forEach((off) => off()); this.offs = [];
-    this.fx.removeFromParent(); this.tank?.group.removeFromParent(); this.bracer?.group.removeFromParent(); this.hose?.mesh.removeFromParent();
+    this.fx.removeFromParent(); this.tank?.group.removeFromParent(); this.hose?.mesh.removeFromParent();
+    if (this.glove?.show) this.glove.show(false); else for (const o of this.glove?.meshes ?? []) o.visible = false;
     const p = this.player;
     if (p?.onAirJump) p.onAirJump = null;
     if (p?.fuelSource === this) p.fuelSource = null;
@@ -812,7 +799,7 @@ export class FluidTool {
   /** The gun modes the traveller owns ('shoot' first); none without the backpack. */
   get modes() { return ownedModes((id) => this.items.has(id)); }
   get modeName() { return MODES[this.mode]?.name ?? 'fluid'; }
-  /** Switch to an owned mode: the tank and bracer retint, the HUD says so. Returns true if it changed. */
+  /** Switch to an owned mode: the tank and the glove's plate retint, the HUD says so. Returns true if it changed. */
   setMode(mode) {
     if (!this.modes.includes(mode) || mode === this.mode) return false;
     this.mode = mode;
@@ -863,12 +850,17 @@ export class FluidTool {
     return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.down && p.object?.visible !== false;   // (nor knocked down)
   }
 
-  /** World position of the nozzle's mouth (or the chest if the traveller has no bracer). */
+  /**
+   * World position of the fluid's mouth: in front of the glove's knuckles (or, on a body without the
+   * glove, a hand's length past the right wrist; the chest if there is no arm or no body to see).
+   */
   muzzle(out = new THREE.Vector3()) {
-    const p = this.player;
-    if (this.bracer && p.object?.visible !== false) {
-      this.bracer.group.updateWorldMatrix(true, false);
-      return this.bracer.group.localToWorld(out.copy(this.bracer.muzzle));
+    const p = this.player, G = this.glove, B = p.humanoid?.b;
+    if (G?.muzzle && p.object?.visible !== false) { G.muzzle.updateWorldMatrix(true, false); return G.muzzle.getWorldPosition(out); }
+    if (B?.hand_r && B.lowerarm_r && p.object?.visible !== false) {
+      B.hand_r.updateWorldMatrix(true, false);
+      const h = B.hand_r.getWorldPosition(out), e = B.lowerarm_r.getWorldPosition(_a);
+      return h.addScaledVector(e.sub(h).normalize(), -0.1);
     }
     return out.copy(p.pos).addScaledVector(p.frame.up, 1.45).addScaledVector(p.frame.dir(p.heading, _a), 0.45);
   }
@@ -1077,7 +1069,7 @@ export class FluidTool {
     this._trailKey = null;
   }
 
-  /** The tank, hose and bracer follow the body; the fluid level eases to the charges left. */
+  /** The tank, hose and glove follow the body; the fluid level eases to the charges left. */
   updateWorn(dt) {
     const p = this.player;
     // (fillTo: a scene holds the glass at its own level, the first fill rising slowly: src/story/desert.js)
@@ -1108,7 +1100,6 @@ export class FluidTool {
       U.uFluidB.value.set(this.flash, this.wave, this.pulse, this.slosh * Math.min(1, this.rate));
     }
     if (!this.tank) return;
-    if (retone && this.bracer) this.bracer.lens.material.uniforms.uColor.value.set(tones[0]);
     // found: it grows onto the back with a little overshoot and a shimmer of fluid
     if (this.appear < 1) {
       const was = this.appear;
@@ -1127,7 +1118,10 @@ export class FluidTool {
     // the scout hops onto the cap while the wings are open, and back onto the rail when they fold
     const capK = THREE.MathUtils.clamp((this.scoutCapK ?? 0) + (owned && (p?.wingK ?? 0) > 0.02 ? 1 : -1) * dt / SCOUT_CAP.hop, 0, 1);
     if (capK !== (this.scoutCapK ?? 0)) { this.scoutCapK = capK; this.placeDock(owned); }
-    if (this.bracer) this.bracer.group.visible = owned;
+    // the glove is worn with the tank (it is what shoots); the hand is bare without it
+    if (this.glove?.show) this.glove.show(owned);
+    else if (this.glove && this.glove.visible !== owned) for (const o of this.glove.meshes) o.visible = owned;
+    if (this.glove) this.glove.visible = owned;
     this.hose.mesh.visible = visible && where !== 'flight';
     if (owned && this.appear < 1 && where === 'back') {
       const e = this.appear, sc = 0.25 + 0.75 * e + Math.sin(Math.PI * e) * 0.18;
@@ -1143,16 +1137,15 @@ export class FluidTool {
     if (!visible) return;
     if (where === 'socket') return this.layHoseToPort();
     if (where === 'flight') return;
-    // the bracer's rings light for the charges left (in sequence as it refills)
-    this.bracer?.rings.forEach((ring, i) => {
+    // the glove's knuckles light for the charges left (in sequence as it refills), its plate in the
+    // mode's tone, brighter for a moment as it fires or changes mode, dim with the tank empty
+    for (let i = 0; i < 3; i++) {
       const lit = this.reserve.charges > i ? 1 : 0;
       this.ringLit[i] += (lit - this.ringLit[i]) * (1 - Math.exp(-(lit ? 7 : 20) * dt));
-      const u = ring.material.uniforms, k = this.ringLit[i];
-      u.uColor.value.set(INK).lerp(_c.set(tones[i % tones.length]), k);
-      u.uGlow.value = 0.95 * k;
-    });
-    if (this.bracer) this.bracer.lens.scale.setScalar(this.reserve.charges ? 1 + this.flash * 0.8 + (this.mode !== 'shoot' ? 0.35 : 0) : 0.6);
-    // the hose: up out of the cap, over the right shoulder, down the outside of the arm to the bracer
+      lightGlove(this.glove?.lights[i], tones[i % tones.length], THREE.MathUtils.clamp(this.ringLit[i], 0, 1), 0.95);
+    }
+    if (this.glove?.plate) lightGlove(this.glove.plate, tones[0], this.reserve.charges ? 1 : 0.3, 0.7 + 0.3 * Math.max(this.flash, this.mode !== 'shoot' ? 0.5 : 0));
+    // the hose: up out of the cap, over the right shoulder, down the outside of the arm into the glove's cuff
     const H = p.humanoid, B = H.b;
     const P = this.hosePts;
     const tg = this.tank.group;
@@ -1161,7 +1154,7 @@ export class FluidTool {
     _q.setFromRotationMatrix(tg.matrixWorld);
     const Uc = _o.set(0, 1, 0).applyQuaternion(_q), Rc = _f.set(-1, 0, 0).applyQuaternion(_q), Bk = _m.set(0, 0, -1).applyQuaternion(_q);
     const S = B.upperarm_r.getWorldPosition(_t1), E = B.lowerarm_r.getWorldPosition(_t2);
-    if (this.bracer) { this.bracer.group.updateWorldMatrix(true, false); this.bracer.group.localToWorld(P[5].copy(this.bracer.inlet)); }
+    if (this.glove?.inlet) { this.glove.inlet.updateWorldMatrix(true, false); this.glove.inlet.getWorldPosition(P[5]); }
     else B.hand_r.getWorldPosition(P[5]);
     P[1].copy(P[0]).addScaledVector(Uc, 0.06).addScaledVector(Rc, 0.04);
     P[2].copy(S).addScaledVector(Uc, 0.1).addScaledVector(Bk, 0.05);

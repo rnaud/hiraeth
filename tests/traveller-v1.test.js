@@ -49,7 +49,7 @@ test('shipped traveller binds the visible character and repairs to the fitted Ma
  const scene=new T.Scene();scene.add(char.root);
  const gear=new Gear(scene,h,char);
  assert.equal(gear.springs.length,0,'no legacy antenna/backpack geometry');
- assert.ok(gear.scoutDock && gear.device,'gameplay equipment anchors remain available');
+ assert.ok(gear.scoutDock && !gear.device,'gameplay equipment anchors remain available (and nothing in the hand)');
  for(const state of [{ride:{}},{aim:{}},{climbing:true},{overlay:()=>{}},{swim:true}]){
   const player={animator:{w:{walk:0,jog:1,sprint:0}},onGround:true,...state};
   const before=char.arms.map(a=>a.quaternion.clone());

@@ -44,7 +44,8 @@ cut the desert from about 13 M to 1 M triangles a frame.
   hardware comparison (`sampler2DShadow`), and the filter widens to the pixel's footprint.
   Bias and normal offset are set in texels per cascade.
 - **Culling** (`src/perf.js`, `shadows.js`): `fitBounds` gives instanced meshes real bounds
-  so they cull; `ShadowCuller` skips casters whose shadows can't reach the view;
+  so they cull (not the rewritten-every-frame ones, `userData.dynamic` or dynamic usage, nor a
+  pool with nothing placed yet); `ShadowCuller` skips casters whose shadows can't reach the view;
   `SmallCuller` drops props by projected size; `RoomCuller` hides off-map rooms (ship,
   caves) unless the camera is near. Draw calls fall 10–36% across the worlds.
 - **Graphics presets** (`QUALITY_PRESETS`, `resolveQuality`, `detectHandheld` in

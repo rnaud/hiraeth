@@ -112,7 +112,7 @@ test('cream clothes and bare forearms/ankles retain folds at the human\'s joints
   assert.equal(u.uMode.value, MODE_OUTFIT);
   assert.equal('#' + u.uColor.value.getHexString(), TRAVELLER_PALETTE.suit);
   assert.equal('#' + u.uColor3.value.getHexString(), TRAVELLER_PALETTE.skin);
-  assert.equal(u.uGlove.value.w, 0, 'bare hands; the owned tool supplies the right bracer');
+  assert.equal(u.uGlove.value.w, 0, 'bare hands painted; the owned tool puts its glove on the right one (tests/glove.test.js)');
   assert.equal(u.uCreases.value, 1);
   const limbs = u.uLimbs.value, B = h.b;
   // the folds sit on the human's own shoulders, elbows, hips and knees
@@ -254,7 +254,7 @@ test('climbing under rotated gravity: fingers up the wall, toes into it, rolled 
   }
 });
 
-test('the gear hooks: the head and chest anchors, the scout on the pack, the bracer round the sleeve, the glass out of shadows', () => {
+test('the gear hooks: the head and chest anchors, the scout on the pack, the glass out of shadows, nothing in the hand', () => {
   const char = buildCharacter(), h = traveller(char);
   const g = new Gear(new THREE.Scene(), h, char);
   h.update(true); h.model.updateMatrixWorld(true); g.update(1 / 60, V(), 0, 0, true);
@@ -265,16 +265,8 @@ test('the gear hooks: the head and chest anchors, the scout on the pack, the bra
   const pack = boxOf(h, /^Rucksack_lid$/), dock = at(g.scoutDock);
   assert.ok(dock.y > pack.max.y && dock.y < pack.max.y + 0.15 && dock.z > pack.min.z && dock.z < pack.max.z, 'the scout on the lid');
   assert.deepEqual(h.packPocket.flatMap((m) => m.userData.pieces).sort(), ['Rucksack_pocket', 'Rucksack_pocket_flap']);
-  // the bracer's frame: +y down the forearm, -x toward the thumb, scaled out round the sleeve
-  const f = h.forearm.r;
-  assert.equal(f.parent, h.b.lowerarm_r);
-  const q = f.getWorldQuaternion(new THREE.Quaternion());
-  const along = new THREE.Vector3(0, 1, 0).applyQuaternion(q), thumb = new THREE.Vector3(-1, 0, 0).applyQuaternion(q);
-  assert.ok(along.dot(at(h.b.hand_r).sub(at(h.b.lowerarm_r)).normalize()) > 0.999, 'along the forearm');
-  assert.ok(thumb.dot(at(h.b.thumb_01_r).sub(at(h.b.hand_r)).normalize()) > 0.5, 'the thumb side');
-  assert.ok(f.getWorldScale(V()).x >= 1, 'not smaller than the bracer was made');
-  // the device in the hand (until the bracer takes over)
-  assert.ok(g.device.visible);
+  // nothing in the hand: the old handheld device (a screen in the fist, read as a phone) is gone
+  assert.equal(g.device, undefined);
 });
 
 test('kneeling (a box, getting up): the knee down to the ground, every piece whole and on the body', () => {
@@ -293,13 +285,11 @@ test('vehicle animation reaches the skin on the first frame and releases foot lo
   p.ride = { speed: 0, pos: V(), update() {}, seatTransform(pos, q) { pos.set(0, 2, 0); q.identity(); } };
   p.humanoid = traveller(p.char);
   p.humanoid._feet = { l: { locked: true }, r: { locked: true } };
-  p.gear = { device: { visible: true } };
   p.updateCloth = () => {};
   const before = p.humanoid.b.thigh_r.quaternion.clone();
   p.update(1 / 60, {}, 0);
   assert.ok(before.angleTo(p.humanoid.b.thigh_r.quaternion) > 0.5);
   assert.equal(p.humanoid._feet.r.locked, false);
-  assert.equal(p.gear.device.visible, false);
 });
 
 test('every clothing piece has valid normalized weights, including the interleaved body-derived sleeves', () => {

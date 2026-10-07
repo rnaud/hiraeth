@@ -34,6 +34,21 @@ the rucksack's outer face. The look and its reasons:
   are skinned to the ball bone, the shaft to the shin. Nothing of traveller.glb
   is drawn any more (it only keys `travellerKit`'s cache).
 
-Tests: `tests/traveller.test.js` (fit, rucksack, flask size and visibility, hair,
+- **The fluid glove** (`fluidGlove`, `GLOVE`; `Humanoid.wearGlove`): the glove the fluid comes out
+  of, on the right hand, after the coral-shirt sheets. Its leather is the skin's own hand (every
+  triangle from `GLOVE.cuff` up the forearm to the fingertips) pushed out along the welded normals,
+  with the skin's weights, so it bends with every finger; a pale band round the cuff, a brass fitting
+  where the hose comes in, a plate on the back of the hand and three knuckle studs. Both travellers
+  wear it: the people's body (`wearOutfit`) and the coral-shirt one (`createTravellerV1`, on his own
+  mesh). `fluid-tool.js` shows it with the tank and only then (`glove.show`: while it is on, the
+  skin's triangles under the leather are left out of its index, else they show between the
+  fingers). The knuckles light for the charges left, the plate in the mode's tone; the shot, the push
+  and a dry press leave from `glove.muzzle`, just in front of the knuckles (the aiming fist's front),
+  and the hose ends at `glove.inlet` on the cuff. It replaces the old wrist bracer, whose brass
+  barrel and lens lay along the back of the hand and read as a phone held in it; the old hero's
+  handheld screen (`Gear`) is gone too: nothing is held in the hand.
+
+Tests: `tests/glove.test.js` (worn with the tank only, the skin under it, the mouth at the knuckles
+in every aim, the lights), `tests/traveller.test.js` (fit, rucksack, flask size and visibility, hair,
 face), `tests/drone.test.js` (docks and clearance in every clip),
 `tests/abilities.test.js` (the pocket while the flask comes and goes).

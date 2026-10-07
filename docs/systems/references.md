@@ -90,7 +90,10 @@ panel, its number (as the label and `?view=n` count) and its title; the view you
   before); the sheets' houses and the City-Shaft's have fewer.
 - **Far haze** (`uHaze`: rgb, amount): the colour distant ground fades to, instead of the sky's
   horizon. The desert's look (`DESERT_LOOK` in `desert-sites.js`, also `?look=desert`) sets a pale
-  warm band and turns the print preset's cumulus bank and clouds off, as its plates.
+  warm band and turns the print preset's cumulus bank and clouds off, as its plates. The desert
+  world itself (`DESERT_WORLD_LOOK`, since v0.73) keeps the bank off but lets a few of the flat
+  inked clouds back (`uClouds` `DESERT_CLOUDS` = 0.25, the print's 0.45), and with them the cloud
+  shadows drifting over the dunes; the views and `?look=desert` keep the plates' clear sky.
 - **Slip faces**: sand's few shadow strokes (`hatch` 0.55) go back to full on steep slopes
   (`SHADE.slip`), so a shaded slip face is hatched and flat sand isn't.
 - A zone's touches (`zone.look`) now start from the preset each time, so one view's never carry

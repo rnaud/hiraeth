@@ -86,7 +86,7 @@ carry no finger tracks, so every hand used to hang in the T-pose's flat, straigh
 - **The context picks them** (`handTargets(ctx)`, pure): walking relaxed, opening as you run
   (`HANDS.runFrom`–`runTo`), gliding and the jets open, falling (after `airAfter` s off the ground)
   splayed, climbing a grip, the mantle flat, the hoverbike / skiff / taxi a grip, the bird the reins,
-  swimming cupped, down limp, seated limp; on top, aiming the bracer (the right fist, the left cupped
+  swimming cupped, down limp, seated limp; on top, aiming the glove (the right fist, the left cupped
   under it), the hand-off (a grip), a held prop in the right hand (`PROP_GRIPS`: a staff gripped, a
   lantern or basket hung from the fingers, a flower held), a fright (splayed), and while someone speaks
   a gesture in the line's tone (`TONE_GESTURES`, the right hand leading, beating with the syllables;
@@ -223,6 +223,20 @@ either way: the title and the sky draw before the world is built.
 
 The same measurements on the handheld are still to take: `scripts/bench/android-run.sh` wants a
 device over USB, and none has been attached since this was written.
+
+## Vael's bird: standing, folding, flying (`src/bird.js`)
+
+She stands tall on long wading legs (drumstick, hock, tarsus, three toes and a back one), as the Sky Stones'
+sheets draw her: `FOOT` is the middle toe's base on the leg, `STAND` the height her body rides over the
+ground (the legs' reach and a toe's thickness), used wherever she is put down, landed or held over the ground.
+Her wings' pose is one function, `poseWings(wings, fold, flap, amp, flare, flapPower)`, shared with the
+reference views: spread (fold 0) they beat; folded (fold 1, `FOLD`) each arm rolls about its own length,
+sweeps back along her flank, its feathers drawn in to half their depth and the hand to a third of its size,
+so the folded wing lies against her side and ends at her tail (the shoulder turns in YXZ order for that:
+roll first, then sweep). Vael's bow (`src/story/arzach.js`) opens the fold the same way. `tests/birds.test.js`
+holds a standing bird's wings within a hand of her side and her feet on the ground; `tests/references.test.js`
+holds every Vael II view's bird either on its feet (standing) or well clear of the ground (flying), never a
+flying pose hovering just over it.
 
 ## Motion capture: the people's own walks, and motion matching (`scripts/mocap/`, `src/motion-match.js`)
 

@@ -86,7 +86,7 @@ tone, a swell of the world's score, then back to you.
   - *the empty tank's first fill* (`desert.moment.fill`), the first wade with the dry tank: A,
     over the water at him standing in the pool; B, over his shoulder on the glass as the water
     climbs into it slowly in three colours (`tool.fillTo` holds the glass's level), its glow on
-    his back; C, beside him: he lifts the bracer, its rings light one by one, and a first glob
+    his back; C, beside him: he lifts the glove, its knuckles light one by one, and a first glob
     (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: a slight
     smirk. To the father's theme. The jar fills and the controls are said (RT / R2, RB / R1) at
     its end.

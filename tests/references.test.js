@@ -188,6 +188,17 @@ test('Vael II\'s sheets after the City-Shaft\'s, panel by panel, framed and labe
   assert.ok(WORLD_LOOKS.desert, '?look=desert still');
 });
 
+test('Vael II\'s birds: one on the ground stands on its feet, wings folded; one in flight is well clear of the ground', () => {
+  const { level } = refs();
+  const birds = [];
+  for (const v of level.views.filter((x) => x.def.sheet?.startsWith('IMG_378'))) v.group.traverse((o) => { if (o.userData.bird) birds.push({ id: v.def.id, ...o.userData.bird }); });
+  assert.ok(birds.filter((b) => !b.fly).length >= 2 && birds.filter((b) => b.fly).length >= 1, JSON.stringify(birds));
+  for (const b of birds) {
+    if (b.fly) assert.ok(b.clear > 1.5, `${b.id}: a bird in flight, its feet ${b.clear.toFixed(2)} m off the ground (not hovering over it)`);
+    else assert.ok(Math.abs(b.clear) < 0.1, `${b.id}: a bird on the ground, its feet ${b.clear.toFixed(2)} m off it`);
+  }
+});
+
 test('the Buried Machine\'s sheets after Vael II\'s, panel by panel, framed and labelled', async () => {
   const counts = { IMG_3789: 5, IMG_3790: 6, IMG_3791: 6, IMG_3792: 5 };
   for (const [s, n] of Object.entries(counts)) {
