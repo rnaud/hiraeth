@@ -94,9 +94,29 @@ game (the Android app, the Deck); offline it says the pictures are online and sh
 Limits (tests): a picture at most 150 KB, a pair 260 KB, the folder 30 MB. In practice a 1280 × 720 pair
 is 60–150 KB.
 
+A picture made by hand (no `view`) says where it came from in `from`: a screenshot of earlier work, or a
+pair taken from that work's own before / after (the cab ride, the idle sheets); convert it with
+`cwebp -q 72 -resize 1280 0 in.png -o changelog-media/<v>/<name>-after.webp`.
+
 ## Retroactive media (October 2026)
 
-The lines from 6 October, 5 PM (the later half of v0.73) to v0.80 were given their media after the fact:
-the pictures taken with the script above at the commits named in `src/changelog-media.js`, the numbers
-from `docs/systems/performance.md`, `docs/systems/movement.md` (the contact audit) and the commits'
-messages, and a "how to see it" note for the rest.
+The 99 lines from 6 October, 5 PM (the later half of v0.73) to v0.80 were given their media after the
+fact (choices made while the author slept, noted here):
+
+- **98 lines** show something: **55 with pictures** (61 before / after pairs and 8 after-only pictures,
+  130 WebP files, 6.1 MB in all), **26 with numbers** (the Retroid's and the Mac's frame times and frame
+  rates, draw calls, the contact audit's counts, the presets' distances), **39 with a "how to see it"
+  note** (22 with only a note: solid ground, menus deep in a save, the Deck, things that only show in
+  motion). The one left (the Deck's crash line, added to 0.80 meanwhile) has none yet; v0.73's first four lines were written before 5 PM.
+- Pictures were taken at each line's own commit and its parent; where the work had a work-in-progress
+  commit first (the References' Garden of Spheres, Lorn II and Buried Machine), the before is the commit
+  before that (`before:`). Numbers come from `docs/systems/performance.md`, `docs/systems/movement.md`
+  and the commits' messages, with their device and preset.
+- Dropped after looking at each pair: views where the before and the after looked the same at this size
+  (fine grass, door stains and dust bands from afar, the City-Shaft's undersides from the rim, the
+  studio's traveller poses, whose animation settings did not take): those lines got a note instead.
+- Reused from tonight's agents' own screenshots: the cab ride before / after and the dash's screen, the
+  idle sheets (16 s of the traveller standing), the Deck's Updates section and Steam library, the cab's
+  prompt.
+- A people shot moves the traveller a few steps behind each person in turn (people far from him are not
+  drawn) and shoots from the way the body faces (its +z).

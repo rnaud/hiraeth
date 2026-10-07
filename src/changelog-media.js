@@ -104,6 +104,9 @@ const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon
 
 export const CHANGELOG_MEDIA = {
   '0.80': [
+    { match: 'What’s new (N) has a See what changed button', shots: [
+      { name: 'see-what-changed', caption: 'This page: a line of v0.77 with its before and after, the split dragged to the left', only: 'after', size: [1440, 900], from: 'a screenshot of changelog.html (7 October)' },
+    ] },
     { match: 'Crowded places run smoother on handhelds', numbers: [
       { title: 'A frame at the camps and in the Signal Market’s crowd', unit: 'ms', better: 'lower', device: MAC_X4, source: 'docs/systems/performance.md, “The people posed without recomputing what was current”', rows: [
         { where: 'the camps: the whole frame', before: 25.7, after: 22.8 },
