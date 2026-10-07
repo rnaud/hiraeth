@@ -1037,6 +1037,7 @@ const controller = new Controller({
     if (name === 'select') journal.toggle(!journal.open);
     // LB / L1, RB / R1 in the game menu: the panel before, the one after
     if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === journal.el) journal.menu.turn(name === 'tabPrev' ? -1 : 1);
+    if ((name === 'tabPrev' || name === 'tabNext') && quickMenu && menuRoot() === quickMenu.el) quickMenu.turn?.(name === 'tabPrev' ? -1 : 1);   // (the References' list: the world before / after)
     if (name === 'confirm') {
       const root = menuRoot();
       if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f) && storyRt.dialogue.revealed >= storyRt.dialogue.runner.text.length) f.click(); else storyRt.dialogue.next(); }
