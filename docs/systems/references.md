@@ -452,6 +452,8 @@ the narrowest creases.
 - **The look** (`MANGROVE_LOOK`, `MANGROVE_DAY`, `MANGROVE_TONES` in the kit): no clouds, a violet sky, the
   light pink (the sky's light slot), the shade lavender-blue, stepped haze of a deep blue over the wood
   behind (view 4: a rose haze), a low mist on the water, cast shadows nearly lifted, few spot blacks.
+- **On the world** (`src/levels/mangrove.js`, worlds.md "The White Mangrove"): the same kit at `detail` 0.72, the
+  decked trees with no roots springing over their decks, the leaves round on the near trees and solid.
 - **The scale, from the sheets**: the traveller is ~8–17 m from a 3–5 m high eye; the trees stand 25–60 m
   off, 2–4.5 m in radius, their roots springing 6–12 m up and reaching 8–15 m; the houses 2.5–5 m round.
 - **Left, shader level**: the sheets' twilight comes from below and inside (the lanterns throw warm orange

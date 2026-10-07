@@ -1,3 +1,4 @@
+import { SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp } from './model.js';
@@ -326,6 +327,7 @@ export class Ship {
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
       home: () => homeOpen({ flag: (k) => game.flag(k), completed: this.completed() }) || this.levelId === HOME_ID,   // src/story/ending.js
       relay: () => this.relay(),
+      side: deps.side ?? SIDE,   // (the worlds off the route: src/levels/names.js)
       onTravel: (id) => this.travel(id),
     });
     globalThis.addEventListener?.('keydown', (e) => { if (e.code === 'Escape') this._esc = true; this._keyT = performance.now(); });
