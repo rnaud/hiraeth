@@ -7,6 +7,7 @@ import { bridge, SKY_STONES_HAZE, CREVASSE, CLOUD_PRINT } from './arzach2.js';
 import { buildBird, poseWings, FOOT, STAND } from '../bird.js';
 import { formAxis, keepForm } from '../form.js';
 import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
+import { rockKnobs } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
 // Vael II's reference sheets (references/Vael II- The Sky Stones/IMG_3783 … 3788): bone-white needle
@@ -101,6 +102,16 @@ function mushroom(kit, M, o) {
   // squash: [sx, sz] about its axis (a cliff's overhang wider than it is deep)
   const fit = (g) => (o.squash ? g.translate(-o.x, 0, -o.z).scale(o.squash[0], 1, o.squash[1]).translate(o.x, 0, o.z) : g);
   if (t.drip) kit.add(mat, fit(t.drip), { solid: false, shadow: false });   // the stalactites under its lip (drawn only)
+  // the knobs and ribs of rock under its overhang, as the sheets draw undersides (greeble-kit.js rockKnobs; drawn only)
+  if (o.R > 12 && o.knobs !== false) {
+    const kr = mulberry32(Math.floor((o.seed ?? 1) * 991) + 3), spots = [];
+    for (let i = 0, n = Math.round(o.R * 3); i < n; i++) {
+      const u = 0.15 + kr() * 0.72, { p, n: nn } = t.underAt(u, kr() * TAU);
+      spots.push({ p, n: nn, s: o.R * (0.02 + kr() * 0.028) * (0.6 + u) });
+    }
+    const g = rockKnobs(spots, o.seed ?? 1);
+    if (g) kit.add(mat, fit(t.lean(g)), { solid: false, shadow: false });
+  }
   if (o.smooth === false) { kit.add(mat, fit(t.vis)); return t; }
   // (its own smooth normals, by its round form without the flutes and ribs: sky-stones-kit.js table)
   kit.add(mat, t.vis.attributes.normal ? fit(t.vis) : smooth(fit(t.vis)), { shadow: false });
@@ -400,14 +411,16 @@ export const VAEL2_VIEWS = [
   }),
   view({
     id: '3783-egg-column', title: 'The column, its disc and its egg', sheet: 'IMG_3783', panel: 2, where: 'top, second', crop: [276, 38, 224, 451],
-    camera: { eye: [0, 10, 0], yaw: 0, fov: 72, pitch: 9 },
+    // (the eye a few metres under the disc, as the panel sees it nearly edge-on: 22 m under it, its shaded underside
+    //  filled the disc's place and read as a grey-hatched top; the sheet's top is pale, its underside a thin dark band)
+    camera: { eye: [0, 27, 0], yaw: 0, fov: 72, pitch: 7 },
     sun: { side: -70, el: 35 },   // (from the left, as the panel lights its column: one clean terminator down it)
     ground: sky(-300),
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37832,
         mushrooms: [{ x: 0, z: -70, R: 20, top: 32, base: -80, stalk: 4.3, capT: 2.4, under: 3, dome: 0.6, rib: 0.4, ribK: 22, flute: 0.14, fluteK: 7, foot: 1.5, neckR: 0.9, waist: 0.05, outline: 0.04, mat: 'boneNeedle', smooth: false }],
-        stones: [[0.4, 42, -70, [[4.6, 2.7, 0.15, 0.26]]]],
+        stones: [[0.4, 35, -70, [[4.6, 2.7, 0.15, 0.26]]]],
         spires: [{ x: -16, z: -90, y: -40, H: 45, R: 4, n: 2, rubble: false }, { x: 14, z: -80, y: -40, H: 30, R: 3, n: 1, rubble: false }],
         clouds: [{ y: -30, near: 60, far: 1200, n: 240, size: [12, 30] }, { y: 10, near: 120, far: 400, n: 22, size: [24, 40], deck: false, spread: 30 }],
       });

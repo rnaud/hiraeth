@@ -67,8 +67,9 @@ Every player-visible change adds a line to the newest entry of `src/changelog.js
   game over the air from the site's `web.json`; a new APK is offered only when `NATIVE_API`
   (the Java bridge) changes. Keep the signing key backup in `.local-tools/android-signing/`.
   Details: [docs/systems/android.md](docs/systems/android.md).
-- **Steam Deck.** `.github/workflows/steam-deck.yml` builds a Linux (Electron) package that takes
-  the same over-the-air game updates ([docs/steam-deck.md](docs/steam-deck.md)).
+- **Steam Deck.** `.github/workflows/steam-deck.yml` builds a Linux (Electron) package that
+  updates all of itself from the site, game and runtime, with an Updates section in the settings
+  as on Android ([docs/steam-deck.md](docs/steam-deck.md)).
 - **iPhone.** Add the web game to the home screen from Safari
   ([docs/systems/platforms.md](docs/systems/platforms.md)).
 
@@ -81,7 +82,7 @@ Every player-visible change adds a line to the newest entry of `src/changelog.js
 | `public/` | models, animation clips, motion data, icons, the web manifest |
 | `scripts/` | release and update feeds, the changelog, the mocap and MakeHuman pipelines, benchmarks |
 | `android/`, `desktop/` | the Android app (Capacitor, GeckoView) and the Steam Deck runtime |
-| `unity/` | the desert in Unity, a proof of concept ([docs/systems/unity.md](docs/systems/unity.md)) |
+| `engine/`, `unity/`, `godot/` | the game's JavaScript drawn by Unity (Puerts) or Godot, the engine only rendering ([docs/systems/engine-bridge.md](docs/systems/engine-bridge.md)); the earlier C# port in `unity/` ([docs/systems/unity.md](docs/systems/unity.md)) |
 | `docs/` | design, the system notes and the archive ([docs/README.md](docs/README.md)) |
 | `lore/`, `LORE.md` | the story's writing room and the lore |
 | `references/` | the reference sheets the look is drawn from |
@@ -104,7 +105,7 @@ The full index is [docs/README.md](docs/README.md). The system notes, one file p
 - [Screens, menus and the HUD](docs/systems/ui.md), [sound and music](docs/systems/audio.md)
 - [Android](docs/systems/android.md), [iPhone and the Steam Deck](docs/systems/platforms.md)
 - [The References level](docs/systems/references.md), [the Lab and the clipping audit](docs/systems/dev-tools.md),
-  [Unity](docs/systems/unity.md)
+  [the engine bridge](docs/systems/engine-bridge.md), [Unity](docs/systems/unity.md)
 
 [Credits](docs/credits.md): animations and bodies by Quaternius (CC0), motion capture from the
 CMU database, with their licences; the MakeHuman bodies: [docs/makehuman.md](docs/makehuman.md).

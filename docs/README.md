@@ -29,8 +29,11 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 |---|---|
 | [controls.md](systems/controls.md) | keyboard, mouse, touch and the tool; the controller layout by position, prompts; the controls of October 2026 |
 | [movement.md](systems/movement.md) | collision, contact (what you stand on and climb is what is drawn; the contact audit), mounts that come to you, footprints, the paraglider, hazards, health and falls, the hoverbike and vehicles, the feel of the jump and stamina |
+| [movement-and-camera.md](systems/movement-and-camera.md) | movement and the camera, the third feedback round: the jets fly like Superman, aiming straight up, ragdolls that end on the ground, the jump's shadow |
 | [animation.md](systems/animation.md) | climbing and mantling, the rig review, ragdolls, hands, locomotion (feet, starts, stops, turns), Vael's bird (standing, folding, flying), motion capture and motion matching, the Motion page |
 | [characters.md](systems/characters.md) | the traveller, people of every height and build, the character studio, MakeHuman bodies, capes, costumes, the traveller's reference redesign |
+| [capes-at-every-distance.md](systems/capes-at-every-distance.md) | capes and robes that look the same at every distance and through every switch of detail |
+| [traveller-kit.md](systems/traveller-kit.md) | the traveller's kit: the rucksack, the flask and their hooks |
 | [aliens.md](systems/aliens.md) | the non-humanoid peoples: drifters, stilt-walkers, shellbacks and murmurs; their bodies, voices, tones without a face, reactions to the tool |
 | [faces.md](systems/faces.md) | the shader face, expressions and hairstyles, hair and talking faces, eyes, faces drawn the Moebius way, warmer faces |
 | [rendering.md](systems/rendering.md) | how the look is built (the passes), the developer panel, time of day, the print look, drawn textures, the beauty pass, who casts a shadow, stable in motion (the motion check) |
@@ -40,11 +43,16 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [living-world.md](systems/living-world.md) | responsive worlds, birds, wildlife, flora, brushing past plants, flowers with room to open |
 | [water.md](systems/water.md) | the water look and swimming |
 | [temples.md](systems/temples.md) | the makers' temples |
+| [boss-hints.md](systems/boss-hints.md) | the guardians: the bar of what is left of them, the drone's hints |
 | [story.md](systems/story.md) | the story's systems: quests, errands, the father's charge, every world's story, the ending, the route and the galactic map, the strike's signature, the recordings, the desert reworked, quests that fail |
+| [progression.md](systems/progression.md) | progression: the route, the wings before the jets, the cab pass, Vael's bird |
 | [dialogue.md](systems/dialogue.md) | conversations and answers, listening, alien voices and the translator, the worlds' scripts, highlights, the conversation camera |
+| [conversations.md](systems/conversations.md) | conversations: the camera's cut, the gap between two people, the translator |
 | [cinematics.md](systems/cinematics.md) | the ship's cutscenes and the burning tree, moments (first times, filmed) |
+| [ship-consoles.md](systems/ship-consoles.md) | the ship's two consoles: the voicemail and the holo table |
 | [scout.md](systems/scout.md) | the scout drone |
 | [items.md](systems/items.md) | items, the backpack and the makers' boxes |
+| [boxes.md](systems/boxes.md) | the makers' boxes (the v0.63 redesign): the model, the scene, the placements |
 | [ui.md](systems/ui.md) | playing and settings, the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (items, quests, sketchbook, worlds) |
 | [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world |
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
@@ -61,7 +69,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | File | What |
 |---|---|
 | [cloudflare.md](cloudflare.md) | the Cloudflare Worker that serves the game and its update feed |
-| [steam-deck.md](steam-deck.md) | the Steam Deck package: install and release |
+| [steam-deck.md](steam-deck.md) | the Steam Deck package: install, release, its updates from the site and the settings' Updates section |
 | [makehuman.md](makehuman.md) | the MakeHuman / MPFB bodies pipeline (pictures in `makehuman/`) |
 | [motion-data.md](motion-data.md) | motion data: sources, terms, what is shipped |
 | [mixamo-shopping-list.md](mixamo-shopping-list.md) | the Mixamo clips the matcher lacks |

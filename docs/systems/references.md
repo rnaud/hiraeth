@@ -367,6 +367,41 @@ the narrowest creases.
   self-driving, round-bellied cab with its striped canopy and a rider).
 - **Left, scene level**: the sheets' stalls are a dense heap of goods and signs; ours are tidy rows.
 
+## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
+
+The sheets' interiors and undersides are dense small machinery, and their black masses sit in its gaps; ours had
+large plain faces, so the spot blacks (post.js `uSpot`) had no pockets to fill. `greebles(seed).patch(o, u, v, n, w,
+h, { density, scale, depth, hang, kinds })` dresses a rectangle of a face with pipe runs (bundles of one to three on
+brackets, flanges, now and then a valve), conduits up it, cable bundles along it, casings and louvred plates, and
+under a ceiling (`hang`) pipes dropped on rods; `kinds: 'rock'` lays knobs and ribs instead. `merged()` gives one
+geometry per role (metal, dark, pale, rock) for a world's buckets or a kit's. Pieces are 8–36 faces (`GREEBLE.faces`),
+about 10 faces a square metre at density 1; a left-handed frame is turned round so nothing is drawn inside out.
+
+- **The Buried Machine** (buried.js): the drum's inside wall between the tall windows, below the balcony and above it
+  (solid as drawn: it is a jetpack world and you climb it), pipes hung under the balcony (drawn only), and clusters on
+  the trench's leaning walls, one band over the banked sand, two quads in five, laid quad by quad on the drawn wall
+  (solid). ~68 k triangles; the static collision ~195 k → ~257 k (bake +5 ms, ground rays +15 %; tests/buried.test.js
+  budget 270 k); Handheld (desktop, scale 0.75, 7 rounds, median ms): the drum 3.13 → 3.05 and 2.52 → 2.99, the
+  trench 3.51 → 3.76 and 4.48 → 4.47. The views: the drums' inside walls (`drumInside`), the machinery against the
+  walls (`machinery`, its `fine` density) and the oval walls' feet (`ovalWall`, columns stopping under the ovals).
+- **The City-Shaft** (incal.js): the terraces' undersides, between the ribs (a ceiling patch per 26 m of each sector,
+  `hang`), large and sparse (scale 2.4, density 0.35: the shaft is the game's heaviest world), in its iron and a steel
+  for the pipes; solid as drawn (you fly under them). ~140 k triangles, collision 973 k → 1 114 k (bake and rays
+  within noise); Handheld: under a terrace 2.53 → 2.55, across the shaft 4.23 → 4.22, down it 6.33 → 6.39. The
+  City-Shaft's views are refsB's (their houses' modelling), left to it.
+- **Vael II** (arzach2.js, reference-vael2.js): the cap tables' undersides grow knobs and ribs of rock (`rockKnobs`,
+  placed by `table().underAt(u, a)`, the underside as drawn), R × 3 of them, shaded with the underside's own normal
+  (one dark tone; the ink draws their outlines and the crease shading their pockets); drawn only, with the drips.
+  Handheld and High at the spawn, the needles, the cloud and the plain within noise (High spawn 7.75 → 7.88 ms).
+- **View 52's grey-hatched disc top**: the eye stood 22 m under the disc, so its shaded underside filled the disc's
+  place; the panel sees the disc nearly edge-on. The eye now stands a few metres under it (its pale top, a thin dark
+  underside), the egg resting on it.
+- **The Signal Market's back alleys** (bazaar.js): the towers' side walls into the alleys between them, the 14 m
+  nearest the street, 22 m up, dense with pipe runs, conduits, casings and cables, in the street's ink, dark paint and
+  cream; solid as drawn (you climb them). Collision ~27 k → ~52 k (tests/bazaar.test.js budget 56 k; bake +8 ms,
+  ground rays +15 %); Handheld (against the same build without it): the street 3.98 → 4.08, looking up 3.68 → 3.82,
+  in an alley 2.67 → 2.13 (noise). The Market's views are refsB's this round, left to it.
+
 ## Across the worlds: the shader gaps that recur
 
 Ranked by how much they would close the gap to the sheets, across every world rebuilt:

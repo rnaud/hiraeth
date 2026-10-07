@@ -97,3 +97,51 @@ test('a rolling ball’s top is a dome: on its crest you stand on the stone, a l
     assert.ok(Math.abs(P.pos.y - want) < 0.08, `${f} r out: the feet at ${(P.pos.y - c.y).toFixed(2)} over its centre (the stone ${(want - c.y).toFixed(2)})`);
   }
 });
+
+test('the camera meets a cab as drawn: never inside the hull of one you stand beside, and never stopped by the one you ride', async () => {
+  const { CameraRig } = await import('../src/player.js');
+  const { cameraPhysics, keepLensOut } = await import('../src/carriers.js');
+  globalThis.window.addEventListener ??= () => {};   // (the rig listens to the mouse: inert in node)
+  const { scene, physics, cab } = cabWorld(2);
+  // the drawn cab's surface along rays from all round: the cab's rayDistance agrees
+  const meshes = [];
+  cab.object.traverse((o) => { let shown = true; for (let p = o; p; p = p.parent) if (p.visible === false) shown = false; if (o.isMesh && shown && o !== cab.parts.seat && o !== cab.parts.pax) meshes.push(o); });
+  const rc = new THREE.Raycaster();
+  let n = 0, near = 0;
+  for (let i = 0; i < 48; i++) {
+    const a = (i / 48) * Math.PI * 2, h = 0.4 + (i % 4) * 0.8;
+    const o = cab.pos.clone().add(V(Math.cos(a) * 9, h, Math.sin(a) * 9)), d = cab.pos.clone().add(V(0, h * 0.5, 0)).sub(o).normalize();
+    rc.set(o, d); rc.far = 20;
+    const drawn = rc.intersectObjects(meshes, false)[0];
+    const t = cab.rayDistance(o, d, 20);
+    if (!drawn) continue;   // (through the open cabin under the canopy: the camera treats it as filled, which is only safer)
+    n++;
+    // (no later than the drawn hull: a camera stopped there is out of it; through the open cabin under the
+    // canopy it stops at the cabin's edge, earlier than the lining behind, which is only safer)
+    if (t <= drawn.distance + 0.3) near++;
+  }
+  assert.ok(n > 30 && near / n > 0.9, `${near} of ${n} rays stop at or before the drawn hull`);
+  const view = cameraPhysics(physics, () => [cab], () => null);
+  const o = cab.object.localToWorld(V(4, 0.2, -0.3)), d = cab.pos.clone().sub(o).normalize();
+  assert.ok(view.rayDistance(o, d, 20) < o.distanceTo(cab.pos), 'the camera’s view meets the cab');
+  assert.equal(physics.rayDistance(o, d, 20), Infinity, 'the level’s collision (the cabs’ routes, everyone’s walking) does not');
+  assert.equal(cameraPhysics(physics, () => [cab], () => cab).rayDistance(o, d, 20), Infinity, 'nor does the cab you ride');
+  // stepped out beside it, the cab between the traveller and where the camera wants to be: the camera stays out of its hull
+  const out = cab.object.localToWorld(V(1.25, 0, -0.3)); out.y = 0;
+  const camera = new THREE.PerspectiveCamera(55, 1.5, 0.3, 5000);
+  const rig = new CameraRig(camera, { addEventListener() {} }, view);
+  rig.constrain = (cam) => keepLensOut(cam, () => [cab], () => null);   // (as main.js)
+  const toCab = cab.pos.clone().sub(out).setY(0).normalize();
+  rig.yaw = Math.atan2(toCab.x, toCab.z);   // (the arm reaching back over the cab)
+  for (let f = 0; f < 120; f++) rig.update(out, 1 / 60);
+  const l = cab.object.worldToLocal(camera.position.clone());
+  assert.equal(Taxi.insideLocal(l.x, l.y, l.z), false, `the camera inside the cab at ${l.toArray().map((x) => x.toFixed(2))}`);
+  // (and the plain level's view would have put it there: the test sees the case it guards)
+  const rig0 = new CameraRig(new THREE.PerspectiveCamera(55, 1.5, 0.3, 5000), { addEventListener() {} }, physics);
+  rig0.yaw = rig.yaw;
+  for (let f = 0; f < 120; f++) rig0.update(out, 1 / 60);
+  const l0 = cab.object.worldToLocal(rig0.camera.position.clone());
+  const crossed = cab.rayDistance(out.clone().setY(1.6), rig0.camera.position.clone().sub(out.clone().setY(1.6)).normalize(), rig0.camera.position.distanceTo(out.clone().setY(1.6))) < Infinity;
+  assert.ok(Taxi.insideLocal(l0.x, l0.y, l0.z) || crossed, 'without it, the camera went into or through the cab');
+  void scene;
+});

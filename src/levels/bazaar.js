@@ -7,6 +7,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { LINES as STORY_LINES } from '../story/bazaar-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { greebles } from './greeble-kit.js';
 import { doorStainGeometry, stainColor } from '../door-stain.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
@@ -138,6 +139,15 @@ export function* buildBazaar(scene) {
     }
     // Narrow service balconies give climbers somewhere to rest.
     for(let k=0;k<4;k++) box(face-side*2.5,8+k*8,z-6,6,.65,11,teal);
+    // the back alleys between the towers: their side walls, near the street, dense with the sheets' small machinery
+    // (greeble-kit.js: pipe runs, valves, conduits, casings, cables), the spot blacks' pockets; solid as drawn (you
+    // climb these walls). Its own numbers, so the street keeps its layout.
+    {
+      const G = greebles(3805 + row * 2 + (side > 0 ? 1 : 0)), V3 = (a, b, c) => new THREE.Vector3(a, b, c);
+      for (const dz of [-1, 1]) G.patch(V3(face, 0.4, z + dz * 21.55), V3(side, 0, 0), V3(0, 1, 0), V3(0, 0, dz), 14, 22, { density: 0.6, scale: 1.2, depth: 0.6 });
+      const m = G.merged();
+      if (m.metal) add(m.metal, ink); if (m.dark) add(m.dark, dark); if (m.pale) add(m.pale, cream);
+    }
   }
   // A second row creates a skyline above side streets.
   for(let i=0;i<22;i++) {
