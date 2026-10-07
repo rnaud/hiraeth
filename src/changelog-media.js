@@ -103,4 +103,71 @@ const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 export const CHANGELOG_MEDIA = {
+  '0.73': [
+    { match: 'In the Buried Machine your feet and hands meet the metal', numbers: [
+      { title: 'Where the solid and the drawn shapes disagree', better: 'lower', device: AUDIT, source: 'the commit’s measurements (8a6ca7f)', rows: [
+        { where: 'feet sinking into something drawn', before: 270, after: 69 },
+        { where: 'climbing inside something', before: 833, after: 49 },
+      ] },
+    ], see: 'In the Buried Machine, climb the trench’s pipes and tanks or the Engine-House’s gantry: your hands and feet meet the metal where it is drawn.' },
+    { match: 'In the Garden of Spheres the hill’s boulders', numbers: [
+      { title: 'Where the solid and the drawn shapes disagree', better: 'lower', device: AUDIT, source: 'the commit’s measurements (8a6ca7f)', rows: [
+        { where: 'feet sinking into something drawn', before: 91, after: 6 },
+        { where: 'climbing inside something', before: 120, after: 6 },
+      ] },
+    ], see: 'In the Garden of Spheres, walk onto the singing spheres in the Footprint: they are round underfoot.' },
+    { match: 'In Lorn the Hush-House’s dome', numbers: [
+      { title: 'Where the solid and the drawn shapes disagree', better: 'lower', device: AUDIT, source: 'the commit’s measurements (8a6ca7f)', rows: [
+        { where: 'Lorn: feet sinking', before: 61, after: 13 },
+        { where: 'Lorn: climbing inside', before: 35, after: 7 },
+        { where: 'Lorn II: feet sinking', before: 97, after: 8 },
+        { where: 'Lorn II: climbing inside', before: 5, after: 1 },
+      ] },
+    ] },
+    { match: 'Things you can stand on are the things you see', numbers: [
+      { title: 'Feet sinking into something drawn', better: 'lower', device: AUDIT, source: 'the commit’s measurements (8a6ca7f)', rows: [
+        { where: 'home', before: 23, after: 0 },
+        { where: 'the Signal Market', before: 7, after: 4 },
+        { where: 'Viridel', before: 18, after: 3 },
+        { where: 'the Sealed Hangar', before: 5, after: 0 },
+      ] },
+    ] },
+    { match: 'In the desert the radio dishes’ bowls', numbers: [
+      { title: 'Where the solid and the drawn shapes disagree in the desert', better: 'lower', device: AUDIT, source: 'the commit’s measurements (e43d3c2)', rows: [
+        { where: 'walking through something drawn', before: 79, after: 54 },
+        { where: 'climbing inside something', before: 35, after: 23 },
+      ] },
+    ], see: 'At the salt lagoons, step onto a floating salt plate: it holds you now.' },
+    { match: 'Every temple’s halls lose the invisible ledge', see: 'In any temple, climb the wall of a round room: at the top you meet the stone cornice’s overhang where it is drawn.' },
+    { match: 'The desert’s people carry what their drawings give them', shots: [
+      { name: 'desert-props', caption: 'Bako, Sefa, Marrow and the Speaker, in the running game', commit: 'f818c22', view: people([{ id: 'bako' }, { id: 'sefa' }, { id: 'marrow' }, { id: 'speaker' }]) },
+    ] },
+    { match: 'A few clouds drift over the desert again', shots: [
+      { name: 'desert-clouds', caption: 'The open dunes from a crest', commit: 'bdd268d', view: desertAt([-200, 39.852, 300], [-420, 22, 520], { player: [-205.657, 21.133, 305.657] }) },
+    ] },
+    { match: 'Your footprints in the sand no longer vanish', see: 'Walk across the sand, then turn the camera right round: your footprints stay where you walked.' },
+    { match: 'The stone half-arch that hung in the sky', shots: [
+      { name: 'qanat-arch', caption: 'From the pilgrims’ camps toward Qanat’s main gate', commit: '1d45790', view: desertAt([120, 8, 225], [181, 16, 318], { player: [122, 2, 228], fov: 30 }) },
+    ] },
+    { match: 'Vael’s bird stands tall', shots: [
+      { name: 'vael-bird', caption: 'The References’ view under the mushroom, the plain and its tower: the bird on the ground', commit: 'f7aedd2', view: { ref: '3783-mushroom-plain' } },
+    ] },
+    { match: 'In Vael II the mushroom tables lean', shots: [
+      { name: 'vael2-stacks', caption: 'The References’ view of the stacked discs and stones', commit: 'f7aedd2', view: { ref: '3784-stacks' } },
+      { name: 'vael2-mushrooms', caption: 'Mushrooms in the cloud, the arched cliff', commit: 'f7aedd2', view: { ref: '3784-mushrooms-arches' } },
+    ] },
+    { match: 'Vael II’s monastery has a cloister', shots: [
+      { name: 'vael2-monastery', caption: 'The References’ view of the monastery on the rose cliff', commit: 'f7aedd2', view: { ref: '3784-cliff-monastery' } },
+    ] },
+    { match: 'The traveller no longer holds a phone', shots: [
+      { name: 'no-phone', caption: 'The traveller walking in the character studio, his right hand', commit: 'ff2217c', view: studio('view=hands&yaw=-0.9') },
+    ] },
+    { match: 'With the tank on your back you now wear a dark leather glove', shots: [
+      { name: 'glove', caption: 'The traveller’s right hand with the tank on his back', commit: '2e5a866', view: people([{ id: 'traveller', yaw: -0.9, dist: 1.6, height: 1.0 }, { id: 'traveller', yaw: -1.6, dist: 1.4, height: 0.95 }], { player: [29, 24.456, 132], heading: 0.6435 }) },
+    ] },
+    { match: 'People sitting on benches, stones and kerbs wear their robes', shots: [
+      { name: 'seated-robes', caption: 'Bako and Sefa seated, from in front and the side', commit: '651d9fe', view: people([{ id: 'bako' }, { id: 'bako', yaw: 1.2 }, { id: 'sefa' }, { id: 'sefa', yaw: -1.2 }]) },
+    ] },
+    { match: 'On the Steam Deck the game starts in Gaming Mode', see: 'On the Steam Deck, start Memento from Gaming Mode: it opens instead of staying on a black screen, and Exit Game closes it at once.' },
+  ],
 };
