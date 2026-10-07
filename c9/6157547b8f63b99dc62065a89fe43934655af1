@@ -1,0 +1,63 @@
+changelog.md
+  s_55b4bc53b812ec::t_955b6c19201fb2 19-20
+docs/systems/references.md
+  s_55b4bc53b812ec::t_bd8ba5ea84d7ef 455-456
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_9ad061fcd1b280 26,456-500
+src/audio.js
+  s_55b4bc53b812ec::t_1ea2942de68958 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_5537d8e7b9f0da 46,152-161
+src/changelog.js
+  s_55b4bc53b812ec::t_a9939d408c85aa 25-26
+src/costumes.js
+  s_55b4bc53b812ec::t_10dec69a191f17 303-320
+src/edge.js
+  s_55b4bc53b812ec::t_d6d2869073869e 25
+src/levels/content.js
+  s_55b4bc53b812ec::t_9888071ef8700a 20,35
+src/levels/index.js
+  s_55b4bc53b812ec::t_09b1ca8ad196d2 17,87-93
+src/levels/mangrove-kit.js
+  s_55b4bc53b812ec::t_f9ac48d6fa8d35 58,81,112,118-119,122,201-236,260,262,368
+src/levels/mangrove.js
+  s_55b4bc53b812ec::t_688ae3ea5cd599 1-393
+src/levels/names.js
+  s_55b4bc53b812ec::t_5f5340cda4393e 18,26-27
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_d7ed6e5dd593b9 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_e81c02418de5dd 107
+src/reactive-world.js
+  s_55b4bc53b812ec::t_d1f79c71b292e9 28
+src/ship/planets.js
+  s_55b4bc53b812ec::t_2b670a20802fd1 24
+src/ship/ship.js
+  s_55b4bc53b812ec::t_b722505c62e4f6 1,330
+src/ship/starmap.js
+  s_55b4bc53b812ec::t_2c6b383c5e338d 46,56-60,325-326
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_2c097f947af99a 26
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_b5e03bacd83088 129
+tests/mangrove.test.js
+  s_55b4bc53b812ec::t_523a2c6a53e335 6-74
+tests/scripts.test.js
+  s_55b4bc53b812ec::t_a5f73fe2da27ab 3,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c96157547b8f63b99dc62065a89fe43934655af1",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
