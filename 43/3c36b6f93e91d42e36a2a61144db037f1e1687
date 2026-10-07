@@ -1,0 +1,27 @@
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_a0797e4c20dd45 789-804
+engine/mirror.js
+  s_55b4bc53b812ec::t_5bc5775ca52311 49-50,52-53,141-142
+engine/unity/game.js
+  s_55b4bc53b812ec::t_d57ebcca8997d0 101-104,108-109,111,113-119
+tests/engine-bridge.test.js
+  s_55b4bc53b812ec::t_96df80305eac4a 9,272-280
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_ebd4570b994d26 56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "433c36b6f93e91d42e36a2a61144db037f1e1687",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
