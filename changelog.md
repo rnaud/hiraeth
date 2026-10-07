@@ -2,6 +2,17 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.78 — 2026-10-07
+
+- The City-Shaft looks more like its drawings: half its walls are pink now among the cream, drainpipes run down the houses, washing hangs over the balconies’ rails, the undersides of the terraces are hung with ribs, machinery and pipes, three orange blimps drift slowly round the shaft, and the lake at the bottom is turquoise water instead of acid green.
+- The Signal Market’s stalls are full now: brass bowls heaped with fruit, jars between them, strings of goods hanging under the awnings and round pictures painted on the counters.
+- In the Buried Machine the trench walls are a mass of pipes, bends rising over the long runs and dropping back; inside the drum an arcade of little dark bays runs under the rim, with slits, panels and machinery against the wall, some of it lit; and the city overhead hangs its towers in clusters, lesser towers round the great ones, each ending in a bulb.
+- The desert’s canyon walls and violet cliffs are drawn with many cracks running down their faces, as in their drawings, instead of a few far-apart fissures, and the doors of Qanat’s houses have the plaster stained darker round them.
+- In the References level the Signal Market’s panels have a crowd of people in coats, hoods and hats, the quiet ones among them, stalls full of goods with their sellers, and the game’s own cabs; the Buried Machine’s have the trench’s pipes, the hanging towers in clusters, the drums’ arcades and machinery under vaulted ceilings, the oval tunnel’s inside, the moon seen from the arched cave and the layered rock ledge; the City-Shaft’s houses have pipes, balconies with washing and machinery under their overhangs, with blimps and the game’s own cabs in the sky.
+- Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.
+- Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it, and it is the bag of his drawings now: a big soft canvas shoulder bag with a flap, on a wide strap over his shoulder.
+- Sefa slings her oud on her back over her cloak when she walks, and takes it in hand again when she stops; Marrow carries his pack on his back and walks on cloth-wrapped shins, as his drawings show.
+
 ## v0.77 — 2026-10-07
 
 - The traveller’s face moves now: he smiles, frowns, looks worried, surprised or tired with the tone of what is said, blinks, glances about with his eyes, and his mouth opens and shuts on the syllables when he speaks, as everyone else’s does. At rest he looks as he always did, with the corners of his mouth a little up.
@@ -18,9 +29,13 @@ The same release notes shown in the game (press **N** or open settings).
 - The desert’s people carry the rest of what their drawings give them: Nour has clay gourds and a ring of keys at her belt and a tall staff with a pierced disc at its head; Marrow wears his long patched coat without a cloak, with a salvage bag at his hip (a bone and a pipe sticking out of it) and a pack on his back; Sefa’s cloak has little brass bells all along its hem and her oud has tassels; the Speaker’s bell is copper and his staff carries streamers.
 - Sefa’s oud no longer pokes through her cloak as she walks: the cloth swings round it.
 - The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.
-- Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.
-- Bako’s bag hangs over his cloak, where his drawings show it, instead of half inside it, and it is the bag of his drawings now: a big soft canvas shoulder bag with a flap, on a wide strap over his shoulder.
-- Sefa slings her oud on her back over her cloak when she walks, and takes it in hand again when she stops; Marrow carries his pack on his back and walks on cloth-wrapped shins, as his drawings show.
+- Lorn II’s bank bushes keep their leafy look from further off: a fringe of blades breaks their outline, and their hatching stays drawn as strokes instead of melting into a smooth dark tone.
+- The Garden of Spheres’ olive trees have rounder, layered crowns, a broad tier of leaves with a smaller one over it and a little cap on top, as in its drawings, instead of flat cushions.
+- The Garden’s round plaza reads pale from where you stand, as in its drawings: its slabs are wider and their joints a lighter tone, instead of crowding into dark bands across the rings.
+- The floor of the Buried Machine’s rust canyon no longer has long straight bands of sand running across it: the sand banks against the canyon’s walls along their foot, where it belongs.
+- Climbing a wall where sand is banked against its foot, you take hold standing on the bank: your hands and knees no longer go into the sand, and climbing down you step off onto it.
+- Cabs are solid just as they are drawn: you stand on a parked cab’s nose, tail or striped canopy where they are, instead of on an invisible lid at the canopy’s height, and walking up to one you stop at its side rather than a step away from it. The rolling stone balls in the temples are round underfoot too.
+- Climbing an olive tree in the Garden of Spheres, you stop under its crown or climb on round its leaves and stand on top, instead of coming out inside the crown; and pulling yourself up over an edge never puts you inside something solid.
 
 ## v0.76 — 2026-10-07
 

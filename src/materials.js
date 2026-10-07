@@ -369,8 +369,8 @@ export function detailOf(o) {
  * or of the height along it, thinned by powers of two as the hatch is (every other one fades out).
  */
 /** A hatch over 1 (makeMaterial({ hatch })): a hatched mass. Its strokes up to `closer` times closer (no finer:
- *  past ~4 px apart a pen's strokes only read as a tone), and its shade drawn as `heavier` × (hatch − 1) darker. */
-export const HATCH_DENSE = { closer: 1.3, heavier: 0.9 };
+ *  past ~4 px apart a pen's strokes only read as a tone: `minPx`), and its shade drawn as `heavier` × (hatch − 1) darker. */
+export const HATCH_DENSE = { closer: 1.3, heavier: 0.9, minPx: 4.5 };   // minPx: never closer than this (px)
 export const FORM = {
   kinds: { cap: 1, wrap: 2 },
   turn: 1024,              // angle units a turn (2^10: the coarsest level is one stroke a turn)
@@ -652,6 +652,7 @@ const fragmentShader = /* glsl */ `
   uniform int uMode;
   uniform float uFlat;
   uniform float uStrataSize;
+  uniform float uCracks;   // strata rock: dense cracks and strokes down its faces (0: the sparse fissures only)
 
   uniform vec3 uSunDir;
   uniform highp sampler2DShadow uShadowMap;
@@ -1540,6 +1541,27 @@ const fragmentShader = /* glsl */ `
     return inkLine(d, 1.0) * runs * (1.0 - smoothstep(0.08, 0.2, fwq));
   }
 
+  // Cracks down a cliff's face (the desert canyons' sheets, IMG_3772-3774): long near-vertical lines a
+  // couple of metres apart, each its own length, wandering a little and thinning at its ends, with short
+  // strokes between them; denser with k. q = (horizontal coordinate on the face, height) in metres, fwx
+  // metres per pixel across the face.
+  float faceCracks(vec2 q, float fwx, float k) {
+    float ink = 0.0;
+    for (int f = 0; f < 2; f++) {
+      float sp = f == 0 ? mix(6.0, 2.0, k) : mix(3.0, 1.1, k);
+      float wob = (vnoise(vec2(q.y * 0.11 + float(f) * 9.0, q.x * 0.03)) - 0.5) * 0.45;
+      float u = q.x / sp + wob, id = floor(u + 0.5);
+      float off = (hash(vec2(id, 3.1 + float(f))) - 0.5) * 0.5;
+      float d = abs(fract(u + 0.5) - 0.5 - off) * sp / max(fwx, 1e-5);   // px
+      float len = f == 0 ? mix(0.03, 0.09, hash(vec2(id, 7.7))) : mix(0.25, 0.5, hash(vec2(id, 5.3)));   // 1 / its length's scale
+      float run = vnoise(vec2(id * 7.31 + float(f) * 13.0, q.y * len));
+      float on = smoothstep(f == 0 ? 0.42 : 0.62, f == 0 ? 0.55 : 0.72, run);
+      float w = (f == 0 ? 2.0 : 1.2) * mix(0.5, 1.0, smoothstep(0.42, 0.75, run));
+      ink = max(ink, inkLine(d, w) * on * (1.0 - smoothstep(0.035, 0.11, fwx / sp)));
+    }
+    return ink;
+  }
+
   ${GLYPH_GLSL}
 
   #ifdef METAL
@@ -2251,6 +2273,7 @@ const fragmentShader = /* glsl */ `
     #ifdef S_STRATA
     else if (uMode == ${MODE_STRATA} && abs(normalize(on).y) < 0.6) {
       detail = max(detail, fissures(vec2(faceX, vObjPos.y), fissFw) * 0.85);
+      if (uCracks > 0.0) detail = max(detail, faceCracks(vec2(faceX, vObjPos.y), fissFw * 9.0, uCracks) * 1.7);   // (over 1: a pen line, post.js drawnK)
     }
     #endif
     #ifdef S_SCRUB
@@ -2322,7 +2345,8 @@ const fragmentShader = /* glsl */ `
     // (a hatch over 1 is a denser one, a hatched mass (Lorn II's roots and bushes): its strokes a little closer
     // (never finer than a pen can draw: past ~4 px they would only be a tone) and heavier, cross-hatched sooner)
     float hDense = max(uShade.z, 1.0);
-    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth)) / min(hDense, ${HATCH_DENSE.closer.toFixed(2)});
+    float hsp0 = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
+    float hsp = max(hsp0 / min(hDense, ${HATCH_DENSE.closer.toFixed(2)}), min(hsp0, ${HATCH_DENSE.minPx.toFixed(1)}));
     float darkH = min(dark * (1.0 + (hDense - 1.0) * ${HATCH_DENSE.heavier.toFixed(2)}), 1.0);
     if (darkH > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
       gHatch.r = stipple(ce1, fwd, hsp * 1.15, darkH) * smoothstep(0.02, 0.15, darkH);
@@ -2432,6 +2456,8 @@ const cache = new Map();
  * @param {number}  [o.lineTint] 0..1: its line drawn in a dark shade of its own colour instead of the ink (glass 0.7, leaves 0.67)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
+ * @param {number}  [o.cracks]  strata rock: dense cracks and short strokes running down its faces, as the
+ *                              desert's canyon sheets draw their walls (0..1; 0 the sparse fissures only)
  * @param {boolean} [o.form]    its shade's strokes follow the form of the parts that carry an axis (src/form.js
  *                              formAxis: a cap's radiate from it, a cylinder's wrap round it; FORM, S_FORM)
  * @param {number|boolean} [o.patches] colour across a wall: big flat patches of another tone (PATCH; 0..1.5; on
@@ -2493,6 +2519,7 @@ export function makeMaterial(o) {
       uMode: { value: o.mode ?? MODE_PLAIN },
       uFlat: { value: o.flat ? 1 : 0 },
       uStrataSize: { value: o.strataSize ?? 4.0 },
+      uCracks: { value: o.cracks ?? 0 },
       uPlates: { value: o.plates ? 1 : 0 },
       uWindows: { value: o.windows ?? 0.78 },
       uWeather: { value: weatheredOf(o) },

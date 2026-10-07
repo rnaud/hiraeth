@@ -171,7 +171,7 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   - drifting motes (dust, pollen, ash, blinking fireflies), drawn as
     depth-tested sprites so they don't turn into ink specks;
   - waving cloth banners;
-  - acid steam rising in the city-shaft;
+  - mist rising off the water at the City-Shaft's bottom;
   - swaying flowers in Viridel;
   - footprints in sand.
 - **The character:** a real human body (Quaternius' Universal Base

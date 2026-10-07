@@ -73,6 +73,13 @@ panel, its number (as the label and `?view=n` count) and its title; the view you
 
 ### The City-Shaft's sheets, and three desert touches
 
+- **Since October 2026** the blocks carry their small work (`blockWork`, its own random numbers so the
+  views' layouts stay as framed): pipes down the faces with collars, a balcony with side rails and washing
+  hung along it, and under an overhanging slab the plating (brackets back to the wall, boxes, a pipe along
+  it). `blimp`: a teardrop envelope with four fins and a gondola (IMG_3780 p1 and p4, IMG_3782 p6); the
+  cabs are the game's own (`cabModel`). On the world: see worlds.md (pink and cream walls, drainpipes,
+  washing, plating under the terraces, blimps, turquoise water).
+
 - **The views** (`src/levels/reference-shaft.js`, `SHAFT_VIEWS`): IMG_3778 (one plate) and IMG_3779
   to 3782 (5, 5, 5 and 7 panels), 23 views after the desert's 27, grouped by world (the label names
   the world, the sheet and the panel). One scene builder (`shaftScene`) does them all: walls of
@@ -184,9 +191,22 @@ the narrowest creases.
   recesses are mostly lit on the sheets; ours shade as one mass. The canyon floor's dense
   stippling and the dunes' long shaded slopes (IMG_3790 p5: a slope in shade a flat sage band)
   aren't drawn.
-- **Left, scene level**: the trench's pipe mass (IMG_3789 p1), the city's towers hanging in
-  clusters, the drum's interior machinery and arcades, the oval tunnel's interior (IMG_3791 p4),
-  the cave with the moon (IMG_3792 p3), the rock ledge of IMG_3792 p5 are all sketches.
+- **Scene level, rebuilt (October 2026)**: `pipeMass` fills IMG_3789 p1's trench (long runs at several
+  levels, inverted U-bends rising from a dark floor along it and across it, flanged risers, elbows over the
+  lip; `bent` rounds each corner within 1.6 r), its camera raised to look down into it. `hangingCity` hangs
+  its towers in clusters: a great one (`hangingTower`: tiers narrowing a little, bands, boxes on the shafts,
+  an onion bulb, a short spike, now and then a cable) with three to six lesser ones packed round it, cables
+  slung from cluster to cluster. `drum({ inside, roof, off, vault, ribs })`: tiers of arcades round the
+  inner wall (dark round-headed bays, a few lit, pilasters, a cornice per tier) and machinery standing in
+  from it; a vaulted roof with a central oculus, or (`off`) a flat ceiling with machinery hung from it and
+  its oculus toward the far wall, as IMG_3791 p6 sees it from inside. `ovalTunnel` (IMG_3791 p4: a pale
+  lit oval tube, ribs, rounded machine forms and pipes along it), `archPortal` (IMG_3792 p3: six recessed
+  stone rings with their voussoir joints, a vault over them; the drum beyond is tall and pale, the moon a
+  great disc with craters in its far wall), `rockLedge` (IMG_3792 p5: bevelled slabs stepping down and out,
+  strata rock with cracks). IMG_3789 p5 now looks into the drum through the wall's oval (opened toward it,
+  its vault casting no shadow, as drawn).
+- **Left, scene level**: the ring's town and the far canyons; IMG_3792 p3 reads as a moon in a drum
+  (the sheet's disc may be the sky through the shaft's top), and its vault's stone stays lighter than drawn.
 
 ## The Garden of Spheres' sheets (IMG_3793–3796)
 
@@ -206,7 +226,9 @@ the narrowest creases.
   - *Foliage in leaf masses* (`leafCrown`): a crown is a core and a few smaller balls bulging from it, each
     welded and smooth, so the ink draws each mass's own outline, as the sheets' olives, shrubs and woods. The
     world's shrubs are a core and three lobes (320 faces, the old lump's 180: there are 1 800 of them), its olive
-    crowns a core and seven (640, the four lumps' 720); the views' have more and smaller.
+    crowns are layered (`layeredCrown`: a broad tier, a narrower one over it a little to one side, a small cap,
+    each its own leaf masses), round and about as tall as wide as the sheets' olives (800 faces, the four lumps'
+    720); the views' have more and smaller masses.
   - *Spheres printed whatever the sun* (`crescentSphere`): two flat tones, the line between them one ring of
     vertices (the poles along the light), self-lit (`glow` 0.6), so the pale blue crescent stays where the panel
     has it. The world's spheres already were (`CRESCENT`); the views now are too, each sphere with its `lit`
@@ -222,8 +244,11 @@ the narrowest creases.
   - *The hedges' fruit* (`hedge`): clipped hedges of leaf masses with their fruit on the top and the long
     faces; the world's ring round the plaza (instanced: walk-through, as the shrubs were) and view 119's
     foreground rows, with the orange trees behind its plaza.
-  - *The plaza's paving* (`paintPaving`): each ring's slabs a hair apart in tone (just past post.js's
-    colour-edge threshold), so the ink draws the joints; the world's plaza and the views'.
+  - *The plaza's paving* (`paintPaving`): each ring's slabs a hair apart in tone, so the joints read; the world's
+    plaza and the views'. Seen at a person's height across the rings, joints drawn as full ink lines crowded into
+    dark bands (the plaza looked as though it lay in shade, round 2): the slabs are now 4.5 m (world) and 5 m (views,
+    `PAVE`) wide and their tones only just apart, a light joint or a change of tone, and the sheets' pale plaza holds.
+    Views 107 and 113 also take a higher sun from the side (el 50–55), so the avenue's shadows fall short of it.
 - **Shading, October 2026**:
   - *The white stone's shade* (`WHITE_SHADE` in spheres.js: `shadeFlat` 1, `hatch` 0.08): printed flat in the
     day's pale blue with almost no strokes, on the world's and the views' white stone, rock, pillars, stairs.
@@ -238,7 +263,12 @@ the narrowest creases.
   a tight loop of frames, five rounds alternating with the build before, median ms): spawn 4.27 → 4.75, under an
   umbrella 3.44 → 3.63, before the hill 4.13 → 4.32, the avenue 3.37 → 3.27, the plaza 3.01 → 3.07, the android
   wood 3.29 → 3.16 (the world's triangles 1.28 → 1.59 M, most of it the shrubs' leaf masses).
-- **Left**: the lakes' reflections in the views; the avenue's grasses; the views' far woods are round trees, the
+- **The lakes' printed reflections in the views** (`mirror` in reference-spheres.js, October 2026): what stands
+  beyond a view's lake is mirrored in the water plane and projected back onto it along the line of sight from the
+  view's camera (the world's mirror lake, spheres.js, does the same from the south shore), laid on the water as
+  flat `waterPrint` shapes in each thing's own colour 38 % toward the water's, the nearer printed over the farther.
+  Plain geometry built once: no reflection pass. Views 106, 112, 118, 123 (and 111's pool).
+- **Left**: the avenue's grasses; the views' far woods are round trees, the
   sheets' dense tall trunks.
 
 ## Lorn II's sheets (IMG_3797–3800)
@@ -266,15 +296,18 @@ the narrowest creases.
     keeps its tunnel and gains five arches and four feet over its mouth (solid as drawn: the static collision
     stays under its budget, ~190 k with the arches' strands and the nest) and 22 roots hanging in it (walk-through).
   - *The banks' bushes* (`bankBush`): a low mass of small leaf clumps; the world's 1 600 are four clumps of
-    20 faces (100, the old ball's 80), the views' seven.
+    20 faces (100, the old ball's 80), the views' seven. A fringe of thin two-sided blades (`frondTuft`: ten in the
+    world, 20 faces; thirty in the views) springs from their tops, so the silhouette stays ragged and leafy from
+    afar instead of a smooth lump, and the ink draws each blade.
   - *The nest in the great cap* (`nest`): a woven bowl of root strands heaped with glowing eggs under a ribbed
     glass dome; on the great cap of view 128, and in the world on the flat cap of a giant in sight of the path
     north-west of the spawn (its bowl solid as drawn, the eggs and ribs not).
   - The views' framing was checked panel by panel: the reeds round the domes (126), the bushes on the banks
     brought into their panels (129, 130, 136, 140, 141, 146), the root arches lowered under the frame's top (129).
 - **Shading: roots and bushes as dense hatched masses** (`ROOT_INK`, `BUSH_INK` in perdide2.js; materials.js
-  `HATCH_DENSE`): a material's `hatch` over 1 is a hatched mass: its strokes up to 1.3 × closer (no finer: past
-  ~4 px apart strokes only read as a tone) and its shade drawn heavier (cross-hatched sooner), and a half-tone no
+  `HATCH_DENSE`): a material's `hatch` over 1 is a hatched mass: its strokes up to 1.3 × closer, but never under
+  4.5 px apart (`minPx`: closer, as they were at a distance where the hatch's own spacing tightens, they only read as
+  a tone, and the bushes went smooth) and its shade drawn heavier (cross-hatched sooner), and a half-tone no
   longer thins them away. Roots 1.8, bushes 2.2, their shade lifted a little (0.45, 0.55) and never a spot black,
   so the strokes show over it; the cracks pattern and the flat facets are off the roots.
 - **Cost** (desktop, M4 Pro, Chrome on Metal, Handheld at render scale 0.75 without dynamic resolution, a tight
@@ -301,8 +334,15 @@ the narrowest creases.
 - **Left, shader level**: the sheets' walls are dense with fine line detail (panel seams, vents, signs
   in a hand's lettering) at every scale; ours are plain faces with a grid. The billboards are painted
   illustrations; ours are a few flat shapes. Far towers fade to a pale warm haze on the sheets.
-- **Left, scene level**: the crowd (the sheets' hundreds of drawn people; ours are cylinders), the
-  stalls' heaps of goods and signs, the aliens in the foreground, the cabs' shapes.
+- **Scene level, rebuilt (October 2026)**: `person` (two legs a stride apart, a coat flaring to its hem,
+  shoulders, arms, a head, and a hood, a wide hat, a wrap or a bubble helmet, now and then a bundle)
+  makes the crowd, denser near the camera, on the skybridges too and clear of the counters; `quiet` the
+  pale lilac folk with broad heads (bazaar.js's), a few in the crowd and in the foreground of IMG_3801,
+  IMG_3805 p6 and IMG_3807 p4. `stall`: a counter painted with round pictures, heaped bowls and jars, shelves
+  of crates and pots, four posts, a slanted awning with a scalloped edge, strings of goods, a sign with
+  strokes, a lamp, the seller behind. The cabs are the game's own (`cabModel` in taxi.js: the
+  self-driving, round-bellied cab with its striped canopy and a rider).
+- **Left, scene level**: the sheets' stalls are a dense heap of goods and signs; ours are tidy rows.
 
 ## Across the worlds: the shader gaps that recur
 

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mulberry32 } from '../noise.js';
 import { V, tube, sagPts, put, PERSON, CLEAN_SKY } from './reference-kit.js';
 import { MARKET_LOOK, MARKET_FLAT } from './bazaar.js';
+import { cabModel } from '../taxi.js';
 
 // ---------------------------------------------------------------------------
 // The Signal Market's reference sheets (references/The Signal Market/IMG_3801 … 3808): a canyon of a
@@ -53,6 +54,7 @@ function materials(kit) {
     skin: kit.mat({ color: '#e0b08e', flat: true, figure: true }),
     suit: kit.mat({ color: '#c3b4e0', flat: true, figure: true }),
     pack: kit.mat({ color: '#f1e6b8', flat: true, figure: true }),
+    alien: kit.mat({ color: '#b9a9c5', flat: true, figure: true }),
   };
 }
 
@@ -109,29 +111,102 @@ function skybridge(kit, M, rng, { z, y, x0 = -30, x1 = 30, w = 4, drop = 0 }) {
   for (let i = 0; i < 3; i++) kit.add(M.pipe, tube([V(x0, y - 3.4 - i * 0.7, z + (rng() - 0.5) * w), V(x1, y - 3.4 - i * 0.7 - drop, z + (rng() - 0.5) * w)], 0.3, 2, 6), { solid: false, shadow: false });
   for (let i = 0; i < Math.floor(L / 3); i++) {
     const t = rng(), px = x0 + L * t;
-    kit.add(M.crowd[Math.floor(rng() * M.crowd.length)], new THREE.CylinderGeometry(0.22, 0.28, 1.6, 6).translate(px, y + 1.4 - drop * t, z + (rng() - 0.5) * w * 0.6), { solid: false, shadow: false });
+    person(kit, M, rng, px, z + (rng() - 0.5) * w * 0.6, 1.6 + rng() * 0.2, rng() < 0.5 ? Math.PI / 2 : -Math.PI / 2, y + 0.6 - drop * t);
   }
 }
-/** A market stall at the foot of a wall: a counter, a slanted awning, heaps of goods, a sign, a lamp. */
+/**
+ * A market stall at the foot of a wall (IMG_3805 p4, IMG_3801, IMG_3808 p3): a counter painted with
+ * round pictograms, four posts under a slanted awning with a scalloped edge, bowls heaped with goods
+ * and jars on the counter, shelves of crates and pots behind, strings of goods hanging from the
+ * awning, a sign board over it, a lamp and the seller behind the counter.
+ */
 function stall(kit, M, rng, { x, z, w = 4, face = 1 }) {
-  const fx = face, a = M.awning[Math.floor(rng() * M.awning.length)];
-  kit.add(M.walls[Math.floor(rng() * M.walls.length)], new THREE.BoxGeometry(2, 1.1, w).translate(x + fx * 0.5, 0.55, z), { shadow: false });
-  kit.add(a, put(new THREE.BoxGeometry(2.6, 0.08, w * 1.05), x + fx * 1.2, 2.8, z, 0, 1, 0, -fx * 0.3), { solid: false, shadow: false });
-  for (let i = 0; i < 8; i++) kit.add(M.goods[Math.floor(rng() * M.goods.length)], new THREE.SphereGeometry(0.18 + rng() * 0.15, 6, 5).translate(x + fx * (0.2 + rng() * 1.1), 1.25, z + (rng() - 0.5) * w * 0.9), { solid: false, shadow: false });
-  kit.add(M.screens[Math.floor(rng() * M.screens.length)], put(new THREE.BoxGeometry(0.15, 0.9, w * 0.8), x - fx * 0.4, 3.6, z), { solid: false, shadow: false });
-  kit.add(M.lamp, new THREE.SphereGeometry(0.18, 8, 6).translate(x + fx * 1.6, 2.4, z), { solid: false, shadow: false });
+  const fx = face, a = M.awning[Math.floor(rng() * M.awning.length)], pick = (arr) => arr[Math.floor(rng() * arr.length)];
+  const nd = { solid: false, shadow: false };
+  // the counter, its front toward the street (+fx), painted plates on it
+  kit.add(pick(M.walls), new THREE.BoxGeometry(1.4, 1.1, w).translate(x + fx * 0.9, 0.55, z), { shadow: false });
+  kit.add(M.rail, new THREE.BoxGeometry(1.6, 0.08, w + 0.1).translate(x + fx * 0.9, 1.14, z), nd);
+  for (let k = 0; k < Math.floor(w / 1.1); k++) {
+    const u = (k + 0.5) * w / Math.floor(w / 1.1) - w / 2, r = 0.32 + rng() * 0.08;
+    kit.add(pick(M.screens), put(new THREE.CircleGeometry(r, 16), x + fx * 1.61, 0.58, z + u, fx * Math.PI / 2), nd);
+    kit.add(M.ink, put(new THREE.RingGeometry(r * 0.55, r * 0.68, 14), x + fx * 1.62, 0.58, z + u, fx * Math.PI / 2), nd);
+  }
+  // bowls heaped with goods, jars between them
+  for (let u = -w / 2 + 0.45; u < w / 2 - 0.3; u += 0.7 + rng() * 0.3) {
+    const bx = x + fx * (0.55 + rng() * 0.6), bz = z + u, g = pick(M.goods);
+    if (rng() < 0.7) {
+      kit.add(M.rail, new THREE.CylinderGeometry(0.3, 0.2, 0.14, 10).translate(bx, 1.25, bz), nd);
+      for (let i = 0; i < 6; i++) { const t = (i / 6) * Math.PI * 2, rr = i ? 0.17 : 0; kit.add(g, new THREE.SphereGeometry(0.1 + rng() * 0.04, 6, 4).translate(bx + Math.cos(t) * rr, 1.36 + (i ? 0 : 0.1), bz + Math.sin(t) * rr), nd); }
+    } else kit.add(g, new THREE.CylinderGeometry(0.12, 0.15, 0.4 + rng() * 0.2, 8).translate(bx, 1.38, bz), nd);
+  }
+  // shelves of crates and pots against the wall behind
+  kit.add(M.rail, new THREE.BoxGeometry(0.1, 2.6, w).translate(x - fx * 0.55, 1.3, z), { shadow: false });
+  for (const y of [1.0, 1.75]) {
+    kit.add(M.rail, new THREE.BoxGeometry(0.5, 0.06, w).translate(x - fx * 0.3, y, z), nd);
+    for (let u = -w / 2 + 0.25; u < w / 2 - 0.2; u += 0.35 + rng() * 0.25) {
+      const s = 0.2 + rng() * 0.18;
+      kit.add(pick(M.goods), (rng() < 0.5 ? new THREE.BoxGeometry(s, s, s) : new THREE.CylinderGeometry(s * 0.45, s * 0.55, s * 1.3, 7)).translate(x - fx * 0.3, y + s * 0.6, z + u), nd);
+    }
+  }
+  // the posts and the awning, slanting down to the street, its scalloped edge
+  for (const e of [-1, 1]) for (const d of [-0.4, 1.7]) kit.add(M.rail, new THREE.BoxGeometry(0.1, 2.9, 0.1).translate(x + fx * d, 1.45, z + e * (w / 2 - 0.05)), nd);
+  kit.add(a, put(new THREE.BoxGeometry(2.8, 0.08, w * 1.05), x + fx * 1.0, 2.75, z, 0, 1, 0, -fx * 0.28), nd);
+  for (let k = 0; k < Math.round(w / 0.5); k++) kit.add(k % 2 ? M.awning[(M.awning.indexOf(a) + 1) % M.awning.length] : a, put(new THREE.ConeGeometry(0.16, 0.3, 3), x + fx * 2.38, 2.25, z - w * 0.52 + (k + 0.5) * w * 1.04 / Math.round(w / 0.5), 0, 1, Math.PI), nd);
+  // strings of goods hanging from the awning's edge
+  for (let k = 0; k < 2 + Math.floor(rng() * 3); k++) {
+    const hz = z + (rng() - 0.5) * w * 0.85, hx = x + fx * (1.6 + rng() * 0.5), n = 3 + Math.floor(rng() * 3), g = pick(M.goods);
+    kit.add(M.cable, new THREE.CylinderGeometry(0.012, 0.012, n * 0.2 + 0.2, 3).translate(hx, 2.55 - n * 0.1, hz), nd);
+    for (let i = 0; i < n; i++) kit.add(g, (rng() < 0.5 ? new THREE.SphereGeometry(0.09, 6, 4) : new THREE.BoxGeometry(0.13, 0.17, 0.13)).translate(hx, 2.45 - i * 0.2, hz), nd);
+  }
+  // the sign board over the awning, a few painted strokes on it
+  const sw = w * (0.6 + rng() * 0.3), sy = 3.35 + rng() * 0.5, sm = pick(M.screens);
+  kit.add(sm, put(new THREE.BoxGeometry(0.12, 0.9, sw), x + fx * 0.2, sy, z), nd);
+  for (let i = 0; i < 3 + Math.floor(rng() * 3); i++) kit.add(M.ink, put(new THREE.PlaneGeometry(0.12 + rng() * 0.25, 0.5), x + fx * 0.27, sy + (rng() - 0.5) * 0.25, z + (i / 4 - 0.5) * sw * 0.8, fx * Math.PI / 2), nd);
+  kit.add(M.lamp, new THREE.SphereGeometry(0.18, 8, 6).translate(x + fx * 1.9, 2.3, z + (rng() - 0.5) * w * 0.6), nd);
+  // the seller, behind the counter
+  if (rng() < 0.75) person(kit, M, rng, x + fx * 0.05, z + (rng() - 0.5) * w * 0.5, 1.55, fx * Math.PI / 2, 0.2);
 }
-/** A flying cab: a yellow body, a dark canopy, s its scale. */
+/** A flying cab: the game's own (taxi.js: a round-bellied body, an open cabin under a striped canopy, a rider), s its scale. */
 function cab(kit, M, [x, y, z], yaw = 0, s = 1) {
-  kit.add(M.cab, put(new THREE.BoxGeometry(2.0 * s, 0.7 * s, 4.2 * s), x, y, z, yaw), { solid: false, shadow: false });
-  kit.add(M.cabDark, put(new THREE.BoxGeometry(1.7 * s, 0.6 * s, 1.9 * s), x, y + 0.6 * s, z, yaw), { solid: false, shadow: false });
+  const c = cabModel(['#e9b45f', '#e5cba0', '#e9b45f'][Math.floor(Math.abs(x * 7 + z)) % 3], s * 1.5);
+  c.position.set(x, y, z); c.rotation.y = yaw;
+  kit.group.add(c);
 }
-/** A crowd: n walkers in coloured coats over the street, between x0..x1 and z0..z1, heads, a few hats. */
-function crowd(kit, M, rng, { n, x0, x1, z0, z1 }) {
+/**
+ * A person of the crowd (merged): two legs (one a stride ahead), a coat flaring to its hem, shoulders,
+ * arms, a head, and what they wear on it: nothing, a hood, a wide hat, a wrap or a bubble helmet;
+ * now and then a bundle on the back. h their height, yaw where they face, y0 what they stand on.
+ */
+function person(kit, M, rng, x, z, h = 1.7, yaw = rng() * Math.PI * 2, y0 = 0) {
+  const nd = { solid: false, shadow: false }, coat = M.crowd[Math.floor(rng() * M.crowd.length)], c = Math.cos(yaw), sn = Math.sin(yaw);
+  const at = (g, f, s2, y) => kit.add(g.m, put(g.geo, x + sn * f + c * s2, y0 + y, z + c * f - sn * s2, yaw), nd);
+  const legs = M.crowd[(M.crowd.indexOf(coat) + 3) % M.crowd.length], stride = (rng() - 0.5) * 0.3;
+  for (const e of [-1, 1]) at({ m: legs, geo: new THREE.CylinderGeometry(0.06 * h, 0.05 * h, h * 0.42, 5) }, e * stride, e * 0.07 * h, h * 0.21);
+  const long = rng() < 0.6;
+  at({ m: coat, geo: new THREE.CylinderGeometry(0.12 * h, long ? 0.2 * h : 0.15 * h, h * (long ? 0.55 : 0.36), 8) }, 0, 0, h * (long ? 0.58 : 0.66));
+  at({ m: coat, geo: new THREE.SphereGeometry(0.14 * h, 8, 5).scale(1.2, 0.6, 0.85) }, 0, 0, h * 0.82);
+  for (const e of [-1, 1]) at({ m: coat, geo: new THREE.CylinderGeometry(0.035 * h, 0.03 * h, h * 0.36, 5).rotateZ(e * 0.12) }, (rng() - 0.5) * 0.1, e * 0.17 * h, h * 0.64);
+  at({ m: M.skin, geo: new THREE.SphereGeometry(0.075 * h, 8, 6) }, 0, 0, h * 0.92);
+  const k = rng(), hat = M.crowd[Math.floor(rng() * M.crowd.length)];
+  if (k < 0.22) at({ m: coat, geo: new THREE.SphereGeometry(0.1 * h, 8, 5, 0, Math.PI * 2, 0, Math.PI * 0.6) }, -0.01 * h, 0, h * 0.92);
+  else if (k < 0.4) { at({ m: hat, geo: new THREE.CylinderGeometry(0.16 * h, 0.16 * h, 0.012 * h, 12) }, 0, 0, h * 0.975); at({ m: hat, geo: new THREE.CylinderGeometry(0.06 * h, 0.075 * h, 0.07 * h, 8) }, 0, 0, h * 1.01); }
+  else if (k < 0.55) at({ m: hat, geo: new THREE.TorusGeometry(0.065 * h, 0.03 * h, 4, 10).rotateX(Math.PI / 2) }, 0, 0, h * 0.97);
+  else if (k < 0.6) at({ m: M.glass, geo: new THREE.SphereGeometry(0.13 * h, 10, 8) }, 0, 0, h * 0.93);
+  if (rng() < 0.18) at({ m: M.pack, geo: new THREE.BoxGeometry(0.26 * h, 0.24 * h, 0.14 * h) }, -0.15 * h, 0, h * 0.74);
+}
+/** One of the quiet ones (the sheets' pale lilac folk with broad round heads and slit eyes; bazaar.js's folk), s its scale. */
+function quiet(kit, M, x, z, s = 1, yaw = 0) {
+  const nd = { solid: false, shadow: false }, c = Math.cos(yaw), sn = Math.sin(yaw);
+  kit.add(M.alien, new THREE.SphereGeometry(1, 12, 9).scale(0.6 * s, 1.05 * s, 0.42 * s).rotateY(yaw).translate(x, 1.1 * s, z), nd);
+  kit.add(M.alien, new THREE.SphereGeometry(1, 14, 9).scale(0.82 * s, 0.46 * s, 0.5 * s).rotateY(yaw).translate(x, 2.05 * s, z), nd);
+  for (const dx of [-0.26, 0.26]) kit.add(M.dark, new THREE.SphereGeometry(1, 6, 4).scale(0.07 * s, 0.025 * s, 0.03).rotateY(yaw).translate(x + c * dx * s + sn * 0.5 * s, 2.1 * s, z - sn * dx * s + c * 0.5 * s), nd);
+}
+/** A crowd: n people over the street, between x0..x1 and z0..z1 (denser near), a few of the quiet ones among them. */
+function crowd(kit, M, rng, { n, x0, x1, z0, z1, quietOnes = 0.04 }) {
   for (let i = 0; i < n; i++) {
-    const x = x0 + rng() * (x1 - x0), z = z0 + rng() * (z1 - z0), h = 1.5 + rng() * 0.35;
-    kit.add(M.crowd[Math.floor(rng() * M.crowd.length)], new THREE.CylinderGeometry(0.2, 0.32, h * 0.8, 7).translate(x, h * 0.4, z), { solid: false, shadow: false });
-    kit.add(M.skin, new THREE.SphereGeometry(0.13, 7, 5).translate(x, h * 0.88, z), { solid: false, shadow: false });
+    const x = x0 + rng() * (x1 - x0), z = z0 + (rng() ** 1.6) * (z1 - z0), h = 1.55 + rng() * 0.3;
+    if (rng() < quietOnes) quiet(kit, M, x, z, 0.85 + rng() * 0.3, rng() * 6.3);
+    else person(kit, M, rng, x, z, h, rng() < 0.5 ? (rng() - 0.5) * 0.8 : Math.PI + (rng() - 0.5) * 0.8);
   }
 }
 /** The traveller seen from behind (the sheets' lavender suit, the bubble helmet, the cream pack), s his scale. */
@@ -173,8 +248,10 @@ function marketScene(kit, v, o) {
     const z = -10 - rng() * 200, y = 8 + rng() * 30;
     kit.add(M.cable, tube(sagPts(V(-W / 2, y, z), V(W / 2, y + (rng() - 0.5) * 6, z - (rng() - 0.5) * 20), 1 + rng() * 3, 10), 0.05, 10, 3), { solid: false, shadow: false });
   }
-  if (o.crowd) crowd(kit, M, rng, { n: o.crowd.n, x0: -W / 2 + 4, x1: W / 2 - 4, z0: -(o.crowd.z0 ?? 6), z1: -(o.crowd.z1 ?? 140) });
+  const kerb = (o.stalls ?? 0.7) > 0 ? 6.8 : 4;   // (clear of the stalls' counters)
+  if (o.crowd) crowd(kit, M, rng, { n: o.crowd.n, x0: -W / 2 + kerb, x1: W / 2 - kerb, z0: -(o.crowd.z0 ?? 6), z1: -(o.crowd.z1 ?? 140) });
   if (o.traveller) traveller(kit, M, ...o.traveller);
+  for (const q of o.quiet ?? []) quiet(kit, M, ...q);
   if (o.far) tower(kit, M, rng, { x: o.far[0], z: o.far[1], w: o.far[2], h: o.far[3], round: true, face: 0, mat: M.walls[4], poster: false });
   o.extra?.(kit, M, rng);
 }
@@ -194,6 +271,7 @@ export const MARKET_VIEWS = [
         bridges: [{ z: -90, y: 36, w: 6 }, { z: -150, y: 60, w: 4 }],
         cabs: [[-2, 26, -70, 0.3, 1.6], [6, 30, -100, -0.4, 1.2], [8, 62, -130, 0.6, 1.4], [-10, 120, -160, 0.2, 2]],
         cables: 14, crowd: { n: 220, z0: 6, z1: 140 }, traveller: [-6, -5, 1, 0.3],
+        quiet: [[1.6, -4, 0.45, 0.3], [2.7, -5.2, 0.5, -0.2], [0.9, -4.6, 0.42, 0]],
         far: [6, -320, 16, 420],
       });
     },
@@ -306,7 +384,7 @@ export const MARKET_VIEWS = [
     camera: { eye: [0, 1.6, 0], yaw: 20, fov: 54, horizon: 0.52 },
     sun: { side: 160, el: 55 },
     build(kit, v) {
-      marketScene(kit, v, { seed: 38056, width: 14, rows: { z0: 10, z1: -120, h: [40, 120] }, traveller: [0.4, -3.2, 1, 0] });
+      marketScene(kit, v, { seed: 38056, width: 14, rows: { z0: 10, z1: -120, h: [40, 120] }, traveller: [1.1, -3.0, 1, -0.35], quiet: [[0.4, -3.35, 0.75, Math.PI - 0.35], [2.0, -3.0, 0.8, Math.PI - 0.35]] });
     },
   }),
   // ===================================================================== IMG_3806: three tall panels
@@ -386,7 +464,7 @@ export const MARKET_VIEWS = [
     camera: { eye: [0, 1.7, 0], yaw: 10, fov: 56, horizon: 0.62 },
     sun: { side: 170, el: 55 }, sky: SKY.pale,
     build(kit, v) {
-      marketScene(kit, v, { seed: 38074, width: 20, rows: { z0: 10, z1: -400, h: [40, 160] }, stalls: 1, crowd: { n: 30, z0: 10, z1: 60 }, traveller: [-0.5, -3, 1, 0], far: [-4, -260, 8, 300] });
+      marketScene(kit, v, { seed: 38074, width: 20, rows: { z0: 10, z1: -400, h: [40, 160] }, stalls: 1, crowd: { n: 30, z0: 10, z1: 60 }, traveller: [-0.5, -3, 1, 0], far: [-4, -260, 8, 300], quiet: [[1.7, -2.75, 0.7, -1.2]] });
     },
   }),
   // ===================================================================== IMG_3808
