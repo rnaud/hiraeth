@@ -1,0 +1,21 @@
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_e6926217162dea 749-750,764
+src/feet.js
+  s_55b4bc53b812ec::t_3212731707f26f 2,58,79,90,102,104,139,143-144,265,309,316,322-323,333
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c17f14c6142b1a6d0355424b7a09be68f18a9a8b",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
