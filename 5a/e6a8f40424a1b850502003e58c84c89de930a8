@@ -1,0 +1,49 @@
+src/audio.js
+  s_55b4bc53b812ec::t_30988b622d471b 37-38,294-296,556-557,1532-1534
+src/costumes.js
+  s_55b4bc53b812ec::t_949390c6935f73 343-363
+src/levels/content.js
+  s_55b4bc53b812ec::t_f1e4de96657935 79-90
+src/levels/index.js
+  s_55b4bc53b812ec::t_cd1cee27a7f63c 17,87-93
+src/levels/names.js
+  s_55b4bc53b812ec::t_4b866288cd7c03 17,28-30
+src/levels/waterfall-kit.js
+  s_55b4bc53b812ec::t_d5ea64b17d3a38 114,230-231,247,252,266,268,370-374,378-385,389-391,393-394,397,407,413-415,417-419
+src/levels/waterfall.js
+  s_55b4bc53b812ec::t_f76d4ff255ca6c 1-297
+src/main.js
+  s_55b4bc53b812ec::t_14eca7ebcd9ad8 1467
+src/reactive-world.js
+  s_55b4bc53b812ec::t_309f3e5fdd29b9 28
+src/ship/planets.js
+  s_55b4bc53b812ec::t_5d4fc653af3add 24
+src/ship/starmap.js
+  s_55b4bc53b812ec::t_0daffdaa8f2330 26,45-46,48,58-61,287
+src/wildlife/species.js
+  s_55b4bc53b812ec::t_61adc6439bde26 843-897,954
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_553f705006ca13 129
+tests/ending.test.js
+  s_55b4bc53b812ec::t_8680fac820b003 12,64
+tests/signature.test.js
+  s_55b4bc53b812ec::t_62ca24f65f6cae 10,19-20,32
+tests/waterfall.test.js
+  s_55b4bc53b812ec::t_30c70fb1d9a6ba 1-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5ae6a8f40424a1b850502003e58c84c89de930a8",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
