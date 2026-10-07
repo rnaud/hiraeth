@@ -14,13 +14,24 @@ import { moverVelocity } from './physics.js';
  * @param solids   () => [{ solid: { pos, r, top } }] (level.dynamic), read on every query
  * @param skip     () => a solid's owner to leave out (the vehicle you ride)
  */
+/**
+ * A moving solid's top over (x, z): its own shape when it has one (d.topAt: a cab's hull and canopy,
+ * a ball's dome), else its disc's level top within d.r. -Infinity off it.
+ */
+export function solidTop(d, x, z) {
+  if (Math.hypot(x - d.pos.x, z - d.pos.z) > d.r) return -Infinity;
+  return d.topAt ? d.topAt(x, z) : d.top;
+}
+
 export function standGround(physics, solids, skip = () => null) {
   const topUnder = (x, fromY, z) => {
     let best = -Infinity;
     for (const v of solids?.() ?? []) {
       const d = v?.solid;
-      if (!d || v === skip() || d.top > fromY || d.top <= best) continue;
-      if (Math.hypot(x - d.pos.x, z - d.pos.z) <= d.r) best = d.top;
+      if (!d || v === skip()) continue;
+      const t = solidTop(d, x, z);
+      if (t > fromY || t <= best) continue;
+      best = t;
     }
     return best;
   };
@@ -36,7 +47,7 @@ export function standGround(physics, solids, skip = () => null) {
     groundAt(x, fromY, z, maxDrop) { return Math.max(physics.groundAt(x, fromY, z, maxDrop), topUnder(x, fromY, z)); },
     groundNormal(x, fromY, z, out = new THREE.Vector3()) {
       const t = topUnder(x, fromY, z);
-      if (Number.isFinite(t) && t >= physics.groundAt(x, fromY, z)) return out.set(0, 1, 0);   // (the discs are level)
+      if (Number.isFinite(t) && t >= physics.groundAt(x, fromY, z)) return out.set(0, 1, 0);   // (the discs are level; a shaped top, near enough under a foot)
       return physics.groundNormal(x, fromY, z, out);
     },
   };

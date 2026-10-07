@@ -1240,6 +1240,13 @@ export class Player {
         const d = v.solid;
         const dx = this.pos.x - d.pos.x, dz = this.pos.z - d.pos.z, hd = Math.hypot(dx, dz);
         if (hd > d.r + RADIUS) continue;
+        if (d.topAt) {
+          // (a shaped solid, src/carriers.js: a cab's hull and canopy, a ball's dome)
+          const above = this.pos.y - (hd <= d.r ? d.topAt(this.pos.x, this.pos.z) : -Infinity);
+          if (above > -0.5 && above < 0.9 && this.vel.y - d.vel.y <= 0.5) { if (above < roofH) { roofH = above; carrier = d; } }
+          else if (this.pos.y + HEIGHT > d.bottom) d.pushOut?.(this.pos, RADIUS);
+          continue;
+        }
         const above = this.pos.y - d.top;
         if (above > -0.5 && above < 0.9 && this.vel.y - d.vel.y <= 0.5) {
           if (above < roofH) { roofH = above; carrier = d; }
@@ -1517,6 +1524,9 @@ export class Player {
       if (!hit || hit.normal.dot(U) < 0.45) continue;
       const rise = _g4.subVectors(hit.point, this.pos).dot(U);
       if (rise < -0.3 || rise > 2.8) continue;
+      // (and room to stand there: not a floor met from inside something, an olive's crown, or under a ceiling)
+      if (this.physics.rayDistance(_g5.copy(hit.point).addScaledVector(U, 0.05), U, 1.7) < 1.6) continue;
+      if (hit.front === false || this.physics.rayHit(_g5.copy(hit.point).addScaledVector(U, 0.05), U, 4)?.front === false) continue;   // (inside a closed solid: met from within, or the way up leaves through its back)
       this.climbing = false;
       this.mantle = { from: this.pos.clone(), to: hit.point.clone(), edge: this.pos.clone().addScaledVector(U, Math.max(rise, 0)).addScaledVector(into, 0.32), rise, t: 0, n: this.wallN.clone() };
       this.vel.set(0, 0, 0);
@@ -1583,7 +1593,20 @@ export class Player {
   // ------------------------------------------------------------------ climbing
   // Sable-style: push into a steep wall to grab it; W/S climb, A/D shuffle,
   // Space jumps off, reaching the top mantles over it. Uses stamina.
+  /**
+   * The ground at a wall's face (x, z just off it) when it stands over the climber's feet by no more than a
+   * step (sand banked up the wall: src/sand-drifts.js), else null: where his feet may not go below.
+   */
+  climbFloor(x, z) {
+    if (this.frame.up.y < 0.999) return null;
+    const g = this.physics.groundAt(x, this.pos.y + 1.0, z, 2.5);
+    return Number.isFinite(g) && g > this.pos.y && g - this.pos.y < 0.7 ? g : null;   // (a step at most: not a sill passed on the way)
+  }
+
   startClimb(n) {
+    // (where sand is banked up the wall, he takes hold standing on the bank at its face)
+    const face = this.climbFloor(this.pos.x - n.x * (RADIUS - 0.06), this.pos.z - n.z * (RADIUS - 0.06));
+    if (face !== null) this.pos.y = face;
     this.climbing = true;
     this.wallN.copy(n);
     this.vel.set(0, 0, 0);
@@ -1609,6 +1632,17 @@ export class Player {
     this.pos.copy(hit.point).addScaledVector(n, this.animator ? 0.27 : RADIUS + 0.08).addScaledVector(U, -1.2);
     // (a wall that moves, the great wheel's turning rim: the hands go with it)
     if (hit.mover) this.pos.addScaledVector(moverCarrier(hit.mover, hit.point, this._moverRide ??= { vel: new THREE.Vector3() }).vel, dt);
+    // where sand is banked up the wall's foot (src/sand-drifts.js), the climb starts on the bank: the ground
+    // right at the face is higher than where the climber hangs, 0.27 m out, and his hands and knees went
+    // into the drawn sand. Never below the ground at the face; climbing down onto it, he stands.
+    const face = this.climbFloor(hit.point.x + n.x * 0.06, hit.point.z + n.z * 0.06);
+    if (face !== null) {
+      this.pos.y = face;
+      if (f < 0) { this.stopClimb(true); return; }
+    }
+
+    // a ceiling over the head (an olive's crown over its trunk, a beam): no higher
+    if (f > 0 && this.physics.rayDistance(_v2.copy(this.pos).addScaledVector(U, 1.2), U, 0.8) < 0.7) f = 0;
 
     // reached the top: nothing in front at head height -> mantle over
     const head = _v2.copy(this.pos).addScaledVector(U, 2.3);

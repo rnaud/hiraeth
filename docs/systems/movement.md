@@ -109,8 +109,8 @@ Left for later, with the reason (the third pass, below, settled all but the taxi
 - ~~**The cross-walls' opening rims**~~ are solid, their passages kept clear of sand (below).
 - ~~**Lorn II's bank roots and whip roots**~~ are solid as drawn (below).
 - ~~**The Garden's olive and cypress trunks**~~ collide as drawn (below).
-- **Taxi roofs and the guardians' balls**: a car's roof and a ball are a disc only in the middle. A taxi's
-  solid top is its awning's crest, 1.4 m over the cab in the middle, so a character standing on one floats.
+- ~~**Taxi roofs and the guardians' balls**~~ have their own shapes (below). The guardians themselves stay
+  upright cylinders: they rear, lunge and swim, and nobody stands on one.
 - ~~**The temple rotunda's oculus trim** and **the gates of Jaws**~~: the trim is solid over its ceiling, the
   jaws snap as moving colliders (below).
 - ~~**The sand skirts**~~ collide where they are drawn over the ground (below).
@@ -157,6 +157,13 @@ collider (a door, the wheel) whose box is nowhere near the capsule (`shapecast`'
   Both collide as drawn now (`instanced(..., { solid: true })` in `src/levels/spheres.js`): the olive's trunk
   and its two boughs, leaning and turned as each instance is; its crown stays walk-through; the whole cypress,
   a dense flame. ~181 k → ~201 k triangles, the bake +4 ms, queries unchanged; climbs off 234 → ~10.
+  Climbed up an olive's trunk you came out inside its crown. The crown (~640 faces of leaf masses a tree, 155 k
+  for the 243) stays walk-through, with a 20-faced blob of its core standing in for it inside the leaves
+  (~5 k triangles in all; `userData.standIn`: the audit counts the crown as drawn over it, so the metre of leaves
+  round the blob shows as feet sink and climbs inside). A climb stops under a ceiling over the head
+  (`updateClimb`), and a mantle needs room to stand that is not inside a closed solid (`tryMantle`: neither met
+  from within, `rayHit(...).front`, nor with the way up leaving through a solid's back), so you stop under the
+  crown or climb its leaves and stand on top (`tests/spheres.test.js`).
 - *The gates of Jaws* (Lorn's Hush-House) were a box the size of the doorway, the two round halves up to 0.75 m
   inside it. While shut each half is a moving collider (`addMover(half, { all: true })`: the pieces flag their
   meshes noCollide to stay out of the bake) that snaps with the drawn half, and a thin still slot down the
@@ -176,11 +183,38 @@ collider (a door, the wheel) whose box is nowhere near the capsule (`shapecast`'
   inside a smaller footprint, where it is inside a solid): desert ~7 k of its 70 k skirt triangles, Vael ~9 k of
   101 k, the Buried Machine ~45 k of 176 k (the canyon). The cost: the bake +15 ms in the Buried Machine, queries
   unchanged within noise. Sand-skirt *walks through* 46 → 6 in the desert and 80 → 28 on Vael, the Buried
-  Machine's feet sink 34 → 16. Left: sand banked up a wall's foot is drawn in front of the wall a climb starts on
-  (the hands go through the top of the bank), and the Buried Machine's canyon walls, each one solid, have a single
-  convex hull for a footprint that covers the canyon floor, so sand banks along its chords across the floor.
-  Splitting long footprints would fix that, but the seams between the pieces raise the ground inside the walls
-  and want a look in the game first.
+  Machine's feet sink 34 → 16.
+- *Climbs over banked sand.* Sand banks highest right at a wall's face, and the climber hangs 0.27 m out (0.48 m
+  without the animator), where the bank is lower: his knees and hands went into the drawn sand, and climbing down
+  he stood under it. `Player.climbFloor` is the ground just off the face when it stands over his feet by no more
+  than a step (not a sill passed on the way): he takes hold standing on it (`startClimb`), never hangs below it
+  (`updateClimb`), and climbing down onto it he stands (`tests/sand-drifts.test.js`). The audit still counts these
+  walls as *climbs inside* (it compares surfaces, not the climber).
+- *Long curved footprints.* A footprint was each part's convex hull, and the Buried Machine's canyon walls are one
+  solid each, so their hulls reached right across the canyon and sand banked in straight lines across its floor
+  (along the hulls' chords). `footprintsOf` now cuts a part whose hull spans open ground (`footPieces`: an outline
+  more than `DRIFT.gap` 3 m from every edge of the foot) in two across its long axis, the halves overlapping by
+  1.5 m, and each half again, until each piece's hull follows the foot. The pieces of one part are siblings: outside
+  a piece but inside a sibling is inside the solid (no sand), and inside a piece the band under the wall runs along
+  its faces only (`faceEdges`), not along a seam, so the seams raise nothing inside the walls (checked in the game
+  and in `tests/sand-drifts.test.js` on a bent wall). The canyon floor's sand over 10 cm 133 → 40 of 3 502 samples
+  (what is left banks against the machinery standing on the floor); the desert's largest footprint 167 → 49 m
+  round, skirts +17 k drawn triangles there (70 → 87 k), the Buried Machine's +13 k, Vael's +8 k.
+
+**Shaped moving solids.** A moving solid was a disc: `{ pos, r, top, bottom }`, its top level out to `r`. A cab's
+top was its canopy's crest all round (you stood 1.4 m over its nose) and a rolling ball's its crown (on air at its
+sides). A solid may now say its own shape: `topAt(x, z)` (its top there, or -Infinity off it) and `pushOut(p, r)`
+(a character beside it moved out of it), with `r` the radius it all fits in; `src/carriers.js` `solidTop` reads
+either kind for the feet, `Player.moveStep` for the body, the audit over a grid across it.
+- *A cab* (`src/taxi.js`): its top is the drawn cab's own, a grid of rays straight down the built model taken once
+  (`cabTop`: hull, canopy, sign, windscreen, fins and wings; not the lamps, the seat or a passenger), read in the
+  cab's frame as it is posed and found again along the vertical when it banks; beside it you are pushed out of an
+  ellipse round its hull, not a cylinder 1.45 of its lengths round. The seated rider is the vehicle's own and is
+  never pushed. The City-Shaft's 85 cabs: carrier mismatches 660 of ~1 400 samples → ~200 of ~6 900 (what is left
+  is the canopy's and the hull's edges, within a grid cell).
+- *A rolling ball* (`src/temples/pieces.js`): a dome 3 cm over the stone (its glowing bands), out to 0.92 of its
+  radius (past that too steep to stand on); beside it, out round it below its crest.
+(`tests/shaped-solids.test.js`.)
 
 ## Mounts come to you
 

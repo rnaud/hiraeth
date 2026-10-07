@@ -8,7 +8,7 @@ import { Terrain, jitter, soften } from '../world.js';
 import { PEOPLE } from '../story/spheres-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
-import { leafCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
+import { leafCrown, layeredCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -637,10 +637,12 @@ export function* buildSpheres(scene) {
     const by = H(Pz.x, Pz.z);
     const rings = [[Pz.r, 0.32, M.stone], [Pz.r * 0.8, 0.46, M.stone2], [Pz.r * 0.74, 0.5, M.stone], [Pz.r * 0.46, 0.62, M.stone2], [Pz.r * 0.4, 0.66, M.stone], [4, 0.8, M.stone2]];
     // (paved: each ring's slabs a hair apart in tone, so the ink draws their joints; garden-kit.js paintPaving)
-    const TONES = new Map([[M.stone, ['#efe7d4', '#e0d5bf']], [M.stone2, ['#e0d4bc', '#d0c3a8']]]);
+    // (the joints a light line, not a full ink one, and wide slabs: seen at a person's height across the rings,
+    // many full-ink joints crowded into dark bands; the sheets draw the plaza pale)
+    const TONES = new Map([[M.stone, ['#efe7d4', '#e7ddc8']], [M.stone2, ['#e0d4bc', '#d8cbb1']]]);
     rings.forEach(([r, h, m], i) => {
-      const g = new THREE.CylinderGeometry(r, r, h + 0.5, pavingSegments(r), 1).toNonIndexed().translate(Pz.x, by + h / 2 - 0.25, Pz.z);
-      add(M.paving, paintPaving(g, Pz.x, Pz.z, r, i, { tones: TONES.get(m), side: TONES.get(m)[0] }), true);
+      const g = new THREE.CylinderGeometry(r, r, h + 0.5, pavingSegments(r, 4.5), 1).toNonIndexed().translate(Pz.x, by + h / 2 - 0.25, Pz.z);
+      add(M.paving, paintPaving(g, Pz.x, Pz.z, r, i, { tones: TONES.get(m), side: TONES.get(m)[0], slab: 4.5 }), true);
     });
     add(M.pole, new THREE.CylinderGeometry(0.18, 0.3, 16, 8).translate(Pz.x, by + 8.8, Pz.z), true);
     plaza.ground = by; plaza.top = by + 17.2; plaza.inner = by + 0.8;
@@ -851,13 +853,20 @@ export function* buildSpheres(scene) {
     ].map((g) => prep(g)));
     // (a crown of small leaf masses, each with its own outline, as the sheets draw olives: garden-kit.js leafCrown)
     const crown = mergeGeometries([
-      leafCrown(1, { lobes: 7, core: 0.75, size: [0.26, 0.38] }).scale(2.4, 1.8, 2.4).translate(0, 5, 0),
-    ]);   // (640 faces, the four lumps' 720)
+      layeredCrown(1).scale(2.3, 2.0, 2.3).translate(0, 5.0, 0),
+    ]);   // (round and layered, as the sheets' olives: 800 faces, the four lumps' 720)
     // (the trunk and its two boughs collide as drawn, leaning and turned as each is: an upright 0.4 m post stood
     // in for them, out of the drawn bark at the top and turned the other way; the crown stays walk-through)
     instanced(trunk, makeMaterial({ color: '#ffffff', detail: 'organic' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })),
       { solid: true }).name = 'olive trunks';
-    instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })));
+    // (the crown is leaves, brushed past; but climbed up its trunk you came out inside it: a convex blob of its
+    // core, 20 faces, inside the drawn leaves, is a ceiling the climb stops under (Player.updateClimb) and
+    // holds you on top; the whole crown as drawn would be ~640 faces a tree, 155 k for the 243)
+    const blob = new THREE.IcosahedronGeometry(1, 0).scale(2.0, 1.3, 2.0).translate(0, 5, 0);
+    const cm = instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })),
+      { collideGeo: blob });
+    cm.name = 'olive crowns';
+    cm.userData.standIn = true;   // (drawn, with a collider standing in for it: src/contact-audit.js)
   }
   // cypresses: tall dark green flames
   yield;

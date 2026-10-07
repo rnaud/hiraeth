@@ -196,3 +196,68 @@ test('where a skirt is drawn over the ground between its points (a chord over a 
   assert.ok(worstPlain > 0.1, `(the ground's height alone: the drawn sand up to ${worstPlain.toFixed(2)} m over it)`);
   assert.ok(worst < 0.065, `the feet up to ${worst.toFixed(3)} m under the drawn sand`);
 });
+
+test('a long curved wall is footprinted in pieces that follow its foot: no sand banked along the hull’s chord across open ground', () => {
+  // a wall 4 m thick and 3 m high bent round half a circle 40 m across (a canyon's wall seen from above)
+  const pts = [], idx = [], N = 48, R0 = 20, R1 = 24;
+  for (let i = 0; i <= N; i++) {
+    const a = Math.PI * (i / N);
+    for (const [r, y] of [[R0, 0], [R1, 0], [R0, 3], [R1, 3]]) pts.push(Math.cos(a) * r, y, Math.sin(a) * r);
+    if (i) {
+      const b = (i - 1) * 4, c = i * 4;
+      for (const [p, q] of [[0, 1], [2, 3], [0, 2], [1, 3]]) idx.push(b + p, c + p, b + q, b + q, c + p, c + q);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  geo.setIndex(idx);
+  const polys = footprintsOf(geo, flat);
+  assert.ok(polys.length >= 4 && polys.every((p) => p.part === polys[0].part), `pieces of one part: ${polys.length}`);
+  const d = new SandDrifts({ heightAt: flat, seed: 2 }).addGeometry(geo);
+  // the open ground inside the bend, where the one hull's chord ran: no sand
+  let most = 0;
+  for (let x = -16; x <= 16; x += 1) for (let z = 1; z <= 15; z += 1) if (Math.hypot(x, z) < R0 - 5) most = Math.max(most, d.fieldAt(x, z));
+  assert.ok(most < 0.01, `sand on the open ground inside the bend: ${most.toFixed(2)} m`);
+  // banked against the wall on both sides, and nothing inside the wall away from its faces
+  let inner = 0, outer = 0, inWall = 0;
+  for (let i = 2; i < N - 2; i++) {
+    const a = Math.PI * (i / N), c = Math.cos(a), s = Math.sin(a);
+    inner = Math.max(inner, d.fieldAt(c * (R0 - 0.3), s * (R0 - 0.3)));
+    outer = Math.max(outer, d.fieldAt(c * (R1 + 0.3), s * (R1 + 0.3)));
+    inWall = Math.max(inWall, d.fieldAt(c * (R0 + R1) / 2, s * (R0 + R1) / 2));
+  }
+  assert.ok(inner > 0.2 && outer > 0.2, `banked against both faces (${inner.toFixed(2)}, ${outer.toFixed(2)})`);
+  assert.ok(inWall < 0.01, `no sand raised inside the wall at the pieces' seams (${inWall.toFixed(2)} m)`);
+  // a plain box is still one footprint
+  assert.equal(footprintsOf(new THREE.BoxGeometry(30, 4, 2).translate(0, 2, 0), flat).length, 1);
+});
+
+test('a climb that starts where sand is banked up a wall starts on the bank: never under the sand at the wall’s face', async () => {
+  const { Physics } = await import('../src/physics.js');
+  const { Player } = await import('../src/player.js');
+  const scene = new THREE.Scene();
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 2).translate(0, 5, 1), new THREE.MeshBasicMaterial());
+  scene.add(wall);
+  scene.updateMatrixWorld(true);
+  const ground = { heightAt: flat };
+  // the wind blows into the wall's face (z = 0, facing -z): the biggest drift is on that side
+  const d = new SandDrifts({ heightAt: flat, wind: [0, 1], seed: 4 }).addScene(scene);
+  scene.add(d.build(new THREE.MeshBasicMaterial()));
+  d.raise(ground);
+  const physics = new Physics(scene, ground);
+  const faceAt = (x) => ground.heightAt(x, -0.06);
+  assert.ok(faceAt(0) - ground.heightAt(0, -0.35) > 0.05, `a bank against the face (${faceAt(0).toFixed(2)} m at it)`);
+  for (const x of [-4, 0, 3]) {
+    const P = new Player(physics, { health: false, climb: true });
+    P.respawn(new THREE.Vector3(x, ground.heightAt(x, -4), -4));
+    let climbed = false, under = 0;
+    for (let f = 0; f < 60 * 4; f++) {
+      P.update(1 / 60, { KeyW: true }, Math.PI);   // (toward +z, into the wall)
+      if (P.climbing) { climbed = true; under = Math.max(under, faceAt(P.pos.x) - P.pos.y); }
+    }
+    assert.ok(climbed, `at x ${x}: climbs`);
+    // and down again: he stands on the bank at the wall
+    for (let f = 0; f < 60 * 8 && P.climbing; f++) { P.update(1 / 60, { KeyS: true }, Math.PI); if (P.climbing) under = Math.max(under, faceAt(P.pos.x) - P.pos.y); }
+    assert.ok(under < 0.03, `at x ${x}: the climber's feet up to ${under.toFixed(2)} m under the sand at the wall`);
+  }
+});
