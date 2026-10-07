@@ -531,14 +531,14 @@ export function* buildPerdide2(scene) {
         const u = i / 10, s = -half * R(0.75, 0.95) * (1 - u) + half * R(0.75, 0.95) * u, y = Math.max(-1, (A.apex - 0.5) * Math.sin(Math.PI * (0.04 + u * 0.92)) - 1.2);
         tw.push(at(s, y + Math.cos(u * turns + ph) * A.r * rr, Math.sin(u * turns + ph) * A.r * 1.2 * rr));
       }
-      tube(tw, A.r * R(0.18, 0.3), 40, 5, k + 20 + w, false);
+      tube(tw, A.r * R(0.18, 0.3), 40, 5, k + 20 + w);   // (the whip roots: solid as drawn, docs/systems/movement.md "Contact")
     }
     // splayed feet: smaller roots dropping into the mud
     for (const sd of [-1, 1]) for (let f = 0; f < 3; f++) {
       const s0 = sd * half * R(0.62, 0.8), y0 = A.apex * R(0.35, 0.6);
       const dx = sd * R(3, 8), df = R(-7, 7);
       const ex = A.x + A.nx * (s0 + dx) + along.x * df, ez = A.z + A.nz * (s0 + dx) + along.z * df;
-      tube([at(s0, y0), at(s0 + dx * 0.5, y0 * 0.5, df * 0.5), new THREE.Vector3(ex, H(ex, ez) - 1, ez)], A.r * R(0.35, 0.55), 16, 7, k, f === 0);
+      tube([at(s0, y0), at(s0 + dx * 0.5, y0 * 0.5, df * 0.5), new THREE.Vector3(ex, H(ex, ez) - 1, ez)], A.r * R(0.35, 0.55), 16, 7, k);
     }
     lights.push(new THREE.Vector4(A.x, 2, A.z, 10));
   });
@@ -553,7 +553,10 @@ export function* buildPerdide2(scene) {
     p0.y = H(p0.x, p0.z) - 0.8; p2.y = H(p2.x, p2.z) - 0.8;
     p2.x += R(-6, 6); p2.z += f;
     const mid = p0.clone().lerp(p2, 0.5); mid.y += y;
-    tube([p0, mid, p2], R(0.8, 1.6), 24, 8, i, false);   // (walk-through: 26 roots sprawling off the path, and solid they doubled the collision's cost)
+    // (solid as drawn: +18 k triangles for every walk-through root here, bake +5 ms, queries along the path
+    // +7 % rays and +15 % capsules, none elsewhere: docs/systems/movement.md "Contact"; the doubling once
+    // measured did not reproduce)
+    tube([p0, mid, p2], R(0.8, 1.6), 24, 8, i);
   }
 
   // ---------------------------------------------------------- the root cave
@@ -728,7 +731,8 @@ export function* buildPerdide2(scene) {
   for (const [c, l] of Object.entries(rootParts)) if (l.length) {
     yield;
     const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, pattern: 'cracks', detail: 'organic' }));
-    m.userData.noCollide = true;
+    m.name = 'roots';
+    m.userData.noCollide = true;   // (drawn: each root collides as drawn through the stand-ins below)
     scene.add(m);
   }
 

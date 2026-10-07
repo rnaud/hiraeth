@@ -77,6 +77,32 @@ test('the skiff waits at the cave mouth and the collision budget holds', () => {
   // (the trunks, caps and arches collide as drawn since the contact audit, and since its second pass the
   // root heaps and gate roots over the cave, the arches' main twist roots, the glass dome's ribs, the
   // saucer's blister and the 30 drapes over the root cave: 130 k → ~154 k, the BVH 38 → 56 ms to bake,
-  // ground rays and capsule pushes within noise; docs/systems/movement.md "Contact")
-  assert.ok(triangles < 170000, `static collision budget: ${triangles}`);
+  // ground rays and capsule pushes within noise; since its third pass every root, the 26 bank roots, the
+  // whip roots and the splayed feet: ~154 k → ~172 k, bake +5 ms, along the path rays +7 %, capsules +15 %;
+  // docs/systems/movement.md "Contact")
+  assert.ok(triangles < 180000, `static collision budget: ${triangles}`);
+});
+
+test('every root is solid as drawn: the bank roots, the whip roots and the splayed feet too', () => {
+  const roots = scene.children.filter((o) => o.isMesh && o.name === 'roots');
+  assert.ok(roots.length >= 2, 'the drawn roots');
+  let n = 0, off = 0, worst = 0, s = 3;
+  const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), e1 = new THREE.Vector3(), e2 = new THREE.Vector3();
+  for (const m of roots) {
+    const P = m.geometry.attributes.position;
+    for (let t = 0; t < P.count / 3; t++) {
+      if (rnd() > 0.1) continue;
+      a.fromBufferAttribute(P, 3 * t); b.fromBufferAttribute(P, 3 * t + 1); c.fromBufferAttribute(P, 3 * t + 2);
+      const nrm = e1.subVectors(b, a).cross(e2.subVectors(c, a));
+      if (nrm.y / (nrm.length() || 1) < 0.7) continue;   // (a top you could stand on)
+      const p = a.add(b).add(c).divideScalar(3);
+      if (level.ground.heightAt(p.x, p.z) > p.y) continue;   // (under the mud)
+      const g = physics.groundAt(p.x, p.y + 0.05, p.z, 1.5);
+      n++;
+      if (Math.abs(g - p.y) > 0.06) { off++; worst = Math.max(worst, Math.abs(g - p.y)); }
+    }
+  }
+  assert.ok(n > 300, `root tops checked: ${n}`);
+  assert.ok(off <= n * 0.01, `${off} of ${n} root tops with no collision under them (up to ${worst.toFixed(2)} m)`);
 });

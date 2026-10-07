@@ -260,6 +260,7 @@ export class Physics {
     _box.min.addScalar(-r);
     _box.max.addScalar(r);
     this.bvh.shapecast({
+      bounds: _box,   // (the query's box: an added collider nowhere near it is skipped, compositeBVH)
       intersectsBounds: (box) => box.intersectsBox(_box),
       intersectsTriangle: (tri) => {
         const d = tri.closestPointToSegment(_seg, _tri, _cap);
@@ -429,6 +430,7 @@ function compositeBVH(physics) {
     shapecast(cb) {
       physics.levelBVH?.shapecast(cb);
       for (const e of physics.extras) {
+        if (cb.bounds && !e.box.intersectsBox(cb.bounds)) continue;   // (a query that says where it looks)
         if (!e.moving) { e.bvh.shapecast(cb); continue; }
         // (its boxes and triangles handed over in the world's frame: a box turned is boxed again, so the
         // query's own test stays conservative; one box test for a query that is nowhere near it)

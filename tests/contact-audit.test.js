@@ -111,8 +111,8 @@ test('a riding disc’s rise is not a step: the drawn body rides it without lagg
 //  - perdide: the gates of Jaws (organic halves on a box collider) and a few of the kit's pieces;
 //  - spheres: the olive and cypress trunk colliders stand inside their drawn trees (flora, left walk-through),
 //    which the audit counts as collision with nothing drawn;
-//  - perdide2: three groups of roots off the paths stay walk-through (solid, 26 bank roots alone doubled
-//    every collision query);
+//  - perdide2: every root solid as drawn since October 2026 (the bank roots, the whip roots and the splayed
+//    feet: walks through 21 → 5, +18 k triangles, queries along the path +7 % / +15 %);
 //  - home, bazaar: a lining drawn 0.06 m inside its shell, a market sign through an awning;
 //  - temples everywhere: a shut door's edge, the rotunda's oculus trim (drawn-only on purpose: solid it
 //    caught rays dropped through the oculus), the balls (round);
@@ -122,7 +122,7 @@ const KNOWN = {
   arzach: { sink: 5, hover: 0, inside: 4, walk: 99 }, arzach2: { sink: 3, hover: 1, inside: 4, walk: 2 },
   garage: { sink: 0, hover: 0, inside: 13, walk: 1 }, buried: { sink: 43, hover: 1, inside: 36, walk: 23 },
   edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 6, hover: 0, inside: 6, walk: 166 },
-  perdide: { sink: 13, hover: 0, inside: 7, walk: 16 }, perdide2: { sink: 8, hover: 0, inside: 1, walk: 21 },
+  perdide: { sink: 13, hover: 0, inside: 7, walk: 16 }, perdide2: { sink: 9, hover: 0, inside: 1, walk: 5 },
   bazaar: { sink: 4, hover: 0, inside: 2, walk: 2 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },
   home: { sink: 0, hover: 0, inside: 3, walk: 13 },
 };

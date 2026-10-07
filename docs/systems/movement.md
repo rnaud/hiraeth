@@ -107,8 +107,7 @@ overhangs its wall by 0.4 m, is solid now, which cleans up every temple at once.
 Left for later, with the reason (the third pass, below, settled the first four):
 - ~~**The Buried Machine's great wheel**~~ collides as drawn and turns (moving colliders, below).
 - ~~**The cross-walls' opening rims**~~ are solid, their passages kept clear of sand (below).
-- **Lorn II's bank roots and whip roots** stay walk-through: the 26 bank roots alone doubled every collision
-  query (bake 60 → 120 ms, 20 k ground rays 25 → 50 ms) for about one audit sample.
+- ~~**Lorn II's bank roots and whip roots**~~ are solid as drawn (below).
 - **The Garden's olive and cypress trunks** collide as a cylinder inside the drawn tree (flora, brushed past),
   which the audit counts as collision with nothing drawn.
 - **Taxi roofs and the guardians' balls**: a car's roof and a ball are a disc only in the middle. A taxi's
@@ -145,6 +144,17 @@ mask is 0 on the way through each opening (`passageMask` in `src/levels/buried.j
 opening at the floor, from 11 m before the wall to 11 m past it, feathered over 2 m); the wall's own drift had
 crossed it too (up to 0.57 m), and is gone there as well, while it still banks against the wall either side.
 Climbs inside 50 → 36 (`tests/buried.test.js` walks the traveller through both).
+
+**Lorn II's roots.** The 26 bank roots, the whip roots twisting round the arches and the arches' splayed feet
+were walk-through, because solid the bank roots had measured as doubling every query. They collide as drawn in
+the main BVH now (154 → 172 k triangles; walks through 21 → 5; `tests/perdide2.test.js` checks every drawn
+root top has collision under it). The doubling did not reproduce. Measured before and after in one process,
+interleaved, the fastest of 9–15 runs (on a busy machine a single run swings two or three times over, which
+`COST=1 node scripts/contact-report.mjs` now allows for, fastest of `REPS`): the bake +4–11 ms, ground rays and
+capsule pushes round the spawn unchanged, along the path rays +5–18 % and capsules +11–15 %. Lighter stand-ins
+were weighed and would cost more, not less: the roots line the whole path, so a BVH of their own would be a
+second traversal for every query there, and capsule chains a test per capsule. Capsule pushes now skip an added
+collider (a door, the wheel) whose box is nowhere near the capsule (`shapecast`'s `bounds`).
 
 ## Mounts come to you
 

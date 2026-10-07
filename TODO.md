@@ -46,9 +46,14 @@ The second pass made every world collide as it is drawn (DONE.md; docs/systems/m
   and banks sand right across the passage you have to walk through. Done: solid, and the drifts' mask
   is 0 on the way through each opening (`passageMask`: the opening's width at the floor, 11 m either
   side; the wall's own drift crossed it too, up to 0.57 m); climbs inside 50 → 36.
-- [ ] **Lorn II's bank roots and whip roots**: solid, the 26 bank roots alone doubled every collision
+- [x] **Lorn II's bank roots and whip roots**: solid, the 26 bank roots alone doubled every collision
   query (bake 60 → 120 ms, 20 k ground rays 25 → 50 ms, 20 k capsule pushes 46 → 93 ms) for about one
-  audit sample. They sprawl 10–40 m off the path.
+  audit sample. They sprawl 10–40 m off the path. Done: solid as drawn in the main BVH, with the arches'
+  splayed feet (154 → 172 k triangles; walks through 21 → 5). The doubling did not reproduce: measured
+  before and after in one process, interleaved, fastest of 9–15 (a single run swings 2–3× on a busy
+  machine), the bake is +4–11 ms, rays and capsules round the spawn unchanged, along the path rays
+  +5–18 %, capsules +11–15 %. Lighter shapes (capsule chains, a BVH of their own) would cost more: the
+  roots line the whole path, so a second BVH is a second traversal for every query there.
 - [ ] Smaller, each with its reason in movement.md: the Garden's olive and cypress trunk colliders
   inside their drawn trees (flora, brushed past), Lorn's gates of Jaws (organic halves on a box
   collider), the temple rotunda's oculus trim (drawn-only on purpose: solid it caught rays dropped
