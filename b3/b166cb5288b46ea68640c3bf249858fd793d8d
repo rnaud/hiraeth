@@ -1,0 +1,43 @@
+docs/mixamo-shopping-list.md
+  s_55b4bc53b812ec::t_50c63de8985e21 69,159-184
+docs/motion-data.md
+  s_55b4bc53b812ec::t_478c7a54814b05 10-11,77-81
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_e9f7ca4147af4d 307-331
+scripts/mocap/build-library.mjs
+  s_55b4bc53b812ec::t_76e2190311d8f9 22-25,32,38,76-83,92-94,102,104,144,163,193,206-207,219,229-235,237-239,241
+scripts/mocap/mixamo-clips.json
+  s_55b4bc53b812ec::t_b2e16ee9c75984 2,30,79-87
+scripts/mocap/process.js
+  s_55b4bc53b812ec::t_9f69653c2a66e8 93,101,103-104,106-107,115-127
+scripts/mocap/retarget.js
+  s_55b4bc53b812ec::t_1556439c98165f 81,127-134,147-148
+scripts/mocap/skeleton-take.js
+  s_55b4bc53b812ec::t_9c45bd0f22a2c5 19-21,27-30,45,52-53,55-56
+src/animator.js
+  s_55b4bc53b812ec::t_290d57500ec56e 27-28,246,266-313,493,499-522,557-558,580-596,633
+src/motion-match.js
+  s_55b4bc53b812ec::t_955dffd0fa695a 45-47,51
+src/motion/main.js
+  s_55b4bc53b812ec::t_4f1ef503ffa1de 22-25,42,120,123-125,140-142,150,169-220,230,290-295,436-439,468,656,707,714,790,878-894,976-1019,1021
+src/motion/state.js
+  s_55b4bc53b812ec::t_d5358790cae849 22,26,41-42
+tests/mixamo-import.test.js
+  s_55b4bc53b812ec::t_b9c0f233bca5ec 1-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b3b166cb5288b46ea68640c3bf249858fd793d8d",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
