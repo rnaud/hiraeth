@@ -229,7 +229,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     try {
       gameState.data.flags['prologue.done'] = true;
       story = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: { complete() {}, start() {}, done: false, waitFor: null },
-        capture: null, lib, humans, toast, tool: null, isNight: () => false, ship, drone: () => null }));
+        capture: backend.portrait ? (eye, look, w, h, o) => portraitCapture(eye, look, w, h, o) : null, lib, humans, toast, tool: null, isNight: () => false, ship, drone: () => null }));
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
   stamp('people');
@@ -355,6 +355,19 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   for (const r of [...(level.noShadow ?? []), ...(player.gear?.noShadow ?? [])]) r?.traverse?.((o) => noShadow.add(o));
   const castsShadow = (o) => !noShadow.has(o) && !selfLitSkips(o);
   const mirror = new SceneMirror(backend, { castsShadow });
+  // a conversation's portrait (src/story/index.js portrait, main.js captureView with keep): the engine draws the kept
+  // objects alone against the backdrop, from eye toward look; the panel shows it by the name returned
+  let portraits = 0;
+  function portraitCapture(eye, look, w, h, o = {}) {
+    if (!o.keep) return null;
+    const ids = [];
+    for (const k of o.keep) k?.traverse?.((x) => { if (x.visible !== false) { const id = mirror.idOf(x); if (id) ids.push(id); } });
+    if (!ids.length) return null;
+    const n = ++portraits;
+    // (css: the chip as BridgeHud draws it, 84 px of its 1280 × 720 canvas; the page's own size means nothing here)
+    backend.portrait(n, { eye: eye.toArray(), look: look.toArray(), up: player.frame.up.toArray(), fov: o.fov ?? 36, ids, backdrop: o.backdrop ?? null, size: w, css: 84 });
+    return `engine:portrait:${n}`;
+  }
   let simT = 0, frames = 0;
   // a fixed view (the side-by-sides and the benchmark's viewpoints): the camera pinned there
   let pinned = view ? pin(view) : null;

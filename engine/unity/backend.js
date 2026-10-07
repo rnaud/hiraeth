@@ -180,6 +180,17 @@ export class UnityBackend {
     tally(this, 'grassView', b0);
   }
 
+  /**
+   * A conversation's portrait (engine/game.js portraitCapture): BridgeRunner.Portrait draws drawables `ids` alone
+   * against the backdrop from eye toward look (mirrored into Unity's frame), into texture n for the panel's chip.
+   */
+  portrait(n, { eye, look, up, fov, ids, backdrop, size, css }) {
+    const m = (v) => [-v[0], v[1], v[2]];
+    // (a batch run with -out keeps each as a PNG there: the side-by-sides)
+    const file = this.portraitDir ? `${this.portraitDir}/unity-portrait-${n}.png` : null;
+    this.host.Portrait?.(n, JSON.stringify({ eye: m(eye), look: m(look), up: m(up ?? [0, 1, 0]), fov, ids, backdrop, size, css, file }));
+  }
+
   /** A material's colour or glow changed after it was sent (the answering plants waking, lamps, beacons): op 15. */
   materialLive(mid, color, glow) {
     const w = this.w, b0 = w.n;

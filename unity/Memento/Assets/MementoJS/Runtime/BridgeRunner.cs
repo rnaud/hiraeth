@@ -232,6 +232,67 @@ namespace Memento.Bridge
 
         void LateUpdate() { Shader.SetGlobalFloat("_FlameTime", Time.time); }
 
+        /// <summary>The conversations' portraits by number (BridgeHud shows "engine:portrait:n" in the chip); the last few kept.</summary>
+        public readonly Dictionary<int, RenderTexture> portraits = new();
+
+        /// <summary>
+        /// A conversation's portrait (main.js captureView with keep and css): the person's drawables alone against the
+        /// backdrop, from eye toward look, the lines as thick as the chip they are shown in (post.js uPixelRatio:
+        /// portraitPixelRatio), drawn four times the chip's size and shown through its mips (supersampled, as the web
+        /// shrinks its capture by halves).
+        /// </summary>
+        public void Portrait(int n, string json)
+        {
+            var d = Json.Parse(json) as Dictionary<string, object>;
+            if (d == null || !scene || !cam) return;
+            var keep = new HashSet<int>();
+            foreach (var x in d.L("ids") ?? new List<object>()) if (x is double dd) keep.Add((int)dd);
+            Vector3 V(string k) { var l = d.L(k); return l != null && l.Count >= 3 ? new Vector3((float)Json.Num(l[0]), (float)Json.Num(l[1]), (float)Json.Num(l[2])) : Vector3.zero; }
+            Vector3 eye = V("eye"), at = V("look"), up = V("up");
+            if (up.sqrMagnitude < 1e-6f) up = Vector3.up;
+            float css = Mathf.Max(32, d.F("css")), fov = d.Has("fov") ? d.F("fov") : 36;
+            int S = Mathf.Clamp(Mathf.RoundToInt(css * 4), 128, 512);
+            var rt = new RenderTexture(S, S, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { useMipMap = true, autoGenerateMips = true, name = $"portrait {n}" };
+            var off = scene.Isolate(keep);
+            bool hudOn = hud && hud.gameObject.activeSelf;
+            if (hudOn) hud.gameObject.SetActive(false);
+            var t = cam.transform; var p0 = t.position; var q0 = t.rotation; float fov0 = cam.fieldOfView; var tt0 = cam.targetTexture;
+            float pr0 = Shader.GetGlobalFloat("_PixelRatio"), rain0 = Shader.GetGlobalFloat("_Rain"), near0 = Shader.GetGlobalFloat("_RainNear"), storm0 = Shader.GetGlobalFloat("_Storm");
+            var bd0 = Shader.GetGlobalVector("_Backdrop");
+            try
+            {
+                var bd = ColorUtility.TryParseHtmlString(d.S("backdrop") ?? "", out var c) ? c : Color.clear;
+                Shader.SetGlobalVector("_Backdrop", new Vector4(bd.r, bd.g, bd.b, bd.a > 0 ? 1 : 0));
+                Shader.SetGlobalFloat("_PixelRatio", Mathf.Max(pr0 > 0 ? pr0 : 1, S / css * 0.5f));
+                Shader.SetGlobalFloat("_Rain", 0); Shader.SetGlobalFloat("_RainNear", 0); Shader.SetGlobalFloat("_Storm", 0);
+                t.SetPositionAndRotation(eye, Quaternion.LookRotation(at - eye, up));
+                cam.fieldOfView = fov; cam.targetTexture = rt; cam.aspect = 1;
+                scene.FinishFrame();
+                cam.Render();
+            }
+            finally
+            {
+                t.SetPositionAndRotation(p0, q0); cam.fieldOfView = fov0; cam.targetTexture = tt0; cam.ResetAspect();
+                Shader.SetGlobalFloat("_PixelRatio", pr0); Shader.SetGlobalVector("_Backdrop", bd0);
+                Shader.SetGlobalFloat("_Rain", rain0); Shader.SetGlobalFloat("_RainNear", near0); Shader.SetGlobalFloat("_Storm", storm0);
+                BridgeRenderer.Restore(off);
+                if (hudOn) hud.gameObject.SetActive(true);
+            }
+            portraits[n] = rt;
+            if (d.S("file") is string file)
+            {
+                RenderTexture.active = rt;
+                var tex = new Texture2D(S, S, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0, 0, S, S), 0, 0); tex.Apply();
+                RenderTexture.active = null;
+                Directory.CreateDirectory(Path.GetDirectoryName(file));
+                File.WriteAllBytes(file, tex.EncodeToPNG());
+                Destroy(tex);
+            }
+            foreach (var k in new List<int>(portraits.Keys)) if (k < n - 3) { Destroy(portraits[k]); portraits.Remove(k); }
+            Debug.Log($"Memento bridge: portrait {n}: {keep.Count} drawables, {S} px");
+        }
+
         /// <summary>The camera's view as a PNG (the port's Batch.Render does the same in the editor).</summary>
         public void Shot(string path)
         {

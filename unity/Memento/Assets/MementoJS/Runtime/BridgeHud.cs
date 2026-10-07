@@ -25,7 +25,7 @@ namespace Memento.Bridge
         Ui.Box prompt; Image promptKey; Label promptKeyText, promptText;
         Ui.Box health; Image healthFill, healthEdge;
         RectTransform wheel; Image wheelRing, wheelFill;
-        RectTransform dlg; Ui.Box dlgPanel; Sketch dlgLines, dlgMore; RectTransform chip; Image chipFill; Label chipLetter;
+        RectTransform dlg; Ui.Box dlgPanel; Sketch dlgLines, dlgMore; RectTransform chip; Image chipFill; Label chipLetter; RawImage chipPhoto;
         Ui.Box dlgTag; Label dlgName, dlgTitle, dlgText;
         readonly List<(Ui.Box box, Label num, Label text)> dlgChoices = new();
 
@@ -85,13 +85,19 @@ namespace Memento.Bridge
             dlgMore.rectTransform.sizeDelta = new Vector2(14, 9);
             dlgMore.Tri(new Vector2(0, 9), new Vector2(14, 9), new Vector2(7, 0), Ui.Red);
             chip = Ui.Node("chip", dlg);
-            // (the portrait chip: their colour in an ink ring, their initial on it; no portrait yet)
+            // (the portrait chip: their colour in an ink ring, their portrait in it (BridgeRunner.Portrait), else their initial)
             var sh = Ui.Rect(chip, Ui.Ink, 0, "shadow"); sh.sprite = Ui.Round(32);
             Ui.Place(sh.rectTransform, 3, 3, 84, 84);
             var ring = Ui.Rect(chip, Ui.Ink, 0, "ring"); ring.sprite = Ui.Round(32);
             Ui.Place(ring.rectTransform, 0, 0, 84, 84);
             chipFill = Ui.Rect(chip, Ui.Hex("#d8a24a"), 0, "colour"); chipFill.sprite = Ui.Round(32);
             Ui.Place(chipFill.rectTransform, 3, 3, 78, 78);
+            chipFill.gameObject.AddComponent<Mask>().showMaskGraphic = true;
+            chipPhoto = new GameObject("portrait", typeof(RectTransform)).AddComponent<RawImage>();
+            chipPhoto.rectTransform.SetParent(chipFill.rectTransform, false);
+            Ui.Stretch(chipPhoto.rectTransform);
+            chipPhoto.raycastTarget = false;
+            chipPhoto.gameObject.SetActive(false);
             chipLetter = Ui.Label(chip, "letter", mono, 36, Ui.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Place(chipLetter.rectTransform, 0, 0, 84, 84);
             var ls = chipLetter.gameObject.AddComponent<Shadow>(); ls.effectColor = Ui.Ink; ls.effectDistance = new Vector2(2, -2);
@@ -240,7 +246,15 @@ namespace Memento.Bridge
             dlgMore.rectTransform.anchoredPosition = new Vector2(-30, 11 + 3 * (0.5f - 0.5f * Mathf.Cos(Time.unscaledTime * Mathf.PI * 2)));
             Ui.Place(chip, 14, -36, 84, 84);
             var name = d.S("name") ?? ""; var title = d.S("title") ?? "";
-            chipFill.color = ColorUtility.TryParseHtmlString(d.S("color") ?? "", out var cc) ? cc : Ui.Hex("#d8a24a");
+            // their portrait when the engine drew one (engine:portrait:n), on its backdrop; else their initial on their colour
+            RenderTexture photo = null;
+            var ps = d.S("portrait") ?? "";
+            if (ps.StartsWith("engine:portrait:") && int.TryParse(ps.Substring(16), out int pn) && BridgeHost.Runner) BridgeHost.Runner.portraits.TryGetValue(pn, out photo);
+            var fillHex = photo && d.S("backdrop") is string bd ? bd : d.S("color") ?? "";
+            chipFill.color = ColorUtility.TryParseHtmlString(fillHex, out var cc) ? cc : Ui.Hex("#d8a24a");
+            if (chipPhoto.texture != photo) chipPhoto.texture = photo;
+            Show(chipPhoto, photo);
+            Show(chipLetter, !photo);
             chipLetter.text = name.Length > 0 ? name.Substring(0, 1) : "?";
             var ns = Ui.Set(dlgName, Ui.Upper(name));
             var tt = Ui.Set(dlgTitle, title);

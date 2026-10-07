@@ -149,8 +149,8 @@ and photographs the conversation.
 | ![](../engine-bridge/web-talk.jpg) | ![](../engine-bridge/unity-talk.jpg) |
 | ![](../engine-bridge/web-prompt.jpg) | ![](../engine-bridge/unity-prompt.jpg) |
 
-(No portrait in the chip yet: the web shoots one with its renderer; the initial on their colour
-stands in.) Two traps met on the way: the canvas has to stay beyond the near plane the game's
+(The chip's portrait: "The conversation's portrait" below; their initial on their colour where
+there is none.) Two traps met on the way: the canvas has to stay beyond the near plane the game's
 camera sets each frame (on it, the HUD was clipped away), and the dynamic font's letters are put
 in its texture at once (`Warm`: added one by one, they dropped out of a frame).
 
@@ -765,6 +765,26 @@ on the main thread. Three changes:
 
 The rose gorge (its walls' cracks) and the City-Shaft from the rim, the web on the left, Unity on the right:
 ![the gorge and the shaft](../engine-bridge/sbs4-cracks-towers.jpg)
+
+## The conversation's portrait, the traveller's head (Unity + Puerts, 2026-10-07)
+
+- **The chip's portrait.** The web shoots the person you talk to with its own renderer (main.js captureView with
+  `keep`: them alone against a flat colour of the world's, drawn at the chip's size and shrunk by halves). The
+  bridge's story gets a capture of its own (engine/game.js `portraitCapture`): it names the drawables of the kept
+  objects (the mirror's ids) and asks the backend for a portrait (`UnityBackend.portrait`, BridgeHost.Portrait);
+  BridgeRunner.Portrait takes every other node out of the picture (`BridgeRenderer.Isolate`), the HUD too, sets the
+  backdrop (`_Backdrop`, the composite's sky replaced, as post.js uBackdrop), the rain off and the pixel ratio the
+  chip wants (post.js portraitPixelRatio: the lines as thick as at the chip's 84 px), draws the camera from the
+  web's eye toward its look into a 336 px texture with mips (supersampled), and puts everything back. The dialogue
+  publishes the portrait with the panel's data (src/story/dialogue.js `portrait`, `backdrop`: an engine's panel
+  shows it), and BridgeHud shows it in the chip through a round mask, on its backdrop; their initial on their
+  colour where there is none. A batch run with `-out` keeps each as `unity-portrait-<n>.png`.
+- **The traveller's head turns** (main's headNod joint: the idle and look clips' head on the rig's head): the
+  mirror sends the bones as three has them, so it was already in: in Node's VM the head's joint turns 54° into the
+  look clip after a few seconds of idling, and Unity's close-ups catch him looking aside as the web's do.
+
+Teo's portrait, the web's (left) and Unity's (middle), and Ysa's in Unity's panel:
+![the portraits](../engine-bridge/sbs4-portrait.jpg)
 
 ## Status
 

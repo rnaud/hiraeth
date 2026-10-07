@@ -339,6 +339,10 @@ export class Dialogue {
     this.game.set(`met.${person.id}`, true);
     this.game.emit('dialogue:start', { npc, id: person.id });
     this.onOpen(person, npc);
+    // the portrait: a data URL, or { src, background } (just them against a flat colour: src/story/portrait-bg.js);
+    // an engine's panel (publish) shows it too
+    this.shot = null;
+    try { this.shot = this.portrait?.(person, npc) ?? null; } catch { /* no sketch */ }
     if (this.el) {
       this.q('.dlg-name').textContent = person.name;
       this.q('.dlg-title').textContent = person.title ?? '';
@@ -347,11 +351,8 @@ export class Dialogue {
       this.q('.dlg-chip span').textContent = person.name[0];
       const img = this.q('.dlg-chip img');
       img.hidden = true;
-      // the portrait: a data URL, or { src, background } (just them against a flat colour: src/story/portrait-bg.js)
-      try {
-        const shot = this.portrait?.(person, npc), src = typeof shot === 'string' ? shot : shot?.src;
-        if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
-      } catch { /* no sketch */ }
+      const shot = this.shot, src = typeof shot === 'string' ? shot : shot?.src;
+      if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
       this.el.classList.add('open');
       page.bodyClass('talking', true);
       page.exitPointerLock();
@@ -443,9 +444,10 @@ export class Dialogue {
   /** The panel as data (platform.js screen.dialogue): an engine draws its own from it; the page's is render(). */
   publish() {
     const r = this.runner, full = r.text, n = Math.floor(this.revealed), done = this.revealed >= full.length;
-    const choices = done ? r.choices() : [], p = this.person;
+    const choices = done ? r.choices() : [], p = this.person, shot = this.shot;
     screen.set('dialogue', {
       name: p.name, title: p.title ?? '', color: p.color ?? '#d8a24a', speaker: r.speaker ?? 'npc',
+      portrait: (typeof shot === 'string' ? shot : shot?.src) ?? null, backdrop: (typeof shot === 'object' && shot?.background) || null,
       text: full, shown: n, done, more: done && !choices.length,
       choices: choices.map((c) => ({ text: c.text, tone: c.tone ?? null, index: c.index })),
     });

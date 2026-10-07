@@ -95,6 +95,8 @@ namespace Memento.Bridge
         }
         public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Frame(b, n)); }
         public static void Look(string json) => On(() => Runner?.Look(json));
+        /// <summary>A conversation's portrait (engine/unity/backend.js portrait): drawn into texture n for the panel's chip.</summary>
+        public static void Portrait(int n, string json) => On(() => Runner?.Portrait(n, json));
         /// <summary>What the screen shows (src/platform.js screen), when it changed: BridgeHud draws it.</summary>
         /// <summary>The sound (BridgeAudio): the output rate (0: none), the frames queued, the next PCM (float32 stereo).</summary>
         // (BridgeAudio's ring is locked: these are safe on the script's thread)

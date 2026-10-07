@@ -280,3 +280,17 @@ test('a merged mesh\'s material values per vertex (S_VMAT: the City-Shaft\'s tow
   assert.equal(portMaterial(inkSpec(cliff), 2).cracks, 0.8);
   assert.equal(portMaterial(inkSpec(makeMaterial({ color: '#808080' })), 3).cracks, undefined);
 });
+
+test('a conversation\'s portrait goes to Unity mirrored, named for the chip, kept as a PNG in a batch run', () => {
+  const sent = [];
+  const B = new UnityBackend({ Portrait: (n, json) => sent.push([n, JSON.parse(json)]) });
+  B.portrait(3, { eye: [1, 2, 3], look: [4, 5, 6], up: [0, 1, 0], fov: 36, ids: [7, 8], backdrop: '#f0cf8e', size: 105, css: 84 });
+  B.portraitDir = '/tmp/out';
+  B.portrait(4, { eye: [1, 2, 3], look: [4, 5, 6], fov: 36, ids: [7], backdrop: null, size: 105, css: 84 });
+  assert.deepEqual(sent[0][1].eye, [-1, 2, 3], 'the eye in Unity\'s frame');
+  assert.deepEqual(sent[0][1].look, [-4, 5, 6]);
+  assert.deepEqual(sent[0][1].ids, [7, 8]);
+  assert.equal(sent[0][1].file, null, 'no file outside a batch run');
+  assert.equal(sent[1][1].file, '/tmp/out/unity-portrait-4.png');
+  assert.deepEqual(sent[1][1].up.map(Math.abs), [0, 1, 0], 'up by default');
+});

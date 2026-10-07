@@ -26,6 +26,7 @@ export function start(argsJson) {
   const args = JSON.parse(argsJson || '{}');
   const t0 = now();
   const backend = new UnityBackend(host);
+  backend.portraitDir = args.out ?? null;
   S = { args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0 };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
   const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;

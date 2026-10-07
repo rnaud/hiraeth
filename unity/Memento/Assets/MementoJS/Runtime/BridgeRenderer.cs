@@ -63,6 +63,15 @@ namespace Memento.Bridge
         }
         /// <summary>What the frame still has running (a shot renders between Update and LateUpdate).</summary>
         public void FinishFrame() => FinishCloths();
+
+        /// <summary>Every node but these out of the picture (a conversation's portrait): those taken out, for Restore.</summary>
+        public List<GameObject> Isolate(HashSet<int> keep)
+        {
+            var off = new List<GameObject>();
+            foreach (var kv in nodes) { var go = kv.Value.go; if (!keep.Contains(kv.Key) && go && go.activeSelf) { go.SetActive(false); off.Add(go); } }
+            return off;
+        }
+        public static void Restore(List<GameObject> off) { foreach (var go in off) if (go) go.SetActive(true); }
         /// <summary>
         /// A MakeHuman face's shape keys as the mesh's blend shapes (engine/unity/backend.js faceKeyDeltas: per key the
         /// vertices it moves, Unity's frame); op 19 sets their weights a node.
