@@ -25,9 +25,14 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Questions for the author
 
-- [ ] The push's rings and spray (RB / R1) were missing in every room off the map and are back
+- [x] The push's rings and spray (RB / R1) were missing in every room off the map and are back
   (DONE.md). Were they also missing **outdoors**, in the open world? Nothing in the code says they
   were, and no one has seen it; if they were, that is a second bug and wants looking at.
+  Answered without the author: no. In the running game (headless Chrome, keyboard C and a fake pad's
+  RB), every world's open air and every room off the map (the desert's four, one each in the other
+  temple worlds, Viridel's two) drew the push's three rings and its spray, and nothing hid them at draw
+  time; the only misses were a push made while a conversation opened (Lou at home), which is input
+  being paused, as it should be. `tests/push-fx.test.js` fires it in every world and room, both ways.
 
 # Contact: what is left
 
