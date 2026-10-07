@@ -1,0 +1,57 @@
+changelog.md
+  s_55b4bc53b812ec::t_c7674942870e81 7-8
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_f9fa441762dae8 766-829
+src/audio.js
+  s_55b4bc53b812ec::t_b0ac625f4a1da5 37-38
+src/changelog-media.js
+  s_55b4bc53b812ec::t_febc1e5a67ad69 118-142
+src/changelog.js
+  s_55b4bc53b812ec::t_76c395d0ad2e3e 13-14
+src/costumes.js
+  s_55b4bc53b812ec::t_e11cf858bb9e52 455
+src/edge.js
+  s_55b4bc53b812ec::t_34689fb374497a 35
+src/levels/content.js
+  s_55b4bc53b812ec::t_547350cf62fdf1 25,44
+src/levels/index.js
+  s_55b4bc53b812ec::t_6ec3be34a13a27 23,141-147
+src/levels/moon-foundry-kit.js
+  s_55b4bc53b812ec::t_f26285a211a9f6 34-35,42,69,118-120,133-138,237-238,242-246,255,320,335,348,351-353,358-359,361,376-377,379-383,444-445,488-489,492-493,508-514
+src/levels/moon-foundry.js
+  s_55b4bc53b812ec::t_59724c180de070 1-592
+src/levels/names.js
+  s_55b4bc53b812ec::t_ee2c7703550388 25,33
+src/levels/reference-moonfoundry.js
+  s_55b4bc53b812ec::t_876116d391ed4f 81
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_166ff4110ec582 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_118a7bcf111f8d 116
+src/reactive-world.js
+  s_55b4bc53b812ec::t_e5bbf5706f4d82 34
+src/ship/planets.js
+  s_55b4bc53b812ec::t_c56dda9897f450 30
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_22db6de3481b9f 31
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_37ed45535de69b 134
+tests/moonfoundry.test.js
+  s_55b4bc53b812ec::t_e1fe99f75053b7 10-15,99-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8bb809544f214cfcb0c09ab1412d2f97d2fcd238",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
