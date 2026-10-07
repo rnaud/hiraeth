@@ -1,0 +1,61 @@
+changelog.md
+  s_55b4bc53b812ec::t_b303f5076f9545 5-11
+src/audio.js
+  s_55b4bc53b812ec::t_dd0c36aaf87fd8 37-38,301-308,561-567,573-583,1554-1557
+src/changelog.js
+  s_55b4bc53b812ec::t_6e47d6b1b81406 12-17
+src/costumes.js
+  s_55b4bc53b812ec::t_e7a22383a458b1 395-412
+src/edge.js
+  s_55b4bc53b812ec::t_27b20f63f5934e 26
+src/levels/antennas-kit.js
+  s_55b4bc53b812ec::t_384564a076fc03 5-6,35-38,52,76,78,83-84,87,90,113,129,148,164,260-261,263,269,340,342,344,346-347,363
+src/levels/antennas.js
+  s_55b4bc53b812ec::t_b9ad1274e31211 1-576
+src/levels/content.js
+  s_55b4bc53b812ec::t_3796cc5f4eb0bf 21,37
+src/levels/index.js
+  s_55b4bc53b812ec::t_95a1c10bc111d5 18,95-101
+src/levels/lab-kit.js
+  s_55b4bc53b812ec::t_c0b890a7ddf3a9 7,28,91
+src/levels/names.js
+  s_55b4bc53b812ec::t_b9fea8da06ba01 19,28
+src/levels/reference-antennas.js
+  s_55b4bc53b812ec::t_50d4db124d1f16 7,37,39-40,42,49,53,180
+src/main.js
+  s_55b4bc53b812ec::t_d27daebc5a2bc9 176,1468
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_9f4fb6347670a6 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_d17d9ff7c6487b 108
+src/materials.js
+  s_55b4bc53b812ec::t_842957446ac4cf 73,443,469-474,597-610,2644,2648
+src/reactive-world.js
+  s_55b4bc53b812ec::t_b35533021afbe1 29
+src/ship/planets.js
+  s_55b4bc53b812ec::t_399fea63aa77cf 25
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_d2e09e1f461dc5 27
+src/thin.js
+  s_55b4bc53b812ec::t_3e0104bf67f9ef 1-56
+tests/antennas.test.js
+  s_55b4bc53b812ec::t_bb9b6e0b874f4a 9-14,86-196
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_39be5990a8ab59 130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "64a21e4c8ed74e71fdb3724ec71ff9170b892644",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
