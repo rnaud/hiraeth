@@ -1,0 +1,31 @@
+changelog.md
+  s_55b4bc53b812ec::t_e063cc96f8ca64 16
+docs/systems/animation.md
+  s_55b4bc53b812ec::t_5f91f5725e4dd1 168-176
+src/animator.js
+  s_55b4bc53b812ec::t_258204e605b730 24-25,230,530-542
+src/changelog.js
+  s_55b4bc53b812ec::t_ef645184b864ca 20
+src/humanoid.js
+  s_55b4bc53b812ec::t_3dd565c3baeb9e 465
+src/player.js
+  s_55b4bc53b812ec::t_c723831872b212 182-184,241,252
+tests/idle-legs.test.js
+  s_55b4bc53b812ec::t_dfebf1cfe8a2d9 94-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3790374ca49a37921e5865cbf2d4e67d388ef631",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
