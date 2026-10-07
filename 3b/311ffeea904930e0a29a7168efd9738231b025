@@ -1,0 +1,47 @@
+TODO.md
+  s_55b4bc53b812ec::t_44d7bf7d68b93c 250-254
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_72efc4f34ec691 570-584
+engine/cloth.js
+  s_55b4bc53b812ec::t_c7cc15a5424f60 1-78
+engine/game.js
+  s_55b4bc53b812ec::t_dfadbefa7190ee 30,171-173
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_40b8ef1d7158a8 9,30,32,192-217
+engine/unity/game.js
+  s_55b4bc53b812ec::t_f7b95bb3208287 188,196
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_e3c803cce22507 85-87,103
+src/characters/tripo-cloth.js
+  s_55b4bc53b812ec::t_d8e02b46685a7b 152-160,165-166,300-302,339-341,353-360
+tests/cloth-offload.test.js
+  s_55b4bc53b812ec::t_1b07e34e425e05 1-66
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_0c75537631b04a 168-169,174-176,202,204
+unity/Memento/Assets/MementoJS/Runtime/BridgeCloth.cs
+  s_55b4bc53b812ec::t_b5508d01dee474 1-214
+unity/Memento/Assets/MementoJS/Runtime/BridgeCloth.cs.meta
+  s_55b4bc53b812ec::t_2d5c397cf2b415 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs
+  s_55b4bc53b812ec::t_fbc1dad214b99c 22-24
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_e3584f669140da 53-81,543-549,625,694
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_dc6f62795476c0 140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3b311ffeea904930e0a29a7168efd9738231b025",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
