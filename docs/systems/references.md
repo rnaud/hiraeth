@@ -494,6 +494,8 @@ the narrowest creases.
   hulls alike), little hatching, a warm pale haze in bands down the long streets, cast shadows kept whole. The hulls
   are plated (`plates`: rows of plates, staggered joints, each a shade apart), no weathering pen detail (its small
   rectangles read as stuck-on marks at this scale).
+- **On the world** (`src/levels/salt-harbour.js`, worlds.md "The Salt Harbour"): the same kit at `detail` 0.7, the
+  hull's `at()` on its facets (what is put on the plating sits on what collides), the street's ships solid.
 - **The scale, from the pictures**: the traveller ~10–12 m from a 2.1–2.4 m eye; the near hulls 40–75 m high,
   40–60 m in the beam, 100–160 m long, 15–40 m off; the gangways 22–50 m up; the streets 25–40 m wide.
 - **Left**: the pictures' hulls carry dense small work (rivets, hatches, vents, stains running down from the

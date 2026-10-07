@@ -113,6 +113,14 @@ const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell
 
 export const CHANGELOG_MEDIA = {
   '0.84': [
+    { match: 'A new world off the route, the Salt Harbour', shots: [
+      { name: 'saltharbour-arrival', only: 'after', caption: 'Out of the ship on the open salt: the street between the hulls, the houses on the first hull, the stair tower, the terracotta hull', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'saltharbour-street', only: 'after', caption: 'Up the street: the stair tower, the houses over the shops, the sailcloth, the ship stood on its stern at the end', from: 'the world’s own screenshots, headless Chrome, High, 10:00 (7 October)' },
+      { name: 'saltharbour-deck', only: 'after', caption: 'At the top of the stair: the bridge onto the first hull’s deck, the gangway across to the terracotta hull, the street far below', from: 'the world’s own screenshots, headless Chrome, High, 14:00 (7 October)' },
+      { name: 'saltharbour-upright', only: 'after', caption: 'At the street’s end: the ship that stands on its stern, its ropes staked all round it, Pip and the harbour folk', from: 'the world’s own screenshots, headless Chrome, High, 12:00 (7 October)' },
+      { name: 'saltharbour-dusk', only: 'after', caption: 'The street at dusk', from: 'the world’s own screenshots, headless Chrome, High, 18:36 (7 October)' },
+      { name: 'saltharbour-night', only: 'after', caption: 'The street at night, the houses’ windows lit', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the Salt Harbour on the galactic map (or open the game with ?level=saltharbour). Walk north up the street; the stair tower stands against the first hull on the left, and the gangway further north along its deck crosses to the terracotta hull. Marrow waits by the ship, Corvin on the terracotta hull’s deck, Pip under the standing ship.' },
     { match: 'The References level has the Salt Harbour’s four pictures', shots: [
       { name: 'saltharbour-refs', only: 'after', size: [1928, 538], caption: 'The first picture (left) and its view in the game (right): the market in the cleft, the gangway, the terracotta hull and its ropes', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'saltharbour-refs-curtains', only: 'after', size: [1928, 538], caption: 'The third: the curtains hung from the high gangway, the arcade along the hull’s foot', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },

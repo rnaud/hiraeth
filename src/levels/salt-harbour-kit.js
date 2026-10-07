@@ -43,7 +43,8 @@ const push = (out, k, g) => { (out[k] ??= []).push(g); return g; };
  * y over the keel, on the starboard (+x) side; turned like the geometry), halfB(t), keelY(t), D, L }.
  */
 export function hull({ L = 90, B = 26, D = 32, n = 3, band = 0, top = 0, rise = [0.3, 0.55], tumble = 0, detail = 1, upright = false, deck = true } = {}) {
-  const NT = Math.max(16, Math.round(48 * detail)), NV = Math.max(5, Math.round(10 * detail));
+  // (across: fine enough that a facet sits within ~0.1 m of the true side, where the portholes and doors are put)
+  const NT = Math.max(16, Math.round(48 * detail)), NV = Math.max(8, Math.round(20 * detail));
   const e = 2 / n;
   const halfB = (t) => {
     const u = 2 * t - 1;
@@ -92,13 +93,25 @@ export function hull({ L = 90, B = 26, D = 32, n = 3, band = 0, top = 0, rise = 
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
     out.deck.push(g);
   }
+  // a point of the drawn (faceted) side, not the true curve it is cut from: what is put on the plating sits on the
+  // facets, so a porthole or a door stands no further proud of the collision than it is drawn (s ≥ 0: the starboard side)
+  const bands = [[() => 0, sb], [sb, st], [st, () => 1]];
+  const facet = (t, s) => {
+    const fi = Math.min(NT - 1e-6, Math.max(0, t * NT)), i0 = Math.floor(fi), ft = fi - i0, at = (i) => {
+      const tt = i / NT, [a, b] = bands.find(([a, b]) => s <= b(t) + 1e-9) ?? bands[2], A = a(t), Bb = b(t), u = Bb > A ? (s - A) / (Bb - A) : 0;
+      const fj = Math.min(NV - 1e-6, Math.max(0, u * NV)), j0 = Math.floor(fj), fu = fj - j0, a0 = a(tt), b0 = b(tt);
+      return P(tt, a0 + ((b0 - a0) * j0) / NV).lerp(P(tt, a0 + ((b0 - a0) * (j0 + 1)) / NV), fu);
+    };
+    return at(i0).lerp(at(i0 + 1), ft);
+  };
   const turn = (g) => (upright ? g.rotateX(-Math.PI / 2).translate(0, L / 2, 0) : g);
   for (const k of ['white', 'red', 'deck']) out[k] = out[k].map(turn);
   const m = new THREE.Matrix4();
   if (upright) m.makeRotationX(-Math.PI / 2).premultiply(new THREE.Matrix4().makeTranslation(0, L / 2, 0));
   out.at = (t, y, side = 1) => {
     const s = side * sAt(t, y), dt = 1e-3, ds = 1e-3;
-    const p = P(t, s), pt = P(Math.min(1, t + dt), s).sub(P(Math.max(0, t - dt), s)), ps = P(t, s + ds).sub(P(t, s - ds));
+    const p = facet(t, Math.abs(s)), pt = P(Math.min(1, t + dt), s).sub(P(Math.max(0, t - dt), s)), ps = P(t, s + ds).sub(P(t, s - ds));
+    if (side < 0) p.x = -p.x;
     const nrm = side > 0 ? pt.clone().cross(ps).normalize() : ps.clone().cross(pt).normalize();
     if (nrm.x * side < 0) nrm.negate();
     p.applyMatrix4(m); nrm.transformDirection(m);
@@ -120,8 +133,9 @@ export function portholes(H, { rows = [8, 14], step = 6, t0 = 0.12, t1 = 0.88, r
     const t = t0 + ((t1 - t0) * i) / n + ((rng() - 0.5) * jitter * step) / H.L, { p, n: nr } = H.at(t, y + (rng() - 0.5) * jitter);
     if (side < 0) { p.x = -p.x; nr.x = -nr.x; }
     const q = new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), nr), rr = r * (0.85 + rng() * 0.3);
-    push(out, rng() < lit ? 'glow' : 'dark', new THREE.CircleGeometry(rr, 10).applyQuaternion(q).translate(p.x + nr.x * 0.08, p.y + nr.y * 0.08, p.z + nr.z * 0.08));
-    out.rim.push(new THREE.TorusGeometry(rr * 1.12, rr * 0.16, 3, 10).applyQuaternion(q).translate(p.x + nr.x * 0.05, p.y + nr.y * 0.05, p.z + nr.z * 0.05));
+    // (a hair proud of the facet it sits on: the collision is the plating, the audit's 6 cm allowance)
+    push(out, rng() < lit ? 'glow' : 'dark', new THREE.CircleGeometry(rr, 10).applyQuaternion(q).translate(p.x + nr.x * 0.035, p.y + nr.y * 0.035, p.z + nr.z * 0.035));
+    out.rim.push(new THREE.TorusGeometry(rr * 1.12, rr * 0.16, 3, 10).scale(1, 1, 0.12).applyQuaternion(q).translate(p.x + nr.x * 0.02, p.y + nr.y * 0.02, p.z + nr.z * 0.02));
   }
   return out;
 }

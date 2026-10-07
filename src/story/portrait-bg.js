@@ -24,6 +24,7 @@ export const BACKDROPS = {
   perdide: ['#cde0e8', '#f0d0b0', '#d8cff0', '#e8e4b0', '#c8e4cc'],
   perdide2: ['#cde0e8', '#f0d0b0', '#d8cff0', '#e8e4b0', '#c8e4cc'],
   mangrove: ['#d8cff0', '#f0d0dc', '#c8d8f0', '#efe2c0', '#d0e8e4'],
+  saltharbour: ['#f4ece2', '#c8daf0', '#f0d0c0', '#e8e0d0', '#d0dcec'],
 };
 
 const rgb = (hex) => {

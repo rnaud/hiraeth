@@ -22,6 +22,7 @@ export const PLANETS = {
   perdide2: { body: '#9064ad', shade: '#64457f', ink: '#c497d8', mark: 'bands' },
   bazaar:   { body: '#e6875f', shade: '#b35d3f', ink: '#f2c54b', mark: 'lights' },
   mangrove: { body: '#3a3f78', shade: '#262a56', ink: '#f2e8f2', mark: 'lights' },
+  saltharbour: { body: '#f1e9e0', shade: '#b9c4dc', ink: '#c4664a', mark: 'bands' },
 };
 const DEFAULT = { body: '#9aa3c7', shade: '#6b739a', ink: CREAM, mark: 'craters' };
 

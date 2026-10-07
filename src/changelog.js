@@ -10,6 +10,7 @@ import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
   { v: '0.84', date: '2026-10-07', items: [
+    'A new world off the route, the Salt Harbour: huge old ships standing on their keels in a dry white salt basin, with people living in them. Walk the street between their hulls under the sailcloth, past shops cut into their feet and houses built out from the plating, climb the timber stair to a deck and cross the gangway high over the street, and walk on to the ship that stands on its stern. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came to see it too.',
     'The References level has the Salt Harbour’s four pictures rebuilt as views: huge ships standing on their keels in a white salt basin, the streets between their hulls shaded by sailcloth, gangways overhead, shops and houses built onto the plating, mooring ropes staked into the salt.',
   ] },
   { v: '0.83', date: '2026-10-07', items: [
