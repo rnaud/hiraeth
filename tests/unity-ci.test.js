@@ -32,7 +32,7 @@ test('the workflow caches what makes a warm build short', () => {
   assert.match(workflow, /~\/\.gradle\/caches/);
   // Puerts' glue made again only when the C# changes: its editor run skipped on a hit
   assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ hashFiles\('unity\/Memento\/Assets\/\*\*\/\*\.cs'/);
-  assert.match(workflow, /if: steps\.glue\.outputs\.cache-hit != 'true'\n {8}uses: game-ci\/unity-builder@v6/);
+  assert.match(workflow, /id: gluebuild\n {8}if: steps\.glue\.outputs\.cache-hit != 'true'\n[^\n]*\n {8}uses: game-ci\/unity-builder@v6/);
   // (in both jobs: Puerts wants its glue even in the Linux player's Mono build)
   assert.equal((workflow.match(/key: puerts-glue-3\.0\.3-/g) || []).length, 2);
   assert.match(workflow, /key: puerts-3\.0\.3/);
@@ -46,7 +46,7 @@ test('the workflow caches what makes a warm build short', () => {
   }
   const docker = read('scripts/unity-ci-docker.sh');
   assert.match(docker, /"data-root": "\/mnt\/docker"/);
-  assert.match(docker, /nohup sh -c "docker pull -q/);
+  assert.match(docker, /nohup sh -c "[^\n]*\$CLEAN;[^\n]*docker pull -q/);   // (the disk's cleanup, then the pull: both in the background)
   assert.match(workflow, /cache: npm/);
 });
 
@@ -56,7 +56,12 @@ test('the workflow builds with GameCI on the local editor\'s Unity, licensed by 
   assert.match(workflow, /uses: game-ci\/unity-builder@v6/);
   // every GameCI step gets the account's sign-in (a Personal seat), never a licence file
   const steps = workflow.split('uses: game-ci/unity-builder@v6').slice(1);
-  assert.equal(steps.length, 4);   // (the glue and the APK; the glue and the Linux player)
+  assert.equal(steps.length, 8);   // (the glue and the APK; the glue and the Linux player; each retried once)
+  // an editor start is sometimes killed (exit 137): each editor run goes again once when it failed
+  for (const id of ['gluebuild', 'apk', 'player']) {
+    assert.match(workflow, new RegExp(`id: ${id}\\n(?: {8}if: [^\\n]*\\n)? {8}continue-on-error: true`), id);
+    assert.ok(workflow.includes(`if: steps.${id}.outcome == 'failure'`), id);
+  }
   for (const s of steps) {
     assert.match(s, /UNITY_EMAIL: \$\{\{ secrets\.UNITY_EMAIL \}\}/);
     assert.match(s, /UNITY_PASSWORD: \$\{\{ secrets\.UNITY_PASSWORD \}\}/);

@@ -172,7 +172,24 @@ jobs:
 
       # Puerts' IL2CPP glue in an editor run of its own: it is C# as well as C++ (skipped when cached)
       - name: Puerts' IL2CPP glue
+        id: gluebuild
         if: steps.glue.outputs.cache-hit != 'true'
+        continue-on-error: true   # (retried once below: an editor start is sometimes killed, exit 137)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: Puerts' IL2CPP glue (again)
+        if: steps.gluebuild.outcome == 'failure'
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -188,6 +205,29 @@ jobs:
 
       - name: The testers' APK (IL2CPP ARM64)
         id: apk
+        continue-on-error: true   # (retried once below: an editor start is sometimes killed, exit 137)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: Android
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.AndroidRelease
+          versioning: Custom
+          version: ${{ steps.meta.outputs.version }}
+          androidVersionCode: ${{ steps.meta.outputs.build }}
+          androidKeystoreName: ../../.local-tools/ci-release.p12
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          androidKeyaliasName: moebius
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          customParameters: -out Builds/unity-android/memento-unity.apk
+          allowDirtyBuild: true
+
+      - name: The testers' APK (IL2CPP ARM64) (again)
+        if: steps.apk.outcome == 'failure'
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -296,7 +336,26 @@ jobs:
         run: scripts/unity-ci-docker.sh wait
 
       - name: Puerts' IL2CPP glue
+        id: gluebuild
         if: steps.glue.outputs.cache-hit != 'true'
+        continue-on-error: true   # (retried once below: an editor start is sometimes killed, exit 137)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: StandaloneLinux64
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          versioning: None
+          allowDirtyBuild: true
+
+      # (Mono, the Deck's player as the docs build it)
+
+      - name: Puerts' IL2CPP glue (again)
+        if: steps.gluebuild.outcome == 'failure'
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -312,6 +371,24 @@ jobs:
 
       # (Mono, the Deck's player as the docs build it)
       - name: The Linux player (x86_64, Vulkan, Mono)
+        id: player
+        continue-on-error: true   # (retried once below: an editor start is sometimes killed, exit 137)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: StandaloneLinux64
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Linux
+          versioning: None
+          customParameters: -mono -out Builds/bridge-linux/memento-js.x86_64
+          allowDirtyBuild: true
+
+      - name: The Linux player (x86_64, Vulkan, Mono) (again)
+        if: steps.player.outcome == 'failure'
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}

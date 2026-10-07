@@ -21,21 +21,20 @@ start)
     sudo systemctl start docker
   fi
   echo "Docker's data in $(docker info -f '{{.DockerRootDir}}')"
-  # (the project and its Library stay on /: room for them, and for the image when Docker is there too)
+  # (the project and its Library stay on /: room for them, and for the image when Docker is there too; the
+  # removal takes 2-3 minutes, so it runs in the background as well, before the pull)
   WANT=${ROOT_MIN_GB:-25}; [ "$(docker info -f '{{.DockerRootDir}}')" = /mnt/docker ] && WANT=${ROOT_MIN_GB:-15}
-  if [ "$(free /)" -lt "$WANT" ]; then
-    sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
-    docker image prune -a -f > /dev/null 2>&1 || true
-  fi
-  df -h /
+  CLEAN=true
+  [ "$(free /)" -lt "$WANT" ] && CLEAN="sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup; docker image prune -a -f > /dev/null 2>&1"
   mkdir -p "$STATE"; rm -f "$STATE/done"
-  nohup sh -c "docker pull -q '$IMAGE' > '$STATE/log' 2>&1; echo \$? > '$STATE/done'" > /dev/null 2>&1 &
+  nohup sh -c "t0=\$(date +%s); $CLEAN; df -h /; t1=\$(date +%s); docker pull -q '$IMAGE'; s=\$?; echo \"room \$((t1 - t0)) s, pull \$((\$(date +%s) - t1)) s\"; echo \$s > '$STATE/done'" > "$STATE/log" 2>&1 &
   echo "pulling $IMAGE in the background"
   ;;
 wait)
   t=0
   until [ -f "$STATE/done" ]; do sleep 5; t=$((t + 5)); done
+  cat "$STATE/log"
   echo "the image after $t s more"
-  [ "$(cat "$STATE/done")" = 0 ] || { cat "$STATE/log"; exit 1; }
+  [ "$(cat "$STATE/done")" = 0 ]
   ;;
 esac
