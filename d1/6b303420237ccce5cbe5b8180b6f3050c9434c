@@ -1,0 +1,39 @@
+src/characters/traveller-v1.js
+  s_e856004978f13c::t_c2d76a2c950290 10,53
+src/characters/tripo-face.js
+  s_e856004978f13c::t_ec0e723c8506fb 9-10,28,50,62,73,76,103-109,116-121,126-127,169,173,175,207-215,246
+src/characters/tripo-hair.js
+  s_e856004978f13c::t_6ebc27e36997c0 1-75
+src/expression.js
+  s_e856004978f13c::t_2c47e3f00efafd 21,24,30,34,46-55
+src/studio/main.js
+  s_dcdf8c32199d18::t_c8aa9cada1f360 7,15,119,121,148-149,154,160,328,330,358,427,429,451-452,551,639-640,909-910
+tests/tripo-face.test.js
+  s_e856004978f13c::t_c28e958f63c2bf 132-167
+unity/Memento/Assets/Memento/Shaders/TripoFace.hlsl
+  s_e856004978f13c::t_798e644518bcb0 20-26,32-38,43-44,86,90,92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d16b303420237ccce5cbe5b8180b6f3050c9434c",
+  "prompts": {},
+  "sessions": {
+    "s_dcdf8c32199d18": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a113e0-c524-77e1-acfb-aab5db67127f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e856004978f13c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1162f-1a89-71c2-9862-e343056530af",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
