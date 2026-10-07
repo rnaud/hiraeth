@@ -3,7 +3,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MODE_STRATA, MODE_TERRAIN } from '../materials.js';
 import { createNoise2D, mulberry32 } from '../noise.js';
 import { table, needle, boulder, drips, lumpy, place, TAU } from './sky-stones-kit.js';
-import { bridge, SKY_STONES_HAZE } from './arzach2.js';
+import { bridge, SKY_STONES_HAZE, CREVASSE, CLOUD_PRINT } from './arzach2.js';
 import { buildBird, poseWings, FOOT, STAND } from '../bird.js';
 import { formAxis, keepForm } from '../form.js';
 import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
@@ -44,6 +44,9 @@ function materials(kit) {
     // (the spires' and the stones' shade: flat tone, few strokes)
     bone: strata('#fbe3ca', '#f8dcc2', '#fde9d4', { hatch: 0.35, strataHatch: 0 }),
     pink: strata('#f6d3c2', '#f2c8b6', '#f9dccd', { hatch: 0.35, strataHatch: 0 }),
+    // (the needles: shaded by their stalk's round form, one clean terminator band: sky-stones-kit.js needle)
+    boneNeedle: strata('#fbe3ca', '#f8dcc2', '#fde9d4', { hatch: 0.35, strataHatch: 0, flat: false }),
+    pinkNeedle: strata('#f6d3c2', '#f2c8b6', '#f9dccd', { hatch: 0.35, strataHatch: 0, flat: false }),
     // (smooth: the caps' and the overhangs' undersides, densely hatched)
     // (form: the strokes under a cap radiate from its stalk, src/form.js)
     cap: kit.mat({ color: '#fbe0c6', color2: '#f8d9bf', color3: '#fde8d3', mode: MODE_STRATA, strataSize: 5, side: DS, form: true }),
@@ -58,8 +61,8 @@ function materials(kit) {
     tree: kit.mat({ color: '#4f6a58', flat: true }),
     tower: strata('#f9ecda', '#f2e1cb', '#fcf3e6', { strataSize: 9, side: THREE.FrontSide }),
     // the cloud: a warm white, its shade a pale grey-blue (lifted), no strokes, a thin line in its own shade's blue
-    cloud: kit.mat({ color: '#fff4ea', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
-    pinkCloud: kit.mat({ color: '#fbdccd', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
+    cloud: kit.mat({ color: '#fff4ea', ...CLOUD_PRINT, line: 0.45, lineTint: 1 }),
+    pinkCloud: kit.mat({ color: '#fbdccd', ...CLOUD_PRINT, line: 0.45, lineTint: 1 }),
     cloak: kit.mat({ color: PERSON.cloak, flat: true }),
     hidden: new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }),
   };
@@ -71,12 +74,12 @@ export const smooth = (g) => { const m = keepForm(mergeVertices(g, 1e-3)); m.com
 
 /** A cluster of needles round (x, z) from y: the main one H high, n round it (fused ones lean on it). */
 function spires(kit, M, { x, z, y, H, R, n = 5, seed = 1, rubble = true, mat = 'bone' }) {
-  const r2 = mulberry32(seed * 97 + 3), m = M[mat];
-  kit.add(m, needle({ x, y, z, H, R, seed: seed + 0.1, seg: 18, rings: 28, lean: (r2() - 0.5) * 0.08 }).vis);
+  const r2 = mulberry32(seed * 97 + 3), m = M[mat], mn = M[`${mat}Needle`] ?? m;
+  kit.add(mn, needle({ x, y, z, H, R, seed: seed + 0.1, seg: 18, rings: 28, lean: (r2() - 0.5) * 0.08 }).vis);
   for (let i = 0; i < n; i++) {
     const fused = i < Math.ceil(n / 2), a = r2() * TAU, d = R * (fused ? 0.55 + r2() * 0.4 : 1.3 + r2() * 1.8);
     const h = H * (fused ? 0.22 + r2() * 0.4 : 0.15 + Math.pow(r2(), 1.3) * 0.55), rr = R * (fused ? 0.4 + r2() * 0.25 : 0.3 + r2() * 0.35);
-    kit.add(m, needle({ x: x + Math.cos(a) * d, y: y - 1, z: z + Math.sin(a) * d, H: h, R: rr, seed: seed + i * 1.37 + 0.5, seg: 14, rings: 20, lean: (r2() - 0.5) * 0.25 }).vis);
+    kit.add(mn, needle({ x: x + Math.cos(a) * d, y: y - 1, z: z + Math.sin(a) * d, H: h, R: rr, seed: seed + i * 1.37 + 0.5, seg: 14, rings: 20, lean: (r2() - 0.5) * 0.25 }).vis);
   }
   if (!rubble) return;
   for (let i = 0; i < 8 + n; i++) {
@@ -99,7 +102,8 @@ function mushroom(kit, M, o) {
   const fit = (g) => (o.squash ? g.translate(-o.x, 0, -o.z).scale(o.squash[0], 1, o.squash[1]).translate(o.x, 0, o.z) : g);
   if (t.drip) kit.add(mat, fit(t.drip), { solid: false, shadow: false });   // the stalactites under its lip (drawn only)
   if (o.smooth === false) { kit.add(mat, fit(t.vis)); return t; }
-  kit.add(mat, smooth(fit(t.vis)), { shadow: false });
+  // (its own smooth normals, by its round form without the flutes and ribs: sky-stones-kit.js table)
+  kit.add(mat, t.vis.attributes.normal ? fit(t.vis) : smooth(fit(t.vis)), { shadow: false });
   kit.add(M.hidden, fit(t.shadow), { solid: false });
   return t;
 }
@@ -338,7 +342,9 @@ function vaelScene(kit, v, o) {
 
 // ---------------------------------------------------------------- grounds
 const ROCK = { color: '#f8e2cb', color2: '#f5dcc4', color3: '#efd2b8', pattern: 'cracks' };
-const PLAIN = { color: '#feb28a', color2: '#fcb894', color3: '#f3a47f', ripples: true };
+// (its steep faces, the crevasses' walls, a red-brown, never filled with spot black: the sheets draw them lit
+//  red-brown and hatched, ours were dark: arzach2.js CREVASSE)
+const PLAIN = { color: '#feb28a', color2: '#fcb894', color3: CREVASSE.wall, ripples: true, spot: 0, strataHatch: CREVASSE.strokes };
 /** A ledge of rock round the camera out to `edge` m (front), falling away to a floor far below. */
 const ledge = (edge = 20, y = 0, floor = -300) => ({
   height: (x, z) => {
@@ -395,12 +401,12 @@ export const VAEL2_VIEWS = [
   view({
     id: '3783-egg-column', title: 'The column, its disc and its egg', sheet: 'IMG_3783', panel: 2, where: 'top, second', crop: [276, 38, 224, 451],
     camera: { eye: [0, 10, 0], yaw: 0, fov: 72, pitch: 9 },
-    sun: { side: 130, el: 40 },
+    sun: { side: -70, el: 35 },   // (from the left, as the panel lights its column: one clean terminator down it)
     ground: sky(-300),
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37832,
-        mushrooms: [{ x: 0, z: -70, R: 20, top: 32, base: -80, stalk: 4.3, capT: 2.4, under: 3, dome: 0.6, rib: 0.4, ribK: 22, flute: 0.14, fluteK: 7, foot: 1.5, neckR: 0.9, waist: 0.05, outline: 0.04, mat: 'bone', smooth: false }],
+        mushrooms: [{ x: 0, z: -70, R: 20, top: 32, base: -80, stalk: 4.3, capT: 2.4, under: 3, dome: 0.6, rib: 0.4, ribK: 22, flute: 0.14, fluteK: 7, foot: 1.5, neckR: 0.9, waist: 0.05, outline: 0.04, mat: 'boneNeedle', smooth: false }],
         stones: [[0.4, 42, -70, [[4.6, 2.7, 0.15, 0.26]]]],
         spires: [{ x: -16, z: -90, y: -40, H: 45, R: 4, n: 2, rubble: false }, { x: 14, z: -80, y: -40, H: 30, R: 3, n: 1, rubble: false }],
         clouds: [{ y: -30, near: 60, far: 1200, n: 240, size: [12, 30] }, { y: 10, near: 120, far: 400, n: 22, size: [24, 40], deck: false, spread: 30 }],
@@ -583,7 +589,7 @@ export const VAEL2_VIEWS = [
     id: '3785-crevasse', title: 'The crevasse, the tower, the far sea of cloud', sheet: 'IMG_3785', panel: 5, where: 'bottom right', crop: [521, 629, 469, 353],
     camera: { eye: [0, 4, 0], yaw: 0, fov: 46, horizon: 0.6 },
     sun: { side: 130, el: 45 },
-    ground: plain([[-30, -40, 70, -25, 3, 6], [-110, -70, -40, -74, 3, 5]], { rise: 4 }),
+    ground: plain([[-30, -40, 70, -25, 7, 9], [-110, -70, -40, -74, 5, 7]], { rise: 4 }),
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37855, towers: [[40, -720, 1]],

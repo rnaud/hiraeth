@@ -438,6 +438,7 @@ export function surfaceDefines(o) {
   on('S_GLASS', o.glass);
   on('S_MAP', o.map);
   on('METAL_BRUSHED', o.metal && o.brushed);
+  on('S_VMAT', o.perVertex);   // (merged meshes: their material values per vertex, src/vertex-material.js)
   delete d.undefined;
   return d;
 }
@@ -455,6 +456,14 @@ const vertexShader = /* glsl */ `
   out vec3 vBind;
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
+  #ifdef S_VMAT
+    // many meshes merged into one draw, each with its own material values and object space (src/vertex-material.js)
+    in vec3 aMatC1; in vec3 aMatC2; in vec3 aMatC3;
+    in vec3 aMatS;        // band size, grid, flat
+    in vec3 aObjP; in vec3 aObjN;   // its own object-space point and normal
+    in vec4 aObjM;        // its place (xyz) and turn about y (w)
+    flat out vec3 vMatC1; flat out vec3 vMatC2; flat out vec3 vMatC3; flat out vec3 vMatS;
+  #endif
   #ifdef S_FORM
     in vec4 aFormC;       // the part's axis (src/form.js): a point on it (object space), w its kind (FORM: 0 none, 1 a cap, 2 a cylinder)
     in vec3 aFormA;       // and its direction
@@ -615,6 +624,16 @@ const vertexShader = /* glsl */ `
     #ifdef GRASS
       vObjPos = transformed; vObjNormal = objectNormal; vObjRel = transformed - cameraPosition;   // (already in the world)
     #endif
+    #ifdef S_VMAT
+    {
+      vMatC1 = aMatC1; vMatC2 = aMatC2; vMatC3 = aMatC3; vMatS = aMatS;
+      vObjPos = aObjP; vObjNormal = aObjN;
+      // the camera in its own frame (its turn undone), as camL above does with its own model matrix
+      float c = cos(aObjM.w), s = sin(aObjM.w);
+      vec3 d = cameraPosition - aObjM.xyz;
+      vObjRel = aObjP - vec3(c * d.x - s * d.z, d.y, s * d.x + c * d.z);
+    }
+    #endif
     #ifdef S_FORM
     {
       // the point in the axis' frame, metric as vObjPos (its scale baked in); affine in the position, so it
@@ -719,6 +738,16 @@ const fragmentShader = /* glsl */ `
   in vec3 vBind;
   in vec2 vFold;
   in vec2 vTextureUV;
+  #ifdef S_VMAT
+    // (the material values from the vertex instead of the uniforms: every use below reads these)
+    flat in vec3 vMatC1; flat in vec3 vMatC2; flat in vec3 vMatC3; flat in vec3 vMatS;
+    #define uColor vMatC1
+    #define uColor2 vMatC2
+    #define uColor3 vMatC3
+    #define uStrataSize vMatS.x
+    #define uGrid vMatS.y
+    #define uFlat vMatS.z
+  #endif
   #ifdef S_FORM
     in vec4 vForm;
   #endif
@@ -2396,6 +2425,15 @@ const fragmentShader = /* glsl */ `
       float runs = smoothstep(0.42, 0.66, vnoise(vec2(strataC.y * 0.09, strataC.x * 0.55)));
       float beds = strokes(strataC, strataFw, hsp * 1.25, 0.85) * runs * upright * uShade.w * step(uToon, L);
       gHatch.r = max(gHatch.r, beds);
+    }
+    #endif
+    #ifdef S_TERRAIN
+    // a steep face of the ground in light (a crevasse's wall) keeps runs of strokes down it, when its material asks
+    // (strataHatch on terrain): the ground's strokes are laid from above, so on a wall they fall straight down it,
+    // as the Sky Stones' sheets hatch their crevasses' lit red-brown walls
+    if (uMode == ${MODE_TERRAIN} && uShade.w > 0.0 && L >= uToon && vViewDepth < 400.0) {
+      float wall = smoothstep(0.45, 0.75, slope);
+      if (wall > 0.0) gHatch.r = max(gHatch.r, strokes(ce1, fw1, hsp * 1.1, 1.3) * wall * min(uShade.w, 1.0));
     }
     #endif
     // a face is flat colour and one shadow tone: its strokes are its own (faceInk)

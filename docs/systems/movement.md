@@ -216,6 +216,27 @@ either kind for the feet, `Player.moveStep` for the body, the audit over a grid 
   radius (past that too steep to stand on); beside it, out round it below its crest.
 (`tests/shaped-solids.test.js`.)
 
+**What the collision costs a frame (October 2026).** Every query on the world's `Physics` in the running game
+(the traveller's, the camera's, the people's and the creatures', all on the same instance), timed per frame while
+the traveller walks from the spawn for 12 s, Chrome's CPU throttled ×4, the Handheld preset; the day's tree
+(before the third pass and the References scenes) against today's, served side by side and interleaved, two runs
+each (ms a frame, mean):
+
+| world | collision triangles | before | after |
+|---|---|---|---|
+| Garden of Spheres | 181 k → 227 k | 0.21–0.24 | 0.25 |
+| Lorn II | 154 k → 191 k | 0.23–0.26 | 0.37–0.50, then 0.25–0.32 split by area |
+| Buried Machine | 125 k → 176 k (+8 k turning) | 0.40 | 0.21–0.26 |
+| desert | 238 k → 251 k | 0.34 | 0.23–0.25 |
+| City-Shaft | 931 k → 935 k | 1.10 | 0.79–1.31 |
+
+Only Lorn II got measurably slower: its roots and the arches' strands are long thin tubes along the whole path,
+and a BVH split at the middle of each node's box lets their boxes overlap. It now builds split by area (SAH,
+`level.collision = { strategy: 'SAH' }`, `Physics.create(..., o)`), which queries them as fast as before them
+(20 k capsule pushes along the path 215 → 75 ms in node) for about 0.25 s more to build, in the worker while
+loading. Other worlds keep the quick build. The measuring script lives outside the repo; it wraps each query
+method (outermost call only) and reads per-frame sums.
+
 ## Mounts come to you
 
 - **Hoverbike:** whistle (E) and it drives over on autopilot. If it's

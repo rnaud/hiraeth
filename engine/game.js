@@ -27,6 +27,7 @@ import { loadAnimationLibrary, Animator } from '../src/animator.js';
 import { loadHuman, Humanoid } from '../src/humanoid.js';
 import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
 import { loadTravellerV1, createTravellerV1 } from '../src/characters/traveller-v1.js';
+import { CLOTH_HOST } from '../src/characters/tripo-cloth.js';
 import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, buildPeople } from '../src/crowd.js';
@@ -108,6 +109,15 @@ function engineColours(ch, { gltf, colors }) {
     part.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
     part.material.vertexColors = true;
   }
+  // the overshirt's lining on its back faces, the trousers' repaired band in their fabric (tripo-material.js, linear)
+  const lin = (hex) => new THREE.Color().setHex(hex, THREE.LinearSRGBColorSpace).convertSRGBToLinear().toArray();
+  if (ch.cloth?.garment?.material) ch.cloth.garment.material.userData.lining = lin(0xb46249);
+  const fabric = lin(0xcbb897);
+  for (const p of parts) {
+    const R = p.geometry?.attributes?.trouserRepair, C = p.geometry?.attributes?.color;
+    if (!R || !C || C.itemSize !== 3) continue;
+    for (let i = 0; i < R.count; i++) { const t = R.getX(i); if (t > 0) for (let k = 0; k < 3; k++) C.array[i * 3 + k] += (fabric[k] - C.array[i * 3 + k]) * t; }
+  }
   for (const p of parts) for (const m of Array.isArray(p.material) ? p.material : [p.material]) if (m) m.userData.albedoLinear = true;
 }
 
@@ -167,7 +177,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const generated = await travellerV1P;
   if (generated) {
     try {
-      player.character = createTravellerV1(player.char, generated);
+      // (his overshirt done by the engine where it can: Unity's Burst job, not this thread; tripo-cloth.js CLOTH_HOST)
+      CLOTH_HOST.offload = backend?.clothOffload?.() ?? null;
+      try { player.character = createTravellerV1(player.char, generated); } finally { CLOTH_HOST.offload = null; }
       player.humanoid = player.character.humanoid;
       engineColours(player.character, generated);
     } catch (e) { log('traveller v1 failed', e?.message ?? e); player.character = null; }

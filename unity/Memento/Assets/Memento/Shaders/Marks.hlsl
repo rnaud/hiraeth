@@ -356,4 +356,115 @@ float pebbleField(float2 p, float gm, float2 s2, float len, float castK, float c
   }
   return lerp(tone, ink, res);
 }
+
+// ---------------------------------------------------------------- hatching that follows the form (materials.js FORM)
+float formLevel(float c, float fw, float s, float sRef, float period, float widthPx, float2 nq, float depth)
+{
+  float k = floor(c / s + 0.5), id = fmod(k * s, period);
+  float h = hash(float2(id, 7.31));
+  float wob = h - 0.5, wk = _WearLite > 0.5 ? 0.0 : 1.0 - smoothstep(67.5, 90.0, depth);
+  if (wk > 0.0) wob = lerp(wob, vnoise(nq + float2(id * 0.37, h * 19.0)) - 0.5, wk);
+  wob *= 0.22;
+  float f = fw / s;
+  float d = abs(c - k * s - wob * sRef) / s;
+  float hw = 0.5 * widthPx * (0.75 + 0.5 * h) * f;
+  float ln = 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+  return lerp(ln, min(2.0 * hw, 1.0), smoothstep(0.25, 0.45, f));
+}
+float formLines(float c, float fw, float period, float spacingPx, float widthPx, float2 nq, float depth)
+{
+  float lvl = log2(max(fw * spacingPx * _PixelRatio, 1e-6));
+  float top = log2(period) - 1.0;
+  float keep = 1.0 - smoothstep(top - 1.0, top, lvl);
+  if (keep <= 0.0) return 0.0;
+  float s0 = exp2(floor(lvl));
+  widthPx *= _PixelRatio;
+  float a = formLevel(c, fw, s0, s0, period, widthPx, nq, depth);
+  float b = formLevel(c, fw, s0 * 2.0, s0, period, widthPx, nq, depth);
+  return lerp(a, b, frac(lvl)) * keep;
+}
+float veinLevel(float c, float fw, float s, float sRef, float widthPx, float2 nq)
+{
+  float k = floor(c / s + 0.5), id = fmod(k * s, 1024.0);
+  float h = hash(float2(id, 3.17)), rank = 0.0, kk = abs(k);
+  [unroll] for (int i = 0; i < 3; i++) { if (fmod(kk, 2.0) > 0.5) break; rank += 1.0; kk *= 0.5; }
+  float wob = (vnoise(nq + float2(id * 0.37, h * 19.0)) - 0.5) * 0.45;
+  float f = fw / s;
+  float d = abs(c - k * s - wob * sRef) / s;
+  float hw = 0.5 * widthPx * (0.7 + 0.6 * h) * (1.0 + 0.7 * rank) * f;
+  float ln = 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+  return lerp(ln, min(2.0 * hw, 1.0), smoothstep(0.25, 0.45, f));
+}
+float veinLines(float c, float fw, float spacingPx, float widthPx, float2 nq, float depth)
+{
+  float lvl = log2(max(fw * spacingPx * _PixelRatio, 1e-6));
+  float top = log2(1024.0) - 1.0;
+  float keep = 1.0 - smoothstep(top - 1.0, top, lvl);
+  if (keep <= 0.0) return 0.0;
+  float s0 = exp2(floor(lvl));
+  widthPx *= _PixelRatio;
+  return lerp(veinLevel(c, fw, s0, s0, widthPx, nq), veinLevel(c, fw, s0 * 2.0, s0, widthPx, nq), frac(lvl)) * keep;
+}
+// the shade's two families of strokes on a part with an axis: x the strokes, y the cross-hatch
+float2 formHatch(float4 f, float3 fdx, float3 fdy, float hsp, float dark, float depth)
+{
+  const float T = 1024.0, K = 162.9747;
+  float r2 = max(dot(f.xy, f.xy), 1e-8), r = sqrt(r2);
+  float th = atan2(f.y, f.x) * K;
+  float fwT = (abs(f.x * fdx.y - f.y * fdx.x) + abs(f.x * fdy.y - f.y * fdy.x)) / r2 * K;
+  float fwH = abs(fdx.z) + abs(fdy.z);
+  float fwR = (abs(f.x * fdx.x + f.y * fdx.y) + abs(f.x * fdy.x + f.y * fdy.y)) / r;
+  float w1 = lerp(0.9, 2.2, dark), w2 = lerp(0.6, 1.7, dark);
+  float in1 = smoothstep(0.02, 0.12, dark), in2 = smoothstep(0.5, 0.65, dark);
+  float2 h = 0;
+  float wrap = f.w > 1.5 ? smoothstep(0.3, 0.6, fwH / max(fwH + fwR, 1e-9)) : 0.0;
+  if (wrap < 0.999)
+  {
+    float2 nqR = float2(r * 0.6, 3.0);
+    h.x = formLines(th, fwT, T, hsp * 0.8, w1, nqR, depth) * in1;
+    if (dark > 0.5) h.y = formLines(th, fwT, T, hsp * 0.5, w2, nqR, depth) * in2;
+    h *= 1.0 - wrap;
+  }
+  if (wrap > 0.001)
+  {
+    float2 ring = float2(formLines(f.z, fwH, 65536.0, hsp * 1.0, w1, f.xy / r * 1.5, depth) * in1, 0.0);
+    if (dark > 0.5) ring.y = formLines(th, fwT, T, hsp * 1.25, w2, float2(f.z * 0.6, 5.0), depth) * in2;
+    h += ring * wrap;
+  }
+  return h;
+}
+
+// ---------------------------------------------------------------- a makers' box (materials.js MAKERS_BOX)
+float boxAA(float v, float fw) { return 1.0 - smoothstep(-fw, fw, v); }
+float boxStar(float2 q) { return pow(abs(q.x) + 1e-4, 0.6667) + pow(abs(q.y) + 1e-4, 0.6667) - 1.0; }
+float2 boxMarks(float3 p, float3 on, float4 B)
+{
+  float3 a = abs(on);
+  float l = max(length(on), 1e-4);
+  float2 sq = p.xz / (min(B.x, B.z) * 0.8);
+  float st = boxStar(sq);
+  float star = boxAA(st, fwidth(st)) * smoothstep(0.55, 0.8, on.y / l);
+  float2 uv = (a.z > a.x ? float2(p.x, p.y - B.w) : float2(p.z, p.y - B.w)) / (B.y * 0.5);
+  float side = smoothstep(0.62, 0.85, max(a.x, a.z) / l);
+  float fw = max(fwidth(uv.x), fwidth(uv.y)) * 1.2;
+  float ring = abs(length(uv) - 1.0) - 0.035;
+  float small = boxStar(uv / 0.78);
+  float comp = max(boxAA(ring, fw), boxAA(small, fwidth(small)));
+  return float2(star, comp * side);
+}
+float3 boxRay(float3 p, float4 A, float4 B)
+{
+  float c = A.w, pz = floor(c), u = frac(c);
+  float ang = pz * 2.39996 + 0.7;
+  float3 D = normalize(float3(cos(ang), 0.55 * sin(pz * 1.7 + 0.4), sin(ang)));
+  float R = dot(abs(D), B.xyz);
+  float s = dot(p, D) / R;
+  float head = lerp(-1.05, 1.05, saturate(u / 0.8));
+  float d = s - head;
+  d += 0.01 * sin(dot(p, float3(9.0, 12.0, 7.0)) + pz * 1.3);
+  float ln = exp(-d * d / 0.00035);
+  float glow = exp(-d * d / 0.003);
+  float trail = d < 0.0 ? exp(d * 9.0) * (1.0 - smoothstep(0.8, 1.0, u)) : 0.0;
+  return float3(ln, glow, trail) * A.x;
+}
 #endif

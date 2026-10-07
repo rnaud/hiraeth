@@ -149,11 +149,21 @@ ${garmentBody(cols)}
  return m;
 }
 
+/**
+ * Where an engine takes the overshirt's work over (engine/game.js sets it before the traveller is made): an
+ * object { init(desc), frame(packet) }. Then the cage's steps, the garment's vertices and their normals are the
+ * engine's (in Unity a Burst job: engine/unity/backend.js clothOffload), fed each frame what this module works
+ * out from the bones (the targets, the capsules, the bones' and the attachment's matrices); the garment's
+ * geometry is left as it is here. null: everything here (the web: the cage in a worker, the rest on this thread).
+ */
+export const CLOTH_HOST = { offload: null };
+
 // Drive the original textured lower overshirt with a regular open-front cage.
 // useWorker: simulate the cage in a worker (the game; tests and pages without workers step it here)
 // gpu: the garment is skinned and moved by the cage in its vertex shader (garmentShader: the game; its
 // material is patched once made, gpuMaterial), not rewritten here a vertex at a time (tests: the arrays, here)
-export function makeTripoCloth(source, colors, { useWorker = typeof window !== 'undefined' && typeof Worker !== 'undefined', gpu = typeof window !== 'undefined' } = {}) {
+// offload: an engine's (CLOTH_HOST): the cage, the garment and its normals are its own (neither a worker nor gpu)
+export function makeTripoCloth(source, colors, { offload = CLOTH_HOST.offload, useWorker = !offload && typeof window !== 'undefined' && typeof Worker !== 'undefined', gpu = !offload && typeof window !== 'undefined' } = {}) {
   const original = source.geometry, pos = original.attributes.position;
   const points = Array.from({length:pos.count}, (_,i) => V().fromBufferAttribute(pos,i));
   const shirt = points.map((p,i) => p.y > .66 && p.y < TOP + .035 && Math.abs(p.x) < .25 && red(colors[i]));
@@ -287,6 +297,9 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
     const A=mapArrays,[idx,wts]=detailSkin,b=new T.Vector3();A.base=new Float64Array(A.count*3);A.skinB=new Int32Array(A.count*4);A.skinW=new Float64Array(A.count*4);
     mapping.forEach((m,v)=>{if(m.free>=1)return;b.copy(m.p).applyMatrix4(skinSource.bindMatrix);A.base.set([b.x,b.y,b.z],v*3);for(let k=0;k<4;k++){A.skinB[v*4+k]=idx[m.i*4+k];A.skinW[v*4+k]=wts[m.i*4+k];}});
   }
+  // an engine's own (CLOTH_HOST): everything it needs that never changes, once; then a packet a frame (update)
+  const packet=offload?{G,simCaps,mapCaps,boneMesh:new Float64Array(boneMesh.length*16),attach:new Float64Array(16),steps:0,reset:true,simulated:false}:null;
+  if(offload)offload.init({garment,N,caps:caps.length,constants,map:mapArrays,index:garmentGeometry.index.array,vertices:garmentGeometry.attributes.position.count,bones:boneMesh.length});
   const base=new T.Vector4(),bindMatrix=skinSource.bindMatrix;
   /** p (the mesh's local space) skinned with vertex `index`'s weights: SkinnedMesh.applyBoneTransform's own math */
   function skin([indices,weights],index,p){
@@ -323,7 +336,9 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
     if(simulated){
       accumulator+=Math.min(dt,.05);
       let steps=0;while(accumulator>=CLOTH_STEP){accumulator-=CLOTH_STEP;steps++;}
-      if(worker){
+      if(offload){
+        packet.steps=steps;
+      }else if(worker){
         pendingSteps=Math.min(pendingSteps+steps,9);   // (a worker that fell behind: at most a tenth of a second to catch up)
         if(!waiting&&pendingSteps){
           const msg={type:'step',id:++requestId,G:G.slice(),caps:simCaps.slice(),steps:pendingSteps,reset:reset?G.slice():null};
@@ -334,6 +349,14 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
         simulate(sim,G,simCaps,steps);simTarget.set(G);
         for(let i=0;i<N;i++){positions[i].set(sim.P[i*3],sim.P[i*3+1],sim.P[i*3+2]);previous[i].set(sim.Q[i*3],sim.Q[i*3+1],sim.Q[i*3+2]);}
       }
+    }
+    if(offload){
+      // the rest is the engine's: the bones (bind inverse folded in) and the attachment into the mesh's space
+      for(let b=0;b<boneMesh.length;b++)packet.boneMesh.set(boneMesh[b].elements,b*16);
+      packet.attach.set(attachToLocal.multiplyMatrices(toLocal,attachment.matrixWorld).elements);
+      packet.simulated=simulated;if(!simulated)packet.steps=0;packet.reset=reset;reset=false;
+      offload.frame(packet);
+      return {particles:N,triangles:renderIndex.length/3,renderTriangles:detailed.index.count/3,radii:caps.map(c=>c.radius),threaded:true,offloaded:true};
     }
     const cage=geo.attributes.position.array;
     if(mesh.visible||!gpu){for(let i=0;i<N;i++){cage[i*3]=positions[i].x;cage[i*3+1]=positions[i].y;cage[i*3+2]=positions[i].z;}}

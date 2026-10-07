@@ -25,9 +25,14 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Questions for the author
 
-- [ ] The push's rings and spray (RB / R1) were missing in every room off the map and are back
+- [x] The push's rings and spray (RB / R1) were missing in every room off the map and are back
   (DONE.md). Were they also missing **outdoors**, in the open world? Nothing in the code says they
   were, and no one has seen it; if they were, that is a second bug and wants looking at.
+  Answered without the author: no. In the running game (headless Chrome, keyboard C and a fake pad's
+  RB), every world's open air and every room off the map (the desert's four, one each in the other
+  temple worlds, Viridel's two) drew the push's three rings and its spray, and nothing hid them at draw
+  time; the only misses were a push made while a conversation opened (Lou at home), which is input
+  being paused, as it should be. `tests/push-fx.test.js` fires it in every world and room, both ways.
 
 # Contact: what is left
 
@@ -105,10 +110,14 @@ scene-level modelling and a few shader limits:
     v0.69 (`weathered` 0.6–0.8). The dust band is drawn on the sand bank's top edge where sand banks against a
     weathered wall (materials.md, "Dust at the foot").
   - The print preset keeps its cumulus bank and clouds (the worlds' own; the views turn them off).
-  - Vael II: the needles' and stalks' terminator is a clean band on the sheets, while flat facets with
+  - [x] Vael II: the needles' and stalks' terminator is a clean band on the sheets, while flat facets with
     flutes break ours into lit islands in the shade; the crevasses' walls are lit red-brown and hatched
     on the sheets, ours dark; its cloud puffs are pre-shaded vertex colours (not the flat print), its
-    planets stay (the sheets have none), and dusk and night keep the old blue shadow.
+    planets stay (the sheets have none), and dusk and night keep the old blue shadow. Done (October 2026,
+    world and views; references.md, Vael II's): needles and cap tables shaded by a flute-free twin's smooth
+    normals; the plain's steep faces red-brown, never spot black, hatched down in light (`CREVASSE`); the cloud
+    printed flat by the real sun (`CLOUD_PRINT`); dusk and night shadows in the day's grey-teal
+    (`SKY_STONES_DUSK`, `_NIGHT`); the views already hung no planets (`planets: []`, now tested).
   - [x] The Garden of Spheres: the canopies' undersides want dense radiating *branch* lines and foliage as
     clusters of small inked leaf masses (the form hatching radiates, but the shapes are smooth lumps);
     the white stone's shade a flat pale blue with almost no strokes; the spheres' printed crescent
@@ -212,6 +221,13 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 
 ## Android
 
+- [ ] Next time the Retroid is attached, in the GeckoView test app (never the player's app): measure the
+  loading pen through a desert and a City-Shaft load (`adb shell screenrecord`, then
+  `scripts/transition-perf/pen.mjs`'s `angles()`); check the City-Shaft's merged towers (`S_VMAT`, checked
+  in Firefox / Chrome Metal / SwiftShader on the Mac) draw as unmerged; the speaker's portrait and the
+  Sketchbook's captures; the game menu's item pictures; a self-driving cab ride; and re-measure the camps
+  and the City-Shaft with the shirt on the GPU (expected ~0.3 ms instead of 2.4).
+
 - [ ] On the Retroid: GeckoView with the real buttons, the upgrade over the installed app, the cave's
   FPS and the shader cost. **Blocked**: no Android device is attached. (The cave's FPS and the shader
   cost are measured, in the GeckoView test app: the cave 60 fps, GPU 41 %, docs/systems/performance.md
@@ -267,13 +283,31 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
   loads the world's MakeHuman people as main.js does (`usesMakeHuman`, `loadPeople`: the story's people,
   the crowd's pooled bodies, everyone the story makes); body.bin read through the host, packed with the
   players. Their faces' shape keys (FACE_KEYS, a texture the port's Surface doesn't read) stay at rest.)
-- [ ] What the bridge still leaves out (engine-bridge.md, "The web's newer look and the rest of the
-  world"): hatching that follows the form (`S_FORM`: its per-vertex axis), the makers' boxes' star and
-  ray (`MAKERS_BOX`), the MakeHuman faces' shape keys (`FACE_KEYS`), the overshirt's lining; some people
-  near the camera hold their things out sideways in Unity (not understood yet). And the coral-shirt
-  traveller's overshirt cloth steps on the VM's thread (the web: a Worker): its sim as a C# job.
+- What the bridge still leaves out (engine-bridge.md, "The web's newer look and the rest of the world"):
+  - [x] Some people near the camera held their things out sideways in Unity. (2026-10-07: the crowd's
+    GPU figures, not the full people: the port's Crowd.hlsl read the costume with the old packing
+    (mask + 8 × piece + 128 × prop), so it showed the wrong pieces, several props at once. Ported again
+    from crowd-shader.js (costumes.js packDress, CROWD_BODY, the cape's arm clearance, the seated robe);
+    a test reads the shader's limits against costumes.js.)
+  - [x] The coral-shirt traveller's overshirt cloth steps on the VM's thread (the web: a Worker): its sim
+    as a C# job. (2026-10-07: tripo-cloth.js `CLOTH_HOST.offload`: the module works out the frame's packet
+    (targets, capsules, bones), the cage's steps, the garment's vertices and normals are a Burst job
+    (BridgeCloth.cs, op 17; engine/cloth.js the same in JS, tested against the module). The camps' script
+    update went from 13.6 to 4.8 ms a frame, the frame from 22.9 to 11.1, both on a loaded machine.)
+  - [x] Hatching that follows the form (`S_FORM`: its per-vertex axis). (2026-10-07: the axis per vertex in
+    the geometry (flag 64, TEXCOORD5/6), Surface's formHatch, the dark caps' veins as branches, the
+    denser hatch (HATCH_DENSE), the lifted shade's keep.)
+  - [x] The makers' boxes' star and ray (`MAKERS_BOX`). (2026-10-07: boxMarks, boxRay, the outline-only
+    ink; the ray's clock sent live, op 18.)
+  - [x] The MakeHuman faces' shape keys (`FACE_KEYS`). (2026-10-07: the key texture's deltas, scaled by
+    the head, as the mesh's blend shapes (BridgeHost.FaceKeys); each face's weights a frame they move, op 19.)
+  - [x] The overshirt's lining colour. (2026-10-07: back faces in it, `_Lining`; the trousers' repaired
+    band in their fabric, in the vertex colours.)
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
-  (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached.
+  (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached. (2026-10-07: the bridge's
+  APK builds, 73 MB, `BridgeBuild.Android`; `scripts/bench/android-bridge.sh desert -views
+  scripts/bench/viewpoints.json -bench 8 -split` installs and runs it, muted, and pulls its results.
+  The Linux player for the Deck builds too: engine-bridge.md, "The players again".)
 - [ ] Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
   unknown MCP servers (the configured UnityMCP server also fails to connect). The editor is driven in
   batch mode instead (`scripts/unity-export/unity-batch.sh`).

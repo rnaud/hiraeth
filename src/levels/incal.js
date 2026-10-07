@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
+import { mergeWithMaterials, restKey } from '../vertex-material.js';
 import { Taxi } from '../taxi.js';
 import { dropBuriedInstances, dropBuriedInstancesSteps } from '../physics.js';
 import { soften } from '../world.js';
@@ -230,6 +231,7 @@ export function* buildIncal(scene) {
   }
 
   // ---------------------------------------------------------- towers
+  const towers = new Map();   // terrace:eighth -> its towers, merged into one draw each (src/vertex-material.js)
   function tower(x, z, baseY, height, radius, palette, opts = {}) {
     const parts = [];
     const segs = 6 + Math.floor(rng() * 3) * 2;
@@ -262,11 +264,14 @@ export function* buildIncal(scene) {
       bulb.translate(0, y + r * 0.9, 0);
       parts.push(bulb, new THREE.CylinderGeometry(0.3, 0.3, r * 4, 4).translate(0, y + r * 2.5, 0));
     }
-    const mat = strata(pick(palette), pick(palette), pick(palette), 2.5 + rng() * 3, { grid: 2.5 + rng() * 2, flat: segs <= 8 });
-    const m = new THREE.Mesh(mergeGeometries(parts), mat);
-    m.position.set(x, baseY, z);
-    m.rotation.y = rng() * TAU;
-    if (!skip) scene.add(m);
+    const o = { color: pick(palette), color2: pick(palette), color3: pick(palette), mode: MODE_STRATA, strataSize: 2.5 + rng() * 3, grid: 2.5 + rng() * 2, flat: segs <= 8 };
+    const geometry = mergeGeometries(parts), rotY = rng() * TAU;
+    // (drawn with the others of its terrace's eighth of the ring, each its own colours and grid: below)
+    if (!skip) {
+      const key = `${curGroup}:${Math.floor((((Math.atan2(z, x) % TAU) + TAU) % TAU) / (TAU / 8))}`;
+      if (!towers.has(key)) towers.set(key, []);
+      towers.get(key).push({ geometry, x, y: baseY, z, rotY, material: makeMaterial(o), o });
+    }
     return baseY + y;
   }
 
@@ -552,6 +557,13 @@ export function* buildIncal(scene) {
       bucket('slab', strata('#f4f0e6', '#e3e8ee', '#d7dee8', 4, { grid: 3.5, flat: true }))
         .push(placed(new THREE.BoxGeometry(w, hh, w * (0.6 + rng() * 0.6)).translate(0, hh / 2, 0), Math.cos(a) * rad, TOP, Math.sin(a) * rad, rng() * TAU));
     } else tower(Math.cos(a) * rad, Math.sin(a) * rad, TOP, h, 6 + rng() * 16, PASTELS, { roof: true });
+  }
+  // the towers, one mesh for each terrace's eighth of the ring (and the rim's), every tower in it keeping its own
+  // colours, bands, grid and facets (a mesh and a material a tower: some 200 draws across the shaft)
+  for (const list of towers.values()) {
+    const byRest = new Map();
+    for (const t of list) { const k = restKey(t.material); if (!byRest.has(k)) byRest.set(k, []); byRest.get(k).push(t); }
+    for (const items of byRest.values()) scene.add(new THREE.Mesh(mergeWithMaterials(items), makeMaterial({ ...items[0].o, perVertex: true })));
   }
 
   // ---------------------------------------------------------- flying traffic
@@ -969,7 +981,7 @@ export function* buildIncal(scene) {
     // (the crown held high on a tall trunk: you see the people under it, and the camera passes beneath)
     for (let k = 0; k < 7; k++) { const a = k * 2.39996, r = 0.9 + (k % 3) * 0.5; lobes.push(new THREE.IcosahedronGeometry(1.5 + (k % 2) * 0.5, 0).translate(Math.cos(a) * r, 5.4 + (k % 3) * 0.8, Math.sin(a) * r)); }
     lobes.push(new THREE.CylinderGeometry(0.22, 0.35, 5.6, 5).translate(0, 2.8, 0));
-    const olive = mergeGeometries(lobes.map((g) => g.toNonIndexed()));
+    const olive = mergeGeometries(lobes.map((g) => (g.index ? g.toNonIndexed() : g)));
     olive.computeVertexNormals();
     const greens = ['#5e7a3a', '#4f6b34', '#6f8a42', '#56733f'];
     const hash01 = (i) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
@@ -981,7 +993,7 @@ export function* buildIncal(scene) {
     // umbrella pine: a bare leaning trunk under a flat layered canopy
     const pineParts = [new THREE.CylinderGeometry(0.22, 0.4, 8, 5).translate(0, 4, 0).rotateZ(0.12)];
     for (let k = 0; k < 5; k++) { const a = k * 1.9, r = k ? 1.8 : 0; pineParts.push(new THREE.IcosahedronGeometry(2.2, 0).scale(1.2, 0.42, 1.2).translate(Math.cos(a) * r + 0.95, 8.4 + (k % 2) * 0.5, Math.sin(a) * r)); }
-    const pine = mergeGeometries(pineParts.map((g) => g.toNonIndexed()));
+    const pine = mergeGeometries(pineParts.map((g) => (g.index ? g.toNonIndexed() : g)));
     pine.computeVertexNormals();
     const kindOf = (i) => { const h = hash01(i); return h < 0.5 ? cypress : h < 0.82 ? olive : pine; };
     // one mesh per terrace, kind and eighth of the ring: a whole terrace's trees in one mesh

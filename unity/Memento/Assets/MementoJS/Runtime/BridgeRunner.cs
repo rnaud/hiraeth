@@ -132,11 +132,15 @@ namespace Memento.Bridge
         {
             var probe = Environment.GetCommandLineArgs(); int pi = Array.IndexOf(probe, "-probe");
             if (pi >= 0 && pi + 1 < probe.Length) Debug.Log($"Memento bridge: probe '{probe[pi + 1]}' at {Path.GetFileName(path)}:{scene.Probe(probe[pi + 1], Array.IndexOf(probe, "-solo") >= 0)}");
+            // (-look: the frame's look as the shaders have it, at each shot)
+            if (Array.IndexOf(probe, "-look") >= 0)
+                Debug.Log($"Memento bridge: look at {Path.GetFileName(path)}: sky {Shader.GetGlobalVector("_SkyTop")} {Shader.GetGlobalVector("_SkyHorizon")} night {Shader.GetGlobalFloat("_Night")} ink {Shader.GetGlobalVector("_Ink")} toon {Shader.GetGlobalFloat("_Toon")} fog {Shader.GetGlobalFloat("_FogDensity")}x{Shader.GetGlobalFloat("_FogMul")} sun {Shader.GetGlobalVector("_SunDir")} wind {Shader.GetGlobalVector("_Wind")} bloom {Shader.GetGlobalFloat("_Bloom")} cam {cam.transform.position} {cam.transform.forward}");
             int w = 1280, h = 720;
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var prev = cam.targetTexture;
             cam.targetTexture = rt;
             // (the HUD's letters: a dynamic font rasterises new ones on a canvas rebuild, so build, draw, and again)
+            scene.FinishFrame();
             Canvas.ForceUpdateCanvases();
             scene.DrawCrowds(); cam.Render();
             Canvas.ForceUpdateCanvases();

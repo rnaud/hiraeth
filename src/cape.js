@@ -22,7 +22,15 @@ import { makeMaterial } from './materials.js';
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _r = new THREE.Vector3();
 const _mi = new THREE.Matrix4(), _mc = new THREE.Matrix4(), _lag = new THREE.Vector3(), ZERO = new THREE.Vector3();
-const KS = 10;   // numbers per collider (Cape.capsulesAt)
+const KS = 11;   // numbers per collider (Cape.capsulesAt)
+/**
+ * The arms and hands under a cloak (a collider's `over`: Humanoid's CAPE_OVER): the cloth goes out over them,
+ * never between them and the body; `reach` (m) beside an arm the cloth is still lifted out to its far side
+ * (about half a cell of the cloth: a face between two points either side of a hand otherwise ran through it).
+ * Not seated: the hands rest in the lap there. A collider's `under` (a bag worn over the cloak: costumes.js
+ * BODY_BULK) the other way: the cloth goes in behind it.
+ */
+export const OVER = { reach: 0.1 };
 /**
  * The simulation's time steps for a carried cape (Cape.update s.carry: one updated every 2nd or 3rd
  * frame): steps at most hMax long, at most maxSteps of them, over at most maxDt (a longer hitch is
@@ -546,6 +554,7 @@ export class Cape {
       K[o + 6] = 1 / Math.max(bx * bx + by * by + bz * bz, 1e-8); K[o + 7] = c.r;
       // (a cone: its radius from r at a to rb at b, open at both ends: a robe's bell round the legs)
       K[o + 8] = c.rb === undefined ? 0 : c.rb - c.r; K[o + 9] = c.rb === undefined ? 0 : 1;
+      K[o + 10] = c.over ? 1 : c.under ? -1 : 0;   // (an arm: the cloth goes over it; a bag worn over the cloak: under it; see collide)
     }
     this._nc = nc;
   }
@@ -562,8 +571,33 @@ export class Cape {
         if (K[o + 9]) { if (t < 0 || t > 1) continue; }   // (past a cone's open ends: nothing)
         else t = t < 0 ? 0 : t > 1 ? 1 : t;
         const cx = K[o] + bx * t, cy = K[o + 1] + by * t, cz = K[o + 2] + bz * t;
-        const dx = x - cx, dy = y - cy, dz = z - cz, d = Math.sqrt(dx * dx + dy * dy + dz * dz), r = K[o + 7] + K[o + 8] * t;
-        if (d < r && d > 1e-5) { const k = r / d; x = cx + dx * k; y = cy + dy * k; z = cz + dz * k; }
+        const dx = x - cx, dy = y - cy, dz = z - cz, r = K[o + 7] + K[o + 8] * t;
+        if (K[o + 10] !== 0 && !F) {
+          // an arm (or a hand) lies under the cloak: the cloth goes over it, never between it and the body. Seen
+          // from the body's upright line (through the feet), the arm shades a wedge in toward the body; cloth in
+          // it (or in the arm) goes out to the arm's far side. Only the nearest way out (a capsule's) left the
+          // cape hanging under the arms, inside a hand that hung clear of the hip, the arms and hands over it.
+          // (Seated, not: the hands rest in the lap, and lifting the cloth over them stood it out over the seat.)
+          let rx = cx - fx, ry = cy - fy, rz = cz - fz;
+          const ru = rx * ux + ry * uy + rz * uz; rx -= ux * ru; ry -= uy * ru; rz -= uz * ru;
+          const rl = Math.sqrt(rx * rx + ry * ry + rz * rz);
+          if (rl < 1e-4) continue;
+          rx /= rl; ry /= rl; rz /= rl;
+          const dr = dx * rx + dy * ry + dz * rz, ex = dx - rx * dr, ey = dy - ry * dr, ez = dz - rz * dr, e2 = ex * ex + ey * ey + ez * ez;
+          const R = r + OVER.reach;
+          if (e2 >= R * R || dr <= -rl * 0.85) continue;   // (beside the wedge, or across the body's line: the other side)
+          // (out to the arm's far side, and so are the points a little beside it, OVER.reach: the cloth is coarse,
+          //  a face between two points either side of a hand ran through it)
+          const e = Math.sqrt(e2), u = Math.min(Math.max((e - r - OVER.reach * 0.5) / (OVER.reach * 0.5), 0), 1);
+          const out = r * (1 - u * u * (3 - 2 * u));
+          if (K[o + 10] > 0) { if (dr < out) { x = cx + ex + rx * out; y = cy + ey + ry * out; z = cz + ez + rz * out; } }
+          // (a bag worn over the cloak, the other way: the cloth in it or in front of it goes in behind it)
+          else if (dr > -out) { x = cx + ex - rx * out; y = cy + ey - ry * out; z = cz + ez - rz * out; }
+          continue;
+        }
+        const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (d >= r || d < 1e-5) continue;
+        const k = r / d; x = cx + dx * k; y = cy + dy * k; z = cz + dz * k;
       }
       if (F) { P[i] = x; P[i + 1] = y; P[i + 2] = z; onField(F, P, this.q, i); continue; }
       // the ground under the feet

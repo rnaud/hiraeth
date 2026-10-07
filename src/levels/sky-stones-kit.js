@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, mulberry32, lerp } from '../noise.js';
 
 // The Sky Stones' rock builders (Vael II, src/levels/arzach2.js): mushroom tables,
@@ -119,7 +120,15 @@ export function table(o) {
   const [lx, lz] = lean ?? [0, 0];
   const lean0 = (g) => tiltAbout(g, x, o.leanY ?? neckY, z, lx, lz);
   const apex = [x + ox, top + dome, z + oz];
-  const vis = lean0(place(solid(rings, seg, shape(true), { top: [ox, top + dome, oz] }), x, 0, z));
+  const visG = solid(rings, seg, shape(true), { top: [ox, top + dome, oz] });
+  // shaded by its own round form, without the stalk's flutes and the underside's ribs (a twin of the same rings
+  // without them, welded and smooth: needle's), so its terminator is one clean band; they stay in its outline
+  if (o.axisShade !== false) {
+    const twin = mergeVertices(solid(rings, seg, shape(false), { top: [ox, top + dome, oz] }), 1e-4);
+    twin.computeVertexNormals();
+    visG.setAttribute('normal', twin.toNonIndexed().getAttribute('normal'));
+  }
+  const vis = lean0(place(visG, x, 0, z));
   // the collision copy keeps every other stalk / underside ring
   const coarse = rings.filter((rg, i) => rg.kind === 'c' || rg.kind === 't' || i % 2 === 0 || i === NS || i === rings.length - 1);
   const col = lean0(place(solid(coarse, colSeg, shape(false), { top: [ox, top + dome, oz] }), x, 0, z));
@@ -189,7 +198,7 @@ export function drips(spots, { r = 0.3, seg = 5, seed = 0 } = {}) {
 
 /** A needle spire: slender, lumpy, vertically fluted, with shoulders. */
 export function needle(o) {
-  const { x, y, z, H, R, seed = 0, seg = 16, rings = 24, flute = 0.16, lean = 0.06 } = o;
+  const { x, y, z, H, R, seed = 0, seg = 16, rings = 24, flute = 0.16, lean = 0.06, axisShade = true } = o;
   const rng = mulberry32(Math.floor(seed * 1000) + 7);
   const k = 4 + Math.floor(rng() * 4);
   const sh = [[0.2 + rng() * 0.3, 0.12 + rng() * 0.2], [0.5 + rng() * 0.3, 0.08 + rng() * 0.15]];
@@ -217,8 +226,17 @@ export function needle(o) {
       }
       return [m, 0];
     };
-    const bend = lean * H;
-    return place(solid(rs, sg, shape, { top: [Math.cos(la) * bend, H * 0.997, Math.sin(la) * bend] }), x, y, z);
+    const bend = lean * H, top = [Math.cos(la) * bend, H * 0.997, Math.sin(la) * bend];
+    const g = solid(rs, sg, shape, { top });
+    // the shading normal of the needle without its flutes (the stalk's own round form): the sheets' terminator is
+    // one clean band down a needle, where the flutes' facets broke ours into lit islands in the shade. The flutes
+    // stay in its outline; its normals are a twin's, the same rings without them, welded and smooth.
+    if (detail && axisShade) {
+      const twin = mergeVertices(solid(rs, sg, (a, rg) => [1 + 0.15 * nA(Math.cos(a) * 1.5 + seed * 3, Math.sin(a) * 1.5 + rg.t * 7), 0], { top }), 1e-4);
+      twin.computeVertexNormals();
+      g.setAttribute('normal', twin.toNonIndexed().getAttribute('normal'));
+    }
+    return place(g, x, y, z);
   };
   return { vis: make(seg, rings, true), col: make(6, 5, false), tip: [x, y + H, z] };
 }
