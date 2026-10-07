@@ -1,0 +1,47 @@
+TODO.md
+  s_55b4bc53b812ec::t_9f2dd700888085 170-172
+changelog.md
+  s_55b4bc53b812ec::t_f0cc5992528212 8-11
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_210fb26a897318 555-612
+index.html
+  s_55b4bc53b812ec::t_4fd89528fce7db 163-167,410,414
+scripts/transition-perf/loading.mjs
+  s_55b4bc53b812ec::t_8837d01d7bc0d8 53
+scripts/transition-perf/pen.mjs
+  s_55b4bc53b812ec::t_d12223021727b4 1-91
+src/changelog.js
+  s_55b4bc53b812ec::t_649279edb1c41d 12-15
+src/levels/incal.js
+  s_55b4bc53b812ec::t_d381996298bbde 259,295-299,330-331
+src/load-steps.js
+  s_55b4bc53b812ec::t_9dfe59c0726a02 76-104
+src/main.js
+  s_55b4bc53b812ec::t_1eb089038fe1a1 77,110-111,794,797,1318,1320-1325,1329,1587,1603,1645,1660
+src/npc.js
+  s_55b4bc53b812ec::t_a6f9273a185cbf 59-63,529-530,532
+src/perf.js
+  s_55b4bc53b812ec::t_65ce1bfb8c7cb7 368,376,395-400,403
+tests/gpu-pacer.test.js
+  s_55b4bc53b812ec::t_86ecc16dbf746e 1-42
+tests/native-app.test.js
+  s_55b4bc53b812ec::t_2abac0279713e4 15
+tests/quality.test.js
+  s_55b4bc53b812ec::t_bd8229b3268d7d 119-139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e23431fb9de784d3058a20b47ad4879e1a14f8c2",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
