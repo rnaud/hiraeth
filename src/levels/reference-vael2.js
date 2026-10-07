@@ -7,6 +7,7 @@ import { bridge, SKY_STONES_HAZE, CREVASSE, CLOUD_PRINT } from './arzach2.js';
 import { buildBird, poseWings, FOOT, STAND } from '../bird.js';
 import { formAxis, keepForm } from '../form.js';
 import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
+import { rockKnobs } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
 // Vael II's reference sheets (references/Vael II- The Sky Stones/IMG_3783 … 3788): bone-white needle
@@ -101,6 +102,16 @@ function mushroom(kit, M, o) {
   // squash: [sx, sz] about its axis (a cliff's overhang wider than it is deep)
   const fit = (g) => (o.squash ? g.translate(-o.x, 0, -o.z).scale(o.squash[0], 1, o.squash[1]).translate(o.x, 0, o.z) : g);
   if (t.drip) kit.add(mat, fit(t.drip), { solid: false, shadow: false });   // the stalactites under its lip (drawn only)
+  // the knobs and ribs of rock under its overhang, as the sheets draw undersides (greeble-kit.js rockKnobs; drawn only)
+  if (o.R > 12 && o.knobs !== false) {
+    const kr = mulberry32(Math.floor((o.seed ?? 1) * 991) + 3), spots = [];
+    for (let i = 0, n = Math.round(o.R * 3); i < n; i++) {
+      const u = 0.15 + kr() * 0.72, { p, n: nn } = t.underAt(u, kr() * TAU);
+      spots.push({ p, n: nn, s: o.R * (0.02 + kr() * 0.028) * (0.6 + u) });
+    }
+    const g = rockKnobs(spots, o.seed ?? 1);
+    if (g) kit.add(mat, fit(t.lean(g)), { solid: false, shadow: false });
+  }
   if (o.smooth === false) { kit.add(mat, fit(t.vis)); return t; }
   // (its own smooth normals, by its round form without the flutes and ribs: sky-stones-kit.js table)
   kit.add(mat, t.vis.attributes.normal ? fit(t.vis) : smooth(fit(t.vis)), { shadow: false });

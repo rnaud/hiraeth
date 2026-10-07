@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 - At dusk and at night Vael II’s shadows keep the soft grey-teal of its day, warmer at dusk and deeper at night, instead of turning the old violet-blue.
 - The Buried Machine’s drum is lined with dense small machinery, as in its drawings: pipe runs with their valves and flanges, conduits, casings and louvred plates between the tall windows, pipes hung under the balcony; machinery clusters cling to the trench’s walls too, and you can climb on all of it.
 - Under the City-Shaft’s terraces, between the ribs of their blue undersides, hang pipes, casings and plates on their rods, as in its drawings.
+- The undersides of Vael II’s mushroom tables are lumpy and pocketed rock, as in its drawings, their hollows filled with deep shadow, instead of smooth.
 
 ## v0.78 — 2026-10-07
 

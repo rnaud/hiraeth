@@ -389,6 +389,14 @@ about 10 faces a square metre at density 1; a left-handed frame is turned round 
   for the pipes; solid as drawn (you fly under them). ~140 k triangles, collision 973 k → 1 114 k (bake and rays
   within noise); Handheld: under a terrace 2.53 → 2.55, across the shaft 4.23 → 4.22, down it 6.33 → 6.39. The
   City-Shaft's views are refsB's (their houses' modelling), left to it.
+- **Vael II** (arzach2.js, reference-vael2.js): the cap tables' undersides grow knobs and ribs of rock (`rockKnobs`,
+  placed by `table().underAt(u, a)`, the underside as drawn), R × 3 of them, shaded with the underside's own normal
+  (one dark tone; the ink draws their outlines and the crease shading their pockets); drawn only, with the drips.
+  Handheld and High at the spawn, the needles, the cloud and the plain within noise (High spawn 7.75 → 7.88 ms).
+- **View 52's grey-hatched disc top**: the eye stood 22 m under the disc, so its shaded underside filled the disc's
+  place; the panel sees the disc nearly edge-on. The eye now stands a few metres under it (its pale top, a thin dark
+  underside), the egg resting on it.
+- **The Signal Market's back alleys**: not dressed this round (refsB is on the Market's goods; the kit is ready).
 
 ## Across the worlds: the shader gaps that recur
 

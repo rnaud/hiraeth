@@ -9,6 +9,7 @@ import { Terrain } from '../world.js';
 import { Bird, STAND } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { rockKnobs } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
 // Vael II: The Sky Stones. Bone-white needle clusters, balanced stones and
@@ -223,6 +224,17 @@ export function* buildArzach2(scene) {
   const addTable = (mat, o) => {
     const t = tableOf(o); add(mat, t.vis);
     if (t.drip) { if (!dripGeos.has(mat)) dripGeos.set(mat, []); dripGeos.get(mat).push(t.drip); }   // (with their own normals: sky-stones-kit.js drips)
+    // the knobs and ribs of rock under a cap's overhang (greeble-kit.js rockKnobs): the sheets draw the undersides lumpy
+    // and pocketed, the spot blacks' pockets; drawn only, with the drips (nothing stands under a cap)
+    if (mat === M.cap && o.R > 12) {
+      const kr = mulberry32(Math.floor(o.seed * 991) + 3), spots = [];
+      for (let i = 0, n = Math.round(o.R * 3); i < n; i++) {
+        const u = 0.15 + kr() * 0.72, { p, n: nn } = t.underAt(u, kr() * TAU);
+        spots.push({ p, n: nn, s: o.R * (0.02 + kr() * 0.028) * (0.6 + u) });
+      }
+      const g = rockKnobs(spots, o.seed);
+      if (g) { if (!dripGeos.has(mat)) dripGeos.set(mat, []); dripGeos.get(mat).push(t.lean(g)); }
+    }
     if (mat === M.cap) shadowGeos.push(clean(t.shadow));
     return t;
   };

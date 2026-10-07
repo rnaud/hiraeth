@@ -115,6 +115,24 @@ export function greebles(seed = 1) {
   return api;
 }
 
+/**
+ * Knobs and ribs of rock grown out of a curved surface at the given points ([{ p, n, s }…]: where, the way out, how
+ * big): an overhang's underside, which the sheets draw lumpy and pocketed, never smooth. One geometry.
+ */
+export function rockKnobs(spots, seed = 1, { flat = true } = {}) {
+  const rng = mulberry32(Math.floor(seed * 3313) + 9), out = [], up = new THREE.Vector3(0, 0, 1), q = new THREE.Quaternion();
+  for (const { p, n, s } of spots) {
+    q.setFromUnitVectors(up, n);
+    const g = (rng() < 0.7 ? BASE.knob : BASE.fin).clone().applyMatrix4(_s.makeScale(s * (1 + rng() * 0.8), s * (0.8 + rng() * 0.6), s * (0.7 + rng() * 0.5)));
+    g.applyMatrix4(_m.makeRotationZ(rng() * 6)).applyQuaternion(q).translate(p.x - n.x * s * 0.15, p.y - n.y * s * 0.15, p.z - n.z * s * 0.15);
+    // (shaded as the surface they grow from: the underside's one dark tone, not lit islands; the ink draws their
+    //  outlines and the crease shading their pockets)
+    if (flat) { const N = g.attributes.normal; for (let i = 0; i < N.count; i++) N.setXYZ(i, n.x, n.y, n.z); }
+    out.push(g);
+  }
+  return out.length ? mergeGeometries(out) : null;
+}
+
 /** A face's frame from its corner and two edges: { o, u, v, n } (n = u × v, unit). */
 export function faceFrame(o, along, up) {
   const u = along.clone().normalize(), v = up.clone().normalize();
