@@ -1,0 +1,35 @@
+TODO.md
+  s_55b4bc53b812ec::t_266e328ad35f5a 109,112-116
+changelog.md
+  s_55b4bc53b812ec::t_56707e1fed048d 15-18
+docs/systems/references.md
+  s_55b4bc53b812ec::t_20cc0d23e33b5c 136-155
+src/changelog.js
+  s_55b4bc53b812ec::t_6eae1d820a3fb3 19-22
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_2f1eb0f9d5d115 33-36,38-40,173,182-184,204-207,292-293,299,360,658-659,661-662,733-734,742,827-830
+src/levels/reference-vael2.js
+  s_55b4bc53b812ec::t_d8a34ea40aee67 6,47-49,64-65,77-78,82,105-106,345-347,404,409,592
+src/levels/sky-stones-kit.js
+  s_55b4bc53b812ec::t_7a3f6e5122a3a6 2,123-131,201,229-239
+src/materials.js
+  s_55b4bc53b812ec::t_62a83dca7e2ebd 2389-2397
+tests/sky-stones-kit.test.js
+  s_55b4bc53b812ec::t_5ff7d91613a629 55-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fa843695d3ab633e20454107b3f45054ea3b3d1e",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
