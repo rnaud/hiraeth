@@ -12,6 +12,7 @@ import { BURIED_SHEETS, BURIED_VIEWS } from './reference-buried.js';
 import { GARDEN_SHEETS, GARDEN_VIEWS } from './reference-spheres.js';
 import { LORN_SHEETS, LORN_VIEWS } from './reference-lorn.js';
 import { MARKET_SHEETS, MARKET_VIEWS } from './reference-market.js';
+import { MANGROVE_SHEETS, MANGROVE_VIEWS } from './reference-mangrove.js';
 
 // ---------------------------------------------------------------------------
 // The references' views (src/levels/references.js): one per panel of a reference
@@ -57,6 +58,8 @@ export const REFERENCE_SHEETS = {
   ...LORN_SHEETS,
   // the Signal Market's (reference-market.js)
   ...MARKET_SHEETS,
+  // the White Mangrove's (reference-mangrove.js)
+  ...MANGROVE_SHEETS,
 };
 
 // ===========================================================================
@@ -489,4 +492,6 @@ export const REFERENCE_VIEWS = [
   ...LORN_VIEWS,
   // the Signal Market's sheets, IMG_3801 … IMG_3808 (reference-market.js)
   ...MARKET_VIEWS,
+  // the White Mangrove's pictures, reference-1 … 4 (reference-mangrove.js)
+  ...MANGROVE_VIEWS,
 ];
