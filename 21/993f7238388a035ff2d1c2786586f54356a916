@@ -1,0 +1,41 @@
+TODO.md
+  s_55b4bc53b812ec::t_6d40bad0600871 197-203
+engine/game.js
+  s_55b4bc53b812ec::t_c93e399a5247a6 22-23,44,86,88,173-176,191-198,304,368-376,419,432-437
+engine/mirror.js
+  s_55b4bc53b812ec::t_9193eb3237343e 15-16,19-24,81,117,130,193-213,290-292,306,312-313
+engine/unity/backend.js
+  s_55b4bc53b812ec::t_3ed73c82bebe1c 57-58,70-77,124-142,156-181,193-194,197-198,201
+engine/unity/pack.js
+  s_55b4bc53b812ec::t_34c799cdc87f27 30-31,50-51,77-78,80-83,98
+engine/unity/port-format.js
+  s_55b4bc53b812ec::t_bedc613324533b 22-25
+tests/engine-bridge.test.js
+  s_55b4bc53b812ec::t_3b4b0e70be184b 181-221
+tests/engine-unity.test.js
+  s_55b4bc53b812ec::t_288cff87e77b23 95-122,180
+unity/Memento/Assets/Memento/Runtime/Grass.cs
+  s_55b4bc53b812ec::t_ad50e69881bc9e 144-148
+unity/Memento/Assets/Memento/Runtime/MementoLook.cs
+  s_55b4bc53b812ec::t_71999c04934b4b 176-178
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_55b4bc53b812ec::t_3d68366508e4ef 200-203,226,268,270-271,274-283,285,287,289,293,302,306,308,310,661-668,785-786
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_55b4bc53b812ec::t_03302c161445a9 45-50,163-168,212-223,415-416,424,447-483,487,604-612,627
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "21993f7238388a035ff2d1c2786586f54356a916",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
