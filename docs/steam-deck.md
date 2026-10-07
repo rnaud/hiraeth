@@ -46,8 +46,8 @@ Steam starts `launch`, which execs `deck.py --launch`, which runs Electron and w
   fine on X11 under gamescope, fails on Plasma's Wayland), `software` (SwiftShader). The way that
   worked is remembered per runtime build and session kind (`gpu.json`); when none works the
   launcher exits 1 and Steam returns to its library.
-- **A clean exit.** Steam's Exit Game signals the launcher (SIGINT/SIGTERM); it passes the signal
-  on, kills whatever is left after 5 s, and after any exit kills Electron's leftover helpers (a
+- **A clean exit.** Steam's Exit Game signals the launcher (SIGINT/SIGTERM); it sends SIGINT to
+  the browser (which closes its helpers at once), kills whatever is left after 5 s, and after any exit kills Electron's leftover helpers (a
   zygote outliving its browser kept the game "running").
 - **The update check runs outside the game** (`systemd-run --user`, its own unit), so Steam doesn't
   count the game running while a download finishes; without systemd-run it is a detached child.
