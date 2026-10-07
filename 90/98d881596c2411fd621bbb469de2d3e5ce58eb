@@ -1,0 +1,35 @@
+changelog.md
+  s_55b4bc53b812ec::t_50a8d557519d73 23
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_91b439af9d4f84 112-113,197-211
+src/carriers.js
+  s_55b4bc53b812ec::t_03de043cabf90e 17-25,31-34,50
+src/changelog.js
+  s_55b4bc53b812ec::t_02c48bb7c359f0 27
+src/contact-audit.js
+  s_55b4bc53b812ec::t_98faff41b9b85d 289-298,301
+src/player.js
+  s_55b4bc53b812ec::t_af7e8af12e1e63 1243-1249
+src/taxi.js
+  s_55b4bc53b812ec::t_e8c0bf295bf365 38-39,67-84,124,576-582,584-638
+src/temples/pieces.js
+  s_55b4bc53b812ec::t_d0b934e1abc97c 205-218
+tests/shaped-solids.test.js
+  s_55b4bc53b812ec::t_fe087f62616647 1-99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9098d881596c2411fd621bbb469de2d3e5ce58eb",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
