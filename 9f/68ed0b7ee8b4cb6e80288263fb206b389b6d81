@@ -1,0 +1,37 @@
+changelog.md
+  s_55b4bc53b812ec::t_ff34ecb0ded3b6 10
+docs/story-audit.md
+  s_55b4bc53b812ec::t_972d384bfbffed 459,493-494
+docs/systems/story.md
+  s_55b4bc53b812ec::t_d9556c3ae68c48 425-432
+src/changelog.js
+  s_55b4bc53b812ec::t_ad8d7d684da6ef 16
+src/game-menu.js
+  s_55b4bc53b812ec::t_4d293568210e6a 163,183
+src/story/edena-data.js
+  s_55b4bc53b812ec::t_30b2cd86298f8f 78-86,370-374,447-480
+src/story/quests.js
+  s_55b4bc53b812ec::t_7fb7044ee05d4c 139,313
+src/story/terraces.js
+  s_55b4bc53b812ec::t_f244014b5bb85d 470-500
+tests/game-menu.test.js
+  s_55b4bc53b812ec::t_24cbde5e331824 177
+tests/story-terraces.test.js
+  s_55b4bc53b812ec::t_c6f239e079f692 20,135-136,138,140,165-205
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9f68ed0b7ee8b4cb6e80288263fb206b389b6d81",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
