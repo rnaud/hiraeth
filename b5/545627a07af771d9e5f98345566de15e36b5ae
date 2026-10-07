@@ -1,0 +1,71 @@
+changelog.md
+  s_55b4bc53b812ec::t_f3d753fbb6f8e8 9-11
+docs/systems/references.md
+  s_55b4bc53b812ec::t_c28b84985e0495 491-515
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_f9e6908bef9199 545-593
+src/audio.js
+  s_55b4bc53b812ec::t_7a73bb9616b610 37-38,294-296,556-557,1532-1534
+src/changelog-media.js
+  s_55b4bc53b812ec::t_c96252c756730e 129-148
+src/changelog.js
+  s_55b4bc53b812ec::t_7a85c97cb0c174 15-17
+src/costumes.js
+  s_55b4bc53b812ec::t_441e538e6670f7 361-381
+src/edge.js
+  s_55b4bc53b812ec::t_6331eae9c3835d 26
+src/levels/content.js
+  s_55b4bc53b812ec::t_b7a5cba489c986 83-94
+src/levels/index.js
+  s_55b4bc53b812ec::t_c7a98155b26351 19,96-102
+src/levels/names.js
+  s_55b4bc53b812ec::t_9f0b178c626569 17,29
+src/levels/reference-waterfall.js
+  s_55b4bc53b812ec::t_ad0dd47c0e7b66 1-228
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_e0733432498304 31
+src/levels/references.js
+  s_55b4bc53b812ec::t_17ad42b4c98a94 15,198
+src/levels/waterfall-kit.js
+  s_55b4bc53b812ec::t_803735becbd5cf 1-432
+src/levels/waterfall.js
+  s_55b4bc53b812ec::t_f0aa614d08725a 1-290
+src/main.js
+  s_55b4bc53b812ec::t_075d986ec9ec99 1467
+src/makehuman/people.js
+  s_55b4bc53b812ec::t_c4210aee613e90 166
+src/makehuman/shape.js
+  s_55b4bc53b812ec::t_a30b978fc33fb4 108-109
+src/materials.js
+  s_55b4bc53b812ec::t_f3582ff4b4d1c9 13,1641-1643,1948-1951,2050-2052,2219-2221,2251-2253,2676
+src/reactive-world.js
+  s_55b4bc53b812ec::t_6318bce02f924a 30
+src/ship/planets.js
+  s_55b4bc53b812ec::t_2aed4aa21a7a9f 26
+src/story/portrait-bg.js
+  s_55b4bc53b812ec::t_cb61c994737684 27
+src/waterfall-shader.js
+  s_55b4bc53b812ec::t_24b599a966aed6 1-83
+src/wildlife/species.js
+  s_55b4bc53b812ec::t_e16a9674692ae1 843-897,954
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_666084782fc47c 130
+tests/waterfall.test.js
+  s_55b4bc53b812ec::t_b322a219057ada 1-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5545627a07af771d9e5f98345566de15e36b5ae",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
