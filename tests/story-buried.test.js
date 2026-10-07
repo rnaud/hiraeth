@@ -264,6 +264,20 @@ test('a later visit: the wheel stands in its hollow, bare of sand, and is still 
   clearInteractables(); clearTargets();
 });
 
+test('the wheel that keeps turning: Wen reads the last tooth the gentle way, and Hask agrees', () => {
+  assert.equal(quests.isDone('buried.tooth'), true);
+  const r = new DialogueRunner(PEOPLE.wen, { game, quests });
+  const said = [];
+  while (!r.lastPage) { said.push(r.text); r.advance(); }
+  r.choose(r.choices().find((x) => /last tooth/.test(x.text)).index);
+  while (!r.ended) { said.push(r.text); if (!r.advance()) break; }
+  assert.match(said.join(' '), /hasn’t got a last tooth/);
+  assert.match(said.join(' '), /whichever one keeps it turning/);
+  assert.equal(game.flag('buried.wen.last'), true);
+  const h = new DialogueRunner(PEOPLE.hask, { game, quests });
+  assert.match(h.pages.join(' '), /No last tooth on a wheel, only the one that keeps it going/);
+});
+
 test('an old save waiting at the hook (from before the crane swung) is sent to swing the jib first', () => {
   clearInteractables(); clearTargets();
   game.reset();

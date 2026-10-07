@@ -260,9 +260,15 @@ written in).
   Machine.
 
 ### 9. The Buried Machine — "One Tooth a Year"
-- **Local story**: Below the dunes a great wheel turns one tooth a year; the
+- **Local story**: Below the dunes a great wheel turned one tooth a year; the
   dome people time their lives by it. The hanging city above is "its other
-  half". The oculus window is warm: something inside is still alive.
+  half". The oculus window is warm: something inside is still alive. The
+  old story says the city settles onto the wheel when the last tooth turns.
+  Once the traveller lights the Wick the wheel turns on and does not stop (as
+  built: it turns forever, a real turning collider). The reading, Wen's, the
+  morning after: a wheel has no last tooth; the last tooth is whichever one
+  keeps it turning, and the Other Half stays up as long as it turns. They keep
+  Tooth Day once a year all the same.
 - **Quests**: read the pressure gauges along the canyon; return the dome
   keeper's key; light the oculus.
 - **Keepsake**: *thing*: a rust gear tooth, warm to the touch, the year it

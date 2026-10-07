@@ -298,7 +298,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - Esk's words.
   - Sol, Oro and Sorrel.
   - The clock prompt.
-- **Still open:** the closing toast, and the failure's presentation (both proposals).
+- **Second pass:** the closing toast; the failure reads "What happened"; Esk's return visit and her small job (a cutting in the mud).
 
 ### The City-Shaft: "The Light Nobody Looks At"
 
@@ -375,9 +375,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - No errand in or out.
 - **Pacing:** the main quest takes about 20 min, the world 45–55. The 330 m climb back from the oculus to the wheel sags until the pipe-cart runs.
 - **Fixed now:** all of the above, with a test. Ossa gives a new errand: the pipe whistle for Aube.
-- **Still open:**
-  - The wheel now keeps turning, against Wen's "the city settles when the last tooth turns". What that means is for the author.
-  - The bible's §9 still says one tooth a year.
+- **Second pass:** the wheel turns on, and Wen reads the old story the gentle way (the last tooth is the one that keeps it turning); Hask agrees; the bible's §9 says so.
 
 ### The Garden of Spheres: "What the Spheres Remember"
 
@@ -439,7 +437,7 @@ Times are for a player who knows where to go: the main quest, then everything in
   - The stone's tokens leave out the later charms (the listening shell, the echo shell).
   - "This space is for Ilen" exists only in the ending scene, so learning about Ilen afterwards never reaches the stone.
 - **Fixed now:** Lou's drawings follow the furthest world written from, any of the eleven (tested), and the window speaks only once the reel has said it.
-- **Still open:** the tokens and Ilen at the stone (proposals).
+- **Second pass:** the listening shell and the echo shell on the stone; Ilen named at the stone after the ending; the galley note no longer gives the last recording away; Lou's surprise kept for the yard.
 
 ### The Atelier
 
@@ -496,6 +494,8 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
 
   *Done (second pass):* "The flowers close over the ship again, mostly. Something of value? Words you can carry: we tend the garden, and the garden tends us." (tested in `tests/story-edena.test.js`).
 - **The wheel that keeps turning.** What does Wen's "the city settles when the last tooth turns" mean now? Revise the bible's §9.
+
+  *Done (second pass):* the gentlest reading that fits the bible (nothing ends, nothing falls): a wheel has no last tooth, so the last tooth is whichever one keeps it turning, and the Other Half stays up as long as it turns. Wen says it once you ask, after Tooth Day ("A wheel hasn't got a last tooth. It comes round."); Hask has heard her and agrees ("That one wants a trimmed wick."); the quest's outro says it turned one tooth "and then it kept on turning"; the bible's §9 says so. Wen's "the city will settle onto the wheel when the last tooth turns", before the turn, stays as the setup.
 - **Places to fill:**
   - a look-at on Vael's colossus;
   - a carving at the Givers' Hearth and words in the masked head's chamber (it could echo Vael II's tower face);

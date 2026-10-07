@@ -29,7 +29,7 @@ export const KEEPSAKE = { id: 'buried.thing', level: 'buried', name: 'A rust gea
 export const QUESTS = [
   {
     id: Q, title: 'One Tooth a Year', world: 'buried', main: true,
-    outro: 'The wheel turned one tooth. You were there.',
+    outro: 'The wheel turned one tooth, and then it kept on turning. You were there.',
     stages: [
       { id: 'wen', text: 'Meet the dome people. Wen, who counts the teeth, lives in the great dome', label: 'Wen, by the great dome', flag: 'buried.wen.heard', at: 'wen' },
       { id: 'hask', text: 'Ask Hask, keeper of the Wick, why he hasn’t gone down this year', label: 'Hask, on his bench', flag: 'buried.hask.asked', at: 'hask' },
@@ -138,7 +138,18 @@ export const PEOPLE = {
           next: 'given',
         },
         given: { say: ["~happy~ By our reckoning, you’re one tooth old. Welcome to the count."], choices: [{ text: '~happy~ Thank you, Wen.', end: true }] },
-        after: { say: ["~playful~ Come back when you’re two! The wheel’s still going. Pim says it’s catching up with you."], choices: [{ text: '~happy~ I will.', end: true }] },
+        after: { say: ["~playful~ Come back when you’re two! The wheel’s still going. Pim says it’s catching up with you."],
+          choices: [{ text: '~curious~ And the last tooth? The city settling?', goto: 'last', once: true }, { text: '~happy~ I will.', end: true }] },
+        // the wheel turns on now (its collider turns with it): what the old story's last tooth means, read the gentle way
+        last: {
+          say: [
+            "~solemn~ I sat up with the old story all night. Then I saw it. A wheel hasn’t got a last tooth. It comes round.",
+            "~happy~ So the last tooth is whichever one keeps it turning. This one, then the next. The Other Half stays up as long as it turns.",
+            "~playful~ We’ll keep Tooth Day once a year all the same. Otherwise Pim would be a hundred by supper.",
+          ],
+          do: { set: { 'buried.wen.last': true } },
+          choices: [{ text: '~happy~ Happy Tooth Day, Wen.', end: true }],
+        },
       },
     },
   },
@@ -193,7 +204,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Did the light come back?', goto: 'back' }, { text: '~neutral~ Goodbye, Hask.', end: true }],
         },
         back: { say: ["~playful~ No light came back. Just sky. I might manage the walk myself next year. Might."], choices: [{ text: '~neutral~ Goodbye, Hask.', end: true }] },
-        after: { say: ["~playful~ It hasn’t stopped since. I’ll go down next Tooth Day anyway and trim the Wick. Bring a seat. We can provide sand."], choices: [{ text: '~happy~ I’d like that.', end: true }] },
+        after: { say: ["~solemn~ Wen’s worked it out, she says. No last tooth on a wheel, only the one that keeps it going. Suits me. That one wants a trimmed wick.", "~playful~ It hasn’t stopped since. I’ll go down next Tooth Day anyway and trim it. Bring a seat. We can provide sand."], choices: [{ text: '~happy~ I’d like that.', end: true }] },
       },
     },
   },

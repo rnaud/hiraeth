@@ -15,6 +15,7 @@ export const CHANGELOG = [
     'At the stone at home, the listening shell and the echo shell go down with the other gifts, each with its own words.',
     'What happened at Esk’s terraces in Viridel is filed under “What happened” in the Quests page now, not marked failed; and coming back to Viridel later, Esk has decided there is one small job for you, down in the mud where her hill went.',
     'Viridel closes with a few words of its own as the flowers close over the ship again, as Lorn and Lorn II do.',
+    'In the Buried Machine, Wen has thought about the old story now that the great wheel never stops turning: ask her about the last tooth after Tooth Day, and Hask has heard what she thinks.',
   ] },
   { v: '0.81', date: '2026-10-07', items: [
     'In the desert, letting the water out of the giant’s pool before anyone has sent you there no longer stalls the story: the steps that only led there pass on their own, and Ama still hands you her jar.',
