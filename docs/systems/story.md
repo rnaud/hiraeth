@@ -300,8 +300,10 @@ walkthroughs and local names; each data file's header lists its flags.
   three busts (`REEL_HOLO`) rise over the reel, looking up at him.
 - **The stone** (`src/levels/home.js` `buildTomb`, `src/ship/homecoming.js`,
   `src/story/ending.js`): nobody waits at the door; the window is dark. The cargo check lists
-  everything (`tokenList`: the keepsakes, then the makers' small gifts, not the backpack,
-  jets or wings). He walks to the parents' stone in the front yard and sets each token on
+  everything (`tokenList`: the keepsakes, then the makers' small gifts in `TOKEN_ITEMS`, each with
+  its own line: the stilling lens, the ember ring, the fourth chamber, the quick coil, the lantern
+  charm, the glyph lens, the bell-note whistle, the listening shell and the echo shell (since the
+  second story pass), the pale star; not the backpack, jets or wings). He walks to the parents' stone in the front yard and sets each token on
   the slab (`tombSlots`, `tokenModel`; one short line each, `tombLines`, on a brisk
   `tombTimeline`), last the reel (`reelModel`), which plays `FINAL_RECORDING`, the oldest,
   as a hologram of the three of them over the stone. Then the closing line, an end card and

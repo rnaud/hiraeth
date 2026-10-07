@@ -485,6 +485,8 @@ them; each proposal below says what was chosen, marked *Done (second pass)*.
 
   *Done (second pass):* it reads "The lamp stays on in the window. — M." now: as warm, and it sets up the lamp beat on the reel and the dark round window at home instead of giving the last recording away.
 - **The stone's tokens.** Add the listening shell and the echo shell (and any later charms) to `TOKEN_ITEMS`, each with its own line.
+
+  *Done (second pass):* both shells go on the stone with their own lines ("What was hidden hummed back, if you were quiet enough to hear it."; "It keeps the last note it heard, the way the reel kept their voices."), tested in `tests/ending.test.js`. The other box charms (soles, hush-cloth, moss pin, seed pouch, scarf, reed, resin, brass level) stay off: they are kit he wears or uses up, as the backpack is.
 - **Esk** (plot review §3):
   - the Quests panel's "Failed ✗" and the "Failed:" toast could read "What happened";
   - a return visit where Esk decides whether there is a small job.

@@ -73,7 +73,7 @@ export const ALL = { id: 'all', level: HOME_ID, name: 'Everything you gathered',
 export const KIND_LABEL = { thing: 'a thing', song: 'a song', word: 'words', person: 'a person', knowing: 'a knowing', nothing: 'yourself', all: 'everything', item: 'a gift' };
 
 /** The makers' small gifts that go on the stone (not the backpack, its jets and wings: he wears those). */
-export const TOKEN_ITEMS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'star'];
+export const TOKEN_ITEMS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 /** What each gift means now, set on the stone. */
 const ITEM_LINES = {
@@ -84,6 +84,8 @@ const ITEM_LINES = {
   lantern: "~solemn~ (The lantern charm. A light you could take with you.)",
   lens: "~solemn~ (The glyph lens. Marks you would once have walked past.)",
   bell: "~solemn~ (The bell-note whistle. One clear note, wherever you play it.)",
+  shell: "~solemn~ (The listening shell. What was hidden hummed back, if you were quiet enough to hear it.)",
+  echo: "~solemn~ (The echo shell. It keeps the last note it heard, the way the reel kept their voices.)",
   star: "~solemn~ (The pale star from your hood. A traveller’s sign.)",
 };
 
