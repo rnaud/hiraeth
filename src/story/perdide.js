@@ -210,7 +210,7 @@ export function setupPerdide(ctx) {
   quests.def(Q).onDone = () => {
     game.set('world.perdide.done', true);
     game.addKeepsake({ id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that struck your ship.' });
-    toast('The splinter sings with your tank. Something of value? It fell from the same sky as whatever struck you.');
+    toast('The splinter sings with your tank. Something of value? It sings the phrase you heard the night you fell.');
     setTimeout(() => story.complete?.(), 1200);
   };
 

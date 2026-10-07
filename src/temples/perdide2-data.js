@@ -63,7 +63,7 @@ export const PEOPLE = {
             { text: '~happy~ Keep counting, Tamsy.', end: true },
           ],
         },
-        light: { say: ['~happy~ Everyone does. That is why we keep the pools.'], choices: [{ text: "~neutral~ Everyone needs a light to come toward. That’s why we keep them.", end: true }] },
+        light: { say: ['~happy~ Everyone does. That is why we keep the pools.'], choices: [{ text: "~solemn~ Then I’m glad someone keeps them.", end: true }] },
       },
     },
   },
