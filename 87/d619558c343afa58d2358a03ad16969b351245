@@ -1,0 +1,31 @@
+changelog.md
+  s_55b4bc53b812ec::t_de63f8377dd1bd 16
+docs/systems/references.md
+  s_55b4bc53b812ec::t_e113bffb04acee 392-399
+src/changelog.js
+  s_55b4bc53b812ec::t_7670564526c9b9 20
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_56465b0d64783f 12,227-237
+src/levels/greeble-kit.js
+  s_55b4bc53b812ec::t_4d25cffa6985d7 118-135
+src/levels/reference-vael2.js
+  s_55b4bc53b812ec::t_d33c8701f527dd 10,105-114
+src/levels/sky-stones-kit.js
+  s_55b4bc53b812ec::t_a921047da5db25 157-167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "87d619558c343afa58d2358a03ad16969b351245",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
