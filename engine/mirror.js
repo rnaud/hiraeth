@@ -135,8 +135,14 @@ export class SceneMirror {
     const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow?.value;
     // the vectors that move every frame (LIVE_VECTORS: a makers' box's ray and clock, the coral-shirt traveller's drawn face)
     if (this.backend.materialVec && U) {
-      for (let w = 0; w < LIVE_VECTORS.length; w++) {
-        const A = U[LIVE_VECTORS[w]]?.value;
+      // (which of them the material has, looked up again every 64 frames: most have none)
+      let H = m.__mirrorHas;
+      if (!H || f - H.at >= 64 || H.of !== U) {
+        H = m.__mirrorHas = { at: f, of: U, w: [] };
+        for (let w = 0; w < LIVE_VECTORS.length; w++) if (U[LIVE_VECTORS[w]]?.value?.isVector4) H.w.push(w);
+      }
+      for (let k = 0; k < H.w.length; k++) {
+        const w = H.w[k], A = U[LIVE_VECTORS[w]]?.value;
         if (!A?.isVector4) continue;
         // (a face's mood starts as the material was sent with it: only its moves go; the others once as they are)
         const L2 = (m.__mirrorVec ??= {})[w] ??= w >= LIVE_FROM_SPEC ? Float32Array.of(A.x, A.y, A.z, A.w) : new Float32Array(4).fill(NaN);
