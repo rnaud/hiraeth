@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.74 — 2026-10-06
 
+- Seated people’s capes rest on what they sit on: they fall down the back, over the bench’s edge and onto the ground behind, without crumpling into stiff folded sheets or spreading out along the bench, and they no longer pass through a crate, a stool or a stone the sitter is perched on.
 - In the City-Shaft the shade is printed flat in the shaft’s blue, as in its drawings: a pink wall’s shaded side goes blue, while the trees stay green and people keep the shade of their own clothes. In the desert’s reference views of the dish city and the dunes, the shadows the dishes and cliffs throw on the sand are solid dark ink, as drawn, while the domes keep their blue shade.
 - No more filter stuck to the screen: the faint paper grain and the darkened corners that stayed put while the world moved under them are gone, and the slight wobble of the ink lines now turns with the world as you look around instead of sitting on the screen like rippled glass.
 - Old walls no longer shimmer as you look around: the small dark grime streaks on distant walls, such as Qanat’s, are a soft faint stain instead of tiny outlined drops that flickered, the chipped plaster has no flickering edge, and very fine hatching on far walls turns to a flat tone instead of crawling.

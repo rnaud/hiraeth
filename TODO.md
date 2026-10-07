@@ -148,9 +148,8 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 
 - [ ] On the Retroid: GeckoView with the real buttons, the upgrade over the installed app, the cave's
   FPS and the shader cost. **Blocked**: no Android device is attached.
-- [ ] Make the repository private once the new APK (NATIVE_API 6) is installed and the Steam Deck has
-  launched twice: then remove android.yml's TRANSITION step and the GitHub web.json uploads, and Pages
-  (docs/cloudflare.md). **Blocked on both prerequisites**: neither can be checked without the devices.
+- [x] Make the repository private (done 2026-10-07 on the author's word: the Retroid runs a NATIVE_API 6
+  app; android.yml's TRANSITION step, the GitHub web zips and web.json, and the Pages workflow removed).
 
 ## The Unity bridge
 

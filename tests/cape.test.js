@@ -135,21 +135,29 @@ test('a villager with a cape walking 100 m off wears it (it used to stay in the 
 // flat like a board. Now a seated cape falls onto the seat and the ground round it (groundField,
 // probed under the hips: the bench top, its edges, the ground beyond) and folds where it lands.
 const { loadAssets } = await import('./gait-sim.js');
-const { groundField } = await import('../src/cape.js');
+const { groundField, SEATED } = await import('../src/cape.js');
 const { PEOPLE: DESERT } = await import('../src/story/desert-data.js');
 const { PEOPLE: BAZAAR } = await import('../src/story/bazaar-data.js');
 const { PEOPLE: BURIED } = await import('../src/story/buried-data.js');
 
-/** A seated story person settled on their seat (boxes: [w, h, d, z] under them), and how their cape lies near and far. */
-async function seatedCape(def, world, { seat, boxes = [] }) {
+/**
+ * A seated story person settled on their seat (boxes: [w, h, d, z] under them, solid; drawn: [w, h, d, z]
+ * boxes drawn but not solid, a crate the physics doesn't see), and how their cape lies near and far.
+ */
+async function seatedCape(def, world, { seat, boxes = [], drawn = [] }) {
   resetDrapes();
   const { lib, human } = await loadAssets();
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(600, 600).rotateX(-Math.PI / 2)));
   let top = 0;
-  for (const [w, h, d, z = 0] of boxes) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d)); b.position.set(0, h / 2, z); scene.add(b); top = Math.max(top, h); }
+  const solids = [];
+  for (const [w, h, d, z = 0] of boxes) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d)); b.position.set(0, h / 2, z); scene.add(b); top = Math.max(top, h); solids.push([w, h, d, z]); }
   scene.updateMatrixWorld(true);
-  const npc = new NPC(scene, new Physics(scene), { route: [V(0, top, 0)], seat, def, kind: def.kind, cape: def.cape, palette: def.palette, head: def.head, look: def.look, world, lines: def.lines, lib, human: human[def.kind] });
+  const physics = new Physics(scene);
+  for (const [w, h, d, z = 0] of drawn) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial()); b.position.set(0, h / 2, z); scene.add(b); solids.push([w, h, d, z]); }
+  scene.updateMatrixWorld(true);
+  seatBoxes = solids;
+  const npc = new NPC(scene, physics, { route: [V(0, top, 0)], seat, def, kind: def.kind, cape: def.cape, palette: def.palette, head: def.head, look: def.look, world, lines: def.lines, lib, human: human[def.kind] });
   npc.heading = 0;
   const player = { pos: V(0, 0, 8), vel: V(), riding: false, ride: null, wind: V() };
   const camera = new THREE.PerspectiveCamera();
@@ -162,23 +170,49 @@ async function seatedCape(def, world, { seat, boxes = [] }) {
   return { npc, near, far: lies(npc) };
 }
 
-/** spread: the farthest cloth from the body's axis; wing: the same for cloth standing up over the seat (25 cm); hem: how far the hem hangs below the collar. */
+let seatBoxes = [];
+/**
+ * spread: the farthest cloth from the body's axis, of the cloth up on the seat or over it (what lies on
+ * the ground past it is a long cape's hem); wing: the same for cloth standing up over the seat (25 cm);
+ * hem: how far the hem hangs below the collar; inside: the share of the cloth (its triangles, sampled)
+ * more than 1 cm inside the seat's boxes; folds: the share of neighbouring triangles creased sharply
+ * back onto each other (over 127°: crumpled into shards).
+ */
 function lies(npc) {
   npc.object.updateMatrixWorld(true);
   const c = npc.cape, m = c.hung ? c.mesh.matrixWorld : new THREE.Matrix4(), o = npc.object.position, seatY = npc.pos.y;
-  const collar = (npc.char.capeAnchor ?? npc.char.torso).localToWorld(V(0, c.local[1], 0)), p = V();
+  const collar = (npc.char.capeAnchor ?? npc.char.torso).localToWorld(V(0, c.local[1], 0));
+  const P = [];
+  for (let i = 0; i < c.p.length; i += 3) P.push(V(c.p[i], c.p[i + 1], c.p[i + 2]).applyMatrix4(m));
   let spread = 0, wing = 0, hem = 0, lowest = Infinity;
-  for (let i = 0; i < c.p.length; i += 3) {
-    p.set(c.p[i], c.p[i + 1], c.p[i + 2]).applyMatrix4(m);
+  P.forEach((p, k) => {
     const d = Math.hypot(p.x - o.x, p.z - o.z);
-    spread = Math.max(spread, d);
+    if (p.y > seatY - 0.05) spread = Math.max(spread, d);
     if (p.y > seatY + 0.25) wing = Math.max(wing, d);
-    if (i >= (c.rows - 1) * c.cols * 3) hem += (collar.y - p.y) / c.cols;
+    if (k >= (c.rows - 1) * c.cols) hem += (collar.y - p.y) / c.cols;
     lowest = Math.min(lowest, p.y - seatY);
+  });
+  const depth = (p) => Math.max(...seatBoxes.map(([w, h, d, z = 0]) => Math.min(w / 2 - Math.abs(p.x), d / 2 - Math.abs(p.z - z), h - p.y, p.y)), -1);
+  const idx = c.geo.index.array, N = [];
+  let n = 0, inside = 0;
+  for (let t = 0; t < idx.length; t += 3) {
+    const a = P[idx[t]], b = P[idx[t + 1]], e = P[idx[t + 2]];
+    for (const [u, v] of [[1 / 3, 1 / 3], [0.5, 0], [0, 0.5], [0.5, 0.5], [0.1, 0.1], [0.8, 0.1], [0.1, 0.8]]) {
+      n++; if (depth(a.clone().multiplyScalar(1 - u - v).addScaledVector(b, u).addScaledVector(e, v)) > 0.01) inside++;
+    }
+    N.push(V().subVectors(b, a).cross(V().subVectors(e, a)).normalize());
   }
-  return { spread, wing, hem, lowest, hung: c.hung };
+  let folds = 0, pairs = 0;
+  const q = (r, k) => (r * (c.cols - 1) + k) * 2;
+  for (let r = 0; r < c.rows - 1; r++) for (let k = 0; k < c.cols - 1; k++) {
+    const t = q(r, k), nb = [[t, t + 1]];
+    if (k + 1 < c.cols - 1) nb.push([t + 1, q(r, k + 1)]);
+    if (r + 1 < c.rows - 1) nb.push([t + 1, q(r + 1, k)]);
+    for (const [i, j] of nb) { pairs++; if (N[i].dot(N[j]) < -0.6) folds++; }
+  }
+  return { spread, wing, hem, lowest, inside: inside / n, folds: folds / pairs, hung: c.hung };
 }
-const fmt = (r) => `spread ${r.spread.toFixed(2)} m, wing ${r.wing.toFixed(2)} m, hem ${r.hem.toFixed(2)} m under the collar, lowest ${r.lowest.toFixed(2)} m`;
+const fmt = (r) => `spread ${r.spread.toFixed(2)} m, wing ${r.wing.toFixed(2)} m, hem ${r.hem.toFixed(2)} m under the collar, lowest ${r.lowest.toFixed(2)} m, ${(r.inside * 100).toFixed(1)} % in the seat, ${(r.folds * 100).toFixed(1)} % folded back`;
 
 test('a seated cape falls down the back and over the bench, not out like wings (Nour on her bench)', async () => {
   // Qanat's stone bench: 1.5 x 0.42 x 0.5 m; she sits on its cushion, a little behind its middle
@@ -190,6 +224,8 @@ test('a seated cape falls down the back and over the bench, not out like wings (
     assert.ok(r.wing < 0.6, `${when}: nothing stands out over the seat (${fmt(r)})`);
     assert.ok(r.hem > 0.45, `${when}: the hem hangs well below the shoulders (${fmt(r)}; it was level with them)`);
     assert.ok(r.lowest < -0.15, `${when}: some of it hangs over the bench's edge (${fmt(r)})`);
+    assert.ok(r.inside < 0.015, `${when}: out of the bench (${fmt(r)})`);
+    assert.ok(r.folds < 0.07, `${when}: not crumpled (${fmt(r)}; with no bends ~13 % of it creased into shards)`);
   }
   assert.ok(far.hung, 'far off it hangs');
 });
@@ -210,6 +246,30 @@ test('other seated people: on a stool the cloth falls past, and on a wide ledge'
   assert.ok(hask.near.lowest > -0.1, `Hask: on the ledge (${fmt(hask.near)})`);
 });
 
+// "Robes, outfits should not clip through things like benches when characters are sitting." With no
+// bends the seated cloth crumpled into folded shards where it met the seat and the ground, its whole
+// cone's width spread out over a long bench beside the sitter in stiff sheets, and through a crate the
+// physics doesn't see it fell to the ground, its hem out under the crate's far side. Seated, a cape now
+// keeps soft bends, gathers its hem in (it hangs down the back and pools behind), rests on the seat
+// under the hips seen or not, and on what is drawn there (cape.js SEATED, NPC.seatField).
+test('seated capes drape over their seats, out of them, without crumpling: a log bench, a crate drawn but not solid', async () => {
+  const runs = [
+    ['Bako on a camp log bench', await seatedCape(DESERT.bako, 'desert', { seat: 0.02, boxes: [[1.9, 0.3, 0.5]] })],
+    ['Sefa on a camp log bench', await seatedCape(DESERT.sefa, 'desert', { seat: 0.02, boxes: [[1.9, 0.3, 0.5]] })],
+    // Sel's crate in the Bazaar: 0.9 x 0.45 x 0.9, a little behind her, drawn but not solid
+    ['Sel on her crate', await seatedCape(BAZAAR.sel, 'bazaar', { seat: 0.45, drawn: [[0.9, 0.45, 0.9, -0.3]] })],
+  ];
+  for (const [who, { near, far }] of runs) {
+    console.log(`  ${who}: near ${fmt(near)}; far ${fmt(far)}`);
+    for (const [r, when] of [[near, 'simulated'], [far, 'its drape']]) {
+      assert.ok(r.inside < 0.015, `${who}, ${when}: out of the seat (${fmt(r)})`);
+      assert.ok(r.folds < 0.08, `${who}, ${when}: not crumpled into shards (${fmt(r)}; with no bends 11-20 %)`);
+      assert.ok(r.wing < 0.6 && r.spread < 0.95, `${who}, ${when}: close round them, not spread out over the seat in sheets (${fmt(r)})`);
+      assert.ok(r.hem > 0.38, `${who}, ${when}: down the back, onto the seat (Sel's crate is deeper than the cape is long) or over its edge (${fmt(r)})`);
+    }
+  }
+});
+
 test('the ground round a seat: the bench top under the hips, the ground past its edges', () => {
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(50, 50).rotateX(-Math.PI / 2)));
@@ -224,6 +284,10 @@ test('the ground round a seat: the bench top under the hips, the ground past its
   assert.ok(Math.abs(at(0.6, 0.1) + 0.02) < 0.01 && Math.abs(at(0.96, 0.1) + 0.44) < 0.01, 'along the bench, then past its end');
   // the same seat turned round: the same shape (a drape is shared between people on one kind of seat)
   assert.equal(groundField(groundAt, V(9.9, 0.44, 0), Math.PI / 2).sig, F.sig);
+  // a seat the physics doesn't see (a stool): there under the hips all the same, the ground round it
+  const S = groundField(groundAt, V(20, 0.45, 0), 0, SEATED.seat), sat = (u, v) => S.h[Math.round((v + S.half) / S.step) * S.n + Math.round((u + S.half) / S.step)];
+  assert.ok(Math.abs(sat(0, 0) + 0.02) < 0.01 && Math.abs(sat(0.12, -0.24) + 0.02) < 0.01, 'the seat under the hips');
+  assert.ok(Math.abs(sat(0, 0.36) + 0.45) < 0.01 && Math.abs(sat(0.48, 0) + 0.45) < 0.01, 'the ground round it');
 });
 
 test('standing, the cloth is as it was: the plain ground under the feet, the standing drape', () => {
