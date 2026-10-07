@@ -173,13 +173,19 @@ function roundTree(kit, M, rng, x, z, h, crowns = M.dark) {
   }
 }
 
+/**
+ * The panels' plazas read pale, their joints fine: seen low across the rings (the views' eyes are at a person's
+ * height) many joints crowd into dark bands, so the views' slabs are wide and a tone apart only just past post.js's
+ * colour-edge threshold (a light joint, not a full ink line).
+ */
+const PAVE = { slab: 5, tones: [['#f6e8cf', '#eee0c6'], ['#ecdcc2', '#e4d4b9']] };
 /** The round plaza: concentric stone rings, a thin pole in the middle. */
 function plaza(kit, M, { x, z, r, pole = 9 }) {
   const y = kit.H(x, z) + 0.05;
   // (paved: each ring's slabs a hair apart in tone, so the ink draws their joints: garden-kit.js paintPaving)
   [1, 0.75, 0.5, 0.25].forEach((k, i) => {
-    const g = new THREE.CylinderGeometry(r * k, r * k, 0.25 + 0.06 * i, pavingSegments(r * k, 2.6), 1).toNonIndexed().translate(x, y + 0.03 * i, z);
-    kit.add(M.plaza, paintPaving(g, x, z, r * k, i, { tones: i % 2 ? ['#ecdcc2', '#dccab0'] : ['#f6e8cf', '#e6d6bb'], side: '#efe1c8', slab: 2.6 }));
+    const g = new THREE.CylinderGeometry(r * k, r * k, 0.25 + 0.06 * i, pavingSegments(r * k, PAVE.slab), 1).toNonIndexed().translate(x, y + 0.03 * i, z);
+    kit.add(M.plaza, paintPaving(g, x, z, r * k, i, { tones: PAVE.tones[i % 2], side: '#efe1c8', slab: PAVE.slab }));
   });
   if (pole) kit.add(M.pole, new THREE.CylinderGeometry(0.12, 0.18, pole, 6).translate(x, y + pole / 2, z));
 }
@@ -424,13 +430,13 @@ export const GARDEN_VIEWS = [
   view({
     id: '3793-olive-plaza', title: 'The olive grove round the plaza', sheet: 'IMG_3793', panel: 4, where: 'bottom right', crop: [515, 525, 475, 467],
     camera: { eye: [0, 2.2, 0], yaw: 0, fov: 54, horizon: 0.55 },
-    sun: { side: 150, el: 35 },
+    sun: { side: 125, el: 55 },   // (high and to the side: the plaza lit, as the panel draws it, the olives' shadows short)
     ground: meadow(),
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37934,
         plaza: { x: 2, z: -42, r: 18, pole: 14 },
-        olives: [...scatter(40, 3793, 2, -42, 22, 70, -110, 110, (x, z, r) => [x, z, 1.2 + r() * 0.8]), [-12, -14, 1.8], [-6, -10, 2], [14, -14, 1.6], [-18, -20, 1.4]],
+        olives: [...scatter(40, 3793, 2, -42, 22, 70, -110, 110, (x, z, r) => [x, z, 1.2 + r() * 0.8]), [-9, -15, 1.3], [-6.5, -11, 1.1], [8, -14, 1.2], [11, -19, 1.3]],
         trees: [[-24, -16, 22], [-28, -26, 26], [26, -22, 24]],
         spheres: [{ x: 120, z: -420, R: 22, sink: 0.4 }],
         paths: [[[[0, -2], [1, -30]], 2.6]],
@@ -522,7 +528,7 @@ export const GARDEN_VIEWS = [
   view({
     id: '3794-avenue-sphere', title: 'The avenue to the plaza, the great sphere setting', sheet: 'IMG_3794', panel: 6, where: 'bottom right, wide', crop: [366, 649, 624, 340],
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 36, horizon: 0.62 },
-    sun: { side: 170, el: 25 },
+    sun: { side: 140, el: 50 },   // (high enough that the avenue's shadows fall short of the plaza: lit, as on the panel)
     ground: meadow(),
     people: [{ at: [0.3, -9], facing: 3.1, ...CLOAKED }],
     build(kit, v) {

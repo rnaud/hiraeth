@@ -637,10 +637,12 @@ export function* buildSpheres(scene) {
     const by = H(Pz.x, Pz.z);
     const rings = [[Pz.r, 0.32, M.stone], [Pz.r * 0.8, 0.46, M.stone2], [Pz.r * 0.74, 0.5, M.stone], [Pz.r * 0.46, 0.62, M.stone2], [Pz.r * 0.4, 0.66, M.stone], [4, 0.8, M.stone2]];
     // (paved: each ring's slabs a hair apart in tone, so the ink draws their joints; garden-kit.js paintPaving)
-    const TONES = new Map([[M.stone, ['#efe7d4', '#e0d5bf']], [M.stone2, ['#e0d4bc', '#d0c3a8']]]);
+    // (the joints a light line, not a full ink one, and wide slabs: seen at a person's height across the rings,
+    // many full-ink joints crowded into dark bands; the sheets draw the plaza pale)
+    const TONES = new Map([[M.stone, ['#efe7d4', '#e7ddc8']], [M.stone2, ['#e0d4bc', '#d8cbb1']]]);
     rings.forEach(([r, h, m], i) => {
-      const g = new THREE.CylinderGeometry(r, r, h + 0.5, pavingSegments(r), 1).toNonIndexed().translate(Pz.x, by + h / 2 - 0.25, Pz.z);
-      add(M.paving, paintPaving(g, Pz.x, Pz.z, r, i, { tones: TONES.get(m), side: TONES.get(m)[0] }), true);
+      const g = new THREE.CylinderGeometry(r, r, h + 0.5, pavingSegments(r, 4.5), 1).toNonIndexed().translate(Pz.x, by + h / 2 - 0.25, Pz.z);
+      add(M.paving, paintPaving(g, Pz.x, Pz.z, r, i, { tones: TONES.get(m), side: TONES.get(m)[0], slab: 4.5 }), true);
     });
     add(M.pole, new THREE.CylinderGeometry(0.18, 0.3, 16, 8).translate(Pz.x, by + 8.8, Pz.z), true);
     plaza.ground = by; plaza.top = by + 17.2; plaza.inner = by + 0.8;

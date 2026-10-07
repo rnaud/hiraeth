@@ -224,8 +224,11 @@ the narrowest creases.
   - *The hedges' fruit* (`hedge`): clipped hedges of leaf masses with their fruit on the top and the long
     faces; the world's ring round the plaza (instanced: walk-through, as the shrubs were) and view 119's
     foreground rows, with the orange trees behind its plaza.
-  - *The plaza's paving* (`paintPaving`): each ring's slabs a hair apart in tone (just past post.js's
-    colour-edge threshold), so the ink draws the joints; the world's plaza and the views'.
+  - *The plaza's paving* (`paintPaving`): each ring's slabs a hair apart in tone, so the joints read; the world's
+    plaza and the views'. Seen at a person's height across the rings, joints drawn as full ink lines crowded into
+    dark bands (the plaza looked as though it lay in shade, round 2): the slabs are now 4.5 m (world) and 5 m (views,
+    `PAVE`) wide and their tones only just apart, a light joint or a change of tone, and the sheets' pale plaza holds.
+    Views 107 and 113 also take a higher sun from the side (el 50–55), so the avenue's shadows fall short of it.
 - **Shading, October 2026**:
   - *The white stone's shade* (`WHITE_SHADE` in spheres.js: `shadeFlat` 1, `hatch` 0.08): printed flat in the
     day's pale blue with almost no strokes, on the world's and the views' white stone, rock, pillars, stairs.

@@ -24,6 +24,7 @@ export const CHANGELOG = [
     'The desert sand no longer looks bare at noon: with the sun high and the pebbles’ shadows short, more pebbles lie on it, a little bigger, so it reads about as busy as in mid-morning. Dawn, dusk and the rest of the day look as they did.',
     'Lorn II’s bank bushes keep their leafy look from further off: a fringe of blades breaks their outline, and their hatching stays drawn as strokes instead of melting into a smooth dark tone.',
     'The Garden of Spheres’ olive trees have rounder, layered crowns, a broad tier of leaves with a smaller one over it and a little cap on top, as in its drawings, instead of flat cushions.',
+    'The Garden’s round plaza reads pale from where you stand, as in its drawings: its slabs are wider and their joints a lighter tone, instead of crowding into dark bands across the rings.',
   ] },
   { v: '0.76', date: '2026-10-07', items: [
     'The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.',
