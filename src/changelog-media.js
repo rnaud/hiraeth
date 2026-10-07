@@ -129,6 +129,7 @@ export const CHANGELOG_MEDIA = {
         { where: 'the graphics a frame', before: 7.3, after: 7.3 },
       ] },
     ] },
+    { match: 'On the Steam Deck, a game that closes unexpectedly after you have been playing', see: 'Nothing to see while it works: if the game ever closes by itself after you have played a while (or something closes it), Steam returns to its library, and the next launch draws the way it did before instead of switching to a slower one.' },
   ],
   '0.79': [
     { match: 'Cloaks hang over people’s arms now', shots: [
@@ -292,11 +293,11 @@ export const CHANGELOG_MEDIA = {
   ],
   '0.76': [
     { match: 'The Steam Deck gets its own Graphics setting', numbers: [
-      { title: 'What the Deck drew before, on High, against its own setting', device: 'Steam Deck OLED, SteamOS 3.8', source: 'docs/systems/performance.md, “The Steam Deck”', note: 'the frame rate on the new setting is still to be measured on the Deck', rows: [
+      { title: 'What the Deck drew before, on High, against its own setting', device: 'Steam Deck OLED, SteamOS 3.8', source: 'docs/systems/performance.md, “The Steam Deck”', note: 'the spawn on High was read once in Desktop Mode (v0.73); on its own setting it was measured in Gaming Mode’s X11 under gamescope at 90 Hz (v0.80); High at 1.5× is still to be measured the same way', rows: [
         { where: 'pixels drawn (thousands)', before: 2304, after: 1024 },
         { where: 'props drawn out to (m)', before: 520, after: 380 },
         { where: 'the fine shadow map (px)', before: 2048, after: 1024 },
-        { where: 'the desert’s spawn on High (fps)', before: '17–22', after: null },
+        { where: 'the desert’s spawn (fps)', before: '17–22', after: 48 },
       ] },
     ] },
     { match: 'On handhelds the City-Shaft runs smoother', numbers: [

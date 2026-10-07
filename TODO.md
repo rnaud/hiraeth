@@ -66,11 +66,17 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 - [ ] Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
   fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
   then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the
-  before/after table.
-- [ ] Decide the Retroid's `cpuBound` guard (0.85) for the Deck preset from those numbers (left on: the
-  one reading so far, the desert at 17–22 fps with the renderer at 100 %+ of a core, points to CPU-bound).
-- [ ] Compare ANGLE's GL and Vulkan backends under gamescope; check the loading pen turns smoothly in a
-  Deck load; check the new Updates section on the Deck itself (runtime 830001 and later).
+  before/after table. Done so far (2026-10-07): the Deck preset, fixed and dynamic, in the desert and the
+  City-Shaft under headless gamescope (Gaming Mode's X11); the Deck slept at the Market. Left: the other ten
+  worlds, High at 1.5×, Desktop Mode. Needs the Deck plugged in (or Desktop Mode): on battery in Gaming
+  Mode it sleeps ~15 min after the last input.
+- [x] Decide the Retroid's `cpuBound` guard (0.85) for the Deck preset from those numbers: kept on. On the
+  Deck (Gaming Mode's X11, the desert and the City-Shaft) JS 19–28 ms a frame against GPU 6–15; dynamic held
+  scale 1 at the fixed run's frame rate (performance.md, "The Steam Deck").
+- [ ] Compare ANGLE's GL and Vulkan backends under gamescope (`GPU=vulkan scripts/bench/deck-run.sh ...`);
+  check the loading pen turns smoothly in a Deck load (`scripts/bench/deck-pen.mjs`); check the new Updates
+  section on the Deck itself (the Deck has runtime 830001 and web 969 now, and the site 970001: Check,
+  Download and Restart now should take it to 970001).
 
 ## The Unity bridge
 

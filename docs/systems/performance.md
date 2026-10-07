@@ -673,10 +673,55 @@ scale the game chose, and with `--profile` the main thread by system. Checked on
 the fake install of `docs/steam-deck.md`): the desert's spawn on the Steam Deck preset 575 draws, 12 ms
 of JS (the G-buffer 3.2, the player 2.2, the shadows 1.8, people 1.1).
 
-**Not yet measured on the Deck**: the Deck was asleep through this round, so the before/after table
-for every world, whether the `cpuBound` guard is right there (keep it if the main thread is the limit,
-as the v0.73 reading suggests; drop it if the GPU turns out to be), the GL against the Vulkan backend
-under gamescope for frame rate, and the loading pen during a load are still to do.
+**Measured on the Deck, 7 October 2026 (the first part).** The Deck was in Gaming Mode, so there was no
+Plasma to nest gamescope in: `deck-run.sh start headless` runs the game in gamescope's headless backend
+(Gaming Mode's X11 stack, nothing on the screen; `REFRESH=90`, the OLED panel's rate in Gaming Mode).
+Runtime 830001 with the game of web build 969 (v0.80, the posing's gains in), ANGLE on radeonsi GL 4.6,
+1280 × 800, the Steam Deck preset, `deck-worlds.mjs --secs 6 --warmup 2 --profile 1`. Each cell: fps, and
+the JS and GPU ms a frame (medians); dynamic: the render scale the game chose.
+
+| view | Deck, fixed (scale 1) | Deck, dynamic |
+|---|---|---|
+| desert spawn | 48; 20.5 / 11.1 | 47; 20.9 / 11.1; ×1.00 |
+| desert qanat-tree | 39; 25.4 / 10.0 | 42; 23.3 / 9.9; ×1.00 |
+| desert camps | 38; 25.6 / 11.4 | 40; 24.4 / 11.4; ×1.00 |
+| desert dunes | 81; 11.9 / 10.0 | 79; 12.2 / 10.0; ×1.00 |
+| desert cave | 85; 11.1 / 6.0 | 86; 11.1 / 6.1; ×1.00 |
+| desert ride-city (path) | 40; 22.5 / 10.8 | 41; 23.1 / 10.9; ×1.00 |
+| desert walk-camps (path) | 35; 28.2 / 10.0 | 37; 26.2 / 10.0; ×1.00 |
+| City-Shaft start | 42; 23.5 / 11.5 | 42; 23.4 / 11.5; ×1.00 |
+| City-Shaft crowd | 48; 20.3 / 9.3 | 48; 20.3 / 9.3; ×1.00 |
+| City-Shaft crowd2 | 51; 19.0 / 9.5 | 52; 19.0 / 9.5; ×1.00 |
+| City-Shaft wide | 40; 25.2 / 15.4 | 40; 24.9 / 15.4; ×1.00 |
+| City-Shaft walk (path) | 42; 23.0 / 12.7 | 41; 23.2 / 12.7; ×1.00 |
+
+(The spawn's "missed" share, 80–89 %, is frames alternating 11 and 22 ms at 90 Hz, not a stutter.)
+
+- **The main thread is the limit everywhere measured**: 19–28 ms of JS a frame against 6–15 ms of GPU. The
+  desert's spawn went from 17–22 fps on High at 1.5× (v0.73, Desktop Mode) to 48 on the Steam Deck preset.
+- **Where the JS goes** (`--profile`, the desert): three's G-buffer pass 5.5–6.7 ms (traversal and GL
+  calls), the people 3.7–6.6 where there are any, the shadow passes 3.2–4.3, the player 1.1–1.4, the wind
+  0.5–1.0, the shadow culling 0.6–0.7; and 4–5.5 ms not in any wrapped system, even in the cave, which is
+  why the emptiest views stop at 81–86 fps.
+- **The `cpuBound` guard (0.85) stays on for the Deck preset**: with it, dynamic resolution held scale 1 at
+  every view, at the same frame rate as fixed. Dropping resolution would only have cost sharpness: at the
+  heaviest GPU view (the City-Shaft's wide, 15.4 ms) the JS is still 25 ms.
+
+**Still to measure** (the Deck went to sleep 16 minutes into the run, at the Signal Market's load: in
+Gaming Mode on battery, Steam's idle sleep only waits for a game Steam launched, and the bench's isn't one;
+the run stops cleanly now when that happens): the other ten worlds, High at 1.5× the same way (the
+"before" column), Desktop Mode (Plasma), ANGLE's Vulkan backend against GL (`GPU=vulkan`), and the loading
+pen during a Deck load (`scripts/bench/deck-pen.mjs`, written for it, not yet run). On a Deck plugged in
+(or in Desktop Mode) the whole set runs from:
+
+```sh
+PORT=5420 REFRESH=90 scripts/bench/deck-run.sh start headless ~/.local/share/moebius-deck/web/<build>
+node scripts/bench/deck-worlds.mjs --port 5420 --quality deck --modes fixed,dynamic --raw <dir>
+node scripts/bench/deck-worlds.mjs --port 5420 --quality high --scale 1.5 --raw <dir2>
+node scripts/bench/deck-pen.mjs --port 5420 --only desert,incal
+node scripts/bench/deck-summary.mjs "High 1.5×=<dir2>/deck-worlds.json:fixed" "Deck=<dir>/deck-worlds.json:fixed" "Deck dyn=<dir>/deck-worlds.json:dynamic"
+scripts/bench/deck-run.sh stop
+```
 
 ## Round 3, on the Mac: the City-Shaft's towers in one draw, the people's costs, the load's warnings (October 2026)
 
