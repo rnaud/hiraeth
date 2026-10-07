@@ -32,6 +32,8 @@ namespace Memento.Bridge
         readonly Dictionary<int, Material> materials = new();
         readonly Dictionary<int, float> moteSizes = new();
         readonly Dictionary<int, Material> instMaterials = new();   // by node: a material's copy for its GPU instances (MEMENTO_INSTMAT, its own buffer)
+        readonly Dictionary<int, List<Material>> copies = new();     // a material's copies (instances, crowds, grass): its live colour and glow go to them too (op 15)
+        Material CopyOf(int mid, Material m) { var c = new Material(m); if (!copies.TryGetValue(mid, out var l)) copies[mid] = l = new List<Material>(); l.RemoveAll(x => !x); l.Add(c); return c; }
         public readonly List<Vector4> lights = new();         // the local lights (op 11), in Unity's space
         public MementoLook look;   // a mote material's point size (life.js uSize)
         readonly Dictionary<int, Node> nodes = new();
@@ -203,7 +205,7 @@ namespace Memento.Bridge
             {
                 // the port's own crowd figures (FarCrowd.cs): its Surface shader posing them (MEMENTO_CROWD)
                 materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var cm);
-                var mat = cm ? new Material(cm) : new Material(surface);
+                var mat = cm ? CopyOf(n.mids[0], cm) : new Material(surface);
                 mat.name = "crowd figures"; mat.EnableKeyword("MEMENTO_CROWD"); mat.SetFloat("_Figure", 1); mat.SetFloat("_Cull", (float)CullMode.Off);
                 crowds[id] = new Crowd { mesh = md?.mesh, mat = mat };
                 nodes[id] = n;
@@ -212,7 +214,7 @@ namespace Memento.Bridge
             if (n.kind == "grass")
             {
                 materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var gm0);
-                var gmat = gm0 ? new Material(gm0) : new Material(surface);
+                var gmat = gm0 ? CopyOf(n.mids[0], gm0) : new Material(surface);
                 gmat.name = "grass (bridge)"; gmat.EnableKeyword("MEMENTO_GRASS"); gmat.SetFloat("_Cull", (float)CullMode.Off);
                 gmat.SetFloat("_GrassMirrored", 1);   // (the tuft arrives mirrored in x, as every mesh: the shader takes it back to three's)
                 int cap = Mathf.Max(d.I("capacity"), 1);
@@ -251,7 +253,8 @@ namespace Memento.Bridge
                 // instances drawn on the GPU (the port's InstMats: Surface.shader MEMENTO_INSTMAT, its shadow in the cascades), not baked
                 // (a copy of the material for each node: its instance buffer is bound on the material)
                 int mid = n.mids.Length > 0 ? n.mids[0] : 0;
-                Material imat = materials.TryGetValue(mid, out var bm0) && bm0 ? new Material(bm0) { name = bm0.name + " (instances)" } : null;
+                Material imat = materials.TryGetValue(mid, out var bm0) && bm0 ? CopyOf(mid, bm0) : null;
+                if (imat) imat.name = bm0.name + " (instances)";
                 if (imat) instMaterials[id] = imat;
                 if (imat)
                 {
@@ -479,6 +482,21 @@ namespace Memento.Bridge
                     {
                         Shader.SetGlobalVector("_Brush", new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]));
                         o += 4;
+                        break;
+                    }
+                    case 15:   // a material's colour and glow, live (NaN: unchanged)
+                    {
+                        int mid = (int)fu[o++];
+                        var lc = new Vector4(ff[o], ff[o + 1], ff[o + 2], 1); float lg = ff[o + 3];
+                        o += 4;
+                        void Set(Material m)
+                        {
+                            if (!m) return;
+                            if (!float.IsNaN(lc.x) && m.HasProperty("_Color")) m.SetVector("_Color", lc);
+                            if (!float.IsNaN(lg) && m.HasProperty("_Glow")) m.SetFloat("_Glow", lg);
+                        }
+                        if (materials.TryGetValue(mid, out var mm)) Set(mm);
+                        if (copies.TryGetValue(mid, out var cl)) foreach (var c in cl) Set(c);
                         break;
                     }
                     case 6:   // remove

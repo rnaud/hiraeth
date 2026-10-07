@@ -169,6 +169,15 @@ export class UnityBackend {
     tally(this, 'grassView', b0);
   }
 
+  /** A material's colour or glow changed after it was sent (the answering plants waking, lamps, beacons): op 15. */
+  materialLive(mid, color, glow) {
+    const w = this.w, b0 = w.n;
+    w.reserve(6);
+    w.u(OP.material); w.i(mid);
+    w.f(color ? color[0] : NaN); w.f(color ? color[1] : NaN); w.f(color ? color[2] : NaN); w.f(glow ?? NaN);
+    tally(this, 'material', b0);
+  }
+
   /** The traveller's feet and speed (three's space: the grass parts round them, the plants lean away), when they move: op 14. */
   brush(p, speed) {
     const v = [p.x, p.y, p.z, speed], key = v.map((x) => Math.fround(x)).join(',');

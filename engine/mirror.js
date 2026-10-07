@@ -20,6 +20,8 @@
 //                               A plain Mesh on an InstancedBufferGeometry (kind 'instgeo': the grass blades, flora-grass.js)
 //                               has no matrices: mats and colors are null, its attributes carry their version and
 //                               the range rewritten since they were last sent ({ array, itemSize, version, range: [start, count] | null })
+//   materialLive(mid, color, glow)   a material's colour or glow changed after it was sent (the answering plants
+//                               waking, a lamp lit, a beacon breathing): checked each frame a drawable using it is drawn
 //   drawState(id, object)       each frame an 'instgeo' drawable is drawn: the backend reads what moves on it (its
 //                               material's per-frame uniforms: the grass patch's centre and fades)
 //   skeleton(sid, mats, n)      a skeleton's bone matrices (bone world × inverse bind: three's boneMatrices), once a frame
@@ -111,6 +113,21 @@ export class SceneMirror {
 
   _skeletonId(sk) { return sk.__mirrorId ??= this.nextSkeleton++; }
 
+  /** A material's colour and glow as last sent (once a frame, however many drawables use it): told when they moved. */
+  _live(m, f) {
+    if (m.__mirrorLiveF === f) return;
+    m.__mirrorLiveF = f;
+    const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow?.value;
+    if (!c?.isColor && typeof g !== 'number') return;
+    const r = c?.isColor ? Math.fround(c.r) : 0, gr = c?.isColor ? Math.fround(c.g) : 0, b = c?.isColor ? Math.fround(c.b) : 0, gl = typeof g === 'number' ? Math.fround(g) : 0;
+    const L = m.__mirrorLive;
+    if (!L) { m.__mirrorLive = [r, gr, b, gl]; return; }   // (as sent with the material)
+    if (L[0] === r && L[1] === gr && L[2] === b && L[3] === gl) return;
+    L[0] = r; L[1] = gr; L[2] = b; L[3] = gl;
+    const mid = this.mats.get(m);
+    if (mid) this.backend.materialLive(mid, c?.isColor ? [c.r, c.g, c.b] : null, typeof g === 'number' ? g : null);
+  }
+
   _create(o) {
     const id = this.nextId++;
     this.ids.set(o, id);
@@ -141,7 +158,7 @@ export class SceneMirror {
     camera?.updateMatrixWorld();
     P.matrices += now() - t; t = now();
     let n = 0, drawn = 0, tb = 0;
-    const B = this.backend, perSkeleton = !!B.skeleton, filter = this.filter;
+    const B = this.backend, perSkeleton = !!B.skeleton, filter = this.filter, liveMats = !!B.materialLive;
     // (an explicit stack, not a recursive closure: ~3 000 objects a frame in the desert)
     const stack = this._stack; stack.length = 0; stack.push(scene);
     let visited = 0;
@@ -169,6 +186,7 @@ export class SceneMirror {
         // renderer would before drawing it, in the main pass (no override material)
         if (Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
         if (!node.shown) { node.shown = true; B.visible?.(id, true); }
+        if (liveMats) { const M = o.material; if (Array.isArray(M)) { for (const m of M) this._live(m, f); } else if (M) this._live(M, f); }
         const e = o.matrixWorld.elements, m = node.matrix;
         // (compared as the floats they are sent as: a double that floats can't hold is no move)
         let k = 0;

@@ -219,6 +219,24 @@ test('mirror: a mesh on an instanced geometry (the grass blades) is its own kind
   assert.equal(inst[1][4].aGrass2, undefined, 'the unchanged attribute not sent again');
 });
 
+test('mirror: a material\'s colour and glow, changed after it was sent, go live (the answering plants waking)', () => {
+  const live = [];
+  const backend = { material: () => {}, materialLive: (mid, c, g) => live.push([mid, c, g]) };
+  const mirror = new SceneMirror(backend);
+  const scene = new THREE.Scene();
+  const base = makeMaterial({ color: '#a8c48a', flat: true });
+  const m = base.clone(); m.uniforms = { ...base.uniforms, uColor: { value: new THREE.Color('#a8c48a') }, uGlow: { value: 0 } };
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(), m), new THREE.Mesh(new THREE.BoxGeometry(), m));
+  mirror.sync(scene, null);
+  mirror.sync(scene, null);
+  assert.equal(live.length, 0, 'unchanged: nothing');
+  m.uniforms.uColor.value.set('#f6e2a0'); m.uniforms.uGlow.value = 0.65;
+  mirror.sync(scene, null);
+  assert.equal(live.length, 1, 'once, however many drawables use it');
+  assert.ok(Math.abs(live[0][1][0] - new THREE.Color('#f6e2a0').r) < 1e-6);
+  assert.equal(live[0][2], 0.65);
+});
+
 test('ink spec: makeMaterial read back as plain numbers, the shared uniforms left out', () => {
   const m = makeMaterial({ color: '#ff8000', color2: '#0000ff', mode: MODE_STRATA, strataSize: 6, glow: 0.5, metal: 'steel' });
   const s = inkSpec(m);

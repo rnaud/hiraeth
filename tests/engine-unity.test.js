@@ -92,7 +92,7 @@ test('the web\'s newer surface marks reach the port: weathering, pen detail, pat
   assert.deepEqual(L.post.uInkShadow, [1, 0]);
 });
 
-test('the grass for the port: its tufts (op 12: the root mirrored in x, the rest as it is), its fades (op 13)', () => {
+test('the grass for the port: its tufts (op 12: the root mirrored in x, the rest as it is), its fades (op 13), live colours (op 15)', () => {
   const created = [];
   const B = new UnityBackend({ Create: (id, json) => created.push(JSON.parse(json)), Geometry: () => {}, Material: () => {} });
   const geo = { attributes: { position: { array: new Float32Array(9), itemSize: 3 } }, index: null, groups: [] };
@@ -108,6 +108,7 @@ test('the grass for the port: its tufts (op 12: the root mirrored in x, the rest
     uColor: { value: new THREE.Color(0.1, 0.2, 0.3) }, uColor2: { value: new THREE.Color(0.4, 0.5, 0.6) } };
   B.drawState(5, { material: { uniforms: U } });
   B.drawState(5, { material: { uniforms: U } });   // (unchanged: not again)
+  B.materialLive(3, [0.9, 0.8, 0.7], null);
   const f = new Float32Array(B.w.take()), u = new Uint32Array(f.buffer);
   let o = 0;
   // aGrass: only the second tuft (its range), its root's x mirrored
@@ -117,6 +118,7 @@ test('the grass for the port: its tufts (op 12: the root mirrored in x, the rest
   assert.deepEqual([u[o], u[o + 3], u[o + 4], u[o + 5]], [OP.grass, 1, 0, 2]); o += 6;
   assert.equal(f[o], 0.5); assert.equal(f[o + 4], 1.5); o += 8;
   assert.equal(u[o], OP.grassView); assert.equal(u[o + 1], 5); assert.equal(f[o + 2], 7, 'the patch\'s centre in three\'s space'); o += 20;
+  assert.equal(u[o], OP.material); assert.equal(u[o + 1], 3); assert.ok(Math.abs(f[o + 2] - 0.9) < 1e-6); assert.ok(Number.isNaN(f[o + 5]), 'the glow unchanged'); o += 6;
   assert.equal(u[o], 0, 'the end');
 });
 
@@ -177,7 +179,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;
-  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4 };
+  const size = { 1: () => 1 + u[o] * 17, 2: () => 2, 3: () => 3 + u[o + 1] * 16 + (u[o + 2] ? u[o + 1] * 3 : 0), 4: () => 2 + u[o + 1] * 16, 5: () => 19, 6: () => 1, 7: () => 2 + u[o + 1] * 16, 8: () => 3 + u[o + 1] * 3 + (u[o + 2] & 1 ? u[o + 1] * 3 : 0) + (u[o + 2] & 2 ? u[o + 1] : 0), 9: () => 3 + u[o + 1] * 32, 10: () => 2 + u[o + 1] * 8, 11: () => 1 + u[o] * 4, 12: () => 5 + u[o + 4] * 4, 13: () => 19, 14: () => 4, 15: () => 5 };
   const skeletons = [];
   while (u[o] !== 0) { const op = u[o++]; assert.ok(size[op], `op ${op}`); if (op === 7) skeletons.push(u[o]); o += size[op](); ops++; }
   assert.ok(skeletons.length > 0, 'the people\'s skeletons');

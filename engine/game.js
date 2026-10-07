@@ -407,8 +407,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         for (const f of flocks) f.update(dt, simT, player.pos, camera.position);
         motes?.update(dt, simT, camera.position);
         footprints?.update(dt);
-        wildlife?.update(dt, simT, player, camera, busy || !!pinned);
-        reactiveWorld?.update(dt, simT, player, camera, busy || !!pinned);
+        // (not paused at a fixed view, as main.js doesn't pause them for the bench's: the answering plants wake as the
+        // traveller stands by them, the animals go about)
+        wildlife?.update(dt, simT, player, camera, busy);
+        reactiveWorld?.update(dt, simT, player, camera, busy);
         flammables?.update(dt, simT, player.pos);
       } catch (e) { if (!game._lifeFailed) { game._lifeFailed = true; console.warn('[game] a system failed in its update', e?.stack ?? e); } }
       if (ctl.KeyQ && !qWasDown && scout && !busy) scout.ping?.();

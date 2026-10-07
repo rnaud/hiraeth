@@ -201,7 +201,11 @@ Deck's) and Android. What still differs from the web (engine-bridge.md, "What st
   far layer growing in); `buildGrass` + `grass.update(camera)` back in engine/game.js. The wind is the
   web's own (wind.js: the traveller's push, the plants' uWind), its wisps a mesh in the mirrored
   scene on the port's Memento/Wisp, their points and alpha a frame through op 8.)
-- [ ] The web wakes the answering flowers by the traveller's nearness sooner.
+- [x] The web wakes the answering flowers by the traveller's nearness sooner. (2026-10-06: two causes. The
+  bridge paused the answering plants (and the animals) at a fixed view, which main.js doesn't; and a
+  material's colour and glow changed after it was sent never reached Unity, so a waking flower opened
+  but stayed its quiet green. The mirror now sends a material's live colour and glow (op 15, to every
+  copy the port made of it: lamps, beacons, the temples' lights too), and a view settles 1.5 s.)
 - [ ] Some of the web's people are MakeHuman bodies the bridge does not load yet.
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached.

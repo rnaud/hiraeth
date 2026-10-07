@@ -47,7 +47,9 @@ export function start(argsJson) {
 function makePlan(args) {
   const steps = [];
   for (const v of args.views ?? []) {
-    steps.push({ kind: 'pin', view: v }, { kind: 'wait', frames: 12 });
+    // (and a second and a half of the game's time: what wakes by the traveller's nearness, the answering plants, has woken
+    // as on the web bench's view, which waits seconds)
+    steps.push({ kind: 'pin', view: v }, { kind: 'wait', frames: 12, secs: args.settle ?? 1.5 });
     if (args.bench) steps.push({ kind: 'measure', view: v, secs: args.bench });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-${v.name}.png` });
   }
@@ -149,7 +151,7 @@ export function frame(dt) {
     }
     next();
   }
-  else if (step.kind === 'wait') { if (++P.wait >= step.frames) next(); }
+  else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }
   else if (step.kind === 'measure') {
     if (!P.samples) { game.mirror.profiling = !!S.args.split; game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
     P.samples ??= [];
