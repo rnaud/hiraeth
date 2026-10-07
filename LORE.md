@@ -494,7 +494,7 @@ People:
 - **Ossa**, keeper of the Upward Shrine at the bottom: "Of course it's dimming"; gives the splinter and the bottom's message.
 - **Pip**, a child at the bottom who has seen the sky once, for eleven seconds; Dov's nephew.
 - **Dov**, guard at the palace gate, secretly from the bottom (minus two-nine-zero, stall nineteen); saw the glyph on the light itself.
-- **Wren**, the driver who still stops for anyone who lights the old lamp; her compass spun for an hour.
+- **Wren**, the old cab (it drives itself, as every cab does now, and speaks from the little screen on its dash) that still stops for anyone who lights the old lamp; its compass spun for an hour.
 - **Corvin Sale**, of the rim, third generation: "A light show. A story for tourists."
 - **Lio**, cab dispatcher: nine hundred cabs lost their compasses at once.
 - **Hask**, seller of views: "Up is free; I can't sell up."
@@ -507,7 +507,7 @@ ONCE A DAY, the whole city looks up); tell Nima.
 Side quests: carry Pip's ration up to Dov ("Dov's lift token"; first swing it in
 from the old goods hoist over the void: shoot the rusted pin, push the weight
 round the post); light Wren's
-lamp (her cab comes when you hail in the depths); a cab pass from Lio (`incal.pass`:
+lamp (Wren comes when you hail in the depths); a cab pass from Lio (`incal.pass`:
 the cabs stop for passes, not people; he writes one for the fare Hask owes him,
 which Hask pays in one bent coin). Errand: a taxi token for Vael.
 
