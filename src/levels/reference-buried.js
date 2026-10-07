@@ -64,6 +64,14 @@ function materials(kit) {
     cloud: kit.mat({ color: '#fff1dd', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
     pinkCloud: kit.mat({ color: '#fbe1d0', shade: 0.55, hatch: 0, spot: 0, line: 0.45, lineTint: 1 }),
     cloak: kit.mat({ color: PERSON.cloak, flat: true }),
+    // the oval tunnel's luminous inside (IMG_3791 p4), the moon (IMG_3792 p3), the ledge's layered rock (IMG_3792 p5)
+    aquaIn: kit.mat({ color: '#c3ece6', glow: 0.35, flat: true, side: DS }),
+    aquaMid: kit.mat({ color: '#94cfca', glow: 0.15, flat: true }),
+    moon: kit.mat({ color: '#efe9f2', glow: 0.7, flat: true, spot: 0, line: 0.5, lineTint: 1 }),
+    crater: kit.mat({ color: '#d6cfdf', glow: 0.6, flat: true, spot: 0, line: 0.25, lineTint: 1 }),
+    ledgeRock: kit.mat({ color: '#a5b3a1', color2: '#96a593', color3: '#b4c0b0', mode: MODE_STRATA, strataSize: 1.3, flat: true, pattern: 'cracks', strataHatch: 0.6 }),
+    vault: strata('#7f9a88', '#738e7d', '#8ba592', { side: DS, detail: 'built' }),
+    slate: strata('#a3b4c2', '#97a9b8', '#afbfcb', { side: DS, grid: 4, detail: 'built' }),
   };
 }
 
@@ -97,6 +105,60 @@ function pipeBank(kit, M, { x0, z0, x1, z1, y0, y1, r = 1.2, blue = true, seed =
     const rr = r * (0.7 + rng() * 0.6), off = (rng() - 0.5) * r;
     pipe(kit, M, [[x0, y, z0 + off], [x1, y + (rng() - 0.5) * 0.5, z1 + off]], rr, { blue: rng() < 0.7 === blue, ground: false });
     if (rng() < 0.4) { const t = rng(), px = x0 + (x1 - x0) * t, pz = z0 + (z1 - z0) * t; pipe(kit, M, [[px, y, pz + r], [px, y + r * 3, pz + r]], rr * 0.7, { ground: false }); }
+  }
+}
+
+/** A pipe through corner points (local, absolute y) with tight elbows: each corner rounded within 1.6 r, a flange at each bend. */
+function bent(kit, M, pts, r, mat = M.pipeBlue) {
+  const P = [];
+  for (let i = 0; i < pts.length; i++) {
+    const p = V(...pts[i]);
+    if (i === 0 || i === pts.length - 1) { P.push(p); continue; }
+    const a = V(...pts[i - 1]), b = V(...pts[i + 1]), da = a.clone().sub(p), db = b.clone().sub(p);
+    const k = Math.min(r * 1.6, da.length() * 0.45, db.length() * 0.45);
+    P.push(p.clone().addScaledVector(da.normalize(), k), p.clone().addScaledVector(da.clone().add(db.normalize()).normalize(), k * 0.3), p.clone().addScaledVector(db, k));
+    const g = new THREE.TorusGeometry(r * 1.12, r * 0.16, 4, 14);
+    g.lookAt(da); const f = p.clone().addScaledVector(da, k * 1.05); g.translate(f.x, f.y, f.z);
+    kit.add(M.flange, g, { solid: false, shadow: false });
+  }
+  const c = new THREE.CatmullRomCurve3(P, false, 'centripetal');
+  kit.add(mat, new THREE.TubeGeometry(c, Math.max(8, Math.round(c.getLength() / 0.6)), r, 10, false), { shadow: false });
+}
+
+/**
+ * The trench's pipe mass (IMG_3789 p1): a trench from (x0, z0) to (x1, z1), w wide, its floor `deep`
+ * under the dune, packed with pipes: long runs along it at several levels, inverted U-bends rising from
+ * the dark floor and dropping back, risers capped with flanges, a few elbows climbing over the lip.
+ */
+function pipeMass(kit, M, { x0, z0, x1, z1, w, deep, seed = 1, density = 1 }) {
+  const rng = mulberry32(seed), L = Math.hypot(x1 - x0, z1 - z0), ax = (x1 - x0) / L, az = (z1 - z0) / L, nx = -az, nz = ax;
+  const at = (s, u) => [x0 + ax * s + nx * u, z0 + az * s + nz * u];
+  const top = (s, u) => { const [x, z] = at(s, u); return kit.H(x, z); };
+  const P = (s, u, y) => { const [x, z] = at(s, u); return [x, y, z]; };
+  // the dark floor and back between them (where the spot blacks sit)
+  for (let s = 0; s < L; s += 6) { const [x, z] = at(s + 3, 0); kit.add(M.tealDark, put(new THREE.BoxGeometry(6.2, 1, w * 0.9), x, top(s + 3, 0) - 0.6, z, Math.atan2(ax, az) + Math.PI / 2), { solid: false, shadow: false }); }
+  // long runs along the trench
+  for (let i = 0; i < Math.round(9 * density); i++) {
+    const u = (rng() - 0.5) * w * 0.8, f = rng(), r = 0.35 + rng() * 0.5, pts = [];
+    for (let s = 2; s <= L - 2; s += L / 6) pts.push(P(s, u, top(s, u) + 0.4 + f * (deep - 2.5)));
+    bent(kit, M, pts, r, rng() < 0.75 ? M.pipeBlue : M.pipe);
+  }
+  // inverted U-bends, along the trench or across it, and risers with flanged caps
+  for (let s = 1.5; s < L - 2; s += (1.2 + rng() * 1.6) / density) {
+    const far = rng() < 0.55, u = far ? -w * (0.3 + rng() * 0.17) : (rng() - 0.5) * w * 0.85, r = 0.3 + rng() * 0.45, h = deep * (far ? 0.6 + rng() * 0.4 : 0.3 + rng() * 0.55), y0 = top(s, u) + 0.2, k = rng();
+    if (k < 0.45) { const d = 2 + rng() * 4; bent(kit, M, [P(s, u, y0), P(s, u, y0 + h), P(s + d, u, y0 + h), P(s + d, u, y0)], r); }
+    else if (k < 0.75) { const d = (rng() < 0.5 ? -1 : 1) * (2 + rng() * 3), u2 = Math.max(-w * 0.45, Math.min(w * 0.45, u + d)); bent(kit, M, [P(s, u, y0), P(s, u, y0 + h), P(s, u2, y0 + h), P(s, u2, y0)], r); }
+    else {
+      const [x, y, z] = P(s, u, y0);
+      kit.add(M.pipeBlue, new THREE.CylinderGeometry(r, r, h, 10).translate(x, y + h / 2, z), { shadow: false });
+      kit.add(M.flange, new THREE.CylinderGeometry(r * 1.35, r * 1.35, 0.35, 12).translate(x, y + h, z), { solid: false, shadow: false });
+      if (rng() < 0.5) kit.add(M.flange, new THREE.CylinderGeometry(r * 0.5, r * 0.5, 0.6, 8).translate(x, y + h + 0.45, z), { solid: false, shadow: false });
+    }
+  }
+  // elbows climbing over the lip onto the sand
+  for (let i = 0; i < Math.round(4 * density); i++) {
+    const s = 3 + rng() * (L - 6), e = rng() < 0.5 ? -1 : 1, u = e * w * 0.42, r = 0.6 + rng() * 0.4, yt = top(s, e * (w * 0.5 + 3));
+    bent(kit, M, [P(s, u, top(s, u) + 0.5), P(s, u, yt + 1.4), P(s, e * (w * 0.5 + 4), yt + 1.4), P(s, e * (w * 0.5 + 4), yt - 0.5)], r, M.pipe);
   }
 }
 
@@ -160,7 +222,7 @@ function machinery(kit, M, { x0, z0, x1, z1, y0 = 0, y1 = 20, depth = 4, n = 30,
 }
 
 /** The drum: an open cylinder (inner face drawn) r wide from y0 to y1, ribbed, slit windows, arches at its foot. */
-function drum(kit, M, { x, z, r, y0 = 0, y1, mat = 'teal', slits = 18, lit = 0.3, seed = 3, gap = 0 }) {
+function drum(kit, M, { x, z, r, y0 = 0, y1, mat = 'teal', slits = 18, lit = 0.3, seed = 3, gap = 0, inside = 0, roof = 0, vault = 5, off = 0, roofShadow = true, ribs = true }) {
   // gap (rad): the side toward +z left open (a drum entered through its wall)
   const rng = mulberry32(seed), h = y1 - y0;
   kit.add(M[mat], wrapped(new THREE.CylinderGeometry(r, r, h, 56, 1, true, gap / 2, Math.PI * 2 - gap)).translate(x, y0 + h / 2, z));
@@ -170,23 +232,124 @@ function drum(kit, M, { x, z, r, y0 = 0, y1, mat = 'teal', slits = 18, lit = 0.3
     const a = gap / 2 + (i / slits) * (Math.PI * 2 - gap), sx = x + Math.sin(a) * (r - 0.05), sz = z + Math.cos(a) * (r - 0.05);
     const sh = h * (0.12 + rng() * 0.1), sy = y0 + h * (0.25 + rng() * 0.5);
     kit.add(rng() < lit ? M.window : M.dark, put(new THREE.BoxGeometry(1.6, sh, 0.3), sx, sy, sz, a), { solid: false });
-    kit.add(M.tealDark, put(new THREE.BoxGeometry(1.2, h, 0.8), x + Math.sin(a + 0.09) * (r - 0.4), y0 + h / 2, z + Math.cos(a + 0.09) * (r - 0.4), a), { solid: false });
+    if (ribs) kit.add(M.tealDark, put(new THREE.BoxGeometry(1.2, h, 0.8), x + Math.sin(a + 0.09) * (r - 0.4), y0 + h / 2, z + Math.cos(a + 0.09) * (r - 0.4), a), { solid: false });
   }
-  for (let k = 1; k < 4; k++) kit.add(M.tealDark, new THREE.TorusGeometry(r - 0.3, 0.5, 4, 56).rotateX(Math.PI / 2).translate(x, y0 + (h * k) / 4, z), { solid: false });
+  if (ribs) for (let k = 1; k < 4; k++) kit.add(M.tealDark, new THREE.TorusGeometry(r - 0.3, 0.5, 4, 56).rotateX(Math.PI / 2).translate(x, y0 + (h * k) / 4, z), { solid: false });
+  if (inside) drumInside(kit, M, rng, { x, z, r, y0, y1, gap, mat, inside });
+  if (roof && !off) {   // vaulted over, an oculus in the middle (IMG_3789 p5)
+    kit.add(M[mat], new THREE.CylinderGeometry(roof, r + 4, vault, 64, 1, true).translate(x, y1 + vault / 2, z), { solid: false, shadow: roofShadow });
+    kit.add(M.tealDark, new THREE.TorusGeometry(roof, 1.1, 6, 64).rotateX(Math.PI / 2).translate(x, y1 + vault, z), { solid: false, shadow: false });
+    for (let i = 0; i < 24; i++) {   // the vault's ribs, running in to the oculus
+      const a = (i / 24) * Math.PI * 2, p0 = V(x + Math.sin(a) * (r - 0.5), y1, z + Math.cos(a) * (r - 0.5)), p1 = V(x + Math.sin(a) * roof, y1 + vault - 0.3, z + Math.cos(a) * roof);
+      kit.add(M.tealDark, tube([p0, p1], 0.5, 2, 4), { solid: false, shadow: false });
+    }
+  } else if (roof) {   // a ceiling, its oculus `off` m toward the far side (-z: IMG_3791 p6, seen from in the drum)
+    const sh = new THREE.Shape(); sh.absarc(0, 0, r + 4, 0, Math.PI * 2, false);
+    const hole = new THREE.Path(); hole.absarc(0, -off, roof, 0, Math.PI * 2, true); sh.holes.push(hole);
+    kit.add(M[mat], new THREE.ShapeGeometry(sh, 48).rotateX(Math.PI / 2).translate(x, y1, z), { solid: false, shadow: roofShadow });
+    kit.add(M.tealDark, new THREE.TorusGeometry(roof, 1.2, 6, 64).rotateX(Math.PI / 2).translate(x, y1 - 0.6, z - off), { solid: false, shadow: false });
+    const rng2 = mulberry32(seed + 7);
+    for (let i = 0; i < 70; i++) {   // the ceiling's machinery, hanging from it
+      const a = rng2() * Math.PI * 2, rr = Math.sqrt(rng2()) * r, px = x + Math.sin(a) * rr, pz = z + Math.cos(a) * rr;
+      if (Math.hypot(px - x, pz - z + off) < roof + 2) continue;
+      const w = 1.5 + rng2() * 5, hh = 0.6 + rng2() * 3;
+      kit.add(rng2() < 0.5 ? M.tealDark : M[mat], put(new THREE.BoxGeometry(w, hh, w * (0.5 + rng2())), px, y1 - hh / 2, pz, rng2() * 3), { solid: false, shadow: false });
+    }
+  }
 }
 
-/** The hanging city: blocks hanging from a disc at y, longest in the middle, down to a spike. */
-function hangingCity(kit, M, { x, y, z, R, depth, n = 220, seed = 5 }) {
-  const rng = mulberry32(seed);
-  kit.add(M.city[0], new THREE.CylinderGeometry(R, R * 0.96, R * 0.06, 48).translate(x, y + R * 0.03, z), { solid: false, shadow: false });
-  for (let i = 0; i < n; i++) {
-    const a = rng() * Math.PI * 2, rr = Math.sqrt(rng()) * R * 0.95, px = x + Math.cos(a) * rr, pz = z + Math.sin(a) * rr;
-    const len = depth * (1 - rr / R) ** 1.4 * (0.35 + rng() * 0.75), w = R * (0.03 + rng() * 0.06) * (1 - 0.5 * rr / R);
-    const g = rng() < 0.5 ? new THREE.CylinderGeometry(w * 0.6, w, len, 10) : new THREE.BoxGeometry(w * 1.4, len, w * 1.2);
-    kit.add(M.city[Math.floor(rng() * M.city.length)], g.translate(px, y - len / 2, pz), { solid: false, shadow: false });
-    if (rng() < 0.3) kit.add(M.city[1], new THREE.ConeGeometry(w * 0.5, len * 0.3, 8).rotateX(Math.PI).translate(px, y - len - len * 0.15, pz), { solid: false, shadow: false });
+/**
+ * A drum's inside (IMG_3791 p6, IMG_3792 p3): tiers of arcades round the wall (dark arched bays, a
+ * few lit, pilasters between, a cornice at each tier), and machinery clinging to it, boxes and little
+ * tanks standing in, some with a lit window: the dense small work the sheets draw at every height.
+ */
+function drumInside(kit, M, rng, { x, z, r, y0, y1, gap, mat, inside }) {
+  const nd = { solid: false, shadow: false }, dark = mat === 'teal' ? 'tealDark' : 'tealDark', body = mat;
+  const inward = (a, rr, y) => [x + Math.sin(a) * rr, y, z + Math.cos(a) * rr];
+  const arch = (w, h) => { const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(w / 2, h - w / 2); sh.absarc(0, h - w / 2, w / 2, 0, Math.PI, false); sh.lineTo(-w / 2, 0); return new THREE.ShapeGeometry(sh, 6); };
+  const open = (a) => { const t = ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); return t > gap / 2 && t < Math.PI * 2 - gap / 2; };
+  for (let y = y0 + 0.5, tier = 0; y < y1 - 6; tier++) {
+    const th = tier === 0 ? Math.min(12, (y1 - y0) * 0.22) : 6 + rng() * 5, bays = Math.round((Math.PI * 2 * r) / (th * 0.75));
+    for (let i = 0; i < bays; i++) {
+      const a = gap / 2 + ((i + 0.5) / bays) * (Math.PI * 2 - gap);
+      if (!open(a)) continue;
+      const w = th * 0.42, lit = rng() < 0.12;
+      kit.add(lit ? M.window : M.dark, put(arch(w, th * 0.78), ...inward(a, r - 0.12, y), a + Math.PI), nd);
+      kit.add(M[dark], put(new THREE.BoxGeometry(th * 0.12, th, 0.9), ...inward(a + Math.PI / bays, r - 0.45, y + th / 2), a), nd);
+    }
+    kit.add(M[dark], new THREE.CylinderGeometry(r - 0.6, r - 0.6, 0.7, 64, 1, true, gap / 2, Math.PI * 2 - gap).translate(x, y + th + 0.35, z), nd);
+    y += th + 0.7;
   }
-  kit.add(M.city[1], new THREE.ConeGeometry(R * 0.08, depth * 0.5, 10).rotateX(Math.PI).translate(x, y - depth - depth * 0.2, z), { solid: false, shadow: false });
+  const n = Math.round(r * 5 * inside);
+  for (let i = 0; i < n; i++) {
+    const a = rng() * Math.PI * 2;
+    if (!open(a)) continue;
+    const y = y0 + Math.pow(rng(), 1.3) * (y1 - y0) * 0.92, w = 1 + rng() * 3.5, h = 1 + rng() * 4, d = 0.6 + rng() * 2.4, rr = r - d / 2 - 0.3;
+    if (rng() < 0.25) kit.add(M[body], wrapped(new THREE.CylinderGeometry(d / 2, d / 2, h, 10)).translate(...inward(a, rr, y + h / 2)), nd);
+    else kit.add(rng() < 0.5 ? M[dark] : M[body], put(new THREE.BoxGeometry(w, h, d), ...inward(a, rr, y), a), nd);
+    if (rng() < 0.3) kit.add(M.window, put(new THREE.PlaneGeometry(w * 0.3, h * 0.25), ...inward(a, rr - d / 2 - 0.03, y + h * 0.6), a + Math.PI), nd);
+  }
+}
+
+/**
+ * One hanging tower of the city, from (x, y, z) down `len`, r its radius: tiers narrowing as they go
+ * down, a band at each step, boxes on the shafts, a bulb near its end (an onion dome upside down) and a
+ * spike, now and then an aerial or a cable dangling from the tip.
+ */
+function hangingTower(kit, M, rng, x, y, z, r, len, mat) {
+  const nd = { solid: false, shadow: false }, tiers = 2 + Math.floor(rng() * 3), sides = rng() < 0.4 ? 8 : 12;
+  let yy = y, rr = r;
+  for (let t = 0; t < tiers; t++) {
+    const th = (len * 0.72 / tiers) * (0.75 + rng() * 0.5);
+    kit.add(M.city[mat], new THREE.CylinderGeometry(rr, rr * (0.8 + rng() * 0.15), th, sides).translate(x, yy - th / 2, z), nd);
+    for (let k = 0; k < 2 + Math.floor(rng() * 3); k++) {   // boxes and pods on the shaft
+      const a = rng() * Math.PI * 2, s = rr * (0.25 + rng() * 0.3), by = yy - th * (0.15 + rng() * 0.7);
+      kit.add(M.city[(mat + 1) % 3], put(new THREE.BoxGeometry(s, s * (1 + rng() * 2), s), x + Math.cos(a) * rr * 0.95, by, z + Math.sin(a) * rr * 0.95, -a), nd);
+    }
+    yy -= th;
+    kit.add(M.city[1], new THREE.CylinderGeometry(rr * 1.15, rr * 1.15, Math.max(0.6, rr * 0.12), sides).translate(x, yy, z), nd);
+    rr *= 0.8 + rng() * 0.12;
+  }
+  // the bulb, then the spike
+  const br = rr * (1.4 + rng() * 0.5);
+  kit.add(M.city[mat], new THREE.SphereGeometry(br, 14, 9).scale(1, 0.8, 1).translate(x, yy - br * 0.7, z), nd);
+  yy -= br * 1.35;
+  const sp = len * (0.05 + rng() * 0.08);
+  kit.add(M.city[(mat + 2) % 3], new THREE.ConeGeometry(br * 0.55, sp, 10).rotateX(Math.PI).translate(x, yy - sp / 2, z), nd);
+  if (rng() < 0.45) { const l = len * (0.15 + rng() * 0.35); kit.add(M.dark, new THREE.CylinderGeometry(Math.max(0.08, r * 0.02), Math.max(0.08, r * 0.02), l, 4).translate(x + br * 0.3, yy - sp * 0.5 - l / 2, z), nd); }
+}
+
+/**
+ * The hanging city (IMG_3789 p2, IMG_3790 p2, IMG_3791 p2): a disc at y, and under it its towers
+ * hanging in clusters, a tall one in each with lesser ones packed round it, longest in the middle;
+ * squat blocks fill the underside between them, cables sag from cluster to cluster.
+ */
+function hangingCity(kit, M, { x, y, z, R, depth, n = 220, seed = 5 }) {
+  const rng = mulberry32(seed), nd = { solid: false, shadow: false };
+  kit.add(M.city[0], new THREE.CylinderGeometry(R, R * 0.96, R * 0.06, 48).translate(x, y + R * 0.03, z), nd);
+  for (let i = 0; i < n * 0.5; i++) {   // the underside's blocks
+    const a = rng() * Math.PI * 2, rr = Math.sqrt(rng()) * R * 0.95, w = R * (0.04 + rng() * 0.08), h = depth * (0.04 + rng() * 0.1) * (1 - 0.6 * rr / R);
+    kit.add(M.city[Math.floor(rng() * 3)], put(new THREE.BoxGeometry(w, h, w * (0.6 + rng() * 0.8)), x + Math.cos(a) * rr, y - h / 2, z + Math.sin(a) * rr, rng() * 3), nd);
+  }
+  const clusters = [], nc = Math.max(5, Math.round(n / 22));
+  for (let i = 0; i < nc * 4 && clusters.length < nc; i++) {
+    const a = rng() * Math.PI * 2, rr = Math.pow(rng(), 0.7) * R * 0.85, cx = x + Math.cos(a) * rr, cz = z + Math.sin(a) * rr, cr = R * (0.075 + rng() * 0.06) * (1.2 - 0.5 * rr / R);
+    if (clusters.some((c) => Math.hypot(c.x - cx, c.z - cz) < (c.r + cr) * 2.1)) continue;
+    clusters.push({ x: cx, z: cz, r: cr, len: depth * (1 - 0.6 * rr / R) * (0.6 + rng() * 0.4) });
+  }
+  for (const c of clusters) {
+    const mat = Math.floor(rng() * 3);
+    hangingTower(kit, M, rng, c.x, y, c.z, c.r, c.len, mat);
+    for (let k = 0, m = 3 + Math.floor(rng() * 4); k < m; k++) {   // the lesser towers packed round it
+      const a = (k / m) * Math.PI * 2 + rng() * 0.6, d = c.r * (1.15 + rng() * 0.5), r = c.r * (0.3 + rng() * 0.3);
+      hangingTower(kit, M, rng, c.x + Math.cos(a) * d, y, c.z + Math.sin(a) * d, r, c.len * (0.3 + rng() * 0.45), (mat + k) % 3);
+    }
+  }
+  for (let i = 0; i < clusters.length; i++) {   // cables slung between neighbouring clusters
+    const p = clusters[i], q = clusters[(i + 1) % clusters.length], yp = y - p.len * 0.3, yq = y - q.len * 0.3;
+    const mid = V((p.x + q.x) / 2, Math.min(yp, yq) - Math.hypot(p.x - q.x, p.z - q.z) * 0.15, (p.z + q.z) / 2);
+    kit.add(M.dark, new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(V(p.x, yp, p.z), mid, V(q.x, yq, q.z)), 16, Math.max(0.15, R * 0.003), 4), nd);
+  }
 }
 
 /** The colossal ring: arches round a circle (cx, cz) of radius R, from angle a0 to a1 (rad), deck at y with a town on it. */
@@ -222,6 +385,76 @@ function machine(kit, M, { x, y = null, z, s = 1, mat = 'rust', mast = 0, pipeTo
   kit.add(M[mat], new THREE.BoxGeometry(2.5 * s, 3 * s, 2.5 * s).translate(x + 4 * s, yb + 5 * s, z), { solid: false });
   for (const dx of [-1, 0.6]) kit.add(M.dark, new THREE.CylinderGeometry(0.1 * s, 0.1 * s, 6 * s, 4).translate(x + dx * s, yb + 11 * s, z), { solid: false });
   if (pipeTo) pipe(kit, M, [[x, yb + 9 * s, z], [x, pipeTo[1], z], pipeTo], 0.8 * s, { ground: false });
+}
+
+/**
+ * A recessed portal (IMG_3792 p3): n stone rings, one in front of the other, each a wall with a round-
+ * headed opening a step wider than the last, their voussoir joints drawn on the reveals; a vault over
+ * them keeps the cave in shade. z the innermost ring's middle, hw / spring its opening's half-width
+ * and the height its arch springs from.
+ */
+function archPortal(kit, M, { z, n = 6, hw = 3, spring = 5, step = 0.8, depth = 2, mat = 'vault' }) {
+  for (let i = 0; i < n; i++) {
+    const zi = z + i * depth, h = hw + i * step, sp = spring + i * step * 0.6, W = h + 40, top = sp + h + 3;
+    const sh = new THREE.Shape();
+    sh.moveTo(-W, -1); sh.lineTo(-h, -1); sh.lineTo(-h, sp); sh.absarc(0, sp, h, Math.PI, 0, true); sh.lineTo(h, -1); sh.lineTo(W, -1); sh.lineTo(W, top); sh.lineTo(-W, top); sh.lineTo(-W, -1);
+    kit.add(M[mat], new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: false, curveSegments: 24 }).translate(0, 0, zi - depth / 2), { solid: false });
+    // the joints on the reveal this ring shows round the next one's opening
+    const f = zi + depth / 2 + 0.02, rm = h + step / 2;
+    for (let j = 1; j < 14; j++) {
+      const t = (Math.PI * j) / 14;
+      kit.add(M.dark, new THREE.BoxGeometry(0.07, step, 0.04).rotateZ(t - Math.PI / 2).translate(Math.cos(t) * rm, sp + Math.sin(t) * rm, f), { solid: false, shadow: false });
+    }
+    for (let y = 1.1 + (i % 2) * 0.6; y < sp; y += 1.3) for (const e of [-1, 1]) kit.add(M.dark, new THREE.BoxGeometry(step, 0.07, 0.04).translate(e * rm, y, f), { solid: false, shadow: false });
+  }
+  kit.add(M[mat], new THREE.BoxGeometry(120, 4, 40).translate(0, spring + hw + n * step * 1.6 + 2, z + n * depth + 6), { solid: false });
+}
+
+/** The moon: a pale disc facing the camera's eye (local), R its radius, a few craters on it. */
+function moon(kit, M, c, R, eye = V(0, 1.7, 0), seed = 9) {
+  const rng = mulberry32(seed), to = eye.clone().sub(c), nd = { solid: false, shadow: false };
+  kit.add(M.moon, new THREE.CircleGeometry(R, 48).lookAt(to).translate(c.x, c.y, c.z), nd);
+  for (let i = 0; i < 11; i++) {
+    const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * R * 0.75, r = R * (0.05 + rng() * 0.13);
+    kit.add(M.crater, new THREE.CircleGeometry(r, 18).translate(Math.cos(a) * d, Math.sin(a) * d, 0.5 + i * 0.05).lookAt(to).translate(c.x, c.y, c.z), nd);
+  }
+}
+
+/**
+ * The oval tunnel's inside (IMG_3791 p4): an oval tube from the wall at z going back `len`, pale and
+ * lit from within, ribs along it, rounded machine forms and pipes along its sides, a brighter far end.
+ */
+function ovalTunnel(kit, M, { x, y, z, rx, ry, len, seed = 1 }) {
+  const rng = mulberry32(seed), nd = { solid: false, shadow: false };
+  kit.add(M.aquaIn, new THREE.CylinderGeometry(1, 1, len, 40, 1, true).scale(rx, 1, ry).rotateX(Math.PI / 2).translate(x, y, z - len / 2), nd);
+  for (let i = 1; i < 5; i++) kit.add(M.aquaMid, new THREE.TorusGeometry(1, 0.035, 4, 40).scale(rx * 0.99, ry * 0.99, 1).translate(x, y, z - i * len / 5), nd);
+  for (let i = 0; i < 14; i++) {
+    const t = rng() * Math.PI * 2, s = 0.7 + rng() * 1.6, zz = z - 2 - rng() * (len - 6);
+    kit.add(M.aquaMid, new THREE.SphereGeometry(s, 12, 8).scale(1, 1.4 + rng(), 0.9).translate(x + Math.cos(t) * rx * 0.82, y + Math.sin(t) * ry * 0.82, zz), nd);
+  }
+  for (const e of [-1, 1]) for (let i = 0; i < 3; i++) kit.add(M.aquaMid, new THREE.CylinderGeometry(0.22, 0.22, ry * 1.5, 6).translate(x + e * rx * (0.62 + i * 0.08), y, z - 3 - i * 4 - rng() * 3), nd);
+  kit.add(M.glowAqua, new THREE.CircleGeometry(1, 40).scale(rx, ry, 1).translate(x, y, z - len + 0.1), nd);
+}
+
+/**
+ * A ledge of layered rock (IMG_3792 p5): slabs stacked one on another, each jutting out a step past
+ * the one above it, their edges broken, sloping down to the right of the view.
+ */
+function rockLedge(kit, M, { x, z, y, w, d, layers = 6, seed = 1, drop = 1.1, reach = 2, yaw = 0 }) {
+  const rng = mulberry32(seed);
+  for (let i = 0; i < layers; i++) {
+    const top = y - i * drop, right = x + w / 2 + i * reach, t = i === layers - 1 ? 24 : drop + 0.9;
+    const sh = new THREE.Shape(), back = -d / 2, front = d / 2, pts = 12;
+    sh.moveTo(x - w * 2, back);
+    for (let k = 0; k <= pts; k++) {
+      const v = back + (front - back) * (k / pts), bulge = Math.sin((k / pts) * Math.PI) * 1.4;
+      sh.lineTo(right + bulge + (rng() - 0.5) * 2.2 + Math.sin(k * 1.7 + i) * 0.8, v);
+    }
+    sh.lineTo(x - w * 2, front); sh.lineTo(x - w * 2, back);
+    // (the shape lies in x, z-from-the-ledge's middle; extruded upward)
+    const g = new THREE.ExtrudeGeometry(sh, { depth: t, bevelEnabled: true, bevelThickness: 0.3, bevelSize: 0.55, bevelSegments: 2, curveSegments: 4 }).rotateX(Math.PI / 2).translate(-x, top - 0.3, 0).rotateY(yaw).translate(x, 0, z);
+    kit.add(M.ledgeRock, g, { solid: false });
+  }
 }
 
 /** A figure in the sheets' violet that isn't a person of content.js (on a ledge, in a drum). */
@@ -281,16 +514,15 @@ export const BURIED_VIEWS = [
   // ===================================================================== IMG_3789
   view({
     id: '3789-domes-trench', title: 'The domes on the ridge, the pipes in the trench', sheet: 'IMG_3789', panel: 1, where: 'top left', crop: [39, 31, 312, 467],
-    camera: { eye: [0, 4, 0], yaw: 0, fov: 60, horizon: 0.45 },
+    camera: { eye: [0, 16, 10], yaw: 0, fov: 60, horizon: 0.3 },
     sun: { side: -120, el: 45 }, sky: SKY.cream,
-    ground: dunes({ slope: [-0.12, 0.1], trenches: [[-8, -16, 40, -32, 14, 9]] }),
+    ground: dunes({ slope: [-0.12, 0.1], trenches: [[-26, -12, 40, -32, 16, 10]] }),
     people: [{ at: [-7, -40], facing: 0.3, ...CLOAKED }],
     build(kit, v) {
       machineScene(kit, v, {
         seed: 37891,
         huts: [{ x: -14, z: -95, r: 3.5 }, { x: -1, z: -100, r: 3.8 }, { x: 14, z: -110, r: 5 }],
-        banks: [{ x0: -6, z0: -22, x1: 44, z1: -37, y0: -12, y1: -2, r: 1.1, seed: 1 }, { x0: -10, z0: -12, x1: 40, z1: -28, y0: -12, y1: -3, r: 1.3, seed: 2 }],
-        machinery: [{ x0: -8, z0: -18, x1: 42, z1: -34, y0: -10, y1: -3, depth: 3, n: 26, seed: 3, mats: ['pipeBlue', 'flange', 'tealPale'] }],
+        extra(k, M) { pipeMass(k, M, { x0: -26, z0: -12, x1: 40, z1: -32, w: 16, deep: 10, seed: 37891, density: 2.6 }); },
       });
     },
   }),
@@ -303,7 +535,7 @@ export const BURIED_VIEWS = [
       machineScene(kit, v, {
         seed: 37892,
         rings: [{ cx: 0, cz: -170, R: 260, y: 70, W: 34, a0: Math.PI * 0.55, a1: Math.PI * 1.45, arches: 22 }],
-        cities: [{ x: 0, y: 330, z: -260, R: 230, depth: 160, n: 260 }],
+        cities: [{ x: 0, y: 400, z: -240, R: 230, depth: 400, n: 300 }],
         clouds: { y: 30, near: 280, far: 900, n: 30, size: [30, 50], spread: 40 },
       });
     },
@@ -347,7 +579,7 @@ export const BURIED_VIEWS = [
     build(kit, v) {
       machineScene(kit, v, {
         seed: 37895,
-        drums: [{ x: 0, z: -95, r: 30, y1: 70, mat: 'teal', lit: 0.1 }],
+        drums: [{ x: 0, z: -92, r: 30, y1: 58, mat: 'slate', lit: 0.1, inside: 0.8, gap: 1.7, roof: 17, vault: 8, roofShadow: false }],
         walls: [{ x: 0, z: -40, w: 80, h: 70, t: 4, holes: [[0, 30, 21, 30]], mat: 'rust' }],
         machinery: [{ x0: -14, z0: -2, x1: -14, z1: -38, y0: 0, y1: 50, depth: 5, n: 50, seed: 7 }, { x0: 14, z0: -2, x1: 14, z1: -38, y0: 0, y1: 50, depth: 5, n: 50, seed: 8 }],
         tanks: [{ x: -17, z: -20, r: 4, h: 60 }],
@@ -511,9 +743,7 @@ export const BURIED_VIEWS = [
         walls: [{ x: 2, z: -14, w: 40, h: 40, t: 2, holes: [[-1, 6, 4.5, 7.5], [7.5, 4.5, 1, 1.4]], mat: 'rust', rim: 'glowAqua' }],
         machinery: [{ x0: -14, z0: -3, x1: -14, z1: -13, y0: 0, y1: 30, depth: 2, n: 20, seed: 15, mats: ['rustDark', 'rust'] }],
         extra(k, M) {
-          // the oval's tunnel: rings of light going in
-          for (let i = 1; i <= 6; i++) k.add(M.glowAqua, put(new THREE.TorusGeometry(1, 0.05, 4, 40).scale(4.5 - i * 0.5, 7.5 - i * 0.8, 1), 1, 6 - i * 0.2, -14 - i * 2.2, 0), { solid: false });
-          k.add(M.tealPale, put(new THREE.CylinderGeometry(1, 1, 16, 40, 1, true).scale(4.4, 1, 7.4).rotateX(Math.PI / 2), 1, 6, -22, 0), { solid: false });
+          ovalTunnel(k, M, { x: 1, y: 6, z: -15, rx: 4.4, ry: 7.4, len: 26, seed: 3791 });
         },
       });
     },
@@ -541,8 +771,8 @@ export const BURIED_VIEWS = [
     build(kit, v) {
       machineScene(kit, v, {
         seed: 37916,
-        drums: [{ x: 0, z: -22, r: 32, y1: 80, mat: 'teal', lit: 0.5, slits: 30 }],
-        clouds: { y: 280, near: 300, far: 700, n: 30, size: [30, 50], spread: 25 },
+        drums: [{ x: 0, z: -30, r: 40, y1: 34, mat: 'teal', lit: 0.5, slits: 30, inside: 1.3, roof: 14, off: 22 }],
+        clouds: { y: 120, near: 300, far: 700, n: 30, size: [30, 50], spread: 25 },
       });
     },
   }),
@@ -590,14 +820,18 @@ export const BURIED_VIEWS = [
     id: '3792-arch-moon', title: 'The moon over the drum, through the green arch', sheet: 'IMG_3792', panel: 3, where: 'right, tall', crop: [683, 341, 315, 654],
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 70, pitch: 14 },
     sun: { side: 170, el: 60 }, sky: ['#c9c3d6', '#d9d3e2', TINT, '#ffffff', '#fff6dc'],
-    ground: floor(TEALG),
+    // (the cave's mouth opens a little above the drum's floor; the moon, a great pale disc, hangs in its far wall)
+    ground: { ...floor(TEALG), height: (x, z) => 0.15 * nM(x * 0.08, z * 0.08) - 8 * smoothstep(-13, -16, z) },
     build(kit, v) {
       machineScene(kit, v, {
         seed: 37923,
-        walls: [{ x: 0, z: -12, w: 70, h: 80, t: 8, holes: [[0, 30, 15, 30]], mat: 'green', rim: 'tealDark' }],
-        drums: [{ x: 0, z: -50, r: 34, y1: 70, mat: 'green', lit: 0.6, slits: 30, gap: 1.2 }],
-        machinery: [{ x0: -24, z0: -70, x1: 24, z1: -70, y0: 0, y1: 16, depth: 6, n: 80, seed: 17, mats: ['teal', 'tealDark', 'green'], lamps: 20 }],
-        extra(k, M) { k.add(M.glowAqua, new THREE.CircleGeometry(150, 40).translate(10, 330, -400).lookAt(new THREE.Vector3(0, 1.7, 0)), { solid: false, shadow: false }); },
+        drums: [{ x: 0, z: -62, r: 40, y0: -8, y1: 130, mat: 'slate', lit: 0.6, slits: 0, gap: 1.0, inside: 0.5, ribs: false }],
+        machinery: [{ x0: -30, z0: -86, x1: 30, z1: -86, y0: -8, y1: 2, depth: 7, n: 90, seed: 17, mats: ['teal', 'tealDark', 'green'], lamps: 26 },
+          { x0: -26, z0: -40, x1: 26, z1: -76, y0: -8, y1: -2, depth: 7, n: 80, seed: 18, mats: ['teal', 'tealDark', 'green'], lamps: 20 }],
+        extra(k, M) {
+          archPortal(k, M, { z: -12, n: 6, hw: 3.2, spring: 10.5, step: 0.8, depth: 1.9 });
+          moon(k, M, V(-2, 37, -96), 16);
+        },
       });
     },
   }),
@@ -629,6 +863,7 @@ export const BURIED_VIEWS = [
         seed: 37925,
         machines: [{ x: -4, y: 12, z: -60, s: 1.4, mat: 'green', pipeTo: [-40, 22, -60] }],
         clouds: { y: -6, near: 120, far: 700, n: 30, size: [24, 44], spread: 25, yaw: 20 },
+        extra(k, M) { rockLedge(k, M, { x: -16, z: -14, y: 2.2, w: 20, d: 16, layers: 7, drop: 0.8, reach: 1.5, yaw: 0.45, seed: 3792 }); },
       });
     },
   }),
