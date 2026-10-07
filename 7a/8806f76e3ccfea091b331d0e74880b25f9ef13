@@ -1,0 +1,29 @@
+changelog.md
+  s_55b4bc53b812ec::t_06231959cd475b 5-8
+docs/systems/characters.md
+  s_55b4bc53b812ec::t_8f53e6a30457a2 380-393,395-397
+src/cape.js
+  s_55b4bc53b812ec::t_09803b40e653ef 45-58,66-67,69,78-80,87-114,144-146,178-180,183,190,193-194,198-201,213-215,217,235,242-243,247,273,294,373,375-376,379-380,443
+src/changelog.js
+  s_55b4bc53b812ec::t_c782a43f1aabf8 10-12
+src/npc.js
+  s_55b4bc53b812ec::t_8fdd149ebe8db9 3-4,63,811-823
+tests/cape.test.js
+  s_55b4bc53b812ec::t_e8e5ccf2a4452a 138,143-147,153-154,156-160,173-180,184-186,188,190,192,194-203,205-213,215,227-228,249-272,287-290
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7a8806f76e3ccfea091b331d0e74880b25f9ef13",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
