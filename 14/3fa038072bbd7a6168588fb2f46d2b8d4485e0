@@ -1,0 +1,45 @@
+TODO.md
+  s_55b4bc53b812ec::t_f0fae7c6fd3dfe 100-101
+changelog.md
+  s_55b4bc53b812ec::t_9a891a23f1f3a7 10-11
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_8f7e75b0ba0240 93-103
+src/changelog.js
+  s_55b4bc53b812ec::t_749636075d797a 14-15
+src/desert-city.js
+  s_55b4bc53b812ec::t_0f9dacd8404da8 6,279-280
+src/door-stain.js
+  s_55b4bc53b812ec::t_85107fe4bc50c4 1-38
+src/levels/arzach2.js
+  s_55b4bc53b812ec::t_83c34a77b6de77 7,184,399-400,419-420,423-425,484,517-518
+src/levels/bazaar.js
+  s_55b4bc53b812ec::t_8c814a94003a0f 10,52-53,161-166
+src/levels/home-houses.js
+  s_55b4bc53b812ec::t_cc94e8199be5b2 4-5,120-129,327-328
+tests/door-stain.test.js
+  s_c4102e279875b2::t_1b6b8745dc6e75 1-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "143fa038072bbd7a6168588fb2f46d2b8d4485e0",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c4102e279875b2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa195c276979baa45",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
