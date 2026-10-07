@@ -348,7 +348,8 @@ test('an ordinary canvas rucksack with the slim fluid flask sunk into its outer 
   // the flask (TANK, chest frame): flat and narrower than the rucksack, half sunk into its outer face
   const R = Math.max(...TANK.profile.map(([r]) => r)) * TANK.scale;
   const halfW = R * TANK.squash, halfD = R * TANK.depth, [, y0, z0] = TANK.at;
-  assert.ok(halfD < 0.08 && halfW < 0.12, `a slim flask (${(2 * halfW).toFixed(2)} × ${(2 * halfD).toFixed(2)} m)`);
+  // (the sheets' squat glass jar: about as wide as the shoulder blades, still flat front to back)
+  assert.ok(halfD < 0.08 && halfW < 0.135, `a flat flask (${(2 * halfW).toFixed(2)} × ${(2 * halfD).toFixed(2)} m)`);
   assert.ok(halfW < (sack.max.x - sack.min.x) / 2 - 0.02, 'the canvas shows either side of it');
   const outer = RUCKSACK.back - RUCKSACK.depth;
   assert.ok(z0 + halfD > outer + 0.02 && z0 < outer, 'half sunk into the rucksack\'s outer face');

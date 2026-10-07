@@ -79,8 +79,9 @@ test('the skiff waits at the cave mouth and the collision budget holds', () => {
   // saucer's blister and the 30 drapes over the root cave: 130 k → ~154 k, the BVH 38 → 56 ms to bake,
   // ground rays and capsule pushes within noise; since its third pass every root, the 26 bank roots, the
   // whip roots and the splayed feet: ~154 k → ~172 k, bake +5 ms, along the path rays +7 %, capsules +15 %;
-  // docs/systems/movement.md "Contact")
-  assert.ok(triangles < 180000, `static collision budget: ${triangles}`);
+  // docs/systems/movement.md "Contact"; the cave mouth's frame of roots, the great arches' strands and the nest's
+  // bowl, solid as drawn: ~172 k → ~190 k, docs/systems/references.md "Lorn II's sheets")
+  assert.ok(triangles < 196000, `static collision budget: ${triangles}`);
 });
 
 test('every root is solid as drawn: the bank roots, the whip roots and the splayed feet too', () => {

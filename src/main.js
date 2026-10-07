@@ -1116,6 +1116,8 @@ function shadowPass(c, reach, hide = []) {
   c.place(player.pos);
   const off = shadowCull.hide(reach, c.texel, c.depth, 0.75, hide);
   c.render(renderer, scene);
+  // (a mesh whose shape its own material makes, drawn with that material: the traveller's overshirt, tripo-cloth.js)
+  if (player.object.visible) for (const o of player.character?.shadowCasters ?? []) renderer.render(o, c.cam);
   frameStats.culled += off.length;
   for (const o of off) o.visible = true;
 }

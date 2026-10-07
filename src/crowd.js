@@ -160,7 +160,7 @@ function robeGeometry(cols, rows) {
 }
 const at = (g, x, y, z) => g.translate(x, y, z);
 const ROLE_ZONE = { skin: Z.skin, cloak: Z.cloak, cloth: Z.cloth, legs: Z.legs, hat: Z.hat, accent: Z.accent, hair: Z.hair, lining: Z.lining,
-  dark: Z.dark, metal: Z.metal, wood: Z.wood, lamp: Z.lamp };
+  dark: Z.dark, metal: Z.metal, wood: Z.wood, lamp: Z.lamp, clay: Z.wood };   // (clay: Nour's gourds, never a crowd's; the figure would draw it as wood)
 const ids = (w) => Object.entries(w ?? {}).filter(([id, v]) => v > 0 && id !== 'none').map(([id]) => id);
 /** The pieces a world's crowd can wear (every tribe's), for its figure. */
 export function worldPieces(world) {

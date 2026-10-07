@@ -189,6 +189,7 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'stun');
   assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.stun.tones[0], 'cold blue in the tank');
+  assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), MODES.stun.tones[0], 'the flask\'s fluid itself turns stilling blue');
   step(1, { PadModeNext: true }); step(1);
   assert.equal(tool.mode, 'fire', 'D-pad right');
   assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.fire.tones[0], 'ember orange');
@@ -198,6 +199,8 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   step(90); const t0 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t0 < 0.2, 'stilling: nearly still');
   tool.setMode('fire'); step(60); const t1 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t1 > 2, 'ember: boiling');
   assert.deepEqual(events, ['fire', 'shoot', 'stun', 'fire', 'stun', 'fire']);
+  tool.setMode('shoot'); step(1);
+  assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), TANK.base, 'the flask back to its own green');
   // a mode lost (the dev menu) falls back to shoot
   items.revoke('fire'); step(1);
   assert.equal(tool.mode, 'shoot');

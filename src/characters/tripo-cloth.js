@@ -54,9 +54,106 @@ export function compactGeometry(geometry,used,drop=[]){
  return result;
 }
 
+/**
+ * The garment's vertex shader (gpu): what update() did a vertex at a time on the main thread (docs/systems/
+ * performance.md). The vertex is the rigid rest shape on the attachment bone (uGarmentRigid) eased into its
+ * skinned place (three's skinning, from the bone texture) by 1 - its freedom; plus its cell's displacement off
+ * the targets (uClothP - uClothG, bilinear, times the freedom); then, while simulated and nearly free, pushed
+ * out of the leg capsules along its outward direction. Its normal: the rest normal turned the same way (rigid,
+ * skinned), then by the cage's own turn in its cell (its normal over the targets to over the particles).
+ */
+export const GARMENT_CAPS=5;   // the leg capsules (each thigh and shin, and the crotch's)
+export const GARMENT_GLSL=`
+  uniform mat4 uGarmentRigid;
+  uniform sampler2D uClothP, uClothG;
+  uniform vec4 uGarmentCapA[${GARMENT_CAPS}], uGarmentCapB[${GARMENT_CAPS}];
+  uniform float uGarmentSim;
+  in vec4 aCage;
+  in vec3 aOutward;
+  vec3 garmentAt(sampler2D t, int i) { return texelFetch(t, ivec2(i, 0), 0).xyz; }
+  float garmentD2(float t, vec3 x, vec3 o, vec3 a, vec3 ax, float l2) { vec3 d = x + o * t - a; vec3 q = d - clamp(dot(d, ax) / l2, 0.0, 1.0) * ax; return dot(q, q); }
+`;
+/** Patch a makeMaterial ShaderMaterial to draw the overshirt (GARMENT_GLSL), `cols` columns of cells in its cage. */
+export function garmentShader(material,cols){
+ if(material.defines?.GARMENT)return material;
+ const vs=material.vertexShader,skinEnd='#include <skinning_vertex>\n    #endif\n',at=vs.indexOf(skinEnd);
+ if(at<0||!vs.includes('vObjNormal = normal / scl;'))throw new Error('tripo-cloth: the material\'s vertex shader changed (no skinning block to move the garment after)');
+ const main=vs.indexOf('void main()');
+ const body=garmentBody(cols);
+ material.vertexShader=vs.slice(0,main)+GARMENT_GLSL+'\n  '+vs.slice(main,at+skinEnd.length)+body+vs.slice(at+skinEnd.length);
+ return finishGarment(material);
+}
+/** The vertex shader's own steps (after three's skinning chunks: `transformed`, `objectNormal` skinned). */
+function garmentBody(cols){
+ return `    {
+      // the overshirt (tripo-cloth.js garmentShader)
+      float free = aCage.w, sk = 1.0 - free;
+      vec3 p = mix((uGarmentRigid * vec4(position, 1.0)).xyz, transformed, sk);
+      vec3 nn = normalize(mix(mat3(uGarmentRigid) * normal, objectNormal, sk));
+      if (free > 0.0) {
+        int i0 = int(aCage.x + 0.5), i1 = i0 + 1, i2 = i0 + ${cols+1}, i3 = i2 + 1;
+        float u = aCage.y, v = aCage.z;
+        vec3 P0 = garmentAt(uClothP, i0), P1 = garmentAt(uClothP, i1), P2 = garmentAt(uClothP, i2), P3 = garmentAt(uClothP, i3);
+        vec3 G0 = garmentAt(uClothG, i0), G1 = garmentAt(uClothG, i1), G2 = garmentAt(uClothG, i2), G3 = garmentAt(uClothG, i3);
+        p += ((P0 - G0) * (1.0 - u) * (1.0 - v) + (P1 - G1) * u * (1.0 - v) + (P2 - G2) * (1.0 - u) * v + (P3 - G3) * u * v) * free;
+        vec3 a = normalize(cross(mix(G1 - G0, G3 - G2, v), mix(G2 - G0, G3 - G1, u)));
+        vec3 b = normalize(mix(a, normalize(cross(mix(P1 - P0, P3 - P2, v), mix(P2 - P0, P3 - P1, u))), free));
+        vec3 ax = cross(a, b); float c = dot(a, b);
+        if (c > -0.95) nn = nn * c + cross(ax, nn) + ax * (dot(ax, nn) / (1.0 + c));
+        if (uGarmentSim > 0.5 && free > 0.95) for (int k = 0; k < ${GARMENT_CAPS}; k++) {
+          vec4 A = uGarmentCapA[k], B = uGarmentCapB[k];
+          float r2 = A.w * A.w;
+          if (A.w <= 0.0 || garmentD2(0.0, p, aOutward, A.xyz, B.xyz, B.w) >= r2) continue;
+          float lo = 0.0, hi = A.w * 3.0;
+          for (int i = 0; i < 14; i++) { float mid = 0.5 * (lo + hi); if (garmentD2(mid, p, aOutward, A.xyz, B.xyz, B.w) < r2) lo = mid; else hi = mid; }
+          p += aOutward * hi;
+          // pressed against the leg, the cloth faces away from its axis (the main thread's normals, worked out from that shape, did)
+          vec3 d = p - A.xyz, q = d - clamp(dot(d, B.xyz) / B.w, 0.0, 1.0) * B.xyz;
+          nn = normalize(mix(nn, normalize(q), clamp(hi / 0.012, 0.0, 1.0)));
+        }
+      }
+      transformed = p; objectNormal = normalize(nn);
+    }
+`;
+}
+function finishGarment(material){
+ material.vertexShader=material.vertexShader.replace('vObjNormal = normal / scl;','vObjNormal = normal / scl;\n    #ifdef GARMENT\n      vObjPos = transformed * scl; vObjNormal = objectNormal / scl;   // (strokes on the moving cloth, as when it was rewritten here)\n    #endif');
+ material.defines={...material.defines,GARMENT:1};
+ Object.assign(material.uniforms,{uGarmentRigid:{value:new T.Matrix4()},uClothP:{value:null},uClothG:{value:null},uGarmentSim:{value:0},uGarmentCapA:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4())},uGarmentCapB:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4(0,0,0,1))}});
+ material.needsUpdate=true;
+ return material;
+}
+/**
+ * The garment in the shadow maps (gpu): the scene's shadow passes draw everything with one plain material,
+ * which would skin the garment but not move it with the cage, so its shadow fell where it isn't and shaded
+ * it in patches. It is left out of them (Humanoid.noShadow) and this draws it there instead, the same shape
+ * (main.js shadowPass: a character's shadowCasters, each drawn with its own material).
+ */
+export function garmentDepthMaterial(cols){
+ const m=new T.ShaderMaterial({side:T.DoubleSide,colorWrite:false,
+  vertexShader:`#include <common>
+  #include <skinning_pars_vertex>
+  ${GARMENT_GLSL}
+  void main() {
+    vec3 transformed = position;
+    vec3 objectNormal = normal;
+    #include <skinbase_vertex>
+    #include <skinnormal_vertex>
+    #include <skinning_vertex>
+${garmentBody(cols)}
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+  }`,
+  fragmentShader:'void main() { gl_FragColor = vec4(1.0); }'});
+ m.defines={GARMENT:1};
+ Object.assign(m.uniforms,{uGarmentRigid:{value:new T.Matrix4()},uClothP:{value:null},uClothG:{value:null},uGarmentSim:{value:0},uGarmentCapA:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4())},uGarmentCapB:{value:Array.from({length:GARMENT_CAPS},()=>new T.Vector4(0,0,0,1))}});
+ return m;
+}
+
 // Drive the original textured lower overshirt with a regular open-front cage.
 // useWorker: simulate the cage in a worker (the game; tests and pages without workers step it here)
-export function makeTripoCloth(source, colors, { useWorker = typeof window !== 'undefined' && typeof Worker !== 'undefined' } = {}) {
+// gpu: the garment is skinned and moved by the cage in its vertex shader (garmentShader: the game; its
+// material is patched once made, gpuMaterial), not rewritten here a vertex at a time (tests: the arrays, here)
+export function makeTripoCloth(source, colors, { useWorker = typeof window !== 'undefined' && typeof Worker !== 'undefined', gpu = typeof window !== 'undefined' } = {}) {
   const original = source.geometry, pos = original.attributes.position;
   const points = Array.from({length:pos.count}, (_,i) => V().fromBufferAttribute(pos,i));
   const shirt = points.map((p,i) => p.y > .66 && p.y < TOP + .035 && Math.abs(p.x) < .25 && red(colors[i]));
@@ -115,13 +212,29 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
   // Only the vertices the shirt's triangles use (about a sixth of the body's): the geometry is rewritten,
   // its normals worked out and uploaded every frame, so the unused rest would only cost time.
   const used=[...new Set(Array.from(detailed.index.array))];
-  const garmentGeometry=compactGeometry(detailed,used,['skinIndex','skinWeight']);
+  const garmentGeometry=compactGeometry(detailed,used,gpu?[]:['skinIndex','skinWeight']);
+  // (its normals at rest as they were worked out each frame from the shape: the shader turns these)
+  if(gpu)vertexNormals(garmentGeometry);
   const garmentMaterial=source.material.clone();garmentMaterial.side=T.DoubleSide;
   const lining=new T.Color().setHex(0xb46249, T.LinearSRGBColorSpace).convertSRGBToLinear();
   garmentMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>\nif (!gl_FrontFacing) diffuseColor.rgb = vec3(${lining.r},${lining.g},${lining.b});`);};
   garmentMaterial.customProgramCacheKey=()=> 'tripo-cloth-lining-v1';
-  const garment=new T.Mesh(garmentGeometry,garmentMaterial);garment.frustumCulled=false;source.parent.add(garment);
+  const garment=gpu?new T.SkinnedMesh(garmentGeometry,garmentMaterial):new T.Mesh(garmentGeometry,garmentMaterial);garment.frustumCulled=false;source.parent.add(garment);
+  if(gpu)garment.bind(source.skeleton,source.bindMatrix);
+  // (its shadow, the same shape: drawn by the shadow passes on its own, garmentDepthMaterial)
+  let shadow=null;
+  if(gpu){shadow=new T.SkinnedMesh(garmentGeometry,garmentDepthMaterial(COLS));shadow.name='TravellerOvershirt shadow';shadow.bindMode='detached';shadow.bind(source.skeleton,source.bindMatrix);shadow.frustumCulled=false;shadow.matrixAutoUpdate=false;shadow.matrixWorldAutoUpdate=false;}
   const mapping=used.map((i,o)=>{const p=V().fromArray(detailedRest,i*3),u=clamp((angleOf(p)-START)/(END-START)*COLS,0,COLS-.000001),v=clamp((TOP+.025-p.y)/(TOP+.025-BOTTOM)*ROWS,0,ROWS-.000001),c=Math.floor(u),r=Math.floor(v);return {i,o,p,ids:[id(r,c),id(r,c+1),id(r+1,c),id(r+1,c+1)],weights:[(1-u+c)*(1-v+r),(u-c)*(1-v+r),(1-u+c)*(v-r),(u-c)*(v-r)],free:T.MathUtils.smoothstep(TOP-p.y,0,.10),local:p.clone().applyMatrix4(source.matrixWorld).applyMatrix4(inverseAttachment),outward:new T.Vector3(p.x,0,p.z+.016).normalize()};});
+  // the shader's inputs (gpu): each vertex's cell (its first particle, where in it, its freedom) and its outward
+  // direction; the particles and their targets, a texel each, every frame; the rest shape onto the attachment bone
+  let gpuState=null;
+  if(gpu){
+    const cell=new Float32Array(mapping.length*4),outward=new Float32Array(mapping.length*3);
+    mapping.forEach((m,v)=>{const p=m.p,u=clamp((angleOf(p)-START)/(END-START)*COLS,0,COLS-.000001),w=clamp((TOP+.025-p.y)/(TOP+.025-BOTTOM)*ROWS,0,ROWS-.000001),c=Math.floor(u),r=Math.floor(w);cell.set([id(r,c),u-c,w-r,m.free],v*4);outward.set([m.outward.x,m.outward.y,m.outward.z],v*3);});
+    garmentGeometry.setAttribute('aCage',new T.BufferAttribute(cell,4));garmentGeometry.setAttribute('aOutward',new T.BufferAttribute(outward,3));
+    const tex=()=>{const t=new T.DataTexture(new Float32Array(rest.length*4),rest.length,1,T.RGBAFormat,T.FloatType);t.minFilter=t.magFilter=T.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;};
+    gpuState={P:tex(),G:tex(),restToAttach:source.matrixWorld.clone().premultiply(inverseAttachment),rigid:new T.Matrix4(),capA:Array.from({length:GARMENT_CAPS},()=>new T.Vector4()),capB:Array.from({length:GARMENT_CAPS},()=>new T.Vector4(0,0,0,1))};
+  }
   const caps=[];
   // The donor joints sit behind the generated trousers. Center the collision
   // axes on the repaired fabric, not on those anatomical joint positions; the
@@ -193,9 +306,11 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
     skinSource.bindMatrixInverse.copy(source.bindMatrixInverse);
     skinDetail.bindMatrixInverse.copy(source.bindMatrixInverse);
     for(let b=0;b<boneSkin.length;b++)boneSkin[b].multiplyMatrices(skeleton.bones[b].matrixWorld,skeleton.boneInverses[b]);
-    for(let b=0;b<boneSkin.length;b++)boneMesh[b].multiplyMatrices(source.bindMatrixInverse,boneSkin[b]);
+    if(!gpu)for(let b=0;b<boneSkin.length;b++)boneMesh[b].multiplyMatrices(source.bindMatrixInverse,boneSkin[b]);   // (the vertex loop's; the shader has three's)
     toLocal.copy(source.matrixWorld).invert();
-    for(let i=0;i<target.length;i++)target[i].copy(attachmentRest[i]).applyMatrix4(attachment.matrixWorld).applyMatrix4(toLocal);
+    // (the attachment bone into the mesh's space as one affine matrix: one product a point, not two)
+    attachToLocal.multiplyMatrices(toLocal,attachment.matrixWorld);
+    for(let i=0;i<target.length;i++)target[i].copy(attachmentRest[i]).applyMatrix4(attachToLocal);
     for(let i=0;i<=COLS;i++){const s=top[i],a=skin(sourceSkin,s.a,current.copy(rest[i])),b=skin(sourceSkin,s.b,scratch.copy(rest[i]));target[i].copy(a.lerp(b,s.t));}
     for(let i=0;i<N;i++){G[i*3]=target[i].x;G[i*3+1]=target[i].y;G[i*3+2]=target[i].z;}
     caps.forEach((c,k)=>{c.from.copy(c.localFrom).applyMatrix4(c.a.matrixWorld).applyMatrix4(toLocal);c.to.copy(c.localTo).applyMatrix4(c.b.matrixWorld).applyMatrix4(toLocal);setCap(simCaps,k,c.from,c.to,c.radius+.012);setCap(mapCaps,k,c.from,c.to,c.radius+.008);});
@@ -211,7 +326,8 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
       if(worker){
         pendingSteps=Math.min(pendingSteps+steps,9);   // (a worker that fell behind: at most a tenth of a second to catch up)
         if(!waiting&&pendingSteps){
-          worker.postMessage({type:'step',id:++requestId,G:G.slice(),caps:simCaps.slice(),steps:pendingSteps,reset:reset?G.slice():null});
+          const msg={type:'step',id:++requestId,G:G.slice(),caps:simCaps.slice(),steps:pendingSteps,reset:reset?G.slice():null};
+          worker.postMessage(msg,[msg.G.buffer,msg.caps.buffer,...(msg.reset?[msg.reset.buffer]:[])]);   // (handed over, not copied again)
           waiting=true;pendingSteps=0;reset=false;
         }
       }else if(steps){
@@ -220,10 +336,26 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
       }
     }
     const cage=geo.attributes.position.array;
-    for(let i=0;i<N;i++){cage[i*3]=positions[i].x;cage[i*3+1]=positions[i].y;cage[i*3+2]=positions[i].z;}
+    if(mesh.visible||!gpu){for(let i=0;i<N;i++){cage[i*3]=positions[i].x;cage[i*3+1]=positions[i].y;cage[i*3+2]=positions[i].z;}}
     const out=garmentGeometry.attributes.position.array,P=sim.P;
-    // (the attachment bone into the mesh's space as one affine matrix: one product a vertex, not two)
-    const e=attachToLocal.multiplyMatrices(toLocal,attachment.matrixWorld).elements;
+    const e=attachToLocal.elements;
+    if(gpu){
+      // the shader does the rest (garmentShader): the particles and their targets, the rigid frame, the legs
+      const S=gpuState,tp=S.P.image.data,tg=S.G.image.data;
+      for(let i=0;i<N;i++){tp[i*4]=P[i*3];tp[i*4+1]=P[i*3+1];tp[i*4+2]=P[i*3+2];tg[i*4]=simTarget[i*3];tg[i*4+1]=simTarget[i*3+1];tg[i*4+2]=simTarget[i*3+2];}
+      S.P.needsUpdate=S.G.needsUpdate=true;
+      S.rigid.multiplyMatrices(attachToLocal,S.restToAttach);
+      if(caps.length>GARMENT_CAPS)throw new Error('tripo-cloth: more leg capsules than the shader takes');
+      for(let k=0;k<GARMENT_CAPS;k++){const c=k*CAP;if(k<caps.length){S.capA[k].set(mapCaps[c],mapCaps[c+1],mapCaps[c+2],mapCaps[c+7]);S.capB[k].set(mapCaps[c+3],mapCaps[c+4],mapCaps[c+5],mapCaps[c+6]);}else S.capA[k].set(0,0,0,0);}
+      // (on the garment's material now: markHero gives the player copies of his, uniforms and all)
+      for(const m of [garment.material,shadow.material]){
+        const u=m.uniforms;
+        if(u?.uClothP){u.uClothP.value=S.P;u.uClothG.value=S.G;u.uGarmentRigid.value.copy(S.rigid);u.uGarmentSim.value=simulated?1:0;for(let k=0;k<GARMENT_CAPS;k++){u.uGarmentCapA.value[k].copy(S.capA[k]);u.uGarmentCapB.value[k].copy(S.capB[k]);}}
+      }
+      garment.updateMatrixWorld();shadow.matrixWorld.copy(garment.matrixWorld);shadow.bindMatrixInverse.copy(garment.bindMatrixInverse);
+      if(mesh.visible){geo.attributes.position.needsUpdate=true;geo.computeVertexNormals();}
+      return {particles:positions.length,triangles:renderIndex.length/3,renderTriangles:detailed.index.count/3,radii:caps.map(c=>c.radius),threaded:!!worker,gpu:true};
+    }
     // each particle's displacement off its target, once; then every vertex from the flat arrays (mapArrays)
     for(let j=0;j<N*3;j++)D[j]=P[j]-simTarget[j];
     const M=mapArrays;
@@ -247,5 +379,7 @@ export function makeTripoCloth(source, colors, { useWorker = typeof window !== '
     return {particles:positions.length,triangles:renderIndex.length/3,renderTriangles:detailed.index.count/3,radii:caps.map(c=>c.radius),threaded:!!worker};
   }
   const dispose=()=>{worker?.terminate();worker=null;};
-  return {mesh,garment,underlayer,innerShirt,update,dispose,caps,positions,rest,edges,get threaded(){return !!worker;}};
+  /** Draw the garment with `material` (a makeMaterial ShaderMaterial): with gpu, its vertex shader skins it and moves it with the cage. */
+  const gpuMaterial=(material)=>{if(gpu)garmentShader(material,COLS);return material;};
+  return {mesh,garment,shadow,underlayer,innerShirt,update,dispose,caps,positions,rest,edges,gpuMaterial,gpu,get gpuState(){return gpuState;},get threaded(){return !!worker;}};
 }
