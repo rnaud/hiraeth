@@ -1,0 +1,25 @@
+TODO.md
+  s_55b4bc53b812ec::t_cf8dd4e6fe0377 27-31,54-60
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_9490161fa54218 765-862
+scripts/bench/results/android-worlds-round4.json
+  s_55b4bc53b812ec::t_5727d3f42a983f 1-3713
+src/changelog-media.js
+  s_55b4bc53b812ec::t_243d512bcd08ca 119-128,231-239,251-255,343-348
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7376b12d836f2bba38ade1fc59c442844fab8e09",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
