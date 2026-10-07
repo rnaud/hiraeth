@@ -5,7 +5,7 @@ import { V, tube, lathe, put, smoothstep, PERSON, CLEAN_SKY, groundRibbon } from
 import { lumpy } from './sky-stones-kit.js';
 import { cloudSea, smooth } from './reference-vael2.js';
 import { SPHERES_LOOK, WHITE_SHADE } from './spheres.js';
-import { leafCrown, crescentSphere, paintTris, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
+import { leafCrown, layeredCrown, crescentSphere, paintTris, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 import { formAxis } from '../form.js';
 
 // ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ function cypress(kit, M, x, z, h, w = h * 0.12) {
 function olive(kit, M, rng, x, z, s = 1) {
   const y = kit.H(x, z) - 0.2, lean = (rng() - 0.5) * 0.8;
   kit.add(M.oliveTrunk, tube([V(x, y, z), V(x + lean * s, y + 1.4 * s, z), V(x + lean * 0.5 * s, y + 2.6 * s, z + 0.3 * s)], 0.22 * s, 6, 5), { solid: false });
-  const g = leafCrown(x + z, { lobes: 12, core: 0.75, size: [0.22, 0.34] }).scale(2.3 * s, 1.6 * s, 2.3 * s);   // (small inked leaf masses)
+  const g = layeredCrown(x + z, { lobes: [8, 6, 2], size: [0.22, 0.34] }).scale(2.2 * s, 2.0 * s, 2.2 * s);   // (round and layered, of small inked leaf masses)
   kit.add(M.olive[Math.floor(rng() * M.olive.length)], g.translate(x + lean * 0.5 * s, y + 3.3 * s, z + 0.3 * s), { solid: false });
 }
 /** A round dark shrub (or a thicket of them). */
@@ -173,13 +173,19 @@ function roundTree(kit, M, rng, x, z, h, crowns = M.dark) {
   }
 }
 
+/**
+ * The panels' plazas read pale, their joints fine: seen low across the rings (the views' eyes are at a person's
+ * height) many joints crowd into dark bands, so the views' slabs are wide and a tone apart only just past post.js's
+ * colour-edge threshold (a light joint, not a full ink line).
+ */
+const PAVE = { slab: 5, tones: [['#f6e8cf', '#eee0c6'], ['#ecdcc2', '#e4d4b9']] };
 /** The round plaza: concentric stone rings, a thin pole in the middle. */
 function plaza(kit, M, { x, z, r, pole = 9 }) {
   const y = kit.H(x, z) + 0.05;
   // (paved: each ring's slabs a hair apart in tone, so the ink draws their joints: garden-kit.js paintPaving)
   [1, 0.75, 0.5, 0.25].forEach((k, i) => {
-    const g = new THREE.CylinderGeometry(r * k, r * k, 0.25 + 0.06 * i, pavingSegments(r * k, 2.6), 1).toNonIndexed().translate(x, y + 0.03 * i, z);
-    kit.add(M.plaza, paintPaving(g, x, z, r * k, i, { tones: i % 2 ? ['#ecdcc2', '#dccab0'] : ['#f6e8cf', '#e6d6bb'], side: '#efe1c8', slab: 2.6 }));
+    const g = new THREE.CylinderGeometry(r * k, r * k, 0.25 + 0.06 * i, pavingSegments(r * k, PAVE.slab), 1).toNonIndexed().translate(x, y + 0.03 * i, z);
+    kit.add(M.plaza, paintPaving(g, x, z, r * k, i, { tones: PAVE.tones[i % 2], side: '#efe1c8', slab: PAVE.slab }));
   });
   if (pole) kit.add(M.pole, new THREE.CylinderGeometry(0.12, 0.18, pole, 6).translate(x, y + pole / 2, z));
 }
@@ -287,6 +293,58 @@ function gardenScene(kit, v, o) {
   for (const [pts, w] of o.paths ?? []) kit.add(M.path, groundRibbon(kit.H.bind(kit), pts, w, 0.04), { solid: false });
   for (const c of [o.clouds ?? []].flat()) cloudSea(kit, M, { at: [v.camera.eye[0], v.camera.eye[2]], yaw: v.camera.yaw ?? 0, deck: false, seed: o.seed ?? 1, pink: true, ...c });
   o.extra?.(kit, M, rng);
+  if (o.lake) mirror(kit, M, v, o.lake);
+}
+
+/**
+ * The still water's printed reflection (the sheets' and the world's mirror lake, spheres.js): what stands beyond
+ * the lake mirrored in its plane and laid on the water as flat shapes in a paler, watery tone of each thing's own
+ * colour, exactly where the reflection is seen from the view's camera. Every vertex is mirrored in the water
+ * plane and projected back onto it along the line of sight; the shapes nearest the camera print over the farther.
+ * No reflection pass: plain geometry, drawn once.
+ */
+const MIRROR = { mix: 0.38, darker: 0.9, over: 0.3 };   // (toward the water's colour; the second tone; how far above the water a part must stand)
+function mirror(kit, M, v, { x0, x1, z0, z1, y: W = -0.4 }) {
+  const E = new THREE.Vector3(...v.camera.eye), water = M.water.uniforms.uColor.value, skip = new Set([M.water, M.path, M.plaza, M.cloud, M.pinkCloud, M.cloak]);
+  const parts = [], p = new THREE.Vector3(), c = new THREE.Color();
+  for (const b of kit.buckets.values()) {
+    if (skip.has(b.mat) || !b.mat.uniforms?.uColor) continue;
+    for (const g of b.list) {
+      const P = g.attributes.position, C = g.attributes.color, out = [];
+      let d = 0;
+      for (let i = 0; i < P.count; i += 3) {
+        const tri = [];
+        for (let k = 0; k < 3; k++) {
+          p.fromBufferAttribute(P, i + k);
+          if (p.y < W + MIRROR.over) break;
+          const my = 2 * W - p.y, t = (E.y - W) / (E.y - my);
+          tri.push(E.x + (p.x - E.x) * t, 0, E.z + (p.z - E.z) * t);
+        }
+        if (tri.length < 9) continue;
+        const cx = (tri[0] + tri[3] + tri[6]) / 3, cz = (tri[2] + tri[5] + tri[8]) / 3;
+        if (cx < x0 || cx > x1 || cz < z0 || cz > z1) continue;
+        // (facing up whatever the mirror did to its winding)
+        const ax = tri[3] - tri[0], az = tri[5] - tri[2], bx = tri[6] - tri[0], bz = tri[8] - tri[2];
+        if (az * bx - ax * bz > 0) out.push(...tri); else out.push(tri[0], tri[1], tri[2], tri[6], tri[7], tri[8], tri[3], tri[4], tri[5]);
+        d += Math.hypot(cx - E.x, cz - E.z);
+      }
+      if (!out.length) continue;
+      c.copy(b.mat.uniforms.uColor.value);
+      if (C) c.setRGB(C.getX(0), C.getY(0), C.getZ(0)).multiply(b.mat.uniforms.uColor.value);
+      parts.push({ out, d: d / (out.length / 9), color: c.clone().lerp(water, MIRROR.mix) });
+    }
+  }
+  // the farthest first, each a hair higher than the last: the nearer shapes print over the farther
+  parts.sort((a, b) => b.d - a.d).forEach(({ out, color }, i) => {
+    const y = W + 0.02 + i * 0.004;
+    for (let k = 1; k < out.length; k += 3) out[k] = y;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+    const n = new Float32Array(out.length); for (let k = 1; k < n.length; k += 3) n[k] = 1;
+    g.setAttribute('normal', new THREE.BufferAttribute(n, 3));
+    const hex = `#${color.getHexString()}`, dark = `#${color.clone().multiplyScalar(MIRROR.darker).getHexString()}`;
+    kit.mesh(g, kit.mat({ color: hex, color2: dark, mode: MODE_WATER, waterPrint: true }), { solid: false, shadow: false });
+  });
 }
 
 /** Rows of a kind along an avenue: from z0 to z1, at x = ±off, every `step` m (with a little jitter). */
@@ -372,13 +430,13 @@ export const GARDEN_VIEWS = [
   view({
     id: '3793-olive-plaza', title: 'The olive grove round the plaza', sheet: 'IMG_3793', panel: 4, where: 'bottom right', crop: [515, 525, 475, 467],
     camera: { eye: [0, 2.2, 0], yaw: 0, fov: 54, horizon: 0.55 },
-    sun: { side: 150, el: 35 },
+    sun: { side: 125, el: 55 },   // (high and to the side: the plaza lit, as the panel draws it, the olives' shadows short)
     ground: meadow(),
     build(kit, v) {
       gardenScene(kit, v, {
         seed: 37934,
         plaza: { x: 2, z: -42, r: 18, pole: 14 },
-        olives: [...scatter(40, 3793, 2, -42, 22, 70, -110, 110, (x, z, r) => [x, z, 1.2 + r() * 0.8]), [-12, -14, 1.8], [-6, -10, 2], [14, -14, 1.6], [-18, -20, 1.4]],
+        olives: [...scatter(40, 3793, 2, -42, 22, 70, -110, 110, (x, z, r) => [x, z, 1.2 + r() * 0.8]), [-9, -15, 1.3], [-6.5, -11, 1.1], [8, -14, 1.2], [11, -19, 1.3]],
         trees: [[-24, -16, 22], [-28, -26, 26], [26, -22, 24]],
         spheres: [{ x: 120, z: -420, R: 22, sink: 0.4 }],
         paths: [[[[0, -2], [1, -30]], 2.6]],
@@ -470,7 +528,7 @@ export const GARDEN_VIEWS = [
   view({
     id: '3794-avenue-sphere', title: 'The avenue to the plaza, the great sphere setting', sheet: 'IMG_3794', panel: 6, where: 'bottom right, wide', crop: [366, 649, 624, 340],
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 36, horizon: 0.62 },
-    sun: { side: 170, el: 25 },
+    sun: { side: 140, el: 50 },   // (high enough that the avenue's shadows fall short of the plaza: lit, as on the panel)
     ground: meadow(),
     people: [{ at: [0.3, -9], facing: 3.1, ...CLOAKED }],
     build(kit, v) {
