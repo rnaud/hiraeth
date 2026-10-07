@@ -871,6 +871,24 @@ the most of it.
   samples, every one. `-audio-js` renders on the script's thread as before. The sound's share of the script's
   frame went from 0.28 to 0.05 ms at the camps.
 - **The mirror's freezing off by default** (above).
+- **A material's live vectors** looked up every 64 frames (most materials have none), not each frame.
+
+The four views with all of it, each side back to back at a quiet machine (load 2–4; the web before and after the
+player): the web game in Chrome (High, render scale 1, 1280 × 720, uncapped) and the macOS player (IL2CPP,
+uncapped), medians in ms:
+
+| view | web: frame (CPU, GPU) | macOS player: frame | its script (update + mirror) | its sound on the script | before this round |
+|---|---|---|---|---|---|
+| the camps | 7.3–7.5 (7.1, 5.9) | 6.4 | 6.1 (3.5 + 2.3) | 0.05 | 8.2–9.1 |
+| the dunes | 2.9 (2.8, 2.5) | 2.8 | 2.4 (1.2 + 1.1) | 0.02 | 3.0–3.1 |
+| the Signal Market's crowd | 4.2 (4.0, 3.5) | 3.5 | 3.2 (2.2 + 0.9) | 0.03 | 4.5–4.9 |
+| the City-Shaft, wide | 6.8 (6.6, 6.0) | 5.8 | 4.6 (2.5 + 2.1) | 0.04 | 6.4–6.5 |
+
+The player is at or under the web at all four: 12 % faster at the camps, 17 % at the Market's crowd, 15 % at the
+City-Shaft, level at the dunes. What is left on the script's thread is three's own: its matrix updates (the
+mirror's scene.updateMatrixWorld 0.4–0.8 ms, and the people's own joints updated as they pose, which the web pays
+too), the mirror's walk (0.5–1.5) and the game's update. (The p95 above the display's rate is still the window's
+present: no frame waited on the script or on Unity's CPU then.)
 
 ## Status
 
@@ -888,6 +906,8 @@ the most of it.
 - **Unity, stage 4 (players: macOS, Linux, Android)**: above.
 - **Unity, the web's newer look and the rest of the world** (the surface marks, the boxes, grass, wind, the
   answering flowers, MakeHuman people, the coral-shirt traveller, the cabs): above.
+- **Unity, at or under the web** (the capes' cloth in Burst jobs, the sound on its own thread, the freezing
+  off): above.
 - **Unity, speed and the last of the look** (the script on its own thread, still subtrees frozen, the composite's
   passes by the look; the towers' per-vertex materials, the cliffs' cracks, the newest shading; the chip's portrait;
   faces close up): above.
