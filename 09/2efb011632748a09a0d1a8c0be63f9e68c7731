@@ -1,0 +1,97 @@
+TODO.md
+  s_55b4bc53b812ec::t_b22aad4f1ca553 66-68,95-97,100-102,131-139,142-145,220-230
+changelog.md
+  s_55b4bc53b812ec::t_577c51197f8c00 5-15,32-38
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_6e7106e071e19c 93-115
+docs/systems/movement.md
+  s_55b4bc53b812ec::t_0b0f5c52d86ef6 112-113,160-166,186-217
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_aa1f5b288012ab 647-678
+docs/systems/references.md
+  s_55b4bc53b812ec::t_9eee4302c023cf 76-82,194-209,229-231,247-251,266-271,299-301,308-310,337-345
+docs/systems/rendering.md
+  s_55b4bc53b812ec::t_061d8a828f426c 174
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_cd4370a5c960ad 57-65,224-227,258-263
+src/carriers.js
+  s_55b4bc53b812ec::t_806bb0c88b5c85 17-25,31-34,50
+src/changelog.js
+  s_55b4bc53b812ec::t_4f49a6a9abe6ab 10-19,35-41
+src/contact-audit.js
+  s_55b4bc53b812ec::t_967990c4215e87 83-84,290-299,302
+src/desert-city.js
+  s_55b4bc53b812ec::t_b5f08f89935e8e 147,275-303,336,345
+src/desert-landmarks.js
+  s_55b4bc53b812ec::t_b31d2d98af7e26 173-174
+src/desert-vistas.js
+  s_55b4bc53b812ec::t_2132f1b5adb14f 17
+src/levels/bazaar.js
+  s_55b4bc53b812ec::t_a42b377464d390 151,170-191
+src/levels/buried.js
+  s_55b4bc53b812ec::t_620f1f8e425505 53,474-493,629-654,786-808
+src/levels/garden-kit.js
+  s_55b4bc53b812ec::t_64dc3c969abce5 57-70
+src/levels/incal.js
+  s_55b4bc53b812ec::t_bb6d0f97dc3166 8,107-109,146-151,181-189,298-313,527,530,534,537-539,678-704
+src/levels/reference-buried.js
+  s_55b4bc53b812ec::t_0397492b290976 67-74,111-164,225,235-257,261-283,285-351,390-459,517,519,525,538,582,746,774-775,823-824,828-834,866
+src/levels/reference-kit.js
+  s_55b4bc53b812ec::t_03ce3bd3f1419c 235-236
+src/levels/reference-market.js
+  s_55b4bc53b812ec::t_2c680692b36bbd 5,57,114,117-122,124-167,169,171-202,204-205,207-209,251-252,254,274,387,467
+src/levels/reference-shaft.js
+  s_55b4bc53b812ec::t_f3c3093f950af2 5,50-55,66-108,114,125,130,132,145,152-154,182,184-186,196,200-202,360,403,584
+src/levels/reference-spheres.js
+  s_55b4bc53b812ec::t_673241e7316440 8,158,176-181,187-188,296-347,433,439,531
+src/levels/spheres.js
+  s_55b4bc53b812ec::t_433224af32b9ac 11,640-642,644-645,856-857,862-869
+src/levels/wood-kit.js
+  s_55b4bc53b812ec::t_fcad52773f0ba2 2,112-138
+src/materials.js
+  s_55b4bc53b812ec::t_b099f34e5e41a5 372-373,655,1544-1564,2276,2348-2349,2459-2460,2522
+src/physics.js
+  s_55b4bc53b812ec::t_54600b4146970b 211-214
+src/player.js
+  s_55b4bc53b812ec::t_97d4bbc2ad5c9e 1243-1249,1527-1529,1596-1605,1607-1609,1635-1645
+src/sand-drifts.js
+  s_55b4bc53b812ec::t_70258afbda8442 44-46,92-98,102-104,106-117,122-172,247-265,399,401-415
+src/taxi.js
+  s_55b4bc53b812ec::t_7923a79cfba298 38-39,67-84,124,226-232,583-589,591-645
+src/temples/pieces.js
+  s_55b4bc53b812ec::t_89e095cd98100f 205-218
+tests/buried.test.js
+  s_55b4bc53b812ec::t_290cd41d909b6e 92-94
+tests/contact-audit.test.js
+  s_55b4bc53b812ec::t_bd2b3fbc38c686 116-117,125
+tests/cracks.test.js
+  s_55b4bc53b812ec::t_6b9f8326d0937b 1-17
+tests/garden-kit.test.js
+  s_55b4bc53b812ec::t_f989ee813bc4a0 7,83-98
+tests/incal-sheets.test.js
+  s_55b4bc53b812ec::t_1d6b7148248da1 1-35
+tests/sand-drifts.test.js
+  s_55b4bc53b812ec::t_e4865e99feca11 199-263
+tests/shaped-solids.test.js
+  s_55b4bc53b812ec::t_de43a3f511ba96 1-99
+tests/spheres.test.js
+  s_55b4bc53b812ec::t_7891a4c4fdec0b 129-155
+tests/wood-kit.test.js
+  s_55b4bc53b812ec::t_9ab096b0de8d0d 52-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "092efb011632748a09a0d1a8c0be63f9e68c7731",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
