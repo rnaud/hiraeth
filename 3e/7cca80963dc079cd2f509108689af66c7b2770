@@ -1,0 +1,31 @@
+changelog.md
+  s_55b4bc53b812ec::t_e7277b32257e73 17
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_61987bf120782d 758-781
+docs/systems/worlds.md
+  s_55b4bc53b812ec::t_e653ec83a2ebcb 49-55
+src/changelog-media.js
+  s_55b4bc53b812ec::t_535885675b3a89 136-150
+src/changelog.js
+  s_55b4bc53b812ec::t_d10e6726f82341 23
+src/levels/incal.js
+  s_55b4bc53b812ec::t_d09b806895e436 350-354,382,1186-1188,1190,1199,1201,1205
+tests/incal-terraces.test.js
+  s_55b4bc53b812ec::t_486221e0c32b97 1-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3e7cca80963dc079cd2f509108689af66c7b2770",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
