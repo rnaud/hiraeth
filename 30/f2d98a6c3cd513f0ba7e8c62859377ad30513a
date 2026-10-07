@@ -1,0 +1,63 @@
+TODO.md
+  s_55b4bc53b812ec::t_aba26ad7289936 29-33,56-62,105-111,119-121
+changelog.md
+  s_55b4bc53b812ec::t_9d236b9c8ee4a1 7-9
+docs/systems/engine-bridge.md
+  s_55b4bc53b812ec::t_0873f4cba03665 907-928
+docs/systems/movement-and-camera.md
+  s_55b4bc53b812ec::t_11cade39293e2c 3-46
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_fd72c0e2fc64be 765-862
+scripts/bench/android-bridge.sh
+  s_55b4bc53b812ec::t_c1509683b72c77 22-25,39-49
+scripts/bench/results/android-worlds-round4.json
+  s_55b4bc53b812ec::t_b081b1ca1c5031 1-3713
+scripts/transition-perf/pen-android.mjs
+  s_55b4bc53b812ec::t_92cd1a9c36f825 1-95
+scripts/transition-perf/pen-read.swift
+  s_55b4bc53b812ec::t_5ff472eebb4d65 1-37
+scripts/transition-perf/pen-stops.mjs
+  s_55b4bc53b812ec::t_b732c6db614a06 1-31
+src/changelog-media.js
+  s_55b4bc53b812ec::t_99b9025783f11d 107-118,175-184,287-295,307-311,399-404
+src/changelog.js
+  s_55b4bc53b812ec::t_75eb9a86073e51 13-24
+src/main.js
+  s_55b4bc53b812ec::t_e35386efe587f9 788,1033,1387-1389
+src/perf.js
+  s_55b4bc53b812ec::t_7aca6cc78bd628 365-367,371,379,403-404,408-419,434-449
+src/player.js
+  s_55b4bc53b812ec::t_9e0b5c60cc1d72 43-46,289,2252-2268,2321-2333,2341-2342,2363-2364,2371-2375,2377,2388-2433,2481,2497,2508,2524-2525,2542-2543,2545,2547-2552,2610-2611,2628-2650,2668,2693-2695,2699-2722
+src/taxi.js
+  s_55b4bc53b812ec::t_4472208b6958e2 337-338
+tests/android-bridge.test.js
+  s_55b4bc53b812ec::t_330b9e30ff0ab8 1-31
+tests/android-ota.test.js
+  s_55b4bc53b812ec::t_9f0d8eecce3b59 10,81
+tests/camera-framing.test.js
+  s_55b4bc53b812ec::t_85bbc2dafdc1ad 1-178
+tests/pen-stops.test.js
+  s_55b4bc53b812ec::t_7677ed710cada1 1-40
+tests/quality.test.js
+  s_55b4bc53b812ec::t_053685d689d6d2 134-161
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_55b4bc53b812ec::t_78747abf7eb6d7 19-25,27,29-59,63,86
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_55b4bc53b812ec::t_a8f5c7919016c0 64,106,119,354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30f2d98a6c3cd513f0ba7e8c62859377ad30513a",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
