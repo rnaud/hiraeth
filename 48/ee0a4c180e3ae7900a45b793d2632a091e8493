@@ -1,0 +1,31 @@
+changelog.md
+  s_55b4bc53b812ec::t_f622f7cf561b00 14
+docs/systems/performance.md
+  s_55b4bc53b812ec::t_f879e159d882c1 613-646
+src/changelog.js
+  s_55b4bc53b812ec::t_abae7f83b96121 18
+src/characters/traveller-v1.js
+  s_55b4bc53b812ec::t_9f296ad9efab48 32,52,63-65,76
+src/characters/tripo-cloth.js
+  s_55b4bc53b812ec::t_5277b2784b03e0 57-151,154-156,215-217,222-226,228-237,309,311-313,329-330,339,341-358,382-384
+src/main.js
+  s_55b4bc53b812ec::t_f533d01285f504 1119-1120
+tests/tripo-cloth-gpu.test.js
+  s_55b4bc53b812ec::t_346c4d8981a7c4 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "48ee0a4c180e3ae7900a45b793d2632a091e8493",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
