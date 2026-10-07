@@ -76,7 +76,10 @@ jobs:
           node scripts/release-info.mjs notes > "$RUNNER_TEMP/notes.md"
 
       - name: Copy the game into the Android project
-        run: npx cap sync android
+        run: |
+          # (the changelog's pictures are the site's alone: never built in, kept out here too)
+          rm -rf dist/changelog-media
+          npx cap sync android
 
       - name: Signing key
         env:

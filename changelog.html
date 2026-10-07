@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7ecd2">
+<title>Memento · What changed</title>
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<style>
+  /* The interactive changelog (src/changelog-page/, docs/systems/changelog.md): the game's ink and paper */
+  :root {
+    --paper: #f7ecd2; --card: #fffaf0; --ink: #2b211f; --soft: #6d5f57; --rule: #d8c9a8; --gold: #f2c54b; --good: #3d7a4a; --bad: #b2452f;
+    --safe-top: env(safe-area-inset-top, 0px); --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-left: env(safe-area-inset-left, 0px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 150px; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+  body { padding: 0 calc(12px + var(--safe-right)) calc(40px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
+  button, input { font: inherit; color: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  header { position: sticky; top: 0; z-index: 5; margin: 0 -12px; padding: calc(10px + var(--safe-top)) 12px 8px; background: var(--paper); border-bottom: 2px solid var(--ink); }
+  .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 18px; letter-spacing: 0.16em; flex: 1 1 auto; white-space: nowrap; }
+  h1 span { font-size: 12px; letter-spacing: 0; opacity: 0.6; font-weight: normal; }
+  #search { flex: 1 1 220px; min-width: 0; padding: 6px 10px; background: var(--card); border: 2px solid var(--ink); }
+  .btn { padding: 5px 11px; background: var(--card); border: 2px solid var(--ink); cursor: pointer; text-decoration: none; white-space: nowrap; }
+  .btn:hover { background: #fff; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; max-width: 1100px; margin: 8px auto 0; }
+  .chip { padding: 2px 10px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 14px; cursor: pointer; font-size: 12.5px; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  #worlds { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+  #worlds .chip { flex: none; }
+  .chip.world { border-style: dashed; }
+  .chip.world[aria-pressed="true"] { border-style: solid; }
+  .summary { max-width: 1100px; margin: 6px auto 0; font-size: 12px; color: var(--soft); }
+  .hint { float: right; }
+
+  main { max-width: 1100px; margin: 0 auto; }
+  section.version > h2 { position: relative; margin: 26px 0 10px; font-size: 16px; letter-spacing: 0.1em; border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
+  section.version > h2 small { font-size: 12px; letter-spacing: 0; font-weight: normal; color: var(--soft); margin-left: 8px; }
+  section.version[hidden], article[hidden] { display: none; }
+
+  article.line { margin: 0 0 14px; padding: 12px 14px; background: var(--card); border: 2px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); }
+  article.line.plain { box-shadow: none; border-width: 1px; padding: 8px 12px; background: transparent; border-color: var(--rule); }
+  article.line:focus { outline: none; box-shadow: 5px 5px 0 var(--gold); border-color: var(--ink); }
+  article.line.plain:focus { box-shadow: 0 0 0 3px var(--gold); }
+  article .text { margin: 0; }
+  .tags { margin-top: 6px; display: flex; gap: 5px; flex-wrap: wrap; }
+  .tag { font-size: 11px; padding: 0 7px; border: 1px solid var(--rule); border-radius: 10px; color: var(--soft); }
+
+  /* before / after: the after underneath, the before over it clipped at the split */
+  .shots { margin-top: 10px; }
+  .shot-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  .shot-tabs button { font-size: 12px; padding: 1px 8px; background: transparent; border: 1px solid var(--ink); cursor: pointer; }
+  .shot-tabs button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .compare, .shot .side { max-width: min(100%, calc(64vh * var(--ar, 1.7778))); }
+  .compare { position: relative; overflow: hidden; border: 1.5px solid var(--ink); background: #e8dcc0; aspect-ratio: var(--aspect, 16 / 9); touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: ew-resize; --split: 50%; }
+  .compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .compare .before { clip-path: inset(0 calc(100% - var(--split)) 0 0); }
+  .compare .handle { position: absolute; top: 0; bottom: 0; left: var(--split); width: 0; border-left: 2px solid var(--card); box-shadow: 0 0 0 1px var(--ink); pointer-events: none; }
+  .compare .handle::after { content: '◀ ▶'; position: absolute; top: 50%; left: -26px; width: 50px; transform: translateY(-50%); text-align: center; font-size: 11px; line-height: 22px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 12px; }
+  .compare .label { position: absolute; top: 8px; padding: 1px 7px; font-size: 11px; letter-spacing: 0.1em; background: rgba(255, 250, 240, 0.9); border: 1px solid var(--ink); pointer-events: none; }
+  .compare .label.b { left: 8px; } .compare .label.a { right: 8px; }
+  .compare[data-mode="before"] .before { clip-path: none; }
+  .compare[data-mode="after"] .before { visibility: hidden; }
+  .compare[data-mode="before"] .handle, .compare[data-mode="after"] .handle, .compare[data-mode="before"] .label.a, .compare[data-mode="after"] .label.b, .compare.single .handle, .compare.single .label.b { display: none; }
+  .compare.single { cursor: default; }
+  .compare .offline { position: absolute; inset: 0; display: none; place-items: center; text-align: center; padding: 20px; background: #efe3c6; font-size: 13px; }
+  .compare.failed .offline { display: grid; }
+  .compare.failed .handle, .compare.failed .label { display: none; }
+  .side { display: none; gap: 8px; grid-template-columns: 1fr 1fr; }
+  .side figure { margin: 0; }
+  .side img { width: 100%; display: block; border: 1.5px solid var(--ink); aspect-ratio: var(--aspect, 16 / 9); object-fit: cover; background: #e8dcc0; }
+  .side figcaption { font-size: 11px; letter-spacing: 0.1em; }
+  .shots.sbs .side { display: grid; } .shots.sbs .compare { display: none; }
+  .modes { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 6px; font-size: 12px; }
+  .modes button { padding: 1px 8px; background: transparent; border: 1px solid var(--ink); cursor: pointer; }
+  .modes button[aria-pressed="true"] { background: var(--gold); }
+  .caption { color: var(--soft); flex: 1 1 200px; }
+
+  /* the numbers: before against after, a bar each */
+  .numbers { margin-top: 10px; }
+  .numbers h3 { margin: 0 0 4px; font-size: 13px; }
+  .numbers .meta { font-size: 11.5px; color: var(--soft); margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 12.5px; }
+  th, td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  th { font-weight: normal; color: var(--soft); font-size: 11.5px; }
+  td.n { text-align: right; white-space: nowrap; width: 1%; }
+  td.bars { width: 38%; min-width: 120px; }
+  .bar { height: 7px; margin: 2px 0; background: #b9aa8f; }
+  .bar.after { background: var(--ink); }
+  .delta.good { color: var(--good); font-weight: bold; } .delta.bad { color: var(--bad); font-weight: bold; }
+  .see { margin-top: 8px; padding: 6px 10px; font-size: 12.5px; border-left: 4px solid var(--gold); background: #fbf3df; }
+  .see b { letter-spacing: 0.08em; font-size: 11px; }
+  .empty { margin: 40px 0; text-align: center; color: var(--soft); }
+  .offline-note { display: none; max-width: 1100px; margin: 8px auto 0; padding: 6px 10px; border: 1.5px dashed var(--ink); font-size: 12px; }
+  body.offline .offline-note { display: block; }
+  body.embed .standalone, body:not(.embed) .embedded { display: none; }
+
+  @media (max-width: 700px) {
+    body { font-size: 13px; }
+    h1 { font-size: 15px; flex-basis: 100%; }
+    html { scroll-padding-top: 190px; }
+    article.line { padding: 10px; box-shadow: 3px 3px 0 var(--ink); }
+    .side { grid-template-columns: 1fr; }
+    td.bars, th.bars { display: none; }
+    .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .chips .chip { flex: none; }
+    .hint { display: none; }
+    section.version > h2 small { display: block; margin: 2px 0 0; }
+  }
+  @media (max-height: 520px) and (min-width: 701px) {
+    header { position: static; }
+    html { scroll-padding-top: 10px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>WHAT CHANGED <span id="version"></span></h1>
+    <input id="search" type="search" placeholder="Search the changes" aria-label="Search the changes" autocomplete="off">
+    <a class="btn standalone" href="./">Play</a>
+    <button class="btn embedded" id="close" type="button">Close</button>
+  </div>
+  <div class="chips" id="kinds" role="toolbar" aria-label="What kind of change"></div>
+  <div class="chips" id="worlds" role="toolbar" aria-label="Which world"></div>
+  <div class="summary"><span id="count"></span><span class="hint" id="hint"></span></div>
+  <div class="offline-note">You are offline: the pictures are on the game’s site and show when you are back online. The words and numbers are all here.</div>
+</header>
+<main id="list"></main>
+<script type="module" src="/src/changelog-page/main.js"></script>
+</body>
+</html>

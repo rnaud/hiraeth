@@ -12,7 +12,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { CHANGELOG } from '../src/changelog.js';
+import { CHANGELOG, lineText } from '../src/changelog.js';
 
 const BUNDLES_JAVA = fileURLToPath(new URL('../android/app/src/main/java/com/rnaud/moebius/WebBundles.java', import.meta.url));
 const DESKTOP_MAIN = fileURLToPath(new URL('../desktop/main.mjs', import.meta.url));
@@ -73,7 +73,7 @@ export const latestJson = ({ build, version, apk, native = nativeApi() }) => {
 };
 
 /** The newest changelog lines, for the settings' "what's new in the update" (plain text, at most `max`). */
-export const releaseNotes = (entry = CHANGELOG[0], max = 12) => entry.items.slice(0, max).map((i) => String(i));
+export const releaseNotes = (entry = CHANGELOG[0], max = 12) => entry.items.slice(0, max).map(lineText);
 
 /**
  * The web bundle manifest. `minNative`: the Android bridge the bundle needs (WEB_MIN_NATIVE);
@@ -122,7 +122,8 @@ function main(what = 'version', ...args) {
   else if (what === 'web-zips') console.log(staleWebZips(args).join('\n'));
   else if (what === 'notes') {
     console.log(`Memento v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online, from the game's own site.\n`);
-    console.log(latest.items.map((i) => `- ${i}`).join('\n'));
+    console.log(latest.items.map((i) => `- ${lineText(i)}`).join('\n'));
+    console.log(`\nBefore and after pictures of what changed: https://memento.alexandria-rnaud.workers.dev/changelog.html#v${latest.v}`);
     console.log('\nThe game runs fully offline. Built from the web version that is also playable at https://memento.alexandria-rnaud.workers.dev/.');
   } else throw new Error(`unknown: ${what}`);
 }

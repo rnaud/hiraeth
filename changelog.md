@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.
 - On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.
+- What’s new (N) has a See what changed button: every change with pictures of before and after to drag between, the numbers for the ones that make the game faster, and how to see the rest, with filters by world and kind and a search. It works with the mouse, touch and a controller; the pictures come from the game’s site, so they need a connection.
 
 ## v0.79 — 2026-10-07
 

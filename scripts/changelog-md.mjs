@@ -4,7 +4,7 @@
 //   node scripts/changelog-md.mjs --check  → exit 1 if changelog.md is out of date
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { CHANGELOG } from '../src/changelog.js';
+import { CHANGELOG, lineText } from '../src/changelog.js';
 
 export const CHANGELOG_MD = fileURLToPath(new URL('../changelog.md', import.meta.url));
 
@@ -12,7 +12,7 @@ export function changelogMarkdown(entries = CHANGELOG) {
   const out = ['# Changelog', '', 'The same release notes shown in the game (press **N** or open settings).', ''];
   for (const e of entries) {
     out.push(`## v${e.v} — ${e.date}`, '');
-    for (const item of e.items) out.push(`- ${item}`);
+    for (const item of e.items) out.push(`- ${lineText(item)}`);
     out.push('');
   }
   return out.join('\n');

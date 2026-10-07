@@ -12,6 +12,8 @@ export const BUILD_INPUT = {
   studio: fileURLToPath(new URL('./studio.html', import.meta.url)),
   trailer: fileURLToPath(new URL('./trailer.html', import.meta.url)),
   motion: fileURLToPath(new URL('./motion.html', import.meta.url)),
+  // the interactive changelog (src/changelog-page/; its pictures, changelog-media/, are the site's alone)
+  changelog: fileURLToPath(new URL('./changelog.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**

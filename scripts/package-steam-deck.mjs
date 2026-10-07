@@ -14,8 +14,9 @@ if (!Number.isSafeInteger(webBuild) || webBuild < 0) throw new Error('Invalid WE
 const output = 'output/steam-deck';
 await rm(output, { recursive: true, force: true });
 await mkdir(`${output}/source`, { recursive: true });
-// (not dist/updates/, the site's content updates and runtime, when the Cloudflare deploy packages it)
-await cp('dist', `${output}/source/game`, { recursive: true, filter: (src) => !/^dist[\\/]updates([\\/]|$)/.test(src) });
+// (not dist/updates/, the site's content updates and runtime, when the Cloudflare deploy packages it,
+// nor the changelog's pictures, the site's alone: web-update.mjs MEDIA_FILE)
+await cp('dist', `${output}/source/game`, { recursive: true, filter: (src) => !/^dist[\\/](updates|changelog-media)([\\/]|$)/.test(src) });
 await cp('desktop/main.mjs', `${output}/source/main.mjs`);
 await cp('desktop/deck-updates.mjs', `${output}/source/deck-updates.mjs`);   // (the settings' Updates section)
 await cp('scripts/steam-deck/deck.py', `${output}/source/deck.py`);

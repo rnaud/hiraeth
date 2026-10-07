@@ -1,6 +1,8 @@
 // What's new, version by version (newest first). Shown in the game with N or
 // from the settings menu; after an update a note points you to it once.
-// Add an entry at the top for every release.
+// Add an entry at the top for every release. A line is its text, or { text, shots, numbers, see }
+// with what the interactive changelog (changelog.html) shows beside it: docs/systems/changelog.md
+// (pictures and numbers for older lines live in src/changelog-media.js).
 
 import { store } from './platform.js';
 import { inputKind } from './prompt-keys.js';
@@ -10,6 +12,7 @@ export const CHANGELOG = [
   { v: '0.80', date: '2026-10-07', items: [
     'Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.',
     'On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.',
+    'What’s new (N) has a See what changed button: every change with pictures of before and after to drag between, the numbers for the ones that make the game faster, and how to see the rest, with filters by world and kind and a search. It works with the mouse, touch and a controller; the pictures come from the game’s site, so they need a connection.',
   ] },
   { v: '0.79', date: '2026-10-07', items: [
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
@@ -805,20 +808,29 @@ export const CHANGELOG = [
 
 export const VERSION = CHANGELOG[0].v;
 const SEEN_KEY = 'moebius.changelog.seen';
+/** A line's words: the line itself, or the text of a line written with its pictures. */
+export const lineText = (item) => (typeof item === 'string' ? item : item.text);
+/** The interactive changelog, its pictures and numbers: the page beside the game, in a frame over it. */
+export const PICTURES_PAGE = 'changelog.html';
 
 export class Changelog {
   constructor({ onOpen } = {}) {
     const el = (this.el = document.createElement('div'));
     el.id = 'changelog';
     el.innerHTML = `<div class="panel"><h1>WHAT'S NEW <span>v${VERSION}</span></h1><div class="list">${
-      CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${r.items.map((i) => `<li>${i}</li>`).join('')}</ul></section>`).join('')
-    }</div><div class="buttons"><button data-a="close">Close (N)</button></div></div>`;
+      CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${r.items.map((i) => `<li>${lineText(i)}</li>`).join('')}</ul></section>`).join('')
+    }</div><div class="buttons"><button data-a="pictures">See what changed</button><button data-a="close">Close (N)</button></div></div>`;
     document.body.appendChild(el);
-    el.addEventListener('click', (e) => { if (e.target === el || e.target.dataset?.a === 'close') this.toggle(false); });
+    el.addEventListener('click', (e) => {
+      if (e.target.dataset?.a === 'pictures') this.pictures(true);
+      else if (e.target === el || e.target.dataset?.a === 'close') this.toggle(false);
+    });
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyN') this.toggle();
-      else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); this.toggle(false); }
+      else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); if (this.framed) this.pictures(false); else this.toggle(false); }
     });
+    // the page asks to be closed (its Close, B / ○, Escape, N): back to the list
+    window.addEventListener('message', (e) => { if (e.origin === location.origin && e.data?.memento === 'changelog-close') this.pictures(false); });
     this.onOpen = onOpen;
     let seen = null;
     seen = store.get(SEEN_KEY);
@@ -831,7 +843,33 @@ export class Changelog {
     this.fresh = false;
   }
 
+  /** The interactive changelog over the game (the game's own page, so it works offline; its pictures come from the site). */
+  pictures(on) {
+    if (on && !this.frame) {
+      const f = (this.frame = document.createElement('iframe'));
+      f.className = 'pictures'; f.title = 'What changed, with pictures';
+      f.src = `${PICTURES_PAGE}?embed=1`;
+      this.el.appendChild(f);
+      f.addEventListener('load', () => f.contentWindow?.focus());
+    } else if (this.frame) this.frame.hidden = !on;
+    if (on) this.frame.contentWindow?.focus();
+    else this.el.querySelector('[data-a="pictures"]')?.focus();
+    this.el.classList.toggle('framed', !!on);
+  }
+
+  get framed() { return !!this.frame && !this.frame.hidden && this.open; }
+
+  /** A controller press while the page is up goes to it (main.js); false when it isn't up. */
+  pad(name, ...args) {
+    if (!this.framed) return false;
+    const page = this.frame.contentWindow?.changelogPad;
+    if (page) page(name, ...args);
+    else if (name === 'back') this.pictures(false);
+    return true;
+  }
+
   toggle(on = !this.open) {
+    if (!on && this.frame) this.pictures(false);
     this.open = on;
     if (on) { document.exitPointerLock?.(); this.onOpen?.(); this.markSeen(); }
     // its button names the way out for the hands on the game: N, a controller's back button, a tap
