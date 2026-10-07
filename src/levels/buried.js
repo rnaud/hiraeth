@@ -10,6 +10,7 @@ import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { greebles } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Buried Machine (after Moebius): pale cream dunes under a sage sky, with
@@ -417,6 +418,33 @@ export function* buildBuried(scene) {
     }
 
     // the machine against the walls: pillars, stacked cylinders, hatches; blue-grey strata near the top
+    // the sheets' dense small machinery on the leaning walls under the pipe stratum (greeble-kit.js): pipe runs, valves,
+    // casings, cable bundles, laid quad by quad on the wall as it is drawn (its bumps toward the canyon); solid as drawn,
+    // as you climb these walls (clear of the ledge and the cross-walls)
+    {
+      const G = greebles(4803), K = 6;
+      const at = (z, k, s) => {
+        const f = floorAt(z) - 1.5, top = rimY(z, s) + 0.6, t = k / K, bump = (k > 0 && k < K) ? -Math.abs(nB(z * 0.08, k * 1.7 + s)) * 1.6 : 0;
+        return new THREE.Vector3(cx(z) + s * (W + 3 + 10 * t + bump), f + (top - f) * t, z);
+      };
+      // (dense clusters, as the sheets' machines against the wall: one band, two quads in five, over the banked sand)
+      for (const s of [-1, 1]) for (let z = -52, j = 0; z - 4 >= zEnd; z -= 4, j++) {
+        if ((j + (s > 0 ? 2 : 0)) % 5 > 1 || WALLS.some((wz) => Math.abs(z - 2 - wz) < 8) || (s < 0 && Math.abs(z - 2 - LEDGE_Z) < 12)) continue;
+        for (let k = 1; k < 2; k++) {
+          const o = at(z, k, s), u = at(z - 4, k, s).sub(o), up = at(z, k + 1, s).sub(o);
+          const w = u.length(); u.normalize();
+          const v = up.clone().addScaledVector(u, -up.dot(u)), h = v.length(); v.normalize();
+          const n = new THREE.Vector3().crossVectors(u, v);
+          if (n.x * s > 0) n.negate();   // (into the canyon)
+          if (h < 1.5) continue;
+          G.patch(o.addScaledVector(n, 0.04), u, v, n, w, h, { density: 1.6, scale: 1.1, depth: 0.5 });
+        }
+      }
+      const m = G.merged();
+      if (m.metal) put(M.steelFlat, m.metal, { tag: 'machinery' });
+      if (m.dark) put(M.hatch, m.dark, { tag: 'machinery' });
+      if (m.pale) put(M.pipe, m.pale, { tag: 'machinery' });
+    }
     const pillarH = [];
     // the blue-grey pipe stratum: long parallel pipes packed in the top band of each wall (the "trench edge")
     for (const s of [-1, 1]) {
@@ -650,6 +678,32 @@ export function* buildBuried(scene) {
         const w = range2(ar, 2, 5), hh = range2(ar, 1.5, 5), d = range2(ar, 1.4, 3), rr = OR - d / 2 + 0.2;
         put(ar() < 0.5 ? M.teal : M.tealMid, new THREE.BoxGeometry(w, hh, d).rotateY(a).translate(OX + Math.sin(a) * rr, FLOOR + hh / 2, OZ + Math.cos(a) * rr));
         if (ar() < 0.35) put(M.peach, onWall(new THREE.PlaneGeometry(w * 0.3, hh * 0.25), a, FLOOR + hh * 0.62, d - 0.18));
+      }
+    }
+    // the sheets' dense small machinery round the drum's inside (greeble-kit.js): pipe runs with flanges and valves,
+    // conduits, casings and louvred plates in the bays between the tall windows, below the balcony and above it, and
+    // pipes hung under the balcony. On the wall you climb they are solid as drawn; under the balcony, drawn only.
+    {
+      const G = greebles(4801), U = greebles(4802), V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+      for (let k = 0; k < 18; k++) {
+        const a0 = (k / 18) * TAU + 0.17 + TAU / 36;
+        if (Math.abs(Math.atan2(Math.sin(a0), Math.cos(a0))) < g + 0.3) continue;
+        const half = 3.6, dx = Math.sin(a0), dz = Math.cos(a0), t = V3(dz, 0, -dx), n = V3(-dx, 0, -dz);
+        const o = V3(OX + dx * OR, 0, OZ + dz * OR).addScaledVector(t, -half);
+        for (const [y0, y1] of [[FLOOR + 0.4, BALCONY - 1.2], [BALCONY + 2, BALCONY + 33]]) G.patch(o.clone().setY(y0), t, V3(0, 1, 0), n, half * 2, y1 - y0, { density: 0.7, scale: 1, depth: 0.5 });
+      }
+      // under the balcony: a ceiling 6 m deep round the drum (u along it, v in toward the centre, n down)
+      for (let k = 0; k < 36; k++) {
+        const a = (k / 36) * TAU;
+        if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < g + 0.15) continue;
+        const dx = Math.sin(a), dz = Math.cos(a), t = V3(dz, 0, -dx), w = OR * TAU / 36;
+        U.patch(V3(OX + dx * (OR - 0.3), BALCONY - 0.05, OZ + dz * (OR - 0.3)).addScaledVector(t, -w / 2), t, V3(-dx, 0, -dz), V3(0, -1, 0), w, 5.5, { density: 0.7, scale: 0.9, hang: true, depth: 1.2 });
+      }
+      for (const [gr, solid] of [[G, true], [U, false]]) {
+        const m = gr.merged();
+        if (m.metal) put(M.tealMid, m.metal, { solid, tag: 'machinery' });
+        if (m.dark) put(M.tealFlat, m.dark, { solid, tag: 'machinery' });
+        if (m.pale) put(M.pipe2, m.pale, { solid, tag: 'machinery' });
       }
     }
     for (let k = 0; k < 9; k++) {

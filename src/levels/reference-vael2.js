@@ -400,7 +400,9 @@ export const VAEL2_VIEWS = [
   }),
   view({
     id: '3783-egg-column', title: 'The column, its disc and its egg', sheet: 'IMG_3783', panel: 2, where: 'top, second', crop: [276, 38, 224, 451],
-    camera: { eye: [0, 10, 0], yaw: 0, fov: 72, pitch: 9 },
+    // (the eye a little over the disc, as the panel sees its pale top: from under it, its rim and underside filled the
+    //  disc's place and read as a grey-hatched top)
+    camera: { eye: [0, 35, 0], yaw: 0, fov: 72, pitch: -4 },
     sun: { side: -70, el: 35 },   // (from the left, as the panel lights its column: one clean terminator down it)
     ground: sky(-300),
     build(kit, v) {
