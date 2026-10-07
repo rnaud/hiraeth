@@ -55,6 +55,20 @@ export function leafCrown(seed, { lobes = 7, detail = 1, core = 0.72, flat = 0.8
 }
 
 /**
+ * An olive's crown the way the sheets draw it: round and layered, a broad lower tier of leaf masses, a narrower one
+ * over it a little to one side, a small cap on top, each its own masses (leafCrown) so the ink draws the tiers.
+ * About two units wide and two tall, its foot near y = −0.6, its top near y = 1.6.
+ */
+export function layeredCrown(seed, { lobes = [5, 4, 1], size = [0.28, 0.4] } = {}) {
+  const rng = mulberry32(Math.floor(seed * 3571) + 17), ox = (rng() - 0.5) * 0.3, oz = (rng() - 0.5) * 0.3;
+  return mergeGeometries([
+    leafCrown(seed, { lobes: lobes[0], core: 0.72, flat: 0.8, size }).scale(1, 0.9, 1),
+    leafCrown(seed + 1, { lobes: lobes[1], core: 0.7, flat: 0.85, size }).scale(0.72, 0.68, 0.72).translate(ox, 0.62, oz),
+    leafCrown(seed + 2, { lobes: lobes[2], core: 0.7, flat: 0.9, size }).scale(0.42, 0.42, 0.42).translate(ox * 1.6, 1.08, oz * 1.6),
+  ]);
+}
+
+/**
  * A sphere in two flat tones, its poles along `dir` (the side it is printed lit on), so the line between
  * them is one ring of vertices: a clean round edge. Non-indexed, per-face colours (vertexColors, with the
  * two tones as the material's palette: makeMaterial({ vertexColors, palette: [lit, shade], glow })).

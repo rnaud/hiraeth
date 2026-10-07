@@ -206,6 +206,17 @@ the Lab's faces gallery, the face keys in one texture for every body, the headwe
 - [x] Make the repository private (done 2026-10-07 on the author's word: the Retroid runs a NATIVE_API 6
   app; android.yml's TRANSITION step, the GitHub web zips and web.json, and the Pages workflow removed).
 
+## Steam Deck (waiting on the device: it was asleep, 2026-10-07)
+
+- [ ] Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
+  fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
+  then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the
+  before/after table.
+- [ ] Decide the Retroid's `cpuBound` guard (0.85) for the Deck preset from those numbers (left on: the
+  one reading so far, the desert at 17–22 fps with the renderer at 100 %+ of a core, points to CPU-bound).
+- [ ] Compare ANGLE's GL and Vulkan backends under gamescope; check the loading pen turns smoothly in a
+  Deck load; check the new Updates section on the Deck itself (runtime 830001 and later).
+
 ## The Unity bridge
 
 (Verified running on 2026-10-06: `scripts/unity-js-setup.sh` then

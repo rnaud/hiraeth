@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { leafCrown } from './garden-kit.js';
 
@@ -108,7 +109,33 @@ export function caveFrame({ r, depth = 2.2, arches = 7, hang = 14, feet = 6, see
 }
 
 /** A bank bush: a low mass of small leaf clumps, about a unit round, its foot at y ≈ −0.5 (garden-kit.js leafCrown). */
-export const bankBush = (seed, detail = 1) => leafCrown(seed, { lobes: detail ? 7 : 4, detail, core: 0.66, flat: 0.62, size: [0.3, 0.46] });
+export function bankBush(seed, detail = 1, { fronds = detail ? 30 : 10 } = {}) {
+  const crown = leafCrown(seed, { lobes: detail ? 7 : 4, detail, core: 0.66, flat: 0.62, size: [0.3, 0.46] });
+  return fronds ? mergeGeometries([crown, frondTuft(seed, fronds)]) : crown;
+}
+/**
+ * A bush's broken outline: n blades (each a thin two-sided triangle) springing out of its clumps' top and sides,
+ * leaning out, so its silhouette is the sheets' ragged leafy edge, not a smooth lump, and the ink draws each blade.
+ * Indexed (to merge with the welded clumps); about a unit round, as bankBush.
+ */
+export function frondTuft(seed, n = 12) {
+  const rng = mulberry32(Math.floor(seed * 9173) + 29), pos = [], idx = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 * 3.1 + rng() * 0.8, el = 0.45 + rng() * 0.9, r0 = 0.5 + rng() * 0.2;
+    const dir = V(Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el));
+    const base = dir.clone().multiplyScalar(r0).multiply(V(1, 0.62, 1)), len = 0.22 + rng() * 0.3, w = 0.025 + rng() * 0.03;
+    const side = V(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(w), tip = base.clone().addScaledVector(dir.clone().add(V(0, 0.8, 0)).normalize(), len);
+    const k = pos.length / 3;
+    for (const p of [base.clone().sub(side), base.clone().add(side), tip]) pos.push(p.x, p.y, p.z);
+    for (const p of [base.clone().sub(side), base.clone().add(side), tip]) pos.push(p.x, p.y, p.z);
+    idx.push(k, k + 1, k + 2, k + 3, k + 5, k + 4);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
 
 /**
  * The nest in a great cap: a woven bowl R wide of root strands, heaped with eggs, under a glass dome drawn as its

@@ -369,8 +369,8 @@ export function detailOf(o) {
  * or of the height along it, thinned by powers of two as the hatch is (every other one fades out).
  */
 /** A hatch over 1 (makeMaterial({ hatch })): a hatched mass. Its strokes up to `closer` times closer (no finer:
- *  past ~4 px apart a pen's strokes only read as a tone), and its shade drawn as `heavier` × (hatch − 1) darker. */
-export const HATCH_DENSE = { closer: 1.3, heavier: 0.9 };
+ *  past ~4 px apart a pen's strokes only read as a tone: `minPx`), and its shade drawn as `heavier` × (hatch − 1) darker. */
+export const HATCH_DENSE = { closer: 1.3, heavier: 0.9, minPx: 4.5 };   // minPx: never closer than this (px)
 export const FORM = {
   kinds: { cap: 1, wrap: 2 },
   turn: 1024,              // angle units a turn (2^10: the coarsest level is one stroke a turn)
@@ -2322,7 +2322,8 @@ const fragmentShader = /* glsl */ `
     // (a hatch over 1 is a denser one, a hatched mass (Lorn II's roots and bushes): its strokes a little closer
     // (never finer than a pen can draw: past ~4 px they would only be a tone) and heavier, cross-hatched sooner)
     float hDense = max(uShade.z, 1.0);
-    float hsp = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth)) / min(hDense, ${HATCH_DENSE.closer.toFixed(2)});
+    float hsp0 = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
+    float hsp = max(hsp0 / min(hDense, ${HATCH_DENSE.closer.toFixed(2)}), min(hsp0, ${HATCH_DENSE.minPx.toFixed(1)}));
     float darkH = min(dark * (1.0 + (hDense - 1.0) * ${HATCH_DENSE.heavier.toFixed(2)}), 1.0);
     if (darkH > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
       gHatch.r = stipple(ce1, fwd, hsp * 1.15, darkH) * smoothstep(0.02, 0.15, darkH);
