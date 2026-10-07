@@ -1,0 +1,39 @@
+TODO.md
+  s_55b4bc53b812ec::t_e742b1f49b8059 95-97,100-102
+changelog.md
+  s_55b4bc53b812ec::t_6dbcb48fe6a20e 10
+docs/systems/materials.md
+  s_55b4bc53b812ec::t_fae146aad147e1 93-113
+src/changelog.js
+  s_55b4bc53b812ec::t_3c19bbe6f96151 14
+src/desert-city.js
+  s_55b4bc53b812ec::t_a22d5ad1c031a9 147,275-303,328,337,346
+src/desert-landmarks.js
+  s_55b4bc53b812ec::t_52f7b891662eac 173-174
+src/desert-vistas.js
+  s_55b4bc53b812ec::t_b0d657780ab425 17
+src/levels/reference-kit.js
+  s_55b4bc53b812ec::t_7c347ac7a2598c 235-236
+src/materials.js
+  s_55b4bc53b812ec::t_bd444fe2a33c0b 655,1544-1564,2276,2458-2459,2521
+tests/cracks.test.js
+  s_55b4bc53b812ec::t_d4fa70f7435779 1-17
+tests/incal-sheets.test.js
+  s_55b4bc53b812ec::t_90d21468008004 1-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "74f6ff6af425514d7bc172d293dd926986861914",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
