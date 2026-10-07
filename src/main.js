@@ -20,6 +20,7 @@ import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig } from './player.js';
 import { cameraPhysics, keepLensOut } from './carriers.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
+import { applyEclipse } from './eclipse.js';
 import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
@@ -664,7 +665,8 @@ const sky = { hour: !viaShip && savedEarly?.level === levelId && savedEarly.hour
 let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
 const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
 // (a level with rooms of its own sky, the Lab's biome rooms, hands its colour script over with atmo)
-const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, atmo?.script ?? script);
+// (an eclipse world's sun on its own path, the moon over it by the hour: src/eclipse.js)
+const updateSky = () => { applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, atmo?.script ?? script); if (level.sky?.eclipse) applyEclipse(sky.hour, level.sky.eclipse, post.uniforms, sharedUniforms.uSunDir.value); };
 // planets hanging in this level's sky (a zone may bring its own: the Lab's biome rooms)
 function setPlanets(list = []) {
   for (let i = 0; i < 3; i++) {

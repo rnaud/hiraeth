@@ -14,6 +14,7 @@ import { MARKET_DAY, MARKET_LOOK } from './bazaar.js';
 import { MANGROVE_DAY, MANGROVE_LOOK } from './mangrove-kit.js';
 import { WATERFALL_DAY, WATERFALL_WORLD_LOOK } from './waterfall-kit.js';
 import { SALT_DAY, SALT_LOOK } from './salt-harbour-kit.js';
+import { ECLIPSE_TOTAL, ECLIPSE_LOOK, eclipseUniforms } from './eclipse-kit.js';
 import { ReferencePicker } from './reference-picker.js';
 import { sheetSrc } from './reference-sheets.js';
 
@@ -198,6 +199,7 @@ export const WORLD_LOOKS = {
   mangrove: { sky: MANGROVE_DAY, look: { ...MANGROVE_LOOK } },
   waterfall: { sky: WATERFALL_DAY, look: { ...WATERFALL_WORLD_LOOK } },
   saltharbour: { sky: SALT_DAY, look: { ...SALT_LOOK } },
+  eclipse: { sky: ECLIPSE_TOTAL, look: { ...ECLIPSE_LOOK, ...eclipseUniforms() } },
 };
 
 const pageParams = () => (typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams());
