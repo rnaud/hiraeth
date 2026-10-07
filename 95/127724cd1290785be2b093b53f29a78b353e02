@@ -1,0 +1,35 @@
+changelog.md
+  s_55b4bc53b812ec::t_40f0a433052cb3 5-8
+docs/systems/references.md
+  s_55b4bc53b812ec::t_c1ddb5c26fe05e 470-503
+src/changelog-media.js
+  s_55b4bc53b812ec::t_e5529ba5614c4e 47,115-120
+src/changelog.js
+  s_55b4bc53b812ec::t_0d1978eeaf7d9b 12-14
+src/levels/reference-saltharbour.js
+  s_55b4bc53b812ec::t_f41c0f333ab7e5 1-371
+src/levels/reference-worlds.js
+  s_55b4bc53b812ec::t_bbb94b869ff7bd 30
+src/levels/references.js
+  s_55b4bc53b812ec::t_70524f32fb3f9b 15,198
+src/levels/salt-harbour-kit.js
+  s_55b4bc53b812ec::t_993848f54ec0e5 1-412
+tests/saltharbour.test.js
+  s_55b4bc53b812ec::t_500af425eb51d7 1-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "95127724cd1290785be2b093b53f29a78b353e02",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
