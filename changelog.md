@@ -16,6 +16,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Cabs drive themselves now: nobody sits up front. You ride seated inside, in an open cabin under the striped canopy, and the camera watches from beside the cab so you see yourself sitting there as the city goes by. As you get in, a little screen on the dash asks where to: choose a stop with the mouse, a number key or the stick and A / ×, and the cab flies you there. At the stop press E (B / ○) to step out, or SPACE (X / □) to choose somewhere else.
 - The Signal Market’s cabs stop at the lantern market, the skybridge over the old sign, Signal Square and the cream balcony on the silent tower; the City-Shaft’s at the rim by the ship, the high terrace, the middle levels and the palace gate. Only Wren goes down to the bottom terrace, by the call-lamp.
 - Wren is the old cab itself now, not its driver: light the call-lamp at the bottom, get in, and Wren talks to you from its dash before it takes you up. The errand is called The Cab That Stops, and the City-Shaft’s people speak of cabs where they used to speak of drivers.
+- On the Steam Deck the settings have the same Updates section as the Android app: what you are playing, Check for updates, what the new version brings, Download and restart with a progress bar, Restart now and the update details. Restarting keeps your saves and comes back at the title screen.
 
 ## v0.74 — 2026-10-06
 

@@ -13,6 +13,8 @@ export const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart'
 
 // the Android app (the Retroid Pocket and phones) starts on the handheld preset (perf.js QUALITY_PRESETS)
 export const isNativeApp = !!globalThis.Capacitor?.isNativePlatform?.();
+/** The Steam Deck's app (Electron, desktop/main.mjs): the game at moebius://game, always fullscreen. */
+export const isDeckApp = globalThis.location?.protocol === 'moebius:';
 
 const DEFAULTS = {
   quality: isNativeApp ? 'handheld' : isTouch ? 'auto' : 'high',   // auto | handheld | low | medium | high
@@ -128,7 +130,7 @@ export class SettingsMenu {
         </aside>
         <section class="panel" data-page="settings">
           <h1>SETTINGS <span>v${VERSION}</span></h1>
-          ${isNativeApp ? '<section class="updates" hidden></section>' : ''}
+          ${isNativeApp || isDeckApp ? '<section class="updates" hidden></section>' : ''}
           ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
           ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
           ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
@@ -146,7 +148,7 @@ export class SettingsMenu {
             <div class="ask" hidden><span>Forget every relic, story page and place in this save?</span>
               <button data-a="reset-yes">Yes, start over</button><button data-a="reset-no">No, keep it</button></div>
           </div>` : ''}
-          <p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>
+          ${isNativeApp || isDeckApp ? "" : `<p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>`}
         </section>
         <section class="panel controls" data-page="controls" hidden></section>
       </div>`;

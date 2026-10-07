@@ -1,9 +1,10 @@
-// The settings' update section, in the Android app only (the title's settings and the
+// The settings' update section, in the Android app and on the Steam Deck (the title's settings and the
 // Start menu, src/ui.js SettingsMenu): the version and build running, "Check for updates",
 // what the newest build brings (version, build, size, its first changelog lines),
 // "Download and restart" with a progress bar, "Restart now", and the app download page
 // when the newest game needs a new app. What it says comes from updateView()
-// (src/updates.js); the app does the work (AppShellPlugin, WebBundles.java).
+// (src/updates.js); the app does the work (AppShellPlugin, WebBundles.java; on the Deck
+// desktop/deck-updates.mjs, which runs deck.py, and Restart now launches again through deck.py).
 //
 // Restarting reloads the page at the title screen, in the new build. The saves live in the
 // page's storage, which every build shares (one origin, https://localhost); the game's

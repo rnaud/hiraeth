@@ -18,7 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SITE, UPDATES, MAX_FILE, checkLimits } from './web-update.mjs';
 
 export const PART = 20 * 1024 * 1024;
-export const KEY_FILES = ['desktop/main.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json',
+export const KEY_FILES = ['desktop/main.mjs', 'desktop/deck-updates.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json',
   ...['portrait', 'wide', 'hero', 'logo'].map((art) => `desktop/steam/${art}.png`)];   // (Steam's artwork, scripts/steam-art.mjs)
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
