@@ -86,3 +86,26 @@ box as it rises). Each gets its own copy of the material, drawn from both sides.
   just under it, a low wall to climb out over and a high one, and a 10 m tower to
   jump from. `tests/swim.test.js` covers the states, the breath, climbing out,
   falls, the bed maps and the bike.
+
+## A sea (October 2026: the Underwater City)
+
+A body of water whose mesh carries `userData.sea` (`seaSurface` in `src/levels/underwater-kit.js`) is a sea: a
+whole world under it, drawn the Moebius way rather than as the generic murk. Without it, nothing changes.
+
+- **Its look under water** (`SEA_LOOK` in `src/water.js`, the over-the-page pass while the camera is under it):
+  - a flat tinted haze in layers: its own `tint` and `deep` colours, clear for `start` m, then `density`, stepped
+    into `bands`, between `min` and `max` (the world's own haze layers, post.js 4b, do the far city);
+  - **shafts** of light from the surface as flat pale bands: slanted cylinders down from the surface on a lattice
+    of `cell` m round the camera (5 × 5 cells, each cell's shaft world-anchored by a hash: `seaShafts`, so nothing
+    moves as you walk), `width`, leaning away from the sun (`lean`), gone by `reach` m down; the brightest one a ray
+    crosses before what it meets, in two printed steps (each ray's nearest approach to each axis, closed form: 25
+    taps of a few dot products, no texture);
+  - **caustics** as printed lines on what faces up: a wandering cell net (F2 − F1 of nine cells) in drifting
+    patches, near only, stronger in the light, gone once finer than a few pixels;
+  - over it all the motes (life.js) stay crisp: they are drawn after the pass.
+- **Its underside**: the water look's `below: [colour, k]` (water-shader.js `uWaterBelow`; the generic water's is a
+  pale white 0.45) sets the ceiling's tone, so a sea's surface reads as a mid blue with its ripples far overhead.
+- **Air pockets**: `sea.air(x, y, z)` true inside them (the cafés' domes): `surfaceAt` and `floorAt` pass the sea by
+  there, so inside you are dry (an ordinary walk, no tint, no muffled sound) and the camera too.
+- **Deep under** (`DEEP_UNDER`, 2.5 m): nothing splashes at the surface for what happens down there (a step, a
+  stroke, going in): only bubbles in the sound. A sea body bakes no bed map (it is seen from below).

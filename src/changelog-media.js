@@ -146,6 +146,13 @@ export const CHANGELOG_MEDIA = {
       { name: 'refs-waterfall-terraces', caption: 'The picture (left) and its view (right): the terraces of domes beside the great fall', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'refs-waterfall-pink', caption: 'The picture (left) and its view (right): the city’s slope at the pink hour, the falls on the left', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open the References (?level=references&world=waterfall) and press Tab for the quick menu: the City Behind the Waterfall’s four views; the backslash key (View on a pad) compares each with its picture.' },
+    { match: 'The References level has the Underwater City’s four pictures', shots: [
+      { name: 'refs-underwater-cafes', caption: 'The first picture (left) and its view (right): the two cafés under their domes, the towers of pods, the manta', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'refs-underwater-terrace', caption: 'The fourth: the great café lit warm through its window, the lamps along the drop, the open sea', only: 'after', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+    ], see: 'Open ?level=references&world=underwater (or the worlds list, L, then the References and Tab to the Underwater City) and step through its four views with [ and ]; \\ lays the picture over the view.' },
+    { match: 'Under a sea, the water is drawn the way the drawings draw it', shots: [
+      { name: 'sea-look', caption: 'The terrace view: the haze in steps with distance, the shafts from the surface, the ripples of light on the street', only: 'after', from: 'the References’ fourth Underwater City view, headless Chrome, High (7 October)' },
+    ], see: 'In the References’ Underwater City views, or under any sea: walk and look about; the shafts stay where they are in the water as you move, and the lines of light drift slowly over what faces up.' },
   ],
   '0.83': [
     { match: 'Once four worlds are behind you, a faint signal pulses', shots: [

@@ -15,6 +15,8 @@ export const CHANGELOG = [
     'A new world off the route, the City Behind the Waterfall: a long cavern city hidden behind a towering curtain of falling water. Walk the dry promenade along the falls, climb the terraced streets of rounded houses, look out over a sunlit valley from the balconies behind slits in the water, or swim in the pool at its foot. The ship’s map charts it from the start.',
     'Waterfalls are drawn the way the drawings draw them: flat turquoise bands streaming down with fine pen streaks, slits of light where the water runs thin, mist and spray at the foot, and a roar that grows as you come near.',
     'The References level has the City Behind the Waterfall’s four pictures rebuilt as views, to set beside the pictures they come from.',
+    'The References level has the Underwater City’s four pictures rebuilt as views: salmon towers ringed with amber pods on the sea floor, glass columns of rising bubbles, cafés lit warm under their domes, a manta overhead, and the light falling in shafts from the surface far above.',
+    'Under a sea, the water is drawn the way the drawings draw it: a flat blue haze in layers that leaves what is near in its own colours, shafts of light from the surface as pale bands slanting away from the sun, and the light’s ripples printed as fine lines on the ground.',
   ] },
   { v: '0.83', date: '2026-10-07', items: [
     { text: 'The game is now called Hiraeth: on the title screen, in the menus, in the apps and in the Steam library. Your saves and settings carry over.', see: 'Open the title screen to see Hiraeth above the clouds. Existing Steam shortcuts receive the new name when the updater next runs with Steam closed.' },
