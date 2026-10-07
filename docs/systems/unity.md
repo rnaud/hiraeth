@@ -51,9 +51,12 @@ as a macOS player, and the port's WebGL (WebGPU) build. Results and the reading 
 ## Building in GitHub Actions (the testers' builds)
 
 The engine bridge's Unity player (docs/systems/engine-bridge.md, "Players"), built for testing on the
-devices next to the players' builds, by `.github/workflows/unity-android.yml` on every push to `main`
-that touches `unity/`, `engine/`, `src/`, `public/` or `scripts/unity-*` (and by hand: Actions ▸ Unity
-release (testers) ▸ Run workflow):
+devices next to the players' builds, by `.github/workflows/unity-android.yml`: on a push to `main` that
+touches the Unity side (`unity/`, `engine/`, `scripts/unity-*`, `scripts/engine-bundle.mjs`, the workflow),
+every night at 03:17 UTC when the game (`src/`, `public/`, …) moved since the commit the release names,
+and by hand (Actions ▸ Unity release (testers) ▸ Run workflow, or `gh workflow run unity-android.yml`).
+The game's own pushes come every 20–40 minutes, faster than a cold build: one run at a time, never
+cancelled once started; GitHub keeps only the newest waiting run and cancels those between.
 - **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.memento.unity`, named "Hiraeth
   (Unity)", the game's icon (`public/icons/icon-512.png`), landscape, immersive, sound on (paused when
   left), the pads through the Input System; IL2CPP ARM64, Vulkan then GLES3; versionName the newest
@@ -70,10 +73,18 @@ release (testers) ▸ Run workflow):
   accessible by integration", on a commit that adds a workflow), and it may be refused moving the tag
   over such commits (a warning; the notes still name the commit). Each run also keeps its APK as an
   artifact for a week.
-- The steps: Puerts (`scripts/unity-js-setup.sh`, cached), the bundle (`node scripts/engine-bundle.mjs
-  unity`), Unity's `Library` cached per platform, then GameCI's `game-ci/unity-builder@v6` in Unity's
-  Linux editor image (6000.6.4f1, read from `ProjectVersion.txt`): one editor run for Puerts' IL2CPP
-  glue (`BridgeBuild.Il2cpp`: it is C# too, compiled by the next start), one for the APK.
+- The steps: Puerts (`scripts/unity-js-setup.sh`), the bundle (`node scripts/engine-bundle.mjs
+  unity`), then GameCI's `game-ci/unity-builder@v6` in Unity's Linux editor image (6000.6.4f1, read
+  from `ProjectVersion.txt`): one editor run for Puerts' IL2CPP glue (`BridgeBuild.Il2cpp`: it is C#
+  too, compiled by the next start), one for the APK.
+- **The caches** (a cold APK took 54 minutes: the image 2, the glue's editor run with a first import
+  12, shaders 12, the IL2CPP C++ 20, Gradle 4): Unity's `Library` per platform (the imports, the
+  shader cache, the IL2CPP build's objects in `Library/Bee`, rebuilt only where the C# changed; the
+  symbol backups and stripped copies left out), a new entry each run restored from the newest and saved
+  even when the build fails further on; Puerts' glue (`Assets/Gen`, keyed on the project's C#: its
+  editor run skipped on a hit); Gradle's downloads (`~/.gradle`: GameCI mounts the runner's home as the
+  container's `/root`); Puerts' release; npm. The editor image (8 GB) is pulled each run (about 2
+  minutes from Docker Hub; larger than an Actions cache would take).
 - **A local build** does the same from the Mac: `scripts/unity-android-release.sh` (the key from
   `.local-tools/android-signing/`, here or in the main checkout; it checks the APK is signed with the
   release certificate, then uploads to `unity-android`; `NO_UPLOAD=1` builds only, `CLEAN=1` deletes
@@ -108,6 +119,5 @@ log does not say "Build succeeded!" (its own build script's words), so `BridgeBu
 on success; and an Android build ignores the default icon: with its adaptive icons left empty it
 draws Unity's cube, so `AndroidRelease` fills them (both layers: `public/icons/maskable-512.png`).
 
-Costs: the repository is private, so the minutes count (an Android IL2CPP build is 30–60 min from a
-cold `Library`, less from the cache; pushes to `main` that touch `src/` are frequent, and runs queue
-one at a time). To build less often, narrow the workflow's `paths:` or drop `push:` and run it by hand.
+Costs: the repository is private, so the minutes count; hence the nightly run for the game's changes
+rather than one a push.
