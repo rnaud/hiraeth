@@ -3,7 +3,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MODE_STRATA, MODE_TERRAIN } from '../materials.js';
 import { createNoise2D, mulberry32 } from '../noise.js';
 import { table, needle, boulder, drips, lumpy, place, TAU } from './sky-stones-kit.js';
-import { bridge, SKY_STONES_HAZE } from './arzach2.js';
+import { bridge, SKY_STONES_HAZE, CREVASSE } from './arzach2.js';
 import { buildBird, poseWings, FOOT, STAND } from '../bird.js';
 import { formAxis, keepForm } from '../form.js';
 import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
@@ -342,7 +342,9 @@ function vaelScene(kit, v, o) {
 
 // ---------------------------------------------------------------- grounds
 const ROCK = { color: '#f8e2cb', color2: '#f5dcc4', color3: '#efd2b8', pattern: 'cracks' };
-const PLAIN = { color: '#feb28a', color2: '#fcb894', color3: '#f3a47f', ripples: true };
+// (its steep faces, the crevasses' walls, a red-brown, never filled with spot black: the sheets draw them lit
+//  red-brown and hatched, ours were dark: arzach2.js CREVASSE)
+const PLAIN = { color: '#feb28a', color2: '#fcb894', color3: CREVASSE.wall, ripples: true, spot: 0, strataHatch: CREVASSE.strokes };
 /** A ledge of rock round the camera out to `edge` m (front), falling away to a floor far below. */
 const ledge = (edge = 20, y = 0, floor = -300) => ({
   height: (x, z) => {
@@ -587,7 +589,7 @@ export const VAEL2_VIEWS = [
     id: '3785-crevasse', title: 'The crevasse, the tower, the far sea of cloud', sheet: 'IMG_3785', panel: 5, where: 'bottom right', crop: [521, 629, 469, 353],
     camera: { eye: [0, 4, 0], yaw: 0, fov: 46, horizon: 0.6 },
     sun: { side: 130, el: 45 },
-    ground: plain([[-30, -40, 70, -25, 3, 6], [-110, -70, -40, -74, 3, 5]], { rise: 4 }),
+    ground: plain([[-30, -40, 70, -25, 7, 9], [-110, -70, -40, -74, 5, 7]], { rise: 4 }),
     build(kit, v) {
       vaelScene(kit, v, {
         seed: 37855, towers: [[40, -720, 1]],

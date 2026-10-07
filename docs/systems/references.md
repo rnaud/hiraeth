@@ -132,6 +132,11 @@ and bird too).
   draw in their own material without flat facets (`M.needle` in arzach2.js, `boneNeedle` / `pinkNeedle` in the
   views), so the shade runs down a needle as one band where the facets used to break into lit islands. View 52's
   column takes the same, lit from the left as its panel.
+- **The crevasses' walls lit red-brown and hatched** (round 3; `CREVASSE` in arzach2.js, materials.js S_TERRAIN):
+  the plain's steep faces take a red-brown (the terrain's third tone), never a spot black, and in light keep runs of
+  strokes falling straight down them (a terrain material's `strataHatch`: the ground's strokes are laid from above,
+  so on a wall they run down it). The world's fissures and the views' plains; view 65's crevasses widened to the
+  panel's.
 - **Cost** (M4 Pro, 1280 × 720, Vael II at spawn and turned, GPU median): High 11.4 → 8.6 and 9.5 →
   6.8 ms (the flat clouds gone), Handheld 2.1 → 2.0 and 1.6 → 1.5; the shader changes are a few
   selects, no new taps.

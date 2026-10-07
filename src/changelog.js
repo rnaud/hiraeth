@@ -26,6 +26,7 @@ export const CHANGELOG = [
     'The Garden of Spheres’ olive trees have rounder, layered crowns, a broad tier of leaves with a smaller one over it and a little cap on top, as in its drawings, instead of flat cushions.',
     'The Garden’s round plaza reads pale from where you stand, as in its drawings: its slabs are wider and their joints a lighter tone, instead of crowding into dark bands across the rings.',
     'In Vael II the needle spires and the mushroom tables’ stalks take their shade in one clean band down their side, as in its drawings, instead of breaking into lit patches across their flutes.',
+    'The cracks in Vael II’s peach plain are no longer black holes: their walls are a lit red-brown, hatched with strokes running down them, as in its drawings.',
   ] },
   { v: '0.76', date: '2026-10-07', items: [
     'The Steam Deck gets its own Graphics setting, between Handheld and Medium, and Auto picks it there: the game draws at the Deck’s own resolution with a lighter crowd, fewer far pebbles and plants and lighter shadows, and lowers its resolution by itself when a scene is too much. A Deck that started on High moves to Auto once; a lighter setting you picked is kept.',

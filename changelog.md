@@ -22,6 +22,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Garden of Spheres’ olive trees have rounder, layered crowns, a broad tier of leaves with a smaller one over it and a little cap on top, as in its drawings, instead of flat cushions.
 - The Garden’s round plaza reads pale from where you stand, as in its drawings: its slabs are wider and their joints a lighter tone, instead of crowding into dark bands across the rings.
 - In Vael II the needle spires and the mushroom tables’ stalks take their shade in one clean band down their side, as in its drawings, instead of breaking into lit patches across their flutes.
+- The cracks in Vael II’s peach plain are no longer black holes: their walls are a lit red-brown, hatched with strokes running down them, as in its drawings.
 
 ## v0.76 — 2026-10-07
 

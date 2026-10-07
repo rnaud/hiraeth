@@ -72,3 +72,11 @@ test('a needle and a cap table are shaded by their round form, not their flutes:
   assert.ok(shade < face * 0.75, `the shading normal turns away from the stalk by ${shade.toFixed(2)} rad at worst, its facets by ${face.toFixed(2)}`);
   assert.ok(tb({ x: 0, z: 0, R: 20, stalk: 4, top: 30, flute: 0.14, fluteK: 7, rib: 0.4 }).vis.attributes.normal);
 });
+
+test('the crevasses’ walls: red-brown, never spot black, hatched down in light', async () => {
+  const { CREVASSE } = await import('../src/levels/arzach2.js');
+  const { makeMaterial, MODE_TERRAIN, shadeOf } = await import('../src/materials.js');
+  const o = { color: '#eda584', color3: CREVASSE.wall, mode: MODE_TERRAIN, ripples: true, spot: 0, strataHatch: CREVASSE.strokes };
+  assert.equal(shadeOf(o)[3], CREVASSE.strokes);
+  assert.match(makeMaterial(o).fragmentShader, /a steep face of the ground in light/);
+});

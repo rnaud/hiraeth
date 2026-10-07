@@ -30,6 +30,8 @@ export const SKY_STONES_HAZE = { uHazeLayers: [200, 2, 0.09, 4], uHazeTone: [1, 
 export const SKY_STONES_CAST = { uCast: [0.7, 0] };
 export const SKY_STONES_LOOK = { uCumulus: 0, uClouds: 0, uBounce: 0, uHalftone: 0.15, uShadeKeep: 0, ...SKY_STONES_HAZE, ...SKY_STONES_CAST };
 /** The day's colours: sky top, horizon, the shadow's grey-blue, light, sun. */
+/** The crevasses' and the plain's steep faces: a red-brown, lit and hatched as the sheets draw them, never spot black. */
+export const CREVASSE = { wall: '#c0664a', strokes: 1 };   // (strokes: the lit walls' strokes, materials.js S_TERRAIN)
 export const SKY_STONES_DAY = ['#a3d0d2', '#f4cdb0', '#93a6ac', '#fff7ec', '#fff2dc'];
 
 // ---------------------------------------------------------------- layout
@@ -163,7 +165,7 @@ export function* buildArzach2(scene) {
   const PRINT = { shadeFlat: SKY_STONES_FLAT };
   const terrain = yield* Terrain.make({
     size: 5200, seg: 320, height,
-    material: { color: '#eda584', color2: '#f2b48f', color3: '#c98f86', mode: MODE_TERRAIN, ripples: true, ...PRINT },
+    material: { color: '#eda584', color2: '#f2b48f', color3: CREVASSE.wall, mode: MODE_TERRAIN, ripples: true, spot: 0, strataHatch: CREVASSE.strokes, ...PRINT },
   });
   scene.add(terrain.mesh);
 
