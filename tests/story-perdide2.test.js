@@ -93,7 +93,7 @@ test('the deep wood’s people and places stand on walkable or wadeable ground',
 });
 
 test('side quest: Pim’s latch from the big roof', () => {
-  talk(KEEPERS[1], ['Why not?', 'I’ll fetch it.']);
+  talk(KEEPERS[1], ['Reconsiders?', 'I’ll fetch it.']);
   assert.equal(quests.stage('perdide2.latch'), 'find');
   at(W.places.latchAt);
   const e = bestInteractable(player);
@@ -181,7 +181,7 @@ test('the main quest: three pools relit, the saucer answers, Hollin asks you to 
   assert.ok(W.people.hollin.pos.distanceTo(W.places.hollinEnd) < 0.5, 'Hollin waits at the root cave');
   assert.ok(quests.objective().position.distanceTo(W.places.hollinEnd) < 0.5);
   at(W.places.hollinEnd.clone().add(V(2, 0, 0)));
-  talk(KEEPERS[0], ['Two couches', 'I’ll come back.']);
+  talk(KEEPERS[0], ['Two worn seats', 'I’ll come back.']);
   step(2);
   assert.equal(quests.isDone('perdide2.lamps'), true);
   assert.equal(game.flag('world.perdide2.done'), true);

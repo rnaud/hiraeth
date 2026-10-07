@@ -66,6 +66,10 @@ release (testers) ▸ Run workflow):
 - Both releases are prereleases and never "latest" (the app's updater and the players read the
   `vX.Y` releases); each build replaces its file, moves the tag to its commit and rewrites the notes
   (which commit, which web version: `release-info.mjs unity-notes`). `scripts/unity-publish.sh` does it.
+  The two releases were made once by hand: Actions' token was refused creating one (403 "Resource not
+  accessible by integration", on a commit that adds a workflow), and it may be refused moving the tag
+  over such commits (a warning; the notes still name the commit). Each run also keeps its APK as an
+  artifact for a week.
 - The steps: Puerts (`scripts/unity-js-setup.sh`, cached), the bundle (`node scripts/engine-bundle.mjs
   unity`), Unity's `Library` cached per platform, then GameCI's `game-ci/unity-builder@v6` in Unity's
   Linux editor image (6000.6.4f1, read from `ProjectVersion.txt`): one editor run for Puerts' IL2CPP
@@ -94,7 +98,14 @@ needed (Unity stopped issuing them for Personal, and Unity Hub 3 keeps an entitl
 `~/Library/Unity/licenses/`, instead). **Unity Pro / Plus**: add `UNITY_SERIAL` (the serial from
 id.unity.com ▸ Subscriptions) beside the two. The release key's secrets are the Android workflow's
 (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`). A missing secret fails the run's first job
-in seconds, naming it. The runs take one seat at a time (the Linux job waits for the APK's).
+in seconds, naming it. The runs take one seat at a time (the Linux job waits for the APK's). (Set up
+on 2026-10-07 with `UNITY_EMAIL` and `UNITY_PASSWORD`: each editor run logs "Licensing method:
+personal … ASSIGN_SEAT" and, at its end, "Successfully returned the entitlement license".)
+
+Two traps met on the way: `-version` on the editor's command line makes Unity print its version and
+quit, building nothing (the version goes in as GameCI's `-buildVersion`); and GameCI v6 fails a run
+whose log does not say "Build succeeded!" (its own build script's words), so `BridgeBuild`'s entries
+log that on success.
 
 Costs: the repository is private, so the minutes count (an Android IL2CPP build is 30–60 min from a
 cold `Library`, less from the cache; pushes to `main` that touch `src/` are frequent, and runs queue

@@ -16,6 +16,8 @@
 // home.stone (token ids on the stone), home.lou.drawing (her drawing on the
 // stone, from the ending), home.visits.
 
+import { ORDER } from '../levels/names.js';
+
 /** How many keepsakes he has brought, as Lou sees it: 0 a few, 1 a good many, 2 lots, 3 everything. */
 export function keepsakeBand(n) { return n < 6 ? 0 : n < 11 ? 1 : n < 17 ? 2 : 3; }
 
@@ -24,6 +26,10 @@ const band = (b) => (ctx) => keepsakeBand(count(ctx)) === b;
 const done = (w) => (ctx) => !!ctx.game.flag(`world.${w}.done`) || (ctx.game.keepsakes?.() ?? []).some((k) => k.level === w);
 const carrying = (ctx) => !!ctx.game.flag('home.flower.held');
 const ended = (ctx) => !!ctx.game.flag('ending.done');
+// the drawing Lou talks about: the furthest world along the route he has written from (the route's order stands in
+// for "newest": the save keeps no dates), the desert's if none
+const FURTHEST = [...ORDER].reverse();
+const newest = (w) => (ctx) => (w === 'desert' || done(w)(ctx)) && FURTHEST.slice(0, FURTHEST.indexOf(w)).every((v) => !done(v)(ctx));
 
 /** What Lou says about her drawing of each world (her newest one first). */
 export const DRAWING_LINES = {
@@ -90,10 +96,7 @@ export const PEOPLE = {
         drawings: {
           say: [
             "~happy~ By the door! One drawing for every card. I kept the cards as well.",
-            { text: DRAWING_LINES.bazaar, if: done('bazaar') },
-            { text: DRAWING_LINES.perdide2, if: (ctx) => done('perdide2')(ctx) && !done('bazaar')(ctx) },
-            { text: DRAWING_LINES.arzach, if: (ctx) => done('arzach')(ctx) && !done('perdide2')(ctx) && !done('bazaar')(ctx) },
-            { text: DRAWING_LINES.desert, if: (ctx) => !done('arzach')(ctx) && !done('perdide2')(ctx) && !done('bazaar')(ctx) },
+            ...FURTHEST.map((w) => ({ text: DRAWING_LINES[w], if: newest(w) })),
             "~whisper~ There’s another I haven’t finished. For Grandma and Grandpa. You can see it when it’s ready.",
           ],
           choices: [{ text: '~solemn~ Have you been to see them?', goto: 'stone' }, { text: '~happy~ I’ll go and look.', end: true }],
@@ -190,7 +193,7 @@ export const THINGS = {
   window: {
     id: 'home.window', name: 'The round window', title: 'the lamp in it, out', color: '#4a5a8a',
     talk: { nodes: { look: { say: ["~solemn~ (Her lamp stands below the round window, wick black. From here, the landing ring is in full view.)",
-      "~whisper~ (Near the end, your father stood here and said he could hear singing.)"] } } },
+      { text: "~whisper~ (On the reel, your mother said he stood at this window one night and heard singing.)", if: (ctx) => !!ctx.game.flag('calls.beat.light.late') }] } } },
   },
   shelf: {
     id: 'home.shelf', name: 'Lou’s shelf', title: 'a copy of every keepsake', color: '#f2c54b',

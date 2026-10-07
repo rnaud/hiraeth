@@ -114,3 +114,18 @@ test('on his body: the expression, the blink and the talking mouth reach his mat
   for (let i = 0; i < 400; i++) f.update(1 / 60, {});
   assert.ok(u().uTfMouth.value.z < 1e-4, 'shut after the line');
 });
+
+test('strong enough for the close shot, and where his face is in the world', async () => {
+  // (a face 120 px tall in the conversations' close shot: a mouth corner moves a few pixels, the line is more than one)
+  const happy = state(TONE_EXPRESSIONS.happy), sad = state(TONE_EXPRESSIONS.sad), shocked = state(TONE_EXPRESSIONS.surprised);
+  const px = 120 / 0.21;   // px per metre at that size
+  assert.ok((happy.mouth[1] - sad.mouth[1]) * px >= 5, `a smile and a frown apart by ${((happy.mouth[1] - sad.mouth[1]) * px).toFixed(1)} px`);
+  assert.ok((shocked.brow[3] - rest.brow[3]) * px >= 4.5, 'raised brows: several pixels up');
+  assert.ok(shocked.mouth[2] * px >= 6, 'a gasp: the mouth open a few pixels');
+  assert.ok(TRIPO_FACE_GLSL.includes('0.00105'), 'the mouth line half again as thick');
+  const { char, humanoid: h } = await traveller();
+  char.root.position.set(3, 0, -2); char.root.rotation.y = Math.PI / 2; char.root.updateMatrixWorld(true);
+  const at = h.drawnFace.at(h.b.Head, new T.Vector3()), facing = h.drawnFace.facing(new T.Vector3());
+  assert.ok(Math.abs(at.y - 1.6) < 0.15 && Math.hypot(at.x - 3, at.z + 2) < 0.25, `his face, over his feet: ${at.toArray().map((v) => v.toFixed(2))}`);
+  assert.ok(facing.x > 0.8, `looking the way he faces: ${facing.toArray().map((v) => v.toFixed(2))}`);
+});

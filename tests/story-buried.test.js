@@ -278,3 +278,24 @@ test('an old save waiting at the hook (from before the crane swung) is sent to s
   assert.ok(target('jib')?.enabled(), 'and the jib is there to swing');
   clearInteractables(); clearTargets();
 });
+
+test('out of order: the Wick lit and the gauges read before anyone asked; Wen and Ossa still carry their quests on', () => {
+  clearInteractables(); clearTargets();
+  game.reset();
+  // Wen's directions and Ossa's own lines say where the Wick is: a player can go down and light it first
+  for (const f of ['buried.canyon.seen', 'buried.oculus.seen', 'buried.valve.open', 'buried.oculus.lit', 'buried.gauges.read']) game.set(f, true);
+  const scene4 = new THREE.Scene();
+  const level4 = createBuried(scene4);
+  const physics4 = new Physics(scene4, level4.ground);
+  const rt4 = createStory({ levelId: 'buried', scene: scene4, physics: physics4, level: level4, player, npcs: spawnNPCs(scene4, physics4, CONTENT.buried.npcs), crowd: null, sound,
+    journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} }, capture: null, lib: null, humans: null, toast: () => {}, tool: null });
+  const q4 = rt4.quests;
+  const say = (person) => { q4.opening(person.id); const r = new DialogueRunner(person, { game, quests: q4 }); while (!r.ended && r.advance()); q4.opened(); return r; };
+  say(PEOPLE.wen);
+  for (let i = 0; i < 8; i++) rt4.update(1 / 30, i / 30, { camera });
+  assert.equal(q4.stage('buried.tooth'), 'watch', 'Wen’s and Hask’s talks pass over: on to the wheel');
+  // Ossa, met after the three gauges were read: her reading starts and ends the quest
+  say(PEOPLE.ossa);
+  assert.equal(q4.isDone('buried.gauges'), true);
+  clearInteractables(); clearTargets();
+});

@@ -129,12 +129,16 @@ export async function checkLimits(dir, { maxFile = MAX_FILE, maxFiles = MAX_FILE
 /** The References level's sheets (assets/IMG_<n>-<hash>.JPG, ~18 MB) stay out of the zip: the site serves
  * them to bundled games (src/levels/reference-sheets.js), and with them the zip passed Workers' 25 MiB. */
 export const SHEET_FILE = /^assets\/IMG_\d+-[\w-]+\.jpe?g$/i;
+/** The interactive changelog's pictures (changelog-media/, docs/systems/changelog.md) are the site's alone:
+ * the build never holds them (the deploy copies them in after this zip and the Deck's runtime are made),
+ * and if they ever were in dist/ they would still stay out of the zip, the APK and the Deck. */
+export const MEDIA_FILE = /^changelog-media(\/|$)/;
 
 /** Write dist/updates/: this build's zip and web.json, and the previous build's zip. */
 export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null }) {
   const out = join(dist, UPDATES);
   await rm(out, { recursive: true, force: true });
-  const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) });
+  const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) });
   if (!names.includes('index.html')) throw new Error('no index.html in the build: run npm run build first');
   await mkdir(out, { recursive: true });
   const file = join(out, `web-${build}.zip`);

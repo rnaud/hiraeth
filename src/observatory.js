@@ -105,8 +105,8 @@ export class ObservatoryQuest {
   save() { this.journal.save(); }
   refreshTraveler() {
     this.traveler.lines = this.state.done
-      ? ['You brought the stars back. I saw them from here.', 'Keep the sketch. It belongs to your journey now.']
-      : ['A sleeping observatory stands east of here: a tower crowned by a brass ring.', 'Take my sketch. Rest on its ledges, then turn the three lenses toward the heart.'];
+      ? ['~happy~ You brought the stars back. I saw them from here.', '~solemn~ Keep the sketch. It belongs to your journey now.']
+      : ['~neutral~ A sleeping observatory stands east of here: a tower crowned by a brass ring.', '~neutral~ Take my sketch. Rest on its ledges, then turn the three lenses toward the heart.'];
     this.traveler.lineIdx = 0;
   }
   /** The moment's words as a toast (once a comic page); its first shot drawn for the sketchbook. */
@@ -150,7 +150,7 @@ export class ObservatoryQuest {
     this.draw(dt);
     if (this.pendingPage && this.opening >= 1) {
       this.pendingPage = false;
-      this.state.img = this.page('THE STARS REMEMBER', 'The roof unfolds. For the first time in an age, the observatory draws its constellation. The traveler will see it too. The dunes wait below: climb out and glide home.', [
+      this.state.img = this.page('THE STARS REMEMBER', 'The roof unfolds. For the first time in an age, the observatory draws its constellation. The sketcher will see it from camp. The dunes wait below: climb down and walk back to camp.', [
         [c.clone().add(new THREE.Vector3(35, 32, 45)), c.clone().add(new THREE.Vector3(0, 12, 0))],
         [c.clone().add(new THREE.Vector3(12, 5, 12)), c.clone().add(new THREE.Vector3(0, 20, 0))],
         [player.pos.clone().add(new THREE.Vector3(5, 3, 5)), player.pos.clone().add(new THREE.Vector3(0, 1, 0))],
@@ -177,10 +177,10 @@ export class ObservatoryQuest {
     });
   }
   hud(player) {
-    if (!this.state.started) return 'Meet the traveler beside camp';
-    if (this.state.done) return this.state.returned ? 'The stars remember · expedition complete' : 'Observatory awake · glide back to the traveler';
+    if (!this.state.started) return 'Meet the sketcher beside camp';
+    if (this.state.done) return this.state.returned ? 'The stars remember · expedition complete' : 'Observatory awake · go back to the sketcher';
     const i = this.nearby(player);
-    if (i >= 0) return `E turn lens ${i + 1} · ${this.state.turns.filter((v, j) => v === TARGETS[j]).length}/3 beams aligned`;
-    return this.fragment || `Sleeping observatory · east · ${Math.round(player.pos.distanceTo(this.model.center))} m · J sketch`;
+    if (i >= 0) return `E (B / ○) turn lens ${i + 1} · ${this.state.turns.filter((v, j) => v === TARGETS[j]).length}/3 beams aligned`;
+    return this.fragment || `Sleeping observatory · east · ${Math.round(player.pos.distanceTo(this.model.center))} m`;
   }
 }

@@ -281,3 +281,24 @@ uniforms a frame.
 - `tests/tripo-face.test.js` checks each channel on the state, the blink and gaze, and the shader's
   uniforms. On the real body it checks the expression, the blink and the talking mouth reaching his
   material, through `markHero`.
+
+## His face at conversation size
+
+The conversations now cut to a close shot of him (`docs/systems/conversations.md`). There his face
+is 145 to 175 px tall, against about 35 px in the two-shot. At that size the first measures moved a
+mouth corner by about two pixels, and the mouth line was one pixel thick. A smile and a frown looked
+alike.
+
+- **Stronger channels** (`TRIPO_GAIN` in `src/characters/tripo-face.js`): the brows move 1.45× as
+  far (raised, lowered, knitted, tilted), the mouth's corners and width 1.5×, and its opening
+  1.4×. The mouth's line, corner ticks and lower-lip stroke are 1.5× as thick. That is still within
+  the people's own faces, which their ink bends as far. The shader's boxes grew to hold the larger
+  moves: the face from y 1.553 to 1.684, and the mouth ±0.028 m.
+- **Where his face is** (`face.at(head, out)`, `face.facing(out)`): the middle of the drawn face
+  (`TRIPO_FACE.centre`) and the way it looks, in the world, through the head bone's skinning. The
+  close shot frames these, and so does his portrait.
+- **His portrait** (`portraitYou` in `src/story/index.js`): on his lines the dialogue chip shows
+  him wearing the line's tone. His expression is set for the capture and given back afterwards.
+- Checked on the desert, home (Lou, Tove), Qanat (Nour, seated) and the Signal Market (Madame Sel,
+  seated; Ferro), at 1280×720 and at 1920×1080 with the Handheld preset: happy, sad, angry, scared,
+  surprised, solemn and the smirk each read at the close shot's size.

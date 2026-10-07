@@ -17,7 +17,7 @@
     return float2(y, s);
   }
   float3 tripoFace(float3 albedo, float3 b, float aa) {
-    if (b.z < 0.035 || b.y < 1.562 || b.y > 1.678 || abs(b.x - (-0.001)) > 0.072) return albedo;
+    if (b.z < 0.035 || b.y < 1.553 || b.y > 1.684 || abs(b.x - (-0.001)) > 0.072) return albedo;
     static const float3 INK = float3(0.075, 0.058, 0.05);
     // 1. cover the paint: the skin round it, where a pixel isn't skin already
     float2 xy = b.xy;
@@ -29,7 +29,7 @@
     float side = sign(p.x);
     // 2. the brows: one thick stroke each, square at the inner end, tapering to a point
     float2 I = _TfBrowA.xy, Pk = _TfBrowA.zw, O = _TfBrowB.xy;
-    if (q.x > I.x - 0.004 && q.x < O.x + 0.003 && abs(q.y - Pk.y) < 0.016) {
+    if (q.x > I.x - 0.004 && q.x < O.x + 0.003 && abs(q.y - Pk.y) < 0.022) {
       float x = clamp(q.x, I.x, O.x);
       float2 ys = tfQuad(x, I, Pk, O);
       float t = (x - I.x) / (O.x - I.x);
@@ -68,7 +68,7 @@
     }
     // 4. the mouth: one lineY, its corners up or down; open, a dark shape under it (teeth at the top)
     float mw = _TfMouth.x, t = p.x / mw;
-    if (abs(t) < 1.35 && abs(p.y - 1.5805) < 0.02) {
+    if (abs(t) < 1.35 && abs(p.y - 1.5805) < 0.028) {
       float s2 = max(1.0 - t * t, 0.0);
       float lineY = 1.5805 + _TfMouth.y * t * t - 0.0003 * s2;
       float top = lineY + _TfMouth.w * pow(s2, 0.6), bot = lineY - _TfMouth.z * pow(s2, 0.7);
@@ -77,7 +77,7 @@
       mc = lerp(mc, float3(0.92, 0.88, 0.8), step(top - min(0.0022, (top - bot) * 0.3), p.y) * step(0.0035, top - bot) * step(abs(t), 0.62));
       albedo = lerp(albedo, mc, insideM);
       float slope = 2.0 * _TfMouth.y * t / mw;
-      float wm = lerp(0.0007, 0.00035, abs(t)) * (1.0 - smoothstep(0.96, 1.06, abs(t)));
+      float wm = lerp(0.00105, 0.000525, abs(t)) * (1.0 - smoothstep(0.96, 1.06, abs(t)));
       float3 lip = float3(0.24, 0.12, 0.09);
       albedo = lerp(albedo, lip, tfCover(abs(p.y - top) / sqrt(1.0 + slope * slope), max(wm, 0.55 * aa * step(0.0001, wm)), aa));
       // the open mouth's lower edge, finer
@@ -85,11 +85,11 @@
       // the corners: a short tick turned up by a smile, down by a frown
       float ct = abs(t) - 1.05;
       float cy = lineY + _TfMouth.y * (1.0 + 2.0 * ct) * 1.4 - 1.5805;
-      float tick = step(abs(ct), 0.1) * tfCover(abs(p.y - 1.5805 - cy), max(0.00035, 0.5 * aa), aa) * smoothstep(0.0003, 0.0012, abs(_TfMouth.y));
+      float tick = step(abs(ct), 0.1) * tfCover(abs(p.y - 1.5805 - cy), max(0.000525, 0.5 * aa), aa) * smoothstep(0.0003, 0.0012, abs(_TfMouth.y));
       albedo = lerp(albedo, lip, tick * 0.8);
       // the lower lip: a short stroke under the mouth, lowered as it opens
       float ll = 1.0 - smoothstep(0.25, 0.4, abs(p.x) / 0.0195);
-      albedo = lerp(albedo, lip, 0.45 * ll * tfCover(abs(p.y - (bot - 0.0047 - 0.0002 * s2)), max(0.0003, 0.45 * aa), aa));
+      albedo = lerp(albedo, lip, 0.45 * ll * tfCover(abs(p.y - (bot - 0.0047 - 0.0002 * s2)), max(0.00045, 0.45 * aa), aa));
     }
     return albedo;
   }

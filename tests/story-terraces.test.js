@@ -138,7 +138,7 @@ test('the quest: the runnels top first, the gate at Esk’s asking, the flood; i
   assert.match(html, /qgroup failed">Failed/);
   assert.match(html, /class="quest finished failed" data-quest="edena.terraces"/);
   assert.match(html, /✗ Failed/);
-  assert.match(quests.summary().failed[0].outro, /the hill came down with the water/);
+  assert.match(quests.summary().failed[0].outro, /her hill went down into the hollow/);
   // it can't be retried
   assert.equal(quests.set(Q, 'runnels'), false);
   assert.equal(quests.isFailed(Q), true);

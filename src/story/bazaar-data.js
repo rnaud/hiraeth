@@ -32,7 +32,7 @@ export const LANTERN_FLAG = 'bazaar.tank.lantern';
 
 /** The broadcast's words, the keepsake: kept here so the calls home can quote it. */
 export const KEEPSAKE = { id: 'bazaar.word', level: 'bazaar', name: 'You are not alone', kind: 'word',
-  text: '“Don’t bring anything. You are not alone. Someone is listening for you.” Your father’s voice, years younger, to a child called Ilen.' };
+  text: '“Come with empty hands. Just come. You are not alone. I’m listening for you.” Your father’s voice, years younger, to a child called Ilen.' };
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -83,7 +83,7 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~playful~ Mind the cables, love. Nobody else does.',
-            "~sad~ You noticed the quiet tower. Good. The noodle signs usually win that contest.",
+            "~playful~ You noticed the quiet tower. Good. The noodle signs usually win that contest.",
             "~neutral~ Sel. I ran this tower for forty years. It received voices from space and played them to the square."],
           choices: [
             { text: '~curious~ Why did it go quiet?', goto: 'quiet' },
@@ -136,7 +136,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Where did it come from?', goto: 'origin' }],
         },
         name: {
-          say: ["~sad~ He called her *Ilen*. This message travelled thirty years looking for her. Instead, it reached you."],
+          say: ["~sad~ He said a name: *Ilen*. This message travelled thirty years looking for them. Instead, it reached you."],
           choices: [{ text: '~curious~ Where did it come from?', goto: 'origin' }],
         },
         still: { say: ["~whisper~ You don’t have to answer. Sit awhile. The square can do without us for a moment."], choices: [{ text: '~neutral~ (listen)', goto: 'origin' }] },
@@ -183,12 +183,13 @@ export const PEOPLE = {
         },
         said: { say: ["~whisper~ A man underneath the singing. Saying a name. Nobody here answered to it."], choices: [{ text: '~neutral~ I’ll take it up.', goto: 'up' }] },
         up: {
-          say: ["~playful~ *Cream balcony, halfway up the tower.* Climb the blue ledges, use your jetpack, or take a cab. *Help Ferro tune the antenna* before trying the console."],
+          say: ["~playful~ *Cream balcony, halfway up the tower.* Climb the blue ledges, use your jets, or take a cab. *Help Ferro tune the antenna* before trying the console."],
           choices: [{ text: '~happy~ Thanks, Kip.', end: true }],
         },
-        again: { say: ['~curious~ Did you play it yet? Is it still singing?'], choices: [{ text: '~neutral~ Not yet.', end: true }] },
+        again: { say: ['~curious~ Did you play it yet? Is it still singing?'], do: { advance: [Q, 'kip'] }, choices: [{ text: '~neutral~ Not yet.', end: true }] },
         heard: {
-          say: ["~surprised~ Heard it up here. Everyone stopped. Even the fish man, and silence costs him money.", "~playful~ Nearly threw the cylinder into the canal. Glad I didn’t. Very glad."],
+          say: ["~surprised~ Heard it up here. Everyone stopped. Even the fish man, and silence costs him money.", "~playful~ Nearly threw the cylinder off the bridge. Glad I didn’t. Very glad."],
+          do: { advance: [Q, 'kip'] },
           choices: [{ text: '~happy~ I’m glad too.', end: true }],
         },
       },
@@ -213,7 +214,7 @@ export const PEOPLE = {
         },
         you: {
           say: ["~surprised~ You can shoot from here? Good. *Hit all three bulbs quickly*, before the first fades.",
-            "~neutral~ Aim with R or right mouse, then fire with G or left click. One shot per bulb. Your tank holds three."],
+            "~neutral~ Aim with LT / L2 (or right mouse), then fire with RT / R2 (or left click). One shot per bulb. Your flask holds three."],
           choices: [{ text: '~playful~ Stand back.', end: true }],
         },
         light: {
@@ -399,7 +400,7 @@ export const THINGS = {
           "~solemn~ (Every tower screen turns white. The square quiets. Through a hiss comes your father’s voice, younger than you remember.)",
           "~solemn~ *Ilen. They say this message may take years to reach you. You’ll be older when you hear it. I keep trying to picture you.*",
           "~sad~ *At the port, I told you to make us proud. Bring back something of value. I’ve wished I could take those words back every day since.*",
-          "~happy~ *You don’t owe us a prize. Nothing out there is worth more than you walking back through our door. Come with empty hands. Just come.*",
+          "~solemn~ *You don’t owe us a prize. Nothing out there is worth more than you walking back through our door. Come with empty hands. Just come.*",
           "~whisper~ *If it’s dark where you are, and nobody knows your name: you are not alone. I’m listening for you. Every night.*",
           "~whisper~ (A long pause through the hiss.) *Come home when you’re ready, Ilen. We have room for you.*",
           "~solemn~ (The voice ends. White screens glow above a motionless square.)",
@@ -427,7 +428,7 @@ export const CROWD_TALK = {
       "~happy~ Seven-moon fruit! This one tastes like rain on a hot roof. Yes, I checked the roof.",
       '~shout~ Seven moons of fruit! This one bites back. That one’s only shy.',
       '~angry~ Touch it, you buy it. You touched it. No, you looked at it in a touching way.',
-      { if: { not: { quest: 'bazaar.bowl', done: true } }, say: '~curious~ Ummu’s crates came down in her alley, seven-moon fruit everywhere. She hasn’t found her bowl since. Somebody should *shift those crates*.' },
+      { if: { not: { quest: 'bazaar.bowl', done: true } }, say: '~curious~ Ummu’s crates came down in its alley, seven-moon fruit everywhere. The quiet one hasn’t found its bowl since. Somebody should *shift those crates*.' },
     ] } },
     { name: 'A noodle cook', title: 'at the counter', talk: { listen: [
       "~playful~ The sign says my noodles remember your order. The noodles are liars. Tell me again.",
@@ -480,7 +481,7 @@ export const CROWD_TALK = {
       '~playful~ I cried into the noodle man’s broth. He says it’s improved.',
     ] } },
     { name: 'A stranger', title: 'looking up at the tower', talk: { listen: [
-      "~happy~ Someone is listening for you. I needed to hear that. Thought I’d just come for fruit.",
+      "~happy~ I’m listening for you, it said. I needed to hear that. Thought I’d just come for fruit.",
       '~solemn~ I’m going to call my mother. I haven’t in years. I don’t know what I’ll say.',
       '~curious~ Who was it from, do you think? Does it matter? It doesn’t matter.',
     ] } },

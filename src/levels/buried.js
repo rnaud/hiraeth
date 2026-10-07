@@ -134,7 +134,7 @@ export const BURIED_CONTENT = {
   // visit and closes when the wheel has turned and Wen has counted the tooth
   story: {
     title: 'ONE TOOTH A YEAR',
-    intro: 'Today is Tooth Day: the great wheel’s yearly turn. But Hask has not lit the lamp that starts it. Find him by the domes.',
+    intro: 'Today is Tooth Day: the great wheel’s yearly turn. But nobody has lit the lamp that starts it. Ask Wen, by the great dome.',
     outro: 'You lit the Wick and saw the wheel turn. It has kept moving ever since. Wen gave you a sliver of this year’s tooth.',
     label: 'the great wheel', goal: [WHEEL.x, 'ground', WHEEL.z], radius: 20, manual: true,
   },

@@ -690,5 +690,24 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
   assert.equal(quests.isDone('desert.mask'), true);
   await new Promise((r) => setTimeout(r, 1300));
   assert.ok(storyDone, 'the main quest closed the desert’s story page');
+  // afterwards: Oum doesn't hand over her cord twice; Pell hears how the mask went
+  const cords = game.flag('item.cord');
+  talk(PEOPLE.oum, ['I still have it']);
+  assert.equal(game.flag('item.cord'), cords, 'one cord');
+  assert.equal(new DialogueRunner(CONTENT.desert.npcs[1], { game, quests }).nodeId, 'washed');
+});
+
+test('the water let out before anyone sent you down: the steps that lead there pass, and Ama still gives the jar', () => {
+  // Ilo, Bako and Hessa all point at the giant's mouth: a player can lever the rib off before Nour, the well, Ama and the Speaker
+  for (const f of ['desert.elder.heard', 'desert.well.seen', 'desert.speaker.heard', 'desert.cave.seen', 'desert.jar.given', 'desert.jar.filled', 'desert.tree.lit', 'desert.ship.fed']) game.set(f, undefined);
+  while (quests.has('water')) quests.take('water');
+  game.set('desert.channel.open', true);
+  quests.set('desert.power', 'elder');
+  step(6);
+  assert.equal(quests.stage('desert.power'), 'ama', 'Nour’s sending and the well pass over; the jar is still needed');
+  talk(PEOPLE.ama, ['I’ll bring it back full']);
+  assert.ok(quests.has('jar'), 'Ama gives the jar');
+  step(6);
+  assert.equal(quests.stage('desert.power'), 'fill', 'the Speaker and the way down pass too: on to the pool');
   clearInteractables();
 });

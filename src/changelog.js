@@ -1,16 +1,37 @@
 // What's new, version by version (newest first). Shown in the game with N or
 // from the settings menu; after an update a note points you to it once.
-// Add an entry at the top for every release.
+// Add an entry at the top for every release. A line is its text, or { text, shots, numbers, see }
+// with what the interactive changelog (changelog.html) shows beside it: docs/systems/changelog.md
+// (pictures and numbers for older lines live in src/changelog-media.js).
 
 import { store } from './platform.js';
 import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.81', date: '2026-10-07', items: [
+    'In the desert, letting the water out of the giant’s pool before anyone has sent you there no longer stalls the story: the steps that only led there pass on their own, and Ama still hands you her jar.',
+    'Qanat and its camps say a little more, and nothing that goes stale once the chest is open: Oum, Marrow, Rook, Tamsin, the sketcher and the townspeople have new lines, Pell wants to hear about the sleeping mask, and the Speaker has heard Ilo’s report of a monster.',
+    'Landing in Vael with the wings already yours, the drone finds Oïa first instead of the Aerie.',
+    'Notes that still pointed to the old sketchbook name the game menu now: a hidden box’s note sends you to the Quests page, and a delivered parcel names View (or J) for the Sketchbook.',
+    'In Vael, Hollin now waits beside his stone hand, where Oïa’s people say he is, and has a little more to say; the hand’s quest says the order and the buttons, and the shed feathers wait at the tower’s balcony until the bird has answered her call.',
+    'In Vael II, Mother Ysolde answers her sister’s lamp the old way and lays a place at supper once the bell has rung; Sister Aube, Brother Calix and Ondine say more in passing, Hollin’s feather gets a thanks that fits, and the belfry’s guardian brings down only the stones round her tower, as you can see.',
+    'In Viridel, reading Talo’s note on the tallest tree before Lio has asked you to climb no longer leaves Lio asking forever: tell him what you saw and it counts. Mira no longer says her clock rang while it was missing its gear, and thanks you once it does; what happened at Esk’s terraces is told as it happened, and nobody suggests you should have turned the gate more gently.',
+    'In Lorn and Lorn II, prompts name the pad’s buttons, Ivo lets you keep his fireflies, Ysse tells the crossing as everyone else does, the humming crystal goes to Bram where he actually sits, and Bram, Pim and Wick have more to say, Wick once every pool is lit.',
+    'In the Buried Machine, lighting the Wick before Wen or Hask has sent you no longer stalls Tooth Day, and reading the three gauges before you meet Ossa no longer leaves her repeating herself: both quests go on from what you did. Hask has noticed the wheel never stopped.',
+    'In the City-Shaft you can give Dov Ossa’s message from the bottom, and he answers it; Dov knows he left before Pip was born, Lio hears that Hask tipped, and the rim no longer says the cabs stop for anyone. Lio’s taxi token is for Clemence in the Sealed Hangar, by name, and Lio, Hask and two of the Hangar’s people have more to say.',
+    'In the Signal Market, meeting Kip before Madame Sel no longer leaves the broadcast out of reach; the keepsake quotes what your father actually says, and Ferro’s prompt names the pad’s buttons. In the Garden of Spheres, hearing all three spheres before you meet Aube no longer stops her sending you on, and a few answers fit what was said to you.',
+    'At home, Lou talks about the drawing of the furthest world you have written from, any of them, and the round window only speaks of singing once the reel has told you about it.',
+    'Four new parcels to carry, so every world on the way hands you something for the next: Brother Calix’s muffled hand bell for Wendel in Lorn, Nikko’s gear grease for Tull’s squeaky doors under the sand, Ossa’s pipe whistle for Aube among the spheres, and Nell’s sliver of lake mirror for Oyo’s lantern stall in the Signal Market.',
+    'What’s new (N) has a See what changed button: every change with pictures of before and after to drag between, the numbers for the ones that make the game faster, and how to see the rest, with filters by world and kind and a search. It works with the mouse, touch and a controller; the pictures come from the game’s site, so they need a connection.',
+  ] },
   { v: '0.80', date: '2026-10-07', items: [
     'Crowded places run smoother on handhelds: the camps, the Signal Market and everywhere people gather cost less to draw each frame, with everyone moving exactly as before.',
     'On the Handheld and Steam Deck settings the grass grows further round you: the Garden of Spheres’ meadows and the dry grass round home no longer turn to bare ground a few steps ahead of the traveller.',
     'On the Steam Deck, a game that closes unexpectedly after you have been playing no longer starts again by itself in a different graphics mode: it returns to Steam, and the next launch draws the way that worked.',
+    'In conversations you see the traveller’s face now: when he answers, and sometimes when someone says something that moves him, the camera cuts to a close view of him, so his smile, frown or surprise shows. Otherwise it keeps its view of you both, and it never cuts on every line.',
+    'When you choose an answer the traveller says it before the reply comes, with his words, his name and his portrait in the panel. Press to go straight on to the reply.',
+    'The traveller’s expressions are drawn more strongly, so his smiles, frowns and raised brows read in a close view and in his portrait.',
   ] },
   { v: '0.79', date: '2026-10-07', items: [
     'Cloaks hang over people’s arms now: hands and arms no longer poke out through a cape, standing, walking or gesturing as they talk.',
@@ -806,20 +827,29 @@ export const CHANGELOG = [
 
 export const VERSION = CHANGELOG[0].v;
 const SEEN_KEY = 'moebius.changelog.seen';
+/** A line's words: the line itself, or the text of a line written with its pictures. */
+export const lineText = (item) => (typeof item === 'string' ? item : item.text);
+/** The interactive changelog, its pictures and numbers: the page beside the game, in a frame over it. */
+export const PICTURES_PAGE = 'changelog.html';
 
 export class Changelog {
   constructor({ onOpen } = {}) {
     const el = (this.el = document.createElement('div'));
     el.id = 'changelog';
     el.innerHTML = `<div class="panel"><h1>WHAT'S NEW <span>v${VERSION}</span></h1><div class="list">${
-      CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${r.items.map((i) => `<li>${i}</li>`).join('')}</ul></section>`).join('')
-    }</div><div class="buttons"><button data-a="close">Close (N)</button></div></div>`;
+      CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${r.items.map((i) => `<li>${lineText(i)}</li>`).join('')}</ul></section>`).join('')
+    }</div><div class="buttons"><button data-a="pictures">See what changed</button><button data-a="close">Close (N)</button></div></div>`;
     document.body.appendChild(el);
-    el.addEventListener('click', (e) => { if (e.target === el || e.target.dataset?.a === 'close') this.toggle(false); });
+    el.addEventListener('click', (e) => {
+      if (e.target.dataset?.a === 'pictures') this.pictures(true);
+      else if (e.target === el || e.target.dataset?.a === 'close') this.toggle(false);
+    });
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyN') this.toggle();
-      else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); this.toggle(false); }
+      else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); if (this.framed) this.pictures(false); else this.toggle(false); }
     });
+    // the page asks to be closed (its Close, B / ○, Escape, N): back to the list
+    window.addEventListener('message', (e) => { if (e.origin === location.origin && e.data?.memento === 'changelog-close') this.pictures(false); });
     this.onOpen = onOpen;
     let seen = null;
     seen = store.get(SEEN_KEY);
@@ -832,7 +862,33 @@ export class Changelog {
     this.fresh = false;
   }
 
+  /** The interactive changelog over the game (the game's own page, so it works offline; its pictures come from the site). */
+  pictures(on) {
+    if (on && !this.frame) {
+      const f = (this.frame = document.createElement('iframe'));
+      f.className = 'pictures'; f.title = 'What changed, with pictures';
+      f.src = `${PICTURES_PAGE}?embed=1`;
+      this.el.appendChild(f);
+      f.addEventListener('load', () => f.contentWindow?.focus());
+    } else if (this.frame) this.frame.hidden = !on;
+    if (on) this.frame.contentWindow?.focus();
+    else this.el.querySelector('[data-a="pictures"]')?.focus();
+    this.el.classList.toggle('framed', !!on);
+  }
+
+  get framed() { return !!this.frame && !this.frame.hidden && this.open; }
+
+  /** A controller press while the page is up goes to it (main.js); false when it isn't up. */
+  pad(name, ...args) {
+    if (!this.framed) return false;
+    const page = this.frame.contentWindow?.changelogPad;
+    if (page) page(name, ...args);
+    else if (name === 'back') this.pictures(false);
+    return true;
+  }
+
   toggle(on = !this.open) {
+    if (!on && this.frame) this.pictures(false);
     this.open = on;
     if (on) { document.exitPointerLock?.(); this.onOpen?.(); this.markSeen(); }
     // its button names the way out for the hands on the game: N, a controller's back button, a tap

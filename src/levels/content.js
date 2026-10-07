@@ -48,7 +48,7 @@ export const CONTENT = {
     },
     // the market's own people; the story's (Sel, Kip, Ferro, Brush, Ummu) are in src/story/bazaar-data.js
     npcs: [
-      {at:[12,105],radius:2,palette:pal('#dca273'),lines:["~happy~ Welcome! The broadcast tower is straight ahead.","~neutral~ Use the tower’s blue ledges, your jetpack, or the parked cab."],...BAZAAR_STREET.doss},
+      {at:[12,105],radius:2,palette:pal('#dca273'),lines:["~happy~ Welcome! The broadcast tower is straight ahead.","~neutral~ Use the tower’s blue ledges, your jets, or the parked cab."],...BAZAAR_STREET.doss},
       {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:["~shout~ Portable sunshine! Comes with a handle!","~whisper~ A lantern seed’s lying across the street. Go have a look."],...BAZAAR_STREET.oyo},
       {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:["~neutral~ The old transmitter is on the cream balcony.","~neutral~ A taxi will get you above the bridges."],...BAZAAR_STREET.teb},
     ],
@@ -115,13 +115,17 @@ export const CONTENT = {
           { after: { flag: 'world.desert.done' }, say: '~happy~ The tree burns again. I can walk home by it at night, the way I used to.' },
         ] } },
       { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['~whisper~ The mask sleeps. Don’t wake it.', '~neutral~ I counted the ribs once. Forty.'],
-        id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: { nodes: {
+        id: 'pell', name: 'Pell', title: 'counter of bones', color: '#5fb7ad', talk: {
+        entry: [{ if: { quest: 'desert.mask', done: true }, node: 'washed' }, { node: 'hello' }],
+        nodes: {
+          washed: { say: ["~surprised~ You cleaned its eyes? Both of them? I’ve walked past that face for twenty years and only ever counted its teeth.", "~whisper~ Did it look at you? Don’t answer. I’ll sleep better guessing."], choices: [
+            { text: '~curious~ What sleeps under the city?', goto: 'giant' }, { text: '~neutral~ Bye, Pell.', end: true }] },
           hello: { say: ["~playful~ Pell. I counted the great ribcage south of here. Forty ribs. The giant beneath Qanat is harder; people object when you count under their kitchens."], choices: [
             { text: '~surprised~ There’s a giant under the city?', goto: 'giant' }, { text: '~curious~ What sleeps in the south?', goto: 'mask' }] },
           giant: { say: ["~solemn~ Its head sticks out beyond Qanat’s back gate. The city stands above its body. An entire neighbourhood on somebody’s chest."], choices: [{ text: '~curious~ And the south?', goto: 'mask' }, { text: '~neutral~ Bye.', end: true }] },
           mask: { say: ["~whisper~ Find *the sleeping mask south, past the ribs*. Face toward the sky. I wouldn’t assume it can’t notice you."], do: { start: 'desert.mask' }, choices: [{ text: '~neutral~ I’ll look at it.', end: true }] },
         } } },
-      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ["~curious~ Seen a riderless bike? Mine has gone exploring."], shy: true,
+      { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ["~curious~ Seen a riderless bike? Mine has gone exploring.", "~tired~ It had a red seat. It probably still thinks it has a red seat.", "~playful~ If you meet a bike with opinions, tell it I’ve forgiven it."], shy: true,
         id: 'rook', name: 'Rook', title: 'who lost a bike', color: '#8a6fb8', talk: {
           // before you have a hoverbike of your own, Rook sends you to Marrow for one (quest desert.bike)
           entry: [{ if: { not: { flag: 'desert.bike.found' } }, node: 'walk' }, { node: 'hello' }],
@@ -140,7 +144,7 @@ export const CONTENT = {
           '~neutral~ Lost in the dunes? Climb the tallest one and look for the tree. Everything here is measured from the tree.',
           { after: { flag: 'temple.desert.done' }, say: '~surprised~ Green, round Qanat. Twenty years I’ve walked people past those fields, and I never once saw them green.' },
         ] } },
-      { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.'],
+      { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.', '~whisper~ Listen. Lower than that. That’s the stones.', '~neutral~ Clear sky today. The stones agree, for once.'],
         id: 'tamsin', name: 'Tamsin', title: 'listener to stones', color: '#f3ead8', talk: { listen: [
           "~curious~ The stones hum before a storm. But that night before your crash, they hummed under clear skies. A light passed, singing their note.",
           '~scared~ Low, then rising, like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.',
@@ -148,7 +152,7 @@ export const CONTENT = {
           '~neutral~ When the stones hum, get behind something. The storms come quick off the flats, and the sand gets everywhere. Everywhere.',
           { after: { flag: 'world.desert.done' }, say: '~solemn~ They hum softer since the tree burned. As if somebody had put a hand on them.' },
         ] } },
-      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.'],
+      { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.', '~playful~ Hold still. No, you moved. Never mind, you’re a smudge now.'],
         id: 'traveller', name: 'The traveller', title: 'sketching', color: '#697a98', talk: { nodes: {
           hello: { say: ["~sad~ East of camp: an observatory with a brass ring on top. I’ve drawn it a hundred times, always asleep. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
           how: { say: ["~playful~ Climb the six ledges and turn all three lenses toward its centre. Tell me what happens. My knees have retired from ledges."], choices: [{ text: '~happy~ I will.', end: true }] },
@@ -173,8 +177,8 @@ export const CONTENT = {
     // singing sand is for her); the rest of the city's people are in src/story/incal-data.js
     npcs: [
       { at: [300, -40], y: 200, palette: pal('#e88fa6', { cloth: '#3a3f5a' }), lines: ["~angry~ Below the smog? I’ve never needed to go.", "~tired~ The Lodestar is a tourist attraction. So I’m told."], ...INCAL_RIM.corvin },
-      { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ["~playful~ Watch the taxis. Their hurry outranks yours."], ...INCAL_RIM.lio },
-      { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ["~shout~ Views of the abyss! Looking up remains free!"], shy: true, ...INCAL_RIM.hask },
+      { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ["~playful~ Watch the taxis. Their hurry outranks yours.", "~tired~ No pass, no cab. I don’t make the rules. I make the passes."], ...INCAL_RIM.lio },
+      { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ["~shout~ Views of the abyss! Looking up remains free!", "~playful~ The abyss, at today’s price. Tomorrow’s is higher."], shy: true, ...INCAL_RIM.hask },
       { ...INCAL_PEOPLE.nima, at: [112.1, 165.8], y: 150, radius: 1.8, speed: 0.45 },
     ],
   },
@@ -195,7 +199,7 @@ export const CONTENT = {
       // (Tam, who copies you: a boy of seven, src/story/arzach-data.js LOCALS)
       { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true, kind: 'm', age: 'child', years: 7, scale: 0.72 },
       { at: [-60, -40], palette: pal('#d8c7a6'), lines: ["~solemn~ The wind climbs the tower. Wings climb with it.", "~sad~ Her rider left. She keeps to the sky now."] },
-      { at: [120, -100], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say."] },
+      { at: [-130, -183], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say.", "~tired~ Small to tall. Always.", "~solemn~ (He taps his knuckles, little finger first, and listens.)"] },
     ],
   },
   garage: {
@@ -204,7 +208,7 @@ export const CONTENT = {
     story: {
       title: 'THE MAJOR FORGOT',
       intro: 'Major Brask built this pocket universe, and forgot why. His people keep the machines turning, and pass round a signal nobody can read.',
-      outro: "The Major’s note asks what his world might become. On its back: coordinates for a wheel buried in sand. The machines keep working.",
+      outro: "The Major’s note says he still doesn’t know what his world is for. On its back: coordinates for a wheel buried in sand. The machines keep working.",
       label: 'the great machine', goal: [90, 86, -60], radius: 12, manual: true,
     },
     relics: {
@@ -213,8 +217,8 @@ export const CONTENT = {
     },
     npcs: [
       { at: [40, 60], palette: pal('#e6875f', { cloth: '#3f8f8a' }), lines: ["~playful~ Gravity is a local arrangement here.", "~tired~ The Major built this world and forgot its purpose."] },
-      { at: [-80, -20], palette: pal('#62c3c9'), lines: ["~angry~ Hands clear of the gears, please!"] },
-      { at: [120, -110], palette: pal('#f2c54b'), lines: ["~playful~ Walk round the ring and arrive where you left."], shy: true },
+      { at: [-80, -20], palette: pal('#62c3c9'), lines: ["~angry~ Hands clear of the gears, please!", "~happy~ Grease today, grease tomorrow. Lovely."] },
+      { at: [120, -110], palette: pal('#f2c54b'), lines: ["~playful~ Walk round the ring and arrive where you left.", "~tired~ My feet have seen this whole world. Twice."], shy: true },
     ],
   },
   edena: EDENA_CONTENT,
@@ -226,21 +230,22 @@ export const CONTENT = {
 // world. Greeting the giver hands you the parcel; greeting the receiver
 // (npc index into that world's `npcs`) delivers it. Each goes on to the next
 // world on the route (ORDER): the desert, Vael, Vael II, Lorn, Lorn II, Viridel,
-// the City-Shaft, the Sealed Hangar.
+// the City-Shaft, the Sealed Hangar, the Buried Machine, the Garden of Spheres, the
+// Signal Market (every world but the last gives one).
 export const ERRANDS = [
   { id: 'sand', item: 'a jar of singing sand', from: ['desert', 1], to: ['arzach', 1],
-    ask: "~curious~ Vael is next for you? Take this singing sand to *Senn in Vael*, the woman who listens to stones. They say nothing there makes a sound. Let her hear something sing.",
+    ask: "~curious~ Vael is next for you? Take this sand from between the great ribs. It sings when the wind crosses it. Give it to *Senn in Vael*, the woman who listens to stones. They say nothing there makes a sound. Let her hear something sing.",
     wait: "~neutral~ *Senn, in Vael.* The one with her ear to the stones.",
     // Vael is quiet by choice: Senn answers the way Vael says anything, with her hands and a word
     thanks: "~happy~ (Senn holds the jar to her ear. The sand hums. She hums back, very softly.) *It sings.*" },
   { id: 'feather', item: 'a feather from the bird', from: ['arzach', 2], to: ['arzach2', 0],
-    ask: "~solemn~ (Hollin gives you a grey feather, then points past the tower, to the stones in the sky.) *The sky stones.*",
+    ask: "~solemn~ (Hollin gives you a long white feather, then points past the tower, to the stones in the sky.) *The sky stones.*",
     wait: "~neutral~ (Hollin points to the sky again: the feather goes on, to the sky stones.)",
-    thanks: "~happy~ One of her feathers, from Vael? Then she still flies. I’ll tie it to the whistle post, so she knows the way here." },
+    thanks: "~surprised~ A feather from Vael, off your bird? I’ll tie it over my door. If she ever comes up here without you, she’ll know which plateau is friendly." },
   { id: 'crystal', item: 'a humming crystal', from: ['perdide', 2], to: ['perdide2', 2],
-    ask: "~neutral~ Going on into the deep wood? Take this crystal to *Bram, who keeps the skiff in Lorn II*. It hums before storms. Out on the water, he’ll want the warning.",
-    wait: "~neutral~ *Bram, by the skiff in the shallows, in Lorn II.*",
-    thanks: "~happy~ A storm stone, from Ivo? Now I’ll hear the weather coming before the skiff does. Thank you." },
+    ask: "~neutral~ Going on into the deep wood? Take this crystal to *Bram, who minds the root cave’s mouth in Lorn II*. It hums before storms. He sits out in all weathers; he’ll want the warning.",
+    wait: "~neutral~ *Bram, at the mouth of the root cave, in Lorn II.*",
+    thanks: "~happy~ A storm stone, from Ivo? Now I’ll hear the weather coming before it sits on me. Thank you." },
   { id: 'gear', item: 'a brass gear', from: ['perdide2', 1], to: ['edena', 0],
     ask: "~neutral~ Take this brass gear to *Mira in Viridel*. It came out of an old dome pump we don’t use. Her water clock has been missing one for years.",
     wait: "~neutral~ *Mira, at the water clock in Viridel.*",
@@ -250,7 +255,24 @@ export const ERRANDS = [
     wait: "~neutral~ *Nima, who sweeps the high terrace, down the red stair from the City-Shaft’s rim.*",
     thanks: "~happy~ A seed, from Viridel’s gardens? Glass, so the smog can’t hurt it. I’ll keep it on my sill, where the Lodestar reaches. Thank you." },
   { id: 'token', item: 'a taxi token', from: ['incal', 1], to: ['garage', 0],
-    ask: "~playful~ Take this taxi token to *the Sealed Hangar*. They’ve never seen a cab there. Show them what a real city runs on.",
-    wait: "~neutral~ *Someone in the Sealed Hangar.* Anyone who’ll admire it.",
-    thanks: "~playful~ A cab token? We don’t have cabs. We have walls that turn into floors. I’ll keep it for the day we do." },
+    ask: "~playful~ The Sealed Hangar next? Take this taxi token to *Clemence* there. They’ve never seen a cab. Show them what a real city runs on.",
+    wait: "~neutral~ *Clemence, in the Sealed Hangar.* The one who remembers the man who built it.",
+    thanks: "~playful~ A cab token? We don’t have cabs. We have walls that turn into floors. The Major would have taken it apart to see how it paid. I’ll keep it whole." },
+  // the later half: Vael II → Lorn, the Hangar → the Buried Machine → the Garden of Spheres → the Signal Market
+  { id: 'handbell', item: 'a muffled hand bell', from: ['arzach2', 1], to: ['perdide', 0],
+    ask: "~playful~ Going on, after the sky stones? Take my little hand bell to *Wendel, the egg-warden at Lorn’s landing*. I stuffed it with cloth thirty years ago so it would stop reminding me. Someone down there may want a quiet one.",
+    wait: "~neutral~ *Wendel, the egg-warden, at Lorn’s landing.* Leave the cloth in. He’ll know when to take it out.",
+    thanks: "~playful~ A bell with a sock in it, from the monks over the cloud? Very considerate. I’ll hang it over the eggs, and take the sock out on a special occasion." },
+  { id: 'grease', item: 'a tin of gear grease', from: ['garage', 1], to: ['buried', 2],
+    ask: "~happy~ Off to the Major’s wheel under the sand? Take this tin of my gear grease to *Tull, who oils the oval doors in the Buried Machine*. The Major said they squeal. Grease is how we say hello.",
+    wait: "~neutral~ *Tull, at the oval doors, in the Buried Machine.* Don’t lean on the tin.",
+    thanks: "~happy~ Grease from the Major’s own world? (Tull dabs the nearest hinge and swings the door. Not a sound.) No squeak. Lovely. Same smell as his boots." },
+  { id: 'pipewhistle', item: 'a whistle cut from an old pipe', from: ['buried', 1], to: ['spheres', 0],
+    ask: "~whisper~ Going on? Take this whistle, cut from an old pipe. It sounds like the pipes on Tooth Day. *Aube, the listener, in the Garden of Spheres*, collects sounds. Give her one from down here.",
+    wait: "~whisper~ *Aube, in the Garden of Spheres’ umbrella grove.* Let her hear it first.",
+    thanks: "~happy~ A whistle from under the sand? (Aube blows it softly: one low note that outlasts her breath.) I don’t think any sphere here remembers that one. Thank you." },
+  { id: 'mirror', item: 'a sliver of lake mirror', from: ['spheres', 1], to: ['bazaar', 1],
+    ask: "~playful~ Going on to the market with all the signs? Take this *sliver of lake mirror* to *Oyo, who sells lanterns there*. It holds a little sky. He sells little suns. They should meet.",
+    wait: "~neutral~ *Oyo, the lantern seller in the Signal Market.* Keep the sky side up.",
+    thanks: "~surprised~ A bit of sky, from a garden of spheres? (He sets it under a lantern. Two little suns look back.) Not for sale. The first thing on my stall that isn’t." },
 ];
