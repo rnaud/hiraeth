@@ -29,6 +29,7 @@ export const REFERENCE_WORLDS = [
   { id: 'mangrove', name: 'The White Mangrove', count: 4, load: () => import('./reference-mangrove.js') },
   { id: 'glassdunes', name: 'The Glass Dunes', count: 4, load: () => import('./reference-glassdunes.js') },
   { id: 'waterfall', name: 'The City Behind the Waterfall', count: 4, load: () => import('./reference-waterfall.js') },
+  { id: 'saltharbour', name: 'The Salt Harbour', count: 4, load: () => import('./reference-saltharbour.js') },
 ];
 
 /** The index of the first view of world k (0-based, across all the worlds). */

@@ -9,6 +9,8 @@ The same release notes shown in the game (press **N** or open settings).
 - A new world off the route, the City Behind the Waterfall: a long cavern city hidden behind a towering curtain of falling water. Walk the dry promenade along the falls, climb the terraced streets of rounded houses, look out over a sunlit valley from the balconies behind slits in the water, or swim in the pool at its foot. The ship’s map charts it from the start.
 - Waterfalls are drawn the way the drawings draw them: flat turquoise bands streaming down with fine pen streaks, slits of light where the water runs thin, mist and spray at the foot, and a roar that grows as you come near.
 - The References level has the City Behind the Waterfall’s four pictures rebuilt as views, to set beside the pictures they come from.
+- A new world off the route, the Salt Harbour: huge old ships standing on their keels in a dry white salt basin, with people living in them. Walk the street between their hulls under the sailcloth, past shops cut into their feet and houses built out from the plating, climb the timber stair to a deck and cross the gangway high over the street, and walk on to the ship that stands on its stern. It is on the ship’s galactic map from the start. There is nothing to do there but walk, climb and look, and three faces from other worlds came to see it too.
+- The References level has the Salt Harbour’s four pictures rebuilt as views: huge ships standing on their keels in a white salt basin, the streets between their hulls shaded by sailcloth, gangways overhead, shops and houses built onto the plating, mooring ropes staked into the salt.
 
 ## v0.83 — 2026-10-07
 

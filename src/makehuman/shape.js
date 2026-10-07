@@ -107,6 +107,8 @@ export const WORLD_BODIES = {
   perdide2: { proportions: 0.55, height: 0.52, weight: 0.03 },
   mangrove: { proportions: 0.62, height: 0.55, weight: -0.02 },
   waterfall: { proportions: 0.5, height: 0.5, weight: 0.04 },                // the falls' folk: sturdy stair climbers               // the lake folk: slight, long-armed (polers)
+  saltharbour: { proportions: 0.55, height: 0.52, weight: 0.04 },            // the harbour folk: sun-dried, sturdy (they haul groceries aboard)
+  mangrove: { proportions: 0.62, height: 0.55, weight: -0.02 },               // the lake folk: slight, long-armed (polers)
   bazaar: { proportions: 0.5, height: 0.5, weight: 0.07 },                    // the market: sturdier
   home: { proportions: 0.6, height: 0.55 },
 };

@@ -17,6 +17,7 @@ import { createReferences, buildReferences } from './references.js';
 import { createMangrove, buildMangrove } from './mangrove.js';
 import { createGlassDunes, buildGlassDunes } from './glass-dunes.js';
 import { createWaterfall, buildWaterfall } from './waterfall.js';
+import { createSaltHarbour, buildSaltHarbour } from './salt-harbour.js';
 
 // Level registry: shown in the picker and the panel, loaded with ?level=<id>.
 export const LEVELS = [
@@ -92,7 +93,14 @@ export const LEVELS = [
     title: TITLES.mangrove, source: 'a village in the white roots',
     blurb: 'Bone-white trees stand on arching roots in a black lake, and people live in them. Walk the lantern-lit planks, climb to the decks round the trunks, and look down: the lake glows like a second sky.',
     moves: 'walk · climb · swim',
+  },  {
+    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    id: 'saltharbour', create: createSaltHarbour, build: buildSaltHarbour, hidden: true,
+    title: TITLES.saltharbour, source: 'a street of ships in the salt',
+    blurb: 'Huge old ships stand on their keels in a dry white salt basin, and people live in them. Walk the street between their hulls under the sailcloth, climb the stair to a deck, and cross the gangway to the next.',
+    moves: 'walk · climb',
   },
+
   {
     // off the route (names.js SIDE): on the ship's map from the start, no story to follow
     id: 'waterfall', create: createWaterfall, build: buildWaterfall, hidden: true,
