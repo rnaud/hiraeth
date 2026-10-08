@@ -1,0 +1,450 @@
+{
+ "licence": "CC0 1.0 (public domain): every source below",
+ "made": "node scripts/sfx-build.mjs",
+ "files": {
+  "step-stone-0": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_concrete_000.ogg",
+   "bytes": 2506
+  },
+  "step-grass-0": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_grass_000.ogg",
+   "bytes": 4178
+  },
+  "step-sand-0": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_snow_000.ogg",
+   "bytes": 3342
+  },
+  "step-stone-1": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_concrete_001.ogg",
+   "bytes": 2506
+  },
+  "step-grass-1": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_grass_001.ogg",
+   "bytes": 4178
+  },
+  "step-sand-1": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_snow_001.ogg",
+   "bytes": 3342
+  },
+  "step-stone-2": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_concrete_002.ogg",
+   "bytes": 2506
+  },
+  "step-grass-2": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_grass_002.ogg",
+   "bytes": 4178
+  },
+  "step-sand-2": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_snow_002.ogg",
+   "bytes": 3342
+  },
+  "step-stone-3": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_concrete_003.ogg",
+   "bytes": 2506
+  },
+  "step-grass-3": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_grass_003.ogg",
+   "bytes": 4178
+  },
+  "step-sand-3": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_snow_003.ogg",
+   "bytes": 3342
+  },
+  "step-stone-4": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_concrete_004.ogg",
+   "bytes": 2506
+  },
+  "step-grass-4": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_grass_004.ogg",
+   "bytes": 4178
+  },
+  "step-sand-4": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/footstep_snow_004.ogg",
+   "bytes": 3342
+  },
+  "land-0": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactSoft_medium_000.ogg",
+   "bytes": 2506
+  },
+  "land-1": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactSoft_medium_001.ogg",
+   "bytes": 2506
+  },
+  "land-2": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactSoft_medium_002.ogg",
+   "bytes": 2506
+  },
+  "land-heavy-0": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactSoft_heavy_000.ogg",
+   "bytes": 4596
+  },
+  "land-heavy-1": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactSoft_heavy_001.ogg",
+   "bytes": 4596
+  },
+  "land-heavy-2": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactSoft_heavy_002.ogg",
+   "bytes": 4596
+  },
+  "fall-0": {
+   "from": "Freesound #504626 by leonelmail",
+   "url": "https://freesound.org/s/504626/",
+   "file": "freesound/504626.mp3",
+   "bytes": 10030
+  },
+  "fall-1": {
+   "from": "Freesound #346694 by deleted_user_2104797",
+   "url": "https://freesound.org/s/346694/",
+   "file": "freesound/346694.mp3",
+   "bytes": 10030
+  },
+  "cloth-0": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/cloth1.ogg",
+   "bytes": 5223
+  },
+  "cloth-1": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/cloth2.ogg",
+   "bytes": 5223
+  },
+  "cloth-2": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/cloth3.ogg",
+   "bytes": 5223
+  },
+  "cloth-3": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/cloth4.ogg",
+   "bytes": 5223
+  },
+  "belt-0": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/clothBelt.ogg",
+   "bytes": 4596
+  },
+  "belt-1": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/clothBelt2.ogg",
+   "bytes": 4596
+  },
+  "grab-0": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/handleSmallLeather.ogg",
+   "bytes": 4596
+  },
+  "grab-1": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/handleSmallLeather2.ogg",
+   "bytes": 4596
+  },
+  "drop-0": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/dropLeather.ogg",
+   "bytes": 4596
+  },
+  "creak-0": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/creak1.ogg",
+   "bytes": 10030
+  },
+  "creak-1": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/creak2.ogg",
+   "bytes": 10030
+  },
+  "creak-2": {
+   "from": "Kenney, RPG Audio",
+   "url": "https://kenney.nl/assets/rpg-audio",
+   "file": "Audio/creak3.ogg",
+   "bytes": 10030
+  },
+  "knock-0": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactWood_light_000.ogg",
+   "bytes": 2924
+  },
+  "knock-1": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactWood_light_001.ogg",
+   "bytes": 2924
+  },
+  "knock-2": {
+   "from": "Kenney, Impact Sounds",
+   "url": "https://kenney.nl/assets/impact-sounds",
+   "file": "Audio/impactWood_light_002.ogg",
+   "bytes": 2924
+  },
+  "flap-0": {
+   "from": "Freesound #19290 by martian",
+   "url": "https://freesound.org/s/19290/",
+   "file": "flap/e01.wav",
+   "bytes": 6059
+  },
+  "flap-1": {
+   "from": "Freesound #19290 by martian",
+   "url": "https://freesound.org/s/19290/",
+   "file": "flap/e02.wav",
+   "bytes": 5223
+  },
+  "flap-2": {
+   "from": "Freesound #280205 by memuse",
+   "url": "https://freesound.org/s/280205/",
+   "file": "flap2/e01.wav",
+   "bytes": 6059
+  },
+  "flap-3": {
+   "from": "Freesound #280205 by memuse",
+   "url": "https://freesound.org/s/280205/",
+   "file": "flap2/e04.wav",
+   "bytes": 6059
+  },
+  "breath-0": {
+   "from": "Freesound #444726 by gtrempe",
+   "url": "https://freesound.org/s/444726/",
+   "file": "effort/e03.wav",
+   "bytes": 5223
+  },
+  "breath-1": {
+   "from": "Freesound #444726 by gtrempe",
+   "url": "https://freesound.org/s/444726/",
+   "file": "effort/e04.wav",
+   "bytes": 5223
+  },
+  "breath-2": {
+   "from": "Freesound #444726 by gtrempe",
+   "url": "https://freesound.org/s/444726/",
+   "file": "effort/e12.wav",
+   "bytes": 5014
+  },
+  "breath-3": {
+   "from": "Freesound #444726 by gtrempe",
+   "url": "https://freesound.org/s/444726/",
+   "file": "effort/e19.wav",
+   "bytes": 5223
+  },
+  "effort-0": {
+   "from": "Freesound #444726 by gtrempe",
+   "url": "https://freesound.org/s/444726/",
+   "file": "effort/e26.wav",
+   "bytes": 6059
+  },
+  "effort-1": {
+   "from": "Freesound #444726 by gtrempe",
+   "url": "https://freesound.org/s/444726/",
+   "file": "effort/e27.wav",
+   "bytes": 6059
+  },
+  "effort-2": {
+   "from": "Freesound #444726 by gtrempe",
+   "url": "https://freesound.org/s/444726/",
+   "file": "effort/e29.wav",
+   "bytes": 6059
+  },
+  "hurt-0": {
+   "from": "Freesound #610998 by unfa",
+   "url": "https://freesound.org/s/610998/",
+   "file": "hurt/e01.wav",
+   "bytes": 4596
+  },
+  "hurt-1": {
+   "from": "Freesound #610998 by unfa",
+   "url": "https://freesound.org/s/610998/",
+   "file": "hurt/e02.wav",
+   "bytes": 4596
+  },
+  "hurt-2": {
+   "from": "Freesound #610998 by unfa",
+   "url": "https://freesound.org/s/610998/",
+   "file": "hurt/e04.wav",
+   "bytes": 4596
+  },
+  "hurt-3": {
+   "from": "Freesound #547209 by MrFossy",
+   "url": "https://freesound.org/s/547209/",
+   "file": "freesound/547209.mp3",
+   "bytes": 3760
+  },
+  "sigh-0": {
+   "from": "Freesound #569568 by ValentinPetiteau",
+   "url": "https://freesound.org/s/569568/",
+   "file": "sigh/e03.wav",
+   "bytes": 7731
+  },
+  "sigh-1": {
+   "from": "Freesound #569568 by ValentinPetiteau",
+   "url": "https://freesound.org/s/569568/",
+   "file": "sigh/e04.wav",
+   "bytes": 7731
+  },
+  "sigh-2": {
+   "from": "Freesound #146769 by elle-trudgett",
+   "url": "https://freesound.org/s/146769/",
+   "file": "sigh2/e02.wav",
+   "bytes": 10865
+  },
+  "swing-0": {
+   "from": "Freesound #60013 by qubodup",
+   "url": "https://freesound.org/s/60013/",
+   "file": "freesound/60013.mp3",
+   "bytes": 4178
+  },
+  "swing-1": {
+   "from": "Freesound #59988 by qubodup",
+   "url": "https://freesound.org/s/59988/",
+   "file": "freesound/59988.mp3",
+   "bytes": 2924
+  },
+  "swing-2": {
+   "from": "Freesound #389590 by Jofae",
+   "url": "https://freesound.org/s/389590/",
+   "file": "freesound/389590.mp3",
+   "bytes": 3342
+  },
+  "swing-3": {
+   "from": "Freesound #420668 by SypherZent",
+   "url": "https://freesound.org/s/420668/",
+   "file": "freesound/420668.mp3",
+   "bytes": 2506
+  },
+  "swing-heavy-0": {
+   "from": "Freesound #352719 by Dalesome",
+   "url": "https://freesound.org/s/352719/",
+   "file": "freesound/352719.mp3",
+   "bytes": 5014
+  },
+  "swing-heavy-1": {
+   "from": "Freesound #683101 by florianreichelt",
+   "url": "https://freesound.org/s/683101/",
+   "file": "freesound/683101.mp3",
+   "bytes": 6059
+  },
+  "splat-0": {
+   "from": "Freesound #445109 by Breviceps",
+   "url": "https://freesound.org/s/445109/",
+   "file": "freesound/445109.mp3",
+   "bytes": 3760
+  },
+  "splat-1": {
+   "from": "Freesound #495118 by nebulasnails",
+   "url": "https://freesound.org/s/495118/",
+   "file": "freesound/495118.mp3",
+   "bytes": 5223
+  },
+  "splat-2": {
+   "from": "Freesound #495117 by nebulasnails",
+   "url": "https://freesound.org/s/495117/",
+   "file": "freesound/495117.mp3",
+   "bytes": 4596
+  },
+  "splat-3": {
+   "from": "Freesound #360942 by gprosser",
+   "url": "https://freesound.org/s/360942/",
+   "file": "freesound/360942.mp3",
+   "bytes": 5223
+  },
+  "stroke-0": {
+   "from": "Freesound #438845 by craigsmith",
+   "url": "https://freesound.org/s/438845/",
+   "file": "swim/e02.wav",
+   "bytes": 5014
+  },
+  "stroke-1": {
+   "from": "Freesound #438845 by craigsmith",
+   "url": "https://freesound.org/s/438845/",
+   "file": "swim/e04.wav",
+   "bytes": 6059
+  },
+  "stroke-2": {
+   "from": "Freesound #438845 by craigsmith",
+   "url": "https://freesound.org/s/438845/",
+   "file": "swim/e05.wav",
+   "bytes": 5223
+  },
+  "stroke-3": {
+   "from": "Freesound #438845 by craigsmith",
+   "url": "https://freesound.org/s/438845/",
+   "file": "swim/e11.wav",
+   "bytes": 5223
+  },
+  "stroke-4": {
+   "from": "Freesound #438845 by craigsmith",
+   "url": "https://freesound.org/s/438845/",
+   "file": "swim/e13.wav",
+   "bytes": 6059
+  },
+  "splash-0": {
+   "from": "Freesound #390391 by N-RAZM",
+   "url": "https://freesound.org/s/390391/",
+   "file": "smallsplash/e01.wav",
+   "bytes": 5014
+  },
+  "splash-1": {
+   "from": "Freesound #390391 by N-RAZM",
+   "url": "https://freesound.org/s/390391/",
+   "file": "smallsplash/e02.wav",
+   "bytes": 5223
+  },
+  "splash-2": {
+   "from": "Freesound #390391 by N-RAZM",
+   "url": "https://freesound.org/s/390391/",
+   "file": "smallsplash/e03.wav",
+   "bytes": 5641
+  }
+ }
+}
