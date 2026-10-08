@@ -1419,9 +1419,8 @@ function frame(ts) {
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
-    if (minigame) minigame.update(dt, busy() ? noInput : ctl);   // a game played on foot (drives: false): after the rig, so it may take the camera (src/minigames/)
+    if (minigame) minigame.update(dt, busy() ? noInput : ctl);   // a game played on foot (drives: false): its clock, targets, waves; after the rig, so it may take the camera (src/minigames/)
     shakeCamera(camera, realDt);   // a blow's jolt (src/feel.js)
-    minigame?.update(dt, busy() ? noInput : ctl);   // a game played on foot (drives: false): its clock, its targets, its waves
   }
   boxes.update(dt, t, { camera });   // (after the player: it poses the kneel; before the ship, which places its camera)
   itemFx.update(dt, t);
