@@ -9,7 +9,7 @@ import { mothModel } from './guardians.js';
 // shallow water east of the root cave, a causeway of flat stones out to it from
 // the end of the lit path. Its lamp lit the whole wood once; the night the sky
 // rang it went out, and three of the pools with it. Hollin's people kept their
-// pools lit for forty-one years without knowing there had been a greater lamp.
+// pools lit for forty years without knowing there had been a greater lamp.
 // Something with wings is still up in its lamp-room, in the dark.
 //
 // Inside (built far overhead, through its door; dark: the lantern charm glows in it):

@@ -10,9 +10,9 @@ export const DETOUR_SIGHTINGS = [
   { id: 'moonfoundry.bertil', thread: 'before', world: 'moonfoundry', who: 'Bertil', line: 'He cast the mark on a plate for a lone woman’s ship. “So they’ll know me,” she said.' },
   // ---------------------------------------------------------------- the father's signal
   { id: 'antennas.grete', thread: 'signal', world: 'antennas', who: 'Grete', line: 'An old dish caught a man’s voice from very far, and under the hiss something singing his words back, as if learning them.' },
-  { id: 'underside.maudie', thread: 'signal', world: 'underside', who: 'Maudie', line: 'A woman wintered here alone, playing a man’s voice every night, and always stopping it before the end.' },
+  { id: 'underside.maudie', thread: 'signal', world: 'underside', who: 'Maudie', line: 'A woman wintered here alone, listening every night to a receiver’s hiss, as if waiting for a voice.' },
   // ---------------------------------------------------------------- the singing light
-  { id: 'waterfall.pell', thread: 'light', world: 'waterfall', who: 'Pell', line: 'The night the sky rang, a light hung singing off the balcony, as if waiting for an answer.' },
+  { id: 'waterfall.pell', thread: 'light', world: 'waterfall', who: 'Aldo', line: 'The night the falls went quiet, a light hung singing off the balcony, as if waiting for an answer.' },
   { id: 'eclipse.ansel', thread: 'light', world: 'eclipse', who: 'Ansel', line: 'It hung singing where the black sun sits. By morning every figure on the walls leaned the way it went.' },
   { id: 'spacecity.tamar', thread: 'light', world: 'spacecity', who: 'Tamar', line: 'A ship with no name once hailed with one sung note. The night the sky rang, the same note passed again, going somewhere.' },
   // ---------------------------------------------------------------- the makers' sign

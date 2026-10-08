@@ -149,7 +149,7 @@ test('side quests: three machines restart when shot, and Zazie’s ball crosses 
   assert.ok(pushes > 1 && pushes < 20, `it takes a few pushes up the curve (${pushes})`);
   step(2);
   assert.equal(quests.stage('garage.ball'), 'tell');
-  talk(PEOPLE.pip, ['Very new']);
+  talk(PEOPLE.pip, ['First lesson’s free']);
   assert.equal(quests.isDone('garage.ball'), true);
   // the locals talk too
   for (const l of LOCALS) talk(l, []);

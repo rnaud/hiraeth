@@ -95,7 +95,7 @@ export const RING_CONTENT = {
     { ...EDENA_PEOPLE.oro, at: [TUBE.B[0] - 14, TUBE.B[1] + 1], radius: 1.5, kind: 'm', world: 'edena', lang: 'edena',
       lines: ['~curious~ Pyramids grow slowly. This fell quickly. Both took a long time.', '~happy~ Look, they planted a garden in its street.'],
       talk: { listen: [
-        '~neutral~ Oro, from Edena. I grow pyramids. I came to see a thing that was built, for once, and then fell down.',
+        '~neutral~ Oro, from Viridel. I grow pyramids. I came to see a thing that was built, for once, and then fell down.',
         '~curious~ It was a street, this. Up was the middle of the ring. Now up is the sky, and the lamps hang sideways.',
         '~playful~ The folk here grow beans along the old floor. Very straight rows. The ring was good at straight.',
         { after: 'met.oro', say: '~solemn~ Something that big falls, and the grass just goes on. I find that a comfort.' },
@@ -122,7 +122,7 @@ export const RING_CONTENT = {
     glyph: { size: 1.6, yaw: RING_MARK.yaw, lift: RING_MARK.lift, color: '#70e7df' },
     person: { id: 'trace.fallenring', name: 'A mark on the fallen ring', title: '', color: '#70e7df',
       talk: { nodes: { look: { say: [
-        '~solemn~ (Burned into the plating at the tilted piece’s foot, and not long ago: the edges are still bright, where everything round them is weathered. Three dots over an arc, {glyph}.)',
+        '~solemn~ (Burned into the plating at the tilted piece’s foot. Years old, by the moss in the scorch, but burned deeper than any weather has reached since. Three dots over an arc, {glyph}.)',
         '~whisper~ (But the arc wavers, stops, and starts again where the hand lifted. Whoever drew this did not make it. They learned it, and drew it carefully, the way you write a word in a language that isn’t yours.)',
       ], do: { set: { 'sight.fallenring.mark': true } } } } } },
   }],

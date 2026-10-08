@@ -198,7 +198,7 @@ export const PEOPLE = {
           do: { set: { 'clue.buried.mark': true } },
           choices: [{ text: '~neutral~ No. Something hit it.', goto: 'hit' }, { text: '~neutral~ I don’t know.', goto: 'hit' }],
         },
-        hit: { say: ["~tired~ Burned on by the thing that hit you? Same mark on a gift and a wound. I don’t like that. *Light the Wick.* Let’s learn what happens."], choices: [{ text: '~neutral~ I’m going.', end: true }] },
+        hit: { say: ["~tired~ Wen says it’s burned on, where you were struck. Same mark on a gift and a wound. I don’t like that. *Light the Wick.* Let’s learn what happens."], choices: [{ text: '~neutral~ I’m going.', end: true }] },
         felt: {
           say: [{ if: { flag: 'buried.wheel.turned' }, text: "~happy~ It turned. I felt the bench shake. My fifty-third year. And the sky stayed empty." }, { if: { not: { flag: 'buried.wheel.turned' } }, text: "~happy~ The Wick is burning. Go *stand before the wheel*. You’ve earned a view of what you helped wake." }],
           choices: [{ text: '~curious~ Did the light come back?', goto: 'back' }, { text: '~neutral~ Goodbye, Hask.', end: true }],
@@ -223,7 +223,7 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ["~surprised~ Mind my chimneys! Oh, hello. Dun. I keep the domes breathing. Someone has to remember the practical end of a festival.", "~neutral~ When the wheel turns, air rises through the pipes. I unlock every chimney to let it out. Unfortunately, my key is currently sightseeing."],
-          choices: [{ text: '~curious~ Up where?', goto: 'up' }, { text: '~curious~ What happens if they cough?', goto: 'cough' }],
+          choices: [{ text: '~curious~ Sightseeing where?', goto: 'up' }, { text: '~curious~ What happens if they cough?', goto: 'cough' }],
         },
         cough: { say: ["~playful~ Closed chimneys mean soot in the beds, soot in the soup, soot in Wen’s hair. I can tolerate the first two complaints."], choices: [{ text: '~curious~ Where’s your key?', goto: 'up' }] },
         up: {

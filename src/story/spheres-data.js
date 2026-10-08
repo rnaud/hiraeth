@@ -120,7 +120,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~playful~ The lake gives us a second garden. Upside down, but very little maintenance.", "~whisper~ I’m Nell. I watch the reflections. There’s one bright thing down there that isn’t a reflection at all."],
+          say: ["~playful~ The lake gives us a second garden. Upside down, but very little maintenance.", "~whisper~ I’m Nell. I watch the reflections. Everything down there comes twice as large, a sphere and its double. Except one bright thing, which isn’t a reflection at all."],
           choices: [{ text: '~curious~ Except what?', goto: 'except' }, { text: '~curious~ Twice as large?', goto: 'twice' }],
         },
         twice: { say: ["~happy~ The shore sphere touches its reflection at the waterline. As a child I thought that was how spheres hatched. I still rather like the idea."], choices: [{ text: '~curious~ Except one thing, you said?', goto: 'except' }] },

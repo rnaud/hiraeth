@@ -147,7 +147,7 @@ export const PEOPLE = {
           choices: [{ text: '~sad~ From home.', goto: 'home' }],
         },
         home: {
-          say: ["~solemn~ Thirty years crossing the dark. It arrived too late for one conversation. Maybe not for all of them.",
+          say: ["~solemn~ Thirty years crossing the dark, and it still found someone from the same house. I’ve never seen one do that.",
             "~solemn~ (Across the square, the signs stop advertising. For once they share a message.)"],
           do: { advance: [Q, 'sel2'] },
           choices: [{ text: '~happy~ Thank you, Sel.', end: true }],

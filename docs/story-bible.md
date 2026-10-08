@@ -361,7 +361,7 @@ time it is told (`sight.<id>`; the route's own sightings are listed in src/story
 |---|---|---|
 | The White Mangrove | Liss, who poles the boats, once taught a woman who came down alone, in a ship no bigger than a boat, to draw the mark on the great tree's roots; she drew it on her knee until her hand knew it | before |
 | The Glass Dunes | The mark fused into the sand from above in a skin of new glass, by the west camp; the camp leaves the sand round it untouched | glyph |
-| The City Behind the Waterfall | Pell: the night the sky rang, the falls went quiet and a light hung singing off the balcony, as if waiting for an answer | light |
+| The City Behind the Waterfall | Aldo: the night the falls went quiet and a light hung singing off the balcony, as if waiting for an answer | light |
 | The Salt Harbour | The harbour book (Hesper): the line before yours is in home letters, a woman who came alone; "…where the singing goes. If anyone from home…"; the salt has eaten her name | before |
 | The Forest of Antennas | Grete: her grandmother's dish caught a man's voice ("…older when you hear it…"), and under the hiss something singing his words back, as if learning them | signal |
 | The Underwater City | Coralie: a woman from up top listened all night to the whales; one sang something she knew, and she hummed it back | before |
@@ -572,7 +572,7 @@ there and copied both, and the mark).
 
 More built details: the Great Crystal adds a crystal-violet band to the tank,
 and Wendel gives a second keepsake ("The patient are never eaten"). Hollin has
-kept the deep wood's lamps for 41 years; the skiff came back to the root cave on
+kept the deep wood's lamps for 40 years; the skiff came back to the root cave on
 its own after Odile and Talo crossed the swamp in it. The City-Shaft's rule: a light
 nobody looks at goes out. The Signal Market's rule: the first thing anyone ever
 sold there was an answer.

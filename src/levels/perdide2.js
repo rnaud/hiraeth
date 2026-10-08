@@ -176,7 +176,7 @@ export const PERDIDE2_CONTENT = {
   // closes when Hollin, waiting at the root cave, asks you to come back one day
   story: {
     title: 'THE LAMPS ARE KEPT',
-    intro: 'Hollin has kept this path lit for forty-one years, waiting for travellers to return. Three pools have gone dark.',
+    intro: 'Hollin has kept this path lit for forty years, waiting for travellers to return. Three pools have gone dark.',
     outro: 'The path is lit again. Odile and Talo’s saucer lies in the deep pool. Hollin has asked you to come back someday.',
     label: 'the root cave', goal: [CAVE.x, 'ground', CAVE.mouth - 8], radius: 9, manual: true,
   },

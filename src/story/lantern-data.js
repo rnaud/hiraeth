@@ -78,7 +78,10 @@ export const PEOPLE = {
           do: { set: { 'met.ilen': true } },
           choices: [{ text: '~whisper~ Ilen?', goto: 'name' }, { text: '~neutral~ It was my father’s ship.', goto: 'was' }],
         },
-        again: { say: ['~whisper~ You came back to the step. I’m still here. Where would I go?'], next: 'brother' },
+        again: {
+          say: ['~whisper~ You came back to the step. I’m still here. Where would I go?', '~solemn~ Sit with me. Tell me about them, slowly. I want to hear it properly this time.'],
+          choices: [{ text: '~sad~ They died two years ago. Within a season of each other.', goto: 'gone' }],
+        },
         name: {
           say: ['~surprised~ Nobody has said my name like that in thirty years. Like it’s an ordinary word.', '~curious~ Who are you?'],
           choices: [{ text: '~solemn~ Your brother. I was born after you left.', goto: 'brother' }],
@@ -93,6 +96,16 @@ export const PEOPLE = {
             '~whisper~ (She looks at you a long time, the way you look at a drawing to see who it is of.)',
             '~sad~ You have his hands. Mum always said I had his hands.',
             '~solemn~ They’re not with you. Tell me straight. I’ve had thirty years of not knowing. I’d rather know.',
+          ],
+          choices: [
+            { text: '~sad~ They died two years ago. Within a season of each other.', goto: 'gone' },
+            { text: '~tired~ Can I sit down first? It’s a long bar.', goto: 'sit' },
+          ],
+        },
+        sit: {
+          say: [
+            '~sad~ (You sit on the lantern’s step. After a moment she sits beside you, not quite touching.)',
+            '~whisper~ That’s an answer too, the way you said it. Go on. When you can.',
           ],
           choices: [{ text: '~sad~ They died two years ago. Within a season of each other.', goto: 'gone' }],
         },
@@ -111,35 +124,42 @@ export const PEOPLE = {
         window: { say: ['~sad~ Then it got that far. It reached him, at least. I hoped it would.', '~whisper~ I didn’t know it would only make him stand at a window.'], next: 'light' },
         light: {
           say: [
-            '~solemn~ You came along its trace. I can see the question on you. What struck your ship.',
-            '~sad~ It was me. My answer. I’m sorry.',
+            '~solemn~ (She looks past you, at the scorch along the hull. She looks at it a long time.) A light did that. A singing one.',
+            '~sad~ It was mine. My answer. I’m sorry.',
           ],
           choices: [{ text: '~curious~ Your answer?', goto: 'answer' }, { text: '~angry~ It nearly killed me.', goto: 'sorry' }],
         },
         sorry: {
-          say: ['~sad~ I know. I’m sorry. They don’t know how to be gentle. None of them do.', '~solemn~ Let me tell you what it is. Then be angry, if you still want to. I’d understand.'],
+          say: ['~sad~ I know. I’m sorry. In thirty years I’ve never seen one of them be gentle.', '~solemn~ Let me tell you what it is. Then be angry, if you still want to. I’d understand.'],
           next: 'answer',
         },
         answer: {
           say: [
-            '~solemn~ The makers built this lantern. It listens for anyone a long way from home, and sends a light to bring them in.',
+            '~solemn~ Talo said the makers built this lantern, to listen for anyone a long way from home and send a light to bring them in. I only know what it does.',
             '~sad~ One brought me in, thirty years ago. My ship never flew again. That’s the top half of it, there. I live in it.',
-            { text: '~sad~ Mum said the last sound from my ship was singing? Then she heard the light that took me. I’m glad she heard something.', if: told },
+            { text: '~sad~ (You tell her what Mum’s recording said: the last sound from her ship was singing.) Then she heard the light that took me. I’m glad she heard something.', if: told },
             '~neutral~ Then Dad’s message came, crawling along the old relays. *Come with empty hands. Just come.* Thirty years on the way.',
             '~solemn~ A light can’t carry words. It carries a song. So I sang his own message into one, and put the makers’ sign on it, and sent it home.',
           ],
           choices: [{ text: '~curious~ The sign. Three dots over an arc.', goto: 'sign' }, { text: '~curious~ Then why did it strike my ship?', goto: 'why' }],
         },
         sign: {
-          say: ['~solemn~ {glyph} It’s on everything they left. It isn’t their name. Odile worked out what it says.', '~whisper~ It says *we heard you*. I wanted him to know I had.'],
+          say: ['~solemn~ {glyph} It’s on everything they left. Every people out there has a name for it. Odile read it as *we heard you*.', '~whisper~ She might be wrong. It’s what I wanted him to hear.'],
           choices: [{ text: '~curious~ Then why did it strike my ship?', goto: 'why' }],
         },
         why: {
           say: [
-            '~sad~ It went home first. It sang over the house, and nobody called back. A light can’t knock.',
-            '~solemn~ So it went looking for the voice that had called me. And it found it: his voice, on a reel, playing in his own ship.',
-            '~sad~ It went straight to it. They only know straight. It wasn’t trying to bring you down. It was trying to bring him here.',
+            '~sad~ I sent it home. I think it got there: it sang over the house, and nobody called back. A light can’t knock.',
+            '~solemn~ Then it went looking for the voice that had called me, I think. His voice, on a reel, playing in his own ship.',
+            '~sad~ Talo used to say they only know straight. If he was right, it wasn’t trying to bring you down. It was trying to bring him here.',
           ],
+          choices: [
+            { text: '~whisper~ The reel was playing when it hit. His message, from the day I left.', goto: 'reel' },
+            { text: '~tired~ It has a funny way of bringing people.', goto: 'funny' },
+          ],
+        },
+        funny: {
+          say: ['~sad~ (She looks at the scorch on the hull again.) It does. It brought me the same way.'],
           choices: [{ text: '~whisper~ The reel was playing when it hit. His message, from the day I left.', goto: 'reel' }],
         },
         reel: {
@@ -185,7 +205,7 @@ export const PEOPLE = {
           next: 'more',
         },
         broke: {
-          say: ['~solemn~ Then you know the worst of it. Dad thought the worst was coming home with nothing.', '~sad~ It isn’t. The worst is the thing you can’t put back. You said sorry? Then you did what there was to do.'],
+          say: ['~solemn~ Then you’re bringing something home after all. Dad never told us that kind weighs the most.', '~sad~ (She doesn’t say it was all right. She holds your wrist a moment, then lets go.)'],
           do: { set: { 'finale.told.broke': true } },
           next: 'more',
         },

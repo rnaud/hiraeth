@@ -1,7 +1,7 @@
 // Lorn II's story as data: "The Lamps Are Kept" (docs/story-bible.md).
 //
 // In the deep wood the people keep the pools lit for travellers who never
-// come. Two did, once, forty-one years ago: Odile and Talo, who had left
+// come. Two did, once, forty years ago: Odile and Talo, who had left
 // Viridel in their ship's little saucer to go and ask the singing light what
 // it wanted. It found them again over the wood and struck the saucer too; it
 // came down in the deep pool. They waited a season for it to come back, then
@@ -98,7 +98,7 @@ export const KEEPERS = [
       ],
       nodes: {
         hello: {
-          say: ["~surprised~ A traveller? An actual traveller? Stay there a moment. I’ve imagined this quite differently.", "~happy~ Hollin. Forty-one years keeping these pools lit, and you’re my first visitor. I should have prepared a greeting. That was plenty of time."],
+          say: ["~surprised~ A traveller? An actual traveller? Stay there a moment. I’ve imagined this quite differently.", "~happy~ Hollin. Forty years keeping these pools lit, and you’re my first visitor. I should have prepared a greeting. That was plenty of time."],
           choices: [
             { text: '~curious~ Why light pools for nobody?', goto: 'why' },
             { text: '~neutral~ I’m just passing through.', goto: 'passing' },
@@ -139,7 +139,7 @@ export const KEEPERS = [
           ],
         },
         names: {
-          say: ["~sad~ Odile and Talo. Yes. Those were their names.", "~tired~ So that was the garden they drew. Forty-one years waiting for them, and I never knew what they were trying to get back to.", "~happy~ Perhaps they reached it. I can hope that, even if they never come here again."],
+          say: ["~sad~ Odile and Talo. Yes. Those were their names.", "~tired~ So that was the garden they drew. Forty years I’ve kept their light, and I never knew what they were trying to get back to.", "~happy~ Perhaps they reached it. I can hope that, even if they never come here again."],
           next: 'promise',
         },
         promise: {
@@ -149,9 +149,9 @@ export const KEEPERS = [
             { text: '~sad~ I can’t promise that.', do: [{ set: { 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true } }], goto: 'maybe' },
           ],
         },
-        thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready.", "~solemn~ A promise to come back costs the coming back. You’ll find that out somewhere far from here."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
+        thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready.", "~solemn~ I’ll keep the pool by the landing for you, then. Promises keep a long time out here, if someone trims the wick."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
         came: {
-          say: ["~surprised~ You came back. By a path you already knew. (He has to sit down on a root to look at you properly.)", "~happy~ Forty-one years I lit these for somebody to come back. It turns out it only takes the once."],
+          say: ["~surprised~ You came back. By a path you already knew. (He has to sit down on a root to look at you properly.)", "~happy~ Forty years I lit these for somebody to come back. It turns out it only takes the once."],
           do: { set: { 'perdide2.promise.kept': true } },
           choices: [
             { text: '~solemn~ I found where Odile and Talo went.', goto: 'found', if: { any: [{ flag: 'finale.hollin' }, { flag: 'finale.met' }] } },

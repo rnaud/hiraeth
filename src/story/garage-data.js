@@ -117,7 +117,7 @@ export const PEOPLE = {
           ],
         },
         night: { say: ["~playful~ Lune heard the ring’s slit sing. I slept through it, under the pump. Woke up to three silent machines. Worst morning of my career."], choices: [{ text: '~neutral~ Can I help?', goto: 'help' }, { text: '~curious~ What’s that mark on the great machine?', goto: 'mark' }] },
-        mark: { say: ["~playful~ We call these *the maker’s rivets*. {glyph} The Major put them on machines, portals, apparently behind my ear. That last one is not open to inspection.", "~curious~ There’s a *blue star-box on the keep wall* too. The Major found it already marked. Said it was for the next traveller. That sounds inconveniently like you."], choices: [{ text: '~neutral~ Can I help with the machines?', goto: 'help' }, { text: '~playful~ I won’t.', end: true }] },
+        mark: { say: ["~playful~ We call these *the maker’s rivets*. {glyph} The Major put them on machines, portals, apparently behind my ear. That last one is not open to inspection.", "~curious~ There’s a *blue star-box on the keep wall* too. The Major found it already marked. Said it was for the next traveller. That sounds inconveniently like you."], choices: [{ text: '~neutral~ Can I help with the machines?', goto: 'help' }, { text: '~playful~ I’ll try to be convenient.', end: true }] },
         help: {
           say: ["~neutral~ Try your fluid. *Shoot each machine in its moving parts.* The colour may start it again. Worth a try before I dismantle the universe."],
           do: { start: 'garage.machines' },
@@ -203,7 +203,7 @@ export const PEOPLE = {
         through: {
           say: ["~surprised~ Through! It went through! Somewhere, my ball is sitting perfectly still. Lucky ball.", "~playful~ You just walked up the curve. No screaming. Do you charge for lessons?"],
           do: [{ advance: ['garage.ball', 'tell'] }],
-          choices: [{ text: '~playful~ Very new.', end: true }],
+          choices: [{ text: '~playful~ First lesson’s free.', end: true }],
         },
         after: { say: ["~sad~ I’ll follow it someday. Perhaps being scared is something you can carry through a door."], choices: [{ text: '~happy~ I hope you do.', end: true }] },
       },

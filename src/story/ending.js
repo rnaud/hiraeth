@@ -258,8 +258,8 @@ export const FINAL_RECORDING = [
   S("~solemn~ (The reel finds its oldest recording. One you never thought to search for.)"),
   M("~happy~ The light’s on. Say hello. Both hands? All right, both hands."),
   S("~happy~ (A small child waves at the recorder. You.)"),
-  F("~happy~ We’re recording this for you. In case you’re grown up and far away when you need to hear it."),
-  F('~solemn~ You don’t have to bring us anything. Do you hear? Nothing.'),
+  F("~happy~ We’re recording this so you can hear yourself when you’re big. You won’t believe how loud you were."),
+  F('~neutral~ No, keep your spoon. The recorder doesn’t need anything. Nobody needs anything. Just wave.'),
   M("~happy~ We’re proud of you already. Look at those hands. He’s trying to wave to everyone."),
   F("~playful~ Say goodbye to the recorder, love. Goodbye, recorder."),
   YOU('~whisper~ Goodbye.'),
@@ -283,7 +283,7 @@ export const FIRST_CLOSING = S('~solemn~ Not home yet. Not all the way.');
 export function lightOver(ctx = {}) {
   return [
     S('~solemn~ (You take out the reel to set it beside them. Then, over the hill, something starts to sing.)', { light: 'come' }),
-    S('~solemn~ (A light comes in low over the valley, singing like a wet finger round the rim of a glass. It dips over the round house.)', { light: 'dip' }),
+    S('~solemn~ (A light comes in low over the valley, singing one long, thin note that you feel in your teeth. It dips over the round house.)', { light: 'dip' }),
     ctx.lou ? LOU('~surprised~ The singing star! It comes over sometimes. Grandpa used to stand at the window for it.') : S('~solemn~ (The round window catches it. Nobody stands there now.)'),
     YOU('~solemn~ That’s what struck my ship.'),
     S('~solemn~ (It turns the way everyone said it turns, as if it is looking for something. Then it climbs away, out along the route.)', { light: 'go' }),

@@ -794,7 +794,7 @@ Ties: the strongest reading of the signature; Ysse sends you to Lorn II.
 
 ### 5. Lorn II: "The Lamps Are Kept" (The Deep Wood)
 The far side of the swamp: giant pale mushrooms, dark trunks, a lit path of
-pools to a root cave. For forty-one years the people have kept the pools lit
+pools to a root cave. For forty years the people have kept the pools lit
 for travellers who never come. Three went dark the night the sky rang.
 
 People:
@@ -976,7 +976,7 @@ she comes and stands beside him "and doesn't say anything at all, which is a fir
 - **Come home.** Ondine's letter ("Come home for supper"), the market's signs, the last recording.
 - **Waiting.** The bird for her rider, the lamp-keepers for travellers, the Hangar for the Major, Sol's tea, the chests for the next one.
 - **Habit as love.** Ottla; the father's "that is not hope, that is a habit".
-- **Numbers that recur**: forty years (Nima, Sel, Saba, Vey); thirty (the broadcast's age: Ilen left about thirty years ago); eleven (Dov's years away, Wren's dark lamp, Pip's seconds, Ambroise's years), forty-one (Wen's teeth, Hollin's years).
+- **Numbers that recur**: forty years (Nima, Sel, Saba, Vey, Hollin); thirty (the broadcast's age: Ilen left about thirty years ago); eleven (Dov's years away, Wren's dark lamp, Pip's seconds, Ambroise's years), forty-one (Wen's teeth).
 
 ## 9. Planned additions (from the author's backlog; not built)
 
@@ -1420,7 +1420,7 @@ A dark tower of the makers standing in the shallows east of the root cave,
 banded, tapering, a glass lamp-room and a cap at the top, a causeway of flat
 stones out to it from the end of the lit path. Its lamp lit the whole wood
 once; the night the sky rang it went out, and three of the pools with it.
-Hollin's people kept their pools lit for forty-one years without knowing there
+Hollin's people kept their pools lit for forty years without knowing there
 had been a greater lamp.
 - **The local: Tamsy**, who counts the lamps every night, all forty-one pools,
   and writes the number down. She saw something pale and winged come down out of

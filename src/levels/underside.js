@@ -110,8 +110,8 @@ export const UNDERSIDE_CONTENT = {
       talk: { listen: [
         { after: () => true, say: [
           '~neutral~ A woman wintered here once, alone, in the empty house at the end of this gallery. Never said from where.',
-          '~sad~ Every night she played a recording, low: a man’s voice. Through the wall you could only hear that it was kind.',
-          '~solemn~ She always stopped it before the end. In spring she went up the north stair.',
+          '~sad~ Every night she turned on a little receiver, low, and listened to the hiss. Through the wall it sounded like waiting.',
+          '~solemn~ She always switched it off before morning. In spring she went up the north stair.',
         ], do: { set: { 'sight.underside.maudie': true } } },
         '~neutral~ The north side gets the cold light. We dry the fish here.',
         '~curious~ The timber stair goes up the north face to the top. Ten turns. Count them.',

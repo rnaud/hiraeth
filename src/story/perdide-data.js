@@ -269,12 +269,17 @@ export const PEOPLE = {
         fell: {
           say: ["~sad~ Our oldest story says this is a broken piece of something in the sky. It fell into the mud long ago. I think it calls to the rest of itself.", "~tired~ No rain for days. Even a good listener runs out of things to do with humming."],
           choices: [
-            { text: '~neutral~ Then I’ll wait for the rain.', goto: 'rain' },
+            { text: '~neutral~ Then I’ll wait for the rain.', goto: 'wait' },
             { text: '~neutral~ I carry water. I could make it rain on it.', goto: 'rain' },
           ],
         },
+        wait: {
+          say: ["~tired~ For days, I said. My legs will go numb long before the weather turns.", "~curious~ That tank of yours carries water. *Shoot the spires three times in quick succession.* I don’t think the crystal asks where its rain comes from."],
+          do: { set: { 'perdide.saba.heard': true } },
+          choices: [{ text: '~curious~ What’s carved on the stone at its foot?', goto: 'glyph' }, { text: '~neutral~ (step back and look up)', end: true }],
+        },
         rain: {
-          say: ["~curious~ You could make rain with that tank. Let’s see whether it minds the substitute.", "~neutral~ *Shoot the spires three times in quick succession.* Or wait for natural rain. I’d prefer to hear the answer before my legs go numb."],
+          say: ["~curious~ Rain out of a tank. Let’s see whether it minds the substitute.", "~neutral~ *Shoot the spires three times in quick succession.* Real rain doesn’t wait between drops. I’d like to hear the answer before my legs go numb."],
           do: { set: { 'perdide.saba.heard': true } },
           choices: [{ text: '~curious~ What’s carved on the stone at its foot?', goto: 'glyph' }, { text: '~neutral~ (step back and look up)', end: true }],
         },

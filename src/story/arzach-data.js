@@ -86,7 +86,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~solemn~ (Oïa watches *the lone tower* across the plain. You wait for her to look at you. She does not.)", "~solemn~ (She points at the tower, then up at the empty sky over the haze, and waits. Whatever she waits for is up there. Apparently you are invited to wait too.)"],
+          say: ["~solemn~ (Oïa watches *the lone tower* across the plain. You wait for her to look at you. She does not.)", "~solemn~ (She points at the tower, then up at the empty sky over the haze, and waits. Whatever she waits for is up there. She pats the stone beside her.)"],
           do: { set: { 'arzach.watcher.met': true } },
           choices: [
             { text: '~curious~ Who lived in the tower?', goto: 'rider' },
@@ -126,7 +126,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Who lived in the tower?', goto: 'rider', if: { not: { flag: 'arzach.glyph.drawn' } } }, { text: '~neutral~ (nod)', end: true }],
         },
         whistle: {
-          say: ["~solemn~ (She sees the flute. For the first time, she forgets the tower.)", "~whisper~ (She brushes the feather tied to it, then lifts two fingers to her lips, without a sound.) *Play*."],
+          say: ["~solemn~ (She sees the flute. For the first time, she forgets the tower.)", "~whisper~ (She brushes the feather tied to it, then lifts two fingers to her lips.) *Blow*."],
           choices: [{ text: '~neutral~ (nod)', end: true }],
         },
         after: {

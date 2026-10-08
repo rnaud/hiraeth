@@ -30,6 +30,18 @@ considers showing up a professional standard, even when it costs it. Its
 humour is brisk and practical; it can complain about a journey while making
 it. It does not need the traveller to teach it generosity.
 
+**Perrine — the halfway tea stall.** Established: keeps the tea stall on the
+middle levels by the cab stop; her mother put up the mirror on the pole that
+threw a coin of the Lodestar's light down to the bottom terraces, until the
+smog greased it and someone at the top turned it onto a billboard. She asks the
+traveller to wash it and push it round to face up the shaft. Writing premise:
+the middle is where nobody stays, and she has made a living out of stopping
+them for one cup. Her loyalty is to her mother's work and to the bottom, which
+she never sees. Voice: hospitable patter, tea as a running measure ("hot at the
+top, warm at the bottom, like the city"), short practical instructions, and a
+dry closer only now and then. When the mirror turns, she gets plain and quiet.
+She does not lecture about the levels; the mirror says it.
+
 | Person | Established history and performance premise | Voice |
 |---|---|---|
 | Ossa | Keeps the Upward Shrine below. Premise: tired of explaining obvious neglect to visitors from above. | Direct, dry; gives the splinter and the next step before the sermon. |
@@ -50,7 +62,7 @@ choice. She is not a machine unlocked by collecting feathers. Her rider's fate
 is unresolved; do not identify the rider as Ilen without a future plot decision.
 
 Tam copies movements because he is a child making contact. Senn listens to
-stones and reports what he hears, without decoding the universe. Kesh keeps
+stones and reports what she hears, without decoding the universe. Kesh keeps
 the stone hand: small, physical instructions, “small to tall.” Their economy
 should feel hospitable. Silence must not hide the puzzle's required action.
 
@@ -134,7 +146,9 @@ absolute conviction that a beautiful thing ought to be reachable.
 strikes, escape from Viridel to the deep wood, a season waiting, a borrowed
 skiff, the Great Crystal, then departure east. Odile's log is immediate and
 operational; Talo's lookout note is exploratory. Preserve affection in small
-shared details. Their disappearance is not evidence of death or ascension.
+shared details. Outside the Lantern, nobody knows where they went; the finale
+settles it (they kept the lantern and Ilen, and are buried on its point; see
+`lore/continuity.md`), so no earlier line should imply death or ascension.
 
 ## The Garden of Spheres: attentive, not all-knowing
 
@@ -169,7 +183,7 @@ Danger belongs to the landscape, humour to the people's familiarity with it.
 
 ## Lorn II: hospitality after decades without guests
 
-**Hollin — lamp-keeper.** Established: forty-one years keeping the lights;
+**Hollin — lamp-keeper.** Established: forty years keeping the lights;
 Odile and Talo asked that a light be kept for them. Writing premise: he has
 practised a welcome so often that the real visitor makes him forget it. Warm,
 a little flustered, suddenly precise about the pools. His invitation to return

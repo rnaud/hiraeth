@@ -52,18 +52,29 @@ admits they should have told him sooner.
 ## Ilen
 
 **Established:** elder sister, grown and gone before the traveller was born.
-Left roughly thirty years ago. Did not return. Her ship’s final transmission
-contained singing. The market receives the father’s message intended for her.
-Her fate is unknown.
+Left roughly thirty years ago. Her ship’s final transmission contained
+singing: the light that brought her in. The market receives the father’s
+message intended for her. The finale settles her fate: she has kept the makers’
+lantern for thirty years, grounded, first with Odile and Talo, then alone. The
+father’s message reached her there; she sang it back into a light, which struck
+her brother’s ship. She meets him at the lantern and, in the true ending, comes
+home and lives in the round house. About fifty, grey coming into her hair, the
+mother’s teal and coral; speaks the home tongue.
 
 **Writing premise:** keep room for an actual person behind the family’s symbol
-of loss. Future material should give her a taste, disagreement, or practical
-habit of her own before using her to explain a cosmology.
+of loss. She painted the ship’s stripe at nine, was always out late, gardens
+because Odile taught her to. She learns her parents are dead in the first
+minutes of meeting her brother: let her grieve before she explains anything.
 
-**Voice boundary:** she has no newly invented dialogue in this pass. Do not
-have another character reveal her death, survival, connection to the makers,
-or desire to be found. The empty place at the stone is an invitation to remember,
-not evidence of an answer.
+**Voice:** she has dialogue now, at the Lantern (`src/story/lantern-data.js`)
+and at home after the true ending. Plain, a little wry, practical about small
+things (“Mind the third stone. It rocks.”). What the lantern is and why the
+light struck are her account, and partly Talo’s and Odile’s readings: she
+reports what she saw and says whose reading the rest is (“Talo said…”, “Odile
+read it as…”, “I think”). She does not read her brother’s mind and does not
+forgive what he did to Esk on Esk’s behalf. Outside the Lantern and home, no
+other character may reveal her survival or her connection to the makers; the
+empty place at the stone stays an invitation to remember until the finale.
 
 ## Lou
 

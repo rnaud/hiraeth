@@ -285,8 +285,8 @@ export const PEOPLE = {
     palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'braidcap', cape: 1.45, look: { robe: 0.5, build: 'slim', trim: 'none', body: 'none', prop: 'oud', under: 'braid', capeBells: 10, back: 'oud', stow: true },
     lines: ['~happy~ ♪', "~happy~ Stay for a tune. Leaving halfway makes it self-conscious.", "~curious~ You keep glancing behind you."],
     talk: { listen: [
-      ["~playful~ You stopped! I was beginning to think I’d been mistaken for a decorative bush.", "~whisper~ I’m Sefa. I try to play what suits the listener. Yours keeps wandering away from the last note."],
-      '~curious~ Everyone has a tune. Yours keeps stopping to look over its shoulder. Stay a verse. It might settle.',
+      ["~playful~ You stopped! I was beginning to think I’d been mistaken for a decorative bush.", "~whisper~ I’m Sefa. I play for whoever stops. Most stop for the chorus and drift off in the second verse."],
+      '~curious~ Everyone walks to a tune. You keep stopping to look at the sky. Stay a verse. Mine’s better than the sky.',
       '~playful~ When the tree drinks we play all night, every song we know. Bako cries every year, and says it’s the smoke.',
       '~whisper~ Shh. This is the good bit.',
       { after: RISEN, if: { not: LIT }, say: "~sad~ The water’s back, but not the fire. I’ve tried a cheerful tune. Apparently trees prefer a more practical approach." },
@@ -441,7 +441,7 @@ export const PEOPLE = {
           say: ["~playful~ Someone faster than me. That narrows it down to everybody. I’m Oum. Offer an arm before you offer advice.", "~playful~ I fell behind the procession, then behind the stragglers. Now there’s nobody ahead close enough to hurry me. A peaceful promotion."],
           choices: [
             { text: '~happy~ Walk with me to the camps. I’ll go slowly.', do: [{ start: 'desert.oum' }, { stage: ['desert.oum', 'lead'] }, { set: { 'desert.oum.following': true } }], goto: 'yes' },
-            { text: '~curious~ Ama says you saw a light go over.', goto: 'light' },
+            { text: '~curious~ Did you see the light go over, that night?', goto: 'light' },
           ],
         },
         light: {
@@ -906,7 +906,7 @@ export const CROWD_TALK = {
       "~neutral~ Walk with us. We circle Qanat until the tree drinks and burns again. Company makes the waiting easier.",
       ['~solemn~ A tree can’t see, but it can hear feet.', '~solemn~ Seven times round for every year it has drunk. We lost count long ago.'],
       '~angry~ You’re in my step. Walk or get out of the way, sky-stranger.',
-      { if: { not: TEMPLE }, say: '~curious~ See the rose stone humped in the dunes *east of the walls*? The Givers’ House, my mother called it. Its door looks at Qanat, as if it’s waiting to be let in.' },
+      { if: { not: TEMPLE }, say: '~curious~ See the rose stone humped in the dunes *east of the walls*? A house for water, my mother called it. Its door looks at Qanat, as if it’s waiting to be let in.' },
       { after: RISEN, if: { not: LIT }, say: '~surprised~ The well’s full and we still walk. The tree hasn’t burned. A circuit isn’t over until it’s over.' },
       { after: DONE, say: '~happy~ The drinking came! Eleven days I walked for it, and I’d walk eleven more.' },
     ] } },
@@ -942,7 +942,7 @@ export const CROWD_TALK = {
       { after: LIT, say: '~happy~ The tree burns again, and Ama still feeds her fires. Habit. I’d do the same.' },
     ] } },
     { name: 'A trader', title: 'resting', talk: { listen: [
-      ['~surprised~ You came out of the sky-ball? Then you saw the light that went over before it. It sang, like a bowl rubbed with a wet finger.', '~whisper~ It didn’t come down. It dipped low behind the dunes, as if it was looking for something, and climbed away again.'],
+      ['~surprised~ You came out of the sky-ball? Then you saw the light that went over before it. It sang one long note, like a salt cart’s axle begging for grease.', '~whisper~ It didn’t come down. It dipped low behind the dunes, as if it was looking for something, and climbed away again.'],
       { if: { not: { flag: 'desert.bike.found' } }, say: '~whisper~ Marrow hides what he finds. There’s a hollow *between your ball and the camps*, with *a red rag on a pole*. Ask him what’s under the tarp. Then don’t pay what he asks.' },
       '~playful~ I sell salt to people who walk past the salt flats to get here. Business is a kind of faith.',
       '~curious~ East of the camps there’s a ring of old ledges with glass on top. *The Sleeping Observatory*. People sketch it. Nobody knows what it watched.',

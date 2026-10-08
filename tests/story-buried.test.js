@@ -157,7 +157,7 @@ test('the main quest: Tooth Day, the Wick lit, the wheel turns one tooth, Wen co
 
 test('side quests: Dun’s key off the floating derrick, the three gauges, the warm window', () => {
   // the key
-  talk(PEOPLE.dun, ['Up where?', 'I’ll fetch it.']);
+  talk(PEOPLE.dun, ['Sightseeing where?', 'I’ll fetch it.']);
   assert.equal(quests.stage('buried.key'), 'swing');
   // the hook hangs out over the drop: no reaching it, even hovering beside it
   const C = B.crane, plat = C.root.y;

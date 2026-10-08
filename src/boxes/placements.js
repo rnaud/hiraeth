@@ -40,7 +40,7 @@ export const PLACEMENTS = {
     // the Givers' House (src/temples/desert.js): on the dais in its Chest Chamber, half-way through. Ember mode
     // is the key to the rest: the braziers by the door beyond, the bridge, the thorns, the Keeper's cistern.
     { id: 'desert.temple.fire', item: 'fire', temple: 'desert', site: (level) => level.temple?.gadgetSite,
-      note: 'Inside the Givers’ House in the eastern dunes, in the round chamber past the sand pit.' },
+      note: 'Inside the rose-stone house in the eastern dunes, in the round chamber past the sand pit.' },
   ],
   incal: [
     // the first jetpack world: the jets wait on the makers' pillar, a lone stone column on the rim 130 m

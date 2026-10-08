@@ -15,7 +15,7 @@ export const PEOPLE = {
   sabri: {
     id: 'sabri', name: 'Sabri', title: 'who digs wells', color: '#5fb7ad', voice: 1.12, kind: 'f',
     palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#e6b86f', legs: '#5a4a3a', hat: '#f3ead8', hair: '#3a2a22' }, head: 'wrap', cape: 0.9,
-    lines: ["~tired~ Another dry well. Excellent hole, though.", "~curious~ Seen the Givers’ House east of here?", "~neutral~ Dig. Listen. Mostly hear myself digging."],
+    lines: ["~tired~ Another dry well. Excellent hole, though.", "~curious~ Seen the rose-stone house east of here?", "~neutral~ Dig. Listen. Mostly hear myself digging."],
     talk: {
       entry: [
         { if: { flag: 'temple.desert.done' }, node: 'after' },
@@ -26,7 +26,7 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ["~curious~ Sabri. Well-digger. Currently specialising in holes that disappoint people.",
-            "~solemn~ Our fields once took water from *the Givers’ House in the eastern dunes*. That great round rose-stone building. You can still trace the channels back to its door.",
+            "~solemn~ Our fields once took water from *the rose-stone house in the eastern dunes*. That great round drum of a building. You can still trace the channels back to its door.",
             "~sad~ Then the flow stopped. Sand buried the fields. Nobody enters the house now. You can hear something crying inside."],
           do: { set: { 'met.sabri': true } },
           choices: [

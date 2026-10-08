@@ -7,8 +7,17 @@
 - The console plays recordings. It searches by words; the parents do not
   respond to the current journey. Coincidental relevance is part of the ache.
 - Ilen is his elder sister, gone before his birth. Her last transmission
-  sounded like singing. Her fate is unknown. The market message took thirty
-  years to arrive; the mother's “For when he asks” recording is separate.
+  sounded like singing. The market message took thirty years to arrive; the
+  mother's “For when he asks” recording is separate.
+- The finale (the Lantern) settles Ilen's fate: a makers' light brought her in
+  to the lantern thirty years ago and her ship never flew again. She lived
+  there since, with Odile and Talo. The father's message reached her only
+  there, thirty years late; the singing light that struck his ship was her
+  answer. In the true ending she comes home. The Lantern is optional, so
+  nothing before it may settle her fate: other worlds can hold traces (a mark,
+  a woman who passed through) but must not contradict this, and no one but Ilen
+  explains the light. Her account of what the lantern is and why the light
+  struck is hers, and partly Talo's and Odile's readings, told as such.
 - Lou is seven and a half. He brought her to Tove at two and did not knock on
   his parents' door. His postcards have reached her. Tove finished the small
   house; Lou, Tove, and Moustache live there. The parents' round house is dark.
@@ -18,7 +27,10 @@
   It turned and climbed away. The Great Crystal fell long before that night.
 - Odile and Talo were struck over Viridel forty years ago, left in their
   saucer, were struck again over the deep wood, waited a season, borrowed
-  Fen's skiff, visited the Crystal, and went east. Their later fate is unknown.
+  Fen's skiff, visited the Crystal, and went east. Hollin has kept a light for
+  them for forty years. The finale settles the rest: they reached the Lantern,
+  kept it and kept Ilen, and are buried on its point (Talo first, then Odile,
+  eight winters ago). Before the Lantern, nobody knows this.
 - The makers' glyph is three dots over an upward-bowing arc (∩), not a smile.
   Locals have different names for it. Those names express local beliefs.
 - The white builders found the older spheres and pyramids, then copied them

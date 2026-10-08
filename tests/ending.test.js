@@ -167,7 +167,7 @@ test('at the stone: a line for every token as it is set down; the first time the
   assert.ok(reel > last.findIndex((l) => l.token === ILEN_TOKEN), 'the reel goes down last');
   assert.deepEqual(last.slice(reel + 1, reel + 1 + FINAL_RECORDING.length), FINAL_RECORDING, 'then it plays the oldest recording');
   assert.ok(FINAL_RECORDING.some((l) => l.who === 'mother' && /proud of you already/.test(l.text)));
-  assert.ok(FINAL_RECORDING.some((l) => l.who === 'father' && /don’t have to bring us anything/i.test(l.text)));
+  assert.ok(FINAL_RECORDING.some((l) => l.who === 'father' && /recorder doesn’t need anything/i.test(l.text)));
   assert.equal(last.at(-1), CLOSING, 'a closing line');
   assert.ok(last.at(-1).who === 'scene' && /Something of value/.test(last.at(-1).text));
   assert.ok(!last.some((l) => l.light), 'no light over the hill the last time');

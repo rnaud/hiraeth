@@ -217,7 +217,7 @@ export const PEOPLE = {
         },
         floodMine: { say: ["~solemn~ You opened an old gate because Esk needed water. Neither of you knew it would break. Sit down. Have some tea."], choices: [{ text: '~sad~ Thank you, Sol.', end: true }] },
         hello: {
-          say: ["~curious~ Odile? Talo? No, sorry. Wrong traveller. They left in the little saucer. You’d know if you were them. I expect.", "~playful~ Sol. I followed them everywhere as a boy. Talo let me hold the tools. Odile let me help him up when his inventions disagreed with him."],
+          say: ["~curious~ Odile? Talo? No, sorry. Wrong traveller. They left in the little saucer. You’d know if you were them. I expect.", "~playful~ Sol. I followed them everywhere as a boy. Talo let me hold the tools. Odile let me help Talo up when his inventions disagreed with him."],
           choices: [
             { text: '~curious~ Are they coming back?', goto: 'back' },
             { text: '~curious~ What does the garden believe?', goto: 'believe' },
@@ -417,7 +417,7 @@ export const PEOPLE = {
         go: { say: ["~neutral~ *At the cistern above the terraces*: water the roots around the wheel, then *push it once*. I don’t know what it will do. Nobody does."], choices: [{ text: '~neutral~ Once.', end: true }] },
         flood: { say: ["~scared~ Stop! The gate— Get off the slope! Get clear!"], choices: [{ text: '~scared~ (get back)', end: true }] },
         sorry: {
-          say: ["~angry~ (Esk stares at the raw gap through her terraces. She does not turn to you.)", '~angry~ I said a little. I said one turn.'],
+          say: ["~angry~ (Esk stares at the raw gap through her terraces. She does not turn to you.)", '~angry~ One turn. I said one turn. One turn did that.'],
           choices: [
             { text: '~sad~ I only turned it once.', goto: 'once' },
             { text: '~sad~ I’m sorry, Esk.', goto: 'sorry2' },
@@ -432,7 +432,7 @@ export const PEOPLE = {
           next: 'okay',
         },
         okay: {
-          say: ["~solemn~ I hear you. I’m not ready to say it’s all right. We say it belongs to the ground now. It’s harder when it’s your own hill.", "~neutral~ You can’t put the hill back. Please leave me with it for a while."],
+          say: ["~solemn~ I won’t say it’s all right. We say it belongs to the ground now. It’s harder when it’s your own hill.", "~neutral~ You can’t put the hill back. Please leave me with it for a while."],
           do: { fail: 'edena.terraces' },
           choices: [{ text: '~sad~ (go)', end: true }],
         },
