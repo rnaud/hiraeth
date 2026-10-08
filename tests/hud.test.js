@@ -39,7 +39,7 @@ test('the cue says nothing at rest, and only what the use button does right here
   assert.equal(cueText({}), '', 'walking about');
   assert.equal(cueText({ prompt: 'talk to Ama', promptAt: { x: 1 } }), '', 'the floating prompt over Ama says it');
   assert.equal(cueText({ prompt: 'turn the lens' }), 'E turn the lens', 'a prompt with nothing to float over');
-  assert.equal(cueText({ prompt: 'turn the lens', controller: true }), 'B / ○ turn the lens', 'in the pad\'s names');
+  assert.equal(cueText({ prompt: 'turn the lens', controller: true }), 'X / □ turn the lens', 'in the pad\'s names');
   assert.equal(cueText({ shipHint: 'E go aboard', prompt: 'talk to Ama' }), 'E go aboard', 'at the ramp, E is the ship\'s');
   assert.equal(cueText({ shipHint: 'aboard the ship' }), '', 'not a prompt: nothing');
   assert.equal(cueText({ shipPlaying: true, prompt: 'go' }), '', 'in the ship\'s scenes E does nothing');
@@ -50,7 +50,7 @@ test('the cue says nothing at rest, and only what the use button does right here
   assert.match(cueText({ ride: 'bike', rideFor: 100 }), /^E dismount/);
   assert.match(cueText({ ride: 'bike', rideFor: 100, controller: true }), /^A \/ × jump off · B \/ ○ dismount · RT \/ R2 go/);
   assert.equal(cueText({ ride: 'bike', rideFor: RIDE_HINT_MS + 1 }), '');
-  assert.equal(padCue('E go aboard · SPACE hop · SHIFT boost'), 'B / ○ go aboard · A / × hop · L3 boost');
+  assert.equal(padCue('E go aboard · SPACE hop · SHIFT boost'), 'X / □ go aboard · A / × hop · L3 boost');
 });
 
 test('a region\'s name shows as you cross into it (not where you arrive, not along a flickering border), then goes', () => {
@@ -131,19 +131,20 @@ test('the cue sets its line only when it changes and fades it in and out', () =>
   assert.ok(!cls.has('show'), 'faded out (the last words stay under the fade)');
 });
 
-// ---- the scout finds the objective: on foot and riding, the top button
+// ---- the scout finds the objective: on foot and riding, R3 with no foe in reach
 
-test('the top button (Y / △) sends the scout on foot and riding; Q on the keyboard and the touch "ping" too', () => {
+test('R3 sends the scout on foot and riding when there is no foe to lock on to; Q on the keyboard and the touch "ping" too', () => {
   const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
   const actions = []; let ctx = 'game';
   const c = new Controller({ pads: () => [pad], context: () => ctx, action: (a) => actions.push(a), look() {}, navigate() {}, scroll() {} });
   const tap = (i) => { pad.buttons[i] = { pressed: true, value: 1 }; c.update(0.016); pad.buttons[i] = { pressed: false, value: 0 }; c.update(0.016); };
-  tap(3); assert.deepEqual(actions, ['ping'], 'on foot');
-  ctx = 'ride'; c.update(0.016); tap(3); assert.deepEqual(actions, ['ping', 'ping'], 'riding (a bike, the bird: flying too)');
-  ctx = 'photo'; c.update(0.016); tap(3); assert.equal(actions.length, 2, 'not in photo mode');
+  tap(11); assert.deepEqual(actions, ['lock'], 'on foot');
+  ctx = 'ride'; c.update(0.016); tap(11); assert.deepEqual(actions, ['lock', 'lock'], 'riding (a bike, the bird: flying too)');
+  ctx = 'photo'; c.update(0.016); tap(11); assert.equal(actions.length, 2, 'not in photo mode');
+  tap(3); assert.equal(actions.length, 2, 'Y / △ is the gadget\'s: it never pings');
   const main = src('src/main.js');
   assert.match(main, /e\.code === 'KeyQ' && !e\.repeat && !busy\(\) && !photo\.on && !ship\.playing\) scout\.ping\(\)/);
-  assert.match(main, /name === 'ping' && !ship\.playing && !gadgets\?\.claims\('ping'\)\) scout\.ping\(\)/);   // (with a gadget in hand Y / △ is its button: src/gadgets/)
+  assert.match(main, /const had = foes\.lock;\s*if \(!foes\.cycleLock\(\) && !had && !minigame\) scout\.ping\(\);/, 'R3: nothing to lock on to, the scout');
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);
   // what it found: the cue, at once, and the quest marker for a while; nothing to find: a shrug, said
   assert.match(main, /onFind: \(target, d\) => \{ scoutSays\(findSummary\(\{ goal: findGoal\(target\), step: findText\(target, d\) \}\), 6, 'quest'\); storyRt\.marker\.reveal\(\); \}/);
@@ -227,7 +228,7 @@ test('the Start menu opens the game menu on its Items and Quests, has a Controls
   // the Controls page: every control, the pad's in Xbox / PlayStation form, the one in your hands first
   const { controlsList, controlsHtml } = await (async () => { globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget(); return import('../src/ui.js'); })();
   const L = controlsList('A / ×', 'B / ○');
-  assert.ok(L.pad.some(([what, how]) => /scout finds/.test(what) && /Y \/ △/.test(how)));
+  assert.ok(L.pad.some(([what, how]) => /scout finds/.test(what) && /R3/.test(how)));
   assert.ok(L.keyboard.some(([what, how]) => /scout finds/.test(what) && how === 'Q'));
   assert.ok(L.touch.some(([what, how]) => /scout finds/.test(what) && how === 'ping'));
   const html = controlsHtml(L, 'touch');

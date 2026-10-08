@@ -198,7 +198,7 @@ export const LEVELS = [
     // a developer's world: the fluid blade against the foes, wave after wave (in the worlds list, L; never on the route)
     id: 'arena', create: createArena, build: buildArena, hidden: true, dev: true,
     title: 'The Arena', source: 'for testing the blade',
-    blurb: 'A ring of sand with a few standing stones, and the foes coming in waves round you: ink blots, then makers’ machines. F or LB / L1 swings the fluid blade.',
+    blurb: 'A ring of sand with a few standing stones, and the foes coming in waves round you: ink blots, then makers’ machines. RB / R1 (a left click) swings the fluid blade, LB / L1 (Ctrl) guards, B / ○ (Alt) evades.',
     moves: 'the blade · walk · jetpack',
   },
   {

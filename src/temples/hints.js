@@ -80,10 +80,10 @@ export const BOSS_HINTS = {
     phases: [
       ['She cries, and nobody answers.',
         'When she sinks low and cries, answer her with your bell.',
-        'Get close while she cries, then ring the bell (V, or RS / R3). Not the fluid, never a shove.'],
+        'Get close while she cries, then ring the bell (V, or Y / △ with empty hands). Not the fluid, never a shove.'],
       ['She is crying again.',
         'Answer every cry with the bell, near her.',
-        'Each time she sinks low and cries, run close and ring the bell (V, or RS / R3).'],
+        'Each time she sinks low and cries, run close and ring the bell (V, or Y / △ with empty hands).'],
     ],
   },
   // the First Garage: the Clockwork Foreman (a robot: it can only be stopped)
@@ -161,10 +161,10 @@ export const BOSS_HINTS = {
     phases: [
       ['It is trying to say something.',
         'Catch its word with your shell, then give it back when it listens.',
-        'Stay near when it cries its word, then play the shell back (V, or RS / R3) while its dish is lowered.'],
+        'Stay near when it cries its word, then play the shell back (V, or Y / △ with empty hands) while its dish is lowered.'],
       ['It has a new word.',
         'Catch the new word, and play it back when it lowers its dish.',
-        'Be close when it cries, then play the shell back (V, or RS / R3) close to its dish while it listens.'],
+        'Be close when it cries, then play the shell back (V, or Y / △ with empty hands) close to its dish while it listens.'],
     ],
   },
 };

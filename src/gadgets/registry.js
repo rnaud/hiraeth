@@ -61,7 +61,7 @@ export const gadgetById = (id) => GADGETS.find((g) => g.id === id) ?? null;
 
 /**
  * The next gadget round the list from `current` (dir 1 or -1) among the owned ones, with "none" (null) as
- * one stop of the round when `none` is set (Y / △ is the scout's ping again with nothing in hand).
+ * one stop of the round when `none` is set (with nothing in hand Y / △ sounds the bell-note whistle).
  */
 export function nextGadget(owned, current, dir = 1, { none = true } = {}) {
   const ring = none ? [null, ...owned] : owned.slice();

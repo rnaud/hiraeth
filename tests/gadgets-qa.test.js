@@ -302,13 +302,29 @@ function runtime(owned) {
   return { G, drawn };
 }
 
-test('B is the gadgets\' once one is owned: the fluid tool\'s guard does not rise with it', () => {
+test('B only chooses gadgets (never the guard); with nothing in hand the use button sounds the whistle, and the chip and the wheel say so', () => {
   const none = runtime([]), input = { KeyB: true };
   none.G.control(DT, input);
-  assert.equal(input.KeyB, true, 'no gadget: B still guards');
-  const some = runtime(['hook']), input2 = { KeyB: true };
-  some.G.control(DT, input2);
-  assert.equal(input2.KeyB, false, 'taken by the gadgets');
+  assert.equal(input.KeyB, true, '(the input is left alone)');
+  const game = new GameState(null), listeners = new Set();
+  const its = { has: (id) => !!game.flag(`item.${id}`), grant(id) { game.set(`item.${id}`, true); for (const f of listeners) f(id, true); }, on(f) { listeners.add(f); return () => listeners.delete(f); } };
+  let rang = 0;
+  const G = new Gadgets({ defs: [{ id: 'hook', name: 'hook', text: '', use: '', model: () => new THREE.Group(), create: () => ({}) }], scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its, ring: () => { rang++; } });
+  G.control(DT, { KeyT: true }); G.control(DT, {});
+  assert.equal(rang, 1, 'nothing found: the button still asks (ring() itself does nothing without the whistle)');
+  assert.equal(G.instrument(), null);
+  its.grant('bell');
+  assert.equal(G.instrument().name, 'Bell-note whistle');
+  assert.match(G.wheelList()[0].name, /^Bell-note whistle/, 'the wheel\'s first slot is the whistle');
+  its.grant('hook');
+  assert.equal(G.equipped, 'hook');
+  G.control(DT, { PadGadget: true }); G.control(DT, {});
+  assert.equal(rang, 1, 'a gadget in hand: the button is its');
+  G.equip(null);
+  G.control(DT, { PadGadget: true }); G.control(DT, { PadGadget: true }); G.control(DT, {});
+  assert.equal(rang, 2, 'once per press');
+  its.grant('echo');
+  assert.equal(G.instrument().name, 'Bell-note whistle · echo shell');
 });
 
 test('the gadget in hand gets its picture first; the wheel open draws the others, one a frame', () => {

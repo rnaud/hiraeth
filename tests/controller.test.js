@@ -19,18 +19,34 @@ test('radial deadzone removes drift and preserves analog range', () => {
   assert.ok(stick(.5,0).x > 0 && stick(.5,0).x < .5);
   assert.ok(Math.hypot(...Object.values(stick(1,1))) <= 1.000001);
 });
-test('walking: bottom jumps, right interacts, left evades, LT + left calls, top pings', () => {
-  const t=setup(); t.pad.axes=[.6,-1,.5,0]; [BOTTOM,RIGHT].forEach(i=>t.button(i,true));
+test('walking: bottom jumps, left interacts, right evades, top uses the gadget, D-pad down calls, R3 locks on', () => {
+  const t=setup(); t.pad.axes=[.6,-1,.5,0]; [BOTTOM,LEFT].forEach(i=>t.button(i,true));
   const input=t.c.update(1/60);
-  assert.ok(input.KeyW && input.KeyD && input.Space && input.KeyE && input.PadE);
+  assert.ok(input.KeyW && input.KeyD && input.Space && input.KeyE && input.PadE && !input.PadEvade);
   assert.ok(input.stick.y>0 && t.looks[0][0]>0);
   assert.ok(!input.ShiftLeft, 'the stick alone walks');
-  [BOTTOM,RIGHT].forEach(i=>t.button(i,false));
-  t.button(LEFT,true); assert.ok(t.c.update(.016).PadEvade); t.button(LEFT,false); t.c.update(.016);
-  t.button(LT,true); t.tap(LEFT); t.button(LT,false); t.tap(TOP);
-  assert.deepEqual(t.actions,['call','ping']);
-  t.tap(R3); assert.equal(t.actions.at(-1), 'lock', 'R3 locks on to a foe');
-  t.tap(12); assert.equal(t.actions.at(-1), 'bell', 'the bell whistle is on the D-pad\'s up');
+  [BOTTOM,LEFT].forEach(i=>t.button(i,false));
+  t.button(RIGHT,true); let h=t.c.update(.016); assert.ok(h.PadEvade && !h.KeyE, 'B / ○ evades, it does not talk'); t.button(RIGHT,false); t.c.update(.016);
+  t.button(LT,true); h=t.c.update(.016); assert.ok(!h.PadEvade, 'LT alone: no evade'); t.button(RIGHT,true); assert.ok(t.c.update(.016).PadEvade, 'aiming does not change B'); t.button(RIGHT,false); t.button(LT,false); t.c.update(.016);
+  t.button(TOP,true); h=t.c.update(.016); assert.ok(h.PadGadget, 'Y / △: the gadget in hand'); t.button(TOP,false); t.c.update(.016);
+  assert.deepEqual(t.actions,[], 'none of these is an action: no ping, no call');
+  t.tap(13); assert.deepEqual(t.actions,['call'], 'D-pad down whistles for the mount');
+  t.tap(R3); assert.equal(t.actions.at(-1), 'lock', 'R3 locks on (main.js: with no foe in reach, the scout)');
+  t.tap(12); assert.equal(t.actions.at(-1), 'lock', 'D-pad up is not an action: it chooses a gadget (PadGadgetPick)');
+});
+test('View: the sketchbook on release; View held + D-pad up is photo mode, + down / left / right the free chords', () => {
+  const t=setup();
+  t.button(VIEW,true); t.c.update(.016); assert.deepEqual(t.actions,[], 'nothing while View is held');
+  t.button(VIEW,false); t.c.update(.016); assert.deepEqual(t.actions,['journal']);
+  t.button(VIEW,true); t.c.update(.016); t.button(12,true); let h=t.c.update(.016);
+  assert.ok(!h.PadGadgetPick, 'View + up does not choose a gadget');
+  t.button(12,false); t.c.update(.016); t.button(VIEW,false); t.c.update(.016);
+  assert.deepEqual(t.actions,['journal','photo'], 'a chord: no sketchbook as View is let go');
+  t.button(VIEW,true); t.c.update(.016); t.tap(13); t.tap(14); t.button(15,true); h=t.c.update(.016); t.button(VIEW,false); t.button(15,false); t.c.update(.016);
+  assert.ok(!h.PadModeNext, 'View + right: not the gun mode');
+  assert.deepEqual(t.actions.slice(2),['viewDown','viewLeft','viewRight'], 'no call, no gun mode under View');
+  const r=setup(); r.context('ride'); r.button(VIEW,true); r.c.update(.016); r.tap(12); r.button(VIEW,false); r.c.update(.016);
+  assert.deepEqual(r.actions,['photo'], 'riding too');
 });
 test('run: click the left stick, and you run until you let the stick go', () => {
   const t=setup(); t.pad.axes=[0,-1,0,0];
@@ -60,11 +76,11 @@ test('menus: printed A confirms and B goes back, wherever the pad prints them', 
   assert.deepEqual(x.actions,['confirm','back','select','start'], 'Xbox: A at the bottom confirms, B on the right goes back; View / Menu are the full-screen menus');
   const n=setup({ faces: 'nintendo' }); n.context('menu'); n.tap(RIGHT); n.tap(BOTTOM);
   assert.deepEqual(n.actions,['confirm','back'], 'Retroid: A on the right confirms, B at the bottom goes back');
-  // talking: the interact button (right) carries the conversation on, also where it is B
-  const xt=setup(); xt.context('talk'); xt.tap(RIGHT); xt.tap(BOTTOM); xt.tap(MENU);
-  assert.deepEqual(xt.actions,['confirm','confirm','start'], '(Menu pauses over a conversation)');
-  const nt=setup({ faces: 'nintendo' }); nt.context('talk'); nt.tap(RIGHT); nt.tap(BOTTOM);
-  assert.deepEqual(nt.actions,['confirm','back']);
+  // talking: the interact button (left, X / □) carries the conversation on; B goes back as in every menu
+  const xt=setup(); xt.context('talk'); xt.tap(LEFT); xt.tap(BOTTOM); xt.tap(RIGHT); xt.tap(MENU);
+  assert.deepEqual(xt.actions,['confirm','confirm','back','start'], '(Menu pauses over a conversation)');
+  const nt=setup({ faces: 'nintendo' }); nt.context('talk'); nt.tap(RIGHT); nt.tap(BOTTOM); nt.tap(LEFT);
+  assert.deepEqual(nt.actions,['confirm','back','confirm']);
 });
 test('menu directions repeat with a delay and never move the player', () => {
   const t=setup(); t.context('menu'); t.button(13,true);
@@ -76,6 +92,7 @@ test('photo controls capture once and use shoulders for altitude', () => {
   assert.ok(t.c.update(.016).KeyE); t.c.update(.016);
   assert.deepEqual(t.actions,['capture']); t.button(1,true); t.c.update(.016);
   assert.deepEqual(t.actions,['capture','photo']);
+  const v=setup(); v.context('photo'); v.tap(VIEW); v.tap(13); assert.deepEqual(v.actions,['photo'], 'View leaves too; D-pad down no longer does');
 });
 test('the fluid tool: LT aims, RT shoots only while aiming (else the jets), RB swings the blade, the D-pad changes the mode', () => {
   const t=setup(); t.button(RT,true);
@@ -89,9 +106,9 @@ test('the fluid tool: LT aims, RT shoots only while aiming (else the jets), RB s
   assert.ok(input.Space && input.PadJump, 'the jump is marked as the pad\'s (it never fires the jets)');
   t.button(RB,true); input=t.c.update(.016); assert.ok(input.PadBlade && !input.PadPush, 'RB swings the blade (the push is a gun mode)');
   t.button(LB,true); assert.ok(t.c.update(.016).PadGuard, 'LB held: the guard');
-  const b=setup(); b.button(RIGHT,true); input=b.c.update(.016);
-  assert.ok(!input.PadPush && input.KeyE, 'the right button interacts now, it does not push');
-  b.button(RIGHT,false); b.button(14,true); input=b.c.update(.016);
+  const b=setup(); b.button(LEFT,true); input=b.c.update(.016);
+  assert.ok(!input.PadPush && input.KeyE, 'the left button interacts, it does not push');
+  b.button(LEFT,false); b.button(14,true); input=b.c.update(.016);
   assert.ok(input.PadModePrev && !input.PadModeNext, 'D-pad left: the previous gun mode');
   b.button(14,false); b.button(15,true); input=b.c.update(.016);
   assert.ok(input.PadModeNext && !input.PadModePrev, 'D-pad right: the next one');
@@ -102,8 +119,8 @@ test('the fluid tool: LT aims, RT shoots only while aiming (else the jets), RB s
   assert.ok(mergeControls({KeyR:true},{PadAim:false}).KeyR);
   assert.ok(mergeControls({},{PadFire:true}).PadFire);
 });
-test('the mouse and keys: right aims, left shoots while aiming and fires the jets otherwise; G shoots only while aiming', () => {
-  assert.deepEqual(triggers({ MouseLeft: true }), { aim: false, fire: true, shoot: false, jets: true, thrust: 1, quick: false });
+test('the mouse and keys: right aims, left shoots while aiming (and swings the blade otherwise: fluid-tool.js); G shoots only while aiming', () => {
+  assert.deepEqual(triggers({ MouseLeft: true }), { aim: false, fire: true, shoot: false, jets: false, thrust: 0, quick: false }, 'the left button is not the jets');
   assert.deepEqual(triggers({ MouseLeft: true, MouseRight: true }), { aim: true, fire: true, shoot: true, jets: false, thrust: 0, quick: false });
   assert.deepEqual(triggers({ KeyG: true }), { aim: false, fire: true, shoot: false, jets: false, thrust: 0, quick: false }, 'G alone: nothing (G is not the jets)');
   assert.deepEqual(triggers({ KeyR: true, KeyG: true }), { aim: true, fire: true, shoot: true, jets: false, thrust: 0, quick: false });
@@ -148,13 +165,15 @@ test('a pad reporting printed letters with Nintendo labels is read by position',
   const t=setup({ faces: 'nintendo', byLabel: true });
   t.button(1,true); let h=t.c.update(.016);
   assert.ok(h.Space && !h.KeyE, 'printed B (bottom) jumps');
-  t.button(1,false); t.button(0,true); h=t.c.update(.016);
-  assert.ok(h.KeyE && !h.Space, 'printed A (right) interacts');
-  t.button(0,false); t.c.update(.016);
-  t.button(LT,true); t.tap(3); t.button(LT,false); t.tap(2);
-  assert.deepEqual(t.actions,['call','ping'], 'printed Y (left) calls the mount, printed X (top) pings');
+  t.button(1,false); t.button(3,true); h=t.c.update(.016);
+  assert.ok(h.KeyE && !h.Space, 'printed Y (left) interacts');
+  t.button(3,false); t.button(0,true); h=t.c.update(.016);
+  assert.ok(h.PadEvade && !h.KeyE, 'printed A (right) evades');
+  t.button(0,false); t.button(2,true); h=t.c.update(.016);
+  assert.ok(h.PadGadget, 'printed X (top): the gadget');
+  t.button(2,false); t.c.update(.016);
   t.context('menu'); t.tap(0); t.tap(1);
-  assert.deepEqual(t.actions.slice(2),['confirm','back'], 'menus: printed A confirms, printed B goes back');
+  assert.deepEqual(t.actions,['confirm','back'], 'menus: printed A confirms, printed B goes back');
 });
 
 test('in menus B steps back, Menu / Start and View / Select reach the game (pause menu, sketchbook)', () => {
@@ -163,6 +182,6 @@ test('in menus B steps back, Menu / Start and View / Select reach the game (paus
   t.button(9,true); t.c.update(.016); t.button(9,false); t.c.update(.016);
   t.button(8,true); t.c.update(.016); t.button(8,false); t.c.update(.016);
   assert.deepEqual(t.actions,['back','start','select']);
-  const g=setup(); g.button(9,true); g.c.update(.016); g.button(9,false); g.c.update(.016); g.button(8,true); g.c.update(.016);
-  assert.deepEqual(g.actions,['settings','journal']);
+  const g=setup(); g.button(9,true); g.c.update(.016); g.button(9,false); g.c.update(.016); g.button(8,true); g.c.update(.016); g.button(8,false); g.c.update(.016);
+  assert.deepEqual(g.actions,['settings','journal'], '(View opens the sketchbook as it is let go)');
 });

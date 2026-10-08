@@ -23,7 +23,7 @@ import { createEchoShell } from '../echo-shell.js';
 //   reed     you hold your breath twice as long under water (player.breathK: src/swim.js reads it)
 //   scarf    the fluid wings sink slower (player.sinkK: src/player.js's glide reads it)
 //   shell    every few seconds, unopened boxes within 45 m answer softly, as if to the bell (game event 'bell' { soft })
-//   echo     the echo shell (src/echo-shell.js) keeps the last makers' note sung near you; V (RS / R3) plays it back
+//   echo     the echo shell (src/echo-shell.js) keeps the last makers' note sung near you; V (Y / △ with no gadget in hand) plays it back
 //            with the bell (ring())
 //   level    the brass level: where down has turned (the Hangar's quarter and ring), a little level at the screen's
 //            edge shows how the floor lies under the view
@@ -95,8 +95,8 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   keys?.addEventListener?.('keydown', onKey);
   const off = items.on((id, owned) => {
     applyTank();
-    if (owned && id === 'bell') setTimeout(() => toast('The bell-note whistle: press V (or click the right stick, R3) to sound it.'), 1800);
-    if (owned && id === 'echo') setTimeout(() => toast('The echo shell: let something sing near it, then press V (or click the right stick, RS / R3) to play it back.'), 1800);
+    if (owned && id === 'bell') setTimeout(() => toast('The bell-note whistle: press V (on a controller, Y / △ with no gadget in hand) to sound it.'), 1800);
+    if (owned && id === 'echo') setTimeout(() => toast('The echo shell: let something sing near it, then press V (on a controller, Y / △ with no gadget in hand) to play it back.'), 1800);
   });
   // ---- a bloom glob on the world: a few flowers come up where it landed (the pouch's pool)
   const offBloom = g.on?.('tool:bloom', ({ point } = {}) => {

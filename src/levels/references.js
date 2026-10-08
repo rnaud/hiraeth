@@ -44,7 +44,7 @@ import { sheetSrc } from './reference-sheets.js';
 //               or look and the camera is yours (the traveller appears where the
 //               view's camera stood)
 //   { and }     the previous / next world (shift + [ ]; in the quick menu, Tab or
-//               X / □: Page Up / Down, LB / RB, or a world's name)
+//               D-pad ↓: Page Up / Down, LB / RB, or a world's name)
 //   \           the comparison (View on a pad): off → the panel in a corner →
 //               the panel over the frame, half seen through → the panel over the
 //               left half of the frame → off
@@ -404,7 +404,7 @@ export function* buildReferences(scene, { params = pageParams(), go = pageGo, se
     Object.assign(ui.ref.style, cropStyle(def, rw, rh, world.sheets), mode === 'corner' ? { width: `${rw}px`, height: `${rh}px` } : { width: '', height: '' });
     const sheet = world.sheets[def.sheet];
     ui.label.innerHTML = `<b>REFERENCE ${view.i + 1} / ${total} · ${def.title}</b><br>${world.name}, ${view.local + 1} of ${views.length} · ${sheet.name.split(' / ').pop()}, panel ${def.panel} (${def.where})`
-      + `<br><span class="kb">[ ] view · { } world · Tab all views · \\ compare: ${COMPARE_NAMES[mode]}</span><span class="pad">L3 / R3 view · X / □ all views · View compare:${COMPARE_NAMES[mode]}</span>`
+      + `<br><span class="kb">[ ] view · { } world · Tab all views · \\ compare: ${COMPARE_NAMES[mode]}</span><span class="pad">L3 / R3 view · D-pad ↓ all views · View compare:${COMPARE_NAMES[mode]}</span>`
       + (held ? '' : '<br><i>walking: [ or ] frames the panel again</i>');
     void camera;
   }
@@ -474,7 +474,7 @@ export function* buildReferences(scene, { params = pageParams(), go = pageGo, se
     compare: () => { compare = (compare + 1) % COMPARE.length; if (ui) ui.key = ''; return COMPARE[compare]; },
     get comparing() { return COMPARE[compare]; },
     get held() { return held?.view ?? null; },
-    /** The quick menu of every view of every world, each with its panel's thumbnail (reference-picker.js: Tab, X / □, the views button). */
+    /** The quick menu of every view of every world, each with its panel's thumbnail (reference-picker.js: Tab, D-pad ↓, the views button). */
     quickMenu: new ReferencePicker({ load: loadAllWorlds, world: world.k, current: () => shown?.i ?? first.i, goTo: (i) => level.goTo(i) }),
     sky: { script: { day: asWorld?.sky ?? first.def.sky, dusk: asWorld?.sky ?? first.def.sky, night: asWorld?.sky ?? first.def.sky } },
     atmo: (x, z) => viewAt(x, z)?.atmo ?? first.atmo,

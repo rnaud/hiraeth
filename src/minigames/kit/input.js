@@ -4,7 +4,7 @@
 //
 //   x, y        the left stick or WASD / the arrows, -1..1 (y > 0: forward / up)
 //   jump        A / × or Space, held;  jumpPressed / jumpReleased: this frame
-//   action      B / ○ or E, held;      actionPressed
+//   action      X / □ or E, held;      actionPressed
 //   tuck        RT / R2 (analog, 0..1) or Shift: the games where they mean the same (a tuck, a throttle, the reel)
 //   trigger     RT / R2 alone (analog, 0..1): for a game that gives Shift a job of its own
 //   boost       Shift (the touch screen's run toggle), RB / R1 or L3 on a pad (L3 runs: it sets Shift), held

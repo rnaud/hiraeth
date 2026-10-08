@@ -97,14 +97,13 @@ test('the pad: Y / △ is the gadget button, D-pad up chooses; the keyboard T an
   pad.buttons[3] = { pressed: false, value: 0 }; pad.buttons[12] = { pressed: true, value: 1 };
   const h = c.update(DT);
   assert.equal(h.PadGadget, false); assert.equal(h.PadGadgetPick, true, 'D-pad up held');
-  assert.deepEqual(actions, ['ping', 'bell'], '(main.js decides whether the old jobs still answer: gadgets.claims)');
+  assert.deepEqual(actions, [], 'Y / △ and D-pad ↑ are the gadgets\' only: no ping, no bell (src/bindings.js)');
   assert.deepEqual(gadgetInput({ KeyT: true }), { use: true, pick: false, back: false });
   assert.equal(gadgetInput({ MouseMiddle: true }).use, true);
   assert.equal(gadgetInput({ TouchGadget: true }).use, true);
   assert.deepEqual(gadgetInput({ KeyB: true, ShiftLeft: true }), { use: false, pick: true, back: true });
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /name === 'ping' && !ship\.playing && !gadgets\?\.claims\('ping'\)\) scout\.ping\(\)/);
-  assert.match(main, /name === 'bell' && !gadgets\?\.claims\('bell'\)\) itemFx\.ring\(\)/);
+  assert.match(main, /ring: \(\) => itemFx\.ring\(\)/, 'with nothing in hand the use button sounds the whistle (V)');
   assert.ok(main.indexOf('gadgets.control(') < main.indexOf('player.update(dt, busy() ? noInput : ctl'), 'the reel acts before the traveller moves');
   assert.ok(main.indexOf('tool.update(dt, ctl') < main.indexOf('gadgets.update('), 'the gadgets aim after the fluid tool');
 });
@@ -126,8 +125,6 @@ test('the runtime: the first gadget found is taken in hand; the use button press
   const { G, game, log } = runtime();
   assert.equal(G.equipped, 'hook', 'the first found is in hand');
   assert.equal(game.flag(EQUIPPED_FLAG), 'hook', 'kept in the save');
-  assert.ok(G.claims('ping'), 'Y / △ is the gadget\'s with one in hand');
-  assert.ok(G.claims('bell'));
   log.length = 0;
   G.control(DT, { KeyT: true }); G.control(DT, { KeyT: true }); G.control(DT, {});
   assert.deepEqual(log, ['hook press', 'hook hold', 'hook release']);
@@ -135,7 +132,7 @@ test('the runtime: the first gadget found is taken in hand; the use button press
   assert.equal(G.equipped, 'bomb', 'a tap: the next');
   G.control(DT, { KeyB: true }); G.control(DT, {});
   assert.equal(G.equipped, null, 'then nothing in hand');
-  assert.ok(!G.claims('ping'), 'and Y / △ pings again');
+  assert.equal(G.wheelList()[0].name, 'nothing in hand', '(no whistle found yet)');
   // held: the wheel; the stick points at a slot, letting go takes it
   for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) G.control(DT, { KeyB: true });
   assert.ok(G.wheelOn, 'the wheel is open');

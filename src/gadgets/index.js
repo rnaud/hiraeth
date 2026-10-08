@@ -14,15 +14,15 @@ import { sfx } from './sfx.js';
 //
 // The buttons (gadgetInput):
 //   use    Y / △ (the pad's top button), T, the middle mouse button, touch ◆: pressed, held, let go
-//          (with nothing in hand Y / △ is the scout's ping, as before: claims('ping'))
+//          (with nothing in hand it sounds the bell-note whistle and the echo shell, once found: `ring`,
+//          the V key's job; the chip shows the whistle then)
 //   choose D-pad ↑ or B: a tap takes the next one (Shift + B the one before; nothing in hand is one stop
 //          of the round), held a moment it opens the wheel: point the left stick (WASD) at one, let go
-//          (the D-pad's ↑ is the bell-note whistle only while no gadget is owned: claims('bell'))
 //
 //   const gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice, post, relics, boxes })
 //   gadgets.control(dt, ctl, paused)   before the traveller moves (a reel sets his velocity)
 //   gadgets.update(dt, paused)         after the fluid tool (the aim's camera and pose are set last)
-//   gadgets.equip(id | null) · gadgets.cycle(±1) · gadgets.equipped · gadgets.owned() · gadgets.claims(action)
+//   gadgets.equip(id | null) · gadgets.cycle(±1) · gadgets.equipped · gadgets.owned() · gadgets.instrument()
 
 /** How long the choose button is held before the wheel opens (s). */
 export const WHEEL_HOLD = 0.32;
@@ -41,8 +41,8 @@ const _v = new THREE.Vector3();
 const smooth = (k) => k * k * (3 - 2 * k);
 
 export class Gadgets {
-  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, wind = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, relics = null, flammables = null, post = null, boxes = null }) {
-    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, wind, items, game, icon, drawIcon, relics, flammables, post, boxes });
+  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, wind = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, relics = null, flammables = null, post = null, boxes = null, ring = null }) {
+    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, wind, items, game, icon, drawIcon, relics, flammables, post, boxes, ring });   // (ring: the bell-note whistle, src/boxes/effects.js)
     this.fx = new THREE.Group(); this.fx.name = 'Gadgets'; this.fx.userData.noCollide = true;
     scene?.add(this.fx);
     level?.noShadow?.push?.(this.fx);
@@ -103,16 +103,20 @@ export class Gadgets {
   }
   cycle(dir = 1) { return this.equip(nextGadget(this.owned(), this.equipped, dir)); }
 
-  /** Does a gadget take this button's old job? 'ping' (Y / △ with one in hand, on foot), 'bell' (D-pad ↑ once any is owned). */
-  claims(action) {
-    if (action === 'ping') return !!this.equipped && !this.player?.ride;
-    if (action === 'bell') return this.owned().length > 0;
-    return false;
+  /**
+   * What the use button sounds with no gadget in hand: the bell-note whistle (or, with only the echo shell
+   * found, the shell) as a chip's { id, name, glyph }, or null while neither is owned.
+   */
+  instrument() {
+    if (this.items.has?.('bell')) return { id: 'bell', name: this.items.has?.('echo') ? 'Bell-note whistle · echo shell' : 'Bell-note whistle', glyph: '♪' };
+    if (this.items.has?.('echo')) return { id: 'echo', name: 'Echo shell', glyph: '♪' };
+    return null;
   }
 
-  /** What the wheel lists: nothing in hand first, then the gadgets owned. */
+  /** What the wheel lists: nothing in hand first (the whistle, once found), then the gadgets owned. */
   wheelList() {
-    return [{ id: null, glyph: 'none', name: 'nothing in hand (Y / △ pings)', none: true }, ...this.owned().map((id) => ({ id, glyph: this.def(id).glyph ?? '◆', name: this.def(id).name, icon: this.icon?.(id) ?? null }))];
+    const tune = this.instrument();
+    return [{ id: null, glyph: tune ? tune.glyph : 'none', name: tune ? `${tune.name} (no gadget in hand)` : 'nothing in hand', none: true, icon: tune ? this.icon?.(tune.id) ?? null : null }, ...this.owned().map((id) => ({ id, glyph: this.def(id).glyph ?? '◆', name: this.def(id).name, icon: this.icon?.(id) ?? null }))];
   }
 
   /** Before the traveller moves: the buttons, the wheel, what the gadget in hand does to him. */
@@ -125,8 +129,6 @@ export class Gadgets {
       return;
     }
     const g = gadgetInput(input), cur = this.current;
-    // (B is the gadgets' once one is owned: not the fluid tool's guard as well, read after this, src/fluid-tool.js)
-    if (input.KeyB && this.owned().length) input.KeyB = false;
     // the choose button: a tap, the next one; held, the wheel
     if (g.pick && !this.held.pick) { this.pickT = 0; }
     if (g.pick) {
@@ -154,6 +156,7 @@ export class Gadgets {
       else if (g.use) cur.hold?.(dt);
       else if (this.held.use) cur.release?.();
     } else if (this.held.use && cur) cur.release?.();
+    else if (!cur && !this.wheelOn && g.use && !this.held.use) this.ring?.();   // nothing in hand: the bell-note whistle (V)
     this.held.use = g.use;
     for (const i of this.inst.values()) i.control?.(dt, input);
   }
@@ -178,19 +181,30 @@ export class Gadgets {
     // the chip
     const id = this.equipped, cur = this.current;
     const busy = P?.ride || P?.dead;
-    if (id && !busy) {
+    const tune = !id && !busy ? this.instrument() : null;
+    if (tune) {
+      const url = this.icon?.(tune.id) ?? null;
+      if (!url && !paused) this.drawPicture(tune.id);
+      this.hud.chip({ def: tune, icon: url, key: this.useKey() });
+    }
+    else if (id && !busy) {
       const h = cur?.hud?.() ?? {};
-      const pad = typeof document !== 'undefined' && document.body?.classList?.contains('controller');
       // its picture (the model drawn by the game's pipeline, src/item-icons.js), drawn first while it is missing
       const url = this.icon?.(id) ?? null;
       if (!url && !paused) this.drawPicture(id);
-      this.hud.chip({ def: this.def(id), icon: url, ...h, key: pad ? 'Y / △' : typeof document !== 'undefined' && document.body?.classList?.contains('touch') ? '◆' : 'T' });
+      this.hud.chip({ def: this.def(id), icon: url, ...h, key: this.useKey() });
     } else this.hud.chip(null);
     // the wheel open: the pictures of the others, one a frame (a moment no one minds a frame's cost)
     if (this.wheelOn && !paused) { const next = this.owned().find((g) => !this._drawn?.has(g) && !this.icon?.(g)); if (next) this.drawPicture(next); }
     // (a conversation, a scene: no reticle and no locks are left on the screen)
     if (paused && !this._pausedHud) { this.hud.reticle(null); this.hud.marks?.([]); }
     this._pausedHud = paused;
+  }
+
+  /** The use button's name on the chip: Y / △ on a pad, ◆ on a touch screen, else T. */
+  useKey() {
+    const b = typeof document !== 'undefined' ? document.body?.classList : null;
+    return b?.contains?.('controller') ? 'Y / △' : b?.contains?.('touch') ? '◆' : 'T';
   }
 
   /** Draw one gadget's picture (once: a capture that fails is not tried again). */

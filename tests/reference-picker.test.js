@@ -62,5 +62,5 @@ test('the quick menu: in the References level, without a page it builds nothing'
   const src = (await import('node:fs')).readFileSync(new URL('../src/levels/references.js', import.meta.url), 'utf8');
   assert.match(src, /quickMenu: new ReferencePicker\(/, 'the level carries it (main.js: level.quickMenu)');
   assert.match(src, /Tab all views/, 'the label names the key');
-  assert.match(src, /X \/ □ all views/, 'and the pad\'s button');
+  assert.match(src, /D-pad ↓ all views/, 'and the pad\'s button');
 });

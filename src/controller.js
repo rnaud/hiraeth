@@ -1,28 +1,24 @@
 // Gamepads (Standard Gamepad mapping: Xbox / PlayStation / compatible controllers, and
 // the Android handhelds through native-pad.js). The layout is by position, so the same
-// thumb does the same thing on every pad (docs/systems/controls.md, "Controller"):
+// thumb does the same thing on every pad. The whole table, one job per button per context,
+// is src/bindings.js (the Controls page and docs/systems/controls.md read it):
 //
-//   walking   bottom jump (again in the air: boost) · right interact, talk, get on
-//             · left evades (LT + left calls the mount or a taxi) · top: the scout finds the objective
-//             · LT aim · RT shoots while LT is held, and without it is the jets' throttle
-//             (analog; they fly like a plane: the stick forward tips the nose down, back
-//             pulls it up, left / right bank and turn; LT in flight holds you to aim) · RB the blade
-//             · L3 (click the left stick) run until you stop
-//             · LB + right stick zoom · D-pad ←/→ gun mode, ↑ worlds, ↓ photo
-//             · top (Y / △) the gadget in hand, if any (else the scout) · D-pad ↑ choose a gadget
-//             (tap: the next; held: the wheel), once one is owned (else the bell-note whistle)
-//             · R3 (click the right stick) the bell-note whistle, once found
-//             · View the sketchbook (gear first) · Menu the settings
+//   walking   A jump (again in the air: boost; held: wings) · B evade · X interact, talk, get on
+//             · Y the gadget in hand (none: the bell-note whistle, once found)
+//             · LT aim · RT shoots while LT is held, and without it is the jets' throttle (analog)
+//             · RB the blade · LB held the guard (no foe near: LB + right stick zooms)
+//             · L3 run until you stop · R3 lock on (nothing to lock: the scout finds the objective)
+//             · D-pad ↑ choose a gadget (tap: the next; held: the wheel) · ↓ call the mount / a taxi
+//             · ← / → gun mode · View the sketchbook (on release; View + D-pad: photo, free slots)
+//             · Menu the settings
 //   riding    RT throttle (analog) · LT brake / reverse · left stick steer, and on
-//             flyers dive (forward) / climb (back) · left hop / flap / rise
-//             · RB or L3 boost · bottom jump off (a hop; its speed carries you) · right get off
-//             · top: the scout finds the objective, as on foot
+//             flyers dive (forward) / climb (back) · X hop / flap / rise
+//             · RB or L3 boost · A jump off (a hop; its speed carries you) · B get off · R3 the scout
 //   menus     the button printed A confirms, B goes back (Xbox: bottom / right; a
 //             Retroid, letters Nintendo-style: right / bottom) · View, Menu close
 //             · LB / RB the game menu's panel before / after
-//   talking   as menus; the interact button also goes on (so on Xbox, B talks and
-//             B carries on rather than walking away)
-//   photo     stick fly · LB / RB down / up · confirm saves · back or ↓ leaves
+//   talking   as menus; the interact button (X) also carries the conversation on
+//   photo     stick fly · LB / RB down / up · confirm saves · back, View or Menu leaves
 //
 // Positions: 0 bottom, 1 right, 2 left, 3 top. A pad that reports its buttons by
 // printed letter with Nintendo labels (Android, the Retroid: 0 is A on the right)
@@ -54,7 +50,7 @@ export class Controller {
   constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null }) {
     Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat });   // (combat: a foe is near, LB blocks rather than zooms)
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
-    this.blocked = new Set(); this.lastContext = null; this.running = false;
+    this.blocked = new Set(); this.lastContext = null; this.running = false; this.view = null;
   }
   update(dt, enabled = true) {
     // standard-mapped pads first; a pad without the mapping (an unrecognised handheld) is read as standard rather than ignored
@@ -85,13 +81,15 @@ export class Controller {
     // Menu / Start and View / Select open (or close) the full-screen menus from anywhere, over a
     // conversation or one of the ship's scenes too (main.js)
     const ok = faces === 'nintendo' ? EAST : SOUTH, no = faces === 'nintendo' ? SOUTH : EAST;
+    if ((this.lastContext !== null && ctx !== this.lastContext) || !(ctx === 'game' || ctx === 'ride')) this.view = null;   // (View + D-pad: only from play)
+    else if (press(VIEW)) this.view = { chord: false };   // (View held: the D-pad is its layer, see below)
     if (ctx === 'menu' || ctx === 'talk') {
-      const talkOn = ctx === 'talk' && press(EAST);   // the interact button carries a conversation on
+      const talkOn = ctx === 'talk' && press(WEST);   // the interact button (X / □) carries a conversation on
       if (press(MENU)) this.action('start');
       else if (press(VIEW)) this.action('select');
       else if (press(LB)) this.action('tabPrev');   // the game menu's panels (main.js): the one before, the one after
       else if (press(RB)) this.action('tabNext');
-      else if (press(no) && !(ctx === 'talk' && no === EAST)) this.action('back');
+      else if (press(no)) this.action('back');
       else if (press(ok) || talkOn) this.action('confirm');
       const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
       const y = down(DOWN) ? 1 : down(UP) ? -1 : Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;
@@ -116,13 +114,14 @@ export class Controller {
         h.ShiftLeft = down(RT) || down(L3);
         h.KeyE = down(RB); h.KeyQ = down(LB);
         if (press(ok)) this.action('capture');
-        if (press(no) || press(DOWN) || press(MENU)) this.action('photo');
+        if (press(no) || press(VIEW) || press(MENU)) this.action('photo');
       } else if (ctx === 'ride') {
         // RT is the throttle; the stick only steers (and pitches a flyer): pushing it never drives on
         h.PadRide = true;
         h.Throttle = trigger(value(RT)); h.Brake = trigger(value(LT));
         h.Boost = down(RB) || down(L3);
-        // the bottom button jumps off (player.jumpOff); the vehicle's own hop / flap / rise is the left one's
+        // the bottom button jumps off (player.jumpOff); the vehicle's own hop / flap / rise is the left one's,
+        // the right one (back) gets off
         h.Space = down(WEST); h.JumpOff = down(SOUTH); h.KeyE = down(EAST); h.PadE = h.KeyE;
         this.running = false;
       } else {
@@ -133,28 +132,35 @@ export class Controller {
         else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
-        h.KeyE = down(EAST); h.PadE = h.KeyE;   // (the pad's interact never whistles: that's the left button's)
+        h.KeyE = down(WEST); h.PadE = h.KeyE;   // X / □ interacts (it never whistles: that's D-pad ↓, 'call')
         // the fluid tool: hold LT to aim, RT shoots while aiming (the push too: a gun mode) and fires the jets
         // otherwise (triggers()); jump in the air boosts. The fluid blade (src/fluid-blade.js): RB swings, LB held blocks
         h.PadAim = down(LT); h.PadFire = down(RT);
         h.PadThrust = this.blocked.has(RT) ? 0 : trigger(value(RT));   // (the jets' throttle: analog, a light squeeze flies slowly)
         h.PadBlade = down(RB); h.PadGuard = down(LB);
-        h.PadEvade = down(WEST) && !down(LT);
-        // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
-        h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
-        // the gadget in hand (src/gadgets/): the top button uses it (pressed, held, let go: with none in hand it
-        // pings, below), D-pad up chooses one (a tap the next, held the wheel; with none owned it rings the bell)
-        h.PadGadget = down(NORTH); h.PadGadgetPick = down(UP);
-        if (press(WEST) && down(LT)) this.action('call');
+        h.PadEvade = down(EAST);   // B / ○ evades (the stick's way, or a backstep)
+        // the D-pad is the quick slots (none of them while View is held: View + D-pad is its own layer, below)
+        const quick = !this.view;
+        // ← / →: the previous / next gun mode of the fluid tool (fluid-tool.js)
+        h.PadModeNext = quick && down(RIGHT); h.PadModePrev = quick && down(LEFT);
+        // the gadget in hand (src/gadgets/): the top button uses it (pressed, held, let go; with none in hand it
+        // sounds the bell-note whistle), D-pad ↑ chooses one (a tap the next, held the wheel)
+        h.PadGadget = down(NORTH); h.PadGadgetPick = quick && down(UP);
+        // ↓ whistles for the mount, or hails a taxi (player.callMount; the References: the list of views)
+        if (quick && press(DOWN)) this.action('call');
       }
-      // the top button sends the scout to find the objective, on foot and riding (flying too)
-      if (ctx !== 'photo' && press(NORTH)) this.action('ping');
       if (ctx !== 'photo') {
-        if (press(R3)) this.action('lock');   // lock on to the nearest foe, then the next (Tab on the keyboard: src/foes.js)
+        // R3: lock on to the nearest foe, then the next, then let go; with no foe in reach main.js sends the
+        // scout to find the objective instead (Tab and Q on the keyboard: src/foes.js, src/scout.js)
+        if (press(R3)) this.action('lock');
         if (press(MENU)) this.action('settings');
-        else if (press(VIEW)) this.action('journal');
-        else if (press(UP)) this.action('bell');   // the bell-note whistle, once found (V on the keyboard)
-        else if (press(DOWN)) this.action('photo');
+        // View: the sketchbook, when it is let go without a D-pad press meanwhile; View held + D-pad ↑ is
+        // photo mode, + ↓ / ← / → the free chords 'viewDown' / 'viewLeft' / 'viewRight' (bindings.js FREE)
+        if (this.view) {
+          const chord = press(UP) ? 'photo' : press(DOWN) ? 'viewDown' : press(LEFT) ? 'viewLeft' : press(RIGHT) ? 'viewRight' : '';
+          if (chord) { this.view.chord = true; this.action(chord); }
+          if (!down(VIEW)) { if (!this.view.chord) this.action('journal'); this.view = null; }
+        }
       }
     }
     this.previous = buttons; this.lastContext = ctx;
@@ -175,16 +181,16 @@ export function padRide(input) {
  * What the aim and fire buttons do on foot (the pad's triggers, the mouse, the keys):
  *   aim    LT / L2, the right mouse button, R (touch: the ◎ toggle)
  *   shoot  RT / R2, the left mouse button or G, only while aiming (a fresh press: fluid-tool.js)
- *   jets   RT / R2 or the left mouse button while not aiming (player.js JET: they fly like a plane;
- *          Space held in the air, the keyboard's and touch's own jets key, too)
- *   thrust the jets' throttle 0..1: RT / R2's travel (PadThrust, analog), 1 for the mouse button
+ *   jets   RT / R2 while not aiming (player.js JET: they fly like a plane; Space held in the air is
+ *          the keyboard's and touch's jets key; the left mouse button without aiming swings the blade)
+ *   thrust the jets' throttle 0..1: RT / R2's travel (PadThrust, analog)
  *   quick  the touch ✺ button: a quick shot, aiming for you (touch has no trigger to hold)
  */
 export function triggers(c = {}) {
   const aim = !!(c.KeyR || c.MouseRight || c.PadAim);
   const fire = !!(c.KeyG || c.MouseLeft || c.PadFire);
   const pad = c.PadThrust != null ? +c.PadThrust || (c.PadFire ? 1 : 0) : c.PadFire ? 1 : 0;
-  const thrust = aim ? 0 : Math.max(pad, c.MouseLeft ? 1 : 0);
+  const thrust = aim ? 0 : pad;
   return { aim, fire, shoot: aim && fire, jets: thrust > 0, thrust, quick: !!c.TouchFire };
 }
 

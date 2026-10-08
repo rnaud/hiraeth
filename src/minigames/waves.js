@@ -1,5 +1,5 @@
 // Ink tide (docs/systems/minigames.md): a round basin of sand in a sea of ink, and the ink keeps coming.
-// Played on foot with the blade (attack RB / R1, guard LB / L1, evade X / □) and the fluid gun (aim LT / L2,
+// Played on foot with the blade (attack RB / R1, guard LB / L1, evade B / ○) and the fluid gun (aim LT / L2,
 // fire RT / R2): endless waves of the game's foes (src/foes.js: ink blots, spitters, swarms, winged blots,
 // shades, the makers' machines) out of the ink springs round the rim, more of them and more kinds as the
 // waves go on. Between two waves a breather: some health back, and three small boons on the sigil in the
@@ -385,7 +385,7 @@ export default {
   rules: 'Cut down every wave. Between waves you get some health back and a choice of three boons: walk onto the one you want. Score: 150 a wave cleared, plus style (quick chains of cuts, perfect parries, a wave untouched). It ends when the tide knocks you out.',
   drives: false,
   controls: {
-    pad: [['RB / R1', 'attack (press again to chain)'], ['LB / L1', 'guard (just as a blow lands: parry)'], ['X / □', 'evade'], ['LT / L2  +  RT / R2', 'aim and fire the fluid'], ['R3', 'lock on'], ['Menu', 'pause']],
+    pad: [['RB / R1', 'attack (press again to chain)'], ['LB / L1', 'guard (just as a blow lands: parry)'], ['B / ○', 'evade'], ['LT / L2  +  RT / R2', 'aim and fire the fluid'], ['R3', 'lock on'], ['Menu', 'pause']],
     keys: [['F', 'attack (again to chain)'], ['Ctrl or Z', 'guard (just as a blow lands: parry)'], ['Alt', 'evade'], ['Right mouse + left mouse', 'aim and fire the fluid'], ['Tab', 'lock on'], ['Esc', 'pause']],
     touch: [['⚔', 'attack (again to chain)'], ['◇', 'guard (just as a blow lands: parry)'], ['↶', 'evade'], ['◎ then ✺', 'aim, fire the fluid'], ['◉', 'lock on']],
   },

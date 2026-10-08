@@ -1,5 +1,5 @@
 // The way into a minigame from inside a world (docs/systems/minigames.md): an arcade sign that glows,
-// with "play …" on the interact button (B / ○, E). The game's page opens (?game=<id>&from=<world>); its
+// with "play …" on the interact button (X / □, E). The game's page opens (?game=<id>&from=<world>); its
 // Quit comes back to the world, where the traveller was standing.
 //
 //   import { placeGameMarker } from './minigames/kit/marker.js';
@@ -37,7 +37,7 @@ export function gameMarkerModel(color = '#71d7cf') {
 }
 
 /**
- * An arcade sign in a world that starts a game: walk up and press the interact button (B / ○, E).
+ * An arcade sign in a world that starts a game: walk up and press the interact button (X / □, E).
  * @param world   { scene, levelId, lights? (the level's light list: the sign lights its ground), go? (href) => void }
  * @param gameId  a game's id (src/minigames/<id>.js)
  * @param pos     where it stands (a Vector3 or [x, y, z]); heading (radians) which way it faces

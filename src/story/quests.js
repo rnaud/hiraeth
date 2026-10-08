@@ -37,7 +37,7 @@ import { questGoal } from './quest-goals.js';
 // conversation while that waits (opensWith, below).
 //
 // Events (game.emit): 'quest' { id, stage, prev }. Flags: quest.<id> = stage
-// id, 'done' or 'failed'; quest.tracked = the id the scout finds (Q, Y / △) and the quest log marks;
+// id, 'done' or 'failed'; quest.tracked = the id the scout finds (Q, R3) and the quest log marks;
 // failed.<id> = the title of a quest that failed (the father's charge lists them,
 // src/story/charge.js, whatever world you are in).
 //
@@ -123,7 +123,7 @@ export class Quests {
     if (prev === stage) return false;
     if (prev === FAILED) return false;   // (a failed quest stays failed)
     this.game.set(`quest.${id}`, stage);
-    // the quest that moved is the one you are on: tracked (what the scout finds, Q / Y / △), except
+    // the quest that moved is the one you are on: tracked (what the scout finds, Q / R3), except
     // that one that starts on its own (`background`: a makers' box offered on arrival) doesn't take
     // that from the quest you are on; choosing it in the quest log does
     if (!end && !(d.background && this.tracked())) this.track(id);

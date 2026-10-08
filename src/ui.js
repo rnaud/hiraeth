@@ -1,6 +1,7 @@
 import { store } from './platform.js';
 import { VERSION } from './changelog.js';
 import { confirmKey, backKey } from './native-pad.js';
+import { PAD } from './bindings.js';
 import { slotStorage } from './save-slots.js';
 import { UpdatePanel } from './update-panel.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
@@ -64,37 +65,49 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
  * PlayStation form for the pad (native-pad.js prints them as the pad does).
  */
 export function controlsList(ok = confirmKey(), back = backKey()) {
+  const P = PAD;
   return {
     keyboard: [
       ['Move · run', 'WASD · SHIFT'], ['Look', 'mouse (click the game to capture it) · wheel zooms'],
-      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets (once found): fly like a plane', 'hold left click without aiming, or SPACE in the air: thrust (from the ground: straight up) · W nose down · S nose up · A / D bank and turn · SHIFT faster · let go to glide · right click holds you to aim'], ['Wings (once found)', 'hold SHIFT + SPACE in the air (or SPACE with the jets dry)'],
-      ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off)'],
+      ['Jump · fluid boost · wings (once found)', 'SPACE · SPACE again in the air · hold SHIFT + SPACE in the air'],
+      ['Jets (once found): fly like a plane', 'hold SPACE in the air: thrust · W nose down · S nose up · A / D bank and turn · SHIFT faster · let go to glide · right click holds you to aim'],
+      ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off; nothing near: whistle for your mount)'],
       ['In a cab (it drives itself)', 'choose a stop: click it, or its number · SPACE choose again · E get out'],
-      ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
-      ['Gun mode (fluid, push, and those found)', 'X'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'F · hold CTRL or Z · TAB'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
-      ['Evade (direction + button, or backstep)', 'ALT'],
+      ['Fluid blade (again: the next swing) · guard (at the blow: parry) · evade · lock on', 'left click · hold CTRL or Z · ALT · TAB'],
+      ['Aim the fluid tool · shoot · gun mode', 'hold right mouse or R · left click or G while aiming · X'],
+      ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
+      ['The scout finds your objective', 'Q'],
       ['Gadget in hand (once found): use · change', 'T or the middle mouse button (hold to aim, let go) · B (SHIFT + B back; hold B: the wheel)'],
+      ['Bell-note whistle, echo shell (once found)', 'V'],
       ['Items, quests, sketchbook · menu · this page', 'J (Q / E turn its panels) · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F3 · N'], ['Mute', 'M'],
     ],
     pad: [
-      ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1 with the right stick (no foe near)'],
-      ['Jump · boost · wings', 'A / × · again in the air · hold'], ['Use, talk, get on', 'B / ○'],
-      ['Call your mount or a taxi', 'LT / L2 + X / □'], ['The scout finds your objective', 'Y / △ (riding too)'],
-      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets: fly like a plane', 'RT / R2 thrust, the harder the faster (from the ground: straight up) · left stick forward nose down, back nose up, left / right bank and turn · L3 faster · let go to glide · LT / L2 in flight holds you to aim'],
-      ['Gun mode (fluid, push, and those found)', 'D-pad left / right'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'RB / R1 · hold LB / L1 · click the right stick (R3)'], ['Photo mode · bell whistle (once found)', 'D-pad down · D-pad up'],
-      ['Evade (stick direction, or backstep)', 'X / □'],
-      ['Gadget in hand (once found): use · change', 'Y / △ (hold to aim, let go; with nothing in hand it sends the scout) · D-pad up (held: the wheel)'],
-      ['Items, quests and sketchbook · menu', 'View · Menu'],
+      ['Move · run', `left stick · click it (${P.run})`], ['Look · zoom', `right stick · hold ${P.guard} with the right stick (no foe near)`],
+      ['Jump · boost · wings', `${P.jump} · again in the air · hold`],
+      ['Use, talk, pick up, get on', P.interact],
+      ['Evade (stick direction, or backstep)', P.evade],
+      ['Fluid blade (again: the next swing) · guard (at the blow: parry)', `${P.blade} · hold ${P.guard}`],
+      ['Lock on to a foe (again: the next, then let go)', `click the right stick (${P.lock})`],
+      ['The scout finds your objective', `${P.lock} with no foe near (riding too)`],
+      ['Aim · shoot', `${P.aim} · ${P.fire} while aiming`],
+      ['Gun mode (fluid, push, and those found)', P.mode],
+      ['Jets: fly like a plane', `${P.fire} thrust, the harder the faster (from the ground: straight up) · left stick forward nose down, back nose up, left / right bank and turn · ${P.run} faster · let go to glide · ${P.aim} in flight holds you to aim`],
+      ['Gadget in hand (once found): use · change', `${P.gadget} (hold to aim, let go) · ${P.pick} (held: the wheel)`],
+      ['Bell-note whistle, echo shell (once found)', `${P.gadget} with no gadget in hand (the wheel's first slot)`],
+      ['Call your mount, hail a taxi', P.call],
+      ['Items, quests and sketchbook · menu', `${P.journal} · ${P.menu}`],
       ['Their panels (items, quests, sketchbook, worlds)', 'LB / L1 · RB / R1'],
-      ['Riding', 'RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off'],
-      ['In a cab (it drives itself)', 'choose a stop: left stick and A / × · X / □ choose again · B / ○ get out'],
-      ['Swimming', 'left stick swim (L3 sprints) · look down and swim forward to dive · A / × rise, climb out'],
+      ['Photo mode', `hold ${P.journal} and press D-pad ↑ (or Menu, Photo mode)`],
+      ['Riding', `${P.fire} go · ${P.aim} brake · left stick steer (flying: forward dives, back climbs) · ${P.interact} hop, flap, rise · ${P.blade} boost · ${P.jump} jump off · ${P.evade} get off`],
+      ['In a cab (it drives itself)', `choose a stop: left stick and ${P.jump} · ${P.interact} choose again · ${P.evade} get out`],
+      ['Swimming', `left stick swim (${P.run} sprints) · look down and swim forward to dive · ${P.jump} rise, climb out`],
+      ['Talking', `${ok} or ${P.interact} carry on, choose · ${back} leave`],
       ['In menus', `D-pad select · left / right adjust · ${ok} confirm · ${back} back · right stick scroll`],
     ],
     touch: [
       ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'], ['Jets (once found)', 'hold ⤒ in the air: thrust · drag on the left: up tips the nose down, down pulls it up, sideways banks and turns'],
-      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade (tap) · guard (hold it) · lock on', '⚔ · ⚔ held · ◉'], ['Gadget in hand (once found): use · change', '◆ (hold to aim, let go) · tap the card in the corner'],
-      ['Items, quests and sketchbook · menu', '❏ (its tabs turn the panels) · the small ⚙ in the corner'],
+      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade · guard (hold it) · evade · lock on', '⚔ · ◇ · ↶ · ◉'], ['Gadget in hand (once found): use · change', '◆ (hold to aim, let go; with none in hand: the whistle) · tap the card in the corner'],
+      ['Items, quests and sketchbook · menu · photo mode', '❏ (its tabs turn the panels) · the small ⚙ in the corner · Photo mode in that menu'],
     ],
   };
 }
@@ -102,7 +115,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
 /**
  * The Start menu: O, Esc (when nothing else is open), the small gear on a touch screen or Menu /
  * Start on a controller. Full screen: on the left Resume, Items and Quests (they open the game menu,
- * src/game-menu.js, on that panel: o.onBook(panel)), Settings, Controls, what's new and Quit to title
+ * src/game-menu.js, on that panel: o.onBook(panel)), Settings, Controls, Photo mode, what's new and Quit to title
  * (with where you are: the save, the world, the time played); on the right the page: the settings
  * (where it opens) or every control (H opens it there). B / ○ or Esc closes it, from any page.
  * main.js pauses the game and plays the menu music while it is open.
@@ -113,7 +126,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
  */
 export const MENU_PAGES = ['settings', 'controls'];
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onDebug, onBeforeRestart, where, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
     this.el = el;
     this.where = where;
@@ -132,7 +145,8 @@ export class SettingsMenu {
             ${game ? '<button data-a="book" data-panel="items">Items</button><button data-a="book" data-panel="quests">Quests</button>' : ''}
             ${go('settings', 'Settings')}
             ${go('controls', 'Controls')}
-            ${game ? `<button data-a="news">What's new</button>
+            ${game ? `<button data-a="photo">Photo mode</button>
+            <button data-a="news">What's new</button>
             <button data-a="debug">Debug: worlds</button>
             <button data-a="title">Quit to title</button>` : ''}
           </nav>
@@ -195,6 +209,7 @@ export class SettingsMenu {
       if (a === 'close') this.toggle(false);
       if (a === 'page') this.page(at.dataset.page);
       if (a === 'news') { this.toggle(false); onNews?.(); }
+      if (a === 'photo') { this.toggle(false); onPhoto?.(); }
       if (a === 'book') { this.toggle(false); onBook?.(at.dataset.panel); }
       if (a === 'title') onQuit?.();
       if (a === 'debug') { this.toggle(false); onDebug?.(); }

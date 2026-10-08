@@ -121,10 +121,10 @@ test('jetPose and the camera: upright slow or nose up, flat out level, head firs
   assert.ok(jetCameraPitch(-1.2) > 0.6, 'diving: it looks down the dive');
 });
 
-test('triggers: RT\'s travel is the jets\' throttle (analog), the mouse button full; aiming takes it', () => {
+test('triggers: RT\'s travel is the jets\' throttle (analog); the mouse button is the blade, not the jets; aiming takes it', () => {
   assert.equal(triggers({ PadThrust: 0.4, PadFire: false }).thrust, 0.4);
   assert.equal(triggers({ PadFire: true }).thrust, 1, 'a pad without the analog value');
-  assert.equal(triggers({ MouseLeft: true }).thrust, 1);
+  assert.equal(triggers({ MouseLeft: true }).thrust, 0, 'a left click swings the blade (SPACE held in the air is the keyboard\'s thrust)');
   assert.equal(triggers({ PadThrust: 1, PadFire: true, PadAim: true }).thrust, 0, 'LT held: RT shoots');
   // the controller reports the analog travel, and a held RT from a menu stays blocked
   const buttons = Array.from({ length: 17 }, () => ({ pressed: false, value: 0 }));
@@ -156,9 +156,9 @@ test('RT from the ground: off at once and high fast, straight up', () => {
   // a light squeeze climbs slowly
   const q = jetter(); fly(q, 0.2); fly(q, 3, { PadThrust: 0.2 });
   assert.ok(q.pos.y > 3 && q.pos.y < p.pos.y / 3, `a light squeeze: ${q.pos.y.toFixed(1)} m`);
-  // the mouse's left button too (not aiming); aiming on the ground, RT shoots and you stay put
+  // not the mouse's left button (it swings the blade); aiming on the ground, RT shoots and you stay put
   const m = jetter(); fly(m, 0.2); fly(m, 1, { MouseLeft: true });
-  assert.ok(m.pos.y > 5, 'the mouse');
+  assert.ok(m.onGround && !m.jetFlight, 'the mouse: no jets');
   const a = jetter(); fly(a, 0.2); fly(a, 1, { PadThrust: 1, PadFire: true, PadAim: true });
   assert.ok(a.onGround && !a.jetFlight, 'aiming: no jets');
   // nor without the item, nor without the backpack

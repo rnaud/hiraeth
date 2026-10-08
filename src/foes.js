@@ -751,7 +751,7 @@ export class Foes {
   firstSeen() {
     if (this.game.flag('foes.seen')) return;
     this.game.set('foes.seen', true);
-    this.notice?.('Ink blots: watch their bodies wind up. F / RB / R1 cuts; Ctrl or Z / LB / L1 guards; Alt / X / □ evades. A last-moment guard parries. Each foe cut gives the tank a charge back.');
+    this.notice?.('Ink blots: watch their bodies wind up. A left click or RB / R1 cuts; Ctrl or LB / L1 guards; Alt or B / ○ evades. A last-moment guard parries. Each foe cut gives the tank a charge back.');
   }
 
   /** The look follows the mind: a blot wobbles and squashes into its lunge, a machine walks and raises its arms. */

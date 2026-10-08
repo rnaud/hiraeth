@@ -172,7 +172,7 @@ export const LOCALS = [
           choices: [{ text: '~neutral~ I’ll go up to the monastery.', goto: 'go' }, { text: '~curious~ What are the floating stones?', goto: 'stones' }],
         },
         stones: { say: ["~curious~ The sky stones were floating long before the bell stopped. They were here in my mother’s day. Monks have a talent for leaving out inconvenient stones."], choices: [{ text: '~curious~ Why is the cloud higher?', goto: 'why' }] },
-        go: { say: ["~neutral~ *Whistle for the bird* (X / □). Fly *south-west to the white monastery on the rose cliff*. Stay clear of the cloud."], choices: [{ text: '~happy~ Thank you, Sister.', end: true }] },
+        go: { say: ["~neutral~ *Whistle for the bird* (E, or D-pad ↓). Fly *south-west to the white monastery on the rose cliff*. Stay clear of the cloud."], choices: [{ text: '~happy~ Thank you, Sister.', end: true }] },
         again: { say: ["~playful~ Calix is at *the white monastery, on the south-western rose cliff*. He still tends the bell, every morning, whether it rings or not."], choices: [{ text: '~happy~ Thank you.', end: true }] },
         after: { say: ["~surprised~ The cloud has dropped! A whole hand’s width. I can see the table stalks again!", "~solemn~ Come back and ring it sometime. I’d like a better view before I die."], choices: [{ text: '~neutral~ I will.', end: true }] },
       },

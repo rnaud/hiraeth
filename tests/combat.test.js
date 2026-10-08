@@ -36,9 +36,11 @@ test('swept contact catches the travelled blade but not a target elsewhere in th
  for(const S of SWINGS){const t=attackSample(S,0);assert.equal(t.phase,'wind');assert.equal(attackSample(S,t.wind+.01).phase,'strike');assert.equal(attackSample(S,t.duration-.01).phase,'recover');}
 });
 test('guard and evade have independent keyboard, pad and touch inputs',()=>{
- for(const key of ['KeyB','PadGuard','TouchGuard']){const c=toolInput({[key]:true});assert.ok(c.guard&&!c.blade&&!c.evade);}
+ for(const key of ['KeyZ','ControlLeft','PadGuard','TouchGuard']){const c=toolInput({[key]:true});assert.ok(c.guard&&!c.blade&&!c.evade);}
  for(const key of ['AltLeft','PadEvade','TouchEvade'])assert.ok(toolInput({[key]:true}).evade);
  assert.ok(!toolInput({KeyF:true}).guard);
+ assert.ok(!toolInput({KeyB:true}).guard,'B only chooses gadgets: it never guards');
+ assert.ok(toolInput({MouseLeft:true}).blade&&!toolInput({MouseLeft:true,MouseRight:true}).blade,'a left click swings the blade, except while aiming (then it shoots)');
 });
 async function combatPlayer(matching=false){
  items.grant('backpack');const scene=course();const p=await traveller(scene,v(0,0,-60),{moves:true,matching,body:'v1'});
@@ -48,12 +50,12 @@ async function combatPlayer(matching=false){
 }
 test('timed guard works without charge, expires while held, cannot be refreshed by rapid taps',async()=>{
  const {p,tool,tick}=await combatPlayer();tool.reserve.level=0;tool.reserve.since=0;
- for(let i=0;i<4;i++)tick({KeyB:true});
+ for(let i=0;i<4;i++)tick({KeyZ:true});
  assert.ok(!tool.blade.swinging && tool.blade.guarding);
  assert.ok(tool.blade.block(p.pos.clone().add(v(0,0,1))));assert.ok(p.perfectBlock);
- tick({});for(let i=0;i<3;i++)tick({KeyB:true});
+ tick({});for(let i=0;i<3;i++)tick({KeyZ:true});
  assert.equal(tool.blade.block(p.pos.clone().add(v(0,0,1))),false);
- for(let i=0;i<30;i++)tick({KeyB:true});assert.equal(tool.blade.block(p.pos.clone().add(v(0,0,1))),false);
+ for(let i=0;i<30;i++)tick({KeyZ:true});assert.equal(tool.blade.block(p.pos.clone().add(v(0,0,1))),false);
  tool.dispose();
 });
 test('grounded combat uses legs and smoothly returns to locomotion, with matching off and on',async()=>{
