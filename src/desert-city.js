@@ -4,6 +4,7 @@ import { makeMaterial, MODE_STRATA } from './materials.js';
 import { SandDrifts } from './sand-drifts.js';
 import { mulberry32 } from './noise.js';
 import { doorStainGeometry, GRIME } from './door-stain.js';
+import { wallOpenings } from './wall-openings.js';
 import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
 import { Banner } from './life.js';
@@ -146,6 +147,7 @@ class Kit {
   add(mat, geo) {
     let g = prep(geo).applyMatrix4(this.frame);
     if (mat.paint) { g = painted(g, mat.paint); mat = mat.material ?? paintMaterial(mat.smooth, mat.side); }   // (material: a painted part with a material of its own)
+    wallOpenings.addGeometry(g, mat);   // (a window, a door: no crack runs through it)
     if (!this.batches.has(mat)) this.batches.set(mat, []);
     this.batches.get(mat).push(g);
     return this;

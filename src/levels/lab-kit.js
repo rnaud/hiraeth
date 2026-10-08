@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { wallOpenings } from '../wall-openings.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { mulberry32 } from '../noise.js';
@@ -51,6 +52,7 @@ export class RoomKit {
     this.movers = [];
     this.noShadow = [];
     this.avoid = [];   // [x, z, r] (local) where no plant grows
+    this.pieces = [];  // [geometry, material] laid since the last finish(): the small ones are kept clear of cracks
   }
   R(a, b) { return a + this.rng() * (b - a); }
   pick(a) { return a[Math.floor(this.rng() * a.length)]; }
@@ -71,6 +73,7 @@ export class RoomKit {
     let b = this.buckets.get(key);
     if (!b) this.buckets.set(key, (b = { mat, solid, shadow, list: [] }));
     b.list.push(g);
+    this.pieces.push([g, mat]);   // (wall-openings.js: in the world at finish(), once the group stands where it goes)
     if (solid) SandDrifts.current?.addGeometry(g);   // (a sandy room: sand banks against what stands in it)
     return g;
   }
@@ -87,6 +90,10 @@ export class RoomKit {
   mover(fn) { this.movers.push(fn); }
   /** Merge the buckets into the room's meshes. */
   finish() {
+    // (a window, a door, a lamp on an old wall: no crack runs through it; wall-openings.js)
+    this.group.updateWorldMatrix(true, false);
+    for (const [g, m] of this.pieces) wallOpenings.addGeometry(g, m, this.group.matrixWorld);
+    this.pieces = [];
     for (const b of this.buckets.values()) {
       const m = new THREE.Mesh(mergeGeometries(padThin(padForm(b.list))), b.mat);
       if (!b.solid) m.userData.noCollide = true;

@@ -163,15 +163,16 @@ test('spot blacks: a third tier of value, per world (presets) and per material (
   assert.ok(BURIED_SPOTS.uSpot[3] > PRESETS['Moebius print'].uSpot[3], 'the Buried Machine prints its cast shadows darker');
 });
 
-test('worn by time: grime streaks, chips with the lip\'s shadow, cracks with a shadow side, dust at the foot; per building; lighter on the handheld', async () => {
+test('worn by time: the odd hairline crack, clear of the openings, dust at the foot; per building; lighter on the handheld', async () => {
   const { WEATHER, sharedUniforms: S } = await import('../src/materials.js');
-  assert.ok(WEATHER.grime.share > 0.5 && WEATHER.grime.dark > 0.2, 'grime streaks are common and visible');
-  assert.ok(WEATHER.chip.lip > 0 && WEATHER.chip.dark > 0.2, 'chips cast a shadow from their lip');
-  assert.ok(WEATHER.farTone[0] > WEATHER.far[1], 'the tone marks reach further than the pen marks (no moiré: both fade)');
+  assert.ok(WEATHER.cracks < 0.5 && WEATHER.walls < 1, 'sparse: a share of the cells, and some buildings none');
+  assert.ok(WEATHER.ink < 1, 'a faint pen line');
+  assert.ok(!('grime' in WEATHER) && !('chip' in WEATHER), 'no dirt streaks or chipped patches');
+  assert.ok('uOpenings' in S && 'uOpeningsOn' in S, 'the world\'s openings are shared');
   assert.ok('uWearLite' in S, 'the handheld\'s lighter wear is shared');
   const m = makeMaterial({ color: '#e8d0b0', weathered: 1, key: 't.wear' });
   const f = m.fragmentShader;
-  assert.ok(f.includes('float weatherInk(vec2 q, vec2 fq, vec2 sun2, float litK, float seed, float k, inout vec3 alb)'), 'the sun on the wall makes the shadow sides');
+  assert.ok(f.includes('float weatherInk(vec2 q, vec2 fq, vec2 sun2, float litK, float seed, float k, vec3 wp, vec3 alongW, vec3 nv, inout vec3 alb)'), 'the sun on the wall makes the lips; the pixel in the world for the openings');
   assert.ok(f.includes('vec2 wqA = vec2(vWorldPos.x, vWorldPos.y), wqB = vec2(vWorldPos.z, vWorldPos.y)'), 'the wall\'s frame from world axes: stable on round walls far from the origin');
   assert.ok(f.includes('floor(vWorldPos.xz / 9.0)'), 'each building its own wear');
   assert.ok(f.includes('if (uWeather > 0.0) gHatch.b += 16.0'), 'a weathered pixel is flagged for post.js');

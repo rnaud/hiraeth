@@ -14,6 +14,7 @@ export const CHANGELOG = [
     'In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.',
     'Two archways in the Glass Dunes go through now: walk through the cliff of the giants to the sand behind it, and through the frozen wave in the middle of the valley, under a vault of glass lit green. The breaking wave’s hollow can be walked into from its camp, a long way under the lip.',
     'In the References level the Glass Dunes’ fourth picture has its tall wave: it rises steep over the glassworkers’ camp, curls over its dark hollow and sweeps down to the sand, as drawn, instead of a low hood.',
+    'Old walls no longer carry dark dirt streaks and blotches of broken plaster: they show the odd fine hairline crack instead, faint and branching, and not on every building, and a crack never runs over or close to a window, a door or anything fixed on the wall. You see it in Qanat, the Signal Market, at home and in the old towns of the other worlds.',
   ] },
   { v: '0.88', date: '2026-10-07', items: [
     'Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.',
