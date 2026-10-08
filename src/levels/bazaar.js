@@ -11,6 +11,8 @@ import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
 import { Puffs } from '../life.js';
 import { nightPaint, MARKET_NIGHT, LANTERN_TINT, NIGHT_LIGHTS, NIGHT_CROWD_AWAY } from './market-night-kit.js';
+import { placeGameMarker } from '../minigames/kit/marker.js';
+import { gameById } from '../minigames/index.js';   // (none in node's tests: there is no glob there)
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
@@ -37,6 +39,8 @@ export const CAB_STOPS = [
   { id: 'balcony', name: 'The cream balcony on the silent tower', at: V3c(-8, 46.4, -222.5), heading: Math.PI, step: V3c(-8, 44.1, -231.5) },
 ];
 export const CAB_ROUTES = cruiseRoutes([30, 48, 58, 12]);
+/** Where the shooting gallery's arcade sign stands, on the west pavement a few steps from the start (src/minigames/kit/marker.js). */
+export const GALLERY_SIGN = { x: -20.3, z: 86.5 };
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 export function* buildBazaar(scene) {
   const rng = mulberry32(20261004), buckets = new Map(), reactiveScreens = [];
@@ -369,6 +373,8 @@ export function* buildBazaar(scene) {
   steam.mesh.visible = false;
   // by night: the lanterns light pools round them (the nearest few to the traveller: main.js sends 8 to the shader)
   const lights = [], lanternLights = flammables.map((f) => new THREE.Vector4(f.at.x, f.at.y - .9, f.at.z, 0));
+  // the shooting gallery's sign on the pavement by the lantern market, facing the avenue (src/minigames/gallery.js)
+  if (gameById('gallery')) placeGameMarker({ scene, levelId: 'bazaar', lights }, 'gallery', new THREE.Vector3(GALLERY_SIGN.x, .3, GALLERY_SIGN.z), { heading: Math.PI / 2 });
   const vehicles=[];
   // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
   yield;
@@ -422,7 +428,7 @@ export function* buildBazaar(scene) {
       const P=signal.places, keep=[[P.kip,1.6],[P.ferro,1.6],[P.console,2.2]];
       for(const [q,rr] of keep) folk.push({x:q.x,y:q.y,z:q.z,r:rr});
       return {groups,walks,edges,avoid:folk,farMax:420,costume:'bazaar',palette:{cloaks:['#f0a083','#88b4b5','#e4bd83','#b9a9c5','#94a9bd','#ebce98','#c8483a','#5fb7ad','#d8a24a','#8a6fb8','#62c3c9','#f3ead8']},
-        clear:[{x:0,z:88,r:3.5},{x:8,z:82,r:5.5},{x:-11,z:121,r:5}]};
+        clear:[{x:0,z:88,r:3.5},{x:8,z:82,r:5.5},{x:-11,z:121,r:5},{x:GALLERY_SIGN.x,z:GALLERY_SIGN.z,r:1.8}]};
     },
     init(physics){
       const CAB=2;

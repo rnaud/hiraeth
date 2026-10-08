@@ -6,6 +6,7 @@
 //             form, or the keys), the best so far. A / × or Enter starts; B / ○ or Esc quits.
 //   count     3, 2, 1, GO: the session is drawn and its camera runs, without input
 //   play      the clock runs (ctx.time), the session gets the input; Menu / Esc pauses (Resume, Retry, Quit)
+//             (a game with drives: false is played on foot: the usual play runs, and the session after it)
 //   finishing ctx.finish(…) was called: the score is kept (src/minigames/kit/scores.js), a moment to coast
 //   results   the results card: the score, a new best stamped, Retry and Quit
 //
@@ -46,6 +47,7 @@ export class MinigameRunner {
     this.sfx = gameSfx(host.sound);
     this.buildDom();
     document.body.classList.add('minigame');
+    document.body.classList.toggle('mg-onfoot', !this.drives);
     if (host.ship?.parked?.group) host.ship.parked.group.visible = false;   // (the ship waits out of the picture)
     this.ctx = this.makeCtx();
     this.session = def.start(this.ctx) ?? {};
@@ -54,8 +56,12 @@ export class MinigameRunner {
     window.addEventListener('keydown', this.onKey, true);
   }
 
-  /** The runner moves the traveller and the camera (main.js skips the usual play). */
-  get drives() { return true; }
+  /**
+   * The runner moves the traveller and the camera (main.js skips the usual play); a game with
+   * `drives: false` is played on foot with the usual controls (walking, the blade, the fluid tool, the
+   * lock-on), the runner keeping only its cards, clock and HUD (main.js calls update after the camera).
+   */
+  get drives() { return this.def.drives !== false; }
   /** A card is up (or paused): the pad navigates it, the world gets no input. */
   busy() { return this.paused || this.phase === 'intro' || this.phase === 'results'; }
   /** The card on the screen, for the pad's menu navigation (main.js menuRoot), or null. */
@@ -67,6 +73,7 @@ export class MinigameRunner {
     return {
       def: this.def, scene: H.scene, camera: H.camera, player: H.player, physics: H.physics, level: H.level,
       sound: H.sound, wind: H.wind, sfx: this.sfx,
+      tool: H.tool ?? null, foes: H.foes ?? null, rig: H.rig ?? null, settings: H.settings ?? null, state: H.state ?? null,   // (a game played on foot: drives false)
       /** Seconds since GO, with the penalties. */
       get time() { return R.clock + R.penalty; },
       get phase() { return R.phase; },
@@ -165,7 +172,7 @@ export class MinigameRunner {
     this.ctx.setFov(this.fov0);
     window.removeEventListener('keydown', this.onKey, true);
     this.el.remove();
-    document.body.classList.remove('minigame');
+    document.body.classList.remove('minigame', 'mg-onfoot');
   }
   clearAdded() { for (const o of this.added) o.removeFromParent(); this.added.length = 0; }
 
@@ -183,6 +190,7 @@ export class MinigameRunner {
   /** A controller's action (main.js): true when the runner took it. */
   padAction(name) {
     if (name === 'zoomIn' || name === 'zoomOut') return false;
+    if (!this.drives && name === 'lock' && this.phase === 'play' && !this.paused) return false;   // (on foot: R3 locks on to a foe)
     if (name === 'start' || name === 'settings') {
       if (this.phase === 'intro') this.begin();
       else if (this.phase === 'results') this.retry();
@@ -220,7 +228,7 @@ export class MinigameRunner {
       stop();
       if (!e.repeat) this.press();
     } else if (card && e.code === 'KeyR' && this.phase !== 'intro') { stop(); this.retry(); }
-    else if (['KeyL', 'KeyP', 'KeyQ', 'KeyJ', 'Tab'].includes(e.code)) stop();   // (the worlds, photo mode, the scout, the sketchbook, lock-on: not in a game)
+    else if (['KeyL', 'KeyP', 'KeyQ', 'KeyJ'].includes(e.code) || (e.code === 'Tab' && (this.drives || card))) stop();   // (the worlds, photo mode, the scout, the sketchbook, lock-on: not in a game)
   }
   hint(yes, no) {
     const kind = inputKind();
@@ -311,7 +319,9 @@ export class MinigameRunner {
   drawHud() {
     const d = this.def, H = d.hud ?? {};
     const timer = H.timer ?? d.score?.kind === 'time';
-    const t = timer ? `${formatTime(this.clock + this.penalty)}${this.penalty > 0 ? `<small>+${this.penalty} s penalty</small>` : this.penalty < 0 ? `<small>${-this.penalty} s bonus</small>` : ''}` : '';
+    // (hud.countdown: the clock counts down from it, a game against the clock: the shooting gallery's minute)
+    const shown = H.countdown ? Math.max(0, H.countdown - this.clock) : this.clock + this.penalty;
+    const t = timer ? `${formatTime(shown)}${this.penalty > 0 ? `<small>+${this.penalty} s penalty</small>` : this.penalty < 0 ? `<small>${-this.penalty} s bonus</small>` : ''}` : '';
     if (t !== this._t) { this.timerEl.innerHTML = t; this._t = t; }
     const s = this.statusText ?? ((H.score ?? d.score?.kind === 'points') ? formatScore(d, this.points) : '');
     if (s !== this._s) { this.scoreEl.textContent = s; this._s = s; }

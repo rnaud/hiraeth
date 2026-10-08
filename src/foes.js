@@ -371,7 +371,7 @@ export class Foes {
     };
     if (!this.peaceful) this.placeMachines();
     // the relics' guards: a relic out in the wilds (src/levels/content.js relics.spots), once per save
-    this.guards = this.peaceful || level?.foes?.waves ? [] : (content?.relics?.spots ?? []).map((s, i) => {
+    this.guards = this.peaceful || level?.foes?.waves || level?.foes?.own ? [] : (content?.relics?.spots ?? []).map((s, i) => {
       const a = Array.isArray(s) ? s : s.at, x = a[0], z = a.length === 2 ? a[1] : a[2];
       const y = a.length === 2 ? level?.ground?.heightAt?.(x, z) ?? 0 : a[1];
       return { i, pos: new THREE.Vector3(x, y, z), id: `foes.${levelId}.r${i}` };
@@ -423,9 +423,11 @@ export class Foes {
 
   /** The Enemies setting: 'normal', 'gentle' (half the harm, slower wind-ups, one striking at a time, smaller and rarer packs) or 'off'. */
   get difficulty() { const e = this.settings?.enemies; return e === false || e === 'off' ? 'off' : e === 'gentle' ? 'gentle' : 'normal'; }
-  /** On (the Enemies setting, not a peaceful world; the Arena's waves always). */
-  get on() { return !!this.level?.foes?.waves || (!this.peaceful && this.difficulty !== 'off'); }
-  get waves() { return !!this.level?.foes?.waves; }
+  /** On (the Enemies setting, not a peaceful world; the Arena's waves and a game's own foes always). */
+  get on() { return this.waves || (!this.peaceful && this.difficulty !== 'off'); }
+  /** The foes come in waves round you: the Arena's (round its list), or a game's own (level.foes.own: it adds them itself, src/minigames/waves.js). */
+  get waves() { return !!this.level?.foes?.waves || this.own; }
+  get own() { return !!this.level?.foes?.own; }
 
   /** Where people are now (the spawned ones move about), and where they were placed. */
   peopleNow() {
@@ -623,7 +625,7 @@ export class Foes {
     else this.stain(f);
     if (f.id) this.game.set(f.id, true);
     if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards are gone for good)
-    gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it)
+    if (!this.level?.foes?.noInk) gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it; not from a game's endless waves)
     f.dead = 0.8;   // (the look fades out over this)
     this.game.emit?.('foe:burst', { kind: f.kind });
   }
@@ -636,7 +638,7 @@ export class Foes {
     this._people = this.peopleNow();
     // the wilds: after a few seconds out there, a pack comes in (the first time, just one); a pack
     // left far behind dissolves; after one is cut down, a rest before the next
-    if (this.waves) this.updateWaves(dt);
+    if (this.waves && !this.own) this.updateWaves(dt);
     this.updateGuards();
     const wild = !this.waves && !P.ride && !P.swim && this.wild(P.pos);
     this.wildFor = wild ? this.wildFor + dt : 0;

@@ -1,16 +1,18 @@
 # Minigames
 
 Small games played apart from the journey (v0.92): each in its own little arena built on the fly, or in a
-corner of an existing world. The first two are **Dune skiing** (`src/minigames/ski.js`) and **Sky steps**,
-the platformer (`src/minigames/platformer.js`).
+corner of an existing world. **Dune skiing** (`src/minigames/ski.js`), **Sky steps**, the platformer
+(`src/minigames/platformer.js`), **The shooting gallery** (`src/minigames/gallery.js`) and **Ink tide**
+(`src/minigames/waves.js`), the last two played on foot with the blade and the fluid gun.
 
 ## Playing one
 
 - **The worlds list** (Debug on the title, L in play) has a **Games** row under the pages
   (`src/world-picker.js` `gamesRow`): each opens the game's page, `?game=<id>`.
 - **In a world**, an arcade sign: `placeGameMarker(world, gameId, pos)` (`src/minigames/kit/marker.js`) stands
-  a glowing post with "play …" on the interact button; it opens `?game=<id>&from=<level>`. (No world places one
-  yet: the API is there for the games to come.)
+  a glowing post with "play …" on the interact button; it opens `?game=<id>&from=<level>`. The Signal Market has
+  the shooting gallery's on the west pavement a few steps from the start (`bazaar.js` `GALLERY_SIGN`, kept clear
+  of the crowd), the Arena Ink tide's by the way in.
 - A game page skips the title (`save-slots.js` `DIRECT_PARAMS` has `game`) and plays in the save slot in use.
   It writes no position to the save (`main.js` `writeSave`), so the save still resumes where you left the world.
 
@@ -74,6 +76,14 @@ export default {
   `NO_INPUT` until GO and after the finish. Move the traveller yourself: set `player.pos`, `vel`, `heading`,
   `onGround` and call `player.finishFrame(dt, speed)` for the clips (the platformer), or pose the rig
   (`player.char`) and call `player.humanoid.update()` (the skier).
+- **On foot** (`drives: false`): the usual play runs (walking, the blade, the guard, the evade, the fluid gun,
+  the lock-on on R3 / Tab) and the session's `update` comes after the camera; `ctx` also has `tool`, `foes`,
+  `rig`, `settings`, `state`. `body.mg-onfoot` keeps the crosshair. `kit/onfoot.js`: `lendTool(tool, { max,
+  delay, mode })` lends the backpack for the game (worn and full even on a save that has not found it; its tank's
+  size held against the save's upgrades; `back.set({ max, delay })` for a boon; `back()` puts it all back),
+  `tune(table, changes)` changes a tuning table (BLADE, EVADE…) for the game, `standAt(player, pos, heading, rig,
+  yaw)`. `kit/labels.js` `WorldLabels`: a "+20" floating up from a point, a speech balloon, a label over a thing.
+  `hud.countdown: s` shows the clock counting down. A game's page tells no story (its host's goal is not reached).
 - Keep the rules pure where you can (a step function on plain objects) and test them in
   `tests/minigames.test.js`; play the game in headless Chrome through a virtual pad (override
   `navigator.getGamepads`; setting `window.input.stick` every frame does not work: main.js latches taps).
@@ -101,3 +111,35 @@ costs a life and starts you at the last banner; out of lives ends the run with t
 10 a glyph, 50 a life left, and (60 − seconds) × 6. The feet stand on the stones through a ground of the
 course's own (`player._feetGround`). `botInput` plays the course; the tests run it at 120, 60, 30 and 20 fps
 and require the gate with no fall.
+
+## The shooting gallery (`gallery.js`)
+
+A fairground stall of the Signal Market (its paving, its plaster, its striped valance, a lit sign, shopfronts
+round it), built as its own little level; the afternoon sun comes from over the shoulder into the booth
+(`lightAt`). The traveller stands behind the counter (`STAND`, held there) with the stall's tank lent: six shots,
+full again a second after the last (`GALLERY.tank`). Painted cutouts (`cutout`: fish and birds with bullseyes,
+ink-blot figures, and the friends: Auntie Lumé under her parasol, a cat) slide along two brass rails or flip up
+behind a low fence; four plates spin on sticks (they shatter and come back), two bells swing from the beam
+(`swing`). `GalleryDirector` says what comes out when over the minute (`galleryPlan`: busier toward the end, the
+last 15 s with golds every 4 s and faster rails). Scoring is `scoreHit`: rail 10, fast rail 15, pop-up 25,
+plate 20, bell 30, gold 100, friend −50; the multiplier (`comboMult`) goes up a step every three hits in a row
+to ×5, and a miss ends the run. A shot is a miss when no target takes it within 1.5 s (`ShotLedger`, from the
+tool's `tool:fire`). The stallkeeper, a round barker in a boater with a speaking-trumpet, calls out
+(`KEEPER_LINES`, every line toned) in the market's patter (`planLine`, lang `bazaar`), in a balloon. A bot in
+headless Chrome (hold LT, turn the rig toward the next target with a lead, pulse RT) scores about 1,500.
+
+## Ink tide (`waves.js`)
+
+A basin of sand (`basinHeight`: a flat floor, a low rim, the shore down under a sea of ink whose tide lines close
+in while a wave is on), six broken pillars for cover, four ink springs. The game's foes are its own
+(`level.foes.own`: on whatever the Enemies setting, nothing from the wilds, `noInk`: the blade does not grow from
+them, src/foes.js). `waveKinds(n)`: a budget of `waveBudget(n)` (2 + 1.6 a wave) spent on the kinds come in so
+far (`FIRST`: blot 1, spitter 2, swarm 3, machine 4, winged blot 5, shade 6; the new kind first, the heavier
+ones likelier later; `COST`); Gentle (or Off) spends seven tenths and caps the crowd, and the foes themselves
+are gentle (src/foes.js `GENTLE`). They come up out of the springs farthest from you and keep after you. Style:
+`KILL` points × the chain (`chainMult`: a quarter more for each foe cut down within 3 s of the last, to ×3), 30 a
+perfect parry, 5 a block (`player.guard` heard), 100 a wave untouched; the score is `tideScore` (150 a wave
+cleared + style). Between waves: 35% health back and three boons on plinths that rise ahead of you
+(`boonChoice`, `BOONS`: a longer blade, a deeper tank, quick refill, a heavy hand, second wind, light feet, a keen
+guard; `boonTunings` turns them into BLADE / EVADE / GUARD / FALL / tank values, put back when the game ends):
+walk onto one; after 14 s the next wave comes anyway. Knocked out, the run ends (the points kept).
