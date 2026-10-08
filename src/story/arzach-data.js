@@ -30,6 +30,8 @@
 const Q = 'arzach.bird';
 
 export const ITEMS = { whistle: 'the rider’s bone flute', feather: 'a long white feather' };
+/** The keepsake the main quest's end gives (src/story/arzach.js). */
+export const KEEPSAKE = { id: 'arzach.person', level: 'arzach', name: 'The bird’s promise', kind: 'person', text: 'She bowed her long neck and opened her wings. Wherever there is sky, call, and she will come.' };
 
 /**
  * The rider's call, played on the flute: [Hz, beats] (a beat RIDER_CALL_BEAT s). Low, rising, a turn,

@@ -2,16 +2,51 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v0.89 — 2026-10-07
+## v0.90 — 2026-10-08
 
-- Attack and defense have separate buttons: F / LB / L1 attacks, B / RB / R1 guards, and Z / X / □ evades in your movement direction, or backsteps when standing. Guard just before a blow to parry without spending fluid and leave the foe open longer. On a controller, hold LT / L2 with RB / R1 to push, or with X / □ to call your mount; touch has separate guard and evade buttons.
+- Attack and defense have separate buttons: F / RB / R1 attacks, Ctrl or Z / LB / L1 guards, and Alt / X / □ evades in your movement direction, or backsteps when standing. Guard just before a blow to parry without spending fluid and leave the foe open longer. On a controller, hold LT / L2 with X / □ to call your mount; push remains a gun mode; touch has separate guard and evade buttons.
 - The moving blade makes contact during the cut. Foes recoil in the direction of the blow, heavy cuts buckle them, and the sound and brief pause land with the impact.
 - Sword cuts use the whole body, with a deliberate wind-up, a fast release and a follow-through. Attacks, guard and movement blend into each other, and a short step carries each grounded cut forward.
 - Read a foe’s body: ink blots coil and lunge, machines plant their feet and raise their arms before slamming. Their ordinary melee attacks no longer draw warnings on the floor, and a missed strike leaves an opening.
 - Experimental motion matching no longer borrows the next motion capture’s pose when searching at a loop boundary. It remains an optional comparison; the normal blended movement is still the default.
 
+## v0.89 — 2026-10-07
+
+- Turning the camera quickly no longer makes distant shadows flick on and off: across the City-Shaft whole towers changed their shade for a moment after each turn, and after each cut in a conversation.
+- Climbing, the traveller no longer drags a dark, ragged smudge round himself on the wall, and people walking in the shade lose the dark blots that slid round their feet as the camera turned.
+- People seen close, in a conversation or with the camera pulled in, no longer catch patches of sunlight on their faces, necks and clothes while they stand in the shade.
+- Old walls no longer carry dark dirt streaks and blotches of broken plaster: they show the odd fine hairline crack instead, faint and branching, and not on every building, and a crack never runs over or close to a window, a door or anything fixed on the wall. You see it in Qanat, the Signal Market, at home and in the old towns of the other worlds.
+- When what the drone finds is well above or below you its word says so (“27 m, 10 m above”), and its flare on a goal far below you rises past your feet, so you see it from up there.
+- Indoors the drone keeps under the ceiling and short of the walls instead of pressing into them.
+- The scout drone goes up and down now, not only out: send it for a goal on a rooftop, a tower’s deck or the floor above and it climbs toward it, straight up a shaft or the side of a tower you stand under; for one in a pit or a cave below it sinks toward it, its eye turned up or down at it. It stays in view behind you as it climbs.
+- With a keyboard the jets are the left mouse button, or SPACE held in the air: W and S tip the nose down and up, A and D turn, SHIFT goes faster. On a touch screen hold ⤒ in the air and steer with the left-hand drag.
+- Let go of the jets in the air and you glide on, sinking gently, even out of a steep climb, down to a soft landing; a dive into the ground lands you on your feet. Aim (LT / L2) while flying and the jets hold you in the air, sinking slowly, while you shoot.
+- On the jets the left stick flies the nose: forward dives, back climbs, left and right bank you into a turn, so you can fly up, down and round every way, nearly three times as fast as before. The camera swings round behind you and tips up with a climb and down with a dive. Settings has “Invert the jets’ pitch” if you would rather push forward to climb.
+- The jets fly like a plane. RT / R2 is the thrust, and the harder you press it the faster you go: from the ground it lifts you straight up, about fifty metres in three seconds, where before it only hovered you off the sand.
+- A world picked from the Debug worlds list now opens in a separate debug save, as if you had played every world before it through: their quests done, their boxes open, the gear, the tank’s colours, the keepsakes and the recordings, with the world itself fresh. Your own saves are left as they were.
+- In the References level the Glass Dunes’ fourth picture has its tall wave: it rises steep over the glassworkers’ camp, curls over its dark hollow and sweeps down to the sand, as drawn, instead of a low hood.
+- Two archways in the Glass Dunes go through now: walk through the cliff of the giants to the sand behind it, and through the frozen wave in the middle of the valley, under a vault of glass lit green. The breaking wave’s hollow can be walked into from its camp, a long way under the lip.
+- In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.
+- The Glass Dunes’ glass glows from within: the sun comes through its thin edges, its foot and the lips of its waves in bands of mint and lime, the more as you look toward the light, and the giants, heads and trees held inside it are crisp dark shapes instead of soft smudges.
+
 ## v0.88 — 2026-10-07
 
+- A new foe, the shade: a person made of living shadow, near-black violet running down its body in streaks, its feet melting into the ground, dripping as it walks and leaving dark pools behind. It comes in later packs out in the wilds and cuts with a sword’s swing; five cuts bring it down, and it runs away into the ground.
+- On a touch screen the blade has one button again: tap ⚔ to swing, hold it to guard; the lock-on button shows only in a fight.
+- In the temples the makers’ machines meet the rooms’ workings: a gust shoves them down its hall, and one standing on a pressure plate presses it.
+- Where a blot falls, its ink stains the ground for a while; a shade’s cut leaves a dark arc of shadow in the air.
+- Fights have their own music: a drum and a low drone come in under the world’s music while foes chase you, and fade when the fight is over.
+- An items page, linked from the worlds list (Debug): every item in 3D, drawn in the game’s own ink, to drag round and turn, or to open full screen (zoom, and the next item with the arrow keys), with what it does and where its boxes are, a search and the kinds to filter by.
+- The fluid blade is a real sword now: a slim two-edged blade of the tank’s fluid tapering to a point, its edges bright, on a brass crossguard, a wrapped grip and a pommel, its edge leading every cut.
+- Locked on, the traveller faces the foe and strafes round it, side-stepping left and right or backing away in a sword stance, instead of running round it.
+- The Enemies setting has a Gentle choice: half the harm, slower wind-ups, one foe striking at a time and smaller, rarer packs. Normal and Off stay.
+- The makers’ machines are rebuilt: a round brass shell on three spindly legs, two clawed arms, the makers’ glyph glowing for an eye. Broken, they come apart, their pieces flying and settling on the ground.
+- The frame freezes for an instant as a blow lands, longer on a heavy one and on a perfect parry, so every impact reads.
+- A perfect parry: raise the guard just as a strike comes and it costs nothing and leaves the foe stunned. A foe frozen by stilling takes the blade double.
+- Three new foes: a spitting blot that keeps its distance and lobs ink where you stand, a swarm of tiny blots that a push scatters, and winged blots that fly out of reach under open skies and dive along a lane drawn on the ground.
+- The push is a gun mode now, beside fluid, stilling, ember and bloom: switch to it with X or the D-pad and fire it as you shoot. C and the middle click do nothing now.
+- Locked on, the camera keeps the foe ahead, a ring marks it, and the blade and the guard turn to it.
+- New controls for the blade: RB / R1 swings it, LB / L1 held guards, and clicking the right stick (R3) locks on to a foe, then the next, then lets go. On a keyboard: F swings, Ctrl or Z held guards, Tab locks on. The bell whistle moved to the D-pad’s up.
 - Relics out in the wilds are guarded: ink blots gather round as you come near, and once cut down they are gone for good.
 - Cut-down foes leave ink, which runs into the glove, and the blade grows with it: at 8 ink it reaches further, at 20 its third swing becomes a whirl that cuts all round you, at 40 a swing begun at a run lunges into the cut.
 - Foes take turns: no more than two strike at once while the others circle, and they no longer stand inside each other.

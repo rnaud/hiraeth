@@ -55,21 +55,39 @@ all of it is in the game's own materials and post pass (every world uses it), no
   run-to-run spread is ±30 %). The new work is behind defines (weathering, plating) or cheap
   branches (crevices, paper, the strata strokes only lit and near); the handheld's paper is one tap.
 
-## Weathered walls: worn by time
+## Weathered walls: hairline cracks (October 2026)
 
 The reference cities look old and lived in. `makeMaterial({ weathered })` (0..1, `S_WEATHER`,
 `weatherInk` in `src/materials.js`; `WEATHER`, `weatheredOf`), on upright faces, in a frame of the
 wall taken from the world axes (x on walls facing z, z on walls facing x, blended between: stable on
-round walls, where the tangent of the interpolated normal had swept a column's marks into specks):
+round walls, where the tangent of the interpolated normal had swept a column's marks into specks).
+Until v0.89 the wear was dirt: grime streaks down the walls and chipped patches of plaster, laid without
+regard to the windows (they ran over them). The author: "the patches of dirt on the buildings are wrong:
+they should look like subtle cracks, and they shouldn't overlap with windows". Now it is only:
 
-- **Grime**: a streak in most cells (1.3 × 2.4 m) running down from its top at an uneven height (a
-  storey's top, a sill), flat darker tone, narrowing as it goes, its edge a little ragged.
-- **Chips**: patches where the plaster has broken away, the layer under it darker and warmer, the
-  edge a continuous pen line, and the lip's cast shadow inside the chip on the sun's side (a step the
-  sun's direction on the wall decides, not paint).
-- **Cracks**: from a storey's top down or from its foot up, jagged, thinning, branching now and then,
-  with a shadow sliver on the side away from the sun; a crack from the corner of the odd window
-  (house fronts, `pattern: 'facade'`).
+- **The odd hairline crack**: one in a share of the wall's cells (3.7 × 3.1 m, `WEATHER.cracks` × the
+  building's amount), each inside its cell, 0.9–2.3 m long, up or down the wall with a small lean; two
+  polylines over the lean (kinks every 0.19 and 0.75 m) make it jagged, not wavy, and give its slope exactly,
+  so its width is measured across the line (`|f| / |∇f|` in px), not along the wall. A pen line about a CSS
+  pixel wide thinning to 0.4 at its end (`WEATHER.width`), at 0.8 of the drawn-detail ink (faint), with a
+  branch now and then (60 %, a second 30 %) leaning off to one side. On a lit wall a sliver of shade on its
+  side away from the sun and a lit sliver toward it, each a step on the wall's colour capped at
+  `lip.edge / |albedo|` (under post.js's colour-edge threshold: no outline of their own to flicker).
+- **Not every wall**: a building's 9 m cell gives its amount (0.6–1.4 × `weathered`) and its pattern, and
+  one in five has none (`WEATHER.walls`).
+- **Never over an opening** (`src/wall-openings.js`): windows, doors, shutters, signs and the door stains are
+  meshes of their own, so the shader cannot see them. As a world is built, every small piece that is not
+  itself weathered (≤ 6 m a side, ≤ 40 m³: not a wall, floor or roof) is handed in: by the kits as they lay
+  it (`desert-city.js` and `desert-landmarks.js` `Kit.add`, `RoomKit.finish` in the world once its group
+  stands where it goes, the Signal Market's `add`), and the scene's small meshes of their own once it is up
+  (`collectScene` in main.js: home's round windows and doors). Each box, grown by 0.25 m, marks the 0.5 m
+  voxels it covers in a hashed bit table (2^23 bits, a 512² RGBA8 texture, `uOpenings`; Qanat ~960 pieces,
+  the Market ~2400, the Eclipse ~2700, about 1 % of the bits set: a false hit only leaves a crack out). A
+  crack is drawn whole or not at all: `weatherInk` looks up its five points along it, its branches' ends and
+  the pixel (`wallOpenAt`) and draws nothing if any lands in a marked voxel; a façade's own drawn windows
+  (pattern `'facade'`: the window, its shutters and sill, from facade()'s cells) count as openings too. The
+  crack that used to run out from a façade window's corner is gone. The lookups are paid only by a pixel
+  within a few px of a crack's line.
 - **Dust at the foot** (post.js): a weathered pixel is flagged in `gHatch.b` (+16); a probe the band's
   height below it on screen that lands on the ground (facing up) less than 0.62 m under it in the
   world puts it in a flat darker band, its top a little ragged. One tap, within 220 m.
@@ -77,22 +95,17 @@ round walls, where the tangent of the interpolated normal had swept a column's m
   edge instead (October 2026): a drift pixel whose probe ~0.37 m up the screen (ragged by a noise) lands on a
   weathered wall just behind it (within 0.5 m before, 3 m behind) takes the same dust tone. Drift pixels only,
   two taps, within 220 m.
-- **Each building its own**: an amount (0.6–1.4 × `weathered`) and a pattern seed from where it stands
-  (9 m cells).
-- **By distance**: the pen marks fade out at 0.03–0.075 m a pixel, the tone marks (grime, the chips'
-  fill) at 0.1–0.28; the handheld (`uWearLite`, low detail or the light ink pass) keeps the grime and
-  the chips' tone and edge, no cracks or lip shadows.
-- **In motion** ("Stable in motion", rendering.md): nothing is a hard step a camera moving by a fraction of a
-  pixel can flip. A grime streak keeps its tone (`WEATHER.grime.taper`: 20 % lighter at its foot, not 55 %) well
-  over post.js's colour-edge threshold, so its outline doesn't come and go along it, and a streak whose head is
-  under `minPx` (2.25 CSS px) wide, on a wall seen edge-on, is left out whole; a chip's fill edge is a pixel wide,
-  its lip's shadow fades out under 0.75–1.75 CSS px, a crack's shadow sliver is antialiased.
+- **By distance**: the cracks fade out at 0.03–0.075 m a pixel (nothing paid further: most of a far city's
+  walls); the handheld (`uWearLite`, low detail or the light ink pass) draws them without their lips.
+- **Cost**: one hash a pixel decides its cell (most have no crack); a cracked cell's pixels run its polylines
+  (hashes, no noise), and only those near a line pay the up to eight table lookups. The grime and chips it
+  replaced cost four value-noise taps a pixel on every weathered wall within 0.28 m a pixel, so this is less.
 - **On**: house fronts by default, the desert city's walls and terraces, the desert's adobe domes,
   the Signal Market's shops and blocks, home's dome house, the references' huts and houses; never on
   metal, glass, lights or the makers' work (their inscriptions).
-- **Cost** (M4 Pro, 1280 × 720, frames back to back, wear off / on interleaved, 40 pairs): desert
-  High 10.3 / 10.1 and 8.5 / 8.5 ms, Signal Market High 8.3 / 8.6 and 5.0 / 5.0, desert Handheld
-  4.1 / 4.1 and 3.6 / 3.6, Market Handheld 8.6 / 8.4 and 7.1 / 7.2: within the run-to-run spread.
+- `tests/wall-openings.test.js`: a crack near a window left out, one clear by the margin kept, only the small
+  unweathered pieces counted, the kits' pieces where they stand in the world, the JS and GLSL hash and bit
+  layout the same, every opening check before any ink; `tests/motion-stable.test.js` the lips under the edge.
 
 ### The half-tone and another's cast shadow (October 2026)
 
@@ -421,3 +434,34 @@ Found in the Lab, where some materials looked slow; all of it applies to every w
 colour by night, a how far it glows then); the fragment mixes its vertex colour toward the night colour and its glow
 up by `uNight`, so one material is a painted billboard by day and a lit screen by night with nothing to switch. Used
 by the Signal Market's signs (worlds.md "The Signal Market at night"). A material without it compiles as before.
+
+## Dune glass (`duneGlass`, `dunePool`, October 2026)
+
+The Glass Dunes' glass (`src/dune-glass-shader.js`, compiled into the G-buffer surface shader for a material
+made with `duneGlass`, the DUNE_GLASS define) and the sand that takes its light (`dunePool`, DUNE_POOL). A
+print, not refraction: like the rest it writes a flat albedo, a light term and a glow for post.js. Both read
+one vertex attribute, `aGlass` (vec4), written by the kit (`src/levels/glass-dunes-kit.js`):
+
+- **The glass** (`glassRidge`: x the silhouettes' signed distance in m, y how thin the glass is, z the lobe,
+  w the height up the ridge; 2 marks a passage's vault). The **silhouettes** held inside (giants, heads,
+  trees: unions of ellipses, `silhouetteDistance`) are cut at the distance's zero over a pixel: one flat dark
+  shape with a hard, slightly wavering edge whatever the mesh's spacing (they were soft vertex-colour
+  smudges). The **light through**: thin glass (the foot, the ridge's sinking ends, a wave's lip, the crest,
+  the low flows) and grazing edges (1 − |n·v|, a lobe turning from the eye) let the sun through, more as you
+  look toward it and more in shade, printed as two flat bands, a mint glow and a lime core, lifted out of the
+  shade (never hatched) and glowing a little; at night a faint mint band at the thinnest parts. The **deep
+  shade**: a face turned well from the sun or a lobe's crease prints a step darker (the billows, plate 2);
+  a pale streak runs up each lobe's belly.
+- **The sand** (`glassPools`: x how near a wall's foot, 0..1, within 10 m plus 0.35 × the wall's height; yz
+  the way to it, in the world's frame, so a turned References view passes its turn): the light come
+  through the glass pools beyond it, on the side away from the sun (the glass between the point and the
+  sun), a low sun's further; two bands, mint then lime, the lime lifted out of the wall's shadow; a faint
+  mint all round a foot. A grid of 16 m cells holds the feet near it, so the load stays a few ms.
+- **Meshes**: the room kit's merge keeps only position, normal and colour, so the ridges are merged by the
+  kit's own `glassBatch` into meshes of their own (per material, solid, shadow; indexed ridges apart from
+  non-indexed vaults). A geometry without the attribute reads `GLASS_DEFAULT` (no silhouette, thick).
+- **Cost**: a handful of ALU and one `fwidth` per band a pixel, no texture, no pass. Handheld preset at
+  render scale 0.75 (worlds.md "The Glass Dunes"): within a few hundredths of a ms of before.
+- The world's own colours went with it: the glass prints its shade less flat than the sand (`shadeFlat`
+  0.45, its mint foot and teal top kept in shade), the world keeps none of the print's warm grey in shade
+  (`uShadeKeep` 0: teal lifted toward a warm light turned grey), and its dusk shadow is an emerald.

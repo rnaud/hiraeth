@@ -117,12 +117,149 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.89': [
+    { match: 'The Glass Dunes’ glass glows from within', shots: [
+      { name: 'glass-giants', caption: 'The cliff of the giants from the valley at 16:30: the giants held in the glass are crisp dark shapes, the lobes’ thin edges glow mint', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'glass-breaker', caption: 'The breaking wave from the valley at 16:30, looking toward the sun: its lip and crest let the light through in lime, the tree inside cut clean', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'glass-plate3', caption: 'The References’ view of the third picture: the giants in the cliffs, before soft smudges, now printed shapes', from: 'the References level, ?level=references&world=glassdunes&view=3, headless Chrome, High, 1456 × 816 (7 October)' },
+    ], see: 'Open the Glass Dunes (?level=glassdunes) in the late afternoon and look at the walls toward the sun: their thin edges and the lips of the waves glow; the giants stand dark inside the cliffs west of the valley.',
+      numbers: [
+        { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a tight loop of renderFrame() synced by a one-pixel read, 3 × 20 frames a sample, median of 5 rounds, 16:30, the crowd off (the machine shared with other agents: compare within the run)', unit: 'ms', better: 'lower', device: 'Mac, headless Chrome on Metal, 1280 × 720', source: 'docs/systems/worlds.md, “The Glass Dunes”', rows: [
+          { where: 'by the ship', before: 1.52, after: 1.55 },
+          { where: 'the valley', before: 1.51, after: 1.52 },
+          { where: 'the west camp', before: 1.43, after: 1.48 },
+          { where: 'the breaking wave', before: 1.36, after: 1.41 },
+          { where: 'the cliff of the giants', before: 1.33, after: 1.40 },
+          { where: 'the Signal Market (the budget, docs/systems/worlds.md)', before: '2.23–2.28', after: null },
+        ] },
+      ] },
+    { match: 'In the Glass Dunes the light that comes through the glass', shots: [
+      { name: 'pools-spawn', caption: 'From the ship at 17:36, the sun going: the walls’ shade on the sand an emerald, not a grey teal', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'pools-westcamp', caption: 'The west camp at 17:36: the light through the cliff pooled mint and lime at its foot', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+    ], see: 'In the Glass Dunes, late in the afternoon, walk to the foot of a wall on its side away from the sun: the sand there takes the glass’s mint and lime.' },
+    { match: 'Two archways in the Glass Dunes go through now', shots: [
+      { name: 'passage-giants', caption: 'The archway at the foot of the cliff of the giants: before a lit panel, now a vault of glass you walk through', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'passage-wave', caption: 'The frozen wave in the valley’s middle: its archway goes through to the north', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },
+      { name: 'passage-inside', only: 'after', caption: 'Inside the cliff of the giants’ passage, 70 m of green vault, the sand beyond at its end', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 16:30 (7 October)' },
+    ], see: 'From the ship walk north up the valley: the frozen wave’s archway is straight ahead; the giants’ is in the west cliff, north of the west camp.',
+      numbers: [
+        { title: 'The contact audit (what you stand on and walk into is what is drawn)', unit: 'problems', better: 'lower', device: 'node, tests/glass-dunes.test.js', source: 'docs/systems/worlds.md, “The Glass Dunes”', rows: [
+          { where: 'climbs inside (the arches’ drawn-only rims)', before: 5, after: 1 },
+          { where: 'walks through', before: 1, after: 2 },
+        ] },
+      ] },
+    { match: 'In the References level the Glass Dunes’ fourth picture', shots: [
+      { name: 'wave-plate4', caption: 'The fourth picture’s view: the wave rises steep over the camp, curls over its hollow and sweeps down to the sand', from: 'the References level, ?level=references&world=glassdunes&view=4, headless Chrome, High, 1456 × 816 (7 October)' },
+    ], see: 'Open ?level=references&world=glassdunes&view=4; the backslash key lays the picture over the view.' },
+    { match: 'A world picked from the Debug worlds list now opens in a separate debug save', shots: [
+      { name: 'debug-save-list', only: 'after', caption: 'The worlds list (Debug on the title): a line says what picking a world does, and each card which save it opens in', from: 'headless Chrome against this branch’s own dev server, 1280 × 720 (7 October)' },
+      { name: 'debug-save-items', only: 'after', caption: 'The Buried Machine picked from the list: the gear of the eight worlds before it (the wings, the jets, the cab pass…) and their keepsakes', from: 'headless Chrome against this branch’s own dev server, the game menu’s Items page, 1280 × 720 (7 October)' },
+    ], see: 'On the title, choose Debug and pick a late world (the Buried Machine): open the game menu (View / Select, or J). Its Quests page lists the earlier worlds’ quests as done, the Items page holds their gear and keepsakes, the Worlds page shows their boxes opened; the Start menu reads “Debug save”. Choose a save on the title to go back to your own.' },
+    { match: 'The jets fly like a plane', shots: [
+      { name: 'jets-climb', only: 'after', caption: 'A second and a bit of RT / R2 from the sand in the desert: straight up, the camera looking up after you', from: 'headless Chrome against this branch’s own dev server, a simulated pad driving the jets, High, 1280 × 720, 10:00 (7 October)' },
+    ], numbers: [
+      { title: 'The jets from standing, RT / R2 held all the way, the stick at rest (the flight model run headless, 60 steps a second, on flat ground)', unit: 'm', better: 'higher', device: 'node, src/player.js (the old model at the commit before)', source: 'docs/systems/movement-and-camera.md, “The jets fly like a plane”', rows: [
+        { where: 'height after 3 s', before: 2.4, after: 58.6 },
+      ] },
+      { title: 'Seconds to 30 m up from standing (before: RT with A / × held, its straight climb; now: RT alone)', unit: 's', better: 'lower', device: 'node, src/player.js', source: 'docs/systems/movement-and-camera.md', rows: [
+        { where: 'to 30 m up', before: 3.1, after: 1.7 },
+      ] },
+    ], see: 'With the jets found, stand anywhere in the open and hold RT / R2 (the left mouse button): you go straight up, fast; a light squeeze rises slowly.' },
+    { match: 'On the jets the left stick flies the nose', shots: [
+      { name: 'jets-bank', only: 'after', caption: 'Banked into a right turn over the desert, flat out, the camera swinging round behind', from: 'headless Chrome against this branch’s own dev server, a simulated pad driving the jets, High, 1280 × 720, 10:00 (7 October)' },
+      { name: 'jets-dive', only: 'after', caption: 'Stick forward: a dive straight down, head first, the camera looking down it', from: 'headless Chrome against this branch’s own dev server, a simulated pad driving the jets, High, 1280 × 720, 10:00 (7 October)' },
+    ], numbers: [
+      { title: 'Top speeds on the jets (the flight model run headless, on flat ground)', unit: 'm/s', better: 'higher', device: 'node, src/player.js', source: 'docs/systems/movement-and-camera.md', rows: [
+        { where: 'level, full throttle', before: 8, after: 22 },
+        { where: 'level, L3 / Shift', before: 14, after: 30.8 },
+        { where: 'diving straight down', before: 12.3, after: 28.8 },
+      ] },
+    ], see: 'Lift off, push the left stick forward to level out, then left and right to bank round, forward to dive and back to pull up. Settings → Invert the jets’ pitch swaps forward and back.' },
+    { match: 'Let go of the jets in the air', shots: [
+      { name: 'jets-hold', only: 'after', caption: 'LT / L2 in flight: the jets hold him in the air, sinking slowly, the arm up to shoot', from: 'headless Chrome against this branch’s own dev server, a simulated pad driving the jets, High, 1280 × 720, 10:00 (7 October)' },
+    ], numbers: [
+      { title: 'Letting go of the throttle about 105–115 m up after flying level (the flight model run headless, on flat ground)', unit: 'm', better: 'higher', device: 'node, src/player.js', source: 'docs/systems/movement-and-camera.md', rows: [
+        { where: 'carried on before touching down (before: a fall, and a knock-down)', before: 5.5, after: 416 },
+      ] },
+    ], see: 'Fly level and let go of RT / R2: you glide down a long way; let go climbing steeply and the nose drops over into a glide. Hold LT / L2 while flying to hang there and shoot.' },
+    { match: 'With a keyboard the jets are the left mouse button', see: 'With a keyboard and mouse: click the game to capture the pointer, then hold the left mouse button (or jump and keep SPACE held): W / S tip the nose, A / D turn, SHIFT is faster. On a phone hold ⤒ in the air and drag on the left.' },
+    { match: 'The scout drone goes up and down now', see: 'In the Antennas (?level=antennas) walk to the foot of the observation deck’s stairs and press Q (Y / △): the drone climbs toward the deck and hovers there nose up; from the deck, ask it for something on the field below and it sinks over the edge.',
+      numbers: [
+        { title: 'Where the drone hovers when it finds the goal: its height over your feet (headless Chrome against the dev server, the drone’s position logged every 0.1 s)', unit: 'm', better: 'higher', device: 'Mac, headless Chrome, High', source: 'docs/systems/scout.md, “Up and down”', rows: [
+          { where: 'the Desert: Marrow on the ridge, 21 m up, 131 m off', before: 3.2, after: 6.6 },
+          { where: 'the Antennas: at the foot of the observation deck, 10 m up, 27 m off', before: 3.3, after: 6.7 },
+          { where: 'Incal’s Jets’ Chamber: the gallery 24 m overhead', before: 2.6, after: 19.4 },
+        ] },
+        { title: 'Toward a goal below: the Antennas’ deck, the field 12 m under it (its height over your feet)', unit: 'm', better: 'lower', device: 'Mac, headless Chrome, High', source: 'docs/systems/scout.md, “Up and down”', rows: [
+          { where: 'from the observation deck', before: 3.2, after: -3.5 },
+        ] },
+        { title: 'scout.update while the drone is out (median of 4 pings, µs a frame; the machine shared with other agents)', unit: 'µs', better: 'lower', device: 'Mac, headless Chrome, High', source: 'docs/systems/scout.md, “Up and down”', rows: [
+          { where: 'the Antennas, at the deck’s foot', before: 106.9, after: 107.2 },
+          { where: 'Incal’s Jets’ Chamber', before: 131.3, after: 118.6 },
+          { where: 'the Overnight Train', before: 90.0, after: 105.7 },
+        ] },
+      ] },
+    { match: 'Indoors the drone keeps under the ceiling', see: 'On the Overnight Train or in a temple’s room, press Q (Y / △): the drone looks out from under the ceiling and short of the walls, and goes round to it instead of grinding along the ceiling.' },
+    { match: 'When what the drone finds is well above or below you', see: 'At the foot of the Antennas’ observation deck press Q (Y / △): the line reads “the observation deck · 27 m, 10 m above”.' },
+    { match: 'Old walls no longer carry dark dirt streaks', shots: [
+      { name: 'cracks-qanat-house', caption: 'A block house in Qanat, 7 m off: the dirt streaks and blotches over its windows gone; its cracks keep clear of the windows and the door', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 10:00 (7 October); the before at the commit before the change. View: eye [207.4, 4.2, 418.8], target [202.2, 4.2, 423.5]' },
+      { name: 'cracks-qanat-street', caption: 'Inside Qanat’s gate: the tower and the house on the right, before streaked and blotched, now a few faint hairline cracks', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 10:00 (7 October); the before at the commit before the change. View: eye [209.1, 4, 363.6], target [178.8, 4, 381]' },
+      { name: 'cracks-market-alley', caption: 'A back alley off the Signal Market’s street: drops of grime and patches of plaster gone, fine cracks on the green wall', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 10:00 (7 October); the before at the commit before the change. View: the market-alley view of v0.80' },
+    ], see: 'Walk up to an old house in Qanat or a shop in the Signal Market: the walls are clean but for the odd fine crack, and none comes near a window or a door. Not every building has them.' },
+    { match: 'People seen close, in a conversation', shots: [
+      { name: 'shade-closeup', caption: 'The traveller close up in the shade on the City-Shaft’s rim at 17:00: the lit patches on his neck, cheek and coat are gone', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720, the camera 1 m from his face (7 October)' },
+      { name: 'shade-profile', caption: 'The same, from his side: the cheek and the collar stay in the shade', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720 (7 October)' },
+    ], see: 'Talk to someone standing in a building’s shadow (the City-Shaft’s rim late in the afternoon): faces and coats stay evenly shaded, no lit flecks along their folds.' },
+    { match: 'Climbing, the traveller no longer drags', shots: [
+      { name: 'climb-halo', caption: 'Climbing a villa’s shaded wall on the City-Shaft’s rim at 17:00: no dark ragged mass round his outline', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720, the game’s own camera (7 October)' },
+    ], see: 'Climb any wall in the shade and look at the wall round the traveller; in the City-Shaft’s shaded terraces, watch people’s feet as you turn the camera.' },
+    { match: 'Turning the camera quickly no longer makes distant shadows', see: 'At the City-Shaft’s rim, look across the pit and turn the camera quickly: the towers keep their shade through the turn.',
+      numbers: [
+        { title: 'The first frame after a quick 100° turn at the City-Shaft’s rim, 10:00, against the same view a few frames later (the light term)', unit: 'px changed', better: 'lower', device: 'Mac, headless Chrome on Metal, 1280 × 720, Handheld preset', source: 'docs/systems/rendering.md, “Shadows close up, on climbers and after a quick turn”', rows: [
+          { where: 'the frame after the turn (worst of four frame phases)', before: 35148, after: 0 },
+        ] },
+        { title: 'What it costs: average draw calls a frame over 12 frames (the shadow maps kept over frames now hold a little more)', unit: 'draws', better: 'lower', device: 'Mac, headless Chrome on Metal, 1280 × 720', source: 'docs/systems/rendering.md, “Shadows close up, on climbers and after a quick turn”', rows: [
+          { where: 'High, the rim across the pit', before: 1409, after: 1435 },
+          { where: 'High, a terrace along its street', before: 983, after: 1015 },
+          { where: 'Handheld, the rim across the pit', before: 952, after: 1012 },
+          { where: 'Handheld, a terrace along its street', before: 571, after: 622 },
+        ] },
+      ] },
+  ],
   '0.88': [
     { match: 'Blows land with weight', see: 'In the Arena, cut an ink blot: a brief catch and a jolt as the blade connects; the third swing of the combo sends it flying.' },
     { match: 'A foe winding up out of sight', see: 'In the Arena, turn the camera away from a blot as it comes: a round marker appears at the screen’s edge on its side.' },
     { match: 'Cut-down foes leave ink', shots: [
       { name: 'blade-whirl', only: 'after', caption: 'The whirl: the third swing, grown from the ink, the blade longer', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
     ], see: 'Cut blots down: the count shows every 5 ink, and each step is announced as it is reached. Then press F three times quickly, or press it while running.' },
+    { match: 'New controls for the blade', see: 'In the Arena: RB / R1 (F) swings, hold LB / L1 (Ctrl) to guard, click the right stick (Tab) to lock on.' },
+    { match: 'Locked on, the camera keeps the foe ahead', shots: [
+      { name: 'lock-spitter', only: 'after', caption: 'Locked on to a spitting blot (the gold ring), a blot lunging behind the traveller', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'In the Arena, press Tab (R3) as a wave comes in.' },
+    { match: 'The push is a gun mode now', see: 'Press X (or the D-pad) until the readout says push, then aim and shoot at a crate or a blot.' },
+    { match: 'Three new foes', see: 'In the Arena, waves 3, 4 and 6; out in the wilds, the later packs; winged blots in Vael and the other open-sky worlds.' },
+    { match: 'A perfect parry', see: 'In the Arena, hold LB / L1 just as a blot’s ring fills: it costs no charge and the blot is stunned.' },
+    { match: 'The frame freezes for an instant', see: 'In the Arena, cut a blot: the world stops dead for a few hundredths of a second as the blade connects.' },
+    { match: 'The makers’ machines are rebuilt', shots: [
+      { name: 'machine-breaks', only: 'after', caption: 'A machine coming apart: its shell, belt, arms and glowing glyph flying off', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'In the Arena’s fifth wave, or any temple’s rooms: break a machine with the blade.' },
+    { match: 'Locked on, the traveller faces the foe and strafes', shots: [
+      { name: 'strafe', only: 'after', caption: 'Locked on (the gold ring), side-stepping round a blot in a sword stance', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'In the Arena, lock on (Tab, R3) and move the stick left, right or back.' },
+    { match: 'The fluid blade is a real sword now', shots: [
+      { name: 'sword', only: 'after', caption: 'The sword mid-swing: the slim fluid blade on its brass guard and hilt', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'Swing the blade (F, RB / R1).' },
+    { match: 'An items page, linked from the worlds list', shots: [
+      { name: 'items-page', only: 'after', caption: 'The items page: each item’s picture, what it does and where it is found', from: 'headless Chrome against the dev server (7 October)' },
+    ], see: 'On the title screen, choose Debug, then Items at the top. Drag an item to turn it; click it for full screen.' },
+    { match: 'Fights have their own music', see: 'In the Arena, as a wave comes in: the drum starts; it fades once the wave is down.' },
+    { match: 'Where a blot falls, its ink stains the ground', see: 'Cut a blot down: dark stains on the sand where it was.' },
+    { match: 'In the temples the makers’ machines meet the rooms’ workings', see: 'In a temple with gusts (Vael’s Aerie), lead a machine into the hall as it blows.' },
+    { match: 'On a touch screen the blade has one button again', see: 'On a phone or tablet: tap ⚔, then hold it.' },
+    { match: 'A new foe, the shade', shots: [
+      { name: 'shade', only: 'after', caption: 'A shade: living shadow running down a person’s body, its feet melting into print dots, the pools it left behind', from: 'headless Chrome against the dev server, High, 9:30 (7 October)' },
+    ], see: 'In the Arena’s sixth wave; out in the wilds, a later pack now and then.' },
+    { match: 'The Enemies setting has a Gentle choice', see: 'Settings → Enemies: Normal, Gentle or Off.' },
     { match: 'Relics out in the wilds are guarded', see: 'In the desert, walk toward a relic out in the dunes: two blots gather round it.' },
     { match: 'Foes take turns', see: 'In the Arena’s second wave, three blots come: two wind up at most while the third circles.' },
   ],

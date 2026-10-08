@@ -151,7 +151,32 @@ export class Cascade {
 }
 
 // ------------------------------------------------------------------ caster culling
-const _s = new THREE.Vector3(), _sph = new THREE.Sphere(), _pm = new THREE.Matrix4(), _fr = new THREE.Frustum();
+const _s = new THREE.Vector3(), _sph = new THREE.Sphere(), _pm = new THREE.Matrix4(), _fr = new THREE.Frustum(), _f = new THREE.Vector3(), _e = new THREE.Vector3();
+
+/**
+ * A map drawn every n-th frame (the near map on the handheld presets, the far map always) is culled for the
+ * view of the frame it is drawn in, and then looked at from the next views too. Turning the camera quickly,
+ * the casters whose shadows had been off screen were missing from it until it was drawn again: in the
+ * City-Shaft whole towers across the pit changed their shade for a frame or three after each turn (shadows
+ * popping in at the edges of the screen as you pan), and after every conversation cut. So such a map keeps
+ * the casters of every view within VIEW_SLACK of its own (ShadowCuller.hide's slack), and is drawn again as
+ * soon as the view leaves that (viewLeft).
+ */
+export const VIEW_SLACK = { turn: 0.1, move: 4 };
+
+/** The view a map was culled for: { eye, fwd } (copied: the camera moves on). */
+export function viewOf(camera, out = { eye: new THREE.Vector3(), fwd: new THREE.Vector3() }) {
+  camera.getWorldPosition(out.eye);
+  camera.getWorldDirection(out.fwd);
+  return out;
+}
+
+/** Has the camera left the slack of the view a map was culled for (`at`, from viewOf; none yet: true)? */
+export function viewLeft(at, camera, slack = VIEW_SLACK) {
+  if (!at) return true;
+  camera.getWorldDirection(_f);
+  return _f.dot(at.fwd) < Math.cos(slack.turn) || camera.getWorldPosition(_s).distanceTo(at.eye) > slack.move;
+}
 
 /**
  * Which meshes each shadow pass draws. Per frame, every candidate's world
@@ -241,9 +266,12 @@ export class ShadowCuller {
    * @param reach  how far from the camera this cascade's shadows are seen (m)
    * @param texel  the cascade's texel (m)
    * @param maxSweep  the longest shadow worth following (m), e.g. the cascade's depth
+   * @param slack  for a map kept over several frames (VIEW_SLACK): the view may turn by `turn` (rad) and move
+   *   by `move` (m) before it is drawn again, so casters are kept for every view within that of this one
    */
-  hide(reach, texel, maxSweep, minTexels = 0.75, out = []) {
+  hide(reach, texel, maxSweep, minTexels = 0.75, out = [], slack = null) {
     const cam = this.cam, L = this.light;
+    const sinT = Math.sin(slack?.turn ?? 0), move = slack?.move ?? 0, eye = cam.position;
     _pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
     _fr.setFromProjectionMatrix(_pm);
     // cut the far plane at the cascade's reach
@@ -262,10 +290,15 @@ export class ShadowCuller {
         // sweep: from the caster away from the sun, down to the lowest ground (or maxSweep)
         let len = maxSweep;
         if (this.vertical) len = Math.min(len, Math.max(0, c.y + r - this.sweepTo) / L.y);
+        // (the side planes, through the eye, turn out by up to `turn`: each end of the sweep moves out by its own
+        // distance from the eye × sin; both ends outside the turned plane keep the whole sweep outside it)
+        let out0 = 0, out1 = 0;
+        if (sinT > 0) { out0 = sinT * c.distanceTo(eye); out1 = sinT * _e.copy(c).addScaledVector(L, -len).distanceTo(eye); }
         for (let k = 0; k < 6; k++) {
           const p = _fr.planes[k];
           const d0 = p.distanceToPoint(c), d1 = d0 - len * p.normal.dot(L);
-          if (d0 < -r && d1 < -r) { skip = true; break; }
+          const side = k < 4, lim = r + move;
+          if (d0 < -(lim + (side ? out0 : 0)) && d1 < -(lim + (side ? out1 : 0))) { skip = true; break; }
         }
       }
       if (skip) { it.o.visible = false; out.push(it.o); culled++; }

@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
-import { CameraRig, hallness, OPEN_DIST, OPEN_LOOK, OPEN_PITCH, TIGHT_DIST, HALL_DIST, JET } from '../src/player.js';
+import { CameraRig, hallness, OPEN_DIST, OPEN_LOOK, OPEN_PITCH, TIGHT_DIST, HALL_DIST } from '../src/player.js';
 
 globalThis.window ??= { addEventListener() {} };
 const dom = { addEventListener() {} };
@@ -35,7 +35,6 @@ test('open ground: the Ocarina framing (closer and lower than before, the travel
   const p = v(0, 0, 0);
   for (let i = 0; i < 120; i++) rig.update(p, dt);
   assert.equal(rig.pitch, OPEN_PITCH);
-  assert.equal(JET.level, OPEN_PITCH, 'the jets fly level at the default look');
   const c = rig.camera.position, f = framing(rig, p);
   assert.ok(Math.abs(c.distanceTo(rig._look) - OPEN_DIST) < 0.05);
   assert.ok(OPEN_DIST < 7.5, 'closer than the 9.5 m arm it had');

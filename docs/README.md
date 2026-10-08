@@ -31,7 +31,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [controls.md](systems/controls.md) | keyboard, mouse, touch and the tool; the controller layout by position, prompts; the controls of October 2026 |
 | [foes.md](systems/foes.md) | the fluid blade, the ink blots in the wilds, the makers' machines in the temples, the Enemies setting, the Arena |
 | [movement.md](systems/movement.md) | collision, contact (what you stand on and climb is what is drawn; the contact audit), mounts that come to you, footprints, the paraglider, hazards, health and falls, the hoverbike and vehicles, the feel of the jump and stamina |
-| [movement-and-camera.md](systems/movement-and-camera.md) | movement and the camera, the third feedback round: the jets fly like Superman, aiming straight up, ragdolls that end on the ground, the jump's shadow |
+| [movement-and-camera.md](systems/movement-and-camera.md) | movement and the camera, the third feedback round: the jets fly like a plane (v0.89), aiming straight up, ragdolls that end on the ground, the jump's shadow |
 | [animation.md](systems/animation.md) | climbing and mantling, the rig review, ragdolls, hands, locomotion (feet, starts, stops, turns), Vael's bird (standing, folding, flying), motion capture and motion matching, the Motion page |
 | [characters.md](systems/characters.md) | the traveller, people of every height and build, the character studio, MakeHuman bodies, capes, costumes, the traveller's reference redesign |
 | [capes-at-every-distance.md](systems/capes-at-every-distance.md) | capes and robes that look the same at every distance and through every switch of detail |
@@ -62,7 +62,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |
 | [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
-| [dev-tools.md](systems/dev-tools.md) | the Lab, the clipping audit |
+| [dev-tools.md](systems/dev-tools.md) | the Lab, the worlds list's debug save, the clipping audit |
 | [testing.md](systems/testing.md) | the tests, and the play-through: the route played from the crash to home in node, old saves resumed, the page's own flows in a headless Chrome |
 | [unity.md](systems/unity.md) | the desert in Unity, and the web-against-Unity benchmark |
 | [engine-bridge.md](systems/engine-bridge.md) | the game's JavaScript inside Godot (GodotJS) and Unity (Puerts), the engine only drawing: the scene mirror, the platform stand-ins |

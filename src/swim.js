@@ -130,7 +130,7 @@ export function enterSwim(P, w) {
   P.vel.y = Math.max(P.vel.y * 0.35, -8);
   P.vel.x *= 0.55; P.vel.z *= 0.55;
   P.onGround = false;
-  P.gliding = P.thrusting = false;
+  P.gliding = false; P.endJets?.();
   P.wingK = 0;
   P._landing = null;
   P.onSwim?.('enter', { pos: P.pos.clone(), surface: w.surface, speed: impact });
@@ -278,7 +278,7 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   const b = breathe(P, dt, under && !sea);   // (deep in a sea the pack gives air)
   if (b) P.onSwim?.(b, { pos: P.pos.clone(), surface: w.surface });
   P.onGround = false;
-  P.gliding = P.thrusting = false;
+  P.gliding = false; P.endJets?.();
   P.wingK = 0;
   P._hang = null;
   return true;

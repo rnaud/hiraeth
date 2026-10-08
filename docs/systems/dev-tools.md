@@ -1,6 +1,6 @@
 # The Lab and the clipping audit
 
-Developer levels and checks: the Lab, the clipping audit.
+Developer levels and checks: the Lab, the worlds list's debug save, the clipping audit.
 
 ## The Lab (v0.39)
 
@@ -10,7 +10,15 @@ previous or next world's room, the hub between the last and the first. The Start
 (`?worlds=1`, `src/world-picker.js`): `boot.js` draws the cards without loading `main.js`,
 so no world is built behind it (about 1 s on the dev server; on the Lab it took about 15 s).
 `?level=<id>&worlds=1` still opens a world with the list up. The list's top row links the game's other
-pages (`PAGES` in `src/world-picker.js`: the character studio, Motion, the trailer, What's new). Its
+pages (`PAGES` in `src/world-picker.js`: the character studio, Motion, the trailer, What's new, Items). The
+items page (`items.html`, `src/items-page/`) shows every item of `src/items.js` in 3D: its model
+(`buildItemModel`) drawn by the game's own pipeline (`viewer.js`: the G-buffer, a fine shadow map with the near
+and far ones made and switched off, the ink pass, FXAA) on the slots' paper. One renderer for the page: each
+card's canvas gets a picture as it scrolls into view and again while it is dragged; a click opens the
+full-screen view (live, drag to turn, wheel or pinch to zoom, ← → the other items, R turns it on its own, Esc).
+Without WebGL the cards keep the game's own pictures (`public/item-pictures/<id>.webp`: `node
+scripts/item-pictures.mjs [ids]`). With them: what it does and where its boxes are (`src/boxes/placements.js`
+notes, the fallbacks by the ship). Its
 pictures are `public/thumbs/<id>.jpg`, one per world: `node scripts/world-thumbs.mjs [ids]` takes them
 again (each world from its start at its own hour, headless Chrome as `scripts/changelog-shots.mjs`).
 
@@ -58,6 +66,43 @@ colour script (`atmo.script`) and haze, and `level.zoneAt` its ink preset, look,
 planets and hour (main.js applies a zone's `look`, `planets` and `hour` when the
 zone changes). Straying over a room's banks or off its edge puts you back at its
 door. `tests/lab.test.js` walks through every door and back.
+
+## The debug save (v0.89)
+
+A world on the route (`ORDER`) picked in the worlds list opens in the **debug save**: as if every world
+before it had been played through, and the world itself not yet. The card's link is
+`?level=<id>&debugsave=1` (`pickHref` in `src/world-picker.js`; the number keys too); `src/boot.js`, before
+the game reads a save, calls `seedDebugSave(id)` (`src/debug-save.js`) and drops the parameter, so a reload
+goes on with the save. A line under the pages says so, and each card says which save it opens
+("debug save · 6 worlds done before it", "in your save").
+
+**The player's saves are never written.** The debug save has a slot of its own, `DEBUG_SLOT` ('debug', keys
+`moebius.sdebug.*`, `src/save-slots.js`): seeding clears it, writes the game state and the sketchbook into it
+and makes it the active slot. The ship's flights stay in it; the title never lists it (Continue, New game and
+Saves are the three slots), so choosing a save there goes back to yours. The Start menu reads "Debug save"
+while you are in it. Picking another world starts the debug save again from scratch.
+
+`progressBefore(id)` (pure) builds it from the game's data, world by world in route order:
+
+- the world's quests (`QUESTS`, `src/story/<world>-data.js`) done and the flags their stages wait for set; a quest
+  a conversation fails (`{ fail }`: Viridel's terraces, which always give way) failed;
+- what its conversations do, anywhere in its data (`dialogueEffects`): the flags they set (the first value
+  written: Hollin's promise is 'yes'), the gear they give (the cab pass), the keepsakes;
+- its people met (`peopleOf`, and the temple's local); its temple entered and resolved, its quest done;
+- its boxes (`PLACEMENTS`) open, their items owned, the box quests done;
+- the tank's colour bands its magical water adds (`TANK_BANDS`: the desert's pool, Lorn's crystal, the Wick's
+  amber, Oyo's lantern), the flags and the keepsake its main quest's end sets in code (`WORLD_ENDS`: the ship
+  powered, the bird's promise; the keepsakes are exported from the data files), `world.<id>.done`, its story page;
+- the ship: the signature read on arrival, the recordings played at the console in turn (`calls.js`, with what
+  they set), the errands delivered or still carried (`ERRANDS`).
+
+The chosen world, and every one after it, is untouched: it opens at its start (no saved position), its
+quests, boxes and temple waiting. Left out: relics and the sketchbook's pictures (drawn as you find them) and
+quest things carried in a pack. The desert's debug save is a new journey past the prologue. Off the route (the
+Lab and the other dev worlds, the side worlds, home) a card opens the world in the save being played, as
+before; so does `?level=<id>` typed by hand. `tests/debug-save.test.js` reads the story's code for the grants
+that are not data (an `onDone`'s `game.set`, `addKeepsake`, a tank band, an item granted or given in code) and
+fails when one is not covered.
 
 ## The clipping audit
 

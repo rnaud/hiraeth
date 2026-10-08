@@ -2,7 +2,8 @@
 // game (src/main.js) in the save slot chosen there. A world asked for directly skips
 // the title and plays the current slot: ?level=<id> (the ship's arrivals, the dev
 // shortcut), ?prologue=1, ?ending=1, and ?start (a save started over from the Start menu).
-// ?worlds=1 alone (the title's Debug entry) shows only the worlds list.
+// ?worlds=1 alone (the title's Debug entry) shows only the worlds list. ?level=<id>&debugsave=1 (a
+// route world picked in that list) first writes the debug save for it (src/debug-save.js).
 // In the Android app, an update downloaded meanwhile is switched to before the title shows.
 
 import './menus.css';
@@ -15,6 +16,15 @@ import { audioGuard } from './audio-guard.js';
 audioGuard();         // (before any sound: silent while the app is away, from the title screen on)
 installNativePad();   // (the Android handheld's controls, for the title screen too)
 watchLabels();
+// a route world picked in the worlds list (Debug): its own save, as if every world before it were played
+// through (src/debug-save.js), written into the debug slot before the game reads a save; a reload goes on with it
+if (new URLSearchParams(location.search).has('debugsave')) {
+  const q = new URLSearchParams(location.search);
+  const [{ seedDebugSave, DEBUG_PARAM }, { game }] = await Promise.all([import('./debug-save.js'), import('./game-state.js')]);
+  seedDebugSave(q.get('level'), { state: game });
+  q.delete(DEBUG_PARAM);
+  history.replaceState(null, '', `${location.pathname}?${q}`);
+}
 const worldsOnly = new URLSearchParams(location.search).get('worlds') === '1' && opensTitle(location.search);
 if (worldsOnly) {
   // the title's Debug entry: the worlds list alone, without building a world behind it (src/world-picker.js)

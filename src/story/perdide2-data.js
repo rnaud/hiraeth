@@ -30,6 +30,10 @@
 const Q = 'perdide2.lamps';
 
 export const ITEMS = { latch: 'Pim’s dome latch', lamp: 'a moss lamp' };
+/** The keepsake the main quest's end gives (src/story/perdide2.js): its words follow what you told Hollin (flag perdide2.promise). */
+export const keepsakeFor = (promise) => ({ id: 'perdide2.person', level: 'perdide2', name: 'Hollin’s lamps', kind: 'person',
+  text: promise === 'yes' ? 'A promise to Hollin, keeper of the lamps: you will come back to the deep wood one day, so that once the lamps were lit for someone who came.'
+    : 'Hollin, keeper of the lamps, asked you to come back one day. You didn’t promise. The pools will be lit either way.' });
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -49,7 +53,7 @@ export const QUESTS = [
     stages: [
       { id: 'find', text: 'Find Pim’s latch: “on the big roof”, the glass dome further down the path', label: 'Pim’s latch', bring: 'latch', at: 'latch', to: 'pim' },
       { id: 'return', text: 'Bring the latch back to Pim by the moss domes', label: 'Pim, by the moss domes', bring: 'latch', to: 'pim' },
-      { id: 'shut', text: 'Shoot the lamp above Pim’s door to shrink the moss, then push the door shut (C, middle click, or RB / R1)', label: 'Pim’s door', flag: 'perdide2.pim.door', at: 'pimDoor' },
+      { id: 'shut', text: 'Shoot the lamp above Pim’s door to shrink the moss, then push the door shut (the gun’s push mode: X or the D-pad, then shoot)', label: 'Pim’s door', flag: 'perdide2.pim.door', at: 'pimDoor' },
     ],
   },
   {
@@ -57,7 +61,7 @@ export const QUESTS = [
     outro: 'The skiff is Fen’s, and Fen says it is yours now, for as long as you need it.',
     stages: [
       { id: 'owner', text: 'Find the skiff’s owner: Bram thinks it’s the hermit in the far dome, out on the deep water', label: 'The far dome', talk: 'fen', at: 'fen' },
-      { id: 'home', text: 'Light Fen’s bow-post lamp. Step off the skiff onto his landing, then push it into the berth (C, middle click, or RB / R1)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
+      { id: 'home', text: 'Light Fen’s bow-post lamp. Step off the skiff onto his landing, then push it into the berth (the gun’s push mode: X or the D-pad, then shoot)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
     ],
   },
 ];

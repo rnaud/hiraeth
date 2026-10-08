@@ -3,9 +3,10 @@
 // thumb does the same thing on every pad (docs/systems/controls.md, "Controller"):
 //
 //   walking   bottom jump (again in the air: boost) · right interact, talk, get on
-//             · left evade (LT + left calls the mount or a taxi) · top: the scout finds the objective
-//             · LT aim · RT shoots while LT is held, and fires the jets without it
-//             (hover; the stick flies you that way, bottom held climbs) · RB guard, LT + RB push
+//             · left evades (LT + left calls the mount or a taxi) · top: the scout finds the objective
+//             · LT aim · RT shoots while LT is held, and without it is the jets' throttle
+//             (analog; they fly like a plane: the stick forward tips the nose down, back
+//             pulls it up, left / right bank and turn; LT in flight holds you to aim) · RB the blade
 //             · L3 (click the left stick) run until you stop
 //             · LB + right stick zoom · D-pad ←/→ gun mode, ↑ worlds, ↓ photo
 //             · R3 (click the right stick) the bell-note whistle, once found
@@ -48,8 +49,8 @@ export class Controller {
    * @param o.context () => 'menu' | 'talk' | 'photo' | 'ride' | 'game'
    * @param o.faces   () => ({ faces: 'xbox' | 'nintendo', byLabel }) (native-pad.js padFaces)
    */
-  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }) }) {
-    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces });
+  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null }) {
+    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat });   // (combat: a foe is near, LB blocks rather than zooms)
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
     this.blocked = new Set(); this.lastContext = null; this.running = false;
   }
@@ -103,7 +104,8 @@ export class Controller {
     } else {
       const h = this.held;
       // LB held: the right stick zooms (pull back: out) instead of looking
-      if (down(LB) && ctx !== 'photo') { if (right.y) this.action(right.y > 0 ? 'zoomOut' : 'zoomIn', dt * Math.abs(right.y) * 1.6); }
+      // (in a fight LB blocks: the stick looks)
+      if (down(LB) && ctx !== 'photo' && !this.combat?.()) { if (right.y) this.action(right.y > 0 ? 'zoomOut' : 'zoomIn', dt * Math.abs(right.y) * 1.6); }
       else this.look(right.x * dt * 900, right.y * dt * 900);
       h.stick = { x: left.x, y: -left.y };
       if (ctx === 'photo') {
@@ -130,11 +132,12 @@ export class Controller {
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
         h.KeyE = down(EAST); h.PadE = h.KeyE;   // (the pad's interact never whistles: that's the left button's)
-        // the fluid tool: hold LT to aim, RT shoots while aiming and fires the jets otherwise (triggers()), LT + RB pushes; jump in the air boosts
-        h.PadAim = down(LT); h.PadFire = down(RT); h.PadPush = down(LT) && down(RB);
-        h.PadGuard = down(RB) && !down(LT);
+        // the fluid tool: hold LT to aim, RT shoots while aiming (the push too: a gun mode) and fires the jets
+        // otherwise (triggers()); jump in the air boosts. The fluid blade (src/fluid-blade.js): RB swings, LB held blocks
+        h.PadAim = down(LT); h.PadFire = down(RT);
+        h.PadThrust = this.blocked.has(RT) ? 0 : trigger(value(RT));   // (the jets' throttle: analog, a light squeeze flies slowly)
+        h.PadBlade = down(RB); h.PadGuard = down(LB);
         h.PadEvade = down(WEST) && !down(LT);
-        h.PadBlade = down(LB);   // the fluid blade (src/fluid-blade.js); LB held with the right stick still zooms
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
         h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
         if (press(WEST) && down(LT)) this.action('call');
@@ -142,10 +145,10 @@ export class Controller {
       // the top button sends the scout to find the objective, on foot and riding (flying too)
       if (ctx !== 'photo' && press(NORTH)) this.action('ping');
       if (ctx !== 'photo') {
-        if (press(R3)) this.action('bell');   // the bell-note whistle, once found (V on the keyboard)
+        if (press(R3)) this.action('lock');   // lock on to the nearest foe, then the next (Tab on the keyboard: src/foes.js)
         if (press(MENU)) this.action('settings');
         else if (press(VIEW)) this.action('journal');
-        else if (press(UP)) this.action('worlds');
+        else if (press(UP)) this.action('bell');   // the bell-note whistle, once found (V on the keyboard)
         else if (press(DOWN)) this.action('photo');
       }
     }
@@ -167,14 +170,17 @@ export function padRide(input) {
  * What the aim and fire buttons do on foot (the pad's triggers, the mouse, the keys):
  *   aim    LT / L2, the right mouse button, R (touch: the ◎ toggle)
  *   shoot  RT / R2, the left mouse button or G, only while aiming (a fresh press: fluid-tool.js)
- *   jets   RT / R2 or the left mouse button while not aiming (player.js: a climb the stick steers, jump held hovers;
- *          Space, the keyboard's and touch's own jets key, still climbs on them as before)
+ *   jets   RT / R2 or the left mouse button while not aiming (player.js JET: they fly like a plane;
+ *          Space held in the air, the keyboard's and touch's own jets key, too)
+ *   thrust the jets' throttle 0..1: RT / R2's travel (PadThrust, analog), 1 for the mouse button
  *   quick  the touch ✺ button: a quick shot, aiming for you (touch has no trigger to hold)
  */
 export function triggers(c = {}) {
   const aim = !!(c.KeyR || c.MouseRight || c.PadAim);
   const fire = !!(c.KeyG || c.MouseLeft || c.PadFire);
-  return { aim, fire, shoot: aim && fire, jets: !aim && !!(c.PadFire || c.MouseLeft), quick: !!c.TouchFire };
+  const pad = c.PadThrust != null ? +c.PadThrust || (c.PadFire ? 1 : 0) : c.PadFire ? 1 : 0;
+  const thrust = aim ? 0 : Math.max(pad, c.MouseLeft ? 1 : 0);
+  return { aim, fire, shoot: aim && fire, jets: thrust > 0, thrust, quick: !!c.TouchFire };
 }
 
 export function mergeControls(keyboard, gamepad) {

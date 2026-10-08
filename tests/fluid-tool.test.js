@@ -49,6 +49,8 @@ function makeTool(o = {}) {
   return { tool, player, camera, state };
 }
 const frames = (tool, n, ctl = {}) => { for (let i = 0; i < n; i++) tool.update(DT, ctl); };
+/** A push: the gun's push mode, fired once (the quick shot needs no aim), then back to the fluid. */
+const pushOnce = (tool, n = 10) => { tool.setMode('push'); tool.update(DT, { TouchFire: true }); frames(tool, n); tool.setMode('shoot'); };
 
 test('the shared reserve: three uses, then none, then all three back exactly 2 s after the last use', () => {
   const r = new Reserve();
@@ -69,16 +71,18 @@ test('the shared reserve: three uses, then none, then all three back exactly 2 s
 });
 
 test('controls: aim, shoot and push from keyboard, mouse, pad or touch; a shot only while aiming', () => {
-  const none = { aim: false, shoot: false, fire: false, quick: false, push: false, blade: false, guard: false, evade: false, mode: false, modeBack: false };
+  const none = { aim: false, shoot: false, fire: false, quick: false, blade: false, guard: false, evade: false, mode: false, modeBack: false };
   assert.deepEqual(toolInput({ KeyR: true, KeyG: true }), { ...none, aim: true, shoot: true, fire: true });
-  assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { ...none, aim: true, shoot: true, fire: true, push: true });
-  assert.deepEqual(toolInput({ PadAim: true, PadFire: true, PadPush: true }), { ...none, aim: true, shoot: true, fire: true, push: true });
+  assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { ...none, aim: true, shoot: true, fire: true }, 'the middle button does nothing now (the push is a gun mode)');
+  assert.deepEqual(toolInput({ PadAim: true, PadFire: true }), { ...none, aim: true, shoot: true, fire: true });
   assert.deepEqual(toolInput({ PadFire: true }), { ...none, fire: true }, 'RT without LT does not shoot (it fires the jets: player.js)');
   assert.deepEqual(toolInput({ KeyG: true }), { ...none, fire: true }, 'nor G without R');
   assert.deepEqual(toolInput({ TouchFire: true }), { ...none, quick: true }, 'the touch button: a quick shot');
-  assert.deepEqual(toolInput({ KeyC: true }), { ...none, push: true });
+  assert.deepEqual(toolInput({ KeyC: true }), none, 'C does nothing now');
   assert.deepEqual(toolInput({ KeyX: true, KeyE: true }), { ...none, mode: true }, 'X switches the gun mode; E does nothing to the tool');
-  for (const k of ['KeyF', 'PadBlade', 'TouchBlade']) assert.deepEqual(toolInput({ [k]: true }), { ...none, blade: true }, `${k}: the fluid blade`);
+  for (const k of ['KeyF', 'PadBlade']) assert.deepEqual(toolInput({ [k]: true }), { ...none, blade: true }, `${k}: the fluid blade`);
+  for (const k of ['ControlLeft', 'KeyZ', 'PadGuard', 'TouchGuard']) assert.deepEqual(toolInput({ [k]: true }), { ...none, guard: true }, `${k}: its guard`);
+  assert.deepEqual(toolInput({ TouchBlade: true }), { ...none, blade: true }, 'touch attack is separate from guard');
   assert.deepEqual(toolInput({ PadModeNext: true }), { ...none, mode: true }, 'D-pad right');
   assert.deepEqual(toolInput({ PadModePrev: true }), { ...none, modeBack: true }, 'D-pad left');
 });
@@ -95,7 +99,7 @@ test('each ability spends a charge from the one reserve; empty, nothing fires un
   assert.equal(tool.charges, 2); assert.equal(tool.globs.length, 1);
   frames(tool, 30, { KeyR: true });
   // push: a press, no aiming needed
-  tool.update(DT, { KeyC: true }); frames(tool, 10);
+  pushOnce(tool, 10);
   assert.equal(tool.charges, 1);
   // boost: the player asks on a fresh press of jump in the air
   player.onGround = false; player.vel.set(0, -3, 0);
@@ -117,7 +121,7 @@ test('each ability spends a charge from the one reserve; empty, nothing fires un
   assert.equal(tool.charges, 3);
   // disabled (the ship prologue): nothing comes out
   tool.enabled = false;
-  tool.update(DT, { KeyC: true }); frames(tool, 10);
+  pushOnce(tool, 10);
   assert.equal(tool.charges, 3); assert.equal(player.onAirJump(1), false);
   state.emit('tool:enable', { on: true });
   assert.equal(tool.enabled, true);
@@ -137,7 +141,7 @@ test('an empty tank (the desert’s backpack, until the giant’s pool) holds no
   // shoot, push, boost: nothing comes out, a press only sputters (and says why)
   frames(tool, 30, { KeyR: true });
   tool.update(DT, { KeyR: true, KeyG: true }); frames(tool, 20, { KeyR: true });
-  tool.update(DT, { KeyC: true }); frames(tool, 10);
+  pushOnce(tool, 10);
   player.onGround = false;
   assert.equal(player.onAirJump(1), false, 'no boost');
   player.onGround = true;
@@ -154,7 +158,7 @@ test('an empty tank (the desert’s backpack, until the giant’s pool) holds no
   assert.equal(tool.dry, false);
   assert.equal(tool.charges, 3);
   assert.equal(tool.colours, 2, 'cyan, violet and the pool’s band');
-  tool.update(DT, { KeyC: true }); frames(tool, 10);
+  pushOnce(tool, 10);
   assert.deepEqual(fired, ['push'], 'now it pushes');
   frames(tool, Math.round(2.2 / DT));
   assert.equal(tool.charges, 3, 'and refills as ever');
@@ -282,7 +286,7 @@ test('push: only targets inside the cone (and in view) are pushed, away from the
   const front = target(v(0.4, 1.2, -4)), side = target(v(-5, 1.2, 0));
   const { tool, player } = makeTool();
   player.vel.set(0, 0, 0);
-  tool.update(DT, { KeyC: true }); frames(tool, 12);
+  pushOnce(tool, 12);
   assert.equal(front.length, 1); assert.equal(side.length, 0);
   assert.equal(tool.charges, 2);
   assert.ok(front[0].info.strength > 0.2 && front[0].info.strength < 1);

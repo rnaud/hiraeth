@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Cascade, ShadowCuller, shadowDirection, snapLightSpace } from '../src/shadows.js';
+import { Cascade, ShadowCuller, shadowDirection, snapLightSpace, VIEW_SLACK, viewOf, viewLeft } from '../src/shadows.js';
 
 const uniforms = () => ({ map: { value: null }, matrix: { value: new THREE.Matrix4() }, bias: { value: 0 }, offset: { value: 0 } });
 const sun = new THREE.Vector3(0.6, 0.8, 0.1).normalize();
@@ -103,6 +103,46 @@ test('ShadowCuller: casters whose shadow cannot reach the view, or smaller than 
   const fine = cull.hide(1000, 0.012, 1600);
   assert.ok(!fine.includes(pebble));
   for (const o of fine) o.visible = true;
+});
+
+test('a map kept over frames holds the casters of every view within VIEW_SLACK, and is redrawn once the view leaves it', () => {
+  // the City-Shaft: the far map (drawn every 3rd frame) culled for one view and looked at from the next ones;
+  // after a quick turn the towers whose shadows had been off screen were missing until it was drawn again
+  const scene = new THREE.Scene();
+  const mat = new THREE.MeshBasicMaterial();
+  const camera = new THREE.PerspectiveCamera(55, 16 / 9, 0.3, 5000);
+  camera.position.set(0, 2, 0); camera.lookAt(0, 2, -10);   // looking north (-z)
+  camera.updateMatrixWorld(); camera.updateProjectionMatrix();
+  const light = new THREE.Vector3(0, 1, 0);                 // the sun overhead: a shadow falls straight down
+  // a tower just right of the view’s edge (its half-width is 43° at 16:9 and 55° tall): 4° out, 300 m off
+  const out = (deg, d = 300) => { const a = THREE.MathUtils.degToRad(deg); return new THREE.Vector3(Math.sin(a) * d, 2, -Math.cos(a) * d); };
+  const half = THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(27.5)) * 16 / 9));
+  const tower = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 4), mat); tower.position.copy(out(half + 4)); scene.add(tower);
+  const far = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 4), mat); far.position.copy(out(half + 30)); scene.add(far);
+  scene.updateMatrixWorld();
+  const cull = new ShadowCuller(scene);
+  cull.begin(camera, light);
+  let hidden = cull.hide(5000, 1.1, 3200);
+  assert.ok(hidden.includes(tower) && hidden.includes(far), 'drawn for this frame only: both out of the view');
+  for (const o of hidden) o.visible = true;
+  cull.begin(camera, light);
+  hidden = cull.hide(5000, 1.1, 3200, 0.75, [], VIEW_SLACK);
+  assert.ok(!hidden.includes(tower), 'kept: within the slack');
+  assert.ok(hidden.includes(far), 'still left out: well beyond it');
+  for (const o of hidden) o.visible = true;
+  assert.ok(THREE.MathUtils.degToRad(4) < VIEW_SLACK.turn && VIEW_SLACK.turn < THREE.MathUtils.degToRad(30));
+
+  // redrawn when the view turns or moves out of the slack
+  const at = viewOf(camera);
+  assert.equal(viewLeft(null, camera), true, 'never drawn');
+  assert.equal(viewLeft(at, camera), false);
+  camera.rotation.y -= VIEW_SLACK.turn * 0.8; camera.updateMatrixWorld();
+  assert.equal(viewLeft(at, camera), false, 'a little turn: the kept casters cover it');
+  camera.rotation.y -= VIEW_SLACK.turn * 0.4; camera.updateMatrixWorld();
+  assert.equal(viewLeft(at, camera), true, 'past the slack');
+  const at2 = viewOf(camera);
+  camera.position.x += VIEW_SLACK.move + 0.5; camera.updateMatrixWorld();
+  assert.equal(viewLeft(at2, camera), true, 'a cut or a teleport');
 });
 
 test('the far pass leaves out pebbles and shrubs, not a tile of boulders; self-lit things stay out unless they are solid', async () => {

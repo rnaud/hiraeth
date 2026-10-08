@@ -515,11 +515,23 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
   the billows (east: domes), round a frozen wave in its middle, to the great breaking wave (north: the `curl`
   profile, its hollow over the north camp). Low glass flows cross the sand in the east; five glass mounds to climb.
   A ring of tall glass at ~610 m closes the basin in (drawn only: past the edge, `limit` 560, no shadow).
-- **The glass**: `glassRidge` meshes (the face lit as any surface, its colours in its vertices: a lime foot, mint,
-  a teal top, the silhouettes printed darker inside), solid as drawn (you walk round, climb and stand on them) and
-  kept out of the sand drifts (`withoutDrifts`: a long ridge's one convex hull would bank sand over the valley).
-  The glass and the sand print their shade flat (`shadeFlat` `GLASS_FLAT` 0.8) in the world's teal-green shadow, so
-  the shade reads as the light come through the glass; the camps, stones and kilns bank sand as in the desert.
+- **The glass**: `glassRidge` meshes (its colours in its vertices: a lime foot, mint, a teal top), drawn by the
+  dune-glass shader (materials.md "Dune glass", `src/dune-glass-shader.js`): the light through its thin parts
+  and grazing edges in mint and lime bands, crisp dark silhouettes held inside, a deeper shade on turned faces
+  and in the lobes' creases, a pale streak up each lobe. Solid as drawn (you walk round, climb and stand on
+  them), merged by the kit's `glassBatch` (it keeps the shader's attribute) and never feeding the sand drifts
+  (a long ridge's one convex hull would bank sand over the valley). The sand prints its shade flat (`shadeFlat`
+  `GLASS_FLAT` 0.8) in the world's teal-green shadow, the glass less flat (`GLASS_GLASS_FLAT` 0.45: its mint
+  foot and teal top kept in shade); the light come through the glass **pools on the sand** at the walls' feet,
+  on the side away from the sun (`glassPools`); the world keeps none of the print's warm grey in shade
+  (`uShadeKeep` 0) and its dusk shade is an emerald (`GLASS_DUSK`), so the late afternoon no longer goes grey.
+- **Passages** (a ridge's `passages: [{ at, w, h }]`, `glassPassage`): two archways go through. One through the
+  cliff of the giants (7 × 10 m, ~70 m long, to the sand behind it), one through the frozen wave in the valley's
+  middle (8 × 11 m, ~50 m, on the way north). The opening is cut out of both faces (every cell of the ridge with
+  a corner inside the round-headed arch, a little wider), and a vault of glass 3 m thick runs through, poking 2 m
+  out of each face so its mouth covers the cut's ragged edge; flat facets, thin glass (mint inside), lit at both
+  mouths at night. The breaking wave's **hollow** is walked into from the north camp: its glass floor rises
+  gently ~60 m in under the lip (tests). The other archways stay drawn-only lit panels.
 - **The camps** (`GLASS_CAMPS`): awnings on poles, rugs, crates, glass floats glowing green, a kiln with its
   chimney and lit mouth (`awningCamp`), on ramps of sand against the walls. Four glassworkers with toned lines of
   their own (`GLASS_CONTENT`), a crowd round the camps and a file of carriers walking the valley between them
@@ -534,14 +546,18 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
   1.83 ms / 321, the valley 2.11 / 277, the west camp 1.73 / 237, the breaker 1.73 / 215), the Signal Market
   2.23–2.28 ms and 312–695 draws. About 0.38 M triangles drawn at the spawn on the Handheld preset (0.87 M on
   High); the static collision ~45 k triangles. The load is the game's steps (a ridge a step).
+  The glass shader and the passages (October 2026; the same method, 3 × 20 frames, median of 5 rounds, 16:30,
+  the crowd off): by the ship 1.52 → 1.55 ms, the valley 1.51 → 1.52, the west camp 1.43 → 1.48, the breaker
+  1.36 → 1.41, the cliff of the giants 1.33 → 1.40; draws unchanged (±2); the pools add a few ms to the load.
 - **Tests** (`tests/glass-dunes.test.js`): the kit (finite, coloured, the face out, the ends sunk, the silhouettes
   darker), the four views, the detour on the map and off the route, the build (the cliff solid, a mound stood on
-  where drawn, the ship's flat), the contact audit (5 climbs inside the arches' drawn-only rims, 1 walks through).
-- **Left / next**: the glass is opaque and lit as a surface (no glow from within, no light pooling lime at a
-  wall's foot beyond its colours); the silhouettes are soft vertex-colour masses (crisper shapes need finer
-  meshes or a shader mask); the archways are lit panels, not passages; the breaking wave reads as a great hood
-  from far but as a wall from inside its hollow; no sounds of its own (the kilns, the glass ringing in the wind),
-  no music of its own.
+  where drawn, the ship's flat), the contact audit (1 climbs inside, 2 walk through: the drawn-only rims that took
+  5 climbs are passages now), the passages (open through, glass beside, a roof over), the hollow.
+- **Left / next**: the glass is still opaque (no parallax of the silhouettes inside it, no sight through a
+  thin lip); the passages' insides are plain mint (no drawn strata, no silhouettes in their walls), their
+  entrances darker than the old lit panels at dusk; the breaking wave reads as a great hood from the valley
+  (the plate's tall arch is the References view's, seen from its side); no sounds of its own (the kilns, the
+  glass ringing in the wind), no music of its own.
 
 ## The City Behind the Waterfall (`waterfall`, off the route, October 2026)
 

@@ -15,9 +15,10 @@ import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
 import { sharedUniforms, markHero, setEnvGround } from './materials.js';
+import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
-import { Player, CameraRig } from './player.js';
+import { Player, CameraRig, jetCameraPitch } from './player.js';
 import { cameraPhysics, keepLensOut } from './carriers.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
@@ -31,7 +32,7 @@ import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { BrushTrail } from './brush.js';
-import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips } from './shadows.js';
+import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { JumpShadow } from './jump-shadow.js';
@@ -74,10 +75,10 @@ import { createItemEffects } from './boxes/effects.js';
 import { Foes } from './foes.js';
 import { feelDt, shakeCamera, kick } from './feel.js';
 import { DevMenu } from './dev-menu.js';
-import { fillPicker } from './world-picker.js';
+import { fillPicker, pickHref } from './world-picker.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
-import { slots, formatPlaytime } from './save-slots.js';
+import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { slicer, runStepsAsync, gpuPacer } from './load-steps.js';
@@ -214,6 +215,9 @@ const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.met
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 const level = meta.build ? await runStepsAsync(meta.build(scene), slice) : meta.create(scene);
 const terrain = level.ground;
+// where the old walls' cracks may not run: their windows, doors and what is fixed on them (src/wall-openings.js;
+// the builders added their merged pieces as they laid them)
+{ const t = performance.now(); wallOpenings.collectScene(scene).flush(sharedUniforms); console.info(`wall openings: ${wallOpenings.boxes} pieces in ${(performance.now() - t).toFixed(0)} ms`); }
 // what the metals see below the horizon: the world's ground (materials.js)
 setEnvGround(level.envGround ?? level.ground?.mesh?.material?.uniforms?.uColor?.value);
 await slice();
@@ -399,6 +403,7 @@ if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, u
 // local lights: the 8 nearest to the player go to the shader each frame
 const levelLights = level.lights ?? (level.lights = []);
 const jetLight = new THREE.Vector4();
+const jetShotK = { pitch: 0, keepTight: true, yawRate: 4 };   // (the follow camera behind the jets' nose: rig.follow's shot)
 function updateLights() {
   const L = sharedUniforms.uLights.value;
   const p = player.pos;
@@ -407,8 +412,8 @@ function updateLights() {
     .filter(([l, d]) => d < (l.w + 250) ** 2)
     .sort((a, b) => a[1] - b[1]);
   let n = 0;
-  if (player.thrusting) {
-    jetLight.set(p.x, p.y + 0.6, p.z, 7 + Math.random() * 1.5);   // the flame flickers on nearby walls
+  if (player.jetPower > 0) {
+    jetLight.set(p.x, p.y + 0.6, p.z, (4 + 3 * player.jetPower) + Math.random() * 1.5);   // the flame flickers on nearby walls
     L[n++].copy(jetLight);
   }
   for (const [l] of ranked) { if (n >= 8) break; L[n++].copy(l); }
@@ -608,7 +613,8 @@ await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
-const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, notice: (t) => showToast(t) });
+const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
+tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
 await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
@@ -819,6 +825,7 @@ if (query.get('fps') === '1') settings.showFps = true;   // (the frame readout f
 settings.on((k) => {
   rig.sensitivity = settings.sensitivity;
   rig.invertY = settings.invertY;
+  player.invertFlight = settings.invertFlight;   // (the jets' pitch: push forward to climb)
   sound.setVolumes(settings.music, settings.effects);
   gui.domElement.style.display = settings.devPanel ? '' : 'none';
   document.body.classList.toggle('nofps', !settings.showFps);
@@ -836,7 +843,7 @@ const menu = new SettingsMenu(settings, {
   // an update restarts the game (at the title, in the new build): the position and the time played first
   onBeforeRestart: () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); },
   // where you are, at the top of the Start menu
-  where: () => `<b>Save ${slots.active}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
+  where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
   isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
   // this save only (the other slots stay): forget it and start again with the prologue
@@ -893,7 +900,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
   if (e.code === 'Escape' && picker.classList.contains('open')) showPicker(false);
   const n = Number(e.key);
-  if (picker.classList.contains('open') && n >= 1 && n <= pickable.length && (!pickable[n - 1].hidden || completed())) location.search = '?level=' + pickable[n - 1].id;
+  if (picker.classList.contains('open') && n >= 1 && n <= pickable.length && (!pickable[n - 1].hidden || completed())) location.search = pickHref(pickable[n - 1].id);
 });
 
 // ------------------------------------------------------------------ photo mode
@@ -1013,6 +1020,7 @@ const closeControllerMenu = () => {
 const controller = new Controller({
   context: () => busy() ? (menuRoot() === storyRt.dialogue.el ? 'talk' : 'menu') : photo.on ? 'photo' : player.ride ? 'ride' : 'game',
   faces: () => padFaces(),
+  combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
   navigate: (x, y) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
@@ -1047,8 +1055,9 @@ const controller = new Controller({
     if (name === 'ping' && !ship.playing) scout.ping();
     if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the References: X / □ opens the list of views; there is no mount to call)
     else if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
-    if (name === 'bell' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
-    else if (name === 'bell') itemFx.ring();   // R3: the bell-note whistle (V), and the echo shell plays back
+    if (name === 'lock' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
+    else if (name === 'lock' && !ship.playing) foes.cycleLock();   // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js)
+    if (name === 'bell') itemFx.ring();   // D-pad up: the bell-note whistle (V), and the echo shell plays back
     if (name === 'l3' && level.jump) level.jump(-1);
   },
 });
@@ -1109,10 +1118,12 @@ const shadowDir = new THREE.Vector3();
 const frameStats = { calls: 0, tris: 0, n: 0, culled: 0 };
 renderer.info.autoReset = false;   // one frame's draw calls over all its passes (the F readout)
 
-/** One shadow pass: place the cascade, hide what it doesn't need, render, show it again. */
-function shadowPass(c, reach, hide = []) {
+/** One shadow pass: place the cascade, hide what it doesn't need, render, show it again. A map kept over
+ *  several frames (kept) holds the casters of every view within VIEW_SLACK of this one (shadows.js). */
+function shadowPass(c, reach, hide = [], kept = false) {
   c.place(player.pos);
-  const off = shadowCull.hide(reach, c.texel, c.depth, 0.75, hide);
+  const off = shadowCull.hide(reach, c.texel, c.depth, 0.75, hide, kept ? VIEW_SLACK : null);
+  c.view = viewOf(camera, c.view);
   c.render(renderer, scene);
   // (a mesh whose shape its own material makes, drawn with that material: the traveller's overshirt, tripo-cloth.js)
   if (player.object.visible) for (const o of player.character?.shadowCasters ?? []) renderer.render(o, c.cam);
@@ -1160,13 +1171,15 @@ function renderFrame() {
   shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
   const camToPlayer = camera.position.distanceTo(player.pos);
   if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
-  if (turned || frameNo % preset.nearEvery === 0) shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8);
-  if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0)) {
+  // (and drawn again as soon as the view has turned or moved out of what the last one was culled for)
+  const nearKept = preset.nearEvery > 1;
+  if (turned || frameNo % preset.nearEvery === 0 || (nearKept && viewLeft(cascades.near.view, camera))) shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8, [], nearKept);
+  if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0) || viewLeft(cascades.far.view, camera)) {
     // pebbles and bushes don't need km-wide shadows (but a tile of boulders, globes or pillars does)
     const small = farPassSkips(tiled.small, cascades.far.texel);
     for (const o of small) o.visible = false;
     if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
-    shadowPass(cascades.far, camera.far);
+    shadowPass(cascades.far, camera.far, [], true);
     lod.viewPass();
     for (const o of small) o.visible = true;
   }
@@ -1308,6 +1321,7 @@ function missedFrames() {
   return n;
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'F3' && !photo.on) { e.preventDefault(); settings.set('showFps', !settings.showFps); } });   // (F is the fluid blade)
+window.addEventListener('keydown', (e) => { if (e.code === 'Tab' && !e.repeat && !busy() && !photo.on) { e.preventDefault(); foes.cycleLock(); } });   // lock on (R3 on a pad: src/foes.js)
 // (first the engine, and a benchmark's label when it sets one: window.__benchLabel, e.g. "camps r2/3")
 const ENGINE = window.__fpsEngine = engineLabel(navigator.userAgent, location.search, window.Capacitor);
 function frameReadout(fps) {
@@ -1374,10 +1388,13 @@ function frame(ts) {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
-    player.update(dt, busy() ? noInput : ctl, rig.yaw, rig.pitch);   // (the pitch: the jets fly where the camera looks)
-    // (a wider arm for what needs to see ahead and below: gliding, the jets; a little for climbing and swimming)
-    const wide = player.riding ? null : player.gliding ? 7 : player.thrusting ? 3.5 : player.climbing ? 1.5 : player.swim ? 0.8 : 0;
-    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding, player.ride?.shot ?? null, wide);
+    player.update(dt, busy() ? noInput : ctl, rig.yaw);
+    // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
+    const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
+    const wide = player.riding ? null : player.gliding ? 7 : jets || player.jetHold ? 3.5 + Math.min(jetSpeed, 30) * 0.12 : player.climbing ? 1.5 : player.swim ? 0.8 : 0;
+    // flying on the jets the camera comes round behind the nose and tips with it, as a ride's does (the right stick or the mouse take it for a moment)
+    const jetShot = jets ? (jetShotK.pitch = jetCameraPitch(player.jetFlight.pitch), jetShotK) : null;
+    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding || jets, player.ride?.shot ?? jetShot, wide);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
@@ -1453,9 +1470,9 @@ function frame(ts) {
   if (rideK === 'bird' && (ctl.Space || ctl.Throttle > 0.3) && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
   sound.update({
     speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: Wx.storm, rain: Wx.rainOut, rainRoof: Wx.rainRoof,
-    thrusting: player.thrusting, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
+    thrusting: player.thrusting || player.jetHold, jetPower: player.jetPower, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
     altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
-    flying: player.gliding || player.thrusting, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
+    flying: player.gliding || !!player.jetFlight, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
     roar: level.roar?.(player.pos) ?? 0,   // (a waterfall near: src/levels/waterfall.js)
     hum: level.hum?.(player.pos) ?? 0,   // (masts and a receiver near: src/levels/antennas.js)
     rails: level.rails?.(player.pos) ?? null,   // (a train's wheels under you: src/levels/overnight-train.js)
@@ -1485,6 +1502,16 @@ function frame(ts) {
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   foes.update(dt, busy() || photo.on || ship.playing);
+  // locked on (R3 / Tab): the camera turns to keep the foe ahead (src/foes.js)
+  // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
+  player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
+  if (player.lockOn) player.lockOn.dir.set(foes.lock.pos.x - player.pos.x, 0, foes.lock.pos.z - player.pos.z).normalize();
+  if (foes.lock && !busy() && !photo.on) {
+    const f = foes.lock, F = player.frame, dx = f.pos.x - player.pos.x, dz = f.pos.z - player.pos.z;
+    const r = dx * F.right.x + dz * F.right.z, a = dx * F.fwd.x + dz * F.fwd.z;
+    const want = Math.atan2(-r, -a), da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
+    rig.yaw += da * (1 - Math.exp(-6 * realDt));
+  }
   // levels with zones (the Hangar) switch ink style as you cross between them
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);
@@ -1697,5 +1724,5 @@ window.contactAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes,
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, itemIcons,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

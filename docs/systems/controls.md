@@ -11,14 +11,14 @@ npm run dev     # http://localhost:5173
 
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
-**F** swings the fluid blade (LB / L1, touch ⚔). **B** holds guard (RB / R1, touch ◇); **Z** evades on foot (X / □, touch ↶). A guard timed just before contact parries; a held guard spends a fluid charge per block. See docs/systems/foes.md. **F3** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
+**F** swings the fluid blade (RB / R1 on a controller, ⚔ on touch), **Ctrl** or **Z** held (on land) guards (LB / L1, 🛡), **Alt** evades (X / □, touch ↶). **Tab** locks on to a foe (R3, ◉): docs/systems/foes.md. The push is a gun mode (X, the D-pad, ◐), fired as a shot; C and the middle button do nothing now. **F3** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after
 five seconds; ping again to refresh it. The guide follows quest progress and
 portal routes, with local obstacle avoidance. **L** opens the level picker. Each level's controls are listed in [worlds.md](worlds.md), "Levels".
 
 **The tool:** hold right mouse (or **R**) to aim, click (or **G**) to fire, and
-**X** (or middle click) to switch modes. On a gamepad, LT aims, RT fires while
+**X** to switch modes (fluid, push, and those found). On a gamepad, LT aims, RT fires while
 aiming and the D-pad switches; on touch, use **◎ ✺ ⇄**. The paralyze ray
 freezes wildlife and people briefly. Foam darts activate things from afar:
 reactive scenery, observatory lenses within 30 m, cruising
@@ -35,15 +35,17 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
 
 | | bottom (Xbox A, Retroid B) | right (Xbox B, Retroid A) | left (Xbox X, Retroid Y) | top (Xbox Y, Retroid X) |
 |---|---|---|---|---|
-| walking | jump (again in the air: boost; hold: wings; with RT on the jets: climb) | interact, talk, get on | evade; with LT: call mount / taxi | ping |
+| walking | jump (again in the air: boost; hold: wings) | interact, talk, get on | evade; with LT: call mount / taxi | ping |
 | riding | jump off (a hop, its speed carries you) | get off (moving or flying: jump off) | hop / flap / rise (a cab: where to?) | |
 
 - **Walking:** left stick moves; click it (L3) to run, until you let the stick go.
-  Right stick looks; hold LB / L1 and the right stick zooms (a press of LB / L1 on its own swings the fluid blade). LT / L2 aims the fluid
-  tool and RT / R2 shoots while it is held; RT / R2 without LT fires the **jets**
-  (see "The controls of October 2026" below). RB / R1
-  guards (LT + RB pushes), D-pad left / right changes the gun mode, up the worlds, down photo mode,
-  R3 sounds the bell-note whistle. View / Select opens the sketchbook on your **gear**
+  Right stick looks; hold LB / L1 and the right stick zooms (with no foe near: in a fight LB / L1 is the
+  guard). LT / L2 aims the fluid tool and RT / R2 shoots while it is held (the **push** is a gun mode, fired
+  the same way); RT / R2 without LT is the **jets'** throttle (analog; they fly like a plane: see
+  docs/systems/movement-and-camera.md).
+  **RB / R1 swings the fluid blade** (press again to chain three swings), **LB / L1 held guards**, **R3 locks
+  on** to the nearest foe, then the next, then lets go (docs/systems/foes.md). D-pad left / right changes the
+  gun mode (fluid, push and those found), up sounds the bell-note whistle, down photo mode. View / Select opens the sketchbook on your **gear**
   (every item and what it does, `gearHtml` in `src/items.js`); Menu / Start the settings.
 - **The pad's interact never whistles.** On the keyboard E still falls back to the
   whistle when nothing is near; on a pad that is LT + the left button's (`player.callMount`).
@@ -95,13 +97,12 @@ From the author's handheld sessions (TODO.md, "Controls").
   does not fire). Without aiming, RT / R2 and the left mouse button (pointer captured)
   fire the jets. G alone does nothing. The touch ✺ button writes `TouchFire`, a quick
   shot that raises the arm for you, since touch has no trigger to hold.
-- **The jets fly like Superman** (`player.update`, `JET`; October 2026, replacing "steer like
-  the bird"): with RT / R2 held (not aiming), the left stick flies you where the camera looks:
-  look up to climb, down to dive (straight down, head first, at the steepest), sideways to
-  strafe; stick at rest hovers; A / × held with RT rises straight up; L3 is faster and dives
-  speed up with their steepness. From the ground RT lifts you off unless you point into a dive.
-  The keyboard's and touch's Space still thrusts and climbs. Fuel, its refill on landing and
-  the landings are unchanged. docs/systems/movement-and-camera.md.
+- **The jets fly like a plane** (v0.89, replacing "like Superman", which replaced "steer like the
+  bird"): RT / R2 is the throttle, analog (`PadThrust`, `triggers().thrust`); from the ground it lifts
+  you straight up. The left stick flies the nose: forward dives, back climbs (Settings: invert),
+  left / right bank and turn. Let go to glide; LT / L2 in flight holds you to shoot. The keyboard's
+  left click or SPACE held in the air, and touch's ⤒ held, are full throttle; W / S and A / D (the
+  left drag on touch) fly the nose. docs/systems/movement-and-camera.md.
 - **Jump off** (`player.jumpOff`, `JUMP_OFF`): riding, the bottom button (Retroid B)
   jumps off the bird, the hoverbike, the skiff or a taxi with a 7 m/s hop. You keep
   85 % of its speed, and in the air it fades slowly until you land. The left button
@@ -114,8 +115,7 @@ From the author's handheld sessions (TODO.md, "Controls").
   into it, and she swoops in to catch you (`flyCatch` leads you by its own reach time).
 - **The ragdoll from higher up**: `FALL.tumble` is 32 m/s (about 16 m). A fatal fall is
   still 48 m/s (about 36 m).
-- Tests: `tests/controls.test.js` (the jets steering, hovering, climbing and lifting
-  off, the pad's jump and the wings, jumping off the bird low and high, with and
+- Tests: `tests/jets.test.js` (the jets), `tests/controls.test.js` (jumping off the bird low and high, with and
   without wings, the refused taxi jump, the bike's momentum, the new tumble height),
   `tests/controller.test.js` (`triggers`, the ride buttons), `tests/fluid-tool.test.js`
   (the straight shot, aim-first, the lip).

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { wallOpenings } from '../wall-openings.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../materials.js';
 import { mulberry32 } from '../noise.js';
@@ -66,6 +67,7 @@ export function* buildBazaar(scene) {
     if (!buckets.has(key)) buckets.set(key, { geos: [], material, solid });
     const g = geo.index ? geo.toNonIndexed() : geo;
     g.deleteAttribute('uv'); buckets.get(key).geos.push(g);
+    wallOpenings.addGeometry(g, material);   // (a window, a sign, a shop's opening: no crack runs through it)
   }
   function box(x, y, z, w, h, d, material, solid = true) { add(new THREE.BoxGeometry(w, h, d).translate(x, y, z), material, solid); }
   function tube(points, radius, material, solid = false) {

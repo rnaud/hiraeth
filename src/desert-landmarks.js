@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { wallOpenings } from './wall-openings.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA, MODE_WATER } from './materials.js';
 import { SandDrifts } from './sand-drifts.js';
@@ -129,7 +130,9 @@ class Kit {
   gy(x, z) { const p = this.world(x, 0, z); return this.terrain.heightAt(p.x, p.z) - this.origin.y; }
   add(mat, geo) {
     if (!this.batches.has(mat)) this.batches.set(mat, []);
-    this.batches.get(mat).push(prep(geo).applyMatrix4(this.frame));
+    const g = prep(geo).applyMatrix4(this.frame);
+    wallOpenings.addGeometry(g, mat);   // (a window, a door: no crack runs through it)
+    this.batches.get(mat).push(g);
     return this;
   }
   solid(geo) { const g = prep(geo).applyMatrix4(this.frame); this.proxies.push(g); SandDrifts.current?.addGeometry(g); return this; }

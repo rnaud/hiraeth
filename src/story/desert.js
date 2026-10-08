@@ -329,7 +329,7 @@ export function setupDesert(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearChannel('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. It needs a shove: push it (C, middle click, or RB / R1).'); }
+      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. It needs a shove: push it (the gun’s push mode: X or the D-pad, then shoot).'); }
       return true;
     } });
   void boneTarget;
@@ -481,7 +481,7 @@ export function setupDesert(ctx) {
     if (addColour) game.set('desert.pool.tinted', true);
     return { wasDry, addColour };
   };
-  const FILLED = 'The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with R or LT / L2, then G or RT / R2) and pushes (C, or RB / R1).';
+  const FILLED = 'The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with R or LT / L2, then G or RT / R2) and pushes (switch the gun to push with X or the D-pad, and shoot).';
   /** Ama's jar fills at the pool too. */
   const fillJar = () => {
     if (!quests.has('jar') || game.flag('desert.jar.filled')) return;
@@ -536,7 +536,7 @@ export function setupDesert(ctx) {
     if (item !== 'backpack') return;
     const empty = id === 'desert.backpack' && !open() && !game.flag('desert.pool.tinted');
     if (empty) game.set('tool.empty', true);
-    setTimeout(() => toast(empty ? 'The tank on your back is empty: dry glass, not a drop in it. Nothing to shoot, nothing to push. Not yet.' : 'Try shooting (aim LT / L2, shoot RT / R2) or pushing (RB / R1).'), 3200);
+    setTimeout(() => toast(empty ? 'The tank on your back is empty: dry glass, not a drop in it. Nothing to shoot, nothing to push. Not yet.' : 'Try shooting (aim LT / L2, shoot RT / R2) or pushing (switch the gun to push with X or the D-pad, and shoot).'), 3200);
   });
   quests.def('desert.power').onDone = () => {
     game.set('ship.powered', true);

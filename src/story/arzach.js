@@ -4,7 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { featherGeometry } from '../avian.js';
-import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, RIDER_CALL, RIDER_CALL_BEAT } from './arzach-data.js';
+import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, RIDER_CALL, RIDER_CALL_BEAT, KEEPSAKE } from './arzach-data.js';
 
 // Vael's story, alive (arzach-data.js has the words): "The Waiting Bird".
 //
@@ -455,7 +455,7 @@ export function setupArzach(ctx) {
   quests.def('arzach.bird').onDone = () => {
     game.set('bird.promise', true);
     game.set('world.arzach.done', true);
-    game.addKeepsake({ id: 'arzach.person', level: 'arzach', name: 'The bird’s promise', kind: 'person', text: 'She bowed her long neck and opened her wings. Wherever there is sky, call, and she will come.' });
+    game.addKeepsake(KEEPSAKE);
     toast('Keepsake: the bird’s promise. Wherever there is sky, she will come when you call.');
     setTimeout(() => story.complete?.(), 1500);
   };

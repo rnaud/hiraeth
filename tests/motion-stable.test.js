@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { makeMaterial, WEATHER, DETAIL, TERMINATOR, TERMINATOR_TURN, FACET_EDGE, MODE_TERRAIN, HATCH_AA } from '../src/materials.js';
+import { makeMaterial, WEATHER, DETAIL, TERMINATOR, TERMINATOR_TURN, TERMINATOR_REACH, FACET_EDGE, MODE_TERRAIN, HATCH_AA } from '../src/materials.js';
 
 // Stable in motion (docs/systems/rendering.md): what flickered, crawled or slid as the camera moved, checked in
 // headless Chrome with the game's clock stepped by hand, and how each one is held still.
@@ -9,34 +9,21 @@ import { makeMaterial, WEATHER, DETAIL, TERMINATOR, TERMINATOR_TURN, FACET_EDGE,
 // that band is outlined on one frame and not on the next as the camera moves a fraction of a pixel.
 const EDGE_FULL = 0.14;
 
-test('weathered walls: grime keeps its tone over the colour-edge threshold to its foot, and no mark is a hard step', () => {
-  // a mid-grey wall (linear 0.4): the streak's step at its foot, as post.js measures it (the length of the RGB change)
-  const step = (taper) => Math.sqrt(3) * 0.4 * WEATHER.grime.dark * (1 - taper);
-  assert.ok(step(WEATHER.grime.taper) > EDGE_FULL * 1.4, `the foot's step ${step(WEATHER.grime.taper).toFixed(3)} stays clear of the threshold`);
-  assert.ok(step(0.55) < EDGE_FULL * 1.1, 'the old taper (0.55) faded it into the band where its outline flickered');
-  assert.ok(WEATHER.grime.minPx >= 2, 'a streak narrower than a couple of CSS px is left out, not outlined into a dash');
-  const f = makeMaterial({ color: '#c8a888', weathered: 1, key: 't.motion.wear' }).fragmentShader;
-  assert.ok(f.includes(`float wide = step(${WEATHER.grime.minPx.toFixed(2)} * uPixelRatio`), 'the cut scales with the pixel ratio');
-  assert.ok(/2\.0 \* w0 \/ max\(fq\.x/.test(f), 'by the head of the streak: whole or not at all');
-  assert.ok(f.includes('float inside = smoothstep(th - fpn, th + fpn, pn);'), "a chip's fill edge two pixels wide: no colour edge of its own, its pen line marks it");
-  assert.ok(!/step\(th, pn\)|step\(pl, th\)/.test(f), 'no hard step left in the chips or their lip');
-  assert.ok(!f.includes('step(wPx * 0.5, side) * step(side'), "a crack's shadow sliver is antialiased");
-  assert.ok(WEATHER.chip.minPx[1] > WEATHER.chip.minPx[0], "the lip's shadow fades out as it thins");
-});
-
-test("a small grime streak is a faint soft tone under the colour-edge threshold: no outline to shimmer as the camera turns", () => {
-  const G = WEATHER.grime;
-  // the step a small streak makes, on any wall (dark limited to faint / |albedo|): under post.js's edge start (0.08)
-  assert.ok(G.faint < 0.08, `faint ${G.faint}`);
+test('weathered walls: a crack\'s lips stay under the colour-edge threshold, and no mark is a hard step', () => {
+  // the lips' step on any wall (each capped at edge / |albedo|): under post.js's edge start (0.08), so no outline
+  // of their own comes and goes along a crack as the camera moves
+  const L = WEATHER.lip;
+  assert.ok(L.edge < 0.08, `edge ${L.edge}`);
   for (const alb of [0.2, 0.4, 0.8, 1]) {
-    const len = Math.sqrt(3) * alb, dark = Math.min(G.dark, G.faint / len);
-    assert.ok(len * dark < 0.08, `a wall of ${alb}: step ${(len * dark).toFixed(3)}`);
+    const len = Math.sqrt(3) * alb;
+    for (const k of [L.dark, L.light]) assert.ok(len * Math.min(k, L.edge / len) < 0.08, `a wall of ${alb}: step ${(len * Math.min(k, L.edge / len)).toFixed(3)}`);
   }
-  assert.ok(G.crisp[1] > G.crisp[0] && G.crisp[0] > G.minPx, 'small streaks faint, big ones whole and inked');
-  assert.ok(G.soft > 1, 'its sides ramp over more than a pixel');
-  const f = makeMaterial({ color: '#c8a888', weathered: 1, key: 't.motion.wear2' }).fragmentShader;
-  assert.ok(f.includes(`float gDark = mix(min(${G.dark}, ${G.faint} / max(length(alb), 0.1)), ${G.dark}, bigK);`));
-  assert.ok(f.includes(`smoothstep(${G.crisp[0].toFixed(1)}, ${G.crisp[1].toFixed(1)}, headPx / uPixelRatio)`), 'by its head, in CSS px: a pan never changes it');
+  const f = makeMaterial({ color: '#c8a888', weathered: 1, key: 't.motion.wear' }).fragmentShader;
+  assert.ok(f.includes(`min(${L.dark}, ${L.edge} / aL)`) && f.includes(`min(${L.light}, ${L.edge} / aL)`), 'capped in the shader as here');
+  assert.ok(!/step\(hw, sA\)|step\(sA, hw\)/.test(f), "a crack's lips are antialiased");
+  assert.ok(f.includes('/ length(vec2(fq.x, L.y * fq.y))'), 'its width across the line, not along the wall: a leaning crack is as thin');
+  assert.ok(WEATHER.width[0] >= 1 && WEATHER.width[1] < WEATHER.width[0], 'a hairline from about a pixel, thinning to its end');
+  assert.ok(!f.includes('grime') && !f.includes('float inside = smoothstep(th - fpn'), 'no grime streaks or chipped plaster left');
 });
 
 test('hatch strokes too fine to draw fade to their tone instead of aliasing', () => {
@@ -62,12 +49,32 @@ test('a curved surface takes its terminator from the light, not from its own sha
   assert.ok(TERMINATOR > FACET_EDGE && TERMINATOR <= 0.15, 'a few degrees from edge-on');
   const f = makeMaterial({ color: '#888', key: 't.motion.term' }).fragmentShader;
   // off the ground (a low sun's cast shadows stay) and off flat facets (FACET_EDGE takes those)
-  assert.ok(f.includes(`if (uMode != ${MODE_TERRAIN} && uFlat < 0.5)\n      sh = mix(sh, mix(1.0, sh, smoothstep(0.0, ${TERMINATOR}, ndl)), 1.0 - smoothstep(${TERMINATOR_TURN[0]}, ${TERMINATOR_TURN[1]}, nTurn));`),
-    'the shadow map fades in from the terminator');
+  assert.ok(f.includes(`if (uMode != ${MODE_TERRAIN} && uFlat < 0.5) {`)
+    && f.includes(`float bigForm = 1.0 - smoothstep(${TERMINATOR_TURN[0]}, ${TERMINATOR_TURN[1]}, nTurn);`)
+    && f.includes(`float nearEdge = 1.0 - smoothstep(0.0, ${TERMINATOR}, ndl);`)
+    && f.includes('sh = mix(sh, mix(beyond, sh, 1.0 - nearEdge), bigForm);'),
+    'the surface\'s own shadow map fades in from the terminator');
   // only on forms big on screen: a stalk's normal turns fast from pixel to pixel, and there the map's shade held it
   // still (letting it go made the desert's shrubs and ribs flicker more)
   assert.ok(TERMINATOR_TURN[0] < TERMINATOR_TURN[1] && TERMINATOR_TURN[1] <= 0.1);
   assert.ok(f.includes('float nTurn = length(fwidth(n));'), 'taken in uniform flow');
+});
+
+test('near its terminator a curved surface still takes the shadow of something else (no lit blotches in a shade)', () => {
+  // letting the map go whole there lit every fold of a coat, a neck, a cheek turned near edge-on inside a
+  // building's shadow: seen close in a conversation, lit blotches all over a person standing in the shade.
+  // The map is asked instead with its bias TERMINATOR_REACH times as deep: past the form's own body (its own
+  // grazing taps, the teeth), not past a wall or a tower standing well toward the sun.
+  assert.ok(TERMINATOR_REACH >= 8 && TERMINATOR_REACH <= 20);
+  const f = makeMaterial({ color: '#888', key: 't.motion.term2' }).fragmentShader;
+  assert.ok(f.includes(`getShadow(shadowAt, n, ndl, shadowPx, ${TERMINATOR_REACH.toFixed(1)}) * cloud : sh;`), 'the deep lookup, near the edge only');
+  assert.ok(f.includes('getShadow(shadowAt, n, ndl, shadowPx, 1.0) * cloud : 1.0;'), 'the ordinary one');
+  // every cascade's bias takes the factor
+  for (const b of ['uShadowBias0 * deep', 'uShadowBias * deep', 'uShadowBias2 * deep']) assert.ok(f.includes(b), b);
+  // the fine map's (3.4 texels of 2.4 cm / 2048) and the near map's (2.3 texels of 440 m / 4096) depths, in metres
+  const fine = 3.4 * (24 / 2048) * TERMINATOR_REACH, near = 2.3 * (440 / 4096) * TERMINATOR_REACH;
+  assert.ok(fine > 0.3 && fine < 1, `fine ${fine.toFixed(2)} m: deeper than a person's own folds, shallower than an arm's reach`);
+  assert.ok(near > 1.5 && near < 5, `near ${near.toFixed(2)} m: a tank's own silhouette within the filter`);
 });
 
 test('the fog and the haze are by distance from the eye, so their bands stay put on the ground as the view turns', async () => {

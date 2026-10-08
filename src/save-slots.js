@@ -15,11 +15,17 @@
 // The single save from before the slots is copied into slot 1 the first time
 // (migrate()). The old keys stay as they were, so a build from before the slots
 // (an over-the-air update rolled back on Android) still finds its save.
+//
+// One more slot, 'debug' (DEBUG_SLOT, keys 'moebius.sdebug.*'), is the worlds list's (src/debug-save.js):
+// a world picked there plays in it, never in the player's own slots. The title never lists it
+// (list, latest, firstEmpty count 1..SLOT_COUNT); choosing a save there leaves it.
 
 import { TITLES, ORDER } from './levels/names.js';
 
 export const SLOT_COUNT = 3;
 export const SLOT_KEY = 'moebius.slot';
+/** The worlds list's own save (src/debug-save.js): not one of the title's slots. */
+export const DEBUG_SLOT = 'debug';
 export const SLOTS_VERSION_KEY = 'moebius.slots.v';
 // the progress kept per slot (src/game-state.js, src/quest.js, src/ui.js SaveGame, src/reactive-world.js)
 export const PROGRESS_KEYS = ['moebius.game.v1', 'moebius.journal.v1', 'moebius.save.v1', 'moebius.encounters.v1'];
@@ -28,7 +34,7 @@ export const META_KEY = 'moebius.meta.v1';
 
 /** A key as filed under slot n. */
 export const slotKey = (key, n) => key.replace(/^moebius\./, `moebius.s${n}.`);
-const validSlot = (v) => { const n = Number(v); return Number.isInteger(n) && n >= 1 && n <= SLOT_COUNT ? n : null; };
+const validSlot = (v) => { if (v === DEBUG_SLOT) return v; const n = Number(v); return Number.isInteger(n) && n >= 1 && n <= SLOT_COUNT ? n : null; };
 const parse = (s) => { try { return s == null ? null : JSON.parse(s); } catch { return null; } };
 const defaultStorage = () => { try { return globalThis.localStorage ?? null; } catch { return null; } };
 

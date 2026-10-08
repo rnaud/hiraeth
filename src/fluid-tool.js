@@ -61,7 +61,7 @@ import { FluidBlade } from './fluid-blade.js';
 //   tool.enabled          false: put away, nothing fires (the ship prologue, cutscenes)
 //   tool.owned            the backpack is found (items.has('backpack'))
 //   tool.dry              the tank is empty (flag tool.empty): nothing until magical water fills it
-//   tool.mode / tool.modes / tool.setMode(id) / tool.cycleMode(±1)   'shoot' | 'stun' | 'fire' | 'bloom'
+//   tool.mode / tool.modes / tool.setMode(id) / tool.cycleMode(±1)   'shoot' | 'push' | 'stun' | 'fire' | 'bloom' (push: the cone, fired as a shot)
 //   tool.refill({ addColour, tone })   fill now; addColour adds a band (tone: its colour, optional)
 //   game.emit('tool:refill', { addColour: true }) · game.emit('tool:enable', { on: false })
 //   emits 'tool:fire' { mode, point } (mode: shoot / stun / fire / push / boost / jet start),
@@ -97,21 +97,20 @@ export function toolInput(c = {}) {
     shoot: t.shoot,
     fire: t.fire,
     quick: t.quick,
-    push: !!(c.KeyC || c.MouseMiddle || c.PadPush),
-    blade: !!(c.KeyF || c.PadBlade || c.TouchBlade),   // the fluid blade (src/fluid-blade.js): F, LB / L1, touch ⚔
-    guard: !!(c.KeyB || c.PadGuard || c.TouchGuard),
-    evade: !!(c.KeyZ || c.PadEvade || c.TouchEvade),
+    blade: !!(c.KeyF || c.PadBlade || c.TouchBlade),   // the fluid blade (src/fluid-blade.js): F, RB / R1, touch ⚔
+    guard: !!(c.ControlLeft || c.ControlRight || c.KeyZ || c.KeyB || c.PadGuard || c.TouchGuard),   // separate held guard: Ctrl or Z, LB / L1, touch shield
+    evade: !!(c.AltLeft || c.AltRight || c.PadEvade || c.TouchEvade),
     mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode
     modeBack: !!c.PadModePrev,             // the previous one (D-pad left)
   };
 }
 
-/** Mouse: hold the right button to aim, the left button shoots while aiming (with the pointer captured and not aiming: the jets), the middle button pushes. */
+/** Mouse: hold the right button to aim, the left button shoots while aiming (with the pointer captured and not aiming: the jets). */
 export function bindToolMouse(dom, input) {
   dom.addEventListener('contextmenu', (e) => e.preventDefault());
   dom.addEventListener('mousedown', (e) => {
     if (e.button === 2) input.MouseRight = true;
-    if (e.button === 1) { input.MouseMiddle = true; e.preventDefault(); }
+    if (e.button === 1) e.preventDefault();
     if (e.button === 0 && (document.pointerLockElement === dom || input.MouseRight)) input.MouseLeft = true;
   });
   window.addEventListener('mouseup', (e) => { const k = ['MouseLeft', 'MouseMiddle', 'MouseRight'][e.button]; if (k) input[k] = false; });
@@ -304,7 +303,7 @@ function mergeParts(group, keep = []) {
 }
 
 /** Instanced dots and dashes: droplets, sprays, the glob's wake. */
-class Dots {
+export class Dots {
   constructor(parent, max, material, geo = new THREE.SphereGeometry(1, 6, 4)) {
     this.mesh = new THREE.InstancedMesh(geo, material, max);
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3);
@@ -882,10 +881,10 @@ export class FluidTool {
 
   get aiming() { return this.k > 0.5; }
 
-  /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding, climbing, on the jets, in menus and photo mode. */
+  /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding, climbing, flying on the jets (aiming in flight holds you: player.jetHold, and then it can), in menus and photo mode. */
   allowed(paused) {
     const p = this.player;
-    return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.down && p.object?.visible !== false;   // (nor knocked down)
+    return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.onJets && !p.down && p.object?.visible !== false;   // (nor knocked down)
   }
 
   /**
@@ -925,11 +924,12 @@ export class FluidTool {
     const ok = this.allowed(paused);
     // a shot: a fresh press of the fire button while aiming (or the touch button's quick shot)
     const quickPress = input.quick && !this.held.quick;
-    const shootPress = (input.shoot && !this.held.fire) || quickPress, pushPress = input.push && !this.held.push;
+    // (the push is a gun mode: fired as a shot, it throws its cone instead of a glob)
+    const firePress = (input.shoot && !this.held.fire) || quickPress, pushPress = firePress && this.mode === 'push', shootPress = firePress && !pushPress;
     const modePress = input.mode && !this.held.mode, modeBackPress = input.modeBack && !this.held.modeBack;
     const bladePress = input.blade && !this.held.blade;
     this.held.blade = input.blade;
-    this.held.fire = input.fire; this.held.quick = input.quick; this.held.push = input.push; this.held.mode = input.mode; this.held.modeBack = input.modeBack;
+    this.held.fire = input.fire; this.held.quick = input.quick; this.held.mode = input.mode; this.held.modeBack = input.modeBack;
     // X / D-pad right (left: back) / the touch button: the next owned gun mode (also while not aiming, and riding)
     if (!paused && this._enabled && this.owned && (modePress || modeBackPress)) this.cycleMode(modeBackPress ? -1 : 1);
     if (!this.modes.includes(this.mode)) this.mode = 'shoot';
@@ -965,7 +965,7 @@ export class FluidTool {
     } else if (p) p.aim = null;
     if (this.rig) this.rig.aimK = smooth(Math.min(this.k, this.camK));
     // the blade swings when the arm isn't up for a shot (it takes the aim pose for its arc)
-    this.blade.update(dt, bladePress && this.k < 0.3, ok && this.k < 0.5, input.guard, input.evade);
+    this.blade.update(dt, bladePress && this.k < 0.3, ok && this.k < 0.5 && !this.player?.swim, input.guard, input.evade);   // (the guard: held)
 
     this.updateGlobs(dt);
     const up = p?.frame.up ?? _y;
@@ -998,7 +998,7 @@ export class FluidTool {
     const J = this.jets, p = this.player;
     if (!J) return;
     const on = this.canJet && p.object?.visible !== false;
-    J.update(dt, { on, thrusting: !!p.thrusting, time: this.time });
+    J.update(dt, { on, thrusting: !!p.thrusting || !!p.jetHold, power: p.jetPower ?? 1, time: this.time });   // (the flames as long as the throttle: player.jetPower)
     if (!on || J.thrust < 0.2) return;
     const tones = this.modeTones, U = p.frame.up, mouths = J.mouths(this._mouths ??= [new THREE.Vector3(), new THREE.Vector3()]);
     this._jetAcc = (this._jetAcc ?? 0) + dt;

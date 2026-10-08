@@ -67,10 +67,10 @@ export const QUESTS = [
     failOutro: 'You turned the builders’ gate once, as Esk asked. It had been shut a thousand years, and it gave way; the middle of her hill went down into the hollow with the water. She asked you to leave her with it.',
     stages: [
       { id: 'esk', text: 'Esk keeps the tea terraces south-east of the landing, above the dry hollow. Go and see her', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
-      { id: 'runnels', text: 'Clear the three choked runnels, top terrace first: shove each clod of silt out (push: C, middle click, or RB / R1)', label: 'A choked runnel', when: (q) => (q.game.flag('edena.runnels') ?? 0) >= 3, at: 'clod' },
+      { id: 'runnels', text: 'Clear the three choked runnels, top terrace first: shove each clod of silt out (push mode: X or the D-pad, then shoot)', label: 'A choked runnel', when: (q) => (q.game.flag('edena.runnels') ?? 0) >= 3, at: 'clod' },
       { id: 'ask', text: 'Water runs, but only a trickle. Tell Esk', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
       { id: 'roots', text: 'Roots have grown through the wheel of the builders’ gate, on the cistern above the terraces. Water them so they let go (shoot)', label: 'The builders’ gate', flag: 'edena.gate.roots', at: 'gate' },
-      { id: 'gate', text: 'Esk asked for one turn of the gate’s wheel. Nobody has opened it in living memory. One shove (push: RB / R1)', label: 'The builders’ gate', flag: 'edena.gate.turned', at: 'gate' },
+      { id: 'gate', text: 'Esk asked for one turn of the gate’s wheel. Nobody has opened it in living memory. One shove (push mode: X or the D-pad, then shoot)', label: 'The builders’ gate', flag: 'edena.gate.turned', at: 'gate' },
       { id: 'flood', text: 'The gate is giving way', label: 'The terraces', flag: 'edena.terraces.flooded', at: 'esk' },
       { id: 'sorry', text: 'Go down to Esk', label: 'Esk', talk: 'esk', at: 'esk' },
     ],

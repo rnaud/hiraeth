@@ -20,12 +20,13 @@ const DEFAULTS = {
   quality: isNativeApp ? 'handheld' : isDeckApp || isTouch ? 'auto' : 'high',   // auto | handheld | deck | low | medium | high
   sensitivity: 1,
   invertY: false,
+  invertFlight: false,  // the jets (player.js JET): off, the stick forward tips the nose down as a plane's; on, forward climbs
   padFaces: 'auto',   // controller: where the printed A B X Y are (native-pad.js setFaces): auto | xbox | nintendo | nintendo-xbox
   music: 0.8,
   effects: 1,
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
   alienVoices: true,    // off: conversations go back to plain soft blips
-  enemies: true,        // the ink blots in the wilds and the machines in the temples (src/foes.js); off: the calm game
+  enemies: 'normal',    // the foes (src/foes.js): normal | gentle (half the harm, slower, one at a time) | off (the calm game)
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
   hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
@@ -53,6 +54,7 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
   const out = { ...saved };
   if (!(out.hudV >= 1)) { delete out.showFps; out.hudV = 1; }
   // (High was only ever the default there: a player who picked a lighter preset keeps it)
+  if (typeof out.enemies === 'boolean') out.enemies = out.enemies ? 'normal' : 'off';   // (v0.87 saved it as on / off)
   if (deck && !(out.deckV >= 1)) { if (['high', 'medium', undefined].includes(out.quality)) out.quality = 'auto'; out.deckV = 1; }
   return out;
 }
@@ -65,19 +67,21 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
   return {
     keyboard: [
       ['Move · run', 'WASD · SHIFT'], ['Look', 'mouse (click the game to capture it) · wheel zooms'],
-      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets / wings (once found)', 'hold SPACE in the air · or hold left click without aiming: WASD flies where you look (look down to dive), no keys hovers, SPACE climbs'],
+      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets (once found): fly like a plane', 'hold left click without aiming, or SPACE in the air: thrust (from the ground: straight up) · W nose down · S nose up · A / D bank and turn · SHIFT faster · let go to glide · right click holds you to aim'], ['Wings (once found)', 'hold SHIFT + SPACE in the air (or SPACE with the jets dry)'],
       ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off)'],
       ['In a cab (it drives itself)', 'choose a stop: click it, or its number · SPACE choose again · E get out'],
       ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
-      ['Push · gun mode', 'C or middle click · X'], ['Fluid blade (press again to chain three swings) · guard', 'F · hold B'], ['Evade (direction + button, or backstep)', 'Z'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
+      ['Gun mode (fluid, push, and those found)', 'X'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'F · hold CTRL or Z · TAB'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
+      ['Evade (direction + button, or backstep)', 'ALT'],
       ['Items, quests, sketchbook · menu · this page', 'J (Q / E turn its panels) · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F3 · N'], ['Mute', 'M'],
     ],
     pad: [
-      ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1 with the right stick'],
+      ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1 with the right stick (no foe near)'],
       ['Jump · boost · wings', 'A / × · again in the air · hold'], ['Use, talk, get on', 'B / ○'],
       ['Call your mount or a taxi', 'LT / L2 + X / □'], ['The scout finds your objective', 'Y / △ (riding too)'],
-      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'hold RT / R2 without aiming: the left stick flies where you look (look down to dive, up to climb), the stick at rest hovers · A / × held climbs'],
-      ['Push · gun mode', 'LT / L2 + RB / R1 · D-pad left / right'], ['Fluid blade (press again to chain three swings) · guard', 'LB / L1 · hold RB / R1'], ['Evade (stick direction, or backstep)', 'X / □'], ['Photo mode · worlds', 'D-pad down · D-pad up'],
+      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets: fly like a plane', 'RT / R2 thrust, the harder the faster (from the ground: straight up) · left stick forward nose down, back nose up, left / right bank and turn · L3 faster · let go to glide · LT / L2 in flight holds you to aim'],
+      ['Gun mode (fluid, push, and those found)', 'D-pad left / right'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'RB / R1 · hold LB / L1 · click the right stick (R3)'], ['Photo mode · bell whistle (once found)', 'D-pad down · D-pad up'],
+      ['Evade (stick direction, or backstep)', 'X / □'],
       ['Items, quests and sketchbook · menu', 'View · Menu'],
       ['Their panels (items, quests, sketchbook, worlds)', 'LB / L1 · RB / R1'],
       ['Riding', 'RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off'],
@@ -86,8 +90,8 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['In menus', `D-pad select · left / right adjust · ${ok} confirm · ${back} back · right stick scroll`],
     ],
     touch: [
-      ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'],
-      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · push · gun mode · blade', '◎ · ✺ · ✋ · ◐ · ⚔'],
+      ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'], ['Jets (once found)', 'hold ⤒ in the air: thrust · drag on the left: up tips the nose down, down pulls it up, sideways banks and turns'],
+      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade (tap) · guard (hold it) · lock on', '⚔ · ⚔ held · ◉'],
       ['Items, quests and sketchbook · menu', '❏ (its tabs turn the panels) · the small ⚙ in the corner'],
     ],
   };
@@ -138,13 +142,14 @@ export class SettingsMenu {
           ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="deck">Steam Deck</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
           ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
           ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
+          ${row('Invert the jets\' pitch (push forward to climb)', `<input data-k="invertFlight" type="checkbox">`)}
           ${row('Controller buttons', `<select data-k="padFaces"><option value="auto">Auto</option><option value="xbox">A at the bottom (Xbox, PlayStation)</option><option value="nintendo">A on the right (Retroid, Nintendo)</option><option value="nintendo-xbox">A on the right, Retroid set to Xbox style</option></select>`)}
           ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
           ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
           ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
           ${row('Alien voices (heard through your translator)', `<input data-k="alienVoices" type="checkbox">`)}
           ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
-          ${row('Enemies (ink blots in the wilds, machines in the temples)', `<input data-k="enemies" type="checkbox">`)}
+          ${row('Enemies (ink blots in the wilds, machines in the temples)', `<select data-k="enemies"><option value="normal">Normal</option><option value="gentle">Gentle (half the harm, slower, one at a time)</option><option value="off">Off (the calm game)</option></select>`)}
           ${row('Show FPS and frame time (F3)', `<input data-k="showFps" type="checkbox">`)}
           ${game ? `${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
           ${row('Dev menu: items, boxes, worlds (\`)', `<button data-a="dev" type="button">open</button>`)}
@@ -281,11 +286,11 @@ export class TouchControls {
       <button data-press="KeyJ" class="b-book">❏</button>
       <button data-toggle="KeyR" class="b-aim" aria-label="Aim the fluid tool">◎</button>
       <button data-key="TouchFire" class="b-fire" aria-label="Shoot fluid">✺</button>
-      <button data-key="KeyC" class="b-push" aria-label="Push">✋</button>
       <button data-key="KeyX" class="b-mode" aria-label="Switch the fluid's mode">◐</button>
       <button data-key="TouchBlade" class="b-blade" aria-label="Swing the fluid blade">⚔</button>
       <button data-key="TouchGuard" class="b-guard" aria-label="Hold to guard; time a block to parry">◇</button>
-      <button data-key="TouchEvade" class="b-evade" aria-label="Evade in the movement direction or backstep">↶</button>`;
+      <button data-key="TouchEvade" class="b-evade" aria-label="Evade in the movement direction or backstep">↶</button>
+      <button data-press="Tab" class="b-lock" aria-label="Lock on to a foe">◉</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');
     let stickId = null, lookId = null, sx = 0, sy = 0, lx = 0, ly = 0;
     const R = 60;

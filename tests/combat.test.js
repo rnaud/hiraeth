@@ -37,7 +37,7 @@ test('swept contact catches the travelled blade but not a target elsewhere in th
 });
 test('guard and evade have independent keyboard, pad and touch inputs',()=>{
  for(const key of ['KeyB','PadGuard','TouchGuard']){const c=toolInput({[key]:true});assert.ok(c.guard&&!c.blade&&!c.evade);}
- for(const key of ['KeyZ','PadEvade','TouchEvade'])assert.ok(toolInput({[key]:true}).evade);
+ for(const key of ['AltLeft','PadEvade','TouchEvade'])assert.ok(toolInput({[key]:true}).evade);
  assert.ok(!toolInput({KeyF:true}).guard);
 });
 async function combatPlayer(matching=false){
@@ -67,7 +67,7 @@ test('grounded combat uses legs and smoothly returns to locomotion, with matchin
   }
   assert.ok(full>.95,'full body during the cut');assert.equal(hit,1,'one real blade contact per target');
   assert.ok(maxTurn<1.2,`no large pose snap (${maxTurn})`);assert.equal(p.swingMove,null);assert.ok(!tool.blade.guarding,'holding attack does not guard');
-  const start=p.pos.clone();tick({KeyZ:true});for(let i=0;i<18;i++)tick({KeyZ:true});assert.ok(p.pos.distanceTo(start)>1,'evade moves through the controller');
+  const start=p.pos.clone();tick({AltLeft:true});for(let i=0;i<18;i++)tick({AltLeft:true});assert.ok(p.pos.distanceTo(start)>1,'evade moves through the controller');
   assert.ok(tool.blade.evadeCool>0,'held evade does not retrigger');tool.dispose();clearTargets();
  }
 });
@@ -77,7 +77,7 @@ test('buffered combo lands three distinct contacts and cannot be evaded out of i
  registerTarget({kind:'foe',lock:true,accepts:['blade'],radius:.8,position:()=>v(0,1,-58.6),onHit:(_m,_p,_d,info)=>hits.push(info.combo)});
  tick({KeyF:true}); tick({}); tick({KeyF:true});
  for(let i=0;i<18;i++)tick({});
- assert.equal(tool.blade.phase,'strike'); tick({KeyZ:true});assert.equal(tool.blade.evadeT,0,'cannot dodge-cancel the cut');
+ assert.equal(tool.blade.phase,'strike'); tick({AltLeft:true});assert.equal(tool.blade.evadeT,0,'cannot dodge-cancel the cut');
  for(let i=0;i<25;i++)tick({});
  assert.equal(tool.blade.n,1);tick({KeyF:true});
  for(let i=0;i<100;i++)tick({});

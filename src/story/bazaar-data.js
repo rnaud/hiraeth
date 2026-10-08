@@ -344,7 +344,7 @@ export const THINGS = {
   crates: {
     id: 'crates', name: 'The fallen crates', title: 'in the alley mouth', color: '#c99758', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~neutral~ Fruit crates block the shop front. *A brass bowl* glints beneath them.", "~neutral~ *Push the heavy crates aside with fluid*: C, middle click or RB / R1."],
+      say: ["~neutral~ Fruit crates block the shop front. *A brass bowl* glints beneath them.", "~neutral~ *Push the heavy crates aside with fluid*: the gun’s push mode: X or the D-pad, then shoot."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -371,7 +371,7 @@ export const THINGS = {
           choices: [{ text: '~neutral~ I’ll move the boxes.', end: true }],
         },
         waiting: {
-          say: ['~playful~ *UNDER THE BOXES*. PUSH. YOU HAVE A PUSH. WE HEARD IT.', '~neutral~ (*Push*: C, middle click, or RB / R1.)'],
+          say: ['~playful~ *UNDER THE BOXES*. PUSH. YOU HAVE A PUSH. WE HEARD IT.', '~neutral~ (*Push*: the gun’s push mode (X or the D-pad), then shoot.)'],
           do: { emit: ['bazaar:ummu', 'PUSH'] },
           choices: [{ text: '~neutral~ All right.', end: true }],
         },

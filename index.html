@@ -97,6 +97,8 @@
       #picker .src { font-style: italic; opacity: 0.75; margin-bottom: 8px; }
       #picker p { margin: 0 0 10px; }
       #picker .moves { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
+      #picker .along { margin-top: 6px; font-size: 11px; color: #6b5a4e; }
+      #picker .debug-note { margin: -8px 0 18px; max-width: 70em; font-size: 12px; color: #6b5a4e; }
       #photo {
         position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: none;
         font: 12px ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.8);
@@ -394,14 +396,15 @@
       #touch .b-aim { right: calc(200px + var(--safe-right)); bottom: calc(150px + var(--safe-bottom)); font-size: 24px; }
       #touch .b-aim.on { background: #9fd6e8; }
       #touch .b-fire { right: calc(200px + var(--safe-right)); bottom: calc(60px + var(--safe-bottom)); width: 74px; height: 74px; font-size: 26px; }
-      #touch .b-push { right: calc(206px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
       #touch .b-mode { right: calc(282px + var(--safe-right)); bottom: calc(96px + var(--safe-bottom)); width: 50px; height: 50px; font-size: 22px; }
-      #touch .b-guard { right: calc(282px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
+      #touch .b-guard { right: calc(206px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
       #touch .b-evade { right: calc(206px + var(--safe-right)); bottom: calc(290px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
+      #touch .b-lock { right: calc(282px + var(--safe-right)); bottom: calc(232px + var(--safe-bottom)); width: 40px; height: 40px; font-size: 18px; }
+      body:not(.combat) #touch .b-lock { display: none; }   /* (only with a foe near: src/foes.js) */
       #touch .b-blade { right: calc(282px + var(--safe-right)); bottom: calc(166px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
       body:not(.modes) #touch .b-mode { display: none; }
       /* no backpack yet: no tool buttons, no tool hints (ui.js ToolHud sets .no-tool) */
-      body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-push, body.no-tool #touch .b-mode, body.no-tool #touch .b-blade, body.no-tool #touch .b-guard, body.no-tool #touch .b-evade { display: none; }
+      body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-mode, body.no-tool #touch .b-blade, body.no-tool #touch .b-guard, body.no-tool #touch .b-evade, body.no-tool #touch .b-lock { display: none; }
       /* the gun modes: the label and the crosshair's dot take the mode's colour */
       body.modeflash #tool { opacity: 1; visibility: visible; transition: opacity 0.15s; }
       body.modeflash:not(.aiming) #tool .mode { animation: modeflash 1.6s ease-out forwards; }
@@ -410,6 +413,8 @@
       #tool.m-fire .mode b { color: #cf4f2c; }
       #tool.m-stun .cross::after { background: #7fb6e6; }
       #tool.m-fire .cross::after { background: #ef7a3c; }
+      #tool.m-push .mode b { color: #3d7fa8; }
+      #tool.m-push .cross { transform: scale(1.35); }
       #tool.m-bloom .mode b { color: #3f8a46; }
       #tool.m-bloom .cross::after { background: #e58aa0; }
       #touch .b-mode { color: #2b211f; }

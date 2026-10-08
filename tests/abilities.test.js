@@ -67,7 +67,7 @@ test('no backpack: no tank, hose or glove, nothing fires, nothing throws; found,
   assert.equal(tool.hose.mesh.visible, false);
   assert.equal(tool.glove.visible, false, 'a bare hand');
   assert.deepEqual(tool.modes, [], 'no gun modes');
-  step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true }); step(1, { KeyC: true }); step(10);
+  step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true }); step(1, { TouchFire: true }); step(10);
   assert.equal(tool.k, 0, 'the arm never comes up');
   assert.equal(tool.globs.length, 0); assert.equal(tool.charges, 3);
   p.pos.set(0, 20, 0); p.onGround = false;
@@ -84,7 +84,7 @@ test('no backpack: no tank, hose or glove, nothing fires, nothing throws; found,
   assert.equal(pocket.visible, false, 'the flask sits over the pocket');
   assert.equal(tool.glove.visible, true, 'the glove on'); assert.equal(tool.hose.mesh.visible, true);
   p.pos.set(0, 0, 0); p.onGround = true; step(5);
-  step(1, { KeyC: true }); step(12);
+  tool.setMode('push'); step(1, { TouchFire: true }); step(12);   // (the push: a gun mode, fired as a shot)
   assert.equal(tool.charges, 2, 'the push works now');
   tool.dispose();
 });
@@ -177,16 +177,18 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   const { tool, step, state } = setup();
   const events = [];
   state.on('tool:mode', (e) => events.push(e.mode));
-  assert.deepEqual(tool.modes, ['shoot']);
+  assert.deepEqual(tool.modes, ['shoot', 'push'], 'the push comes with the backpack: a mode of its own');
   step(1, { KeyX: true }); step(1);
-  assert.equal(tool.mode, 'shoot', 'nothing to switch to');
+  assert.equal(tool.mode, 'push');
+  step(1, { KeyX: true }); step(1);
+  assert.equal(tool.mode, 'shoot', 'round again');
   items.grant('fire');
-  step(1, { KeyX: true }); step(1);
+  step(1, { KeyX: true }); step(1); step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'fire');
   step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'shoot', 'round again (stun is not owned)');
   items.grant('stun');
-  step(1, { KeyX: true }); step(1);
+  step(1, { KeyX: true }); step(1); step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'stun');
   assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.stun.tones[0], 'cold blue in the tank');
   assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), MODES.stun.tones[0], 'the flask\'s fluid itself turns stilling blue');
@@ -198,7 +200,7 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   // the lava nearly stops in stilling mode (the pattern changes too)
   step(90); const t0 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t0 < 0.2, 'stilling: nearly still');
   tool.setMode('fire'); step(60); const t1 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t1 > 2, 'ember: boiling');
-  assert.deepEqual(events, ['fire', 'shoot', 'stun', 'fire', 'stun', 'fire']);
+  assert.deepEqual(events, ['push', 'shoot', 'push', 'fire', 'shoot', 'push', 'stun', 'fire', 'stun', 'fire']);
   tool.setMode('shoot'); step(1);
   assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), TANK.base, 'the flask back to its own green');
   // a mode lost (the dev menu) falls back to shoot
@@ -440,9 +442,9 @@ test('calling the mount whistles (also when it has no power to come); a dormant 
 test('bloom mode: a fourth gun mode with its own leaf-and-petal band in the tank; its globs tell the makers’ seeds to grow, and leave flowers where they land', () => {
   own('backpack', 'fire');
   const { tool, step, state } = setup();
-  assert.deepEqual(tool.modes, ['shoot', 'fire'], 'not without the item');
+  assert.deepEqual(tool.modes, ['shoot', 'push', 'fire'], 'not without the item');
   items.grant('bloom');
-  assert.deepEqual(tool.modes, ['shoot', 'fire', 'bloom']);
+  assert.deepEqual(tool.modes, ['shoot', 'push', 'fire', 'bloom']);
   tool.setMode('fire');
   step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'bloom', 'after ember');

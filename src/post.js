@@ -421,6 +421,11 @@ const fragmentShader = /* glsl */ `
   }
   ${glslVec2s('SPOT_TAPS8', OCCLUSION_TAPS.spot(8))}
   ${glslVec2s('SPOT_TAPS4', OCCLUSION_TAPS.spot(4))}
+  // 0 where a tap lands on a person (gHatch.a: glow + 2 hero + 4 figure + 8 soft + 16 face + 32 drift): people
+  // stand in front of a wall or the ground, they don't make a pocket of it (the spot blacks and the crease
+  // shading drew a dark ragged halo round a climber on his wall and blobs round people's feet that slid as you
+  // turned)
+  float notPerson(vec2 suv) { return step(mod(texture(tHatch, suv).a, 8.0), 1.5); }
   float creaseAO(vec2 uv, vec3 nW, float d, vec2 fc) {
     vec3 P = viewPos(uv, d);
     vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
@@ -443,7 +448,8 @@ const fragmentShader = /* glsl */ `
       float c = step(0.0, sd) * sign(sd)   // (not the sky)
         * max(dot(nV, v) / max(dist, 1e-4) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
       // (grass blades close nothing in: no grey speckle round them)
-      if (c > 0.0) c *= step(mod(texture(tHatch, suv).a, 16.0), 7.5);
+      // (nor does a person: no grey halo round a climber on his wall, round people's feet)
+      if (c > 0.0) { float t = mod(texture(tHatch, suv).a, 16.0); c *= step(t, 7.5) * step(mod(t, 8.0), 1.5); }
       ao += c;
     }
     return clamp(ao / 8.0 * 2.2, 0.0, 1.0);
@@ -452,7 +458,8 @@ const fragmentShader = /* glsl */ `
   // ---------------------------------------------------------------- spot blacks
   // How enclosed a point is, at the scale of a pocket (R metres): from fixed directions round it in
   // screen space (no jitter: the estimate is smooth from pixel to pixel, so a hard threshold of it is a
-  // clean-edged mass), the share of the neighbours standing in front of its face. taps: 8, or 4 (handheld).
+  // clean-edged mass), the share of the neighbours standing in front of its face (a person never counts:
+  // notPerson). taps: 8, or 4 (handheld).
   // The directions are constants (SPOT_TAPS8, SPOT_TAPS4), the view ray is affine in uv (a
   // perspective camera: ray(uv) = (uv * rA + rB, -1)), and a tap on the sky weighs 0 instead of a
   // skip: the same estimate at a fraction of its cost (docs/systems/performance.md).
@@ -468,8 +475,10 @@ const fragmentShader = /* glsl */ `
         float sd = texture(tNormal, suv).w;
         vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
         float dist = length(v);
-        occ += step(0.0, sd) * sign(sd)   // (the sky: open)
+        float c = step(0.0, sd) * sign(sd)   // (the sky: open)
           * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+        if (c > 0.0) c *= notPerson(suv);
+        occ += c;
       }
       return occ * 0.125;
     }
@@ -478,7 +487,9 @@ const fragmentShader = /* glsl */ `
       float sd = texture(tNormal, suv).w;
       vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
       float dist = length(v);
-      occ += step(0.0, sd) * sign(sd) * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+      float c = step(0.0, sd) * sign(sd) * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+      if (c > 0.0) c *= notPerson(suv);
+      occ += c;
     }
     return occ * 0.25;
   }

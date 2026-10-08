@@ -25,12 +25,12 @@ export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
     text: "A makers’ glass tank with a hose to a leather glove: the glove is what shoots. Fill it with living water. Someone built it for a traveller they would never meet.",
-    use: 'Aim (LT / L2, right click) and shoot bursts of fluid, push people and things away, and boost-jump. Three charges; they refill five seconds after the last use. It also powers vehicles.',
+    use: 'Aim (LT / L2, right click) and shoot bursts of fluid; switch the gun’s mode (X, the D-pad) to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: RB / R1 (F) swings it, LB / L1 (Ctrl) held guards. Three charges; they refill two seconds after the last use. It also powers vehicles.'
   },
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',
     text: "Ancient nozzles that turn the tank’s fluid into thrust. Worn smooth, still reliable. The makers expected a long journey.",
-    use: 'Hold RT / R2 or the left mouse button when not aiming (on a keyboard, also SPACE held in the air) and fly where you look: the stick forward takes you that way, up if you look up, diving if you look down; leave the stick and you hover, hold jump too and you climb straight up. They burn the backpack’s fluid; land to let it recover.',
+    use: 'They fly like a plane. RT / R2 (the left mouse button, or SPACE held in the air) is the thrust, the harder the faster: from the ground it lifts you straight up. The left stick (W / S, A / D) flies the nose: forward dives, back climbs, left and right bank and turn. Let go to glide on; aim (LT / L2) in flight and they hold you while you shoot. They burn the backpack’s fluid; land to let it recover.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
