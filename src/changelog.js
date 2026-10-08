@@ -9,6 +9,57 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '1.0', date: '2026-10-08', items: [
+    // the ending
+    { text: 'Coming home after six worlds is now a first homecoming: something passes over the hill while you are at the stone, and the story isn’t over.', see: 'Fly home after six worlds and stay at the stone until the end.' },
+    { text: 'After the Signal Market, the ship’s map charts one more place, off every chart.', see: 'After your first homecoming, play the message waiting on the voicemail, then open the holo table.' },
+    { text: 'A last, small world at the end of the light’s trace, with someone waiting there, and a real ending after it: end card and credits.', see: 'Follow the trace from the map and walk the sand bar to the tower.' },
+    { text: 'Some of what you decide along the way now stays with you: a guard’s lift token, a promise to a lamp-keeper, a hill of tea. The stone remembers, and so does someone else.', see: 'Talk to Dov in the City-Shaft after bringing his ration, or to Hollin in Lorn II.' },
+    { text: 'Saves that already finished the game keep their ending as the first homecoming, and can go on to the new last chapter.', see: 'Load a finished save and check the ship’s voicemail.' },
+    // the worlds' great moments
+    { text: 'The great moment of every world is now filmed, like the desert’s first water: the bird coming down out of the haze, the bell after thirty years, the crystal cave singing, the saucer blinking back, the terraces giving way, the Lodestar lit, the lights on the Hangar’s floor, the great wheel turning, the spheres’ chord and the market’s broadcast. Each is short, plays once, can be skipped, and gives you the controls back while it is still happening.', see: 'Play the rider’s flute in Vael, or relight the Lodestar in the City-Shaft.' },
+    { text: 'People’s chatter balloons no longer cover a filmed moment.', see: 'Ring the bell in Vael II: only the monks’ shouts appear.' },
+    // the light's trail
+    { text: 'The Sketchbook has a Sightings page: every time someone tells you about the singing light, the makers’ three dots over an arc, or a voice sent from far away, it is noted there with the world and who said it. A question mark waits for each one still to find.', see: 'Open the menu’s Sketchbook after talking to Oum and Marrow in the desert.' },
+    { text: 'Each of the twelve worlds off the route now hides one trace of the light, or of someone who came that way alone before you: a person who remembers, or a mark burned, fused or chalked somewhere.', see: 'Liss on the White Mangrove’s ring walk, or the burned mark at the foot of the Fallen Ring’s tilted piece.' },
+  ] },
+  { v: '0.99', date: '2026-10-08', items: [
+    // playing your way
+    { text: 'You can choose your own keys and controller buttons: open Controls, pick an action and press its new key or button. Two actions on one key are flagged, Reset puts the defaults back, and every prompt on the screen shows your keys.', see: 'Menu → Controls → Your buttons / Your keys.' },
+    { text: 'Run and guard can be held or toggled.', see: 'Settings → Controls → Run, Guard.' },
+    { text: 'A Text size setting (Small to Larger) makes conversations, notes, story pages and menus easier to read on a small screen, and speech can have a plain, solid background for more contrast.', see: 'Settings → Screen and text, then talk to anyone.' },
+    { text: 'Reduce motion turns off camera shake, freeze-frames and slow motion and stills the title view; it is on by itself if your system asks for less motion. A slider sets how much the camera shakes.', see: 'Settings → Camera and motion, then land a blade hit.' },
+    { text: 'The lock-on ring changes shape as well as colour: doubled chevrons as a foe winds up, a burst at the strike, chevrons turned round a hollow ring when it is open to a cut. Low health is hatched too, and a winded stamina wheel shows “!”.', see: 'Lock on to a foe in the Arena and parry it.' },
+    { text: 'Menus, settings and prompts can be in French as well as English (the story is still in English).', see: 'Settings → Langue / Language → Français.' },
+    // the tools in the worlds
+    { text: 'The gadgets are now in the worlds: each route world after the desert has a makers’ court of pale stone with a box holding one gadget, and everything round it is there to try it on.', see: 'The court on the rise west of Vael’s landing (the grappling hook).' },
+    { text: 'Every route world has an optional trial: walk up to its glowing sign for a timed run built from that world’s ride or ability. Your best time is kept, and the first finish wins an upgrade for a gadget.', see: 'The sign by the dunes east of the desert’s landing (the hoverbike run), or the wind columns west of Vael’s landing.' },
+    { text: 'Columns of rising air stand over Vael’s plain: open your wings in one and it lifts you; knock a foe into one and it is thrown up.', see: 'Vael, west of the landing.' },
+    // foes and fire that use the world
+    { text: 'Winged blots and rust drones rise to stay above you, hold their height out over drops, and hide behind rocks for a moment between attacks (less long on Gentle).', see: 'The rust drones in the Sealed Hangar, or the Arena’s flyer wave.' },
+    { text: 'Foes can be knocked into the world: shove or blast one into cactus spines, snapping jaws or fire and it is cut; a long fall hurts it, and one knocked into a chasm is gone. In temples, updrafts, gusts and swinging crystals push foes about too.', see: 'The desert’s cacti with the gust fan, or the jaws and pendulums in Lorn’s Hush-House.' },
+    { text: 'Fire spreads by itself: a burning bramble lights the next, further downwind, the fan’s gusts throw sparks, and creatures run from the flames. Stilling puts a fire out; bloom grows a burnt bramble back.', see: 'The bramble hedge at a desert camp’s edge: light one with an ember.' },
+  ] },
+  { v: '0.98', date: '2026-10-08', items: [
+    // the first minutes
+    { text: 'A first-time player is no longer greeted with “Updated to…”: that note is only for players coming from an older version.', see: 'Start on a new device: no note at the title or in the desert.' },
+    { text: 'The title screen’s Debug button and the menu’s “Debug: worlds” are gone (tick Developer panel in Settings to bring them back).', see: 'The title menu.' },
+    { text: 'In the ship, if you stand still for a while before playing the message, one quiet line says how to move and look (or where the message is), then goes.', see: 'The prologue: wait 20 seconds by the bunk.' },
+    { text: 'Your first steps in the desert say once how to look around and how to jump, only if you haven’t already, with the buttons you are holding.', see: 'Step out of the ship and wait without touching the camera.' },
+    { text: 'The makers’ chest leaves one shot of old fluid in the tank, so you can try the gun straight away; the giant’s pool still fills it.', see: 'Open the chest on the tree and shoot once.' },
+    { text: 'Nour has you listen at the well with her, and Ama’s jar and the Speaker can be done in either order: two errands where there were four in a row.', see: 'The quest list after the chest opens.' },
+    { text: 'On the ride to the Givers’ Hearth: a keepers’ bowl that lights its stone when you fill it, their cold camp halfway, and a bell glinting in the sand (the Speaker would like to hear of it).', see: 'The marked stones along the way to the Hearth.' },
+    { text: 'Prompts name what you are holding: on a controller, the tank’s first fill says the D-pad switches to push, not X.', see: 'The note at the giant’s pool, with a controller.' },
+    { text: '“Your father’s charge” is lettered small and low on the screen, not across the middle, and leaves sooner, so the world you land in can be seen.', see: 'The card after the crash, or on arriving in any world.' },
+    // the sound of the traveller
+    { text: 'The traveller is no longer silent: jumps, landings (harder the further you fall, and different on stone, grass and sand), grabbing a wall, pulling up over a ledge, the roll, the wings opening and folding, the jets lighting, being knocked down and getting up all make soft, recorded sounds.', see: 'Jump off a rock in the desert, then off a roof in the City-Shaft.' },
+    { text: 'Now and then the traveller breathes out on a jump or a climb, and a blow draws a short grunt: never often, never twice in a row.', see: 'Climb a few ledges in a row, or let an ink blot hit you.' },
+    { text: 'Footsteps, swimming strokes, splashes and the makers’ boxes’ creak and knocks use real recordings, every step a little different.', see: 'Walk across grass, then wade in and swim.' },
+    { text: 'The fluid blade lands with weight: each cut of the combo has its own whoosh, the third deeper; a hit lands with a wet slap of ink and a thud, heaviest on the third; a block splashes and knocks.', see: 'A three-cut combo on an ink blot.' },
+    // the music
+    { text: 'The music keeps itself for the moments: a world’s theme plays as you arrive, indoors and when you find something (a relic, a keepsake, a box’s gift, a story moment), then fades and lets the wind, the world and a quiet drone carry you, and comes back later.', see: 'Land in the desert, wait two and a half minutes, then open a box.' },
+    { text: 'New setting, Music plays: Moments (the new default) or Always (the theme all the time, as before).', see: 'Settings, under Music.' },
+  ] },
   { v: '0.97', date: '2026-10-08', items: [
     { text: 'Locked on, flick the right stick (or the mouse) left or right to switch to the next foe on that side; R3 or Tab still locks on and lets go.', see: 'In the Arena, lock on (R3 / Tab) in a wave of three, then flick the right stick sideways: the reticle jumps to the foe that way.' },
     { text: 'A cut that lands but doesn’t stop a foe (a heavy one, or one already committed to its blow) now answers with a dull thunk, sparks and a gold ring, and the first time the game says what does stagger it.', see: 'In the Arena, choose the makers’ machine and cut it while it walks up: thunk and sparks. Cut it early in its wind-up, or with the heavy third swing: it reels.' },
