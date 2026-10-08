@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { DARK_POOLS, DOMES, SAUCER, FEN, HOLLIN_END, CAVE } from '../levels/perdide2.js';
 import { magicMaterial, magicPool, setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, LINES, keepsakeFor } from './perdide2-data.js';
+import { setupPerdide2Moments } from './perdide2-moments.js';
 
 // Lorn II's story, alive (perdide2-data.js has the words): "The Lamps Are Kept".
 //
@@ -39,7 +40,7 @@ const WARM = new THREE.Color('#fff1dc');
 const UP = new THREE.Vector3(0, 1, 0), _q = new THREE.Quaternion();
 
 export function setupPerdide2(ctx) {
-  const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
+  const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs, moments = null } = ctx;
   if (level.id !== 'perdide2' || !level.saucer) return null;
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
@@ -118,6 +119,7 @@ export function setupPerdide2(ctx) {
     if (P.on) { P.k = 1; dark.visible = false; live.visible = true; }
     return P;
   });
+  let film = { pools: () => false };
   const light = (P) => {
     if (P.on) return false;
     P.on = true; P.flare = 1;
@@ -126,10 +128,19 @@ export function setupPerdide2(ctx) {
     const n = lit() + 1;
     game.set('perdide2.pools.lit', n);
     sound.chime();
-    toast(n < 3 ? `The pool drinks your fluid and lights up in your colours. ${n} of 3.` : 'The third pool lights up. And across the water, something blinks back: three short, one long.');
+    const said = n < 3 ? `The pool drinks your fluid and lights up in your colours. ${n} of 3.` : 'The third pool lights up. And across the water, something blinks back: three short, one long.';
     for (const p of Object.values(people)) if (p.pos.distanceTo(P.c) < 40) p.shout = { text: LINES.lit[Math.floor(Math.random() * LINES.lit.length)], until: p.time + 2.5 };
-    if (n >= 3) game.set('perdide2.saucer.answered', true);
+    // the third, filmed (src/story/perdide2-moments.js): the saucer answers on its beat and the toast comes at its end; else at once
+    if (n >= 3 && film.pools(P, { answer, said })) return true;
+    toast(said);
+    if (n >= 3) answer();
     return true;
+  };
+  // the saucer answers: three short, one long, from the start of its phrase (idempotent)
+  const answer = () => {
+    if (game.flag('perdide2.saucer.answered')) return;
+    st.blink0 = st.clock;
+    game.set('perdide2.saucer.answered', true);
   };
   for (const P of pools) {
     registerTarget({ kind: 'pool', radius: 2.9, accepts: ['fire'], position: () => P.c, enabled: () => !P.on && flat(player.pos, P.c) < 120,
@@ -501,7 +512,7 @@ export function setupPerdide2(ctx) {
     }
     // the saucer answers: three short, one long
     if (game.flag('perdide2.saucer.answered')) {
-      const ph = st.clock % 3.2, on = ph < 1.2 ? (ph % 0.4) < 0.22 : ph < 2.4;
+      const ph = (st.clock - (st.blink0 ?? 0)) % 3.2, on = ph < 1.2 ? (ph % 0.4) < 0.22 : ph < 2.4;
       const k = on ? 1 : 0.08;
       S.light.material.uniforms.uGlow.value = k;
       S.glow.w = 6 + 14 * k;
@@ -515,5 +526,8 @@ export function setupPerdide2(ctx) {
     updateWave(dt);
   };
 
-  return { people, update, pools, light, pimDoor: pd, berth: bt, places: { saucerAt, latchAt, fenAt, wickAt, hollinEnd, pimLamp: pd.lampAt, pimDoorAt: pd.doorAt, fenLamp: bt.lampAt, berth: bt.at } };
+  // the third pool's moment (src/story/perdide2-moments.js)
+  film = setupPerdide2Moments(ctx, { saucerAt });
+
+  return { people, update, pools, light, film, state: st, pimDoor: pd, berth: bt, places: { saucerAt, latchAt, fenAt, wickAt, hollinEnd, pimLamp: pd.lampAt, pimDoorAt: pd.doorAt, fenLamp: bt.lampAt, berth: bt.at } };
 }

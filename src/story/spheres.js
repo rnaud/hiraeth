@@ -5,6 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, orbDegree } from './spheres-data.js';
+import { setupSpheresMoments } from './spheres-moments.js';
 
 // The Garden of Spheres' story, alive (spheres-data.js has the words).
 //
@@ -19,7 +20,8 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, orbDegree } from './spheres-data
 //                as you pass, and shut if you run or jump
 //   the plaza    Ume by the pole; splash the pole with the three sounds and
 //                it plays them back as one little tune, then together (the
-//                great sphere on the horizon answers with a halo)
+//                great sphere on the horizon answers with a halo; filmed the first
+//                time: spheres-moments.js)
 //
 // Flags (game-state.js): spheres.aube.heard, spheres.heard.bell / chant /
 // drum, spheres.heard.three, spheres.chord.heard, spheres.rumour.light,
@@ -30,9 +32,10 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
 export function setupSpheres(ctx) {
-  const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
+  const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs, moments } = ctx;
   const G = level.spheres;
   if (!G) return null;
+  const film = setupSpheresMoments(ctx, { moments, G });
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   const Q = 'spheres.listen';
@@ -133,7 +136,9 @@ export function setupSpheres(ctx) {
     const len = sound.spheresSong?.(V(Pz.x, Pz.top, Pz.z), { ney: !!game.flag('spheres.pebble.placed') }) ?? 0;
     if (b && len) { b.vol = 0.15; setTimeout(() => { b.vol = 1; }, len * 1000); }
     for (const s of L) { s.voice = Math.max(s.voice, 0.6); s.voiceT = 20 + len; s.pulseT = 0; }
-    toast('The pole sings them back: the bell, the voices and the drum, one tune, then all at once. On the horizon the great sphere answers.');
+    // the first time it is filmed (the rings, the halo, his face), its toast after; else at once
+    const said = () => toast('The pole sings them back: the bell, the voices and the drum, one tune, then all at once. On the horizon the great sphere answers.');
+    if (!film.chord(said)) said();
   };
   // splash the pole: with the three sounds (and the plaza reached), the chord; before that, only its own hum
   const poleHit = (mode, point) => {
@@ -327,5 +332,5 @@ export function setupSpheres(ctx) {
     sparkle.update(dt);
   };
 
-  return { people, update, state: st, listeners: L, shore, glintAt, pole, bells };
+  return { people, update, state: st, listeners: L, shore, glintAt, pole, bells, film, chord };
 }

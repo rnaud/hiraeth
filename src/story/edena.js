@@ -7,6 +7,7 @@ import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
 import { setupTerraces } from './terraces.js';
 import { setupWaterClock } from './water-clock.js';
+import { setupEdenaMoments } from './edena-moments.js';
 
 // Viridel's story, alive (edena-data.js has the words).
 //
@@ -155,6 +156,9 @@ export function setupEdena(ctx) {
   // ---------------------------------------------------------------- the tea terraces (the quest that fails)
   const terraces = setupTerraces(ctx);
   people.esk = terraces.esk;
+  // the gate's going, filmed the first time (src/story/edena-moments.js; it returns false: as before)
+  const film = setupEdenaMoments(ctx, { terraces });
+  terraces.onFlood = () => film.terraces();
   // ---------------------------------------------------------------- Mira's water clock (Lorn II's errand ends here)
   const clock = setupWaterClock(ctx);
 
@@ -210,5 +214,5 @@ export function setupEdena(ctx) {
     clock.update(dt, t);
   };
 
-  return { people, update, state: st, seedAt, sproutAt, veilLook, terraces, clock };
+  return { people, update, state: st, seedAt, sproutAt, veilLook, terraces, clock, film };
 }

@@ -8,6 +8,8 @@ import { sightOf } from './shot.js';
 import { talkSpace, stepBack, gapOf } from './spacing.js';
 import { CAPSULE } from '../player.js';
 import { MomentStage } from './moment.js';
+import { recordSightings } from './sightings.js';
+import { glyphGeometry } from './sign-text.js';
 import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
 import { NPC, registerNPCTargets } from '../npc.js';
 import { talkFaces } from '../talk-face.js';
@@ -175,6 +177,26 @@ export function createStory(o) {
   }
   // the level's own people who have something to say
   for (const n of npcs) if (n.def?.talk) talkable(n, n.def);
+  // what the traveller writes down as he meets it: the light, the makers' sign, the father's signal (src/story/sightings.js)
+  recordSightings(game, { toast });
+  // the world's traces (a detour world's: a mark, a fragment, something left; its content's `traces`, src/levels/<world>.js):
+  // { id, at: [x, y, z], label, glyph?: { size, yaw, lift }, range?, person: { id, name, talk } }; E looks at it
+  const traceAt = (tr) => new THREE.Vector3(tr.at[0], tr.at[1] ?? level.ground?.heightAt?.(tr.at[0], tr.at[2]) ?? 0, tr.at[2]);
+  for (const tr of o.traces ?? level?.traces ?? []) {
+    const at = traceAt(tr), look = tr.look ? new THREE.Vector3(...tr.look) : at.clone().addScaledVector(UP, (tr.glyph?.lift ?? 0.6));
+    if (tr.glyph && scene) {
+      const g = tr.glyph, m = new THREE.Mesh(glyphGeometry(g.size ?? 0.8, 0.05), makeMaterial({ color: g.color ?? '#70e7df', glow: g.glow ?? 0.6, flat: true }));
+      m.position.copy(at).addScaledVector(UP, g.lift ?? 0.6);
+      m.rotation.set(g.pitch ?? 0, g.yaw ?? 0, 0);
+      m.name = `trace.${tr.id}`;
+      scene.add(m);
+    }
+    registerInteractable({
+      id: `trace.${tr.id}`, priority: PRIORITY.use, range: tr.range ?? 3, prompt: `look at ${tr.label ?? tr.person?.name?.replace(/^The /, 'the ') ?? 'it'}`,
+      at: () => look, distance: (p) => (Math.abs(p.pos.y - at.y) < (tr.height ?? 4) ? Math.hypot(p.pos.x - at.x, p.pos.z - at.z) : Infinity),
+      use: () => dialogue.start(tr.person, null, at, look),
+    });
+  }
 
   // a world's first times, filmed (src/story/moment.js): on the ship's camera, never over a conversation
   const moments = new MomentStage({ ship: o.ship ?? null, game, player, physics, quiet: () => dialogue.open || !!story?.pageOpen });

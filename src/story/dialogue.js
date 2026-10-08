@@ -336,6 +336,8 @@ export class Dialogue {
       game: this.game, quests: this.quests, person, npc,
       onGive: (item) => this.toast(`Received: ${this.quests.itemName?.(item) ?? item}`),
       onKeepsake: (k) => this.toast(`Keepsake: ${k.name}`),
+      // (each node reached, for whoever writes things down: the Sightings, src/story/sightings.js)
+      onNode: (node, n) => this.game.emit('dialogue:node', { id: person.id, node, say: n.say }),
     };
     // the world's opening quest, if this is one who opens it: under way before they speak (src/story/quests.js opensWith)
     this.quests?.opening?.(person.id);

@@ -615,3 +615,34 @@ own kits and systems, a few draws each, and colliders baked from what is drawn (
   up himself, once (`desert.marrow.hull`): most ships that come down just come down; he checks every
   wreck for the mark since yours. `tests/desert-story.test.js` and `tests/story-arzach.test.js` check
   each look-at stands on walkable ground and says what it should.
+
+## Sightings, and a trace in every detour world (October 2026)
+
+The audit (docs/game-audit.md, theme 4 and item 5): the game is built on signs that recur, and
+nothing kept them; the twelve detour worlds were tourism. Now every trace of the singing light, the
+makers' sign and the father's signal is written down as the traveller meets it, and each detour
+world holds one more.
+
+- **What a sighting is** (`src/story/sightings.js`): `{ id, thread, world, who, line }` and how it is
+  met. `heard: { who, node, has? }`: a conversation reaches that person's node (the Dialogue's ctx
+  `onNode` emits `dialogue:node` with the person's id, the node and what it says; a listen-only
+  person's node is `listen`, and `has` is a few words of the entry). `flag`: a flag the story already
+  sets (`perdide.crystal.sung`, `signature.told`). Or its own flag only: a detour line sets
+  `sight.<id>` with its effect. Either way it is kept as the save flag `sight.<id>`, so it stays met
+  (and a save from before has what its flags already hold written down quietly, without a toast).
+- **The recorder** (`recordSightings(game, { toast })`, once per story runtime in `createStory`): a
+  new one says "Noted in your sketchbook's Sightings: the singing light." once. Keying the route's
+  sightings on the lines as they are (person and node) means no story data had to change for them:
+  Oum, Dalia and Nour in the desert, Senn and Oïa, Calix, Sedge and Saba, Robin and the saucer, Mira,
+  Sol and Odile's log, Nima, Dov and Wren, Lune and Clemence, Hask and Wen, Ume and Emrys, Ferro, Kip,
+  Sel and the broadcast, the hull's scorched mark (Marrow), the scar's field beating in threes (the ship).
+  The page is the Sketchbook's Sightings (docs/systems/ui.md).
+- **Traces** (a world's content `traces`, passed by `main.js` to `createStory`): a thing to look at
+  where no person is: `{ id, at: [x, y, z], label, glyph?: { size, yaw, lift, color }, range, person }`;
+  the story draws the makers' sign there if asked (`glyphGeometry`, in the glyph material) and E looks
+  at it (`person`'s talk, a thing's, with no portrait).
+- **The detours' traces** (`src/story/sightings-detours.js`, the lines in each world's content): one a
+  world, in its own voice, hints and never answers (docs/story-bible.md, "The detours' traces").
+- Tests: `tests/sightings.test.js` (every route sighting is keyed on a real line or flag; written down
+  once, with a word, and kept in the save; an old save written quietly; the page), and
+  `tests/detour-traces.test.js` (one trace a detour world, each set by its own line).

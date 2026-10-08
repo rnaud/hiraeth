@@ -7,6 +7,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { glyphGeometry, textGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN } from './incal-data.js';
 import { setupHalfway } from './halfway.js';
+import { setupIncalMoments } from './incal-moments.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
 //
@@ -331,10 +332,20 @@ export function setupIncal(ctx) {
   };
   const giveBack = (camera) => {
     if (st.release || lit()) return;
-    startCine();
     st.release = { t: 0, from: splinter.position.clone() };
-    toast('The splinter slips out of your hand and climbs, singing, toward the light.');
     sound.whoosh?.();
+    // filmed the first time (src/story/incal-moments.js: the toasts wait for its end); else the old framing
+    if (film.lodestar()) return;
+    startCine();
+    toast('The splinter slips out of your hand and climbs, singing, toward the light.');
+  };
+  // (while the moment plays, what is said waits for its end: told(), said by its onEnd)
+  const told = (text) => { if (st.filming) (st.toldLater ??= []).push(text); else toast(text); };
+  /** The splinter home: the light burns (at the end of its climb; at once if the moment is skipped). */
+  const land = () => {
+    if (!st.release) return;
+    st.release = null; splinter.visible = false;
+    arrive();
   };
   const arrive = () => {
     quests.take('splinter');
@@ -351,8 +362,9 @@ export function setupIncal(ctx) {
       if (near[0]) crowd.shout = near[0];
     }
     for (const n of Object.values(people)) if (n) n.shout = { text: n === people.dov ? '~solemn~ …' : '~shout~ Look!', until: n.time + 3 };
-    toast('The Lodestar flares. Light pours down the shaft, level after level, all the way to the bottom.');
+    told('The Lodestar flares. Light pours down the shaft, level after level, all the way to the bottom.');
   };
+  const film = setupIncalMoments(ctx, { st, rig, splinter, incalPos, land, told, P, S });
   // sending messages home: once it burns, the HUD objective is to tell Nima (quest stage 'tell')
 
   // ---------------------------------------------------------------- the main quest's end
@@ -386,7 +398,7 @@ export function setupIncal(ctx) {
       splinter.position.x += Math.sin(k * Math.PI) * 6; splinter.position.y += Math.sin(k * Math.PI) * 10;
       splinter.scale.setScalar(1 + e * 6);
       splMat.uniforms.uGlow.value = 1;
-      if (k >= 1) { st.release = null; splinter.visible = false; arrive(); }
+      if (k >= 1) land();
     } else if (quests.has('splinter')) {
       splinter.visible = true;
       const f = player.frame?.dir ? player.frame.dir(player.heading, _d) : _d.set(Math.sin(player.heading), 0, Math.cos(player.heading));
@@ -436,7 +448,7 @@ export function setupIncal(ctx) {
   const _c = new THREE.Color();
 
   return {
-    people, update, state: st, cab, frameCamera, halfway,
+    people, update, state: st, cab, frameCamera, halfway, film,
     giveBack, lightLamp, hoist: { state: ho, rig: H, knockPin, turnHoist, takeTin, pinOut, swungIn },
     /** E on a crowd person: a short conversation, by where they live (and whether the light is back). */
     crowdTalk(p) {

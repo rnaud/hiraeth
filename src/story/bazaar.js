@@ -5,6 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { textGeometry, glyphGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, KEEPSAKE, LANTERN_TONE, LANTERN_FLAG } from './bazaar-data.js';
+import { setupBazaarMoments, BROADCAST } from './bazaar-moments.js';
 
 // The Signal Market's story, alive (bazaar-data.js has the words).
 //
@@ -18,7 +19,8 @@ import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, KEEPSAKE, LANTERN_TON
 // the covers row by row, turns every street-facing sign white, stops the square
 // and turns every head to the tower; the voice plays as a conversation (the
 // camera frames the tower); afterwards the signs all say the same thing, and
-// the ones you walk past greet you.
+// the ones you walk past greet you. The first time, the waking is filmed
+// (bazaar-moments.js) and the voice opens at its end.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -28,7 +30,7 @@ const MESSAGES = ['YOU ARE\nNOT ALONE', 'SOMEONE IS\nLISTENING', 'WE HEARD\nIT T
 const GREETING = 'HELLO\nTRAVELLER';
 
 export function setupBazaar(ctx) {
-  const { level, physics, player, crowd, quests, dialogue, game, sound, story, spawn, scene, toast } = ctx;
+  const { level, physics, player, crowd, quests, dialogue, game, sound, story, spawn, scene, toast, moments } = ctx;
   const G = level.signal;
   if (!G) return null;
   const P = G.places;
@@ -190,9 +192,11 @@ export function setupBazaar(ctx) {
   const setCovers = (n) => { G.coversAll.visible = n === 0; G.covers.forEach((c, k) => { c.visible = n > 0 && k >= n; }); };
   setCovers(onAir() ? 7 : 0);
   const towerAim = V(0, 58, -240);
+  const film = setupBazaarMoments(ctx, { moments, towerAim });
 
   // what the story's people say in passing follows the story
   const say = () => {
+    const onAir = () => !!game.flag('bazaar.broadcast.on') || !!st.cast;   // (while the tower wakes they talk about it already)
     if (tuned()) people.ferro.lines = onAir() ? ['~happy~ Clear as a bell!', '~happy~ Good antenna. Good, good antenna.'] : ['~surprised~ Listen to it hum!', '~neutral~ The console’s right there.'];
     if (game.flag('bazaar.kip.gave')) people.kip.lines = onAir() ? ['~surprised~ Everybody stopped! Even the fish man!', '~shout~ Messages! Real ones!'] : ['~curious~ Did you play it yet?', '~curious~ Is it still singing?'];
     if (onAir()) people.sel.lines = ['~happy~ It’s talking again, love.', '~solemn~ Listen. No. Listen properly.', '~solemn~ Thirty years on the way.'];
@@ -210,6 +214,7 @@ export function setupBazaar(ctx) {
     if (!ready()) return;
     quests.take('recording');
     st.cast = { t: 0, opened: false };
+    say();
     st.cine = { t: 0, eye0: V(-31, 17, -186), eye1: V(-22, 12, -197), look: towerAim.clone() };
     toast('You slot the recording in. The console warms, the antenna hums, and the tower wakes.');
     sound.whoosh?.();
@@ -221,6 +226,12 @@ export function setupBazaar(ctx) {
         if (p.group) { p.group.pauseUntil = crowd.time + 30; }
       }
     }
+    // the first time it is filmed: the covers lifting, the signs going white, the square stopped, his face; the voice at its end
+    const c = st.cast;
+    c.film = film.broadcast({
+      white: () => { if (!plates.visible) showBoards(true, false); },
+      onEnd: () => { c.film = false; c.lifted = true; setCovers(7); if (st.cast === c && !c.opened) c.opened = dialogue.start(THINGS.broadcast, null, null); },
+    });
   };
   const finish = () => {
     if (onAir()) return;
@@ -279,9 +290,10 @@ export function setupBazaar(ctx) {
     if (st.cast) {
       const c = st.cast;
       c.t += dt;
-      setCovers(Math.min(7, Math.floor(c.t / 0.5)));
-      if (c.t > 1.2 && !plates.visible) showBoards(true, false);
-      if (c.t > 3.8 && !c.opened) { c.opened = dialogue.start(THINGS.broadcast, null, null) || c.t > 8; }
+      setCovers(c.lifted ? 7 : Math.min(7, Math.floor(c.t / (c.film ? BROADCAST.rowSecs : 0.5))));
+      // (filmed, the signs and the voice wait for its beats: bazaar-moments.js)
+      if (!c.film && c.t > 1.2 && !plates.visible) showBoards(true, false);
+      if (!c.film && c.t > 3.8 && !c.opened) { c.opened = dialogue.start(THINGS.broadcast, null, null) || c.t > 8; }
       if (c.done || (c.opened && !dialogue.open && c.t > 6)) { finish(); st.cast = null; if (st.cine) st.cine.out = 0.001; }
     }
     if (st.cine) { st.cine.t += dt; if (st.cine.out) { st.cine.out += dt; if (st.cine.out > 1.9) st.cine = null; } }
@@ -326,7 +338,7 @@ export function setupBazaar(ctx) {
   };
 
   return {
-    people, update, state: st, frameCamera, play, tune, finish, clearCrates,
+    people, update, state: st, frameCamera, play, tune, finish, clearCrates, film,
     /** E on a crowd person: a short conversation, by where they are (and whether the tower has spoken). */
     crowdTalk(p) {
       const z = p.spot?.id ?? (p.pos.y > 8 ? 'bridge' : p.pos.z < -200 ? 'square' : 'market');

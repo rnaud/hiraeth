@@ -5,6 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { GREAT, BED, ISLE, CAVE } from '../levels/perdide.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, LINES, CRYSTAL_TONE } from './perdide-data.js';
+import { setupPerdideMoments } from './perdide-moments.js';
 
 // Lorn's story, alive (perdide-data.js has the words): "The Great Crystal".
 //
@@ -45,7 +46,7 @@ export function singingLight(sound, vol = 0.1) {
 }
 
 export function setupPerdide(ctx) {
-  const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
+  const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs, moments = null } = ctx;
   if (level.id !== 'perdide' || !level.crystal) return null;
   // the weather (main.js puts it on window once everything is built; tests have none)
   const sky = () => ctx.weather ?? globalThis.weather ?? null;
@@ -194,7 +195,11 @@ export function setupPerdide(ctx) {
   }
   const heartLight = new THREE.Vector4(heart.x, heart.y + 1.5, heart.z, 0);
   level.lights.push(heartLight);
-  thing(THINGS.heart, heart, { range: 3.4, prompt: () => (quests.has('splinter') && !game.flag('perdide.heart.rung') ? 'hold up the splinter' : 'look at the ring of crystals') });
+  // raising the splinter there, the first time, is filmed (src/story/perdide-moments.js): the cave answers on its beat
+  // and its page's news is toasted at its end; when it can't play, the heart's page says it, as it always did
+  const canRaise = () => quests.has('splinter') && !game.flag('perdide.heart.rung');
+  thing(THINGS.heart, heart, { range: 3.4, prompt: () => (canRaise() ? 'hold up the splinter' : 'look at the ring of crystals'),
+    use: () => { if (canRaise() && film.crystal()) return; dialogue.start(THINGS.heart, null, heart, null); } });
   const caveSong = { k: game.flag('perdide.heart.rung') ? 0.35 : 0, t: 0 };
   const ringHeart = () => {
     caveSong.t = 14;
@@ -206,11 +211,22 @@ export function setupPerdide(ctx) {
     }
   };
   game.on('flag:perdide.heart.rung', (v) => { if (v) ringHeart(); });
+  // the cave answers, as the heart's page does (its `do`): the keepsake, then the flag (which rings it). Idempotent.
+  const keepSplinter = () => game.addKeepsake({ id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that struck your ship.' });
+  const rung = () => {
+    if (game.flag('perdide.heart.rung')) return false;
+    keepSplinter();
+    game.set('perdide.heart.rung', true);
+    return true;
+  };
+  const film = setupPerdideMoments(ctx, { heart, axis, rung, phrase: (vol) => singingLight(sound, vol), others: Object.values(people) });
   quests.def(Q).onDone = () => {
     game.set('world.perdide.done', true);
-    game.addKeepsake({ id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that struck your ship.' });
+    keepSplinter();
     toast('The splinter sings with your tank. Something of value? It sings the phrase you heard the night you fell.');
-    setTimeout(() => story.complete?.(), 1200);
+    // (the closing words wait for the cave's moment to end, if it plays)
+    const close = () => (moments?.playing ? setTimeout(close, 300) : story.complete?.());
+    setTimeout(close, 1200);
   };
 
   // ---------------------------------------------------------------- feed nothing
@@ -366,5 +382,5 @@ export function setupPerdide(ctx) {
     updateFlies(dt, t, camPos);
   };
 
-  return { people, update, state: st, sing, swarm, patience: pat, places: { heart, splinterAt, hushAt, sabaAt, route } };
+  return { people, update, state: st, sing, swarm, patience: pat, film, cave: caveSong, places: { heart, splinterAt, hushAt, sabaAt, route } };
 }

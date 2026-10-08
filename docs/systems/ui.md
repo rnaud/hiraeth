@@ -261,8 +261,8 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   father's keepsakes; beside it the picked one large), **Quests** (the father's charge, then each
   quest under way, the tracked one first: its title, its goal, "Next" and its step, nothing more;
   pending errands; on the right "Done", a short list of finished and failed titles, `ENDED` of each,
-  "and n more"), **Sketchbook** (a row per world you know: its story page, its relics, a ? until found;
-  then the observatory's sketch and the errands'), **Worlds** (the worlds you know in the route's order,
+  "and n more"), **Sketchbook** (first the Sightings, below; then a row per world you know: its story
+  page, its relics, a ? until found; then the observatory's sketch and the errands'), **Worlds** (the worlds you know in the route's order,
   their picture from `thumbs/`, ✓ story, relics and makers' boxes found, "you are here").
 - **Look**: the panel's name in the Start menu's comic lettering among four tabs at the top; the sheet
   of ruled paper between two side tabs naming the neighbours (with `LB / L1`, `RB / R1` on a pad); the
@@ -279,6 +279,16 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   closes the whole menu from any panel. Keyboard: Q / E or [ ] turn, arrows or WASD move, Enter or
   Space use, Esc or J close. Mouse: the tabs, the side tabs, a click picks, a click on the picked one
   uses; hovering picks. Touch: a tap picks and says what it is, a second tap uses; the ✕ closes.
+- **The Sightings** (`src/story/sightings.js`, after Outer Wilds' ship log): the open threads the
+  player wonders about, at the top of the Sketchbook. Four blocks, one a thread (`THREADS`): *the
+  singing light*, *the makers' sign* (three dots over an arc), *the father's signal*, *someone came this
+  way before*; each with its count. A trace met is a note on its own paper: a short line in plain words
+  (`line`) and, under it, the world and who said it; each thread's notes have their own colour on the
+  left edge. One not met yet is a dashed "?" slot, with its world's name once you know that world (else
+  nothing: "somewhere further on" in the strip). The met ones come first. The notes are a grid of
+  `SIGHT_COLS` (5) a row, so a row on screen is a row of the cursor's; the strip shows the whole line,
+  the thread, the world and who, and the thread's question (`ask`). `sightingsData({ game, known,
+  titles })` fills it (`menuSources` takes `game`); `tests/sightings.test.js`.
 - **The items' pictures** (`ItemIcons`): each item's own model (`buildItemModel`, the one that hovers
   out of its box; every item has one now, the charms and the cab pass included) drawn by the game's
   pipeline alone against the slot's paper (`captureView` with `keep` and `backdrop`, as portraits are),

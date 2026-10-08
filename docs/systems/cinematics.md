@@ -96,6 +96,91 @@ tone, a swell of the world's score, then back to you.
   - Tests: `tests/moment.test.js` (the shots, a play through, the skip and its grace, a failure,
     the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
 
+### Every world's climax, filmed (October 2026)
+The audit (docs/game-audit.md, theme 6): only the desert's first times were filmed; the other ten
+climaxes went unstaged. Each now has its moment, in `src/story/<world>-moments.js`, listed with its id,
+flag and beat in `WORLD_MOMENTS` (`src/story/film.js`, which also holds the shared pieces: `closeUp`
+on his face, `orbit`, `from`, `faceAt`, `facing`). The rules are the desert's, and one more, Journey's:
+**the controls come back at the climax**, while the thing is still happening (she is still bowed, the
+bell still tolls, the wheel still turns), never after a tail. Each is 8–10 s, four panels, the last
+his face, three-quarter; he says nothing (a slight smirk at most; Viridel's is solemn, then sad;
+the broadcast's still). The state each shows is its world's own, run on its own clock; the moment
+only frames it, applies it on a beat and again for sure in `onEnd`, and holds the climax's toasts
+for its end. When it can't play, the world does what it always did. Measured: no program compiled
+mid-shot (`renderer.info.programs` unchanged). Tests: `tests/moments-<world>.test.js` each (played
+once at the climax, the traveller held, the panels framing what they should, no lines, the swell, a
+skip landing the same, no ship: as before) and `tests/world-moments.test.js` (the registry).
+
+- **Vael** (`arzach.moment.bird`, 10.2 s), the rider's flute played: A, low behind him and off his
+  side, the haze where the call goes, a speck far out answering with a cry; B, a long lens from
+  beside him panning up as she comes down out of the haze, wings wide (the world's motif); C, his
+  face turned to where she lands; D, the two of them as she lowers her neck and opens her wings (from
+  out past her and high when he is on the sill; side-on, the clearer side, on the plain). Her first
+  bow is longer (5.6 s, `bow.len`), so control comes back with her still bowed in front of you. She
+  is called, flies and bows on the world's clock; the moment only starts her nearer and asks for the
+  bow at D if she is late. The flute's toast comes at its end.
+- **Vael II** (`arzach2.moment.bell`, 9.8 s), the first pull with the clapper hung: A, wide from
+  beyond the cliff's edge, the monastery, the first note, the monks' shouts; B, level with the
+  belfry through its arch, the bell swinging and tolling, to the father's theme (it recalls the
+  harbour bell at home); C, from the cliff's lip down across the sea of cloud to the aqueduct as the
+  cloud settles round the piers; D, his face, turned out over the cloud. The cloud is held until the
+  bell is heard (`bell.hold`), then settles over 8 s (`bell.settleFor`) and is still going down as
+  control comes back.
+- **Lorn** (`perdide.moment.crystal`, 9.8 s), the splinter first raised in the crystal cave's heart
+  (in place of its page): A, wide down the cave from behind him, the dark ring; B, over his shoulder
+  (the one away from Ysse) across the ring: one crystal answers, then another, then a third, a light
+  coming up in each, then the whole ring takes the phrase (the caller's beat: the keepsake,
+  `perdide.heart.rung`, the tank's crystal-violet band); C, high under the vault, a slow arc over the
+  singing ring, and far off the phrase once more, thin, like a voice calling; D, his face lit from
+  below, looking up into it. To the father's theme. The cave is still singing when control comes
+  back; the world's closing words wait for the moment.
+- **Lorn II** (`perdide2.moment.pools`, 10 s), the third dark pool lit: A, past the pool at him as it
+  lights in his colours; B, out over the deep pool at the half-sunk saucer as it blinks back, three
+  short and one long, its thin beam going up (`perdide2.saucer.answered` on its beat; the blink now
+  starts at the start of its phrase, `st.blink0`); C, behind and above him, the lit pool and the
+  keepers' lamps along the path; D, his face, turned to the light across the water. The world's
+  motif swells from the saucer, still blinking as control comes back.
+- **Viridel** (`edena.moment.terraces`, 8.8 s), the failure: the cistern's wheel turned one notch,
+  the gate torn loose: A, the wall and its wheel from low on the south terraces as it cracks and
+  gives; B, a high long lens down the lane following the water's front as the white walls and the
+  tea go, step by step; C, low in the hollow looking back up at the raw lane between the terraces
+  that held; D, his face turned to it: solemn, then sad, nothing said. The father's theme as the gate
+  goes. The flood runs on its own ten-second clock (`terraces.js`, `api.onFlood`); control comes back
+  while the water is still on the slope, and it finishes the same, watched, skipped or never filmed.
+  While it plays, the flood's toasts that only say what the panels show stay silent (`told()`).
+- **The City-Shaft** (`incal.moment.lodestar`, 9 s), the splinter given back from the palace's crown:
+  A, low at his shoulder as it climbs past the needle; B, wide and low from beside the dome as it
+  reaches the Lodestar and the light flares (the world's motif); C, across the shaft, a billboard that
+  has stopped selling and says LOOK UP (picked in play, its line of sight clear); D, his face from a
+  little below, the sky behind. The light is still rising, the city still looking up, as control comes
+  back; a skip mid-climb lands the splinter at once. Without the ship, the old slow look up
+  (`st.cine`).
+- **The Sealed Hangar** (`garage.moment.signal`, 10 s), as Lune's talk closes with the stamped signal:
+  A, low along the ring's floor, the two of them small in the great drum; B, from by Lune's feet up the
+  curve to the slit, the sun in it (the motif); C, from above between them: nine dots of light come on
+  one by one on the floor, three by three, the signal read at last; D, his face looking down at them.
+  The dots stay, shimmering, as control comes back (gone after 40 s, or once he walks off); they are
+  made at setup from the board's lit material.
+- **The Buried Machine** (`buried.moment.wheel`, 9.4 s), the Wick lit before the wheel: A, low behind
+  him, the rusted arc over him as it creaks back and lurches (the motif on the lurch); B, low where the
+  teeth come up out of the dune, the sand pouring off; C, far out on the dunes, the wheel small and,
+  high over it, the hanging city rocking like a cradle; D, his face. The turn starts with the moment
+  and runs on its own clock (the tooth goes round at 7 s); control comes back as the wheel eases into
+  its endless turn, the sand still sliding into its hollow; its two toasts at the end.
+- **The Garden of Spheres** (`spheres.moment.chord`, 8.6 s), the pole singing back the three sounds:
+  A, wide and low across the plaza's rings, the pole's lit crown, him small at its foot; B, high over
+  the plaza, turning, ring after ring of light running out over the stones; C, low behind the pole, a
+  long lens down the garden to the great sphere answering with its halo; D, his face turned to the
+  horizon. Under it the pole's own tune, the glass bell carrying it; as its last note lands the
+  world's motif (the bell's phrase) swells; control comes back with the halo still up.
+- **The Signal Market** (`bazaar.moment.broadcast`, 9.6 s), the recording slotted in: the lead-in,
+  not the broadcast. A, low where the avenue opens into the square, up the silent tower as its dark
+  covers lift row by row; B, high up the avenue, the signs on the towers glowing white; C, from the
+  tower's face down over the square: the market stopped, every head turned up; D, his face, the
+  white screen behind him, still. The father's theme swells as his face comes up and runs on under
+  the voice: control comes back as the hiss gives way to it, and the broadcast's conversation opens
+  at the moment's end, watched or skipped (bazaar.js holds the cast's own timings while it plays).
+
 ## In-engine trailer
 
 `trailer.html` plays a 48-second trailer across the desert, City-Shaft, Vael II, Buried Machine,

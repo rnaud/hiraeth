@@ -39,7 +39,7 @@ test('the city builds: the ship on the esplanade, the eclipse at noon, people fr
   assert.equal(level.defaults.hour, 12, 'he lands in totality');
   assert.ok(level.sky.eclipse, 'its own sky (src/eclipse.js)');
   assert.equal(level.atmo(0, 0, 0).script, ECLIPSE_SCRIPT);
-  const named = ECLIPSE_CONTENT.npcs.filter((p) => p.id).map((p) => p.id);
+  const named = ECLIPSE_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id);
   assert.deepEqual(named.sort(), ['mira', 'wen', 'ysolde']);
   for (const p of ECLIPSE_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes && !p.talk.entry, `${p.id}: only words for the city, no errands`);
   // every one of them stands on clear ground at their own level

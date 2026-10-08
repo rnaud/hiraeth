@@ -121,7 +121,18 @@ export const SALT_CONTENT = {
         '~playful~ I counted the ropes on the big red one. Then I lost count, and started again, and lost it again.',
       ] } },
     // the harbour's own folk
-    { at: [-9, -10], radius: 3, lang: 'desert', lines: ['~happy~ Morning. The awnings are up.', '~neutral~ The street runs north to the standing ship. Everything else is salt.'] },
+    // (Hesper and the harbour book: the detour's trace, src/story/sightings-detours.js)
+    { id: 'hesper', name: 'Hesper', title: 'who keeps the harbour book', color: '#c98a5a', kind: 'f', at: [-9, -10], radius: 3, lang: 'desert',
+      lines: ['~happy~ Morning. The awnings are up.', '~neutral~ The street runs north to the standing ship. Everything else is salt.'],
+      talk: { listen: [
+        { after: () => true, say: [
+          '~curious~ Everyone signs the harbour book. The one before you came alone, a woman. She wrote in letters none of us read.',
+          '~solemn~ (Home letters: your own. The salt has eaten most of the line: *…where the singing goes. If anyone from home…* Where the name was, the page is white.)',
+        ], do: { set: { 'sight.saltharbour.book': true } } },
+        '~happy~ Morning. The awnings are up.',
+        '~neutral~ The street runs north to the standing ship. Everything else is salt.',
+        '~playful~ Sign the book before you go. The salt gets to every page in the end, but it takes its time.',
+      ] } },
     { at: [9, -60], radius: 3, lang: 'desert', lines: ['~curious~ You came by the sky? We came by sea, a long time ago. The sea left first.', '~playful~ Don’t pull the ropes. The ship pulls back.'] },
     { at: [-8, -150], radius: 3, lang: 'desert', lines: ['~neutral~ The cross-street goes out to the flats. Take water.', '~whisper~ Out past the red ship the crust has ridges. Something under it, they say. Nobody digs.'] },
     { at: [TOWER.x + 3, TOWER.z - 6], radius: 2, lang: 'desert', lines: ['~tired~ Ninety steps to the deck. I count them every morning.', '~happy~ Up top you can see three ships further than from down here.'] },

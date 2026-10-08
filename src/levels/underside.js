@@ -104,7 +104,18 @@ export const UNDERSIDE_CONTENT = {
     { at: [64, -128], y: SHELF.top, radius: 3, lang: 'arzach2', lines: ['~curious~ A ship on the top! We only get birds up here, and the wind.', '~neutral~ The town is under your feet. The stair at the south-west corner goes down to it.'] },
     { at: [11, STAIR.foot + 6], y: DECK, radius: 3, lang: 'arzach2', lines: ['~tired~ Two hundred steps down, two hundred up. The baskets are quicker, but they don’t take people.', '~happy~ Mind the rope walk. It sways, but it has never let anyone go.'] },
     { at: [78, -138], y: DECK, radius: 3, lang: 'arzach2', lines: ['~happy~ This is the Bell Deck. The middle of everything, under the middle of the rock.', '~whisper~ Listen. You can hear the rock creak when the sun warms it.'] },
-    { at: [104, -230], y: DECK, radius: 3, lang: 'arzach2', lines: ['~neutral~ The north side gets the cold light. We dry the fish here.', '~curious~ The timber stair goes up the north face to the top. Ten turns. Count them.'] },
+    // (Maudie: the detour's trace, src/story/sightings-detours.js)
+    { id: 'maudie', name: 'Maudie', title: 'who dries the fish', color: '#a8b8c8', kind: 'f', at: [104, -230], y: DECK, radius: 3, lang: 'arzach2',
+      lines: ['~neutral~ The north side gets the cold light. We dry the fish here.', '~curious~ The timber stair goes up the north face to the top. Ten turns. Count them.'],
+      talk: { listen: [
+        { after: () => true, say: [
+          '~neutral~ A woman wintered here once, alone, in the empty house at the end of this gallery. Never said from where.',
+          '~sad~ Every night she played a recording, low: a man’s voice. Through the wall you could only hear that it was kind.',
+          '~solemn~ She always stopped it before the end. In spring she went up the north stair.',
+        ], do: { set: { 'sight.underside.maudie': true } } },
+        '~neutral~ The north side gets the cold light. We dry the fish here.',
+        '~curious~ The timber stair goes up the north face to the top. Ten turns. Count them.',
+      ] } },
     { at: [110, -60], y: DECK, radius: 3, lang: 'arzach2', lines: ['~solemn~ My grandmother was born in a house on the face. She never once stood on the top.', '~playful~ We hang the banners so the birds know where the doors are.'] },
     { at: [120, -96], y: SHELF.top, radius: 3, lang: 'arzach2', lines: ['~happy~ We keep the gardens up here. Everything else hangs below.', '~neutral~ The tip of the shelf? Go down and walk east under the rock. The deck at the end looks at nothing at all.'] },
   ],

@@ -222,3 +222,27 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
   #journal .gm-side .nm { display: none; }
   #journal .gm-info { margin: 0; }
 }
+
+/* Sketchbook: the Sightings, the open threads (src/story/sightings.js): a block a thread, its notes in a grid
+   (SIGHT_COLS a row, as the cursor moves), each a short line in ink with where and who; a ? for the rest */
+#journal .gm-sketches .sightings { margin: 0 0 clamp(12px, 2.8vh, 26px); padding-bottom: clamp(8px, 1.6vh, 14px); border-bottom: 2px dashed rgba(43, 33, 31, 0.35); }
+#journal .gm-sketches .thread { margin: 0 0 clamp(8px, 1.8vh, 16px); }
+#journal .gm-sketches .thread h3 { margin: 0 0 6px; font-size: clamp(11px, 2vh, 14px); letter-spacing: 0.06em; }
+#journal .gm-sketches .thread h3 span { opacity: 0.55; font-weight: normal; margin-left: 4px; }
+#journal .gm-sketches .notes { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: clamp(6px, 1vw, 12px); }
+#journal .note {
+  display: flex; flex-direction: column; justify-content: space-between; gap: 4px; min-height: clamp(44px, 9vh, 84px); padding: clamp(4px, 0.8vh, 8px) clamp(5px, 0.6vw, 9px);
+  text-align: left; background: #f6ecd2; border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); font: inherit; color: var(--ink); cursor: pointer;
+}
+#journal .note:nth-child(odd) { transform: rotate(-0.5deg); }
+#journal .note:nth-child(even) { transform: rotate(0.4deg); }
+#journal .note q { quotes: none; font-style: italic; font-size: clamp(9px, 1.7vh, 12px); line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#journal .note small { font-size: clamp(8px, 1.45vh, 10.5px); letter-spacing: 0.04em; opacity: 0.7; }
+#journal .note.empty { min-height: clamp(28px, 5.5vh, 50px); align-items: center; justify-content: center; flex-direction: row; gap: 8px; background: transparent; border-style: dashed; border-color: rgba(43, 33, 31, 0.4); box-shadow: none; }
+#journal .note.empty i { font-style: normal; font-size: clamp(12px, 2.4vh, 20px); opacity: 0.4; }
+#journal .thread.light .note:not(.empty) { border-left: 5px solid #e8a33c; }
+#journal .thread.glyph .note:not(.empty) { border-left: 5px solid #3fb6ad; }
+#journal .thread.signal .note:not(.empty) { border-left: 5px solid #c8483a; }
+#journal .thread.before .note:not(.empty) { border-left: 5px solid #7a6e9e; }
+#journal .note.at, #journal .note:hover { transform: translate(-2px, -2px) rotate(0); box-shadow: 5px 5px 0 var(--ink); }
+#journal .note.empty.at { background: rgba(242, 197, 75, 0.35); }

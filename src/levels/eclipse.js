@@ -92,7 +92,18 @@ export const ECLIPSE_CONTENT = {
     // the city's own folk
     { at: [10, 2], radius: 3, lang: 'desert', lines: ['~happy~ Sit anywhere! Nobody owns a table at the eclipse.', '~whisper~ Don’t look straight at it. Look at the lamps instead. They’re ours.'] },
     { at: [-6, -22], radius: 3, lang: 'desert', lines: ['~curious~ You came by the sky? Today of all days. It is closed.', '~playful~ The Great Stair has forty steps by day and forty-one in the dark. Count them.'] },
-    { at: [12, BOWL.Z0 - 20], y: LEVEL.high, radius: 3, lang: 'desert', lines: ['~solemn~ My grandmother made the figure on our wall. It leans a little more each year.', '~neutral~ Up the bowl, at the top, the old house sees the whole sky.'] },
+    // (Ansel: the detour's trace, src/story/sightings-detours.js)
+    { id: 'ansel', name: 'Ansel', title: 'whose grandmother made the figure', color: '#9a8cc8', kind: 'm', at: [12, BOWL.Z0 - 20], y: LEVEL.high, radius: 3, lang: 'desert',
+      lines: ['~solemn~ My grandmother made the figure on our wall. It leans a little more each year.', '~neutral~ Up the bowl, at the top, the old house sees the whole sky.'],
+      talk: { listen: [
+        { after: () => true, say: [
+          '~solemn~ The night the sky rang, a light came over the roofs singing, and stopped where the black sun sits at noon.',
+          '~curious~ It hung there a long while, the way you stand at a door you aren’t sure of.',
+          '~whisper~ By morning every figure on the walls leaned the way it went. They lean that way still.',
+        ], do: { set: { 'sight.eclipse.ansel': true } } },
+        '~solemn~ My grandmother made the figure on our wall. It leans a little more each year.',
+        '~neutral~ Up the bowl, at the top, the old house sees the whole sky.',
+      ] } },
     { at: [BOUNDS.W - 6, -112], y: LEVEL.high, radius: 3, lang: 'desert', lines: ['~tired~ All night cooking for one hour of dark. Worth it.', '~happy~ The far city answers us. See? Every lamp out there is somebody eating.'] },
     { at: [4, 70], radius: 3, lang: 'desert', lines: ['~curious~ A ship! Did you fly through the dark to get here?', '~neutral~ The gate is open. The whole city is in the square.'] },
   ],
