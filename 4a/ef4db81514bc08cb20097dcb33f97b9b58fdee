@@ -1,0 +1,55 @@
+changelog.md
+  s_efb1d100d5a6fc::t_57763385293743 7
+docs/systems/materials.md
+  s_efb1d100d5a6fc::t_90961fff1ca044 58,63-66,68-90,98-102,106-108
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_41edef8af42bf3 154-158
+src/changelog.js
+  s_efb1d100d5a6fc::t_65bb665e9a5ee4 17
+src/desert-city.js
+  s_efb1d100d5a6fc::t_9bb163fb8398b4 7,150
+src/desert-landmarks.js
+  s_efb1d100d5a6fc::t_806c2294ec0ea9 2,133-135
+src/levels/bazaar.js
+  s_efb1d100d5a6fc::t_338b99c90c333f 2,70
+src/levels/lab-kit.js
+  s_efb1d100d5a6fc::t_3867978bf748a9 2,55,76,93-96
+src/main.js
+  s_efb1d100d5a6fc::t_3b6977964329eb 18,218-220
+src/materials.js
+  s_efb1d100d5a6fc::t_85991165ac56ec 7,100,102-105,327-336,339-343,757,1324-1356,1359-1397,1401-1406,1408-1420,1422,1977,2157-2158,2161,2166
+tests/motion-stable.test.js
+  s_efb1d100d5a6fc::t_890e0ec5313782 12-16,18-19,21-26
+tests/shade.test.js
+  s_efb1d100d5a6fc::t_b866cc0c1674d8 166,168-171,175
+tests/wall-openings.test.js
+  s_efb1d100d5a6fc::t_fd9eda361d5668 1-92
+docs/systems/rendering.md
+  s_5018e45ff79d2c::t_8a3cfd1c042710 475-477
+src/wall-openings.js
+  s_5018e45ff79d2c::t_f1ae4a937d13a5 1-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4aef4db81514bc08cb20097dcb33f97b9b58fdee",
+  "prompts": {},
+  "sessions": {
+    "s_5018e45ff79d2c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab6bf0751734bf7f7",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
