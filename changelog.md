@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.89 — 2026-10-07
+
+- Attack and defense have separate buttons: F / LB / L1 attacks, B / RB / R1 guards, and Z / X / □ evades in your movement direction, or backsteps when standing. Guard just before a blow to parry without spending fluid and leave the foe open longer. On a controller, hold LT / L2 with RB / R1 to push, or with X / □ to call your mount; touch has separate guard and evade buttons.
+- The moving blade makes contact during the cut. Foes recoil in the direction of the blow, heavy cuts buckle them, and the sound and brief pause land with the impact.
+- Sword cuts use the whole body, with a deliberate wind-up, a fast release and a follow-through. Attacks, guard and movement blend into each other, and a short step carries each grounded cut forward.
+- Read a foe’s body: ink blots coil and lunge, machines plant their feet and raise their arms before slamming. Their ordinary melee attacks no longer draw warnings on the floor, and a missed strike leaves an opening.
+- Experimental motion matching no longer borrows the next motion capture’s pose when searching at a loop boundary. It remains an optional comparison; the normal blended movement is still the default.
+
 ## v0.88 — 2026-10-07
 
 - Relics out in the wilds are guarded: ink blots gather round as you come near, and once cut down they are gone for good.

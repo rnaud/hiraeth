@@ -1097,6 +1097,7 @@ export class Player {
     // flying on RT / the mouse (not climbing on them with the jump held): the stick goes where the camera looks
     const superman = jetting && jetBtn && !input.Space;
     if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
+    if (this.onGround && this.combatMotion) speed *= this.combatMotion.scale;
     speed *= this.wadeSlow;                                                   // wading (src/swim.js)
     const steering = move.lengthSq() > .001;
     if (this.onGround || jetting || this.gliding) this._carry = false;   // (jumped off something fast: its speed carries you until you land)
@@ -1110,6 +1111,11 @@ export class Player {
     if (liftOff) vu = Math.max(vu, JET.takeoff);
     const want = superman ? _flyH.copy(flyDir).addScaledVector(U, -flyDir.dot(U)).multiplyScalar(speed) : _flyH.copy(move).multiplyScalar(speed);
     tv.addScaledVector(want.sub(tv), a);
+    if (this.onGround && this.combatMotion) {
+      const C = this.combatMotion;
+      if (C.evade) tv.copy(C.dir).multiplyScalar(C.speed);
+      else tv.addScaledVector(C.dir, C.speed * a);
+    }
 
     // jump / glide
     let jumped = false;
@@ -2049,12 +2055,11 @@ export class Player {
         if (Gs.kind === 'pet') A.playUpper(GESTURES.pet.clip, GESTURES.pet.from + (Gs.t % GESTURES.pet.loop), Gs.w * GESTURES.pet.w);
       }
     }
-    // a swing of the fluid blade or its guard from motion capture, above the legs (src/fluid-blade.js: this.swingMove = { clip, t, w });
+    // Combat poses are applied after locomotion; flinches remain an upper-body overlay.
     // else a flinch as a foe's strike lands (Player.flinch)
     const Sw = this.swingMove, Fl = this._flinch;
     if (Fl) { Fl.t += dt; if (Fl.t >= FLINCH.for || this.down) this._flinch = null; }
-    if (Sw && !R && !this.down) A.playUpper(Sw.clip, Sw.t, Sw.w);
-    else if (this._flinch && !R) A.playUpper(FLINCH.clip, FLINCH.from + Fl.t, THREE.MathUtils.clamp(Math.min(Fl.t / 0.05, (FLINCH.for - Fl.t) / 0.2), 0, 1));
+    if (!Sw && this._flinch && !R) A.playUpper(FLINCH.clip, FLINCH.from + Fl.t, THREE.MathUtils.clamp(Math.min(Fl.t / 0.05, (FLINCH.for - Fl.t) / 0.2), 0, 1));
     // jumps, drops, the kick off a wall and a hard landing's stumble from motion capture (src/air-moves.js)
     const captured = this.locoMoves !== false && !!A.lib.motion?.clips?.length && !A.matching;
     A.idleMoves = captured;
@@ -2072,6 +2077,7 @@ export class Player {
       this.moves.update(dt, { speed: hs, steering, wantSpeed: this._wantSpeed ?? 0, heading: this.heading, want: steering ? this.frame.headingOf(this._moveDir) : null, ground: free, size: A.legRatio });
       this.moves.play(A);
     }
+    if (Sw && !R && !this.down) A.playCombat(Sw.clip, Sw.t, Sw.w, { full: Sw.full && this.onGround, id: Sw.id });
     // our walk / run speeds land on the walk and sprint clips; jog in between
     A.update(dt, {
       speed: hs, onGround: this.onGround, mode: 'ground', vy, jump: this.onGround ? null : J.phase,
@@ -2089,6 +2095,11 @@ export class Player {
     const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim ? this.frame.headingOf(this._moveDir) : null;
     (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim });
     this.loco.pose(c);
+    if (this.combatMotion?.evade) {
+      const e = Math.sin(Math.PI * this.combatMotion.evade);
+      c.body.position.y -= e * 0.16;
+      c.body.rotation.z += e * 0.18 * this.combatMotion.dir.dot(this.frame.right);
+    }
     J.pose(c, 1 - 0.6 * (A.legsW ?? 0));   // (a captured jump in the air, or its landing, has its own: a little of the tuck stays)
     if (this.edge?.k > 0.01 && this.onGround) this.edge.pose(c, 1 - THREE.MathUtils.smoothstep(hs, 0.6, 2.6));
     this.idleLayer(dt, hs);

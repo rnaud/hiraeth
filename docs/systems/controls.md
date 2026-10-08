@@ -11,7 +11,7 @@ npm run dev     # http://localhost:5173
 
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
-**F** swings the fluid blade and, held, raises the guard (LB / L1 on a controller, ⚔ on touch: docs/systems/foes.md). **F3** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
+**F** swings the fluid blade (LB / L1, touch ⚔). **B** holds guard (RB / R1, touch ◇); **Z** evades on foot (X / □, touch ↶). A guard timed just before contact parries; a held guard spends a fluid charge per block. See docs/systems/foes.md. **F3** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after
 five seconds; ping again to refresh it. The guide follows quest progress and
@@ -35,18 +35,18 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
 
 | | bottom (Xbox A, Retroid B) | right (Xbox B, Retroid A) | left (Xbox X, Retroid Y) | top (Xbox Y, Retroid X) |
 |---|---|---|---|---|
-| walking | jump (again in the air: boost; hold: wings; with RT on the jets: climb) | interact, talk, get on | call the mount (whistle, hail a taxi) | ping |
+| walking | jump (again in the air: boost; hold: wings; with RT on the jets: climb) | interact, talk, get on | evade; with LT: call mount / taxi | ping |
 | riding | jump off (a hop, its speed carries you) | get off (moving or flying: jump off) | hop / flap / rise (a cab: where to?) | |
 
 - **Walking:** left stick moves; click it (L3) to run, until you let the stick go.
   Right stick looks; hold LB / L1 and the right stick zooms (a press of LB / L1 on its own swings the fluid blade). LT / L2 aims the fluid
   tool and RT / R2 shoots while it is held; RT / R2 without LT fires the **jets**
   (see "The controls of October 2026" below). RB / R1
-  pushes, D-pad left / right changes the gun mode, up the worlds, down photo mode,
+  guards (LT + RB pushes), D-pad left / right changes the gun mode, up the worlds, down photo mode,
   R3 sounds the bell-note whistle. View / Select opens the sketchbook on your **gear**
   (every item and what it does, `gearHtml` in `src/items.js`); Menu / Start the settings.
 - **The pad's interact never whistles.** On the keyboard E still falls back to the
-  whistle when nothing is near; on a pad that is the left button's (`player.callMount`).
+  whistle when nothing is near; on a pad that is LT + the left button's (`player.callMount`).
 - **Riding** (context `'ride'`, `padRide()`): RT / R2 is an analog throttle, LT / L2
   brakes and reverses, the left stick steers (pushing it forward does not drive), and on
   the bird it tilts too: forward dives, back climbs. RB / R1 or

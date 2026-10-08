@@ -396,10 +396,12 @@
       #touch .b-fire { right: calc(200px + var(--safe-right)); bottom: calc(60px + var(--safe-bottom)); width: 74px; height: 74px; font-size: 26px; }
       #touch .b-push { right: calc(206px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
       #touch .b-mode { right: calc(282px + var(--safe-right)); bottom: calc(96px + var(--safe-bottom)); width: 50px; height: 50px; font-size: 22px; }
+      #touch .b-guard { right: calc(282px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
+      #touch .b-evade { right: calc(206px + var(--safe-right)); bottom: calc(290px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
       #touch .b-blade { right: calc(282px + var(--safe-right)); bottom: calc(166px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
       body:not(.modes) #touch .b-mode { display: none; }
       /* no backpack yet: no tool buttons, no tool hints (ui.js ToolHud sets .no-tool) */
-      body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-push, body.no-tool #touch .b-mode, body.no-tool #touch .b-blade { display: none; }
+      body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-push, body.no-tool #touch .b-mode, body.no-tool #touch .b-blade, body.no-tool #touch .b-guard, body.no-tool #touch .b-evade { display: none; }
       /* the gun modes: the label and the crosshair's dot take the mode's colour */
       body.modeflash #tool { opacity: 1; visibility: visible; transition: opacity 0.15s; }
       body.modeflash:not(.aiming) #tool .mode { animation: modeflash 1.6s ease-out forwards; }

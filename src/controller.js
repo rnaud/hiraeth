@@ -3,9 +3,9 @@
 // thumb does the same thing on every pad (docs/systems/controls.md, "Controller"):
 //
 //   walking   bottom jump (again in the air: boost) · right interact, talk, get on
-//             · left call the mount (whistle it, hail a taxi) · top: the scout finds the objective
+//             · left evade (LT + left calls the mount or a taxi) · top: the scout finds the objective
 //             · LT aim · RT shoots while LT is held, and fires the jets without it
-//             (hover; the stick flies you that way, bottom held climbs) · RB push
+//             (hover; the stick flies you that way, bottom held climbs) · RB guard, LT + RB push
 //             · L3 (click the left stick) run until you stop
 //             · LB + right stick zoom · D-pad ←/→ gun mode, ↑ worlds, ↓ photo
 //             · R3 (click the right stick) the bell-note whistle, once found
@@ -130,12 +130,14 @@ export class Controller {
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
         h.KeyE = down(EAST); h.PadE = h.KeyE;   // (the pad's interact never whistles: that's the left button's)
-        // the fluid tool: hold LT to aim, RT shoots while aiming and fires the jets otherwise (triggers()), RB pushes; jump in the air boosts
-        h.PadAim = down(LT); h.PadFire = down(RT); h.PadPush = down(RB);
+        // the fluid tool: hold LT to aim, RT shoots while aiming and fires the jets otherwise (triggers()), LT + RB pushes; jump in the air boosts
+        h.PadAim = down(LT); h.PadFire = down(RT); h.PadPush = down(LT) && down(RB);
+        h.PadGuard = down(RB) && !down(LT);
+        h.PadEvade = down(WEST) && !down(LT);
         h.PadBlade = down(LB);   // the fluid blade (src/fluid-blade.js); LB held with the right stick still zooms
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
         h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
-        if (press(WEST)) this.action('call');
+        if (press(WEST) && down(LT)) this.action('call');
       }
       // the top button sends the scout to find the objective, on foot and riding (flying too)
       if (ctx !== 'photo' && press(NORTH)) this.action('ping');

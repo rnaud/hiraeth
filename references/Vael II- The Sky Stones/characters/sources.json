@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/vael-ii.md",
+  "references": [
+    {
+      "character": "Mother Ysolde, who writes the letters",
+      "file": "Mother Ysolde, who writes the letters/anf___Character_exploration_sheet_for_Mother_Ysolde_the_abbes_999d7635-8e4b-491c-bb53-0ce05f462836_0.png",
+      "midjourney_job": "999d7635-8e4b-491c-bb53-0ce05f462836",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/999d7635-8e4b-491c-bb53-0ce05f462836?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Tiv, a novice who balances stones",
+      "file": "Tiv, a novice who balances stones/anf___Character_exploration_sheet_for_Tiv_a_young_monastery_n_f6af532a-8956-4a70-99d7-ddfbeb406a72_0.png",
+      "midjourney_job": "f6af532a-8956-4a70-99d7-ddfbeb406a72",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/f6af532a-8956-4a70-99d7-ddfbeb406a72?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Brother Calix, keeper of the silent bell",
+      "file": "Brother Calix, keeper of the silent bell/anf___Character_exploration_sheet_for_Brother_Calix_a_big_gen_601f3c31-e2a6-4890-9e4f-7c20a62d349a_0.png",
+      "midjourney_job": "601f3c31-e2a6-4890-9e4f-7c20a62d349a",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/601f3c31-e2a6-4890-9e4f-7c20a62d349a?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Sister Aube, hermit of the edge",
+      "file": "Sister Aube, hermit of the edge/anf___Character_exploration_sheet_for_Sister_Aube_a_hermit_nu_5b807599-44d8-4811-82eb-1ed8602237ba_0.png",
+      "midjourney_job": "5b807599-44d8-4811-82eb-1ed8602237ba",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/5b807599-44d8-4811-82eb-1ed8602237ba?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Ondine, who walked to the plain",
+      "file": "Ondine, who walked to the plain/anf___Character_exploration_sheet_for_Ondine_a_traveller_who__6700c984-6fbe-4401-8684-02361b013e54_0.png",
+      "midjourney_job": "6700c984-6fbe-4401-8684-02361b013e54",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/6700c984-6fbe-4401-8684-02361b013e54?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

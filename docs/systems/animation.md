@@ -478,6 +478,40 @@ bone turns unchanged, and none with the moves off, under matching, or off the gr
 the legs follow the capture too: starts, stops and turns at the game's speeds (a jog start, a run
 start, a run stop, a 90° turn at a jog; docs/mixamo-shopping-list.md).
 
+### Matching boundary repair (2026-10-07)
+
+A search in the last half-frame of a loop could round the pose-feature index into the
+next unrelated take in the packed database. It now stays inside the current segment.
+`tests/motion-matching.test.js` reproduces the boundary and checks all 15 pose features.
+This is a narrow correctness repair, not a replacement of the default locomotion system.
+
+Repeating `BODY=v1 WAYS=moves,mm node scripts/mocap/compare.mjs` before the repair and
+`BODY=v1 WAYS=mm node scripts/mocap/compare.mjs` after it gives mean foot slide in metres:
+
+| Course | Matching before | Matching after | Default captured-move blend |
+|---|---:|---:|---:|
+| Walk, run, reverse, stop | 0.083 | 0.083 | 0.051 |
+| Walk, 90° turn, stop | 0.101 | 0.094 | 0.016 |
+| Turn on the spot | 0.065 | 0.065 | 0.025 |
+| Ramp | 0.059 | 0.060 | 0.022 |
+| Stairs | 0.085 | 0.093 | 0.022 |
+| Slow walk | 0.054 | 0.054 | 0.024 |
+| Jog, 45° turns, stop | 0.097 | 0.097 | 0.019 |
+| Standing | 0.024 | 0.024 | 0.000 |
+
+Maximum slide is unchanged to two decimals across all eight courses. The 90° course
+uses 18 jumps rather than 21, with mean slide down about 7%; stairs still lose to the
+default and mean slide increases slightly, though held-foot drift falls from 0.013 to
+0.006 m. Matching coverage remains 55–100% across these courses (including captured
+idles); the repair does not improve numbers by disabling the matcher. Its 0.18 m stair
+penetration and the capture/controller speed mismatch remain unresolved. The matcher
+therefore stays opt-in. Experimental changes to warped prediction, fallback state, and
+transition gating were measured and discarded because they caused other regressions.
+
+Smooth animation blending is already part of the default animator. Motion matching is
+a separate frame-selection algorithm, with inertialized transitions, and is not needed
+to enable ordinary smooth blends or the new combat transitions.
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where
@@ -518,3 +552,12 @@ to walk round, the people's assets, and the captured motion. It lists and plays 
 
 The course, the runs and the measures moved from `tests/gait-sim.js` into `src/gait-course.js`
 (browser-safe), which the harness, `compare.mjs` and the page share; the harness's output is unchanged.
+
+## Combat transitions (v0.89)
+
+Combat uses explicit wind-up, active and recovery timings, rather than searching the locomotion database.
+`Animator.playCombat` applies full-body grounded swings after the locomotion layers, and blends from the
+last displayed pose over 90 ms when a combat clip changes or releases control. Guard and airborne cuts
+remain upper-body. Clip weights ease in/out and the existing foot contacts place grounded feet. This
+works with default blended locomotion and the optional matcher; it does not change the matcher default
+or claim to fix the speed/database mismatch measured above.

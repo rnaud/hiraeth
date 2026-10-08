@@ -1204,17 +1204,18 @@ export class Sound {
   }
 
   /** The blade lands on something (a foe), or cuts the air. */
-  fluidSlashHit(hit = false) {
+  fluidSlashHit(hit = false, heavy = false) {
     if (!this.ctx || !hit) return;
     const t = this.ctx.currentTime;
     this.burst(t, { dur: 0.12, type: 'lowpass', freq: 900, q: 0.8, vol: 0.22, rate: 0.7 });
-    this.sweep(t, 300, 110, 0.12, 0.1, 'triangle');
+    this.sweep(t, heavy ? 190 : 300, heavy ? 65 : 110, heavy ? 0.19 : 0.12, heavy ? 0.14 : 0.1, 'triangle');
   }
 
   /** The fluid shield takes a blow (src/fluid-blade.js block): a bright clang and a wet splash. */
-  fluidBlock() {
+  fluidBlock(perfect = false) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
+    if (perfect) this.sweep(t, 1600, 2100, 0.14, 0.07, 'sine');
     [1, 1.33].forEach((m, i) => this.sweep(t + i * 0.008, 880 * m, 760 * m, 0.3, 0.06, 'triangle'));
     this.burst(t, { dur: 0.18, type: 'bandpass', freq: 1400, q: 0.8, vol: 0.16, rate: 0.9 });
   }

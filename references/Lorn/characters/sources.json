@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/lorn.md",
+  "references": [
+    {
+      "character": "Wendel, egg-warden",
+      "file": "Wendel, egg-warden/anf___Character_exploration_sheet_for_Wendel_a_warden_of_glow_e9985f86-3426-4962-a55b-3d412dce7419_0.png",
+      "midjourney_job": "e9985f86-3426-4962-a55b-3d412dce7419",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/e9985f86-3426-4962-a55b-3d412dce7419?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Sedge, reed-cutter",
+      "file": "Sedge, reed-cutter/anf___Character_exploration_sheet_for_Sedge_a_reed-cutter_of__4df91f50-e7c3-4556-b153-41b52243f979_0.png",
+      "midjourney_job": "4df91f50-e7c3-4556-b153-41b52243f979",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/4df91f50-e7c3-4556-b153-41b52243f979?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Saba, the Listener",
+      "file": "Saba, the Listener/anf___Character_exploration_sheet_for_Saba_a_wise_woman_who_l_f959c9c1-8fbf-4510-9725-faab6527d76c_0.png",
+      "midjourney_job": "f959c9c1-8fbf-4510-9725-faab6527d76c",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/f959c9c1-8fbf-4510-9725-faab6527d76c?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Corm, who feeds the plants",
+      "file": "Corm, who feeds the plants/anf___Character_exploration_sheet_for_Corm_a_keeper_who_feeds_075f108e-6260-4772-96d4-1b9d5a9f2042_0.png",
+      "midjourney_job": "075f108e-6260-4772-96d4-1b9d5a9f2042",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/075f108e-6260-4772-96d4-1b9d5a9f2042?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Ysse, keeper of the crystal cave",
+      "file": "Ysse, keeper of the crystal cave/anf___Character_exploration_sheet_for_Ysse_keeper_of_a_cave_o_96be66c1-9f95-4437-abcd-fb2445a07bc9_0.png",
+      "midjourney_job": "96be66c1-9f95-4437-abcd-fb2445a07bc9",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/96be66c1-9f95-4437-abcd-fb2445a07bc9?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

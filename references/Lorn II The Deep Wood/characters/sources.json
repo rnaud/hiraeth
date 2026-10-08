@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/lorn-ii.md",
+  "references": [
+    {
+      "character": "Hollin, keeper of the lamps",
+      "file": "Hollin, keeper of the lamps/anf___Character_exploration_sheet_for_Hollin_the_old_keeper_o_8242334a-f71c-4cde-a206-6985fd053f1c_0.png",
+      "midjourney_job": "8242334a-f71c-4cde-a206-6985fd053f1c",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/8242334a-f71c-4cde-a206-6985fd053f1c?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Robin, a young lamp-keeper",
+      "file": "Robin, a young lamp-keeper/anf___Character_exploration_sheet_for_Robin_an_eager_apprenti_73f9561a-2d93-4f70-851d-b9138b32c421_0.png",
+      "midjourney_job": "73f9561a-2d93-4f70-851d-b9138b32c421",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/73f9561a-2d93-4f70-851d-b9138b32c421?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Pim, who lives in a moss dome",
+      "file": "Pim, who lives in a moss dome/anf___Character_exploration_sheet_for_Pim_a_shy_hermit_who_li_50e808ab-53e3-450f-b981-2c5b23677e76_0.png",
+      "midjourney_job": "50e808ab-53e3-450f-b981-2c5b23677e76",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/50e808ab-53e3-450f-b981-2c5b23677e76?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Bram, who minds the cave mouth",
+      "file": "Bram, who minds the cave mouth/anf___Character_exploration_sheet_for_Bram_a_big_watchman_at__336ac723-64c9-4096-962b-f049fee6885a_0.png",
+      "midjourney_job": "336ac723-64c9-4096-962b-f049fee6885a",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/336ac723-64c9-4096-962b-f049fee6885a?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Fen, who lives in the far dome",
+      "file": "Fen, who lives in the far dome/anf___Character_exploration_sheet_for_Fen_a_lonely_wanderer_o_1247dfa3-40bc-417c-9a6a-734d272d0a22_0.png",
+      "midjourney_job": "1247dfa3-40bc-417c-9a6a-734d272d0a22",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/1247dfa3-40bc-417c-9a6a-734d272d0a22?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

@@ -25,7 +25,7 @@ function player(at = v()) {
 }
 const run = (f, P, secs) => { const ev = []; for (let i = 0; i < secs / DT; i++) ev.push(...f.update(DT, P, env)); return ev; };
 
-test('an ink blot notices you, comes, draws its lunge on the ground first, and the lunge lands only where it was drawn', () => {
+test('an ink blot notices you, winds up and commits to a lunge you can sidestep', () => {
   const P = player(v(0, 0, 10)), f = new Foe('blot', v(0, 0, 0), { rng: () => 0.5 });
   const ev = run(f, P, 0.1);
   assert.ok(ev.includes('notice'), 'it saw you');
@@ -39,7 +39,7 @@ test('an ink blot notices you, comes, draws its lunge on the ground first, and t
   for (let i = 0; i < 6 / DT && !warned; i++) warned = g.update(DT, Q, env).includes('warn');
   assert.ok(warned);
   Q.pos.set(6, 0, 3);   // out of it
-  const miss = run(g, Q, FOES.blot.attack.wind + 0.1).find((e) => e.type === 'strike');
+  const miss = run(g, Q, FOES.blot.attack.wind + FOES.blot.attack.strike + 0.1).find((e) => e.type === 'strike');
   assert.equal(miss?.hit, false, 'out of the ring: it misses');
 });
 
@@ -168,14 +168,14 @@ test('the blade: three arcs, a soft lock on the nearest foe, and only targets th
   clearTargets();
 });
 
-test('held, the blade button raises the guard after the swing: a strike from in front is blocked for a charge, the foe reels; from behind, or with the tank empty, it gets through', async () => {
+test('held, the separate guard button raises the guard: a strike from in front is blocked for a charge, the foe reels; from behind, or with the tank empty, it gets through', async () => {
   const { GUARD, inGuard } = await import('../src/fluid-blade.js');
   assert.ok(inGuard(v(), v(0, 0, 1), v(1, 0, 3)) && !inGuard(v(), v(0, 0, 1), v(0, 0, -3)), 'in front, not behind');
   clearTargets();
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, -3); camera.lookAt(0, 1.6, 10); camera.updateMatrixWorld();
   const P = player(v()); P.heading = 0; P.flinches = 0; P.flinch = function () { this.flinches++; };
   const tool = new FluidTool({ scene: new THREE.Scene(), player: P, physics: flat, camera, rig: { aimK: 0 }, state: new GameState(null) });
-  for (let i = 0; i < 1.2 / DT; i++) tool.update(DT, { KeyF: true });   // the swing, then held: the guard
+  for (let i = 0; i < 1.2 / DT; i++) tool.update(DT, { KeyB: true });   // holding guard costs a charge on contact
   assert.ok(tool.blade.guarding, 'the guard is up');
   assert.equal(typeof P.guard, 'function', 'the player asks the blade');
   const game = new GameState(null);

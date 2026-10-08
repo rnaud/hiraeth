@@ -464,7 +464,9 @@ export class MotionMatcher {
     if (fresh || force || this.timer <= 0) {
       this.timer = MATCH.interval;
       this.lastWant = { speed: wantSpeed, dir: wantDir };
-      const q = this.query, j = fresh ? -1 : Math.round(this.cur);
+      // The packed sheet continues with a different take after a loop’s last frame.
+      // Rounding that tail must not borrow the next take’s pose features.
+      const q = this.query, j = fresh ? -1 : Math.min(Math.round(this.cur), db.segments[db.segOf[Math.floor(this.cur)]].end - 1);
       if (j >= 0 && j < db.n) for (let d = 0; d < 15; d++) q[d] = db.rawFeat[j * db.F + d];
       else for (let d = 0; d < 15; d++) q[d] = db.mean[d];
       const t = this.predict(s, size);

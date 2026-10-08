@@ -321,6 +321,35 @@ export class Animator {
     return true;
   }
 
+  /** Deliberate attacks use phase timing; transitions crossfade from the actual displayed pose. */
+  playCombat(name, t, w, { full = true, id = name } = {}) {
+    this.combatKey = `${id}:${name}`;
+    return this.play(name, t, w, { full, legs: full, head: true });
+  }
+
+  blendCombat(dt) {
+    if (!this.combatKey && !this.lastCombatKey && !this.combatFrom) return;
+    // Retain the displayed pose, including motion matching, for a continuous handover.
+    this.combatBones ??= (() => { const b = []; this.src.traverse((o) => { if (o.isBone) b.push(o); }); return b; })();
+    const key = this.combatKey ?? null;
+    if (key !== this.lastCombatKey && this.lastCombatPose) {
+      this.combatFrom = this.lastCombatPose.map((v) => ({ q: v.q.clone(), p: v.p.clone() })); this.combatBlendT = 0;
+    }
+    this.lastCombatKey = key; this.combatKey = null;
+    if (this.combatFrom) {
+      this.combatBlendT += dt;
+      const k = THREE.MathUtils.smoothstep(this.combatBlendT, 0, 0.09);
+      this.combatBones.forEach((b, i) => {
+        b.quaternion.slerp(this.combatFrom[i].q, 1 - k);
+        b.position.lerp(this.combatFrom[i].p, 1 - k);
+      });
+      if (k >= 1) this.combatFrom = null;
+    }
+    this.lastCombatPose ??= this.combatBones.map(() => ({ q: new THREE.Quaternion(), p: new THREE.Vector3() }));
+    this.combatBones.forEach((b, i) => { this.lastCombatPose[i].q.copy(b.quaternion); this.lastCombatPose[i].p.copy(b.position); });
+    if (!key && !this.combatFrom) this.lastCombatPose = null;
+  }
+
   /** The move's contacts at `t` (its own, labelled on the capture: scripts/mocap/process.js), { l, r } 0..1. */
   moveContact(clip, t, out) {
     const ud = clip.userData ?? {};
@@ -537,6 +566,7 @@ export class Animator {
     if (this.move?.legs === false) this.overlayMove(this.move);
     if (this.upperReq) { this.overlayMove(this.upperReq); this.headW = Math.max(this.headW, this.upperReq.w); this.upperReq = null; }
     this.match(dt, s, landing, size);
+    this.blendCombat(dt);
     this.src.updateMatrixWorld(true);
   }
 

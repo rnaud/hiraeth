@@ -99,6 +99,8 @@ export function toolInput(c = {}) {
     quick: t.quick,
     push: !!(c.KeyC || c.MouseMiddle || c.PadPush),
     blade: !!(c.KeyF || c.PadBlade || c.TouchBlade),   // the fluid blade (src/fluid-blade.js): F, LB / L1, touch ⚔
+    guard: !!(c.KeyB || c.PadGuard || c.TouchGuard),
+    evade: !!(c.KeyZ || c.PadEvade || c.TouchEvade),
     mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode
     modeBack: !!c.PadModePrev,             // the previous one (D-pad left)
   };
@@ -963,7 +965,7 @@ export class FluidTool {
     } else if (p) p.aim = null;
     if (this.rig) this.rig.aimK = smooth(Math.min(this.k, this.camK));
     // the blade swings when the arm isn't up for a shot (it takes the aim pose for its arc)
-    this.blade.update(dt, bladePress && this.k < 0.3, ok && this.k < 0.5, input.blade);   // (held: the guard)
+    this.blade.update(dt, bladePress && this.k < 0.3, ok && this.k < 0.5, input.guard, input.evade);
 
     this.updateGlobs(dt);
     const up = p?.frame.up ?? _y;

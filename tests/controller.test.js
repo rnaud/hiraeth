@@ -19,14 +19,15 @@ test('radial deadzone removes drift and preserves analog range', () => {
   assert.ok(stick(.5,0).x > 0 && stick(.5,0).x < .5);
   assert.ok(Math.hypot(...Object.values(stick(1,1))) <= 1.000001);
 });
-test('walking: bottom jumps, right interacts, left calls the mount, top pings', () => {
+test('walking: bottom jumps, right interacts, left evades, LT + left calls, top pings', () => {
   const t=setup(); t.pad.axes=[.6,-1,.5,0]; [BOTTOM,RIGHT].forEach(i=>t.button(i,true));
   const input=t.c.update(1/60);
   assert.ok(input.KeyW && input.KeyD && input.Space && input.KeyE && input.PadE);
   assert.ok(input.stick.y>0 && t.looks[0][0]>0);
   assert.ok(!input.ShiftLeft, 'the stick alone walks');
   [BOTTOM,RIGHT].forEach(i=>t.button(i,false));
-  t.tap(LEFT); t.tap(TOP);
+  t.button(LEFT,true); assert.ok(t.c.update(.016).PadEvade); t.button(LEFT,false); t.c.update(.016);
+  t.button(LT,true); t.tap(LEFT); t.button(LT,false); t.tap(TOP);
   assert.deepEqual(t.actions,['call','ping']);
   t.tap(R3); assert.equal(t.actions.at(-1), 'bell');
 });
@@ -142,7 +143,7 @@ test('a pad reporting printed letters with Nintendo labels is read by position',
   t.button(1,false); t.button(0,true); h=t.c.update(.016);
   assert.ok(h.KeyE && !h.Space, 'printed A (right) interacts');
   t.button(0,false); t.c.update(.016);
-  t.tap(3); t.tap(2);
+  t.button(LT,true); t.tap(3); t.button(LT,false); t.tap(2);
   assert.deepEqual(t.actions,['call','ping'], 'printed Y (left) calls the mount, printed X (top) pings');
   t.context('menu'); t.tap(0); t.tap(1);
   assert.deepEqual(t.actions.slice(2),['confirm','back'], 'menus: printed A confirms, printed B goes back');

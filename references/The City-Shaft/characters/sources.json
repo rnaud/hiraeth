@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/city-shaft.md",
+  "references": [
+    {
+      "character": "Nima, who sweeps the high terrace",
+      "file": "Nima, who sweeps the high terrace/anf___Character_exploration_sheet_for_Nima_a_patient_street_s_66d36610-0b06-4967-9218-3fb4f4b35eb2_0.png",
+      "midjourney_job": "66d36610-0b06-4967-9218-3fb4f4b35eb2",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/66d36610-0b06-4967-9218-3fb4f4b35eb2?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Corvin Sale, of the rim",
+      "file": "Corvin Sale, of the rim/anf___Character_exploration_sheet_for_Corvin_Sale_a_vain_aris_d4832193-2c08-4f2f-bc7a-8a1784ba82fe_0.png",
+      "midjourney_job": "d4832193-2c08-4f2f-bc7a-8a1784ba82fe",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/d4832193-2c08-4f2f-bc7a-8a1784ba82fe?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Ossa, keeper of the Upward Shrine",
+      "file": "Ossa, keeper of the Upward Shrine/anf___Character_exploration_sheet_for_Ossa_a_devout_keeper_of_42dd3a1d-3849-46a4-8f20-e32cd2718c2f_0.png",
+      "midjourney_job": "42dd3a1d-3849-46a4-8f20-e32cd2718c2f",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/42dd3a1d-3849-46a4-8f20-e32cd2718c2f?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Wren, the old cab that still stops",
+      "file": "Wren, the old cab that still stops/anf___Vehicle_exploration_sheet_for_Wren_an_old_self-driving__e2940c9d-fe3a-43a9-8ca2-b2b68b2cdc59_0.png",
+      "midjourney_job": "e2940c9d-fe3a-43a9-8ca2-b2b68b2cdc59",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/e2940c9d-fe3a-43a9-8ca2-b2b68b2cdc59?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Dov, guard at the palace gate",
+      "file": "Dov, guard at the palace gate/anf___Character_exploration_sheet_for_Dov_a_weary_ceremonial__9e0721f5-5ff1-4e6b-9f67-25a657bd551f_0.png",
+      "midjourney_job": "9e0721f5-5ff1-4e6b-9f67-25a657bd551f",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/9e0721f5-5ff1-4e6b-9f67-25a657bd551f?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

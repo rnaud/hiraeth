@@ -8,11 +8,11 @@ import { gainInk, INK_OF } from './ink.js';
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
 // - **Ink blots** gather in the wilds: loose ink and scribble that drift in from the margins of the
-//   drawing, away from people, the ship and the cities. They notice you, wind up a lunge (its ring
-//   drawn on the ground first) and hit. The fluid blade cuts them back into ink; a shot or an ember
+//   drawing, away from people, the ship and the cities. They compress, then lunge through a visible
+//   strike and recover. The fluid blade cuts them back into ink; a shot or an ember
 //   glob washes them too, stilling freezes them. Each one cut gives the tank a charge back.
 // - **The makers' machines** stand in the temples' rooms: old constructs gone wrong, heavier, slower,
-//   their slam drawn on the floor before it lands. The blade breaks them (fluid and ember only stagger
+//   planting their feet and raising their arms before a committed slam. The blade breaks them (fluid and ember only stagger
 //   them, stilling freezes them); broken, they stay broken (a flag per save).
 //
 // Nothing here can take a healthy bar to nothing in one blow (strikeDamage, as the guardians). The
@@ -26,12 +26,12 @@ import { gainInk, INK_OF } from './ink.js';
 export const FOES = {
   blot: {
     name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1,
-    attack: { shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.15, wind: 0.85, lunge: 1.6 },
+    attack: { shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.15, wind: 0.65, strike: 0.24, contact: 0.55, lunge: 1.8 },
     recover: 1.0, cool: [1.1, 2.2], hit: 0.35,
   },
   machine: {
     name: 'makers’ machine', hp: 4, radius: 0.8, height: 1.0, speed: 2.1, sight: 13, giveUp: 14, reach: 2.6,
-    attack: { shape: 'cone', range: 3.3, angle: 0.8, damage: 0.22, wind: 1.15, knock: 7 },
+    attack: { shape: 'cone', range: 3.3, angle: 0.8, damage: 0.22, wind: 1.05, strike: 0.32, contact: 0.55, knock: 7 },
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
   },
 };
@@ -62,6 +62,7 @@ export class Foe {
     this.home = at.clone(); this.pos = at.clone(); this.heading = rng() * Math.PI * 2;
     this.hp = this.def.hp; this.state = 'idle'; this.timer = 0; this.cool = 0.6; this.stunned = 0; this.flash = 0;
     this.attackAt = new THREE.Vector3(); this.attackH = 0; this.wander = rng() * 10; this.vel = new THREE.Vector3();
+    this.recoil = 0; this.recoilDir = new THREE.Vector3(); this.heavyRecoil = false;
     this.k = 0;   // the wind-up's progress 0..1 (the telegraph's fill)
   }
   get alive() { return this.state !== 'dead'; }
@@ -71,6 +72,7 @@ export class Foe {
     const D = this.def, ev = [];
     if (!this.alive) return ev;
     this.flash = Math.max(0, this.flash - dt * 4);
+    this.recoil = Math.max(0, this.recoil - dt * (this.heavyRecoil ? 2.5 : 5));
     this.cool = Math.max(0, this.cool - dt);
     // a shove's slide eases out
     if (this.vel.lengthSq() > 1e-4) { this.step(this.vel.x * dt, this.vel.z * dt, env); this.vel.multiplyScalar(Math.exp(-6 * dt)); }
@@ -110,11 +112,27 @@ export class Foe {
         const a = D.attack;
         this.timer += dt; this.k = Math.min(1, this.timer / a.wind);
         if (this.timer >= a.wind) {
-          if (a.lunge) this.step(Math.sin(this.attackH) * a.lunge, Math.cos(this.attackH) * a.lunge, env);
-          const hit = playerOk && P.pos.y - this.pos.y < 1.6 && inArea(a, this.attackAt, this.attackH, P.pos);
-          ev.push({ type: 'strike', hit });
-          this.state = 'recover'; this.timer = D.recover; this.k = 0;
+          this.state = 'strike'; this.timer = 0; this.k = 0; this.contacted = false;
         }
+        break;
+      }
+      case 'strike': {
+        const a = D.attack, before = this.k;
+        this.timer += dt; this.k = Math.min(1, this.timer / a.strike);
+        // Travel through the lunge over time; step() checks footing and walls.
+        if (a.lunge) {
+          const ease = (x) => 1 - (1 - x) ** 2;
+          const d = a.lunge * (ease(this.k) - ease(before));
+          this.step(Math.sin(this.attackH) * d, Math.cos(this.attackH) * d, env);
+        }
+        if (!this.contacted && this.k >= a.contact) {
+          this.contacted = true;
+          const origin = a.lunge ? this.pos : this.attackAt;
+          const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < 1.6 && inArea(a, origin, this.attackH, P.pos)
+            && (env.seen?.(this.chest, P.pos) ?? true);
+          ev.push({ type: 'strike', hit });
+        }
+        if (this.k >= 1) { this.state = 'recover'; this.timer = D.recover; this.k = 0; }
         break;
       }
       case 'recover': {
@@ -134,9 +152,10 @@ export class Foe {
   }
 
   /** Its strike was blocked: it reels back, open a moment longer than after a strike. */
-  staggered() {
+  staggered(perfect = false) {
     if (!this.alive) return;
-    this.state = 'recover'; this.timer = this.def.recover * 1.6; this.k = 0; this.flash = 0.8;
+    this.state = 'recover'; this.timer = this.def.recover * (perfect ? 1.8 : 0.65); this.k = 0; this.flash = 0.8;
+    this.recoil = 1; this.heavyRecoil = perfect; this.recoilDir.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
     this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.kind === 'machine' ? 2 : 5);
   }
 
@@ -156,6 +175,7 @@ export class Foe {
   /** Move by (mx, mz) where there is footing no more than a step up (else stay: a wall, a drop). */
   step(mx, mz, env) {
     const nx = this.pos.x + mx, nz = this.pos.z + mz;
+    if (env.canStep && !env.canStep(this.pos, nx, nz, this.def.radius)) return false;
     const y = env.ground ? env.ground(nx, this.pos.y + 1.2, nz) : this.pos.y;
     if (y == null || y - this.pos.y > 1.1 || this.pos.y - y > 3) return false;
     this.pos.set(nx, y, nz);
@@ -173,12 +193,14 @@ export class Foe {
     let dmg = 0;
     if (mode === 'blade') dmg = info.damage ?? 1;
     else if (mode === 'shoot' || mode === 'fire') dmg = this.kind === 'blot' ? 1 : 0;
-    else if (mode === 'stun') { this.stunned = STILL; this.state = this.state === 'wind' ? 'chase' : this.state; this.k = 0; this.flash = 0.6; return true; }
+    else if (mode === 'stun') { this.stunned = STILL; this.state = ['wind', 'strike'].includes(this.state) ? 'chase' : this.state; this.k = 0; this.flash = 0.6; return true; }
     if (mode === 'push' && dir) { this.vel.set(dir.x, 0, dir.z).multiplyScalar((info.shove ?? 2.4) * (this.kind === 'machine' ? 1.2 : 3)); }
     if (dir && mode !== 'push') this.vel.set(dir.x, 0, dir.z).multiplyScalar((this.kind === 'machine' ? 1.5 : 4) * (info.combo === 2 ? 2.2 : 1));   // (the heavy third swing throws them)
     this.flash = 1;
-    // a cut interrupts a wind-up (a machine only on its last third)
-    if (this.state === 'wind' && (this.kind === 'blot' || this.k < 0.66)) { this.state = 'recover'; this.timer = D.hit; this.k = 0; }
+    this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2;
+    if (dir) this.recoilDir.copy(dir).setY(0).normalize();
+    // Light cuts interrupt a blot, or the first two thirds of a machine wind-up.
+    if ((this.kind === 'blot' && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; }
     else if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
@@ -248,7 +270,14 @@ export class Foes {
     this.people = (content?.npcs ?? []).filter((n) => n.at).map((n) => ({ x: n.at[0], z: n.at[1] }));
     this.env = {
       ground: (x, y, z) => { const g = physics?.groundAt?.(x, y, z, 6); return g == null || !Number.isFinite(g) ? null : g; },
-      mayStrike: (f) => this.list.filter((x) => x !== f && x.alive && x.state === 'wind').length < this.strikers,
+      canStep: (from, x, z, radius) => {
+        if (!physics?.rayDistance) return true;
+        _w.set(x - from.x, 0, z - from.z);
+        const d = _w.length(); if (d < 1e-6) return true;
+        _w.divideScalar(d); _v.copy(from).y += 0.5;
+        return physics.rayDistance(_v, _w, d + radius) >= d + radius;
+      },
+      mayStrike: (f) => this.list.filter((x) => x !== f && x.alive && ['wind', 'strike'].includes(x.state)).length < this.strikers,
       seen: (from, to) => !physics?.rayDistance || physics.rayDistance(from, _w.subVectors(_v.copy(to).setY(to.y + 1), from).normalize(), from.distanceTo(_v)) >= from.distanceTo(_v) - 0.5,
     };
     if (!this.peaceful) this.placeMachines();
@@ -488,7 +517,7 @@ export class Foes {
   strike(f) {
     const P = this.player, a = f.def.attack;
     // the guard took it (src/fluid-blade.js block): no harm, and the foe reels back
-    if (P.guard?.(f.pos)) { f.staggered(); this.sound?.foeHurt?.(f.kind); return false; }
+    if (P.guard?.(f.pos)) { f.staggered(!!P.perfectBlock); this.sound?.foeHurt?.(f.kind); return false; }
     const dmg = strikeDamage(P.health ?? 1, a.damage);
     _v.subVectors(P.pos, f.pos).setY(0);
     if (_v.lengthSq() < 1e-4) _v.set(Math.sin(f.heading), 0, Math.cos(f.heading));
@@ -503,7 +532,7 @@ export class Foes {
   firstSeen() {
     if (this.game.flag('foes.seen')) return;
     this.game.set('foes.seen', true);
-    this.notice?.('Ink blots, out in the wilds. Cut them with the fluid blade: F, or LB / L1. Each one cut gives the tank a charge back.');
+    this.notice?.('Ink blots: watch their bodies wind up. F / LB / L1 cuts; B / RB / R1 guards; Z / X / □ evades. A last-moment guard parries. Each foe cut gives the tank a charge back.');
   }
 
   /** The look follows the mind: a blot wobbles and squashes into its lunge, a machine walks and raises its arms. */
@@ -513,25 +542,38 @@ export class Foes {
     g.position.copy(f.pos);
     g.rotation.y = f.heading;
     const moving = f.state === 'chase' || f.state === 'home';
+    const wind = f.state === 'wind' ? THREE.MathUtils.smoothstep(f.k, 0, 0.72) : 0;
+    const strike = f.state === 'strike', recover = f.state === 'recover';
+    const recovery = recover ? THREE.MathUtils.clamp(f.timer / f.def.recover, 0, 1) : 0;
+    const release = strike ? THREE.MathUtils.smoothstep(f.k, 0, 0.7) : 0;
     if (f.kind === 'blot') {
-      const w = Math.sin(performance.now() / 160 + f.home.x) * 0.06;
-      const squash = f.state === 'wind' ? 1 - 0.35 * f.k : 1;
-      g.position.y += 0.15 + Math.abs(Math.sin(performance.now() / 260 + f.home.z)) * (moving ? 0.25 : 0.08);
-      g.scale.set(1 + w + (1 - squash) * 0.5, squash - w, 1 + w + (1 - squash) * 0.5);
+      const w = Math.sin(t * 6 + f.home.x) * 0.04;
+      const stretch = strike ? Math.sin(Math.PI * f.k) : 0;
+      g.position.y += 0.12 + (moving ? Math.abs(Math.sin(t * 4 + f.home.z)) * 0.2 : 0);
+      g.position.addScaledVector(_v.set(Math.sin(f.heading), 0, Math.cos(f.heading)), -wind * 0.22);
+      g.scale.set(1 + wind * 0.2 - stretch * 0.15 + w, 1 - wind * 0.4 - stretch * 0.15, 1 + stretch * 0.6);
+      g.rotation.x = -wind * 0.25 + stretch * 0.35;
       M.eyeMat.uniforms.uColor.value.set(f.state === 'wind' ? '#f05a3c' : f.stunned > 0 ? '#bfe9ff' : '#f4efe0');
     } else {
-      const s = performance.now() / 220;
-      const walk = moving ? Math.sin(s * 2) * 0.45 : 0;
-      M.legs[0].rotation.x = walk; M.legs[1].rotation.x = -walk;
-      const raise = f.state === 'wind' ? -2.4 * f.k : f.state === 'recover' ? -0.3 : walk * 0.3;
-      M.arms[0].rotation.x = raise; M.arms[1].rotation.x = raise;
+      const walk = moving ? Math.sin(t * 9) * 0.45 : 0;
+      M.legs[0].rotation.x = walk - wind * 0.16;
+      M.legs[1].rotation.x = -walk + wind * 0.16;
+      const arm = wind ? -2.6 * wind : strike ? THREE.MathUtils.lerp(-2.6, -0.45, release) : -0.45 * recovery;
+      M.arms[0].rotation.x = arm; M.arms[1].rotation.x = arm * 0.85;
+      M.body.rotation.y = wind * 0.3 + (strike ? 0.3 * (1 - release) : 0);
+      g.rotation.x = -wind * 0.15 + (strike ? release * 0.3 : recovery * 0.3);
+      g.position.y -= wind * 0.1;
       M.eyeMat.uniforms.uColor.value.set(f.state === 'wind' ? '#f0a04b' : f.stunned > 0 ? '#bfe9ff' : '#70e7df');
-      M.heart.rotation.y += dt * (f.state === 'chase' ? 4 : 1);
+      M.heart.rotation.y += dt * (moving ? 4 : 1);
       g.scale.setScalar(1);
     }
-    if (f.flash > 0) g.position.x += Math.sin(performance.now() / 18) * 0.04 * f.flash;
-    if (f.state === 'wind') { f.tele.show(f.def.attack, f.attackAt, f.attackH, f.pos.y); f.tele.set(f.k, performance.now() / 1000); }
-    else f.tele.hide();
+    // Recoil follows the blow, then settles; a heavy impact also buckles the body.
+    const r = Math.sin(f.recoil * Math.PI * 0.5), strength = f.heavyRecoil ? 0.28 : 0.12;
+    g.position.addScaledVector(f.recoilDir, r * strength);
+    g.rotation.x += r * strength * (f.recoilDir.x * Math.sin(f.heading) + f.recoilDir.z * Math.cos(f.heading));
+    g.rotation.z = -r * strength * (f.recoilDir.x * Math.cos(f.heading) - f.recoilDir.z * Math.sin(f.heading));
+    g.position.y -= f.heavyRecoil ? r * 0.14 : 0;
+    f.tele.hide(); // Ordinary melee is read from the body; bosses retain their area warnings.
   }
 
   dispose() { for (const f of this.list.slice()) this.remove(f); this.group.removeFromParent(); this.warnEl?.remove(); }

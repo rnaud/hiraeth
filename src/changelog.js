@@ -9,6 +9,13 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.89', date: '2026-10-07', items: [
+    { text: 'Experimental motion matching no longer borrows the next motion capture’s pose when searching at a loop boundary. It remains an optional comparison; the normal blended movement is still the default.', see: 'Open the Motion page and compare the 90° walking turn. Matching changes clips less often, but its foot sliding and stair handling still need work.' },
+    { text: 'Read a foe’s body: ink blots coil and lunge, machines plant their feet and raise their arms before slamming. Their ordinary melee attacks no longer draw warnings on the floor, and a missed strike leaves an opening.', see: 'In the Arena, watch a blot compress or a machine hold its arms overhead; step aside and attack while it recovers.' },
+    { text: 'Sword cuts use the whole body, with a deliberate wind-up, a fast release and a follow-through. Attacks, guard and movement blend into each other, and a short step carries each grounded cut forward.', see: 'Stand in the Arena and press F, then press again during the swing to queue the next cut. Watch the feet and hips as the heavier third cut begins.' },
+    { text: 'The moving blade makes contact during the cut. Foes recoil in the direction of the blow, heavy cuts buckle them, and the sound and brief pause land with the impact.', see: 'Compare a cut through empty air with a close hit on a machine, then land the third swing.' },
+    { text: 'Attack and defense have separate buttons: F / LB / L1 attacks, B / RB / R1 guards, and Z / X / □ evades in your movement direction, or backsteps when standing. Guard just before a blow to parry without spending fluid and leave the foe open longer. On a controller, hold LT / L2 with RB / R1 to push, or with X / □ to call your mount; touch has separate guard and evade buttons.', see: 'In the Arena, hold guard early for a normal block, then release and time the next guard just before contact for a bright parry. Try evading sideways during the enemy wind-up.' },
+  ] },
   { v: '0.88', date: '2026-10-07', items: [
     'Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.',
     'A foe winding up out of sight shows a marker at the edge of the screen, on its side, filling as its strike comes.',

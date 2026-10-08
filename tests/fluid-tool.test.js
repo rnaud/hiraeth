@@ -69,7 +69,7 @@ test('the shared reserve: three uses, then none, then all three back exactly 2 s
 });
 
 test('controls: aim, shoot and push from keyboard, mouse, pad or touch; a shot only while aiming', () => {
-  const none = { aim: false, shoot: false, fire: false, quick: false, push: false, blade: false, mode: false, modeBack: false };
+  const none = { aim: false, shoot: false, fire: false, quick: false, push: false, blade: false, guard: false, evade: false, mode: false, modeBack: false };
   assert.deepEqual(toolInput({ KeyR: true, KeyG: true }), { ...none, aim: true, shoot: true, fire: true });
   assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { ...none, aim: true, shoot: true, fire: true, push: true });
   assert.deepEqual(toolInput({ PadAim: true, PadFire: true, PadPush: true }), { ...none, aim: true, shoot: true, fire: true, push: true });

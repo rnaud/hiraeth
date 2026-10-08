@@ -1,4 +1,4 @@
-# The fluid blade and the foes (v0.87)
+# The fluid blade and the foes (v0.89)
 
 The first things in the game that fight back, and the tool's answer to them.
 
@@ -6,27 +6,32 @@ The first things in the game that fight back, and the tool's answer to them.
 
 - **Input:** F, LB / L1, touch ⚔ (`toolInput().blade`; `PadBlade` in `src/controller.js`). It comes with the
   backpack: no item, no box. It costs no charge. On a pad, LB held with the right stick still zooms.
-- **The combo:** a press swings (`BLADE.swing` 0.3 s); a press during a swing or within `BLADE.chain` after it
+- **The combo:** a press swings (the first cut takes 0.62 s); a press during a swing or within `BLADE.chain` after it
   chains the next, up to three: right to left, left to right, then a heavier overhead (`BLADE.damage` 1, 1, 2),
   then `BLADE.cooldown`.
-- **The swings, from motion capture:** `SWINGS` plays the cut of three clips from Mixamo's Sword and
-  Shield pack on the upper body (`player.swingMove`, `Animator.playUpper`), 1.5× as fast, the hit at the
-  hand's fastest: `ss_slash_1` (right to left, down), `ss_slash_3` (a rising backhand), `ss_attack_1`
-  (overhead). The blade sits in the fist then (`GRIP`, the hand bone's +z leaning along +y), and the aim
-  pose only turns the body (`aim.noArm`). Until `moves.glb` has loaded, the arcs below stand in.
+- **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
+  `attackSample` maps separate wind/active/recover durations (0.22/0.16/0.24 s for the first,
+  0.25/0.17/0.26 for the second, 0.36/0.20/0.34 for the heavy third) onto source time.
+  Grounded swings use the legs and hips; airborne cuts use the upper body. `Animator.playCombat`
+  blends clip changes over 90 ms from the displayed pose, including motion matching when enabled.
+  Grounded cuts step forward through Player's normal collision movement and limit steering until recovery.
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
-- **The guard (hold the button):** once the swing is done, the left arm comes up (the pack's block idle,
-  round and round) and a lens of fluid with a bright rim blooms over the forearm, turned to the nearest foe;
-  you walk slowly and can't sprint. `blade.block(from)` (as `player.guard`): a strike from within `GUARD.angle`
-  of the guard's way is blocked for a charge, no harm, the arm takes the blow (the pack's block), and the foe
-  reels (`Foe.staggered`: open 1.6× as long). Behind you, or with the tank empty, it gets through.
+- **Guard:** B / RB / R1 / touch ◇ independently raises the fluid shield. A fresh guard has a
+  0.18 s parry window (0.35 s rearm), consumes that opportunity on contact, and spends no charge.
+  A held guard spends one charge per block. Both require facing the blow. A parry leaves the enemy
+  open for 1.8× its normal recovery; an ordinary block for 0.65×. Guard cannot cancel an active cut.
+- **Evade:** Z / X / □ / touch ↶ moves in the input direction, or backward without input, for
+  0.28 s with a 0.65 s cooldown. It uses Player's collision controller, has no invulnerability, and
+  may cancel attack recovery but not wind-up or release. It is available on the ground.
+  Controller push is now LT + RB; calling a mount is LT + X (Xbox positions).
 - **The flinch:** a strike that lands without knocking you down plays the pack's impact on the upper body
   (`Player.flinch`, `FLINCH`).
-- **What it hits:** at `BLADE.hitAt` of the swing, `bladeHits()` takes the targets in a cone (`reach` 2.9 m,
-  half-angle 1.15 rad) that list `'blade'` in `accepts`. Nothing else feels it: people, switches and the story's
-  puzzles don't (a blade is not a splash). Wildlife in the cone scatters (`push`).
+- **What it hits:** during the active cut, coarse cone/range and wall checks find candidates, then
+  a swept segment from the glove to the blade tip checks contact with target volumes. Each target
+  is hit once per swing. Without a loaded character clip, the original cone is the fallback.
+  Wildlife scatters once per swing; other non-blade targets do not take damage.
 - **The look:** a capsule of the glob's lava material from the glove along the arm (shoulder to hand, leaning
   into the swing), a pale glowing edge, and glowing drops off it as a trail. It lights for the swing and fades.
   (The game's materials draw into the G-buffer: no transparency, so the glow is the bloom's.)
@@ -36,9 +41,12 @@ The first things in the game that fight back, and the tool's answer to them.
 `FOES` holds the tuning. Each foe is a `Foe` (pure logic over plain vectors, tested in node) drawn by `Foes`,
 which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 'stun', 'fire']`).
 
-- **The mind:** idle (drifting round home), then chase once you are in sight, then wind up in reach (the
-  telegraph: `Telegraph` from `src/temples/boss.js`, drawn on the ground, filling), then strike (it lands only
-  inside the drawn area: `inArea`), recover, and chase again. It goes home past `giveUp`, healing.
+- **The mind:** idle → chase → wind → strike → recover. Blots coil for 0.65 s, then lunge over
+  0.24 s; machines plant and raise their arms for 1.05 s, then slam over 0.32 s. Direction locks
+  when the wind-up begins. Damage occurs 55% through the strike, with a wall check. Movement
+  checks footing and walls. Normal melee has no floor marker; body poses and sound are the tell.
+  Boss area telegraphs and offscreen warnings remain. Light hits interrupt blots and the first
+  two thirds of a machine's wind-up; the machine's late wind-up and strike commit.
 - **What hurts them:**
   - the blade: `info.damage`;
   - a fluid or ember glob: washes a blot (1), only staggers a machine;
@@ -66,7 +74,7 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
 ## Feel (`src/feel.js`)
 
 - **Hit-stop:** `hitStop(s)` slows the world's time step to `FEEL.slow` of real time (main.js `feelDt`):
-  0.05 s on a cut, 0.09 s on the heavy third swing, 0.07 s on a block.
+  0.045 s on a light cut, 0.085 s on a heavy cut or parry, 0.04 s on an ordinary block.
 - **Camera kick:** `kick(k)` jolts the camera after the rig places it (`shakeCamera`), settling over
   `FEEL.settle`; a foe's hit kicks harder (main.js `onHurt`).
 - **Knockback:** the heavy third swing throws a foe 2.2× as far.
@@ -115,6 +123,11 @@ blots, round and round, `WAVE.rest` s after the last one falls.
 - The machine's model is a first pass of boxes.
 - The packs hold more (deaths, kicks, the great sword's spins and jump attacks): a charged spin could come
   from them.
-- Neither foe has an animation of its own beyond the procedural wobble, walk and arm raise.
-- Foes don't avoid each other.
+- Foes use procedural body animation rather than skeletal clips; machines still use the box model.
 - No foe yet uses the temple kit (gusts, updrafts) or the open world's height.
+
+## Combat checks (v0.89)
+
+`tests/combat.test.js` checks commitment, timed block/rearm, swept contact, independent inputs,
+full-body playback and transitions on the actual traveller with matching off and on, and evade movement.
+Locomotion matching remains experimental and off by default: see animation.md for measured foot slide.
