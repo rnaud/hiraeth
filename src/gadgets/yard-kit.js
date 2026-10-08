@@ -3,6 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { buildItemModel } from '../boxes/model.js';
+import { thinPole } from '../thin.js';
+import { tagMetal } from './metal.js';
 
 // The Gadget Yard's building kit (src/levels/gadget-yard.js; docs/systems/gadgets.md, "The Gadget Yard"):
 // blocks to climb and stand on, anchor rings, cracked walls and boulders, crates and metal crates, floor
@@ -22,8 +24,9 @@ const v3 = (a) => (a?.isVector3 ? a.clone() : new THREE.Vector3(...a));
 export class YardKit {
   constructor(scene) {
     this.scene = scene;
-    this.spec = { props: [], breakables: [], anchors: [], plates: [], gates: [], pen: null };
+    this.spec = { props: [], breakables: [], anchors: [], plates: [], gates: [], ropes: [], pickups: [], pen: null };
     this.targets = [];
+    this.flammables = [];   // (src/flammable.js: lanterns an ember lights)
     const M = (o) => makeMaterial({ flat: false, ...o });
     this.mats = {
       stone: M({ color: '#c9b79a', color2: '#b7a385', color3: '#a08d70', mode: MODE_STRATA, strataSize: 0.9 }),
@@ -42,6 +45,9 @@ export class YardKit {
       lampOn: makeMaterial({ color: '#ffe9a8', flat: true, glow: 1 }),
       plate: makeMaterial({ color: '#7d6b54', flat: true }),
       teal: makeMaterial({ color: '#4fa3a5', flat: true }),
+      iron: makeMaterial({ color: '#5d6672', flat: true, metal: 'iron' }),
+      rope: makeMaterial({ color: '#c9a66b', flat: true, thin: 1.6 }),
+      inkPot: makeMaterial({ color: '#2f3456', flat: true }),
     };
     this.bays = [];
   }
@@ -57,7 +63,7 @@ export class YardKit {
     return kit;
   }
 
-  out() { return { gadgetYard: this.spec, targets: this.targets }; }
+  out() { return { gadgetYard: this.spec, targets: this.targets, flammables: this.flammables }; }
 }
 
 class BayKit {
@@ -150,8 +156,8 @@ class BayKit {
     this.spec.props.push({ object: g, r: s * 0.62, h: s / 2, mass: metal ? 4 : 1, metal, light: !metal, kind: metal ? 'metal crate' : 'crate' });
     return g;
   }
-  /** A floor plate (local `at` on the ground, radius r): pressed by the traveller or a crate. Returns its index. */
-  plate(at, { radius = 0.9, mass = 1 } = {}) {
+  /** A floor plate (local `at` on the ground, radius r): pressed by the traveller (unless `things`: only by a thing of `mass` or more) or a crate. Returns its index. */
+  plate(at, { radius = 0.9, mass = 1, things = false } = {}) {
     const m = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius * 1.05, 0.16, 20), this.mats.plate);
     m.position.copy(v3(at)).add(new THREE.Vector3(0, 0.08, 0));
     m.userData.noCollide = true;
@@ -159,7 +165,7 @@ class BayKit {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.7, 0.04, 4, 24).rotateX(Math.PI / 2).translate(0, 0.17, 0), this.mats.teal);
     ring.userData.noCollide = true; m.add(ring);
     const w = this.at(at);
-    this.spec.plates.push({ pos: w, radius, mass, object: null });
+    this.spec.plates.push({ pos: w, radius, mass, things, object: null });
     return this.spec.plates.length - 1;
   }
   /** Bars across an opening (size [w, h, d] centred at `c`), sinking into the ground while any of `plates` is pressed. */
@@ -204,6 +210,52 @@ class BayKit {
     const h = 1.35, t = 0.35;
     for (const [x, z, w, d] of [[0, -r, 2 * r + t, t], [0, r, 2 * r + t, t], [-r, 0, t, 2 * r], [r, 0, t, 2 * r]]) this.block([w, h, d], [c[0] + x, h / 2, c[2] + z], { mat: 'pale' });
     this.spec.pen = { center: this.at(c), r, count };
+  }
+  /** A crate hung on a rope from `top` (local) `length` m down: cut the rope (the boomerang, the blade) and it falls. */
+  rope(top, { length = 2.5, metal = false } = {}) {
+    const t = v3(top), crate = this.crate([t.x, t.y - length - 0.45, t.z], { metal });
+    const m = new THREE.Mesh(thinPole(new THREE.CylinderGeometry(0.035, 0.035, 1, 5, 1, true).translate(0, -0.5, 0)), this.mats.rope);
+    m.frustumCulled = false;
+    loose(m); this.yard.scene.add(m);
+    this.spec.ropes.push({ object: m, top: this.at(top), length, prop: this.spec.props.length - 1 });
+    return m;
+  }
+  /** A small pot of the makers' ink to pick up (local `at` on the ground: it floats a little above). */
+  pickup(at, { amount = 1 } = {}) {
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.3, 10), this.mats.inkPot));
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.08, 10).translate(0, 0.19, 0), this.mats.brass));
+    g.add(new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.025, 4, 16).rotateX(Math.PI / 2).translate(0, -0.02, 0), this.mats.paper));
+    loose(g);
+    const w = this.at([at[0], (at[1] ?? 0) + 0.7, at[2]]);
+    g.position.copy(w); this.yard.scene.add(g);
+    this.spec.pickups.push({ object: g, pos: w, kind: 'ink', amount });
+    return g;
+  }
+  /** A lantern on a post, unlit: an ember (the fluid tool's fire, or a boomerang carrying it) lights it (src/flammable.js). */
+  lantern(at, { height = 2.2 } = {}) {
+    const g = new THREE.Group(); g.position.copy(v3(at));
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, height, 8).translate(0, height / 2, 0), this.mats.ink));
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.06, 0.06).translate(0.25, height - 0.05, 0), this.mats.ink));
+    const cage = new THREE.Group(); cage.position.set(0.5, height - 0.45, 0);
+    cage.add(new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.42, 6), this.mats.lampOff));
+    cage.add(new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.16, 6).translate(0, 0.29, 0), this.mats.iron));
+    g.add(cage);
+    this.add(g);
+    this.yard.flammables.push({ at: this.at([at[0] + 0.5, height - 0.45, at[2]]), kind: 'lantern', r: 0.6, top: 0.3 });
+    return g;
+  }
+  /** A heavy block of iron fixed in place (size [w, h, d] centred at `c`): the magnet pulls you to it (src/gadgets/metal.js). */
+  ironBlock(size, c, { yaw = 0 } = {}) {
+    const m = this.block(size, c, { mat: 'iron', yaw });
+    // rivets along its edges, inked
+    const [w, h, d] = size, parts = [];
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) parts.push(new THREE.BoxGeometry(w + 0.04, 0.08, 0.08).translate(0, sy * (h / 2 - 0.04), sx * (d / 2 - 0.04) + sx * 0.02).toNonIndexed());
+    const bands = new THREE.Mesh(mergeGeometries(parts), this.mats.rivet);
+    bands.position.copy(m.position); bands.rotation.copy(m.rotation);
+    this.add(bands);
+    tagMetal(m);
+    return m;
   }
   /** The bay's mark: a banner on a pole in its colour, and the gadget's own model on a plinth, large. */
   flag(color = '#c8483a', id = this.gadget) {

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { registerTarget } from '../targets.js';
 import { bounce } from './kit.js';
 import { sfx } from './sfx.js';
+import { gainInk } from '../ink.js';
 
 // The things in a world the gadgets play with (docs/systems/gadgets.md, "The gadgets' world"): loose things
 // (crates, pots, metal crates: they fall, slide, tumble, can be pushed by walking into them, thrown by a blast,
@@ -73,6 +74,7 @@ export class GadgetWorld {
   constructor({ physics, player = null, spec = null, sound = null, tool = null, game = null }) {
     Object.assign(this, { physics, player, sound, tool, game });
     this.props = []; this.breakables = []; this.anchors = []; this.plates = []; this.gates = []; this.offs = [];
+    this.ropes = []; this.pickups = [];
     this.debris = [];
     this.pen = spec?.pen ?? null;
     for (const a of spec?.anchors ?? []) this.addAnchor(a);
@@ -80,6 +82,8 @@ export class GadgetWorld {
     for (const g of spec?.gates ?? []) this.addGate(g);
     for (const p of spec?.plates ?? []) this.plates.push({ on: false, ...p });
     for (const p of spec?.props ?? []) this.addProp(p);
+    for (const r of spec?.ropes ?? []) this.addRope(r);
+    for (const p of spec?.pickups ?? []) this.addPickup(p);
   }
 
   // ---------------------------------------------------------------- loose things
@@ -212,7 +216,7 @@ export class GadgetWorld {
     const P = this.player;
     for (const pl of this.plates) {
       const near = (p, h = 1.2) => Math.hypot(p.x - pl.pos.x, p.z - pl.pos.z) < pl.radius && Math.abs(p.y - pl.pos.y) < h;
-      const on = (!!P && !P.ride && near(P.pos, 0.6)) || this.props.some((p) => p.object.visible && p.mass >= (pl.mass ?? 1) && near(p.pos, p.h + 0.4));
+      const on = (!pl.things && !!P && !P.ride && near(P.pos, 0.6)) || this.props.some((p) => p.object.visible && p.mass >= (pl.mass ?? 1) && near(p.pos, p.h + 0.4));
       if (on !== pl.on) { pl.on = on; sfx.click(this.sound, on); pl.onChange?.(on); }
       pl.k = THREE.MathUtils.damp(pl.k ?? 0, on ? 1 : 0, 14, dt);
       if (pl.object) pl.object.position.y = pl.pos.y - 0.08 * pl.k;
@@ -225,8 +229,102 @@ export class GadgetWorld {
     }
   }
 
+  // ---------------------------------------------------------------- ropes
+  /**
+   * A rope (or a vine) from `top` down `length` metres, drawn by `object` (a unit-length mesh hanging down
+   * -y from its origin, scaled to the length), holding `prop` (an index into spec.props, or a Prop) at its
+   * end while it stands. A cut (a target of kind 'rope': the boomerang, the fluid blade) drops what it
+   * holds; `regrow` s later (the Gadget Yard) it hangs again with its load. A load pulled off it snaps it.
+   */
+  addRope(r) {
+    const x = { regrow: 14, cut: false, t: 0, length: 3, ...r, top: r.top.clone() };
+    if (typeof x.prop === 'number') x.prop = this.props[x.prop] ?? null;
+    x.object?.traverse((m) => { m.userData.noCollide = true; });
+    if (x.prop) { x.prop.held = x; x.hang = x.top.clone().addScaledVector(_Y, -x.length - x.prop.h); x.prop.pos.copy(x.hang); x.prop.home.copy(x.hang); }
+    x.target = registerTarget({ kind: 'rope', rope: x, radius: 0.35, accepts: ['blade'], position: () => (x._mid ??= new THREE.Vector3()).copy(x.top).addScaledVector(_Y, -x.length * 0.55), enabled: () => !x.cut,
+      onHit: (mode) => { if (mode !== 'blade' && mode !== 'cut') return false; this.cutRope(x); return true; } });
+    this.ropes.push(x);
+    return x;
+  }
+  cutRope(x) {
+    if (x.cut) return false;
+    x.cut = true; x.t = 0;
+    if (x.object) x.object.visible = false;
+    if (x.prop?.held === x) { x.prop.held = null; x.prop.resting = false; x.prop.vel.set(0, -0.5, 0); }
+    x.onCut?.(x);
+    sfx.snip?.(this.sound);
+    return true;
+  }
+  updateRopes(dt) {
+    const P = this.player;
+    for (const x of this.ropes) {
+      if (!x.cut) {
+        const p = x.prop;
+        if (p && p.held === x) { p.vel.set(0, 0, 0); p.pos.copy(x.hang); }
+        else if (p && p.pos.distanceTo(x.hang) > 1.2) this.cutRope(x);   // pulled off it (the hook, a blast): it snaps
+        if (x.object) { x.object.position.copy(x.top); x.object.scale.set(1, x.length, 1); }
+        continue;
+      }
+      if (!Number.isFinite(x.regrow)) continue;
+      x.t += dt;
+      if (x.t > x.regrow && !(P && x.prop && P.pos.distanceTo(x.hang) < 3)) {
+        x.cut = false;
+        if (x.object) x.object.visible = true;
+        if (x.prop) { x.prop.vel.set(0, 0, 0); x.prop.held = x; x.prop.pos.copy(x.hang); x.prop.resting = false; }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- small pickups
+  /**
+   * A small thing to pick up (`kind` 'ink': a pot of the makers' ink, `amount` of it): walked into within
+   * `reach` it is taken (the ink runs into the glove, src/ink.js); a gadget may carry it to you meanwhile
+   * (`carried`: the boomerang; it follows `carry(p)`). A target of kind 'pickup' (so the boomerang finds
+   * it). `regrow` s after it was taken (the Gadget Yard) another stands there.
+   */
+  addPickup(o) {
+    const x = { kind: 'ink', amount: 1, reach: 1.3, regrow: 20, taken: false, t: 0, carried: null, ...o, home: o.pos.clone(), pos: o.pos.clone() };
+    x.object?.traverse((m) => { m.userData.noCollide = true; });
+    x.carry = (p) => { x.pos.copy(p); };
+    x.target = registerTarget({ kind: 'pickup', pickup: x, radius: 0.45, position: () => x.pos, enabled: () => !x.taken, onHit: () => false });
+    this.pickups.push(x);
+    return x;
+  }
+  take(x) {
+    if (x.taken) return false;
+    x.taken = true; x.t = 0; x.carried = null;
+    if (x.object) x.object.visible = false;
+    if (x.kind === 'ink') {
+      // (the first ink of a save is said as a blot's: here it is a pot's)
+      const say = (t) => this.notice?.(t.startsWith('The blot leaves its ink') ? 'A pot of the makers’ ink: it runs into the glove. Gather enough and the blade grows.' : t);
+      gainInk(x.amount, { game: this.game ?? undefined, notice: say });
+    }
+    x.onTake?.(x);
+    this.sound?.chime?.();
+    return true;
+  }
+  updatePickups(dt, time) {
+    const P = this.player;
+    for (const x of this.pickups) {
+      if (x.taken) {
+        x.t += dt;
+        if (Number.isFinite(x.regrow) && x.t > x.regrow && !(P && P.pos.distanceTo(x.home) < 4)) { x.taken = false; x.pos.copy(x.home); if (x.object) x.object.visible = true; }
+        continue;
+      }
+      if (P && !P.ride && P.pos.distanceTo(x.pos) < x.reach + 0.6 && Math.abs(P.pos.y + 0.8 - x.pos.y) < 1.8) { this.take(x); continue; }
+      if (x.object) {
+        // it bobs and turns where it stands (still while it is carried: the carrier spins it)
+        if (!x.carried) { x.object.position.copy(x.pos); x.object.position.y += Math.sin(time * 2.2 + x.home.x) * 0.08; x.object.rotation.y += dt * 1.2; }
+        else x.object.position.copy(x.pos);
+      }
+    }
+  }
+
   // ---------------------------------------------------------------- per frame
   update(dt) {
+    this.time = (this.time ?? 0) + dt;
+    this.updateRopes(dt);
+    this.updatePickups(dt, this.time);
     this.updateProps(dt);
     this.updateBreakables(dt);
     this.updatePlates(dt);
@@ -245,6 +343,7 @@ export class GadgetWorld {
     for (const p of this.props) { p.target?.(); if (p.collider) this.physics?.removeCollider?.(p.collider); }
     for (const b of this.breakables) if (b.handle) this.physics?.removeCollider?.(b.handle);
     for (const g of this.gates) if (g.handle) this.physics?.removeCollider?.(g.handle);
+    for (const x of [...this.ropes, ...this.pickups]) x.target?.();
     this.offs.forEach((f) => f());
   }
 }

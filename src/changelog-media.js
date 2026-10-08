@@ -136,6 +136,18 @@ export const CHANGELOG_MEDIA = {
       { name: 'yard', only: 'after', caption: 'The Gadget Yard from where you arrive: the hook’s bay and its pole, the plate and its gate, the targets, the bombs’ bay beyond', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
     ] },
     { match: 'The gadgets are in the game menu’s Items', see: 'Open the game menu (View / Select, J) on its Items: the hook and the bombs are drawn among the gear; choose one to take it in hand.' },
+    { match: 'The boomerang: hold Y / △ and a dotted line', shots: [
+      { name: 'boomerang-aim', only: 'after', caption: 'Aiming in its bay: locked on to two ropes and a pot of ink up on a block, the dotted path through them and home', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), the Gadget Yard' },
+      { name: 'boomerang-fetch', only: 'after', caption: 'A moment later: both ropes cut and their crates on the sand, the boomerang over the block with the pot, its ink trail behind it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), the Gadget Yard' },
+      { name: 'boomerang-market', only: 'after', caption: 'In the Signal Market with an ember on the backpack: thrown at two hanging lamps, the first already alight', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), ?level=bazaar' },
+    ], see: 'In the Gadget Yard, the bay with the brass banner: hold T (Y / △), sweep the reticle over the three targets and let go. Switch the backpack to ember (X / D-pad →) and throw it at the lanterns.' },
+    { match: 'The magnet glove: hold Y / △ near metal', shots: [
+      { name: 'magnet-hold', only: 'after', caption: 'The metal crate lifted off its tower, the field’s wavy strokes between the glove and the crate', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), the Gadget Yard' },
+      { name: 'magnet-gap', only: 'after', caption: 'Pulled across 11 m of air to the iron block on its pillar, taking hold of it before hauling over the top', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), the Gadget Yard' },
+      { name: 'magnet-machine', only: 'after', caption: 'In the Sealed Hangar: a makers’ machine lifted off its feet', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), ?level=garage' },
+      { name: 'magnet-hangar', only: 'after', caption: 'Pulled up to the signal board’s iron face by the path from the start, holding on', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), ?level=garage' },
+    ], see: 'In the Gadget Yard, the bay with the grey banner: hold T (Y / △) on the metal crate up on the tower; W and S bring it nearer and further. From the ledge up the steps, tap it at the iron block across the gap.' },
+    { match: 'The Gadget Yard has two more bays', see: 'In the magnet’s bay, lift the crate off the tower, over the wall of the pit beside it and onto the plate inside: the gate of the alcove sinks, and a pot of ink waits there.' },
   ],
   '0.89': [
     { match: 'The Glass Dunes’ glass glows from within', shots: [

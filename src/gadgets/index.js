@@ -41,8 +41,8 @@ const _v = new THREE.Vector3();
 const smooth = (k) => k * k * (3 - 2 * k);
 
 export class Gadgets {
-  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null }) {
-    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, items, game, icon, drawIcon });
+  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, relics = null, flammables = null }) {
+    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, items, game, icon, drawIcon, relics, flammables });
     this.fx = new THREE.Group(); this.fx.name = 'Gadgets'; this.fx.userData.noCollide = true;
     scene?.add(this.fx);
     level?.noShadow?.push?.(this.fx);
@@ -56,13 +56,14 @@ export class Gadgets {
     this.fx.add(this.debrisMesh);
     const said = new Map();
     this.ctx = {
-      scene, physics, player, camera, rig, sound, tool, level, foes, game, items,
+      scene, physics, player, camera, rig, sound, tool, level, foes, game, items, relics, flammables,
       world: this.world, fx: this.fx, hud: this.hud, bursts: this.bursts, sfx,
       // a short word on the screen (src/main.js showToast), at most every few seconds for the same key
       notice: (text, key = text) => { const t = performance.now(); if ((said.get(key) ?? -1e9) + 3000 > t) return; said.set(key, t); notice?.(text); },
       // where an aiming gadget points this frame (the traveller turns to it, the camera comes over the shoulder)
       aimAt: (point, dir) => { this.aimPoint.copy(point); this.aimDir.copy(dir); this.aimWanted = true; },
     };
+    this.world.notice = this.ctx.notice;
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1); this.aimK = 0; this.aimWanted = false;
     this.inst = new Map();
     for (const d of defs) {
