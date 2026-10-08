@@ -1,0 +1,45 @@
+changelog.md
+  s_efb1d100d5a6fc::t_9bd7344807fe4a 7-9
+docs/systems/foes.md
+  s_efb1d100d5a6fc::t_80ebcba78f32a7 277
+docs/systems/gadgets.md
+  s_efb1d100d5a6fc::t_ff453714004dc7 348
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_166673952adab1 330-340,345-347
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_d555bbc9e6409a 165-172
+src/changelog.js
+  s_efb1d100d5a6fc::t_5ca8527f0a3d69 24-26
+src/foe-kinds.js
+  s_efb1d100d5a6fc::t_b86725f16df5d4 16,38,96
+src/foes.js
+  s_efb1d100d5a6fc::t_b682825313a31c 119-120,277
+src/gadgets/bubble.js
+  s_efb1d100d5a6fc::t_f7990fbd205d46 40-48,321
+src/hitboxes.js
+  s_efb1d100d5a6fc::t_1ecba22fe98f87 3,90-97
+src/minigames/waves.js
+  s_efb1d100d5a6fc::t_e7813307e819b3 4-6,11,36-48,53-55,58-61,66-70,72,74-75,102-103,107-112,119,128,218,224,227,235-243,272,280-286,306,365-366,409-410,422
+tests/bubble-fan.test.js
+  s_efb1d100d5a6fc::t_a8faf198e7d363 7,115,122-132
+tests/hitboxes.test.js
+  s_efb1d100d5a6fc::t_1369f9e20ee2cb 69-127
+tests/minigames-waves.test.js
+  s_efb1d100d5a6fc::t_033904c2b26c37 5-7,12-13,19-20,36,44-85,87,90-91,93-94,124-130,150,155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b2fe5b1979d7e99264b04d82e3b762b13606f1f6",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
