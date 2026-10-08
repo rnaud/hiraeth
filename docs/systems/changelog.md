@@ -13,7 +13,14 @@ their version in `src/changelog.js` and shown reversed (`newestFirst`).
 
 Filters (with pictures, with numbers, performance, characters, devices, menus and controls, solid as
 drawn, and each world) and a search narrow the list; the URL keeps them (`?kind=perf&world=desert&q=cab`),
-and `#v0.79-3` links a line. Keyboard: ↑ ↓ from line to line, ← → move the split, Enter turns through the
+and `#v0.79-3` links a line.
+
+**Pages.** Only one page is in the document at a time: whole versions, about thirty lines a page
+(`PAGE_LINES`, `paginate` in `src/changelog-page/view.js`; a version longer than that is a page of its own),
+newest first. The filters and the search paginate what they keep. A pager above and below the list
+(Newer, the page menu, Older) and `?page=` in the URL move between pages; a link to a line or a version
+(`#v0.79-3`) opens its page, letting the filters go if they would hide it. ↑ ↓ past a page's last or first
+line, and LB / RB past its last or first version, turn the page. Tests: `tests/changelog-pages.test.js`. Keyboard: ↑ ↓ from line to line, ← → move the split, Enter turns through the
 modes (and a line's pictures), PageUp / PageDown and LB / RB jump a version, `/` searches, Escape or N
 closes. A controller does the same through the game's own `Controller` (context `menu`). Touch drags the
 split; on a narrow screen the side by side stacks.
@@ -95,7 +102,7 @@ in `dist/`, the zip (`MEDIA_FILE`), the Deck package and the Android workflow le
 server, and from the site (`https://memento.alexandria-rnaud.workers.dev/changelog-media/…`) in a bundled
 game (the Android app, the Deck); offline it says the pictures are online and shows the words and numbers.
 
-Limits (tests): a picture at most 150 KB, a pair 260 KB, the folder 30 MB. In practice a 1280 × 720 pair
+Limits (tests): a picture at most 150 KB, a pair 260 KB, the folder 60 MB (raised from 30 MB in October 2026, with v1.0: the pictures stay on the site, never on the devices). In practice a 1280 × 720 pair
 is 60–150 KB.
 
 A picture made by hand (no `view`) says where it came from in `from`: a screenshot of earlier work, or a

@@ -99,6 +99,43 @@ export function lineHtml(line) {
 <p class="text">${esc(line.text)}</p>${shots}${line.numbers.map(numbersHtml).join('')}${see}${tags ? `<div class="tags">${tags}</div>` : ''}</article>`;
 }
 
+/** The lines a page holds at most: whole versions are kept together, so a page runs over only for one long version. */
+export const PAGE_LINES = 30;
+
+/**
+ * The entries split into pages of whole versions, newest first: a version joins the page while the page
+ * holds fewer than `budget` lines, or when the page is still empty (a version longer than a page is a page).
+ */
+export function paginate(entries, budget = PAGE_LINES) {
+  const pages = [];
+  let page = [], n = 0;
+  for (const e of entries) {
+    if (page.length && n + e.lines.length > budget) { pages.push(page); page = []; n = 0; }
+    page.push(e); n += e.lines.length;
+  }
+  if (page.length) pages.push(page);
+  return pages;
+}
+
+/** The entries with only the lines that pass the filters, versions left empty dropped. */
+export const filtered = (entries, state) => entries.map((e) => ({ ...e, lines: e.lines.filter((l) => matches(l, state)) })).filter((e) => e.lines.length);
+
+/** The page (1-based) that holds a line or a version by its id ('v0.79-3', 'v0.79'), or 0 when none does. */
+export function pageOfId(pages, id) {
+  const k = pages.findIndex((p) => p.some((e) => `v${e.v}` === id || e.lines.some((l) => `v${l.v}-${l.i + 1}` === id)));
+  return k + 1;
+}
+
+/** The pager: newer, this page of how many (its versions), older; `where` names it (above or below the list). */
+export function pagerHtml(page, pages, where = 'top') {
+  if (pages.length < 2) return '';
+  const opts = pages.map((q, k) => `<option value="${k + 1}"${k + 1 === page ? ' selected' : ''}>${k + 1}: v${esc(q[0].v)}${q.length > 1 ? ` – v${esc(q[q.length - 1].v)}` : ''}</option>`).join('');
+  return `<nav class="pager ${where}" aria-label="Pages">
+<button type="button" class="btn" data-page="${page - 1}"${page <= 1 ? ' disabled' : ''}>← Newer</button>
+<label>Page <select data-pages aria-label="Page">${opts}</select> of ${pages.length}</label>
+<button type="button" class="btn" data-page="${page + 1}"${page >= pages.length ? ' disabled' : ''}>Older →</button></nav>`;
+}
+
 /** A version's section. */
 export function versionHtml(e) {
   const pics = e.lines.filter((l) => l.shots.length).length, nums = e.lines.filter((l) => l.numbers.length).length;

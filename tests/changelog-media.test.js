@@ -16,8 +16,8 @@ import { BUILD_INPUT } from '../vite.config.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
-/** A picture: under 150 KB; a before / after pair under 260 KB; the whole folder under 30 MB. */
-export const MAX_FILE = 150 * 1024, MAX_PAIR = 260 * 1024, MAX_TOTAL = 30 * 1024 * 1024;
+/** A picture: under 150 KB; a before / after pair under 260 KB; the whole folder under 60 MB. */
+export const MAX_FILE = 150 * 1024, MAX_PAIR = 260 * 1024, MAX_TOTAL = 60 * 1024 * 1024;
 
 test('every media entry matches exactly one line of its version', () => {
   for (const [v, list] of Object.entries(CHANGELOG_MEDIA)) {

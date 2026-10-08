@@ -7,7 +7,7 @@ import { CHANGELOG, VERSION } from '../changelog.js';
 import { changelogEntries } from '../changelog-media.js';
 import { Controller } from '../controller.js';
 import { padFaces } from '../native-pad.js';
-import { filterChips, lineHtml, matches, MEDIA_SITE, shotHtml, versionHtml } from './view.js';
+import { filterChips, filtered, lineHtml, MEDIA_SITE, pageOfId, pagerHtml, paginate, shotHtml, versionHtml } from './view.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -16,34 +16,40 @@ document.body.classList.toggle('embed', embed);
 $('#version').textContent = `v${VERSION}`;
 
 const entries = changelogEntries(CHANGELOG);
-const byId = new Map(entries.flatMap((e) => e.lines.map((l) => [`v${l.v}-${l.i + 1}`, l])));
-$('#list').innerHTML = entries.map(versionHtml).join('') + '<p class="empty" hidden>Nothing matches.</p>';
 
-// ------------------------------------------------------------------ filters and search
-const state = { kind: params.get('kind') ?? 'all', worlds: (params.get('world') ?? '').split(',').filter(Boolean), words: params.get('q') ?? '' };
+// ------------------------------------------------------------------ filters, search and pages
+// Only the page shown is in the document (a hundred versions of pictures and tables at once is too much
+// for a handheld): the lines that pass the filters, in pages of whole versions (view.js paginate).
+const state = { kind: params.get('kind') ?? 'all', worlds: (params.get('world') ?? '').split(',').filter(Boolean), words: params.get('q') ?? '', page: Math.max(1, parseInt(params.get('page'), 10) || 1) };
 const chips = filterChips(entries);
 $('#kinds').innerHTML = chips.kinds.map(([id, label]) => `<button type="button" class="chip" data-kind="${id}">${label}</button>`).join('');
 $('#worlds').innerHTML = chips.worlds.map(([id, label]) => `<button type="button" class="chip world" data-world="${id}">${label}</button>`).join('');
 $('#search').value = state.words;
 
-function apply() {
-  let shown = 0, pics = 0;
-  for (const sec of document.querySelectorAll('section.version')) {
-    let any = false;
-    for (const art of sec.querySelectorAll('article.line')) {
-      const ok = matches(byId.get(art.id), state);
-      art.hidden = !ok; any ||= ok;
-      if (ok) { shown++; if (byId.get(art.id).shots.length) pics++; }
-    }
-    sec.hidden = !any;
-  }
-  $('.empty').hidden = shown > 0;
+let pages = [];
+function apply({ keepPage = false } = {}) {
+  const shown = filtered(entries, state);
+  pages = paginate(shown);
+  if (!keepPage) state.page = 1;
+  state.page = Math.max(1, Math.min(pages.length || 1, state.page));
+  const lines = shown.flatMap((e) => e.lines), pics = lines.filter((l) => l.shots.length).length;
+  const here = pages[state.page - 1] ?? [];
+  $('#list').innerHTML = pagerHtml(state.page, pages, 'top') + here.map(versionHtml).join('')
+    + (lines.length ? '' : '<p class="empty">Nothing matches.</p>') + pagerHtml(state.page, pages, 'bottom');
   for (const b of document.querySelectorAll('[data-kind]')) b.setAttribute('aria-pressed', String(b.dataset.kind === state.kind));
   for (const b of document.querySelectorAll('[data-world]')) b.setAttribute('aria-pressed', String(state.worlds.includes(b.dataset.world)));
-  $('#count').textContent = `${shown} changes shown${pics ? `, ${pics} with pictures` : ''}`;
+  $('#count').textContent = `${lines.length} changes shown${pics ? `, ${pics} with pictures` : ''}${pages.length > 1 ? ` · page ${state.page} of ${pages.length}` : ''}`;
   const q = new URLSearchParams(location.search);
-  for (const [k, v] of [['kind', state.kind === 'all' ? '' : state.kind], ['world', state.worlds.join(',')], ['q', state.words]]) v ? q.set(k, v) : q.delete(k);
+  for (const [k, v] of [['kind', state.kind === 'all' ? '' : state.kind], ['world', state.worlds.join(',')], ['q', state.words], ['page', state.page > 1 ? state.page : '']]) v ? q.set(k, v) : q.delete(k);
   history.replaceState(null, '', `${location.pathname}${q.size ? `?${q}` : ''}${location.hash}`);
+}
+/** Show another page: at its top, or with its first (`at` 'first') or last ('last') line in focus. */
+function goPage(n, at = null) {
+  if (n < 1 || n > pages.length || n === state.page) return false;
+  state.page = n; apply({ keepPage: true });
+  if (at) { const list = visible(); focusLine(at === 'last' ? list[list.length - 1] : list[0]); }
+  else scrollTo({ top: 0 });
+  return true;
 }
 $('#kinds').addEventListener('click', (e) => { const k = e.target.closest('[data-kind]')?.dataset.kind; if (k) { state.kind = k; apply(); } });
 $('#worlds').addEventListener('click', (e) => {
@@ -51,7 +57,15 @@ $('#worlds').addEventListener('click', (e) => {
   state.worlds = state.worlds.includes(w) ? state.worlds.filter((x) => x !== w) : [...state.worlds, w]; apply();
 });
 $('#search').addEventListener('input', (e) => { state.words = e.target.value; apply(); });
-apply();
+$('#list').addEventListener('click', (e) => { const b = e.target.closest('.pager [data-page]'); if (b && !b.disabled) goPage(+b.dataset.page, b.closest('.bottom') ? 'first' : null); });
+$('#list').addEventListener('change', (e) => { if (e.target.matches('[data-pages]')) goPage(+e.target.value); });
+// (a link to a line or a version opens the page it is on, with the filters let go if they hide it)
+const hashId = location.hash.slice(1);
+if (hashId && entries.some((e) => `v${e.v}` === hashId || e.lines.some((l) => `v${l.v}-${l.i + 1}` === hashId))) {
+  if (!pageOfId(paginate(filtered(entries, state)), hashId)) Object.assign(state, { kind: 'all', worlds: [], words: '' }), $('#search').value = '';
+  state.page = pageOfId(paginate(filtered(entries, state)), hashId);
+}
+apply({ keepPage: true });
 
 // ------------------------------------------------------------------ pictures: the split, the modes, offline
 const setSplit = (cmp, pct) => {
@@ -122,6 +136,9 @@ function step(dy) {
   const list = visible(), cur = document.activeElement?.closest?.('article.line');
   if (!cur) { if (dy > 0) focusLine(list[0]); return; }
   const i = list.indexOf(cur);
+  // (past the page's last line, the next page's first; above its first, the page before's last)
+  if (dy > 0 && i >= list.length - 1 && goPage(state.page + 1, 'first')) return;
+  if (dy < 0 && i <= 0 && goPage(state.page - 1, 'last')) return;
   if (dy < 0 && i <= 0) { (controls().find((b) => b.getAttribute('aria-pressed') === 'true') ?? controls()[0])?.focus(); return; }
   focusLine(list[Math.max(0, Math.min(list.length - 1, i + dy))]);
 }
@@ -151,7 +168,11 @@ function version(d) {
   const secs = [...document.querySelectorAll('section.version')].filter((s) => !s.hidden);
   const cur = document.activeElement?.closest?.('section.version');
   const i = cur ? secs.indexOf(cur) : -1;
+  // (from the page's last version on, the next page; from its first back, the page before)
+  if (d > 0 && i >= secs.length - 1 && goPage(state.page + 1, 'first')) return;
+  if (d < 0 && i <= 0 && cur && goPage(state.page - 1, 'first')) return;
   const to = secs[Math.max(0, Math.min(secs.length - 1, i + d))];
+  if (!to) return;
   focusLine([...to.querySelectorAll('article.line')].find((a) => !a.hidden));
 }
 function close() {
