@@ -1,4 +1,4 @@
-import { buildDesertVistas } from '../desert-vistas.js';
+import { buildDesertVistas, BASIN } from '../desert-vistas.js';
 import { buildDesertLandmarks, desertHeight } from '../desert-landmarks.js';
 import * as THREE from 'three';
 import { buildObservatory } from '../observatory.js';
@@ -16,6 +16,8 @@ import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK } from '../desert-sites.js';
 import { smoothstep } from '../noise.js';
+import { placeGameMarker } from '../minigames/kit/marker.js';
+import { gameById } from '../minigames/index.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -71,6 +73,11 @@ export function* buildDesert(scene) {
   const drifts = sand.close().build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
+  // the arcade signs of two games, out of the story's way (src/minigames/): Fishing on the basin's shore,
+  // the Canyon run under the lavender cliffs by the rope bridge
+  for (const [id, x, z, heading] of [['fishing', BASIN.x + BASIN.rx * 0.74, BASIN.z + 6, Math.PI / 2], ['canyon', -398, -446, 2.6]]) {
+    if (gameById(id)) placeGameMarker({ scene, levelId: 'desert', lights }, id, new THREE.Vector3(x, terrain.heightAt(x, z), z), { heading });
+  }
   // the Givers' House in the eastern dunes, and its rooms far overhead (src/temples/desert.js)
   return attachTemple('desert', scene, {
     id: 'desert',
