@@ -134,6 +134,21 @@ export const CHANGELOG_MEDIA = {
       { name: 'steps-run', only: 'after', caption: 'On a drifting stone of the makers', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
       { name: 'steps-crumble', only: 'after', caption: 'Over the cracked stones: they shake and fall a moment after you land', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
     ], see: '?game=platformer: run off an edge and press jump a moment late, or press it just before you land: both still jump.' },
+    { match: 'Ring race: the jets, tuned for racing', shots: [
+      { name: 'rings-card', only: 'after', caption: 'The start card on the mesa, the first ring glowing among the needles', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+      { name: 'rings-climb', only: 'after', caption: 'Climbing out of the needles to ring 7, the gold arrow at the top of the view on it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+      { name: 'rings-ghost', only: 'after', caption: 'The best run’s teal ghost through ring 6 ahead of you, and the split: 1.5 s behind it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+      { name: 'rings-results', only: 'after', caption: 'Twenty rings, no crashes, a new best', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+    ], see: '?game=rings: hold RT / R2, keep the arrow ahead of you, and let go of the trigger on the dives to save the tank.' },
+    { match: 'Wing drop: three drops from high', shots: [
+      { name: 'wingdrop-thermals', only: 'after', caption: 'The first drop: the thermals’ ink swirls round the way down, the Painted Mesa ahead', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+      { name: 'wingdrop-approach', only: 'after', caption: 'Gliding in at 100 m, the bullseye ahead, a star gate low on the left', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+      { name: 'wingdrop-landed', only: 'after', caption: 'Down in the bull: the drop’s aim, style and stars', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+      { name: 'wingdrop-results', only: 'after', caption: 'Three drops and their scores', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+    ], see: '?game=wingdrop: circle in a thermal to climb to the high star, and hold the stick back for the last metre or two above the target.' },
+    { match: 'Both new games have an arcade sign in the desert', shots: [
+      { name: 'desert-signs', only: 'after', caption: 'The ring race’s sign on the east shelf by the hanging bridge (the wing drop’s is on the far shelf)', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ], see: 'In the desert, ride out to the hanging bridge between the two lilac rock shelves, far out from the start (?level=desert, about x −430, z −470), and climb onto either shelf.' },
   ],
   '0.91': [
     { match: 'Gadgets: things to carry besides the backpack', shots: [

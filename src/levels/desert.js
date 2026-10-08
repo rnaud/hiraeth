@@ -16,6 +16,9 @@ import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK } from '../desert-sites.js';
 import { smoothstep } from '../noise.js';
+import { placeGameMarker } from '../minigames/kit/marker.js';
+import ringRace from '../minigames/rings.js';
+import wingDrop from '../minigames/wingdrop.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -25,6 +28,10 @@ export function* buildDesert(scene) {
   const { floaters, banners, lights, doors, floraAvoid } = buildWorld(scene, terrain);
   yield;
   const vistas = buildDesertVistas(scene, terrain);
+  // two arcade signs on the rock shelves at either end of the hanging bridge, facing it (src/minigames/)
+  const shelfTop = vistas.bridge.y + 5;
+  placeGameMarker({ scene, levelId: 'desert', lights }, 'rings', new THREE.Vector3(-430 + 62 - 5, shelfTop, -470 + 9), { heading: -Math.PI / 2, games: [ringRace] });
+  placeGameMarker({ scene, levelId: 'desert', lights }, 'wingdrop', new THREE.Vector3(-430 - 62 + 5, shelfTop, -470 + 9), { heading: Math.PI / 2, games: [wingDrop] });   // (the games named: node has no glob)
   yield;
   // sand banked against what stands on it: the landmarks', the city's and the camps' solids feed it
   // (none inside Qanat's walls: its streets and plaza are paved)
