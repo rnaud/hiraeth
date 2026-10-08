@@ -50,7 +50,7 @@ Other pages: `studio.html` (the character studio), `motion.html` (the Motion pag
 ## Test and build
 
 ```bash
-node --test tests/*.test.js     # the unit tests (Node's runner, no browser)
+node --test tests/*.test.js     # the unit tests (Node's runner, no browser); also run by the pre-commit hook
 npx vite build                  # the production build into dist/
 ```
 

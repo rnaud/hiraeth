@@ -1,7 +1,10 @@
 # Testing: the unit tests and the play-through
 
 `node --test tests/*.test.js` runs every test (about a thousand, under a minute); `npx vite build`
-must pass too. Each world's story has its own test (`tests/story-*.test.js`, `tests/desert-story.test.js`),
+must pass too. The tests run on this machine only: `.githooks/pre-commit` runs them before every
+commit that touches code (`npm install` sets `core.hooksPath`; `SKIP_TESTS=1` or `--no-verify` skips them in an
+emergency). GitHub's workflows only build and ship (October 2026: the four test shards there took minutes
+before every deploy). Each world's story has its own test (`tests/story-*.test.js`, `tests/desert-story.test.js`),
 which plays that world alone from a new game. The play-through plays them all, one after the other.
 
 ## The play-through (`tests/playthrough*.js`, `scripts/playthrough-browser.mjs`)

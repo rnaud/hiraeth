@@ -1,0 +1,18 @@
+#!/bin/sh
+# The unit tests run here, before every commit, not on GitHub (the deploy only builds and ships).
+# Enabled by `npm install` (package.json "prepare": git config core.hooksPath .githooks).
+# Skipped when the commit touches no code or tests (docs, pictures, the changelog's media only),
+# or with SKIP_TESTS=1 / `git commit --no-verify` in an emergency.
+[ -n "$SKIP_TESTS" ] && exit 0
+if ! git diff --cached --name-only --diff-filter=ACMRD | grep -qE '\.(js|mjs|cjs|json|glsl|html|css)$'; then
+  exit 0
+fi
+echo "pre-commit: node --test tests/*.test.js (SKIP_TESTS=1 to skip)"
+out=$(node --test tests/*.test.js 2>&1)
+status=$?
+if [ $status -ne 0 ]; then
+  printf '%s\n' "$out" | grep -E '^not ok|^ℹ (pass|fail)' | tail -20
+  echo "pre-commit: tests failed, commit stopped"
+  exit 1
+fi
+printf '%s\n' "$out" | grep -E '^ℹ (pass|fail)'

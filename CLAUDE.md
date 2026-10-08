@@ -36,8 +36,10 @@ running, testing, shipping.
 
 ## Working rules
 
-- Run `node --test tests/*.test.js` and `npx vite build` before committing; both
-  must pass. Add tests for new systems and for bug fixes.
+- The unit tests run locally, not on GitHub: `.githooks/pre-commit` runs
+  `node --test tests/*.test.js` before every commit that touches code (enabled by
+  `npm install`, or `git config core.hooksPath .githooks`). Run `npx vite build` too
+  before committing; both must pass. Add tests for new systems and for bug fixes.
 - Check visual changes in the running game (headless Chrome screenshots against
   a dev server). Never touch port 5173: that is the user's own dev server.
 - Document new systems in a short section of the right `docs/systems/<topic>.md`

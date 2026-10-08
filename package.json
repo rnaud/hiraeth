@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "test": "node --test tests/*.test.js",
     "build": "vite build",
     "preview": "vite preview",
     "dev:cloudflare": "npm run build && node scripts/web-update.mjs --no-previous && wrangler dev --port 8787",
