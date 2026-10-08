@@ -75,7 +75,7 @@ they should look like subtle cracks, and they shouldn't overlap with windows". N
   `lip.edge / |albedo|` (under post.js's colour-edge threshold: no outline of their own to flicker).
 - **Not every wall**: a building's 9 m cell gives its amount (0.6–1.4 × `weathered`) and its pattern, and
   one in five has none (`WEATHER.walls`).
-- **Never over an opening** (`src/wall-openings.js`): windows, doors, shutters, signs and the door stains are
+- **Never over an opening** (`src/wall-openings.js`): windows, doors, shutters and signs are
   meshes of their own, so the shader cannot see them. As a world is built, every small piece that is not
   itself weathered (≤ 6 m a side, ≤ 40 m³: not a wall, floor or roof) is handed in: by the kits as they lay
   it (`desert-city.js` and `desert-landmarks.js` `Kit.add`, `RoomKit.finish` in the world once its group
@@ -118,26 +118,12 @@ ground, not faces turned up or down: a cliff or a tower deeper than the reach al
 body as another's), only in a look with `uHalftone`. One shadow tap on turned shaded wall pixels: Handheld, the
 Market and the City-Shaft within the run-to-run spread. `tests/halftone-cast.test.js`.
 
-### Stains round the doors (October 2026)
+### No stains round the doors (removed in v0.89)
 
-`src/door-stain.js`: `doorStainGeometry(rng, w, h, R)` (the patch in the door's frame, flat or round a drum of
-radius R), `stainColor(wall, k)` (the wall's colour k toward grime), `stainMaterial(color)` (flat, a hairline of
-its own colour). Laid round the doors of Qanat (below), home's two houses (the round house's on the dome's
-curve, the small house's round its wall), the Signal Market's shop openings (painted in each shop's colour, one
-material) and Vael II's monastery and church arches (`arch(…, face)`: which way its wall looks). All drawn
-only, flush (≤ 3 cm) on the face; one material per world. Lorn has no houses (Lorn II's moss domes and their lit
-round doors are left as drawn).
-
-#### Qanat
-
-A door is a mesh of its own, so the wall's weathering cannot see it. Qanat's houses (`desert-city.js`
-`doorStain`) carry a smudge round 80 % of their doors: a fan from over the lintel out to a soft wavy outline
-(taller over the lintel, down to the foot either side), the wall's own colour 22-30 % toward a grime brown,
-laid 2 cm proud of the face, wrapped round a tower-house's drum (`R`); on the block houses and the towers (not the
-round houses: their collider stands inside the drawn drum, and a stain over it reads to the contact audit as one more
-place a climber goes inside). Its material draws a hairline
-of its own colour (`line` 0.25, `lineTint` 1), so it reads as a stain, not an inked patch; painted (vertex
-colour), one material for the town: +1 draw (+ its shadow), drawn only. Its own random numbers.
+v0.88 laid a darker smudge round the doors of Qanat, home, the Signal Market, Vael II and the Eclipse
+(`src/door-stain.js`); it went in v0.89 with the wall dirt. Where it drew from a shared random stream, its
+draws are still made so nothing else moves: the Eclipse kit's `house` and `doorway` (`skip(rng, STAIN_DRAWS)`,
+five) and the Signal Market's goods (`gr`, six a shop). Qanat's, home's and Vael II's had numbers of their own.
 
 ## Cracks down a cliff's face (`cracks`)
 

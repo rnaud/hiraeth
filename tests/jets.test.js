@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Player, JET, jetNose, jetSteer, jetSpeed, jetStep, jetDroop, jetPose, jetCameraPitch, OPEN_PITCH } from '../src/player.js';
+import { Player, CameraRig, JET, jetNose, jetSteer, jetSpeed, jetStep, jetDroop, jetPose, jetCameraPitch, OPEN_PITCH, PITCH_SETTLE } from '../src/player.js';
 import { triggers, Controller } from '../src/controller.js';
 
 // The jets fly like a plane (v0.89; docs/systems/movement-and-camera.md): RT / R2 the throttle,
@@ -324,4 +324,27 @@ test('the keyboard and touch: SPACE held in the air is full throttle, WASD fly t
   // a pad's jump alone never fires them
   const q = jetter({ at: 30 }); fly(q, 1, { Space: true, PadJump: true });
   assert.equal(q.thrusting, false);
+});
+
+// after a dive the view comes level again on foot (it stayed tipped looking down at the ground)
+test('leaving the jets: the camera eases back to the on-foot pitch, unless you turn it', () => {
+  globalThis.window ??= { addEventListener() {} };
+  const dom = { addEventListener() {} };
+  const rig = new CameraRig(new THREE.PerspectiveCamera(), dom, null);
+  const tick = (shot, secs, riding = !!shot) => { for (let t = 0; t < secs; t += DT) { rig.follow(0, DT, riding, shot); rig._now += DT; } };
+  const dive = { pitch: jetCameraPitch(-1.2) };
+  tick(dive, 4);
+  assert.ok(rig.pitch > 0.6, 'diving: looking down the dive');
+  tick(null, 0.25);
+  assert.ok(rig.pitch < 0.6 && rig.pitch > OPEN_PITCH + 0.05, 'landed: easing back, not snapping');
+  tick(null, PITCH_SETTLE.time);
+  assert.ok(Math.abs(rig.pitch - OPEN_PITCH) < 1e-6, 'within a second: the on-foot framing');
+  // the same out of the jets into the wings' glide (riding, no pitch of its own)
+  tick(dive, 4); tick(null, 1, true);
+  assert.ok(Math.abs(rig.pitch - OPEN_PITCH) < 1e-6, 'gliding: levelled too');
+  // turning the camera yourself as you land: it stays where you put it
+  tick(dive, 4); tick(null, 0.1);
+  rig.look(0, 40); const mine = rig.pitch;
+  tick(null, 1.5);
+  assert.equal(rig.pitch, mine, 'your own pitch is kept');
 });

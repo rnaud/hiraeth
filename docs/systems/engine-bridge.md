@@ -793,7 +793,7 @@ Next for speed: the sound's synthesis off the script's thread, and the mirror's 
 - From main since: **the half-tone kept off faces inside another's cast shadow** (materials.js castBeyond: one
   tap of the middle shadow map 16 m toward the sun; Surface.shader the same on `_MShadowMap1`, built walls only)
   and **the dust band on the sand banked against a weathered wall** (post.js: drift pixels whose probe up the
-  screen lands on a weathered wall just behind; Composite.shader the same). The door stains, the Market's heaps
+  screen lands on a weathered wall just behind; Composite.shader the same). The Market's heaps
   and the greeble kit are plain meshes and materials the port already draws.
 
 The rose gorge (its walls' cracks) and the City-Shaft from the rim, the web on the left, Unity on the right:

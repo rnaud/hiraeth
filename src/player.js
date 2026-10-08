@@ -115,6 +115,11 @@ export function jetDroop(pitch, vel, U, dt, along = vel.length()) {
   const rate = along < JET.stall ? JET.stallDroop : JET.droop * (1 - 0.75 * THREE.MathUtils.clamp(L / JET.liftSpeed, 0, 1));
   return THREE.MathUtils.clamp(pitch + (way - pitch) * (1 - Math.exp(-rate * dt)), -JET.maxPitch, JET.maxPitch);
 }
+/**
+ * Leaving the jets' chase (landing from a dive, or into the water, the wings, a wall, a ride): the view's
+ * pitch eases back to the on-foot framing at `rate` (1/s: ~95 % in 0.75 s), done by `time` s at most.
+ */
+export const PITCH_SETTLE = { rate: 4, time: 1 };
 /** The camera's pitch (+ looks down) behind a nose at `pitch`: up with a climb, down with a dive. */
 export function jetCameraPitch(pitch) {
   return THREE.MathUtils.clamp(OPEN_PITCH + 0.12 - pitch * 0.4, -0.5, 0.85);
@@ -2548,6 +2553,8 @@ export class CameraRig {
     this._jumped = false;    // the last updateTight was a jump (a teleport, a hand-over)
     this._swing = 0;         // indoors: the turn the camera is easing through to get clear of a wall behind you
     this._wide = 0; this._wideT = 0;   // the wider arm asked for (gliding, the jets), held a moment
+    this._chasePitched = false;        // the last follow had a chase that tips the view (the jets' climb or dive)
+    this._settleT = 0; this._settleFrom = 0;   // after it: easing the view back to the on-foot pitch (PITCH_SETTLE)
 
     dom.addEventListener('click', () => dom.requestPointerLock?.());
     dom.addEventListener('mousedown', () => (this._dragging = true));
@@ -2715,9 +2722,13 @@ export class CameraRig {
    * The jets' flight asks for the same chase behind the nose (main.js: shot { pitch, keepTight }).
    * `wide` (metres, not riding a vehicle): a longer arm for what needs to see ahead and below
    * (gliding, the jets, climbing); held a moment after it drops (a tap of the jets doesn't pump it).
+   * When a chase that tipped the view ends (landing from a dive, or leaving the jets for the water, the
+   * wings, a wall or a ride), the pitch eases back to the on-foot framing (PITCH_SETTLE), unless you
+   * turn the camera yourself.
    */
   follow(heading, dt, riding, shot = null, wide = null) {
     this._riding = !!riding && !shot?.keepTight;   // (the jets' chase keeps the close-in framing: a temple's shaft)
+    this.settlePitch(dt, shot?.pitch != null);
     if (wide != null) {
       if (wide >= this._wide) { this._wide = wide; this._wideT = 0; }
       else if ((this._wideT += dt) > 1.2) this._wide = wide;
@@ -2729,6 +2740,17 @@ export class CameraRig {
     d = Math.atan2(Math.sin(d), Math.cos(d));
     this.yaw += d * (1 - Math.exp(-(shot?.yawRate ?? 2.2) * dt));
     if (shot?.pitch != null) this.pitch += (shot.pitch - this.pitch) * (1 - Math.exp(-1.5 * dt));
+  }
+
+  /** After a pitched chase ends: the pitch eases back to pitch0 (PITCH_SETTLE), given up if you turn the camera. */
+  settlePitch(dt, pitched) {
+    if (this._chasePitched && !pitched) { this._settleT = PITCH_SETTLE.time; this._settleFrom = this._now; }
+    this._chasePitched = pitched;
+    if (this._settleT <= 0) return;
+    if (pitched || this._lastMouse >= this._settleFrom) { this._settleT = 0; return; }   // a new chase, or your own hand
+    this._settleT -= dt;
+    this.pitch += (this.pitch0 - this.pitch) * (1 - Math.exp(-PITCH_SETTLE.rate * dt));
+    if (Math.abs(this.pitch - this.pitch0) < 0.005 || this._settleT <= 0) { this.pitch = this.pitch0; this._settleT = 0; }
   }
 
   /**

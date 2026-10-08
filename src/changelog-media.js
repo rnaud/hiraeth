@@ -206,6 +206,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'cracks-qanat-street', caption: 'Inside Qanat’s gate: the tower and the house on the right, before streaked and blotched, now a few faint hairline cracks', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 10:00 (7 October); the before at the commit before the change. View: eye [209.1, 4, 363.6], target [178.8, 4, 381]' },
       { name: 'cracks-market-alley', caption: 'A back alley off the Signal Market’s street: drops of grime and patches of plaster gone, fine cracks on the green wall', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 10:00 (7 October); the before at the commit before the change. View: the market-alley view of v0.80' },
     ], see: 'Walk up to an old house in Qanat or a shop in the Signal Market: the walls are clean but for the odd fine crack, and none comes near a window or a door. Not every building has them.' },
+    { match: 'The darker smudges round the doors are gone', shots: [
+      { name: 'doors-eclipse-street', caption: 'The street of lit doors off the Eclipse’s Lantern Square: the dark fans round each doorway gone, every house, table and lantern where it was', commit: '8a70f407',
+        view: { level: 'eclipse', player: [2, 0, 26], eye: [4, 2.6, 24], target: [16, 2, 12], fov: 55 } },
+      { name: 'doors-eclipse-town', caption: 'The Lantern Square and the wall under the upper city from above: the town laid out as before, the cellar doors clean', commit: '8a70f407',
+        view: { level: 'eclipse', player: [0, 0, 30], eye: [-8, 9, 34], target: [6, 2, -30], fov: 55 } },
+      { name: 'doors-qanat', caption: 'A block house in Qanat: its door in clean plaster', commit: '8a70f407',
+        view: { level: 'desert', player: [209, 8, 417], eye: [207.4, 4.2, 418.8], target: [202.2, 4.2, 423.5], fov: 55 } },
+    ], see: 'Walk up to a door in Qanat, at home, in the Signal Market, at Vael II’s monastery or in the City During the Eclipse: the plaster round it is the wall’s own colour.' },
+    { match: 'After a dive on the jets the camera', see: 'Fly the jets high, push the left stick forward to dive head first and come down on your feet: the view eases back from looking at the ground to its usual height over the shoulder within a second. Move the right stick as you land and it stays where you put it.' },
     { match: 'People seen close, in a conversation', shots: [
       { name: 'shade-closeup', caption: 'The traveller close up in the shade on the City-Shaft’s rim at 17:00: the lit patches on his neck, cheek and coat are gone', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720, the camera 1 m from his face (7 October)' },
       { name: 'shade-profile', caption: 'The same, from his side: the cheek and the collar stay in the shade', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720 (7 October)' },
