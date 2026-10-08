@@ -25,15 +25,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] The humming the game talks about is never heard. Make it part of the prologue and bring it back
   regularly.
 
-## Dialogue
-
-- [ ] During dialogue, when the camera points at the player's character, the character moves around.
-- [ ] The character looks around too much during dialogue.
-- [ ] Choosing a dialogue option just plays the chosen line back.
-- [ ] When Nour says to stand in the water, the answers offered don't match the context.
-- [ ] Talking to Ama, the flame is in the way.
-- [ ] Not every character should have a bubble over their head.
-
 ## Characters and animation
 
 - [ ] Characters' waving looks wrong; something is off in the animation.

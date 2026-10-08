@@ -107,6 +107,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.94 — 2026-10-08
 
+- In conversations the traveller holds still: he no longer shifts his weight about, turns his head or breaks into his looking-around idle while someone talks to him, and his eyes stay on whoever is speaking instead of darting about.
+- Picking an answer in a conversation no longer plays your own words back to you: the person you are talking to replies straight away.
+- When Nour tells you to stand in water to fill the backpack, your answers now follow on from it: ask where there is any water out here (she tells you how it stopped rising the night the light sang), or whether living water could wake your ship.
+- Talking to Ama by the camp fire, the camera no longer looks at her through the flames: it finds a view round the fire, as it does for every fire in the game.
+- Fewer speech balloons: walking past people, only those with something for you greet you with a balloon over their head (the one your quest points to, someone with a quest to give, someone you have never spoken to, or a bystander with news you have not heard yet). Everyone else still turns, waves and talks to you when you press X / □; calls and shouts still show.
 - New instrumental soundtracks accompany the Desert, the City-Shaft, Vael and the Sky Stones, each with its own instruments and mood.
 - New instrumental music fills the Sealed Hangar, the Buried Machine, Viridel and the Garden of Spheres.
 - Lorn, the Deep Wood, the Signal Market and the White Mangrove now have their own instrumental soundtracks.

@@ -294,6 +294,19 @@ export const CHANGELOG_MEDIA = {
       ...colourShots('marketnight', 'ae5f14c7', { ref: 'marketnight-1-lane', query: 'world=marketnight', hour: null }, 'The night market’s screen lane (References view 1): the walls and casings a slate blue', 'its first picture'),
     ], see: SEE_COLOURS },
   ],
+  '0.94': [
+    { match: 'In conversations the traveller holds still', numbers: [
+      { title: 'The traveller standing 30 s, idle and in a conversation', better: 'lower', device: 'the real rig and clips in Node (tests/talk-still.test.js)', source: 'tests/talk-still.test.js, 8 October', rows: [
+        { where: 'the head’s turn, widest to widest (°)', before: 133, after: 0.4 },
+        { where: 'the hips’ sway side to side (cm)', before: 4.3, after: 0.9 },
+        { where: 'captured looking-about and breathing idles played', before: 2, after: 0 },
+      ] },
+    ], see: 'Talk to anyone and wait on a long line: when the camera comes in close on the traveller he stays still, his eyes on the one speaking.' },
+    { match: 'Picking an answer in a conversation no longer plays', see: 'In the desert, talk to Nour and pick any answer: her reply starts at once, and your answer is not shown or voiced again.' },
+    { match: 'When Nour tells you to stand in water', see: 'Open the makers’ chest in Qanat, talk to Nour, ask what is on your back: the answers after “Stand in water to fill the backpack” ask where there is water, or whether it could wake the ship.' },
+    { match: 'Talking to Ama by the camp fire', see: 'pictures to come' },
+    { match: 'Fewer speech balloons', see: 'Walk through the pilgrims’ camps after talking to everyone there: nobody greets you with a balloon unless your quest points to them or they have news; shouts still show.' },
+  ],
   '0.93': [
     { match: 'The shade has a new look: a cartoon drawn in negative', shots: [
       { name: 'shade-desert', caption: 'A shade standing in the Arena at 10:00: the violet body with its head and eyes before; after, the black figure in its white outline, its head a black flame of three tips', from: 'headless Chrome against this branch’s own dev server and the commit before the new look, High, 1280 × 720, the camera 3.4 m from it (8 October)' },

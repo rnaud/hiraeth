@@ -571,7 +571,8 @@ export class NPC {
     this.updateCape(dt, player, camera, speed);
 
     // speech balloon: placed by placeBalloon() after the camera has moved this frame
-    this.talking = !this.talkTo && !this.hush && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;   // (hush: a scene is on, no balloons)
+    // (hush: a scene is on, no balloons; quiet: nothing new to say, src/story/balloons.js)
+    this.talking = !this.talkTo && !this.hush && !this.quiet && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
     if (this.shout && this.time < this.shout.until) this.talking = true;
   }
 
@@ -694,7 +695,8 @@ export class NPC {
     } else this.cape?.follow();
     const line = now < (p.shoutUntil ?? -1) ? p.say : p.lines[p.lineIdx % p.lines.length];
     if (this.lines[0] !== line) { this.lines = [line]; this.lineIdx = 0; }
-    this.talking = p.speaking && (dist < 6 || now < (p.shoutUntil ?? -1));
+    // (a greeting only when they have something new: quiet, src/story/balloons.js; a shout always)
+    this.talking = p.speaking && ((dist < 6 && !this.quiet) || now < (p.shoutUntil ?? -1));
   }
 
   /**

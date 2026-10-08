@@ -465,8 +465,8 @@ export class Animator {
       tw[stops[k + 1][0]] = t;
     }
     if (landing && sp < 3 && s.mode !== 'climb') { for (const k in tw) tw[k] *= 0.15; tw.jumpLand = 0.85; }
-    // standing a while: now and then look around properly
-    this.idleT = tw.idle > 0.99 ? this.idleT + dt : 0;
+    // standing a while: now and then look around properly (not while `calm`: in a conversation he holds still)
+    this.idleT = tw.idle > 0.99 && !this.calm ? this.idleT + dt : 0;
     const look = this.clips.look;
     // (the traveller, idleMoves: Mixamo's looking about and breathing idle take turns with the
     // library's look-around, above the legs, so the feet stay as they stand: IDLE_VARIANTS)

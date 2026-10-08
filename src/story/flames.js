@@ -22,6 +22,38 @@ function gradient(palette, v, out) {
   return out.copy(palette[j]).lerp(palette[Math.min(j + 1, n - 1)], v - j);
 }
 
+// every set of tongues alive, for the conversation camera to keep out of (flameVeils; weak: a level's fires go with it)
+const LIVE = new Set();
+const _fv = new THREE.Vector3();
+/** Drawn: it and every parent visible, up to a scene (a fire whose level was taken down is not). */
+function shown(o) {
+  for (; o; o = o.parent) { if (!o.visible) return false; if (o.isScene) return true; }
+  return false;
+}
+
+/**
+ * The flames near `near` (within `within` m) as upright columns the conversation camera must not look
+ * through (src/story/shot.js sightOf `veils`): [{ base, top, r }] in world space, one a tongue. A fire
+ * is not in the physics (you can walk into its glow, not through its stones), so the shot's rays used
+ * to see straight through it: talking to Ama at the camp fire, the flame stood between the camera and her.
+ */
+export function flameVeils(near = null, within = 30) {
+  const out = [];
+  for (const ref of LIVE) {
+    const f = ref.deref();
+    if (!f) { LIVE.delete(ref); continue; }
+    if (!shown(f.mesh) || f.intensity <= 0.05) continue;
+    f.mesh.updateWorldMatrix(true, false);
+    for (const tg of f.tongues) {
+      const base = f.mesh.localToWorld(_fv.copy(tg.at)).clone();
+      if (near && base.distanceToSquared(near) > within * within) continue;
+      const h = tg.h * f.intensity;
+      out.push({ base, top: base.clone().add(_fv.set(0, h, 0)), r: tg.r });
+    }
+  }
+  return out;
+}
+
 /**
  * A set of flame tongues in one mesh.
  * tongues: [{ at: Vector3 (base, local to `parent`), h, r, phase?, lean?: Vector3, core?: 0..1 }]
@@ -54,6 +86,7 @@ export class Flames {
     this.mesh = new THREE.Mesh(g, this.material);
     this.mesh.userData.noCollide = true;
     parent.add(this.mesh);
+    LIVE.add(new WeakRef(this));
     this.intensity = 1;
     this.update(0, 0);
     // the tongues sway a little: a generous bound once, so the mesh can still be culled

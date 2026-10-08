@@ -6,11 +6,11 @@ import { GameState } from '../src/game-state.js';
 import { Quests } from '../src/story/quests.js';
 import { pickSingle, pickTwoShot, sightOf, SINGLE } from '../src/story/shot.js';
 import { Coverage, COVER, REACTS } from '../src/story/coverage.js';
-import { Dialogue, ANSWER_BEAT } from '../src/story/dialogue.js';
+import { Dialogue } from '../src/story/dialogue.js';
 import { screen } from '../src/platform.js';
 
 // The traveller's face in conversations: who the camera frames (src/story/coverage.js), the close shot of
-// his face (src/story/shot.js pickSingle), his answer said before the reply, his portrait on his lines
+// his face (src/story/shot.js pickSingle), the reply coming straight after his answer, his portrait on his lines
 // (src/story/dialogue.js).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -166,7 +166,9 @@ const ANA = {
   } },
 };
 
-test('his answer is said before the reply: his words and his name in the panel, his face, his portrait', () => {
+test('choosing an answer: it is not said back; she replies at once, the two-shot on her', () => {
+  // (playtest, October 2026: picking an answer used to put his words back in the panel, voiced, his face on
+  // the screen, before the reply; it read as the line being played back)
   const game = new GameState(memory());
   const tones = [];
   const d = new Dialogue({ game, quests: new Quests({ game }), portraitYou: (tone) => { tones.push(tone); return { src: `data:you-${tone}`, background: '#fff' }; } });
@@ -177,37 +179,28 @@ test('his answer is said before the reply: his words and his name in the panel, 
   d.start(ANA, npc);
   for (let i = 0; i < 30; i++) { d.update(1 / 30); frame(); }
   assert.ok(cam.position.distanceTo(V(0.725, 1.5, 0)) > 2.5, 'the two-shot while she speaks');
-  const twoSide = Math.sign(cam.position.z);
   d.update(10); frame();
   d.choose(0);
-  assert.ok(d.beat, 'he says it');
-  assert.equal(screen.state.dialogue.speaker, 'player');
-  assert.equal(screen.state.dialogue.name, 'You');
-  assert.equal(screen.state.dialogue.text, 'What happened to the well?');
-  assert.equal(screen.state.dialogue.portrait, 'data:you-curious', 'his portrait, wearing the answer’s tone');
-  assert.equal(d.faces().player.speaking, true);
-  assert.equal(d.faces().npc.speaking, false, 'she waits');
-  d.update(1 / 30); frame();
-  assert.ok(cam.position.distanceTo(V(0, 1.61, 0)) < 1.4, `the camera on his face (${cam.position.distanceTo(V(0, 1.61, 0)).toFixed(2)} m)`);
-  assert.equal(Math.sign(cam.position.z), twoSide, 'on the same side of them');
-  assert.equal(d.revealed, 0, 'the reply waits');
-  // the beat's length: as long as the words take, within its bounds
-  for (let t = 0; t < ANSWER_BEAT.max + 0.2 && d.beat; t += 1 / 30) { d.update(1 / 30); frame(); }
-  assert.equal(d.beat, null);
-  d.update(0.2); frame();
-  assert.ok(d.revealed > 0, 'then the reply');
+  assert.equal(d.beat, undefined, 'no answer beat');
+  assert.equal(screen.state.dialogue.speaker, 'npc');
   assert.equal(screen.state.dialogue.name, 'Ana');
+  assert.notEqual(screen.state.dialogue.text, 'What happened to the well?', 'his answer is not shown again');
+  assert.match(screen.state.dialogue.text, /went quiet one night/);
+  assert.equal(d.faces().player.speaking, false, 'he does not say it again');
+  d.update(0.2); frame();
+  assert.ok(d.revealed > 0, 'the reply starts at once');
+  assert.equal(d.faces().npc.speaking, true);
   assert.ok(cam.position.distanceTo(V(0.725, 1.5, 0)) > 2.5, 'and the two-shot for it');
-  // the sad reply, once out (and long enough after his answer): his face taking it in, wearing its reaction
+  // the sad reply, once out: his face taking it in, wearing its reaction
   for (let i = 0; i < 30 * (COVER.react.gap + 1); i++) { d.update(1 / 30); frame(); }
   assert.equal(d.cover.who, 'traveller');
   assert.equal(d.faces().player.look, 'sad');
   assert.ok(cam.position.distanceTo(V(0, 1.61, 0)) < 1.4);
-  assert.deepEqual(tones, ['curious'], 'one portrait a tone');
+  assert.deepEqual(tones, [], 'no portrait of him: he never had the floor');
   d.close();
 });
 
-test('a press while he says his answer goes on to the reply; no close shot to be had keeps the two-shot', () => {
+test('no close shot to be had keeps the two-shot', () => {
   const game = new GameState(memory());
   const d = new Dialogue({ game, quests: new Quests({ game }) });
   const npc = { talkTo: null, pos: V(1.45, 0, 0) };
@@ -215,10 +208,7 @@ test('a press while he says his answer goes on to the reply; no close shot to be
   d.start(ANA, npc);
   d.update(10);
   d.choose(0);
-  assert.ok(d.beat);
-  d.next();
-  assert.equal(d.beat, null, 'skipped');
-  assert.equal(d.revealed, 0, 'the press is spent on it: the reply starts from its first letter');
+  assert.equal(d.revealed, 0, 'the reply starts from its first letter');
   d.update(0.2);
   assert.ok(d.revealed > 0);
   // riding, or no drawn face (o.single null): never the close shot

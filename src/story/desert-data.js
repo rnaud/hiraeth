@@ -393,7 +393,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go and look.', end: true }, { text: '~curious~ The swamp of lights?', goto: 'swamp' }],
         },
         well: { say: ["~neutral~ The well is at the tree’s roots. Its supply lies beneath the giant. The old keepers went down there to tend it."], choices: [{ text: '~curious~ Is there a way down?', goto: 'way' }, { text: '~curious~ The swamp of lights?', goto: 'swamp' }] },
-        swamp: { say: ["~curious~ The swamp of lights: glowing water and singing plants, far beyond this desert. Farther than our feet can take us."], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: '~neutral~ Not yet.', goto: 'well' }] },
+        swamp: { say: ["~curious~ Glowing water and singing plants, far beyond this desert. Farther than our feet can take us."], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: '~neutral~ Not yet.', goto: 'well' }] },
         never: { say: ["~tired~ Then we must learn something new. Walking is a comfort, but the tree cannot drink footsteps."], choices: [{ text: '~curious~ Where does the water come up?', goto: 'well' }] },
         again: {
           say: ["~neutral~ The well is beneath the tree. The underground entrance is the giant’s mouth, beyond the back gate. May the route be easier than the verse."],
@@ -526,7 +526,12 @@ export const PEOPLE = {
         struck: { say: ["~neutral~ Marrow saw the burn on your ship. Three dots over an arc. The Givers’ sign, left by the thing that struck you.", "~curious~ Perhaps the Singer is one of their machines. Perhaps it copies them. I don’t know, child. Age is not the same as access to the manual."], choices: [{ text: '~curious~ Who are the Givers?', goto: 'givers' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         pack: { say: [{ if: { flag: 'tool.empty' }, text: "~playful~ An empty tank! Sixty years guarding a jar with nothing in it. Hessa must never hear how I described that." },
           { if: { not: { flag: 'tool.empty' } }, text: "~playful~ Living water in Givers’ glass. Like the water the giants carried. I’d wager a tooth. I’m down to four, so take that seriously." },
-          "~neutral~ *Stand in water to fill the backpack.* Its fluid can push things your arms cannot. First, we need to find the water."], choices: [{ text: '~angry~ I didn’t fall. Something struck my ship.', goto: 'struck' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
+          "~neutral~ *Stand in water to fill the backpack.* Its fluid can push things your arms cannot. First, we need to find the water."],
+          // (the answers follow on from "stand in water": where is any, and could it help the ship; playtest, October 2026)
+          choices: [{ text: '~curious~ Stand in water? Where is there any, out here?', goto: 'water' }, { text: '~curious~ Living water… could it wake my ship?', goto: 'power' }] },
+        water: { say: ["~sad~ That is the trouble, child. It used to rise through the tree’s roots and fill the well. The night the light sang, it stopped rising.",
+          "~solemn~ It is still down there. Hessa hears it moving, far below. Someone has to go and find out what is keeping it."],
+        choices: [{ text: '~angry~ That light struck my ship. I didn’t just fall.', goto: 'struck' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         power: {
           say: ["~solemn~ To power your ship, we need the tree’s living water and its fire. Both have failed us this year.", "~curious~ Perhaps that is why the chest opened now. We need someone who can go below and put things right. Conveniently, you need fuel."],
           choices: [

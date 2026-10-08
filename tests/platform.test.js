@@ -70,13 +70,9 @@ test('the cue line and the conversation set their state as they draw', () => {
   assert.equal(screen.state.dialogue.done, true);
   assert.deepEqual(screen.state.dialogue.choices.map((c) => c.text), ['Hello.', 'Bye.']);
   d.choose(screen.state.dialogue.choices[0].index);
-  // his answer first, his name on it, all of it shown; then the reply
-  assert.equal(screen.state.dialogue.text, 'Hello.');
-  assert.equal(screen.state.dialogue.speaker, 'player');
-  assert.equal(screen.state.dialogue.name, 'You');
-  assert.ok(screen.state.dialogue.done && !screen.state.dialogue.choices.length);
-  for (let i = 0; i < 60; i++) d.update(0.05);
+  // the reply at once: his answer is not said back (playtest, October 2026)
   assert.equal(screen.state.dialogue.text, 'Safe roads.');
+  assert.equal(screen.state.dialogue.speaker, 'npc');
   assert.equal(screen.state.dialogue.name, 'Bob');
   d.close();
   assert.equal(screen.state.dialogue, null, 'closed: nothing');

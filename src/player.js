@@ -330,6 +330,25 @@ const _sq1 = new THREE.Quaternion(), _sq2 = new THREE.Quaternion(), _sq3 = new T
 export const IDLE_STANCE = { ahead: 0.3, out: 0.4 };
 // standing: the head's pitch over the idle clip's (rad, + down): the clip looks 15° down, at the ground; he looks ahead, as drawn
 export const IDLE_HEAD = -0.14;
+/**
+ * In a conversation (Player.talking, set by src/story/index.js) he holds still: the weight shift keeps
+ * `sway` of its size, the head's glances and nods go, no captured look-around or breathing idle plays
+ * (Animator.calm), and his eyes stay on whoever speaks (EyeLook calm). `rate`: how fast he settles (1/s).
+ */
+export const TALK_CALM = { sway: 0.2, rate: 3 };
+/**
+ * The standing layer's motion at time t (Player.idleLayer): the weight shift w (-1..1, scaled down when
+ * calm), the breath, the head's glance (yaw, rad) and nod (pitch over IDLE_HEAD). calm 0..1, moveW: a
+ * captured idle's own weight (it looks about by itself).
+ */
+export function idleMotion(t, calm = 0, moveW = 0) {
+  const still = 1 - calm;
+  const w = Math.tanh(3 * Math.sin(t * 0.38 + 0.6)) * (1 - (1 - TALK_CALM.sway) * calm);
+  const breath = Math.sin(t * 1.7);
+  const look = (Math.tanh(2.5 * Math.sin(t * 0.21)) * 0.45 + Math.sin(t * 0.9) * 0.03) * (1 - moveW) * still;
+  const nod = Math.max(0, Math.sin(t * 0.13)) * 0.12 * still;
+  return { w, breath, look, nod };
+}
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const _mf = new THREE.Vector3(), _ml = new THREE.Vector3();   // (the matcher's frame: matchInput)
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
@@ -1608,7 +1627,7 @@ export class Player {
       const hk = this.handoffGrip();
       if (hk > 0.01 && this.handoff?.handPoint) H.handOff?.(this.handoff.handPoint(_g1), hk, U);
       // the eyes glance about and blink, as everyone's do (eyes.js); talking, on the other's face (eyeTarget: src/story/index.js)
-      H.updateEyes?.(dt, this.eyeTarget ?? null);
+      H.updateEyes?.(dt, this.eyeTarget ?? null, { calm: !!this.talking });
     }
     // climbing on: over the last part of the hand-off, a hop from where you stand onto the seat
     if (this.boarding && this.boarding.k > 0.66 && this.boarding.v.seatTransform) {
@@ -2228,7 +2247,10 @@ export class Player {
     if (!Sw && this._flinch && !R) A.playUpper(FLINCH.clip, FLINCH.from + Fl.t, THREE.MathUtils.clamp(Math.min(Fl.t / 0.05, (FLINCH.for - Fl.t) / 0.2), 0, 1));
     // jumps, drops, the kick off a wall and a hard landing's stumble from motion capture (src/air-moves.js)
     const captured = this.locoMoves !== false && !!A.lib.motion?.clips?.length && !A.matching;
-    A.idleMoves = captured;
+    // (talking: held still, no looking about: TALK_CALM)
+    this._calm = THREE.MathUtils.lerp(this._calm ?? 0, this.talking ? 1 : 0, 1 - Math.exp(-TALK_CALM.rate * dt));
+    A.calm = !!this.talking;
+    A.idleMoves = captured && !this.talking;
     const air = (this.airMoves ??= new AirMoves());
     air.update(dt, { onGround: this.onGround, airT: this._clipAirT, tLand: J.phase?.tLand ?? Infinity, jumped: !!this._jumpedNow, wallKick: !!this._wallKick, speed: hs, impact: this._impact ?? 0,
       free: captured && !R && !this._gesture && !this.ride && !this.swim && !this.gliding && !this.onJets && !this.aim });
@@ -2300,8 +2322,8 @@ export class Player {
     if (k < 0.01) return;
     const c = this.char, t = this.time;
     const rot = (j, x, y, z) => j.quaternion.multiply(_tq.setFromEuler(_te.set(x * k, y * k, z * k)));
-    const w = Math.tanh(3 * Math.sin(t * 0.38 + 0.6));          // -1..1, dwells on each side
-    const breath = Math.sin(t * 1.7);
+    // (w: -1..1, dwells on each side; held small while he talks: TALK_CALM)
+    const { w, breath, look, nod } = idleMotion(t, this._calm ?? 0, this.animator?.moveW ?? 0);
     c.body.position.x -= w * 0.045 * k;
     c.body.position.y -= 0.015 * Math.abs(w) * k;
     rot(c.body, 0, w * 0.06, -w * 0.07);
@@ -2324,9 +2346,8 @@ export class Player {
       rot(c.elbows[i], -0.28 - hook * 0.9, 0, 0);
     }
     // glances: hold, turn the head, hold
-    // (not while a captured idle looks about on its own: Animator idleMoves)
-    const look = (Math.tanh(2.5 * Math.sin(t * 0.21)) * 0.45 + Math.sin(t * 0.9) * 0.03) * (1 - (this.animator?.moveW ?? 0));
-    rot(c.head, IDLE_HEAD + Math.max(0, Math.sin(t * 0.13)) * 0.12, look, 0);
+    // (not while a captured idle looks about on its own: Animator idleMoves; not while he talks: idleMotion)
+    rot(c.head, IDLE_HEAD + nod, look, 0);
   }
 
   /**
