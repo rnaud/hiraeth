@@ -48,7 +48,7 @@ export const QUESTS = [
     outro: 'She comes when you call. She chose to.',
     stages: [
       { id: 'watcher', text: 'Someone sits on a stone on the plain, watching the lone tower. Sit with her', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia' },
-      { id: 'tower', text: 'The wind rises up the lone tower’s side. Jump into it and open your wings (hold A / × as you fall): it lifts you to the balcony', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind' },
+      { id: 'tower', text: 'The wind rises up the lone tower’s side. Jump into it and open your wings (hold {key:jump} as you fall): it lifts you to the balcony', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind' },
       { id: 'window', text: 'Climb the stone steps round the tower to its one window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
       { id: 'call', text: 'Play the rider’s flute', label: 'The rider’s flute', flag: 'arzach.bird.called', at: 'window' },
       { id: 'promise', text: 'Something answers from high over the haze. Wait for her', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },
@@ -66,7 +66,7 @@ export const QUESTS = [
     id: 'arzach.hand', title: 'The Stone Hand', world: 'arzach',
     outro: 'The hand rang, and gave.',
     stages: [
-      { id: 'ring', text: 'Ring the stone hand’s knuckles smallest to tallest: aim (LT / L2) and shoot each one (RT / R2). Kesh, by the hand, shows the order', label: 'The stone hand', flag: 'arzach.hand.rung', at: 'hand' },
+      { id: 'ring', text: 'Ring the stone hand’s knuckles smallest to tallest: aim with {key:aim} and shoot each one with {key:fire}. Kesh, by the hand, shows the order', label: 'The stone hand', flag: 'arzach.hand.rung', at: 'hand' },
     ],
   },
 ];
@@ -203,7 +203,7 @@ export const LOCALS = [
           do: { start: 'arzach.hand' },
           choices: [{ text: '~curious~ With the fluid?', goto: 'fluid' }, { text: '~curious~ What happens when it rings?', goto: 'gives' }],
         },
-        fluid: { say: ["~playful~ (He points at *the flask on your back*, then the knuckles. Three teeth appear in a very confident grin.)"], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
+        fluid: { say: ["~playful~ (He points at *the tank on your back*, then the knuckles. Three teeth appear in a very confident grin.)"], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
         gives: { say: ["~solemn~ (He closes his fist around nothing, then opens it as though offering a gift.)", '~solemn~ Gives.'], choices: [{ text: '~neutral~ I’ll try.', end: true }] },
         again: {
           say: ["~tired~ (Kesh repeats the order: *little, first, ring, middle*. He waits for you to copy him.)", '~neutral~ Small to tall.'],

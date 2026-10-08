@@ -826,7 +826,7 @@ export function lineChunks(text) {
   const close = (end) => { if (start >= 0) out.push({ from: start, to: end, text: s.slice(start, end) }); start = -1; };
   while (i < s.length) {
     const c = s[i];
-    const motif = c === '{' && /^\{\w*\}/.exec(s.slice(i));
+    const motif = c === '{' && /^\{[\w:]*\}/.exec(s.slice(i));   // ({glyph}, a {key:aim}: never in a script)
     if (motif) { close(i); i += motif[0].length; continue; }
     if (c === '*' || /\s/.test(c)) { close(i); i++; continue; }
     if (start < 0) start = i;

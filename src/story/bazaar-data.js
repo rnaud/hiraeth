@@ -214,7 +214,7 @@ export const PEOPLE = {
         },
         you: {
           say: ["~surprised~ You can shoot from here? Good. *Hit all three bulbs quickly*, before the first fades.",
-            "~neutral~ Aim with LT / L2 (or right mouse), then fire with RT / R2 (or left click). One shot per bulb. Your flask holds three."],
+            "~neutral~ Aim with {key:aim}, fire with {key:fire}. One shot a bulb, and your tank holds three, so don’t get creative."],
           choices: [{ text: '~playful~ Stand back.', end: true }],
         },
         light: {
@@ -344,7 +344,7 @@ export const THINGS = {
   crates: {
     id: 'crates', name: 'The fallen crates', title: 'in the alley mouth', color: '#c99758', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~neutral~ Fruit crates block the shop front. *A brass bowl* glints beneath them.", "~neutral~ *Push the heavy crates aside with fluid*: the gun’s push mode: X or the D-pad, then shoot."],
+      say: ["~neutral~ Fruit crates block the shop front. *A brass bowl* glints beneath them.", "~neutral~ *Push the heavy crates aside with fluid*: switch the gun to push with {key:mode}, then aim and shoot."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -371,7 +371,7 @@ export const THINGS = {
           choices: [{ text: '~neutral~ I’ll move the boxes.', end: true }],
         },
         waiting: {
-          say: ['~playful~ *UNDER THE BOXES*. PUSH. YOU HAVE A PUSH. WE HEARD IT.', '~neutral~ (*Push*: the gun’s push mode (X or the D-pad), then shoot.)'],
+          say: ['~playful~ *UNDER THE BOXES*. PUSH. YOU HAVE A PUSH. WE HEARD IT.', '~playful~ (New words appear.) TURN YOUR GUN TO PUSH: {key:mode}. THEN AIM. THEN SHOOT. WE WILL LISTEN.'],
           do: { emit: ['bazaar:ummu', 'PUSH'] },
           choices: [{ text: '~neutral~ All right.', end: true }],
         },

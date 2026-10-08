@@ -180,7 +180,7 @@ export function setupBuried(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { openValve('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast('The handwheel rings, and doesn’t move. It needs a shove: push it (the gun’s push mode: X or the D-pad, then shoot).'); }
+      if (!st.hinted) { st.hinted = true; toast('The handwheel rings, and doesn’t move. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.'); }
       return true;
     } });
   registerInteractable({ id: 'valve', priority: PRIORITY.use, range: 3.4, at: () => K.valve.at, enabled: () => !valveOpen(),

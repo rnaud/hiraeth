@@ -282,7 +282,7 @@ export function setupArzach2(ctx) {
       onHit: (mode, point, dir) => {
         if (mode !== 'push') {
           for (const x of list) x.m.rotation.z += (Math.random() - 0.5) * 0.04;
-          if (!st.hinted) { st.hinted = true; toast('The fluid rattles off the tiles. They are wedged tight: shove them off (push mode: X or the D-pad, then shoot).'); }
+          if (!st.hinted) { st.hinted = true; toast('The fluid rattles off the tiles. They are wedged tight, so shove them off: switch the gun to push with {key:mode}, then aim and shoot.'); }
           return true;
         }
         scatterTiles(st, dir); off(); offLook();

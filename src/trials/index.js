@@ -11,6 +11,7 @@ import { TRIALS } from './data.js';
 import { CourseRun, lacks, inMode, parTime, MODES } from './course.js';
 import { gatePoints, startPoint } from './check.js';
 import { WindColumn } from './winds.js';
+import { keyText } from '../prompt-keys.js';
 
 // The mastery trials in the worlds (docs/systems/minigames.md, "Trials in the worlds"): one optional run in
 // each route world, built from what that world gives you (the hoverbike, the wings and the wind, the bird,
@@ -193,7 +194,7 @@ export function createTrials({ levelId, scene, physics, level, player, items, ga
       if (reward) items.grant(T.reward);
       const lines = [`The makers’ mark: ${formatTime(par)}${t <= par ? ' · beaten' : ''}`];
       if (first) lines.push('First finish.');
-      const html = reward ? `<div class="trial-reward"><p class="kicker">Yours: ${esc(reward.name)}</p><p>${esc(reward.text)}</p><p><b>${esc(reward.use)}</b></p></div>` : '';
+      const html = reward ? `<div class="trial-reward"><p class="kicker">Yours: ${esc(reward.name)}</p><p>${esc(reward.text)}</p><p><b>${keyText(esc(reward.use), { html: true })}</b></p></div>` : '';
       ctx.finish({ lines, html });
       if (reward) notice(`${reward.name}: yours. ${reward.use}`);
     };

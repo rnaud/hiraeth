@@ -12,7 +12,7 @@
 // also be timed, or queued behind the one showing).
 import { screen } from '../platform.js';
 import { speakLine } from '../story/voice.js';
-import { inputKind } from '../prompt-keys.js';
+import { inputKind, keyText, hasKeys, escapeHtml } from '../prompt-keys.js';
 import { backKey } from '../native-pad.js';
 import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
 
@@ -61,6 +61,8 @@ const CSS = `
 /** The hold-to-skip tag's words: a controller's back button (printed B), else Esc. */
 export const holdToSkip = (kind = inputKind()) => (kind === 'pad' ? `hold ${backKey()} to skip` : 'hold ESC to skip');
 const hasDOM = () => typeof document !== 'undefined' && !!document.body;
+/** A toast's, a hint's or the objective's words into their box: plain text, a {key:verb} as the player's own key or button (src/prompt-keys.js). */
+const setText = (el, text) => { if (hasKeys(text)) el.innerHTML = keyText(escapeHtml(text), { html: true }); else el.textContent = text; };
 
 /** Seconds a line of `text` needs on screen (as the calls time theirs). */
 export const readTime = (text) => Math.min(6.2, 1.4 + String(text ?? '').length * 0.052);
@@ -261,7 +263,7 @@ export class Cinema {
     const line = this.subs.line;
     if (!line) { this.sub.classList.remove('show', 'in'); this._seen('sub', false); this.layout(); return; }
     const who = { father: 'FATHER', mother: 'MOTHER', ship: 'SHIP', lou: 'LOU', ilen: 'ILEN' }[line.who] ?? '';
-    this.subText.innerHTML = `${who ? `<b class="${line.who}">${who}</b>` : ''}${line.text}`;
+    this.subText.innerHTML = `${who ? `<b class="${line.who}">${who}</b>` : ''}${keyText(line.text, { html: true })}`;
     // a new line comes in over the old one's place (one box, never two)
     this.sub.classList.remove('in');
     this._seen('sub', true);
@@ -272,7 +274,7 @@ export class Cinema {
 
   hint(text) {
     if (!this.dom) return;
-    if (text) this.hintEl.textContent = text;
+    if (text) setText(this.hintEl, text);
     this._seen('hint', !!text);
     this.layout();   // (placed before it shows: it fades in where it belongs, no slide)
     if (text) void this.hintEl.offsetWidth;
@@ -313,7 +315,7 @@ export class Cinema {
 
   objective(text) {
     if (!this.dom) return;
-    this.obj.querySelector('.t').textContent = text;
+    setText(this.obj.querySelector('.t'), text);
     this.obj.classList.remove('show');
     this._seen('objective', false); this._seen('objective', true);
     this._pending = 'objective'; this.layout(); this._pending = null;
@@ -352,8 +354,8 @@ export class Cinema {
   _pumpToasts() {
     if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark()) return;
     const text = this.toasts.shift(), secs = toastSeconds(text);
-    screen.toast(text, secs);   // (as data too: platform.js screen.toast)
-    this.toastEl.textContent = text;
+    screen.toast(keyText(text), secs);   // (as data too: platform.js screen.toast)
+    setText(this.toastEl, text); this._toastText = text;
     this.toastEl.style.animationDuration = `${secs}s`;
     this.toastEl.classList.remove('show');
     this._toastT = secs * 0.58;   // read before the next may take its place (it fades by itself after secs)
@@ -370,7 +372,7 @@ export class Cinema {
     // a toast that went up just before the screen went dark (the opening's black, the eyes shut) comes back after
     const T = this.toastEl;
     if (T && T.classList.contains('show') && this.dark()) {
-      if (performance.now() - (this._toastAt ?? 0) < 3200) this.toasts.unshift(T.textContent);   // (else it was fading out anyway)
+      if (performance.now() - (this._toastAt ?? 0) < 3200) this.toasts.unshift(this._toastText ?? T.textContent);   // (else it was fading out anyway)
       T.classList.remove('show');
       this._toastT = 0;
       this.layout();

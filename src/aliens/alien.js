@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { buildBody, kneeOf, STILT } from './bodies.js';
 import { SPECIES, TONE_BODY } from './species.js';
 import { formatText } from '../story/dialogue.js';
+import { keySig, hasKeys } from '../prompt-keys.js';
 import { speakBalloon } from '../story/voice.js';
 import { toneOf } from '../story/tone.js';
 import { mouthAt } from '../talk-face.js';
@@ -284,7 +285,8 @@ export class Alien {
     const on = _w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1;
     if (on) {
       const line = this.shout && this.time < this.shout.until ? this.shout.text : this.lines[this.lineIdx];
-      if (this._balloonLine !== line) { this._balloonLine = line; this.balloon.innerHTML = formatText(line); this._said = null; }
+      if (this._balloonLine !== line) { this._balloonLine = line; this.balloon.innerHTML = formatText(line); this._said = null; this._balloonKeys = keySig(); }
+      else if (hasKeys(line) && this._balloonKeys !== keySig()) { this._balloonKeys = keySig(); this.balloon.innerHTML = formatText(line); }   // ({key:…}: the input changed hands)
       if (line !== this._voiced) {
         const plan = speakBalloon(line, { person: this.voicePerson(), dist: camera.position.distanceTo(this.pos), pan: clamp(_w.x * 0.8, -0.9, 0.9) });
         if (plan) { this._voiced = line; this._said = { plan, at: this.time }; }

@@ -59,7 +59,7 @@ export const QUESTS = [
     stages: [
       { id: 'carry', text: 'Carry Mother Ysolde’s letter across the long aqueduct to her sister Ondine, on the peach plain', label: 'Ondine, on the plain', bring: 'letter', to: 'ondine' },
       // (new: saves already at 'face' skip it, and can still light the lamp)
-      { id: 'lamp', text: 'Answer for Ondine with the old signal lamp on the tower’s plinth: turn its mirror to the carved bell (push the tiller from the side: the gun’s push mode: X or the D-pad, then shoot), and light it (shoot)', label: 'The signal lamp', flag: 'arzach2.lamp.answered', at: 'lamp' },
+      { id: 'lamp', text: 'Answer for Ondine with the old signal lamp on the tower’s plinth: turn its mirror to the carved bell (push the tiller from the side: switch the gun to push with {key:mode}, then aim and shoot), and light it with a shot', label: 'The signal lamp', flag: 'arzach2.lamp.answered', at: 'lamp' },
       { id: 'face', text: 'Look at the face carved on the lone tower’s plinth', label: 'The face on the tower', flag: 'arzach2.face.seen', at: 'face' },
     ],
   },
@@ -172,7 +172,7 @@ export const LOCALS = [
           choices: [{ text: '~neutral~ I’ll go up to the monastery.', goto: 'go' }, { text: '~curious~ What are the floating stones?', goto: 'stones' }],
         },
         stones: { say: ["~curious~ The sky stones were floating long before the bell stopped. They were here in my mother’s day. Monks have a talent for leaving out inconvenient stones."], choices: [{ text: '~curious~ Why is the cloud higher?', goto: 'why' }] },
-        go: { say: ["~neutral~ *Whistle for the bird* (E, or D-pad ↓). Fly *south-west to the white monastery on the rose cliff*. Stay clear of the cloud."], choices: [{ text: '~happy~ Thank you, Sister.', end: true }] },
+        go: { say: ["~neutral~ *Whistle for the bird* with {key:call}, out in the open. Fly *south-west to the white monastery on the rose cliff*. Stay clear of the cloud."], choices: [{ text: '~happy~ Thank you, Sister.', end: true }] },
         again: { say: ["~playful~ Calix is at *the white monastery, on the south-western rose cliff*. He still tends the bell, every morning, whether it rings or not."], choices: [{ text: '~happy~ Thank you.', end: true }] },
         after: { say: ["~surprised~ The cloud has dropped! A whole hand’s width. I can see the table stalks again!", "~solemn~ Come back and ring it sometime. I’d like a better view before I die."], choices: [{ text: '~neutral~ I will.', end: true }] },
       },
@@ -284,7 +284,7 @@ export const THINGS = {
           say: ["~neutral~ A bronze signal lamp sits on a turntable, a polished mirror behind it and a wooden tiller at its back. The oil still smells sweet.",
             { if: { flag: 'arzach2.lamp.notch', is: 0 }, text: "~curious~ There are eight notches. The mirror faces *the notch with a carved bell*: north, toward the monastery." },
             { if: { not: { flag: 'arzach2.lamp.notch', is: 0 } }, text: "~curious~ The mirror points away from *the carved bell*. *Push the tiller sideways* to turn it toward that notch and the monastery." },
-            { if: { not: { flag: 'arzach2.lamp.lit' } }, text: "~neutral~ The wick needs a light. *Shoot*: aim with R, right click or LT / L2, then G, left click or RT / R2." }],
+            { if: { not: { flag: 'arzach2.lamp.lit' } }, text: "~neutral~ The wick needs a light. *Shoot it*: aim with {key:aim}, fire with {key:fire}." }],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         answered: { say: ["~solemn~ The signal lamp faces the rose cliff. A tiny light answers from a monastery window."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -295,7 +295,7 @@ export const THINGS = {
     id: 'tiles', name: 'Fallen-up tiles', title: 'before the church door', color: '#c9765c', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~neutral~ Fallen roof tiles pin the clapper down. One bright bronze end sticks out.",
-        "~neutral~ *Push the tiles aside* to free it: the gun’s push mode: X or the D-pad, then shoot."],
+        "~neutral~ *Push the tiles aside* to free it: switch the gun to push with {key:mode}, then aim and shoot."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

@@ -9,6 +9,7 @@ import { ITEMS } from '../items.js';
 import { PLACEMENTS, FALLBACKS } from '../boxes/placements.js';
 import { TITLES } from '../levels/names.js';
 import { itemsPage, KIND_NAMES } from './view.js';
+import { keyText } from '../prompt-keys.js';
 
 const $ = (s) => document.querySelector(s);
 const entries = itemsPage(ITEMS, PLACEMENTS, FALLBACKS, TITLES);
@@ -63,7 +64,7 @@ try {
   const describe = (id) => {
     const it = ITEMS[id];
     full.querySelector('h2').textContent = it.name;
-    full.querySelector('.about').innerHTML = `<p>${it.text}</p>${it.use ? `<p><i>${it.use}</i></p>` : ''}`;
+    full.querySelector('.about').innerHTML = `<p>${it.text}</p>${it.use ? `<p><i>${keyText(it.use, { html: true })}</i></p>` : ''}`;
   };
   function open(id) {
     current = id; describe(id);

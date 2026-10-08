@@ -54,7 +54,7 @@ export const QUESTS = [
     outro: 'Dov ate it at his post, standing up, with his eyes shut.',
     stages: [
       // (src/story/incal.js: the tin hangs in the old goods hoist's basket, out over the void; shoot the pin, push the weight round)
-      { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin (shoot: aim with R, right click or LT / L2, then G, a click or RT / R2), push the hoist round (push mode: X or the D-pad, then shoot) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
+      { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin with a shot (aim with {key:aim}, fire with {key:fire}), push the hoist round (switch the gun to push with {key:mode}, then aim and shoot) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
       { id: 'carry', text: 'Carry Pip’s ration tin up to his uncle Dov, the palace guard', label: 'Dov, at the palace gate', bring: 'ration', to: 'dov' },
     ],
   },
@@ -64,7 +64,7 @@ export const QUESTS = [
     outro: 'The halfway mirror faces up the shaft again. When the Lodestar shines, a coin of its light goes down to the bottom terraces.',
     stages: [
       { id: 'wash', text: 'Wash the smog off the halfway mirror beside Perrine’s tea stall (shoot)', label: 'The halfway mirror', flag: 'incal.mirror.washed', at: 'mirror' },
-      { id: 'turn', text: 'Turn the mirror round on its pole until it faces up the shaft, toward the Lodestar (push it from the side: the gun’s push mode: X or the D-pad, then shoot)', label: 'The halfway mirror', flag: 'incal.mirror.turned', at: 'mirror' },
+      { id: 'turn', text: 'Turn the mirror round on its pole until it faces up the shaft, toward the Lodestar (push it from the side: switch the gun to push with {key:mode}, then aim and shoot)', label: 'The halfway mirror', flag: 'incal.mirror.turned', at: 'mirror' },
       { id: 'tell', text: 'Tell Perrine the mirror faces up again', label: 'Perrine, at the halfway stall', talk: 'perrine', at: 'perrine' },
     ],
   },
@@ -345,7 +345,7 @@ export const PEOPLE = {
         mirror: {
           say: ["~solemn~ My mother put it up. It caught the Lodestar and threw a coin of its light down to the bottom terraces, so they could see it there without breaking their necks.",
             "~sad~ Then the smog greased it over, and someone at the top had it turned to shine on a billboard. The bottom has had the billboard’s light ever since.",
-            "~curious~ Would you *wash it* for me (shoot), then *push it round from the side* until it faces up the shaft? My arms are for pouring."],
+            "~curious~ Would you *wash it* for me with that gun of yours, then *push it round from the side* until it faces up the shaft? My arms are for pouring."],
           choices: [
             { text: '~neutral~ I’ll see to it.', do: { start: 'incal.mirror' }, goto: 'thanks' },
             { text: '~neutral~ Maybe later.', end: true },
@@ -353,7 +353,7 @@ export const PEOPLE = {
         },
         thanks: { say: ["~happy~ It clicks when it’s right. My mother said it sounded like someone remembering something."], choices: [{ text: '~neutral~ Wash, then turn.', end: true }] },
         busy: {
-          say: [{ if: { not: { flag: 'incal.mirror.washed' } }, text: "~neutral~ *Wash it first* (shoot). You can’t send light down through twenty years of smog." },
+          say: [{ if: { not: { flag: 'incal.mirror.washed' } }, text: "~neutral~ *Wash it first*, a good splash. You can’t send light down through twenty years of smog." },
             { if: { flag: 'incal.mirror.washed' }, text: "~neutral~ Clean as a cup. Now *push it round from the side*, one notch at a time, until it faces up the shaft." }],
           choices: [{ text: '~neutral~ On it.', end: true }],
         },
@@ -593,7 +593,7 @@ export const THINGS = {
       nodes: {
         stuck: {
           say: ["~neutral~ A *ration tin* hangs in a hoist basket over the drop. *A rusty pin* locks the hoist arm in place.",
-            "~neutral~ Free the pin with *Shoot*: aim, then G, left click or RT / R2. Turn the arm with *Push*: the gun’s push mode (X or the D-pad), then shoot."],
+            "~neutral~ Free the pin with a *shot*: aim with {key:aim}, fire with {key:fire}. Then turn the arm with a *push*: switch the gun to push with {key:mode}, and shoot again."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         loose: { say: ["~neutral~ The pin is out. *Push the counterweight sideways round the post* to swing the basket in. Pushing along the arm won’t help."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -608,11 +608,11 @@ export const THINGS = {
       nodes: {
         grimy: {
           say: ["~neutral~ A round mirror on a pole, in a brass frame that turns on a ring of eight notches. Smog has greased it over until it reflects nothing at all.",
-            "~neutral~ *Wash it*: aim (LT / L2), then shoot (RT / R2)."],
+            "~neutral~ *Wash it* with a splash: aim with {key:aim}, fire with {key:fire}."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         clean: {
-          say: [{ if: { not: { flag: 'incal.mirror.turned' } }, text: "~neutral~ Clean now. It faces sideways, at a billboard selling something bright. *Push the frame from the side* (the gun’s push mode: X or the D-pad, then shoot) to turn it, one notch at a time, until it faces up the shaft." }],
+          say: [{ if: { not: { flag: 'incal.mirror.turned' } }, text: "~neutral~ Clean now. It faces sideways, at a billboard selling something bright. *Push the frame from the side* to turn it, one notch at a time, until it faces up the shaft: switch the gun to push with {key:mode}, then aim and shoot." }],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         up: {
@@ -630,7 +630,7 @@ export const THINGS = {
       nodes: {
         dark: {
           say: ["~neutral~ TAXI, in flaking paint. The call-lamp’s dark glass contains a small history of unsuccessful moths.",
-            "~neutral~ *Shoot the lamp with fluid* to light it: aim (LT / L2), then shoot (RT / R2). The cabs above will see it."],
+            "~neutral~ *Shoot the lamp with fluid* to light it: aim with {key:aim}, fire with {key:fire}. The cabs above will see it."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         lit: { say: ["~neutral~ The yellow call-lamp shines up through the traffic lanes."], choices: [{ text: '~neutral~ (step back)', end: true }] },

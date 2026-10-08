@@ -134,7 +134,7 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
     onHit: (mode, point, dir) => {
       if (mode === 'push') return shove(dir, 'push');
       st.wobble = 1;
-      hint('The knuckle of bone rocks against the drum, and settles. It needs a shove: push (the gun’s push mode: X or the D-pad, then shoot).');
+      hint('The knuckle of bone rocks against the drum, and settles. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.');
       return true;
     } };
   registerTarget(knuckleTarget);

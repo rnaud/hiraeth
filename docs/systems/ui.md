@@ -88,7 +88,9 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   gauges, the objective and relics, and a prompt only for what is right here (the ship's
   hatch and console, a lens); a ride's controls show for six seconds after you get on.
   The controller's button bar is gone except in photo mode; the full controls live in the
-  settings (and H for the keyboard's). Story pages, item cards and toasts name no keys.
+  settings (and H for the keyboard's). Story pages, item cards and toasts that teach name the
+  input through a `{key:verb}` placeholder, in the keys and buttons the player holds and bound
+  (docs/systems/dialogue.md, "Keys in lines"), never a button written into the prose.
 - **A controller means no touch buttons.** `body.controller` hides `#touch` and the gear.
   A connected pad (the Retroid's own controls via `native-pad.js`) counts as in use until
   the screen or the keys are touched, so a handheld starts with a clean screen.

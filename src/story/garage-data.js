@@ -52,7 +52,7 @@ export const QUESTS = [
     id: 'garage.ball', title: 'Zazie’s Ball', world: 'garage',
     outro: 'The ball went where down stays down.',
     stages: [
-      { id: 'push', text: 'Push Zazie’s ball up the ring’s curve and through the portal on the wall (the gun’s push mode: X or the D-pad, then shoot)', label: 'Zazie’s ball', flag: 'garage.ball.through', at: 'ball' },
+      { id: 'push', text: 'Push Zazie’s ball up the ring’s curve and through the portal on the wall (switch the gun to push with {key:mode}, then aim and shoot)', label: 'Zazie’s ball', flag: 'garage.ball.through', at: 'ball' },
       { id: 'tell', text: 'Tell Zazie her ball got through', label: 'Zazie', talk: 'pip', at: 'pip' },
     ],
   },

@@ -1,5 +1,7 @@
 // The items page's cards, built from the data alone (tests/items-page.test.js reads it in node).
 
+import { keyText } from '../prompt-keys.js';   // (an item's {key:verb}: the keyboard's, on this page)
+
 export const KIND_NAMES = { core: 'Core', movement: 'Movement', mode: 'Gun modes', gadget: 'Gadgets', upgrade: 'Upgrades', charm: 'Charms', pass: 'Passes', cosmetic: 'Cosmetic', quest: 'Quest' };
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -21,7 +23,7 @@ export function itemsPage(items, placements, fallbacks, titles) {
     const html = `<article data-id="${esc(id)}" data-kind="${esc(it.kind)}">
       <div class="pic" title="Drag to turn it; click to see it full screen"><img src="item-pictures/${esc(id)}.webp" alt="" loading="lazy"><canvas></canvas></div>
       <div class="txt"><h2>${esc(it.name)}</h2><div class="meta">${esc(KIND_NAMES[it.kind] ?? it.kind)}${it.needs ? ` · needs ${esc(items[it.needs]?.name ?? it.needs)}` : ''} · ${esc(id)}</div>
-      <p>${esc(it.text)}</p>${it.use ? `<p class="use">${esc(it.use)}</p>` : ''}${whereHtml}</div>
+      <p>${esc(it.text)}</p>${it.use ? `<p class="use">${keyText(esc(it.use), { html: true })}</p>` : ''}${whereHtml}</div>
     </article>`;
     return { id, kind: it.kind, html, search: [it.name, it.text, it.use, id, ...where.map((w) => `${w.title} ${w.note}`)].join(' ').toLowerCase() };
   });

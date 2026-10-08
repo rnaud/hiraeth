@@ -67,10 +67,10 @@ export const QUESTS = [
     failOutro: 'You turned the builders’ gate once, as Esk asked. It had been shut a thousand years, and it gave way; the middle of her hill went down into the hollow with the water. She asked you to leave her with it.',
     stages: [
       { id: 'esk', text: 'Esk keeps the tea terraces south-east of the landing, above the dry hollow. Go and see her', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
-      { id: 'runnels', text: 'Clear the three choked runnels, top terrace first: shove each clod of silt out (push mode: X or the D-pad, then shoot)', label: 'A choked runnel', when: (q) => (q.game.flag('edena.runnels') ?? 0) >= 3, at: 'clod' },
+      { id: 'runnels', text: 'Clear the three choked runnels, top terrace first: shove each clod of silt out (switch the gun to push with {key:mode}, then aim and shoot)', label: 'A choked runnel', when: (q) => (q.game.flag('edena.runnels') ?? 0) >= 3, at: 'clod' },
       { id: 'ask', text: 'Water runs, but only a trickle. Tell Esk', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
       { id: 'roots', text: 'Roots have grown through the wheel of the builders’ gate, on the cistern above the terraces. Water them so they let go (shoot)', label: 'The builders’ gate', flag: 'edena.gate.roots', at: 'gate' },
-      { id: 'gate', text: 'Esk asked for one turn of the gate’s wheel. Nobody has opened it in living memory. One shove (push mode: X or the D-pad, then shoot)', label: 'The builders’ gate', flag: 'edena.gate.turned', at: 'gate' },
+      { id: 'gate', text: 'Esk asked for one turn of the gate’s wheel. Nobody has opened it in living memory. One shove (switch the gun to push with {key:mode}, then aim and shoot)', label: 'The builders’ gate', flag: 'edena.gate.turned', at: 'gate' },
       { id: 'flood', text: 'The gate is giving way', label: 'The terraces', flag: 'edena.terraces.flooded', at: 'esk' },
       { id: 'sorry', text: 'Go down to Esk', label: 'Esk', talk: 'esk', at: 'esk' },
     ],
@@ -80,7 +80,7 @@ export const QUESTS = [
     id: 'edena.cutting', title: 'A Cutting for the Mud', world: 'edena',
     outro: 'One tea cutting from the rows that held, pressed into the new mud where the stream runs slow. It might take.',
     stages: [
-      { id: 'plant', text: 'Esk gave you a tea cutting from the rows that held. Press it into the mud below the terraces, where the stream runs slow (E, or X / □)', label: 'The mud by the stream', flag: 'edena.cutting.planted', at: 'cutting' },
+      { id: 'plant', text: 'Esk gave you a tea cutting from the rows that held. Press it into the mud below the terraces, where the stream runs slow', label: 'The mud by the stream', flag: 'edena.cutting.planted', at: 'cutting' },
       { id: 'tell', text: 'Tell Esk the cutting is in', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
     ],
   },
@@ -89,7 +89,7 @@ export const QUESTS = [
     id: 'edena.clock', title: 'Mira’s Water Clock', world: 'edena',
     outro: 'The bowl fills, tips, and the bell rings: time to water. It always is.',
     stages: [
-      { id: 'fit', text: 'Fit the brass gear into Mira’s water clock, beside her (E, or X / □)', label: 'The water clock', flag: 'edena.clock.fitted', at: 'clock' },
+      { id: 'fit', text: 'Fit the brass gear into Mira’s water clock, beside her', label: 'The water clock', flag: 'edena.clock.fitted', at: 'clock' },
       { id: 'fill', text: 'The bowl leaks: fill it with three quick splashes, so it tips and rings the bell (shoot)', label: 'The water clock’s bowl', flag: 'edena.clock.rung', at: 'clock' },
     ],
   },

@@ -95,8 +95,8 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   keys?.addEventListener?.('keydown', onKey);
   const off = items.on((id, owned) => {
     applyTank();
-    if (owned && id === 'bell') setTimeout(() => toast('The bell-note whistle: press V (on a controller, Y / △ with no gadget in hand) to sound it.'), 1800);
-    if (owned && id === 'echo') setTimeout(() => toast('The echo shell: let something sing near it, then press V (on a controller, Y / △ with no gadget in hand) to play it back.'), 1800);
+    if (owned && id === 'bell') setTimeout(() => toast('The bell-note whistle: sound it with {key:whistle}.'), 1800);
+    if (owned && id === 'echo') setTimeout(() => toast('The echo shell: let something sing near it, then play it back with {key:whistle}.'), 1800);
   });
   // ---- a bloom glob on the world: a few flowers come up where it landed (the pouch's pool)
   const offBloom = g.on?.('tool:bloom', ({ point } = {}) => {

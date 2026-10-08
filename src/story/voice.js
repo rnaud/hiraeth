@@ -205,6 +205,8 @@ export function spokenMask(text, narrator) {
     m[i] = paren === 0 && (!narrator || (star && quote)) ? 1 : 0;
     if (c === ')') paren = Math.max(0, paren - 1);
   }
+  // a {key:aim} is the player's own button or key, drawn as it is shown (src/prompt-keys.js keyText): never said
+  for (const k of text.matchAll(/\{key:[A-Za-z]+\}/g)) m.fill(0, k.index, k.index + k[0].length);
   return m;
 }
 

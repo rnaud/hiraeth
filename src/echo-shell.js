@@ -32,7 +32,7 @@ export function createEchoShell({ player, game = sharedGame, items = sharedItems
       if (!was || was.note !== note) {
         sound?.critter?.('blip', 0.5);
         const key = told.size ? 'again' : 'first';
-        if (!told.has(key)) { told.add(key); toast(key === 'first' ? `The shell catches ${label} and holds it. V (or Y / △ with no gadget in hand) plays it back.` : `The shell holds ${label} now.`); }
+        if (!told.has(key)) { told.add(key); toast(key === 'first' ? `The shell catches ${label} and holds it. {key:whistle} plays it back.` : `The shell holds ${label} now.`); }
       }
       return true;
     },

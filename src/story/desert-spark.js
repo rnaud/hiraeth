@@ -54,7 +54,7 @@ export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {
     onHit: (mode) => {
       if (mode === 'push') { roll(); return true; }
       st.wobble = 1;
-      hint('The ball rocks in its groove, and settles. It wants a shove: push (the gun’s push mode: X or the D-pad, then shoot).');
+      hint('The ball rocks in its groove, and settles. It wants a shove: switch the gun to push with {key:mode}, then aim and shoot.');
       return true;
     } });
   registerInteractable({ id: 'hearth.weight', priority: PRIORITY.use, range: 3, at: () => H.ball.position, enabled: () => !opened() && st.roll < 0,

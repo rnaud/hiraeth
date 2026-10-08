@@ -60,6 +60,8 @@ lines, each with a tone (`'~sad~ …'`, src/story/tone.js). The way to bring it 
   language is not English, and falls back to the line as written.
 - **Keep the tone outside the words.** The tone prefix is metadata: the extraction strips it to a
   `{ text, tone }` pair and keys the text only, so a translator never edits a tone.
+- **Keys** (`{key:aim}`, docs/systems/dialogue.md "Keys in lines") are never translated: `t()`
+  fills only `{word}` names, so a translated line keeps them where the translator puts them.
 - **Highlights and glyphs** (`*the place*`, the translator's scripts) stay as markup inside the
   string; the translation moves them with the words.
 - **One table a world**, loaded with the world (`src/i18n/<lang>/<world>.js`, dynamic import), so the

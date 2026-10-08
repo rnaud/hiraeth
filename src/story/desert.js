@@ -358,7 +358,7 @@ export function setupDesert(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearChannel('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. It needs a shove: push it (the gun’s push mode: X or the D-pad, then shoot).'); }
+      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.'); }
       return true;
     } });
   void boneTarget;
