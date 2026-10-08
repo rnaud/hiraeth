@@ -8,6 +8,7 @@ import { makeReviewInkMaterial } from './tripo-material.js';
 import { relaxWalkArms, relaxWalkHands } from './tripo-walk.js';
 import { softenTripoHands } from './tripo-hands.js';
 import { markTripoHair } from './tripo-hair.js';
+import { makeTripoHead, removeOriginalHead, wearTripoHeadFace } from './tripo-head.js';
 import { wearTripoFace } from './tripo-face.js';
 import { cleanExpression } from '../expression.js';
 import { TRAVELLER } from '../traveller.js';
@@ -22,15 +23,16 @@ export async function loadTravellerV1(base) {
     if (!response.ok) throw new Error(`Traveller ${name}: HTTP ${response.status}`);
     return response.json();
   };
-  const [gltf, data, report, colors] = await Promise.all([
+  const [gltf, data, report, colors, head, headColors] = await Promise.all([
     new GLTFLoader().loadAsync(folder + 'model.glb'), loadBody(base), json('rig.json'), json('colors.json'),
+    new GLTFLoader().loadAsync(folder + 'head-v2/model.glb'), json('head-v2/colors.json'),
   ]);
-  return { gltf, data, report, colors };
+  return { gltf, data, report, colors, head, headColors };
 }
 
 // Build in the same origin/rest frame as the fitted export and review. Gameplay
 // can spawn at any position and orientation (including a sphere's far side).
-export function createTravellerV1(char, { gltf, data, report, colors }, { gpu } = {}) {
+export function createTravellerV1(char, { gltf, data, report, colors, head: headAsset }, { gpu } = {}) {
   const skins = [];
   gltf.scene.traverse(o => { if (o.isSkinnedMesh) skins.push(o); });
   if (skins.length !== 1 || colors.length !== skins[0].geometry.attributes.position.count)
@@ -52,14 +54,16 @@ export function createTravellerV1(char, { gltf, data, report, colors }, { gpu } 
     humanoid.body.skeleton.pose(); root.updateMatrixWorld(true);
     markTripoHair(mesh.geometry, colors);
     const cloth = makeTripoCloth(mesh, colors, gpu === undefined ? {} : { gpu });
-    for (const part of [mesh, cloth.garment, cloth.underlayer, cloth.innerShirt]) {
+    const head = headAsset ? makeTripoHead(headAsset, mesh) : null;
+    if (head) removeOriginalHead(mesh);
+    for (const part of [mesh, cloth.garment, cloth.underlayer, cloth.innerShirt, head].filter(Boolean)) {
       const standard = part.material;
       part.material = makeReviewInkMaterial(part, { lining: part === cloth.garment });
       standard.dispose();
     }
-    // his face, drawn over the painted one so it can move (tripo-face.js): the same expressions, blinks and
-    // talking mouth as everyone's (Humanoid.setExpression / updateEyes), resting with his little smile
-    humanoid.drawnFace = wearTripoFace(mesh);
+    // The replacement keeps its generated face and moves its own shape keys.
+    // Original-body tools retain the old painted-face adapter.
+    humanoid.drawnFace = head ? wearTripoHeadFace(head) : wearTripoFace(mesh);
     humanoid.restExpression = cleanExpression(TRAVELLER.rest);
     humanoid.setExpression(humanoid.restExpression);
     cloth.gpuMaterial(cloth.garment.material);   // (the game: skinned and moved by the cage on the GPU, tripo-cloth.js)
@@ -74,7 +78,7 @@ export function createTravellerV1(char, { gltf, data, report, colors }, { gpu } 
     // the flask (fluid-tool.js TANK) sits right on his back: he has no rucksack for it to sink into
     humanoid.tankAt = TRAVELLER_V1_TANK_AT;
     return {
-      humanoid, mesh, cloth,
+      humanoid, mesh, head, cloth,
       shadowCasters: cloth.shadow ? [cloth.shadow] : [],
       // Before Humanoid.update, while the fresh clip is still on the control rig.
       poseArms(player) {
