@@ -17,9 +17,19 @@ const STEER = 6;         // velocity response (1/s): smooth, no jitter
 export const FIND = {
   near: 14,       // m: closer than this, it flies right over the objective
   out: 7,         // m: otherwise this far towards it (plus a little for your speed), from where you are
-  rise: 3.2,      // m over your head (2.2 m over the objective when it flies to it)
-  seek: 3.2,      // s at most to get there
-  point: 2.6,     // s hovering with the beam on it
+  rise: 3.2,      // m over your feet (2.2 m over the objective when it flies to it)
+  // up and down as well (lookoutSpot): a goal above you, it climbs toward its height, at most `climb` m
+  // over your feet; one below, it sinks by how much deeper than `level` m it is, at most `dive` m under
+  // them; and the more it climbs or sinks, the further out it goes (`spread` m per m), so it stays in
+  // the camera's view behind you (measured in the Desert: 7 m out, 9 m over your feet is off the top)
+  climb: 6.5,     // m over your feet at most (a rooftop, a tower's deck)
+  shaft: 20,      // m over your feet at most when the goal is steeply overhead (up a shaft, through the oculus,
+                  // a tower you stand at the foot of): from twice as high as it is far, between the two below that
+  dive: 6,        // m under your feet at most (a pit, a cave below, the floor under this one)
+  level: 4,       // m: a goal less than this below you is on your floor (it stays over your head)
+  spread: 0.5,    // m further out per m it climbs or sinks
+  seek: 4,        // s at most to get there
+  point: 2.6,     // s hovering, facing it
   max: 9,         // s from the ping to heading home, whatever happens
   shrug: 1.0,     // s: the little wobble on the dock
 };
@@ -50,7 +60,7 @@ const _d = new THREE.Vector3(), _w = new THREE.Vector3(), _a = new THREE.Vector3
 const _s = new THREE.Vector3(), _p = new THREE.Vector3(), _o = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
 const _h = new THREE.Vector3(), _ax = new THREE.Vector3(), _qt = new THREE.Quaternion(), _z = new THREE.Vector3(0, 0, 1);
 const _y1 = new THREE.Vector3(0, 1, 0), _lk = new THREE.Vector3(), _lk2 = new THREE.Vector3(), _bm = new THREE.Vector3();
-const _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion(), _out = new THREE.Vector3(), _l = new THREE.Vector3(), _lv = new THREE.Vector3(), _d2 = new THREE.Vector3(), _f2 = new THREE.Vector3(), _o2 = new THREE.Vector3(), _lean = new THREE.Vector2();
+const _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion(), _out = new THREE.Vector3(), _l = new THREE.Vector3(), _lv = new THREE.Vector3(), _d2 = new THREE.Vector3(), _f2 = new THREE.Vector3(), _o2 = new THREE.Vector3(), _lean = new THREE.Vector2(), _lv2 = new THREE.Vector3(), _go = new THREE.Vector3();
 
 const objective = (id, label, position) => ({ id, label, position: position.clone() });
 
@@ -95,13 +105,72 @@ export function nextObjective({ player, expedition, story, ship = null, level, q
 }
 const SHIP_NEAR = 25;   // m: at the ship already, there is nothing more to find
 
+/**
+ * Where the scout looks from, in three dimensions (a fresh or `out` Vector3): over your head and a
+ * little way towards the goal (`FIND.out`, more at speed), right over it when it is within
+ * `FIND.near`, and at its height as well: a goal above you, it climbs toward it (2.2 m over its
+ * level, at most `FIND.climb` m over your feet, `FIND.shaft` when it is steeply overhead); one well
+ * below, it sinks toward it (by how much deeper than `FIND.level` it is, at most `FIND.dive` m under
+ * your feet), further out the more it climbs or sinks (`FIND.spread`). A hint stays at
+ * `HINT.rise` by you (the fight is all round). The way there is three legs from your head, each cut
+ * short (`margin` m) where `ray(origin, dir, far)` (distance to the first thing hit, or Infinity)
+ * meets something: up (to the higher of the two heights, under a ceiling), out (along the ground's
+ * plane, short of a wall), down (to the goal's height, over a floor). So the spot is always in the
+ * open and in reach from where you stand: up a shaft, out over a ledge, under the room's ceiling.
+ * Returns `out`; `legs` (an array, when given) gets the two corners [up, out] for the flight's way round.
+ *   feet: your position, goal: the objective, up: the world's up (unit), pSpeed: your speed.
+ */
+export function lookoutSpot({ feet, goal, up, pSpeed = 0, hint = false, ray = null, legs = null, margin = 0.6 }, out = new THREE.Vector3()) {
+  const toGoal = _ls.subVectors(goal, feet), dy = toGoal.dot(up);
+  const flat = toGoal.addScaledVector(up, -dy), range = flat.length();
+  const near = !hint && Math.hypot(range, dy) < FIND.near;
+  const base = hint ? HINT.rise : FIND.rise;
+  // the height over your feet it looks from
+  let H = base;
+  if (near) H = dy + 2.2;
+  else if (!hint && dy > base - 2.2) {
+    const steep = THREE.MathUtils.clamp(dy / Math.max(range, 1e-3) - 1, 0, 1);   // 0 up to 45°, 1 from twice as high as far
+    H = Math.min(dy + 2.2, THREE.MathUtils.lerp(FIND.climb, FIND.shaft, steep));
+  }
+  else if (!hint && dy < -FIND.level) H = Math.max(base + dy + FIND.level, -FIND.dive);
+  // how far out along the ground's plane
+  const reach = near ? range : Math.max(0, Math.min(range - 2, (hint ? HINT.out : FIND.out + Math.abs(H - base) * FIND.spread) + pSpeed * 0.4));
+  if (range > 1e-3) flat.divideScalar(range); else flat.set(0, 0, 0);
+  const free = (o, d, len) => {
+    if (!(len > 1e-3)) return 0;
+    const t = ray ? ray(o, d, len + margin) : Infinity;
+    return t < len + margin ? Math.max(0, t - margin) : len;
+  };
+  const head = _lh.copy(feet).addScaledVector(up, HEAD);
+  const top = Math.max(H, base);
+  // up: to the higher height (cut short under a ceiling)
+  out.copy(head).addScaledVector(up, free(head, up, top - HEAD));
+  if (legs) (legs[0] ??= new THREE.Vector3()).copy(out);
+  // out: towards the goal (cut short at a wall)
+  if (reach > 1e-3) out.addScaledVector(flat, free(out, flat, reach));
+  if (legs) (legs[1] ??= new THREE.Vector3()).copy(out);
+  // down: to the goal's height (over a floor)
+  if (H < top) out.addScaledVector(up, -free(out, _ld.copy(up).negate(), top - H));
+  return out;
+}
+const HEAD = 1.6;   // m: your head over your feet, where the legs start
+const _ls = new THREE.Vector3(), _lh = new THREE.Vector3(), _ld = new THREE.Vector3();
+
 /** "320 m", "1.4 km": a rough distance for the find's toast. */
 export function roughDistance(d) {
   if (d < 1000) return `${d < 100 ? Math.max(1, Math.round(d)) : Math.round(d / 10) * 10} m`;
   return `${(d / 1000).toFixed(1)} km`;
 }
-/** The find's toast: what it found and roughly how far ("Madame Sel, under the silent tower · 320 m"). */
-export const findText = (target, d) => `${target.label} · ${roughDistance(d)}`;
+/**
+ * The find's toast: what it found and roughly how far ("Madame Sel, under the silent tower · 320 m"),
+ * and how far up or down when that is a good part of the way (`target.rise`, m over your feet:
+ * "The observation deck · 60 m, 40 m above").
+ */
+export function findText(target, d) {
+  const rise = target.rise ?? 0, far = `${target.label} · ${roughDistance(d)}`;
+  if (Math.abs(rise) < FIND.level + 2 || Math.abs(rise) < d * 0.3) return far;
+  return `${far}, ${roughDistance(Math.abs(rise))} ${rise > 0 ? 'above' : 'below'}`;
+}
 
 /** Use doorways / gravity portals when they shorten the route. */
 export function viaPortal(start, target, portals) {
@@ -219,17 +288,23 @@ export class Scout {
   }
   /** Send it home now (a find cut short). */
   home() { if (this.phase !== 'docked' && this.phase !== 'return' && this.phase !== 'shrug') { this.phase = 'return'; this.settleT = null; this.returnT = 0; } }
-  /** Where it looks from: a little way towards the objective, over your head; right over it when it is near. */
-  lookout(out, up, pSpeed = 0) {
-    const goal = this.target.position, hint = !!this.target.hint;
-    if (!hint && this.player.pos.distanceTo(goal) < FIND.near) return out.copy(goal).addScaledVector(up, 2.2);
-    const from = _lk.copy(this.player.pos).addScaledVector(up, hint ? HINT.rise : FIND.rise);
-    const flat = _lk2.subVectors(goal, from), rise = flat.dot(up);
-    flat.addScaledVector(up, -rise);
-    const range = flat.length();
-    if (range < 1e-3) return out.copy(from);   // (straight above or below you: it rises over your head)
-    const reach = Math.max(0, Math.min(range - 2, (hint ? HINT.out : FIND.out) + pSpeed * 0.4));
-    return out.copy(from).addScaledVector(flat.divideScalar(range), reach);
+  /**
+   * Where it looks from (lookoutSpot: up and down as well as out, in the open), and the way there:
+   * straight to it when nothing is in between, else by the legs' corners (up the shaft first, out
+   * over the edge first). `out` the spot; returns the point to fly at now.
+   */
+  lookout(out, up, pSpeed = 0, toward = null) {
+    const ray = (o, d, far) => this.obstacle(o, d, far)?.distance ?? Infinity;
+    lookoutSpot({ feet: this.player.pos, goal: this.target.position, up, pSpeed, hint: !!this.target.hint, ray, legs: this._legs ??= [] }, out);
+    // never inside the ground (the heightfield: the rays only see meshes)
+    const h = this.clearance(out, up);
+    if (h < CLEAR) out.addScaledVector(up, CLEAR - h);
+    if (!toward) return out;
+    // the way there: in sight, straight; else the corner it can see (the climb's top, the edge)
+    const pos = this.object.position, sees = (p) => { const d = _lv2.subVectors(p, pos), l = d.length(); return l < 0.5 || ray(pos, d.divideScalar(l), l) >= l - 0.3; };
+    if (sees(out)) return toward.copy(out);
+    for (let i = this._legs.length - 1; i >= 0; i--) if (sees(this._legs[i])) return toward.copy(this._legs[i]);
+    return toward.copy(out);
   }
   /** Height above whatever is below along -up (meshes and the heightfield), Infinity if nothing. */
   clearance(p, up) {
@@ -429,10 +504,11 @@ export class Scout {
     } else if (this.phase === 'seek' || this.phase === 'point') {
       // out to the lookout (it keeps your pace, walking, riding or flying), then a hover there,
       // the beak and the beam on the objective, up or down as well
-      const spot = this.lookout(_d2, up, pSpeed);
-      if (this.phase === 'point') spot.addScaledVector(up, Math.sin(this.elapsed * 3) * 0.12);
+      const spot = this.lookout(_d2, up, pSpeed, _go);
+      const go = _go;
+      if (this.phase === 'point') { spot.addScaledVector(up, Math.sin(this.elapsed * 3) * 0.12); go.addScaledVector(up, Math.sin(this.elapsed * 3) * 0.12); }
       this.aim = (this._aim ??= new THREE.Vector3()).subVectors(this.target.position, this.object.position);   // (its own vector: fly() uses _p for the capsule sweep)
-      if (this.fly(spot, Math.max(8, pSpeed + 7), up, dt, pv)) this.recall();
+      if (this.fly(go, Math.max(8, pSpeed + 7), up, dt, pv)) this.recall();
       if (this.phase === 'seek') {
         this.seekT += dt;
         if (this.object.position.distanceTo(spot) < 0.8 || this.seekT >= FIND.seek) this.arrive();
@@ -489,10 +565,11 @@ export class Scout {
     if (this.found) return;
     this.found = true;
     if (this.target.hint) { this.sound?.drone?.('hint'); this.onHint(this.target.label, this.target.n); return; }
-    const d = this.player.pos.distanceTo(this.target.position);
-    this.flare.drop(this.target.position, this.player.frame.up);
+    const d = this.player.pos.distanceTo(this.target.position), up = this.player.frame.up;
+    const rise = _a.subVectors(this.target.position, this.player.pos).dot(up);   // (the toast says "above" or "below" when it is a good part of the way)
+    this.flare.drop(this.target.position, up, -rise);   // (far below you: its column rises past your feet)
     this.sound?.drone?.('found');
-    this.onFind(this.target, d);
+    this.onFind({ ...this.target, rise }, d);
   }
   /** The lens beam (a hint's): grows out to the weak point (or the first thing in the way, at most HINT.beam) while pointing, and draws back. */
   updateBeam(dt, on) {
@@ -526,7 +603,7 @@ export class Scout {
  * spot and a ring that rings out round it, sized by the distance so it reads from far away,
  * gone after FLARE.life seconds. One at a time; drop() starts it over somewhere else.
  */
-export const FLARE = { life: 9, rise: 0.5, fade: 1.6, height: 34 };
+export const FLARE = { life: 9, rise: 0.5, fade: 1.6, height: 34 };   // height: m (12 m past your feet when it is further below you than that)
 export class Flare {
   constructor(scene) {
     this.group = new THREE.Group(); this.group.userData.noCollide = true; this.group.visible = false;
@@ -540,8 +617,10 @@ export class Flare {
     this.t = Infinity; this.at = new THREE.Vector3(); this.up = new THREE.Vector3(0, 1, 0); this.eye = null;
   }
   get on() { return this.t < FLARE.life; }
-  drop(at, up = this.up) {
+  /** below: how far under you it is (m), so the column rises past your feet to be seen from above. */
+  drop(at, up = this.up, below = 0) {
     this.at.copy(at); this.up.copy(up); this.t = 0;
+    this.height = Math.max(FLARE.height, below + 12);
     this.group.position.copy(at);
     this.group.quaternion.setFromUnitVectors(_y1, this.up);
   }
@@ -558,7 +637,7 @@ export class Flare {
     this.group.visible = k > 0.01;
     if (!this.group.visible) return;
     const d = this.eye ? this.eye.distanceTo(this.at) : 30, s = Math.max(1, d * 0.012);   // (a few pixels wide however far)
-    this.column.scale.set(s * k, FLARE.height * THREE.MathUtils.smoothstep(this.t, 0, FLARE.rise * 1.6) * (0.6 + 0.4 * k), s * k);
+    this.column.scale.set(s * k, (this.height ?? FLARE.height) * THREE.MathUtils.smoothstep(this.t, 0, FLARE.rise * 1.6) * (0.6 + 0.4 * k), s * k);
     const r = (this.t % 1.8) / 1.8;   // the ring rings out every 1.8 s
     this.ring.scale.setScalar(Math.max(1e-3, (0.6 + r * 3.2) * Math.max(1, s * 0.4) * k));
     this.ring.position.y = 0.15;

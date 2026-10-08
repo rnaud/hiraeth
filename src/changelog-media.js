@@ -151,6 +151,24 @@ export const CHANGELOG_MEDIA = {
     { match: 'In the References level the Glass Dunes’ fourth picture', shots: [
       { name: 'wave-plate4', caption: 'The fourth picture’s view: the wave rises steep over the camp, curls over its hollow and sweeps down to the sand', from: 'the References level, ?level=references&world=glassdunes&view=4, headless Chrome, High, 1456 × 816 (7 October)' },
     ], see: 'Open ?level=references&world=glassdunes&view=4; the backslash key lays the picture over the view.' },
+    { match: 'The scout drone goes up and down now', see: 'In the Antennas (?level=antennas) walk to the foot of the observation deck’s stairs and press Q (Y / △): the drone climbs toward the deck and hovers there nose up; from the deck, ask it for something on the field below and it sinks over the edge.',
+      numbers: [
+        { title: 'Where the drone hovers when it finds the goal: its height over your feet (headless Chrome against the dev server, the drone’s position logged every 0.1 s)', unit: 'm', better: 'higher', device: 'Mac, headless Chrome, High', source: 'docs/systems/scout.md, “Up and down”', rows: [
+          { where: 'the Desert: Marrow on the ridge, 21 m up, 131 m off', before: 3.2, after: 6.6 },
+          { where: 'the Antennas: at the foot of the observation deck, 10 m up, 27 m off', before: 3.3, after: 6.7 },
+          { where: 'Incal’s Jets’ Chamber: the gallery 24 m overhead', before: 2.6, after: 19.4 },
+        ] },
+        { title: 'Toward a goal below: the Antennas’ deck, the field 12 m under it (its height over your feet)', unit: 'm', better: 'lower', device: 'Mac, headless Chrome, High', source: 'docs/systems/scout.md, “Up and down”', rows: [
+          { where: 'from the observation deck', before: 3.2, after: -3.5 },
+        ] },
+        { title: 'scout.update while the drone is out (median of 4 pings, µs a frame; the machine shared with other agents)', unit: 'µs', better: 'lower', device: 'Mac, headless Chrome, High', source: 'docs/systems/scout.md, “Up and down”', rows: [
+          { where: 'the Antennas, at the deck’s foot', before: 106.9, after: 107.2 },
+          { where: 'Incal’s Jets’ Chamber', before: 131.3, after: 118.6 },
+          { where: 'the Overnight Train', before: 90.0, after: 105.7 },
+        ] },
+      ] },
+    { match: 'Indoors the drone keeps under the ceiling', see: 'On the Overnight Train or in a temple’s room, press Q (Y / △): the drone looks out from under the ceiling and short of the walls, and goes round to it instead of grinding along the ceiling.' },
+    { match: 'When what the drone finds is well above or below you', see: 'At the foot of the Antennas’ observation deck press Q (Y / △): the line reads “the observation deck · 27 m, 10 m above”.' },
   ],
   '0.88': [
     { match: 'Blows land with weight', see: 'In the Arena, cut an ink blot: a brief catch and a jolt as the blade connects; the third swing of the combo sends it flying.' },

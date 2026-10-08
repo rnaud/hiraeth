@@ -14,6 +14,9 @@ export const CHANGELOG = [
     'In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.',
     'Two archways in the Glass Dunes go through now: walk through the cliff of the giants to the sand behind it, and through the frozen wave in the middle of the valley, under a vault of glass lit green. The breaking wave’s hollow can be walked into from its camp, a long way under the lip.',
     'In the References level the Glass Dunes’ fourth picture has its tall wave: it rises steep over the glassworkers’ camp, curls over its dark hollow and sweeps down to the sand, as drawn, instead of a low hood.',
+    'The scout drone goes up and down now, not only out: send it for a goal on a rooftop, a tower’s deck or the floor above and it climbs toward it, straight up a shaft or the side of a tower you stand under; for one in a pit or a cave below it sinks toward it, its eye turned up or down at it. It stays in view behind you as it climbs.',
+    'Indoors the drone keeps under the ceiling and short of the walls instead of pressing into them.',
+    'When what the drone finds is well above or below you its word says so (“27 m, 10 m above”), and its flare on a goal far below you rises past your feet, so you see it from up there.',
   ] },
   { v: '0.88', date: '2026-10-07', items: [
     'Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.',
