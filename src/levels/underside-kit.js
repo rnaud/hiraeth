@@ -40,8 +40,8 @@ export const LAMP_TINT = ['#ffb070', 0.5];
 export const UNDER_TONES = {
   rock: '#f1e2c6', rock2: '#ead8b8', rock3: '#e2cfae', rockShade: '#d8c8b0', rockUnder: '#c2ae92',
   plaster: '#f5ecdc', plaster2: '#efe2cc', plaster3: '#e8dccb',
-  wood: '#8a6446', wood2: '#a07450', woodDark: '#5a4030', plank: '#b08a62',
-  banner: '#c8643e', banner2: '#b85636', banner3: '#d47a4c',
+  wood: '#74523a', wood2: '#8a6244', woodDark: '#46301f', plank: '#9a7552',
+  banner: '#b8573a', banner2: '#a84a30', banner3: '#c46a44',
   dark: '#2e2a3a', glow: '#ffb466', lamp: '#ffd690', rope: '#3a302c', iron: '#3e3640',
   wicker: '#a8784a', grass: '#7a8a4e', meadow: '#b4ae78', meadow2: '#a6a36e', shrub: '#5a6e48', shrub2: '#6e7c50', pot: '#a65a3e', leaves: '#5f7e4e',
   cloud: '#fff6ec', cloudPink: '#fde4d4',
@@ -51,7 +51,7 @@ export const UNDER_TONES = {
 /** The cloud's print: a warm white, its shade a pale grey-blue (lifted), no strokes (arzach2.js CLOUD_PRINT). */
 export const CLOUD_PRINT = { shade: 0.12, shadeFlat: 0.6, hatch: 0, spot: 0 };
 /** The day's colours (sky top, horizon, shadow, light, sun): a clear blue over the cloud, a low golden sun, the shade a cool blue-grey. */
-export const UNDER_DAY = ['#4f86cc', '#cfe0ee', '#7a86b2', '#fff0dc', '#ffe6bc'];
+export const UNDER_DAY = ['#4f86cc', '#d8e0e4', '#6e7184', '#fff0dc', '#ffe6bc'];
 export const UNDER_DUSK = ['#7e8cc0', '#f6c4a6', '#7a70a6', '#ffd6b8', '#ffb888'];
 export const UNDER_NIGHT = ['#0c1430', '#24345e', '#2e3a6a', '#aab4e0', '#f0e8e0'];
 /** The haze: stepped pale bands over the cloud sea, warm, so the far shelf and the far cloud go pale. */
@@ -63,7 +63,7 @@ export const UNDER_HAZE = { uHazeLayers: [140, 1.8, 0.13, 4], uHazeTone: [0.93, 
  */
 export const UNDER_LOOK = {
   uClouds: 0, uCumulus: 0, uSkyDots: 0.25, uShadowFlat: 0.72, uShadeKeep: 0.2, uHalftone: 0.18, uBounce: 0.08, uHatch: 0.3,
-  uFogDensity: 0.00055, uSpot: [0.6, 3, 0.3, 0.1], uSpotTone: [0.2, 0.18, 0.28, 0.4], uCast: [0.25, 0.15], ...UNDER_HAZE,
+  uFogDensity: 0.00055, uSpot: [0.9, 3, 0.28, 0.3], uSpotTone: [0.16, 0.12, 0.12, 0.45], uCast: [0.25, 0.15], ...UNDER_HAZE,
 };
 
 /** The Underside's materials, made by the kit (shared per option set). */

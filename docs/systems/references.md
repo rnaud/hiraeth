@@ -180,7 +180,7 @@ addresses keep working).
   (4) the walls' coral and cream and the sky already close. Changed: `SHAFT_DAY` (incal.js) the shade `#68a0be`;
   the world's look `uSpot` w 0.1 (the print's 0.2); `SHAFT_FOG` its most 0.62 (0.7) in a bluer tone. Still off: the
   trees' saturated green (the sheets draw few), the sheets' dense small work on every face.
-  (the triptych before / after / reference: `changelog-media/0.94/shaft-colours-after.webp`; `tests/colour-pass.test.js`)
+  (the triptych before / after / reference: `changelog-media/0.95/shaft-colours-after.webp`; `tests/colour-pass.test.js`)
 
 ### The Desert's colours against its sheets (October 2026, v0.95)
 
@@ -194,7 +194,7 @@ bands busier than the plates' flat lavender tables; (5) the sky, the haze and th
   terrain and its crash site use the biomes); `DESERT_DAY` (desert.js) the shade `#9b9bd2`; `DESERT_WORLD_LOOK`
   `uShadeKeep` 0.5 (`DESERT_SHADE_KEEP`). The References' `?look=desert` keeps `DESERT_LOOK` and its own sky.
 - **Still off**: the mesas' strata; the canyons in the rim's shadow print darker than IMG_3775 p3's olive.
-  (the triptych before / after / reference: `changelog-media/0.94/desert-colours-after.webp`; `tests/colour-pass.test.js`)
+  (the triptych before / after / reference: `changelog-media/0.95/desert-colours-after.webp`; `tests/colour-pass.test.js`)
 
 ### Vael II's sheets (the Sky Stones)
 
@@ -246,6 +246,14 @@ and bird too).
 - **Cost** (M4 Pro, 1280 × 720, Vael II at spawn and turned, GPU median): High 11.4 → 8.6 and 9.5 →
   6.8 ms (the flat clouds gone), Handheld 2.1 → 2.0 and 1.6 → 1.5; the shader changes are a few
   selects, no new taps.
+- **The colour pass (v0.95)**: the gaps were (1) the caps' stalks and undersides a near-black grey where the sheets
+  shade them a light blue-grey under dense blue strokes (the cast shadow kept whole and its spot black grey), (2) the
+  shade a greyer teal than the sheets' blue-grey, (3) the plain a little brighter and more orange than the sheets'
+  muted coral, (4) no haze where the far plain meets the sky. Changed: the shade `#8ea6b8` (`TINT` in the views,
+  `SKY_STONES_DAY` in the world), the light `#fbf4ec` / `#f8f0e6` instead of white; `SKY_STONES_CAST` and
+  `VAEL2_LOOK` lift the cast shadows off the open ground a third (`uCast.y` 0.3) with a deep blue spot tone; the haze
+  layers a pale lilac-blue. **Still off**: the horizon band is faint beside the sheets', and their stalks carry far
+  more strokes.
 
 ## Spot blacks: a third tier of value (post.js `uSpot`, `uSpotTone`)
 
@@ -325,7 +333,7 @@ the narrowest creases.
   `BURIED_DAY` the shade `#9cb0aa` and the sky `#b4c1a3`; the terrain `#f6e5c0` / `#efdcb4` / `#e0c79c`; the city's
   slate `#4d6680` / `#3b536c`. Still off: the clouds' undersides now carry the sage too (the sheets' are a pale
   blue-white); the interiors' dense small machinery.
-  (the triptych before / after / reference: `changelog-media/0.94/buried-colours-after.webp`; `tests/colour-pass.test.js`)
+  (the triptych before / after / reference: `changelog-media/0.95/buried-colours-after.webp`; `tests/colour-pass.test.js`)
 ## The Garden of Spheres' sheets (IMG_3793–3796)
 
 - **The views** (`src/levels/reference-spheres.js`, `GARDEN_VIEWS`): IMG_3793 (4 panels), IMG_3794
@@ -441,7 +449,7 @@ the narrowest creases.
   sheets' a lavender; (3) the near trunks a navy-grey where the sheets' are a deep teal; (4) the coral horizon and
   the violet mist already close. Changed: the terrain `#4d786e` / `#588276`, the reeds' tones a step deeper and
   self-lit 0.3. Still off: the trunks (their tone is in the instanced trunks' vertex colours, left as they are).
-  (the triptych before / after / reference: `changelog-media/0.94/lorn2-colours-after.webp`; `tests/colour-pass.test.js`)
+  (the triptych before / after / reference: `changelog-media/0.95/lorn2-colours-after.webp`; `tests/colour-pass.test.js`)
 ## The Signal Market's sheets (IMG_3801–3808)
 
 - **The views** (`src/levels/reference-market.js`, `MARKET_VIEWS`): IMG_3801–3804 (one plate each),
@@ -538,7 +546,7 @@ the narrowest creases.
   `GLASS_WORLD_LOOK` `uSkyFlat` 0, `uHaze` 0.32 (0.5), the haze bands' veil 0.07 (0.12), `uFogDensity` 0.0006;
   `GLASS_DAY` / `GLASS_DUSK` the shade a step lighter (`#5ea79f`, `#4caa92`). Still off: the plates' painted streaks
   of low sun across the sand; the glass's inner depth.
-  (the triptych before / after / reference: `changelog-media/0.94/glassdunes-colours-after.webp`; `tests/colour-pass.test.js`)
+  (the triptych before / after / reference: `changelog-media/0.95/glassdunes-colours-after.webp`; `tests/colour-pass.test.js`)
 ## The City Behind the Waterfall's sheets (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-waterfall.js`, world `waterfall`: `?level=references&world=waterfall&view=n`):
@@ -715,6 +723,15 @@ the narrowest creases.
   ours are a few decks of houses and gardens behind ribs. Their hulls carry fine panel work and stains; ours the
   built pen detail and collars. Their beasts are woolly; ours plain lumps. The tilted segment of view 1 bends at its
   crushed foot; ours is one arc.
+- **The colour pass (v0.95)**: the gaps were (1) a duller, greyer sky (the pictures' cerulean deepens to the top),
+  (2) the cumulus grey lumps in a black outline, where the pictures draw them white with a blue-grey shade and a
+  soft line, (3) the hulls lit nearly all over (their undersides in the pictures a grey-green shade), (4) a crisp
+  horizon over the plain, (5) too few darks. Changed: `RING_DAY` and the views' `SKY` deeper at the top, paler at the
+  horizon, the light a cooler ivory; the cloud material lifts its shade less (0.4–0.45), its line thinner and in its
+  own colour (`line` 0.45, `lineTint` 0.8), a little brighter (`glow`); `RING_LOOK` `uShadowFlat` 0.35, `uBounce` 0.12,
+  `uSpot` [1, 3, 0.3, 0.35], a thinner line (0.85); `RING_HAZE` veils a little more from 200 m. **Still off**: the
+  pictures' grass carries cloud shadows and a yellower light at mid distance; ours is one even green.
+
 ## The Moon Foundry's sheets (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-moonfoundry.js`, world `moonfoundry`: `?level=references&world=moonfoundry&view=n`):
@@ -749,6 +766,19 @@ the narrowest creases.
   stacked houses inside the shells); ours is cleaner and plainer. View 3's globes have their outer shell peeled off in
   continents over a darker machine layer, ours a ragged hole; the far moons are paler than the sheets' crisp ivory;
   the floor is plain where view 3 has grass and bushes along it.
+- **The colour pass (v0.95)** (median value: the sheets 84–100, ours 137–156): the gaps were (1) everything
+  lifted toward the light (the materials' `shade` 0.35–0.5), so a moon showed no terminator and the rust no dark
+  side, (2) a saturated cyan sky where the sheets' is a greyer pale blue or mint, (3) a cool lavender-grey shade
+  where theirs is a warm grey and dark rust, (4) a pale floor, (5) too little haze between the near and the far.
+  Changed: the shade lifts lowered (`IVORY` 0.24, `METAL` 0.18 in the world; the views' shell, crater, rust, wall,
+  steel and floor alike), `MF_LOOK` keeps a surface's hue in shade (`uShadeKeep` 0.6), lifts it less (`uHalftone`,
+  `uBounce` 0.15) and lays more spot black (`uSpot.w` 0.35, a warm dark tone); `MF_DAY` and the views' `SKY` greyer
+  tops and a darker warm shade; the floor a darker stone; `MF_HAZE` from 80 m, a heavier veil. Medians now 107–118. **Still off**: the
+  sheets' raking light leaves half of each moon and much of the floor in shade (the roof's own shadow); ours stays
+  mostly lit, and the sheets' machinery is far denser.
+- **The views were stretched tall** after any resize (fixed in v0.95): a resize sets the camera's aspect back to the
+  screen's, but `lensShift` kept its view offset, so the window of the taller frame was drawn squeezed. It now sets
+  the offset again whenever the aspect is not the taller frame's (tests/moonfoundry.test.js).
 
 ## The Underside's pictures (reference-1 … 4, October 2026)
 
@@ -794,6 +824,13 @@ the narrowest creases.
   the low sun, every gap filled); ours reads as decks and rods with houses on them. The pictures' face bulges in
   big pillows of rock with dark creases, ours more gently; their white houses are lumpier and clumped like nests;
   picture 1's town is closer and larger than ours; their cloud heaps are softer, shaded in gradients.
+- **The colour pass (v0.95)** (median value: the pictures 104–149, ours 157–208): the gaps were (1) the town's
+  timber too light (the pictures' is a dark warm brown with amber windows), (2) the banners a hot orange (theirs a
+  deeper red, half in shade), (3) the rock's shade a lavender where theirs is a warm grey, (4) view 3's sky too deep
+  a blue, the horizons too cold, (5) few dark pockets in the scaffolds. Changed: `UNDER_TONES` wood, plank and banners
+  darker; `UNDER_DAY` and the views' `SKY` a greyer, warmer shade and warmer horizons, view 3's sky softer;
+  `UNDER_LOOK` `uSpot` [0.9, 3, 0.28, 0.3] in a warm dark brown. Medians now 125–208 (views 2 and 4 are mostly cloud, and barely moved). **Still off**: the pictures' town
+  is a dense mass of decks, people and lamps; ours reads as rods and decks with the cloud showing through.
 
 ## Small machinery at every scale (`src/levels/greeble-kit.js`, October 2026)
 
@@ -896,6 +933,16 @@ Ranked by how much they would close the gap to the sheets, across every world re
 - **Left**: the pictures' city is far denser (stairs everywhere, ledges, plants, crowds at every table); our walls
   are plain masonry faces where the pictures carry deep detail; the pale figures are simpler; picture 3's pink
   cloud streaks are left out; the compositions follow the pictures' masses, not every house.
+- **The colour pass (v0.95)**, each view beside its picture (median value, the pictures' 88–145 against ours'
+  130–173 before): the gaps were (1) the whole city a step too light, (2) a pale pink-violet where the pictures are
+  a blue lavender, (3) a shade not deep enough (ours #45436d, theirs #2c2f61), (4) almost no shadow masses or spot
+  blacks, (5) view 4's horizon band a hot pink where the picture is a pale lavender. Changed: the light tints a step
+  darker and bluer and the shade a deeper indigo in `ECLIPSE_TOTAL` and the views' `SKY` (blue, deep, night,
+  steel); the paving, stone and masonry a little darker (`ECL_TONES`); `ECLIPSE_LOOK` lifts the shade less
+  (`uHalftone` 0.2, `uBounce` 0.15), keeps more of the cast shadows (`uCast` [0.35, 0.15]) and lays more spot black
+  (`uSpot` [0.9, 3, 0.3, 0.3]); view 2's sun from the left (`side` −60), so its left houses stand in shade as
+  drawn; view 4’s eclipse glow lavender. Medians now 108–153. **Still off**: the pictures' dense small detail (stairs,
+  ledges, plants, crowds) gives them their many small darks; our walls stay broad and even.
 
 ## The City Floating in Space's pictures (reference-1 … 4, October 2026)
 
@@ -932,6 +979,13 @@ Ranked by how much they would close the gap to the sheets, across every world re
 - **Left**: the pictures' every wall carries small detail (pipes, vents, signs, plants, washing by the dozen, crowds
   on every deck); ours are plain rounded blocks and a few walkers. Their houses step down the islands' sides below
   the decks; ours stand on the decks. Picture 2's crowd fills its bridge; ours is a line of figures.
+- **The colour pass (v0.95)**: the gaps were (1) the walls cream and orange-brown where the pictures are salmon
+  and pink (hue ~18° against ~7°), (2) a muddy brown shade (picture 1's is a rose), (3) a dense field of stars
+  where the pictures show a few, (4) the far islands' undersides washed pale by the haze, where the pictures keep
+  their machinery dark. Changed: `SPACE_TONES` walls, stone, paving, masonry and bridge pinker; `SPACE_DAY` a rose
+  shade (#b87078) and a pink light (#ffccc4); `uShadeKeep` 0.5 (a wall keeps its colour in shade); the stars' density
+  halved and more (`uSpace.y` 0.12–0.16, the views' too); `SPACE_HAZE` lighter (veil 0.08, far haze 0.6). **Still
+  off**: the pictures' every wall carries pipes, washing and crowds; picture 2's teal accents are fewer in ours.
 
 ## The Signal Market at night (reference-1 … 4, October 2026)
 
@@ -1002,7 +1056,7 @@ Ranked by how much they would close the gap to the sheets, across every world re
   rose (the haze takes the horizon's colour, so (1) fixes it too); (3) the plain, the train's plum and the deep
   shade already close. Changed: `TRAIN_LOOK` `uSkyFlat` 0.3 (mostly the gradient), `TRAIN_NIGHT`'s horizon
   `#e88a90`. Still off: the pictures' top of the sky is a stronger blue than our gradient reaches in a level view.
-  (the triptych before / after / reference: `changelog-media/0.94/train-colours-after.webp`; `tests/colour-pass.test.js`)
+  (the triptych before / after / reference: `changelog-media/0.95/train-colours-after.webp`; `tests/colour-pass.test.js`)
 
 ## The Sealed Hangar's colours (October 2026, v0.95)
 
@@ -1014,7 +1068,7 @@ the start and turned: (1) the world's paint a toy-box's pure hues (`PALETTE`: `#
 `#a9a0c8`, `#d27b5e`, `#a8b48c`, `#c9603e`), the same hexes where the file wrote them out; the plateau `#d8d4a8`; the
 day's sky `#8db1c3` and shade `#9c9ccb`. The Lab's hangar room shares the palette. Still off: the temples' interiors
 and the story's props keep the old tones (src/temples, src/story); no environment sheet to compare against.
-(the triptych before / after / reference: `changelog-media/0.94/hangar-colours-after.webp`; `tests/colour-pass.test.js`)
+(the triptych before / after / reference: `changelog-media/0.95/hangar-colours-after.webp`; `tests/colour-pass.test.js`)
 
 ## Lorn's colours (October 2026, v0.95)
 
@@ -1026,4 +1080,17 @@ royal blue; (4) the crystals' mint and lilac fine. Changed (perdide.js): `LORN_L
 `uShadowFlat` 0.65 (the shade printed most of the way in the violet tint), `uCast` [0.3, 0.15], `uSpot` w 0.08;
 `LORN_DUSK` the shade `#8a7cce`, the light `#dcecdc`, the sky top `#5874b2`; the moss `#748660` / `#8a9a6c`. Still
 off: the ship and the tulip trees take the flat violet shade too; no environment sheet to compare against.
-(the triptych before / after / reference: `changelog-media/0.94/lorn-colours-after.webp`; `tests/colour-pass.test.js`)
+(the triptych before / after / reference: `changelog-media/0.95/lorn-colours-after.webp`; `tests/colour-pass.test.js`)
+## Vael and Viridel: their people's sheets (v0.95)
+
+`references/Vael/` and `references/Viridel/` hold only character sheets (flat pastel colour on a cream paper);
+Vael's tower and bird are drawn on Vael II's sheets. Compared with those and with Vael II's tower panels:
+
+- **Vael** (`arzach.js`): its dunes carried heavy rose-brown cast shadows; the sheets' shade (the watchers' white
+  robes, the Sky Stones' plain) is a pale cool grey and they leave cast shadows pale. The day's shadow is now a
+  lilac-grey (`#aca2b6`, was `#b98f9a`) and the cast shadows on open sand are lifted (`look.uCast` [0.45, 0.1]).
+- **Viridel** (`edena.js`): the light was a cold white and the shade a saturated blue; now a cream paper's light
+  (`#fff8e8`) and a softer grey-blue shade (`#98a6c6`).
+- **Still off**: the people themselves. The sheets dress Mira in a mint coat and a straw hat, Vey in a pink robe,
+  Oro in a long cream robe and a cone hat, Rue in blue overalls; the game's outfits are other shapes and colours
+  (a follow-up for the people, not the light).

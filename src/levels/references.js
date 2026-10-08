@@ -141,7 +141,8 @@ export function lensShift(camera, cam, W, H, box) {
     const hs = (box.y + cam.horizon * box.h) / H, k = Math.max(hs, 1 - hs), full = 2 * k * H, y = hs >= 0.5 ? 0 : full - H;
     fov = (2 * Math.atan(2 * k * Math.tan((box.fov * DEG) / 2))) / DEG;
     const v = camera.view;
-    if (!v?.enabled || Math.abs(v.fullHeight - full) > 1e-3 || Math.abs(v.offsetY - y) > 1e-3 || v.fullWidth !== W || v.height !== H) { camera.fov = fov; camera.setViewOffset(W, full, 0, y, W, H); }
+    // (a resize sets the camera's aspect back to the screen's: the window's frame is taller, so its aspect is set again)
+    if (!v?.enabled || Math.abs(v.fullHeight - full) > 1e-3 || Math.abs(v.offsetY - y) > 1e-3 || v.fullWidth !== W || v.height !== H || Math.abs(camera.aspect - W / full) > 1e-6) { camera.fov = fov; camera.setViewOffset(W, full, 0, y, W, H); }
   } else if (camera.view?.enabled) camera.clearViewOffset();
   if (Math.abs(camera.fov - fov) > 1e-6) { camera.fov = fov; camera.updateProjectionMatrix(); }
 }

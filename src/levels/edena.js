@@ -607,7 +607,8 @@ export function* buildEdena(scene) {
       look: { uLineWidth: 1.0, uLineVary: 0.08, uWobble: 0.12, uHatch: 0.35, uDots: 0, uSkyDots: 0.35 } },
     sky: {
       script: {
-        day: ['#5ea7da', '#e3efe0', '#8ea7d2', '#fffdf4', '#fffbe8'],   // print: deep cerulean over meadow
+        // print: deep cerulean over meadow (v0.94: the light a cream paper's, the shade a softer grey-blue, as the sheets)
+        day: ['#5ea7da', '#e3efe0', '#98a6c6', '#fff8e8', '#fffbe8'],
         dusk: ['#8f9fd8', '#f6c6a8', '#8a86c8', '#ffe6d0', '#fff0d6'],
         night: ['#18264e', '#3a4c80', '#34407a', '#9ab0d8', '#f2f0e6'],
       },

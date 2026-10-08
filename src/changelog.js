@@ -18,6 +18,13 @@ export const CHANGELOG = [
     'On the Overnight Train the night sky glows: a broad rose band along the horizon fading up into the blue-violet, where there was a thin pale line under a flat blue.',
     'Lorn’s long evening shadows are violet now, not near-black stripes across the moss; the moss a softer olive and the evening light a paler mint.',
     'Lorn II, the Deep Wood: the swamp floor is a greener teal and the crystal reeds a lavender instead of a glaring white.',
+    'The City During the Eclipse is darker and bluer, as its pictures are: the lime walls a blue lavender instead of a pale violet, their shade a deep indigo, more of the streets in shadow and darker pockets in the doorways, so the lamps glow warmer against them.',
+    'The City Floating in Space is pinker: its walls salmon and coral rather than cream, their shade a rose that keeps their colour, the far islands no longer washed pale, and far fewer stars, so the city stands out against a near-black sky.',
+    'The Fallen Ring’s sky is a deeper blue, its great clouds white with a pale blue shade and a light, soft outline instead of grey lumps in black ink, the hulls’ shaded sides a cooler grey-green and the far plain a little hazier.',
+    'In the Moon Foundry the moons turn from the light with a clear edge of shade, the rust goes dark brown where it is turned away, the floor is a darker stone and the far moons and pillars fade into a warm haze; the sky is a paler, greyer blue.',
+    'The Underside’s town hangs darker: its timber a deep brown, its banners a deeper red, the gaps between its decks nearly black, the shade on its rock a warm grey instead of lavender, and its skies a softer blue over a warmer horizon.',
+    'Vael II: the shade under the great caps is a light blue-grey under dense strokes, no longer a grey-black, the shade everywhere a bluer grey-teal, the plain a touch less glaring and the far horizon a little hazier.',
+    'Vael’s shadows are a cooler, paler lilac-grey and the shadows thrown on the open sand are lighter; Viridel’s light is a warmer cream and its shade a softer grey-blue, as their people’s sheets are drawn.',
   ] },
   { v: '0.94', date: '2026-10-08', items: [
     { text: 'Game updates can now deliver the full soundtrack to Android and Steam Deck, and the website can publish all 25 themes.', see: 'Check for updates, then visit any world with music enabled. Downloaded music remains available offline.' },

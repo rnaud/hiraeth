@@ -60,11 +60,11 @@ function frame(d) {
 
 // ------------------------------------------------------------------ the look
 /** The sheets' haze: pale warm-cream planes from 70 m, the far moons and pillars stepping into it. */
-export const MF_HAZE = { uHazeLayers: [130, 1.7, 0.12, 5], uHazeTone: [0.93, 0.92, 0.85, 0.8] };
+export const MF_HAZE = { uHazeLayers: [80, 1.6, 0.2, 5], uHazeTone: [0.93, 0.91, 0.84, 0.85] };
 /** The print preset's touches: no clouds (a roof over all), light hatching, a little spot black in the machinery. */
-export const MF_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.12, uHatch: 0.42, uLineWidth: 0.95, uWobble: 0.2, uFogDensity: 0.0009, uSpotTone: [0.2, 0.2, 0.26, 0.4], ...MF_HAZE };
+export const MF_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.12, uHatch: 0.42, uLineWidth: 0.95, uWobble: 0.2, uFogDensity: 0.0009, uShadeKeep: 0.6, uHalftone: 0.15, uBounce: 0.15, uSpot: [1, 3, 0.3, 0.35], uSpotTone: [0.16, 0.13, 0.12, 0.45], ...MF_HAZE };
 /** The day's colours (sky top, horizon, shadow, light, sun): a pale blue-mint sky, cream at the horizon, a cool grey shade. */
-export const MF_DAY = ['#b4d0d6', '#ece6d0', '#9a9cb6', '#fff6e4', '#fff0d0'];
+export const MF_DAY = ['#bccad0', '#ece6d0', '#787482', '#fff6e4', '#fff0d0'];
 export const MF_DUSK = ['#9fa8c8', '#f2cfa6', '#8a80a8', '#ffe2c4', '#ffc890'];
 export const MF_NIGHT = ['#151a34', '#2a3050', '#30365e', '#7278a4', '#dce0f2'];
 /** The surfaces' tones, read off the sheets. */
@@ -72,7 +72,7 @@ export const MF_TONES = {
   ivory: '#f4e4c8', ivory2: '#eedfc6', plated: '#bdb9b0', ivory3: '#f2e8d4', crater: '#d8c4a4', inner: '#a99a86', innerMint: '#9dc4b4', edge: '#f6eedc',
   rust: '#d4763c', rust2: '#e3975e', rust3: '#b25e36', dark: '#5a3a2e', pale: '#e4b48a',
   steel: '#465260', steel2: '#5a6874', ceiling: '#4a5462', strut: '#3e3634', strutRust: '#8a4a30',
-  plank: '#9a6a4c', floor: '#d6cfc0', floor2: '#cdc5b4', floor3: '#ddd7c9', rail: '#4a4040',
+  plank: '#9a6a4c', floor: '#c4baa8', floor2: '#bcb2a0', floor3: '#cbc3b2', rail: '#4a4040',
   wall: '#d9844e', wall2: '#ead2aa', wall3: '#c9a07a', roofing: '#8a4a34', glow: '#ffd88a', trunk: '#4c4a3e',
   leaf: '#9cc9b4', leaf2: '#86bba8', leaf3: '#b2d6c2', molten: '#ffd466', molten2: '#ff8a3c', molten3: '#fff0a8',
 };

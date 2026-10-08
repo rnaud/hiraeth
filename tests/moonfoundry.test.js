@@ -53,6 +53,13 @@ test('a shifted lens: the camera looks level, eye level crosses the frame at the
   // a vertical stays vertical: a pillar's foot and top project to the same column
   const a = V(10, 0, -40).project(camera), b = V(10, 60, -40).project(camera);
   assert.ok(Math.abs(a.x - b.x) < 1e-9, 'no converging verticals');
+  // a resize puts the screen's aspect back on the camera: the next frame sets the taller frame's again (it stretched the views)
+  camera.aspect = 1456 / 816; camera.updateProjectionMatrix();
+  lensShift(camera, cam, 1456, 816, frameBox(1456, 816, 1456 / 816, 60));
+  for (const [px, py, d] of [[20, 700, 12], [1400, 60, 90]]) {
+    const p = sheetAt(cam, px, py, d).project(camera);
+    assert.ok(Math.abs((p.x + 1) * 728 - px) < 0.5 && Math.abs((1 - p.y) * 408 - py) < 0.5, `after a resize: ${px}, ${py}`);
+  }
   // and the lens is let go for a view without it
   lensShift(camera, { eye: [0, 2, 0], fov: 50, horizon: 0.6 }, 1456, 816, frameBox(1456, 816, 1456 / 816, 50));
   assert.ok(!camera.view?.enabled && Math.abs(camera.fov - 50) < 1e-9);

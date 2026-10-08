@@ -131,6 +131,28 @@ export const CHANGELOG_MEDIA = {
     ].map(([match, name, caption]) => ({ match, shots: [
       { name: `${name}-colours`, only: 'after', caption: `${caption}: before, after, the reference`, from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 960 × 540, laid side by side with the reference (8 October)' },
     ] })),
+    { match: 'The City During the Eclipse is darker and bluer', shots: [
+      { name: 'eclipse-colours', only: 'after', caption: 'Before, after and the reference: the References level’s view 2 of the City During the Eclipse: the left houses in shade, their shade a deep indigo', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+    ], see: 'Open ?level=references&world=eclipse&view=2 and press \\ to lay the picture over the view, or walk the city’s square at noon.' },
+    { match: 'The City Floating in Space is pinker', shots: [
+      { name: 'spacecity-colours', only: 'after', caption: 'Before, after and the reference: the City Floating in Space from the balcony (References view 1): the walls salmon, fewer stars', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+    ], see: 'Open ?level=references&world=spacecity&view=1, or stand on the city’s first balcony.' },
+    { match: 'The Fallen Ring’s sky is a deeper blue', shots: [
+      { name: 'fallenring-colours', only: 'after', caption: 'Before, after and the reference: the broken tubes and the great cumulus (References view 2): white clouds, soft lines, a deeper sky', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+    ], see: 'Open ?level=references&world=fallenring&view=2, or look up at the clouds from the long tube’s village.' },
+    { match: 'In the Moon Foundry the moons turn from the light', shots: [
+      { name: 'moonfoundry-colours', only: 'after', caption: 'Before, after and the reference: the great hung moon and the cutaway shell (References view 2): the pillars’ turned sides dark, the sky greyer', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+    ], see: 'Open ?level=references&world=moonfoundry&view=2, or walk under the roof to the hung moons.' },
+    { match: 'The Underside’s town hangs darker', shots: [
+      { name: 'underside-colours', only: 'after', caption: 'Before, after and the reference: from the stair in the cliff’s shade (References view 1): the timber darker, the banners deeper, the rock’s shade warm', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+    ], see: 'Open ?level=references&world=underside&view=1, or climb the stair to the shelf’s town.' },
+    { match: 'Vael II: the shade under the great caps', shots: [
+      { name: 'vael2-colours', only: 'after', caption: 'Before, after and the reference: walking past the mushrooms to the tower (References view 31): the stalk’s shade blue-grey, no longer near black', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+    ], see: 'Open ?level=references&world=vael2&view=31, or stand under a great cap on the Sky Stones’ plain.' },
+    { match: 'Vael’s shadows are a cooler, paler lilac-grey', shots: [
+      { name: 'vael-colours', only: 'after', caption: 'Before, after and the reference: Vael where you land, at 15:30: the flowers’ shadows on the dune a paler, cooler grey (the reference is Oïa’s sheet)', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+      { name: 'viridel-colours', only: 'after', caption: 'Before, after and the reference: Viridel by the ship at 10:30, a warmer light and a softer shade (the reference is Mira’s sheet)', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+    ], see: 'Land in Vael and look at the shadows on the dunes; in Viridel, the meadow by the ship.' },
   ],
   '0.93': [
     { match: 'The shade has a new look: a cartoon drawn in negative', shots: [

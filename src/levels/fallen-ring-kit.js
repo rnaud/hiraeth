@@ -442,14 +442,14 @@ export function cloudBank(rng, { n = 8, az0 = -0.6, az1 = 0.6, d0 = 1400, d1 = 2
 
 // ------------------------------------------------------------------ the look
 /** Haze by depth: the pictures' pale blue-green air, the far ring paling into it in bands. */
-export const RING_HAZE = { uHazeLayers: [220, 1.8, 0.09, 5], uHazeTone: [0.8, 0.88, 0.88, 0.8] };
+export const RING_HAZE = { uHazeLayers: [200, 1.8, 0.12, 5], uHazeTone: [0.8, 0.88, 0.9, 0.8] };
 /**
  * The print preset's touches: the pictures' clean flat colour (little hatching, few half-tones), a teal shade, the
  * great cumulus drawn as geometry (no bank on the horizon, no flat clouds), cast shadows kept, the haze.
  */
-export const RING_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.35, uHatch: 0.35, uHalftone: 0.2, uShadeKeep: 0.2, uBounce: 0.3, uLineWidth: 0.95, uFogDensity: 0.00028, uAerial: 0.35, uSpotTone: [0.12, 0.2, 0.2, 0.4], ...RING_HAZE };
+export const RING_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.35, uHatch: 0.35, uHalftone: 0.2, uShadeKeep: 0.2, uBounce: 0.12, uShadowFlat: 0.35, uLineWidth: 0.85, uFogDensity: 0.00028, uAerial: 0.35, uSpot: [1, 3, 0.3, 0.35], uSpotTone: [0.1, 0.17, 0.16, 0.4], ...RING_HAZE };
 /** The day's colours (sky top, horizon, shadow, light, sun): a teal-blue sky, a blue-green shade, warm light. */
-export const RING_DAY = ['#5d9fb6', '#a8c8cc', '#7d9aa4', '#fff8ea', '#fff3dc'];
+export const RING_DAY = ['#4f98bc', '#b0d0d4', '#76949e', '#fbf8ee', '#fff3dc'];
 /** The surfaces' tones, read off the pictures. */
 export const RING_TONES = {
   grass: '#8e9f56', grass2: '#9aac60', grass3: '#7a8a4a', path: '#d8c9a0',

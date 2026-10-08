@@ -24,10 +24,10 @@ export const RING_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`fallenri
 export const RING_VIEW_LOOK = { ...RING_LOOK, ...CLEAN_SKY };
 /** sky top, horizon, shadow (blue-green), light, sun: read off each picture */
 const SKY = {
-  noon: ['#5d9fb6', '#a8c8cc', '#7d9aa4', '#fff8ea', '#fff3dc'],
-  deep: ['#5a98ae', '#9dd0cc', '#6f8c96', '#fff6e4', '#fff0d4'],
-  pale: ['#68a8c0', '#bcd4d6', '#8aa2aa', '#fff8ee', '#fff4e0'],
-  warm: ['#6aa0b4', '#b0ccd0', '#82989c', '#fff4e0', '#ffeccc'],
+  noon: ['#4f98bc', '#b0d0d4', '#76949e', '#fbf8ee', '#fff3dc'],
+  deep: ['#4a90b4', '#a8d4d2', '#6a8892', '#faf6ea', '#fff0d4'],
+  pale: ['#5aa2c6', '#c0d8da', '#7f9aa2', '#fbf8f0', '#fff4e0'],
+  warm: ['#5a98bc', '#b8d2d6', '#7a9298', '#fdf6e6', '#ffeccc'],
 };
 const T = RING_TONES;
 
@@ -59,7 +59,7 @@ function materials(kit, o = {}) {
     // far segments: no pen detail, a thin line of their own colour (the haze pales them)
     far: kit.mat({ color: o.far ?? T.hull, shade: 0.3, hatch: 0.15, line: 0.5, lineTint: 0.7, side: DS }),
     farRed: kit.mat({ color: o.red ?? T.red, shade: 0.3, hatch: 0.15, line: 0.5, lineTint: 0.7, side: DS }),
-    cloud: kit.mat({ color: '#fffcf4', ...CLOUD_PRINT, shade: 0.78, line: 1, lineTint: 0.3, glow: 0.12 }),
+    cloud: kit.mat({ color: '#fffcf4', ...CLOUD_PRINT, shade: 0.4, line: 0.45, lineTint: 0.8, glow: 0.25 }),
     tuft: kit.mat({ color: '#ffffff', side: DS, line: 0.25, lineTint: 1, hatch: 0.3 }),
     figure: kit.mat({ color: '#5d5478', flat: true, figure: true }),
     suit: kit.mat({ color: '#6a4a3a', flat: true, figure: true }),

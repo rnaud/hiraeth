@@ -50,7 +50,7 @@ const SOLID = { solid: true, shadow: true }, NC = { solid: false, shadow: false 
 export const LAMP_TINT = ['#ffa25a', 0.85];
 /** The surfaces' tones: limewash white (the light makes it violet), the lamps amber, the cloths and cloaks muted. */
 export const ECL_TONES = {
-  lime: ['#f4f0f6', '#ece6f2', '#f2ecec', '#e6e4f4'], stone: '#e2def0', paving: '#e4e4f6', masonry: '#dcd6ea',
+  lime: ['#f4f0f6', '#ece6f2', '#f2ecec', '#e6e4f4'], stone: '#d8d4ea', paving: '#cccce2', masonry: '#d4cee6',
   dark: '#181630', door: '#6e4a36', doorLit: '#ffb25c', lit: '#ffc26e', lamp: '#ffdc96', iron: '#2c2840', wood: '#5a4038',
   cloth: ['#e4def0', '#cfc6e4', '#a8acd8', '#8a92c8'], table: ['#8890c8', '#7a7cb4', '#a09ad0'],
   flower: ['#9a7ad8', '#c48ad6', '#7a6ac8'], leaf: '#3e4878', pot: '#8a6a6e', pale: '#f6f4fc',
@@ -61,7 +61,9 @@ export const ECL_TONES = {
  * The eclipse's light (sky top, horizon, shadow tint, light tint, sun): a deep blue sky, the limewash lit a cold
  * lavender, its shade a deep violet (read off the pictures: lit walls #9589e6 … #5c4e99, shade #3c3a68 … #312b52).
  */
-export const ECLIPSE_TOTAL = ['#24386c', '#5a78ba', '#433f78', '#a49cec', '#fff2e0'];
+// (v0.94: the light a step darker and bluer, the shade a deeper indigo: put next to the pictures, the city read a pale
+//  violet-pink where the pictures' walls are a blue lavender and their shade near the night's own blue)
+export const ECLIPSE_TOTAL = ['#24386c', '#5a78ba', '#2e3064', '#8486d0', '#fff2e0'];
 /** The eclipse in the sky: the corona and the rose band round the horizon (src/eclipse.js cfg). */
 export const ECLIPSE_SKY = { mid: 12, total: 0.75, partial: 2, el: 15, az: 180, size: 4.4, reach: 0.7, style: 0.45, corona: '#ffe2c8', glow: '#d89ad0', glowH: 0.05, stars: 0.35, lift: 0.6, night: 0.5 };
 /** Its uniforms for a view held in totality (post.js uEclipse, uCorona, uEclipseGlow): a disc of `size` deg, its corona `style`. */
@@ -70,15 +72,15 @@ export function eclipseUniforms({ size = ECLIPSE_SKY.size, reach = ECLIPSE_SKY.r
   return { uEclipse: [1, (size * Math.PI) / 180, reach, style], uCorona: [c.r, c.g, c.b, stars], uEclipseGlow: [g.r, g.g, g.b, glowH], uEclipseDir: dir ?? [0, 0, 0] };
 }
 /** The city's haze: stepped bands of a rose lavender down the long views, a little deeper low in the streets. */
-export const ECLIPSE_HAZE = { uHazeLayers: [70, 1.7, 0.15, 4], uHazeTone: [0.62, 0.56, 0.82, 0.8], uHaze: [0.66, 0.58, 0.84, 0.6] };
+export const ECLIPSE_HAZE = { uHazeLayers: [70, 1.7, 0.2, 4], uHazeTone: [0.6, 0.56, 0.8, 0.8], uHaze: [0.66, 0.6, 0.84, 0.65] };
 /**
  * The city's touches on the print preset: no clouds, a flat sky, the shade printed flat in one violet (the pictures'
  * every shadow the same deep tone), little hatching, few spot blacks (the pictures' night is soft), cast shadows
  * lifted on open ground (the eclipse's light comes from the whole sky), the lamps' halos.
  */
 export const ECLIPSE_LOOK = {
-  uClouds: 0, uCumulus: 0, uSkyDots: 0.25, uSkyFlat: 0.55, uSkyBands: 0.6, uShadowFlat: 0.85, uShadeKeep: 0.1, uHalftone: 0.3, uBounce: 0.25,
-  uHatch: 0.32, uFogDensity: 0.0011, uSpot: [0.55, 3, 0.3, 0.1], uSpotTone: [0.1, 0.1, 0.2, 0.3], uCast: [0.55, 0.3], ...ECLIPSE_HAZE,
+  uClouds: 0, uCumulus: 0, uSkyDots: 0.25, uSkyFlat: 0.55, uSkyBands: 0.6, uShadowFlat: 0.85, uShadeKeep: 0.1, uHalftone: 0.2, uBounce: 0.15,
+  uHatch: 0.32, uFogDensity: 0.0011, uSpot: [0.9, 3, 0.3, 0.3], uSpotTone: [0.08, 0.08, 0.18, 0.3], uCast: [0.35, 0.15], ...ECLIPSE_HAZE,
 };
 
 /** The city's materials, made by the kit (shared per option set). */

@@ -24,10 +24,10 @@ export const UNDER_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`undersi
 export const UNDER_VIEW_LOOK = { ...UNDER_LOOK, ...CLEAN_SKY };
 /** sky top, horizon, shadow (the blue-grey of the undersides), light, sun: read off the pictures */
 const SKY = {
-  gold: ['#4f88d0', '#e6ecee', '#7682b0', '#ffe8c8', '#ffd8a0'],
-  pale: ['#6694d0', '#e2eaf0', '#8290bc', '#ffefd8', '#ffe2b8'],
-  deep: ['#2f62b2', '#d6e2ee', '#6a78ac', '#ffe2bc', '#ffcc90'],
-  dusk: ['#8296c0', '#f6c8a8', '#7c74a8', '#ffc8a4', '#ffa878'],
+  gold: ['#4f88d0', '#e6e4dc', '#6a6c7e', '#ffe8c8', '#ffd8a0'],
+  pale: ['#6694d0', '#e4e6e4', '#767a8c', '#ffefd8', '#ffe2b8'],
+  deep: ['#3f6ea8', '#e2e0d8', '#5e6680', '#ffe2bc', '#ffcc90'],
+  dusk: ['#8296c0', '#f6c8a8', '#6c6280', '#ffc8a4', '#ffa878'],
 };
 
 // ---------------------------------------------------------------- the pictures' pixels

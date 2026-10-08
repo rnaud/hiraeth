@@ -26,16 +26,19 @@ export const SKY_STONES_FLAT = 0.85;
  * world's own), the undersides of caps and overhangs the darkest (no bounce), little half-tone.
  */
 /** The plain's far stones and the tower in light pale bands of the sky's haze (post.js 4b). */
-export const SKY_STONES_HAZE = { uHazeLayers: [200, 2, 0.09, 4], uHazeTone: [1, 1, 1, 0] };
+// (v0.94: the layers a pale lilac-blue, as the sheets' band of haze where the far plain meets the sky)
+export const SKY_STONES_HAZE = { uHazeLayers: [200, 2, 0.11, 4], uHazeTone: [0.86, 0.86, 0.94, 0.6] };
 /** The sheets draw the plain with hardly a cast shadow (post.js CAST): most of a shadow on open ground lifted, walls and stones keep theirs. */
-export const SKY_STONES_CAST = { uCast: [0.7, 0] };
+// (v0.94: the shadow a cap throws on its own stalk lifted a third and its spot black a deep blue, not a grey-black: the sheets
+//  shade the stalks a light blue-grey under dense blue strokes)
+export const SKY_STONES_CAST = { uCast: [0.7, 0.3], uSpotTone: [0.2, 0.27, 0.36, 0.35] };
 export const SKY_STONES_LOOK = { uCumulus: 0, uClouds: 0, uBounce: 0, uHalftone: 0.15, uShadeKeep: 0, ...SKY_STONES_HAZE, ...SKY_STONES_CAST };
 /** The day's colours: sky top, horizon, the shadow's grey-blue, light, sun. */
 /** The crevasses' and the plain's steep faces: a red-brown, lit and hatched as the sheets draw them, never spot black. */
 export const CREVASSE = { wall: '#c0664a', strokes: 1 };   // (strokes: the lit walls' strokes, materials.js S_TERRAIN)
 /** The sea of cloud's print: its shade a flat pale grey-blue (lifted, the look's own flat print), no strokes, no spot black. */
 export const CLOUD_PRINT = { shade: 0.55, shadeFlat: 1, hatch: 0, spot: 0 };
-export const SKY_STONES_DAY = ['#a3d0d2', '#f4cdb0', '#93a6ac', '#fff7ec', '#fff2dc'];
+export const SKY_STONES_DAY = ['#a6cccf', '#f4cdb0', '#8ea6b8', '#f8f0e6', '#fff2dc'];
 /** Dusk's and night's colours, their shadow the day's grey-teal (warmer at dusk, deeper at night), not the old violet. */
 export const SKY_STONES_DUSK = ['#f2ae8c', '#f6c4a0', '#9a9fae', '#ffd9bc', '#ffe2c0'];
 export const SKY_STONES_NIGHT = ['#262a3c', '#4a4a5e', '#3a4752', '#a8a8c0', '#f2f0e6'];
