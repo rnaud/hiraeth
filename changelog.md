@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - New instrumental soundtracks accompany the Desert, the City-Shaft, Vael and the Sky Stones, each with its own instruments and mood.
 - New instrumental music fills the Sealed Hangar, the Buried Machine, Viridel and the Garden of Spheres.
+- Lorn, the Deep Wood, the Signal Market and the White Mangrove now have their own instrumental soundtracks.
 
 ## v0.93 — 2026-10-08
 

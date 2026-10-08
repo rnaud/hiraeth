@@ -58,6 +58,34 @@
       "source": "https://suno.com/song/c8713297-62fb-4c87-908c-e5665523a877",
       "file": "spheres.mp3",
       "direction": "A major pentatonic, 60 BPM; glass harmonica, celesta, bells; luminous mirrored garden"
+    },
+    {
+      "level": "perdide",
+      "title": "Hiraeth - Lorn",
+      "source": "https://suno.com/song/8356f9d5-2ccc-4719-a63d-6d65166e2ee9",
+      "file": "perdide.mp3",
+      "direction": "E phrygian, 54 BPM; wet glass, bass clarinet, marimba, log drums; tender twilight swamp"
+    },
+    {
+      "level": "perdide2",
+      "title": "Hiraeth - The Deep Wood",
+      "source": "https://suno.com/song/81545c9e-b0dd-4a0c-87be-8e12a9b8c3d3",
+      "file": "perdide2.mp3",
+      "direction": "E flat aeolian, 58 BPM in 3; oboe, bassoon, clarinet, marimba; lamplit mushroom wood"
+    },
+    {
+      "level": "bazaar",
+      "title": "Hiraeth - The Signal Market",
+      "source": "https://suno.com/song/ceae999e-5763-415d-981e-f78f08fdcfd9",
+      "file": "bazaar.mp3",
+      "direction": "E lydian dominant, 96 BPM; shawm, santur, electric piano, darbuka; warm alien market"
+    },
+    {
+      "level": "mangrove",
+      "title": "Hiraeth - The White Mangrove",
+      "source": "https://suno.com/song/cb01f398-9d9c-4a2a-bb90-21fb0e55e641",
+      "file": "mangrove.mp3",
+      "direction": "D dorian, 64 BPM; flute, plucked harp, bass clarinet, handpan; lanterns over black water"
     }
   ]
 }
