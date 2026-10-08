@@ -199,7 +199,7 @@ export const LEVELS = [
     // a developer's world: the fluid blade against the foes, wave after wave (in the worlds list, L; never on the route)
     id: 'arena', create: createArena, build: buildArena, hidden: true, dev: true,
     title: 'The Arena', source: 'for testing the blade',
-    blurb: 'A ring of sand with a few standing stones, and the foes coming in waves round you: ink blots, then makers’ machines. F or LB / L1 swings the fluid blade.',
+    blurb: 'A ring of sand with a few standing stones, and the foes coming in waves round you: ink blots, then makers’ machines. RB / R1 (a left click) swings the fluid blade, LB / L1 (Ctrl) guards, B / ○ (Alt) evades.',
     moves: 'the blade · walk · jetpack',
   },
   {
@@ -213,7 +213,7 @@ export const LEVELS = [
     // a developer's world: every minigame (src/minigames/) with its arcade sign round a plaza, to try them one after another (in the worlds list, L; never on the route)
     id: 'arcade', create: createArcade, build: buildArcade, hidden: true, dev: true,
     title: 'The Arcade', source: 'for trying the games',
-    blurb: 'A round plaza with an arcade sign for every game, its best on the sign: walk up and press the interact button to play, and Quit brings you back to it. The games board by the way in (Tab, LT + X / □) jumps straight into any of them; in a game, Next game and Previous game (LB / RB, [ ]) go round them all.',
+    blurb: 'A round plaza with an arcade sign for every game, its best on the sign: walk up and press the interact button to play, and Quit brings you back to it. The games board by the way in (Tab, D-pad ↓) jumps straight into any of them; in a game, Next game and Previous game (LB / RB, [ ]) go round them all.',
     moves: 'the games · walk',
   },
   {

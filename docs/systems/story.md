@@ -427,7 +427,7 @@ sound to make it clear I should chat with her".
   fails; this is the only one). **Coming back** (a visit that began with the quest already
   failed sets `edena.esk.back`), Esk has decided there is a small job: the quest
   `edena.cutting` ("A Cutting for the Mud"): press one tea cutting from the rows that held into
-  the mud beside the stream (E, or B / ○, `edena.cutting.planted`), then tell her ("It won't be
+  the mud beside the stream (E, or X / □, `edena.cutting.planted`), then tell her ("It won't be
   my grandmother's hill. It'll be this one."). The cutting stays in the mud on every visit
   after, and she checks it every morning.
   `tests/story-terraces.test.js` runs it end to end and reloads it.

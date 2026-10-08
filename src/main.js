@@ -3,6 +3,7 @@ import { updateHazards } from './hazards.js';
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
+import { PAD_SCHEME, PAD_SCHEME_KEY, PAD_SCHEME_NOTE } from './bindings.js';
 import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
 import { ObservatoryQuest } from './observatory.js';
@@ -526,7 +527,7 @@ registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 9, at: 
   // (measured to its side, not its middle: a cab is four metres long, and a passer-by at your shoulder was nearer than its centre)
   distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? Math.max(0.2, d - (v.halfWidth ?? 0)) : Infinity; }, use: () => player.interact() });
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
-// the scout finds the objective (Q, Y / △, the touch "ping"; src/scout.js): the cue names it and
+// the scout finds the objective (Q, R3 with no foe in reach, the touch "ping"; src/scout.js): the cue names it and
 // how far, at once (a toast would wait its turn), and the quest marker over it shows for a while
 // (src/story/quests.js QuestMarker.reveal)
 const scoutSaid = { text: '', until: 0, kind: '' };
@@ -687,8 +688,8 @@ let eBlocked = false, wasBusy = false;
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy || busy())) eBlocked = true; });
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
-// the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand, D-pad ↑ or B changes it
-gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t), touch: isTouch,
+// the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand (none: the bell-note whistle), D-pad ↑ or B changes it
+gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
 // the hitbox overlay (src/hitboxes.js): F4, L3 + R3, the dev menu, the Arena's board, ?hitboxes=1 (this session only)
 const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gadgets });
@@ -866,6 +867,7 @@ const menu = new SettingsMenu(settings, {
   onNews: () => changelog.toggle(true),
   onDev: () => devMenu.toggle(true),
   onBook: (panel) => journal.toggle(true, panel),   // (its Items and Quests: the game menu, on that panel)
+  onPhoto: () => setPhoto(true),   // (photo mode from the menu: the only way on a touch screen; View + D-pad ↑ on a pad, P)
   onDebug: () => showPicker(true),
   onQuit: () => quitToTitle(),
   // an update restarts the game (at the title, in the new build): the position and the time played first
@@ -1021,6 +1023,17 @@ const quickMenu = level.quickMenu ?? null;
 if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
 const noInput = {};
 let controllerActive = false;
+// The controller's layout changed in v0.93 (src/bindings.js): a player with a save from before is told once,
+// the first time a pad is used (the flag is the device's, like the settings)
+const padSchemeNotice = () => {
+  if (padSchemeNotice.done) return;
+  padSchemeNotice.done = true;
+  try {
+    if (localStorage.getItem(PAD_SCHEME_KEY) === String(PAD_SCHEME)) return;
+    localStorage.setItem(PAD_SCHEME_KEY, String(PAD_SCHEME));
+  } catch { return; }
+  if (savedEarly) setTimeout(() => showToast(PAD_SCHEME_NOTE), 600);
+};
 const hintShown = { text: '', at: -1e9, active: false };
 const controllerHint = document.createElement('div');
 controllerHint.id = 'controller-hint';
@@ -1050,7 +1063,7 @@ const controller = new Controller({
   faces: () => padFaces(),
   combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
   look: (x, y) => { if (x || y) rig.look(x, y); },
-  activity: () => { controllerActive = true; screenInput = false; sound.start(); },   // (where a pad press may start sound: the Android app)
+  activity: () => { controllerActive = true; screenInput = false; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
   navigate: (x, y) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
   scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
@@ -1079,16 +1092,21 @@ const controller = new Controller({
     if (name === 'journal' && level.compare) level.compare();   // (the references: View compares the render with its panel)
     else if (name === 'journal') journal.toggle(true);
     if (name === 'worlds') showPicker(true);
-    if (name === 'photo') setPhoto(!photo.on);
+    if (name === 'photo') setPhoto(!photo.on);   // (View + D-pad ↑ from play; back, View or Menu in it)
     if (name === 'capture') photo.capture = true;
-    if (name === 'ping' && !ship.playing && !gadgets?.claims('ping')) scout.ping();   // (with a gadget in hand Y / △ is its button: src/gadgets/)
-    if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the References: X / □ opens the list of views; there is no mount to call)
-    else if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
+    if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the References: D-pad ↓ opens the list of views; there is no mount to call)
+    else if (name === 'call' && !ship.playing) player.callMount();   // D-pad ↓: whistle for the mount or hail a taxi (the keyboard's E still falls back to it)
     if (name === 'lock' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
-    else if (name === 'lock' && !ship.playing) foes.cycleLock();   // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js)
-    if (name === 'bell' && !gadgets?.claims('bell')) itemFx.ring();   // D-pad up: the bell-note whistle (V), and the echo shell plays back
+    else if (name === 'lock' && !ship.playing) {
+      // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js); with no foe in reach, the scout
+      // finds the objective (Q; src/scout.js), as a scan does in other games
+      const had = foes.lock;
+      if (!foes.cycleLock() && !had && !minigame) scout.ping();
+    }
     if (name === 'l3' && level.jump) level.jump(-1);
-    if (name === 'hitboxes') toggleHitboxes();   // L3 + R3: the hitbox overlay
+    if (name === 'hitboxes') toggleHitboxes();   // L3 + R3: the hitbox overlay (F4)
+    // the free View + D-pad chords (src/bindings.js FREE): a 'padchord' event any system may listen for
+    if (name === 'viewDown' || name === 'viewLeft' || name === 'viewRight') window.dispatchEvent(new CustomEvent('padchord', { detail: { name } }));
   },
 });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad

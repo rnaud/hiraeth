@@ -18,14 +18,14 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
-- **Guard:** Ctrl or Z (B also works while no gadget is owned; with one, B chooses the gadget: src/gadgets/index.js) / LB / L1 / touch ◇ independently opens the shield on the left hand (below: *In the hands*); it covers what it covers as drawn. A fresh guard has a
+- **Guard:** Ctrl or Z / LB / L1 / touch ◇ independently opens the shield on the left hand (below: *In the hands*); it covers what it covers as drawn. A fresh guard has a
   0.18 s parry window (0.35 s rearm), consumes that opportunity on contact, and spends no charge.
   A held guard spends one charge per block. Both require facing the blow. A parry leaves the enemy
   open for 1.8× its normal recovery; an ordinary block for 0.65×. Guard cannot cancel an active cut.
-- **Evade:** Alt / X / □ / touch ↶ moves in the input direction, or backward without input, for
+- **Evade:** Alt / B / ○ / touch ↶ moves in the input direction, or backward without input, for
   0.28 s with a 0.65 s cooldown. It uses Player's collision controller, has no invulnerability, and
   may cancel attack recovery but not wind-up or release. It is available on the ground.
-  Push is a gun mode; calling a mount is LT + X (Xbox positions).
+  Push is a gun mode; calling a mount is D-pad ↓ (v0.93: docs/systems/controls.md, "The layout").
 - **The flinch:** a strike that lands without knocking you down plays the pack's impact on the upper body
   (`Player.flinch`, `FLINCH`).
 - **What it hits:** during the active cut, coarse cone/range and wall checks find candidates, then
@@ -145,7 +145,7 @@ The count is said every 5 ink.
 
 ## Controls and the lock-on
 
-- **RB / R1** (F, ⚔) swings; **LB / L1** held (Ctrl or Z on land, 🛡) guards; **R3** (Tab, ◉) locks on.
+- **RB / R1** (a left click, F, ⚔) swings; **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
 - The push is a gun mode (`MODES.push`, always owned with the backpack): fired as a shot, it throws the cone.
 - In a fight (`foes.near(20)`) LB doesn't zoom (`Controller.combat`).
 - **The lock-on:** `Foes.cycleLock()` locks the nearest foe in `LOCK.reach` (those ahead of the camera
@@ -309,7 +309,7 @@ Locomotion matching remains experimental and off by default: see animation.md fo
 
 A debug overlay of what the fight actually tests, for tuning and for learning the timings.
 - **The switch** (`hitboxes`): F4, L3 + R3 (both sticks clicked; R3 alone still locks on), the dev menu's
-  Combat row, the Arena's board left of the way in (B / ○, E: `src/levels/arena-hitbox-board.js`, its lamp lit
+  Combat row, the Arena's board left of the way in (X / □, E: `src/levels/arena-hitbox-board.js`, its lamp lit
   while on), `?hitboxes=1` / `=0` for the session. Kept in the settings (`settings.hitboxes`).
 - **Truthful by construction:** `collectHitboxes()` reads the combat code's own data, exposed through small
   getters used by the combat code too: `Foe.attackOrigin()`, `Foe.attackPhase`, `STRIKE_RISE`, `hurtRadius()`

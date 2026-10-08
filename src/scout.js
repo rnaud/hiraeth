@@ -8,7 +8,7 @@ const RADIUS = 0.25;     // the drone's collision sphere
 const CLEAR = 0.9;       // air it keeps below itself while flying
 const MIN_CLEAR = 0.35;  // never lower than this over the ground
 const STEER = 6;         // velocity response (1/s): smooth, no jitter
-// Finding the objective (ping: Q, Y / △, the touch "ping"): it flies a little way towards it
+// Finding the objective (ping: Q, R3 with no foe in reach, the touch "ping"): it flies a little way towards it
 // (or over it, when it is close), hovers there facing it (its own heading is the pointer: no beak,
 // no beam), drops a flare on the spot, chirps, and comes home. Nothing to find: a shrug on the dock.
 // In a guardian's fight the ping asks it for a hint instead (HINT): it rises over your shoulder,

@@ -9,7 +9,7 @@ import { items as sharedItems } from './items.js';
 //                                                                    First Sign's one word: src/temples/pieces.js
 //                                                                    EchoStone, bazaar.js); within `reach` (18 m)
 //                                                                    of the traveller, the shell keeps it
-//   shell.play()                                                     V / RS · R3 (src/boxes/effects.js ring):
+//   shell.play()                                                     V / Y △ (none in hand) (src/boxes/effects.js ring):
 //                                                                    plays what it holds, game event 'echo'
 //                                                                    { pos, note }; EchoEar and the First Sign listen
 //   shell.held                                                       { note, degree, color, label } or null
@@ -32,7 +32,7 @@ export function createEchoShell({ player, game = sharedGame, items = sharedItems
       if (!was || was.note !== note) {
         sound?.critter?.('blip', 0.5);
         const key = told.size ? 'again' : 'first';
-        if (!told.has(key)) { told.add(key); toast(key === 'first' ? `The shell catches ${label} and holds it. V (or RS / R3) plays it back.` : `The shell holds ${label} now.`); }
+        if (!told.has(key)) { told.add(key); toast(key === 'first' ? `The shell catches ${label} and holds it. V (or Y / △ with no gadget in hand) plays it back.` : `The shell holds ${label} now.`); }
       }
       return true;
     },

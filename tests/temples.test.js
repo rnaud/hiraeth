@@ -1524,7 +1524,7 @@ test('the echo shell: it keeps the last note sung within earshot (saved), plays 
   assert.equal(shell.held, null, 'too far to hear');
   game.emit('note', { pos: V(10, 0, 0), note: 'low', label: 'the low stone’s note' });
   assert.equal(shell.held?.note, 'low', 'caught');
-  assert.ok(toasts.some((s) => /V \(or RS \/ R3\)/.test(s)), 'it says how to play it back, in pad form too');
+  assert.ok(toasts.some((s) => /V \(or Y \/ △ with no gadget in hand\)/.test(s)), 'it says how to play it back, in pad form too');
   assert.equal(game.flag('echo.held').note, 'low', 'kept in the save');
   P.pos.set(5, 0, 5);
   assert.equal(shell.play(), true);

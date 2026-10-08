@@ -19,7 +19,7 @@ import { ArcadeBoard } from './arcade-board.js';
 // mushroom-capped pillars, a basin and a tall hooped spire in the middle; round it, on a ring, one arcade
 // sign per game of the registry (kit/arcade.js arcadeSigns: a new game gets its sign by itself), its name and
 // best on a plate. The interact button at a sign plays it (?game=<id>&from=arcade); Quit comes back here,
-// in front of that sign (?level=arcade&back=<id>). The games board by the way in (and Tab, LT + X / □, the
+// in front of that sign (?level=arcade&back=<id>). The games board by the way in (and Tab, D-pad ↓, the
 // "games" button) lists them all, to jump straight into one.
 // ---------------------------------------------------------------------------
 
@@ -206,7 +206,7 @@ export function* buildArcade(scene, { games = GAMES, state = game, search = glob
     defaults: { hour: 16.5, preset: 'Moebius print', cloudShadows: 0, look: DESERT_WORLD_LOOK },
     killY: -Infinity,
     reactions: false,
-    quickMenu: board,   // (main.js: one of its menus; LT + X / □ opens it, the mount's call: there is none here)
+    quickMenu: board,   // (main.js: one of its menus; D-pad ↓ opens it, the mount's call: there is none here)
     sky: {
       script: {
         day: ['#9fbcc6', '#dfe3d6', '#9fb0cf', '#fff9ee', '#fff6dc'],

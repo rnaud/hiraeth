@@ -6,7 +6,7 @@
 //     cross into it;
 //   - the health bar while hurt or healing, the stamina wheel while not full, the tank's gauge
 //     while it is short (main.js, ui.js ToolHud), each lingering a moment (Fader);
-//   - the objective: the scout finds it (Q, Y / △: src/scout.js) and the cue says its goal over its
+//   - the objective: the scout finds it (Q, R3: src/scout.js) and the cue says its goal over its
 //     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
 import { badgeLine, escapeHtml } from './prompt-keys.js';
 import { page, screen } from './platform.js';
@@ -30,8 +30,8 @@ export const RIDE_PAD = {
   skiff: 'A / × jump off · B / ○ step off · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
 };
 
-/** The keyboard's names in a prompt, as a pad's (by position: the bottom button jumps, the right one uses). */
-export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'L3').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'B / ○');
+/** The keyboard's names in a prompt (on foot), as a pad's (by position: the bottom button jumps, the left one uses: src/bindings.js). */
+export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'L3').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □');
 
 /**
  * The cue's line for this frame ('' = nothing on the screen).

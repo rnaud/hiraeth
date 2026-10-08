@@ -1,6 +1,7 @@
 import { page, screen } from '../platform.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
+import { PAD } from '../bindings.js';
 import { Quests, QuestMarker } from './quests.js';
 import { Dialogue, TRAVELLER_TAG } from './dialogue.js';
 import { sightOf } from './shot.js';
@@ -320,9 +321,9 @@ export function createStory(o) {
       _p.copy(rt.promptAt).project(camera);
       const on = _p.z < 1 && Math.abs(_p.x) < 1.05 && Math.abs(_p.y) < 1.05;
       // (as data too, platform.js screen.prompt: where it floats, in the world)
-      screen.set('prompt', on ? { text: rt.prompt, key: controller ? 'B / ○' : 'E', at } : null);
+      screen.set('prompt', on ? { text: rt.prompt, key: controller ? PAD.interact : 'E', at } : null);
       if (on) {
-        const key = controller ? 'B / ○' : 'E', text = `${key} ${rt.prompt}`;
+        const key = controller ? PAD.interact : 'E', text = `${key} ${rt.prompt}`;
         // (the button as a round badge; native-pad.js renames it in place, it rewrites text nodes)
         if (promptEl.dataset.text !== text) { promptEl.dataset.text = text; promptEl.innerHTML = `${keyBadge(key)}<span>${escapeHtml(rt.prompt)}</span>`; }
         promptEl.style.transform = `translate(${((_p.x * 0.5 + 0.5) * innerWidth).toFixed(1)}px, ${((-_p.y * 0.5 + 0.5) * innerHeight).toFixed(1)}px) translate(-50%, -100%)`;

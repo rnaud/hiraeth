@@ -107,7 +107,7 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   glob that lands on the world emits `'tool:bloom'`, and `src/boxes/effects.js`
   plants a few flowers there from the seed pouch's pool.
 - **The echo shell** (`src/echo-shell.js`, item `echo`): it keeps the last
-  `'note'` sung within 18 m (saved: flag `echo.held`) and V / RS · R3 plays it
+  `'note'` sung within 18 m (saved: flag `echo.held`) and V (Y / △ with no gadget in hand) plays it
   back (`'echo'` { pos, note }) with the bell (`effects.ring()`).
 - **The brass level** (item `level`, the Hangar's gift in the open, on the keep's
   wall where the quick coil was): where down has turned (the upside-down quarter

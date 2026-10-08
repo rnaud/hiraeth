@@ -75,7 +75,7 @@ test('the page relabels when the setting changes, and back', () => {
   } finally { globalThis.window = saved; }
 });
 
-test('the app\'s native controls arrive as a standard gamepad: on a Retroid, B (bottom) jumps and A (right) talks', () => {
+test('the app\'s native controls arrive as a standard gamepad: on a Retroid, B (bottom) jumps, A (right) evades and Y (left) talks', () => {
   const win = { navigator: { getGamepads: () => [] }, performance: { now: () => 1 }, dispatchEvent() {}, document: null, location: { search: '' } };
   globalThis.Event ??= class { constructor(t) { this.type = t; } };
   installNativePad(win);
@@ -92,7 +92,11 @@ test('the app\'s native controls arrive as a standard gamepad: on a Retroid, B (
   b[1] = 0; b[0] = 1;                                           // KEYCODE_BUTTON_A: the right button
   win.__nativePad('Retroid Pocket Controller', [0, 0, 0, 0], b);
   held = c.update(1 / 60);
-  assert.ok(held.KeyE && !held.Space, 'A interacts');
+  assert.ok(held.PadEvade && !held.KeyE && !held.Space, 'A evades');
+  b[0] = 0; b[3] = 1;                                           // KEYCODE_BUTTON_Y: the left button
+  win.__nativePad('Retroid Pocket Controller', [0, 0, 0, 0], b);
+  held = c.update(1 / 60);
+  assert.ok(held.KeyE && !held.PadEvade, 'Y interacts');
 });
 
 test('a pad without the standard mapping is still read', () => {

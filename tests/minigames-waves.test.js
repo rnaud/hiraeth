@@ -14,7 +14,7 @@ test('ink tide is a complete game, played on foot', () => {
   assert.deepEqual(checkGame(waves), []);
   assert.equal(waves.drives, false);
   for (const k of Object.keys(COST)) assert.ok(FOES[k], `${k} is one of the game's foes`);
-  for (const b of ['RB / R1', 'LB / L1', 'X / □']) assert.ok(waves.controls.pad.some(([x]) => x === b), b);
+  for (const b of ['RB / R1', 'LB / L1', 'B / ○']) assert.ok(waves.controls.pad.some(([x]) => x === b), b);
 });
 
 test('the waves grow in size and in mix; each new kind comes in on its own wave', () => {

@@ -174,7 +174,7 @@ export const LANDING = [
           choices: [{ text: '~curious~ How do I get to the cave island?', goto: 'skiff' }, { text: '~happy~ Thanks.', end: true }],
         },
         skiff: {
-          say: ["~neutral~ Whistle for the skiff out in the open (E, or X / □). It comes to you. Nobody owns it, though several people give it advice.", "~whisper~ Let it find the channels. It knows more than I do and boasts considerably less."],
+          say: ["~neutral~ Whistle for the skiff out in the open (E, or D-pad ↓). It comes to you. Nobody owns it, though several people give it advice.", "~whisper~ Let it find the channels. It knows more than I do and boasts considerably less."],
           choices: [{ text: '~happy~ Thanks, Sedge.', end: true }],
         },
         light: {

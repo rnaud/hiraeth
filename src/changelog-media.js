@@ -128,13 +128,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'hitboxes-swing', only: 'after', caption: 'The heavy third cut on its live frames: the blade’s edge and sweep in red, its cone, the blot’s body and its blade ring', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena, frozen on the frame the blade cuts' },
       { name: 'hitboxes-strike', only: 'after', caption: 'A machine’s slam landing: its cone filled red, the traveller’s feet inside it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena, frozen as the strike goes live' },
       { name: 'hitboxes-parry', only: 'after', caption: 'A fresh guard in its parry window (white), the machine’s wind-up in orange', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena' },
-    ], see: 'In the Arena (?level=arena) walk to the board left of the way in and press B / ○ (E), or press F4 anywhere; fight a wave and watch the colours change as the cuts and strikes go live.' },
+    ], see: 'In the Arena (?level=arena) walk to the board left of the way in and press X / □ (E), or press F4 anywhere; fight a wave and watch the colours change as the cuts and strikes go live.' },
     { match: 'The Arcade (Debug worlds, next to the Gadget Yard)', shots: [
       { name: 'arcade-plaza', only: 'after', caption: 'The Arcade from above the way in: a sign for every game round the basin, the games board by the entrance', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
       { name: 'arcade-sign', only: 'after', caption: 'At a sign: its name and best on the plate, "play" on the interact button', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
       { name: 'arcade-board', only: 'after', caption: 'The games board: every game, its line and its best, to jump straight into one', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
       { name: 'arcade-pause', only: 'after', caption: 'A game from the Arcade, paused: Previous game, Next game, Back to the Arcade', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
-    ], see: 'Open ?level=arcade (or the Debug worlds list). Walk to a sign and press the interact button, or press Tab (LT + X / □) for the games board; in a game press Menu / Esc, then Next game, or LB / RB ([ ]) on any of its cards.' },
     { match: 'The shield is a device now', shots: [
       { name: 'shield-guard', caption: 'The guard held: before, a lens of fluid floating over the arm; after, the disc opened into a shield on the left hand, its brass ribs over the fluid', from: 'the character studio (studio.html?backpack=true&sword=true&shield=1&anim=clip:mixamo_ss_block_idle&paused=true&view=arms&yaw=0.7&pitch=0.12&bg=flat), headless Chrome against this branch’s own dev server, 900 × 700 (8 October)' },
       { name: 'shield-bracer', only: 'after', caption: 'Folded: the brass disc on the back of the left hand, its ribs closed like an iris round a bead of the fluid', from: 'the character studio (view=bracer&yaw=1.2&pitch=0.2), headless Chrome, 900 × 700 (8 October)' },
@@ -162,6 +161,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'foes-volley', only: 'after', caption: 'The Arena: a spitter’s volley of three globs in the air, their three rings across the traveller’s way', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
     ] },
     { match: 'In the Arena a FOES tab on the left', see: 'Open ?level=arena, click FOES on the left edge and choose a kind; press F4 for the hitboxes and let a machine slam to see its shockwave run out.' },
+    ], see: 'Open ?level=arcade (or the Debug worlds list). Walk to a sign and press the interact button, or press Tab (D-pad ↓) for the games board; in a game press Menu / Esc, then Next game, or LB / RB ([ ]) on any of its cards.' },
+    { match: 'Controls: the controller now follows the big action games', see: 'With a controller: walk up to someone and press X / □ to talk, B / ○ to dodge a blow, D-pad ↓ to call your mount, and click the right stick (R3) away from any foe to send the scout. Menu, then Controls, lists the whole layout.' },
+    { match: 'The bell-note whistle and the echo shell have a controller button again', shots: [
+      { name: 'controls-whistle', only: 'after', caption: 'No gadget in hand: the card in the corner holds the whistle (and the shell), on Y / △', from: 'headless Chrome with a virtual Xbox pad against this branch’s own dev server, Low, 1280 × 720 (8 October), the Gadget Yard with every item' },
+    ], see: 'Own the whistle and a gadget, put the gadget away (the wheel’s top slot, D-pad ↑ held), and press Y / △: the boxes nearby chime.' },
+    { match: 'Photo mode moved off the D-pad', see: 'Hold View and press D-pad ↑ for photo mode (View again, B / ○ or Menu leaves); on any screen, Menu (or the gear), then Photo mode.' },
+    { match: 'Keyboard and mouse: a left click swings the fluid blade', see: 'Click into the game to capture the mouse and left-click: the blade swings. Hold the right button and left-click: it shoots.' },
+    { match: 'The Controls page shows the new layout', shots: [
+      { name: 'controls-page', only: 'after', caption: 'The Controls page with a pad in hand: X / □ uses and talks, B / ○ evades, R3 finds the objective with no foe near', from: 'headless Chrome with a virtual Xbox pad against this branch’s own dev server, Low, 1280 × 720 (8 October), the Start menu over the Gadget Yard' },
+    ] },
   ],
   '0.92': [
     { match: 'Games: the worlds list (Debug) has a row of small games', shots: [

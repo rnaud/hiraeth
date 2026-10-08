@@ -191,11 +191,11 @@ test('on the real traveller: the blade is drawn red exactly on the frames it cut
   }
   assert.ok(cutFrames > 0 && cutFrames < frames, `${cutFrames} of ${frames} frames cut`);
   for (let i = 0; i < 40; i++) tick({});
-  tick({ KeyB: true }); tick({ KeyB: true }); tick({ KeyB: true });
+  tick({ KeyZ: true }); tick({ KeyZ: true }); tick({ KeyZ: true });
   const tags = () => playerHitboxes({ player: p, tool }).filter((s) => s.kind === 'fan').map((s) => s.tag);
   assert.ok(tool.blade.parryLive, 'a fresh guard: the parry window is live');
   assert.deepEqual(tags(), ['guard.parry']);
-  for (let i = 0; i < Math.ceil(GUARD.perfect / dt) + 2; i++) tick({ KeyB: true });
+  for (let i = 0; i < Math.ceil(GUARD.perfect / dt) + 2; i++) tick({ KeyZ: true });
   assert.deepEqual(tags(), ['guard.up'], 'past GUARD.perfect: a plain guard');
   tool.dispose();
 });

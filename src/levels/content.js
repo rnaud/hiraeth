@@ -135,7 +135,7 @@ export const CONTENT = {
     weather: [],
     story: {
       title: 'THE GADGET YARD',
-      intro: 'A bay for every gadget round the yard. Y / △ (T) uses the one in hand; D-pad up (B) changes it.',
+      intro: 'A bay for every gadget round the yard. Y / △ (T) uses the one in hand; D-pad ↑ (B) changes it.',
       outro: 'That is the yard. Try them all.',
       label: 'the yard', goal: [0, 'ground', 3], radius: 8,   // (at the start: told at once)
     },

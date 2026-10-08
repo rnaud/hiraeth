@@ -25,12 +25,12 @@ export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
     text: "A makers’ glass tank with a hose to a leather glove: the glove is what shoots. Fill it with living water. Someone built it for a traveller they would never meet.",
-    use: 'Aim (LT / L2, right click) and shoot bursts of fluid; switch the gun’s mode (X, the D-pad) to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: RB / R1 (F) swings it, LB / L1 (Ctrl) held guards. Three charges; they refill two seconds after the last use. It also powers vehicles.'
+    use: 'Aim (LT / L2, right click) and shoot bursts of fluid; switch the gun’s mode (X, the D-pad) to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: RB / R1 (a left click, F) swings it, LB / L1 (Ctrl) held guards, B / ○ (Alt) evades. Three charges; they refill two seconds after the last use. It also powers vehicles.'
   },
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',
     text: "Ancient nozzles that turn the tank’s fluid into thrust. Worn smooth, still reliable. The makers expected a long journey.",
-    use: 'They fly like a plane. RT / R2 (the left mouse button, or SPACE held in the air) is the thrust, the harder the faster: from the ground it lifts you straight up. The left stick (W / S, A / D) flies the nose: forward dives, back climbs, left and right bank and turn. Let go to glide on; aim (LT / L2) in flight and they hold you while you shoot. They burn the backpack’s fluid; land to let it recover.',
+    use: 'They fly like a plane. RT / R2 (SPACE held in the air) is the thrust, the harder the faster: from the ground it lifts you straight up. The left stick (W / S, A / D) flies the nose: forward dives, back climbs, left and right bank and turn. Let go to glide on; aim (LT / L2) in flight and they hold you while you shoot. They burn the backpack’s fluid; land to let it recover.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
@@ -76,7 +76,7 @@ export const ITEMS = {
   bell: {
     name: 'Bell-note whistle', kind: 'charm',
     text: "A blue clay whistle shaped like a bell. It plays one clear note. Nearby makers’ chests know the reply.",
-    use: 'Press V (on a controller, click the right stick, R3) to sound it. Unopened boxes nearby answer with a chime from where they hide.',
+    use: 'Press V to sound it (on a controller, Y / △ with no gadget in hand). Unopened boxes nearby answer with a chime from where they hide.',
   },
   soles: {
     name: 'Soft-fall soles', kind: 'charm',
@@ -121,7 +121,7 @@ export const ITEMS = {
   echo: {
     name: 'Echo shell', kind: 'charm',
     text: "A pale brass shell that holds the last note it hears from the makers’ devices. Unlike most souvenirs, it can repeat itself.",
-    use: 'It catches the last note sung near you (a singing stone, a machine’s one word) and holds it. Press V (or click the right stick, RS / R3) to play it back: whatever listens for that note answers.',
+    use: 'It catches the last note sung near you (a singing stone, a machine’s one word) and holds it. Press V (on a controller, Y / △ with no gadget in hand) to play it back: whatever listens for that note answers.',
   },
   level: {
     name: 'Brass level', kind: 'charm',
@@ -132,7 +132,7 @@ export const ITEMS = {
   cabpass: {
     name: 'Cab pass', kind: 'pass', quest: true,
     text: "A stiff card stamped with the palace seal, a name punched into it more or less like yours. Lio, the City-Shaft’s dispatcher, wrote it.",
-    use: 'Cabs stop for you now: whistle when one passes (X / □, or E with nothing near), or get in one that waits, and tell it where to go. It drives itself.',
+    use: 'Cabs stop for you now: whistle when one passes (D-pad ↓, or E with nothing near), or get in one that waits, and tell it where to go. It drives itself.',
   },
   star: {
     name: 'Pale star', kind: 'cosmetic',

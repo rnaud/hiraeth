@@ -175,7 +175,7 @@ test('held, the separate guard button raises the guard: a strike from in front i
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, -3); camera.lookAt(0, 1.6, 10); camera.updateMatrixWorld();
   const P = player(v()); P.heading = 0; P.flinches = 0; P.flinch = function () { this.flinches++; };
   const tool = new FluidTool({ scene: new THREE.Scene(), player: P, physics: flat, camera, rig: { aimK: 0 }, state: new GameState(null) });
-  for (let i = 0; i < 1.2 / DT; i++) tool.update(DT, { KeyB: true });   // holding guard costs a charge on contact
+  for (let i = 0; i < 1.2 / DT; i++) tool.update(DT, { KeyZ: true });   // holding guard costs a charge on contact
   assert.ok(tool.blade.guarding, 'the guard is up');
   assert.equal(typeof P.guard, 'function', 'the player asks the blade');
   const game = new GameState(null);

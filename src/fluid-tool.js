@@ -97,15 +97,16 @@ export function toolInput(c = {}) {
     shoot: t.shoot,
     fire: t.fire,
     quick: t.quick,
-    blade: !!(c.KeyF || c.PadBlade || c.TouchBlade),   // the fluid blade (src/fluid-blade.js): F, RB / R1, touch ⚔
-    guard: !!(c.ControlLeft || c.ControlRight || c.KeyZ || c.KeyB || c.PadGuard || c.TouchGuard),   // separate held guard: Ctrl or Z, LB / L1, touch shield
-    evade: !!(c.AltLeft || c.AltRight || c.PadEvade || c.TouchEvade),
+    // the fluid blade (src/fluid-blade.js): the left mouse button while not aiming (pointer captured), F, RB / R1, touch ⚔
+    blade: !!(c.KeyF || c.PadBlade || c.TouchBlade || (c.MouseLeft && !t.aim)),
+    guard: !!(c.ControlLeft || c.ControlRight || c.KeyZ || c.PadGuard || c.TouchGuard),   // separate held guard: Ctrl or Z, LB / L1, touch shield
+    evade: !!(c.AltLeft || c.AltRight || c.PadEvade || c.TouchEvade),   // Alt, B / ○, touch ↶
     mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode
     modeBack: !!c.PadModePrev,             // the previous one (D-pad left)
   };
 }
 
-/** Mouse: hold the right button to aim, the left button shoots while aiming (with the pointer captured and not aiming: the jets). */
+/** Mouse: hold the right button to aim, the left button shoots while aiming (with the pointer captured and not aiming: the blade). */
 export function bindToolMouse(dom, input) {
   dom.addEventListener('contextmenu', (e) => e.preventDefault());
   dom.addEventListener('mousedown', (e) => {
@@ -721,7 +722,7 @@ export class FluidTool {
     const globMat = (this.globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES }));
     this.globU = globMat.uniforms;
     this.globMeshes = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 2), globMat); m.visible = false; m.userData.noCollide = true; fx.add(m); return m; });
-    this.blade = new FluidBlade(this);   // the glove's blade of fluid (F, LB / L1)
+    this.blade = new FluidBlade(this);   // the glove's blade of fluid (RB / R1, a left click, F)
     this.wear();
 
     // Things a glob wakes from afar: taxis cruising their lanes get hailed, and whatever the level offers.

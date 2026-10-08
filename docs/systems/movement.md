@@ -347,7 +347,7 @@ put away and the camera follows the body on the ground, lower and softer
   answers before a nearer one with a fare, and a cab back in its lane takes a new fare only out
   of sight. Wren never carries anyone (`fares: false`). The bazaar's cabs are the City-Shaft's
   size (2). `tests/taxi.test.js`, `tests/cab-ride.test.js`.
-- **Riding a cab** (`src/taxi.js`, `src/story/cab.js`): getting in (E, B / ○) seats you and the
+- **Riding a cab** (`src/taxi.js`, `src/story/cab.js`): getting in (E, X / □) seats you and the
   cab waits (`aboard`); its dash asks where to, as a conversation (`dialogue.start`, the cab's
   voice: `CAB_VOICE`, the ship's chirp; words in `src/story/cab-lines.js`), so a stop is chosen
   like any answer: the mouse, 1–9 or the arrows and E / Enter, or the stick / d-pad and A / ×.

@@ -80,7 +80,7 @@ export const QUESTS = [
     id: 'edena.cutting', title: 'A Cutting for the Mud', world: 'edena',
     outro: 'One tea cutting from the rows that held, pressed into the new mud where the stream runs slow. It might take.',
     stages: [
-      { id: 'plant', text: 'Esk gave you a tea cutting from the rows that held. Press it into the mud below the terraces, where the stream runs slow (E, or B / ○)', label: 'The mud by the stream', flag: 'edena.cutting.planted', at: 'cutting' },
+      { id: 'plant', text: 'Esk gave you a tea cutting from the rows that held. Press it into the mud below the terraces, where the stream runs slow (E, or X / □)', label: 'The mud by the stream', flag: 'edena.cutting.planted', at: 'cutting' },
       { id: 'tell', text: 'Tell Esk the cutting is in', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
     ],
   },
@@ -89,7 +89,7 @@ export const QUESTS = [
     id: 'edena.clock', title: 'Mira’s Water Clock', world: 'edena',
     outro: 'The bowl fills, tips, and the bell rings: time to water. It always is.',
     stages: [
-      { id: 'fit', text: 'Fit the brass gear into Mira’s water clock, beside her (E, or B / ○)', label: 'The water clock', flag: 'edena.clock.fitted', at: 'clock' },
+      { id: 'fit', text: 'Fit the brass gear into Mira’s water clock, beside her (E, or X / □)', label: 'The water clock', flag: 'edena.clock.fitted', at: 'clock' },
       { id: 'fill', text: 'The bowl leaks: fill it with three quick splashes, so it tips and rings the bell (shoot)', label: 'The water clock’s bowl', flag: 'edena.clock.rung', at: 'clock' },
     ],
   },
