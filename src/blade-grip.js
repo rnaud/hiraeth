@@ -26,7 +26,7 @@ export const GRIP = {
 };
 export const BRACER = {
   along: 0.45,       // share of the way from the wrist to the knuckles
-  lift: 0.018,       // m off the hand's bone line, out of its back (half the hand's thickness)
+  lift: 0.028,       // m off the hand's bone line, out of its back (half the hand's thickness)
 };
 
 /** The centre of the circle through three points, or null if they are (nearly) in a line. */

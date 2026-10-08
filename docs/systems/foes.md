@@ -18,7 +18,7 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
-- **Guard:** Ctrl or Z (B also works while no gadget is owned; with one, B chooses the gadget: src/gadgets/index.js) / LB / L1 / touch ◇ independently raises the fluid shield. A fresh guard has a
+- **Guard:** Ctrl or Z (B also works while no gadget is owned; with one, B chooses the gadget: src/gadgets/index.js) / LB / L1 / touch ◇ independently opens the shield on the left hand (below: *In the hands*); it covers what it covers as drawn. A fresh guard has a
   0.18 s parry window (0.35 s rearm), consumes that opportunity on contact, and spends no charge.
   A held guard spends one charge per block. Both require facing the blow. A parry leaves the enemy
   open for 1.8× its normal recovery; an ordinary block for 0.65×. Guard cannot cancel an active cut.
@@ -35,9 +35,42 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The look:** a sword. A flat two-edged blade (`BLADE.length` 0.85 m, `width` 5 cm, extruded from an
   outline tapering to a point) of the glob's lava material in the tank's tones, its edges bright glowing lines,
   on a hilt: a brass guard, a wrapped grip in the fist and a brass pommel. The blade grows out of the guard as
-  it lights for a swing and fades after. It is turned each frame so its edge leads the cut (its width along the
-  hand's motion), and a fine trail of small sparks follows the edge. (The game's materials draw into the
-  G-buffer: no transparency, so the glow is the bloom's.)
+  it lights for a swing and fades after, and a fine trail of small sparks follows the edge. (The game's materials
+  draw into the G-buffer: no transparency, so the glow is the bloom's.)
+
+## In the hands: the grip and the shield (`src/blade-grip.js`, `src/shield.js`, v0.93)
+
+- **Carried by the bones.** The hilt is a child of the right hand's bone and the shield's bracer of the left's,
+  so they are wherever the hand is drawn after every layer of the frame's pose (clips, motion matching, combat
+  moves, aim and foot IK, scene overlays): no lag, nothing to update in order. `carry` parents them;
+  `fitScale` undoes the bone's world scale (a taller body holds the same sword).
+- **Where in the hand** is read once per body from its own fingers (`fistGrip`): in the fist pose each finger
+  wraps round the grip, so the circle through its three joints is centred on the grip's axis; the line through
+  the four centres (little finger to index) is the grip, the blade out on the index's side, the edge the way the
+  fingers point out of the palm (`+x` of the hilt), the flat to the palm. The hilt's origin is the middle of
+  its grip. On the swings the edge leads the tip's motion (|cos| 0.93–0.99), which tests check. The bracer
+  (`bracerMount`) sits on the back of the left hand, over the middle of its bones.
+- **Drawn or put away** (`bladeDrawn`, `STANCE`): in the fist while swinging, guarding, evading, locked on, or
+  within `STANCE.linger` (2.5 s) of any of those or of a blow taken; put away at once when the tool may not act
+  (climbing, swimming, gliding, the jets, riding, aiming the gun, knocked down, a scene or a conversation). The
+  hands close round them (`player.swordGrip`, `player.shieldGrip` → `handTargets` `sword` / `shield`).
+- **The blade's segment** (hits) is read from the hilt's own frame, so it is the drawn blade exactly.
+- **The shield** (`ShieldDevice`): the brass disc always on the hand with the backpack. `ShieldState` is the
+  pure state machine (folded → opening → open → closing, and broken): it opens in `SHIELD.open` (0.16 s; the
+  guard counts as up at `guardK` 0.5, unchanged), the ten ribs spinning out one after another, the fluid
+  flooding out to the rim after them; held it shimmers; `hit('block')` flares it, `'perfect'` flashes it white,
+  `'broken'` (a blow within its arc with the tank empty) cracks and flickers it until it mends; it folds in
+  `SHIELD.close`. It swivels on the hub to face the guard's way as it opens. Sounds: `shieldOpen`,
+  `shieldClose`, `shieldBreak` (src/audio.js), on the state machine's transitions.
+- **Coverage is the drawn shape.** Each frame `ShieldDevice.arc` measures the bearings between the shield's two
+  edges (`SHIELD.radius` + `SHIELD.slack`) as seen from the chest (`shieldArc`); `block()` tests the blow's
+  bearing against that arc (`guardArc`), and the hitbox overlay draws the same arc. With no shield drawn,
+  `GUARD.angle` is the arc of one held `GUARD.reach` ahead (about 55°; in the block pose the measured arc is
+  about 59°, a little more to the left where the shield is held).
+- **Inspect:** the studio (`studio.html?backpack=true&sword=true&shield=1&view=arms`, any clip scrubbed with
+  `anim=clip:mixamo_ss_slash_1&paused=true&time=0.4`; views `hands` and `bracer` for close-ups; `guard=block|
+  parry|broken`) runs the blade's own placing code (`FluidBlade.inspect`). `tests/blade-grip.test.js` samples
+  every frame of each combat clip on both bodies.
 
 ## The foes (`src/foes.js`)
 
