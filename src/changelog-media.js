@@ -142,6 +142,26 @@ export const CHANGELOG_MEDIA = {
     { match: 'The sword sits in your fist', shots: [
       { name: 'blade-grip', caption: 'The first cut at the moment it lands: before, the grip floated past the knuckles; after, it is closed in the fist, the guard over the thumb, the pommel below', from: 'the character studio (studio.html?backpack=true&sword=true&anim=clip:mixamo_ss_slash_1&paused=true&view=arms&yaw=0.7&pitch=0.12&bg=flat, scrubbed to the hit), headless Chrome against this branch’s own dev server, 900 × 700 (8 October)' },
     ], see: 'Swing in the Arena (RB / R1) and watch the right hand; or open studio.html?backpack=true&sword=true&view=hands with any clip scrubbed (the Blade and shield view shows both hands).' },
+    { match: 'Each world now has foes of its own', see: 'Walk out into the wilds of the Salt Harbour, the Moon Foundry or the City During the Eclipse (away from people and the ship) and wait for a pack: crabs, slag walkers, shadow hounds. A relic there is guarded by them too.' },
+    { match: 'Dune rays swim under the Desert', shots: [
+      { name: 'foes-ray', only: 'after', caption: 'The Desert: a dune ray’s ring closing round the traveller’s feet, sand spraying where it will burst up', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), a ray called in with foes.spawnKind' },
+      { name: 'foes-golem', only: 'after', caption: 'The Glass Dunes: a glass golem with both arms up for its slam', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-crab', only: 'after', caption: 'The Salt Harbour: a salt crab tucked into its shell, its spinning charge drawn along the ground', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'Sign moths of neon tube', shots: [
+      { name: 'foes-moth', only: 'after', caption: 'The Signal Market: sign moths flaring, the flash’s cone drawn at the traveller', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-drone', only: 'after', caption: 'The Sealed Hangar: a rust drone aiming its harpoon down the drawn lane', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-stalker', only: 'after', caption: 'The White Mangrove: a root stalker winding up its grab, its roots’ path drawn on the planks', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'Slag walkers in the Moon Foundry', shots: [
+      { name: 'foes-slag', only: 'after', caption: 'The Moon Foundry: a slag walker’s leg raised for its stomp, the ring it will leave burning drawn round it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-hound', only: 'after', caption: 'The City During the Eclipse: two shadow hounds, and the pool behind the traveller where one will step out', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'The old foes have new attacks', shots: [
+      { name: 'foes-quake', only: 'after', caption: 'The Arena: a machine with both arms high for its ground slam', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-volley', only: 'after', caption: 'The Arena: a spitter’s volley of three globs in the air, their three rings across the traveller’s way', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'In the Arena a FOES tab on the left', see: 'Open ?level=arena, click FOES on the left edge and choose a kind; press F4 for the hitboxes and let a machine slam to see its shockwave run out.' },
   ],
   '0.92': [
     { match: 'Games: the worlds list (Debug) has a row of small games', shots: [

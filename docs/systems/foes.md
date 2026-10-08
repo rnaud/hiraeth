@@ -225,9 +225,63 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes
 `Foes` send `WAVES` round you, whatever the setting: one blot, three blots, a machine, two machines and two
-blots, a spitter, a swarm, a machine, flyers, spitters with a machine, and a mixed last wave, round and round, `WAVE.rest` s after the last one falls.
+blots, a spitter, a swarm, a machine, flyers, spitters with a machine, a mixed wave, then each world's own kinds and a mixed last wave, round and round, `WAVE.rest` s after the last one falls.
+
+**The foe list** (`src/foe-spawner.js`): a FOES tab on the left edge opens a list of every kind. Choosing one
+stops the waves (`Foes.setPractice(kind)`): it comes in 9 m ahead of you, and again each time it falls. "Waves
+again" brings the waves back, "Clear the field" leaves it empty. `?level=arena&foe=crab` starts on one kind;
+in any world the console can call `foes.spawnKind('golem')`.
+
+## Each world's foes (v0.93)
+
+The loose ink takes the shape of what is round it: each world has a foe of its own, and its packs, relic guards
+and temple rooms draw from its roster.
+
+- **Attacks** (`def.attacks`, the fields are listed at the top of `src/foe-kinds.js`): every kind has a list;
+  `Foe.chooseAttack(d)` picks one whose `[min, max]` holds the distance, by weight, the last one used less
+  likely. `def.attack` stays the first (old code and tests read it). An attack may be `instant` (resolved as the
+  wind-up ends: lobs, flashes, blinks), `tele` (drawn on the floor; plain melee still reads from the body),
+  `track` (the drawn area follows you over that share of the wind-up, then holds), `sweep` (a charge that hits
+  what it runs into), `then` (a quick follow-up wound straight away: a combo; a block or a parry ends it),
+  `spread` (a volley of rings), and effects: `knock`, `tether` / `grab` (pull you in: `Foes.hold`, ended by
+  a cut, stilling or the time), `blind` (only if the camera looks toward it), `wave` (a ground shockwave:
+  a jump clears it, a guard does not), `leave` (burning slag), `surface` / `blink`. `onParry`: `chip`, `cut`,
+  `flip`.
+- **What a kind takes** (`def.takes`, `weak`, flags): `takes { shoot, fire, push, bloom }` is each glob's
+  damage (or `'hold'`); `weak { bomb: 2 }` multiplies a source; `heavy` (light cuts don't stop it, it shoves
+  less), `metal` (the magnet glove lifts it), `light` (a push or the fan's gust ends it), `flinchy` (any cut
+  stops it), `breaks` (its pieces fly apart). Foes now accept bloom globs too.
+- **The new kinds** (`KINDS`, models and their `anim(f, c)` in `src/foe-kinds.js`):
+
+  | Kind | World | Attacks | How to beat it |
+  |---|---|---|---|
+  | dune ray (`ray`) | Desert, Buried Machine | erupt (a ring under you that tracks, then bursts up, knocks down), glide (a lane charge) | buried it can't be cut or locked; a bomb, a stomp or a gust flushes it; surfaced it is open |
+  | glass golem (`golem`) | Glass Dunes | slam (cone, knocks down), shards (ring round it), hurl (a lobbed chunk) | shots do nothing, bombs ×2, a perfect parry of the slam chips 1; breaks into three `splinter`s |
+  | sign moth (`moth`) | Signal Market, Antennas | flash (cone: blinds if you look at it), dart (a short dive) | in threes; 1 hp, a gust or a push ends one; turn the camera away or guard |
+  | rust drone (`drone`) | Hangar, City-Shaft, Moon Foundry, Space City | harpoon (a lane; the line pulls you in), ram (a dive) | hovers out of reach; guarding the harpoon cuts the line and dazes it; metal for the magnet; stilled it drops |
+  | root stalker (`stalker`) | Mangrove, Lorn, Viridel | grab (roots along a lane drag you in) then lash (cone), lash | a cut frees you; embers ×2; a bloom glob puts it to sleep (held 3 s, cut double) |
+  | salt crab (`crab`) | Salt Harbour, Underwater City, Waterfall | snap (cone), spin (a charge along a lane, knocks down) | its shell turns a cut from the front (`'glance'`); guarding the spin flips it (2.6 s, no shell); a bomb cracks the shell |
+  | slag walker (`slag`) | Moon Foundry | stomp (ring, leaves slag round it), pour (cone, leaves slag) | burning patches where it walks (`Foes.patches`, 0.05 every 0.7 s on your feet); a fluid shot cools its crust: cuts ×2 |
+  | shadow hound (`hound`) | Eclipse | pounce (lunge), step (a pool behind you, it comes out there) then bite | in twos; running it is a shadow (`phased`: the blade passes through); an ember hurts 2 and lights it solid |
+
+  `NOTES` says what beats each, once, the first time one notices you (flag `foes.met.<kind>`).
+- **The old foes' new attacks:** the blot's lunge-combo (a longer coil, a lunge, a quick second lunge), the
+  spitter's arc volley (three rings in a row across the line to you, 0.6 m apart), the machine's ground slam
+  (`quake`: a ring round it, then a shockwave running out to 8 m).
+- **Rosters** (`src/foe-worlds.js`): `ROSTERS[world]` gives `wild` (pack leads by weight), `fill`, `first`
+  (a visit's first pack, alone; the Desert's is a blot, as the game explains them there), `guards`, `temple`
+  (by room: the Hangar, the Buried Machine and the City-Shaft alternate machines and drones) and `shade`.
+  Worlds without one keep `CLASSIC`. `packOf(n, world)`: group kinds (`GROUP`: six swarm, three moths, two
+  hounds) come as a group, big leads (`COSTS`) take more places, some only from the n-th pack (`FROM`).
+  Gentle still cuts a pack to two; harms, holds (×0.6) and the white of a flash (×0.6) are softer too.
+- **Hitboxes:** `Foes.hitShapes(out)` (registered from main.js with `registerHitboxes`) adds the shockwaves' fronts, the slag, a hold's line, a volley's rings and words over a buried ray or a running hound; `foeHitboxes` draws the attack the foe is on (`f.atk`).
+- **Placed foes:** temple rooms (`f.placed`) still only stir while you are in the temple; a broken golem's
+  splinters share its relic, so the relic is cleared when the last is down.
 
 ## Tests
+
+`tests/foe-kinds.test.js`: each new kind's attacks, telegraphs, damage and parry / stun answers, the old foes'
+new attacks, Gentle, the rosters and placed foes, the Arena's list.
 
 `tests/foes.test.js`:
 - the mind, the telegraph and stepping out of it;

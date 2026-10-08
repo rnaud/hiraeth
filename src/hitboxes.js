@@ -82,7 +82,7 @@ export function foeHitboxes(f, out = [], { player = null, locked = null } = {}) 
   out.push({ kind: 'circle', c: ground, r: D.sight, color: C.sight, tag: 'foe.sight', foe: f, faint: true });
   out.push({ kind: 'circle', c: ground, r: D.reach, color: C.reach, tag: 'foe.reach', foe: f, faint: true });
   if (D.keep) out.push({ kind: 'circle', c: ground, r: D.keep, color: C.keep, tag: 'foe.keep', foe: f, faint: true, dashed: true });
-  const phase = f.attackPhase, a = D.attack;
+  const phase = f.attackPhase, a = f.atk ?? D.attack;   // (the attack it is on: src/foe-kinds.js)
   if (phase) {
     const color = phase === 'telegraph' ? C.telegraph : phase === 'active' ? C.active : C.spent;
     const o = v3(f.attackOrigin()); o.y = f.pos.y;   // (drawn at the foe's feet: it reaches the traveller within STRIKE_RISE of that)
