@@ -1,0 +1,75 @@
+LORE.md
+  s_364474254304ac::t_ba73a7ddaaa1e5 797,979,1423
+docs/story-bible.md
+  s_364474254304ac::t_c737d7f258842f 364,575
+lore/characters/family.md
+  s_364474254304ac::t_b2ba9bae4fe456 55-62,65-77
+lore/characters/worlds.md
+  s_364474254304ac::t_15c7994054c5c8 33-44,65,149-151,186
+lore/continuity.md
+  s_364474254304ac::t_5746cba3996f46 10-20,30-33
+src/boxes/placements.js
+  s_364474254304ac::t_6d25daa5d754b4 43
+src/levels/content.js
+  s_364474254304ac::t_57ccb1fedc6bc9 105-106
+src/levels/fallen-ring.js
+  s_364474254304ac::t_2fa6868ce58045 98,125
+src/levels/overnight-train.js
+  s_364474254304ac::t_c40f9fb2948253 89,95,97-100,105
+src/levels/perdide2.js
+  s_364474254304ac::t_b130cbf4f80934 179
+src/levels/underside.js
+  s_364474254304ac::t_c1dc4beb38bb7a 113-114
+src/story/aliens-data.js
+  s_364474254304ac::t_a69498bb1d8e42 115
+src/story/arzach-data.js
+  s_364474254304ac::t_063ffb084c25cf 89,129
+src/story/bazaar-data.js
+  s_364474254304ac::t_1f48207769c932 150
+src/story/buried-data.js
+  s_364474254304ac::t_3cf4e170914959 201,226
+src/story/desert-data.js
+  s_364474254304ac::t_fa2b6f56a8d0dd 288-289,444,909,945
+src/story/edena-data.js
+  s_364474254304ac::t_8d94c986a82085 220,420,435
+src/story/ending.js
+  s_364474254304ac::t_e7467fe4b75b9f 261-262,286
+src/story/garage-data.js
+  s_364474254304ac::t_43029c0aeb07f1 120,206
+src/story/lantern-data.js
+  s_364474254304ac::t_94800870e01b5e 81-84,100-109,127-128,133,138,140,147,152-154,156-162,208
+src/story/perdide-data.js
+  s_364474254304ac::t_56be3640f2a53b 272,276-280,282
+src/story/perdide2-data.js
+  s_364474254304ac::t_8abff87060c997 4,101,142,152,154
+src/story/sightings-detours.js
+  s_364474254304ac::t_6f9cccaa82cf9f 13,15
+src/story/spheres-data.js
+  s_364474254304ac::t_99fcd192b9e1cd 123
+src/temples/desert-data.js
+  s_364474254304ac::t_bcde1485a6c563 18,29
+src/temples/perdide2.js
+  s_364474254304ac::t_9e0325af347a21 12
+tests/ending.test.js
+  s_364474254304ac::t_7e46d0b1625e90 170
+tests/story-buried.test.js
+  s_364474254304ac::t_721656deb7b295 160
+tests/story-garage.test.js
+  s_364474254304ac::t_c7e37f15a4e310 152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4deec6c749aed73d24083cf1f10b8d28767109e5",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
