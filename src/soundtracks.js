@@ -1,5 +1,9 @@
 // Downloaded Suno originals; provenance is recorded in public/music/manifest.json.
 export const SOUNDTRACKS = {
+  moonfoundry: 'moonfoundry.mp3',
+  underside: 'underside.mp3',
+  spacecity: 'spacecity.mp3',
+  overnighttrain: 'overnighttrain.mp3',
   glassdunes: 'glassdunes.mp3',
   underwater: 'underwater.mp3',
   eclipse: 'eclipse.mp3',

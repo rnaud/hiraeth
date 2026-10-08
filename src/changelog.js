@@ -10,6 +10,7 @@ import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
   { v: '0.94', date: '2026-10-08', items: [
+    {"text": "The Moon Foundry, the Underside, the City Floating in Space and the Overnight Train now have their own instrumental music.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},
     {"text": "New music follows you through the Glass Dunes, the Underwater City, the City During the Eclipse and the Fallen Ring.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},
     {"text": "The Salt Harbour, the City Behind the Waterfall, the Forest of Antennas and the Atelier gain new instrumental music.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},
     {"text": "Lorn, the Deep Wood, the Signal Market and the White Mangrove now have their own instrumental soundtracks.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},

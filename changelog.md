@@ -9,6 +9,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Lorn, the Deep Wood, the Signal Market and the White Mangrove now have their own instrumental soundtracks.
 - The Salt Harbour, the City Behind the Waterfall, the Forest of Antennas and the Atelier gain new instrumental music.
 - New music follows you through the Glass Dunes, the Underwater City, the City During the Eclipse and the Fallen Ring.
+- The Moon Foundry, the Underside, the City Floating in Space and the Overnight Train now have their own instrumental music.
 
 ## v0.93 — 2026-10-08
 

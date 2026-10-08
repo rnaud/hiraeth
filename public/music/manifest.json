@@ -142,6 +142,34 @@
       "source": "https://suno.com/song/7a417f35-bb5c-4ebc-8405-fbdc382d63bb",
       "file": "fallenring.mp3",
       "direction": "A mixolydian, 70 BPM; French horn, guitar, strings, frame drum; pastoral orbital ruins"
+    },
+    {
+      "level": "moonfoundry",
+      "title": "Hiraeth - The Moon Foundry",
+      "source": "https://suno.com/song/a739822f-3bff-4512-bede-ebf69a44e0d4",
+      "file": "moonfoundry.mp3",
+      "direction": "C dorian, 76 BPM; metallic mallets, brass, electric piano, analog arpeggios; patient moon-making"
+    },
+    {
+      "level": "underside",
+      "title": "Hiraeth - The Underside",
+      "source": "https://suno.com/song/a1d3fc85-eb91-411a-b53b-dd3e35f94bd4",
+      "file": "underside.mp3",
+      "direction": "G dorian, 64 BPM in 3; plucked cello, flute, harmonium, harp; a town suspended over clouds"
+    },
+    {
+      "level": "spacecity",
+      "title": "Hiraeth - The City Floating in Space",
+      "source": "https://suno.com/song/ffff8cc7-ea8b-4a41-88a2-a55dc5fe82b2",
+      "file": "spacecity.mp3",
+      "direction": "E flat lydian, 60 BPM; analog strings, celesta, electric piano, French horn; intimate cosmic wonder"
+    },
+    {
+      "level": "overnighttrain",
+      "title": "Hiraeth - The Overnight Train",
+      "source": "https://suno.com/song/a66358da-e1c8-4d4e-b61c-e00e85effcec",
+      "file": "overnighttrain.mp3",
+      "direction": "B flat major, 78 BPM; felt piano, brushes, upright bass, clarinet, vibes; cozy rolling nocturne"
     }
   ]
 }
