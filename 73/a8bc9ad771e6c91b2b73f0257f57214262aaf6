@@ -1,0 +1,57 @@
+docs/credits.md
+  s_096d9f4127f346::t_4c011833e6d47c 19-30
+docs/systems/audio.md
+  s_364474254304ac::t_dd5e1353fff24d 115-166
+public/sfx/manifest.json
+  s_364474254304ac::t_8212ec9932837c 1-450
+scripts/sfx-build.mjs
+  s_096d9f4127f346::t_96d8789b4f8757 1-122
+src/audio.js
+  s_364474254304ac::t_95d457f19f1dd8 18-19,176,325-329,333-374,488,562-566,822,824,826-827,835,879,990,1022-1024,1032,1053,1074,1121,1265-1383,1438-1441,1448-1450,1460-1461,1584,1593,1926
+src/foley.js
+  s_364474254304ac::t_2d639826ed4d4e 1-103
+src/interact.js
+  s_096d9f4127f346::t_5e51fcd9b7b23f 83,91-98,122,124
+src/main.js
+  s_364474254304ac::t_4d72273ce7d93d 64,69,281,459-461,590,872,1549
+src/music-moments.js
+  s_096d9f4127f346::t_ee88fce576cd44 1-76
+src/quest.js
+  s_364474254304ac::t_882865ad3f3dbc 145-146,287
+src/sfx.js
+  s_096d9f4127f346::t_a0fdf90211a53e 1-149
+src/soundtracks.js
+  s_096d9f4127f346::t_44c05f12591f64 66,73-74
+src/ui.js
+  s_364474254304ac::t_9bb2a7f4b5b3ed 27,168
+tests/foley.test.js
+  s_364474254304ac::t_d542544988242b 1-81
+tests/music-moments.test.js
+  s_364474254304ac::t_ac08dc4d277b80 1-100
+tests/sfx.test.js
+  s_364474254304ac::t_f4ac936dbba8f3 1-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "73a8bc9ad771e6c91b2b73f0257f57214262aaf6",
+  "prompts": {},
+  "sessions": {
+    "s_096d9f4127f346": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11c1c-fa66-7b63-bdfb-d94262f7dff8",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
