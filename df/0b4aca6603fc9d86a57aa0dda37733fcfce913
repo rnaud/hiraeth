@@ -1,0 +1,49 @@
+changelog.md
+  s_efb1d100d5a6fc::t_c110bb5cfc4ec3 5-15
+docs/systems/references.md
+  s_efb1d100d5a6fc::t_7543518b063207 177-198,321-328,439-444,532-541,998-1029
+src/biome.js
+  s_efb1d100d5a6fc::t_c0fccde26882cd 21-22
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_881ea65e512bb6 120-134
+src/changelog.js
+  s_efb1d100d5a6fc::t_3ce04b1fc4cfc7 12-21
+src/desert-sites.js
+  s_efb1d100d5a6fc::t_0839bf920daf3b 77-82
+src/levels/buried.js
+  s_efb1d100d5a6fc::t_d0f275929c8340 37-41,198,226,1165
+src/levels/desert.js
+  s_efb1d100d5a6fc::t_1c0225de8bb8a7 26-28,123
+src/levels/garage.js
+  s_efb1d100d5a6fc::t_8ff9c3c8d11eca 25-27,106-107,126,175,263,266,313,331,349,363,380,434,496,500,506-507
+src/levels/glass-dunes-kit.js
+  s_efb1d100d5a6fc::t_c3c1347cdecbaa 33-34,36-37
+src/levels/glass-dunes.js
+  s_efb1d100d5a6fc::t_d30d3f7280b418 35,37,44-46
+src/levels/incal.js
+  s_efb1d100d5a6fc::t_52ad42dabb5a7b 28-33,1142,1145
+src/levels/overnight-train-kit.js
+  s_efb1d100d5a6fc::t_d28057ef8d1076 61,72-74
+src/levels/perdide.js
+  s_efb1d100d5a6fc::t_2853f54d701fef 26-29,215,499-501,506
+src/levels/perdide2.js
+  s_efb1d100d5a6fc::t_70d6178e762d8d 204,383,406
+tests/colour-pass.test.js
+  s_efb1d100d5a6fc::t_db8ee81c2176bf 1-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "df0b4aca6603fc9d86a57aa0dda37733fcfce913",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
