@@ -21,11 +21,11 @@ import { Footprints } from './life.js';
 //   body.melt = 0..1           how much has run away (its coming and its going)
 
 /** The strike from motion capture: the clip, its wind-up (start → the cut) and its follow-through. */
-export const SHADE_STRIKE = { clip: 'mixamo_ss_attack_2', from: 0.1, cut: 0.55, to: 0.95 };
+export const SHADE_STRIKE = { clip: 'mixamo_ss_attack_1', from: 0.55, cut: 1.15, to: 1.7 };   // (the blade's first cut: moves.glb has it)
 /** Its black, a near-black for the drops, its eyes' white. */
 export const SHADE_TONES = ['#08070a', '#1a1720', '#f7f2e6'];
 /** The body's material: one per shade (its own time and melt), the flame's mesh shares it. fluidBox: fold strokes, neck cut (bind y). */
-export const SHADE_MATERIAL = { color: SHADE_TONES[0], fluid: 'shadow', fluidBox: [0, 1.8, 1, 1.6], line: 1, lineWhite: true };
+export const SHADE_MATERIAL = { color: SHADE_TONES[0], fluid: 'shadow', fluidBox: [0, 1.8, 1, 1.5], line: 1, lineWhite: true };
 const UP = new THREE.Vector3(0, 1, 0);
 let uid = 0;
 
@@ -36,13 +36,16 @@ let uid = 0;
  * longer at a wind-up's end; gutter: how much shorter while stilled or hit; whip: the cut's lateral swing; ease:
  * how fast it follows (1/s: up, down, the whip's).
  */
-export const FLAME = { lean: 0.16, leanMax: 0.9, flare: 0.6, gutter: 0.55, whip: 1, ease: [10, 5, 14], flick: 1.4 };
+export const FLAME = { lean: 0.16, leanMax: 0.9, flare: 0.45, gutter: 0.55, whip: 1, ease: [10, 5, 14], flick: 1.4 };
 
 const smooth = (x) => { x = Math.min(Math.max(x, 0), 1); return x * x * (3 - 2 * x); };
 const toward = (a, b, rate, dt) => a + (b - a) * (1 - Math.exp(-rate * dt));
 
 /** The flame's state at rest. */
-export const flameRest = () => ({ lx: 0, lz: 0, size: 0, whip: 0, gutter: 0, flick: 1, time: 0 });
+export const flameRest = () => ({ lx: 0, lz: 0, size: 0, whip: 0, gutter: 0, flick: 1, time: 0, snap: [0, 0, 0] });
+
+/** Its licks: bulges travelling up a tongue (u, the flame's clock, the tongue's phase), a factor on its width round 1. */
+export const lickWave = (u, t, p = 0) => 1 + 0.3 * Math.sin(u * 13 - t * 7.5 + p) * Math.sin(Math.PI * u);
 
 /**
  * What the flame wants this frame, from the foe: { vx, vz } its velocity in its own frame (m/s: x its right, z ahead),
@@ -74,18 +77,19 @@ export function flameDrive(prev, s, dt) {
   prev.gutter = toward(prev.gutter, t.gutter, t.gutter > prev.gutter ? 18 : 4, dt);
   prev.flick = toward(prev.flick, t.flick, up, dt);
   prev.time += dt * prev.flick;   // (its own clock: a faster flicker never jumps)
+  if (prev.snap) for (let i = 0; i < prev.snap.length; i++) prev.snap[i] = Math.max(0, prev.snap[i] - dt * 4);
   return prev;
 }
 
 /** A tongue's width along it (u 0 its root … 1 its tip), 0..1: a round root, a bulb a little over a third of the way up, a sharp tip. */
 export function tongueRadius(u) {
   if (u <= 0 || u >= 1) return 0;
-  const a = u ** 0.7;
-  return Math.sin(Math.PI * a) ** 0.6 * (1 - 0.3 * u);
+  const a = u ** 0.8;
+  return Math.sin(Math.PI * a) ** 0.5 * (1 - 0.4 * u);
 }
 
 /**
- * Where a tongue's axis is at u (0..1), from its root, in the shade's frame (out: Vector3). T a tongue
+ * Where a tongue's axis is at u (0..1), from its root (out: Vector3; x across, y up, z toward the eye: the flame's card uses x and y). T a tongue
  * ({ len, tilt: [x, z], phase, wave }), d the drive. It rises its length (flickering), tilted out its own way,
  * leaning back by the drive's lean more toward its tip (u²), whipped across by the cut, and licks: a wave
  * travelling up it, growing toward the tip (choppier when guttered).
@@ -96,67 +100,91 @@ export function tongueAxis(u, T, d, out = new THREE.Vector3()) {
   const amp = T.wave * (1 + 0.8 * d.gutter) * len;
   const w = u ** 1.5, u2 = u * u, u3 = u2 * u;
   const curl = (T.curl ?? 0) * len * u3 * (1 + 0.35 * Math.sin(t * 3.1 + p));   // (its tip curls over, a drawn flame's hook)
-  const wx = Math.sin(t * 5.3 - u * 4.2 + p) * amp * w + Math.sin(t * 17 + p * 3) * 0.03 * d.gutter * len * w;
+  const wx = Math.sin(t * 5.3 - u * 6.5 + p) * amp * w + Math.sin(t * 17 + p * 3) * 0.03 * d.gutter * len * w;
   const wz = Math.cos(t * 4.1 - u * 3.6 + p * 1.7) * amp * 0.6 * w;
   return out.set(T.tilt[0] * len * u + d.lx * len * u2 + d.whip * 0.45 * len * u2 + wx + curl,
     len * u * (1 - 0.25 * Math.min(1, Math.hypot(d.lx, d.lz)) * u) - Math.abs(curl) * 0.4,
     T.tilt[1] * len * u + d.lz * len * u2 + wz);
 }
 
-/** A tongue's length now: its own times the flame's size, flickering (two waves, and a jolt when guttered). */
+/** A tongue's length now: its own times the flame's size, flickering (two waves, and a jolt when guttered), shorter just after its tip broke off. */
 export function tongueLength(T, d) {
   const t = d.time, p = T.phase;
   const flick = 1 + 0.16 * Math.sin(t * 6.1 + p) + 0.09 * Math.sin(t * 13.7 + p * 2.3) + 0.12 * d.gutter * Math.sign(Math.sin(t * 9 + p));
-  return T.len * Math.max(d.size, 0) * flick;
+  return T.len * Math.max(d.size, 0) * flick * (1 - 0.3 * (d.snap?.[T.i] ?? 0));   // (snap: its tip just broke off)
 }
 
-/** The flame's tongues (from the neck, in the shade's frame: x its right, z ahead): the head's, the shoulders', the back's. */
+/**
+ * The flame's tongues, drawn as a cartoon draws a flame: flat shapes on a card that turns to face the eye (round its
+ * upright), overlapping into one silhouette, an onion wrapping the neck that narrows to three wavy tips. In the
+ * card's frame from the neck: at [x across, y up, z toward the eye], r its half-width, tilt [across, -].
+ */
 export const TONGUES = [
-  { at: [0, 0.0, 0.02], r: 0.165, len: 0.52, tilt: [0, -0.06], phase: 0, wave: 0.07, curl: 0.12, main: true },
-  { at: [0.02, 0.2, -0.03], r: 0.095, len: 0.5, tilt: [0.05, -0.2], phase: 2.7, wave: 0.2, curl: 0.3 },
-  { at: [-0.07, 0.15, 0.0], r: 0.08, len: 0.36, tilt: [-0.26, -0.1], phase: 4.1, wave: 0.2, curl: -0.35 },
-  { at: [0.07, 0.14, 0.0], r: 0.08, len: 0.4, tilt: [0.22, -0.12], phase: 1.2, wave: 0.2, curl: 0.35 },
-  { at: [0.0, 0.08, -0.1], r: 0.085, len: 0.42, tilt: [-0.05, -0.42], phase: 5.3, wave: 0.16, curl: -0.3 },
-  { at: [0.12, -0.06, -0.02], r: 0.06, len: 0.24, tilt: [0.42, -0.1], phase: 3.3, wave: 0.22, curl: 0.45 },
-  { at: [-0.12, -0.06, -0.02], r: 0.06, len: 0.22, tilt: [-0.42, -0.1], phase: 0.6, wave: 0.22, curl: -0.45 },
-];
-const SEG = 10, RINGS = 11;
+  // the flame's body: an onion rising from behind the collar (its root hidden by the chest and shoulders), its
+  // tip wavering high over where the head was
+  { at: [0, -0.22, 0.06], r: 0.19, len: 0.72, tilt: [0, 0], phase: 0, wave: 0.2, curl: 0.04, main: true },
+  // two lesser tips out of its flanks, leaning out and curling back in: three wavy tips in all
+  { at: [-0.12, -0.02, 0.05], r: 0.1, len: 0.46, tilt: [-0.26, 0], phase: 2.1, wave: 0.2, curl: 0.34 },
+  { at: [0.12, -0.04, 0.045], r: 0.095, len: 0.4, tilt: [0.28, 0], phase: 4.4, wave: 0.2, curl: -0.34 },
+].map((T, i) => ({ ...T, i }));
+const ROWS = 24, COLS = 7;
 // (the flame's vertices sit this high in its mesh, its root at the neck: the shared material's fold strokes start over 0.3)
 const FLAME_Y = 0.5;
-/** Where the eye-slits sit on the head's tongue: up it (u), round from its front (rad), and their slant (rad). */
-export const EYES = { u: 0.4, round: 0.4, slant: 0.36, w: 0.07, h: 0.026 };
+/** Where the eye-slits sit on the head's tongue: up it (u), apart (of its half-width), and their slant (rad). */
+export const EYES = { u: 0.5, apart: 0.42, slant: 0.36, w: 0.075, h: 0.028 };
 
-const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _t = new THREE.Vector3(), _n1 = new THREE.Vector3(), _n2 = new THREE.Vector3(), _x = new THREE.Vector3(1, 0, 0);
+const _a = new THREE.Vector3(), _w = new THREE.Vector3();
 
-/** The black flame: its tongues in one mesh, rewritten each frame (a few hundred vertices), sharing the body's material. */
+/**
+ * The black flame: its tongues on one card in one mesh (525 vertices rewritten each frame), sharing the body's material.
+ * The card turns to the eye as it is drawn (onBeforeRender, a perspective camera's: not the shadow's); its normals
+ * bulge it (turned out to its edges, so the material's white contour runs round it) and its aFold marks the head's
+ * tongue (3 +: its lick only up its tip) from the others (1 +: a white lick up them).
+ */
 export class ShadeFlame {
   constructor(parent, material, eyeMat) {
-    const per = (SEG + 1) * (RINGS + 1), n = TONGUES.length * per;
+    const per = (ROWS + 1) * COLS, n = TONGUES.length * per;
     const g = new THREE.BufferGeometry(), idx = [];
     TONGUES.forEach((_, k) => {
-      for (let j = 0; j < RINGS; j++) for (let i = 0; i < SEG; i++) {
-        const a = k * per + j * (SEG + 1) + i, b = a + 1, c = a + SEG + 1, d = c + 1;
+      for (let j = 0; j < ROWS; j++) for (let i = 0; i < COLS - 1; i++) {
+        const a = k * per + j * COLS + i, b = a + 1, c = a + COLS, d = c + 1;
         idx.push(a, b, c, b, d, c);
       }
     });
+    const nrm = new Float32Array(n * 3), fold = new Float32Array(n * 2);
+    TONGUES.forEach((T, k) => {
+      for (let j = 0; j <= ROWS; j++) for (let i = 0; i < COLS; i++) {
+        const o = k * per + j * COLS + i, sx = (i / (COLS - 1)) * 2 - 1, ph = sx * Math.PI * 0.5 * 0.98;
+        nrm[o * 3] = Math.sin(ph); nrm[o * 3 + 1] = 0; nrm[o * 3 + 2] = Math.cos(ph);   // (a bulge: out to its edges)
+        fold[o * 2] = (T.main ? 3 : 1) + 0.5 + 0.35 * sx; fold[o * 2 + 1] = j / ROWS;   // (a lick at sx ~0.7)
+      }
+    });
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
-    g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
-    // aFold: x 1 + round the tongue (3 + on the head's: no lick drawn on it), y up it (materials.js fluid 'shadow')
-    const fold = new Float32Array(n * 2);
-    TONGUES.forEach((T, k) => { for (let j = 0; j <= RINGS; j++) for (let i = 0; i <= SEG; i++) { const o = k * per + j * (SEG + 1) + i; fold[o * 2] = (T.main ? 3 : 1) + Math.min(i / SEG, 0.999); fold[o * 2 + 1] = j / RINGS; } });
+    g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
     g.setAttribute('aFold', new THREE.BufferAttribute(fold, 2));
     g.setIndex(idx);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0.4, 0), 1.4);   // (generous: it never needs recomputing)
+    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, FLAME_Y + 0.3, 0), 1.2);   // (generous: never recomputed)
     this.mesh = new THREE.Mesh(g, material);
     Object.assign(this.mesh.userData, { dynamic: true, noCollide: true });
     parent.add(this.mesh);
-    // the eye-slits: two white almonds, slanting in
+    this.yaw = 0;   // the card's turn in its parent's frame (to the eye, as last drawn)
+    this.mesh.onBeforeRender = (renderer, scene, camera) => {
+      if (!camera.isPerspectiveCamera || !this.mesh.parent) return;
+      const P = this.mesh.parent;
+      _w.setFromMatrixPosition(camera.matrixWorld);
+      P.worldToLocal(_w);
+      this.yaw = Math.atan2(_w.x - this.mesh.position.x, _w.z - this.mesh.position.z);
+      this.mesh.rotation.y = this.yaw;
+      this.mesh.updateMatrixWorld(true);
+    };
+    // the eye-slits: two white almonds, slanting in, on the card's face
     const almond = new THREE.Shape();
     almond.moveTo(-0.5, 0); almond.quadraticCurveTo(0, 0.9, 0.5, 0); almond.quadraticCurveTo(0, -0.55, -0.5, 0);
     const eg = new THREE.ShapeGeometry(almond, 6);
     this.eyes = [-1, 1].map((side) => {
       const e = new THREE.Mesh(eg, eyeMat);
       Object.assign(e.userData, { dynamic: true, noCollide: true, side });
+      e.onBeforeRender = this.mesh.onBeforeRender;   // (whichever is drawn first turns the card)
       this.mesh.add(e);
       return e;
     });
@@ -167,46 +195,41 @@ export class ShadeFlame {
   /** Rewrite the tongues for the drive d, rooted at `neck` (in the parent's frame). */
   update(d, neck) {
     this.mesh.position.copy(neck).y -= FLAME_Y;
-    this.mesh.updateMatrixWorld();
-    const P = this.mesh.geometry.attributes.position, N = this.mesh.geometry.attributes.normal;
-    const per = (SEG + 1) * (RINGS + 1);
+    // the lean across the card (the card faces the eye: a lean toward or away from it only shortens the flame)
+    const c = Math.cos(this.yaw), s = Math.sin(this.yaw);
+    const across = d.lx * c - d.lz * s, along = -(d.lx * s + d.lz * c);
+    const dc = { ...d, lx: across, lz: 0 };
+    const P = this.mesh.geometry.attributes.position, per = (ROWS + 1) * COLS;
     TONGUES.forEach((T, k) => {
-      const len = Math.max(tongueLength(T, d), 1e-3);
-      for (let j = 0; j <= RINGS; j++) {
-        const u = j / RINGS;
-        tongueAxis(u, T, d, _a);
-        tongueAxis(Math.min(u + 0.04, 1), T, d, _b);
-        tongueAxis(Math.max(u - 0.04, 0), T, d, _t);
-        _t.subVectors(_b, _t).normalize();   // the axis' tangent
-        _n1.copy(_x).addScaledVector(_t, -_x.dot(_t)).normalize();
-        _n2.crossVectors(_t, _n1);
+      for (let j = 0; j <= ROWS; j++) {
+        const u = j / ROWS;
+        tongueAxis(u, T, dc, _a);
+        _a.y *= 1 - 0.3 * Math.min(1, Math.abs(along)) * u;   // (leaning toward or away from the eye: foreshortened)
         const r = T.r * tongueRadius(u) * Math.min(1, 0.55 + 0.45 * d.size) * (1 - 0.25 * d.gutter);
-        const dr = T.r * (tongueRadius(Math.min(u + 0.02, 1)) - tongueRadius(Math.max(u - 0.02, 0))) / (0.04 * len);
-        for (let i = 0; i <= SEG; i++) {
-          const th = (i / SEG) * Math.PI * 2, c = Math.cos(th), s = Math.sin(th), o = k * per + j * (SEG + 1) + i;
-          const ox = _n1.x * c + _n2.x * s, oy = _n1.y * c + _n2.y * s, oz = _n1.z * c + _n2.z * s;
-          // (a little flatter front to back: a drawn flame's shape)
-          P.setXYZ(o, T.at[0] + _a.x + ox * r, FLAME_Y + T.at[1] + _a.y + oy * r, T.at[2] + _a.z + oz * r * 0.85);
-          _b.set(ox, oy, oz / 0.85).addScaledVector(_t, -dr).normalize();
-          N.setXYZ(o, _b.x, _b.y, _b.z);
+        // (its root leans back behind the collar, so the chest and shoulders hide where it starts)
+        const z = T.at[2] - 0.15 * (1 - u) ** 4;
+        for (let i = 0; i < COLS; i++) {
+          // each edge scalloped by its own licks (out of step, left and right): a drawn flame's wavering sides
+          const sx = (i / (COLS - 1)) * 2 - 1, rr = r * lickWave(u, d.time, T.phase + 1.7 * sx);
+          P.setXYZ(k * per + j * COLS + i, T.at[0] + _a.x + sx * rr, FLAME_Y + T.at[1] + _a.y, z + 0.04 * (1 - sx * sx) * tongueRadius(u));
         }
-        if (j === RINGS) this.tips[k].set(T.at[0] + _a.x, T.at[1] + _a.y, T.at[2] + _a.z).add(neck);   // (in the shade's frame)
-        if (T.main && Math.abs(u - EYES.u) < 0.5 / RINGS + 1e-6) this.placeEyes(T, d, u, r);
+        if (j === ROWS) this.tips[k].set(T.at[0] + _a.x, T.at[1] + _a.y, T.at[2]);
+        if (T.main && j === Math.round(EYES.u * ROWS)) this.placeEyes(d, T, r, z);
       }
+      // (the tips in the parent's frame, turned with the card)
+      const t = this.tips[k], x = t.x;
+      t.set(x * c + t.z * s, t.y, -x * s + t.z * c).add(neck);
     });
-    P.needsUpdate = true; N.needsUpdate = true;
+    P.needsUpdate = true;
   }
 
-  /** The eye-slits on the head's tongue, facing out of it: narrowed as it winds up, shut to lines when guttered. */
-  placeEyes(T, d, u, r) {
-    tongueAxis(u, T, d, _a);
+  /** The eye-slits on the head's tongue: narrowed as it winds up, shut to lines when guttered. */
+  placeEyes(d, T, r, z) {
     const wide = 1 + 0.25 * Math.max(0, d.size - 1), shut = 1 - 0.65 * d.gutter, slant = EYES.slant * (1 + 0.5 * Math.max(0, d.size - 1));
     for (const e of this.eyes) {
-      const side = e.userData.side, th = -Math.PI / 2 + side * EYES.round;   // (−π/2: its front, +z)
-      const ox = _n1.x * Math.cos(th) + _n2.x * Math.sin(th), oy = _n1.y * Math.cos(th) + _n2.y * Math.sin(th), oz = (_n1.z * Math.cos(th) + _n2.z * Math.sin(th)) * 0.85;
-      e.position.set(T.at[0] + _a.x + ox * r * 1.02, FLAME_Y + T.at[1] + _a.y + oy * r * 1.02, T.at[2] + _a.z + oz * r * 1.02);
-      e.lookAt(_b.set(ox, oy, oz).add(e.position).applyMatrix4(this.mesh.matrixWorld));
-      e.rotateZ(-side * slant);
+      const side = e.userData.side;
+      e.position.set(T.at[0] + _a.x + side * EYES.apart * r, FLAME_Y + T.at[1] + _a.y, z + 0.05);
+      e.rotation.set(0, 0, -side * slant);
       e.scale.set(EYES.w * wide, EYES.h * shut * Math.min(1, d.size * 1.5), 1);
       e.visible = d.size > 0.08;
     }
@@ -223,9 +246,9 @@ export class ShadePools {
     }
     this.pools = new Footprints(scene, { count: 120, life: 9, depth: 0.32, geometry: new THREE.ShapeGeometry(blob, 3) });
     // (white-lined, as the shade is: black drops and licks drawn in the paper's white)
-    // (smooth, so no crease is drawn across a drop's facets)
-    const mat = makeMaterial({ color: '#ffffff', lineWhite: true, key: 'shade-drops' });
-    this.drops = new Dots(scene, 220, mat, new THREE.SphereGeometry(1, 8, 6));
+    // (drops plain black, inked as anything is; the licks and wisps white-lined, as the shade is, smooth so no facet is inked)
+    this.drops = new Dots(scene, 220, makeMaterial({ color: '#ffffff', key: 'shade-drops' }), new THREE.SphereGeometry(1, 10, 8));
+    const mat = makeMaterial({ color: '#ffffff', lineWhite: true, key: 'shade-licks' });
     // a lick: a teardrop, pointed up (Dots turn it along its way)
     const lick = new THREE.LatheGeometry(Array.from({ length: 7 }, (_, i) => new THREE.Vector2(tongueRadius(i / 6) * 0.38, i / 6 - 0.3)), 10);
     this.licks = new Dots(scene, 90, mat, lick);
@@ -298,15 +321,17 @@ export class ShadeBody {
     _neck.y = Math.min(_neck.y, 2.3 - 2.4 * melt);   // (as it pours away, its flame sinks with it)
     this.flame.update(d, _neck);
     if (!this.pools) return;
-    // licks torn off its flame: as it dies, and now and then as it flares or gutters
+    // its tips break off as small rising wisps, now and then at rest; often as it flares or gutters; a stream as it dies
     this.lickT -= dt;
-    const tearing = (f.dead !== undefined && melt < 0.95) || d.size > 1.5 || d.gutter > 0.6;
-    if (tearing && this.lickT <= 0) {
-      this.lickT = f.dead !== undefined ? 0.02 : 0.09;
-      const tip = this.flame.tips[Math.floor(Math.random() * this.flame.tips.length)];
-      const at = tip.clone().applyMatrix4(this.group.matrixWorld);
+    if (d.size > 0.05 && this.lickT <= 0) {
+      const dying = f.dead !== undefined, busy = d.size > 1.3 || d.gutter > 0.6;
+      this.lickT = dying ? 0.02 : busy ? 0.1 : 0.35 + Math.random() * 0.45;
+      const k = Math.floor(Math.random() * this.flame.tips.length);
+      d.snap[k] = 1;   // (the tongue it left jumps short)
+      const at = this.flame.tips[k].clone().applyMatrix4(this.group.matrixWorld);
       const back = new THREE.Vector3(d.lx * c + d.lz * s, 0, -d.lx * s + d.lz * c);
-      this.pools.licks.add({ pos: at, vel: new THREE.Vector3((Math.random() - 0.5) * 0.6, 1.4 + Math.random(), (Math.random() - 0.5) * 0.6).addScaledVector(back, 2), drag: 1.5, grav: -1.5, size: 0.05 + Math.random() * 0.05, stretch: 3.2, life: 0.45 + Math.random() * 0.3, color: SHADE_TONES[0] });
+      const big = dying ? 1 : 0.6;
+      this.pools.licks.add({ pos: at, vel: new THREE.Vector3((Math.random() - 0.5) * 0.4, 1.1 + Math.random() * 0.8, (Math.random() - 0.5) * 0.4).addScaledVector(back, 2), drag: 1.5, grav: -1.2, size: (0.04 + Math.random() * 0.04) * big, stretch: 3.2, life: 0.4 + Math.random() * 0.3, color: SHADE_TONES[0] });
     }
     // drops fall off it; where it walks, it leaves dark pools
     this.dripT -= dt; this.poolT -= dt;
