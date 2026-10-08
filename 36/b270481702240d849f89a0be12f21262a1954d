@@ -1,0 +1,27 @@
+docs/systems/living-world.md
+  s_364474254304ac::t_214932f03acff4 164-201
+src/chemistry.js
+  s_364474254304ac::t_9838cbf65d6d54 1-274
+src/flammable.js
+  s_364474254304ac::t_0aa87793b065b9 19-22,24,34-35,37,88,90-93,99-139,171-174,218-219
+src/wildlife.js
+  s_364474254304ac::t_240fd55c5e2189 438,711-719,722,734
+tests/chemistry.test.js
+  s_364474254304ac::t_0871c850b72c6d 1-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "36b270481702240d849f89a0be12f21262a1954d",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
