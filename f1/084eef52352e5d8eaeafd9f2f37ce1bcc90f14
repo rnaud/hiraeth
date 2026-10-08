@@ -1,0 +1,65 @@
+changelog.md
+  s_efb1d100d5a6fc::t_fc6a2b39da6828 5-14
+docs/systems/references.md
+  s_0b257590537c5a::t_5b84aa9c49122b 227-234,680-688,723-735,781-787,890-899,936-942,1006-1019
+src/changelog-media.js
+  s_0b257590537c5a::t_4bb6db2c98d196 120-143
+src/changelog.js
+  s_efb1d100d5a6fc::t_3de087dfbf8868 12-20
+src/levels/arzach.js
+  s_efb1d100d5a6fc::t_5108cbfac3f5b5 337-338,348-350
+src/levels/arzach2.js
+  s_efb1d100d5a6fc::t_4c075600bb738a 29-30,32-34,41
+src/levels/eclipse-kit.js
+  s_0b257590537c5a::t_d5efa661cbab6c 53,64-66,75,82-83
+src/levels/edena.js
+  s_efb1d100d5a6fc::t_d165a240017157 610-611
+src/levels/fallen-ring-kit.js
+  s_efb1d100d5a6fc::t_e9c543383fbb77 445,450,452
+src/levels/fallen-ring.js
+  s_efb1d100d5a6fc::t_0fac7dc88b4301 375
+src/levels/moon-foundry-kit.js
+  s_efb1d100d5a6fc::t_73790ebf500d77 63,65,67,75
+src/levels/moon-foundry.js
+  s_efb1d100d5a6fc::t_db3e73e9892484 174-175,183,193
+src/levels/reference-eclipse.js
+  s_efb1d100d5a6fc::t_68bf27ab053e48 29-32,166,256
+src/levels/reference-fallenring.js
+  s_efb1d100d5a6fc::t_6aad77df1779fd 27-30,62
+src/levels/reference-moonfoundry.js
+  s_efb1d100d5a6fc::t_9907861263fb33 28-31,52-54,57-58,60,64-65,71,74
+src/levels/reference-spacecity.js
+  s_efb1d100d5a6fc::t_1056a4c754883c 131,179,215,217,254,256
+src/levels/reference-underside.js
+  s_efb1d100d5a6fc::t_7d20e27d1aa5ae 27-30
+src/levels/reference-vael2.js
+  s_efb1d100d5a6fc::t_e8ec02574177a1 30,32-33,35-38,548,618,627,732,783,811
+src/levels/space-city-kit.js
+  s_efb1d100d5a6fc::t_cf06d7a70eb132 41-42,57,59,61,67
+src/levels/underside-kit.js
+  s_efb1d100d5a6fc::t_93b3396c70fca0 43-44,54,66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f1084eef52352e5d8eaeafd9f2f37ce1bcc90f14",
+  "prompts": {},
+  "sessions": {
+    "s_0b257590537c5a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11b63-b11c-7440-84f8-471c5f03bb72",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
