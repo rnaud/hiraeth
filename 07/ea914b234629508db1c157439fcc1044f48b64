@@ -1,0 +1,23 @@
+.claude/skills/new-world/SKILL.md
+  s_364474254304ac::t_b443e784903967 1-125
+.claude/skills/playtest/SKILL.md
+  s_364474254304ac::t_c7219c5971d662 1-91
+.claude/skills/ship-release/SKILL.md
+  s_364474254304ac::t_552f3616e99c9c 1-99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "07ea914b234629508db1c157439fcc1044f48b64",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
