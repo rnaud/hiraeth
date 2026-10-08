@@ -1271,6 +1271,32 @@ export class Sound {
     this.burst(t, { dur: 0.18, type: 'bandpass', freq: 1400, q: 0.8, vol: 0.16, rate: 0.9 });
   }
 
+  /** The shield opens on the left hand (src/shield.js): a quick brass ratchet of its ribs and the fluid's rising hiss. */
+  shieldOpen() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    for (let i = 0; i < 4; i++) this.burst(t + i * 0.03, { dur: 0.025, type: 'bandpass', freq: 2600 + i * 380, q: 6, vol: 0.05 });
+    this.sweep(t + 0.02, 340, 820, 0.16, 0.05, 'triangle');
+    this.burst(t + 0.05, { dur: 0.14, type: 'highpass', freq: 2400, q: 0.6, vol: 0.05, rate: 1.4 });
+  }
+
+  /** It folds away: the ratchet the other way, the fluid draining into the hub with a low sigh. */
+  shieldClose() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    for (let i = 0; i < 3; i++) this.burst(t + i * 0.035, { dur: 0.025, type: 'bandpass', freq: 3200 - i * 420, q: 6, vol: 0.04 });
+    this.sweep(t, 700, 300, 0.14, 0.04, 'triangle');
+  }
+
+  /** A blow it cannot take (the tank empty): a cracked, buzzing clank. */
+  shieldBreak() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.sweep(t, 520, 140, 0.22, 0.08, 'square');
+    this.burst(t, { dur: 0.2, type: 'bandpass', freq: 900, q: 1.5, vol: 0.14, rate: 0.6 });
+    for (let i = 0; i < 3; i++) this.burst(t + 0.06 + i * 0.05, { dur: 0.02, type: 'highpass', freq: 3800, q: 1, vol: 0.05 });
+  }
+
   /** A foe (src/foes.js) winds up a strike: an ink blot's wet gurgle, a machine's grinding whine. */
   foeWarn(kind = 'blot') {
     if (!this.ctx) return;

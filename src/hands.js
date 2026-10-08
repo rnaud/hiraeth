@@ -119,6 +119,8 @@ function over(w, id, k) {
  *   air      s off the ground (mode 'air')
  *   prop     a held prop in the right hand (PROP_GRIPS)
  *   aim      0..1 aiming the glove: the right fist, the left cupped under it
+ *   sword    0..1 the fluid blade drawn: the right hand a fist round its grip (src/blade-grip.js)
+ *   shield   0..1 the shield open on the back of the left hand: that hand a fist
  *   handoff  0..1 both hands on the tank
  *   startle  0..1 a fright (splayed hands)
  *   talk     { tone, k (0..1), beat (0..1) } speaking a line: a gesture in its tone
@@ -156,6 +158,8 @@ export function handTargets(ctx = {}) {
   }
   if (ctx.handoff > 0) { over(r, 'grip', ctx.handoff); over(l, 'grip', ctx.handoff); rate = Math.max(rate, HANDS.gripRate); }
   if (ctx.aim > 0) { over(r, 'fist', ctx.aim); over(l, 'cup', ctx.aim * 0.85); rate = Math.max(rate, HANDS.gripRate); }
+  if (ctx.sword > 0) { over(r, 'fist', ctx.sword); rate = Math.max(rate, HANDS.gripRate); }
+  if (ctx.shield > 0) { over(l, 'fist', ctx.shield); rate = Math.max(rate, HANDS.gripRate); }
   return { r: normalise(r), l: normalise(l), rate };
 }
 
@@ -347,7 +351,7 @@ export function playerHands(p) {
     : p.gliding ? 'glide' : p.onJets ?? p.thrusting ? 'jet' : !p.onGround && !p.overlay ? 'air' : 'ground';
   const U = p.frame?.up ?? _v.set(0, 1, 0);
   const speed = p.vel ? Math.sqrt(Math.max(0, p.vel.lengthSq() - p.vel.dot(U) ** 2)) : 0;
-  return { mode, ride: p.ride?.kind, speed, aim: p.aim?.k ?? 0, handoff: p.handoffGrip?.() ?? 0 };
+  return { mode, ride: p.ride?.kind, speed, aim: p.aim?.k ?? 0, handoff: p.handoffGrip?.() ?? 0, sword: p.swordGrip ?? 0, shield: p.shieldGrip ?? 0 };
 }
 
 /** Someone's hands (src/npc.js state, read only): a story person, or a crowd person's pooled body. */

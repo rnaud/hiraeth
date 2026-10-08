@@ -443,9 +443,11 @@ function animate(p, dt, t) {
   H.updateEyes(dt, state.gaze === 'camera' || state.gaze === 'target' ? target : null);
   // the hands (src/hands.js): a pose picked in the panel, or what the motion, the prop and the tone make them do
   const cn = clip?.name ?? '';
+  const armed = p.tool && (state.sword || state.shield > 0);
   H.hands?.update(state.paused ? dt : dtA, state.hands !== 'auto' ? { pose: state.hands } : {
     mode: seated ? 'seated' : /^Climb/.test(cn) ? 'climb' : /^Driving/.test(cn) ? 'ride' : /^Jump_(Loop|Start)/.test(cn) ? 'air' : 'ground',
     ride: 'bike', air: 1, speed, prop: H.stowed ? null : p.npc?.look?.prop,
+    ...(armed ? { aim: state.sword ? 1 : 0, sword: state.sword ? 1 : 0, shield: state.shield } : {}),
     talk: state.talk || state.anim === 'game:talk' ? { tone: state.tone, k: state.amount, beat: Math.min(1, (e.open ?? 0) * 1.6) } : null,
   });
   p.character?.updateHands();
@@ -468,6 +470,23 @@ function animate(p, dt, t) {
   }
   if (p.gear) p.gear.update(dt, _w.set(0, 0, 0), a.phase ?? 0, speed / 6);
   p.tool?.updateWorn(state.paused ? 0 : dt);
+  if (p.tool) inspectArms(p, state.paused ? 1 / 60 : dt);
+}
+
+/**
+ * The blade and the shield as the game holds them (?backpack=true&sword=true&shield=1&view=arms, with a
+ * combat clip scrubbed: anim=clip:mixamo_ss_slash_1&paused=true&time=0.5): the blade's own placing code
+ * (src/fluid-blade.js) run on this pose, so what the studio shows is what a swing shows.
+ */
+function inspectArms(p, dt) {
+  const b = p.tool.blade;
+  p.tool.player.frame.dir ??= (h, out = new THREE.Vector3()) => out.set(Math.sin(h), 0, Math.cos(h));
+  p.tool.player.heading = p.heading;
+  if (b.inspect) { b.inspect({ sword: state.sword, lit: state.lit, shield: state.shield, guard: state.guard }, dt); return; }
+  // (the blade before src/blade-grip.js: placed by its old code, for the before pictures)
+  b.move = state.sword ? {} : null; b.lit = state.sword ? state.lit : 0; b.place(0);
+  b.dir.set(Math.sin(p.heading), 0, Math.cos(p.heading));
+  b.guardK = state.shield; b.parry = state.guard === 'block' ? 0.3 : 0; b.placeShield();
 }
 
 function lookTarget() {
@@ -529,6 +548,8 @@ const faceOffset = (p) => (p?.h?.profile ? p.h.faceRest[0] - p.h.rest.get(p.h.b.
 const VIEWS = {
   full: { y: 0.92, dist: 4.6 }, bust: { y: 1.45, dist: 1.3 }, face: { y: 1.67, dist: 0.72 }, close: { y: 1.67, dist: 0.4 }, far: { y: 0.92, dist: 34 },
   hands: { y: 0.85, dist: 0.62 },   // (on the right hand)
+  arms: { y: 1.2, dist: 2.1 },      // (both hands: the blade and the shield, on the chest)
+  bracer: { y: 0.85, dist: 0.5 },   // (on the left hand: the shield's disc)
 };
 const orbit = { yaw: state.yaw, pitch: state.pitch, zoom: 1 };
 function placeCamera(dt) {
@@ -551,10 +572,16 @@ function placeCamera(dt) {
   if (p?.h?.drawnFace && headView && p.h.drawnFace.at(head, _v)) ty = _v.y + (state.view === 'bust' ? -0.13 * s : 0);
   const cx = state.lineup ? 0 : p?.pos.x ?? 0, cz = state.lineup ? 0 : p?.pos.z ?? 0;
   const target = new THREE.Vector3(cx, ty, cz);
-  if (state.view === 'hands' && p?.h?.b?.hand_r && !state.lineup) {
-    // the right hand, from the middle of the palm out to the fingers
-    const hb = p.h.b, mid = hb.middle_02_r ?? hb.hand_r;
-    target.copy(hb.hand_r.getWorldPosition(_v)).lerp(mid.getWorldPosition(new THREE.Vector3()), 0.6);
+  if ((state.view === 'hands' || state.view === 'bracer') && p?.h?.b?.hand_r && !state.lineup) {
+    // the right hand (the left: the bracer), from the middle of the palm out to the fingers
+    const side = state.view === 'bracer' ? 'l' : 'r', hb = p.h.b, mid = hb[`middle_02_${side}`] ?? hb[`hand_${side}`];
+    target.copy(hb[`hand_${side}`].getWorldPosition(_v)).lerp(mid.getWorldPosition(new THREE.Vector3()), 0.6);
+    dist = V.dist * orbit.zoom * s;
+  }
+  if (state.view === 'arms' && p?.h?.b?.hand_r && !state.lineup) {
+    // between the two hands (the blade's grip and the shield's bracer), a little toward the chest
+    const hb = p.h.b;
+    target.copy(hb.hand_r.getWorldPosition(_v)).lerp(hb.hand_l.getWorldPosition(new THREE.Vector3()), 0.5).lerp(hb.spine_03?.getWorldPosition(new THREE.Vector3()) ?? target, 0.3);
     dist = V.dist * orbit.zoom * s;
   }
   camera.position.set(target.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, target.y + Math.sin(orbit.pitch) * dist, target.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
@@ -927,6 +954,10 @@ check(sAnim, 'Paused', 'paused');
 slider(sAnim, 'Scrub (clips)', 'time', 0, 1, 0.001, 0, () => { state.paused = true; updatePanel(); });
 check(sAnim, 'Walk over the floor', 'move');
 check(sAnim, 'Plant the feet (traveller)', 'plant');
+check(sAnim, 'Blade in hand (backpack)', 'sword');
+slider(sAnim, 'Blade lit', 'lit', 0, 1, 0.01, 1);
+slider(sAnim, 'Shield open (backpack)', 'shield', 0, 1, 0.01, 0);
+select(sAnim, 'Shield takes', 'guard', [['', 'nothing (held)'], ['block', 'a block'], ['parry', 'a perfect parry'], ['broken', 'a blow that breaks it']]);
 select(sAnim, 'Hands', 'hands', [['auto', 'by what they do (the motion, a prop, the tone talking)'], ...POSE_IDS.map((k) => [k, `pose: ${k}`])]);
 
 // light and ink
@@ -961,7 +992,7 @@ sShare.append(json);
 function viewButtons() {
   const v = $('views');
   v.replaceChildren();
-  for (const [k, t] of [['full', 'Full body'], ['bust', 'Bust'], ['face', 'Face'], ['close', 'Close-up'], ['hands', 'Hands'], ['far', 'Far away']]) {
+  for (const [k, t] of [['full', 'Full body'], ['bust', 'Bust'], ['face', 'Face'], ['close', 'Close-up'], ['hands', 'Hands'], ['arms', 'Blade and shield'], ['bracer', 'Bracer'], ['far', 'Far away']]) {
     const b = document.createElement('button');
     b.textContent = t;
     b.className = state.view === k ? 'on' : '';

@@ -25,6 +25,9 @@ export const DEFAULTS = Object.freeze({
   hands: 'auto',         // auto (by the motion, the prop and the tone) | a pose of src/hands.js HAND_POSES
   // cloth
   cape: true, wind: 0.6, backpack: false,
+  // the blade and the shield (with the backpack; src/blade-grip.js): the hilt in the fist, the blade lit,
+  // the shield open by `shield` (0 folded on the wrist .. 1 open) and how it is hit (block | parry | broken)
+  sword: false, lit: 1, shield: 0, guard: '',
   // the view
   view: 'full',          // full | bust | face | close | far | hands
   turntable: false, yaw: 0.35, pitch: 0.05,
