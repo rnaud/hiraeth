@@ -1,0 +1,39 @@
+changelog.md
+  s_01ef56f57d9271::t_f15a82cbda6fa7 5-19
+docs/systems/foes.md
+  s_01ef56f57d9271::t_5cff6561b79265 11-15,152-154,157-158,186-213,333,340
+src/changelog-media.js
+  s_01ef56f57d9271::t_3b42dea2e8e5ea 120-127
+src/changelog.js
+  s_01ef56f57d9271::t_c5c9fc2b3567c4 12-28
+src/feel.js
+  s_01ef56f57d9271::t_df0894ce62d361 8,14,17-18,22-27,43
+src/fluid-blade.js
+  s_01ef56f57d9271::t_91a0020f08caba 24,26-35,195,317-322,395-397,440-441
+src/foe-kinds.js
+  s_01ef56f57d9271::t_602b938d8e3181 126,133,162-164,166,175-178
+src/foes.js
+  s_01ef56f57d9271::t_904604ccd7fef3 11-12,115-129,157-159,166,184-185,200-201,213,242,250,252-256,266,268-273,277,325-326,340-346,390-395,397,549-554,566-573,584-591,593,596,601-606,608-613,615-616,618-627,629-630,830,839-843,919,1285,1291
+src/lock-reticle.js
+  s_01ef56f57d9271::t_f77abe877245d9 1-173
+tests/combat-feel.test.js
+  s_01ef56f57d9271::t_39d090297c7eed 1-153
+tests/foe-kinds.test.js
+  s_01ef56f57d9271::t_7ff93b69ccc2ad 78-82,96-101,258-260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "99ad894a7d79b1d374726317f05fdefac8736e28",
+  "prompts": {},
+  "sessions": {
+    "s_01ef56f57d9271": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7e499a2d-6006-441a-af8e-f625e578b83e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
