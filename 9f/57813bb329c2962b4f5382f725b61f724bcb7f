@@ -1,0 +1,77 @@
+changelog.md
+  s_efb1d100d5a6fc::t_ff2dac12e5fcfc 7-10
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_30e36026d7916f 15-16,18-26,44,53-63,115-123,234-236,257-263,277-278,300-302,356-359
+index.html
+  s_efb1d100d5a6fc::t_4d3803441433d1 145
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_f425dc748ab104 139,183-193
+src/changelog.js
+  s_efb1d100d5a6fc::t_19d73ffb8694fa 26-29
+src/fluid-blade.js
+  s_efb1d100d5a6fc::t_34076a2e804f9e 64-71,120,358,391,393
+src/foes.js
+  s_efb1d100d5a6fc::t_0c2a649d486324 464-465
+src/main.js
+  s_efb1d100d5a6fc::t_bef9dde8465fd0 907,1743
+src/minigames/canyon.js
+  s_efb1d100d5a6fc::t_0dde95edcc98c3 16,739,755
+src/minigames/drums.js
+  s_efb1d100d5a6fc::t_b55185c7e8cda1 674,683,689-691
+src/minigames/fishing.js
+  s_efb1d100d5a6fc::t_48818f2e2f020c 17,437,724,835,848,850
+src/minigames/framing.js
+  s_efb1d100d5a6fc::t_e9670fb353d947 103-123
+src/minigames/gallery.js
+  s_efb1d100d5a6fc::t_83305b641e21ec 163,711,719,721
+src/minigames/kit/dispose.js
+  s_efb1d100d5a6fc::t_7369f36c61a9a9 1-18
+src/minigames/kit/flow.js
+  s_efb1d100d5a6fc::t_25ddbcf1962d09 16-30
+src/minigames/kit/input.js
+  s_efb1d100d5a6fc::t_e3a884d8722621 8-10,15,25-28,31
+src/minigames/kit/minigames.css
+  s_efb1d100d5a6fc::t_8e2a89662cf7d6 82-99
+src/minigames/kit/runner.js
+  s_efb1d100d5a6fc::t_8c89bce98e27f1 19,23,52-55,107,188,191
+src/minigames/kit/scores.js
+  s_efb1d100d5a6fc::t_bdbce5918fdb19 44-46,48-51,55-56,59
+src/minigames/platformer.js
+  s_efb1d100d5a6fc::t_d9682f7cc61f32 527,529
+src/minigames/rings.js
+  s_efb1d100d5a6fc::t_ef90a356eed2d7 14,28-29,206,219-220,225-227,229,567,569-571,596,622,632,637-639
+src/minigames/sketchhunt.js
+  s_efb1d100d5a6fc::t_977983213b2bac 13,123-127,232-235,241,335,401,408,410
+src/minigames/ski.js
+  s_efb1d100d5a6fc::t_5c727c9ed567fe 14,472,488
+src/minigames/waves.js
+  s_efb1d100d5a6fc::t_3e7ac3452a4d0a 382,390,392
+src/minigames/wingdrop.js
+  s_efb1d100d5a6fc::t_c61217f7528d60 13,165,189-242,371-388,390,414,431-434,526-527,529,539-545,555,564,571,573
+src/world-picker.js
+  s_efb1d100d5a6fc::t_256307e2e19f43 9-10,21-29,31-35,54,61,90-91,94
+tests/minigames-qa.test.js
+  s_efb1d100d5a6fc::t_b15ff83891be90 1-98
+tests/minigames.test.js
+  s_efb1d100d5a6fc::t_a306eff81782a5 87,102-117
+tests/rings.test.js
+  s_efb1d100d5a6fc::t_520ba20f603d95 101-122
+tests/wingdrop-stars.test.js
+  s_efb1d100d5a6fc::t_f15493bed17860 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9f57813bb329c2962b4f5382f725b61f724bcb7f",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
