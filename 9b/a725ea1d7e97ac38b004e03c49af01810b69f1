@@ -1,0 +1,165 @@
+TODO.md
+  s_364474254304ac::t_b2a14600afef33 30-33
+docs/story-bible.md
+  s_364474254304ac::t_0d0040c0b011cd 329-350
+docs/systems/cinematics.md
+  s_364474254304ac::t_a3026d60c37dc8 99-183
+docs/systems/story.md
+  s_364474254304ac::t_118cf1ec7cd420 546-576
+docs/systems/ui.md
+  s_364474254304ac::t_4da77d8b4de50b 203-204,221-230
+src/game-menu-data.js
+  s_364474254304ac::t_c3bbf9b067717e 3,6,12,62-64,66,78,98-99
+src/game-menu.css
+  s_364474254304ac::t_a54bac24da8722 223-246
+src/game-menu.js
+  s_364474254304ac::t_8f931f50094e71 15-17,34-35,197-198,200-202,204,208-225
+src/levels/antennas.js
+  s_364474254304ac::t_b71d8ecc63fded 138-149
+src/levels/content.js
+  s_364474254304ac::t_f8483d2fbaec0d 103-113,126-137
+src/levels/eclipse.js
+  s_364474254304ac::t_4b229f56119571 95-106
+src/levels/fallen-ring.js
+  s_364474254304ac::t_5a31aa787d2412 40-41,118-128
+src/levels/glass-dunes.js
+  s_364474254304ac::t_c4fc4608539acc 244-254
+src/levels/mangrove.js
+  s_364474254304ac::t_808e62c6aac6fd 135-147
+src/levels/moon-foundry.js
+  s_364474254304ac::t_e39bf5e02a57d2 133-144
+src/levels/overnight-train.js
+  s_364474254304ac::t_7fe6de077ea6fa 117-127
+src/levels/salt-harbour.js
+  s_364474254304ac::t_d9f82f8b319f80 124-135
+src/levels/space-city.js
+  s_364474254304ac::t_6ffc4e522f1081 95-106
+src/levels/underside.js
+  s_364474254304ac::t_bd4c967bc518f2 107-118
+src/main.js
+  s_364474254304ac::t_c24ec93dbbee20 520,578,1530-1532
+src/story/arzach-moments.js
+  s_364474254304ac::t_09f3c4a57a68ba 1-124
+src/story/arzach.js
+  s_364474254304ac::t_3b503acae06a51 8,401-402,420-421,431-432,443-444,447,449-455,477-478,504,508-509,556
+src/story/arzach2-moments.js
+  s_364474254304ac::t_a7c205959859c9 1-91
+src/story/arzach2.js
+  s_364474254304ac::t_b9fddb85751b57 10,361-365,367-368,507-508,534
+src/story/bazaar-moments.js
+  s_364474254304ac::t_4d1e15c244b2a2 1-68
+src/story/bazaar.js
+  s_364474254304ac::t_ddc12a0c98264c 8,22-23,33,195,199,217,229-234,293-296,341
+src/story/buried-moments.js
+  s_364474254304ac::t_be59e76d254326 1-111
+src/story/buried.js
+  s_364474254304ac::t_3360c4c88c7ae4 9,25,48,261-262,264,269,279,384-386,476-477,561
+src/story/dialogue.js
+  s_91ab8b06c8bd11::t_d725698b018f08 339-340
+src/story/edena-moments.js
+  s_364474254304ac::t_03e41926b71ffb 1-99
+src/story/edena.js
+  s_364474254304ac::t_e319bf6c5e01f7 10,159-161,217
+src/story/film.js
+  s_364474254304ac::t_0709c4699f6af3 1-85
+src/story/garage-moments.js
+  s_364474254304ac::t_eaab3844ab3c52 1-145
+src/story/garage.js
+  s_364474254304ac::t_82e163697b07dc 6,20-21,28,189-192,221-222,246
+src/story/incal-moments.js
+  s_364474254304ac::t_dfbd17d544fb36 1-118
+src/story/incal.js
+  s_364474254304ac::t_9cbdffef0a8287 10,337-348,365,367,401,451
+src/story/index.js
+  s_364474254304ac::t_e12496d80c4d38 11-12,178-197
+src/story/perdide-moments.js
+  s_364474254304ac::t_b2c3c724a51714 1-133
+src/story/perdide.js
+  s_364474254304ac::t_e97f891c257edd 8,49,198-202,214-222,225,227-229,385
+src/story/perdide2-moments.js
+  s_364474254304ac::t_995107eea211a4 1-94
+src/story/perdide2.js
+  s_364474254304ac::t_c92a6211b58f48 9,43,122,131,133-136,139-144,515,529-532
+src/story/sightings-detours.js
+  s_364474254304ac::t_2ed85ec10d7b7c 1-22
+src/story/sightings.js
+  s_364474254304ac::t_84c49005e783b8 1-125
+src/story/spheres-moments.js
+  s_364474254304ac::t_027a872aa02f5e 1-84
+src/story/spheres.js
+  s_364474254304ac::t_4c98fb569ba508 8,23-24,35,38,139-141,335
+src/story/terraces.js
+  s_096d9f4127f346::t_7247ee0d844900 371-373,391,396,400,402,409,504-507
+tests/antennas.test.js
+  s_364474254304ac::t_869157a73efcc8 109
+tests/detour-traces.test.js
+  s_364474254304ac::t_53fbbf030644cb 1-86
+tests/eclipse-world.test.js
+  s_364474254304ac::t_cf20036fa92529 42
+tests/mangrove.test.js
+  s_364474254304ac::t_b60295363c7160 43
+tests/moments-arzach.test.js
+  s_364474254304ac::t_fd398cf01817c9 1-167
+tests/moments-arzach2.test.js
+  s_364474254304ac::t_c6bd89d9f3fce8 1-161
+tests/moments-bazaar.test.js
+  s_364474254304ac::t_9b03168ea97fc1 1-147
+tests/moments-buried.test.js
+  s_364474254304ac::t_7244f66a39aba1 1-129
+tests/moments-edena.test.js
+  s_364474254304ac::t_3c67a283608a7e 1-144
+tests/moments-garage.test.js
+  s_364474254304ac::t_c8998e4cbee0fe 1-147
+tests/moments-incal.test.js
+  s_364474254304ac::t_97927b40451a6f 1-140
+tests/moments-perdide.test.js
+  s_364474254304ac::t_41d35d5334bbda 1-156
+tests/moments-perdide2.test.js
+  s_364474254304ac::t_1b92eee147c675 1-137
+tests/moments-spheres.test.js
+  s_364474254304ac::t_68123aee7bfaa5 1-128
+tests/moonfoundry.test.js
+  s_364474254304ac::t_6f4422ddf412da 126
+tests/saltharbour-world.test.js
+  s_364474254304ac::t_9c6b713748c7bc 38
+tests/sightings.test.js
+  s_364474254304ac::t_0489fade1231cb 1-137
+tests/spacecity-world.test.js
+  s_364474254304ac::t_da2138ceb1adb5 33
+tests/underside-world.test.js
+  s_364474254304ac::t_3d30b67f61cab9 46
+tests/world-moments.test.js
+  s_364474254304ac::t_daa8d32d69cfed 1-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9ba725ea1d7e97ac38b004e03c49af01810b69f1",
+  "prompts": {},
+  "sessions": {
+    "s_096d9f4127f346": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11c1c-fa66-7b63-bdfb-d94262f7dff8",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_91ab8b06c8bd11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be152c02-3161-49a2-962b-6dd6e5049f91",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
