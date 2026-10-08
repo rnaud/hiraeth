@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/viridel.md",
+  "references": [
+    {
+      "character": "Mira, who keeps the water clock",
+      "file": "Mira, who keeps the water clock/anf___Character_exploration_sheet_for_Mira_a_gardener_who_kee_9117eeff-fef7-4583-9982-cbd4b5d09c12_0.png",
+      "midjourney_job": "9117eeff-fef7-4583-9982-cbd4b5d09c12",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/9117eeff-fef7-4583-9982-cbd4b5d09c12?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Vey, who tends the vines",
+      "file": "Vey, who tends the vines/anf___Character_exploration_sheet_for_Vey_an_old_vine-tender__9ff9fe41-a70d-473d-93d3-f43a7c488d50_0.png",
+      "midjourney_job": "9ff9fe41-a70d-473d-93d3-f43a7c488d50",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/9ff9fe41-a70d-473d-93d3-f43a7c488d50?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Oro, who grows pyramids",
+      "file": "Oro, who grows pyramids/anf___Character_exploration_sheet_for_Oro_an_architect-garden_5a492e79-c5de-453c-939f-81091f0ba7d5_0.png",
+      "midjourney_job": "5a492e79-c5de-453c-939f-81091f0ba7d5",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/5a492e79-c5de-453c-939f-81091f0ba7d5?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Rue, who climbs",
+      "file": "Rue, who climbs/anf___Character_exploration_sheet_for_Rue_a_fearless_young_tr_35f4cadd-28b5-4843-8900-8d23279a6b7a_0.png",
+      "midjourney_job": "35f4cadd-28b5-4843-8900-8d23279a6b7a",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/35f4cadd-28b5-4843-8900-8d23279a6b7a?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Odile and Talo, the lost couple",
+      "file": "Odile and Talo, the lost couple/anf___Character_exploration_sheet_for_Odile_and_Talo_two_retr_2909a5cf-08e6-453c-9033-0ceff77c8ecc_0.png",
+      "midjourney_job": "2909a5cf-08e6-453c-9033-0ceff77c8ecc",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/2909a5cf-08e6-453c-9033-0ceff77c8ecc?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

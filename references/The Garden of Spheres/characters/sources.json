@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/garden-of-spheres.md",
+  "references": [
+    {
+      "character": "Linnet, the listener",
+      "file": "Linnet, the listener/anf___Character_exploration_sheet_for_Linnet_a_listener_who_h_309d5e48-86b9-42cd-8859-65148814055b_0.png",
+      "midjourney_job": "309d5e48-86b9-42cd-8859-65148814055b",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/309d5e48-86b9-42cd-8859-65148814055b?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Nell, who looks into the lake",
+      "file": "Nell, who looks into the lake/anf___Character_exploration_sheet_for_Nell_a_dreamer_who_spen_44d6c9ea-56e1-4f44-b726-59da460b69a4_0.png",
+      "midjourney_job": "44d6c9ea-56e1-4f44-b726-59da460b69a4",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/44d6c9ea-56e1-4f44-b726-59da460b69a4?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Ume, who keeps the pole",
+      "file": "Ume, who keeps the pole/anf___Character_exploration_sheet_for_Ume_keeper_of_a_tall_po_81e48aa1-4622-4b03-b786-dd584798083e_0.png",
+      "midjourney_job": "81e48aa1-4622-4b03-b786-dd584798083e",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/81e48aa1-4622-4b03-b786-dd584798083e?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Cael, who walks the avenue",
+      "file": "Cael, who walks the avenue/anf___Character_exploration_sheet_for_Cael_a_walker_who_paces_26445211-6471-4a4c-9e2c-6c9ad966ca3c_0.png",
+      "midjourney_job": "26445211-6471-4a4c-9e2c-6c9ad966ca3c",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/26445211-6471-4a4c-9e2c-6c9ad966ca3c?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Emrys, who climbs the white hill",
+      "file": "Emrys, who climbs the white hill/anf___Character_exploration_sheet_for_Emrys_a_cheerful_climbe_86b43eff-00be-4fe4-b47e-cdbc26bde463_0.png",
+      "midjourney_job": "86b43eff-00be-4fe4-b47e-cdbc26bde463",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/86b43eff-00be-4fe4-b47e-cdbc26bde463?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/sealed-hangar.md",
+  "references": [
+    {
+      "character": "Ottla, mechanic of everything",
+      "file": "Ottla, mechanic of everything/anf___Character_exploration_sheet_for_Ottla_a_tireless_mechan_25db50db-7f71-435b-8e64-04547ed93886_0.png",
+      "midjourney_job": "25db50db-7f71-435b-8e64-04547ed93886",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/25db50db-7f71-435b-8e64-04547ed93886?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Ambroise, clerk of the round",
+      "file": "Ambroise, clerk of the round/anf___Character_exploration_sheet_for_Ambroise_a_fussy_clerk__20923bb8-3efe-4e14-b436-c8b01df131dd_0.png",
+      "midjourney_job": "20923bb8-3efe-4e14-b436-c8b01df131dd",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/20923bb8-3efe-4e14-b436-c8b01df131dd?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Lune, who reads the signal",
+      "file": "Lune, who reads the signal/anf___Character_exploration_sheet_for_Lune_a_young_listener_w_d19f0fe6-ef3c-4324-9d86-3522ef8a6661_0.png",
+      "midjourney_job": "d19f0fe6-ef3c-4324-9d86-3522ef8a6661",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/d19f0fe6-ef3c-4324-9d86-3522ef8a6661?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Clemence, who remembers the Major",
+      "file": "Clemence, who remembers the Major/anf___Character_exploration_sheet_for_Clemence_an_elegant_old_e1204580-91c7-43ae-9c95-8ee0b6c7b04a_0.png",
+      "midjourney_job": "e1204580-91c7-43ae-9c95-8ee0b6c7b04a",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/e1204580-91c7-43ae-9c95-8ee0b6c7b04a?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Major Brask, the absent maker",
+      "file": "Major Brask, the absent maker/anf___Character_exploration_sheet_for_Major_Brask_the_mysteri_2d8e7f6d-4501-4064-92af-cbcf99580d31_0.png",
+      "midjourney_job": "2d8e7f6d-4501-4064-92af-cbcf99580d31",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/2d8e7f6d-4501-4064-92af-cbcf99580d31?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/signal-market.md",
+  "references": [
+    {
+      "character": "Madame Sel, who kept the silent tower",
+      "file": "Madame Sel, who kept the silent tower/anf___Character_exploration_sheet_for_Madame_Sel_a_grand_old__2402b878-2e2e-4272-8927-07466aeb007e_0.png",
+      "midjourney_job": "2402b878-2e2e-4272-8927-07466aeb007e",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/2402b878-2e2e-4272-8927-07466aeb007e?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Kip, courier of the skybridges",
+      "file": "Kip, courier of the skybridges/anf___Character_exploration_sheet_for_Kip_a_fast_courier_who__c15bbd36-5175-4425-8e18-96a404d61798_0.png",
+      "midjourney_job": "c15bbd36-5175-4425-8e18-96a404d61798",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/c15bbd36-5175-4425-8e18-96a404d61798?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Ferro, who rigs the antenna",
+      "file": "Ferro, who rigs the antenna/anf___Character_exploration_sheet_for_Ferro_a_stubborn_antenn_0bdf313d-f812-44b6-b294-7bafb8360e11_0.png",
+      "midjourney_job": "0bdf313d-f812-44b6-b294-7bafb8360e11",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/0bdf313d-f812-44b6-b294-7bafb8360e11?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Brush, who repaints the signs",
+      "file": "Brush, who repaints the signs/anf___Character_exploration_sheet_for_Brush_a_sign_painter_wh_03c51604-90d0-4a3e-ae3f-45eaea24e201_0.png",
+      "midjourney_job": "03c51604-90d0-4a3e-ae3f-45eaea24e201",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/03c51604-90d0-4a3e-ae3f-45eaea24e201?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Oyo, who sells lanterns",
+      "file": "Oyo, who sells lanterns/anf___Character_exploration_sheet_for_Oyo_a_lantern_seller_in_d7edd00d-345a-4ff2-8f15-534c7178ac3f_0.png",
+      "midjourney_job": "d7edd00d-345a-4ff2-8f15-534c7178ac3f",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/d7edd00d-345a-4ff2-8f15-534c7178ac3f?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}
