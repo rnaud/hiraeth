@@ -217,3 +217,27 @@ blots, a spitter, a swarm, a machine, flyers, spitters with a machine, and a mix
 `tests/combat.test.js` checks commitment, timed block/rearm, swept contact, independent inputs,
 full-body playback and transitions on the actual traveller with matching off and on, and evade movement.
 Locomotion matching remains experimental and off by default: see animation.md for measured foot slide.
+
+## Hitboxes (v0.93: `src/hitboxes.js`, `src/hitbox-overlay.js`)
+
+A debug overlay of what the fight actually tests, for tuning and for learning the timings.
+- **The switch** (`hitboxes`): F4, L3 + R3 (both sticks clicked; R3 alone still locks on), the dev menu's
+  Combat row, the Arena's board left of the way in (B / ○, E: `src/levels/arena-hitbox-board.js`, its lamp lit
+  while on), `?hitboxes=1` / `=0` for the session. Kept in the settings (`settings.hitboxes`).
+- **Truthful by construction:** `collectHitboxes()` reads the combat code's own data, exposed through small
+  getters used by the combat code too: `Foe.attackOrigin()`, `Foe.attackPhase`, `STRIKE_RISE`, `hurtRadius()`
+  (foes.js); `FluidBlade.coarse()`, `.cutting` (set when `strike()` runs), `.parryLive` (what `block()` checks),
+  `bladeSegment()`, `bladeTouchRadius()`, `activeRange()` (fluid-blade.js); `BOMB` (gadgets/bomb.js).
+- **What it draws:** the traveller's hurt column (foes test a point at the feet, within `STRIKE_RISE` of
+  height); the blade's coarse cone, its segment and the swept quad (yellow; red on the frames it cuts); the
+  guard's arc (green, white in the parry window); an evade (violet; it has no invulnerability frames); the
+  hard lock (orange diamond) or the soft lock. Each foe: its target sphere and the blade's touch ring, sight,
+  reach, keep; its strike's area at `attackOrigin()` (orange while it winds up, red while live, dull once
+  checked); a label with its state, wind-up %, stun or why it reels (`Foe.reel`: blocked, parried,
+  flinched, staggered) and hp. Shots in flight, a lobbed glob, bombs and their blast reach, the hook's line.
+- **Drawing:** its own scene rendered over the composite after the wind (main.js `renderFrame`): `LineSegments2`
+  with fixed-size buffers written in place, see-through floors, DOM labels. Off: nothing is collected or drawn.
+- **More shapes:** `registerHitboxes((out, ctx) => out.push(shape))` adds another system's (a new foe's
+  projectiles) in the same kinds.
+- Tests: `tests/hitboxes.test.js` (every foe's drawn area against `inArea`, the phases, target radii, the
+  height window, the guard against `inGuard`, the real traveller's swing red exactly when `strike()` runs).

@@ -31,7 +31,8 @@ export class MinigameRunner {
    * @param def   the game (src/minigames/<id>.js)
    * @param host  { scene, camera, player, physics, level, sound, wind, ship, state (game-state), kick(k),
    *                from (a level id or null), othersOpen () => bool (a menu of the game's own is up),
-   *                navigate (href) => void }
+   *                navigate (href) => void, links? (more ways out of the cards: { quit: { label, href },
+   *                extra: [{ id, label, sub, href, step }] }, the Arcade's next and previous game: kit/arcade.js) }
    */
   constructor(def, host) {
     this.def = def;
@@ -171,9 +172,18 @@ export class MinigameRunner {
     this.begin();
   }
 
-  quit() {
+  quit() { this.go(this.host.links?.quit?.href ?? quitHref(this.host.from)); }
+  /** Leave the game for another page (Quit, or one of host.links: the Arcade's next game). */
+  go(href) {
     this.end();
-    (this.host.navigate ?? ((href) => { location.href = href; }))(quitHref(this.host.from));
+    (this.host.navigate ?? ((href) => { location.href = href; }))(href);
+  }
+  /** The link `step` away (-1 the previous game, +1 the next: [ and ], LB / RB on a card), or one by its id. */
+  link(q) { return (this.host.links?.extra ?? []).find((l) => (typeof q === 'number' ? l.step === q : l.id === q)) ?? null; }
+  /** The cards' buttons out: the host's links, then Quit (under its label). */
+  outButtons() {
+    const extra = (this.host.links?.extra ?? []).map((l) => `<button data-act="link:${h(l.id)}">${h(l.label)}${l.sub ? `<small>${h(l.sub)}</small>` : ''}</button>`).join('');
+    return `${extra}<button data-act="quit">${h(this.host.links?.quit?.label ?? 'Quit')}</button>`;
   }
 
   /** Leave the game: the session's things out of the scene, the camera as it was, the screens gone. */
@@ -196,7 +206,7 @@ export class MinigameRunner {
     this.session.pause?.(on);   // (a game with a clock of its own, a song: it stops and picks up again)
     if (on) this.openCard(`<p class="kicker">${h(this.def.name)}</p><h1>Paused</h1>
       <p class="best">${this.def.score?.kind === 'time' ? `Time so far ${formatTime(this.clock + this.penalty)}` : `Score so far ${formatScore(this.def, this.points)}`}</p>
-      <div class="buttons"><button class="main" data-act="resume">Resume</button><button data-act="retry">Retry</button><button data-act="quit">Quit</button></div>
+      <div class="buttons"><button class="main" data-act="resume">Resume</button><button data-act="retry">Retry</button>${this.outButtons()}</div>
       <small>${this.hint('resume', 'quit')}</small>`, true);
     else this.closeCard();
   }
@@ -213,6 +223,7 @@ export class MinigameRunner {
       return true;
     }
     if (name === 'back') { this.back(); return true; }
+    if ((name === 'tabPrev' || name === 'tabNext') && this.cardEl()) { const l = this.link(name === 'tabPrev' ? -1 : 1); if (l) this.go(l.href); return true; }   // (the Arcade: the game before / after)
     if (name === 'confirm') { if (this.cardEl()) this.press(); return true; }
     return true;   // (the sketchbook, the worlds, photo mode, the scout, the whistle: not in a game)
   }
@@ -240,6 +251,7 @@ export class MinigameRunner {
     else if (name === 'resume') this.setPaused(false);
     else if (name === 'retry') this.retry();
     else if (name === 'quit') this.quit();
+    else if (name.startsWith('link:')) { const l = this.link(name.slice(5)); if (l) this.go(l.href); }
   }
   key(e) {
     if (this.ended || this.host.othersOpen?.()) return;
@@ -255,13 +267,15 @@ export class MinigameRunner {
       // after a click; Space presses the focused one)
       if (!e.repeat) { if (e.code === 'Space') this.press(); else this.card.querySelector('button.main')?.click(); }
     } else if (card && e.code === 'KeyR' && this.phase !== 'intro') { stop(); this.retry(); }
+    else if (card && (e.code === 'BracketLeft' || e.code === 'BracketRight') && this.link(e.code === 'BracketLeft' ? -1 : 1)) { stop(); if (!e.repeat) this.go(this.link(e.code === 'BracketLeft' ? -1 : 1).href); }
     else if (['KeyL', 'KeyP', 'KeyQ', 'KeyJ'].includes(e.code) || (e.code === 'Tab' && (this.drives || card))) stop();   // (the worlds, photo mode, the scout, the sketchbook, lock-on: not in a game)
   }
   hint(yes, no) {
     const kind = inputKind();
-    if (kind === 'pad') return `${confirmKey()} ${yes} · ${backKey()} ${no}`;
+    const cycle = this.link(1) || this.link(-1);   // (host.links with a step: the Arcade's game before / after)
+    if (kind === 'pad') return `${confirmKey()} ${yes} · ${backKey()} ${no}${cycle ? ' · LB / RB other games' : ''}`;
     if (kind === 'touch') return '';
-    return `Enter ${yes} · Esc ${no}${this.phase === 'results' || this.paused ? ' · R retry' : ''}`;
+    return `Enter ${yes} · Esc ${no}${this.phase === 'results' || this.paused ? ' · R retry' : ''}${cycle ? ' · [ ] other games' : ''}`;
   }
 
   // ---------------------------------------------------------------- the screens
@@ -322,7 +336,7 @@ export class MinigameRunner {
     this.openCard(`<p class="kicker">A game</p><h1>${h(d.name)}</h1><p>${h(d.blurb)}</p><p class="rules">${h(d.rules)}</p>
       ${rows ? `<dl>${rows}</dl>` : ''}${opts ? `<div class="opts">${opts}</div>` : ''}
       <p class="best">${best === null ? 'No best yet.' : `Best${d.bestBy ? ` (${h(this.optionLabel(d.bestBy))})` : ''}: ${h(formatScore(d, best))}`}</p>
-      <div class="buttons"><button class="main" data-act="start">Start</button><button data-act="quit">Quit</button></div>
+      <div class="buttons"><button class="main" data-act="start">Start</button>${this.outButtons()}</div>
       <small>${this.hint('start', 'quit')}</small>`);
   }
   showResults() {
@@ -336,7 +350,7 @@ export class MinigameRunner {
       ${showValue ? `<div class="big">${h(formatScore(d, r.value))}</div>` : ''}${r.isNew ? '<div class="stamp">New best!</div>' : ''}
       ${lines ? `<ul class="lines">${lines}</ul>` : ''}${r.html ?? ''}
       <p class="best">${r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${h(formatScore(d, r.best))}`}</p>
-      <div class="buttons"><button class="main" data-act="retry">Retry</button><button data-act="quit">Quit</button></div>
+      <div class="buttons"><button class="main" data-act="retry">Retry</button>${this.outButtons()}</div>
       <small>${this.hint('retry', 'quit')}</small>`);
     this.sheet.classList.toggle('wide', !!r.wide);
   }

@@ -92,6 +92,10 @@ export const GUARDS = { near: 32, size: 2, ring: 3.5 };
 export const LOCK = { reach: 18, lose: 26 };
 /** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
 export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
+/** A strike reaches the traveller only this close in height (m, its feet to the foe's): the hitbox overlay draws it (src/hitboxes.js). */
+export const STRIKE_RISE = 1.6;
+/** A foe's target sphere (shots, the cone, the lock): its body's radius and a margin. The blade adds its own (fluid-blade.js BLADE_TOUCH). */
+export const hurtRadius = (def) => def.radius + 0.15;
 
 /**
  * One foe's mind: idle at home (a slow drift round it), chase once you come into sight, wind up its
@@ -111,6 +115,17 @@ export class Foe {
   }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.def.height + this.alt); }
+  /** Where its strike's area is centred when it lands: a lunge carries it with the body, else where the wind-up began. */
+  attackOrigin() { return this.def.attack.lunge ? this.pos : this.attackAt; }
+  /**
+   * Its strike's phase (the hitbox overlay): 'telegraph' while it winds up, 'active' through the strike until the hit
+   * is checked, 'spent' after; null otherwise. A lobbed strike (at: 'target') is checked as its wind-up ends.
+   */
+  get attackPhase() {
+    if (this.state === 'wind') return 'telegraph';
+    if (this.state === 'strike') return this.contacted ? 'spent' : 'active';
+    return null;
+  }
 
   update(dt, P, env = {}) {
     const D = this.def, ev = [];
@@ -162,8 +177,8 @@ export class Foe {
         this.timer += dt; this.k = Math.min(1, this.timer / wind);
         if (this.timer >= wind) {
           if (a.at === 'target') {
-            const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < 1.6 && inArea(a, this.attackAt, this.attackH, P.pos);
-            ev.push({ type: 'strike', hit }); this.state = 'recover'; this.timer = D.recover; this.k = 0;
+            const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < STRIKE_RISE && inArea(a, this.attackAt, this.attackH, P.pos);
+            ev.push({ type: 'strike', hit }); this.state = 'recover'; this.timer = D.recover; this.k = 0; this.reel = null;
           } else { this.state = 'strike'; this.timer = 0; this.k = 0; this.contacted = false; }
         }
         break;
@@ -180,12 +195,11 @@ export class Foe {
         if (a.dive) this.alt = THREE.MathUtils.lerp(D.hover, 0.35, this.k);
         if (!this.contacted && this.k >= (a.contact ?? 0.55)) {
           this.contacted = true;
-          const origin = a.lunge ? this.pos : this.attackAt;
-          const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < 1.6 && inArea(a, origin, this.attackH, P.pos)
+          const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < STRIKE_RISE && inArea(a, this.attackOrigin(), this.attackH, P.pos)
             && (env.seen?.(this.chest, P.pos) ?? true);
           ev.push({ type: 'strike', hit });
         }
-        if (this.k >= 1) { this.state = 'recover'; this.timer = D.recover; this.k = 0; }
+        if (this.k >= 1) { this.state = 'recover'; this.timer = D.recover; this.k = 0; this.reel = null; }
         break;
       }
       case 'recover': {
@@ -207,7 +221,7 @@ export class Foe {
   /** Its strike was blocked: it reels back, open a moment longer than after a strike. */
   staggered(perfect = false) {
     if (!this.alive) return;
-    this.state = 'recover'; this.timer = this.def.recover * (perfect ? 1.8 : 0.65); this.k = 0; this.flash = 0.8;
+    this.state = 'recover'; this.timer = this.def.recover * (perfect ? 1.8 : 0.65); this.k = 0; this.flash = 0.8; this.reel = perfect ? 'parried' : 'blocked';   // (reel: why it recovers, for the hitbox overlay's label)
     this.recoil = 1; this.heavyRecoil = perfect; this.recoilDir.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
     this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.kind === 'machine' ? 2 : 5);
   }
@@ -254,7 +268,7 @@ export class Foe {
     this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2;
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
     // Light cuts interrupt a blot, or the first two thirds of a machine wind-up.
-    if ((this.kind === 'blot' && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; }
+    if ((this.kind === 'blot' && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; this.reel = this.heavyRecoil ? 'staggered' : 'flinched'; }
     else if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
@@ -452,7 +466,7 @@ export class Foes {
     if (!f.model.shade) this.group.add(f.model.group);
     if (f.model.glob) this.group.add(f.model.glob);
     f.tele = new Telegraph(this.group, kind === 'machine' ? '#e0703a' : kind === 'spitter' ? '#7f9a2e' : kind === 'shade' ? '#3b2a5c' : '#6d4fa8');
-    f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: f.def.radius + 0.15, accepts: ['blade', 'stun', 'fire'],
+    f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: hurtRadius(f.def), accepts: ['blade', 'stun', 'fire'],
       position: () => f.chest, enabled: () => f.alive && f.model.group.visible,
       onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info) });
     this.list.push(f);
