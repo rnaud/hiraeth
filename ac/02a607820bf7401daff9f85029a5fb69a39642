@@ -1,0 +1,29 @@
+changelog.md
+  s_efb1d100d5a6fc::t_5f1b9f68a98468 21
+docs/systems/foes.md
+  s_efb1d100d5a6fc::t_5ea83a904260a0 58-62,64-65,72-74
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_6a937887d3bc13 139
+src/changelog.js
+  s_efb1d100d5a6fc::t_0b2881a31980eb 14
+src/shield.js
+  s_efb1d100d5a6fc::t_be3ea4acffc578 7-12,20-21,23,26,116-119,124-127,129,131-153,160-161,165-166,207,211-214,216-219,221-229,231
+tests/blade-grip.test.js
+  s_efb1d100d5a6fc::t_300e4a8fc7b4c6 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ac02a607820bf7401daff9f85029a5fb69a39642",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
