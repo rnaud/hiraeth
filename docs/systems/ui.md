@@ -147,9 +147,10 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   - The scout's floating label (`#scout-label`) is gone: the cue says what it found.
 - **The scout finds the objective** (`Scout.ping`, `FIND` in `src/scout.js`): Q, Y / △ on a pad
   (on foot and now riding or flying too: controller.js sends `ping` from the top button in the
-  ride context), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`:
+  ride context), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`, `lookoutSpot`:
   `FIND.out` m towards the objective from over your head, a little more at speed, carried with
-  your velocity; right over it when it is nearer than `FIND.near`), hovers facing it (no beak or beam
+  your velocity, and up or down toward its height since v0.89, in the open: docs/systems/scout.md,
+  "Up and down"; right over it when it is nearer than `FIND.near`), hovers facing it (no beak or beam
   on a find since October 2026: its heading is the pointer; the beam is kept for boss hints,
   docs/systems/boss-hints.md), drops a **flare** on the spot (`Flare`: a column of its light
   shooting up and a ring that rings out, sized by the distance so it reads from far away, gone

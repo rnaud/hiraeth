@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.89 — 2026-10-07
 
+- When what the drone finds is well above or below you its word says so (“27 m, 10 m above”), and its flare on a goal far below you rises past your feet, so you see it from up there.
+- Indoors the drone keeps under the ceiling and short of the walls instead of pressing into them.
+- The scout drone goes up and down now, not only out: send it for a goal on a rooftop, a tower’s deck or the floor above and it climbs toward it, straight up a shaft or the side of a tower you stand under; for one in a pit or a cave below it sinks toward it, its eye turned up or down at it. It stays in view behind you as it climbs.
 - With a keyboard the jets are the left mouse button, or SPACE held in the air: W and S tip the nose down and up, A and D turn, SHIFT goes faster. On a touch screen hold ⤒ in the air and steer with the left-hand drag.
 - Let go of the jets in the air and you glide on, sinking gently, even out of a steep climb, down to a soft landing; a dive into the ground lands you on your feet. Aim (LT / L2) while flying and the jets hold you in the air, sinking slowly, while you shoot.
 - On the jets the left stick flies the nose: forward dives, back climbs, left and right bank you into a turn, so you can fly up, down and round every way, nearly three times as fast as before. The camera swings round behind you and tips up with a climb and down with a dive. Settings has “Invert the jets’ pitch” if you would rather push forward to climb.

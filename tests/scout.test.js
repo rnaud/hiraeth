@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Scout, nextObjective, viaPortal, FIND, HINT, FLARE, Flare, roughDistance, findText } from '../src/scout.js';
+import { Scout, nextObjective, viaPortal, lookoutSpot, FIND, HINT, FLARE, Flare, roughDistance, findText } from '../src/scout.js';
 import { makeMaterial, markHero, sharedUniforms } from '../src/materials.js';
 const v = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
 
@@ -245,4 +245,104 @@ test('with the game\'s physics (a capsule sweep each step) the drone still faces
   const from=s2.lens.getWorldPosition(new THREE.Vector3()), along=new THREE.Vector3(0,0,1).applyQuaternion(s2.lens.getWorldQuaternion(new THREE.Quaternion()));
   const want=weak.clone().sub(from).normalize();
   assert.ok(along.dot(want)>0.97,`the beam on the weak point: ${along.dot(want).toFixed(3)}`);
+});
+
+// ---------------------------------------------------------------- up and down as well (lookoutSpot)
+// planes as the level: each { n, at } (unit normal facing the open, a point on it); a ray hits the first plane it crosses from the open side
+const planes=(...ps)=>(o,d,far)=>{ let best=Infinity; for(const {n,at} of ps){ const dn=d.dot(n); if(dn>=-1e-9) continue; const t=at.clone().sub(o).dot(n)/dn; if(t>=0&&t<=far&&t<best) best=t; } return best; };
+const up=v(0,1,0), near=(a,b,eps=0.05)=>Math.abs(a-b)<eps;
+const spot=(o)=>lookoutSpot({feet:v(),up,...o});
+test('lookout: a goal on your level, far: over your head and a little way towards it, as before', () => {
+  const p=spot({goal:v(100,0,0)});
+  assert.ok(near(p.y,FIND.rise)&&near(p.x,FIND.out)&&near(p.z,0),p.toArray().join());
+  // a few steps down the stairs is still your floor: it does not sink to your feet
+  assert.ok(near(spot({goal:v(100,-3,0)}).y,FIND.rise));
+});
+test('lookout: a goal above climbs toward its height (a rooftop, a tower), at most FIND.climb over your feet, further out the higher', () => {
+  const out=(H)=>FIND.out+Math.abs(H-FIND.rise)*FIND.spread;
+  const step=spot({goal:v(30,3,0)});
+  assert.ok(near(step.y,3+2.2)&&near(step.x,out(5.2)),`2.2 m over the terrace's level: ${step.toArray()}`);
+  const roof=spot({goal:v(60,25,0)});
+  assert.ok(near(roof.y,FIND.climb)&&near(roof.x,out(FIND.climb)),`as high as it climbs, far off: ${roof.toArray()}`);
+  // at the foot of a tower (twice as high as it is far, or more): up its side, to FIND.shaft, under it
+  const tower=spot({goal:v(8,60,0)});
+  assert.ok(near(tower.y,FIND.shaft)&&near(tower.x,8-2),`up the tower's side: ${tower.toArray()}`);
+  // the height grows smoothly with the goal's (no jump at a threshold)
+  let last=null; for(let y=-30;y<=40;y+=0.25){ const h=spot({goal:v(60,y,0)}).y; if(last!==null) assert.ok(Math.abs(h-last)<0.3,`a jump at ${y}: ${last} → ${h}`); last=h; }
+});
+test('lookout: straight up a shaft it rises over your head, not sideways; near, it flies right to it', () => {
+  const shaft=spot({goal:v(0.5,40,0)});
+  assert.ok(near(shaft.y,FIND.shaft)&&Math.hypot(shaft.x,shaft.z)<0.6,`up the shaft: ${shaft.toArray()}`);
+  const ledge=spot({goal:v(4,9,3)});   // (within FIND.near)
+  assert.ok(ledge.distanceTo(v(4,9+2.2,3))<0.05,`right over the ledge: ${ledge.toArray()}`);
+});
+test('lookout: a goal below sinks toward it (a pit, the cave under you), at most FIND.dive under your feet', () => {
+  const pit=spot({goal:v(40,-8,0)}), H=FIND.rise-8+FIND.level;
+  assert.ok(near(pit.y,H)&&near(pit.x,FIND.out+(FIND.rise-H)*FIND.spread),`down toward it: ${pit.toArray()}`);
+  assert.ok(near(spot({goal:v(40,-80,0)}).y,-FIND.dive),'as deep as it goes');
+  // with the ground there, it stops over the floor
+  const floor=planes({n:v(0,1,0),at:v(0,-2,0)});
+  const p=lookoutSpot({feet:v(),goal:v(40,-30,0),up,ray:floor});
+  assert.ok(near(p.y,-2+0.6),`over the floor: ${p.y}`);
+});
+test('lookout: indoors it stays under the ceiling and short of the walls; in a gravity well it works along up', () => {
+  const room=planes({n:v(0,-1,0),at:v(0,2.8,0)},{n:v(-1,0,0),at:v(4,0,0)});
+  const p=lookoutSpot({feet:v(),goal:v(100,0,0),up,ray:room});
+  assert.ok(p.y<=2.8-0.6+1e-6&&p.y>=1.6,`under the ceiling: ${p.y}`);
+  assert.ok(p.x<=4-0.6+1e-6&&p.x>3,`short of the wall: ${p.x}`);
+  // the goal upstairs, through the ceiling: it waits under it, the lens on the goal (Scout.aim)
+  assert.ok(lookoutSpot({feet:v(),goal:v(1,30,0),up,ray:room}).y<=2.2+1e-6);
+  // the legs: up first, then out
+  const legs=[]; lookoutSpot({feet:v(),goal:v(40,20,0),up,legs},new THREE.Vector3());
+  assert.ok(near(legs[0].x,0)&&near(legs[0].y,FIND.climb)&&legs[1].x>FIND.out&&near(legs[1].y,FIND.climb),legs.map((l)=>l.toArray().join()).join(' '));
+  // sideways gravity (+x is up): the same lookout, turned
+  const side=lookoutSpot({feet:v(),goal:v(30,40,0),up:v(1,0,0)});   // (30 m up its way, 40 m out: not steep)
+  assert.ok(near(side.x,FIND.climb)&&side.y>FIND.out&&near(side.z,0),`along its own up: ${side.toArray()}`);
+  // a hint stays by you at HINT.rise, whatever the weak point's height
+  assert.ok(near(lookoutSpot({feet:v(),goal:v(9,20,0),up,hint:true}).y,HINT.rise));
+});
+test('the find says how far up or down when that is a good part of the way', () => {
+  assert.equal(findText({label:'The deck',rise:40},60),'The deck · 60 m, 40 m above');
+  assert.equal(findText({label:'The cave',rise:-25},50),'The cave · 50 m, 25 m below');
+  assert.equal(findText({label:'The camp',rise:5},300),'The camp · 300 m','on the way, not worth saying');
+  assert.equal(findText({label:'The camp'},300),'The camp · 300 m');
+});
+test('a whole ping to a goal high above: the drone climbs most of the way up, faces it, and stays with you', () => {
+  const {scout,player,finds}=fixture(undefined,v(40,30,0));
+  scout.ping(); let top=0, far=0, facingUp=-1;
+  for(let i=0;i<60*6;i++){ scout.update(1/60); top=Math.max(top,scout.object.position.y); far=Math.max(far,scout.object.position.distanceTo(player.pos)); if(scout.phase==='point') facingUp=Math.max(facingUp,forward(scout).y); }
+  assert.ok(top>FIND.climb-1.5,`it climbs: ${top.toFixed(1)} m`);
+  assert.ok(far<FIND.climb+FIND.out+FIND.climb*FIND.spread+3,`within its leash: ${far.toFixed(1)} m`);
+  assert.ok(facingUp>0.3,`nose up at it: ${facingUp.toFixed(2)}`);
+  assert.equal(finds.length,1);
+});
+test('a whole ping indoors: under a low ceiling it never presses into it nor gives up, goal upstairs or not', () => {
+  // a room 2.8 m high (the game's rays: a mesh ceiling), the goal on the floor above
+  const ceiling=2.8;
+  const physics={ rayHit(o,d,far){ if(d.y<=1e-6||o.y>=ceiling) return null; const t=(ceiling-o.y)/d.y; return t<=far?{distance:t,point:o.clone().addScaledVector(d,t),normal:v(0,-1,0)}:null; } };
+  const {scout,finds}=fixture(physics,v(30,6,0));
+  scout.ping(); let high=0; const phases=new Set();
+  for(let i=0;i<60*6;i++){ scout.update(1/60); phases.add(scout.phase); high=Math.max(high,scout.object.position.y); assert.ok(scout.object.scale.x>0.99,'not recalled'); }
+  assert.ok(high<ceiling-0.2,`under the ceiling: ${high.toFixed(2)}`);
+  assert.ok(phases.has('point')&&finds.length===1);
+});
+test('a whole ping up a shaft: it rises straight up it (not into its walls), noses up, and comes back down to you', () => {
+  // a round shaft 3 m across (its walls as rays from inside) and the goal 30 m up it
+  const R=1.5, physics={ rayHit(o,d,far){ const a=d.x*d.x+d.z*d.z; if(a<1e-9) return null; const b=o.x*d.x+o.z*d.z, c=o.x*o.x+o.z*o.z-R*R; const t=(-b+Math.sqrt(Math.max(b*b-a*c,0)))/a; return t<=far?{distance:t,point:o.clone().addScaledVector(d,t),normal:v(-o.x-d.x*t,0,-o.z-d.z*t).normalize()}:null; } };
+  const {scout,player,finds}=fixture(physics,v(0.4,30,0.3));
+  scout.dock(); scout.object.position.set(0,2,0);
+  scout.ping(); let top=0, wide=0, up=-1;
+  for(let i=0;i<60*8;i++){ scout.update(1/60); const p=scout.object.position; top=Math.max(top,p.y); wide=Math.max(wide,Math.hypot(p.x,p.z)); if(scout.phase==='point') up=Math.max(up,forward(scout).y); }
+  assert.ok(top>FIND.shaft-1.5,`up the shaft: ${top.toFixed(1)} m`);
+  assert.ok(wide<R,`inside it: ${wide.toFixed(2)} m off its axis`);
+  assert.ok(up>0.3,`nose up: ${up.toFixed(2)}`);
+  assert.equal(finds.length,1);
+  for(let i=0;i<60*4;i++) scout.update(1/60);
+  assert.equal(scout.phase,'docked','and home again');
+});
+test('a flare far below you rises past your feet, so it is seen from up there too', () => {
+  const f=new Flare(null);
+  f.drop(v(0,-40,0),v(0,1,0),40); assert.equal(f.height,52);
+  f.drop(v(0,0,0),v(0,1,0),0); assert.equal(f.height,FLARE.height);
+  f.drop(v(0,30,0),v(0,1,0),-30); assert.equal(f.height,FLARE.height,'above you: as tall as ever');
 });
