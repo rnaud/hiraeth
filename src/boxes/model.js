@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { TANK, FLUID_TONES, buildFlask } from '../fluid-tool.js';
+import { ITEMS } from '../items.js';
 
 // What an item box looks like, and what comes out of it. All of it is inked
 // geometry through makeMaterial (the post pass draws the lines).
@@ -376,9 +377,19 @@ const MODELS = {
 /** An item's model from elsewhere (the gadgets bring their own: src/gadgets/registry.js). */
 export function registerItemModel(id, build) { MODELS[id] = build; }
 
+/** A trial's upgrade (src/items.js `trial`): the gadget it improves, with a small gold star pinned on it. */
+function upgradeModel(of) {
+  const g = new THREE.Group();
+  g.add(MODELS[of]());
+  const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0).scale(1, 1, 0.4), flatM('#f2c54b', { glow: 0.7 }));
+  star.position.set(0.12, 0.14, 0.06);
+  g.add(star);
+  return g;
+}
+
 /** A small model of an item for the hovering display (a generic gem for anything unknown). */
 export function buildItemModel(id) {
-  const g = (MODELS[id] ?? (() => { const x = new THREE.Group(); x.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), flatM('#f2c54b', { glow: 0.6 }))); return x; }))();
+  const g = (MODELS[id] ?? (ITEMS[id]?.trial && MODELS[ITEMS[id].needs] ? () => upgradeModel(ITEMS[id].needs) : null) ?? (() => { const x = new THREE.Group(); x.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), flatM('#f2c54b', { glow: 0.6 }))); return x; }))();
   g.name = `Item ${id}`;
   return noCollide(g);
 }

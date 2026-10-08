@@ -339,7 +339,7 @@ test('the gadget in hand gets its picture first; the wheel open draws the others
 
 test('a game keeps the gadgets\' buttons; the wheel takes ten and "nothing" without its slots touching; the touch button hides in a game', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.ok(main.includes('gadgets.control(dt, busy() ? noInput : ctl, busy() || ship.playing || !!minigame)'), 'paused while a game runs');
+  assert.ok(main.includes('gadgets.control(dt, busy() ? noInput : ctl, busy() || ship.playing || (!!minigame && !minigame.def.trial))'), 'paused while a game runs (a trial in the world keeps them: src/trials/)');
   const hud = readFileSync(new URL('../src/gadgets/hud.js', import.meta.url), 'utf8');
   assert.ok(hud.includes('body.minigame #touch .b-gadget'));
   // eleven slots round the wider ring: the gap between two neighbours' edges, the highlighted one grown

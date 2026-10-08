@@ -44,6 +44,9 @@ What the traveller carries and the boxes that give it.
   there, switches the tool to it (docs/systems/ui.md, "The game menu").
 - **Gadgets** (v0.90, kind `gadget`): the grappling hook, ink bombs and those to come register themselves as
   items from `src/gadgets/` (docs/systems/gadgets.md); one is in hand at a time (Y / △ uses it).
+- **Gadgets in the worlds and their upgrades** (v0.98): each gadget's box is in a makers' court in one route world
+  (docs/systems/gadgets.md, "In the worlds"); the items with `trial: '<world>'` are won by finishing that world's
+  mastery trial, not found in a box (docs/systems/minigames.md, "Trials in the worlds").
 - **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
   boxes, flags, teleport. Also `?items=all|none|a,b`.
 

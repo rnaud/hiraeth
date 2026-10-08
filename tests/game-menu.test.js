@@ -199,7 +199,7 @@ test('the Items panel: a slot for every item to find (the empty ones unnamed), t
   assert.deepEqual(rows[1].map((x) => x.col), [0, CARRY_COL]);
   assert.match(rows[1][1].sub, /from The Desert/);
   assert.deepEqual(moveCursor(rows, { r: 0, c: 2 }, 0, 1), { r: 1, c: 0 }, 'down from the gear: the pack');
-  assert.ok(GEAR_COLS * 3 >= d.slots, 'three rows hold every item');
+  assert.ok(GEAR_COLS * 6 >= d.slots + 10, 'six rows hold every item, the ten gadgets too (registered in the game, not here)');
   // the menu learns of a picture once drawn (src/item-icons.js)
   const m = new GameMenu(null, { sources: { items: () => d } });
   m.open('items'); m.iconReady('jetpack', 'data:x');

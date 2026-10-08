@@ -6,6 +6,7 @@ import path from 'node:path';
 // (levels/content.js, for the errands, builds nothing at import, but its modules want a page to exist)
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
+await import('./register-gadgets.js');   // (the gadgets as items: the makers' courts' boxes hold them)
 
 const { progressBefore, seedDebugSave, worldsBefore, WORLDS, WORLD_ENDS, TANK_BANDS, opensInDebugSave } = await import('../src/debug-save.js');
 const { ORDER, SIDE } = await import('../src/levels/names.js');
@@ -163,8 +164,9 @@ test('every magical water that colours the tank is a band, and the code grants i
     for (const m of src.matchAll(/quests\.give\('([^']+)'\)/g)) if (ITEMS[m[1]]) gives.push(`${rel}: ${m[1]}`);
   }
   assert.deepEqual([...new Set(sites)].sort(), TANK_BANDS.map((b) => `story/${b.world}.js`).sort(), 'a new tank band: add it to TANK_BANDS');
-  // (main.js and the dev menu: the ?items= and dev switches; the boxes: PLACEMENTS)
-  assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'main.js'], 'a new place that grants gear: cover it in src/debug-save.js');
+  // (main.js and the dev menu: the ?items= and dev switches; the boxes: PLACEMENTS; the trials: their rewards, won
+  // only by finishing an optional run, so a debug save leaves them unwon, as a player who went straight on would)
+  assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'main.js', 'trials/index.js'], 'a new place that grants gear: cover it in src/debug-save.js');
   assert.deepEqual(gives, [], 'gear given in code by a quest: cover it in src/debug-save.js');
 });
 
