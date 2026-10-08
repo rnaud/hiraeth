@@ -8,7 +8,11 @@ The first things in the game that fight back, and the tool's answer to them.
   backpack: no item, no box. It costs no charge. On a pad, LB held with the right stick still zooms.
 - **The combo:** a press swings (the first cut takes 0.62 s); a press during a swing or within `BLADE.chain` after it
   chains the next, up to three: right to left, left to right, then a heavier overhead (`BLADE.damage` 1, 1, 2),
-  then `BLADE.cooldown`.
+  then `BLADE.cooldown`. A press the blade can't act on yet (during an evade, the cooldown) is kept `BLADE.buffer`
+  (0.2 s) and swings as soon as it can (v0.96).
+- **The cut's pull** (`MAGNET`, `closeInSpeed`, v0.96): a swing begun with its target (the lock, else the soft lock)
+  a little out of reach steps you in through the wind-up and cut, to stand `MAGNET.ideal` (1.2 m) off its body, up
+  to `MAGNET.max` (2.2 m) of ground; in reach, or further, nothing. Not the lunge (it carries you itself) nor in the air.
 - **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
   `attackSample` maps separate wind/active/recover durations (0.22/0.16/0.24 s for the first,
   0.25/0.17/0.26 for the second, 0.36/0.20/0.34 for the heavy third) onto source time.
@@ -145,9 +149,13 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
   on a block, 0.14 s on a perfect parry.
 - **Camera kick:** `kick(k)` jolts the camera after the rig places it (`shakeCamera`), settling over
   `FEEL.settle`; a foe's hit kicks harder (main.js `onHurt`).
+- **The finishing blow** (v0.96, `Foes.burst`): 0.09 s and a bigger kick; the last foe of a fight (none other
+  stirring within 28 m) 0.12 s, then `slowMo(0.45, 0.35)`: the world at 35% for 0.45 s, easing back over its last
+  third (`feelDt`, after any hit-stop).
 - **Knockback:** the heavy third swing throws a foe 2.2× as far.
 - **Turns:** `TURNS.strikers` (2) may wind up at once (`env.mayStrike`); the others circle at a step past
-  their reach. `keepApart()` pushes foes standing inside each other apart.
+  their reach (`Foe.circle`). One off the screen (`Foes.onScreen`) waits while any other strikes (v0.96), so a
+  blow from behind never lands on top of one you are watching. `keepApart()` pushes foes standing inside each other apart.
 - **Warnings:** a foe winding up off the screen (or behind the camera) shows a round marker at the screen's
   edge on its side, filling as its strike comes (`#foe-warn`, `Foes.warnings`).
 
@@ -175,10 +183,47 @@ The count is said every 5 ink.
 - **RB / R1** (a left click, F, ⚔) swings; **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
 - The push is a gun mode (`MODES.push`, always owned with the backpack): fired as a shot, it throws the cone.
 - In a fight (`foes.near(20)`) LB doesn't zoom (`Controller.combat`).
-- **The lock-on:** `Foes.cycleLock()` locks the nearest foe in `LOCK.reach` (those ahead of the camera
-  first), then the next out, then lets go. It is lost past `LOCK.lose` or when the foe falls.
-- While locked, main.js turns `rig.yaw` to keep the foe ahead, `#foe-lock` rings it, and the blade's soft
-  lock and the guard turn to it first (`tool.lockOn`).
+- **The lock-on:** `Foes.cycleLock()` locks a foe in `LOCK.reach`: those ahead of the camera first, by distance
+  × (1.6 − how straight ahead), so the one nearest the middle of the view wins; then the next, then lets go. It
+  is lost past `LOCK.lose`; when its foe falls it moves on to the nearest still standing in reach (`nextLock`, v0.96).
+- While locked, main.js turns `rig.yaw` to keep the foe ahead, the reticle marks it, and the blade's soft
+  lock, the guard and the cut's pull turn to it first (`tool.lockOn`; `lockTarget()` carries its body's radius).
+- **The reticle** (`src/lock-reticle.js`, `#foe-lock`, v0.96): an SVG drawn as the prompts are, gold in a thick ink
+  line: four chevrons on a hand-drawn dashed ring, sized to the foe's body on the screen (`RETICLE.min`–`max` px),
+  a centre diamond, and pips over it for its hp (up to 8; more, each a share). `reticleLook(f)` reads the foe:
+  `calm` (turning slowly, breathing), `wind` (red, the chevrons closing to `RETICLE.close` as k², the ring filling
+  in; meeting at the strike with a white flash), `open` (stunned, reeling, flipped, asleep: pale blue, spread to
+  `RETICLE.open`, pulsing, still), `veiled` (buried, phased: dimmed, dashed). A new lock snaps in (from twice the
+  size, a quick turn, `acquire()`). Off the screen it waits small at the edge on its side.
+- **Switching with a flick** (`FLICK`, `Foes.flickLook`, `switchLock`, v0.97): main.js wraps `rig.look` (the
+  right stick, the mouse, a touch drag all pass through it); while locked, the sideways part goes to `flickLook`
+  instead of the camera, into a leaky sum (decay 8/s). Past `FLICK.px` (70) the lock jumps to the nearest foe on
+  that side of the screen (by projected x, a little by y), then rests `FLICK.rest` s; none that way, it stays. Full
+  tilt gets there in ~0.12 s; half tilt or less never does.
+
+## Staying in the fight (v0.96, `PRESSURE`)
+
+Foes press you rather than run (enemies that flee are a chore to chase, not a fight):
+- **Knocked down** (`P.down`), they no longer go home: they hold round you `PRESSURE.hold` (1.6 m) past their reach,
+  facing you, never striking, and come on as you rise. Only **lost** (dead, riding, 6 m above or below) sends them home.
+- **The leash** (`giveUp`) holds only once you have left too: home only when you are past `giveUp + PRESSURE.leave`
+  (8 m) from its home. Fighting it out there, it stays.
+- **Keeping its distance** (`keep`: the spitter, the drone) backs off at most `PRESSURE.retreat` (1.1 s, at 0.7 of
+  its speed), then stands its ground and attacks from there; the budget refills when it winds up a strike.
+- **The dune ray** (`BURROW`): up (`Foe.surfaced`) it stays up `BURROW.up` (6 s), fighting surfaced, and dives only
+  at the end of a recovery after that. Buried, a tall fin and an ink ripple ring on the sand show it; a cut there
+  flushes it (`'flushed'`: dazed `BURROW.flush`, unharmed, sand thrown up); a bomb, stomp or gust still throws it
+  up for 1.6 s. A shot finds only sand. It can be locked on buried (the reticle dimmed).
+- **The shadow hound** is phased only more than `PHASE.near` (3.2 m) from you (`Foe.dist`): close, it is solid.
+- **Armour** (`Foe.shrugged`, `Foes.armour`, `ARMOUR`, v0.97): a cut that lands and doesn't make it reel (a `heavy`
+  kind, or any foe late in its wind-up or striking) plays `foeArmour` (a dull thunk) instead of the hurt sound,
+  throws sparks and a gold ring off it, and once says what does stagger one (flag `foes.armour`).
+- **Hovering foes** (v0.97): a blade cut knocks a `hover` kind low (`Foe.low`, `KNOCKED_LOW` 2.6 s, dropping fast to
+  0.35 m). **The rising cut** (`RISE`, `riseTo`, fluid-blade.js): a swing begun on the ground at a target `RISE.min`
+  (1 m)+ over the chest within `RISE.flat` (4.5 m) sets `player.riseKick`: Player leaps up to its height (at most
+  `RISE.max` 2.8 m, with its own `GRAVITY`) and in, and the cut is the leap's cone (no swept test: the captured arms
+  swing level). Then the foe is low and the next swings are on the ground.
+- `tests/combat-feel.test.js` checks each of these, the turns off the screen, the lock, slow motion, the pull and the buffer.
 
 ## Strafing, locked on (`src/player.js` `LOCK_MOVE`)
 
@@ -298,14 +343,14 @@ and temple rooms draw from its roster.
 
   | Kind | World | Attacks | How to beat it |
   |---|---|---|---|
-  | dune ray (`ray`) | Desert, Buried Machine | erupt (a ring under you that tracks, then bursts up, knocks down), glide (a lane charge) | buried it can't be cut or locked; a bomb, a stomp or a gust flushes it; surfaced it is open |
+  | dune ray (`ray`) | Desert, Buried Machine | erupt (a ring under you that tracks, then bursts up, knocks down), glide (a lane charge) | buried, a cut at its fin, a bomb, a stomp or a gust flushes it; surfaced it is open, and stays up 6 s |
   | glass golem (`golem`) | Glass Dunes | slam (cone, knocks down), shards (ring round it), hurl (a lobbed chunk) | shots do nothing, bombs ×2, a perfect parry of the slam chips 1; breaks into three `splinter`s |
   | sign moth (`moth`) | Signal Market, Antennas | flash (cone: blinds if you look at it), dart (a short dive) | in threes; 1 hp, a gust or a push ends one; turn the camera away or guard |
   | rust drone (`drone`) | Hangar, City-Shaft, Moon Foundry, Space City | harpoon (a lane; the line pulls you in), ram (a dive) | hovers out of reach; guarding the harpoon cuts the line and dazes it; metal for the magnet; stilled it drops |
   | root stalker (`stalker`) | Mangrove, Lorn, Viridel | grab (roots along a lane drag you in) then lash (cone), lash | a cut frees you; embers ×2; a bloom glob puts it to sleep (held 3 s, cut double) |
   | salt crab (`crab`) | Salt Harbour, Underwater City, Waterfall | snap (cone), spin (a charge along a lane, knocks down) | its shell turns a cut from the front (`'glance'`); guarding the spin flips it (2.6 s, no shell); a bomb cracks the shell |
   | slag walker (`slag`) | Moon Foundry | stomp (ring, leaves slag round it), pour (cone, leaves slag) | burning patches where it walks (`Foes.patches`, 0.05 every 0.7 s on your feet); a fluid shot cools its crust: cuts ×2 |
-  | shadow hound (`hound`) | Eclipse | pounce (lunge), step (a pool behind you, it comes out there) then bite | in twos; running it is a shadow (`phased`: the blade passes through); an ember hurts 2 and lights it solid |
+  | shadow hound (`hound`) | Eclipse | pounce (lunge), step (a pool behind you, it comes out there) then bite | in twos; running more than 3.2 m off it is a shadow (`phased`: the blade passes through); an ember hurts 2 and lights it solid |
 
   `NOTES` says what beats each, once, the first time one notices you (flag `foes.met.<kind>`).
 - **The old foes' new attacks:** the blot's lunge-combo (a longer coil, a lunge, a quick second lunge), the

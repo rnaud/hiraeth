@@ -123,14 +123,14 @@ export const KINDS = {
 
 /** Said once, the first time each kind comes for you (prompts in pad form: src/native-pad.js rewrites them). */
 export const NOTES = {
-  ray: 'A dune ray swims under the sand. When a ripple ring closes round your feet, move: it bursts up there. Surfaced, it can be cut; a bomb or a stomp flushes it out.',
+  ray: 'A dune ray swims under the sand. When a ripple ring closes round your feet, move: it bursts up there, and stays up a while to fight. Cut its fin, or drop a bomb or a stomp, to flush it out.',
   golem: 'A glass golem: slow and hard, glass turns a fluid shot. A bomb cracks it twice as deep, a perfect parry chips it, and when it falls its splinters keep coming.',
   moth: 'Sign moths: when their wings flare, turn away or guard (LB / L1), or the flash blinds you. One cut, one shot or a gust ends each.',
   drone: 'A rust drone hangs out of the blade’s reach. Guard (LB / L1) its harpoon to cut the line and stun it; stilled, or pulled down with the magnet glove, it can be cut.',
   stalker: 'A root stalker: its roots run along the ground to grab you. Step out of their path, or cut it to break the hold. Embers burn it; a bloom glob puts it to sleep.',
   crab: 'A salt crab: its shell turns the blade from the front. Get round it, guard (LB / L1) its spinning charge to flip it on its back, or crack the shell with a bomb.',
   slag: 'A slag walker leaves burning slag where it treads: keep off the glow. A plain fluid shot cools its crust, and cooled it cuts twice as deep.',
-  hound: 'Shadow hounds: running, they are only shadows and the blade passes through. Cut when they rise to strike, or light them with an ember. A pool behind you means one is stepping through.',
+  hound: 'Shadow hounds: running at a distance they are only shadows and the blade passes through; close in, they are solid. Cut when they come near or rise to strike, or light them with an ember. A pool behind you means one is stepping through.',
 };
 
 // ------------------------------------------------------------------ how they look
@@ -159,8 +159,11 @@ const MODELS = {
     const barb = add(tail, new THREE.ConeGeometry(0.1, 0.3, 4).rotateX(-Math.PI / 2), ink, 0, 0, -1.8);
     for (let i = 0; i < 6; i++) add(body, new THREE.CircleGeometry(0.09 + (i % 3) * 0.04, 8).rotateX(-Math.PI / 2), ink, Math.sin(i * 2.1) * 0.6, 0.37, Math.cos(i * 1.7) * 0.4);
     const eyes = pair((s) => add(body, new THREE.SphereGeometry(0.07, 8, 6), eye, s * 0.22, 0.34, 0.5));
-    const fin = add(g, new THREE.ConeGeometry(0.22, 0.6, 4).scale(0.35, 1, 1), ink, 0, 0.25, 0);
+    // buried it still reads: a tall dark fin (cut it and the ray is flushed out), a mound, and an ink ripple
+    // ring round it on the sand that pulses as it swims
+    const fin = add(g, new THREE.ConeGeometry(0.3, 0.95, 4).scale(0.35, 1, 1), ink, 0, 0.4, 0);
     const mound = add(g, new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.9, 0.22, 1.1), sand, 0, 0, 0);
+    const ripple = add(g, new THREE.RingGeometry(0.92, 1, 28).rotateX(-Math.PI / 2), M_('ray-ripple', { color: '#5a3a26', side: THREE.DoubleSide }), 0, 0.05, 0);
     return {
       group: g, parts: [disc, ...wings, tail, ...eyes], eyeMat: eye, base: '#f6e7b0', size: 1,
       anim(f, c) {
@@ -169,8 +172,10 @@ const MODELS = {
         f._rise = lerp(f._rise ?? 0, under ? 0 : 1, 1 - Math.exp(-10 * c.dt));
         const r = f._rise;
         body.position.y = lerp(-0.6, 0, r); body.visible = r > 0.05;
-        fin.visible = mound.visible = r < 0.95;
-        fin.position.y = 0.25 * (1 - r) - (f.state === 'wind' && f.atk?.surface ? 0.3 * c.wind : 0);
+        fin.visible = mound.visible = ripple.visible = r < 0.95;
+        fin.position.y = 0.4 * (1 - r) - (f.state === 'wind' && f.atk?.surface ? 0.45 * c.wind : 0);
+        fin.rotation.z = Math.sin(c.now / 160) * 0.15;
+        ripple.scale.setScalar((1.1 + 0.18 * Math.sin(c.now / 180)) * (1 - r));
         mound.scale.setScalar(1 - r); mound.position.y = -0.02;
         const flap = Math.sin(c.now / (f.state === 'strike' ? 70 : 180)) * (under ? 0 : 0.35);
         wings[0].rotation.z = flap; wings[1].rotation.z = -flap;

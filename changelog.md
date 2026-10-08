@@ -2,6 +2,27 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.97 — 2026-10-08
+
+- Winged blots and rust drones can be fought with the blade: a swing from the ground at one hovering over you leaps you up to it, and a cut knocks it down within reach for a few seconds.
+- A cut that lands but doesn’t stop a foe (a heavy one, or one already committed to its blow) now answers with a dull thunk, sparks and a gold ring, and the first time the game says what does stagger it.
+- Locked on, flick the right stick (or the mouse) left or right to switch to the next foe on that side; R3 or Tab still locks on and lets go.
+
+## v0.96 — 2026-10-08
+
+- The blow that finishes a foe lands harder, and the last foe of a fight falls in a moment of slow motion.
+- An attack pressed during an evade, or just before the blade is ready again, is remembered: it swings as soon as it can, so evade-then-cut flows.
+- A swing begun with a foe just out of reach steps you in to it, so the cut lands where you meant it.
+- When the foe you are locked on to falls, the lock moves straight on to the next one near you, and a new lock picks the foe nearest the middle of the view.
+- The reticle reads the foe: it turns red and closes in as a strike winds up, meeting as it lands; it spreads pale blue while the foe is open to a cut, and dims while it can’t be cut (a ray under the sand, a hound running as a shadow).
+- The lock-on has a new reticle: four gold chevrons on a hand-drawn ring, sized to the foe, with pips over it for what is left of it.
+- Shadow hounds are solid once they come close; only further off are they shadows the blade passes through.
+- The dune ray is easier to read: buried, a tall dark fin and an ink ripple on the sand show where it swims, and a cut at the fin flushes it out. Up, it stays up a few seconds to fight instead of diving after every attack.
+- While a foe you can see is striking, one behind you or off the screen waits its turn, so a blow from behind never lands on top of one you are watching.
+- Spitting blots and rust drones back off a step when you close in, then stand their ground and fight, instead of running from you across the field.
+- A foe you lead away from where it stood keeps fighting while you are still there; it goes back only once you have left too.
+- Foes no longer walk off when they knock you down: they wait round you, facing you, and come on again as you get up.
+
 ## v0.95 — 2026-10-08
 
 - The Garden of Spheres: the white stone’s shade a sea-green grey, as in the drawings, the umbrella trees’ trunks a blue-grey, and the lawns a warmer yellow, less lime.

@@ -25,7 +25,7 @@ export const CAPSULE = { radius: RADIUS, step: STEP, height: HEIGHT };
 // ~1x, SHIFT the sprint loop with a slightly lengthened stride
 const WALK = 3.8;
 const RUN = 8.2;   // (7.2 until October 2026: a little faster now that it costs stamina, src/stamina.js)
-const GRAVITY = 32;
+export const GRAVITY = 32;   // (m/s²; the blade's rising cut leaps with it: src/fluid-blade.js RISE)
 const JUMP = 13;
 const LIMIT = 1900;
 // The follow camera's look down when a world starts (rad, the rig's pitch): a little down the way the
@@ -1273,6 +1273,14 @@ export class Player {
         if (C.evade) tv.copy(C.dir).multiplyScalar(C.speed);
         else tv.addScaledVector(C.dir, C.speed * a);
       }
+      // the blade's rising cut (src/fluid-blade.js RISE): a leap up and in to a foe hovering over you
+      if (this.riseKick && this.onGround) {
+        const K = this.riseKick;
+        vu = Math.max(vu, K.up); this.onGround = false;
+        tv.copy(K.dir).multiplyScalar(K.speed);
+        this._jumped = true;
+      }
+      this.riseKick = null;
 
       // jump / glide
       let jumped = false;

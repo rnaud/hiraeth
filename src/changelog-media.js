@@ -124,6 +124,14 @@ const colourShots = (name, commit, view, caption, ref) => [
 const SEE_COLOURS = 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.';
 
 export const CHANGELOG_MEDIA = {
+  '0.96': [
+    { match: 'The lock-on has a new reticle', shots: [
+      { name: 'lock-reticle', caption: 'Locked on to a makers’ machine in the Arena', from: 'headless Chrome in the Arena against this branch’s own dev server, Medium, 1280 × 720 (8 October); the before draws v0.95’s circle, with its own style, at the same place' },
+    ] },
+    { match: 'The reticle reads the foe', shots: [
+      { name: 'lock-windup', caption: 'The machine three quarters through winding up its slam: the chevrons red and closing in', from: 'headless Chrome in the Arena against this branch’s own dev server, Medium, 1280 × 720 (8 October); the before draws v0.95’s circle, with its own style, at the same place' },
+    ], see: 'Lock on to a foe and parry its strike: the reticle spreads pale blue while it reels. A dune ray under the sand dims it.' },
+  ],
   '0.95': [
     // (each world: before / after from the same view, then the picture made for the pass: before, after and the reference side by side)
     ...[

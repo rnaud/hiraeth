@@ -636,6 +636,10 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
 const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
+{ // locked on, the look's sideways motion is the lock's: a quick flick (the right stick, the mouse, a drag) switches to the next foe that way (src/foes.js FLICK)
+  const look = rig.look.bind(rig);
+  rig.look = (dx, dy) => { if (foes.lock && !busy() && foes.flickLook(dx)) dx = 0; look(dx, dy); };
+}
 if (level.foes?.waves && !minigameDef) import('./foe-spawner.js').then((m) => m.mountFoeSpawner({ foes, kind: query.get('foe') }));   // (the Arena's list of every foe kind: src/foe-spawner.js)
 await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
