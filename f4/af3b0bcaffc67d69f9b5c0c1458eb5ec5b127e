@@ -1,0 +1,51 @@
+.agents/skills/moebius-ai-characters/references/repo-map.md
+  s_364474254304ac::t_32a903289e7c55 19
+docs/systems/characters.md
+  s_364474254304ac::t_6f77b433b1890f 45-87
+docs/systems/performance.md
+  s_364474254304ac::t_3e991a13fa7a65 932-942
+public/characters/traveller-v1/README.md
+  s_364474254304ac::t_ccde377380dbd9 6-8
+public/characters/traveller-v1/head-v2/provenance.json
+  s_364474254304ac::t_608dc47a28c1bc 31-32
+scripts/bench/browser.mjs
+  s_364474254304ac::t_31014e5206fa88 20,25-26
+scripts/bench/traveller.mjs
+  s_364474254304ac::t_ce3beb20522c51 1-215
+scripts/tripo/README.md
+  s_364474254304ac::t_5369172b6845ef 32-35,37-38,195,198-199,202-205
+scripts/tripo/slim-traveller.mjs
+  s_364474254304ac::t_05e8c9c13731e5 1-165
+src/characters/traveller-lod-core.js
+  s_364474254304ac::t_9921f983592f15 1-83
+src/characters/traveller-lod-worker.js
+  s_364474254304ac::t_8a5e9a3eacea6f 1-9
+src/characters/traveller-lod.js
+  s_364474254304ac::t_c7e109b8717a3c 1-158
+src/humanoid.js
+  s_364474254304ac::t_0137432d1d134b 832-833
+src/main.js
+  s_364474254304ac::t_3162da07da64f4 60,396-398
+tests/traveller-lod.test.js
+  s_364474254304ac::t_12ba6f1bee2caf 1-166
+tools/tripo-head-review.html
+  s_364474254304ac::t_e2f4feed23ccad 5
+tools/tripo-head-review.js
+  s_364474254304ac::t_1967a0538c9a50 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f4af3b0bcaffc67d69f9b5c0c1458eb5ec5b127e",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
