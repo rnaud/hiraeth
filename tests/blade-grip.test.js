@@ -48,7 +48,7 @@ test('the shield opens in under a fifth of a second, holds, folds; a blow flares
   for (let i = 0; i < 20; i++) S.update(dt, false);
   assert.equal(S.state, 'folded'); assert.equal(S.k, 0);
   // the ribs come out one after another; the fluid floods after the ribs and drains before them
-  S.k = 0.4; assert.ok(S.rib(0) > S.rib(9)); assert.ok(S.fill < S.rib(0));
+  S.k = 0.4; assert.ok(S.rib(0) > S.rib(SHIELD.ribs - 1)); assert.ok(S.fill < S.rib(0));
   const F = new ShieldState(); F.hit('broken'); assert.equal(F.state, 'folded', 'a folded shield takes no blow');
 });
 
