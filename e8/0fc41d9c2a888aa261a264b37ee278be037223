@@ -1,0 +1,133 @@
+LORE.md
+  s_364474254304ac::t_9411a23ed5170c 87-91,305-311,892-928,933-934,936,940-951
+TODO.md
+  s_364474254304ac::t_6b22e310f7aff8 21-26,28-32
+docs/story-bible.md
+  s_364474254304ac::t_5d7b6d5cb473c6 20-21,31,34-41,74-77,336-352,438-449,488-497,508-514,558-560
+docs/systems/progression.md
+  s_364474254304ac::t_7b25d493d33406 18-19
+docs/systems/story.md
+  s_364474254304ac::t_833f28b1f9f3b3 82-126,132-133
+docs/systems/testing.md
+  s_364474254304ac::t_599a5c0dc4a976 22-25
+docs/systems/worlds.md
+  s_364474254304ac::t_eef4586e1d9df8 1168-1184
+public/music/manifest.json
+  s_364474254304ac::t_4ed02dd034fb98 180-186
+src/costumes.js
+  s_364474254304ac::t_ebadfc222189a7 502
+src/edge.js
+  s_364474254304ac::t_51b8530a0063de 43
+src/foes.js
+  s_364474254304ac::t_ba19fe58003f75 93
+src/levels/content.js
+  s_364474254304ac::t_45d1cf2e3e46c0 25,49
+src/levels/home-houses.js
+  s_096d9f4127f346::t_e214cacc18695b 90,208-209,242
+src/levels/home.js
+  s_096d9f4127f346::t_c9bdaed9398b12 9,170-174,249-250,295,458-459
+src/levels/index.js
+  s_364474254304ac::t_0777aae0d40782 19,235-242
+src/levels/lantern.js
+  s_364474254304ac::t_aa6d499b069879 1-265
+src/levels/names.js
+  s_364474254304ac::t_aaff3b9c636776 23
+src/main.js
+  s_364474254304ac::t_f603408c580c7e 2,259-261
+src/makehuman/people.js
+  s_364474254304ac::t_3a4759eb9cdea3 166
+src/makehuman/shape.js
+  s_364474254304ac::t_e3a55c87d16ee0 115
+src/reactive-world.js
+  s_b1fce79b950983::t_52b3043fd0d305 31
+src/save-migrate.js
+  s_364474254304ac::t_580469d4338b8b 10-12,52-59
+src/ship/cinema.js
+  s_364474254304ac::t_00a4a64d47592f 263
+src/ship/homecoming.js
+  s_364474254304ac::t_da40541009cb19 11-12,31-38,40-42,220,222-223,236-241,250,284,323-325,364-369,373-374,376,387-388,402,422-433,446,455-457,459,470,488,550,553,568,570-575,605-645,664,670,682-683,687-688
+src/ship/planets.js
+  s_364474254304ac::t_4d81bfc5dec9a5 35
+src/ship/ship.js
+  s_364474254304ac::t_6203df3b506d64 17,330,344
+src/ship/starmap.js
+  s_364474254304ac::t_ea187694072d65 24-26,28,50,65-67,69-70,294,334-336,359,361,418-421
+src/soundtracks.js
+  s_364474254304ac::t_0d19fb2ffba832 4
+src/story/calls.js
+  s_364474254304ac::t_a995f911158e14 42-46,55,93-94,301-304,458-481,493,506,511,519,564-565,645-647,650-652,656
+src/story/charge.js
+  s_364474254304ac::t_25a8a5ac419509 14-16,26,44-46,54-55,65-66
+src/story/ending.js
+  s_364474254304ac::t_0b81e66aeac625 1-2,4-38,42-45,58,90-162,187-193,202,275-313,315-325,328,330-351,357,360-361,368,404-405
+src/story/home-data.js
+  s_364474254304ac::t_a0a5dbdb6adeb9 29-31,120-123,196-197,201-202
+src/story/home.js
+  s_364474254304ac::t_0db65d1d4ae584 5-6,17-19,160-166,266-267,271,340-341,365
+src/story/incal-data.js
+  s_364474254304ac::t_c8c5ad952af0e0 440-441,445-454,457-458
+src/story/index.js
+  s_364474254304ac::t_9bc8bc51286154 32,63
+src/story/lantern-data.js
+  s_364474254304ac::t_ecc6fc1b02cf02 1-241
+src/story/lantern.js
+  s_364474254304ac::t_87faf237dbd5f6 1-90
+src/story/perdide2-data.js
+  s_364474254304ac::t_9d29b31011d71f 30-31,34-43,92,146,148,152-164
+src/story/portrait-bg.js
+  s_364474254304ac::t_7654840e38547b 36
+src/story/relay.js
+  s_364474254304ac::t_148c9c096701c5 17-20,24,32,37,39,51-53,57,61
+src/story/voice.js
+  s_364474254304ac::t_ad5b8ed7a619b7 124-126,166,343
+tests/charge.test.js
+  s_364474254304ac::t_bcea34aa81c2a9 28-39,62-63
+tests/ending.test.js
+  s_364474254304ac::t_403caee8fe182d 15,145,155-168,171-173,195,341-342,344-346,352-393
+tests/finale.test.js
+  s_364474254304ac::t_dfa41ec85ca800 1-197
+tests/home-family.test.js
+  s_364474254304ac::t_98fa29baf730dd 176,180,182-188,194-203
+tests/incal-hoist.test.js
+  s_364474254304ac::t_ce03cad9db14cb 125
+tests/playthrough-agent.js
+  s_364474254304ac::t_3e6fc92abbff73 631,653
+tests/playthrough.test.js
+  s_364474254304ac::t_9e5b1dc6603efc 4-5,57,78,84-129
+tests/story-incal.test.js
+  s_364474254304ac::t_a89fc644f98bf6 252-253
+tests/tone.test.js
+  s_364474254304ac::t_6070678432c2f5 13-14,120,124,128-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e80fc41d9c2a888aa261a264b37ee278be037223",
+  "prompts": {},
+  "sessions": {
+    "s_096d9f4127f346": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11c1c-fa66-7b63-bdfb-d94262f7dff8",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b1fce79b950983": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "faad5e7a-5dbb-4c11-94c8-23df51ace8b6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
