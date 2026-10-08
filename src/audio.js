@@ -31,13 +31,24 @@ export const SOLO_TUNE = [
 // scale; it climbs through the three remembered sounds and comes home an octave up.
 export const SPHERES_SONG = [[0, 1], [2, 1], [4, 2], [5, 2], [4, 1], [2, 1], [1, 2], [2, 1], [4, 1], [7, 2], [5, 4], [null, 1], [4, 1], [2, 1], [5, 5]];
 
-// How loud the ambient wind (its whoosh and the high howl) is against everything else.
-export const AMBIENT_WIND = 0.4;
+// How loud the ambient wind (its whoosh and the high howl) is against everything else. (0.4 until the
+// playtest of 8 October 2026: the desert's wind, and its sandstorms most, drowned the world out.)
+export const AMBIENT_WIND = 0.22;
+// The mount's whistle (and a taxi's hail): its tone's peak level on the effects bus.
+export const WHISTLE = 0.03;
 
 // Each world's score lives in src/score.js (its mode, tempo, instruments, leitmotif, and the
 // father's theme in it); its instruments in src/score-voices.js. Here: the ground under your
 // feet (the footsteps) and each world's ambience bed.
 const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand', garage: 'stone', edena: 'grass', perdide: 'grass', arzach2: 'stone', buried: 'sand', spheres: 'grass', perdide2: 'grass', atelier: 'stone', arena: 'sand', gadgetyard: 'sand', arcade: 'stone', home: 'grass', mangrove: 'stone', waterfall: 'stone', saltharbour: 'sand', antennas: 'grass', underwater: 'stone', eclipse: 'stone', fallenring: 'grass', moonfoundry: 'stone', underside: 'stone', spacecity: 'stone', overnighttrain: 'stone' };
+/**
+ * The footsteps' surface: the world's own ground (GROUND) where you stand on it, stone on anything built
+ * on it (rocks, roofs, floors, stairs, the ship: Physics.groundKind, Player.footing 'ground' | 'built').
+ * Before, every step in a grassy world rustled like leaves, on a roof or the ship's deck too.
+ */
+export function footSurface(levelId, footing = 'ground') {
+  return footing === 'built' ? 'stone' : GROUND[levelId] ?? 'sand';
+}
 const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', arena: 'wind', gadgetyard: 'wind', arcade: 'wind', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds', moonfoundry: 'machine', underside: 'highwind', spacecity: 'city', overnighttrain: 'rails' };
 // the instruments audio.js plays itself (the rest are src/score-voices.js's)
 export const OWN_KINDS = new Set(['duduk', 'reed', 'flute', 'strings', 'synth', 'bell', 'marimba', 'oud', 'ney', 'chant', 'celesta', 'kalimba']);
@@ -725,7 +736,7 @@ export class Sound {
     if (this.muted) return;
     const ctx = this.ctx, g = ctx.createGain(), f = ctx.createBiquadFilter();
     f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.4;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.25); g.gain.setValueAtTime(0.05, t + 1.4); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.03, t + 0.25); g.gain.setValueAtTime(0.03, t + 1.4); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
     for (const fr of [370, 440, 554]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = fr; o.connect(f); o.start(t); o.stop(t + 2.5); }
     f.connect(g).connect(this.fx);
   }
@@ -819,10 +830,11 @@ export class Sound {
     src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
   }
 
-  step(speed = 5, { vol = 1, at = 0 } = {}) {
+  /** A footstep at `speed` m/s on `surface` ('stone' | 'grass' | 'sand'; by default what the feet are on: update's footing). */
+  step(speed = 5, { vol = 1, at = 0, surface = this.surface ?? this.profile.ground } = {}) {
     if (!this.ctx || this.muted) return;
     const k = Math.min(speed / 11, 1);
-    const g = this.profile.ground;
+    const g = surface;
     if (this.sample(`step-${g}`, { vol: (0.55 + 0.45 * k) * vol, at })) return;
     const t = this.ctx.currentTime + at;
     if (g === 'stone') this.burst(t, { dur: 0.05, type: 'bandpass', freq: 1700 + Math.random() * 600, q: 2, vol: 0.12 + 0.12 * k });
@@ -1149,11 +1161,12 @@ export class Sound {
       o.frequency.exponentialRampToValueAtTime(f2, s + dur);
       const vib = ctx.createOscillator(), vg = ctx.createGain();
       vib.frequency.value = 7; vg.gain.value = 18; vib.connect(vg).connect(o.frequency);
-      g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(0.11, s + 0.02);
-      g.gain.setValueAtTime(0.11, s + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0005, s + dur + 0.06);
+      // (WHISTLE: a pure tone near 3 kHz, where the ear is keenest, was the loudest thing in the game at 0.11)
+      g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(WHISTLE, s + 0.02);
+      g.gain.setValueAtTime(WHISTLE, s + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0005, s + dur + 0.06);
       o.connect(g).connect(this.fx);
       o.start(s); o.stop(s + dur + 0.1); vib.start(s); vib.stop(s + dur + 0.1);
-      this.burst(s, { dur: dur + 0.05, type: 'bandpass', freq: f1, q: 4, vol: 0.025, rate: 1 });   // (the breath)
+      this.burst(s, { dur: dur + 0.05, type: 'bandpass', freq: f1, q: 4, vol: WHISTLE * 0.3, rate: 1 });   // (the breath)
     }
   }
 
@@ -1221,16 +1234,52 @@ export class Sound {
     this.burst(t, { dur: 0.35, type: 'bandpass', freq: 3200, q: 0.6, vol: 0.12, rate: 0.8 });
   }
 
+  /** Something giving way, waking or moving (a quest's step): an airy sweep up, and four notes over it. */
   whoosh() {
     if (!this.ctx) return;
     const ctx = this.ctx, t = ctx.currentTime;
     const src = ctx.createBufferSource(); src.buffer = this.noiseBuf;
     const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
-    f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(3000, t + 1.2);
-    const g = ctx.createGain(); g.gain.value = 0; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.4, t + 0.6); g.gain.linearRampToValueAtTime(0, t + 1.4);
+    f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(2200, t + 1.2);
+    const g = ctx.createGain(); g.gain.value = 0; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t + 0.6); g.gain.linearRampToValueAtTime(0, t + 1.4);
     src.connect(f).connect(g).connect(this.fx);
     src.start(t); src.stop(t + 1.5);
     [0, 4, 7, 11].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.2 + i * 0.15, 0.08, 'triangle', this.fx));
+  }
+
+  /**
+   * Water (or oil) welling up and running: a soft low gurgle that swells and settles, and bubbles rising
+   * through it, now and then, each a little "bloop" gliding up. It used to be the whoosh, a hiss swept up
+   * to 3 kHz: loud, and nothing like water. `dur` s, `vol` 0..1.
+   */
+  waterRise({ dur = 3.2, vol = 1 } = {}) {
+    if (!this.ctx || this.muted || !this.noiseBuf) return;
+    const ctx = this.ctx, t = ctx.currentTime, v = Math.min(1, vol);
+    if (!(v > 0)) return;
+    // the flow: slowed noise through a low-pass that opens a little as the water comes, and a slow
+    // wobble on its level (the water's surges)
+    const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.loop = true; src.playbackRate.value = 0.45;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.9;
+    lp.frequency.setValueAtTime(260, t); lp.frequency.exponentialRampToValueAtTime(620, t + dur * 0.4); lp.frequency.exponentialRampToValueAtTime(380, t + dur);
+    const g = ctx.createGain(); g.gain.value = 0.0001;
+    g.gain.setValueAtTime(0.002, t); g.gain.exponentialRampToValueAtTime(0.07 * v, t + 0.6);
+    g.gain.setValueAtTime(0.07 * v, t + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const surge = ctx.createOscillator(), sg = ctx.createGain(), wob = ctx.createGain();
+    surge.frequency.value = 1.3; sg.gain.value = 0.35; wob.gain.value = 0.65;
+    surge.connect(sg).connect(wob.gain);
+    src.connect(lp).connect(wob).connect(g).connect(this.fx);
+    src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05); surge.start(t); surge.stop(t + dur + 0.05);
+    // the bubbles: short sines gliding up an octave, round and quiet, thicker while the water swells
+    const n = Math.round(10 + dur * 3);
+    for (let i = 0; i < n; i++) {
+      const at = t + 0.15 + Math.pow(Math.random(), 1.4) * (dur - 0.4), f0 = 220 + Math.random() * 380, d = 0.05 + Math.random() * 0.06;
+      const o = ctx.createOscillator(), bg = ctx.createGain();
+      bg.gain.value = 0.0001;   // (quiet from the start: a gain is 1 until its first event, a click at full level)
+      o.type = 'sine'; o.frequency.setValueAtTime(f0, at); o.frequency.exponentialRampToValueAtTime(f0 * (1.6 + Math.random() * 0.5), at + d);
+      const peak = (0.01 + Math.random() * 0.014) * v;
+      bg.gain.setValueAtTime(0.0001, at); bg.gain.exponentialRampToValueAtTime(peak, at + 0.008); bg.gain.exponentialRampToValueAtTime(0.0001, at + d);
+      o.connect(bg).connect(this.fx); o.start(at); o.stop(at + d + 0.02);
+    }
   }
 
   /** Wildlife: a small sound for a creature's surprise (vol 0..1, by distance). */
@@ -1298,7 +1347,7 @@ export class Sound {
   /** Back on the ground at `speed` m/s down: both feet on the world's ground, a body's weight past a soft hop. */
   land({ speed = 4, pos = null } = {}) {
     if (!this.ctx || this.muted) return;
-    const k = Math.max(0, Math.min(1, (speed - 2) / 14)), g = this.profile.ground, t = this.ctx.currentTime;
+    const k = Math.max(0, Math.min(1, (speed - 2) / 14)), g = this.surface ?? this.profile.ground, t = this.ctx.currentTime;
     this.step(6 + 5 * k, { vol: 0.8 + 0.5 * k });
     this.step(6 + 5 * k, { vol: 0.5 + 0.4 * k, at: 0.05 + 0.03 * (1 - k) });
     if (speed > 5) {
@@ -1923,13 +1972,15 @@ export class Sound {
     if (!this.ctx) return;
     if (this.bandDefs && !this.bands) this.makeBands();
     this.follow(s);
+    if (s.footing) this.surface = footSurface(this.levelId, s.footing);   // (what the feet are on: step, land)
     this.musicMomentsUpdate(s.indoor ?? 0);
     const k = Math.min(s.speed / 11, 1.5);
     // the wind's whoosh sits under the music, not over it (storms still rise well above the calm)
     const W = AMBIENT_WIND;
     const highWind = this.voice.ambience === 'highwind' ? 0.03 : 0;
-    this.set('howl', (s.gust * 0.012 + s.storm * 0.025 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
-    this.set('wind', (0.03 + s.gust * 0.05 + s.storm * 0.11 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0)) * W, 420 + s.gust * 300 + s.storm * 400);
+    // (a storm rises well over the calm, but stays a darker roar under the world: not the hiss it was)
+    this.set('howl', (s.gust * 0.012 + s.storm * 0.016 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
+    this.set('wind', (0.03 + s.gust * 0.05 + s.storm * 0.07 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0)) * W, 380 + s.gust * 220 + s.storm * 240);
     this.set('rain', s.rain * 0.07);
     this.set('rainRoof', (s.rainRoof ?? 0) * 0.11);
     this.set('cloak', (s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07) * (0.5 + 0.5 * W));

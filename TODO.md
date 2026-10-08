@@ -56,13 +56,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] Don't show button hints when getting into a vehicle.
 - [ ] Loading a new level shows the touch controls again.
 
-## Sound
-
-- [ ] The desert wind is far too loud.
-- [ ] The whoosh of water filling up sounds bad and is too loud.
-- [ ] The vehicle whistle is far too loud.
-- [ ] Leaf footsteps play on every surface.
-
 ## Gameplay
 
 - [ ] No invisible enemies.

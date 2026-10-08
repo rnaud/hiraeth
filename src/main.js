@@ -1591,6 +1591,7 @@ function frame(ts) {
     roar: level.roar?.(player.pos) ?? 0,   // (a waterfall near: src/levels/waterfall.js)
     hum: level.hum?.(player.pos) ?? 0,   // (masts and a receiver near: src/levels/antennas.js)
     rails: level.rails?.(player.pos) ?? null,   // (a train's wheels under you: src/levels/overnight-train.js)
+    footing: player.footing,   // (the world's ground or something built on it: the footsteps' surface)
   });
 
   // sand: ambient gusts + dust behind the bike

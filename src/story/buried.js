@@ -174,7 +174,7 @@ export function setupBuried(ctx) {
     if (valveOpen()) return;
     game.set('buried.valve.open', true);
     toast(how === 'push' ? 'The fluid shoves the handwheel round. Something gurgles in the pipe, and dark oil wells up into the dish.' : 'You heave on the handwheel until it gives. Dark oil wells up into the dish.');
-    sound.whoosh?.(); sound.chime?.();
+    sound.waterRise?.(); sound.chime?.();
   };
   registerTarget({ kind: 'valve', radius: 1.8, position: () => K.valve.at, enabled: () => !valveOpen() && flat(player.pos, K.valve.at) < 80,
     onHit: (mode) => {

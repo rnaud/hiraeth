@@ -53,6 +53,17 @@ function* concatPositions(geos) {
   return geo;
 }
 
+/**
+ * What the ground under a downward ray is, for the footsteps (Physics.groundKind, src/audio.js footSurface):
+ * 'ground', the world's own (its heightfield, or its meshes in a world that has none), or 'built' (a mesh
+ * standing on the heightfield: a rock, a roof, a floor, a stair; or anything added later: the ship, a room).
+ * @param hit the first mesh hit (or null), b the heightfield's height there (-Infinity: none), hasBase
+ */
+export function groundKind(hit, b, hasBase) {
+  if (!hit || hit.point.y < b) return 'ground';
+  return hit.added || hit.mover || hasBase ? 'built' : 'ground';
+}
+
 export class Physics {
   /**
    * @param scene  static level geometry is baked from here
@@ -209,6 +220,7 @@ export class Physics {
   groundAt(x, fromY, z, maxDrop = 600) {
     const b = this.base ? this.base.heightAt(x, z) : -Infinity;
     this.groundMover = null;
+    this.groundKind = 'ground';
     if (!this.bvh) return b;
     // a tiny offset keeps the ray off shared vertices (e.g. the centre of a
     // cylinder cap), where it could slip between triangles
@@ -217,6 +229,7 @@ export class Physics {
     const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, maxDrop);
     // (what the ground is, when it is a moving collider: src/carriers.js groundCarrier)
     this.groundMover = hit?.mover && hit.point.y >= b ? hit.mover : null;
+    this.groundKind = groundKind(hit, b, !!this.base);
     return hit ? Math.max(hit.point.y, b) : b;
   }
 
@@ -243,6 +256,7 @@ export class Physics {
   heightAbove(pos, up, step = 0.6) {
     if (up.y > 0.999) return pos.y - this.groundAt(pos.x, pos.y + step, pos.z);
     this.groundMover = null;
+    this.groundKind = 'ground';   // (a little world's own surface, under a gravity of its own)
     _cap.copy(pos).addScaledVector(up, step);
     _dir.copy(up).negate();
     return this.rayDistance(_cap, _dir, 600) - step;
@@ -438,7 +452,7 @@ function compositeBVH(physics) {
       for (const e of physics.extras) {
         if (!reach(e.box, ray, best ? best.distance : far)) continue;
         const h = cast(e, ray, side, near, best ? best.distance : far);
-        if (h && (!best || h.distance < best.distance)) best = h;
+        if (h && (!best || h.distance < best.distance)) { best = h; best.added = true; }   // (added: groundKind)
       }
       return best;
     },

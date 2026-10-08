@@ -346,7 +346,7 @@ export function setupDesert(ctx) {
     game.set('desert.channel.open', true);
     st.boneT = 0.001;
     const said = how === 'push' ? 'The fluid shoves the rib: it rolls off the channel. Water runs.' : how === 'lever' ? 'You lean on the pole with all your weight. The rib tips up off the channel, rolls, and falls clear. Water runs.' : 'You heave. The rib grinds, tips, and rolls off the channel. Water runs.';
-    sound.whoosh?.();
+    sound.waterRise?.();
     sound.chime();
     // the first time the water runs, filmed (src/story/desert-moments.js); it says its toast at the end. Else at once.
     if (!film.flow(said)) toast(said);
@@ -858,7 +858,7 @@ export function setupDesert(ctx) {
     if (rise.on || rise.done) return;
     rise.on = true; rise.t = 0;
     city.wellWater.position.y = Math.min(city.wellWater.position.y, city.well.y + 0.12);
-    sound.whoosh?.();
+    sound.waterRise?.();
     later(1.0, () => say(people.hessa, '~shout~ Grandmother! The well! It’s coming up!', 3));
   };
 

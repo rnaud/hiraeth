@@ -1469,6 +1469,8 @@ export class Player {
 
     // Ground: first surface below step height (terrain, rocks, roofs, domes...)
     let h = this.physics.heightAbove(this.pos, U, STEP);
+    // (what is underfoot, for the footsteps: the world's ground or something built on it, src/audio.js footSurface)
+    this.footing = carrier && roofH < h ? 'built' : this.physics.groundKind ?? 'ground';
     if (carrier && roofH < h) h = roofH;
     // (or the ground is a moving collider, the great wheel's rim: it carries you as a moving solid does)
     else if (this.physics.groundMover && h < 0.8) carrier = moverCarrier(this.physics.groundMover, this.pos, this._moverRide ??= { vel: new THREE.Vector3() });

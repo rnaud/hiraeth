@@ -178,8 +178,8 @@ small bank of CC0 recordings (`public/sfx/`, 74 mono MP3s at 64 kb/s, about 360 
   Effects volume and mute apply. `sound.sample(group, { vol, rate, at, pos })` pans toward `pos` and
   softens it with distance (`placeAt`).
 - **When** (`src/foley.js` `BodyFoley`, `foley.update(player, dt)` in main.js): it watches the player's
-  state from frame to frame and calls the Sound's `jump`, `land` (both feet on the level profile's
-  ground, stone, grass or sand, then a body thump scaled by the fall speed, a spray of sand on sand),
+  state from frame to frame and calls the Sound's `jump`, `land` (both feet on the surface underfoot,
+  stone, grass or sand (below), then a body thump scaled by the fall speed, a spray of sand on sand),
   `grab` (the climb), `mantle`, `wings` (open / fold), `jets` (lighting), `evade` (the roll),
   `knockdown` and `getUp`. Hurts come from Player `onHurt` (`sound.hurt`: a pained grunt or a sharp
   breath, and the blow on the body), pick-ups from `interactHooks.onUse` (src/interact.js: prompts
@@ -194,3 +194,22 @@ small bank of CC0 recordings (`public/sfx/`, 74 mono MP3s at 64 kb/s, about 360 
 - `node scripts/sfx-build.mjs <sources>` remakes the files from the downloads (sox and lame); the
   recipe in it names every source. `tests/sfx.test.js` checks the files, the variation, the round
   robin and the fallback; `tests/foley.test.js` the events.
+
+## The surface underfoot, and the loud ones (playtest, 8 October 2026)
+
+- **Footsteps follow the surface.** `Physics.groundAt` notes what its ray met in `physics.groundKind`
+  (`groundKind(hit, b, hasBase)`): `'ground'` for the world's own (the heightfield, or the meshes of a
+  world that has none) and `'built'` for a mesh standing on the heightfield (rocks, roofs, floors,
+  stairs) or a collider added later (`addCollider`: the ship, rooms; `addMover`). The Player keeps it as
+  `player.footing` each frame, main.js hands it to `sound.update({ footing })`, and `footSurface(level,
+  footing)` makes it a surface: built is stone, the ground the world's `GROUND` (grass, sand, stone).
+  `step` and `land` play it (`step(speed, { surface })` to choose). A world under a gravity of its own
+  (the Spheres' little worlds) counts as ground.
+- **The levels** (the game's own Sound rendered by engine/webaudio.js, the loudest 100 ms in dBFS;
+  `tests/sound-mix.test.js` keeps them): the desert wind calm about -54, gusting while walking -47, a
+  sandstorm -40 (`AMBIENT_WIND` 0.22); the mount's whistle -30 (`WHISTLE`), the train's -31; the water
+  welling up (`waterRise`) -36; a synthesised footstep about -42 and the music about -27 for reference.
+- **`waterRise({ dur, vol })`**: water or oil welling up: slowed noise through a low-pass that opens and
+  surges, with small sine bubbles gliding up an octave; the desert's cave channel and city well and the
+  Buried Machine's oil dish play it instead of the quest `whoosh`.
+

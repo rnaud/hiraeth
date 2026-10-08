@@ -1114,3 +1114,27 @@ What the audit still found after it, and how each was settled:
     the head, as the mesh's blend shapes (BridgeHost.FaceKeys); each face's weights a frame they move, op 19.)
   - The overshirt's lining colour. (2026-10-07: back faces in it, `_Lining`; the trousers' repaired
     band in their fabric, in the vertex colours.)
+
+## Playtest notes (2026-10-08): sound
+
+Levels measured with the game's own Sound rendered by engine/webaudio.js (the loudest 100 ms, dBFS);
+tests/sound-mix.test.js holds them.
+
+- [x] The desert wind is far too loud. (2026-10-08: `AMBIENT_WIND` 0.4 → 0.22, and a storm adds less and
+  opens the band-pass less (src/audio.js `update`): calm -46.7 → -54.1 dB, gusting while walking -42.4 →
+  -47.5, a sandstorm -32.3 → -40.5, under the footsteps' and the music's level.)
+- [x] The whoosh of water filling up sounds bad and is too loud. (2026-10-08: the water no longer plays the
+  quest whoosh (a band-pass hiss swept to 3 kHz): `Sound.waterRise` is slowed noise through a low-pass
+  that opens a little and surges, with small sine bubbles gliding up through it, at -36 dB instead of
+  -22.9. The cave channel and the city well (src/story/desert.js) and the Buried Machine's oil dish use it;
+  the whoosh itself is half as loud and sweeps to 2.2 kHz.)
+- [x] The vehicle whistle is far too loud. (2026-10-08: calling the mount / hailing a taxi was a pure tone
+  near 3 kHz at 0.11, the loudest sound in the game: `WHISTLE` 0.03, -20.8 → -30.2 dB; the train's
+  whistle 0.05 → 0.03, -27.1 → -31.5 dB.)
+- [x] Leaf footsteps play on every surface. (2026-10-08: the step's sample was the world's ground
+  (`GROUND`), grass everywhere in a grassy world. Physics now says what its ground ray met
+  (`groundKind`: 'ground', the heightfield or a world's only meshes; 'built', a mesh standing on the
+  heightfield or a collider added later, the ship and rooms); Player keeps it as `footing`, `sound.update`
+  turns it into the surface (`footSurface`: built → stone), and steps and landings play it. Sampled over
+  a 240 m square round each spawn, the grassy worlds read 0.4–26 % stone, the desert all sand.)
+

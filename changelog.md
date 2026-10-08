@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.0 — 2026-10-08
 
+- Whistling for your hoverbike or hailing a taxi is far softer, and so is the Overnight Train’s whistle.
+- Water welling up, in the desert’s cave channel and its city well and the Buried Machine’s oil dish, now gurgles and bubbles softly instead of a loud whoosh.
+- The desert wind is much quieter, and a sandstorm rises to a low roar instead of a hiss over everything.
+- Footsteps follow what you walk on: grass or sand on the open ground, stone on rocks, roofs, stairs and the ship. Grassy worlds no longer rustle like leaves on every surface.
 - The traveller is about half the download and far lighter to draw, looking exactly the same: files he never used are gone, his textures are sized to what any screen shows, and away from close-ups he is drawn with fewer triangles (conversations and close shots always use his full model).
 - Game updates are about 100 MB smaller too: the music no longer comes with every update.
 - The Android app and the Steam Deck download are about 100 MB smaller: they carry only the Desert’s music and download the other worlds’ themes once, in the background, the first time you open the game, then keep them for offline play.
