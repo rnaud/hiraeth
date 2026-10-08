@@ -1,7 +1,7 @@
 # Gadgets
 
 Zelda-like things the traveller carries besides the backpack's tool (v0.91): one in hand at a time, used
-with its own button. The first two are the grappling hook and the ink bombs; more come one file each.
+with its own button: the grappling hook, the ink bombs, the seeing lens and the spring boots; more come one file each.
 Try them all in the Gadget Yard (`?level=gadgetyard`, the Debug worlds list), where every gadget is yours.
 
 ## The framework (`src/gadgets/`)
@@ -58,7 +58,7 @@ panel takes a gadget in hand too (`onUse`).
      id: 'magnet', name: 'Lodestone glove', glyph: '⊂', order: 30,   // order: its place in the wheel and the yard
      text: 'what it is', use: 'what it does (prompts in Xbox / PlayStation form: Y / △)',
      model: () => group,          // about 0.3 m, makeMaterial materials (inked by the post pass)
-     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, world, fx, hud, bursts, sfx, sound, notice, aimAt
+     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, world, fx, hud, bursts, sfx, sound, notice, aimAt, post, relics, boxes
      yard(kit) {},                // its props in its Gadget Yard bay
    };
    ```
@@ -68,7 +68,7 @@ panel takes a gadget in hand too (`onUse`).
    `equip()`, `unequip()`, `cancel()`, `dispose()`.
 2. Its bay: `yard(kit)` places things in the bay's own frame (about 14 m across, +z toward the middle of
    the yard, -z away, y up from the ground): `kit.block(size, centre)`, `steps`, `pole`, `anchor(p, {
-   normal })`, `cracked(size, centre, { shape: 'boulder' })`, `crate(centre, { metal })`, `plate(at)`,
+   normal })`, `cracked(size, centre, { shape: 'boulder' })` (`{ lay: true }`: a cracked floor), `crate(centre, { metal })`, `plate(at)`,
    `gate(size, centre, { plates })`, `target(at)`, `lamp(at)`, `pen(centre, r, count)`, `flag(colour)` (a
    banner and the gadget's model large on a plinth). Ten bays stand round the ring (`YARD.bays`), in the
    registry's order.
@@ -112,6 +112,66 @@ every 5 s). Tests: the throw's angle and range against the maths, the bounce, th
 blast on a foe, a crate, a cracked wall (solid, then not) and the traveller, a bomb thrown, bouncing and
 chaining.
 
+## The seeing lens (`lens.js`, id `monocle`; hidden things: `hidden.js`)
+
+Hold the use button and the traveller holds a monocle up (`LENS.rise`); let go and it comes down. While it
+is up the composite (src/post.js, step 6, a uniform branch on `uLens.x`: nothing of it runs while it is
+down) draws the view through it: inside a brass ring `LENS.radius` of the screen's height across the world
+is blue ink on pale paper (its value mapped from deep blue to paper, the ink lines in deep blue, the far
+world fading into the paper), what glows (the hidden things, lamps) keeps its own colour, and the view
+outside the ring sinks into ink. Up to eight marks (`uLensMarks`: uv, kind, size; `lensMarks` projects
+them, nearest first) shimmer as dashed rings round a diamond, through whatever stands between: gold for a
+find (unopened boxes and relics within `LENS.far` 90 m, buried caches), red for a foe's weak point (foes
+within 32 m; seen, a foe is `exposed` for `LENS.expose` s and a blade cut on it counts double,
+src/foes.js), teal for writing not yet read. It clouds over: `LENS.drain` (1/16) of the chip's meter a
+second up, a third of that while he stands on a ghost path, back at `refill` after `wait` s down; empty,
+it comes down and needs `again` before it rises. The camera comes over the shoulder while it is up.
+
+What the lens shows is tagged by the world while it builds (`hidden.js`: a registry the lens adopts for
+its own scene; each tagged object is kept out of the baked collision and hidden):
+- `revealable(object, { solidWhenSeen: true })`: a ghost path, drawn from `LENS.see` (0.35 of the raise)
+  and solid from `LENS.solid` (0.5): a stand-in collider made once (`setSolid`), put into and taken out of
+  `physics.extras` as the lens rises and falls. Lower it on a ghost bridge and you fall.
+- `revealable(object, { illusion: true })`: a false floor, drawn while the lens is down, never solid, gone
+  under it.
+- `revealable(object, { message, id })`, or `hiddenWriting(parent, at, facing, text, o)`: words in block
+  letters under the makers' mark (no W: the 3 × 5 font's W reads as an H); read once (a notice, the flag
+  `lens.read.<id>`) when seen within `range` m, looked at, nothing in between.
+- `buried(object, at, o)`: a cache under the sand, marked through the lens; a stomp of the spring boots
+  within 2.4 m brings it up (`unearth`, `riseHeight`).
+- builders: `ghostPath(parent, points, o)` (a plank at each point, turned along the way, ink posts at its
+  corners; `material` for a false one that looks real), `ghostBridge(parent, a, b, { sag })`.
+
+In the worlds: inside Qanat's main gate, words on the west pylon's inner face and a stair of glass climbing
+over the avenue onto the lintel (src/desert-city.js); in the Buried Machine, two stone abutments with the
+makers' mark face each other across the canyon between the cross-walls (`BRIDGE_Z`), a bridge of glass
+between them and words on the west one (src/levels/buried.js). Tests (tests/lens-springs.test.js): the
+meter, the raise, what shows at which raise, the ghost bridge solid only while up (and the false floor
+never), the slower drain on it, clouding over, reading once, the marks' projection, a foe exposed, the
+composite off by default, the cache, the yard's bay, the worlds' secrets.
+
+## Spring boots (`springs.js`)
+
+Hold the use button on the ground: the traveller stands and winds them (`SPRING.wind` 0.85 s; the figure
+squashes, the coils under his boots shorten, a ring of ink dashes round his feet fills and turns gold when
+wound; the stick only aims the launch meanwhile). Let go: `launchVelocity` sends him up to `launchHeight`
+(from `minH` 2.4 m for a tap to `fullH` 14.3 m wound; v = √(2 g h), g 32), or, with the stick pointed,
+forward at up to `SPRING.fwd` 11 m/s on an arc `SPRING.arc` as high. In the air:
+- a press under `BOUNCE.window` (0.42 s) from the ground (`timeToLand` from `_groundH` and his speed;
+  `airPress`) arms a bounce: touching down he is launched again at a full wind, `BOUNCE.gain` higher a
+  bounce, `BOUNCE.max` (3) in a chain (14 → 17 → 20 → 23 m);
+- a press higher up (`STOMP.min` 1.6 m) stomps: a hang of `STOMP.hang` s, a drop at `STOMP.speed` 38 m/s,
+  then within `STOMP.radius` 4.5 m foes are pushed and thrown back (stunned a moment), loose things thrown
+  up, cracked walls and floors within `breakR` broken (`world.breakAt`), the buried brought up, a ring of
+  dust, a hit-stop and a camera kick (the event `gadget:stomp`).
+
+No landing on them hurts: while they carry him the fall guard is raised to `SPRING.guard` each frame
+before he moves (the charms set `fallGuard` again every frame, src/boxes/effects.js) and given back on
+landing. The coils hang under his feet (from the foot bones; the figure is lifted by their length) and
+wobble (`coilWobble`, a damped spring) on each launch and landing. Tests: the heights and velocities, the
+bounce and stomp rules, a full launch's height and the guard given back, a chain of three bounces, a stomp
+breaking a cracked floor, pushing a foe and unearthing a cache, the stick held while winding.
+
 ## The Gadget Yard (`src/levels/gadget-yard.js`)
 
 A round yard of packed sand inside a low wall (`YARD.radius` 50 m), the ship on an apron outside its south
@@ -122,4 +182,4 @@ the ring, each gadget's bay (`bayFrame(i)`): the hook's (red banner) has a wall 
 two towers across a 12 m gap with a ring and two crates up on the far one, a ring on an 11 m pole and a
 ledge under an overhang; the bombs' (dark blue) a cracked wall closing an alcove with a lamp inside, a
 cracked boulder, a stack of crates and two metal ones, and a pen of three ink blots (kept at three by the
-runtime, new ones only while you are away). `level.gadgets: 'all'` grants every gadget on arrival.
+runtime, new ones only while you are away). The lens's (blue-green) has two 5 m towers with a plank bridge between them that is an illusion, the true ghost path winding behind it, writing on the far tower and a cache buried in the sand in front; the springs' (orange) blocks 4, 8 and 12 m high, a 20 m tower past them (three bounces), and a little room roofed with a cracked floor, a lamp inside. `level.gadgets: 'all'` grants every gadget on arrival.

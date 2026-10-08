@@ -11,6 +11,8 @@ import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
+import { ghostBridge, hiddenWriting } from '../gadgets/hidden.js';
+import { glyphGeometry } from '../story/sign-text.js';
 
 // ---------------------------------------------------------------------------
 // The Buried Machine (after Moebius): pale cream dunes under a sage sky, with
@@ -126,6 +128,7 @@ const TOWER = [66, -16];
 const LEDGE_Z = -200, LEDGE_Y = FLOOR + 16;
 const LEDGE_X = cx(LEDGE_Z) - (wallD(LEDGE_Y, LEDGE_Z, -1) - 3);
 const WALLS = [-262, -352];          // cross-walls with oval openings
+const BRIDGE_Z = -306;               // the ghost bridge across the canyon (between the cross-walls)
 export const OCULUS = { x: OX, z: OZ, r: OR, balcony: BALCONY, top: OTOP };
 
 export const BURIED_CONTENT = {
@@ -1101,6 +1104,27 @@ export function* buildBuried(scene) {
     if (!solid) m.userData.noCollide = true;
     if (tag) { m.userData.tiled = true; noShadow.push(m); }
     (tag === 'city' ? cityInner : scene).add(m);
+  }
+
+  // ---------------------------------------------------------- the ghost bridge (the seeing lens: src/gadgets/hidden.js)
+  // Between the two cross-walls, two squat stone abutments face each other across the canyon, each with the
+  // makers' mark on it, and nothing between them: through the lens a bridge of the makers' glass spans it,
+  // and holds you up while you look. Words for the glass on the west abutment.
+  {
+    const z = BRIDGE_Z, xs = [-1, 1].map((s) => cx(z) + s * (W + 17)), ys = [-1, 1].map((s) => rimY(z, s) + 0.5);
+    const stone = makeMaterial({ color: '#cdbb9a', color2: '#bfa985', color3: '#a8916c', mode: MODE_STRATA, strataSize: 0.8 });
+    const markM = makeMaterial({ color: '#2b211f', flat: true });
+    [-1, 1].forEach((s, i) => {
+      const ab = new THREE.Mesh(new THREE.BoxGeometry(4, 2.2, 4.4), stone);
+      ab.position.set(xs[i] - s * 0.5, ys[i] - 1.1 + 0.02, z);
+      scene.add(ab);
+      const mk = new THREE.Mesh(glyphGeometry(1.1, 0.05), markM);
+      mk.position.set(xs[i] - s * 0.5 - s * 2.03, ys[i] - 1.0, z); mk.rotation.y = -s * Math.PI / 2;
+      mk.userData.noCollide = true;
+      scene.add(mk);
+    });
+    ghostBridge(scene, new THREE.Vector3(xs[0] + 1.5, ys[0], z), new THREE.Vector3(xs[1] - 1.5, ys[1], z), { sag: 2.5, width: 1.8, id: 'buried.bridge' });
+    hiddenWriting(scene, new THREE.Vector3(xs[0] + 0.5, ys[0] - 1.05, z - 2.24), Math.PI, 'THE BRIDGE\nIS HERE\nLOOK AGAIN', { width: 2.6, id: 'buried.bridge.words', message: 'Words for the glass by the abutment: “The bridge is here. Look again.”' });
   }
 
   // ---------------------------------------------------------- level description

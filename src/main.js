@@ -675,7 +675,7 @@ window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy ||
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
 // the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand, D-pad ↑ or B changes it
-gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice: (t) => showToast(t), touch: isTouch,
+gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice: (t) => showToast(t), touch: isTouch, post: post.uniforms, relics, boxes,
   icon: (id) => itemIcons.get(id), drawIcon: () => itemIcons.pump() });   // (the chip shows the gadget's own model, drawn once)
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 

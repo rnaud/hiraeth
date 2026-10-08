@@ -101,10 +101,11 @@ class BayKit {
     this.spec.anchors.push({ pos: this.at(p), normal: this.dir(n), radius: 0.4 });
     return g;
   }
-  /** A cracked wall (or `shape: 'boulder'`): size [w, h, d] centred at `c` (local); a blast breaks it, it grows back after `regrow` s. */
-  cracked(size, c, { shape = 'wall', regrow = 12, yaw = 0 } = {}) {
+  /** A cracked wall (or `shape: 'boulder'`; `lay`: a cracked floor, d thick): size [w, h, d] centred at `c` (local); a blast (or a stomp) breaks it, it grows back after `regrow` s. */
+  cracked(size, c, { shape = 'wall', regrow = 12, yaw = 0, lay = false } = {}) {
     const [w, h, d] = size, g = new THREE.Group();
     g.position.copy(v3(c)); g.rotation.y = yaw;
+    if (lay) g.rotation.set(-Math.PI / 2, 0, yaw);   // (a cracked floor: laid flat, h across and d its thickness, the cracks on top)
     const body = shape === 'boulder' ? new THREE.DodecahedronGeometry(Math.min(w, h, d) * 0.55, 1).scale(w / Math.min(w, h, d), h / Math.min(w, h, d), d / Math.min(w, h, d)) : new THREE.BoxGeometry(w, h, d);
     g.add(new THREE.Mesh(body, this.mats.cracked));
     // the cracks, drawn in ink across both faces: zigzags from the middle out (they read from far off)

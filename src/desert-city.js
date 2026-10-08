@@ -10,6 +10,7 @@ import { Banner } from './life.js';
 import { Flames, FlameBody, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from './story/flames.js';
 import { registerHazard, flameHazard } from './hazards.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
+import { hiddenWriting, ghostPath } from './gadgets/hidden.js';
 
 // The desert's story places (references/IMG_3772-3775: pale rose domes,
 // cream walls, bone, flat sky):
@@ -263,6 +264,17 @@ export function buildDesertCity(scene, terrain) {
     // outer one, moved again, hung the inner arch 15 m up and 64 m out over the camps)
     for (const f of [3.2, -3.2]) city.add(M.wall, T(new THREE.TorusGeometry(5.2, 1.0, 6, 16, Math.PI), [0, 7.8, gz + f]));
     city.add(M.glyph, glyphGeometry(1.6).translate(0, 15, gz + 3.75));
+    // for the seeing lens only (src/gadgets/hidden.js): words on the inner face of the west pylon, and a stair
+    // of the makers' glass climbing over the avenue onto the lintel, where the gate's own glyph looks out
+    {
+      const inward = new THREE.Vector3(0, 0, -1).applyAxisAngle(UP, C.yaw);
+      hiddenWriting(root, city.world(-8.2, 3.6, gz - 3.58), inward, 'THE GIANT\nKEEPS\nTHE POOL', { width: 3.2, id: 'qanat.gate.words', range: 18,
+        message: 'Words inside the gate, only for the glass: “The giant keeps the pool.” The well was never dry: its water went down to him.' });
+      const stair = [];
+      for (let i = 0; i < 12; i++) stair.push(city.world(-3, 1.4 * (i + 1), gz - 23.2 + i * 1.6));
+      stair.push(city.world(-3, 17.12, gz - 2.6));
+      ghostPath(root, stair, { width: 1.6, depth: 1.5, id: 'qanat.gate.stair' });
+    }
     // the back gate, smaller, toward the giant
     for (const s of [-1, 1]) city.both(M.wall, new THREE.BoxGeometry(4, 13, 5).translate(s * 5.4, 5.5, -R));
     city.both(M.wall, new THREE.BoxGeometry(14.8, 3, 5.4).translate(0, 11.5, -R));
