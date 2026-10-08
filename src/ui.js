@@ -81,7 +81,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Gadget in hand (once found): use · change', 'T or the middle mouse button (hold to aim, let go) · B (SHIFT + B back; hold B: the wheel)'],
       ['Bell-note whistle, echo shell (once found)', 'V'],
       ['Items, quests, sketchbook · menu · this page', 'J (Q / E turn its panels) · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F3 · N'], ['Mute', 'M'],
-      ['Debug: the fight\'s hitboxes', 'F4'],
+      ['Debug: the fight\'s hitboxes · the controller\'s inputs', 'F4 · F6'],
     ],
     pad: [
       ['Move · run', `left stick · click it (${P.run})`], ['Look · zoom', `right stick · hold ${P.guard} with the right stick (no foe near)`],

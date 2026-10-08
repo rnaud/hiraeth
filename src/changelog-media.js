@@ -167,6 +167,11 @@ export const CHANGELOG_MEDIA = {
     { match: 'The bell-note whistle and the echo shell have a controller button again', shots: [
       { name: 'controls-whistle', only: 'after', caption: 'No gadget in hand: the card in the corner holds the whistle (and the shell), on Y / △', from: 'headless Chrome with a virtual Xbox pad against this branch’s own dev server, Low, 1280 × 720 (8 October), the Gadget Yard with every item' },
     ], see: 'Own the whistle and a gadget, put the gadget away (the wheel’s top slot, D-pad ↑ held), and press Y / △: the boxes nearby chime.' },
+    { match: 'Controllers the browser does not know now work in full', see: 'Connect an 8BitDo SN30 Pro in D-input mode (hold B and Start to turn it on) on a Mac, open the Arena (?level=arena) and press each button: the input display lights the same button on its drawing, and the bottom one jumps.' },
+    { match: 'An input display, to check a controller', shots: [
+      { name: 'inputs-arena', only: 'after', caption: 'The Arena with a raw 8BitDo SN30 Pro (mapping empty): the bottom button, RB, L3 and the D-pad’s ↓ held, the sticks pushed, the last presses listed with their raw numbers', from: 'headless Chrome against this branch’s own dev server, Low, 1280 × 720 (8 October), navigator.getGamepads() replaced by a fake SN30 Pro in D-input as Chrome on a Mac reports it' },
+      { name: 'inputs-close', only: 'after', caption: 'The display close up: the pad’s id, its mapping and the profile chosen, the raw buttons and axes, and each press as raw number → button → what it does (raw 5 is not mapped)', from: 'the same, the panel at twice the size' },
+    ], see: 'Open the Arena (?level=arena) with a controller connected and press every button; View + D-pad ← or F6 hides it. Anywhere else: F6, the dev menu (`) or ?inputs=1.' },
     { match: 'Photo mode moved off the D-pad', see: 'Hold View and press D-pad ↑ for photo mode (View again, B / ○ or Menu leaves); on any screen, Menu (or the gear), then Photo mode.' },
     { match: 'Keyboard and mouse: a left click swings the fluid blade', see: 'Click into the game to capture the mouse and left-click: the blade swings. Hold the right button and left-click: it shoots.' },
     { match: 'The Controls page shows the new layout', shots: [

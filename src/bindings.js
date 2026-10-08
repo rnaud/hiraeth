@@ -39,7 +39,7 @@ export const BINDINGS = {
     ['Menu', 'the Start menu (settings, controls)'],
     ['View + ↑', 'photo mode'],
     ['View + ↓', 'free'],
-    ['View + ←', 'free'],
+    ['View + ←', 'free · the Arena: the input display (F6)'],
     ['View + →', 'free'],
     ['L3 + R3', 'debug: the hitbox overlay (F4)'],
   ],

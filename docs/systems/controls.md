@@ -69,6 +69,57 @@ layout" below has it, the audit it came from and why each button is where it is.
   Menu prompts use `confirmKey()` / `backKey()`, and code reading raw pad buttons (the
   galactic map, the homecoming, skipping a scene) uses `padIndex('ok' | 'back')`.
 
+### Pads without the standard mapping (`src/pad-maps.js`, v0.93)
+
+A browser gives the W3C Standard Gamepad layout (`mapping: 'standard'`) only to pads it knows; the rest
+come raw (`mapping: ''`), buttons in their HID report's order. The author's 8BitDo SN30 Pro in D-input
+mode on a Mac was one: read as standard, its bottom button evaded, LB aimed, View was Menu, the D-pad (a
+hat switch on axis 9) and the right stick's y (axis 5) did nothing. `installPadMaps()` (called from
+`installNativePad`, so for the title screen too) wraps `navigator.getGamepads()`: every pad without the
+standard mapping comes out as a standard one, with `.remap = { profile, raw, hat, left, right, sources }`;
+standard pads and the Android app's pad come out untouched (the same objects, the same array, nothing
+allocated). So `controller.js` and every raw reader (`padIndex`) see one layout.
+
+- **Detection:** by `mapping`, then vendor / product parsed from the id (Chrome `… (Vendor: 2dc8
+  Product: 6101)`, Firefox `2dc8-6101-…`), then the name (Safari gives only the product name).
+- **Axes by browser:** Chrome on macOS puts each HID axis at usage − 0x30 (X 0, Y 1, Z 2, Rx 3, Ry 4,
+  Rz 5, the hat 9) and the simulation page's Accelerator / Brake (analog triggers) in the first free slots
+  (`gamepad_device_mac.mm`); Firefox's default remapper and Safari's HID pads list them in report order.
+  A profile lists its axes by usage and `axisMap()` places them. A hat is also learned at run time: any
+  axis that reads beyond ±1 (a hat's neutral, 1.29 or 3.29) is one. `hatDirection()` decodes the eight
+  steps of 2/7 from −1 (up, clockwise); anything off them is neutral (0.0 before the first report too).
+- **Triggers:** the digital L2 / R2 buttons and, where there is one, the analog axis (0..1 from its rest
+  at −1, counted only once that rest has been seen: an axis not reported yet reads 0), whichever is more.
+- **Profiles** (`PROFILES`, from SDL's game controller database, Mac rows, and the browsers' own
+  remappers): `8bitdo` (Nintendo letters, the default for vendor 2dc8: SN30 Pro 6001 / 6101, SN30 Pro+
+  6002 / 6102, Pro 2, Lite, NES30 / N30 Pro…: raw 0 A right, 1 B bottom, 3 X top, 4 Y left, 6 / 7 L / R,
+  8 / 9 L2 / R2, 10 Select, 11 Start, 13 / 14 L3 / R3, Home 12 or 2), `8bitdo-xbox` (Ultimate, the adapters,
+  M30: raw 0 A bottom), `8bitdo-dpad` (stickless SN30, Zero 2, NES30: the D-pad axes walk as the left
+  stick, since its D-pad slots would fire on every step), `dualshock4` / `dualsense` (raw in Firefox, or
+  Safari outside the GameController framework), `switchpro`, `snes` (USB SNES pads: 0810:e501, 081f:e401,
+  0079:0011), and `generic` for the rest: read as standard, as before, but a hat (once seen) is its
+  D-pad and Chrome's right stick is Z / Rz.
+- **Faces by position:** the bottom face button is the game's A / × on every pad, whatever is printed
+  on it (the SN30 Pro's B). Prompts stay in Xbox / PlayStation form; the setting **Controller buttons: A
+  on the right** prints Nintendo letters and confirms menus with the right button, as on a Retroid.
+- **The SN30 Pro's modes on a Mac:** macOS mode (A + Start) emulates a DualShock 4 and X-input
+  (X + Start) an Xbox pad, which every browser maps itself; D-input (B + Start) and Switch mode
+  (Y + Start) may come raw, and are what this reads.
+- Tests: `tests/pad-maps.test.js` (each profile on a raw fixture; the hat's 8 directions and neutral;
+  standard pads unchanged; the controller driven through a raw SN30 Pro).
+
+### The input display (`src/input-display.js`, v0.93)
+
+To see a controller register: a small ink drawing of a pad in the lower right, each button lit as it is
+pressed, both sticks where they are, the triggers' travel as bars; under it the pad's `id`, its
+`mapping`, vendor:product, the browser's layout and the profile chosen (with the hat's axis and the
+right stick's), the raw state live (pressed button indices, every axis), and the last six presses as
+`raw → button → what it does`: `button 7 → RB / R1 → the fluid blade`, `axis 9 = 0.14 → D-pad ↓ → call
+the mount`, `button 5 → not mapped`. What it does is the first clause of `src/bindings.js` `BINDINGS`
+for the controller's context (`actionLabel`). On in the Arena; View + D-pad ← there (a free chord), **F6**
+anywhere, the dev menu, `?inputs=1` (`?inputs=0` keeps it off in the Arena). Off, `update()` returns at
+once and nothing is built.
+
 On browsers that require a touch or click to enable audio, tap the page once.
 Controller logic and browser integration are tested with simulated standard pads;
 physical controller testing is still needed on iPhone.
@@ -156,7 +207,7 @@ Conflicts and oddities:
 | D-pad ← → | gun mode | | | | | | navigate | |
 | View (on release) | the sketchbook | | | | the sketchbook | | close | **leave** |
 | View + D-pad ↑ | **photo mode** (also in the Start menu) | | | | photo mode | | | |
-| View + D-pad ↓ / ← / → | **free** (`padchord` events) | | | | | | | |
+| View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
 | L3 + R3 | debug: the hitbox overlay (F4) | | | | | | | |
 | Menu | the Start menu | | | | the Start menu | | close | leave |
 
