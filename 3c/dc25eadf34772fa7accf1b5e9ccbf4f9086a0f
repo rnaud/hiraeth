@@ -1,0 +1,23 @@
+docs/README.md
+  s_364474254304ac::t_98812e4f20fa47 24-26
+docs/game-audit.md
+  s_364474254304ac::t_0061279a1f90ea 1-374
+docs/what-makes-a-great-game.md
+  s_364474254304ac::t_108a7beba7a44b 1-314
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3cdc25eadf34772fa7accf1b5e9ccbf4f9086a0f",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
