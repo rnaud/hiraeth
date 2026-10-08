@@ -24,6 +24,7 @@ export const UPDATES = 'updates';
 /** Workers static assets: 25 MiB per file, 20,000 files per version on the free plan. */
 export const MAX_FILE = 25 * 1024 * 1024;
 export const MAX_FILES = 20000;
+export const UPDATE_PART = 20 * 1024 * 1024;
 
 // 2000-01-01 00:00 in MS-DOS time (zip entries carry a local date and time, not a timestamp)
 const DOS_TIME = 0, DOS_DATE = ((2000 - 1980) << 9) | (1 << 5) | 1;
@@ -134,8 +135,23 @@ export const SHEET_FILE = /^assets\/(IMG_\d+|reference-\d+)-[\w-]+\.jpe?g$/i;   
  * and if they ever were in dist/ they would still stay out of the zip, the APK and the Deck. */
 export const MEDIA_FILE = /^changelog-media(\/|$)/;
 
+/** Store large archives as bounded assets; the Worker streams their original zip URL. */
+export async function writeArchive(out, name, zip, partSize = UPDATE_PART) {
+  if (zip.length <= partSize) {
+    await writeFile(join(out, name), zip);
+    return;
+  }
+  const parts = [];
+  for (let at = 0; at < zip.length; at += partSize) {
+    const part = `${name}.${String(parts.length).padStart(3, '0')}`;
+    await writeFile(join(out, part), zip.subarray(at, at + partSize));
+    parts.push(part);
+  }
+  await writeFile(join(out, `${name}.json`), JSON.stringify({ size: zip.length, sha256: sha256(zip), partSize, parts }) + '\n');
+}
+
 /** Write dist/updates/: this build's zip and web.json, and the previous build's zip. */
-export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null }) {
+export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART }) {
   const out = join(dist, UPDATES);
   await rm(out, { recursive: true, force: true });
   const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) });
@@ -143,8 +159,11 @@ export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site 
   await mkdir(out, { recursive: true });
   const file = join(out, `web-${build}.zip`);
   await writeFile(file, zip);
-  if (previous) await writeFile(join(out, previous.name), previous.zip);
+
   const manifest = webJson({ build, version, file, zip: new URL(`${UPDATES}/web-${build}.zip`, site).href, desktop: desktopApi() });
+  await rm(file);
+  await writeArchive(out, `web-${build}.zip`, zip, partSize);
+  if (previous) await writeArchive(out, previous.name, previous.zip, partSize);
   await writeFile(join(out, 'web.json'), JSON.stringify(manifest) + '\n');
   return manifest;
 }

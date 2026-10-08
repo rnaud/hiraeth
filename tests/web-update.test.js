@@ -123,3 +123,42 @@ test('the Cloudflare deploy owns the site: it builds, adds the update, then depl
   }
   assert.match(read('../wrangler.jsonc'), /"directory": "\.\/dist"/, 'updates/ is inside dist/');
 });
+
+test('large updates and the previous archive are split, then stream as intact resumable zips', async () => {
+  const { default: worker } = await import('../worker/update-download.js');
+  const dist = site();
+  const previous = { build: 540, name: 'web-540.zip', zip: Buffer.from('previous archive'.repeat(30)) };
+  const manifest = await writeUpdate({ dist, build: 541, previous, partSize: 100 });
+  assert.equal(existsSync(join(dist, UPDATES, 'web-541.zip')), false);
+  const env = { ASSETS: { fetch: async (request) => {
+    try { return new Response(readFileSync(join(dist, new URL(request.url).pathname))); }
+    catch { return new Response(null, { status: 404 }); }
+  } } };
+  const get = (name, options) => worker.fetch(new Request(`${SITE}updates/${name}`, options), env);
+  const response = await get('web-541.zip');
+  const zip = Buffer.from(await response.arrayBuffer());
+  assert.equal(sha(zip), manifest.sha256);
+  assert.equal(zip.length, manifest.size);
+  assert.equal(response.headers.get('Content-Length'), String(zip.length));
+  assert.ok(unzip(zip)['index.html']);
+  assert.deepEqual(Buffer.from(await (await get(previous.name)).arrayBuffer()), previous.zip);
+  for (const range of ['bytes=90-210', 'bytes=101-', 'bytes=-25']) {
+    const r = await get('web-541.zip', { headers: { Range: range } });
+    assert.equal(r.status, 206);
+    const [, from, to] = /^bytes (\d+)-(\d+)\//.exec(r.headers.get('Content-Range'));
+    assert.deepEqual(Buffer.from(await r.arrayBuffer()), zip.subarray(+from, +to + 1));
+  }
+  const head = await get('web-541.zip', { method: 'HEAD' });
+  assert.equal(head.headers.get('Content-Length'), String(zip.length));
+  assert.equal(await head.text(), '');
+  assert.equal((await get('web-541.zip', { headers: { Range: `bytes=${zip.length}-` } })).status, 416);
+  assert.equal((await get('web-999.zip')).status, 404);
+  const stale = await get('web-541.zip', { headers: { Range: 'bytes=90-', 'If-Range': '"stale"' } });
+  assert.equal(stale.status, 200);
+  assert.deepEqual(Buffer.from(await stale.arrayBuffer()), zip);
+  const index = JSON.parse(readFileSync(join(dist, UPDATES, 'web-541.zip.json')));
+  for (const part of index.parts) assert.ok(readFileSync(join(dist, UPDATES, part)).length <= 100);
+  const broken = { ASSETS: { fetch: async request => new URL(request.url).pathname.endsWith('.json')
+    ? new Response(JSON.stringify(index)) : new Response(null, { status: 404 }) } };
+  await assert.rejects((await worker.fetch(new Request(manifest.zip), broken)).arrayBuffer(), /part unavailable/);
+});

@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - New music follows you through the Glass Dunes, the Underwater City, the City During the Eclipse and the Fallen Ring.
 - The Moon Foundry, the Underside, the City Floating in Space and the Overnight Train now have their own instrumental music.
 - Home has a quiet new piano-led theme, completing the instrumental soundtrack for all 25 playable worlds.
+- Game updates can now deliver the full soundtrack to Android and Steam Deck, and the website can publish all 25 themes.
 
 ## v0.93 — 2026-10-08
 

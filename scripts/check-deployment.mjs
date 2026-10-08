@@ -1,6 +1,7 @@
 // Check the built game against a running static host (Workers locally or live).
 // Build first, then: npm run check:deployment -- http://localhost:8787/
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,6 +28,18 @@ for (const file of files) {
   assert.equal(response.status, 200, `${name}: HTTP ${response.status}`);
   assert.equal(new URL(response.url).origin, base.origin, `${name}: redirected to another host`);
   assert.deepEqual(Buffer.from(await response.arrayBuffer()), await readFile(file), `${name}: differs from the build`);
+}
+// Virtual archive URLs must also reconstruct the exact bytes declared by their indexes.
+for (const file of files.filter(file => /web-\d+\.zip\.json$/.test(file))) {
+  const index = JSON.parse(await readFile(file, 'utf8'));
+  const name = relative(dist, file).split(sep).join('/').replace(/\.json$/, '');
+  const response = await fetch(new URL(name, base), { signal: AbortSignal.timeout(120_000) });
+  assert.equal(response.status, 200, `${name}: download failed`);
+  const hash = createHash('sha256');
+  let size = 0;
+  for await (const chunk of response.body) { hash.update(chunk); size += chunk.length; }
+  assert.equal(size, index.size, `${name}: incomplete archive`);
+  assert.equal(hash.digest('hex'), index.sha256, `${name}: corrupt archive`);
 }
 const root = await fetch(base, { signal: AbortSignal.timeout(30_000) });
 assert.equal(root.status, 200, 'The game opens at the site root');

@@ -1,13 +1,16 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "memento",
+  "main": "worker/update-download.js",
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
   "preview_urls": false,
-  // The game has no server API: Workers serves the Vite output directly.
+  // Large update archives stream from bounded assets; the game stays static.
   // Keep all three HTML entry points; missing assets must remain real 404s.
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/updates/web-*.zip"],
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none"
   }

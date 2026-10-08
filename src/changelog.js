@@ -10,6 +10,7 @@ import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
   { v: '0.94', date: '2026-10-08', items: [
+    { text: 'Game updates can now deliver the full soundtrack to Android and Steam Deck, and the website can publish all 25 themes.', see: 'Check for updates, then visit any world with music enabled. Downloaded music remains available offline.' },
     {"text": "Home has a quiet new piano-led theme, completing the instrumental soundtrack for all 25 playable worlds.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},
     {"text": "The Moon Foundry, the Underside, the City Floating in Space and the Overnight Train now have their own instrumental music.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},
     {"text": "New music follows you through the Glass Dunes, the Underwater City, the City During the Eclipse and the Fallen Ring.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},

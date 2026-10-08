@@ -1,8 +1,8 @@
 # Cloudflare Workers deployment
 
-The browser game is served by an assets-only Cloudflare Worker named `memento`, at
-https://memento.alexandria-rnaud.workers.dev/. It publishes the Vite `dist/` build; no
-application server, database, or Cloudflare Vite plugin is needed. The game, character
+The browser game is served by an Cloudflare Worker named `memento`, at
+https://memento.alexandria-rnaud.workers.dev/. It publishes the Vite `dist/` build; a small Worker streams large update archives, while normal game files use static asset serving.
+No database or Cloudflare Vite plugin is needed. The game, character
 studio, Motion page, models, and other assets ship together. Only `dist/` is uploaded,
 not the repository or its history.
 
@@ -30,7 +30,12 @@ the run before it.
 
 **Limits** (Workers static assets, [limits](https://developers.cloudflare.com/workers/platform/limits/)):
 25 MiB per file and 20,000 files per version on the free plan. `web-update.mjs` checks the whole
-site against them before deploying. Today the zip is about 6 MiB and the site about 85 files.
+site against them before deploying. With recorded soundtracks the content zip exceeds this limit. Archives above 20 MiB
+are stored as `web-<build>.zip.<nnn>` parts plus a `.zip.json` index.
+`worker/update-download.js` streams those parts at the unchanged `.zip` URL, with
+HEAD and single byte-range support for download resumption. It never buffers the entire
+archive. Both current and previous archives use this format; small archives stay static.
+The manifest still describes the full zip, including its original size and SHA-256.
 A deploy only uploads files whose contents changed, so the previous zip costs nothing.
 
 ## One-time account setup
@@ -48,7 +53,7 @@ A deploy only uploads files whose contents changed, so the previous zip costs no
    on `main`. The deployment output reports the `workers.dev` URL. A manual run
    on another branch is skipped to protect the production deployment.
 
-The workflow installs the lockfile's Wrangler version, runs the test suite, builds the game
+The workflow installs the lockfile's Wrangler version, builds the game
 and its content update, deploys, and checks every published file (the update included)
 against the build. An absent secret causes a clear failure instead of a silently skipped
 deploy. A browser dashboard login alone does not authenticate GitHub Actions.
