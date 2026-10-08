@@ -1,10 +1,13 @@
 import { store } from './platform.js';
 import { VERSION } from './changelog.js';
 import { confirmKey, backKey } from './native-pad.js';
-import { PAD } from './bindings.js';
+import { PAD, PAD_VERBS, KEYS, BUTTON_NAME } from './bindings.js';
 import { slotStorage } from './save-slots.js';
 import { UpdatePanel } from './update-panel.js';
 import { devMode } from './dev-gate.js';
+import { t, setLanguage, onLanguage, LANGUAGES } from './i18n.js';
+import { setControlPrefs, controlPrefs, keyFor, keyLabel, verbKey, keyConflicts, padFor, padConflicts, captureKey, capturePad, RESERVED_KEYS } from './remap.js';
+import { setMotion } from './feel.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -33,9 +36,45 @@ const DEFAULTS = {
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
   hitboxes: false,      // the fight's hitbox overlay (F4, L3 + R3, the dev menu, the Arena's board: src/hitboxes.js)
+  // accessibility (docs/systems/ui.md, "Accessibility"): applyAccess() hands them to the modules that use them
+  lang: 'en',           // the menus' and the HUD's language (src/i18n.js): en | fr
+  textSize: 'normal',   // the words on the screen (TEXT_SIZES: dialogue, toasts, story pages, the menus)
+  speechBg: false,      // a solid, plain background behind what is said (the conversation panel, the balloons)
+  reduceMotion: null,   // no hit-stop, slow motion or camera kicks, a still title (src/feel.js); null: as the system asks
+  shake: 1,             // the camera's kick when a blow lands, 0..1
+  keys: {},             // keyboard: verb → key, where the player moved it (src/remap.js; the defaults: bindings.js KEYS)
+  pad: {},              // controller: verb → button, where the player moved it (the defaults: bindings.js PAD_VERBS)
+  run: 'auto',          // run on the pad: auto (L3 until you stop) | hold | toggle (the keyboard: hold | toggle)
+  guard: 'hold',        // guard: hold | toggle
   hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
   deckV: 1,             // the Steam Deck before v1 started on High (its first save kept it): it goes to Auto (its own preset) once
 };
+
+/** The text sizes (× the words' size): the "Text size" setting. */
+export const TEXT_SIZES = { small: 0.85, normal: 1, large: 1.2, larger: 1.45 };
+
+/** Reduced motion: the setting, or (not set yet) what the system asks for (prefers-reduced-motion). */
+export function reducedMotion(s, win = globalThis.window) {
+  if (s?.reduceMotion === true || s?.reduceMotion === false) return s.reduceMotion;
+  return !!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+}
+
+/**
+ * The accessibility settings, handed to the modules that use them: the controls (src/remap.js), the motion
+ * (src/feel.js), the language (src/i18n.js), and the page's text size, speech background and reduced motion
+ * (the root's --ts, .speech-solid, .reduce-motion: index.html, menus.css, game-menu.css).
+ */
+export function applyAccess(s, doc = globalThis.document) {
+  setControlPrefs(s);
+  const still = reducedMotion(s);
+  setMotion({ reduce: still, shake: s.shake ?? 1 });
+  setLanguage(s.lang);
+  const root = doc?.documentElement;
+  if (!root) return;
+  root.style?.setProperty?.('--ts', String(TEXT_SIZES[s.textSize] ?? 1));
+  root.classList?.toggle('speech-solid', !!s.speechBg);
+  root.classList?.toggle('reduce-motion', still);
+}
 
 export class Settings {
   constructor() {
@@ -43,13 +82,14 @@ export class Settings {
     try { saved = JSON.parse(store.get(SETTINGS_KEY)) ?? {}; } catch { /* ignore */ }
     Object.assign(this, DEFAULTS, migrateSettings(saved, { deck: isDeckApp }));
     this.listeners = [];
+    applyAccess(this);
   }
   save() {
     const out = {};
     for (const k of Object.keys(DEFAULTS)) out[k] = this[k];
     store.set(SETTINGS_KEY, JSON.stringify(out));
   }
-  set(k, v) { this[k] = v; this.save(); for (const f of this.listeners) f(k, v); }
+  set(k, v) { this[k] = v; this.save(); applyAccess(this); for (const f of this.listeners) f(k, v); }
   on(f) { this.listeners.push(f); f(null); }
 }
 
@@ -65,56 +105,51 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
 
 /**
  * Every control, for the menu's Controls page: [what, how] pairs by device. Written in Xbox /
- * PlayStation form for the pad (native-pad.js prints them as the pad does).
+ * PlayStation form for the pad (native-pad.js prints them as the pad does, in the buttons the player chose);
+ * the keyboard's in the keys as they are now (moved, or printed otherwise on this keyboard: an AZERTY's Z).
  */
 export function controlsList(ok = confirmKey(), back = backKey()) {
-  const P = PAD;
+  const P = { ...PAD, ok, back };
+  const K = Object.fromEntries(Object.keys(KEYS).map((v) => [v, verbKey(v)]));
+  K.move = `${K.forward}${K.left}${K.back}${K.right}`;
+  const rows = (prefix, ids, vars) => ids.map((id) => [t(`${prefix}.${id}`, vars), t(`${prefix}.${id}.how`, vars), id]);
   return {
-    keyboard: [
-      ['Move · run', 'WASD · SHIFT'], ['Look', 'mouse (click the game to capture it) · wheel zooms'],
-      ['Jump · fluid boost · wings (once found)', 'SPACE · SPACE again in the air · hold SHIFT + SPACE in the air'],
-      ['Jets (once found): fly like a plane', 'hold SPACE in the air: thrust · W nose down · S nose up · A / D bank and turn · SHIFT faster · let go to glide · right click holds you to aim'],
-      ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off; nothing near: whistle for your mount)'],
-      ['In a cab (it drives itself)', 'choose a stop: click it, or its number · SPACE choose again · E get out'],
-      ['Fluid blade (again: the next swing) · guard (at the blow: parry) · evade · lock on', 'left click · hold CTRL or Z · ALT · TAB'],
-      ['Aim the fluid tool · shoot · gun mode', 'hold right mouse or R · left click or G while aiming · X'],
-      ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
-      ['The scout finds your objective', 'Q'],
-      ['Gadget in hand (once found): use · change', 'T or the middle mouse button (hold to aim, let go) · B (SHIFT + B back; hold B: the wheel)'],
-      ['Bell-note whistle, echo shell (once found)', 'V'],
-      ['Items, quests, sketchbook · menu · this page', 'J (Q / E turn its panels) · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F3 · N'], ['Mute', 'M'],
-      ['Debug: the fight\'s hitboxes · the controller\'s inputs', 'F4 · F6'],
-    ],
-    pad: [
-      ['Move · run', `left stick · click it (${P.run})`], ['Look · zoom', `right stick · hold ${P.guard} with the right stick (no foe near)`],
-      ['Jump · boost · wings', `${P.jump} · again in the air · hold`],
-      ['Use, talk, pick up, get on', P.interact],
-      ['Evade (stick direction, or backstep)', P.evade],
-      ['Fluid blade (again: the next swing) · guard (at the blow: parry)', `${P.blade} · hold ${P.guard}`],
-      ['Lock on to a foe (again: the next, then let go)', `click the right stick (${P.lock})`],
-      ['The scout finds your objective', `${P.lock} with no foe near (riding too)`],
-      ['Aim · shoot', `${P.aim} · ${P.fire} while aiming`],
-      ['Gun mode (fluid, push, and those found)', P.mode],
-      ['Jets: fly like a plane', `${P.fire} thrust, the harder the faster (from the ground: straight up) · left stick forward nose down, back nose up, left / right bank and turn · ${P.run} faster · let go to glide · ${P.aim} in flight holds you to aim`],
-      ['Gadget in hand (once found): use · change', `${P.gadget} (hold to aim, let go) · ${P.pick} (held: the wheel)`],
-      ['Bell-note whistle, echo shell (once found)', `${P.gadget} with no gadget in hand (the wheel's first slot)`],
-      ['Call your mount, hail a taxi', P.call],
-      ['Items, quests and sketchbook · menu', `${P.journal} · ${P.menu}`],
-      ['Their panels (items, quests, sketchbook, worlds)', 'LB / L1 · RB / R1'],
-      ['Photo mode', `hold ${P.journal} and press D-pad ↑ (or Menu, Photo mode)`],
-      ['Riding', `${P.fire} go · ${P.aim} brake · left stick steer (flying: forward dives, back climbs) · ${P.interact} hop, flap, rise · ${P.blade} boost · ${P.jump} jump off · ${P.evade} get off`],
-      ['In a cab (it drives itself)', `choose a stop: left stick and ${P.jump} · ${P.interact} choose again · ${P.evade} get out`],
-      ['Swimming', `left stick swim (${P.run} sprints) · look down and swim forward to dive · ${P.jump} rise, climb out`],
-      ['Talking', `${ok} or ${P.interact} carry on, choose · ${back} leave`],
-      ['In menus', `D-pad select · left / right adjust · ${ok} confirm · ${back} back · right stick scroll`],
-      ['Debug: the fight\'s hitboxes', 'click both sticks (L3 + R3)'],
-    ],
-    touch: [
-      ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'], ['Jets (once found)', 'hold ⤒ in the air: thrust · drag on the left: up tips the nose down, down pulls it up, sideways banks and turns'],
-      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade · guard (hold it) · evade · lock on', '⚔ · ◇ · ↶ · ◉'], ['Gadget in hand (once found): use · change', '◆ (hold to aim, let go; with none in hand: the whistle) · tap the card in the corner'],
-      ['Items, quests and sketchbook · menu · photo mode', '❏ (its tabs turn the panels) · the small ⚙ in the corner · Photo mode in that menu'],
-    ],
+    keyboard: rows('ctl.k', ['move', 'look', 'jump', 'jets', 'climb', 'use', 'cab', 'fight', 'aim', 'dive', 'scout', 'gadget', 'whistle', 'pages', 'photo', 'mute', 'debug'], K),
+    pad: rows('ctl.p', ['move', 'look', 'jump', 'use', 'evade', 'fight', 'lock', 'scout', 'aim', 'mode', 'jets', 'gadget', 'whistle', 'call', 'pages', 'panels', 'photo', 'ride', 'cab', 'swim', 'talk', 'menus', 'debug'], P),
+    touch: rows('ctl.t', ['move', 'jump', 'jets', 'run', 'scout', 'aim', 'fight', 'gadget', 'pages'], {}),
   };
+}
+// (the pad's rows that name the menus' own buttons, which never move: native-pad.js leaves them as they are)
+const PAD_RAW_ROWS = new Set(['talk', 'menus', 'panels', 'photo']);
+
+/** The verbs on the Controls page's "your buttons" and "your keys", in the order shown. */
+export const REBIND_PAD = ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'call', 'modePrev', 'modeNext'];
+export const REBIND_KEYS = ['forward', 'back', 'left', 'right', 'run', 'jump', 'interact', 'blade', 'guard', 'evade', 'lock', 'aim', 'fire', 'mode', 'scout', 'gadget', 'gadgetNext', 'whistle', 'journal', 'menu', 'controls', 'photo', 'mute'];
+
+/**
+ * The Controls page's rebinding: each verb with its key or button now, the ones that share one marked
+ * (⚠ and the other verb's name: not by colour alone), and a reset. `kind`: 'pad' or 'keys'.
+ */
+export function rebindHtml(kind, prefs = controlPrefs()) {
+  const pad = kind === 'pad';
+  const verbs = pad ? REBIND_PAD : REBIND_KEYS;
+  const clash = pad ? padConflicts(prefs.pad) : keyConflicts(prefs.keys);
+  const on = (v) => (pad ? padFor(v, prefs.pad) : keyFor(v, prefs.keys));
+  const name = (v) => (pad ? BUTTON_NAME[on(v)] : keyLabel(on(v)));
+  const moved = (v) => (pad ? on(v) !== PAD_VERBS[v] : on(v) !== KEYS[v]);
+  const verbName = (v) => { const k = `verb.${v}.${kind}`, s = t(k); return s === k ? t(`verb.${v}`) : s; };
+  const rows = verbs.map((v) => {
+    const others = clash.has(v) ? verbs.filter((w) => w !== v && on(w) === on(v)).map((w) => verbName(w)) : [];
+    return `<li class="${others.length ? 'clash' : ''}${moved(v) ? ' moved' : ''}"><span>${verbName(v)}</span>`
+      + `<button type="button" data-rebind="${kind}" data-verb="${v}" aria-label="${verbName(v)}: ${name(v)}">${name(v)}</button>`
+      + `${others.length ? `<em>⚠ ${t('rebind.also', { verbs: others.join(', ') })}</em>` : ''}</li>`;
+  }).join('');
+  return `<section class="rebind ${pad ? 'pad-raw' : ''}" data-kind="${kind}">
+      <h2>${t(pad ? 'rebind.padTitle' : 'rebind.keysTitle')}</h2>
+      <p class="keys">${t(pad ? 'rebind.padHow' : 'rebind.keysHow')}</p>
+      <ul class="rb">${rows}</ul>
+      <p class="rb-foot">${clash.size ? `<span class="rb-warn">⚠ ${t('rebind.clashes')}</span>` : ''}<button type="button" data-a="rebind-reset" data-kind="${kind}">${t('rebind.reset')}</button></p>
+    </section>`;
 }
 
 /**
@@ -122,12 +157,13 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
  * Start on a controller. Full screen: on the left Resume, Items and Quests (they open the game menu,
  * src/game-menu.js, on that panel: o.onBook(panel)), Settings, Controls, Photo mode, what's new and Quit to title
  * (with where you are: the save, the world, the time played); on the right the page: the settings
- * (where it opens) or every control (H opens it there). B / ○ or Esc closes it, from any page.
- * main.js pauses the game and plays the menu music while it is open.
+ * (where it opens) or every control (H opens it there), with the rebinding at its top. B / ○ or Esc closes it,
+ * from any page. main.js pauses the game and plays the menu music while it is open.
  * The title screen (src/title.js) shows the same settings on its own element: { el, title: true }
  * (no game entries, no keys of its own; Controls is there too).
  * In the Android app the settings start with the game's updates (src/update-panel.js);
  * onBeforeRestart saves the game before an update restarts it.
+ * Its words are the language's (src/i18n.js): it draws itself again when the language changes.
  */
 export const MENU_PAGES = ['settings', 'controls'];
 export class SettingsMenu {
@@ -135,59 +171,16 @@ export class SettingsMenu {
     this.s = settings;
     this.el = el;
     this.where = where;
+    this.title = title;
+    this.sound = sound;
     this.current = 'settings';
-    const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
-    const game = !title;
-    const go = (page, label) => `<button data-a="page" data-page="${page}">${label}</button>`;
     el.classList.add('fullmenu');
-    el.innerHTML = `
-      <div class="pause">
-        <aside class="side">
-          <div class="brand" aria-hidden="true">${game ? 'PAUSED' : 'HIRAETH'}</div>
-          <div class="where"></div>
-          <nav class="menu-nav">
-            <button data-a="close" class="primary">${game ? 'Resume' : 'Back'}</button>
-            ${game ? '<button data-a="book" data-panel="items">Items</button><button data-a="book" data-panel="quests">Quests</button>' : ''}
-            ${go('settings', 'Settings')}
-            ${go('controls', 'Controls')}
-            ${game ? `<button data-a="photo">Photo mode</button>
-            <button data-a="news">What's new</button>
-            <button data-a="debug" data-dev hidden>Debug: worlds</button>
-            <button data-a="title">Quit to title</button>` : ''}
-          </nav>
-          <p class="saved">${game ? 'Your progress is saved as you play.' : ''}</p>
-        </aside>
-        <section class="panel" data-page="settings">
-          <h1>SETTINGS <span>v${VERSION}</span></h1>
-          ${isNativeApp || isDeckApp ? '<section class="updates" hidden></section>' : ''}
-          ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="deck">Steam Deck</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
-          ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
-          ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
-          ${row('Invert the jets\' pitch (push forward to climb)', `<input data-k="invertFlight" type="checkbox">`)}
-          ${row('Controller buttons', `<select data-k="padFaces"><option value="auto">Auto</option><option value="xbox">A at the bottom (Xbox, PlayStation)</option><option value="nintendo">A on the right (Retroid, Nintendo)</option><option value="nintendo-xbox">A on the right, Retroid set to Xbox style</option></select>`)}
-          ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
-          ${row('Music plays', `<select data-k="musicMode"><option value="moments">Moments (arrivals, interiors, discoveries)</option><option value="always">Always</option></select>`)}
-          ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
-          ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
-          ${row('Alien voices (heard through your translator)', `<input data-k="alienVoices" type="checkbox">`)}
-          ${row('Mute (M)', `<input data-k="mute" type="checkbox">`)}
-          ${row('Enemies (ink blots in the wilds, machines in the temples)', `<select data-k="enemies"><option value="normal">Normal</option><option value="gentle">Gentle (half the harm, slower, one at a time)</option><option value="off">Off (the calm game)</option></select>`)}
-          ${row('Show FPS and frame time (F3)', `<input data-k="showFps" type="checkbox">`)}
-          ${game ? `${row('Developer panel', `<input data-k="devPanel" type="checkbox">`)}
-          ${row('Dev menu: items, boxes, worlds (\`)', `<button data-a="dev" type="button">open</button>`)}
-          <div class="danger">
-            <button data-a="reset">Restart this save from the prologue</button>
-            <div class="ask" hidden><span>Forget every relic, story page and place in this save?</span>
-              <button data-a="reset-yes">Yes, start over</button><button data-a="reset-no">No, keep it</button></div>
-          </div>` : ''}
-          ${isNativeApp || isDeckApp ? "" : `<p class="keys install-tip">Play full screen on iPhone: open in Safari, tap Share → Add to Home Screen, then enable Open as Web App if shown.</p>`}
-        </section>
-        <section class="panel controls" data-page="controls" hidden></section>
-      </div>`;
+    this.render();
     // the controls page names the menu's confirm / back buttons, which follow the "Controller buttons" setting
     this.syncControls = () => {
       const p = el.querySelector('.panel[data-page="controls"]'), b = typeof document !== 'undefined' ? document.body.classList : null;
-      if (p) p.innerHTML = controlsHtml(controlsList(), b?.contains('controller') ? 'pad' : b?.contains('touch') ? 'touch' : 'keyboard');
+      const kind = b?.contains('controller') ? 'pad' : b?.contains('touch') ? 'touch' : 'keyboard';
+      if (p) p.innerHTML = controlsHtml(controlsList(), kind, kind === 'pad' ? ['pad', 'keys'] : ['keys', 'pad']);
     };
     const sync = () => {
       this.syncControls();
@@ -196,7 +189,7 @@ export class SettingsMenu {
       for (const b of el.querySelectorAll('[data-dev]')) b.hidden = !dev;
       for (const c of el.querySelectorAll('[data-k]')) {
         const k = c.dataset.k;
-        const v = k === 'mute' ? sound?.muted : this.s[k];
+        const v = k === 'mute' ? sound?.muted : k === 'reduceMotion' ? reducedMotion(this.s) : this.s[k];
         if (c.type === 'checkbox') c.checked = !!v; else c.value = v;
       }
     };
@@ -207,15 +200,16 @@ export class SettingsMenu {
       this.s.set(k, c.type === 'checkbox' ? c.checked : c.type === 'range' ? +c.value : c.value);
       if (k === 'devPanel') sync();   // (the Developer panel shows the debug entries too)
     });
-    const ask = el.querySelector('.ask'), resetBtn = el.querySelector('[data-a="reset"]');
     this.askReset = (on) => {
+      const ask = el.querySelector('.ask'), resetBtn = el.querySelector('[data-a="reset"]');
       if (!ask) return;
       ask.hidden = !on; resetBtn.hidden = on;
       if (on) ask.querySelector('[data-a="reset-no"]').focus({ preventScroll: true });
       else if (ask.contains(document.activeElement)) resetBtn.focus({ preventScroll: true });
     };
     el.addEventListener('click', (e) => {
-      const at = e.target.closest?.('[data-a]'), a = at?.dataset.a;
+      const at = e.target.closest?.('[data-a], [data-rebind]'), a = at?.dataset.a;
+      if (at?.dataset.rebind) { e.preventDefault(); this.rebind(at.dataset.rebind, at.dataset.verb); return; }
       if (a === 'close') this.toggle(false);
       if (a === 'page') this.page(at.dataset.page);
       if (a === 'news') { this.toggle(false); onNews?.(); }
@@ -224,12 +218,13 @@ export class SettingsMenu {
       if (a === 'title') onQuit?.();
       if (a === 'debug' && devMode({ settings: this.s })) { this.toggle(false); onDebug?.(); }
       if (a === 'dev') { e.preventDefault(); this.toggle(false); onDev?.(); }
+      if (a === 'rebind-reset') { this.s.set(at.dataset.kind === 'pad' ? 'pad' : 'keys', {}); this.syncControls(); el.querySelector(`[data-a="rebind-reset"][data-kind="${at.dataset.kind}"]`)?.focus({ preventScroll: true }); }
       // (an inline question, not confirm(): a controller can answer it)
       if (a === 'reset') this.askReset(true);
       if (a === 'reset-no') this.askReset(false);
       if (a === 'reset-yes') onResetProgress?.();
     });
-    if (game) {
+    if (!title) {
       window.addEventListener('keydown', (e) => {
         if (e.repeat) return;   // (holding Esc to skip a scene must not open the settings when the scene ends)
         if (e.code === 'KeyO') this.toggle();
@@ -244,10 +239,111 @@ export class SettingsMenu {
     this.sync = sync;
     this.updates = new UpdatePanel(el.querySelector('.updates'), { onBeforeRestart });
     settings.on(() => sound?.setVoices?.(this.s.voices, this.s.alienVoices));
+    // a new language: the menu in its words, on the page it was on, the language setting still in hand
+    onLanguage(() => {
+      const page = this.current, focus = document.activeElement?.dataset?.k;
+      this.render();
+      this.page(page);
+      if (this.open) { this.sync(); const w = this.el.querySelector('.where'); if (w) w.innerHTML = this.where?.() ?? ''; }
+      if (focus) this.el.querySelector(`[data-k="${focus}"]`)?.focus({ preventScroll: true });
+    });
+  }
+  /** Draw the menu (again, in a new language): the side, the settings, the controls' page (filled when it shows). */
+  render() {
+    const el = this.el, game = !this.title;
+    const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
+    const go = (page, label) => `<button data-a="page" data-page="${page}">${label}</button>`;
+    const opts = (k, list) => `<select data-k="${k}">${list.map((v) => `<option value="${v}">${t(`set.${k}.${v}`)}</option>`).join('')}</select>`;
+    const updates = el.querySelector('.updates');   // (kept across a redraw: it has its own state)
+    el.innerHTML = `
+      <div class="pause">
+        <aside class="side">
+          <div class="brand" aria-hidden="true">${game ? t('menu.paused') : 'HIRAETH'}</div>
+          <div class="where"></div>
+          <nav class="menu-nav">
+            <button data-a="close" class="primary">${game ? t('menu.resume') : t('menu.back')}</button>
+            ${game ? `<button data-a="book" data-panel="items">${t('menu.items')}</button><button data-a="book" data-panel="quests">${t('menu.quests')}</button>` : ''}
+            ${go('settings', t('menu.settings'))}
+            ${go('controls', t('menu.controls'))}
+            ${game ? `<button data-a="photo">${t('menu.photo')}</button>
+            <button data-a="news">${t('menu.news')}</button>
+            <button data-a="debug" data-dev hidden>${t('menu.debug')}</button>
+            <button data-a="title">${t('menu.quit')}</button>` : ''}
+          </nav>
+          <p class="saved">${game ? t('menu.saved') : ''}</p>
+        </aside>
+        <section class="panel" data-page="settings">
+          <h1>${t('set.title')} <span>v${VERSION}</span></h1>
+          ${isNativeApp || isDeckApp ? '<section class="updates" hidden></section>' : ''}
+          <h2>${t('set.group.screen')}</h2>
+          ${row(t('set.lang'), `<select data-k="lang">${Object.entries(LANGUAGES).map(([id, l]) => `<option value="${id}">${l.name}</option>`).join('')}</select>`)}
+          ${row(t('set.quality'), opts('quality', ['auto', 'handheld', 'deck', 'low', 'medium', 'high']))}
+          ${row(t('set.textSize'), opts('textSize', Object.keys(TEXT_SIZES)))}
+          ${row(t('set.speechBg'), `<input data-k="speechBg" type="checkbox">`)}
+          ${row(t('set.showFps'), `<input data-k="showFps" type="checkbox">`)}
+          <h2>${t('set.group.camera')}</h2>
+          ${row(t('set.sensitivity'), `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
+          ${row(t('set.invertY'), `<input data-k="invertY" type="checkbox">`)}
+          ${row(t('set.invertFlight'), `<input data-k="invertFlight" type="checkbox">`)}
+          ${row(t('set.reduceMotion'), `<input data-k="reduceMotion" type="checkbox">`)}
+          ${row(t('set.shake'), `<input data-k="shake" type="range" min="0" max="1" step="0.05">`)}
+          <h2>${t('set.group.controls')}</h2>
+          ${row(t('set.padFaces'), opts('padFaces', ['auto', 'xbox', 'nintendo', 'nintendo-xbox']))}
+          ${row(t('set.run'), opts('run', ['auto', 'hold', 'toggle']))}
+          ${row(t('set.guard'), opts('guard', ['hold', 'toggle']))}
+          <div class="row"><span>${t('set.rebind')}</span><button type="button" data-a="page" data-page="controls">${t('set.rebindOpen')}</button></div>
+          <h2>${t('set.group.sound')}</h2>
+          ${row(t('set.music'), `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
+          ${row(t('set.musicMode'), `<select data-k="musicMode"><option value="moments">${t('set.musicMode.moments')}</option><option value="always">${t('set.musicMode.always')}</option></select>`)}
+          ${row(t('set.effects'), `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
+          ${row(t('set.voices'), `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
+          ${row(t('set.alienVoices'), `<input data-k="alienVoices" type="checkbox">`)}
+          ${row(t('set.mute'), `<input data-k="mute" type="checkbox">`)}
+          <h2>${t('set.group.game')}</h2>
+          ${row(t('set.enemies'), opts('enemies', ['normal', 'gentle', 'off']))}
+          ${game ? `${row(t('set.devPanel'), `<input data-k="devPanel" type="checkbox">`)}
+          ${row(t('set.devMenu'), `<button data-a="dev" type="button">${t('set.devOpen')}</button>`)}
+          <div class="danger">
+            <button data-a="reset">${t('set.reset')}</button>
+            <div class="ask" hidden><span>${t('set.resetAsk')}</span>
+              <button data-a="reset-yes">${t('set.resetYes')}</button><button data-a="reset-no">${t('set.resetNo')}</button></div>
+          </div>` : ''}
+          ${isNativeApp || isDeckApp ? '' : `<p class="keys install-tip">${t('set.installTip')}</p>`}
+        </section>
+        <section class="panel controls" data-page="controls" hidden></section>
+      </div>`;
+    if (updates) el.querySelector('.updates')?.replaceWith(updates);
+  }
+  /**
+   * "Press a key" / "press a button" for a verb (the Controls page): the next one pressed is its new key or
+   * button (src/remap.js captureKey / capturePad: nothing else gets it), Esc or Menu leaves it as it was, and so
+   * does waiting 8 s. Saved with the settings; another verb on it is shown as a clash, not moved.
+   */
+  rebind(kind, verb) {
+    this.stopRebind?.();
+    const btn = this.el.querySelector(`[data-rebind="${kind}"][data-verb="${verb}"]`);
+    if (!btn) return;
+    btn.classList.add('waiting');
+    btn.textContent = t(kind === 'pad' ? 'rebind.pressButton' : 'rebind.pressKey');
+    let timer = 0, stop = () => {};
+    const finish = (value) => {
+      clearTimeout(timer); stop(); this.stopRebind = null;
+      if (value && !(kind === 'keys' && RESERVED_KEYS.test(value))) {
+        const k = kind === 'pad' ? 'pad' : 'keys', next = { ...this.s[k] };
+        if (value === (kind === 'pad' ? PAD_VERBS[verb] : KEYS[verb])) delete next[verb]; else next[verb] = value;
+        this.s.set(k, next);
+      }
+      this.syncControls();
+      this.el.querySelector(`[data-rebind="${kind}"][data-verb="${verb}"]`)?.focus({ preventScroll: true });
+    };
+    stop = kind === 'pad' ? capturePad(finish) : captureKey(finish);
+    timer = setTimeout(() => finish(null), 8000);
+    this.stopRebind = () => finish(null);
   }
   /** Show a page on the right: 'settings' or 'controls'. */
   page(name = 'settings') {
     if (!this.el.querySelector(`[data-page="${name}"].panel`)) name = 'settings';
+    this.stopRebind?.();
     this.current = name;
     for (const p of this.el.querySelectorAll('.panel[data-page]')) p.hidden = p.dataset.page !== name;
     for (const b of this.el.querySelectorAll('.menu-nav [data-page]')) b.classList.toggle('on', b.dataset.page === name);
@@ -274,6 +370,7 @@ export class SettingsMenu {
       this.page(page);
       this.updates?.open();
     } else {
+      this.stopRebind?.();
       this.updates?.close();
       if (this.el.contains(document.activeElement)) document.activeElement.blur();
     }
@@ -283,14 +380,18 @@ export class SettingsMenu {
   }
 }
 
-/** The Controls page: a controller, keyboard and mouse, a touch screen (`first`: the one in your hands). */
-export function controlsHtml(list = controlsList(), first = 'keyboard') {
-  const rows = (l) => l.map(([what, how]) => `<li><span>${what}</span><b>${how}</b></li>`).join('');
-  const names = { pad: 'Controller', keyboard: 'Keyboard and mouse', touch: 'Touch' };
+/**
+ * The Controls page: the rebinding (`rebind`: 'pad', 'keys', in that order; none: []), then every control for a
+ * controller, keyboard and mouse, a touch screen (`first`: the one in your hands).
+ */
+export function controlsHtml(list = controlsList(), first = 'keyboard', rebind = []) {
+  const rows = (l, k) => l.map(([what, how, id]) => `<li${k === 'pad' && PAD_RAW_ROWS.has(id) ? ' class="pad-raw"' : ''}><span>${what}</span><b>${how}</b></li>`).join('');
+  const names = { pad: t('ctl.controller'), keyboard: t('ctl.keyboard'), touch: t('ctl.touch') };
   const order = [first, ...['pad', 'keyboard', 'touch'].filter((k) => k !== first)];
-  return `<h1>CONTROLS</h1>
-    ${order.map((k) => `<h2>${names[k]}</h2><ul class="ctl">${rows(list[k])}</ul>`).join('\n    ')}
-    <p class="keys">Nothing stays on the screen while you play: the health and the stamina show when they change, and the use button's prompt when something is near. The tank on your backpack shows how full it is.</p>`;
+  return `<h1>${t('ctl.title')}</h1>
+    ${rebind.map((k) => rebindHtml(k)).join('\n    ')}
+    ${order.map((k) => `<h2>${names[k]}</h2><ul class="ctl">${rows(list[k], k)}</ul>`).join('\n    ')}
+    <p class="keys">${t('ctl.note')}</p>`;
 }
 
 /**
@@ -308,16 +409,16 @@ export class TouchControls {
       <div class="stick"><div class="nub"></div></div>
       <button data-key="Space" class="b-jump">⤒</button>
       <button data-key="KeyE" class="b-use">E</button>
-      <button data-toggle="ShiftLeft" class="b-run">run</button>
-      <button data-press="KeyQ" class="b-ping" aria-label="The scout finds your objective">ping</button>
+      <button data-toggle="ShiftLeft" class="b-run">${t('touch.run')}</button>
+      <button data-press="KeyQ" class="b-ping" aria-label="${t('touch.ping')}">ping</button>
       <button data-press="KeyJ" class="b-book">❏</button>
-      <button data-toggle="KeyR" class="b-aim" aria-label="Aim the fluid tool">◎</button>
-      <button data-key="TouchFire" class="b-fire" aria-label="Shoot fluid">✺</button>
-      <button data-key="KeyX" class="b-mode" aria-label="Switch the fluid's mode">◐</button>
-      <button data-key="TouchBlade" class="b-blade" aria-label="Swing the fluid blade">⚔</button>
-      <button data-key="TouchGuard" class="b-guard" aria-label="Hold to guard; time a block to parry">◇</button>
-      <button data-key="TouchEvade" class="b-evade" aria-label="Evade in the movement direction or backstep">↶</button>
-      <button data-press="Tab" class="b-lock" aria-label="Lock on to a foe">◉</button>`;
+      <button data-toggle="KeyR" class="b-aim" aria-label="${t('touch.aim')}">◎</button>
+      <button data-key="TouchFire" class="b-fire" aria-label="${t('touch.fire')}">✺</button>
+      <button data-key="KeyX" class="b-mode" aria-label="${t('touch.mode')}">◐</button>
+      <button data-key="TouchBlade" class="b-blade" aria-label="${t('touch.blade')}">⚔</button>
+      <button data-key="TouchGuard" class="b-guard" aria-label="${t('touch.guard')}">◇</button>
+      <button data-key="TouchEvade" class="b-evade" aria-label="${t('touch.evade')}">↶</button>
+      <button data-press="Tab" class="b-lock" aria-label="${t('touch.lock')}">◉</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');
     let stickId = null, lookId = null, sx = 0, sy = 0, lx = 0, ly = 0;
     const R = 60;

@@ -12,8 +12,12 @@ import { installNativePad, watchLabels } from './native-pad.js';
 import { opensTitle } from './save-slots.js';
 import { applyReadyUpdate } from './native-app.js';
 import { audioGuard } from './audio-guard.js';
+import { installKeyRemap } from './remap.js';
+import { translatePage } from './i18n.js';
 
 audioGuard();         // (before any sound: silent while the app is away, from the title screen on)
+installKeyRemap();    // (the player's own keys, first of every key listener: src/remap.js)
+translatePage();      // (index.html's own words in the player's language: src/i18n.js)
 installNativePad();   // (the Android handheld's controls, for the title screen too)
 watchLabels();
 // a brand-new profile (no seen version, no save anywhere) counts this version as seen, before the

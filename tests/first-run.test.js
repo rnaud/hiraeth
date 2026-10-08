@@ -49,9 +49,9 @@ test('the debug entries are the author’s: the Developer panel setting, a dev b
   assert.equal(devMode({ storage: s, search: '', dev: false }), false);
   // the title's Debug button and the Start menu's entry go through it
   const title = src('src/title.js'), ui = src('src/ui.js');
-  assert.match(title, /devMode\(\{ settings \}\) \? '<button data-a="debug">Debug<\/button>' : ''/);
+  assert.match(title, /devMode\(\{ settings \}\) \? `<button data-a="debug">\$\{t\('title\.debug'\)\}<\/button>` : ''/);
   assert.match(title, /a === 'debug' && devMode\(/);
-  assert.match(ui, /<button data-a="debug" data-dev hidden>Debug: worlds<\/button>/);
+  assert.match(ui, /<button data-a="debug" data-dev hidden>\$\{t\('menu\.debug'\)\}<\/button>/);
   assert.match(ui, /for \(const b of el\.querySelectorAll\('\[data-dev\]'\)\) b\.hidden = !dev;/);
   assert.match(ui, /a === 'debug' && devMode\(/);
   assert.match(src('docs/systems/ui.md'), /src\/dev-gate\.js/, 'documented');

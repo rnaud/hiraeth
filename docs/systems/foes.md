@@ -194,7 +194,10 @@ The count is said every 5 ink.
   `calm` (turning slowly, breathing), `wind` (red, the chevrons closing to `RETICLE.close` as k², the ring filling
   in; meeting at the strike with a white flash), `open` (stunned, reeling, flipped, asleep: pale blue, spread to
   `RETICLE.open`, pulsing, still), `veiled` (buried, phased: dimmed, dashed). A new lock snaps in (from twice the
-  size, a quick turn, `acquire()`). Off the screen it waits small at the edge on its side.
+  size, a quick turn, `acquire()`). Off the screen it waits small at the edge on its side. Each state has its own
+  shape as well as its colour (`reticleShape`, for colour-blind players): winding up the chevrons double (»), the
+  strike puts a four-point burst in the centre, open turns the chevrons round (tips in, like brackets) round a hollow ring,
+  veiled dashes them.
 - **Switching with a flick** (`FLICK`, `Foes.flickLook`, `switchLock`, v0.97): main.js wraps `rig.look` (the
   right stick, the mouse, a touch drag all pass through it); while locked, the sideways part goes to `flickLook`
   instead of the camera, into a leaky sum (decay 8/s). Past `FLICK.px` (70) the lock jumps to the nearest foe on

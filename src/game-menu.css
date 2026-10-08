@@ -5,7 +5,7 @@
    words in the strip at the bottom. Sized by the viewport so a 730 × 410 CSS px handheld and a desktop
    window both fit without the frame scrolling (a long panel scrolls inside its sheet). */
 #journal.gamemenu {
-  position: fixed; inset: 0; z-index: 8500; display: none; color: #2b211f; font: 13px/1.45 ui-monospace, Menlo, monospace;
+  position: fixed; inset: 0; z-index: 8500; display: none; color: #2b211f; font: calc(13px * var(--ts, 1))/1.45 ui-monospace, Menlo, monospace;
   --ink: #2b211f; --paper: #fbf4e2; --paper2: #f3e7cc; --gold: #f2c54b; --red: #c8483a; --teal: #277e86; --green: #2f7a55;
   --slot: clamp(40px, min(10.6vh, 6.2vw), 88px);
   background: #e8d9b5 radial-gradient(ellipse 80% 70% at 50% 45%, #f1e5c6 0%, #e8d9b5 62%, #d9c69b 100%);
@@ -22,20 +22,20 @@
 /* the four panels, as tabs across the top (a click or a tap goes there); the one showing in comic letters */
 #journal .gm-tabs { display: flex; justify-content: center; align-items: center; gap: clamp(4px, 1vw, 14px); padding: 0 clamp(40px, 6vw, 80px); }
 #journal .gm-tab {
-  font: 500 clamp(9px, 1.8vh, 13px)/1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase;
+  font: 500 calc(clamp(9px, 1.8vh, 13px) * var(--ts, 1))/1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase;
   color: var(--ink); background: rgba(251, 244, 226, 0.6); border: 2px solid rgba(43, 33, 31, 0.5); border-radius: 999px;
   padding: clamp(4px, 0.9vh, 8px) calc(clamp(9px, 1.4vw, 18px) - 0.3em) clamp(4px, 0.9vh, 8px) clamp(9px, 1.4vw, 18px); cursor: pointer;
   transition: background 0.12s;
 }
 #journal .gm-tab:hover { background: var(--paper); }
 #journal .gm-tab.on {
-  font: 900 clamp(16px, 4.2vh, 34px)/1 Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif; letter-spacing: 0.08em;
+  font: 900 calc(clamp(16px, 4.2vh, 34px) * var(--ts, 1))/1 Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif; letter-spacing: 0.08em;
   margin: 0 clamp(4px, 1vw, 12px); padding: clamp(5px, 1vh, 9px) clamp(14px, 2vw, 26px); color: var(--paper); -webkit-text-stroke: 1.8px var(--ink); paint-order: stroke fill;
   text-shadow: 3px 3px 0 var(--ink); background: var(--gold); border: 2.5px solid var(--ink); border-radius: 6px; box-shadow: 4px 4px 0 var(--ink); transform: rotate(-1.5deg);
 }
 #journal .gm-close {
   position: absolute; top: calc(clamp(6px, 2.2vh, 26px) + env(safe-area-inset-top, 0px)); right: calc(clamp(8px, 2.4vw, 40px) + env(safe-area-inset-right, 0px));
-  width: clamp(28px, 5.4vh, 42px); height: clamp(28px, 5.4vh, 42px); padding: 0; font: bold clamp(13px, 2.4vh, 18px)/1 ui-monospace, Menlo, monospace; color: var(--ink);
+  width: clamp(28px, 5.4vh, 42px); height: clamp(28px, 5.4vh, 42px); padding: 0; font: bold calc(clamp(13px, 2.4vh, 18px) * var(--ts, 1))/1 ui-monospace, Menlo, monospace; color: var(--ink);
   background: var(--paper); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 2px 2px 0 var(--ink); cursor: pointer;
 }
 #journal .gm-close:hover { background: var(--red); color: var(--paper); }
@@ -50,10 +50,10 @@ body.controller #journal .gm-close { display: none; }
 }
 #journal .gm-side.prev { border-right: 0; border-radius: 16px 0 0 16px; box-shadow: -3px 4px 0 var(--ink); }
 #journal .gm-side.next { border-left: 0; border-radius: 0 16px 16px 0; box-shadow: 5px 4px 0 var(--ink); }
-#journal .gm-side .nm { writing-mode: vertical-rl; font: 500 clamp(9px, 1.8vh, 13px)/1 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase; }
+#journal .gm-side .nm { writing-mode: vertical-rl; font: 500 calc(clamp(9px, 1.8vh, 13px) * var(--ts, 1))/1 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase; }
 #journal .gm-side.prev .nm { transform: rotate(180deg); }
-#journal .gm-side .arrow { font-size: clamp(9px, 1.6vh, 13px); color: var(--red); }
-#journal .gm-side .key { font-size: clamp(8px, 1.35vh, 11px); }
+#journal .gm-side .arrow { font-size: calc(clamp(9px, 1.6vh, 13px) * var(--ts, 1)); color: var(--red); }
+#journal .gm-side .key { font-size: calc(clamp(8px, 1.35vh, 11px) * var(--ts, 1)); }
 #journal .gm-side:hover, #journal .gm-side.at { background: var(--gold); }
 #journal .gm-side.at { animation: gm-nudge 0.6s ease-in-out infinite alternate; }
 #journal .gm-side.prev.at { --nudge: -4px; }
@@ -67,7 +67,7 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 }
 #journal .gm-title { display: none; }
 #journal .gm-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: clamp(8px, 2.4vh, 26px) clamp(10px, 2.2vw, 32px); scrollbar-width: thin; scrollbar-color: rgba(43, 33, 31, 0.35) transparent; }
-#journal .gm-body h2 { margin: 0 0 clamp(5px, 1.2vh, 12px); font: 500 clamp(9px, 1.75vh, 13px)/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.34em; text-transform: uppercase; }
+#journal .gm-body h2 { margin: 0 0 clamp(5px, 1.2vh, 12px); font: 500 calc(clamp(9px, 1.75vh, 13px) * var(--ts, 1))/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.34em; text-transform: uppercase; }
 #journal .gm-body h2 span { margin-left: 0.5em; letter-spacing: 0.06em; opacity: 0.6; font-family: ui-monospace, Menlo, monospace; text-transform: none; }
 #journal .gm-body .none { margin: 0 0 6px; font-style: italic; opacity: 0.6; }
 #journal .gm-body button { font: inherit; color: inherit; cursor: pointer; }
@@ -79,6 +79,8 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 @media (prefers-reduced-motion: reduce) {
   #journal [data-at].at, #journal .gm-side.at, #journal.gamemenu.open, #journal .gm-look figure { animation: none; }
 }
+/* (the "Reduce motion" setting: src/ui.js) */
+html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.at, html.reduce-motion #journal.gamemenu.open, html.reduce-motion #journal .gm-look figure { animation: none; }
 
 /* Items: the gear's grid, what you carry under it, and the picked one large beside them */
 #journal .gm-items { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(14px, 3.4vw, 52px); align-items: start; min-height: 100%; }
@@ -95,7 +97,7 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 #journal .ico.mark { display: grid; place-items: center; font-style: normal; font-size: calc(var(--slot) * 0.42); color: var(--teal); -webkit-text-stroke: 0.6px var(--ink); }
 #journal .slot.inuse { border-color: var(--red); }
 #journal .slot em {
-  position: absolute; left: 50%; bottom: -0.8em; transform: translateX(-50%); padding: 0 5px; font-style: normal; font-size: clamp(7px, 1.25vh, 10px); line-height: 1.55;
+  position: absolute; left: 50%; bottom: -0.8em; transform: translateX(-50%); padding: 0 5px; font-style: normal; font-size: calc(clamp(7px, 1.25vh, 10px) * var(--ts, 1)); line-height: 1.55;
   letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px;
 }
 #journal .gm-carry { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 2vw, 28px); min-width: 0; }
@@ -108,12 +110,12 @@ body:not(.controller) #journal .gm-side .key { display: none; }
   background: var(--paper2); border: 3px solid var(--ink); border-radius: 30%; box-shadow: 6px 6px 0 var(--ink), inset 0 -8px 0 rgba(43, 33, 31, 0.08); transform: rotate(-2deg);
 }
 #journal .gm-preview .big .ico { width: 92%; height: 92%; border-radius: 28%; }
-#journal .gm-preview .big .ico.mark { font-size: min(14vh, 9vw, 110px); }
+#journal .gm-preview .big .ico.mark { font-size: calc(min(14vh, 9vw, 110px) * var(--ts, 1)); }
 #journal .gm-preview .big.keepsake .ico.mark { color: var(--gold); -webkit-text-stroke: 1.5px var(--ink); }
 #journal .gm-preview .big.quest .ico.mark { color: var(--red); }
-#journal .gm-preview b { font: 900 clamp(13px, 2.8vh, 22px)/1.1 Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; max-width: 100%; }
-#journal .gm-preview span { font-size: clamp(9px, 1.7vh, 12px); letter-spacing: 0.08em; color: var(--red); }
-#journal .gm-preview em { padding: 0 8px; font-style: normal; font-size: clamp(8px, 1.4vh, 11px); line-height: 1.6; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px; }
+#journal .gm-preview b { font: 900 calc(clamp(13px, 2.8vh, 22px) * var(--ts, 1))/1.1 Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; max-width: 100%; }
+#journal .gm-preview span { font-size: calc(clamp(9px, 1.7vh, 12px) * var(--ts, 1)); letter-spacing: 0.08em; color: var(--red); }
+#journal .gm-preview em { padding: 0 8px; font-style: normal; font-size: calc(clamp(8px, 1.4vh, 11px) * var(--ts, 1)); line-height: 1.6; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px; }
 #journal .gm-carry .line {
   display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 clamp(4px, 0.9vh, 8px); padding: 3px 12px 3px 4px; text-align: left; box-sizing: border-box;
   background: rgba(255, 250, 240, 0.75); border: 2px solid var(--ink); border-radius: 999px;
@@ -122,7 +124,7 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 #journal .gm-carry .line .ico.mark { font-size: calc(var(--slot) * 0.3); }
 #journal .gm-carry .line.keepsake .ico.mark { color: var(--gold); -webkit-text-stroke: 0.8px var(--ink); }
 #journal .gm-carry .line.pack .ico.mark { color: var(--red); }
-#journal .gm-carry .line span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; font-size: clamp(10px, 1.9vh, 13px); }
+#journal .gm-carry .line span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; font-size: calc(clamp(10px, 1.9vh, 13px) * var(--ts, 1)); }
 #journal .gm-carry .line.at, #journal .gm-carry .line:hover { background: var(--gold); }
 
 /* Quests: the charge and each quest under way (its goal, its next step); the finished ones by title */
@@ -142,22 +144,22 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 #journal .qhead .mark { font-style: normal; color: var(--red); }
 #journal .qcard.charge .qhead .mark { color: var(--gold); -webkit-text-stroke: 0.7px var(--ink); }
 #journal .qcard.errand .qhead .mark { color: var(--teal); }
-#journal .qhead b { font-size: clamp(12px, 2.3vh, 16px); letter-spacing: 0.04em; }
+#journal .qhead b { font-size: calc(clamp(12px, 2.3vh, 16px) * var(--ts, 1)); letter-spacing: 0.04em; }
 #journal .qhead .tag, #journal .wcard .tag {
-  padding: 0 7px; font-style: normal; font-size: clamp(7px, 1.3vh, 10px); line-height: 1.6; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0 7px; font-style: normal; font-size: calc(clamp(7px, 1.3vh, 10px) * var(--ts, 1)); line-height: 1.6; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px;
 }
 #journal .qhead .tag { margin-left: auto; align-self: center; }
-#journal .qcard .goal { font-style: italic; opacity: 0.8; font-size: clamp(10px, 1.95vh, 13px); }
-#journal .qcard .next { font-weight: bold; font-size: clamp(11px, 2.05vh, 14px); }
+#journal .qcard .goal { font-style: italic; opacity: 0.8; font-size: calc(clamp(10px, 1.95vh, 13px) * var(--ts, 1)); }
+#journal .qcard .next { font-weight: bold; font-size: calc(clamp(11px, 2.05vh, 14px) * var(--ts, 1)); }
 #journal .qcard .next small { margin-right: 8px; font-size: 0.72em; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); }
 #journal .qdone ul { list-style: none; margin: 0; padding: 0; }
 #journal .qdone li { margin: 0; }
-#journal .qdone .ended { display: flex; gap: 8px; width: 100%; text-align: left; padding: clamp(3px, 0.7vh, 6px) 8px; background: none; border: 0; border-bottom: 1px dashed rgba(43, 33, 31, 0.3); font-size: clamp(10px, 1.9vh, 13px); }
+#journal .qdone .ended { display: flex; gap: 8px; width: 100%; text-align: left; padding: clamp(3px, 0.7vh, 6px) 8px; background: none; border: 0; border-bottom: 1px dashed rgba(43, 33, 31, 0.3); font-size: calc(clamp(10px, 1.9vh, 13px) * var(--ts, 1)); }
 #journal .qdone .ended i { font-style: normal; color: var(--green); font-weight: bold; }
 #journal .qdone .ended.failed i { color: #9a4a32; }
 #journal .qdone .ended.at, #journal .qdone .ended:hover { background: var(--gold); }
-#journal .qdone .more { padding: 3px 8px; font-size: 11px; opacity: 0.6; }
+#journal .qdone .more { padding: 3px 8px; font-size: calc(11px * var(--ts, 1)); opacity: 0.6; }
 
 /* Sketchbook: a world a row, its story page and its relics */
 #journal .gm-sketches .world { margin: 0 0 clamp(10px, 2.4vh, 22px); }
@@ -179,7 +181,7 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 #journal .gm-look[hidden] { display: none; }
 #journal .gm-look figure { margin: 0; max-width: 90%; padding: clamp(6px, 1.4vh, 14px); background: #fffaf0; border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); transform: rotate(-0.8deg); animation: gm-in 0.18s ease-out; }
 #journal .gm-look img { display: block; max-width: 100%; max-height: 52vh; margin: 0 auto; }
-#journal .gm-look figcaption { margin-top: 6px; font-size: clamp(10px, 1.9vh, 13px); }
+#journal .gm-look figcaption { margin-top: 6px; font-size: calc(clamp(10px, 1.9vh, 13px) * var(--ts, 1)); }
 #journal .gm-look figcaption b { margin-right: 6px; }
 
 /* Worlds: the worlds you know, in the route's order */
@@ -187,10 +189,10 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 #journal .wcard { display: flex; flex-direction: column; gap: 3px; padding: clamp(4px, 0.8vh, 7px); text-align: left; background: #fffaf0; border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
 #journal .wcard .pic { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #e2d3ae; border: 1.5px solid var(--ink); }
 #journal .wcard .pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
-#journal .wcard .num { position: absolute; left: 5px; top: 5px; display: grid; place-items: center; width: 1.9em; height: 1.9em; font-size: clamp(9px, 1.6vh, 12px); color: var(--paper); background: var(--ink); border-radius: 50%; }
+#journal .wcard .num { position: absolute; left: 5px; top: 5px; display: grid; place-items: center; width: 1.9em; height: 1.9em; font-size: calc(clamp(9px, 1.6vh, 12px) * var(--ts, 1)); color: var(--paper); background: var(--ink); border-radius: 50%; }
 #journal .wcard .tag { position: absolute; right: 5px; bottom: 5px; }
-#journal .wcard .wname { font-weight: bold; font-size: clamp(11px, 2vh, 14px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#journal .wcard .wfacts { display: flex; gap: 10px; font-size: clamp(9px, 1.65vh, 12px); opacity: 0.85; }
+#journal .wcard .wname { font-weight: bold; font-size: calc(clamp(11px, 2vh, 14px) * var(--ts, 1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#journal .wcard .wfacts { display: flex; gap: 10px; font-size: calc(clamp(9px, 1.65vh, 12px) * var(--ts, 1)); opacity: 0.85; }
 #journal .wcard .wfacts .on { color: var(--green); font-weight: bold; }
 #journal .wcard.here { border-color: var(--red); }
 #journal .wcard.at, #journal .wcard:hover { background: var(--gold); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
@@ -201,10 +203,10 @@ body:not(.controller) #journal .gm-side .key { display: none; }
   padding: clamp(5px, 1.2vh, 12px) clamp(10px, 1.6vw, 20px); background: #fffaf0; border: 2.5px solid var(--ink); box-shadow: 5px 5px 0 var(--ink);
 }
 #journal .gm-what { flex: 1; min-width: 0; }
-#journal .gm-name { font-size: clamp(12px, 2.4vh, 17px); letter-spacing: 0.1em; text-transform: uppercase; }
-#journal .gm-sub { margin-left: 12px; font-size: clamp(9px, 1.65vh, 12px); letter-spacing: 0.06em; color: var(--red); }
-#journal .gm-desc { margin: 2px 0 0; font-size: clamp(10px, 1.9vh, 13px); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-#journal .gm-keys { flex: none; display: flex; align-items: center; font-size: clamp(10px, 1.85vh, 13px); white-space: nowrap; }
+#journal .gm-name { font-size: calc(clamp(12px, 2.4vh, 17px) * var(--ts, 1)); letter-spacing: 0.1em; text-transform: uppercase; }
+#journal .gm-sub { margin-left: 12px; font-size: calc(clamp(9px, 1.65vh, 12px) * var(--ts, 1)); letter-spacing: 0.06em; color: var(--red); }
+#journal .gm-desc { margin: 2px 0 0; font-size: calc(clamp(10px, 1.9vh, 13px) * var(--ts, 1)); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#journal .gm-keys { flex: none; display: flex; align-items: center; font-size: calc(clamp(10px, 1.85vh, 13px) * var(--ts, 1)); white-space: nowrap; }
 #journal .gm-keys .key { margin-right: 6px; }
 #journal .gm-keys .key + .key { margin-left: -3px; }
 #journal .gm-keys .sep { width: 1.5px; height: 1.3em; margin: 0 10px; background: rgba(43, 33, 31, 0.3); }

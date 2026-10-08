@@ -8,6 +8,8 @@
 
 import { backKey } from './native-pad.js';
 import { PAD } from './bindings.js';
+import { verbKey as remapKey, verbButton } from './remap.js';
+import { t } from './i18n.js';
 
 /** What the player holds now: 'pad' (a controller is in use), 'touch', or 'keys' (the body's classes: main.js, ui.js). */
 export function inputKind(doc = typeof document !== 'undefined' ? document : null) {
@@ -23,9 +25,9 @@ export function inputKind(doc = typeof document !== 'undefined' ? document : nul
  * screen (its ✕ button says it).
  */
 export function closeHint(keys, kind = inputKind(), back = backKey()) {
-  if (kind === 'pad') return `${back} close`;
+  if (kind === 'pad') return t('hint.close', { key: back });
   if (kind === 'touch') return '';
-  return `${keys} to close`;
+  return t('hint.toClose', { keys });
 }
 
 export const escapeHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -33,8 +35,9 @@ export const escapeHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&
 /** One button as a round badge. */
 export const keyBadge = (label) => `<b class="key">${escapeHtml(label)}</b>`;
 
-// a button name at the start of a prompt: "E go aboard", "B / ○ step outside", "A / × …"
-const LEAD = /^(E|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2|RB \/ R1|LB \/ L1|L3|R3|D-pad [↑↓←→]) (?=\S)/;
+// a button name at the start of a prompt: "E go aboard", "B / ○ step outside", "A / × …", "SPACE hop", "W/S throttle"
+// (as a badge, native-pad.js renames it to the player's own key or button: src/remap.js)
+const LEAD = /^(E|SPACE|SHIFT|[WASD]\/[WASD]|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2|RB \/ R1|LB \/ L1|L3|R3|D-pad [↑↓←→]) (?=\S)/;
 
 /**
  * A status line as HTML: every " · "-separated part that starts with a
@@ -52,10 +55,15 @@ export function badgeLine(text) {
 // Prompts that teach (the ship's nudge, the desert's first steps, the tank's first fill) name the
 // verb's input as the player holds it: the keyboard's keys, the pad's buttons in Xbox / PlayStation
 // form (src/bindings.js PAD; native-pad.js prints them as a handheld does), or the touch buttons.
+// (the keys and buttons the player chose, src/remap.js: asked each time, so a rebinding shows at once)
 const VERB_KEYS = {
-  keys: { move: 'WASD', look: 'the mouse', jump: 'SPACE', interact: 'E', aim: 'R or the right mouse button', fire: 'G or a left click', mode: 'X' },
-  pad: { move: 'the left stick', look: 'the right stick', jump: PAD.jump, interact: PAD.interact, aim: PAD.aim, fire: PAD.fire, mode: PAD.mode },
+  keys: { move: () => ['forward', 'left', 'back', 'right'].map(remapKey).join(''), look: 'the mouse', jump: () => remapKey('jump'), interact: () => remapKey('interact'),
+    aim: () => `${remapKey('aim')} or the right mouse button`, fire: () => `${remapKey('fire')} or a left click`, mode: () => remapKey('mode') },
+  pad: { move: 'the left stick', look: 'the right stick', jump: () => verbButton('jump'), interact: () => verbButton('interact'), aim: () => verbButton('aim'), fire: () => verbButton('fire'), mode: PAD.mode },
   touch: { move: 'the stick on the left', look: 'a drag on the right', jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐' },
 };
 /** The input for a verb (move, look, jump, interact, aim, fire, mode) on this kind of input. */
-export const verbKey = (verb, kind = inputKind()) => VERB_KEYS[kind]?.[verb] ?? VERB_KEYS.keys[verb] ?? verb;
+export const verbKey = (verb, kind = inputKind()) => {
+  const k = VERB_KEYS[kind]?.[verb] ?? VERB_KEYS.keys[verb] ?? verb;
+  return typeof k === 'function' ? k() : k;
+};

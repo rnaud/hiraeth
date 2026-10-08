@@ -5,13 +5,43 @@
 //
 // Buttons by position, in Xbox / PlayStation form (native-pad.js prints them as the pad does: a Retroid's
 // bottom button reads "B"). A chord is written 'View + D-pad ↓' (View held, then the other).
+//
+// These are the defaults. A player can move the verbs to other buttons and keys (the Controls page, saved with
+// the settings: src/remap.js); the controller reads through that, and the prompts are renamed as they show
+// (native-pad.js). The tables here never change.
 
-/** The button names the prompts use for each verb (Xbox / PlayStation form). */
+/** The pad's buttons by position, in the Standard Gamepad's order (index = the button's index there). */
+export const PAD_BUTTONS = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT', 'View', 'Menu', 'L3', 'R3', '↑', '↓', '←', '→'];
+/** Each button as a prompt names it (Xbox / PlayStation form). */
+export const BUTTON_NAME = {
+  A: 'A / ×', B: 'B / ○', X: 'X / □', Y: 'Y / △', LB: 'LB / L1', RB: 'RB / R1', LT: 'LT / L2', RT: 'RT / R2',
+  View: 'View', Menu: 'Menu', L3: 'L3', R3: 'R3', '↑': 'D-pad ↑', '↓': 'D-pad ↓', '←': 'D-pad ←', '→': 'D-pad →',
+};
+/**
+ * The verbs a player can move to another button, and their buttons by default (the foot rows of BINDINGS below;
+ * riding, the same buttons follow them). View and Menu stay where they are, and so do the menus' and the
+ * conversations' buttons: the way back is never lost.
+ */
+export const PAD_VERBS = {
+  jump: 'A', evade: 'B', interact: 'X', gadget: 'Y', blade: 'RB', guard: 'LB', aim: 'LT', fire: 'RT',
+  run: 'L3', lock: 'R3', pick: '↑', call: '↓', modePrev: '←', modeNext: '→',
+};
+
+/** The button names the prompts use for each verb (Xbox / PlayStation form), from PAD_VERBS. */
 export const PAD = {
-  jump: 'A / ×', evade: 'B / ○', interact: 'X / □', gadget: 'Y / △',
-  blade: 'RB / R1', guard: 'LB / L1', aim: 'LT / L2', fire: 'RT / R2',
-  run: 'L3', lock: 'R3', pick: 'D-pad ↑', call: 'D-pad ↓', mode: 'D-pad ← / →',
-  journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
+  ...Object.fromEntries(Object.entries(PAD_VERBS).filter(([v]) => !v.startsWith('mode')).map(([v, b]) => [v, BUTTON_NAME[b]])),
+  mode: 'D-pad ← / →', journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
+};
+
+/**
+ * The keyboard's verbs and their keys by default (KeyboardEvent.code: by position, so an AZERTY keyboard's Z is
+ * KeyW). A player can move each to another key; the mouse buttons stay as they are.
+ */
+export const KEYS = {
+  forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', jump: 'Space', interact: 'KeyE',
+  blade: 'KeyF', guard: 'ControlLeft', evade: 'AltLeft', lock: 'Tab', aim: 'KeyR', fire: 'KeyG', mode: 'KeyX',
+  scout: 'KeyQ', gadget: 'KeyT', gadgetNext: 'KeyB', whistle: 'KeyV', journal: 'KeyJ', menu: 'KeyO', controls: 'KeyH',
+  photo: 'KeyP', mute: 'KeyM',
 };
 
 /**

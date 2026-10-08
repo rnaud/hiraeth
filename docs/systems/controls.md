@@ -125,6 +125,48 @@ Controller logic and browser integration are tested with simulated standard pads
 physical controller testing is still needed on iPhone.
 
 
+## Remapping (`src/remap.js`, the Controls page)
+
+The tables in `src/bindings.js` stay the defaults and the one source: `KEYS` (each keyboard verb's
+key, by `KeyboardEvent.code`, so by position: an AZERTY's Z is `KeyW`) and `PAD_VERBS` (each pad
+verb's button by position; `PAD`, the prompts' names, is built from it). A player's changes are
+overrides beside them, saved with the settings (`keys: { verb: code }`, `pad: { verb: button }`);
+`setControlPrefs` drops anything that is not a verb, not a change, or on a key the menus need
+(Esc, Enter, the F keys, the dev menu's backquote). The game never reads the overrides:
+
+- **The keyboard.** `installKeyRemap()` (boot.js, before any other key listener) listens in the
+  capture phase on the window. A key a verb was moved to is sent on as that verb's *default* key
+  (a new `KeyboardEvent` with its code, dispatched at the same target; the original is stopped); a
+  default key whose verb moved away, and that nothing took, sends nothing (`keyRoutes`). Typing in
+  a text field is left alone. Toggle run / guard is done here too.
+- **The pad.** `Controller.update` reads each default button through `padMap()` (index → the
+  button pressed for it) while playing and riding (riding, the same verbs' buttons: jump off is
+  the jump's). Menus, conversations and photo mode keep the default buttons: A confirms and B goes
+  back whatever the player did, so the way out is never lost; View and Menu can't be moved. With
+  View held, the D-pad is still View's layer (photo), whatever verb is bound there. Analog values
+  follow their verb (fire moved to a face button still throttles the jets, at full).
+- **Two verbs on one key or button** is a *clash*, not refused: both happen. The Controls page
+  marks both rows (⚠, the other verb named, a dashed frame) and says so under the list.
+- **The prompts** are written with the default names and renamed on the page: native-pad.js's
+  text rewriter (the same one that prints a Retroid's own letters) runs `padRename` on every text
+  ("A / ×" is the button now bound to jump; one pass, so a swap stays a swap) and `keyRename` on
+  key badges (`.key` holding exactly a default key's name: "E", "SPACE", "W/S"). Under `.pad-raw`
+  (the conversation panel, the game menu, the restart card, the Controls page's own lists, the
+  "Talking", "In menus", "Their panels" and "Photo mode" rows) the pad names stay as written:
+  those are the menus' own buttons. The keyboard's names follow the keyboard's layout where the
+  browser tells it (`navigator.keyboard.getLayoutMap`: an AZERTY shows ZQSD) and the language
+  ("ESPACE", "MAJ").
+- **The Controls page** (Start menu → Controls, or H) starts with "Your buttons" and "Your keys"
+  (the one in your hands first, `rebindHtml`): each verb with its key or button, a press on it
+  waits for the next key (`captureKey`, Esc leaves it) or button (`capturePad`: the controller
+  hands it the next new press after the others are let go; Menu or View leaves it), 8 s at most;
+  "Reset to defaults" clears that device's overrides. Touch is not remapped; the mouse buttons stay.
+- **Hold or toggle** (settings: Run, Guard; `RUN_MODES` auto / hold / toggle, `GUARD_MODES` hold /
+  toggle). Auto is the pad's old L3: run until the stick is let go (on the keyboard, held).
+
+Tests: `tests/accessibility.test.js` (routes, conflicts, the controller through a map, captures,
+renamed prompts, saved prefs) and `tests/bindings.test.js` (the default table).
+
 ## The layout (v0.93: a pass with a controller, after the big action games)
 
 The pad had grown one verb at a time, and some buttons had two jobs that changed under you. This pass
