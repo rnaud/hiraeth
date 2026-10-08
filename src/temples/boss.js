@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeMaterial } from '../materials.js';
+import { makeMaterial, releaseMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 
@@ -81,7 +81,8 @@ export function inArea(a, o, h, p) {
 export class Telegraph {
   constructor(parent, color) {
     this.fillM = makeMaterial({ color, glow: 0.7, flat: true, side: THREE.DoubleSide, key: `tele.fill.${uid++}` });
-    this.edgeM = makeMaterial({ color: '#2b211f', flat: true, side: THREE.DoubleSide, key: `tele.edge.${uid++}` });
+    // (the fill's glow is its own, the outline is everyone's)
+    this.edgeM = makeMaterial({ color: '#2b211f', flat: true, side: THREE.DoubleSide, key: 'tele.edge' });
     this.group = new THREE.Group();
     this.fill = new THREE.Mesh(new THREE.BufferGeometry(), this.fillM);
     this.edge = new THREE.Mesh(new THREE.BufferGeometry(), this.edgeM);
@@ -122,6 +123,12 @@ export class Telegraph {
     this.fillM.uniforms.uGlow.value = 0.35 + 0.5 * k + 0.15 * Math.sin(t * 22);
   }
   hide() { this.group.visible = false; }
+  /** Gone for good (its foe let go): out of the scene, its shapes and its own fill disposed. */
+  dispose() {
+    this.group.removeFromParent();
+    this.fill.geometry.dispose(); this.edge.geometry.dispose();
+    releaseMaterial(this.fillM);
+  }
 }
 
 export class Guardian {

@@ -328,3 +328,20 @@ test('the course can be played through to the gate, at any frame rate, with no f
   assert.equal(PLAT_COURSE.coins.length, 40);
   assert.ok(timeBonus(30) > timeBonus(50) && timeBonus(200) === 0);
 });
+
+test('arcade signs: Dune skiing on a desert dune crest off the story\'s way, Sky steps on Vael II\'s start plateau', async () => {
+  const { TITLES } = await import('../src/levels/names.js');
+  const { desertHeight } = await import('../src/desert-landmarks.js');
+  const { STORY } = await import('../src/desert-sites.js');
+  for (const g of [ski, platformer]) {
+    assert.equal(g.markers?.length, 1, `${g.id} has its sign`);
+    for (const m of g.markers) { assert.ok(TITLES[m.level], m.level); assert.ok(m.at.every((v) => v === null || Number.isFinite(v)) && Number.isFinite(m.heading)); }
+  }
+  const [x, , z] = ski.markers[0].at, h = desertHeight(x, z);
+  const round = Array.from({ length: 16 }, (_, a) => desertHeight(x + Math.sin(a * Math.PI / 8) * 60, z + Math.cos(a * Math.PI / 8) * 60));
+  assert.ok(Math.max(...round) < h + 0.5 && Math.min(...round) < h - 12, 'on the crest, a long slope down from it');
+  assert.ok(h > 40, `${h.toFixed(1)} m up`);
+  for (const s of [{ x: 0, z: 0 }, STORY.city, STORY.camps, STORY.bike, STORY.pilgrim]) assert.ok(Math.hypot(x - s.x, z - s.z) > 120);
+  assert.equal(platformer.markers[0].level, 'arzach2');
+  assert.ok(Math.abs(platformer.markers[0].at[1] - 40.3) < 0.5, 'on the start plateau (its top: 40 m)');
+});

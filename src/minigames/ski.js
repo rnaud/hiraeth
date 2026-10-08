@@ -490,6 +490,9 @@ export default {
   score: { kind: 'time' },
   hud: { timer: true },
   color: '#d9643a',
+  // (its arcade sign in the desert: on the crest of the tall golden dune north-west of where you wake, ~47 m
+  // up and off the story's way, facing back toward the start)
+  markers: [{ level: 'desert', at: [-108, null, 124], heading: Math.atan2(108, -124) }],
   build: buildSki,
   start,
 };

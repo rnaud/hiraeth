@@ -25,8 +25,8 @@ export const RACE = {
   topUp: 0.28,           // of the tank a ring gives back
   respawnFuel: 0.4,      // at least this much after a crash (the race can always be finished)
   boost: true,           // race-tuned: the jets' boosted speed all the way (JET.speed × JET.boost)
-  surge: 1.22,           // the boost button (Shift, RB / R1, L3) held on top: this much faster along the nose…
-  surgeBurn: 2.0,        // …for this many times the burn
+  surge: 1.28,           // the boost button (Shift, RB / R1, L3) held on top: this much faster along the nose…
+  surgeBurn: 2.1,        // …for this many times the burn
   gravity: 32,
   body: 0.7,             // m, the traveller's reach for a crash
 };

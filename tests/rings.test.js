@@ -141,21 +141,39 @@ test('the stick: forward dives, back climbs, right banks and turns right', () =>
 });
 
 /** Fly the course with the pilot at a frame rate: the race's result. */
-function flyCourse(fps, secs = 140) {
+function flyCourse(fps, secs = 140, boost = null) {
   const dt = 1 / fps;
   const F = newFlyer(V(PAD.x, PAD.y, PAD.z), Math.atan2(RINGS[0].c.x - PAD.x, RINGS[0].c.z - PAD.z));
   const R = newRace(RINGS.length);
-  let t = 0, crashes = 0, minFuel = 1, safe = 0;
+  let t = 0, crashes = 0, minFuel = 1, safe = 0, dry = 0;
   while (!R.done && t < secs) {
     const p0 = F.pos.clone(), wasPad = F.pad;
-    flyStep(F, botInput(F, RINGS, R), dt);
+    const inp = botInput(F, RINGS, R);
+    if (boost && !F.pad) inp.boost = boost(F, inp, R);
+    flyStep(F, inp, dt);
+    if (!F.pad && F.fuel <= 0) dry += dt;
     if (wasPad && !F.pad) safe = 0.6;
     for (const e of raceStep(R, RINGS, p0, F.pos)) if (e.kind === 'pass') F.fuel = Math.min(1, F.fuel + RACE.topUp);
     if ((safe -= dt) <= 0 && hitAt(F.pos, FIELD)) crashes++;
     minFuel = Math.min(minFuel, F.fuel);
     t += dt;
   }
-  return { R, t, crashes, minFuel };
+  return { R, t, crashes, minFuel, dry };
+}
+
+/** Boost on the straights (lined up, the ring 25 m off or more) while the tank holds more than `reserve`. */
+const onStraights = (reserve) => (F, inp, R) =>
+  Math.abs(inp.x) < 0.35 && Math.abs(inp.y) < 0.35 && F.pos.distanceTo(RINGS[R.next].c) > 25 && F.fuel > reserve;
+
+for (const fps of [60, 30]) {
+  test(`the boost used wisely wins a fair margin and never runs dry; greedily it runs dry (${fps} fps)`, () => {
+    const plain = flyCourse(fps), wise = flyCourse(fps, 140, onStraights(0.25)), greedy = flyCourse(fps, 140, onStraights(0));
+    assert.ok(wise.R.done && wise.R.missed === 0 && wise.crashes === 0, 'the boosting pilot still flies it clean');
+    assert.equal(wise.dry, 0, `never dry (min ${wise.minFuel.toFixed(2)})`);
+    const gain = plain.t - wise.t;
+    assert.ok(gain > 3 && gain < 7, `boosting wins ${gain.toFixed(1)} s (${plain.t.toFixed(1)} → ${wise.t.toFixed(1)})`);
+    assert.ok(greedy.dry > 1 && greedy.t > wise.t, `to the last drop: dry ${greedy.dry.toFixed(1)} s, ${greedy.t.toFixed(1)} s`);
+  });
 }
 
 for (const fps of [120, 60, 30]) {

@@ -2798,8 +2798,19 @@ export function makeMaterial(o) {
     mat.uniforms.uDissolveColor = { value: new THREE.Color(o.dissolve === true ? '#fff4d6' : o.dissolve) };
   }
   cache.set(key, mat);
+  mat.userData.cacheKey = key;
   return mat;
 }
+
+/** Let go of a material made for one thing alone (a key of its own: a foe's floor warning, a shade's body):
+ *  out of the cache and disposed, so things made and let go over a long run leave no materials behind. */
+export function releaseMaterial(mat) {
+  if (!mat) return;
+  if (cache.get(mat.userData?.cacheKey) === mat) cache.delete(mat.userData.cacheKey);
+  mat.dispose?.();
+}
+/** How many materials the cache holds (the tests: flat over foes made and let go). */
+export const materialCount = () => cache.size;
 
 
 /** Tag only the player's materials, preserving live shared shader uniforms. */

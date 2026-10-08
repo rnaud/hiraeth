@@ -119,7 +119,7 @@ const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell
 export const CHANGELOG_MEDIA = {
   '0.92': [
     { match: 'Games: the worlds list (Debug) has a row of small games', shots: [
-      { name: 'games-row', only: 'after', caption: 'The worlds list: the Games row under the pages', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+      { name: 'games-row', only: 'after', caption: 'The worlds list: the ten games under the pages, each one’s best under its name', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), a save with eight bests' },
       { name: 'ski-card', only: 'after', caption: 'A game’s start card: its rules, its controls (here a pad’s), the best so far', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
       { name: 'steps-results', only: 'after', caption: 'The results: the score, how it was made, a new best stamped', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
     ], see: 'Open the worlds list (Debug on the title, or L in play) and pick a game in the Games row, or open ?game=ski or ?game=platformer.' },
@@ -183,7 +183,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'Games, a polish pass', shots: [
       { name: 'touch-ski', only: 'after', caption: 'Dune skiing on a phone held sideways: only the stick, the jump (pop) and run (the tuck)', from: 'headless Chrome against this branch’s own dev server, High, 844 × 390, Handheld, touch emulated (8 October), played by a script' },
     ], see: 'Finish a game with no score: no stamp; beat your best: “New best!”. The worlds list (Debug) shows the bests in the Games row.' },
-    { match: 'Ring race: hold Shift or RB / R1', see: '?game=rings: hold RT / R2 (Space) and add RB / R1 (Shift): about 31 m/s becomes 38, the tank lasting about 5 s instead of 11.' },
+    { match: 'Ring race: hold Shift or RB / R1', see: '?game=rings: hold RT / R2 (Space) and add RB / R1 (Shift): about 31 m/s becomes 40, the tank lasting about 5 s instead of 11.' },
     { match: 'Wing drop: after each landing', shots: [
       { name: 'wingdrop-landing', caption: 'The last drop landed: before, the camera low over the mesa behind the card; after, up behind you, the bullseye beyond, you left of the card', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), landings set by a script' },
       { name: 'wingdrop-star', only: 'after', caption: 'A scripted pilot (wingdrop.js starPilot) through the high star of the first thermal, flying the virtual pad', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
@@ -191,6 +191,15 @@ export const CHANGELOG_MEDIA = {
     { match: 'Ink tide’s longer blade is drawn longer', shots: [
       { name: 'gallery-bells', caption: 'The shooting gallery, aiming: the bells up by the valance before, down over the rails after', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
     ], see: '?game=waves: take the Longer blade boon after the first wave and watch the blade; ?game=sketchhunt: raise the sketchbook at someone with a passer-by in between.' },
+    { match: 'Arcade signs for the last two games', shots: [
+      { name: 'sign-ski', only: 'after', caption: 'Dune skiing’s sign on the golden dune’s crest, the Desert’s skeletons and mesas beyond', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'sign-steps', only: 'after', caption: 'Sky steps’ sign on the start plateau’s west rim, a mushroom table and the monastery cliff beyond', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ], numbers: [{ title: 'Ring race: a scripted pilot’s time round the course (the boost ×1.22 for ×2 the burn before, ×1.28 for ×2.1 after)', unit: 's', better: 'lower', device: 'any (Node, 60 fps)', rows: [
+      { where: 'no boost', before: 53.9, after: 53.9 },
+      { where: 'boost on the straights, a quarter of the tank kept (never dry)', before: 50.7, after: 50.0 },
+      { where: 'boost every straight to the last drop (dry 5 s before, 4.5 after)', before: 52.5, after: 51.5 },
+    ], source: 'tests/rings.test.js (flyCourse with a boost policy)' }],
+      see: 'In the Desert, climb the tall dune north-west of the start (?level=desert, about x −108, z 124); in the Sky Stones (?level=arzach2), walk to the start plateau’s west rim.' },
   ],
   '0.91': [
     { match: 'Gadgets: things to carry besides the backpack', shots: [

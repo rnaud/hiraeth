@@ -90,3 +90,17 @@ test('a game’s own foes: on whatever the Enemies setting, none from the wilds,
   const plain = new Foes({ scene: null, level: { foes: { wild: false } }, levelId: 'arena', physics: null, player: {}, settings: { enemies: 'off' } });
   assert.equal(plain.on, false);
 });
+
+test('foes made and let go leave no materials behind (200 over a long Ink tide)', async () => {
+  const THREE = await import('three');
+  const { materialCount } = await import('../src/materials.js');
+  const level = { foes: { own: true, wild: false, noInk: true } };
+  const F = new Foes({ scene: new THREE.Scene(), level, levelId: 'arena', physics: null, player: { pos: { x: 0, y: 0, z: 0 } }, settings: { enemies: 'off' } });
+  const kinds = ['blot', 'spitter', 'swarm', 'machine', 'flyer', 'shade'];
+  const wave = (n) => { const fs = []; for (let i = 0; i < n; i++) fs.push(F.add(kinds[i % kinds.length], new THREE.Vector3(i, 0, 0))); for (const f of fs) F.remove(f); };
+  wave(kinds.length);   // the shared ones made once
+  const before = materialCount();
+  wave(200);
+  assert.equal(materialCount(), before, 'the material count stays flat');
+  assert.equal(F.list.length, 0);
+});

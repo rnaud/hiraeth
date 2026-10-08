@@ -22,8 +22,11 @@ rhythm game (`src/minigames/drums.js`), and the **Sketch hunt** in the Signal Ma
   the start (`bazaar.js` `GALLERY_SIGN`, kept clear of the crowd); the Arena Ink tide's by the way in. A game
   may name its own: `markers: [{ level, at: [x, y, z], heading }]` (y `null`: on the ground), placed by `main.js`
   in that world (the drum circle's by the pilgrims' small fire in the Desert, a few steps from the child who
-  sits there, whose "talk" would win the button; the sketch hunt's on the market's pavement). Dune skiing and
-  Sky steps have no sign. Stand at a sign and the button must say "play …" (QA: every sign checked).
+  sits there, whose "talk" would win the button; the sketch hunt's on the market's pavement; Dune skiing's on
+  the crest of the tall golden dune north-west of the Desert's start, `[-108, null, 124]`; Sky steps' on the
+  west rim of the Sky Stones' start plateau, `[-52, 40.33, -61]`: there the ground found from high up is not the
+  plateau's, so its height is given). Stand at a sign and the button must say "play …" (QA: every sign checked,
+  and Quit puts you back by it).
 - A game page skips the title (`save-slots.js` `DIRECT_PARAMS` has `game`) and plays in the save slot in use.
   It writes no position to the save (`main.js` `writeSave`), so the save still resumes where you left the world.
 
@@ -59,7 +62,9 @@ improvement over a best kept before, the first best kept is `first` (no stamp: n
 up GPU buffers. `kit/dispose.js` `disposeTree(...objects)` takes them out and disposes their geometries (the
 materials are the cached `makeMaterial` ones); the runner does it for whatever went through `ctx.add`, a game's
 `end()` for what it put in the scene itself (a `Dots`' mesh, a `Trail`'s). `src/foes.js` `remove` lets a foe's
-shapes go too (each wave of Ink tide left them). QA: `renderer.info.memory.geometries` stays flat over three
+shapes go too (each wave of Ink tide left them), and its floor warning's own glow material (`Telegraph.dispose`,
+`materials.js` `releaseMaterial`: out of the cache; the outline is one shared material): 200 foes made and let go
+leave the material count flat (`tests/minigames-waves.test.js`). QA: `renderer.info.memory.geometries` stays flat over three
 Retries in every game.
 
 ## How to add a game
@@ -232,8 +237,11 @@ second at full throttle (about 11 s), each ring gives back `RACE.topUp` (0.28); 
 within 6 R outside it), or one of the two after it went through (those between are missed: +5 s each).
 `hitAt`: the sand, a needle or a rock with the body's 0.7 m reach is a crash: +3 s, again from the last
 ring passed, flying on its way, the tank at least 0.4 full. The boost (`boost`: Shift, RB / R1, run on a touch
-screen) flies at `RACE.surge` (1.22) of the jets' speed for `RACE.surgeBurn` (2) the burn: 31 m/s to 38, the
-tank in about 5 s instead of 11 (under thrust `jetStep` is linear in the velocity: the surge flies it scaled). The camera chases behind the nose (tipped with it,
+screen) flies at `RACE.surge` (1.28) of the jets' speed for `RACE.surgeBurn` (2.1) the burn: 31 m/s to 40, the
+tank in about 5 s instead of 11 (under thrust `jetStep` is linear in the velocity: the surge flies it scaled).
+Boosting on the straights with a quarter of the tank kept back is worth about 4 s on the ~54 s course (the tests'
+pilot: 50.0 s against 53.9, never dry); boosting every straight to the last drop runs dry and glides for ~4.5 s,
+losing most of that; boosting all the way runs dry and comes down. The camera chases behind the nose (tipped with it,
 rolled a third of the bank); the arrow hangs at the top of the view (4.2 m ahead of the camera) pointing at
 the next ring. **The ghost**: the run's track every 0.1 s and its ring splits, kept on this device
 (`localStorage` `moebius.minigame.rings.ghost`, `packGhost`: ~8 KB) when it beats the ghost or the best; the

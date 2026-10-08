@@ -530,6 +530,9 @@ export default {
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true },
   color: '#71d7cf',
+  // (its arcade sign on Vael II: the start plateau's west rim, looking out at the stone columns and tables in
+  // the cloud, facing back across the plateau; the height given: the ground from high up is not the plateau's there)
+  markers: [{ level: 'arzach2', at: [-52, 40.33, -61], heading: Math.atan2(52, 61) }],
   build: buildPlatformer,
   start,
 };

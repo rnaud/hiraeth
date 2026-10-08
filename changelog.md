@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.92 — 2026-10-08
 
+- Arcade signs for the last two games: Dune skiing’s on the crest of the tall golden dune north-west of where you wake in the Desert, Sky steps’ on the west rim of the Sky Stones’ start plateau, looking out at the stones in the cloud. The Ring race’s boost is a little stronger (40 m/s instead of 38): used on the straights with some fuel kept back, it wins about four seconds a run.
 - Ink tide’s longer blade is drawn longer, not only cutting further; the shooting gallery’s bells hang lower, in reach over the rails; the sketch hunt’s readout sees people standing in the way, as the sketch does; and the drum circle’s sign in the desert stands a few steps from the child by the fire, so the button plays the game.
 - Wing drop: after each landing the camera rises behind you and looks down over you at the bullseye, and on the last drop you stand clear of the results. The star gates are a little wider, and a thermal’s swirls no longer smear across the view while you circle inside it.
 - Ring race: hold Shift or RB / R1 (run, on a touch screen) to boost: faster along the nose, for a heavier burn of the tank. Space or RT / R2 alone is the thrust.

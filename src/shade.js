@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeMaterial } from './materials.js';
+import { makeMaterial, releaseMaterial } from './materials.js';
 import { buildCharacter } from './player.js';
 import { Humanoid } from './humanoid.js';
 import { Animator } from './animator.js';
@@ -102,5 +102,5 @@ export class ShadeBody {
     }
   }
 
-  dispose() { this.group.removeFromParent(); }
+  dispose() { this.group.removeFromParent(); releaseMaterial(this.mat); }
 }
