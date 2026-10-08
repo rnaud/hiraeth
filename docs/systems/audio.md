@@ -103,7 +103,8 @@ A level that carries you on a train says so with `level.rails(pos)` → `{ speed
 
 ## Recorded soundtracks (v0.94)
 
-`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/`.
+`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/` (on a device only the desert's is
+local; the others are downloaded once: "The themes on a device" below).
 `manifest.json` records each Suno source and musical direction. Only the current
 world loads after audio starts. Decode/download failures retain the procedural
 score, including on engine bridges without an audio decoder. The title keeps its
@@ -112,6 +113,35 @@ two seconds crossfaded into the opening for looping, then faded in over two seco
 They use the existing music bus: volume, mute, menu hush, musician ducking,
 underwater filtering and background suspension still apply. Ambience, bands and
 combat continue independently. Disposing a world cancels its outstanding download.
+
+## The themes on a device (October 2026)
+
+The APK and the Steam Deck package carry one recorded theme, the desert's (`ON_DEVICE_THEMES`,
+`src/music-store.js`): the first world has its music offline from the very first session. The other 24
+(99 MB) stay on the site (`scripts/site-only.mjs` `leftOff`, the over-the-air zip too; the web build is
+unchanged, it reads its own `music/`).
+
+- **The download** (`themeDownloader`, started by the title and by every world after its first frame,
+  `startThemeDownload`): every theme the device hasn't got, one file at a time, 1.5 s apart, at low
+  fetch priority, from 8 s after the page is up (never during a load; each world is a new page, so a
+  world's loading never shares the network with it). The world being played comes first. Each file is
+  kept as a Blob in IndexedDB (`hiraeth-music` / `themes`, key: the file name). The music never
+  changes (a new recording gets a new name), so nothing is checked again. Offline, with Data Saver, or
+  when the site fails, it stops and goes on from the next missing file when the page is back online
+  (the `online` event), two minutes later, or on the next open; a file cut off halfway is fetched again
+  from its start. A full disk only means it tries later.
+- **A world's theme** (`loadSoundtrack`, `src/soundtracks.js`): the bundle's (`music/<file>`), else the
+  kept copy (`themeSources`); a copy that doesn't decode is dropped for the download to fetch again.
+  Neither: the procedural score plays, and the theme comes in when the download lands it, through the
+  moments (`trackOn` false, so `Sound.musicMomentsUpdate` starts and fades it in at the next moment the
+  theme plays, `src/music-moments.js`), never on top of what is playing.
+- **Installs from before** (every theme in the bundle): the download takes each from the bundle first
+  and keeps it, without a request to the site (see `docs/systems/android.md`, "The music, downloaded
+  once", for the one update that has to carry them for that).
+- **Settings > Updates** (Android and the Deck) says "Music: 18 of 25 downloaded" while some are missing
+  (`themeProgressText`), nothing once all are there.
+- A device is `bundledGame()` (`src/levels/reference-sheets.js`): GeckoView's 127.0.0.1:41730, the
+  WebView fallback's https://localhost, the Deck's moebius://game. Tests: `tests/music-store.test.js`.
 
 ## Scoring the moments (October 2026)
 

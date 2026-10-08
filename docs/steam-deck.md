@@ -131,6 +131,13 @@ holds back the other; see `update.log`):
   it runs does (`main.mjs`, `deck.py`, the packaging, Electron's lockfile: its `key`); the game
   inside updates through the content feed meanwhile. Runtimes up to 189001 only know GitHub:
   install the first site-aware one by hand (above).
+- **The music**: neither the runtime's packaged game nor a content update carries the recorded
+  themes but the desert's (`scripts/site-only.mjs` `leftOff`; the key includes that file). The
+  game downloads the others from the site in the background from the first launch, one at a
+  time, and keeps them in the `moebius://game` origin's IndexedDB, in the Electron profile
+  (`~/.config/moebius`, with the saves): a new runtime or content build never downloads them
+  again. Settings > Updates shows "Music: 18 of 25 downloaded" meanwhile. How it works:
+  `docs/systems/audio.md`, "The themes on a device".
 
 The running game keeps using what it started with; the next launch uses the update. A game left
 running doesn't update: on 7 October the author's Deck had run one launch for 9 hours (03:29 to 12:38)

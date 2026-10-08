@@ -1,4 +1,7 @@
-// Downloaded Suno originals; provenance is recorded in public/music/manifest.json.
+// Downloaded Suno originals; provenance is recorded in public/music/manifest.json. On a device only the desert's
+// is in the bundle; the others are downloaded from the site in the background and kept (src/music-store.js).
+import { bundledGame } from './levels/reference-sheets.js';
+import { keepTheme, pageThemeStore, startThemeDownload, themeSources } from './music-store.js';
 export const SOUNDTRACKS = {
   home: 'home.mp3',
   lantern: 'home.mp3',   // (the Lantern: home's own theme, at Ilen's)
@@ -52,30 +55,75 @@ export function prepareSoundtrack(ctx, original) {
   return buffer;
 }
 
-/** Keep procedural music until a local recording has loaded and decoded successfully. */
-export async function loadSoundtrack(sound, fetcher = globalThis.fetch) {
+/** The theme files, once each (home and the Lantern share one). */
+export const THEME_FILES = [...new Set(Object.values(SOUNDTRACKS))];
+
+/**
+ * Keep procedural music until a recording has loaded and decoded successfully: the bundle's, or the one a
+ * device kept (src/music-store.js themeSources). On a device without it yet, the background download
+ * (themeDownloader) fetches this world's first, and it comes in on the next moment the theme plays
+ * (src/music-moments.js), faded, not on top of what is playing.
+ * @param o.here the page's location, o.store the kept themes (default: IndexedDB on a device), o.downloader
+ *   the page's background download (default: startThemeDownload)
+ */
+export async function loadSoundtrack(sound, fetcher = globalThis.fetch, { here = globalThis.location, store, downloader } = {}) {
   const file = SOUNDTRACKS[sound.levelId];
   if (!sound.score || !file || !fetcher) return false;
   const ctx = sound.ctx;
   const abort = sound.trackAbort = typeof AbortController === 'function' ? new AbortController() : null;
-  try {
-    const response = await fetcher(`${import.meta.env?.BASE_URL ?? './'}music/${file}`, { signal: abort?.signal });
-    if (!response.ok) throw new Error(`Soundtrack HTTP ${response.status}`);
-    const decoded = await ctx.decodeAudioData(await response.arrayBuffer());
-    if (sound._disposed || ctx.state === 'closed') return false;
-    const source = ctx.createBufferSource(), gain = ctx.createGain();
-    source.buffer = sound.trackBuffer = prepareSoundtrack(ctx, decoded);
-    source.loop = true;
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 2);
-    source.connect(gain).connect(sound.music);
-    source.start(ctx.currentTime);
-    sound.recordedTrack = source;
-    sound.trackGain = gain;
-    sound.trackOn = true;   // (from here Sound.musicMoments fades it in and out: src/music-moments.js)
+  const device = bundledGame(here);
+  if (store === undefined) store = device ? pageThemeStore() : null;
+  let lastError = null;
+  /** @returns true (playing), false (didn't decode: try the next), null (the world is gone) */
+  const play = async (blob, from, keep) => {
+    let decoded;
+    try { decoded = await ctx.decodeAudioData(await blob.arrayBuffer()); }
+    catch (error) {
+      lastError = error;
+      if (from === 'stored') void store?.delete?.(file)?.catch?.(() => {});   // (a damaged copy: the download fetches it again)
+      return false;
+    }
+    if (sound._disposed || ctx.state === 'closed') return null;
+    if (keep) void keepTheme(store, file, blob);
+    startTrack(sound, decoded, { late: from === 'site' });
+    sound.trackFrom = from;
     return true;
+  };
+  try {
+    for await (const { from, blob, keep } of themeSources(file, { here, store, fetcher, signal: abort?.signal })) {
+      const ok = await play(blob, from, keep);
+      if (ok !== false) return !!ok;
+    }
+    if (device && store) {
+      // not here yet: the background download brings it (this world's first); the score plays meanwhile
+      downloader ??= startThemeDownload(THEME_FILES, { first: file });
+      downloader.prefer?.(file);
+      const blob = await downloader.arrived(file, abort?.signal);
+      if (blob && !sound._disposed) { const ok = await play(blob, 'site', false); if (ok !== false) return !!ok; }
+    }
+    if (!sound._disposed) console.warn('Recorded soundtrack unavailable; keeping the procedural score.', lastError ?? file);
+    return false;
   } catch (error) {
     if (!sound._disposed) console.warn('Recorded soundtrack unavailable; keeping the procedural score.', error);
     return false;
   }
+}
+
+/** Play a decoded theme: at once (faded in over 2 s), or `late`: ready for the moments to bring in. */
+function startTrack(sound, decoded, { late = false } = {}) {
+  const ctx = sound.ctx;
+  const gain = ctx.createGain();
+  sound.trackBuffer = prepareSoundtrack(ctx, decoded);
+  gain.gain.setValueAtTime(0, ctx.currentTime);
+  gain.connect(sound.music);
+  sound.trackGain = gain;
+  if (late) { sound.trackOn = false; return; }   // (Sound.musicMomentsUpdate starts it, faded, when a moment wants it)
+  const source = ctx.createBufferSource();
+  source.buffer = sound.trackBuffer;
+  source.loop = true;
+  gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 2);
+  source.connect(gain);
+  source.start(ctx.currentTime);
+  sound.recordedTrack = source;
+  sound.trackOn = true;   // (from here Sound.musicMomentsUpdate fades it in and out: src/music-moments.js)
 }

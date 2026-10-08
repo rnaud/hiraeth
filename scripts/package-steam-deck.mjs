@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { VERSION } from '../src/changelog.js';
 import { desktopApi, gameBuild } from './release-info.mjs';
 import { relative, sep } from 'node:path';
-import { siteOnly } from './site-only.mjs';
+import { leftOff } from './site-only.mjs';
 
 // DECK_BUILD numbers the runtime package (the updater compares it); WEB_BUILD the game inside it,
 // on the same scale as the content updates from the game's site (release-info.mjs gameBuild).
@@ -17,9 +17,10 @@ const output = 'output/steam-deck';
 await rm(output, { recursive: true, force: true });
 await mkdir(`${output}/source`, { recursive: true });
 // (not dist/updates/, the site's content updates and runtime, when the Cloudflare deploy packages it,
-// nor what the site serves alone: the changelog's pictures and the reference sheets, scripts/site-only.mjs)
+// nor what the site serves alone: the changelog's pictures and the reference sheets, nor the recorded themes but
+// the desert's, which the game fetches from the site once and keeps: scripts/site-only.mjs leftOff)
 const fromDist = (src) => relative('dist', src).split(sep).join('/');
-await cp('dist', `${output}/source/game`, { recursive: true, filter: (src) => !/^dist[\\/]updates([\\/]|$)/.test(src) && !siteOnly(fromDist(src)) });
+await cp('dist', `${output}/source/game`, { recursive: true, filter: (src) => !/^dist[\\/]updates([\\/]|$)/.test(src) && !leftOff(fromDist(src)) });
 await cp('desktop/main.mjs', `${output}/source/main.mjs`);
 await cp('desktop/deck-updates.mjs', `${output}/source/deck-updates.mjs`);   // (the settings' Updates section)
 await cp('scripts/steam-deck/deck.py', `${output}/source/deck.py`);

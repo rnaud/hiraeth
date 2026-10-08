@@ -223,7 +223,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu .updates p { margin: 0; }
 .fullmenu .updates .up-running { font-size: calc(11px * var(--ts, 1)); opacity: 0.65; }
 .fullmenu .updates .up-title { margin-top: 6px; font-size: calc(clamp(14px, 2.4vh, 18px) * var(--ts, 1)); font-weight: bold; }
-.fullmenu .updates .up-detail, .fullmenu .updates .up-pct, .fullmenu .updates .up-more { margin-top: 4px; font-size: calc(12px * var(--ts, 1)); opacity: 0.8; }
+.fullmenu .updates .up-detail, .fullmenu .updates .up-pct, .fullmenu .updates .up-more, .fullmenu .updates .up-music { margin-top: 4px; font-size: calc(12px * var(--ts, 1)); opacity: 0.8; }
 .fullmenu .updates[data-state="offline"] .up-title, .fullmenu .updates[data-state="error"] .up-title { color: #a8392d; }
 .fullmenu .updates[data-state="current"] .up-title::before { content: '✓ '; color: #277e86; }
 .fullmenu .updates .up-bar { position: relative; height: 4px; margin-top: 8px; border-radius: 2px; background: rgba(43, 33, 31, 0.14); overflow: hidden; }

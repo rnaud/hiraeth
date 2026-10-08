@@ -4,22 +4,31 @@
 // The over-the-air zip already leaves both out; the APK (`npx cap sync android` copies dist/) and the Steam Deck
 // package (scripts/package-steam-deck.mjs) leave them out through this.
 //
-//   node scripts/site-only.mjs dist        deletes them from a built dist/ (the Android workflow, before cap sync)
+// A second kind stays off the devices too, for another reason: the recorded themes fetched on demand
+// (onDemand, scripts/web-update.mjs: every music/*.mp3 but the desert's). A device does need them, one world
+// at a time: it fetches each from the site the first time and keeps it for good (src/music-store.js).
+// leftOff() is both: what the APK, the Deck package and the over-the-air zip never carry.
+//
+//   node scripts/site-only.mjs dist        deletes them all from a built dist/ (the Android workflow, before cap sync)
 import { readdir, rm, stat } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { MEDIA_FILE, SHEET_FILE } from './web-update.mjs';
+import { MEDIA_FILE, SHEET_FILE, SITE_CONFIG, onDemand } from './web-update.mjs';
 
 /** Is a file of dist/ (its path from dist/, with / between folders) one the devices never get? */
-export const siteOnly = (rel) => SHEET_FILE.test(rel) || MEDIA_FILE.test(rel);
+export const siteOnly = (rel) => SHEET_FILE.test(rel) || MEDIA_FILE.test(rel) || SITE_CONFIG.test(rel);
+/** Is it a recorded theme a device fetches from the site when it needs it (and keeps)? */
+export const fetchedOnDemand = (rel) => onDemand(rel);
+/** What the APK and the Deck package leave out: the site's own files and the themes fetched on demand. */
+export const leftOff = (rel) => siteOnly(rel) || fetchedOnDemand(rel);
 
-/** Delete the site-only files from a built dist/; returns { files, bytes } removed. */
-export async function stripSiteOnly(dist) {
+/** Delete what the devices leave out (leftOff, or `skip`) from a built dist/; returns { files, bytes } removed. */
+export async function stripSiteOnly(dist, skip = leftOff) {
   let files = 0, bytes = 0;
   const walk = async (dir) => {
     for (const e of await readdir(dir, { withFileTypes: true })) {
       const p = join(dir, e.name), rel = relative(dist, p).split(sep).join('/');
-      if (siteOnly(rel)) { const s = await stat(p); if (e.isDirectory()) { bytes += await size(p); } else bytes += s.size; files++; await rm(p, { recursive: true, force: true }); }
+      if (skip(rel)) { const s = await stat(p); if (e.isDirectory()) { bytes += await size(p); } else bytes += s.size; files++; await rm(p, { recursive: true, force: true }); }
       else if (e.isDirectory()) await walk(p);
     }
   };
@@ -31,5 +40,5 @@ export async function stripSiteOnly(dist) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const dist = process.argv[2] ?? 'dist';
   const { files, bytes } = await stripSiteOnly(dist);
-  console.log(`site-only: removed ${files} files (${(bytes / 2 ** 20).toFixed(1)} MB) from ${dist}`);
+  console.log(`site-only and fetched on demand: removed ${files} files (${(bytes / 2 ** 20).toFixed(1)} MB) from ${dist}`);
 }

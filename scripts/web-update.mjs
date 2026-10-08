@@ -1,5 +1,6 @@
 // The game's content update, published next to the site by the Cloudflare deploy (cloudflare.yml):
 //   dist/updates/web-<build>.zip  the built game (dist/ without updates/), the same files the APK and the Deck carry
+//                                 (without the site's own files and the themes fetched on demand: SHEET_FILE, MEDIA_FILE, onDemand)
 //   dist/updates/web.json         its manifest (release-info.mjs webJson): build, sha256, zip URL, minNative, minDesktop…
 // read by the Android app (WebBundles.MANIFEST) and the Steam Deck updater (deck.py CONTENT_MANIFEST_URL).
 //
@@ -18,6 +19,7 @@ import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG } from '../src/changelog.js';
 import { desktopApi, gameBuild, webJson } from './release-info.mjs';
+import { ON_DEVICE_THEMES } from '../src/music-store.js';
 
 export const SITE = 'https://memento.alexandria-rnaud.workers.dev/';
 export const UPDATES = 'updates';
@@ -134,6 +136,13 @@ export const SHEET_FILE = /^assets\/(IMG_\d+|reference-\d+)-[\w-]+\.jpe?g$/i;   
  * the build never holds them (the deploy copies them in after this zip and the Deck's runtime are made),
  * and if they ever were in dist/ they would still stay out of the zip, the APK and the Deck. */
 export const MEDIA_FILE = /^changelog-media(\/|$)/;
+/** The site's own configuration (public/_headers: Cloudflare's headers by path, the themes' CORS). */
+export const SITE_CONFIG = /^_headers$/;
+/** The recorded themes a device fetches from the site the first time it needs one, and keeps (src/music-store.js):
+ * every music/*.mp3 but ON_DEVICE_THEMES (the desert's). The zip, the APK and the Deck leave them out (about
+ * 99 MB); the site serves them. OTA_MUSIC=1 puts them back in the zip, for a hand-over update: a game that finds
+ * them in its bundle keeps them (adoptBundledThemes), so an install from before keeps its soundtrack for good. */
+export const onDemand = (name) => /^music\/[^/]+\.mp3$/.test(name) && !ON_DEVICE_THEMES.includes(name.slice('music/'.length));
 
 /** Store large archives as bounded assets; the Worker streams their original zip URL. */
 export async function writeArchive(out, name, zip, partSize = UPDATE_PART) {
@@ -151,10 +160,10 @@ export async function writeArchive(out, name, zip, partSize = UPDATE_PART) {
 }
 
 /** Write dist/updates/: this build's zip and web.json, and the previous build's zip. */
-export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART }) {
+export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART, music = process.env.OTA_MUSIC === '1' }) {
   const out = join(dist, UPDATES);
   await rm(out, { recursive: true, force: true });
-  const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) });
+  const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) || SITE_CONFIG.test(n) || (!music && onDemand(n)) });
   if (!names.includes('index.html')) throw new Error('no index.html in the build: run npm run build first');
   await mkdir(out, { recursive: true });
   const file = join(out, `web-${build}.zip`);

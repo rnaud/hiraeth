@@ -1,0 +1,5 @@
+# Cloudflare Workers static assets: headers by path (docs/cloudflare.md). The recorded themes are read by
+# the games on devices (another origin: 127.0.0.1:41730, moebius://game), which fetch and keep them
+# (src/music-store.js); fetch() needs CORS for that.
+/music/*
+  Access-Control-Allow-Origin: *

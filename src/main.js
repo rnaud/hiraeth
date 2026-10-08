@@ -7,6 +7,8 @@ import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { PAD_SCHEME, PAD_SCHEME_KEY, PAD_SCHEME_NOTE } from './bindings.js';
 import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
+import { startThemeDownload } from './music-store.js';
+import { SOUNDTRACKS, THEME_FILES } from './soundtracks.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
 import { guardianHint } from './temples/hints.js';
@@ -1837,6 +1839,7 @@ requestAnimationFrame((t) => {
   renderer.domElement.style.visibility = '';
   frame(t);
   markBooted();   // the heartbeat: the Android app keeps a downloaded web build only once it gets here (native-app.js)
+  startThemeDownload(THEME_FILES, { first: SOUNDTRACKS[levelId] });   // on a device: the themes it hasn't got, in the background once settled (src/music-store.js)
   const ld = document.getElementById('loading');
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);

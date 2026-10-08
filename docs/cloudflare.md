@@ -39,6 +39,12 @@ in JS: that ran out of the free plan's Worker CPU and silently cut downloads sho
 fixed length Cloudflare also drops `Content-Length`, so the cut looked like a complete file).
 Only the first and last parts of a byte range are sliced in JS. Both current and previous archives use this format; small archives stay static.
 The manifest still describes the full zip, including its original size and SHA-256.
+
+**The recorded themes** (`music/*.mp3` but the desert's, 99 MB) are not in the content zip: the games on
+devices download them from the site once and keep them (`docs/systems/audio.md`, "The themes on a device").
+They are another origin's requests, so `public/_headers` gives `/music/*` an `Access-Control-Allow-Origin: *`
+(Workers static assets read `_headers`; the devices never carry it). `OTA_MUSIC=1 node scripts/web-update.mjs`
+puts the themes back in the zip for one hand-over update (`docs/systems/android.md`, "The music, downloaded once").
 A deploy only uploads files whose contents changed, so the previous zip costs nothing.
 
 ## One-time account setup
