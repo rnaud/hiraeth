@@ -1,0 +1,45 @@
+changelog.md
+  s_096d9f4127f346::t_6fbb51fe3abff5 10-11
+docs/systems/characters.md
+  s_096d9f4127f346::t_acb164dd2d9767 446-489
+engine/game.js
+  s_096d9f4127f346::t_b995613690d8ad 87-88,114-122
+public/characters/traveller-v1/head-v2/colors.json
+  s_096d9f4127f346::t_f60507675d5b63 1
+public/characters/traveller-v1/head-v2/provenance.json
+  s_096d9f4127f346::t_b2f5ee22a24aad 1-42
+scripts/tripo/README.md
+  s_096d9f4127f346::t_d63da030abb86c 7-54,180-185
+scripts/tripo/sample-colors.py
+  s_096d9f4127f346::t_f31f33664f22a9 5,10-14,35
+src/changelog-media.js
+  s_096d9f4127f346::t_6b3842445a4da1 120-123
+src/changelog.js
+  s_096d9f4127f346::t_acc9fdb9fc8983 13-14
+src/characters/traveller-v1.js
+  s_096d9f4127f346::t_360ab0d5061918 11,26,28,30,35,57-59,64-66,81
+src/characters/tripo-head.js
+  s_096d9f4127f346::t_3ac29ebdbe0da9 1-149
+tests/traveller-v1.test.js
+  s_096d9f4127f346::t_e7d446ef51067e 71-144
+tools/tripo-head-review.html
+  s_096d9f4127f346::t_e723d93c386001 1-5
+tools/tripo-head-review.js
+  s_096d9f4127f346::t_f125361329ae42 1-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "06cea791d09943c95fb285116c54ec7c46c63a60",
+  "prompts": {},
+  "sessions": {
+    "s_096d9f4127f346": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11c1c-fa66-7b63-bdfb-d94262f7dff8",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
