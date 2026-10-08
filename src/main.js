@@ -80,6 +80,7 @@ import { feelDt, shakeCamera, kick } from './feel.js';
 import { DevMenu } from './dev-menu.js';
 import { HitboxOverlay } from './hitbox-overlay.js';
 import { hitboxes, registerHitboxes } from './hitboxes.js';
+import { inputDisplay } from './input-display.js';
 import { fillPicker, pickHref } from './world-picker.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
@@ -601,7 +602,8 @@ const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.qu
   },
   // (the captured starts, stops and turns over the loops: src/loco-moves.js)
   moves: { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; devMenu.render(); } },
-  hitboxes: { get: () => hitboxes.on, set: (on) => hitboxes.set(on) } });   // (src/hitboxes.js)
+  hitboxes: { get: () => hitboxes.on, set: (on) => hitboxes.set(on) },   // (src/hitboxes.js)
+  inputs: { get: () => inputDisplay.on, set: (on) => inputDisplay.set(on) } });   // (the input display: src/input-display.js)
 window.addEventListener('keydown', (e) => {
   if (!boxes.busy() || e.repeat) return;
   if (e.code === 'Escape') boxes.skip();
@@ -1060,6 +1062,13 @@ const closeControllerMenu = () => {
   else if (storyRt.dialogue.open) storyRt.dialogue.close();
   else pageEl.click();
 };
+// the input display (src/input-display.js): the pad drawn, every press with its raw index and what it does. On in
+// the Arena; F6 anywhere, View + D-pad ← in the Arena (a free chord, src/bindings.js), the dev menu, ?inputs=1
+inputDisplay.set(query.has('inputs') ? query.get('inputs') !== '0' : levelId === 'arena');
+inputDisplay.listen(() => devMenu.render());
+const toggleInputs = () => showToast(inputDisplay.toggle() ? 'Controller inputs shown (F6).' : 'Controller inputs hidden.');
+window.addEventListener('keydown', (e) => { if (e.code === 'F6' && !e.repeat) { e.preventDefault(); toggleInputs(); } });
+window.addEventListener('padchord', (e) => { if (levelId === 'arena' && e.detail?.name === 'viewLeft') toggleInputs(); });
 const controller = new Controller({
   context: () => busy() ? (menuRoot() === storyRt.dialogue.el ? 'talk' : 'menu') : photo.on ? 'photo' : player.ride ? 'ride' : 'game',
   faces: () => padFaces(),
@@ -1111,6 +1120,7 @@ const controller = new Controller({
     if (name === 'viewDown' || name === 'viewLeft' || name === 'viewRight') window.dispatchEvent(new CustomEvent('padchord', { detail: { name } }));
   },
 });
+inputDisplay.bind({ context: () => controller.lastContext ?? 'game', index: () => controller.index });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad
 // that is connected (the Retroid's own controls) counts as in use until the screen or keys are touched,
 // so a handheld shows no touch buttons from the start.
@@ -1401,6 +1411,7 @@ function frame(ts) {
   const realDt = Math.min(rawDt, 1 / 20);
   const dt = feelDt(realDt);   // (a hit-stop slows the world for a few hundredths of a second: src/feel.js)
   const padInput = controller.update(dt, !document.hidden && document.hasFocus());
+  inputDisplay.update();   // (off: nothing)
   if (controller.index === null) controllerActive = false;
   else if (!screenInput) controllerActive = true;
   document.body.classList.toggle('controller', controllerActive);

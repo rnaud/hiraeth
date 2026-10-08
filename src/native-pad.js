@@ -28,6 +28,8 @@
 // Menus confirm with the button printed A and go back with B, whatever the
 // layout (each platform's own habit): confirmKey() / backKey() name them.
 
+import { installPadMaps } from './pad-maps.js';
+
 let native = null;
 
 export function installNativePad(win = globalThis.window) {
@@ -45,6 +47,7 @@ export function installNativePad(win = globalThis.window) {
   if (!nav) return;
   const original = nav.getGamepads?.bind(nav);
   nav.getGamepads = () => (native ? [native, null, null, null] : original?.() ?? []);
+  installPadMaps(win);   // (pads without the standard mapping, an 8BitDo in D-input on a Mac: read as standard, src/pad-maps.js)
 }
 
 export const nativePad = () => native;
