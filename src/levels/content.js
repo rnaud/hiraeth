@@ -142,6 +142,17 @@ export const CONTENT = {
     relics: { spots: [], names: [] },
     npcs: [],
   },
+  arcade: {
+    weather: [],
+    story: {
+      title: 'THE ARCADE',
+      intro: 'A sign for every game round the plaza. Walk up to one to play; the board by the way in lists them all.',
+      outro: 'That is the arcade. Play them all.',
+      label: 'the plaza', goal: [0, 'ground', 0], radius: 30,   // (anywhere in the plaza: told at once, also back at a sign)
+    },
+    relics: { spots: [], names: [] },
+    npcs: [],
+  },
   atelier: {
     weather: [],
     story: {

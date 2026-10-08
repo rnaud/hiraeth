@@ -37,19 +37,53 @@ export function gameMarkerModel(color = '#71d7cf') {
 }
 
 /**
+ * A name plate for a sign: the game's name in ink on paper, a line under it (its best), drawn on a canvas
+ * (w × h m). Null where there is no canvas (node's tests).
+ */
+export function signPlate(title, sub = '', color = '#71d7cf', w = 1.5, h = 0.56) {
+  if (typeof document === 'undefined' || !document.createElement) return null;
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = Math.round(512 * h / w);
+  const g = c.getContext('2d');
+  if (!g) return null;
+  const W = c.width, H = c.height;
+  g.fillStyle = '#f7ecd2'; g.fillRect(0, 0, W, H);
+  g.fillStyle = color; g.fillRect(0, H - 14, W, 14);
+  g.strokeStyle = '#2b211f'; g.lineWidth = 8; g.strokeRect(4, 4, W - 8, H - 8);
+  g.fillStyle = '#2b211f'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  let size = 58;
+  const name = String(title).toUpperCase();
+  do { g.font = `900 ${size}px ui-monospace, Menlo, monospace`; size -= 2; } while (g.measureText(name).width > W - 40 && size > 20);
+  g.fillText(name, W / 2, H * (sub ? 0.38 : 0.48));
+  if (sub) { g.font = '600 34px ui-monospace, Menlo, monospace'; g.fillStyle = '#6b4a36'; g.fillText(sub, W / 2, H * 0.72); }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), makeMaterial({ color: '#ffffff', map: tex, flat: true, glow: 0.35 }));
+  mesh.userData.noCollide = true;
+  return mesh;
+}
+
+/**
  * An arcade sign in a world that starts a game: walk up and press the interact button (X / □, E).
  * @param world   { scene, levelId, lights? (the level's light list: the sign lights its ground), go? (href) => void }
  * @param gameId  a game's id (src/minigames/<id>.js)
- * @param pos     where it stands (a Vector3 or [x, y, z]); heading (radians) which way it faces
+ * @param pos     where it stands (a Vector3 or [x, y, z]); heading (radians) which way it faces;
+ *                plate (a line of text, '' for none) a name plate on the post with the game's name and that
+ *                line (the Arcade's: the best)
  * @returns { object, remove() }
  */
-export function placeGameMarker(world, gameId, pos, { heading = 0, games } = {}) {
+export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate = null } = {}) {
   const def = gameById(gameId, games);
   if (!def) throw new Error(`no minigame "${gameId}"`);
   const at = Array.isArray(pos) ? new THREE.Vector3(...pos) : pos.clone();
   const object = gameMarkerModel(def.color);
   object.position.copy(at);
   object.rotation.y = heading;
+  if (plate !== null) {
+    const p = signPlate(def.name, plate, def.color);
+    if (p) { p.position.set(0, 1.32, 0.24); object.add(p); }
+  }
   world.scene.add(object);
   const light = new THREE.Vector4(at.x, at.y + 2.7, at.z, 5);
   world.lights?.push(light);

@@ -100,7 +100,7 @@ const STALE = [
   [/X \/ □[)\s,]*(evade|evades)\b|evades?\b[^.'"]{0,24}X \/ □/i, 'evade is B / ○ now'],
   [/Y \/ △[^.'"]{0,40}\b(pings?|scout)\b|\b(ping|scout)\b[^.'"]{0,30}Y \/ △/i, 'the scout is R3 (no foe near) now'],
   [/\bR3\b[^.'"]{0,30}\b(bell|shell|sound)|\b(bell|shell)\b[^.'"]{0,40}\bR3\b|RS \/ R3/i, 'the whistle is Y / △ with no gadget in hand now'],
-  [/LT \/ L2 \+ X \/ □/, 'the mount is D-pad ↓ now'],
+  [/LT( \/ L2)? \+ X \/ □/, 'the mount (and the Arcade\'s and References\' boards) is D-pad ↓ now'],
   [/[Ww]histle[^.'"]{0,40}\(X \/ □/, 'the mount is D-pad ↓ now'],
   [/D-pad (down|↓)[^.'"]{0,12}photo|photo[^.'"]{0,12}D-pad (down|↓)/i, 'photo mode is View + D-pad ↑ now'],
   [/LB \/ L1[^.'"]{0,12}swings/, 'the blade is RB / R1'],

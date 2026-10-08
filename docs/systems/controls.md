@@ -131,6 +131,9 @@ Conflicts and oddities:
 5. **Photo mode** held a prime quick slot (D-pad ↓) and had no way in at all on a touch screen.
 6. **R3 with nothing to lock on to did nothing.**
 7. The Arena's description said LB / L1 swings the blade (it is RB / R1).
+   The debug levels borrowed the mount's chord: the References' list of views and the Arcade's games board
+   opened on LT + X / □ (they follow the mount's button, so now D-pad ↓); the Arcade's game cards turn to
+   the game before / after on LB / RB, as the menus' panels do (kept).
 8. Keyboard: B was a gadget key and a guard key; the attack was F, where every PC action game attacks
    on the left click.
 

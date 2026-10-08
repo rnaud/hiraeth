@@ -25,7 +25,7 @@ The first things in the game that fight back, and the tool's answer to them.
 - **Evade:** Alt / B / ○ / touch ↶ moves in the input direction, or backward without input, for
   0.28 s with a 0.65 s cooldown. It uses Player's collision controller, has no invulnerability, and
   may cancel attack recovery but not wind-up or release. It is available on the ground.
-  Push is a gun mode; calling a mount is LT + X (Xbox positions).
+  Push is a gun mode; calling a mount is D-pad ↓ (v0.93: docs/systems/controls.md, "The layout").
 - **The flinch:** a strike that lands without knocking you down plays the pack's impact on the upper body
   (`Player.flinch`, `FLINCH`).
 - **What it hits:** during the active cut, coarse cone/range and wall checks find candidates, then

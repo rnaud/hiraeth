@@ -92,6 +92,7 @@ import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
+import { arcadeLinks } from './minigames/kit/arcade.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -642,7 +643,7 @@ if (viaShip) {
 }
 // continue where you left off (same world, not arriving by ship)
 const saved = SaveGame.load();
-if (!viaShip && !playPrologue && saved?.level === levelId && saved.pos) {
+if (!viaShip && !playPrologue && saved?.level === levelId && saved.pos && !level.keepSpawn) {   // (keepSpawn: the Arcade, back in front of a game's sign)
   const p = new THREE.Vector3(...saved.pos);
   player.respawn(p);
   if (saved.up) player.frame.set(new THREE.Vector3(...saved.up), new THREE.Vector3(...saved.fwd));
@@ -1754,7 +1755,8 @@ if (minigameDef) {
   minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings,
     capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open'),
-    navigate: (href) => { flushPlay(); location.href = href; } });
+    navigate: (href) => { flushPlay(); location.href = href; },
+    links: arcadeLinks(query.get('from'), minigameDef.id) });   // (started from the Arcade: the game before / after, back to its sign)
   window.minigame = minigame;
   story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)
   if (story) story.done = true;   // (nor its goal: the Arena's ring would end its story under a game played by it)
