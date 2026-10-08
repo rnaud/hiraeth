@@ -1,0 +1,53 @@
+changelog.md
+  s_efb1d100d5a6fc::t_c4b9b05739c957 15-17
+docs/systems/gadgets.md
+  s_efb1d100d5a6fc::t_580dbcdcdf661c 35-38,41,64,76-78,180-241,253-256
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_6cc90cc366e1cc 178-189
+src/changelog.js
+  s_efb1d100d5a6fc::t_8faa65d0eccfeb 27-29
+src/foes.js
+  s_efb1d100d5a6fc::t_5020f68c043ea3 789
+src/gadgets/boomerang.js
+  s_efb1d100d5a6fc::t_9a7db398534dfb 1-534
+src/gadgets/hud.js
+  s_efb1d100d5a6fc::t_6d3d6c99ec45db 11,41-46,133-148,164
+src/gadgets/index.js
+  s_efb1d100d5a6fc::t_5e0b83b5344d4c 44-45,59,68
+src/gadgets/magnet.js
+  s_efb1d100d5a6fc::t_7cb7fa35d5b489 1-557
+src/gadgets/metal.js
+  s_efb1d100d5a6fc::t_2f7dc7a279f5d0 1-46
+src/gadgets/sfx.js
+  s_efb1d100d5a6fc::t_9e0ad4188ee08b 38-39
+src/gadgets/world.js
+  s_efb1d100d5a6fc::t_28e076ed15dcc3 5,77,85-86,219,232-322,325-327,346
+src/gadgets/yard-kit.js
+  s_efb1d100d5a6fc::t_cf58716a409261 6-7,27,29,48-50,66,159-160,168,214-259
+src/levels/gadget-yard.js
+  s_efb1d100d5a6fc::t_b6583033153d62 80,96
+src/levels/garage.js
+  s_efb1d100d5a6fc::t_9dd46da1d7e4fb 8,175,191,195-196,241,288
+src/main.js
+  s_efb1d100d5a6fc::t_d0c5fb62d45230 685
+tests/boomerang.test.js
+  s_efb1d100d5a6fc::t_ae6f150c0305d2 1-200
+tests/magnet.test.js
+  s_efb1d100d5a6fc::t_8797a4e2272ff2 1-221
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "998ba579992dcadf4d76b426b7de43f70637c7b9",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
