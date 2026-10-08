@@ -435,6 +435,7 @@ export class Wildlife {
     this.herds = [];
     this.frame = 0; this.t = 0;
     this.playerSpeed = 0; this.playerGround = true; this.air = 0; this.disturb = [];
+    this.fears = [];   // frights from the world itself, for a moment: a fire burning (scare(); src/chemistry.js)
     this.ear = null;
     this.ctx = { fx: this.fx, world: this, t: 0, dt: 0 };
     this.stars = this.makeStars();
@@ -707,8 +708,18 @@ export class Wildlife {
       if (sp > 4 || (veh === player.ride && Math.abs(veh.speed ?? 0) > 4)) D.push({ p: veh.pos, r: 12, why: 'vehicle' });
     }
   }
+  /**
+   * Something in the world frightens the creatures within r of p for `life` seconds (src/chemistry.js: a
+   * burning bramble, a flaring fire): they play their surprise and flee from it, as from a sprint.
+   */
+  scare(p, r = 6, life = 0.5) {
+    const f = this.fears.find((q) => q.p.distanceToSquared(p) < 0.25);
+    if (f) { f.r = Math.max(f.r, r); f.life = Math.max(f.life, life); return; }
+    if (this.fears.length < 16) this.fears.push({ p: p.clone(), r, life });
+  }
   disturbanceFor(c, dist) {
     for (const d of this.disturb) if (d.p.distanceTo(c.pos) < d.r * (c.species.skittish ?? 1)) return d.p;
+    for (const d of this.fears ?? []) if (d.p.distanceTo(c.pos) < d.r * (c.species.skittish ?? 1)) return d.p;
     if (dist < (c.species.touch ?? 1.1) * c.size + 0.5 && this.playerGround) return this.playerPos;
     return null;
   }
@@ -720,6 +731,7 @@ export class Wildlife {
     this.playerPos = player.pos;
     this.ear = camera?.position ?? player.pos;
     this.sense(dt, player);
+    if (this.fears.length) this.fears = this.fears.filter((f) => (f.life -= dt) > 0);
     let stunned = 0;
     for (const c of this.list) {
       if (c.state === 'gone') {

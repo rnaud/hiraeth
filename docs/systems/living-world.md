@@ -161,3 +161,41 @@ neighbours (of their petals open awake, or half the way to them: `fitBlooms`). A
 for less than 60 % of the open flower (`BLOOM.least`; a shy fungus, which rests open, needs all of
 it) is given up after two steps away from the wall. The flora keeps clear of each flower's reach.
 `tests/reactive-world.test.js` puts a wall through a world's flowers and blooms them all.
+
+## The world's chemistry (v0.98)
+`src/chemistry.js` holds a few general rules by which the world's systems act on each other without
+the traveller (Breath of the Wild's chemistry), in place of per-scene scripts. It reads the target
+registry (`src/targets.js`), so anything that registers a `kind: 'flammable'` target (the
+`Flammables` spots, the temples' `Bramble`, which reports `burning()`), a `kind: 'ember'` one or a
+foe takes part. `main.js` builds it after the foes and runs `chemistry.update(dt, player.pos)` next
+to `flammables.update`; the rules look only within 140 m of the traveller, 8 times a second
+(`CHEM.hz`), the embers fly every frame (12 at most).
+- **Fire spreads.** A burning spot lights the dry brambles and unlit lamps near it after 0.45–1.5 s
+  (nearer: sooner). `spreadReach(windDir, windSpeed, from, to)`: 2.2 m edge to edge in still air,
+  up to 2.2x straight downwind and 0.35x upwind in a full wind (2.5 m/s, a windy world's breeze),
+  times the fire's heat (a flared camp fire 2, a bramble 1, a lamp 0.45); a lamp catches at 0.6x.
+  A burnt bramble cannot catch till it has grown back, a lamp just put out not for 20 s
+  (`BURN.relight`). No more spreads while 10 fires burn or are about to (`CHEM.maxSpread`;
+  `BURN.maxLit` is 14). The wind is the world's own, `player.wind` (set from the sky's slowly
+  turning wind and the weather in `main.js`).
+- **The wind carries embers.** A burning bramble throws embers on the wind now and then (more in
+  a stronger wind); a gust of the fan through one (`Flammables.onGust`) no longer blows it out but
+  throws six embers down the gust. They fly as the fluid tool's glow dots (`emberStep`, the same
+  drag and fall) and light the dry bramble they come down on. A gust still blows out lamps, flares
+  and the yard's fire.
+- **Creatures flee fire.** Every fire calls `wildlife.scare(p, r, life)` (6 m, +2 per heat): a
+  fright that lasts a moment, read by `disturbanceFor` like a sprint, so the creatures play their
+  surprise and run.
+- **Foes and fire.** A foe touching a fire takes it (its target's `onHit('fire')`, at most once a
+  second). Lit (by a fire, or by an ember glob: the chemistry wraps each foe target's `onHit` to
+  note it), it sets alight the dry brambles it walks into for 4 s.
+- **Stilling and bloom.** Flammables accept `'stun'` (a stilling glob puts a fire out; a bramble
+  keeps what is left of it, charred) and `'bloom'` (a burnt bramble grows back at once, also from a
+  bloom glob landing beside it: `'tool:bloom'`). A burning bramble stays a target while it burns.
+- The desert camps' three brambles stand in a short hedge 3.5 m apart at the camp's edge, so one
+  alight lights the next, and a camp fire flared lights the hedge when the wind blows that way.
+- The temple's bramble only takes part through its own `hit('fire')` (the logic's `light`), so the
+  fire never solves or blocks a temple in a way the player's ember could not.
+`tests/chemistry.test.js`: the pure rules, a row of brambles burning downwind and not upwind, the
+cap in a thicket, a lamp catching, stilling and bloom, a creature frightened, a foe target given
+the fire, a lit foe lighting a bramble, the gust's and the wind's embers, a temple bramble.
