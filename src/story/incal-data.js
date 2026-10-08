@@ -437,14 +437,25 @@ export const PEOPLE = {
           do: [{ take: 'ration' }, { advance: 'incal.ration' }, { set: { 'incal.dov.fed': true } }],
           next: 'ration2',
         },
+        // a choice the stone remembers (src/story/ending.js choicesMade): keep the token, or press it back
+        // into his hand so he goes home himself (`incal.token`: 'kept' | 'returned')
         ration2: {
           say: ["~neutral~ (Dov eats at his post. For a moment he closes his eyes.)",
             "~sad~ Take this *cable-lift token*. Bottom to top and back. I’ve kept it eleven years, meaning to visit. Someone should finally use it."],
-          do: { keepsake: { id: 'incal.token', level: 'incal', name: 'Dov’s lift token', kind: 'thing', text: 'A brass lift token, bottom to top, worn smooth in a palace guard’s pocket. Kept eleven years for the trip home; never spent.' } },
-          choices: [{ text: '~happy~ Thank you, Dov.', end: true }],
+          choices: [
+            { text: '~happy~ Thank you, Dov. I’ll keep it safe.', do: [{ set: { 'incal.token': 'kept' } }, { keepsake: { id: 'incal.token', level: 'incal', name: 'Dov’s lift token', kind: 'thing', text: 'A brass lift token, bottom to top, worn smooth in a palace guard’s pocket. Kept eleven years for the trip home; never spent.' } }], end: true },
+            { text: '~solemn~ Keep it. Use it. Go down and see Pip.', do: { set: { 'incal.token': 'returned' } }, goto: 'tokenBack' },
+          ],
+        },
+        tokenBack: {
+          say: ["~surprised~ (He turns the token over in his fingers, as if it has changed weight.)",
+            "~sad~ Eleven years I carried it so I wouldn’t have to decide. And you hand the deciding straight back.",
+            "~solemn~ My rest day is the fourth. Bottom to top and back. I’ll bring Pip something he didn’t grow himself."],
+          choices: [{ text: '~happy~ Tell him the sky-person says hello.', end: true }],
         },
         lit: {
-          say: ["~playful~ I looked up on duty. In public. There will be paperwork. I might frame it.", '~happy~ Worth it.'],
+          say: ["~playful~ I looked up on duty. In public. There will be paperwork. I might frame it.", '~happy~ Worth it.',
+            { text: '~whisper~ (He pats his pocket.) Rest day’s the fourth. I’ve told the lift.', if: { flag: 'incal.token', is: 'returned' } }],
           choices: [{ text: '~curious~ Was it?', goto: 'worth' }, { text: '~neutral~ Goodbye, Dov.', end: true }],
         },
         worth: { say: ["~solemn~ For a moment, everyone saw the same light. Top and bottom. Yes. Worth it."], choices: [{ text: '~happy~ Goodbye, Dov.', end: true }] },

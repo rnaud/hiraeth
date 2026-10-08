@@ -628,7 +628,7 @@ export async function templeTo(W, until, issue, { nextSpot }) {
 
 const { pendingCall, completedWorlds, callLines, callContext, applyCall } = await import('../src/story/calls.js');
 const { consoleAction, mapEntries } = await import('../src/ship/starmap.js');
-const { homeOpen, HOME_ID } = await import('../src/story/ending.js');
+const { homeOpen, HOME_ID, finaleOpen } = await import('../src/story/ending.js');
 const { TITLES } = await import('../src/levels/names.js');
 export { homeOpen, HOME_ID, pendingCall, completedWorlds };
 
@@ -650,7 +650,7 @@ export function shipTurn({ from, to, journal, issue }) {
     heard.push(n);
   }
   if (consoleAction({ at: 'table', powered: !!flag('ship.powered') }) !== 'map') issue('ship', `the holo table is locked (ship.powered ${flag('ship.powered')})`);
-  const map = mapEntries({ order: ORDER, levels: LEVELS, flag, journal: { storyDone: journal.storyDone, seen: (id) => journal.seen.has(id) }, current: from, home: () => homeOpen({ flag, completed: completed() }) });
+  const map = mapEntries({ order: ORDER, levels: LEVELS, flag, journal: { storyDone: journal.storyDone, seen: (id) => journal.seen.has(id) }, current: from, home: () => homeOpen({ flag, completed: completed() }), finale: () => finaleOpen({ flag, completed: completed() }) });
   const e = map.find((x) => x.id === to);
   if (!e?.known) issue('route', `the map does not chart ${to} after ${from} (charted: ${map.filter((x) => x.known).map((x) => x.id).join(', ')})`);
   game.emit('travel', { to }); game.set('ship.level', to); game.set('ship.launched', true);

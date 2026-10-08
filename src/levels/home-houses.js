@@ -87,7 +87,7 @@ function doorLeaf(parent, { w, h, at, hingeSide = 1, color = '#2b211f', swing = 
  * The parents' house: the dome, its doorway, the dark rooms inside.
  * @returns { door, indoor(p), spots: { chair, scarf, photo, recorder, window, inside }, lights }
  */
-export function buildParentsHouse(scene, { centre, doorZ, mat }) {
+export function buildParentsHouse(scene, { centre, doorZ, mat, lit = false }) {
   const g = new THREE.Group();
   g.name = 'the round house';
   g.position.copy(centre);
@@ -205,7 +205,8 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
   r(new THREE.CylinderGeometry(0.45, 0.45, 0.05, 16), wood, lampAt.x, 0.82, lampAt.z);
   r(new THREE.CylinderGeometry(0.07, 0.16, 0.82, 8), wood, lampAt.x, 0.41, lampAt.z);
   r(new THREE.CylinderGeometry(0.1, 0.13, 0.12, 12), mat('#c9a35a', { metal: 'brass' }), lampAt.x, 0.91, lampAt.z).userData.noCollide = true;
-  r(new THREE.SphereGeometry(0.15, 14, 10).scale(1, 1.3, 1), mat('#5a5f6e', { metal: 'chrome' }), lampAt.x, 1.13, lampAt.z).userData.noCollide = true;
+  // (lit again after the true ending: Ilen lives here now, src/story/ending.js)
+  r(new THREE.SphereGeometry(0.15, 14, 10).scale(1, 1.3, 1), lit ? mat('#ffd27a', { glow: 1, flat: true }) : mat('#5a5f6e', { metal: 'chrome' }), lampAt.x, 1.13, lampAt.z).userData.noCollide = true;
   // the dresser at the back: plates and jars, dust on everything
   {
     const at = V(-5.6, 0, 3.4), ry = Math.atan2(-at.x, -at.z);
@@ -238,7 +239,7 @@ export function buildParentsHouse(scene, { centre, doorZ, mat }) {
   dustUpdate(0);
   // light: only the dusk through the round window and the doorway
   const L = (x, y, z, w) => { const p = g.localToWorld(V(x, y, z)); return new THREE.Vector4(p.x, p.y, p.z, w); };
-  const lights = [L(dir.x * 6.5, FLOOR + 2.6, dir.z * 6.5, 7), L(0, FLOOR + 1.8, front + 2.5, 5)];
+  const lights = [L(dir.x * 6.5, FLOOR + 2.6, dir.z * 6.5, 7), L(0, FLOOR + 1.8, front + 2.5, 5), ...(lit ? [L(lampAt.x, FLOOR + 1.3, lampAt.z, 6)] : [])];
   g.updateMatrixWorld(true);
 
   const W = (v) => g.localToWorld(v.clone());

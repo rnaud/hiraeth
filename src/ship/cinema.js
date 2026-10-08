@@ -260,7 +260,7 @@ export class Cinema {
     if (!this.dom) return;
     const line = this.subs.line;
     if (!line) { this.sub.classList.remove('show', 'in'); this._seen('sub', false); this.layout(); return; }
-    const who = { father: 'FATHER', mother: 'MOTHER', ship: 'SHIP', lou: 'LOU' }[line.who] ?? '';
+    const who = { father: 'FATHER', mother: 'MOTHER', ship: 'SHIP', lou: 'LOU', ilen: 'ILEN' }[line.who] ?? '';
     this.subText.innerHTML = `${who ? `<b class="${line.who}">${who}</b>` : ''}${line.text}`;
     // a new line comes in over the old one's place (one box, never two)
     this.sub.classList.remove('in');

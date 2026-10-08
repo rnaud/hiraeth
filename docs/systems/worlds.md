@@ -1165,3 +1165,20 @@ after references/The Overnight Train/; its kit `overnight-train-kit.js` shared w
   stations are all the same one; there is no stepping off at a station (the platform could be a moving collider:
   physics.addMover, with an "all aboard" fade back before it leaves); the closed tail carriages can't be entered;
   the wind on the roofs is the game's own (its direction isn't the train's); no wheels but the lead's turn.
+
+## The Lantern (`lantern`, the final chapter, October 2026)
+
+The last place (`src/levels/lantern.js`; its story `src/story/lantern.js`, docs/systems/story.md "Two
+homecomings"). Charted past the Signal Market after the first homecoming, once the market has been heard.
+One small island in a still, shallow sea of light at dusk, a big ringed planet low over it:
+
+- a sand bar from the landing flat (the ship at (0, 138), hatch north) up to the island, dipping under the
+  water twice, flat stepping stones over the low places;
+- on the crown the makers' lantern: a slim white tower, the glyph near its top on all four sides, a
+  gallery, a glass crown that breathes (its own mesh: `level.lantern.crown`, `halo`);
+- Ilen's house west of it: the top half of her round ship, the family stripe, a round window, a door; three
+  raised beds of yellow flowers and a bench facing home; on the north-east point two small stones, Odile and
+  Talo, with their saucer's little lamp between them.
+
+Built with the Lab's room kit (merged per material), no foes (`PEACEFUL`), no reactions, home's theme for
+music. `tests/finale.test.js` checks the bar stays wadeable and the island's places stand clear of the water.

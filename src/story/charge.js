@@ -11,7 +11,9 @@
 //     failed: the titles of quests that went wrong (flags failed.<id>, src/story/quests.js); the
 //     card keeps them too, quietly, under what you carry: it isn't a mark against you, it's
 //     what happened
-//     stage: null (not given yet) · 'out' (find it) · 'home' (home is on the map) · 'done'
+//     stage: null (not given yet) · 'out' (find it) · 'home' (home is on the map) · 'light' (the first
+//     homecoming is over: follow the singing light; `traced`: its trace is on the map) · 'ilen' (she is
+//     coming home with you) · 'done' (the true ending)
 //     waiting: six worlds done, the last recording not heard yet (it waits on the ship's voicemail)
 //   chargeHud(state)          the HUD's line for it: '✦ …' (main.js shows it in its own colour)
 //   chargeJournalHtml(state)  the card pinned at the top of the sketchbook
@@ -21,7 +23,7 @@
 // Flags: charge.given (the father's words have been heard), charge.card (its title card shown).
 // Its mark is ✦, gold: a world's main quest is ◆, an errand ◇.
 
-import { ENDING_WORLDS, endingUnlocked, homeOpen } from './ending.js';
+import { ENDING_WORLDS, endingUnlocked, homeOpen, finaleOpen } from './ending.js';
 import { escapeHtml } from '../prompt-keys.js';
 
 export const CHARGE = {
@@ -39,8 +41,9 @@ export function chargeState({ flag, keepsakes = [], completed = 0, failed = [] }
   const worlds = Array.isArray(completed) ? completed.length : completed;
   const given = !!(flag(GIVEN) || flag('prologue.done'));
   // (home is on the map by the same rule the map uses: six worlds and the last recording heard, src/story/ending.js)
-  const stage = !given ? null : flag('ending.done') ? 'done' : homeOpen({ flag, completed: worlds }) ? 'home' : 'out';
-  return { stage, worlds, of: ENDING_WORLDS, waiting: stage === 'out' && endingUnlocked(worlds), kept: keepsakes.length, names: keepsakes.map((k) => k.name), lost: [...failed] };
+  const stage = !given ? null : flag('ending.final') ? 'done' : flag('ending.done') ? (flag('finale.met') ? 'ilen' : 'light')
+    : homeOpen({ flag, completed: worlds }) ? 'home' : 'out';
+  return { stage, worlds, of: ENDING_WORLDS, traced: finaleOpen({ flag, completed }), waiting: stage === 'out' && endingUnlocked(worlds), kept: keepsakes.length, names: keepsakes.map((k) => k.name), lost: [...failed] };
 }
 
 /** What to do about it now, in a few words. */
@@ -48,6 +51,8 @@ export function chargeStep(st) {
   if (st.stage === 'out' && st.waiting) return 'A new message is waiting on the ship’s voicemail';
   if (st.stage === 'out') return st.kept ? 'Keep looking, out in the worlds' : 'Find it, out in the worlds';
   if (st.stage === 'home') return 'Home is on the map: take it home';
+  if (st.stage === 'light') return st.traced ? 'The light’s trace is on the map, past the Signal Market' : 'The singing light went out along the route: follow it';
+  if (st.stage === 'ilen') return 'Ilen is aboard: take her home';
   if (st.stage === 'done') return 'You brought it home on your own two feet.';
   return '';
 }
@@ -57,6 +62,8 @@ export function chargeHud(st, { kept = null } = {}) {
   if (!st?.stage || st.stage === 'done') return null;
   if (kept) return `${CHARGE.mark} Something of value: ${kept}`;   // (one part of the line: its gold tag holds it all)
   if (st.stage === 'home') return `${CHARGE.mark} Home is on the map: take it home`;
+  if (st.stage === 'light') return `${CHARGE.mark} ${st.traced ? 'Follow the light’s trace, past the Signal Market' : 'Follow the singing light, out along the route'}`;
+  if (st.stage === 'ilen') return `${CHARGE.mark} Take Ilen home`;
   return `${CHARGE.mark} ${CHARGE.words.replace(/\.$/, '')}`;
 }
 

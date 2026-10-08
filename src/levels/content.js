@@ -22,6 +22,7 @@ import { SALT_CONTENT } from './salt-harbour.js';
 import { ANTENNAS_CONTENT } from './antennas.js';
 import { ECLIPSE_CONTENT } from './eclipse.js';
 import { HOME_CONTENT } from './home.js';
+import { LANTERN_CONTENT } from './lantern.js';
 import { GLASS_CONTENT } from './glass-dunes.js';
 import { RING_CONTENT } from './fallen-ring.js';
 import { MOONFOUNDRY_CONTENT } from './moon-foundry.js';
@@ -45,6 +46,7 @@ export const CONTENT = {
   saltharbour: SALT_CONTENT,
   antennas: ANTENNAS_CONTENT,
   home: HOME_CONTENT,   // src/levels/home.js: the parents at the door
+  lantern: LANTERN_CONTENT,   // src/levels/lantern.js: the last place; Ilen is src/story/lantern.js
   glassdunes: GLASS_CONTENT,   // src/levels/glass-dunes.js: a detour, no quest
   moonfoundry: MOONFOUNDRY_CONTENT,   // src/levels/moon-foundry.js: a detour, no quest
   underside: UNDERSIDE_CONTENT,   // src/levels/underside.js: off the route (names.js SIDE), no quest

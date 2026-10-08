@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Dog } from '../dog.js';
 import { spoken } from './tone.js';
-import { HOME_SPOTS, unlaidTokens, laidTokens, layTokens, tokensNow, tokenModel } from '../levels/home.js';
+import { HOME_SPOTS, unlaidTokens, stoneTokens, layTokens, tokensNow, tokenModel } from '../levels/home.js';
+import { ILEN_HOME } from './lantern-data.js';
 import { FLOWERS } from '../levels/home-garden.js';
 import { tokenLine, ILEN_AT_STONE, ilenAtStoneDue } from './ending.js';
 import { PEOPLE, THINGS, HOMAGE, PETTED } from './home-data.js';
@@ -13,6 +14,9 @@ import { PEOPLE, THINGS, HOMAGE, PETTED } from './home-data.js';
 //              runs to meet you and asks what you brought (once a visit), then
 //              goes about her day: the garden, the swing, the stone, her door
 //   Tove       on the garden bench, shelling beans
+//   Ilen       your sister, once she has come home with you (`finale.met`, src/story/lantern-data.js):
+//              hidden in the ship until the true ending's walk (src/ship/homecoming.js shows her);
+//              after it she lives in the round house, its lamp lit, and walks the yard
 //   Moustache  the dog (src/dog.js): follows you everywhere, barks at the bird
 //              and the drone; E pets him
 //   the stone  E pays your respects (Homage): you kneel; you lay the flower you
@@ -153,7 +157,13 @@ export function setupHome(ctx) {
   const tove = spawn(PEOPLE.tove, { route: [onGround(garden.spots.bench)], seat: 0.01, heading: garden.spots.benchHeading });
   tove.heading = garden.spots.benchHeading;
   const dog = new Dog(scene, { physics, at: onGround(V(louHome.x + 1.2, 0, louHome.z - 0.6)), heading: Math.PI, onBark: () => sound.bark?.() });
-  level.family = { lou, tove, dog };
+  // Ilen, home with you: hidden aboard until the last homecoming's walk, then at the round house's door
+  let ilen = null;
+  if (game.flag('finale.met')) {
+    ilen = spawn(ILEN_HOME, { route: [onGround(V(2.6, 0, 22.4)), onGround(V(-3.4, 0, 19.6)), onGround(V(4.4, 0, 18.2))], speed: 0.8 });
+    if (!game.flag('ending.final')) ilen.object.visible = false;   // (aboard: the last homecoming brings her down the ramp)
+  }
+  level.family = { lou, tove, dog, ilen };
 
   // ---------------------------------------------------------------- the greeting: once a visit, she runs to you
   const st = { greeted: false, homage: null, moment: null, held: null, heldMesh: null, petT: 0, quietIdx: game.flag('home.visits') ?? 0 };
@@ -253,12 +263,12 @@ export function setupHome(ctx) {
       t += 3.2;
     } else if (fresh.length) {
       // the slab makes room (everything at its place among all of them), then each new one goes down
-      const before = laidTokens(game), ids = new Set([...before, ...fresh].map((x) => x.id));
-      const after = tokensNow(game).filter((x) => ids.has(x.id));
+      const before = stoneTokens(game), ids = new Set([...before, ...fresh].map((x) => x.id));
+      const after = [...tokensNow(game), ...before.filter((x) => x.kind === 'word' && x.level === 'lantern')].filter((x) => ids.has(x.id));
       beats.push({ t, line: spoken('scene', HOMAGE.tokens), secs: 2.6, run: () => {
         tomb.clear();
         for (const x of before) tomb.add(tokenModel(x), after.indexOf(x), after.length);
-        if (game.flag('ending.done')) tomb.addReel();
+        if (game.flag('ending.final')) tomb.addReel();
       } });
       t += 2.4;
       for (const tok of fresh) {
@@ -327,7 +337,8 @@ export function setupHome(ctx) {
       if (d < 2.4) greet();
     }
     if (ending()) st.greeted = true;   // (the ending is her greeting)
-    lou.hush = tove.hush = ending() || !!st.moment;   // (no balloons over a scene)
+    lou.hush = tove.hush = ending() || !!st.moment;
+    if (ilen) { ilen.hush = lou.hush; if (!ilen.object.visible && !busy) ilen.object.visible = true; }   // (no balloons over a scene)
     // at the stone with you, during a moment there: she stands beside you
     if (st.louKneel) lou.follow = () => ({ pos: stand.clone().add(V(-0.9, 0, 0.5)), speed: 1.4, near: 0.4, face: Math.atan2(HOME_SPOTS.tomb.x - stand.x, HOME_SPOTS.tomb.z - stand.z) });
     else if (st.greeted && lou.follow && !level.family.directed) lou.follow = null;
@@ -351,7 +362,7 @@ export function setupHome(ctx) {
   if (typeof window !== 'undefined') window.addEventListener('keydown', (e) => { if (st.moment && e.code === 'Escape' && !e.repeat) st.moment.hurry(); });
 
   return {
-    people: { lou, tove }, dog, update, state: st, homage, windowSeat, pickFlower,
+    people: { lou, tove, ilen }, dog, update, state: st, homage, windowSeat, pickFlower,
     /** A scene is playing (the stone, the window seat): the player's input stays out of it. */
     busy: () => !!st.moment,
     /** Esc during a moment hurries it on. */

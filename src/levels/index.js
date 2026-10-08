@@ -16,6 +16,7 @@ import { createBuried, buildBuried } from './buried.js';
 import { createSpheres, buildSpheres } from './spheres.js';
 import { createPerdide2, buildPerdide2 } from './perdide2.js';
 import { createHome, buildHome } from './home.js';
+import { createLantern, buildLantern } from './lantern.js';
 import { createReferences, buildReferences } from './references.js';
 import { createMangrove, buildMangrove } from './mangrove.js';
 import { createGlassDunes, buildGlassDunes } from './glass-dunes.js';
@@ -230,6 +231,14 @@ export const LEVELS = [
     blurb: 'A small round house on a small round hill, and two moons over it. Nobody lives in the round house now; there is a stone in its yard. Across the yard, a smaller house with its lamp lit.',   // (as on the ship's map: src/story/ending.js homeEntry)
     moves: 'walk · the bird, if she promised',
     lock: { text: 'Come home when you are ready: after any six worlds, a message on the ship’s voicemail asks you home, and the ship’s map shows the way.', moves: 'the way home' },
+  },
+  {
+    // the last place: on the galactic map after the first homecoming, once the Signal Market has been heard (src/story/ending.js finaleOpen)
+    id: 'lantern', create: createLantern, build: buildLantern, hidden: true,
+    title: TITLES.lantern, source: 'where the singing light comes from',
+    blurb: 'Past the Signal Market, off every chart: one small island in a still sea of light, and a white tower with a light in its crown that sings.',
+    moves: 'walk · climb',
+    lock: { text: 'The light’s trace: after the first homecoming, once you have heard the Signal Market’s broadcast, the ship’s map charts where the singing light comes from.', moves: 'the light’s trace' },
   },
 ];
 

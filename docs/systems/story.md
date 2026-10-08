@@ -79,12 +79,58 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
   seamless edge crossings were removed. The edge of a world is a wall now
   (`player.opts.limit`).
 
+## Two homecomings, the Lantern and the true ending (October 2026)
+
+The ending is in two parts, so that the credits come after the story's peak (docs/game-audit.md,
+themes 5 and 6). One rule set in `src/story/ending.js` (pure; `tests/finale.test.js`):
+
+- **The first homecoming** (`homecomingKind` → `'first'`: `ending.done` unset). Six worlds still bring
+  him home (`ENDING_WORLDS`, `homeOpen`). `src/ship/homecoming.js` plays as before up to the stone:
+  every token down, the choices the stone remembers (`choiceLines`), Ilen's space if he knows of her,
+  Lou's drawing. Then, as he takes out the reel, the singing light comes over the hill (`lightOver`:
+  lines with `light: 'come' | 'dip' | 'go'` fly a glowing point in from the valley, round the round
+  house and away out along the route; the camera follows it). He keeps the reel; Lou makes him promise
+  on the stone ("Once more. Then I'm staying."). `FIRST_CLOSING`, no end card, no credits; `ending.done`,
+  `ending.first: 'new'`. The reel's oldest recording is not heard.
+- **Pointing back out.** After it the voicemail holds the ship's log (`TRACE_CALL`, `calls.trace`,
+  `src/story/calls.js`): the light passed over home, its trace runs back out along the route; he asks the
+  reel for "singing" and finds the father at the window. Every recording from the reel's oldest side ends
+  with where to go (`pointOut`). The relay (`src/story/relay.js`) has a third stage, `'trace'`: the map's
+  Lantern pulses, the console's standby says LIGHT TRACE. The father's charge has stages `'light'` and
+  `'ilen'` (`src/story/charge.js`) with their own HUD lines.
+- **The Lantern** (`FINALE_ID = 'lantern'`; `finaleOpen`: after the first homecoming, once the market's
+  broadcast has been heard, in either order). On the galactic map past the market, a dotted line out
+  to it (`finaleEntry`, `src/ship/starmap.js`). The place: `src/levels/lantern.js` (docs/systems/worlds.md
+  has no section: it is one small island; its header says what is where). The story: `src/story/lantern.js`
+  and `lantern-data.js`. A filmed moment on first stepping onto the island (the light comes down into
+  the crown, `lantern.moment.arrive`); Ilen at the lantern's step; one talk that answers the light (what it
+  is, why it struck, the makers' sign), hears what he chose on the way, and asks him to tell Hollin. She
+  comes home with him (`finale.met`, the quest "We Heard You" done, `world.lantern.done`, the keepsake
+  `lantern.person`, which never goes on the slab: `NOT_SET_DOWN`). She walks down the bar and goes aboard.
+- **The true ending** (`homecomingKind` → `'final'`: `finale.met`, `ending.final` unset). The cargo check
+  lists Ilen and what is new; at the stone (`tombLines(fresh, { final: true })`) she speaks to them, sets
+  down the message that reached her (`ILEN_TOKEN`), answers his choices (`ilenOnChoices`), Lou asks to
+  draw her; then the reel at last and `FINAL_RECORDING`, `CLOSING`, the end card and the credits (the
+  Lantern and Ilen in them). `ending.final`; afterwards the slab shows the reel and her message
+  (`stoneTokens`, `src/levels/home.js`), the round window's lamp is lit, and Ilen lives at home
+  (`ILEN_HOME`, `src/story/home.js`). `?level=home&ending=1` replays the first, `&ending=2` the last.
+- **The choices the stone remembers** (`choicesMade`): Dov's lift token in the City-Shaft (keep it, or
+  press it back into his hand: `incal.token` 'kept' | 'returned', `src/story/incal-data.js`); Hollin's
+  promise in Lorn II, which costs the coming back (`perdide2.promise`; kept by talking to him again after
+  finishing another world, `perdide2.promise.kept`; with Ilen's news he hears where Odile and Talo went,
+  `src/story/perdide2-data.js promiseDue`); Esk's hill in Viridel (the quest that fails). Each has a line of
+  his at the first homecoming, a reply of Ilen's at the Lantern, and a line of hers at the stone.
+- **Old saves** (`src/save-migrate.js` step 2): a save that ended under the old rules has had its first
+  homecoming (`ending.first: 'old'`); the reel the old ending left on the slab is his again until the true
+  ending; the ship's log waits on the voicemail; the Lantern opens once the market has been heard.
+
 ## The father’s charge
 
 "Bring back something of value", the father's last words on the prologue's
 recording, is the journey's own quest (`src/story/charge.js`). Its state is read
 off the save: given (`charge.given`, or any save past the prologue), out in the
-worlds, home on the map, brought home (`ending.done`). It has
+worlds, home on the map, then (after the first homecoming) follow the light, take Ilen home, and
+brought home (`ending.final`). It has
 its own mark (✦, gold; a world's main quest is ◆, an errand ◇):
 
 - **When home opens** (`homeOpen`, `src/story/ending.js`): one rule for the ship's

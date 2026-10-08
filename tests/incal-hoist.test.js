@@ -122,7 +122,7 @@ test('the hoist: the weight won’t turn while the pin is in, nor pushed along t
   assert.equal(quests.stage('incal.ration'), 'carry');
   // up to Dov: done, as before
   at(P.palace.dov.clone().add(V(2, 0, 0)));
-  const r = talk(PEOPLE.dov, []);
+  const r = talk(PEOPLE.dov, ['Thank you, Dov. I’ll keep it safe']);   // (or give it back: a choice the stone remembers, tests/finale.test.js)
   while (!r.ended && r.advance());
   assert.equal(quests.isDone('incal.ration'), true);
   assert.ok(game.keepsakes().some((k) => k.id === 'incal.token'));

@@ -12,7 +12,7 @@ import { CONTENT, ORDER } from '../src/levels/content.js';
 import { HOME_SPOTS, tombSlots, SLAB, tokenModel } from '../src/levels/home.js';
 import {
   ENDING_WORLDS, HOME_ID, NOTHING, ALL, endingUnlocked, homeOpen, homeEntry, tokenList, tokenLine, leaveTokens, chosenKeepsake,
-  tombLines, FINAL_RECORDING, TOKEN_ITEMS, credits, creditsHtml, peopleOf,
+  tombLines, FINAL_RECORDING, TOKEN_ITEMS, credits, creditsHtml, peopleOf, FIRST_CLOSING, CLOSING, ILEN_TOKEN, choicesMade,
 } from '../src/story/ending.js';
 import { callLines, callContext, pendingCall, applyCall, completedWorlds, ILEN_CALL } from '../src/story/calls.js';
 import { birdAnswers, OPEN_SKY } from '../src/bird.js';
@@ -142,7 +142,7 @@ test('everything goes on the stone: the keepsakes, then the makers’ small gift
   assert.equal(chosenKeepsake(game), NOTHING);
 });
 
-test('at the stone: a line for every token as it is set down, the reel last, its oldest recording, the closing line', () => {
+test('at the stone: a line for every token as it is set down; the first time the light comes over and he keeps the reel; the last time the reel, its oldest recording, the closing line', () => {
   const list = tokenList([GEAR_TOOTH, { id: 'incal.word', level: 'incal', name: 'Look up once a day', kind: 'word', text: '“Look up once a day.” Nima.' },
     { id: 's', name: 'Teo’s walking rhythm', kind: 'song' }, { id: 'p', name: 'Hollin’s lamps', kind: 'person' }, { id: 'k', name: 'What the giants left', kind: 'knowing' }], ['star', 'bell']);
   const lines = tombLines(list, { ilenTold: true });
@@ -152,12 +152,25 @@ test('at the stone: a line for every token as it is set down, the reel last, its
   assert.ok(set.some((l) => l.text.includes('rust gear tooth')), 'the thing is named');
   assert.ok(set.some((l) => l.text.includes('Look up once a day')), 'the words are said');
   assert.equal(new Set(set.map((l) => l.text.replace(/^\([^.]*\./, ''))).size, set.length, 'each kind says something of its own');
-  const reel = lines.findIndex((l) => l.reel);
-  assert.ok(reel > lines.indexOf(set.at(-1)), 'the reel goes down last');
-  assert.deepEqual(lines.slice(reel + 1, reel + 1 + FINAL_RECORDING.length), FINAL_RECORDING, 'then it plays the oldest recording');
+  // the first homecoming: no reel on the stone, no oldest recording; the light comes over the hill, he keeps the reel
+  assert.ok(!lines.some((l) => l.reel), 'he keeps the reel');
+  assert.ok(!lines.some((l) => FINAL_RECORDING.includes(l)), 'the oldest recording is held back');
+  assert.deepEqual(lines.filter((l) => l.light).map((l) => l.light), ['come', 'dip', 'go'], 'the light comes, dips over the house, climbs away');
+  assert.ok(lines.findIndex((l) => l.light) > lines.indexOf(set.at(-1)), 'after the tokens');
+  assert.ok(lines.findIndex((l) => l.keep) > lines.findIndex((l) => l.light === 'go'), 'then he keeps the reel');
+  assert.equal(lines.at(-1), FIRST_CLOSING, 'not home yet');
+  // the true ending: what is new, Ilen's message, the reel last and its oldest recording
+  const last = tombLines(list.slice(0, 2), { final: true, ilenTold: true });
+  assert.deepEqual(last.filter((l) => l.token).map((l) => l.token.id), [...list.slice(0, 2).map((t) => t.id), ILEN_TOKEN.id], 'the new tokens, then hers');
+  assert.ok(last.some((l) => l.who === 'ilen' && /I heard you/.test(l.text)), 'Ilen speaks to them');
+  const reel = last.findIndex((l) => l.reel);
+  assert.ok(reel > last.findIndex((l) => l.token === ILEN_TOKEN), 'the reel goes down last');
+  assert.deepEqual(last.slice(reel + 1, reel + 1 + FINAL_RECORDING.length), FINAL_RECORDING, 'then it plays the oldest recording');
   assert.ok(FINAL_RECORDING.some((l) => l.who === 'mother' && /proud of you already/.test(l.text)));
   assert.ok(FINAL_RECORDING.some((l) => l.who === 'father' && /don’t have to bring us anything/i.test(l.text)));
-  assert.ok(lines.at(-1).who === 'scene' && /Something of value/.test(lines.at(-1).text), 'a closing line');
+  assert.equal(last.at(-1), CLOSING, 'a closing line');
+  assert.ok(last.at(-1).who === 'scene' && /Something of value/.test(last.at(-1).text));
+  assert.ok(!last.some((l) => l.light), 'no light over the hill the last time');
   assert.ok(lines.some((l) => /Ilen/.test(l.text)), 'and a place for Ilen');
   assert.ok(!tombLines(list).some((l) => /Ilen/.test(l.text)), 'only once she is known');
   const empty = tombLines([]);
@@ -179,7 +192,7 @@ test('at the stone, Esk’s hill: one line if the tea terraces came down, in you
     assert.ok(/could not mend/.test(lines[i].text));
     assert.ok(i > lines.findIndex((l) => /Ilen/.test(l.text)), 'after the space for Ilen');
     assert.ok(i < lines.findIndex((l) => /what I have/.test(l.text)), 'before “It’s what I have”');
-    assert.ok(i < lines.findIndex((l) => l.reel), 'before the reel');
+    assert.ok(i < lines.findIndex((l) => l.light), 'before the light comes over');
     if (tokens.length) assert.ok(i > lines.findIndex((l) => l.token?.id === 'item.star'), 'after the tokens');
   }
 });
@@ -325,12 +338,56 @@ test('the homecoming plays: in orbit, the cargo, the landing, the stone and its 
   step(14);
   assert.ok(level.tomb.tokens.children.length >= 1, 'the tokens go down one by one');
   step(1.2, true);
-  assert.equal(level.tomb.tokens.children.length, dir.items.length + 1, 'skipping on: all of them are on the stone, and the reel');
-  step(0.2); step(1.2, true); step(0.2); step(1.2, true);
-  assert.ok(dir.done, 'skipped to the end');
+  assert.ok(dir.done, 'the first homecoming: skipping on ends it at the stone (no end card, no credits)');
+  assert.equal(level.tomb.tokens.children.length, dir.items.length, 'all of them are on the stone, and not the reel');
   assert.equal(game.flag('ending.done'), true);
+  assert.equal(game.flag('ending.first'), 'new');
+  assert.ok(!game.flag('ending.final'), 'the story goes on');
+  assert.ok(!dir.stages.some((x) => x.id === 'card' || x.id === 'credits'));
   assert.ok(!ship.spaceCopy && ship.parked.group.visible, 'parked on the ring, ready to fly');
   // coming back later: the stone keeps them
   const again = quiet(() => meta.create(new THREE.Scene()));
   assert.ok(again.tomb.tokens.children.length >= 2, 'the stone keeps its tokens');
+});
+
+test('the true ending: with Ilen, what is new goes down, her message, the reel, the end card, the credits', () => {
+  game.reset();
+  game.addKeepsake(GEAR_TOOTH);
+  game.set('ending.done', true);
+  game.set('home.stone', [GEAR_TOOTH.id]);
+  game.addKeepsake(BAZAAR_WORD);
+  game.set('finale.met', true);
+  game.set('incal.token', 'returned');
+  const meta = LEVELS.find((l) => l.id === HOME_ID);
+  const scene = new THREE.Scene();
+  const level = quiet(() => meta.create(scene));
+  const physics = new Physics(scene, level.ground);
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: HOME_ID, content: CONTENT.home, prologue: true }));
+  const player = new Player(physics, { spawn: level.spawn });
+  const rig = { yaw: 0, pitch: 0, target: new THREE.Vector3(), dist: 6 };
+  ship.attach({ player, rig, camera: new THREE.PerspectiveCamera(), sound: {}, levels: LEVELS, order: ORDER, titles, npcs: [] });
+  const ilen = { pos: new THREE.Vector3(), follow: null, object: { visible: false } };
+  level.family = { ilen };
+  const dir = new HomecomingDirector(ship);
+  assert.equal(dir.kind, 'final', 'Ilen aboard: the last homecoming');
+  assert.deepEqual(dir.items.map((t) => t.id), [BAZAAR_WORD.id], 'only what is new goes down');
+  assert.ok(dir.stages.some((x) => x.id === 'card') && dir.stages.some((x) => x.id === 'credits'));
+  ship.cinematic = dir;
+  dir.start();
+  const step = (secs, skip = false) => { for (let t = 0; t < secs && !dir.done; t += 1 / 30) { dir.update(1 / 30, skip); player.update(1 / 30, ship.input({}), rig.yaw); } };
+  step(8); dir.choose(); step(50);
+  while (dir.stage === 'walk' && !dir.done) step(1);
+  assert.equal(dir.stage, 'tomb');
+  assert.ok(ilen.object.visible && ilen.follow, 'Ilen with you at the stone');
+  assert.ok(dir.lines.some((l) => l.who === 'ilen' && /way home/.test(l.text)), 'she speaks to the choice he made');
+  assert.ok(level.tomb.tokens.children.length >= 1, 'what the first time set down is still there');
+  step(1.2, true);
+  assert.equal(level.tomb.tokens.children.length, 4, 'the old, the new, her message, and the reel');
+  assert.equal(dir.stage, 'card');
+  step(0.2); step(1.2, true); step(0.2); step(1.2, true);
+  assert.ok(dir.done);
+  assert.equal(game.flag('ending.final'), true);
+  assert.equal(choicesMade((k) => game.flag(k)).token, 'returned');
+  const again = quiet(() => meta.create(new THREE.Scene()));
+  assert.equal(again.tomb.tokens.children.length, 4, 'the stone keeps them, the reel and her message too');
 });

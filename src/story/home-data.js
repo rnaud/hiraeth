@@ -26,6 +26,9 @@ const band = (b) => (ctx) => keepsakeBand(count(ctx)) === b;
 const done = (w) => (ctx) => !!ctx.game.flag(`world.${w}.done`) || (ctx.game.keepsakes?.() ?? []).some((k) => k.level === w);
 const carrying = (ctx) => !!ctx.game.flag('home.flower.held');
 const ended = (ctx) => !!ctx.game.flag('ending.done');
+// the true ending (src/story/ending.js): the reel's oldest recording played at the stone, Ilen home
+const final = (ctx) => !!ctx.game.flag('ending.final');
+const between = (ctx) => ended(ctx) && !final(ctx);
 // the drawing Lou talks about: the furthest world along the route he has written from (the route's order stands in
 // for "newest": the save keeps no dates), the desert's if none
 const FURTHEST = [...ORDER].reverse();
@@ -114,8 +117,10 @@ export const PEOPLE = {
             { text: "~playful~ Moustache stole a sock. He’s pretending he’s always had it. Don’t believe him.", if: (ctx) => count(ctx) % 3 === 0 && !ended(ctx) },
             { text: "~curious~ When a whole world is rainy, where do they dry their socks?", if: (ctx) => count(ctx) % 3 === 1 && !ended(ctx) },
             { text: "~happy~ I’ll be a traveller too. One who comes home on Sundays. Every Sunday.", if: (ctx) => count(ctx) % 3 === 2 && !ended(ctx) },
-            { text: "~whisper~ Can we listen to the reel again? The bit where you’re little. You wave like me.", if: ended },
-            { text: "~curious~ Will you write when you go? I need things to draw.", if: ended },
+            { text: "~whisper~ Can we listen to the reel again? The bit where you’re little. You wave like me.", if: final },
+            { text: "~curious~ Will you write when you go? I need things to draw.", if: final },
+            { text: "~curious~ Did you find out what the singing star is yet? You promised on the stone. Once more, then you’re staying.", if: (ctx) => between(ctx) && !ctx.game.flag('finale.met') },
+            { text: "~surprised~ Is she really my aunt? She doesn’t look like anyone. Then she laughs, and she looks like Grandpa.", if: (ctx) => between(ctx) && !!ctx.game.flag('finale.met') },
           ],
           choices: [{ text: '~happy~ Show me your drawings.', goto: 'drawings' }, { text: '~playful~ What do you want to be when you’re big?', goto: 'big', once: true }],
         },
@@ -188,11 +193,13 @@ export const THINGS = {
     id: 'home.recorder', name: 'The recorder', title: 'under the mast', color: '#6e7d8c',
     talk: { nodes: { look: { say: ["~solemn~ (The house recorder has one empty spindle. This is where you took the reel.)",
       { text: "~whisper~ (Its recording light is dark. There will be no new messages.)", if: (ctx) => !ended(ctx) },
-      { text: "~whisper~ (The recorder is empty. The reel is outside on their stone.)", if: ended }] } } },
+      { text: "~whisper~ (The recorder is empty. The reel is still in your pocket.)", if: between },
+      { text: "~whisper~ (The recorder is empty. The reel is outside on their stone.)", if: final }] } } },
   },
   window: {
     id: 'home.window', name: 'The round window', title: 'the lamp in it, out', color: '#4a5a8a',
-    talk: { nodes: { look: { say: ["~solemn~ (Her lamp stands below the round window, wick black. From here, the landing ring is in full view.)",
+    talk: { nodes: { look: { say: [{ text: "~solemn~ (Her lamp stands below the round window, wick black. From here, the landing ring is in full view.)", if: (ctx) => !final(ctx) },
+      { text: "~happy~ (Her lamp is lit below the round window again. Ilen trimmed the wick. From here, the landing ring is in full view.)", if: final },
       { text: "~whisper~ (On the reel, your mother said he stood at this window one night and heard singing.)", if: (ctx) => !!ctx.game.flag('calls.beat.light.late') }] } } },
   },
   shelf: {

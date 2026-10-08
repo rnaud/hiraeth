@@ -10,8 +10,8 @@ import { SCRIPTS } from '../src/story/scripts.js';
 const { CONTENT, ERRANDS } = await import('../src/levels/content.js');
 const crowd = await import('../src/crowd.js');
 const npc = await import('../src/npc.js');
-const { callLines, PROLOGUE_CALL, CALL_COUNT, ILEN_CALL } = await import('../src/story/calls.js');
-const { tombLines, tokenList, TOKEN_ITEMS } = await import('../src/story/ending.js');
+const { callLines, PROLOGUE_CALL, CALL_COUNT, ILEN_CALL, TRACE_CALL, ILEN_AFTER_CALL } = await import('../src/story/calls.js');
+const { tombLines, tokenList, TOKEN_ITEMS, choiceLines, ilenOnChoices } = await import('../src/story/ending.js');
 
 const SRC = new URL('../src/', import.meta.url);
 const DATA = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('-data.js'));
@@ -117,14 +117,19 @@ test('every recording and every word at the stone has a tone', () => {
     {}, { 'clue.bazaar.home': true }, { 'calls.ilen.asked': true, 'calls.ilen.told': true }, { 'calls.ilen.told': true, 'calls.home': true },
     { 'desert.rumour.light': true, 'incal.rumour.light': true, 'arzach.rumour.light': true, 'arzach2.rumour.light': true, 'clue.edena.struck': true, 'clue.buried.mark': true, 'arzach2.bell.note': true, 'bird.promise': true, 'perdide2.promise': true },
     { 'ending.done': true }, { 'calls.home': true }, { 'edena.terraces.flooded': true },
+    { 'ending.done': true, 'world.bazaar.done': true }, { 'ending.done': true, 'finale.met': true, 'calls.ilen.told': true }, { 'ending.done': true, 'ending.final': true },
   ];
   const keepsakes = [null, ...['thing', 'song', 'word', 'person', 'knowing'].map((kind) => ({ id: `x.${kind}`, level: 'desert', name: `A ${kind}`, kind, text: '“A word.”' })), { id: 'bazaar.word', kind: 'word', name: 'You are not alone', text: '“You are not alone.”' }];
   const lines = [...PROLOGUE_CALL];
-  for (const flags of flagsets) for (const k of keepsakes) for (const n of [...Array.from({ length: CALL_COUNT }, (_, i) => i + 1), ILEN_CALL]) {
+  for (const flags of flagsets) for (const k of keepsakes) for (const n of [...Array.from({ length: CALL_COUNT }, (_, i) => i + 1), ILEN_CALL, ILEN_AFTER_CALL, TRACE_CALL]) {
     lines.push(...callLines(n, { flag: (f) => flags[f], keepsake: k, keepsakes: k ? [k, k] : [], completed: ['desert', 'incal'], lastWorld: 'desert', worldTitle: 'The Desert' }));
   }
   const tokens = tokenList([...['thing', 'song', 'word', 'person', 'knowing'].map((kind) => ({ id: `y.${kind}`, name: `A ${kind}`, kind, text: '“A word.”' })), { id: 'bazaar.word', kind: 'word', name: 'Words' }], TOKEN_ITEMS);
-  for (const ctx of [{}, { ilenTold: true }, { ilenTold: true, lou: true, broke: true }]) { lines.push(...tombLines(tokens, ctx)); lines.push(...tombLines([], ctx)); }
+  const choices = [{ token: 'returned', promise: 'kept', broke: true }, { token: 'kept', promise: 'made' }, { promise: 'declined' }];
+  for (const ctx of [{}, { ilenTold: true }, { ilenTold: true, lou: true, broke: true }, ...choices.flatMap((c) => [{ choices: c, lou: true }, { choices: c, final: true, lou: true }, { choices: c, final: true }])]) {
+    lines.push(...tombLines(tokens, ctx)); lines.push(...tombLines([], ctx));
+  }
+  for (const c of choices) lines.push(...choiceLines(c), ...ilenOnChoices(c));
   assert.ok(lines.length > 400);
   assert.deepEqual([...UNTAGGED], [], 'every scripted line came with its tone');
   for (const l of lines) {

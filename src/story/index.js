@@ -29,6 +29,7 @@ import { setupIncal } from './incal.js';
 import { setupBazaar } from './bazaar.js';
 import { setupCabs } from './cab.js';
 import { setupHome } from './home.js';
+import { setupLantern } from './lantern.js';
 import { setupTempleStory } from '../temples/index.js';
 
 // The story runtime for a world: quests, conversations, the objective
@@ -59,6 +60,7 @@ const WORLDS = {
   incal: setupIncal,
   bazaar: setupBazaar,
   home: setupHome,
+  lantern: setupLantern,
 };
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _eyes = new THREE.Vector3();

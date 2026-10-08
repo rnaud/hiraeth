@@ -20,6 +20,7 @@ export const TITLES = {
   saltharbour: 'The Salt Harbour',
   antennas: 'The Forest of Antennas',
   home: 'Home',
+  lantern: 'The Lantern',
   glassdunes: 'The Glass Dunes',
   underwater: 'The Underwater City',
   eclipse: 'The City During the Eclipse',

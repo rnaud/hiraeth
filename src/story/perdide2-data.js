@@ -27,7 +27,19 @@
 // Conversations: src/story/dialogue.js. Quests: src/story/quests.js.
 // Flags (game-state.js): perdide2.* (see src/story/perdide2.js).
 
+import { ORDER } from '../levels/names.js';
+
 const Q = 'perdide2.lamps';
+
+// The promise to Hollin is one of the choices the stone remembers (src/story/ending.js choicesMade): it
+// costs the coming back. Made (`perdide2.promise` 'yes'), it notes how many worlds were done
+// (`perdide2.promise.worlds`); coming back to him after finishing another (or after the first
+// homecoming) keeps it (`perdide2.promise.kept`), and if Ilen has told you where Odile and Talo went
+// (src/story/lantern-data.js), you can tell him.
+const worldsDone = (g) => ORDER.filter((w) => g.flag(`world.${w}.done`)).length;
+/** He promised, and has been somewhere else since: Hollin sees him come back. */
+export const promiseDue = (ctx) => ctx.game.flag('perdide2.promise') === 'yes' && !ctx.game.flag('perdide2.promise.kept')
+  && (worldsDone(ctx.game) > (ctx.game.flag('perdide2.promise.worlds') ?? 99) || !!ctx.game.flag('ending.done'));
 
 export const ITEMS = { latch: 'Pim’s dome latch', lamp: 'a moss lamp' };
 /** The keepsake the main quest's end gives (src/story/perdide2.js): its words follow what you told Hollin (flag perdide2.promise). */
@@ -77,6 +89,7 @@ export const KEEPERS = [
     id: 'hollin.perdide2', name: 'Hollin', title: 'keeper of the lamps', color: '#f2a07a', voice: 0.8,
     talk: {
       entry: [
+        { if: [{ quest: Q, done: true }, promiseDue], node: 'came' },
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { quest: Q, stage: 'tell' }, node: 'tell' },
         { if: { quest: Q, stage: 'answer' }, node: 'answer' },
@@ -130,13 +143,25 @@ export const KEEPERS = [
           next: 'promise',
         },
         promise: {
-          say: ["~solemn~ Would you visit again someday? You wouldn’t need an errand.", "~sad~ I’d like to see someone arrive by a path they already know."],
+          say: ["~solemn~ Would you visit again someday? You wouldn’t need an errand.", "~sad~ I’d like to see someone arrive by a path they already know. Just once. Think before you say it. I’ll watch the path if you do."],
           choices: [
-            { text: '~solemn~ I’ll come back.', do: [{ set: { 'perdide2.promise': 'yes', 'perdide2.hollin.told': true } }], goto: 'thanks' },
+            { text: '~solemn~ I’ll come back. I promise.', do: [{ set: { 'perdide2.promise': 'yes', 'perdide2.hollin.told': true } }, (ctx) => ctx.game.set('perdide2.promise.worlds', worldsDone(ctx.game))], goto: 'thanks' },
             { text: '~sad~ I can’t promise that.', do: [{ set: { 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true } }], goto: 'maybe' },
           ],
         },
-        thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
+        thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready.", "~solemn~ A promise to come back costs the coming back. You’ll find that out somewhere far from here."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
+        came: {
+          say: ["~surprised~ You came back. By a path you already knew. (He has to sit down on a root to look at you properly.)", "~happy~ Forty-one years I lit these for somebody to come back. It turns out it only takes the once."],
+          do: { set: { 'perdide2.promise.kept': true } },
+          choices: [
+            { text: '~solemn~ I found where Odile and Talo went.', goto: 'found', if: { any: [{ flag: 'finale.hollin' }, { flag: 'finale.met' }] } },
+            { text: '~happy~ I said I would.', end: true },
+          ],
+        },
+        found: {
+          say: ["~solemn~ (You tell him: the lantern on its island, the woman who kept it with them, the two stones on the point.)", "~sad~ They got there. And kept a light at the end of it. Of course they did.", "~happy~ Then my lamps were lit for travellers who arrived somewhere. That’s all I ever wanted for them."],
+          choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }],
+        },
         maybe: { say: ["~solemn~ You don’t have to promise. Come if you can. A welcome isn’t a debt."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
         after: {
           say: ["~happy~ The lights are on. Whenever you come, they’ll be on."],
