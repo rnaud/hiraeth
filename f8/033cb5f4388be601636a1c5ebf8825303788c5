@@ -1,0 +1,83 @@
+changelog.md
+  s_efb1d100d5a6fc::t_ad24722a687aa5 5-9
+docs/systems/controls.md
+  s_efb1d100d5a6fc::t_1be10b43f698ce 14
+docs/systems/foes.md
+  s_efb1d100d5a6fc::t_e0dd0f0247115a 203-226
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_c7f26b5b1e9cfc 30-31,72-98
+src/audio.js
+  s_efb1d100d5a6fc::t_f5cb6ed413a105 37-38
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_ddf7aa9b9769d0 120-132
+src/changelog.js
+  s_efb1d100d5a6fc::t_48307739f001ca 12-15
+src/controller.js
+  s_efb1d100d5a6fc::t_2cc11c3285176e 132,153-155
+src/costumes.js
+  s_efb1d100d5a6fc::t_a7526e4dbd175b 434-441
+src/dev-menu.js
+  s_efb1d100d5a6fc::t_47f02f23ac6053 35-36,50,127-128
+src/edge.js
+  s_efb1d100d5a6fc::t_8283af9cb5e71f 35
+src/fluid-blade.js
+  s_efb1d100d5a6fc::t_5333698d0b5f3e 39-44,49,177-190,203,225,271,382-385,387
+src/foes.js
+  s_efb1d100d5a6fc::t_fcece86c2f806e 95-98,118-128,180-181,198,202,224,271,469
+src/hitbox-overlay.js
+  s_efb1d100d5a6fc::t_0fd46f483d9382 1-178
+src/hitboxes.js
+  s_efb1d100d5a6fc::t_c7e063367011dd 1-184
+src/levels/arcade-board.js
+  s_efb1d100d5a6fc::t_5419121e8544c8 1-166
+src/levels/arcade.js
+  s_efb1d100d5a6fc::t_d33c6b6dde5fe7 1-221
+src/levels/arena-hitbox-board.js
+  s_efb1d100d5a6fc::t_c508b4b8681eca 1-44
+src/levels/arena.js
+  s_efb1d100d5a6fc::t_ac8cf5b191bde1 9,46-47
+src/levels/content.js
+  s_efb1d100d5a6fc::t_bbb13cfb0f90f8 145-155
+src/levels/index.js
+  s_efb1d100d5a6fc::t_bf04df77a6f6dd 11,212-218
+src/main.js
+  s_efb1d100d5a6fc::t_83ec5cae5170bf 80-81,94,600-601,645,692-697,1089,1243,1740-1741
+src/makehuman/people.js
+  s_efb1d100d5a6fc::t_55a922f64615b4 166
+src/minigames/kit/arcade.js
+  s_efb1d100d5a6fc::t_9b56619959ad49 1-65
+src/minigames/kit/marker.js
+  s_efb1d100d5a6fc::t_8b86d8c1c23139 39-66,71-73,76,83-86
+src/minigames/kit/minigames.css
+  s_efb1d100d5a6fc::t_30aec0627ce295 63
+src/minigames/kit/runner.js
+  s_efb1d100d5a6fc::t_0d478e531f0fe2 34-35,175-177,179-186,209,226,254,270,275-276,278,339,353
+src/reactive-world.js
+  s_efb1d100d5a6fc::t_7ae291d62f09f1 27
+src/ui.js
+  s_efb1d100d5a6fc::t_6d3f26c913f6fe 32
+tests/arcade.test.js
+  s_efb1d100d5a6fc::t_e8c4d3cd2f2994 1-100
+tests/hitboxes.test.js
+  s_efb1d100d5a6fc::t_168c3280b76cb3 1-212
+tests/makehuman.test.js
+  s_efb1d100d5a6fc::t_45a818aa4fdde0 88
+tests/scripts.test.js
+  s_efb1d100d5a6fc::t_3a9642193ab497 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f8033cb5f4388be601636a1c5ebf8825303788c5",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
