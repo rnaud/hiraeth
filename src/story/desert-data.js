@@ -56,6 +56,17 @@ export const SPARK_STAGES = ['rise', 'spark', 'bike', 'hearth', 'stone', 'light'
  */
 export const STAGE_MIGRATION = { pack: 'city', camps: 'city', ama: 'elder', speaker: 'elder', well: 'elder' };
 
+/**
+ * Saves from before the four talks in a row were folded into two (desert.quest.v < 4: the stages were
+ * elder, well, ama, speaker, down). Nour has you listen at the well with her now, and Ama's jar and the
+ * Speaker's old words are one stage, done in either order (desert.asked: src/story/desert.js). A save
+ * at one of the old middle stages goes to that stage; what it already did (the jar, the Speaker) is
+ * kept, so it advances at once on its flags. Runs after STAGE_MIGRATION (a v1 save goes to Nour first).
+ */
+export const STAGE_MERGE = { well: 'ask', ama: 'ask', speaker: 'ask' };
+/** The desert quest's save version (src/story/desert.js migrateDesertQuest). */
+export const DESERT_QUEST_V = 4;
+
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
   {
@@ -68,10 +79,10 @@ export const QUESTS = [
       // the makers' chest on its ledge up the great tree's trunk, beside the dry well (src/boxes/placements.js): the backpack
       { id: 'box', text: 'Something is humming on a ledge up the great tree’s trunk. Climb up to it', label: 'The ledge on the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
       // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction); the tank is empty
-      { id: 'elder', text: 'The chest opened, and the tank in it is empty. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
-      { id: 'well', text: 'Listen at the dry well, as Nour asked', label: 'The dry well', flag: 'desert.well.seen', at: 'well' },
-      { id: 'ama', text: 'Ask Ama at the camp fires for the drinking jar', label: 'Ama, keeper of the fires', flag: 'desert.jar.given', at: 'ama' },
-      { id: 'speaker', text: "Ask the Speaker at the front of the procession how to reach the underground water", label: 'The Speaker', flag: 'desert.speaker.heard', at: 'speaker' },
+      // (she has you listen at the dry well beside her, in the same talk: the well's own look is still there)
+      { id: 'elder', text: 'The chest opened, and its tank holds only a last swallow of old fluid. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
+      // outside the walls, in either order: the marker goes to whichever is left (src/story/desert.js sets desert.asked)
+      { id: 'ask', text: 'Outside the walls: get the drinking jar from Ama at the camp fires, and ask the Speaker at the procession’s head the way to the water underground', label: 'Ama’s jar, the Speaker’s words', flag: 'desert.asked', at: 'askWho' },
       { id: 'down', text: 'Find the way beneath the giant, outside the back gate', label: 'The giant’s skull', flag: 'desert.cave.seen', at: 'caveIn' },
       // the rib is far too heavy for arms and the tank is empty: the keepers' pole levers it off (src/story/desert.js);
       // a full tank (an older save) can still push it
@@ -95,7 +106,7 @@ export const QUESTS = [
     stages: [
       // (src/story/desert-errands.js: the drum is jammed against a rib's foot by a knuckle of spine; shove the knuckle off sideways)
       { id: 'find', text: 'Find Teo’s drum, blown away under the old ribcage south of the start', label: 'Teo’s drum', goto: 'drum', radius: 9, at: 'drum' },
-      { id: 'free', text: 'The drum is jammed against a rib by a fallen knuckle of bone. Shift the knuckle from the side (heave it, or push mode: X or the D-pad, then shoot) and pick the drum up', label: 'Teo’s drum', bring: 'drum', at: 'drum', to: 'teo' },
+      { id: 'free', text: 'The drum is jammed against a rib by a fallen knuckle of bone. Shift the knuckle from the side (heave it, or switch the gun to push and shoot) and pick the drum up', label: 'Teo’s drum', bring: 'drum', at: 'drum', to: 'teo' },
       { id: 'return', text: 'Bring the drum back to Teo at the fire', label: 'Teo, at the fire', bring: 'drum', to: 'teo' },
     ],
   },
@@ -401,10 +412,12 @@ export const PEOPLE = {
             "~neutral~ The fire-bearers travelled *south-east into the red rocks*, leaving marked stones along the route. *Ask Nour*. She knows what they brought back."],
           choices: [{ text: '~neutral~ A rib had fallen across the water.', goto: 'rib' }, { text: '~neutral~ Walk on, Speaker.', end: true }],
         },
-        carried: { say: ["~surprised~ The spark-stone. You found it. *Take it to the well*. We’ll keep the procession moving until the tree burns."], choices: [{ text: '~neutral~ Walk on, Speaker.', end: true }] },
+        carried: { say: ["~surprised~ The spark-stone. You found it. *Take it to the well*. We’ll keep the procession moving until the tree burns."], choices: [{ text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~neutral~ Walk on, Speaker.', end: true }] },
+        // the bell on the fire-bearers' way (THINGS.wayBell)
+        bell: { say: ["~surprised~ A bell, out on the fire-bearers’ way? Then the old accounts are true to the step. One of them came back with a quiet staff.", "~solemn~ Leave it there. It marks where somebody walked when walking was the only way."], do: { set: { 'desert.way.told': true } }, choices: [{ text: '~neutral~ Walk on, Speaker.', end: true }] },
         drinking: {
           say: ["~happy~ The tree burns! Listen to the drums. Nobody had to tell them when to begin.", "~solemn~ Under the giant, out to the red rocks, and back. The old route still works. I’ll need a new verse for your part."],
-          choices: [{ text: '~neutral~ A rib had fallen across the water.', goto: 'rib' }, { text: '~happy~ Make it a short verse.', end: true }],
+          choices: [{ text: '~neutral~ A rib had fallen across the water.', goto: 'rib' }, { text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~happy~ Make it a short verse.', end: true }],
         },
         rib: { say: ["~solemn~ A fallen rib blocked the water. Then we were waiting above a repair that needed doing. I will remember that."], choices: [{ text: '~neutral~ Walk on, Speaker.', end: true }] },
         after: { say: ["~solemn~ When they ask what you found here, tell them about the people as well as the fuel. We did, after all, lend you a jar.", { if: { flag: 'desert.ilo.told', is: 'monster' }, text: '~playful~ Ilo reports a monster under the city that sniffs visitors. I have added it to the verses. Provisionally.' }], choices: [{ text: '~solemn~ I’ll remember.', end: true }] },
@@ -526,9 +539,16 @@ export const PEOPLE = {
           say: ["~playful~ Three things first. I’ll say them slowly. For you, naturally.", "~neutral~ *Listen at the dry well beside the tree.* Hessa, my granddaughter, keeps it. Ask her about the sound below.", "~neutral~ Then get the drinking jar from Ama at the camp fires. After that, ask *the Speaker at the procession’s head* how to reach the water underground."],
           do: [{ set: { 'desert.elder.heard': true } }, { track: Q }],
           choices: [
+            { text: '~curious~ The well is right here. Listen with me.', goto: 'rim' },
             { text: '~neutral~ The well, Ama’s jar, the Speaker.', goto: 'go' },
             { text: '~scared~ And if the old words don’t help?', goto: 'down' },
           ],
+        },
+        // the well, heard with her (it was a stage of its own: the first of the three is done before you leave her)
+        rim: {
+          say: ["~whisper~ Lean over the rim. Hush now. Hear it? Far below, water is moving. It hasn’t reached the roots.", "~solemn~ The carved figures round the rim all *face the back gate*. The keepers carved them looking where the water went. One thing done, child. Two left."],
+          do: { set: { 'desert.well.seen': true } },
+          choices: [{ text: '~neutral~ Ama’s jar, then the Speaker.', goto: 'go' }, { text: '~scared~ And if the old words don’t help?', goto: 'down' }],
         },
         go: { say: ["~playful~ That’s it. Well, jar, Speaker. Go on. The city is watching. Walking confidently will satisfy most of them."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
         down: { say: ["~solemn~ Look for the mark between the giant’s eyes beyond the back gate. Its open mouth leads below. Even the oldest verse should eventually give directions."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
@@ -759,6 +779,49 @@ export const THINGS = {
       do: { set: { 'desert.wreck.read': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
+  },
+  // the fire-bearers' way to the Hearth (src/desert-hearth.js way, src/story/desert-way.js): three things to stop for on the ride
+  wayBowl: {
+    id: 'wayBowl', name: 'The keepers’ bowl', title: 'at the foot of a marked stone', color: '#c9974a', voice: 0.6,
+    talk: {
+      entry: [{ if: { flag: 'desert.way.bowl' }, node: 'lit' }, { node: 'dry' }],
+      nodes: {
+        dry: {
+          say: ["~neutral~ A bronze bowl on a low stone, green with age, at the foot of a marked stone. Dry, but stained in rings, as if it was filled often.",
+            "~curious~ The mark on the stone above it is dull. On the others along the way, it shines."],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
+        lit: {
+          say: ["~surprised~ The fluid lies in the bowl and glows. Above it, the mark on the stone has woken, as bright as the rest.",
+            "~solemn~ The fire-bearers filled it on the way out, to light their way home. It still remembers how."],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
+      },
+    },
+  },
+  wayCamp: {
+    id: 'wayCamp', name: 'The keepers’ camp', title: 'halfway to the Hearth', color: '#8a6f5a', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~neutral~ A ring of blackened stones, cold for a very long time. Two poles still lean together where a cloth was hung against the wind.",
+        "~solemn~ On a flat stone, scratched tallies: three, and then three again. Three days out, three days home.",
+        { if: { flag: 'desert.bike.found' }, text: "~playful~ Nour said the old keepers walked it. On Marrow’s bike it is the length of a song." }],
+      do: { set: { 'desert.way.camp': true } },
+      choices: [{ text: '~solemn~ (sit a moment)', end: true }],
+    } } },
+  },
+  wayBell: {
+    id: 'wayBell', name: 'A small bronze bell', title: 'half in the sand by the way', color: '#c9974a', voice: 0.6,
+    talk: {
+      nodes: {
+        look: {
+          say: ["~curious~ The glint by the way is a small bronze bell, half in the sand, its clapper still in it.",
+            "~neutral~ It is the kind the Speaker wears on his staff. Someone carried the fire this far, lost a bell, and walked on."],
+          do: { set: { 'desert.way.bell': true } },
+          choices: [{ text: '~happy~ (ring it)', goto: 'ring' }, { text: '~neutral~ (leave it where it lies)', end: true }],
+        },
+        ring: { say: ["~happy~ It rings, thin and clear, out over the red rocks. It sounds as if it has been waiting to."], choices: [{ text: '~neutral~ (set it back in the sand)', end: true }] },
+      },
+    },
   },
   // the Givers' Hearth (src/desert-hearth.js, src/story/desert.js): the weight that lifts the grille, the grille itself
   weight: {

@@ -12,6 +12,7 @@ import { guardianHint } from './temples/hints.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary } from './hud.js';
 import { screen } from './platform.js';
 import { closeHint, inputKind } from './prompt-keys.js';
+import { FirstSteps } from './first-steps.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
@@ -634,11 +635,14 @@ await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
+// the desert's first steps: the camera and the jump, each said once if you haven't used it yet (src/first-steps.js)
+const firstSteps = levelId === 'desert' && !minigameDef && !game.flag('item.backpack') ? new FirstSteps(game) : null;
+const firstStepsAt = new THREE.Vector3(NaN, 0, 0); let firstStepsT = 0;
 const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
 { // locked on, the look's sideways motion is the lock's: a quick flick (the right stick, the mouse, a drag) switches to the next foe that way (src/foes.js FLICK)
   const look = rig.look.bind(rig);
-  rig.look = (dx, dy) => { if (foes.lock && !busy() && foes.flickLook(dx)) dx = 0; look(dx, dy); };
+  rig.look = (dx, dy) => { if (dx || dy) firstSteps?.looked(); if (foes.lock && !busy() && foes.flickLook(dx)) dx = 0; look(dx, dy); };
 }
 if (level.foes?.waves && !minigameDef) import('./foe-spawner.js').then((m) => m.mountFoeSpawner({ foes, kind: query.get('foe') }));   // (the Arena's list of every foe kind: src/foe-spawner.js)
 await slice();
@@ -1007,7 +1011,17 @@ function updateHud() {
     prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
   const place = quiet || ship.playing || ship.inside ? '' : placeName.update(atmo?.name, now);
   const found = !quiet && now < scoutSaid.until ? scoutSaid.text : '';   // (what the scout found, a moment)
-  cue.set(found || text || place, found ? scoutSaid.kind : text ? '' : 'place');
+  let teach = '';
+  if (firstSteps) {
+    if (player._jumped) firstSteps.jumped();
+    const moved = Number.isFinite(firstStepsAt.x) ? Math.hypot(player.pos.x - firstStepsAt.x, player.pos.z - firstStepsAt.z) : 0;
+    firstStepsAt.copy(player.pos);
+    const open = !quiet && !ship.playing && !ship.inside && !player.ride && !tool.aiming && !found && !text && game.flag('prologue.done') && !game.flag('item.backpack');
+    const fdt = firstStepsT ? Math.min(0.1, (now - firstStepsT) / 1000) : 0; firstStepsT = now;
+    teach = firstSteps.update(fdt, { active: open, moved: moved < 5 ? moved : 0 });   // (a teleport is no walk)
+    if (quiet || ship.playing) teach = '';
+  }
+  cue.set(found || text || teach || place, found ? scoutSaid.kind : text || teach ? '' : 'place');
   // (the tank's gauge, when it shows without the crosshair, sits beside the traveller: left of the shoulders)
   placeToolGauge();
   audioCfg.mute = sound.muted;

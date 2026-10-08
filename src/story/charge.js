@@ -86,36 +86,37 @@ export function chargeJournalHtml(st) {
 // first chapter: thin airy capitals like the title screen's (src/title.js LOGO) on a band of paper, a pen line drawn
 // under them, the gold star of the charge. It asks nothing of you and leaves by itself.
 
-const CARD_MS = 6400;
+// It sits low in the lower third, under the new world and the traveller (the arrival is for looking at), well
+// clear of the toasts at the top and the subtitles at the bottom, and goes in five seconds.
+const CARD_MS = 5000;
 const CSS = `
-#charge-card { position: fixed; inset: 0; z-index: 8050; pointer-events: none; display: grid; place-items: center;
-  opacity: 0; transition: opacity .9s; }
+#charge-card { position: fixed; left: 0; right: 0; bottom: calc(6vh + env(safe-area-inset-bottom, 0px)); z-index: 8050; pointer-events: none;
+  display: flex; justify-content: center; opacity: 0; transition: opacity .8s; }
 #charge-card.on { opacity: 1; }
-#charge-card.off { opacity: 0; transition: opacity 1.2s; }
-#charge-card .sheet { box-sizing: border-box; width: 100%; text-align: center; color: #2b211f; padding: 22px 4vw 20px;
-  background: linear-gradient(90deg, rgba(255, 246, 220, 0), rgba(255, 246, 220, .93) 18%, rgba(255, 246, 220, .93) 82%, rgba(255, 246, 220, 0));
-  border-top: 1.5px solid rgba(43, 33, 31, .55); border-bottom: 1.5px solid rgba(43, 33, 31, .55);
-  transform: translateY(10px); transition: transform 1.6s cubic-bezier(.2,.7,.2,1); }
+#charge-card.off { opacity: 0; transition: opacity 1.1s; }
+#charge-card .sheet { box-sizing: border-box; width: min(640px, 88vw); text-align: center; color: #2b211f; padding: 10px 4vw 10px;
+  background: linear-gradient(90deg, rgba(255, 246, 220, 0), rgba(255, 246, 220, .9) 20%, rgba(255, 246, 220, .9) 80%, rgba(255, 246, 220, 0));
+  transform: translateY(8px); transition: transform 1.4s cubic-bezier(.2,.7,.2,1); }
 #charge-card.on .sheet { transform: none; }
-#charge-card .k { margin: 0 0 10px; font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .42em; text-transform: uppercase; opacity: 0; transition: opacity .8s .3s; }
-#charge-card .k i { font-style: normal; color: #f2c54b; -webkit-text-stroke: .7px #2b211f; font-size: 14px; margin-right: .3em; }
+#charge-card .k { margin: 0 0 6px; font: 600 10px/1 ui-monospace, Menlo, monospace; letter-spacing: .38em; text-transform: uppercase; opacity: 0; transition: opacity .7s .2s; }
+#charge-card .k i { font-style: normal; color: #f2c54b; -webkit-text-stroke: .7px #2b211f; font-size: 12px; margin-right: .3em; }
 #charge-card.on .k { opacity: .8; }
-#charge-card h1 { margin: 0; font: 300 clamp(26px, 5.6vw, 60px)/1.05 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', 'Roboto', sans-serif;
-  letter-spacing: .5em; margin-right: -.5em; color: #2b211f;
-  transition: letter-spacing 2.2s cubic-bezier(.2,.7,.2,1), margin 2.2s cubic-bezier(.2,.7,.2,1); }
-#charge-card.on h1 { letter-spacing: .24em; margin-right: -.24em; }
-#charge-card svg { display: block; width: min(460px, 70vw); height: 26px; margin: 6px auto 0; overflow: visible; }
-#charge-card svg path { fill: none; stroke: #2b211f; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 600; stroke-dashoffset: 600; transition: stroke-dashoffset 1.5s .7s ease-in-out; }
+#charge-card h1 { margin: 0; font: 300 clamp(17px, 2.6vw, 28px)/1.05 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', 'Roboto', sans-serif;
+  letter-spacing: .42em; margin-right: -.42em; color: #2b211f;
+  transition: letter-spacing 1.8s cubic-bezier(.2,.7,.2,1), margin 1.8s cubic-bezier(.2,.7,.2,1); }
+#charge-card.on h1 { letter-spacing: .22em; margin-right: -.22em; }
+#charge-card svg { display: block; width: min(300px, 60vw); height: 16px; margin: 3px auto 0; overflow: visible; }
+#charge-card svg path { fill: none; stroke: #2b211f; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 600; stroke-dashoffset: 600; transition: stroke-dashoffset 1.2s .5s ease-in-out; }
 #charge-card.on svg path { stroke-dashoffset: 0; }
-#charge-card svg circle { fill: #f2c54b; stroke: #2b211f; stroke-width: 1.4; transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .5s 2s cubic-bezier(.3,1.6,.5,1); }
+#charge-card svg circle { fill: #f2c54b; stroke: #2b211f; stroke-width: 1.4; transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .5s 1.5s cubic-bezier(.3,1.6,.5,1); }
 #charge-card.on svg circle { transform: scale(1); }
-#charge-card .q { margin: 12px 0 0; font: italic 15px/1.5 ui-monospace, Menlo, monospace; letter-spacing: .04em; opacity: 0; transition: opacity 1s 1.7s; }
+#charge-card .q { margin: 6px 0 0; font: italic 12px/1.4 ui-monospace, Menlo, monospace; letter-spacing: .04em; opacity: 0; transition: opacity .9s 1.3s; }
 #charge-card.on .q { opacity: .85; }
-@media (max-width: 600px) { #charge-card .sheet { background: rgba(255, 246, 220, .93); } #charge-card h1 { font-size: 30px; } #charge-card.on h1 { letter-spacing: .14em; margin-right: -.14em; } }
+@media (max-width: 600px) { #charge-card .sheet { background: rgba(255, 246, 220, .9); } #charge-card.on h1 { letter-spacing: .14em; margin-right: -.14em; } }
 `;
 
 /**
- * Letter the charge across the screen for a few seconds (resolves when it has gone).
+ * Letter the charge in the lower third for a few seconds (resolves when it has gone).
  * `doc` may be absent (tests, node): then it only sounds.
  */
 export function showChargeCard({ sound = null, doc = typeof document !== 'undefined' ? document : null, ms = CARD_MS } = {}) {

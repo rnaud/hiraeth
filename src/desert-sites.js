@@ -53,6 +53,22 @@ export function hearthStones() {
   }
   return out;
 }
+/**
+ * Three things to stop for on the long ride to the Hearth (src/desert-hearth.js way, src/story/desert-way.js),
+ * by marked stones about a third of the way apart: the keepers' bowl at the foot of the second stone (fill
+ * it and the stone's dull mark wakes), their cold camp halfway, and a bell glinting in the sand near the end.
+ * Each: { x, z, stone } (stone: the index of the marked stone beside it; side: metres off the way).
+ */
+export const WAY = { bowl: { stone: 1, side: 2.8 }, camp: { stone: 4, side: -5.5 }, bell: { stone: 7, side: 3.4, along: 18 } };
+export function wayPlaces() {
+  const a = STORY.city, b = STORY.hearth, dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz);
+  const stones = hearthStones(), out = {};
+  for (const [id, w] of Object.entries(WAY)) {
+    const [sx, sz] = stones[w.stone], along = w.along ?? 0;
+    out[id] = { x: sx + (dx / L) * along - (dz / L) * w.side, z: sz + (dz / L) * along + (dx / L) * w.side, stone: w.stone };
+  }
+  return out;
+}
 /** The procession's circuit as a smooth closed curve: [x, z] every `step` metres. */
 export function processionLoop(step = 3) {
   const curve = new CatmullRomCurve3(PROCESSION.map(([x, z]) => new Vector3(x, 0, z)), true, 'centripetal');

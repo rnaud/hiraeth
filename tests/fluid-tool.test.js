@@ -165,6 +165,36 @@ test('an empty tank (the desert’s backpack, until the giant’s pool) holds no
   tool.dispose();
 });
 
+test('the makers’ dregs (tool.dregs): an empty tank fires one shot of old fluid, never a push, then it is dry for good', () => {
+  clearTargets();
+  const { tool, player, state } = makeTool();
+  state.set('tool.empty', true); state.set('tool.dregs', 1);
+  const fired = [], spent = [];
+  state.on('tool:fire', (e) => fired.push(e.mode));
+  state.on('tool:dregs', (e) => spent.push(e.left));
+  frames(tool, 10);
+  assert.equal(tool.dry, true, 'still an empty tank (the story treats it so)');
+  assert.equal(tool.charges, 1, 'one charge of dregs');
+  // the push does nothing with them
+  pushOnce(tool, 10);
+  assert.deepEqual(fired, [], 'no push from the dregs');
+  assert.equal(tool.charges, 1);
+  // a shot: it fires once, and the dregs are spent for good
+  frames(tool, 30, { KeyR: true });
+  tool.update(DT, { KeyR: true, KeyG: true }); frames(tool, 20, { KeyR: true });
+  frames(tool, 4);
+  assert.deepEqual(fired, ['shoot'], 'the shot');
+  assert.deepEqual(spent, [0], 'the story hears they are gone');
+  assert.equal(state.flag('tool.dregs'), 0);
+  frames(tool, Math.round(5 / DT));
+  assert.equal(tool.charges, 0, 'and they never come back');
+  // the pool fills it as before
+  tool.refill({ addColour: true });
+  assert.equal(tool.dry, false);
+  assert.equal(tool.charges, 3);
+  tool.dispose();
+});
+
 test('shoot: a glob flies straight onto the crosshair, hits the nearest target and the world occludes it', () => {
   clearTargets();
   const near = target(v(0, 0, -10)), far = target(v(0, 0, -20)), aside = target(v(3, 0, -5));

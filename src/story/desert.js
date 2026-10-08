@@ -7,12 +7,14 @@ import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, SMOKE_COOL, Embers } from './flames.js';
 import { setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS } from './desert-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, STAGE_MERGE, DESERT_QUEST_V, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS } from './desert-data.js';
 import { setupDesertMoments } from './desert-moments.js';
+import { verbKey, inputKind } from '../prompt-keys.js';
 import { items } from '../items.js';
 import { setupHoverbike } from './desert-bike.js';
 import { setupDrum, setupMask } from './desert-errands.js';
 import { setupHearth } from './desert-spark.js';
+import { setupWay } from './desert-way.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -75,7 +77,7 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _v = V(0, 0, 0), _w = V(0, 0, 0);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
-const CATCH_UP = ['elder', 'well', 'speaker', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
+const CATCH_UP = ['elder', 'ask', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
 
 /**
  * Old saves. v < 2: the stages before the cave moved (the box is in the city
@@ -87,19 +89,42 @@ const CATCH_UP = ['elder', 'well', 'speaker', 'down'];   // the stages that lead
  * is skipped (SPARK_STAGES: setupDesert jumps over them to the ship). A save
  * short of that finds the tree cold and does the new errand; its tank is full
  * already (it was never empty: tool.empty is only set for a chest opened now).
+ * v < 4: the four talks in a row (elder, well, ama, speaker) are two now: a save at the
+ * well, Ama or the Speaker goes to the merged stage (STAGE_MERGE), keeping what it did.
  * Returns the new stage, or null if the stage did not change.
  */
 export function migrateDesertQuest(game) {
   const v = game.flag('desert.quest.v') ?? 0;
-  if (v >= 3) return null;
+  if (v >= DESERT_QUEST_V) return null;
   const s = game.flag('quest.desert.power');
   // (a brand-new save has nothing to carry over)
-  if (s === undefined && !game.flag('ship.powered')) { game.set('desert.quest.v', 3); return null; }
+  if (s === undefined && !game.flag('ship.powered')) { game.set('desert.quest.v', DESERT_QUEST_V); return null; }
   let to = null;
   if (v < 2) { to = STAGE_MIGRATION[s] ?? null; if (to) game.set('quest.desert.power', to); }
-  if (game.flag('desert.channel.open') || game.flag('desert.ship.fed') || game.flag('ship.powered') || s === 'done') game.set('desert.tree.lit', true);
-  game.set('desert.quest.v', 3);
+  if (v < 3 && (game.flag('desert.channel.open') || game.flag('desert.ship.fed') || game.flag('ship.powered') || s === 'done')) game.set('desert.tree.lit', true);
+  const now = game.flag('quest.desert.power');
+  if (STAGE_MERGE[now]) { to = STAGE_MERGE[now]; game.set('quest.desert.power', to); }
+  game.set('desert.quest.v', DESERT_QUEST_V);
   return to;
+}
+
+/** Ama's jar and the Speaker's old words, in either order: the merged stage ('ask') is done once both are. */
+export function askedBoth(game) {
+  if (game.flag('desert.asked') || !game.flag('desert.jar.given') || !game.flag('desert.speaker.heard')) return false;
+  game.set('desert.asked', true);
+  return true;
+}
+
+/** The chest's gift: an empty tank but for one shot of the makers' old fluid, with the buttons as the player holds them. */
+export function dregsText(kind = inputKind()) {
+  const k = (v) => verbKey(v, kind);
+  return `The tank on your back is nearly empty: one last swallow of the makers’ old fluid at the bottom of the glass. One shot. Aim with ${k('aim')}, then ${k('fire')}.`;
+}
+
+/** The tank's first fill at the pool: what it does now, with the buttons as the player holds them (src/prompt-keys.js verbKey). */
+export function filledText(kind = inputKind()) {
+  const k = (v) => verbKey(v, kind);
+  return `The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with ${k('aim')}, then ${k('fire')}) and pushes (switch the gun to push with ${k('mode')}, and shoot).`;
 }
 
 export function setupDesert(ctx) {
@@ -130,6 +155,9 @@ export function setupDesert(ctx) {
   caughtUp();
   quests.onChange(({ id }) => { if (id === 'desert.power') { skipSpark(); caughtUp(); } });
   game.on('flag:desert.channel.open', (v) => { if (v) caughtUp(); });
+  // the jar and the Speaker, in either order (the stage 'ask'): its flag once both are done
+  askedBoth(game);
+  for (const f of ['desert.jar.given', 'desert.speaker.heard']) game.on(`flag:${f}`, () => askedBoth(game));
 
   const ground = (p, from = 4) => { const g = physics.groundAt(p.x, p.y + from, p.z); return Number.isFinite(g) ? g : p.y; };
   const onGround = (p) => V(p.x, ground(V(p.x, p.y, p.z), 3), p.z);
@@ -294,6 +322,7 @@ export function setupDesert(ctx) {
   game.on('tool:dry', () => {
     if (st.clock - dryT < 25) return;
     dryT = st.clock;
+    if (game.flag('tool.dregs') > 0) { toast('The last swallow in the tank is too little to push with. It will make one shot, no more.'); return; }   // (the dregs only shoot: src/fluid-tool.js)
     toast(open() ? 'The tank is empty. Wade into the giant’s pool to fill it.' : 'The tank is empty: dry glass, not a drop. Where the water is, it fills (Nour says).');
   });
 
@@ -481,7 +510,8 @@ export function setupDesert(ctx) {
     if (addColour) game.set('desert.pool.tinted', true);
     return { wasDry, addColour };
   };
-  const FILLED = 'The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with R or LT / L2, then G or RT / R2) and pushes (switch the gun to push with X or the D-pad, and shoot).';
+  // (the buttons as the player holds them: on a pad X is interact, the gun's mode is the D-pad: src/bindings.js)
+  const FILLED = () => filledText();
   /** Ama's jar fills at the pool too. */
   const fillJar = () => {
     if (!quests.has('jar') || game.flag('desert.jar.filled')) return;
@@ -503,7 +533,7 @@ export function setupDesert(ctx) {
       else if (dry() && film.fill()) { /* (playing) */ }
       else {
         const { wasDry, addColour } = fillTank();
-        if (wasDry) toast(FILLED);
+        if (wasDry) toast(FILLED());
         else if (addColour) toast('The water climbs your hose. The tank takes its colours.');
         fillJar();
       }
@@ -531,12 +561,20 @@ export function setupDesert(ctx) {
     return true;
   };
   game.on('ship:enter', () => feedShip());
-  // the backpack found: its tank is empty (a new save; an older one carried a full tank already)
+  // the backpack found: its tank is empty but for the makers' dregs, one shot of old fluid (tool.dregs,
+  // src/fluid-tool.js), so the shot is felt at once; the giant's pool fills it for good (a new save;
+  // an older one carried a full tank already)
   game.on('box:opened', ({ item, id } = {}) => {
     if (item !== 'backpack') return;
     const empty = id === 'desert.backpack' && !open() && !game.flag('desert.pool.tinted');
-    if (empty) game.set('tool.empty', true);
-    setTimeout(() => toast(empty ? 'The tank on your back is empty: dry glass, not a drop in it. Nothing to shoot, nothing to push. Not yet.' : 'Try shooting (aim LT / L2, shoot RT / R2) or pushing (switch the gun to push with X or the D-pad, and shoot).'), 3200);
+    if (empty) { game.set('tool.empty', true); game.set('tool.dregs', 1); }
+    setTimeout(() => toast(empty ? dregsText() : `Try shooting (aim ${verbKey('aim')}, shoot ${verbKey('fire')}) or pushing (switch the gun to push with ${verbKey('mode')}, and shoot).`), 3200);
+  });
+  // the dregs spent: the tank is dry glass until the pool (once)
+  game.on('tool:dregs', ({ left } = {}) => {
+    if (left > 0 || game.flag('desert.dregs.spent')) return;
+    game.set('desert.dregs.spent', true);
+    setTimeout(() => toast('The makers’ last swallow, gone in one splash. The tank is dry glass now: where the water is, it fills (Nour says).'), 900);
   });
   quests.def('desert.power').onDone = () => {
     game.set('ship.powered', true);
@@ -561,6 +599,8 @@ export function setupDesert(ctx) {
   quests.locate('ship', shipPos);
   quests.locate('mask', () => V(-20, level.ground.heightAt(-20, -372), -372));
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
+  // the merged stage: Ama until the jar is yours, then the Speaker
+  quests.locate('askWho', () => (!game.flag('desert.jar.given') ? people.ama.pos : people.speaker.pos));
 
   // ---------------------------------------------------------------- the procession's banners, lanterns and drum
   const props = [];
@@ -806,6 +846,8 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- the spark-stone's errand
   // Nour's word sends you for the stone: the hoverbike's errand starts then (if it hasn't), the Hearth waits
   const hearth = setupHearth(ctx, { hasPush: () => toolHasPush() || (!!tool && !dry()), lit });
+  // the bowl, the camp and the bell on the long ride there (src/story/desert-way.js)
+  const way = setupWay(ctx);
 
   // the well fills while you watch: the roots drink (pale motes climb the trunk), Hessa calls out, the tree stays cold
   const drinkAt = [0, 1, 2, 3, 4, 5].map((i) => { const a = i / 6 * Math.PI * 2; return city.treeBase.clone().add(V(Math.sin(a) * 4.2, 0.6, Math.cos(a) * 4.2)); });
@@ -1007,10 +1049,11 @@ export function setupDesert(ctx) {
     mask.update(dt);
     lever.update(dt);
     hearth?.update(dt, t);
+    way?.update(dt, t, camPos);
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, gatherSpots, calls: { marrow: marrowCall, nour: nourCall }, hollow, drum, mask, lever, hearth, rise, lighting, setStone, applyLit, film,
+    people, update, state: st, villagers, ledge: sh, gatherSpots, calls: { marrow: marrowCall, nour: nourCall }, hollow, drum, mask, lever, hearth, way, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;

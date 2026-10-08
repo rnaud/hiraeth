@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { glyphGeometry } from './story/sign-text.js';
-import { STORY, hearthStones } from './desert-sites.js';
+import { STORY, hearthStones, wayPlaces, WAY } from './desert-sites.js';
 
 // The Givers' Hearth: where the Givers kept their fire, and the keepers put the
 // spark-stone back after they lit Qanat's tree with it (src/story/desert.js has
@@ -147,6 +147,11 @@ export function buildDesertHearth(scene, terrain) {
     marks: makeMaterial({ color: '#ffd9a0', glow: 0.3, flat: true, key: 'hearth.marks' }),
     slit: makeMaterial({ color: '#ffcf8a', glow: 1, flat: true, key: 'hearth.slit' }),
     spark: makeMaterial({ color: '#fff1c8', glow: 1, flat: true, key: 'hearth.spark' }),
+    // the way (src/story/desert-way.js sets their uGlow): the bowl's stone's mark, dull until the bowl is filled;
+    // the fluid in the bowl; the bell's glint
+    wayMark: makeMaterial({ color: '#70e7df', glow: 0.05, flat: true, key: 'desert.way.mark' }),
+    wayFluid: makeMaterial({ color: '#7fe6dc', glow: 0.9, flat: true, key: 'desert.way.fluid' }),
+    glint: makeMaterial({ color: '#fff6dc', glow: 1, flat: true, key: 'desert.way.glint' }),
   };
   const lights = [], portals = [];
   const S = STORY.hearth;
@@ -210,12 +215,50 @@ export function buildDesertHearth(scene, terrain) {
     const k = new Kit(root, `Marked stone ${i + 1}`, V(x, y - 0.4, z), S.yaw + Math.sin(i * 1.7) * 0.25);
     const h = 4.2 + (i % 3) * 0.5;
     k.both(M.marker, rough(new THREE.CylinderGeometry(0.42, 0.68, h, 5, 2).translate(0, h / 2, 0), 0.06, 1.1, i));
-    // the mark near its top, on both faces (toward Qanat and toward the Hearth)
-    k.add(M.glyph, glyphGeometry(0.6).translate(0, h - 0.8, 0.5));
-    k.add(M.glyph, glyphGeometry(0.6).rotateY(Math.PI).translate(0, h - 0.8, -0.5));
+    // the mark near its top, on both faces (toward Qanat and toward the Hearth); the bowl's stone's is dull until it is filled
+    const mark = i === WAY.bowl.stone ? M.wayMark : M.glyph;
+    k.add(mark, glyphGeometry(0.6).translate(0, h - 0.8, 0.5));
+    k.add(mark, glyphGeometry(0.6).rotateY(Math.PI).translate(0, h - 0.8, -0.5));
     k.flush();
     return V(x, y, z);
   });
+
+  // ================================================================ three things to stop for on the way (src/desert-sites.js wayPlaces)
+  const way = {};
+  {
+    const P = wayPlaces(), at = (p) => V(p.x, terrain.heightAt(p.x, p.z), p.z);
+    // the keepers' bowl: a bronze bowl on a low stone at the second stone's foot (fill it: src/story/desert-way.js)
+    const bowlAt = at(P.bowl), bk = new Kit(root, 'The keepers’ bowl', bowlAt.clone().setY(bowlAt.y - 0.25), S.yaw);
+    bk.both(M.marker, rough(new THREE.CylinderGeometry(0.55, 0.7, 0.85, 7, 1).translate(0, 0.42, 0), 0.04, 1.4, 3));
+    bk.add(M.bronze, new THREE.LatheGeometry([[0.06, 0], [0.4, 0.05], [0.5, 0.2], [0.46, 0.24]].map(([r, y]) => new THREE.Vector2(r, y)), 12).translate(0, 0.85, 0));
+    bk.flush();
+    const fluid = new THREE.Mesh(new THREE.CircleGeometry(0.42, 14).rotateX(-Math.PI / 2), M.wayFluid);
+    fluid.position.copy(bowlAt).setY(bowlAt.y - 0.25 + 0.85 + 0.19); fluid.userData.noCollide = true; fluid.visible = false;
+    root.add(fluid);
+    way.bowl = { at: bowlAt, top: fluid.position.clone(), fluid, stone: stones[WAY.bowl.stone] };
+    // the keepers' cold camp, halfway: a ring of blackened stones, two poles leaning together, a flat stone with tallies
+    const campAt = at(P.camp), ck = new Kit(root, 'The keepers’ camp', campAt.clone().setY(campAt.y - 0.1), S.yaw + 0.6);
+    for (let j = 0; j < 9; j++) {
+      const a = j / 9 * Math.PI * 2;
+      ck.add(M.stone, rough(new THREE.IcosahedronGeometry(0.2, 0).scale(1.2, 0.7, 1).translate(Math.sin(a) * 0.85, 0.12, Math.cos(a) * 0.85), 0.03, 4, j));
+    }
+    ck.add(M.ink, new THREE.CircleGeometry(0.62, 12).rotateX(-Math.PI / 2).translate(0, 0.04, 0));   // the old ashes
+    for (const sx of [-1, 1]) ck.add(M.stone, new THREE.CylinderGeometry(0.05, 0.06, 2.6, 5).rotateZ(sx * 0.42).translate(sx * 0.55 + 1.9, 1.2, -0.4));
+    ck.both(M.marker, box(0.9, 0.22, 0.6, -1.6, 0.11, 0.6));   // the tally stone
+    for (let j = 0; j < 6; j++) ck.add(M.ink, box(0.03, 0.01, 0.22, -1.9 + j * 0.1 + (j > 2 ? 0.12 : 0), 0.225, 0.6));
+    ck.flush();
+    way.camp = { at: campAt, look: campAt.clone().add(V(0, 0.4, 0)) };
+    // the bell glinting half in the sand near the end, a few metres off the way
+    const bellAt = at(P.bell), bell = new THREE.Group();
+    bell.position.copy(bellAt); bell.name = 'A bell in the sand';
+    const cup = new THREE.Mesh(new THREE.LatheGeometry([[0.02, 0.22], [0.08, 0.2], [0.11, 0.08], [0.15, 0]].map(([r, y]) => new THREE.Vector2(r, y)), 10), M.bronze);
+    cup.rotation.set(0.9, 0, 0.3); cup.position.y = 0.02;
+    const glint = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0).scale(1, 2, 1), M.glint);
+    glint.position.set(0.05, 0.22, 0.04);
+    for (const m of [cup, glint]) { m.userData.noCollide = true; bell.add(m); }
+    root.add(bell);
+    way.bell = { at: bellAt, group: bell, glint };
+  }
 
   // ================================================================ inside: the hall
   const O = V(STORY.hearthCave.x, STORY.hearthCave.y, STORY.hearthCave.z);
@@ -307,7 +350,7 @@ export function buildDesertHearth(scene, terrain) {
     grille, grilleRest: grille.position.clone(), ball, ballRest: ball.position.clone(), ballEnd: L(...HEARTH.ball.end.toArray()),
     stone, stoneRest: stone.position.clone(), stoneLight, plinthLight, doorLight,
     shelfFront: L(0, HEARTH.shelf, -11.6), plinthFront: L(HEARTH.plinth.x, 0, HEARTH.plinth.z0 + 1.6),
-    materials: { marks: M.marks, slit: M.slit, spark: M.spark },
+    materials: { marks: M.marks, slit: M.slit, spark: M.spark, wayMark: M.wayMark, wayFluid: M.wayFluid, glint: M.glint }, way,
     lights, portals,
     /** Show the hall only when the camera is down there; the butte is always drawn (it is a landmark). */
     update(dt, t, { camera } = {}) {
