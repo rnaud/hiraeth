@@ -1,0 +1,87 @@
+changelog.md
+  s_efb1d100d5a6fc::t_70f42ae6a1edda 5-15
+docs/systems/controls.md
+  s_efb1d100d5a6fc::t_b9e2e30f60e779 14
+docs/systems/foes.md
+  s_efb1d100d5a6fc::t_ea5b48ff73397b 227,257-280
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_0159377f537ec8 30-31,72-98
+src/audio.js
+  s_efb1d100d5a6fc::t_04437be4875c9f 37-38
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_bed3464d7fdf0c 120-152
+src/changelog.js
+  s_efb1d100d5a6fc::t_c1472ddf07b2a9 12-21
+src/controller.js
+  s_efb1d100d5a6fc::t_b6234ddeffb652 132,153-155
+src/costumes.js
+  s_efb1d100d5a6fc::t_7548e3cf147a22 434-441
+src/dev-menu.js
+  s_efb1d100d5a6fc::t_85abf0e492f3a8 35-36,50,127-128
+src/edge.js
+  s_efb1d100d5a6fc::t_a4e267e145d92c 35
+src/fluid-blade.js
+  s_efb1d100d5a6fc::t_73f00635d9146e 37-42,47,165-178,188,209,250,352-355,357
+src/foe-spawner.js
+  s_efb1d100d5a6fc::t_21862a52fe422e 10,14
+src/foes.js
+  s_efb1d100d5a6fc::t_c15f254973c5b6 115-118,181,194,199-209,276,279,308,383,589
+src/hitbox-overlay.js
+  s_efb1d100d5a6fc::t_53b3973f164bfb 1-178
+src/hitboxes.js
+  s_efb1d100d5a6fc::t_d3a97bba1c53bf 1-182
+src/levels/arcade-board.js
+  s_efb1d100d5a6fc::t_89a00cd1cb0f5c 1-166
+src/levels/arcade.js
+  s_efb1d100d5a6fc::t_5be6c37ec9210e 1-221
+src/levels/arena-hitbox-board.js
+  s_efb1d100d5a6fc::t_de63da415f3479 1-44
+src/levels/arena.js
+  s_efb1d100d5a6fc::t_7e3d801558bff0 9,46-47
+src/levels/content.js
+  s_efb1d100d5a6fc::t_58cd12fbed6fa8 145-155
+src/levels/index.js
+  s_efb1d100d5a6fc::t_4277e20e7ca670 11,212-218
+src/main.js
+  s_efb1d100d5a6fc::t_59987da51bcb8d 80-81,94,600-601,646,693-699,1091,1245,1742-1743
+src/makehuman/people.js
+  s_efb1d100d5a6fc::t_94a566a7891ef1 166
+src/minigames/kit/arcade.js
+  s_efb1d100d5a6fc::t_e50fdbb0772e95 1-65
+src/minigames/kit/marker.js
+  s_efb1d100d5a6fc::t_edef5db6a68dc6 39-66,71-73,76,83-86
+src/minigames/kit/minigames.css
+  s_efb1d100d5a6fc::t_f98efd0aaf4426 63
+src/minigames/kit/runner.js
+  s_efb1d100d5a6fc::t_dccfdf8edf149f 34-35,175-177,179-186,209,226,254,270,275-276,278,339,353
+src/reactive-world.js
+  s_efb1d100d5a6fc::t_cbadfcaec0fe8f 27
+src/ui.js
+  s_efb1d100d5a6fc::t_b4028e565b44e6 32
+tests/arcade.test.js
+  s_efb1d100d5a6fc::t_35d049f4f7c201 1-100
+tests/foe-kinds.test.js
+  s_efb1d100d5a6fc::t_75c809dd863b58 288
+tests/hitboxes.test.js
+  s_efb1d100d5a6fc::t_605c326e733078 1-203
+tests/makehuman.test.js
+  s_efb1d100d5a6fc::t_017d4951718cea 88
+tests/scripts.test.js
+  s_efb1d100d5a6fc::t_a985dff6ae5a75 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "313ad6c92c0ac56c669aa8ec9b5c41fc8980afd4",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
