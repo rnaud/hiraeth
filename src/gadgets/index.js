@@ -41,8 +41,8 @@ const _v = new THREE.Vector3();
 const smooth = (k) => k * k * (3 - 2 * k);
 
 export class Gadgets {
-  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, relics = null, flammables = null, post = null, boxes = null }) {
-    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, items, game, icon, drawIcon, relics, flammables, post, boxes });
+  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, wind = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, relics = null, flammables = null, post = null, boxes = null }) {
+    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, wind, items, game, icon, drawIcon, relics, flammables, post, boxes });
     this.fx = new THREE.Group(); this.fx.name = 'Gadgets'; this.fx.userData.noCollide = true;
     scene?.add(this.fx);
     level?.noShadow?.push?.(this.fx);
@@ -56,7 +56,7 @@ export class Gadgets {
     this.fx.add(this.debrisMesh);
     const said = new Map();
     this.ctx = {
-      scene, physics, player, camera, rig, sound, tool, level, foes, game, items, relics, flammables,
+      scene, physics, player, camera, rig, sound, tool, level, foes, wind, game, items, relics, flammables,
       post, boxes,   // (the composite's uniforms: the seeing lens draws in it; the world's boxes it marks)
       world: this.world, fx: this.fx, hud: this.hud, bursts: this.bursts, sfx,
       // a short word on the screen (src/main.js showToast), at most every few seconds for the same key

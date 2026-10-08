@@ -61,7 +61,7 @@ panel takes a gadget in hand too (`onUse`).
      id: 'magnet', name: 'Lodestone glove', glyph: '⊂', order: 30,   // order: its place in the wheel and the yard
      text: 'what it is', use: 'what it does (prompts in Xbox / PlayStation form: Y / △)',
      model: () => group,          // about 0.3 m, makeMaterial materials (inked by the post pass)
-     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, relics, flammables, post, boxes, world, fx, hud, bursts, sfx, sound, notice, aimAt, gadget(id)
+     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, wind, relics, flammables, post, boxes, world, fx, hud, bursts, sfx, sound, notice, aimAt, gadget(id)
      yard(kit) {},                // its props in its Gadget Yard bay
    };
    ```
@@ -297,6 +297,70 @@ landing. The coils hang under his feet (from the foot bones; the figure is lifte
 wobble (`coilWobble`, a damped spring) on each launch and landing. Tests: the heights and velocities, the
 bounce and stomp rules, a full launch's height and the guard given back, a chain of three bounces, a stomp
 breaking a cracked floor, pushing a foe and unearthing a cache, the stick held while winding.
+## The bubble wand (`bubble.js`)
+
+Hold the use button to aim (the wand in hand, the reticle on what it would catch: "a foe", "a crate", "a
+bomb", "yourself"); let go to blow. One bubble at a time: another press pops it. The bubble flies to what
+the aim found (13 m/s; a crate or a bomb near the line is found with a wider assist, `cone` 0.12 rad), or out
+along the aim (10 m/s, slowing, popping on the first wall it meets) and closes round the first thing it
+touches. Carried, it rises at `BUBBLE.rise` 1.25 m/s, easing to a hover `maxRise` 7 m over where it caught
+its load (`riseSpeed`), and drifts on at `drift` 0.7 m/s the way it was blown (a gust or the fluid's push
+adds to it, then dies back into the drift). It pops after `life` 6 s:
+- **a crate** (`Prop.held`: no gravity; its velocity is the bubble's, so the world's own collision slides it
+  along a ledge's side): it falls where it is. The yard's lift puzzle: float a crate over the ledge and drop
+  it on the floor plate up there, and the alcove's gate beside it sinks.
+- **a foe**: helpless inside (stunned, still, turning slowly; its strike broken off); let go it falls, and
+  from higher than `fall` 3.5 m it lands hard (one cut). A machine is too heavy: the bubble bursts on it.
+- **a bomb** (`b.held`, src/gadgets/bomb.js): carried up with its fuse sealed; popped, `fuse` 0.3 s are
+  left. The yard's cracked boulder sits on a pillar too tall for a thrown bomb's blast.
+- **the traveller** (aimed at his own feet, `wantsSelf`, or pressed in the air): he floats up at 1.5 m/s,
+  his drift with the stick held under `self.drift` 2.6 m/s (`control` sets his velocity before he moves and
+  gives back his gravity; walls slide by, never grabbed); after `self.life` 5.5 s it sinks at 1.3 m/s and pops
+  when he touches down (`selfPhase`, `selfLift`). Jump pops it (the wings may open at once), and so does a
+  hurt (a foe's strike).
+
+Spikes and flames (`hazardAt`, src/hazards.js), a fire burning (a flammable spot lit by an ember glob, the
+yard's ember fire), a blade or an ember or fluid glob pop it (the bubble is a target: `kind: 'bubble'`,
+accepting `blade`, `fire` and `gust`). Its look: nothing is transparent here, so it is drawn as an ink
+drawing turned to the camera: a thin ink rim (`thinRing`: at least 1.4 px), a band of six pastel arcs that
+turns, three inner arcs turning the other way, a tilted white meridian, a highlight and a glint, the skin
+wobbling; popped, a splash of pastel and white drops. Sounds: a breath, a plop, a bright pop with a spatter.
+Tests (tests/bubble-fan.test.js): the rise and the phases, a crate caught, floated and dropped, a foe lifted
+and landing hard, a machine refused, a bomb's sealed fuse, the traveller's float, drift, spikes and jump,
+an empty bubble on a wall, a blade and a push on a carried one.
+
+## The gust fan (`fan.js`)
+
+Press the use button to swing it (held, it swings again every `FAN.cool` 0.42 s). A cone of wind
+(`range` 9 m, `angle` 0.5 rad) leaves the fan along the aim, mostly along the ground on foot
+(`gustDirection`, `flatten` 0.7), felt the less the further (`gustStrength`: 1 near, a third at its reach).
+Everything in it (`targetsInCone`, not through walls) is pushed: crates slide (`push.prop` 10 m/s, a metal one
+a quarter), foes take the fluid's push (`shove` 3.6 m: knocked back and reeling a moment; a blot swarm, one
+hp, is blown apart), the bomb gadget's bombs roll, a bubble drifts on, a parked hoverbike or skiff is pushed
+along its keel by how squarely the gust fills its sail (`sailPush`; the skiff's sail takes it best), anything
+else feels the fluid's push (people, creatures, a temple's stone ball, a switch). A target that lists
+`'gust'` in `accepts` gets the mode itself: the yard's pinwheels, its fire, the bubble, and every flammable
+spot (src/flammable.js `douse`: a lamp an ember lit goes out, a flare or a burning bramble stops burning).
+Over the ground it throws up sand and dust; over water (`player.water.surfaceAt`), spray and splash rings.
+Riding a skiff, a swing is a gust into its own sail: `sail` 9 m/s more, up to `sailMax` 30. In the air
+(`hover.gusts` 3 of them before you land) the gust goes down at the ground and lifts you: at least
+`hover.glide` 7.5 m/s up with the wings open, `hover.air` 4.2 without (`hoverLift`); the chip shows the
+gusts left as pips.
+
+The gust's look (`GustLook`): ink speed lines racing out along the cone, ink curls rolling up at their ends,
+two open rings of ink (the wind's fronts) racing out across it, and the sand's own wind wisps (src/wind.js
+`WindStreaks.spawn`, the `wind` the runtime is given) skimming out along the ground and at the fan's height;
+the fan in the hand snaps open and sweeps across. Sounds: the paper's snap and a rush of air, a pinwheel's
+whirr, a fire's hiss.
+
+The yard's fan bay: three pinwheels on posts facing three ways (`spec.pinwheels`; a pinwheel turns only
+blown into its face, `pinwheelCatch`, for `spin` 6 s, its lamp lit meanwhile); all three turning at once
+sink their gate (`spec.windGates`: a gate with no plates whose `want` the fan sets; open 20 s after); a hut
+with a fire in its doorway (`spec.embers`: Flames, a fire hazard while it burns, a target: blown out it
+catches again after 12 s; an ember glob relights it) and a crate inside to blow back out; crates and a metal
+one in the open; a 4.2 m ledge to hover up to. Tests: the falloff and the directions, the lift (three, then
+none until you land), the sail (parked and ridden), a crate, a blot, a swarm, a bomb and a bubble in one
+gust, a lamp and the yard's fire put out and relit, the pinwheels and their gate, the bays in the yard.
 
 ## The Gadget Yard (`src/levels/gadget-yard.js`)
 

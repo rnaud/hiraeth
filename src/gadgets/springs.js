@@ -165,7 +165,7 @@ class Dust {
 }
 
 export default {
-  id: 'springs', name: 'Spring boots', glyph: '⌇', order: 40,
+  id: 'springs', name: 'Spring boots', glyph: '⌇', order: 80,
   text: 'Two coils of the makers’ brass strapped under the boots, wound by crouching. They throw you higher than any wall in a village, and no landing on them hurts.',
   use: 'Hold Y / △ (T, or the middle mouse button) on the ground to crouch and wind them; let go to spring up (fully wound, fourteen metres), or forward if you point the stick. Press again just before you land to bounce on higher, up to three times. Press it high in the air to stomp down: it breaks cracked floors, throws foes and crates back and brings up what is buried.',
   model: () => springModel(),

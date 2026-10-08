@@ -205,6 +205,20 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Gadget Yard, a new world', shots: [
       { name: 'yard', only: 'after', caption: 'The Gadget Yard from where you arrive: the hook’s bay and its pole, the plate and its gate, the targets, the bombs’ bay beyond', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
     ] },
+    { match: 'The bubble wand: hold Y / △ to aim', shots: [
+      { name: 'bubble-crate', only: 'after', caption: 'A crate caught in a bubble, floating up beside the ledge in the bubble wand’s bay', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'bubble-float', only: 'after', caption: 'Floating in your own bubble up to the lamp on the pole, the stick drifting you across', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'bubble-ledge', only: 'after', caption: 'The lift puzzle done: the crate dropped onto the plate up on the ledge, the alcove’s gate sunk and its lamp in view', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+    ], see: 'In the Gadget Yard, the bay with the lavender banner: hold T (Y / △), aim at a crate and let go; look down at your feet (or jump) and press it to float yourself.' },
+    { match: 'The gust fan: press Y / △ to swing it', shots: [
+      { name: 'fan-gust', only: 'after', caption: 'A gust from the side: ink speed lines, curls and the wind’s fronts racing out over the sand, dust thrown up', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'fan-fire', only: 'after', caption: 'The fire in the hut’s doorway blown out in a puff of smoke', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'fan-hover', only: 'after', caption: 'Wings open, the fan swung at the ground: lifted up onto the ledge (the pips: gusts left before landing)', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'fan-skiff', only: 'after', caption: 'In Perdide: on the skiff, a swing of the fan fills its own sail; over the water the gust throws up spray', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), ?level=perdide' },
+    ], see: 'In the Gadget Yard, the bay with the teal banner: press T (Y / △) at the crates, the pinwheels, the fire; jump, open the wings and swing it at the ground.' },
+    { match: 'In the Gadget Yard the bubble wand’s bay', shots: [
+      { name: 'fan-pinwheels', only: 'after', caption: 'The three pinwheels turning together, their lamps lit, and the gate they hold sunk', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+    ] },
     { match: 'The gadgets are in the game menu’s Items', see: 'Open the game menu (View / Select, J) on its Items: the hook and the bombs are drawn among the gear; choose one to take it in hand.' },
     { match: 'The boomerang: hold Y / △ and a dotted line', shots: [
       { name: 'boomerang-aim', only: 'after', caption: 'Aiming in its bay: locked on to two ropes and a pot of ink up on a block, the dotted path through them and home', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), the Gadget Yard' },

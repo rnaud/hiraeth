@@ -19,6 +19,8 @@ export function registerHazard(h) {
 }
 export const clearHazards = () => { list.length = 0; };
 export const hazardCount = () => list.length;
+/** The first hazard whose volume holds `pos` (feet), or null (a gadget's bubble pops on one: src/gadgets/bubble.js). */
+export const hazardAt = (pos) => list.find((h) => h.test(pos)) ?? null;
 
 /** An upright cylinder (a cactus, a spiked post): you're in it when your body is within r of its axis. */
 export function cylinderHazard({ kind, x, z, y0, y1, r, dps, push = kind === 'spikes' }) {
