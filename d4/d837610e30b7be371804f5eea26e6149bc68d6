@@ -1,0 +1,39 @@
+DONE.md
+  s_9ca76055a220ed::t_3a7e32c38d70ca 1117-1140
+changelog.md
+  s_9ca76055a220ed::t_d61481e690e5d6 7-10
+docs/systems/audio.md
+  s_9ca76055a220ed::t_4b4144ed20285b 181-182,197-215
+src/audio.js
+  s_9ca76055a220ed::t_d1a1abe9fb5d1e 34-38,44-51,739,833-834,837,1164-1166,1169,1237,1243-1244,1250-1284,1350,1975,1981-1983
+src/changelog.js
+  s_9ca76055a220ed::t_84c24d7c8307b8 36-40
+src/main.js
+  s_9ca76055a220ed::t_50e44ea6eaee22 1594
+src/physics.js
+  s_9ca76055a220ed::t_5af0e4cb6a020e 56-66,223,232,259,455
+src/player.js
+  s_9ca76055a220ed::t_4c6550c5d44008 1472-1473
+src/story/buried.js
+  s_9ca76055a220ed::t_775cb3433f9060 177
+src/story/desert.js
+  s_9ca76055a220ed::t_194adc80d3a36d 349,861
+tests/sound-mix.test.js
+  s_9ca76055a220ed::t_8dcc3b0f7147ee 1-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d4d837610e30b7be371804f5eea26e6149bc68d6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
