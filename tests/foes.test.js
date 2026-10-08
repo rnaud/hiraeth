@@ -246,7 +246,7 @@ test('a relic out in the wilds is guarded: its blots gather as you come near, an
   const game = new GameState(null);
   const P = player(v(0, 0, 380));
   const content = { npcs: [], relics: { spots: [{ at: [0, 0, 420] }], names: ['r'] } };
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'desert', content, physics: flat, player: P, settings: { enemies: true }, game });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'nowhere', content, physics: flat, player: P, settings: { enemies: true }, game });
   foes.packRest = 999;
   foes.update(DT);
   assert.equal(foes.list.length, 0, 'not yet: 40 m away');
@@ -255,7 +255,7 @@ test('a relic out in the wilds is guarded: its blots gather as you come near, an
   const guards = foes.list.filter((f) => f.guard);
   assert.equal(guards.length, 2, 'two guards round it');
   for (const f of guards) for (let i = 0; i < 2; i++) foes.hurt(f, 'blade', v(0, 0, 1), { damage: 1 });
-  assert.equal(game.flag('foes.desert.r0'), true, 'cleared');
+  assert.equal(game.flag('foes.nowhere.r0'), true, 'cleared (a world with no roster: two blots)');
   for (let i = 0; i < 1 / DT; i++) foes.update(DT);
   assert.equal(foes.list.filter((f) => f.guard && f.alive).length, 0, 'and they do not come back');
   foes.dispose(); clearTargets();

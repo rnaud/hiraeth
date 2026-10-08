@@ -627,6 +627,7 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
 const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
+if (level.foes?.waves && !minigameDef) import('./foe-spawner.js').then((m) => m.mountFoeSpawner({ foes, kind: query.get('foe') }));   // (the Arena's list of every foe kind: src/foe-spawner.js)
 await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {

@@ -6,6 +6,8 @@ import { Telegraph, strikeDamage, inArea } from './temples/boss.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
 import { ShadeBody, ShadePools } from './shade.js';
+import { KINDS, NOTES, kindModel } from './foe-kinds.js';
+import { packOf, guardKinds, templeKind } from './foe-worlds.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -24,27 +26,42 @@ import { ShadeBody, ShadePools } from './shade.js';
 //   foes.update(dt, paused)            per frame
 //   foes.list                          every foe alive in the world
 
-/** Each kind's tuning. attack: the strike's area (src/temples/boss.js inArea) and what it does. */
+/** Each kind's tuning. attack: its first strike (src/temples/boss.js inArea for the area); attacks: all it has
+ *  (src/foe-kinds.js says what an attack may hold: a combo's `then`, a shockwave, a volley…). */
 export const FOES = {
   blot: {
-    name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1,
-    attack: { shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.15, wind: 0.65, strike: 0.24, contact: 0.55, lunge: 1.8 },
+    name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1, flinchy: true,
+    attacks: [
+      { id: 'lunge', shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.15, wind: 0.65, strike: 0.24, contact: 0.55, lunge: 1.8, weight: 2 },
+      // the lunge-combo: a longer coil, a lunge, and a second quick one straight after (unless the first was blocked)
+      { id: 'combo', shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.12, wind: 0.8, strike: 0.22, contact: 0.55, lunge: 1.6, then: 'again', min: 0.8 },
+      { id: 'again', chain: true, shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.12, wind: 0.32, strike: 0.22, contact: 0.55, lunge: 1.8 },
+    ],
     recover: 1.0, cool: [1.1, 2.2], hit: 0.35,
   },
   machine: {
-    name: 'makers’ machine', hp: 4, radius: 0.8, height: 1.0, speed: 2.1, sight: 13, giveUp: 14, reach: 2.6,
-    attack: { shape: 'cone', range: 3.3, angle: 0.8, damage: 0.22, wind: 1.05, strike: 0.32, contact: 0.55, knock: 7 },
+    name: 'makers’ machine', hp: 4, radius: 0.8, height: 1.0, speed: 2.1, sight: 13, giveUp: 14, reach: 2.6, heavy: true, metal: true, breaks: true,
+    tone: '#e0703a', sound: 'machine', takes: { shoot: 0, fire: 0 },
+    attacks: [
+      { id: 'slam', shape: 'cone', range: 3.3, angle: 0.8, damage: 0.22, wind: 1.05, strike: 0.32, contact: 0.55, knock: 7, weight: 1.6 },
+      // the ground slam: both arms high and a longer hold, then a ring of shock runs out over the floor (jump it)
+      { id: 'quake', shape: 'ring', at: 'self', radius: 2.0, tele: true, damage: 0.18, wind: 1.35, strike: 0.3, contact: 0.6, knock: 6, wave: { speed: 7, reach: 8, damage: 0.12, width: 0.55 } },
+    ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
   },
   // keeps its distance (inside `keep` it backs off) and lobs a glob of ink: the ring is drawn where you stand
   spitter: {
-    name: 'spitting blot', hp: 2, radius: 0.55, height: 0.6, speed: 2.6, sight: 20, giveUp: 40, reach: 11, keep: 6.5,
-    attack: { shape: 'ring', at: 'target', radius: 1.6, damage: 0.14, wind: 1.25 },
+    name: 'spitting blot', hp: 2, radius: 0.55, height: 0.6, speed: 2.6, sight: 20, giveUp: 40, reach: 11, keep: 6.5, tone: '#7f9a2e',
+    attacks: [
+      { id: 'lob', shape: 'ring', at: 'target', instant: true, radius: 1.6, damage: 0.14, wind: 1.25, weight: 2 },
+      // the arc volley: three globs, three rings across your way (step between them, or out of the row)
+      { id: 'volley', shape: 'ring', at: 'target', instant: true, spread: [-3, 0, 3], radius: 1.2, damage: 0.12, wind: 1.45, min: 4 },
+    ],
     recover: 1.3, cool: [1.6, 2.6], hit: 0.35,
   },
   // tiny and quick, five or six at once: one cut, or a push, and each is gone
   swarm: {
-    name: 'blot swarm', hp: 1, radius: 0.28, height: 0.28, speed: 5.2, sight: 16, giveUp: 40, reach: 1.3,
+    name: 'blot swarm', hp: 1, radius: 0.28, height: 0.28, speed: 5.2, sight: 16, giveUp: 40, reach: 1.3, light: true, takes: { shoot: 1, fire: 1, push: 1 },
     attack: { shape: 'ring', radius: 1.0, ahead: 0.6, damage: 0.05, wind: 0.5, strike: 0.24, contact: 0.55, lunge: 1.0 },
     recover: 0.7, cool: [0.6, 1.4], hit: 0.2,
   },
@@ -56,11 +73,20 @@ export const FOES = {
   },
   // a person made of living shadow (src/shade.js): it walks up and cuts with a sword's swing, dripping as it goes
   shade: {
-    name: 'shade', hp: 5, radius: 0.45, height: 1.15, speed: 3.0, sight: 18, giveUp: 40, reach: 2.3,
+    name: 'shade', hp: 5, radius: 0.45, height: 1.15, speed: 3.0, sight: 18, giveUp: 40, reach: 2.3, tone: '#3b2a5c',
     attack: { shape: 'cone', range: 2.9, angle: 0.9, damage: 0.2, wind: 0.95, strike: 0.24, contact: 0.55 },
     recover: 1.1, cool: [1.2, 2.2], hit: 0.4,
   },
+  ...KINDS,   // each world's own (src/foe-kinds.js)
 };
+for (const D of Object.values(FOES)) {
+  D.attacks ??= [{ id: 'strike', ...D.attack }];
+  D.attack ??= D.attacks[0];
+  D.takes ??= { shoot: 1, fire: 1 };
+  D.plural ??= `${D.name}s`;
+}
+/** A kind's attack by its id (a combo's next). */
+export const attackOf = (kind, id) => FOES[kind]?.attacks.find((a) => a.id === id) ?? null;
 /** Worlds with no foes at all. */
 export const PEACEFUL = new Set(['home', 'lab', 'references', 'atelier', 'overnighttrain']);   // (the Arena has its own waves: level.foes; the Overnight Train has no wilds: off it is the running land)
 /** Where the wilds start: this far from any person, and from where the ship lands. */
@@ -69,20 +95,14 @@ export const WILD = { people: 45, spawn: 55 };
 export const PACK = { size: [2, 3], first: 1, near: 18, far: 26, settle: 3, rest: [35, 55], drop: 85 };
 /** Worlds of open sky, where winged blots fly. */
 export const SKY_WORLDS = new Set(['arzach', 'arzach2', 'glassdunes', 'fallenring', 'underside', 'antennas']);
-/** What a pack is: the first, one blot; then blots, or blots with a spitter, a swarm, or (under open sky) a flyer. */
-export function packKinds(n, levelId, rng = Math.random) {
-  if (n === 0) return ['blot'];
-  const r = rng(), size = PACK.size[0] + Math.floor(rng() * (PACK.size[1] - PACK.size[0] + 1));
-  if (n >= 3 && r < 0.1) return ['shade'];
-  if (n >= 2 && r < 0.2) return Array(6).fill('swarm');
-  if (n >= 1 && r < 0.45) return ['spitter', ...Array(size - 1).fill('blot')];
-  if (SKY_WORLDS.has(levelId) && r < 0.7) return ['flyer', ...Array(size - 1).fill('blot')];
-  return Array(size).fill('blot');
-}
+/** What a pack is: the world's roster (src/foe-worlds.js packOf): the first, its own kind alone; then a lead and its fillers. */
+export function packKinds(n, levelId, rng = Math.random) { return packOf(n, levelId, rng); }
 const STILL = 3.5;   // s a stilling glob holds a foe
 const PARRY_STUN = 2;   // s a perfect parry leaves it stunned
 /** The Arena's waves (level.foes.waves: src/levels/arena.js), round and round; they come in this far out, this long after the last. */
-export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['spitter', 'blot'], Array(6).fill('swarm'), ['machine'], ['shade'], ['flyer', 'flyer'], ['spitter', 'spitter', 'machine'], ['shade', 'shade', 'blot'], ['machine', 'machine', 'blot', 'blot', 'flyer']];
+export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['spitter', 'blot'], Array(6).fill('swarm'), ['machine'], ['shade'], ['flyer', 'flyer'], ['spitter', 'spitter', 'machine'], ['shade', 'shade', 'blot'], ['machine', 'machine', 'blot', 'blot', 'flyer'],
+  // then each world's own (src/foe-kinds.js)
+  ['ray'], ['golem'], ['moth', 'moth', 'moth'], ['drone', 'drone'], ['stalker', 'blot'], ['crab', 'crab'], ['slag'], ['hound', 'hound'], ['golem', 'crab', 'drone', 'hound']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /** How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. */
 export const TURNS = { strikers: 2, apart: 0.3 };
@@ -108,9 +128,70 @@ export class Foe {
     this.recoil = 0; this.recoilDir = new THREE.Vector3(); this.heavyRecoil = false;
     this.k = 0;   // the wind-up's progress 0..1 (the telegraph's fill)
     this.alt = this.def.hover ?? 0;   // how high it flies over its footing (a flyer)
+    this.atk = this.def.attack;   // the attack it winds up or strikes with (chooseAttack)
+    this.attackPts = null;        // a volley's rings (attack.spread), else the one at attackAt
+    this.buried = !!this.def.burrow;   // a dune ray under the sand
+    this.shelled = !!this.def.shell;   // a salt crab's shell (a bomb cracks it)
+    this.flipped = 0; this.lit = 0; this.crust = 0; this.sleep = 0;   // s: on its back; lit by an ember; doused cold; asleep in a bloom
   }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.def.height + this.alt); }
+  /** A shadow hound running: only a shadow, the blade passes through (an ember lights it solid). */
+  get phased() { return !!this.def.phase && this.lit <= 0 && this.stunned <= 0 && (this.state === 'idle' || this.state === 'chase' || this.state === 'home'); }
+
+  /** The attacks it may begin at d metres: not a combo's follow-up, d within each one's [min, max]. */
+  attacksAt(d) { const D = this.def; return D.attacks.filter((a) => !a.chain && d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6); }
+  /** One of them, by weight (the one it just used less likely). */
+  chooseAttack(d) {
+    const can = this.attacksAt(d);
+    if (can.length < 2) return can[0] ?? null;
+    const w = can.map((a) => (a.weight ?? 1) * (a.id === this.lastAtk ? 0.4 : 1));
+    let x = this.rng() * w.reduce((s, v) => s + v, 0);
+    for (let i = 0; i < can.length; i++) if ((x -= w[i]) <= 0) return can[i];
+    return can.at(-1);
+  }
+  /** Begin winding up attack a at the traveller: its direction and area lock here (or follow you a while: track). */
+  beginWind(a, P) {
+    if (a.chain) this.heading = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);   // (a follow-up turns to where you are now)
+    this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false;
+    this.attackH = this.heading;
+    if (this.buried && !a.surface) this.buried = false;   // (a ray comes up out of the sand to glide)
+    this.placeArea(a, P);
+  }
+  /** Where attack a lands: a ring ahead (a lunge), round it, under you (lobbed), past you (a step through the shadow). */
+  placeArea(a, P) {
+    const fx = Math.sin(this.attackH), fz = Math.cos(this.attackH);
+    if (a.at === 'target') this.attackAt.set(P.pos.x, P.pos.y, P.pos.z);   // (at your feet: on a slope, not at its own height)
+    else if (a.at === 'behind') {
+      const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z, d = Math.hypot(dx, dz) || 1;
+      this.attackAt.set(P.pos.x + (dx / d) * 1.8, P.pos.y, P.pos.z + (dz / d) * 1.8);
+    } else if (a.shape === 'ring' && a.at !== 'self') this.attackAt.set(this.pos.x + fx * (a.ahead ?? 0), this.pos.y, this.pos.z + fz * (a.ahead ?? 0));
+    else this.attackAt.copy(this.pos);
+    // a volley: its rings in a row across the line to you
+    this.attackPts = a.spread ? a.spread.map((o) => new THREE.Vector3(this.attackAt.x + fz * o, this.attackAt.y, this.attackAt.z - fx * o)) : null;
+  }
+  /** Done with attack a: its follow-up straight away (a combo), else recover. */
+  next(a, P, ev) {
+    const n = a.then ? attackOf(this.kind, a.then) : null;
+    if (n && !P.dead && !P.down) { this.beginWind(n, P); ev.push('warn'); return; }
+    this.state = 'recover'; this.timer = a.recover ?? this.def.recover; this.k = 0;
+  }
+  /** An instant attack lands as its wind-up ends: a lob, a flash, a ray bursting up, a hound stepping out of the shadow. */
+  resolve(a, P, playerOk, ev, env) {
+    if (a.blink || a.surface) {
+      const y = env.ground ? env.ground(this.attackAt.x, this.attackAt.y + 1.2, this.attackAt.z) : this.attackAt.y;
+      if (y != null) this.pos.set(this.attackAt.x, y, this.attackAt.z);
+      if (a.surface) this.buried = false;
+      this.heading = this.attackH = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);
+    }
+    if (a.damage > 0) {
+      const pts = this.attackPts ?? [this.attackAt];
+      const seen = a.at === 'self' ? env.seen?.(this.chest, P.pos) ?? true : true;   // (a flash needs a clear line; a lob goes over)
+      const hit = playerOk && seen && pts.some((p) => Math.abs(P.pos.y - (a.at === 'self' ? this.pos.y : p.y)) < 1.6 && inArea(a, p, this.attackH, P.pos));
+      ev.push({ type: 'strike', hit, atk: a });
+    }
+    this.next(a, P, ev);
+  }
 
   update(dt, P, env = {}) {
     const D = this.def, ev = [];
@@ -118,6 +199,7 @@ export class Foe {
     this.flash = Math.max(0, this.flash - dt * 4);
     this.recoil = Math.max(0, this.recoil - dt * (this.heavyRecoil ? 2.5 : 5));
     this.cool = Math.max(0, this.cool - dt);
+    for (const k of ['flipped', 'lit', 'crust', 'sleep']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
     // a shove's slide eases out
     if (this.vel.lengthSq() > 1e-4) { this.step(this.vel.x * dt, this.vel.z * dt, env); this.vel.multiplyScalar(Math.exp(-6 * dt)); }
     // a flyer keeps to its height, low only while it recovers from a dive (and falls when stilled)
@@ -145,31 +227,26 @@ export class Foe {
           this.walkTo(P.pos.x + Math.sin(a) * r, P.pos.z + Math.cos(a) * r, D.speed * 0.5, dt, env);
           this.face(dx, dz, dt, 8);
         } else if (this.cool === 0) {
-          this.state = 'wind'; this.timer = 0;
-          const a = D.attack, f = [Math.sin(this.heading), Math.cos(this.heading)];
-          // a ring lands ahead of it (the blot's lunge), a cone fans out from it (the machine's slam)
-          if (a.at === 'target') this.attackAt.set(P.pos.x, this.pos.y, P.pos.z);   // (lobbed: it lands where you stood)
-          else if (a.shape === 'ring') this.attackAt.set(this.pos.x + f[0] * (a.ahead ?? 0), this.pos.y, this.pos.z + f[1] * (a.ahead ?? 0));
-          else this.attackAt.copy(this.pos);
-          this.attackH = this.heading;
-          ev.push('warn');
+          // one of its attacks that fits the distance (none: it closes in)
+          const a = this.chooseAttack(d);
+          if (a) { this.beginWind(a, P); ev.push('warn'); }
+          else this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, D.radius + 0.6);
         }
         break;
       }
       case 'wind': {
-        const a = D.attack;
+        const a = this.atk ?? D.attack;
         const wind = a.wind * (env.slow?.() ?? 1);
         this.timer += dt; this.k = Math.min(1, this.timer / wind);
+        if (a.track && this.k < a.track && playerOk) this.placeArea(a, P);   // (the drawn area follows you, then holds)
         if (this.timer >= wind) {
-          if (a.at === 'target') {
-            const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < 1.6 && inArea(a, this.attackAt, this.attackH, P.pos);
-            ev.push({ type: 'strike', hit }); this.state = 'recover'; this.timer = D.recover; this.k = 0;
-          } else { this.state = 'strike'; this.timer = 0; this.k = 0; this.contacted = false; }
+          if (a.instant || a.at === 'target') this.resolve(a, P, playerOk, ev, env);
+          else { this.state = 'strike'; this.timer = 0; this.k = 0; this.contacted = false; }
         }
         break;
       }
       case 'strike': {
-        const a = D.attack, before = this.k;
+        const a = this.atk ?? D.attack, before = this.k;
         this.timer += dt; this.k = Math.min(1, this.timer / (a.strike ?? 0.24));
         // Travel through the lunge over time; step() checks footing and walls.
         if (a.lunge || a.dive) {
@@ -178,19 +255,26 @@ export class Foe {
           this.step(Math.sin(this.attackH) * d, Math.cos(this.attackH) * d, env);
         }
         if (a.dive) this.alt = THREE.MathUtils.lerp(D.hover, 0.35, this.k);
-        if (!this.contacted && this.k >= (a.contact ?? 0.55)) {
+        if (a.sweep) {
+          // a charge: whatever it runs into on the way is hit, once
+          const near = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) < D.radius + 0.75;
+          if (!this.contacted && this.k >= (a.contact ?? 0) && playerOk && near && Math.abs(P.pos.y - this.pos.y) < 1.6) { this.contacted = true; ev.push({ type: 'strike', hit: true, atk: a }); }
+        } else if (!this.contacted && this.k >= (a.contact ?? 0.55)) {
           this.contacted = true;
           const origin = a.lunge ? this.pos : this.attackAt;
           const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < 1.6 && inArea(a, origin, this.attackH, P.pos)
             && (env.seen?.(this.chest, P.pos) ?? true);
-          ev.push({ type: 'strike', hit });
+          ev.push({ type: 'strike', hit, atk: a });
         }
-        if (this.k >= 1) { this.state = 'recover'; this.timer = D.recover; this.k = 0; }
+        if (this.k >= 1 && this.state === 'strike') {
+          if (a.sweep && !this.contacted) ev.push({ type: 'strike', hit: false, atk: a });
+          this.next(a, P, ev);
+        }
         break;
       }
       case 'recover': {
         this.timer -= dt;
-        if (this.timer <= 0) { this.state = 'chase'; this.cool = D.cool[0] + this.rng() * (D.cool[1] - D.cool[0]); }
+        if (this.timer <= 0) { this.state = 'chase'; this.cool = D.cool[0] + this.rng() * (D.cool[1] - D.cool[0]); if (D.burrow) this.buried = true; }
         break;
       }
       case 'home': {
@@ -209,8 +293,11 @@ export class Foe {
     if (!this.alive) return;
     this.state = 'recover'; this.timer = this.def.recover * (perfect ? 1.8 : 0.65); this.k = 0; this.flash = 0.8;
     this.recoil = 1; this.heavyRecoil = perfect; this.recoilDir.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
-    this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.kind === 'machine' ? 2 : 5);
+    this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.def.heavy ? 2 : 5);
   }
+
+  /** A blow travelling against its face (dir: the blow's way): what a shell turns. */
+  frontal(dir) { return dir.x * Math.sin(this.heading) + dir.z * Math.cos(this.heading) < -0.3; }
 
   face(dx, dz, dt, rate = 6) {
     const want = Math.atan2(dx, dz), da = Math.atan2(Math.sin(want - this.heading), Math.cos(want - this.heading));
@@ -242,19 +329,44 @@ export class Foe {
    */
   hit(mode, dir, info = {}) {
     if (!this.alive) return false;
-    const D = this.def;
+    const D = this.def, src = info.source;
+    if (this.buried) {
+      // under the sand only a blast, a stomp or a gust reaches a ray: it is thrown up, dazed
+      if (src !== 'bomb' && src !== 'stomp' && src !== 'gust') return false;
+      this.buried = false; this.stunned = 1.6; this.flash = 1; this.k = 0; this.letGo = true;
+      if (this.state === 'wind' || this.state === 'strike') this.state = 'chase';
+      return true;
+    }
+    if (this.phased && mode !== 'fire') return false;   // (a hound running is only a shadow: the blade passes through)
+    if (src === 'bomb' && this.shelled) { this.shelled = false; this.flash = 1; }   // (a bomb cracks a crab's shell for good)
     let dmg = 0;
-    if (mode === 'blade') { dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 ? 2 : 1); this.stunned = 0; }   // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js)
-    else if (mode === 'shoot' || mode === 'fire') dmg = this.kind === 'machine' ? 0 : 1;
-    else if (mode === 'push' && this.kind === 'swarm') dmg = 1;   // (the push scatters a swarm)
-    else if (mode === 'stun') { this.stunned = STILL; this.state = ['wind', 'strike'].includes(this.state) ? 'chase' : this.state; this.k = 0; this.flash = 0.6; return true; }
-    if (mode === 'push' && dir) { this.vel.set(dir.x, 0, dir.z).multiplyScalar((info.shove ?? 2.4) * (this.kind === 'machine' ? 1.2 : 3)); }
-    if (dir && mode !== 'push') this.vel.set(dir.x, 0, dir.z).multiplyScalar((this.kind === 'machine' ? 1.5 : 4) * (info.combo === 2 ? 2.2 : 1));   // (the heavy third swing throws them)
+    if (mode === 'blade') {
+      if (this.shelled && !(this.flipped > 0) && dir && this.frontal(dir)) {
+        // the shell turns the blade from the front: a glance, no harm
+        this.flash = 0.5; this.recoil = 0.5; this.heavyRecoil = false; this.recoilDir.copy(dir).setY(0).normalize();
+        return 'glance';
+      }
+      // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js; a doused slag walker's crust)
+      dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 || this.crust > 0 ? 2 : 1) * (D.weak?.[src] ?? 1);
+      this.stunned = 0; this.sleep = 0;
+    } else if (mode === 'shoot' || mode === 'fire') {
+      dmg = D.takes[mode] ?? 0;
+      if (mode === 'shoot' && D.douse) this.crust = D.douse;   // (water on slag: a cold crust)
+      if (mode === 'fire' && D.phase) this.lit = 3;            // (an ember lights a hound solid)
+    } else if (mode === 'push') dmg = D.takes.push ?? 0;       // (the push, a gust: a swarm, a moth, a splinter is blown apart)
+    else if (mode === 'stun') { this.stunned = STILL; this.state = ['wind', 'strike'].includes(this.state) ? 'chase' : this.state; this.k = 0; this.flash = 0.6; this.letGo = true; return true; }
+    else if (mode === 'bloom') {
+      if (D.takes.bloom === 'hold') { this.stunned = this.sleep = 3; this.state = ['wind', 'strike'].includes(this.state) ? 'chase' : this.state; this.k = 0; this.flash = 0.6; this.letGo = true; return true; }   // (roots asleep in flower)
+      dmg = D.takes.shoot ?? 0;
+    }
+    if (mode === 'push' && dir) { this.vel.set(dir.x, 0, dir.z).multiplyScalar((info.shove ?? 2.4) * (D.heavy ? 1.2 : 3)); }
+    if (dir && mode !== 'push') this.vel.set(dir.x, 0, dir.z).multiplyScalar((D.heavy ? 1.5 : 4) * (info.combo === 2 ? 2.2 : 1));   // (the heavy third swing throws them)
     this.flash = 1;
     this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2;
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
-    // Light cuts interrupt a blot, or the first two thirds of a machine wind-up.
-    if ((this.kind === 'blot' && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; }
+    if (mode === 'blade' || mode === 'fire') this.letGo = true;   // (a hold, a line, is broken)
+    // Light cuts interrupt a blot (the flinchy ones), or the first two thirds of anyone's wind-up.
+    if ((D.flinchy && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; }
     else if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
@@ -265,7 +377,8 @@ export class Foe {
 /** A wave said in words: "3 ink blots", "2 machines and 2 ink blots". */
 export function waveWords(kinds) {
   const count = (k) => kinds.filter((x) => x === k).length, say = (n, one, many = `${one}s`) => `${n} ${n > 1 ? many : one}`;
-  const parts = [['machine', 'machine'], ['shade', 'shade'], ['spitter', 'spitting blot'], ['flyer', 'winged blot'], ['blot', 'ink blot']].map(([k, w]) => count(k) && say(count(k), w));
+  const parts = [['machine', 'machine'], ['shade', 'shade'], ['spitter', 'spitting blot'], ['flyer', 'winged blot'],
+    ...Object.keys(KINDS).map((k) => [k, FOES[k].name, FOES[k].plural]), ['blot', 'ink blot']].map(([k, w, many]) => count(k) && say(count(k), w, many));
   if (count('swarm')) parts.push('a swarm');
   const list = parts.filter(Boolean);
   return list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : list[0] ?? '';
@@ -346,6 +459,13 @@ function machineModel() {
 }
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+let _waveGeo, _waveMat, _waveInk, _patchGeo, _patchMat, _rimGeo, _patchRim;   // (shared by every shockwave and slag patch)
+/** The drops a foe bursts into as it falls. */
+const BURST_TONES = {
+  machine: ['#a8824a', '#70e7df', '#3a3330'], golem: ['#7fd6a8', '#d7f3d9', '#2d4a3e'], splinter: ['#7fd6a8', '#bfe8c4', '#2d4a3e'],
+  ray: ['#c98d4f', '#e8c58f', '#2b211f'], moth: ['#ff5fa2', '#5ff0e8', '#241a2e'], drone: ['#8a4b2e', '#ffb347', '#2e2a28'],
+  stalker: ['#e8e2d0', '#9fe8d8', '#3a332c'], crab: ['#efe9dc', '#9a4f34', '#f2d34b'], slag: ['#ff7a2e', '#ffd36a', '#3b2a26'],
+};
 
 /** Every foe in a world: the packs of ink blots in the wilds, the machines in the temple, their looks and their targets. */
 export class Foes {
@@ -389,7 +509,7 @@ export class Foes {
   cycleLock() {
     const P = this.player, cam = this.camera;
     const fwd = cam ? cam.getWorldDirection(new THREE.Vector3()) : null;
-    const cands = this.list.filter((f) => f.alive && f.dead === undefined && f.pos.distanceTo(P.pos) < LOCK.reach)
+    const cands = this.list.filter((f) => f.alive && f.dead === undefined && !f.buried && f.pos.distanceTo(P.pos) < LOCK.reach)
       .map((f) => ({ f, d: f.pos.distanceTo(P.pos), ahead: fwd ? _v.subVectors(f.pos, P.pos).setY(0).normalize().dot(_w.copy(fwd).setY(0).normalize()) > 0.2 : true }))
       .sort((a, b) => (b.ahead - a.ahead) || a.d - b.d);
     if (!cands.length) { this.lock = null; return null; }
@@ -405,7 +525,7 @@ export class Foes {
   /** The lock holds while the foe stands and stays near; the marker over it (#foe-lock). */
   updateLock() {
     const f = this.lock, P = this.player;
-    if (f && (!f.alive || f.dead !== undefined || f.pos.distanceTo(P.pos) > LOCK.lose)) this.lock = null;
+    if (f && (!f.alive || f.dead !== undefined || f.buried || f.pos.distanceTo(P.pos) > LOCK.lose)) this.lock = null;
     if (typeof document === 'undefined' || !this.camera) return;
     if (!this.lockEl) {
       this.lockEl = Object.assign(document.createElement('div'), { id: 'foe-lock' });
@@ -447,12 +567,12 @@ export class Foes {
 
   add(kind, at, o = {}) {
     const f = new Foe(kind, at, { rng: this.rng, ...o });
-    f.model = kind === 'machine' ? machineModel() : kind === 'shade' && this.lib && this.humans?.[0] ? this.shadeModel() : blotModel(kind);
+    f.model = kind === 'machine' ? machineModel() : kind === 'shade' && this.lib && this.humans?.[0] ? this.shadeModel() : kindModel(kind) ?? blotModel(kind);
     f.model.group.position.copy(at);
     if (!f.model.shade) this.group.add(f.model.group);
     if (f.model.glob) this.group.add(f.model.glob);
-    f.tele = new Telegraph(this.group, kind === 'machine' ? '#e0703a' : kind === 'spitter' ? '#7f9a2e' : kind === 'shade' ? '#3b2a5c' : '#6d4fa8');
-    f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: f.def.radius + 0.15, accepts: ['blade', 'stun', 'fire'],
+    f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
+    f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: f.def.radius + 0.15, accepts: ['blade', 'stun', 'fire', 'bloom'],
       position: () => f.chest, enabled: () => f.alive && f.model.group.visible,
       onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info) });
     this.list.push(f);
@@ -461,9 +581,13 @@ export class Foes {
 
   remove(f) {
     f.target?.(); f.tele?.dispose(); f.model.group.removeFromParent(); f.model.glob?.removeFromParent(); f.model.shade?.dispose();
+    for (const t of f.teles ?? []) t.dispose();
+    for (const g of f.globs ?? []) g.removeFromParent();
+    if (this.hold?.f === f) this.hold = null;
+    if (this.lock === f) this.lock = null;
     // (each foe's shapes and its warning's glow are its own: let go with it, or every wave of a fight leaves
     // its GPU buffers and materials behind)
-    for (const o of [f.model.group, f.model.glob]) o?.traverse((m) => m.geometry?.dispose());
+    for (const o of [f.model.group, f.model.glob, ...(f.globs ?? [])]) o?.traverse((m) => m.geometry?.dispose());
     this.list.splice(this.list.indexOf(f), 1);
   }
 
@@ -483,7 +607,7 @@ export class Foes {
         if (!Number.isFinite(y) || Math.abs(y - m.pos.y) > 1.2) continue;
         const from = _v.copy(m.pos).setY(m.pos.y + 1), to = _w.set(x, y + 1, z);
         if (phys.rayDistance?.(from, to.clone().sub(from).normalize(), from.distanceTo(to)) < from.distanceTo(to) - 0.3) continue;
-        this.add('machine', new THREE.Vector3(x, y, z), { id });
+        this.add(templeKind(this.levelId, i), new THREE.Vector3(x, y, z), { id }).placed = true;   // (the world's own: src/foe-worlds.js)
         break;
       }
     });
@@ -515,10 +639,11 @@ export class Foes {
       if (this.game.flag(g.id) || P.pos.distanceTo(g.pos) > GUARDS.near) continue;
       if (this.list.some((f) => f.guard === g && f.alive)) continue;
       if (!this.wild(g.pos)) { g.tame = true; continue; }
+      const kinds = guardKinds(this.levelId, GUARDS.size);   // (the world's own: src/foe-worlds.js)
       for (let k = 0; k < GUARDS.size; k++) {
         const a = (k / GUARDS.size) * Math.PI * 2 + 0.7, x = g.pos.x + Math.sin(a) * GUARDS.ring, z = g.pos.z + Math.cos(a) * GUARDS.ring;
         const y = this.physics ? this.physics.groundAt(x, g.pos.y + 4, z, 12) : g.pos.y;
-        const f = this.add('blot', new THREE.Vector3(x, Number.isFinite(y) ? y : g.pos.y, z));
+        const f = this.add(kinds[k], new THREE.Vector3(x, Number.isFinite(y) ? y : g.pos.y, z));
         f.guard = g;
       }
     }
@@ -608,16 +733,17 @@ export class Foes {
   hurt(f, mode, dir, info) {
     const r = f.hit(mode, dir, info);
     if (!r) return false;
-    if (mode === 'blade' || mode === 'shoot' || mode === 'fire') this.sound?.foeHurt?.(f.kind);
+    if (r === 'glance') { this.sound?.foeHurt?.('machine'); this.sparks(f, f.chest); return true; }   // (off a crab's shell)
+    if (mode === 'blade' || mode === 'shoot' || mode === 'fire') this.sound?.foeHurt?.(f.def.sound ?? f.kind);
     if (r === 'burst') this.burst(f);
     return true;
   }
 
   /** Done: a blot bursts back into ink, a machine comes apart; the tank gets a charge back. */
   burst(f) {
-    this.sound?.foeBurst?.(f.kind);
+    this.sound?.foeBurst?.(f.def.sound ?? f.kind);
     const T = this.tool, at = f.chest.clone();
-    const tones = f.kind === 'machine' ? ['#a8824a', '#70e7df', '#3a3330'] : [INK, '#3b3350', '#6d4fa8'];
+    const tones = BURST_TONES[f.kind] ?? [INK, '#3b3350', '#6d4fa8'];
     for (let i = 0; i < 46; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(2 + Math.random() * 6).addScaledVector(_up, 3), drag: 2, grav: 9, size: 0.05 + Math.random() * 0.06, stretch: 2, life: 0.6 + Math.random() * 0.5, color: tones[i % 3] });
     if (T?.reserve) {
       T.reserve.level = Math.min(T.reserve.max, T.reserve.level + 1);
@@ -625,8 +751,14 @@ export class Foes {
       const tank = T.tank?.group ? T.tank.group.localToWorld(_w.set(0, 0.3, 0)) : null;
       if (tank) for (let i = 0; i < 10; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
     }
-    if (f.kind === 'machine') this.breakApart(f);
+    if (f.def.breaks) this.breakApart(f);   // (a machine, glass, a shell, a drone: its pieces fly)
     else this.stain(f);
+    // a glass golem breaks into its splinters, and they come on
+    if (f.def.splits) for (let i = 0; i < f.def.splits.n; i++) {
+      const a = (i / f.def.splits.n) * Math.PI * 2 + this.rng(), s = this.add(f.def.splits.kind, new THREE.Vector3(f.pos.x + Math.sin(a) * 0.9, f.pos.y, f.pos.z + Math.cos(a) * 0.9));
+      s.state = 'chase'; s.cool = 0.9 + i * 0.3; s.vel.set(Math.sin(a), 0, Math.cos(a)).multiplyScalar(5); s.guard = f.guard; s.placed = f.placed;
+    }
+    if (this.hold?.f === f) this.hold = null;
     if (f.id) this.game.set(f.id, true);
     if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards are gone for good)
     if (!this.level?.foes?.noInk) gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it; not from a game's endless waves)
@@ -642,12 +774,13 @@ export class Foes {
     this._people = this.peopleNow();
     // the wilds: after a few seconds out there, a pack comes in (the first time, just one); a pack
     // left far behind dissolves; after one is cut down, a rest before the next
-    if (this.waves && !this.own) this.updateWaves(dt);
+    if (this.waves && !this.own && !this.practice) this.updateWaves(dt);
+    if (this.practice?.kind) this.updatePractice(dt);
     this.updateGuards();
     const wild = !this.waves && !P.ride && !P.swim && this.wild(P.pos);
     this.wildFor = wild ? this.wildFor + dt : 0;
     this.packRest = Math.max(0, this.packRest - dt);
-    const blots = this.list.filter((f) => f.kind !== 'machine' && !f.guard && f.alive);   // (the wilds' own: not the temple's, not a relic's guards)
+    const blots = this.list.filter((f) => !f.placed && !f.guard && f.alive);   // (the wilds' own: not the temple's, not a relic's guards)
     if (wild && this.wildFor > PACK.settle && this.packRest === 0 && blots.length === 0) {
       if (this.spawnPack()) { this.packRest = (PACK.rest[0] + this.rng() * (PACK.rest[1] - PACK.rest[0])) * (this.difficulty === 'gentle' ? GENTLE.rest : 1); this.firstSeen(); }
       else this.packRest = 3;
@@ -661,17 +794,26 @@ export class Foes {
         if (f.dead <= 0) this.remove(f);
         continue;
       }
-      if (f.kind !== 'machine' && !this.waves && f.pos.distanceTo(P.pos) > PACK.drop) { this.remove(f); continue; }
+      if (!f.placed && !this.waves && f.pos.distanceTo(P.pos) > PACK.drop) { this.remove(f); continue; }
       // a machine only stirs while you are in its temple (the Arena's, always)
-      const inTemple = f.kind !== 'machine' || this.waves || this.level?.temple?.inside?.(P.pos);
+      const inTemple = !f.placed || this.waves || this.level?.temple?.inside?.(P.pos);
       const ev = inTemple ? f.update(dt, P, this.env) : [];
       for (const e of ev) {
-        if (e === 'warn') this.sound?.foeWarn?.(f.kind);
-        if (e?.type === 'strike' && f.kind === 'shade') this.slashTrail(f);
-        if (e?.type === 'strike' && e.hit) this.strike(f);
+        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind);
+        if (e === 'notice') this.meet(f);
+        if (e?.type !== 'strike') continue;
+        if (f.kind === 'shade') this.slashTrail(f);
+        const a = e.atk ?? f.def.attack;
+        if (a.wave) this.addWave(f, a);
+        if (a.leave) this.leaveSlag(f, a);
+        if (a.surface || a.blink) this.burstUp(f, a);
+        if (e.hit) this.strike(f, a);
       }
+      if (f.def.trail && f.alive && inTemple) this.trailSlag(f);
       this.look(f, dt);
     }
+    this.updateHold(dt);
+    this.updateHazards(dt);
     this.keepApart();
     this.warnings();
     this.updateLock();
@@ -721,30 +863,210 @@ export class Foes {
       const k = 1 / Math.max(Math.abs(x) / 0.9, Math.abs(y) / 0.82, 1e-3);
       x *= k; y *= k;
       const chip = this.chips[n] ?? (this.chips[n] = this.warnEl.appendChild(Object.assign(document.createElement('div'), { className: 'foe-chip' })));
-      chip.style.cssText = `position:absolute;left:${(x * 0.5 + 0.5) * 100}%;top:${(0.5 - y * 0.5) * 100}%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #2b211f;background:radial-gradient(circle, ${f.kind === 'machine' ? '#e0703a' : '#8e64d6'} ${Math.round(f.k * 70)}%, rgba(247,236,210,0.85) ${Math.round(f.k * 70) + 1}%);box-shadow:2px 2px 0 #2b211f`;
+      chip.style.cssText = `position:absolute;left:${(x * 0.5 + 0.5) * 100}%;top:${(0.5 - y * 0.5) * 100}%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #2b211f;background:radial-gradient(circle, ${f.def.tone ?? '#8e64d6'} ${Math.round(f.k * 70)}%, rgba(247,236,210,0.85) ${Math.round(f.k * 70) + 1}%);box-shadow:2px 2px 0 #2b211f`;
       n++;
     }
     for (let i = n; i < (this.chips?.length ?? 0); i++) this.chips[i].style.display = 'none';
   }
 
   /** A strike that caught the traveller: a bite of the bar (never all of a healthy one), a shove, a machine knocks you down. */
-  strike(f) {
-    const P = this.player, a = f.def.attack;
+  strike(f, a = f.atk ?? f.def.attack) {
+    const P = this.player;
+    // a flash only blinds whoever looks at it: turned away (the camera), it is nothing
+    if (a.blind && !this.facing(f)) return false;
     // the guard took it (src/fluid-blade.js block): no harm, and the foe reels back
     const guarded = P.guard?.(f.pos);
     if (guarded) {
-      f.staggered(guarded === 'perfect'); this.sound?.foeHurt?.(f.kind);
-      if (guarded === 'perfect') { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
+      const perfect = guarded === 'perfect';
+      // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
+      if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }
+      f.staggered(perfect); this.sound?.foeHurt?.(f.def.sound ?? f.kind);
+      if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
+      // what a guard does to some attacks: a crab's spin is turned onto its back; a harpoon's or a root's line is
+      // cut (the drone, the stalker dazed)
+      if (a.onParry === 'flip') { f.flipped = f.stunned = Math.max(f.stunned, 2.6); f.vel.multiplyScalar(0.3); }
+      else if (a.onParry === 'cut') { f.stunned = Math.max(f.stunned, perfect ? PARRY_STUN : 1); this.sparks(f, P.chest ?? P.pos); }
       return false;
     }
-    const dmg = strikeDamage(P.health ?? 1, a.damage * (this.difficulty === 'gentle' ? GENTLE.harm : 1));
+    this.harm(this.harmOf(a.damage));
     _v.subVectors(P.pos, f.pos).setY(0);
     if (_v.lengthSq() < 1e-4) _v.set(Math.sin(f.heading), 0, Math.cos(f.heading));
     _v.normalize();
-    if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
+    const g = this.difficulty === 'gentle' ? 0.6 : 1;
+    if (a.tether || a.grab) {
+      // a harpoon's line, a root's grip: you are pulled in (cut the foe, or it is stilled, and it lets go)
+      const h = a.tether ?? a.grab;
+      this.hold = { f, kind: a.tether ? 'tether' : 'grab', t: h.time * g, pull: h.pull, d: f.pos.distanceTo(P.pos) };
+      f.letGo = false; P.flinch?.();
+    } else if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
     else { P.vel?.addScaledVector(_v, 5).addScaledVector(_up, 2.5); P.flinch?.(); }   // (a flinch from motion capture: player.js)
-    P.hurt?.(dmg, 'foe');
+    if (a.blind) this.blind(a.blind * g, f.def.tone);
     return true;
+  }
+
+  /** Is the traveller looking toward f (the camera's view, else the body's heading)? */
+  facing(f) {
+    const P = this.player, d = _w.subVectors(f.chest, P.pos).setY(0);
+    if (d.lengthSq() < 1e-4) return true;
+    d.normalize();
+    const fwd = this.camera ? this.camera.getWorldDirection(_v).setY(0).normalize() : _v.set(Math.sin(P.heading ?? 0), 0, Math.cos(P.heading ?? 0));
+    return fwd.dot(d) > 0.45;
+  }
+  /** A strike's damage for this setting (Gentle: half). */
+  harmOf(d) { return d * (this.difficulty === 'gentle' ? GENTLE.harm : 1); }
+  /** A bite of the bar (never all of a healthy one). */
+  harm(d) { const P = this.player; P.hurt?.(strikeDamage(P.health ?? 1, d), 'foe'); }
+
+  /** A guard that cut a line or chipped glass: a few bright sparks. */
+  sparks(f, at) {
+    const T = this.tool;
+    if (!T?.drops || !at) return;
+    for (let i = 0; i < 14; i++) T.drops.add({ pos: at, vel: _v.randomDirection().multiplyScalar(3).addScaledVector(_up, 2), drag: 3, grav: 8, size: 0.035, stretch: 2, life: 0.4, color: i % 2 ? '#fff6dc' : f.def.tone ?? '#f2c54b' });
+  }
+
+  /** A line or a grip holding you: pulled toward the foe until it lets go (cut, stilled, flipped), or the time is up. */
+  updateHold(dt) {
+    const h = this.hold, P = this.player;
+    if (!h) return;
+    const f = h.f;
+    h.t -= dt;
+    if (h.t <= 0 || !f.alive || f.dead !== undefined || f.letGo || f.stunned > 0 || P.dead || P.down || P.ride) { this.hold = null; return; }
+    _v.subVectors(f.pos, P.pos).setY(0);
+    h.d = _v.length();
+    const stop = f.def.radius + 0.9;
+    if (h.d > stop) P.vel?.set(_v.x / h.d * h.pull, P.vel.y, _v.z / h.d * h.pull);
+    else P.vel?.set(0, P.vel.y, 0);
+  }
+  /** How far the line from f reaches now (a drone's harpoon line, a stalker's roots: drawn to you), or 0. */
+  held(f) { return this.hold?.f === f ? this.hold.d : 0; }
+
+  /** A moth's flash: the screen goes white and fades (Gentle: shorter). */
+  blind(s, tone = '#ff5fa2') {
+    this.blinded = Math.max(this.blinded ?? 0, s);
+    if (typeof document === 'undefined') return;
+    if (!this.blindEl) {
+      this.blindEl = Object.assign(document.createElement('div'), { id: 'foe-blind' });
+      this.blindEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:23;opacity:0;transition:none';
+      document.body.appendChild(this.blindEl);
+    }
+    this.blindEl.style.background = `radial-gradient(circle at 50% 45%, #ffffff 0%, #fffaf2 45%, ${tone} 140%)`;
+    this.blindFor = s;
+  }
+
+  /** The machine's ground slam: a ring of shock running out over the floor (you jump it; a guard does not hold it). */
+  addWave(f, a) {
+    const W = a.wave, at = f.pos.clone();
+    const mesh = new THREE.Mesh(_waveGeo ??= new THREE.RingGeometry(0.86, 1, 56).rotateX(-Math.PI / 2), _waveMat ??= makeMaterial({ color: '#e0703a', flat: true, glow: 0.7, side: THREE.DoubleSide, key: 'foe-wave' }));
+    const inner = new THREE.Mesh(_waveGeo, _waveInk ??= makeMaterial({ color: '#2b211f', flat: true, side: THREE.DoubleSide, key: 'foe-wave-ink' }));
+    inner.scale.setScalar(0.94); inner.position.y = -0.01; mesh.add(inner);
+    mesh.position.set(at.x, at.y + 0.08, at.z); mesh.userData.noCollide = true;
+    this.group.add(mesh);
+    (this.shocks ??= []).push({ f, at, r: a.radius ?? 1.5, W, mesh, hit: false });
+  }
+
+  /** Slag poured or stamped out: burning patches on the ground (a ring round it, or a fan before it). */
+  leaveSlag(f, a) {
+    const n = a.leave === 'ring' ? 7 : 5;
+    for (let i = 0; i < n; i++) {
+      if (a.leave === 'ring') { const t = (i / n) * Math.PI * 2; this.addPatch(f.pos.x + Math.sin(t) * (a.radius ?? 2) * 0.75, f.pos.y, f.pos.z + Math.cos(t) * (a.radius ?? 2) * 0.75, 0.8, 5); }
+      else { const t = f.attackH + (i / (n - 1) - 0.5) * (a.angle ?? 0.5) * 1.6, r = (a.range ?? 4) * (0.45 + (i % 2) * 0.35); this.addPatch(f.pos.x + Math.sin(t) * r, f.pos.y, f.pos.z + Math.cos(t) * r, 0.85, 5); }
+    }
+  }
+  /** A slag walker treads burning slag behind it, a patch every so often. */
+  trailSlag(f) {
+    const T = f.def.trail;
+    if (!f._trail) { f._trail = f.pos.clone(); return; }
+    if (f.pos.distanceTo(f._trail) < T.every || f.crust > 0) return;
+    f._trail.copy(f.pos);
+    this.addPatch(f.pos.x, f.pos.y, f.pos.z, T.r, T.life);
+  }
+  addPatch(x, y, z, r, life) {
+    const P = this.physics, g = P?.groundAt?.(x, y + 1.5, z, 4), gy = Number.isFinite(g) ? g : y;
+    const mesh = new THREE.Mesh(_patchGeo ??= new THREE.CircleGeometry(1, 14).rotateX(-Math.PI / 2), _patchMat ??= makeMaterial({ color: '#ff7a2e', color2: '#ffd36a', flat: true, glow: 0.9, key: 'foe-slag-patch' }));
+    const rim = new THREE.Mesh(_rimGeo ??= new THREE.RingGeometry(0.82, 1, 14).rotateX(-Math.PI / 2), _patchRim ??= makeMaterial({ color: '#2a1d1a', flat: true, key: 'foe-slag-rim' }));
+    rim.position.y = 0.004; mesh.add(rim);
+    mesh.position.set(x, gy + 0.04, z); mesh.scale.setScalar(r); mesh.rotation.y = this.rng() * 6; mesh.userData.noCollide = true;
+    this.group.add(mesh);
+    (this.patches ??= []).push({ pos: new THREE.Vector3(x, gy, z), r, life, max: life, mesh });
+    if (this.patches.length > 48) { const old = this.patches.shift(); old.mesh.removeFromParent(); }
+  }
+
+  /** A ray bursting up, a hound stepping out of the shadow: sand or shadow thrown up there. */
+  burstUp(f, a) {
+    const T = this.tool, at = f.pos.clone().setY(f.pos.y + 0.2);
+    if (a.surface) for (let i = 0; i < 26; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().setY(Math.random() * 1.5 + 0.5).multiplyScalar(3 + Math.random() * 3), drag: 2, grav: 9, size: 0.06 + Math.random() * 0.05, life: 0.7, color: i % 3 ? '#e8c58f' : '#c98d4f' });
+    if (a.blink) { this.shadePools ??= new ShadePools(this.scene ?? this.group); for (let i = 0; i < 3; i++) this.shadePools.pools.add(new THREE.Vector3(f.pos.x + (this.rng() - 0.5), f.pos.y + 0.02, f.pos.z + (this.rng() - 0.5)), this.rng() * 6, _up); }
+  }
+
+  /** The shocks running out, the slag burning, the white of a flash fading. */
+  updateHazards(dt) {
+    const P = this.player, ground = P.onGround !== false;
+    for (const s of this.shocks ?? []) {
+      s.r += s.W.speed * dt;
+      s.mesh.scale.setScalar(s.r);
+      const d = Math.hypot(P.pos.x - s.at.x, P.pos.z - s.at.z);
+      // caught by the front only on your feet: a jump clears it
+      if (!s.hit && ground && Math.abs(d - s.r) < s.W.width && Math.abs(P.pos.y - s.at.y) < 1.2 && !P.dead && !P.down) {
+        s.hit = true; this.harm(this.harmOf(s.W.damage));
+        _v.subVectors(P.pos, s.at).setY(0).normalize();
+        P.vel?.addScaledVector(_v, 4).addScaledVector(_up, 3); P.flinch?.();
+      }
+      if (s.r > s.W.reach) s.mesh.removeFromParent();
+    }
+    if (this.shocks) this.shocks = this.shocks.filter((s) => s.r <= s.W.reach);
+    this.burnCool = Math.max(0, (this.burnCool ?? 0) - dt);
+    for (const p of this.patches ?? []) {
+      p.life -= dt;
+      p.mesh.scale.setScalar(p.r * Math.min(1, p.life / 0.8, (p.max - p.life) / 0.25 + 0.3));
+      if (this.burnCool === 0 && ground && !P.dead && !P.down && Math.hypot(P.pos.x - p.pos.x, P.pos.z - p.pos.z) < p.r && Math.abs(P.pos.y - p.pos.y) < 0.8) {
+        this.burnCool = 0.7; this.harm(this.harmOf(0.05)); P.vel?.addScaledVector(_up, 2.5); P.flinch?.();
+        this.sound?.foeHurt?.('blot');
+      }
+      if (p.life <= 0) p.mesh.removeFromParent();
+    }
+    if (this.patches) this.patches = this.patches.filter((p) => p.life > 0);
+    if (this.blinded > 0) {
+      this.blinded = Math.max(0, this.blinded - dt);
+      if (this.blindEl) this.blindEl.style.opacity = String(Math.min(1, (this.blinded / (this.blindFor || 1)) * 1.6) * 0.88);
+    } else if (this.blindEl) this.blindEl.style.opacity = '0';
+  }
+
+  /** The first time each kind comes for you: what it is and how to beat it, once (NOTES, src/foe-kinds.js). */
+  meet(f) {
+    const note = NOTES[f.kind];
+    if (!note || this.own) return;
+    const id = `foes.met.${f.kind}`;
+    if (this.game.flag(id)) return;
+    this.game.set(id, true);
+    this.notice?.(note);
+  }
+
+  // ------------------------------------------------------------------ the Arena's practice (src/foe-spawner.js)
+  /** A foe of `kind` comes in ahead of you (the Arena's spawner, tests, the console: foes.spawnKind('crab')). */
+  spawnKind(kind, { n = FOES[kind]?.group ?? 1, dist = 9 } = {}) {
+    const P = this.player;
+    if (!FOES[kind] || !P) return [];
+    const h = P.heading ?? 0, out = [];
+    for (let i = 0; i < n; i++) {
+      const a = h + (i - (n - 1) / 2) * 0.35, x = P.pos.x + Math.sin(a) * dist, z = P.pos.z + Math.cos(a) * dist;
+      const y = this.physics ? this.physics.groundAt(x, P.pos.y + 20, z, 40) : P.pos.y;
+      const f = this.add(kind, new THREE.Vector3(x, Number.isFinite(y) ? y : P.pos.y, z));
+      f.heading = Math.atan2(P.pos.x - x, P.pos.z - z);
+      out.push(f);
+    }
+    return out;
+  }
+  /** Practice: the waves stop; with a kind, it comes back each time the last one falls (null: the waves again). */
+  setPractice(kind = null) {
+    if (kind === null) { this.practice = null; this.waveRest = WAVE.rest; return; }
+    this.practice = { kind: kind || null, rest: 0.5 };
+    for (const f of this.list.slice()) if (f.dead === undefined) this.remove(f);
+    if (kind) this.spawnKind(kind);
+  }
+  updatePractice(dt) {
+    const p = this.practice;
+    if (this.list.some((f) => f.alive)) { p.rest = 2; return; }
+    if ((p.rest -= dt) <= 0) { this.spawnKind(p.kind); p.rest = 2; }
   }
 
   /** The first pack: say what they are and what cuts them, once. */
@@ -768,6 +1090,10 @@ export class Foes {
     if (M.shade) {
       M.shade.melt = Math.max(0, M.shade.melt - dt / 0.8);   // (it pours up out of the ground as it comes)
       M.shade.update(dt, f);
+    } else if (M.anim) {
+      // each world's own kind moves itself (src/foe-kinds.js)
+      g.scale.setScalar(M.size ?? 1); g.rotation.x = 0; g.rotation.z = 0;
+      M.anim(f, this.animKit(f, dt, { t, wind, release, recovery, moving }));
     } else if (f.kind !== 'machine') {
       const w = Math.sin(performance.now() / 160 + f.home.x) * 0.06;
       const stretch = strike ? Math.sin(Math.PI * f.k) : 0;
@@ -781,8 +1107,17 @@ export class Foes {
       // the spitter's glob: in the air over the last half of its wind-up, down onto the drawn ring
       if (M.glob) {
         const u = f.state === 'wind' ? (f.k - 0.45) / 0.55 : -1;
+        const pts = f.attackPts ?? [f.attackAt];
         M.glob.visible = u > 0;
-        if (u > 0) { M.glob.position.lerpVectors(f.chest, f.attackAt, u); M.glob.position.y += Math.sin(Math.PI * u) * 3.5 + (1 - u) * 0.2; }
+        if (u > 0) { M.glob.position.lerpVectors(f.chest, pts[Math.floor(pts.length / 2)], u); M.glob.position.y += Math.sin(Math.PI * u) * 3.5 + (1 - u) * 0.2; }
+        // a volley: the other globs, a little behind the first
+        const rest = pts.filter((_, i) => i !== Math.floor(pts.length / 2));
+        for (let i = 0; i < Math.max(rest.length, f.globs?.length ?? 0); i++) {
+          const gl = (f.globs ??= [])[i] ?? (f.globs[i] = this.group.add(new THREE.Mesh(M.glob.geometry, M.glob.material)).children.at(-1));
+          const v = u - 0.08 * (i + 1);
+          gl.visible = i < rest.length && v > 0;
+          if (gl.visible) { gl.position.lerpVectors(f.chest, rest[i], v); gl.position.y += Math.sin(Math.PI * v) * 3.2 + (1 - v) * 0.2; }
+        }
       }
     } else {
       const walk = moving ? Math.sin(t * 9) * 0.45 : 0;
@@ -802,9 +1137,49 @@ export class Foes {
     g.rotation.x += r * strength * (f.recoilDir.x * Math.sin(f.heading) + f.recoilDir.z * Math.cos(f.heading));
     g.rotation.z = -r * strength * (f.recoilDir.x * Math.cos(f.heading) - f.recoilDir.z * Math.sin(f.heading));
     g.position.y -= f.heavyRecoil ? r * 0.14 : 0;
-    if (f.state === 'wind' && f.def.attack.at === 'target') { f.tele.show(f.def.attack, f.attackAt, f.attackH, f.pos.y); f.tele.set(f.k, t); }
-    else f.tele.hide(); // Melee reads from the body; ranged impacts retain their landing warning.
+    // Melee reads from the body; ranged impacts and areas (a lob, a lane, a shockwave's slam) are drawn on the floor.
+    const a = f.atk ?? f.def.attack, pts = f.attackPts ?? [f.attackAt];
+    const drawn = f.state === 'wind' && (a.tele || a.at === 'target' || a.at === 'behind');
+    for (let i = 0; i < Math.max(pts.length, 1 + (f.teles?.length ?? 0)); i++) {
+      const T = i === 0 ? f.tele : ((f.teles ??= [])[i - 1] ??= new Telegraph(this.group, f.def.tone ?? '#6d4fa8'));
+      if (drawn && i < pts.length) { T.show(a, pts[i], f.attackH, a.at === 'behind' || a.at === 'target' ? pts[i].y : f.pos.y); T.set(f.k, t); }
+      else T.hide();
+    }
   }
 
-  dispose() { for (const f of this.list.slice()) this.remove(f); this.group.removeFromParent(); this.warnEl?.remove(); this.lockEl?.remove(); this.shadePools?.dispose(); }
+  /** What a kind's own animation may use (src/foe-kinds.js anim(f, c)): the pose's phases and a few effects. */
+  animKit(f, dt, o) {
+    const T = this.tool, kit = (this._kit ??= {
+      dust: (at, color, n = 1, spread = 0.6) => { for (let i = 0; i < n; i++) T?.drops?.add({ pos: _w.set(at.x + (Math.random() - 0.5) * spread * 2, at.y + 0.1, at.z + (Math.random() - 0.5) * spread * 2), vel: _v.set((Math.random() - 0.5) * 1.5, 1.5 + Math.random() * 2, (Math.random() - 0.5) * 1.5), drag: 2.5, grav: 7, size: 0.05 + Math.random() * 0.04, life: 0.5, color }); },
+      spray: (at, colors, n = 10, speed = 4, grav = 9) => { for (let i = 0; i < n; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(speed * (0.4 + Math.random() * 0.6)).addScaledVector(_up, 1.5), drag: 2, grav, size: 0.04 + Math.random() * 0.05, stretch: 2, life: 0.55, color: colors[i % colors.length] }); },
+      drip: (foe, color) => { this.shadePools ??= new ShadePools(this.scene ?? this.group); this.shadePools.drops.add({ pos: _w.copy(foe.chest).add(_v.randomDirection().multiplyScalar(0.25)), vel: _v.set(0, -0.5, 0), drag: 1, grav: 6, size: 0.04, stretch: 2.5, life: 0.5, color }); },
+      tethered: (foe) => this.held(foe),
+      lob: (foe, u, color = '#d7f3d9') => {
+        const gl = (foe.globs ??= [])[0] ?? (foe.globs[0] = this.group.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.3, 0), makeMaterial({ color, flat: true, glow: 0.3, key: `foe-lob-${color}` }))).children.at(-1));
+        gl.visible = u > 0;
+        if (u > 0) { gl.position.lerpVectors(foe.chest, foe.attackAt, u); gl.position.y += Math.sin(Math.PI * u) * 4 + (1 - u) * 0.6; gl.rotation.x += 0.2; gl.rotation.y += 0.13; }
+      },
+    });
+    return Object.assign(kit, o, { dt, now: performance.now() });
+  }
+
+  /**
+   * The hitbox overlay's extra shapes (src/hitboxes.js registerHitboxes, from main.js): the shockwaves' fronts,
+   * the burning slag, a line or a grip holding you, a volley's other rings, a buried ray's ripple.
+   */
+  hitShapes(out = []) {
+    const P = this.player;
+    for (const s of this.shocks ?? []) out.push({ kind: 'circle', c: s.at.clone(), r: s.r, color: s.hit ? '#a05050' : '#ff1f1f', tag: 'foe.shockwave', fill: 0 });
+    for (const p of this.patches ?? []) out.push({ kind: 'circle', c: p.pos.clone(), r: p.r, color: '#ff7a00', tag: 'foe.slag', fill: 0.2 });
+    if (this.hold && P) out.push({ kind: 'segment', a: this.hold.f.chest.clone(), b: P.pos.clone().setY(P.pos.y + 1), color: '#ff1f1f', tag: `foe.${this.hold.kind}` });
+    for (const f of this.list) {
+      if (!f.alive || f.dead !== undefined) continue;
+      if (f.state === 'wind' && f.attackPts) for (const p of f.attackPts) out.push({ kind: 'circle', c: p.clone(), r: f.atk.radius ?? 1.5, color: '#ffa53a', tag: 'foe.volley', fill: 0.14 });
+      if (f.buried) out.push({ kind: 'label', c: f.pos.clone().setY(f.pos.y + 0.8), text: 'buried: bomb / stomp / gust', color: '#bfe9ff', tag: 'foe.buried' });
+      if (f.phased) out.push({ kind: 'label', c: f.pos.clone().setY(f.pos.y + 0.8), text: 'shadow: blade passes', color: '#bfe9ff', tag: 'foe.phased' });
+    }
+    return out;
+  }
+
+  dispose() { for (const f of this.list.slice()) this.remove(f); this.group.removeFromParent(); this.warnEl?.remove(); this.lockEl?.remove(); this.blindEl?.remove(); this.shadePools?.dispose(); this.shocks = this.patches = null; this.hold = null; }
 }
