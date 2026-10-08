@@ -1,0 +1,55 @@
+changelog.md
+  s_efb1d100d5a6fc::t_6b66fee8a8bd10 13
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_03318441d3013b 156
+src/changelog.js
+  s_efb1d100d5a6fc::t_6532d0c9ffc1d9 28
+src/levels/antennas-kit.js
+  s_efb1d100d5a6fc::t_6a79ad7c4f2133 352
+src/levels/arzach.js
+  s_efb1d100d5a6fc::t_c9f8298c6496f3 337,348
+src/levels/arzach2.js
+  s_efb1d100d5a6fc::t_222f95327366c4 29,32
+src/levels/bazaar.js
+  s_efb1d100d5a6fc::t_7027af20ecc120 21,27,29
+src/levels/eclipse-kit.js
+  s_efb1d100d5a6fc::t_f21adbddb3e3b7 64
+src/levels/edena.js
+  s_efb1d100d5a6fc::t_1416bab8a36d6e 610
+src/levels/mangrove-kit.js
+  s_efb1d100d5a6fc::t_e8eb56ad308da1 366
+src/levels/market-night-kit.js
+  s_efb1d100d5a6fc::t_c56ba0a67da04c 48-49,53,268
+src/levels/moon-foundry.js
+  s_efb1d100d5a6fc::t_e8f7e4923b8da9 174
+src/levels/reference-marketnight.js
+  s_efb1d100d5a6fc::t_e80fb483d27752 27
+src/levels/reference-spheres.js
+  s_efb1d100d5a6fc::t_53eaf83c92127a 28
+src/levels/reference-vael2.js
+  s_efb1d100d5a6fc::t_ee86b8d2ae34a8 32
+src/levels/salt-harbour-kit.js
+  s_efb1d100d5a6fc::t_c6368737f82211 415
+src/levels/spheres.js
+  s_efb1d100d5a6fc::t_7ee7030d3feee4 160
+src/levels/underwater-kit.js
+  s_efb1d100d5a6fc::t_cc9797863da4cf 33,48,63,101
+src/levels/waterfall-kit.js
+  s_efb1d100d5a6fc::t_4f6f3b3f0f6b32 38,40,117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ca619837ea76853b3b880ac114adb1d8cab16f7f",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
