@@ -1,0 +1,55 @@
+changelog.md
+  s_efb1d100d5a6fc::t_1d32929902861c 24-26
+docs/systems/foes.md
+  s_efb1d100d5a6fc::t_b912466f7c2c98 26-39,70-77,80,87-96,267-272,363-364
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_bdcd755fa8281b 140-141,143-147
+src/changelog.js
+  s_efb1d100d5a6fc::t_90132600e2f486 14-16
+src/fluid-blade.js
+  s_efb1d100d5a6fc::t_b01c0698e7d374 38-52,182-183,188-191,239-262,272-276,285,400-401,522
+src/foes.js
+  s_efb1d100d5a6fc::t_8198ec4060c7f3 562-563,792,896-897,1031-1037,1046-1047
+src/hitboxes.js
+  s_efb1d100d5a6fc::t_17a437dae06458 2,34-35,118-119,141-146
+src/levels/arena.js
+  s_efb1d100d5a6fc::t_ed2d34266318dc 59
+src/main.js
+  s_efb1d100d5a6fc::t_b178e1e0048715 95,464
+src/minigames/kit/onfoot.js
+  s_efb1d100d5a6fc::t_104ef9b648607d 13-14,22,27-29,37-39
+src/minigames/waves.js
+  s_efb1d100d5a6fc::t_6f6e7d32b132d6 8,29,253-259,399,417,432
+src/shield.js
+  s_efb1d100d5a6fc::t_2c39922a3aeda5 7-15,19-23,26,32,34-37,77-78,83-92,95-97,105-108,114-165,167,172,191-200,213-222,233,238-239,253-295,298-299,301,309,313-328,330,346-350,352-354,358-362,366-370,373-381
+tests/arena-lend.test.js
+  s_0b257590537c5a::t_90d0fffe164885 1-32
+tests/blade-grip.test.js
+  s_efb1d100d5a6fc::t_34707e012b5415 5,67-93,161-180
+tests/evade-iframes.test.js
+  s_efb1d100d5a6fc::t_53a75f636f5f01 1-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5920246a4186faafceee6fe3a913ca90a3e9e0b7",
+  "prompts": {},
+  "sessions": {
+    "s_0b257590537c5a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11b63-b11c-7440-84f8-471c5f03bb72",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
