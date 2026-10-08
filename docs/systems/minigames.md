@@ -27,6 +27,8 @@ rhythm game (`src/minigames/drums.js`), and the **Sketch hunt** in the Signal Ma
   west rim of the Sky Stones' start plateau, `[-52, 40.33, -61]`: there the ground found from high up is not the
   plateau's, so its height is given). Stand at a sign and the button must say "play …" (QA: every sign checked,
   and Quit puts you back by it).
+- **The Arcade** (`?level=arcade`, a developer's world in the Debug list): a sign for every game round one plaza, to
+  try them one after another (below, "The Arcade").
 - A game page skips the title (`save-slots.js` `DIRECT_PARAMS` has `game`) and plays in the save slot in use.
   It writes no position to the save (`main.js` `writeSave`), so the save still resumes where you left the world.
 
@@ -66,6 +68,33 @@ shapes go too (each wave of Ink tide left them), and its floor warning's own glo
 `materials.js` `releaseMaterial`: out of the cache; the outline is one shared material): 200 foes made and let go
 leave the material count flat (`tests/minigames-waves.test.js`). QA: `renderer.info.memory.geometries` stays flat over three
 Retries in every game.
+
+## The Arcade
+
+A developer's plaza for trying the games (`src/levels/arcade.js`, `?level=arcade`, `dev: true`, next to the Gadget
+Yard in the Debug worlds list). A round paved court inside a ring of mushroom-capped pillars, a glowing basin and
+a hooped spire in the middle.
+
+- **The signs**: `kit/arcade.js` `arcadeSigns(GAMES)` puts one per game of the registry on a ring 14 m out, over
+  270° from the south-west round the north to the south-east (the way in is the south), each facing the middle;
+  a new game file gets its sign by itself. `placeGameMarker(…, { plate })` hangs a name plate on the post (the
+  game's name and its best, `bestText`: drawn on a canvas when the level is built, so a new best shows on coming
+  back). The interact button at a sign opens `?game=<id>&from=arcade`.
+- **Coming back**: started from the Arcade, Quit is **Back to the Arcade**, `?level=arcade&back=<id>`
+  (`arcadeHref`); the level puts the traveller at that sign's `stand`, facing it, and says `keepSpawn` so
+  `main.js` does not move him to the place saved as he left.
+- **The games board** (`src/levels/arcade-board.js` `ArcadeBoard`, the level's `quickMenu` as the References' list
+  of views: `main.js` routes the pad to it and keeps the game still while it is open): every game, its line and its
+  best; choose one to open it. Opened from the board by the way in (interact), **Tab**, **LT + X / □** (the mount's
+  call: there is no mount here), or the small "games" button (touch, mouse); B / ○ or Esc closes.
+- **Next and previous**: `main.js` gives the runner `links: arcadeLinks(from, id)` (null unless `from=arcade`).
+  The runner's `host.links` is generic: `{ quit: { label, href }, extra: [{ id, label, sub, href, step }] }`;
+  the extra links are buttons on the start card, the pause card and the results (before Quit, under its label),
+  and a link with a `step` is also **[ / ]** and **LB / RB** on any card. The Arcade's are Previous game and Next
+  game (the games' order, round: `cycleGame`), each with the game's name under it.
+- Tests: `tests/arcade.test.js` (a sign for every game file there is, facing the middle and in reach of its stand;
+  the plaza built in node with its signs' interactables and the board; the way there and back; next and previous
+  round all ten and back).
 
 ## How to add a game
 

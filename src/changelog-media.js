@@ -117,6 +117,19 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.93': [
+    { match: 'Hitboxes, to study a fight', shots: [
+      { name: 'hitboxes-swing', only: 'after', caption: 'The heavy third cut on its live frames: the blade’s edge and sweep in red, its cone, the blot’s body and its blade ring', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena, frozen on the frame the blade cuts' },
+      { name: 'hitboxes-strike', only: 'after', caption: 'A machine’s slam landing: its cone filled red, the traveller’s feet inside it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena, frozen as the strike goes live' },
+      { name: 'hitboxes-parry', only: 'after', caption: 'A fresh guard in its parry window (white), the machine’s wind-up in orange', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena' },
+    ], see: 'In the Arena (?level=arena) walk to the board left of the way in and press B / ○ (E), or press F4 anywhere; fight a wave and watch the colours change as the cuts and strikes go live.' },
+    { match: 'The Arcade (Debug worlds, next to the Gadget Yard)', shots: [
+      { name: 'arcade-plaza', only: 'after', caption: 'The Arcade from above the way in: a sign for every game round the basin, the games board by the entrance', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
+      { name: 'arcade-sign', only: 'after', caption: 'At a sign: its name and best on the plate, "play" on the interact button', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
+      { name: 'arcade-board', only: 'after', caption: 'The games board: every game, its line and its best, to jump straight into one', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
+      { name: 'arcade-pause', only: 'after', caption: 'A game from the Arcade, paused: Previous game, Next game, Back to the Arcade', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
+    ], see: 'Open ?level=arcade (or the Debug worlds list). Walk to a sign and press the interact button, or press Tab (LT + X / □) for the games board; in a game press Menu / Esc, then Next game, or LB / RB ([ ]) on any of its cards.' },
+  ],
   '0.92': [
     { match: 'Games: the worlds list (Debug) has a row of small games', shots: [
       { name: 'games-row', only: 'after', caption: 'The worlds list: the ten games under the pages, each one’s best under its name', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), a save with eight bests' },

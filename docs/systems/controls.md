@@ -11,7 +11,7 @@ npm run dev     # http://localhost:5173
 
 Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
-**F** swings the fluid blade (RB / R1 on a controller, ⚔ on touch), **Ctrl** or **Z** held (on land) guards (LB / L1, 🛡), **Alt** evades (X / □, touch ↶). **Tab** locks on to a foe (R3, ◉): docs/systems/foes.md. The push is a gun mode (X, the D-pad, ◐), fired as a shot; C and the middle button do nothing now. **F3** toggles the FPS counter. **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
+**F** swings the fluid blade (RB / R1 on a controller, ⚔ on touch), **Ctrl** or **Z** held (on land) guards (LB / L1, 🛡), **Alt** evades (X / □, touch ↶). **Tab** locks on to a foe (R3, ◉): docs/systems/foes.md. The push is a gun mode (X, the D-pad, ◐), fired as a shot; C and the middle button do nothing now. **F3** toggles the FPS counter, **F4** the hitboxes (L3 + R3 on a pad: docs/systems/foes.md, "Hitboxes"). **H** shows or hides the controls help (hidden by default). **E** interacts: whistle for the level's mount (or hail a taxi), get on, get
 off. **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after
 five seconds; ping again to refresh it. The guide follows quest progress and

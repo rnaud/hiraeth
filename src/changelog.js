@@ -9,6 +9,10 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.93', date: '2026-10-08', items: [
+    'Hitboxes, to study a fight: in the Arena a board by the way in shows or hides them (B / ○, E), and anywhere F4, both sticks clicked together (L3 + R3), the dev menu or ?hitboxes=1 do too; the choice is kept. Drawn over everything in bright lines: the traveller’s hurt column, the blade’s cone and edge (yellow, red on the frames it cuts, with its sweep), the guard’s arc (white while a parry would land), an evade, the lock-on; each foe’s body, its sight and reach, where its strike lands (orange as it winds up, red while it lands) and its state in words, stunned or reeling; shots, bombs’ blasts and the hook’s line.',
+    'The Arcade (Debug worlds, next to the Gadget Yard): a round plaza with an arcade sign for every game, its name and your best on a plate under it. Walk up and press the interact button to play; Quit or the end of a run puts you back in front of that sign. The games board by the way in (or Tab, or LT + X / □) lists them all to jump straight into one, and a game started from the Arcade has Previous game, Next game and Back to the Arcade on its cards (LB / RB or [ and ]) to go round all ten without leaving.',
+  ] },
   { v: '0.92', date: '2026-10-08', items: [
     'Games: the worlds list (Debug) has a row of small games. Each opens on a card with its rules and its controls, counts you in 3, 2, 1, runs a clock, pauses on Menu or Esc (Resume, Retry, Quit), and ends on your score, with your best kept in your save and a stamp when you beat it. Quit takes you back where you came from.',
     'Dune skiing: the traveller on sand-skis down a kilometre of dune. Carve with the stick between the gates (a missed one costs 3 seconds), tuck on RT / R2 for speed, skid on LT / L2 to brake, fly off the lips and spin in the air (a spin landed clean takes a second off). Sand sprays off the edges, the view widens with the speed, and past the line the camera swings round to watch you skid to a stop.',

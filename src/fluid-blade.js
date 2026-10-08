@@ -36,11 +36,17 @@ export const SWINGS = [
 ];
 export const SWING_SPEED = 1; // Legacy consumers; attacks now have authored phase timing.
 export const EVADE = { duration: 0.28, cooldown: 0.65, speed: 7.5 };
+/** The source-time window of a captured swing in which the blade cuts: [from, to]. */
+export const activeRange = (S) => [S.activeFrom ?? S.hit - 0.08, S.activeTo ?? S.hit + 0.1];
+/** How much wider than a target's sphere the blade's segment may pass and still touch it (m). */
+export const BLADE_TOUCH = 0.12;
+/** The sphere the swept blade is tested against for a target (its radius, the margin on top). */
+export const bladeTouchRadius = (target) => (target.radius ?? 0.5) + BLADE_TOUCH;
 /** Time within the captured clip: anticipation, fast cut, follow-through. */
 export function attackSample(S, elapsed) {
   const wind = S.wind ?? 0.3, active = S.active ?? 0.2, recover = S.recover ?? 0.3;
   const duration = wind + active + recover;
-  const a = S.activeFrom ?? S.hit - 0.08, b = S.activeTo ?? S.hit + 0.1;
+  const [a, b] = activeRange(S);
   const lerp = THREE.MathUtils.lerp, clamp = (v) => THREE.MathUtils.clamp(v, 0, 1);
   const t = elapsed < wind ? lerp(S.from, a, clamp(elapsed / wind)) : elapsed < wind + active
     ? lerp(a, b, clamp((elapsed - wind) / active)) : lerp(b, S.to, clamp((elapsed - wind - active) / recover));
@@ -168,6 +174,20 @@ export class FluidBlade {
 
   /** The guard is up (enough to block). */
   get guarding() { return this.guardK > 0.5; }
+  /** A block now would be a perfect parry (a fresh guard inside GUARD.perfect). */
+  get parryLive() { return this.guarding && this.perfectReady && this.guardAge <= GUARD.perfect; }
+  /**
+   * The blade cut this frame (the hitbox overlay): update() called strike(), a captured swing between its active
+   * source times, an arc in its strike phase.
+   */
+  get cutting() { return !!this.cutNow; }
+  /** The coarse volume a cut first looks in: a cone from the chest along the swing's way (strike()). */
+  coarse(out = {}) {
+    const T = this.tool, p = T.player, S = this.special, up = hasUpgrade('reach', T.state) ? REACH_UP : 1;
+    out.origin = (out.origin ?? new THREE.Vector3()).copy(p.pos).addScaledVector(p.frame.up, 1.1);
+    out.dir = this.dir; out.reach = (S?.reach ?? BLADE.reach) * up; out.angle = S?.angle ?? BLADE.angle;
+    return out;
+  }
 
   /**
    * A strike from `from` (a foe's position): the guard takes it if it is up, the strike comes from in
@@ -180,7 +200,7 @@ export class FluidBlade {
     const arc = this.guardArc;
     if (!p || !this.guarding || !(arc ? inGuard(p.pos, arc.dir, from, arc.half) : inGuard(p.pos, this.dir, from))) return false;
     this.since = 0;
-    const perfect = this.perfectReady && this.guardAge <= GUARD.perfect;
+    const perfect = this.parryLive;
     if (!perfect && !T.reserve.use()) { T.sputter?.(); this.device.s.hit('broken'); T.sound?.shieldBreak?.(); return false; }   // (it cracks: the fluid is not there to take it)
     p.perfectBlock = perfect; this.perfectReady = false;
     this.guardRearm = GUARD.rearm;
@@ -202,6 +222,7 @@ export class FluidBlade {
   /** Per frame. press: a fresh press of the blade button; ok: the tool may act (FluidTool.allowed); held: the button is down. */
   update(dt, press, ok, held = false, evade = false) {
     const T = this.tool, p = T.player;
+    this.cutNow = false;
     this.cool = Math.max(0, this.cool - dt);
     this.evadeCool = Math.max(0, this.evadeCool - dt);
     this.evadeT = Math.max(0, this.evadeT - dt);
@@ -247,7 +268,7 @@ export class FluidBlade {
       // the next requested pose, so damage follows the visible hand even on a long frame.
       if (this.move) {
         const displayed = p.swingMove?.id === this.swingId ? p.swingMove.t : null;
-        const from = this.spec.activeFrom ?? this.spec.hit - 0.08, to = this.spec.activeTo ?? this.spec.hit + 0.1;
+        const [from, to] = activeRange(this.spec);
         if (displayed !== null && displayed >= from && (this.contactT ?? displayed) <= to) this.strike();
         this.contactT = displayed;
       } else if (this.t * this.dur >= this.sample.wind && previousTime < this.sample.wind + this.sample.active) this.strike();
@@ -358,12 +379,12 @@ export class FluidBlade {
 
   /** The active cut: coarse range/occlusion first, then the actual swept blade. */
   strike() {
-    const T = this.tool, p = T.player, U = p.frame.up;
-    const origin = _o.copy(p.pos).addScaledVector(U, 1.1);
-    const S = this.special, up = hasUpgrade('reach', T.state) ? REACH_UP : 1;
-    let hits = bladeHits(origin, this.dir, T.physics, { reach: (S?.reach ?? BLADE.reach) * up, angle: S?.angle ?? BLADE.angle });
+    const T = this.tool, S = this.special;
+    this.cutNow = true;
+    const C = this.coarse(this._coarse ??= { origin: _o }), origin = C.origin;
+    let hits = bladeHits(origin, this.dir, T.physics, { reach: C.reach, angle: C.angle });
     const pose = this.bladeSegment();
-    if (pose) hits = hits.filter((h) => sweptBladeTouches(h.target.position(), (h.target.radius ?? 0.5) + 0.12, this.previousBlade ?? pose, pose));
+    if (pose) hits = hits.filter((h) => sweptBladeTouches(h.target.position(), bladeTouchRadius(h.target), this.previousBlade ?? pose, pose));
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);
     const info = { ...T.info(), damage: S?.damage ?? BLADE.damage[this.n] ?? 1, combo: S ? 2 : this.n };
