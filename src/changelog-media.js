@@ -117,6 +117,24 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.92': [
+    { match: 'Games: the worlds list (Debug) has a row of small games', shots: [
+      { name: 'games-row', only: 'after', caption: 'The worlds list: the Games row under the pages', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+      { name: 'ski-card', only: 'after', caption: 'A game’s start card: its rules, its controls (here a pad’s), the best so far', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+      { name: 'steps-results', only: 'after', caption: 'The results: the score, how it was made, a new best stamped', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+    ], see: 'Open the worlds list (Debug on the title, or L in play) and pick a game in the Games row, or open ?game=ski or ?game=platformer.' },
+    { match: 'Dune skiing: the traveller on sand-skis', shots: [
+      { name: 'ski-carve', only: 'after', caption: 'Carving through a gate, its pennants turned teal as you pass', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+      { name: 'ski-air', only: 'after', caption: 'Off a lip at 120 km/h, the ink streaks of the speed at the edges', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+      { name: 'ski-results', only: 'after', caption: 'The time, the gates, the top speed and the longest jump', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+    ], see: '?game=ski: hold the tuck on the straights, let it go to turn; press A / × at a lip for the biggest air.' },
+    { match: 'Sky steps: a side-on run across stones', shots: [
+      { name: 'steps-card', only: 'after', caption: 'The start card, with a pad', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+      { name: 'steps-spring', only: 'after', caption: 'Thrown up by a spring, the jump held', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+      { name: 'steps-run', only: 'after', caption: 'On a drifting stone of the makers', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+      { name: 'steps-crumble', only: 'after', caption: 'Over the cracked stones: they shake and fall a moment after you land', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
+    ], see: '?game=platformer: run off an edge and press jump a moment late, or press it just before you land: both still jump.' },
+  ],
   '0.89': [
     { match: 'The Glass Dunes’ glass glows from within', shots: [
       { name: 'glass-giants', caption: 'The cliff of the giants from the valley at 16:30: the giants held in the glass are crisp dark shapes, the lobes’ thin edges glow mint', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },

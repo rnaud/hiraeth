@@ -37,6 +37,7 @@
 //                         spark-stone is in the well: it burns), ship.fed, pool.tinted, teo.drumming,
 //                         ilo.following / ilo.atSkull / ilo.told, oum.following / oum.home,
 //                         stele.read, mural.read, brow.seen, rumour.light, quest.v; clue.desert.perdide
+//   minigame.<id>.best    a minigame's best score (minigame.<id>.plays: runs finished; src/minigames/kit/scores.js)
 //   tool.empty            the backpack's tank has never been filled (src/fluid-tool.js: no charges,
 //                         no refill); the first magical water clears it
 //

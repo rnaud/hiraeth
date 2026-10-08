@@ -62,6 +62,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |
 | [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
+| [minigames.md](systems/minigames.md) | the minigames: the runner (start card, 3-2-1, HUD, pause, results, the best in the save), the Games row and the arcade sign, how to add a game, Dune skiing, Sky steps |
 | [dev-tools.md](systems/dev-tools.md) | the Lab, the worlds list's debug save, the clipping audit |
 | [testing.md](systems/testing.md) | the tests, and the play-through: the route played from the crash to home in node, old saves resumed, the page's own flows in a headless Chrome |
 | [unity.md](systems/unity.md) | the desert in Unity, and the web-against-Unity benchmark |

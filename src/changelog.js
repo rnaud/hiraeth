@@ -9,6 +9,11 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.92', date: '2026-10-07', items: [
+    'Games: the worlds list (Debug) has a row of small games. Each opens on a card with its rules and its controls, counts you in 3, 2, 1, runs a clock, pauses on Menu or Esc (Resume, Retry, Quit), and ends on your score, with your best kept in your save and a stamp when you beat it. Quit takes you back where you came from.',
+    'Dune skiing: the traveller on sand-skis down a kilometre of dune. Carve with the stick between the gates (a missed one costs 3 seconds), tuck on RT / R2 for speed, skid on LT / L2 to brake, fly off the lips and spin in the air (a spin landed clean takes a second off). Sand sprays off the edges, the view widens with the speed, and past the line the camera swings round to watch you skid to a stop.',
+    'Sky steps: a side-on run across stones floating over the desert to the makers’ gate. Stones that drift, stones that crack and fall under you, springs that throw you higher the longer you hold the jump, 40 glyphs, banners to start again from and three lives. The jump is forgiving: a press just before landing still counts, so does one just after running off an edge, and a short press is a short hop.',
+  ] },
   { v: '0.89', date: '2026-10-07', items: [
     'The Glass Dunes’ glass glows from within: the sun comes through its thin edges, its foot and the lips of its waves in bands of mint and lime, the more as you look toward the light, and the giants, heads and trees held inside it are crisp dark shapes instead of soft smudges.',
     'In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.',

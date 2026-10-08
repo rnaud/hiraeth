@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.92 — 2026-10-07
+
+- Sky steps: a side-on run across stones floating over the desert to the makers’ gate. Stones that drift, stones that crack and fall under you, springs that throw you higher the longer you hold the jump, 40 glyphs, banners to start again from and three lives. The jump is forgiving: a press just before landing still counts, so does one just after running off an edge, and a short press is a short hop.
+- Dune skiing: the traveller on sand-skis down a kilometre of dune. Carve with the stick between the gates (a missed one costs 3 seconds), tuck on RT / R2 for speed, skid on LT / L2 to brake, fly off the lips and spin in the air (a spin landed clean takes a second off). Sand sprays off the edges, the view widens with the speed, and past the line the camera swings round to watch you skid to a stop.
+- Games: the worlds list (Debug) has a row of small games. Each opens on a card with its rules and its controls, counts you in 3, 2, 1, runs a clock, pauses on Menu or Esc (Resume, Retry, Quit), and ends on your score, with your best kept in your save and a stamp when you beat it. Quit takes you back where you came from.
+
 ## v0.89 — 2026-10-07
 
 - Turning the camera quickly no longer makes distant shadows flick on and off: across the City-Shaft whole towers changed their shade for a moment after each turn, and after each cut in a conversation.
