@@ -1,0 +1,35 @@
+{
+  "generator": "Suno",
+  "model": "v6",
+  "created": "2026-10-08",
+  "tracks": [
+    {
+      "level": "desert",
+      "title": "Hiraeth - The Desert",
+      "source": "https://suno.com/song/cc528f48-0949-4cfe-9934-7ae7872a3658",
+      "file": "desert.mp3",
+      "direction": "D hijaz, 60 BPM; ney, oud, reed drone, frame drum; wistful spacious desert exploration"
+    },
+    {
+      "level": "incal",
+      "title": "Hiraeth - The City-Shaft",
+      "source": "https://suno.com/song/2295772b-4ee2-4ead-95fc-f1db473962ba",
+      "file": "incal.mp3",
+      "direction": "F lydian, 80 BPM; muted trumpet, vibraphone, pizzicato bass, brushes; curious nocturnal chamber jazz"
+    },
+    {
+      "level": "arzach",
+      "title": "Hiraeth - Vael",
+      "source": "https://suno.com/song/3c74b9b5-cbf6-4b4f-bf65-2a2faa70866e",
+      "file": "arzach.mp3",
+      "direction": "A yo pentatonic, 46 BPM; breathy bamboo flute, stone drones, sparse plucked strings; vast sky and solitude"
+    },
+    {
+      "level": "arzach2",
+      "title": "Hiraeth - The Sky Stones",
+      "source": "https://suno.com/song/e2ea244e-d753-4d5a-a837-d4719b74566e",
+      "file": "arzach2.mp3",
+      "direction": "B flat dorian, 44 BPM; bowed drone, flute, singing bowls, hand bells; weightless monasteries above clouds"
+    }
+  ]
+}

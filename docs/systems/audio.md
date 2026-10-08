@@ -100,3 +100,15 @@ A level that carries you on a train says so with `level.rails(pos)` → `{ speed
 - **the whistle** (three sawtooth notes through a band-pass, swelling and falling over 2.4 s) each time `whistle`
   counts up: the level counts one as it pulls out of a station and one as it starts to brake;
 - the world's ambience is `rails`: now and then another train's horn far across the plain while it runs.
+
+## Recorded soundtracks (v0.94)
+
+`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/`.
+`manifest.json` records each Suno source and musical direction. Only the current
+world loads after audio starts. Decode/download failures retain the procedural
+score, including on engine bridges without an audio decoder. The title keeps its
+own music. Recordings are balanced to -27 dB RMS (with a peak cap), with the last
+two seconds crossfaded into the opening for looping, then faded in over two seconds.
+They use the existing music bus: volume, mute, menu hush, musician ducking,
+underwater filtering and background suspension still apply. Ambience, bands and
+combat continue independently. Disposing a world cancels its outstanding download.

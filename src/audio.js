@@ -1,5 +1,5 @@
-// Procedural sound: generative music per level + ambience + effects, all
-// synthesised with Web Audio (no audio files). Starts on the first click or
+// Recorded world soundtracks with procedural fallback, ambience and effects.
+// Mixed with Web Audio. Starts on the first click or
 // key press (browsers require a gesture). M mutes.
 //
 // Musicians in the world (setBands): each band is a place (or a walker) that
@@ -14,6 +14,7 @@ import { bindVoice, languageOf } from './story/voice.js';
 import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
 import { playVoice, playColour, hit } from './score-voices.js';
 import { audioGuard } from './audio-guard.js';
+import { loadSoundtrack } from './soundtracks.js';
 
 // Bako's ney solo (AudioEngine.solo): three breaths in a hijaz mode, [semitones from the tonic, seconds].
 // (0 D, 1 E♭, 4 F♯, 5 G, 7 A, 8 B♭, 10 C) The augmented second (1 -> 4) and the slow falls back to the tonic
@@ -317,6 +318,7 @@ export class Sound {
     this.nextBeat = ctx.currentTime + 0.3;
     this.chord = 0;
     if (this.score) this.scheduler = setInterval(() => this.schedule(), 100);
+    if (this.score) void loadSoundtrack(this);
     if (this.menuOn) this.menuMusic(true);
   }
 
@@ -432,6 +434,7 @@ export class Sound {
   dispose() {
     this._unlisten?.();
     this._disposed = true;
+    this.trackAbort?.abort();
     clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop);
     this.scheduler = this.menuTimer = null;
     const ctx = this.ctx;
@@ -506,7 +509,7 @@ export class Sound {
     while (this.nextBeat < ctx.currentTime + 0.4) {
       const t = this.nextBeat;
       this.chord = chordAt(this.S, this.beat);
-      for (const e of scoreBeat(this.scoreId, this.beat, this.act)) this.playEvent(e, t, spb);
+      if (!this.recordedTrack) for (const e of scoreBeat(this.scoreId, this.beat, this.act)) this.playEvent(e, t, spb);
       this.ambienceTick(t, spb);
       if (this.bands) for (const b of this.bands) if (b.level > 0.004) this.bandBeat(b, t, spb);
       this.beat++;

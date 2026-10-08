@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.94 — 2026-10-08
+
+- New instrumental soundtracks accompany the Desert, the City-Shaft, Vael and the Sky Stones, each with its own instruments and mood.
+
 ## v0.93 — 2026-10-08
 
 - The bubble wand says what its bubble burst on: a glass golem’s sharp glass, a salt crab’s crusted shell, a slag walker’s hot crust, no longer always “the machine’s shell”.
