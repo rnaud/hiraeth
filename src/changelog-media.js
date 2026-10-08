@@ -151,6 +151,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'In the References level the Glass Dunes’ fourth picture', shots: [
       { name: 'wave-plate4', caption: 'The fourth picture’s view: the wave rises steep over the camp, curls over its hollow and sweeps down to the sand', from: 'the References level, ?level=references&world=glassdunes&view=4, headless Chrome, High, 1456 × 816 (7 October)' },
     ], see: 'Open ?level=references&world=glassdunes&view=4; the backslash key lays the picture over the view.' },
+    { match: 'A world picked from the Debug worlds list now opens in a separate debug save', shots: [
+      { name: 'debug-save-list', only: 'after', caption: 'The worlds list (Debug on the title): a line says what picking a world does, and each card which save it opens in', from: 'headless Chrome against this branch’s own dev server, 1280 × 720 (7 October)' },
+      { name: 'debug-save-items', only: 'after', caption: 'The Buried Machine picked from the list: the gear of the eight worlds before it (the wings, the jets, the cab pass…) and their keepsakes', from: 'headless Chrome against this branch’s own dev server, the game menu’s Items page, 1280 × 720 (7 October)' },
+    ], see: 'On the title, choose Debug and pick a late world (the Buried Machine): open the game menu (View / Select, or J). Its Quests page lists the earlier worlds’ quests as done, the Items page holds their gear and keepsakes, the Worlds page shows their boxes opened; the Start menu reads “Debug save”. Choose a save on the title to go back to your own.' },
   ],
   '0.88': [
     { match: 'Blows land with weight', see: 'In the Arena, cut an ink blot: a brief catch and a jolt as the blade connects; the third swing of the combo sends it flying.' },

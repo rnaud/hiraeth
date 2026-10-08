@@ -74,10 +74,10 @@ import { createItemEffects } from './boxes/effects.js';
 import { Foes } from './foes.js';
 import { feelDt, shakeCamera, kick } from './feel.js';
 import { DevMenu } from './dev-menu.js';
-import { fillPicker } from './world-picker.js';
+import { fillPicker, pickHref } from './world-picker.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
-import { slots, formatPlaytime } from './save-slots.js';
+import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { slicer, runStepsAsync, gpuPacer } from './load-steps.js';
@@ -837,7 +837,7 @@ const menu = new SettingsMenu(settings, {
   // an update restarts the game (at the title, in the new build): the position and the time played first
   onBeforeRestart: () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); },
   // where you are, at the top of the Start menu
-  where: () => `<b>Save ${slots.active}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
+  where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
   isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
   // this save only (the other slots stay): forget it and start again with the prologue
@@ -894,7 +894,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
   if (e.code === 'Escape' && picker.classList.contains('open')) showPicker(false);
   const n = Number(e.key);
-  if (picker.classList.contains('open') && n >= 1 && n <= pickable.length && (!pickable[n - 1].hidden || completed())) location.search = '?level=' + pickable[n - 1].id;
+  if (picker.classList.contains('open') && n >= 1 && n <= pickable.length && (!pickable[n - 1].hidden || completed())) location.search = pickHref(pickable[n - 1].id);
 });
 
 // ------------------------------------------------------------------ photo mode

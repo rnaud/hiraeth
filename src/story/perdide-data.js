@@ -21,6 +21,8 @@
 const Q = 'perdide.crystal';
 
 export const ITEMS = { splinter: 'a singing splinter', jar: 'a jar of fireflies' };
+/** The colour the Great Crystal gives the tank for good (src/story/perdide.js). */
+export const CRYSTAL_TONE = '#c7a6f2';
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [

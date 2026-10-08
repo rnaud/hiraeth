@@ -30,6 +30,10 @@
 const Q = 'perdide2.lamps';
 
 export const ITEMS = { latch: 'Pim’s dome latch', lamp: 'a moss lamp' };
+/** The keepsake the main quest's end gives (src/story/perdide2.js): its words follow what you told Hollin (flag perdide2.promise). */
+export const keepsakeFor = (promise) => ({ id: 'perdide2.person', level: 'perdide2', name: 'Hollin’s lamps', kind: 'person',
+  text: promise === 'yes' ? 'A promise to Hollin, keeper of the lamps: you will come back to the deep wood one day, so that once the lamps were lit for someone who came.'
+    : 'Hollin, keeper of the lamps, asked you to come back one day. You didn’t promise. The pools will be lit either way.' });
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [

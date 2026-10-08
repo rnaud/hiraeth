@@ -67,7 +67,11 @@ class GameState {
   constructor(storage = slotStorage) {
     this.storage = storage;
     this.listeners = new Map();
-    try { this.data = JSON.parse(storage?.getItem(KEY)) ?? {}; } catch { this.data = {}; }
+    this.reload();
+  }
+  /** Read the save again (the worlds list's debug save was just written under it: src/debug-save.js). */
+  reload() {
+    try { this.data = JSON.parse(this.storage?.getItem(KEY)) ?? {}; } catch { this.data = {}; }
     this.data.flags ??= {};
     this.data.keepsakes ??= [];
     if (migrateFlags(this.data.flags)) this.save();   // older saves (src/save-migrate.js)

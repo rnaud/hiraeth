@@ -1,6 +1,10 @@
 // The worlds list (L in play, Debug on the title and in the Start menu): every world, open,
 // whatever you've found. Its cards are drawn here, for the game (src/main.js) and for the
 // title's Debug entry, which shows the list alone (?worlds=1, src/boot.js) without building a world.
+// A world on the route opens in the debug save (src/debug-save.js): its own slot, as if every world
+// before it had been played through; the others open in the save being played.
+
+import { ORDER } from './levels/names.js';
 
 /** The game's other pages, at the top of the list (they leave the game). */
 export const PAGES = [
@@ -11,12 +15,31 @@ export const PAGES = [
   { href: 'items.html', label: 'Items', hint: 'every item, its picture, what it does, where it is found' },
 ];
 
+/** Where a card goes: a route world in the debug save (?debugsave=1, src/boot.js), any other in the save being played. */
+export function pickHref(id, order = ORDER) {
+  return order.includes(id) ? `?level=${id}&debugsave=1` : `?level=${id}`;
+}
+
+/** The line under the pages: what picking a world does to the save. */
+export const DEBUG_NOTE = 'A world on the route opens in a separate debug save, as if every world before it were done: '
+  + 'their quests, boxes, gear and recordings. Your own saves are not touched (choose one on the title to go back to it).';
+
+/** What a card says of the save it opens in. */
+export const alongLine = (id, order = ORDER) => {
+  const i = order.indexOf(id);
+  return i < 0 ? 'in your save' : i === 0 ? 'debug save · a new journey' : `debug save · ${i} world${i === 1 ? '' : 's'} done before it`;
+};
+
 /** The cards (and Continue, to the world this save was left in, and the other pages) into the #picker element. */
 export function fillPicker(picker, { levels, current = null, cont = null }) {
   const nav = document.createElement('nav');
   nav.className = 'pages';
   nav.innerHTML = PAGES.map((p) => `<a href="${p.href}" title="${p.hint}">${p.label}</a>`).join('');
   picker.querySelector('header').after(nav);
+  const note = document.createElement('p');
+  note.className = 'debug-note';
+  note.textContent = DEBUG_NOTE;
+  nav.after(note);
   if (cont) {
     const btn = document.createElement('a');
     btn.className = 'continue';
@@ -25,7 +48,7 @@ export function fillPicker(picker, { levels, current = null, cont = null }) {
     picker.querySelector('header').after(btn);
   }
   picker.querySelector('.cards').innerHTML = levels.map((l, i) => `
-  <a class="card${l.id === current ? ' current' : ''}" href="?level=${l.id}">
+  <a class="card${l.id === current ? ' current' : ''}" href="${pickHref(l.id)}">
     <img src="thumbs/${l.id}.jpg" alt="" onerror="this.style.visibility='hidden'" />
     <div class="txt">
       <div class="num">${i + 1}</div>
@@ -33,6 +56,7 @@ export function fillPicker(picker, { levels, current = null, cont = null }) {
       <div class="src">${l.source}</div>
       <p>${l.blurb}</p>
       <div class="moves">${l.moves}</div>
+      <div class="along">${alongLine(l.id)}</div>
     </div>
   </a>`).join('');
 }
@@ -51,7 +75,7 @@ export async function showWorldsOnly(doc = document, win = window) {
   win.addEventListener('keydown', (e) => {
     if (e.code === 'Escape' || e.code === 'KeyL') toTitle();
     const n = Number(e.key);
-    if (n >= 1 && n <= LEVELS.length) win.location.search = '?level=' + LEVELS[n - 1].id;
+    if (n >= 1 && n <= LEVELS.length) win.location.search = pickHref(LEVELS[n - 1].id);
   });
   // a controller: d-pad / stick move, A opens the world, B back to the title (as on the title, src/title.js)
   const controller = new Controller({

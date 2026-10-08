@@ -5,7 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { DARK_POOLS, DOMES, SAUCER, FEN, HOLLIN_END, CAVE } from '../levels/perdide2.js';
 import { magicMaterial, magicPool, setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide2-data.js';
+import { QUESTS, PEOPLE, THINGS, ITEMS, LINES, keepsakeFor } from './perdide2-data.js';
 
 // Lorn II's story, alive (perdide2-data.js has the words): "The Lamps Are Kept".
 //
@@ -436,9 +436,7 @@ export function setupPerdide2(ctx) {
   // ---------------------------------------------------------------- the end
   quests.def(Q).onDone = () => {
     game.set('world.perdide2.done', true);
-    game.addKeepsake({ id: 'perdide2.person', level: 'perdide2', name: 'Hollin’s lamps', kind: 'person',
-      text: game.flag('perdide2.promise') === 'yes' ? 'A promise to Hollin, keeper of the lamps: you will come back to the deep wood one day, so that once the lamps were lit for someone who came.'
-        : 'Hollin, keeper of the lamps, asked you to come back one day. You didn’t promise. The pools will be lit either way.' });
+    game.addKeepsake(keepsakeFor(game.flag('perdide2.promise')));
     toast('Every pool on the path is lit for you. Something of value? Someone, waiting for you to come back.');
     setTimeout(() => story.complete?.(), 1200);
   };

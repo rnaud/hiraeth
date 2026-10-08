@@ -4,7 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { GREAT, BED, ISLE, CAVE } from '../levels/perdide.js';
-import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide-data.js';
+import { QUESTS, PEOPLE, THINGS, ITEMS, LINES, CRYSTAL_TONE } from './perdide-data.js';
 
 // Lorn's story, alive (perdide-data.js has the words): "The Great Crystal".
 //
@@ -30,7 +30,6 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide-data.js';
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const Q = 'perdide.crystal';
-const CRYSTAL_TONE = '#c7a6f2';
 const PATIENCE = 20;        // s standing in the bed, feeding nothing
 const SONG = 34;            // s the crystal sings after three splashes
 
