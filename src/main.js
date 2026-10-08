@@ -1419,11 +1419,12 @@ function frame(ts) {
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
     shakeCamera(camera, realDt);   // a blow's jolt (src/feel.js)
+    minigame?.update(dt, busy() ? noInput : ctl);   // a game played on foot (drives: false): its clock, its targets, its waves
   }
   boxes.update(dt, t, { camera });   // (after the player: it poses the kneel; before the ship, which places its camera)
   itemFx.update(dt, t);
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
-  tool.update(dt, ctl, busy() || photo.on || !!minigame);
+  tool.update(dt, ctl, busy() || photo.on || !!minigame?.drives);   // (a game on foot keeps the blade and the gun)
   gadgets.update(dt, busy() || photo.on || ship.playing || !!minigame);   // (after the tool: an aiming gadget's camera and pose win)
   flammables.update(dt, t, player.pos);
   scout.flare.eye = camera.position;
@@ -1486,7 +1487,7 @@ function frame(ts) {
     if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
-  story.update(dt, t, camera);
+  if (!minigameDef) story.update(dt, t, camera);   // (a game's page tells no story: its host's goal is not reached by standing in the game)
   const rideK = player.ride?.kind;
   if (rideK === 'bird' && (ctl.Space || ctl.Throttle > 0.3) && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
   sound.update({
@@ -1714,7 +1715,7 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
 }
 // a minigame's page: the runner takes over, the start card up (src/minigames/kit/runner.js)
 if (minigameDef) {
-  minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'),
+  minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings,
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open'),
     navigate: (href) => { flushPlay(); location.href = href; } });
   window.minigame = minigame;

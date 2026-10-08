@@ -1,7 +1,7 @@
 /* The minigames' screens (src/minigames/kit/runner.js): the HUD, the 3-2-1, the flashes and the cards,
    in the game's own paper and ink (as the restart panel and the worlds list: index.html). */
 #minigame { position: fixed; inset: 0; z-index: 80; pointer-events: none; color: #2b211f; font: 13px/1.45 ui-monospace, Menlo, monospace; }
-body.minigame #cue, body.minigame #tool, body.minigame #stamina, body.minigame #prompt, body.minigame #gear { display: none !important; }
+body.minigame #cue, body.minigame:not(.mg-onfoot) #tool, body.minigame:not(.mg-onfoot) #stamina, body.minigame #prompt, body.minigame #gear { display: none !important; }   /* (a game on foot keeps the crosshair and the stamina) */
 
 /* the HUD: lives at the left, the clock in the middle, the score at the right */
 #minigame .mg-hud { position: absolute; left: 0; right: 0; top: 14px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; padding: 0 18px; transition: opacity .3s; }

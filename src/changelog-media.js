@@ -160,6 +160,15 @@ export const CHANGELOG_MEDIA = {
     { match: 'Both new games have an arcade sign in the desert', shots: [
       { name: 'desert-signs', only: 'after', caption: 'The ring race’s sign on the east shelf by the hanging bridge (the wing drop’s is on the far shelf)', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
     ], see: 'In the desert, ride out to the hanging bridge between the two lilac rock shelves, far out from the start (?level=desert, about x −430, z −470), and climb onto either shelf.' },
+    { match: 'The shooting gallery, a fairground stall', shots: [
+      { name: 'gallery-play', only: 'after', caption: 'The last fifteen seconds: golds on the rails, the stallkeeper calling, the booth splashed', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+      { name: 'gallery-results', only: 'after', caption: 'A minute’s score: hits, misses, the best run, golds, bells and plates', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+      { name: 'gallery-sign', only: 'after', caption: 'The gallery’s sign on the Signal Market’s pavement, a few steps from where you arrive', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+    ], see: '?game=gallery, or walk left from where you arrive in the Signal Market to the glowing sign. Hold LT / L2 the whole round and tap RT / R2.' },
+    { match: 'Ink tide: a basin of sand in a sea of ink', shots: [
+      { name: 'tide-boons', only: 'after', caption: 'A breather: three boons rise on the sigil; walk onto one', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+      { name: 'tide-wave', only: 'after', caption: 'Wave seven closing in on the sigil: a shade, a machine, a winged blot and a swarm, the sea of ink all round', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+    ], see: '?game=waves, or the sign by the way into the Arena (Debug worlds list). Guard just as a blow lands to parry: it counts for style.' },
   ],
   '0.91': [
     { match: 'Gadgets: things to carry besides the backpack', shots: [

@@ -4,6 +4,8 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { stepped } from '../load-steps.js';
 import { DESERT_WORLD_LOOK } from '../desert-sites.js';
+import { placeGameMarker } from '../minigames/kit/marker.js';
+import { gameById } from '../minigames/index.js';   // (none in node's tests: there is no glob there)
 
 // ---------------------------------------------------------------------------
 // The Arena: a developer's world for the fluid blade and the foes (src/fluid-blade.js, src/foes.js),
@@ -38,6 +40,8 @@ export function* buildArena(scene) {
   const ring = new THREE.Mesh(new THREE.RingGeometry(17.6, 18, 96).rotateX(-Math.PI / 2), makeMaterial({ color: '#8a6a48', flat: true }));
   ring.position.y = 0.03; ring.userData.noCollide = true;
   scene.add(ring);
+  // the arcade sign of Ink tide, the endless waves as a game with a score (src/minigames/waves.js), by the way in
+  if (gameById('waves')) placeGameMarker({ scene, levelId: 'arena' }, 'waves', new THREE.Vector3(7.5, 0, 9), { heading: -2.4 });
 
   return {
     id: 'arena',
