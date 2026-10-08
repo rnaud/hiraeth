@@ -25,6 +25,7 @@ import * as EDENA_WORDS from './edena-data.js';
 import { BAZAAR_TEMPLE } from './bazaar.js';
 import * as BAZAAR_WORDS from './bazaar-data.js';
 import { runSteps } from '../load-steps.js';
+import { attachCourt } from '../finds/courts.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -111,6 +112,8 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
     if (o.fade) rt.fadeFn ??= o.fade;
     rt.change?.late?.(dt, t);   // (after the level's own movers: a change may move what they move)
   };
+  // the world's makers' court: a box with its gadget, and what that gadget is for round it (src/finds/courts.js)
+  attachCourt(levelId, scene, level, { clear: clearInstances });
   return level;
 }
 

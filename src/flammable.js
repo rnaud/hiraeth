@@ -16,8 +16,12 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 //   onFire()    a spot can bring its own reaction too (return false to skip the flame)
 // The desert's camp fires come from level.qanat.fires, with a few dry brambles round
 // each camp (flammableSpots); the Signal Market lists its hanging lamps.
+// The world's chemistry (src/chemistry.js) spreads what burns here: a burning bramble lights the
+// next one, the wind throws its embers. Here: a stilling glob puts a fire out ('stun'), a bloom glob
+// grows a burnt bramble back at once ('bloom'), and a gust through a burning bramble throws embers
+// (onGust, when the chemistry listens) instead of blowing it out.
 
-const BURN = { lamp: 45, flare: 2.6, bramble: 2.2, regrow: 60, maxLit: 14 };
+export const BURN = { lamp: 45, flare: 2.6, bramble: 2.2, regrow: 60, maxLit: 14, relight: 20 };
 const LAMPS = new Set(['lantern', 'lamp', 'brazier', 'torch']);
 
 /** Every flammable spot a level offers (its own list, plus the desert's camp fires and the brambles by them). */
@@ -27,9 +31,10 @@ export function flammableSpots(level) {
   const H = level?.ground?.heightAt?.bind(level.ground);
   fires.forEach((f, i) => {
     out.push({ at: f.clone(), kind: 'campfire', r: 1.8, lit: true });
-    // dry thorn brush at the edge of each camp, out past the benches
+    // dry thorn brush at the edge of each camp, out past the benches: a short hedge, 3.5 m apart, so
+    // one alight lights the next (src/chemistry.js), and a camp fire flared lights the hedge downwind
     for (let k = 0; k < 3; k++) {
-      const a = i * 2.3 + k * 2.1, d = 8 + (k % 2) * 3;
+      const a = i * 2.3 + (k - 1) * 0.42, d = 8.5;
       const x = f.x + Math.sin(a) * d, z = f.z + Math.cos(a) * d;
       const y = H ? H(x, z) : f.y - 1.5;
       if (Number.isFinite(y)) out.push({ at: new THREE.Vector3(x, y, z), kind: 'bramble', r: 1.1 });
@@ -80,13 +85,56 @@ export class Flammables {
       s.centre = sp.kind === 'bramble' ? sp.at.clone().setY(sp.at.y + 0.4) : sp.at;
       if (s.kind === 'bramble') { s.mesh = brambleMesh(i + 1); s.mesh.position.copy(s.at); s.mesh.rotation.y = i * 1.7; this.root.add(s.mesh); }
       s.off = registerTarget({
-        kind: 'flammable', flammable: s.kind, spot: s, radius: s.r, accepts: ['fire', 'gust'],
+        kind: 'flammable', flammable: s.kind, spot: s, radius: s.r, accepts: ['fire', 'gust', 'stun', 'bloom'],
         position: () => s.centre,
-        enabled: () => s.at.distanceToSquared(this.focus) < 140 * 140 && !(s.kind === 'bramble' && s.grow < 0.9),
-        onHit: (mode) => (mode === 'fire' ? this.ignite(s) : mode === 'gust' ? this.douse(s) : false),
+        burning: () => s.burning > 0,
+        // (a burnt bramble lets globs through; one still burning can be stilled)
+        enabled: () => s.at.distanceToSquared(this.focus) < 140 * 140 && !(s.kind === 'bramble' && s.grow < 0.9 && !(s.burning > 0)),
+        onHit: (mode, point, dir, info) => this.hit(s, mode, dir, info),
       });
       return s;
     });
+  }
+
+  /** What touched spot s (targets.js): an ember lights it, a gust blows it out (or throws a burning bramble's embers), stilling puts it out, bloom regrows it. */
+  hit(s, mode, dir, info) {
+    if (mode === 'fire') return this.ignite(s);
+    if (mode === 'gust') {
+      if (s.kind === 'bramble' && s.burning > 0 && this.onGust) { this.onGust(s, dir, info); return true; }
+      return this.douse(s);
+    }
+    if (mode === 'stun') return this.douse(s);
+    if (mode === 'bloom') return this.regrow(s);
+    return false;
+  }
+
+  /** Can spot s catch from a fire next to it (src/chemistry.js)? A dry bramble grown back; a lamp out, and not just put out. */
+  canCatch(s) {
+    if (s.kind === 'bramble') return !s.burnt && s.grow >= 0.9 && !(s.burning > 0);
+    if (LAMPS.has(s.kind) || !s.kind) return !s.lit && !(s.burning > 0) && !(s.quenched != null && this.time - s.quenched < BURN.relight);
+    return false;
+  }
+
+  /** How hot spot s burns now (0: not at all): a campfire's flare reaches furthest, a lamp's little flame least. */
+  heatOf(s) {
+    if (!(s.burning > 0)) return 0;
+    let h = 0;
+    for (const b of this.burning) if (b.s === s) h = Math.max(h, b.kind === 'flare' ? 2 : b.kind === 'bramble' ? 1 : 0.45);
+    return h;
+  }
+
+  /** A bloom glob on (or by) a burnt bramble: it grows back at once. Returns true if it did. */
+  regrow(s) {
+    if (s.kind !== 'bramble' || !s.burnt) return false;
+    for (const b of this.burning.filter((q) => q.s === s)) this.out(b);
+    s.burnAt = this.time - BURN.regrow - 0.01; s.quenched = null;
+    return true;
+  }
+  /** A bloom glob landed on the world at `p`: burnt brambles within r of it grow back. */
+  bloomNear(p, r = 2.5) {
+    let n = 0;
+    for (const s of this.spots) if (s.kind === 'bramble' && s.burnt && s.at.distanceTo(p) < r + s.r && this.regrow(s)) n++;
+    return n;
   }
 
   /** An ember glob landed on spot s. Returns true if it reacted. */
@@ -120,6 +168,10 @@ export class Flammables {
   douse(s) {
     const lit = this.burning.filter((b) => b.s === s);
     for (const b of lit) this.out(b);
+    if (lit.length) {
+      s.quenched = this.time;   // (put out: the fire next to it can't light it again for a while)
+      if (s.kind === 'bramble' && s.burnt) s.left = s.grow;   // (a bramble put out mid-burn keeps what is left of it, charred, till it regrows)
+    }
     return lit.length > 0;
   }
 
@@ -163,7 +215,8 @@ export class Flammables {
       if (s.kind !== 'bramble') continue;
       if (s.burnt) {
         const a = this.time - s.burnAt;
-        s.grow = a < BURN.bramble ? 1 - a / BURN.bramble : a > BURN.regrow ? Math.min(1, (a - BURN.regrow) / 6) : 0;
+        s.grow = a > BURN.regrow ? Math.min(1, (a - BURN.regrow) / 6) : s.left != null ? s.left : a < BURN.bramble ? 1 - a / BURN.bramble : 0;
+        if (a > BURN.regrow) s.left = null;
         if (a > BURN.regrow + 6) { s.burnt = false; s.grow = 1; }
         const col = a > BURN.regrow || a < 0.3 ? '#9a7448' : '#2b211f';   // charred while it burns, dry tan again as it regrows
         if (s.col !== col) { s.col = col; s.mesh.userData.mat.uniforms.uColor.value.set(col); }

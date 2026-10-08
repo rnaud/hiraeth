@@ -15,6 +15,7 @@ import { game } from './game-state.js';
 // frame (cheap), so a grant takes effect at once.
 //
 // Kinds: core (the backpack), movement, mode (gun modes, MODE_ITEMS), and the
+// (the mastery trials' rewards, `trial: '<world>'`: upgrades to the gadgets, won not found: src/trials/)
 // boxes' special items: upgrade (the tank), charm, cosmetic; and pass (`quest: true`: someone
 // gives it at the end of a quest, not a box: the City-Shaft's cab pass). Most items come
 // out of item boxes (src/boxes/), the makers' chests, left for a traveller who
@@ -127,6 +128,62 @@ export const ITEMS = {
     name: 'Brass level', kind: 'charm',
     text: "A brass spirit level bearing the Major’s initials. In the Hangar, even the bubble needs help finding down.",
     use: 'Where down is not where it was (the Hangar’s upside-down quarter and its ring), a small level in the corner of your eye shows how the floor lies.',
+  },
+  // ---- won in the worlds' mastery trials (src/trials/: the first finish of each), upgrades to the gadgets
+  clearglass: {
+    name: 'Clear glass', kind: 'upgrade', needs: 'monocle', trial: 'desert', where: 'The first finish of the Dune line, the Desert’s hoverbike run.',
+    text: "A second lens of the makers’ glass for the monocle, ground thinner than a fingernail. The world looks a little cleaner through it.",
+    use: 'The seeing lens clouds over half as fast.',
+  },
+  longline: {
+    name: 'Long line', kind: 'upgrade', needs: 'hook', trial: 'arzach', where: 'The first finish of the Wind ladder, Vael’s wing run.',
+    text: "A spool of the makers’ grey cord, finer than hair and stronger than rope. Someone measured the sky and found it short.",
+    use: 'The grappling hook reaches 34 m instead of 25.',
+  },
+  fourthcoil: {
+    name: 'Fourth coil', kind: 'upgrade', needs: 'springs', trial: 'arzach2', where: 'The first finish of the Stone circuit, the Sky Stones’ bird race.',
+    text: "A spare spring for each boot, wound tighter than the others. It hums when it is happy.",
+    use: 'The spring boots bounce four times in a chain instead of three.',
+  },
+  widevane: {
+    name: 'Wide vane', kind: 'upgrade', needs: 'fan', trial: 'perdide', where: 'The first finish of the Reed race, Lorn’s skiff run.',
+    text: "Two more paper ribs for the fan, painted with reeds. It opens wider and keeps the air longer.",
+    use: 'The gust fan lifts you five times in the air before you land instead of three.',
+  },
+  fourthnotch: {
+    name: 'Fourth notch', kind: 'upgrade', needs: 'boomerang', trial: 'perdide2', where: 'The first finish of the Lagoon laps, the Deep Wood’s skiff run.',
+    text: "A fourth notch cut in the boomerang’s elbow by a careful hand. It remembers one more thing on the way out.",
+    use: 'The boomerang locks on to four things instead of three.',
+  },
+  longbreath: {
+    name: 'Long breath', kind: 'upgrade', needs: 'bubble', trial: 'edena', where: 'The first finish of the Eye garden, Viridel’s game of eyes.',
+    text: "A drop of the meadow’s sap for the bubble wand’s ring. The bubbles come out rounder and stubborn.",
+    use: 'Bubbles last half as long again before they pop.',
+  },
+  deepwell: {
+    name: 'Deep well', kind: 'upgrade', needs: 'bridge', trial: 'incal', where: 'The first finish of the Shaft climb, the City-Shaft’s jet route.',
+    text: "A deeper ink well for the bridge pen, in brass with a glass window. You can see the ink think.",
+    use: 'The ink bridge pen holds half as much ink again: longer bridges, more of them.',
+  },
+  lodestone: {
+    name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'garage', where: 'The first finish of the Pillar slalom, the Hangar’s jet run.',
+    text: "A darker lodestone for the glove’s palm, from deep in the Hangar’s floor. Spoons follow you about.",
+    use: 'The magnet glove reaches 26 m instead of 18.',
+  },
+  fourthpouch: {
+    name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s jet run.',
+    text: "One more leather pouch on the bomb belt. It already smells of ink.",
+    use: 'Four ink bombs in the pouch instead of three.',
+  },
+  longsand: {
+    name: 'Long sand', kind: 'upgrade', needs: 'recall', trial: 'spheres', where: 'The first finish of the Garden round, the Garden of Spheres’ run on foot.',
+    text: "A pinch of the garden’s finest sand for the hourglass. It runs slower and remembers longer.",
+    use: 'The recall hourglass sends things back up to 12 seconds instead of 8.',
+  },
+  racersribbon: {
+    name: 'Racer’s ribbon', kind: 'cosmetic', trial: 'bazaar', where: 'The first finish of the Avenue run, the Signal Market’s jet run.',
+    text: "A ribbon in the market’s racing colours, stamped with the silent tower. The cab drivers nod at it.",
+    use: 'It does nothing at all, and everyone in the market knows what it means.',
   },
   // ---- given by people, through a quest (quests.give: the same item.<id> flag), not found in a box
   cabpass: {

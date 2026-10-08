@@ -4,6 +4,7 @@
 // in the real level geometry, pushing, riding, climbing, lighting, calming.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import './register-gadgets.js';   // (the gadgets as items: the makers' courts' boxes hold them, src/finds/courts.js)
 import * as THREE from 'three';
 import { TempleLogic, solve, memoryStore, flagStore } from '../src/temples/logic.js';
 import { strikeDamage, inArea, HIT, Guardian } from '../src/temples/boss.js';

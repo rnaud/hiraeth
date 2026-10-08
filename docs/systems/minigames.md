@@ -408,3 +408,37 @@ avenue, a skybridge from right under it, the old sign, a cab in flight, a shop s
   points a second left (`huntScore`). The sketches are the frames (`ctx.capture`) turned to sepia ink on the
   page (`toSketch`), and the results show them as a two-page spread with their stars.
 
+
+## Trials in the worlds (v0.98, `src/trials/`)
+
+One optional **mastery trial** in each route world, built from what that world gives you, played where it stands
+(not on a game page): the Desert's **Dune line** (the hoverbike, down into the basin), Vael's **Wind ladder** (the
+wings up two columns of rising air and through rings between them), the Sky Stones' **Stone circuit** (the bird,
+round the Needles, the great Table and the Monastery), Lorn's **Reed race** and Lorn II's **Lagoon laps** (the skiff;
+the gust fan fills its sail), Viridel's **Eye garden** (eight sleeping eyes to splash), the City-Shaft's **Shaft
+climb** (the jets, from a ledge far down to the rim), the Hangar's **Pillar slalom**, the Buried Machine's **Canyon
+dive** and the Signal Market's **Avenue run** (the jets), and the Garden of Spheres' **Garden round** (on foot).
+
+- **Data** (`data.js` `TRIALS`): mode, the sign, the start, gates (`[x, y, z, r]`, or `ground: true` laid `up` m over
+  the ground or the water), eyes, wind columns, an easy pace (the par), the reward. **Rules** (`course.js`, pure): a
+  gate is passed when the body's path this frame comes within its radius (`segmentDistance`), in order;
+  `lacks` (the items, a mount found: the desert's bike only once uncovered), `inMode` (still on the mount),
+  `parTime` (the course at the easy pace × 1.6 + 5 s: a first try that keeps going beats it).
+- **In the world** (`index.js` `createTrials`, made by main.js): a sign (the arcade sign's model, in the trial's
+  colour; a floating buoy in the lagoon, ridden up to) whose interact opens the start card. main.js makes a
+  `MinigameRunner` for `trialGame(T)` (drives false: the usual play runs; its `navigate` just drops it, so Quit leaves
+  you in the world). The session puts you at the line (on your mount if it wants one), holds you through 3, 2, 1,
+  shows the next three gates (the next with a beam over it), counts gates or eyes, and ends the run if you are
+  knocked out or off your mount for 3 s. The wilds' packs keep away while it runs. Gadgets stay in hand
+  (`def.trial`): the fan into the skiff's sail.
+- **Wind columns** (`winds.js` `WindColumn`): a temple Updraft in the open, a ring of stone at its foot; it lifts open
+  wings and is a working (src/workings.js), so foes are thrown up by it too.
+- **Best and reward**: the best time is the runner's (`minigame.trial-<world>.best`); the first finish sets
+  `trial.<world>.done` and grants the reward (src/items.js items with `trial`), shown on the results card and the
+  item's card. The rewards are upgrades to the gadgets (`upgrades.js` `UPGRADES`: the hook's line 34 m, a fourth
+  bomb, a fourth spring bounce, five fan hops in the air, four boomerang locks, bubbles half as long again, half as much
+  ink again in the pen, the magnet's reach 26 m, the lens clouding half as fast, 12 s of recall), set on the tuning
+  tables while owned (`syncUpgrades`, before the gadgets are made and on every grant); the market's is a ribbon.
+- **Fair courses** (`check.js` `checkCourse`): every gate in the open, the way between them clear, a ride with no
+  wall or cliff on it (water all the way for the skiff), a glide never asking more than 1 : 5.2 without a column.
+  `tests/trials-worlds.test.js` runs it in every world; `tests/trials.test.js` the pure parts.

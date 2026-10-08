@@ -3,7 +3,8 @@
 Zelda-like things the traveller carries besides the backpack's tool (v0.91): one in hand at a time, used
 with its own button: ten of them, the grappling hook, the ink bombs, the boomerang, the magnet glove, the recall
 hourglass, the ink bridge pen, the seeing lens, the spring boots, the bubble wand and the gust fan; more come one file each.
-Try them all in the Gadget Yard (`?level=gadgetyard`, the Debug worlds list), where every gadget is yours.
+Since v0.98 each is found in the worlds, one a world (below, "In the worlds"); all of them are yours in the Gadget Yard
+(`?level=gadgetyard`, the Debug worlds list).
 
 ## The framework (`src/gadgets/`)
 
@@ -414,3 +415,36 @@ between them that is an illusion, the true ghost path winding behind it, writing
 buried in the sand in front; the springs' (orange) blocks 4, 8 and 12 m high, a 20 m tower past them (three
 bounces), and a little room roofed with a cracked floor, a lamp inside. `level.gadgets: 'all'` grants every
 gadget on arrival.
+
+## In the worlds: the makers' courts (v0.98, `src/finds/courts.js`)
+
+One gadget in each route world after the desert, in the route's order, each in a makers' box at the front of a
+**makers' court**: a slab of the makers' pale stone (`COURT`: 21 × 24.5 m, a blue band inlaid round it, the glyph
+by the box, a skirt down into the ground) carrying that gadget's own Yard bay (its `yard(kit)`, the banner and
+statue left out, the bomb bay's pen of blots too). So the tool is useful the moment it is found, and the bay's
+pots of ink and its gate are the reward for using it.
+
+| World | Gadget | Also useful there |
+|---|---|---|
+| Vael | grappling hook | the spires |
+| Vael II | spring boots | the stone stacks |
+| Lorn | gust fan | the skiff's sail (and its trial) |
+| Lorn II | boomerang | |
+| Viridel | bubble wand | |
+| City-Shaft | ink bridge pen | the gaps between the terraces |
+| Hangar | magnet glove | the brass pumps, the signal board |
+| Buried Machine | seeing lens | the glass bridge and writing in the canyon |
+| Garden of Spheres | ink bombs | |
+| Signal Market | recall hourglass | the cabs |
+
+- `attachCourt(levelId, scene, level)` runs at the end of `attachTemple` (src/temples/index.js), before the
+  collision is baked: the slab and the bay's blocks are solid with the world; what moves or breaks joins
+  `level.gadgetWorld` (its plate and prop indices shifted past any the level had), the targets `level.targets`,
+  the lanterns `level.flammables`. The world's trees and rocks inside `COURT.clear` are scaled away.
+- The box is a placement (`src/boxes/placements.js`, `gadget: true`, `site: level.finds.court.box`) with a hint, so
+  it has its box quest and its "where" on the items page. Without the gadgets registered (node), no court is
+  built and the box is skipped; tests that want them import `tests/register-gadgets.js`.
+- The courts' spots were picked against each world's collision and water (flat within ~1.5 m, 30 m from people,
+  relics and boxes, clear of the temple); `tests/trials-worlds.test.js` checks each one.
+- **Upgrades**: each gadget has one, won in a world's trial (src/trials/upgrades.js, docs/systems/minigames.md
+  "Trials in the worlds").

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import './register-gadgets.js';   // (the gadgets as items: the makers' courts' boxes hold them)
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
@@ -72,7 +73,7 @@ test('every placement stands on reachable ground, with room to stand and rise', 
 
 test('the jetpack, glider, stun and fire unlocks each have a box; every special item too', () => {
   const where = Object.fromEntries(Object.values(PLACEMENTS).flat().map((p) => [p.item, p.id]));
-  for (const id of Object.keys(ITEMS)) if (!ITEMS[id].quest) assert.ok(where[id], `${id} is in a box somewhere`);
+  for (const id of Object.keys(ITEMS)) if (!ITEMS[id].quest && !ITEMS[id].trial) assert.ok(where[id], `${id} is in a box somewhere`);   // (a trial's reward is won: src/trials/)
   assert.ok(!where.cabpass, 'the cab pass is a quest’s, not a box’s');
   assert.match(where.jetpack, /^incal\./);
   assert.match(where.glider, /^arzach2?\./);
@@ -451,7 +452,7 @@ test('nothing tells of the makers’ boxes before you find your first one', () =
   assert.equal(quests.isStarted(qid), false, 'not on the heels of the first');
   for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
   assert.equal(quests.isActive(qid), true, 'then the world’s other box is offered');
-  assert.ok(toasts.length === 1 && /another makers’ box/.test(toasts[0]));
+  assert.ok(toasts.length === 1 && /(another|more) makers’ box/.test(toasts[0]), 'one toast for them (the canopy’s box and the makers’ court’s)');
   assert.match(boxes.journalHtml(), /Item boxes/);
   boxes.dispose(); clearInteractables(); game.reset(); items.revoke('backpack');
 });

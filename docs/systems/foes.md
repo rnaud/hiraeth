@@ -301,8 +301,8 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
   under the music. It is on while a foe within 28 m chases, winds up or recovers.
 - **Ink stains:** where a blot or a shade falls (`Foes.stain`), dark pools in the `ShadePools` decal.
 - **The shade's slash:** an arc of black drops in front of it as it strikes (`slashTrail`).
-- **The temple kit** (`templeKit`, inside the temple): a blowing `Gust` shoves machines down its hall; a
-  machine on a `Plate` presses it (`logic.press(id, 'foe')`).
+- **The temple kit** (`templeKit`, inside the temple): a foe on a `Plate` presses it (`logic.press(id, 'foe')`);
+  gusts, updrafts and pendulums act on any foe as workings (below: *Foes in the world's workings*).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
@@ -388,7 +388,53 @@ new attacks, Gentle, the rosters and placed foes, the Arena's list.
 - The packs hold more (deaths, kicks, the great sword's spins and jump attacks): a charged spin could come
   from them.
 - Foes use procedural body animation rather than skeletal clips; machines still use the box model.
-- No foe yet uses the temple kit (gusts, updrafts) or the open world's height.
+- The hitbox overlay (`src/hitboxes.js`) still draws a foe's strike area at `f.pos.y`; for a hovering foe holding
+  height over a drop it should use `f.level`.
+- Cover is sampled once per strike cycle (16 rays); a foe does not path round obstacles to its hiding place (it
+  only takes spots it can fly to straight).
+- Not yet: foes using the open world's own workings beyond the temples' (the trials' updrafts register through
+  `src/workings.js` once they do), nor a foe knocked into water.
+
+## Foes in the world's workings (v0.98)
+
+Foes live in the same world as the traveller: its height, its hazards and its moving parts (`HOVER`, `COVER`,
+`FALL`, `WORLD_HARM`, `WORKS` in `src/foes.js`; pure logic in `Foe`, the world asked through `env`: `ground(x, y, z,
+range)`, `seen`, `canStep`, `hazard(p)` (src/hazards.js `hazardAt`), `workings(p, kind)` (src/workings.js
+`workingsAt`), `killY()`, `pit(p)` (a temple's pits, or under its floor), `gentle()`).
+
+- **Height** (`Foe.over`, `Foe.level`): a hovering kind (winged blot, rust drone, sign moth) holds `hover` over the
+  higher of its footing and where the traveller last stood (`youY`, not every jump): on a ledge it rises to stay
+  over you, out over a drop it holds its altitude (a step over lower ground adds to `over`), climbing at
+  `HOVER.climb`, sinking at `HOVER.sink`, never more than `HOVER.max` (12 m) over the ground; it won't fly out over a
+  deeper chasm on its own. Strikes, sight and "lost" are measured from `level` (footing + over), so the dive, the
+  harpoon, `KNOCKED_LOW` and the rising cut work as on flat ground. Stilled up there, it drops all the way.
+- **Cover** (`Foe.hide`, `coverSpot`): once between two strikes, while chasing with its cooldown at least
+  `COVER.minCool`, it samples 8 ways at 6 and 10 m round itself for a spot at its height that the traveller can't see
+  (env.seen false: a physics ray) and it can fly to straight, the nearest to you; it drifts there and waits. It comes
+  out after `COVER.hold` (2.6 s; Gentle `COVER.gentle` 1.2 s), after `COVER.stay` there, when you come round and see
+  it, or when a cut knocks it low; then its cooldown is cut to `COVER.out` and it strikes. It never strikes from
+  hiding. Nowhere to hide: it climbs `COVER.climb` (2.2 m) higher for as long instead.
+- **Hazards** (`Foe.feelWorld`, `refuses`): a foe never steps into a hazard or an updraft on its own. Shoved, thrown
+  or knocked into one (a push, the fan's gust, a bomb, the heavy swing, a gust), it takes `WORLD_HARM[kind]` (spines,
+  fire: one cut) at most every `WORLD_HARM.every` (0.6 s) and is thrown back out. The jaws, cacti and the burning
+  tree are all hazards already, so it works anywhere.
+- **Falls** (`Foe.air`, `fall`): a shove carries a walker over an edge (more than `FALL.edge` down): it falls at
+  `FALL.gravity`; more than `FALL.hard` (3.5 m), or thrown by an updraft, lands hard: a cut (two past `FALL.harder`)
+  and a `FALL.stun` stun. Below `killY`, into a temple's pit or past `FALL.lost` (60 m) it is gone (a burst: ink and
+  the tank's charge as for any).
+- **Workings** (`src/workings.js`): the temple's `Updraft`, `Gust` and `Swing` register themselves as built and let
+  go in `dispose()` (TempleRuntime disposes its pieces). An updraft throws a walker up and out (`WORKS.updraft.throw`)
+  to land hard, and tumbles a hovering foe up out of control (`tumble`), stunned (`stun`) as it drops; a blowing gust
+  shoves any foe in the open down its hall (× `WORKS.gust`: heavy 0.7, a stilled one 1.1, sliding like a crate,
+  hovering 1.2, light 1.25), not behind a screen or a shelter; a swinging pendulum knocks a foe away the way it
+  swings (`WORKS.swing.knock`), a cut and a stun; off a bridge, into the pit, a machine is broken.
+- **Plates** (`Foes.templeKit`): any foe that weighs presses a plate it stands on (not a swarm blot, a flyer in the
+  air or one thrown up; stilled it still weighs). A gust piece that is not a registered working still shoves foes
+  there (the old path).
+- **The harm** goes through `Foes.hurt(f, 'world', dir, { damage, stun, source })` (`Foes.worldEvent`): sources
+  `'hazard'`, `'fall'`, `'swing'`; its sound (`foeHurt`, and spines, a hiss or a thud), a burst and ink as any blow.
+  The first time, the game says the world hurts them too (flag `foes.world`).
+- `tests/foes-world.test.js` checks each of these.
 
 ## Combat checks (v0.89)
 

@@ -74,6 +74,9 @@ import { menuSources } from './game-menu-data.js';
 import { ItemIcons } from './item-icons.js';
 import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
+import { Chemistry } from './chemistry.js';
+import { createTrials } from './trials/index.js';
+import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { Foes } from './foes.js';
@@ -645,6 +648,8 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 const firstSteps = levelId === 'desert' && !minigameDef && !game.flag('item.backpack') ? new FirstSteps(game) : null;
 const firstStepsAt = new THREE.Vector3(NaN, 0, 0); let firstStepsT = 0;
 const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
+let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
+const chemistry = new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });   // fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js)
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
 { // locked on, the look's sideways motion is the lock's: a quick flick (the right stick, the mouse, a drag) switches to the next foe that way (src/foes.js FLICK)
   const look = rig.look.bind(rig);
@@ -707,6 +712,9 @@ window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy ||
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
 // the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand (none: the bell-note whistle), D-pad ↑ or B changes it
+// the trials' rewards, upgrades to the gadgets' tuning while owned (src/trials/upgrades.js): before the gadgets are made
+syncUpgrades((id) => items.has(id));
+items.on(() => syncUpgrades((id) => items.has(id)));
 gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
 // the hitbox overlay (src/hitboxes.js): F4, L3 + R3, the dev menu, the Arena's board, ?hitboxes=1 (this session only)
@@ -1478,7 +1486,7 @@ function frame(ts) {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
-    gadgets.control(dt, busy() ? noInput : ctl, busy() || ship.playing || !!minigame);   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
+    gadgets.control(dt, busy() ? noInput : ctl, busy() || ship.playing || (!!minigame && !minigame.def.trial));   // (a trial in the world keeps the gadgets: the fan in the skiff's sail)   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
     player.update(dt, busy() ? noInput : ctl, rig.yaw);
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
@@ -1496,8 +1504,10 @@ function frame(ts) {
   itemFx.update(dt, t);
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
   tool.update(dt, ctl, busy() || photo.on || !!minigame?.drives);   // (a game on foot keeps the blade and the gun)
-  gadgets.update(dt, busy() || photo.on || ship.playing || !!minigame);   // (after the tool: an aiming gadget's camera and pose win)
+  gadgets.update(dt, busy() || photo.on || ship.playing || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)
   flammables.update(dt, t, player.pos);
+  chemistry.update(dt, player.pos);
+  trialsRt?.update(dt, t);   // the trials' wind columns and signs (src/trials/)
   scout.flare.eye = camera.position;
   scout.update(dt, busy() || photo.on);
   // flocks circle the player (also in photo mode, so you can fly up to them)
@@ -1802,6 +1812,20 @@ if (minigameDef) {
   story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)
   if (story) story.done = true;   // (nor its goal: the Arena's ring would end its story under a game played by it)
 }
+// this world's mastery trial (src/trials/): a sign in the world opens its start card, played here on foot
+// (the runner as a game page's, but Quit leaves you where the run did: nothing reloads)
+trialsRt = minigameDef ? null : createTrials({ levelId, scene, physics, level, player, items, game, foes, notice: (t) => showToast(t),
+  surfaceAt: (x, z, y, below) => waters.surfaceAt(x, z, y, below),
+  open: (def) => {
+    if (minigame) return false;
+    minigame = new MinigameRunner(def, { scene, camera, player, physics, level, sound, wind, ship: null, state: game, kick, from: null, tool, foes, rig, settings,
+      capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },
+      othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open'),
+      navigate: () => { minigame = null; window.minigame = null; } });
+    window.minigame = minigame;
+    return true;
+  } });
+window.trials = trialsRt;
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
