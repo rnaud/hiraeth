@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/vael.md",
+  "references": [
+    {
+      "character": "Oïa, who watches the tower",
+      "file": "Oïa, who watches the tower/anf___Character_exploration_sheet_for_Oa_a_silent_watcher_who_99ec786b-e317-455f-b885-51e54e41d2cf_0.png",
+      "midjourney_job": "99ec786b-e317-455f-b885-51e54e41d2cf",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/99ec786b-e317-455f-b885-51e54e41d2cf?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Tam, who copies you",
+      "file": "Tam, who copies you/anf___Character_exploration_sheet_for_Tam_a_playful_child_of__3d670800-2a71-48cb-8617-176996cb1f87_0.png",
+      "midjourney_job": "3d670800-2a71-48cb-8617-176996cb1f87",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/3d670800-2a71-48cb-8617-176996cb1f87?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Senn, who listens to stones",
+      "file": "Senn, who listens to stones/anf___Character_exploration_sheet_for_Senn_a_mute_listener_wh_436de334-fa03-4e19-8969-2a4d054f4183_0.png",
+      "midjourney_job": "436de334-fa03-4e19-8969-2a4d054f4183",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/436de334-fa03-4e19-8969-2a4d054f4183?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Kesh, who keeps the stone hand",
+      "file": "Kesh, who keeps the stone hand/anf___Character_exploration_sheet_for_Kesh_the_old_keeper_of__ac812c87-f164-455a-a792-5eb0a1ff60cb_0.png",
+      "midjourney_job": "ac812c87-f164-455a-a792-5eb0a1ff60cb",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/ac812c87-f164-455a-a792-5eb0a1ff60cb?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "The rider of the great bird",
+      "file": "The rider of the great bird/anf___Character_exploration_sheet_for_the_rider_of_the_great__b8064a1d-8e9b-4c9f-8b81-a986080864e3_0.png",
+      "midjourney_job": "b8064a1d-8e9b-4c9f-8b81-a986080864e3",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/b8064a1d-8e9b-4c9f-8b81-a986080864e3?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}

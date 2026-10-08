@@ -1,0 +1,62 @@
+{
+  "generator": "Midjourney",
+  "style": "Moebius science-fiction, ligne claire, flat pastel colors, cream paper",
+  "prompt_source": "prompts/buried-machine.md",
+  "references": [
+    {
+      "character": "Hask, keeper of the Wick",
+      "file": "Hask, keeper of the Wick/anf___Character_exploration_sheet_for_Hask_the_keeper_of_a_gi_5f5fc9e0-7301-4104-a2dd-9ed1e339e97b_0.png",
+      "midjourney_job": "5f5fc9e0-7301-4104-a2dd-9ed1e339e97b",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/5f5fc9e0-7301-4104-a2dd-9ed1e339e97b?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Wen, who counts the teeth",
+      "file": "Wen, who counts the teeth/anf___Character_exploration_sheet_for_Wen_an_accountant_who_c_fe447878-9d35-41e7-887e-31c2d09b5541_0.png",
+      "midjourney_job": "fe447878-9d35-41e7-887e-31c2d09b5541",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/fe447878-9d35-41e7-887e-31c2d09b5541?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Dun, who keeps the domes breathing",
+      "file": "Dun, who keeps the domes breathing/anf___Character_exploration_sheet_for_Dun_a_caretaker_who_kee_f49e4f9b-a410-45e4-b0d1-fc10c85e5dd7_0.png",
+      "midjourney_job": "f49e4f9b-a410-45e4-b0d1-fc10c85e5dd7",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/f49e4f9b-a410-45e4-b0d1-fc10c85e5dd7?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Jot, nine teeth old",
+      "file": "Jot, nine teeth old/anf___Character_exploration_sheet_for_Jot_a_curious_child_of__37806aae-54c6-495e-8f0b-ec5d89f540cd_0.png",
+      "midjourney_job": "37806aae-54c6-495e-8f0b-ec5d89f540cd",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/37806aae-54c6-495e-8f0b-ec5d89f540cd?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "character": "Tull, who oils the oval doors",
+      "file": "Tull, who oils the oval doors/anf___Character_exploration_sheet_for_Tull_an_old_doorkeeper__b9508cfa-ba9c-4001-947f-f3e709bfee1f_0.png",
+      "midjourney_job": "b9508cfa-ba9c-4001-947f-f3e709bfee1f",
+      "selected_index": 0,
+      "url": "https://www.midjourney.com/jobs/b9508cfa-ba9c-4001-947f-f3e709bfee1f?index=0",
+      "dimensions": [
+        1024,
+        1024
+      ]
+    }
+  ]
+}
