@@ -1,0 +1,29 @@
+docs/systems/foes.md
+  s_364474254304ac::t_c3ceed49166fc5 301-302,388-434
+src/foes.js
+  s_364474254304ac::t_54fa2bcba18acc 5-6,145-174,206-211,214-220,239,276,301-309,312-316,321-322,338,380,383,441-459,461-467,469,474-642,662,679-683,690,694,696,793-799,819,821-826,1114-1139,1143-1144,1146,1148,1151,1185,1187,1259,1562,1624
+src/hitboxes.js
+  s_364474254304ac::t_6ba7baaae50a7d 89,94
+src/temples/pieces.js
+  s_364474254304ac::t_fb5db6b4f1ba9b 7,46-49,342-343,647,650-655,678,689,695,722-723,725,788-795
+src/workings.js
+  s_364474254304ac::t_fe3b3a05039c6e 1-33
+tests/foes-world.test.js
+  s_364474254304ac::t_8d5ae18ae2633f 1-308
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "334869d73c01573225383f82a236090b96f6f670",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
