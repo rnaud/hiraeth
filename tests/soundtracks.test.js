@@ -30,3 +30,27 @@ test('a disposed world never starts a recording after its download', async () =>
 test('registered soundtracks are packaged audio files', () => {
   for (const file of Object.values(SOUNDTRACKS)) assert.ok(statSync(new URL(`../public/music/${file}`, import.meta.url)).size > 100000);
 });
+
+// The named worlds exclude development fixtures such as the Lab and Arena.
+test('every playable world has exactly one packaged soundtrack and source record', async () => {
+  const { TITLES } = await import('../src/levels/names.js');
+  const { readFileSync } = await import('node:fs');
+  const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
+  assert.deepEqual(Object.keys(SOUNDTRACKS).sort(), Object.keys(TITLES).sort());
+  assert.deepEqual(manifest.tracks.map(t => t.level).sort(), Object.keys(TITLES).sort());
+  for (const track of manifest.tracks) {
+    assert.equal(track.file, SOUNDTRACKS[track.level]);
+    assert.match(track.source, /^https:\/\/suno\.com\/song\/[a-f0-9-]{36}$/);
+    assert.ok(track.direction.length > 20);
+  }
+});
+
+test('an unavailable download keeps the procedural score active', async () => {
+  const sound = { score: true, levelId: 'desert', ctx: {} };
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    assert.equal(await loadSoundtrack(sound, async () => ({ ok: false, status: 404 })), false);
+    assert.equal(sound.recordedTrack, undefined);
+  } finally { console.warn = warn; }
+});
