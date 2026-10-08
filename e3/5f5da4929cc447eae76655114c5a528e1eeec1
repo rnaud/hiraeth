@@ -1,0 +1,65 @@
+changelog.md
+  s_5a4a8236bbf618::t_2841d36a48ed06 25
+cinematics.html
+  s_5a4a8236bbf618::t_a807dba54dece0 1-5
+docs/README.md
+  s_5a4a8236bbf618::t_3859cfc3ec7a45 26
+docs/audits/visual-v1.0.md
+  s_5a4a8236bbf618::t_525d38adcd9d74 1-118
+docs/audits/visual-v1.0/measurements.json
+  s_5a4a8236bbf618::t_e88e4d5ae00f88 1-2940
+docs/systems/cinematics.md
+  s_5a4a8236bbf618::t_36f1c4965c2579 215-232
+src/boot.js
+  s_5a4a8236bbf618::t_ccb52f365f9ea5 1-5,52-56
+src/changelog.js
+  s_5a4a8236bbf618::t_d23e7d745168be 13
+src/cinematics-page/catalog.js
+  s_5a4a8236bbf618::t_1b54a4d400bfe5 1-20
+src/cinematics-page/main.js
+  s_5a4a8236bbf618::t_7959e508b0170a 1-40
+src/cinematics-page/runtime.js
+  s_5a4a8236bbf618::t_dabe3a34defa1d 1-96
+src/cinematics-page/storage.js
+  s_5a4a8236bbf618::t_09ee98b0ba19ed 1-6
+src/main.js
+  s_5a4a8236bbf618::t_a5f5f7eea807d8 675,931
+src/save-slots.js
+  s_5a4a8236bbf618::t_2142db8da9b171 23-25,42
+src/story/lantern.js
+  s_5a4a8236bbf618::t_c151e9d9bd57cb 89
+src/world-picker.js
+  s_5a4a8236bbf618::t_1a501a745bfd91 18
+tests/cinematics-page.test.js
+  s_5a4a8236bbf618::t_f7a1103027c66f 1-22
+tests/menus.test.js
+  s_5a4a8236bbf618::t_1e79bdab47a430 58
+vite.config.js
+  s_5a4a8236bbf618::t_3389139f6028cb 11
+src/cinematics-page/style.css
+  s_8880b2630c2dab::t_66c39a31ca2f2c 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e35f5da4929cc447eae76655114c5a528e1eeec1",
+  "prompts": {},
+  "sessions": {
+    "s_5a4a8236bbf618": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11d86-5153-7723-8f58-4c77363f8817",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_8880b2630c2dab": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11d86-8d52-7880-a8db-5b7b1d5ffaaf",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
