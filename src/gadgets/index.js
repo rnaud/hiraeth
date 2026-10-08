@@ -62,6 +62,8 @@ export class Gadgets {
       notice: (text, key = text) => { const t = performance.now(); if ((said.get(key) ?? -1e9) + 3000 > t) return; said.set(key, t); notice?.(text); },
       // where an aiming gadget points this frame (the traveller turns to it, the camera comes over the shoulder)
       aimAt: (point, dir) => { this.aimPoint.copy(point); this.aimDir.copy(dir); this.aimWanted = true; },
+      // another gadget's instance (the hourglass rewinds the bombs in flight)
+      gadget: (id) => this.inst.get(id) ?? null,
     };
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1); this.aimK = 0; this.aimWanted = false;
     this.inst = new Map();

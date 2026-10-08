@@ -58,7 +58,7 @@ panel takes a gadget in hand too (`onUse`).
      id: 'magnet', name: 'Lodestone glove', glyph: '⊂', order: 30,   // order: its place in the wheel and the yard
      text: 'what it is', use: 'what it does (prompts in Xbox / PlayStation form: Y / △)',
      model: () => group,          // about 0.3 m, makeMaterial materials (inked by the post pass)
-     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, world, fx, hud, bursts, sfx, sound, notice, aimAt
+     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, world, fx, hud, bursts, sfx, sound, notice, aimAt, gadget(id)
      yard(kit) {},                // its props in its Gadget Yard bay
    };
    ```
@@ -112,6 +112,66 @@ every 5 s). Tests: the throw's angle and range against the maths, the bounce, th
 blast on a foe, a crate, a cracked wall (solid, then not) and the traveller, a bomb thrown, bouncing and
 chaining.
 
+## The recall hourglass (`recall.js`, `history.js`)
+
+Point at something that moved in the last few seconds: its path shows as a dotted ink trail with its ghost
+drawn in outline every `ghostEvery` 0.45 s of it (`outlineGeometry` round the thing's own box,
+`localBox`), and the reticle says how many seconds of it there are. Press the use button and it goes back
+along that path at the pace it went (`Rewind`), a gold ring turning round it and a teal line from the hand;
+press again to stop it there (started with the button held, letting go stops it too). With nothing under
+the aim, holding the button aims over the shoulder; letting go on something starts it. At the oldest end
+(or stopped) it is let go where it is, still, and its path is forgotten (it is recorded anew from there).
+
+- **The history** (`MotionHistory`, pure): a ring buffer per thing (`Track`: x, y, z, yaw, time), sampled
+  `HISTORY.rate` 20 times a second and only when it moved `eps` since its last sample, kept `window` 8 s;
+  a thing is followed only once it moves, forgotten once still for the window or gone, at most `cap` 24
+  at once (a track still for longest gives its place up, never one that moved in the last second: traffic
+  doesn't churn it). A track being rewound is frozen.
+- **What can be rewound** (adapters: `{ key, pos, radius, object, yaw(), moving(), alive(), can(),
+  begin(), place(pos, yaw, vel), end() }`): the world's loose things (`propAdapter`: `prop.held =
+  'recall'`, no gravity; a crate is a moving collider, so whoever stands on it rides it, up to its ledge),
+  bombs in flight (`bombAdapter`: `b.held`, bomb.js skips it, its fuse waits), the nearest `cabs` 6 cabs
+  of the City-Shaft's and the Signal Market's traffic (`taxiAdapter`, reach `cabReach` 70 m: mode
+  `'recall'`, then parked, back to its lane by itself), and whatever a level lists in
+  `level.recallables()` (moving platforms of its own).
+- Its bay: a 6 m ledge with a crate at its lip (knock it down with the hook's ring beside it or a bomb,
+  stand on it, send it back up), a 3 m one to learn on, a crate on the ground.
+
+Tests (`tests/recall-bridge.test.js`): the ring buffer, what is followed and forgotten, the rewind's pace,
+a crate knocked off a ledge sent back up onto it, stopping by a second press and by letting go, a bomb's
+fuse held.
+
+## The ink bridge pen (`bridge.js`, `src/wind-screens.js`)
+
+Hold the use button: a dotted line runs out from the traveller's feet at `speed` 11 m/s toward the point
+under the reticle (`steer`; along the aim when that is near or nothing), bending at most `turn` 1.8 rad/s,
+never steeper than `climb` 28° up or `dive` 20° down (`penPitch`); the big pen rides its tip, dripping ink.
+It ends where it runs into something (a kerb up to `over` 0.45 m is run through: you step over it), once
+laid 0.4 m onto a ledge level with it, at `max` 16 m, or when the ink runs out. Let go: it sets into a
+plank (`width` 1.5 m, `thick` 0.2 m, its top on the line), drawn in from the start in a third of a second,
+hand-inked (`inkGeometry`: wobbling edges, two pen lines along its top, a joint every metre, hatching down
+its sides). It stands `life` 12 s, pales and drips over the last `warn` 2.5 s, then wears away from both
+ends at once over `fade` 2 s (`fadeOrder`: the segments laid middle first, so `drawRange` cuts both ends).
+Aimed up past `wallAim` 0.6 rad as you start, it draws a wall instead: `wallH` 2.6 m tall, up to `wallMax`
+7 m across, `wallAt` 3 m ahead on the ground, hatched in long diagonals and cross-hatched toward its foot.
+
+- **Solid**: a box per segment (`colliderGeometry`) through `physics.addCollider`, rebuilt as it wears
+  (the boxes of the segments left). The traveller walks and climbs on it, foes walk on it and are stopped
+  by a wall (their step test is a ray), bombs bounce off it, the bike drives on it.
+- **Against the wind**: a wall's segments are screens (`addScreen`); `screened(pos, dir)` says whether a
+  body is behind one upwind within 6 m. A temple's gust (src/temples/pieces.js `Gust`) leaves you, and the
+  machines (src/foes.js `templeKit`), alone behind one.
+- **Ink**: `ink` 24 m in the pen (the chip's six pips), a wall costs `wallCost` 1.4 per metre, flowing back
+  at `refill` 2.5 m/s from `refillDelay` 0.8 s after drawing; a line shorter than `min` 1.2 m is not kept
+  and its ink comes back. At most `keep` 3 stand at once (a fourth sets the oldest wearing away).
+- Its bay: a tower with steps, an 8 m gap to a second tower, a 2.5 m rise over 5.5 m to a third with a lamp
+  (a ramp), and a gap in a low wall to close. In the City-Shaft it spans the gaps between the upper
+  terraces (some 10 m over a 150 m drop).
+
+Tests: the pitch cap, the turn, the refill, the fade order, the collider's boxes, a plank across a gap
+(stood on mid-gap, worn from the ends, gone, the ink back), the 16 m limit, a ramp's slope, a tap kept
+nothing, a dry pen, a wall that stops a ray and shelters from a gust, the screens' reach.
+
 ## The Gadget Yard (`src/levels/gadget-yard.js`)
 
 A round yard of packed sand inside a low wall (`YARD.radius` 50 m), the ship on an apron outside its south
@@ -122,4 +182,4 @@ the ring, each gadget's bay (`bayFrame(i)`): the hook's (red banner) has a wall 
 two towers across a 12 m gap with a ring and two crates up on the far one, a ring on an 11 m pole and a
 ledge under an overhang; the bombs' (dark blue) a cracked wall closing an alcove with a lamp inside, a
 cracked boulder, a stack of crates and two metal ones, and a pen of three ink blots (kept at three by the
-runtime, new ones only while you are away). `level.gadgets: 'all'` grants every gadget on arrival.
+runtime, new ones only while you are away); the recall hourglass's (teal) a high ledge with a crate at its lip; the ink pen's (night blue) towers across a gap and a ramp's rise. `level.gadgets: 'all'` grants every gadget on arrival.

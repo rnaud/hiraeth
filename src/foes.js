@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { registerTarget } from './targets.js';
+import { screened } from './wind-screens.js';
 import { Telegraph, strikeDamage, inArea } from './temples/boss.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
@@ -567,7 +568,7 @@ export class Foes {
     for (const p of rt.pieces) {
       if (p.dirW && p.box && p.state === 1) for (const f of machines) {
         const l = rt.kit.local(f.pos);
-        if (p.box.containsPoint(l) && !p.sheltered?.(l)) f.vel.set(p.dirW.x, 0, p.dirW.z).multiplyScalar(p.push * 0.7);
+        if (p.box.containsPoint(l) && !p.sheltered?.(l) && !screened(f.pos, p.dirW)) f.vel.set(p.dirW.x, 0, p.dirW.z).multiplyScalar(p.push * 0.7);
       }
       if (p.weighed && p.solid && p.id && rt.logic) {
         const on = machines.some((f) => Math.hypot(f.pos.x - p.pos.x, f.pos.z - p.pos.z) < p.r + 0.3 && Math.abs(f.pos.y - p.pos.y) < 0.8);

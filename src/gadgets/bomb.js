@@ -213,6 +213,7 @@ class Bombs {
     } else { this.dots.count = 0; this.ring.visible = false; }
     // the bombs out in the world
     for (const b of this.live) {
+      if (b.held) continue;   // (held by another gadget: the hourglass moves it, its fuse waits)
       const steps = Math.min(6, Math.ceil(b.vel.length() * dt / 0.15) || 1);
       for (let i = 0; i < steps && b.fuse > 0; i++) this.stepBomb(b, dt / steps);
       b.fuse -= dt;

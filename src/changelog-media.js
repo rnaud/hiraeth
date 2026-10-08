@@ -132,6 +132,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'bomb-blast', only: 'after', caption: 'The blast: the cloud, the speed strokes and the wall coming apart', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
       { name: 'bomb-wall', only: 'after', caption: 'A moment later: the wall gone, a star of ink on the sand (in the yard it grows back after a while)', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
     ], see: 'In the Gadget Yard, the bay with the dark blue banner: throw one at the cracked wall in front of the alcove, or into the pen of ink blots.' },
+    { match: 'The recall hourglass: point it at something', shots: [
+      { name: 'recall-trail', only: 'after', caption: 'A crate knocked off the high ledge in the hourglass’s bay: its fall drawn as a dotted line back up to the ledge, its outline along it, 1.9 s to send back', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'recall-ride', only: 'after', caption: 'Standing on it as it goes back up its own path (the gold ring turns round it), a moment before it lands on the ledge again with the traveller aboard', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+    ], see: 'In the Gadget Yard, the bay with the teal banner: pull the crate off the high ledge with the hook (or blow it off with a bomb), stand on it, point the hourglass at it and press T (Y / △).' },
+    { match: 'The ink bridge pen: hold Y / △', shots: [
+      { name: 'bridge-draw', only: 'after', caption: 'Drawing: the dotted line runs out from the traveller’s feet to the far tower, the pen at its tip, 8.6 m', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'bridge-walk', only: 'after', caption: 'Set: walking across the hand-inked plank between the towers of the pen’s bay', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'bridge-wall', only: 'after', caption: 'Aimed up steeply: a short wall of ink, hatched in long diagonals and cross-hatched at its foot', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'bridge-shaft', only: 'after', caption: 'In the City-Shaft: a plank drawn out from the upper terraces, 150 m over the town below', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), ?level=incal' },
+    ], see: 'In the Gadget Yard, the bay with the night-blue banner: climb the steps, hold T (Y / △) aimed at the far tower’s top, let go and walk across.' },
     { match: 'The Gadget Yard, a new world', shots: [
       { name: 'yard', only: 'after', caption: 'The Gadget Yard from where you arrive: the hook’s bay and its pole, the plate and its gate, the targets, the bombs’ bay beyond', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
     ] },
