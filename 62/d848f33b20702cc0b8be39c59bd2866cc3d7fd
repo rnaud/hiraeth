@@ -1,0 +1,41 @@
+changelog.md
+  s_efb1d100d5a6fc::t_d19f016e1b52e0 12-13
+docs/systems/controls.md
+  s_efb1d100d5a6fc::t_09c21cff119019 72-122,210
+src/bindings.js
+  s_efb1d100d5a6fc::t_57c5f97c50a259 42
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_ed67a1d82040d6 170-174
+src/changelog.js
+  s_efb1d100d5a6fc::t_7bb9c486cdc34b 27-28
+src/dev-menu.js
+  s_efb1d100d5a6fc::t_ec93f31923ac85 35-36,51,130-131
+src/input-display.js
+  s_efb1d100d5a6fc::t_6701da0f552469 1-202
+src/main.js
+  s_efb1d100d5a6fc::t_525d0070fedad0 83,603-604,1063-1069,1121,1412
+src/native-pad.js
+  s_efb1d100d5a6fc::t_efdb78114c00b0 31-32,50
+src/pad-maps.js
+  s_efb1d100d5a6fc::t_b316d804e80cc5 1-281
+src/ui.js
+  s_efb1d100d5a6fc::t_60eb0865b59476 84
+tests/pad-maps.test.js
+  s_efb1d100d5a6fc::t_c69282c4e8260e 1-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "62d848f33b20702cc0b8be39c59bd2866cc3d7fd",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
