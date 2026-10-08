@@ -2,8 +2,9 @@
 
 Small games played apart from the journey (v0.92): each in its own little arena built on the fly, or in a
 corner of an existing world: **Dune skiing** (`src/minigames/ski.js`), **Sky steps**, the platformer
-(`src/minigames/platformer.js`), the **Canyon run** (`src/minigames/canyon.js`) and **Fishing**
-(`src/minigames/fishing.js`).
+(`src/minigames/platformer.js`), the **Canyon run** (`src/minigames/canyon.js`), **Fishing**
+(`src/minigames/fishing.js`), the **Ring race** (`src/minigames/rings.js`) and the **Wing drop**
+(`src/minigames/wingdrop.js`).
 
 ## Playing one
 
@@ -78,6 +79,11 @@ export default {
   `NO_INPUT` until GO and after the finish. Move the traveller yourself: set `player.pos`, `vel`, `heading`,
   `onGround` and call `player.finishFrame(dt, speed)` for the clips (the platformer), or pose the rig
   (`player.char`) and call `player.humanoid.update()` (the skier).
+- **Gear for the run** (`kit/gear.js` `lendItems(ids)`): the registry (`src/items.js`) answers yes for the
+  lent items until the returned function is called (the session's `end()`), so the fluid tool draws the tank,
+  the jets' nozzles or the wings on the back; nothing is written to the save. Set the traveller's own flight
+  state for the pose and the sound (`player.jetFlight`, `thrusting`, `jetPower`; `gliding`, `glideTurn`) and
+  call `player.finishFrame(dt, speed)`.
 - Keep the rules pure where you can (a step function on plain objects) and test them in
   `tests/minigames.test.js`; play the game in headless Chrome through a virtual pad (override
   `navigator.getGamepads`; setting `window.input.stick` every frame does not work: main.js latches taps).
@@ -159,3 +165,43 @@ the rod is six segments from the hand that bend toward the fish, the line twelve
 - `botFight` plays a fight well (reels when easy, eases off at 0.66, holds against the runs): the tests land
   every kind with it, snap the heavy ones reeling flat out and lose them all left slack. `window.__fishBot = true`
   lets it fight in the page.
+## Ring race (`rings.js`)
+
+The Needle Field: a sand floor (`fieldHeight`), about a hundred sandstone needles (tapered columns of beds,
+some with a hoodoo's cap, `courseField`: seeded, a pair flanking nine of the rings, the rest anywhere clear of
+the flight line by 14 m), seven floating rocks round the high part, a start mesa with a pad. Twenty rings
+(`RING_POINTS`, hand-placed: a slalom down the field, a climb to 110 m, a dive to 30, the long way home; 50 to
+110 m apart, about 1.6 km), each `{ c, n, R: 6.5 }` facing along the line. The flyer is the jets' own model
+(`flyStep`: `jetSteer`, `jetNose`, `jetStep`, `jetDroop` from `src/player.js`, `boost` on all the way: the
+race-tuned jets fly at 31 m/s), lifting off the pad on the first squeeze. The tank burns `RACE.burn` (0.09) a
+second at full throttle (about 11 s), each ring gives back `RACE.topUp` (0.28); dry, you glide.
+`raceStep`: the rings in order; the next one passed or missed (`crossRing`: through its plane within R, or
+within 6 R outside it), or one of the two after it went through (those between are missed: +5 s each).
+`hitAt`: the sand, a needle or a rock with the body's 0.7 m reach is a crash: +3 s, again from the last
+ring passed, flying on its way, the tank at least 0.4 full. The camera chases behind the nose (tipped with it,
+rolled a third of the bank); the arrow hangs at the top of the view (4.2 m ahead of the camera) pointing at
+the next ring. **The ghost**: the run's track every 0.1 s and its ring splits, kept on this device
+(`localStorage` `moebius.minigame.rings.ghost`, `packGhost`: ~8 KB) when it beats the ghost or the best; the
+next runs fly it beside you (`ghostAt`) and flash the split at each ring. `botInput` flies the course; the tests
+run it at 120, 60 and 30 fps and require every ring, no crash, about 55 s.
+
+## Wing drop (`wingdrop.js`)
+
+The Painted Mesa (`MESA`: r 36 m, its top at 62 m) with a bullseye painted on it (`TARGET.bands`: 1.6, 6, 11,
+17, 24 m), smaller mesas and needles round it. Three drops a round (`dropPlan(i, seed)`, a new seed each
+round): a start 280–370 m out and 130–160 m over the top, a wind of 1.5 m/s on the first growing to 5 on the
+last (which blows mostly against you), three thermals between (r 15–21 m, lift 5–7 m/s, up to 230 m over the
+top) and three star gates (one high in the first thermal, one off the line, one on the final approach).
+The glider (`glideStep`, `WING`): a free fall to 44 m/s until A / × opens the wings (by themselves at 45 m
+over the ground: −50 style); then an airspeed the stick asks for (12 neutral, 21 full forward, 4.5 full back),
+a sink least at 11.5 m/s (2.4 m/s: a glide of about 5 to 1) and growing with the square away from it,
+the thermals' lift (`thermalLift`: strongest in the middle, nothing past the edge or over the top), the wind
+carrying you. The flare: the stick back within 4 m of the ground (fading out by 10 m) holds the sink off while
+the speed lasts, so pulled in the last metre or two you touch down at ~1.5 m/s; too early and you are slow
+and sinking again by the time you land. Flown into the mesa's side under its rim, the wings fold and you fall.
+`scoreLanding`: aim `500 × (1 − d / 24)^1.2` on the target (+100 in the bull; 25 on the mesa off it), style 200
+for a landing soft (`vy` 1.5 m/s or less) and slow (5 m/s or less across), a tumble (`vy` > 7) no style and half
+the aim, 100 a star. The swirls are dashed ink helices round each column, turned at the lift's rate so they
+seem to rise, drawn as pale hairlines while the camera is inside one. `botInput` (opens at once, glides at the
+target, circles off height it has too much of, flares at 1.4 m) lands every drop of three seeds on the mesa,
+gently, at 60 and 30 fps.
