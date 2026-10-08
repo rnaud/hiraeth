@@ -130,7 +130,118 @@ const colourShots = (name, commit, view, caption, ref) => [
 ];
 const SEE_COLOURS = 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.';
 
+// ------------------------------------------------------------------ v0.98 to v1.0's views (set up in the page: `setup`)
+const SAVE_ON = { flags: { ...SAVE_DESERT.flags, 'charge.given': true, 'charge.card': true }, keepsakes: [] };   // (no charge card over the view)
+const sleepJs = (ms) => `await new Promise((r) => setTimeout(r, ${ms}));`;
+/** Hide some of the page's overlays (the toasts, the Arena's input panel…), the rest of the HUD kept. */
+const HIDE = (sel) => `{ const st = document.createElement('style'); st.textContent = '${sel} { visibility: hidden !important; }'; document.head.appendChild(st); }`;
+/**
+ * The camera pinned on a spot of the ground (x, z): `dist` m away at the angle `a` (round the spot), `h` m up, looking
+ * at the spot `ty` m up; the traveller set down `pd` m from the spot at the angle `pa` (so the world round it is built).
+ */
+const pinAt = (x, z, { a = 0, dist = 8, h = 2.5, ty = 1, pd = 3, pa = a + 0.6, fov = 55, settle = 3000 } = {}) => `
+  const V = THREE.Vector3, gy = (px, pz) => terrain.heightAt(px, pz);
+  const at = new V(${x}, gy(${x}, ${z}) + ${ty}, ${z});
+  const pp = new V(${x} + Math.sin(${pa}) * ${pd}, 0, ${z} + Math.cos(${pa}) * ${pd}); pp.y = gy(pp.x, pp.z) + 0.1;
+  player.teleport(pp, new V(0, 1, 0), new V(0, 0, 1));
+  const eye = new V(${x} + Math.sin(${a}) * ${dist}, 0, ${z} + Math.cos(${a}) * ${dist}); eye.y = Math.max(gy(eye.x, eye.z) + 0.5, at.y - ${ty} + ${h});
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== ${fov}) { this.fov = ${fov}; this.updateProjectionMatrix(); } return base.call(this, force); };
+  ${sleepJs(settle)}`;
+/** The Arena's first foe held 6 m ahead of the traveller in a given state (`props`), locked on, the camera pinned beside him. */
+const LOCKED = (props) => `
+  for (let i = 0; i < 40 && !foes.list.length; i++) ${sleepJs(250)}
+  const V = THREE.Vector3, f = foes.list[0], P = player.pos, d = new V(); camera.getWorldDirection(d); d.y = 0; d.normalize().negate(); player.heading = Math.atan2(d.x, d.z);
+  f.pos.set(P.x + d.x * 6, f.pos.y, P.z + d.z * 6); f.heading = Math.atan2(-d.x, -d.z); f.update = () => [];
+  Object.assign(f, ${JSON.stringify(props)});
+  foes.cycleLock();
+  const eye = P.clone().addScaledVector(d, 1.5).add(new V(-d.z * 2.4, 1.7, d.x * 2.4)), at = f.pos.clone().add(new V(0, 0.6, 0));
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };
+  ${sleepJs(1500)}`;
+/** Talk to the story person nearest the start. */
+const TALK = `const n = npcs.filter((x) => x.def).sort((a, b) => a.pos.distanceTo(player.pos) - b.pos.distanceTo(player.pos))[0];
+  player.pos.copy(n.pos).add(new THREE.Vector3(1.6, 0, 1.6)); ${sleepJs(1200)}
+  storyRt.dialogue.start(n.def, n);`;
+const MENU = `menu.toggle(true); ${sleepJs(500)}`;
+// the ride to the Hearth's three stops (src/desert-sites.js wayPlaces: by the 2nd, 5th and 8th marked stones)
+const WAY = { bowl: [646.27, 141.38], camp: [1028.02, -97.03], bell: [1442.76, -315.37] };
+
 export const CHANGELOG_MEDIA = {
+  '1.0': [
+    { match: 'The Sketchbook has a Sightings page', shots: [
+      { name: 'sightings', caption: 'The game menu’s Sketchbook after the desert’s first talks: the Sightings first, a ? for each still to find', commit: '9ba725ea',
+        view: { level: 'desert', hud: true, save: { flags: { ...SAVE_ON.flags, 'world.desert.done': true, 'sight.desert.oum': true, 'sight.desert.dalia': true, 'sight.desert.nour': true, 'sight.desert.hull': true, 'sight.desert.givers': true }, keepsakes: [] },
+          setup: `${HIDE('#toast')} journal.toggle(true); ${sleepJs(400)} journal.menu?.open?.('sketches');`, wait: 2500 } },
+    ] },
+    { match: 'Each of the twelve worlds off the route', shots: [
+      { name: 'fallenring-mark', caption: 'The Fallen Ring: the makers’ sign burned into the tilted piece’s foot', commit: '9ba725ea',
+        view: { level: 'fallenring', save: SAVE_ON, player: [127.5, 0.5, -41], heading: 2.2, eye: [129.6, 3.6, -43.2], target: [139.6, 2.2, -51.85], fov: 55, wait: 3000 } },
+    ] },
+  ],
+  '0.99': [
+    { match: 'You can choose your own keys', shots: [
+      { name: 'controls', caption: 'Menu → Controls, on a keyboard: every action with its key, to press a new one', commit: '83d364a9',
+        view: { level: 'desert', hud: true, save: SAVE_ON, setup: `${HIDE('#toast')} ${MENU} document.querySelector('[data-a=page][data-page=controls]').click();`, wait: 1500 } },
+    ] },
+    { match: 'A Text size setting', shots: [
+      { name: 'text-larger', caption: 'A conversation in the desert, Text size Larger and the solid speech background', commit: '83d364a9',
+        view: { level: 'desert', hud: true, save: SAVE_ON, settings: { textSize: 'larger', speechBg: true }, setup: `${HIDE('#toast')} ${TALK}`, wait: 4500 } },
+    ] },
+    { match: 'The lock-on ring changes shape', shots: [
+      { name: 'lock-open', caption: 'Locked on to a stunned ink blot in the Arena: open to a cut', commit: '83d364a9',
+        view: { level: 'arena', query: 'foe=blot', quality: 'medium', hud: true, save: SAVE_ON, setup: HIDE('#toast, #inputs, #foe-spawner') + LOCKED({ stunned: 99 }), wait: 300 } },
+      { name: 'lock-wind', caption: 'The same ink blot winding up its strike', commit: '83d364a9',
+        view: { level: 'arena', query: 'foe=blot', quality: 'medium', hud: true, save: SAVE_ON, setup: HIDE('#toast, #inputs, #foe-spawner') + LOCKED({ state: 'wind', k: 0.75 }), wait: 300 } },
+    ] },
+    { match: 'Menus, settings and prompts can be in French', shots: [
+      { name: 'menu-french', caption: 'The Settings with Langue / Language set to Français', commit: '83d364a9',
+        view: { level: 'desert', hud: true, save: SAVE_ON, settings: { lang: 'fr' }, setup: `${HIDE('#toast')} ${MENU}`, wait: 1500 } },
+    ] },
+    { match: 'The gadgets are now in the worlds', shots: [
+      { name: 'court-vael', caption: 'Vael: the makers’ court on the rise west of the landing, the hook’s box at its front', commit: '220b8d5e',
+        view: { level: 'arzach', save: SAVE_ON, setup: pinAt(-124, -16, { a: 1.44, dist: 24, h: 9, ty: 1, pd: 14, pa: 1.2 }), wait: 500 } },
+    ] },
+    { match: 'Every route world has an optional trial', shots: [
+      { name: 'trial-sign', caption: 'The desert: the Dune line’s glowing sign by the dunes east of the landing', commit: '220b8d5e',
+        view: { level: 'desert', save: SAVE_ON, setup: pinAt(26, 18, { a: -2.2, dist: 7, h: 2.2, ty: 1.4, pd: 3, pa: -1.6 }), wait: 500 } },
+    ] },
+    { match: 'Columns of rising air stand over Vael’s plain', shots: [
+      { name: 'wind-column', caption: 'Vael’s plain: the first column of rising air, its rings drifting up', commit: '220b8d5e',
+        view: { level: 'arzach', save: SAVE_ON, setup: pinAt(-60, -100, { a: 0.25, dist: 45, h: 8, ty: 14, pd: 40, pa: 0.4, fov: 60 }), wait: 500 } },
+    ] },
+  ],
+  '0.98': [
+    { match: 'The title screen’s Debug button', shots: [
+      { name: 'title', caption: 'The title screen, as a player’s build shows it', commit: 'c1d0dc13',
+        view: { prod: true, hud: true, hour: null, weather: '', save: SAVE_ON, ready: '!!document.querySelector(\'[data-a="news"]\')', wait: 2500 } },
+    ] },
+    { match: 'In the ship, if you stand still', shots: [
+      { name: 'ship-nudge', caption: 'The prologue’s walk, 22 seconds standing still by the bunk', commit: 'c1d0dc13',
+        view: { level: 'desert', query: 'prologue=1', hud: true, hour: null, save: { flags: { 'items.v': 2 }, keepsakes: [] },
+          setup: `for (let i = 0; i < 240 && window.ship?.prologue?.stage !== 'walk'; i++) ${sleepJs(250)} ${sleepJs(22500)}`, wait: 300 } },
+    ] },
+    { match: 'Your first steps in the desert say once', shots: [
+      { name: 'first-look', caption: 'Out of the ship, eight seconds without touching the camera', commit: 'c1d0dc13',
+        view: { level: 'desert', hud: true, save: { flags: { 'prologue.done': true, 'items.v': 2, 'charge.given': true, 'charge.card': true }, keepsakes: [] },
+          setup: `${HIDE('#toast')} for (let i = 0; i < 48 && !/Look around/.test(document.getElementById('cue')?.textContent ?? ''); i++) ${sleepJs(250)}`, wait: 1200 } },
+    ] },
+    { match: 'On the ride to the Givers’ Hearth', shots: [
+      { name: 'way-bowl', caption: 'The keepers’ bowl at the second marked stone, filled: the stone’s mark awake', commit: 'c1d0dc13',
+        view: { level: 'desert', save: { flags: { ...SAVE_ON.flags, 'desert.way.bowl': true }, keepsakes: [] }, setup: pinAt(...WAY.bowl, { a: 2.2, dist: 7, h: 2.2, ty: 1.5 }), wait: 500 } },
+      { name: 'way-camp', caption: 'The keepers’ cold camp, halfway', commit: 'c1d0dc13',
+        view: { level: 'desert', save: SAVE_ON, setup: pinAt(...WAY.camp, { a: 2.0, dist: 7, h: 3, ty: 0.3, pa: 0.5, pd: 4 }), wait: 500 } },
+      { name: 'way-bell', caption: 'The bell glinting in the sand near the end of the way', commit: 'c1d0dc13',
+        view: { level: 'desert', save: SAVE_ON, setup: pinAt(...WAY.bell, { a: 2.4, dist: 1.6, h: 0.9, ty: 0.1, pa: 4.2, pd: 4, fov: 45 })
+          + `for (let i = 0; i < 40 && !(level.hearth?.way?.bell.glint.scale.x > 0.9); i++) ${sleepJs(40)}`, wait: 0 } },
+    ] },
+    { match: '“Your father’s charge” is lettered small', shots: [
+      { name: 'charge-card', caption: 'The father’s charge on arriving in the desert, two and a half seconds in', commit: 'c1d0dc13',
+        view: { level: 'desert', hud: true, save: SAVE_ON, setup: `${HIDE('#toast')} const m = await import('/src/story/charge.js'); m.showChargeCard({ sound: null });`, wait: 2600 } },
+    ] },
+  ],
   '0.97': [
     { match: 'The traveller has a new face and wavy hair', shots: [
       { name: 'traveller-face', caption: 'The traveller’s face in the character studio, three quarters', commit: '06cea791', view: studio('view=face&yaw=0.5') },

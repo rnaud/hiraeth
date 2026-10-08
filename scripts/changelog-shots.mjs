@@ -55,9 +55,11 @@ function extract(sha, work) {
   return dir;
 }
 
-async function serve(dir) {
+async function serve(dir, { prod = false } = {}) {
   const { createServer } = await import('vite');
   const server = await createServer({
+    // (prod: import.meta.env.DEV false, as in a player's build: the author's dev-only entries hidden, src/dev-gate.js)
+    ...(prod ? { define: { 'import.meta.env.DEV': 'false' } } : {}),
     root: dir, configFile: existsSync(join(dir, 'vite.config.js')) ? join(dir, 'vite.config.js') : false,
     cacheDir: join(dir, '.vite-cache'), logLevel: 'error', clearScreen: false,
     server: { port: PORT, strictPort: true, host: '127.0.0.1', fs: { strict: false }, hmr: false, watch: null },
@@ -217,8 +219,9 @@ async function main() {
     const after = git('rev-parse', `${s.commit}^{commit}`);
     const before = git('rev-parse', `${s.before ?? `${s.commit}^`}^{commit}`);
     for (const [sha, side] of [[before, 'before'], [after, 'after']].filter(([, side]) => s.files[side])) {
-      if (!jobs.has(sha)) jobs.set(sha, []);
-      jobs.get(sha).push({ s, side });
+      const key = s.view.prod ? `${sha}+prod` : sha;   // (a view as a player's build sees it: a server of its own)
+      if (!jobs.has(key)) jobs.set(key, []);
+      jobs.get(key).push({ s, side });
     }
   }
   console.log(`${shots.length} shots at ${jobs.size} commits`);
@@ -228,10 +231,10 @@ async function main() {
   const c = await chrome();
   let failed = 0;
   try {
-    for (const [sha, list] of jobs) {
-      const t0 = Date.now();
+    for (const [key, list] of jobs) {
+      const t0 = Date.now(), [sha, prod] = key.split('+');
       const dir = extract(sha, work);
-      const server = await serve(dir);
+      const server = await serve(dir, { prod: !!prod });
       try {
         for (const { s, side } of list) {
           const v = { ...DEFAULT_VIEW, ...s.view, ...(s.view[side] ?? {}) };

@@ -82,7 +82,7 @@ view); `level` with `eye`, `target`, `fov` and `player` (the bench viewpoints in
 `captureView` from in front turned by `yaw`, side by side; `id` a story person's or `traveller`);
 `page: 'studio.html', query` for the character studio (clipped to its view); `hud: true` and `setup`
 (a script run in the page, e.g. `window.journal.toggle(true)` for the game menu); `quality`, `hour`,
-`weather`, `size`, `save`, `wait`. `only: 'after'` is a picture with no before (a new screen); one with no
+`weather`, `size`, `save`, `wait`; `prod: true` shoots it as a player's build (its own server with `import.meta.env.DEV` false, so the dev-only entries are hidden: `src/dev-gate.js`). `only: 'after'` is a picture with no before (a new screen); one with no
 `view` is made by hand (`steam-art`: Steam's wide picture). Never stitch before and after into one
 `only: 'after'` picture: the page loses its slider and each half is a third of the width. Shoot the pair,
 and add a stitched picture (with a reference, say) as a second shot after it if it helps.
