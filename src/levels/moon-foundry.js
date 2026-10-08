@@ -171,7 +171,8 @@ export function* buildMoonFoundry(scene) {
   const mat = (o) => { const m = first.mat(o); opts.set(m, o); return m; };
   const DS = THREE.DoubleSide;
   // two surfaces drawn by tone (vertex-material.js): the moons' ivory and the machinery's and homes' oranges
-  const IVORY = { shade: 0.42, hatch: 0.25, line: 0.85 }, METAL = { shade: 0.38, hatch: 0.38, detail: 'built', detailDensity: 0.4 };
+  // (v0.94: the shade lifted less, so a moon turns from the light in a clear terminator and the rust goes dark, as the sheets)
+  const IVORY = { shade: 0.24, hatch: 0.25, line: 0.85 }, METAL = { shade: 0.18, hatch: 0.38, detail: 'built', detailDensity: 0.4 };
   const M = {
     ivory: Object.fromEntries(['ivory', 'ivory2', 'crater', 'edge', 'wall3'].map((k) => [k, mat({ color: T[k], ...IVORY })])),
     metal: Object.fromEntries(['rust', 'rust2', 'rust3', 'wall', 'wall2', 'roofing'].map((k) => [k, mat({ color: T[k], ...METAL })])),
@@ -179,7 +180,7 @@ export function* buildMoonFoundry(scene) {
     plated: mat({ color: T.plated, shade: 0.4, hatch: 0.3, plates: 2.4 }),
     dark: mat({ color: T.dark, shade: 0.3, hatch: 0.3, side: DS }),
     gDark: mat({ color: T.dark, shade: 0.3, hatch: 0.3 }),
-    steel: mat({ color: T.steel, shade: 0.5, hatch: 0.3 }),
+    steel: mat({ color: T.steel, shade: 0.3, hatch: 0.3 }),
     ceiling: mat({ color: T.ceiling, shade: 0.5, hatch: 0.2, grid: 2.4, side: DS }),
     strut: mat({ color: T.strut, flat: true, thin: THIN }),
     rail: mat({ color: T.strut, flat: true, thin: THIN }),
@@ -189,7 +190,7 @@ export function* buildMoonFoundry(scene) {
     hot: mat({ color: T.molten2, glow: 0.9, flat: true, side: DS }),
     leaf: [mat({ color: T.leaf, pattern: 'leaves', hatch: 1.1, shade: 0.5, spot: 0, line: 0.7, lineTint: 0.6 }), mat({ color: T.leaf2, pattern: 'leaves', hatch: 1.1, shade: 0.5, spot: 0, line: 0.7, lineTint: 0.6 })],
     trunk: mat({ color: T.trunk, flat: true, thin: THIN }),
-    floor: mat({ color: T.floor, shade: 0.4, hatch: 0.15, grid: 9 }),   // (the slabs: no terrain ink, no pebbles: the sheets' floor is clean)
+    floor: mat({ color: T.floor, shade: 0.25, hatch: 0.15, grid: 9 }),   // (the slabs: no terrain ink, no pebbles: the sheets' floor is clean)
     line: mat({ color: '#9a8f7c', flat: true }),
   };
   const FLORA = new Set([...M.leaf, M.trunk]);

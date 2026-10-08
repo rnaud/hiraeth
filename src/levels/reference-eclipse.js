@@ -26,10 +26,10 @@ export const ECLIPSE_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`eclip
 /** sky top, horizon, shadow (the deep violet of the shade), light (the cold lavender of the lit limewash), sun */
 const SKY = {
   total: ECLIPSE_TOTAL,
-  blue: ['#4a6cb2', '#6088cc', '#38386a', '#8c9cf0', '#fff2e0'],
-  deep: ['#1a2c58', '#4a62a4', '#3a3670', '#9a90e2', '#fff2e0'],
-  night: ['#06182c', '#3a4a7a', '#2e2c58', '#8a80c8', '#fff2e0'],
-  steel: ['#2a4470', '#5c76b0', '#3c3a6c', '#a49ae0', '#fff2e0'],
+  blue: ['#4a6cb2', '#6088cc', '#28285a', '#7c8ad8', '#fff2e0'],
+  deep: ['#1a2c58', '#4a62a4', '#24265a', '#7478c4', '#fff2e0'],
+  night: ['#06182c', '#3a4a7a', '#1e2046', '#6062a0', '#fff2e0'],
+  steel: ['#2a4470', '#5c76b0', '#232650', '#7276b8', '#fff2e0'],
 };
 
 // (references.js's sun: up from 6 to 18, at most 62° high, from azimuth 30° round to 210°; the view's group turned so it stands `side` of the line of sight)
@@ -163,7 +163,7 @@ export const ECLIPSE_VIEWS = [
   view({
     id: 'eclipse-2-terraces', title: 'From the top of the steps: the stair down to the far city, the terraces climbing on the left', sheet: 'eclipse-2', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: { eye: [0, 4.2, 0], yaw: 0, fov: 50, horizon: 0.5 }, sky: SKY.deep,
-    sun: { side: 20, el: 55 },
+    sun: { side: -60, el: 45 },
     eclipse: { side: 0.5, el: 14, size: 5.7, reach: 0.55, style: 1, corona: '#ffd2b8', stars: 0.15 }, look: { uHaze: [0.82, 0.64, 0.82, 0.75], uHazeTone: [0.8, 0.62, 0.8, 0.85] },
     groundAt: { edge: -52, low: -5, drop: 40 },
     build(kit, v) {
@@ -253,7 +253,7 @@ export const ECLIPSE_VIEWS = [
     id: 'eclipse-4-street', title: 'Down the street of steps, the washing on the lines, the city to the horizon', sheet: 'eclipse-4', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: { eye: [0, 4.4, 0], yaw: 0, fov: 50, horizon: 0.56 }, sky: SKY.steel,
     sun: { side: -60, el: 50 },
-    eclipse: { side: 15, el: 18, size: 7.4, reach: 0.75, style: 0, corona: '#ffd2a8', stars: 0, glowH: 0.03 },
+    eclipse: { side: 15, el: 18, size: 7.4, reach: 0.75, style: 0, corona: '#ffd2a8', stars: 0, glowH: 0.03, glow: '#a49cd6' },
     groundAt: { edge: -6, low: -30, drop: 80 },
     build(kit, v) {
       const H = (x, z) => v.ground.height(x, z);

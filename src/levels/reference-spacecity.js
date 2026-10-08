@@ -128,7 +128,7 @@ export const SPACE_VIEWS = [
   view({
     id: 'spacecity-1-bridge', title: 'From the balcony: the arched bridge over the void, the heaped city, the planet’s edge', sheet: 'spacecity-1', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: CAM, sun: { side: -120, el: 40 }, floor: [-1, 16, -14, 2, 0],
-    planet: { at: [2150, 520], r: 1250, light: [-0.8, 0.35, 0.5], color: '#fdf8d6' }, look: { uSpace: [1, 0.5, 0.7, 0.3] },
+    planet: { at: [2150, 520], r: 1250, light: [-0.8, 0.35, 0.5], color: '#fdf8d6' }, look: { uSpace: [1, 0.15, 0.7, 0.3] },
     build(kit, v) {
       const D = -8.3;   // the bridge's deck, under the balcony
       spaceScene(kit, v, {
@@ -176,7 +176,7 @@ export const SPACE_VIEWS = [
     camera: CAM2, sun: { side: 120, el: 35 }, floor: [-2, 8, -4, 2, 0],
     sky: ['#010e0d', '#020f0e', '#8e8a84', '#f6ece0', '#fff8ec'],
     planet: { at: [864, 92], r: 217, light: [0.8, -0.5, -0.25], color: '#fee4c2', night: '#020e0d' },
-    look: { uSpace: [1, 0.45, 0.25, 0.3], uSpaceTone: [0.02, 0.09, 0.085, 1] },
+    look: { uSpace: [1, 0.15, 0.25, 0.3], uSpaceTone: [0.02, 0.09, 0.085, 1] },
     build(kit, v) {
       const D = -8;
       spaceScene(kit, v, {
@@ -212,9 +212,9 @@ export const SPACE_VIEWS = [
   view({
     id: 'spacecity-3-arches', title: 'The two arches under the towers, the city running on under the great planet', sheet: 'spacecity-3', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: CAM3, sun: { side: 110, el: 30 }, floor: [-1, 12, -8, 2, 0],
-    sky: ['#010a0c', '#020b0d', '#b07468', '#ffe8d4', '#fff4e4'],
+    sky: ['#010a0c', '#020b0d', '#c07e72', '#ffe2d0', '#fff4e4'],
     planet: { at: [1181, 509], r: 457, light: [0.62, 0.15, 0.78], color: '#fed4b0', night: '#7c6b66' },
-    look: { uSpace: [1, 0.5, 0.4, 0.25] },
+    look: { uSpace: [1, 0.15, 0.4, 0.25] },
     build(kit, v) {
       const D = -10;
       spaceScene(kit, v, {
@@ -251,9 +251,9 @@ export const SPACE_VIEWS = [
   view({
     id: 'spacecity-4-market', title: 'The market on the middle island, the bridges round it, the full planet behind the houses', sheet: 'spacecity-4', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: CAM4, sun: { side: -100, el: 32 }, floor: [-1, 12, -8, 2, 0],
-    sky: ['#010e12', '#021014', '#a8584c', '#ffd2b4', '#fff0dc'],
+    sky: ['#010e12', '#021014', '#b86a5a', '#ffd2b4', '#fff0dc'],
     planet: { at: [1165, 247], r: 369, light: [-0.15, 0.1, 1], color: '#fdeacc' },
-    look: { uSpace: [1, 0.3, 0.6, 0.2] },
+    look: { uSpace: [1, 0.12, 0.6, 0.2] },
     build(kit, v) {
       const G = (px, py, g) => sheetGround(CAM4, px, py, g), A = (px, py, d) => sheetAt(CAM4, px, py, d), foot = (p) => [p[0], 0, p[2]];
       const D = -6;   // the market's deck, the near walkway's

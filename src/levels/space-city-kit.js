@@ -38,8 +38,8 @@ const SOLID = { solid: true, shadow: true }, NC = { solid: false, shadow: false 
 /** The surfaces' tones, read off the pictures (lit patches; the light and the shade tint do the rest). */
 export const SPACE_TONES = {
   // the walls: cream peach, salmon, coral, a pink cream (ref 1 #fae1bb #efa992, ref 3 #dc8b69, ref 4 #fc8b63)
-  lime: ['#f8dcbc', '#f0ac94', '#f4946e', '#f6c4aa'],
-  stone: '#f0cdb4', paving: '#f2d2b8', masonry: '#e8b8a0', bridge: '#f4d4b8',
+  lime: ['#f4cdbd', '#ee9e94', '#f08a78', '#f2b0a4'],
+  stone: '#eec2aa', paving: '#f0c6ae', masonry: '#e8ac96', bridge: '#f2c0a8',
   dark: '#1a2228', door: '#6a3e30', doorLit: '#ffb466', lit: '#ffb870', lamp: '#ffd48c', iron: '#24323a', wood: '#5a3a30',
   cloth: ['#5aa8a8', '#e8a088', '#f2d8c0', '#3e7e86'], table: ['#d89a80', '#5a8a8c'],
   flower: ['#e0786a', '#f0a07a', '#c8605a'], leaf: '#24344a', pot: '#8a5a4a', pale: '#fbe8d4',
@@ -54,17 +54,17 @@ export const SPACE_TONES = {
  * The light (sky top, horizon, shadow tint, light tint, sun): space black with a trace of teal at every hour, the
  * walls' shade a deeper rose (ref 1: lit #fae1bb, shaded #c28070), a warm light.
  */
-export const SPACE_DAY = ['#020a0e', '#030b10', '#b8868e', '#fff2e2', '#fff8ec'];
+export const SPACE_DAY = ['#020a0e', '#030b10', '#b87078', '#ffccc4', '#fff8ec'];
 /** Space all round (post.js drawSpace): the stars dense, a third of them teal, a faint nebula in two flat steps. */
-export const SPACE_SKY = { uSpace: [1, 0.55, 0.35, 0.35], uSpaceTone: [0.035, 0.085, 0.1, 1], uSpaceSun: [0, 1, 0, 0], uSpaceNight: [0, 0, 0, 0] };
+export const SPACE_SKY = { uSpace: [1, 0.16, 0.35, 0.35], uSpaceTone: [0.035, 0.085, 0.1, 1], uSpaceSun: [0, 1, 0, 0], uSpaceNight: [0, 0, 0, 0] };
 /** The far islands go paler and pinker, not darker (the black sky would grey them): a rose haze in a few steps. */
-export const SPACE_HAZE = { uHaze: [0.97, 0.8, 0.72, 0.85], uHazeLayers: [90, 1.8, 0.12, 4], uHazeTone: [0.98, 0.84, 0.76, 0.85] };
+export const SPACE_HAZE = { uHaze: [0.97, 0.78, 0.72, 0.6], uHazeLayers: [90, 1.8, 0.08, 4], uHazeTone: [0.98, 0.8, 0.74, 0.85] };
 /**
  * The city's touches on the print preset: no clouds, a flat sky, no sun rays, the shade printed flat, little
  * hatching, spot blacks in the machinery under the islands, cast shadows kept (the sun is hard in space).
  */
 export const SPACE_LOOK = {
-  uClouds: 0, uCumulus: 0, uSkyDots: 0, uSkyFlat: 1, uSkyBands: 0, uRays: 0, uShadowFlat: 0.6, uShadeKeep: 0.35, uHalftone: 0.2,
+  uClouds: 0, uCumulus: 0, uSkyDots: 0, uSkyFlat: 1, uSkyBands: 0, uRays: 0, uShadowFlat: 0.6, uShadeKeep: 0.5, uHalftone: 0.2,
   uHatch: 0.22, uFogDensity: 0.0009, uFogStart: 140, uAerial: 0.2, uSpot: [0.6, 3, 0.35, 0.15], uSpotTone: [0.05, 0.09, 0.12, 0.3], uCast: [0.2, 0.1],
   ...SPACE_SKY, ...SPACE_HAZE,
 };

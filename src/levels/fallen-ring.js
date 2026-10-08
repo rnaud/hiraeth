@@ -372,7 +372,7 @@ export function* buildFallenRing(scene) {
   yield;
   {
     const rng = mulberry32(62170), list = cloudBank(rng, { n: 18, az0: -Math.PI, az1: Math.PI, d0: 950, d1: 1400, base: 70, size: [70, 130], tall: 1.3, eye: [0, 0] });
-    const cm = makeMaterial({ color: '#fffcf4', ...CLOUD_PRINT, shade: 0.8, line: 1, lineTint: 0.3, glow: 0.35 });
+    const cm = makeMaterial({ color: '#fffcf4', ...CLOUD_PRINT, shade: 0.45, line: 0.45, lineTint: 0.8, glow: 0.4 });
     for (const [sub, det] of [[list.filter((p) => p.s > 100), 2], [list.filter((p) => p.s <= 100), 1]]) {
       const im = new THREE.InstancedMesh(puff(det, 3), cm, sub.length), dm = new THREE.Object3D();
       sub.forEach((p, i) => { dm.position.set(p.x, p.y, p.z); dm.scale.set(p.s, p.s * p.sy, p.s * 0.8); dm.updateMatrix(); im.setMatrixAt(i, dm.matrix); });

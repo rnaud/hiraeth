@@ -25,10 +25,10 @@ export const MOONFOUNDRY_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`m
 export const MOONFOUNDRY_VIEW_LOOK = { ...MF_LOOK, ...CLEAN_SKY };
 /** sky top, horizon, shadow, light, sun: read off each sheet */
 const SKY = {
-  blue: ['#a9c8d6', '#e6e2d0', '#9a9cb8', '#fff4e2', '#fff0d0'],
-  teal: ['#a6c4c4', '#dfe0d0', '#9aa0b4', '#fff4e4', '#fff2d6'],
-  mint: ['#a7cec4', '#e4e2cc', '#94a2ae', '#fff2dc', '#fff0d0'],
-  green: ['#a4d6c8', '#e2e8cc', '#8ea6a8', '#fff6dc', '#fff4d4'],
+  blue: ['#bccad0', '#e6e2d0', '#76707e', '#fff4e2', '#fff0d0'],
+  teal: ['#b4c4c2', '#dfe0d0', '#727480', '#fff4e4', '#fff2d6'],
+  mint: ['#b4c8bc', '#e4e2cc', '#6c7a78', '#fff2dc', '#fff0d0'],
+  green: ['#b0ccbc', '#e2e8cc', '#687c70', '#fff6dc', '#fff4d4'],
 };
 const T = MF_TONES;
 
@@ -49,29 +49,29 @@ function materials(kit, o = {}) {
   const DS = THREE.DoubleSide;
   const tone = (k) => o[k] ?? T[k];
   return {
-    shell: kit.mat({ color: tone('ivory'), shade: 0.42, hatch: 0.25, line: 0.85 }),
-    shellB: kit.mat({ color: tone('ivory2'), shade: 0.42, hatch: 0.25, line: 0.85 }),
-    crater: kit.mat({ color: tone('crater'), shade: 0.4, hatch: 0.3, line: 0.7, lineTint: 0.5 }),
+    shell: kit.mat({ color: tone('ivory'), shade: 0.24, hatch: 0.25, line: 0.85 }),
+    shellB: kit.mat({ color: tone('ivory2'), shade: 0.24, hatch: 0.25, line: 0.85 }),
+    crater: kit.mat({ color: tone('crater'), shade: 0.22, hatch: 0.3, line: 0.7, lineTint: 0.5 }),
     inner: kit.mat({ color: tone('inner'), shade: 0.18, hatch: 0.6, side: DS }),
     edge: kit.mat({ color: tone('edge'), flat: true, shade: 0.5 }),
-    rust: kit.mat({ color: tone('rust'), shade: 0.35, hatch: 0.4, detail: 'built', detailDensity: 0.45 }),
-    rust2: kit.mat({ color: tone('rust2'), shade: 0.38, hatch: 0.35, detail: 'built', detailDensity: 0.35 }),
+    rust: kit.mat({ color: tone('rust'), shade: 0.15, hatch: 0.4, detail: 'built', detailDensity: 0.45 }),
+    rust2: kit.mat({ color: tone('rust2'), shade: 0.18, hatch: 0.35, detail: 'built', detailDensity: 0.35 }),
     dark: kit.mat({ color: tone('dark'), shade: 0.3, hatch: 0.3, side: DS }),
-    steel: kit.mat({ color: tone('steel'), shade: 0.5, hatch: 0.3 }),
+    steel: kit.mat({ color: tone('steel'), shade: 0.3, hatch: 0.3 }),
     ceiling: kit.mat({ color: tone('ceiling'), shade: 0.5, hatch: 0.2, grid: 2.4, side: DS }),
     strut: kit.mat({ color: tone('strut'), flat: true, thin: 1.5 }),
     plank: kit.mat({ color: tone('plank'), flat: true }),
-    wall: kit.mat({ color: tone('wall'), shade: 0.4, hatch: 0.35, detail: 'built', detailDensity: 0.4 }),
-    wall2: kit.mat({ color: tone('wall2'), shade: 0.4, hatch: 0.35, detail: 'built', detailDensity: 0.4 }),
+    wall: kit.mat({ color: tone('wall'), shade: 0.2, hatch: 0.35, detail: 'built', detailDensity: 0.4 }),
+    wall2: kit.mat({ color: tone('wall2'), shade: 0.22, hatch: 0.35, detail: 'built', detailDensity: 0.4 }),
     roofing: kit.mat({ color: tone('roofing'), shade: 0.35, hatch: 0.4, side: DS }),
     glow: kit.mat({ color: T.glow, glow: 0.62, flat: true, side: DS }),
     leaf: kit.mat({ color: tone('leaf'), pattern: 'leaves', hatch: 1.1, shade: 0.5, spot: 0, line: 0.7, lineTint: 0.6 }),
     leaf2: kit.mat({ color: tone('leaf2'), pattern: 'leaves', hatch: 1.1, shade: 0.5, spot: 0, line: 0.7, lineTint: 0.6 }),
     trunk: kit.mat({ color: T.trunk, flat: true, thin: 1.5 }),
-    floor: kit.mat({ color: tone('wall3'), shade: 0.4, hatch: 0.3 }),
+    floor: kit.mat({ color: tone('wall3'), shade: 0.25, hatch: 0.3 }),
     plated: kit.mat({ color: tone('plated'), shade: 0.4, hatch: 0.3, plates: 2.4 }),
     far: kit.mat({ color: tone('ivory3'), shade: 0.5, hatch: 0.15, line: 0.45, lineTint: 0.6 }),
-    olive: kit.mat({ color: '#4c5244', shade: 0.35, hatch: 0.4, detail: 'built', detailDensity: 0.4 }),
+    olive: kit.mat({ color: '#4c5244', shade: 0.18, hatch: 0.4, detail: 'built', detailDensity: 0.4 }),
     farRust: kit.mat({ color: tone('farRust') ?? '#d69a74', shade: 0.5, hatch: 0.15, line: 0.45, lineTint: 0.6 }),
   };
 }

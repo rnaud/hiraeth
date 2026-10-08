@@ -27,14 +27,15 @@ export const VAEL2_SHEETS = Object.fromEntries(['IMG_3783', 'IMG_3784', 'IMG_378
  * The sheets' ink: shadows printed flat in their grey-blue, the undersides of caps and overhangs the
  * darkest (no bounce lifting them), little half-tone, a clean sky.
  */
-export const VAEL2_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.15, uBounce: 0, ...SKY_STONES_HAZE, uCast: [0.85, 0] };   // (the panels: the plain's shadows all but gone)
+export const VAEL2_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.15, uBounce: 0, ...SKY_STONES_HAZE, uCast: [0.85, 0.3], uSpotTone: [0.2, 0.27, 0.36, 0.35] };   // (the panels: the plain's shadows all but gone)
 /** sky top, sky horizon, shadow (the flat grey-blue), light, sun */
-const TINT = '#93a5a8';
+// (v0.94: the shade a bluer grey-teal and the light a touch under white, so the plain is not brighter than the sheets')
+const TINT = '#8ea6b8', LIGHT = '#fbf4ec';
 const SKY = {
-  aqua: ['#9fc6c8', '#b3cfcc', TINT, '#ffffff', '#fff6dc'],
-  peach: ['#fbbf99', '#fcc8a6', TINT, '#ffffff', '#fff6dc'],
-  salmon: ['#f4a184', '#f6ae91', TINT, '#ffffff', '#fff2dc'],
-  lilac: ['#aec7d9', '#bed2dc', TINT, '#ffffff', '#fff6dc'],
+  aqua: ['#9fc6c8', '#b3cfcc', TINT, LIGHT, '#fff6dc'],
+  peach: ['#fbbf99', '#fcc8a6', TINT, LIGHT, '#fff6dc'],
+  salmon: ['#f4a184', '#f6ae91', TINT, LIGHT, '#fff2dc'],
+  lilac: ['#aec7d9', '#bed2dc', TINT, LIGHT, '#fff6dc'],
 };
 const nV = createNoise2D(37831), nW = createNoise2D(37832);
 
@@ -544,7 +545,7 @@ export const VAEL2_VIEWS = [
   view({
     id: '3785-spires', title: 'Pink needles', sheet: 'IMG_3785', panel: 1, where: 'top left', crop: [35, 43, 289, 566],
     camera: { eye: [0, 1.7, 0], yaw: 0, fov: 66, horizon: 0.93 },
-    sun: { side: 130, el: 40 }, sky: ['#fbcaab', '#fbd2b6', TINT, '#ffffff', '#fff6dc'],
+    sun: { side: 130, el: 40 }, sky: ['#fbcaab', '#fbd2b6', TINT, LIGHT, '#fff6dc'],
     ground: ledge(160, 0, -60),
     build(kit, v) {
       vaelScene(kit, v, { seed: 3785, spires: [{ x: -22, z: -120, H: 230, R: 15, n: 5, mat: 'pink' }, { x: 24, z: -110, H: 130, R: 7, n: 2, mat: 'pink' }, { x: 45, z: -130, H: 80, R: 5, n: 3, mat: 'pink' }] });
@@ -614,7 +615,7 @@ export const VAEL2_VIEWS = [
   view({
     id: '3786-spires', title: 'Needles over the pink rubble', sheet: 'IMG_3786', panel: 1, where: 'top left', crop: [22, 28, 316, 482],
     camera: { eye: [0, 2, 0], yaw: 0, fov: 64, horizon: 0.97 },
-    sun: { side: 110, el: 30 }, sky: ['#f4d1ba', '#f6d8c4', TINT, '#ffffff', '#fff6dc'],
+    sun: { side: 110, el: 30 }, sky: ['#f4d1ba', '#f6d8c4', TINT, LIGHT, '#fff6dc'],
     ground: ledge(160, 0, -60),
     build(kit, v) {
       vaelScene(kit, v, { seed: 3786, spires: [{ x: 2, z: -120, H: 175, R: 13, n: 7, rubble: 'pink' }, { x: -30, z: -125, H: 110, R: 8, n: 4, rubble: 'pink' }, { x: 40, z: -130, H: 70, R: 6, n: 4 }] });
@@ -623,7 +624,7 @@ export const VAEL2_VIEWS = [
   view({
     id: '3786-egg-cap', title: 'The cracked egg on its cap', sheet: 'IMG_3786', panel: 2, where: 'top middle', crop: [354, 31, 292, 374],
     camera: { eye: [0, 0, 0], yaw: 0, fov: 56, horizon: 0.85 },
-    sun: { side: 120, el: 40 }, sky: ['#f2c5aa', '#f4cdb4', TINT, '#ffffff', '#fff6dc'],
+    sun: { side: 120, el: 40 }, sky: ['#f2c5aa', '#f4cdb4', TINT, LIGHT, '#fff6dc'],
     ground: sky(-300),
     build(kit, v) {
       vaelScene(kit, v, {
@@ -728,7 +729,7 @@ export const VAEL2_VIEWS = [
   view({
     id: '3787-palace-overhang', title: 'The palace over the dark overhang', sheet: 'IMG_3787', panel: 3, where: 'top right', crop: [685, 27, 315, 494],
     camera: { eye: [0, 0, 0], yaw: 0, fov: 60, horizon: 0.88 },
-    sun: { side: 140, el: 50 }, sky: ['#a6cccd', '#e6c6b3', TINT, '#ffffff', '#fff6dc'],
+    sun: { side: 140, el: 50 }, sky: ['#a6cccd', '#e6c6b3', TINT, LIGHT, '#fff6dc'],
     ground: sky(-300),
     build(kit, v) {
       vaelScene(kit, v, {
@@ -779,7 +780,7 @@ export const VAEL2_VIEWS = [
   view({
     id: '3787-giant-cap', title: 'Up under the giant cap', sheet: 'IMG_3787', panel: 5, where: 'bottom middle', crop: [354, 535, 316, 461],
     camera: { eye: [0, 0, 0], yaw: 0, fov: 70, pitch: 26 },
-    sun: { side: 110, el: 40 }, sky: ['#f0b9a0', '#f2c4ad', TINT, '#ffffff', '#fff6dc'],
+    sun: { side: 110, el: 40 }, sky: ['#f0b9a0', '#f2c4ad', TINT, LIGHT, '#fff6dc'],
     ground: sky(-300),
     build(kit, v) {
       vaelScene(kit, v, {
@@ -807,7 +808,7 @@ export const VAEL2_VIEWS = [
   view({
     id: '3788-spires', title: 'Needles on the plateau', sheet: 'IMG_3788', panel: 1, where: 'top left', crop: [44, 47, 294, 564],
     camera: { eye: [0, 12, 0], yaw: 0, fov: 66, horizon: 0.73 },
-    sun: { side: 130, el: 35 }, sky: ['#f7ae88', '#f8b995', TINT, '#ffffff', '#fff6dc'],
+    sun: { side: 130, el: 35 }, sky: ['#f7ae88', '#f8b995', TINT, LIGHT, '#fff6dc'],
     ground: { height: (x, z) => -2 * Math.floor(Math.max(0, -z - 10) / 26) - 0.5 * nV(x * 0.05, z * 0.05) - 300 * smoothstep(-140, -170, z) - 20 * smoothstep(-6, -14, z) * smoothstep(-34, -18, z), material: ROCK, rings: { r1: 2400 } },
     build(kit, v) {
       vaelScene(kit, v, {

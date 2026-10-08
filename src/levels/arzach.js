@@ -334,7 +334,8 @@ export function* buildArzach(scene) {
     arzach: { tower: towerInfo, hand: handInfo, colossus, spires, menhirs },
     mount: (physics) => new Bird(physics),
     mountName: 'bird',
-    defaults: { hour: 15.5, preset: 'Moebius print' },
+    // (v0.94: the cast shadows on the open sand lifted halfway, as the sheets leave them pale or out)
+    defaults: { hour: 15.5, preset: 'Moebius print', look: { uCast: [0.45, 0.1] } },
     life: {
       flocks: [{ count: 5, color: '#f4efe2', size: 3.2, radius: 160, height: [60, 140], speed: 0.06, seed: 2 },
                { count: 4, color: '#e6dcc6', size: 2.6, radius: 90, height: [40, 90], speed: -0.08, seed: 7 }],
@@ -344,7 +345,9 @@ export function* buildArzach(scene) {
     sky: {
       // almost monochrome bone, with warm ochre shadows as the one accent
       script: {
-        day: ['#7cc1c4', '#f4d4b6', '#b98f9a', '#fff4e6', '#fff0d8'],   // the book: aqua sky over a peach horizon, rose-mauve shadows
+        // the book: aqua sky over a peach horizon, rose-mauve shadows (v0.94: a cooler, paler lilac-grey, as the sheets'
+        //  shade on the watchers' white robes and the Sky Stones' plain)
+        day: ['#7cc1c4', '#f4d4b6', '#aca2b6', '#fff4e6', '#fff0d8'],
         dusk: ['#c9b9a4', '#f2cfa8', '#b0705a', '#ffe0c0', '#fff0d6'],
         night: ['#2a2a38', '#4c4a58', '#3c3448', '#a8a4b8', '#f2f0e6'],
       },
