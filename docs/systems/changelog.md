@@ -76,7 +76,9 @@ view); `level` with `eye`, `target`, `fov` and `player` (the bench viewpoints in
 `page: 'studio.html', query` for the character studio (clipped to its view); `hud: true` and `setup`
 (a script run in the page, e.g. `window.journal.toggle(true)` for the game menu); `quality`, `hour`,
 `weather`, `size`, `save`, `wait`. `only: 'after'` is a picture with no before (a new screen); one with no
-`view` is made by hand (`steam-art`: Steam's wide picture).
+`view` is made by hand (`steam-art`: Steam's wide picture). Never stitch before and after into one
+`only: 'after'` picture: the page loses its slider and each half is a third of the width. Shoot the pair,
+and add a stitched picture (with a reference, say) as a second shot after it if it helps.
 
 Look at every pair before committing it: the two must differ in the way the line says, and nowhere else
 that matters (people move between the two loads; a view that shows nothing of the change is worse than a

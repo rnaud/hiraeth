@@ -4,6 +4,54 @@ The accepted no-backpack v1 is now the default playable traveller. This director
 keeps the reproducible generation and review workflow for further iteration.
 Source Tripo model: https://studio.tripo3d.ai/workspace/generate/734ea223-13c2-4406-a081-ef34a5612b5d
 
+## Accepted Tripo head replacement (8 October 2026)
+
+The user rejected the code-sculpted eye shape as still too slanted and requested
+Tripo image-to-3D again. The new, separate head is Tripo H3.1 job
+`931197c2-0e35-40a7-82d6-051783349826`. Its original export is preserved at
+`output/character-tripo/head-v2/source/model.glb` (48,423 triangles, 33,374 vertices,
+one textured primitive, embedded 4K JPEG, no skeleton or facial morphs).
+
+Tripo Studio's Nano Banana prepared the neutral front head from
+`references/main character/new3.JPG` and `Facial Expressions/expression-sheet-1.jpeg`.
+Image job: `d4f82370-ad5c-466e-9c7f-77e60d278623`. The prompt specifically requested
+nearly level inner/outer eye corners, small adult eyes, no eyeliner wings, a long
+lean face, straight nose and soft short wavy hair, isolated with a full neck on
+white. Tripo's Multi-view Image then supplied front, left, right and back inputs.
+The image used the account's included allowance; the 3D run used 50 existing
+credits (3,145 → 3,095), requesting 50k triangles, 4K texture, lighting removal on,
+PBR off. Generate in Parts was off: enabling it disabled texture generation.
+
+Review `/tools/tripo-head-review.html` on the local server. It uses the real game
+ink pipeline and provides front/profile/back/three-quarter plus matte and clay
+views. The original downloaded texture is retained; the previous drawn-eye
+shader and local head sculpt are deliberately absent from this new-asset study.
+Screenshots and provenance are alongside the source under `head-v2/`.
+
+The user approved this head and requested integration. Its byte-identical GLB is
+now tracked at `public/characters/traveller-v1/head-v2/model.glb`, with provenance.
+Its sampled `colors.json` supplies native engine VMs that cannot decode the JPEG.
+Reproduce it with `python3 scripts/tripo/sample-colors.py public/characters/traveller-v1/head-v2 --output colors.json`.
+`loadTravellerV1` loads it for the game, studio, trailer and motion viewer.
+`src/characters/tripo-head.js` fits and binds a clone to the existing Head/neck_01
+bones, trims the hidden foot, widens only a throat cylinder inside the lower neck to meet the scarf and
+removes the original head after the clothing split. Do not use a height-only neck
+flare: the low chin falls in that band too. Keep the jaw outside the flare and
+fully weighted to Head; the regression test compares it to the unchanged source. It creates eight facial shape
+keys and their normal deltas at runtime; Humanoid and TalkFace drive blinking,
+expressions, limited gaze and speech. The mouth opening is shaded surface ink,
+not an anatomical interior. Neither the fit nor the face keys are baked into the
+preserved original GLB. Native engine facial shader parity is not yet validated.
+
+Reproduce the integration by loading the tracked assets in Character Studio:
+`studio.html?view=bust&blink=false&gaze=fixed&yaw=0&bg=flat`.
+Use face/front/side/back views, expression presets, Talking and the walk/jog/sit
+animation controls. Run `node --test tests/traveller-v1.test.js tests/tripo-*.test.js`
+and `npx vite build`. Do not reuse the old `TRIPO_FACE` eye coordinates: the new
+head retains its own textured eyes and level corners.
+
+## Original full-body experiment
+
 Put the downloaded original at `output/character-tripo/baseline/model.glb`, then run:
 
 ```sh
@@ -128,6 +176,12 @@ fixed daylight and a neutral backdrop, without a specific world's atmosphere or 
 
 
 ## Updating the shipped v1
+
+The October 8 head revision adds `head-v2/model.glb` and its provenance beside
+the three original body files. Keep all of them available; loading the new head
+is part of the normal traveller loader. The original body export stays unchanged,
+and its old head is removed from the rendered clone at runtime. See the accepted
+head section above and `docs/systems/characters.md` for the fitting contract.
 
 The runtime implementation is in `src/characters/`; the matching `tools/tripo-*.js`
 files re-export it for these experiments. After regenerating and accepting an asset,

@@ -443,6 +443,50 @@ For a complete preview, open `studio.html?backpack=1`; the **Fluid backpack** ch
 
 ## Tripo character review experiment
 
+### Tripo head replacement, 8 October 2026
+
+The playable traveller now loads the approved H3.1 head-and-hair export from
+`public/characters/traveller-v1/head-v2/model.glb`. This is a real replacement,
+Tripo job `931197c2-0e35-40a7-82d6-051783349826`, generated from the original
+character references. The untouched source, settings and hash are recorded in
+`head-v2/provenance.json`; generation details are in `scripts/tripo/README.md`.
+
+`src/characters/tripo-head.js` fits a clone at runtime (uniform scale 0.32,
+offset [-0.001, 1.455, -0.006]). Only a throat cylinder inside the lower neck is widened to fill the scarf;
+the hidden display foot is trimmed. A height-only flare initially caught the low
+chin and pushed it forward by roughly 11 mm. The throat mask now excludes the
+jaw, and low jaw vertices are weighted fully to Head instead of the neck blend. After clothing extraction, the old head
+triangles and unused vertices are removed. The separate head uses the same
+53-bone fitted skeleton and inverse binds as the body: the skull is rigid on
+`Head`, with a smooth neck blend to `neck_01`. The body, hand articulation,
+clothing simulation and equipment anchors keep their existing implementations.
+
+The accepted neutral face texture and skull/hair shape are preserved. Eight
+runtime shape keys move the lids, smile, brows, brow tilt, asymmetry, lower mouth
+and limited gaze; corresponding normal deltas follow them. The existing
+Humanoid expression, blink and TalkFace speech channels drive these keys.
+Speech adds a small shaded mouth opening in the new material. The old
+`tripo-face.js` repaint is only retained for loading the original body without
+a replacement head (legacy tests/tools), and never touches the new head.
+
+The distributed GLB remains the **unrigged original export**; binding, neck fit,
+shape keys and mouth ink are built by the game. This is a stylized surface face,
+not anatomical eyeballs or an oral cavity. Large mouth openings remain a drawn
+approximation. Character Studio (`studio.html?view=face`) and the live game use
+this same integration. The isolated `tools/tripo-head-review.html` retains the
+original unrigged study. Tests cover source preservation, removed old geometry,
+neutral binding at arbitrary spawns, actual head-bone displacement, eye aperture
+closure, speech and material cloning. Native engine facial shader parity has not
+been validated for this new head.
+
+Verification on 8 October, including the chin regression and latest main: 1,869 tests passed (`node --test
+--test-concurrency=4 tests/*.test.js`), and Vite build passed. Browser checks
+covered the Desert game, moving walk/jog poses, a seated head turn and expressions
+in Character Studio. Screenshots are under `output/character-tripo/head-v2/`
+(`integrated-main-character.jpg`, `integrated-walk.jpg`, `integrated-jog.jpg`,
+`integrated-seated.jpg`, `in-game-desert.jpg`). The test game's Mute setting was
+verified on before the remaining gameplay checks.
+
 `/tools/tripo-review.html` is a local development preview of the generated coral-shirt character
 without a backpack. `scripts/tripo/` fits MakeHuman arm joints to the generated surface before
 transferring skin weights and exporting a matte GLB. The viewer uses the same fitted donor

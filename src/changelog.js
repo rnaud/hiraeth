@@ -61,6 +61,8 @@ export const CHANGELOG = [
     { text: 'New setting, Music plays: Moments (the new default) or Always (the theme all the time, as before).', see: 'Settings, under Music.' },
   ] },
   { v: '0.97', date: '2026-10-08', items: [
+    'The traveller has a new face and wavy hair, rebuilt from the character drawings in Tripo, with more natural eyes. The new head moves with him and supports blinking, expressions and speech.',
+    'The traveller’s chin keeps the shape of his new head: fitting the neck into the scarf no longer pushes the jaw forward.',
     { text: 'Locked on, flick the right stick (or the mouse) left or right to switch to the next foe on that side; R3 or Tab still locks on and lets go.', see: 'In the Arena, lock on (R3 / Tab) in a wave of three, then flick the right stick sideways: the reticle jumps to the foe that way.' },
     { text: 'A cut that lands but doesn’t stop a foe (a heavy one, or one already committed to its blow) now answers with a dull thunk, sparks and a gold ring, and the first time the game says what does stagger it.', see: 'In the Arena, choose the makers’ machine and cut it while it walks up: thunk and sparks. Cut it early in its wind-up, or with the heavy third swing: it reels.' },
     { text: 'Winged blots and rust drones can be fought with the blade: a swing from the ground at one hovering over you leaps you up to it, and a cut knocks it down within reach for a few seconds.', see: 'In the Arena, choose the winged blot and swing at it while it hovers: you leap up into the cut, it drops low, and you can chain the next swings on the ground.' },

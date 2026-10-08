@@ -116,7 +116,18 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
   ...(n >= 6 ? { 'calls.home': true } : {}), ...flags }, keepsakes: [] });
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
+/** A world of the colour pass: the same view before and after, then the pass's own picture of before, after and the reference. */
+const colourShots = (name, commit, view, caption, ref) => [
+  { name: `${name}-colours`, caption, commit, view },
+  { name: `${name}-reference`, only: 'after', caption: `Before, after and the reference (${ref}), side by side`, from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, laid beside the reference picture (8 October)' },
+];
+const SEE_COLOURS = 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.';
+
 export const CHANGELOG_MEDIA = {
+  '0.97': [
+    { match: 'The traveller has a new face and wavy hair', see: 'Open studio.html, choose the traveller and Face. Drag from the front to the side to see the new hair, level eye corners and neck fit; try neutral, delighted and worried, then enable Blinking and Talking.' },
+    { match: 'The traveller’s chin keeps the shape', see: 'In Character Studio, choose the traveller and Bust, then rotate to a side view. The jaw keeps its original profile while the neck still meets the scarf.' },
+  ],
   '0.96': [
     { match: 'The lock-on has a new reticle', shots: [
       { name: 'lock-reticle', caption: 'Locked on to a makers’ machine in the Arena', from: 'headless Chrome in the Arena against this branch’s own dev server, Medium, 1280 × 720 (8 October); the before draws v0.95’s circle, with its own style, at the same place' },
@@ -126,63 +137,37 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Lock on to a foe and parry its strike: the reticle spreads pale blue while it reels. A dune ray under the sand dims it.' },
   ],
   '0.95': [
-    // (one picture per world: before | after | its reference picture, the same view of the world at its own opening hour)
+    // (each world: before / after from the same view, then the picture made for the pass: before, after and the reference side by side)
     ...[
-      ['The Desert’s golden dunes', 'desert', 'The Desert from the start at 9:30, beside IMG_3775’s bones in the dunes'],
-      ['The Glass Dunes: the sand', 'glassdunes', 'Toward the west camp at 16:30, beside the Glass Dunes’ first plate'],
-      ['The Buried Machine’s dunes', 'buried', 'The Buried Machine from the start at 10:30, beside IMG_3790’s domes and pipes'],
-      ['The Sealed Hangar is painted', 'hangar', 'The Sealed Hangar from the start at 10:30, beside its people’s sheets (Ottla, Ambroise)'],
-      ['The City-Shaft’s shade is one steel blue', 'shaft', 'Across the high terrace at 12:30, beside IMG_3780'],
-      ['On the Overnight Train the night sky glows', 'train', 'On the rear deck at 22:00, beside the fourth picture'],
-      ['Lorn’s long evening shadows', 'lorn', 'Lorn from the start at 18:24, beside its people’s sheets (Sedge, Saba)'],
-      ['Lorn II, the Deep Wood', 'lorn2', 'The Deep Wood near the start at 17:42, beside IMG_3797'],
-    ].map(([match, name, caption]) => ({ match, shots: [
-      { name: `${name}-colours`, only: 'after', caption: `${caption}: before, after, the reference`, from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 960 × 540, laid side by side with the reference (8 October)' },
-    ] })),
-    { match: 'The City During the Eclipse is darker and bluer', shots: [
-      { name: 'eclipse-colours', only: 'after', caption: 'Before, after and the reference: the References level’s view 2 of the City During the Eclipse: the left houses in shade, their shade a deep indigo', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
-    ], see: 'Open ?level=references&world=eclipse&view=2 and press \\ to lay the picture over the view, or walk the city’s square at noon.' },
-    { match: 'The City Floating in Space is pinker', shots: [
-      { name: 'spacecity-colours', only: 'after', caption: 'Before, after and the reference: the City Floating in Space from the balcony (References view 1): the walls salmon, fewer stars', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
-    ], see: 'Open ?level=references&world=spacecity&view=1, or stand on the city’s first balcony.' },
-    { match: 'The Fallen Ring’s sky is a deeper blue', shots: [
-      { name: 'fallenring-colours', only: 'after', caption: 'Before, after and the reference: the broken tubes and the great cumulus (References view 2): white clouds, soft lines, a deeper sky', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
-    ], see: 'Open ?level=references&world=fallenring&view=2, or look up at the clouds from the long tube’s village.' },
-    { match: 'In the Moon Foundry the moons turn from the light', shots: [
-      { name: 'moonfoundry-colours', only: 'after', caption: 'Before, after and the reference: the great hung moon and the cutaway shell (References view 2): the pillars’ turned sides dark, the sky greyer', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
-    ], see: 'Open ?level=references&world=moonfoundry&view=2, or walk under the roof to the hung moons.' },
-    { match: 'The Underside’s town hangs darker', shots: [
-      { name: 'underside-colours', only: 'after', caption: 'Before, after and the reference: from the stair in the cliff’s shade (References view 1): the timber darker, the banners deeper, the rock’s shade warm', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
-    ], see: 'Open ?level=references&world=underside&view=1, or climb the stair to the shelf’s town.' },
-    { match: 'Vael II: the shade under the great caps', shots: [
-      { name: 'vael2-colours', only: 'after', caption: 'Before, after and the reference: walking past the mushrooms to the tower (References view 31): the stalk’s shade blue-grey, no longer near black', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
-    ], see: 'Open ?level=references&world=vael2&view=31, or stand under a great cap on the Sky Stones’ plain.' },
+      ['The Desert’s golden dunes', 'desert', 'df0b4aca', { level: 'desert', hour: 9.5 }, 'The Desert from the start at 9:30', 'IMG_3775’s bones in the dunes'],
+      ['The Glass Dunes: the sand', 'glassdunes', 'df0b4aca', { ref: 'glass-1-wall-camp', query: 'world=glassdunes', hour: null }, 'The References’ view of the wall and the west camp', 'the Glass Dunes’ first plate'],
+      ['The Buried Machine’s dunes', 'buried', 'df0b4aca', { level: 'buried', hour: 10.5 }, 'The Buried Machine from the start at 10:30', 'IMG_3790’s domes and pipes'],
+      ['The Sealed Hangar is painted', 'hangar', 'df0b4aca', { level: 'garage', hour: 10.5 }, 'The Sealed Hangar from the start at 10:30', 'its people’s sheets (Ottla, Ambroise)'],
+      ['The City-Shaft’s shade is one steel blue', 'shaft', 'df0b4aca', { level: 'incal', hour: 12.5 }, 'The City-Shaft from the start at 12:30', 'IMG_3780'],
+      ['On the Overnight Train the night sky glows', 'train', 'df0b4aca', { ref: 'overnighttrain-4-dust', query: 'world=overnighttrain', hour: null }, 'The References’ view of the rear deck at night', 'the fourth picture'],
+      ['Lorn’s long evening shadows', 'lorn', 'df0b4aca', { level: 'perdide', hour: 18.4 }, 'Lorn from the start at 18:24', 'its people’s sheets (Sedge, Saba)'],
+      ['Lorn II, the Deep Wood', 'lorn2', 'df0b4aca', { level: 'perdide2', hour: 17.7 }, 'The Deep Wood from the start at 17:42', 'IMG_3797'],
+      ['The City During the Eclipse is darker and bluer', 'eclipse', 'f1084eef', { ref: 'eclipse-2-terraces', query: 'world=eclipse', hour: null }, 'The References’ view 2 of the City During the Eclipse: the left houses in shade, their shade a deep indigo', 'its second picture'],
+      ['The City Floating in Space is pinker', 'spacecity', 'f1084eef', { ref: 'spacecity-1-bridge', query: 'world=spacecity', hour: null }, 'The City Floating in Space from the balcony (References view 1): the walls salmon, fewer stars', 'its first picture'],
+      ['The Fallen Ring’s sky is a deeper blue', 'fallenring', 'f1084eef', { ref: 'fallenring-2-ends', query: 'world=fallenring', hour: null }, 'The broken tubes and the great cumulus (References view 2): white clouds, soft lines, a deeper sky', 'its second picture'],
+      ['In the Moon Foundry the moons turn from the light', 'moonfoundry', 'f1084eef', { ref: 'moonfoundry-2-cradle', query: 'world=moonfoundry', hour: null }, 'The great hung moon and the cutaway shell (References view 2): the pillars’ turned sides dark, the sky greyer', 'its second picture'],
+      ['The Underside’s town hangs darker', 'underside', 'f1084eef', { ref: 'underside-1-stair', query: 'world=underside', hour: null }, 'From the stair in the cliff’s shade (References view 1): the timber darker, the banners deeper, the rock’s shade warm', 'its first picture'],
+      ['Vael II: the shade under the great caps', 'vael2', 'f1084eef', { ref: '3783-mushroom-plain', query: 'world=vael2', hour: null }, 'Under the great cap, the plain and its tower (References view): the stalk’s shade blue-grey, no longer near black', 'IMG_3783'],
+      ['The Forest of Antennas: the masts', 'antennas', 'ae5f14c7', { ref: 'antennas-4-egg', query: 'world=antennas', hour: null }, 'The great saucer and the egg (References view 4)', 'its fourth picture'],
+      ['The City Behind the Waterfall: the cavern', 'waterfall', 'ae5f14c7', { ref: 'waterfall-1-arch', query: 'world=waterfall', hour: null }, 'The arch and the falls (References view 1): the rock deeper, the houses warm in the shade', 'its first picture'],
+      ['The Salt Harbour: the shadows on the salt', 'saltharbour', 'ae5f14c7', { ref: 'saltharbour-1-street', query: 'world=saltharbour', hour: null }, 'The street between the hulls (References view 1): the shadow on the salt cerulean, the terracotta hull rust in its shade', 'its first picture'],
+      ['The Underwater City: the coral towers', 'underwater', 'ae5f14c7', { ref: 'underwater-1-cafes', query: 'world=underwater', hour: null }, 'The two cafés and the towers of pods (References view 1)', 'its first picture'],
+      ['The White Mangrove: the great trees', 'mangrove', 'ae5f14c7', { ref: 'mangrove-2-colonnade', query: 'world=mangrove', hour: null }, 'The colonnade of root arches (References view 2): the trees whiter, the creatures brighter', 'its second picture'],
+      ['The Garden of Spheres: the white stone', 'spheres', 'ae5f14c7', { ref: '3793-grove-pyramid', query: 'world=spheres', hour: null }, 'The grove and the pyramid (IMG_3793): the pyramid’s shade sea-green, the trunks blue-grey', 'the sheet'],
+    ].map(([match, name, commit, view, caption, ref]) => ({ match, shots: colourShots(name, commit, view, caption, ref), see: SEE_COLOURS })),
     { match: 'Vael’s shadows are a cooler, paler lilac-grey', shots: [
-      { name: 'vael-colours', only: 'after', caption: 'Before, after and the reference: Vael where you land, at 15:30: the flowers’ shadows on the dune a paler, cooler grey (the reference is Oïa’s sheet)', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
-      { name: 'viridel-colours', only: 'after', caption: 'Before, after and the reference: Viridel by the ship at 10:30, a warmer light and a softer shade (the reference is Mira’s sheet)', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
+      ...colourShots('vael', 'f1084eef', { level: 'arzach', hour: 15.5 }, 'Vael where you land, at 15:30: the flowers’ shadows on the dune a paler, cooler grey', 'Oïa’s sheet'),
+      ...colourShots('viridel', 'f1084eef', { level: 'edena', hour: 10.5 }, 'Viridel by the ship at 10:30, a warmer light and a softer shade', 'Mira’s sheet'),
     ], see: 'Land in Vael and look at the shadows on the dunes; in Viridel, the meadow by the ship.' },
     { match: 'The Signal Market: the street’s shade', shots: [
-      { name: 'market-colours', only: 'after', caption: 'The Signal Market’s long street (IMG_3808): before, after and the sheet; the far end paler, the shade bluer', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
-      { name: 'marketnight-colours', only: 'after', caption: 'The night market’s screen lane (reference-1): before, after and the picture; the walls and casings a slate blue', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
-    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
-    { match: 'The Forest of Antennas: the masts', shots: [
-      { name: 'antennas-colours', only: 'after', caption: 'The great saucer and the egg (reference-4): before, after and the picture', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
-    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
-    { match: 'The City Behind the Waterfall: the cavern', shots: [
-      { name: 'waterfall-colours', only: 'after', caption: 'The arch and the falls (reference-1): before, after and the picture; the rock deeper, the houses warm in the shade', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
-    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
-    { match: 'The Salt Harbour: the shadows on the salt', shots: [
-      { name: 'saltharbour-colours', only: 'after', caption: 'The street between the hulls (reference-1): before, after and the picture; the shadow on the salt cerulean, the terracotta hull rust in its shade', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
-    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
-    { match: 'The Underwater City: the coral towers', shots: [
-      { name: 'underwater-colours', only: 'after', caption: 'The two cafés and the towers of pods (reference-1): before, after and the picture', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
-    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
-    { match: 'The White Mangrove: the great trees', shots: [
-      { name: 'mangrove-colours', only: 'after', caption: 'The colonnade of root arches (reference-2): before, after and the picture; the trees whiter, the creatures brighter', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
-    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
-    { match: 'The Garden of Spheres: the white stone', shots: [
-      { name: 'spheres-colours', only: 'after', caption: 'The grove and the pyramid (IMG_3793): before, after and the sheet; the pyramid’s shade sea-green, the trunks blue-grey', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
-    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
+      ...colourShots('market', 'ae5f14c7', { ref: '3808-long-street', query: 'world=market', hour: null }, 'The Signal Market’s long street (IMG_3808): the far end paler, the shade bluer', 'the sheet'),
+      ...colourShots('marketnight', 'ae5f14c7', { ref: 'marketnight-1-lane', query: 'world=marketnight', hour: null }, 'The night market’s screen lane (References view 1): the walls and casings a slate blue', 'its first picture'),
+    ], see: SEE_COLOURS },
   ],
   '0.93': [
     { match: 'The shade has a new look: a cartoon drawn in negative', shots: [
