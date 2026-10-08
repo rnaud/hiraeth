@@ -75,7 +75,11 @@ test('every kind moves and animates in a world without errors, through every att
 test('the dune ray swims under the sand: no blade reaches it there, its ring follows you then holds, and it bursts up there', () => {
   const r = only('ray', 'erupt'), P = player(v(0, 0, 6));
   assert.equal(r.buried, true);
-  assert.equal(r.hit('blade', v(0, 0, 1), { damage: 2 }), false, 'the blade finds only sand');
+  // a cut at its fin flushes it out, dazed a moment, unharmed (the sand takes the blow); a shot finds only sand
+  const fin = new Foe('ray', v());
+  assert.equal(fin.hit('shoot', v(0, 0, 1)), false, 'a shot finds only sand');
+  assert.equal(fin.hit('blade', v(0, 0, 1), { damage: 2 }), 'flushed');
+  assert.ok(!fin.buried && fin.stunned > 0 && fin.hp === FOES.ray.hp, 'flushed out by the cut, dazed, unharmed');
   assert.ok(untilWind(r, P, 'erupt'));
   P.pos.set(1, 0, 6); runFor(r, P, 0.2);
   assert.ok(r.attackAt.distanceTo(v(1, 0, 6)) < 0.01, 'the ring follows you while it tracks');
@@ -89,6 +93,12 @@ test('the dune ray swims under the sand: no blade reaches it there, its ring fol
   assert.equal(r.buried, false, 'it came up');
   assert.ok(r.pos.distanceTo(held) < 0.01, 'where the ring was');
   assert.equal(r.hit('blade', v(0, 0, 1), { damage: 1 }), true, 'surfaced, it can be cut');
+  // surfaced it stays up (BURROW.up) through its recovery, and only then dives again
+  assert.ok(r.upFor > 0);
+  r.state = 'recover'; r.timer = 0.01; r.stunned = 0; runFor(r, P, 0.05);
+  assert.equal(r.buried, false, 'still up to fight');
+  r.upFor = 0; r.state = 'recover'; r.timer = 0.01; runFor(r, P, 0.05);
+  assert.equal(r.buried, true, 'its time up over, it dives again');
   // a bomb or a stomp flushes a buried one out, dazed
   const s = new Foe('ray', v());
   assert.equal(s.hit('blade', v(1, 0, 0), { damage: 2, source: 'bomb' }), true);
@@ -245,6 +255,9 @@ test('the shadow hound: running it is a shadow the blade passes through; an embe
   runFor(h, P, 0.2);
   assert.equal(h.state, 'chase');
   assert.equal(h.phased, true);
+  // close in, it is solid (PHASE.near)
+  const near = new Foe('hound', v(0, 0, 0), { rng: () => 0.5 }); runFor(near, player(v(0, 0, 2)), 0.05);
+  assert.equal(near.phased, false, 'within reach it is solid');
   assert.equal(h.hit('blade', v(0, 0, 1), { damage: 1 }), false, 'the blade passes through');
   assert.equal(h.hit('fire', v(0, 0, 1)), true, 'an ember burns');
   assert.ok(h.lit > 0 && !h.phased, 'and lights it solid');

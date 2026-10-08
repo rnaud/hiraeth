@@ -9,6 +9,23 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.96', date: '2026-10-08', items: [
+    // staying in the fight
+    { text: 'Foes no longer walk off when they knock you down: they wait round you, facing you, and come on again as you get up.', see: 'In the Arena (the worlds list), choose a foe from the FOES tab on the left (the makers’ machine knocks you down) and let it hit you: it holds a step away while you rise, then attacks again.' },
+    { text: 'A foe you lead away from where it stood keeps fighting while you are still there; it goes back only once you have left too.', see: 'In a temple, draw a machine out of its room and keep fighting it: it no longer turns its back on you halfway.' },
+    { text: 'Spitting blots and rust drones back off a step when you close in, then stand their ground and fight, instead of running from you across the field.', see: 'In the Arena (the worlds list), choose a foe from the FOES tab on the left, choose the spitting blot and run at it: it backs off about two metres, then holds and lobs at you.' },
+    { text: 'While a foe you can see is striking, one behind you or off the screen waits its turn, so a blow from behind never lands on top of one you are watching.', see: 'Fight a wave of three or more in the Arena: the one behind you only attacks when nobody in view is.' },
+    { text: 'The dune ray is easier to read: buried, a tall dark fin and an ink ripple on the sand show where it swims, and a cut at the fin flushes it out. Up, it stays up a few seconds to fight instead of diving after every attack.', see: 'In the Arena (the worlds list), choose a foe from the FOES tab on the left, choose the dune ray: cut at its fin as it circles, then fight it on the surface.' },
+    { text: 'Shadow hounds are solid once they come close; only further off are they shadows the blade passes through.', see: 'In the City During the Eclipse, or the Arena’s shadow hounds: let one run up to you and cut it before it pounces.' },
+    // the lock-on
+    'The lock-on has a new reticle: four gold chevrons on a hand-drawn ring, sized to the foe, with pips over it for what is left of it.',
+    'The reticle reads the foe: it turns red and closes in as a strike winds up, meeting as it lands; it spreads pale blue while the foe is open to a cut, and dims while it can’t be cut (a ray under the sand, a hound running as a shadow).',
+    { text: 'When the foe you are locked on to falls, the lock moves straight on to the next one near you, and a new lock picks the foe nearest the middle of the view.', see: 'Lock on (R3 / Tab) in a wave of several and cut one down: the reticle snaps on to the next.' },
+    // the blade
+    { text: 'A swing begun with a foe just out of reach steps you in to it, so the cut lands where you meant it.', see: 'Stand a long step from a foe and swing: the traveller closes in through the wind-up.' },
+    { text: 'An attack pressed during an evade, or just before the blade is ready again, is remembered: it swings as soon as it can, so evade-then-cut flows.', see: 'Evade (B / ○, Alt) and press attack before the evade ends: the cut follows straight out of it.' },
+    { text: 'The blow that finishes a foe lands harder, and the last foe of a fight falls in a moment of slow motion.', see: 'Cut down the last foe of an Arena wave.' },
+  ] },
   { v: '0.95', date: '2026-10-08', items: [
     'The Desert’s golden dunes are the warm ochre of its drawings now, not a pale cream, and a dune in shade (round Qanat too) turns a deeper orange-brown instead of a khaki grey; the shadows lean violet-blue.',
     'The Glass Dunes: the sand is a pale peach in the light (it was a flat salmon), the glass a deeper emerald with bluer tops, the far walls keep their green instead of fading grey, and the evening sky runs from a warm peach at the horizon to grey-teal overhead.',

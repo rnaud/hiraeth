@@ -21,7 +21,18 @@ export const BLADE = {
   lock: 6,             // m: the soft lock turns you to a foe this close
   damage: [1, 1, 2],   // the combo's three swings
   cooldown: 0.5,       // after the third swing
+  buffer: 0.2,         // s a press is remembered while the blade can't swing yet (an evade, the cooldown): it swings as soon as it can
 };
+/**
+ * The cut's pull (attack magnetism): a swing begun with a foe a little out of reach steps you in through its wind-up
+ * and cut, so the blade lands where you meant it: up to `max` m, to stand `ideal` m off its body.
+ */
+export const MAGNET = { max: 2.2, ideal: 1.2 };
+/** How fast (m/s) a swing of `time` s (its wind-up and cut) must step to close on a foe `d` m away (flat, its body's `radius`): 0 in reach or too far. */
+export function closeInSpeed(d, radius, time, M = MAGNET) {
+  const gap = d - radius - M.ideal;
+  return gap > 0 && gap <= M.max && time > 0 ? gap / time : 0;
+}
 
 /**
  * The three swings from motion capture (Mixamo's Sword and Shield pack, in public/anim/moves.glb:
@@ -181,7 +192,7 @@ export class FluidBlade {
     this.evadeHeld = false; this.evadeT = 0; this.evadeCool = 0; this.evadeDir = new THREE.Vector3();
     // its i-frames: how long it has run, whether it was given them, the rest before the next can be, a blow swallowed
     this.evadeAge = Infinity; this.evadeGranted = false; this.iframeRest = 0; this.dodged = false; this.gentle = false;
-    this.hitTargets = new Set(); this.previousBlade = null;
+    this.hitTargets = new Set(); this.previousBlade = null; this.buffered = 0; this.closeIn = 0;
     this.device = new ShieldDevice(tool);
     this.shield = this.device.root;
     this.guardArc = null;
@@ -303,9 +314,12 @@ export class FluidBlade {
       this.drawn = Math.max(0, this.drawn - dt * 10);
       this.placeShield(dt); return this.fade(dt);
     }
-    if (press && !held && !this.evadeT) {
-      if (this.swinging) this.queued = this.n < 2;                 // chained: the next swing follows this one
-      else if (this.cool === 0) this.start(this.chainT > 0 ? Math.min(this.last + 1, 2) : 0);
+    // a press is kept a moment (BLADE.buffer): pressed during an evade or the cooldown, it swings as soon as it can
+    if (press && !held) this.buffered = BLADE.buffer;
+    else this.buffered = Math.max(0, this.buffered - dt);
+    if (this.buffered > 0 && !held && !this.evadeT) {
+      if (this.swinging) { this.queued = this.n < 2; this.buffered = 0; }   // chained: the next swing follows this one
+      else if (this.cool === 0) { this.start(this.chainT > 0 ? Math.min(this.last + 1, 2) : 0); this.buffered = 0; }
     }
     if (this.swinging) {
       const previousTime = this.t * this.dur;
@@ -378,7 +392,9 @@ export class FluidBlade {
       p.combatMotion = { dir: this.evadeDir, speed: EVADE.speed * (0.55 + 0.45 * Math.sin(Math.PI * this.evadeT / EVADE.duration)), scale: 0, evade: this.evadeT / EVADE.duration };
     } else if (this.swinging && p.onGround) {
       const active = this.phase === 'strike';
-      p.combatMotion = { dir: this.dir, speed: active ? (this.special === LUNGE ? 7 : 1.7) : 0, scale: this.phase === 'recover' ? 0.45 : 0.15 };
+      // (closing in on a foe just out of reach: MAGNET, through the wind-up and the cut)
+      const pull = this.phase !== 'recover' ? this.closeIn : 0;
+      p.combatMotion = { dir: this.dir, speed: Math.max(active ? (this.special === LUNGE ? 7 : 1.7) : 0, pull), scale: this.phase === 'recover' ? 0.45 : 0.15 };
     }
     // in a fight the blade stays in the fist (a while after, and all the time locked on), then is put away
     this.since += dt;
@@ -421,6 +437,8 @@ export class FluidBlade {
     const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
     if (foe) this.dir.subVectors(foe.position(), p.pos); else p.frame.dir(p.heading, this.dir);
     this.dir.addScaledVector(U, -this.dir.dot(U));
+    // a foe just out of reach: the swing steps you in to it (not the lunge, which carries you itself)
+    this.closeIn = foe && this.special !== LUNGE && p.onGround ? closeInSpeed(this.dir.length(), foe.radius ?? 0.6, this.sample.wind + this.sample.active) : 0;
     if (this.dir.lengthSq() < 1e-6) p.frame.dir(p.heading, this.dir);
     this.dir.normalize();
     T.used('blade', p.pos);
