@@ -1,0 +1,35 @@
+changelog.md
+  s_01ef56f57d9271::t_9c335f60016fed 5-10
+docs/systems/foes.md
+  s_01ef56f57d9271::t_e20dad04affa80 198-202,218-225
+src/audio.js
+  s_01ef56f57d9271::t_cce3204b96a191 1320-1327
+src/changelog.js
+  s_01ef56f57d9271::t_b0869ce60c8746 12-16
+src/fluid-blade.js
+  s_01ef56f57d9271::t_317c57436fa8dc 31-42,452-458,470
+src/foes.js
+  s_01ef56f57d9271::t_426eda6b8e1f70 115-125,173,255,259-260,401,442-446,638-680,892-893,1084-1098
+src/main.js
+  s_01ef56f57d9271::t_c8dc69c9cee9e3 639-642
+src/player.js
+  s_01ef56f57d9271::t_4ed9cac0f1f9a8 28,1276-1283
+tests/combat-feel.test.js
+  s_01ef56f57d9271::t_248351c6355117 4-6,9,155-250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5a8d5baadceafd0345b0a86984a74c9e48c54914",
+  "prompts": {},
+  "sessions": {
+    "s_01ef56f57d9271": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7e499a2d-6006-441a-af8e-f625e578b83e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
