@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.91 — 2026-10-08
+
+- The gadgets are in the game menu’s Items with pictures of their own (choose one there to take it in hand), and on the items page.
+- The Gadget Yard, a new world in the Debug worlds list, has a bay for each gadget round a sandy yard: a wall with rings along its top, two towers across a gap, a ring on a tall pole, cracked walls and a cracked boulder, crates and metal crates, targets on posts, a floor plate that opens a gate while a crate sits on it, and a pen of ink blots. Every gadget is yours there.
+- Ink bombs: hold Y / △ and a dotted arc shows where the bomb will land, with a red ring as wide as its blast; let go to throw. It bounces, rolls, fizzes and goes off after two seconds, at once if it lands on a foe: a cloud, a star of ink, cracked walls blown open, foes cut down and thrown, crates sent flying, and you knocked back if you stand too close (never hurt). Three in the pouch; another grows back every five seconds.
+- The grappling hook: hold Y / △ to aim, and a ring shows what it would catch up to 25 m away (it finds the brass rings by itself); let go and it flies. Caught on a wall, a ledge or a ring, it reels you in: at a wall you take hold of it, at a ledge you haul yourself over the top. Caught on a crate it drags it to you; on a foe it pulls it in, stunned. Jump while reeling to let go and fly on. It works in every world.
+- Gadgets: things to carry besides the backpack, the first two of ten to come. Hold one in hand and Y / △ uses it (T, or the middle mouse button; ◆ on a touch screen). D-pad up changes it (B), and held a moment it opens a wheel: point the stick at one and let go. With nothing in hand Y / △ still sends the scout. A small card in the lower left shows what is in hand.
+
 ## v0.90 — 2026-10-08
 
 - Attack and defense have separate buttons: F / RB / R1 attacks, Ctrl or Z / LB / L1 guards, and Alt / X / □ evades in your movement direction, or backsteps when standing. Guard just before a blow to parry without spending fluid and leave the foe open longer. On a controller, hold LT / L2 with X / □ to call your mount; push remains a gun mode; touch has separate guard and evade buttons.

@@ -117,6 +117,26 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.91': [
+    { match: 'Gadgets: things to carry besides the backpack', shots: [
+      { name: 'wheel', only: 'after', caption: 'D-pad up (B) held: the wheel, nothing in hand, the grappling hook, the ink bombs; the stick points at one', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+    ], see: 'Open the Gadget Yard from the Debug worlds list (?level=gadgetyard): both gadgets are yours. Y / △ (T) uses the one in hand, D-pad up (B) changes it, held it opens the wheel.' },
+    { match: 'The grappling hook: hold Y / △ to aim', shots: [
+      { name: 'hook-aim', only: 'after', caption: 'Aiming at the ring on the pole in the hook’s bay: the reticle turns into a red diamond on a ring, 15 m away', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'hook-reel', only: 'after', caption: 'Reeled up the pole on the line, a moment before hauling over the top', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'hook-crate', only: 'after', caption: 'A crate caught and dragged in across the yard', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'hook-market', only: 'after', caption: 'In the Signal Market: hooked to a tower’s wall 20 m away from the street, reeled up and holding on', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), ?level=bazaar' },
+    ], see: 'In the Gadget Yard, the bay with the red banner: hold T (Y / △), point at a ring and let go.' },
+    { match: 'Ink bombs: hold Y / △ and a dotted arc', shots: [
+      { name: 'bomb-arc', only: 'after', caption: 'Aiming a bomb at the cracked wall in the middle of the yard: the dotted arc and the red ring of its blast', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'bomb-blast', only: 'after', caption: 'The blast: the cloud, the speed strokes and the wall coming apart', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'bomb-wall', only: 'after', caption: 'A moment later: the wall gone, a star of ink on the sand (in the yard it grows back after a while)', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+    ], see: 'In the Gadget Yard, the bay with the dark blue banner: throw one at the cracked wall in front of the alcove, or into the pen of ink blots.' },
+    { match: 'The Gadget Yard, a new world', shots: [
+      { name: 'yard', only: 'after', caption: 'The Gadget Yard from where you arrive: the hook’s bay and its pole, the plate and its gate, the targets, the bombs’ bay beyond', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'The gadgets are in the game menu’s Items', see: 'Open the game menu (View / Select, J) on its Items: the hook and the bombs are drawn among the gear; choose one to take it in hand.' },
+  ],
   '0.89': [
     { match: 'The Glass Dunes’ glass glows from within', shots: [
       { name: 'glass-giants', caption: 'The cliff of the giants from the valley at 16:30: the giants held in the glass are crisp dark shapes, the lobes’ thin edges glow mint', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October); the before at the commit before the change' },

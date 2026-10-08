@@ -73,6 +73,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
       ['Gun mode (fluid, push, and those found)', 'X'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'F · hold CTRL or Z · TAB'], ['Dive · rise (in water)', 'Z or CTRL · SPACE'],
       ['Evade (direction + button, or backstep)', 'ALT'],
+      ['Gadget in hand (once found): use · change', 'T or the middle mouse button (hold to aim, let go) · B (SHIFT + B back; hold B: the wheel)'],
       ['Items, quests, sketchbook · menu · this page', 'J (Q / E turn its panels) · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F3 · N'], ['Mute', 'M'],
     ],
     pad: [
@@ -82,6 +83,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets: fly like a plane', 'RT / R2 thrust, the harder the faster (from the ground: straight up) · left stick forward nose down, back nose up, left / right bank and turn · L3 faster · let go to glide · LT / L2 in flight holds you to aim'],
       ['Gun mode (fluid, push, and those found)', 'D-pad left / right'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'RB / R1 · hold LB / L1 · click the right stick (R3)'], ['Photo mode · bell whistle (once found)', 'D-pad down · D-pad up'],
       ['Evade (stick direction, or backstep)', 'X / □'],
+      ['Gadget in hand (once found): use · change', 'Y / △ (hold to aim, let go; with nothing in hand it sends the scout) · D-pad up (held: the wheel)'],
       ['Items, quests and sketchbook · menu', 'View · Menu'],
       ['Their panels (items, quests, sketchbook, worlds)', 'LB / L1 · RB / R1'],
       ['Riding', 'RT / R2 go · LT / L2 brake · left stick steer (flying: forward dives, back climbs) · X / □ hop, flap, rise · RB / R1 boost · A / × jump off · B / ○ get off'],
@@ -91,7 +93,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
     ],
     touch: [
       ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'], ['Jets (once found)', 'hold ⤒ in the air: thrust · drag on the left: up tips the nose down, down pulls it up, sideways banks and turns'],
-      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade (tap) · guard (hold it) · lock on', '⚔ · ⚔ held · ◉'],
+      ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade (tap) · guard (hold it) · lock on', '⚔ · ⚔ held · ◉'], ['Gadget in hand (once found): use · change', '◆ (hold to aim, let go) · tap the card in the corner'],
       ['Items, quests and sketchbook · menu', '❏ (its tabs turn the panels) · the small ⚙ in the corner'],
     ],
   };

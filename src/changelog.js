@@ -9,6 +9,13 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.91', date: '2026-10-08', items: [
+    'Gadgets: things to carry besides the backpack, the first two of ten to come. Hold one in hand and Y / △ uses it (T, or the middle mouse button; ◆ on a touch screen). D-pad up changes it (B), and held a moment it opens a wheel: point the stick at one and let go. With nothing in hand Y / △ still sends the scout. A small card in the lower left shows what is in hand.',
+    'The grappling hook: hold Y / △ to aim, and a ring shows what it would catch up to 25 m away (it finds the brass rings by itself); let go and it flies. Caught on a wall, a ledge or a ring, it reels you in: at a wall you take hold of it, at a ledge you haul yourself over the top. Caught on a crate it drags it to you; on a foe it pulls it in, stunned. Jump while reeling to let go and fly on. It works in every world.',
+    'Ink bombs: hold Y / △ and a dotted arc shows where the bomb will land, with a red ring as wide as its blast; let go to throw. It bounces, rolls, fizzes and goes off after two seconds, at once if it lands on a foe: a cloud, a star of ink, cracked walls blown open, foes cut down and thrown, crates sent flying, and you knocked back if you stand too close (never hurt). Three in the pouch; another grows back every five seconds.',
+    'The Gadget Yard, a new world in the Debug worlds list, has a bay for each gadget round a sandy yard: a wall with rings along its top, two towers across a gap, a ring on a tall pole, cracked walls and a cracked boulder, crates and metal crates, targets on posts, a floor plate that opens a gate while a crate sits on it, and a pen of ink blots. Every gadget is yours there.',
+    'The gadgets are in the game menu’s Items with pictures of their own (choose one there to take it in hand), and on the items page.',
+  ] },
   { v: '0.90', date: '2026-10-08', items: [
     { text: 'Experimental motion matching no longer borrows the next motion capture’s pose when searching at a loop boundary. It remains an optional comparison; the normal blended movement is still the default.', see: 'Open the Motion page and compare the 90° walking turn. Matching changes clips less often, but its foot sliding and stair handling still need work.' },
     { text: 'Read a foe’s body: ink blots coil and lunge, machines plant their feet and raise their arms before slamming. Their ordinary melee attacks no longer draw warnings on the floor, and a missed strike leaves an opening.', see: 'In the Arena, watch a blot compress or a machine hold its arms overhead; step aside and attack while it recovers.' },

@@ -73,6 +73,8 @@ import { Flammables, flammableSpots } from './flammable.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { Foes } from './foes.js';
+import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
+import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick } from './feel.js';
 import { DevMenu } from './dev-menu.js';
 import { fillPicker, pickHref } from './world-picker.js';
@@ -214,6 +216,7 @@ const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { cons
 const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.meta.env.BASE_URL, levelId).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return null; }) : null;
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 const level = meta.build ? await runStepsAsync(meta.build(scene), slice) : meta.create(scene);
+if (level.gadgets === 'all') for (const g of GADGETS) items.grant(g.id);   // (the Gadget Yard: every gadget, to try them: src/levels/gadget-yard.js)
 const terrain = level.ground;
 // where the old walls' cracks may not run: their windows, doors and what is fixed on them (src/wall-openings.js;
 // the builders added their merged pieces as they laid them)
@@ -550,6 +553,7 @@ const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.ke
 // the game menu (View / Select, J: src/game-menu.js): what fills its four panels (src/game-menu-data.js),
 // and the items' pictures, drawn one a frame while it is open (src/item-icons.js)
 // (drawn in the late-morning light whatever the hour, so a picture made at night is not a dark one for the session)
+let gadgets = null;   // (src/gadgets/: made after the foes, below)
 const itemIcons = new ItemIcons({ scene, build: buildItemModel,
   capture: (...a) => { const h = sky.hour; sky.hour = 10.5; updateSky(); try { return captureView(...a); } finally { sky.hour = h; updateSky(); } },
   place: () => ({ at: player.pos.clone().addScaledVector(player.frame.up, 140), up: player.frame.up.clone() }),
@@ -557,11 +561,11 @@ const itemIcons = new ItemIcons({ scene, build: buildItemModel,
 Object.assign(journal.menu, {
   sources: menuSources({ items, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id),
     levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title })),
-    mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
+    mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     icon: (id) => itemIcons.get(id) }),
   onTrack: (id) => storyRt.quests.choose(id),
   // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
-  onUse: (id) => { const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); },
+  onUse: (id) => { const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
 });
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', (k) => { const line = chargeHud(charge(), { kept: k.name }); if (line) showToast(line); });
@@ -669,6 +673,10 @@ window.addEventListener('keyup', (e) => (input[e.code] = false));
 let eBlocked = false, wasBusy = false;
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy || busy())) eBlocked = true; });
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
+renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
+// the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand, D-pad ↑ or B changes it
+gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice: (t) => showToast(t), touch: isTouch,
+  icon: (id) => itemIcons.get(id), drawIcon: () => itemIcons.pump() });   // (the chip shows the gadget's own model, drawn once)
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
@@ -1052,12 +1060,12 @@ const controller = new Controller({
     if (name === 'worlds') showPicker(true);
     if (name === 'photo') setPhoto(!photo.on);
     if (name === 'capture') photo.capture = true;
-    if (name === 'ping' && !ship.playing) scout.ping();
+    if (name === 'ping' && !ship.playing && !gadgets?.claims('ping')) scout.ping();   // (with a gadget in hand Y / △ is its button: src/gadgets/)
     if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the References: X / □ opens the list of views; there is no mount to call)
     else if (name === 'call' && !ship.playing) player.callMount();   // the pad's own button for it (the keyboard's E still falls back to it)
     if (name === 'lock' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
     else if (name === 'lock' && !ship.playing) foes.cycleLock();   // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js)
-    if (name === 'bell') itemFx.ring();   // D-pad up: the bell-note whistle (V), and the echo shell plays back
+    if (name === 'bell' && !gadgets?.claims('bell')) itemFx.ring();   // D-pad up: the bell-note whistle (V), and the echo shell plays back
     if (name === 'l3' && level.jump) level.jump(-1);
   },
 });
@@ -1388,6 +1396,7 @@ function frame(ts) {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
+    gadgets.control(dt, busy() ? noInput : ctl, busy() || ship.playing);   // (before the traveller moves: the hook's reel sets his velocity)
     player.update(dt, busy() ? noInput : ctl, rig.yaw);
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
@@ -1404,6 +1413,7 @@ function frame(ts) {
   itemFx.update(dt, t);
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
   tool.update(dt, ctl, busy() || photo.on);
+  gadgets.update(dt, busy() || photo.on || ship.playing);   // (after the tool: an aiming gadget's camera and pose win)
   flammables.update(dt, t, player.pos);
   scout.flare.eye = camera.position;
   scout.update(dt, busy() || photo.on);
@@ -1724,5 +1734,5 @@ window.contactAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, itemIcons,
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

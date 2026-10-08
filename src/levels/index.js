@@ -8,6 +8,7 @@ import { createPerdide, buildPerdide } from './perdide.js';
 import { createBazaar, buildBazaar } from './bazaar.js';
 import { createAtelier, buildAtelier } from './atelier.js';
 import { createArena, buildArena } from './arena.js';
+import { createGadgetYard, buildGadgetYard } from './gadget-yard.js';
 import { createLab, buildLab } from './lab.js';
 import { createArzach2, buildArzach2 } from './arzach2.js';
 import { createBuried, buildBuried } from './buried.js';
@@ -199,6 +200,13 @@ export const LEVELS = [
     title: 'The Arena', source: 'for testing the blade',
     blurb: 'A ring of sand with a few standing stones, and the foes coming in waves round you: ink blots, then makers’ machines. F or LB / L1 swings the fluid blade.',
     moves: 'the blade · walk · jetpack',
+  },
+  {
+    // a developer's world: every gadget (src/gadgets/) with something to try it on, a bay each (in the worlds list, L; never on the route)
+    id: 'gadgetyard', create: createGadgetYard, build: buildGadgetYard, hidden: true, dev: true,
+    title: 'The Gadget Yard', source: 'for trying the gadgets',
+    blurb: 'A round yard with a bay for each gadget: rings to hook, towers across a gap, cracked walls to blow open, crates to drag about, a pen of ink blots. Every gadget is yours here: Y / △ (T) uses the one in hand, D-pad ↑ (B) changes it.',
+    moves: 'the gadgets · walk · climb · jetpack',
   },
   {
     // a developer's world: the reference pages' scenes rebuilt in the game's ink, each framed like its panel (in the worlds list, L; never on the route)
