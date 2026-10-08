@@ -1,0 +1,65 @@
+changelog.md
+  s_efb1d100d5a6fc::t_ed99412a400f54 12
+docs/systems/controls.md
+  s_efb1d100d5a6fc::t_b03d0903465d67 134-136
+docs/systems/foes.md
+  s_efb1d100d5a6fc::t_c1f1d8e50aa63e 28
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_12b22b9e03790f 30-31,72-98
+src/audio.js
+  s_efb1d100d5a6fc::t_d36a1a391ce292 37-38
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_252b02909cf8a9 126-131
+src/changelog.js
+  s_efb1d100d5a6fc::t_4ca9b78d75ef41 14
+src/costumes.js
+  s_efb1d100d5a6fc::t_ae69d40e152a03 434-441
+src/edge.js
+  s_efb1d100d5a6fc::t_d27c910404bd25 35
+src/levels/arcade-board.js
+  s_efb1d100d5a6fc::t_df3940f48f0301 1-166
+src/levels/arcade.js
+  s_efb1d100d5a6fc::t_377d58098f57bc 1-221
+src/levels/content.js
+  s_efb1d100d5a6fc::t_527acfea46c9be 145-155
+src/levels/index.js
+  s_efb1d100d5a6fc::t_55ecd35a6e9798 11,212-218
+src/main.js
+  s_efb1d100d5a6fc::t_e8a2a178d3b51b 95,646,1758-1759
+src/makehuman/people.js
+  s_efb1d100d5a6fc::t_f29c44203379a0 166
+src/minigames/kit/arcade.js
+  s_efb1d100d5a6fc::t_a6a2b3b2ac3241 1-65
+src/minigames/kit/marker.js
+  s_efb1d100d5a6fc::t_8e5f37e2f64c70 39-66,71-73,76,83-86
+src/minigames/kit/minigames.css
+  s_efb1d100d5a6fc::t_c4dbe30a4cc00b 63
+src/minigames/kit/runner.js
+  s_efb1d100d5a6fc::t_b4ba51a36aa173 34-35,175-177,179-186,209,226,254,270,275-276,278,339,353
+src/reactive-world.js
+  s_efb1d100d5a6fc::t_3cc31f5b176d64 27
+tests/arcade.test.js
+  s_efb1d100d5a6fc::t_54a9a58a1dd15b 1-100
+tests/bindings.test.js
+  s_efb1d100d5a6fc::t_2c51cf805f4aed 103
+tests/makehuman.test.js
+  s_efb1d100d5a6fc::t_96703e6910fbb3 88
+tests/scripts.test.js
+  s_efb1d100d5a6fc::t_d5349464beab37 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e4ac8edf21e63db3504ead9017a4769b1cd2d2f",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
