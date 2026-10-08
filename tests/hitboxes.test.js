@@ -122,6 +122,15 @@ test('the guard: its arc is GUARD.angle round the guard\'s way, white while a pa
   blade.parryLive = false;
   s = playerHitboxes({ player: P, tool: { blade } }).find((x) => x.kind === 'fan');
   assert.equal(s.tag, 'guard.up'); assert.equal(s.color, HITBOX_COLORS.guard);
+  // with the shield drawn, the arc it covers as drawn (src/shield.js), the same one block() tests
+  blade.guardArc = { dir: v(0.6, 0, 0.8), half: 0.7 };
+  s = playerHitboxes({ player: P, tool: { blade } }).find((x) => x.kind === 'fan');
+  assert.equal(s.angle, 0.7);
+  for (let i = 0; i < 72; i++) {
+    const a = (i / 72) * Math.PI * 2, from = v(Math.sin(a) * 1.2, 0, Math.cos(a) * 1.2);
+    if (Math.abs(Math.abs(Math.atan2(Math.sin(a - s.h), Math.cos(a - s.h))) - 0.7) < 0.02) continue;
+    assert.equal(insideShape({ ...s, c: v() }, from), inGuard(P.pos, blade.guardArc.dir, from, 0.7), `shield arc from ${(a * 57.3).toFixed(0)}°`);
+  }
 });
 
 test('bombs show their blast reach; a registered source adds its own shapes; the switch', () => {

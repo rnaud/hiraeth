@@ -123,7 +123,9 @@ export function playerHitboxes({ player: P, tool = null, foes = null }, out = []
   if (B && B.guardK > 0.03) {
     const live = B.parryLive, color = live ? C.parry : C.guard;
     const c = feet.clone().addScaledVector(up, 1.1);
-    out.push({ kind: 'fan', c, h: flatHeading(B.dir), range: 1.5, angle: GUARD.angle, r0: 0.35, color, tag: live ? 'guard.parry' : B.guarding ? 'guard.up' : 'guard.rising', fill: live ? 0.35 : 0.15, faint: !B.guarding });
+    // (the arc the shield covers as drawn, src/shield.js; with no shield drawn, GUARD.angle round the guard's way)
+    const arc = B.guardArc;
+    out.push({ kind: 'fan', c, h: flatHeading(arc?.dir ?? B.dir), range: 1.5, angle: arc?.half ?? GUARD.angle, r0: 0.35, color, tag: live ? 'guard.parry' : B.guarding ? 'guard.up' : 'guard.rising', fill: live ? 0.35 : 0.15, faint: !B.guarding });
     says.push({ text: live ? `PARRY ${Math.max(0, GUARD.perfect - B.guardAge).toFixed(2)}s` : B.guarding ? 'guard (a block costs a charge)' : 'guard rising', color, tag: 'guard.label' });
   }
   if (evading) {
