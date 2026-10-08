@@ -8,6 +8,7 @@ import { createPerdide, buildPerdide } from './perdide.js';
 import { createBazaar, buildBazaar } from './bazaar.js';
 import { createAtelier, buildAtelier } from './atelier.js';
 import { createArena, buildArena } from './arena.js';
+import { createArcade, buildArcade } from './arcade.js';
 import { createGadgetYard, buildGadgetYard } from './gadget-yard.js';
 import { createLab, buildLab } from './lab.js';
 import { createArzach2, buildArzach2 } from './arzach2.js';
@@ -207,6 +208,13 @@ export const LEVELS = [
     title: 'The Gadget Yard', source: 'for trying the gadgets',
     blurb: 'A round yard with a bay for each gadget: rings to hook, towers across a gap, cracked walls to blow open, crates to drag about, a pen of ink blots. Every gadget is yours here: Y / △ (T) uses the one in hand, D-pad ↑ (B) changes it.',
     moves: 'the gadgets · walk · climb · jetpack',
+  },
+  {
+    // a developer's world: every minigame (src/minigames/) with its arcade sign round a plaza, to try them one after another (in the worlds list, L; never on the route)
+    id: 'arcade', create: createArcade, build: buildArcade, hidden: true, dev: true,
+    title: 'The Arcade', source: 'for trying the games',
+    blurb: 'A round plaza with an arcade sign for every game, its best on the sign: walk up and press the interact button to play, and Quit brings you back to it. The games board by the way in (Tab, LT + X / □) jumps straight into any of them; in a game, Next game and Previous game (LB / RB, [ ]) go round them all.',
+    moves: 'the games · walk',
   },
   {
     // a developer's world: the reference pages' scenes rebuilt in the game's ink, each framed like its panel (in the worlds list, L; never on the route)

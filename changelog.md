@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.93 — 2026-10-08
+
+- The Arcade (Debug worlds, next to the Gadget Yard): a round plaza with an arcade sign for every game, its name and your best on a plate under it. Walk up and press the interact button to play; Quit or the end of a run puts you back in front of that sign. The games board by the way in (or Tab, or LT + X / □) lists them all to jump straight into one, and a game started from the Arcade has Previous game, Next game and Back to the Arcade on its cards (LB / RB or [ and ]) to go round all ten without leaving.
+
 ## v0.92 — 2026-10-08
 
 - Arcade signs for the last two games: Dune skiing’s on the crest of the tall golden dune north-west of where you wake in the Desert, Sky steps’ on the west rim of the Sky Stones’ start plateau, looking out at the stones in the cloud. The Ring race’s boost is a little stronger (40 m/s instead of 38): used on the straights with some fuel kept back, it wins about four seconds a run.
