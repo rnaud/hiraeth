@@ -80,10 +80,10 @@ export class Flammables {
       s.centre = sp.kind === 'bramble' ? sp.at.clone().setY(sp.at.y + 0.4) : sp.at;
       if (s.kind === 'bramble') { s.mesh = brambleMesh(i + 1); s.mesh.position.copy(s.at); s.mesh.rotation.y = i * 1.7; this.root.add(s.mesh); }
       s.off = registerTarget({
-        kind: 'flammable', flammable: s.kind, spot: s, radius: s.r, accepts: ['fire'],
+        kind: 'flammable', flammable: s.kind, spot: s, radius: s.r, accepts: ['fire', 'gust'],
         position: () => s.centre,
         enabled: () => s.at.distanceToSquared(this.focus) < 140 * 140 && !(s.kind === 'bramble' && s.grow < 0.9),
-        onHit: (mode) => (mode === 'fire' ? this.ignite(s) : false),
+        onHit: (mode) => (mode === 'fire' ? this.ignite(s) : mode === 'gust' ? this.douse(s) : false),
       });
       return s;
     });
@@ -116,6 +116,13 @@ export class Flammables {
     return false;
   }
 
+  /** A gust of wind (the gust fan, src/gadgets/fan.js): what burns at spot s goes out. Returns true if it did. */
+  douse(s) {
+    const lit = this.burning.filter((b) => b.s === s);
+    for (const b of lit) this.out(b);
+    return lit.length > 0;
+  }
+
   /** A burning: a little set of flame tongues at the spot for `life` seconds. */
   flame(s, tongues, life, kind) {
     while (this.burning.length >= BURN.maxLit) this.out(this.burning[0]);
@@ -125,6 +132,7 @@ export class Flammables {
     const f = new Flames(g, tongues, { seed: s.i * 3 });
     const b = { s, g, f, t: 0, life, kind };
     this.burning.push(b);
+    s.burning = (s.burning ?? 0) + 1;   // (a bubble pops on it: src/gadgets/bubble.js)
     return b;
   }
 
@@ -132,6 +140,7 @@ export class Flammables {
     b.g.removeFromParent();
     b.f.geo.dispose();
     this.burning.splice(this.burning.indexOf(b), 1);
+    b.s.burning = Math.max(0, (b.s.burning ?? 1) - 1);
     if (b.s.light && this.lights) { const i = this.lights.indexOf(b.s.light); if (i >= 0) this.lights.splice(i, 1); b.s.light = null; }
     if (b.kind === 'lamp') b.s.lit = false;
   }

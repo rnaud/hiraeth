@@ -213,9 +213,12 @@ class Bombs {
     } else { this.dots.count = 0; this.ring.visible = false; }
     // the bombs out in the world
     for (const b of this.live) {
-      const steps = Math.min(6, Math.ceil(b.vel.length() * dt / 0.15) || 1);
-      for (let i = 0; i < steps && b.fuse > 0; i++) this.stepBomb(b, dt / steps);
-      b.fuse -= dt;
+      // (held in a bubble, src/gadgets/bubble.js: carried by it, its fuse sealed until it pops)
+      if (!b.held) {
+        const steps = Math.min(6, Math.ceil(b.vel.length() * dt / 0.15) || 1);
+        for (let i = 0; i < steps && b.fuse > 0; i++) this.stepBomb(b, dt / steps);
+        b.fuse -= dt;
+      }
       b.mesh.rotation.x += b.vel.length() * dt * 1.6;
       // the fuse fizzes, faster as it burns down; the bomb swells a little on each tick at the end
       b.tick -= dt;
