@@ -1,6 +1,6 @@
 // The items page's cards, built from the data alone (tests/items-page.test.js reads it in node).
 
-export const KIND_NAMES = { core: 'Core', movement: 'Movement', mode: 'Gun modes', upgrade: 'Upgrades', charm: 'Charms', pass: 'Passes', cosmetic: 'Cosmetic', quest: 'Quest' };
+export const KIND_NAMES = { core: 'Core', movement: 'Movement', mode: 'Gun modes', gadget: 'Gadgets', upgrade: 'Upgrades', charm: 'Charms', pass: 'Passes', cosmetic: 'Cosmetic', quest: 'Quest' };
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 /** Where an item is found: each box that holds it ({ world, title, temple, note }), the fallbacks by the ship, or a quest. */
@@ -17,7 +17,7 @@ export function itemsPage(items, placements, fallbacks, titles) {
     const where = whereFound(id, placements, fallbacks, titles);
     const whereHtml = where.length
       ? `<ul class="where">${where.map((w) => `<li><b>${esc(w.title)}</b>${w.temple ? ' (its temple)' : ''}: ${esc(w.note)}</li>`).join('')}</ul>`
-      : `<ul class="where"><li>${it.kind === 'quest' || it.kind === 'pass' ? 'Given in a quest.' : 'Not in a box.'}</li></ul>`;
+      : `<ul class="where"><li>${esc(it.where ?? (it.kind === 'quest' || it.kind === 'pass' ? 'Given in a quest.' : 'Not in a box.'))}</li></ul>`;
     const html = `<article data-id="${esc(id)}" data-kind="${esc(it.kind)}">
       <div class="pic" title="Drag to turn it; click to see it full screen"><img src="item-pictures/${esc(id)}.webp" alt="" loading="lazy"><canvas></canvas></div>
       <div class="txt"><h2>${esc(it.name)}</h2><div class="meta">${esc(KIND_NAMES[it.kind] ?? it.kind)}${it.needs ? ` · needs ${esc(items[it.needs]?.name ?? it.needs)}` : ''} · ${esc(id)}</div>

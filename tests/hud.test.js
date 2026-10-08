@@ -143,7 +143,7 @@ test('the top button (Y / △) sends the scout on foot and riding; Q on the keyb
   ctx = 'photo'; c.update(0.016); tap(3); assert.equal(actions.length, 2, 'not in photo mode');
   const main = src('src/main.js');
   assert.match(main, /e\.code === 'KeyQ' && !e\.repeat && !busy\(\) && !photo\.on && !ship\.playing\) scout\.ping\(\)/);
-  assert.match(main, /name === 'ping' && !ship\.playing\) scout\.ping\(\)/);
+  assert.match(main, /name === 'ping' && !ship\.playing && !gadgets\?\.claims\('ping'\)\) scout\.ping\(\)/);   // (with a gadget in hand Y / △ is its button: src/gadgets/)
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);
   // what it found: the cue, at once, and the quest marker for a while; nothing to find: a shrug, said
   assert.match(main, /onFind: \(target, d\) => \{ scoutSays\(findSummary\(\{ goal: findGoal\(target\), step: findText\(target, d\) \}\), 6, 'quest'\); storyRt\.marker\.reveal\(\); \}/);

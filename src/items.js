@@ -167,7 +167,7 @@ export const items = {
 };
 
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const KIND_ORDER = ['core', 'movement', 'mode', 'upgrade', 'charm', 'pass', 'cosmetic'];
+const KIND_ORDER = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
 
 /**
  * The gear you carry as a plain list: each item's name and what it does, the backpack

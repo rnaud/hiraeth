@@ -9,6 +9,8 @@
 //             pulls it up, left / right bank and turn; LT in flight holds you to aim) · RB the blade
 //             · L3 (click the left stick) run until you stop
 //             · LB + right stick zoom · D-pad ←/→ gun mode, ↑ worlds, ↓ photo
+//             · top (Y / △) the gadget in hand, if any (else the scout) · D-pad ↑ choose a gadget
+//             (tap: the next; held: the wheel), once one is owned (else the bell-note whistle)
 //             · R3 (click the right stick) the bell-note whistle, once found
 //             · View the sketchbook (gear first) · Menu the settings
 //   riding    RT throttle (analog) · LT brake / reverse · left stick steer, and on
@@ -139,6 +141,9 @@ export class Controller {
         h.PadBlade = down(RB); h.PadGuard = down(LB);
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
         h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
+        // the gadget in hand (src/gadgets/): the top button uses it (pressed, held, let go: with none in hand it
+        // pings, below), D-pad up chooses one (a tap the next, held the wheel; with none owned it rings the bell)
+        h.PadGadget = down(NORTH); h.PadGadgetPick = down(UP);
         if (press(WEST)) this.action('call');
       }
       // the top button sends the scout to find the objective, on foot and riding (flying too)

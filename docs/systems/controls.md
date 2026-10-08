@@ -24,6 +24,11 @@ freezes wildlife and people briefly. Foam darts activate things from afar:
 reactive scenery, observatory lenses within 30 m, cruising
 taxis and Lorn's carnivorous plants.
 
+**Gadgets** (v0.90, docs/systems/gadgets.md): **T** or the middle mouse button uses the one in hand
+(hold to aim, let go), **B** takes the next (Shift + B the one before; held: the wheel); on a pad Y / △
+and D-pad ↑ (with nothing in hand Y / △ still pings, and with no gadget owned ↑ still rings the bell);
+on touch ◆, and the chip in the corner takes the next.
+
 ## Controller
 
 Connect a standard Xbox, PlayStation or compatible gamepad, then press a button

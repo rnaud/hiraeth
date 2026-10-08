@@ -42,6 +42,8 @@ What the traveller carries and the boxes that give it.
   its own model (`src/item-icons.js`), the empty slots for the rest unnamed; every item has a model
   now (`buildItemModel`: the charms and the cab pass were a gold gem). A gun mode's item, chosen
   there, switches the tool to it (docs/systems/ui.md, "The game menu").
+- **Gadgets** (v0.90, kind `gadget`): the grappling hook, ink bombs and those to come register themselves as
+  items from `src/gadgets/` (docs/systems/gadgets.md); one is in hand at a time (Y / △ uses it).
 - **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
   boxes, flags, teleport. Also `?items=all|none|a,b`.
 

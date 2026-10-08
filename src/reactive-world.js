@@ -23,6 +23,7 @@ export const WORLD_REACTIONS = {
   perdide2: {kind:'fungus',quiet:'#6f6a94',awake:'#ffb38a',radius:10,spores:true,shy:true},
   lab: {kind:'flower',quiet:'#b9b5ad',awake:'#71d7cf',radius:9},
   arena: {kind:'flower',quiet:'#c9b48e',awake:'#71d7cf',radius:9},
+  gadgetyard: {kind:'flower',quiet:'#c9b48e',awake:'#71d7cf',radius:9},
   references: {kind:'flower',quiet:'#d9b88c',awake:'#71d7cf',radius:9},   // (none grow there: level.reactions false)
   atelier: {kind:'fan',quiet:'#c4beb0',awake:'#8cbdb7',radius:10},
   home: {kind:'flower',quiet:'#d9a37f',awake:'#5fd0c6',radius:9},

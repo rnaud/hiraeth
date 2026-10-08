@@ -131,6 +131,17 @@ export const CONTENT = {
     relics: { spots: [], names: [] },
     npcs: [],
   },
+  gadgetyard: {
+    weather: [],
+    story: {
+      title: 'THE GADGET YARD',
+      intro: 'A bay for every gadget round the yard. Y / △ (T) uses the one in hand; D-pad up (B) changes it.',
+      outro: 'That is the yard. Try them all.',
+      label: 'the yard', goal: [0, 'ground', 3], radius: 8,   // (at the start: told at once)
+    },
+    relics: { spots: [], names: [] },
+    npcs: [],
+  },
   atelier: {
     weather: [],
     story: {

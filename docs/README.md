@@ -54,6 +54,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [ship-consoles.md](systems/ship-consoles.md) | the ship's two consoles: the voicemail and the holo table |
 | [scout.md](systems/scout.md) | the scout drone |
 | [items.md](systems/items.md) | items, the backpack and the makers' boxes |
+| [gadgets.md](systems/gadgets.md) | the gadgets (v0.90): the framework (one file a gadget), the buttons, the grappling hook, ink bombs, the Gadget Yard; how to add one |
 | [boxes.md](systems/boxes.md) | the makers' boxes (the v0.63 redesign): the model, the scene, the placements |
 | [changelog.md](systems/changelog.md) | the interactive changelog: before / after pictures, numbers and how to see each change; the capture tool; why its pictures stay off the devices |
 | [ui.md](systems/ui.md) | playing and settings, the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (items, quests, sketchbook, worlds) |

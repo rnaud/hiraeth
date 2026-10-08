@@ -9,6 +9,13 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.90', date: '2026-10-07', items: [
+    'Gadgets: things to carry besides the backpack, the first two of ten to come. Hold one in hand and Y / △ uses it (T, or the middle mouse button; ◆ on a touch screen). D-pad up changes it (B), and held a moment it opens a wheel: point the stick at one and let go. With nothing in hand Y / △ still sends the scout. A small card in the lower left shows what is in hand.',
+    'The grappling hook: hold Y / △ to aim, and a ring shows what it would catch up to 25 m away (it finds the brass rings by itself); let go and it flies. Caught on a wall, a ledge or a ring, it reels you in: at a wall you take hold of it, at a ledge you haul yourself over the top. Caught on a crate it drags it to you; on a foe it pulls it in, stunned. Jump while reeling to let go and fly on. It works in every world.',
+    'Ink bombs: hold Y / △ and a dotted arc shows where the bomb will land, with a red ring as wide as its blast; let go to throw. It bounces, rolls, fizzes and goes off after two seconds, at once if it lands on a foe: a cloud, a star of ink, cracked walls blown open, foes cut down and thrown, crates sent flying, and you knocked back if you stand too close (never hurt). Three in the pouch; another grows back every five seconds.',
+    'The Gadget Yard, a new world in the Debug worlds list, has a bay for each gadget round a sandy yard: a wall with rings along its top, two towers across a gap, a ring on a tall pole, cracked walls and a cracked boulder, crates and metal crates, targets on posts, a floor plate that opens a gate while a crate sits on it, and a pen of ink blots. Every gadget is yours there.',
+    'The gadgets are in the game menu’s Items with pictures of their own (choose one there to take it in hand), and on the items page.',
+  ] },
   { v: '0.89', date: '2026-10-07', items: [
     'The Glass Dunes’ glass glows from within: the sun comes through its thin edges, its foot and the lips of its waves in bands of mint and lime, the more as you look toward the light, and the giants, heads and trees held inside it are crisp dark shapes instead of soft smudges.',
     'In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.',

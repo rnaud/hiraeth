@@ -404,6 +404,7 @@ export class Foes {
 
   wild(p) {
     const L = this.level;
+    if (L?.foes?.wild === false) return false;   // (a world with no wilds: the Gadget Yard)
     if (L?.temple?.inside?.(p)) return false;
     if (L?.unsafe?.(p)) return false;
     return inWilds(p, { people: this._people ?? this.peopleNow(), spawn: L?.spawn });

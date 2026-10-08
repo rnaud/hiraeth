@@ -112,7 +112,7 @@ const KIND_MARK = { core: '◍', movement: '➶', mode: '◐', upgrade: '✚', c
 const icon = (it) => it.icon
   ? `<img class="ico" src="${esc(it.icon)}" alt="" data-icon="${esc(it.id)}">`
   : `<i class="ico mark" data-icon="${esc(it.id)}">${KIND_MARK[it.kind] ?? '✧'}</i>`;
-const KIND_NAME = { core: 'The backpack', movement: 'Movement', mode: 'Gun mode', upgrade: 'Backpack upgrade', charm: 'Charm', pass: 'Pass', cosmetic: 'Keepsake to wear', quest: 'Carried for a quest', keepsake: 'Something of value' };
+const KIND_NAME = { core: 'The backpack', movement: 'Movement', mode: 'Gun mode', gadget: 'Gadget', upgrade: 'Backpack upgrade', charm: 'Charm', pass: 'Pass', cosmetic: 'Keepsake to wear', quest: 'Carried for a quest', keepsake: 'Something of value' };
 
 /**
  * Items: { gear: [{ id, name, kind, text, use, icon, inUse, usable }], slots, pack: [{ id, name }], keepsakes: [{ id, name, text, world }] }.

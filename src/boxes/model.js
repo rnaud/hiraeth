@@ -373,6 +373,9 @@ const MODELS = {
   soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,
 };
 
+/** An item's model from elsewhere (the gadgets bring their own: src/gadgets/registry.js). */
+export function registerItemModel(id, build) { MODELS[id] = build; }
+
 /** A small model of an item for the hovering display (a generic gem for anything unknown). */
 export function buildItemModel(id) {
   const g = (MODELS[id] ?? (() => { const x = new THREE.Group(); x.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), flatM('#f2c54b', { glow: 0.6 }))); return x; }))();

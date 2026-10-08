@@ -4,6 +4,7 @@
 // Each card's picture is the item in 3D (src/items-page/viewer.js, the game's own pipeline): drag it to
 // turn it; click it for the full-screen view (drag, zoom, the other items with ← →). Without WebGL the
 // cards keep the pictures the game drew (public/item-pictures/, scripts/item-pictures.mjs).
+import '../gadgets/all.js';   // (first: the gadgets are items too, src/gadgets/)
 import { ITEMS } from '../items.js';
 import { PLACEMENTS, FALLBACKS } from '../boxes/placements.js';
 import { TITLES } from '../levels/names.js';
