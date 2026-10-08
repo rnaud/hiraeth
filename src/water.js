@@ -569,7 +569,7 @@ class WaterPass {
             float len = length(N.xyz);
             float g = clamp((len - ${(1 + WATER_MARK.base).toFixed(4)}) / ${WATER_MARK.glint.toFixed(4)}, 0.0, 1.0);
             if (N.w <= 0.0 || g < 0.35) discard;
-            float la = texture(tAlbedo, vUv).a;   // (the light term under a line step: materials.js LINE)
+            float la = texture(tAlbedo, vUv).a; la = la < 0.0 ? -la - 1.0 : la;   // (the light term under a line step: materials.js LINE)
             float lit = smoothstep(uToon - 0.02, uToon + 0.02, la - 2.0 * floor(la * 0.5));
             float a = lit * (1.0 - smoothstep(180.0, 520.0, N.w));
             fragColor = vec4(vec3(1.0, 0.99, 0.94), a);
@@ -591,7 +591,7 @@ class WaterPass {
             // in drifting patches, as the light comes through the waves above (never one net over everything)
             float patchK = 0.5 + 0.5 * sin(wp.x * 0.43 + uTime * 0.13) * sin(wp.z * 0.37 - uTime * 0.09 + wp.x * 0.11);
             line *= smoothstep(0.55, 0.85, patchK);
-            float la = texture(tAlbedo, vUv).a;
+            float la = texture(tAlbedo, vUv).a; la = la < 0.0 ? -la - 1.0 : la;
             float lit = smoothstep(uToon - 0.02, uToon + 0.02, la - 2.0 * floor(la * 0.5));
             over(acc, uCausticTone, line * uCaustic.z * smoothstep(0.4, 0.8, N.y) * mix(0.4, 1.0, lit) * (1.0 - smoothstep(uCaustic.y * 0.5, uCaustic.y, dist)));
           }

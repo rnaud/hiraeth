@@ -21,7 +21,7 @@ test('a line step packs over the light term and comes back out of the half float
     if (L !== 0.5) assert.equal(l < 0.5, L < 0.5, `L ${L} stays on its side of the threshold`);
   }
   // nothing packed (every material by default, every other shader): the light as it was, the world's ink
-  assert.deepEqual(unpackLight(0.73), [0.73, 1, 0]);
+  assert.deepEqual(unpackLight(0.73), [0.73, 1, 0, false]);
   // a material keeps the light term's full precision unless it has a step
   assert.equal(half(packLight(0.4931, 0)), half(0.4931));
 });
@@ -41,7 +41,8 @@ test("materials say their line: the world's ink unless they say; glass and folia
 
 test('every reader of the light term takes the line step off it', () => {
   const surf = readFileSync(new URL('../src/materials.js', import.meta.url), 'utf8');
-  assert.match(surf, /gAlbedoLight = vec4\(albedo, clamp\(L, 0\.0, 1\.0\) \+ 2\.0 \* uLineStep\)/);
+  assert.match(surf, /float packedL = clamp\(L, 0\.0, 1\.0\) \+ 2\.0 \* uLineStep;/);
+  assert.match(surf, /gAlbedoLight = vec4\(albedo, uLineWhite > 0\.5 \? -1\.0 - packedL : packedL\)/, '(a white line in the sign bit: tests/shade-flame.test.js)');
   const post = readFileSync(new URL('../src/post.js', import.meta.url), 'utf8');
   // the composite: the centre's light and the four shadow-edge taps
   assert.match(post, /A\.a = lightOf\(A\.a\)/);
@@ -50,7 +51,7 @@ test('every reader of the light term takes the line step off it', () => {
   const water = readFileSync(new URL('../src/water.js', import.meta.url), 'utf8');
   assert.match(water, /la - 2\.0 \* floor\(la \* 0\.5\)/);
   // the line block: the owner's step, its weights and tints from LINE
-  assert.match(post, /float lq = floor\(Ao\.a \* 0\.5\)/);
+  assert.match(post, /float lq = floor\(\(Ao\.a < 0\.0 \? -Ao\.a - 1\.0 : Ao\.a\) \* 0\.5\)/, '(a white line in the sign bit taken off first)');
   assert.ok(post.includes('${LINE.alpha') && post.includes('${LINE.far') && post.includes('${LINE.tints - 1}'));
 });
 

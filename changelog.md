@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.93 — 2026-10-08
+
+- The shade has a new look: a cartoon drawn in negative, a flat black figure outlined in white, with a few white strokes for its folds, so it stands out in the desert at noon and in the night market alike. Its head is a black flame with two white eye-slits. The flame streams back as it runs, flares up as it winds up an attack, whips across with the swing, gutters and shrinks when you hit or stun it, and tears away into black licks as it dies, while its body pours back down into the ground.
+
 ## v0.92 — 2026-10-08
 
 - Arcade signs for the last two games: Dune skiing’s on the crest of the tall golden dune north-west of where you wake in the Desert, Sky steps’ on the west rim of the Sky Stones’ start plateau, looking out at the stones in the cloud. The Ring race’s boost is a little stronger (40 m/s instead of 38): used on the straights with some fuel kept back, it wins about four seconds a run.

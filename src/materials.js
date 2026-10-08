@@ -171,6 +171,10 @@ export const HALFTONE_REACH = 16;   // slip: the ground's slope (1 - n.y) over w
  * (`far`: a thin line stays on its own side of a silhouette, half as wide).
  */
 export const LINE = { weights: [1, 0.7, 0.45, 0.25], alpha: [1, 0.82, 0.66, 0.5], far: [1, 0.45, 0, 0], tints: 4 };
+/** The colour of an inverted line (makeMaterial({ lineWhite }): the shade's white contours, post.js 1b): the paper's white. */
+export const INK_WHITE = [0.97, 0.95, 0.9];
+/** The shade's black (fluid 'shadow': src/shade.js), a hair off pure black so the paper's grain still sits on it. */
+export const SHADE_BLACK = [0.03, 0.026, 0.036];
 /** The step packed for a material's line (0: the world's ink). */
 export function lineStep(o) {
   // (glass a thin line in its own colour, foliage a lighter one in its dark green, unless they say)
@@ -180,12 +184,15 @@ export function lineStep(o) {
   LINE.weights.forEach((v, i) => { if (Math.abs(v - w) < Math.abs(LINE.weights[wi] - w)) wi = i; });
   return wi + 4 * Math.round(Math.min(Math.max(t, 0), 1) * (LINE.tints - 1));
 }
-/** The light term with a line step over it (mirrors the GLSL): L in 0..1. */
-export const packLight = (L, step) => Math.min(Math.max(L, 0), 1) + 2 * step;
-/** post.js' unpacking: [L, weight, tint (0..1)]. */
+/** The light term with a line step over it (mirrors the GLSL): L in 0..1. A white line (makeMaterial({ lineWhite }):
+ *  the shade's inverted ink, src/shade.js) is stored in RT0.a's sign bit: −(1 + L + 2 × step). */
+export const packLight = (L, step, white = false) => { const a = Math.min(Math.max(L, 0), 1) + 2 * step; return white ? -1 - a : a; };
+/** post.js' unpacking: [L, weight, tint (0..1), white line]. */
 export function unpackLight(a) {
+  const white = a < 0;
+  if (white) a = -a - 1;
   const q = Math.floor(a * 0.5);
-  return [a - 2 * q, LINE.weights[q % 4], Math.floor(q / 4) / (LINE.tints - 1)];
+  return [a - 2 * q, LINE.weights[q % 4], Math.floor(q / 4) / (LINE.tints - 1), white];
 }
 /**
  * A material's shade: [lift, hue (-1: the world's), hatch amount, strata strokes]. Metal keeps its own
@@ -768,6 +775,7 @@ const fragmentShader = /* glsl */ `
   uniform float uNight;
   uniform float uSpotStep;  // its spot-black amount's step (SPOT: 0 the world's)
   uniform float uLineStep;  // its line's weight and colour (LINE: 0 the world's ink), packed over the light term
+  uniform float uLineWhite; // 1: its lines are drawn white (the shade's inverted ink): RT0.a stored as −(1 + packed)
   uniform vec4 uShade;      // the material's shade: lift, hue (-1: the world's), hatch amount, strata strokes (SHADE, shadeOf)
   uniform float uHalftone;
   uniform float uBounce;
@@ -1825,14 +1833,25 @@ const fragmentShader = /* glsl */ `
     float t = uFluidA.z, kind = uFluidA.w;
     int n = int(uFluidA.y + 0.5);
     if (kind > 4.5) {
-      // living shadow (a shade, src/foes.js): near-black violet that runs down the body in slow streaks,
-      // thin bright runnels sliding down it, pooling darker toward the feet (bind space: y up, metres)
-      float y = vBind.y, s = (vBind.x + vBind.z * 0.7);
-      float flow = vnoise(vec2(s * 6.0, y * 1.8 + t * 0.7)) * 0.65 + vnoise(vec2(s * 15.0 + 3.0, y * 4.0 + t * 1.6)) * 0.35;
-      float run = vnoise(vec2(s * 22.0, y * 0.9 + t * 2.2));
-      vec3 col = mix(vec3(0.045, 0.03, 0.075), vec3(0.15, 0.1, 0.24), smoothstep(0.42, 0.78, flow));
-      if (run > 0.74) col = mix(col, vec3(0.42, 0.3, 0.62), smoothstep(0.74, 0.86, run) * 0.75);
-      col *= 0.7 + 0.3 * smoothstep(0.0, 0.9, y);
+      // the shade (src/shade.js): a cartoon's negative, flat black (its lines white: lineWhite, post.js 1b), and
+      // a few short white strokes (uFluidBox.z how much), a few mm wide in the world (never under a pixel), tapering
+      // at their ends. On the body (bind space: y up, metres; still on it, so they never crawl) its folds: contours of
+      // a noise stretched down it, kept only where a coarser one is high. On its flame (aFold: x 1 + round a tongue
+      // 0..1, 3 + on the head's, which has none; y up it) a lick drawn up each tongue's front, swaying with it.
+      vec3 col = vec3(${SHADE_BLACK.map((v) => v.toFixed(3)).join(', ')});
+      if (uFluidBox.z > 0.0) {
+        float y = vBind.y, s = vBind.x + vBind.z * 0.7, px = max(length(fwidth(vBind)), 1e-5);
+        float fn = vnoise(vec2(s * 7.0, y * 1.5 + 0.3));
+        float keep = smoothstep(0.55, 0.7, vnoise(vec2(s * 2.3 + 5.1, y * 2.6 + 1.7))) * step(0.3, y) * (1.0 - step(uFluidBox.w - 0.06, y));
+        float dpx = abs(fn - 0.5) / max(fwidth(fn), 1e-5);
+        // the flame's lick (derivatives taken for every pixel: in uniform flow)
+        float fr = fract(vFold.x), u = vFold.y;
+        float fpx = abs(fr - 0.75 - 0.05 * sin(u * 6.0 + t * 3.0)) / max(fwidth(fr), 1e-5);
+        float flame = step(0.5, vFold.x), lick = (1.0 - step(2.5, vFold.x)) * smoothstep(0.3, 0.4, u) * (1.0 - smoothstep(0.7, 0.82, u));
+        float k = mix(keep, lick, flame), d = mix(dpx, fpx, flame);
+        float hw = max(0.006 / px, 0.7) * k;
+        col = mix(col, vec3(${INK_WHITE.map((v) => v.toFixed(3)).join(', ')}), (1.0 - smoothstep(hw - 0.5, hw + 0.5, d)) * step(0.05, k) * uFluidBox.z);
+      }
       return col;
     }
     if (kind > 3.5) return base;   // the hover trail: its bands are drawn in the ribbon branch
@@ -1916,12 +1935,14 @@ const fragmentShader = /* glsl */ `
     #ifdef FLUID
     // the wings' tips dissolve into print dots (more while they bloom or fold: uFluidB.y)
     if (uFluidA.w > 2.5 && uFluidA.w < 3.5 && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.9, 1.02, vBind.y) * 0.5 + uFluidB.y * (0.3 + 0.7 * smoothstep(0.2, 1.0, vBind.y))) discard;
-    // a shade's shadow runs off it: its feet melt into print dots toward the floor, and holes drip down its body
+    // a shade (src/shade.js): its feet run into the floor in a cartoon's wavering drips; as it comes and goes
+    // (uFluidB.y: how much has run away) it pours up out of the floor and back down into it, under a dripping edge;
+    // its body's head is cut at the neck (uFluidBox.w, bind y; 0 none): the flame is its head (none of this on the flame)
     if (uFluidA.w > 4.5) {
-      float melt = 1.0 - smoothstep(0.02, 0.38, vBind.y);
-      float drip = vnoise(vec2((vBind.x + vBind.z * 0.7) * 11.0, vBind.y * 2.6 + uFluidA.z * 1.3));
-      float hole = smoothstep(0.8, 0.9, drip) * (0.35 + 0.4 * (1.0 - smoothstep(0.4, 1.4, vBind.y)));
-      if (bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < melt * 0.92 + hole + uFluidB.y) discard;
+      float s = vBind.x + vBind.z * 0.7, t = uFluidA.z;
+      float drip = vnoise(vec2(s * 16.0, t * 0.35));
+      float top = mix(2.45, -0.1, uFluidB.y) - 0.22 * vnoise(vec2(s * 9.0, t * 0.6 + 3.0));
+      if (vFold.x < 0.5 && (vBind.y < 0.015 + 0.11 * drip * drip || vBind.y > top || (uFluidBox.w > 0.0 && vBind.y > uFluidBox.w))) discard;   // (the flame, aFold.x over 0.5, shrinks by itself)
     }
     #endif
     // stroke coordinates + derivatives first, in uniform control flow
@@ -2317,7 +2338,11 @@ const fragmentShader = /* glsl */ `
     #endif
 
     // (the line's weight and colour over the light term: LINE, post.js lightOf)
-    gAlbedoLight = vec4(albedo, clamp(L, 0.0, 1.0) + 2.0 * uLineStep);
+    #ifdef FLUID
+      if (uFluidA.w > 4.5) L = 1.0;   // (the shade: flat black, no shade side, so no shadow-edge line across it)
+    #endif
+    float packedL = clamp(L, 0.0, 1.0) + 2.0 * uLineStep;
+    gAlbedoLight = vec4(albedo, uLineWhite > 0.5 ? -1.0 - packedL : packedL);   // (a white line: the sign bit, post.js 1b)
     gNormalDepth = vec4(n, vViewDepth);
     #ifdef WATER
       if (gl_FrontFacing && uWaterOpt.y < 0.5) gNormalDepth.xyz *= 1.0 + ${WATER_MARK.base} + ${WATER_MARK.glint} * wl.glint;   // (water.js: the sparkle)
@@ -2615,6 +2640,7 @@ const cache = new Map();
  * @param {number}  [o.spot]    0..1: how much of the world's spot blacks it takes (SPOT; default the world's)
  * @param {number}  [o.line]    its ink line's weight (LINE: 1 the world's ink … 0.25 a hairline; glass 0.45, leaves 0.7)
  * @param {number}  [o.lineTint] 0..1: its line drawn in a dark shade of its own colour instead of the ink (glass 0.7, leaves 0.67)
+ * @param {boolean} [o.lineWhite] its lines drawn white instead (inverted ink: the shade, src/shade.js; RT0.a's sign bit, post.js 1b)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
  * @param {number}  [o.cracks]  strata rock: dense cracks and short strokes running down its faces, as the
@@ -2649,8 +2675,9 @@ const cache = new Map();
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
  * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js);
- *                               'shadow': a shade's living shadow (src/foes.js: streaks running down, melting into dots at the feet;
- *                               uFluidA.z its time, uFluidB.y how much of it has run away: 0..1, its spawn and death).
+ *                               'shadow': a shade's body and flame (src/shade.js: flat black, white fold strokes, feet in drips;
+ *                               uFluidA.z its time, uFluidB.y how much of it has run away: 0..1, its spawn and death;
+ *                               fluidBox [_, _, fold strokes 0..1, neck cut bind y (0 none)]; always lit flat).
  *                              Compiles the FLUID block (a lava-lamp albedo in flat tones) and adds
  *                              uFluidA / uFluidB / uFluidBox; materials without it are unchanged
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
@@ -2732,6 +2759,7 @@ export function makeMaterial(o) {
       uShade: { value: new THREE.Vector4(...shadeOf(o)) },
       uSpotStep: { value: spotStep(o.spot ?? (o.glow > 0 || o.glass ? 0 : undefined)) },   // (a self-lit or glass surface never goes black)
       uLineStep: { value: lineStep(o) },   // (glass: a thin line in its own colour, unless it says)
+      uLineWhite: { value: o.lineWhite ? 1 : 0 },   // (the shade's inverted ink: white lines round a black shape)
       uThinPx: { value: o.thin === true ? 1.5 : +o.thin || 0 },
     },
   });

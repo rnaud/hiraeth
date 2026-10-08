@@ -561,7 +561,7 @@ export class Foes {
     for (let i = 0; i < 16; i++) {
       const a = f.heading + 1.1 - (i / 15) * 2.2, r = 1.3;
       const at = new THREE.Vector3(f.pos.x + Math.sin(a) * r, f.pos.y + 1.25 - i * 0.03, f.pos.z + Math.cos(a) * r);
-      this.shadePools.drops.add({ pos: at, vel: new THREE.Vector3(Math.sin(a), 0, Math.cos(a)).multiplyScalar(0.6), drag: 4, grav: 2, size: 0.05 + (i % 3) * 0.01, stretch: 2, life: 0.35 + i * 0.01, color: i % 4 ? '#15121c' : '#6c4fa0' });
+      this.shadePools.drops.add({ pos: at, vel: new THREE.Vector3(Math.sin(a), 0, Math.cos(a)).multiplyScalar(0.6), drag: 4, grav: 2, size: 0.05 + (i % 3) * 0.01, stretch: 2, life: 0.35 + i * 0.01, color: i % 4 ? '#08070a' : '#1a1720' });   // (the shade's black, white-lined: src/shade.js)
     }
   }
 

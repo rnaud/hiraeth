@@ -117,6 +117,14 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.93': [
+    { match: 'The shade has a new look: a cartoon drawn in negative', shots: [
+      { name: 'shade-desert', caption: 'A shade standing in the Arena at 10:00: the violet body with its head and eyes before; the black figure outlined in white with its flame head after', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720, the camera 3.4 m from it (8 October)' },
+      { name: 'shade-night', caption: 'The same in the Signal Market at 22:00: before, it was lost against the dark street; after, the white outline holds it', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720 (8 October)' },
+      { name: 'shade-moves', only: 'after', caption: 'Its flame in the Arena: at rest, running (streaming back), winding up (flared), the cut (whipping), stunned (guttered) and dying (torn into licks as the body pours away)', from: 'headless Chrome against this branch’s own dev server, High, the shade posed by a script (8 October)' },
+      { name: 'shade-moves-night', only: 'after', caption: 'The same six moments in the night market', from: 'headless Chrome against this branch’s own dev server, High, the shade posed by a script (8 October)' },
+    ], see: 'Open the Arena (?level=arena) and wait for wave six, or meet a lone shade in a later pack in the wilds: watch its flame as it runs at you, winds up and swings; stun it or cut it down.' },
+  ],
   '0.92': [
     { match: 'Games: the worlds list (Debug) has a row of small games', shots: [
       { name: 'games-row', only: 'after', caption: 'The worlds list: the ten games under the pages, each one’s best under its name', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), a save with eight bests' },

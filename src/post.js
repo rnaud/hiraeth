@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { sharedUniforms, SHADE, SPOT, WEATHER, LINE } from './materials.js';
+import { sharedUniforms, SHADE, SPOT, WEATHER, LINE, INK_WHITE } from './materials.js';
 
 // ---------------------------------------------------------------------------
 // Moebius / Sable composite pass.
@@ -352,7 +352,8 @@ const fragmentShader = /* glsl */ `
 
   float invDepth(float d) { return d > 0.0 ? 1.0 / d : 0.0; }
   // the light term under a material's line step (materials.js LINE: gAlbedoLight.a = L + 2 × step)
-  float lightOf(float a) { return a - 2.0 * floor(a * 0.5); }
+  // (a white line, makeMaterial({ lineWhite }), is stored in the sign bit: −(1 + L + 2 × step))
+  float lightOf(float a) { a = a < 0.0 ? -a - 1.0 : a; return a - 2.0 * floor(a * 0.5); }
 
   // Edge components at a given kernel width:
   //   x = depth discontinuity (silhouettes), y = normal crease,
@@ -994,7 +995,7 @@ const fragmentShader = /* glsl */ `
     if (ink > 0.02 && hero < 0.5) {
       bool own = !isSky && ownK.z < 0.5 * uDepthThresh;
       vec4 Ao = texture(tAlbedo, own ? euv : ownK.xy);
-      float lq = floor(Ao.a * 0.5);
+      float lq = floor((Ao.a < 0.0 ? -Ao.a - 1.0 : Ao.a) * 0.5);
       if (lq > 0.5) {
         float wq = lq - 4.0 * floor(lq * 0.25), tq = floor(lq * 0.25);
         vec4 la = vec4(${LINE.alpha.map((v) => v.toFixed(3)).join(', ')}), lf = vec4(${LINE.far.map((v) => v.toFixed(3)).join(', ')});
@@ -1002,6 +1003,8 @@ const fragmentShader = /* glsl */ `
         ink *= dot(pick, la) * (own ? 1.0 : dot(pick, lf));
         lineC = mix(uInk, Ao.rgb * uShadowTint * 0.62, tq / ${LINE.tints - 1}.0);
       }
+      // inverted ink (the shade, src/shade.js: RT0.a's sign bit): its lines drawn in the paper's white
+      if (Ao.a < 0.0) lineC = vec3(${INK_WHITE.map((v) => v.toFixed(3)).join(', ')});
       if (uDebug == 11) { fragColor = vec4(own ? 1.0 : 0.0, lq / 15.0, ink, 1.0); return; }   // lines: owned here (red), the owner's step (green), the ink (blue)
     }
     if (uDebug == 11) { fragColor = vec4(0.0, 0.0, ink, 1.0); return; }

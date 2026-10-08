@@ -285,7 +285,7 @@ fraction in 0..1, and each reader takes them off (`floor`, `mod`) before using t
 | Channel | Holds | Packed over it | Max |
 |---|---|---|---|
 | RT0.rgb | albedo | (none) | 1 |
-| RT0.a | the light term L (half-lambert × cast shadow, 0..1) | + 2 × line step (LINE: weight step + 4 × tint step, 0..15) | < 32 |
+| RT0.a | the light term L (half-lambert × cast shadow, 0..1) | + 2 × line step (LINE: weight step + 4 × tint step, 0..15); a white line (`lineWhite`): −(1 + all that) | −33 … 32 |
 | RT1.xyz | world normal | its length: the water's mark (`WATER_MARK`: 1.012 + 0.05 × sparkle) | 1.07 |
 | RT1.w | linear view depth (m; 0 = the sky) | (none) | 5000 |
 | RT2.r | hatch strokes (0..1) | + 2 × hue step (SHADE: 0 the world's, 1 … 9 a hue, 10 … 15 a flat print) | < 32 |
@@ -300,8 +300,7 @@ fraction in 0..1, and each reader takes them off (`floor`, `mod`) before using t
   light term as before, at full precision; a stepped one keeps L to 1/64 at worst (the toon
   threshold's ±0.01 smoothstep is one step: the same hard edge). The jump shadow multiplies RT0.a by
   0 (shade): under it a material's line step is the world's.
-- **Room left** for a flag or two: RT0.a's sign bit (L and the steps are never negative: a flag
-  stored as −(1 + L + 2 × step), read by its sign and |a| − 1; the top steps then keep 1/32),
+- **Room left** for a flag or two (RT0.a's sign bit is taken: the white line, below):
   RT2.b's +32 (the detail at 1/32), RT2.a's +64 (the glow at 1/16: only for materials whose glow is
   0 or 1). A new flag belongs to whichever
   channel's readers can afford the precision; tests/ink-pass.test.js and tests/shade.test.js check
@@ -332,6 +331,10 @@ soft shapes read as hard.
   Signal Market's billboard faces (the world's and the views'), 0.7 / 0.67; glass by default. (In the world the
   billboards' painted colours share one material by vertex colour, `signPaint`: a material per colour and part
   had cost about 130 more draw calls a frame; the dark rings and lit strips keep the walls' materials.)
+- **White lines** (`makeMaterial({ lineWhite })`, the shade: src/shade.js): RT0.a stored as −(1 + L + 2 × step),
+  read back by its sign and |a| − 1 (`lightOf`, the line block, the water's sparkle; `packLight` / `unpackLight`
+  the JS twins). The owner's line is drawn in `INK_WHITE`, the paper's white, at its own weight: a negative of the
+  ink, white round a black shape in any light. tests/shade-flame.test.js checks the round trip and the readers.
 - **Debug**: `params.debug` 11: red where the pixel owns its line, green the owner's step, blue the ink.
 - **Cost** (M4 Pro, ANGLE Metal, 1280 × 720 High, the composite pass alone by timer query, the build
   before and after in two pages of one browser, 16 interleaved pairs of 24 frames; the machine

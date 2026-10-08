@@ -150,13 +150,30 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Body:** the game's own skinned body (`buildCharacter`, `Humanoid`, `Animator`, `Locomotion`, as an NPC's).
   It walks where its mind went, and plays the Sword and Shield pack's attack (`SHADE_STRIKE`): up to the cut
   as it winds up, through the cut during its strike phase, then the follow-through as it recovers.
-- **The shadow:** a new fluid kind in materials.js (`fluid: 'shadow'`, kind 5): near-black violet with streaks
-  running down the body (noise over bind-space y scrolling with time) and pale runnels. It darkens toward
-  the feet, which melt into print dots (bayer discard below 0.38 m), and holes drip down the body.
-  `uFluidB.y` is how much has run away: 1 → 0 as it pours up out of the ground, 0 → 1 as it dies.
-- **Eyes:** two pale violet glowing eyes; the brows are hidden.
-- **On the floor:** drops fall off it (`ShadePools.drops`, a `Dots`), and it leaves dark pools where it walks
-  (`ShadePools.pools`: a `Footprints` decal with a blob shape, so it darkens the ground and is never inked).
+- **The look:** a cartoon drawn in negative. One material per shade (`SHADE_MATERIAL`, the `'shadow'` fluid,
+  kind 5 in materials.js): flat black, always lit flat (no shade side, so no shadow-edge line across it), a few
+  white fold strokes (contours of a stretched noise in bind space, masked to a few short ones, a few mm wide,
+  never under a pixel). Its lines are white: `makeMaterial({ lineWhite })` stores RT0.a as −(1 + L + 2 × step)
+  (the sign bit, rendering.md "The G-buffer's layout"), and post.js 1b draws the line's owner's line in
+  `INK_WHITE` instead of the ink, so the contour round it, both sides of the silhouette, and its creases are
+  white in any world's light. No extra pass: one more tap was already there.
+- **Its head, a black flame** (`ShadeFlame`): seven tongues (`TONGUES`: the head's bulb, a crown of three, one
+  down the back, two off the shoulders) in one mesh of 924 vertices rewritten on the CPU each frame (0.06 ms on
+  an M4), sharing the body's material; the body's head is cut at the neck (`fluidBox.w`), and the flame's
+  `aFold` (x 1 + round a tongue, 3 + on the head's; y up it) keeps the body's cuts off it and draws a white lick
+  up each tongue's front. Two white eye-slits (`EYES`) ride the head's tongue. What drives it is pure maths
+  (`flameTarget`, `flameDrive`, `tongueAxis`, `tongueRadius`, `FLAME`): it leans back from its velocity (in its
+  own frame, up to `leanMax`), flares up to `1 + flare` over the wind-up (eyes narrowing), whips across with
+  the cut (`sin 2πk`), gutters (smaller, choppier, eyes shut to lines) while stunned or just hit, and is gone as
+  it melts; it flares fast and dies down slower, on its own clock so a faster flicker never jumps.
+- **Coming and going:** `uFluidB.y` (melt) pours it up out of the floor and back down into it under a dripping
+  edge; its flame's root sinks with it, and black licks (`ShadePools.licks`, white-lined teardrops) tear off the
+  tongue tips and rise as it dies (and now and then as it flares or gutters). Its feet run into the floor in
+  wavering drips.
+- **On the floor:** a few black drops fall off it (`ShadePools.drops`, white-lined, smooth so no facet is
+  inked), and it leaves dark pools where it walks (`ShadePools.pools`: a `Footprints` decal with a blob shape,
+  so it darkens the ground and is never inked). The costume's pieces (a hat, a pack) are hidden: only the
+  skinned body is drawn.
 - **Where:** a lone shade in a later pack (`packKinds`, n ≥ 3), and in the Arena. Without the game's bodies
   (tests) it is drawn as a blot.
 
@@ -165,7 +182,7 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Combat music** (`Sound.combat`): a drum, an off-beat tom and a low drone a fifth apart on their own bus
   under the music. It is on while a foe within 28 m chases, winds up or recovers.
 - **Ink stains:** where a blot or a shade falls (`Foes.stain`), dark pools in the `ShadePools` decal.
-- **The shade's slash:** a dark arc of drops in front of it as it strikes (`slashTrail`).
+- **The shade's slash:** an arc of black, white-lined drops in front of it as it strikes (`slashTrail`).
 - **The temple kit** (`templeKit`, inside the temple): a blowing `Gust` shoves machines down its hall; a
   machine on a `Plate` presses it (`logic.press(id, 'foe')`).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
