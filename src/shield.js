@@ -4,11 +4,12 @@ import { bracerMount, carry, fitScale } from './blade-grip.js';
 
 // The shield: a makers' brass disc worn on the back of the traveller's left hand (src/blade-grip.js
 // bracerMount), always there with the backpack, folded small. Raise the guard (LB / L1) and it opens
-// in a blink: its ten brass ribs spin out of the disc like a fan opening all the way round, the
-// tank's fluid floods out from the hub between them into a domed membrane, and a bright rim closes
-// round it; as it opens it swivels on the hub to face the guard's way. Held, it shimmers; a block
-// flares it, a perfect parry flashes it white, a blow it cannot take (the tank empty) cracks it and
-// it flickers; let go and the fluid drains back into the hub and the ribs fold away.
+// in a blink: six brass petals spin out of the disc and fan out a little round the hub, a brass
+// ring closes round them, and the tank's fluid floods out beyond them as ink would draw it (a few
+// rings, a cross-hatch, the traveller seen through the gaps) inside a bright rim; as it opens it
+// swivels on the hub to face the guard's way. Held, a shimmer runs out to the rim; a block
+// flares it, a perfect parry bursts white rings off it, a blow it cannot take (the tank empty) cracks it and
+// it flickers; let go and the fluid drains back into the hub and the petals fold away.
 //
 //   new ShieldState()            the pure state machine: update(dt, want) -> 'open' | 'close' | null,
 //                                hit('block' | 'perfect' | 'broken'); open, fill, ribs(i), flare, flash, crack
@@ -16,12 +17,13 @@ import { bracerMount, carry, fitScale } from './blade-grip.js';
 //   new ShieldDevice(tool)       the drawn device: place(dt, { dir, up }) after the pose, arc() for the guard
 
 export const SHIELD = {
-  radius: 0.45,       // m, open
+  radius: 0.35,       // m, open (the traveller stays in sight behind it)
+  petal: 0.1,         // m, the brass petals' reach round the hub
   hub: 0.034,         // m, the folded disc
-  ribs: 10,
+  ribs: 6,
   open: 0.16,         // s to open (the guard is up at half of it: GUARD in src/fluid-blade.js)
   close: 0.14,        // s to fold away
-  stand: 0.035,       // m the open shield stands off the back of the hand
+  stand: 0.03,        // m the open shield stands off the back of the hand
   slack: 0.15,        // m round the rim a blow still meets it (the foe's swing is not a line)
   flare: 0.25, flash: 0.4, crack: 0.7,   // s each hit's look lasts
 };
@@ -111,35 +113,57 @@ export class ShieldDevice {
     this.bead = new THREE.Mesh(new THREE.SphereGeometry(0.014, 12, 8).scale(1, 1, 0.5).translate(0, 0, 0.008), tool.globMat);
     disc.add(this.bead);
     this.root.add(disc);
-    // the shield: swivels on the hub to face the guard's way (face), its ribs and fluid round its middle
+    // the shield: swivels on the hub to face the guard's way (face). Round the hub a collar of six brass
+    // petals that fan out a little and a brass ring; beyond them no solid disc but the fluid drawn as ink
+    // would draw it: a few rings, a cross-hatch, a bright rim and a shimmer running out to it (the game's
+    // materials are opaque: the see-through is the gaps between the lines)
     this.face = new THREE.Group();
     this.root.add(this.face);
     this.ribs = [];
     for (let i = 0; i < SHIELD.ribs; i++) {
-      const pivot = new THREE.Group();
-      const rib = new THREE.Mesh(new THREE.BoxGeometry(0.016, 1, 0.01).translate(0, 0.5, 0.034), brass);
-      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.013, 8, 6).translate(0, 0, 0.03), dark);
-      pivot.add(rib, tip);
+      const pivot = new THREE.Group(), tilt = new THREE.Group();
+      const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.012, 1, 4, 1).rotateY(Math.PI / 4).scale(1, 1, 0.22).translate(0, 0.5, 0.004), brass);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.007, 6, 5), dark);
+      tilt.add(plate, tip); pivot.add(tilt);
       this.face.add(pivot);
-      this.ribs.push({ pivot, rib, tip, home: (i / SHIELD.ribs) * Math.PI * 2 });
+      this.ribs.push({ pivot, tilt, rib: plate, tip, home: (i / SHIELD.ribs) * Math.PI * 2 });
     }
-    // the fluid between them: a shallow dome of the glob's lava, a bright rim round it, a white flash over it
-    this.membrane = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 10, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2).scale(1, 1, 0.07), tool.globMat);
-    this.membrane.add(new THREE.Mesh(new THREE.CircleGeometry(1, 32).rotateY(Math.PI), tool.globMat));   // (its back, seen over the shoulder)
-    this.rim = new THREE.Mesh(new THREE.TorusGeometry(1, 0.035, 6, 48), edge);
-    this.flashDisc = new THREE.Mesh(new THREE.CircleGeometry(1, 40).translate(0, 0, 0.03), edge);
+    this.collar = new THREE.Mesh(new THREE.TorusGeometry(SHIELD.petal * 0.92, 0.006, 6, 36), brass);
+    this.field = new THREE.Group();   // (unit radius: scaled to the shield's)
+    const lines = [], fine = 0.009, clear = 0.42;
+    for (const r of [0.48, 0.76]) lines.push(new THREE.Mesh(new THREE.TorusGeometry(r, fine, 4, 48), tool.globMat));
+    // the hatching in a band round the edge (thicker toward the rim, as ink shades a curve), clear round the hub
+    for (const turn of [Math.PI / 4, -Math.PI / 4]) for (let d = -0.81; d <= 0.82; d += 0.27) {
+      const out = Math.sqrt(Math.max(0, 1 - d * d)) * 0.97, inner = Math.abs(d) < clear ? Math.sqrt(clear * clear - d * d) : 0;
+      for (const [u0, u1] of inner ? [[-out, -inner], [inner, out]] : [[-out, out]]) {
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(u1 - u0, fine * 1.1, 0.008), tool.globMat);
+        const m = (u0 + u1) / 2;
+        strip.position.set(Math.cos(turn) * m - Math.sin(turn) * d, Math.sin(turn) * m + Math.cos(turn) * d, turn > 0 ? 0.004 : -0.004);
+        strip.rotation.z = turn;
+        lines.push(strip);
+      }
+    }
+    this.membrane = new THREE.Group();
+    this.membrane.add(...lines);
+    this.rim = new THREE.Mesh(new THREE.TorusGeometry(1, 0.022, 6, 64), edge);
+    this.shimmer = new THREE.Mesh(new THREE.TorusGeometry(1, 0.01, 4, 48), edge);
+    // the parry's flash: two white rings bursting out past the rim (the block's flare swells the lines)
+    this.flashDisc = new THREE.Group();
+    this.flashDisc.add(new THREE.Mesh(new THREE.TorusGeometry(1, 0.03, 6, 48), edge), new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.02, 6, 48), edge));
+    this.field.add(this.membrane, this.rim, this.shimmer, this.flashDisc);
     // the cracks: a zigzag of ink lines across the fluid from near the hub
     this.cracks = new THREE.Group();
     const zig = [[0.05, 0.1], [0.32, 0.22], [0.5, 0.12], [0.78, 0.3], [0.97, 0.2]];
     for (const turn of [0.3, 2.2, 4.1]) for (let i = 0; i < zig.length - 1; i++) {
       const [r0, a0] = zig[i], [r1, a1] = zig[i + 1];
       const p0 = new THREE.Vector2(Math.cos(turn + a0) * r0, Math.sin(turn + a0) * r0), p1 = new THREE.Vector2(Math.cos(turn + a1) * r1, Math.sin(turn + a1) * r1);
-      const len = p0.distanceTo(p1), seg = new THREE.Mesh(new THREE.BoxGeometry(len, 0.016, 0.004), ink);
-      seg.position.set((p0.x + p1.x) / 2, (p0.y + p1.y) / 2, 0.15);
+      const len = p0.distanceTo(p1), seg = new THREE.Mesh(new THREE.BoxGeometry(len, 0.03, 0.012), ink);
+      seg.position.set((p0.x + p1.x) / 2, (p0.y + p1.y) / 2, 0.012);
       seg.rotation.z = Math.atan2(p1.y - p0.y, p1.x - p0.x);
       this.cracks.add(seg);
     }
-    this.face.add(this.membrane, this.rim, this.flashDisc, this.cracks);
+    this.field.add(this.cracks);
+    this.face.add(this.collar, this.field);
     this.root.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; o.frustumCulled = false; });
     this.root.visible = false;
     this.mount = null;
@@ -180,27 +204,32 @@ export class ShieldDevice {
         this.face.quaternion.copy(_q).invert().multiply(_q.clone().slerp(_q2, turn));
       } else this.face.quaternion.identity();
       this.face.position.set(0, 0, SHIELD.stand * smooth(k, 0, 0.5));
-      // the ribs spin out of the disc to their places round it, growing from the disc's size to the rim
+      // the petals spin out of the disc and fan out a little round the hub, the brass ring closing round them
       const shake = S.crack > 0 ? S.crack * 0.08 * Math.sin(time * 70) : 0;
       for (let i = 0; i < this.ribs.length; i++) {
         const r = this.ribs[i], u = S.rib(i, this.ribs.length);
-        r.pivot.rotation.z = THREE.MathUtils.lerp(-Math.PI * 0.5 + i * 0.05, r.home, u) + S.spin * 0.04 * (1 - u) + shake * (i % 2 ? 1 : -1);
-        const len = THREE.MathUtils.lerp(SHIELD.hub * 1.1, R, u);
-        r.rib.scale.set(1, len, 1); r.tip.position.y = len;
-        r.pivot.visible = u > 0.001 || k > 0;
+        r.pivot.rotation.z = THREE.MathUtils.lerp(-Math.PI * 0.5 + i * 0.08, r.home, u) + S.spin * 0.04 * (1 - u) + shake * (i % 2 ? 1 : -1);
+        r.tilt.rotation.x = -0.35 * u;   // (fanned back from the face, a shallow cup)
+        const len = THREE.MathUtils.lerp(SHIELD.hub * 0.9, SHIELD.petal, u);
+        r.rib.scale.set(1, len, 1); r.tip.position.set(0, len, 0.004);
       }
-      // the fluid floods out from the hub, the rim closes round it when it is all there; held, it shimmers
-      const f = S.fill, pulse = 1 + 0.012 * Math.sin(time * 9) + 0.16 * S.flare;
+      this.collar.visible = k > 0.5;
+      this.collar.scale.setScalar(smooth(k, 0.5, 1));
+      // the fluid: its lines flood out from the hub, the rim closes round them; held, a shimmer runs out to the rim
+      const f = S.fill, pulse = 1 + 0.015 * Math.sin(time * 9) + 0.18 * S.flare;
       const shown = S.shown(time);
-      this.membrane.visible = f > 0.01 && shown;
-      this.membrane.scale.setScalar(Math.max(0.01, R * f * pulse));
-      this.membrane.rotation.z = time * 0.6;   // (the fluid's tones turn slowly in it)
-      this.rim.visible = f > 0.6 && shown;
-      this.rim.scale.setScalar(R * pulse * (0.9 + 0.1 * smooth(f, 0.6, 1)));
+      this.field.visible = f > 0.01;
+      this.field.scale.setScalar(Math.max(0.01, R * f * pulse));
+      this.membrane.visible = shown;
+      this.membrane.rotation.z = time * 0.5;   // (the hatching turns slowly, the fluid's tones running along its lines)
+      this.rim.visible = f > 0.5 && shown;
+      this.rim.scale.setScalar(0.9 + 0.1 * smooth(f, 0.5, 1));
+      const run = (time * 0.9) % 1;
+      this.shimmer.visible = f > 0.95 && shown && S.crack === 0;
+      this.shimmer.scale.setScalar(0.25 + 0.72 * run);
       this.flashDisc.visible = S.flash > 0.02;
-      this.flashDisc.scale.setScalar(R * (1.02 + 0.35 * (1 - S.flash)));
+      this.flashDisc.scale.setScalar(1.02 + 0.45 * (1 - S.flash));
       this.cracks.visible = S.crack > 0.02 && f > 0.3;
-      this.cracks.scale.set(R * f, R * f, 1);
     }
     // where it is, for the guard's arc (src/fluid-blade.js block) and the block's splash
     this.face.updateWorldMatrix(true, false);
