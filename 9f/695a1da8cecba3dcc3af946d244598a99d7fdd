@@ -1,0 +1,109 @@
+src/bindings.js
+  s_efb1d100d5a6fc::t_f502c8c3924260 1-94
+src/boxes/effects.js
+  s_efb1d100d5a6fc::t_9a16e03406914f 26,98-99
+src/controller.js
+  s_efb1d100d5a6fc::t_1f4c8485195796 3-4,6-13,15-16,20-21,53,84-85,87,92,117,123-124,135,141-150,153-155,157-163,184-186,193
+src/echo-shell.js
+  s_efb1d100d5a6fc::t_e8a33b9cf9dd94 12,35
+src/fluid-tool.js
+  s_efb1d100d5a6fc::t_b57aaae09fac52 100-103,109,725
+src/foes.js
+  s_efb1d100d5a6fc::t_b2cae6f833b42c 754
+src/gadgets/index.js
+  s_efb1d100d5a6fc::t_91545f8037e881 17-18,25,44-45,106-113,116,118-119,159,184-190,195,204-209
+src/gadgets/registry.js
+  s_efb1d100d5a6fc::t_67dff3127d41f7 64
+src/hud.js
+  s_efb1d100d5a6fc::t_483408c6fdb0fc 9,33-34
+src/items.js
+  s_efb1d100d5a6fc::t_f28f22de63f81a 28,33,79,124,135
+src/levels/index.js
+  s_efb1d100d5a6fc::t_604e6fcac7f433 201
+src/levels/reference-picker.js
+  s_efb1d100d5a6fc::t_ee5c841684c076 8
+src/levels/references.js
+  s_efb1d100d5a6fc::t_26e23562eb002b 47,407,477
+src/main.js
+  s_efb1d100d5a6fc::t_eb71c058451e17 6,527,686-687,858,1014-1024,1054,1083,1085-1086,1088-1093,1095-1097
+src/minigames/kit/input.js
+  s_efb1d100d5a6fc::t_2e05031e453653 7
+src/minigames/kit/marker.js
+  s_efb1d100d5a6fc::t_3cc37f5f8ec91b 2,40
+src/minigames/waves.js
+  s_efb1d100d5a6fc::t_97385b9d322f35 2,388
+src/observatory.js
+  s_efb1d100d5a6fc::t_188229f7cb8d70 183
+src/prompt-keys.js
+  s_efb1d100d5a6fc::t_90bee1f3eafb5f 36
+src/scout.js
+  s_efb1d100d5a6fc::t_8b6c2951bfa984 11
+src/story/arzach2-data.js
+  s_efb1d100d5a6fc::t_bb304fcb282895 175
+src/story/desert-bike.js
+  s_efb1d100d5a6fc::t_e85c5368631eed 160
+src/story/edena-data.js
+  s_efb1d100d5a6fc::t_f03d494918253a 83,92
+src/story/index.js
+  s_efb1d100d5a6fc::t_1d04c24776e695 4,324,326
+src/story/perdide-data.js
+  s_efb1d100d5a6fc::t_21a0f344a4d05e 177
+src/story/quests.js
+  s_88886f12bf338d::t_460fe92ff30d5c 40,126
+src/temples/hints.js
+  s_efb1d100d5a6fc::t_a5c2f56ad778ac 83,86,164,167
+src/temples/incal.js
+  s_efb1d100d5a6fc::t_5619ff640654fb 107
+src/ui.js
+  s_efb1d100d5a6fc::t_24164452df1151 4,68,72-74,76-79,81,85-98,100-104,109-110,118,129,148-149,212
+tests/bindings.test.js
+  s_efb1d100d5a6fc::t_3a0be957b26673 1-130
+tests/combat.test.js
+  s_efb1d100d5a6fc::t_37d5a6a9d1120b 39,42-43,53,56,58
+tests/controller.test.js
+  s_efb1d100d5a6fc::t_357e891b63fea8 22-23,25,28-49,79-83,95,109-111,122-123,168-174,176,185-186
+tests/foes.test.js
+  s_efb1d100d5a6fc::t_4bd1a361531548 178
+tests/gadgets-qa.test.js
+  s_efb1d100d5a6fc::t_b70db2d5503815 305,308-327
+tests/gadgets.test.js
+  s_efb1d100d5a6fc::t_2bec9c7cebfa24 100,106,135
+tests/hoverbike-quest.test.js
+  s_efb1d100d5a6fc::t_a571587a8019ea 133
+tests/hud.test.js
+  s_efb1d100d5a6fc::t_1908565f6f2b2c 42,53,134,136,141-144,147,231
+tests/jets.test.js
+  s_efb1d100d5a6fc::t_603c0ab7f915ee 124,127,159,161
+tests/minigames-waves.test.js
+  s_efb1d100d5a6fc::t_9035d5e95c614a 17
+tests/native-pad.test.js
+  s_efb1d100d5a6fc::t_e4ba3e0df4c133 78,95-99
+tests/reference-picker.test.js
+  s_efb1d100d5a6fc::t_d9153c9b89cff3 65
+tests/temples.test.js
+  s_efb1d100d5a6fc::t_4972d87ec0bddf 1527
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9f695a1da8cecba3dcc3af946d244598a99d7fdd",
+  "prompts": {},
+  "sessions": {
+    "s_88886f12bf338d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11909-5544-7d52-9144-71c79c4a433c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
