@@ -101,7 +101,9 @@ by the checked-in Wrangler version.
 ## Making the repository private
 
 **Done on 2026-10-07**: the repository is private, the steps below were followed and the workflow
-clean-up under "After the flip" is in. Kept as a record.
+clean-up under "After the flip" is in. Kept as a record. The repository went public again on
+2026-10-08 and `deploy.yml` publishes the site to GitHub Pages once more (the site only: the
+updates stay on the Worker).
 
 The Worker serves uploaded assets without fetching anything from GitHub at request
 time. GitHub Actions can still check out a private repository and publish with its
