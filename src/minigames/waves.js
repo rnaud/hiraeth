@@ -379,7 +379,7 @@ function start(ctx) {
 }
 
 export default {
-  id: 'waves', order: 4,
+  id: 'waves', order: 8,
   name: 'Ink tide',
   blurb: 'A basin of sand in a sea of ink, and the ink keeps coming: wave after wave of blots, spitters, swarms, shades and machines.',
   rules: 'Cut down every wave. Between waves you get some health back and a choice of three boons: walk onto the one you want. Score: 150 a wave cleared, plus style (quick chains of cuts, perfect parries, a wave untouched). It ends when the tide knocks you out.',
@@ -387,8 +387,9 @@ export default {
   controls: {
     pad: [['RB / R1', 'attack (press again to chain)'], ['LB / L1', 'guard (just as a blow lands: parry)'], ['X / □', 'evade'], ['LT / L2  +  RT / R2', 'aim and fire the fluid'], ['R3', 'lock on'], ['Menu', 'pause']],
     keys: [['F', 'attack (again to chain)'], ['Ctrl or Z', 'guard (just as a blow lands: parry)'], ['Alt', 'evade'], ['Right mouse + left mouse', 'aim and fire the fluid'], ['Tab', 'lock on'], ['Esc', 'pause']],
-    touch: [['⚔', 'attack'], ['Shield', 'guard'], ['Aim and ◎', 'fire']],
+    touch: [['⚔', 'attack (again to chain)'], ['◇', 'guard (just as a blow lands: parry)'], ['↶', 'evade'], ['◎ then ✺', 'aim, fire the fluid'], ['◉', 'lock on']],
   },
+  touchButtons: ['jump', 'run', 'aim', 'fire', 'mode', 'blade', 'guard', 'evade', 'lock'],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true },
   color: '#8e64d6',

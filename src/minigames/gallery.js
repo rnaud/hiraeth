@@ -160,7 +160,7 @@ export const STAND = { at: new THREE.Vector3(0, 0, 1.7), x: 3.4, z: [1.05, 3.3] 
 const RAILS = [{ y: 3.35, z: -12.1, span: 6.3 }, { y: 2.1, z: -9.7, span: 6.3 }];
 const POP = { z: -7.3, y: 0.36, xs: [-4.5, -1.5, 1.5, 4.5] };
 const PLATES = [[-5.1, 4.75, -12.9], [-1.7, 5.05, -12.9], [1.7, 5.05, -12.9], [5.1, 4.75, -12.9]];
-const BELLS = [{ x: -3.5, z: -5.4, top: 6.35, len: 1.15, T: 2.3, p: 0 }, { x: 3.5, z: -5.4, top: 6.35, len: 1.15, T: 2.6, p: 1.7 }];
+export const BELLS = [{ x: -3.5, z: -5.4, top: 6.35, len: 2.05, T: 2.3, p: 0 }, { x: 3.5, z: -5.4, top: 6.35, len: 2.05, T: 2.6, p: 1.7 }];   // (on long cords: the bells swing down into the view over the rails, not up by the valance)
 const KEEPER_AT = new THREE.Vector3(-5.4, 0, -2.4);
 
 const mat = (color, o = {}) => makeMaterial({ color, flat: true, ...PRINT, ...o });
@@ -708,7 +708,7 @@ function start(ctx) {
 }
 
 export default {
-  id: 'gallery', order: 3,
+  id: 'gallery', order: 7,
   name: 'The shooting gallery',
   blurb: 'A fairground stall of the Signal Market: painted fish and birds on the rails, ink blots popping up, plates, bells, and a minute on the clock.',
   rules: 'Splash every target you can in 60 s. Hits in a row raise the multiplier (×2 after three, up to ×5); a miss ends the run. Gold is worth 100. Never splash the market’s folk with their parasols and cats: −50.',
@@ -716,8 +716,9 @@ export default {
   controls: {
     pad: [['LT / L2', 'aim'], ['RT / R2', 'fire (six shots, full again a second after the last)'], ['Right stick', 'look'], ['Left stick', 'step along the counter'], ['Menu', 'pause']],
     keys: [['Right mouse / R', 'aim'], ['Left mouse', 'fire (six shots, full again a second after the last)'], ['Mouse', 'look'], ['WASD', 'step along the counter'], ['Esc', 'pause']],
-    touch: [['Aim and ◎', 'fire'], ['Drag', 'look']],
+    touch: [['◎', 'aim on / off'], ['✺', 'fire'], ['Drag', 'look'], ['Stick', 'step along the counter']],
   },
+  touchButtons: ['aim', 'fire'],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true, countdown: GALLERY.time },
   color: '#f2c54b',

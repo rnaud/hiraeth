@@ -11,6 +11,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { arenaLevel } from './kit/world.js';
+import { disposeTree } from './kit/dispose.js';
 import { Dots } from '../fluid-tool.js';
 
 // ------------------------------------------------------------------ the slope
@@ -468,8 +469,7 @@ function start(ctx) {
       ctx.status(`${Math.round(S.speed * 3.6)} km/h`);
     },
     end() {
-      skis.removeFromParent();
-      spray.mesh.removeFromParent();
+      disposeTree(skis, spray.mesh);
       const i = level.noShadow.indexOf(spray.mesh); if (i >= 0) level.noShadow.splice(i, 1);
       ctx.speed(0);
       player._skiUp = null;
@@ -485,7 +485,7 @@ export default {
   controls: {
     pad: [['Left stick', 'carve left / right'], ['RT / R2', 'tuck: less drag, wider turns'], ['LT / L2', 'skid to brake'], ['A / ×', 'pop off the ground (off a lip: big air)'], ['Left stick in the air', 'spin'], ['Menu', 'pause']],
     keys: [['A  D', 'carve left / right'], ['Shift', 'tuck: less drag, wider turns'], ['S', 'skid to brake'], ['Space', 'pop off the ground (off a lip: big air)'], ['A  D in the air', 'spin'], ['Esc', 'pause']],
-    touch: [['Stick', 'carve; pull back to brake'], ['Jump', 'pop'], ['Stick in the air', 'spin']],
+    touch: [['Stick', 'carve; pull back to brake'], ['run', 'tuck on / off'], ['⤒', 'pop'], ['Stick in the air', 'spin']],
   },
   score: { kind: 'time' },
   hud: { timer: true },

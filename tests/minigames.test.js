@@ -84,7 +84,7 @@ test('the best score is kept in the save, per game, only when beaten', () => {
   const state = new GameState(memStorage());
   assert.equal(bestScore(state, ski), null);
   let r = recordScore(state, ski, 52.3);
-  assert.deepEqual([r.isNew, r.best, r.previous, r.plays], [true, 52.3, null, 1]);
+  assert.deepEqual([r.isNew, r.first, r.best, r.previous, r.plays], [false, true, 52.3, null, 1], 'the first score kept: nothing beaten, no stamp');
   r = recordScore(state, ski, 55);
   assert.deepEqual([r.isNew, r.best, r.plays], [false, 52.3, 2]);
   r = recordScore(state, ski, 48.9);
@@ -97,6 +97,22 @@ test('the best score is kept in the save, per game, only when beaten', () => {
   assert.equal(again.flag(bestKey('ski')), 48.9);
   assert.equal(again.flag(playsKey('ski')), 3);
   assert.equal(again.flag(bestKey('platformer')), 300);
+});
+
+test('a run that scored nothing is counted but keeps no best and stamps nothing', () => {
+  const state = new GameState(memStorage());
+  let r = recordScore(state, platformer, 0);
+  assert.deepEqual([r.isNew, r.first, r.best, r.plays], [false, false, null, 1]);
+  assert.equal(bestScore(state, platformer), null, '0 points: no best');
+  r = recordScore(state, platformer, 120);
+  assert.deepEqual([r.isNew, r.first, r.best], [false, true, 120], 'the first real score: kept, not stamped');
+  r = recordScore(state, platformer, 120);
+  assert.equal(r.isNew, false, 'a tie is no new best');
+  r = recordScore(state, platformer, 0);
+  assert.equal(r.isNew, false);
+  r = recordScore(state, platformer, 121);
+  assert.equal(r.isNew, true, 'beating a kept best: stamped');
+  assert.equal(recordScore(state, platformer, -50).isNew, false, 'a negative score (the gallery\'s friends) is never kept');
 });
 
 // ------------------------------------------------------------------ the controls and the cards

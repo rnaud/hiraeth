@@ -16,10 +16,11 @@
 import './minigames.css';
 import { readInput, NO_INPUT } from './input.js';
 import { gameSfx } from './sfx.js';
+import { disposeTree } from './dispose.js';
 import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
 import { inputKind, escapeHtml } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
-import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionKey, stepOption, optionText, scoreDef } from './flow.js';
+import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss } from './flow.js';
 
 export { COUNT, controlsFor, quitHref };
 
@@ -48,6 +49,10 @@ export class MinigameRunner {
     this.buildDom();
     document.body.classList.add('minigame');
     document.body.classList.toggle('mg-onfoot', !this.drives);
+    // a touch screen: only the buttons the game uses (kit/flow.js touchButtons)
+    this.touchStyle = document.createElement('style');
+    this.touchStyle.textContent = touchButtonsCss(touchButtons(def));
+    document.head.appendChild(this.touchStyle);
     if (host.ship?.parked?.group) host.ship.parked.group.visible = false;   // (the ship waits out of the picture)
     this.ctx = this.makeCtx();
     this.session = def.start(this.ctx) ?? {};
@@ -99,7 +104,7 @@ export class MinigameRunner {
       setFov(f) { if (Math.abs(H.camera.fov - f) > 0.01) { H.camera.fov = f; H.camera.updateProjectionMatrix(); } },
       /** Ink streaks at the screen's edges, 0..1 (speed). */
       speed: (k) => R.speedLines(k),
-      /** Something the session put in the scene, taken out when the game is left. */
+      /** Something the session put in the scene, taken out (its geometry disposed) on Retry and when the game is left. */
       add(o) { H.scene.add(o); R.added.push(o); return o; },
       best: () => bestScore(H.state, scoreDef(this.def, H.state)),
       /** The save (flag(name), set(name, value)): what a game keeps besides its best (its splits, a journal). */
@@ -180,9 +185,10 @@ export class MinigameRunner {
     this.ctx.setFov(this.fov0);
     window.removeEventListener('keydown', this.onKey, true);
     this.el.remove();
+    this.touchStyle?.remove();
     document.body.classList.remove('minigame', 'mg-onfoot');
   }
-  clearAdded() { for (const o of this.added) o.removeFromParent(); this.added.length = 0; }
+  clearAdded() { disposeTree(...this.added); this.added.length = 0; }   // (what ctx.add took: made for the run, let go with it)
 
   setPaused(on) {
     if (!['count', 'play', 'finishing'].includes(this.phase)) return;

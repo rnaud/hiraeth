@@ -41,15 +41,20 @@ export function bestScore(state, def) {
   return Number.isFinite(v) ? v : null;
 }
 
+/** A score worth keeping as a best: a time, or points above nothing (a run that scored 0 keeps no best). */
+export const keepable = (v) => Number.isFinite(v) && v > 0;
+
 /**
- * A finished run: counted, and kept if it beats the best.
- * @returns {{ best: number|null, previous: number|null, isNew: boolean, plays: number }}
+ * A finished run: counted, and kept if it beats the best (a run of 0 points is counted, never kept).
+ * `isNew` (the results' "New best!" stamp) is a real improvement over a best kept before; the first
+ * score kept is `first` (no stamp: there was nothing to beat).
+ * @returns {{ best: number|null, previous: number|null, isNew: boolean, first: boolean, plays: number }}
  */
 export function recordScore(state, def, value) {
   const previous = bestScore(state, def);
-  const isNew = better(def.score, value, previous ?? NaN);
-  if (isNew) state.set(bestKey(def.id), value);
+  const keep = keepable(value) && better(def.score, value, previous ?? NaN);
+  if (keep) state.set(bestKey(def.id), value);
   const plays = (Number(state.flag(playsKey(def.id))) || 0) + 1;
   state.set(playsKey(def.id), plays);
-  return { best: isNew ? value : previous, previous, isNew, plays };
+  return { best: keep ? value : previous, previous, isNew: keep && previous !== null, first: keep && previous === null, plays };
 }

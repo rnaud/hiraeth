@@ -524,8 +524,9 @@ export default {
   controls: {
     pad: [['Left stick', 'run'], ['A / ×', 'jump (hold it to jump higher)'], ['A / × held on a spring', 'thrown higher'], ['Menu', 'pause']],
     keys: [['A  D  or  ← →', 'run'], ['Space', 'jump (hold it to jump higher)'], ['Space held on a spring', 'thrown higher'], ['Esc', 'pause']],
-    touch: [['Stick', 'run'], ['Jump', 'jump (hold it to jump higher)']],
+    touch: [['Stick', 'run'], ['⤒', 'jump (hold it to jump higher)']],
   },
+  touchButtons: ['jump'],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true },
   color: '#71d7cf',

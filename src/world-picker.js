@@ -6,6 +6,8 @@
 
 import { ORDER } from './levels/names.js';
 import { GAMES, gameHref } from './minigames/index.js';
+import { bestScore, formatScore } from './minigames/kit/scores.js';
+import { scoreDef } from './minigames/kit/flow.js';
 
 /** The game's other pages, at the top of the list (they leave the game). */
 export const PAGES = [
@@ -16,10 +18,21 @@ export const PAGES = [
   { href: 'items.html', label: 'Items', hint: 'every item, its picture, what it does, where it is found' },
 ];
 
-/** The minigames' row, under the pages: each opens its game's page (?game=<id>, src/minigames/). */
-export function gamesRow(games = GAMES) {
+/** A game's best in the save (`state`: flag(name)), as its results show it, or '' (none yet, or no save). */
+export function gameBest(g, state) {
+  if (!state?.flag) return '';
+  const v = bestScore(state, scoreDef(g, state));   // (a best of each difficulty: the one chosen last)
+  return v === null ? '' : formatScore(g, v);
+}
+
+/** The minigames' row, under the pages: each opens its game's page (?game=<id>, src/minigames/), its best under its name. */
+export function gamesRow(games = GAMES, state = null) {
   if (!games.length) return '';
-  return `<span class="label">Games</span>${games.map((g) => `<a href="${gameHref(g.id)}" title="${g.blurb.replace(/"/g, '&quot;')}">${g.name}</a>`).join('')}`;
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  return `<span class="label">Games</span>${games.map((g) => {
+    const best = gameBest(g, state);
+    return `<a href="${gameHref(g.id)}" title="${esc(g.blurb)}">${esc(g.name)}${best ? `<small class="best">best ${esc(best)}</small>` : ''}</a>`;
+  }).join('')}`;
 }
 
 /** Where a card goes: a route world in the debug save (?debugsave=1, src/boot.js), any other in the save being played. */
@@ -38,14 +51,14 @@ export const alongLine = (id, order = ORDER) => {
 };
 
 /** The cards (and Continue, to the world this save was left in, and the other pages) into the #picker element. */
-export function fillPicker(picker, { levels, current = null, cont = null }) {
+export function fillPicker(picker, { levels, current = null, cont = null, state = null }) {
   const nav = document.createElement('nav');
   nav.className = 'pages';
   nav.innerHTML = PAGES.map((p) => `<a href="${p.href}" title="${p.hint}">${p.label}</a>`).join('');
   picker.querySelector('header').after(nav);
   const games = document.createElement('nav');
   games.className = 'pages games';
-  games.innerHTML = gamesRow();
+  games.innerHTML = gamesRow(GAMES, state);
   if (games.innerHTML) nav.after(games);
   const note = document.createElement('p');
   note.className = 'debug-note';
@@ -74,11 +87,11 @@ export function fillPicker(picker, { levels, current = null, cont = null }) {
 
 /** The list alone, before any world is built: a card (or its number) loads that world; close goes back to the title. */
 export async function showWorldsOnly(doc = document, win = window) {
-  const [{ LEVELS, levelById }, { SaveGame }, { closeHint, inputKind }, { Controller, menuNavigate }, { padFaces }] = await Promise.all([
-    import('./levels/index.js'), import('./ui.js'), import('./prompt-keys.js'), import('./controller.js'), import('./native-pad.js')]);
+  const [{ LEVELS, levelById }, { SaveGame }, { closeHint, inputKind }, { Controller, menuNavigate }, { padFaces }, { game }] = await Promise.all([
+    import('./levels/index.js'), import('./ui.js'), import('./prompt-keys.js'), import('./controller.js'), import('./native-pad.js'), import('./game-state.js')]);
   const picker = doc.getElementById('picker');
   const saved = SaveGame.load()?.level;
-  fillPicker(picker, { levels: LEVELS, cont: levelById(saved) ?? null });
+  fillPicker(picker, { levels: LEVELS, cont: levelById(saved) ?? null, state: game });
   const hint = picker.querySelector('header .hint');
   if (hint) hint.textContent = inputKind() === 'keys' ? 'press a number · Esc for the title' : closeHint('');
   const toTitle = () => { win.location.href = win.location.pathname; };

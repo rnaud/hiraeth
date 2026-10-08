@@ -98,6 +98,28 @@ test('flyStep: the pad waits for the throttle, lifts off up and forward; the jet
   assert.ok(Math.abs(F.vel.length() - JET.speed * JET.boost) < 1.5, `${F.vel.length().toFixed(1)} m/s`);
 });
 
+test('the boost (Shift, RB / R1): faster along the nose for a heavier burn; the throttle is RT / R2 or Space, not Shift', async () => {
+  const { readInput } = await import('../src/minigames/kit/input.js');
+  const level = (boost) => {
+    const F = newFlyer(V(0, 400, 0), 0, { pad: false, along: 20 });
+    for (let i = 0; i < 600; i++) { F.fuel = 1; F.pitch = 0; flyStep(F, { throttle: 1, boost }, 1 / 60); }
+    return F.vel.length();
+  };
+  const plain = level(false), fast = level(true);
+  assert.ok(Math.abs(fast - plain * RACE.surge) < 1.2, `boosted ${fast.toFixed(1)} vs ${plain.toFixed(1)} m/s`);
+  const burn = (boost) => { const F = newFlyer(V(0, 400, 0), 0, { pad: false, along: 30 }); for (let i = 0; i < 120; i++) flyStep(F, { throttle: 1, boost }, 1 / 60); return 1 - F.fuel; };
+  assert.ok(Math.abs(burn(true) / burn(false) - RACE.surgeBurn) < 0.05, 'the boost burns the tank faster');
+  // gliding, the boost does nothing
+  const G = newFlyer(V(0, 400, 0), 0, { pad: false, along: 20 });
+  flyStep(G, { throttle: 0, boost: true }, 1 / 60);
+  assert.equal(G.surge, false);
+  // the keys: Shift is the boost alone, not the thrust; RT / R2 is the thrust alone
+  const shift = readInput({ ShiftLeft: true }), rt = readInput({ PadThrust: 0.8 }), rb = readInput({ PadBlade: true });
+  assert.deepEqual([shift.trigger, shift.boost, shift.tuck], [0, true, 1], 'Shift: the boost (and still the other games\' tuck)');
+  assert.deepEqual([rt.trigger, rt.boost], [0.8, false]);
+  assert.equal(rb.boost, true, 'RB / R1 boosts');
+});
+
 test('the tank: a full throttle burns it in ~14 s; dry, the jets glide; a light squeeze burns less', () => {
   const F = newFlyer(V(0, 400, 0), 0, { pad: false, along: 20 });
   let t = 0;

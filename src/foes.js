@@ -461,6 +461,8 @@ export class Foes {
 
   remove(f) {
     f.target?.(); f.tele?.group.removeFromParent(); f.model.group.removeFromParent(); f.model.glob?.removeFromParent(); f.model.shade?.dispose();
+    // (each foe's shapes are its own: let go with it, or every wave of a fight leaves its GPU buffers behind)
+    for (const o of [f.tele?.group, f.model.group, f.model.glob]) o?.traverse((m) => m.geometry?.dispose());
     this.list.splice(this.list.indexOf(f), 1);
   }
 

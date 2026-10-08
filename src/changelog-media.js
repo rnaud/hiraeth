@@ -136,7 +136,7 @@ export const CHANGELOG_MEDIA = {
     ], see: '?game=platformer: run off an edge and press jump a moment late, or press it just before you land: both still jump.' },
     { match: 'Canyon run: the hoverbike round the Rose Canyon', shots: [
       { name: 'canyon-arch', only: 'after', caption: 'Under a stone arch, through a checkpoint’s pennants, the jets’ trails behind', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider (window.__canyonBot)' },
-      { name: 'canyon-kicker', only: 'after', caption: 'Off a wooden kicker at 180 km/h, just after a boost pad, the chasm under the lip', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider' },
+      { name: 'canyon-kicker', only: 'after', caption: 'Off the first kicker at 180 km/h: the bike over the middle of the chasm, its floor far below (seen from the canyon’s side)', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider, paused over the gap and drawn from beside it (the game’s captureView)' },
       { name: 'canyon-drift', only: 'after', caption: 'A sand drift across most of the floor, its fence along the crest: round it on the open side, or hop it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider' },
       { name: 'canyon-results', only: 'after', caption: 'Three laps, the fastest, the top speed and a clean run', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider' },
     ], see: '?game=canyon, or the sign under the lavender cliffs by the desert’s rope bridge. Each checkpoint flashes your split against your best run once you have one.' },
@@ -180,6 +180,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'hunt-results', only: 'after', caption: 'The results: the page of sketches, one not found', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), played by a script' },
     ], see: '?game=sketchhunt (or the sign on the left pavement near the market’s gate): hold LT / L2 (right mouse, R), fill the frame with the subject and keep it in the middle.' },
     { match: 'Arcade signs in the worlds', see: 'In the Desert, walk to the pilgrim camp’s small fire south of the big one; in the Signal Market, look left from the gate. Press B / ○ (E) by the sign.' },
+    { match: 'Games, a polish pass', shots: [
+      { name: 'touch-ski', only: 'after', caption: 'Dune skiing on a phone held sideways: only the stick, the jump (pop) and run (the tuck)', from: 'headless Chrome against this branch’s own dev server, High, 844 × 390, Handheld, touch emulated (8 October), played by a script' },
+    ], see: 'Finish a game with no score: no stamp; beat your best: “New best!”. The worlds list (Debug) shows the bests in the Games row.' },
+    { match: 'Ring race: hold Shift or RB / R1', see: '?game=rings: hold RT / R2 (Space) and add RB / R1 (Shift): about 31 m/s becomes 38, the tank lasting about 5 s instead of 11.' },
+    { match: 'Wing drop: after each landing', shots: [
+      { name: 'wingdrop-landing', caption: 'The last drop landed: before, the camera low over the mesa behind the card; after, up behind you, the bullseye beyond, you left of the card', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), landings set by a script' },
+      { name: 'wingdrop-star', only: 'after', caption: 'A scripted pilot (wingdrop.js starPilot) through the high star of the first thermal, flying the virtual pad', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), flown by a script' },
+    ], see: '?game=wingdrop: circle up in the first thermal past its star, swing out and fly back through it along the way to the mesa.' },
+    { match: 'Ink tide’s longer blade is drawn longer', shots: [
+      { name: 'gallery-bells', caption: 'The shooting gallery, aiming: the bells up by the valance before, down over the rails after', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+    ], see: '?game=waves: take the Longer blade boon after the first wave and watch the blade; ?game=sketchhunt: raise the sketchbook at someone with a passer-by in between.' },
   ],
   '0.91': [
     { match: 'Gadgets: things to carry besides the backpack', shots: [
