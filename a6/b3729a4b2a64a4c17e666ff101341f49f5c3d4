@@ -1,0 +1,37 @@
+changelog.md
+  s_efb1d100d5a6fc::t_4420aec223bdea 7-9
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_ff388dbfc18ab6 5-7,82-86,168-207
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_5436dcb8f3fb99 148-162
+src/changelog.js
+  s_efb1d100d5a6fc::t_840bcfcb42e321 18-20
+src/levels/desert.js
+  s_efb1d100d5a6fc::t_cc3cd85148bd38 21-22,32-35
+src/minigames/kit/gear.js
+  s_efb1d100d5a6fc::t_2c8badea97a5f3 1-16
+src/minigames/rings.js
+  s_efb1d100d5a6fc::t_ee84296da72cfd 1-636
+src/minigames/wingdrop.js
+  s_efb1d100d5a6fc::t_4c6b8a5d349f1d 1-503
+tests/rings.test.js
+  s_efb1d100d5a6fc::t_2d4500786b274e 1-173
+tests/wingdrop.test.js
+  s_efb1d100d5a6fc::t_0a4920e2981511 1-164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a6b3729a4b2a64a4c17e666ff101341f49f5c3d4",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
