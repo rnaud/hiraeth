@@ -1,0 +1,95 @@
+changelog.md
+  s_efb1d100d5a6fc::t_e64fa62da55fe2 5-12
+docs/README.md
+  s_efb1d100d5a6fc::t_177ac663d8b1e8 57
+docs/systems/controls.md
+  s_efb1d100d5a6fc::t_c321682e699c6d 27-31
+docs/systems/gadgets.md
+  s_efb1d100d5a6fc::t_57b8c18ef605f2 1-125
+docs/systems/items.md
+  s_efb1d100d5a6fc::t_e9d964a946b019 45-46
+src/audio.js
+  s_efb1d100d5a6fc::t_9a794c401ea3c5 37-38
+src/boxes/model.js
+  s_efb1d100d5a6fc::t_49aa4d0eac4647 376-378
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_b51ccbc8859b84 120-139
+src/changelog.js
+  s_efb1d100d5a6fc::t_311e92e4e933e0 12-18
+src/controller.js
+  s_efb1d100d5a6fc::t_a45ea7bffb4617 12-13,145-147
+src/costumes.js
+  s_efb1d100d5a6fc::t_7e367684053f79 426-433
+src/edge.js
+  s_efb1d100d5a6fc::t_b5464f68675b09 34
+src/foes.js
+  s_efb1d100d5a6fc::t_5beaea8ffb52b3 439
+src/gadgets/all.js
+  s_efb1d100d5a6fc::t_3a73617cef7ae6 1-10
+src/gadgets/bomb.js
+  s_efb1d100d5a6fc::t_82980ca19cac38 1-274
+src/gadgets/hook.js
+  s_efb1d100d5a6fc::t_b6e1f2f14cc809 1-356
+src/gadgets/hud.js
+  s_efb1d100d5a6fc::t_e2324d07b9a314 1-142
+src/gadgets/index.js
+  s_efb1d100d5a6fc::t_03ac5428a9e8e7 1-225
+src/gadgets/kit.js
+  s_efb1d100d5a6fc::t_5ea42ff14d78a6 1-295
+src/gadgets/registry.js
+  s_efb1d100d5a6fc::t_88b8703f63c07a 1-81
+src/gadgets/sfx.js
+  s_efb1d100d5a6fc::t_5d98e25efddfd1 1-40
+src/gadgets/world.js
+  s_efb1d100d5a6fc::t_983f6f09232b87 1-250
+src/gadgets/yard-kit.js
+  s_efb1d100d5a6fc::t_ec0af4c21587a2 1-226
+src/game-menu-data.js
+  s_efb1d100d5a6fc::t_c9921093748a48 13,19,24-25
+src/game-menu.js
+  s_efb1d100d5a6fc::t_d9aee3e00f6b9c 115
+src/items-page/main.js
+  s_efb1d100d5a6fc::t_d3f561743ce69f 7
+src/items-page/view.js
+  s_efb1d100d5a6fc::t_4ec6c9585553c0 3,20
+src/items.js
+  s_efb1d100d5a6fc::t_8556d4fed687fb 170
+src/levels/content.js
+  s_efb1d100d5a6fc::t_a768841031e430 134-144
+src/levels/gadget-yard.js
+  s_efb1d100d5a6fc::t_3f93fc284abb9b 1-109
+src/levels/index.js
+  s_efb1d100d5a6fc::t_fc51e6c643d658 11,204-210
+src/main.js
+  s_efb1d100d5a6fc::t_b90aa04f66a458 76-77,219,556,564,568,676-679,1063,1068,1399,1416,1737
+src/makehuman/people.js
+  s_efb1d100d5a6fc::t_453d4b88ca9d07 166
+src/reactive-world.js
+  s_efb1d100d5a6fc::t_b79903c8520b40 26
+src/ui.js
+  s_efb1d100d5a6fc::t_0e696f8e0c2135 76,86,96
+tests/gadgets.test.js
+  s_efb1d100d5a6fc::t_a8869d30adc0f7 1-376
+tests/hud.test.js
+  s_efb1d100d5a6fc::t_62a96b12999eab 146
+tests/makehuman.test.js
+  s_efb1d100d5a6fc::t_1ddc4a103bc175 88
+tests/scripts.test.js
+  s_efb1d100d5a6fc::t_1d488e00558bd4 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3841e0af42e7a8e29c032b3d8f0ee4cbdaa96fa6",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
