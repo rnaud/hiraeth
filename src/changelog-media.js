@@ -107,6 +107,13 @@ const desertAt = (eye, target, o = {}) => ({ level: 'desert', player: o.player ?
 const SAVE_DESERT = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] };
 const studio = (query, size = [960, 720]) => ({ page: 'studio.html', query: `${query}&paused=true`, size, wait: 3000 });
 const people = (list, o = {}) => ({ level: 'desert', people: list, size: [1280, 720], wait: 1500, ...o });
+// (a dune ray held buried a few steps ahead of the traveller, side on to a camera pinned close, so its fin and ripple show)
+const RAY_AHEAD = `for (let i = 0; i < 40 && !foes.list.some((f) => f.kind === 'ray'); i++) await new Promise((r) => setTimeout(r, 250));
+  const f = foes.list.find((x) => x.kind === 'ray'), P = player.pos, d = new THREE.Vector3(); camera.getWorldDirection(d); d.y = 0; d.normalize();
+  f.pos.set(P.x + d.x * 5 + d.z * 3, f.pos.y, P.z + d.z * 5 - d.x * 3); f.buried = true; f.state = 'chase'; f.heading = Math.atan2(-d.z, d.x); f.update = () => [];
+  const eye = f.pos.clone().addScaledVector(d, -3.6).add(new THREE.Vector3(0, 2, 0)), at = f.pos.clone(), q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new THREE.Vector3(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };`;
 const cx = (z) => 28 * Math.sin((z + 40) / 95);   // the Buried Machine's canyon centreline (buried.js canyonX)
 
 // (the story's second pass, v0.83: a save six worlds along the route, everything charted and heard so far)
@@ -125,10 +132,17 @@ const SEE_COLOURS = 'Open ?level=references and go to the world (Tab: all views)
 
 export const CHANGELOG_MEDIA = {
   '0.97': [
-    { match: 'The traveller has a new face and wavy hair', see: 'Open studio.html, choose the traveller and Face. Drag from the front to the side to see the new hair, level eye corners and neck fit; try neutral, delighted and worried, then enable Blinking and Talking.' },
-    { match: 'The traveller’s chin keeps the shape', see: 'In Character Studio, choose the traveller and Bust, then rotate to a side view. The jaw keeps its original profile while the neck still meets the scarf.' },
+    { match: 'The traveller has a new face and wavy hair', shots: [
+      { name: 'traveller-face', caption: 'The traveller’s face in the character studio, three quarters', commit: '06cea791', view: studio('view=face&yaw=0.5') },
+    ], see: 'Open studio.html, choose the traveller and Face. Drag from the front to the side to see the new hair, level eye corners and neck fit; try neutral, delighted and worried, then enable Blinking and Talking.' },
+    { match: 'The traveller’s chin keeps the shape', shots: [
+      { name: 'traveller-jaw', caption: 'The traveller’s face from the side, his jaw over the scarf, in the character studio', commit: '06cea791', view: studio('view=face&yaw=1.5') },
+    ], see: 'In Character Studio, choose the traveller and Bust, then rotate to a side view. The jaw keeps its original profile while the neck still meets the scarf.' },
   ],
   '0.96': [
+    { match: 'The dune ray is easier to read', shots: [
+      { name: 'ray-fin', caption: 'A dune ray under the Arena’s sand, close: what shows of it where it swims', commit: '99ad894a', view: { level: 'arena', query: 'foe=ray', quality: 'medium', wait: 1500, setup: RAY_AHEAD } },
+    ] },
     { match: 'The lock-on has a new reticle', shots: [
       { name: 'lock-reticle', caption: 'Locked on to a makers’ machine in the Arena', from: 'headless Chrome in the Arena against this branch’s own dev server, Medium, 1280 × 720 (8 October); the before draws v0.95’s circle, with its own style, at the same place' },
     ] },
