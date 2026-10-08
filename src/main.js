@@ -57,6 +57,7 @@ import { loadPeople, usesMakeHuman } from './makehuman/people.js';
 import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
 import { loadTravellerV1, createTravellerV1 } from './characters/traveller-v1.js';
+import { buildTravellerLod } from './characters/traveller-lod.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, ToolHud } from './ui.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
@@ -392,6 +393,9 @@ const generatedTraveller = await traveller;
 if (generatedTraveller) {
   player.character = createTravellerV1(player.char, generatedTraveller);
   player.humanoid = player.character.humanoid;
+  // his levels of detail when the camera is far enough (characters/traveller-lod.js: built in a worker,
+  // the full meshes until then and up close), picked each frame with the people's (skinnedLods)
+  buildTravellerLod(player.character).then((lod) => { if (lod) player.character.lod = skinnedLods.add(lod); });
 } else if (humanT) {
   const travellerTemplate = await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(() => null);
   if (travellerTemplate) {

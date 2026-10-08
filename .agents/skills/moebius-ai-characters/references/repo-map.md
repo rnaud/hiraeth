@@ -16,7 +16,7 @@ Resolve these paths relative to the current Moebius/Hiraeth checkout. Inspect cu
 - `src/characters/tripo-material.js`: imported-material adapter for the real game G-buffer.
 - `tools/tripo-render.js`: review-only renderer using the game pipeline; the live game retains its own world lighting and render passes.
 - `src/characters/traveller-v1.js`: game loader and integration; fitted skeleton, separate clothing, blended arm correction and contextual hand-pose adjustments.
-- `public/characters/traveller-v1/`: tracked `model.glb`, `rig.json` and `colors.json`. Promote these matching files together after review; instructions are in `scripts/tripo/README.md`.
+- `public/characters/traveller-v1/`: tracked `model.glb`, `rig.json` and `colors.json`. Promote these matching files together after review; instructions are in `scripts/tripo/README.md`. The shipped `model.glb` files are made by `scripts/tripo/slim-traveller.mjs` from the untouched exports in `data/characters/traveller-v1/`.
 - `tools/tripo-{fit,garment-geometry,cloth,hands,walk}.js`: compatibility re-exports of the shared runtime modules.
 - `tools/tripo-review.html`, `tools/tripo-review.js`: orbit/pan/zoom, view/focus presets, stepped motion, cloth/repairs/style comparisons and hand pose diagnostics.
 - `src/materials.js`, `src/post.js`, `src/pipeline.js`, `src/shadows.js`: actual game renderer. Prefer reuse over recreating a similar-looking filter.

@@ -29,9 +29,13 @@ shader and local head sculpt are deliberately absent from this new-asset study.
 Screenshots and provenance are alongside the source under `head-v2/`.
 
 The user approved this head and requested integration. Its byte-identical GLB is
-now tracked at `public/characters/traveller-v1/head-v2/model.glb`, with provenance.
+tracked at `data/characters/traveller-v1/head-v2/model.glb` (with `reference.png`);
+the game ships `public/characters/traveller-v1/head-v2/model.glb`, made from it by
+`node scripts/tripo/slim-traveller.mjs` (the same geometry, the texture at 2048²),
+beside its provenance.
 Its sampled `colors.json` supplies native engine VMs that cannot decode the JPEG.
-Reproduce it with `python3 scripts/tripo/sample-colors.py public/characters/traveller-v1/head-v2 --output colors.json`.
+Reproduce it from the source (a copy of `data/characters/traveller-v1/head-v2/model.glb`
+in a folder of its own) with `python3 scripts/tripo/sample-colors.py <that folder> --output colors.json`.
 `loadTravellerV1` loads it for the game, studio, trailer and motion viewer.
 `src/characters/tripo-head.js` fits and binds a clone to the existing Head/neck_01
 bones, trims the hidden foot, widens only a throat cylinder inside the lower neck to meet the scarf and
@@ -188,11 +192,16 @@ files re-export it for these experiments. After regenerating and accepting an as
 promote the three matching files together:
 
 ```sh
-cp output/character-tripo/rig-prototype.glb public/characters/traveller-v1/model.glb
+cp output/character-tripo/rig-prototype.glb data/characters/traveller-v1/model.glb
 cp output/character-tripo/rig-prototype.glb.json public/characters/traveller-v1/rig.json
 cp output/character-tripo/baseline/vertex-colors.json public/characters/traveller-v1/colors.json
-node --test tests/traveller-v1.test.js tests/tripo-*.test.js
+node scripts/tripo/slim-traveller.mjs     # the shipped model.glb: unused maps out, texture at 2048²
+node --test tests/traveller-v1.test.js tests/traveller-lod.test.js tests/tripo-*.test.js
 ```
+
+`data/characters/traveller-v1/` keeps the untouched exports (the body's and the head's, with
+their 4096² textures and Tripo's unused normal and roughness maps); `public/` ships what
+`slim-traveller.mjs` makes of them, geometry byte for byte the same.
 
 Keep the original source export unchanged. Verify the actual game, not only the
 origin-centred viewer: the CPU skinning proxies must follow the character's inverse

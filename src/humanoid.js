@@ -829,7 +829,8 @@ export class Humanoid {
     const indices = new WeakMap(), v = new THREE.Vector3();
     const indexOf = (geo) => {
       if (indices.has(geo)) return indices.get(geo);
-      const P = geo.attributes.position, bare = geo.index, idx = bare?.array;
+      // (the bare list, not a level-of-detail index made from it: characters/traveller-lod.js)
+      const P = geo.attributes.position, bare = geo.index?.lodBase ?? geo.index, idx = bare?.array;
       let e = null;
       if (idx && !geo.groups.length) {
         const under = new Uint8Array(P.count), keep = [];

@@ -42,8 +42,49 @@ equipment anchors, preservation of interaction poses and colour consistency.
 The existing `tests/tripo-*.test.js` cover fitting, fingers and garment repairs.
 Visual review still matters. This v1 has no generated facial-expression rig,
 no cloth self/hand/environment collision, and no independently simulated sleeves;
-seated hems and tight hand grips remain iteration areas. The asset is about 10 MB
-plus 0.9 MB of repair colour data; it has no character-specific LOD yet.
+seated hems and tight hand grips remain iteration areas. The body file is 4.8 MB and the head's
+2.0 MB (see "What the traveller costs" below), plus 0.9 MB of repair colour data.
+
+### What the traveller costs (October 2026, v1.0)
+
+Measured in Chrome on the M3 Pro (`scripts/bench/traveller.mjs`, the desert, hour 10; the machine was
+busy, so the frame times are a guide only).
+
+**What was in the files.** The body's `model.glb` was 10.2 MB: geometry 4.3 MB (56 486 vertices,
+99 208 triangles, 53 joints, no shape keys or animations), a 4096² base-colour JPEG (1.7 MB) and two
+4096² maps nothing reads (Tripo's roughness JPEG, 1.3 MB, and normal PNG, 2.1 MB; the ink material
+reads only the base colour), plus the pre-fit positions no primitive uses (0.7 MB). The head's was
+3.2 MB: 33 374 vertices, 48 423 triangles, a 4096² JPEG (1.5 MB). As drawn he is 124–127 k triangles
+(body 61–64 k, head 45 k, overshirt 17.5 k, the rest 3 k), 34 draws a frame at Handheld and 51 at
+High, and his meshes are 223 k triangles a frame at Handheld (the G-buffer and the shadow passes) and
+431 k at High: 31–40 % of every view's triangles, the same 16 m away as up close.
+
+**Now.**
+- **Files** (`scripts/tripo/slim-traveller.mjs`, from the untouched exports kept in
+  `data/characters/traveller-v1/`): the geometry byte for byte the same (colors.json and the runtime
+  fitting index its vertices), the unused maps and accessors gone, the base colour at 2048²
+  (JPEG q90, 4:4:4). Body 10.2 → 4.8 MB, head 3.2 → 2.0 MB (13.3 → 6.9 MB; gzipped 10.1 → 3.9 MB);
+  the head's `reference.png` (1 MB, a review tool's) moved to `data/` too.
+- **Textures:** 4096² sampled no finer than 2048² anywhere he is seen. Rendered in one frame with each
+  (the face close shot at High on a Retina-sized 2560 × 1440 frame, full body, and at Handheld), the
+  pictures differ by under 0.1 / 255 on average (0.01 % of pixels by more than 8). GPU memory for his
+  textures 179 → 45 MB (two RGBA8 textures with mips; Chrome's graphics footprint fell 125 MiB); their
+  upload on the main thread during the load 350–430 → 90–100 ms; the decode (off the thread) about
+  350 → 250 ms.
+- **Levels of detail** (`src/characters/traveller-lod*.js`, built in a worker, ~1 s on the Mac, after
+  he is made): meshoptimizer's simplifier makes coarser index lists over the same vertices (body
+  64 k → 32 k / 16 k / 7.6 k / 3.2 k triangles at 1.4 / 3.3 / 9.2 / 37 mm, head 45 k → 23 k / 11 k /
+  5.4 k, overshirt 17.5 k → 8.7 k / 4.4 k / 2.1 k), appended to each geometry's index and picked by
+  its draw range: the skin, face keys, cloth cage, shaders and shadow passes are untouched. A level is
+  drawn where its error is under half the preset's `lodPx` on screen, and **never with the camera
+  within 3 m of his feet** (the conversations' close shots and two-shots are always full). The glove's
+  own index (Humanoid.wearGlove) gets its own levels. His triangles a frame: Handheld 223 k → 68 k
+  (full body at 3.3 m) / 64 k (behind him, the game's camera) / 41 k (16 m); High 431 k → 235 k /
+  220 k / 125 k; the face close shot unchanged. Compared in one frame, the follow view differs in
+  0.3 % of pixels (a few ink dots on the shirt), indistinguishable side by side.
+
+**Not measured:** the Retroid and the Deck (not connected); the frame-time gain (his GPU time on the
+Mac is about 0.5 ms at Handheld, under the busy machine's noise); the load's total on a device.
 
 ## Legacy traveller fallback: a person in a suit (v0.43)
 

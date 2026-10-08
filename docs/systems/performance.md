@@ -929,3 +929,14 @@ the canvas, nothing is drawn).
 route planned in 0.2 ms (the Signal Market, 196 m) and 0.4 ms (the City-Shaft, 232 m); the ride recorded 15 s to the
 stop: the Market 59.6 fps, p95 16.7 ms, no frame over 33 ms, JS 12.5 ms (p95 14.8); the City-Shaft 59.1 fps, two
 frames over 33 ms (the worst 50), JS 12.5 (p95 17.8).
+
+## The traveller's model (October 2026, v1.0)
+
+The traveller's `model.glb` was the biggest file in the build (9.7 MB) and is a cost in the game too:
+two 4096² textures (179 MB of GPU memory, 350–430 ms of main-thread upload during the load on the M3
+Pro) and 223 k triangles a frame at Handheld (431 k at High) whatever the distance, 31–40 % of a
+view's triangles. Now: the files 13.3 → 6.9 MB (unused maps out, the textures at 2048², geometry
+unchanged), his textures 45 MB and 90–100 ms, and levels of detail outside 3 m that bring him to
+64 k triangles a frame behind him at Handheld (220 k at High). The numbers, the method and the
+pictures' comparison: characters.md, "What the traveller costs"; the bench: `scripts/bench/traveller.mjs`.
+Not measured: the Retroid and the Deck, and the frame-time gain (under the Mac's noise).
