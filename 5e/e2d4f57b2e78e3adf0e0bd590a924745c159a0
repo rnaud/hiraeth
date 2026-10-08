@@ -1,0 +1,219 @@
+changelog.md
+  s_48c58ea8947042::t_4a3f69925b4de5 5,7,13-31,34-49
+docs/README.md
+  s_48c58ea8947042::t_f45ecf020bee43 34,65
+docs/game-brief.md
+  s_48c58ea8947042::t_05b4561c750e00 128
+docs/systems/controls.md
+  s_48c58ea8947042::t_72366cbccded4b 14,21,38,42-48,100-105,118
+docs/systems/dev-tools.md
+  s_48c58ea8947042::t_002d4ce293324f 3,13-21,70-106
+docs/systems/foes.md
+  s_48c58ea8947042::t_921aad3b7ca2e2 7,21,25,28,35-40,74-78,83-85,113-173,178,192
+docs/systems/items.md
+  s_48c58ea8947042::t_7d02aa3e6d5749 34-36
+docs/systems/materials.md
+  s_48c58ea8947042::t_475dc7f065aa7d 58,63-90,98-102,106-108,437-467
+docs/systems/movement-and-camera.md
+  s_48c58ea8947042::t_b0b290fd44d31d 1,18,47-117
+docs/systems/references.md
+  s_48c58ea8947042::t_c9f0398f9d3010 487-495
+docs/systems/rendering.md
+  s_48c58ea8947042::t_c7875d1b3a2d0b 473-513,516-518,644-645
+docs/systems/scout.md
+  s_48c58ea8947042::t_1834ffa11f8e97 7-52
+docs/systems/story.md
+  s_48c58ea8947042::t_630e9a686433ca 131
+docs/systems/ui.md
+  s_48c58ea8947042::t_5a961e5c05e068 150,152-153
+docs/systems/worlds.md
+  s_48c58ea8947042::t_6626472de22294 518-534,549-551,554-560
+index.html
+  s_48c58ea8947042::t_b79aa8595afce1 100-101,400,402-403,407,416-417
+items.html
+  s_48c58ea8947042::t_cec6e986647333 1-67
+scripts/item-pictures.mjs
+  s_48c58ea8947042::t_1f1ea5d69f102b 1-47
+scripts/mocap/mixamo-clips.json
+  s_48c58ea8947042::t_794724b2991cbc 104-110
+src/audio.js
+  s_48c58ea8947042::t_10e71e05aff85e 323-373,1707
+src/boot.js
+  s_48c58ea8947042::t_6a5c868415e898 5-6,19-27
+src/changelog-media.js
+  s_48c58ea8947042::t_83236b0e45e351 120-228,235-262
+src/changelog.js
+  s_48c58ea8947042::t_9d0a9c1c0b5f3e 12,17-35,43-58
+src/controller.js
+  s_48c58ea8947042::t_cfa8548189915a 6-9,52-53,107-108,135-139,148,151,173-175,181-183
+src/debug-save.js
+  s_48c58ea8947042::t_96c3430a7dd5b6 1-219
+src/desert-city.js
+  s_48c58ea8947042::t_b91b9d1bdab82e 7,150
+src/desert-landmarks.js
+  s_48c58ea8947042::t_ff0f6a7c7f92a2 2,133-135
+src/dune-glass-shader.js
+  s_48c58ea8947042::t_b3afb79a0ed17d 1-149
+src/feel.js
+  s_48c58ea8947042::t_b3e44541326a56 3-4,7,12,17,21
+src/fluid-blade.js
+  s_48c58ea8947042::t_8df79c3c3939d6 14,89-90,102,109-129,131,165,172-173,258,305-307,313,337,351-352,374-383,385-387
+src/fluid-kit.js
+  s_48c58ea8947042::t_288cbb82a4eccb 11-12,19-20,26,212,214
+src/fluid-tool.js
+  s_48c58ea8947042::t_6ff3d148c13c16 64,100-102,108,113,306,884,887,927-928,932,968,1001
+src/foes.js
+  s_48c58ea8947042::t_e4a43e8adf9285 7,38-61,69-80,82,84,90-93,109,112,122-123,139-140,150-151,160-166,172,174,176,179-180,246-248,266-270,282,298-313,317-318,320,322,324-344,351-352,361,381-420,422,424-425,427,446,448-450,459,487,497,537-599,621-622,643,645,651-652,657,663,670-677,727-733,747,761-765,767-770,772-779,782,789,798-799,802
+src/game-state.js
+  s_48c58ea8947042::t_cf39501789b4f1 70-74
+src/hands.js
+  s_48c58ea8947042::t_37a3c344be47e4 347
+src/items-page/main.js
+  s_48c58ea8947042::t_b046977840169e 1-105
+src/items-page/view.js
+  s_48c58ea8947042::t_ce29c0a3030033 1-28
+src/items-page/viewer.js
+  s_48c58ea8947042::t_c1d03b50895d80 1-153
+src/items.js
+  s_48c58ea8947042::t_38ca127b203692 28,33
+src/levels/bazaar.js
+  s_48c58ea8947042::t_ffa8d825ce53ff 2,70
+src/levels/glass-dunes-kit.js
+  s_48c58ea8947042::t_6c947ef4c5c815 3,5,15-22,42,53-54,70-79,115,135-149,171,174,180-188,195,201,215-308
+src/levels/glass-dunes.js
+  s_48c58ea8947042::t_49647085968a15 9,36-38,41-42,44,67-68,75-76,99-100,104,113,125-127,132,136-137,139-144,165-166
+src/levels/lab-kit.js
+  s_48c58ea8947042::t_ee6565aba2b7c4 2,55,76,93-96
+src/levels/reference-glassdunes.js
+  s_48c58ea8947042::t_f72949ec43584e 6,33,80,82,103,105-107,109-112,224-225,238-246,248,252
+src/life.js
+  s_48c58ea8947042::t_e6b2b6b5ccb925 229,235
+src/main.js
+  s_48c58ea8947042::t_919f87d8a9e11e 18,21,35,78,81,218-220,406,415-416,616-617,828,846,903,1023,1058-1060,1121-1123,1125-1126,1174-1177,1182,1324,1391-1397,1473,1475,1505-1514,1727
+src/materials.js
+  s_48c58ea8947042::t_38b43f21e7f123 7,15,100,102-105,141-142,329-338,341-345,499,613,759,905-907,911,913,915,930-931,1327-1359,1362-1400,1404-1409,1411-1423,1425,1687,1762,1827-1837,1919-1925,1980,2160-2161,2164,2169,2259-2260,2265-2273,2278-2283,2651-2653,2766,2774-2775
+src/player.js
+  s_48c58ea8947042::t_9e5bd7d54ae774 32,34-61,63-82,84-88,90-120,127-129,138-141,143-145,342,513-517,632,644,671,727,830-847,864,895,915,1022,1068-1129,1217,1221-1226,1228,1230-1314,1343-1349,1374-1380,1467-1469,1525,1538,1575,1583,1812,1977,1998,2002,2007-2012,2207-2208,2219,2715,2720,2730
+src/post.js
+  s_48c58ea8947042::t_a683904120d99b 424-428,451-452,461-462,478,480-481,490-492
+src/save-slots.js
+  s_48c58ea8947042::t_58be2442e7b82a 18-21,27-28,37
+src/scout.js
+  s_48c58ea8947042::t_59c802cb93fb8b 20-32,63,108-158,164-173,291-307,507-509,511,568-570,572,606,620-621,623,640
+src/shade.js
+  s_48c58ea8947042::t_4e07dc98125074 1-106
+src/shadows.js
+  s_48c58ea8947042::t_f2a68118d9aa56 154-179,269-270,272,274,293-296,300-301
+src/story/arzach-data.js
+  s_48c58ea8947042::t_0931417919f39b 33-34
+src/story/arzach.js
+  s_48c58ea8947042::t_6d3b3163effacf 7,458
+src/story/arzach2-data.js
+  s_48c58ea8947042::t_a9f13aeacb72f1 62,298
+src/story/arzach2.js
+  s_48c58ea8947042::t_9a505f3f6948c6 284
+src/story/bazaar-data.js
+  s_48c58ea8947042::t_3a42ae506224a1 347,374
+src/story/bazaar.js
+  s_48c58ea8947042::t_fe98bac752e2b6 158
+src/story/buried-data.js
+  s_48c58ea8947042::t_2e426dbe162300 50,366,392
+src/story/buried.js
+  s_48c58ea8947042::t_3bd02d997d5138 181
+src/story/desert-data.js
+  s_48c58ea8947042::t_6aa10d0f0e0d0c 98,713,727,768
+src/story/desert-errands.js
+  s_48c58ea8947042::t_c2f9c833a64e4e 137
+src/story/desert-spark.js
+  s_48c58ea8947042::t_d2b85f823fba7d 57
+src/story/desert.js
+  s_48c58ea8947042::t_633f7def4a56be 332,484,539
+src/story/edena-data.js
+  s_48c58ea8947042::t_c5d5bbbd4c86c2 70,73
+src/story/garage-data.js
+  s_48c58ea8947042::t_d0d0b26dd76272 55
+src/story/incal-data.js
+  s_48c58ea8947042::t_350d699c46eb24 57,67,585,604
+src/story/perdide-data.js
+  s_48c58ea8947042::t_3e681fb4a7ff03 24-25
+src/story/perdide.js
+  s_48c58ea8947042::t_9aac7b6f7621a3 7
+src/story/perdide2-data.js
+  s_48c58ea8947042::t_97bec84e5eac4d 33-36,56,64
+src/story/perdide2.js
+  s_48c58ea8947042::t_155c48d4bb426e 8,439
+src/swim.js
+  s_48c58ea8947042::t_d3e28972906f2a 133,281
+src/temples/hints.js
+  s_48c58ea8947042::t_18c532ce8482ce 63,105
+src/temples/incal.js
+  s_48c58ea8947042::t_e84a70cee48f86 107
+src/ui.js
+  s_48c58ea8947042::t_cb029cbaff2f0f 23,29,57,70,74-75,79,82-84,93-94,145,152,292-293
+src/wall-openings.js
+  s_48c58ea8947042::t_63d181d12bf1ca 1-130
+src/world-picker.js
+  s_48c58ea8947042::t_5c60bdb8373bde 4-7,15,18-32,39-42,51,59,78
+tests/abilities.test.js
+  s_48c58ea8947042::t_b962413d1dc705 70,87,180,182,184-186,191,203,445,447
+tests/camera-framing.test.js
+  s_48c58ea8947042::t_9e2be54cc9326e 8
+tests/combat.test.js
+  s_48c58ea8947042::t_b7f3c6965c55ff 40,70,80
+tests/controller.test.js
+  s_48c58ea8947042::t_b3ce1a64671cc9 32-33,80,84,87,89-91,106-109,119-124
+tests/controls.test.js
+  s_48c58ea8947042::t_333f0d7849455a 4,10,18
+tests/debug-save.test.js
+  s_48c58ea8947042::t_a7a1397effe087 1-201
+tests/fluid-tool.test.js
+  s_48c58ea8947042::t_b08adc30291259 52-53,74,76-77,81,83-85,102,124,144,161,289
+tests/foes.test.js
+  s_48c58ea8947042::t_71a2e2530d98df 195-202,213,263-344
+tests/glass-dunes.test.js
+  s_48c58ea8947042::t_deedd18beb7219 6-8,36-82,100,125,180-195,206-208
+tests/items-page.test.js
+  s_48c58ea8947042::t_63f54979248614 1-29
+tests/jets.test.js
+  s_48c58ea8947042::t_8968002a8b34a1 1-327
+tests/moment.test.js
+  s_48c58ea8947042::t_75435abf4c1212 231
+tests/motion-stable.test.js
+  s_48c58ea8947042::t_a4f11585687855 3,12-16,18-19,21-26,52-56,63-79
+tests/occlusion-taps.test.js
+  s_48c58ea8947042::t_1fc1d6a55351b5 44-45,49-65
+tests/push-fx.test.js
+  s_48c58ea8947042::t_b7cec9be5c5eb8 42-43,48
+tests/scout.test.js
+  s_48c58ea8947042::t_b376ac89dee5f1 4,249-348
+tests/shade.test.js
+  s_48c58ea8947042::t_257fa67e812653 166,168-171,175
+tests/shadow-edges.test.js
+  s_48c58ea8947042::t_dce40669dfc352 68
+tests/shadows.test.js
+  s_48c58ea8947042::t_dd755e929ddd9f 4,108-147
+tests/temples.test.js
+  s_48c58ea8947042::t_52edd675a59290 462-466,469-470,472-476
+tests/touch.test.js
+  s_48c58ea8947042::t_5f412b262cd643 25-28
+tests/wall-openings.test.js
+  s_48c58ea8947042::t_714f4fce93a648 1-92
+vite.config.js
+  s_48c58ea8947042::t_4b71860b7a863f 17-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5ee2d4f57b2e78e3adf0e0bd590a924745c159a0",
+  "prompts": {},
+  "sessions": {
+    "s_48c58ea8947042": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1190d-bf62-7790-93c6-3d4c8bd4b953",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
