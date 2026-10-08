@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { makeMaterial, WEATHER, DETAIL, TERMINATOR, TERMINATOR_TURN, FACET_EDGE, MODE_TERRAIN, HATCH_AA } from '../src/materials.js';
+import { makeMaterial, WEATHER, DETAIL, TERMINATOR, TERMINATOR_TURN, TERMINATOR_REACH, FACET_EDGE, MODE_TERRAIN, HATCH_AA } from '../src/materials.js';
 
 // Stable in motion (docs/systems/rendering.md): what flickered, crawled or slid as the camera moved, checked in
 // headless Chrome with the game's clock stepped by hand, and how each one is held still.
@@ -49,12 +49,32 @@ test('a curved surface takes its terminator from the light, not from its own sha
   assert.ok(TERMINATOR > FACET_EDGE && TERMINATOR <= 0.15, 'a few degrees from edge-on');
   const f = makeMaterial({ color: '#888', key: 't.motion.term' }).fragmentShader;
   // off the ground (a low sun's cast shadows stay) and off flat facets (FACET_EDGE takes those)
-  assert.ok(f.includes(`if (uMode != ${MODE_TERRAIN} && uFlat < 0.5)\n      sh = mix(sh, mix(1.0, sh, smoothstep(0.0, ${TERMINATOR}, ndl)), 1.0 - smoothstep(${TERMINATOR_TURN[0]}, ${TERMINATOR_TURN[1]}, nTurn));`),
-    'the shadow map fades in from the terminator');
+  assert.ok(f.includes(`if (uMode != ${MODE_TERRAIN} && uFlat < 0.5) {`)
+    && f.includes(`float bigForm = 1.0 - smoothstep(${TERMINATOR_TURN[0]}, ${TERMINATOR_TURN[1]}, nTurn);`)
+    && f.includes(`float nearEdge = 1.0 - smoothstep(0.0, ${TERMINATOR}, ndl);`)
+    && f.includes('sh = mix(sh, mix(beyond, sh, 1.0 - nearEdge), bigForm);'),
+    'the surface\'s own shadow map fades in from the terminator');
   // only on forms big on screen: a stalk's normal turns fast from pixel to pixel, and there the map's shade held it
   // still (letting it go made the desert's shrubs and ribs flicker more)
   assert.ok(TERMINATOR_TURN[0] < TERMINATOR_TURN[1] && TERMINATOR_TURN[1] <= 0.1);
   assert.ok(f.includes('float nTurn = length(fwidth(n));'), 'taken in uniform flow');
+});
+
+test('near its terminator a curved surface still takes the shadow of something else (no lit blotches in a shade)', () => {
+  // letting the map go whole there lit every fold of a coat, a neck, a cheek turned near edge-on inside a
+  // building's shadow: seen close in a conversation, lit blotches all over a person standing in the shade.
+  // The map is asked instead with its bias TERMINATOR_REACH times as deep: past the form's own body (its own
+  // grazing taps, the teeth), not past a wall or a tower standing well toward the sun.
+  assert.ok(TERMINATOR_REACH >= 8 && TERMINATOR_REACH <= 20);
+  const f = makeMaterial({ color: '#888', key: 't.motion.term2' }).fragmentShader;
+  assert.ok(f.includes(`getShadow(shadowAt, n, ndl, shadowPx, ${TERMINATOR_REACH.toFixed(1)}) * cloud : sh;`), 'the deep lookup, near the edge only');
+  assert.ok(f.includes('getShadow(shadowAt, n, ndl, shadowPx, 1.0) * cloud : 1.0;'), 'the ordinary one');
+  // every cascade's bias takes the factor
+  for (const b of ['uShadowBias0 * deep', 'uShadowBias * deep', 'uShadowBias2 * deep']) assert.ok(f.includes(b), b);
+  // the fine map's (3.4 texels of 2.4 cm / 2048) and the near map's (2.3 texels of 440 m / 4096) depths, in metres
+  const fine = 3.4 * (24 / 2048) * TERMINATOR_REACH, near = 2.3 * (440 / 4096) * TERMINATOR_REACH;
+  assert.ok(fine > 0.3 && fine < 1, `fine ${fine.toFixed(2)} m: deeper than a person's own folds, shallower than an arm's reach`);
+  assert.ok(near > 1.5 && near < 5, `near ${near.toFixed(2)} m: a tank's own silhouette within the filter`);
 });
 
 test('the fog and the haze are by distance from the eye, so their bands stay put on the ground as the view turns', async () => {

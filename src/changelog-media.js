@@ -206,6 +206,25 @@ export const CHANGELOG_MEDIA = {
       { name: 'cracks-qanat-street', caption: 'Inside Qanat’s gate: the tower and the house on the right, before streaked and blotched, now a few faint hairline cracks', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 10:00 (7 October); the before at the commit before the change. View: eye [209.1, 4, 363.6], target [178.8, 4, 381]' },
       { name: 'cracks-market-alley', caption: 'A back alley off the Signal Market’s street: drops of grime and patches of plaster gone, fine cracks on the green wall', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720, 10:00 (7 October); the before at the commit before the change. View: the market-alley view of v0.80' },
     ], see: 'Walk up to an old house in Qanat or a shop in the Signal Market: the walls are clean but for the odd fine crack, and none comes near a window or a door. Not every building has them.' },
+    { match: 'People seen close, in a conversation', shots: [
+      { name: 'shade-closeup', caption: 'The traveller close up in the shade on the City-Shaft’s rim at 17:00: the lit patches on his neck, cheek and coat are gone', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720, the camera 1 m from his face (7 October)' },
+      { name: 'shade-profile', caption: 'The same, from his side: the cheek and the collar stay in the shade', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720 (7 October)' },
+    ], see: 'Talk to someone standing in a building’s shadow (the City-Shaft’s rim late in the afternoon): faces and coats stay evenly shaded, no lit flecks along their folds.' },
+    { match: 'Climbing, the traveller no longer drags', shots: [
+      { name: 'climb-halo', caption: 'Climbing a villa’s shaded wall on the City-Shaft’s rim at 17:00: no dark ragged mass round his outline', from: 'headless Chrome against this branch’s own dev server and the commit before it, High, 1280 × 720, the game’s own camera (7 October)' },
+    ], see: 'Climb any wall in the shade and look at the wall round the traveller; in the City-Shaft’s shaded terraces, watch people’s feet as you turn the camera.' },
+    { match: 'Turning the camera quickly no longer makes distant shadows', see: 'At the City-Shaft’s rim, look across the pit and turn the camera quickly: the towers keep their shade through the turn.',
+      numbers: [
+        { title: 'The first frame after a quick 100° turn at the City-Shaft’s rim, 10:00, against the same view a few frames later (the light term)', unit: 'px changed', better: 'lower', device: 'Mac, headless Chrome on Metal, 1280 × 720, Handheld preset', source: 'docs/systems/rendering.md, “Shadows close up, on climbers and after a quick turn”', rows: [
+          { where: 'the frame after the turn (worst of four frame phases)', before: 35148, after: 0 },
+        ] },
+        { title: 'What it costs: average draw calls a frame over 12 frames (the shadow maps kept over frames now hold a little more)', unit: 'draws', better: 'lower', device: 'Mac, headless Chrome on Metal, 1280 × 720', source: 'docs/systems/rendering.md, “Shadows close up, on climbers and after a quick turn”', rows: [
+          { where: 'High, the rim across the pit', before: 1409, after: 1435 },
+          { where: 'High, a terrace along its street', before: 983, after: 1015 },
+          { where: 'Handheld, the rim across the pit', before: 952, after: 1012 },
+          { where: 'Handheld, a terrace along its street', before: 571, after: 622 },
+        ] },
+      ] },
   ],
   '0.88': [
     { match: 'Blows land with weight', see: 'In the Arena, cut an ink blot: a brief catch and a jolt as the blade connects; the third swing of the combo sends it flying.' },

@@ -32,7 +32,7 @@ import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { BrushTrail } from './brush.js';
-import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips } from './shadows.js';
+import { Cascade, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { JumpShadow } from './jump-shadow.js';
@@ -1118,10 +1118,12 @@ const shadowDir = new THREE.Vector3();
 const frameStats = { calls: 0, tris: 0, n: 0, culled: 0 };
 renderer.info.autoReset = false;   // one frame's draw calls over all its passes (the F readout)
 
-/** One shadow pass: place the cascade, hide what it doesn't need, render, show it again. */
-function shadowPass(c, reach, hide = []) {
+/** One shadow pass: place the cascade, hide what it doesn't need, render, show it again. A map kept over
+ *  several frames (kept) holds the casters of every view within VIEW_SLACK of this one (shadows.js). */
+function shadowPass(c, reach, hide = [], kept = false) {
   c.place(player.pos);
-  const off = shadowCull.hide(reach, c.texel, c.depth, 0.75, hide);
+  const off = shadowCull.hide(reach, c.texel, c.depth, 0.75, hide, kept ? VIEW_SLACK : null);
+  c.view = viewOf(camera, c.view);
   c.render(renderer, scene);
   // (a mesh whose shape its own material makes, drawn with that material: the traveller's overshirt, tripo-cloth.js)
   if (player.object.visible) for (const o of player.character?.shadowCasters ?? []) renderer.render(o, c.cam);
@@ -1169,13 +1171,15 @@ function renderFrame() {
   shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
   const camToPlayer = camera.position.distanceTo(player.pos);
   if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
-  if (turned || frameNo % preset.nearEvery === 0) shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8);
-  if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0)) {
+  // (and drawn again as soon as the view has turned or moved out of what the last one was culled for)
+  const nearKept = preset.nearEvery > 1;
+  if (turned || frameNo % preset.nearEvery === 0 || (nearKept && viewLeft(cascades.near.view, camera))) shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8, [], nearKept);
+  if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0) || viewLeft(cascades.far.view, camera)) {
     // pebbles and bushes don't need km-wide shadows (but a tile of boulders, globes or pillars does)
     const small = farPassSkips(tiled.small, cascades.far.texel);
     for (const o of small) o.visible = false;
     if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
-    shadowPass(cascades.far, camera.far);
+    shadowPass(cascades.far, camera.far, [], true);
     lod.viewPass();
     for (const o of small) o.visible = true;
   }

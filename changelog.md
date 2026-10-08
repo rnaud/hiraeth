@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.89 — 2026-10-07
 
+- Turning the camera quickly no longer makes distant shadows flick on and off: across the City-Shaft whole towers changed their shade for a moment after each turn, and after each cut in a conversation.
+- Climbing, the traveller no longer drags a dark, ragged smudge round himself on the wall, and people walking in the shade lose the dark blots that slid round their feet as the camera turned.
+- People seen close, in a conversation or with the camera pulled in, no longer catch patches of sunlight on their faces, necks and clothes while they stand in the shade.
 - Old walls no longer carry dark dirt streaks and blotches of broken plaster: they show the odd fine hairline crack instead, faint and branching, and not on every building, and a crack never runs over or close to a window, a door or anything fixed on the wall. You see it in Qanat, the Signal Market, at home and in the old towns of the other worlds.
 - When what the drone finds is well above or below you its word says so (“27 m, 10 m above”), and its flare on a goal far below you rises past your feet, so you see it from up there.
 - Indoors the drone keeps under the ceiling and short of the walls instead of pressing into them.

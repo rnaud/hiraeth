@@ -470,6 +470,47 @@ dunes 1.27/1.25 → 1.34/1.27 ms: within the noise. `tests/shadow-edges.test.js`
 lit fraction continuous and monotone across texel borders, the same for a window moved by whole texels (any
 spread), the cut near the half for every facing, and the spot tier's weighting.
 
+## Shadows close up, on climbers and after a quick turn (October 2026)
+
+The author's report: weird shadows on the people in conversations, round the traveller climbing, and many as
+the camera pans in the City-Shaft. Reproduced in headless Chrome (an A/B of the commit before and this one,
+the same placed views; the light term, `params.debug` 5, and the spot masks, 10, beside each). Three causes:
+
+- **Lit blotches on a person in the shade** (materials.js, `TERMINATOR_REACH`). The terminator fade ("Stable
+  in motion": a big curved surface's own shadow map let go within n·l 0 … `TERMINATOR` of edge-on, where its
+  grazing taps cut teeth) let go of the map *whole*, so every fold of a coat, a neck or a cheek near edge-on
+  dropped the shadow of a building too. Seen close (the conversation camera is about 1 m from a face, where
+  the whole body counts as a big form), a person standing in the shade was covered in lit blotches. Near the
+  terminator the map is now asked again with its depth bias `TERMINATOR_REACH` (12) times as deep: past the
+  form's own body (0.5 m in the fine map, 3 m in the near one), never past a wall or a tower standing well
+  toward the sun. One more lookup, for those pixels only. The Buried Machine's slow orbit (the teeth's test)
+  is unchanged: flicker 7.4–8.3 before and after, run to run.
+- **A dark ragged halo round the climber** (post.js `notPerson`). The spot blacks' enclosure and the crease
+  shading are screen-space: a person in front of a wall or the ground counted as the wall's pocket, so the
+  climber's wall got a near-black, spiky mass round his outline, and people walking in the shade dragged
+  blobs round their feet that slid as the view turned. A tap that lands on a person (gHatch.a's hero or figure
+  flag) now closes nothing in; the flags are read only for a tap that would count, as the grass's were.
+- **Shadows popping in after a turn** (shadows.js `VIEW_SLACK`, `viewOf`, `viewLeft`). The caster culling
+  drops what can't shade the view, for the view of the frame a map is drawn in; the far map is drawn every
+  3rd frame (4th on Handheld) and the near map every 2nd on the handheld presets, and looked at from the next
+  views too. After a quick turn the casters whose shadows had been off screen were missing until the next
+  draw: at the City-Shaft's rim, the first frame after a 100° turn changed 35 148 px of 921 600 (Handheld;
+  whole towers across the pit lit, then shaded), and the same after every conversation cut. A kept map now
+  keeps the casters of every view within 0.1 rad and 4 m of its own (each end of a caster's shadow sweep,
+  by its own distance from the eye), and is drawn again as soon as the camera leaves that: 0 px. Cost,
+  average draws a frame over 12 frames (the City-Shaft, three views, headless Chrome on the Mac): High 1409 → 1435, 983 → 1015,
+  1455 → 1467; Handheld 952 → 1012, 571 → 622, 969 → 989 (triangles +1–9 %); a turn faster than 0.1 rad
+  between two draws draws the kept map early.
+
+Tried and dropped: a ring of spot taps fixed to the world (in the surface's plane, or across the ray) instead
+of the screen. It held the masses still over a single 30° turn (the motion check's `swing30` on a City-Shaft
+terrace: 472 → 334 per 10 000) but not in a continuous turn (`swing`, 20 px a frame: no better) and it
+shimmered more in a slow pan (the Buried Machine: 26.7 → 30.8).
+
+`tests/shadows.test.js` (the slack keeps a tower 4° off screen and still drops one 30° off; when a map is
+redrawn), `tests/motion-stable.test.js` (the deep lookup near the terminator), `tests/occlusion-taps.test.js`
+(people close nothing in, for every flag they may carry).
+
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 
 (Since v0.89 the walls' grime streaks and chips are gone, replaced by sparse hairline cracks: materials.md,
@@ -600,7 +641,8 @@ What it found, and what holds it still now:
   n·l 0 … `TERMINATOR` (0.08), the line there the light's own, only where the form is big on screen (its normal
   turns under `TERMINATOR_TURN`, 0.02–0.06, per pixel: a stalk or a rib keeps the map's shade, which holds it still;
   letting it go made the desert's shrubs and ribs flicker more), never the ground (a low sun's cast shadows stay)
-  or flat facets (`FACET_EDGE`). The Buried Machine, orbiting its main pipe slowly: 9.3 → 1.5.
+  or flat facets (`FACET_EDGE`). The Buried Machine, orbiting its main pipe slowly: 9.3 → 1.5. (Another's
+  cast shadow still falls there: "Shadows close up, on climbers and after a quick turn".)
 - **Haze and fog turning with the view**: the far fog, its posterised bands, the haze layers and the line fade were
   functions of the view depth, a plane facing the camera, so as the view turned a band's edge swept across the
   ground and a trunk moved from the middle of the view to its side stepped a layer nearer. They are by distance
