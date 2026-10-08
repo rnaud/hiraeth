@@ -421,9 +421,12 @@ class Springs {
         this._scaled = Math.abs(sy - 1) > 1e-3;
       }
     }
+    // (the lift of last frame taken back where nothing placed the figure since: photo mode, a game that moves him)
+    if (O?.position && this._lifted && O.position.equals(this._lifted.at)) O.position.addScaledVector(this._lifted.up, -this._lifted.L);
+    this._lifted = null;
     if (!show) { this.ring.visible = false; return; }
     // he stands on the coils: the figure lifted by their length
-    if (O?.position) { O.position.addScaledVector(up, L); O.updateMatrixWorld(true); }
+    if (O?.position) { O.position.addScaledVector(up, L); O.updateMatrixWorld(true); const l = (this._lift ??= { at: new THREE.Vector3(), up: new THREE.Vector3(), L: 0 }); l.at.copy(O.position); l.up.copy(up); l.L = L; this._lifted = l; }
     const B = P.humanoid?.b;
     const right = _v.set(1, 0, 0);
     if (P.frame?.dir) { const d = P.frame.dir(P.heading, _w); right.crossVectors(d, up).normalize(); }

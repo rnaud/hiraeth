@@ -58,6 +58,12 @@ body.talking #gadget-chip, body.photo #gadget-chip { display: none; }
   font: 12px/1.4 ui-monospace, Menlo, monospace; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: #2b211f; }
 #touch .b-gadget { right: calc(112px + var(--safe-right)); bottom: calc(262px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; display: none; }
 body.gadget-on #touch .b-gadget { display: block; }
+body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !important; }   /* (a game, a conversation: nothing to use it on) */
+#gadget-wheel.many { width: 344px; height: 344px; margin: -172px 0 0 -172px; }
+#gadget-wheel.many .slot { width: 50px; height: 50px; margin: -25px 0 0 -25px; font-size: 21px; }
+#gadget-wheel.many .slot img { width: 44px; height: 44px; }
+#gadget-wheel.many .slot.none { font-size: 11px; }
+#gadget-wheel.many .slot.hi { transform: scale(1.18); }
 `;
 
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -155,9 +161,11 @@ export class GadgetHud {
     this.last.wheel = key;
     this.wheelEl.classList.toggle('on', !!list);
     if (!list) return;
-    const R = 112, n = list.length;
+    // (more than eight: a wider ring of smaller slots, so ten gadgets and "nothing" never touch)
+    const n = list.length, many = n > 8, R = many ? 136 : 112, C = many ? 172 : 150;
+    this.wheelEl.classList.toggle('many', many);
     this.wheelEl.innerHTML = '<div class="ring"></div>' + list.map((l, i) => {
-      const a = (i / n) * Math.PI * 2, x = 150 + Math.sin(a) * R, y = 150 - Math.cos(a) * R;
+      const a = (i / n) * Math.PI * 2, x = C + Math.sin(a) * R, y = C - Math.cos(a) * R;
       return `<div class="slot${i === hi ? ' hi' : ''}${l.none ? ' none' : ''}" style="left:${x.toFixed(0)}px;top:${y.toFixed(0)}px">${l.icon ? `<img src="${esc(l.icon)}" alt="">` : esc(l.glyph)}</div>`;
     }).join('') + `<div class="name">${esc(hi >= 0 ? list[hi].name : 'choose a gadget')}</div>`;
   }

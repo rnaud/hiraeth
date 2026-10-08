@@ -10,7 +10,7 @@ import * as THREE from 'three';
 //
 //   const icons = new ItemIcons({ scene, capture, build, place, onReady })
 //   icons.get(id)   → the picture's URL, or null (and it is queued)
-//   icons.pump()    draw the next one (main.js, each frame the menu is open); true if it drew one
+//   icons.pump(id?) draw the next one (main.js, each frame the menu is open; id: that one first); true if it drew one
 
 /** The slots' paper (src/game-menu.css .slot): the picture's backdrop, so it sits in the slot unframed. */
 export const ICON_PAPER = '#f3e7cc';
@@ -46,7 +46,9 @@ export class ItemIcons {
     return null;
   }
 
-  pump() {
+  pump(first = null) {
+    // (`first`: that one now, ahead of the queue: the gadget in hand, src/gadgets/index.js)
+    if (first && !this.cache.has(first)) { const i = this.queue.indexOf(first); if (i >= 0) this.queue.splice(i, 1); this.queue.unshift(first); }
     const id = this.queue.shift();
     if (!id) return false;
     let url = null;

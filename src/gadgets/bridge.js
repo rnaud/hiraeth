@@ -318,7 +318,7 @@ class Pen {
     if (this.ink < PEN.min) { this.ctx.notice?.('The pen is dry: its ink flows back in a moment.', 'pen-dry'); penSfx.empty(this.ctx.sound); return; }
     const P = this.ctx.player, a = this.aimNow();
     this.mode = a.pitch > PEN.wallAim ? 'wall' : 'bridge';
-    this.yaw = a.yaw; this.pitch = penPitch(a.pitch); this.len = 0; this.done = false; this.spent = 0; this.over = 0;
+    this.yaw = a.yaw; this.pitch = penPitch(a.pitch); this.len = 0; this.done = false; this.spent = 0; this.over = 0; this.aloft = false;
     this.state = 'draw';
     if (this.mode === 'bridge') {
       // from the feet, a step ahead: its top level with them
@@ -381,8 +381,10 @@ class Pen {
     }
     this.tip.copy(to);
     this.len += d; this.ink -= d; this.spent += d;
-    // laid onto a ledge level with it: once it has run a little way over solid ground, it is there
-    this.over = this.len > 1 && Number.isFinite(g) && g > to.y - 0.12 ? (this.over ?? 0) + d : 0;
+    // laid onto a ledge level with it: once it has run a little way over solid ground, it is there (only once
+    // it has left the ground it started on: drawn on along a plank, or along a floor, it runs on)
+    if (!Number.isFinite(g) || g < to.y - 0.3) this.aloft = true;
+    this.over = this.aloft && Number.isFinite(g) && g > to.y - 0.12 ? (this.over ?? 0) + d : 0;
     if (this.over > 0.4) this.done = true;
     const last = this.points[this.points.length - 1];
     if (this.tip.distanceTo(last) >= PEN.seg) this.points.push(this.tip.clone());
@@ -454,7 +456,7 @@ class Pen {
     if (!keep || !ph?.addCollider) return;
     const g = colliderGeometry(b.points, b.frames, b.ext, b.order, keep);
     if (!g) return;
-    b.handle = ph.addCollider(new THREE.Mesh(g));
+    b.handle = ph.addCollider(new THREE.Mesh(g), { noClimb: b.mode === 'wall' });   // (a wall stops you and foes: it is not climbed)
   }
 
   remove(b) {

@@ -20,6 +20,7 @@ const _cap = new THREE.Vector3();
 const _dir = new THREE.Vector3();
 const _m = new THREE.Matrix4();
 const _Y = new THREE.Vector3(0, 1, 0);
+const _nc = {};
 
 /** The BVH's options from a level's collision settings ({ strategy: 'CENTER' | 'AVERAGE' | 'SAH' }). */
 function bvhOptions({ strategy } = {}) {
@@ -117,8 +118,9 @@ export class Physics {
    * Static collision added after loading (the ship and its interior): the
    * meshes under `object` (minus noCollide) get their own BVH, and every query
    * below sees them together with the level. Returns a handle for removeCollider.
+   * o.noClimb: walked on and stopped by, never taken hold of to climb (the ink pen's walls: noClimbNear).
    */
-  addCollider(object) {
+  addCollider(object, { noClimb = false } = {}) {
     object.updateMatrixWorld(true);
     const geos = [];
     object.traverse((obj) => {
@@ -133,7 +135,7 @@ export class Physics {
     if (!geos.length) return null;
     const geometry = mergeGeometries(geos);
     geometry.computeBoundingBox();
-    const extra = { bvh: new MeshBVH(geometry), box: geometry.boundingBox.clone().expandByScalar(0.5), triangles: geometry.attributes.position.count / 3 };
+    const extra = { bvh: new MeshBVH(geometry), box: geometry.boundingBox.clone().expandByScalar(0.5), triangles: geometry.attributes.position.count / 3, noClimb };
     this.composite();
     this.extras.push(extra);
     return extra;
@@ -187,6 +189,15 @@ export class Physics {
   /** The moving colliders to where their objects are now (once a frame, before anyone moves: main.js). */
   syncMovers(dt) {
     for (const e of this.extras ?? []) if (e.moving) syncMover(e, dt);
+  }
+
+  /** Is a collider added with noClimb within r of p (the wall a climb would take hold of)? */
+  noClimbNear(p, r = 0.6) {
+    for (const e of this.extras ?? []) {
+      if (!e.noClimb || e.box.distanceToPoint(p) > r) continue;
+      if (e.bvh.closestPointToPoint(p, _nc, 0, r)) return true;
+    }
+    return false;
   }
 
   removeCollider(handle) {

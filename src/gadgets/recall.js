@@ -60,10 +60,10 @@ export function bombAdapter(b, bombs) {
   return {
     key: b, kind: 'bomb', pos: b.pos, radius: 0.45, object: b.mesh,
     yaw: () => 0, moving: () => b.vel.lengthSq() > 0.01,
-    alive: () => bombs.live.includes(b), can: () => true,
-    begin() { b.held = true; b.vel.set(0, 0, 0); },
+    alive: () => bombs.live.includes(b), can: () => !b.held || b.held === 'recall',   // (not one a bubble carries)
+    begin() { b.held = 'recall'; b.vel.set(0, 0, 0); },
     place(pos) { b.pos.copy(pos); b.vel.set(0, 0, 0); },
-    end() { b.held = false; b.vel.set(0, 0, 0); },
+    end() { if (b.held === 'recall') b.held = null; b.vel.set(0, 0, 0); },
   };
 }
 
@@ -300,7 +300,7 @@ class Recall {
   }
 
   update(dt, paused = false) {
-    if (paused) return;
+    if (paused) { this.hover = null; this.hide(); return; }   // (a conversation, a scene: cancel() stopped it; its trail and reticle go)
     this.cool = Math.max(0, this.cool - dt);
     this.history.update(dt, this.candidates());
     const P = this.ctx.player;

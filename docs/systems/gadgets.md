@@ -1,7 +1,8 @@
 # Gadgets
 
 Zelda-like things the traveller carries besides the backpack's tool (v0.91): one in hand at a time, used
-with its own button: the grappling hook, the ink bombs, the seeing lens and the spring boots; more come one file each.
+with its own button: ten of them, the grappling hook, the ink bombs, the boomerang, the magnet glove, the recall
+hourglass, the ink bridge pen, the seeing lens, the spring boots, the bubble wand and the gust fan; more come one file each.
 Try them all in the Gadget Yard (`?level=gadgetyard`, the Debug worlds list), where every gadget is yours.
 
 ## The framework (`src/gadgets/`)
@@ -50,8 +51,29 @@ Try them all in the Gadget Yard (`?level=gadgetyard`, the Debug worlds list), wh
 | the wheel (held 0.32 s) | D-pad ↑ held, the left stick points | B held, W A S D point | |
 
 With nothing in hand Y / △ is still the scout's ping, and the D-pad's ↑ the bell-note whistle while no
-gadget is owned (`gadgets.claims('ping' | 'bell')`, main.js); V still rings the bell. The game menu's Items
-panel takes a gadget in hand too (`onUse`).
+gadget is owned (`gadgets.claims('ping' | 'bell')`, main.js); V still rings the bell. B is also the fluid
+tool's second guard key: once a gadget is owned the runtime takes it out of the input before the tool reads
+it, so holding B for the wheel never raises the shield. The game menu's Items panel takes a gadget in hand
+too (`onUse`).
+
+## Played together
+
+One runtime holds all ten, so what one leaves behind is everyone's problem:
+- **Taken out of hand** (`unequip`) and **paused** (`control(…, paused)`: a menu, a conversation, a scene, the
+  ship, a game: main.js passes `!!minigame` too, so a game's buttons never throw a bomb) every instance
+  `cancel()`s; `update(dt, paused)` then hides what it drew (the magnet's field and glove, the hourglass's
+  trail, the bubble wand's reticle), the lens comes down and its composite step goes off, a bubble you
+  float in pops (what a bubble carries waits in it). The runtime hides the reticle and the lock marks once
+  when a pause starts. A gadget hides the shared reticle only if it showed it (`_ret` / `_shown`), so one
+  gadget's aim is never wiped by another's update.
+- **Held** things are tagged: a crate or a bomb `held` by one gadget (the hook, the magnet, a bubble, the
+  hourglass's `'recall'`, a rope) is not taken by another, and weighs nothing on a floor plate.
+- **Pictures**: the chip asks for the one in hand first (`drawIcon(id)`, `ItemIcons.pump(id)`), and while the
+  wheel is open the others are drawn, one a frame. More than eight in the wheel: a wider ring of smaller slots.
+- **Idle cost** (nothing in use, all ten owned, M-series Mac, µs a frame for `update` + `control`): the Gadget
+  Yard on High 104 + 13, on Handheld 103 + 16 (the yard's fire and pinwheels and its props are most of it:
+  the fan 27–34, the world 31–34); the Signal Market on High 49 + 14 (the hourglass's history of the nearest
+  cabs the most, 12). The lens's step in the composite is off (`uLens.x` 0) while it is down.
 
 ## Adding a gadget
 
@@ -113,7 +135,9 @@ meets a foe; another bomb in the blast goes off `chain` 0.15 s after. The blast 
 metres is gone) and are thrown, crates are thrown up and away (a metal one a quarter as far), cracked walls
 in reach break, the fluid tool's other targets are pushed, the traveller is thrown back but not hurt; a star
 of ink is splashed on the ground (the fluid tool's splats). Three in the pouch (`refillPouch`: one back
-every 5 s). Tests: the throw's angle and range against the maths, the bounce, the falloff, the pouch, a
+every 5 s). A bomb that falls off the world (`lostBomb`: `lost.drop` 12 m under where it was thrown, falling,
+nothing within `lost.below` 30 m under it, looked at every quarter second) is taken away without a blast.
+Tests: the throw's angle and range against the maths, the bounce, the falloff, the pouch, a
 blast on a foe, a crate, a cracked wall (solid, then not) and the traveller, a bomb thrown, bouncing and
 chaining.
 
@@ -161,7 +185,10 @@ Aimed up past `wallAim` 0.6 rad as you start, it draws a wall instead: `wallH` 2
 7 m across, `wallAt` 3 m ahead on the ground, hatched in long diagonals and cross-hatched toward its foot.
 
 - **Solid**: a box per segment (`colliderGeometry`) through `physics.addCollider`, rebuilt as it wears
-  (the boxes of the segments left). The traveller walks and climbs on it, foes walk on it and are stopped
+  (the boxes of the segments left). A wall's collider is added `noClimb`: `physics.noClimbNear` tells
+  `player.startClimb` to leave it alone (you slide along it; the hook reeling you to it does not hang you on it).
+  A line ends on a ledge level with it only once it has left the ground it started on (`aloft`), so drawn on
+  along a plank already standing, or along a floor, it runs on. The traveller walks and climbs on it, foes walk on it and are stopped
   by a wall (their step test is a ray), bombs bounce off it, the bike drives on it.
 - **Against the wind**: a wall's segments are screens (`addScreen`); `screened(pos, dir)` says whether a
   body is behind one upwind within 6 m. A temple's gust (src/temples/pieces.js `Gust`) leaves you, and the
@@ -198,7 +225,9 @@ caught within `catch` 1 m. On the way (`strike`, once each):
   one stills the foes.
 
 A wall on the way out turns it home with a clink (a glancing touch, or a lock's own solid, is passed);
-coming home it glances off walls (4 at most, then it passes through). Its sounds are its own (`snd`).
+coming home it glances off walls (4 at most, then it passes through). Its sounds are its own (`snd`). A lock needs a line of sight from the glove or the eye
+(`inSight`: the world may be met only within `ownReach(radius)` of the thing's middle, its own cage), and a
+mode carried spends a charge of the tank (`tool.reserve.use()`); with none left it flies plain.
 Tests (`tests/boomerang.test.js`): the path through each lock, the homing's turn rate and return, the
 segment's hits, a throw stunning a foe and flipping a switch, the locks (three at most, never a taxi,
 nothing behind a wall), a wall turning it back, the ember lighting a lantern, a rope cut and its crate
@@ -237,7 +266,9 @@ Across 11 m from a ledge an iron block stands on a pillar: pull yourself over. T
 take a metal crate too. Tests (`tests/magnet.test.js`): the hold point, following, the stick, the aim's
 pick, tagging, a crate lifted, held level without climbing its own top, sent out and dropped, a tap
 throwing a crate and a machine, a machine lifted, dropped and hurt, the pull across a gap, the field's
-strokes, the bay (the plate only metal presses).
+strokes, the bay (the plate only metal presses). The strokes are fine pen lines (1.6 cm, `thin` 1.8 px) and
+`fieldWidth` thins them toward their ends and within 5 m of the eye, so by the glove, a hand from the
+camera, they are lines and not bars.
 ## The seeing lens (`lens.js`, id `monocle`; hidden things: `hidden.js`)
 
 Hold the use button and the traveller holds a monocle up (`LENS.rise`); let go and it comes down. While it
@@ -271,7 +302,10 @@ its own scene; each tagged object is kept out of the baked collision and hidden)
 In the worlds: inside Qanat's main gate, words on the west pylon's inner face and a stair of glass climbing
 over the avenue onto the lintel (src/desert-city.js); in the Buried Machine, two stone abutments with the
 makers' mark face each other across the canyon between the cross-walls (`BRIDGE_Z`), a bridge of glass
-between them and words on the west one (src/levels/buried.js). Tests (tests/lens-springs.test.js): the
+between them and words on the west one (src/levels/buried.js). Lowered while you stand on a ghost path
+(`standingOn`), it holds `LENS.grace` 1.5 s more, flickering faster as it goes, with a warning
+(`ghostGrace`); up again in time, it stays, and the glass rises on any meter at all meanwhile. A ghost
+bridge's planks just meet (a gap is one a step's ground ray falls through). Tests (tests/lens-springs.test.js): the
 meter, the raise, what shows at which raise, the ghost bridge solid only while up (and the false floor
 never), the slower drain on it, clouding over, reading once, the marks' projection, a foe exposed, the
 composite off by default, the cache, the yard's bay, the worlds' secrets.
@@ -293,7 +327,7 @@ forward at up to `SPRING.fwd` 11 m/s on an arc `SPRING.arc` as high. In the air:
 
 No landing on them hurts: while they carry him the fall guard is raised to `SPRING.guard` each frame
 before he moves (the charms set `fallGuard` again every frame, src/boxes/effects.js) and given back on
-landing. The coils hang under his feet (from the foot bones; the figure is lifted by their length) and
+landing (the figure's lift is taken back first where nothing placed it since: photo mode, a game moving him). The coils hang under his feet (from the foot bones; the figure is lifted by their length) and
 wobble (`coilWobble`, a damped spring) on each launch and landing. Tests: the heights and velocities, the
 bounce and stomp rules, a full launch's height and the guard given back, a chain of three bounces, a stomp
 breaking a cracked floor, pushing a foe and unearthing a cache, the stick held while winding.
@@ -301,7 +335,8 @@ breaking a cracked floor, pushing a foe and unearthing a cache, the stick held w
 
 Hold the use button to aim (the wand in hand, the reticle on what it would catch: "a foe", "a crate", "a
 bomb", "yourself"); let go to blow. One bubble at a time: another press pops it. The bubble flies to what
-the aim found (13 m/s; a crate or a bomb near the line is found with a wider assist, `cone` 0.12 rad), or out
+the aim found (13 m/s; a foe, a crate or a bomb near the line is found with a wider assist, `BUBBLE.assist`
+0.17 rad or 1.4 m, in sight of the wand), or out
 along the aim (10 m/s, slowing, popping on the first wall it meets) and closes round the first thing it
 touches. Carried, it rises at `BUBBLE.rise` 1.25 m/s, easing to a hover `maxRise` 7 m over where it caught
 its load (`riseSpeed`), and drifts on at `drift` 0.7 m/s the way it was blown (a gust or the fluid's push

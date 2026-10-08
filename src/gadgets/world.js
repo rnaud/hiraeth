@@ -216,7 +216,7 @@ export class GadgetWorld {
     const P = this.player;
     for (const pl of this.plates) {
       const near = (p, h = 1.2) => Math.hypot(p.x - pl.pos.x, p.z - pl.pos.z) < pl.radius && Math.abs(p.y - pl.pos.y) < h;
-      const on = (!pl.things && !!P && !P.ride && near(P.pos, 0.6)) || this.props.some((p) => p.object.visible && p.mass >= (pl.mass ?? 1) && near(p.pos, p.h + 0.4));
+      const on = (!pl.things && !!P && !P.ride && near(P.pos, 0.6)) || this.props.some((p) => p.object.visible && !p.held && p.mass >= (pl.mass ?? 1) && near(p.pos, p.h + 0.4));   // (one held up, by the magnet, a bubble, the hook, weighs nothing on it)
       if (on !== pl.on) { pl.on = on; sfx.click(this.sound, on); pl.onChange?.(on); }
       pl.k = THREE.MathUtils.damp(pl.k ?? 0, on ? 1 : 0, 14, dt);
       if (pl.object) pl.object.position.y = pl.pos.y - 0.08 * pl.k;

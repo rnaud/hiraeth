@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { registerGadget, GADGETS } from '../src/gadgets/registry.js';
 import hook from '../src/gadgets/hook.js';
 import bomb from '../src/gadgets/bomb.js';
-import monocle, { LENS, MARK, lensMeter, lensRaise, revealAt, lensMarks } from '../src/gadgets/lens.js';
+import monocle, { LENS, MARK, lensMeter, lensRaise, revealAt, lensMarks, ghostGrace } from '../src/gadgets/lens.js';
 import springs, { SPRING, BOUNCE, STOMP, launchHeight, launchVelocity, timeToLand, airPress, coilWobble } from '../src/gadgets/springs.js';
 import { HIDDEN, revealable, ghostPath, ghostBridge, hiddenWriting, buried, hiddenIn, unearth, riseHeight } from '../src/gadgets/hidden.js';
 import { GadgetWorld } from '../src/gadgets/world.js';
@@ -101,7 +101,7 @@ test('a ghost bridge holds you up only while the lens is up; a false floor is ne
   const e = ghostBridge(scene, v(-4, 3, 0), v(4, 3, 0), { sag: 0 });
   const fake = ghostPath(scene, [[0, 2, 6]], { illusion: true });
   const ph = new Physics(scene);
-  const P = player(v(0, 3, 0));
+  const P = player(v(0, 3, 9));   // (beside it, not on it: lowered, it goes at once)
   const L = monocle.create(ctxOf(P, ph, { scene }));
   L.update(DT);
   assert.equal(e.object.visible, false); assert.equal(fake.object.visible, true);
@@ -120,6 +120,51 @@ test('a ghost bridge holds you up only while the lens is up; a false floor is ne
   assert.ok(Math.abs(ph.groundAt(0, 10, 0) - 3) < 0.05);
   L.dispose();
   assert.equal(ph.groundAt(0, 10, 0), 0);
+});
+
+test('lowered while you stand on a ghost bridge, it holds LENS.grace s, flickering, then goes; raised again in time it stays', () => {
+  const scene = sceneWithGround();
+  const e = ghostBridge(scene, v(-4, 3, 0), v(4, 3, 0), { sag: 0 });
+  const ph = new Physics(scene);
+  const P = player(v(0, 3, 0)), notes = [];
+  const L = monocle.create(ctxOf(P, ph, { scene, notice: (t) => notes.push(t) }));
+  L.press(); for (let i = 0; i < 20; i++) L.update(DT);
+  assert.ok(Math.abs(ph.groundAt(0, 10, 0) - 3) < 0.05, 'up: stood on');
+  L.release();
+  for (let t = 0; t < LENS.grace - 0.2; t += DT) L.update(DT);
+  assert.ok(Math.abs(ph.groundAt(0, 10, 0) - 3) < 0.05, 'still holding you');
+  assert.ok(notes.some((n) => n.includes('fades')), 'a warning');
+  for (let t = 0; t < 0.4; t += DT) L.update(DT);
+  assert.equal(ph.groundAt(0, 10, 0), 0, 'then gone: you fall');
+  assert.equal(e.object.visible, false);
+  // up again on it, lowered, raised again within the grace: it never goes
+  L.idle = 0; L.meter = 1;
+  L.press(); for (let i = 0; i < 20; i++) L.update(DT);
+  L.release(); for (let t = 0; t < 0.8; t += DT) L.update(DT);
+  L.press(); for (let i = 0; i < 30; i++) { L.update(DT); assert.ok(Math.abs(ph.groundAt(0, 10, 0) - 3) < 0.05); }
+  assert.equal(e.grace ?? null, null, 'the grace is over: up again');
+  L.dispose();
+});
+
+test('ghostGrace: starts only under you, runs down, ends when you step off or the glass is up', () => {
+  assert.deepEqual(ghostGrace(null, { solidNow: true, wasSolid: true, standing: true, dt: 0.1 }), { grace: null, solid: true });
+  assert.deepEqual(ghostGrace(null, { solidNow: false, wasSolid: true, standing: false, dt: 0.1 }), { grace: null, solid: false });
+  const g = ghostGrace(null, { solidNow: false, wasSolid: true, standing: true, dt: 0.1 });
+  assert.ok(g.solid && Math.abs(g.grace - (LENS.grace - 0.1)) < 1e-9);
+  assert.deepEqual(ghostGrace(g.grace, { solidNow: false, wasSolid: true, standing: false, dt: 0.1 }), { grace: null, solid: false }, 'stepped off');
+  assert.deepEqual(ghostGrace(0.05, { solidNow: false, wasSolid: true, standing: true, dt: 0.1 }), { grace: null, solid: false }, 'run out');
+  assert.deepEqual(ghostGrace(null, { solidNow: false, wasSolid: false, standing: true, dt: 0.1 }), { grace: null, solid: false }, 'never up: nothing to hold');
+});
+
+test('a conversation or a scene (paused) brings the glass down and its view off the composite', () => {
+  const post = { uLens: { value: new THREE.Vector4() }, uLensMarks: { value: Array.from({ length: 8 }, () => new THREE.Vector4()) } };
+  const L = monocle.create(ctxOf(player(), new Physics(sceneWithGround()), { post }));
+  L.press(); for (let i = 0; i < 20; i++) L.update(DT);
+  assert.ok(post.uLens.value.x > 0.95);
+  for (let i = 0; i < 60; i++) L.update(DT, true);
+  assert.equal(L.up, false);
+  assert.equal(post.uLens.value.x, 0, 'the post step off');
+  assert.equal(L.held.visible, false);
 });
 
 test('the lens clouds over: it lowers itself when the meter is empty and will not rise again until it has cleared a little', () => {

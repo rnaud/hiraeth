@@ -266,9 +266,11 @@ class Hook {
         this.aimHit = this.trace();
         this.ctx.hud.reticle(this.aimHit.ok ? this.aimHit.point : null, this.aimHit.ok ? (this.aimHit.kind === 'anchor' ? 'anchor' : this.aimHit.kind === 'target' ? 'target' : 'ok') : 'far', this.aimHit.ok ? `${Math.round(this.aimHit.reach)} m` : 'out of reach');
         this.ctx.aimAt(this.aimHit.point, this.ray.dir);
+        this._ret = true;
       }
     }
-    if (!this.aiming) this.ctx.hud.reticle(null);
+    // (only once it stops aiming: another gadget's aim may hold the reticle meanwhile)
+    if (!this.aiming && this._ret) { this._ret = false; this.ctx.hud.reticle(null); }
     switch (this.state) {
       case 'out': {
         const T = this.target;

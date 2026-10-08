@@ -1808,6 +1808,8 @@ export class Player {
   }
 
   startClimb(n) {
+    // (a wall that is not to be climbed: the ink pen's, src/gadgets/bridge.js; he slides along it instead)
+    if (this.physics.noClimbNear?.(_v1.copy(this.pos).addScaledVector(this.frame.up, 1.2), RADIUS + 0.35)) { this._climbCooldown = Math.max(this._climbCooldown ?? 0, 0.3); return false; }
     // (where sand is banked up the wall, he takes hold standing on the bank at its face)
     const face = this.climbFloor(this.pos.x - n.x * (RADIUS - 0.06), this.pos.z - n.z * (RADIUS - 0.06));
     if (face !== null) this.pos.y = face;

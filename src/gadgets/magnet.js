@@ -78,15 +78,21 @@ export function pickMetal(origin, dir, cands, { range = MAG.range, cone = MAG.co
 
 // ------------------------------------------------------------------ the field's ink
 
+/** A field stroke's width (of its full 1.6 cm) at `k` along it (0 glove, 1 metal) and `eye` m from the camera. Pure. */
+export function fieldWidth(k, eye = Infinity) {
+  const ends = 0.4 + 0.6 * Math.sin(Math.PI * THREE.MathUtils.clamp(k, 0, 1));
+  return ends * THREE.MathUtils.clamp(eye / 5, 0.25, 1);
+}
+
 /**
  * Wavy ink strokes between two points (the magnet's field): a few lines bowing out round the straight
  * one, like the lines between a horseshoe's poles, drawn as short thin segments (one instanced mesh, kept a
  * pen line wide at any distance) in dashes that flow along them (toward the glove while it pulls).
  */
 export class FieldLines {
-  constructor(parent, { strokes = 5, segs = 22, px = 2.2 } = {}) {
+  constructor(parent, { strokes = 5, segs = 22, px = 1.8 } = {}) {
     this.strokes = strokes; this.segs = segs;
-    const g = thinPole(new THREE.CylinderGeometry(0.016, 0.016, 1, 4, 1, true).translate(0, 0.5, 0));
+    const g = thinPole(new THREE.CylinderGeometry(0.008, 0.008, 1, 4, 1, true).translate(0, 0.5, 0));   // (a pen line: fine, the thin pass keeps it 1.8 px far off)
     this.mesh = new THREE.InstancedMesh(g, makeMaterial({ color: '#ffffff', flat: true, thin: px }), strokes * segs);
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(strokes * segs * 3), 3);
     this.mesh.count = 0; this.mesh.frustumCulled = false; this.mesh.userData.noCollide = true;
@@ -95,7 +101,7 @@ export class FieldLines {
     this.colors = [INK, '#c8483a', INK, '#3b4a6b', INK];
   }
   /** The strokes from a to b at time t: amp (m) how far they bow, flow (+1 toward a, -1 toward b), spread (0..1 a fan, for a search). */
-  draw(a, b, t, { amp = 0.5, flow = 1, spread = 0, strokes = this.strokes } = {}) {
+  draw(a, b, t, { amp = 0.5, flow = 1, spread = 0, strokes = this.strokes, eye = null } = {}) {
     const d = _v.subVectors(b, a), L = d.length();
     if (L < 0.05) { this.mesh.count = 0; return; }
     d.divideScalar(L);
@@ -118,7 +124,10 @@ export class FieldLines {
         const seg = this._s.subVectors(P[1], P[0]), sl = seg.length();
         if (sl < 1e-4) continue;
         this._q.setFromUnitVectors(_Y, seg.divideScalar(sl));
-        this._m.compose(P[0], this._q, this._s.set(1, sl, 1));
+        // (thinner toward their ends, and close to the eye: a stroke by the glove, a hand's breadth from the
+        // camera, is a fine pen line, not a fat bar with its corners showing; the thin pass keeps it a line far off)
+        const ws = fieldWidth(k0, eye ? eye.distanceTo(P[0]) : Infinity);
+        this._m.compose(P[0], this._q, this._s.set(ws, sl, ws));
         this.mesh.setMatrixAt(n, this._m);
         this.mesh.setColorAt(n, this._c.set(this.colors[s % this.colors.length]));
         n++;
@@ -481,8 +490,9 @@ class Magnet {
     const { hud } = this.ctx;
     if (!paused) this.updateFalling(dt);
     if ((this.state === 'aim' || this.state === 'hold') && !this.canUse()) this.cancel();
-    if (paused) return;
-    const hand = this.hand(new THREE.Vector3());
+    // (a conversation, a scene: what was under way was let go (cancel); its field and the glove go with it)
+    if (paused) { this.field.hide(); this.glove.visible = false; this.pulse = 0; if (this._shown) { this._shown = false; hud.reticle(null); } return; }
+    const hand = this.hand(new THREE.Vector3()), eye = this.ctx.camera?.position ?? null;
     let showing = false;
     if (this.state === 'aim') {
       this.cand = this.pick();
@@ -490,13 +500,13 @@ class Magnet {
       if (c) {
         const d = hand.distanceTo(c.pos());
         hud.reticle(c.pos(), c.kind === 'fixed' ? 'anchor' : 'target', `${c.kind === 'fixed' ? 'fixed metal: pulls you' : c.kind === 'foe' ? 'machine' : 'metal crate'} · ${Math.round(d)} m`);
-        this.field.draw(hand, c.pos(), this.time, { amp: 0.25 + 0.03 * d, flow: 1, strokes: 3 });
+        this.field.draw(hand, c.pos(), this.time, { amp: 0.25 + 0.03 * d, flow: 1, strokes: 3, eye });
         this.ctx.aimAt(c.pos(), this.ray.dir);
       } else {
         // searching: a short fan of field lines feeling ahead
         const end = _g.copy(this.ray.origin).addScaledVector(this.ray.dir, 3);
         hud.reticle(null, 'far', 'no metal in reach');
-        this.field.draw(hand, end, this.time, { amp: 0.18, spread: 0.6, flow: -1, strokes: 3 });
+        this.field.draw(hand, end, this.time, { amp: 0.18, spread: 0.6, flow: -1, strokes: 3, eye });
         this.ctx.aimAt(end, this.ray.dir);
       }
       showing = true;
@@ -504,7 +514,7 @@ class Magnet {
       this.updateHold(dt);
       if (this.held) {
         const at = this.held.pos();
-        this.field.draw(hand, at, this.time, { amp: 0.35 + 0.04 * this.dist, flow: 1 });
+        this.field.draw(hand, at, this.time, { amp: 0.35 + 0.04 * this.dist, flow: 1, eye });
         hud.reticle(at, 'target', `${Math.round(this.dist)} m · left stick nearer / further`);
         this.ctx.aimAt(at, this.ray.dir);
         this.humT -= dt;
@@ -512,12 +522,12 @@ class Magnet {
         showing = true;
       }
     } else if (this.state === 'pull') {
-      this.field.draw(hand, this.point, this.time, { amp: 0.4, flow: -1 });
+      this.field.draw(hand, this.point, this.time, { amp: 0.4, flow: -1, eye });
       this.humT -= dt;
       if (this.humT <= 0) { this.humT = 0.25; snd.hum(this.ctx.sound, 1.3); }
     } else if (this.pulse > 0) {
       this.pulse -= dt;
-      this.field.draw(hand, this.pulseTo, this.time * 3, { amp: 0.6 * (1 - this.pulse / 0.35) + 0.1, flow: -2 });
+      this.field.draw(hand, this.pulseTo, this.time * 3, { amp: 0.6 * (1 - this.pulse / 0.35) + 0.1, flow: -2, eye });
     } else this.field.hide();
     if (showing) this._shown = true;
     else if (this._shown) { this._shown = false; hud.reticle(null); }

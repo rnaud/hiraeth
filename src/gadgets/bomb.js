@@ -21,7 +21,18 @@ export const BOMB = {
   radius: 4.5, power: 11, damage: 3,   // (damage: the blade's cuts close in: a blot in two metres is gone)
   chain: 0.15,                 // s: a bomb caught in another's blast goes off this soon after
   preview: 34,                 // dots on the arc
+  lost: { drop: 12, below: 30 }, // m: fallen this far under where it left the hand with nothing this far under it, it is gone (lostBomb)
 };
+
+/**
+ * Is a bomb lost (fallen off the world: over a chasm, past the edge)? Not held, falling, `drop` m or more under
+ * where it was thrown, and no ground within `below` m under it (groundGap: Infinity for none). Pure.
+ */
+export function lostBomb(y, y0, vy, groundGap, held = false, { drop = BOMB.lost.drop, below = BOMB.lost.below } = {}) {
+  if (held || vy >= 0) return false;
+  if (y < y0 - 150) return true;
+  return y < y0 - drop && !(groundGap <= below);
+}
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _u = new THREE.Vector3(), _q = new THREE.Vector3();
 const _Y = new THREE.Vector3(0, 1, 0);
@@ -144,7 +155,7 @@ class Bombs {
     mesh.traverse((o) => { o.userData.noCollide = true; });
     mesh.position.copy(pos);
     this.ctx.fx.add(mesh);
-    const b = { pos: mesh.position, vel: vel.clone(), fuse, mesh, spin: new THREE.Vector3().randomDirection(), tick: 0, rest: false };
+    const b = { pos: mesh.position, vel: vel.clone(), fuse, mesh, spin: new THREE.Vector3().randomDirection(), tick: 0, rest: false, y0: pos.y, lostT: 0 };
     this.live.push(b);
     return b;
   }
@@ -233,8 +244,19 @@ class Bombs {
     for (let i = this.live.length - 1; i >= 0; i--) {
       const b = this.live[i];
       if (b.fuse <= 0) { this.live.splice(i, 1); this.explode(b); }
-      else if (b.pos.y < -200) { this.live.splice(i, 1); b.mesh.removeFromParent(); }
+      else if (this.fellOff(b, dt)) { this.live.splice(i, 1); b.mesh.removeFromParent(); }
     }
+  }
+
+  /** Fallen off the world (lostBomb): looked at every quarter second once it is well under where it was thrown. */
+  fellOff(b, dt) {
+    const up = this.ctx.player?.frame?.up ?? _Y;
+    if (b.held || b.pos.y > b.y0 - BOMB.lost.drop) return false;
+    b.lostT -= dt;
+    if (b.lostT > 0) return false;
+    b.lostT = 0.25;
+    const g = rayWorld(this.ctx.physics, b.pos, _v.copy(up).negate(), BOMB.lost.below);
+    return lostBomb(b.pos.y, b.y0, b.vel.dot(up), g ? g.distance : Infinity, !!b.held);
   }
 
   /** The dotted arc from the hand, stopped where it meets the world; the blast's ring laid there. */

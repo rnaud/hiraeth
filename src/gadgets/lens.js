@@ -26,7 +26,23 @@ export const LENS = {
   foes: 32,          // m: weak points marked within
   expose: 1.5,       // s a foe stays exposed after it was seen
   pips: 5,
+  grace: 1.5,        // s a ghost path you stand on holds once the glass comes down (it pales and flickers: raise it again, or step off)
 };
+
+/**
+ * A ghost path's grace when the glass comes down under you (`grace`: s left, or null): starts when it would go
+ * while you stand on it, runs down, is over when the glass is up again or you are off it. Returns the new
+ * grace (null: none) and whether it is still solid. Pure.
+ */
+export function ghostGrace(grace, { solidNow, wasSolid, standing, dt }) {
+  if (solidNow) return { grace: null, solid: true };
+  if (grace == null) {
+    if (!wasSolid || !standing) return { grace: null, solid: false };
+    grace = LENS.grace;
+  } else if (!standing) return { grace: null, solid: false };
+  grace -= dt;
+  return grace > 0 ? { grace, solid: true } : { grace: null, solid: false };
+}
 /** The marks' kinds (src/post.js colours them): something to find, a weak point, writing. */
 export const MARK = { find: 0, weak: 1, writing: 2 };
 
@@ -160,7 +176,9 @@ class Lens {
 
   press() {
     if (!this.canUse()) return;
-    if (this.meter < LENS.again) { this.ctx.notice?.('The glass has clouded over: it clears in a few seconds.', 'lens-clouded'); sfx.clouded(this.ctx.sound); return; }
+    // (a path fading under you: the glass goes up again on what little has cleared)
+    const fading = this.entries.some((e) => e.grace != null);
+    if (this.meter < (fading ? 0.04 : LENS.again)) { this.ctx.notice?.('The glass has clouded over: it clears in a few seconds.', 'lens-clouded'); sfx.clouded(this.ctx.sound); return; }
     this.up = true; sfx.up(this.ctx.sound);
   }
   release() { this.lower(); }
@@ -175,7 +193,8 @@ class Lens {
   }
 
   update(dt, paused = false) {
-    if (paused) return;
+    // (a conversation, a scene, the ship: the glass comes down, and the view out of it with it)
+    if (paused) { this.lower(); this.k = lensRaise(this.k, false, dt); this.drawGlass(); this.held.visible = this.k > 0.05; if (this.held.visible) this.held.scale.setScalar(Math.max(0.01, this.k)); return; }
     const { ctx } = this, P = ctx.player;
     this.time += dt;
     this.adopt();
@@ -193,8 +212,15 @@ class Lens {
         if (e.rise >= 0.7 && !e.said) { e.said = true; if (e.message) ctx.notice?.(e.message, `lens-${e.id}`); sfx.found(ctx.sound); e.rise = 1; }
       }
       if (e.kind === 'buried' && !e.unearthed) { e.object.visible = false; continue; }
+      if (e.solidWhenSeen) {
+        // lowered while you stand on it: it holds a moment, pale and flickering, then goes (ghostGrace)
+        const g = ghostGrace(e.grace ?? null, { solidNow: r.solid, wasSolid: e.solid, standing: e.solid && this.standingOn(e), dt });
+        if (g.grace != null && e.grace == null) { ctx.notice?.('The path fades as the glass comes down: raise it again, or step off.', 'lens-fading'); sfx.clouded(ctx.sound); }
+        e.grace = g.grace;
+        if (g.grace != null) r.shown = Math.sin(g.grace * (10 + 18 * (1 - g.grace / LENS.grace))) > -0.4;   // (it flickers, faster as it goes)
+        setSolid(ctx.physics, e, g.solid);
+      }
       if (r.shown !== e.shown) { e.shown = r.shown; e.object.visible = r.shown; }
-      if (e.solidWhenSeen) setSolid(ctx.physics, e, r.solid);
       if (r.shown && e.message && !e.illusion && e.kind !== 'buried' && this.k > 0.6 && !this.read.has(e)) this.tryRead(e);
     }
     this.drawGlass(dt);
@@ -217,14 +243,20 @@ class Lens {
 
   /** Is he standing on a ghost path the glass holds up? */
   onGhost() {
-    const P = this.ctx.player;
-    if (!P?.onGround) return false;
-    for (const e of this.entries) {
-      if (!e.solid) continue;
-      e.box ??= new THREE.Box3().setFromObject(e.object).expandByScalar(0.3);
-      if (e.box.containsPoint(P.pos)) return true;
-    }
+    for (const e of this.entries) if (e.solid && this.standingOn(e)) return true;
     return false;
+  }
+
+  /** Is he on (or just over, a step's hop) this entry's planks? */
+  standingOn(e) {
+    const P = this.ctx.player;
+    if (!P) return false;
+    e.box ??= new THREE.Box3().setFromObject(e.object).expandByScalar(0.3);
+    if (!e.box.containsPoint(P.pos)) return false;
+    if (P.onGround) return true;
+    // (between two steps, or a hop: the ground under him is the path)
+    const g = this.ctx.physics?.groundAt?.(P.pos.x, P.pos.y + 0.3, P.pos.z, 1.5);
+    return Number.isFinite(g) && P.pos.y - g < 1.2;
   }
 
   /** Read writing seen up close, looked at, nothing in between: a notice, once. */

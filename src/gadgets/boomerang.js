@@ -37,7 +37,7 @@ const CARRY_TONES = { fire: ['#ff9a3c', '#ffd27a'], stun: ['#bfe9ff', '#7fc4e8']
 export const NO_LOCK = new Set(['vehicle', 'mount', 'npc', 'wildlife', 'prop', 'pool', 'reactive', 'tree', 'tiles', 'crates', 'veil', 'chimney']);
 const NO_STRIKE = new Set(['vehicle', 'mount']);
 
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _u = new THREE.Vector3(), _q = new THREE.Vector3();
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _u = new THREE.Vector3(), _q = new THREE.Vector3(), _ls = new THREE.Vector3();
 const _Y = new THREE.Vector3(0, 1, 0);
 
 /**
@@ -74,6 +74,24 @@ export function homeVelocity(pos, vel, target, speed, turn, dt, out = new THREE.
   const axis = _u.crossVectors(cur, want);
   if (axis.lengthSq() < 1e-10) axis.set(0, 1, 0); else axis.normalize();
   return out.copy(cur).applyAxisAngle(axis, step).multiplyScalar(speed);
+}
+
+/** How near a target's middle the world may be met and still count as its own solid (a lantern's cage, a switch's plate). */
+export const ownReach = (radius = 0.5) => Math.min(radius * 0.5 + 0.1, 0.9);
+
+/**
+ * Is `p` in plain sight from one of `eyes`: the line to it meets nothing, or only something within `own` m of
+ * it (its own solid)? (Pure but for the physics' rays.)
+ */
+export function inSight(physics, eyes, p, own = 0.4) {
+  for (const eye of eyes) {
+    if (!eye) continue;
+    const d = eye.distanceTo(p);
+    if (d < 1e-3) return true;
+    const hit = rayWorld(physics, eye, _ls.subVectors(p, eye).divideScalar(d), d);
+    if (!hit || hit.point.distanceTo(p) <= own) return true;
+  }
+  return false;
 }
 
 /** The targets a segment a→b passes within `r` of (their radius counted), nearest along it first. (Pure.) */
@@ -194,9 +212,9 @@ class Boomerang {
     if (!a) return null;
     const p = a.item.pos(), d = hand.distanceTo(p);
     if (d > BOOM.range || d < 1) return null;
-    const to = _v.subVectors(p, hand).divideScalar(d);
-    const block = rayWorld(physics, hand, to, d);
-    if (block && block.distance < d - (a.item.target?.radius ?? 0.5) - 0.4) return null;
+    // in sight: the line from the glove or from the eye meets nothing but the thing's own solid (a lantern
+    // hidden behind a post, or behind its own, is not locked on to)
+    if (!inSight(physics, [hand, camera.position], p, ownReach(a.item.target?.radius))) return null;
     return a.item;
   }
 
@@ -268,7 +286,9 @@ class Boomerang {
     const from = this.hand(new THREE.Vector3());
     const pts = this.locks.map((l) => l.pos().clone());
     const curve = this.plan(from, pts, this.aimEnd(new THREE.Vector3()));
-    const mode = CARRY.includes(tool?.mode) ? tool.mode : null;
+    // (a mode carried spends a charge of the tank, as a glob of it would; none left, it flies plain)
+    let mode = CARRY.includes(tool?.mode) ? tool.mode : null;
+    if (mode && tool.reserve && !tool.reserve.use()) { mode = null; this.ctx.notice?.('The tank is empty: the boomerang flies plain.', 'boom-dry'); }
     this.flight = {
       pos: from.clone(), vel: new THREE.Vector3(), curve, len: curve.getLength(), s: 0, phase: 'out', t: 0,
       pending: this.locks.map((l, i) => ({ ...l, at: pts[i] })), hit: new Set(), carry: [], mode, bounces: 0, spin: 0,

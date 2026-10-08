@@ -684,7 +684,7 @@ bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, 
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
 // the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand, D-pad ↑ or B changes it
 gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t), touch: isTouch,
-  icon: (id) => itemIcons.get(id), drawIcon: () => itemIcons.pump() });   // (the chip shows the gadget's own model, drawn once)
+  icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
@@ -1408,7 +1408,7 @@ function frame(ts) {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
-    gadgets.control(dt, busy() ? noInput : ctl, busy() || ship.playing);   // (before the traveller moves: the hook's reel sets his velocity)
+    gadgets.control(dt, busy() ? noInput : ctl, busy() || ship.playing || !!minigame);   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
     player.update(dt, busy() ? noInput : ctl, rig.yaw);
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;

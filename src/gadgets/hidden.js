@@ -112,7 +112,8 @@ export function ghostBridge(parent, a, b, { n = null, sag = 0.6, ...o } = {}) {
     const t = (i + 0.5) / count;
     pts.push(A.clone().lerp(B, t).add(new THREE.Vector3(0, -sag * 4 * t * (1 - t), 0)));
   }
-  return ghostPath(parent, pts, { depth: (L / count) * 0.96, ...o });
+  // (the planks just meet: a gap between two, however thin, is one a step's ground ray can fall through)
+  return ghostPath(parent, pts, { depth: (L / count) * 1.02, ...o });
 }
 
 /**

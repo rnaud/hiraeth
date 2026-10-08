@@ -125,6 +125,8 @@ export class Gadgets {
       return;
     }
     const g = gadgetInput(input), cur = this.current;
+    // (B is the gadgets' once one is owned: not the fluid tool's guard as well, read after this, src/fluid-tool.js)
+    if (input.KeyB && this.owned().length) input.KeyB = false;
     // the choose button: a tap, the next one; held, the wheel
     if (g.pick && !this.held.pick) { this.pickT = 0; }
     if (g.pick) {
@@ -179,11 +181,23 @@ export class Gadgets {
     if (id && !busy) {
       const h = cur?.hud?.() ?? {};
       const pad = typeof document !== 'undefined' && document.body?.classList?.contains('controller');
-      // its picture (the model drawn by the game's pipeline, src/item-icons.js), one draw while it is missing
+      // its picture (the model drawn by the game's pipeline, src/item-icons.js), drawn first while it is missing
       const url = this.icon?.(id) ?? null;
-      if (!url && this.drawIcon && !this._drawn?.has(id) && !paused) { (this._drawn ??= new Set()).add(id); this.drawIcon(); }
+      if (!url && !paused) this.drawPicture(id);
       this.hud.chip({ def: this.def(id), icon: url, ...h, key: pad ? 'Y / △' : typeof document !== 'undefined' && document.body?.classList?.contains('touch') ? '◆' : 'T' });
     } else this.hud.chip(null);
+    // the wheel open: the pictures of the others, one a frame (a moment no one minds a frame's cost)
+    if (this.wheelOn && !paused) { const next = this.owned().find((g) => !this._drawn?.has(g) && !this.icon?.(g)); if (next) this.drawPicture(next); }
+    // (a conversation, a scene: no reticle and no locks are left on the screen)
+    if (paused && !this._pausedHud) { this.hud.reticle(null); this.hud.marks?.([]); }
+    this._pausedHud = paused;
+  }
+
+  /** Draw one gadget's picture (once: a capture that fails is not tried again). */
+  drawPicture(id) {
+    if (!this.drawIcon || this._drawn?.has(id)) return;
+    (this._drawn ??= new Set()).add(id);
+    this.drawIcon(id);
   }
 
   /** The broken walls' chunks (world.debris) in one instanced mesh. */

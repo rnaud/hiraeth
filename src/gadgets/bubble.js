@@ -17,6 +17,7 @@ import { kick } from '../feel.js';
 
 export const BUBBLE = {
   range: 14,          // m: how far the aim looks for something to catch
+  assist: { cone: 0.17, near: 1.4 },   // rad round the aim, or m of its line, a foe, a crate or a bomb is found within (in sight)
   speed: 10,          // m/s an empty bubble is blown out at
   home: 13,           // m/s it flies to what the aim found
   drag: 1.4,          // 1/s an empty bubble slows
@@ -230,13 +231,21 @@ class Wand {
     const hand = this.hand(_u);
     let catchIt = null;
     if (hit.kind === 'target' && this.catchable(hit.target)) catchIt = hit.target;
-    // nothing caught on the line: a crate or a bomb close to it (aim assist)
+    // nothing caught on the line: a foe, a crate or a bomb close to it, in sight of the wand (aim assist)
     if (!catchIt) {
-      const near = Math.min(BUBBLE.range, hit.kind === 'world' ? hit.distance + 1 : BUBBLE.range);
-      const props = (world?.props ?? []).filter((p) => p.object.visible && !p.held).map((p) => ({ pos: p.pos, t: { kind: 'prop', prop: p, position: () => p.pos } }));
-      const bombs = (this.ctx.gadget?.('bomb')?.live ?? []).filter((b) => !b.held).map((b) => ({ pos: b.pos, t: { kind: 'bomb', bomb: b, position: () => b.pos } }));
-      const a = assistPick(this.ray.origin, this.ray.dir, [...bombs, ...props], { range: near, cone: 0.12, near: 1 });
-      if (a) catchIt = a.item.t;
+      const near = Math.min(BUBBLE.range, hit.kind === 'world' ? hit.distance + 1.5 : BUBBLE.range);
+      const props = (world?.props ?? []).filter((p) => p.object.visible && !p.held).map((p) => ({ pos: p.pos, r: p.r, t: { kind: 'prop', prop: p, position: () => p.pos } }));
+      const bombs = (this.ctx.gadget?.('bomb')?.live ?? []).filter((b) => !b.held).map((b) => ({ pos: b.pos, r: 0.2, t: { kind: 'bomb', bomb: b, position: () => b.pos } }));
+      const foes = (this.ctx.foes?.list ?? []).filter((f) => f.alive && f.chest).map((f) => ({ pos: f.chest, r: f.def?.radius ?? 0.5, t: { kind: 'foe', foe: f, position: () => f.chest } }));
+      const cands = [...bombs, ...props, ...foes];
+      for (let i = 0; i < 3 && !catchIt; i++) {
+        const a = assistPick(this.ray.origin, this.ray.dir, cands, { range: near, cone: BUBBLE.assist.cone, near: BUBBLE.assist.near });
+        if (!a) break;
+        const it = a.item, d = hand.distanceTo(it.pos);
+        const block = d > 0.5 ? rayWorld(physics, hand, _q.subVectors(it.pos, hand).divideScalar(d), d) : null;
+        if (!block || block.point.distanceTo(it.pos) <= it.r + 0.4) catchIt = it.t;
+        else cands.splice(cands.indexOf(it), 1);   // (behind something: the next nearest the line)
+      }
     }
     if (catchIt) {
       const p = catchIt.position();
@@ -395,8 +404,15 @@ class Wand {
     if (P.jetFlight) P.endJets?.();
   }
 
-  update(dt) {
+  update(dt, paused = false) {
     const { player: P, camera } = this.ctx, up = this.up;
+    if (paused) {
+      // (a conversation, a scene: floating yourself, the bubble pops and lets you down; what it carries waits in it)
+      this.aiming = false; this.held.visible = false;
+      if (this.showRet) { this.ctx.hud?.reticle?.(null); this.showRet = false; }
+      if (this.bubble?.kind === 'self') this.pop('gone');
+      return;
+    }
     this.cool = Math.max(0, this.cool - dt);
     if (this.aiming && !this.canUse()) this.aiming = false;
     // aiming: the wand in hand, the reticle on what it would catch

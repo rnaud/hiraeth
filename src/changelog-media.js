@@ -252,6 +252,13 @@ export const CHANGELOG_MEDIA = {
       { name: 'magnet-hangar', only: 'after', caption: 'Pulled up to the signal board’s iron face by the path from the start, holding on', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), ?level=garage' },
     ], see: 'In the Gadget Yard, the bay with the grey banner: hold T (Y / △) on the metal crate up on the tower; W and S bring it nearer and further. From the ledge up the steps, tap it at the iron block across the gap.' },
     { match: 'The Gadget Yard has two more bays', see: 'In the magnet’s bay, lift the crate off the tower, over the wall of the pit beside it and onto the plate inside: the gate of the alcove sinks, and a pot of ink waits there.' },
+    { match: 'The ten gadgets play well together', shots: [
+      { name: 'wheel-ten', only: 'after', caption: 'All ten in the wheel, each with its own picture, round a wider ring; holding B no longer raises the fluid shield behind it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+    ], see: 'In the Gadget Yard hold an aiming gadget (the hook, the magnet, the lens), then tap B, or start a conversation: nothing of it is left on the screen. Wear the spring boots and open photo mode: you stay on the ground.' },
+    { match: 'Gadget fixes: lower the seeing lens', shots: [
+      { name: 'lens-fade', only: 'after', caption: 'The lens lowered halfway across the Buried Machine’s bridge of glass: it holds a moment longer, flickering, before it goes', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), ?level=buried' },
+      { name: 'magnet-field', only: 'after', caption: 'The magnet holding a metal crate: its field in fine dashed pen lines bowing round the line, thinner toward the glove', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), the Gadget Yard' },
+    ], see: 'In the Buried Machine raise the lens on the bridge of glass, walk out and lower it: you have a moment and a half to raise it again. In the Gadget Yard draw a plank, stand on it and draw on along it: it runs past its end.' },
   ],
   '0.89': [
     { match: 'The Glass Dunes’ glass glows from within', shots: [
