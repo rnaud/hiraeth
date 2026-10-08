@@ -1,0 +1,73 @@
+changelog.md
+  s_efb1d100d5a6fc::t_8a0eb5774b0c52 23-24
+docs/systems/foes.md
+  s_efb1d100d5a6fc::t_34882d75d19711 21
+docs/systems/gadgets.md
+  s_efb1d100d5a6fc::t_35ee56242c37fb 4-5,54-76,138-140,188-191,228-230,269-271,305-308,330,338-339
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_13d2510827cafe 255-261
+src/changelog.js
+  s_efb1d100d5a6fc::t_f043e46f49675b 44-45
+src/gadgets/bomb.js
+  s_efb1d100d5a6fc::t_7f810d3efe75a2 24,27-36,158,247,251-261
+src/gadgets/boomerang.js
+  s_efb1d100d5a6fc::t_cb1a3ee57fe234 40,79-96,215-217,289-291
+src/gadgets/bridge.js
+  s_efb1d100d5a6fc::t_0a8d6049fea4a3 321,384-387,459
+src/gadgets/bubble.js
+  s_efb1d100d5a6fc::t_e583ce629a61dd 20,234,236-248,407,409-415
+src/gadgets/hidden.js
+  s_efb1d100d5a6fc::t_f967cbd3211574 115-116
+src/gadgets/hook.js
+  s_efb1d100d5a6fc::t_d0931847e6d237 269,272-273
+src/gadgets/hud.js
+  s_efb1d100d5a6fc::t_c20ee24e24f282 61-66,164-166,168
+src/gadgets/index.js
+  s_efb1d100d5a6fc::t_ac0d24b1a28352 128-129,184,186,189-200
+src/gadgets/lens.js
+  s_efb1d100d5a6fc::t_1f4d59ef1037c1 29,31-45,179-181,196-197,215-222,246,250-261
+src/gadgets/magnet.js
+  s_efb1d100d5a6fc::t_c9d26a1dcf7b43 81-86,93,95,104,127-130,493-495,503,509,517,525,530
+src/gadgets/recall.js
+  s_efb1d100d5a6fc::t_ea1fe6c1a0f765 63-64,66,303
+src/gadgets/springs.js
+  s_efb1d100d5a6fc::t_038ccc8e5eeca2 424-426,429
+src/gadgets/world.js
+  s_efb1d100d5a6fc::t_784c9535adcd11 219
+src/item-icons.js
+  s_efb1d100d5a6fc::t_d052ad55bb64b9 13,49-51
+src/main.js
+  s_efb1d100d5a6fc::t_09a73a3a5d1fbf 687,1411
+src/physics.js
+  s_efb1d100d5a6fc::t_631b83818a3a8f 23,121,123,138,194-202
+tests/lens-springs.test.js
+  s_efb1d100d5a6fc::t_b5798152896cfc 8,104,125-169
+src/player.js
+  s_29cb112ff4f8eb::t_8c8836e8f78494 1811-1812
+tests/gadgets-qa.test.js
+  s_efb1d100d5a6fc::t_0567ef539c898d 1-332
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e6fc68bac3ed1af698e688d897a761612e296bee",
+  "prompts": {},
+  "sessions": {
+    "s_29cb112ff4f8eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae75f35c890b1b19f",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
