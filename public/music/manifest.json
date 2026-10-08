@@ -30,6 +30,34 @@
       "source": "https://suno.com/song/e2ea244e-d753-4d5a-a837-d4719b74566e",
       "file": "arzach2.mp3",
       "direction": "B flat dorian, 44 BPM; bowed drone, flute, singing bowls, hand bells; weightless monasteries above clouds"
+    },
+    {
+      "level": "garage",
+      "title": "Hiraeth - The Sealed Hangar",
+      "source": "https://suno.com/song/82f133c7-29b1-4ef1-969f-b76fb3132909",
+      "file": "garage.mp3",
+      "direction": "C whole tone, 84 BPM in 7; soft analog lead, sequenced pulse, clock ticks; playful machinery"
+    },
+    {
+      "level": "buried",
+      "title": "Hiraeth - The Buried Machine",
+      "source": "https://suno.com/song/613507e8-10c5-405d-9234-fbbf109663da",
+      "file": "buried.mp3",
+      "direction": "B Hungarian minor, 54 BPM; low brass, horn, metallic mallets; ancient engineering and patient awe"
+    },
+    {
+      "level": "edena",
+      "title": "Hiraeth - Viridel",
+      "source": "https://suno.com/song/26f8332a-4ea0-4382-bb8f-fb4a0b86a387",
+      "file": "edena.mp3",
+      "direction": "G mixolydian, 72 BPM in 6; harp, strings, flute, harmonium; pastoral wonder"
+    },
+    {
+      "level": "spheres",
+      "title": "Hiraeth - The Garden of Spheres",
+      "source": "https://suno.com/song/c8713297-62fb-4c87-908c-e5665523a877",
+      "file": "spheres.mp3",
+      "direction": "A major pentatonic, 60 BPM; glass harmonica, celesta, bells; luminous mirrored garden"
     }
   ]
 }
