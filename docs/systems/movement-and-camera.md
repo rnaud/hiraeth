@@ -100,7 +100,10 @@ plane." The camera no longer steers the flight; the nose does.
 **The camera** (`rig.follow`, main.js): while flying it comes round behind the nose like a ride's chase
 (`jetCameraPitch`: looking up with a climb, down a dive; the right stick or the mouse take it for 1.5 s),
 the arm `3.5 m + 0.12 s` wider with speed `s`, and it keeps the close-in framing where there is a ceiling
-(`shot.keepTight`).
+(`shot.keepTight`). When the chase ends (a landing, or the water, the wings, a wall or a ride taking over)
+the pitch eases back to the on-foot framing (`rig.settlePitch`, `PITCH_SETTLE`: ~95 % in 0.75 s, done in
+1 s): nothing on foot levelled it, so a dive left you looking at your feet. Turning the camera yourself
+(the right stick, the mouse) as you land gives it up. Tested in `tests/jets.test.js`.
 
 **The pose** (`jetPose(speed, pitch)`): the body leans along the nose about the hips (`JET_PIVOT`),
 the more the faster: upright slow or climbing straight up (a rocket), flat out level, head first in a

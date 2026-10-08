@@ -4,7 +4,6 @@ import { put } from './lab-kit.js';
 import { leafCrown } from './garden-kit.js';
 import { limb } from './mangrove-kit.js';
 import { cloth, curtain, stick } from './salt-harbour-kit.js';
-import { doorStainGeometry, stainColor } from '../door-stain.js';
 import { greebles } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -20,7 +19,7 @@ import { greebles } from './greeble-kit.js';
 //   eclipseMats(kit)  the city's materials (one per option set, the kit shares them)
 //   house             a limewashed house: a block with rounded corners, a drum, a tall tower;
 //                     flat-roofed with a lip, or under a dome; arched doors (dark, wooden, lit)
-//                     with the stain round them, small windows some lit, flower boxes, antennas
+//                     small windows some lit, flower boxes, antennas
 //   terrace           a terrace of big masonry blocks: its paving on top, a parapet along its front
 //   stairFlight       a broad stone stair, its low cheek walls each side
 //   table             a table outside, its cloth, stools, a lantern on it, people eating round it
@@ -40,6 +39,10 @@ import { greebles } from './greeble-kit.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 export const TAU = Math.PI * 2;
+// The stain once laid round every door drew five of the town's numbers; it is gone (v0.89), but its draws are
+// still made so that every house, table and lantern after it stays where it was.
+export const STAIN_DRAWS = 5;
+export const skip = (rng, n) => { for (let i = 0; i < n; i++) rng(); };
 const SOLID = { solid: true, shadow: true }, NC = { solid: false, shadow: false }, SH = { solid: false, shadow: true };
 
 // ------------------------------------------------------------------ the look
@@ -88,7 +91,6 @@ export function eclipseMats(kit) {
     tower: kit.mat({ color: T.lime[0], flat: true, grid: 2.2, patches: 0.4, ...LT }),
     paving: kit.mat({ color: T.paving, flat: true, grid: 2.6, ...LT }),
     step: kit.mat({ color: T.stone, flat: true, hatch: 0.4, ...LT }),
-    stain: T.lime.map((c) => kit.mat({ color: '#' + stainColor(c, 0.22).getHexString(), flat: true, line: 0.25, lineTint: 1, ...LT })),
     dark: kit.mat({ color: T.dark, flat: true }),
     door: kit.mat({ color: T.door, flat: true, ...LT }),
     doorLit: kit.mat({ color: T.doorLit, glow: 0.85, flat: true, spot: 0 }),
@@ -137,7 +139,7 @@ function archShape(w, h, seg = 6) {
  * height, the front's distance from the centre) and adds the lights of its lit doors (kit.light).
  */
 export function house(kit, M, rng, { x, y = 0, z, w = 7, d = w, h = 6, yaw = 0, kind = 'block', roof = 'flat', k = 0.75, doors = 1, windows = 3, lit = 0.4, wood = 0.3, sides = 1, flowers = 0.3, antenna = 0.2, mat = null, cr = 0.9, detail = 1, solid = true, light = true }) {
-  const wall = typeof mat === 'string' ? M[mat] : mat ?? kit.pick(M.lime), wi = M.lime.indexOf(wall), stain = M.stain[Math.max(0, wi)];
+  const wall = typeof mat === 'string' ? M[mat] : mat ?? kit.pick(M.lime);
   const how = solid ? SOLID : SH, seg = Math.max(10, Math.round(22 * detail));
   const round = kind !== 'block', R = w / 2;
   if (round) kit.add(wall, put(new THREE.CylinderGeometry(R, R * 1.02, h, seg, 1, true), x, y + h / 2, z, yaw), how);
@@ -178,7 +180,7 @@ export function house(kit, M, rng, { x, y = 0, z, w = 7, d = w, h = 6, yaw = 0, 
   for (let i = 0; i < doors; i++) {
     const u = doors === 1 ? (rng() - 0.5) * Math.max(0, span - dw - 1) * 0.5 : (-span / 2 + dw) + (i * (span - 2 * dw)) / Math.max(1, doors - 1);
     const r = rng(), m = r < lit ? M.doorLit : r < lit + wood ? M.door : M.dark;
-    kit.add(stain, onFace(doorStainGeometry(rng, dw, dh, round ? R : 0), u, 0, 0), NC);
+    skip(rng, STAIN_DRAWS);   // (where the stain round the door drew its numbers: the town keeps its layout)
     kit.add(m, onFace(archShape(dw, dh).translate(0, 0, 0.02), u, 0, 0), NC);
     if (m === M.doorLit && light) {
       // (its pool on the ground and the wall round it: a little out from the door)
@@ -203,10 +205,10 @@ export function house(kit, M, rng, { x, y = 0, z, w = 7, d = w, h = 6, yaw = 0, 
   return { top, front: round ? R : d / 2 };
 }
 
-/** A doorway in a flat wall at (x, y, z) (its foot), the wall facing yaw: the stain round it, the door (lit, wooden or dark); a lit one lights the ground before it. */
+/** A doorway in a flat wall at (x, y, z) (its foot), the wall facing yaw: the door (lit, wooden or dark); a lit one lights the ground before it. */
 export function doorway(kit, M, rng, x, y, z, { yaw = 0, w = 1.6, h = 2.6, lit = 0.5, wood = 0.3 } = {}) {
   const r = rng(), m = r < lit ? M.doorLit : r < lit + wood ? M.door : M.dark, c = Math.cos(yaw), s = Math.sin(yaw);
-  kit.add(M.stain[0], put(doorStainGeometry(rng, w, h), x + s * 0.03, y, z + c * 0.03, yaw), NC);
+  skip(rng, STAIN_DRAWS);   // (the stain's numbers, as in house)
   kit.add(m, put(archShape(w, h), x + s * 0.05, y, z + c * 0.05, yaw), NC);
   if (m === M.doorLit) kit.light(x + s * 1.2, y + 1.4, z + c * 1.2, 6.5);
 }

@@ -3,7 +3,6 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { SandDrifts } from './sand-drifts.js';
 import { mulberry32 } from './noise.js';
-import { doorStainGeometry, GRIME } from './door-stain.js';
 import { wallOpenings } from './wall-openings.js';
 import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
@@ -275,18 +274,6 @@ export function buildDesertCity(scene, terrain) {
 
     // houses: domes, cubes and tall tower-houses between the wall and the terraces
     const HOUSE_MATS = [M.white, M.white, M.pink, M.ochre, M.wall];
-    // weathering round a block house's door (the reference sheets: the plaster stained darker round its
-    // opening, most over the lintel, ragged at its edges): a flat patch of the wall's own colour darkened,
-    // flush on the face, painted (no draw of its own); its own random numbers, the town's layout keeps its own
-    const srng = mulberry32(4471), WALL_TONE = new THREE.Color('#f0d7c3');
-    const doorStain = (wm, w, h, R = 0) => ({ geo: doorStainGeometry(srng, w, h, R), paint: (wm.paint ?? WALL_TONE).clone().lerp(GRIME, 0.22 + srng() * 0.08) });
-    // (its own material: drawn with a hairline of its own colour, not the ink round a door, as a smudge is)
-    const stainMat = makeMaterial({ color: '#ffffff', vertexColors: true, flat: true, line: 0.25, lineTint: 1 });
-    const stainAt = (wm, w, h, R, d, face, x, z) => {
-      if (srng() > 0.8) return;
-      const st = doorStain(wm, w, h, R), [fx, fz] = [Math.sin(face), Math.cos(face)];
-      city.add({ paint: st.paint, material: stainMat }, T(st.geo, [x + fx * (d + 0.02), 0, z + fz * (d + 0.02)], [0, face, 0]));
-    };
     const DOME_MATS = [M.dWhite, M.dPink, M.dRose, M.dTeal, M.dLav, M.dWhite];
     const placed = [];
     const clear = (x, z, r) => {
@@ -319,7 +306,6 @@ export function buildDesertCity(scene, terrain) {
         city.both(wm, T(new THREE.BoxGeometry(r * 1.8, 0.5, r * 1.8), [x, h + 0.25, z], [0, face, 0]));   // (the roof slab: you stand on it, not in it)
         if (rng() < 0.7) { const at = [x - fx * r * 0.2, h + 0.4, z - fz * r * 0.2]; city.both(dm, T(dome(r * 0.55, 12, 5), at)); }
         city.add(M.dark, T(new THREE.BoxGeometry(1.2, 2, 0.3), [x + fx * r * 0.86, 1, z + fz * r * 0.86], [0, face, 0]));
-        stainAt(wm, 1.2, 2, 0, r * 0.85, face, x, z);
         for (const s of [-1, 1]) city.add(M.dark, T(new THREE.BoxGeometry(0.6, 0.8, 0.3), [x + fx * r * 0.86 + fz * s * r * 0.5, h * 0.7, z + fz * r * 0.86 - fx * s * r * 0.5], [0, face, 0]));
       } else {
         // a tower-house: a tall shaft, a bulb and a needle (the reference pages' spires)
@@ -328,7 +314,6 @@ export function buildDesertCity(scene, terrain) {
         city.both(dm, T(new THREE.SphereGeometry(r * 1.25, 18, 12), [x, h + r * 0.6, z], [0, 0, 0], [1, 0.8, 1]));
         city.add(M.ink, new THREE.CylinderGeometry(0.07, 0.12, 5, 4).translate(x, h + r * 1.6 + 2.5, z));
         city.add(M.dark, T(new THREE.BoxGeometry(0.9, 1.9, 0.3), [x + fx * r * 0.98, 0.95, z + fz * r * 0.98], [0, face, 0]));
-        stainAt(wm, 0.9, 1.9, r, r, face, x, z);
         city.add(M.dark, T(new THREE.BoxGeometry(0.6, 1.0, 0.3), [x + fx * r * 0.8, h * 0.75, z + fz * r * 0.8], [0, face, 0]));
       }
     }

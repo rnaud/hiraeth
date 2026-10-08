@@ -3,7 +3,6 @@ import { mulberry32 } from '../noise.js';
 import { put } from './lab-kit.js';
 import { layeredCrown } from './garden-kit.js';
 import { stick } from './salt-harbour-kit.js';
-import { stainColor } from '../door-stain.js';
 import { greebles } from './greeble-kit.js';
 import { house, antennaPole, roofClutter, awning, laundry, poleCloth, resident, lantern } from './eclipse-kit.js';
 
@@ -77,7 +76,6 @@ export function spaceMats(kit) {
   const T = SPACE_TONES, DS = THREE.DoubleSide;
   return {
     lime: T.lime.map((c) => kit.mat({ color: c, flat: true, patches: 0.45 })),
-    stain: T.lime.map((c) => kit.mat({ color: '#' + stainColor(c, 0.22).getHexString(), flat: true, line: 0.25, lineTint: 1 })),
     stone: kit.mat({ color: T.stone, flat: true, weathered: 0.25 }),
     masonry: kit.mat({ color: T.masonry, flat: true, patches: 0.4 }),
     tower: kit.mat({ color: T.lime[0], flat: true, grid: 2.4, patches: 0.4 }),

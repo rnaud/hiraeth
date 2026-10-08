@@ -832,7 +832,7 @@ Ranked by how much they would close the gap to the sheets, across every world re
   rose horizon, the terraces climbing on the left (2); the bowl of terraces round the square, the stars out at midday
   (3); down the street of steps, the washing, the city falling away to the horizon (4). One scene builder
   (`cityScene`) with the world's kit (`src/levels/eclipse-kit.js`, shared with the world, worlds.md): houses
-  (`house`: rounded blocks, drums, towers, flat or domed, arched doors with the door stain, windows some lit, flower
+  (`house`: rounded blocks, drums, towers, flat or domed, arched doors, windows some lit, flower
   boxes, antennas), terraces of big masonry blocks, broad stairs with cheek walls, tables with their cloths,
   lanterns and diners, lamps (globes, posts, hung, the big paper lanterns), awnings, the rooftops' poles and
   sheets, washing, the pale figures (`paleFigure`: leaning out from a wall, hung over a parapet, standing), the far
