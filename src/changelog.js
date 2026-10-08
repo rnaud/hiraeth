@@ -9,6 +9,14 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.93', date: '2026-10-08', items: [
+    'Hitboxes, to study a fight: in the Arena a board by the way in shows or hides them (X / □, E), and anywhere F4, both sticks clicked together (L3 + R3), the dev menu or ?hitboxes=1 do too; the choice is kept. Drawn over everything in bright lines: the traveller’s hurt column, the blade’s cone and edge (yellow, red on the frames it cuts, with its sweep), the guard’s arc (white while a parry would land), an evade, the lock-on; each foe’s body, its sight and reach, where its strike lands (orange as it winds up, red while it lands) and its state in words, stunned or reeling; shots, bombs’ blasts and the hook’s line.',
+    'Controls: the controller now follows the big action games. X / □ uses, talks and gets on; B / ○ evades (and, as in every menu, goes back: it now also leaves a conversation); D-pad ↓ whistles for your mount or hails a taxi; R3 sends the scout to your objective when there is no foe to lock on to. If you played before, a short note tells you the first time you pick up the pad.',
+    'The bell-note whistle and the echo shell have a controller button again once you own a gadget: with no gadget in hand, Y / △ sounds them (the card in the corner shows the whistle, and it is the first slot of the gadget wheel). The bell and shell guardians can be played on a pad.',
+    'Photo mode moved off the D-pad: hold View and press D-pad ↑ (View alone opens the sketchbook as you let it go). It is in the Start menu too, so a touch screen can take photos now.',
+    'Keyboard and mouse: a left click swings the fluid blade (while aiming it still shoots); the jets are Space held in the air. B only changes gadgets: it no longer raises your guard.',
+    'The Controls page shows the new layout for the controller, the keyboard and touch, with the hitbox toggle as a debug row; every prompt, item card and hint names the new buttons, and the Arena’s description no longer says LB / L1 swings the blade.',
+  ] },
   { v: '0.92', date: '2026-10-08', items: [
     'Games: the worlds list (Debug) has a row of small games. Each opens on a card with its rules and its controls, counts you in 3, 2, 1, runs a clock, pauses on Menu or Esc (Resume, Retry, Quit), and ends on your score, with your best kept in your save and a stamp when you beat it. Quit takes you back where you came from.',
     'Dune skiing: the traveller on sand-skis down a kilometre of dune. Carve with the stick between the gates (a missed one costs 3 seconds), tuck on RT / R2 for speed, skid on LT / L2 to brake, fly off the lips and spin in the air (a spin landed clean takes a second off). Sand sprays off the edges, the view widens with the speed, and past the line the camera swings round to watch you skid to a stop.',

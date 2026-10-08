@@ -30,6 +30,7 @@ const DEFAULTS = {
   enemies: 'normal',    // the foes (src/foes.js): normal | gentle (half the harm, slower, one at a time) | off (the calm game)
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
+  hitboxes: false,      // the fight's hitbox overlay (F4, L3 + R3, the dev menu, the Arena's board: src/hitboxes.js)
   hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
   deckV: 1,             // the Steam Deck before v1 started on High (its first save kept it): it goes to Auto (its own preset) once
 };
@@ -80,6 +81,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Gadget in hand (once found): use · change', 'T or the middle mouse button (hold to aim, let go) · B (SHIFT + B back; hold B: the wheel)'],
       ['Bell-note whistle, echo shell (once found)', 'V'],
       ['Items, quests, sketchbook · menu · this page', 'J (Q / E turn its panels) · O or Esc · H'], ['Photo mode · frame readout · what\'s new', 'P · F3 · N'], ['Mute', 'M'],
+      ['Debug: the fight\'s hitboxes', 'F4'],
     ],
     pad: [
       ['Move · run', `left stick · click it (${P.run})`], ['Look · zoom', `right stick · hold ${P.guard} with the right stick (no foe near)`],
@@ -103,6 +105,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Swimming', `left stick swim (${P.run} sprints) · look down and swim forward to dive · ${P.jump} rise, climb out`],
       ['Talking', `${ok} or ${P.interact} carry on, choose · ${back} leave`],
       ['In menus', `D-pad select · left / right adjust · ${ok} confirm · ${back} back · right stick scroll`],
+      ['Debug: the fight\'s hitboxes', 'click both sticks (L3 + R3)'],
     ],
     touch: [
       ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'], ['Jets (once found)', 'hold ⤒ in the air: thrust · drag on the left: up tips the nose down, down pulls it up, sideways banks and turns'],

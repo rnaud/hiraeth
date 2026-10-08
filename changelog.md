@@ -2,6 +2,15 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.93 — 2026-10-08
+
+- The Controls page shows the new layout for the controller, the keyboard and touch, with the hitbox toggle as a debug row; every prompt, item card and hint names the new buttons, and the Arena’s description no longer says LB / L1 swings the blade.
+- Keyboard and mouse: a left click swings the fluid blade (while aiming it still shoots); the jets are Space held in the air. B only changes gadgets: it no longer raises your guard.
+- Photo mode moved off the D-pad: hold View and press D-pad ↑ (View alone opens the sketchbook as you let it go). It is in the Start menu too, so a touch screen can take photos now.
+- The bell-note whistle and the echo shell have a controller button again once you own a gadget: with no gadget in hand, Y / △ sounds them (the card in the corner shows the whistle, and it is the first slot of the gadget wheel). The bell and shell guardians can be played on a pad.
+- Controls: the controller now follows the big action games. X / □ uses, talks and gets on; B / ○ evades (and, as in every menu, goes back: it now also leaves a conversation); D-pad ↓ whistles for your mount or hails a taxi; R3 sends the scout to your objective when there is no foe to lock on to. If you played before, a short note tells you the first time you pick up the pad.
+- Hitboxes, to study a fight: in the Arena a board by the way in shows or hides them (X / □, E), and anywhere F4, both sticks clicked together (L3 + R3), the dev menu or ?hitboxes=1 do too; the choice is kept. Drawn over everything in bright lines: the traveller’s hurt column, the blade’s cone and edge (yellow, red on the frames it cuts, with its sweep), the guard’s arc (white while a parry would land), an evade, the lock-on; each foe’s body, its sight and reach, where its strike lands (orange as it winds up, red while it lands) and its state in words, stunned or reeling; shots, bombs’ blasts and the hook’s line.
+
 ## v0.92 — 2026-10-08
 
 - Arcade signs for the last two games: Dune skiing’s on the crest of the tall golden dune north-west of where you wake in the Desert, Sky steps’ on the west rim of the Sky Stones’ start plateau, looking out at the stones in the cloud. The Ring race’s boost is a little stronger (40 m/s instead of 38): used on the straights with some fuel kept back, it wins about four seconds a run.

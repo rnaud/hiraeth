@@ -145,9 +145,9 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
     opacity; the keyboard has O / Esc, a pad Menu. The touch worlds button is gone (the menu's
     Debug entry has it), and the keyboard help (H) is the menu's Controls page.
   - The scout's floating label (`#scout-label`) is gone: the cue says what it found.
-- **The scout finds the objective** (`Scout.ping`, `FIND` in `src/scout.js`): Q, Y / △ on a pad
-  (on foot and now riding or flying too: controller.js sends `ping` from the top button in the
-  ride context), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`, `lookoutSpot`:
+- **The scout finds the objective** (`Scout.ping`, `FIND` in `src/scout.js`): Q, R3 on a pad
+  with no foe in reach (on foot, riding or flying: controller.js sends `lock`, main.js pings when
+  `foes.cycleLock()` finds nothing to lock on to), the touch "ping". It hops off its dock as before, flies to a lookout (`lookout`, `lookoutSpot`:
   `FIND.out` m towards the objective from over your head, a little more at speed, carried with
   your velocity, and up or down toward its height since v0.89, in the open: docs/systems/scout.md,
   "Up and down"; right over it when it is nearer than `FIND.near`), hovers facing it (no beak or beam

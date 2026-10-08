@@ -38,9 +38,10 @@ export const BINDINGS = {
     ['View', 'the sketchbook (items, quests, worlds)'],
     ['Menu', 'the Start menu (settings, controls)'],
     ['View + ↑', 'photo mode'],
-    ['View + ↓', 'free (kept for the Arena\'s hitbox view)'],
+    ['View + ↓', 'free'],
     ['View + ←', 'free'],
     ['View + →', 'free'],
+    ['L3 + R3', 'debug: the hitbox overlay (F4)'],
   ],
   ride: [
     ['A', 'jump off (moving: its speed carries you)'],

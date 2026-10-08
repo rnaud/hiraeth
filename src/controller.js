@@ -128,7 +128,7 @@ export class Controller {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
         h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
         // run: click the left stick; you keep running until you let the stick go
-        if (press(L3)) { this.running = true; this.action('l3'); }   // (the Lab: the previous world's room)
+        if (press(L3)) { this.running = true; if (!down(R3)) this.action('l3'); }   // (the Lab: the previous world's room)
         else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
@@ -151,8 +151,10 @@ export class Controller {
       }
       if (ctx !== 'photo') {
         // R3: lock on to the nearest foe, then the next, then let go; with no foe in reach main.js sends the
-        // scout to find the objective instead (Tab and Q on the keyboard: src/foes.js, src/scout.js)
-        if (press(R3)) this.action('lock');
+        // scout to find the objective instead (Tab and Q on the keyboard: src/foes.js, src/scout.js).
+        // Both sticks clicked (L3 + R3, in either order): the hitbox overlay (src/hitboxes.js), and no lock-on
+        if ((press(R3) && down(L3)) || (press(L3) && down(R3))) this.action('hitboxes');
+        else if (press(R3)) this.action('lock');
         if (press(MENU)) this.action('settings');
         // View: the sketchbook, when it is let go without a D-pad press meanwhile; View held + D-pad ↑ is
         // photo mode, + ↓ / ← / → the free chords 'viewDown' / 'viewLeft' / 'viewRight' (bindings.js FREE)

@@ -18,11 +18,11 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
-- **Guard:** Ctrl or Z (B also works while no gadget is owned; with one, B chooses the gadget: src/gadgets/index.js) / LB / L1 / touch ◇ independently raises the fluid shield. A fresh guard has a
+- **Guard:** Ctrl or Z / LB / L1 / touch ◇ independently raises the fluid shield. A fresh guard has a
   0.18 s parry window (0.35 s rearm), consumes that opportunity on contact, and spends no charge.
   A held guard spends one charge per block. Both require facing the blow. A parry leaves the enemy
   open for 1.8× its normal recovery; an ordinary block for 0.65×. Guard cannot cancel an active cut.
-- **Evade:** Alt / X / □ / touch ↶ moves in the input direction, or backward without input, for
+- **Evade:** Alt / B / ○ / touch ↶ moves in the input direction, or backward without input, for
   0.28 s with a 0.65 s cooldown. It uses Player's collision controller, has no invulnerability, and
   may cancel attack recovery but not wind-up or release. It is available on the ground.
   Push is a gun mode; calling a mount is LT + X (Xbox positions).
@@ -112,7 +112,7 @@ The count is said every 5 ink.
 
 ## Controls and the lock-on
 
-- **RB / R1** (F, ⚔) swings; **LB / L1** held (Ctrl or Z on land, 🛡) guards; **R3** (Tab, ◉) locks on.
+- **RB / R1** (a left click, F, ⚔) swings; **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
 - The push is a gun mode (`MODES.push`, always owned with the backpack): fired as a shot, it throws the cone.
 - In a fight (`foes.near(20)`) LB doesn't zoom (`Controller.combat`).
 - **The lock-on:** `Foes.cycleLock()` locks the nearest foe in `LOCK.reach` (those ahead of the camera
@@ -200,3 +200,27 @@ blots, a spitter, a swarm, a machine, flyers, spitters with a machine, and a mix
 `tests/combat.test.js` checks commitment, timed block/rearm, swept contact, independent inputs,
 full-body playback and transitions on the actual traveller with matching off and on, and evade movement.
 Locomotion matching remains experimental and off by default: see animation.md for measured foot slide.
+
+## Hitboxes (v0.93: `src/hitboxes.js`, `src/hitbox-overlay.js`)
+
+A debug overlay of what the fight actually tests, for tuning and for learning the timings.
+- **The switch** (`hitboxes`): F4, L3 + R3 (both sticks clicked; R3 alone still locks on), the dev menu's
+  Combat row, the Arena's board left of the way in (X / □, E: `src/levels/arena-hitbox-board.js`, its lamp lit
+  while on), `?hitboxes=1` / `=0` for the session. Kept in the settings (`settings.hitboxes`).
+- **Truthful by construction:** `collectHitboxes()` reads the combat code's own data, exposed through small
+  getters used by the combat code too: `Foe.attackOrigin()`, `Foe.attackPhase`, `STRIKE_RISE`, `hurtRadius()`
+  (foes.js); `FluidBlade.coarse()`, `.cutting` (set when `strike()` runs), `.parryLive` (what `block()` checks),
+  `bladeSegment()`, `bladeTouchRadius()`, `activeRange()` (fluid-blade.js); `BOMB` (gadgets/bomb.js).
+- **What it draws:** the traveller's hurt column (foes test a point at the feet, within `STRIKE_RISE` of
+  height); the blade's coarse cone, its segment and the swept quad (yellow; red on the frames it cuts); the
+  guard's arc (green, white in the parry window); an evade (violet; it has no invulnerability frames); the
+  hard lock (orange diamond) or the soft lock. Each foe: its target sphere and the blade's touch ring, sight,
+  reach, keep; its strike's area at `attackOrigin()` (orange while it winds up, red while live, dull once
+  checked); a label with its state, wind-up %, stun or why it reels (`Foe.reel`: blocked, parried,
+  flinched, staggered) and hp. Shots in flight, a lobbed glob, bombs and their blast reach, the hook's line.
+- **Drawing:** its own scene rendered over the composite after the wind (main.js `renderFrame`): `LineSegments2`
+  with fixed-size buffers written in place, see-through floors, DOM labels. Off: nothing is collected or drawn.
+- **More shapes:** `registerHitboxes((out, ctx) => out.push(shape))` adds another system's (a new foe's
+  projectiles) in the same kinds.
+- Tests: `tests/hitboxes.test.js` (every foe's drawn area against `inArea`, the phases, target radii, the
+  height window, the guard against `inGuard`, the real traveller's swing red exactly when `strike()` runs).

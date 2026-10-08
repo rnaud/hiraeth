@@ -6,7 +6,7 @@ guardian, full when it wakes and going down as the fight goes your way. A machin
 unchanged (0 → 1, damage or calm); the bar shows `1 - meter`. It sits above the cue line.
 
 **The drone's hint** (`src/temples/hints.js`, `src/scout.js`): while a temple's guardian is awake and
-you are inside, a ping (Q, Y / △, touch "ping") asks for a hint instead of the objective.
+you are inside, a ping (Q, R3 with no foe in reach, touch "ping") asks for a hint instead of the objective.
 `guardianHint(rt)` gives the scout `{ id, lines, at }`:
 
 - `id` is the temple and the phase (`incal.1`): a new phase starts its lines over;

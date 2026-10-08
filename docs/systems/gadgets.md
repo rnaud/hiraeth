@@ -50,10 +50,9 @@ Try them all in the Gadget Yard (`?level=gadgetyard`, the Debug worlds list), wh
 | next gadget (a tap) | D-pad ↑ (`PadGadgetPick`) | B (Shift + B: the one before) | tap the chip |
 | the wheel (held 0.32 s) | D-pad ↑ held, the left stick points | B held, W A S D point | |
 
-With nothing in hand Y / △ is still the scout's ping, and the D-pad's ↑ the bell-note whistle while no
-gadget is owned (`gadgets.claims('ping' | 'bell')`, main.js); V still rings the bell. B is also the fluid
-tool's second guard key: once a gadget is owned the runtime takes it out of the input before the tool reads
-it, so holding B for the wheel never raises the shield. The game menu's Items panel takes a gadget in hand
+With nothing in hand the use button sounds the bell-note whistle and plays the echo shell back, once found
+(`ring`, the V key's job: src/boxes/effects.js), and the chip shows the whistle; the wheel's first slot says
+so. B only chooses gadgets: it is not a guard key (v0.93, docs/systems/controls.md "The layout"). The game menu's Items panel takes a gadget in hand
 too (`onUse`).
 
 ## Played together

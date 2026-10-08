@@ -78,6 +78,8 @@ import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become item
 import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick } from './feel.js';
 import { DevMenu } from './dev-menu.js';
+import { HitboxOverlay } from './hitbox-overlay.js';
+import { hitboxes } from './hitboxes.js';
 import { fillPicker, pickHref } from './world-picker.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
@@ -595,7 +597,8 @@ const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.qu
     set: (on) => { matchingSetting.set(on); loadMotionLibrary(lib, { matching: on }).then(() => { if (player.animator) player.animator.matching = on && !!lib.motion?.db; devMenu.render(); }); },
   },
   // (the captured starts, stops and turns over the loops: src/loco-moves.js)
-  moves: { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; devMenu.render(); } } });
+  moves: { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; devMenu.render(); } },
+  hitboxes: { get: () => hitboxes.on, set: (on) => hitboxes.set(on) } });   // (src/hitboxes.js)
 window.addEventListener('keydown', (e) => {
   if (!boxes.busy() || e.repeat) return;
   if (e.code === 'Escape') boxes.skip();
@@ -686,6 +689,12 @@ renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) i
 // the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand (none: the bell-note whistle), D-pad ↑ or B changes it
 gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
+// the hitbox overlay (src/hitboxes.js): F4, L3 + R3, the dev menu, the Arena's board, ?hitboxes=1 (this session only)
+const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gadgets });
+hitboxes.set(query.has('hitboxes') ? query.get('hitboxes') !== '0' : !!settings.hitboxes);
+hitboxes.listen((on) => { if (!query.has('hitboxes')) settings.set('hitboxes', on); devMenu.render(); });
+const toggleHitboxes = () => showToast(hitboxes.toggle() ? 'Hitboxes shown (F4, or L3 + R3).' : 'Hitboxes hidden.');
+window.addEventListener('keydown', (e) => { if (e.code === 'F4' && !e.repeat) { e.preventDefault(); toggleHitboxes(); } });
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
@@ -1092,8 +1101,8 @@ const controller = new Controller({
       if (!foes.cycleLock() && !had && !minigame) scout.ping();
     }
     if (name === 'l3' && level.jump) level.jump(-1);
+    if (name === 'hitboxes') toggleHitboxes();   // L3 + R3: the hitbox overlay (F4)
     // the free View + D-pad chords (src/bindings.js FREE): a 'padchord' event any system may listen for
-    // (the Arena's hitbox view is to take View + D-pad ↓)
     if (name === 'viewDown' || name === 'viewLeft' || name === 'viewRight') window.dispatchEvent(new CustomEvent('padchord', { detail: { name } }));
   },
 });
@@ -1248,6 +1257,7 @@ function renderFrame() {
     renderer.render(wind.scene, camera);
     if (motes) renderer.render(motes.scene, camera);
     if (HOLO.live()) HOLO.render(renderer, camera, composeRT);   // the recordings' hologram: light, not ink
+    if (hitboxes.on) hitboxOverlay.render(renderer, camera, composeRT);   // the fight's hitboxes, on top (src/hitbox-overlay.js)
   }
 
   // 5. smooth edges and scale the completed frame to the display
