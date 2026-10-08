@@ -1,0 +1,23 @@
+README.md
+  s_0ee85dcae8eebf::t_f5d0c6f81ffff4 10-11,70-71
+docs/cloudflare.md
+  s_0ee85dcae8eebf::t_e9bf2ec919141b 104-106
+.github/workflows/deploy.yml
+  s_0ee85dcae8eebf::t_ddbb3b9cef6351 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4587a41edafaea7efbbf514eae2c080a7644bab6",
+  "prompts": {},
+  "sessions": {
+    "s_0ee85dcae8eebf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79ea3dcd-e344-4e26-be2c-8fa20302b995",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
