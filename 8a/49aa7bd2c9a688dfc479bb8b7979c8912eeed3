@@ -1,0 +1,53 @@
+changelog.md
+  s_efb1d100d5a6fc::t_45026503ef3030 7
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_02797d55f032b4 25-29,65-67,240-244
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_2ab6dee05d82c0 122,186,194-202
+src/changelog.js
+  s_efb1d100d5a6fc::t_6561be615369c1 30
+src/foes.js
+  s_efb1d100d5a6fc::t_078ac149cb48bb 463-466
+src/materials.js
+  s_efb1d100d5a6fc::t_1631b2568129cb 2801,2805-2814
+src/minigames/platformer.js
+  s_efb1d100d5a6fc::t_1216eaf91f4fcf 533-535
+src/minigames/rings.js
+  s_efb1d100d5a6fc::t_5e1ad2b53b627e 28-29
+src/minigames/ski.js
+  s_efb1d100d5a6fc::t_73345b84e0f965 493-495
+src/shade.js
+  s_efb1d100d5a6fc::t_701f5f8c9b9186 2,105
+src/temples/boss.js
+  s_efb1d100d5a6fc::t_c1e4246021e466 2,84-85,126-131
+tests/minigames.test.js
+  s_efb1d100d5a6fc::t_3553d04bc279f6 331-347
+tests/rings.test.js
+  s_efb1d100d5a6fc::t_334967666d8329 144,148,151-154,161-176
+tests/minigames-waves.test.js
+  s_3854a77d2af5df::t_e55a1218052733 93-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8a49aa7bd2c9a688dfc479bb8b7979c8912eeed3",
+  "prompts": {},
+  "sessions": {
+    "s_3854a77d2af5df": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa4411be79bcbb6bb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
