@@ -1,0 +1,45 @@
+changelog.md
+  s_efb1d100d5a6fc::t_217c2e1743ae7c 7-9
+docs/README.md
+  s_efb1d100d5a6fc::t_859a2774d8c1db 66
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_0767a9d7d3c330 5-6,13-15,61-67,78-89,122-180
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_0e177ab6213d13 137-147
+src/changelog.js
+  s_efb1d100d5a6fc::t_e658f514f6a068 16-18
+src/main.js
+  s_efb1d100d5a6fc::t_d9d03ce7f354b5 88-89,1422,1717-1722,1726,1731
+src/minigames/drums.js
+  s_efb1d100d5a6fc::t_3c50f4c658e367 1-695
+src/minigames/framing.js
+  s_efb1d100d5a6fc::t_12bda01c99dbd8 1-102
+src/minigames/kit/flow.js
+  s_efb1d100d5a6fc::t_ce6972dda776b6 20-52
+src/minigames/kit/minigames.css
+  s_efb1d100d5a6fc::t_360ae3bb20c53f 72-81
+src/minigames/kit/runner.js
+  s_efb1d100d5a6fc::t_9f5be2e5314da3 21,57-61,73-77,100,121,136,141-143,184,212,215-224,241-243,273-284,289,293-295,300,302-308,310-311,324,328-333,363-364
+src/minigames/rhythm.js
+  s_efb1d100d5a6fc::t_395414280df635 1-248
+src/minigames/sketchhunt.js
+  s_efb1d100d5a6fc::t_fcd016b0c38600 1-409
+tests/minigames-drums-sketch.test.js
+  s_efb1d100d5a6fc::t_e9e447eb3badb0 1-298
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8183985fd4c49e4ad160b7904999a0e94110d2dd",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
