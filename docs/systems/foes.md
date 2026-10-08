@@ -55,18 +55,23 @@ The first things in the game that fight back, and the tool's answer to them.
   (climbing, swimming, gliding, the jets, riding, aiming the gun, knocked down, a scene or a conversation). The
   hands close round them (`player.swordGrip`, `player.shieldGrip` → `handTargets` `sword` / `shield`).
 - **The blade's segment** (hits) is read from the hilt's own frame, so it is the drawn blade exactly.
-- **The shield** (`ShieldDevice`): the brass disc always on the hand with the backpack. `ShieldState` is the
+- **The shield** (`ShieldDevice`): the brass disc always on the hand with the backpack. Open, it is 0.35 m in radius
+  (`SHIELD.radius`), on the back of the hand: a collar of six brass petals (`SHIELD.petal`) and a
+  brass ring round the hub, then the fluid drawn as ink, two rings and a cross-hatch in a band round the edge
+  (the game's materials are opaque: the see-through is the gaps), a bright rim and a shimmer ring running out
+  to it. `ShieldState` is the
   pure state machine (folded → opening → open → closing, and broken): it opens in `SHIELD.open` (0.16 s; the
-  guard counts as up at `guardK` 0.5, unchanged), the ten ribs spinning out one after another, the fluid
-  flooding out to the rim after them; held it shimmers; `hit('block')` flares it, `'perfect'` flashes it white,
+  guard counts as up at `guardK` 0.5, unchanged), the six petals spinning out one after another, the fluid
+  flooding out to the rim after them; held it shimmers; `hit('block')` flares it, `'perfect'` bursts two white rings off it,
   `'broken'` (a blow within its arc with the tank empty) cracks and flickers it until it mends; it folds in
   `SHIELD.close`. It swivels on the hub to face the guard's way as it opens. Sounds: `shieldOpen`,
   `shieldClose`, `shieldBreak` (src/audio.js), on the state machine's transitions.
 - **Coverage is the drawn shape.** Each frame `ShieldDevice.arc` measures the bearings between the shield's two
   edges (`SHIELD.radius` + `SHIELD.slack`) as seen from the chest (`shieldArc`); `block()` tests the blow's
   bearing against that arc (`guardArc`), and the hitbox overlay draws the same arc. With no shield drawn,
-  `GUARD.angle` is the arc of one held `GUARD.reach` ahead (about 55°; in the block pose the measured arc is
-  about 59°, a little more to the left where the shield is held).
+  `GUARD.angle` is the arc of one held `GUARD.reach` ahead (about 48°). In the block pose the measured arc is
+  about 45° each side of a line 18° to the left of facing, where the left hand holds it: from about 63° on the
+  left to 28° on the right.
 - **Inspect:** the studio (`studio.html?backpack=true&sword=true&shield=1&view=arms`, any clip scrubbed with
   `anim=clip:mixamo_ss_slash_1&paused=true&time=0.4`; views `hands` and `bracer` for close-ups; `guard=block|
   parry|broken`) runs the blade's own placing code (`FluidBlade.inspect`). `tests/blade-grip.test.js` samples
