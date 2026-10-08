@@ -22,6 +22,12 @@ export const CHANGELOG = [
     // the light's trail
     { text: 'The Sketchbook has a Sightings page: every time someone tells you about the singing light, the makers’ three dots over an arc, or a voice sent from far away, it is noted there with the world and who said it. A question mark waits for each one still to find.', see: 'Open the menu’s Sketchbook after talking to Oum and Marrow in the desert.' },
     { text: 'Each of the twelve worlds off the route now hides one trace of the light, or of someone who came that way alone before you: a person who remembers, or a mark burned, fused or chalked somewhere.', see: 'Liss on the White Mangrove’s ring walk, or the burned mark at the foot of the Fallen Ring’s tilted piece.' },
+    // the words, edited
+    { text: 'The last chapter’s great conversation is gentler: it leaves room to take in the news, tells what it knows in its own words, and lets you answer more than one way.', see: 'At the end of the light’s trace, when asked to tell it straight, try “Can I sit down first?”' },
+    { text: 'The oldest recording on the reel is just a family morning again: a baby, a spoon and a wave, the way old tapes are.', see: 'The true ending, at the stone.' },
+    { text: 'Oïa rides the Overnight Train without a word, the way she keeps her tower: watch what she points at.', see: 'The train’s sky lounge.' },
+    { text: 'Answers that no longer matched what was said to you now do, from Nell’s reflections to Dun’s wandering key and Saba’s rain; and a few story slips are mended: where people come from, how long Hollin has kept his lamps, and the desert’s two Givers’ places no longer share a name in directions.', see: 'Talk to Nell in the Garden of Spheres, Dun in the Buried Machine, Saba at the crystal in Lorn, or Sabri in the desert (“the rose-stone house”).' },
+    { text: 'Lines and hints that teach a control now name your own keys or buttons and follow your remapping, and change with you if you pick up a controller mid-conversation; on a controller the gun’s push is always the D-pad, never X.', see: 'In the Signal Market, ask Ferro about the bulbs, then remap Aim (Menu, Controls) and talk to him again.' },
   ] },
   { v: '0.99', date: '2026-10-08', items: [
     // playing your way

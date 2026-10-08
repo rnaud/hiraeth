@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.0 — 2026-10-08
 
+- Lines and hints that teach a control now name your own keys or buttons and follow your remapping, and change with you if you pick up a controller mid-conversation; on a controller the gun’s push is always the D-pad, never X.
+- Answers that no longer matched what was said to you now do, from Nell’s reflections to Dun’s wandering key and Saba’s rain; and a few story slips are mended: where people come from, how long Hollin has kept his lamps, and the desert’s two Givers’ places no longer share a name in directions.
+- Oïa rides the Overnight Train without a word, the way she keeps her tower: watch what she points at.
+- The oldest recording on the reel is just a family morning again: a baby, a spoon and a wave, the way old tapes are.
+- The last chapter’s great conversation is gentler: it leaves room to take in the news, tells what it knows in its own words, and lets you answer more than one way.
 - Each of the twelve worlds off the route now hides one trace of the light, or of someone who came that way alone before you: a person who remembers, or a mark burned, fused or chalked somewhere.
 - The Sketchbook has a Sightings page: every time someone tells you about the singing light, the makers’ three dots over an arc, or a voice sent from far away, it is noted there with the world and who said it. A question mark waits for each one still to find.
 - People’s chatter balloons no longer cover a filmed moment.
