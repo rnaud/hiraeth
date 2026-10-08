@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.93 — 2026-10-08
+
+- Hitboxes, to study a fight: in the Arena a board by the way in shows or hides them (B / ○, E), and anywhere F4, both sticks clicked together (L3 + R3), the dev menu or ?hitboxes=1 do too; the choice is kept. Drawn over everything in bright lines: the traveller’s hurt column, the blade’s cone and edge (yellow, red on the frames it cuts, with its sweep), the guard’s arc (white while a parry would land), an evade, the lock-on; each foe’s body, its sight and reach, where its strike lands (orange as it winds up, red while it lands) and its state in words, stunned or reeling; shots, bombs’ blasts and the hook’s line.
+
 ## v0.92 — 2026-10-08
 
 - Arcade signs for the last two games: Dune skiing’s on the crest of the tall golden dune north-west of where you wake in the Desert, Sky steps’ on the west rim of the Sky Stones’ start plateau, looking out at the stones in the cloud. The Ring race’s boost is a little stronger (40 m/s instead of 38): used on the straights with some fuel kept back, it wins about four seconds a run.

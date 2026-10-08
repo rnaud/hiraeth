@@ -129,7 +129,7 @@ export class Controller {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
         h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
         // run: click the left stick; you keep running until you let the stick go
-        if (press(L3)) { this.running = true; this.action('l3'); }   // (the Lab: the previous world's room)
+        if (press(L3)) { this.running = true; if (!down(R3)) this.action('l3'); }   // (the Lab: the previous world's room)
         else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
@@ -150,7 +150,9 @@ export class Controller {
       // the top button sends the scout to find the objective, on foot and riding (flying too)
       if (ctx !== 'photo' && press(NORTH)) this.action('ping');
       if (ctx !== 'photo') {
-        if (press(R3)) this.action('lock');   // lock on to the nearest foe, then the next (Tab on the keyboard: src/foes.js)
+        // both sticks clicked (L3 + R3, in either order): the hitbox overlay (src/hitboxes.js), and no lock-on
+        if ((press(R3) && down(L3)) || (press(L3) && down(R3))) this.action('hitboxes');
+        else if (press(R3)) this.action('lock');   // lock on to the nearest foe, then the next (Tab on the keyboard: src/foes.js)
         if (press(MENU)) this.action('settings');
         else if (press(VIEW)) this.action('journal');
         else if (press(UP)) this.action('bell');   // the bell-note whistle, once found (V on the keyboard)

@@ -32,8 +32,8 @@ const CSS = `
 `;
 
 export class DevMenu {
-  constructor({ levelId, levels = [], boxes = null, quests = null, story = null, onTravel = null, matching = null, moves = null, game: g = sharedGame } = {}) {
-    Object.assign(this, { levelId, levels, boxes, quests, story, onTravel, matching, moves, g });
+  constructor({ levelId, levels = [], boxes = null, quests = null, story = null, onTravel = null, matching = null, moves = null, hitboxes = null, game: g = sharedGame } = {}) {
+    Object.assign(this, { levelId, levels, boxes, quests, story, onTravel, matching, moves, hitboxes, g });
     this.open = false;
     this.dom = typeof document !== 'undefined' && !!document.head && typeof document.createElement === 'function';
     if (!this.dom) return;
@@ -47,6 +47,7 @@ export class DevMenu {
       if (c.dataset.flag) this.setFlag(c.dataset.flag, c.checked);
       if (c.dataset.opt === 'matching') this.matching?.set(c.checked);
       if (c.dataset.opt === 'moves') this.moves?.set(c.checked);
+      if (c.dataset.opt === 'hitboxes') this.hitboxes?.set(c.checked);
     });
     el.addEventListener('click', (e) => {
       const b = e.target.closest?.('button');
@@ -123,6 +124,8 @@ export class DevMenu {
       <p class="hint">over the loops: setting off, stopping, turning on the spot and the pivot at a run from Mixamo's capture (the body above the legs); off: the loops alone</p>` : ''}
       <div class="btns"><button data-a="motionpage" type="button">the Motion page</button></div>
       <p class="hint">both side by side on a test ground, the matcher's debug, the people's walks (motion.html; leaves the game)</p>` : ''}
+      ${this.hitboxes ? `<h2>Combat</h2><label class="item"><input type="checkbox" data-opt="hitboxes"${this.hitboxes.get() ? ' checked' : ''}>Show hitboxes<small>F4 · L3 + R3</small></label>
+      <p class="hint">the traveller's hurt column, the blade's cut, the guard and parry, foes' bodies, strikes, ranges and states, shots, bombs (src/hitboxes.js)</p>` : ''}
       <h2>Teleport</h2><div class="worlds">${worlds}</div>
     </div>`;
   }

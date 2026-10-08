@@ -29,6 +29,7 @@ const DEFAULTS = {
   enemies: 'normal',    // the foes (src/foes.js): normal | gentle (half the harm, slower, one at a time) | off (the calm game)
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
+  hitboxes: false,      // the fight's hitbox overlay (F4, L3 + R3, the dev menu, the Arena's board: src/hitboxes.js)
   hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
   deckV: 1,             // the Steam Deck before v1 started on High (its first save kept it): it goes to Auto (its own preset) once
 };
