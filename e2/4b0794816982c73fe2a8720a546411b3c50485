@@ -1,0 +1,63 @@
+changelog.md
+  s_48c58ea8947042::t_0827f16e6b96d4 7
+docs/README.md
+  s_48c58ea8947042::t_a881ca2ea729f6 65
+docs/systems/dev-tools.md
+  s_efb1d100d5a6fc::t_1eb67b6c276610 3,70-106
+index.html
+  s_efb1d100d5a6fc::t_9950f2c113e9c1 100-101
+src/boot.js
+  s_efb1d100d5a6fc::t_25d542bcf8f71b 5-6,19-27
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_bb04263216136d 154-157
+src/changelog.js
+  s_efb1d100d5a6fc::t_b58b706f2b5686 17
+src/debug-save.js
+  s_efb1d100d5a6fc::t_5e44cc5794a0b5 1-219
+src/game-state.js
+  s_efb1d100d5a6fc::t_4ee6f5e8e2346a 70-74
+src/main.js
+  s_efb1d100d5a6fc::t_606be6d6438ea6 77,80,840,897
+src/save-slots.js
+  s_efb1d100d5a6fc::t_30b07f28114d38 18-21,27-28,37
+src/story/arzach-data.js
+  s_efb1d100d5a6fc::t_1e982e4f0b0e7b 33-34
+src/story/arzach.js
+  s_efb1d100d5a6fc::t_045a4629b7101a 7,458
+src/story/perdide-data.js
+  s_efb1d100d5a6fc::t_1020ecc8ef51f9 24-25
+src/story/perdide.js
+  s_efb1d100d5a6fc::t_b67e0df8d5e011 7
+src/story/perdide2-data.js
+  s_efb1d100d5a6fc::t_5e38cb78ee899b 33-36
+src/story/perdide2.js
+  s_efb1d100d5a6fc::t_cc990293f60f10 8,439
+src/world-picker.js
+  s_efb1d100d5a6fc::t_92a7a93c2a37b8 4-7,18-32,39-42,51,59,78
+tests/debug-save.test.js
+  s_efb1d100d5a6fc::t_47bf5f97f7315f 1-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e24b0794816982c73fe2a8720a546411b3c50485",
+  "prompts": {},
+  "sessions": {
+    "s_48c58ea8947042": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1190d-bf62-7790-93c6-3d4c8bd4b953",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
