@@ -285,6 +285,7 @@ test('old foes, new attacks: the blot’s lunge-combo (stopped by a guard), the 
   // the quake: a ring of shock runs out; on your feet it catches you, a jump clears it
   const S = player(v(0, 0, 5)), F = world(S), m = F.add('machine', v());
   F.addWave(m, attackOf('machine', 'quake'));
+  assert.ok(F.hitShapes().some((s) => s.tag === 'foe.shockwave'), 'the hitbox overlay draws its front');
   for (let i = 0; i < 1.2 / DT; i++) F.updateHazards(DT);
   assert.equal(S.hurts.length, 1, 'caught on your feet');
   assert.ok(Math.abs(S.hurts[0] - attackOf('machine', 'quake').wave.damage) < 1e-9);

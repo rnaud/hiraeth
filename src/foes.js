@@ -112,6 +112,10 @@ export const GUARDS = { near: 32, size: 2, ring: 3.5 };
 export const LOCK = { reach: 18, lose: 26 };
 /** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
 export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
+/** A strike reaches the traveller only this close in height (m, its feet to the foe's): the hitbox overlay draws it (src/hitboxes.js). */
+export const STRIKE_RISE = 1.6;
+/** A foe's target sphere (shots, the cone, the lock): its body's radius and a margin. The blade adds its own (fluid-blade.js BLADE_TOUCH). */
+export const hurtRadius = (def) => def.radius + 0.15;
 
 /**
  * One foe's mind: idle at home (a slow drift round it), chase once you come into sight, wind up its
@@ -174,7 +178,7 @@ export class Foe {
   next(a, P, ev) {
     const n = a.then ? attackOf(this.kind, a.then) : null;
     if (n && !P.dead && !P.down) { this.beginWind(n, P); ev.push('warn'); return; }
-    this.state = 'recover'; this.timer = a.recover ?? this.def.recover; this.k = 0;
+    this.state = 'recover'; this.timer = a.recover ?? this.def.recover; this.k = 0; this.reel = null;
   }
   /** An instant attack lands as its wind-up ends: a lob, a flash, a ray bursting up, a hound stepping out of the shadow. */
   resolve(a, P, playerOk, ev, env) {
@@ -187,10 +191,21 @@ export class Foe {
     if (a.damage > 0) {
       const pts = this.attackPts ?? [this.attackAt];
       const seen = a.at === 'self' ? env.seen?.(this.chest, P.pos) ?? true : true;   // (a flash needs a clear line; a lob goes over)
-      const hit = playerOk && seen && pts.some((p) => Math.abs(P.pos.y - (a.at === 'self' ? this.pos.y : p.y)) < 1.6 && inArea(a, p, this.attackH, P.pos));
+      const hit = playerOk && seen && pts.some((p) => Math.abs(P.pos.y - (a.at === 'self' ? this.pos.y : p.y)) < STRIKE_RISE && inArea(a, p, this.attackH, P.pos));
       ev.push({ type: 'strike', hit, atk: a });
     }
     this.next(a, P, ev);
+  }
+  /** Where its strike's area is centred when it lands: a lunge carries it with the body, else where the wind-up began. */
+  attackOrigin() { return (this.atk ?? this.def.attack).lunge ? this.pos : this.attackAt; }
+  /**
+   * Its strike's phase (the hitbox overlay): 'telegraph' while it winds up, 'active' through the strike until the hit
+   * is checked, 'spent' after; null otherwise. A lobbed strike (at: 'target') is checked as its wind-up ends.
+   */
+  get attackPhase() {
+    if (this.state === 'wind') return 'telegraph';
+    if (this.state === 'strike') return this.contacted ? 'spent' : 'active';
+    return null;
   }
 
   update(dt, P, env = {}) {
@@ -258,11 +273,10 @@ export class Foe {
         if (a.sweep) {
           // a charge: whatever it runs into on the way is hit, once
           const near = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) < D.radius + 0.75;
-          if (!this.contacted && this.k >= (a.contact ?? 0) && playerOk && near && Math.abs(P.pos.y - this.pos.y) < 1.6) { this.contacted = true; ev.push({ type: 'strike', hit: true, atk: a }); }
+          if (!this.contacted && this.k >= (a.contact ?? 0) && playerOk && near && Math.abs(P.pos.y - this.pos.y) < STRIKE_RISE) { this.contacted = true; ev.push({ type: 'strike', hit: true, atk: a }); }
         } else if (!this.contacted && this.k >= (a.contact ?? 0.55)) {
           this.contacted = true;
-          const origin = a.lunge ? this.pos : this.attackAt;
-          const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < 1.6 && inArea(a, origin, this.attackH, P.pos)
+          const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < STRIKE_RISE && inArea(a, this.attackOrigin(), this.attackH, P.pos)
             && (env.seen?.(this.chest, P.pos) ?? true);
           ev.push({ type: 'strike', hit, atk: a });
         }
@@ -291,7 +305,7 @@ export class Foe {
   /** Its strike was blocked: it reels back, open a moment longer than after a strike. */
   staggered(perfect = false) {
     if (!this.alive) return;
-    this.state = 'recover'; this.timer = this.def.recover * (perfect ? 1.8 : 0.65); this.k = 0; this.flash = 0.8;
+    this.state = 'recover'; this.timer = this.def.recover * (perfect ? 1.8 : 0.65); this.k = 0; this.flash = 0.8; this.reel = perfect ? 'parried' : 'blocked';   // (reel: why it recovers, for the hitbox overlay's label)
     this.recoil = 1; this.heavyRecoil = perfect; this.recoilDir.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
     this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.def.heavy ? 2 : 5);
   }
@@ -366,7 +380,7 @@ export class Foe {
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
     if (mode === 'blade' || mode === 'fire') this.letGo = true;   // (a hold, a line, is broken)
     // Light cuts interrupt a blot (the flinchy ones), or the first two thirds of anyone's wind-up.
-    if ((D.flinchy && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; }
+    if ((D.flinchy && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; this.reel = this.heavyRecoil ? 'staggered' : 'flinched'; }
     else if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
@@ -572,7 +586,7 @@ export class Foes {
     if (!f.model.shade) this.group.add(f.model.group);
     if (f.model.glob) this.group.add(f.model.glob);
     f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
-    f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: f.def.radius + 0.15, accepts: ['blade', 'stun', 'fire', 'bloom'],
+    f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: hurtRadius(f.def), accepts: ['blade', 'stun', 'fire', 'bloom'],
       position: () => f.chest, enabled: () => f.alive && f.model.group.visible,
       onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info) });
     this.list.push(f);

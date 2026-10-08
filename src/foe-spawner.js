@@ -7,11 +7,11 @@ import { FOES } from './foes.js';
 //   const spawner = mountFoeSpawner({ foes, kind })   (src/main.js, in a world whose level.foes.waves is set)
 
 const CSS = `
-#foe-spawner { position: fixed; left: calc(10px + env(safe-area-inset-left, 0px)); top: 28%; z-index: 30; font: 12px ui-monospace, Menlo, monospace; color: #2b211f; }
+#foe-spawner { position: fixed; left: calc(10px + env(safe-area-inset-left, 0px)); top: 14%; z-index: 30; font: 12px ui-monospace, Menlo, monospace; color: #2b211f; }
 #foe-spawner > button.tab { writing-mode: vertical-rl; padding: 10px 5px; letter-spacing: .2em; }
 #foe-spawner button { font: inherit; background: #fffaf0; border: 2px solid #2b211f; box-shadow: 2px 2px 0 #2b211f; cursor: pointer; color: #2b211f; }
 #foe-spawner button.on { background: #f2c54b; }
-#foe-spawner .list { display: none; margin-top: 6px; padding: 8px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; max-height: 60vh; overflow: auto; width: 176px; }
+#foe-spawner .list { display: none; margin-top: 6px; padding: 8px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; max-height: calc(80vh - 60px); overflow: auto; width: 176px; }
 #foe-spawner.open .list { display: grid; gap: 4px; }
 #foe-spawner .list button { text-align: left; padding: 5px 8px; min-height: 28px; }
 #foe-spawner .list small { opacity: .55; float: right; }

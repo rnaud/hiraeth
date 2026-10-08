@@ -77,6 +77,8 @@ import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become item
 import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick } from './feel.js';
 import { DevMenu } from './dev-menu.js';
+import { HitboxOverlay } from './hitbox-overlay.js';
+import { hitboxes, registerHitboxes } from './hitboxes.js';
 import { fillPicker, pickHref } from './world-picker.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
@@ -89,6 +91,7 @@ import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
+import { arcadeLinks } from './minigames/kit/arcade.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -594,7 +597,8 @@ const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.qu
     set: (on) => { matchingSetting.set(on); loadMotionLibrary(lib, { matching: on }).then(() => { if (player.animator) player.animator.matching = on && !!lib.motion?.db; devMenu.render(); }); },
   },
   // (the captured starts, stops and turns over the loops: src/loco-moves.js)
-  moves: { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; devMenu.render(); } } });
+  moves: { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; devMenu.render(); } },
+  hitboxes: { get: () => hitboxes.on, set: (on) => hitboxes.set(on) } });   // (src/hitboxes.js)
 window.addEventListener('keydown', (e) => {
   if (!boxes.busy() || e.repeat) return;
   if (e.code === 'Escape') boxes.skip();
@@ -639,7 +643,7 @@ if (viaShip) {
 }
 // continue where you left off (same world, not arriving by ship)
 const saved = SaveGame.load();
-if (!viaShip && !playPrologue && saved?.level === levelId && saved.pos) {
+if (!viaShip && !playPrologue && saved?.level === levelId && saved.pos && !level.keepSpawn) {   // (keepSpawn: the Arcade, back in front of a game's sign)
   const p = new THREE.Vector3(...saved.pos);
   player.respawn(p);
   if (saved.up) player.frame.set(new THREE.Vector3(...saved.up), new THREE.Vector3(...saved.fwd));
@@ -686,6 +690,13 @@ renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) i
 // the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand, D-pad ↑ or B changes it
 gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t), touch: isTouch,
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
+// the hitbox overlay (src/hitboxes.js): F4, L3 + R3, the dev menu, the Arena's board, ?hitboxes=1 (this session only)
+const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gadgets });
+registerHitboxes((out) => foes.hitShapes(out));   // (the foes' shockwaves, slag, holds and volleys: src/foes.js)
+hitboxes.set(query.has('hitboxes') ? query.get('hitboxes') !== '0' : !!settings.hitboxes);
+hitboxes.listen((on) => { if (!query.has('hitboxes')) settings.set('hitboxes', on); devMenu.render(); });
+const toggleHitboxes = () => showToast(hitboxes.toggle() ? 'Hitboxes shown (F4, or L3 + R3).' : 'Hitboxes hidden.');
+window.addEventListener('keydown', (e) => { if (e.code === 'F4' && !e.repeat) { e.preventDefault(); toggleHitboxes(); } });
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 
 // ------------------------------------------------------------------ time of day
@@ -1077,6 +1088,7 @@ const controller = new Controller({
     else if (name === 'lock' && !ship.playing) foes.cycleLock();   // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js)
     if (name === 'bell' && !gadgets?.claims('bell')) itemFx.ring();   // D-pad up: the bell-note whistle (V), and the echo shell plays back
     if (name === 'l3' && level.jump) level.jump(-1);
+    if (name === 'hitboxes') toggleHitboxes();   // L3 + R3: the hitbox overlay
   },
 });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad
@@ -1230,6 +1242,7 @@ function renderFrame() {
     renderer.render(wind.scene, camera);
     if (motes) renderer.render(motes.scene, camera);
     if (HOLO.live()) HOLO.render(renderer, camera, composeRT);   // the recordings' hologram: light, not ink
+    if (hitboxes.on) hitboxOverlay.render(renderer, camera, composeRT);   // the fight's hitboxes, on top (src/hitbox-overlay.js)
   }
 
   // 5. smooth edges and scale the completed frame to the display
@@ -1726,7 +1739,8 @@ if (minigameDef) {
   minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings,
     capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open'),
-    navigate: (href) => { flushPlay(); location.href = href; } });
+    navigate: (href) => { flushPlay(); location.href = href; },
+    links: arcadeLinks(query.get('from'), minigameDef.id) });   // (started from the Arcade: the game before / after, back to its sign)
   window.minigame = minigame;
   story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)
   if (story) story.done = true;   // (nor its goal: the Arena's ring would end its story under a game played by it)

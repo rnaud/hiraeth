@@ -117,6 +117,39 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.93': [
+    { match: 'Hitboxes, to study a fight', shots: [
+      { name: 'hitboxes-swing', only: 'after', caption: 'The heavy third cut on its live frames: the blade’s edge and sweep in red, its cone, the blot’s body and its blade ring', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena, frozen on the frame the blade cuts' },
+      { name: 'hitboxes-strike', only: 'after', caption: 'A machine’s slam landing: its cone filled red, the traveller’s feet inside it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena, frozen as the strike goes live' },
+      { name: 'hitboxes-parry', only: 'after', caption: 'A fresh guard in its parry window (white), the machine’s wind-up in orange', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Arena' },
+    ], see: 'In the Arena (?level=arena) walk to the board left of the way in and press B / ○ (E), or press F4 anywhere; fight a wave and watch the colours change as the cuts and strikes go live.' },
+    { match: 'The Arcade (Debug worlds, next to the Gadget Yard)', shots: [
+      { name: 'arcade-plaza', only: 'after', caption: 'The Arcade from above the way in: a sign for every game round the basin, the games board by the entrance', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
+      { name: 'arcade-sign', only: 'after', caption: 'At a sign: its name and best on the plate, "play" on the interact button', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
+      { name: 'arcade-board', only: 'after', caption: 'The games board: every game, its line and its best, to jump straight into one', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
+      { name: 'arcade-pause', only: 'after', caption: 'A game from the Arcade, paused: Previous game, Next game, Back to the Arcade', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
+    ], see: 'Open ?level=arcade (or the Debug worlds list). Walk to a sign and press the interact button, or press Tab (LT + X / □) for the games board; in a game press Menu / Esc, then Next game, or LB / RB ([ ]) on any of its cards.' },
+    { match: 'Each world now has foes of its own', see: 'Walk out into the wilds of the Salt Harbour, the Moon Foundry or the City During the Eclipse (away from people and the ship) and wait for a pack: crabs, slag walkers, shadow hounds. A relic there is guarded by them too.' },
+    { match: 'Dune rays swim under the Desert', shots: [
+      { name: 'foes-ray', only: 'after', caption: 'The Desert: a dune ray’s ring closing round the traveller’s feet, sand spraying where it will burst up', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), a ray called in with foes.spawnKind' },
+      { name: 'foes-golem', only: 'after', caption: 'The Glass Dunes: a glass golem with both arms up for its slam', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-crab', only: 'after', caption: 'The Salt Harbour: a salt crab tucked into its shell, its spinning charge drawn along the ground', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'Sign moths of neon tube', shots: [
+      { name: 'foes-moth', only: 'after', caption: 'The Signal Market: sign moths flaring, the flash’s cone drawn at the traveller', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-drone', only: 'after', caption: 'The Sealed Hangar: a rust drone aiming its harpoon down the drawn lane', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-stalker', only: 'after', caption: 'The White Mangrove: a root stalker winding up its grab, its roots’ path drawn on the planks', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'Slag walkers in the Moon Foundry', shots: [
+      { name: 'foes-slag', only: 'after', caption: 'The Moon Foundry: a slag walker’s leg raised for its stomp, the ring it will leave burning drawn round it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-hound', only: 'after', caption: 'The City During the Eclipse: two shadow hounds, and the pool behind the traveller where one will step out', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'The old foes have new attacks', shots: [
+      { name: 'foes-quake', only: 'after', caption: 'The Arena: a machine with both arms high for its ground slam', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+      { name: 'foes-volley', only: 'after', caption: 'The Arena: a spitter’s volley of three globs in the air, their three rings across the traveller’s way', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
+    ] },
+    { match: 'In the Arena a FOES tab on the left', see: 'Open ?level=arena, click FOES on the left edge and choose a kind; press F4 for the hitboxes and let a machine slam to see its shockwave run out.' },
+  ],
   '0.92': [
     { match: 'Games: the worlds list (Debug) has a row of small games', shots: [
       { name: 'games-row', only: 'after', caption: 'The worlds list: the ten games under the pages, each one’s best under its name', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), a save with eight bests' },

@@ -6,6 +6,7 @@ import { stepped } from '../load-steps.js';
 import { DESERT_WORLD_LOOK } from '../desert-sites.js';
 import { placeGameMarker } from '../minigames/kit/marker.js';
 import { gameById } from '../minigames/index.js';   // (none in node's tests: there is no glob there)
+import { placeHitboxBoard } from './arena-hitbox-board.js';
 
 // ---------------------------------------------------------------------------
 // The Arena: a developer's world for the fluid blade and the foes (src/fluid-blade.js, src/foes.js),
@@ -42,6 +43,8 @@ export function* buildArena(scene) {
   scene.add(ring);
   // the arcade sign of Ink tide, the endless waves as a game with a score (src/minigames/waves.js), by the way in
   if (gameById('waves')) placeGameMarker({ scene, levelId: 'arena' }, 'waves', new THREE.Vector3(7.5, 0, 9), { heading: -2.4 });
+  // the hitbox board (src/hitboxes.js), across the way in from it: show or hide the fight's hitboxes
+  placeHitboxBoard(scene, new THREE.Vector3(-7.5, 0, 9), { heading: 2.4 });
 
   return {
     id: 'arena',
