@@ -1,0 +1,55 @@
+docs/systems/foes.md
+  s_efb1d100d5a6fc::t_02d99a53b5c33f 178-228,232-234
+src/foe-kinds.js
+  s_efb1d100d5a6fc::t_2e1a3417244ad5 1-494
+src/foe-spawner.js
+  s_efb1d100d5a6fc::t_9a588168612c17 1-45
+src/foe-worlds.js
+  s_efb1d100d5a6fc::t_53b3bccac26cb2 1-86
+src/gadgets/bubble.js
+  s_efb1d100d5a6fc::t_ea5c5ff98411a7 312
+src/gadgets/magnet.js
+  s_efb1d100d5a6fc::t_bdc444ce916e30 232
+src/ink.js
+  s_efb1d100d5a6fc::t_735d75ff1e746d 19
+src/main.js
+  s_88886f12bf338d::t_575a17994f6e69 630
+tests/foe-kinds.test.js
+  s_efb1d100d5a6fc::t_1e7339fac7ed69 1-389
+tests/foes.test.js
+  s_efb1d100d5a6fc::t_f5f4316b4ce7af 249,258
+src/foes.js
+  s_c9c0bd7d31564d::t_01c0cf17e1b3ed 9-10,29-30,33-39,43-49,54-59,64,76,80,82-89,98-99,103-105,131-135,139-194,202,230-233,238,241,243-244,249,258-262,267-271,277,296,299-301,332-341,343-363,367-369,380-381,462-468,512,528,570,574-575,584-587,590,610,642,646,736-737,744,746,754,756-761,777-778,783,797,799,802-810,812,815-816,866,873-876,880-888,891,895-901,903,907-1071,1093-1096,1110,1112-1120,1140-1181,1184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "79a3911004571ded58bcca1624d1d99cdec148cc",
+  "prompts": {},
+  "sessions": {
+    "s_88886f12bf338d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11909-5544-7d52-9144-71c79c4a433c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c9c0bd7d31564d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1ee2b53371cef2ac",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
