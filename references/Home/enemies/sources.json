@@ -1,0 +1,65 @@
+{
+  "world": "home",
+  "title": "Home",
+  "types": [
+    {
+      "name": "Seashell crawler",
+      "category": "local-creature"
+    },
+    {
+      "name": "Bulb toad",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed watering automaton",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Attic wanderer shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "296505c2-3c38-4b42-a744-b92f88b57099",
+  "jobUrl": "https://www.midjourney.com/jobs/296505c2-3c38-4b42-a744-b92f88b57099?index=2",
+  "selected": "lineup-03.webp",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/296505c2-3c38-4b42-a744-b92f88b57099/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/296505c2-3c38-4b42-a744-b92f88b57099/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/296505c2-3c38-4b42-a744-b92f88b57099/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/296505c2-3c38-4b42-a744-b92f88b57099/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Seashell crawler; Bulb toad; Possessed watering automaton; Attic wanderer shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

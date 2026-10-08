@@ -1,0 +1,65 @@
+{
+  "world": "garage",
+  "title": "The Sealed Hangar",
+  "types": [
+    {
+      "name": "Oil beetle",
+      "category": "local-creature"
+    },
+    {
+      "name": "Scrap ray",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed welding automaton",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Hooded mechanic shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "c2431c44-742a-4c1d-8db2-b779e670516a",
+  "jobUrl": "https://www.midjourney.com/jobs/c2431c44-742a-4c1d-8db2-b779e670516a?index=1",
+  "selected": "lineup-02.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/c2431c44-742a-4c1d-8db2-b779e670516a/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/c2431c44-742a-4c1d-8db2-b779e670516a/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/c2431c44-742a-4c1d-8db2-b779e670516a/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/c2431c44-742a-4c1d-8db2-b779e670516a/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Oil beetle; Scrap ray; Possessed welding automaton; Hooded mechanic shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

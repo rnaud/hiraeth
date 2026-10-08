@@ -1,0 +1,65 @@
+{
+  "world": "arzach",
+  "title": "Vael",
+  "types": [
+    {
+      "name": "Ridge runner",
+      "category": "local-creature"
+    },
+    {
+      "name": "Storm ray",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed aerie sentinel",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Feather-cowled shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "9eb1e2fa-3050-46ec-8930-041be4368de9",
+  "jobUrl": "https://www.midjourney.com/jobs/9eb1e2fa-3050-46ec-8930-041be4368de9?index=1",
+  "selected": "lineup-02.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/9eb1e2fa-3050-46ec-8930-041be4368de9/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/9eb1e2fa-3050-46ec-8930-041be4368de9/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/9eb1e2fa-3050-46ec-8930-041be4368de9/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/9eb1e2fa-3050-46ec-8930-041be4368de9/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Ridge runner; Storm ray; Possessed aerie sentinel; Feather-cowled shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

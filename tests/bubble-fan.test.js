@@ -112,7 +112,7 @@ test('a foe in a bubble is helpless and floats up; dropped from high it lands ha
   W.press();   // popped early
   assert.equal(W.bubble, null);
   for (let i = 0; i < 60 * 2; i++) W.update(DT);
-  assert.equal(f.pos.y, 0, 'fell back to the ground');
+  assert.ok(Math.abs(f.pos.y) < 1e-9, `fell back to the ground (${f.pos.y})`); // Floating-point projection onto the ground plane.
   assert.ok(f.hp < hp, 'and landed hard');
   const m = new Foe('machine', v(0, 0, 0));
   W.cool = 0;

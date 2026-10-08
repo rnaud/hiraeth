@@ -1,0 +1,65 @@
+{
+  "world": "underwater",
+  "title": "The Underwater City",
+  "types": [
+    {
+      "name": "Coral crawler",
+      "category": "local-creature"
+    },
+    {
+      "name": "Porcelain ray",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed diving bell",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Drowned diver shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "dbb63347-2222-4cc1-b0d2-bc5d1db38827",
+  "jobUrl": "https://www.midjourney.com/jobs/dbb63347-2222-4cc1-b0d2-bc5d1db38827?index=3",
+  "selected": "lineup-04.webp",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/dbb63347-2222-4cc1-b0d2-bc5d1db38827/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/dbb63347-2222-4cc1-b0d2-bc5d1db38827/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/dbb63347-2222-4cc1-b0d2-bc5d1db38827/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/dbb63347-2222-4cc1-b0d2-bc5d1db38827/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Coral crawler; Porcelain ray; Possessed diving bell; Drowned diver shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

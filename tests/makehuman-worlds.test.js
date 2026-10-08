@@ -239,14 +239,14 @@ test('the Signal Market\'s people are MakeHuman bodies: Kip a child of eleven, S
   assert.equal(yearsOf({ def: PEOPLE.kip }), 11);
   const kip = onBody('bazaar', PEOPLE.kip);
   assert.ok(kip.height > 1.25 && kip.height < 1.5, `Kip ${kip.height.toFixed(2)} m`);
-  assert.equal(kip.look.head, 'peak');
+  assert.equal(kip.look.head, 'cap');
   assert.equal(ageClassOf({ def: PEOPLE.sel }), 'elder');
   const sel = onBody('bazaar', PEOPLE.sel);
   assert.equal(sel.look.mask, 'glasses');
-  assert.equal(onBody('bazaar', PEOPLE.ferro).look.head, 'bandana');
+  assert.equal(onBody('bazaar', PEOPLE.ferro).look.head, 'helmet');
   assert.equal(onBody('bazaar', PEOPLE.brush).look.head, 'beret');
   assert.equal(onBody('bazaar', { ...STREET.teb, kind: 'm' }).look.head, 'flatcap');
-  assert.equal(onBody('bazaar', { ...STREET.oyo, kind: 'm' }).look.mask, 'glasses');
+  assert.equal(onBody('bazaar', { ...STREET.oyo, kind: 'm' }).look.headKit, 'lanternHat');
   for (const def of [PEOPLE.sel, PEOPLE.ferro, PEOPLE.brush]) {
     const h = onBody('bazaar', def).height;
     assert.ok(h > 1.5 && h < 2.05, `${def.id} ${h.toFixed(2)} m`);
@@ -309,22 +309,22 @@ test('Vael II\'s people are MakeHuman bodies: Tiv a novice of ten, Mother Ysolde
   assert.equal(onBody('arzach2', PEOPLE.ysolde).look.mask, 'glasses');
 });
 
-test("The Hangar's people are MakeHuman bodies: Zazie a child of nine, Ambroise's monocle", async () => {
+test("The Hangar's people are MakeHuman bodies: Zazie a child of nine, Ambroise's stacked-paper cap", async () => {
   assert.ok(MH_WORLDS.has('garage'));
   const { PEOPLE } = await import('../src/story/garage-data.js');
   const pip = onBody('garage', PEOPLE.pip);
   assert.equal(ageClassOf({ def: PEOPLE.pip }), 'child');
   assert.ok(pip.height > 1.05 && pip.height < 1.45, `Zazie ${pip.height.toFixed(2)} m`);
-  assert.equal(onBody('garage', PEOPLE.ambroise).look.mask, 'monocle');
+  assert.equal(onBody('garage', PEOPLE.ambroise).look.headKit, 'paperStack');
 });
 
-test("The Buried Machine's people are MakeHuman bodies: Jot a small boy, Hask under a hard hat", async () => {
+test("The Buried Machine's people are MakeHuman bodies: Jot a small boy, Hask in a porthole hood", async () => {
   assert.ok(MH_WORLDS.has('buried'));
   const { PEOPLE } = await import('../src/story/buried-data.js');
   assert.equal(ageClassOf({ def: PEOPLE.pim }), 'child', 'Jot was drawn as an elder: his face');
   const pim = onBody('buried', PEOPLE.pim);
   assert.ok(pim.height > 1.0 && pim.height < 1.3, `Jot ${pim.height.toFixed(2)} m`);
-  assert.equal(onBody('buried', Object.values(PEOPLE).find((d) => d.id === 'hask.buried')).look.head, 'helmet');
+  assert.equal(onBody('buried', Object.values(PEOPLE).find((d) => d.id === 'hask.buried')).look.headKit, 'porthole');
 });
 
 test("Viridel's people are MakeHuman bodies: Rue a child of nine, Esk in a straw hat", async () => {
@@ -342,10 +342,10 @@ test("The Garden of Spheres' people are MakeHuman bodies", async () => {
   for (const def of Object.values(PEOPLE).filter((d) => d.palette)) assert.ok(onBody('spheres', def).height > 1.4, def.id);
 });
 
-test("Lorn's people are MakeHuman bodies: Corm under a wide drooping brim", async () => {
+test("Lorn's people are MakeHuman bodies: Corm in a tied bandana", async () => {
   assert.ok(MH_WORLDS.has('perdide'));
   const { PEOPLE } = await import('../src/story/perdide-data.js');
-  assert.equal(onBody('perdide', PEOPLE.corm).look.head, 'brim');
+  assert.equal(onBody('perdide', PEOPLE.corm).look.head, 'bandana');
 });
 
 test("Lorn II's people are MakeHuman bodies: Robin a girl of fifteen", async () => {

@@ -1,0 +1,65 @@
+{
+  "world": "saltharbour",
+  "title": "The Salt Harbour",
+  "types": [
+    {
+      "name": "Anchor crab",
+      "category": "local-creature"
+    },
+    {
+      "name": "Brine mollusk",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed dock winch",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Drowned sailor shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "6d69c286-576c-4170-a22b-16173e318c2b",
+  "jobUrl": "https://www.midjourney.com/jobs/6d69c286-576c-4170-a22b-16173e318c2b?index=2",
+  "selected": "lineup-03.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/6d69c286-576c-4170-a22b-16173e318c2b/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/6d69c286-576c-4170-a22b-16173e318c2b/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/6d69c286-576c-4170-a22b-16173e318c2b/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/6d69c286-576c-4170-a22b-16173e318c2b/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "The first two columns contain alternate views; use the upper crab and upper brine mollusk.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Anchor crab; Brine mollusk; Possessed dock winch; Drowned sailor shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

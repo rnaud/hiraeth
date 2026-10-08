@@ -557,3 +557,49 @@ A second pass (docs/makehuman.md, "The rest of what the sheets draw") added `gou
   `Humanoid.propCapsules`, added to `capsules()`): the oud's bowl and neck, so Sefa's cloak swings round
   it instead of through it. A cape baked round one has its own drape key (`~oud`). The radii cover the
   bowl's rim, not just its depth: the cloth's faces between points cut a little inside the colliders.
+
+
+## Quest reference outfits
+
+`src/characters/quest-looks.js` selects a consistent design from the first standing
+figure in sheet 0 of each `references/<world>/characters` set. It covers 46 existing
+human characters in the ten quest worlds after the Desert. The Desert retains its
+existing bespoke outfits. Stable story ids are retained even when the sheet names
+differ (Kesh, Jot, Rue, Linnet, Emrys, Robin). Lore-only subjects such as the Major,
+Odile, Talo and the departed bird rider do not introduce new encounters.
+
+`namedLook` applies those canonical colours and proportions; `quest-pieces.js`
+provides the individual head silhouettes, tunics, padded suit sleeves, tools and
+worn equipment. Humanoid binds them to the same bones on MakeHuman and Quaternius
+bodies. The costume cache includes reference identity so shared base hats or grips
+cannot share another character’s geometry. Existing robes and capes keep their
+animation and cloth simulation. These are procedural interpretations of the sheets,
+not imported generated meshes; the game's face rigs and hand articulation remain.
+
+Older levels attach names to already-created locals through `NPC.identify` when
+story interactions bind. This applies the same reference look without replacing
+routes, scale, body, or quest state. The Studio includes those locals and street
+vendors in each cast. Wren uses the cab's `reference: 'wren'` option for her 991
+plate and riveted patches; ordinary taxis retain their shared original geometry.
+
+Validation: `tests/quest-references.test.js` checks cast coverage, both body
+families' skin weights and moving tools, late identification, costume isolation,
+and Wren's trim. Review full-body cast sheets and walking/seated poses in
+`studio.html?lineup=cast&world=buried&source=makehuman` (change the world as needed).
+
+
+### Reference quality review
+
+The character creation skill now includes procedural fit and enemy attachment review in `.agents/skills/moebius-ai-characters/references/procedural-quality.md`. Reproduce the screening captures with `scripts/character-quality-shots.mjs` and `scripts/enemy-quality-shots.mjs`; outputs and coverage are under `output/character-local/quality-pass`. These are review aids, not automated visual acceptance. Full-body sheets fit current posed bounds including tools and headwear. Padded seams follow their torso surface, lantern poles have explicit hangers, local transforms preserve anchors, and replacement headwear retains body-family beard behavior.
+
+
+Review record (2026-10-08, `codex/quest-character-rebuild`):
+
+- 48 cast sheets: 12 Studio casts (77 entries, including supporting people), idle/front, walk/side, seated/rear and talk/three-quarter. The 46 reference-driven looks are procedural interpretations, not exact imported likenesses.
+- 25 crowd sheets: four seeded bodies per playable world, walking. This samples each world's costume family; it does not exhaust every random combination.
+- Three traveller views: idle, walk and run. The Studio's seated story pose only affects NPCs, so it is not evidence of seated traveller support.
+- 58 enemy views: all six foe families in idle/wind/strike and all ten guardian builders in idle, representative attack wind-up/strike, and open states. Saved `coverage.json` and `enemy-coverage.json` record the exact captures; `index.html` and `enemies.html` display them.
+
+Repairs found through inspection: floating lanterns and lamp stems; separated balanced stones; a misplaced wizard-hat orb; pack cones transformed about the wrong origin; padded seams outside the torso; missing procedural beards; Nima's short hem; Wendel's obscuring headwear and Hollin/Robin's mismatched mushroom additions; detached wing roots and machine/guardian joints; shared mutable enemy warning materials; and shade inversion when recoil overwrote Euler angles after a quaternion turn. The shade regression exercises a complete turn including recoil.
+
+The reviewed snapshots show these repairs working. They are not a guarantee of zero clipping across all frames, collision situations, cloth wind conditions, crowd seeds, fallback body shapes, or guardian attacks. Fine face details and garment volumes remain stylized approximations. The subsequent world-enemy implementation adds 100 procedural interpretations of those references; see foes.md for its attack system and separate review coverage. Legacy enemy families and guardians remain available.

@@ -1,0 +1,65 @@
+{
+  "world": "mangrove",
+  "title": "The White Mangrove",
+  "types": [
+    {
+      "name": "Root wader",
+      "category": "local-creature"
+    },
+    {
+      "name": "Salt mollusk",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed surveyor",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Driftwood shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "542289b6-d742-4d88-906e-270928d6e976",
+  "jobUrl": "https://www.midjourney.com/jobs/542289b6-d742-4d88-906e-270928d6e976?index=0",
+  "selected": "lineup-01.webp",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/542289b6-d742-4d88-906e-270928d6e976/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/542289b6-d742-4d88-906e-270928d6e976/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/542289b6-d742-4d88-906e-270928d6e976/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/542289b6-d742-4d88-906e-270928d6e976/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Root wader; Salt mollusk; Possessed surveyor; Driftwood shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

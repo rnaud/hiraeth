@@ -1,0 +1,65 @@
+{
+  "world": "desert",
+  "title": "The Desert",
+  "types": [
+    {
+      "name": "Dune skitter",
+      "category": "local-creature"
+    },
+    {
+      "name": "Cistern beast",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed cistern pump",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Dune wanderer shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "acf8a366-4252-4cbe-b167-681a2bf73bad",
+  "jobUrl": "https://www.midjourney.com/jobs/acf8a366-4252-4cbe-b167-681a2bf73bad?index=1",
+  "selected": "lineup-02.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/acf8a366-4252-4cbe-b167-681a2bf73bad/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/acf8a366-4252-4cbe-b167-681a2bf73bad/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/acf8a366-4252-4cbe-b167-681a2bf73bad/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/acf8a366-4252-4cbe-b167-681a2bf73bad/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Dune skitter; Cistern beast; Possessed cistern pump; Dune wanderer shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

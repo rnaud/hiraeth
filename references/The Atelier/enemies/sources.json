@@ -1,0 +1,65 @@
+{
+  "world": "atelier",
+  "title": "The Atelier",
+  "types": [
+    {
+      "name": "Paint beetle",
+      "category": "local-creature"
+    },
+    {
+      "name": "Ink lizard",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed drawing machine",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Paper mannequin shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "a8b3226c-bf76-4cd2-b174-7b27dc4c3337",
+  "jobUrl": "https://www.midjourney.com/jobs/a8b3226c-bf76-4cd2-b174-7b27dc4c3337?index=1",
+  "selected": "lineup-02.webp",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/a8b3226c-bf76-4cd2-b174-7b27dc4c3337/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/a8b3226c-bf76-4cd2-b174-7b27dc4c3337/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/a8b3226c-bf76-4cd2-b174-7b27dc4c3337/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/a8b3226c-bf76-4cd2-b174-7b27dc4c3337/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four columns; disregard incidental marks and numbers.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Paint beetle; Ink lizard; Possessed drawing machine; Paper mannequin shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

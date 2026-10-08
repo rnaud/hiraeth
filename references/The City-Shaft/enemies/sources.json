@@ -1,0 +1,65 @@
+{
+  "world": "incal",
+  "title": "The City-Shaft",
+  "types": [
+    {
+      "name": "Pipe lizard",
+      "category": "local-creature"
+    },
+    {
+      "name": "Pressure toad",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed inspection tripod",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "City vagrant shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "b07a0507-74e5-4be3-b919-7e189ae0e40e",
+  "jobUrl": "https://www.midjourney.com/jobs/b07a0507-74e5-4be3-b919-7e189ae0e40e?index=1",
+  "selected": "lineup-02.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/b07a0507-74e5-4be3-b919-7e189ae0e40e/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/b07a0507-74e5-4be3-b919-7e189ae0e40e/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/b07a0507-74e5-4be3-b919-7e189ae0e40e/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/b07a0507-74e5-4be3-b919-7e189ae0e40e/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Pipe lizard; Pressure toad; Possessed inspection tripod; City vagrant shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

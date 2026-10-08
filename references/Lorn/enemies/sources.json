@@ -1,0 +1,65 @@
+{
+  "world": "perdide",
+  "title": "Lorn",
+  "types": [
+    {
+      "name": "Marsh snapper",
+      "category": "local-creature"
+    },
+    {
+      "name": "Spore toad",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed marsh harvester",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Shell-masked shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "95b555bd-261e-42c3-b4d0-0797b707b37f",
+  "jobUrl": "https://www.midjourney.com/jobs/95b555bd-261e-42c3-b4d0-0797b707b37f?index=1",
+  "selected": "lineup-02.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/95b555bd-261e-42c3-b4d0-0797b707b37f/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/95b555bd-261e-42c3-b4d0-0797b707b37f/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/95b555bd-261e-42c3-b4d0-0797b707b37f/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/95b555bd-261e-42c3-b4d0-0797b707b37f/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Marsh snapper; Spore toad; Possessed marsh harvester; Shell-masked shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

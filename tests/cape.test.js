@@ -158,6 +158,19 @@ async function seatedCape(def, world, { seat, boxes = [], drawn = [] }) {
   scene.updateMatrixWorld(true);
   seatBoxes = solids;
   const npc = new NPC(scene, physics, { route: [V(0, top, 0)], seat, def, kind: def.kind, cape: def.cape, palette: def.palette, head: def.head, look: def.look, world, lines: def.lines, lib, human: human[def.kind] });
+  if (def.costumeSeed) {
+    // These tests exercise the original cloak fit, not the newer reference robes.
+    // Keep the exact original seeded costume and scale as a regression fixture.
+    const { dressFor, hashSeed } = await import('../src/costumes.js');
+    const { mulberry32 } = await import('../src/noise.js');
+    const look = dressFor(world, mulberry32(hashSeed(`${world}:${def.costumeSeed}`)), {
+      palette: def.palette, head: def.head, cape: def.cape, look: def.look ?? {}, kind: def.kind, named: true,
+    });
+    npc.restyle(look);
+    npc.object.scale.setScalar(look.height * look.size);
+    npc.gait = npc.styleGait(look.build, npc.object.scale.x, `${def.costumeSeed}:0.0,0.0`);
+    npc.animator.offsetLoops(npc.gait.phase);
+  }
   npc.heading = 0;
   const player = { pos: V(0, 0, 8), vel: V(), riding: false, ride: null, wind: V() };
   const camera = new THREE.PerspectiveCamera();
@@ -230,11 +243,12 @@ test('a seated cape falls down the back and over the bench, not out like wings (
   assert.ok(far.hung, 'far off it hangs');
 });
 
+// Keep the original cloak fixtures: Sel and Hask's reference designs now wear robes.
 test('other seated people: on a stool the cloth falls past, and on a wide ledge', async () => {
   // Sel (the Bazaar): 0.45 m up on a seat the physics doesn't see (a stool, a crate): the cloth falls to the ground
-  const sel = await seatedCape(BAZAAR.sel, 'bazaar', { seat: 0.45 });
+  const sel = await seatedCape({ ...BAZAAR.sel, id: 'cape-fixture-sel', costumeSeed: 'sel' }, 'bazaar', { seat: 0.45 });
   // Hask (the Buried City): on a broad ledge, the cloth lies on it round him
-  const hask = await seatedCape(BURIED.hask, 'buried', { seat: 0.02, boxes: [[3, 0.5, 3, -1.2]] });
+  const hask = await seatedCape({ ...BURIED.hask, id: 'cape-fixture-hask', costumeSeed: BURIED.hask.id }, 'buried', { seat: 0.02, boxes: [[3, 0.5, 3, -1.2]] });
   for (const [who, { near, far }] of [['sel', sel], ['hask', hask]]) {
     console.log(`  ${who}: near ${fmt(near)}; far ${fmt(far)}`);
     for (const r of [near, far]) {
@@ -257,7 +271,7 @@ test('seated capes drape over their seats, out of them, without crumpling: a log
     ['Bako on a camp log bench', await seatedCape(DESERT.bako, 'desert', { seat: 0.02, boxes: [[1.9, 0.3, 0.5]] })],
     ['Sefa on a camp log bench', await seatedCape(DESERT.sefa, 'desert', { seat: 0.02, boxes: [[1.9, 0.3, 0.5]] })],
     // Sel's crate in the Bazaar: 0.9 x 0.45 x 0.9, a little behind her, drawn but not solid
-    ['Sel on her crate', await seatedCape(BAZAAR.sel, 'bazaar', { seat: 0.45, drawn: [[0.9, 0.45, 0.9, -0.3]] })],
+    ['Sel on her crate', await seatedCape({ ...BAZAAR.sel, id: 'cape-fixture-sel', costumeSeed: 'sel' }, 'bazaar', { seat: 0.45, drawn: [[0.9, 0.45, 0.9, -0.3]] })],
   ];
   for (const [who, { near, far }] of runs) {
     console.log(`  ${who}: near ${fmt(near)}; far ${fmt(far)}`);

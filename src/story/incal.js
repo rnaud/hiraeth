@@ -95,7 +95,7 @@ export function setupIncal(ctx) {
   const lampHead = P.lampHead, lampWorld = V(0, 0, 0);
   const lampLight = new THREE.Vector4(0, -1e5, 0, 0);
   level.lights.push(lampLight);
-  const cab = new Taxi(physics, '#f2c54b', 2.1, null, { fares: false, free: true });   // (it circles for a fare that never calls: no one aboard; it stops for anyone, pass or none)
+  const cab = new Taxi(physics, '#f2c54b', 2.1, null, { fares: false, free: true, reference: 'wren' });   // (it circles for a fare that never calls: no one aboard; it stops for anyone, pass or none)
   cab.routes = level.cabRoutes ?? null;
   // its own voice and its own words as you get in (the first time: who it is), then where to
   cab.voice = { id: WREN.id, name: WREN.name, title: WREN.title, voice: WREN.voice, kind: WREN.kind };

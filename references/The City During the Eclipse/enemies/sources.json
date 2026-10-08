@@ -1,0 +1,65 @@
+{
+  "world": "eclipse",
+  "title": "The City During the Eclipse",
+  "types": [
+    {
+      "name": "Crescent crawler",
+      "category": "local-creature"
+    },
+    {
+      "name": "Night lizard",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed observatory machine",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Eclipse pilgrim shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "88f87f94-ea65-4586-b938-1509c2ecf69f",
+  "jobUrl": "https://www.midjourney.com/jobs/88f87f94-ea65-4586-b938-1509c2ecf69f?index=2",
+  "selected": "lineup-03.webp",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/88f87f94-ea65-4586-b938-1509c2ecf69f/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/88f87f94-ea65-4586-b938-1509c2ecf69f/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/88f87f94-ea65-4586-b938-1509c2ecf69f/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/88f87f94-ea65-4586-b938-1509c2ecf69f/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Crescent crawler; Night lizard; Possessed observatory machine; Eclipse pilgrim shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

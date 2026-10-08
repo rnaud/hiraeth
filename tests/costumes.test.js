@@ -117,7 +117,8 @@ test('a crowd person promoted to a full NPC keeps their look', () => {
   // and a story person in this world is dressed in the market's style
   const sel = new NPC(scene, physics, { route: [new THREE.Vector3()], palette: { cloak: '#88b4b5', hat: '#f0a083' }, lines: ['…'], head: 'wrap', world: 'bazaar', def: { id: 'sel' } });
   assert.equal(sel.look.head, 'turban');
-  assert.equal(sel.look.cloak, '#88b4b5');
+  assert.equal(sel.look.cloak, '#d9967f');
+  assert.equal(sel.look.reference, 'bazaar/sel', 'the named person wears the reference palette');
   crowd.dispose();
 });
 

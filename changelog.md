@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.93 — 2026-10-08
+
+- Creatures and spirits: four enemies for each of the 25 worlds, built from their reference designs. Half are old machines possessed by spirits or dark humanoid shadows. Each alternates two attacks, from pincer strikes and diving rushes to pressure jets, beams and pulling shadows, with ground warnings you can dodge.
+
 ## v0.92 — 2026-10-08
 
 - Arcade signs for the last two games: Dune skiing’s on the crest of the tall golden dune north-west of where you wake in the Desert, Sky steps’ on the west rim of the Sky Stones’ start plateau, looking out at the stones in the cloud. The Ring race’s boost is a little stronger (40 m/s instead of 38): used on the straights with some fuel kept back, it wins about four seconds a run.
@@ -22,6 +26,8 @@ The same release notes shown in the game (press **N** or open settings).
 - Sky steps: a side-on run across stones floating over the desert to the makers’ gate. Stones that drift, stones that crack and fall under you, springs that throw you higher the longer you hold the jump, 40 glyphs, banners to start again from and three lives. The jump is forgiving: a press just before landing still counts, so does one just after running off an edge, and a short press is a short hop.
 - Dune skiing: the traveller on sand-skis down a kilometre of dune. Carve with the stick between the gates (a missed one costs 3 seconds), tuck on RT / R2 for speed, skid on LT / L2 to brake, fly off the lips and spin in the air (a spin landed clean takes a second off). Sand sprays off the edges, the view widens with the speed, and past the line the camera swings round to watch you skid to a stop.
 - Games: the worlds list (Debug) has a row of small games. Each opens on a card with its rules and its controls, counts you in 3, 2, 1, runs a clock, pauses on Menu or Esc (Resume, Retry, Quit), and ends on your score, with your best kept in your save and a stamp when you beat it. Quit takes you back where you came from.
+- The quest characters beyond the Desert wear their reference designs: bird-beaked hoods in Vael, rose monastery robes, padded machine suits, gardeners’ tools, mushroom hats and the Signal Market’s radio collars. Each named person has their own colours, headwear and equipment; Wren carries her old 991 plate and riveted repairs.
+- Character fittings: lanterns hang from their poles, padded seams follow the suit, and enemy wings flap from attached roots. Machines and walking guardians have connected joints, shades stay upright through turns and recoil, and each enemy flashes its own warning eyes.
 
 ## v0.91 — 2026-10-08
 

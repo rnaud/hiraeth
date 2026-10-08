@@ -1,0 +1,65 @@
+{
+  "world": "glassdunes",
+  "title": "The Glass Dunes",
+  "types": [
+    {
+      "name": "Glass crab",
+      "category": "local-creature"
+    },
+    {
+      "name": "Crystal manta",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed furnace walker",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Mirrored nomad shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "e292025b-99c9-444d-beb4-fe97992e62d3",
+  "jobUrl": "https://www.midjourney.com/jobs/e292025b-99c9-444d-beb4-fe97992e62d3?index=3",
+  "selected": "lineup-04.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/e292025b-99c9-444d-beb4-fe97992e62d3/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/e292025b-99c9-444d-beb4-fe97992e62d3/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/e292025b-99c9-444d-beb4-fe97992e62d3/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/e292025b-99c9-444d-beb4-fe97992e62d3/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "The first column includes two crab studies of the same type; use the upper faceted crab.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Glass crab; Crystal manta; Possessed furnace walker; Mirrored nomad shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

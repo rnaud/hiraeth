@@ -1,0 +1,65 @@
+{
+  "world": "spheres",
+  "title": "The Garden of Spheres",
+  "types": [
+    {
+      "name": "Pearl rolling hunter",
+      "category": "local-creature"
+    },
+    {
+      "name": "Prism spitter",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed ring machine",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Halo garden shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "6cc198cb-4cb1-41b5-8011-456050fc2f0e",
+  "jobUrl": "https://www.midjourney.com/jobs/6cc198cb-4cb1-41b5-8011-456050fc2f0e?index=1",
+  "selected": "lineup-02.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/6cc198cb-4cb1-41b5-8011-456050fc2f0e/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/6cc198cb-4cb1-41b5-8011-456050fc2f0e/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/6cc198cb-4cb1-41b5-8011-456050fc2f0e/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/6cc198cb-4cb1-41b5-8011-456050fc2f0e/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Pearl rolling hunter; Prism spitter; Possessed ring machine; Halo garden shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

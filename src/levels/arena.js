@@ -5,6 +5,7 @@ import { Terrain } from '../world.js';
 import { stepped } from '../load-steps.js';
 import { DESERT_WORLD_LOOK } from '../desert-sites.js';
 import { placeGameMarker } from '../minigames/kit/marker.js';
+import { WORLD_ENEMIES, ENEMY_BY_ID } from '../enemies/roster.js';
 import { gameById } from '../minigames/index.js';   // (none in node's tests: there is no glob there)
 
 // ---------------------------------------------------------------------------
@@ -16,6 +17,9 @@ import { gameById } from '../minigames/index.js';   // (none in node's tests: th
 // ---------------------------------------------------------------------------
 
 export function* buildArena(scene) {
+  const query=new URLSearchParams(typeof location==='undefined'?'':location.search);
+  const roster=WORLD_ENEMIES[query.get('enemyWorld')]?query.get('enemyWorld'):null;
+  const species=ENEMY_BY_ID[query.get('enemy')]?query.get('enemy'):null;
   const terrain = yield* Terrain.make({
     size: 900, seg: 90,
     height: (x, z) => { const r = Math.hypot(x, z); return r < 150 ? 0 : (r - 150) * 0.07; },   // flat out to 150 m, a low rise at the edge: the open sky all round
@@ -52,7 +56,7 @@ export function* buildArena(scene) {
     features: { mount: false, wind: false, jetpack: true, climb: true },
     defaults: { hour: 9.5, preset: 'Moebius print', cloudShadows: 0, look: DESERT_WORLD_LOOK },   // (the desert's print: bright sand, a blue sky)
     killY: -Infinity,
-    foes: { waves: true },
+    foes: { waves: true, ...(roster?{roster}:{}), ...(species?{species}:{}) },
     // the desert's print: a flat cerulean sky over cream sand
     sky: {
       script: {

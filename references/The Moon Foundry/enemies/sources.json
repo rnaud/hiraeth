@@ -1,0 +1,65 @@
+{
+  "world": "moonfoundry",
+  "title": "The Moon Foundry",
+  "types": [
+    {
+      "name": "Furnace beetle",
+      "category": "local-creature"
+    },
+    {
+      "name": "Ember lizard",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed crucible automaton",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Foundry worker shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "f6ddd17f-4809-4f74-ac3f-8f92433bd1a9",
+  "jobUrl": "https://www.midjourney.com/jobs/f6ddd17f-4809-4f74-ac3f-8f92433bd1a9?index=3",
+  "selected": "lineup-04.webp",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/f6ddd17f-4809-4f74-ac3f-8f92433bd1a9/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/f6ddd17f-4809-4f74-ac3f-8f92433bd1a9/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/f6ddd17f-4809-4f74-ac3f-8f92433bd1a9/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/f6ddd17f-4809-4f74-ac3f-8f92433bd1a9/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Furnace beetle; Ember lizard; Possessed crucible automaton; Foundry worker shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}
