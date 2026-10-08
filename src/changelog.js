@@ -10,6 +10,7 @@ import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
   { v: '1.0', date: '2026-10-08', items: [
+    { text: 'A Cinematics review page gathers the films, recordings, journeys and makers’ boxes, with replay controls and notes for quality control.', see: 'Debug → Cinematics, or open cinematics.html. Choose a scene; review notes can be exported.' },
     // the ending
     { text: 'Coming home after six worlds is now a first homecoming: something passes over the hill while you are at the stone, and the story isn’t over.', see: 'Fly home after six worlds and stay at the stone until the end.' },
     { text: 'After the Signal Market, the ship’s map charts one more place, off every chart.', see: 'After your first homecoming, play the message waiting on the voicemail, then open the holo table.' },

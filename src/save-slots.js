@@ -20,6 +20,9 @@
 // a world picked there plays in it, never in the player's own slots. The title never lists it
 // (list, latest, firstEmpty count 1..SLOT_COUNT); choosing a save there leaves it.
 
+import { reviewStorage } from './cinematics-page/storage.js';
+const cinematicStorage = reviewStorage();
+
 import { TITLES, ORDER } from './levels/names.js';
 
 export const SLOT_COUNT = 3;
@@ -36,7 +39,7 @@ export const META_KEY = 'moebius.meta.v1';
 export const slotKey = (key, n) => key.replace(/^moebius\./, `moebius.s${n}.`);
 const validSlot = (v) => { if (v === DEBUG_SLOT) return v; const n = Number(v); return Number.isInteger(n) && n >= 1 && n <= SLOT_COUNT ? n : null; };
 const parse = (s) => { try { return s == null ? null : JSON.parse(s); } catch { return null; } };
-const defaultStorage = () => { try { return globalThis.localStorage ?? null; } catch { return null; } };
+const defaultStorage = () => { try { return cinematicStorage ?? globalThis.localStorage ?? null; } catch { return null; } };
 
 export class SlotStore {
   constructor(storage = defaultStorage()) {

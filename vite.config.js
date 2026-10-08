@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 // allow serving from where it really lives (the BVH worker is loaded from it).
 /** The pages built (tests/studio.test.js checks the studio is one, tests/motion-page.test.js the Motion page). */
 export const BUILD_INPUT = {
+  cinematics: fileURLToPath(new URL('./cinematics.html', import.meta.url)),
   main: fileURLToPath(new URL('./index.html', import.meta.url)),
   studio: fileURLToPath(new URL('./studio.html', import.meta.url)),
   trailer: fileURLToPath(new URL('./trailer.html', import.meta.url)),

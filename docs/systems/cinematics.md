@@ -212,3 +212,21 @@ Sound on/off controls monitoring;
 the exported soundtrack is always included. Hiding the tab pauses live playback and MediaRecorder capture.
 Open `/trailer.html` on the dev server or built site. `window.trailer.draw(seconds)` is exposed
 for visual review; it does not advance playback.
+
+## Cinematics quality control
+
+Open `cinematics.html` (also in Debug → Cinematics). Its searchable collection contains every
+registered world moment, the Lantern's arrival, both homecomings, the two quiet scenes at home,
+all recordings, every destination's ship approach, departure, every authored makers' box and the
+trailer. The previews run the game's own directors and world effects in one iframe. Replay reloads
+that world with a fresh scene; Pause freezes the simulation, Sound toggles monitoring, and Fullscreen
+expands the preview. Interactive story sequences retain their normal controls and skip prompts.
+The trailer has its own timeline controls.
+
+`src/cinematics-page/catalog.js` derives moments and boxes from their content registries. Its
+`runtime.js` stages the traveller and prerequisites before invoking the real sequence; it does not
+replace the camera tracks. `?cinematicReview=<id>` uses in-memory slot storage for progress,
+migrations and slot metadata, so replay cannot overwrite a player's saves or active slot. Notes
+and Pass / Needs work decisions are stored separately in this browser and exported as JSON.
+Deep links use the cinematic id in the page hash. This is a review tool, not a deterministic video
+exporter: world simulation and interactive beats run live.

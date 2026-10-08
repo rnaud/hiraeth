@@ -55,7 +55,7 @@ test('menu music: a chord every 8 beats, the music box in tune, the melody every
 
 test('the full-screen menus pause the game and bring in the menu music', () => {
   const main = src('main.js');
-  assert.match(main, /const paused = \(\) => menu\.open \|\| journal\.open \|\| changelog\.open( \|\| !!minigame\?\.paused)?;/);   // (and a minigame's pause card: src/minigames/kit/runner.js)
+  assert.match(main, /const paused = \(\) => !!window\.cinematicReview\?\.paused \|\| menu\.open \|\| journal\.open \|\| changelog\.open( \|\| !!minigame\?\.paused)?;/);   // (and a minigame's pause card: src/minigames/kit/runner.js)
   // frame(): under a menu nothing in the world updates or draws, and the world's clock stops
   assert.match(main, /if \(paused\(\)\) \{ pausedFrame\(\); requestAnimationFrame\(frame\); return; \}\s*simT \+= dt;\s*const t = simT;/);
   assert.match(main, /sound\.menuMusic\(paused\(\)\)/);

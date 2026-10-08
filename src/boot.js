@@ -1,3 +1,8 @@
+// Seed a temporary cinematic review before the game loads any progress.
+if (new URLSearchParams(location.search).has('cinematicReview')) {
+  const { seedReview } = await import('./cinematics-page/runtime.js');
+  await seedReview();
+}
 // The page's entry: the title screen (src/title.js) when the game is opened, then the
 // game (src/main.js) in the save slot chosen there. A world asked for directly skips
 // the title and plays the current slot: ?level=<id> (the ship's arrivals, the dev
@@ -44,3 +49,8 @@ if (worldsOnly) {
   await showTitle();
 } else if (new URLSearchParams(location.search).has('start')) history.replaceState(null, '', location.pathname);   // (a reload goes back to the title)
 if (!worldsOnly) await import('./main.js');
+
+if (new URLSearchParams(location.search).has('cinematicReview')) {
+  const { startReview } = await import('./cinematics-page/runtime.js');
+  await startReview(window);
+}

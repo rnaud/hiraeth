@@ -86,5 +86,5 @@ export function setupLantern(ctx) {
     void dt;
   };
 
-  return { people: { ilen }, update, state: st };
+  return { people: { ilen }, update, state: st, arrive };
 }

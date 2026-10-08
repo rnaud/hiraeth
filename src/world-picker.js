@@ -15,6 +15,7 @@ export const PAGES = [
   { href: 'motion.html', label: 'Motion', hint: 'the traveller\'s loops against motion matching' },
   { href: 'trailer.html', label: 'Trailer', hint: 'the in-engine trailer' },
   { href: 'changelog.html', label: 'What\'s new', hint: 'every change, with pictures' },
+  { href: 'cinematics.html', label: 'Cinematics', hint: 'replay the films and record quality-control notes' },
   { href: 'items.html', label: 'Items', hint: 'every item, its picture, what it does, where it is found' },
 ];
 

@@ -672,7 +672,7 @@ if (viaShip) {
   player.respawn(a.pos);
   player.heading = a.heading;
   rig.yaw = a.heading + Math.PI;
-  history.replaceState(null, '', `?level=${levelId}`);
+  history.replaceState(null, '', `?level=${levelId}${query.has('cinematicReview') ? `&cinematicReview=${encodeURIComponent(query.get('cinematicReview'))}` : ''}`);
 }
 // continue where you left off (same world, not arriving by ship)
 const saved = SaveGame.load();
@@ -928,7 +928,7 @@ function quitToTitle() {
 // The full-screen menus (Start: settings; View / Select: the game menu, src/game-menu.js; what's new) pause
 // the game: frame() skips the world while one is open, and the menu music plays over the
 // hushed world (src/audio.js menuMusic).
-const paused = () => menu.open || journal.open || changelog.open || !!minigame?.paused;
+const paused = () => !!window.cinematicReview?.paused || menu.open || journal.open || changelog.open || !!minigame?.paused;
 // one panel at a time: J over the open settings drew the sketchbook's quest log under the
 // settings card (and O over the sketchbook the other way round)
 {

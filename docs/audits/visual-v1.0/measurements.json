@@ -1,0 +1,2940 @@
+{
+  "preset": "high",
+  "res": "1280x720",
+  "hours": [
+    7,
+    12,
+    18.5,
+    22
+  ],
+  "date": "2026-10-08T21:59:34.449Z",
+  "worlds": [
+    {
+      "world": "desert",
+      "shots": [
+        {
+          "view": "spawn",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.26,
+          "colours": 241,
+          "flags": []
+        },
+        {
+          "view": "spawn",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.452,
+          "colours": 253,
+          "flags": []
+        },
+        {
+          "view": "spawn",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.17,
+          "colours": 256,
+          "flags": []
+        },
+        {
+          "view": "spawn",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.375,
+          "colours": 162,
+          "flags": []
+        },
+        {
+          "view": "qanat-tree",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.393,
+          "colours": 411,
+          "flags": []
+        },
+        {
+          "view": "qanat-tree",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.555,
+          "colours": 446,
+          "flags": []
+        },
+        {
+          "view": "qanat-tree",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.574,
+          "colours": 429,
+          "flags": []
+        },
+        {
+          "view": "qanat-tree",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.564,
+          "colours": 395,
+          "flags": []
+        },
+        {
+          "view": "camps",
+          "hour": 7,
+          "black": 0,
+          "white": 0.0006,
+          "magenta": 0,
+          "flat": 0.263,
+          "colours": 515,
+          "flags": []
+        },
+        {
+          "view": "camps",
+          "hour": 12,
+          "black": 0,
+          "white": 0.0022,
+          "magenta": 0,
+          "flat": 0.317,
+          "colours": 570,
+          "flags": []
+        },
+        {
+          "view": "camps",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0.015,
+          "magenta": 0,
+          "flat": 0.148,
+          "colours": 539,
+          "flags": []
+        },
+        {
+          "view": "camps",
+          "hour": 22,
+          "black": 0,
+          "white": 0.0147,
+          "magenta": 0,
+          "flat": 0.285,
+          "colours": 465,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.186,
+          "colours": 381,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.34,
+          "colours": 386,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.34,
+          "colours": 389,
+          "flags": []
+        },
+        {
+          "view": "inside-3",
+          "hour": 12,
+          "black": 0,
+          "white": 0.0019,
+          "magenta": 0,
+          "flat": 0.102,
+          "colours": 328,
+          "flags": []
+        },
+        {
+          "view": "inside-4",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.43,
+          "colours": 416,
+          "flags": []
+        },
+        {
+          "view": "inside-5",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.159,
+          "colours": 310,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 23,
+          "crowd": 132,
+          "relic": 5,
+          "box": 3,
+          "thing": 28,
+          "prop": 8115
+        },
+        "counts": {
+          "box": 1,
+          "thing": 1,
+          "prop": 6
+        },
+        "offenders": [
+          "box",
+          "thing",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "arzach",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.306,
+          "colours": 230,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.748,
+          "colours": 304,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.259,
+          "colours": 219,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.824,
+          "colours": 161,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.179,
+          "colours": 155,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.173,
+          "colours": 194,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.233,
+          "colours": 140,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.321,
+          "colours": 90,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.383,
+          "colours": 243,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.593,
+          "colours": 294,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.296,
+          "colours": 228,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.329,
+          "colours": 145,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.151,
+          "colours": 329,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.252,
+          "colours": 426,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.252,
+          "colours": 435,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 8,
+          "relic": 5,
+          "box": 3,
+          "thing": 10,
+          "prop": 2704
+        },
+        "counts": {
+          "prop": 52
+        },
+        "offenders": [
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "arzach2",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.52,
+          "colours": 289,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.561,
+          "colours": 303,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.422,
+          "colours": 275,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.538,
+          "colours": 192,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.434,
+          "colours": 321,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.48,
+          "colours": 351,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.311,
+          "colours": 334,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.446,
+          "colours": 260,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.526,
+          "colours": 270,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.4,
+          "colours": 259,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.31,
+          "colours": 243,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.483,
+          "colours": 168,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.137,
+          "colours": 354,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.271,
+          "colours": 386,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.271,
+          "colours": 387,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 6,
+          "relic": 5,
+          "box": 3,
+          "thing": 12,
+          "prop": 1615
+        },
+        "counts": {
+          "npc": 1,
+          "box": 1,
+          "prop": 40
+        },
+        "offenders": [
+          "npc",
+          "box",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "perdide",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.385,
+          "colours": 510,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.471,
+          "colours": 564,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.325,
+          "colours": 538,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.395,
+          "colours": 532,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.332,
+          "colours": 467,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.335,
+          "colours": 500,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.206,
+          "colours": 449,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.288,
+          "colours": 416,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.261,
+          "colours": 402,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.277,
+          "colours": 446,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.215,
+          "colours": 388,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.242,
+          "colours": 349,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.174,
+          "colours": 368,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.263,
+          "colours": 612,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.261,
+          "colours": 617,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 7,
+          "relic": 5,
+          "box": 3,
+          "thing": 5,
+          "prop": 3261
+        },
+        "counts": {
+          "box": 1
+        },
+        "offenders": [
+          "box"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "perdide2",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.235,
+          "colours": 334,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.317,
+          "colours": 406,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0.0002,
+          "magenta": 0,
+          "flat": 0.402,
+          "colours": 363,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.26,
+          "colours": 399,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.118,
+          "colours": 431,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.085,
+          "colours": 499,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0.0009,
+          "magenta": 0,
+          "flat": 0.104,
+          "colours": 482,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0.0006,
+          "magenta": 0,
+          "flat": 0.117,
+          "colours": 525,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.176,
+          "colours": 275,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.241,
+          "colours": 294,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.399,
+          "colours": 271,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.213,
+          "colours": 254,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.238,
+          "colours": 273,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.132,
+          "colours": 326,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.132,
+          "colours": 330,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 9,
+          "relic": 5,
+          "box": 3,
+          "thing": 7,
+          "prop": 5323
+        },
+        "counts": {
+          "box": 1,
+          "prop": 12
+        },
+        "offenders": [
+          "box",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "edena",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.479,
+          "colours": 489,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.486,
+          "colours": 532,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.43,
+          "colours": 488,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.478,
+          "colours": 302,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.46,
+          "colours": 443,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.469,
+          "colours": 520,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.242,
+          "colours": 430,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.453,
+          "colours": 310,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.418,
+          "colours": 341,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.457,
+          "colours": 375,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.334,
+          "colours": 326,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.467,
+          "colours": 238,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.267,
+          "colours": 345,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.421,
+          "colours": 502,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.42,
+          "colours": 500,
+          "flags": []
+        },
+        {
+          "view": "inside-3",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.101,
+          "colours": 411,
+          "flags": []
+        },
+        {
+          "view": "inside-4",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.563,
+          "colours": 541,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 7,
+          "relic": 5,
+          "box": 3,
+          "thing": 9,
+          "prop": 555
+        },
+        "counts": {
+          "thing": 1,
+          "prop": 7
+        },
+        "offenders": [
+          "thing",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "incal",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.45,
+          "colours": 457,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.484,
+          "colours": 521,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.411,
+          "colours": 456,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.486,
+          "colours": 289,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.409,
+          "colours": 532,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.377,
+          "colours": 588,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.407,
+          "colours": 512,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.394,
+          "colours": 299,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.268,
+          "colours": 359,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.356,
+          "colours": 456,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.26,
+          "colours": 332,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.312,
+          "colours": 216,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.175,
+          "colours": 359,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.109,
+          "colours": 633,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.109,
+          "colours": 625,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 9,
+          "crowd": 1505,
+          "relic": 5,
+          "box": 3,
+          "thing": 6,
+          "prop": 4439
+        },
+        "counts": {
+          "relic": 1,
+          "prop": 6
+        },
+        "offenders": [
+          "relic",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "garage",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.24,
+          "colours": 414,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.523,
+          "colours": 440,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.352,
+          "colours": 429,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.523,
+          "colours": 282,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.452,
+          "colours": 411,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.485,
+          "colours": 419,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.251,
+          "colours": 420,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.401,
+          "colours": 261,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.647,
+          "colours": 61,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.599,
+          "colours": 72,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.672,
+          "colours": 64,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.626,
+          "colours": 52,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.156,
+          "colours": 328,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.364,
+          "colours": 481,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.365,
+          "colours": 488,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 8,
+          "relic": 5,
+          "box": 4,
+          "thing": 3,
+          "prop": 185
+        },
+        "counts": {
+          "prop": 16
+        },
+        "offenders": [
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "buried",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.6,
+          "colours": 265,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.621,
+          "colours": 283,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.432,
+          "colours": 271,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.647,
+          "colours": 219,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.371,
+          "colours": 293,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.486,
+          "colours": 325,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.42,
+          "colours": 313,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.584,
+          "colours": 234,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.599,
+          "colours": 229,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.604,
+          "colours": 222,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.359,
+          "colours": 217,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.672,
+          "colours": 132,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.122,
+          "colours": 338,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.261,
+          "colours": 381,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.261,
+          "colours": 384,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 7,
+          "relic": 5,
+          "box": 4,
+          "thing": 9,
+          "prop": 494
+        },
+        "counts": {
+          "box": 1,
+          "thing": 1,
+          "prop": 2
+        },
+        "offenders": [
+          "box",
+          "thing",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "spheres",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0.0001,
+          "magenta": 0,
+          "flat": 0.427,
+          "colours": 484,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0.0001,
+          "magenta": 0,
+          "flat": 0.446,
+          "colours": 496,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0.0002,
+          "magenta": 0,
+          "flat": 0.367,
+          "colours": 464,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0.0001,
+          "magenta": 0,
+          "flat": 0.427,
+          "colours": 340,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.378,
+          "colours": 405,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.379,
+          "colours": 424,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.187,
+          "colours": 358,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.359,
+          "colours": 286,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.595,
+          "colours": 355,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.625,
+          "colours": 405,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.5,
+          "colours": 351,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.455,
+          "colours": 257,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0.0001,
+          "magenta": 0,
+          "flat": 0.16,
+          "colours": 374,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.198,
+          "colours": 452,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.198,
+          "colours": 477,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 10,
+          "relic": 5,
+          "box": 3,
+          "thing": 4,
+          "prop": 7552
+        },
+        "counts": {
+          "box": 1,
+          "prop": 10
+        },
+        "offenders": [
+          "box",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "bazaar",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.389,
+          "colours": 549,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.383,
+          "colours": 621,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.386,
+          "colours": 853,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.402,
+          "colours": 558,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.492,
+          "colours": 535,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.502,
+          "colours": 566,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.504,
+          "colours": 683,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0.0001,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.517,
+          "colours": 419,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.471,
+          "colours": 575,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.476,
+          "colours": 636,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.477,
+          "colours": 794,
+          "flags": []
+        },
+        {
+          "view": "crowd2",
+          "hour": 22,
+          "black": 0.0001,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.524,
+          "colours": 525,
+          "flags": []
+        },
+        {
+          "view": "inside-0",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.179,
+          "colours": 294,
+          "flags": []
+        },
+        {
+          "view": "inside-1",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.153,
+          "colours": 654,
+          "flags": []
+        },
+        {
+          "view": "inside-2",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.153,
+          "colours": 647,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 11,
+          "crowd": 565,
+          "relic": 5,
+          "box": 3,
+          "thing": 8,
+          "prop": 60
+        },
+        "counts": {
+          "crowd": 2,
+          "prop": 3
+        },
+        "offenders": [
+          "crowd",
+          "crowd",
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "mangrove",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.149,
+          "colours": 485,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.214,
+          "colours": 496,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.212,
+          "colours": 549,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.297,
+          "colours": 484,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 4,
+          "prop": 111
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    },
+    {
+      "world": "glassdunes",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.37,
+          "colours": 356,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.555,
+          "colours": 427,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.232,
+          "colours": 312,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.559,
+          "colours": 249,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "crowd": 21,
+          "thing": 1,
+          "prop": 4
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    },
+    {
+      "world": "waterfall",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.295,
+          "colours": 415,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.3,
+          "colours": 409,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0.0001,
+          "magenta": 0,
+          "flat": 0.293,
+          "colours": 431,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.302,
+          "colours": 325,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 1,
+          "crowd": 113,
+          "box": 1,
+          "prop": 1
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    },
+    {
+      "world": "saltharbour",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.469,
+          "colours": 413,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.475,
+          "colours": 411,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.476,
+          "colours": 405,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.504,
+          "colours": 340,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 4,
+          "crowd": 84,
+          "prop": 7
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    },
+    {
+      "world": "antennas",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.327,
+          "colours": 340,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.379,
+          "colours": 353,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.257,
+          "colours": 324,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.351,
+          "colours": 297,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 4,
+          "prop": 3512
+        },
+        "counts": {
+          "prop": 3
+        },
+        "offenders": [
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "underwater",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.1,
+          "colours": 270,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.148,
+          "colours": 284,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.111,
+          "colours": 250,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.173,
+          "colours": 206,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 1,
+          "crowd": 105,
+          "prop": 29
+        },
+        "counts": {
+          "prop": 3
+        },
+        "offenders": [
+          "prop",
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "eclipse",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.338,
+          "colours": 381,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0.0118,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.355,
+          "colours": 305,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.345,
+          "colours": 417,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.342,
+          "colours": 350,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 4,
+          "crowd": 54,
+          "prop": 2
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    },
+    {
+      "world": "fallenring",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.427,
+          "colours": 370,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.37,
+          "colours": 388,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.385,
+          "colours": 358,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.405,
+          "colours": 274,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 2,
+          "thing": 1,
+          "prop": 14
+        },
+        "counts": {
+          "npc": 2
+        },
+        "offenders": [
+          "npc",
+          "npc"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "moonfoundry",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.482,
+          "colours": 351,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.486,
+          "colours": 330,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.448,
+          "colours": 352,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.551,
+          "colours": 196,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 4,
+          "crowd": 52,
+          "prop": 35
+        },
+        "counts": {
+          "npc": 1
+        },
+        "offenders": [
+          "npc"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "underside",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.305,
+          "colours": 323,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.318,
+          "colours": 325,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.181,
+          "colours": 307,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.328,
+          "colours": 247,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 4,
+          "crowd": 61,
+          "prop": 10
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    },
+    {
+      "world": "spacecity",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0.1799,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.324,
+          "colours": 367,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0.1798,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.356,
+          "colours": 360,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0.1696,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.355,
+          "colours": 386,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0.1814,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.366,
+          "colours": 340,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 4,
+          "crowd": 79,
+          "prop": 66
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    },
+    {
+      "world": "overnighttrain",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.201,
+          "colours": 354,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.259,
+          "colours": 386,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.193,
+          "colours": 352,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.25,
+          "colours": 371,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 3,
+          "crowd": 11,
+          "thing": 1,
+          "prop": 4
+        },
+        "counts": {
+          "prop": 2
+        },
+        "offenders": [
+          "prop",
+          "prop"
+        ]
+      },
+      "errors": []
+    },
+    {
+      "world": "home",
+      "shots": [
+        {
+          "view": "start",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.498,
+          "colours": 390,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.486,
+          "colours": 397,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.421,
+          "colours": 390,
+          "flags": []
+        },
+        {
+          "view": "start",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.515,
+          "colours": 303,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.324,
+          "colours": 412,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.307,
+          "colours": 433,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.246,
+          "colours": 411,
+          "flags": []
+        },
+        {
+          "view": "crowd",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.341,
+          "colours": 348,
+          "flags": []
+        },
+        {
+          "view": "wide",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.711,
+          "colours": 296,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "wide",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.774,
+          "colours": 313,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        },
+        {
+          "view": "wide",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.447,
+          "colours": 287,
+          "flags": []
+        },
+        {
+          "view": "wide",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.799,
+          "colours": 253,
+          "flags": [
+            "mostly one colour (nothing drawn?)"
+          ]
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 2,
+          "thing": 12,
+          "prop": 92
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    },
+    {
+      "world": "lantern",
+      "shots": [
+        {
+          "view": "boot",
+          "hour": 7,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.263,
+          "colours": 384,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 12,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.205,
+          "colours": 391,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 18.5,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.273,
+          "colours": 384,
+          "flags": []
+        },
+        {
+          "view": "boot",
+          "hour": 22,
+          "black": 0,
+          "white": 0,
+          "magenta": 0,
+          "flat": 0.276,
+          "colours": 323,
+          "flags": []
+        }
+      ],
+      "clip": {
+        "checked": {
+          "npc": 1,
+          "prop": 12
+        },
+        "counts": {},
+        "offenders": []
+      },
+      "errors": []
+    }
+  ]
+}

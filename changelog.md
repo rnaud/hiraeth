@@ -22,6 +22,7 @@ The same release notes shown in the game (press **N** or open settings).
 - A last, small world at the end of the light’s trace, with someone waiting there, and a real ending after it: end card and credits.
 - After the Signal Market, the ship’s map charts one more place, off every chart.
 - Coming home after six worlds is now a first homecoming: something passes over the hill while you are at the stone, and the story isn’t over.
+- A Cinematics review page gathers the films, recordings, journeys and makers’ boxes, with replay controls and notes for quality control.
 
 ## v0.99 — 2026-10-08
 
