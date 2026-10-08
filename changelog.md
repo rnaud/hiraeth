@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.89 — 2026-10-07
 
+- With a keyboard the jets are the left mouse button, or SPACE held in the air: W and S tip the nose down and up, A and D turn, SHIFT goes faster. On a touch screen hold ⤒ in the air and steer with the left-hand drag.
+- Let go of the jets in the air and you glide on, sinking gently, even out of a steep climb, down to a soft landing; a dive into the ground lands you on your feet. Aim (LT / L2) while flying and the jets hold you in the air, sinking slowly, while you shoot.
+- On the jets the left stick flies the nose: forward dives, back climbs, left and right bank you into a turn, so you can fly up, down and round every way, nearly three times as fast as before. The camera swings round behind you and tips up with a climb and down with a dive. Settings has “Invert the jets’ pitch” if you would rather push forward to climb.
+- The jets fly like a plane. RT / R2 is the thrust, and the harder you press it the faster you go: from the ground it lifts you straight up, about fifty metres in three seconds, where before it only hovered you off the sand.
 - A world picked from the Debug worlds list now opens in a separate debug save, as if you had played every world before it through: their quests done, their boxes open, the gear, the tank’s colours, the keepsakes and the recordings, with the world itself fresh. Your own saves are left as they were.
 - In the References level the Glass Dunes’ fourth picture has its tall wave: it rises steep over the glassworkers’ camp, curls over its dark hollow and sweeps down to the sand, as drawn, instead of a low hood.
 - Two archways in the Glass Dunes go through now: walk through the cliff of the giants to the sand behind it, and through the frozen wave in the middle of the valley, under a vault of glass lit green. The breaking wave’s hollow can be walked into from its camp, a long way under the lip.

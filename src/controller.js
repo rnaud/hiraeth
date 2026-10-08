@@ -4,8 +4,9 @@
 //
 //   walking   bottom jump (again in the air: boost) · right interact, talk, get on
 //             · left call the mount (whistle it, hail a taxi) · top: the scout finds the objective
-//             · LT aim · RT shoots while LT is held, and fires the jets without it
-//             (hover; the stick flies you that way, bottom held climbs) · RB push
+//             · LT aim · RT shoots while LT is held, and without it is the jets' throttle
+//             (analog; they fly like a plane: the stick forward tips the nose down, back
+//             pulls it up, left / right bank and turn; LT in flight holds you to aim) · RB the blade
 //             · L3 (click the left stick) run until you stop
 //             · LB + right stick zoom · D-pad ←/→ gun mode, ↑ worlds, ↓ photo
 //             · R3 (click the right stick) the bell-note whistle, once found
@@ -134,6 +135,7 @@ export class Controller {
         // the fluid tool: hold LT to aim, RT shoots while aiming (the push too: a gun mode) and fires the jets
         // otherwise (triggers()); jump in the air boosts. The fluid blade (src/fluid-blade.js): RB swings, LB held blocks
         h.PadAim = down(LT); h.PadFire = down(RT);
+        h.PadThrust = this.blocked.has(RT) ? 0 : trigger(value(RT));   // (the jets' throttle: analog, a light squeeze flies slowly)
         h.PadBlade = down(RB); h.PadGuard = down(LB);
         // D-pad right / left: the next / previous gun mode of the fluid tool (fluid-tool.js)
         h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
@@ -167,14 +169,17 @@ export function padRide(input) {
  * What the aim and fire buttons do on foot (the pad's triggers, the mouse, the keys):
  *   aim    LT / L2, the right mouse button, R (touch: the ◎ toggle)
  *   shoot  RT / R2, the left mouse button or G, only while aiming (a fresh press: fluid-tool.js)
- *   jets   RT / R2 or the left mouse button while not aiming (player.js: a climb the stick steers, jump held hovers;
- *          Space, the keyboard's and touch's own jets key, still climbs on them as before)
+ *   jets   RT / R2 or the left mouse button while not aiming (player.js JET: they fly like a plane;
+ *          Space held in the air, the keyboard's and touch's own jets key, too)
+ *   thrust the jets' throttle 0..1: RT / R2's travel (PadThrust, analog), 1 for the mouse button
  *   quick  the touch ✺ button: a quick shot, aiming for you (touch has no trigger to hold)
  */
 export function triggers(c = {}) {
   const aim = !!(c.KeyR || c.MouseRight || c.PadAim);
   const fire = !!(c.KeyG || c.MouseLeft || c.PadFire);
-  return { aim, fire, shoot: aim && fire, jets: !aim && !!(c.PadFire || c.MouseLeft), quick: !!c.TouchFire };
+  const pad = c.PadThrust != null ? +c.PadThrust || (c.PadFire ? 1 : 0) : c.PadFire ? 1 : 0;
+  const thrust = aim ? 0 : Math.max(pad, c.MouseLeft ? 1 : 0);
+  return { aim, fire, shoot: aim && fire, jets: thrust > 0, thrust, quick: !!c.TouchFire };
 }
 
 export function mergeControls(keyboard, gamepad) {

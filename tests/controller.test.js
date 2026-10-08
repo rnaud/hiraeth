@@ -80,12 +80,12 @@ test('the fluid tool: LT aims, RT shoots only while aiming (else the jets), RB s
   const t=setup(); t.button(RT,true);
   let input=t.c.update(.016);
   assert.ok(input.PadFire && !input.PadAim && !input.ShiftLeft, 'RT alone: no run');
-  assert.deepEqual(triggers(input), { aim: false, fire: true, shoot: false, jets: true, quick: false }, 'RT alone fires the jets, it does not shoot');
+  assert.deepEqual(triggers(input), { aim: false, fire: true, shoot: false, jets: true, thrust: 1, quick: false }, 'RT alone fires the jets, it does not shoot');
   t.button(LT,true); input=t.c.update(.016);
   assert.ok(input.PadAim && input.PadFire);
-  assert.deepEqual(triggers(input), { aim: true, fire: true, shoot: true, jets: false, quick: false }, 'LT held: RT shoots, the jets are off');
+  assert.deepEqual(triggers(input), { aim: true, fire: true, shoot: true, jets: false, thrust: 0, quick: false }, 'LT held: RT shoots, the jets are off');
   t.button(BOTTOM,true); input=t.c.update(.016);
-  assert.ok(input.Space && input.PadJump, 'the jump is marked as the pad\'s (it climbs on the jets, never fires them)');
+  assert.ok(input.Space && input.PadJump, 'the jump is marked as the pad\'s (it never fires the jets)');
   t.button(RB,true); input=t.c.update(.016); assert.ok(input.PadBlade && !input.PadPush, 'RB swings the blade (the push is a gun mode)');
   t.button(LB,true); assert.ok(t.c.update(.016).PadGuard, 'LB held: the guard');
   const b=setup(); b.button(RIGHT,true); input=b.c.update(.016);
@@ -102,10 +102,10 @@ test('the fluid tool: LT aims, RT shoots only while aiming (else the jets), RB s
   assert.ok(mergeControls({},{PadFire:true}).PadFire);
 });
 test('the mouse and keys: right aims, left shoots while aiming and fires the jets otherwise; G shoots only while aiming', () => {
-  assert.deepEqual(triggers({ MouseLeft: true }), { aim: false, fire: true, shoot: false, jets: true, quick: false });
-  assert.deepEqual(triggers({ MouseLeft: true, MouseRight: true }), { aim: true, fire: true, shoot: true, jets: false, quick: false });
-  assert.deepEqual(triggers({ KeyG: true }), { aim: false, fire: true, shoot: false, jets: false, quick: false }, 'G alone: nothing (G is not the jets)');
-  assert.deepEqual(triggers({ KeyR: true, KeyG: true }), { aim: true, fire: true, shoot: true, jets: false, quick: false });
+  assert.deepEqual(triggers({ MouseLeft: true }), { aim: false, fire: true, shoot: false, jets: true, thrust: 1, quick: false });
+  assert.deepEqual(triggers({ MouseLeft: true, MouseRight: true }), { aim: true, fire: true, shoot: true, jets: false, thrust: 0, quick: false });
+  assert.deepEqual(triggers({ KeyG: true }), { aim: false, fire: true, shoot: false, jets: false, thrust: 0, quick: false }, 'G alone: nothing (G is not the jets)');
+  assert.deepEqual(triggers({ KeyR: true, KeyG: true }), { aim: true, fire: true, shoot: true, jets: false, thrust: 0, quick: false });
   assert.equal(triggers({ Space: true }).jets, false, 'Space is the jets in player.js itself, as before');
   assert.equal(triggers({ TouchFire: true }).quick, true, 'the touch button: a quick shot that aims for you');
 });

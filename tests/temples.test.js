@@ -459,14 +459,21 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   };
   const wait = (s, input = {}, yaw = 0) => { for (let i = 0; i < s / DT; i++) frame(input, yaw); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
-  /** Fly with the jets: up to height y (local), then across to `to` (local [x, z]), and land. */
+  /**
+   * Fly with the jets (they fly like a plane: player.js JET): RT lifts you straight up, eased off
+   * ahead of height y (local); the stick forward tips the nose over to level, facing `to` (local [x, z]);
+   * across on a squeeze that eases off as it nears; then let go: too slow to glide, you drop onto it.
+   */
   const fly = (y, to, { max = 14 } = {}) => {
     const target = L(to[0], y, to[1]);
+    const face = () => { P.heading = P.frame.headingOf(target.clone().sub(P.pos).setY(0)); };
+    const left = () => y - rt.kit.local(P.pos).y;
     let i = 0;
-    // up, holding the jets; across, hovering; then let go and land
-    for (; i < max / DT && rt.kit.local(P.pos).y < y; i++) frame({ Space: true }, toward(target));
-    for (; i < max / DT && flat(target) > 0.8; i++) frame({ Space: rt.kit.local(P.pos).y < y, KeyW: true }, toward(target));
-    for (; i < max / DT && !P.onGround; i++) frame({}, toward(target));
+    face();
+    for (; i < max / DT && left() > 0.3; i++) frame({ PadThrust: Math.min(1, Math.max(0.05, (left() - P.vel.dot(P.frame.up) * 0.6) / 8)) }, 0);   // (easing off ahead of the height: the speed lags)
+    for (; i < max / DT && P.jetFlight?.pitch > 0.05; i++) { face(); frame({ PadThrust: 0.15, stick: { x: 0, y: 1 } }, 0); }
+    for (; i < max / DT && flat(target) > 0.8; i++) { face(); frame({ PadThrust: Math.min(1, Math.max(0.06, flat(target) / 30)) }, 0); }
+    for (; i < max / DT && !P.onGround; i++) frame({}, 0);
     return P.onGround && flat(target) < 2;
   };
   wait(0.5);

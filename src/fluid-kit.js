@@ -209,9 +209,9 @@ export class FluidJets {
     this.nozzles.forEach((n, i) => { n.updateWorldMatrix(true, false); n.localToWorld(out[i].set(0, -0.13, 0)); });
     return out;
   }
-  update(dt, { on = false, thrusting = false, time = 0 } = {}) {
+  update(dt, { on = false, thrusting = false, power = 1, time = 0 } = {}) {
     this.group.visible = on;
-    this.thrust += ((thrusting && on ? 1 : 0) - this.thrust) * (1 - Math.exp(-(thrusting ? 18 : 10) * dt));
+    this.thrust += ((thrusting && on ? 0.35 + 0.65 * Math.min(1, power) : 0) - this.thrust) * (1 - Math.exp(-(thrusting ? 18 : 10) * dt));
     const lit = this.thrust > 0.03;
     this.flames.forEach(({ flame, core }, i) => {
       flame.visible = core.visible = lit;
