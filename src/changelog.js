@@ -9,6 +9,16 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.95', date: '2026-10-08', items: [
+    'The Desert’s golden dunes are the warm ochre of its drawings now, not a pale cream, and a dune in shade (round Qanat too) turns a deeper orange-brown instead of a khaki grey; the shadows lean violet-blue.',
+    'The Glass Dunes: the sand is a pale peach in the light (it was a flat salmon), the glass a deeper emerald with bluer tops, the far walls keep their green instead of fading grey, and the evening sky runs from a warm peach at the horizon to grey-teal overhead.',
+    'The Buried Machine’s dunes are a warmer cream and shade a soft sage, as in its drawings (the shadows were a cold grey-brown), and the hanging city is a deeper slate blue.',
+    'The Sealed Hangar is painted in the dusty tones its people are drawn in: faded blue, mustard, lilac, coral and olive instead of toy-box colours, a paler sage ground and a softer sky.',
+    'The City-Shaft’s shade is one steel blue, as in its drawings: a pink wall’s turned side goes blue, not a dull grey-lavender; cast shadows a lighter step, and the haze down the shaft a clearer, thinner blue.',
+    'On the Overnight Train the night sky glows: a broad rose band along the horizon fading up into the blue-violet, where there was a thin pale line under a flat blue.',
+    'Lorn’s long evening shadows are violet now, not near-black stripes across the moss; the moss a softer olive and the evening light a paler mint.',
+    'Lorn II, the Deep Wood: the swamp floor is a greener teal and the crystal reeds a lavender instead of a glaring white.',
+  ] },
   { v: '0.94', date: '2026-10-08', items: [
     { text: 'Game updates can now deliver the full soundtrack to Android and Steam Deck, and the website can publish all 25 themes.', see: 'Check for updates, then visit any world with music enabled. Downloaded music remains available offline.' },
     {"text": "Home has a quiet new piano-led theme, completing the instrumental soundtrack for all 25 playable worlds.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},

@@ -58,7 +58,7 @@ export const TRAIN_DAY = ['#7c94d0', '#f0d6d4', '#8a82c0', '#fff4ec', '#fff0dc']
 /** Dusk: the plain rose under a violet sky, the sun low and gold. */
 export const TRAIN_DUSK = ['#5e66b0', '#f4a890', '#6a5aa0', '#ffd4c0', '#ffb890'];
 /** The night the pictures draw: a deep blue-violet sky to a rose band at the horizon, the plain lavender in the moons' light. */
-export const TRAIN_NIGHT = ['#42509a', '#e4949e', '#4c4a90', '#d6bce2', '#fff0e0'];
+export const TRAIN_NIGHT = ['#42509a', '#e88a90', '#4c4a90', '#d6bce2', '#fff0e0'];
 /** The haze: stepped rose-lavender bands over the plain, so the far end of the train and the far buttes go pale. */
 export const TRAIN_HAZE = { uHazeLayers: [260, 1.7, 0.12, 4], uHazeTone: [0.9, 0.66, 0.76, 0.7] };
 /**
@@ -69,6 +69,9 @@ export const TRAIN_HAZE = { uHazeLayers: [260, 1.7, 0.12, 4], uHazeTone: [0.9, 0
 export const TRAIN_LOOK = {
   uClouds: 0, uCumulus: 0, uSkyDots: 0.55, uShadowFlat: 0.8, uShadeKeep: 0.15, uHalftone: 0.16, uBounce: 0.12, uHatch: 0.28, uDots: 0,
   uFogDensity: 0.00032, uSpot: [0.7, 3, 0.3, 0.12], uSpotTone: [0.16, 0.14, 0.26, 0.45], uCast: [0.35, 0.2], ...TRAIN_HAZE,
+  // the sky a gradient, not the print's flat tint (October 2026 colour pass): the pictures' rose band climbs a little way up
+  // the sky into the blue-violet, where the flat sky kept only a thin pale line on the horizon (mostly gradient)
+  uSkyFlat: 0.3,
 };
 
 /** The train's materials, made by the kit (shared per option set). */

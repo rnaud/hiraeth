@@ -22,7 +22,9 @@ const RING_R = 150;
 const RING_L = 420;
 const SLIT = 0.35;                                // half-angle of the roof slit
 
-export const PALETTE = ['#e88fa6', '#62c3c9', '#f2c54b', '#a99be0', '#f3ead8', '#e6875f', '#8fcf9a', '#d9643a'];
+// (October 2026 colour pass: the Hangar's people are drawn in dusty tones on cream, a faded blue, mustard, lilac,
+//  coral, olive; the world's paint was a toy-box's pure hues. Each colour kept its place, a step greyer and warmer.)
+export const PALETTE = ['#d48e94', '#86b0b2', '#d8aa50', '#a9a0c8', '#f3ead8', '#d27b5e', '#a8b48c', '#c9603e'];
 const Y = new THREE.Vector3(0, 1, 0);
 
 /** Radial frame of the ring at an angle phi around the x axis (phi = 0 -> +z, pi/2 -> +y). */
@@ -101,8 +103,8 @@ export function* buildGarage(scene) {
 
   function portal(pos, up, facing, to, toUp, toFwd, zone) {
     const label = { A: 'portal to the plateau', B: 'portal to the upside-down', C: 'portal to the ring' }[zone];   // "Through the …" on the HUD
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(5, 0.7, 8, 32), makeMaterial({ color: '#f2c54b', glow: 1 }));
-    const inner = new THREE.Mesh(new THREE.CircleGeometry(4.3, 32), makeMaterial({ color: '#62c3c9', glow: 0.8, side: THREE.DoubleSide }));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(5, 0.7, 8, 32), makeMaterial({ color: '#d8aa50', glow: 1 }));
+    const inner = new THREE.Mesh(new THREE.CircleGeometry(4.3, 32), makeMaterial({ color: '#86b0b2', glow: 0.8, side: THREE.DoubleSide }));
     const grp = new THREE.Group();
     grp.add(ring, inner);
     // torus lies in its local xy-plane: point its normal (z) along `facing`, keep `up` as y
@@ -121,7 +123,7 @@ export function* buildGarage(scene) {
     const g = new THREE.CylinderGeometry(210, 120, 70, 30, 6);
     g.translate(0, -35, 0);
     jitter(g, 0.12, 0.01, 4);
-    scene.add(new THREE.Mesh(g, makeMaterial({ color: '#cfe0a8', color2: '#b5a37f', color3: '#e9d7b0', mode: MODE_STRATA, strataSize: 7, flat: true, pattern: 'cracks' })));
+    scene.add(new THREE.Mesh(g, makeMaterial({ color: '#d8d4a8', color2: '#b8a682', color3: '#ead9b2', mode: MODE_STRATA, strataSize: 7, flat: true, pattern: 'cracks' })));
     // a keep with walls and corner towers
     const keep = [];
     for (let i = 0; i < 4; i++) {
@@ -170,7 +172,7 @@ export function* buildGarage(scene) {
   yield;
   {
     const clear = (x, z) => Math.abs(x) < 16 && z > 20 && z < 150;
-    const pipeMats = ['#e6875f', '#62c3c9', '#a99be0', '#f2c54b'].map((c) => makeMaterial({ color: c, metal: 'painted' }));
+    const pipeMats = ['#d27b5e', '#86b0b2', '#a9a0c8', '#d8aa50'].map((c) => makeMaterial({ color: c, metal: 'painted' }));
     const brass = makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass' }), ink = makeMaterial({ color: '#34405e', metal: 'iron' });
     const pipes = new Map(), bits = [], pumps = [];
     for (let i = 0; i < 26; i++) {
@@ -258,10 +260,10 @@ export function* buildGarage(scene) {
     const col = new THREE.Mesh(soften(new THREE.CylinderGeometry(6, 9, 80, 14, 8), 0.12).translate(0, 40, 0), stone(5));
     col.position.set(mx, 0, mz);
     scene.add(col);
-    const crown = new THREE.Mesh(new THREE.SphereGeometry(11, 16, 10).scale(1, 0.7, 1), makeMaterial({ color: '#f2c54b', grid: 3, metal: 'brass' }));
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(11, 16, 10).scale(1, 0.7, 1), makeMaterial({ color: '#d8aa50', grid: 3, metal: 'brass' }));
     crown.position.set(mx, 82, mz);
     scene.add(crown);
-    const gearMat = makeMaterial({ color: '#d9643a', flat: true, grid: 2, metal: 'copper' });
+    const gearMat = makeMaterial({ color: '#c9603e', flat: true, grid: 2, metal: 'copper' });
     for (let i = 0; i < 5; i++) {
       const r = 12 + i * 3 + rng() * 4;
       const gear = new THREE.Group();
@@ -308,7 +310,7 @@ export function* buildGarage(scene) {
   {
     const grp = new THREE.Group();
     const slab = new THREE.Mesh(new THREE.CylinderGeometry(190, 170, 10, 32).translate(0, -5, 0),
-      makeMaterial({ color: '#a99be0', color2: '#e88fa6', color3: '#f3ead8', mode: MODE_STRATA, strataSize: 2.5, flat: true, grid: 6 }));
+      makeMaterial({ color: '#a9a0c8', color2: '#d48e94', color3: '#f3ead8', mode: MODE_STRATA, strataSize: 2.5, flat: true, grid: 6 }));
     grp.add(slab);
     noShadow.push(slab); // otherwise the slab would shade the whole quarter
     // (the same random draws as ever; the few that land on the story's spots are taken away again)
@@ -326,7 +328,7 @@ export function* buildGarage(scene) {
       grp.add(box);
       const slot = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.18, 0.1), ink);
       slot.position.set(B_RELAY.x, 1.9, B_RELAY.z + 0.82); slot.userData.noCollide = true; grp.add(slot);
-      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), makeMaterial({ color: '#f2c54b', glow: 0.8 }));
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), makeMaterial({ color: '#d8aa50', glow: 0.8 }));
       lamp.position.set(B_RELAY.x, 3.3, B_RELAY.z); lamp.userData.noCollide = true; grp.add(lamp);
       relay.lamp = lamp;
       const stamp = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.9, 8), brass);
@@ -344,7 +346,7 @@ export function* buildGarage(scene) {
       const desk = new THREE.Mesh(mergeGeometries(parts.map((q) => q.toNonIndexed())), wood);
       desk.position.copy(d); desk.rotation.y = 0.4; desk.userData.noCollide = true;
       grp.add(desk);
-      const lampPost = new THREE.Mesh(mergeGeometries([new THREE.CylinderGeometry(0.03, 0.05, 0.7, 5).translate(0, 0.35, 0).toNonIndexed(), new THREE.ConeGeometry(0.25, 0.3, 8, 1, true).translate(0, 0.75, 0).toNonIndexed()]), makeMaterial({ color: '#f2c54b', glow: 0.7 }));
+      const lampPost = new THREE.Mesh(mergeGeometries([new THREE.CylinderGeometry(0.03, 0.05, 0.7, 5).translate(0, 0.35, 0).toNonIndexed(), new THREE.ConeGeometry(0.25, 0.3, 8, 1, true).translate(0, 0.75, 0).toNonIndexed()]), makeMaterial({ color: '#d8aa50', glow: 0.7 }));
       lampPost.position.set(-0.9, 1.06, -0.3); lampPost.userData.noCollide = true; desk.add(lampPost);
       const sheet = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.02, 0.75), paper);
       sheet.position.set(0.2, 1.08, 0); sheet.rotation.y = -0.2; sheet.userData.noCollide = true; desk.add(sheet);
@@ -358,7 +360,7 @@ export function* buildGarage(scene) {
       grp.add(housing);
       const wheel = new THREE.Group();
       wheel.position.set(B_PUMP.x + 2.9, 3.4, B_PUMP.z);
-      const wm = makeMaterial({ color: '#d9643a', flat: true, grid: 2, metal: 'copper' });
+      const wm = makeMaterial({ color: '#c9603e', flat: true, grid: 2, metal: 'copper' });
       wheel.add(new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.3, 6, 20).rotateY(Math.PI / 2), wm));
       wheel.add(new THREE.Mesh(mergeGeometries([0, 1, 2].map((k) => new THREE.BoxGeometry(0.2, 4.8, 0.3).rotateX(k * Math.PI / 3).toNonIndexed())), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' })));
       wheel.userData.noCollide = true;
@@ -375,7 +377,7 @@ export function* buildGarage(scene) {
       const post = new THREE.Mesh(mergeGeometries([
         new THREE.CylinderGeometry(0.4, 0.5, 9, 6).translate(0, 4.5, 0),
         new THREE.SphereGeometry(1.2, 8, 6).translate(0, 9.5, 0),
-      ]), makeMaterial({ color: '#f2c54b', glow: 0.6 }));
+      ]), makeMaterial({ color: '#d8aa50', glow: 0.6 }));
       post.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
       grp.add(post);
     }
@@ -429,7 +431,7 @@ export function* buildGarage(scene) {
       scene.add(frame);
       const wheel = new THREE.Group();
       wheel.position.set(C_TURBINE.x, fy + 8, C_TURBINE.z);
-      const pm = makeMaterial({ color: '#62c3c9', flat: true, grid: 2, metal: 'painted' });
+      const pm = makeMaterial({ color: '#86b0b2', flat: true, grid: 2, metal: 'painted' });
       const paddles = [];
       for (let k = 0; k < 8; k++) paddles.push(new THREE.BoxGeometry(2.6, 0.3, 2.4).translate(0, 5.6, 0).rotateX(k * Math.PI / 4).toNonIndexed());
       paddles.push(new THREE.CylinderGeometry(0.6, 0.6, 3.4, 10).rotateZ(Math.PI / 2).toNonIndexed());
@@ -491,18 +493,18 @@ export function* buildGarage(scene) {
     defaults: { hour: 10.5, preset: 'Moebius print' },
     sky: {
       script: {
-        day: ['#6aaed0', '#efe2c6', '#93a6cf', '#fffaf0', '#fff6dc'],   // print: teal-cerulean over cream
+        day: ['#8db1c3', '#efe2c6', '#9c9ccb', '#fffaf0', '#fff6dc'],   // print: a faded cerulean over cream, lavender shade (the sheets' dusty tones)
         dusk: ['#7f8fc8', '#f2c49a', '#8a7fb8', '#ffe0c0', '#ffe2b8'],
         night: ['#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],
       },
-      planets: [{ az: 40, el: 30, size: 7, color: '#62c3c9', ring: 0.4 }],
+      planets: [{ az: 40, el: 30, size: 7, color: '#86b0b2', ring: 0.4 }],
     },
     killY: -Infinity,
     noShadow,
     lights: portals.map((p) => new THREE.Vector4(p.pos.x, p.pos.y, p.pos.z, 16)),
     life: {
-      flocks: [{ count: 9, color: '#e6875f', size: 1.3, radius: 60, height: [10, 30], seed: 5 }],
-      motes: { count: 140, color: '#f2c54b', size: 0.05, glow: 0.7, rise: 0.15, wind: [0.2, 0.1] },
+      flocks: [{ count: 9, color: '#d27b5e', size: 1.3, radius: 60, height: [10, 30], seed: 5 }],
+      motes: { count: 140, color: '#d8aa50', size: 0.05, glow: 0.7, rise: 0.15, wind: [0.2, 0.1] },
     },
     navigationPortals: portals,
     gravityAt,

@@ -34,8 +34,11 @@ const nB = createNoise2D(4417);
  * the spot-black tier a little wider than the print's (post.js uSpot), cast shadows most of the way to
  * its tone, a dark rust-brown keeping some of each surface's colour (rust stays rust, teal teal).
  */
-/** The day's colours: sage over cream, blue-grey shadows. */
-export const BURIED_DAY = ['#b3c4ab', '#f1e8cf', '#8e9fb2', '#fffaf0', '#fff6dc'];
+/**
+ * The day's colours: sage over cream, the shade a sage grey-green (October 2026 colour pass: IMG_3790 p1 and
+ * p5 shade the dunes a flat sage, not the blue-grey that turned the cream sand a cold grey-brown).
+ */
+export const BURIED_DAY = ['#b4c1a3', '#f1e6c8', '#9cb0aa', '#fffaf0', '#fff6dc'];
 export const BURIED_SPOTS = { uSpot: [1, 3.5, 0.27, 0.45], uSpotTone: [0.19, 0.13, 0.12, 0.55] };
 
 // ---------------------------------------------------------- layout
@@ -192,7 +195,7 @@ export function* buildBuried(scene) {
 
   const terrain = yield* Terrain.make({
     size: 4000, seg: 440, height,
-    material: { color: '#f3ead2', color2: '#ece0c2', color3: '#dccba6', mode: MODE_TERRAIN, ripples: true },
+    material: { color: '#f6e5c0', color2: '#efdcb4', color3: '#e0c79c', mode: MODE_TERRAIN, ripples: true },   // (the sheets' warm cream)
   });
   scene.add(terrain.mesh);
   const H = (x, z) => terrain.heightAt(x, z);
@@ -220,7 +223,7 @@ export function* buildBuried(scene) {
     tealFloor: makeMaterial({ color: '#4a6e6c', color2: '#557a76', color3: '#3d6366', mode: MODE_TERRAIN }),
     peach: makeMaterial({ color: '#f3a57c', glow: 0.85, flat: true }),
     skyPane: makeMaterial({ color: '#cfe6ea', glow: 0.6, flat: true }),
-    city: [makeMaterial({ color: '#4f6a78' }), makeMaterial({ color: '#3d5866' }), strata('#5d7a86', '#4f6a78', '#3d5866', 9, { grid: 6 })],
+    city: [makeMaterial({ color: '#4d6680' }), makeMaterial({ color: '#3b536c' }), strata('#5b7590', '#4d6680', '#3b536c', 9, { grid: 6 })],   // (a slate blue, as IMG_3789 p2)
     ring: strata('#7f93a3', '#6a8090', '#9aaab4', 10, { grid: 8 }),
     white: makeMaterial({ color: '#ffffff', flat: true }),
   };
@@ -1159,7 +1162,7 @@ export function* buildBuried(scene) {
     },
     sky: {
       script: {
-        day: BURIED_DAY,     // sage over cream, blue-grey shadows
+        day: BURIED_DAY,     // sage over cream, sage-grey shadows
         dusk: ['#a8ab92', '#f3c39a', '#8a7c9e', '#ffe0c0', '#ffe2b8'],
         night: ['#1e2c34', '#3f5660', '#33485a', '#93aab2', '#f2f0e6'],
       },

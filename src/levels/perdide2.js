@@ -201,7 +201,7 @@ export function* buildPerdide2(scene) {
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const terrain = yield* Terrain.make({
     size: 1800, seg: 360, height,
-    material: { color: '#46686e', color2: '#517676', color3: '#55588a', mode: MODE_TERRAIN, ticks: true },   // teal moss, violet mud
+    material: { color: '#4d786e', color2: '#588276', color3: '#55588a', mode: MODE_TERRAIN, ticks: true },   // teal moss, violet mud (greener and a step lighter, as IMG_3797–3800's swamp floor: October 2026)
   });
   scene.add(terrain.mesh);
   const H = (x, z) => terrain.heightAt(x, z);
@@ -380,7 +380,7 @@ export function* buildPerdide2(scene) {
         if (pathDist(x, z) < 3.2 || !clear(x, z)) continue;
         const g0 = H(x, z);
         if (g0 < -1.4) continue;
-        reeds.push([place(x, g0 - 0.3, z, R(0.7, 1.4), R(2, 6.5), R(0.7, 1.4), R(-0.12, 0.12), rng() * 6, R(-0.12, 0.12)), pick(['#c9c3ea', '#b8b0e0', '#d8d2f4', '#a9a2d4'])]);
+        reeds.push([place(x, g0 - 0.3, z, R(0.7, 1.4), R(2, 6.5), R(0.7, 1.4), R(-0.12, 0.12), rng() * 6, R(-0.12, 0.12)), pick(['#b6abe2', '#a698d8', '#c4baee', '#9b8ecf'])]);
       }
     };
     for (let s = 0; s < 260; s++) {
@@ -403,7 +403,7 @@ export function* buildPerdide2(scene) {
       }
       if (c % 4 === 0) lights.push(new THREE.Vector4(cx, H(cx, cz) + 3, cz, 9));
     }
-    inst(reed, makeMaterial({ color: '#ffffff', flat: true, glow: 0.5, line: 0.45, lineTint: 1 }), reeds);   // (pale blades in a thin violet line of their own: materials.js LINE)
+    inst(reed, makeMaterial({ color: '#ffffff', flat: true, glow: 0.3, line: 0.45, lineTint: 1 }), reeds);   // (pale lavender blades in a thin violet line of their own: materials.js LINE; less self-lit, so they read lavender, not white)
     inst(shard, makeMaterial({ color: '#ffffff', flat: true, glow: 0.45 }), shards);
   }
 

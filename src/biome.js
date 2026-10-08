@@ -18,7 +18,8 @@ export function biomeWeights(x, z) {
 }
 
 export const BIOMES = {
-  dunes: { name: 'Golden dunes', ground: ['#efd29b', '#f5e1b6', '#dca57a'], horizon: [1, 1, 1], fog: 1.0 },
+  // (the golden dunes in the plates' ochre: IMG_3772–3775 print the sand a warm orange-gold, not a cream; October 2026)
+  dunes: { name: 'Golden dunes', ground: ['#eec07c', '#f4d6a2', '#d9955e'], horizon: [1, 1, 1], fog: 1.0 },
   rose: { name: 'Rose canyons', ground: ['#eab79e', '#f3cdb8', '#c9836f'], horizon: [1.0, 0.93, 0.91], fog: 1.35 },
   salt: { name: 'Salt flats', ground: ['#ebe6d8', '#f6f2e8', '#b9b6c6'], horizon: [0.95, 1.0, 1.03], fog: 0.65 },
 };

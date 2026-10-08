@@ -23,6 +23,10 @@ export const CAVE = { x: -170, z: 140, len: 130, r: 12, rot: 0.6, y: 1.6 };
 // ford, the snapping bed on the landing's north shore, the fireflies' isle in the channel
 // between the landing and the cave island
 export const GREAT = { x: 120, z: -150 };
+/** Lorn's touches on the print preset: its evening's cast shadows a step lighter, fewer spot blacks in them, and printed part-way in the violet tint (olive moss times a violet tint is a grey; post.js uCast, uSpot, uShadowFlat). */
+/** Its evening (the hour it opens on): twilight blue over coral, a violet shade, the light a pale mint (October 2026: the teal light, #c8f2e4, turned the moss acid). */
+export const LORN_DUSK = ['#5874b2', '#f0b48e', '#8a7cce', '#dcecdc', '#ffe0c0'];
+export const LORN_LOOK = { uCast: [0.3, 0.15], uSpot: [1, 3, 0.3, 0.08], uShadowFlat: 0.65 };
 export const BED = { x: -6, z: 16, r: 4.5 };
 export const ISLE = { x: -50, z: 112, r: 15 };
 const noise = createNoise2D(1982);
@@ -208,7 +212,7 @@ export function* buildPerdide(scene) {
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const terrain = yield* Terrain.make({
     size: 4000, seg: 480, height,
-    material: { color: '#6f8a62', color2: '#86a070', color3: '#7a6a86', mode: MODE_TERRAIN, ticks: true },   // olive moss with violet mud
+    material: { color: '#748660', color2: '#8a9a6c', color3: '#7a6a86', mode: MODE_TERRAIN, ticks: true },   // olive moss with violet mud (a step greyer: October 2026)
   });
   scene.add(terrain.mesh);
   const movers = [];
@@ -492,12 +496,14 @@ export function* buildPerdide(scene) {
     features: { mount: true, wind: false, jetpack: false, climb: true },
     mount: (physics) => new Hoverbike(physics, { build: buildSkiff, floor: WATER + 0.15, kind: 'skiff' }),
     mountName: 'skiff',
-    defaults: { hour: 18.4, preset: 'Moebius print', cloudShadows: 0 },
+    // (October 2026 colour pass: the long evening shadows a violet, not near-black stripes over the moss: cast shadows
+    //  lifted a little and fewer spot blacks in them; Lorn's people are drawn in muted olive, violet and navy)
+    defaults: { hour: 18.4, preset: 'Moebius print', cloudShadows: 0, look: LORN_LOOK },
     sky: {
       // violet shadows, teal light
       script: {
         day: ['#6aa0c8', '#e9d6bf', '#8a86c4', '#effff8', '#fff6dc'],
-        dusk: ['#5a7cc0', '#f0b48e', '#7f78bc', '#c8f2e4', '#ffe0c0'],   // print: twilight blue over coral
+        dusk: LORN_DUSK,   // print: twilight blue over coral
         night: ['#141a3a', '#3a3f78', '#3d3478', '#7fd6c8', '#f2f0e6'],
       },
       planets: [{ az: 70, el: 22, size: 16, color: '#c7a6f2', ring: 0.35 }],

@@ -117,6 +117,21 @@ const saveAlong = (n, flags = {}) => ({ flags: { 'prologue.done': true, 'item.ba
 const GIFTS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', 'bell', 'shell', 'echo', 'star'];
 
 export const CHANGELOG_MEDIA = {
+  '0.95': [
+    // (one picture per world: before | after | its reference picture, the same view of the world at its own opening hour)
+    ...[
+      ['The Desert’s golden dunes', 'desert', 'The Desert from the start at 9:30, beside IMG_3775’s bones in the dunes'],
+      ['The Glass Dunes: the sand', 'glassdunes', 'Toward the west camp at 16:30, beside the Glass Dunes’ first plate'],
+      ['The Buried Machine’s dunes', 'buried', 'The Buried Machine from the start at 10:30, beside IMG_3790’s domes and pipes'],
+      ['The Sealed Hangar is painted', 'hangar', 'The Sealed Hangar from the start at 10:30, beside its people’s sheets (Ottla, Ambroise)'],
+      ['The City-Shaft’s shade is one steel blue', 'shaft', 'Across the high terrace at 12:30, beside IMG_3780'],
+      ['On the Overnight Train the night sky glows', 'train', 'On the rear deck at 22:00, beside the fourth picture'],
+      ['Lorn’s long evening shadows', 'lorn', 'Lorn from the start at 18:24, beside its people’s sheets (Sedge, Saba)'],
+      ['Lorn II, the Deep Wood', 'lorn2', 'The Deep Wood near the start at 17:42, beside IMG_3797'],
+    ].map(([match, name, caption]) => ({ match, shots: [
+      { name: `${name}-colours`, only: 'after', caption: `${caption}: before, after, the reference`, from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 960 × 540, laid side by side with the reference (8 October)' },
+    ] })),
+  ],
   '0.93': [
     { match: 'The shade has a new look: a cartoon drawn in negative', shots: [
       { name: 'shade-desert', caption: 'A shade standing in the Arena at 10:00: the violet body with its head and eyes before; after, the black figure in its white outline, its head a black flame of three tips', from: 'headless Chrome against this branch’s own dev server and the commit before the new look, High, 1280 × 720, the camera 3.4 m from it (8 October)' },

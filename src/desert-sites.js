@@ -74,4 +74,9 @@ export const DESERT_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.95, 0.9, 0.87, 0
  * when the desert took its plates' clean sky; the reference views keep DESERT_LOOK's.)
  */
 export const DESERT_CLOUDS = 0.25;
-export const DESERT_WORLD_LOOK = { ...DESERT_LOOK, uClouds: DESERT_CLOUDS };
+/**
+ * The world's shade keeps more of the sand's own warmth (the plates shade a dune a deeper orange, not a grey-olive:
+ * the print's 0.3 under the blue-grey tint turned the ochre sand khaki; October 2026 colour pass).
+ */
+export const DESERT_SHADE_KEEP = 0.5;
+export const DESERT_WORLD_LOOK = { ...DESERT_LOOK, uClouds: DESERT_CLOUDS, uShadeKeep: DESERT_SHADE_KEEP };

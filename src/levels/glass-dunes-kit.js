@@ -30,9 +30,11 @@ import { GLASS_ATTR } from '../dune-glass-shader.js';
 // ---------------------------------------------------------------------------
 
 /** The glass's tones (sRGB), read off the sheets' lit patches: lime at the foot, mint, teal up high. */
-export const GLASS = { foot: '#d6f5a0', mid: '#7fd9a0', top: '#56b897', crest: '#c4f2c6', inside: [0.2, 0.36, 0.3] };
+// (October 2026 colour pass: the mid a deeper emerald and the top a bluer teal, as the plates' lit glass; the mint was paler)
+export const GLASS = { foot: '#d6f5a0', mid: '#5fca8f', top: '#3f9d8f', crest: '#c4f2c6', inside: [0.2, 0.36, 0.3] };
 /** The sand's three tones (terrain mode), warm amber-peach. */
-export const SAND = ['#f2c99c', '#eec092', '#e2ad80'];
+// (October 2026: paler, less orange: the plates' sand is a pale peach in light, warmed only where the low sun streaks it)
+export const SAND = ['#f6dfb0', '#f2d5a5', '#e6bf8e'];
 
 /**
  * The glass's material options (makeMaterial): opaque, its colour in its vertices, a thin line in a dark
