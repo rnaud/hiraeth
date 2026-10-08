@@ -14,6 +14,9 @@ export const CHANGELOG = [
     'In the Glass Dunes the light that comes through the glass falls on the sand beyond it: mint and lime pools at the walls’ feet, on the side away from the sun; and the late afternoon’s shade stays an emerald green instead of going grey.',
     'Two archways in the Glass Dunes go through now: walk through the cliff of the giants to the sand behind it, and through the frozen wave in the middle of the valley, under a vault of glass lit green. The breaking wave’s hollow can be walked into from its camp, a long way under the lip.',
     'In the References level the Glass Dunes’ fourth picture has its tall wave: it rises steep over the glassworkers’ camp, curls over its dark hollow and sweeps down to the sand, as drawn, instead of a low hood.',
+    'People seen close, in a conversation or with the camera pulled in, no longer catch patches of sunlight on their faces, necks and clothes while they stand in the shade.',
+    'Climbing, the traveller no longer drags a dark, ragged smudge round himself on the wall, and people walking in the shade lose the dark blots that slid round their feet as the camera turned.',
+    'Turning the camera quickly no longer makes distant shadows flick on and off: across the City-Shaft whole towers changed their shade for a moment after each turn, and after each cut in a conversation.',
   ] },
   { v: '0.88', date: '2026-10-07', items: [
     'Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.',

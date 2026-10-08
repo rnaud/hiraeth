@@ -133,6 +133,8 @@ export const FACET_EDGE = 0.03;
 export const TERMINATOR = 0.08;
 /** ...only on forms large on screen: the normal's turn per pixel (length of fwidth(n)) over which it is let go. */
 export const TERMINATOR_TURN = [0.02, 0.06];
+/** ...where the map still says whether something else shades it: its depth bias × this (each cascade's texels: 0.5 m fine, 3 m near). */
+export const TERMINATOR_REACH = 12;
 /**
  * Strokes near the pixel grid's own frequency alias: a family of hatch lines under ~4 px apart crawls and
  * flickers as it slides under the pixels (a shaded wall seen at 40 m). Over these periods per pixel (4 px →
@@ -892,16 +894,17 @@ const fragmentShader = /* glsl */ `
     return s / 144.0;
   }
 
-  // ndl: light facing (> 0); px: the pixel's footprint in metres
-  float shadowLit(vec3 wp, vec3 n, float ndl, float px) {
+  // ndl: light facing (> 0); px: the pixel's footprint in metres; deep: the depth bias × (1: the surface's own;
+  // TERMINATOR_REACH: only what stands well toward the sun from it, past its own body)
+  float shadowLit(vec3 wp, vec3 n, float ndl, float px, float deep) {
     float iF, i0, i1;
     float sinL = sqrt(max(1.0 - ndl * ndl, 0.0));
     vec3 spread = clamp(vec3(px) / uShadowTexel, 1.0, 2.5);
-    float sF = sampleShadow(uShadowMap0, uShadowMatrix0, wp, n, sinL, uShadowNormalOffset0, uShadowBias0, spread.x, iF);
+    float sF = sampleShadow(uShadowMap0, uShadowMatrix0, wp, n, sinL, uShadowNormalOffset0, uShadowBias0 * deep, spread.x, iF);
     if (iF >= 1.0) return sF;
-    float s0 = sampleShadow(uShadowMap, uShadowMatrix, wp, n, sinL, uShadowNormalOffset, uShadowBias, spread.y, i0);
+    float s0 = sampleShadow(uShadowMap, uShadowMatrix, wp, n, sinL, uShadowNormalOffset, uShadowBias * deep, spread.y, i0);
     if (i0 < 1.0) {
-      float s1 = sampleShadow(uShadowMap2, uShadowMatrix2, wp, n, sinL, uShadowNormalOffset2, uShadowBias2, spread.z, i1);
+      float s1 = sampleShadow(uShadowMap2, uShadowMatrix2, wp, n, sinL, uShadowNormalOffset2, uShadowBias2 * deep, spread.z, i1);
       s0 = mix(mix(1.0, s1, i1), s0, i0);
     }
     return mix(s0, sF, iF);
@@ -916,8 +919,8 @@ const fragmentShader = /* glsl */ `
     return 1.0 - texture(uShadowMap, vec3(p.xy, p.z - uShadowBias * 4.0));
   }
   // the lit fraction steepened about its half (SHADOW_CUT): the toon threshold cuts the shadow at its true edge
-  float getShadow(vec3 wp, vec3 n, float ndl, float px) {
-    return clamp((shadowLit(wp, n, ndl, px) - 0.5) * ${SHADOW_CUT.toFixed(1)} + 0.5, 0.0, 1.0);
+  float getShadow(vec3 wp, vec3 n, float ndl, float px, float deep) {
+    return clamp((shadowLit(wp, n, ndl, px, deep) - 0.5) * ${SHADOW_CUT.toFixed(1)} + 0.5, 0.0, 1.0);
   }
 
   // Cloud shadows: the ground point is projected along the light onto a cloud
@@ -2248,14 +2251,21 @@ const fragmentShader = /* glsl */ `
     // normals, so the low-poly face's facets draw no creases across it)
     float shadowPx = max(length(dFdx(vWorldPos)), length(dFdy(vWorldPos)));   // (outside the branch: derivatives)
     float nTurn = length(fwidth(n));   // how fast the normal turns from pixel to pixel (a big smooth form: little; a stalk: a lot)
-    float sh = ndl > 0.0 ? getShadow(shadowAt, n, ndl, shadowPx) * cloudShadow(vWorldPos) : 1.0;
+    float cloud = cloudShadow(vWorldPos);
+    float sh = ndl > 0.0 ? getShadow(shadowAt, n, ndl, shadowPx, 1.0) * cloud : 1.0;
     // a big curved surface turning from the sun (a pipe, a tank, a trunk): within TERMINATOR of edge-on its own shadow
     // map's grazing taps cut the light/shade line into teeth that crawl as the camera moves; there the line is the
     // light's own (n·l), whole. Only where the form is large on screen (its normal turns slowly from pixel to pixel):
     // a stalk or a twig keeps the map's shade, which holds it still. (Not the ground: a low sun's cast shadows stay;
-    // flat facets: FACET_EDGE.)
-    if (uMode != ${MODE_TERRAIN} && uFlat < 0.5)
-      sh = mix(sh, mix(1.0, sh, smoothstep(0.0, ${TERMINATOR}, ndl)), 1.0 - smoothstep(${TERMINATOR_TURN[0]}, ${TERMINATOR_TURN[1]}, nTurn));
+    // flat facets: FACET_EDGE.) The map is still asked there whether something else, well toward the sun, shades it
+    // (TERMINATOR_REACH: the bias that far past the form's own body): letting the map go whole lit every fold of a
+    // coat near edge-on inside a building's shadow, lit blotches all over a person seen close.
+    if (uMode != ${MODE_TERRAIN} && uFlat < 0.5) {
+      float bigForm = 1.0 - smoothstep(${TERMINATOR_TURN[0]}, ${TERMINATOR_TURN[1]}, nTurn);
+      float nearEdge = 1.0 - smoothstep(0.0, ${TERMINATOR}, ndl);
+      float beyond = ndl > 0.0 && bigForm * nearEdge > 0.0 ? getShadow(shadowAt, n, ndl, shadowPx, ${TERMINATOR_REACH.toFixed(1)}) * cloud : sh;
+      sh = mix(sh, mix(beyond, sh, 1.0 - nearEdge), bigForm);
+    }
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);

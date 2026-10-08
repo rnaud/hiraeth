@@ -41,9 +41,26 @@ test('no skip (continue / break), cos or sin inside the occlusion loops', () => 
   assert.ok(!/viewPos\(suv/.test(enc), 'the tap positions from the affine ray');
   const ao = body('creaseAO');
   assert.equal((ao.match(/\bcos\(/g) ?? []).length, 2, 'crease shading: one turn per pixel (and the spiral\'s own constant steps)');
-  // the surface flags (is the tap on a grass blade?) only read for a tap that would close something in
-  assert.match(ao, /if \(c > 0\.0\) c \*= step\(mod\(texture\(tHatch, suv\)\.a, 16\.0\), 7\.5\);/);
+  // the surface flags (is the tap on a grass blade, or a person?) only read for a tap that would close something in
+  assert.match(ao, /if \(c > 0\.0\) \{ float t = mod\(texture\(tHatch, suv\)\.a, 16\.0\); c \*= step\(t, 7\.5\) \* step\(mod\(t, 8\.0\), 1\.5\); \}/);
   assert.equal((ao.match(/texture\(tHatch/g) ?? []).length, 1);
+});
+
+test('a person closes nothing in: no spot-black or crease halo round a climber or round people’s feet', () => {
+  // gHatch.a packs glow (0..1) + 2 hero + 4 figure + 8 soft + 16 face + 32 drift: notPerson(suv) is 0 on the
+  // traveller and on anyone else, whatever else the pixel carries, and 1 on everything that isn't a person
+  const notPerson = (a) => ((a % 8) <= 1.5 ? 1 : 0);   // (GLSL step(mod(a, 8), 1.5))
+  for (const glow of [0, 0.6, 1]) for (const soft of [0, 8]) for (const face of [0, 16]) for (const drift of [0, 32]) {
+    const rest = glow + soft + face + drift;
+    assert.equal(notPerson(rest), 1, `not a person: ${rest}`);
+    assert.equal(notPerson(rest + 2), 0, `the traveller: ${rest + 2}`);
+    assert.equal(notPerson(rest + 4), 0, `a figure: ${rest + 4}`);
+  }
+  assert.ok(shader.includes('float notPerson(vec2 suv) { return step(mod(texture(tHatch, suv).a, 8.0), 1.5); }'));
+  const enc = body('enclosure');
+  // both loops (8 taps, 4 on the handheld), and the flags read only for a tap that would count
+  assert.equal((enc.match(/if \(c > 0\.0\) c \*= notPerson\(suv\);/g) ?? []).length, 2);
+  assert.ok(!/texture\(tHatch/.test(enc));
 });
 
 test('the view ray is affine in uv, so a tap can be placed without the inverse projection', () => {

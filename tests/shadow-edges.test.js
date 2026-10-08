@@ -65,7 +65,7 @@ test('the toon threshold cuts the steepened lit fraction near its half, whatever
   // unsteepened, a sunny face cut a shadow at a quarter: most of the filter's width eaten away
   assert.ok(Math.abs((0.5 - 0.38) / (0.88 - 0.38) - 0.24) < 1e-9);
   const f = makeMaterial({ color: '#888', key: 't.shadow.edges' }).fragmentShader;
-  assert.ok(f.includes(`(shadowLit(wp, n, ndl, px) - 0.5) * ${SHADOW_CUT.toFixed(1)} + 0.5`), 'getShadow steepens the lookup');
+  assert.ok(f.includes(`(shadowLit(wp, n, ndl, px, deep) - 0.5) * ${SHADOW_CUT.toFixed(1)} + 0.5`), 'getShadow steepens the lookup');
   assert.ok(f.includes('w0 = 4.0 - 3.0 * st') && f.includes('w0 = 3.0 - 2.0 * st'), 'both tents (9 and 4 taps) in the shader');
   assert.ok(f.includes('(uv + (base + o - uv) * spread) * inv'), 'spread about the point, on the map grid');
 });
