@@ -14,6 +14,66 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] Greatly reduce text in the item debug menu. In fullscreen on the Retroid, keep the text from
   taking over the screen and hiding the item; the item should remain clearly visible.
 
+# Playtest notes (2026-10-08)
+
+## Prologue and the crash landing
+
+- [ ] The intro from Dad is boring.
+- [ ] A character's speech bubble shows up while the ship is still crashing.
+- [ ] A character stands too close to the ship as it crash-lands.
+- [ ] Leaving the ship for the first time shows a prompt to go back into it.
+- [ ] The humming the game talks about is never heard. Make it part of the prologue and bring it back
+  regularly.
+
+## Dialogue
+
+- [ ] During dialogue, when the camera points at the player's character, the character moves around.
+- [ ] The character looks around too much during dialogue.
+- [ ] Choosing a dialogue option just plays the chosen line back.
+- [ ] When Nour says to stand in the water, the answers offered don't match the context.
+- [ ] Talking to Ama, the flame is in the way.
+- [ ] Not every character should have a bubble over their head.
+
+## Characters and animation
+
+- [ ] Characters' waving looks wrong; something is off in the animation.
+- [ ] The main character has an animation where his mouth opens wide and his neck moves strangely.
+- [ ] Brushing past people feels odd: they just shift in place.
+- [ ] When told to look into the well, the character looks the other way.
+
+## Shadows and visuals
+
+- [ ] Marrow casts a white shadow towards the ship during dialogue.
+- [ ] On the stairs to the big tree, shadows move with the camera and the character casts a white shadow.
+- [ ] The Golden Dunes entrance looks stuck, though it works.
+- [ ] The transition between worlds looks wrong on a white background when heading to space.
+- [ ] Do a visual audit at different screen resolutions.
+
+## HUD and prompts
+
+- [ ] On-screen hints are too obvious and hide the health bar.
+- [ ] Starting a new quest should show a hint that looks different from the others.
+- [ ] Don't show button hints when getting into a vehicle.
+- [ ] Loading a new level shows the touch controls again.
+
+## Sound
+
+- [ ] The desert wind is far too loud.
+- [ ] The whoosh of water filling up sounds bad and is too loud.
+- [ ] The vehicle whistle is far too loud.
+- [ ] Leaf footsteps play on every surface.
+
+## Gameplay
+
+- [ ] No invisible enemies.
+- [ ] The knuckles riddle (which to shoot first) is unclear: how is the player meant to solve it?
+
+## Menus and settings
+
+- [ ] The galactic map lists the WIP levels that were never vetted or finished.
+- [ ] Dropdown values in Settings can't be changed with a controller.
+- [ ] The language switched to French and the debug menu disappeared.
+
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 
 Ranked; each says why in the review. Playtest with two or three new players before building the big ones.
