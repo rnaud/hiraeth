@@ -14,6 +14,8 @@
 import { VERSION } from './changelog.js';
 import { updateView, armedStep } from './updates.js';
 import { callApp, inApp } from './native-app.js';
+import { themeProgressText } from './music-store.js';
+import { THEME_FILES } from './soundtracks.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -35,6 +37,7 @@ export class UpdatePanel {
     this.isOpen = false;
     this.last = '';
     this.timer = 0;
+    this.music = '';   // "Music: 18 of 25 downloaded" while the background download runs (src/music-store.js)
     if (!el) return;
     el.hidden = true;
     if (!inApp(win)) return;
@@ -66,6 +69,7 @@ export class UpdatePanel {
     let info = null;
     try { info = await callApp('info', this.win); } catch { /* the app didn't answer: keep the last */ }
     if (info) this.info = info;
+    try { this.music = await themeProgressText(THEME_FILES); } catch { this.music = ''; }
     if (this.armed && this.info) {
       const step = armedStep(this.info);
       if (step === 'restart') { this.restart(); return; }
@@ -123,7 +127,7 @@ export class UpdatePanel {
     el.hidden = !v;
     if (!v) return;
     const log = this.showLog ? String(this.info?.log ?? '') : '';
-    const key = JSON.stringify([v, log, this.showLog]);
+    const key = JSON.stringify([v, log, this.showLog, this.music]);
     if (!force && key === this.last) return;
     this.last = key;
     const doc = el.ownerDocument;
@@ -136,6 +140,7 @@ export class UpdatePanel {
       ${v.progress !== null ? `<div class="up-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(v.progress * 100)}"><i style="width:${(v.progress * 100).toFixed(1)}%"></i></div>
       <p class="up-pct">${esc(v.progressText)}</p>` : ''}
       ${v.detail ? `<p class="up-detail">${esc(v.detail)}</p>` : ''}
+      ${this.music ? `<p class="up-music">${esc(this.music)}</p>` : ''}
       <div class="up-actions">
         ${v.actions.map((b) => `<button type="button" data-u="${b.a}"${b.primary ? ' class="primary"' : ''}>${esc(b.label)}</button>`).join('')}
         ${v.legacy ? '' : `<button type="button" data-u="log" class="quiet">${this.showLog ? 'Hide details' : 'Details'}</button>`}

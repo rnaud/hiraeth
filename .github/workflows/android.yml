@@ -78,7 +78,8 @@ jobs:
       - name: Copy the game into the Android project
         run: |
           # (the changelog's pictures and the reference sheets are the site's alone: a bundled game reads
-          # them from the site; scripts/site-only.mjs)
+          # them from the site; and the recorded themes but the desert's, which the game fetches from the
+          # site the first time a world needs one and keeps: scripts/site-only.mjs)
           node scripts/site-only.mjs dist
           npx cap sync android
 

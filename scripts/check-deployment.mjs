@@ -44,6 +44,12 @@ for (const file of files.filter(file => /web-\d+\.zip\.json$/.test(file))) {
 const root = await fetch(base, { signal: AbortSignal.timeout(30_000) });
 assert.equal(root.status, 200, 'The game opens at the site root');
 assert.deepEqual(Buffer.from(await root.arrayBuffer()), await readFile(resolve(dist, 'index.html')));
+// The games on devices fetch the recorded themes from here (src/music-store.js): another origin, so CORS (public/_headers).
+const theme = files.map(file => relative(dist, file).split(sep).join('/')).find(name => /^music\/[^/]+\.mp3$/.test(name));
+if (theme) {
+  const response = await fetch(new URL(theme, base), { method: 'HEAD', headers: { Origin: 'http://127.0.0.1:41730' }, signal: AbortSignal.timeout(30_000) });
+  assert.equal(response.headers.get('access-control-allow-origin'), '*', `${theme}: the devices can't fetch the themes (no CORS header: public/_headers)`);
+}
 const missing = await fetch(new URL('__deployment_missing_asset__.glb', base), { signal: AbortSignal.timeout(30_000) });
 assert.equal(missing.status, 404, 'Missing assets must not return the game HTML');
 console.log(`Verified ${files.length} built files, the game root, and missing-asset handling at ${base.href}`);

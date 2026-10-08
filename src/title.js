@@ -18,6 +18,8 @@ import { Sound } from './audio.js';
 import { Controller, menuNavigate } from './controller.js';
 import { setFaces, padFaces } from './native-pad.js';
 import { markBooted } from './native-app.js';
+import { startThemeDownload } from './music-store.js';
+import { THEME_FILES } from './soundtracks.js';
 import { VERSION } from './changelog.js';
 import { devMode } from './dev-gate.js';
 
@@ -306,6 +308,8 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     show('main');
     // the app's heartbeat: this build is up (src/native-app.js; the game marks it again after its first frame)
     markBooted(win);
+    // on a device: the recorded themes it hasn't got yet, in the background once the title has settled (src/music-store.js)
+    startThemeDownload(THEME_FILES);
 
     // the live view behind the menu, once the menu has painted: built in small steps, faded in on its
     // first frame; without WebGL (or on a software GPU) the drawn backdrop shows instead

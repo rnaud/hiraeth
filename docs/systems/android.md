@@ -232,3 +232,22 @@ them with the same `siteOnly()`. A bundled game reads a sheet from the site (`sh
 `src/levels/reference-sheets.js`), so the References level still works on a device when it is online.
 Before this the APK carried the sheets (268 MB at v1.0, about 39 MB of it the sheets). Tests:
 `tests/site-only.test.js`.
+
+## The music, downloaded once (October 2026)
+
+The recorded themes but the desert's (99 MB of `music/*.mp3`: `onDemand` in `scripts/web-update.mjs`)
+are also left out of the APK, the Deck package and the over-the-air zip (`leftOff()` in
+`scripts/site-only.mjs` is the site's own files plus these). A device needs them, though: from the first
+open the game downloads every theme it hasn't got from the site, in the background, and keeps it in
+IndexedDB for good (`src/music-store.js`; how it works: `docs/systems/audio.md`, "The themes on a device").
+No Java change: the page does it all, through the loopback origin's own storage. The site sends
+`Access-Control-Allow-Origin: *` on `/music/*` (`public/_headers`, itself site-only), since the game's
+origin (127.0.0.1:41730, moebius://game) is another one; `scripts/check-deployment.mjs` checks it.
+
+Installs from before kept every theme inside their bundle (the APK's assets, or a downloaded
+`filesDir/web/<build>/`), and `WebBundles.cleanup()` deletes the old bundle when the next one starts, so
+the themes go with it. A game that finds a theme in its own bundle keeps a copy first (it never
+downloads those). For an install from before to keep its soundtrack without downloading it again, its
+first update with this code has to still carry the themes: publish that one update with `OTA_MUSIC=1`
+(`node scripts/web-update.mjs`, in `cloudflare.yml`), then drop it. Without it, such an install
+downloads the themes again (once), like a new one. The APK came down from about 229 MB to about 130 MB.

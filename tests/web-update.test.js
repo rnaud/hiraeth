@@ -162,3 +162,17 @@ test('large updates and the previous archive are split, then stream as intact re
     ? new Response(JSON.stringify(index)) : new Response(null, { status: 404 }) } };
   await assert.rejects((await worker.fetch(new Request(manifest.zip), broken)).arrayBuffer(), /part unavailable/);
 });
+
+test('the zip carries the desert\'s theme, not the others (fetched on demand), nor the site\'s headers; OTA_MUSIC=1 puts them back', async () => {
+  const dist = site();
+  mkdirSync(join(dist, 'music'));
+  for (const f of ['desert.mp3', 'incal.mp3', 'home.mp3', 'manifest.json']) writeFileSync(join(dist, 'music', f), f);
+  writeFileSync(join(dist, '_headers'), '/music/*\n  Access-Control-Allow-Origin: *\n');
+  await writeUpdate({ dist, build: 542, music: false });
+  const names = Object.keys(unzip(readFileSync(join(dist, UPDATES, 'web-542.zip'))));
+  assert.ok(names.includes('music/desert.mp3') && names.includes('music/manifest.json'), names.join());
+  assert.ok(!names.includes('music/incal.mp3') && !names.includes('music/home.mp3') && !names.includes('_headers'), names.join());
+  await writeUpdate({ dist, build: 543, music: true });
+  const all = Object.keys(unzip(readFileSync(join(dist, UPDATES, 'web-543.zip'))));
+  assert.ok(all.includes('music/incal.mp3') && all.includes('music/home.mp3'), 'the hand-over update');
+});
