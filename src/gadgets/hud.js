@@ -16,6 +16,7 @@ const CSS = `
   display: none; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; background: rgba(247, 236, 210, 0.9); border: 1.5px solid #2b211f;
   box-shadow: 3px 3px 0 #2b211f; font: 11px/1.3 ui-monospace, Menlo, monospace; color: #2b211f; pointer-events: none; transform: rotate(-0.6deg); }
 #gadget-chip.on { display: flex; }
+body.minigame #gadget-chip, body.minigame #gadget-reticle, body.minigame #gadget-wheel { display: none !important; }   /* (a game takes the buttons: src/minigames/) */
 #gadget-chip .g img { width: 34px; height: 34px; border-radius: 50%; }
 #gadget-chip .g { width: 34px; height: 34px; overflow: hidden; border: 1.5px solid #2b211f; border-radius: 50%; display: grid; place-items: center; font-size: 17px; background: #fffaf0; }
 #gadget-chip b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; display: block; }
