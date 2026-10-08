@@ -1,13 +1,14 @@
 // Ink tide (docs/systems/minigames.md): a round basin of sand in a sea of ink, and the ink keeps coming.
 // Played on foot with the blade (attack RB / R1, guard LB / L1, evade X / □) and the fluid gun (aim LT / L2,
 // fire RT / R2): endless waves of the game's foes (src/foes.js: ink blots, spitters, swarms, winged blots,
-// shades, the makers' machines) out of the ink springs round the rim, more of them and more kinds as the
-// waves go on. Between two waves a breather: some health back, and three small boons on the sigil in the
+// shades, the makers' machines; from wave 7 the worlds' own, src/foe-kinds.js: sign moths, dune rays, root
+// stalkers, salt crabs, rust drones, slag walkers, glass golems, shadow hounds) out of the ink springs round
+// the rim, more of them and more kinds as the waves go on. Between two waves a breather: some health back, and three small boons on the sigil in the
 // middle (a longer blade, a deeper tank, quicker refills…): walk onto the one you want. The score is the
 // waves cleared and the style of the fight (cuts in quick succession, perfect parries, a wave untouched).
 // The Gentle enemies setting makes the waves smaller (and the foes slower, softer: src/foes.js GENTLE).
 //
-// The rules are pure (waveKinds, chainMult, killPoints, boonChoice, boonTunings, tideScore:
+// The rules are pure (waveKinds, heads, chainMult, killPoints, boonChoice, boonTunings, tideScore:
 // tests/minigames-waves.test.js); the basin and the breather are drawn here.
 
 import * as THREE from 'three';
@@ -32,36 +33,48 @@ export const TIDE = {
   heal: 0.35,            // health back at each wave's end
   arena: 17,             // m: the basin's floor; the springs a little in from its rim
 };
-/** What each foe costs a wave's budget, and the wave it first comes in (a swarm: five little blots for one cost). */
-export const COST = { blot: 1, spitter: 1.5, swarm: 2, flyer: 2, shade: 3, machine: 3.5 };
-export const FIRST = { blot: 1, spitter: 2, swarm: 3, machine: 4, flyer: 5, shade: 6 };
-/** Style points for each foe cut down (before the chain's multiplier). */
-export const KILL = { blot: 10, spitter: 15, swarm: 4, flyer: 20, shade: 30, machine: 40 };
+/**
+ * What each foe costs a wave's budget, and the wave it first comes in. Some come as a group for one cost (GROUP:
+ * a swarm is five little blots, sign moths three, shadow hounds two). After the shade (wave 6) one of the worlds'
+ * own kinds comes in every wave or two, the plain ones first: all of them work on the basin's sand (a ray swims
+ * under it), drones hover over it, and the hounds run as shadows between the pillars' long evening ones.
+ */
+export const COST = { blot: 1, spitter: 1.5, swarm: 2, flyer: 2, shade: 3, machine: 3.5, moth: 2.4, ray: 2, stalker: 2.5, crab: 2.5, drone: 2.5, slag: 3.5, golem: 4, hound: 3 };
+export const FIRST = { blot: 1, spitter: 2, swarm: 3, machine: 4, flyer: 5, shade: 6, moth: 7, ray: 8, stalker: 9, crab: 11, drone: 12, slag: 14, golem: 15, hound: 17 };
+export const GROUP = { swarm: 5, moth: 3, hound: 2 };
+/** Style points for each foe cut down (before the chain's multiplier; a golem's splinters too). */
+export const KILL = { blot: 10, spitter: 15, swarm: 4, flyer: 20, shade: 30, machine: 40, moth: 8, ray: 25, stalker: 25, crab: 30, drone: 30, slag: 35, golem: 45, splinter: 5, hound: 18 };
+/** How many a foe puts on the floor, for the crowd's cap (a swarm's little blots don't count; a golem counts as the three splinters it breaks into). */
+export const heads = (k) => (k === 'swarm' ? 0 : k === 'golem' ? 3 : 1);
 
 /** How much a wave may hold: grows by one and a half blots a wave (gentle: seven tenths). */
 export const waveBudget = (n, gentle = false) => (2 + 1.6 * (n - 1)) * (gentle ? 0.7 : 1);
 
+/** The crowd's cap for wave n: how many may be standing (heads) at once. */
+export const waveCap = (n, gentle = false) => (gentle ? 5 + Math.floor(n / 4) : 6 + n);
+
 /**
  * The foes of wave n (1, 2, …): the kind that is new this wave first, then picked at random among those
- * come in so far, the bigger ones more likely the further on, until the budget is spent. A list of kinds
- * (a swarm is five 'swarm'). Gentle: smaller waves, never more than five foes standing at once (bar a swarm).
+ * come in so far, the bigger ones more likely the further on (one of the worlds' kinds come in within the last
+ * two waves a little likelier still), until the budget is spent or the crowd is full (waveCap: heads). A list of
+ * kinds, a group kind as many times as GROUP says (a swarm is five 'swarm'). Gentle: smaller waves, at first
+ * never more than five foes standing at once (bar a swarm; a golem counts as its splinters).
  */
 export function waveKinds(n, { gentle = false, rng = Math.random } = {}) {
   const kinds = Object.keys(FIRST).filter((k) => FIRST[k] <= n);
   const fresh = kinds.find((k) => FIRST[k] === n);
-  let budget = waveBudget(n, gentle);
-  const out = [];
-  const put = (k) => { budget -= COST[k]; if (k === 'swarm') out.push(...Array(5).fill('swarm')); else out.push(k); };
-  if (fresh && COST[fresh] <= budget + 1) put(fresh);
-  const cap = gentle ? 5 + Math.floor(n / 4) : 6 + n;
+  let budget = waveBudget(n, gentle), standing = 0;
+  const out = [], cap = waveCap(n, gentle);
+  const size = (k) => GROUP[k] ?? 1, load = (k) => heads(k) * size(k);
+  const put = (k) => { budget -= COST[k]; standing += load(k); out.push(...Array(size(k)).fill(k)); };
+  if (fresh && COST[fresh] <= budget + 1 && standing + load(fresh) <= cap) put(fresh);
   for (let guard = 0; guard < 60 && budget >= 1 - 1e-9; guard++) {
-    const can = kinds.filter((k) => COST[k] <= budget + 1e-9);
+    const can = kinds.filter((k) => COST[k] <= budget + 1e-9 && standing + load(k) <= cap);
     if (!can.length) break;
-    // the further on, the heavier the mix (weights: blots fade, the big ones grow)
-    const w = can.map((k) => (k === 'blot' ? Math.max(0.6, 3 - n * 0.25) : 1 + n * 0.12 * COST[k]));
+    // the further on, the heavier the mix (weights: blots fade, the big ones grow; the newest kinds come back)
+    const w = can.map((k) => (k === 'blot' ? Math.max(0.6, 3 - n * 0.25) : (1 + n * 0.12 * COST[k]) * (FIRST[k] > 6 && n - FIRST[k] <= 2 ? 1.5 : 1)));
     let x = rng() * w.reduce((a, b) => a + b, 0), pick = can[0];
     for (let i = 0; i < can.length; i++) { if ((x -= w[i]) <= 0) { pick = can[i]; break; } }
-    if (out.filter((k) => k !== 'swarm').length + (pick === 'swarm' ? 0 : 1) > cap) break;
     put(pick);
   }
   if (!out.length) out.push('blot');
@@ -86,19 +99,24 @@ export const BOONS = [
   { id: 'mend', name: 'Second wind', text: 'health back now, and sooner', max: 3, color: '#83cf71' },
   { id: 'feet', name: 'Light feet', text: 'evade sooner and further', max: 2, color: '#f6c84e' },
   { id: 'parry', name: 'Keen guard', text: 'a wider moment to parry', max: 2, color: '#ed80b0' },
+  // (only once the moths are about, and the drones and stalkers to come: from the moths' wave)
+  { id: 'eyes', name: 'Steady eyes', text: 'flashes blind you less, lines and roots let go sooner', max: 2, color: '#f2f0e4', from: 7 },
 ];
 export const boonById = (id) => BOONS.find((b) => b.id === id) ?? null;
 
-/** Three different boons to choose from (fewer when most are taken to the full): taken { id: count }. */
-export function boonChoice(taken = {}, rng = Math.random, n = 3) {
-  const open = BOONS.filter((b) => (taken[b.id] ?? 0) < b.max).map((b) => b.id);
+/**
+ * Three different boons to choose from (fewer when most are taken to the full): taken { id: count }; wave: the
+ * wave just cleared (a boon with `from` is offered only once that wave is reached).
+ */
+export function boonChoice(taken = {}, rng = Math.random, n = 3, wave = Infinity) {
+  const open = BOONS.filter((b) => (taken[b.id] ?? 0) < b.max && (b.from ?? 0) <= wave).map((b) => b.id);
   const out = [];
   while (out.length < n && open.length) out.push(open.splice(Math.floor(rng() * open.length), 1)[0]);
   return out;
 }
 
 /** What the boons taken make of the tunings (base: the game's own, src/fluid-blade.js, src/player.js, src/fluid-tool.js). */
-export function boonTunings(taken = {}, base = { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage, charges: 3, delay: 2, regen: FALL.regen, wait: FALL.wait, cooldown: EVADE.cooldown, speed: EVADE.speed, perfect: GUARD.perfect }) {
+export function boonTunings(taken = {}, base = { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage, charges: 3, delay: 2, regen: FALL.regen, wait: FALL.wait, cooldown: EVADE.cooldown, speed: EVADE.speed, perfect: GUARD.perfect, blind: 1, hold: 1 }) {
   const n = (id) => taken[id] ?? 0;
   return {
     reach: base.reach * 1.2 ** n('reach'), length: base.length * 1.15 ** n('reach'),
@@ -107,6 +125,7 @@ export function boonTunings(taken = {}, base = { reach: BLADE.reach, length: BLA
     regen: base.regen * (1 + 0.8 * n('mend')), wait: base.wait / (1 + 0.5 * n('mend')),
     cooldown: base.cooldown * 0.75 ** n('feet'), speed: base.speed * (1 + 0.12 * n('feet')),
     perfect: base.perfect * (1 + 0.5 * n('parry')),
+    blind: (base.blind ?? 1) * 0.55 ** n('eyes'), hold: (base.hold ?? 1) * 0.6 ** n('eyes'),   // (shares of a flash's white, of a hold's time)
   };
 }
 
@@ -196,20 +215,31 @@ function start(ctx) {
   const words = new WorldLabels(camera);
   const gentle = foes?.difficulty !== 'normal';
   const run = { wave: 0, cleared: 0, style: 0, kills: 0, chain: 0, lastKill: -99, bestChain: 0, parries: 0, untouched: 0, taken: {}, hurtAt: player.hurtAt ?? -1e9 };
-  const base = { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage.slice(), charges: 3, delay: 2, regen: FALL.regen, wait: FALL.wait, cooldown: EVADE.cooldown, speed: EVADE.speed, perfect: GUARD.perfect };
+  const base = { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage.slice(), charges: 3, delay: 2, regen: FALL.regen, wait: FALL.wait, cooldown: EVADE.cooldown, speed: EVADE.speed, perfect: GUARD.perfect, blind: 1, hold: 1 };
   // (the tunings as they were: put back at the end, whatever the boons did)
   const keep = [tune(BLADE, { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage }), tune(EVADE, { cooldown: EVADE.cooldown, speed: EVADE.speed }), tune(GUARD, { perfect: GUARD.perfect }), tune(FALL, { regen: FALL.regen, wait: FALL.wait })];
   let phase = 'rest', restT = 1.2, t = 0, mine = [], boons = [], deadT = 0, over = false;
   const sea = level.tide?.sea, foam = level.tide?.foam;
 
+  let steady = { blind: 1, hold: 1 };   // (Steady eyes: a flash's white and a hold's time, cut as they land)
   function apply() {
     const T = boonTunings(run.taken, base);
+    steady = { blind: T.blind, hold: T.hold };
     BLADE.reach = T.reach; BLADE.length = T.length; BLADE.damage = T.damage;
     EVADE.cooldown = T.cooldown; EVADE.speed = T.speed; GUARD.perfect = T.perfect;
     FALL.regen = T.regen; FALL.wait = T.wait;
     giveBack.set({ max: T.charges, delay: T.delay }); tool?.reserve?.fill();
   }
   apply();
+
+  // Steady eyes: the white of a flash and the time of a line or a grip, cut as the foes land them
+  const blind0 = foes?.blind, strike0 = foes?.strike;
+  if (blind0) foes.blind = (s, tone) => blind0.call(foes, s * steady.blind, tone);
+  if (strike0) foes.strike = (f, a) => {
+    const held = foes.hold, r = strike0.call(foes, f, a);
+    if (foes.hold && foes.hold !== held) foes.hold.t *= steady.hold;
+    return r;
+  };
 
   // the guard heard: a perfect parry and a plain block are style too
   const guard0 = player.guard;
@@ -239,15 +269,19 @@ function start(ctx) {
       const at = new THREE.Vector3(s.x + Math.cos(a) * r, 0, s.z + Math.sin(a) * r);
       at.y = basinHeight(at.x, at.z);
       const f = foes?.add(kind, at);
-      if (!f) return;
-      f.def = { ...f.def, sight: 80, giveUp: 1e9 };   // (the basin is all in sight: they keep after you, wherever their spring was)
-      f.state = 'chase'; f.cool = 1.2 + (i % 3) * 0.4;
-      mine.push(f);
+      if (f) adopt(f, 1.2 + (i % 3) * 0.4);
     });
     for (const s of springs.slice(0, kinds.length > 4 ? 3 : 2)) splash(s);
     ctx.flash(`Wave ${run.wave}: ${waveWords(kinds)}`, 'big', 2.0);
     sound?.foeWarn?.('machine');
     sfx.whoosh();
+  }
+
+  /** One of the wave's: the basin is all in sight, so it keeps after you, wherever its spring was. */
+  function adopt(f, cool = 0.6) {
+    f.def = { ...f.def, sight: 80, giveUp: 1e9 };
+    f.state = 'chase'; f.cool = cool;
+    mine.push(f);
   }
 
   function splash(s) {
@@ -269,7 +303,7 @@ function start(ctx) {
   }
 
   function offerBoons() {
-    const ids = boonChoice(run.taken);
+    const ids = boonChoice(run.taken, Math.random, 3, run.wave);
     if (!ids.length) { restT = TIDE.after; return; }
     // in a row ahead of the traveller, as the camera looks (kept on the basin's floor)
     const fwd = camera.getWorldDirection(_w).setY(0);
@@ -328,6 +362,8 @@ function start(ctx) {
       }
       if (sea) { sea.position.y += ((-0.9 + 0.45 * rise + Math.sin(t * 0.8) * 0.05) - sea.position.y) * (1 - Math.exp(-1.5 * dt)); foam.position.y = sea.position.y + 0.04; foam.scale.setScalar(1 - 0.012 * rise + Math.sin(t * 1.3) * 0.004); }
       if (live && !over) {
+        // what a foe broke into (a glass golem's splinters) is the wave's too: to cut down before it is cleared
+        for (const f of foes?.list ?? []) if (f.alive && !f.counted && !mine.includes(f)) adopt(f);
         for (const f of mine) if (f.alive && (f.state === 'idle' || f.state === 'home') && !player.dead) f.state = 'chase';
         for (const f of mine) if (!f.alive && !f.counted) { f.counted = true; killed(f); }
         mine = mine.filter((f) => !f.counted);
@@ -370,6 +406,8 @@ function start(ctx) {
       for (const f of foes?.list.slice() ?? []) foes.remove(f);
       if (foes) foes.lock = null;
       if (guard0) player.guard = guard0;
+      if (blind0) foes.blind = blind0;
+      if (strike0) foes.strike = strike0;
       for (const k of keep) k();
       words.dispose();
       giveBack();
@@ -381,7 +419,7 @@ function start(ctx) {
 export default {
   id: 'waves', order: 8,
   name: 'Ink tide',
-  blurb: 'A basin of sand in a sea of ink, and the ink keeps coming: wave after wave of blots, spitters, swarms, shades and machines.',
+  blurb: 'A basin of sand in a sea of ink, and the ink keeps coming: wave after wave of blots, spitters, swarms, shades and machines, and further on the worlds’ own foes: moths, rays, crabs, drones, golems, hounds…',
   rules: 'Cut down every wave. Between waves you get some health back and a choice of three boons: walk onto the one you want. Score: 150 a wave cleared, plus style (quick chains of cuts, perfect parries, a wave untouched). It ends when the tide knocks you out.',
   drives: false,
   controls: {

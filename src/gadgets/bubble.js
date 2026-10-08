@@ -37,6 +37,15 @@ export const BUBBLE = {
 const PASTELS = ['#f4b6c8', '#b8ead2', '#c9b8ef', '#f6e3a1', '#b4dcf2', '#f7c9a8'];
 const GRAVITY = 32;   // (the traveller's, src/player.js: given back while he floats)
 
+/** What the game says when a bubble bursts on a foe too heavy to lift, worded for what it burst on. Pure. */
+export const HEAVY_WORDS = {
+  machine: 'Too heavy for a bubble: it bursts on the machine’s shell.',
+  golem: 'Too heavy for a bubble: it bursts on the golem’s sharp glass.',
+  crab: 'Too heavy for a bubble: it bursts on the crab’s salt-crusted shell.',
+  slag: 'Too heavy for a bubble: it hisses and bursts on the slag walker’s hot crust.',
+};
+export const heavyWords = (kind, name) => HEAVY_WORDS[kind] ?? `Too heavy for a bubble: it bursts on the ${name ?? 'foe'}.`;
+
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _u = new THREE.Vector3(), _q = new THREE.Vector3();
 const _Y = new THREE.Vector3(0, 1, 0);
 
@@ -309,7 +318,7 @@ class Wand {
     if (T.kind === 'foe') {
       const f = T.foe;
       if (!f?.alive) return false;
-      if (BUBBLE.heavy.includes(f.kind) || (f.def?.heavy && !f.def?.metal)) { this.ctx.notice?.('Too heavy for a bubble: it bursts on the machine’s shell.', 'bubble.heavy'); this.pop('heavy'); return false; }
+      if (BUBBLE.heavy.includes(f.kind) || (f.def?.heavy && !f.def?.metal)) { this.ctx.notice?.(heavyWords(f.kind, f.def?.name), `bubble.heavy.${f.kind}`); this.pop('heavy'); return false; }
       b.kind = 'foe'; b.thing = f; b.r = bubbleRadius('foe', (f.def?.radius ?? 0.5) * 1.1);
       b.lift = b.r * 0.8;
       b.pos.copy(f.pos).addScaledVector(up, b.lift);

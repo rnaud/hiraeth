@@ -345,7 +345,7 @@ adds to it, then dies back into the drift). It pops after `life` 6 s:
   along a ledge's side): it falls where it is. The yard's lift puzzle: float a crate over the ledge and drop
   it on the floor plate up there, and the alcove's gate beside it sinks.
 - **a foe**: helpless inside (stunned, still, turning slowly; its strike broken off); let go it falls, and
-  from higher than `fall` 3.5 m it lands hard (one cut). A machine is too heavy: the bubble bursts on it.
+  from higher than `fall` 3.5 m it lands hard (one cut). A machine, and any heavy foe that is not metal (a glass golem, a salt crab, a slag walker), is too heavy: the bubble bursts on it, the note worded for what it burst on (`heavyWords`).
 - **a bomb** (`b.held`, src/gadgets/bomb.js): carried up with its fuse sealed; popped, `fuse` 0.3 s are
   left. The yard's cracked boulder sits on a pillar too tall for a thrown bomb's blast.
 - **the traveller** (aimed at his own feet, `wantsSelf`, or pressed in the air): he floats up at 1.5 m/s,

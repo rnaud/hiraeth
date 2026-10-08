@@ -162,6 +162,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'foes-volley', only: 'after', caption: 'The Arena: a spitter’s volley of three globs in the air, their three rings across the traveller’s way', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
     ] },
     { match: 'In the Arena a FOES tab on the left', see: 'Open ?level=arena, click FOES on the left edge and choose a kind; press F4 for the hitboxes and let a machine slam to see its shockwave run out.' },
+    { match: 'Ink tide: from wave 7 the worlds’ own foes', shots: [
+      { name: 'tide-hounds', only: 'after', caption: 'Wave 17: shadow hounds among the pillars’ shadows, with moths, stalkers, a golem and the old blots', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), ?game=waves, the waves before cut down by a script' },
+      { name: 'tide-steady', only: 'after', caption: 'The breather after wave 7: the new Steady eyes boon on its plinth beside two of the old ones', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), ?game=waves' },
+    ], see: 'Play Ink tide (?game=waves) past wave 6: the moths come on wave 7, the rays on 8, the stalkers on 9, then crabs, drones, slag walkers, golems and, on wave 17, the hounds.' },
+    { match: 'A dune ray’s glide and a salt crab’s spinning charge', shots: [
+      { name: 'hitboxes-charge', only: 'after', caption: 'A salt crab’s spin with the hitboxes on: the red circle round its body is what hits, the lane it charges along drawn faint', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), ?level=arena&foe=crab&hitboxes=1' },
+    ], see: 'Open ?level=arena&foe=crab&hitboxes=1 (or foe=ray) and stand a few steps off: watch the lane while it winds up, then the circle round its body as it charges.' },
+    { match: 'The bubble wand says what its bubble burst on', see: 'With the bubble wand (D-pad up to choose it), open ?level=arena&foe=golem (or foe=crab, foe=slag) and blow a bubble (Y / △) at it: the note says what it burst on.' },
   ],
   '0.92': [
     { match: 'Games: the worlds list (Debug) has a row of small games', shots: [

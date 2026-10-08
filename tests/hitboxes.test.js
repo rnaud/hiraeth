@@ -66,6 +66,65 @@ test('a foe\'s strike is drawn where, and as big as, the combat code tests it: t
   }
 });
 
+test('every attack of the worlds\' kinds lands exactly where it is drawn: areas, lobs, flashes, lunges and charges', async () => {
+  const { KINDS } = await import('../src/foe-kinds.js');
+  const { mulberry32 } = await import('../src/noise.js');
+  const rng = mulberry32(9);
+  const live = (f) => foeHitboxes(f).filter((s) => s.tag === 'foe.attack.active' || s.tag === 'foe.attack.telegraph');
+  for (const kind of Object.keys(KINDS)) for (const a0 of FOES[kind].attacks) {
+    if (!(a0.damage > 0)) continue;
+    let n = 0, hits = 0;
+    for (let trial = 0; trial < 60; trial++) {
+      const f = new Foe(kind, v(), { rng: mulberry32(trial) });
+      const start = a0.chain ? FOES[kind].attacks.find((x) => x.then === a0.id) : a0;
+      f.attacksAt = () => [start];
+      f.state = 'chase'; f.cool = 0; f.buried = false; f.heading = 0;
+      const lo = Math.max(start.min ?? 0, (f.def.keep ?? 0) + 0.3), hi = start.max ?? f.def.reach;
+      const P = { pos: v(0, 0, lo > 2 ? (lo + hi) / 2 : Math.min(hi, 2)) };
+      f.update(dt, P, env);
+      assert.equal(f.state, 'wind', `${kind}.${start.id} winds up`);
+      let moved = false, touched = false, result = null;
+      for (let i = 0; i < 600 && result === null; i++) {
+        const a = f.atk, mine = a.id === a0.id;
+        // once its area holds (past any tracking), the traveller steps somewhere round it
+        if (!moved && mine && f.state === 'wind' && (!a.track || f.k > a.track + 0.05)) {
+          const c = f.attackOrigin(), r = 0.3 + rng() * ((a.range ?? a.radius ?? 3) + 2.5), t = rng() * Math.PI * 2;
+          P.pos.set(c.x + Math.sin(t) * r, 0, c.z + Math.cos(t) * r); moved = true;
+        }
+        const before = mine ? live(f) : [];
+        const ev = f.update(dt, P, env);
+        if (mine && f.state === 'strike' && live(f).some((s) => s.phase === 'active' && insideShape(s, P.pos))) touched = true;
+        const e = ev.find((x) => x?.type === 'strike' && x.atk.id === a0.id);
+        if (!e) continue;
+        // an instant one is checked against its last telegraph; a strike against its shape as drawn on the frame it is checked
+        const drawn = a0.instant || a0.at === 'target' ? before : foeHitboxes(f).filter((s) => s.tag.startsWith('foe.attack.'));
+        result = { hit: e.hit, inside: (a0.sweep && touched) || drawn.some((s) => insideShape(s, P.pos)) };
+      }
+      if (!result) continue;
+      n++; if (result.hit) hits++;
+      assert.equal(result.inside, result.hit, `${kind}.${a0.id} trial ${trial}: the traveller at ${P.pos.x.toFixed(2)}, ${P.pos.z.toFixed(2)}, the foe at ${f.pos.x.toFixed(2)}, ${f.pos.z.toFixed(2)}`);
+    }
+    assert.ok(n > 40 && hits > 0 && hits < n, `${kind}.${a0.id}: ${hits} of ${n} landed`);
+  }
+});
+
+test('a charge (a ray\'s glide, a crab\'s spin): its lane while it winds up; then the circle round its body that hits, the lane kept faint', () => {
+  for (const kind of ['ray', 'crab']) {
+    const a = FOES[kind].attacks.find((x) => x.sweep);
+    const f = new Foe(kind, v(), { rng: () => 0.5 }); f.attacksAt = () => [a]; f.state = 'chase'; f.cool = 0; f.heading = 0; f.buried = false;
+    const P = { pos: v(0, 0, 5) };
+    f.update(dt, P, env);
+    assert.equal(attackShape(f).kind, 'lane');
+    assert.equal(attackShape(f).width, a.width);
+    while (f.state === 'wind') f.update(dt, P, env);
+    for (let i = 0; i < 6; i++) f.update(dt, P, env);
+    const shapes = foeHitboxes(f), body = shapes.find((s) => s.tag === 'foe.attack.active' || s.tag === 'foe.attack.spent'), path = shapes.find((s) => s.tag === 'foe.charge.path');
+    assert.equal(body.kind, 'circle'); assert.equal(body.r, a.width / 2, `${kind}: as wide as its lane`);
+    assert.ok(Math.hypot(body.c.x - f.pos.x, body.c.z - f.pos.z) < 1e-9, 'round the body as it runs');
+    assert.ok(path && path.c.z < f.pos.z - 0.5, 'the lane where it set off');
+  }
+});
+
 test('a spitter\'s lobbed glob: the ring where you stood, telegraphed, checked as its wind-up ends', () => {
   const f = new Foe('spitter', v(), { rng: () => 0.5 }); f.state = 'chase'; f.cool = 0;
   const P = { pos: v(0, 0, 8) };

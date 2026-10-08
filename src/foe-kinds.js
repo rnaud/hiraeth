@@ -13,7 +13,7 @@ import { makeMaterial } from './materials.js';
 //   instant   resolved as the wind-up ends (no strike phase): lobs, flashes, blinks
 //   tele      drawn on the floor while it winds up (area and ranged attacks; plain melee reads from the body)
 //   lunge     m travelled through the strike; dive: a flyer comes down along it; sweep: hits whatever it
-//             touches on the way (a charge), not one area at the contact
+//             touches on the way (a charge: within half the lane's width of its body), not one area at the contact
 //   track     the drawn area follows you over this share of the wind-up, then holds
 //   then      the id of a quick follow-up wound at once (a combo), unless it was blocked
 //   knock     knocks you down; tether / grab { time, pull }: pulls you in; blind: s of white; wave: a ground
@@ -35,7 +35,7 @@ export const KINDS = {
     tone: '#b0562c', takes: { shoot: 1, fire: 1 },
     attacks: [
       { id: 'erupt', shape: 'ring', at: 'target', track: 0.6, radius: 1.8, damage: 0.17, wind: 1.25, knock: 5, surface: true, instant: true, max: 9, weight: 2 },
-      { id: 'glide', shape: 'lane', width: 1.5, range: 8, tele: true, damage: 0.15, wind: 0.85, strike: 0.5, contact: 0.05, lunge: 8, sweep: true, min: 3.5, max: 7.5 },
+      { id: 'glide', shape: 'lane', width: 2.2, range: 8, tele: true, damage: 0.15, wind: 0.85, strike: 0.5, contact: 0.05, lunge: 8, sweep: true, min: 3.5, max: 7.5 },
     ],
     recover: 1.9, cool: [1.2, 2.2],
   }),
@@ -93,7 +93,7 @@ export const KINDS = {
     tone: '#b8553a', sound: 'machine', takes: { shoot: 0, fire: 1 }, weak: { bomb: 1.5 },
     attacks: [
       { id: 'snap', shape: 'cone', range: 2.3, angle: 0.7, damage: 0.13, wind: 0.6, strike: 0.2, contact: 0.5, max: 2.2, weight: 1.5 },
-      { id: 'spin', shape: 'lane', width: 1.6, range: 8, tele: true, damage: 0.17, wind: 1.1, strike: 0.7, contact: 0.05, lunge: 8, sweep: true, knock: 5, min: 3, max: 8, onParry: 'flip' },
+      { id: 'spin', shape: 'lane', width: 2.4, range: 8, tele: true, damage: 0.17, wind: 1.1, strike: 0.7, contact: 0.05, lunge: 8, sweep: true, knock: 5, min: 3, max: 8, onParry: 'flip' },
     ],
     recover: 1.4, cool: [1.3, 2.4],
   }),

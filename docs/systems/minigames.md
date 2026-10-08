@@ -327,14 +327,24 @@ A basin of sand (`basinHeight`: a flat floor, a low rim, the shore down under a 
 in while a wave is on), six broken pillars for cover, four ink springs. The game's foes are its own
 (`level.foes.own`: on whatever the Enemies setting, nothing from the wilds, `noInk`: the blade does not grow from
 them, src/foes.js). `waveKinds(n)`: a budget of `waveBudget(n)` (2 + 1.6 a wave) spent on the kinds come in so
-far (`FIRST`: blot 1, spitter 2, swarm 3, machine 4, winged blot 5, shade 6; the new kind first, the heavier
-ones likelier later; `COST`); Gentle (or Off) spends seven tenths and caps the crowd, and the foes themselves
-are gentle (src/foes.js `GENTLE`). They come up out of the springs farthest from you and keep after you. Style:
+far (`FIRST`: blot 1, spitter 2, swarm 3, machine 4, winged blot 5, shade 6, then the worlds' own kinds,
+`src/foe-kinds.js`, one every wave or two: sign moth 7, dune ray 8, root stalker 9, salt crab 11, rust drone 12,
+slag walker 14, glass golem 15, shadow hound 17; the new kind first, the heavier ones likelier later, a world kind
+come in within two waves a little likelier; `COST`). Group kinds come whole for one cost (`GROUP`: five swarm,
+three moths, two hounds). The crowd is capped (`waveCap`: 6 + n; Gentle 5 + n/4) by `heads` (a swarm's blots count
+nothing, a golem counts as the three splinters it breaks into); Gentle (or Off) spends seven tenths, and the foes
+themselves are gentle (src/foes.js `GENTLE`). They come up out of the springs farthest from you and keep after
+you; whatever a foe breaks into (a golem's splinters) is adopted into the wave (`KILL.splinter`), so the wave is
+cleared only when they are down too. Every kind works on the basin: the floor is sand (a ray swims under it and
+bursts up), drones hover over it, and the hounds run as shadows among the six pillars' long shadows (the hour is
+17.4). Style:
 `KILL` points × the chain (`chainMult`: a quarter more for each foe cut down within 3 s of the last, to ×3), 30 a
 perfect parry, 5 a block (`player.guard` heard), 100 a wave untouched; the score is `tideScore` (150 a wave
 cleared + style). Between waves: 35% health back and three boons on plinths that rise ahead of you
 (`boonChoice`, `BOONS`: a longer blade, a deeper tank, quick refill, a heavy hand, second wind, light feet, a keen
-guard; `boonTunings` turns them into BLADE / EVADE / GUARD / FALL / tank values, put back when the game ends;
+guard, and from wave 7 (`from`: once the moths have come) steady eyes, which cuts a flash's white and a harpoon's
+or a root's hold as `Foes.blind` / `Foes.strike` land them (wrapped for the run, put back at its end);
+`boonTunings` turns them into BLADE / EVADE / GUARD / FALL / tank values, put back when the game ends;
 the longer blade is drawn longer too: `fluid-blade.js` builds the mesh at `BLADE.length` and stretches it each
 frame to `bladeLength(state)`, the tuned length with the reach step on top):
 walk onto one; after 14 s the next wave comes anyway. Knocked out, the run ends (the points kept).
