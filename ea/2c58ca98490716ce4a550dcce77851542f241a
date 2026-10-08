@@ -1,0 +1,35 @@
+.github/workflows/android.yml
+  s_364474254304ac::t_069579571ef02b 80-82
+changelog.md
+  s_364474254304ac::t_3bf5ba36aebf8d 7
+docs/systems/android.md
+  s_364474254304ac::t_10f1488c399ee8 224-234
+scripts/package-steam-deck.mjs
+  s_364474254304ac::t_04f86282c3c851 7-8,20-22
+scripts/site-only.mjs
+  s_364474254304ac::t_9023bd9cc879f1 1-35
+src/changelog.js
+  s_364474254304ac::t_abaf8135f7f51b 31
+src/levels/reference-sheets.js
+  s_364474254304ac::t_67576399029fcc 1-4
+tests/changelog-media.test.js
+  s_364474254304ac::t_de1641df184e69 75-76
+tests/site-only.test.js
+  s_364474254304ac::t_4701b6cda61b84 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ea2c58ca98490716ce4a550dcce77851542f241a",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
