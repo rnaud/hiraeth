@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// The play-through: a new game played from the crash to the stone at home, world by world in the route's
+// The play-through: a new game played from the crash to the stone at home (the first homecoming), then out
+// to the Lantern to find Ilen and home again for the true ending, world by world in the route's
 // order (src/levels/names.js ORDER), on the game's own modules, by the agent in tests/playthrough-agent.js
 // with what tests/playthrough-worlds.js knows of each world. Between worlds it goes aboard: the
 // voicemail's waiting messages, the holo table's map, which must chart the next world. In each world it
@@ -53,7 +54,7 @@ for (const [k, R] of ROUTE.entries()) {
 // ------------------------------------------------------------------ home
 const { Ship } = await import('../src/ship/ship.js');
 const { HomecomingDirector } = await import('../src/ship/homecoming.js');
-test(`${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, the homecoming plays to the stone`, async () => {
+test(`${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, the first homecoming plays to the stone`, async () => {
   const issue = (kind, text) => report({ world: 'home', quest: '-', stage: '-', kind, text });
   const { heard, map } = A.shipTurn({ from: prev, to: 'home', journal, issue });
   say(`  messages heard on the way: ${heard.join(', ') || 'none'}; charted: ${map.filter((e) => e.known).map((e) => e.id).join(', ')}`);
@@ -74,9 +75,56 @@ test(`${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, 
     if ((t * 30 | 0) % 300 === 0) await A.sleep(1);
   }
   if (!dir.done || !game.flag('ending.done')) issue('ending', `the homecoming stopped at "${dir.stage}"`);
+  if (dir.kind !== 'first' || game.flag('ending.final')) issue('ending', 'the first flight home should be the first homecoming, and not end the story');
   else say(`  the homecoming: done; ${W.level.tomb.tokens.children.length} tokens on the stone`);
   W.dispose();
   for (const i of ISSUES.filter((x) => x.world === 'home')) say(`  ISSUE [${i.kind}] ${i.quest} ${i.stage}: ${i.text}`);
+});
+
+// ------------------------------------------------------------------ the final chapter: the Lantern, Ilen, the true ending
+// (src/story/ending.js): after the first homecoming the ship's log of the light over the hill waits on the
+// voicemail, and the map charts the Lantern past the market; he finds Ilen there, she comes home with him,
+// and the next homecoming is the last: the reel's oldest recording at the stone, the end card, the credits.
+const homecoming = async (issue, kind) => {
+  const W = A.loadWorld('home', { journal, report });
+  const ship = noDom(() => quiet(() => new Ship({ scene: W.scene, physics: W.physics, level: W.level, levelId: 'home', content: A.CONTENT.home, prologue: true })));
+  const rig = { yaw: 0, pitch: 0, target: V(), dist: 6 };
+  noDom(() => ship.attach({ player: W.player, rig, camera: W.camera, sound: {}, levels: A.LEVELS, order: A.ORDER, titles: {}, npcs: W.npcs, journal }));
+  const dir = noDom(() => new HomecomingDirector(ship));
+  if (dir.kind !== kind) issue('ending', `flying home plays the ${dir.kind} homecoming, not the ${kind}`);
+  ship.cinematic = dir;
+  noDom(() => quiet(() => dir.start()));
+  for (let t = 0; t < 600 && !dir.done; t += 1 / 30) {
+    noDom(() => quiet(() => dir.update(1 / 30, dir.stage === 'tomb' || dir.stage === 'card' || dir.stage === 'credits')));
+    noDom(() => quiet(() => W.player.update(1 / 30, ship.input({}), rig.yaw)));
+    if (dir.stage === 'cargo' && !dir.chosen) noDom(() => dir.choose());
+    if ((t * 30 | 0) % 10 === 0) W.step(1);
+    if ((t * 30 | 0) % 300 === 0) await A.sleep(1);
+  }
+  return { W, dir };
+};
+test(`${ROUTE.length + 2}. the Lantern: the light's trace on the map, Ilen at the lantern's step, she comes home with him`, async () => {
+  const issue = (kind, text) => report({ world: 'lantern', quest: '-', stage: '-', kind, text });
+  if (!game.flag('ending.done') || game.flag('ending.final')) issue('ending', 'the first homecoming should be over, and only it');
+  const { heard } = A.shipTurn({ from: 'home', to: 'lantern', journal, issue });
+  if (!heard.includes('trace')) issue('ship', `the ship's log of the light over the hill did not wait on the voicemail (heard: ${heard.join(', ')})`);
+  const W = A.loadWorld('lantern', { journal, report });
+  const r = await A.playQuest(W, 'lantern.ilen', { solvers: SOLVERS, ways: WAYS, checks: CHECKS, each });
+  say(`  lantern.ilen${r.done ? ' (done)' : ' (NOT DONE)'}:\n    ${r.steps.join('\n    ')}`);
+  if (!game.flag('finale.met')) issue('route', 'Ilen did not come home with him');
+  if (!game.flag('world.lantern.done')) issue('route', 'the Lantern is not done after its quest');
+  if (!game.keepsakes().some((k) => k.id === 'lantern.person')) issue('ending', 'no keepsake from the Lantern');
+  W.dispose();
+});
+test(`${ROUTE.length + 3}. home again, with Ilen: the true ending at the stone, the oldest recording, the end card, the credits`, async () => {
+  const issue = (kind, text) => report({ world: 'home', quest: '-', stage: '-', kind, text });
+  A.shipTurn({ from: 'lantern', to: 'home', journal, issue });
+  const { W, dir } = await homecoming(issue, 'final');
+  if (!dir.done || !game.flag('ending.final')) issue('ending', `the true ending stopped at "${dir.stage}"`);
+  if (!dir.lines?.some((l) => l.reel)) issue('ending', 'the reel was not set down at the true ending');
+  if (!W.level.family?.ilen) issue('ending', 'Ilen is not at home');
+  W.dispose();
+  for (const i of ISSUES.filter((x) => x.world === 'home' || x.world === 'lantern')) say(`  ISSUE [${i.kind}] ${i.quest} ${i.stage}: ${i.text}`);
 });
 
 // ------------------------------------------------------------------ the report

@@ -17,8 +17,8 @@ follows the build.)
 The traveller is sent out to bring back "something of value". Their father
 means something impressive: power, rare matter, a prize. Every world offers
 one, and every world also offers something quieter. Keepsakes record both,
-and at the end he brings them all home and sets them, one by one, on his
-parents' stone.
+and he brings them home and sets them, one by one, on his parents' stone: once
+at the first homecoming, and again at the true ending, with his sister beside him.
 
 **Keepsake kinds** (vary them across worlds): *thing* (an object), *song*,
 *word* (something a person said), *person* (someone who asks to come along, or
@@ -28,10 +28,17 @@ a promise to return), *knowing* (an understanding of how the world works).
 the impact. It recurs on the reactive scenery's three apertures in every world,
 on the giants' bones, on the Lodestar's facets, on the Major's machine, on the
 android ruins of Viridel and on the oldest market sign. Locals each have a
-different name and story for it. Nobody knows what struck the ship; in each
+different name and story for it. Nobody out on the route knows what struck the ship; in each
 world at least one person (often several) saw a singing light pass over on the
 night the ship was struck: it dipped low, turned "like it was looking for
-something", and climbed away. It never fell.
+something", and climbed away. It never fell. **What it was** (said only at the
+end, by Ilen at the Lantern): her answer. The makers' lantern sends a light to
+bring in anyone a long way from home; when the father's broadcast reached her,
+thirty years late, she sang his own message into one, put the makers' sign on
+it, and sent it home. It sang over the round house (the father at the window),
+then went looking for the voice that had called her and found it on the reel
+playing in his ship's cockpit: the strike. It was trying to bring him to her.
+The glyph scorched into the hull is the sign it carried: *we heard you*.
 
 **The signature** (src/story/signature.js; LORE.md, "The strike's signature"):
 the scar is magnetised, and its field beats slowly in threes. The ship charts
@@ -64,10 +71,10 @@ wings, its lenses and rings, little charms. Each gift waits in a chest:
   places, out-of-the-way ledges, never lying in the open by chance. Each
   world has its own name for them (table below), and one person in each
   world mentions theirs.
-- **Open questions** (left for later): whether the singing light that struck
-  the ship was a makers' thing too (Nour wonders: "whatever struck you knew
-  their sign, or it was one of their gifts, too, and lost its way"); whether
-  the chests opened for Ilen.
+- **Answered at the Lantern** (the final chapter, below): the singing light is a
+  makers' light, sent from their lantern, and the one that struck the ship was
+  Ilen's answer (Nour was right: "whatever struck you knew their sign"); the
+  chests opened for her too, thirty years ago. The glyph means *we heard you*.
 
 **The colours**: the backpack fluid starts two-tone (cyan and violet). Each
 world that has a "source" (desert water, Lorn crystal, the buried machine's
@@ -326,6 +333,23 @@ written in).
 - **Keepsake**: *word*: the broadcast's message.
 - **Clue**: the broadcast was sent from the traveller's home system.
 
+### 12. The Lantern — "We Heard You" (the final chapter)
+- **Where**: past the Signal Market, on no chart; charted after the first
+  homecoming once the market's broadcast is heard (the light's trace).
+- **The place**: one small island in a still sea of light at dusk; the makers'
+  lantern on its crown; Ilen's house, the top half of her own round ship; yellow
+  flowers; a bench facing home; two stones on the point: Odile and Talo, who got
+  there first (struck twice, they came looking the third time), kept the lantern
+  and kept her, and died there.
+- **Ilen**: about fifty, grey coming into her hair, the mother's teal and coral;
+  speaks the home tongue (no translator). A light brought her in thirty years
+  ago and her ship never flew again (its last sound home was the light's
+  singing). She meets her brother, learns the parents are dead, tells him what
+  the light was and why it struck, hears what he chose on the way, asks him to
+  tell Hollin where Odile and Talo went, and comes home.
+- **Keepsake**: *person*: Ilen herself (she walks to the stone; she is never
+  set on it).
+
 ## The recordings (built: src/story/calls.js, src/ship/hologram.js)
 
 **What is true, and is only said at the very end.** The traveller's mother and
@@ -411,10 +435,19 @@ something of value. He never was." After that the next recording he finds is
 the father saying it himself: "I said the same words to you at the port that I
 said to her."
 
-**After the ending** the reel plays its oldest side, from when he was small;
-they are happier, and he sometimes answers them.
+**After the first homecoming** the ship's log waits (the light over the hill, its
+trace; "singing" finds the father at the window, three years ago), and the
+reel's oldest side ends by pointing back out. **After the true ending** it plays
+its oldest side, from when he was small; they are happier, and he sometimes
+answers them.
 
-## The ending (built: src/story/ending.js, src/ship/homecoming.js, src/levels/home.js, src/story/home.js)
+## The ending (built: src/story/ending.js, src/ship/homecoming.js, src/levels/home.js, src/story/home.js, src/levels/lantern.js)
+It comes in two parts: the **first homecoming** after six worlds (everything
+below up to the reel; then the light comes over the hill, he keeps the reel and
+promises Lou "once more", and there is no end card), and the **true ending**
+after the Lantern (Ilen beside him, the reel and its oldest recording, the end
+card, the credits). docs/systems/story.md, "Two homecomings", has the rules.
+
 After `ENDING_WORLDS` (6) worlds, the last recording asks the traveller home
 and the galactic map shows **Home** at its centre, where the route begins ("A
 small round house on a small round hill, and two moons over it. Nobody lives in
@@ -452,7 +485,16 @@ If Esk's hill came down in Viridel (the quest that fails): "And Esk's hill, in
 the garden, which I could not mend. I said sorry, and I meant it, and then I
 went." "It isn't what you asked for. It's what I have." Lou props her drawing
 against the stone (the round house, the two of them, and the two of you, holding
-hands; it stays there). Last he sets the reel down, and it plays by itself the
+hands; it stays there). *(The first homecoming stops here: he takes out the reel, and the singing light
+comes in low over the valley, dips over the round house, turns, and climbs away
+out along the route. Lou: "The singing star! Grandpa used to stand at the window
+for it." He keeps the reel; she makes him promise on the stone, hand flat:
+once more, then he stays. "Not home yet. Not all the way.")*
+
+**At the true ending**, with Ilen at the stone's right-hand end: "Mum. Dad. It's
+Ilen. I heard you." What is new goes down; she sets down the message that
+reached her; she answers what he chose (Dov's token, Hollin's promise, Esk's
+hill); Lou: "I left a space at the edge of my drawing." Last he sets the reel down, and it plays by itself the
 one recording he never searched for, the oldest: the parents young, a small
 child between them waving at the recorder. "You don't have to bring us
 anything. We are proud of you already. Look at him. Look at his hands." He says
@@ -462,6 +504,13 @@ card, then the credits: the worlds and their people, "At home" (the bird if she
 promised, the parents on the hill, Lou, Aunt Tove and Moustache in the small
 house, Ilen if told), and what he left on the stone. Flags: `ending.done`;
 `ending.keepsake` is `all` (saves that chose one keepsake before keep theirs).
+
+**The choices the stone remembers.** Three, across the route: Dov's lift token
+(the City-Shaft: keep it, or press it back into his hand so he goes home to the
+bottom himself); the promise to Hollin (Lorn II: it costs the coming back, and
+after the Lantern he can tell him where Odile and Talo went); Esk's hill
+(Viridel: the quest that fails, whatever you do). The traveller names each at the
+first homecoming; Ilen answers each at the Lantern and again at the stone.
 
 **Coming back.** The game goes on; the stone keeps its tokens, the reel plays
 its oldest side. Lou runs to meet him once a visit and asks what he brought (her
@@ -506,7 +555,9 @@ its own after Odile and Talo crossed the swamp in it. The City-Shaft's rule: a l
 nobody looks at goes out. The Signal Market's rule: the first thing anyone ever
 sold there was an answer.
 
-**Open thread: Ilen.** The Signal Market's broadcast is the father, years
+**Ilen, found** (the Lantern, above): the light was her answer; she comes home.
+
+**The thread as it was: Ilen.** The Signal Market's broadcast is the father, years
 younger, speaking to a child called Ilen, with the same words he said to his
 own son. Sel offers two readings: he once had someone else to call home, or he
 lent his voice to another family through the old relays.

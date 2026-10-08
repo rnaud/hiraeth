@@ -173,22 +173,34 @@ test('after the ending, what you found since goes on the slab too, the way the e
   game.set('home.stone', ['k0', 'k1']);
   const { level, world } = homeWorld();
   assert.deepEqual(unlaidTokens(game).map((t) => t.id), ['k2']);
-  assert.equal(level.tomb.tokens.children.length, 3, 'two tokens and the reel');
+  assert.equal(level.tomb.tokens.children.length, 2, 'two tokens (the first homecoming: he kept the reel)');
   world.homage();
   for (let t = 0; t < 30 && world.busy(); t += 1 / 30) world.update(1 / 30, t);
   assert.deepEqual(laidTokens(game).map((t) => t.id), ['k0', 'k1', 'k2']);
-  assert.equal(level.tomb.tokens.children.length, 4, 'three tokens and the reel');
+  assert.equal(level.tomb.tokens.children.length, 3, 'three tokens');
   assert.deepEqual(unlaidTokens(game), []);
+  // after the true ending: the reel on the slab, and the message Ilen set down
+  game.set('ending.final', true);
+  game.set('finale.met', true);
+  clearInteractables();
+  const after = homeWorld();
+  assert.equal(after.level.tomb.tokens.children.length, 5, 'three tokens, Ilen’s message and the reel');
+  assert.ok(after.world.people.ilen, 'Ilen lives at home now');
 });
 
 test('the ending with Lou: she comes to the stone, leaves her drawing, asks about the recording; it still completes', () => {
   const list = tokenList([{ id: 'a', name: 'A', kind: 'song' }], []);
   const lines = tombLines(list, { lou: true });
-  const reel = lines.findIndex((l) => l.reel);
-  assert.ok(lines.findIndex((l) => l.drawing) < reel && lines.findIndex((l) => l.drawing) > 0, 'her drawing before the reel');
-  assert.deepEqual(lines.slice(reel + 1, reel + 1 + FINAL_RECORDING.length), FINAL_RECORDING, 'the oldest recording, whole');
-  assert.ok(lines.some((l) => l.who === 'lou' && l.text === LOU_AT_STONE.after.replace(/^~\w+~ /, '')));
-  assert.match(lines.at(-1).text, /Something of value/);
+  const light = lines.findIndex((l) => l.light);
+  assert.ok(lines.findIndex((l) => l.drawing) < light && lines.findIndex((l) => l.drawing) > 0, 'her drawing before the light comes over');
+  assert.ok(!lines.some((l) => l.reel), 'the first homecoming: he keeps the reel');
+  assert.ok(lines.some((l) => l.who === 'lou' && /Promise on the stone/.test(l.text)), 'she makes him promise');
+  const last = tombLines(list, { lou: true, final: true, drawn: true });
+  const reel = last.findIndex((l) => l.reel);
+  assert.deepEqual(last.slice(reel + 1, reel + 1 + FINAL_RECORDING.length), FINAL_RECORDING, 'the true ending: the oldest recording, whole');
+  assert.ok(last.some((l) => l.who === 'lou' && l.text === LOU_AT_STONE.after.replace(/^~\w+~ /, '')));
+  assert.ok(!last.some((l) => l.drawing), 'her drawing is there already');
+  assert.match(last.at(-1).text, /Something of value/);
   assert.ok(!tombLines(list).some((l) => l.who === 'lou'), 'without her, as before');
 
   game.reset();

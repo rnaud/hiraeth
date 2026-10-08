@@ -15,6 +15,8 @@ Vael II waits for Vael, because it needs her bird.
   world that wants the jets (`features.jetpack`, which gets a safety-net box of
   jets by the ship from `FALLBACKS` in `src/boxes/placements.js`) comes after it.
   `tests/route.test.js` checks this order against the level files.
+- **After the route:** the first homecoming at six worlds, and the final chapter (the Lantern, past the
+  Signal Market) once the market is heard: docs/systems/story.md, "Two homecomings".
 - Saves keep what they have: items are flags, nothing is taken away, and worlds
   already visited or done stay on the chart.
 

@@ -8,8 +8,8 @@ import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
 import { exhaust, footPuffs } from './exhaust.js';
 import { spoken } from '../story/tone.js';
-import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL } from '../story/ending.js';
-import { HOME_SPOTS, tokenModel, REEL_AT, layTokens } from '../levels/home.js';
+import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID } from '../story/ending.js';
+import { HOME_SPOTS, tokenModel, REEL_AT, layTokens, laidTokens } from '../levels/home.js';
 import { LOU_AT_STONE } from '../story/home-data.js';
 /** The last recording's busts over the reel (1: life size). */
 const REEL_HOLO = 0.6;
@@ -28,14 +28,18 @@ import { CONTENT, ORDER } from '../levels/content.js';
 //   walk      you walk down the ramp and across the yard to the stone; Lou, your
 //             daughter, runs down from the small house to meet you, the dog at her heels
 //             (level.family: src/story/home.js), and comes to the stone with you
-//   tomb      you set the tokens on it one by one (tombLines), Lou her drawing, last the reel, which
-//             plays its oldest recording as a hologram over the stone (src/ship/hologram.js)
-//   card      an end card
-//   credits   a paper page of the worlds, the people met, what was left on the stone
+//   tomb      you set the tokens on it one by one (tombLines), Lou her drawing; then
+//             first: the singing light comes over the hill (it flies: line.light), he keeps the reel,
+//                    and promises Lou on the stone: once more. No card, no credits (`ending.done`).
+//             final: Ilen with you (level.family.ilen, src/story/home.js) sets down the message that
+//                    reached her; last the reel, which plays its oldest recording as a hologram over the
+//                    stone (src/ship/hologram.js)
+//   card      an end card (final)
+//   credits   a paper page of the worlds, the people met, what was left on the stone (final)
 //
-// Hold Esc to skip ahead a scene. At the end `ending.done` is set and the game
-// goes on: the ship is parked on its ring, the map flies anywhere, and the
-// stone keeps its tokens.
+// Which one plays: src/story/ending.js homecomingKind (the constructor's `kind` overrides it: ?ending=1, 2).
+// Hold Esc to skip ahead a scene. At the end `ending.done` (first) or `ending.final` is set and the
+// game goes on: the ship is parked on its ring, the map flies anywhere, and the stone keeps its tokens.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
@@ -213,8 +217,10 @@ class Credits {
 }
 
 export class HomecomingDirector {
-  constructor(ship) {
+  constructor(ship, { kind } = {}) {
     this.s = ship;
+    this.kind = kind ?? homecomingKind((k) => game.flag(k)) ?? 'first';
+    this.final = this.kind === 'final';
     this.sp = ship.spaceCopy.model;
     this.pk = ship.parked;
     this.done = false;
@@ -227,7 +233,12 @@ export class HomecomingDirector {
     const order = ship.order ?? ORDER;
     this.titles = ship.titles ?? {};
     this.storyTitles = Object.fromEntries(order.map((id) => [id, (CONTENT[id]?.story?.title ?? '').toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase())]));
-    this.items = tokenList(game.keepsakes() ?? [], ownedItems.owned());
+    const all = tokenList(game.keepsakes() ?? [], ownedItems.owned());
+    // first: everything; final: what is new since the first (the slab keeps the rest), then Ilen's
+    const laid = this.final ? laidTokens(game) : [], ids = new Set(laid.map((t) => t.id));
+    this.items = this.final ? all.filter((t) => !ids.has(t.id)) : all;
+    this.laid = this.final ? all.filter((t) => ids.has(t.id)) : [];
+    this.slab = this.final ? [...this.laid, ...this.items, ILEN_TOKEN] : this.items;
     this.stages = [
       { id: 'approach', dur: 7.5 },
       { id: 'cargo', until: () => !!this.chosen && this.t > (this.chosenAt ?? 0) + 2.6 },
@@ -236,8 +247,7 @@ export class HomecomingDirector {
       { id: 'hatch', dur: 3.0 },
       { id: 'walk', until: () => !ship.auto },
       { id: 'tomb', until: () => this.t > (this.tl?.total ?? 0) + 1.2 },
-      { id: 'card', dur: 6.5 },
-      { id: 'credits', until: () => this.credits?.done },
+      ...(this.final ? [{ id: 'card', dur: 6.5 }, { id: 'credits', until: () => this.credits?.done }] : []),
     ];
   }
 
@@ -271,7 +281,7 @@ export class HomecomingDirector {
     if (id === 'approach') return this.goTo('cargo');
     if (id === 'cargo') { if (!this.chosen) this.choose(); this.settle(); return this.goTo('tomb'); }
     if (id === 'dive' || id === 'descend' || id === 'hatch' || id === 'walk') { this.settle(); return this.goTo('tomb'); }
-    if (id === 'tomb') { this.placeAll(); return this.goTo('card'); }
+    if (id === 'tomb') { this.placeAll(); return this.final ? this.goTo('card') : this.finish(); }
     if (id === 'card') return this.goTo('credits');
     if (id === 'credits') return this.finish();
   }
@@ -310,8 +320,9 @@ export class HomecomingDirector {
         break;
       }
       case 'cargo':
-        C.say({ who: 'ship', text: this.items.length ? 'Cargo check before descent. Everything in the hold is going down with you.' : 'Cargo check before descent. The hold is empty.' });
-        this.panel = new CargoPanel({ items: this.items, titles: this.titles, onGo: () => this.choose() });
+        C.say({ who: 'ship', text: this.final ? 'Cargo check before descent. One passenger, and what is new in the hold.'
+          : this.items.length ? 'Cargo check before descent. Everything in the hold is going down with you.' : 'Cargo check before descent. The hold is empty.' });
+        this.panel = new CargoPanel({ items: this.final ? [{ id: 'ilen', kind: 'person', name: 'Ilen', level: FINALE_ID, text: 'In the jump seat, his old cap in her lap. She has not said anything since the jump.' }, ...this.items] : this.items, titles: this.titles, onGo: () => this.choose() });
         this.panel.show();
         sfx.beep(s.sound, true);
         break;
@@ -350,12 +361,19 @@ export class HomecomingDirector {
           const wait = this.at(HOME_SPOTS.meet.x - 1.6, 0, HOME_SPOTS.meet.z - 2);
           F.lou.follow = () => (s.player.pos.distanceTo(wait) > 7 ? { pos: wait, speed: 4.2, near: 0.5, max: 4.8, face: Math.PI } : { pos: s.player.pos.clone().add(V(-1.1, 0, 0.6)), speed: 2.4, near: 1.0, max: 4.2 });
         }
+        // Ilen comes down the ramp a few steps behind you
+        if (F?.ilen) {
+          F.ilen.object.visible = true;
+          F.ilen.pos.copy(s.rampFoot);
+          F.ilen.follow = () => ({ pos: s.player.pos.clone().add(V(1.2, 0, -1.4)), speed: 1.6, near: 1.2, max: 3.2 });
+        }
         break;
       }
       case 'tomb': {
-        if (game.flag('calls.ilen.told')) game.set('ending.ilen', true);   // (named at the stone: src/story/home.js doesn't again)
-        this.lines = tombLines(this.items, { ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou, broke: !!game.flag('edena.terraces.flooded') });
+        if (game.flag('calls.ilen.told') || this.final) game.set('ending.ilen', true);   // (named at the stone: src/story/home.js doesn't again)
+        this.lines = tombLines(this.items, { final: this.final, ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou, choices: choicesMade((k) => game.flag(k)), drawn: !!game.flag('home.lou.drawing') });
         this.placeLou();
+        this.placeIlen();
         this.tl = tombTimeline(this.lines);
         s.auto = null;
         const st = this.standAt();
@@ -366,6 +384,8 @@ export class HomecomingDirector {
         this.placed = 0;
         this.flying = [];
         this.tomb?.clear();
+        // (the true ending: what was set down the first time is still there, each at its place among them all)
+        this.laid.forEach((t) => this.tomb?.add(tokenModel(t), this.slab.indexOf(t), this.slab.length));
         sfx.engines(s.sound, 0);
         break;
       }
@@ -379,7 +399,7 @@ export class HomecomingDirector {
         this.s.holo?.clear();
         this.card?.fade();
         setTimeout(() => { this.card?.remove(); this.card = null; }, 1800);
-        this.credits = new Credits(credits({ order: this.s.order ?? ORDER, titles: this.titles, storyTitles: this.storyTitles, flag: (q) => game.flag(q), keepsake: this.chosen, tokens: this.items }));
+        this.credits = new Credits(credits({ order: [...(this.s.order ?? ORDER), FINALE_ID], titles: { [FINALE_ID]: 'The Lantern', ...this.titles }, storyTitles: this.storyTitles, flag: (q) => game.flag(q), keepsake: this.chosen, tokens: this.slab }));
         s.sound?.chime?.();
         break;
     }
@@ -399,6 +419,18 @@ export class HomecomingDirector {
     F.lou.follow = () => ({ pos: at, speed: 1.6, near: 0.35, face });
   }
 
+  /** Where Ilen stands at the stone (the true ending): at its right-hand end, beside the slab (clear of the shots over your shoulder). */
+  placeIlen(snap = false) {
+    const F = this.family, T = this.tomb;
+    if (!F?.ilen || !T) return;
+    const at = T.group.localToWorld(V(1.6, 0, 0.35));
+    at.y = this.ground(at.x, at.z);
+    F.ilen.object.visible = true;
+    if (snap || F.ilen.pos.distanceTo(at) > 6) F.ilen.pos.copy(at);
+    const face = Math.atan2(HOME_SPOTS.tomb.x - at.x, HOME_SPOTS.tomb.z - at.z);
+    F.ilen.follow = () => ({ pos: at, speed: 1.4, near: 0.35, face });
+  }
+
   /** The stone (src/levels/home.js buildTomb), if this level has it. */
   get tomb() { return this.s.level?.tomb ?? null; }
   /** Where the traveller stands to set things down, and which way he faces. */
@@ -411,7 +443,7 @@ export class HomecomingDirector {
   /** Everything goes down: keep it (ending.keepsake = 'all'). */
   choose() {
     if (this.chosen) return;
-    this.chosen = leaveTokens(game, this.items);
+    this.chosen = leaveTokens(game, this.final ? [...this.laid, ...this.items] : this.items);
     layTokens(game, this.items);   // (the slab keeps them: src/levels/home.js laidTokens)
     this.chosenAt = this.t;
     this.panel?.remove();
@@ -420,11 +452,11 @@ export class HomecomingDirector {
     this.s.cinema.say({ who: 'ship', text: this.items.length ? `${this.items.length === 1 ? 'One thing' : `${this.items.length} things`} for the hold door. Beginning descent.` : 'Nothing in the hold. Understood. Beginning descent.' });
   }
 
-  /** Set token i down: from the traveller's hands to its place on the slab. */
-  setDown(i) {
-    const T = this.tomb, tok = this.items[i];
+  /** Set a token down: from the traveller's hands (or Ilen's) to its place on the slab (this.slab). */
+  setDown(tok) {
+    const T = this.tomb;
     if (!T || !tok) return;
-    const mesh = T.add(tokenModel(tok), i, this.items.length);
+    const mesh = T.add(tokenModel(tok), this.slab.indexOf(tok), this.slab.length);
     const to = mesh.position.clone();
     T.group.updateMatrixWorld(true);
     const hands = T.group.worldToLocal(this.standAt().add(V(0, 1.05, 0)).lerp(HOME_SPOTS.tomb.clone().setY(this.ground(HOME_SPOTS.tomb.x, HOME_SPOTS.tomb.z) + 1.05), 0.3));
@@ -435,7 +467,7 @@ export class HomecomingDirector {
 
   /** Skipping the stone: everything already on it. */
   placeAll() {
-    this.tomb?.fill(this.items);
+    this.tomb?.fill(this.slab, { reel: this.final });
     if (this.family?.lou) { this.tomb?.addDrawing(); game.set('home.lou.drawing', true); }
     this.flying = [];
     this.placed = this.items.length;
@@ -453,6 +485,7 @@ export class HomecomingDirector {
     s.auto = null;
     s.placePlayer(this.standAt(), this.faceTomb(), true);
     this.placeLou(true);
+    this.placeIlen(true);
     C.fade(0, false, 0.3);
     if (!this.chosen) this.choose();
   }
@@ -514,9 +547,10 @@ export class HomecomingDirector {
         const cur = this.tl.lines.find((l) => t >= l.t0 && t < l.t1) ?? null;
         if (cur !== this._line) {
           this._line = cur; C.say(cur ? cur.line : null); this.shotT = 0;
-          if (cur?.line.token) this.setDown(this.placed++);
+          if (cur?.line.token) { this.setDown(cur.line.token); this.placed++; }
           if (cur?.line.drawing) { this.tomb?.addDrawing(); game.set('home.lou.drawing', true); }
           if (cur?.line.reel) this.reel();
+          if (cur?.line.light) this.lightTo(cur.line.light);
         }
         this.shotT = (this.shotT ?? 0) + dt;
         // the tokens on their way down, in a little arc
@@ -531,8 +565,14 @@ export class HomecomingDirector {
         s.holo?.speak(talking ? who : null);
         s.player.heading = this.faceTomb();
         const T = this.tomb, L = (x, y, z) => (T ? T.group.localToWorld(V(x, y, z)) : this.at(x, y, z));
+        this.flyLight(dt);
         let shot;
-        if (cur === this.tl.lines[this.tl.lines.length - 1]) {
+        if (this.sky && this.sky.phase !== 'gone') {
+          // the light over the hill: from low beside the stone, up past the round house to it
+          this.look.lerp(this.sky.mesh.position, !this._lookSky ? 1 : 1 - Math.exp(-3 * dt));
+          this._lookSky = true;
+          shot = { pos: L(1.6, 1.3, 4.6), look: this.look.clone(), fov: 52 };
+        } else if (cur === this.tl.lines[this.tl.lines.length - 1]) {
           // the closing line: wide, the house, the stone, the traveller small beside it
           const k = smooth(this.shotT / 6);
           shot = { pos: L(5.5 + k * 1.5, 2.6 + k * 1.4, 7 + k * 2), look: L(0, 1.0, -1.5), fov: 46 };
@@ -562,6 +602,47 @@ export class HomecomingDirector {
     }
   }
 
+  /**
+   * The singing light over the hill (the first homecoming): a bright point with a halo, coming in low
+   * from the west over the valley ('come'), dipping and circling over the round house ('dip'), then
+   * turning and climbing away out along the route ('go'). Plain glowing meshes, gone when it has.
+   */
+  lightTo(phase) {
+    const scene = this.s.player?.object?.parent ?? this.tomb?.group?.parent;
+    if (!this.sky && scene) {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.1, 16, 12), makeMaterial({ color: '#fff4c8', glow: 1, flat: true }));
+      const halo = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.08, 6, 40), makeMaterial({ color: '#ffe6a0', glow: 1, flat: true }));
+      mesh.add(halo);
+      mesh.userData.noCollide = true; halo.userData.noCollide = true;
+      mesh.position.copy(HOME_SPOTS.house).add(V(-220, 70, 90));
+      scene.add(mesh);
+      this.sky = { mesh, halo, phase, t: 0 };
+      this.s.sound?.chime?.();
+    }
+    if (!this.sky) return;
+    this.sky.phase = phase; this.sky.t = 0;
+    if (phase === 'go') this.s.sound?.chime?.();
+  }
+  flyLight(dt) {
+    const L = this.sky;
+    if (!L || L.phase === 'gone') return;
+    L.t += dt;
+    const over = HOME_SPOTS.house.clone().setY(this.ground(HOME_SPOTS.house.x, HOME_SPOTS.house.z));
+    let to;
+    if (L.phase === 'come') to = over.clone().add(V(-30, 26, 18));
+    else if (L.phase === 'dip') { const a = L.t * 0.7; to = over.clone().add(V(Math.cos(a) * 12, 13 + Math.sin(L.t * 1.3) * 1.5, Math.sin(a) * 12)); }
+    else to = over.clone().add(V(260, 230, -420));
+    const k = 1 - Math.exp(-(L.phase === 'go' ? 0.5 : 0.9) * dt);
+    L.mesh.position.lerp(to, k);
+    L.halo.scale.setScalar(1 + 0.15 * Math.sin(L.t * 6));
+    if (L.phase === 'go' && L.t > 6) this.endLight();
+  }
+  endLight() {
+    if (!this.sky) return;
+    this.sky.mesh.removeFromParent();
+    this.sky.phase = 'gone';
+  }
+
   /** The reel set down: the oldest recording rises over the stone, the three of them. */
   reel() {
     this.reeled = true;
@@ -580,12 +661,13 @@ export class HomecomingDirector {
     if (!this.chosen) this.choose();
     if (this.stage !== 'credits' && !this.credits) this.settle();
     this.placeAll();
+    this.endLight();
     s.holo?.clear();
     this.panel?.remove();
     this.credits?.remove();
     this.card?.remove();
     s.auto = null;
-    if (this.family) { this.family.directed = false; if (this.family.lou) this.family.lou.follow = null; }
+    if (this.family) { this.family.directed = false; if (this.family.lou) this.family.lou.follow = null; if (this.family.ilen) this.family.ilen.follow = null; }
     s.removeSpaceCopy();
     this.pk.group.visible = true;
     this.pk.group.position.copy(s.restPos);
@@ -597,11 +679,13 @@ export class HomecomingDirector {
     s.rig.target.copy(s.player.pos);
     s.release(1.2);
     C.clear();
+    if (this.final) { game.set('ending.final', true); game.set('home.ilen.home', true); }
+    else game.set('ending.first', game.flag('ending.first') ?? 'new');
     game.set('ending.done', true);
     game.set('ship.launched', true);
     s.journal?.markSeen?.('home');
-    game.emit('ending', { keepsake: this.chosen });
-    setTimeout(() => C.objective('The ship is ready whenever you are.'), 1200);
+    game.emit('ending', { keepsake: this.chosen, kind: this.kind });
+    setTimeout(() => C.objective(this.final ? 'The ship is ready whenever you are.' : 'The light went out along the route. The ship is ready when you are.'), 1200);
     s.onReady?.();
   }
 }

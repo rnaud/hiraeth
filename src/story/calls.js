@@ -39,6 +39,11 @@
 //    yet. After the ship has flown somewhere else it waits at the console
 //    (`calls.ilen`, `calls.ilen.told`): Ilen was his elder sister. The next
 //    recording he finds is the father saying it himself.
+//  - After the first homecoming (src/story/ending.js: the light came over the hill; he kept the reel),
+//    the ship has logged it (TRACE_CALL, `calls.trace`): the light's trace runs back out along the
+//    route; he asks the reel for "singing" and finds the father at the window, years ago. Every
+//    recording after that ends by pointing back out (the trace on the map, or the relay further on),
+//    until the true ending (`ending.final`).
 //  - Recording n becomes available once n worlds are complete (`world.<id>.done`
 //    or the world's story page); each is heard once (flag `calls.<n>`).
 //
@@ -47,7 +52,7 @@
 // the voice (src/story/voice.js speakLine) mumbles it in the home tongue. Lines in brackets are
 // silent. `set` holds flags to set once the recording has been heard (applyCall).
 
-import { ENDING_WORLDS, peopleOf, chosenKeepsake } from './ending.js';
+import { ENDING_WORLDS, peopleOf, chosenKeepsake, finaleOpen, marketHeard } from './ending.js';
 import { spoken } from './tone.js';
 import { relaySignal, RELAY_COME_HOME } from './relay.js';
 
@@ -85,6 +90,8 @@ export const CALL_COUNT = 11;
 export const ILEN_CALL = 'ilen';
 /** The father on Ilen, the next he finds after hers (it waits on its own when no world is left to finish). */
 export const ILEN_AFTER_CALL = 'ilen.after';
+/** The ship's log after the first homecoming: the light over the hill, its trace, and the father at the window. */
+export const TRACE_CALL = 'trace';
 
 const WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
 const name = (k) => k?.name ?? 'nothing';
@@ -291,6 +298,10 @@ export function facts(ctx = {}) {
     heard: (id) => !!flag(`calls.beat.${id}`),
     asked: !!flag('calls.home'),
     ended: !!flag('ending.done'),
+    final: !!flag('ending.final'),
+    met: !!flag('finale.met'),
+    traced: finaleOpen({ flag, completed }),
+    market: marketHeard({ flag, completed }),
     chosen: ctx.chosen ?? null,
     worldTitle: ctx.worldTitle ?? null,
   };
@@ -444,6 +455,30 @@ function motherAlone(f) {
   ];
 }
 
+/** The ship's log after the first homecoming, and the one recording the reel finds for "singing". */
+function traceCall(f) {
+  return [
+    SHIP('~neutral~ Log from the receiver, while you were at the stone. The singing light passed over home. Same signature as our scar.'),
+    SHIP(f.market ? '~neutral~ Its trace runs back out along the route, past the Signal Market, to a world on no chart. Charted on the galactic map.'
+      : '~neutral~ Its trace runs back out along the route, toward the faint signal on the old relay. Too faint to follow past it yet.'),
+    YOU('~solemn~ (You ask the reel for anything about singing.)'),
+    SHIP('~neutral~ One match. Your father, late at night.'),
+    F('~whisper~ It came over the house again tonight. Singing. Your mother says I dream it. I don’t.'),
+    F(f.ilenTold ? '~sad~ The last thing we heard from your sister’s ship sounded just like that. I stood at the window till it went.'
+      : '~sad~ I stood at the window till it went. I don’t know why it makes me think of the port.'),
+    YOU('~whisper~ (It was looking for them. It still is.)'),
+    SHIP('~neutral~ Logged three years ago.'),
+  ];
+}
+
+/** Where the recordings point after the first homecoming, until the true ending: back out. */
+function pointOut(f) {
+  if (f.final || !f.ended) return [];
+  if (f.met) return [SHIP('~neutral~ Home is on the map. Ilen is aboard, whenever you are both ready.')];
+  if (f.traced) return [SHIP('~neutral~ The light’s trace is on the galactic map, past the Signal Market.')];
+  return [SHIP('~neutral~ The light went out along the route. The faint signal on the old relay is still out there.')];
+}
+
 /** The father's own, on Ilen: the 'ilen.after' beat as a recording of its own (src/story/relay.js). */
 function fatherOnIlen(f) {
   const b = BEATS.find((x) => x.id === 'ilen.after');
@@ -455,6 +490,7 @@ export function recordingLabel(n, ctx = {}) {
   if (n === 'prologue') return '';
   if (n === ILEN_CALL) return 'FOR WHEN HE ASKS';
   if (n === ILEN_AFTER_CALL) return 'LOGGED 5 YEARS AGO';
+  if (n === TRACE_CALL) return 'LOGGED 3 YEARS AGO';
   if (n === 'final') return 'THE OLDEST RECORDING';
   const f = facts(ctx);
   if (typeof n === 'number' && n >= ENDING_WORLDS) {
@@ -467,12 +503,12 @@ export function recordingLabel(n, ctx = {}) {
 /** Who stands on the hologram for recording n: 'father' | 'mother' | 'both'. */
 export function onHologram(n) {
   if (n === ILEN_CALL) return 'mother';
-  if (n === 'prologue' || n === ILEN_AFTER_CALL) return 'father';
+  if (n === 'prologue' || n === ILEN_AFTER_CALL || n === TRACE_CALL) return 'father';
   return typeof n === 'number' && n < 3 ? 'father' : 'both';
 }
 
 /**
- * The lines of recording n (1..CALL_COUNT, or ILEN_CALL).
+ * The lines of recording n (1..CALL_COUNT, ILEN_CALL, ILEN_AFTER_CALL or TRACE_CALL).
  * @param ctx { keepsake (latest or null), keepsakes (all), worldTitle (just finished), flag(k),
  *              completed (world ids), lastWorld, here (the world the ship stands in), chosen (what was left at the stone) }
  */
@@ -480,6 +516,7 @@ export function callLines(n, ctx = {}) {
   const f = facts(ctx);
   if (n === ILEN_CALL) return motherAlone(f);
   if (n === ILEN_AFTER_CALL) return fatherOnIlen(f);
+  if (n === TRACE_CALL) return traceCall(f);
   const { k, quiet, flag } = f;
   f.shifted = f.ilenTold;   // once the truth is told, the recordings he finds are the sorrier ones
   f.tier = f.shifted ? 3 : Math.min(2, Math.floor(quiet / 2) + (n >= 4 ? 1 : 0));
@@ -524,7 +561,8 @@ export function callLines(n, ctx = {}) {
       ...rest.slice(0, 1),
       ask, ...answer,
       ...(f.ended
-        ? [YOU(c && c.id !== 'all' && c.id !== 'nothing' ? `~whisper~ (${name(c)} is on the stone on the hill.)` : "~whisper~ (Your keepsakes rest on the stone at home, beneath the two moons.)")]
+        ? [YOU(c && c.id !== 'all' && c.id !== 'nothing' ? `~whisper~ (${name(c)} is on the stone on the hill.)`
+          : f.final ? "~whisper~ (Your keepsakes rest on the stone at home, beneath the two moons.)" : '~whisper~ (Your keepsakes rest on the stone at home. The reel is still with you.)'), ...pointOut(f)]
         : [SHIP('~neutral~ Home is on the map, whenever you are ready.')]),
     ];
   }
@@ -604,13 +642,18 @@ export function ilenAfterPending(flag) {
   return at === true || at === undefined || !!flag('calls.ilen.after.later') || flag('ship.level') !== at;
 }
 
+/** The ship's log of the light over the hill waits once the first homecoming is over (until heard; not after the true ending). */
+export const tracePending = (flag) => !!flag('ending.done') && !flag(`calls.${TRACE_CALL}`) && !flag('ending.final');
+
 /**
  * The recording waiting at the console, or null: the mother's own first (see
- * ilenPending), then the first unheard recording n with n <= the number of
- * completed worlds (one per completion, in order), then the father's own on Ilen (ilenAfterPending).
+ * ilenPending), then the ship's log of the light over home (tracePending), then the first unheard
+ * recording n with n <= the number of completed worlds (one per completion, in order), then the
+ * father's own on Ilen (ilenAfterPending).
  */
 export function pendingCall({ flag, completed }) {
   if (ilenPending(flag)) return ILEN_CALL;
+  if (tracePending(flag)) return TRACE_CALL;
   for (let n = 1; n <= Math.min(CALL_COUNT, completed); n++) if (!flag(`calls.${n}`)) return n;
   if (ilenAfterPending(flag)) return ILEN_AFTER_CALL;
   return null;

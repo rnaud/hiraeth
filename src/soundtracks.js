@@ -1,6 +1,7 @@
 // Downloaded Suno originals; provenance is recorded in public/music/manifest.json.
 export const SOUNDTRACKS = {
   home: 'home.mp3',
+  lantern: 'home.mp3',   // (the Lantern: home's own theme, at Ilen's)
   moonfoundry: 'moonfoundry.mp3',
   underside: 'underside.mp3',
   spacecity: 'spacecity.mp3',

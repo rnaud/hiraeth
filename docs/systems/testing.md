@@ -19,7 +19,10 @@ Signal Market), then home. One game state is carried from world to world, as the
 built as `main.js` builds it, minus the drawing: the level and its temple, real collision, its people, the
 story runtime, the boxes, a real `Player`. Between worlds the agent goes aboard: it plays every waiting
 message on the voicemail and opens the holo table, whose map must be powered and must chart the next world.
-At home the homecoming (`HomecomingDirector`) plays to the stone.
+At home the first homecoming (`HomecomingDirector`) plays to the stone and the light over the hill; then the
+ship's log sends him to the Lantern (the map must chart it), where the agent plays the meeting with Ilen, and
+home again the true ending plays to the credits (`ending.final`). `tests/finale.test.js` has the rules and the
+old-save migration.
 
 The agent (`tests/playthrough-agent.js`) teleports rather than walks. At every step of a quest it checks:
 

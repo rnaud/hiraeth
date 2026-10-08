@@ -121,7 +121,9 @@ export const LANGUAGES = {
   // the ship's own voice: a small chirping computer
   ship:     { name: 'ship', native: true, wave: 'square', pitch: 1.5, rate: 1.3, len: 0.55, gain: 0.55, breath: 0, clip: 0.9, glide: 0, formant: 1.2, density: 0.7, mech: 1,
     cons: ['t', 'p', 'd', ''], vowels: ['i', 'e'] },
-};
+};// the Lantern (src/levels/lantern.js): Ilen speaks the home tongue; nobody else lives there
+LANGUAGES.lantern = LANGUAGES.home;
+
 /** Each language's place: the City-Shaft is the Lodestar level, the Signal Market the bazaar. */
 export const languageOf = (levelId) => (LANGUAGES[levelId] ? levelId : 'desert');
 
@@ -161,6 +163,7 @@ export const CALL_VOICES = {
   you: { id: 'you', voice: 1.0, kind: 'm' },
   ship: { id: 'ship', voice: 1.0, kind: 'f' },
   lou: { id: 'lou', voice: 1.6, kind: 'f', age: 'child', scale: 0.72 },   // your daughter, there beside you (home)
+  ilen: { id: 'ilen', voice: 0.92, kind: 'f' },   // your sister, there beside you at the stone (the true ending)
 };
 export const PLAYER_VOICE = CALL_VOICES.you;
 
@@ -337,7 +340,7 @@ export function speakLine(line) {
   if (!who) return;   // stage directions: silent
   const lang = line.who === 'ship' ? 'ship' : 'home';
   const plan = planLine(line.tone ? { text: line.text, tone: line.tone } : line.text, { voice: voiceOf(who), lang });
-  OUT.speak?.(plan, { channel: 'call', radio: line.who !== 'you' && line.who !== 'lou' ? 0.55 : 0 });   // (Lou is there: no radio)
+  OUT.speak?.(plan, { channel: 'call', radio: line.who !== 'you' && line.who !== 'lou' && line.who !== 'ilen' ? 0.55 : 0 });   // (Lou and Ilen are there: no radio)
 }
 
 /**

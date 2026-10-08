@@ -25,8 +25,18 @@ test('its stages come from the save: not given, out in the worlds, home on the m
   assert.ok(six.waiting);
   assert.match(chargeStep(six), /new message is waiting on the ship’s voicemail/);
   assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'calls.home': true }), completed: ENDING_WORLDS }).stage, 'home');
-  assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true }), completed: ENDING_WORLDS }).stage, 'done');
-  for (const stage of ['out', 'home', 'done']) assert.ok(chargeStep({ stage, kept: 0 }).length > 5);
+  // the first homecoming: follow the singing light (its trace once the market is heard); Ilen aboard; the true ending
+  const light = chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true }), completed: ENDING_WORLDS });
+  assert.equal(light.stage, 'light');
+  assert.equal(light.traced, false);
+  assert.match(chargeStep(light), /follow it/);
+  const traced = chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true, 'world.bazaar.done': true }), completed: ENDING_WORLDS });
+  assert.ok(traced.traced);
+  assert.match(chargeStep(traced), /past the Signal Market/);
+  assert.match(chargeHud(traced), /^✦ Follow the light’s trace/);
+  assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true, 'finale.met': true }), completed: 11 }).stage, 'ilen');
+  assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true, 'finale.met': true, 'ending.final': true }), completed: 11 }).stage, 'done');
+  for (const stage of ['out', 'home', 'light', 'ilen', 'done']) assert.ok(chargeStep({ stage, kept: 0 }).length > 5);
 });
 
 test('the HUD shows it with its own mark, in its own gold tag', () => {
@@ -49,7 +59,8 @@ test('the journal card: pinned, his words, what you carry', () => {
   assert.ok(html.includes(CHARGE.quote) && html.includes('✦') && html.includes('1 of 6 worlds'));
   for (const k of K) assert.ok(html.includes(k.name.replace('’', '’')), k.name);
   assert.match(chargeJournalHtml(chargeState({ flag: flags({ [GIVEN]: true }) })), /nothing yet/);
-  assert.match(chargeJournalHtml(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true }), completed: 6 })), /Brought home/);
+  assert.match(chargeJournalHtml(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true, 'ending.final': true }), completed: 6 })), /Brought home/);
+  assert.doesNotMatch(chargeJournalHtml(chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true }), completed: 6 })), /Brought home/, 'not at the first homecoming');
   // past six the count goes on (eleven worlds on the route), it doesn't stop at “6 of 6”
   const eight = chargeJournalHtml(chargeState({ flag: flags({ [GIVEN]: true, 'calls.home': true }), completed: 8 }));
   assert.ok(eight.includes('8 worlds done') && !eight.includes('of 6'));

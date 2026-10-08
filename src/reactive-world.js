@@ -28,6 +28,7 @@ export const WORLD_REACTIONS = {
   references: {kind:'flower',quiet:'#d9b88c',awake:'#71d7cf',radius:9},   // (none grow there: level.reactions false)
   atelier: {kind:'fan',quiet:'#c4beb0',awake:'#8cbdb7',radius:10},
   home: {kind:'flower',quiet:'#d9a37f',awake:'#5fd0c6',radius:9},
+  lantern: {kind:'flower',quiet:'#c9d48a',awake:'#fff2c2',radius:9},   // (none grow there: level.reactions false)
   mangrove: {kind:'fungus',quiet:'#8a8ed0',awake:'#ff9ad8',radius:10,shy:true},   // (none grow there: level.reactions false)
   glassdunes: {kind:'fan',quiet:'#8fcfae',awake:'#e8f7a0',radius:10},   // (glass fans in the sand, opening lime as you pass)
   waterfall: {kind:'flower',quiet:'#4f8f5f',awake:'#b2ebe2',radius:9},   // (none grow there: level.reactions false)

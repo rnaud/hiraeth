@@ -14,11 +14,14 @@
 //    the mother's recording ("For when he asks") has not played yet: the map's home panel and
 //    the console say a recording is held. It waits from the moment he steps out of the ship
 //    or the ship flies (src/story/calls.js ilenPending), so flying straight home from the
-//    market still leaves it at the console before the stone, if he goes to hear it.
+//    market still leaves it at the console before the stone, if he goes to hear it;
+//  - 'trace': after the first homecoming, once the market has been heard, until Ilen is found: the
+//    singing light's trace, charted past the market to the Lantern (src/story/ending.js finaleOpen).
+//    The map's Lantern pulses; the console's standby says LIGHT TRACE and where it leads.
 //
 // Pure: the tests use it directly.
 
-import { ENDING_WORLDS } from './ending.js';
+import { ENDING_WORLDS, FINALE_ID, finaleOpen } from './ending.js';
 
 /** The market, where the broadcast is. */
 export const RELAY_WORLD = 'bazaar';
@@ -26,13 +29,14 @@ export const RELAY_WORLD = 'bazaar';
 export const RELAY_FROM = ENDING_WORLDS - 2;
 
 /**
- * The relay signal now: null, or { stage: 'far' | 'held', world }.
+ * The relay signal now: null, or { stage: 'far' | 'held' | 'trace', world }.
  * @param o.flag (k) => value · o.completed: the worlds done (ids or a count)
  */
 export function relaySignal({ flag = () => undefined, completed = 0 } = {}) {
   const n = Array.isArray(completed) ? completed.length : completed;
-  if (flag('calls.ilen.told')) return null;
+  if (flag('calls.ilen.told')) return finaleOpen({ flag, completed }) && !flag('finale.met') ? { stage: 'trace', world: FINALE_ID } : null;
   if (flag('calls.ilen.asked')) return { stage: 'held', world: RELAY_WORLD };
+  if (finaleOpen({ flag, completed }) && !flag('finale.met')) return { stage: 'trace', world: FINALE_ID };
   const heard = flag('clue.bazaar.home') || flag(`world.${RELAY_WORLD}.done`);
   if (heard || n < RELAY_FROM) return null;
   return { stage: 'far', world: RELAY_WORLD };
@@ -44,13 +48,17 @@ export const RELAY_TEXT = {
   tag: 'a signal',
   far: 'The receiver holds a faint signal from here, on an old relay. Too weak to read: a voice, and what might be a name, over and over.',
   farUncharted: 'Further along the route, past the worlds charted, the receiver holds a faint signal on an old relay. Too weak to read yet: a voice, and what might be a name.',
+  // on the map, by the Lantern, after the first homecoming (the light's trace past the market)
+  traceTag: 'the light’s trace',
+  trace: 'The trace of the light that struck the ship runs back past the Signal Market, off every chart, to this one small world, and stops here. It came over the hill at home, and went this way.',
   // on the home panel while the mother's recording is held
   held: 'A recording is held at the console: “For when he asks.” Your mother’s voice.',
   // the console's screen (standby) and its "no new messages"
-  screen: { far: 'RELAY SIGNAL', held: 'RECORDING HELD' },
+  screen: { far: 'RELAY SIGNAL', held: 'RECORDING HELD', trace: 'LIGHT TRACE' },
   console: {
     far: 'No new messages. The receiver still holds a faint signal on an old relay, further along the route. Too weak to read.',
     held: 'One recording held: “For when he asks.” It will wait here.',
+    trace: 'No new messages. The light’s trace is charted: past the Signal Market, to a world on no chart. The galactic map has it.',
   },
 };
 

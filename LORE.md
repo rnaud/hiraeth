@@ -84,8 +84,11 @@ same way, sent off at the port with the same words. She never
 came home and nobody found out why. The last thing that came back from her
 ship was not a voice but a sound like singing. The father's nightly message
 to her still travels the old relays; one of them, thirty years on the way,
-reached the Signal Market the night the light passed, and the traveller hears it
-there.
+reached the Signal Market the night the light passed (the light was carrying it
+home, sung), and the traveller hears it there. **Found at the end**: a makers'
+light brought her ship down at their lantern thirty years ago and it never flew
+again; she kept the lantern (with Odile and Talo, then alone), and the singing
+light was her answer (section 7). About fifty now; she comes home with him.
 
 **Lou.** His daughter, seven and a half: lively, loud, curious, draws on
 everything (the walls included). Born when he was nineteen, out at the port
@@ -299,9 +302,13 @@ The Great Crystal on Lorn is a piece of the same light, fallen long ago (that
 piece fell; the light itself never has). Ilen's ship sent back a
 sound like singing. What it is, and why it turns, is never said.
 
-Open questions the game itself asks: was it a makers' thing too ("whatever
-struck you knew their sign, or it was one of their gifts, too, and lost its
-way", Nour)? Did the chests open for Ilen?
+The questions the game asks (was it a makers' thing too, "whatever struck you
+knew their sign", Nour? Did the chests open for Ilen?) are answered at the end,
+at the Lantern (section 7): yes, and yes. It is a makers' light, and the one
+that struck the ship was Ilen's answer to the father's broadcast. The other
+sightings stay as they were: the lights are older than her (Odile and Talo were
+brought in by one forty-odd years ago); how one crossed worlds a journey apart in
+one night is still part of what it is.
 
 ## 5. The strike's signature (why these worlds)
 
@@ -882,20 +889,66 @@ reel). "It isn't what you asked for. It's what I have." Lou: "I brought somethin
 against the stone: the round house, the two of them, and the two of you,
 holding hands. (It stays there.)
 
-Last he sets the reel down and it plays by itself the one recording he never
+**The first homecoming stops there** (October 2026: the ending is in two parts,
+so the credits come after the story's peak). He takes out the reel to set it
+down, and the singing light comes in low over the valley, singing, dips over the
+round house, turns the way every witness said it turns, and climbs away out
+along the route. Lou: "The singing star! It comes over sometimes. Grandpa used
+to stand at the window for it." He: "That's what struck my ship." He keeps the
+reel ("Not yet. Not until you know what that was."). Lou: "You're going again."
+"Once more. Then I'm staying." "Promise on the stone. Hand flat. That's how it
+works here." "I promise." Closing line: "Not home yet. Not all the way." No end
+card, no credits. On the ship the voicemail holds the receiver's log: the light
+passed over home, its trace runs back out past the Signal Market; the reel's
+match for "singing" is the father at the window, three years ago.
+
+**The final chapter: the Lantern** (charted past the market once the first
+homecoming is over and the broadcast heard). One small island in a still sea of
+light; the makers' lantern on its crown; at its step, **Ilen**. She knows the
+hull ("He let me paint the stripe on it when I was nine"), and speaks like home.
+He tells her who he is, and that their parents are dead ("His message took
+thirty to reach me, and I missed them by two"). What the light was: the makers'
+lantern listens for anyone a long way from home and sends a light to bring them
+in, not gently; one brought her in thirty years ago and her ship never flew
+again (the top half of it is her house); when the father's broadcast finally
+reached her she sang his own message into a light, put the makers' sign on it
+(three dots over an arc, which Odile worked out means *we heard you*), and sent
+it home. It sang over the round house, nobody called back ("A light can't
+knock"), and it went looking for the voice that had called her: his voice, on
+the reel, playing in the cockpit the night of the strike. "It wasn't trying to
+bring you down. It was trying to bring him here." Odile and Talo got to the
+lantern first, long before her, kept it and her, and lie on the point. She asks
+what he brought, hears what he chose (below), and comes home with him.
+
+**The true ending.** Flying home with her plays the homecoming once more: the
+cargo check lists her ("In the jump seat, his old cap in her lap"); at the stone
+she says "Mum. Dad. It's Ilen. I heard you."; what is new goes down; she sets
+down the recording that reached her ("Your message came the whole way, Dad");
+she answers his choices; Lou left a space at the edge of her drawing. Then he
+sets the reel down at last, and it plays by itself the one recording he never
 searched for, the oldest: the parents young, a small child between them waving
 at the recorder. "We are making this so you will have it. For when you are
 big, and far away." "You don't have to bring us anything. Do you hear?
 Nothing." "We are proud of you already. Look at him. Look at his hands."
-"Goodbye, recorder." He: "Goodbye." Lou: "Was that you? The little one,
-waving?" He: "That was me."
+"Goodbye, recorder." He: "Goodbye." Ilen: "I never saw you that small. I never saw you at all." He:
+"You see me now." Lou: "Was that you? The little one, waving?" He: "That was me."
 
-Closing line: "Something of value. You brought it home on your own two feet."
+Closing line: "Something of value. Home, on your own two feet."
 An end card, then the credits (SOMETHING OF VALUE): every world and its people
 (those he never met drawn in pencil), "At home" (the bird, if she promised;
 your mother and your father, on the hill; Lou, Aunt Tove and Moustache, in the
-small house; Ilen, if told), and what was left on the stone. The game goes on:
-the stone keeps its tokens, the reel plays its oldest side.
+small house; and Ilen, who heard him, and answered, and came home), the Lantern
+among the worlds, and what was left on the stone. The game goes on: the stone
+keeps its tokens and the reel, the reel plays its oldest side, the lamp in the
+round window is lit again, and Ilen lives in the round house.
+
+**The choices the stone remembers.** Dov's lift token (the City-Shaft): keep it,
+or press it back into his hand ("Eleven years I carried it so I wouldn't have to
+decide"), and at the stone "Dov's lift token isn't here. I gave it back to him."
+Hollin's promise (Lorn II): "A promise to come back costs the coming back"; kept
+by going back to him after another world; Ilen sends him with the news of Odile
+and Talo. Esk's hill (Viridel): the quest that fails. Each is named at the first
+homecoming, answered by Ilen at the Lantern, and again by her at the stone.
 
 **Visiting home** (after the ending, any time). Lou runs to meet him once a
 visit and asks what he brought; her answer follows how much he has brought

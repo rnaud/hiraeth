@@ -1,4 +1,5 @@
 import * as shipSfx from './ship/sfx.js';
+import { homecomingKind } from './story/ending.js';
 import { updateHazards } from './hazards.js';
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
@@ -255,8 +256,9 @@ await slice();
 // the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
 // (no ?level and prologue.done unset, or ?prologue=1 to replay it)
 const playPrologue = levelId === 'desert' && !viaShip && !minigameDef && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
-// coming home by ship ends the story (src/ship/homecoming.js); ?ending=1 replays it
-const playHomecoming = levelId === 'home' && ((viaShip && !game.flag('ending.done')) || query.get('ending') === '1');
+// coming home by ship plays a homecoming (src/ship/homecoming.js, src/story/ending.js homecomingKind): the first
+// (the stone, the light over the hill), then, with Ilen, the true ending; ?ending=1 replays the first, ?ending=2 the last
+const playHomecoming = (levelId === 'home' && (query.get('ending') === '1' ? 'first' : query.get('ending') === '2' ? 'final' : viaShip ? homecomingKind((k) => game.flag(k)) : null)) || false;
 const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
 level.ship ??= { pos: ship.rampFoot.clone() };
 await slice();

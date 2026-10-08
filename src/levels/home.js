@@ -6,7 +6,7 @@ import { Terrain, jitter } from '../world.js';
 import { game } from '../game-state.js';
 import { items } from '../items.js';
 import { buildItemModel } from '../boxes/model.js';
-import { tokenList } from '../story/ending.js';
+import { tokenList, ILEN_TOKEN } from '../story/ending.js';
 import { addIndoors } from '../shelter.js';
 import { Cloths, HangingCloth } from '../hanging-cloth.js';
 import { buildParentsHouse, buildFamilyHouse } from './home-houses.js';
@@ -167,6 +167,11 @@ export function laidTokens(g = game) {
   return all.slice(0, g.flag('ending.tokens') ?? all.length);
 }
 
+/** What the slab shows: what was laid there, and after the true ending the message Ilen set down (src/story/ending.js ILEN_TOKEN). */
+export function stoneTokens(g = game) {
+  return g.flag?.('ending.final') ? [...laidTokens(g), ILEN_TOKEN] : laidTokens(g);
+}
+
 /** What you carry that isn't on the slab yet (found since you were last here). */
 export function unlaidTokens(g = game) {
   const laid = new Set(laidTokens(g).map((t) => t.id));
@@ -241,8 +246,8 @@ function buildTomb(scene, mat) {
     /** Set a token model down on slot i of n (tomb-local). */
     add(mesh, i, n) { const p = tombSlots(n)[i]; if (p) mesh.position.copy(p); mesh.rotation.y = (i * 1.7) % 1 - 0.5; mesh.traverse((o) => { o.userData.noCollide = true; }); tokens.add(mesh); return mesh; },
     clear() { for (const c of [...tokens.children]) tokens.remove(c); },
-    /** Everything on it at once (coming back after the ending). */
-    fill(list) { this.clear(); list.forEach((t, i) => this.add(tokenModel(t), i, list.length)); if (list.length) this.addReel(); },
+    /** Everything on it at once (coming back after the ending); the reel too once the true ending has set it down. */
+    fill(list, { reel = false } = {}) { this.clear(); list.forEach((t, i) => this.add(tokenModel(t), i, list.length)); if (reel) this.addReel(); },
     /** The reel, set down last, at the front. */
     addReel() { const r = reelModel(); r.position.copy(REEL_AT); tokens.add(r); return r; },
     /** A flower laid on the stone (its kind: home-garden.js FLOWERS): the newest STONE_FLOWERS stay. */
@@ -287,7 +292,7 @@ export function* buildHome(scene) {
 
   // ---------------------------------------------------------- the round house (the parents'): walked into, dark and still
   yield;
-  const parents = buildParentsHouse(scene, { centre: HOME_SPOTS.house.clone().setY(H(HOME_SPOTS.house.x, HOME_SPOTS.house.z)), doorZ: HOME_SPOTS.door.z, mat });
+  const parents = buildParentsHouse(scene, { centre: HOME_SPOTS.house.clone().setY(H(HOME_SPOTS.house.x, HOME_SPOTS.house.z)), doorZ: HOME_SPOTS.door.z, mat, lit: !!game.flag('ending.final') });
   lights.push(...parents.lights);
   movers.push((t) => parents.dust(t));
   yield;
@@ -450,9 +455,8 @@ export function* buildHome(scene) {
   const tomb = buildTomb(scene, mat);
   yield;
   {
-    const laid = laidTokens();
-    if (laid.length || game.flag('ending.done')) tomb.fill(laid);
-    if (game.flag('ending.done') && !laid.length) tomb.addReel();
+    const laid = stoneTokens();
+    if (laid.length || game.flag('ending.done')) tomb.fill(laid, { reel: !!game.flag('ending.final') });
     tomb.fillFlowers(game.flag('home.flowers') ?? []);
     if (game.flag('home.lou.drawing')) tomb.addDrawing();
   }

@@ -7,6 +7,9 @@
 // renamed person's world, they are taken to have met them too (a little generous,
 // never wrong the other way). Clemence's id was an old name (malvina): renamed outright.
 //
+// Since the true ending came in (October 2026), a save that ended under the old rules has had its first
+// homecoming (step 2).
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 export const RENAMED_PEOPLE = [
@@ -45,6 +48,14 @@ const STEPS = [
         }
       }
     }
+  },
+  // 2: two homecomings (src/story/ending.js). A save that saw the old ending (`ending.done`: the stone, the
+  // oldest recording, the credits) has had its first homecoming: it stays done, marked 'old', and the
+  // true ending waits for Ilen (the Lantern opens once the Signal Market has been heard). The reel the
+  // old ending left on the stone is in his pocket again (the slab shows it only after `ending.final`);
+  // the ship's log of the light over the hill waits on the voicemail (calls.js TRACE_CALL) to point the way.
+  (flags) => {
+    if (flags['ending.done'] && !flags['ending.first'] && !flags['ending.final']) flags['ending.first'] = 'old';
   },
 ];
 

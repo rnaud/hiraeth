@@ -14,7 +14,7 @@ import { Cinema, Warp } from './cinema.js';
 import { StarMap, consoleAction } from './starmap.js';
 import { pendingCall, completedWorlds, callLines, callContext, applyCall, recordingLabel } from '../story/calls.js';
 import { Hologram } from './hologram.js';
-import { homeOpen, HOME_ID } from '../story/ending.js';
+import { homeOpen, HOME_ID, finaleOpen } from '../story/ending.js';
 import { relaySignal, RELAY_TEXT } from '../story/relay.js';
 import { MAP_LINE } from '../story/signature.js';
 import { HomecomingDirector } from './homecoming.js';
@@ -327,6 +327,7 @@ export class Ship {
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
       home: () => homeOpen({ flag: (k) => game.flag(k), completed: this.completed() }) || this.levelId === HOME_ID,   // src/story/ending.js
       relay: () => this.relay(),
+      finale: () => finaleOpen({ flag: (k) => game.flag(k), completed: this.completed() }),   // the Lantern, past the market (src/story/ending.js)
       side: deps.side ?? SIDE,   // (the worlds off the route: src/levels/names.js)
       onTravel: (id) => this.travel(id),
     });
@@ -340,7 +341,7 @@ export class Ship {
     this.onReady = onReady;
     if (homecoming && this.spaceCopy) {
       // the end: out of the jump over home, the choice in the cockpit, the landing, the door (src/ship/homecoming.js)
-      this.cinematic = new HomecomingDirector(this);
+      this.cinematic = new HomecomingDirector(this, { kind: typeof homecoming === 'string' ? homecoming : undefined });
       this.cinematic.start();
       return;
     }

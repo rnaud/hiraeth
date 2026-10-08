@@ -249,7 +249,8 @@ test('side quests: the call-lamp and Wren, Pip’s ration for Dov', async () => 
   assert.ok(quests.objective() || true);
   at(P.palace.dov.clone().add(V(2, 0, 0)));
   const r = talk(PEOPLE.dov, []);
-  while (!r.ended && r.advance());
+  while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
+  r.choose(r.choices().find((x) => /keep it safe/.test(x.text)).index);   // (or give it back: tests/finale.test.js)
   assert.equal(quests.isDone('incal.ration'), true);
   assert.ok(!quests.has('ration'));
   assert.ok(game.keepsakes().some((k) => k.id === 'incal.token' && k.kind === 'thing'), 'Dov’s lift token');

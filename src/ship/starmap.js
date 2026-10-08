@@ -21,9 +21,11 @@
 // Pure helpers (consoleAction, mapEntries, chartLayout) are used by the tests.
 //
 // Home sits at the centre, where the route begins; it is a destination once
-// enough worlds are done (src/story/ending.js).
+// enough worlds are done (src/story/ending.js). After the first homecoming, once the Signal Market has
+// been heard, the Lantern (the final chapter, src/story/ending.js finaleEntry) is charted past the
+// market's place, a dotted line out to it, pulsing while the light's trace leads there.
 
-import { homeEntry } from '../story/ending.js';
+import { homeEntry, finaleEntry, FINALE_AFTER } from '../story/ending.js';
 import { knownWorlds } from '../story/route.js';
 import { RELAY_TEXT } from '../story/relay.js';
 import { planetSvg } from './planets.js';
@@ -45,7 +47,7 @@ export function consoleAction({ at = 'dash', powered, pendingCall }) {
  * `relay` (src/story/relay.js relaySignal, or a function giving it): the world it comes from carries `signal` ('far'),
  * named or a faint dot, and home carries the held recording (`held`).
  */
-export function mapEntries({ order, levels, flag, journal, current, home, relay, side = [] }) {
+export function mapEntries({ order, levels, flag, journal, current, home, relay, side = [], finale = false }) {
   const sig = typeof relay === 'function' ? relay() : relay ?? null;
   const isDone = (id) => !!(flag?.(`world.${id}.done`) || journal?.storyDone?.(id));
   const isVisited = (id) => !!(journal?.seen?.(id) || id === current || isDone(id));
@@ -60,8 +62,12 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay,
     const L = levels.find((l) => l.id === id) ?? { id, title: id };
     out.push({ id, i: out.length, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: true, signature: hasSignature(id), side: true, signal: null });
   }
+  // the final chapter: the Lantern, past the market (src/story/ending.js finaleOpen)
+  const fe = finaleEntry({ open: typeof finale === 'function' ? finale() : !!finale, current, flag: flag ?? (() => undefined) });
+  if (fe) out.push({ ...fe, i: out.length, known: true, signature: false, side: true, signal: sig?.stage === 'trace' ? 'trace' : null });
   const h = homeEntry({ unlocked: typeof home === 'function' ? home() : !!home, current });
-  if (h) out.push({ ...h, i: out.length, known: true, signature: false, held: sig?.stage === 'held', relayFar: !!out.find((e) => e.signal && !e.known) });
+  if (h) out.push({ ...h, i: out.length, known: true, signature: false, held: sig?.stage === 'held', relayFar: !!out.find((e) => e.signal === 'far' && !e.known),
+    waiting: !!flag?.('finale.met') && !flag?.('ending.final') });
   return out;
 }
 
@@ -285,7 +291,7 @@ export class StarMap {
         <h1>GALACTIC MAP</h1><div class="sub">${known.length} worlds charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${farSig ? ' · a faint signal further along the route' : ''}</div>
         ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
             <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}</span>
-            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.signal ? RELAY_TEXT.tag : e.side ? 'a detour' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
+            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.finale ? (e.signal ? RELAY_TEXT.traceTag : e.done ? 'Ilen’s island' : 'the last place') : e.signal ? RELAY_TEXT.tag : e.side ? 'a detour' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
         <button class="close">close ✕</button>
       </div>
       <div class="side">
@@ -325,6 +331,9 @@ export class StarMap {
       if (!home) svg += `<circle cx="${L.home[0]}" cy="${L.home[1]}" r="${L.box.disc * 0.2}" fill="#f2c54b" stroke="#2b211f" stroke-width="2"/>`;   // the sun home goes round
     }
     for (let i = 1; i < worlds.length; i++) if (!worlds[i].side) svg += seg(L.pts[i - 1], L.pts[i], !worlds[i].known || !worlds[i - 1].known);
+    // the light's trace: a dotted line from the market out to the Lantern
+    const fin = worlds.find((e) => e.finale), mk = worlds.find((e) => e.id === FINALE_AFTER);
+    if (fin && mk) svg += `<line x1="${L.pts[mk.i][0]}" y1="${L.pts[mk.i][1]}" x2="${L.pts[fin.i][0]}" y2="${L.pts[fin.i][1]}" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="1 5"/>`;
     if (home) svg += `<path d="M${L.pts[worlds.filter((e) => !e.side).length - 1].join(' ')} L${L.home.join(' ')}${L.centre ? ` L${L.pts[0].join(' ')}` : ''}" fill="none" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="2 6"/>`;
     // the worlds not known yet: faint dots, no names
     for (const e of worlds) if (!e.known) svg += `<circle cx="${L.pts[e.i][0]}" cy="${L.pts[e.i][1]}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
@@ -347,9 +356,9 @@ export class StarMap {
     const p = this.el.querySelector('.panel');
     const sig = signatureReading(e.id, { visited: e.visited });
     p.innerHTML = `${e.home ? '' : planetSvg(e.id, { cls: 'mini' })}<h2>${e.title}</h2><div class="src">${e.source}</div><p>${e.blurb}</p>
-      ${e.signal ? `<p class="relay">${RELAY_TEXT.far}</p>` : e.held ? `<p class="relay">${RELAY_TEXT.held}</p>` : e.relayFar ? `<p class="relay">${RELAY_TEXT.farUncharted}</p>` : ''}
+      ${e.signal === 'trace' ? `<p class="relay">${RELAY_TEXT.trace}</p>` : e.waiting ? '<p class="relay">Ilen is aboard. Home is waiting for both of you.</p>' : e.signal ? `<p class="relay">${RELAY_TEXT.far}</p>` : e.held ? `<p class="relay">${RELAY_TEXT.held}</p>` : e.relayFar ? `<p class="relay">${RELAY_TEXT.farUncharted}</p>` : ''}
       ${sig ? `<div class="sigline">${SIG_GLYPH}<span>SIGNATURE · ${sig}</span></div>` : ''}
-      <div class="state">${e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.side ? 'A DETOUR, OFF THE ROUTE' : e.done ? '✦ DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
+      <div class="state">${e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.finale ? (e.done ? '✦ ILEN IS COMING HOME' : 'THE LAST PLACE, OFF EVERY CHART') : e.side ? 'A DETOUR, OFF THE ROUTE' : e.done ? '✦ DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
       <button class="go"${e.current || !this.o.powered?.() ? ' disabled' : ''}>${e.current ? 'you are here' : 'Travel ▶'}</button>`;
     p.querySelector('.go').addEventListener('click', () => this.go());
   }
@@ -406,8 +415,10 @@ export class StarMap {
       const cur = this.entries.findIndex((e) => e.current);
       const next = this.entries.findIndex((e, i) => i > cur && e.known && !e.done && !e.home);
       const any = this.entries.findIndex((e) => e.known && !e.done && !e.current && !e.home);
-      const home = this.o.flag?.('ending.done') ? -1 : this.entries.findIndex((e) => e.home && !e.current);   // they are waiting
-      this.select(home >= 0 ? home : next >= 0 ? next : any >= 0 ? any : Math.max(0, cur));
+      const F = this.o.flag ?? (() => undefined), withIlen = F('finale.met') && !F('ending.final');
+      const home = F('ending.done') && !withIlen ? -1 : this.entries.findIndex((e) => e.home && !e.current);   // they are waiting
+      const trace = this.entries.findIndex((e) => e.finale && e.signal === 'trace' && !e.current);   // the light's trace (src/story/relay.js)
+      this.select(home >= 0 ? home : trace >= 0 ? trace : next >= 0 ? next : any >= 0 ? any : Math.max(0, cur));
       document.exitPointerLock?.();
     }
   }
