@@ -4,6 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerHazard } from '../hazards.js';
 import { screened } from '../wind-screens.js';
+import { registerWorking } from '../workings.js';
 import { Flames } from '../story/flames.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { T, box, lathe, prep, annulus } from './kit.js';
@@ -42,6 +43,10 @@ import { T, box, lathe, prep, annulus } from './kit.js';
 // (`hidden: 'lantern'`: only the lantern charm's light shows it.)
 //
 // A piece: { id?, update(dt, t), init(physics)?, setOpen(open, instant)?, solid?, dispose() }.
+//
+// Swing, Updraft and Gust are also workings (src/workings.js): they register their volume as they are built and
+// let go in dispose(), so a foe knocked into one, or flying through one, feels it as you do (src/foes.js
+// Foe.feelWorld: docs/systems/foes.md, "Foes in the world's workings").
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -334,7 +339,8 @@ export class Bramble {
     this.burnt = rt.logic.isLit(o.id);
     this.k = this.burnt ? 1 : 0;
     this.tangle.visible = !this.burnt;
-    this.off = registerTarget({ kind: 'flammable', flammable: 'bramble', radius: Math.max(w, h) * 0.45, accepts: ['fire'], position: () => this.center, enabled: () => !this.burnt, onHit: (mode) => this.hit(mode) });
+    // (burning: the world's chemistry, src/chemistry.js, lets its fire reach the next bramble in the room)
+    this.off = registerTarget({ kind: 'flammable', flammable: 'bramble', radius: Math.max(w, h) * 0.45, accepts: ['fire'], position: () => this.center, enabled: () => !this.burnt, burning: () => !!this.flames && this.burning < 2.2, onHit: (mode) => this.hit(mode) });
     this.h = h; this.w = w;
     // thorns prick: push into them and they push you back off (you can't climb a tangle of wire)
     const inv = this.group.matrixWorld.clone(), _l = V();
@@ -638,9 +644,15 @@ export class Swing {
     this.mat = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.3, flat: true });
     this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5, 2.1, 1.5]), T(new THREE.OctahedronGeometry(1, 0), [0.9, -len + 0.6, 0.3], [0, 0, 0.5], [0.6, 1.0, 0.6])], this.mat));
     noCollide(this.group);
-    this.center = V(); this.still = 0; this.cool = 0; this.theta = 0;
+    this.center = V(); this.still = 0; this.cool = 0; this.theta = 0; this.way = 1;
     this.place();
     this.off = registerTarget({ kind: 'swing', radius: 1.9, accepts: ['stun'], position: () => this.center, onHit: (mode) => this.hit(mode) });
+    // a working (src/workings.js): what it meets, a foe too, it knocks away the way it swings
+    this.working = { kind: 'swing', center: this.center, radius: 1.9,
+      contains: (p) => (p.x - this.center.x) ** 2 + (p.z - this.center.z) ** 2 < 1.9 * 1.9 && Math.abs(p.y + 0.9 - this.center.y) < 2.6,
+      moving: () => this.still <= 0,
+      push: (p, out) => out.set(this.way, 0, 0).transformDirection(this.group.matrixWorld) };
+    this.offWorking = registerWorking(this.working);
   }
   hit(mode) {
     if (mode === 'stun') {
@@ -663,6 +675,7 @@ export class Swing {
     if (this.still > 0) this.still = Math.max(0, this.still - dt);
     else this.s += dt;
     this.theta = this.amp * Math.sin((this.s / this.period) * Math.PI * 2);
+    if (this.theta !== was) this.way = Math.sign(this.theta - was);   // (the way it swings: the way it knocks)
     this.place();
     const k = this.still > 0 ? Math.min(1, this.still) : 0;
     this.mat.uniforms.uColor.value.set(this.rt.P.glow ?? '#a8e6ee').lerp(_frost, k);
@@ -673,14 +686,13 @@ export class Swing {
     const dx = P.pos.x - this.center.x, dy = P.pos.y + 0.9 - this.center.y, dz = P.pos.z - this.center.z;
     if (dx * dx + dz * dz < 1.9 * 1.9 && Math.abs(dy) < 2.6) {
       this.cool = 1.5;
-      const dir = Math.sign(this.theta - was) || 1;
-      const out = V(dir, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(9).addScaledVector(UP, 4);
+      const out = V(this.way, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(9).addScaledVector(UP, 4);
       P.knockDown?.(out, { why: 'guardian' });
       P.hurt?.(Math.min(0.12, Math.max(0, (P.health ?? 1) - 0.1)), 'guardian');
       this.rt.rumble?.(0.4, 0.4);
     }
   }
-  dispose() { this.off?.(); }
+  dispose() { this.off?.(); this.offWorking?.(); }
 }
 
 // ---------------------------------------------------------------------------------------- wind
@@ -707,7 +719,10 @@ export class Updraft {
     this.root.add(stone);
     noCollide(this.root);
     this.rideT = 0;
+    // a working (src/workings.js): it throws a foe up out of it, or tumbles a flying one
+    this.offWorking = registerWorking({ kind: 'updraft', contains: (p) => this.contains(p), foot: this.foot, r: this.r, top: this.foot.y + this.h, lift: this.lift });
   }
+  dispose() { this.offWorking?.(); }
   /** Is p (feet) in the column? */
   contains(p) { return Math.hypot(p.x - this.foot.x, p.z - this.foot.z) < this.r && p.y > this.foot.y - 1 && p.y < this.foot.y + this.h; }
   update(dt, t) {
@@ -770,7 +785,14 @@ export class Gust {
     }
     noCollide(this.root);
     this.size = size;
+    // a working (src/workings.js): while it blows it shoves any foe in the open down the hall
+    this.working = { kind: 'gust', dir: this.dirW, push: this.push,
+      contains: (p) => this.box.containsPoint(rt.kit.local(p)),
+      blowing: () => this.state === 1,
+      sheltered: (p) => this.sheltered(rt.kit.local(p)) || screened(p, this.dirW) };
+    this.offWorking = registerWorking(this.working);
   }
+  dispose() { this.offWorking?.(); }
   /** 0 calm, a warning ramp, 1 blowing. */
   get state() {
     const c = this.t % (this.calm + this.blow);

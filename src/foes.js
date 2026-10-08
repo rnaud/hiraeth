@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { registerTarget } from './targets.js';
 import { screened } from './wind-screens.js';
+import { hazardAt } from './hazards.js';
+import { workingsAt } from './workings.js';
 import { Telegraph, strikeDamage, inArea } from './temples/boss.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
@@ -140,6 +142,36 @@ export const BURROW = { up: 6, flush: 0.9 };
 export const PHASE = { near: 3.2 };
 /** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
 export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
+/**
+ * Foes in the world's height and workings (v0.98, docs/systems/foes.md "Foes in the world's workings"):
+ * - HOVER: a hovering kind keeps its `hover` over the higher of its footing and the traveller (`Foe.over`, the
+ *   extra it holds: climbing `climb` m/s, sinking `sink`, never more than `max` over its footing), so over a
+ *   drop it holds its altitude and on a ledge it rises to stay above you.
+ * - COVER: between strikes (chasing, its `cool` at least `minCool`) it looks round itself (`dirs` ways, `near`
+ *   and `far` m) for a spot the traveller can't see (a physics ray: env.seen) and drifts there; it comes out
+ *   after `hold` s (Gentle `gentle`), or `stay` s once there, or when cut low, found or due to strike. Nothing
+ *   to hide behind: it climbs `climb` m higher instead, for as long. Once between two strikes (`Foe.hid`).
+ * - FALL: knocked off a ledge (`Foe.air`), a walker falls at `gravity`; a fall of more than `hard` m (or a
+ *   throw by an updraft) lands hard: a cut (two past `harder`) and `stun` s. Past `lost` m, below the world's
+ *   killY or into a temple's pit it is gone. A hovering foe stilled over a drop falls as far.
+ * - WORLD_HARM: a hazard (src/hazards.js) a foe is knocked into cuts it (`spikes`, `fire`: damage) at most
+ *   every `every` s, and throws it back out at `shove` m/s. It never walks into one (nor an updraft) itself.
+ * - WORKS: the workings (src/workings.js): an updraft throws a walker up (`throw` m/s) to land hard, and tumbles
+ *   a hovering one up out of control `tumble` s then stuns it `stun` s; a blowing gust shoves any foe (× by
+ *   kind, a stilled one slides like a crate); a swinging pendulum knocks one away (`knock` m/s, `up`), cut and
+ *   stunned. `cool`: s before the same working takes it again.
+ */
+export const HOVER = { max: 12, climb: 3, sink: 3 };
+export const COVER = { near: 6, far: 10, dirs: 8, minCool: 0.8, hold: 2.6, gentle: 1.2, stay: 1.4, climb: 2.2, close: 3, out: 0.3 };
+export const FALL = { gravity: 20, edge: 1.1, hard: 3.5, harder: 8, stun: 1.2, lost: 60 };
+export const WORLD_HARM = { every: 0.6, spikes: 1, fire: 1, other: 1, shove: 5 };
+export const WORKS = {
+  updraft: { throw: 10, out: 3, tumble: 0.9, stun: 1.4, cool: 2 },
+  gust: { heavy: 0.7, still: 1.1, hover: 1.2, light: 1.25 },
+  swing: { knock: 9, up: 4, heavy: 0.75, stun: 1.2, cool: 1.5 },
+};
+const _hz = new THREE.Vector3(), _pb = new THREE.Vector3(), _fb = new THREE.Vector3(), _cs = new THREE.Vector3(), _cf = new THREE.Vector3();
+
 /** A strike reaches the traveller only this close in height (m, its feet to the foe's): the hitbox overlay draws it (src/hitboxes.js). */
 export const STRIKE_RISE = 1.6;
 /** A foe's target sphere (shots, the cone, the lock): its body's radius and a margin. The blade adds its own (fluid-blade.js BLADE_TOUCH). */
@@ -171,9 +203,21 @@ export class Foe {
     this.shelled = !!this.def.shell;   // a salt crab's shell (a bomb cracks it)
     this.flipped = 0; this.lit = 0; this.crust = 0; this.sleep = 0;   // s: on its back; lit by an ember; doused cold; asleep in a bloom
     this.low = 0;   // s knocked low by a cut (a hovering foe: KNOCKED_LOW)
+    // the world (v0.98): the height a hovering foe holds over its footing (HOVER), its hiding place (COVER),
+    // a fall (FALL: { vy, top, base, hard }), a tumble up an updraft, and the hazards' and workings' rests
+    this.over = 0; this.overV = 0; this.fallTop = null; this.youY = null;
+    this.cover = null; this.hid = false;
+    this.air = null; this.tumble = 0; this.tumbleTop = 0;
+    this.hazCool = 0; this.workCool = { updraft: 0, swing: 0 };
   }
   get alive() { return this.state !== 'dead'; }
-  get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.def.height + this.alt); }
+  get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt); }
+  /** The level its strikes and its sight are measured from: a walker's feet; a hovering foe's footing and the height it holds over it. */
+  get level() { return this.pos.y + this.over; }
+  /** Where its body is (the hazards' and the workings' test point): its feet, or under a hovering body. */
+  bodyAt(out = (this._body ??= new THREE.Vector3())) { return out.set(this.pos.x, this.pos.y + this.over + this.alt, this.pos.z); }
+  /** Thrown or tumbled: whatever it was winding up is broken off, a hold let go. */
+  calm() { if (this.state === 'wind' || this.state === 'strike') this.state = 'chase'; this.k = 0; this.letGo = true; this.cover = null; }
   /** A shadow hound running: only a shadow, the blade passes through (an ember lights it solid). */
   get phased() { return !!this.def.phase && this.lit <= 0 && this.stunned <= 0 && this.dist > PHASE.near && (this.state === 'idle' || this.state === 'chase' || this.state === 'home'); }
 
@@ -192,6 +236,7 @@ export class Foe {
   beginWind(a, P) {
     if (a.chain) this.heading = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);   // (a follow-up turns to where you are now)
     this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false;
+    this.cover = null; this.hid = false;   // (it may hide again after this strike)
     this.attackH = this.heading;
     if (this.buried && !a.surface) this.surfaced();   // (a ray comes up out of the sand to glide)
     if (this.def.keep) this.retreat = PRESSURE.retreat;   // (it struck: it may back off again after)
@@ -228,7 +273,7 @@ export class Foe {
     if (a.damage > 0) {
       const pts = this.attackPts ?? [this.attackAt];
       const seen = a.at === 'self' ? env.seen?.(this.chest, P.pos) ?? true : true;   // (a flash needs a clear line; a lob goes over)
-      const hit = playerOk && seen && pts.some((p) => Math.abs(P.pos.y - (a.at === 'self' ? this.pos.y : p.y)) < STRIKE_RISE && inArea(a, p, this.attackH, P.pos));
+      const hit = playerOk && seen && pts.some((p) => Math.abs(P.pos.y - (a.at === 'self' ? this.level : p.y)) < STRIKE_RISE && inArea(a, p, this.attackH, P.pos));
       ev.push({ type: 'strike', hit, atk: a });
     }
     this.next(a, P, ev);
@@ -253,17 +298,28 @@ export class Foe {
     this.cool = Math.max(0, this.cool - dt);
     if (!this.buried && this.upFor > 0) this.upFor = Math.max(0, this.upFor - dt);
     for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
-    // a shove's slide eases out
-    if (this.vel.lengthSq() > 1e-4) { this.step(this.vel.x * dt, this.vel.z * dt, env); this.vel.multiplyScalar(Math.exp(-6 * dt)); }
+    // the world's hazards and workings it is in (v0.98: knocked into spines, a gust, an updraft, a pendulum)
+    this.feelWorld(dt, env, ev);
+    // a shove's slide eases out (a shove may carry it off a ledge, or into a hazard: step's `shoved`)
+    if (this.vel.lengthSq() > 1e-4) {
+      this.step(this.vel.x * dt, this.vel.z * dt, env, this.vel.lengthSq() > 1);
+      this.vel.multiplyScalar(Math.exp(-(this.air ? 1 : 6) * dt));
+    }
+    // knocked off a ledge, thrown up: it falls, and its mind waits until it lands
+    if (this.air) { this.fall(dt, env, ev); return ev; }
     // a flyer keeps to its height, low only while it recovers from a dive (and falls when stilled)
     // (knocked low by a cut, it drops fast and stays within the blade's reach a while)
-    if (D.hover) this.alt += ((this.stunned > 0 ? 0.3 : this.low > 0 || this.state === 'recover' ? 0.35 : D.hover) - this.alt) * (1 - Math.exp(-(this.low > 0 ? 6 : this.state === 'recover' ? 1.2 : 3) * dt));
+    if (D.hover) {
+      this.alt += ((this.stunned > 0 ? 0.3 : this.low > 0 || this.state === 'recover' ? 0.35 : D.hover) - this.alt) * (1 - Math.exp(-(this.low > 0 ? 6 : this.state === 'recover' ? 1.2 : 3) * dt));
+      this.fly(dt, P, env, ev);
+      if (!this.alive) return ev;
+    }
     if (this.stunned > 0) { this.stunned -= dt; return ev; }
     const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z, d = Math.hypot(dx, dz);
     this.dist = d;
     const away = Math.hypot(this.pos.x - this.home.x, this.pos.z - this.home.z);
-    // lost: gone where it can't follow (riding, far above or below, fallen); down: knocked over, about to rise
-    const lost = P.dead || !!P.ride || Math.abs(P.pos.y - this.pos.y) >= 6, down = !lost && !!P.down;
+    // lost: gone where it can't follow (riding, far above or below its level, fallen); down: knocked over, about to rise
+    const lost = P.dead || !!P.ride || Math.abs(P.pos.y - this.level) >= 6, down = !lost && !!P.down;
     const playerOk = !lost && !down;
     // led too far from home: only once you have left as well (you still fighting it there, it stays)
     const youLeft = Math.hypot(P.pos.x - this.home.x, P.pos.z - this.home.z) > D.giveUp + PRESSURE.leave;
@@ -279,6 +335,7 @@ export class Foe {
         if (lost || (away > D.giveUp && youLeft) || d > D.sight * 2) { this.state = 'home'; ev.push('home'); break; }
         this.face(dx, dz, dt, 8);
         if (down) { this.circle(P, D.reach + PRESSURE.hold, dt, env); break; }   // (you are down: it waits round you, facing you, for you to rise)
+        if (D.hover && this.hide(dt, P, d, env)) break;   // (between strikes, a hovering foe hides behind the world: COVER)
         if (D.keep && d < D.keep && this.retreat > 0) {
           // too close: it backs off a little, then stands its ground (PRESSURE.retreat), no endless chase
           this.retreat = Math.max(0, this.retreat - dt);
@@ -320,10 +377,10 @@ export class Foe {
         if (a.sweep) {
           // a charge: whatever it runs into on the way is hit, once
           const near = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) < sweepRadius(a, D);
-          if (!this.contacted && this.k >= (a.contact ?? 0) && playerOk && near && Math.abs(P.pos.y - this.pos.y) < STRIKE_RISE) { this.contacted = true; ev.push({ type: 'strike', hit: true, atk: a }); }
+          if (!this.contacted && this.k >= (a.contact ?? 0) && playerOk && near && Math.abs(P.pos.y - this.level) < STRIKE_RISE) { this.contacted = true; ev.push({ type: 'strike', hit: true, atk: a }); }
         } else if (!this.contacted && this.k >= (a.contact ?? 0.55)) {
           this.contacted = true;
-          const hit = playerOk && Math.abs(P.pos.y - this.pos.y) < STRIKE_RISE && inArea(a, this.attackOrigin(), this.attackH, P.pos)
+          const hit = playerOk && Math.abs(P.pos.y - this.level) < STRIKE_RISE && inArea(a, this.attackOrigin(), this.attackH, P.pos)
             && (env.seen?.(this.chest, P.pos) ?? true);
           ev.push({ type: 'strike', hit, atk: a });
         }
@@ -381,14 +438,206 @@ export class Foe {
     this.step(dx / d * s, dz / d * s, env);
   }
 
-  /** Move by (mx, mz) where there is footing no more than a step up (else stay: a wall, a drop). */
-  step(mx, mz, env) {
-    const nx = this.pos.x + mx, nz = this.pos.z + mz;
-    if (env.canStep && !env.canStep(this.pos, nx, nz, this.def.radius)) return false;
+  /**
+   * Move by (mx, mz) where there is footing no more than a step up (else stay: a wall, a drop). Never on its own
+   * into a hazard or an updraft (`shoved`: a push, a gust, a blow carries it anywhere, and off a ledge: it falls).
+   * A hovering foe flies on over a drop, holding its altitude (Foe.over), up to HOVER.max over the ground.
+   */
+  step(mx, mz, env, shoved = false) {
+    const D = this.def, nx = this.pos.x + mx, nz = this.pos.z + mz;
+    const from = D.hover || this.air ? this.bodyAt(_fb).setY(_fb.y - 0.5) : this.pos;   // (a flyer's way is clear at its own height)
+    if (env.canStep && !env.canStep(from, nx, nz, D.radius)) return false;
+    if (this.air) { this.pos.x = nx; this.pos.z = nz; return true; }   // (in the air: only walls stop it)
+    if (D.hover) {
+      const top = this.level;
+      const y = env.ground ? env.ground(nx, top + 1.2, nz, HOVER.max + 3.2) : this.pos.y;
+      if (y == null || y - top > 1.1 || (!shoved && top - y > HOVER.max + 1)) return false;
+      if (!shoved && this.refuses(nx, Math.max(y, top), nz, env)) return false;
+      this.over = Math.max(0, top - y);
+      this.pos.set(nx, y, nz);
+      return true;
+    }
     const y = env.ground ? env.ground(nx, this.pos.y + 1.2, nz) : this.pos.y;
+    if (shoved && (y == null || this.pos.y - y > FALL.edge)) {
+      // knocked off the edge: over it goes, and falls (fall())
+      this.pos.x = nx; this.pos.z = nz;
+      this.air = { vy: 0, top: this.pos.y, base: y ?? this.pos.y, hard: false };
+      this.calm();
+      return true;
+    }
     if (y == null || y - this.pos.y > 1.1 || this.pos.y - y > 3) return false;
+    if (!shoved && this.refuses(nx, y, nz, env)) return false;
     this.pos.set(nx, y, nz);
     return true;
+  }
+
+  /** Would a step to (x, y, z) (its level there) take it into a hazard or an updraft it isn't in yet? */
+  refuses(x, y, z, env) {
+    if (!env.hazard && !env.workings) return false;
+    const to = _pb.set(x, y + (this.def.hover ? this.alt : 0), z), here = this.bodyAt(_fb);
+    if (env.hazard?.(to) && !env.hazard(here)) return true;
+    if (env.workings && env.workings(to, 'updraft').length && !env.workings(here, 'updraft').length) return true;
+    return false;
+  }
+
+  /**
+   * The world on it (v0.98): a hazard it was knocked into cuts it and throws it back out ('hazard'); an updraft
+   * throws a walker up ('thrown': it lands hard) or tumbles a hovering foe up out of control ('tumbled'); a
+   * blowing gust shoves it (unless sheltered); a swinging pendulum knocks it away ('swung': a cut and a stun).
+   */
+  feelWorld(dt, env, ev) {
+    if (this.buried || (!env.hazard && !env.workings)) return;
+    const D = this.def, at = this.bodyAt(_cf);
+    this.hazCool = Math.max(0, this.hazCool - dt);
+    for (const k in this.workCool) this.workCool[k] = Math.max(0, this.workCool[k] - dt);
+    const h = this.hazCool === 0 ? env.hazard?.(at) : null;
+    if (h) {
+      this.hazCool = WORLD_HARM.every;
+      const out = h.push?.(at, _hz) ?? (h.x != null ? _hz.set(at.x - h.x, 0, at.z - h.z) : _hz.set(-this.vel.x, 0, -this.vel.z));
+      out.setY(0);
+      if (out.lengthSq() < 1e-6) out.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
+      out.normalize();
+      this.vel.copy(out).multiplyScalar(WORLD_HARM.shove * (D.heavy ? 0.6 : 1));
+      ev.push({ type: 'hazard', kind: h.kind, dir: out.clone() });
+    }
+    if (!env.workings) return;
+    for (const w of env.workings(at).slice()) {
+      if (w.kind === 'updraft' && this.workCool.updraft === 0) {
+        const U = WORKS.updraft;
+        this.workCool.updraft = U.cool;
+        this.calm();
+        if (D.hover) {
+          // tumbled up out of control, then it drops, stunned
+          this.tumble = U.tumble; this.tumbleTop = w.top ?? this.level + 6;
+          this.stunned = Math.max(this.stunned, U.tumble + U.stun);
+          ev.push({ type: 'tumbled' });
+        } else {
+          // thrown up, out of the column a little, to land hard
+          const foot = w.foot ?? this.pos, ox = this.pos.x - foot.x, oz = this.pos.z - foot.z, o = Math.hypot(ox, oz) || 1;
+          this.vel.set(ox / o, 0, oz / o).multiplyScalar(U.out);
+          this.air = { vy: U.throw * Math.min(1.4, Math.max(0.6, (w.lift ?? 7) / 7)), top: this.pos.y, base: this.pos.y, hard: true };
+          ev.push({ type: 'thrown' });
+        }
+      } else if (w.kind === 'gust' && (w.blowing?.() ?? true) && !w.sheltered?.(at)) {
+        const G = WORKS.gust, k = this.stunned > 0 ? G.still : D.heavy ? G.heavy : D.light ? G.light : D.hover ? G.hover : 1;
+        this.vel.set(w.dir.x, 0, w.dir.z).multiplyScalar((w.push ?? 7.5) * k);
+      } else if (w.kind === 'swing' && (w.moving?.() ?? true) && this.workCool.swing === 0) {
+        const S = WORKS.swing;
+        this.workCool.swing = S.cool;
+        const dir = (w.push ? w.push(at, _hz) : _hz.subVectors(at, w.center)).setY(0);
+        if (dir.lengthSq() < 1e-6) dir.set(-Math.sin(this.heading), 0, -Math.cos(this.heading));
+        dir.normalize();
+        this.calm();
+        this.vel.copy(dir).multiplyScalar(S.knock * (D.heavy ? S.heavy : 1));
+        if (!D.hover) this.air = { vy: S.up, top: this.pos.y, base: this.pos.y, hard: false };
+        this.stunned = Math.max(this.stunned, S.stun);
+        ev.push({ type: 'swung', dir: dir.clone() });
+      }
+    }
+  }
+
+  /** In the air (knocked off a ledge, thrown up): it falls; landed, a long fall is a hard one ('landed'); too far, gone ('fell'). */
+  fall(dt, env, ev) {
+    const A = this.air;
+    A.vy -= FALL.gravity * dt;
+    const ny = this.pos.y + A.vy * dt;
+    if (A.vy <= 0) {
+      const g = env.ground ? env.ground(this.pos.x, this.pos.y + 0.6, this.pos.z, this.pos.y - ny + 1.2) : A.base;
+      if (g != null && ny <= g + 1e-6 && g <= this.pos.y + 0.6) {
+        this.pos.y = g; this.air = null;
+        this.vel.multiplyScalar(0.3);
+        const h = A.top - g;
+        if (A.hard || h > FALL.hard) { this.stunned = Math.max(this.stunned, FALL.stun); this.flash = 1; ev.push({ type: 'landed', h, hard: true }); }
+        else ev.push({ type: 'landed', h, hard: false });
+        return;
+      }
+    }
+    this.pos.y = ny; A.top = Math.max(A.top, ny);
+    if (A.top - ny > FALL.lost || ny < (env.killY?.() ?? -Infinity) || env.pit?.(this.pos)) this.gone(ev);
+  }
+  /** Fallen out of the world (a pit, below its floor): gone. */
+  gone(ev) { this.air = null; this.hp = 0; this.state = 'dead'; this.k = 0; ev.push({ type: 'fell' }); }
+
+  /**
+   * A hovering foe's height over its footing (HOVER): over the higher of its footing and the traveller (where you
+   * last stood), a little higher while it has nowhere to hide (COVER.climb); tumbling up an updraft; stilled, it
+   * drops, and a long drop lands hard (or into a pit: gone).
+   */
+  fly(dt, P, env, ev) {
+    if (this.tumble > 0) {
+      this.tumble = Math.max(0, this.tumble - dt);
+      this.over = Math.min(this.over + WORKS.updraft.throw * 0.7 * dt, Math.max(this.over, this.tumbleTop - this.pos.y), HOVER.max + 6);
+      this.heading += dt * 9; this.overV = 0; this.fallTop = this.level;
+      return;
+    }
+    if (this.stunned > 0) {
+      // stilled (or stunned): it drops out of the air to its footing
+      if (this.over > 0) {
+        this.fallTop = Math.max(this.fallTop ?? this.level, this.level);
+        this.overV -= FALL.gravity * dt;
+        this.over = Math.max(0, this.over + this.overV * dt);
+        if (this.over === 0) {
+          const h = this.fallTop - this.pos.y;
+          this.overV = 0; this.fallTop = null;
+          if (h > FALL.hard && this.alt < 1) { this.stunned = Math.max(this.stunned, FALL.stun); this.flash = 1; ev.push({ type: 'landed', h, hard: true }); }
+        } else if (env.pit?.(this.bodyAt(_cf))) this.gone(ev);
+      }
+      return;
+    }
+    this.overV = 0; this.fallTop = null;
+    if (P && (P.onGround !== false || this.youY == null)) this.youY = P.pos.y;   // (where you stand: not every jump)
+    const fighting = P && !P.dead && !P.ride && this.state !== 'idle' && this.state !== 'home';
+    let want = fighting ? Math.max(0, (this.youY ?? P.pos.y) - this.pos.y) : 0;
+    if (this.cover?.climb) want += COVER.climb;
+    want = Math.min(want, HOVER.max);
+    const dv = want - this.over;
+    this.over += Math.sign(dv) * Math.min(Math.abs(dv), (dv > 0 ? HOVER.climb : HOVER.sink) * dt);
+  }
+
+  /**
+   * Between strikes, a hovering foe hides (COVER): to a spot near it the traveller can't see, or higher when there
+   * is none; out again after a while (COVER.hold, Gentle shorter), once there and waited, cut low or found.
+   * Returns true while it is moving to (or waiting in) its hiding place (the chase's own steps wait).
+   */
+  hide(dt, P, d, env) {
+    let C = this.cover;
+    if (!C) {
+      if (this.hid || this.low > 0 || this.cool < COVER.minCool || !env.seen || d < COVER.close) return false;
+      this.hid = true;
+      const at = this.coverSpot(P, env);
+      C = this.cover = at ? { at, t: 0, stay: 0 } : { climb: true, t: 0, stay: 0 };
+    }
+    C.t += dt;
+    const cap = env.gentle?.() ? COVER.gentle : COVER.hold;
+    let done = this.low > 0 || C.t >= cap || C.stay >= COVER.stay;
+    if (!done && C.at && Math.hypot(this.pos.x - C.at.x, this.pos.z - C.at.z) < 0.6) {
+      C.stay += dt;
+      this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 6);
+      if (env.seen(_cs.set(C.at.x, this.chest.y, C.at.z), P.pos)) done = true;   // (you came round it: found)
+    }
+    if (done) { this.cover = null; this.cool = Math.min(this.cool, COVER.out); return false; }
+    this.cool = Math.max(this.cool, 0.2);   // (it never strikes from hiding: out first)
+    if (C.climb) return false;
+    if (C.stay === 0) this.walkTo(C.at.x, C.at.z, this.def.speed, dt, env, 0.3);
+    return true;
+  }
+
+  /** A spot COVER.near–far m round it, at its height, that it can fly to straight and the traveller can't see; the nearest to you of them (not right on you), or null. */
+  coverSpot(P, env) {
+    const C = COVER, y = this.chest.y, from = this.chest.clone();
+    let best = null, bd = Infinity;
+    for (let i = 0; i < C.dirs; i++) for (const r of [C.near, C.far]) {
+      const a = this.heading + (i / C.dirs) * Math.PI * 2, x = this.pos.x + Math.sin(a) * r, z = this.pos.z + Math.cos(a) * r;
+      const dp = Math.hypot(x - P.pos.x, z - P.pos.z);
+      if (dp < C.close || dp >= bd) continue;
+      const g = env.ground ? env.ground(x, y + 0.5, z, HOVER.max + 3) : this.pos.y;
+      if (g == null || g > y - 0.6 || y - g > HOVER.max + 3) continue;   // (in the rock, or over nothing)
+      const spot = _cs.set(x, y, z);
+      if (env.seen(spot, P.pos)) continue;   // (you would see it there)
+      if (!env.seen(from, _pb.set(x, y - 1, z))) continue;   // (it can't fly there straight)
+      best = new THREE.Vector3(x, y, z); bd = dp;
+    }
+    return best;
   }
 
   /**
@@ -410,7 +659,7 @@ export class Foe {
       if (this.state === 'wind' || this.state === 'strike') this.state = 'chase';
       return flush ? 'flushed' : true;
     }
-    if (this.phased && mode !== 'fire') return false;   // (a hound running is only a shadow: the blade passes through)
+    if (this.phased && mode !== 'fire' && mode !== 'world') return false;   // (a hound running is only a shadow: the blade passes through)
     if (src === 'bomb' && this.shelled) { this.shelled = false; this.flash = 1; }   // (a bomb cracks a crab's shell for good)
     let dmg = 0;
     if (mode === 'blade') {
@@ -427,19 +676,24 @@ export class Foe {
       if (mode === 'shoot' && D.douse) this.crust = D.douse;   // (water on slag: a cold crust)
       if (mode === 'fire' && D.phase) this.lit = 3;            // (an ember lights a hound solid)
     } else if (mode === 'push') dmg = D.takes.push ?? 0;       // (the push, a gust: a swarm, a moth, a splinter is blown apart)
+    else if (mode === 'world') {
+      // the world's harm (v0.98): spines, fire, a hard landing, a pendulum: info.damage, and a stun held a while
+      dmg = (info.damage ?? 1) * (D.weak?.[src] ?? 1);
+      if (info.stun) { this.stunned = Math.max(this.stunned, info.stun); this.k = 0; if (this.state === 'wind' || this.state === 'strike') this.state = 'chase'; }
+    }
     else if (mode === 'stun') { this.stunned = STILL; this.state = ['wind', 'strike'].includes(this.state) ? 'chase' : this.state; this.k = 0; this.flash = 0.6; this.letGo = true; return true; }
     else if (mode === 'bloom') {
       if (D.takes.bloom === 'hold') { this.stunned = this.sleep = 3; this.state = ['wind', 'strike'].includes(this.state) ? 'chase' : this.state; this.k = 0; this.flash = 0.6; this.letGo = true; return true; }   // (roots asleep in flower)
       dmg = D.takes.shoot ?? 0;
     }
     if (mode === 'push' && dir) { this.vel.set(dir.x, 0, dir.z).multiplyScalar((info.shove ?? 2.4) * (D.heavy ? 1.2 : 3)); }
-    if (dir && mode !== 'push') this.vel.set(dir.x, 0, dir.z).multiplyScalar((D.heavy ? 1.5 : 4) * (info.combo === 2 ? 2.2 : 1));   // (the heavy third swing throws them)
+    if (dir && mode !== 'push' && mode !== 'world') this.vel.set(dir.x, 0, dir.z).multiplyScalar((D.heavy ? 1.5 : 4) * (info.combo === 2 ? 2.2 : 1));   // (the heavy third swing throws them)
     this.flash = 1;
     this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2;
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
-    if (mode === 'blade' || mode === 'fire') this.letGo = true;   // (a hold, a line, is broken)
+    if (mode === 'blade' || mode === 'fire' || mode === 'world') this.letGo = true;   // (a hold, a line, is broken)
     // Light cuts interrupt a blot (the flinchy ones), or the first two thirds of anyone's wind-up.
-    const reels = (D.flinchy && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike');
+    const reels = (mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike');
     // a cut that doesn't stop it: a heavy foe, or one committed to its blow (late in its wind-up, striking); Foes.hurt answers with its armour's thunk
     this.shrugged = mode === 'blade' && !reels && (!!D.heavy || this.state === 'wind' || this.state === 'strike');
     if (mode === 'blade' && D.hover) this.low = KNOCKED_LOW;   // (cut, a hovering foe drops within reach)
@@ -536,6 +790,13 @@ function machineModel() {
 }
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+/** The world's sounds on a foe (the game's synth, src/audio.js burst / sweep): spines, a flame's hiss, a hard landing. */
+const sndAt = (s) => (s?.ctx && s.burst && s.sweep ? s.ctx.currentTime : null);
+const worldSnd = {
+  spines(s) { const t = sndAt(s); if (t == null) return; s.burst(t, { dur: 0.05, type: 'highpass', freq: 2600, q: 1.2, vol: 0.12 }); s.burst(t + 0.04, { dur: 0.05, type: 'bandpass', freq: 1500, q: 2, vol: 0.1 }); },
+  hiss(s) { const t = sndAt(s); if (t == null) return; s.burst(t, { dur: 0.35, type: 'highpass', freq: 3200, q: 0.7, vol: 0.1 }); s.sweep(t, 300, 140, 0.2, 0.04, 'sawtooth'); },
+  thud(s, k = 1) { const t = sndAt(s); if (t == null) return; s.burst(t, { dur: 0.18, type: 'lowpass', freq: 400, q: 0.8, vol: 0.12 + 0.18 * k }); s.sweep(t, 120, 50, 0.2, 0.08 * k); },
+};
 let _waveGeo, _waveMat, _waveInk, _patchGeo, _patchMat, _rimGeo, _patchRim;   // (shared by every shockwave and slag patch)
 /** The drops a foe bursts into as it falls. */
 const BURST_TONES = {
@@ -555,8 +816,14 @@ export class Foes {
     this.packRest = 8; this.wildFor = 0; this.packs = 0; this.wave = 0; this.waveRest = WAVE.rest;
     this.people = (content?.npcs ?? []).filter((n) => n.at).map((n) => ({ x: n.at[0], z: n.at[1] }));
     this.env = {
-      ground: (x, y, z) => { const g = physics?.groundAt?.(x, y, z, 6); return g == null || !Number.isFinite(g) ? null : g; },
+      ground: (x, y, z, range = 6) => { const g = physics?.groundAt?.(x, y, z, range); return g == null || !Number.isFinite(g) ? null : g; },
       slow: () => (this.difficulty === 'gentle' ? GENTLE.wind : 1),
+      gentle: () => this.difficulty === 'gentle',   // (a hovering foe hides for less long: COVER.gentle)
+      // the world's hazards and workings (src/hazards.js, src/workings.js), where it ends and its pits
+      hazard: (p) => hazardAt(p),
+      workings: (p, kind = null) => workingsAt(p, kind, this._ws ??= []),
+      killY: () => this.level?.killY ?? -Infinity,
+      pit: (p) => { const rt = this.level?.temple; return !!rt && (!!rt.pits?.some((x) => x.contains(p)) || (!!rt.below?.(p) && !rt.inside?.(p))); },
       canStep: (from, x, z, radius) => {
         if (!physics?.rayDistance) return true;
         _w.set(x - from.x, 0, z - from.z);
@@ -844,18 +1111,44 @@ export class Foes {
     }
   }
 
-  /** In a temple, the machines meet its kit: a gust shoves them down its hall, and one standing on a plate presses it. */
+  /**
+   * The world's harm on a foe (Foe.feelWorld, fall, fly: v0.98), through hurt() as any blow, so armour, a burst, ink
+   * and the tank's charge follow: a hazard's cut ('hazard'), a hard landing ('landed'), a pendulum's blow ('swung');
+   * thrown up an updraft or tumbled, only the sound; fallen out of the world ('fell'), gone.
+   */
+  worldEvent(f, e) {
+    const s = this.sound;
+    if (e.type === 'fell') { this.burst(f); return; }
+    if (e.type === 'thrown' || e.type === 'tumbled') { s?.whoosh?.(); return; }
+    let info = null;
+    if (e.type === 'hazard') { info = { damage: WORLD_HARM[e.kind] ?? WORLD_HARM.other, source: 'hazard', kind: e.kind }; worldSnd[e.kind === 'fire' ? 'hiss' : 'spines'](s); }
+    else if (e.type === 'landed' && e.hard) { info = { damage: e.h > FALL.harder ? 2 : 1, stun: FALL.stun, source: 'fall' }; worldSnd.thud(s, Math.min(1, e.h / 6)); kick(0.2); }
+    else if (e.type === 'swung') { info = { damage: 1, stun: WORKS.swing.stun, source: 'swing' }; worldSnd.thud(s, 0.8); hitStop(0.05); kick(0.3); }
+    if (!info) return;
+    this.hurt(f, 'world', e.dir ?? null, info);
+    if (!this.game.flag('foes.world')) {
+      this.game.set('foes.world', true);
+      this.notice?.('The world hurts them too: knock a foe into spines or fire, off a ledge, into the wind or a swinging weight.');
+    }
+  }
+
+  /**
+   * In a temple, its kit on the foes: one standing on a plate presses it (any that weighs: not a swarm blot, not a
+   * flyer in the air; stilled, it still weighs). The gusts, updrafts and pendulums are workings (src/workings.js:
+   * Foe.feelWorld); a gust piece that is not one (made before v0.98, a test's) still shoves foes down its hall here.
+   */
   templeKit() {
     const rt = this.level?.temple;
     if (!rt?.pieces) return;
-    const machines = this.list.filter((f) => f.kind === 'machine' && f.alive);
+    const foes = this.list.filter((f) => f.alive && f.dead === undefined);
+    const weighs = (f) => !f.air && !f.buried && !f.def.light && f.def.radius >= 0.5 && f.over + (f.def.hover ? f.alt : 0) < 0.6;
     for (const p of rt.pieces) {
-      if (p.dirW && p.box && p.state === 1) for (const f of machines) {
+      if (p.dirW && p.box && p.state === 1 && !p.working) for (const f of foes) {
         const l = rt.kit.local(f.pos);
-        if (p.box.containsPoint(l) && !p.sheltered?.(l) && !screened(f.pos, p.dirW)) f.vel.set(p.dirW.x, 0, p.dirW.z).multiplyScalar(p.push * 0.7);
+        if (p.box.containsPoint(l) && !p.sheltered?.(l) && !screened(f.pos, p.dirW)) f.vel.set(p.dirW.x, 0, p.dirW.z).multiplyScalar(p.push * (f.stunned > 0 ? WORKS.gust.still : f.def.heavy ? WORKS.gust.heavy : 1));
       }
       if (p.weighed && p.solid && p.id && rt.logic) {
-        const on = machines.some((f) => Math.hypot(f.pos.x - p.pos.x, f.pos.z - p.pos.z) < p.r + 0.3 && Math.abs(f.pos.y - p.pos.y) < 0.8);
+        const on = foes.some((f) => weighs(f) && Math.hypot(f.pos.x - p.pos.x, f.pos.z - p.pos.z) < p.r + 0.3 && Math.abs(f.pos.y - p.pos.y) < 0.8);
         if (on) rt.logic.press(p.id, 'foe'); else rt.logic.release(p.id, 'foe');
       }
     }
@@ -889,9 +1182,9 @@ export class Foes {
     if (!r) return false;
     if (r === 'glance') { this.sound?.foeHurt?.('machine'); this.sparks(f, f.chest); return true; }   // (off a crab's shell)
     if (r === 'flushed') { this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
-    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire') this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burst(f); return true; }
+    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burst(f); return true; }
     if (f.shrugged) { this.armour(f, dir); return true; }
-    if (mode === 'blade' || mode === 'shoot' || mode === 'fire') this.sound?.foeHurt?.(f.def.sound ?? f.kind);
+    if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.def.sound ?? f.kind);
     return true;
   }
 
@@ -963,6 +1256,7 @@ export class Foes {
       for (const e of ev) {
         if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind);
         if (e === 'notice') this.meet(f);
+        if (e?.type && e.type !== 'strike') { this.worldEvent(f, e); continue; }
         if (e?.type !== 'strike') continue;
         if (f.kind === 'shade') this.slashTrail(f);
         const a = e.atk ?? f.def.attack;
@@ -1265,6 +1559,7 @@ export class Foes {
     const M = f.model, g = M.group, t = (this._t = (this._t ?? 0) + dt / Math.max(1, this.list.length));
     g.visible = true;
     g.position.copy(f.pos);
+    g.position.y += f.over;   // (a hovering foe's held height over its footing: HOVER)
     g.rotation.y = f.heading;
     const moving = f.state === 'chase' || f.state === 'home';
     const wind = f.state === 'wind' ? THREE.MathUtils.smoothstep(f.k, 0, 0.72) : 0;
@@ -1326,7 +1621,7 @@ export class Foes {
     const drawn = f.state === 'wind' && (a.tele || a.at === 'target' || a.at === 'behind');
     for (let i = 0; i < Math.max(pts.length, 1 + (f.teles?.length ?? 0)); i++) {
       const T = i === 0 ? f.tele : ((f.teles ??= [])[i - 1] ??= new Telegraph(this.group, f.def.tone ?? '#6d4fa8'));
-      if (drawn && i < pts.length) { T.show(a, pts[i], f.attackH, a.at === 'behind' || a.at === 'target' ? pts[i].y : f.pos.y); T.set(f.k, t); }
+      if (drawn && i < pts.length) { T.show(a, pts[i], f.attackH, a.at === 'behind' || a.at === 'target' ? pts[i].y : f.level); T.set(f.k, t); }
       else T.hide();
     }
   }
