@@ -85,7 +85,8 @@ import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { slicer, runStepsAsync, gpuPacer } from './load-steps.js';
 import { waterShared } from './water-shader.js';
-import { gameById } from './minigames/index.js';
+import { gameById, GAMES } from './minigames/index.js';
+import { placeGameMarker } from './minigames/kit/marker.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 
@@ -1418,6 +1419,7 @@ function frame(ts) {
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
+    if (minigame) minigame.update(dt, busy() ? noInput : ctl);   // a game played on foot (drives: false): after the rig, so it may take the camera (src/minigames/)
     shakeCamera(camera, realDt);   // a blow's jolt (src/feel.js)
   }
   boxes.update(dt, t, { camera });   // (after the player: it poses the kneel; before the ship, which places its camera)
@@ -1712,13 +1714,21 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
   for (const p of renderer.info.programs) { p.getUniforms?.(); await slice(); }
   console.info(`passage warm-up: ${n} meshes in ${(performance.now() - t0).toFixed(0)} ms`);
 }
+// the games' arcade signs in this world (a game's `markers`: [{ level, at: [x, y|null, z], heading }]; y null: on the ground)
+if (!minigameDef) for (const g of GAMES) for (const m of g.markers ?? []) {
+  if (m.level !== levelId) continue;
+  const [x, y, z] = m.at, gy = y ?? physics.groundAt(x, 1e4, z);
+  try { placeGameMarker({ scene, levelId, lights: levelLights }, g.id, new THREE.Vector3(x, Number.isFinite(gy) ? gy : 0, z), { heading: m.heading ?? 0 }); } catch (e) { console.warn(e); }
+}
 // a minigame's page: the runner takes over, the start card up (src/minigames/kit/runner.js)
 if (minigameDef) {
   minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'),
+    rig, capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open'),
     navigate: (href) => { flushPlay(); location.href = href; } });
   window.minigame = minigame;
   story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)
+  if (story) story.done = true;   // (nor its goal: the Arena's ring would end its story under a game played by it)
 }
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);

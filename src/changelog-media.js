@@ -134,6 +134,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'steps-run', only: 'after', caption: 'On a drifting stone of the makers', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
       { name: 'steps-crumble', only: 'after', caption: 'Over the cracked stones: they shake and fall a moment after you land', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
     ], see: '?game=platformer: run off an edge and press jump a moment late, or press it just before you land: both still jump.' },
+    { match: 'Drum circle: a night round a fire in the dunes', shots: [
+      { name: 'drums-card', only: 'after', caption: 'The start card: the four glyphs, the difficulty and the Timing setting', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+      { name: 'drums-play', only: 'after', caption: '77 in a row on Normal: the fire up, the dancers’ arms in the air, glyphs rolling in to the ring', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+      { name: 'drums-results', only: 'after', caption: 'The results: the rank, the perfects, the longest combo and whether your timing sits on the beat', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), played by a script' },
+    ], see: '?game=drums (or the sign by the small fire south of the big one in the Desert’s pilgrim camp): try Easy first; if your hits feel late, the results suggest a Timing.' },
+    { match: 'Sketch hunt: three minutes in the Signal Market', shots: [
+      { name: 'hunt-list', only: 'after', caption: 'The list of six, drawn fresh each time, and three minutes on the clock', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+      { name: 'hunt-view', only: 'after', caption: 'Through the sketchbook: a ticket finch in the frame, and how good a sketch it would make', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script' },
+      { name: 'hunt-results', only: 'after', caption: 'The results: the page of sketches, one not found', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), played by a script' },
+    ], see: '?game=sketchhunt (or the sign on the left pavement near the market’s gate): hold LT / L2 (right mouse, R), fill the frame with the subject and keep it in the middle.' },
+    { match: 'Arcade signs in the worlds', see: 'In the Desert, walk to the pilgrim camp’s small fire south of the big one; in the Signal Market, look left from the gate. Press B / ○ (E) by the sign.' },
   ],
   '0.91': [
     { match: 'Gadgets: things to carry besides the backpack', shots: [

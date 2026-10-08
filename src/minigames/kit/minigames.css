@@ -69,3 +69,13 @@ body.controller #minigame .mg-pause { display: none; }
 
 /* speed: ink streaks at the edges of the screen (a game sets --speed 0..1 on #minigame) */
 #minigame canvas.mg-speed { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* the start card's options (def.options): a row of choices, or a stepper */
+#minigame .sheet .opts { display: grid; gap: 6px; margin: 0 0 12px; }
+#minigame .sheet .opt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; }
+#minigame .sheet .opt > span { min-width: 7.5em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; }
+#minigame .sheet .opt button { padding: 5px 10px; font-size: 12px; box-shadow: 2px 2px 0 #2b211f; }
+#minigame .sheet .opt button.on { background: #71d7cf; }
+#minigame .sheet .opt b { min-width: 5em; text-align: center; }
+#minigame .sheet .opt small { flex-basis: 100%; margin: 0 0 0 7.5em; padding-left: 6px; }
+#minigame .sheet.wide { width: min(760px, 94vw); }
