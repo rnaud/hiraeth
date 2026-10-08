@@ -28,6 +28,7 @@ export const CHANGELOG = [
     { text: 'Oïa rides the Overnight Train without a word, the way she keeps her tower: watch what she points at.', see: 'The train’s sky lounge.' },
     { text: 'Answers that no longer matched what was said to you now do, from Nell’s reflections to Dun’s wandering key and Saba’s rain; and a few story slips are mended: where people come from, how long Hollin has kept his lamps, and the desert’s two Givers’ places no longer share a name in directions.', see: 'Talk to Nell in the Garden of Spheres, Dun in the Buried Machine, Saba at the crystal in Lorn, or Sabri in the desert (“the rose-stone house”).' },
     { text: 'Lines and hints that teach a control now name your own keys or buttons and follow your remapping, and change with you if you pick up a controller mid-conversation; on a controller the gun’s push is always the D-pad, never X.', see: 'In the Signal Market, ask Ferro about the bulbs, then remap Aim (Menu, Controls) and talk to him again.' },
+    { text: 'The Android app and the Steam Deck package are about 39 MB smaller: the photographs the developer’s reference world is drawn from stay on the website, where that world reads them anyway.', numbers: [{ title: 'Reference photographs carried by the device', unit: 'MB', better: 'lower', device: 'the APK and the Deck package', rows: [{ where: 'reference sheets', before: 38.8, after: 0 }], source: 'node .claude/skills/perf-audit/size.mjs; scripts/site-only.mjs' }] },
   ] },
   { v: '0.99', date: '2026-10-08', items: [
     // playing your way

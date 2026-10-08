@@ -221,3 +221,14 @@ The update section (`src/update-panel.js`, its words in `src/updates.js`, the ap
    where it stopped (`Details`).
 6. Load the heaviest world after an update: the build stays (no "didn't start" toast).
 7. An old app (NATIVE_API 3) offered the new APK at launch: install it over; saves stay.
+
+## What the site keeps to itself (October 2026)
+
+Two kinds of file are built into `dist/` for the site but never carried by a device: the reference sheets
+(the References level's photographs, about 39 MB: `SHEET_FILE` in `scripts/web-update.mjs`) and the
+changelog's pictures (`MEDIA_FILE`). The over-the-air zip skips both; the Android workflow runs
+`node scripts/site-only.mjs dist` before `npx cap sync android`, and `scripts/package-steam-deck.mjs` filters
+them with the same `siteOnly()`. A bundled game reads a sheet from the site (`sheetSrc`,
+`src/levels/reference-sheets.js`), so the References level still works on a device when it is online.
+Before this the APK carried the sheets (268 MB at v1.0, about 39 MB of it the sheets). Tests:
+`tests/site-only.test.js`.

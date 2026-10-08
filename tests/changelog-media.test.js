@@ -72,8 +72,8 @@ test('the pictures are the site’s alone: never in the build, the update zip, t
   const { names } = await zipDir(dist, { skip });
   assert.deepEqual(names, ['index.html']);
   assert.ok(read('scripts/web-update.mjs').includes('MEDIA_FILE.test(n)'), 'writeUpdate skips them');
-  assert.match(read('scripts/package-steam-deck.mjs'), /!\/\^dist\[\\\\\/\]changelog-media/, 'the Deck package leaves them out');
-  assert.match(read('.github/workflows/android.yml'), /rm -rf dist\/changelog-media[\s\S]*npx cap sync android/, 'the APK leaves them out');
+  assert.match(read('scripts/package-steam-deck.mjs'), /!siteOnly\(fromDist\(src\)\)/, 'the Deck package leaves them out (scripts/site-only.mjs)');
+  assert.match(read('.github/workflows/android.yml'), /node scripts\/site-only\.mjs dist[\s\S]*npx cap sync android/, 'the APK leaves them out (scripts/site-only.mjs)');
   // the site gets them after the zip and the Deck's runtime are made, before the deploy
   const cf = read('.github/workflows/cloudflare.yml');
   const at = (s) => { const i = cf.indexOf(s); assert.ok(i >= 0, s); return i; };

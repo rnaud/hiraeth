@@ -77,8 +77,9 @@ jobs:
 
       - name: Copy the game into the Android project
         run: |
-          # (the changelog's pictures are the site's alone: never built in, kept out here too)
-          rm -rf dist/changelog-media
+          # (the changelog's pictures and the reference sheets are the site's alone: a bundled game reads
+          # them from the site; scripts/site-only.mjs)
+          node scripts/site-only.mjs dist
           npx cap sync android
 
       - name: Signing key
