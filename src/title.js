@@ -18,6 +18,7 @@ import { Controller, menuNavigate } from './controller.js';
 import { setFaces, padFaces } from './native-pad.js';
 import { markBooted } from './native-app.js';
 import { VERSION } from './changelog.js';
+import { devMode } from './dev-gate.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -154,7 +155,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         <button data-a="saves">Saves</button>
         <button data-a="settings">Settings</button>
         <button data-a="news">What's new</button>
-        <button data-a="debug">Debug</button>
+        ${devMode({ settings }) ? '<button data-a="debug">Debug</button>' : ''}
         ${fullscreen ? `<button data-a="fullscreen">${doc.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}`;
     };
     const renderSaves = () => { root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join(''); };
@@ -206,7 +207,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       else if (a === 'saves') show('saves', '.slot .pick');
       else if (a === 'back') back();
       else if (a === 'settings') settingsMenu.toggle(true);
-      else if (a === 'debug') {
+      else if (a === 'debug' && devMode({ settings })) {
         // the worlds list (any world, open) for the save played last (or the first): the list alone,
         // no world built behind it (?worlds=1, src/world-picker.js)
         store.setActive(store.latest() ?? 1);

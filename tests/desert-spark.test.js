@@ -66,7 +66,7 @@ test('saves from before the rework: a tree that already drank keeps burning, and
     const g = save(stage, flags);
     assert.equal(migrateDesertQuest(g), null, `${stage}: the stage stays where it was`);
     assert.equal(g.flag('desert.tree.lit'), true, `${stage}: the tree burns`);
-    assert.equal(g.flag('desert.quest.v'), 3);
+    assert.equal(g.flag('desert.quest.v'), 4);
     assert.equal(g.flag('tool.empty'), undefined, 'and the tank was never empty');
   }
   // short of the water: the tree is cold now, the new errand waits
@@ -81,7 +81,7 @@ test('saves from before the rework: a tree that already drank keeps burning, and
   // a v1 save gets both migrations: the moved stages, and the tree
   const old = save('ama', { 'desert.quest.v': undefined });
   assert.equal(migrateDesertQuest(old), 'elder');
-  assert.equal(old.flag('desert.quest.v'), 3);
+  assert.equal(old.flag('desert.quest.v'), 4);
   void Quests;
 });
 
@@ -188,5 +188,99 @@ test('the hoverbike won’t wake on an empty tank', () => {
   assert.equal(game.flag('desert.bike.found'), undefined);
   assert.ok(toasts.at(-1).includes('tank is empty'));
   assert.equal(items.has('backpack'), true);
+  game.reset();
+});
+
+test('saves from before the four talks were folded into two (desert.quest.v 3): the well, Ama and the Speaker go to the merged stage, keeping what was done', async () => {
+  const { STAGE_MERGE, DESERT_QUEST_V } = await import('../src/story/desert-data.js');
+  assert.equal(DESERT_QUEST_V, 4);
+  const ids = QUESTS.find((q) => q.id === 'desert.power').stages.map((s) => s.id);
+  for (const gone of ['well', 'ama', 'speaker']) assert.ok(!ids.includes(gone), `${gone} is no stage now`);
+  assert.deepEqual(ids.slice(0, 5), ['city', 'box', 'elder', 'ask', 'down']);
+  for (const to of Object.values(STAGE_MERGE)) assert.ok(ids.includes(to));
+  const base = { 'prologue.done': true, 'items.v': 1, 'item.backpack': true, 'box.desert.backpack': true, 'tool.empty': true, 'desert.quest.v': 3, 'desert.bike.v': 1, 'desert.elder.heard': true };
+  // at the well (heard Nour, nothing else): the merged stage, Ama first
+  let D = desert({ ...base, 'quest.desert.power': 'well' });
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'ask');
+  assert.equal(game.flag('desert.quest.v'), 4);
+  assert.ok(D.quests.objective().position.distanceTo(D.rt.world.people.ama.pos) < 0.01, 'the marker on Ama');
+  game.set('desert.jar.given', true);
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'ask', 'the Speaker still to ask');
+  assert.ok(D.quests.objective().position.distanceTo(D.rt.world.people.speaker.pos) < 0.01, 'the marker on the Speaker');
+  game.set('desert.speaker.heard', true);
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'down', 'both done: the way down');
+  // at the Speaker, the jar already given: one talk left
+  D = desert({ ...base, 'quest.desert.power': 'speaker', 'desert.well.seen': true, 'desert.jar.given': true, 'item.jar': 1 });
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'ask');
+  game.set('desert.speaker.heard', true);
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'down');
+  assert.ok(D.quests.has('jar'), 'the jar is kept');
+  // at Ama, having heard the Speaker first (the old order allowed it): the jar finishes it
+  D = desert({ ...base, 'quest.desert.power': 'ama', 'desert.well.seen': true, 'desert.speaker.heard': true });
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'ask');
+  game.set('desert.jar.given', true);
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'down');
+  // already past it (the cave, the fill): untouched
+  D = desert({ ...base, 'quest.desert.power': 'channel' });
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'channel');
+  // a v1 save at its old 'speaker' stage: to Nour first (STAGE_MIGRATION), not the merged stage
+  const g = new GameState({ getItem: () => null, setItem() {} });
+  g.set('quest.desert.power', 'speaker'); g.set('prologue.done', true);
+  assert.equal(migrateDesertQuest(g), 'elder');
+  game.reset();
+});
+
+test('the fire-bearers’ way: a bowl that wakes its stone, a cold camp and a glinting bell, by the marked stones on the ride to the Hearth', async () => {
+  const { wayPlaces, hearthStones, STORY } = await import('../src/desert-sites.js');
+  const { PEOPLE, THINGS } = await import('../src/story/desert-data.js');
+  const { DialogueRunner } = await import('../src/story/dialogue.js');
+  const D = desert({ 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 4, 'desert.bike.v': 1, 'desert.channel.open': true, 'desert.spark.heard': true, 'quest.desert.power': 'hearth' });
+  const { H, step, toasts, player, rt } = D;
+  // spread along the way, each beside its marked stone, all between the city and the Hearth
+  const P = wayPlaces(), S = hearthStones();
+  const along = (p) => Math.hypot(p.x - STORY.city.x, p.z - STORY.city.z);
+  assert.ok(along(P.bowl) < along(P.camp) && along(P.camp) < along(P.bell), 'in order along the ride');
+  assert.ok(along(P.bowl) > 300 && along(P.bell) < Math.hypot(STORY.hearth.x - STORY.city.x, STORY.hearth.z - STORY.city.z) - 100);
+  for (const p of Object.values(P)) assert.ok(Math.hypot(p.x - S[p.stone][0], p.z - S[p.stone][1]) < 20, 'by its stone');
+  // each is something to look at (E), from the ground beside it
+  const W = H.way;
+  for (const [at, id] of [[W.bowl.at, 'way.wayBowl'], [W.camp.at, 'way.wayCamp'], [W.bell.at, 'way.wayBell']]) {
+    player.pos.copy(at).add(V(1.2, 0, 0));
+    assert.equal(bestInteractable(player)?.entry.id, id);
+  }
+  // the bowl: its stone's mark is dull; a shot of fluid fills it, and the mark wakes
+  step(5);
+  assert.ok(H.materials.wayMark.uniforms.uGlow.value < 0.1, 'the dull mark');
+  assert.equal(W.bowl.fluid.visible, false);
+  const bowl = allTargets().find((t) => t.kind === 'wayBowl');
+  assert.equal(bowl.onHit('push'), false, 'a push does nothing');
+  assert.equal(bowl.onHit('shoot'), true);
+  assert.equal(game.flag('desert.way.bowl'), true);
+  assert.match(toasts.at(-1), /mark on the stone above it wakes/);
+  step(60);
+  assert.ok(H.materials.wayMark.uniforms.uGlow.value > 0.8, 'the mark shines like the others');
+  assert.equal(W.bowl.fluid.visible, true);
+  assert.equal(new DialogueRunner(THINGS.wayBowl, { game, quests: rt.quests }).nodeId, 'lit');
+  // the bell glints now and then (the sun on it), and the Speaker hears of it once
+  player.pos.copy(W.bell.at).add(V(30, 0, 0));   // (from the saddle, out on the way)
+  let big = 0, small = Infinity;
+  for (let i = 0; i < 120; i++) { step(1); big = Math.max(big, W.bell.glint.scale.x); small = Math.min(small, W.bell.glint.scale.x); }
+  assert.ok(big > 2 && big > small * 3, `a flash big enough to see from the saddle (${small.toFixed(2)}..${big.toFixed(2)})`);
+  const r = new DialogueRunner(THINGS.wayBell, { game, quests: rt.quests });
+  while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
+  assert.equal(game.flag('desert.way.bell'), true);
+  game.set('item.stone', 1);
+  const sp = new DialogueRunner(PEOPLE.speaker, { game, quests: rt.quests });
+  assert.equal(sp.nodeId, 'carried');
+  while (!sp.lastPage && sp.advance());
+  assert.ok(sp.choices().some((c) => /bell like yours/.test(c.text)), 'the Speaker can be told');
   game.reset();
 });

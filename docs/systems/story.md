@@ -98,6 +98,8 @@ its own mark (✦, gold; a world's main quest is ◆, an errand ◇):
 
 - a title card when it is given, as the dust settles over the crash: the words
   SOMETHING OF VALUE lettered on a band of paper with a pen line and a gold dot,
+  small, in the lower third (the world you arrive in is for looking at: clear of the
+  toasts at the top and the subtitles at the bottom), gone after five seconds,
   and its own sound (`sound.charge()`, a low fifth under three climbing notes). An
   older save gets the card once, at its first quiet moment (`charge.card`);
 - a card pinned at the top of the sketchbook: his words, the step now, how many
@@ -352,10 +354,34 @@ catches**), the ship.
   the water: it sinks, a spark climbs the outside of the trunk, and the fire catches over six seconds in the
   cool colours (`desert.tree.lit`; the procession sings, the bands feast). The ship only takes
   the jar's water once the tree burns.
-- **Old saves** (`migrateDesertQuest`, `desert.quest.v` 3): a save whose water had already
+- **Old saves** (`migrateDesertQuest`, `desert.quest.v` 3, now 4: see below): a save whose water had already
   risen (channel open, ship fed, or done) saw the tree burn: `desert.tree.lit` is set and the
   errand's stages (`SPARK_STAGES`) are skipped straight to the ship. Others find the tree cold
   and do the new errand with the full tank they already had.
+- **The first ten minutes, as World 1-1 (October 2026, `docs/game-audit.md` item 3)**:
+  - **The makers' dregs**: the chest's tank is empty but for one shot of old fluid (`tool.dregs` = 1,
+    set with `tool.empty` when the chest opens; `src/fluid-tool.js` `dregs`). The tank stays "dry"
+    for the story (`dry()`, `toolHasPush()` false, the lever is still the way), but one press of
+    shoot fires; a push only sputters ("too little to push with"). Spent (`'tool:dregs'` with
+    `left: 0`), it is gone for good (`desert.dregs.spent`, one toast) until the pool fills the tank as
+    before. The chest's toast names the aim and fire buttons for the input in your hands
+    (`dregsText`, `verbKey`), and so does the pool's first fill (`filledText`).
+  - **Four talks became two**: Nour has you listen at the dry well with her in her own talk (her
+    `rim` node, `desert.well.seen`; the well can still be looked at), and Ama's jar and the
+    Speaker's old words are one stage, `ask` (flag `desert.asked`, set by `askedBoth` once both
+    `desert.jar.given` and `desert.speaker.heard` are; the marker, `askWho`, is on Ama until the jar
+    is yours, then the Speaker). Stages now: city, box, elder, ask, down, channel, fill, …
+  - **Old saves** (`desert.quest.v` 4, `STAGE_MERGE` in `desert-data.js`): a save at the old `well`,
+    `ama` or `speaker` stage goes to `ask` and keeps what it did (it advances at once if both were
+    done). A v1 save first goes through `STAGE_MIGRATION` (to Nour), as before.
+  - **The fire-bearers' way** (`src/story/desert-way.js`; `wayPlaces()` / `WAY` in
+    `src/desert-sites.js`; drawn in `src/desert-hearth.js` `way`): three things by the marked stones
+    on the 1.65 km ride to the Hearth. The keepers' bronze **bowl** at the second stone, whose mark
+    is dull: any shot of fluid fills it and the mark wakes (`desert.way.bowl`). The keepers' cold
+    **camp** halfway, its tally stone (three days out, three home; `desert.way.camp`). A small
+    **bell** glinting in the sand near the end, a flash every few seconds (the sun on it) big
+    enough to see from the saddle; ring it; the Speaker hears of it (`desert.way.bell`,
+    `desert.way.told`). `tests/desert-spark.test.js` covers them and the v4 migration.
 - **Tests**: `tests/desert-story.test.js` plays the chain end to end (the empty tank, the lever,
   the fill, the rise, Nour, Marrow, the bike, the Hearth, the grille, the stone, the lighting,
   the ship); `tests/desert-spark.test.js` covers the migrations, the cold tree (no burn, the

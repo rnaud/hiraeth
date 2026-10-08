@@ -16,6 +16,9 @@ import { audioGuard } from './audio-guard.js';
 audioGuard();         // (before any sound: silent while the app is away, from the title screen on)
 installNativePad();   // (the Android handheld's controls, for the title screen too)
 watchLabels();
+// a brand-new profile (no seen version, no save anywhere) counts this version as seen, before the
+// title writes a save: the "Updated to v…" toast is for players coming from an older version (src/first-run.js)
+try { const [{ quietFirstRun }, { VERSION }] = await Promise.all([import('./first-run.js'), import('./changelog.js')]); quietFirstRun(globalThis.localStorage, VERSION); } catch (e) { console.warn(e); }
 // a route world picked in the worlds list (Debug): its own save, as if every world before it were played
 // through (src/debug-save.js), written into the debug slot before the game reads a save; a reload goes on with it
 if (new URLSearchParams(location.search).has('debugsave')) {

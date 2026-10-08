@@ -28,6 +28,25 @@ update, a note points to it once. The same release notes are in
 Its **See what changed** opens the interactive changelog over the game: each line with its
 before / after pictures, numbers or how to see it ([changelog.md](changelog.md)).
 
+- **A first visit is not an update** (`src/first-run.js`, from `src/boot.js` before the title
+  writes anything): with no seen version and no save in any slot (nor the save from before the
+  slots), this version is marked seen silently, so a new player is not greeted with "Updated to
+  v…". A player with an older seen mark, or a save, still gets the toast once.
+
+## Teaching by the room: the ship and the first steps
+- **The ship's walk** (`src/ship/cinematics.js` walk, `NUDGE` in `src/ship/prologue.js`): the room
+  teaches first: the voicemail button blinks and chimes, and at the console the cue says what the
+  use button does ("E voicemail", a pad's X / □). Only if the message is still unplayed after
+  20 s, one quiet line at the top for 6 s, once: how to move and look (the input in your hands,
+  `verbKey`) if you haven't moved, else where the message is, with a chime.
+- **The desert's first steps** (`src/first-steps.js`, main.js's cue): out of the ship and before
+  the chest, the cue says "Look around with …" once if the camera hasn't been touched after 6 s,
+  and "Jump with …" once after 25 m walked without a jump; each for 5 s. Using the camera or the
+  jump first counts it as learnt (`teach.look`, `teach.jump`, per save).
+- **Teaching prompts name the input** (`verbKey(verb, kind)` in `src/prompt-keys.js`): the
+  keyboard's keys, the pad's buttons in Xbox / PlayStation form (from `src/bindings.js` PAD, so the
+  gun's mode is the D-pad, never X), or the touch buttons.
+
 ## A quieter screen: conversations and prompts
 - **No button reminders.** (Since v0.62 there is no status box at all: "Nothing on the screen" below.) The status box (`updateHud` in `src/main.js`) showed the place,
   gauges, the objective and relics, and a prompt only for what is right here (the ship's
@@ -71,6 +90,12 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   controller through `Controller` + `menuNavigate` (the save list moves by rows, left /
   right reaches a save's Delete). It imports nothing that loads the game state, and marks
   the Android boot heartbeat (`markBooted`) once it is up. Styles: `src/menus.css`.
+- **The debug entries are the author's** (`src/dev-gate.js` `devMode()`): the title's Debug
+  button (the worlds list) and the Start menu's "Debug: worlds" show only with the same switch as
+  the in-game Developer panel (Settings → Developer panel, `settings.devPanel`), in a dev build
+  (`npx vite`, `import.meta.env.DEV`), or after opening the game once with `?dev=1` (remembered on
+  the device as `moebius.dev`; `?dev=0` forgets it). Players see neither. The Dev menu (\`) and
+  `?level=<id>` work as before. `tests/first-run.test.js` checks the gate.
 - **The title's vista** (`src/title-vista.js`): a golden-hour view over a sea of cloud, drawn
   by the game's own pipeline (G-buffer materials, the ink pass of `post.js` in the 'Moebius
   print' style, the sky with two pale moons). Mushroom tables, needle spires, balanced stacks

@@ -51,7 +51,9 @@ import { FluidBlade } from './fluid-blade.js';
 // An empty tank (game flag tool.empty: the desert's backpack comes out of its box dry,
 // src/story/desert.js) holds nothing and never refills by itself: no charges, nothing
 // fires, a press only sputters (and says so once: 'tool:dry'). The first magical water
-// (any refill()) fills it and clears the flag for good.
+// (any refill()) fills it and clears the flag for good. It may still hold the makers' dregs
+// (flag tool.dregs: whole charges of old fluid, the desert's chest leaves one): those fire as
+// shots (never a push), are spent for good, and never come back; then it is dry again.
 //
 // Story API (main.js builds one FluidTool, window.tool; story code needs no
 // import and can use the game-state bus instead, see game-state.js):
@@ -832,6 +834,8 @@ export class FluidTool {
   get owned() { return this.items.has('backpack'); }
   /** The tank is empty (the desert's backpack, until the giant's pool fills it): no charges, no refill. */
   get dry() { return this.owned && !!this.state.flag('tool.empty'); }
+  /** The makers' dregs left in an empty tank (flag tool.dregs): shots only, spent for good. */
+  get dregs() { return this.dry ? Math.max(0, Math.min(this.reserve.max, Math.floor(Number(this.state.flag('tool.dregs')) || 0))) : 0; }
   /** The tank is on the traveller's back (not in a vehicle's socket, nor swinging between). */
   get worn() { const p = this.player; return this.owned && !p?.ride && !p?.boarding && !p?.unboarding; }
   /** The gun modes the traveller owns ('shoot' first); none without the backpack. */
@@ -936,7 +940,7 @@ export class FluidTool {
     if (!this.modes.includes(this.mode)) this.mode = 'shoot';
     this.modeFlash = Math.max(0, this.modeFlash - dt / 1.6);
     if (ok && (shootPress || pushPress)) {
-      if (this.reserve.charges <= 0) this.sputter();
+      if (this.reserve.charges <= 0 || (pushPress && this.dry)) this.sputter();   // (the dregs only shoot)
       else if (shootPress) { this.pending = 'shoot'; if (!input.aim) { this.quick = 0.9; this.quickShoot = true; } }
       else { this.pending = 'push'; if (!input.aim) this.quick = Math.max(this.quick, 0.55); }
     }
@@ -955,8 +959,16 @@ export class FluidTool {
     if (p?.onGround || p?.ride || p?.climbing) this.jetBurnt = false;
     if (this.jetBurnt) this.reserve.hold();
     // an empty tank stays empty (no clock, no refill) until magical water fills it
-    if (this.dry) { this.reserve.level = 0; this.reserve.since = 0; }
-    else if (this.reserve.update(dt)) this.onRefilled(false);
+    // (the makers' dregs, tool.dregs: what was spent of them since the last frame is gone for good)
+    if (this.dry) {
+      const d = this.dregs;
+      if (this._dregsAt === d && d > 0 && this.reserve.level < d - 1e-6) {
+        const left = Math.floor(this.reserve.level + 1e-6);
+        this.state.set('tool.dregs', left);
+        this.state.emit('tool:dregs', { left });
+      }
+      this.reserve.level = this._dregsAt = this.dregs; this.reserve.since = 0;
+    } else { this._dregsAt = null; if (this.reserve.update(dt)) this.onRefilled(false); }
 
     if (this.k > 0 && p) {
       this.updateAimPoint();
@@ -1282,7 +1294,7 @@ export class FluidTool {
 
   /** The push: a cone of fluid shock from the hand. Returns the targets it touched. */
   push() {
-    if (!this.reserve.use()) { this.sputter(); return []; }
+    if (this.dry || !this.reserve.use()) { this.sputter(); return []; }   // (an empty tank's dregs don't push)
     const p = this.player, U = p.frame.up;
     const origin = _o.copy(p.pos).addScaledVector(U, 1.15);
     // along the aim, flattened toward the ground plane when it's a quick push

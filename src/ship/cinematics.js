@@ -4,7 +4,8 @@ import { polar } from './geo.js';
 import { R, DECK, HATCH_A } from './hull.js';
 import { CONSOLE_R } from './interior.js';
 import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../story/calls.js';
-import { callTimeline } from './prologue.js';
+import { callTimeline, NUDGE, nudgeText, nudgeDue } from './prologue.js';
+import { verbKey } from '../prompt-keys.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs } from './exhaust.js';
 import { CRASH_LINE, arrivalLine } from '../story/signature.js';
@@ -160,8 +161,11 @@ export class PrologueDirector {
         C.controls(true);   // (on a phone: the stick and buttons, to walk there; the use prompt)
         this.ringT = 2;
         this.pressed = false;
+        // (and if the room isn't enough: one quiet line after a while, then it goes: prologue.js NUDGE)
+        this.walkT = 0; this.nudged = false; this.nudgeOff = 0; this.walkFrom = s.player.pos.clone();
         break;
       case 'call': {
+        if (this.nudgeOff) { C.hint(null); this.nudgeOff = 0; }
         C.controls(false); C.bars(true);
         s.auto = null;
         s.placePlayer(this.W(this.pt('cockpit')), s.worldHeading(sp, Math.PI), true);   // facing the recording
@@ -269,6 +273,14 @@ export class PrologueDirector {
         // the voicemail chimes now and then and its button blinks; you go when you like
         // (the ship never walks you there itself) and press it
         if ((this.ringT -= dt) <= 0) { this.ringT = 7; sfx.ring(s.sound); }
+        this.walkT = (this.walkT ?? 0) + dt;
+        if (nudgeDue(this.walkT, { played: this.pressed, shown: this.nudged })) {
+          // standing still all this while: how to move and look; else, where the message is (a chime with it)
+          const moved = !!this.walkFrom && s.player.pos.distanceTo(this.walkFrom) > 1.5;
+          this.nudged = true; this.nudgeOff = this.walkT + NUDGE.show;
+          C.hint(nudgeText({ moved, keys: (v) => verbKey(v) }));
+          this.ringT = 0.4;
+        } else if (this.nudgeOff && this.walkT >= this.nudgeOff) { this.nudgeOff = 0; C.hint(null); }
         break;
       }
       case 'call':

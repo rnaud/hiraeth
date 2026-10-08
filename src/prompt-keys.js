@@ -7,6 +7,7 @@
 // handheld's own letter ("X") and swaps A and B when asked.
 
 import { backKey } from './native-pad.js';
+import { PAD } from './bindings.js';
 
 /** What the player holds now: 'pad' (a controller is in use), 'touch', or 'keys' (the body's classes: main.js, ui.js). */
 export function inputKind(doc = typeof document !== 'undefined' ? document : null) {
@@ -46,3 +47,15 @@ export function badgeLine(text) {
     return m ? keyBadge(m[1]) + ' ' + escapeHtml(part.slice(m[0].length)) : escapeHtml(part);
   }).join(' · ')).join('\n');
 }
+
+// ---- a verb's button, for the hands on the game
+// Prompts that teach (the ship's nudge, the desert's first steps, the tank's first fill) name the
+// verb's input as the player holds it: the keyboard's keys, the pad's buttons in Xbox / PlayStation
+// form (src/bindings.js PAD; native-pad.js prints them as a handheld does), or the touch buttons.
+const VERB_KEYS = {
+  keys: { move: 'WASD', look: 'the mouse', jump: 'SPACE', interact: 'E', aim: 'R or the right mouse button', fire: 'G or a left click', mode: 'X' },
+  pad: { move: 'the left stick', look: 'the right stick', jump: PAD.jump, interact: PAD.interact, aim: PAD.aim, fire: PAD.fire, mode: PAD.mode },
+  touch: { move: 'the stick on the left', look: 'a drag on the right', jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐' },
+};
+/** The input for a verb (move, look, jump, interact, aim, fire, mode) on this kind of input. */
+export const verbKey = (verb, kind = inputKind()) => VERB_KEYS[kind]?.[verb] ?? VERB_KEYS.keys[verb] ?? verb;

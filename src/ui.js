@@ -4,6 +4,7 @@ import { confirmKey, backKey } from './native-pad.js';
 import { PAD } from './bindings.js';
 import { slotStorage } from './save-slots.js';
 import { UpdatePanel } from './update-panel.js';
+import { devMode } from './dev-gate.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -151,7 +152,7 @@ export class SettingsMenu {
             ${go('controls', 'Controls')}
             ${game ? `<button data-a="photo">Photo mode</button>
             <button data-a="news">What's new</button>
-            <button data-a="debug">Debug: worlds</button>
+            <button data-a="debug" data-dev hidden>Debug: worlds</button>
             <button data-a="title">Quit to title</button>` : ''}
           </nav>
           <p class="saved">${game ? 'Your progress is saved as you play.' : ''}</p>
@@ -190,6 +191,9 @@ export class SettingsMenu {
     };
     const sync = () => {
       this.syncControls();
+      // the author's entries (src/dev-gate.js): the Developer panel setting, a dev build or ?dev=1
+      const dev = devMode({ settings: this.s });
+      for (const b of el.querySelectorAll('[data-dev]')) b.hidden = !dev;
       for (const c of el.querySelectorAll('[data-k]')) {
         const k = c.dataset.k;
         const v = k === 'mute' ? sound?.muted : this.s[k];
@@ -201,6 +205,7 @@ export class SettingsMenu {
       if (!k) return;
       if (k === 'mute') { if (sound && c.checked !== sound.muted) sound.toggleMute(); return; }
       this.s.set(k, c.type === 'checkbox' ? c.checked : c.type === 'range' ? +c.value : c.value);
+      if (k === 'devPanel') sync();   // (the Developer panel shows the debug entries too)
     });
     const ask = el.querySelector('.ask'), resetBtn = el.querySelector('[data-a="reset"]');
     this.askReset = (on) => {
@@ -217,7 +222,7 @@ export class SettingsMenu {
       if (a === 'photo') { this.toggle(false); onPhoto?.(); }
       if (a === 'book') { this.toggle(false); onBook?.(at.dataset.panel); }
       if (a === 'title') onQuit?.();
-      if (a === 'debug') { this.toggle(false); onDebug?.(); }
+      if (a === 'debug' && devMode({ settings: this.s })) { this.toggle(false); onDebug?.(); }
       if (a === 'dev') { e.preventDefault(); this.toggle(false); onDev?.(); }
       // (an inline question, not confirm(): a controller can answer it)
       if (a === 'reset') this.askReset(true);
