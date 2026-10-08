@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.93 — 2026-10-08
 
+- The Arcade (Debug worlds, next to the Gadget Yard): a round plaza with an arcade sign for every game, its name and your best on a plate under it. Walk up and press the interact button to play; Quit or the end of a run puts you back in front of that sign. The games board by the way in (or Tab, or LT + X / □) lists them all to jump straight into one, and a game started from the Arcade has Previous game, Next game and Back to the Arcade on its cards (LB / RB or [ and ]) to go round all ten without leaving.
 - Hitboxes, to study a fight: in the Arena a board by the way in shows or hides them (B / ○, E), and anywhere F4, both sticks clicked together (L3 + R3), the dev menu or ?hitboxes=1 do too; the choice is kept. Drawn over everything in bright lines: the traveller’s hurt column, the blade’s cone and edge (yellow, red on the frames it cuts, with its sweep), the guard’s arc (white while a parry would land), an evade, the lock-on; each foe’s body, its sight and reach, where its strike lands (orange as it winds up, red while it lands) and its state in words, stunned or reeling; shots, bombs’ blasts and the hook’s line.
 
 ## v0.92 — 2026-10-08
