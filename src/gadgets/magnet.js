@@ -229,7 +229,7 @@ class Magnet {
   candidates() {
     const out = [];
     for (const p of this.ctx.world?.props ?? []) if (p.metal && p.object.visible) out.push({ kind: 'prop', prop: p, r: p.r, pos: () => p.pos });
-    for (const f of this.ctx.foes?.list ?? []) if (f.kind === 'machine' && f.alive && !this.falling.some((x) => x.foe === f)) out.push({ kind: 'foe', foe: f, r: f.def.radius, pos: () => f.chest });
+    for (const f of this.ctx.foes?.list ?? []) if ((f.def?.metal || f.kind === 'machine') && f.alive && !this.falling.some((x) => x.foe === f)) out.push({ kind: 'foe', foe: f, r: f.def.radius, pos: () => f.chest });
     for (const s of this.spots()) out.push({ kind: 'fixed', spot: s, r: s.extent, pos: () => s.pos });
     return out;
   }

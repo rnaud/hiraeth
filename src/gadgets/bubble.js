@@ -309,7 +309,7 @@ class Wand {
     if (T.kind === 'foe') {
       const f = T.foe;
       if (!f?.alive) return false;
-      if (BUBBLE.heavy.includes(f.kind)) { this.ctx.notice?.('Too heavy for a bubble: it bursts on the machine’s shell.', 'bubble.heavy'); this.pop('heavy'); return false; }
+      if (BUBBLE.heavy.includes(f.kind) || (f.def?.heavy && !f.def?.metal)) { this.ctx.notice?.('Too heavy for a bubble: it bursts on the machine’s shell.', 'bubble.heavy'); this.pop('heavy'); return false; }
       b.kind = 'foe'; b.thing = f; b.r = bubbleRadius('foe', (f.def?.radius ?? 0.5) * 1.1);
       b.lift = b.r * 0.8;
       b.pos.copy(f.pos).addScaledVector(up, b.lift);

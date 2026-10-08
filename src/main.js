@@ -78,7 +78,7 @@ import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick } from './feel.js';
 import { DevMenu } from './dev-menu.js';
 import { HitboxOverlay } from './hitbox-overlay.js';
-import { hitboxes } from './hitboxes.js';
+import { hitboxes, registerHitboxes } from './hitboxes.js';
 import { fillPicker, pickHref } from './world-picker.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
@@ -631,6 +631,7 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
 const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
+if (level.foes?.waves && !minigameDef) import('./foe-spawner.js').then((m) => m.mountFoeSpawner({ foes, kind: query.get('foe') }));   // (the Arena's list of every foe kind: src/foe-spawner.js)
 await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {
@@ -691,6 +692,7 @@ gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level,
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
 // the hitbox overlay (src/hitboxes.js): F4, L3 + R3, the dev menu, the Arena's board, ?hitboxes=1 (this session only)
 const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gadgets });
+registerHitboxes((out) => foes.hitShapes(out));   // (the foes' shockwaves, slag, holds and volleys: src/foes.js)
 hitboxes.set(query.has('hitboxes') ? query.get('hitboxes') !== '0' : !!settings.hitboxes);
 hitboxes.listen((on) => { if (!query.has('hitboxes')) settings.set('hitboxes', on); devMenu.render(); });
 const toggleHitboxes = () => showToast(hitboxes.toggle() ? 'Hitboxes shown (F4, or L3 + R3).' : 'Hitboxes hidden.');

@@ -82,7 +82,7 @@ export function foeHitboxes(f, out = [], { player = null, locked = null } = {}) 
   out.push({ kind: 'circle', c: ground, r: D.sight, color: C.sight, tag: 'foe.sight', foe: f, faint: true });
   out.push({ kind: 'circle', c: ground, r: D.reach, color: C.reach, tag: 'foe.reach', foe: f, faint: true });
   if (D.keep) out.push({ kind: 'circle', c: ground, r: D.keep, color: C.keep, tag: 'foe.keep', foe: f, faint: true, dashed: true });
-  const phase = f.attackPhase, a = D.attack;
+  const phase = f.attackPhase, a = f.atk ?? D.attack;   // (the attack it is on: src/foe-kinds.js)
   if (phase) {
     const color = phase === 'telegraph' ? C.telegraph : phase === 'active' ? C.active : C.spent;
     const o = v3(f.attackOrigin()); o.y = f.pos.y;   // (drawn at the foe's feet: it reaches the traveller within STRIKE_RISE of that)
@@ -123,7 +123,9 @@ export function playerHitboxes({ player: P, tool = null, foes = null }, out = []
   if (B && B.guardK > 0.03) {
     const live = B.parryLive, color = live ? C.parry : C.guard;
     const c = feet.clone().addScaledVector(up, 1.1);
-    out.push({ kind: 'fan', c, h: flatHeading(B.dir), range: 1.5, angle: GUARD.angle, r0: 0.35, color, tag: live ? 'guard.parry' : B.guarding ? 'guard.up' : 'guard.rising', fill: live ? 0.35 : 0.15, faint: !B.guarding });
+    // (the arc the shield covers as drawn, src/shield.js; with no shield drawn, GUARD.angle round the guard's way)
+    const arc = B.guardArc;
+    out.push({ kind: 'fan', c, h: flatHeading(arc?.dir ?? B.dir), range: 1.5, angle: arc?.half ?? GUARD.angle, r0: 0.35, color, tag: live ? 'guard.parry' : B.guarding ? 'guard.up' : 'guard.rising', fill: live ? 0.35 : 0.15, faint: !B.guarding });
     says.push({ text: live ? `PARRY ${Math.max(0, GUARD.perfect - B.guardAge).toFixed(2)}s` : B.guarding ? 'guard (a block costs a charge)' : 'guard rising', color, tag: 'guard.label' });
   }
   if (evading) {

@@ -180,7 +180,7 @@ test('a body\'s hands follow its context over time, with a little motion of thei
 test('the game\'s contexts: the traveller\'s state, a person\'s, a talking face', () => {
   const U = new THREE.Vector3(0, 1, 0);
   const p = { onGround: true, vel: new THREE.Vector3(3, -1, 4), frame: { up: U }, aim: { k: 0.5 }, handoffGrip: () => 0.25 };
-  assert.deepEqual(playerHands(p), { mode: 'ground', ride: undefined, speed: 5, aim: 0.5, handoff: 0.25 });
+  assert.deepEqual(playerHands(p), { mode: 'ground', ride: undefined, speed: 5, aim: 0.5, handoff: 0.25, sword: 0, shield: 0 });
   assert.equal(playerHands({ ...p, climbing: true }).mode, 'climb');
   assert.equal(playerHands({ ...p, ride: { kind: 'bird' } }).ride, 'bird');
   assert.equal(playerHands({ ...p, onGround: false }).mode, 'air');

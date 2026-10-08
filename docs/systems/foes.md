@@ -18,7 +18,7 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
-- **Guard:** Ctrl or Z (B also works while no gadget is owned; with one, B chooses the gadget: src/gadgets/index.js) / LB / L1 / touch ◇ independently raises the fluid shield. A fresh guard has a
+- **Guard:** Ctrl or Z (B also works while no gadget is owned; with one, B chooses the gadget: src/gadgets/index.js) / LB / L1 / touch ◇ independently opens the shield on the left hand (below: *In the hands*); it covers what it covers as drawn. A fresh guard has a
   0.18 s parry window (0.35 s rearm), consumes that opportunity on contact, and spends no charge.
   A held guard spends one charge per block. Both require facing the blow. A parry leaves the enemy
   open for 1.8× its normal recovery; an ordinary block for 0.65×. Guard cannot cancel an active cut.
@@ -35,9 +35,42 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The look:** a sword. A flat two-edged blade (`BLADE.length` 0.85 m, `width` 5 cm, extruded from an
   outline tapering to a point) of the glob's lava material in the tank's tones, its edges bright glowing lines,
   on a hilt: a brass guard, a wrapped grip in the fist and a brass pommel. The blade grows out of the guard as
-  it lights for a swing and fades after. It is turned each frame so its edge leads the cut (its width along the
-  hand's motion), and a fine trail of small sparks follows the edge. (The game's materials draw into the
-  G-buffer: no transparency, so the glow is the bloom's.)
+  it lights for a swing and fades after, and a fine trail of small sparks follows the edge. (The game's materials
+  draw into the G-buffer: no transparency, so the glow is the bloom's.)
+
+## In the hands: the grip and the shield (`src/blade-grip.js`, `src/shield.js`, v0.93)
+
+- **Carried by the bones.** The hilt is a child of the right hand's bone and the shield's bracer of the left's,
+  so they are wherever the hand is drawn after every layer of the frame's pose (clips, motion matching, combat
+  moves, aim and foot IK, scene overlays): no lag, nothing to update in order. `carry` parents them;
+  `fitScale` undoes the bone's world scale (a taller body holds the same sword).
+- **Where in the hand** is read once per body from its own fingers (`fistGrip`): in the fist pose each finger
+  wraps round the grip, so the circle through its three joints is centred on the grip's axis; the line through
+  the four centres (little finger to index) is the grip, the blade out on the index's side, the edge the way the
+  fingers point out of the palm (`+x` of the hilt), the flat to the palm. The hilt's origin is the middle of
+  its grip. On the swings the edge leads the tip's motion (|cos| 0.93–0.99), which tests check. The bracer
+  (`bracerMount`) sits on the back of the left hand, over the middle of its bones.
+- **Drawn or put away** (`bladeDrawn`, `STANCE`): in the fist while swinging, guarding, evading, locked on, or
+  within `STANCE.linger` (2.5 s) of any of those or of a blow taken; put away at once when the tool may not act
+  (climbing, swimming, gliding, the jets, riding, aiming the gun, knocked down, a scene or a conversation). The
+  hands close round them (`player.swordGrip`, `player.shieldGrip` → `handTargets` `sword` / `shield`).
+- **The blade's segment** (hits) is read from the hilt's own frame, so it is the drawn blade exactly.
+- **The shield** (`ShieldDevice`): the brass disc always on the hand with the backpack. `ShieldState` is the
+  pure state machine (folded → opening → open → closing, and broken): it opens in `SHIELD.open` (0.16 s; the
+  guard counts as up at `guardK` 0.5, unchanged), the ten ribs spinning out one after another, the fluid
+  flooding out to the rim after them; held it shimmers; `hit('block')` flares it, `'perfect'` flashes it white,
+  `'broken'` (a blow within its arc with the tank empty) cracks and flickers it until it mends; it folds in
+  `SHIELD.close`. It swivels on the hub to face the guard's way as it opens. Sounds: `shieldOpen`,
+  `shieldClose`, `shieldBreak` (src/audio.js), on the state machine's transitions.
+- **Coverage is the drawn shape.** Each frame `ShieldDevice.arc` measures the bearings between the shield's two
+  edges (`SHIELD.radius` + `SHIELD.slack`) as seen from the chest (`shieldArc`); `block()` tests the blow's
+  bearing against that arc (`guardArc`), and the hitbox overlay draws the same arc. With no shield drawn,
+  `GUARD.angle` is the arc of one held `GUARD.reach` ahead (about 55°; in the block pose the measured arc is
+  about 59°, a little more to the left where the shield is held).
+- **Inspect:** the studio (`studio.html?backpack=true&sword=true&shield=1&view=arms`, any clip scrubbed with
+  `anim=clip:mixamo_ss_slash_1&paused=true&time=0.4`; views `hands` and `bracer` for close-ups; `guard=block|
+  parry|broken`) runs the blade's own placing code (`FluidBlade.inspect`). `tests/blade-grip.test.js` samples
+  every frame of each combat clip on both bodies.
 
 ## The foes (`src/foes.js`)
 
@@ -202,9 +235,63 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes
 `Foes` send `WAVES` round you, whatever the setting: one blot, three blots, a machine, two machines and two
-blots, a spitter, a swarm, a machine, flyers, spitters with a machine, and a mixed last wave, round and round, `WAVE.rest` s after the last one falls.
+blots, a spitter, a swarm, a machine, flyers, spitters with a machine, a mixed wave, then each world's own kinds and a mixed last wave, round and round, `WAVE.rest` s after the last one falls.
+
+**The foe list** (`src/foe-spawner.js`): a FOES tab on the left edge opens a list of every kind. Choosing one
+stops the waves (`Foes.setPractice(kind)`): it comes in 9 m ahead of you, and again each time it falls. "Waves
+again" brings the waves back, "Clear the field" leaves it empty. `?level=arena&foe=crab` starts on one kind;
+in any world the console can call `foes.spawnKind('golem')`.
+
+## Each world's foes (v0.93)
+
+The loose ink takes the shape of what is round it: each world has a foe of its own, and its packs, relic guards
+and temple rooms draw from its roster.
+
+- **Attacks** (`def.attacks`, the fields are listed at the top of `src/foe-kinds.js`): every kind has a list;
+  `Foe.chooseAttack(d)` picks one whose `[min, max]` holds the distance, by weight, the last one used less
+  likely. `def.attack` stays the first (old code and tests read it). An attack may be `instant` (resolved as the
+  wind-up ends: lobs, flashes, blinks), `tele` (drawn on the floor; plain melee still reads from the body),
+  `track` (the drawn area follows you over that share of the wind-up, then holds), `sweep` (a charge that hits
+  what it runs into), `then` (a quick follow-up wound straight away: a combo; a block or a parry ends it),
+  `spread` (a volley of rings), and effects: `knock`, `tether` / `grab` (pull you in: `Foes.hold`, ended by
+  a cut, stilling or the time), `blind` (only if the camera looks toward it), `wave` (a ground shockwave:
+  a jump clears it, a guard does not), `leave` (burning slag), `surface` / `blink`. `onParry`: `chip`, `cut`,
+  `flip`.
+- **What a kind takes** (`def.takes`, `weak`, flags): `takes { shoot, fire, push, bloom }` is each glob's
+  damage (or `'hold'`); `weak { bomb: 2 }` multiplies a source; `heavy` (light cuts don't stop it, it shoves
+  less), `metal` (the magnet glove lifts it), `light` (a push or the fan's gust ends it), `flinchy` (any cut
+  stops it), `breaks` (its pieces fly apart). Foes now accept bloom globs too.
+- **The new kinds** (`KINDS`, models and their `anim(f, c)` in `src/foe-kinds.js`):
+
+  | Kind | World | Attacks | How to beat it |
+  |---|---|---|---|
+  | dune ray (`ray`) | Desert, Buried Machine | erupt (a ring under you that tracks, then bursts up, knocks down), glide (a lane charge) | buried it can't be cut or locked; a bomb, a stomp or a gust flushes it; surfaced it is open |
+  | glass golem (`golem`) | Glass Dunes | slam (cone, knocks down), shards (ring round it), hurl (a lobbed chunk) | shots do nothing, bombs ×2, a perfect parry of the slam chips 1; breaks into three `splinter`s |
+  | sign moth (`moth`) | Signal Market, Antennas | flash (cone: blinds if you look at it), dart (a short dive) | in threes; 1 hp, a gust or a push ends one; turn the camera away or guard |
+  | rust drone (`drone`) | Hangar, City-Shaft, Moon Foundry, Space City | harpoon (a lane; the line pulls you in), ram (a dive) | hovers out of reach; guarding the harpoon cuts the line and dazes it; metal for the magnet; stilled it drops |
+  | root stalker (`stalker`) | Mangrove, Lorn, Viridel | grab (roots along a lane drag you in) then lash (cone), lash | a cut frees you; embers ×2; a bloom glob puts it to sleep (held 3 s, cut double) |
+  | salt crab (`crab`) | Salt Harbour, Underwater City, Waterfall | snap (cone), spin (a charge along a lane, knocks down) | its shell turns a cut from the front (`'glance'`); guarding the spin flips it (2.6 s, no shell); a bomb cracks the shell |
+  | slag walker (`slag`) | Moon Foundry | stomp (ring, leaves slag round it), pour (cone, leaves slag) | burning patches where it walks (`Foes.patches`, 0.05 every 0.7 s on your feet); a fluid shot cools its crust: cuts ×2 |
+  | shadow hound (`hound`) | Eclipse | pounce (lunge), step (a pool behind you, it comes out there) then bite | in twos; running it is a shadow (`phased`: the blade passes through); an ember hurts 2 and lights it solid |
+
+  `NOTES` says what beats each, once, the first time one notices you (flag `foes.met.<kind>`).
+- **The old foes' new attacks:** the blot's lunge-combo (a longer coil, a lunge, a quick second lunge), the
+  spitter's arc volley (three rings in a row across the line to you, 0.6 m apart), the machine's ground slam
+  (`quake`: a ring round it, then a shockwave running out to 8 m).
+- **Rosters** (`src/foe-worlds.js`): `ROSTERS[world]` gives `wild` (pack leads by weight), `fill`, `first`
+  (a visit's first pack, alone; the Desert's is a blot, as the game explains them there), `guards`, `temple`
+  (by room: the Hangar, the Buried Machine and the City-Shaft alternate machines and drones) and `shade`.
+  Worlds without one keep `CLASSIC`. `packOf(n, world)`: group kinds (`GROUP`: six swarm, three moths, two
+  hounds) come as a group, big leads (`COSTS`) take more places, some only from the n-th pack (`FROM`).
+  Gentle still cuts a pack to two; harms, holds (×0.6) and the white of a flash (×0.6) are softer too.
+- **Hitboxes:** `Foes.hitShapes(out)` (registered from main.js with `registerHitboxes`) adds the shockwaves' fronts, the slag, a hold's line, a volley's rings and words over a buried ray or a running hound; `foeHitboxes` draws the attack the foe is on (`f.atk`).
+- **Placed foes:** temple rooms (`f.placed`) still only stir while you are in the temple; a broken golem's
+  splinters share its relic, so the relic is cleared when the last is down.
 
 ## Tests
+
+`tests/foe-kinds.test.js`: each new kind's attacks, telegraphs, damage and parry / stun answers, the old foes'
+new attacks, Gentle, the rosters and placed foes, the Arena's list.
 
 `tests/foes.test.js`:
 - the mind, the telegraph and stepping out of it;
