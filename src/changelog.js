@@ -9,6 +9,16 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.94', date: '2026-10-08', items: [
+    'The Desert’s golden dunes are the warm ochre of its drawings now, not a pale cream, and a dune in shade (round Qanat too) turns a deeper orange-brown instead of a khaki grey; the shadows lean violet-blue.',
+    'The Glass Dunes: the sand is a pale peach in the light (it was a flat salmon), the glass a deeper emerald with bluer tops, the far walls keep their green instead of fading grey, and the evening sky runs from a warm peach at the horizon to grey-teal overhead.',
+    'The Buried Machine’s dunes are a warmer cream and shade a soft sage, as in its drawings (the shadows were a cold grey-brown), and the hanging city is a deeper slate blue.',
+    'The Sealed Hangar is painted in the dusty tones its people are drawn in: faded blue, mustard, lilac, coral and olive instead of toy-box colours, a paler sage ground and a softer sky.',
+    'The City-Shaft’s shade is one steel blue, as in its drawings: a pink wall’s turned side goes blue, not a dull grey-lavender; cast shadows a lighter step, and the haze down the shaft a clearer, thinner blue.',
+    'On the Overnight Train the night sky glows: a broad rose band along the horizon fading up into the blue-violet, where there was a thin pale line under a flat blue.',
+    'Lorn’s long evening shadows are violet now, not near-black stripes across the moss; the moss a softer olive and the evening light a paler mint.',
+    'Lorn II, the Deep Wood: the swamp floor is a greener teal and the crystal reeds a lavender instead of a glaring white.',
+  ] },
   { v: '0.93', date: '2026-10-08', items: [
     'The shade has a new look: a cartoon drawn in negative, a flat black figure with a clean white outline and a few white strokes for its folds, so it stands out in the desert at noon and in the night market alike. Its head is a black flame with two white eye-slits, rising from its shoulders to three wavy tips that lick upward, with small black wisps breaking off them. The flame streams back as it runs, flares up as it winds up an attack, whips across with the swing, gutters and shrinks when you hit or stun it, and tears away into black licks as it dies, while its body pours back down into the ground. Its sword swing plays again (it had stopped moving its arms), and the drops it sheds are plain black.',
     'The shield is a device now: a small brass disc worn on the back of your left hand. Raise the guard (LB / L1) and in a blink six brass petals fan out round it and the tank’s fluid spreads beyond them into a see-through shield drawn in ink, a few rings and a cross-hatch inside a bright rim, held close to your forearm and turned to face the blow; a shimmer runs out to its rim while you hold it, it flares on a block, bursts white rings on a perfect parry, cracks and flickers when a blow finds the tank empty, and folds back into the disc when you let go, each with its own click and hiss. What it guards is what it covers as drawn: a blow is blocked if it comes from within the shield’s edges as seen from your chest.',

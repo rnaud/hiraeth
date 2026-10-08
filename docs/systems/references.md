@@ -174,6 +174,28 @@ addresses keep working).
 - A zone's touches (`zone.look`) now start from the preset each time, so one view's never carry
   into the next.
 
+- **Colours against the sheets (October 2026, v0.94)**, seen across the high terrace, down the shaft and up under a
+  terrace: (1) the shade a grey-lavender (`#93a6cf` printed flat at 0.8) where IMG_3778–3782 print one saturated
+  steel-cerulean; (2) cast shadows a step too dark (the print's spot tier); (3) the haze down the shaft a grey veil;
+  (4) the walls' coral and cream and the sky already close. Changed: `SHAFT_DAY` (incal.js) the shade `#68a0be`;
+  the world's look `uSpot` w 0.1 (the print's 0.2); `SHAFT_FOG` its most 0.62 (0.7) in a bluer tone. Still off: the
+  trees' saturated green (the sheets draw few), the sheets' dense small work on every face.
+  (the triptych before / after / reference: `changelog-media/0.94/shaft-colours-after.webp`; `tests/colour-pass.test.js`)
+
+### The Desert's colours against its sheets (October 2026, v0.94)
+
+Compared at the start, Qanat's camps, the rose canyon, the lagoons and the ribcage, against IMG_3772–3775. Gaps
+found: (1) the golden dunes a pale cream (`#efd29b`) where every plate prints an ochre-orange; (2) a dune in shade a
+khaki grey-olive (the ochre times the blue-grey tint `#93a6cf`, the print keeping 0.3 of the hue), where the plates
+shade a deeper orange; (3) the shadows' own colour a grey-blue rather than the plates' violet-blue; (4) the mesas'
+bands busier than the plates' flat lavender tables; (5) the sky, the haze and the line weight already close.
+
+- **Changed** (desert only): `BIOMES.dunes.ground` `#eec07c` / `#f4d6a2` / `#d9955e` (biome.js: only the desert's
+  terrain and its crash site use the biomes); `DESERT_DAY` (desert.js) the shade `#9b9bd2`; `DESERT_WORLD_LOOK`
+  `uShadeKeep` 0.5 (`DESERT_SHADE_KEEP`). The References' `?look=desert` keeps `DESERT_LOOK` and its own sky.
+- **Still off**: the mesas' strata; the canyons in the rim's shadow print darker than IMG_3775 p3's olive.
+  (the triptych before / after / reference: `changelog-media/0.94/desert-colours-after.webp`; `tests/colour-pass.test.js`)
+
 ### Vael II's sheets (the Sky Stones)
 
 `references/Vael/` is empty; Vael II's six sheets are the Sky Stones' (and draw Vael's lone tower
@@ -296,6 +318,14 @@ the narrowest creases.
 - **Left, scene level**: the ring's town and the far canyons; IMG_3792 p3 reads as a moon in a drum
   (the sheet's disc may be the sky through the shaft's top), and its vault's stone stays lighter than drawn.
 
+- **Colours against the sheets (October 2026, v0.94)**, at the start, in the canyon, under the hanging city and over
+  the dunes: (1) the sand a cool cream (`#f3ead2`), the sheets' a warmer one (`#fee5bb` read off IMG_3790 p1);
+  (2) the dunes' shade a cold grey-brown (blue-grey tint), the sheets' a flat sage (IMG_3790 p1, p5); (3) the hanging
+  city a teal-grey, IMG_3789 p2's a slate blue; (4) the canyon's rust and the sky's sage already close. Changed:
+  `BURIED_DAY` the shade `#9cb0aa` and the sky `#b4c1a3`; the terrain `#f6e5c0` / `#efdcb4` / `#e0c79c`; the city's
+  slate `#4d6680` / `#3b536c`. Still off: the clouds' undersides now carry the sage too (the sheets' are a pale
+  blue-white); the interiors' dense small machinery.
+  (the triptych before / after / reference: `changelog-media/0.94/buried-colours-after.webp`; `tests/colour-pass.test.js`)
 ## The Garden of Spheres' sheets (IMG_3793–3796)
 
 - **The views** (`src/levels/reference-spheres.js`, `GARDEN_VIEWS`): IMG_3793 (4 panels), IMG_3794
@@ -406,6 +436,12 @@ the narrowest creases.
   stroke by stroke along each root's fibres; ours follow the screen's hatch directions.
 - **Left, scene level**: the lily pads; the views' egg heaps are fewer and larger than the sheets'.
 
+- **Colours against the sheets (October 2026, v0.94)**, at the start and turned about it at 17:42: (1) the floor a
+  dark slate (`#46686e`), the sheets' swamp a greener teal; (2) the crystal reeds near white (self-lit 0.5), the
+  sheets' a lavender; (3) the near trunks a navy-grey where the sheets' are a deep teal; (4) the coral horizon and
+  the violet mist already close. Changed: the terrain `#4d786e` / `#588276`, the reeds' tones a step deeper and
+  self-lit 0.3. Still off: the trunks (their tone is in the instanced trunks' vertex colours, left as they are).
+  (the triptych before / after / reference: `changelog-media/0.94/lorn2-colours-after.webp`; `tests/colour-pass.test.js`)
 ## The Signal Market's sheets (IMG_3801–3808)
 
 - **The views** (`src/levels/reference-market.js`, `MARKET_VIEWS`): IMG_3801–3804 (one plate each),
@@ -493,6 +529,16 @@ the narrowest creases.
 - **Left**: the glass is opaque (no parallax of what it holds); the plates' lit glass is a deeper emerald with
   blue in its tops, ours a paler mint; plate 2's billows still want rounder lobes; the plates' sand carries
   painted bands of light and shade more than our cast shadows do (plate 4's dark foreground band).
+- **Colours against the plates (October 2026, v0.94)**, at the start, toward the west camp and the north wave at
+  16:30: (1) the sand a flat salmon (`#f2c99c` under the amber light), the plates' a pale peach-cream (`#fee9a0`
+  in light); (2) the glass a pale mint, the plates' a deeper emerald with bluer tops; (3) the far walls washed to a
+  grey-green by the haze and fog, the plates' keep their green; (4) the print's flat sky, where the plates run from a
+  warm peach at the horizon to a grey-teal; (5) the shade on the sand a dark teal, as plate 1's foreground. Changed:
+  `SAND` `#f6dfb0` / `#f2d5a5` / `#e6bf8e`; `GLASS` mid `#5fca8f`, top `#3f9d8f` (kit: the world and its views);
+  `GLASS_WORLD_LOOK` `uSkyFlat` 0, `uHaze` 0.32 (0.5), the haze bands' veil 0.07 (0.12), `uFogDensity` 0.0006;
+  `GLASS_DAY` / `GLASS_DUSK` the shade a step lighter (`#5ea79f`, `#4caa92`). Still off: the plates' painted streaks
+  of low sun across the sand; the glass's inner depth.
+  (the triptych before / after / reference: `changelog-media/0.94/glassdunes-colours-after.webp`; `tests/colour-pass.test.js`)
 ## The City Behind the Waterfall's sheets (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-waterfall.js`, world `waterfall`: `?level=references&world=waterfall&view=n`):
@@ -949,3 +995,35 @@ Ranked by how much they would close the gap to the sheets, across every world re
   their train is a dense mass of pen detail (rivets, flutes, machinery under every carriage), ours plain plates;
   picture 2's dust is a towering pink cumulus, ours a rolling bank; their horizon glows in a broad rose band, our
   sky's is narrow; picture 1 is backlit (its flank dark against the glow), ours lit from the side.
+
+- **Colours against the pictures (October 2026, v0.94)**, on the rear deck at 22:00, turned and at dusk: (1) the sky
+  the print's flat blue-violet with a thin pale line on the horizon (`#77669c` read there), where the pictures glow
+  in a broad rose band (`#d07b95`–`#ef7763`) fading up into the blue; (2) the far plain went lavender, the pictures'
+  rose (the haze takes the horizon's colour, so (1) fixes it too); (3) the plain, the train's plum and the deep
+  shade already close. Changed: `TRAIN_LOOK` `uSkyFlat` 0.3 (mostly the gradient), `TRAIN_NIGHT`'s horizon
+  `#e88a90`. Still off: the pictures' top of the sky is a stronger blue than our gradient reaches in a level view.
+  (the triptych before / after / reference: `changelog-media/0.94/train-colours-after.webp`; `tests/colour-pass.test.js`)
+
+## The Sealed Hangar's colours (October 2026, v0.94)
+
+`references/The Sealed Hangar/` holds only its people's sheets (`characters/preview.jpg`: Ottla, Ambroise, Lune,
+Clemence, Major Brask), drawn in dusty tones on cream paper: a faded blue, mustard, lilac, coral, olive. Compared at
+the start and turned: (1) the world's paint a toy-box's pure hues (`PALETTE`: `#62c3c9`, `#f2c54b`, `#e6875f`…);
+(2) the plateau a lime (`#cfe0a8`); (3) the sky a saturated cerulean (`#6aaed0`); (4) the shade a grey-blue. Changed
+(garage.js): every `PALETTE` tone a step greyer and warmer, kept in its place (`#d48e94`, `#86b0b2`, `#d8aa50`,
+`#a9a0c8`, `#d27b5e`, `#a8b48c`, `#c9603e`), the same hexes where the file wrote them out; the plateau `#d8d4a8`; the
+day's sky `#8db1c3` and shade `#9c9ccb`. The Lab's hangar room shares the palette. Still off: the temples' interiors
+and the story's props keep the old tones (src/temples, src/story); no environment sheet to compare against.
+(the triptych before / after / reference: `changelog-media/0.94/hangar-colours-after.webp`; `tests/colour-pass.test.js`)
+
+## Lorn's colours (October 2026, v0.94)
+
+`references/Lorn/` holds only its people's sheets (`characters/preview.jpg`: Wendel, Sedge, Saba, Corm, Ysse): muted
+olive, straw, violet and navy on cream. Compared at the start at 18:24 (its opening hour), turned, and at 11:00:
+(1) the long evening cast shadows near-black stripes over the moss (the olive times the violet tint is a grey, deepened
+by the spot tier); (2) the moss an acid green under the teal evening light (`#c8f2e4`); (3) the sky a saturated
+royal blue; (4) the crystals' mint and lilac fine. Changed (perdide.js): `LORN_LOOK` (new, the world's look):
+`uShadowFlat` 0.65 (the shade printed most of the way in the violet tint), `uCast` [0.3, 0.15], `uSpot` w 0.08;
+`LORN_DUSK` the shade `#8a7cce`, the light `#dcecdc`, the sky top `#5874b2`; the moss `#748660` / `#8a9a6c`. Still
+off: the ship and the tulip trees take the flat violet shade too; no environment sheet to compare against.
+(the triptych before / after / reference: `changelog-media/0.94/lorn-colours-after.webp`; `tests/colour-pass.test.js`)

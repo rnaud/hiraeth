@@ -23,6 +23,9 @@ import wingDrop from '../minigames/wingdrop.js';
 
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+/** The day's colours: the print's flat cerulean over cream sand; the shade a violet-blue, as the plates' cast shadows (October 2026: it was a blue-grey, #93a6cf, that greyed the sand). */
+export const DESERT_DAY = ['#92b6c5', '#d7dfd9', '#9b9bd2', '#fff9ee', '#fff6dc'];
+
 export function* buildDesert(scene) {
   yield* prepareRelief();
   const terrain = yield* Terrain.make({ height: desertHeight });
@@ -117,7 +120,7 @@ export function* buildDesert(scene) {
     sky: {
       // the print: flat cerulean sky, cream sand, blue-grey shadows
       script: {
-        day: ['#92b6c5', '#d7dfd9', '#93a6cf', '#fff9ee', '#fff6dc'],
+        day: DESERT_DAY,
         dusk: ['#7f8fc8', '#f2c49a', '#8a7fb8', '#ffe0c0', '#ffe2b8'],
         night: ['#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],
       },

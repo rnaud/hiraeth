@@ -25,7 +25,12 @@ import { greebles } from './greeble-kit.js';
 
 const R = 260;          // shaft radius
 /** Down the shaft the town fades into a pale blue haze (post.js 4b): a fog thickening under the shaft's middle (0 m). */
-export const SHAFT_FOG = { uHeightFog: [0, 120, 0.002, 0.7], uHeightFogTone: [0.74, 0.83, 0.88, 0.9] };
+export const SHAFT_FOG = { uHeightFog: [0, 120, 0.002, 0.62], uHeightFogTone: [0.7, 0.84, 0.91, 0.9] };
+/**
+ * The day's colours: clear blue over a pale haze, the shade a steel cerulean (October 2026 colour pass: IMG_3778–3782
+ * print the shaft's shade one saturated blue; the old grey-lavender, #93a6cf, read as a dull grey on the walls).
+ */
+export const SHAFT_DAY = ['#8fb4da', '#eef0ea', '#68a0be', '#fffaf0', '#fff6dc'];
 const TOP = 200;        // rim / surface level
 const BOTTOM = -380;    // acid lake
 const LEVELS = [150, 92, 36, -24, -86, -150, -218, -290];
@@ -1134,10 +1139,10 @@ export function* buildIncal(scene) {
     },
     // (as its plates: barely hatched, a clean sky, the shade printed flat in the shaft's own blue as the
     //  sheets do — a pink wall's turned side goes blue, not dark pink; the trees say their own, above)
-    defaults: { hour: 12.5, preset: 'Moebius print', look: { uHatch: 0.45, uCumulus: 0, uShadowFlat: 0.8, ...SHAFT_FOG } },
+    defaults: { hour: 12.5, preset: 'Moebius print', look: { uHatch: 0.45, uCumulus: 0, uShadowFlat: 0.8, uSpot: [1, 3, 0.3, 0.1], ...SHAFT_FOG } },   // (cast shadows a lighter step of the blue: October 2026)
     sky: {
       script: {
-        day: ['#8fb4da', '#eef0ea', '#93a6cf', '#fffaf0', '#fff6dc'],   // print: clear blue over a pale haze
+        day: SHAFT_DAY,   // print: clear blue over a pale haze, the shade a steel cerulean
         dusk: ['#8a8fc8', '#f4a8a0', '#8a6fb8', '#ffd2c0', '#ffe2b8'],
         night: ['#1d2250', '#4a4a8a', '#3d3a80', '#9a9ad0', '#f2f0e6'],
       },

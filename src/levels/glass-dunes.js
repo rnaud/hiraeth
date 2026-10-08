@@ -32,16 +32,18 @@ export const GLASS_CAMPS = {
   north: { x: 10, z: -192, yaw: 0, w: 28, d: 6, n: 6, h: 3.2, ramp: [10, -212, 40, 14, 8] },
 };
 /** The day's colours: the plates' sky, a teal-green shade (the light come through the glass), warm amber light. */
-export const GLASS_DAY = ['#8fbcc8', '#f3dcb4', '#4f9a92', '#fff4e0', '#ffe6b8'];
+export const GLASS_DAY = ['#8fbcc8', '#f3dcb4', '#5ea79f', '#fff4e0', '#ffe6b8'];   // (the shade lifted a step: the plates' sand in the walls' shade is a pale teal-grey; October 2026)
 // (the late day's shade an emerald, not the grey a teal turns when the sun's going lifts it toward the warm light)
-export const GLASS_DUSK = ['#7f9fc0', '#f2b98e', '#3f9f86', '#ffe8c0', '#ffcf98'];
+export const GLASS_DUSK = ['#7f9fc0', '#f2b98e', '#4caa92', '#ffe8c0', '#ffcf98'];
 export const GLASS_NIGHT = ['#14243a', '#2c4a58', '#1f5450', '#7fb0a8', '#e8f2e6'];
 /** How flat the glass's and the sand's shade is printed (makeMaterial shadeFlat): one luminous teal, as the plates. */
 export const GLASS_FLAT = 0.8;
 /** The glass's own: flatter than the hue's but keeping some of its colour, so its shade runs from a luminous mint foot to a deep teal top. */
 export const GLASS_GLASS_FLAT = 0.45;
 /** The world's ink: a clean sky (no cumulus bank, no flat clouds), the far sand in the desert's stepped warm bands, fewer strokes. */
-export const GLASS_WORLD_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.96, 0.92, 0.84, 0.5], ...DUNE_HAZE, uHatch: 0.6, uShadeKeep: 0 };
+// (October 2026 colour pass: the plates' sky a gradient, warm peach low and grey-teal high, not the print's flat
+//  one; the walls keep their emerald further out, so the far haze and its bands veil less)
+export const GLASS_WORLD_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.96, 0.9, 0.82, 0.32], ...DUNE_HAZE, uHazeLayers: [250, 1.9, 0.07, 4], uFogDensity: 0.0006, uHatch: 0.6, uShadeKeep: 0, uSkyFlat: 0 };
 
 const n1 = createNoise2D(5101), n2 = createNoise2D(5102);
 const ramp = (x, z, [cx, cz, rx, rz, h]) => h * Math.exp(-(((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2));
