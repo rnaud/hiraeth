@@ -1,0 +1,21 @@
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_c5dbea37efa91d 132-140
+src/levels/content.js
+  s_efb1d100d5a6fc::t_b65f8a488e962e 138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "678e6178d8498caaf233e5d0a6c4c7325447fae1",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
