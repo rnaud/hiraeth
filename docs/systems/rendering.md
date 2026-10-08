@@ -472,6 +472,9 @@ spread), the cut near the half for every facing, and the spot tier's weighting.
 
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 
+(Since v0.89 the walls' grime streaks and chips are gone, replaced by sparse hairline cracks: materials.md,
+"Weathered walls: hairline cracks". What follows is how they were held still.)
+
 The author's feedback (2026-10-06): "I still see some shimmering on some structures". The motion check
 (`scripts/motion-check/`, a pan a third of a pixel a frame, the world frozen) at Qanat's gate, 40 m from the
 walls, Medium (scale 1) at 1280 × 720: 22.8 flickering pixels per 10 000 a frame, the worst of any view

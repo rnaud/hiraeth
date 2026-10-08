@@ -15,6 +15,7 @@ import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
 import { sharedUniforms, markHero, setEnvGround } from './materials.js';
+import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { Player, CameraRig, jetCameraPitch } from './player.js';
@@ -214,6 +215,9 @@ const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.met
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 const level = meta.build ? await runStepsAsync(meta.build(scene), slice) : meta.create(scene);
 const terrain = level.ground;
+// where the old walls' cracks may not run: their windows, doors and what is fixed on them (src/wall-openings.js;
+// the builders added their merged pieces as they laid them)
+{ const t = performance.now(); wallOpenings.collectScene(scene).flush(sharedUniforms); console.info(`wall openings: ${wallOpenings.boxes} pieces in ${(performance.now() - t).toFixed(0)} ms`); }
 // what the metals see below the horizon: the world's ground (materials.js)
 setEnvGround(level.envGround ?? level.ground?.mesh?.material?.uniforms?.uColor?.value);
 await slice();

@@ -22,6 +22,7 @@ export const CHANGELOG = [
     'The scout drone goes up and down now, not only out: send it for a goal on a rooftop, a tower’s deck or the floor above and it climbs toward it, straight up a shaft or the side of a tower you stand under; for one in a pit or a cave below it sinks toward it, its eye turned up or down at it. It stays in view behind you as it climbs.',
     'Indoors the drone keeps under the ceiling and short of the walls instead of pressing into them.',
     'When what the drone finds is well above or below you its word says so (“27 m, 10 m above”), and its flare on a goal far below you rises past your feet, so you see it from up there.',
+    'Old walls no longer carry dark dirt streaks and blotches of broken plaster: they show the odd fine hairline crack instead, faint and branching, and not on every building, and a crack never runs over or close to a window, a door or anything fixed on the wall. You see it in Qanat, the Signal Market, at home and in the old towns of the other worlds.',
   ] },
   { v: '0.88', date: '2026-10-07', items: [
     'Blows land with weight: the world catches for an instant as a cut connects, the camera jolts, and the heavy third swing throws a foe back.',
