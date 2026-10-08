@@ -1,0 +1,49 @@
+changelog.md
+  s_efb1d100d5a6fc::t_4c797b333b8f5b 7-9
+docs/systems/rendering.md
+  s_efb1d100d5a6fc::t_56c3236e108934 473-513,641-642
+src/main.js
+  s_efb1d100d5a6fc::t_1f37cb1c0a08e1 34,1115-1117,1119-1120,1168-1171,1176
+src/materials.js
+  s_efb1d100d5a6fc::t_46a9c9e8a756ad 136-137,897-899,903,905,907,922-923,2254-2255,2260-2268
+src/post.js
+  s_efb1d100d5a6fc::t_fb5eadc7d5c484 424-428,451-452,461-462,478,480-481,490-492
+src/shadows.js
+  s_efb1d100d5a6fc::t_57928385c25f51 154-179,269-270,272,274,293-296,300-301
+tests/motion-stable.test.js
+  s_efb1d100d5a6fc::t_f636e37aaade5b 3,65-69,76-92
+tests/occlusion-taps.test.js
+  s_efb1d100d5a6fc::t_88b89e2c585fcf 44-45,49-65
+tests/shadow-edges.test.js
+  s_efb1d100d5a6fc::t_4e6dec2b3f1893 68
+tests/shadows.test.js
+  s_efb1d100d5a6fc::t_edb0ce228d828f 4,108-147
+src/changelog-media.js
+  s_9d6f837450640c::t_2c19fda3baa0fc 154-172
+src/changelog.js
+  s_9d6f837450640c::t_47f793bfe29163 17-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cdb8e670bc92fa134240f2b434b718c9a910d019",
+  "prompts": {},
+  "sessions": {
+    "s_9d6f837450640c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5a2902242fa51ac4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
