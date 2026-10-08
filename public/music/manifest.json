@@ -114,6 +114,34 @@
       "source": "https://suno.com/song/430e1c57-f9ae-45e9-9481-30bbc7ecd954",
       "file": "atelier.mp3",
       "direction": "C major, 60 BPM; felt piano, music box, strings, harmonium; memories drawn on a blank page"
+    },
+    {
+      "level": "glassdunes",
+      "title": "Hiraeth - The Glass Dunes",
+      "source": "https://suno.com/song/1d73147a-406b-4e2c-82ec-42af36f9ec50",
+      "file": "glassdunes.mp3",
+      "direction": "B lydian, 56 BPM; glass harmonica, bowed vibes, harp harmonics, cello; green crystalline dunes"
+    },
+    {
+      "level": "underwater",
+      "title": "Hiraeth - The Underwater City",
+      "source": "https://suno.com/song/c96f1104-e2a8-4811-abcf-85102933dd81",
+      "file": "underwater.mp3",
+      "direction": "F sharp dorian, 58 BPM; electric piano, harp, rounded mallets, cello; warm ocean refuge"
+    },
+    {
+      "level": "eclipse",
+      "title": "Hiraeth - The City During the Eclipse",
+      "source": "https://suno.com/song/955dab9e-f32f-40b0-b43b-13c19feaa9b0",
+      "file": "eclipse.mp3",
+      "direction": "C sharp dorian, 52 BPM; bass clarinet, muted strings, piano, bowls; suspended wonder"
+    },
+    {
+      "level": "fallenring",
+      "title": "Hiraeth - The Fallen Ring",
+      "source": "https://suno.com/song/7a417f35-bb5c-4ebc-8405-fbdc382d63bb",
+      "file": "fallenring.mp3",
+      "direction": "A mixolydian, 70 BPM; French horn, guitar, strings, frame drum; pastoral orbital ruins"
     }
   ]
 }
