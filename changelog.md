@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.0 — 2026-10-08
 
+- Game updates are about 100 MB smaller too: the music no longer comes with every update.
+- The Android app and the Steam Deck download are about 100 MB smaller: they carry only the Desert’s music and download the other worlds’ themes once, in the background, the first time you open the game, then keep them for offline play.
 - The Android app and the Steam Deck package are about 39 MB smaller: the photographs the developer’s reference world is drawn from stay on the website, where that world reads them anyway.
 - Lines and hints that teach a control now name your own keys or buttons and follow your remapping, and change with you if you pick up a controller mid-conversation; on a controller the gun’s push is always the D-pad, never X.
 - Answers that no longer matched what was said to you now do, from Nell’s reflections to Dun’s wandering key and Saba’s rain; and a few story slips are mended: where people come from, how long Hollin has kept his lamps, and the desert’s two Givers’ places no longer share a name in directions.
