@@ -1,0 +1,49 @@
+changelog.md
+  s_efb1d100d5a6fc::t_a7faff7999c0ce 22-25,34
+docs/systems/gadgets.md
+  s_efb1d100d5a6fc::t_f74eb00b0886d0 64,300-363
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_84f0a68f521066 208-221
+src/changelog.js
+  s_efb1d100d5a6fc::t_e708bbe657baed 23,32-35
+src/flammable.js
+  s_efb1d100d5a6fc::t_87718323196766 83,86,119-125,135,143
+src/gadgets/bomb.js
+  s_efb1d100d5a6fc::t_cbb195f347cfd7 216-221
+src/gadgets/bridge.js
+  s_efb1d100d5a6fc::t_aeb195bf03a725 253
+src/gadgets/bubble.js
+  s_efb1d100d5a6fc::t_0da35ea9637512 1-606
+src/gadgets/fan.js
+  s_efb1d100d5a6fc::t_a23756f20efaef 1-592
+src/gadgets/index.js
+  s_efb1d100d5a6fc::t_f58a2eb5f557b1 44-45,59
+src/gadgets/lens.js
+  s_efb1d100d5a6fc::t_4248f3355d488d 108
+src/gadgets/recall.js
+  s_efb1d100d5a6fc::t_717b4a21e0afcc 147
+src/gadgets/springs.js
+  s_efb1d100d5a6fc::t_53afa50c1cc556 168
+src/hazards.js
+  s_efb1d100d5a6fc::t_55f963f178c4b2 22-23
+src/main.js
+  s_efb1d100d5a6fc::t_c6fdebbf2ccc89 685
+tests/bubble-fan.test.js
+  s_efb1d100d5a6fc::t_8608c25132f0eb 1-341
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "04532f536839639c7297577cfcaa97b49e39fa0a",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
