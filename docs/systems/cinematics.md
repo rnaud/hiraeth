@@ -97,7 +97,7 @@ tone, a swell of the world's score, then back to you.
     the stage's refusals, and both desert moments in the story: once, skipped, without a ship).
 
 ### Every world's climax, filmed (October 2026)
-The audit (docs/game-audit.md, theme 6): only the desert's first times were filmed; the other ten
+The audit (docs/audits/game-v0.97.md, theme 6): only the desert's first times were filmed; the other ten
 climaxes went unstaged. Each now has its moment, in `src/story/<world>-moments.js`, listed with its id,
 flag and beat in `WORLD_MOMENTS` (`src/story/film.js`, which also holds the shared pieces: `closeUp`
 on his face, `orbit`, `from`, `faceAt`, `facing`). The rules are the desert's, and one more, Journey's:

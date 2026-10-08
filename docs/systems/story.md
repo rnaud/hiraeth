@@ -81,7 +81,7 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
 
 ## Two homecomings, the Lantern and the true ending (October 2026)
 
-The ending is in two parts, so that the credits come after the story's peak (docs/game-audit.md,
+The ending is in two parts, so that the credits come after the story's peak (docs/audits/game-v0.97.md,
 themes 5 and 6). One rule set in `src/story/ending.js` (pure; `tests/finale.test.js`):
 
 - **The first homecoming** (`homecomingKind` → `'first'`: `ending.done` unset). Six worlds still bring
@@ -404,7 +404,7 @@ catches**), the ship.
   risen (channel open, ship fed, or done) saw the tree burn: `desert.tree.lit` is set and the
   errand's stages (`SPARK_STAGES`) are skipped straight to the ship. Others find the tree cold
   and do the new errand with the full tank they already had.
-- **The first ten minutes, as World 1-1 (October 2026, `docs/game-audit.md` item 3)**:
+- **The first ten minutes, as World 1-1 (October 2026, `docs/audits/game-v0.97.md` item 3)**:
   - **The makers' dregs**: the chest's tank is empty but for one shot of old fluid (`tool.dregs` = 1,
     set with `tool.empty` when the chest opens; `src/fluid-tool.js` `dregs`). The tank stays "dry"
     for the story (`dry()`, `toolHasPush()` false, the lever is still the way), but one press of
@@ -618,7 +618,7 @@ own kits and systems, a few draws each, and colliders baked from what is drawn (
 
 ## Sightings, and a trace in every detour world (October 2026)
 
-The audit (docs/game-audit.md, theme 4 and item 5): the game is built on signs that recur, and
+The audit (docs/audits/game-v0.97.md, theme 4 and item 5): the game is built on signs that recur, and
 nothing kept them; the twelve detour worlds were tourism. Now every trace of the singing light, the
 makers' sign and the father's signal is written down as the traveller meets it, and each detour
 world holds one more.

@@ -1,7 +1,7 @@
 # What makes a great game: the research (October 2026)
 
 Online research into what makes games great, gathered as a framework to audit Hiraeth against
-(the audit itself is [game-audit.md](game-audit.md)). Weighted toward exploration and atmospheric
+(the audits themselves are in [audits/](audits/), one per version; run one with the `game-audit` skill, `.claude/skills/game-audit/`). Weighted toward exploration and atmospheric
 games: Journey, Breath of the Wild, Outer Wilds, Shadow of the Colossus, Sable, Tunic, Hollow
 Knight, Firewatch, Proteus, ABZÛ, Death Stranding. Twelve themes; each has its principles, the games
 that show them, and the questions to ask. Sources are at the end.

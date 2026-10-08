@@ -1,0 +1,86 @@
+[
+  {
+    "name": "01-title-new-player",
+    "fresh": true,
+    "title": true,
+    "wait": 9000,
+    "eval": "[...document.querySelectorAll('button')].map((b) => b.innerText.trim()).filter(Boolean).slice(0, 12)"
+  },
+  {
+    "name": "02-new-game",
+    "fresh": true,
+    "title": true,
+    "wait": 8000,
+    "then": [
+      {
+        "eval": "(() => { const b = [...document.querySelectorAll('button')].find((b) => /new game/i.test(b.innerText)); b?.click(); return !!b; })()",
+        "wait": 12000
+      },
+      {
+        "eval": "document.body.innerText.slice(0, 300)",
+        "wait": 21000
+      },
+      {
+        "eval": "[...document.querySelectorAll('#cue, .cue, .toast, [class*=nudge]')].map((e) => e.innerText).filter(Boolean)",
+        "wait": 4000
+      },
+      {
+        "eval": "document.body.innerText.slice(0, 300)",
+        "wait": 30000
+      }
+    ],
+    "note": "the shot after ~33 s should catch the ship nudge (20 s of idling after control, shown 6 s)"
+  },
+  {
+    "name": "03-title-settings",
+    "fresh": true,
+    "title": true,
+    "wait": 8000,
+    "then": [
+      {
+        "eval": "(() => { const b = [...document.querySelectorAll('button')].find((b) => /^settings$/i.test(b.innerText.trim())); b?.click(); return !!b; })()",
+        "wait": 2500
+      }
+    ]
+  },
+  {
+    "name": "10-desert",
+    "q": "?level=desert",
+    "wait": 7000
+  },
+  {
+    "name": "11-vael",
+    "q": "?level=arzach",
+    "wait": 7000
+  },
+  {
+    "name": "12-city-shaft",
+    "q": "?level=incal",
+    "wait": 7000
+  },
+  {
+    "name": "13-signal-market",
+    "q": "?level=bazaar",
+    "wait": 7000
+  },
+  {
+    "name": "14-white-mangrove",
+    "q": "?level=mangrove",
+    "wait": 7000
+  },
+  {
+    "name": "15-home",
+    "q": "?level=home",
+    "wait": 7000
+  },
+  {
+    "name": "16-lantern",
+    "q": "?level=lantern",
+    "wait": 7000
+  },
+  {
+    "name": "20-arena",
+    "q": "?level=arena",
+    "wait": 7000
+  }
+]

@@ -1,12 +1,12 @@
 # Hiraeth against what makes a great game (October 2026, v0.97)
 
 This audit measures Hiraeth against the twelve themes in
-[what-makes-a-great-game.md](what-makes-a-great-game.md). The evidence comes from four sources:
+[what-makes-a-great-game.md](../what-makes-a-great-game.md). The evidence comes from four sources:
 
 - the code;
 - the design docs;
 - headless-Chrome captures of the title, a new game's first 100 seconds, and five worlds;
-- the earlier [fun-and-story-review.md](fun-and-story-review.md) (v0.86).
+- the earlier [fun-and-story-review.md](../fun-and-story-review.md) (v0.86).
 
 That review is about the story's shape. This audit is broader, and checks what has happened to the
 review since.
