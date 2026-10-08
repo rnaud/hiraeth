@@ -10,7 +10,8 @@
 /**
  * The fluid tool lent for a game: worn and full even on a save that has not found the backpack yet (or
  * whose tank is still dry), in plain shooting mode, with a tank of `max` charges refilling `delay` s after
- * the last shot. Nothing is written to the save. Returns the function that puts it all back.
+ * the last shot (both left out: the save's own tank, upgrades and all). Nothing is written to the save.
+ * Returns the function that puts it all back.
  */
 export function lendTool(tool, { max = null, delay = null, mode = 'shoot' } = {}) {
   const none = () => {}; none.set = () => {};
@@ -18,11 +19,14 @@ export function lendTool(tool, { max = null, delay = null, mode = 'shoot' } = {}
   const items = tool.items, had = items.has('backpack');
   const lent = { ...items, has: (id) => id === 'backpack' || items.has(id), on: (fn) => items.on(fn), owned: () => items.owned() };
   tool.items = lent;
+  const dry = Object.getOwnPropertyDescriptor(tool, 'dry');   // (lent again inside a lending, the Arena's Ink tide: put back as it was)
   Object.defineProperty(tool, 'dry', { value: false, configurable: true, writable: true });
   // (the tank's size and its refill held for the game: the save's upgrades set them every frame, src/boxes/effects.js)
   const R = tool.reserve, was = { max: R.max, delay: R.delay, mode: tool.mode, enabled: tool.enabled };
   const held = { max: max ?? R.max, delay: delay ?? R.delay };
-  for (const k of ['max', 'delay']) Object.defineProperty(R, k, { get: () => held[k], set: () => {}, configurable: true });
+  // (neither given, the Arena's: the save's own tank, its upgrades and all)
+  const hold = max != null || delay != null;
+  if (hold) for (const k of ['max', 'delay']) Object.defineProperty(R, k, { get: () => held[k], set: () => {}, configurable: true });
   R.fill();
   tool.enabled = true;
   if (mode && tool.modes.includes(mode)) tool.mode = mode;
@@ -30,8 +34,9 @@ export function lendTool(tool, { max = null, delay = null, mode = 'shoot' } = {}
   const back = () => {
     tool.items = items;
     delete tool.dry;
-    delete R.max; delete R.delay;
-    R.max = was.max; R.delay = was.delay; R.fill();
+    if (dry) Object.defineProperty(tool, 'dry', dry);
+    if (hold) { delete R.max; delete R.delay; R.max = was.max; R.delay = was.delay; }
+    R.fill();
     tool.enabled = was.enabled;
     if (tool.modes.includes(was.mode)) tool.mode = was.mode;
   };

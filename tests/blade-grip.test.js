@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { circumcentre, gripLine, fistGrip, bracerMount } from '../src/blade-grip.js';
-import { ShieldState, SHIELD, shieldArc } from '../src/shield.js';
+import { ShieldState, SHIELD, shieldArc, blobRadius, centreTarget } from '../src/shield.js';
 import { SWINGS, WHIRL, GUARD, STANCE, attackSample, bladeDrawn, inGuard } from '../src/fluid-blade.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { GameState } from '../src/game-state.js';
@@ -62,6 +62,33 @@ test("the guard's arc is the shield as drawn: a disc ahead covers its edges plus
   assert.ok(left.dir.x > 0.05, 'held to the left, it covers more of the left');
   assert.ok(inGuard(v(), left.dir, v(-0.6, 0, 1.2), left.half), 'still the front right');
   assert.ok(!inGuard(v(), left.dir, v(0, 0, -1), left.half), 'never behind');
+});
+
+test('the fluid is a blob, not a disc: its edge never round, rippling with time, more as it spills and is struck', () => {
+  const at = (t, w = 1) => Array.from({ length: 90 }, (_, i) => blobRadius((i / 90) * Math.PI * 2, t, w));
+  const r = at(0), spread = Math.max(...r) - Math.min(...r);
+  assert.ok(spread > 0.12 && Math.max(...r) < 1.2 && Math.min(...r) > 0.8, `its edge between ${Math.min(...r).toFixed(2)} and ${Math.max(...r).toFixed(2)}`);
+  assert.ok(at(0.5).some((x, i) => Math.abs(x - r[i]) > 0.03), 'it moves');
+  assert.ok(at(0, 0).every((x) => x === 1), 'no wobble: a circle');
+  const S = new ShieldState(); S.k = 1; const rest = S.wobble; S.hit('block');
+  assert.ok(S.wobble > rest, 'struck, it ripples more'); S.k = 0.5; S.flare = 0;
+  assert.ok(S.wobble > rest, 'spilling out, more');
+  // the arc of a shape reaching further one way than the other
+  const up = v(0, 1, 0), lop = shieldArc(v(), v(0, 0, 0.4), v(0, 0, 1), { plus: 0.45, minus: 0.25 }, up);
+  assert.ok(lop.dir.x > 0.05, 'it reaches further to the left (up × facing): its arc leans left');
+  const even = shieldArc(v(), v(0, 0, 0.4), v(0, 0, 1), { plus: 0.35, minus: 0.35 }, up);
+  assert.ok(Math.abs(even.half - shieldArc(v(), v(0, 0, 0.4), v(0, 0, 1), 0.35, up).half) < 1e-12, 'even: a disc');
+});
+
+test('open, the shield slides from the bracer to the chest\'s middle line on its arm, never further than the arm reaches', () => {
+  const up = v(0, 1, 0), dir = v(0, 0, 1), chest = v(0, 1.1, 0);
+  const bracer = v(0.27, 1.4, 0.38);   // (the block pose: on the left, ahead, up by the face)
+  const t = centreTarget(bracer, chest, dir, up, 1);
+  assert.ok(Math.abs(t.x) < 1e-9, 'on the middle line');
+  assert.ok(t.z >= SHIELD.ahead[0] && t.z <= SHIELD.ahead[1] && Math.abs(t.y - bracer.y) < 1e-9, 'ahead of the chest, at the hand\'s height');
+  assert.ok(centreTarget(bracer, chest, dir, up, 0).distanceTo(bracer) < 1e-9, 'folded: on the hand');
+  assert.ok(centreTarget(v(0.27, 1.4, 0.38), chest, dir, up, 0.5).x > 0.1, 'half way');
+  assert.ok(centreTarget(v(1.5, 1.4, 0.4), chest, dir, up, 1).distanceTo(v(1.5, 1.4, 0.4)) <= SHIELD.arm + 1e-9, 'the arm\'s length at most');
 });
 
 test('the blade is in the fist in a fight and a while after, put away out of it', () => {
@@ -127,6 +154,26 @@ for (const body of ['v1', 'plain']) {
       }
       if (n) assert.ok(lead / n > 0.85, `${S.clip} cuts with its edge (${(lead / n).toFixed(2)})`);
     }
+    tool.dispose();
+  });
+}
+
+for (const body of ['v1', 'plain']) {
+  test(`${body} traveller: in the block pose the shield covers both sides alike, 50–55° each way of facing, hinged to the bracer`, async () => {
+    const { p, tool, tick } = await armed(body);
+    const blade = tool.blade, D = blade.device;
+    for (let i = 0; i < 90; i++) tick({ KeyZ: true });
+    const a = blade.guardArc, f = p.frame.dir(p.heading, v()), side = v().crossVectors(p.frame.up, f);
+    const centre = Math.atan2(a.dir.dot(side), a.dir.dot(f)) * 180 / Math.PI, half = a.half * 180 / Math.PI;
+    assert.ok(Math.abs(centre) <= 5, `centred ${centre.toFixed(1)}° from facing`);
+    assert.ok(half >= 50 && half <= 55.5, `${half.toFixed(1)}° each side (left ${(half + centre).toFixed(0)}°, right ${(half - centre).toFixed(0)}°)`);
+    const chest = p.pos.clone().addScaledVector(p.frame.up, 1.1), c = D.centre.clone().sub(chest);
+    assert.ok(Math.abs(c.dot(side)) < 0.06, `on the chest's middle line (${c.dot(side).toFixed(2)} m off it)`);
+    assert.ok(D.arm.visible && D.rod.scale.y > 0.15 && D.rod.scale.y <= SHIELD.arm + SHIELD.stand + 1e-6, `on its arm from the bracer (${D.rod.scale.y.toFixed(2)} m)`);
+    // the arc is the drawn blob's: its reach either side off the edge as drawn
+    const n = D.normal.clone().setY(0).normalize(), s2 = v().crossVectors(p.frame.up, n).normalize();
+    const reach = Math.max(...D.outline.map((q) => q.clone().sub(D.centre).dot(s2)));
+    assert.ok(reach > SHIELD.radius * 0.9 && reach < SHIELD.radius * 1.25, `its edge reaches ${reach.toFixed(2)} m`);
     tool.dispose();
   });
 }

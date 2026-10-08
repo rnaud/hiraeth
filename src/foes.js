@@ -559,6 +559,8 @@ export class Foes {
   get strikers() { return this.difficulty === 'gentle' ? 1 : TURNS.strikers; }
 
   /** The Enemies setting: 'normal', 'gentle' (half the harm, slower wind-ups, one striking at a time, smaller and rarer packs) or 'off'. */
+  /** The Gentle setting (the evade's i-frames are a little longer). */
+  get gentle() { return this.difficulty === 'gentle'; }
   get difficulty() { const e = this.settings?.enemies; return e === false || e === 'off' ? 'off' : e === 'gentle' ? 'gentle' : 'normal'; }
   /** On (the Enemies setting, not a peaceful world; the Arena's waves and a game's own foes always). */
   get on() { return this.waves || (!this.peaceful && this.difficulty !== 'off'); }
@@ -787,6 +789,7 @@ export class Foes {
     if (!P) return;
     if (!this.on) { for (const f of this.list) f.model.group.visible = false; return; }
     if (paused) return;
+    if (this.tool?.blade) this.tool.blade.gentle = this.gentle;   // (the evade's i-frame window for this setting)
     this._people = this.peopleNow();
     // the wilds: after a few seconds out there, a pack comes in (the first time, just one); a pack
     // left far behind dissolves; after one is cut down, a rest before the next
@@ -890,6 +893,8 @@ export class Foes {
     const P = this.player;
     // a flash only blinds whoever looks at it: turned away (the camera), it is nothing
     if (a.blind && !this.facing(f)) return false;
+    // the evade's i-frames swallowed it (src/fluid-blade.js dodge): a blow, a lob, a charge, a flash, a line or a grip
+    if (P.dodge?.(f.pos, a.tether || a.grab ? 'grab' : 'strike', this.gentle)) return false;
     // the guard took it (src/fluid-blade.js block): no harm, and the foe reels back
     const guarded = P.guard?.(f.pos);
     if (guarded) {
@@ -1023,9 +1028,13 @@ export class Foes {
       const d = Math.hypot(P.pos.x - s.at.x, P.pos.z - s.at.z);
       // caught by the front only on your feet: a jump clears it
       if (!s.hit && ground && Math.abs(d - s.r) < s.W.width && Math.abs(P.pos.y - s.at.y) < 1.2 && !P.dead && !P.down) {
-        s.hit = true; this.harm(this.harmOf(s.W.damage));
-        _v.subVectors(P.pos, s.at).setY(0).normalize();
-        P.vel?.addScaledVector(_v, 4).addScaledVector(_up, 3); P.flinch?.();
+        s.hit = true;
+        if (P.dodge?.(s.at, 'shockwave', this.gentle)) s.dodged = true;   // (an evade's i-frames through the front)
+        else {
+          this.harm(this.harmOf(s.W.damage));
+          _v.subVectors(P.pos, s.at).setY(0).normalize();
+          P.vel?.addScaledVector(_v, 4).addScaledVector(_up, 3); P.flinch?.();
+        }
       }
       if (s.r > s.W.reach) s.mesh.removeFromParent();
     }
@@ -1034,7 +1043,8 @@ export class Foes {
     for (const p of this.patches ?? []) {
       p.life -= dt;
       p.mesh.scale.setScalar(p.r * Math.min(1, p.life / 0.8, (p.max - p.life) / 0.25 + 0.3));
-      if (this.burnCool === 0 && ground && !P.dead && !P.down && Math.hypot(P.pos.x - p.pos.x, P.pos.z - p.pos.z) < p.r && Math.abs(P.pos.y - p.pos.y) < 0.8) {
+      // (an evade's i-frames carry you over it unburnt; standing in it after, it burns)
+      if (this.burnCool === 0 && ground && !P.dead && !P.down && Math.hypot(P.pos.x - p.pos.x, P.pos.z - p.pos.z) < p.r && Math.abs(P.pos.y - p.pos.y) < 0.8 && !P.dodge?.(p.pos, 'burn', this.gentle)) {
         this.burnCool = 0.7; this.harm(this.harmOf(0.05)); P.vel?.addScaledVector(_up, 2.5); P.flinch?.();
         this.sound?.foeHurt?.('blot');
       }

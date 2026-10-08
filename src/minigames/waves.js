@@ -5,7 +5,7 @@
 // stalkers, salt crabs, rust drones, slag walkers, glass golems, shadow hounds) out of the ink springs round
 // the rim, more of them and more kinds as the waves go on. Between two waves a breather: some health back, and three small boons on the sigil in the
 // middle (a longer blade, a deeper tank, quicker refills…): walk onto the one you want. The score is the
-// waves cleared and the style of the fight (cuts in quick succession, perfect parries, a wave untouched).
+// waves cleared and the style of the fight (cuts in quick succession, perfect parries and dodges, a wave untouched).
 // The Gentle enemies setting makes the waves smaller (and the foes slower, softer: src/foes.js GENTLE).
 //
 // The rules are pure (waveKinds, heads, chainMult, killPoints, boonChoice, boonTunings, tideScore:
@@ -26,6 +26,7 @@ export const TIDE = {
   wavePoints: 150,       // each wave cleared
   untouched: 100,        // a wave cleared without a hurt
   parry: 30, block: 5,   // a perfect parry, a plain block
+  dodge: 15,             // a perfect dodge: an evade whose i-frames swallowed a blow (src/fluid-blade.js)
   chainFor: 3,           // s: a cut down this soon after the last keeps the chain
   chainStep: 0.25, chainMax: 3,
   breather: 14,          // s at most to pick a boon before the next wave comes anyway
@@ -249,6 +250,13 @@ function start(ctx) {
     else if (r && phase === 'fight') addStyle(TIDE.block, null, from);
     return r;
   };
+  // the evade heard: a blow its i-frames swallowed (the first of each evade) is style too
+  const dodge0 = player.dodge;
+  if (dodge0) player.dodge = (from, kind, gentle) => {
+    const r = dodge0.call(player, from, kind, gentle);
+    if (r === 'perfect' && phase === 'fight') { run.dodges = (run.dodges ?? 0) + 1; addStyle(TIDE.dodge, 'Dodge!', player.pos); }
+    return r;
+  };
 
   function addStyle(n, label, at) {
     run.style += n;
@@ -388,7 +396,7 @@ function start(ctx) {
           clearBoons();
           ctx.finish({ failed: true, title: 'The tide took you', lines: [
             `Waves cleared ${run.cleared} (${run.cleared * TIDE.wavePoints} pts) · style ${run.style}`,
-            `Foes cut down ${run.kills} · longest chain ${run.bestChain} · perfect parries ${run.parries}`,
+            `Foes cut down ${run.kills} · longest chain ${run.bestChain} · perfect parries ${run.parries} · perfect dodges ${run.dodges ?? 0}`,
             `Waves untouched ${run.untouched}${gentle ? ' · gentle foes' : ''}`,
             `Boons: ${Object.entries(run.taken).map(([id, n]) => `${boonById(id).name}${n > 1 ? ` ×${n}` : ''}`).join(', ') || 'none taken'}`,
           ] });
@@ -406,6 +414,7 @@ function start(ctx) {
       for (const f of foes?.list.slice() ?? []) foes.remove(f);
       if (foes) foes.lock = null;
       if (guard0) player.guard = guard0;
+      if (dodge0) player.dodge = dodge0;
       if (blind0) foes.blind = blind0;
       if (strike0) foes.strike = strike0;
       for (const k of keep) k();
@@ -420,7 +429,7 @@ export default {
   id: 'waves', order: 8,
   name: 'Ink tide',
   blurb: 'A basin of sand in a sea of ink, and the ink keeps coming: wave after wave of blots, spitters, swarms, shades and machines, and further on the worlds’ own foes: moths, rays, crabs, drones, golems, hounds…',
-  rules: 'Cut down every wave. Between waves you get some health back and a choice of three boons: walk onto the one you want. Score: 150 a wave cleared, plus style (quick chains of cuts, perfect parries, a wave untouched). It ends when the tide knocks you out.',
+  rules: 'Cut down every wave. Between waves you get some health back and a choice of three boons: walk onto the one you want. Score: 150 a wave cleared, plus style (quick chains of cuts, perfect parries, perfect dodges, a wave untouched). It ends when the tide knocks you out.',
   drives: false,
   controls: {
     pad: [['RB / R1', 'attack (press again to chain)'], ['LB / L1', 'guard (just as a blow lands: parry)'], ['B / ○', 'evade'], ['LT / L2  +  RT / R2', 'aim and fire the fluid'], ['R3', 'lock on'], ['Menu', 'pause']],

@@ -23,8 +23,20 @@ The first things in the game that fight back, and the tool's answer to them.
   A held guard spends one charge per block. Both require facing the blow. A parry leaves the enemy
   open for 1.8× its normal recovery; an ordinary block for 0.65×. Guard cannot cancel an active cut.
 - **Evade:** Alt / B / ○ / touch ↶ moves in the input direction, or backward without input, for
-  0.28 s with a 0.65 s cooldown. It uses Player's collision controller, has no invulnerability, and
-  may cancel attack recovery but not wind-up or release. It is available on the ground.
+  0.28 s with a 0.65 s cooldown. It uses Player's collision controller and may cancel attack recovery
+  but not wind-up or release. It is available on the ground.
+- **The evade's i-frames** (`EVADE.iframes`, `iframeWindow`, `evadeInvulnerable`, `FluidBlade.dodge`): from
+  0.03 s to 0.24 s into the evade (0.21 s of its 0.28; Gentle `EVADE.gentle`, 0.02 s to its end) no foe's blow
+  lands. `Player.dodge(from, kind, gentle)` asks the blade first thing in `Foes.strike` (a melee strike, a lob, a
+  volley, a charge, a flash, a harpoon's line or a root's grip: no harm, no line, no blinding), as a shockwave's
+  front crosses you (marked `dodged`, spent) and on each tick of burning slag (no burn while the window is open;
+  stand in it after and it burns: lingering ground is not swallowed, only crossed). The first blow an evade
+  swallows is a perfect dodge (`'perfect'`): a 0.05 s hit-stop, a slight kick, a white ring at the feet and a
+  hum; Ink tide wraps `player.dodge` for `TIDE.dodge` style points ("Dodge!"). No unbroken cover: when a window
+  closes `EVADE.rest` (0.3 s) must pass before the next can open, so an evade begun sooner (the Light feet boon's
+  shorter cooldown) has none (`evadeGranted` false). At the usual pace (the 0.65 s cooldown) each evade has its
+  window, and back to back they cover a third of the time. `tests/evade-iframes.test.js` checks the window,
+  every kind of blow in and out of it, the spam gaps, Gentle and the overlay.
   Push is a gun mode; calling a mount is D-pad ↓ (v0.93: docs/systems/controls.md, "The layout").
 - **The flinch:** a strike that lands without knocking you down plays the pack's impact on the upper body
   (`Player.flinch`, `FLINCH`).
@@ -55,23 +67,33 @@ The first things in the game that fight back, and the tool's answer to them.
   (climbing, swimming, gliding, the jets, riding, aiming the gun, knocked down, a scene or a conversation). The
   hands close round them (`player.swordGrip`, `player.shieldGrip` → `handTargets` `sword` / `shield`).
 - **The blade's segment** (hits) is read from the hilt's own frame, so it is the drawn blade exactly.
-- **The shield** (`ShieldDevice`): the brass disc always on the hand with the backpack. Open, it is 0.35 m in radius
-  (`SHIELD.radius`), on the back of the hand: a collar of six brass petals (`SHIELD.petal`) and a
-  brass ring round the hub, then the fluid drawn as ink, two rings and a cross-hatch in a band round the edge
-  (the game's materials are opaque: the see-through is the gaps), a bright rim and a shimmer ring running out
-  to it. `ShieldState` is the
+- **The shield** (`ShieldDevice`): the brass disc always on the hand with the backpack. Open, it is 0.35 m in mean
+  radius (`SHIELD.radius`): a collar of six brass petals (`SHIELD.petal`) and a brass ring round the hub, the
+  only solid parts; beyond them the fluid as a blob, not a disc: its edge `blobRadius(θ, t, wobble)`, three waves
+  of 3, 5 and 8 lobes running round at different speeds (about 0.86–1.1 of the radius), rippling more as it
+  spills out, on a block and cracked (`ShieldState.wobble`). It is drawn in flat two-sided strokes rebuilt each
+  frame (`Stroke`): five strokes of the tank's fluid swirling out from the collar and turning slowly round the
+  hub, a bright wavy rim with an ink line just outside it, a ripple running out to the rim while held (the
+  game's materials are opaque: the see-through is the gaps between strokes). `ShieldState` is the
   pure state machine (folded → opening → open → closing, and broken): it opens in `SHIELD.open` (0.16 s; the
   guard counts as up at `guardK` 0.5, unchanged), the six petals spinning out one after another, the fluid
-  flooding out to the rim after them; held it shimmers; `hit('block')` flares it, `'perfect'` bursts two white rings off it,
+  flooding out to the rim after them; held a ripple runs out; `hit('block')` flares it (two ripples running out past the rim), `'perfect'` bursts two bright blob-shaped rings off it,
   `'broken'` (a blow within its arc with the tank empty) cracks and flickers it until it mends; it folds in
   `SHIELD.close`. It swivels on the hub to face the guard's way as it opens. Sounds: `shieldOpen`,
   `shieldClose`, `shieldBreak` (src/audio.js), on the state machine's transitions.
 - **Coverage is the drawn shape.** Each frame `ShieldDevice.arc` measures the bearings between the shield's two
   edges (`SHIELD.radius` + `SHIELD.slack`) as seen from the chest (`shieldArc`); `block()` tests the blow's
   bearing against that arc (`guardArc`), and the hitbox overlay draws the same arc. With no shield drawn,
-  `GUARD.angle` is the arc of one held `GUARD.reach` ahead (about 48°). In the block pose the measured arc is
-  about 45° each side of a line 18° to the left of facing, where the left hand holds it: from about 63° on the
-  left to 28° on the right.
+  `GUARD.angle` is the arc of one held `GUARD.reach` ahead (about 48°). The reach either side is measured off
+  the drawn blob's edge (`ShieldDevice.outline`, 36 points: its furthest along the shield's flat side either
+  way, never less than 0.9 × `SHIELD.radius` while it floods), so the arc follows the shape as it ripples.
+- **In front of the chest** (`centreTarget`, `SHIELD.pull`, `ahead`, `arm`): as it opens, the shield slides off
+  the bracer on a short brass arm (`ShieldDevice.arm`: a rod from a knuckle on the disc to the shield's hub) to
+  the chest's middle line, its reach ahead of the chest kept within 0.36–0.44 m, at the hand's height, never
+  more than 0.42 m from the bracer; folding, it comes back onto the hand. In the block pose the arc is about
+  52° each side, centred within 2° of facing (v1 traveller: left 53°, right 50°; plain body 55° and 51°);
+  before it was 45° each side of a line 18° left of facing (63° left, 28° right). `tests/blade-grip.test.js`
+  checks 50–55° and ±5° on both bodies.
 - **Inspect:** the studio (`studio.html?backpack=true&sword=true&shield=1&view=arms`, any clip scrubbed with
   `anim=clip:mixamo_ss_slash_1&paused=true&time=0.4`; views `hands` and `bracer` for close-ups; `guard=block|
   parry|broken`) runs the blade's own placing code (`FluidBlade.inspect`). `tests/blade-grip.test.js` samples
@@ -242,6 +264,12 @@ A developer's world in the worlds list: the desert's golden sand under an open s
 `Foes` send `WAVES` round you, whatever the setting: one blot, three blots, a machine, two machines and two
 blots, a spitter, a swarm, a machine, flyers, spitters with a machine, a mixed wave, then each world's own kinds and a mixed last wave, round and round, `WAVE.rest` s after the last one falls.
 
+**The tool is lent** (`lendTool: { mode: null }` on the level, main.js → `lendTool`, src/minigames/kit/onfoot.js):
+the backpack (so the blade and the shield) on any save, a brand-new one or one that has not found it, with the
+save's own tank (no size given: its upgrades still apply); nothing is written to the save. (Before, a save
+without the backpack had no blade there: `FluidTool.worn` needs it.) Ink tide lends it again inside, and its
+lending puts the Arena's back.
+
 **The foe list** (`src/foe-spawner.js`): a FOES tab on the left edge opens a list of every kind. Choosing one
 stops the waves (`Foes.setPractice(kind)`): it comes in 9 m ahead of you, and again each time it falls. "Waves
 again" brings the waves back, "Clear the field" leaves it empty. `?level=arena&foe=crab` starts on one kind;
@@ -332,7 +360,8 @@ A debug overlay of what the fight actually tests, for tuning and for learning th
   `bladeSegment()`, `bladeTouchRadius()`, `activeRange()` (fluid-blade.js); `BOMB` (gadgets/bomb.js).
 - **What it draws:** the traveller's hurt column (foes test a point at the feet, within `STRIKE_RISE` of
   height); the blade's coarse cone, its segment and the swept quad (yellow; red on the frames it cuts); the
-  guard's arc (green, white in the parry window); an evade (violet; it has no invulnerability frames); the
+  guard's arc (green, white in the parry window); an evade (violet; pale lavender with the label `I-FRAMES <s left>` while its i-frames are on, then `i-frames
+  over`, `no i-frames (too soon after the last)` for one given none, `DODGED` once one swallowed a blow); the
   hard lock (orange diamond) or the soft lock. Each foe: its target sphere and the blade's touch ring, sight,
   reach, keep; its strike's area at `attackOrigin()` (orange while it winds up, red while live, dull once
   checked); a label with its state, wind-up %, stun or why it reels (`Foe.reel`: blocked, parried,

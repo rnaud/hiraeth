@@ -35,7 +35,21 @@ export const SWINGS = [
   { clip: 'mixamo_ss_attack_1', from: 0.55, to: 1.7, hit: 1.15, wind: 0.36, active: 0.2, recover: 0.34 },
 ];
 export const SWING_SPEED = 1; // Legacy consumers; attacks now have authored phase timing.
-export const EVADE = { duration: 0.28, cooldown: 0.65, speed: 7.5 };
+/**
+ * The evade: `duration` s long, `cooldown` s from one to the next, at `speed`. Its invulnerability (i-frames):
+ * from `iframes[0]` to `iframes[1]` s into it (Gentle: `gentle`) no foe's blow lands (Foes.strike, the
+ * shockwaves, the slag; src/foes.js). A window closed, the next one opens only `rest` s later at the
+ * soonest: an evade begun before that runs without (spamming it is never unbroken cover).
+ * `perfect`: the hit-stop (s) of an evade whose i-frames swallow a blow (a perfect dodge).
+ */
+export const EVADE = { duration: 0.28, cooldown: 0.65, speed: 7.5, iframes: [0.03, 0.24], gentle: [0.02, 0.28], rest: 0.3, perfect: 0.05 };
+/** The i-frame window [from, to] (s into an evade) for this setting. */
+export const iframeWindow = (gentle = false, E = EVADE) => (gentle ? E.gentle : E.iframes);
+/** Is an evade `age` s old invulnerable (it was given i-frames: `granted`)? */
+export const evadeInvulnerable = (age, gentle = false, granted = true, E = EVADE) => {
+  const [a, b] = iframeWindow(gentle, E);
+  return granted && age >= a && age < b;
+};
 /** The source-time window of a captured swing in which the blade cuts: [from, to]. */
 export const activeRange = (S) => [S.activeFrom ?? S.hit - 0.08, S.activeTo ?? S.hit + 0.1];
 /** How much wider than a target's sphere the blade's segment may pass and still touch it (m). */
@@ -165,11 +179,16 @@ export class FluidBlade {
     this.guardK = 0; this.guardT = 0; this.parry = 0;
     this.guardHeld = false; this.guardAge = Infinity; this.guardRearm = 0; this.perfectReady = false;
     this.evadeHeld = false; this.evadeT = 0; this.evadeCool = 0; this.evadeDir = new THREE.Vector3();
+    // its i-frames: how long it has run, whether it was given them, the rest before the next can be, a blow swallowed
+    this.evadeAge = Infinity; this.evadeGranted = false; this.iframeRest = 0; this.dodged = false; this.gentle = false;
     this.hitTargets = new Set(); this.previousBlade = null;
     this.device = new ShieldDevice(tool);
     this.shield = this.device.root;
     this.guardArc = null;
-    if (tool.player) tool.player.guard = (from) => this.block(from);
+    if (tool.player) {
+      tool.player.guard = (from) => this.block(from);
+      tool.player.dodge = (from, kind, gentle) => this.dodge(from, kind, gentle);
+    }
   }
 
   /** The guard is up (enough to block). */
@@ -217,6 +236,30 @@ export class FluidBlade {
     return perfect ? 'perfect' : true;
   }
 
+  /** The evade's i-frames are on now (`gentle`: the Gentle setting's longer window). */
+  iframes(gentle = this.gentle) { return this.evadeT > 0 && evadeInvulnerable(this.evadeAge, gentle, this.evadeGranted); }
+
+  /**
+   * A blow (`kind`: 'strike', 'grab', 'shockwave', 'burn') from `from` while evading: swallowed by the i-frames
+   * (true), else false (it lands). The first blow an evade swallows is a perfect dodge ('perfect'): the frame
+   * freezes a blink, a white ring at the feet, a hum (lingering ground, the burn, gives none).
+   */
+  dodge(from, kind = 'strike', gentle = this.gentle) {
+    this.gentle = !!gentle;
+    if (!this.iframes(gentle)) return false;
+    if (this.dodged || kind === 'burn') return true;
+    this.dodged = true;
+    const T = this.tool, p = T.player;
+    hitStop(EVADE.perfect); kick(0.08);
+    T.sound?.fluidMode?.('stun');
+    if (p) {
+      const at = _o.copy(p.pos).addScaledVector(p.frame.up, 0.9);
+      T.rings?.add({ from: _a.copy(p.pos).addScaledVector(p.frame.up, 0.05), dir: p.frame.up, reach: 0.05, r0: 0.3, r1: 1.4, life: 0.32, color: '#fff6dc', thick: 1 });
+      for (let i = 0; i < 10; i++) T.glow?.add({ pos: at, vel: _b.randomDirection().multiplyScalar(1.6), drag: 3, size: 0.05, life: 0.4, color: i % 2 ? '#fff6dc' : T.modeTones?.[0] ?? '#52c8cf', grow: true });
+    }
+    return 'perfect';
+  }
+
   get swinging() { return this.n >= 0; }
 
   /** Per frame. press: a fresh press of the blade button; ok: the tool may act (FluidTool.allowed); held: the button is down. */
@@ -226,6 +269,11 @@ export class FluidBlade {
     this.cool = Math.max(0, this.cool - dt);
     this.evadeCool = Math.max(0, this.evadeCool - dt);
     this.evadeT = Math.max(0, this.evadeT - dt);
+    // (the i-frames' clock: their window closing starts the rest before the next evade may have them)
+    const wasOn = this.evadeGranted && this.evadeAge < iframeWindow(this.gentle)[1];
+    this.evadeAge = this.evadeT > 0 ? this.evadeAge + dt : Infinity;
+    this.iframeRest = Math.max(0, this.iframeRest - dt);
+    if (wasOn && !(this.evadeT > 0 && this.evadeAge < iframeWindow(this.gentle)[1])) this.iframeRest = EVADE.rest;
     this.guardRearm = Math.max(0, this.guardRearm - dt);
     this.guardAge += dt;
     if (held && !this.guardHeld) { this.guardAge = 0; this.perfectReady = this.guardRearm === 0; this.guardRearm = GUARD.rearm; }
@@ -234,6 +282,7 @@ export class FluidBlade {
     const dodgePress = evade && !this.evadeHeld; this.evadeHeld = evade;
     if (ok && dodgePress && !this.evadeT && !this.evadeCool && p?.onGround && (!this.swinging || this.phase === 'recover')) {
       this.stop(); this.evadeT = EVADE.duration; this.evadeCool = EVADE.cooldown;
+      this.evadeAge = 0; this.evadeGranted = this.iframeRest === 0; this.dodged = false;
       if (p._moveDir?.lengthSq() > 0.01) this.evadeDir.copy(p._moveDir);
       else p.frame.dir(p.heading, this.evadeDir).negate();
       p.frame.dir(p.heading, this.dir);
@@ -348,11 +397,11 @@ export class FluidBlade {
    */
   placeShield(dt = 0) {
     const T = this.tool, p = T.player, D = this.device;
-    const said = D.update(dt, { want: !!this.guardWant, worn: !!p && T.worn !== false, dir: this.dir, up: p?.frame?.up, time: T.time ?? 0 });
+    const U = p?.frame?.up, chest = U ? _f.copy(p.pos).addScaledVector(U, 1.1) : null;   // (the open shield slides to the chest's middle line)
+    const said = D.update(dt, { want: !!this.guardWant, worn: !!p && T.worn !== false, dir: this.dir, up: U, chest, time: T.time ?? 0 });
     if (said === 'open') T.sound?.shieldOpen?.();
     else if (said === 'close') T.sound?.shieldClose?.();
     if (p) p.shieldGrip = D.s.k;
-    const U = p?.frame?.up;
     this.guardArc = p && U ? D.arc(_o.copy(p.pos).addScaledVector(U, 1.1), U) : null;
   }
 
@@ -470,7 +519,7 @@ export class FluidBlade {
     this.guardWant = shield > 0;
     this.place(0);
     const D = this.device;
-    D.update(0, { want: this.guardWant, worn: true, dir: this.dir, up: p?.frame?.up, time: (this.tool.time ?? 0) + (this._inspectT = (this._inspectT ?? 0) + dt) });
+    D.update(0, { want: this.guardWant, worn: true, dir: this.dir, up: p?.frame?.up, chest: p?.pos && p.frame?.up ? _f.copy(p.pos).addScaledVector(p.frame.up, 1.1) : null, time: (this.tool.time ?? 0) + (this._inspectT = (this._inspectT ?? 0) + dt) });
     S.k = shield;   // (held where the panel says)
   }
 

@@ -56,6 +56,7 @@ export function* buildArena(scene) {
     defaults: { hour: 9.5, preset: 'Moebius print', cloudShadows: 0, look: DESERT_WORLD_LOOK },   // (the desert's print: bright sand, a blue sky)
     killY: -Infinity,
     foes: { waves: true },
+    lendTool: { mode: null },   // (main.js: the backpack lent for the visit, so the blade and the shield are there on any save; nothing written to it)
     // the desert's print: a flat cerulean sky over cream sand
     sky: {
       script: {

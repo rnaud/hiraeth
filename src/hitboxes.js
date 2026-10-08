@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BLADE, GUARD, EVADE, bladeTouchRadius, lockTarget } from './fluid-blade.js';
+import { BLADE, GUARD, EVADE, bladeTouchRadius, lockTarget, iframeWindow } from './fluid-blade.js';
 import { STRIKE_RISE, hurtRadius, sweepRadius } from './foes.js';
 import { allTargets } from './targets.js';
 import { BOMB } from './gadgets/bomb.js';
@@ -31,7 +31,8 @@ export const HITBOX_COLORS = {
   bladeActive: '#ff2a3c', // the blade cutting: its segment, its sweep and its coarse cone
   guard: '#5ee07c',       // the guard's arc
   parry: '#ffffff',       // the guard's perfect-parry window, live
-  evade: '#c48cff',       // an evade under way
+  evade: '#c48cff',       // an evade under way, open to blows (before or after its i-frames, or given none)
+  iframes: '#f2e8ff',     // an evade's i-frames: nothing lands
   lock: '#ff9d1c',        // the lock-on
   soft: '#ffd9a0',        // the soft lock (the foe a swing turns to)
   foeHurt: '#ff5fb4',     // a foe's target sphere, and the blade's touch ring round it
@@ -114,7 +115,8 @@ export function playerHitboxes({ player: P, tool = null, foes = null }, out = []
   const C = HITBOX_COLORS, up = P.frame?.up ?? new THREE.Vector3(0, 1, 0), feet = v3(P.pos);
   const B = tool?.blade;
   const evading = !!B?.evadeT, says = [];   // (the traveller's words: one label over the head, the first colour leads)
-  out.push({ kind: 'column', c: feet, h0: -STRIKE_RISE, h1: STRIKE_RISE, r: 0.22, color: evading ? C.evade : C.hurt, tag: 'player.hurt' });
+  const gentle = foes?.gentle ?? B?.gentle ?? false, safe = evading && !!B.iframes?.(gentle);   // (the evade's i-frames: nothing lands)
+  out.push({ kind: 'column', c: feet, h0: -STRIKE_RISE, h1: STRIKE_RISE, r: 0.22, color: safe ? C.iframes : evading ? C.evade : C.hurt, tag: safe ? 'player.hurt.iframes' : 'player.hurt' });
   if (B?.swinging && tool.player) {
     const cutting = B.cutting, color = cutting ? C.bladeActive : C.bladeWind;
     const K = B.coarse();
@@ -136,10 +138,12 @@ export function playerHitboxes({ player: P, tool = null, foes = null }, out = []
     says.push({ text: live ? `PARRY ${Math.max(0, GUARD.perfect - B.guardAge).toFixed(2)}s` : B.guarding ? 'guard (a block costs a charge)' : 'guard rising', color, tag: 'guard.label' });
   }
   if (evading) {
-    out.push({ kind: 'circle', c: feet, r: 0.9, color: C.evade, tag: 'evade', fill: 0.18 });
-    out.push({ kind: 'segment', a: feet.clone().addScaledVector(up, 0.05), b: feet.clone().addScaledVector(up, 0.05).addScaledVector(B.evadeDir, 1.6), color: C.evade, tag: 'evade.dir' });
-    // (the evade has no invulnerability: EVADE in src/fluid-blade.js; foes still test the feet while it runs)
-    says.push({ text: `evade ${B.evadeT.toFixed(2)}/${EVADE.duration}s · no i-frames`, color: C.evade, tag: 'evade.label' });
+    // (its i-frames, EVADE in src/fluid-blade.js: the window [from, to] s into it, none for an evade begun in the rest after one)
+    const color = safe ? C.iframes : C.evade, [w0, w1] = iframeWindow(gentle), age = B.evadeAge ?? 0;
+    out.push({ kind: 'circle', c: feet, r: 0.9, color, tag: safe ? 'evade.iframes' : 'evade', fill: safe ? 0.35 : 0.18 });
+    out.push({ kind: 'segment', a: feet.clone().addScaledVector(up, 0.05), b: feet.clone().addScaledVector(up, 0.05).addScaledVector(B.evadeDir, 1.6), color, tag: 'evade.dir' });
+    const state = safe ? `I-FRAMES ${Math.max(0, w1 - age).toFixed(2)}s` : B.evadeGranted === false ? 'no i-frames (too soon after the last)' : age < w0 ? 'i-frames next' : 'i-frames over';
+    says.push({ text: `evade ${age.toFixed(2)}/${EVADE.duration}s · ${state}${B.dodged ? ' · DODGED' : ''}`, color, tag: 'evade.label' });
   }
   if (says.length) out.push({ kind: 'label', c: feet.clone().addScaledVector(up, 2.7), text: says.map((x) => x.text).join(' · '), color: says[0].color, tag: says.map((x) => x.tag).join(' '), lift: 1 });
   // the lock-on (R3 / Tab) and the soft lock a swing or the guard turns to

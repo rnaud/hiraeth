@@ -92,6 +92,7 @@ import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
+import { lendTool } from './minigames/kit/onfoot.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
@@ -460,6 +461,7 @@ for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y
 const breathMeter = new BreathMeter();
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
+if (level.lendTool) lendTool(tool, level.lendTool);   // (the Arena: the backpack, the blade and the shield lent for the visit, whatever the save: src/minigames/kit/onfoot.js)
 await slice();
 tool.powerTrails(trails);   // the hover trails run in the fluid's tones
 // what an ember glob sets alight: the camp fires, the market's lamps, dry brambles (flammable.js)
