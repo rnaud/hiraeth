@@ -21,6 +21,9 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [game-brief.md](game-brief.md) | the brief and its working decisions |
 | [story-bible.md](story-bible.md) | each world's story, quests, keepsake and clue |
 | [story-audit.md](story-audit.md) | the October 2026 story audit: every world's beat against what you can do, what was thin, pacing, what was fixed, proposals for the author |
+| [fun-and-story-review.md](fun-and-story-review.md) | the October 2026 review of the experience's shape: the ending before the peak, the unanswered light, choices, pacing; ranked recommendations |
+| [what-makes-a-great-game.md](what-makes-a-great-game.md) | research: what makes a great (exploration) game, in twelve themes with audit questions and sources |
+| [game-audit.md](game-audit.md) | the v0.97 audit against those twelve themes: scores, evidence, and where to invest |
 | [world-principles.md](world-principles.md) | the fundamental world principles: the world notices you, living things, connection, restraint |
 | [../lore/README.md](../lore/README.md), [../LORE.md](../LORE.md) | the writing room and the lore |
 
