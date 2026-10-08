@@ -1,0 +1,42 @@
+{
+  "status": "Approved and integrated into the playable traveller. This file describes the untouched source export; fitting, skinning and facial shape keys are built at runtime.",
+  "source_image_job": "d4f82370-ad5c-466e-9c7f-77e60d278623",
+  "source_service": "Tripo Studio / Nano Banana",
+  "reference_files": [
+    "references/main character/new3.JPG",
+    "references/main character/Facial Expressions/expression-sheet-1.jpeg"
+  ],
+  "contract": "Head and hair only; natural adult proportions; nearly level eye corners; neutral closed mouth; soft short wavy hair. Keep body and MakeHuman rig.",
+  "date": "2026-10-08",
+  "model_job": "931197c2-0e35-40a7-82d6-051783349826",
+  "model_url": "https://studio.tripo3d.ai/workspace/generate/931197c2-0e35-40a7-82d6-051783349826",
+  "credits_spent": 50,
+  "settings": {
+    "model": "H3.1",
+    "polycount_requested": 50000,
+    "texture": "4K",
+    "remove_lighting": true,
+    "pbr": false,
+    "generate_in_parts": false,
+    "views": [
+      "front",
+      "left",
+      "right",
+      "back"
+    ]
+  },
+  "triangles": 48423,
+  "vertices": 33374,
+  "sha256": "d7fdd40c590ad6df6fcb097f0f214173a792cd657dbfe51be2399dd1d54ebe0c",
+  "export_bytes": 3150452,
+  "mesh_primitives": 1,
+  "skeleton": false,
+  "facial_morphs": false,
+  "runtime_integration": {
+    "module": "src/characters/tripo-head.js",
+    "skeleton": "Existing fitted MakeHuman body skeleton: Head and neck_01",
+    "facial_keys": 8,
+    "mouth": "Stylized surface ink; no oral cavity",
+    "export_is_unmodified": true
+  }
+}

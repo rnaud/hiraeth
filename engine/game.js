@@ -84,8 +84,8 @@ function makeSound(levelId, { sampleRate = 48000, volume = 1, record = false } =
  * part is marked as carrying linear colour (tripo-material.js turns it to the game's display values in its shader:
  * the engines' ink surfaces do the same by userData.albedoLinear).
  */
-function engineColours(ch, { gltf, colors }) {
-  const parts = [ch.mesh, ch.cloth?.garment, ch.cloth?.underlayer, ch.cloth?.innerShirt].filter(Boolean);
+function engineColours(ch, { gltf, colors, headColors }) {
+  const parts = [ch.mesh, ch.head, ch.cloth?.garment, ch.cloth?.underlayer, ch.cloth?.innerShirt].filter(Boolean);
   let src = null;
   gltf?.scene?.traverse((o) => { if (o.isSkinnedMesh && !src) src = o.geometry.attributes.position; });
   if (!src || colors?.length !== src.count) return;
@@ -110,6 +110,15 @@ function engineColours(ch, { gltf, colors }) {
     if (found < P.count * 0.8) continue;   // (not the same places: left as it is)
     part.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
     part.material.vertexColors = true;
+  }
+  // The separate head preserves source vertex order, including through its fit.
+  // Engine VMs cannot decode its JPEG either; keep its face/hair colours visible.
+  const head = ch.head;
+  if (head && !head.material.uniforms?.uMap?.value?.image && headColors?.length === head.geometry.attributes.position.count) {
+    const c = new Float32Array(headColors.length * 3);
+    headColors.forEach((rgb, i) => { col.setRGB(...rgb.map(v => v / 255)).convertSRGBToLinear(); col.toArray(c, i * 3); });
+    head.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
+    head.material.vertexColors = true;
   }
   // the overshirt's lining on its back faces, the trousers' repaired band in their fabric (tripo-material.js, linear)
   const lin = (hex) => new THREE.Color().setHex(hex, THREE.LinearSRGBColorSpace).convertSRGBToLinear().toArray();
