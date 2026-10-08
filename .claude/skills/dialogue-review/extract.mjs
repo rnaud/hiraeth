@@ -42,11 +42,14 @@ function flagsOf(text, kind) {
 }
 
 // ---- walking the data (as tests/tone.test.js and tests/dialogue-choices.test.js do)
-const SEEN = new Set();
+const SEEN = new Set(), TALKS = new Set();
 function trees(v, where, out = []) {
   if (v == null || typeof v !== 'object' || SEEN.has(v)) return out;
   SEEN.add(v);
   const talk = v.talk ?? v;
+  // (content.js spreads a story's people into new objects: the same talk counts once, by the talk itself)
+  if (talk && talk !== v && TALKS.has(talk)) return out;
+  if (talk?.nodes || Array.isArray(talk?.listen)) TALKS.add(talk);
   if (talk?.nodes && Object.values(talk.nodes).some((n) => n && ('say' in n || 'choices' in n))) { out.push({ where, name: v.name ?? null, kind: 'tree', talk }); return out; }
   if (Array.isArray(talk?.listen)) { out.push({ where, name: v.name ?? null, kind: 'listen', talk }); return out; }
   for (const [k, x] of Object.entries(v)) if (!['if', 'after', 'do', 'set', 'palette'].includes(k)) trees(x, `${where}.${k}`, out);
@@ -105,7 +108,9 @@ for (const s of sources) {
       }
       const nf = [];
       if (node.choices.length > 3) nf.push(`${node.choices.length} answers (the house cap is 3)`);
-      if (node.pages.length >= 4) nf.push(`monologue: ${node.pages.length} pages with no answer between`);
+      // (a page behind a condition, { text, if }, is an alternative, not one more page in a run)
+      const always = [n.say].flat().filter((p) => p != null && !(typeof p === 'object' && p.if)).length;
+      if (always >= 4) nf.push(`monologue: ${always} pages with no answer between`);
       if (nid === Object.keys(t.talk.nodes)[0] && node.pages[0] && GREETING.test(node.pages[0].text)) nf.push('opens on a greeting: start in the middle of what they are doing');
       if (nf.length) node.flag = nf.join('; ');
       speaker.nodes.push(node);
