@@ -1,14 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Player, JET, JUMP_OFF, FALL } from '../src/player.js';
+import { Player, JUMP_OFF, FALL } from '../src/player.js';
 import { Bird } from '../src/bird.js';
 import { Hoverbike } from '../src/bike.js';
 import { Taxi } from '../src/taxi.js';
 import { Controller } from '../src/controller.js';
 
-// The controls of 2026-10-05: the jets on RT (flown like Superman where the camera looks, the
-// stick neutral hovers, the jump held climbs), the bottom button jumps off whatever you ride.
+// The controls of 2026-10-05: the bottom button jumps off whatever you ride.
 
 const DT = 1 / 60;
 const flat = { heightAbove: (p) => p.y, groundAt: () => 0, rayDistance: () => Infinity, pushCapsule: () => false, groundNormal: () => new THREE.Vector3(0, 1, 0) };
@@ -16,101 +15,7 @@ const owning = (...ids) => { const s = new Set(ids); return { has: (id) => s.has
 const horizontal = (v) => Math.hypot(v.x, v.z);
 const run = (p, secs, input = {}, yaw = 0, also) => { for (let i = 0; i < secs * 60; i++) { also?.(); p.update(DT, input, yaw); } };
 
-test('the jets fly like Superman: RT goes where the camera looks (up, level or down), neutral hovers, jump held climbs', () => {
-  const jetter = () => { const p = new Player(flat, { items: owning('backpack', 'jetpack'), health: false }); p.pos.set(0, 30, 0); p.onGround = false; return p; };
-  const fly = (p, secs, input, pitch = JET.level, yaw = 0) => { for (let i = 0; i < secs * 60; i++) p.update(DT, input, yaw, pitch); };
-  // neutral: a hover, even out of a fall, holding its height and its place
-  const u = jetter(); u.vel.set(0, -12, 0);
-  fly(u, 1.5, { PadFire: true });
-  assert.ok(u.thrusting, 'thrusting');
-  assert.ok(Math.abs(u.vel.y) < 1, `hovering (${u.vel.y.toFixed(2)} m/s)`);
-  const y0 = u.pos.y; fly(u, 1, { PadFire: true });
-  assert.ok(Math.abs(u.pos.y - y0) < 1, `holding its height (${(u.pos.y - y0).toFixed(2)} m)`);
-  assert.ok(horizontal(u.vel) < 0.5, 'and its place');
-  assert.ok(u.char.body.rotation.x < 0.4, `upright while hovering (${u.char.body.rotation.x.toFixed(2)})`);
-  // the stick at the follow camera's usual tilt: level flight that way, relative to the camera
-  const dirs = {};
-  for (const [name, stick] of Object.entries({ fwd: { x: 0, y: 1 }, back: { x: 0, y: -1 }, right: { x: 1, y: 0 }, left: { x: -1, y: 0 } })) {
-    const p = jetter(); fly(p, 2, { PadFire: true, stick });
-    assert.ok(Math.abs(horizontal(p.vel) - JET.speed) < 1, `${name}: ${horizontal(p.vel).toFixed(1)} m/s`);
-    assert.ok(Math.abs(p.vel.y) < 1 && Math.abs(p.pos.y - 30) < 2.5, `${name}: level (${p.vel.y.toFixed(2)} m/s, ${p.pos.y.toFixed(1)} m)`);
-    dirs[name] = new THREE.Vector3(p.vel.x, 0, p.vel.z).normalize();
-    if (name === 'fwd') {
-      assert.ok(p.char.body.rotation.x > 1.2, `flat out along the flight (${p.char.body.rotation.x.toFixed(2)})`);
-      assert.ok(Math.abs(Math.sin(p.heading - Math.atan2(p.vel.x, p.vel.z))) < 0.1, 'facing where it flies');
-    }
-  }
-  assert.ok(dirs.fwd.dot(dirs.back) < -0.99 && dirs.left.dot(dirs.right) < -0.99 && Math.abs(dirs.fwd.dot(dirs.right)) < 0.05, 'forward / back / left / right');
-  const turned = jetter(); fly(turned, 2, { PadFire: true, stick: { x: 0, y: 1 } }, JET.level, Math.PI / 2);
-  assert.ok(Math.abs(new THREE.Vector3(turned.vel.x, 0, turned.vel.z).normalize().dot(dirs.fwd)) < 0.05, 'relative to the camera');
-  // look up and push forward: a climb that way; look down: a dive; all the way down: straight down, head first
-  const climb = jetter(); fly(climb, 2, { PadFire: true, stick: { x: 0, y: 1 } }, -0.6);
-  assert.ok(climb.vel.y > 5 && horizontal(climb.vel) > 2 && climb.pos.y > 40, `climbing that way (${climb.vel.y.toFixed(1)} up, ${horizontal(climb.vel).toFixed(1)} across)`);
-  const dive = jetter(); dive.pos.y = 200; fly(dive, 2, { PadFire: true, stick: { x: 0, y: 1 } }, 0.9);
-  assert.ok(dive.thrusting && dive.vel.y < -6 && horizontal(dive.vel) > 2, `diving that way (${dive.vel.y.toFixed(1)} up, ${horizontal(dive.vel).toFixed(1)} across)`);
-  assert.ok(dive.char.body.rotation.x > Math.PI / 2, `head first (${dive.char.body.rotation.x.toFixed(2)})`);
-  const down = jetter(); down.pos.y = 200; fly(down, 2, { PadFire: true, stick: { x: 0, y: 1 } }, 1.3);
-  assert.ok(down.vel.y < -JET.speed && horizontal(down.vel) < 2, `straight down (${down.vel.y.toFixed(1)} m/s, ${horizontal(down.vel).toFixed(1)} across)`);
-  assert.ok(down.vel.y > -JET.speed * (1 + JET.dive) - 1, 'braked at the dive\'s speed, not falling free');
-  // jump held as well: straight up at JET.rise, and no boost
-  const h = jetter(); let boosts = 0; h.onAirJump = () => { boosts++; return true; }; h.vel.set(0, -12, 0);
-  fly(h, 0.1, { PadFire: true });
-  fly(h, 1.5, { PadFire: true, Space: true, PadJump: true });
-  assert.equal(boosts, 0, 'pressing jump while the jets fire climbs, it does not boost (nor spend a charge)');
-  assert.ok(h.thrusting && Math.abs(h.vel.y - JET.rise) < 1, `climbing (${h.vel.y.toFixed(2)} m/s)`);
-  assert.ok(horizontal(h.vel) < 0.5, 'straight up');
-  // let go: the jets stop, you fall
-  fly(h, 0.5, {});
-  assert.ok(!h.thrusting && h.vel.y < 0, 'falling once let go');
-  // aiming: RT shoots, the jets stay off; nor without the item
-  const a = jetter(); run(a, 0.3, { PadFire: true, PadAim: true });
-  assert.equal(a.thrusting, false, 'LT held: no jets');
-  const none = new Player(flat, { items: owning('backpack'), health: false }); none.pos.set(0, 30, 0); none.onGround = false;
-  run(none, 0.3, { PadFire: true });
-  assert.equal(none.thrusting, false);
-  // from the ground RT lifts you off (and flies off level); the mouse's left button too, when not aiming
-  for (const input of [{ PadFire: true }, { MouseLeft: true }, { PadFire: true, stick: { x: 0, y: 1 } }]) {
-    const g = new Player(flat, { items: owning('backpack', 'jetpack'), health: false });
-    run(g, 0.2); assert.ok(g.onGround);
-    fly(g, 1, input);
-    assert.ok(!g.onGround && g.thrusting && g.pos.y > 0.3, `${JSON.stringify(input)}: off the ground (${g.pos.y.toFixed(2)} m)`);
-  }
-  // a dive into the ground lands you (and you stay down, walking, while you keep diving)
-  const l = jetter(); l.pos.y = 6;
-  fly(l, 1.5, { PadFire: true, stick: { x: 0, y: 1 } }, 1.0);
-  assert.ok(l.onGround && !l.thrusting, `landed (${l.pos.y.toFixed(2)} m)`);
-  // flying level low over rising ground: it skims up the slope at the jets' speed (it used to drop to a walk at every touch)
-  const hill = (q) => 0.2 * (Math.abs(q.x) + Math.abs(q.z));
-  const rise = { ...flat, heightAbove: (q) => q.y - hill(q), groundAt: (x, y, z) => hill({ x, z }) };
-  const sk = new Player(rise, { items: owning('backpack', 'jetpack'), health: false }); sk.pos.set(0, 0.5, 0); sk.onGround = false;
-  fly(sk, 0.5, { PadFire: true });
-  const from = sk.pos.clone();
-  fly(sk, 3, { PadFire: true, stick: { x: 0, y: 1 } });
-  const went = Math.hypot(sk.pos.x - from.x, sk.pos.z - from.z);
-  assert.ok(went > JET.speed * 3 * 0.75, `skimming up the slope (${went.toFixed(1)} m in 3 s)`);
-  assert.ok(sk.pos.y >= hill(sk.pos) - 0.05, 'over it, not in it');
-  // under a low ceiling (a tube, a temple): looking up and flying presses along it, never through
-  const lid = { ...flat, pushCapsule: (pos, r, bottom, top, out) => { const over = pos.y + top - 6; if (over <= 0) return null; pos.y -= over; return out.set(0, -over, 0); } };
-  const c = new Player(lid, { items: owning('backpack', 'jetpack'), health: false }); c.pos.set(0, 1, 0); c.onGround = false;
-  fly(c, 2, { PadFire: true, stick: { x: 0, y: 1 } }, -0.3);
-  assert.ok(c.pos.y + 2.2 <= 6.01 && horizontal(c.vel) > 4, `along the ceiling (${c.pos.y.toFixed(2)} m, ${horizontal(c.vel).toFixed(1)} m/s)`);
-  // the gauge burns as before, and runs dry
-  const f = jetter(); run(f, 3, { PadFire: true });
-  assert.ok(f.fuel < 0.75 && f.fuel > 0.6, `the gauge (${f.fuel.toFixed(2)})`);
-});
-
-test('the jets on the keyboard: Space held in the air climbs as before; the pad\'s jump alone never fires them', () => {
-  const p = new Player(flat, { items: owning('backpack', 'jetpack'), health: false }); p.pos.set(0, 30, 0); p.onGround = false;
-  run(p, 1.5, { Space: true });
-  assert.ok(p.thrusting && p.pos.y > 38, `Space: up (${p.pos.y.toFixed(1)} m)`);
-  const q = new Player(flat, { items: owning('backpack', 'jetpack'), health: false }); q.pos.set(0, 30, 0); q.onGround = false;
-  run(q, 1, { Space: true, PadJump: true });
-  assert.equal(q.thrusting, false, 'the pad\'s jump: no jets');
-  // with the wings, the pad's jump held in the air opens them, fluid or not
-  const w = new Player(flat, { items: owning('backpack', 'jetpack', 'glider'), health: false }); w.pos.set(0, 60, 0); w.onGround = false;
-  run(w, 1, { Space: true, PadJump: true });
-  assert.ok(w.gliding && !w.thrusting, 'the wings');
-});
+// (the jets: tests/jets.test.js, since they fly like a plane, v0.89)
 
 /** A player riding `v` (made its mount if it is the bird), `h` m up, flying at `speed`. */
 function riding(v, { items = owning('backpack'), mount = false } = {}) {

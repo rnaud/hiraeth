@@ -17,7 +17,7 @@ import GUI from 'lil-gui';
 import { sharedUniforms, markHero, setEnvGround } from './materials.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
-import { Player, CameraRig } from './player.js';
+import { Player, CameraRig, jetCameraPitch } from './player.js';
 import { cameraPhysics, keepLensOut } from './carriers.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
@@ -399,6 +399,7 @@ if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, u
 // local lights: the 8 nearest to the player go to the shader each frame
 const levelLights = level.lights ?? (level.lights = []);
 const jetLight = new THREE.Vector4();
+const jetShotK = { pitch: 0, keepTight: true, yawRate: 4 };   // (the follow camera behind the jets' nose: rig.follow's shot)
 function updateLights() {
   const L = sharedUniforms.uLights.value;
   const p = player.pos;
@@ -407,8 +408,8 @@ function updateLights() {
     .filter(([l, d]) => d < (l.w + 250) ** 2)
     .sort((a, b) => a[1] - b[1]);
   let n = 0;
-  if (player.thrusting) {
-    jetLight.set(p.x, p.y + 0.6, p.z, 7 + Math.random() * 1.5);   // the flame flickers on nearby walls
+  if (player.jetPower > 0) {
+    jetLight.set(p.x, p.y + 0.6, p.z, (4 + 3 * player.jetPower) + Math.random() * 1.5);   // the flame flickers on nearby walls
     L[n++].copy(jetLight);
   }
   for (const [l] of ranked) { if (n >= 8) break; L[n++].copy(l); }
@@ -820,6 +821,7 @@ if (query.get('fps') === '1') settings.showFps = true;   // (the frame readout f
 settings.on((k) => {
   rig.sensitivity = settings.sensitivity;
   rig.invertY = settings.invertY;
+  player.invertFlight = settings.invertFlight;   // (the jets' pitch: push forward to climb)
   sound.setVolumes(settings.music, settings.effects);
   gui.domElement.style.display = settings.devPanel ? '' : 'none';
   document.body.classList.toggle('nofps', !settings.showFps);
@@ -1378,10 +1380,13 @@ function frame(ts) {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
-    player.update(dt, busy() ? noInput : ctl, rig.yaw, rig.pitch);   // (the pitch: the jets fly where the camera looks)
-    // (a wider arm for what needs to see ahead and below: gliding, the jets; a little for climbing and swimming)
-    const wide = player.riding ? null : player.gliding ? 7 : player.thrusting ? 3.5 : player.climbing ? 1.5 : player.swim ? 0.8 : 0;
-    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding, player.ride?.shot ?? null, wide);
+    player.update(dt, busy() ? noInput : ctl, rig.yaw);
+    // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
+    const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
+    const wide = player.riding ? null : player.gliding ? 7 : jets || player.jetHold ? 3.5 + Math.min(jetSpeed, 30) * 0.12 : player.climbing ? 1.5 : player.swim ? 0.8 : 0;
+    // flying on the jets the camera comes round behind the nose and tips with it, as a ride's does (the right stick or the mouse take it for a moment)
+    const jetShot = jets ? (jetShotK.pitch = jetCameraPitch(player.jetFlight.pitch), jetShotK) : null;
+    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding || jets, player.ride?.shot ?? jetShot, wide);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
     rig.update(player.pos, dt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
@@ -1457,9 +1462,9 @@ function frame(ts) {
   if (rideK === 'bird' && (ctl.Space || ctl.Throttle > 0.3) && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
   sound.update({
     speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: Wx.storm, rain: Wx.rainOut, rainRoof: Wx.rainRoof,
-    thrusting: player.thrusting, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
+    thrusting: player.thrusting || player.jetHold, jetPower: player.jetPower, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
     altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
-    flying: player.gliding || player.thrusting, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
+    flying: player.gliding || !!player.jetFlight, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
     roar: level.roar?.(player.pos) ?? 0,   // (a waterfall near: src/levels/waterfall.js)
     hum: level.hum?.(player.pos) ?? 0,   // (masts and a receiver near: src/levels/antennas.js)
     rails: level.rails?.(player.pos) ?? null,   // (a train's wheels under you: src/levels/overnight-train.js)

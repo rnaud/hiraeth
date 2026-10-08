@@ -1703,7 +1703,7 @@ export class Sound {
     this.set('rain', s.rain * 0.07);
     this.set('rainRoof', (s.rainRoof ?? 0) * 0.11);
     this.set('cloak', (s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07) * (0.5 + 0.5 * W));
-    this.set('jet', s.thrusting ? 0.32 : 0);
+    this.set('jet', s.thrusting ? 0.32 * (0.45 + 0.55 * Math.min(1, s.jetPower ?? 1)) : 0);   // (the throttle's roar: a light squeeze hums)
     const roar = Math.min(1, Math.max(0, s.roar ?? 0)) * (1 - 0.6 * (s.indoor ?? 0));
     this.set('roar', roar * 0.2, 300 + roar * 260);
     this.set('hiss', roar * roar * 0.035);

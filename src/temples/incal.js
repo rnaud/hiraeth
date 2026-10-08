@@ -104,7 +104,7 @@ function wardenHit(g, part, mode) {
 }
 
 /** What the jets are for, said a moment after the box's card closes in the Jets' Chamber. */
-export const JETS_NEXT = 'The jets hum on your back. Straight overhead the chamber’s ceiling is open: hold RT / R2 (or the left mouse button), without aiming, and fly up through it.';
+export const JETS_NEXT = 'The jets hum on your back. Straight overhead the chamber’s ceiling is open: hold RT / R2 (or the left mouse button), without aiming: they lift you straight up through it. Push the stick forward at the top to level out.';
 
 /** Are you past the oculus? (in the gallery or beyond: its mark, an eye lit, the warden met, or simply up there) */
 export function jetsUsed(rt) {

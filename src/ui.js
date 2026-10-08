@@ -20,6 +20,7 @@ const DEFAULTS = {
   quality: isNativeApp ? 'handheld' : isDeckApp || isTouch ? 'auto' : 'high',   // auto | handheld | deck | low | medium | high
   sensitivity: 1,
   invertY: false,
+  invertFlight: false,  // the jets (player.js JET): off, the stick forward tips the nose down as a plane's; on, forward climbs
   padFaces: 'auto',   // controller: where the printed A B X Y are (native-pad.js setFaces): auto | xbox | nintendo | nintendo-xbox
   music: 0.8,
   effects: 1,
@@ -66,7 +67,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
   return {
     keyboard: [
       ['Move · run', 'WASD · SHIFT'], ['Look', 'mouse (click the game to capture it) · wheel zooms'],
-      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets / wings (once found)', 'hold SPACE in the air · or hold left click without aiming: WASD flies where you look (look down to dive), no keys hovers, SPACE climbs'],
+      ['Jump · fluid boost', 'SPACE · SPACE again in the air'], ['Jets (once found): fly like a plane', 'hold left click without aiming, or SPACE in the air: thrust (from the ground: straight up) · W nose down · S nose up · A / D bank and turn · SHIFT faster · let go to glide · right click holds you to aim'], ['Wings (once found)', 'hold SHIFT + SPACE in the air (or SPACE with the jets dry)'],
       ['Climb', 'push into a wall'], ['Use, talk, get on / off', 'E (moving: jump off)'],
       ['In a cab (it drives itself)', 'choose a stop: click it, or its number · SPACE choose again · E get out'],
       ['The scout finds your objective', 'Q'], ['Aim the fluid tool · shoot', 'hold right mouse or R · left click or G'],
@@ -77,7 +78,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['Move · run', 'left stick · click it (L3)'], ['Look · zoom', 'right stick · hold LB / L1 with the right stick (no foe near)'],
       ['Jump · boost · wings', 'A / × · again in the air · hold'], ['Use, talk, get on', 'B / ○'],
       ['Call your mount or a taxi', 'X / □'], ['The scout finds your objective', 'Y / △ (riding too)'],
-      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets', 'hold RT / R2 without aiming: the left stick flies where you look (look down to dive, up to climb), the stick at rest hovers · A / × held climbs'],
+      ['Aim · shoot', 'LT / L2 · RT / R2 while aiming'], ['Jets: fly like a plane', 'RT / R2 thrust, the harder the faster (from the ground: straight up) · left stick forward nose down, back nose up, left / right bank and turn · L3 faster · let go to glide · LT / L2 in flight holds you to aim'],
       ['Gun mode (fluid, push, and those found)', 'D-pad left / right'], ['Fluid blade (press again to chain three swings) · guard · lock on', 'RB / R1 · hold LB / L1 · click the right stick (R3)'], ['Photo mode · bell whistle (once found)', 'D-pad down · D-pad up'],
       ['Items, quests and sketchbook · menu', 'View · Menu'],
       ['Their panels (items, quests, sketchbook, worlds)', 'LB / L1 · RB / R1'],
@@ -87,7 +88,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
       ['In menus', `D-pad select · left / right adjust · ${ok} confirm · ${back} back · right stick scroll`],
     ],
     touch: [
-      ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'],
+      ['Move · look', 'drag on the left · drag on the right'], ['Jump · use', '⤒ · the use button (it names what it does)'], ['Jets (once found)', 'hold ⤒ in the air: thrust · drag on the left: up tips the nose down, down pulls it up, sideways banks and turns'],
       ['Run', 'run (a toggle)'], ['The scout finds your objective', 'ping'], ['Aim · shoot · gun mode (push is one)', '◎ · ✺ · ◐'], ['Blade (tap) · guard (hold it) · lock on', '⚔ · ⚔ held · ◉'],
       ['Items, quests and sketchbook · menu', '❏ (its tabs turn the panels) · the small ⚙ in the corner'],
     ],
@@ -139,6 +140,7 @@ export class SettingsMenu {
           ${row('Graphics', `<select data-k="quality"><option value="auto">Auto (adapts to keep it smooth)</option><option value="handheld">Handheld (Retroid, phones)</option><option value="deck">Steam Deck</option><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (smooth lines)</option></select>`)}
           ${row('Camera sensitivity', `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
           ${row('Invert camera Y', `<input data-k="invertY" type="checkbox">`)}
+          ${row('Invert the jets\' pitch (push forward to climb)', `<input data-k="invertFlight" type="checkbox">`)}
           ${row('Controller buttons', `<select data-k="padFaces"><option value="auto">Auto</option><option value="xbox">A at the bottom (Xbox, PlayStation)</option><option value="nintendo">A on the right (Retroid, Nintendo)</option><option value="nintendo-xbox">A on the right, Retroid set to Xbox style</option></select>`)}
           ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
           ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}

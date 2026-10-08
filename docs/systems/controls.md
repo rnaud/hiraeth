@@ -35,13 +35,14 @@ under the same thumb (`src/controller.js`, from a Retroid player's feedback):
 
 | | bottom (Xbox A, Retroid B) | right (Xbox B, Retroid A) | left (Xbox X, Retroid Y) | top (Xbox Y, Retroid X) |
 |---|---|---|---|---|
-| walking | jump (again in the air: boost; hold: wings; with RT on the jets: climb) | interact, talk, get on | call the mount (whistle, hail a taxi) | ping |
+| walking | jump (again in the air: boost; hold: wings) | interact, talk, get on | call the mount (whistle, hail a taxi) | ping |
 | riding | jump off (a hop, its speed carries you) | get off (moving or flying: jump off) | hop / flap / rise (a cab: where to?) | |
 
 - **Walking:** left stick moves; click it (L3) to run, until you let the stick go.
   Right stick looks; hold LB / L1 and the right stick zooms (with no foe near: in a fight LB / L1 is the
   guard). LT / L2 aims the fluid tool and RT / R2 shoots while it is held (the **push** is a gun mode, fired
-  the same way); RT / R2 without LT fires the **jets** (see "The controls of October 2026" below).
+  the same way); RT / R2 without LT is the **jets'** throttle (analog; they fly like a plane: see
+  docs/systems/movement-and-camera.md).
   **RB / R1 swings the fluid blade** (press again to chain three swings), **LB / L1 held guards**, **R3 locks
   on** to the nearest foe, then the next, then lets go (docs/systems/foes.md). D-pad left / right changes the
   gun mode (fluid, push and those found), up sounds the bell-note whistle, down photo mode. View / Select opens the sketchbook on your **gear**
@@ -96,13 +97,12 @@ From the author's handheld sessions (TODO.md, "Controls").
   does not fire). Without aiming, RT / R2 and the left mouse button (pointer captured)
   fire the jets. G alone does nothing. The touch ✺ button writes `TouchFire`, a quick
   shot that raises the arm for you, since touch has no trigger to hold.
-- **The jets fly like Superman** (`player.update`, `JET`; October 2026, replacing "steer like
-  the bird"): with RT / R2 held (not aiming), the left stick flies you where the camera looks:
-  look up to climb, down to dive (straight down, head first, at the steepest), sideways to
-  strafe; stick at rest hovers; A / × held with RT rises straight up; L3 is faster and dives
-  speed up with their steepness. From the ground RT lifts you off unless you point into a dive.
-  The keyboard's and touch's Space still thrusts and climbs. Fuel, its refill on landing and
-  the landings are unchanged. docs/systems/movement-and-camera.md.
+- **The jets fly like a plane** (v0.89, replacing "like Superman", which replaced "steer like the
+  bird"): RT / R2 is the throttle, analog (`PadThrust`, `triggers().thrust`); from the ground it lifts
+  you straight up. The left stick flies the nose: forward dives, back climbs (Settings: invert),
+  left / right bank and turn. Let go to glide; LT / L2 in flight holds you to shoot. The keyboard's
+  left click or SPACE held in the air, and touch's ⤒ held, are full throttle; W / S and A / D (the
+  left drag on touch) fly the nose. docs/systems/movement-and-camera.md.
 - **Jump off** (`player.jumpOff`, `JUMP_OFF`): riding, the bottom button (Retroid B)
   jumps off the bird, the hoverbike, the skiff or a taxi with a 7 m/s hop. You keep
   85 % of its speed, and in the air it fades slowly until you land. The left button
@@ -115,8 +115,7 @@ From the author's handheld sessions (TODO.md, "Controls").
   into it, and she swoops in to catch you (`flyCatch` leads you by its own reach time).
 - **The ragdoll from higher up**: `FALL.tumble` is 32 m/s (about 16 m). A fatal fall is
   still 48 m/s (about 36 m).
-- Tests: `tests/controls.test.js` (the jets steering, hovering, climbing and lifting
-  off, the pad's jump and the wings, jumping off the bird low and high, with and
+- Tests: `tests/jets.test.js` (the jets), `tests/controls.test.js` (jumping off the bird low and high, with and
   without wings, the refused taxi jump, the bike's momentum, the new tumble height),
   `tests/controller.test.js` (`triggers`, the ride buttons), `tests/fluid-tool.test.js`
   (the straight shot, aim-first, the lip).

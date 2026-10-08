@@ -880,10 +880,10 @@ export class FluidTool {
 
   get aiming() { return this.k > 0.5; }
 
-  /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding, climbing, on the jets, in menus and photo mode. */
+  /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding, climbing, flying on the jets (aiming in flight holds you: player.jetHold, and then it can), in menus and photo mode. */
   allowed(paused) {
     const p = this.player;
-    return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.down && p.object?.visible !== false;   // (nor knocked down)
+    return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.onJets && !p.down && p.object?.visible !== false;   // (nor knocked down)
   }
 
   /**
@@ -997,7 +997,7 @@ export class FluidTool {
     const J = this.jets, p = this.player;
     if (!J) return;
     const on = this.canJet && p.object?.visible !== false;
-    J.update(dt, { on, thrusting: !!p.thrusting, time: this.time });
+    J.update(dt, { on, thrusting: !!p.thrusting || !!p.jetHold, power: p.jetPower ?? 1, time: this.time });   // (the flames as long as the throttle: player.jetPower)
     if (!on || J.thrust < 0.2) return;
     const tones = this.modeTones, U = p.frame.up, mouths = J.mouths(this._mouths ??= [new THREE.Vector3(), new THREE.Vector3()]);
     this._jetAcc = (this._jetAcc ?? 0) + dt;

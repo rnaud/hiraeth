@@ -31,8 +31,9 @@ What the traveller carries and the boxes that give it.
 - **Backpack-powered abilities** (`src/fluid-tool.js`, `src/fluid-kit.js`,
   `src/flammable.js`):
   - With no backpack there is no tool, and vehicles won't start.
-  - The jets drain the same reserve (0.3 charges per second) and work in any
-    world. The wings bloom from the tank and are needed to glide.
+  - The jets drain the same reserve (0.3 charges per second at full throttle, less
+    on a light squeeze; they fly like a plane: docs/systems/movement-and-camera.md)
+    and work in any world. The wings bloom from the tank and are needed to glide.
   - X cycles through the modes you own: shoot, stilling (freezes), ember
     (lights `level.flammables`) and, since the temples, bloom (grows). A target that doesn't list a mode in
     `accepts` gets `'shoot'`, so every puzzle works in every mode.

@@ -151,6 +151,34 @@ export const CHANGELOG_MEDIA = {
     { match: 'In the References level the Glass Dunes’ fourth picture', shots: [
       { name: 'wave-plate4', caption: 'The fourth picture’s view: the wave rises steep over the camp, curls over its hollow and sweeps down to the sand', from: 'the References level, ?level=references&world=glassdunes&view=4, headless Chrome, High, 1456 × 816 (7 October)' },
     ], see: 'Open ?level=references&world=glassdunes&view=4; the backslash key lays the picture over the view.' },
+    { match: 'The jets fly like a plane', shots: [
+      { name: 'jets-climb', only: 'after', caption: 'A second and a bit of RT / R2 from the sand in the desert: straight up, the camera looking up after you', from: 'headless Chrome against this branch’s own dev server, a simulated pad driving the jets, High, 1280 × 720, 10:00 (7 October)' },
+    ], numbers: [
+      { title: 'The jets from standing, RT / R2 held all the way, the stick at rest (the flight model run headless, 60 steps a second, on flat ground)', unit: 'm', better: 'higher', device: 'node, src/player.js (the old model at the commit before)', source: 'docs/systems/movement-and-camera.md, “The jets fly like a plane”', rows: [
+        { where: 'height after 3 s', before: 2.4, after: 58.6 },
+      ] },
+      { title: 'Seconds to 30 m up from standing (before: RT with A / × held, its straight climb; now: RT alone)', unit: 's', better: 'lower', device: 'node, src/player.js', source: 'docs/systems/movement-and-camera.md', rows: [
+        { where: 'to 30 m up', before: 3.1, after: 1.7 },
+      ] },
+    ], see: 'With the jets found, stand anywhere in the open and hold RT / R2 (the left mouse button): you go straight up, fast; a light squeeze rises slowly.' },
+    { match: 'On the jets the left stick flies the nose', shots: [
+      { name: 'jets-bank', only: 'after', caption: 'Banked into a right turn over the desert, flat out, the camera swinging round behind', from: 'headless Chrome against this branch’s own dev server, a simulated pad driving the jets, High, 1280 × 720, 10:00 (7 October)' },
+      { name: 'jets-dive', only: 'after', caption: 'Stick forward: a dive straight down, head first, the camera looking down it', from: 'headless Chrome against this branch’s own dev server, a simulated pad driving the jets, High, 1280 × 720, 10:00 (7 October)' },
+    ], numbers: [
+      { title: 'Top speeds on the jets (the flight model run headless, on flat ground)', unit: 'm/s', better: 'higher', device: 'node, src/player.js', source: 'docs/systems/movement-and-camera.md', rows: [
+        { where: 'level, full throttle', before: 8, after: 22 },
+        { where: 'level, L3 / Shift', before: 14, after: 30.8 },
+        { where: 'diving straight down', before: 12.3, after: 28.8 },
+      ] },
+    ], see: 'Lift off, push the left stick forward to level out, then left and right to bank round, forward to dive and back to pull up. Settings → Invert the jets’ pitch swaps forward and back.' },
+    { match: 'Let go of the jets in the air', shots: [
+      { name: 'jets-hold', only: 'after', caption: 'LT / L2 in flight: the jets hold him in the air, sinking slowly, the arm up to shoot', from: 'headless Chrome against this branch’s own dev server, a simulated pad driving the jets, High, 1280 × 720, 10:00 (7 October)' },
+    ], numbers: [
+      { title: 'Letting go of the throttle about 105–115 m up after flying level (the flight model run headless, on flat ground)', unit: 'm', better: 'higher', device: 'node, src/player.js', source: 'docs/systems/movement-and-camera.md', rows: [
+        { where: 'carried on before touching down (before: a fall, and a knock-down)', before: 5.5, after: 416 },
+      ] },
+    ], see: 'Fly level and let go of RT / R2: you glide down a long way; let go climbing steeply and the nose drops over into a glide. Hold LT / L2 while flying to hang there and shoot.' },
+    { match: 'With a keyboard the jets are the left mouse button', see: 'With a keyboard and mouse: click the game to capture the pointer, then hold the left mouse button (or jump and keep SPACE held): W / S tip the nose, A / D turn, SHIFT is faster. On a phone hold ⤒ in the air and drag on the left.' },
   ],
   '0.88': [
     { match: 'Blows land with weight', see: 'In the Arena, cut an ink blot: a brief catch and a jolt as the blade connects; the third swing of the combo sends it flying.' },
