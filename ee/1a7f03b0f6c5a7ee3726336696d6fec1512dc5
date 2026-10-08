@@ -1,0 +1,59 @@
+changelog.md
+  s_efb1d100d5a6fc::t_7e70d12d1e2711 7-8
+docs/README.md
+  s_efb1d100d5a6fc::t_3283354283db94 66
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_7d979f365b5949 4-6,13-15,79-86,114-145
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_2e7bec841e1e13 137-145
+src/changelog.js
+  s_efb1d100d5a6fc::t_09fd25ada8e33c 16-17
+src/foes.js
+  s_efb1d100d5a6fc::t_f4bbd6068af3d4 374,426-430,628,641
+src/levels/arena.js
+  s_efb1d100d5a6fc::t_5e2da82ccc0df3 7-8,43-44
+src/levels/bazaar.js
+  s_efb1d100d5a6fc::t_ca8678a417ff44 14-15,42-43,376-377,431
+src/main.js
+  s_efb1d100d5a6fc::t_35e1a5b44761ad 1422,1427,1490,1718
+src/minigames/gallery.js
+  s_efb1d100d5a6fc::t_75581149bf8217 1-726
+src/minigames/kit/labels.js
+  s_efb1d100d5a6fc::t_7e6c0d617944da 1-107
+src/minigames/kit/minigames.css
+  s_efb1d100d5a6fc::t_f3768e7928ba0c 4
+src/minigames/kit/onfoot.js
+  s_efb1d100d5a6fc::t_4ada2b7d0bae9c 1-61
+src/minigames/kit/runner.js
+  s_efb1d100d5a6fc::t_2f9ea5a5587823 9,50,59-64,76,175,193,231,322-324
+tests/minigames-gallery.test.js
+  s_efb1d100d5a6fc::t_69f1ff7c6f66bf 1-139
+tests/minigames-waves.test.js
+  s_efb1d100d5a6fc::t_2bb3e4031db924 1-92
+src/minigames/waves.js
+  s_2ca350b332c6cd::t_612940bd832a76 1-397
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ee1a7f03b0f6c5a7ee3726336696d6fec1512dc5",
+  "prompts": {},
+  "sessions": {
+    "s_2ca350b332c6cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5eded62a0784bfbd",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
