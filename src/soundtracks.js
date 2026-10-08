@@ -63,13 +63,15 @@ export async function loadSoundtrack(sound, fetcher = globalThis.fetch) {
     const decoded = await ctx.decodeAudioData(await response.arrayBuffer());
     if (sound._disposed || ctx.state === 'closed') return false;
     const source = ctx.createBufferSource(), gain = ctx.createGain();
-    source.buffer = prepareSoundtrack(ctx, decoded);
+    source.buffer = sound.trackBuffer = prepareSoundtrack(ctx, decoded);
     source.loop = true;
     gain.gain.setValueAtTime(0, ctx.currentTime);
     gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 2);
     source.connect(gain).connect(sound.music);
     source.start(ctx.currentTime);
     sound.recordedTrack = source;
+    sound.trackGain = gain;
+    sound.trackOn = true;   // (from here Sound.musicMoments fades it in and out: src/music-moments.js)
     return true;
   } catch (error) {
     if (!sound._disposed) console.warn('Recorded soundtrack unavailable; keeping the procedural score.', error);

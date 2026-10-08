@@ -80,13 +80,21 @@ export function gestureOf(e, player) {
   if (e.gesture !== undefined) return e.gesture;
   const p = String(typeof e.prompt === 'function' ? e.prompt() : e.prompt ?? '');
   if (/^pet\b/i.test(p)) return 'pet';
-  if (!/^(pick( up)?|take|gather|collect)\b/i.test(p)) return null;
+  if (!picksUp(e)) return null;
   const at = e.at?.(), pos = player?.pos;
   if (!at || !pos) return null;
   const up = player.frame?.up;
   const h = up ? (at.x - pos.x) * up.x + (at.y - pos.y) * up.y + (at.z - pos.z) * up.z : at.y - pos.y;
   return h < LOW ? 'kneel' : null;
 }
+
+/** Does using this entry pick something up or take it (its prompt: pick up, take, gather, collect)? */
+export function picksUp(e) {
+  return /^(pick( up)?|take|gather|collect)\b/i.test(String(typeof e?.prompt === 'function' ? e.prompt() : e?.prompt ?? ''));
+}
+
+/** Told whenever E uses an entry, after it did: onUse(entry) (main.js: the sound of a pick-up). */
+export const interactHooks = { onUse: null };
 
 /** The interactable that E would use right now, or null: { entry, distance }. */
 export function bestInteractable(player, { riding = !!player?.riding } = {}) {
@@ -111,8 +119,9 @@ export function updateInteract(player, pressed, o = {}) {
   const best = bestInteractable(player, o);
   if (best && pressed) {
     // (and the body goes with it: down on one knee to pick up something low, petting the dog)
-    const g = gestureOf(best.entry, player);
+    const g = gestureOf(best.entry, player), picked = picksUp(best.entry);
     best.entry.use(player);
+    if (picked) interactHooks.onUse?.(best.entry);
     if (g) player.gesture?.(g);
   }
   const prompt = best ? (typeof best.entry.prompt === 'function' ? best.entry.prompt() : best.entry.prompt) : null;

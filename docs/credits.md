@@ -16,6 +16,18 @@ The third-party art, animation and sound the game uses, and their licences.
   project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF
   EIA-0196217. Takes and terms: docs/motion-data.md.
 - License texts are in `public/anim/`.
+- Sound effects (`public/sfx/`, the body's foley and the blade's swings and hits): all CC0 1.0
+  (public domain), cut, filtered and re-encoded by `scripts/sfx-build.mjs`; each file's source is in
+  `public/sfx/manifest.json`.
+  - [Impact Sounds](https://kenney.nl/assets/impact-sounds) and [RPG Audio](https://kenney.nl/assets/rpg-audio)
+    by Kenney (kenney.nl), CC0: footsteps, landings, cloth, belts, leather, creaks, wood knocks.
+  - From [Freesound](https://freesound.org), sounds marked Creative Commons 0 on their pages (their HQ
+    previews): breaths and exhale grunts by gtrempe (#444726), pain grunts by unfa (#610998) and
+    MrFossy (#547209), sighs by ValentinPetiteau (#569568) and elle-trudgett (#146769), body falls by
+    leonelmail (#504626) and #346694, whooshes by qubodup (#60013, #59988), Jofae (#389590),
+    SypherZent (#420668), Dalesome (#352719) and florianreichelt (#683101), wet splats by Breviceps
+    (#445109), nebulasnails (#495118, #495117) and gprosser (#360942), cloth flaps by martian (#19290)
+    and memuse (#280205), swimming by craigsmith (#438845) and small splashes by N-RAZM (#390391).
 
 ## Notes that sat under the credits
 

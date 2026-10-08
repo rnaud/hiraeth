@@ -61,11 +61,12 @@ import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
 import { knownWorlds, newlyKnown } from './story/route.js';
 import { revealNote } from './story/signature.js';
-import { registerInteractable, PRIORITY } from './interact.js';
+import { registerInteractable, PRIORITY, interactHooks } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
+import { BodyFoley } from './foley.js';
 import { items, ITEMS } from './items.js';
 import { menuSources } from './game-menu-data.js';
 import { ItemIcons } from './item-icons.js';
@@ -277,7 +278,7 @@ const player = new Player(physics, {
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
-  onHurt: (k, why) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); hpShown = 3; if (why === 'foe') kick(0.45 + k); },
+  onHurt: (k, why) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); sound.hurt(k, why); hpShown = 3; if (why === 'foe') kick(0.45 + k); },
   onKnockdown: (dead) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; },
   onKnockout: (why) => { knockedOut = why; },
   onWhistle: (kind) => (kind === 'mount' && level.mountName === 'bird' ? sound.tune(RIDER_CALL, RIDER_CALL_BEAT) : sound.whistle(kind)),   // calling the bike, the bird (the rider's call, on the flute) or a taxi
@@ -455,6 +456,9 @@ await slice();
 
 // ------------------------------------------------------------------ sound, weather, people, story
 const sound = new Sound(levelId);
+// the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
+const foley = new BodyFoley(sound);
+interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)
 waters.sound = sound;
 player.onSwim = (kind, info) => waters.event(kind, info);   // splashes, strokes, a gasp
 // hoverbikes and skiffs skim over any water (bike.js groundAt)
@@ -583,6 +587,7 @@ Object.assign(journal.menu, {
   onUse: (id) => { const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
 });
 // a keepsake just earned: a toast says what the father's charge gained
+game.on('keepsake', () => sound.musicCue('moment', { delay: 1 }));   // (the recorded theme comes back: src/music-moments.js)
 game.on('keepsake', (k) => { const line = chargeHud(charge(), { kept: k.name }); if (line) showToast(line); });
 // a save from before the charge had its card: letter it once, at the first quiet moment
 if (game.flag('prologue.done') && !game.flag(CHARGE_CARD) && !playPrologue && !playHomecoming && !minigameDef) {   // (not over a game: the next world's first quiet moment)
@@ -864,6 +869,7 @@ settings.on((k) => {
   rig.invertY = settings.invertY;
   player.invertFlight = settings.invertFlight;   // (the jets' pitch: push forward to climb)
   sound.setVolumes(settings.music, settings.effects);
+  sound.setMusicMode(settings.musicMode);
   gui.domElement.style.display = settings.devPanel ? '' : 'none';
   document.body.classList.toggle('nofps', !settings.showFps);
   if (settings.quality !== lastQuality || k === null) { lastQuality = settings.quality; applyQuality(); }
@@ -1540,6 +1546,7 @@ function frame(ts) {
   if (!minigameDef) story.update(dt, t, camera);   // (a game's page tells no story: its host's goal is not reached by standing in the game)
   const rideK = player.ride?.kind;
   if (rideK === 'bird' && (ctl.Space || ctl.Throttle > 0.3) && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
+  foley.update(player, dt);
   sound.update({
     speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: Wx.storm, rain: Wx.rainOut, rainRoof: Wx.rainRoof,
     thrusting: player.thrusting || player.jetHold, jetPower: player.jetPower, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,

@@ -142,6 +142,8 @@ export class Relics {
     if (k >= 0) this.lights.splice(k, 1);
     this.journal.addRelic(this.levelId, it.i, { name, img, t: Date.now() });
     this.sound.chime();
+    this.sound.pickup?.({ pos: it.grp.position });
+    this.sound.musicCue?.('moment', { delay: 1.5 });   // (a find: the recorded theme comes back, src/music-moments.js)
     toast(`Found: ${name} · ${this.journal.relicCount(this.levelId)}/${this.total}`);
   }
 }
@@ -282,6 +284,7 @@ export class Story {
     if (text) this.say(text);
     if (which !== 'outro') return;
     this.sound.chime();
+    this.sound.musicCue?.('moment', { delay: 1 });   // (a world's story done)
     // finishing a world names the next one on the ship's map (def.next: main.js, src/story/route.js)
     const next = this.done && (typeof this.def.next === 'function' ? this.def.next() : this.def.next);
     if (next) this.say(next);

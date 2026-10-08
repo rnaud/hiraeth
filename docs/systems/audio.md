@@ -112,3 +112,55 @@ two seconds crossfaded into the opening for looping, then faded in over two seco
 They use the existing music bus: volume, mute, menu hush, musician ducking,
 underwater filtering and background suspension still apply. Ambience, bands and
 combat continue independently. Disposing a world cancels its outstanding download.
+
+## Scoring the moments (October 2026)
+
+With a recorded theme loaded, Settings > Music plays decides when it plays. **Moments** (the default)
+keeps it for arrivals, interiors and moments, and lets the ambience carry the open world between them;
+**Always** plays it all the time, as before. `MusicMoments` (`src/music-moments.js`, pure) holds the
+state; `Sound.musicMomentsUpdate` (from `sound.update`, every frame) turns it into the recording's fades
+(in over 3 s, out over 10 s; a theme stopped after its fade starts again from its opening).
+
+- **Arrival**: the theme plays for 150 s from the world's first sound.
+- **Indoors** (`s.indoor`, src/shelter.js): it plays, and lingers 20 s after you step out.
+- **Moments** (`sound.musicCue('moment', { delay })`, 110 s): a story moment's `swell()` (after its
+  phrase), the father's `charge()`, a box's `fanfare()`, `homage()`, the spheres' song, a relic found
+  (src/quest.js), a world's story done, a keepsake (`game.on('keepsake')` in main.js).
+- **Back by itself**: after 5 to 8 minutes of quiet it returns for 90 s.
+- **Between**: the procedural score plays only its light layers (`lightScore`: drone, pad, a sparse
+  pluck, the colour, the echo, all softer; no melody, bass or drums), over the ambience. Before the
+  recording has loaded, or without one, the full procedural score plays as before.
+
+`tests/music-moments.test.js` checks the state machine and the light layers.
+
+## Recorded effects: the body's foley (October 2026)
+
+The traveller's body used to be silent apart from the synthesised footsteps. Now it is heard through a
+small bank of CC0 recordings (`public/sfx/`, 74 mono MP3s at 64 kb/s, about 360 KB; sources in
+`public/sfx/manifest.json` and docs/credits.md), with the synth as the fallback.
+
+- **The bank** (`src/sfx.js` `SampleBank`, `sound.bank`): `SFX` lists each group (its takes, level and
+  pitch / level spread). `Sound.start` preloads it 0.8 s in, four files at a time; a group asked before
+  it is ready starts loading and returns false, so the caller plays its synth. A failed fetch or decode
+  (offline with a file missing, an engine bridge with no decoder) stays on the synth. Every play takes
+  the next of a shuffled round of takes (never the same one twice running) with a little random pitch
+  and level, so footsteps and combos never machine-gun. Everything goes into the effects bus: the
+  Effects volume and mute apply. `sound.sample(group, { vol, rate, at, pos })` pans toward `pos` and
+  softens it with distance (`placeAt`).
+- **When** (`src/foley.js` `BodyFoley`, `foley.update(player, dt)` in main.js): it watches the player's
+  state from frame to frame and calls the Sound's `jump`, `land` (both feet on the level profile's
+  ground, stone, grass or sand, then a body thump scaled by the fall speed, a spray of sand on sand),
+  `grab` (the climb), `mantle`, `wings` (open / fold), `jets` (lighting), `evade` (the roll),
+  `knockdown` and `getUp`. Hurts come from Player `onHurt` (`sound.hurt`: a pained grunt or a sharp
+  breath, and the blow on the body), pick-ups from `interactHooks.onUse` (src/interact.js: prompts
+  that pick up, take, gather or collect) and relics.
+- **Breaths** are soft and occasional: about one jump in five, more when out of stamina, often on a
+  mantle, sometimes on the third cut, never two within 4.5 s (`FOLEY.breathGap`); voices never overlap
+  (`Sound.vocal`).
+- **The blade**: each swing has its whoosh by the combo's step (the third a heavier, lower one), a hit
+  a wet ink splat and a body blow (heavier on the third), a block a splat and a knock, all layered over
+  the fluid's own synth. Footsteps, swimming strokes, splashes, the box's creak and knocks and the
+  bird's wingbeats use the recordings too.
+- `node scripts/sfx-build.mjs <sources>` remakes the files from the downloads (sox and lame); the
+  recipe in it names every source. `tests/sfx.test.js` checks the files, the variation, the round
+  robin and the fallback; `tests/foley.test.js` the events.

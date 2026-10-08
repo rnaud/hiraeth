@@ -24,6 +24,7 @@ const DEFAULTS = {
   invertFlight: false,  // the jets (player.js JET): off, the stick forward tips the nose down as a plane's; on, forward climbs
   padFaces: 'auto',   // controller: where the printed A B X Y are (native-pad.js setFaces): auto | xbox | nintendo | nintendo-xbox
   music: 0.8,
+  musicMode: 'moments', // the recorded theme for arrivals, interiors and moments, ambience between (src/music-moments.js) | always
   effects: 1,
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
   alienVoices: true,    // off: conversations go back to plain soft blips
@@ -164,6 +165,7 @@ export class SettingsMenu {
           ${row('Invert the jets\' pitch (push forward to climb)', `<input data-k="invertFlight" type="checkbox">`)}
           ${row('Controller buttons', `<select data-k="padFaces"><option value="auto">Auto</option><option value="xbox">A at the bottom (Xbox, PlayStation)</option><option value="nintendo">A on the right (Retroid, Nintendo)</option><option value="nintendo-xbox">A on the right, Retroid set to Xbox style</option></select>`)}
           ${row('Music', `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
+          ${row('Music plays', `<select data-k="musicMode"><option value="moments">Moments (arrivals, interiors, discoveries)</option><option value="always">Always</option></select>`)}
           ${row('Effects', `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
           ${row('Voices', `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
           ${row('Alien voices (heard through your translator)', `<input data-k="alienVoices" type="checkbox">`)}
