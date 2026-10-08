@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { LINE, INK_WHITE, packLight, unpackLight, makeMaterial } from '../src/materials.js';
-import { FLAME, TONGUES, EYES, SHADE_MATERIAL, flameRest, flameTarget, flameDrive, tongueRadius, tongueAxis, tongueLength, ShadeFlame } from '../src/shade.js';
+import { FLAME, TONGUES, EYES, SHADE_MATERIAL, SHADE_STRIKE, flameRest, flameTarget, flameDrive, tongueRadius, tongueAxis, tongueLength, lickWave, ShadeFlame } from '../src/shade.js';
+import { SWINGS } from '../src/fluid-blade.js';
 
 // The shade's look (docs/systems/foes.md, "The shade"): a cartoon's negative, flat black with white lines (the
 // material's lineWhite: RT0.a's sign bit, post.js 1b), its head a black flame that answers how it moves and fights.
@@ -107,4 +108,39 @@ test("the flame mesh: its tongues and eye-slits follow the drive, the head's ton
   flame.update({ ...d, size: 0 }, neck);
   assert.ok(flame.eyes.every((e) => !e.visible), 'gone: no eyes');
   assert.ok(EYES.u > 0 && EYES.u < 1 && TONGUES.filter((t) => t.main).length === 1);
+});
+
+test('its licks travel up a tongue; a tip that breaks off leaves its tongue short a moment', () => {
+  // (a bulge moves up as time goes on: where it peaks at one moment is higher a moment later)
+  const peak = (t) => { let best = -1, at = 0; for (let u = 0.2; u < 0.8; u += 0.005) { const v = lickWave(u, t); if (v > best) { best = v; at = u; } } return at; };
+  assert.ok(peak(0.05) > peak(0), 'the bulges travel up');
+  assert.equal(lickWave(0, 1.3), 1); assert.ok(Math.abs(lickWave(1, 1.3) - 1) < 1e-9, 'none at the root or the tip');
+  const T = TONGUES[1], d = { ...flameRest(), size: 1 };
+  const whole = tongueLength(T, d);
+  d.snap[T.i] = 1;
+  assert.ok(tongueLength(T, d) < whole * 0.75, 'short just after');
+  flameDrive(d, {}, 0.5);
+  assert.equal(d.snap[T.i], 0, 'and whole again soon');
+});
+
+test('three wavy tips: one head tongue, two lesser ones out of its flanks; the card turns to the eye', () => {
+  assert.equal(TONGUES.length, 3);
+  const [main, l, r] = TONGUES;
+  assert.ok(main.main && main.r > l.r && main.r > r.r && main.len > l.len && main.len > r.len);
+  assert.ok(l.at[0] < 0 && r.at[0] > 0 && l.tilt[0] < 0 && r.tilt[0] > 0, 'one each side, leaning out');
+  assert.ok(l.curl > 0 && r.curl < 0, 'curling back in');
+  assert.ok(main.at[1] < -0.15, 'its root low, behind the collar');
+  const root = new THREE.Group(), flame = new ShadeFlame(root, makeMaterial({ ...SHADE_MATERIAL, key: 'test-card' }), makeMaterial({ color: '#fff', key: 'test-card-eyes' }));
+  flame.update({ ...flameRest(), size: 1 }, new THREE.Vector3(0, 1.47, 0));
+  const cam = new THREE.PerspectiveCamera(); cam.position.set(3, 1.6, 0); cam.updateMatrixWorld(true); root.updateMatrixWorld(true);
+  flame.mesh.onBeforeRender(null, null, cam);
+  assert.ok(Math.abs(flame.mesh.rotation.y - Math.PI / 2) < 0.01, 'turned to a camera on its right');
+  const ortho = new THREE.OrthographicCamera(); ortho.position.set(-3, 5, 0); ortho.updateMatrixWorld(true);
+  flame.mesh.onBeforeRender(null, null, ortho);
+  assert.ok(Math.abs(flame.mesh.rotation.y - Math.PI / 2) < 0.01, "a shadow's camera leaves it be");
+});
+
+test("its strike plays a clip the moves have (the blade's own)", () => {
+  assert.ok(SWINGS.some((s) => s.clip === SHADE_STRIKE.clip), SHADE_STRIKE.clip);
+  assert.ok(SHADE_STRIKE.from < SHADE_STRIKE.cut && SHADE_STRIKE.cut < SHADE_STRIKE.to);
 });

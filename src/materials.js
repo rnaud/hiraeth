@@ -175,6 +175,8 @@ export const LINE = { weights: [1, 0.7, 0.45, 0.25], alpha: [1, 0.82, 0.66, 0.5]
 export const INK_WHITE = [0.97, 0.95, 0.9];
 /** The shade's black (fluid 'shadow': src/shade.js), a hair off pure black so the paper's grain still sits on it. */
 export const SHADE_BLACK = [0.03, 0.026, 0.036];
+/** The shade's white contour drawn from inside (px, before the render scale), under post.js' white line. */
+export const SHADE_RIM = 1.4;
 /** The step packed for a material's line (0: the world's ink). */
 export function lineStep(o) {
   // (glass a thin line in its own colour, foliage a lighter one in its dark green, unless they say)
@@ -1846,8 +1848,11 @@ const fragmentShader = /* glsl */ `
         float dpx = abs(fn - 0.5) / max(fwidth(fn), 1e-5);
         // the flame's lick (derivatives taken for every pixel: in uniform flow)
         float fr = fract(vFold.x), u = vFold.y;
+        // (the head's tongue, 3 +: its lick only up its tip, clear of the eyes)
+        float head = step(2.5, vFold.x);
         float fpx = abs(fr - 0.75 - 0.05 * sin(u * 6.0 + t * 3.0)) / max(fwidth(fr), 1e-5);
-        float flame = step(0.5, vFold.x), lick = (1.0 - step(2.5, vFold.x)) * smoothstep(0.3, 0.4, u) * (1.0 - smoothstep(0.7, 0.82, u));
+        float flame = step(0.5, vFold.x);
+        float lick = mix(smoothstep(0.3, 0.4, u) * (1.0 - smoothstep(0.7, 0.82, u)), smoothstep(0.55, 0.64, u) * (1.0 - smoothstep(0.82, 0.92, u)), head);
         float k = mix(keep, lick, flame), d = mix(dpx, fpx, flame);
         float hw = max(0.006 / px, 0.7) * k;
         col = mix(col, vec3(${INK_WHITE.map((v) => v.toFixed(3)).join(', ')}), (1.0 - smoothstep(hw - 0.5, hw + 0.5, d)) * step(0.05, k) * uFluidBox.z);
@@ -2138,6 +2143,13 @@ const fragmentShader = /* glsl */ `
     #endif
     #ifdef FLUID
       albedo = fluidAlbedo(albedo);
+      // the shade's contour from inside: a white band ~1.4 px in from where its surface turns away (n·v over its
+      // own screen derivative: how many pixels to the edge), under post.js' white line, a cartoon's clean outline
+      if (uFluidA.w > 4.5) {
+        float ndv = abs(dot(n, normalize(cameraPosition - vWorldPos)));
+        float rimPx = ndv / max(fwidth(ndv), 1e-5), rimW = ${SHADE_RIM.toFixed(2)} * max(uPixelRatio, 1.0);
+        albedo = mix(albedo, vec3(${INK_WHITE.map((v) => v.toFixed(3)).join(', ')}), 1.0 - smoothstep(rimW - 0.5, rimW + 0.5, rimPx));
+      }
     #endif
     #ifdef FALL
       albedo = fl.albedo;

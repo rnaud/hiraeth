@@ -195,21 +195,31 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
   (the sign bit, rendering.md "The G-buffer's layout"), and post.js 1b draws the line's owner's line in
   `INK_WHITE` instead of the ink, so the contour round it, both sides of the silhouette, and its creases are
   white in any world's light. No extra pass: one more tap was already there.
-- **Its head, a black flame** (`ShadeFlame`): seven tongues (`TONGUES`: the head's bulb, a crown of three, one
-  down the back, two off the shoulders) in one mesh of 924 vertices rewritten on the CPU each frame (0.06 ms on
-  an M4), sharing the body's material; the body's head is cut at the neck (`fluidBox.w`), and the flame's
-  `aFold` (x 1 + round a tongue, 3 + on the head's; y up it) keeps the body's cuts off it and draws a white lick
-  up each tongue's front. Two white eye-slits (`EYES`) ride the head's tongue. What drives it is pure maths
-  (`flameTarget`, `flameDrive`, `tongueAxis`, `tongueRadius`, `FLAME`): it leans back from its velocity (in its
-  own frame, up to `leanMax`), flares up to `1 + flare` over the wind-up (eyes narrowing), whips across with
-  the cut (`sin 2πk`), gutters (smaller, choppier, eyes shut to lines) while stunned or just hit, and is gone as
-  it melts; it flares fast and dies down slower, on its own clock so a faster flicker never jumps.
+- **Its head, a black flame** (`ShadeFlame`): drawn as a cartoon draws a flame, three flat tongues (`TONGUES`:
+  the head's onion, rising from behind the collar so the chest and shoulders hide its root, and two lesser tips
+  out of its flanks, leaning out and curling in) on one card that turns to the eye round its upright as it is
+  drawn (`onBeforeRender`, a perspective camera's only: the shadow's leaves it), 525 vertices rewritten on the CPU
+  each frame, sharing the body's material. Overlapping on the card they make one silhouette with three wavy tips.
+  Its normals bulge it out to its edges, so the material's inner white contour runs round it; each edge is
+  scalloped by licks travelling up it out of step left and right (`lickWave`), and its axis by an S-wave
+  travelling up (`tongueAxis`); a white lick is drawn up each tongue (the head's only up its tip, clear of the
+  eyes), from its `aFold` (x 1 + across a tongue, 3 + the head's; y up it), which also keeps the body's cuts off
+  it. The body's head is cut at the neck (`fluidBox.w`, 1.5 m in bind space). Two white eye-slits (`EYES`) sit on
+  the card. The drive is pure maths (`flameTarget`, `flameDrive`, `FLAME`): it leans from its velocity (across
+  the card; toward or away from the eye it foreshortens), flares to `1 + flare` over the wind-up (eyes
+  narrowing), whips across with the cut (`sin 2πk`), gutters (smaller, choppier, eyes shut to lines) while stunned
+  or just hit, and is gone as it melts; it flares fast and dies down slower, on its own clock. Every 0.35–0.8 s a
+  tip breaks off as a small rising wisp (`ShadePools.licks`, white-lined), its tongue jumping short a moment
+  (`drive.snap`); oftener as it flares or gutters, a stream as it dies.
+- **The contour:** post.js' white line on both sides of its silhouette, and inside it a white band ~1.4 px wide
+  (`SHADE_RIM`, × the render scale) where its surface turns from the eye (n·v over its own screen derivative: how
+  many pixels to the edge): about 2–3 px of clean white in all, as rubber-hose cartoons draw it.
+- **Its strike** (`SHADE_STRIKE`) is the blade's first cut (`mixamo_ss_attack_1`: moves.glb has it; the attack
+  it named before was gone, so it never moved its arms).
 - **Coming and going:** `uFluidB.y` (melt) pours it up out of the floor and back down into it under a dripping
-  edge; its flame's root sinks with it, and black licks (`ShadePools.licks`, white-lined teardrops) tear off the
-  tongue tips and rise as it dies (and now and then as it flares or gutters). Its feet run into the floor in
+  edge; its flame's root sinks with it, and black licks tear off the tips and rise. Its feet run into the floor in
   wavering drips.
-- **On the floor:** a few black drops fall off it (`ShadePools.drops`, white-lined, smooth so no facet is
-  inked), and it leaves dark pools where it walks (`ShadePools.pools`: a `Footprints` decal with a blob shape,
+- **On the floor:** a few plain black drops fall off it (`ShadePools.drops`, smooth spheres, inked as anything is), and it leaves dark pools where it walks (`ShadePools.pools`: a `Footprints` decal with a blob shape,
   so it darkens the ground and is never inked). The costume's pieces (a hat, a pack) are hidden: only the
   skinned body is drawn.
 - **Where:** a lone shade in a later pack (`packKinds`, n ≥ 3), and in the Arena. Without the game's bodies
@@ -220,7 +230,7 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Combat music** (`Sound.combat`): a drum, an off-beat tom and a low drone a fifth apart on their own bus
   under the music. It is on while a foe within 28 m chases, winds up or recovers.
 - **Ink stains:** where a blot or a shade falls (`Foes.stain`), dark pools in the `ShadePools` decal.
-- **The shade's slash:** an arc of black, white-lined drops in front of it as it strikes (`slashTrail`).
+- **The shade's slash:** an arc of black drops in front of it as it strikes (`slashTrail`).
 - **The temple kit** (`templeKit`, inside the temple): a blowing `Gust` shoves machines down its hall; a
   machine on a `Plate` presses it (`logic.press(id, 'foe')`).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
