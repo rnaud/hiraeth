@@ -17,3 +17,36 @@ export function controlsFor(def, kind = 'keys') {
 export function quitHref(from) {
   return from ? `?level=${encodeURIComponent(from)}` : '?worlds=1';
 }
+
+// ------------------------------------------------------------------ the start card's options (def.options)
+//   { id, label, choices: [[value, 'Label'], …], default }                 a row of choices (a difficulty)
+//   { id, label, min, max, step, default, unit, hint }                    a stepper, − value + (a timing offset)
+// Kept in the save's flags, minigame.<id>.opt.<option>; ctx.option(id) reads them. With def.bestBy (an
+// option's id), each of its values keeps a best of its own (minigame.<id>.<value>.best).
+
+export const optionKey = (gameId, optId) => `minigame.${gameId}.opt.${optId}`;
+
+/** An option's value: the one kept (if still allowed), else its default (else its first choice, or 0). */
+export function optionValue(def, state, optId) {
+  const o = (def?.options ?? []).find((q) => q.id === optId);
+  if (!o) return undefined;
+  const kept = state?.flag?.(optionKey(def.id, optId));
+  if (o.choices) return o.choices.some(([v]) => v === kept) ? kept : o.default ?? o.choices[0]?.[0];
+  const v = Number.isFinite(kept) ? kept : o.default ?? 0;
+  return Math.max(o.min ?? -Infinity, Math.min(o.max ?? Infinity, v));
+}
+
+/** A stepper's value moved by n steps, held inside its range. */
+export function stepOption(o, v, n) {
+  const step = o.step ?? 1, w = Math.round(((Number(v) || 0) + n * step) / step) * step;
+  return Math.max(o.min ?? -Infinity, Math.min(o.max ?? Infinity, Math.round(w * 1000) / 1000));
+}
+
+/** A stepper's value as the card shows it: '+20 ms', '0 ms'. */
+export const optionText = (o, v) => `${v > 0 ? '+' : ''}${v}${o.unit ? ` ${o.unit}` : ''}`;
+
+/** The game as its scores are kept: with def.bestBy, one best for each value of that option. */
+export function scoreDef(def, state) {
+  if (!def?.bestBy) return def;
+  return { ...def, id: `${def.id}.${optionValue(def, state, def.bestBy)}` };
+}

@@ -19,7 +19,7 @@ import { gameSfx } from './sfx.js';
 import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
 import { inputKind, escapeHtml } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
-import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref } from './flow.js';
+import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionKey, stepOption, optionText, scoreDef } from './flow.js';
 
 export { COUNT, controlsFor, quitHref };
 
@@ -73,7 +73,12 @@ export class MinigameRunner {
     return {
       def: this.def, scene: H.scene, camera: H.camera, player: H.player, physics: H.physics, level: H.level,
       sound: H.sound, wind: H.wind, sfx: this.sfx,
-      tool: H.tool ?? null, foes: H.foes ?? null, rig: H.rig ?? null, settings: H.settings ?? null, state: H.state ?? null,   // (a game played on foot: drives false)
+      tool: H.tool ?? null, foes: H.foes ?? null, settings: H.settings ?? null,   // (a game played on foot: drives false)
+      // (the world's own: the camera rig, a frame grabbed from another viewpoint, its people and creatures,
+      // and what a game's own people are made of: main.js)
+      rig: H.rig ?? null, capture: H.capture ?? null, npcs: H.npcs ?? [], crowd: H.crowd ?? null, wildlife: H.wildlife ?? null, flora: H.flora ?? null, people: H.people ?? null,
+      /** An option chosen on the start card (def.options: a difficulty, a timing offset), or its default. */
+      option: (id) => optionValue(this.def, H.state, id),
       /** Seconds since GO, with the penalties. */
       get time() { return R.clock + R.penalty; },
       get phase() { return R.phase; },
@@ -96,7 +101,7 @@ export class MinigameRunner {
       speed: (k) => R.speedLines(k),
       /** Something the session put in the scene, taken out when the game is left. */
       add(o) { H.scene.add(o); R.added.push(o); return o; },
-      best: () => bestScore(H.state, this.def),
+      best: () => bestScore(H.state, scoreDef(this.def, H.state)),
       /** The save (flag(name), set(name, value)): what a game keeps besides its best (its splits, a journal). */
       state: H.state,
     };
@@ -119,7 +124,7 @@ export class MinigameRunner {
     }
     const live = this.phase === 'play';
     if (live) this.clock += dt;
-    this.session.update?.(dt, live ? inp : NO_INPUT, { live, phase: this.phase, t: this.clock });
+    this.session.update?.(dt, live ? inp : NO_INPUT, { live, phase: this.phase, t: this.clock, raw: controls ?? {} });   // (raw: the merged controls, for a game reading buttons of its own)
     if (this.phase === 'finishing' && (this.doneT -= dt) <= 0) this.showResults();
     this.drawHud();
   }
@@ -134,13 +139,14 @@ export class MinigameRunner {
     this.hud.classList.remove('off');
   }
 
-  finish({ score, failed = false, title, lines = [] } = {}) {
+  finish({ score, failed = false, title, lines = [], html = null, wide = false } = {}) {
     if (this.phase !== 'play') return;
     const kind = this.def.score?.kind ?? 'points';
     const value = score ?? (kind === 'time' ? this.clock + this.penalty : this.points);
     // (a time trial not finished has no time to keep; points count even when the lives run out)
-    const kept = failed && kind === 'time' ? { best: bestScore(this.host.state, this.def), isNew: false } : recordScore(this.host.state, this.def, value);
-    this.result = { value, failed, title, lines, ...kept };
+    const sd = scoreDef(this.def, this.host.state);   // (a best of each difficulty: def.bestBy)
+    const kept = failed && kind === 'time' ? { best: bestScore(this.host.state, sd), isNew: false } : recordScore(this.host.state, sd, value);
+    this.result = { value, failed, title, lines, html, wide, ...kept };   // (html: the game's own block on the results, a page of sketches)
     this.phase = 'finishing';
     this.doneT = FINISH_WAIT;
     if (failed) this.sfx.lose(); else this.sfx.finish();
@@ -181,6 +187,7 @@ export class MinigameRunner {
   setPaused(on) {
     if (!['count', 'play', 'finishing'].includes(this.phase)) return;
     this.paused = on;
+    this.session.pause?.(on);   // (a game with a clock of its own, a song: it stops and picks up again)
     if (on) this.openCard(`<p class="kicker">${h(this.def.name)}</p><h1>Paused</h1>
       <p class="best">${this.def.score?.kind === 'time' ? `Time so far ${formatTime(this.clock + this.penalty)}` : `Score so far ${formatScore(this.def, this.points)}`}</p>
       <div class="buttons"><button class="main" data-act="resume">Resume</button><button data-act="retry">Retry</button><button data-act="quit">Quit</button></div>
@@ -209,8 +216,18 @@ export class MinigameRunner {
   }
   /** The focused button of the card, or its first. */
   press() {
-    const b = this.card.contains(document.activeElement) && document.activeElement.tagName === 'BUTTON' ? document.activeElement : this.card.querySelector('button');
+    const b = this.card.contains(document.activeElement) && document.activeElement.tagName === 'BUTTON' ? document.activeElement : this.card.querySelector('button.main') ?? this.card.querySelector('button');
     b?.click();
+  }
+  /** An option changed on the start card: kept in the save, the session started again with it, the card redrawn. */
+  setOption(id, value) {
+    const o = (this.def.options ?? []).find((q) => q.id === id);
+    if (!o || this.phase !== 'intro') return;
+    this.host.state.set(optionKey(this.def.id, id), value);
+    this.session.end?.();
+    this.clearAdded();
+    this.session = this.def.start(this.ctx) ?? {};
+    this.showIntro();
   }
   act(name) {
     if (name === 'start') this.begin();
@@ -228,7 +245,9 @@ export class MinigameRunner {
       if (card) this.back(); else this.setPaused(true);
     } else if (card && (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space')) {
       stop();
-      if (!e.repeat) this.press();
+      // (Enter is the card's main button, as its hint says, wherever the focus is: an option's button keeps it
+      // after a click; Space presses the focused one)
+      if (!e.repeat) { if (e.code === 'Space') this.press(); else this.card.querySelector('button.main')?.click(); }
     } else if (card && e.code === 'KeyR' && this.phase !== 'intro') { stop(); this.retry(); }
     else if (['KeyL', 'KeyP', 'KeyQ', 'KeyJ'].includes(e.code) || (e.code === 'Tab' && (this.drives || card))) stop();   // (the worlds, photo mode, the scout, the sketchbook, lock-on: not in a game)
   }
@@ -258,24 +277,45 @@ export class MinigameRunner {
     this.card = el.querySelector('.mg-card');
     this.sheet = el.querySelector('.sheet');
     this.speedCv = el.querySelector('canvas.mg-speed');
-    this.card.addEventListener('click', (e) => { const b = e.target.closest('button[data-act]'); if (b) { e.stopPropagation(); this.act(b.dataset.act); } });
+    this.card.addEventListener('click', (e) => {
+      const o = e.target.closest('button[data-opt]');
+      if (o) {
+        e.stopPropagation();
+        const def = (this.def.options ?? []).find((q) => q.id === o.dataset.opt);
+        const v = o.dataset.step ? stepOption(def, optionValue(this.def, this.host.state, def.id), +o.dataset.step) : o.dataset.val;
+        this._refocus = o.dataset.step ? `button[data-opt="${def.id}"][data-step="${o.dataset.step}"]` : `button[data-opt="${def.id}"][data-val="${o.dataset.val}"]`;
+        this.setOption(def.id, v);
+        return;
+      }
+      const b = e.target.closest('button[data-act]'); if (b) { e.stopPropagation(); this.act(b.dataset.act); }
+    });
     el.querySelector('.mg-pause').addEventListener('click', (e) => { e.stopPropagation(); this.setPaused(!this.paused); });
   }
   openCard(html, clear = false) {
     this.sheet.innerHTML = html;
+    this.sheet.classList.remove('wide');
     this.card.classList.add('open');
     this.card.classList.toggle('clear', clear);
     if (document.pointerLockElement) document.exitPointerLock?.();
-    setTimeout(() => this.card.querySelector('button')?.focus({ preventScroll: true }), 30);
+    const focus = (this._refocus && this.card.querySelector(this._refocus)) || this.card.querySelector('button.main') || this.card.querySelector('button');
+    this._refocus = null;
+    setTimeout(() => focus?.focus({ preventScroll: true }), 30);
   }
   closeCard() { this.card.classList.remove('open'); document.activeElement?.blur?.(); }
 
   showIntro() {
-    const d = this.def, best = bestScore(this.host.state, d), kind = this.introKind = inputKind();
+    const d = this.def, S = this.host.state, best = bestScore(S, scoreDef(d, S)), kind = this.introKind = inputKind();
     const rows = controlsFor(d, kind).map(([k, v]) => `<dt>${h(k)}</dt><dd>${h(v)}</dd>`).join('');
+    // the options (def.options): a row of choices each, or a stepper (− value +)
+    const opts = (d.options ?? []).map((o) => {
+      const v = optionValue(d, S, o.id);
+      const body = o.choices ? o.choices.map(([cv, label]) => `<button type="button" data-opt="${h(o.id)}" data-val="${h(cv)}" class="${cv === v ? 'on' : ''}">${h(label)}</button>`).join('')
+        : `<button type="button" data-opt="${h(o.id)}" data-step="-1" aria-label="less">−</button><b>${h(optionText(o, v))}</b><button type="button" data-opt="${h(o.id)}" data-step="1" aria-label="more">+</button>`;
+      return `<div class="opt"><span>${h(o.label)}</span>${body}${o.hint ? `<small>${h(o.hint)}</small>` : ''}</div>`;
+    }).join('');
     this.openCard(`<p class="kicker">A game</p><h1>${h(d.name)}</h1><p>${h(d.blurb)}</p><p class="rules">${h(d.rules)}</p>
-      ${rows ? `<dl>${rows}</dl>` : ''}
-      <p class="best">${best === null ? 'No best yet.' : `Best: ${h(formatScore(d, best))}`}</p>
+      ${rows ? `<dl>${rows}</dl>` : ''}${opts ? `<div class="opts">${opts}</div>` : ''}
+      <p class="best">${best === null ? 'No best yet.' : `Best${d.bestBy ? ` (${h(this.optionLabel(d.bestBy))})` : ''}: ${h(formatScore(d, best))}`}</p>
       <div class="buttons"><button class="main" data-act="start">Start</button><button data-act="quit">Quit</button></div>
       <small>${this.hint('start', 'quit')}</small>`);
   }
@@ -288,10 +328,16 @@ export class MinigameRunner {
     const showValue = !(r.failed && d.score?.kind === 'time');
     this.openCard(`<p class="kicker">${h(d.name)}</p><h1>${h(label)}</h1>
       ${showValue ? `<div class="big">${h(formatScore(d, r.value))}</div>` : ''}${r.isNew ? '<div class="stamp">New best!</div>' : ''}
-      ${lines ? `<ul class="lines">${lines}</ul>` : ''}
+      ${lines ? `<ul class="lines">${lines}</ul>` : ''}${r.html ?? ''}
       <p class="best">${r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${h(formatScore(d, r.best))}`}</p>
       <div class="buttons"><button class="main" data-act="retry">Retry</button><button data-act="quit">Quit</button></div>
       <small>${this.hint('retry', 'quit')}</small>`);
+    this.sheet.classList.toggle('wide', !!r.wide);
+  }
+  /** The chosen value's label of a choice option ('Hard'). */
+  optionLabel(id) {
+    const o = (this.def.options ?? []).find((q) => q.id === id), v = optionValue(this.def, this.host.state, id);
+    return o?.choices?.find(([cv]) => cv === v)?.[1] ?? String(v);
   }
   showCount(text, go = false) {
     const el = this.countEl;
@@ -321,9 +367,8 @@ export class MinigameRunner {
   drawHud() {
     const d = this.def, H = d.hud ?? {};
     const timer = H.timer ?? d.score?.kind === 'time';
-    // (hud.countdown: the clock counts down from it, a game against the clock: the shooting gallery's minute)
-    const shown = H.countdown ? Math.max(0, H.countdown - this.clock) : this.clock + this.penalty;
-    const t = timer ? `${formatTime(shown)}${this.penalty > 0 ? `<small>+${this.penalty} s penalty</small>` : this.penalty < 0 ? `<small>${-this.penalty} s bonus</small>` : ''}` : '';
+    // (hud.countdown: the time left of so many seconds, instead of the time taken)
+    const t = timer ? `${formatTime(H.countdown ? Math.max(0, H.countdown - this.clock - this.penalty) : this.clock + this.penalty)}${this.penalty > 0 ? `<small>+${this.penalty} s penalty</small>` : this.penalty < 0 ? `<small>${-this.penalty} s bonus</small>` : ''}` : '';
     if (t !== this._t) { this.timerEl.innerHTML = t; this._t = t; }
     const s = this.statusText ?? ((H.score ?? d.score?.kind === 'points') ? formatScore(d, this.points) : '');
     if (s !== this._s) { this.scoreEl.textContent = s; this._s = s; }
