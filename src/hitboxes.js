@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { BLADE, GUARD, EVADE, bladeTouchRadius, lockTarget } from './fluid-blade.js';
-import { STRIKE_RISE, hurtRadius } from './foes.js';
+import { STRIKE_RISE, hurtRadius, sweepRadius } from './foes.js';
 import { allTargets } from './targets.js';
 import { BOMB } from './gadgets/bomb.js';
 
@@ -87,7 +87,14 @@ export function foeHitboxes(f, out = [], { player = null, locked = null } = {}) 
     const color = phase === 'telegraph' ? C.telegraph : phase === 'active' ? C.active : C.spent;
     const o = v3(f.attackOrigin()); o.y = f.pos.y;   // (drawn at the foe's feet: it reaches the traveller within STRIKE_RISE of that)
     const base = { color, tag: `foe.attack.${phase}`, foe: f, phase, fill: phase === 'active' ? 0.3 : 0.14 };
-    if (a.shape === 'ring') out.push({ kind: 'circle', c: o, r: a.radius ?? 4, ...base });
+    if (a.sweep && phase !== 'telegraph') {
+      // a charge (a ray's glide, a crab's spin): what hits is its body, wherever it runs into you, so the live shape
+      // is the circle round it (sweepRadius); the lane it set off along stays drawn, faint, from where it began
+      const from = v3(f.attackAt); from.y = f.pos.y;
+      out.push({ kind: 'lane', c: from, h: f.attackH, range: a.range ?? 20, width: a.width ?? 2.4, back: 1, color: C.telegraph, tag: 'foe.charge.path', foe: f, faint: true, fill: 0 });
+      const armed = f.contacted || f.k >= (a.contact ?? 0);   // (the first moment of the charge does not hit yet)
+      out.push({ kind: 'circle', c: ground, r: sweepRadius(a, D), ...base, ...(armed ? {} : { color: C.telegraph, tag: 'foe.attack.telegraph', phase: 'telegraph', fill: 0.14 }) });
+    } else if (a.shape === 'ring') out.push({ kind: 'circle', c: o, r: a.radius ?? 4, ...base });
     else if (a.shape === 'cone') out.push({ kind: 'fan', c: o, h: f.attackH, range: a.range ?? 12, angle: a.angle ?? 0.6, ...base });
     else if (a.shape === 'lane') out.push({ kind: 'lane', c: o, h: f.attackH, range: a.range ?? 20, width: a.width ?? 2.4, back: 1, ...base });
     // a lobbed glob: its flight drawn as it is (Foes.look), its landing ring above

@@ -116,6 +116,8 @@ export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
 export const STRIKE_RISE = 1.6;
 /** A foe's target sphere (shots, the cone, the lock): its body's radius and a margin. The blade adds its own (fluid-blade.js BLADE_TOUCH). */
 export const hurtRadius = (def) => def.radius + 0.15;
+/** How near a charge (attack.sweep) must run to you to hit: half its lane's width, so the lane drawn is the ground it covers. */
+export const sweepRadius = (a, def) => (a.width ? a.width / 2 : def.radius + 0.75);
 
 /**
  * One foe's mind: idle at home (a slow drift round it), chase once you come into sight, wind up its
@@ -272,7 +274,7 @@ export class Foe {
         if (a.dive) this.alt = THREE.MathUtils.lerp(D.hover, 0.35, this.k);
         if (a.sweep) {
           // a charge: whatever it runs into on the way is hit, once
-          const near = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) < D.radius + 0.75;
+          const near = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) < sweepRadius(a, D);
           if (!this.contacted && this.k >= (a.contact ?? 0) && playerOk && near && Math.abs(P.pos.y - this.pos.y) < STRIKE_RISE) { this.contacted = true; ev.push({ type: 'strike', hit: true, atk: a }); }
         } else if (!this.contacted && this.k >= (a.contact ?? 0.55)) {
           this.contacted = true;

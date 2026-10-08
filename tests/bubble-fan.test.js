@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { GADGETS, registerGadget } from '../src/gadgets/registry.js';
 import hook from '../src/gadgets/hook.js';
 import bomb from '../src/gadgets/bomb.js';
-import bubble, { BUBBLE, riseSpeed, bubbleRadius, wantsSelf, selfPhase, selfLift } from '../src/gadgets/bubble.js';
+import bubble, { BUBBLE, heavyWords, riseSpeed, bubbleRadius, wantsSelf, selfPhase, selfLift } from '../src/gadgets/bubble.js';
 import fan, { FAN, gustStrength, gustDirection, hoverLift, sailPush, pinwheelCatch } from '../src/gadgets/fan.js';
 import { GadgetWorld } from '../src/gadgets/world.js';
 import { ITEMS } from '../src/items.js';
@@ -112,13 +112,24 @@ test('a foe in a bubble is helpless and floats up; dropped from high it lands ha
   W.press();   // popped early
   assert.equal(W.bubble, null);
   for (let i = 0; i < 60 * 2; i++) W.update(DT);
-  assert.equal(f.pos.y, 0, 'fell back to the ground');
+  assert.ok(Math.abs(f.pos.y) < 1e-9, `fell back to the ground (${f.pos.y})`);   // (the ground found along `up` may be a hair off 0)
   assert.ok(f.hp < hp, 'and landed hard');
   const m = new Foe('machine', v(0, 0, 0));
   W.cool = 0;
   W.spawn('free', v(0, 1, 1));
   assert.equal(W.engulf({ kind: 'foe', foe: m }), false);
   assert.equal(W.bubble, null, 'it burst on the machine');
+  assert.match(W.ctx?.notes?.at(-1) ?? '', /machine’s shell/);
+  // the worlds' heavy foes: each worded for what it burst on, never "the machine's shell"
+  for (const [kind, word] of [['golem', /golem’s sharp glass/], ['crab', /crab’s salt-crusted shell/], ['slag', /slag walker’s hot crust/]]) {
+    const ctx = ctxOf(P, ph, { foes: { list: [], hurt() {} } }), B = bubble.create(ctx);
+    B.spawn('free', v(0, 1, 1));
+    assert.equal(B.engulf({ kind: 'foe', foe: new Foe(kind, v(0, 0, 0)) }), false, `a ${kind} is too heavy`);
+    assert.equal(B.bubble, null);
+    assert.match(ctx.notes.at(-1), word, kind);
+    assert.doesNotMatch(ctx.notes.at(-1), /machine/);
+  }
+  assert.equal(heavyWords('nothing', 'odd thing'), 'Too heavy for a bubble: it bursts on the odd thing.');
   clearTargets();
 });
 
