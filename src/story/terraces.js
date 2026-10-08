@@ -368,6 +368,9 @@ export function setupTerraces(ctx) {
       if (game.flag('edena.gate.turned')) return true;
       game.set('edena.gate.turned', true);
       st.flood = 0;
+      // filmed, the first time (src/story/edena-moments.js): the flood runs on its own clock under it, and its
+      // toasts that only say what the panels show wait out (st.filmed); without it, all as before
+      st.filmed = !!api.onFlood?.();
       return true;
     },
   });
@@ -385,24 +388,25 @@ export function setupTerraces(ctx) {
   const sheetQuads = sheet.geometry.index.count / (path.length - 1);
   const swept = spots.lane.map((b, i) => ({ ...b, i, d: 0, v: 0, spin: (i % 5) - 2 }));
   const shout = (text) => { if (esk) esk.shout = { text, until: esk.time + 3 }; };
+  const told = (text) => { if (!st.filmed) toast(text); };   // (filmed, the panels show it)
   function floodStep(dt) {
     st.flood += dt;
     const t = st.flood;
     beat(0, 'notch', () => {
-      toast('The wheel gives one notch. Water spurts from under the gate, bright, and runs down onto the top terrace.');
+      told('The wheel gives one notch. Water spurts from under the gate, bright, and runs down onto the top terrace.');
       shout('~happy~ That’s it! That’s enough!');
       sound.chime?.();
     });
-    beat(1.1, 'crack', () => { toast('Something in the builders’ wall cracks, deep, like a bone.'); shout('~scared~ What was that?'); sound.rumble?.(FLOOD_S - 1, 0.5); dust.burst(wheelAt.clone().add(V(0, -2, 0)), { n: 8, rise: 1.5, size: 0.8, spread: 1.4, life: 2.5 }); });
+    beat(1.1, 'crack', () => { told('Something in the builders’ wall cracks, deep, like a bone.'); shout('~scared~ What was that?'); sound.rumble?.(FLOOD_S - 1, 0.5); dust.burst(wheelAt.clone().add(V(0, -2, 0)), { n: 8, rise: 1.5, size: 0.8, spread: 1.4, life: 2.5 }); });
     beat(1.6, 'burst', () => {
-      toast('The gate tears loose. The cistern comes out all at once.');
+      told('The gate tears loose. The cistern comes out all at once.');
       shout('~scared~ Shut it! Shut it!');
       if (gateHandle) { physics.removeCollider(gateHandle); gateHandle = null; }
       gateGroup.visible = false;
       sheet.visible = true;
       for (let i = 0; i < 16; i++) spray.burst(V(C.x0 - 1, cTop - 1, cz + (Math.random() - 0.5) * 3), { n: 2, rise: 3, size: 0.6, spread: 2.5, life: 1.6, gravity: 6, dir: V(-4, 0, 0) });
     });
-    beat(5, 'walls', () => { toast('The water takes the terraces: the white walls, the rows of tea, one after another.'); shout('~scared~ Get off the slope!'); });
+    beat(5, 'walls', () => { told('The water takes the terraces: the white walls, the rows of tea, one after another.'); shout('~scared~ Get off the slope!'); });
     // the leading edge: the sheet reveals itself downhill; each step of the lane goes as it passes
     const fx = front();
     if (sheet.visible) {
@@ -497,5 +501,8 @@ export function setupTerraces(ctx) {
       toast('You press the mud round the cutting with both thumbs. The stream goes slowly past it.');
     } });
 
-  return { update, layout: L, runnels, wheelAt, gateStand, esk, cutting, cuttingAt, state: st, shown: () => ({ after: after.visible, gate: gateGroup.visible, lane: lane.some((g) => g.visible) }) };
+  const api = { update, layout: L, runnels, wheelAt, gateStand, esk, cutting, cuttingAt, state: st, shown: () => ({ after: after.visible, gate: gateGroup.visible, lane: lane.some((g) => g.visible) }),
+    // the flood's moment (src/story/edena-moments.js): onFlood() is asked as the gate goes (true: it is filmed)
+    onFlood: null, FLOOD_S, flood: { front, cz, cTop, cBase, path, hollow: T.hollow, cistern: C } };
+  return api;
 }

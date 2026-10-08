@@ -92,7 +92,18 @@ export const SPACECITY_CONTENT = {
     { at: [-5, I0.pier.z - 10], y: 0, radius: 3, lang: 'incal', lines: ['~curious~ A ship! Did you come across the dark? Nobody comes across the dark.', '~neutral~ The bridge goes north. Everything goes north from here.'] },
     { at: [6, I0.gate.z + 12], y: 0, radius: 3, lang: 'incal', lines: ['~happy~ Welcome to the Gate. We sweep the lane every morning, so mind your boots.', '~whisper~ Don’t lean on the parapet at the corner. It leans back.'] },
     { at: [PLAZA.x + 10, PLAZA.z + 6], y: 0, radius: 3, lang: 'incal', lines: ['~happy~ Lamp oil, cloth, bread from the garden! Everything grows up here, even bread.', '~playful~ Sit, eat. Nothing falls off a table here. Things fall off the island.'] },
-    { at: [I0.towers.x - 6, I0.towers.z + 10], y: 6, radius: 3, lang: 'incal', lines: ['~solemn~ My grandmother hung the first cable under this island. It still hums when she visits.', '~neutral~ The Towers are older than the Market. We were here first. We say that a lot.'] },
+    // (Tamar: the detour's trace, src/story/sightings-detours.js)
+    { id: 'tamar', name: 'Tamar', title: 'who minds the cables', color: '#d98a7a', kind: 'f', at: [I0.towers.x - 6, I0.towers.z + 10], y: 6, radius: 3, lang: 'incal',
+      lines: ['~solemn~ My grandmother hung the first cable under this island. It still hums when she visits.', '~neutral~ The Towers are older than the Market. We were here first. We say that a lot.'],
+      talk: { listen: [
+        { after: () => true, say: [
+          '~solemn~ Long ago a ship came by with no name to give: one pilot, on her own. It hailed us with a sung note instead.',
+          '~curious~ The cables kept the note. The night the sky rang it came by again, fast and very high. It didn’t stop this time.',
+          '~whisper~ It was going somewhere.',
+        ], do: { set: { 'sight.spacecity.tamar': true } } },
+        '~solemn~ My grandmother hung the first cable under this island. It still hums when she visits.',
+        '~neutral~ The Towers are older than the Market. We were here first. We say that a lot.',
+      ] } },
     { at: [I0.garden.x + 4, I0.garden.z - 6], y: -4, radius: 3, lang: 'incal', lines: ['~tired~ Every tree here was carried over a bridge in a pot. Every one.', '~happy~ Sit under the dark ones. They grow toward the planet, not the sun.'] },
   ],
 };

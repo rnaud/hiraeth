@@ -517,6 +517,7 @@ const showToast = (text) => ship.cinema.toast(text);   // queued, and held while
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
+  traces: content.traces ?? [],   // (a detour world's trace of the light: src/story/sightings-detours.js)
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
   ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
@@ -574,7 +575,7 @@ const itemIcons = new ItemIcons({ scene, build: buildItemModel,
   place: () => ({ at: player.pos.clone().addScaledVector(player.frame.up, 140), up: player.frame.up.clone() }),
   onReady: (id, url) => journal.menu.iconReady(id, url) });
 Object.assign(journal.menu, {
-  sources: menuSources({ items, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id),
+  sources: menuSources({ items, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id), game,
     levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     icon: (id) => itemIcons.get(id) }),
@@ -1526,7 +1527,9 @@ function frame(ts) {
   {
     camera.updateMatrixWorld();   // project with this frame's camera, not last frame's
     let best = null, bd = Infinity;
-    for (const n of npcs) if (n.talking) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
+    // (while a moment is filmed only a shout the moment asked for: an idle bark over a panel reads as a caption, src/story/moment.js)
+    const filming = storyRt.moments.playing;
+    for (const n of npcs) if (n.talking && (!filming || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
     const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
     // the one who talks near you says it with their face too (src/talk-face.js; a conversation drives its own)

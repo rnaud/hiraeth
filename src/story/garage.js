@@ -3,6 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, MACHINES, SIGNAL, BOARD_GLYPH } from './garage-data.js';
+import { setupGarageMoments } from './garage-moments.js';
 
 // The Sealed Hangar's story, alive (garage-data.js has the words): "The Major Forgot".
 //
@@ -16,13 +17,15 @@ import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, MACHINES, SIGNAL, BOARD_GLYPH } 
 //                       nothing ever pulls it back down) until you push it up the
 //                       wall and through the portal to the plateau
 //
+// The signal read at last, when Lune's talk closes, is filmed: src/story/garage-moments.js.
+//
 // The machines and props live in src/levels/garage.js (level.garage).
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
 export function setupGarage(ctx) {
-  const { level, physics, player, quests, dialogue, game, sound, story, spawn, talkable, scene, toast, npcs } = ctx;
+  const { level, physics, player, quests, dialogue, game, sound, story, spawn, talkable, scene, toast, npcs, moments = null } = ctx;
   const G = level.garage;
   if (!G) return null;
   const Q = 'garage.signal';
@@ -183,6 +186,10 @@ export function setupGarage(ctx) {
   const showBoard = (pattern, on) => G.board.lamps.forEach((l, i) => { l.material = pattern[i] ? on : lampOff; });
   game.on('flag:garage.signal.stamped', (v) => { if (v) stamp.t = 0.001; });
   const stamp = { t: 0, y0: G.relay.stamp?.position.y ?? 0 };
+  // the signal read through the slit, filmed once Lune's talk closes (src/story/garage-moments.js); without it, as ever
+  const film = setupGarageMoments(ctx, { G, moments, lune: people.lune, lampOn });
+  let readNow = false;
+  game.on('flag:garage.signal.read', (v) => { if (v) readNow = true; });
 
   // ---------------------------------------------------------------- the story catches up when you take it out of order
   const catchUp = () => {
@@ -211,6 +218,8 @@ export function setupGarage(ctx) {
   const update = (dt, t) => {
     const pp = player.pos;
     updateBall(dt);
+    if (readNow && !dialogue.open) { readNow = false; film.signal(); }
+    film.update(dt, t);
     // the board blinks the signal as it goes round; once the Major's note is read it shows his mark
     beatT += dt;
     if (game.flag('garage.note.read')) { if (beat !== -1) { beat = -1; showBoard(BOARD_GLYPH, glyphOn); } }
@@ -234,5 +243,5 @@ export function setupGarage(ctx) {
     crown.uniforms.uGlow.value = game.flag('garage.note.read') ? 0.35 + 0.1 * Math.sin(t * 1.5) : 0;
   };
 
-  return { people, update, ball, startMachine, resetBall };
+  return { people, update, ball, startMachine, resetBall, film };
 }

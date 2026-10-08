@@ -7,6 +7,7 @@ import { ownMaterial } from './puffs.js';
 import { game as sharedGame } from '../game-state.js';
 import { audioAway } from '../audio-guard.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, CAIRN_STONES } from './arzach2-data.js';
+import { setupArzach2Moments } from './arzach2-moments.js';
 
 // Vael II's story, alive (arzach2-data.js has the words): "The Bell Under the Cloud".
 //
@@ -355,13 +356,16 @@ export function setupArzach2(ctx) {
       dialogue.start(THINGS.bell, null, A.ropeFoot);
       return;
     }
-    ring(true);
     if (!game.flag('arzach2.bell.rung')) {
       game.set('arzach2.bell.rung', true);
-      toast('The bell speaks: one low note that goes on and on. Under the cliffs, the cloud begins to settle.');
-      for (const id of ['calix', 'ysolde']) { const n = people[id]; if (n) n.shout = { text: id === 'calix' ? '~shout~ Listen. Listen!' : '~shout~ Thirty years!', until: n.time + 3 }; }
-    } else bell.dip = 1;
+      const said = 'The bell speaks: one low note that goes on and on. Under the cliffs, the cloud begins to settle.';
+      const shout = () => { for (const id of ['calix', 'ysolde']) { const n = people[id]; if (n) n.shout = { text: id === 'calix' ? '~shout~ Listen. Listen!' : '~shout~ Thirty years!', until: n.time + 3 }; } };
+      // the first time, filmed (src/story/arzach2-moments.js: it rings on its beat and says the rest at its end); else at once
+      if (!film.bell({ said, shout })) { bell.hold = false; ring(true); toast(said); shout(); }
+    } else { ring(true); bell.dip = 1; }
   };
+  // (set up once the bell can ring)
+  const film = setupArzach2Moments(ctx, { A, bell, ring: () => ring(true) });
   registerInteractable({ id: 'bellrope', priority: PRIORITY.use, range: 2.6, at: () => A.ropeFoot,
     prompt: () => (game.flag('arzach2.clapper.hung') ? 'pull the bell rope' : 'pull the bell rope'),
     distance: (p) => (Math.abs(p.pos.y - A.ropeFoot.y) < 3 ? flat(p.pos, A.ropeFoot) : Infinity), use: pull });
@@ -500,7 +504,8 @@ export function setupArzach2(ctx) {
       if (decay < 0.02) { bell.t = -1; A.bell.rotation.x = 0; ropeSway(A.rope, 0, 0); }
     }
     // the cloud settles once the bell has rung (and dips again, a little, each time you ring it)
-    if (game.flag('arzach2.bell.rung') && bell.settle < 1) bell.settle = Math.min(1, bell.settle + dt / 12);
+    // (a moment holds it until the bell is heard, then lets it go a little quicker: bell.hold, bell.settleFor)
+    if (game.flag('arzach2.bell.rung') && bell.settle < 1 && !bell.hold) bell.settle = Math.min(1, bell.settle + dt / (bell.settleFor ?? 12));
     bell.dip = Math.max(0, bell.dip - dt / 6);
     const k = THREE.MathUtils.smootherstep(bell.settle, 0, 1), dip = Math.sin(Math.PI * bell.dip) * 2.5;
     const drop = SETTLE * k + dip;
@@ -526,5 +531,5 @@ export function setupArzach2(ctx) {
     for (const s of Object.values(stones)) if (s.m.visible) { s.m.rotation.y += dt * 0.3; s.m.position.y = s.at.y + Math.sin(t * 1.2 + s.sky) * 0.06; }
   };
 
-  return { people, update, bell, stones, pull, ring, lamp: { at: lampAt, head, aim0, notch, yaw: () => yawOf(notch()) }, tiles: () => tiles };
+  return { people, update, bell, stones, pull, ring, film, lamp: { at: lampAt, head, aim0, notch, yaw: () => yawOf(notch()) }, tiles: () => tiles };
 }

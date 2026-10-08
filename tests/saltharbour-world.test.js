@@ -35,7 +35,7 @@ test('the Salt Harbour builds: the ship lands on open salt, the traveller beside
   assert.ok(Math.abs(g(SHIP_SITE.x, SHIP_SITE.z)) < 1, 'the ship lands on the flat salt');
   assert.ok(Math.abs(level.spawn.y - g(level.spawn.x, level.spawn.z)) < 0.2, 'the traveller starts on the salt');
   assert.equal(physics.pushCapsule(level.spawn.clone().add(V(0, 0.5, 0)), 0.4, 0.6, 1.8), null, 'nothing in the way where he starts');
-  const named = SALT_CONTENT.npcs.filter((p) => p.id).map((p) => p.id);
+  const named = SALT_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id);
   assert.deepEqual(named.sort(), ['corvin', 'marrow', 'pip'], 'Marrow of the desert, Corvin and Pip of the City-Shaft');
   for (const p of SALT_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes && !p.talk.entry, `${p.id}: only words for the harbour, no errands`);
   assert.ok(level.lights.length > 30, 'lamps at the shops and doors');

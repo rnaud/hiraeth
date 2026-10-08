@@ -241,4 +241,15 @@ export const GLASS_CONTENT = {
     { at: [16, -186], radius: 3, palette: pal('#c98a4a', { cloth: '#3f4b44' }), lines: ['~solemn~ The wave has been breaking over this camp for longer than we have names.', '~happy~ It has not finished yet. We are in no hurry.'] },
     { at: [-66, -214], radius: 2, palette: pal('#e6d3b8'), lines: ['~curious~ The archways only open to the light. Stand here when the sun is low.', '~neutral~ Beyond? More glass. It is always more glass.'], shy: true },
   ],
+  // the detour's trace (src/story/sightings-detours.js): the mark pressed into the glass from above, by the west camp
+  traces: [{
+    id: 'glassdunes.mark', at: [-104, 1.44, 22], label: 'the mark in the glass', range: 3.2,
+    look: [-104, 2.6, 22],   // (the prompt over it)
+    glyph: { size: 2.2, pitch: -Math.PI / 2, lift: 0.15, color: '#70e7df' },
+    person: { id: 'trace.glassdunes', name: 'A mark in the glass', title: '', color: '#70e7df',
+      talk: { nodes: { look: { say: [
+        '~solemn~ (Fused into the sand from above, as though something hot had come down low and pressed it there: three dots over an arc, {glyph}, in a skin of new glass.)',
+        '~whisper~ (It is clearer than the old glass of the dunes, and newer. The camp takes its sand from everywhere else: round the mark the drifts lie untouched, the way you leave a grave, or a gift.)',
+      ], do: { set: { 'sight.glassdunes.mark': true } } } } } },
+  }],
 };

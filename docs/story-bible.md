@@ -326,6 +326,28 @@ written in).
 - **Keepsake**: *word*: the broadcast's message.
 - **Clue**: the broadcast was sent from the traveller's home system.
 
+## The detours' traces (built: src/story/sightings-detours.js, each world's content)
+
+The twelve worlds off the route each hold one trace of the singing light or of whoever came this way
+before: a person who remembers, a mark, a fragment. They hint and never answer (nobody names anyone;
+the reveal belongs to the finale), and each is written down in the Sketchbook's Sightings the first
+time it is told (`sight.<id>`; the route's own sightings are listed in src/story/sightings.js).
+
+| World | Trace | Thread |
+|---|---|---|
+| The White Mangrove | Liss, who poles the boats, once taught a woman who came down alone, in a ship no bigger than a boat, to draw the mark on the great tree's roots; she drew it on her knee until her hand knew it | before |
+| The Glass Dunes | The mark fused into the sand from above in a skin of new glass, by the west camp; the camp leaves the sand round it untouched | glyph |
+| The City Behind the Waterfall | Pell: the night the sky rang, the falls went quiet and a light hung singing off the balcony, as if waiting for an answer | light |
+| The Salt Harbour | The harbour book (Hesper): the line before yours is in home letters, a woman who came alone; "…where the singing goes. If anyone from home…"; the salt has eaten her name | before |
+| The Forest of Antennas | Grete: her grandmother's dish caught a man's voice ("…older when you hear it…"), and under the hiss something singing his words back, as if learning them | signal |
+| The Underwater City | Coralie: a woman from up top listened all night to the whales; one sang something she knew, and she hummed it back | before |
+| The City During the Eclipse | Ansel: the light hung singing where the black sun sits; by morning every figure on the walls leaned the way it went | light |
+| The Fallen Ring | The makers' sign burned fresh into the tilted piece's foot, by a hand that learned it: the arc wavers and starts again | glyph |
+| The Moon Foundry | Bertil cast the mark on a plate for a lone woman's ship's nose; she drew it in soot like a new word: "So they'll know me" | before |
+| The Underside | Maudie: a woman wintered alone and played a man's voice every night, always stopping it before the end | signal |
+| The City Floating in Space | Tamar: a ship with no name, one pilot alone, hailed with a sung note; the night the sky rang the same note passed again, fast and high, going somewhere | light |
+| The Overnight Train | The mark chalked on the last carriage's roof, drawn again over old chalk many times by someone who keeps it | glyph |
+
 ## The recordings (built: src/story/calls.js, src/ship/hologram.js)
 
 **What is true, and is only said at the very end.** The traveller's mother and

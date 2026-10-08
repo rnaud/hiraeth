@@ -135,7 +135,18 @@ export const ANTENNAS_CONTENT = {
       ] } },
     // the forest's own folk
     { at: [SETTLEMENT.x + 6, SETTLEMENT.z + 4], radius: 3, lang: 'garage', lines: ['~happy~ The lamps are lit. Somebody’s always mending something.', '~neutral~ The receiver turns a little every night. Nobody turns it.'] },
-    { at: [SETTLEMENT.x - 7, SETTLEMENT.z - 2], radius: 2, lang: 'garage', lines: ['~curious~ You came by the sky? Did you hear us on the way down?', '~solemn~ My grandmother kept that dish. Now the birds do.'] },
+    // (Grete: the detour's trace, src/story/sightings-detours.js)
+    { id: 'grete', name: 'Grete', title: 'whose grandmother kept the dish', color: '#8fae7a', kind: 'f', at: [SETTLEMENT.x - 7, SETTLEMENT.z - 2], radius: 2, lang: 'garage',
+      lines: ['~curious~ You came by the sky? Did you hear us on the way down?', '~solemn~ My grandmother kept that dish. Now the birds do.'],
+      talk: { listen: [
+        { after: () => true, say: [
+          '~solemn~ My grandmother’s dish once caught a man’s voice from very far. She wrote down what came through: *…older when you hear it…*',
+          '~whisper~ Then hiss, and under it something faint, singing his words back. Not the words: their shape, as if it was learning them.',
+        ], do: { set: { 'sight.antennas.grete': true } } },
+        '~curious~ You came by the sky? Did you hear us on the way down?',
+        '~solemn~ My grandmother kept that dish. Now the birds do.',
+        '~neutral~ She kept the dish turned that way all her life. The birds in it sit facing the same way. Nobody taught them.',
+      ] } },
     { at: [FALLEN.x + 6, FALLEN.z - 8], radius: 2, lang: 'garage', lines: ['~playful~ It fell in a storm. Now it collects rain and children.', '~neutral~ Walk in, the inside is smooth. Mind the nests on the rim.'] },
     { at: [HAMLET.x + 14, HAMLET.z + 6], radius: 3, lang: 'garage', lines: ['~whisper~ The great saucer listens to the far side of the sky.', '~happy~ The egg is warm inside. The machines keep it warm.'] },
     { at: [6, 40], radius: 2, lang: 'garage', lines: ['~neutral~ Keep to the path. The masts drop rust.', '~curious~ Hear that crackle? That’s the forest clearing its throat.'] },

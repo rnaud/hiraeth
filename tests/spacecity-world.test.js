@@ -30,7 +30,7 @@ test('the City Floating in Space: off the route, on the map from the start, reac
   const e = entries.find((x) => x.id === 'spacecity');
   assert.ok(e && e.known && e.side, 'charted, off the dotted line');
   assert.ok(entries.at(-1).home, 'home still last');
-  const named = SPACECITY_CONTENT.npcs.filter((p) => p.id).map((p) => p.id).sort();
+  const named = SPACECITY_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id).sort();
   assert.deepEqual(named, ['kip', 'nima', 'sel'], 'Kip and Madame Sel of the Signal Market, Nima of the City-Shaft');
   for (const p of SPACECITY_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes, `${p.id}: only words for the city, no errands`);
   for (const p of SPACECITY_CONTENT.npcs) for (const l of p.lines) assert.match(l, /^~[a-z]+~ /, 'every line toned');

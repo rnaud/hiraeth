@@ -114,6 +114,17 @@ export const TRAIN_CONTENT = {
     { at: [car('dome').xc - 2, -1.2], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~neutral~ The library lends by the night. Bring it back before the plain runs out.', '~playful~ There is a terrace on our roof. The ladder is on the porch.'] },
     { at: [NOSE_X + 2.4, -1.2], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~happy~ This is the best seat on the train, and it is standing room.', '~solemn~ At the stations everyone goes quiet. Then the whistle, and we all breathe again.'] },
   ],
+  // the detour's trace (src/story/sightings-detours.js): the mark chalked on the last carriage's roof, kept by someone
+  traces: [{
+    id: 'overnighttrain.chalk', at: [TAIL + 2.2, WALK, 0], label: 'the chalk mark', range: 3,
+    look: [TAIL + 2.2, WALK + 1.5, 0],   // (the prompt over it)
+    glyph: { size: 0.9, yaw: Math.PI / 2, lift: 0.7, color: '#f3ead8', glow: 0.35 },
+    person: { id: 'trace.overnighttrain', name: 'A mark on the last carriage', title: '', color: '#f3ead8',
+      talk: { nodes: { look: { say: [
+        '~solemn~ (Chalked on the last carriage’s roof, at its very end, where the rails run out behind into the dark: three dots over an arc, {glyph}.)',
+        '~whisper~ (Chalk wouldn’t last a night up here in the wind. This has been drawn again over older chalk, many times, never quite on the old lines. Someone on this train keeps it.)',
+      ], do: { set: { 'sight.overnighttrain.chalk': true } } } } } },
+  }],
 };
 
 /** What the train's crowd says (crowd.js), toned. */

@@ -12,7 +12,9 @@
 //               what you carry for the quests, the keepsakes for the father's charge
 //   Quests      the father's charge and each quest under way: its overall goal and its next step only
 //               (src/story/quests.js summary), the one tracked first; the finished ones by title, a short list
-//   Sketchbook  every world's story page and relics, the errands' and the observatory's sketches
+//   Sketchbook  the Sightings (every trace of the singing light, the makers' sign and the father's signal
+//               met so far, a ? for each still to find), every world's story page and relics, the errands'
+//               and the observatory's sketches
 //   Worlds      the worlds you know, in the route's order: their picture, story, relics and boxes
 //
 // What fills the panels comes from `sources` (src/game-menu-data.js, wired in main.js). The cursor and
@@ -29,6 +31,8 @@ export const PANELS = [
 ];
 /** The gear's grid: this many slots a row. */
 export const GEAR_COLS = 8;
+/** The Sightings' notes: this many a row. */
+export const SIGHT_COLS = 5;
 /** The worlds' cards: this many a row. */
 export const WORLD_COLS = 4;
 
@@ -190,14 +194,35 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
 }
 
 /**
- * Sketchbook: { worlds: [{ id, title, story: { title, img }, relics: [{ name, img }], found, of }],
+ * Sketchbook: { sightings: [{ id, name, ask, found, of, entries: [{ id, line, who, world, found }] }] | null,
+ * worlds: [{ id, title, story: { title, img }, relics: [{ name, img }], found, of }],
  * extra: [{ id, title, tiles: [{ name, img, caption }] }] } (the observatory, the errands).
- * One row a world: its story page (drawn when told), then its relics (a ? until found).
+ * First the Sightings (src/story/sightings.js): a block a thread, its notes SIGHT_COLS a row, the ones met
+ * as a short line with the world and who said it, the rest a ? (with the world's name once you know it).
+ * Then one row a world: its story page (drawn when told), then its relics (a ? until found).
  */
-export function sketchesPanel({ worlds = [], extra = [] } = {}) {
+export function sketchesPanel({ sightings = null, worlds = [], extra = [] } = {}) {
   const rows = [];
   const tile = (t, r, c, wide = false) => `<button class="tile${wide ? ' wide' : ''}${t.img ? '' : ' empty'}" ${cellAttrs(r, c)} aria-label="${esc(t.name || 'not found yet')}">${t.img ? `<img src="${esc(t.img)}" alt="">` : `<i>${wide ? '…' : '?'}</i>`}</button>`;
   const sections = [];
+  // the Sightings: a thread a block, its notes SIGHT_COLS a row (a row of the grid is a row of the cursor's)
+  if (sightings?.length) {
+    const found = sightings.reduce((n, t) => n + t.found, 0), of = sightings.reduce((n, t) => n + t.of, 0);
+    const blocks = sightings.map((t) => {
+      const notes = [], base = rows.length;
+      t.entries.forEach((e, i) => {
+        const r = base + Math.floor(i / SIGHT_COLS), c = i % SIGHT_COLS;
+        (rows[r] ??= []).push({ col: c, kind: 'sighting', id: e.id, name: e.found ? e.line : 'Not found yet',
+          sub: e.found ? [t.name, e.world, e.who].filter(Boolean).join(' · ') : `${t.name} · ${e.world || 'somewhere further on'}`,
+          desc: e.found ? t.ask : `A trace still to find${e.world ? ` in ${e.world}` : ''}. ${t.ask}`, act: null });
+        notes.push(`<button class="note${e.found ? '' : ' empty'}" ${cellAttrs(r, c)} aria-label="${esc(e.found ? e.line : 'not found yet')}">${e.found
+          ? `<q>${esc(e.line)}</q><small>${esc([e.world, e.who].filter(Boolean).join(' · '))}</small>`
+          : `<i>?</i>${e.world ? `<small>${esc(e.world)}</small>` : ''}`}</button>`);
+      });
+      return `<div class="thread ${esc(t.id)}"><h3>${esc(t.name)} <span>${t.found}/${t.of}</span></h3><div class="notes" style="--cols:${SIGHT_COLS}">${notes.join('')}</div></div>`;
+    });
+    sections.push(`<section class="sightings"><h2>Sightings <span>${found}/${of}</span></h2>${blocks.join('')}</section>`);
+  }
   for (const w of worlds) {
     const r = rows.length, cells = [];
     cells.push({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: w.story?.img || w.story?.told ? `${w.title} · the story, told` : `${w.title} · a story not told yet`, desc: w.story?.img ? 'The moment the story ended, drawn as it happened.' : w.story?.told ? 'Told before its page was drawn: an older save.' : 'Its page is drawn when the story is told.', act: w.story?.img ? 'look' : null, img: w.story?.img ?? null });

@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Flames, Embers } from './flames.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, AMBER } from './buried-data.js';
+import { setupBuriedMoments } from './buried-moments.js';
 
 // The Buried Machine's story, alive (buried-data.js has the words).
 //
@@ -21,6 +22,7 @@ import { QUESTS, PEOPLE, THINGS, ITEMS, AMBER } from './buried-data.js';
 //                before it, it turns one tooth: the hanging city rocks, every
 //                chimney puffs, and a sliver of the tooth drops at its foot;
 //                its sand slides off into a long hollow and it keeps turning
+//                (the first time filmed: src/story/buried-moments.js)
 //
 // Flags (game-state.js): buried.wen.heard, buried.hask.asked,
 // buried.canyon.seen, buried.oculus.seen, buried.valve.open,
@@ -43,7 +45,7 @@ export const CLEAR_TIME = 9, CLEAR_FROM = 1.0, SPIN = 0.045;
 export const JIB_H = 4.2, JIB_L = 10, JIB_RISE = 3.3, JIB_HOOK = -1.9, JIB_PHI0 = Math.atan2(3, -12), JIB_STEP = Math.PI / 3, JIB_IN = 3;
 
 export function setupBuried(ctx) {
-  const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs } = ctx;
+  const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs, moments = null } = ctx;
   const B = level.buried;
   if (!B) return null;
   for (const q of QUESTS) quests.define(q);
@@ -256,12 +258,15 @@ export function setupBuried(ctx) {
   // a splash on the wheel: sand pours off the teeth
   registerTarget({ kind: 'wheel', radius: W.R, position: () => W.centre, enabled: () => flat(player.pos, W.centre) < 220,
     onHit: (mode, point) => { if (point) sand.burst(point.clone(), { n: 4, rise: -1, size: 0.7, spread: 0.6, life: 2.2, gravity: 4 }); return true; } });
+  // (while the turn is filmed its toasts wait for the film's end: st.heldToasts, src/story/buried-moments.js)
+  const say = (t) => (st.heldToasts ? st.heldToasts.push(t) : toast(t));
   const startTurn = () => {
+    if (st.turning || turned()) return;
     st.turning = true; st.turnT = 0;
     sound.whoosh?.();
     sound.setBandMode?.('wheel', 'feast');
     const b = sound.band?.('wheel'); if (b && !b.parts.includes('drum')) b.parts.push('drum');
-    toast('The ground shudders. The great wheel is turning.');
+    say('The ground shudders. The great wheel is turning.');
   };
   const finishTurn = () => {
     st.turning = false;
@@ -271,7 +276,7 @@ export function setupBuried(ctx) {
     tooth.visible = true; st.dropT = 1.2; toothLight.w = 6;
     sound.chime?.();
     sound.setBandMode?.('domes', 'feast');
-    toast('One tooth. Up above, the hanging city rocks like a cradle, and every chimney on the dunes breathes out.');
+    say('One tooth. Up above, the hanging city rocks like a cradle, and every chimney on the dunes breathes out.');
   };
 
   // ---------------------------------------------------------------- the derrick's crane, and the key on its hook
@@ -376,6 +381,9 @@ export function setupBuried(ctx) {
     { id: 'wheel', pos: watchAt.clone().lerp(W.centre, 0.6).setY(W.ground + 8), radius: 140, parts: turned() ? ['chant', 'bell', 'drum'] : ['chant'], mode: 'play', vol: 0.5, duck: 0.3 },
   ]);
 
+  // ---------------------------------------------------------------- the first turn, filmed
+  const film = setupBuriedMoments(ctx, { W, st, moments, startTurn, turned, city: B.city, watchAt });
+
   // ---------------------------------------------------------------- per frame
   const camF = V(0, 0, 0), toW = V(0, 0, 0), _p = V(0, 0, 0), _d = V(0, 0, 0);
   const update = (dt, t, { camera } = {}) => {
@@ -465,7 +473,8 @@ export function setupBuried(ctx) {
         watching = camF.dot(toW) > 0.55;
       }
       st.wait = watching ? st.wait + dt : 0;
-      if (st.wait > 1.2) startTurn();
+      // the first time, filmed (src/story/buried-moments.js: it starts the turn itself); else at once
+      if (st.wait > 1.2 && !film.wheel()) startTurn();
     }
     if (st.turning) {
       st.turnT += dt;
@@ -549,5 +558,5 @@ export function setupBuried(ctx) {
     dust.update(dt, null);
   };
 
-  return { people, update, state: st, turn: () => startTurn(), tooth };
+  return { people, update, state: st, turn: () => startTurn(), tooth, film, watchAt };
 }

@@ -27,8 +27,10 @@ Ranked; each says why in the review. Playtest with two or three new players befo
 - [ ] **Two or three real choices** with consequences at the stone (Viridel's loss stays, as one of them).
 - [ ] **The desert's first hour shorter:** the three talk stages in a row, the empty Hearth ride.
 - [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
-- [ ] **Each world's climax staged as a moment** (only the desert has filmed moments).
-- [ ] **One trace of the singing light or of Ilen in each detour world.**
+- [x] **Each world's climax staged as a moment** (every route world: `src/story/<world>-moments.js`,
+  docs/systems/cinematics.md).
+- [x] **One trace of the singing light or of Ilen in each detour world** (and the Sightings page that
+  keeps them: docs/systems/story.md, docs/systems/ui.md).
 - [ ] The gameplay loop: the fluid blade and the foes are in (v0.87, docs/systems/foes.md; try them in the
   Arena). Next: captured sword swings for the blade (the Sword and Shield and Great Sword packs from
   Mixamo), a better machine, foes that use the world's height and the temple kit.

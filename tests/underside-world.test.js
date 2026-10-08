@@ -43,7 +43,7 @@ test('the shelf builds: the ship on its top, people from three worlds, the cloud
   assert.ok(Math.abs(physics.groundAt(SHIP_SITE.x, top + 20, SHIP_SITE.z, 40) - top) < 0.05, 'the ship lands on the flat top');
   for (const [dx, dz] of [[-12, 0], [12, 0], [0, -12], [0, 12]]) assert.ok(Math.abs(physics.groundAt(SHIP_SITE.x + dx, top + 20, SHIP_SITE.z + dz, 40) - top) < 0.05, 'and the top is flat round it');
   assert.ok(Math.abs(level.spawn.y - top) < 0.2 && clear(physics, level.spawn.x, top, level.spawn.z), 'nothing in the way where he starts');
-  const named = UNDERSIDE_CONTENT.npcs.filter((p) => p.id).map((p) => p.id);
+  const named = UNDERSIDE_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id);
   assert.deepEqual(named.sort(), ['kip', 'pip.garage', 'tiv']);
   for (const p of UNDERSIDE_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes && !p.talk.entry, `${p.id}: only words for the town, no errands`);
   // every one of them stands on what is drawn at their level

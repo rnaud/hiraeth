@@ -40,7 +40,7 @@ test('the White Mangrove builds: the island, the ship\'s site on dry ground, peo
   assert.ok(g(0, -40) < -2, 'the lake is deep enough to swim');
   assert.ok(level.lights.length > 100, 'lanterns along the walks and decks');
   assert.ok(level.spots.count > 5000, 'the lake\'s creatures');
-  const named = MANGROVE_CONTENT.npcs.filter((p) => p.id).map((p) => p.id);
+  const named = MANGROVE_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id);
   assert.deepEqual(named.sort(), ['bram', 'fen', 'oyo'], 'Oyo of the market, Fen and Bram of the Deep Wood');
   for (const p of MANGROVE_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes, `${p.id}: only words for the lake, no errands`);
 });

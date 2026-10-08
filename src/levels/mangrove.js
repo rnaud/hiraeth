@@ -132,7 +132,19 @@ export const MANGROVE_CONTENT = {
       ] } },
     // the lake's own folk
     { at: [RING_R - 2, GREAT.z], y: WALK_Y + 0.2, radius: 3, lang: 'perdide2', lines: ['~happy~ Evening. The lanterns are lit.', '~neutral~ The ring walk takes you round to every stair.'] },
-    { at: [-RING_R + 2, GREAT.z - 4], y: WALK_Y + 0.2, radius: 3, lang: 'perdide2', lines: ['~curious~ You came by the sky? We came by boat, a long time ago.', '~whisper~ Don’t lean on the lantern posts. They lean back.'] },
+    // (Liss: the detour's trace, src/story/sightings-detours.js)
+    { id: 'liss', name: 'Liss', title: 'who poles the boats', color: '#b8a8d8', kind: 'f', at: [-RING_R + 0.2, GREAT.z - 4], y: WALK_Y + 0.2, radius: 0.8, lang: 'perdide2',   // (on the ring walk: further in is the lake)
+      lines: ['~curious~ You came by the sky? We came by boat, a long time ago.', '~whisper~ Don’t lean on the lantern posts. They lean back.'],
+      talk: { listen: [
+        { after: () => true, say: [
+          '~curious~ Another one from the sky. Long ago a woman came down alone, in a ship no bigger than my boat.',
+          '~neutral~ She asked about the {glyph} on the great tree’s roots. I showed her how it goes: dots, then arc.',
+          '~solemn~ She drew it on her knee until her hand knew it, thanked me in words that didn’t come through, and went up.',
+        ], do: { set: { 'sight.mangrove.liss': true } } },
+        '~whisper~ Don’t lean on the lantern posts. They lean back.',
+        '~neutral~ The roots grow out and down, and the mark on them grows too. A little wider every year.',
+        '~playful~ We came by boat, a long time ago. Nobody remembers from where. The boats might.',
+      ] } },
     { at: [DECKED[1].x + DECKED[1].outer - 1.2, DECKED[1].z], y: DECKED[1].deckY + 0.2, radius: 1, lang: 'perdide2', lines: ['~solemn~ My mother planted this deck. It has grown three planks since.', '~neutral~ The roots take a year to reach the water.'] },
     { at: [DECKED[4].x - DECKED[4].outer + 1.2, DECKED[4].z], y: DECKED[4].deckY + 0.2, radius: 1, lang: 'perdide2', lines: ['~playful~ From up here the boats look like spoons.', '~happy~ The creatures are brightest when there’s no moon.'] },
     { at: [-4, 34], y: WALK_Y + 0.2, radius: 2, lang: 'perdide2', lines: ['~neutral~ Welcome to the lake. Stay on the planks, or swim. Both work.', '~curious~ Your ship is very loud. The boats went quiet when it landed.'] },

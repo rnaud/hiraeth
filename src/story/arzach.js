@@ -5,6 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { featherGeometry } from '../avian.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, RIDER_CALL, RIDER_CALL_BEAT, KEEPSAKE } from './arzach-data.js';
+import { setupArzachMoments } from './arzach-moments.js';
 
 // Vael's story, alive (arzach-data.js has the words): "The Waiting Bird".
 //
@@ -397,8 +398,8 @@ export function setupArzach(ctx) {
     bird.pose = (dt) => {
       pose(dt);
       if (bow.t <= 0) return;
-      // she lowers her long neck to you and opens her wings wide
-      const len = bow.short ? 2.2 : 4.2, k = Math.sin(Math.PI * Math.min(bow.t / len, 1));
+      // she lowers her long neck to you and opens her wings wide (bow.len: her first, filmed, is longer)
+      const len = bow.short ? 2.2 : bow.len ?? 4.2, k = Math.sin(Math.PI * Math.min(bow.t / len, 1));
       bird.body.rotation.x += 0.62 * k;
       bird.body.position.y = -0.25 * k;
       // (out of the fold, bird.js poseWings: unrolled, swept forward, the feathers and the hand at their full size)
@@ -416,6 +417,8 @@ export function setupArzach(ctx) {
     sound.sweep(t + 0.32, 1500 * pitch, 650 * pitch, 0.6, 0.04, 'triangle');
   };
   // the rider's flute: E anywhere (while you carry it and haven't played it): her call, and she comes down
+  // (the first time filmed, src/story/arzach-moments.js: set up below, once her bow exists; else as always)
+  let film = { bird: () => false };
   const call = { state: game.flag('arzach.bird.called') && !game.flag('arzach.bird.promise') ? 'coming' : null, t: 0 };
   // (it sits just inside talking range: someone right beside you still comes first)
   registerInteractable({ id: 'whistle', priority: PRIORITY.use, range: 3, prompt: 'play the rider’s flute',
@@ -425,7 +428,8 @@ export function setupArzach(ctx) {
       game.set('arzach.bird.called', true);
       call.state = 'coming'; call.t = 0;
       playCall(sound);
-      toast('Five notes: low, rising, a turn, and a long high one. Your fingers learn them as they play. High over the haze, something answers.');
+      const said = 'Five notes: low, rising, a turn, and a long high one. Your fingers learn them as they play. High over the haze, something answers.';
+      let filmed = false;
       if (bird) {
         hideBird(false);
         // she comes down out of the haze for the first time: from high over the plain, to you
@@ -436,9 +440,19 @@ export function setupArzach(ctx) {
         const land = top ? V(T.x + Math.sin(-0.6) * 17.5, T.floor, T.z + Math.cos(-0.6) * 17.5) : V(pp.x + d.z * 3 + d.x * 2.5, pp.y, pp.z - d.x * 3 + d.z * 2.5);
         bird.pos.set(pp.x - 170, Math.max(pp.y, T.floor) + 150, pp.z + 140);
         bird.landed = false;
+        // filmed, the first time (it brings her start in nearer and says the toast at its end)
+        filmed = film.bird({ land, said });
         bird.summon(land.x, land.z, angleTo(land, pp), top ? land : pp);
       }
+      if (!filmed) toast(said);
     } });
+  /** She bows to you (on landing beside you; a moment asks for it if she is late). */
+  const bowNow = () => {
+    if (call.state !== 'coming' || !bird) return;
+    call.state = 'bowing'; bow.t = 0.001; bow.short = false;
+    bird.heading = angleTo(bird.pos, player.pos);
+    cry(1.1);
+  };
   const keepPromise = () => {
     if (game.flag('arzach.bird.promise')) return;
     game.set('arzach.bird.promise', true);
@@ -459,6 +473,8 @@ export function setupArzach(ctx) {
     toast('Keepsake: the bird’s promise. Wherever there is sky, she will come when you call.');
     setTimeout(() => story.complete?.(), 1500);
   };
+
+  film = setupArzachMoments(ctx, { bird, bow, cry, bowNow, tower: T });
 
   // ---------------------------------------------------------------- places for the quest markers
   quests.locate('oia', () => people.oia.pos);
@@ -485,17 +501,12 @@ export function setupArzach(ctx) {
     if (call.state === 'coming' && bird) {
       call.t += dt;
       const near = bird.pos.distanceTo(pp) < 15 && (bird.mode === 'idle' || bird.mode === undefined || bird.landed);   // (15: on the balcony, below you on the sill)
-      if (near || call.t > 25) {
-        call.state = 'bowing'; bow.t = 0.001; bow.short = false;
-        bird.heading = angleTo(bird.pos, pp);
-        cry(1.1);
-      }
+      if (near || call.t > 25) bowNow();
     }
     if (bow.t > 0) {
       bow.t += dt;
-      const len = bow.short ? 2.2 : 4.2;
-      if (bow.t > len) {
-        bow.t = 0;
+      if (bow.t > (bow.short ? 2.2 : bow.len ?? 4.2)) {
+        bow.t = 0; bow.len = undefined;
         if (call.state === 'bowing') { call.state = null; keepPromise(); }
       }
     }
@@ -542,5 +553,5 @@ export function setupArzach(ctx) {
     updateWind(dt, t);
   };
 
-  return { people, update, hand, bow, call, feathers, knuckles, ringHand, cry, flute, takeFlute, wind, shown };
+  return { people, update, hand, bow, call, feathers, knuckles, ringHand, cry, flute, takeFlute, wind, shown, film };
 }

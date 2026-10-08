@@ -1,14 +1,15 @@
 // What fills the game menu's panels (src/game-menu.js), read off the save each time a panel is drawn.
 // Everything the sketchbook held is here: the gear and what you carry (Items), the father's charge and
-// the quests (Quests), the story pages, relics, errands and the observatory's sketch (Sketchbook), and
+// the quests (Quests), the sightings, the story pages, relics, errands and the observatory's sketch (Sketchbook), and
 // how far each world you know has come, its boxes too (Worlds).
 //
-//   menuSources({ items, mode, quests, charge, keepsakes, journal, levels, known, current, boxes, errands, icon, titles })
+//   menuSources({ items, mode, quests, charge, keepsakes, journal, levels, known, current, boxes, errands, icon, titles, game })
 //     → { items(), quests(), sketches(), worlds() }
 
 import { ITEMS } from './items.js';
 import { CHARGE, chargeStep } from './story/charge.js';
 import { ALL_QUESTS } from './story/all-quests.js';
+import { sightingsData } from './story/sightings.js';
 
 const KIND_ORDER = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
 /** Each gun mode's item (the backpack shoots plain fluid). */
@@ -58,10 +59,11 @@ export function questsData({ quests = null, charge = null, errands = {}, defs = 
 }
 
 /**
- * Sketchbook: a row for each world you know (`levels` [{ id, title, hidden, relicNames, storyTitle }],
- * `known(id)`), then the observatory's sketch and the errands' (journal.data).
+ * Sketchbook: the Sightings page (`sightings`: src/story/sightings.js sightingsData, or null), a row for
+ * each world you know (`levels` [{ id, title, hidden, relicNames, storyTitle }], `known(id)`), then the
+ * observatory's sketch and the errands' (journal.data).
  */
-export function sketchesData({ data = {}, levels = [], known = () => true } = {}) {
+export function sketchesData({ data = {}, levels = [], known = () => true, sightings = null } = {}) {
   const worlds = levels.filter((L) => (!L.hidden || data.completed) && known(L.id)).map((L) => {
     const relics = (L.relicNames ?? []).map((name, i) => ({ name, img: data.relics?.[L.id]?.[i]?.img ?? null }));
     const st = data.stories?.[L.id];
@@ -73,7 +75,7 @@ export function sketchesData({ data = {}, levels = [], known = () => true } = {}
     caption: obs.done ? (obs.fragments ?? []).join(' ') || 'The roof unfolded, and the observatory drew its stars.' : 'East of camp: climb the six ledges, turn the lenses toward the centre.' }] });
   const errs = Object.entries(data.errands ?? {});
   if (errs.length) extra.push({ id: 'errands', title: 'Errands', count: `${errs.filter(([, e]) => e.done).length}/${errs.length}`, tiles: errs.map(([, e]) => ({ name: `${cap(e.item)}${e.done ? ', delivered' : ''}`, img: e.done ? e.img || null : null, caption: e.done ? `Delivered to ${e.toTitle}.` : `Still to carry to ${e.toTitle}.` })) });
-  return { worlds, extra };
+  return { sightings, worlds, extra };
 }
 
 /** Worlds: the worlds you know, in the route's order (`order`), with what is done in each. */
@@ -93,7 +95,8 @@ export function menuSources(o) {
   return {
     items: () => itemsData({ owned: o.items.owned(), ...(o.mode?.() ?? {}), carried: o.quests?.carried?.() ?? [], keepsakes: o.keepsakes?.() ?? [], icon: o.icon, titles }),
     quests: () => questsData({ quests: o.quests, charge: o.charge?.(), errands: o.journal?.data?.errands, defs: o.errandDefs ?? [], titles }),
-    sketches: () => sketchesData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], known: o.known ?? (() => true) }),
+    sketches: () => sketchesData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], known: o.known ?? (() => true),
+      sightings: o.game ? sightingsData({ game: o.game, known: o.known ?? (() => true), titles }) : null }),
     worlds: () => worldsData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], order: o.order ?? [], known: o.known ?? (() => true), current: o.current, boxes: o.boxes?.() ?? {}, done: o.done ?? (() => false) }),
   };
 }

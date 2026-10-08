@@ -130,7 +130,18 @@ export const MOONFOUNDRY_CONTENT = {
     { at: [QUARTER.x - 8, QUARTER.z - 6], radius: 2, lang: 'buried', lines: ['~curious~ You came in from the apron? Most people come by the rails.', '~tired~ Sweeping a floor this size is not a job. It is a way of life.'] },
     { at: [CRADLE.x - 20, CRADLE.z + 10], radius: 3, lang: 'buried', lines: ['~solemn~ The claws still hold. Nobody has told them to let go.', '~playful~ My grandmother polished that moon. One crater a day. She got to nine.'] },
     { at: [10, 30], radius: 2, lang: 'buried', lines: ['~neutral~ Mind the rails on the floor. Nothing runs on them, but they trip you.', '~surprised~ A ship on the apron! We usually only get pigeons and inspectors.'] },
-    { at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'buried', lines: ['~happy~ Warm your hands. The furnace does not mind.', '~whisper~ If you listen at the mouth you can hear it talking to itself.'] },
+    // (Bertil: the detour's trace, src/story/sightings-detours.js)
+    { id: 'bertil', name: 'Bertil', title: 'who pours at the last furnace', color: '#c8693c', kind: 'm', at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'buried',
+      lines: ['~happy~ Warm your hands. The furnace does not mind.', '~whisper~ If you listen at the mouth you can hear it talking to itself.'],
+      talk: { listen: [
+        { after: () => true, say: [
+          '~neutral~ Years back I cast a plate for a ship’s nose, for a woman who came on her own and asked nicely.',
+          '~curious~ She drew it in soot on the floor, slowly, like a new word: {glyph}. *So they’ll know me,* she said.',
+          '~solemn~ I didn’t ask who they were. I poured it twice to get the arc right.',
+        ], do: { set: { 'sight.moonfoundry.bertil': true } } },
+        '~happy~ Warm your hands. The furnace does not mind.',
+        '~whisper~ If you listen at the mouth you can hear it talking to itself.',
+      ] } },
   ],
 };
 

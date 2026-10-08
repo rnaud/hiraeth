@@ -37,6 +37,8 @@ export const SHIP = { x: 0, z: 230 };
 /** The long tube lying across the plain: three points of its centre line ([x, z]), its radius, sunk 2 m. */
 export const TUBE = { A: [-210, -40], M: [-60, -26], B: [90, -44], r: 11 };
 export const TILTED = { x: 160, z: -66 };
+/** The burned mark on the tilted piece's foot (the detour's trace): where, which way it faces, how high. */
+export const RING_MARK = { at: [139.6, 0, -51.85], yaw: -0.9, lift: 1.5 };   // (on the vermilion foot's face, 0.3 m out from it)
 export const ARCH = { A: [-330, -320], M: [-60, 200, -345], B: [210, -305] };   // (its top leaning back: it fell)
 export const BAND = { x: -190, z: 110, R: 80, y: 17 };              // the low segment round the village on posts
 export const VAULT = { A: [118, 112], M: [170, 96], B: [226, 86], r: 12 };
@@ -113,6 +115,17 @@ export const RING_CONTENT = {
     { at: [VAULT.A[0] - 4, VAULT.A[1] + 12], radius: 2, lang: 'edena', lines: ['~solemn~ The vault was a hall of something once. Machines, my father said. Now it’s a hall of us.', '~happy~ The big broken one behind it has a park inside. Mind the ledge.'] },
     { at: [TILTED.x - 26, TILTED.z + 18], radius: 2, lang: 'edena', lines: ['~scared~ Nobody goes up the tilted one. It still creaks in the heat.', '~curious~ When it fell, they say it rang. All of it. For a whole day.'] },
   ],
+  // the detour's trace (src/story/sightings-detours.js): the makers' sign, burned into the tilted piece's foot by a hand that learned it
+  traces: [{
+    id: 'fallenring.mark', at: RING_MARK.at, label: 'the burned mark', range: 3.4, height: 5,
+    look: [RING_MARK.at[0], RING_MARK.lift + 1.3, RING_MARK.at[2]],   // (the prompt over it, not on it)
+    glyph: { size: 1.6, yaw: RING_MARK.yaw, lift: RING_MARK.lift, color: '#70e7df' },
+    person: { id: 'trace.fallenring', name: 'A mark on the fallen ring', title: '', color: '#70e7df',
+      talk: { nodes: { look: { say: [
+        '~solemn~ (Burned into the plating at the tilted piece’s foot, and not long ago: the edges are still bright, where everything round them is weathered. Three dots over an arc, {glyph}.)',
+        '~whisper~ (But the arc wavers, stops, and starts again where the hand lifted. Whoever drew this did not make it. They learned it, and drew it carefully, the way you write a word in a language that isn’t yours.)',
+      ], do: { set: { 'sight.fallenring.mark': true } } } } } },
+  }],
 };
 
 /** The level's colours: a teal-blue day, a rose dusk, a deep green-blue night where the windows glow. */

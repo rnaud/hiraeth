@@ -106,7 +106,7 @@ test('the Forest of Antennas: off the route, on the map from the start, reached 
   const e = entries.find((x) => x.id === 'antennas');
   assert.ok(e && e.known && e.side, 'charted, off the dotted line');
   assert.ok(entries.at(-1).home, 'home still last');
-  const named = ANTENNAS_CONTENT.npcs.filter((p) => p.id).map((p) => p.id).sort();
+  const named = ANTENNAS_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id).sort();
   assert.deepEqual(named, ['lune', 'ottla', 'teb'], 'Lune and Ottla of the Sealed Hangar, Teb of the Signal Market');
   for (const p of ANTENNAS_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes, `${p.id}: only words for the forest, no errands`);
 });
