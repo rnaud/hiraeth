@@ -195,6 +195,11 @@ The count is said every 5 ink.
   in; meeting at the strike with a white flash), `open` (stunned, reeling, flipped, asleep: pale blue, spread to
   `RETICLE.open`, pulsing, still), `veiled` (buried, phased: dimmed, dashed). A new lock snaps in (from twice the
   size, a quick turn, `acquire()`). Off the screen it waits small at the edge on its side.
+- **Switching with a flick** (`FLICK`, `Foes.flickLook`, `switchLock`, v0.97): main.js wraps `rig.look` (the
+  right stick, the mouse, a touch drag all pass through it); while locked, the sideways part goes to `flickLook`
+  instead of the camera, into a leaky sum (decay 8/s). Past `FLICK.px` (70) the lock jumps to the nearest foe on
+  that side of the screen (by projected x, a little by y), then rests `FLICK.rest` s; none that way, it stays. Full
+  tilt gets there in ~0.12 s; half tilt or less never does.
 
 ## Staying in the fight (v0.96, `PRESSURE`)
 
@@ -210,6 +215,14 @@ Foes press you rather than run (enemies that flee are a chore to chase, not a fi
   flushes it (`'flushed'`: dazed `BURROW.flush`, unharmed, sand thrown up); a bomb, stomp or gust still throws it
   up for 1.6 s. A shot finds only sand. It can be locked on buried (the reticle dimmed).
 - **The shadow hound** is phased only more than `PHASE.near` (3.2 m) from you (`Foe.dist`): close, it is solid.
+- **Armour** (`Foe.shrugged`, `Foes.armour`, `ARMOUR`, v0.97): a cut that lands and doesn't make it reel (a `heavy`
+  kind, or any foe late in its wind-up or striking) plays `foeArmour` (a dull thunk) instead of the hurt sound,
+  throws sparks and a gold ring off it, and once says what does stagger one (flag `foes.armour`).
+- **Hovering foes** (v0.97): a blade cut knocks a `hover` kind low (`Foe.low`, `KNOCKED_LOW` 2.6 s, dropping fast to
+  0.35 m). **The rising cut** (`RISE`, `riseTo`, fluid-blade.js): a swing begun on the ground at a target `RISE.min`
+  (1 m)+ over the chest within `RISE.flat` (4.5 m) sets `player.riseKick`: Player leaps up to its height (at most
+  `RISE.max` 2.8 m, with its own `GRAVITY`) and in, and the cut is the leap's cone (no swept test: the captured arms
+  swing level). Then the foe is low and the next swings are on the ground.
 - `tests/combat-feel.test.js` checks each of these, the turns off the screen, the lock, slow motion, the pull and the buffer.
 
 ## Strafing, locked on (`src/player.js` `LOCK_MOVE`)

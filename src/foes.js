@@ -113,6 +113,17 @@ export const GUARDS = { near: 32, size: 2, ring: 3.5 };
 /** The lock-on (R3 / Tab): a foe within `reach` (the nearest in front first); lost past `lose` or when it falls. */
 export const LOCK = { reach: 18, lose: 26 };
 /**
+ * Switching the lock with a flick (v0.97): while locked, the look's sideways motion (the right stick, the mouse, a
+ * touch drag: px as rig.look gets them) gathers in a leaky sum (`decay` /s); past `px` the lock jumps to the nearest
+ * foe on that side of the screen, then rests `rest` s. The stick's full tilt (~900 px/s) gets there in ~0.12 s; held
+ * at half tilt or less it settles below (≤ 56), so leaning on the stick never switches.
+ */
+export const FLICK = { px: 70, decay: 8, rest: 0.35 };
+/** A cut that lands and doesn't stop it (a heavy foe, a late wind-up, a strike): its armour's answer, a dull thunk and sparks. */
+export const ARMOUR = { ring: 0.9 };
+/** A hovering foe (`hover`) the blade cuts is knocked low this long (s), within the blade's reach. */
+export const KNOCKED_LOW = 2.6;
+/**
  * Pressure, not flight (docs/systems/foes.md, "Staying in the fight"): a foe that keeps its distance (`keep`) backs
  * off for at most `retreat` s, then stands its ground and fights until it has struck again; one led off past its
  * `giveUp` goes home only once you have left too (this far from its home past giveUp), never while you are still
@@ -159,6 +170,7 @@ export class Foe {
     this.dist = Infinity;              // m to the traveller (flat), last update
     this.shelled = !!this.def.shell;   // a salt crab's shell (a bomb cracks it)
     this.flipped = 0; this.lit = 0; this.crust = 0; this.sleep = 0;   // s: on its back; lit by an ember; doused cold; asleep in a bloom
+    this.low = 0;   // s knocked low by a cut (a hovering foe: KNOCKED_LOW)
   }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.def.height + this.alt); }
@@ -240,11 +252,12 @@ export class Foe {
     this.recoil = Math.max(0, this.recoil - dt * (this.heavyRecoil ? 2.5 : 5));
     this.cool = Math.max(0, this.cool - dt);
     if (!this.buried && this.upFor > 0) this.upFor = Math.max(0, this.upFor - dt);
-    for (const k of ['flipped', 'lit', 'crust', 'sleep']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
+    for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
     // a shove's slide eases out
     if (this.vel.lengthSq() > 1e-4) { this.step(this.vel.x * dt, this.vel.z * dt, env); this.vel.multiplyScalar(Math.exp(-6 * dt)); }
     // a flyer keeps to its height, low only while it recovers from a dive (and falls when stilled)
-    if (D.hover) this.alt += ((this.stunned > 0 ? 0.3 : this.state === 'recover' ? 0.35 : D.hover) - this.alt) * (1 - Math.exp(-(this.state === 'recover' ? 1.2 : 3) * dt));
+    // (knocked low by a cut, it drops fast and stays within the blade's reach a while)
+    if (D.hover) this.alt += ((this.stunned > 0 ? 0.3 : this.low > 0 || this.state === 'recover' ? 0.35 : D.hover) - this.alt) * (1 - Math.exp(-(this.low > 0 ? 6 : this.state === 'recover' ? 1.2 : 3) * dt));
     if (this.stunned > 0) { this.stunned -= dt; return ev; }
     const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z, d = Math.hypot(dx, dz);
     this.dist = d;
@@ -385,6 +398,7 @@ export class Foe {
    */
   hit(mode, dir, info = {}) {
     if (!this.alive) return false;
+    this.shrugged = false;
     const D = this.def, src = info.source;
     if (this.buried) {
       // under the sand a blast, a stomp or a gust throws a ray up, dazed; a cut at its fin flushes it out
@@ -425,7 +439,11 @@ export class Foe {
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
     if (mode === 'blade' || mode === 'fire') this.letGo = true;   // (a hold, a line, is broken)
     // Light cuts interrupt a blot (the flinchy ones), or the first two thirds of anyone's wind-up.
-    if ((D.flinchy && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; this.reel = this.heavyRecoil ? 'staggered' : 'flinched'; }
+    const reels = (D.flinchy && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike');
+    // a cut that doesn't stop it: a heavy foe, or one committed to its blow (late in its wind-up, striking); Foes.hurt answers with its armour's thunk
+    this.shrugged = mode === 'blade' && !reels && (!!D.heavy || this.state === 'wind' || this.state === 'strike');
+    if (mode === 'blade' && D.hover) this.low = KNOCKED_LOW;   // (cut, a hovering foe drops within reach)
+    if (reels) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; this.reel = this.heavyRecoil ? 'staggered' : 'flinched'; }
     else if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
@@ -617,6 +635,49 @@ export class Foes {
     if (typeof document === 'undefined' || !this.camera) return;
     (this.reticle ??= new LockReticle()).update(this.lock, this.camera, dt);
   }
+  /**
+   * The look's sideways motion while locked (main.js wraps rig.look): px as the stick, the mouse or a drag gave
+   * them, `now` in s. Past FLICK.px of quick motion the lock jumps that way (switchLock). Returns true: locked, the
+   * look's sideways part is the lock's (the camera keeps the foe ahead).
+   */
+  flickLook(dx, now = performance.now() / 1000) {
+    if (!this.lock) { this._flick = 0; return false; }
+    const dt = Math.min(0.25, Math.max(0, now - (this._flickAt ?? now)));
+    this._flickAt = now;
+    this._flick = (this._flick ?? 0) * Math.exp(-FLICK.decay * dt) + dx;
+    if (now < (this._flickRest ?? 0)) { this._flick = 0; return true; }
+    if (Math.abs(this._flick) >= FLICK.px) {
+      this.switchLock(Math.sign(this._flick));
+      this._flick = 0; this._flickRest = now + FLICK.rest;
+    }
+    return true;
+  }
+  /**
+   * The lock to the nearest foe on `side` (+1 right, −1 left) of the locked one, as seen on the screen (no camera:
+   * round the traveller); none that way, it stays. Returns the foe locked.
+   */
+  switchLock(side) {
+    const P = this.player, cur = this.lock, cam = this.camera;
+    if (!cur) return null;
+    const at = (f) => {
+      if (cam?.projectionMatrix) { const p = _v.copy(f.chest).project(cam); return p.z < 1 ? { x: p.x, y: p.y } : null; }
+      // (round the traveller: the bearing from the locked one's, right positive)
+      const a0 = Math.atan2(cur.pos.x - P.pos.x, cur.pos.z - P.pos.z), a = Math.atan2(f.pos.x - P.pos.x, f.pos.z - P.pos.z);
+      return { x: -Math.atan2(Math.sin(a - a0), Math.cos(a - a0)), y: 0 };
+    };
+    const c = at(cur) ?? { x: 0, y: 0 };
+    let best = null, bd = Infinity;
+    for (const f of this.list) {
+      if (f === cur || !f.alive || f.dead !== undefined || f.pos.distanceTo(P.pos) > LOCK.reach) continue;
+      const p = at(f);
+      if (!p || Math.sign(p.x - c.x) !== side) continue;
+      const d = Math.abs(p.x - c.x) + Math.abs(p.y - c.y) * 0.5;
+      if (d < bd) { bd = d; best = f; }
+    }
+    if (best) { this.lock = best; this.reticle?.acquire(); this.sound?.fluidMode?.('stun'); }
+    return this.lock;
+  }
+
   /** The next foe for the lock after `gone` fell: the nearest standing in reach, or null. */
   nextLock(gone) {
     const P = this.player;
@@ -828,8 +889,9 @@ export class Foes {
     if (!r) return false;
     if (r === 'glance') { this.sound?.foeHurt?.('machine'); this.sparks(f, f.chest); return true; }   // (off a crab's shell)
     if (r === 'flushed') { this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
+    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire') this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burst(f); return true; }
+    if (f.shrugged) { this.armour(f, dir); return true; }
     if (mode === 'blade' || mode === 'shoot' || mode === 'fire') this.sound?.foeHurt?.(f.def.sound ?? f.kind);
-    if (r === 'burst') this.burst(f);
     return true;
   }
 
@@ -1018,6 +1080,21 @@ export class Foes {
   harmOf(d) { return d * (this.difficulty === 'gentle' ? GENTLE.harm : 1); }
   /** A bite of the bar (never all of a healthy one). */
   harm(d) { const P = this.player; P.hurt?.(strikeDamage(P.health ?? 1, d), 'foe'); }
+
+  /**
+   * A cut that landed and didn't stop it (Foe.shrugged): a dull thunk instead of the splat, sparks off where it struck
+   * and a gold ring round it, so you know the blow told but it comes on; the first time, what does stop one.
+   */
+  armour(f, dir) {
+    this.sound?.foeArmour?.();
+    this.sparks(f, f.chest);
+    const T = this.tool;
+    T?.rings?.add({ from: f.chest.clone(), dir: dir ? _w.copy(dir).setY(0).normalize().negate() : _up, reach: 0.05, r0: f.def.radius * 0.6, r1: f.def.radius + ARMOUR.ring, life: 0.25, color: '#f2c54b', thick: 1 });
+    if (!this.game.flag('foes.armour')) {
+      this.game.set('foes.armour', true);
+      this.notice?.('That one shrugs off a light cut: the heavy third swing, a perfect parry or a cut before it is fully wound up staggers it.');
+    }
+  }
 
   /** A guard that cut a line or chipped glass: a few bright sparks. */
   sparks(f, at) {

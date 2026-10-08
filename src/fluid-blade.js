@@ -28,6 +28,18 @@ export const BLADE = {
  * and cut, so the blade lands where you meant it: up to `max` m, to stand `ideal` m off its body.
  */
 export const MAGNET = { max: 2.2, ideal: 1.2 };
+/**
+ * The rising cut (v0.97): a swing begun on the ground at a foe hovering `min`+ m over the chest, within `flat` m,
+ * leaps you up to it (to its height, at most `max` m) and in, and cuts on the way up; its cut is the leap's cone (the
+ * captured arms swing level). `gravity` is the traveller's (player.js GRAVITY).
+ */
+export const RISE = { min: 1.0, flat: 4.5, max: 2.8, gravity: 32 };
+/** The leap for a foe `dy` m over the chest and `d` m off (flat) through a wind-up and cut of `time` s: { up, speed } m/s, or null (not one to rise to). */
+export function riseTo(dy, d, time, R = RISE) {
+  if (!(dy >= R.min) || !(d <= R.flat) || !(time > 0)) return null;
+  const h = Math.min(dy, R.max);
+  return { up: Math.sqrt(2 * R.gravity * h), speed: Math.max(0, d - 1.2) / time };
+}
 /** How fast (m/s) a swing of `time` s (its wind-up and cut) must step to close on a foe `d` m away (flat, its body's `radius`): 0 in reach or too far. */
 export function closeInSpeed(d, radius, time, M = MAGNET) {
   const gap = d - radius - M.ideal;
@@ -437,8 +449,13 @@ export class FluidBlade {
     const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
     if (foe) this.dir.subVectors(foe.position(), p.pos); else p.frame.dir(p.heading, this.dir);
     this.dir.addScaledVector(U, -this.dir.dot(U));
-    // a foe just out of reach: the swing steps you in to it (not the lunge, which carries you itself)
-    this.closeIn = foe && this.special !== LUNGE && p.onGround ? closeInSpeed(this.dir.length(), foe.radius ?? 0.6, this.sample.wind + this.sample.active) : 0;
+    // a foe just out of reach: the swing steps you in to it (not the lunge, which carries you itself); one hovering
+    // over you: a rising cut, up to it
+    const flat = this.dir.length(), time = this.sample.wind + this.sample.active;
+    const rise = foe && this.special !== LUNGE && p.onGround ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
+    this.rising = !!rise;
+    if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
+    this.closeIn = foe && !rise && this.special !== LUNGE && p.onGround ? closeInSpeed(flat, foe.radius ?? 0.6, time) : 0;
     if (this.dir.lengthSq() < 1e-6) p.frame.dir(p.heading, this.dir);
     this.dir.normalize();
     T.used('blade', p.pos);
@@ -450,7 +467,7 @@ export class FluidBlade {
     this.cutNow = true;
     const C = this.coarse(this._coarse ??= { origin: _o }), origin = C.origin;
     let hits = bladeHits(origin, this.dir, T.physics, { reach: C.reach, angle: C.angle });
-    const pose = this.bladeSegment();
+    const pose = this.rising ? null : this.bladeSegment();   // (the rising cut: the leap's cone, the arms swing level)
     if (pose) hits = hits.filter((h) => sweptBladeTouches(h.target.position(), bladeTouchRadius(h.target), this.previousBlade ?? pose, pose));
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);

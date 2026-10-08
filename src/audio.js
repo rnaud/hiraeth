@@ -1317,6 +1317,14 @@ export class Sound {
     this.burst(t, { dur: 0.14, type: 'lowpass', freq: 700, q: 0.6, vol: 0.2, rate: 0.6 });
   }
 
+  /** A cut that lands and doesn't stop the foe (src/foes.js armour): a dull, short thunk, a knock on a door. */
+  foeArmour() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.sweep(t, 230, 170, 0.12, 0.12, 'triangle');
+    this.burst(t, { dur: 0.07, type: 'bandpass', freq: 520, q: 2.5, vol: 0.18, rate: 0.5 });
+  }
+
   /** A foe is done: an ink blot bursts back into ink (a wet pop and a falling sigh), a machine comes apart. */
   foeBurst(kind = 'blot') {
     if (!this.ctx) return;

@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { Foe, Foes, FOES, PRESSURE, BURROW } from '../src/foes.js';
-import { closeInSpeed, MAGNET, BLADE } from '../src/fluid-blade.js';
+import { Foe, Foes, FOES, PRESSURE, BURROW, FLICK, KNOCKED_LOW } from '../src/foes.js';
+import { closeInSpeed, MAGNET, BLADE, RISE, riseTo } from '../src/fluid-blade.js';
+import { GRAVITY } from '../src/player.js';
 import { feelDt, slowMo, hitStop, resetFeel } from '../src/feel.js';
 import { reticleLook, chevronSpread, RETICLE } from '../src/lock-reticle.js';
-import { clearTargets } from '../src/targets.js';
+import { clearTargets, registerTarget } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { items } from '../src/items.js';
@@ -149,5 +150,101 @@ test('a press during an evade is kept, and the blade swings as the evade ends', 
   for (let i = 0; i < 20 && !swung; i++) { tick({}); swung = tool.blade.swinging; }
   assert.ok(swung, 'it swings as soon as the evade is over');
   assert.ok(BLADE.buffer > 0.1);
+  tool.dispose(); clearTargets();
+});
+
+const arena = (P, o = {}) => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null), ...o });
+
+test('locked on, a quick flick of the look switches to the nearest foe that way; a slow push does not', () => {
+  clearTargets();
+  const P = player(v()), foes = arena(P);
+  foes.waveRest = 1e9;
+  // ahead of the traveller (+z): one straight on, one a little to the right (−x seen from behind), one far right, one left
+  const mid = foes.add('blot', v(0, 0, 6)), right = foes.add('blot', v(-2, 0, 6)), farRight = foes.add('blot', v(-6, 0, 5)), left = foes.add('blot', v(3, 0, 6));
+  foes.lock = mid;
+  const name = (f) => ({ [mid.id]: 'mid', [right.id]: 'right', [farRight.id]: 'farRight', [left.id]: 'left' })[f?.id] ?? String(f?.id);
+  [mid, right, farRight, left].forEach((f, i) => { f.id = `f${i}`; });
+  let t = 0;
+  for (let i = 0; i < 120; i++) foes.flickLook(4, (t += DT));   // (a third of the stick's tilt, held two seconds)
+  assert.equal(name(foes.lock), name(mid), 'a slow push: no switch');
+  for (let i = 0; i < 8; i++) foes.flickLook(15, (t += DT));     // (full tilt, a flick)
+  assert.equal(name(foes.lock), name(right), 'a flick right: the nearest on the right');
+  foes.flickLook(200, (t += DT));
+  assert.equal(name(foes.lock), name(right), 'resting a moment after a switch');
+  t += FLICK.rest;
+  foes.flickLook(200, (t += DT));
+  assert.equal(name(foes.lock), name(farRight), 'then on again');
+  foes.flickLook(200, (t += FLICK.rest + DT));
+  assert.equal(name(foes.lock), name(farRight), 'none further: it stays');
+  foes.flickLook(-200, (t += FLICK.rest + DT));
+  assert.equal(name(foes.lock), name(right), 'and back left');
+  assert.equal(foes.flickLook(5), true, 'locked: the sideways look is the lock\'s');
+  foes.lock = null;
+  assert.equal(foes.flickLook(5), false, 'not locked: the camera turns as ever');
+  assert.ok(left.alive);
+  foes.dispose(); clearTargets();
+});
+
+test('a cut that lands and does not stop a foe is answered with its armour: a thunk, sparks, a note once', () => {
+  clearTargets();
+  const P = player(v()), notes = [], sounds = [];
+  const foes = arena(P, { notice: (t) => notes.push(t), sound: { foeArmour: () => sounds.push('armour'), foeHurt: () => sounds.push('hurt') } });
+  foes.waveRest = 1e9;
+  const m = foes.add('machine', v(0, 0, 2));
+  m.state = 'chase';
+  foes.hurt(m, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.ok(m.shrugged && sounds.at(-1) === 'armour' && notes.length === 1, 'a heavy foe shrugs off a light cut');
+  foes.hurt(m, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(notes.length, 1, 'said once');
+  m.state = 'wind'; m.k = 0.3;
+  foes.hurt(m, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.ok(!m.shrugged && m.state === 'recover' && sounds.at(-1) === 'hurt', 'cut early in its wind-up: it reels');
+  m.state = 'chase'; m.hp = 4;
+  foes.hurt(m, 'stun', v(0, 0, 1));
+  assert.equal(m.shrugged, false, 'stilling is no cut');
+  const b = foes.add('blot', v(0, 0, 3)); b.state = 'strike';
+  foes.hurt(b, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.ok(!b.shrugged, 'a blot always flinches');
+  const s = foes.add('shade', v(0, 0, 3)); s.state = 'strike';
+  foes.hurt(s, 'blade', v(0, 0, 1), { damage: 1 });
+  assert.ok(s.shrugged, 'one committed to its strike comes on through the cut');
+  foes.dispose(); clearTargets();
+});
+
+test('a hovering foe the blade cuts drops within reach a while', () => {
+  const f = new Foe('flyer', v(), { rng: () => 0.5 }), P = player(v(0, 0, 12));
+  runFor(f, P, 1);
+  assert.ok(f.alt > 3);
+  f.hit('blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(f.low, KNOCKED_LOW);
+  runFor(f, P, 0.6);
+  assert.ok(f.alt < 0.8, `knocked low (${f.alt.toFixed(2)})`);
+  runFor(f, P, KNOCKED_LOW + 1.5);
+  assert.ok(f.alt > 2, 'then up again');
+});
+
+test('the rising cut: a swing from the ground at a foe hovering over you leaps up to it and cuts it', async () => {
+  assert.equal(RISE.gravity, GRAVITY, 'the leap uses the traveller\'s gravity');
+  assert.equal(riseTo(0.4, 2, 0.4), null, 'level: no leap');
+  assert.equal(riseTo(2, RISE.flat + 1, 0.4), null, 'too far off');
+  const r = riseTo(2, 3, 0.4);
+  assert.ok(Math.abs(r.up ** 2 / (2 * GRAVITY) - 2) < 1e-9 && r.speed > 0, 'up to its height');
+  assert.ok(riseTo(9, 2, 0.4).up ** 2 / (2 * GRAVITY) <= RISE.max + 1e-9, 'never past RISE.max');
+  clearTargets();
+  items.grant('backpack');
+  const scene = course(), p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'v1' });
+  const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
+  const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
+  const tick = (input = {}) => { p.update(DT, input, CAM_PLUS_Z); tool.update(DT, input); };
+  for (let i = 0; i < 10; i++) tick({});
+  const at = p.pos.clone().add(v(0, 4.1, 2.6));   // (a winged blot's chest, hovering)
+  let hits = 0;
+  registerTarget({ kind: 'foe', lock: true, radius: 0.75, accepts: ['blade'], position: () => at, onHit: () => hits++ });
+  const y0 = p.pos.y;
+  tick({ KeyF: true });
+  let top = 0;
+  for (let i = 0; i < 60; i++) { tick({}); top = Math.max(top, p.pos.y - y0); }
+  assert.ok(top > 1.5, `it leapt (${top.toFixed(2)} m)`);
+  assert.equal(hits, 1, 'and the cut found it');
   tool.dispose(); clearTargets();
 });

@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v0.97 — 2026-10-08
+
+- Winged blots and rust drones can be fought with the blade: a swing from the ground at one hovering over you leaps you up to it, and a cut knocks it down within reach for a few seconds.
+- A cut that lands but doesn’t stop a foe (a heavy one, or one already committed to its blow) now answers with a dull thunk, sparks and a gold ring, and the first time the game says what does stagger it.
+- Locked on, flick the right stick (or the mouse) left or right to switch to the next foe on that side; R3 or Tab still locks on and lets go.
+
 ## v0.96 — 2026-10-08
 
 - The blow that finishes a foe lands harder, and the last foe of a fight falls in a moment of slow motion.
