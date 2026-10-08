@@ -244,7 +244,7 @@ export class Foe {
     if (!this.alive) return false;
     const D = this.def;
     let dmg = 0;
-    if (mode === 'blade') { dmg = (info.damage ?? 1) * (this.stunned > 0 ? 2 : 1); this.stunned = 0; }   // (stilled, it shatters: double)
+    if (mode === 'blade') { dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 ? 2 : 1); this.stunned = 0; }   // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js)
     else if (mode === 'shoot' || mode === 'fire') dmg = this.kind === 'machine' ? 0 : 1;
     else if (mode === 'push' && this.kind === 'swarm') dmg = 1;   // (the push scatters a swarm)
     else if (mode === 'stun') { this.stunned = STILL; this.state = ['wind', 'strike'].includes(this.state) ? 'chase' : this.state; this.k = 0; this.flash = 0.6; return true; }

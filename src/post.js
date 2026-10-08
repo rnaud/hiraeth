@@ -293,6 +293,8 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uHeightFogTone;  // its colour, a = how much of it over the haze's
   uniform vec2 uCast;           // cast shadows lifted toward the light: x on open ground, y elsewhere (0 kept … 1 dropped; CAST)
   uniform vec2 uInkShadow;      // cast shadows printed instead as a flat mass of uSpotTone, hard-edged: x on open ground, y elsewhere (0 off … 1; CAST, 3d)
+  uniform vec4 uLens;           // the seeing lens (src/gadgets/lens.js): x raised 0..1 (0: off, nothing drawn), y the glass's radius (of the height), z time, w marks
+  uniform vec4 uLensMarks[8];   // what it marks on the screen: xy uv, z kind (0 a find, 1 a weak point, 2 writing), w size (of the height)
 
   in vec2 vUv;
   out highp vec4 fragColor;
@@ -1243,6 +1245,50 @@ const fragmentShader = /* glsl */ `
       col = mix(col, uInk, stroke * w * uRain * 0.5 * wet);
     }
 
+    // ---- 6. the seeing lens (src/gadgets/lens.js), only while it is held up: the one thing that is meant
+    // to read as a glass in front of the eye. Inside its brass ring the world is drawn as a blueprint (blue
+    // ink on pale paper, the far world fading into the paper), what the makers hid keeps its own light, and
+    // marks shimmer over what it finds (through walls); outside the ring the view sinks into ink.
+    if (uLens.x > 0.0) {
+      float lk = uLens.x, asp = uRes.x / uRes.y;
+      vec2 lp = (uv - 0.5) * vec2(asp, 1.0);
+      float lr = length(lp), LR = uLens.y * (0.8 + 0.2 * lk);
+      float lpx = uPixelRatio / uRes.y;   // a CSS pixel, in these units
+      float inside = 1.0 - smoothstep(LR - lpx, LR + lpx, lr);
+      float lum = dot(col, vec3(0.3, 0.59, 0.11));
+      vec3 deep = vec3(0.11, 0.21, 0.36), pale = vec3(0.84, 0.91, 0.9);
+      vec3 bp = mix(deep, pale, smoothstep(0.18, 0.82, lum));
+      bp = mix(bp, deep * 0.55, clamp(ink, 0.0, 1.0));
+      bp = mix(bp, pale, isSky ? 0.7 : smoothstep(80.0, 600.0, depth) * 0.65);
+      bp = mix(bp, min(col * 1.05 + vec3(0.0, 0.05, 0.04), vec3(1.0)), emitHere);
+      // the glass's own engraving: a fine inner circle and four ticks
+      float eng = 1.0 - smoothstep(0.0, lpx * 1.3, abs(lr - LR * 0.64));
+      float tick = (1.0 - smoothstep(0.0, lpx * 1.2, min(abs(lp.x), abs(lp.y)))) * step(LR * 0.86, lr) * step(lr, LR * 0.97);
+      bp = mix(bp, deep, max(eng * 0.3, tick * 0.7));
+      vec3 lc = mix(mix(col, uInk, 0.84), bp, inside);
+      // the rim: a band of brass between two ink lines
+      float rd = lr - LR;
+      float band = 1.0 - smoothstep(lpx * 5.0, lpx * 6.5, abs(rd - lpx * 5.0));
+      vec3 brass = vec3(0.84, 0.66, 0.29) * (0.82 + 0.18 * sin(atan(lp.y, lp.x) * 2.0 + 0.8));
+      lc = mix(lc, brass, band);
+      float rimInk = max(1.0 - smoothstep(0.0, lpx * 1.4, abs(rd + lpx * 0.5)), 1.0 - smoothstep(0.0, lpx * 1.4, abs(rd - lpx * 10.5)));
+      lc = mix(lc, uInk, rimInk);
+      for (int i = 0; i < 8; i++) {
+        if (float(i) >= uLens.w) break;
+        vec4 m = uLensMarks[i];
+        vec2 d = (uv - m.xy) * vec2(asp, 1.0);
+        float dl = length(d), ms = m.w;
+        float pulse = 0.5 + 0.5 * sin(uLens.z * 5.0 + float(i) * 1.7);
+        float dash = step(0.0, sin(atan(d.y, d.x) * 8.0 + uLens.z * 2.6));
+        float ring = (1.0 - smoothstep(lpx * 0.9, lpx * 2.2, abs(dl - ms * (1.0 + 0.2 * pulse)))) * dash;
+        float ring2 = (1.0 - smoothstep(lpx * 0.6, lpx * 1.6, abs(dl - ms * (1.55 + 0.5 * fract(uLens.z * 0.8 + float(i) * 0.3))))) * (1.0 - fract(uLens.z * 0.8 + float(i) * 0.3));
+        float dia = 1.0 - smoothstep(ms * 0.3 - lpx, ms * 0.3 + lpx, abs(d.x) + abs(d.y));
+        vec3 mc = m.z < 0.5 ? vec3(0.97, 0.79, 0.3) : m.z < 1.5 ? vec3(0.88, 0.26, 0.2) : vec3(0.62, 0.95, 0.9);
+        lc = mix(lc, mc, max(max(ring, ring2 * 0.8), dia * (0.6 + 0.4 * pulse)) * inside);
+      }
+      col = mix(col, lc, smoothstep(0.0, 0.35, lk));
+    }
+
     // (no paper grain, tooth or vignette: anything fixed to the screen reads as a filter the world slides
     //  under as the camera moves; the page's texture is the surfaces' own, drawn on them)
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
@@ -1341,6 +1387,8 @@ export function createPost() {
     uHeightFogTone: { value: [1, 1, 1, 0] },
     uCast: { value: [0, 0] },
     uInkShadow: { value: [0, 0] },
+    uLens: { value: new THREE.Vector4(0, 0.46, 0, 0) },
+    uLensMarks: { value: Array.from({ length: 8 }, () => new THREE.Vector4()) },
     uDebug: { value: 0 },
     tLineNoise: { value: null },
   };

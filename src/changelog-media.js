@@ -171,6 +171,22 @@ export const CHANGELOG_MEDIA = {
       { name: 'bridge-wall', only: 'after', caption: 'Aimed up steeply: a short wall of ink, hatched in long diagonals and cross-hatched at its foot', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
       { name: 'bridge-shaft', only: 'after', caption: 'In the City-Shaft: a plank drawn out from the upper terraces, 150 m over the town below', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 633 (8 October), ?level=incal' },
     ], see: 'In the Gadget Yard, the bay with the night-blue banner: climb the steps, hold T (Y / △) aimed at the far tower’s top, let go and walk across.' },
+    { match: 'The seeing lens: hold Y / △', shots: [
+      { name: 'lens-false', only: 'after', caption: 'Without the lens: a plank bridge between the two towers in the lens’s bay. Step on it and you fall: it is not there', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'lens-yard', only: 'after', caption: 'Through the lens: the false bridge is gone, the true path of glass shows behind it, and writing on the far tower is marked', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'lens-path', only: 'after', caption: 'Crossing the path of glass with the lens up (it holds you only while you look)', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+    ], see: 'In the Gadget Yard, the bay with the blue-green banner: walk up the steps of the near tower and hold T (Y / △) before you cross.' },
+    { match: 'Secrets for the glass in two worlds', shots: [
+      { name: 'lens-qanat', only: 'after', caption: 'Inside Qanat’s main gate, words on the pylon for the glass only', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Desert, Qanat (hour 10.5)' },
+      { name: 'lens-stair', only: 'after', caption: 'The stair of glass climbing over the avenue onto the gate’s lintel', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Desert, Qanat (hour 10.5)' },
+      { name: 'lens-canyon', only: 'after', caption: 'The Buried Machine: walking the bridge of glass across the canyon, 38 m over its floor', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), ?level=buried' },
+    ], see: 'Walk into Qanat through its main gate and turn round with the lens up; in the Buried Machine, follow the canyon’s rim to the two stone abutments between the cross-walls.' },
+    { match: 'Spring boots: hold Y / △ to crouch', shots: [
+      { name: 'springs-wind', only: 'after', caption: 'Wound fully: the ring of dashes round the feet turns gold', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'springs-bounce', only: 'after', caption: 'A bounce on: the coils thrown out under the boots', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'springs-stomp', only: 'after', caption: 'A stomp from fourteen metres: the ring of dust, the shock running out in ink, a star of ink stamped on the sand', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+      { name: 'springs-floor', only: 'after', caption: 'About to stomp through the cracked roof of the little room in the springs’ bay', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), the Gadget Yard' },
+    ], see: 'In the Gadget Yard, the bay with the orange banner: wind them fully under the 4 m block, then climb to the 12 m one and bounce three times to the 20 m tower; stomp through the cracked roof to the lamp inside.' },
     { match: 'The Gadget Yard, a new world', shots: [
       { name: 'yard', only: 'after', caption: 'The Gadget Yard from where you arrive: the hook’s bay and its pole, the plate and its gate, the targets, the bombs’ bay beyond', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October)' },
     ] },

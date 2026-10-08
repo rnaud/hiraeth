@@ -19,7 +19,7 @@ import { sfx } from './sfx.js';
 //          of the round), held a moment it opens the wheel: point the left stick (WASD) at one, let go
 //          (the D-pad's ↑ is the bell-note whistle only while no gadget is owned: claims('bell'))
 //
-//   const gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice })
+//   const gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice, post, relics, boxes })
 //   gadgets.control(dt, ctl, paused)   before the traveller moves (a reel sets his velocity)
 //   gadgets.update(dt, paused)         after the fluid tool (the aim's camera and pose are set last)
 //   gadgets.equip(id | null) · gadgets.cycle(±1) · gadgets.equipped · gadgets.owned() · gadgets.claims(action)
@@ -41,8 +41,8 @@ const _v = new THREE.Vector3();
 const smooth = (k) => k * k * (3 - 2 * k);
 
 export class Gadgets {
-  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, relics = null, flammables = null }) {
-    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, items, game, icon, drawIcon, relics, flammables });
+  constructor({ defs = GADGETS, scene = null, physics = null, player = null, camera = null, rig = null, sound = null, tool = null, level = null, foes = null, input = null, notice = null, touch = false, items = sharedItems, game = sharedGame, icon = null, drawIcon = null, relics = null, flammables = null, post = null, boxes = null }) {
+    Object.assign(this, { defs, scene, physics, player, camera, rig, sound, tool, level, foes, items, game, icon, drawIcon, relics, flammables, post, boxes });
     this.fx = new THREE.Group(); this.fx.name = 'Gadgets'; this.fx.userData.noCollide = true;
     scene?.add(this.fx);
     level?.noShadow?.push?.(this.fx);
@@ -57,6 +57,7 @@ export class Gadgets {
     const said = new Map();
     this.ctx = {
       scene, physics, player, camera, rig, sound, tool, level, foes, game, items, relics, flammables,
+      post, boxes,   // (the composite's uniforms: the seeing lens draws in it; the world's boxes it marks)
       world: this.world, fx: this.fx, hud: this.hud, bursts: this.bursts, sfx,
       // a short word on the screen (src/main.js showToast), at most every few seconds for the same key
       notice: (text, key = text) => { const t = performance.now(); if ((said.get(key) ?? -1e9) + 3000 > t) return; said.set(key, t); notice?.(text); },
