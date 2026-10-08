@@ -1,0 +1,37 @@
+"references/Lorn II The Deep Wood/characters/sources.json"
+  s_88886f12bf338d::t_1efe9990d2845c 1-62
+references/Lorn/characters/sources.json
+  s_88886f12bf338d::t_20f2d90c9fa4b5 1-62
+"references/The Buried Machine/characters/sources.json"
+  s_88886f12bf338d::t_9b32caf55581f2 1-62
+"references/The City-Shaft/characters/sources.json"
+  s_88886f12bf338d::t_6f3de683deff4a 1-62
+"references/The Garden of Spheres/characters/sources.json"
+  s_88886f12bf338d::t_ff300afc22d2d7 1-62
+"references/The Sealed Hangar/characters/sources.json"
+  s_88886f12bf338d::t_99e8a1d4bb9dd0 1-62
+"references/The Signal Market/characters/sources.json"
+  s_88886f12bf338d::t_3f2889e365f14b 1-62
+"references/Vael II- The Sky Stones/characters/sources.json"
+  s_88886f12bf338d::t_572c4e718f8b6d 1-62
+references/Vael/characters/sources.json
+  s_88886f12bf338d::t_32953201fb1e8b 1-62
+references/Viridel/characters/sources.json
+  s_88886f12bf338d::t_bca0e87304cf99 1-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b119407c7f0ba635295316c18fa36406f5421adf",
+  "prompts": {},
+  "sessions": {
+    "s_88886f12bf338d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11909-5544-7d52-9144-71c79c4a433c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
