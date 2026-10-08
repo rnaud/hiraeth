@@ -1,0 +1,39 @@
+changelog.md
+  s_efb1d100d5a6fc::t_10b15644e6a6b8 7-8
+docs/systems/minigames.md
+  s_efb1d100d5a6fc::t_5f909ff68641cc 4-6,13-15,73-75,108-161
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_7bfa143936f477 137-147
+src/changelog.js
+  s_efb1d100d5a6fc::t_ff01932a11da59 16-17
+src/foes.js
+  s_efb1d100d5a6fc::t_46be8d67b829d2 356
+src/levels/desert.js
+  s_efb1d100d5a6fc::t_2660480de7b487 1,19-20,76-80
+src/minigames/canyon.js
+  s_efb1d100d5a6fc::t_daf412a7082f95 1-762
+src/minigames/fishing.js
+  s_efb1d100d5a6fc::t_7796cdeb7f4cac 1-854
+src/minigames/kit/runner.js
+  s_efb1d100d5a6fc::t_2bc873d8660efd 93-94
+src/minigames/kit/world.js
+  s_efb1d100d5a6fc::t_0176548855bf61 47
+tests/minigames-canyon-fishing.test.js
+  s_efb1d100d5a6fc::t_862f1d2cb4cb08 1-226
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8e9c1ac2687a044775a39f4e79e9cb0185aa513a",
+  "prompts": {},
+  "sessions": {
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
