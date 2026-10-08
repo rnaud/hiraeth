@@ -1,6 +1,6 @@
 // Keep existing Android/Deck zip URLs while storing each asset below 25 MiB.
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (!/^\/updates\/web-\d+\.zip$/.test(url.pathname)) return env.ASSETS.fetch(request);
     if (!['GET', 'HEAD'].includes(request.method)) return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } });
@@ -25,31 +25,33 @@ export default {
         headers.set('Content-Range', `bytes ${start}-${end}/${size}`);
       }
     }
-    headers.set('Content-Length', String(end - start + 1));
+    const length = end - start + 1;
+    headers.set('Content-Length', String(length));
     if (request.method === 'HEAD') return new Response(null, { headers });
-    let part = Math.floor(start / partSize), reader, offset = part * partSize;
-    const body = new ReadableStream({
-      async pull(controller) {
-        try {
-          while (offset <= end) {
-            if (!reader) {
-              const partUrl = new URL(`/updates/${parts[part++]}`, url);
-              const response = await env.ASSETS.fetch(new Request(partUrl));
-              if (!response.ok || !response.body) throw new Error('Update part unavailable');
-              reader = response.body.getReader();
-            }
-            const { done, value } = await reader.read();
-            if (done) { reader.releaseLock(); reader = null; continue; }
-            const from = Math.max(0, start - offset), to = Math.min(value.length, end + 1 - offset);
-            offset += value.length;
-            if (to > from) { controller.enqueue(value.subarray(from, to)); return; }
-          }
-          await reader?.cancel();
-          controller.close();
-        } catch (error) { await reader?.cancel(); controller.error(error); }
-      },
-      async cancel(reason) { await reader?.cancel(reason); },
-    });
-    return new Response(body, { status, headers });
+    // Whole parts are piped natively: copying 129 MB chunk by chunk in JS ran out of Worker CPU and
+    // cut downloads short. FixedLengthStream also sends Content-Length, so a cut is a client error.
+    const { readable, writable } = globalThis.FixedLengthStream ? new FixedLengthStream(length) : new TransformStream();
+    const pump = async () => {
+      for (let part = Math.floor(start / partSize); part * partSize <= end; part++) {
+        const partStart = part * partSize, partEnd = Math.min(size, partStart + partSize) - 1;
+        const response = parts[part] && await env.ASSETS.fetch(new Request(new URL(`/updates/${parts[part]}`, url)));
+        if (!response?.ok || !response.body) throw new Error('Update part unavailable');
+        if (start <= partStart && partEnd <= end) { await response.body.pipeTo(writable, { preventClose: true }); continue; }
+        // only the first and last parts of a range are sliced here
+        const writer = writable.getWriter();
+        let offset = partStart;
+        for await (const value of response.body) {
+          const from = Math.max(0, start - offset), to = Math.min(value.length, end + 1 - offset);
+          offset += value.length;
+          if (to > from) await writer.write(value.subarray(from, to));
+          if (offset > end) break;
+        }
+        writer.releaseLock();
+      }
+      await writable.close();
+    };
+    const done = pump().catch(error => writable.abort(error).catch(() => {}));
+    ctx?.waitUntil(done);
+    return new Response(readable, { status, headers });
   },
 };

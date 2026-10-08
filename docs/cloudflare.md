@@ -34,7 +34,10 @@ site against them before deploying. With recorded soundtracks the content zip ex
 are stored as `web-<build>.zip.<nnn>` parts plus a `.zip.json` index.
 `worker/update-download.js` streams those parts at the unchanged `.zip` URL, with
 HEAD and single byte-range support for download resumption. It never buffers the entire
-archive. Both current and previous archives use this format; small archives stay static.
+archive. Whole parts are piped natively into a `FixedLengthStream`, never copied chunk by chunk
+in JS: that ran out of the free plan's Worker CPU and silently cut downloads short (without a
+fixed length Cloudflare also drops `Content-Length`, so the cut looked like a complete file).
+Only the first and last parts of a byte range are sliced in JS. Both current and previous archives use this format; small archives stay static.
 The manifest still describes the full zip, including its original size and SHA-256.
 A deploy only uploads files whose contents changed, so the previous zip costs nothing.
 
