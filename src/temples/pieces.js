@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerHazard } from '../hazards.js';
+import { screened } from '../wind-screens.js';
 import { Flames } from '../story/flames.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { T, box, lathe, prep, annulus } from './kit.js';
@@ -793,7 +794,7 @@ export class Gust {
     const P = this.rt.player;
     if (!P || P.dead || st < 1) return;
     const l = this.rt.kit.local(P.pos);
-    if (!this.box.containsPoint(l) || this.sheltered(l)) return;
+    if (!this.box.containsPoint(l) || this.sheltered(l) || screened(P.pos, this.dirW)) return;   // (or behind a wall drawn in ink: src/wind-screens.js)
     // shoved back down the hall (your own legs win a little of it back)
     P.vel.x = this.dirW.x * this.push; P.vel.z = this.dirW.z * this.push;
     if (P.climbing) P.climbing = false;
