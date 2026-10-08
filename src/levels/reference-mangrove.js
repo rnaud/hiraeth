@@ -21,10 +21,10 @@ export const MANGROVE_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`mang
 export const MANGROVE_VIEW_LOOK = { ...MANGROVE_LOOK, ...CLEAN_SKY };
 /** sky top, horizon, shadow (the lavender-blue), light (the lanterns' pink), sun */
 const SKY = {
-  violet: ['#1d2250', '#3c3c78', '#7d84c4', '#ffc6c6', '#ffc0b0'],
-  starry: ['#1a1e4c', '#6a5a9c', '#8a8ed0', '#ffd0d8', '#ffd0c8'],
-  teal: ['#16283e', '#2f4a68', '#7f94c8', '#ffc8c4', '#ffc4b4'],
-  rose: ['#1c1f4a', '#9a6aa8', '#8d8ed2', '#ffe4ec', '#ffd0d4'],
+  violet: ['#1d2250', '#3c3c78', '#8890d4', '#ffecee', '#ffc0b0'],
+  starry: ['#1a1e4c', '#6a5a9c', '#8c96d8', '#fff0f2', '#ffd0c8'],
+  teal: ['#16283e', '#2f4a68', '#8498d0', '#ffece8', '#ffc4b4'],
+  rose: ['#1c1f4a', '#9a6aa8', '#8d8ed2', '#fff0f4', '#ffd0d4'],
 };
 
 function materials(kit) {
@@ -281,7 +281,7 @@ export const MANGROVE_VIEWS = [
         ],
         stairs: [[[14, 0.4, -36], [24, 8.6, -46], { w: 1.3 }]],
         boats: [{ x: -16, z: -20, yaw: 1.5, L: 7, people: 0 }, { x: 14, z: -24, yaw: 1.6, L: 9, W: 1.6, people: 0 }, { x: 24, z: -18, yaw: 1.5, L: 9, W: 1.6, people: 0 }],
-        spots: { n: 2200, z0: -10, z1: -60, s0: 0.2, s1: 0.6, x0: -20, x1: 40, near: 0.8 },
+        spots: { n: 2600, z0: -10, z1: -60, s0: 0.08, s1: 0.4, x0: -20, x1: 40, near: 0.8 },
         far: { n: 200, z0: 70, z1: 260, w: 300, deep: 130, h: [24, 40], r: 1.8 },
         extra(k, M) {
           for (const [x, z] of [[-7, -36], [-30, -32], [31, -49]]) { k.add(M.dark, new THREE.CircleGeometry(1.2, 12).scale(1, 1.4, 1).translate(x, 0.8, z), NC); }

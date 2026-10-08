@@ -412,9 +412,10 @@ export const merged = (list) => (list.length ? mergeGeometries(list.map((g) => (
  * pale haze in bands down the long streets, cast shadows kept whole (the pictures' great blue shadows on the salt).
  */
 export const SALT_HAZE = { uHazeLayers: [90, 1.6, 0.14, 4], uHazeTone: [0.86, 0.9, 0.97, 0.75] };
-export const SALT_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.3, uShadowFlat: 0.85, uShadeKeep: 0.12, uHalftone: 0.2, uBounce: 0.35, uHatch: 0.3, uFogDensity: 0.0007, uSpot: [0.6, 3, 0.3, 0.1], uSpotTone: [0.22, 0.24, 0.36, 0.35], ...SALT_HAZE };
+// (colour pass, v0.94: the shade a clearer cerulean printed flatter, the plating's seams and the ropes in a lighter line)
+export const SALT_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.3, uShadowFlat: 0.92, uShadeKeep: 0.12, uHalftone: 0.15, uBounce: 0.3, uHatch: 0.25, uFogDensity: 0.0007, uAlbedoEdges: 0.35, uLineWidth: 0.85, uSpot: [0.6, 3, 0.3, 0.1], uSpotTone: [0.22, 0.24, 0.36, 0.35], ...SALT_HAZE };
 /** The day's colours (sky top, horizon, shadow, light, sun): a deep clear blue over a blinding salt, the shade blue-grey. */
-export const SALT_DAY = ['#3f7cc8', '#b4cde6', '#8ea4d2', '#fff6ea', '#fff2dc'];
+export const SALT_DAY = ['#5a8cc2', '#c0d6ea', '#4a74ac', '#fff6ea', '#fff2dc'];
 /** The surfaces' tones. */
 export const SALT_TONES = {
   salt: '#f8f2ea', salt2: '#f1eae4', salt3: '#e9e2de',

@@ -20,9 +20,9 @@ export const SALT_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`saltharb
 export const SALT_VIEW_LOOK = { ...SALT_LOOK, ...CLEAN_SKY };
 /** sky top, horizon, shadow (the blue-grey of the shade on the salt), light, sun */
 const SKY = {
-  noon: ['#4a86cc', '#b8d2ea', '#8ea6d6', '#fff8ee', '#fff2dc'],
-  pale: ['#5a8cd0', '#c4d8ec', '#94aad6', '#fff8f0', '#fff4e0'],
-  warm: ['#6f9ad2', '#d0dcea', '#9aaad0', '#fff2e2', '#ffeacc'],
+  noon: ['#5a8cc2', '#c0d6ea', '#4a74ac', '#fff8ee', '#fff2dc'],
+  pale: ['#6694c8', '#c8dcee', '#5480b4', '#fff8f0', '#fff4e0'],
+  warm: ['#709ccc', '#d0dcea', '#5c84b4', '#fff2e2', '#ffeacc'],
 };
 
 function materials(kit) {
@@ -31,8 +31,8 @@ function materials(kit) {
     // the hulls: plated, fine pen seams and weathering, their shade the world's flat blue-grey
     hull: kit.mat({ color: T.hull, plates: 9, hatch: 0.25, shade: 0.15 }),
     hull2: kit.mat({ color: T.hull2, plates: 10, hatch: 0.25, shade: 0.15 }),
-    red: kit.mat({ color: T.red, plates: 9, hatch: 0.25, shade: 0.1 }),
-    red2: kit.mat({ color: T.red2, plates: 10, hatch: 0.25, shade: 0.1 }),
+    red: kit.mat({ color: T.red, plates: 9, hatch: 0.25, shade: 0.1, shadeHue: 1 }),   // (its shade a deep rust, as the pictures')
+    red2: kit.mat({ color: T.red2, plates: 10, hatch: 0.25, shade: 0.1, shadeHue: 1 }),
     deck: kit.mat({ color: T.deck, flat: true }),
     wood: kit.mat({ color: T.wood, flat: true, pattern: 'cracks' }),
     wood2: kit.mat({ color: T.wood2, flat: true }),
@@ -206,7 +206,7 @@ const salt = (mounds = []) => ({
     for (const [mx, mz, r, mh, sx = 1] of mounds) h += mh * gauss((x - mx) / sx, z, 0, mz, r);
     return h;
   },
-  material: { color: SALT_TONES.salt, color2: SALT_TONES.salt2, color3: SALT_TONES.salt3, pattern: 'cracks', sandInk: true },
+  material: { color: SALT_TONES.salt, color2: SALT_TONES.salt2, color3: SALT_TONES.salt3, pattern: 'cracks', sandInk: true, shadeHue: -1 },   // (shadeHue -1: the world's cerulean shade, not sand's warm grey)
   rings: { r1: 2200 },
 });
 

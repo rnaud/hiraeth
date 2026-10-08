@@ -4,6 +4,13 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.95 — 2026-10-08
 
+- The Garden of Spheres: the white stone’s shade a sea-green grey, as in the drawings, the umbrella trees’ trunks a blue-grey, and the lawns a warmer yellow, less lime.
+- The White Mangrove: the great trees a cooler white that splits into a pale light and a lavender-blue shade instead of one even pink, the lake’s creatures glowing electric blue and magenta, and the wood behind a deeper blue.
+- The Underwater City: the coral towers stay pink into the distance and all round, the water veiling them later and less, and the walks a darker teal beneath them.
+- The Salt Harbour: the shadows on the salt a clear cerulean blue instead of grey-lilac, the terracotta hulls a deep rust in their shade, a softer sky, and the hulls’ plating and the ropes drawn in a lighter line.
+- The City Behind the Waterfall: the cavern’s rock a deeper teal, the falls a brighter turquoise, and the houses keep their warm stone in the shade, so the city glows against the dark cave.
+- The Forest of Antennas: the masts in the middle distance pale into the yellow air, the violet grass a softer mauve with lighter tufts, the lattices a warmer rust in a finer line, and the great receiver on the path to the workshops a dark navy against the glare.
+- The worlds’ colours, closer to the pictures they were drawn from. The Signal Market: the street’s shade a bluer teal with a little of each wall’s own colour in it, its far end going pale in the haze, fewer black masses in the towers’ machinery and a finer line; at night the dark walls and screen casings a slate blue instead of near-black, and the lane’s paving a deep night blue.
 - Vael’s shadows are a cooler, paler lilac-grey and the shadows thrown on the open sand are lighter; Viridel’s light is a warmer cream and its shade a softer grey-blue, as their people’s sheets are drawn.
 - Vael II: the shade under the great caps is a light blue-grey under dense strokes, no longer a grey-black, the shade everywhere a bluer grey-teal, the plain a touch less glaring and the far horizon a little hazier.
 - The Underside’s town hangs darker: its timber a deep brown, its banners a deeper red, the gaps between its decks nearly black, the shade on its rock a warm grey instead of lavender, and its skies a softer blue over a warmer horizon.

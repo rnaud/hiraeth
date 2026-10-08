@@ -153,6 +153,28 @@ export const CHANGELOG_MEDIA = {
       { name: 'vael-colours', only: 'after', caption: 'Before, after and the reference: Vael where you land, at 15:30: the flowers’ shadows on the dune a paler, cooler grey (the reference is Oïa’s sheet)', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
       { name: 'viridel-colours', only: 'after', caption: 'Before, after and the reference: Viridel by the ship at 10:30, a warmer light and a softer shade (the reference is Mira’s sheet)', from: 'headless Chrome against this branch’s own dev server and the commit before the colour pass, High, 1280 × 720 (8 October); the reference picture on the right' },
     ], see: 'Land in Vael and look at the shadows on the dunes; in Viridel, the meadow by the ship.' },
+    { match: 'The worlds’ colours, closer to the pictures', shots: [
+      { name: 'market-colours', only: 'after', caption: 'The Signal Market’s long street (IMG_3808): before, after and the sheet; the far end paler, the shade bluer', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
+      { name: 'marketnight-colours', only: 'after', caption: 'The night market’s screen lane (reference-1): before, after and the picture; the walls and casings a slate blue', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
+    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
+    { match: 'The Forest of Antennas: the masts', shots: [
+      { name: 'antennas-colours', only: 'after', caption: 'The great saucer and the egg (reference-4): before, after and the picture', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
+    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
+    { match: 'The City Behind the Waterfall: the cavern', shots: [
+      { name: 'waterfall-colours', only: 'after', caption: 'The arch and the falls (reference-1): before, after and the picture; the rock deeper, the houses warm in the shade', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
+    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
+    { match: 'The Salt Harbour: the shadows on the salt', shots: [
+      { name: 'saltharbour-colours', only: 'after', caption: 'The street between the hulls (reference-1): before, after and the picture; the shadow on the salt cerulean, the terracotta hull rust in its shade', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
+    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
+    { match: 'The Underwater City: the coral towers', shots: [
+      { name: 'underwater-colours', only: 'after', caption: 'The two cafés and the towers of pods (reference-1): before, after and the picture', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
+    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
+    { match: 'The White Mangrove: the great trees', shots: [
+      { name: 'mangrove-colours', only: 'after', caption: 'The colonnade of root arches (reference-2): before, after and the picture; the trees whiter, the creatures brighter', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
+    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
+    { match: 'The Garden of Spheres: the white stone', shots: [
+      { name: 'spheres-colours', only: 'after', caption: 'The grove and the pyramid (IMG_3793): before, after and the sheet; the pyramid’s shade sea-green, the trunks blue-grey', from: 'headless Chrome against this branch’s own dev server and the commit before, High, the References level’s view held on its picture (8 October); the reference is the picture itself' },
+    ], see: 'Open ?level=references and go to the world (Tab: all views), then press \\ to lay the picture over the view; or walk the world itself.' },
   ],
   '0.93': [
     { match: 'The shade has a new look: a cartoon drawn in negative', shots: [

@@ -396,6 +396,12 @@ the narrowest creases.
   Plain geometry built once: no reflection pass. Views 106, 112, 118, 123 (and 111's pool).
 - **Left**: the avenue's grasses; the views' far woods are round trees, the
   sheets' dense tall trunks.
+- **Colour pass (v0.95)** (views and world spots side by side with their pictures, colours sampled off both; triptych in changelog-media/0.95). Gaps found: the white stone's shade a pale sky blue (the sheets' a sea-green grey,
+  #a3c2c1); the umbrella trees' trunks a teal green (theirs blue-grey); the world's lawns an acid lime (the sheets' a warm
+  yellow with green shade). Changed: the views' `TINT` #b2d6e6 → #9cbcb8 and `SPHERES_DAY` shade #a9c3cf → #9cbcb8; trunks
+  #9fb5a8 → #98aeb0 (views #7ba381 → #7f9ea2), branches bluer; the world's lawn #c8d65a → #d2d058 (and its other tones),
+  the views' meadow a greener third tone. Still off: the canopies' undersides still drawn in dense black veins (the
+  sheets' lighter blue-grey branches); the sheets' lawns patchier, with greens in the shade.
 
 ## Lorn II's sheets (IMG_3797–3800)
 
@@ -475,6 +481,14 @@ the narrowest creases.
   strokes, a lamp, the seller behind. The cabs are the game's own (`cabModel` in taxi.js: the
   self-driving, round-bellied cab with its striped canopy and a rider).
 - **Left, scene level**: the sheets' stalls are a dense heap of goods and signs; ours are tidy rows.
+- **Colour pass (v0.95)** (views and world spots side by side with their pictures, colours sampled off both; triptych in changelog-media/0.95). Gaps found: the middle distance a black mass of greeble lines and spot blacks where the
+  sheets stay airy; the far end of the street not pale enough; the shade a green-grey teal (the sheets' a bluer teal with
+  the wall's own colour in it); heavy lines. Changed (bazaar.js, shared by the views): `MARKET_HAZE` [90, 1.8, 0.12, 4] →
+  [48, 1.65, 0.13, 6] in a cooler pale tone; `MARKET_LOOK` uLineWidth 0.85 → 0.75, `uSpot` [0.55, 3, 0.36, 0.12] (fewer,
+  lighter spot blacks), `uCrevice` 0.4; `MARKET_DAY` shade #70969e → #6e94ac; `MARKET_FLAT` 0.85 → 0.75. Still off: the
+  dense towers of IMG_3805/3806 still read dark in the middle distance (it is their geometry: hundreds of outlined pipes
+  and boxes, where the sheets draw few lines far off); the crowd's saturated primaries against the sheets' muted browns;
+  the sheets' warm stalls and painted billboards.
 
 ## The White Mangrove's pictures (reference-1 … 4, October 2026)
 
@@ -510,6 +524,14 @@ the narrowest creases.
   flat lit spots.
 - **Left, scene level**: the sheets' houses are a dense village (twenty or thirty in a view, on every limb),
   ours six to eight; their decks are ragged with sticks and ladders; the boats carry crates and lamps.
+- **Colour pass (v0.95)** (views and world spots side by side with their pictures, colours sampled off both; triptych in changelog-media/0.95). Gaps found: the trees one even pink (cast shade nearly lifted, a pink light, a pinkish
+  bark) where the pictures' are a cool white split into a pale light and a lavender-blue shade; the lake's creatures big
+  pastel blobs (theirs small, electric blue and magenta); the trees 25-60 m off veiled lavender by the haze. Changed
+  (mangrove-kit.js): `uCast` [0.9, 0.7] → [0.6, 0.35], uHalftone 0.12, uBounce 0.2; bark #fbeff2 → #f3f0fa; the light
+  #ffd8e0 → #fff0f2 (the views' four skies alike), the shade #8a8ed0 → #8c96d8; haze from 40 → 70 m, its tone bluer;
+  the creatures #5c90ff, #f07ad8, #7adcff; view 2's creatures smaller. Still off: the pictures' warm lantern light on the
+  roots (our lights have no colour), their bloom, and the trees' shade side shows only where the views' sun allows.
+
 ## The Glass Dunes' plates (references/The Glass Dunes/reference-1 … 4)
 
 - **The views** (`src/levels/reference-glassdunes.js`, world `glassdunes`, `?level=references&world=glassdunes&view=n`):
@@ -572,6 +594,13 @@ the narrowest creases.
 - **Left**: the sheets' houses are a dense heap of small volumes, balconies, plants and goods at every scale; ours
   are tidy rows of pods on terraces whose retaining walls still show too plain. The sheets' roof is a mass of
   blocky overhangs with deep pockets; ours a few lumpy slabs. View 3's and 4's cities stand a little far and low.
+- **Colour pass (v0.95)** (views and world spots side by side with their pictures, colours sampled off both; triptych in changelog-media/0.95). Gaps found: the cavern's rock a mid teal (the plates' a deep, saturated teal, near a
+  spot black); the houses in shade printed the same flat teal, so the city did not glow warm against the rock; the falls
+  a pale cyan (the plates' a bright turquoise); the floor too light. Changed (waterfall-kit.js, shared): `cityMats` gives
+  the stone, walls and steps their own print (`stoneFlat` 0.2) and a lift toward their lit colour (`shade` 0.45); rock
+  #3a7178 → #2e5e64; water mid #66c2c6 → #48c6c8 (deep, pale with it); shade #447f86 → #306c74 (views #3f7a80 → #2e6a72);
+  haze veil 0.12 → 0.09; uShadeKeep 0.15; the views' cavern floor darker. Still off: the plates' city is lit from within by
+  dozens of lamps and doors (warm orange pools); ours has few, so its shade is a warm grey rather than a glowing peach.
 
 ## The Salt Harbour's pictures (reference-1 … 4, October 2026)
 
@@ -608,6 +637,14 @@ the narrowest creases.
   portholes) that our plating only hints at; their houses are many more and finer (a village on every flank), their
   sails layered three or four deep; the pictures' near ropes are a fan of hairlines, ours thicker strokes. Our
   views' compositions follow the pictures' masses (which hull where, lit or in shade), not every hull's exact turn.
+- **Colour pass (v0.95)** (views and world spots side by side with their pictures, colours sampled off both; triptych in changelog-media/0.95). Gaps found: the shadows on the salt a light grey-lilac (#8c9ab5) where the pictures'
+  are a deep cerulean (#3e6a91): the salt is terrain with `sandInk`, so it kept sand's warm grey hue in its shade; the
+  terracotta hulls a mauve in shade (the pictures' a dark rust); the sky a saturated flat blue (theirs softer, paling to
+  the horizon); the plating's seams and the ropes heavy. Changed: the salt ground `shadeHue: -1` (the world's shade, in
+  the world and the views); `SALT_DAY` shade #8ea4d2 → #4a74ac, sky #3f7cc8 / #b4cde6 → #5a8cc2 / #c0d6ea (the views'
+  three skies alike); `SALT_LOOK` uShadowFlat 0.85 → 0.92, uAlbedoEdges 0.35, uLineWidth 0.85, uHalftone 0.15, uBounce
+  0.3, uHatch 0.25; the terracotta plating `shadeHue: 1`. Still off: the hulls' plates still draw their joints as pen
+  lines (the pictures' are faint); the white hulls' shade a little lilac; the pictures' dense small work on the hulls.
 
 ## The Forest of Antennas' pictures (reference-1 … 4, October 2026)
 
@@ -652,6 +689,15 @@ the narrowest creases.
 - **Left, scene level**: the sheets' workshops are dense with machinery, decks and ladders, ours plain domes;
   their mid-distance lattices are fine pen work at every bay, ours a few struts; view 2's stacked domes reach up
   to the saucer's collar, ours stop lower.
+- **Colour pass (v0.95)** (views and world spots side by side with their pictures, colours sampled off both; triptych in changelog-media/0.95). Gaps found: the masts and lattices in the middle distance dark brown-black where the
+  pictures pale them into the yellow air; the grass a saturated blue-violet with dark tufts (the pictures' a muted mauve);
+  heavy black lines on the dishes and lattices; the backlit receiver of view 1 a grey (the picture's a dark navy).
+  Changed (antennas-kit.js): `ANTENNAS_HAZE` from 90 m → 55 m (veil 0.15, 8 layers); `ANTENNAS_LOOK` uLineWidth 0.9 →
+  0.75, uHatch 0.5 → 0.4; iron #5a4a3f → #665444; the world's grass #a98cd8 → #a88ac4 (and its other tones), the views'
+  grass tones the same way, tufts ×0.9 of their tone (×0.82); view 1 its own haze (from 130 m) so the receiver stays navy.
+  Still off: the pictures' ground lies in soft bands of light and shade; ours is even, its tufts busier; their far forest
+  glows into the horizon, ours steps.
+
 ## The Underwater City's sheets (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-underwater.js`, world `underwater`: `?level=references&world=underwater&view=n`):
@@ -684,6 +730,12 @@ the narrowest creases.
   amber glass); ours are tidy rings of pods. View 2's white bridge is a flat walkway, not the plate's arched span;
   view 3's canyon is a street, not the plate's dark water with walkways over it; the domes' glass draws only its
   rim (S_GLASS), where the plates draw reflections across it; the columns' swimmers are not there.
+- **Colour pass (v0.95)** (views and world spots side by side with their pictures, colours sampled off both; triptych in changelog-media/0.95). Gaps found: the coral towers dull pink-grey from the middle distance (the water's haze
+  and the sea's tint from 25 m), and grey-mauve on their shaded side, where the plates keep them bright coral all round;
+  the walks a pale cyan (the plates' a dark teal). Changed (underwater-kit.js): `UNDERWATER_HAZE` from 70 → 85 m, veil
+  0.22 → 0.18; `SEA_DAY` start 25 → 32 m, max 0.6 → 0.45; the towers a little pinker and their shade lifted toward their
+  lit coral (`shade` 0.35); `streetPale` #8cc8c8 → #64a2a4. Still off: the plates' towers glow (they read as lit from
+  within); ours are lit surfaces under the sea's tint, so they stay a step duller; the light shafts are brighter there.
 
 ## The Fallen Ring's pictures (reference-1 … 4, October 2026)
 
@@ -1019,6 +1071,14 @@ Ranked by how much they would close the gap to the sheets, across every world re
   desert); ours are a few flat shapes. Their walls carry dense machinery in the dark; ours are plain masses. Their
   pools of light take each screen's own colour; ours one colour a view (the shader's lights have no colour). The
   lane's far end glows warmer and busier on reference-2.
+- **Colour pass (v0.95)** (views and world spots side by side with their pictures, colours sampled off both; triptych in changelog-media/0.95). Gaps found: the walls and casings near-black where the pictures' dark masses are a
+  slate blue-teal with their bezels catching the screens' light; the paving a dull indigo where the pictures' is a
+  saturated night blue under coloured pools. Changed (market-night-kit.js, shared with the market's own night):
+  `MN_TONES` walls #1d2131 → #243040 (and the others), casings a shade lighter, paving #364062 → #30497a; `MARKET_NIGHT`
+  shade #1c1e36 → #26344e, moonlight #454b78 → #52608a; the views' `ink` shade #1a1c34 → #2e3e5c, light #7a80b0 →
+  #8a9ab8. Still off (most of the gap): the pictures' pools take each screen's own colour and spill over casings, cloth
+  and people, and their walls carry dense machinery; ours light in one colour a view and stay plain masses.
+
 ## The Overnight Train's pictures (reference-1 … 4, October 2026)
 
 - **The views** (`src/levels/reference-overnighttrain.js`, world `overnighttrain`: `?level=references&world=overnighttrain&view=n`):

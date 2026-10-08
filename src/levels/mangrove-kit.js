@@ -362,14 +362,16 @@ export const merged = (list) => (list.length ? mergeGeometries(list.map((g) => (
  * The mangrove's touches on the print preset: no clouds, the wood behind in stepped bands of a cool violet-blue
  * haze, a low mist over the black water, hardly a cast shadow in the twilight (post.js CAST), few spot blacks.
  */
-export const MANGROVE_HAZE = { uHazeLayers: [40, 1.7, 0.16, 5], uHazeTone: [0.2, 0.23, 0.42, 0.85], uHeightFog: [1.2, 5, 0.004, 0.35], uHeightFogTone: [0.42, 0.44, 0.7, 0.5] };
-export const MANGROVE_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.4, uFogDensity: 0.0016, uCast: [0.9, 0.7], uSpotTone: [0.13, 0.13, 0.24, 0.45], ...MANGROVE_HAZE };
+export const MANGROVE_HAZE = { uHazeLayers: [70, 1.7, 0.16, 5], uHazeTone: [0.17, 0.23, 0.44, 0.85], uHeightFog: [1.2, 5, 0.004, 0.35], uHeightFogTone: [0.42, 0.44, 0.7, 0.5] };
+// (colour pass, v0.94: the cast shade kept more (uCast), so the white trees split into a white-pink light and a
+//  lavender-blue shade as the pictures' do, instead of one even pink)
+export const MANGROVE_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.4, uFogDensity: 0.0016, uCast: [0.6, 0.35], uHalftone: 0.12, uBounce: 0.2, uSpotTone: [0.13, 0.13, 0.24, 0.45], ...MANGROVE_HAZE };
 /** The day's colours (sky top, horizon, shadow, light, sun): a violet twilight whatever the hour, the light pink. */
-export const MANGROVE_DAY = ['#2c2a6a', '#7a5aa0', '#8a8ed0', '#ffd8e0', '#ffd0c8'];
+export const MANGROVE_DAY = ['#2c2a6a', '#7a5aa0', '#8c96d8', '#fff0f2', '#ffd0c8'];
 /** The surfaces' tones. */
 export const MANGROVE_TONES = {
-  bark: '#fbeff2', barkPale: '#dcdcf0', shell: '#f4eef4', wood: '#7a5a4e', plank: '#8a6a5a', plank2: '#7a5c50', stone: '#c9c6dc',
+  bark: '#f3f0fa', barkPale: '#dcdcf0', shell: '#f4eef4', wood: '#7a5a4e', plank: '#8a6a5a', plank2: '#7a5c50', stone: '#c9c6dc',
   lamp: '#ffd27a', window: '#ffc070', dark: '#1b2238', far: '#3a4478', farDeep: '#2c3462', leaves: '#efe0ee', bush: '#20384a', bush2: '#25424f',
   boat: '#7a5a4c', boatIn: '#4a3a3a', water: '#141a3a', shallow: '#1e2650',
-  spots: ['#7fb8ff', '#ff9ad8', '#a0f0ff'],
+  spots: ['#5c90ff', '#f07ad8', '#7adcff'],   // (saturated: the pictures' creatures glow electric blue and magenta, not pastel)
 };

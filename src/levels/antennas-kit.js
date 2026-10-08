@@ -349,15 +349,17 @@ export const merged = (list) => (list.length ? mergeGeometries(list.map((g) => (
 
 // ------------------------------------------------------------------ the look
 /** Haze by depth: the sheets' pale yellow-lavender bands, the far masts fading into them. */
-export const ANTENNAS_HAZE = { uHazeLayers: [90, 1.6, 0.15, 7], uHazeTone: [0.97, 0.94, 0.78, 0.82] };
+// (colour pass, v0.94: the haze starts nearer and veils more, so the masts a few dozen metres off already pale into the
+//  yellow air as the pictures' do, instead of standing dark to the middle distance)
+export const ANTENNAS_HAZE = { uHazeLayers: [55, 1.55, 0.15, 8], uHazeTone: [0.97, 0.94, 0.78, 0.82] };
 /** The print preset's touches: no clouds, the sky flat, thin lines, light hatching, cast shadows lifted on the grass. */
-export const ANTENNAS_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.2, uHatch: 0.5, uLineWidth: 0.9, uWobble: 0.22, uFogDensity: 0.0011, uCast: [0.75, 0.35], uSpotTone: [0.22, 0.17, 0.3, 0.45], ...ANTENNAS_HAZE };
+export const ANTENNAS_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.2, uHatch: 0.4, uLineWidth: 0.75, uWobble: 0.22, uFogDensity: 0.0011, uCast: [0.75, 0.35], uSpotTone: [0.22, 0.17, 0.3, 0.45], ...ANTENNAS_HAZE };
 /** The day's colours (sky top, horizon, shadow, light, sun): a pale yellow sky, lavender shade, warm light. */
 export const ANTENNAS_DAY = ['#f1e6a2', '#f7f0c8', '#8c7cbc', '#fff6dc', '#fff2c4'];
 /** The surfaces' tones. */
 export const ANTENNAS_TONES = {
-  grass: '#a98cd8', grass2: '#9a7ccc', grass3: '#7e68b2', path: '#e8bc96', path2: '#dcae88',
-  iron: '#5a4a3f', iron2: '#4b3e39', vine: '#3c4a2e', leaf: '#4a5a36', frame: '#3a3438',
+  grass: '#a88ac4', grass2: '#9c7eb8', grass3: '#8a6ea6', path: '#e8bc96', path2: '#dcae88',
+  iron: '#665444', iron2: '#56463e', vine: '#3c4a2e', leaf: '#4a5a36', frame: '#3a3438',
   dish: '#b9aac8', dishPink: '#e9bab4', dishBlue: '#8ea2b0', dishNavy: '#33456a', dishRose: '#d8a6b4',
   under: '#9c8cb0', shell: '#d9a184', shell2: '#c9b0c4', shell3: '#c8907a', trim: '#3a2e34', window: '#ffcf72', plank: '#8a6c56',
   bush: '#24402f', bush2: '#203a30', far: '#c9b9d6', farDeep: '#e2d6cc', bird: '#2d2834',

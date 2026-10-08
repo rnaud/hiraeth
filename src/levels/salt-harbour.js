@@ -152,7 +152,7 @@ export function* buildSaltHarbour(scene) {
   const rng = mulberry32(52100);
   const terrain = yield* Terrain.make({
     size: 1200, seg: 200, height,   // (6 m: the salt is flat, the banks against the hulls wide)
-    material: { color: T.salt, color2: T.salt2, color3: T.salt3, mode: MODE_TERRAIN, pattern: 'cracks', sandInk: true },
+    material: { color: T.salt, color2: T.salt2, color3: T.salt3, mode: MODE_TERRAIN, pattern: 'cracks', sandInk: true, shadeHue: -1 },   // (the world's cerulean shade, not sand's warm grey)
   });
   scene.add(terrain.mesh);
   const H = (x, z) => terrain.heightAt(x, z);
@@ -164,7 +164,7 @@ export function* buildSaltHarbour(scene) {
   const M = {
     hull: kit.mat({ color: T.hull, plates: 9, hatch: 0.25, shade: 0.15 }),
     hull2: kit.mat({ color: T.hull2, plates: 10, hatch: 0.25, shade: 0.15 }),
-    red: kit.mat({ color: T.red, plates: 9, hatch: 0.25, shade: 0.1 }),
+    red: kit.mat({ color: T.red, plates: 9, hatch: 0.25, shade: 0.1, shadeHue: 1 }),   // (its shade a deep rust, as the pictures')
     deck: kit.mat({ color: T.deck, flat: true, pattern: 'cracks' }),
     wood: kit.mat({ color: T.wood, flat: true, pattern: 'cracks' }),
     wood2: kit.mat({ color: T.wood2, flat: true }),

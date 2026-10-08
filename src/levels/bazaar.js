@@ -18,12 +18,15 @@ import { gameById } from '../minigames/index.js';   // (none in node's tests: th
 // merged by street block and material so the mobile renderer can cull them.
 /** The world's touches on the print preset: few strokes, fine even lines (its reference sheets). */
 /** The far towers in stepped bands of a pale warm haze (post.js 4b): from 90 m, each band 1.8 × farther. */
-export const MARKET_HAZE = { uHazeLayers: [90, 1.8, 0.12, 4], uHazeTone: [0.96, 0.91, 0.8, 0.7] };
-export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.85, uWobble: 0.1, ...MARKET_HAZE };
+// (colour pass, v0.94: the haze from 60 m in more, paler bands, so the street's far end goes pale as the sheets' does;
+//  fewer, lighter spot blacks and a finer line, so the towers' machinery in the middle distance stops reading as a
+//  black mass where the sheets keep it airy)
+export const MARKET_HAZE = { uHazeLayers: [48, 1.65, 0.13, 6], uHazeTone: [0.93, 0.92, 0.86, 0.7] };
+export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.75, uWobble: 0.1, uSpot: [0.55, 3, 0.36, 0.12], uCrevice: 0.4, ...MARKET_HAZE };
 /** The day's colours: aqua sky, a pale horizon, teal shade, warm light. */
-export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#70969e', '#fff1cf', '#ffe1ae'];
+export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#6e94ac', '#fff1cf', '#ffe1ae'];   // (v0.94: the shade a bluer teal, the sheets')
 /** How flat the walls' shade is printed in the street's teal (makeMaterial shadeFlat: a pink wall's turned side goes blue, as the sheets print it, not brown). */
-export const MARKET_FLAT = 0.85;
+export const MARKET_FLAT = 0.75;   // (v0.94: 0.85 before; a wall's own colour shows a little through its shade)
 export const SIGNAL = { x: 0, z: -255, deckY: 44, approachZ: -234 };
 export const BRIDGES = [{ z: 25, y: 19 }, { z: -90, y: 25 }, { z: -190, y: 72 }, { z: -330, y: 64 }];
 /**

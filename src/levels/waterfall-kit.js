@@ -24,20 +24,20 @@ import { leafCrown } from './garden-kit.js';
 
 export const TAU = Math.PI * 2;
 /** The deep cavern fades into a teal haze in stepped bands (post.js 4b): the world's and its views'. */
-export const WATERFALL_HAZE = { uHazeLayers: [70, 1.9, 0.12, 4], uHazeTone: [0.36, 0.6, 0.62, 0.85] };
+export const WATERFALL_HAZE = { uHazeLayers: [70, 1.9, 0.09, 4], uHazeTone: [0.36, 0.6, 0.62, 0.85] };
 /** The world's touches on the print preset (WATERFALL_LOOK's, without the views' clean sky): few strokes, no bounce, the teal haze. */
-export const WATERFALL_WORLD_LOOK = { uHalftone: 0.06, uBounce: 0, uHatch: 0.14, uLineWidth: 0.9, uShadeKeep: 0, uCumulus: 0, uClouds: 0.15, ...WATERFALL_HAZE };
+export const WATERFALL_WORLD_LOOK = { uHalftone: 0.06, uBounce: 0, uHatch: 0.14, uLineWidth: 0.9, uShadeKeep: 0.15, uCumulus: 0, uClouds: 0.15, ...WATERFALL_HAZE };
 /** sky top, horizon, shadow (the cavern's teal), light, sun */
-export const WATERFALL_DAY = ['#a9dcd6', '#f2ead0', '#447f86', '#fff2dc', '#fff3d6'];
+export const WATERFALL_DAY = ['#a9dcd6', '#f2ead0', '#306c74', '#fff2dc', '#fff3d6'];
 export const WATERFALL_DUSK = ['#d9b9b4', '#f7d6bf', '#566f7e', '#ffe2cf', '#ffd0a8'];
 export const WATERFALL_NIGHT = ['#18303a', '#2f4f58', '#203a48', '#8fb5bd', '#e9f0e0'];
 const NS = { solid: false, shadow: false };
 
 /** The sheets' colours. */
 export const WF_PAL = {
-  water: { deep: '#357f8a', mid: '#66c2c6', pale: '#b2ebe2' },
+  water: { deep: '#2a7c88', mid: '#48c6c8', pale: '#a4efe4' },   // (v0.94: a saturated turquoise)
   stone: ['#f1dcbd', '#ecd0ad', '#f4e3c8', '#e8c9a6', '#efd6b8'],
-  rock: ['#3a7178', '#366b72', '#3f777d'],
+  rock: ['#2e5e64', '#2a585e', '#33666c'],   // (v0.94: a deeper teal, the plates' dark cavern)
   floor: '#7fb0ad',
   dark: '#24393d',
   lamp: '#ffb455',
@@ -112,16 +112,19 @@ export function mistBank(kit, { at, w, yaw = 0, h = 9, depth = h * 0.9, n = Math
 // ------------------------------------------------------------------ materials
 
 /** The city's materials, made by the kit (one per option set, shared). shadeFlat: how flat its shade is printed. */
-export function cityMats(kit, { shadeFlat = 0.8, windows = 0 } = {}) {
+export function cityMats(kit, { shadeFlat = 0.8, windows = 0, stoneFlat = 0.2 } = {}) {
   const PRINT = shadeFlat ? { shadeFlat } : {};
+  // (colour pass, v0.94: the houses' stone prints only a little of the cavern's teal in its shade and keeps its warmth
+  //  (a lift toward its own lit colour), so the city glows warm against the dark teal rock as the plates' does)
+  const WARM = { shadeFlat: stoneFlat, shade: 0.45 };
   const DS = THREE.DoubleSide;
   return {
-    stone: WF_PAL.stone.map((c) => kit.mat({ color: c, weathered: 0.35, ...PRINT, ...(windows ? { pattern: 'facade', windows } : {}) })),
-    wall: kit.mat({ color: '#e6c9a3', flat: true, weathered: 0.5, ...PRINT }),
+    stone: WF_PAL.stone.map((c) => kit.mat({ color: c, weathered: 0.35, ...WARM, ...(windows ? { pattern: 'facade', windows } : {}) })),
+    wall: kit.mat({ color: '#e6c9a3', flat: true, weathered: 0.5, ...WARM }),
     paving: kit.mat({ color: '#d8c2a0', flat: true, grid: 2.4, ...PRINT }),
     floor: kit.mat({ color: '#b9c4b4', flat: true, weathered: 0.5, ...PRINT }),   // (the big floors: worn stone, no slab lines)
     rock: kit.mat({ color: WF_PAL.rock[0], color2: WF_PAL.rock[1], color3: WF_PAL.rock[2], mode: MODE_STRATA, strataSize: 9, flat: true, cracks: 0.35, hatch: 0.3, ...PRINT }),
-    step: kit.mat({ color: '#e2cba6', flat: true, spot: 0, hatch: 0.4, ...PRINT }),
+    step: kit.mat({ color: '#e2cba6', flat: true, spot: 0, hatch: 0.4, ...WARM }),
     dark: kit.mat({ color: WF_PAL.dark, flat: true }),
     door: kit.mat({ color: '#2d4547', flat: true }),
     lit: kit.mat({ color: '#f6b860', glow: 0.8, flat: true }),
