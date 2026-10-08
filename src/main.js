@@ -85,6 +85,9 @@ import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { slicer, runStepsAsync, gpuPacer } from './load-steps.js';
 import { waterShared } from './water-shader.js';
+import { gameById } from './minigames/index.js';
+import { MinigameRunner } from './minigames/kit/runner.js';
+import { levelMetaFor } from './minigames/kit/world.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -205,7 +208,11 @@ const levelParam = query.get('level');
 const viaShip = query.get('via') === 'ship';
 // from the title screen (no ?level): the world this save was left in (a new game: the desert's prologue)
 const resumeId = !levelParam && game.flag('prologue.done') ? SaveGame.load()?.level ?? game.flag('ship.level') : null;
-const meta = levelById(levelParam) ?? levelById(resumeId) ?? LEVELS[0];
+// a minigame's page (?game=<id>, src/minigames/): its own arena, or the world it is played in, is the level;
+// the runner (src/minigames/kit/runner.js) takes the traveller and the camera over once all is built
+const minigameDef = gameById(query.get('game'));
+let minigame = null;
+const meta = minigameDef ? levelMetaFor(minigameDef, levelById) : levelById(levelParam) ?? levelById(resumeId) ?? LEVELS[0];
 const levelId = meta.id;
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
@@ -240,7 +247,7 @@ if (buriedFlora) console.info(`flora: ${buriedFlora} buried instances left out`)
 await slice();
 // the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
 // (no ?level and prologue.done unset, or ?prologue=1 to replay it)
-const playPrologue = levelId === 'desert' && !viaShip && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
+const playPrologue = levelId === 'desert' && !viaShip && !minigameDef && (query.get('prologue') === '1' || (!levelParam && !game.flag('prologue.done')));
 // coming home by ship ends the story (src/ship/homecoming.js); ?ending=1 replays it
 const playHomecoming = levelId === 'home' && ((viaShip && !game.flag('ending.done')) || query.get('ending') === '1');
 const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
@@ -570,7 +577,7 @@ Object.assign(journal.menu, {
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', (k) => { const line = chargeHud(charge(), { kept: k.name }); if (line) showToast(line); });
 // a save from before the charge had its card: letter it once, at the first quiet moment
-if (game.flag('prologue.done') && !game.flag(CHARGE_CARD) && !playPrologue && !playHomecoming) {
+if (game.flag('prologue.done') && !game.flag(CHARGE_CARD) && !playPrologue && !playHomecoming && !minigameDef) {   // (not over a game: the next world's first quiet moment)
   game.set(CHARGE_GIVEN, true);
   const wait = setInterval(() => {
     if (busy() || ship.playing || ship.busy() || document.hidden) return;
@@ -638,7 +645,7 @@ if (!viaShip && !playPrologue && saved?.level === levelId && saved.pos) {
   rig.yaw = saved.yaw ?? rig.yaw;
 }
 let resetting = false;   // (a save being started over: nothing more is written to it)
-const writeSave = () => !resetting && SaveGame.write({
+const writeSave = () => !resetting && !minigameDef && SaveGame.write({   // (a game's page keeps the place you left the world at)
   level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour,
   up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(),
 });
@@ -870,7 +877,7 @@ function quitToTitle() {
 // The full-screen menus (Start: settings; View / Select: the game menu, src/game-menu.js; what's new) pause
 // the game: frame() skips the world while one is open, and the menu music plays over the
 // hushed world (src/audio.js menuMusic).
-const paused = () => menu.open || journal.open || changelog.open;
+const paused = () => menu.open || journal.open || changelog.open || !!minigame?.paused;
 // one panel at a time: J over the open settings drew the sketchbook's quest log under the
 // settings card (and O over the sketchbook the other way round)
 {
@@ -995,7 +1002,7 @@ function placeToolGauge() {
 }
 
 
-const busy = () => restartOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy() || !!level.quickMenu?.open;
+const busy = () => restartOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy() || !!level.quickMenu?.open || !!minigame?.busy();
 // a level's own quick menu (the References' list of views: src/levels/reference-picker.js): a menu like the others for the pad
 const quickMenu = level.quickMenu ?? null;
 if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
@@ -1011,7 +1018,7 @@ const pageUp = () => pageEl.classList.contains('open');
 // (in the order they stack on the screen: what's new, the Start menu, the sketchbook over a box's card, the
 // worlds, a story page, a conversation; B / ○ closes the one on top, so the sketchbook opened over a
 // conversation or a moment closes first)
-const menuRoot = () => restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : quickMenu?.open ? quickMenu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl;
+const menuRoot = () => minigame?.cardEl() ?? (restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : quickMenu?.open ? quickMenu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl);
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
   if (changelog.open) changelog.toggle(false);
@@ -1035,6 +1042,7 @@ const controller = new Controller({
   scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (changelog.pad(name)) return;   // (the interactive changelog over the game takes the controller: src/changelog.js)
+    if (minigame && !menu.open && !journal.open && minigame.padAction(name)) return;   // (a game's cards, its pause: src/minigames/kit/runner.js)
     if (name === 'zoomOut' || name === 'zoomIn') rig.zoom(Math.exp((name === 'zoomOut' ? 1 : -1) * dt));
     if (name === 'back') closeControllerMenu();
     // (in a menu, a conversation or a scene: Start toggles the Start menu, Select the sketchbook)
@@ -1391,6 +1399,9 @@ function frame(ts) {
   passage.update(dt);   // a hand-over under way: the move happens here, before the traveller and the camera do
   if (photo.on) {
     if (!busy()) photoUpdate(dt, mergedInput);
+  } else if (minigame?.drives) {
+    minigame.update(dt, busy() ? noInput : ctl);   // the game moves the traveller and the camera (src/minigames/)
+    shakeCamera(camera, realDt);
   } else {
     player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());   // whistled mounts arrive into view
     const usingLens = expedition?.update(dt, player, ctl, busy());
@@ -1412,8 +1423,8 @@ function frame(ts) {
   boxes.update(dt, t, { camera });   // (after the player: it poses the kneel; before the ship, which places its camera)
   itemFx.update(dt, t);
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
-  tool.update(dt, ctl, busy() || photo.on);
-  gadgets.update(dt, busy() || photo.on || ship.playing);   // (after the tool: an aiming gadget's camera and pose win)
+  tool.update(dt, ctl, busy() || photo.on || !!minigame);
+  gadgets.update(dt, busy() || photo.on || ship.playing || !!minigame);   // (after the tool: an aiming gadget's camera and pose win)
   flammables.update(dt, t, player.pos);
   scout.flare.eye = camera.position;
   scout.update(dt, busy() || photo.on);
@@ -1701,6 +1712,14 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
   for (const p of renderer.info.programs) { p.getUniforms?.(); await slice(); }
   console.info(`passage warm-up: ${n} meshes in ${(performance.now() - t0).toFixed(0)} ms`);
 }
+// a minigame's page: the runner takes over, the start card up (src/minigames/kit/runner.js)
+if (minigameDef) {
+  minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'),
+    othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open'),
+    navigate: (href) => { flushPlay(); location.href = href; } });
+  window.minigame = minigame;
+  story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)
+}
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
@@ -1710,7 +1729,7 @@ requestAnimationFrame((t) => {
   const ld = document.getElementById('loading');
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
-  ship.start({ via: viaShip ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (playHomecoming) journal.markSeen(levelId); else story.start(); } });   // the homecoming is its own page
+  ship.start({ via: viaShip ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (minigame) return; if (playHomecoming) journal.markSeen(levelId); else story.start(); } });   // the homecoming is its own page
   if (changelog.fresh) { changelog.markSeen(); setTimeout(() => showToast(`Updated to v${VERSION} · what's new is in the settings`), 4000); }   // after an update: point at what changed, once (not again on the next world; no key: a handheld has none)
 });
 

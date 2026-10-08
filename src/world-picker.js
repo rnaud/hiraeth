@@ -5,6 +5,7 @@
 // before it had been played through; the others open in the save being played.
 
 import { ORDER } from './levels/names.js';
+import { GAMES, gameHref } from './minigames/index.js';
 
 /** The game's other pages, at the top of the list (they leave the game). */
 export const PAGES = [
@@ -14,6 +15,12 @@ export const PAGES = [
   { href: 'changelog.html', label: 'What\'s new', hint: 'every change, with pictures' },
   { href: 'items.html', label: 'Items', hint: 'every item, its picture, what it does, where it is found' },
 ];
+
+/** The minigames' row, under the pages: each opens its game's page (?game=<id>, src/minigames/). */
+export function gamesRow(games = GAMES) {
+  if (!games.length) return '';
+  return `<span class="label">Games</span>${games.map((g) => `<a href="${gameHref(g.id)}" title="${g.blurb.replace(/"/g, '&quot;')}">${g.name}</a>`).join('')}`;
+}
 
 /** Where a card goes: a route world in the debug save (?debugsave=1, src/boot.js), any other in the save being played. */
 export function pickHref(id, order = ORDER) {
@@ -36,10 +43,14 @@ export function fillPicker(picker, { levels, current = null, cont = null }) {
   nav.className = 'pages';
   nav.innerHTML = PAGES.map((p) => `<a href="${p.href}" title="${p.hint}">${p.label}</a>`).join('');
   picker.querySelector('header').after(nav);
+  const games = document.createElement('nav');
+  games.className = 'pages games';
+  games.innerHTML = gamesRow();
+  if (games.innerHTML) nav.after(games);
   const note = document.createElement('p');
   note.className = 'debug-note';
   note.textContent = DEBUG_NOTE;
-  nav.after(note);
+  (games.isConnected ? games : nav).after(note);
   if (cont) {
     const btn = document.createElement('a');
     btn.className = 'continue';

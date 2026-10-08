@@ -174,9 +174,9 @@ export function progressLine(s) {
 /**
  * Does this page load open on the title screen (src/boot.js)? Not when a world is asked for
  * directly: ?level=<id> (the ship's arrivals, the dev shortcut; it plays the current slot),
- * ?prologue=1, ?ending=1, or ?start (a save started over from the Start menu).
+ * ?prologue=1, ?ending=1, ?start (a save started over from the Start menu), or ?game=<id> (a minigame).
  */
-export const DIRECT_PARAMS = ['level', 'prologue', 'ending', 'start'];
+export const DIRECT_PARAMS = ['level', 'prologue', 'ending', 'start', 'game'];   // (game: a minigame's page, src/minigames/)
 export function opensTitle(search = '') {
   const q = new URLSearchParams(search);
   return !DIRECT_PARAMS.some((k) => q.has(k));

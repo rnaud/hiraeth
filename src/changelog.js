@@ -9,6 +9,11 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '0.92', date: '2026-10-08', items: [
+    'Games: the worlds list (Debug) has a row of small games. Each opens on a card with its rules and its controls, counts you in 3, 2, 1, runs a clock, pauses on Menu or Esc (Resume, Retry, Quit), and ends on your score, with your best kept in your save and a stamp when you beat it. Quit takes you back where you came from.',
+    'Dune skiing: the traveller on sand-skis down a kilometre of dune. Carve with the stick between the gates (a missed one costs 3 seconds), tuck on RT / R2 for speed, skid on LT / L2 to brake, fly off the lips and spin in the air (a spin landed clean takes a second off). Sand sprays off the edges, the view widens with the speed, and past the line the camera swings round to watch you skid to a stop.',
+    'Sky steps: a side-on run across stones floating over the desert to the makers’ gate. Stones that drift, stones that crack and fall under you, springs that throw you higher the longer you hold the jump, 40 glyphs, banners to start again from and three lives. The jump is forgiving: a press just before landing still counts, so does one just after running off an edge, and a short press is a short hop.',
+  ] },
   { v: '0.91', date: '2026-10-08', items: [
     'Gadgets: things to carry besides the backpack, the first two of ten to come. Hold one in hand and Y / △ uses it (T, or the middle mouse button; ◆ on a touch screen). D-pad up changes it (B), and held a moment it opens a wheel: point the stick at one and let go. With nothing in hand Y / △ still sends the scout. A small card in the lower left shows what is in hand.',
     'The grappling hook: hold Y / △ to aim, and a ring shows what it would catch up to 25 m away (it finds the brass rings by itself); let go and it flies. Caught on a wall, a ledge or a ring, it reels you in: at a wall you take hold of it, at a ledge you haul yourself over the top. Caught on a crate it drags it to you; on a foe it pulls it in, stunned. Jump while reeling to let go and fly on. It works in every world.',
