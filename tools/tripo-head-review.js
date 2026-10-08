@@ -5,7 +5,7 @@ import { createReviewInk } from './tripo-render.js';
 
 const $ = id => document.getElementById(id);
 try {
-  const gltf = await new GLTFLoader().loadAsync('/characters/traveller-v1/head-v2/model.glb');
+  const gltf = await new GLTFLoader().loadAsync('/data/characters/traveller-v1/head-v2/model.glb');
   const scene = new T.Scene(); scene.background = new T.Color('#eee9de');
   const root = gltf.scene, box = new T.Box3().setFromObject(root), size = box.getSize(new T.Vector3());
   const centre = box.getCenter(new T.Vector3()), scale = 0.34 / size.y;

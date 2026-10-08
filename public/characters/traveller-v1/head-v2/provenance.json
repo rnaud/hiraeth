@@ -28,6 +28,8 @@
   "triangles": 48423,
   "vertices": 33374,
   "sha256": "d7fdd40c590ad6df6fcb097f0f214173a792cd657dbfe51be2399dd1d54ebe0c",
+  "source_file": "data/characters/traveller-v1/head-v2/model.glb",
+  "shipped_file": "model.glb here is made from the source by scripts/tripo/slim-traveller.mjs: the same geometry byte for byte, the texture resized to 2048 x 2048",
   "export_bytes": 3150452,
   "mesh_primitives": 1,
   "skeleton": false,
