@@ -129,6 +129,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'arcade-board', only: 'after', caption: 'The games board: every game, its line and its best, to jump straight into one', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
       { name: 'arcade-pause', only: 'after', caption: 'A game from the Arcade, paused: Previous game, Next game, Back to the Arcade', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by a script' },
     ], see: 'Open ?level=arcade (or the Debug worlds list). Walk to a sign and press the interact button, or press Tab (D-pad ↓) for the games board; in a game press Menu / Esc, then Next game, or LB / RB ([ ]) on any of its cards.' },
+    { match: 'Controls: the controller now follows the big action games', see: 'With a controller: walk up to someone and press X / □ to talk, B / ○ to dodge a blow, D-pad ↓ to call your mount, and click the right stick (R3) away from any foe to send the scout. Menu, then Controls, lists the whole layout.' },
+    { match: 'The bell-note whistle and the echo shell have a controller button again', shots: [
+      { name: 'controls-whistle', only: 'after', caption: 'No gadget in hand: the card in the corner holds the whistle (and the shell), on Y / △', from: 'headless Chrome with a virtual Xbox pad against this branch’s own dev server, Low, 1280 × 720 (8 October), the Gadget Yard with every item' },
+    ], see: 'Own the whistle and a gadget, put the gadget away (the wheel’s top slot, D-pad ↑ held), and press Y / △: the boxes nearby chime.' },
+    { match: 'Photo mode moved off the D-pad', see: 'Hold View and press D-pad ↑ for photo mode (View again, B / ○ or Menu leaves); on any screen, Menu (or the gear), then Photo mode.' },
+    { match: 'Keyboard and mouse: a left click swings the fluid blade', see: 'Click into the game to capture the mouse and left-click: the blade swings. Hold the right button and left-click: it shoots.' },
+    { match: 'The Controls page shows the new layout', shots: [
+      { name: 'controls-page', only: 'after', caption: 'The Controls page with a pad in hand: X / □ uses and talks, B / ○ evades, R3 finds the objective with no foe near', from: 'headless Chrome with a virtual Xbox pad against this branch’s own dev server, Low, 1280 × 720 (8 October), the Start menu over the Gadget Yard' },
+    ] },
   ],
   '0.92': [
     { match: 'Games: the worlds list (Debug) has a row of small games', shots: [
