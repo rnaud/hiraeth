@@ -354,7 +354,7 @@ export class Foes {
     this.list = []; this.group = new THREE.Group(); this.group.name = 'Foes';
     this.group.userData.noCollide = true;
     scene?.add(this.group);
-    this.peaceful = PEACEFUL.has(levelId);
+    this.peaceful = PEACEFUL.has(levelId) || !!level?.peaceful;   // (a minigame's arena: no foes, src/minigames/kit/world.js)
     this.packRest = 8; this.wildFor = 0; this.packs = 0; this.wave = 0; this.waveRest = WAVE.rest;
     this.people = (content?.npcs ?? []).filter((n) => n.at).map((n) => ({ x: n.at[0], z: n.at[1] }));
     this.env = {

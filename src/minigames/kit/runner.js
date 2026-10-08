@@ -90,6 +90,8 @@ export class MinigameRunner {
       /** Something the session put in the scene, taken out when the game is left. */
       add(o) { H.scene.add(o); R.added.push(o); return o; },
       best: () => bestScore(H.state, this.def),
+      /** The save (flag(name), set(name, value)): what a game keeps besides its best (its splits, a journal). */
+      state: H.state,
     };
   }
 

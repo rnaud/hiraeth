@@ -44,6 +44,7 @@ export function arenaLevel({ ground, spawn = new THREE.Vector3(), name = 'A game
     atmo: () => ({ tint: [1, 1, 1], fog: 1.0, name }),
     update() {},
     reactions: false,   // (no flowers waking along a race course: src/reactive-world.js)
+    peaceful: true,     // (no ink blots coming out of the sand mid-race: src/foes.js)
     ...rest,
   };
 }

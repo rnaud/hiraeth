@@ -134,6 +134,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'steps-run', only: 'after', caption: 'On a drifting stone of the makers', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
       { name: 'steps-crumble', only: 'after', caption: 'Over the cracked stones: they shake and fall a moment after you land', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (7 October), played by a script' },
     ], see: '?game=platformer: run off an edge and press jump a moment late, or press it just before you land: both still jump.' },
+    { match: 'Canyon run: the hoverbike round the Rose Canyon', shots: [
+      { name: 'canyon-arch', only: 'after', caption: 'Under a stone arch, through a checkpoint’s pennants, the jets’ trails behind', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider (window.__canyonBot)' },
+      { name: 'canyon-kicker', only: 'after', caption: 'Off a wooden kicker at 180 km/h, just after a boost pad, the chasm under the lip', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider' },
+      { name: 'canyon-drift', only: 'after', caption: 'A sand drift across most of the floor, its fence along the crest: round it on the open side, or hop it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider' },
+      { name: 'canyon-results', only: 'after', caption: 'Three laps, the fastest, the top speed and a clean run', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), driven by the game’s own rider' },
+    ], see: '?game=canyon, or the sign under the lavender cliffs by the desert’s rope bridge. Each checkpoint flashes your split against your best run once you have one.' },
+    { match: 'Fishing: three quiet minutes at the end of a pier', shots: [
+      { name: 'fishing-cast', only: 'after', caption: 'The cast held: the rod over the shoulder, the meter at 15 m, fish shadows on the water', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script (keys)' },
+      { name: 'fishing-red', only: 'after', caption: 'A sky-eye ray running left with the reel held: the line glows red, ease off, pull against it', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script (keys)' },
+      { name: 'fishing-catch', only: 'after', caption: 'Landed and held up on the line: new in the journal', from: 'headless Chrome against this branch’s own dev server, High, 1280 × 720 (8 October), played by a script (keys)' },
+    ], see: '?game=fishing, or the sign on the shore of the desert’s mineral basin. Cast near a shadow for a quicker bite; the deep middle holds the heavy kinds.' },
   ],
   '0.91': [
     { match: 'Gadgets: things to carry besides the backpack', shots: [
