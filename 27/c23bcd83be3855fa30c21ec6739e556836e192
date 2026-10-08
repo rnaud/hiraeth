@@ -1,0 +1,25 @@
+changelog.md
+  s_0b257590537c5a::t_8b8f32cc8763a2 11
+public/music/manifest.json
+  s_0b257590537c5a::t_907894af9d028b 117-144
+src/changelog.js
+  s_0b257590537c5a::t_922824e0efd8e5 13
+src/soundtracks.js
+  s_0b257590537c5a::t_bd2855d88972ac 3-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "27c23bcd83be3855fa30c21ec6739e556836e192",
+  "prompts": {},
+  "sessions": {
+    "s_0b257590537c5a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11b63-b11c-7440-84f8-471c5f03bb72",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
