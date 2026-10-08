@@ -1,0 +1,51 @@
+.claude/skills/dialogue-review/extract.mjs
+  s_364474254304ac::t_fed15c26e0009a 1-175
+.claude/skills/game-audit/SKILL.md
+  s_364474254304ac::t_f45502b28debb2 1-91
+.claude/skills/game-audit/default-plan.json
+  s_364474254304ac::t_7f410bf6be999f 1-86
+.claude/skills/perf-audit/SKILL.md
+  s_364474254304ac::t_80301969d9a3a9 1-113
+.claude/skills/perf-audit/fps.mjs
+  s_364474254304ac::t_f02d2632d831b1 1-98
+.claude/skills/perf-audit/size.mjs
+  s_364474254304ac::t_c9efb10eac0770 1-42
+.claude/skills/visual-audit/SKILL.md
+  s_364474254304ac::t_e1777a6318e9d1 1-124
+.claude/skills/visual-audit/views.mjs
+  s_364474254304ac::t_769939aa940e6b 1-113
+docs/README.md
+  s_364474254304ac::t_415dad0850abb9 26
+docs/audits/game-v0.97.md
+  s_364474254304ac::t_8a43844b47d1b0 4,9
+docs/audits/game-v1.0.md
+  s_364474254304ac::t_a477db3af11636 1-282
+docs/systems/cinematics.md
+  s_364474254304ac::t_c7afc0a05d76e7 100
+docs/systems/story.md
+  s_364474254304ac::t_3ce99d9c1f9d0e 84,407,621
+docs/what-makes-a-great-game.md
+  s_364474254304ac::t_2ce594eacc6ac7 4
+.claude/skills/dialogue-review/craft.md
+  s_364474254304ac::t_0d5ee36d1f5fd6 1-326
+.claude/skills/game-audit/capture.mjs
+  s_364474254304ac::t_b5c84dbb70c9b2 1-79
+.claude/skills/dialogue-review/SKILL.md
+  s_364474254304ac::t_0a724b32ba293a 1-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "531a7459fcfa5b4a980f911565b5367e291a3af2",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
