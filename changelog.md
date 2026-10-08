@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.0 — 2026-10-08
 
+- The traveller is about half the download and far lighter to draw, looking exactly the same: files he never used are gone, his textures are sized to what any screen shows, and away from close-ups he is drawn with fewer triangles (conversations and close shots always use his full model).
 - Game updates are about 100 MB smaller too: the music no longer comes with every update.
 - The Android app and the Steam Deck download are about 100 MB smaller: they carry only the Desert’s music and download the other worlds’ themes once, in the background, the first time you open the game, then keep them for offline play.
 - The Android app and the Steam Deck package are about 39 MB smaller: the photographs the developer’s reference world is drawn from stay on the website, where that world reads them anyway.
