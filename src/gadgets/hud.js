@@ -8,6 +8,7 @@ import * as THREE from 'three';
 //   const hud = new GadgetHud({ camera, touch, input })
 //   hud.chip({ def, count, max, refill, note, key }) · hud.chip(null)
 //   hud.reticle(point | null, kind, label) · hud.wheel(list, highlighted | -1) · hud.wheel(null)
+//   hud.marks([{ point, label }])   numbered diamonds on what a gadget has locked on to (the boomerang), [] hides
 //   hud.onTap = () => …   (the chip tapped: the next gadget)
 
 const CSS = `
@@ -37,6 +38,12 @@ body.talking #gadget-chip, body.photo #gadget-chip { display: none; }
 #gadget-reticle.far .r { border-style: dashed; opacity: 0.55; transform: scale(0.7); }
 #gadget-reticle span { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 0 5px;
   font: 10px/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
+#gadget-marks { position: fixed; inset: 0; z-index: 31; pointer-events: none; }
+#gadget-marks .m { position: absolute; left: 0; top: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+#gadget-marks .m::before { content: ''; position: absolute; inset: 3px; border: 2.5px solid #c8483a; background: rgba(247, 236, 210, 0.75); transform: rotate(45deg); box-shadow: 0 0 0 1.5px #2b211f; }
+#gadget-marks .m b { position: absolute; inset: 0; display: grid; place-items: center; font: bold 11px/1 ui-monospace, Menlo, monospace; color: #2b211f; }
+#gadget-marks .m.new { animation: gmark 0.25s ease-out; }
+@keyframes gmark { 0% { transform: scale(1.9); } 100% { transform: scale(1); } }
 #gadget-wheel { position: fixed; left: 50%; top: 50%; z-index: 40; width: 300px; height: 300px; margin: -150px 0 0 -150px; display: none; pointer-events: none; }
 #gadget-wheel.on { display: block; }
 #gadget-wheel .ring { position: absolute; inset: 40px; border: 2px dashed rgba(43, 33, 31, 0.5); border-radius: 50%; background: rgba(247, 236, 210, 0.35); }
@@ -123,6 +130,22 @@ export class GadgetHud {
     if (s.textContent !== label) s.textContent = label;
   }
 
+  /** Numbered red diamonds on world points (the boomerang's locks); an empty list (or null) hides them. */
+  marks(list) {
+    if (!this.dom) return;
+    list = list ?? [];
+    if (!this.marksEl) { this.marksEl = document.createElement('div'); this.marksEl.id = 'gadget-marks'; document.body.appendChild(this.marksEl); this.markEls = []; }
+    while (this.markEls.length < list.length) { const e = document.createElement('div'); e.className = 'm new'; e.innerHTML = '<b></b>'; this.marksEl.appendChild(e); this.markEls.push(e); }
+    this.markEls.forEach((e, i) => {
+      const m = list[i];
+      if (!m) { if (e.style.display !== 'none') { e.style.display = 'none'; e.classList.remove('new'); } return; }
+      if (!this.camera || _p.copy(m.point).project(this.camera).z > 1) { e.style.display = 'none'; return; }
+      if (e.style.display === 'none') { e.style.display = ''; e.classList.remove('new'); void e.offsetWidth; e.classList.add('new'); }
+      e.style.transform = `translate(${((_p.x * 0.5 + 0.5) * innerWidth).toFixed(1)}px, ${((-_p.y * 0.5 + 0.5) * innerHeight).toFixed(1)}px)`;
+      const b = e.firstChild; if (b.textContent !== String(m.label ?? i + 1)) b.textContent = String(m.label ?? i + 1);
+    });
+  }
+
   /** The wheel: [{ glyph, name }] round a circle (clockwise from the top), one highlighted; null hides it. */
   wheel(list, hi = -1) {
     if (!this.dom) return;
@@ -138,5 +161,5 @@ export class GadgetHud {
     }).join('') + `<div class="name">${esc(hi >= 0 ? list[hi].name : 'choose a gadget')}</div>`;
   }
 
-  dispose() { for (const e of [this.chipEl, this.retEl, this.wheelEl, this.touchBtn]) e?.remove(); }
+  dispose() { for (const e of [this.chipEl, this.retEl, this.wheelEl, this.touchBtn, this.marksEl]) e?.remove(); }
 }

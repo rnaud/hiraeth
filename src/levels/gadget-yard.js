@@ -77,7 +77,7 @@ export function* buildGadgetYard(scene) {
     try { def.yard(kit); } catch (e) { console.warn('gadget yard', def.id, e); }
   });
   yield;
-  const { gadgetYard, targets } = yard.out();
+  const { gadgetYard, targets, flammables } = yard.out();
 
   return {
     id: 'gadgetyard',
@@ -93,6 +93,7 @@ export function* buildGadgetYard(scene) {
     killY: -Infinity,
     gadgetYard,
     targets,
+    flammables,   // (the lanterns an ember lights: src/flammable.js)
     reactions: false,   // (no reactive flowers: the bays are busy enough)
     gadgets: 'all',   // (main.js: every gadget is granted here)
     sky: {

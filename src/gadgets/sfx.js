@@ -35,6 +35,8 @@ export const sfx = {
   },
   /** A cracked wall gives: stones tumbling. */
   crumble(s) { const t = now(s); if (t == null) return; for (let i = 0; i < 5; i++) s.burst(t + 0.05 + i * 0.07 + Math.random() * 0.04, { dur: 0.12, type: 'lowpass', freq: 600 + Math.random() * 500, q: 0.8, vol: 0.1 }); },
+  /** A rope cut: a sharp snap and the fibres giving. */
+  snip(s) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.05, type: 'highpass', freq: 4200, q: 1.2, vol: 0.12 }); s.sweep(t, 1400, 500, 0.09, 0.05, 'triangle'); },
   /** A floor plate pressed (on) or let up. */
   click(s, on = true) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.04, type: 'bandpass', freq: on ? 1600 : 1100, q: 3, vol: 0.1 }); s.sweep(t, on ? 300 : 420, on ? 420 : 300, 0.12, 0.05, 'triangle'); },
 };

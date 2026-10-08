@@ -5,6 +5,7 @@ import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { jitter, soften } from '../world.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { tagMetal } from '../gadgets/metal.js';
 
 // ---------------------------------------------------------------------------
 // The Sealed Hangar: Major Brask's pocket universe.
@@ -171,7 +172,7 @@ export function* buildGarage(scene) {
     const clear = (x, z) => Math.abs(x) < 16 && z > 20 && z < 150;
     const pipeMats = ['#e6875f', '#62c3c9', '#a99be0', '#f2c54b'].map((c) => makeMaterial({ color: c, metal: 'painted' }));
     const brass = makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass' }), ink = makeMaterial({ color: '#34405e', metal: 'iron' });
-    const pipes = new Map(), bits = [];
+    const pipes = new Map(), bits = [], pumps = [];
     for (let i = 0; i < 26; i++) {
       const pts = [];
       let a = rng() * Math.PI * 2, r = 50 + rng() * 140;
@@ -187,10 +188,12 @@ export function* buildGarage(scene) {
       for (const p of [pts[1], pts[4]]) {   // a valve wheel and a pump on each run
         bits.push(new THREE.TorusGeometry(rad * 1.8, 0.15, 5, 14).rotateX(Math.PI / 2).translate(p.x, p.y + rad + 0.6, p.z).toNonIndexed());
         bits.push(new THREE.CylinderGeometry(rad * 1.6, rad * 1.8, 2.4, 10).translate(p.x, 1.2, p.z + 0.01).toNonIndexed());
+        pumps.push(new THREE.Vector3(p.x, 1.6, p.z));
       }
     }
     for (const [mat, list] of pipes) scene.add(new THREE.Mesh(mergeGeometries(list), mat));
-    scene.add(new THREE.Mesh(mergeGeometries(bits), brass));
+    // (the brass pumps are the makers' metal: the magnet glove pulls you to them, src/gadgets/metal.js)
+    scene.add(tagMetal(new THREE.Mesh(mergeGeometries(bits), brass), { points: pumps, radius: 1 }));
     // aerials with dishes, and little cabins
     const huts = [];
     for (let i = 0; i < 24; i++) {
@@ -235,7 +238,7 @@ export function* buildGarage(scene) {
       new THREE.BoxGeometry(3.8, 3.2, 0.4).translate(0, 4.6, 0), new THREE.CylinderGeometry(0.1, 0.1, 2.2, 5).translate(1.2, 7.3, 0)];
     const g = new THREE.Mesh(mergeGeometries(parts.map((q) => q.toNonIndexed())), ink);
     g.position.copy(BOARD); g.rotation.y = 0.5;
-    scene.add(g);
+    scene.add(tagMetal(g, { points: [[0, 4.6, 0.2]], radius: 0.6 }));   // (its painted iron face: the magnet pulls you up to it)
     for (let i = 0; i < 9; i++) {
       const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.32, 8, 6), makeMaterial({ color: '#70858c', flat: true }));
       lamp.position.set(((i % 3) - 1) * 1.05, 4.6 + (1 - Math.floor(i / 3)) * 0.95, 0.3);
@@ -282,7 +285,7 @@ export function* buildGarage(scene) {
       plate.push(new THREE.TorusGeometry(1.35, 0.16, 5, 14, Math.PI).translate(0, -1.1, 0.25));
       const pm = new THREE.Mesh(mergeGeometries(plate.map((g) => g.toNonIndexed())), makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass' }));
       pm.position.set(mx, 22, mz + 8.4);
-      scene.add(pm);
+      scene.add(tagMetal(pm, { points: [[0, 0, 0]], radius: 0.4 }));   // (the brass plate high on the column: pulled up to it, you take hold of the column)
       glyphAt = pm.position.clone().add(new THREE.Vector3(0, -22, 4));
     }
     for (let k = 0; k < 6; k++) { // pistons

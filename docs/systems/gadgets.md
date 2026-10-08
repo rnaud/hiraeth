@@ -32,10 +32,13 @@ Try them all in the Gadget Yard (`?level=gadgetyard`, the Debug worlds list), wh
   slide, bounce, are pushed by walking into them, and are fluid-tool targets of kind `prop`), cracked walls
   (their own collider, taken away when a blast breaks them; `regrow` s later they stand again, Infinity:
   gone; `flag`: kept in the save), anchors (rings the hook finds), floor plates (pressed by the traveller or
-  a crate) and the gates they lower. What moves or breaks must be flagged `noCollide` when the level builds
+  a crate; `things`: only by a thing of `mass` or more) and the gates they lower, ropes (`ropes`: a crate
+  hung from `top`, a target of kind `rope` that a cut drops; a load pulled off snaps it; they hang again
+  after `regrow` s) and small pickups (`pickups`: a pot of the makers' ink, `amount` of ink when walked into,
+  a target of kind `pickup` a gadget may carry to you). What moves or breaks must be flagged `noCollide` when the level builds
   it (the yard kit does), or the level's baked collision keeps a copy of it.
 - **`hud.js`**: the chip in the lower left (the gadget's own picture, drawn once by `src/item-icons.js`,
-  its name, its count, the button), the reticle, the wheel, and on a touch screen the ◆ use button.
+  its name, its count, the button), the reticle, numbered lock marks (`marks`), the wheel, and on a touch screen the ◆ use button.
 - **`sfx.js`**: the sounds, from the game's synth (`Sound.sweep` / `burst`).
 
 ## The buttons
@@ -58,7 +61,7 @@ panel takes a gadget in hand too (`onUse`).
      id: 'magnet', name: 'Lodestone glove', glyph: '⊂', order: 30,   // order: its place in the wheel and the yard
      text: 'what it is', use: 'what it does (prompts in Xbox / PlayStation form: Y / △)',
      model: () => group,          // about 0.3 m, makeMaterial materials (inked by the post pass)
-     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, world, fx, hud, bursts, sfx, sound, notice, aimAt, gadget(id)
+     create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, relics, flammables, world, fx, hud, bursts, sfx, sound, notice, aimAt, gadget(id)
      yard(kit) {},                // its props in its Gadget Yard bay
    };
    ```
@@ -70,7 +73,9 @@ panel takes a gadget in hand too (`onUse`).
    the yard, -z away, y up from the ground): `kit.block(size, centre)`, `steps`, `pole`, `anchor(p, {
    normal })`, `cracked(size, centre, { shape: 'boulder' })`, `crate(centre, { metal })`, `plate(at)`,
    `gate(size, centre, { plates })`, `target(at)`, `lamp(at)`, `pen(centre, r, count)`, `flag(colour)` (a
-   banner and the gadget's model large on a plinth). Ten bays stand round the ring (`YARD.bays`), in the
+   banner and the gadget's model large on a plinth), `rope(top, { length, metal })` (a crate hung on it),
+   `pickup(at)` (a pot of ink), `lantern(at)` (unlit: an ember lights it, `level.flammables`),
+   `ironBlock(size, centre)` (fixed metal, `tagMetal`). Ten bays stand round the ring (`YARD.bays`), in the
    registry's order.
 3. A changelog line, a test in `tests/gadgets.test.js` (or a file of its own), a short section here.
    The registry test checks every module with a default export.
@@ -172,6 +177,68 @@ Tests: the pitch cap, the turn, the refill, the fade order, the collider's boxes
 (stood on mid-gap, worn from the ends, gone, the ink back), the 16 m limit, a ramp's slope, a tap kept
 nothing, a dry pen, a wall that stops a ray and shelters from a gust, the screens' reach.
 
+## The boomerang (`boomerang.js`)
+
+Hold the use button: the boomerang is in the glove, a dotted path shows its flight (brass and ink out,
+paper and ink home) and whatever the reticle passes over within `BOOM.range` (22 m; `cone` 0.06 rad or
+`near` 0.9 m of the aim, in sight of the glove) is locked on to, up to `locks` 3, each a numbered red
+diamond (`hud.marks`). Lockable: every registered target but people, creatures, mounts, taxis, crates and
+scenery (`NO_LOCK`), and the world's relics. Let go to throw: the path (`boomPath`: from the hand, a swing
+out to the side `bend` 0.24 of the distance, then each lock in turn; with none, out to where the aim meets
+the world) is a centripetal Catmull-Rom (`boomCurve`), and `plan` swings it right, else left, else nearly
+straight, whichever meets no wall before it ends. It flies it at `speed` 20 m/s, then homes on the hand
+(`homeVelocity`: turned toward it at `turn` 5 rad/s, more the longer it is out) at `back` 24 m/s and is
+caught within `catch` 1 m. On the way (`strike`, once each):
+- **a foe**: stunned `stun` 1.6 s, knocked a little along its flight;
+- **a rope**: cut (`blade`); **a pickup** or **a relic**: carried back on it (a relic is laid at your
+  feet, where its own pickup takes it, `src/quest.js`); **a crate**: nudged; **people, creatures**: a tap;
+- **anything else** (switches, the yard's targets, the temples' crystals and gauges, lanterns): what a glob
+  would do (`modeFor`). Thrown with the fluid tool in an ember, stilling or bloom mode (`CARRY`) it carries
+  that mode, its trail in the mode's tones: an ember boomerang lights the lanterns it touches, a stilling
+  one stills the foes.
+
+A wall on the way out turns it home with a clink (a glancing touch, or a lock's own solid, is passed);
+coming home it glances off walls (4 at most, then it passes through). Its sounds are its own (`snd`).
+Tests (`tests/boomerang.test.js`): the path through each lock, the homing's turn rate and return, the
+segment's hits, a throw stunning a foe and flipping a switch, the locks (three at most, never a taxi,
+nothing behind a wall), a wall turning it back, the ember lighting a lantern, a rope cut and its crate
+falling, a pot and a relic fetched, the yard's bay.
+
+## The magnet glove (`magnet.js`, `metal.js`)
+
+Hold the use button: the field reaches for the metal under the aim within `MAG.range` (18 m): the one the
+aim lands on, else the nearest the line (`pickMetal`, `cone` 0.08 rad), seen from the traveller's eyes or
+the camera. A teal reticle on loose metal, a red diamond on fixed metal. Metal is:
+- **loose**: a `Prop` with `metal` (the metal crates) and the makers' machines among the foes;
+- **fixed**: anything tagged where it is built, `tagMetal(mesh)` (its middle) or `tagMetal(mesh, { points,
+  radius })` (spots of its own, local to the mesh: a merged mesh of many pumps), or listed in
+  `level.metal`; `metalSpots(scene, level)` finds them once. Tagged so far: the Gadget Yard's iron blocks
+  (`kit.ironBlock`), and in the Sealed Hangar the brass pumps on the plateau's pipes, the signal board's
+  iron face and the brass plate high on the great machine's column.
+
+Held past `tap` 0.2 s on loose metal, it is lifted and held out along the aim (`holdPoint`: `dist` from the
+glove, never under the ground below it, its own collider set aside) and follows it (`followVelocity`:
+`follow` 9 /s, at most `maxSpeed` 18 m/s). The camera moves it (up lifts it); the left stick (W / S) brings it
+in or sends it out (`reachAfter`, `min` 2.4 to `max` 14 m) while the traveller stands. A machine held is
+lifted off its feet (`foe.alt`, drawn by src/foes.js) and stunned; swung fast (over `swing` 6 m/s) into
+another foe, what is held knocks it down (the blade's cut). Let go: it drops; a machine dropped from over
+`drop` 2.5 m is hurt by its fall. Caught behind a wall, or out of reach, it is let go. A **tap** throws
+loose metal away (`shove` 13 m/s, up a little) and knocks a machine back, stunned. On **fixed** metal, a tap
+or a hold pulls the traveller to it, as the hook's reel (`reelTarget`, `reelVelocity` at `pull` 18 m/s):
+at a wall he hauls over the top or takes hold of it; jump lets go. The field is drawn by `FieldLines`:
+five wavy strokes bowing round the line between glove and metal (ink, red, slate), in dashes that flow
+toward the glove while it pulls (one instanced mesh of thin bars, a pen line wide at any distance); the
+glove itself, horseshoe up, shows in the hand while it works. Its hum pulses while it holds.
+
+The yard's magnet bay (grey banner) is a puzzle: a floor plate in a pit walled round (`plate({ things:
+true, mass: 3 })`: you cannot press it, only metal can) opens the gate of an alcove with a pot of ink; the
+metal crate that presses it is up on a sheer tower: lift it down, over the pit's wall and onto the plate.
+Across 11 m from a ledge an iron block stands on a pillar: pull yourself over. The middle's plate and gate
+take a metal crate too. Tests (`tests/magnet.test.js`): the hold point, following, the stick, the aim's
+pick, tagging, a crate lifted, held level without climbing its own top, sent out and dropped, a tap
+throwing a crate and a machine, a machine lifted, dropped and hurt, the pull across a gap, the field's
+strokes, the bay (the plate only metal presses).
+
 ## The Gadget Yard (`src/levels/gadget-yard.js`)
 
 A round yard of packed sand inside a low wall (`YARD.radius` 50 m), the ship on an apron outside its south
@@ -183,3 +250,7 @@ two towers across a 12 m gap with a ring and two crates up on the far one, a rin
 ledge under an overhang; the bombs' (dark blue) a cracked wall closing an alcove with a lamp inside, a
 cracked boulder, a stack of crates and two metal ones, and a pen of three ink blots (kept at three by the
 runtime, new ones only while you are away); the recall hourglass's (teal) a high ledge with a crate at its lip; the ink pen's (night blue) towers across a gap and a ramp's rise. `level.gadgets: 'all'` grants every gadget on arrival.
+
+runtime, new ones only while you are away); the boomerang's (brass) three targets in an arc, a row of
+lanterns along a wall, two crates hung on ropes from a beam and two pots of ink up on a block; the magnet's
+(grey) its puzzle (above). `level.gadgets: 'all'` grants every gadget on arrival.

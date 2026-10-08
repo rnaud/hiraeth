@@ -786,7 +786,7 @@ export class Foes {
       M.arms[0].rotation.x = arm; M.arms[1].rotation.x = arm * 0.85;
       M.body.rotation.y = wind * 0.3 + (strike ? 0.3 * (1 - release) : 0);
       g.rotation.x = -wind * 0.15 + (strike ? release * 0.3 : recovery * 0.3);
-      g.position.y -= wind * 0.1;
+      g.position.y += f.alt - wind * 0.1;   // (alt: held up off its feet by the magnet glove, src/gadgets/magnet.js)
       M.eyeMat.uniforms.uColor.value.set(f.state === 'wind' ? '#f0a04b' : f.stunned > 0 ? '#bfe9ff' : '#70e7df');
       M.heart.rotation.z = Math.sin(performance.now() / 300) * (f.state === 'chase' ? 0.2 : 0.05);
       g.scale.setScalar(1);
