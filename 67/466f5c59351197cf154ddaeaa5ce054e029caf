@@ -1,0 +1,57 @@
+changelog.md
+  s_efb1d100d5a6fc::t_915ba0f6986b4e 5-15
+docs/systems/references.md
+  s_efb1d100d5a6fc::t_b573e205dd2ef7 177-198,321-328,439-444,532-541,998-1029
+src/biome.js
+  s_88886f12bf338d::t_1ae1b241745df9 21-22
+src/changelog-media.js
+  s_efb1d100d5a6fc::t_d3663a38166265 120-134
+src/changelog.js
+  s_efb1d100d5a6fc::t_7478064a0cc68b 12-21
+src/desert-sites.js
+  s_88886f12bf338d::t_9dc537d583290a 77-82
+src/levels/buried.js
+  s_88886f12bf338d::t_20226c9d220c24 37-41,198,226,1165
+src/levels/desert.js
+  s_88886f12bf338d::t_6c95c5c66d3af4 26-28,123
+src/levels/garage.js
+  s_88886f12bf338d::t_73ba3b66debfac 25-27,106-107,126,175,263,266,313,331,349,363,380,434,496,500,506-507
+src/levels/glass-dunes-kit.js
+  s_88886f12bf338d::t_57ddd28144f42e 33-34,36-37
+src/levels/glass-dunes.js
+  s_88886f12bf338d::t_ed476b860d809f 35,37,44-46
+src/levels/incal.js
+  s_88886f12bf338d::t_8c6c8110ca78a0 28-33,1142,1145
+src/levels/overnight-train-kit.js
+  s_88886f12bf338d::t_4dbfcfa6472e8b 61,72-74
+src/levels/perdide.js
+  s_88886f12bf338d::t_084ecfa8a1fe97 26-29,215,499-501,506
+src/levels/perdide2.js
+  s_88886f12bf338d::t_eabdf7f01ef4d2 204,383,406
+tests/colour-pass.test.js
+  s_88886f12bf338d::t_671746ba93e7c6 1-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "67466f5c59351197cf154ddaeaa5ce054e029caf",
+  "prompts": {},
+  "sessions": {
+    "s_88886f12bf338d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11909-5544-7d52-9144-71c79c4a433c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
