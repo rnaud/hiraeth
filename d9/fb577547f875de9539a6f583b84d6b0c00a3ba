@@ -1,0 +1,123 @@
+docs/README.md
+  s_364474254304ac::t_41b83e4572933b 54
+docs/systems/localisation.md
+  s_364474254304ac::t_9e059e9d28912e 63-64
+docs/systems/ui.md
+  s_364474254304ac::t_e7e36d5147d641 91-93
+src/aliens/alien.js
+  s_364474254304ac::t_098cdb7daeaf18 5,288-289
+src/boxes/card.js
+  s_364474254304ac::t_bcd961a86cb674 7-8,68
+src/boxes/effects.js
+  s_364474254304ac::t_cb09f8aa9b5051 98-99
+src/crowd.js
+  s_364474254304ac::t_355f58b41b04df 10,1091-1092
+src/echo-shell.js
+  s_364474254304ac::t_f3e78d85cfd15d 35
+src/foes.js
+  s_364474254304ac::t_85dbf649c61e74 1554
+src/gadgets/bridge.js
+  s_364474254304ac::t_58e92f8f8bf0a9 334
+src/gadgets/bubble.js
+  s_364474254304ac::t_b6e54d5a49da6d 310
+src/game-menu.js
+  s_364474254304ac::t_7e2705d6504c1d 23,180,373
+src/hud.js
+  s_364474254304ac::t_451ad78c45de7e 11,115
+src/items-page/main.js
+  s_364474254304ac::t_ff8b4ed1f4ddeb 12,67
+src/items-page/view.js
+  s_364474254304ac::t_edd31cefe3984e 3-4,26
+src/items.js
+  s_364474254304ac::t_d3e642c641e731 1,30,35,45,50,55,81,126,193,227,241
+src/npc.js
+  s_364474254304ac::t_afb278d2a60761 13,765-766
+src/story/arzach-data.js
+  s_364474254304ac::t_93dd4ea482d911 51,69,206
+src/story/arzach2-data.js
+  s_364474254304ac::t_0afffd444038f3 62,175,287,298
+src/story/arzach2.js
+  s_364474254304ac::t_85eeb363760b36 285
+src/story/bazaar-data.js
+  s_364474254304ac::t_15af1a777c5f39 217,347,374
+src/story/bazaar.js
+  s_364474254304ac::t_a19d9663e44399 160
+src/story/buried-data.js
+  s_364474254304ac::t_43205d95141fe2 50,366,369,391-392
+src/story/buried.js
+  s_364474254304ac::t_7caa9f4149baed 183
+src/story/desert-bike.js
+  s_364474254304ac::t_d277a9aed12bce 160
+src/story/desert-data.js
+  s_364474254304ac::t_6c2e46f755b56a 147,733,747,831
+src/story/desert-errands.js
+  s_364474254304ac::t_9a9bb17ecadb3c 137
+src/story/desert-spark.js
+  s_364474254304ac::t_e9faeda5229529 57
+src/story/desert.js
+  s_364474254304ac::t_6b1c5008a3468b 361
+src/story/edena-data.js
+  s_364474254304ac::t_17a3ce46eb6aa0 70,73,83,92
+src/story/garage-data.js
+  s_364474254304ac::t_50f0687d714307 55
+src/story/incal-data.js
+  s_364474254304ac::t_d5faa879f24aee 57,67,348,356,596,611,615,633
+src/story/perdide-data.js
+  s_364474254304ac::t_12abd9d7180464 177
+src/story/perdide2-data.js
+  s_364474254304ac::t_f31d4b8ca36181 68,76,356
+src/story/scripts.js
+  s_364474254304ac::t_39fd6d5ec32b08 829
+src/temples/hints.js
+  s_364474254304ac::t_65d9aa73a5ec46 63,105
+src/temples/incal.js
+  s_364474254304ac::t_f69da79f09cd3e 107
+src/trials/index.js
+  s_364474254304ac::t_34326d7ba9bccb 14,197
+tests/foes.test.js
+  s_364474254304ac::t_275dbcf15d69e0 3,102
+tests/hoverbike-quest.test.js
+  s_364474254304ac::t_f9977210b27095 3,134
+tests/native-pad.test.js
+  s_364474254304ac::t_eedfb83c2ca4dc 3,164
+tests/temples.test.js
+  s_364474254304ac::t_cc75c24ee9ee43 7,524,1529
+index.html
+  s_364474254304ac::t_bd5e8a2b14047a 299-300
+src/ship/cinema.js
+  s_7c0346ae5a0cbc::t_9957d5edb61ab5 15,64-65,266,277,318,357-358,375
+src/story/dialogue.js
+  s_7c0346ae5a0cbc::t_541865632456a0 10,39-40,48-49,55-56,267,530-532
+src/story/voice.js
+  s_7c0346ae5a0cbc::t_5391d4e9612651 208-209
+docs/systems/dialogue.md
+  s_364474254304ac::t_abad31ba877ace 105-129
+src/prompt-keys.js
+  s_364474254304ac::t_f1bb1de59c3f9b 11,50,61-72,74-77,82-119
+tests/key-placeholder.test.js
+  s_364474254304ac::t_c79da29e3fd928 1-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d9fb577547f875de9539a6f583b84d6b0c00a3ba",
+  "prompts": {},
+  "sessions": {
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_7c0346ae5a0cbc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a378a2273d35e8b46",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
