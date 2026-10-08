@@ -20,7 +20,7 @@
 // What fills the panels comes from `sources` (src/game-menu-data.js, wired in main.js). The cursor and
 // the panels are plain state (MenuState, moveCursor) so tests can drive them without a page.
 
-import { escapeHtml, keyBadge, inputKind } from './prompt-keys.js';
+import { escapeHtml, keyBadge, inputKind, keyText } from './prompt-keys.js';
 import { confirmKey, backKey } from './native-pad.js';
 import { t, onLanguage } from './i18n.js';
 
@@ -177,7 +177,7 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
     return `<button class="qcard ${cls}" ${at(x.kind, x.id)} data-quest="${esc(x.id)}">
       <span class="qhead"><i class="mark">${mark}</i><b>${esc(x.name)}</b>${q.tracked ? `<em class="tag">${t('gm.trackedTag')}</em>` : ''}</span>
       <span class="goal">${esc(q.goal)}</span>
-      <span class="next"><small>${t('gm.next')}</small>${esc(q.step)}</span></button>`;
+      <span class="next"><small>${t('gm.next')}</small>${keyText(esc(q.step), { html: true })}</span></button>`;
   };
   const more = (list) => (list.length > ENDED ? `<li class="more">${t('gm.more', { n: list.length - ENDED })}</li>` : '');
   const endedHtml = ended.length
@@ -370,7 +370,7 @@ export class GameMenu {
       const to = this.state.neighbours()[at.edge > 0 ? 'next' : 'prev'];
       name.textContent = to.name; sub.textContent = ''; desc.textContent = t('gm.toPanel', { name: to.name });
     } else {
-      name.textContent = cell?.name ?? ''; sub.textContent = cell?.sub ?? ''; desc.textContent = cell?.desc ?? '';
+      name.textContent = cell?.name ?? ''; sub.textContent = cell?.sub ?? ''; desc.textContent = keyText(cell?.desc ?? '');   // (a {key:verb}: the player's own key or button; the menu is .pad-raw, so it isn't renamed twice)
     }
     this.el.querySelector('.gm-keys').innerHTML = menuPrompts(at.edge ? ACT.turn : cell?.act ? ACT[cell.act] : null);
     // Items: the picked one, large

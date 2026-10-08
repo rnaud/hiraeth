@@ -102,6 +102,31 @@ its English fading in under its glyphs over `FADE` more; 5 and 5, docs/systems/c
   the stars; usually one or two per page that gives a direction, none in flavour or lore.
   `tests/highlight.test.js` checks that every star in the story data pairs up.
 
+## Keys in lines (October 2026)
+- **A line never names a button.** It writes the verb as a placeholder, `{key:aim}`, and
+  the player reads the input in their hands: "aim with R or the right mouse button" on a
+  keyboard, "LT / L2" on a controller (a Retroid's own "L2", a Nintendo-style pad's
+  letters), "◎" on a touch screen, always the key or button the player bound it to
+  (`src/remap.js`). The gun's push is `{key:mode}`: the D-pad on a pad, never X.
+- **Verbs** (`verbKey` in `src/prompt-keys.js`): `move`, `look`, `jump`, `interact`, `aim`,
+  `fire`, `mode`, `blade`, `guard`, `evade`, `lock`, `call` (whistle the mount or a taxi),
+  `gadget`, `whistle` (the bell-note), `thrust` (the jets), `run`, `scout`. An unknown verb
+  shows as its own word.
+- **Where it works**: everything that goes through `formatText` (the panel, its choices,
+  things you look at, balloons), the toasts, hints and objective card (`src/ship/cinema.js`),
+  the cue and the scout's find (`badgeLine`, `keysHtml`), the game menu's quest steps and item
+  cards, the box card, the trials' rewards and the items page. As HTML it is a
+  `<kbd class="kp pad-raw">`: the name is already the bound one, so native-pad.js does not
+  rename it again, only into a handheld's names. `{glyph}` and the other motifs are apart.
+- **Re-drawn when the input changes hands**: the conversation panel and the balloons keep a
+  `keySig()` (the input kind and the bindings) and draw a line holding a placeholder again
+  when it changes (a pad picked up mid-conversation). A toast is resolved as it shows.
+- **The voice skips it** (`spokenMask` in `src/story/voice.js`), the speaker's script leaves
+  it out (`lineChunks`), the reveal never shows half of one, and the i18n tables keep it
+  (`t()` fills only `{word}` names). Keep it outside the `*stars*`.
+- `tests/key-placeholder.test.js` checks the resolution, and that no line in the story data,
+  no item card and no toast names a button in prose.
+
 ## The conversation camera keeps a clear view
 
 `src/story/shot.js` picks where the camera stands while you talk to someone or look at

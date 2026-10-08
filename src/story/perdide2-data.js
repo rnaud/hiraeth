@@ -65,7 +65,7 @@ export const QUESTS = [
     stages: [
       { id: 'find', text: 'Find Pim’s latch: “on the big roof”, the glass dome further down the path', label: 'Pim’s latch', bring: 'latch', at: 'latch', to: 'pim' },
       { id: 'return', text: 'Bring the latch back to Pim by the moss domes', label: 'Pim, by the moss domes', bring: 'latch', to: 'pim' },
-      { id: 'shut', text: 'Shoot the lamp above Pim’s door to shrink the moss, then push the door shut (the gun’s push mode: X or the D-pad, then shoot)', label: 'Pim’s door', flag: 'perdide2.pim.door', at: 'pimDoor' },
+      { id: 'shut', text: 'Shoot the lamp above Pim’s door to shrink the moss, then push the door shut (switch the gun to push with {key:mode}, then aim and shoot)', label: 'Pim’s door', flag: 'perdide2.pim.door', at: 'pimDoor' },
     ],
   },
   {
@@ -73,7 +73,7 @@ export const QUESTS = [
     outro: 'The skiff is Fen’s, and Fen says it is yours now, for as long as you need it.',
     stages: [
       { id: 'owner', text: 'Find the skiff’s owner: Bram thinks it’s the hermit in the far dome, out on the deep water', label: 'The far dome', talk: 'fen', at: 'fen' },
-      { id: 'home', text: 'Light Fen’s bow-post lamp. Step off the skiff onto his landing, then push it into the berth (the gun’s push mode: X or the D-pad, then shoot)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
+      { id: 'home', text: 'Light Fen’s bow-post lamp. Step off the skiff onto his landing, then push it into the berth (switch the gun to push with {key:mode}, then aim and shoot)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
     ],
   },
 ];
@@ -353,7 +353,7 @@ export const THINGS = {
   pool: {
     id: 'darkPool', name: 'A dark pool', title: 'gone out', color: '#3a4560', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~sad~ Cold water, grey eggs. A Welcome mark is painted beside the unlit pool: {glyph}", "~neutral~ *Shoot the pool with glowing fluid* to relight it: aim (LT / L2, or right mouse), then shoot (RT / R2, or left click)."],
+      say: ["~sad~ Cold water, grey eggs. A Welcome mark is painted beside the unlit pool: {glyph}", "~neutral~ *Shoot the pool with glowing fluid* to relight it: aim with {key:aim}, fire with {key:fire}."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

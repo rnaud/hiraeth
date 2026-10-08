@@ -1,3 +1,4 @@
+import { keyText } from './prompt-keys.js';
 import { game } from './game-state.js';
 
 // The traveller's items: what they have found (in boxes, through quests) and
@@ -26,12 +27,12 @@ export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
     text: "A makers’ glass tank with a hose to a leather glove: the glove is what shoots. Fill it with living water. Someone built it for a traveller they would never meet.",
-    use: 'Aim (LT / L2, right click) and shoot bursts of fluid; switch the gun’s mode (X, the D-pad) to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: RB / R1 (a left click, F) swings it, LB / L1 (Ctrl) held guards, B / ○ (Alt) evades. Three charges; they refill two seconds after the last use. It also powers vehicles.'
+    use: 'Aim with {key:aim} and shoot bursts of fluid with {key:fire}; switch the gun’s mode with {key:mode} to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: {key:blade} swings it, {key:guard} held guards, {key:evade} evades. Three charges; they refill two seconds after the last use. It also powers vehicles.'
   },
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',
     text: "Ancient nozzles that turn the tank’s fluid into thrust. Worn smooth, still reliable. The makers expected a long journey.",
-    use: 'They fly like a plane. RT / R2 (SPACE held in the air) is the thrust, the harder the faster: from the ground it lifts you straight up. The left stick (W / S, A / D) flies the nose: forward dives, back climbs, left and right bank and turn. Let go to glide on; aim (LT / L2) in flight and they hold you while you shoot. They burn the backpack’s fluid; land to let it recover.',
+    use: 'They fly like a plane. {key:thrust} is the thrust, the harder the faster: from the ground it lifts you straight up. {key:move} flies the nose: forward dives, back climbs, left and right bank and turn. Let go to glide on; aim with {key:aim} in flight and they hold you while you shoot. They burn the backpack’s fluid; land to let it recover.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
@@ -41,17 +42,17 @@ export const ITEMS = {
   stun: {
     name: 'Stilling mode', kind: 'mode', needs: 'backpack',
     text: "A glyph-cut lens that chills the fluid. A small pause for things moving much too quickly.",
-    use: 'Switch modes with X (on a controller, the D-pad left or right). A stilling burst freezes creatures and people for a few seconds.',
+    use: 'Switch modes with {key:mode}. A stilling burst freezes creatures and people for a few seconds.',
   },
   fire: {
     name: 'Ember mode', kind: 'mode', needs: 'backpack',
     text: "A flint ring that turns fluid into ember bursts. Useful fire, small enough to wear on the glove.",
-    use: 'Switch modes with X (on a controller, the D-pad left or right). Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
+    use: 'Switch modes with {key:mode}. Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
   bloom: {
     name: 'Bloom mode', kind: 'mode', needs: 'backpack',
     text: "A green glass seed for the glove, with a tiny root curled inside. The makers grew their doorways as well as their gardens.",
-    use: 'Switch modes with X (on a controller, the D-pad left or right). A bloom burst tells the makers’ plants to grow: seeds sprout, budded doorways open, vines climb glass and bridge a gap. Anywhere else, a few flowers come up where it lands.',
+    use: 'Switch modes with {key:mode}. A bloom burst tells the makers’ plants to grow: seeds sprout, budded doorways open, vines climb glass and bridge a gap. Anywhere else, a few flowers come up where it lands.',
   },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
   cell: {
@@ -77,7 +78,7 @@ export const ITEMS = {
   bell: {
     name: 'Bell-note whistle', kind: 'charm',
     text: "A blue clay whistle shaped like a bell. It plays one clear note. Nearby makers’ chests know the reply.",
-    use: 'Press V to sound it (on a controller, Y / △ with no gadget in hand). Unopened boxes nearby answer with a chime from where they hide.',
+    use: 'Sound it with {key:whistle}. Unopened boxes nearby answer with a chime from where they hide.',
   },
   soles: {
     name: 'Soft-fall soles', kind: 'charm',
@@ -122,7 +123,7 @@ export const ITEMS = {
   echo: {
     name: 'Echo shell', kind: 'charm',
     text: "A pale brass shell that holds the last note it hears from the makers’ devices. Unlike most souvenirs, it can repeat itself.",
-    use: 'It catches the last note sung near you (a singing stone, a machine’s one word) and holds it. Press V (on a controller, Y / △ with no gadget in hand) to play it back: whatever listens for that note answers.',
+    use: 'It catches the last note sung near you (a singing stone, a machine’s one word) and holds it. Play it back with {key:whistle}: whatever listens for that note answers.',
   },
   level: {
     name: 'Brass level', kind: 'charm',
@@ -189,7 +190,7 @@ export const ITEMS = {
   cabpass: {
     name: 'Cab pass', kind: 'pass', quest: true,
     text: "A stiff card stamped with the palace seal, a name punched into it more or less like yours. Lio, the City-Shaft’s dispatcher, wrote it.",
-    use: 'Cabs stop for you now: whistle when one passes (D-pad ↓, or E with nothing near), or get in one that waits, and tell it where to go. It drives itself.',
+    use: 'Cabs stop for you now: whistle when one passes with {key:call}, or get in one that waits, and tell it where to go. It drives itself.',
   },
   star: {
     name: 'Pale star', kind: 'cosmetic',
@@ -223,6 +224,7 @@ export const items = {
   on(fn) { listeners.add(fn); return () => listeners.delete(fn); },
 };
 
+const keys = (t) => keyText(esc(t), { html: true });   // (a {key:verb}: the player's own key or button)
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const KIND_ORDER = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
 
@@ -236,7 +238,7 @@ const KIND_ORDER = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'p
  */
 export function gearHtml(owned = [], { mode = null, carried = [] } = {}) {
   const list = owned.filter((id) => ITEMS[id]).sort((a, b) => KIND_ORDER.indexOf(ITEMS[a].kind) - KIND_ORDER.indexOf(ITEMS[b].kind));
-  const rows = list.map((id) => `<li><b>${esc(ITEMS[id].name)}</b> · ${esc(ITEMS[id].use)}</li>`).join('');
+  const rows = list.map((id) => `<li><b>${esc(ITEMS[id].name)}</b> · ${keys(ITEMS[id].use)}</li>`).join('');
   const body = rows ? `<ul>${rows}</ul>${mode ? `<p class="qhint">gun mode: ${esc(mode)}</p>` : ''}` : '<p class="qhint">Nothing yet.</p>';
   const pack = carried.length ? `<h4 class="qgroup">In your pack</h4><ul class="pack">${carried.map((n) => `<li><b>${esc(n.replace(/^./, (c) => c.toUpperCase()))}</b></li>`).join('')}</ul>` : '';
   return `<section class="quests gear"><h2>Gear <span>${list.length + carried.length}</span></h2>${body}${pack}</section>`;

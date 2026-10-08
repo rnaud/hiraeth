@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { keyText } from '../src/prompt-keys.js';
 import * as THREE from 'three';
 import { installNativePad, padText, padLayout, padFaces, padIndex, confirmKey, backKey, setFaces, watchLabels } from '../src/native-pad.js';
 import { Controller, padRide } from '../src/controller.js';
@@ -160,6 +161,6 @@ test('View / Select opens the game menu on your items: each one, the backpack fi
   assert.match(html, /Gear <span>4 of \d+<\/span>/);
   assert.match(html, /<em>in use<\/em>/);
   assert.equal(rows[0][0].name, 'Magic-fluid backpack');
-  assert.match(rows[0][0].desc, /Aim \(LT \/ L2/, 'what it is and what it does, at the bottom');
+  assert.match(keyText(rows[0][0].desc, { kind: 'pad' }), /Aim with LT \/ L2/, 'what it is and what it does, at the bottom (its {key:aim} as the pad names it)');
   assert.match(itemsPanel(itemsData({ owned: [] })).html, /Nothing to deliver|Nothing of value yet/);
 });

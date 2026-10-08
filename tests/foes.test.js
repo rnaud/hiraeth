@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { keyText } from '../src/prompt-keys.js';
 import * as THREE from 'three';
 import { Foe, Foes, FOES, PACK, PEACEFUL, WILD, inWilds } from '../src/foes.js';
 import { FluidTool } from '../src/fluid-tool.js';
@@ -98,7 +99,7 @@ test('out in the wilds a pack of ink blots comes in (the first time one), out of
   const d = foes.list[0].pos.distanceTo(P.pos);
   assert.ok(d >= PACK.near - 0.01 && d <= PACK.far + 0.01, `it comes in ${d.toFixed(1)} m out`);
   assert.equal(notes.length, 1, 'and the game says what they are, once');
-  assert.match(notes[0], /LB \/ L1/, 'in the pad form native-pad.js rewrites');
+  assert.match(keyText(notes[0], { kind: 'pad' }), /LB \/ L1/, 'with a pad in hand: its guard button (a {key:guard}, src/prompt-keys.js keyText)');
   // a strike at full health leaves at least the floor
   foes.strike(foes.list[0]);
   assert.ok(P.health >= HIT.floor - 1e-9, 'never all of a healthy bar');

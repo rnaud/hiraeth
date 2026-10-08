@@ -60,7 +60,7 @@ export const BOSS_HINTS = {
         'Step out of the beam’s lane, then shoot the glowing vents while they are open. Four hits.'],
       ['Its sides are shut now. Look up: the vent on its crown opens.',
         'Only the crown vent takes a hit now. Get above it with the jets.',
-        'Fly up over its head, then aim (LT / L2): the jets hold you there while you shoot into the crown vent.'],
+        'Fly up over its head, then aim with {key:aim}: the jets hold you there while you shoot into the crown vent.'],
     ],
   },
   // the Elder's roost (organic: calmed by flying with her)
@@ -102,7 +102,7 @@ export const BOSS_HINTS = {
     phases: [
       ['Four vents open after its beam. One faces away from you.',
         'All four in one breath. From the front its body hides the back one.',
-        'Fly over it and aim (LT / L2) as the vents open: the jets hold you up, and from above all four show.'],
+        'Fly over it and aim with {key:aim} as the vents open: the jets hold you up, and from above all four show.'],
       ['Four vents, one breath, and now it slams too.',
         'Get above it before the vents open: the back one is out of reach from the floor.',
         'Rise with the jets as it strikes, then hit all four glowing vents from over its head.'],

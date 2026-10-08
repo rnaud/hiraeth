@@ -331,7 +331,7 @@ class Pen {
   release() {
     if (this.state !== 'draw') return;
     const ok = this.mode === 'wall' ? this.half * 2 >= PEN.min : this.len >= PEN.min;
-    if (!ok) { this.abandon(); this.ctx.notice?.('Hold Y / △ to draw the line out, then let go.', 'pen-short'); return; }
+    if (!ok) { this.abandon(); this.ctx.notice?.('Hold {key:gadget} to draw the line out, then let go.', 'pen-short'); return; }
     if (this.mode === 'bridge' && this.tip.distanceTo(this.points[this.points.length - 1]) > 0.05) this.points.push(this.tip.clone());
     this.set(this.points.map((p) => p.clone()), this.mode);
     this.state = 'idle'; this.points = []; this.dots.count = 0; this.pen.visible = false;

@@ -10,6 +10,7 @@ import { mulberry32 } from './noise.js';
 import { namedLook, costumeWorld, TRIM_IDS, BUILDS, browColour } from './costumes.js';
 import { ageClassOf } from './makehuman/people.js';
 import { formatText } from './story/dialogue.js';
+import { keySig, hasKeys } from './prompt-keys.js';
 import { speakBalloon } from './story/voice.js';
 import { toneOf } from './story/tone.js';
 import { talkFaces, mouthAt } from './talk-face.js';
@@ -761,7 +762,8 @@ export class NPC {
     if (on) {
       const line = this.shout && this.time < this.shout.until ? this.shout.text : this.lines[this.lineIdx];
       // (the same words as the dialogue panel: *highlighted* places and hints, the {glyph})
-      if (this._balloonLine !== line) { this._balloonLine = line; this.balloon.innerHTML = formatText(line); this._lineAt = this.time; this._said = null; }
+      if (this._balloonLine !== line) { this._balloonLine = line; this.balloon.innerHTML = formatText(line); this._lineAt = this.time; this._said = null; this._balloonKeys = keySig(); }
+      else if (hasKeys(line) && this._balloonKeys !== keySig()) { this._balloonKeys = keySig(); this.balloon.innerHTML = formatText(line); }   // ({key:…}: the input changed hands)
       // the mumble: once each time a line comes up (quieter further off, panned to where they stand)
       // (no room yet, someone else has the floor: try again next frame, while the balloon is up)
       if (line !== this._voiced) {

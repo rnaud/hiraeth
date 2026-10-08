@@ -296,6 +296,8 @@
         display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 1.75em; height: 1.75em; padding: 0 0.45em;
         border-radius: 999px; background: #2b211f; color: #fffaf0; font-weight: bold; font-size: 0.95em; line-height: 1; vertical-align: middle;
       }
+      /* a {key:verb} in a line (src/prompt-keys.js keyText): the player's own key or button, in the line's own type, bold */
+      kbd.kp { font: inherit; font-weight: bold; white-space: nowrap; }
       /* the father's charge (src/story/charge.js): its own gold tag on the objective line */
       @media (min-width: 1700px) and (min-height: 900px) {
         #prompt { font-size: calc(15px * var(--ts, 1)); padding: 4px 13px 4px 5px; border-radius: 18px; gap: 8px; }

@@ -307,7 +307,7 @@ class Wand {
     P.gliding = false;
     bubbleSfx.blow(this.ctx.sound); bubbleSfx.plop(this.ctx.sound);
     this.cool = BUBBLE.cool;
-    this.ctx.notice?.('Floating: steer with the stick, press Y / △ again (or jump) to pop it.', 'bubble.self');
+    this.ctx.notice?.('Floating: steer with {key:move}, press {key:gadget} again (or {key:jump}) to pop it.', 'bubble.self');
     return b;
   }
 

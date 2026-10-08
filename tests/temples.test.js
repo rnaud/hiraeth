@@ -4,6 +4,7 @@
 // in the real level geometry, pushing, riding, climbing, lighting, calming.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { keyText } from '../src/prompt-keys.js';
 import './register-gadgets.js';   // (the gadgets as items: the makers' courts' boxes hold them, src/finds/courts.js)
 import * as THREE from 'three';
 import { TempleLogic, solve, memoryStore, flagStore } from '../src/temples/logic.js';
@@ -520,7 +521,7 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   const pings = [], offPing = game.on('scout:ping', (e) => pings.push(e));
   wait(1.5);
   assert.ok(notes.includes(JETS_NEXT), `the jets' next step is said (${notes.at(-1)})`);
-  assert.match(JETS_NEXT, /RT \/ R2/);
+  assert.match(JETS_NEXT, /\{key:thrust\}/);   // (the thrust as the player holds it: src/prompt-keys.js keyText)
   assert.equal(pings.length, 1, 'the drone flies up to show where');
   offPing?.();
   const guide = rt.pieces.find((p) => p.constructor.name === 'JetGuide');
@@ -1525,7 +1526,7 @@ test('the echo shell: it keeps the last note sung within earshot (saved), plays 
   assert.equal(shell.held, null, 'too far to hear');
   game.emit('note', { pos: V(10, 0, 0), note: 'low', label: 'the low stone’s note' });
   assert.equal(shell.held?.note, 'low', 'caught');
-  assert.ok(toasts.some((s) => /V \(or Y \/ △ with no gadget in hand\)/.test(s)), 'it says how to play it back, in pad form too');
+  assert.ok(toasts.some((s) => /Y \/ △ with no gadget in hand plays it back/.test(keyText(s, { kind: 'pad' })) && /V plays it back/.test(keyText(s, { kind: 'keys' }))), 'it says how to play it back, on the keys and the pad');
   assert.equal(game.flag('echo.held').note, 'low', 'kept in the save');
   P.pos.set(5, 0, 5);
   assert.equal(shell.play(), true);

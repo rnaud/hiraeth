@@ -8,7 +8,7 @@
 //     while it is short (main.js, ui.js ToolHud), each lingering a moment (Fader);
 //   - the objective: the scout finds it (Q, R3: src/scout.js) and the cue says its goal over its
 //     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
-import { badgeLine, escapeHtml } from './prompt-keys.js';
+import { badgeLine, escapeHtml, keysHtml } from './prompt-keys.js';
 import { page, screen } from './platform.js';
 import { t, t as tr } from './i18n.js';
 
@@ -112,7 +112,7 @@ export class Cue {
       // (the scout's find: its goal small, over its next step: findSummary)
       const [goal, step] = kind === 'quest' && text.includes('\n') ? text.split('\n') : [null, text];
       this.el.innerHTML = kind === 'place' ? `<span>${escapeHtml(text)}</span>`
-        : goal != null ? `<small class="goal">${escapeHtml(goal)}</small><span class="step">${escapeHtml(step)}</span>` : badgeLine(text);
+        : goal != null ? `<small class="goal">${escapeHtml(goal)}</small><span class="step">${keysHtml(step)}</span>` : badgeLine(text);
       this.el.classList.toggle('place', kind === 'place');
       this.el.classList.toggle('quest', kind === 'quest');
     }

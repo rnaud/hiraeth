@@ -7,6 +7,7 @@ import { KNOCKOVER } from './ragdoll.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { formatText } from './story/dialogue.js';
+import { keySig, hasKeys } from './prompt-keys.js';
 import { speakBalloon } from './story/voice.js';
 import { simplify } from './lod.js';
 import { runSteps } from './load-steps.js';
@@ -1087,7 +1088,8 @@ export class Crowd {
     if (on) {
       _w.set(p.pos.x, p.pos.y + 2.05 * p.scale, p.pos.z).project(camera);
       if (_w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1) {
-        if (this._balloonLine !== p.say) { this._balloonLine = p.say; b.innerHTML = formatText(p.say); }   // *highlights* as in the dialogue panel
+        if (this._balloonLine !== p.say) { this._balloonLine = p.say; b.innerHTML = formatText(p.say); this._balloonKeys = keySig(); }   // *highlights* as in the dialogue panel
+        else if (hasKeys(p.say) && this._balloonKeys !== keySig()) { this._balloonKeys = keySig(); b.innerHTML = formatText(p.say); }   // ({key:…}: the input changed hands)
         // the shout, heard from where they stand (a short mumble; at most a couple at once: audio.js)
         if ((this._voiced !== p || this._voicedLine !== p.say)
           && speakBalloon(p.say, { person: { seed: `crowd:${p.id}`, kind: p.kind, size: p.size }, dist: p._dCam, pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9), max: 6 })) { this._voiced = p; this._voicedLine = p.say; }

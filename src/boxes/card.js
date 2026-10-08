@@ -4,6 +4,8 @@
 // tap dismisses the card) and a small "skip" button for touch. Built on
 // demand, inert in node (no document).
 
+import { keyText } from '../prompt-keys.js';
+
 const CSS = `
 #boxscene { position: fixed; inset: 0; z-index: 8100; pointer-events: none; }
 #boxscene.on { pointer-events: auto; cursor: default; }
@@ -63,7 +65,7 @@ export class BoxCard {
     if (!this.dom) return;
     this.card.querySelector('.name').textContent = def.name;
     this.card.querySelector('.text').innerHTML = esc(def.text);
-    this.card.querySelector('.use').innerHTML = esc(def.use);
+    this.card.querySelector('.use').innerHTML = keyText(esc(def.use), { html: true });   // (a {key:verb}: the player's own key or button)
     this.go.textContent = hint;
     this.el.classList.add('card');
     try { this.go.focus({ preventScroll: true }); } catch { /* old browsers */ }
