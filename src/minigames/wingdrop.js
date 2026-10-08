@@ -10,6 +10,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { arenaLevel } from './kit/world.js';
+import { disposeTree } from './kit/dispose.js';
 import { lendItems } from './kit/gear.js';
 import { crossRing, rng } from './rings.js';
 import { Dots } from '../fluid-tool.js';
@@ -161,7 +162,7 @@ export function dropPlan(i, seed = 1) {
   const s1 = new THREE.Vector3(T0.x, start.y + 12, T0.z);                        // up a thermal
   const s2 = at(0.62, 40).setY(glideY(0.62));                                   // off the line (the second thermal is on the other side)
   const s3 = at(0.9, 0).setY(MESA.top + 11);                                      // the final approach
-  const stars = [s1, s2, s3].map((c) => ({ c, n: toward.clone(), R: 4.6 }));
+  const stars = [s1, s2, s3].map((c) => ({ c, n: toward.clone(), R: 5.2 }));
   return { start, heading: Math.atan2(toward.x, toward.z) + (rand() - 0.5) * 0.5, wind, thermals, stars };
 }
 
@@ -183,6 +184,60 @@ export function botInput(S, plan) {
   else if (h < need - 5) y = -0.15;                           // low: the best glide
   if (h < 1.4) y = -1;                                        // the flare
   return { x, y, openPressed: false };
+}
+
+/**
+ * A pilot that goes for the star gates (the tests', the screenshots': tests/wingdrop-stars.test.js), then
+ * lands as botInput does: for each star in turn it comes in along the star's way through (the gates face
+ * from the start toward the mesa), circles up in a thermal while it is under it, dives off height it has
+ * too much of; a star passed by (or out of reach below) is let go. `got`: the stars taken (a Set of their
+ * indices); `mem`: its own memory ({}).
+ */
+/** The stick across that turns the glider's track over the ground (the wind's drift allowed for) toward (x, z). */
+function steerTo(S, plan, x, z, gain = 2.5) {
+  const dx = x - S.pos.x, dz = z - S.pos.z, l = Math.hypot(dx, dz) || 1, air = Math.max(4, S.air);
+  const want = Math.atan2((dx / l) * air - plan.wind.x, (dz / l) * air - plan.wind.z);
+  return clamp(-wrap(want - S.heading) * gain, -1, 1);
+}
+
+export function starPilot(S, plan, got, mem) {
+  if (!S.open) return { openPressed: true };
+  mem.skip ??= new Set(plan.stars.map((_, j) => j).filter((j) => mem.only != null && j !== mem.only));   // (mem.only: that star alone)
+  const k = plan.stars.findIndex((_, j) => !got.has(j) && !mem.skip.has(j));
+  if (k < 0) return botInput(S, plan);
+  const st = plan.stars[k];
+  const rx = S.pos.x - st.c.x, rz = S.pos.z - st.c.z;
+  const along = rx * st.n.x + rz * st.n.z;                  // (< 0: still before its plane)
+  const dh = S.pos.y - st.c.y;
+  const T = plan.thermals.find((q) => Math.hypot(q.x - st.c.x, q.z - st.c.z) < q.r);   // (a star in a thermal: the high one)
+  const inT = T && Math.hypot(S.pos.x - T.x, S.pos.z - T.z) < T.r - 3;
+  if ((along > 3 && !mem.climb && !mem.out) || (!T && dh < -st.R * 0.8)) { mem.skip.add(k); mem.climb = false; return starPilot(S, plan, got, mem); }
+  // under a star in a thermal: circle up in it until well over the star, then out and back through
+  if (T) {
+    if (inT && dh < (mem.wasOut ? -8 : -1)) mem.climb = true;
+    if (mem.climb && dh > 14) { mem.climb = false; mem.out = mem.wasOut = true; }
+    if (mem.climb) {   // (an orbit 8 m round its middle, flown against the wind's drift)
+      const ox = S.pos.x - T.x, oz = S.pos.z - T.z, r = Math.max(0.5, Math.hypot(ox, oz));
+      mem.dir ??= Math.sign(Math.sin(S.heading) * oz - Math.cos(S.heading) * ox) || 1;   // (round the way it is already turning)
+      const tx = -oz / r * mem.dir, tz = ox / r * mem.dir, pull = clamp((r - 8) / 6, -1, 1);   // (the way round, and in or out)
+      let gx = tx - (ox / r) * pull, gz = tz - (oz / r) * pull;
+      const gl = Math.hypot(gx, gz); gx /= gl; gz /= gl;
+      return { x: steerTo(S, plan, S.pos.x + gx, S.pos.z + gz, 3), y: -0.1 };
+    }
+    if (mem.out && along > -40) return { x: steerTo(S, plan, st.c.x - st.n.x * 50, st.c.z - st.n.z * 50), y: 0 };   // (out before the gate, to come back in along its way)
+    mem.out = false;
+  }
+  // the approach: aim behind the gate on its line, so the last of it is flown along its way through
+  const d = Math.hypot(rx, rz);
+  const lead = Math.min(d * 0.45, 30);
+  const ax = st.c.x - st.n.x * lead, az = st.c.z - st.n.z * lead;
+  const x = steerTo(S, plan, ax, az);
+  const glide = Math.max(1, S.air + plan.wind.x * st.n.x + plan.wind.z * st.n.z) / sinkAt(S.air);   // (m over the ground, the wind with or against, for each m down)
+  const over = dh - Math.max(0, -along) / glide;             // m of height it will have at the gate
+  if (over > 14 && -along > 40) return { x: 1, y: 1 };       // (far too high: a spiral dive off it)
+  if (over > 2.5 && -along > 22) return { x: Math.sin(S.t * 1.6) > 0 ? 1 : -1, y: 1 };   // (a little high: S-turns, diving, to stretch the way down)
+  const y = over > 2 ? clamp(over / 8, 0.2, 1) : over < -1 ? -0.15 : 0;
+  return { x, y };
 }
 
 // ------------------------------------------------------------------ the arena, built
@@ -313,8 +368,26 @@ export function windArrow(wind, heading) {
   return ARROWS[((Math.round(-a / (Math.PI / 4)) % 8) + 8) % 8];
 }
 
+/**
+ * The camera once you have landed (eye, look: changed): up and back on the far side of you from the
+ * target's middle, looking down over you at the bullseye, so where you came down reads at a glance;
+ * landed in the bull (no side to be on), from in front of you. `last`: the round's last drop, the results
+ * card coming up in the middle of the screen: you stand in the left third of the picture instead.
+ */
+export const LANDING_SHOT = { back: 9, up: 6, toward: 0.35, aside: 11 };
+export function landingShot(S, last, eye, look, K = LANDING_SHOT) {
+  let ux = S.pos.x - MESA.x, uz = S.pos.z - MESA.z;
+  const d = Math.hypot(ux, uz);
+  if (d < 3) { ux = Math.sin(S.heading); uz = Math.cos(S.heading); } else { ux /= d; uz /= d; }
+  eye.set(S.pos.x + ux * K.back, S.pos.y + K.up, S.pos.z + uz * K.back);
+  const k = d < 3 ? 0 : K.toward;
+  look.set(S.pos.x + (MESA.x - S.pos.x) * k, S.pos.y + 0.6, S.pos.z + (MESA.z - S.pos.z) * k);
+  if (last) { look.x += uz * K.aside; look.z -= ux * K.aside; }   // (to the right of the view, as seen from the eye: you sit left)
+  return { eye, look };
+}
+
 // ------------------------------------------------------------------ the game
-const _cw = new THREE.Vector3(), _cl = new THREE.Vector3(), _v = new THREE.Vector3(), _UP = new THREE.Vector3(0, 1, 0);
+const _cw = new THREE.Vector3(), _cl = new THREE.Vector3(), _v = new THREE.Vector3(), _mv = new THREE.Vector3(), _UP = new THREE.Vector3(0, 1, 0);
 
 function start(ctx) {
   const { player, camera, level, sfx } = ctx;
@@ -325,8 +398,6 @@ function start(ctx) {
   const mats = {
     swirl: makeMaterial({ color: INK, flat: true, key: 'wd-swirl' }),
     warm: makeMaterial({ color: '#d9643a', flat: true, key: 'wd-warm' }),
-    faint: makeMaterial({ color: '#efe3c8', flat: true, line: 0.25, key: 'wd-faint' }),
-    faintWarm: makeMaterial({ color: '#f0c9a8', flat: true, line: 0.25, key: 'wd-faint-warm' }),
     star: makeMaterial({ color: '#f2c54b', glow: 0.8, key: 'wd-star' }),
     got: makeMaterial({ color: '#71d7cf', glow: 0.6, key: 'wd-star-got' }),
     ink: L.mats.ink,
@@ -340,7 +411,7 @@ function start(ctx) {
 
   function begin(i) {
     drop = i;
-    for (const o of objs) { o.removeFromParent(); const j = level.noShadow.indexOf(o); if (j >= 0) level.noShadow.splice(j, 1); }
+    for (const o of objs) { disposeTree(o); const j = level.noShadow.indexOf(o); if (j >= 0) level.noShadow.splice(j, 1); }
     plan = dropPlan(i, seed);
     objs = [
       ...plan.thermals.map((T, k) => ctx.add(thermalModel(T, mats, seed + k * 13 + i))),
@@ -357,10 +428,10 @@ function start(ctx) {
   function updateCamera(dt, snap = false) {
     const f = _v.set(Math.sin(S.heading), 0, Math.cos(S.heading));
     if (S.landed) {
-      // landed: round to the front, a little above, the target under you
-      const a = S.heading + Math.PI * 0.75 * Math.min(1, (landedAt += dt) / 1.6);
-      _cw.set(S.pos.x - Math.sin(a) * 7, S.pos.y + 3.2, S.pos.z - Math.cos(a) * 7);
-      _cl.copy(S.pos).addScaledVector(_UP, 0.9);
+      // landed: up and back on the far side from the target's middle, looking down over you at the bullseye
+      // (the last drop: you in the left of the picture, clear of the results card)
+      landedAt += dt;
+      landingShot(S, drop + 1 >= DROPS, _cw, _cl);
     } else if (!S.open) {
       // the fall: above and behind, looking down past you at the mesa far below
       _cw.copy(S.pos).addScaledVector(f, -4.5).addScaledVector(_UP, 4.5);
@@ -452,9 +523,10 @@ function start(ctx) {
       for (const o of objs) {
         if (o.userData.spin) {
           o.rotation.y += o.userData.spin * dt;   // (world angle = local − rotation: turning this way the helices climb)
-          // inside a column the near strokes would fill the view: drawn faint (a pale hairline) while the camera is in it
+          // inside a column the near strokes would fill the view (even drawn pale, a stroke a metre off the lens is
+          // a great wedge across it): left out while the camera is in it, the rising motes show the lift instead
           const inside = Math.hypot(camera.position.x - o.position.x, camera.position.z - o.position.z) < o.userData.r + 5;
-          o.children[0].material = inside ? mats.faint : mats.swirl; o.children[1].material = inside ? mats.faintWarm : mats.warm;
+          o.visible = !inside;
         }
         else if (o.userData.mesh) {
           o.userData.mesh.rotation.z += dt * 0.8;
@@ -464,10 +536,13 @@ function start(ctx) {
       L.sockPivot.rotation.y = Math.atan2(-plan.wind.z, plan.wind.x);
       // dust motes rising in the thermals near you, and drifting on the wind
       for (const T of plan.thermals) {
-        if (Math.hypot(T.x - S.pos.x, T.z - S.pos.z) > 160 || Math.random() > 0.5) continue;
-        const a = Math.random() * Math.PI * 2, r = Math.random() * T.r;
-        _v.set(T.x + Math.cos(a) * r, S.pos.y - 30 + Math.random() * 60, T.z + Math.sin(a) * r);
-        motes.add({ pos: _v, vel: new THREE.Vector3(-Math.sin(a) * 3, T.lift, Math.cos(a) * 3), size: 0.05 + Math.random() * 0.05, stretch: 3, life: 1.6, color: Math.random() < 0.6 ? INK : '#d9643a' });
+        if (Math.hypot(T.x - S.pos.x, T.z - S.pos.z) > 160) continue;
+        const inside = Math.hypot(camera.position.x - T.x, camera.position.z - T.z) < T.r + 5;   // (its swirls left out: more motes)
+        for (let m = inside ? 3 : Math.random() < 0.5 ? 1 : 0; m > 0; m--) {
+          const a = Math.random() * Math.PI * 2, r = Math.random() * T.r;
+          _v.set(T.x + Math.cos(a) * r, S.pos.y - (inside ? 12 : 30) + Math.random() * (inside ? 24 : 60), T.z + Math.sin(a) * r);
+          motes.add({ pos: _v, vel: _mv.set(-Math.sin(a) * 3, T.lift, Math.cos(a) * 3), size: 0.05 + Math.random() * 0.05, stretch: 3, life: 1.6, color: Math.random() < 0.6 ? INK : '#d9643a' });
+        }
       }
       motes.update(dt, _UP);
       pose(dt);
@@ -477,7 +552,7 @@ function start(ctx) {
     },
     end() {
       giveBack();
-      motes.mesh.removeFromParent();
+      disposeTree(motes.mesh);
       for (const o of [motes.mesh, ...objs]) { const i = level.noShadow.indexOf(o); if (i >= 0) level.noShadow.splice(i, 1); }
       player.gliding = false; player.glideTurn = 0;
       ctx.speed(0);
@@ -486,15 +561,16 @@ function start(ctx) {
 }
 
 export default {
-  id: 'wingdrop', order: 4,
+  id: 'wingdrop', order: 6,
   name: 'Wing drop',
   blurb: 'Three drops from high over the Painted Mesa: open the fluid wings, ride the thermals, land on the bullseye.',
   rules: 'Land as close to the centre and as gently as you can: up to 600 for aim, 200 for style (flare just before you touch down), 100 a star gate. Thermals lift you; the wind changes every drop. Best total of three drops wins.',
   controls: {
     pad: [['A / ×', 'open the wings'], ['Left stick left / right', 'bank and turn'], ['Left stick forward', 'dive: faster, sinks more'], ['Left stick back', 'flare: slow down, lift (before landing)'], ['Menu', 'pause']],
     keys: [['Space', 'open the wings'], ['A  D', 'bank and turn'], ['W', 'dive: faster, sinks more'], ['S', 'flare: slow down, lift (before landing)'], ['Esc', 'pause']],
-    touch: [['Jump', 'open the wings'], ['Stick', 'turn, dive, flare']],
+    touch: [['⤒', 'open the wings'], ['Stick', 'turn, dive, flare']],
   },
+  touchButtons: ['jump'],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: false, score: true },
   color: '#71d7cf',

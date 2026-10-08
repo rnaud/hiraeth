@@ -12,17 +12,18 @@ rhythm game (`src/minigames/drums.js`), and the **Sketch hunt** in the Signal Ma
 ## Playing one
 
 - **The worlds list** (Debug on the title, L in play) has a **Games** row under the pages
-  (`src/world-picker.js` `gamesRow`): each opens the game's page, `?game=<id>`.
+  (`src/world-picker.js` `gamesRow(games, state)`): each opens the game's page, `?game=<id>`, its best in the
+  save under its name (`gameBest`: a best of each difficulty shows the one chosen last).
 - **In a world**, an arcade sign: `placeGameMarker(world, gameId, pos)` (`src/minigames/kit/marker.js`) stands
-  a glowing post with "play …" on the interact button; it opens `?game=<id>&from=<level>`. The desert has two
-  (`src/levels/desert.js`): Fishing on the shore of the mineral basin (`desert-vistas.js` `BASIN`), the Canyon run
-  under the lavender cliffs by the rope bridge.
-  a glowing post with "play …" on the interact button; it opens `?game=<id>&from=<level>`. The Signal Market has
-  the shooting gallery's on the west pavement a few steps from the start (`bazaar.js` `GALLERY_SIGN`, kept clear
-  of the crowd), the Arena Ink tide's by the way in.
-  a glowing post with "play …" on the interact button; it opens `?game=<id>&from=<level>`. A game names its
-  own: `markers: [{ level, at: [x, y, z], heading }]` (y `null`: on the ground), placed by `main.js` in that
-  world (the drum circle's by the pilgrims' small fire in the Desert, the sketch hunt's on the market's pavement).
+  a glowing post with "play …" on the interact button; it opens `?game=<id>&from=<level>`. The desert has
+  Fishing's on the shore of the mineral basin (`desert-vistas.js` `BASIN`), the Canyon run's under the lavender
+  cliffs by the rope bridge, the Ring race's and the Wing drop's on the shelves at the ends of the hanging
+  bridge (`src/levels/desert.js`); the Signal Market the shooting gallery's on the west pavement a few steps from
+  the start (`bazaar.js` `GALLERY_SIGN`, kept clear of the crowd); the Arena Ink tide's by the way in. A game
+  may name its own: `markers: [{ level, at: [x, y, z], heading }]` (y `null`: on the ground), placed by `main.js`
+  in that world (the drum circle's by the pilgrims' small fire in the Desert, a few steps from the child who
+  sits there, whose "talk" would win the button; the sketch hunt's on the market's pavement). Dune skiing and
+  Sky steps have no sign. Stand at a sign and the button must say "play …" (QA: every sign checked).
 - A game page skips the title (`save-slots.js` `DIRECT_PARAMS` has `game`) and plays in the save slot in use.
   It writes no position to the save (`main.js` `writeSave`), so the save still resumes where you left the world.
 
@@ -40,7 +41,7 @@ frame calls `minigame.update(dt, controls)` instead of `player.update` and the c
 | `count` | 3, 2, 1, GO (`kit/flow.js` `COUNT`): the session runs and draws, without input |
 | `play` | the clock (`ctx.time`, with penalties); Menu / Esc (or the ❚❚ button on a touch screen) pauses: Resume, Retry, Quit. The game's pause freezes the world as the full-screen menus do (`paused()`) |
 | `finishing` | `ctx.finish()` was called: the score is kept, 1.7 s to coast |
-| `results` | the score, its lines, the best, a "New best!" stamp; Retry (R) and Quit |
+| `results` | the score, its lines, the best, a "New best!" stamp (only for beating a best kept before); Retry (R) and Quit |
 
 While a game runs the runner takes the pad's menu buttons (`padAction`) and the keys that would open the
 worlds, photo mode, the scout, the sketchbook or lock-on; the game buttons (A / ×, the triggers, the stick)
@@ -49,7 +50,17 @@ place saved as you left), or to the worlds list.
 
 **Scores** (`kit/scores.js`): `score: { kind: 'time' }` (lower is better, shown `1:23.45`) or
 `{ kind: 'points', unit }`; kept in the save's flags as `minigame.<id>.best` and `minigame.<id>.plays`. A time
-trial not finished keeps nothing; points count even when the lives run out.
+trial not finished keeps nothing; points count even when the lives run out. `recordScore` keeps a best only
+above nothing (`keepable`: a run of 0 points is counted, never kept); `isNew` (the stamp) is a real
+improvement over a best kept before, the first best kept is `first` (no stamp: nothing was beaten).
+
+**Retry** starts a new session (`start` again after the last one's `end()`): what a session made for its run
+(its skis, sprays, trails, fish, a drop's thermals) must leave with it, geometry and all, or every Retry piles
+up GPU buffers. `kit/dispose.js` `disposeTree(...objects)` takes them out and disposes their geometries (the
+materials are the cached `makeMaterial` ones); the runner does it for whatever went through `ctx.add`, a game's
+`end()` for what it put in the scene itself (a `Dots`' mesh, a `Trail`'s). `src/foes.js` `remove` lets a foe's
+shapes go too (each wave of Ink tide left them). QA: `renderer.info.memory.geometries` stays flat over three
+Retries in every game.
 
 ## How to add a game
 
@@ -101,7 +112,15 @@ export default {
   circle's four face buttons, `PadJump` / `PadE` / `PadEvade` / `PadGadget`); `pause(on)` is called when the
   pause card opens and closes (the drum circle stops its song and picks it up again).
 - `update(dt, input)`: `input` is `kit/input.js` `readInput`: `x`, `y`, `jump` / `jumpPressed` / `jumpReleased`,
-  `action` / `actionPressed`, `tuck` (RT / R2, Shift), `brake` (LT / L2, the stick pulled back). It is
+  `action` / `actionPressed`, `tuck` (RT / R2 or Shift: where they mean the same), `trigger` (RT / R2 alone),
+  `boost` (Shift, RB / R1, L3 on a pad, the touch screen's run toggle: the Ring race's boost), `brake` (LT / L2,
+  the stick pulled back).
+- **A touch screen** (`def.touchButtons`, `kit/flow.js` `touchButtons`): the on-screen buttons a game keeps
+  (`'jump'`, `'run'`, `'aim'`, `'fire'`, `'blade'`, `'guard'`, `'evade'`, `'lock'`, `'mode'`, `'use'`, `'ping'`,
+  `'book'`; src/ui.js `TouchControls`), the others hidden while it runs; default jump and run for a game that
+  drives, all of them on foot; `[]` none (the drum circle's sockets are tapped). They are hidden while a card is
+  up, and on a short screen (a phone held sideways, under 560 px) the card is compact, its buttons always in
+  sight. `controls.touch` names them by their glyphs (⤒, run, ◎, ✺, ⚔, ◇, ↶, ◉). It is
   `NO_INPUT` until GO and after the finish. Move the traveller yourself: set `player.pos`, `vel`, `heading`,
   `onGround` and call `player.finishFrame(dt, speed)` for the clips (the platformer), or pose the rig
   (`player.char`) and call `player.humanoid.update()` (the skier).
@@ -212,7 +231,9 @@ second at full throttle (about 11 s), each ring gives back `RACE.topUp` (0.28); 
 `raceStep`: the rings in order; the next one passed or missed (`crossRing`: through its plane within R, or
 within 6 R outside it), or one of the two after it went through (those between are missed: +5 s each).
 `hitAt`: the sand, a needle or a rock with the body's 0.7 m reach is a crash: +3 s, again from the last
-ring passed, flying on its way, the tank at least 0.4 full. The camera chases behind the nose (tipped with it,
+ring passed, flying on its way, the tank at least 0.4 full. The boost (`boost`: Shift, RB / R1, run on a touch
+screen) flies at `RACE.surge` (1.22) of the jets' speed for `RACE.surgeBurn` (2) the burn: 31 m/s to 38, the
+tank in about 5 s instead of 11 (under thrust `jetStep` is linear in the velocity: the surge flies it scaled). The camera chases behind the nose (tipped with it,
 rolled a third of the bank); the arrow hangs at the top of the view (4.2 m ahead of the camera) pointing at
 the next ring. **The ghost**: the run's track every 0.1 s and its ring splits, kept on this device
 (`localStorage` `moebius.minigame.rings.ghost`, `packGhost`: ~8 KB) when it beats the ghost or the best; the
@@ -233,6 +254,13 @@ the thermals' lift (`thermalLift`: strongest in the middle, nothing past the edg
 carrying you. The flare: the stick back within 4 m of the ground (fading out by 10 m) holds the sink off while
 the speed lasts, so pulled in the last metre or two you touch down at ~1.5 m/s; too early and you are slow
 and sinking again by the time you land. Flown into the mesa's side under its rim, the wings fold and you fall.
+Landed, the camera is `landingShot` (`LANDING_SHOT`): up and back on the far side of you from the target's
+middle, looking down over you at the bullseye; on the last drop the look is moved aside so you stand in the
+left third, clear of the results card. While the camera is inside a thermal its swirls are left out (a stroke a
+metre off the lens is a wedge across the view) and more motes rise round you instead. The star gates are
+R 5.2 m; `starPilot` (a pilot for one or every star: climbs in the thermal under the high one, swings out and
+comes back through along the gate's way, S-turns off height) shows each star of each drop can be flown through
+(`tests/wingdrop-stars.test.js`), and threads the high star in the page through the virtual pad.
 `scoreLanding`: aim `500 × (1 − d / 24)^1.2` on the target (+100 in the bull; 25 on the mesa off it), style 200
 for a landing soft (`vy` 1.5 m/s or less) and slow (5 m/s or less across), a tumble (`vy` > 7) no style and half
 the aim, 100 a star. The swirls are dashed ink helices round each column, turned at the lift's rate so they
@@ -246,7 +274,8 @@ round it), built as its own little level; the afternoon sun comes from over the 
 (`lightAt`). The traveller stands behind the counter (`STAND`, held there) with the stall's tank lent: six shots,
 full again a second after the last (`GALLERY.tank`). Painted cutouts (`cutout`: fish and birds with bullseyes,
 ink-blot figures, and the friends: Auntie Lumé under her parasol, a cat) slide along two brass rails or flip up
-behind a low fence; four plates spin on sticks (they shatter and come back), two bells swing from the beam
+behind a low fence; four plates spin on sticks (they shatter and come back), two bells swing from the beam on long cords (`BELLS`: down at ~4.3 m, in the view
+over the rails)
 (`swing`). `GalleryDirector` says what comes out when over the minute (`galleryPlan`: busier toward the end, the
 last 15 s with golds every 4 s and faster rails). Scoring is `scoreHit`: rail 10, fast rail 15, pop-up 25,
 plate 20, bell 30, gold 100, friend −50; the multiplier (`comboMult`) goes up a step every three hits in a row
@@ -268,7 +297,9 @@ are gentle (src/foes.js `GENTLE`). They come up out of the springs farthest from
 perfect parry, 5 a block (`player.guard` heard), 100 a wave untouched; the score is `tideScore` (150 a wave
 cleared + style). Between waves: 35% health back and three boons on plinths that rise ahead of you
 (`boonChoice`, `BOONS`: a longer blade, a deeper tank, quick refill, a heavy hand, second wind, light feet, a keen
-guard; `boonTunings` turns them into BLADE / EVADE / GUARD / FALL / tank values, put back when the game ends):
+guard; `boonTunings` turns them into BLADE / EVADE / GUARD / FALL / tank values, put back when the game ends;
+the longer blade is drawn longer too: `fluid-blade.js` builds the mesh at `BLADE.length` and stretches it each
+frame to `bladeLength(state)`, the tuned length with the reach step on top):
 walk onto one; after 14 s the next wave comes anyway. Knocked out, the run ends (the points kept).
 ## Drum circle (`drums.js`, the rules in `rhythm.js`)
 
@@ -322,8 +353,10 @@ avenue, a skybridge from right under it, the old sign, a cab in flight, a shop s
 - **The score of a sketch** (`frameScore`, 0..1): its size (its radius over half the frame's height, against the
   subject's own `fill`, 0.6 by default, on a log scale), its centre (how far from the middle), and the side it is
   seen from (`from`: a direction and an angle; `'normal'` for each screen's own face) and where you stand (`eye`).
-  Under 0.28 it is not a sketch of it. The readout asks the collision world whether the subject can be seen; the
-  sketch also asks what is drawn (a few rays through the scene: the stalls, the railings, the crowd in the way).
+  Under 0.28 it is not a sketch of it. The readout and the sketch both ask the collision world and the crowd
+  (`framing.js` `crowdInWay`: each body an upright capsule round its feet, sitters short; a dot product a body,
+  so the readout asks it every time it looks) whether the subject can be seen; the sketch also asks what is
+  drawn (a few rays through the scene: the stalls, the railings).
 - A subject can be sketched again to do better. Each counts its best ×100; the whole list done early adds two
   points a second left (`huntScore`). The sketches are the frames (`ctx.capture`) turned to sepia ink on the
   page (`toSketch`), and the results show them as a two-page spread with their stars.

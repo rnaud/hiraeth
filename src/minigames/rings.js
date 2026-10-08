@@ -11,6 +11,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { JET, jetNose, jetSteer, jetStep, jetDroop } from '../player.js';
 import { arenaLevel } from './kit/world.js';
+import { disposeTree } from './kit/dispose.js';
 import { lendItems } from './kit/gear.js';
 import { Dots } from '../fluid-tool.js';
 
@@ -24,6 +25,8 @@ export const RACE = {
   topUp: 0.28,           // of the tank a ring gives back
   respawnFuel: 0.4,      // at least this much after a crash (the race can always be finished)
   boost: true,           // race-tuned: the jets' boosted speed all the way (JET.speed × JET.boost)
+  surge: 1.22,           // the boost button (Shift, RB / R1, L3) held on top: this much faster along the nose…
+  surgeBurn: 2.0,        // …for this many times the burn
   gravity: 32,
   body: 0.7,             // m, the traveller's reach for a crash
 };
@@ -200,7 +203,7 @@ export function newFlyer(pos, heading, { pad = true, along = 0, pitch = 0, fuel 
 
 /**
  * A frame of the race-tuned jets (F changed): inp { x (bank, > 0 right), y (> 0 the nose down),
- * throttle (0..1) }. The jets' own model (src/player.js): the stick flies the nose, the throttle
+ * throttle (0..1), boost (held: K.surge faster, K.surgeBurn the burn; F.surge says it is on) }. The jets' own model (src/player.js): the stick flies the nose, the throttle
  * drives along it, unpowered a glide; the tank burns while you thrust, dry you glide.
  */
 export function flyStep(F, inp, dt, K = RACE) {
@@ -213,12 +216,17 @@ export function flyStep(F, inp, dt, K = RACE) {
     F.pad = false; F.pitch = 0.55;
     F.vel.copy(dirOf(F.heading, _fw)).multiplyScalar(6).addScaledVector(UP, JET.lift);
   }
-  F.burn = T > 0 ? JET.idle + (1 - JET.idle) * T : 0;
+  F.surge = T > 0 && !!inp.boost;
+  F.burn = T > 0 ? (JET.idle + (1 - JET.idle) * T) * (F.surge ? K.surgeBurn : 1) : 0;
   F.fuel = Math.max(0, F.fuel - K.burn * F.burn * dt);
   F.T = T;
   F.heading += jetSteer(F, inp.y ?? 0, inp.x ?? 0, dt);
   const nose = jetNose(dirOf(F.heading, _fw), UP, F.pitch, _nose);
+  // (the surge: the jets ease to K.surge of their speed; under thrust jetStep is linear in the velocity, so it is
+  // flown on the velocity scaled down and the result scaled back up)
+  if (F.surge) F.vel.divideScalar(K.surge);
   F.along = jetStep(F.vel, nose, UP, T, dt, { boost: K.boost, gravity: K.gravity });
+  if (F.surge) { F.vel.multiplyScalar(K.surge); F.along *= K.surge; }
   if (!T) F.pitch = jetDroop(F.pitch, F.vel, UP, dt, F.along);
   F.pos.addScaledVector(F.vel, dt);
 }
@@ -556,9 +564,11 @@ function start(ctx) {
       if (moving) {
         if (live) run.t += dt;
         const p0 = F.pos.clone(), wasPad = F.pad;
-        const ii = run.done ? { x: 0.35, y: clamp1(F.pitch * 2), throttle: 0.6 } : { x: inp.x, y: inp.y, throttle: Math.max(inp.tuck, inp.jump ? 1 : 0) };
+        const ii = run.done ? { x: 0.35, y: clamp1(F.pitch * 2), throttle: 0.6 } : { x: inp.x, y: inp.y, throttle: Math.max(inp.trigger, inp.jump ? 1 : 0), boost: inp.boost };
         flyStep(F, ii, dt);
-        if (wasPad && !F.pad) { run.safe = 0.6; sfx.whoosh(); }   // (lifting off the mesa's top: not a crash into it)
+        if (wasPad && !F.pad) { run.safe = 0.6; sfx.whoosh(); }
+        if (F.surge && !run.surging) { sfx.whoosh(); ctx.kick(0.25); }   // (the boost cut in)
+        run.surging = F.surge;   // (lifting off the mesa's top: not a crash into it)
         run.top = Math.max(run.top, F.vel.length());
         if (!run.done) {
           ringEvents(raceStep(R, rings, p0, F.pos));
@@ -583,7 +593,7 @@ function start(ctx) {
         }
       }
       // the jets' wake: a few ink dashes off the nozzles at speed
-      if (!F.pad && F.T > 0.3 && Math.random() < 0.6) {
+      if (!F.pad && F.T > 0.3 && Math.random() < (F.surge ? 1 : 0.6)) {
         _sp.copy(F.pos).addScaledVector(UP, 1.0).addScaledVector(F.vel, -0.03);
         trail.add({ pos: _sp, vel: _sv.copy(F.vel).multiplyScalar(0.25).add(V((Math.random() - 0.5) * 2, -1, (Math.random() - 0.5) * 2)), size: 0.022 + Math.random() * 0.02, stretch: 4, life: 0.4, color: Math.random() < 0.5 ? INK : '#d9643a' });
       }
@@ -609,7 +619,7 @@ function start(ctx) {
     },
     end() {
       giveBack();
-      trail.mesh.removeFromParent();
+      disposeTree(trail.mesh);
       for (const m of [trail.mesh, arrowMesh]) { const i = level.noShadow.indexOf(m); if (i >= 0) level.noShadow.splice(i, 1); }
       player.jetFlight = null; player.thrusting = false; player.jetPower = 0;
       player.object.visible = true;
@@ -619,14 +629,14 @@ function start(ctx) {
 }
 
 export default {
-  id: 'rings', order: 3,
+  id: 'rings', order: 5,
   name: 'Ring race',
   blurb: 'The jets, race-tuned, through twenty brass hoops strung among the needles of the Needle Field.',
   rules: 'Fly through every ring in order (the arrow points at the next). Each ring tops up the tank; a missed ring costs 5 s, a crash 3 s. Fastest run wins; your best flies with you as a ghost.',
   controls: {
-    pad: [['RT / R2', 'thrust (lift off the mesa)'], ['Left stick', 'forward dives, back climbs; left / right bank and turn'], ['Let go of RT / R2', 'glide: saves fuel'], ['Menu', 'pause']],
-    keys: [['Space or Shift', 'thrust (lift off the mesa)'], ['W  S', 'dive / climb'], ['A  D', 'bank and turn'], ['Esc', 'pause']],
-    touch: [['Jump, held', 'thrust'], ['Stick', 'dive, climb, bank']],
+    pad: [['RT / R2', 'thrust (lift off the mesa)'], ['Left stick', 'forward dives, back climbs; left / right bank and turn'], ['RB / R1, held', 'boost: faster, burns the tank'], ['Let go of RT / R2', 'glide: saves fuel'], ['Menu', 'pause']],
+    keys: [['Space', 'thrust (lift off the mesa)'], ['W  S', 'dive / climb'], ['A  D', 'bank and turn'], ['Shift, held', 'boost: faster, burns the tank'], ['Esc', 'pause']],
+    touch: [['⤒, held', 'thrust'], ['Stick', 'dive, climb, bank'], ['run', 'boost on / off']],
   },
   score: { kind: 'time' },
   hud: { timer: true },

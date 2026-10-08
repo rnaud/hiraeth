@@ -671,7 +671,7 @@ function start(ctx) {
 }
 
 export default {
-  id: 'drums', order: 3,
+  id: 'drums', order: 9,
   name: 'Drum circle',
   blurb: 'A night round the fire with the desert’s villagers: drum the song with them, on the beat, while they dance.',
   rules: 'Play each glyph as it rolls into the ring: on the beat is perfect, near it good. Hits in a row build a combo worth up to four times as much, and the circle dances harder the longer it lasts.',
@@ -680,13 +680,15 @@ export default {
     keys: [['↓  or  S', 'the bottom glyph (the deep dum)'], ['→  or  D', 'the right glyph (tek)'], ['←  or  A', 'the left glyph (ka)'], ['↑  or  W', 'the top glyph (a clap; not on Easy)'], ['Esc', 'pause']],
     touch: [['Tap a socket', 'play its glyph'], ['❚❚', 'pause']],
   },
+  touchButtons: [],   // (the sockets are tapped: none of the usual buttons)
   options: [
     { id: 'level', label: 'Difficulty', choices: [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], default: 'normal' },
     { id: 'offset', label: 'Timing', min: -200, max: 200, step: 10, default: 0, unit: 'ms', hint: 'More if your hits land late, less if early: the results suggest one.' },
   ],
   bestBy: 'level',
-  // (its arcade sign in the desert: by the pilgrims' small fire south of the big one, facing it)
-  markers: [{ level: 'desert', at: [182.6, null, 272.0], heading: Math.atan2(178.3 - 182.6, 275.7 - 272.0) }],
+  // (its arcade sign in the desert: by the pilgrims' small fire south of the big one, facing it, a few steps back
+  // from the child sitting by the fire, whose "talk" would win the button standing at the sign)
+  markers: [{ level: 'desert', at: [185.8, null, 269.2], heading: Math.atan2(178.3 - 185.8, 275.7 - 269.2) }],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: false, score: true },
   color: '#f0a04b',

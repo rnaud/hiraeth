@@ -13,6 +13,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA, MODE_RIBBON } from '../materials.js';
 import { Terrain } from '../world.js';
 import { arenaLevel } from './kit/world.js';
+import { disposeTree } from './kit/dispose.js';
 import { buildBike, bikeSteer } from '../bike.js';
 import { Dots, FLUID_TONES } from '../fluid-tool.js';
 import { Trail } from '../trail.js';
@@ -735,8 +736,7 @@ function start(ctx) {
     },
     end() {
       eng?.stop();
-      for (const tr of trails) tr.mesh.removeFromParent();
-      spray.mesh.removeFromParent();
+      disposeTree(...trails.map((tr) => tr.mesh), spray.mesh);
       level.noShadow = (level.noShadow ?? []).filter((m) => m !== spray.mesh && !trails.some((t) => t.mesh === m));
       ctx.speed(0);
       for (const pm of Cy.pads) { pm.glow = 0; pm.chev.material = Cy.chevM; }
@@ -752,7 +752,7 @@ export default {
   controls: {
     pad: [['Left stick', 'steer'], ['RT / R2', 'throttle'], ['LT / L2', 'brake'], ['A / ×', 'hop (over a drift)'], ['Menu', 'pause']],
     keys: [['A  D', 'steer'], ['W  or  Shift', 'throttle'], ['S', 'brake'], ['Space', 'hop (over a drift)'], ['Esc', 'pause']],
-    touch: [['Stick', 'steer, push up to go, pull back to brake'], ['Jump', 'hop']],
+    touch: [['Stick', 'steer, push up to go, pull back to brake'], ['⤒', 'hop'], ['run', 'full throttle on / off']],
   },
   score: { kind: 'time' },
   hud: { timer: true },

@@ -10,7 +10,7 @@
 // bridge, talking in a circle), its cabs (src/taxi.js), its screens, and the silent tower.
 
 import * as THREE from 'three';
-import { bestTarget, pickList, huntScore, verdict, stars, FRAMING } from './framing.js';
+import { bestTarget, pickList, huntScore, verdict, stars, FRAMING, crowdInWay } from './framing.js';
 import { CROWD_POSES } from '../crowd-shader.js';
 import { BRIDGES } from '../levels/bazaar.js';
 import { inputKind, escapeHtml } from '../prompt-keys.js';
@@ -120,6 +120,11 @@ const CSS = `
 #hunt-list li b { display: block; font-weight: 700; }
 #hunt-list li small { color: #6b5a4e; font-size: 10.5px; }
 #hunt-list li .st { color: #d9643a; letter-spacing: .1em; }
+@media (max-height: 560px) {   /* a phone held sideways: the list small, the hints left off (the names say enough) */
+  #hunt-list { top: 54px; width: 180px; padding: 6px 8px 4px; font-size: 10.5px; }
+  #hunt-list li { margin-bottom: 2px; }
+  #hunt-list li small { display: none; }
+}
 #hunt-list.dim { opacity: .38; }
 #hunt-view { position: fixed; inset: 0; z-index: 78; pointer-events: none; opacity: 0; transition: opacity .15s; }
 #hunt-view.on { opacity: 1; }
@@ -224,12 +229,16 @@ function start(ctx) {
     }
     return Infinity;
   };
+  // (the crowd in the way: the readout and the sketch both ask crowdInWay, so what the readout says is what the
+  // sketch finds; kerb sitters are short)
+  const people = () => (W.crowd?.people ?? []);
+  for (const p of people()) if (p.pose === CROWD_POSES.kerb) p.tall ??= 1.05;
   const seenFrom = (eye, drawn) => (t) => {
-    if (!physics?.rayDistance && !drawn) return true;
     for (const lift of [0, 0.55]) {
       _r.copy(t.c).addScaledVector(_u, t.r * lift);
       _sd.subVectors(_r, eye); const d = _sd.length(); _sd.divideScalar(d);
       const near = d - t.r * (t.own ?? 0.3);   // (own: how much of its radius may be in front of its middle: a group's own people)
+      if (crowdInWay(people(), eye, _sd, near)) continue;
       if (physics?.rayDistance && physics.rayDistance(eye, _sd, d) < near) continue;
       if (drawn && drawnHit(eye, d) < near) continue;
       return true;
@@ -323,7 +332,7 @@ function start(ctx) {
   // (on a touch screen, a button of its own raises and lowers the sketchbook)
   const touchEl = document.createElement('button');
   touchEl.type = 'button'; touchEl.textContent = '✎';
-  touchEl.style.cssText = `position:fixed;right:22px;bottom:150px;z-index:79;width:64px;height:64px;border-radius:50%;border:2px solid ${INK};background:${PAPER};box-shadow:3px 3px 0 ${INK};font:700 26px/1 ui-monospace,Menlo,monospace;color:${INK};pointer-events:auto;`;
+  touchEl.style.cssText = `position:fixed;right:calc(112px + var(--safe-right, 0px));bottom:calc(112px + var(--safe-bottom, 0px));z-index:79;width:64px;height:64px;border-radius:50%;border:2px solid ${INK};background:${PAPER};box-shadow:3px 3px 0 ${INK};font:700 26px/1 ui-monospace,Menlo,monospace;color:${INK};pointer-events:auto;`;
   touchEl.style.display = inputKind() === 'touch' ? '' : 'none';
   document.body.appendChild(touchEl);
   window.addEventListener('wheel', onWheel, { passive: true });
@@ -389,15 +398,16 @@ function start(ctx) {
 }
 
 export default {
-  id: 'sketchhunt', order: 4,
+  id: 'sketchhunt', order: 10,
   name: 'Sketch hunt',
   blurb: 'Three minutes in the Signal Market with your sketchbook, and a list of six things to draw: never the same list twice.',
   rules: 'Find each thing on the list and sketch it. A sketch scores by how well its subject fills the frame and sits in its middle (and is seen from the side the list asks for); sketch it again to do better. The whole list done early is worth the time left.',
   controls: {
     pad: [['Left stick', 'walk'], ['LT / L2 held', 'raise the sketchbook'], ['Right stick', 'look'], ['RT / R2', 'sketch'], ['LB / RB', 'zoom out, in'], ['Menu', 'pause']],
     keys: [['W A S D', 'walk'], ['Right mouse button or R, held', 'raise the sketchbook'], ['Mouse', 'look'], ['Click or G', 'sketch'], ['Wheel or Z / C', 'zoom'], ['Esc', 'pause']],
-    touch: [['Stick', 'walk'], ['Aim', 'raise the sketchbook'], ['Tap', 'sketch']],
+    touch: [['Stick', 'walk'], ['✎', 'raise and lower the sketchbook'], ['Tap', 'sketch'], ['Drag', 'look']],
   },
+  touchButtons: ['jump', 'run'],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true, countdown: HUNT.seconds },
   color: '#e4bd83',

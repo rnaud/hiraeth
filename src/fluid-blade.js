@@ -61,6 +61,14 @@ export const WHIRL = { clip: 'mixamo_gs_high_spin', from: 0.55, to: 1.45, hit: 1
 export const LUNGE = { clip: 'mixamo_gs_slide_attack', from: 0.0, to: 0.9, hit: 0.5, dash: 9, damage: 2, reach: 3.6 };
 /** The reach step: the blade this much longer, its swing this much further. */
 export const REACH_UP = 1.3;
+/**
+ * The blade's length as drawn and as it cuts (m): BLADE.length (a game's tuning may change it: Ink tide's
+ * longer blade, kit/onfoot.js tune), the reach step on top. The mesh is built at BLADE.length once and
+ * stretched to this each frame (bladeScale), so a tuning shows on the blade itself.
+ */
+export const bladeLength = (state, B = BLADE) => B.length * (hasUpgrade('reach', state) ? REACH_UP : 1);
+/** How far the blade's mesh, built `built` m long, is stretched to be bladeLength. */
+export const bladeScale = (state, built, B = BLADE) => bladeLength(state, B) / built;
 /** The guard: the clips (block idle held round and round, the block played as a strike lands), how wide it covers, and the shield. */
 export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, angle: 1.3, rise: 0.12, radius: 0.5, perfect: 0.18, rearm: 0.35 };
 /** Is a strike from `from` in front of someone at `pos` facing `dir` (flat), within GUARD.angle? */
@@ -109,7 +117,7 @@ export class FluidBlade {
     // a sword: a flat, two-edged blade of the tank's fluid (the glob's lava in its tones) tapering to a point,
     // its two edges bright (glowing: the bloom draws its halo), out of a hilt: a brass guard, a wrapped grip in
     // the fist, a brass pommel. The blade grows out of the guard as it lights; the trail's drops follow its tip
-    const L = BLADE.length, W = BLADE.width, tip = W * 2.2;
+    const L = this.builtLength = BLADE.length, W = BLADE.width, tip = W * 2.2;
     const outline = new THREE.Shape().moveTo(-W / 2, 0).lineTo(W / 2, 0).lineTo(W / 2 * 0.86, L - tip).lineTo(0, L).lineTo(-W / 2 * 0.86, L - tip).lineTo(-W / 2, 0);
     const bladeGeo = new THREE.ExtrudeGeometry(outline, { depth: 0.002, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 1, curveSegments: 1 }).translate(0, 0, -0.001);
     const edgeMat = makeMaterial({ color: '#fffbea', flat: true, glow: 1, key: 'fluid-blade-edge' });
@@ -347,7 +355,7 @@ export class FluidBlade {
     if (!hand || !this.move) return null;
     const a = this.tool.muzzle(new THREE.Vector3());
     const along = GRIP.clone().applyQuaternion(hand.getWorldQuaternion(new THREE.Quaternion()));
-    const length = BLADE.length * (hasUpgrade('reach', this.tool.state) ? REACH_UP : 1);
+    const length = bladeLength(this.tool.state);
     a.addScaledVector(along, BLADE.guard + 0.012);
     return { a, b: a.clone().addScaledVector(along, length * Math.max(0.05, this.lit)) };
   }
@@ -380,9 +388,9 @@ export class FluidBlade {
     const ex = _e2.copy(this._edge).addScaledVector(along, -this._edge.dot(along)).normalize(), ez = _e3.crossVectors(ex, along);
     this.group.quaternion.setFromRotationMatrix(_mx.makeBasis(ex, along, ez));
     this.group.scale.setScalar(1);
-    this.bladeGroup.scale.set(1, Math.max(0.05, this.lit) * (hasUpgrade('reach', T.state) ? REACH_UP : 1), 1);   // (the blade grows out of the guard as it lights)
+    this.bladeGroup.scale.set(1, Math.max(0.05, this.lit) * bladeScale(T.state, this.builtLength), 1);   // (the blade grows out of the guard as it lights; its length tuned and upgraded)
     if (this.swinging && dt > 0) {
-      const tip = _b.copy(hand).addScaledVector(along, (BLADE.guard + BLADE.length) * this.lit), tones = T.modeTones;
+      const tip = _b.copy(hand).addScaledVector(along, BLADE.guard + bladeLength(T.state) * this.lit), tones = T.modeTones;
       // a fine trail: small sparks along the edge, gone in a blink (the blade itself carries the look)
       for (let i = 0; i < 4; i++) T.glow.add({ pos: _o.lerpVectors(hand, tip, 0.35 + i * 0.21), vel: _r.set(0, 0, 0), drag: 8, size: 0.012 + i * 0.004, life: 0.09, color: tones[(this.n + i) % tones.length], grow: false });
     }

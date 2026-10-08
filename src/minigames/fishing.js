@@ -14,6 +14,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { arenaLevel } from './kit/world.js';
+import { disposeTree } from './kit/dispose.js';
 import { inputKind, escapeHtml } from '../prompt-keys.js';
 
 // ------------------------------------------------------------------ the fish
@@ -433,7 +434,7 @@ function rodKit(scene) {
       }
     },
     show(on) { for (const o of [...line, float]) o.visible = on; },
-    remove() { for (const o of all) o.removeFromParent(); },
+    remove() { disposeTree(...all); },
   };
 }
 
@@ -720,7 +721,7 @@ function start(ctx) {
         break;
       }
       case 'landed':
-        if (S.t > 2.6) { dom.catch.classList.remove('on'); shownFish?.removeFromParent(); shownFish = null; S.phase = 'ready'; S.t = 0; drawJournal(); if (run.lastFish) finishSession(); }
+        if (S.t > 2.6) { dom.catch.classList.remove('on'); disposeTree(shownFish); shownFish = null; S.phase = 'ready'; S.t = 0; drawJournal(); if (run.lastFish) finishSession(); }
         hint('');
         break;
     }
@@ -831,7 +832,7 @@ function start(ctx) {
     end() {
       kit.remove();
       dom.el.remove();
-      shownFish?.removeFromParent(); S.leaper?.removeFromParent();
+      shownFish?.removeFromParent(); S.leaper?.removeFromParent();   // (ctx.add's: the runner lets them go)
     },
   };
 }
@@ -844,8 +845,9 @@ export default {
   controls: {
     pad: [['A / × (hold, let go)', 'cast: the meter sets how far'], ['Left stick', 'aim; in a fight, pull against the fish'], ['A / ×', 'strike when the float goes under'], ['RT / R2', 'reel in (ease off when the line glows red)'], ['Menu', 'pause']],
     keys: [['Space (hold, let go)', 'cast: the meter sets how far'], ['A  D', 'aim; in a fight, pull against the fish'], ['Space', 'strike when the float goes under'], ['Shift  or  W', 'reel in (ease off when the line glows red)'], ['Esc', 'pause']],
-    touch: [['Jump (hold, let go)', 'cast'], ['Jump', 'strike'], ['Stick up', 'reel in'], ['Stick across', 'pull against the fish']],
+    touch: [['⤒ (hold, let go)', 'cast'], ['⤒', 'strike'], ['Stick up', 'reel in'], ['Stick across', 'pull against the fish']],
   },
+  touchButtons: ['jump'],
   score: { kind: 'points', unit: 'kg', format: (v) => `${v.toFixed(1)} kg` },
   hud: { timer: false, score: true },
   color: '#4fb8b4',

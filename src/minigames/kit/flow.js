@@ -13,6 +13,21 @@ export function controlsFor(def, kind = 'keys') {
   return (kind === 'pad' ? C.pad : kind === 'touch' ? C.touch ?? C.pad : C.keys) ?? C.pad ?? C.keys ?? [];
 }
 
+/**
+ * The touch screen's buttons a game keeps (src/ui.js TouchControls: 'jump', 'run', 'use', 'ping', 'book', 'aim',
+ * 'fire', 'mode', 'blade', 'guard', 'evade', 'lock'), the others hidden while it runs: its own `touchButtons`,
+ * else jump and run for a game that drives (the stick and the jump; run, a toggle, is Shift: a tuck, a boost),
+ * else all of them (played on foot). [] keeps none (the drum circle: its sockets are tapped).
+ */
+export function touchButtons(def) {
+  return def?.touchButtons ?? (def?.drives === false ? null : ['jump', 'run']);
+}
+/** The CSS that hides the others ('' : none hidden). */
+export function touchButtonsCss(keep) {
+  if (!keep) return '';
+  return `body.minigame #touch button${keep.map((k) => `:not(.b-${k})`).join('')} { display: none !important; }`;
+}
+
 /** Where Quit goes: the world the game was entered from (its saved place), else the worlds list. */
 export function quitHref(from) {
   return from ? `?level=${encodeURIComponent(from)}` : '?worlds=1';

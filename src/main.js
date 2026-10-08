@@ -904,7 +904,7 @@ const completed = () => !!journal.data.completed;
 const cont = SaveGame.load();
 // only the worlds you know of (src/story/route.js): the rest open as you go. ?level=<id> and the dev menu go anywhere.
 const pickable = LEVELS;   // the worlds list (L) is a debug tool: every world, open, whatever you've found (play travels by the ship's map)
-fillPicker(picker, { levels: pickable, current: levelId, cont: levelById(cont?.level) ?? null });
+fillPicker(picker, { levels: pickable, current: levelId, cont: levelById(cont?.level) ?? null, state: game });
 function showPicker(on) {
   if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
@@ -1740,7 +1740,7 @@ requestAnimationFrame((t) => {
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
   ship.start({ via: viaShip ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (minigame) return; if (playHomecoming) journal.markSeen(levelId); else story.start(); } });   // the homecoming is its own page
-  if (changelog.fresh) { changelog.markSeen(); setTimeout(() => showToast(`Updated to v${VERSION} · what's new is in the settings`), 4000); }   // after an update: point at what changed, once (not again on the next world; no key: a handheld has none)
+  if (changelog.fresh && !minigameDef) { changelog.markSeen(); setTimeout(() => showToast(`Updated to v${VERSION} · what's new is in the settings`), 4000); }   // after an update: point at what changed, once (not again on the next world; no key: a handheld has none)
 });
 
 // handy for debugging from the console

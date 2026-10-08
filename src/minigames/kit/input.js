@@ -5,12 +5,14 @@
 //   x, y        the left stick or WASD / the arrows, -1..1 (y > 0: forward / up)
 //   jump        A / × or Space, held;  jumpPressed / jumpReleased: this frame
 //   action      B / ○ or E, held;      actionPressed
-//   tuck        RT / R2 (analog, 0..1) or Shift
+//   tuck        RT / R2 (analog, 0..1) or Shift: the games where they mean the same (a tuck, a throttle, the reel)
+//   trigger     RT / R2 alone (analog, 0..1): for a game that gives Shift a job of its own
+//   boost       Shift (the touch screen's run toggle), RB / R1 or L3 on a pad (L3 runs: it sets Shift), held
 //   brake       LT / L2 or the stick pulled back hard (0..1)
 
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 
-export const NO_INPUT = Object.freeze({ x: 0, y: 0, jump: false, jumpPressed: false, jumpReleased: false, action: false, actionPressed: false, tuck: 0, brake: 0 });
+export const NO_INPUT = Object.freeze({ x: 0, y: 0, jump: false, jumpPressed: false, jumpReleased: false, action: false, actionPressed: false, tuck: 0, trigger: 0, boost: false, brake: 0 });
 
 /** The input of this frame, from the merged controls and the last frame's reading (for the presses). */
 export function readInput(c = {}, prev = NO_INPUT) {
@@ -20,10 +22,13 @@ export function readInput(c = {}, prev = NO_INPUT) {
   x = clamp1(x); y = clamp1(y);
   const jump = !!(c.Space || c.PadJump);
   const action = !!(c.KeyE || c.PadE);
-  const tuck = Math.max(c.ShiftLeft || c.ShiftRight ? 1 : 0, +c.PadThrust || 0, c.PadFire ? 1 : 0);
+  const shift = !!(c.ShiftLeft || c.ShiftRight);
+  const trigger = Math.min(1, Math.max(+c.PadThrust || 0, c.PadFire ? 1 : 0));
+  const tuck = Math.max(shift ? 1 : 0, trigger);
+  const boost = shift || !!c.PadBlade;
   const brake = Math.max(c.PadAim ? 1 : 0, y < -0.6 ? (-y - 0.6) / 0.4 : 0);
   return {
-    x, y, jump, action, tuck: Math.min(1, tuck), brake: Math.min(1, brake),
+    x, y, jump, action, tuck: Math.min(1, tuck), trigger, boost, brake: Math.min(1, brake),
     jumpPressed: jump && !prev.jump, jumpReleased: !jump && prev.jump, actionPressed: action && !prev.action,
   };
 }

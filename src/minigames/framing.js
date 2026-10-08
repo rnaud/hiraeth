@@ -100,3 +100,24 @@ export function bestTarget(view, targets, subject, seen = () => true, rays = 4) 
   for (let i = 0; i < Math.min(rays, scored.length); i++) if (seen(scored[i].t)) return scored[i];
   return null;
 }
+
+/**
+ * Is one of the crowd in the way of a sight line? people: [{ pos, scale?, tall? (m, standing ~1.7) }], the line from
+ * `eye` along `dir` (unit) to `near` m (where the subject begins). Each body is an upright capsule of BODY.r
+ * round its feet's vertical. Cheap (a dot product a body, no scene), so the live readout asks it every frame
+ * and agrees with the sketch's verdict, which asks it too before its rays through what is drawn.
+ */
+export const BODY = { r: 0.3, tall: 1.72, from: 0.4 };
+export function crowdInWay(people, eye, dir, near, B = BODY) {
+  for (const p of people ?? []) {
+    if (!p?.pos || p._gone) continue;
+    const s = p.scale ?? 1, tall = (p.tall ?? B.tall) * s, r = B.r * s;
+    // the point of the line nearest the body's middle, along the line
+    const mx = p.pos.x - eye.x, my = p.pos.y + tall / 2 - eye.y, mz = p.pos.z - eye.z;
+    const t = mx * dir.x + my * dir.y + mz * dir.z;
+    if (t < B.from || t > near) continue;
+    const qx = eye.x + dir.x * t - p.pos.x, qz = eye.z + dir.z * t - p.pos.z, qy = eye.y + dir.y * t;
+    if (qx * qx + qz * qz < r * r && qy > p.pos.y - 0.05 && qy < p.pos.y + tall) return true;
+  }
+  return false;
+}

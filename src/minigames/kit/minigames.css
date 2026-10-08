@@ -79,3 +79,21 @@ body.controller #minigame .mg-pause { display: none; }
 #minigame .sheet .opt b { min-width: 5em; text-align: center; }
 #minigame .sheet .opt small { flex-basis: 100%; margin: 0 0 0 7.5em; padding-left: 6px; }
 #minigame .sheet.wide { width: min(760px, 94vw); }
+
+/* a touch screen: the on-screen buttons stay off the cards (a card is up: they would sit over its right side) */
+body.minigame:has(#minigame .mg-card.open) #touch { visibility: hidden; }
+
+/* a short screen (a phone held sideways): the card made compact, its buttons always in sight */
+@media (max-height: 560px) {
+  #minigame .sheet { width: min(640px, 92vw); max-height: 96vh; padding: 10px 18px 8px; font-size: 12px; }
+  #minigame .sheet h1 { font-size: 18px; }
+  #minigame .sheet > p:not(.rules):not(.best):not(.kicker) { display: none; }   /* (the blurb: the rules say it) */
+  #minigame .sheet .rules { padding: 5px 8px; margin-bottom: 6px; }
+  #minigame .sheet dl { grid-template-columns: auto 1fr auto 1fr; gap: 2px 10px; font-size: 11px; margin-bottom: 6px; }
+  #minigame .sheet dt { white-space: normal; }
+  #minigame .sheet .opts { margin-bottom: 6px; gap: 4px; }
+  #minigame .sheet .big { font-size: 30px; margin: 2px 0 6px; }
+  #minigame .sheet .lines { margin-bottom: 6px; }
+  #minigame .sheet .buttons { position: sticky; bottom: -8px; margin: 4px -4px -4px; padding: 6px 4px; background: #f7ecd2; }
+  #minigame .sheet small { margin-top: 4px; }
+}
