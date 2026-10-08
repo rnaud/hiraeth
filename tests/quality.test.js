@@ -57,8 +57,8 @@ test('handheld detection: the Android app, mobile and software GPUs', () => {
 
 test('the settings menu offers every preset', () => {
   const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
-  const sel = ui.match(/<select data-k="quality">(.*?)<\/select>/)[1];
-  const values = [...sel.matchAll(/value="(\w+)"/g)].map((m) => m[1]).sort();
+  const sel = ui.match(/opts\('quality', \[(.*?)\]\)/)[1];   // (each one's words: src/i18n/en.js set.quality.<id>)
+  const values = [...sel.matchAll(/'(\w+)'/g)].map((m) => m[1]).sort();
   assert.deepEqual(values, Object.keys(QUALITY_PRESETS).sort());
 });
 
@@ -184,5 +184,7 @@ test('the Steam Deck has its own preset, between Handheld and Medium, and Auto p
   const { GRASS_QUALITY } = await import('../src/flora-grass.js');
   assert.ok(GRASS_QUALITY.deck, 'the grass has the preset too');
   const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
-  assert.match(ui, /<option value="deck">Steam Deck<\/option>/);
+  assert.match(ui, /opts\('quality', \[[^\]]*'deck'/);
+  const { EN } = await import('../src/i18n/en.js');
+  assert.equal(EN['set.quality.deck'], 'Steam Deck');
 });

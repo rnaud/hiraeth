@@ -28,7 +28,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 
 | File | What |
 |---|---|
-| [controls.md](systems/controls.md) | keyboard, mouse, touch and the tool; the controller layout by position, prompts; the controls of October 2026 |
+| [controls.md](systems/controls.md) | keyboard, mouse, touch and the tool; remapping (your own keys and buttons); the controller layout by position, prompts; the controls of October 2026 |
 | [foes.md](systems/foes.md) | the fluid blade, the ink blots in the wilds, the makers' machines in the temples, the Enemies setting, the Arena |
 | [movement.md](systems/movement.md) | collision, contact (what you stand on and climb is what is drawn; the contact audit), mounts that come to you, footprints, the paraglider, hazards, health and falls, the hoverbike and vehicles, the feel of the jump and stamina |
 | [movement-and-camera.md](systems/movement-and-camera.md) | movement and the camera, the third feedback round: the jets fly like a plane (v0.89), aiming straight up, ragdolls that end on the ground, the jump's shadow |
@@ -57,7 +57,8 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [gadgets.md](systems/gadgets.md) | the gadgets (v0.90): the framework (one file a gadget), the buttons, the grappling hook, ink bombs, the Gadget Yard; how to add one |
 | [boxes.md](systems/boxes.md) | the makers' boxes (the v0.63 redesign): the model, the scene, the placements |
 | [changelog.md](systems/changelog.md) | the interactive changelog: before / after pictures, numbers and how to see each change; the capture tool; why its pictures stay off the devices |
-| [ui.md](systems/ui.md) | playing and settings, the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (items, quests, sketchbook, worlds) |
+| [localisation.md](systems/localisation.md) | the game's words in the player's language (`t()`, English as the source, French): what is covered, adding a language, how to bring the dialogue in |
+| [ui.md](systems/ui.md) | playing and settings (and accessibility: text size, speech background, reduced motion, hold or toggle, not by colour alone), the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (items, quests, sketchbook, worlds) |
 | [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world |
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |

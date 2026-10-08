@@ -12,6 +12,7 @@ import { guardianHint } from './temples/hints.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary } from './hud.js';
 import { screen } from './platform.js';
 import { closeHint, inputKind } from './prompt-keys.js';
+import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
@@ -300,8 +301,8 @@ function updateRestart(dt) {
   restartOpen = want;
   restartEl.classList.toggle('open', want);
   if (want) {
-    restartEl.querySelector('p').textContent = knockedOut === 'fall' ? 'That was too far a fall.' : 'You were knocked out.';
-    restartEl.querySelector('small').textContent = controllerActive ? `${confirmKey()} restart` : isTouch ? 'tap to restart' : 'Enter to restart';
+    restartEl.querySelector('p').textContent = tr(knockedOut === 'fall' ? 'restart.fall' : 'restart.out');
+    restartEl.querySelector('small').textContent = controllerActive ? tr('restart.pad', { key: confirmKey() }) : tr(isTouch ? 'restart.tap' : 'restart.enter');
     if (document.pointerLockElement) document.exitPointerLock?.();
     restartEl.querySelector('button').focus({ preventScroll: true });
   }
@@ -704,7 +705,7 @@ const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gad
 registerHitboxes((out) => foes.hitShapes(out));   // (the foes' shockwaves, slag, holds and volleys: src/foes.js)
 hitboxes.set(query.has('hitboxes') ? query.get('hitboxes') !== '0' : !!settings.hitboxes);
 hitboxes.listen((on) => { if (!query.has('hitboxes')) settings.set('hitboxes', on); devMenu.render(); });
-const toggleHitboxes = () => showToast(hitboxes.toggle() ? 'Hitboxes shown (F4, or L3 + R3).' : 'Hitboxes hidden.');
+const toggleHitboxes = () => showToast(tr(hitboxes.toggle() ? 'toast.hitboxesOn' : 'toast.hitboxesOff'));
 window.addEventListener('keydown', (e) => { if (e.code === 'F4' && !e.repeat) { e.preventDefault(); toggleHitboxes(); } });
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
 

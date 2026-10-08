@@ -23,6 +23,8 @@
 // Positions: 0 bottom, 1 right, 2 left, 3 top. A pad that reports its buttons by
 // printed letter with Nintendo labels (Android, the Retroid: 0 is A on the right)
 // is moved to positions first (faces().byLabel, see native-pad.js padFaces).
+import { controlPrefs, currentPadMap, capturingPad, padCaptured, IDENTITY } from './remap.js';
+
 export const SOUTH = 0, EAST = 1, WEST = 2, NORTH = 3;
 const LB = 4, RB = 5, LT = 6, RT = 7, VIEW = 8, MENU = 9, L3 = 10, R3 = 11, UP = 12, DOWN = 13, LEFT = 14, RIGHT = 15;
 
@@ -47,10 +49,10 @@ export class Controller {
    * @param o.context () => 'menu' | 'talk' | 'photo' | 'ride' | 'game'
    * @param o.faces   () => ({ faces: 'xbox' | 'nintendo', byLabel }) (native-pad.js padFaces)
    */
-  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null }) {
-    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat });   // (combat: a foe is near, LB blocks rather than zooms)
+  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null, prefs = controlPrefs, padMap = currentPadMap }) {
+    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat, prefs, padMap });   // (combat: a foe is near, LB blocks rather than zooms)
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
-    this.blocked = new Set(); this.lastContext = null; this.running = false; this.view = null;
+    this.blocked = new Set(); this.lastContext = null; this.running = false; this.guarding = false; this.view = null;
   }
   update(dt, enabled = true) {
     // standard-mapped pads first; a pad without the mapping (an unrecognised handheld) is read as standard rather than ignored
@@ -64,19 +66,36 @@ export class Controller {
     this.index = pad.index;
     const { faces, byLabel } = this.faces();
     let buttons = pad.buttons.map((b, i) => b.pressed || b.value > (i === LT ? 0.3 : 0.5));   // LT aims from a light squeeze
-    if (byLabel) buttons = toPositions(buttons);
-    const value = i => { const b = pad.buttons[i]; return b ? (b.value > 0 ? b.value : b.pressed ? 1 : 0) : 0; };   // (the triggers: analog)
+    let values = pad.buttons.map((b) => (b ? (b.value > 0 ? b.value : b.pressed ? 1 : 0) : 0));   // (the triggers: analog)
+    if (byLabel) { buttons = toPositions(buttons); values = toPositions(values); }
     const ctx = this.context();
+    if (used(pad)) this.activity();
+    // the Controls page waits for a button (src/remap.js capturePad): the first new press goes there, nothing to the game
+    if (capturingPad()) {
+      const i = buttons.findIndex((b, j) => b && !this.previous[j]);
+      if (i >= 0 && !buttons.some((b, j) => b && j !== i && this.previous[j])) padCaptured(i);
+      buttons.forEach((b, j) => { if (b) this.blocked.add(j); });   // (and the press doesn't act once the page has it)
+      this.previous = buttons; this.lastContext = ctx;
+      return this.held;
+    }
     // A held confirm/jump must never leak through when a menu closes (nor RT fire as you step off a bike).
     if (ctx !== this.lastContext) {
       buttons.forEach((b, i) => { if (b && this.previous[i]) this.blocked.add(i); });
       this.repeat = 0; this.direction = '';
+      if (ctx !== 'game') this.guarding = false;
     }
     buttons.forEach((b, i) => { if (!b) this.blocked.delete(i); });
-    const down = i => !!buttons[i] && !this.blocked.has(i);
-    const press = i => down(i) && !this.previous[i];
+    // playing and riding, each verb's button is the player's (the Controls page: src/remap.js padMap; the
+    // default table's buttons below are read through it); menus, conversations and photo mode keep the defaults
+    const map = ctx === 'game' || ctx === 'ride' ? this.padMap() : IDENTITY;
+    const held = i => !!buttons[i] && !this.blocked.has(i);
+    // (View held: the D-pad is its layer, whatever is bound to it)
+    const down = i => held(map[i]) && !(this.view && map[i] >= UP);
+    const press = i => down(i) && !this.previous[map[i]];
+    const pressRaw = i => held(i) && !this.previous[i];
+    const value = i => values[map[i]] ?? 0;
     const left = stick(pad.axes[0], pad.axes[1]), right = stick(pad.axes[2], pad.axes[3]);
-    if (used(pad)) this.activity();
+    const P = this.prefs();
     // menus: printed A confirms, B goes back (A is at the bottom on Xbox, on the right with Nintendo letters);
     // Menu / Start and View / Select open (or close) the full-screen menus from anywhere, over a
     // conversation or one of the ship's scenes too (main.js)
@@ -127,8 +146,12 @@ export class Controller {
       } else {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
         h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
-        // run: click the left stick; you keep running until you let the stick go
-        if (press(L3)) { this.running = true; if (!down(R3)) this.action('l3'); }   // (the Lab: the previous world's room)
+        // run: click the left stick; you keep running until you let the stick go (the Controls page: or held,
+        // or a toggle: src/remap.js RUN_MODES)
+        if (press(L3) && !down(R3)) this.action('l3');   // (the Lab: the previous world's room)
+        if (P.run === 'hold') this.running = down(L3);
+        else if (P.run === 'toggle') { if (press(L3)) this.running = !this.running; }
+        else if (press(L3)) this.running = true;
         else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
@@ -137,17 +160,19 @@ export class Controller {
         // otherwise (triggers()); jump in the air boosts. The fluid blade (src/fluid-blade.js): RB swings, LB held blocks
         h.PadAim = down(LT); h.PadFire = down(RT);
         h.PadThrust = this.blocked.has(RT) ? 0 : trigger(value(RT));   // (the jets' throttle: analog, a light squeeze flies slowly)
-        h.PadBlade = down(RB); h.PadGuard = down(LB);
+        // (guard: held, or a toggle, a press up and the next down: GUARD_MODES)
+        if (P.guard === 'toggle') { if (press(LB)) this.guarding = !this.guarding; } else this.guarding = false;
+        h.PadBlade = down(RB); h.PadGuard = P.guard === 'toggle' ? this.guarding : down(LB);
         h.PadEvade = down(EAST);   // B / ○ evades (the stick's way, or a backstep)
-        // the D-pad is the quick slots (none of them while View is held: View + D-pad is its own layer, below)
-        const quick = !this.view;
+        // the D-pad is the quick slots (none of them while View is held: View + D-pad is its own layer, below;
+        // down() leaves the D-pad out then, whatever verb is bound to it)
         // ← / →: the previous / next gun mode of the fluid tool (fluid-tool.js)
-        h.PadModeNext = quick && down(RIGHT); h.PadModePrev = quick && down(LEFT);
+        h.PadModeNext = down(RIGHT); h.PadModePrev = down(LEFT);
         // the gadget in hand (src/gadgets/): the top button uses it (pressed, held, let go; with none in hand it
         // sounds the bell-note whistle), D-pad ↑ chooses one (a tap the next, held the wheel)
-        h.PadGadget = down(NORTH); h.PadGadgetPick = quick && down(UP);
+        h.PadGadget = down(NORTH); h.PadGadgetPick = down(UP);
         // ↓ whistles for the mount, or hails a taxi (player.callMount; the References: the list of views)
-        if (quick && press(DOWN)) this.action('call');
+        if (press(DOWN)) this.action('call');
       }
       if (ctx !== 'photo') {
         // R3: lock on to the nearest foe, then the next, then let go; with no foe in reach main.js sends the
@@ -159,7 +184,7 @@ export class Controller {
         // View: the sketchbook, when it is let go without a D-pad press meanwhile; View held + D-pad ↑ is
         // photo mode, + ↓ / ← / → the free chords 'viewDown' / 'viewLeft' / 'viewRight' (bindings.js FREE)
         if (this.view) {
-          const chord = press(UP) ? 'photo' : press(DOWN) ? 'viewDown' : press(LEFT) ? 'viewLeft' : press(RIGHT) ? 'viewRight' : '';
+          const chord = pressRaw(UP) ? 'photo' : pressRaw(DOWN) ? 'viewDown' : pressRaw(LEFT) ? 'viewLeft' : pressRaw(RIGHT) ? 'viewRight' : '';
           if (chord) { this.view.chord = true; this.action(chord); }
           if (!down(VIEW)) { if (!this.view.chord) this.action('journal'); this.view = null; }
         }

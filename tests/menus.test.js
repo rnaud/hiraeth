@@ -64,7 +64,7 @@ test('the full-screen menus pause the game and bring in the menu music', () => {
   assert.match(main, /onQuit: \(\) => quitToTitle\(\)/);
   assert.doesNotMatch(main, /localStorage\.removeItem\('moebius\.journal\.v1'\)/);
   const ui = src('ui.js');
-  assert.match(ui, /data-a="title">Quit to title</);
+  assert.match(ui, /data-a="title">\$\{t\('menu\.quit'\)\}</);   // (the words: src/i18n/en.js)
   assert.doesNotMatch(ui, /[^.\w]confirm\('/, 'no browser confirm(): a controller cannot answer it');
 });
 
@@ -79,8 +79,8 @@ test('no keyboard-only "J to close" on a controller: every panel says how to clo
   assert.equal(closeHint('J or Esc', 'touch'), '', 'a touch screen: the ✕ says it');
   // the sketchbook, what's new and the worlds picker take theirs when they open; the skip tags too
   assert.doesNotMatch(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), />J to close</);
-  assert.match(src('game-menu.js'), /`\$\{keyBadge\(back\)\} close`/, 'the game menu names the back button for closing');
-  assert.match(src('game-menu.js'), /`\$\{keyBadge\('Esc'\)\} close`/);
+  assert.match(src('game-menu.js'), /`\$\{keyBadge\(back\)\} \$\{close\}`/, 'the game menu names the back button for closing');
+  assert.match(src('game-menu.js'), /`\$\{keyBadge\('Esc'\)\} \$\{close\}`/);
   assert.match(src('changelog.js'), /Close \(\$\{backKey\(\)\}\)/);
   assert.match(src('story/moment.js'), /`\$\{backKey\(\)\} skip`/, 'a moment\'s skip tag names the button printed B');
   const { holdToSkip } = await import('../src/ship/cinema.js');

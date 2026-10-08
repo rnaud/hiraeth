@@ -12,7 +12,8 @@
 // Imports nothing that loads the game state: the summaries come from the raw saves.
 
 import { slots, SLOT_COUNT, formatPlaytime, formatDate, progressLine } from './save-slots.js';
-import { Settings, SettingsMenu, isNativeApp, isDeckApp, isTouch } from './ui.js';
+import { Settings, SettingsMenu, isNativeApp, isDeckApp, isTouch, reducedMotion } from './ui.js';
+import { t, onLanguage } from './i18n.js';
 import { Sound } from './audio.js';
 import { Controller, menuNavigate } from './controller.js';
 import { setFaces, padFaces } from './native-pad.js';
@@ -92,15 +93,15 @@ export const LOGO = `
 function slotHtml(s) {
   if (s.empty) {
     return `<li class="slot empty"><button class="pick" data-slot="${s.n}"><span class="thumb new" aria-hidden="true">+</span>
-      <span class="txt"><b>Save ${s.n}</b><span class="world">New game</span><span class="prog">Starts with the prologue</span></span></button>
-    <span class="del spacer" aria-hidden="true">Delete</span></li>`;
+      <span class="txt"><b>${t('title.save', { n: s.n })}</b><span class="world">${t('title.new')}</span><span class="prog">${t('title.startsPrologue')}</span></span></button>
+    <span class="del spacer" aria-hidden="true">${t('title.delete')}</span></li>`;
   }
   // (a save from before the slots has no playtime yet: only its date)
-  const when = [s.playtime >= 60 && `${formatPlaytime(s.playtime)} played`, formatDate(s.lastPlayed)].filter(Boolean).join(' · ');
+  const when = [s.playtime >= 60 && t('title.played', { time: formatPlaytime(s.playtime) }), formatDate(s.lastPlayed)].filter(Boolean).join(' · ');
   return `<li class="slot"><button class="pick" data-slot="${s.n}">
       <img class="thumb" src="thumbs/${esc(s.level)}.jpg" alt="" onerror="this.style.visibility='hidden'">
-      <span class="txt"><span class="top"><b>Save ${s.n}</b><span class="when">${esc(when)}</span></span><span class="world">${esc(s.world)}</span><span class="prog">${esc(progressLine(s))}</span></span></button>
-    <button class="del" data-del="${s.n}" aria-label="Delete save ${s.n}">Delete</button></li>`;
+      <span class="txt"><span class="top"><b>${t('title.save', { n: s.n })}</b><span class="when">${esc(when)}</span></span><span class="world">${esc(s.world)}</span><span class="prog">${esc(progressLine(s))}</span></span></button>
+    <button class="del" data-del="${s.n}" aria-label="${t('title.deleteSave', { n: s.n })}">${t('title.delete')}</button></li>`;
 }
 
 /**
@@ -127,18 +128,20 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         <header>${LOGO}</header>
         <nav class="screen main-menu" data-screen="main"></nav>
         <section class="screen saves" data-screen="saves" hidden>
-          <div class="head"><h2>SAVES</h2><button data-a="back">Back</button></div>
+          <div class="head"><h2 data-t="title.savesHead">${t('title.savesHead')}</h2><button data-a="back" data-t="title.back">${t('title.back')}</button></div>
           <ol class="slots"></ol>
         </section>
         <p class="version">v${VERSION}</p>
       </div>
       <div class="confirm" hidden><div class="card" role="alertdialog" aria-labelledby="title-confirm-q">
-        <h3 id="title-confirm-q"></h3><p class="what"></p><p>This can't be undone.</p>
-        <div class="row"><button data-a="keep">Keep it</button><button data-a="delete" class="danger">Delete</button></div>
+        <h3 id="title-confirm-q"></h3><p class="what"></p><p data-t="title.undone">${t('title.undone')}</p>
+        <div class="row"><button data-a="keep" data-t="title.keep">${t('title.keep')}</button><button data-a="delete" class="danger" data-t="title.delete">${t('title.delete')}</button></div>
       </div></div>
       <div id="title-settings"></div>`;
     doc.body.appendChild(root);
     const settingsMenu = new SettingsMenu(settings, { sound, el: root.querySelector('#title-settings'), title: true });
+    // (a new language, chosen in the settings: the title's own words in it; the menu and saves draw as they show)
+    onLanguage(() => { if (done) return; for (const e of root.querySelectorAll('.front [data-t], .confirm [data-t]')) e.textContent = t(e.dataset.t); if (screen === 'saves') renderSaves(); else renderMain(); });
 
     const mainNav = root.querySelector('.main-menu');
     const savesEl = root.querySelector('.saves');
@@ -149,13 +152,13 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const renderMain = () => {
       const last = store.latest(), s = last ? store.summary(last) : null;
       mainNav.innerHTML = `${s
-        ? `<button data-a="continue" class="primary">Continue<small>${esc(s.world)}</small></button>`
-        : '<button data-a="new" class="primary">New game</button>'}
-        <button data-a="saves">Saves</button>
-        <button data-a="settings">Settings</button>
-        <button data-a="news">What's new</button>
-        <button data-a="debug">Debug</button>
-        ${fullscreen ? `<button data-a="fullscreen">${doc.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}`;
+        ? `<button data-a="continue" class="primary">${t('title.continue')}<small>${esc(s.world)}</small></button>`
+        : `<button data-a="new" class="primary">${t('title.new')}</button>`}
+        <button data-a="saves">${t('title.saves')}</button>
+        <button data-a="settings">${t('title.settings')}</button>
+        <button data-a="news">${t('title.news')}</button>
+        <button data-a="debug">${t('title.debug')}</button>
+        ${fullscreen ? `<button data-a="fullscreen">${t(doc.fullscreenElement ? 'title.leaveFullscreen' : 'title.fullscreen')}</button>` : ''}`;
     };
     const renderSaves = () => { root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join(''); };
     const show = (name, focus) => {
@@ -170,8 +173,8 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       const s = store.summary(n);
       if (s.empty) return;
       toDelete = n;
-      confirmEl.querySelector('h3').textContent = `Delete Save ${n}?`;
-      confirmEl.querySelector('.what').textContent = [s.world, progressLine(s), s.playtime >= 60 && `${formatPlaytime(s.playtime)} played`].filter(Boolean).join(' · ');
+      confirmEl.querySelector('h3').textContent = t('title.deleteAsk', { n });
+      confirmEl.querySelector('.what').textContent = [s.world, progressLine(s), s.playtime >= 60 && t('title.played', { time: formatPlaytime(s.playtime) })].filter(Boolean).join(' · ');
       confirmEl.hidden = false;
       confirmEl.querySelector('[data-a="keep"]').focus({ preventScroll: true });
     };
@@ -309,7 +312,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const drawn = () => root.classList.remove('vista-wait', 'vista-on');
     if (wantVista) win.requestAnimationFrame(() => setTimeout(() => {
       if (done) return;
-      const still = !!win.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      const still = reducedMotion(settings, win);   // (the "Reduce motion" setting; not set: prefers-reduced-motion)
       import('./title-vista.js')
         .then(({ startVista }) => startVista({ parent: root, settings, native: isNativeApp, touch: isTouch, still, signal: vistaAbort.signal, win }))
         .then((v) => {

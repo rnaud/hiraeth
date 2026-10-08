@@ -20,6 +20,7 @@ import { MAP_LINE } from '../story/signature.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
+import { shakeScale } from '../feel.js';
 import { Prologue } from './prologue.js';
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
@@ -602,7 +603,7 @@ export class Ship {
     if (this.cam) this.blend = { from: this.cam, t: 0, dur: blend };
     this.cam = null;
   }
-  shake(k) { this.shakeK = Math.max(this.shakeK, k); }
+  shake(k) { this.shakeK = Math.max(this.shakeK, k * shakeScale()); }   // (the motion settings: src/feel.js)
 
   applyCamera(dt) {
     const cam = this.camera;

@@ -10,28 +10,22 @@
 //     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
 import { badgeLine, escapeHtml } from './prompt-keys.js';
 import { page, screen } from './platform.js';
+import { t, t as tr } from './i18n.js';
 
 /** A ride's controls show for this long after you get on (ms), then go. */
 export const RIDE_HINT_MS = 6000;
-export const RIDE_KEYS = {
-  taxi: 'SPACE where to · E get out',              // a cab drives itself: you choose a stop (src/story/cab.js)
-  taxiRoute: 'SPACE another stop · E jump off',     // (on its way there)
-  bird: 'E jump off · A/D bank · W dive · S pull up · SPACE flap',
-  bike: 'E dismount (moving: jump off) · W/S throttle · A/D steer · SHIFT boost · SPACE hop',
-  skiff: 'E step off (moving: jump off) · W/S throttle · A/D steer · SHIFT boost',
-};
+const RIDES = ['taxi', 'taxiRoute', 'bird', 'bike', 'skiff'];
+// (in the language's words: src/i18n/en.js hud.ride.*, hud.pad.*; written with the default keys and buttons,
+// which native-pad.js renames to the player's own)
+const rideLines = (pre) => Object.defineProperties({}, Object.fromEntries(RIDES.map((k) => [k, { get: () => t(`hud.${pre}.${k}`), enumerable: true }])));
+//   taxi: 'SPACE where to · E get out'   a cab drives itself: you choose a stop (src/story/cab.js); taxiRoute: on its way there
+export const RIDE_KEYS = rideLines('ride');
 // a pad rides on the triggers: RT goes, the stick steers (and tilts a flyer: forward dives, back climbs);
 // the bottom button jumps off (player.jumpOff), the left one is the vehicle's own hop / flap / rise
-export const RIDE_PAD = {
-  taxi: 'X / □ where to · B / ○ get out',
-  taxiRoute: 'X / □ another stop · A / × jump off',
-  bird: 'A / × jump off · RT / R2 fly on · left stick bank, forward dive, back climb · X / □ flap',
-  bike: 'A / × jump off · B / ○ dismount · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
-  skiff: 'A / × jump off · B / ○ step off · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
-};
+export const RIDE_PAD = rideLines('pad');
 
 /** The keyboard's names in a prompt (on foot), as a pad's (by position: the bottom button jumps, the left one uses: src/bindings.js). */
-export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'L3').replaceAll('W/S', 'left stick').replaceAll('A/D', 'left stick').replace(/\bE\b/g, 'X / □');
+export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'L3').replaceAll('W/S', t('hud.leftStick')).replaceAll('A/D', t('hud.leftStick')).replace(/\bE\b/g, 'X / □');
 
 /**
  * The cue's line for this frame ('' = nothing on the screen).
@@ -53,7 +47,7 @@ export function cueText(s = {}) {
   else if (s.shipHint || s.shipPlaying) t = /^E /.test(s.shipHint ?? '') ? s.shipHint : '';   // (inside and at its ramp, E is the ship's; in its scenes, nothing)
   else if (s.lens) t = s.lens;
   else if (s.prompt && !s.promptAt) t = `E ${s.prompt}`;
-  else if (s.boarding) t = 'slotting the backpack in…';
+  else if (s.boarding) t = tr('hud.boarding');
   if (!t) return '';
   return s.controller && !s.ride ? padCue(t) : t;
 }

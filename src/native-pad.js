@@ -28,7 +28,13 @@
 // Menus confirm with the button printed A and go back with B, whatever the
 // layout (each platform's own habit): confirmKey() / backKey() name them.
 
+// The player's own buttons and keys (src/remap.js): the prompts are written with the default ones, and
+// rewrite() renames those too (padRename: "A / ×" is the button now bound to jump; keyRename: an "E" key badge
+// the key now bound to use), except under .pad-raw (the menus' own confirm / back, which never move).
+
 import { installPadMaps } from './pad-maps.js';
+import { padRename, keyRename, hasRenames, onControlPrefs } from './remap.js';
+import { onLanguage } from './i18n.js';
 
 let native = null;
 
@@ -134,19 +140,36 @@ export function padText(text, layout = 'android', faces = labelFaces) {
   return out;
 }
 
+/**
+ * A prompt as the page shows it: the player's own buttons (remap: false under .pad-raw), then the pad's names.
+ * `keys`: a keyboard key badge's text, renamed whole ("E" → "F") when its verb moved.
+ */
+export function promptText(text, { layout: lay = layout, faces = labelFaces, remap = true, key = false } = {}) {
+  if (!text) return text;
+  if (key) {
+    const names = keyRename(), s = text.trim();
+    if (names.has(s)) return names.get(s);
+    const pair = s.match(/^([^/\s]+)\/([^/\s]+)$/);   // ("W/S", "A/D")
+    if (pair && (names.has(pair[1]) || names.has(pair[2]))) return `${names.get(pair[1]) ?? pair[1]}/${names.get(pair[2]) ?? pair[2]}`;
+  }
+  return padText(remap ? padRename(text) : text, lay, faces);
+}
+
 let observer = null, layout = 'standard';
 const source = new WeakMap();   // text node → [its text as the game wrote it, what we made of it]
-function rewrite(node) {
+const rawAt = (n) => !!n?.closest?.('.pad-raw');
+function rewrite(node, raw = rawAt(node.nodeType === 3 ? node.parentElement : node)) {
   if (node.nodeType === 3) {
     const seen = source.get(node);
     const src = seen && seen[1] === node.nodeValue ? seen[0] : node.nodeValue;
-    const t = padText(src, layout);
+    const t = promptText(src, { remap: !raw, key: !!node.parentElement?.classList?.contains('key') });
     if (t !== node.nodeValue) node.nodeValue = t;
     if (t !== src) source.set(node, [src, t]); else source.delete(node);
     return;
   }
   if (node.nodeType !== 1 || node.tagName === 'SCRIPT' || node.tagName === 'STYLE') return;
-  for (const c of node.childNodes) rewrite(c);
+  const r = raw || !!node.classList?.contains('pad-raw');
+  for (const c of node.childNodes) rewrite(c, r);
 }
 
 /** Keep every prompt on the page in the pad's own button names (else a no-op). */
@@ -155,7 +178,7 @@ export function watchLabels(win = globalThis.window) {
   layout = padLayout(win);
   labelFaces = padFaces(win).faces;
   if (observer) { rewrite(win.document.body); return; }
-  if (layout !== 'android' && labelFaces !== 'nintendo') return;
+  if (layout !== 'android' && labelFaces !== 'nintendo' && !hasRenames()) return;
   rewrite(win.document.body);
   observer = new win.MutationObserver((list) => {
     for (const m of list) {
@@ -167,3 +190,5 @@ export function watchLabels(win = globalThis.window) {
 }
 function applyLayout(win) { if (win?.document?.body) watchLabels(win); }
 const relabel = applyLayout;
+onControlPrefs(() => relabel(globalThis.window));   // (a verb moved: every prompt on the page again)
+onLanguage(() => relabel(globalThis.window));       // (the keys' names in the language: 'ESPACE')

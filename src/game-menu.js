@@ -20,13 +20,10 @@
 
 import { escapeHtml, keyBadge, inputKind } from './prompt-keys.js';
 import { confirmKey, backKey } from './native-pad.js';
+import { t, onLanguage } from './i18n.js';
 
-export const PANELS = [
-  { id: 'items', name: 'Items' },
-  { id: 'quests', name: 'Quests' },
-  { id: 'sketches', name: 'Sketchbook' },
-  { id: 'worlds', name: 'Worlds' },
-];
+// (the names in the language now: src/i18n.js)
+export const PANELS = ['items', 'quests', 'sketches', 'worlds'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
 /** The gear's grid: this many slots a row. */
 export const GEAR_COLS = 8;
 /** The worlds' cards: this many a row. */
@@ -112,7 +109,8 @@ const KIND_MARK = { core: '◍', movement: '➶', mode: '◐', upgrade: '✚', c
 const icon = (it) => it.icon
   ? `<img class="ico" src="${esc(it.icon)}" alt="" data-icon="${esc(it.id)}">`
   : `<i class="ico mark" data-icon="${esc(it.id)}">${KIND_MARK[it.kind] ?? '✧'}</i>`;
-const KIND_NAME = { core: 'The backpack', movement: 'Movement', mode: 'Gun mode', gadget: 'Gadget', upgrade: 'Backpack upgrade', charm: 'Charm', pass: 'Pass', cosmetic: 'Keepsake to wear', quest: 'Carried for a quest', keepsake: 'Something of value' };
+const KINDS = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic', 'quest', 'keepsake'];
+const KIND_NAME = Object.defineProperties({}, Object.fromEntries(KINDS.map((k) => [k, { get: () => t(`gm.kind.${k}`), enumerable: true }])));
 
 /**
  * Items: { gear: [{ id, name, kind, text, use, icon, inUse, usable }], slots, pack: [{ id, name }], keepsakes: [{ id, name, text, world }] }.
@@ -125,21 +123,21 @@ export const CARRY_COL = 4;
 export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [] } = {}) {
   const rows = [];
   gear.forEach((it, i) => { (rows[Math.floor(i / GEAR_COLS)] ??= []).push({ col: i % GEAR_COLS, kind: 'item', id: it.id, name: it.name, sub: KIND_NAME[it.kind] ?? '', desc: [it.text, it.use].filter(Boolean).join(' '), act: it.usable ? 'use' : null, it }); });
-  const packs = pack.map((it) => ({ kind: 'pack', id: it.id, name: it.name, sub: KIND_NAME.quest, desc: 'Someone asked you to carry it. It goes where the quest says.', act: null, it: { ...it, kind: 'quest' } }));
-  const keeps = keepsakes.map((it) => ({ kind: 'keepsake', id: it.id, name: it.name, sub: `${KIND_NAME.keepsake}${it.world ? ` · from ${it.world}` : ''}`, desc: it.text ?? '', act: null, it: { ...it, kind: 'keepsake' } }));
+  const packs = pack.map((it) => ({ kind: 'pack', id: it.id, name: it.name, sub: KIND_NAME.quest, desc: t('gm.carried'), act: null, it: { ...it, kind: 'quest' } }));
+  const keeps = keepsakes.map((it) => ({ kind: 'keepsake', id: it.id, name: it.name, sub: `${KIND_NAME.keepsake}${it.world ? ` · ${t('gm.fromWorld', { world: it.world })}` : ''}`, desc: it.text ?? '', act: null, it: { ...it, kind: 'keepsake' } }));
   const g = rows.length;
   for (let k = 0; k < Math.max(packs.length, keeps.length); k++) rows.push([...(packs[k] ? [{ ...packs[k], col: 0 }] : []), ...(keeps[k] ? [{ ...keeps[k], col: CARRY_COL }] : [])]);
   const where = (kind, id) => { for (let r = 0; r < rows.length; r++) { const c = rows[r].findIndex((x) => x.kind === kind && x.id === id); if (c >= 0) return cellAttrs(r, c); } return ''; };
-  const slot = (it) => `<button class="slot${it.inUse ? ' inuse' : ''}" ${where('item', it.id)} aria-label="${esc(it.name)}">${icon(it)}${it.inUse ? '<em>in use</em>' : ''}</button>`;
+  const slot = (it) => `<button class="slot${it.inUse ? ' inuse' : ''}" ${where('item', it.id)} aria-label="${esc(it.name)}">${icon(it)}${it.inUse ? `<em>${t('gm.inUse')}</em>` : ''}</button>`;
   const empties = Array.from({ length: Math.max(0, slots - gear.length) }, () => '<span class="slot empty" aria-hidden="true"></span>').join('');
   const line = (x) => `<button class="line ${x.kind}" ${where(x.kind, x.id)}>${icon(x.it)}<span>${esc(x.name)}</span></button>`;
   const html = `<div class="gm-items">
     <div class="gm-left">
-      <section class="gm-gear"><h2>Gear <span>${gear.length}${slots ? ` of ${slots}` : ''}</span></h2>
+      <section class="gm-gear"><h2>${t('gm.gear')} <span>${slots ? t('gm.gearCount', { n: gear.length, m: slots }) : gear.length}</span></h2>
         <div class="grid" style="--cols:${GEAR_COLS}">${gear.map(slot).join('')}${empties}</div></section>
       <div class="gm-carry">
-        <section><h2>In your pack</h2>${packs.map(line).join('') || '<p class="none">Nothing to deliver.</p>'}</section>
-        <section><h2>Keepsakes <span>${keeps.length}</span></h2>${keeps.map(line).join('') || '<p class="none">Nothing of value yet.</p>'}</section>
+        <section><h2>${t('gm.pack')}</h2>${packs.map(line).join('') || `<p class="none">${t('gm.packNone')}</p>`}</section>
+        <section><h2>${t('gm.keepsakes')} <span>${keeps.length}</span></h2>${keeps.map(line).join('') || `<p class="none">${t('gm.keepNone')}</p>`}</section>
       </div>
     </div>
     <aside class="gm-preview" aria-hidden="true"></aside></div>`;
@@ -156,11 +154,11 @@ export const ENDED = 6;
 export function questsPanel({ charge = null, active = [], errands = [], done = [], failed = [] } = {}) {
   const rows = [];
   const main = [];
-  if (charge) main.push({ kind: 'charge', id: 'charge', name: charge.title, sub: 'Your father’s charge', desc: `${charge.goal}. ${charge.worlds ?? ''}`.trim(), act: null, q: charge });
-  for (const q of active) main.push({ kind: 'quest', id: q.id, name: q.title, sub: q.tracked ? 'The one you are on: the scout finds it' : (q.main ? 'This world’s quest' : 'An errand'), desc: `${q.goal}.`, act: q.tracked ? null : 'track', q });
-  for (const q of errands) main.push({ kind: 'errand', id: q.id, name: q.title, sub: 'A parcel to carry', desc: `${q.goal}.`, act: null, q });
+  if (charge) main.push({ kind: 'charge', id: 'charge', name: charge.title, sub: t('gm.charge'), desc: `${charge.goal}. ${charge.worlds ?? ''}`.trim(), act: null, q: charge });
+  for (const q of active) main.push({ kind: 'quest', id: q.id, name: q.title, sub: q.tracked ? t('gm.tracked') : (q.main ? t('gm.mainQuest') : t('gm.errand')), desc: `${q.goal}.`, act: q.tracked ? null : 'track', q });
+  for (const q of errands) main.push({ kind: 'errand', id: q.id, name: q.title, sub: t('gm.parcel'), desc: `${q.goal}.`, act: null, q });
   const ended = [...done.slice(0, ENDED).map((q) => ({ ...q, failed: false })), ...failed.slice(0, ENDED).map((q) => ({ ...q, failed: true }))];
-  const side = ended.map((q) => ({ kind: 'ended', id: q.id, name: q.title, sub: q.failed ? 'What happened' : 'Complete', desc: q.outro ?? '', act: null, q }));
+  const side = ended.map((q) => ({ kind: 'ended', id: q.id, name: q.title, sub: q.failed ? t('gm.failed') : t('gm.complete'), desc: q.outro ?? '', act: null, q }));
   const n = Math.max(main.length, side.length);
   for (let r = 0; r < n; r++) {
     const row = [];
@@ -173,19 +171,19 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
     const q = x.q, cls = x.kind === 'charge' ? 'charge' : x.kind === 'errand' ? 'errand' : `quest${q.tracked ? ' tracked' : ''}${q.main ? ' main' : ''}`;
     const mark = x.kind === 'charge' ? '✦' : x.kind === 'errand' ? '✉' : q.main ? '◆' : '◇';
     return `<button class="qcard ${cls}" ${at(x.kind, x.id)} data-quest="${esc(x.id)}">
-      <span class="qhead"><i class="mark">${mark}</i><b>${esc(x.name)}</b>${q.tracked ? '<em class="tag">tracked</em>' : ''}</span>
+      <span class="qhead"><i class="mark">${mark}</i><b>${esc(x.name)}</b>${q.tracked ? `<em class="tag">${t('gm.trackedTag')}</em>` : ''}</span>
       <span class="goal">${esc(q.goal)}</span>
-      <span class="next"><small>Next</small>${esc(q.step)}</span></button>`;
+      <span class="next"><small>${t('gm.next')}</small>${esc(q.step)}</span></button>`;
   };
-  const more = (list) => (list.length > ENDED ? `<li class="more">and ${list.length - ENDED} more</li>` : '');
+  const more = (list) => (list.length > ENDED ? `<li class="more">${t('gm.more', { n: list.length - ENDED })}</li>` : '');
   const endedHtml = ended.length
     ? `<ul>${ended.filter((q) => !q.failed).map((q) => `<li><button class="ended" ${at('ended', q.id)}><i>✓</i>${esc(q.title)}</button></li>`).join('')}${more(done)}
        ${ended.filter((q) => q.failed).map((q) => `<li><button class="ended failed" ${at('ended', q.id)}><i>·</i>${esc(q.title)}</button></li>`).join('')}${more(failed)}</ul>`
-    : '<p class="none">None yet.</p>';
+    : `<p class="none">${t('gm.noneYet')}</p>`;
   const tracked = rows.findIndex((r) => r[0]?.q?.tracked);
   const html = `<div class="gm-quests">
-    <div class="qlist">${main.map(card).join('') || '<p class="none">Nothing asked of you yet.</p>'}</div>
-    <aside class="qdone"><h2>Done</h2>${endedHtml}</aside></div>`;
+    <div class="qlist">${main.map(card).join('') || `<p class="none">${t('gm.nothingAsked')}</p>`}</div>
+    <aside class="qdone"><h2>${t('gm.done')}</h2>${endedHtml}</aside></div>`;
   return { html, rows, start: tracked >= 0 ? { r: tracked, c: 0 } : null };
 }
 
@@ -196,23 +194,23 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
  */
 export function sketchesPanel({ worlds = [], extra = [] } = {}) {
   const rows = [];
-  const tile = (t, r, c, wide = false) => `<button class="tile${wide ? ' wide' : ''}${t.img ? '' : ' empty'}" ${cellAttrs(r, c)} aria-label="${esc(t.name || 'not found yet')}">${t.img ? `<img src="${esc(t.img)}" alt="">` : `<i>${wide ? '…' : '?'}</i>`}</button>`;
+  const tile = (x, r, c, wide = false) => `<button class="tile${wide ? ' wide' : ''}${x.img ? '' : ' empty'}" ${cellAttrs(r, c)} aria-label="${esc(x.name || t('gm.notFound'))}">${x.img ? `<img src="${esc(x.img)}" alt="">` : `<i>${wide ? '…' : '?'}</i>`}</button>`;
   const sections = [];
   for (const w of worlds) {
     const r = rows.length, cells = [];
-    cells.push({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: w.story?.img || w.story?.told ? `${w.title} · the story, told` : `${w.title} · a story not told yet`, desc: w.story?.img ? 'The moment the story ended, drawn as it happened.' : w.story?.told ? 'Told before its page was drawn: an older save.' : 'Its page is drawn when the story is told.', act: w.story?.img ? 'look' : null, img: w.story?.img ?? null });
-    (w.relics ?? []).forEach((t, i) => cells.push({ col: 1 + i, kind: 'relic', id: `${w.id}.${i}`, name: t.img ? t.name : 'Not found yet', sub: `${w.title} · relic ${i + 1} of ${w.relics.length}`, desc: t.img ? 'Sketched the moment you found it.' : 'Somewhere in this world, often on top of something you have to climb.', act: t.img ? 'look' : null, img: t.img ?? null }));
+    cells.push({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: t(w.story?.img || w.story?.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(w.story?.img ? 'gm.storyDrawn' : w.story?.told ? 'gm.storyOld' : 'gm.storyLater'), act: w.story?.img ? 'look' : null, img: w.story?.img ?? null });
+    (w.relics ?? []).forEach((x, i) => cells.push({ col: 1 + i, kind: 'relic', id: `${w.id}.${i}`, name: x.img ? x.name : t('gm.notFoundYet'), sub: t('gm.relicOf', { world: w.title, i: i + 1, n: w.relics.length }), desc: t(x.img ? 'gm.relicFound' : 'gm.relicHint'), act: x.img ? 'look' : null, img: x.img ?? null }));
     rows.push(cells);
     sections.push(`<section class="world"><h2>${esc(w.title)} <span>${w.found ?? 0}/${w.of ?? (w.relics ?? []).length}</span></h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, c === 0)).join('')}</div></section>`);
   }
   for (const e of extra) {
     const r = rows.length;
-    const cells = e.tiles.map((t, i) => ({ col: i, kind: 'sketch', id: `${e.id}.${i}`, name: t.name, sub: e.title, desc: t.caption ?? '', act: t.img ? 'look' : null, img: t.img ?? null }));
+    const cells = e.tiles.map((x, i) => ({ col: i, kind: 'sketch', id: `${e.id}.${i}`, name: x.name, sub: e.title, desc: x.caption ?? '', act: x.img ? 'look' : null, img: x.img ?? null }));
     if (!cells.length) continue;
     rows.push(cells);
     sections.push(`<section class="world extra"><h2>${esc(e.title)}${e.count ? ` <span>${esc(e.count)}</span>` : ''}</h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, !!e.wide)).join('')}</div></section>`);
   }
-  const html = `<div class="gm-sketches">${sections.join('') || '<p class="none">Nothing drawn yet.</p>'}</div>`;
+  const html = `<div class="gm-sketches">${sections.join('') || `<p class="none">${t('gm.nothingDrawn')}</p>`}</div>`;
   return { html, rows };
 }
 
@@ -222,19 +220,19 @@ export function sketchesPanel({ worlds = [], extra = [] } = {}) {
  */
 export function worldsPanel(list = []) {
   const rows = [];
-  list.forEach((w, i) => { const r = Math.floor(i / WORLD_COLS); (rows[r] ??= []).push({ col: i % WORLD_COLS, kind: 'world', id: w.id, name: w.title, sub: [w.current ? 'You are here' : '', w.told ? 'The story is told' : 'The story is not told yet'].filter(Boolean).join(' · '), desc: w.blurb ?? '', act: null }); });
+  list.forEach((w, i) => { const r = Math.floor(i / WORLD_COLS); (rows[r] ??= []).push({ col: i % WORLD_COLS, kind: 'world', id: w.id, name: w.title, sub: [w.current ? t('gm.here') : '', t(w.told ? 'gm.told' : 'gm.notTold')].filter(Boolean).join(' · '), desc: w.blurb ?? '', act: null }); });
   const card = (w, i) => `<button class="wcard${w.current ? ' here' : ''}${w.told ? ' told' : ''}" ${cellAttrs(Math.floor(i / WORLD_COLS), i % WORLD_COLS)}>
-      <span class="pic">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? '<em class="tag">you are here</em>' : ''}</span>
+      <span class="pic">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</span>
       <span class="wname">${esc(w.title)}</span>
-      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${w.told ? '✓ story' : '… story'}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}</span></button>`;
-  const html = `<div class="gm-worlds" style="--cols:${WORLD_COLS}">${list.map(card).join('') || '<p class="none">No worlds yet.</p>'}</div>`;
+      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}</span></button>`;
+  const html = `<div class="gm-worlds" style="--cols:${WORLD_COLS}">${list.map(card).join('') || `<p class="none">${t('gm.noWorlds')}</p>`}</div>`;
   return { html, rows };
 }
 
 const BUILDERS = { items: itemsPanel, quests: questsPanel, sketches: sketchesPanel, worlds: worldsPanel };
 
 /** The verb A / × does on a cell ('' if nothing). */
-export const ACT = { use: 'use', track: 'track', look: 'look' };
+export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
 
 /**
  * The prompts in the info strip, for the hands on the game: a pad's buttons in Xbox / PlayStation form
@@ -243,8 +241,9 @@ export const ACT = { use: 'use', track: 'track', look: 'look' };
  */
 export function menuPrompts(act = null, kind = inputKind(), ok = confirmKey(), back = backKey()) {
   if (kind === 'touch') return '';
-  if (kind === 'pad') return [`${keyBadge('LB / L1')}${keyBadge('RB / R1')} panels`, act ? `${keyBadge(ok)} ${act}` : '', `${keyBadge(back)} close`].filter(Boolean).join('<i class="sep"></i>');
-  return [`${keyBadge('Q')}${keyBadge('E')} panels`, act ? `${keyBadge('Enter')} ${act}` : '', `${keyBadge('Esc')} close`].filter(Boolean).join('<i class="sep"></i>');
+  const panels = t('gm.panels'), close = t('gm.closeKey');
+  if (kind === 'pad') return [`${keyBadge('LB / L1')}${keyBadge('RB / R1')} ${panels}`, act ? `${keyBadge(ok)} ${act}` : '', `${keyBadge(back)} ${close}`].filter(Boolean).join('<i class="sep"></i>');
+  return [`${keyBadge('Q')}${keyBadge('E')} ${panels}`, act ? `${keyBadge('Enter')} ${act}` : '', `${keyBadge('Esc')} ${close}`].filter(Boolean).join('<i class="sep"></i>');
 }
 
 // ------------------------------------------------------------------ the menu on the page
@@ -264,9 +263,9 @@ export class GameMenu {
     if (!el) return;
     el.classList.add('gamemenu');
     el.innerHTML = `
-      <div class="gm" role="dialog" aria-label="Game menu">
+      <div class="gm pad-raw" role="dialog" aria-label="${t('gm.label')}">
         <nav class="gm-tabs">${PANELS.map((p) => `<button class="gm-tab" data-panel="${p.id}">${p.name}</button>`).join('')}</nav>
-        <button class="gm-close close" aria-label="Close">✕</button>
+        <button class="gm-close close" aria-label="${t('gm.close')}">✕</button>
         <div class="gm-stage">
           <button class="gm-side prev" data-go="-1"><span class="arrow">◀</span><b class="key">LB / L1</b><span class="nm"></span></button>
           <div class="gm-sheet"><h1 class="gm-title"></h1><div class="gm-body"></div><div class="gm-look" hidden></div></div>
@@ -275,6 +274,12 @@ export class GameMenu {
         <footer class="gm-info"><div class="gm-what"><b class="gm-name"></b><span class="gm-sub"></span><p class="gm-desc"></p></div><div class="gm-keys"></div></footer>
       </div>`;
     this.body = el.querySelector('.gm-body');
+    // (a new language: the tabs' and the close button's words; the panels are drawn again as they open)
+    onLanguage(() => {
+      for (const b of el.querySelectorAll('.gm-tab')) b.textContent = PANELS.find((p) => p.id === b.dataset.panel)?.name ?? b.textContent;
+      el.querySelector('.gm')?.setAttribute('aria-label', t('gm.label'));
+      el.querySelector('.gm-close')?.setAttribute('aria-label', t('gm.close'));
+    });
     this.lookEl = el.querySelector('.gm-look');
     el.addEventListener('click', (e) => {
       const t = e.target.closest?.('[data-at], [data-go], [data-panel], .gm-close, .gm-look');
@@ -338,14 +343,14 @@ export class GameMenu {
     const name = this.el.querySelector('.gm-name'), sub = this.el.querySelector('.gm-sub'), desc = this.el.querySelector('.gm-desc');
     if (at.edge) {
       const to = this.state.neighbours()[at.edge > 0 ? 'next' : 'prev'];
-      name.textContent = to.name; sub.textContent = ''; desc.textContent = `To the ${to.name} panel.`;
+      name.textContent = to.name; sub.textContent = ''; desc.textContent = t('gm.toPanel', { name: to.name });
     } else {
       name.textContent = cell?.name ?? ''; sub.textContent = cell?.sub ?? ''; desc.textContent = cell?.desc ?? '';
     }
-    this.el.querySelector('.gm-keys').innerHTML = menuPrompts(at.edge ? 'turn' : cell?.act ? ACT[cell.act] : null);
+    this.el.querySelector('.gm-keys').innerHTML = menuPrompts(at.edge ? ACT.turn : cell?.act ? ACT[cell.act] : null);
     // Items: the picked one, large
     const pv = this.body.querySelector('.gm-preview');
-    if (pv) pv.innerHTML = cell?.it ? `<div class="big ${esc(cell.it.kind ?? '')}">${icon(cell.it)}</div><b>${esc(cell.name)}</b><span>${esc(cell.sub)}</span>${cell.it.inUse ? '<em>in use</em>' : ''}` : '';
+    if (pv) pv.innerHTML = cell?.it ? `<div class="big ${esc(cell.it.kind ?? '')}">${icon(cell.it)}</div><b>${esc(cell.name)}</b><span>${esc(cell.sub)}</span>${cell.it.inUse ? `<em>${t('gm.inUse')}</em>` : ''}` : '';
   }
 
   open(panel = null) { if (panel) this.state.show(panel); this.render(); }

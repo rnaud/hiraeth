@@ -7,6 +7,9 @@ import * as THREE from 'three';
 // - winding up: they turn red and close in on it as the strike comes (at the strike they meet: guard, or go);
 // - open (stunned, parried, flipped, asleep, reeling): pale blue, spread wide and pulsing: now cut;
 // - out of the blade's reach (a ray under the sand, a hound running as a shadow): dimmed and dashed.
+// Never by colour alone (docs/systems/foes.md; a colour-blind player reads the shapes): winding up, each chevron
+// doubles (»), and closes in; open, the chevrons turn round (tips in, like brackets) and the centre's diamond becomes a hollow
+// ring; veiled, all of it dashed (reticleShape).
 // It snaps in on a new foe (from wide, with a quick turn) and is sized to the foe on the screen. Off the screen it
 // waits at the edge on its side, small.
 //
@@ -36,6 +39,20 @@ export function reticleLook(f) {
   else if (f.state === 'wind') mode = 'wind';
   else if (f.state === 'strike') mode = 'strike';
   return { mode, k: mode === 'wind' ? f.k ?? 0 : mode === 'strike' ? 1 : 0, hp, max };
+}
+
+/**
+ * The shape of each look, besides its colour (pure: tests): the chevrons' tips point 'out' (calm, winding up) or 'in' (open: turned round, like brackets), are single or
+ * doubled, dashed or not, round a 'diamond' or a hollow 'ring'. Every mode differs from the others in shape.
+ */
+export function reticleShape(look) {
+  const mode = look?.mode ?? 'calm';
+  return {
+    point: mode === 'open' ? 'in' : 'out',
+    double: mode === 'wind' || mode === 'strike',
+    dash: mode === 'veiled',
+    centre: mode === 'open' ? 'ring' : mode === 'strike' ? 'burst' : 'diamond',
+  };
 }
 
 /** How far the chevrons sit from the middle (× the radius) and how fast they turn, for a look (pure: tests). */
@@ -86,13 +103,25 @@ export class LockReticle {
       const g = el('g', { transform: `rotate(${45 + i * 90})` }, this.spinG);
       const inner = el('g', {}, g);
       const d = 'M-13,-9 L0,0 L-13,9';
-      el('path', { d, fill: 'none', stroke: R.ink, 'stroke-width': 9, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, inner);
-      const top = el('path', { d, fill: 'none', stroke: R.gold, 'stroke-width': 4.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, inner);
-      return { inner, top };
+      const flip = el('g', {}, inner);   // (open: turned round, the tips in)
+      el('path', { d, fill: 'none', stroke: R.ink, 'stroke-width': 9, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, flip);
+      const top = el('path', { d, fill: 'none', stroke: R.gold, 'stroke-width': 4.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, flip);
+      // the second chevron behind it (winding up: »)
+      const second = el('g', { transform: 'translate(10,0)', style: 'display:none' }, flip);
+      el('path', { d, fill: 'none', stroke: R.ink, 'stroke-width': 8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, second);
+      const top2 = el('path', { d, fill: 'none', stroke: R.gold, 'stroke-width': 3.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, second);
+      return { inner, flip, top, second, top2 };
     });
-    // the centre: a small diamond
-    el('path', { d: 'M0,-5 L5,0 L0,5 L-5,0Z', fill: R.ink }, this.scaleG);
-    this.dot = el('path', { d: 'M0,-2.8 L2.8,0 L0,2.8 L-2.8,0Z', fill: R.gold }, this.scaleG);
+    // the centre: a small diamond (open: a hollow ring; the strike: a four-point burst)
+    this.diamond = el('g', {}, this.scaleG);
+    el('path', { d: 'M0,-5 L5,0 L0,5 L-5,0Z', fill: R.ink }, this.diamond);
+    this.dot = el('path', { d: 'M0,-2.8 L2.8,0 L0,2.8 L-2.8,0Z', fill: R.gold }, this.diamond);
+    this.ringC = el('g', { style: 'display:none' }, this.scaleG);
+    el('circle', { r: 9, fill: 'none', stroke: R.ink, 'stroke-width': 5 }, this.ringC);
+    this.ringDot = el('circle', { r: 9, fill: 'none', stroke: R.blue, 'stroke-width': 2.2 }, this.ringC);
+    this.burst = el('g', { style: 'display:none' }, this.scaleG);
+    el('path', { d: 'M0,-11 L2.6,-2.6 L11,0 L2.6,2.6 L0,11 L-2.6,2.6 L-11,0 L-2.6,-2.6Z', fill: R.ink }, this.burst);
+    this.burstDot = el('path', { d: 'M0,-7.5 L1.6,-1.6 L7.5,0 L1.6,1.6 L0,7.5 L-1.6,1.6 L-7.5,0 L-1.6,-1.6Z', fill: R.red }, this.burst);
     // what is left of it: pips on an arc under it
     this.pipsG = el('g', {}, this.svg);
     this.pips = [];
@@ -156,11 +185,20 @@ export class LockReticle {
     this.spinG.setAttribute('transform', `rotate(${(this.spin * 57.3).toFixed(1)})`);
     this.ringG.setAttribute('transform', `rotate(${(-this.t * 12).toFixed(1)})`);
     const spread = chevronSpread(look, this.t), colour = this.flash > 0.3 ? '#ffffff' : look.mode === 'wind' || look.mode === 'strike' ? R.red : look.mode === 'open' ? R.blue : R.gold;
+    const shape = reticleShape(look);
     for (const c of this.chevrons) {
       c.inner.setAttribute('transform', `translate(${(50 * spread + 4).toFixed(1)},0)`);
-      c.top.setAttribute('stroke', colour);
-      c.top.setAttribute('stroke-dasharray', look.mode === 'veiled' ? '5 5' : 'none');
+      c.flip.setAttribute('transform', shape.point === 'in' ? 'translate(-13,0) scale(-1,1)' : '');
+      c.second.style.display = shape.double ? '' : 'none';
+      for (const top of [c.top, c.top2]) {
+        top.setAttribute('stroke', colour);
+        top.setAttribute('stroke-dasharray', shape.dash ? '5 5' : 'none');
+      }
     }
+    this.diamond.style.display = shape.centre === 'diamond' ? '' : 'none';
+    this.ringC.style.display = shape.centre === 'ring' ? '' : 'none';
+    this.burst.style.display = shape.centre === 'burst' ? '' : 'none';
+    this.burstDot.setAttribute('fill', colour);
     this.ring.setAttribute('stroke', look.mode === 'open' ? R.blue : look.mode === 'wind' ? R.red : R.gold);
     this.ring.setAttribute('opacity', look.mode === 'wind' ? String(0.35 + 0.65 * look.k) : '0.8');
     this.dot.setAttribute('fill', colour);

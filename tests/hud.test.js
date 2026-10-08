@@ -212,9 +212,9 @@ test('the scout\'s find says the current quest as its overall goal over its next
 
 test('the Start menu opens the game menu on its Items and Quests, has a Controls page, and H opens Controls', async () => {
   const ui = src('src/ui.js'), main = src('src/main.js');
-  assert.match(ui, /<button data-a="book" data-panel="items">Items<\/button><button data-a="book" data-panel="quests">Quests<\/button>/);
+  assert.match(ui, /<button data-a="book" data-panel="items">\$\{t\('menu\.items'\)\}<\/button><button data-a="book" data-panel="quests">\$\{t\('menu\.quests'\)\}<\/button>/);
   assert.match(ui, /if \(a === 'book'\) \{ this\.toggle\(false\); onBook\?\.\(at\.dataset\.panel\); \}/);
-  assert.match(ui, /go\('controls', 'Controls'\)/);
+  assert.match(ui, /go\('controls', t\('menu\.controls'\)\)/);
   assert.doesNotMatch(ui, /questlog/, 'no quest log page of its own any more');
   assert.match(ui, /e\.code === 'KeyH' && !isBusy\(\)\) \{ if \(this\.open && this\.current === 'controls'\) this\.toggle\(false\); else this\.toggle\(true, 'controls'\); \}/);
   assert.match(main, /onBook: \(panel\) => journal\.toggle\(true, panel\)/);

@@ -6,12 +6,48 @@ The title screen and saves, settings, the pause menus, the empty screen while pl
 
 - **Continue:** your world, position and time of day are saved every few
   seconds; the picker shows a Continue button.
-- **Settings (O, Esc or ⚙):**
-  - graphics quality: low / medium / high;
-  - mouse and touch sensitivity, and invert Y;
-  - music and effects volume, and mute;
-  - reset progress;
-  - the developer shader panel is hidden unless you enable it here.
+- **Settings (O, Esc or ⚙; the title's Settings):** saved in `localStorage` `moebius.settings.v1`
+  (`src/ui.js` `Settings`, `DEFAULTS`), in five groups:
+  - *Screen and text:* the language (`lang`: English, Français), graphics (`quality`: Auto,
+    Handheld, Steam Deck, Low, Medium, High), the text size (`textSize`: Small, Normal, Large,
+    Larger), a solid background behind speech (`speechBg`), the FPS readout (`showFps`, F3);
+  - *Camera and motion:* camera sensitivity, invert Y, invert the jets' pitch (`invertFlight`),
+    reduce motion (`reduceMotion`), camera shake (`shake`, 0..1);
+  - *Controls:* the controller's face layout (`padFaces`), run (`run`: L3 until you stop, hold,
+    toggle), guard (`guard`: hold, toggle), and a way to the Controls page, where each verb's key
+    and button can be moved (`keys`, `pad`: docs/systems/controls.md, "Remapping");
+  - *Sound:* music, effects, voices, alien voices, mute (M);
+  - *Game:* enemies (Normal, Gentle, Off); in play only: the developer panel, the dev menu, and
+    restarting the save from the prologue.
+
+### Accessibility (the Basic tier of the Game Accessibility Guidelines)
+
+`applyAccess(settings)` (src/ui.js) runs when the settings load and on every change, and hands
+each choice to what uses it:
+
+- **Text size:** the root's `--ts` (0.85, 1, 1.2, 1.45). Every font size of the conversation panel,
+  the balloons, the prompts, the cue, the toast, the story pages, the restart card (index.html),
+  the Start menu, the title and the game menu (menus.css, game-menu.css) is
+  `calc(<size> * var(--ts, 1))`; sizes in `em` follow their parent. A new style for words on the
+  screen should do the same.
+- **A solid background behind speech** (`html.speech-solid`): the conversation panel, its answers,
+  the balloons, the cue and the toast on plain white with black ink and a heavier frame (no ruled
+  paper behind the words).
+- **Reduce motion** (`html.reduce-motion`, src/feel.js `setMotion`): no hit-stop, no slow motion,
+  no camera kick (the foes', the blade's, the gadgets', the minigames'), no shake in the ship's
+  scenes (`shakeScale`), a still title view (title-vista `still`), and the CSS animations that the
+  `prefers-reduced-motion` queries already stopped. Not chosen yet (`null`), it follows
+  `prefers-reduced-motion`. The camera has no walking bob to turn off. *Camera shake* scales the
+  kicks when motion is not reduced.
+- **Hold or toggle** for run and guard (src/remap.js `RUN_MODES`, `GUARD_MODES`): the controller
+  reads them itself; on the keyboard the key listener turns a toggled key into one press down and,
+  at the next press, one up.
+- **Not by colour alone:** the lock-on reticle's states differ in shape (src/lock-reticle.js
+  `reticleShape`: doubled chevrons winding up, a burst at the strike, chevrons turned round (tips in) round a
+  hollow ring when open, all dashed when out of reach); low health is hatched as well as red and
+  pulsing, a winded stamina wheel has a "!" beside it; a clash on the Controls page has a ⚠, the
+  other verb's name and a dashed frame. The quest markers are shapes already (◆ ◇ ✦ ✉, ✓ and ·).
+- **Language:** docs/systems/localisation.md.
 - **Touch:** a floating stick on the left, drag on the right to look, and
   buttons for jump, interact, run and the game menu (❏). Low graphics by
   default.
