@@ -1,0 +1,39 @@
+changelog.md
+  s_0b257590537c5a::t_4e67071f82870b 6-8
+docs/systems/audio.md
+  s_0b257590537c5a::t_63097ec36ff0dc 103,105-114
+public/music/manifest.json
+  s_0b257590537c5a::t_69e2a80722455a 1-35
+src/audio.js
+  s_efb1d100d5a6fc::t_e8889aded3c5f1 1-2,17,321,437,512
+src/changelog.js
+  s_0b257590537c5a::t_78cd169bc4db0c 13-14
+src/soundtracks.js
+  s_efb1d100d5a6fc::t_337d570ea5a067 1-57
+tests/soundtracks.test.js
+  s_0b257590537c5a::t_53367c77d2685e 1-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9a1747cfed74fd3fba11e2ac1e93f3e04d3fbe95",
+  "prompts": {},
+  "sessions": {
+    "s_0b257590537c5a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11b63-b11c-7440-84f8-471c5f03bb72",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
