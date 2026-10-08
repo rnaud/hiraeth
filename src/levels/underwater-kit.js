@@ -30,7 +30,7 @@ const SOLID = { solid: true, shadow: true };
 
 /** The sheets' colours (read off the four plates). */
 export const UW_PAL = {
-  tower: ['#f6a08e', '#f0968a', '#f8ac9c', '#ec9088', '#f4a496'],   // (v0.94: a little pinker, the plates' coral)
+  tower: ['#f6a08e', '#f0968a', '#f8ac9c', '#ec9088', '#f4a496'],   // (v0.95: a little pinker, the plates' coral)
   towerCool: '#d9a49a',
   rim: '#f6c2b0',
   under: '#c98478',
@@ -45,7 +45,7 @@ export const UW_PAL = {
   table: '#f2c8a0',
   chair: '#6a4a44',
   street: '#3a7279',
-  streetPale: '#64a2a4',   // (v0.94: the walks a darker teal under the bright towers, as the plates')
+  streetPale: '#64a2a4',   // (v0.95: the walks a darker teal under the bright towers, as the plates')
   sand: ['#3f8088', '#3b7a82', '#36737b'],
   lamp: '#ffc477',
   post: '#2f5a62',
@@ -60,7 +60,7 @@ export const UW_PAL = {
 };
 
 /** The water: a flat tinted depth haze in stepped layers (post.js 4b), deeper below the city floor. */
-// (colour pass, v0.94: the water veils from further and less, so the coral towers keep their colour into the middle
+// (colour pass, v0.95: the water veils from further and less, so the coral towers keep their colour into the middle
 //  distance as the plates' do; the sea's own tint (SEA_DAY) likewise starts later and stops lower)
 export const UNDERWATER_HAZE = { uHazeLayers: [85, 1.5, 0.18, 7], uHazeTone: [0.06, 0.3, 0.5, 0.5], uHeightFog: [-4, 7, 0.05, 0.85], uHeightFogTone: [0.03, 0.2, 0.32, 1] };
 /**
@@ -98,7 +98,7 @@ export function uwMats(kit, { shadeFlat = 0.82 } = {}) {
   const P = shadeFlat ? { shadeFlat } : {};
   return {
     // (the towers keep their salmon in the shade: the sheets turn a tower's far side a dusky rose, not grey)
-    // (v0.94: and lifted a third of the way to their lit coral, so a tower stays pink all round as the plates' glow)
+    // (v0.95: and lifted a third of the way to their lit coral, so a tower stays pink all round as the plates' glow)
     tower: UW_PAL.tower.map((c) => kit.mat({ color: c, weathered: 0.25, shadeHue: 0.5, shade: 0.35 })),
     shell: { teal: kit.mat({ color: '#4a8790', flat: true, weathered: 0.2, ...P }), pink: kit.mat({ color: '#f0aa98', flat: true, weathered: 0.2, shadeHue: 0.5 }) },
     // a shell's inside, seen through its windows and from within: warm plaster, lit

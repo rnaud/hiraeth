@@ -24,7 +24,7 @@ export const MARKETNIGHT_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`m
 export const MARKETNIGHT_VIEW_LOOK = { ...MARKET_LOOK, ...CLEAN_SKY, uHatch: 0.1, uShadowFlat: 0.9, uSkyDots: 0, uHazeLayers: [60, 1.8, 0.1, 3], uHazeTone: [0.12, 0.13, 0.24, 0.6] };
 /** sky top, horizon, shadow, light, sun: the night's (read off the sheets: a black sky, the lane's far glow a deep indigo) */
 const SKY = {
-  ink: ['#07080e', '#1b1f38', '#2e3e5c', '#8a9ab8', '#c8c8e8'],   // (v0.94: the dark masses a slate teal, as the pictures')
+  ink: ['#07080e', '#1b1f38', '#2e3e5c', '#8a9ab8', '#c8c8e8'],   // (v0.95: the dark masses a slate teal, as the pictures')
   indigo: ['#0a0c18', '#232848', '#1d2040', '#9096c8', '#c8c8e8'],
 };
 

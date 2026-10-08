@@ -61,7 +61,7 @@ export const ECL_TONES = {
  * The eclipse's light (sky top, horizon, shadow tint, light tint, sun): a deep blue sky, the limewash lit a cold
  * lavender, its shade a deep violet (read off the pictures: lit walls #9589e6 … #5c4e99, shade #3c3a68 … #312b52).
  */
-// (v0.94: the light a step darker and bluer, the shade a deeper indigo: put next to the pictures, the city read a pale
+// (v0.95: the light a step darker and bluer, the shade a deeper indigo: put next to the pictures, the city read a pale
 //  violet-pink where the pictures' walls are a blue lavender and their shade near the night's own blue)
 export const ECLIPSE_TOTAL = ['#24386c', '#5a78ba', '#2e3064', '#8486d0', '#fff2e0'];
 /** The eclipse in the sky: the corona and the rose band round the horizon (src/eclipse.js cfg). */

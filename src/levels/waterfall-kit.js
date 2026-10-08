@@ -35,9 +35,9 @@ const NS = { solid: false, shadow: false };
 
 /** The sheets' colours. */
 export const WF_PAL = {
-  water: { deep: '#2a7c88', mid: '#48c6c8', pale: '#a4efe4' },   // (v0.94: a saturated turquoise)
+  water: { deep: '#2a7c88', mid: '#48c6c8', pale: '#a4efe4' },   // (v0.95: a saturated turquoise)
   stone: ['#f1dcbd', '#ecd0ad', '#f4e3c8', '#e8c9a6', '#efd6b8'],
-  rock: ['#2e5e64', '#2a585e', '#33666c'],   // (v0.94: a deeper teal, the plates' dark cavern)
+  rock: ['#2e5e64', '#2a585e', '#33666c'],   // (v0.95: a deeper teal, the plates' dark cavern)
   floor: '#7fb0ad',
   dark: '#24393d',
   lamp: '#ffb455',
@@ -114,7 +114,7 @@ export function mistBank(kit, { at, w, yaw = 0, h = 9, depth = h * 0.9, n = Math
 /** The city's materials, made by the kit (one per option set, shared). shadeFlat: how flat its shade is printed. */
 export function cityMats(kit, { shadeFlat = 0.8, windows = 0, stoneFlat = 0.2 } = {}) {
   const PRINT = shadeFlat ? { shadeFlat } : {};
-  // (colour pass, v0.94: the houses' stone prints only a little of the cavern's teal in its shade and keeps its warmth
+  // (colour pass, v0.95: the houses' stone prints only a little of the cavern's teal in its shade and keeps its warmth
   //  (a lift toward its own lit colour), so the city glows warm against the dark teal rock as the plates' does)
   const WARM = { shadeFlat: stoneFlat, shade: 0.45 };
   const DS = THREE.DoubleSide;

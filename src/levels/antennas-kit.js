@@ -349,7 +349,7 @@ export const merged = (list) => (list.length ? mergeGeometries(list.map((g) => (
 
 // ------------------------------------------------------------------ the look
 /** Haze by depth: the sheets' pale yellow-lavender bands, the far masts fading into them. */
-// (colour pass, v0.94: the haze starts nearer and veils more, so the masts a few dozen metres off already pale into the
+// (colour pass, v0.95: the haze starts nearer and veils more, so the masts a few dozen metres off already pale into the
 //  yellow air as the pictures' do, instead of standing dark to the middle distance)
 export const ANTENNAS_HAZE = { uHazeLayers: [55, 1.55, 0.15, 8], uHazeTone: [0.97, 0.94, 0.78, 0.82] };
 /** The print preset's touches: no clouds, the sky flat, thin lines, light hatching, cast shadows lifted on the grass. */

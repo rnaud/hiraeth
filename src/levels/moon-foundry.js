@@ -171,7 +171,7 @@ export function* buildMoonFoundry(scene) {
   const mat = (o) => { const m = first.mat(o); opts.set(m, o); return m; };
   const DS = THREE.DoubleSide;
   // two surfaces drawn by tone (vertex-material.js): the moons' ivory and the machinery's and homes' oranges
-  // (v0.94: the shade lifted less, so a moon turns from the light in a clear terminator and the rust goes dark, as the sheets)
+  // (v0.95: the shade lifted less, so a moon turns from the light in a clear terminator and the rust goes dark, as the sheets)
   const IVORY = { shade: 0.24, hatch: 0.25, line: 0.85 }, METAL = { shade: 0.18, hatch: 0.38, detail: 'built', detailDensity: 0.4 };
   const M = {
     ivory: Object.fromEntries(['ivory', 'ivory2', 'crater', 'edge', 'wall3'].map((k) => [k, mat({ color: T[k], ...IVORY })])),

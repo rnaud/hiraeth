@@ -363,7 +363,7 @@ export const merged = (list) => (list.length ? mergeGeometries(list.map((g) => (
  * haze, a low mist over the black water, hardly a cast shadow in the twilight (post.js CAST), few spot blacks.
  */
 export const MANGROVE_HAZE = { uHazeLayers: [70, 1.7, 0.16, 5], uHazeTone: [0.17, 0.23, 0.44, 0.85], uHeightFog: [1.2, 5, 0.004, 0.35], uHeightFogTone: [0.42, 0.44, 0.7, 0.5] };
-// (colour pass, v0.94: the cast shade kept more (uCast), so the white trees split into a white-pink light and a
+// (colour pass, v0.95: the cast shade kept more (uCast), so the white trees split into a white-pink light and a
 //  lavender-blue shade as the pictures' do, instead of one even pink)
 export const MANGROVE_LOOK = { uClouds: 0, uCumulus: 0, uSkyDots: 0.4, uFogDensity: 0.0016, uCast: [0.6, 0.35], uHalftone: 0.12, uBounce: 0.2, uSpotTone: [0.13, 0.13, 0.24, 0.45], ...MANGROVE_HAZE };
 /** The day's colours (sky top, horizon, shadow, light, sun): a violet twilight whatever the hour, the light pink. */

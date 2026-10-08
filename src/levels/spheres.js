@@ -157,7 +157,7 @@ export function* buildSpheres(scene) {
   const R2 = (r, a, b) => a + r() * (b - a);   // (with an rng of its own)
   const terrain = yield* Terrain.make({
     size: 4000, seg: 440, height,
-    material: { color: '#d2d058', color2: '#c2c650', color3: '#98b056', mode: MODE_TERRAIN, ticks: true },   // (v0.94: the sheets' warm yellow lawn, less lime)
+    material: { color: '#d2d058', color2: '#c2c650', color3: '#98b056', mode: MODE_TERRAIN, ticks: true },   // (v0.95: the sheets' warm yellow lawn, less lime)
   });
   scene.add(terrain.mesh);
   const H = (x, z) => terrain.heightAt(x, z);

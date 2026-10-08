@@ -29,7 +29,7 @@ export const VAEL2_SHEETS = Object.fromEntries(['IMG_3783', 'IMG_3784', 'IMG_378
  */
 export const VAEL2_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.15, uBounce: 0, ...SKY_STONES_HAZE, uCast: [0.85, 0.3], uSpotTone: [0.2, 0.27, 0.36, 0.35] };   // (the panels: the plain's shadows all but gone)
 /** sky top, sky horizon, shadow (the flat grey-blue), light, sun */
-// (v0.94: the shade a bluer grey-teal and the light a touch under white, so the plain is not brighter than the sheets')
+// (v0.95: the shade a bluer grey-teal and the light a touch under white, so the plain is not brighter than the sheets')
 const TINT = '#8ea6b8', LIGHT = '#fbf4ec';
 const SKY = {
   aqua: ['#9fc6c8', '#b3cfcc', TINT, LIGHT, '#fff6dc'],

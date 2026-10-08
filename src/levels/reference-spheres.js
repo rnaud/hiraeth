@@ -25,7 +25,7 @@ export const GARDEN_SHEETS = Object.fromEntries(['IMG_3793', 'IMG_3794', 'IMG_37
 /** The sheets' ink: the world's own touches (spheres.js SPHERES_LOOK) and a clean sky. */
 export const GARDEN_LOOK = { ...SPHERES_LOOK, ...CLEAN_SKY };
 /** The shade's tint: the white stone's shade over its light (#a8c5c3 over #eee5cf). */
-const TINT = '#9cbcb8';   // (colour pass, v0.94: the sheets' sea-green grey, no longer a sky blue)
+const TINT = '#9cbcb8';   // (colour pass, v0.95: the sheets' sea-green grey, no longer a sky blue)
 const SKY = {
   blue: ['#b3cfe2', '#c9dce6', TINT, '#ffffff', '#fff8e0'],
   pink: ['#fbdcc8', '#fde4d3', TINT, '#ffffff', '#fff8e0'],
