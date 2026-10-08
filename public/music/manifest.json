@@ -86,6 +86,34 @@
       "source": "https://suno.com/song/cb01f398-9d9c-4a2a-bb90-21fb0e55e641",
       "file": "mangrove.mp3",
       "direction": "D dorian, 64 BPM; flute, plucked harp, bass clarinet, handpan; lanterns over black water"
+    },
+    {
+      "level": "saltharbour",
+      "title": "Hiraeth - The Salt Harbour",
+      "source": "https://suno.com/song/02492f3d-57e0-4db6-9ecd-0333ac3bf8df",
+      "file": "saltharbour.mp3",
+      "direction": "F mixolydian, 66 BPM; nylon guitar, flute, harmonium, upright bass; weathered ships in salt"
+    },
+    {
+      "level": "waterfall",
+      "title": "Hiraeth - The City Behind the Waterfall",
+      "source": "https://suno.com/song/63eaae60-f857-4583-a092-c519169ebb86",
+      "file": "waterfall.mp3",
+      "direction": "D flat lydian, 62 BPM; felt piano, harp, cello, glass mallets; hidden refuge behind water"
+    },
+    {
+      "level": "antennas",
+      "title": "Hiraeth - The Forest of Antennas",
+      "source": "https://suno.com/song/eecbc8e4-ca4b-4dac-b7e9-1455356a6ee6",
+      "file": "antennas.mp3",
+      "direction": "E dorian, 68 BPM; analog pulse, electric piano, bowed vibes; distant calls and hopeful solitude"
+    },
+    {
+      "level": "atelier",
+      "title": "Hiraeth - The Atelier",
+      "source": "https://suno.com/song/430e1c57-f9ae-45e9-9481-30bbc7ecd954",
+      "file": "atelier.mp3",
+      "direction": "C major, 60 BPM; felt piano, music box, strings, harmonium; memories drawn on a blank page"
     }
   ]
 }

@@ -1,5 +1,9 @@
 // Downloaded Suno originals; provenance is recorded in public/music/manifest.json.
 export const SOUNDTRACKS = {
+  saltharbour: 'saltharbour.mp3',
+  waterfall: 'waterfall.mp3',
+  antennas: 'antennas.mp3',
+  atelier: 'atelier.mp3',
   perdide: 'perdide.mp3',
   perdide2: 'perdide2.mp3',
   bazaar: 'bazaar.mp3',
