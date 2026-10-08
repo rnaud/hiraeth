@@ -75,7 +75,7 @@ function height(x, z) {
  * them), their spot blacks a deep green.
  */
 /** The day's colours: sky top, horizon, shadow, light, sun. */
-export const SPHERES_DAY = ['#9cc4dc', '#f1d9cb', '#a9c3cf', '#fffdf4', '#fff8e0'];
+export const SPHERES_DAY = ['#9cc4dc', '#f1d9cb', '#9cbcb8', '#fffdf4', '#fff8e0'];   // (the shade a sea-green grey, as the sheets' white stone)
 export const SPHERES_LOOK = { uLineWidth: 1.0, uLineVary: 0.1, uWobble: 0.12, uHatch: 0.5, uDots: 0, uSkyDots: 0.3, uBounce: 0, uShadeKeep: 0, uSpotTone: [0.1, 0.17, 0.11, 0.5], uCast: [0.4, 0] };   // (uCast: the lawns' shadows lighter, as the sheets: post.js CAST)
 
 /** The white stone's shade: flat, in the day's pale blue, and almost no strokes (the sheets). */
@@ -157,7 +157,7 @@ export function* buildSpheres(scene) {
   const R2 = (r, a, b) => a + r() * (b - a);   // (with an rng of its own)
   const terrain = yield* Terrain.make({
     size: 4000, seg: 440, height,
-    material: { color: '#c8d65a', color2: '#b5c94f', color3: '#8fae55', mode: MODE_TERRAIN, ticks: true },
+    material: { color: '#d2d058', color2: '#c2c650', color3: '#98b056', mode: MODE_TERRAIN, ticks: true },   // (v0.94: the sheets' warm yellow lawn, less lime)
   });
   scene.add(terrain.mesh);
   const H = (x, z) => terrain.heightAt(x, z);
@@ -181,8 +181,8 @@ export function* buildSpheres(scene) {
 
   const M = {
     // (form: the umbrellas' trunks hatched round, their canopies' strokes radiating from the trunk; src/form.js)
-    trunk: makeMaterial({ color: '#9fb5a8', detail: 'organic', form: true }),   // (bark: grain strokes, materials.js DETAIL)
-    branch: makeMaterial({ color: '#7f9a90', form: true }),
+    trunk: makeMaterial({ color: '#98aeb0', detail: 'organic', form: true }),   // (bark: grain strokes, materials.js DETAIL)
+    branch: makeMaterial({ color: '#7a9496', form: true }),
     canopy: makeMaterial({ color: '#ffffff', vertexColors: true, form: true, line: 0.7, lineTint: 0.67 }),   // (foliage: a dark green line, lighter)
     // the umbrellas' undersides: a deep green, their veins drawn lighter as branches forking out to the rim (FORM.veins)
     under: makeMaterial({ color: '#2b4535', form: true, veins: 1 }),

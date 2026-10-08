@@ -213,7 +213,7 @@ function grassTufts(kit, M, rng, { n = 3000, r0 = 1.5, r1 = 30, eye = [0, 0], to
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.computeVertexNormals();
-  const C = tones.map((c) => new THREE.Color(c).multiplyScalar(0.82)), list = [];
+  const C = tones.map((c) => new THREE.Color(c).multiplyScalar(0.9)), list = [];
   for (let i = 0; i < n; i++) {
     const d = r0 + Math.pow(rng(), 1.6) * (r1 - r0), a = (rng() - 0.5) * 2.2, x = eye[0] + Math.sin(a) * d, z = eye[1] - Math.cos(a) * d;
     if (skip(x, z)) continue;
@@ -504,26 +504,27 @@ export const ANTENNAS_VIEWS = [
   view({
     id: 'antennas-1-receiver', title: 'The path to the workshops under the immense receiver', sheet: 'antennas-1', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: CAM[1], sun: { side: -165, el: 28 },
-    ground: plain({ mounds: [[24, -78, 42, 3.2, 0.55]], tones: { grass: '#9c80d2', grass2: '#8c70c6', grass3: '#7660b0' } }),
+    look: { ...ANTENNAS_VIEW_LOOK, uHazeLayers: [130, 1.6, 0.12, 6], uHatch: 0.5 },   // (backlit: the receiver keeps its navy against the glare)
+    ground: plain({ mounds: [[24, -78, 42, 3.2, 0.55]], tones: { grass: '#9a82c4', grass2: '#8c74b8', grass3: '#7a66a6' } }),
     build: view1,
   }),
   view({
     id: 'antennas-2-saucer', title: 'Under the great nest saucer, the workshops on their decks', sheet: 'antennas-2', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: CAM[2], sun: { side: 30, el: 48 }, sky: SKY.rose,
-    ground: plain({ mounds: [[30, -76, 40, 2.5, 0.6]], tones: { grass: '#c79ad8', grass2: '#b68ad0', grass3: '#9a78c0' } }),
+    ground: plain({ mounds: [[30, -76, 40, 2.5, 0.6]], tones: { grass: '#c29ac8', grass2: '#b28cc0', grass3: '#9a7ab0' } }),
     build: view2,
   }),
   view({
     id: 'antennas-3-nests', title: 'The vine-grown masts and their nests, the pink receiver over the domes', sheet: 'antennas-3', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: CAM[3], sun: { side: -55, el: 40 }, sky: SKY.lilac,
-    ground: plain({ mounds: [[40, -72, 34, 2.6, 0.6]], tones: { grass: '#b08ad0', grass2: '#a07cc4', grass3: '#8a6ab4' } }),
+    ground: plain({ mounds: [[40, -72, 34, 2.6, 0.6]], tones: { grass: '#ac8cc0', grass2: '#9e7eb4', grass3: '#886ca4' } }),
     build: view3,
   }),
   view({
     id: 'antennas-4-egg', title: 'The great saucer, the egg and the domes, the stair to the platform', sheet: 'antennas-4', panel: 1, where: 'the whole picture', crop: [0, 0, 1456, 816],
     camera: CAM[4], sun: { side: 45, el: 34 }, sky: SKY.amber,
     look: { ...ANTENNAS_VIEW_LOOK, uHazeTone: [0.96, 0.88, 0.66, 0.8] },
-    ground: plain({ mounds: [[14, -76, 30, 1.6, 0.6]], tones: { grass: '#a086c8', grass2: '#9078bc', grass3: '#7a66aa' } }),
+    ground: plain({ mounds: [[14, -76, 30, 1.6, 0.6]], tones: { grass: '#9c82b6', grass2: '#8e76aa', grass3: '#7a689c' } }),
     build: view4,
   }),
 ];

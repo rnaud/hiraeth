@@ -30,7 +30,7 @@ const SOLID = { solid: true, shadow: true };
 
 /** The sheets' colours (read off the four plates). */
 export const UW_PAL = {
-  tower: ['#f2a48e', '#eb9a86', '#f4b09a', '#e69482', '#f0a896'],
+  tower: ['#f6a08e', '#f0968a', '#f8ac9c', '#ec9088', '#f4a496'],   // (v0.94: a little pinker, the plates' coral)
   towerCool: '#d9a49a',
   rim: '#f6c2b0',
   under: '#c98478',
@@ -45,7 +45,7 @@ export const UW_PAL = {
   table: '#f2c8a0',
   chair: '#6a4a44',
   street: '#3a7279',
-  streetPale: '#8cc8c8',
+  streetPale: '#64a2a4',   // (v0.94: the walks a darker teal under the bright towers, as the plates')
   sand: ['#3f8088', '#3b7a82', '#36737b'],
   lamp: '#ffc477',
   post: '#2f5a62',
@@ -60,7 +60,9 @@ export const UW_PAL = {
 };
 
 /** The water: a flat tinted depth haze in stepped layers (post.js 4b), deeper below the city floor. */
-export const UNDERWATER_HAZE = { uHazeLayers: [70, 1.5, 0.22, 7], uHazeTone: [0.06, 0.3, 0.5, 0.5], uHeightFog: [-4, 7, 0.05, 0.85], uHeightFogTone: [0.03, 0.2, 0.32, 1] };
+// (colour pass, v0.94: the water veils from further and less, so the coral towers keep their colour into the middle
+//  distance as the plates' do; the sea's own tint (SEA_DAY) likewise starts later and stops lower)
+export const UNDERWATER_HAZE = { uHazeLayers: [85, 1.5, 0.18, 7], uHazeTone: [0.06, 0.3, 0.5, 0.5], uHeightFog: [-4, 7, 0.05, 0.85], uHeightFogTone: [0.03, 0.2, 0.32, 1] };
 /**
  * The ink: the shade printed flat in the water's teal (a salmon tower's turned side goes blue-green), few strokes,
  * no bounce, a clean sky (no clouds: the sky is the sea seen far off), a few spot blacks in the pods' undersides.
@@ -73,7 +75,7 @@ export const UNDERWATER_NIGHT = ['#0b2a3c', '#0a2232', '#123444', '#7fb2c2', '#d
 
 /** The sea's look under its surface (water.js SEA_LOOK): light tint near, the shafts, the caustics. */
 export const SEA_DAY = {
-  tint: '#2479a8', deep: '#0c3a5c', density: 0.004, bands: 4, min: 0.0, max: 0.6, start: 25,
+  tint: '#2479a8', deep: '#0c3a5c', density: 0.004, bands: 4, min: 0.0, max: 0.45, start: 32,
   shafts: { cell: 26, width: [2.2, 7], lean: 0.32, reach: 70, strength: 0.16, tone: '#bff2f6', n: 0.55 },
   caustics: { scale: 1.5, range: 22, strength: 0.13, tone: '#c9f6f2', speed: 0.55 },
 };
@@ -96,7 +98,8 @@ export function uwMats(kit, { shadeFlat = 0.82 } = {}) {
   const P = shadeFlat ? { shadeFlat } : {};
   return {
     // (the towers keep their salmon in the shade: the sheets turn a tower's far side a dusky rose, not grey)
-    tower: UW_PAL.tower.map((c) => kit.mat({ color: c, weathered: 0.25, shadeHue: 0.5 })),
+    // (v0.94: and lifted a third of the way to their lit coral, so a tower stays pink all round as the plates' glow)
+    tower: UW_PAL.tower.map((c) => kit.mat({ color: c, weathered: 0.25, shadeHue: 0.5, shade: 0.35 })),
     shell: { teal: kit.mat({ color: '#4a8790', flat: true, weathered: 0.2, ...P }), pink: kit.mat({ color: '#f0aa98', flat: true, weathered: 0.2, shadeHue: 0.5 }) },
     // a shell's inside, seen through its windows and from within: warm plaster, lit
     lining: kit.mat({ color: '#e0905e', glow: 0.5, shade: 0.9, flat: true, spot: 0, side: THREE.BackSide }),

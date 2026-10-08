@@ -45,11 +45,12 @@ export const SCREEN = {
 /** Background colours for the screens that fill the walls (weighted as the sheets have them: pink and violet most). */
 export const FILL_COLOURS = ['pink', 'pink', 'magenta', 'violet', 'violet', 'orange', 'amber', 'lemon', 'green', 'emerald', 'cyan', 'cobalt', 'red', 'apricot', 'white'];
 export const MN_TONES = {
-  wall: '#1d2131', wall2: '#242838', wall3: '#2a2c30', far: '#151826',
-  casing: ['#545a50', '#625e52', '#4a505c', '#565c6a', '#6a6456'], casingDark: '#1a1d24',
+  wall: '#243040', wall2: '#2a3444', wall3: '#30383c', far: '#18202c',   // (v0.94: a slate teal, not near-black)
+  // (v0.94: the casings a shade lighter, the bezels catch their screens' light)
+  casing: ['#5a6056', '#686458', '#505662', '#5c6270', '#706a5c'], casingDark: '#1a1d24',
   off: '#2c3448',
   cloth: ['#8e8a74', '#7c808c', '#9a8e7a'], rope: '#1a1c22',
-  paving: '#364062', paving2: '#313a5a', paving3: '#3c4668',
+  paving: '#30497a', paving2: '#2c4372', paving3: '#364f80',   // (v0.94: the pictures' saturated night blue)
   cable: '#12141c', crate: '#36322a', crate2: '#2c3038',
   people: ['#4b5a7a', '#6c4e5c', '#5a6650', '#7a6a52', '#3e4660', '#80606a'], skin: '#9a7a70',
 };
@@ -264,7 +265,7 @@ export function nightPaint(seed) {
  * indigo, the towers' shade and the moonlight dark, so the walls are dark masses round their lit screens, as the night
  * sheets draw them. [sky top, horizon, shadow tint, light tint, moon]
  */
-export const MARKET_NIGHT = ['#0b0e1e', '#232a4a', '#1c1e36', '#454b78', '#ece6d2'];
+export const MARKET_NIGHT = ['#0b0e1e', '#232a4a', '#26344e', '#52608a', '#ece6d2'];   // (v0.94: the shade a slate blue, the moonlight a little stronger)
 /** The lanterns' pools on the street by night: warm apricot against the indigo (makeMaterial lampTint). */
 export const LANTERN_TINT = ['#ffb070', 0.8];
 /** How many lanterns light pools at once by night (the nearest to the traveller) and how far each reaches (m). */

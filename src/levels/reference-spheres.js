@@ -25,7 +25,7 @@ export const GARDEN_SHEETS = Object.fromEntries(['IMG_3793', 'IMG_3794', 'IMG_37
 /** The sheets' ink: the world's own touches (spheres.js SPHERES_LOOK) and a clean sky. */
 export const GARDEN_LOOK = { ...SPHERES_LOOK, ...CLEAN_SKY };
 /** The shade's tint: the white stone's shade over its light (#a8c5c3 over #eee5cf). */
-const TINT = '#b2d6e6';
+const TINT = '#9cbcb8';   // (colour pass, v0.94: the sheets' sea-green grey, no longer a sky blue)
 const SKY = {
   blue: ['#b3cfe2', '#c9dce6', TINT, '#ffffff', '#fff8e0'],
   pink: ['#fbdcc8', '#fde4d3', TINT, '#ffffff', '#fff8e0'],
@@ -41,11 +41,11 @@ function materials(kit) {
   const leaves = (c) => kit.mat({ color: c, pattern: 'leaves' });
   return {
     // (form: the trunk's strokes wrap round it, the canopy's radiate from it; src/form.js)
-    trunk: kit.mat({ color: '#7ba381', detail: 'organic', form: true }),
+    trunk: kit.mat({ color: '#7f9ea2', detail: 'organic', form: true }),
     canopy: kit.mat({ color: '#a9b94f', form: true, line: 0.7, lineTint: 0.67 }),   // (foliage: its line a dark green, lighter)
     // (the canopy's underside: deep green, its strokes the radiating gills, the spot blacks in its pockets)
     under: kit.mat({ color: '#2f4d33', side: THREE.DoubleSide, form: true, veins: 1 }),
-    branch: kit.mat({ color: '#486a50', form: true }),
+    branch: kit.mat({ color: '#4c6c68', form: true }),
     // (the white stone prints its shade flat in the pale blue, with almost no strokes: spheres.js WHITE_SHADE)
     white: kit.mat({ color: '#f1ead7', flat: true, ...WHITE_SHADE }),
     whiteSmooth: kit.mat({ color: '#f3eddc', ...WHITE_SHADE }),
@@ -357,7 +357,7 @@ const scatter = (n, seed, cx, cz, r0, r1, a0 = -180, a1 = 180, f) => {
 };
 
 // ---------------------------------------------------------------- grounds
-const MEADOW = { color: '#d8cf56', color2: '#cdd25a', color3: '#bcc254', ticks: true };
+const MEADOW = { color: '#d8cf56', color2: '#cdd25a', color3: '#adc258', ticks: true };
 /** The meadow: flat near, low swells beyond, a lake hollow ([cx, cz, rx, rz]) and far wooded hills. */
 const meadow = (o = {}) => ({
   height: (x, z) => {

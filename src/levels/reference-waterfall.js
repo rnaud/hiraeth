@@ -23,11 +23,11 @@ export const WATERFALL_SHEETS = { 'waterfall-1': sheet(1), 'waterfall-2': sheet(
  * barely hatched, no bounce lifting the rock's undersides, a clean sky; the deep cavern fades into a teal haze in
  * stepped bands (post.js 4b).
  */
-export const WATERFALL_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0, uHalftone: 0.06, uBounce: 0, uHatch: 0.12, uLineWidth: 0.9, ...WATERFALL_HAZE };
+export const WATERFALL_LOOK = { ...CLEAN_SKY, uShadowFlat: 0.85, uShadeKeep: 0.15, uHalftone: 0.06, uBounce: 0, uHatch: 0.12, uLineWidth: 0.9, ...WATERFALL_HAZE };
 /** sky top, sky horizon, shadow (the cavern's teal), light (warm), sun */
 const SKY = {
-  teal: ['#a9dcd6', '#f2ead0', '#3f7a80', '#fff2dc', '#fff3d6'],
-  warm: ['#bfe3d9', '#f6e3c0', '#4a8086', '#fff0d8', '#ffe9c4'],
+  teal: ['#a9dcd6', '#f2ead0', '#2e6a72', '#fff2dc', '#fff3d6'],
+  warm: ['#bfe3d9', '#f6e3c0', '#367078', '#fff0d8', '#ffe9c4'],
   pink: ['#e9c9c2', '#f7d9c4', '#5f7480', '#ffe2d2', '#ffd9c2'],
 };
 const nV = createNoise2D(4281);
@@ -36,7 +36,7 @@ const nV = createNoise2D(4281);
  * The cavern floor (y 0, its colour `floor`) and, past `edge` (-z: the falls' line), nothing: the ring ground sinks
  * out of sight under the valley's own mesh (valley()).
  */
-const cavernGround = (edge = -120, floor = ['#5f8f90', '#5a8a8c', '#527f82']) => ({
+const cavernGround = (edge = -120, floor = ['#4e7c7e', '#4a7678', '#446e72']) => ({
   height: (x, z) => (z > edge ? 0 : -500),
   material: { color: floor[0], color2: floor[1], color3: floor[2] }, rings: { r1: 2400 },
 });
