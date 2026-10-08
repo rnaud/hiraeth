@@ -1,0 +1,81 @@
+docs/systems/gadgets.md
+  s_364474254304ac::t_99c42ca88abe2f 6-7,418-450
+docs/systems/items.md
+  s_364474254304ac::t_17cfa559bc7db1 47-49
+docs/systems/minigames.md
+  s_364474254304ac::t_71904b5c781ee3 411-444
+src/boxes/model.js
+  s_364474254304ac::t_78ec745e1e4faf 5,380-389,392
+src/boxes/placements.js
+  s_364474254304ac::t_41cc103627c2ad 57-60,73-76,89-92,105-108,120-123,136-139,152-155,168-171,184-187,195-198
+src/finds/courts.js
+  s_364474254304ac::t_55e022297a01e2 1-116
+src/gadgets/registry.js
+  s_364474254304ac::t_a1824fe583ae02 55
+src/items.js
+  s_364474254304ac::t_4bcd3b86c6b1a3 18,132-187
+src/main.js
+  s_364474254304ac::t_45cb91b18ad1eb 74-76,641-642,705-707,1468,1486,1488-1489,1793-1806
+src/temples/index.js
+  s_364474254304ac::t_265c1b2877a8f5 28,115-116
+src/trials/check.js
+  s_364474254304ac::t_b4558103d4ce69 1-83
+src/trials/course.js
+  s_364474254304ac::t_a9d20834d26dd3 1-73
+src/trials/data.js
+  s_364474254304ac::t_7b7ca1afa99fe2 1-112
+src/trials/index.js
+  s_364474254304ac::t_8a7a9c258ce990 1-232
+src/trials/upgrades.js
+  s_364474254304ac::t_c0b7e211604640 1-44
+src/trials/winds.js
+  s_364474254304ac::t_7fb83902bda6d3 1-69
+tests/boxes.test.js
+  s_364474254304ac::t_9e7b2f24f2b919 4,76,455
+tests/debug-save.test.js
+  s_364474254304ac::t_442ec518f04d3f 9,167-169
+tests/gadgets-qa.test.js
+  s_364474254304ac::t_2520b2531399f5 342
+tests/game-menu.test.js
+  s_364474254304ac::t_cec0501db67a43 202
+tests/register-gadgets.js
+  s_096d9f4127f346::t_7edf6a853cd9c6 1-12
+tests/temples.test.js
+  s_364474254304ac::t_1e7c4078f74a8a 7
+tests/trials-worlds.test.js
+  s_364474254304ac::t_146206b06c8a81 1-66
+tests/trials.test.js
+  s_91ab8b06c8bd11::t_253ae231427d4a 1-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "220b8d5e933eaf552ed19dab1657110e3b63bca3",
+  "prompts": {},
+  "sessions": {
+    "s_096d9f4127f346": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11c1c-fa66-7b63-bdfb-d94262f7dff8",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_364474254304ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8ea9584-cc3c-44fe-9e77-33d6acfd28ee",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_91ab8b06c8bd11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be152c02-3161-49a2-962b-6dd6e5049f91",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
