@@ -1,0 +1,85 @@
+changelog.md
+  s_9ca76055a220ed::t_4f7b030e14e09f 8-11
+docs/README.md
+  s_9ca76055a220ed::t_5c44e6116199c9 60-61
+docs/systems/interiors.md
+  s_9ca76055a220ed::t_fc11e84d1f66f5 1-77
+docs/systems/items.md
+  s_9ca76055a220ed::t_4c4a1f38234b51 55-56,69-71,94-96,153-193
+docs/systems/ui.md
+  s_9ca76055a220ed::t_e82d215f57b98d 492-525
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_035f754536fe1c 146-148
+src/audio.js
+  s_9ca76055a220ed::t_4845d236186275 1570-1584
+src/boot.js
+  s_9ca76055a220ed::t_5c93fa438b1ff5 16
+src/game-state.js
+  s_9ca76055a220ed::t_9caaf12aedebf3 45-47
+src/hud.js
+  s_9ca76055a220ed::t_cc30f7d5835c9c 51-53
+src/i18n/en.js
+  s_9ca76055a220ed::t_3ed6bd22f3d45c 266,268-289
+src/i18n/fr.js
+  s_9ca76055a220ed::t_50cb617b001bae 264,266-287
+src/interior-kit.js
+  s_9ca76055a220ed::t_d6324e3f5b0838 1-249
+src/levels/desert.js
+  s_9ca76055a220ed::t_593a9077722e9d 12-13,16,87-104,113,120
+src/main.js
+  s_9ca76055a220ed::t_b9554b921df279 116-117,618-628,1046,1165-1168,1198,1225,1232,1611-1613,1708,1729
+src/resources.js
+  s_9ca76055a220ed::t_e38d0cf21ccf93 19-20,26-28,67-71,143-144,154-159
+src/save-migrate.js
+  s_9ca76055a220ed::t_c31a829f5b5456 23-27,31-33,87-95
+src/shop-panel.css
+  s_9ca76055a220ed::t_1036fd48878d1c 1-69
+src/shop-panel.js
+  s_9ca76055a220ed::t_00126e0341c0e0 1-218
+src/shop-world.js
+  s_9ca76055a220ed::t_86c2f538f82877 1-135
+src/shop.js
+  s_9ca76055a220ed::t_68268a5ba9b07d 1-148
+src/story/index.js
+  s_9ca76055a220ed::t_ea0f7231eb4857 38,212-213,306,319
+src/story/people-book.js
+  s_9ca76055a220ed::t_6a14fe01df6e7a 171-174
+src/story/shop-data.js
+  s_9ca76055a220ed::t_fa159e3b6a96db 1-78
+src/story/shops.js
+  s_9ca76055a220ed::t_5f657057252195 1-39
+tests/interiors.test.js
+  s_9ca76055a220ed::t_d90b770e87e1e5 1-138
+tests/people-page.test.js
+  s_9ca76055a220ed::t_fbb1dddf6ff2c4 15-16,28-30
+tests/resources.test.js
+  s_9ca76055a220ed::t_da759e9d34bb88 72,75,77-80,82-83,85-88,159
+tests/shop.test.js
+  s_9ca76055a220ed::t_0c8571b973961a 1-273
+src/changelog.js
+  s_3db58c053401f6::t_5f656f763cd3e1 27-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b1fff179c94aeade78f42187a98fc4b545780f61",
+  "prompts": {},
+  "sessions": {
+    "s_3db58c053401f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af3a48ff56822234b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
