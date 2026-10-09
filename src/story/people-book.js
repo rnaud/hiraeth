@@ -168,6 +168,10 @@ export const BOOK = {
     P('bako', 'Bako', 'A ney player of the procession', [
       'He plays a ney cut from an oasis reed. He saw the burn on your ship: three dots over a curve, like the mark between the giant’s eyes.',
     ], ['With the musicians at the camps.']),
+    P('haddu', 'Haddu', 'Weighs chimes and sells cures by the main gate', [
+      'Haddu has kept his shop between the camps and Qanat’s main gate for forty Drinkings. He weighs every chime on his little scale and sells what the walk takes out of people: healing potions, a few hearts’ worth of courage, more room in your tank.',
+      [f('desert.haddu.hearts'), 'His heart containers come up the salt road from past the flats. He only ever gets a couple, and each one costs more than the last.'],
+    ], ['In his shop by Qanat’s main gate, behind the counter.']),
   ],
   arzach: [
     P('oia', 'Oïa', 'Watches the lone tower in Vael', [

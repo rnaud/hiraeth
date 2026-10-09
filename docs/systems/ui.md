@@ -489,3 +489,37 @@ tall narrow screens). The journal's (src/game-menu.css) smallest words have a 9-
   ← → the other items, ↑ ↓ zoom, the right stick tilts, B closes (B on the list: back to the worlds list).
 - Tests: `tests/pad-glyphs.test.js` (families, the names, the glyphs' labels and CSS, the buttons that carry
   them, `gridStep`, the worlds' cards, X / Y in menus, `shortLine`), `tests/game-menu.test.js`.
+
+## The shop (v1.5)
+
+The shop panel (`src/shop-panel.js`, `src/shop-panel.css`, `#shop`), opened by talking to a keeper ("Show me what
+you have": the conversation emits `shop:open`) or with E at their counter (src/story/shops.js); main.js opens it
+once the conversation has closed. A paper sheet over the room, the room dimmed behind it:
+
+- **The head**: the keeper's name and title, and what they say now in a speech bubble (in their voice:
+  `sound.speak` on the conversation's channel), the **wallet** (the chime and the count, redrawn on every
+  `wallet` event), and ✕ to leave (B / ○, Esc). The keeper's balloon is not drawn over the panel; their goodbye
+  goes over their head as it closes.
+- **The wares**, a card each: the picture (an inked SVG in the HUD's style: the flask, a heart, a magic cell),
+  the name, what it does, how many are left ("3 on the shelf", "2 left") and what you have ("you carry 3 / 5",
+  "you have 4", "your bar: 3"), the price in chimes. One that can't be bought says why on the card ("Not enough
+  chimes", the price in red; "Sold out", the picture faded and a black tag; "Your pack is full") and stays
+  focusable (`aria-disabled`, not `disabled`: the pad can still land on it), and choosing it makes the keeper
+  say it ("The scale says no", "That's the last of them", "Your pack is full of my cures already").
+- **Buying**: a card asks first, "Buy a heart container for 50 chimes?", with **Buy** (A / ×, Enter) and **Not
+  now** (B / ○, Esc) in a small sheet over the cards (the cards `inert` meanwhile); Buy pays, the chimes are
+  counted out on the counter and the bell rings (`sound.purchase`; the counter bell as it opens,
+  `sound.shopBell`), the keeper thanks you for that kind of ware, the card and the wallet update, the HUD shows
+  the hearts and the wallet, and the counter's display loses what was sold.
+- **The controller**: the cards are a grid (`data-grid-nav`: ← → between cards, ↑ ↓ in a column on a phone),
+  A / × asks and buys, B / ○ backs out of the question and then out of the shop (main.js `menuRoot` returns
+  `shopPanel.root`, the question while it shows; `closeControllerMenu` calls `shopPanel.back()`); the glyphs are
+  in the buttons (A on the focused card, A in Buy, B in Not now and in ✕). **Keyboard**: the arrows, Enter /
+  Space / E, Esc or Backspace (the panel's own capture listener; the press that opened it is ignored). **Mouse
+  and touch**: tap a card, then Buy; the touch controls are hidden while it is open (`body.shopping`).
+- **Screen sizes**: three cards in a row at 1280 × 720 and the Deck's 1280 × 800; under 480 px high (a phone on
+  its side, 812 × 375) the same row, smaller; under 560 px wide (a phone held upright, 375 × 812) one card a row,
+  the picture beside the words, the wallet and ✕ on top.
+- While it is open the game is busy (`busy()`): nothing else takes the input, and the potion button is off.
+
+Tests: `tests/shop.test.js` (the markup, the states, the question, the keeper's reactions, the wiring).

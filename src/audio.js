@@ -1567,6 +1567,21 @@ export class Sound {
     for (let i = 0; i < n; i++) this.ting(t + 0.45 + i * 0.06 + Math.random() * 0.04, this.freq(4 - (i % 5), 2), 0.018, 0.3);
   }
 
+  /** A shop's counter bell (the shop panel opens, src/shop-panel.js): two quick tings, the second higher. */
+  shopBell() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.ting(t, 1318.5, 0.04, 0.9);
+    this.ting(t + 0.11, 1760, 0.035, 1.1);
+  }
+  /** A sale: the chimes counted out onto the counter (a few tings falling, more for a dearer one), then the keeper's bell. */
+  purchase(price = 10) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, n = Math.min(8, 3 + Math.floor(price / 25));
+    for (let i = 0; i < n; i++) this.ting(t + i * 0.055, this.freq(6 - (i % 6), 2), 0.03, 0.35);
+    this.ting(t + n * 0.055 + 0.12, 1760, 0.04, 1.2);
+  }
+
   /** Picking something up: a hand on it, the bag. */
   pickup({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;

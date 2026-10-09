@@ -20,10 +20,17 @@
 // 'magic:4' doors of the Engine-House and the Furnace steps), the quick coil quickens the refill from its own;
 // the hearts are not saved (a load starts whole, as the bar did) and potions start infinite (no flag: true).
 //
+// The first shop (Qanat's, v1.5: src/shop.js) made potions finite: a new game starts with POTION.start and
+// carries at most POTION.cap. A save from before had them infinite (no flag): step 5 gives it a full stock
+// (the cap) rather than the start, so nobody loses out, and the format becomes 2. A save the dev menu had made
+// infinite on purpose (the flag true) stays so.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 /** The resources' format (src/resources.js RES_VERSION; kept here so the migration needs no game modules). */
-export const RES_VERSION = 1;
+export const RES_VERSION = 2;
+/** The potions' carry cap (src/resources.js POTION.cap; here so the migration needs no game modules). */
+export const POTION_CAP = 5;
 
 export const RENAMED_PEOPLE = [
   { from: 'hask', to: 'hask.buried', world: 'buried' },
@@ -77,7 +84,15 @@ const STEPS = [
   },
   // 4: hearts and the magic bar (src/resources.js): the format stamped; the chamber items read as bar length
   (flags) => {
-    if (flags['res.v'] === undefined) flags['res.v'] = RES_VERSION;
+    if (flags['res.v'] === undefined) flags['res.v'] = 1;
+  },
+  // 5: potions finite since the first shop: a save that had them infinite gets a full stock (the carry cap)
+  (flags) => {
+    if (flags['res.potions.infinite'] === undefined) {
+      flags['res.potions'] = Math.max(POTION_CAP, Math.floor(+flags['res.potions'] || 0));
+      flags['res.potions.infinite'] = false;
+    }
+    flags['res.v'] = RES_VERSION;
   },
 ];
 

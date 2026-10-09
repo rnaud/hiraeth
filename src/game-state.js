@@ -42,7 +42,9 @@
 //                         no refill); the first magical water clears it
 //   res.*                 hearts, the magic bar, potions (src/resources.js): res.v the format,
 //                         res.hearts.extra / res.magic.extra containers and expansions gained,
-//                         res.potions the stock, res.potions.infinite (unset: true, until the shops)
+//                         res.potions the stock (unset: POTION.start), res.potions.infinite (the dev menu's)
+//   shop.*                the shops (src/shop.js): shop.<id>.<ware>.sold, shop.<id>.potions (+ .t, the restock
+//                         clock), shop.bought.heart / shop.bought.magic (the prices' step)
 //   hint.potion           the "drink a potion" hint has been shown (main.js)
 //
 // Well-known events:

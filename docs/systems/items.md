@@ -52,8 +52,8 @@ What the traveller carries and the boxes that give it.
 
 ## Hearts, magic and potions (v1.5)
 
-`src/resources.js` holds the traveller's resources, so the shops to come (heart containers, magic
-expansions, potions for sale) and the currency plug in without touching what spends them.
+`src/resources.js` holds the traveller's resources, so the shops (heart containers, magic expansions, potions
+for sale: "Shops" below) and the currency plug in without touching what spends them.
 
 - **Hearts** (`HEARTS.start` 3, at most `HEARTS.cap` 20): the health, counted in quarter hearts. The
   current hearts are the player's (`player.hearts`, `player.maxHearts`; `player.health` the share 0..1);
@@ -66,7 +66,9 @@ expansions, potions for sale) and the currency plug in without touching what spe
   a notice says so); main.js takes one from the stock (`resources.takePotion()`), plays the cork and the two
   swallows (`sound.potion`), tilts the HUD's flask and raises a warm glow round the traveller as the hearts
   come back (`opts.onDrink`). The first hurt that leaves you a heart short says how, once (`hint.potion`).
-  Potions are a count with an infinite flag: infinite until the shops (`res.potions.infinite` unset = true).
+  Potions are a count: **3** in a new game (`POTION.start`), at most **5** carried (`POTION.cap`); the shops sell
+  more ("Shops" below). Until the first shop they were infinite; `res.potions.infinite` is now only the dev
+  menu's. Out of them, the notice says a shop sells more.
 - **The magic bar** replaced the backpack's three charges (the tank's chambers): `MAGIC.start` 3 units,
   one unit = one old chamber = a third of the starting bar, so every cost kept its feel
   (`MAGIC_COST`): a shot (any gun mode), a push, a boost, a shield that breaks (src/fluid-blade.js), a gadget
@@ -89,7 +91,9 @@ expansions, potions for sale) and the currency plug in without touching what spe
   (containers), `res.magic.extra` (expansions), `res.potions` (the stock), `res.potions.infinite`. Old saves
   (src/save-migrate.js, step 4): the format is stamped; the fourth chamber and the coil are read from their own
   item flags, so a save that had them keeps a bar of four and the quick refill, and the doors that wanted the
-  chamber still open; hearts are not saved (a load starts whole, as the bar did); potions start infinite.
+  chamber still open; hearts are not saved (a load starts whole, as the bar did). Step 5 (the first shop): a save
+  whose potions were infinite gets a full stock (the cap, 5) and finite potions, `res.v` 2; a save the dev menu
+  had made infinite on purpose stays so.
 - **The Arena** (src/minigames/waves.js): a wave cleared gives a heart back (`TIDE.heal`); Second wind gives
   all of them back and lends a slow mend (`TIDE.mend`, 0.1 hearts a second per pick, through `FALL.regen`);
   Deeper well lengthens the bar a unit, Quick refill shortens the wait and quickens the fill.
@@ -145,6 +149,47 @@ In French, *tintes*. Batch 3's shops spend them.
   shows the wallet by the Gear heading.
 
 Tests: `tests/chimes.test.js`.
+
+## Shops (v1.5)
+
+Shops sell for chimes what the walk takes out of you. Code: `src/shop.js` (what they sell, the prices, the
+stock: pure over the save), `src/shop-world.js` (the building, the counter and the wares on it: docs/systems/
+interiors.md), `src/story/shops.js` and `src/story/shop-data.js` (the keepers), `src/shop-panel.js` (the panel:
+docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
+
+- **The wares** (`WARES`, a shop's `wares` in `SHOPS`):
+
+  | Ware | Effect | Price | Stock |
+  |---|---|---|---|
+  | healing potion | one more potion (two hearts back when drunk) | 10 chimes | the shelf holds 3, one comes back every 3 minutes (`SHELF`); you carry at most 5 |
+  | heart container | +1 heart for good, and the hearts filled | 50, then 80, 110, 140… (+30 each) | a few per shop (Qanat: 2) |
+  | magic expansion | +1 unit on the magic bar for good | 40, then 70, 100, 130… (+30 each) | a few per shop (Qanat: 2) |
+
+  A container's and an expansion's price rises with every one bought **in any shop** (`shop.bought.heart`,
+  `shop.bought.magic`; `stepPrice`), so batch 4's shops in the later worlds go on up the same curve, and buying
+  them in any order costs the same in the end. The caps still hold (20 hearts, a bar of 9).
+- **Why these prices** (against the drop table above): a desert fight is three or four foes, two ink blots, a
+  spitter and a dune ray, about **11 chimes** (±25 %). A **potion** at 10 is about one fight: it heals two hearts,
+  and a fight that goes badly costs one or two, so buying potions with what the fights drop is break-even, never
+  a farm. The **first heart container** at 50 is four or five fights (or one guardian's purse of 40 and a makers'
+  run's 15): a few fights, not a grind, and the first one the player will want as soon as the shop is found.
+  Each next one costs 30 more (three fights more), so the second in Qanat is 80 (about seven fights), and the
+  late ones in the later worlds, where the foes drop 4–8 each, keep the same feel. A **magic expansion** is a
+  little less than a heart (40, +30): a fourth unit is a shot more in a fight, as useful but less vital, and the
+  Engine-House's `magic:4` doors also open with the fourth chamber.
+- **Buying** (`Shop.buy(id)`): `status(id)` first: `soldout` (none left), `full` (you carry 5 potions, or the
+  hearts or the bar are at their cap), `short` (not enough chimes), or `ok`; then `resources.spend` (the `wallet`
+  event), the ware given (`addPotions`, `addHeartContainer`, `addMagic`), the stock taken down, and
+  `game.emit('shop:bought', { shop, ware, price })`. main.js fills the hearts on a new container.
+- **The save** (game flags): `shop.<id>.<ware>.sold` (a limited ware's sales), `shop.<id>.potions` and
+  `.potions.t` (the shelf and its restock clock: the wall clock, so it refills between sessions; unset, a full
+  shelf), `shop.bought.heart` / `shop.bought.magic`.
+- **The first shop**: Haddu's Chimes & Cures in the desert, by the way from the camps up to Qanat's main gate.
+  Haddu (`SHOPKEEPERS.haddu`): a broad, slow chime-weigher in a deep teal coat over saffron, a red fez, a brass
+  monocle and a hand bell, who has kept shop through forty Drinkings and weighs every chime on his little scale; a
+  low, unhurried voice (0.78). Talking to him ("Show me what you have") or E at his counter opens the shop; his
+  lines at the counter (`SHOP_LINES`) greet, thank you for each kind of sale, say when you are short, when it is
+  sold out or your pack is full, and see you off. He is on the People page once met.
 
 ## The makers' boxes, Android controls and updates (v0.36)
 - **The boxes** are artifacts of the makers, the people of the glyph (see "The
