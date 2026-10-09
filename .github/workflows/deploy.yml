@@ -3,9 +3,16 @@ name: Deploy to GitHub Pages
 # The game at https://rnaud.github.io/hiraeth/, a second home next to the Cloudflare
 # Worker (cloudflare.yml). Only the site: the content updates for the app and the
 # Deck (/updates/) come from the Worker alone.
+#
+# When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
+# run finishing and goes on only when that run was a push to main here and succeeded), building that run's
+# commit (github.event.workflow_run.head_sha; github.sha would be main's newest commit when this run started).
+# By hand (workflow_dispatch): the chosen ref at once, without waiting for the tests.
 
 on:
-  push:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -14,19 +21,21 @@ permissions:
   pages: write
   id-token: write
 
+# (Only a run that will build takes the group: one whose tests failed, or a run for another branch or event, has
+# a group of its own and is skipped, so it can't replace a waiting deploy or cancel a running one.)
 concurrency:
-  group: pages
+  group: ${{ (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)) && 'pages' || format('pages-skipped-{0}', github.run_id) }}
   cancel-in-progress: true
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests.yml   # the whole unit suite first: a failing test never ships
-
   build:
-    needs: tests
+    # (the suite passed on a push to main in this repository, or a run by hand; else build and deploy are skipped)
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}   # the tested commit
       - uses: actions/setup-node@v5
         with:
           node-version: 24

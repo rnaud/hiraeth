@@ -3,12 +3,19 @@ name: Deploy to Cloudflare Workers
 # The game's site, and its content updates next to it: /updates/web.json and
 # /updates/web-<build>.zip (scripts/web-update.mjs), which the Android app
 # (WebBundles.MANIFEST) and the Steam Deck updater (deck.py) read. This is the only
-# workflow that deploys the Worker: a deploy replaces every asset. It waits for the whole
-# unit suite (tests.yml) before it builds. The Steam Deck runtime
+# workflow that deploys the Worker: a deploy replaces every asset. The Steam Deck runtime
 # (Electron and the launcher, /updates/steam-deck.json and its parts) is on it too.
+#
+# When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
+# run finishing and goes on only when that run was a push to main here and succeeded), building that run's
+# commit, github.event.workflow_run.head_sha (github.sha would be main's newest commit when this run
+# started). By hand (workflow_dispatch): the chosen ref at once, without waiting for the tests.
+# (By hand only from main: the Worker is production.)
 
 on:
-  push:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -16,22 +23,22 @@ permissions:
   contents: read
 
 # Never cancelled once started; pushes meanwhile wait (GitHub keeps the newest one waiting).
+# (Only a run that will build takes the group: one whose tests failed, or a run for another branch or event, has
+# a group of its own and is skipped, so it can't replace a waiting deploy or cancel a running one.)
 concurrency:
-  group: cloudflare-production
+  group: ${{ (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)) && 'cloudflare-production' || format('cloudflare-production-skipped-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests.yml   # the whole unit suite first: a failing test never ships
-
   deploy:
-    if: github.ref == 'refs/heads/main'
-    needs: tests
+    # (the suite passed on a push to main in this repository, or a run by hand from main; else skipped)
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 30   # (a new Deck runtime: Electron packaged and 150 MB uploaded and checked)
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}   # the tested commit
           fetch-depth: 0   # the whole history: the build number counts its commits (release-info.mjs build)
       - uses: actions/setup-node@v5
         with:

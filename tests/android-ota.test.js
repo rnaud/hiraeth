@@ -170,7 +170,8 @@ test('the workflow publishes the APK and its manifest, never half', () => {
   // a new release is made with every file at once (gh keeps it a draft until they are up)
   assert.match(yml, /gh release create "\$TAG" "\$APK" "\$RUNNER_TEMP\/latest\.json"/);
   // a run publishing is never cancelled (that left the newest release without its manifest)
-  assert.match(yml, /concurrency:\s*\n\s*group: android-release\s*\n\s*cancel-in-progress: false/);
+  // (the group is android-release for a run that builds; tests/pre-commit.test.js evaluates it)
+  assert.match(yml, /concurrency:\s*\n\s*group: [^\n]*'android-release'[^\n]*\n\s*cancel-in-progress: false/);
 });
 
 test('saves survive bundle switches: one fixed origin', () => {

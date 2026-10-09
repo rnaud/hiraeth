@@ -1,21 +1,35 @@
 name: Tests
 
-# The whole unit suite (node --test tests/*.test.js), on pull requests and by hand. On a push to
-# main every deploy calls it first and waits for it (deploy.yml, cloudflare.yml, android.yml,
-# steam-deck.yml: `uses: ./.github/workflows/tests.yml`), so a failing test never reaches
-# players. The pre-commit hook runs only the tests a commit's changes reach (scripts/affected-tests.mjs).
+# The whole unit suite (node --test tests/*.test.js), ONCE per push to main, on pull requests and by hand.
+# The deploys start when it has passed on main: deploy.yml, cloudflare.yml, android.yml and steam-deck.yml
+# are triggered by `workflow_run` of this workflow (by its name, "Tests": keep it), go on only when the run
+# was a push to main in this repository and succeeded, and build its commit (github.event.workflow_run.head_sha),
+# so a failing test never reaches players. xbox.yml (its own triggers: its paths, nightly) still calls this
+# file (workflow_call). The pre-commit hook runs only the tests a commit's changes reach (scripts/affected-tests.mjs).
+# A flaky shard on main: "Re-run failed jobs" on this run; when it passes, the deploys follow.
 #
 # Split in three shards that run at once, of about equal time: scripts/test-shards.mjs deals the
 # files out by their times in tests/shard-timings.json (docs/systems/testing.md, "The shards").
-# A deploy's `needs: tests` waits for every shard.
+# The run succeeds (and the deploys start) only when every shard passed.
 
 on:
+  push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
   workflow_call:
 
 permissions:
   contents: read
+
+# Pushes to main run one at a time, in push order, never cancelled once started: so their runs finish in
+# order and the deploys (queued by their own concurrency groups) never ship an older commit after a newer one.
+# GitHub keeps only the newest waiting run; a push replaced that way is cancelled, and a cancelled run deploys
+# nothing (the newer one covers it). A pull request's newer push cancels its older run. (github.workflow is
+# the caller's name when xbox.yml calls this file, so its calls never queue with, or replace, these runs.)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   unit:

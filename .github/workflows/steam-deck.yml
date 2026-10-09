@@ -1,28 +1,41 @@
 name: Steam Deck release
 
+# The offline game and its Linux runtime for the Steam Deck, published to the GitHub release `steam-deck`
+# (a prerelease of its own; the runtime on the site comes from cloudflare.yml).
+#
+# When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
+# run finishing and goes on only when that run was a push to main here and succeeded), building that run's
+# commit: SHA, github.event.workflow_run.head_sha (github.sha would be main's newest commit when this run
+# started). By hand (workflow_dispatch): the chosen ref at once, without waiting for the tests.
+
 on:
-  push:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
 
+# (Only a run that will build takes the group: one whose tests failed, or a run for another branch or event, has
+# a group of its own and is skipped, so it can't replace a waiting deploy or cancel a running one.)
 concurrency:
-  group: steam-deck-release
+  group: ${{ (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)) && 'steam-deck-release' || format('steam-deck-release-skipped-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests.yml   # the whole unit suite first: a failing test never ships
-
   linux:
-    needs: tests
+    # (the suite passed on a push to main in this repository, or a run by hand; else skipped)
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-22.04
     timeout-minutes: 25
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}   # the tested commit: built, and the release's target
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: ${{ env.SHA }}
           fetch-depth: 0   # the whole history: the packaged game's build number counts its commits
       - uses: actions/setup-node@v5
         with:
@@ -74,7 +87,7 @@ jobs:
           # A separate channel avoids races with Android's version releases and
           # leaves GitHub's latest stable release pointing to the Android APK.
           if ! gh release view steam-deck >/dev/null 2>&1; then
-            gh release create steam-deck --target "$GITHUB_SHA" --title 'Hiraeth for Steam Deck' \
+            gh release create steam-deck --target "$SHA" --title 'Hiraeth for Steam Deck' \
               --prerelease --latest=false --notes-file scripts/steam-deck/release-notes.md
           fi
           gh release upload steam-deck output/steam-deck/*.tar.gz

@@ -6,15 +6,45 @@ touches code: `scripts/affected-tests.mjs` follows each test's relative imports 
 by a literal path, or names) and keeps those that reach a changed file; a change to `package.json`, the
 lock, a test helper or the hook, or more than 40 files, runs them all (`FULL_TESTS=1` too; `npm install`
 sets `core.hooksPath`; `SKIP_TESTS=1` or `--no-verify` skips them in an emergency). The whole suite runs on
-GitHub (`.github/workflows/tests.yml`, called first by deploy.yml, cloudflare.yml, android.yml and
-steam-deck.yml), and no deploy starts until it passes. (Until 2026-10-08 the hook ran every test and
+GitHub, once per push to main (`.github/workflows/tests.yml`), and no deploy starts until it passes ("Once
+per push, then the deploys" below). (Until 2026-10-08 the hook ran every test and
 GitHub none: with several agents committing at once on this Mac each commit waited 20+ minutes.) Each world's story has its own test (`tests/story-*.test.js`, `tests/desert-story.test.js`),
 which plays that world alone from a new game. The play-through plays them all, one after the other.
+
+## Once per push, then the deploys
+
+`tests.yml` (named `Tests`) runs on every push to main, on pull requests and by hand. The four deploys
+(deploy.yml for Pages, cloudflare.yml, android.yml, steam-deck.yml) don't run on push: each is triggered
+by `workflow_run` of `Tests` (completed, on main), and its first job goes on only when that run succeeded
+and was a push to main in this repository (`github.event.workflow_run`: `conclusion`, `event`,
+`head_branch`, `head_repository`), so a failed or cancelled suite, a pull request (even a fork's from a
+branch named main) or a `Tests` run by hand deploys nothing. Until 2026-10-09 each deploy called
+`tests.yml` itself, so every push ran the suite four times (twelve shard jobs).
+
+- **The tested commit.** In a `workflow_run` run `github.sha` / `GITHUB_SHA` is main's newest commit when
+  the run started, not the tested one: every checkout names `github.event.workflow_run.head_sha || github.sha`
+  (with `fetch-depth: 0` where the build number counts commits, `release-info.mjs build`, which reads
+  HEAD), and android.yml and steam-deck.yml set it as `SHA`, the target of a new release.
+- **In push order.** Pushes to main run `Tests` one at a time and never cancel one that started (its
+  concurrency group), so the runs finish in push order and each deploy's own group (Pages cancels the
+  running deploy; the others never cancel and keep the newest waiting) never ships an older commit after
+  a newer one. A push whose waiting run was replaced by a newer one is cancelled and deploys nothing: the
+  newer one covers it. Only a deploy run that will build takes its group (`<group>-skipped-<run id>`
+  otherwise), so a failed suite can't replace a waiting deploy or cancel the running Pages deploy.
+- **By hand.** Each deploy keeps `workflow_dispatch`: it builds the chosen ref at once, without waiting
+  for the suite (cloudflare.yml only from main). A flaky shard on main: "Re-run failed jobs" on the
+  `Tests` run; when it passes, the deploys follow. (Re-running an older push's `Tests` would deploy that
+  older commit again.)
+- **Xbox, Unity.** xbox.yml keeps its own triggers (its paths, nightly, by hand) and still calls
+  `tests.yml` first (`workflow_call`; `github.workflow` in its concurrency group is the caller's name, so
+  those calls never queue with the push runs). unity-android.yml builds testers' builds and runs no suite.
+- `tests/pre-commit.test.js` checks all of this, evaluating each workflow's `if` and concurrency group
+  against the events above.
 
 ## The shards
 
 On GitHub the suite runs as three jobs at once (`.github/workflows/tests.yml`, a matrix `shard: [1, 2, 3]`;
-a deploy's `needs: tests` waits for all three). Each runs `node --test $(node scripts/test-shards.mjs N/3)`:
+the run, and so the deploys, succeed only when all three pass). Each runs `node --test $(node scripts/test-shards.mjs N/3)`:
 the script deals the test files out by their times in `tests/shard-timings.json` (file → seconds, committed),
 longest first, each to the shard with the least time so far; a file not in the table yet (a new test) goes
 round-robin after them, and one in the table that is gone is ignored. Every shard works the plan out alone,

@@ -16,6 +16,7 @@ name: Unity release (testers)
 # every night, when the game (src/, public/) moved since the last published build: the game's pushes are too
 # frequent to build each one. Fast when warm: Unity's Library (its imports, shader cache and the IL2CPP build's
 # objects in Library/Bee), Puerts' IL2CPP glue, Gradle's caches and Puerts are all cached between runs.
+# No unit suite here: these are testers' builds, not the players' (the players' deploys wait for tests.yml).
 
 on:
   push:

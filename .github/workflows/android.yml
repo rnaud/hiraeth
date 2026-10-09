@@ -11,9 +11,16 @@ name: Android release
 # (scripts/web-update.mjs); the repository is private, so nothing else is read here.
 # The build number (versionCode) is the commit's (release-info.mjs build), the
 # same as the Cloudflare web bundle's, so the app compares the two.
+#
+# When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
+# run finishing and goes on only when that run was a push to main here and succeeded), building that run's
+# commit: SHA, github.event.workflow_run.head_sha (github.sha would be main's newest commit when this run
+# started). By hand (workflow_dispatch): the chosen ref at once, without waiting for the tests.
 
 on:
-  push:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -24,20 +31,23 @@ permissions:
 # release without its manifest (run 90 made v0.52 and was cancelled a second later, before its
 # manifests went up). Pushes meanwhile wait; GitHub keeps
 # only the newest one waiting.
+# (Only a run that will build takes the group: one whose tests failed, or a run for another branch or event, has
+# a group of its own and is skipped, so it can't replace a waiting deploy or cancel a running one.)
 concurrency:
-  group: android-release
+  group: ${{ (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)) && 'android-release' || format('android-release-skipped-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests.yml   # the whole unit suite first: a failing test never ships
-
   apk:
-    needs: tests
+    # (the suite passed on a push to main in this repository, or a run by hand; else skipped)
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}   # the tested commit: built, and a new release's target
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: ${{ env.SHA }}
           fetch-depth: 0   # the whole history: the build number counts its commits
 
       - uses: actions/setup-node@v5
@@ -132,7 +142,7 @@ jobs:
           else
             # (one call: gh keeps the release a draft until every file is up, so the newest
             # release never shows without its manifest)
-            gh release create "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --target "$GITHUB_SHA" --title "Hiraeth v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
+            gh release create "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --target "$SHA" --title "Hiraeth v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
           fi
 
       - uses: actions/upload-artifact@v5

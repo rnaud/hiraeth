@@ -17,7 +17,9 @@ name: Xbox release (Developer Mode)
 #
 # When: a push that touches the app (xbox/, its scripts, this file), by hand, and every night when the game moved
 # since the last package (the game itself reaches installed apps over the air; the nightly package only freshens
-# the game it falls back on). The unit tests first (tests.yml), as every deploy.
+# the game it falls back on). The unit tests first: this workflow still calls tests.yml itself (workflow_call),
+# as its triggers (its paths, the nightly run, by hand) aren't the push runs the other deploys wait for
+# (workflow_run of "Tests"); a push touching xbox/ runs the suite twice, a rare case.
 # The runner: windows-latest, or the repository variable XBOX_RUNNER (e.g. windows-2022) if an image lacks the
 # Visual Studio UWP tools (the "Visual Studio and the UWP tools" step says so).
 
