@@ -1,0 +1,48 @@
+"references/Core Objects/Reviewed Gadgets/Bubble Wand/prompt.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Bubble Wand/review.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Bubble Wand/source.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Gust Fan/prompt.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Gust Fan/review.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Gust Fan/source.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Ink Bridge Pen/prompt.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Ink Bridge Pen/review.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Ink Bridge Pen/source.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Recall Hourglass/prompt.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Recall Hourglass/review.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Recall Hourglass/source.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Seeing Lens/prompt.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Seeing Lens/review.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Seeing Lens/source.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Spring Boots/prompt.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Spring Boots/review.txt"
+  h_a9d45f2c234256 1
+"references/Core Objects/Reviewed Gadgets/Spring Boots/source.txt"
+  h_a9d45f2c234256 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3c030cf71e70930882dcdc5d55e3ad3dda0e2800",
+  "prompts": {},
+  "humans": {
+    "h_a9d45f2c234256": {
+      "author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
