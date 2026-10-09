@@ -1,0 +1,55 @@
+changelog.md
+  s_9ca76055a220ed::t_23459fe4929e33 7-13
+DONE.md
+  s_1ff1d79b7c352d::t_b0087525fadf73 1876-1885
+TODO.md
+  s_1ff1d79b7c352d::t_dd0c067faf099e 56,58-61,63,67-85
+docs/README.md
+  s_1ff1d79b7c352d::t_06b8884d3b8999 26
+docs/audits/combat-v1.8.md
+  s_1ff1d79b7c352d::t_77741924056fcd 1-93
+docs/design/enemy-roster.md
+  s_1ff1d79b7c352d::t_2d0c769c4c1070 1,3,868-906
+docs/systems/foes.md
+  s_1ff1d79b7c352d::t_868c1c6ed2c5eb 577-650,656-660,671-675,677,900,902-905
+docs/systems/procedural-animation.md
+  s_1ff1d79b7c352d::t_95d22f68dd45fa 506-517
+scripts/enemy-roster/skins.mjs
+  s_1ff1d79b7c352d::t_28df3f5e038962 1-87
+src/changelog-media.js
+  s_1ff1d79b7c352d::t_93708bf2a48ae0 342-364
+src/changelog.js
+  s_1ff1d79b7c352d::t_ecbed6e0358e00 19-26
+src/enemies/page.js
+  s_1ff1d79b7c352d::t_acf8719cdf1980 5,57,94-98
+src/enemies/plans/blob.js
+  s_1ff1d79b7c352d::t_02cfa2317739d7 15,23,36,58
+src/enemies/plans/piston.js
+  s_1ff1d79b7c352d::t_1cea8807a21b3b 79
+src/enemies/plans/quadruped.js
+  s_1ff1d79b7c352d::t_46807e43a1801f 132,164-165,205,207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "71ecfc0d4befef31a2b27905e48eda364141bb1a",
+  "prompts": {},
+  "sessions": {
+    "s_1ff1d79b7c352d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a41101f89dd18912b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
