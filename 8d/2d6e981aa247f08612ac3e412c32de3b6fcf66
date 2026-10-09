@@ -1,0 +1,49 @@
+TODO.md
+  s_9ca76055a220ed::t_88165fee21aa0b 25-30
+changelog.md
+  s_9ca76055a220ed::t_7def3213c26541 7
+docs/systems/ship.md
+  s_9ca76055a220ed::t_b9f97c5db4846f 45-51,63-65,70-91,146,151-153,159-164
+src/changelog-media.js
+  s_9ca76055a220ed::t_e26e70d3ba61fb 373
+src/changelog.js
+  s_9ca76055a220ed::t_2dc24d2ac7d846 19-20
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_f0276d3407c685 58-59
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_eb173f9555ae7b 40,52,68,83-84,86-87,97,101,159,161,258,276,360,417
+src/ship/interior.js
+  s_9ca76055a220ed::t_8faaaea2befccc 7-17,41-54,59-62,78-106,295,313,315-319,321-323,326-331,333,335-340,353-357,363,374-375,378-432,434-437,439-458,461-467,469-498,500-502,504,506-567,569-605,607,609-610,612-616,619-621,623,631,633,635-642,644-647,649,723-724,745-751,754,760-761
+src/ship/model.js
+  s_9ca76055a220ed::t_ae2f69a536ac32 62,101-104
+src/ship/prologue.js
+  s_9ca76055a220ed::t_6ade155ba5ba10 69,80
+src/ship/ship.js
+  s_9ca76055a220ed::t_85faadbfde0d0f 477,599
+src/ship/starmap.js
+  s_9ca76055a220ed::t_d746bccddc7977 46
+tests/first-run.test.js
+  s_9ca76055a220ed::t_c13260d5b358b4 91
+tests/ship-camera.test.js
+  s_9ca76055a220ed::t_47ce9689b3e513 44
+tests/ship-deck.test.js
+  s_9ca76055a220ed::t_3b3721aef53de6 8,52-53,76,79-80,83,93-100
+tests/ship.test.js
+  s_9ca76055a220ed::t_8ea652b7c61002 40,48,526
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8d2d6e981aa247f08612ac3e412c32de3b6fcf66",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
