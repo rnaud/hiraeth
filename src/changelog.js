@@ -15,6 +15,8 @@ export const CHANGELOG = [
     'In Vael II, Sister Perpetue keeps the Almonry, the monastery’s gatehouse on the cliff-top between two round towers under slate roofs: seven little bells over its hatch, one rung for every sale, and every cure sealed in wax with the Three Notes.',
     'In Lorn, Nettle keeps a raft-house moored at the landing island’s shore: grey planks and reed bundles under a steep thatch, a violet crystal lantern under the eave, the Hush painted over the door so the snappers leave her be, and her accounts kept as knots on a cord.',
     'In Lorn II, Rowan keeps the Welcome-Shelf, a moss dome on the lit path with a blue door, a striped stall of flasks and three little lamps over the door. He has kept it stocked for travellers for thirty years, and you are his first customer.',
+    'In Viridel, Clover keeps a potting house of wood and glass against a fallen white slab under an umbrella tree, halfway from Mira’s garden down to the fallen ship: a striped awning, pots and flasks on a ladder of shelves, a brass bracket hanging a flask in a ring, and a heart grown in a pot of moss.',
+    'In the City-Shaft, Fausta keeps a narrow three-storey shop on the middle terrace beside the cab stop, with a striped awning over its window, green shutters and a crane that lowers baskets of cures to every level.',
   ] },
   { v: '1.13', date: '2026-10-09', items: [
     // the enemy roster, part three: four more foes, each its own

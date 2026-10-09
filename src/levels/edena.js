@@ -7,6 +7,8 @@ import { buildRoom, portalPair } from '../interiors.js';
 import { PEOPLE } from '../story/edena-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 
 // ---------------------------------------------------------------------------
 // Viridel: a paradise planet with pale meadows,
@@ -587,16 +589,23 @@ export function* buildEdena(scene) {
     scene.add(furrow);
   }
 
+  // Clover's Potting House (src/shop-world.js, src/shop-fronts.js 'potting'): against a fallen builders' slab under an
+  // umbrella tree, halfway from Mira's garden down to the fallen ship (the world's emptiest stretch,
+  // docs/audits/level-design-v1.9.md), 11 m off the straight way, its door turned to the walkers coming down
+  const shop = placeShop(scene, { def: SHOPS.potting, at: new THREE.Vector3(62, terrain.heightAt(62, -92), -92), heading: -0.75 });
+  shipPortals.push(...shop.portals);
+
   // (the white builders' Greenhouse in the hollow north of the ruins: src/temples/edena.js)
   yield;
   return attachTemple('edena', scene, {
     id: 'edena',
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the story's handles (src/story/edena.js): the crashed ship (hatch, cabin panel, the scorch
     // and the veil over it), the tallest tree and its lookout, the pond
     edena: { crashed, tall, pond: { ...POND, y: pondY }, ruins: ruinSlabs },
     // no flora in the pond, round the crashed ship or at the foot of the tallest tree (src/flora.js)
-    floraAvoid: (x, z, r) => Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r || crashed.centre.distanceTo(new THREE.Vector3(x, crashed.centre.y, z)) < 26 + r
-      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r),
+    floraAvoid: shop.avoid((x, z, r) => Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r || crashed.centre.distanceTo(new THREE.Vector3(x, crashed.centre.y, z)) < 26 + r
+      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r)),
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
@@ -616,7 +625,7 @@ export function* buildEdena(scene) {
     },
     killY: -Infinity,
     portals: shipPortals,
-    get lights() { return shipRoom ? shipRoom.lights : []; },
+    get lights() { return [...(shipRoom ? shipRoom.lights : []), ...shop.lights]; },
     atmo: () => ({ tint: [0.98, 1.0, 1.02], fog: 0.7, name: 'Viridel' }),
     life: {
       flocks: [{ count: 16, color: '#f2a7b5', size: 1.4, radius: 70, height: [12, 40], seed: 6 },

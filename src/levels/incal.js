@@ -13,6 +13,8 @@ import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped, runSteps } from '../load-steps.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 import { greebles } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -43,6 +45,9 @@ const SPIRE_RING = 48;
 const SHRINE_A = 3.155, LAMP_A = 3.2, NIMA_DA = 0.045;
 // the old goods hoist on the bottom terrace, a little way past Pip (quest incal.ration): its angle, and how far it stands in from the edge
 export const HOIST = { a: SHRINE_A - 0.075, inset: 1.3, reach: 4.0, height: 4.8 };
+// Fausta's Basket-Shop on the middle terraces, beside the middle levels' cab stop (and Perrine's halfway mirror): how far round
+// from the stop (rad) and in from the terrace's edge (m) its door stands, on the promenade before the houses
+export const SHOP = { da: 0.035, inset: 11 };
 
 // ---------------------------------------------------------------------------
 // The cabs' stops (src/taxi.js, src/story/cab.js): cabs drive themselves, and take you to these.
@@ -300,6 +305,7 @@ export function* buildIncal(scene) {
       if (s === 0 && li === 0) clearZones.push({ x: Math.cos(a0 + NIMA_DA) * (r0 + 6), y, z: Math.sin(a0 + NIMA_DA) * (r0 + 6), r: 9 });
       if (s === 0 && li === 0) clearEnds.push({ y, a: a0, w: STAIR.lane });
       if (s === 0 && li === LEVELS.length - 1) clearZones.push({ x: Math.cos(SHRINE_A) * (r0 + 8), y, z: Math.sin(SHRINE_A) * (r0 + 8), r: 12.5 });
+      if (s === 0 && li === 3) { const sa = (a0 + a1) / 2 + SHOP.da; clearZones.push({ x: Math.cos(sa) * (r0 + SHOP.inset + 2.5), y, z: Math.sin(sa) * (r0 + SHOP.inset + 2.5), r: 8 }); }   // (Fausta's shop)
       curGroup = `t${li}`; curY = y;
       const slab = new THREE.Mesh(sectorGeometry(r0, R, a0, a1, 7),
         strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3 }));
@@ -1106,15 +1112,24 @@ export function* buildIncal(scene) {
   // ---------------------------------------------------------- level description
   yield;
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
+  // Fausta's Basket-Shop (src/shop-world.js, src/shop-fronts.js 'basket'): a narrow house on the middle terrace by the
+  // middle levels' cab stop, its door and shop window turned to the promenade and the void
+  const shop = (() => {
+    const mid = terraces.find((t) => t.y === LEVELS[3]), a = (mid.a0 + mid.a1) / 2 + SHOP.da, r = mid.r0 + SHOP.inset;
+    return placeShop(scene, { def: SHOPS.basket, at: new THREE.Vector3(Math.cos(a) * r, mid.y, Math.sin(a) * r), heading: Math.atan2(-Math.cos(a), -Math.sin(a)) });
+  })();
   // the Warden's Well, the makers' tower on the rim, and its rooms far overhead (src/temples/incal.js)
   yield;
   return attachTemple('incal', scene, {
     id: 'incal',
+    portals: [...shop.portals],
+    lights: [...shop.lights],
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the rim's flora (src/flora.js) keeps the view from the spawn, the villas, the pillar and the trees' feet clear
-    floraAvoid: (x, z, r) => (Math.abs(z) < 18 + r && x < R + 42) || (x > R + 28 && x < R + 62 && Math.abs(z) < 44)
+    floraAvoid: shop.avoid((x, z, r) => (Math.abs(z) < 18 + r && x < R + 42) || (x > R + 28 && x < R + 62 && Math.abs(z) < 44)
       || Math.hypot(x - Math.cos(PILLAR.a) * PILLAR.r, z - Math.sin(PILLAR.a) * PILLAR.r) < 10 + r
       || Math.hypot(x - Math.cos(STAIR.top) * (R + 6), z - Math.sin(STAIR.top) * (R + 6)) < 8 + r   // (the red stair's gate)
-      || trees.some((t) => t[3] > 0 && Math.abs(t[1] - TOP) < 1 && Math.hypot(t[0] - x, t[2] - z) < 2.2 + r),
+      || trees.some((t) => t[3] > 0 && Math.abs(t[1] - TOP) < 1 && Math.hypot(t[0] - x, t[2] - z) < 2.2 + r)),
     ground: { heightAt: () => -Infinity }, // everything walkable is real geometry
     spawn,
     spawnHeading: -Math.PI / 2,   // facing the pit
