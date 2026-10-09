@@ -449,6 +449,13 @@ export const CHANGELOG_MEDIA = {
       { name: 'desert-ride-wreck', caption: 'Two thirds of the way: after, the sand-skiff on its side, its mast and a rag of sail, the Hearth’s chimney beyond', commit: 'a3b3abc6',
         view: { level: 'desert', player: [1037.6, -5, -218.2], eye: [1037.6, -0.5, -218.2], target: [1053.6, -2.4, -227.2], fov: 60 } },
     ], see: 'Once Nour has sent you for the spark-stone, ride from Marrow’s hollow straight for the Hearth’s chimney: the pennant and the wreck’s mast come up ahead, and each is named as you near it. Ride home to Qanat along the marked stones.' },
+    // Vael
+    { match: 'In Vael, Senn now listens at the foot of the capped needle spire', shots: [
+      { name: 'vael-senn-spire', caption: 'Out on the plain, halfway to the lone tower: after, Senn with her ear to the capped spire’s foot (the box and a feather on its cap, far overhead)', commit: '02d87f59',
+        view: { level: 'arzach', player: [150, 17.5, -250], eye: [146, 21, -244], target: [166, 22, -276], fov: 60, hour: 12 } },
+      { name: 'vael-stones', caption: 'From the landing, west up the slope: after, a line of standing stones climbing toward the Aerie on the plateau', commit: '02d87f59',
+        view: { level: 'arzach', player: [6, 0, 1], eye: [10, 3.5, 2], target: [-80, 16, -2], fov: 60, hour: 12 } },
+    ] },
   ],
   '1.8': [
     { match: 'The hundred look-alike world enemies are gone', shots: [
