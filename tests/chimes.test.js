@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { DROP_OF, PURSE, SPREAD, PIECE, CRYSTAL, COIN, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, clusterGeometry } from '../src/chimes.js';
+import { DROP_OF, PURSE, SPREAD, PIECE, CRYSTAL, COIN, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, clusterGeometry, pieceBelow, restHeight, blobOf, BLOB } from '../src/chimes.js';
 import { CHIME_ICON_PATHS } from '../src/chime-icon.js';
 import { CHIME_SVG } from '../src/shop-panel.js';
 const view0 = () => new ChimeView(null).crystals;
@@ -74,7 +74,7 @@ test('the pieces pop out in an arc, bounce, hover; walked over they are picked u
     assert.equal(p.phase, 'rest');
     const d = Math.hypot(p.pos.x, p.pos.z);
     assert.ok(d >= PIECE.spread[0] - 1e-6 && d <= PIECE.spread[1] + 1e-6, `scattered round it (${d.toFixed(2)} m)`);
-    assert.ok(Math.abs(p.pos.y - PIECE.hover) < 0.06, 'hovering over the ground');
+    assert.ok(Math.abs(p.pos.y - restHeight(p.value)) < PIECE.bob[0] + 1e-6, `hovering over the ground (${p.pos.y.toFixed(2)} m)`);
   }
   // too soon: not picked up while it pops out
   const G = new ChimeField({ groundAt: () => 0, rng: seeded(1) });
@@ -103,6 +103,55 @@ test('the magnet: within reach a piece is drawn in and taken; out of reach it st
   const G = new ChimeField({ groundAt: () => 0, rng: seeded(2) });
   G.drop(v(0, 0, 0), 2);
   for (let k = 0; k < 2; k += DT) assert.equal(G.update(DT, null).length, 0);
+});
+
+test('they float well clear of the ground, a five as high above it as a one, and are still walked over and drawn in', () => {
+  const F = new ChimeField({ groundAt: () => 2, rng: seeded(3) });
+  F.drop(v(0, 2, 0), 12);   // (two fives, two ones)
+  for (let t = 0; t < 1.2; t += DT) F.update(DT, null);
+  const lowest = (p) => p.pos.y - pieceBelow(p.value) - 2;
+  for (const p of F.list) {
+    assert.equal(p.phase, 'rest');
+    assert.ok(lowest(p) > 0.34 && lowest(p) < 0.46, `${p.value}: ${(lowest(p) * 100).toFixed(0)} cm of air under it`);
+  }
+  // still taken walking over it (the higher centre is within reach of the feet) or standing next to it
+  for (const value of [1, 5]) {
+    const p = F.list.find((q) => q.value === value);
+    assert.ok(F.update(DT, v(p.pos.x + 0.3, 2, p.pos.z)).includes(p), `${value}: taken`);
+  }
+});
+
+test('a patch of shade lies on the ground under each piece: fainter and smaller as it rises, none while drawn in', () => {
+  const F = new ChimeField({ groundAt: (x) => x * 0.2, rng: seeded(6) });   // (a slope)
+  F.drop(v(0, 0, 0), 1);
+  const p = F.list[0];
+  // in flight: under its path, gone at the top of the arc
+  let minK = 1;
+  for (let t = 0; t < p.flight; t += DT) { F.update(DT, null); minK = Math.min(minK, blobOf(p).k); }
+  assert.ok(minK < 0.05, `gone while it flies high (${minK.toFixed(2)})`);
+  for (let t = 0; t < 1; t += DT) F.update(DT, null);
+  const b = blobOf(p);
+  assert.ok(Math.abs(b.pos.y - p.to.y) < 1e-9 && b.pos.x === p.to.x && b.pos.z === p.to.z, 'on the ground under it');
+  assert.ok(b.up.y < 0.99 && b.up.x < 0, 'lying on the slope');
+  assert.ok(b.k > 0.9 && b.r > BLOB.r * 0.95 && b.r <= BLOB.r, `at rest, whole (${b.k.toFixed(2)}, ${b.r.toFixed(3)} m)`);
+  // the bob: higher, a little smaller and fainter
+  const low = { ...p, pos: p.pos.clone().setY(p.to.y + p.lift - PIECE.bob[0]) }, high = { ...p, pos: p.pos.clone().setY(p.to.y + p.lift + PIECE.bob[0]) };
+  const bl = blobOf(low), bh = blobOf(high);
+  assert.ok(bh.k < bl.k && bh.r < bl.r && bl.k - bh.k < 0.15, 'a little fainter and smaller at the top of the bob');
+  // a five's is larger
+  assert.ok(blobOf({ ...p, value: 5 }).r > b.r * 1.3);
+  // drawn in: none
+  assert.equal(blobOf({ ...p, phase: 'pull' }).k, 0);
+  // the view: one more instanced draw, the patches for the pieces at rest, out of the shadow passes
+  const scene = new THREE.Scene(), view = new ChimeView(scene);
+  view.update(F, null);
+  assert.ok(view.blobs.isInstancedMesh && view.blobs.count === 1);
+  assert.equal(view.blobs.material.depthWrite, false, 'depth-tested, not writing depth');
+  assert.ok(view.blobs.material.depthTest && view.blobs.material.transparent);
+  assert.match(view.blobs.material.fragmentShader, /gNormalDepth = vec4\(1\.0\)/, 'multiplied into the G-buffer: normals and depth left as they are');
+  assert.match(view.blobs.material.fragmentShader, /gAlbedoLight = vec4\(vec3\([^;]*\), 1\.0\)/, 'only the colour darkened: the light term kept (no hard shadow edge to ink)');
+  assert.equal(view.blobs.userData.castShadow, false);
+  view.dispose(); assert.equal(scene.children.length, 0);
 });
 
 test('left lying, they blink before the end and are gone after PIECE.life s', () => {
@@ -292,8 +341,15 @@ test('a chime is a crystal as big on screen as the brass coin it replaced, a fiv
   assert.ok(Math.abs(h5.y / h1.y - COIN.five) < 0.08, `a five ${(h5.y / h1.y).toFixed(2)} x a one (the coin's five ${COIN.five} x)`);
   assert.ok(Math.abs(h5.y / (coin * COIN.five) - 1) < 0.05, `a five as tall as the coin's five was wide (${(h5.y * 100).toFixed(1)} cm)`);
   assert.ok(five.attributes.position.count > one.attributes.position.count * 2.5, 'a cluster of three shards');
-  // they hover clear of the ground at the bottom of their bob
-  assert.ok(PIECE.hover - PIECE.bob[0] - h1.y * 0.5 > 0.12 && PIECE.hover - PIECE.bob[0] - h5.y * 0.5 > 0.08, 'clear of the ground');
+  // they float: PIECE.hover of air under their lowest point (the cluster's foot reaches further down than a shard's
+  // end, so a five's centre is higher), a clear gap even at the bottom of the bob
+  for (const [value, g] of [[1, one], [5, five]]) {
+    const t = g.clone().rotateZ(CRYSTAL.tilt); t.computeBoundingBox();
+    assert.ok(Math.abs(pieceBelow(value) + t.boundingBox.min.y) < 1e-6, `pieceBelow(${value}) is its lowest point, tilted`);
+    assert.ok(Math.abs(restHeight(value) - pieceBelow(value) - PIECE.hover) < 1e-9);
+  }
+  assert.ok(pieceBelow(5) > pieceBelow(1) + 0.03, 'a five reaches further down');
+  assert.ok(PIECE.hover - PIECE.bob[0] >= 0.35 && PIECE.hover + PIECE.bob[0] <= 0.46, `a clear gap of air under them (${PIECE.hover} m ± ${PIECE.bob[0]})`);
   // picked up and drawn in from the coin's reach (the same size), wider than a five
   assert.ok(PIECE.take > h5.y && PIECE.magnet > 3 * PIECE.take);
   // flat facets: each triangle's three normals are one

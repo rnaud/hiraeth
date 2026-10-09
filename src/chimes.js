@@ -59,13 +59,14 @@ export function pieceValues(n) {
 
 /**
  * The pieces' tuning (m, s). flight: s in the air; spread: m out from where it fell; rise: m the arc goes up;
- * hover: m over the ground at rest; wait: s before it can be picked up (it is seen popping out first); magnet:
+ * hover: m of air under its lowest point at rest (the centre is higher by pieceBelow: a five's foot reaches further down
+ * than a one's), the middle of its bob; wait: s before it can be picked up (it is seen popping out first); magnet:
  * m from the traveller's middle it is drawn in from; take: m it is picked up at; pull: m/s² drawn in; life: s
  * on the ground; blink: s before the end it blinks; glint: s between a piece's glints; turn: rad/s it turns at rest;
  * bob: its rise and fall at rest [m, rad/s].
  */
 export const PIECE = {
-  flight: [0.45, 0.7], spread: [0.5, 1.7], rise: [1.1, 1.9], bounce: 0.22, bounceT: 0.24, hover: 0.34,
+  flight: [0.45, 0.7], spread: [0.5, 1.7], rise: [1.1, 1.9], bounce: 0.22, bounceT: 0.24, hover: 0.4,
   wait: 0.45, magnet: 2.4, take: 0.65, pull: 30, life: 30, blink: 5, glint: [1.6, 3.6], max: 160, fiveFrom: 10,
   turn: 1.7, bob: [0.045, 1.9],
 };
@@ -80,6 +81,21 @@ export function pieceVisible(p) {
 }
 
 const lerp = (a, b, k) => a + (b - a) * k;
+
+let _below = null;
+/**
+ * How far below its centre a piece's lowest point lies as it hovers (tilted by CRYSTAL.tilt; its turn round the
+ * vertical changes nothing): the one's shard, the five's cluster, worked out once from their geometry (m).
+ */
+export function pieceBelow(value = 1) {
+  _below ??= Object.fromEntries([[1, crystalGeometry()], [5, clusterGeometry()]].map(([v, g]) => {
+    g.rotateZ(CRYSTAL.tilt); g.computeBoundingBox(); g.dispose();
+    return [v, -g.boundingBox.min.y];
+  }));
+  return value > 1 ? _below[5] : _below[1];
+}
+/** A piece's centre over the ground at rest (the middle of its bob): PIECE.hover of air under its lowest point. */
+export const restHeight = (value = 1) => PIECE.hover + pieceBelow(value);
 
 /** The pieces lying in the world (pure: plain vectors; tested in node). */
 export class ChimeField {
@@ -100,11 +116,16 @@ export class ChimeField {
       if (this.list.length >= PIECE.max) this.list.shift();
       const a = r() * Math.PI * 2, d = lerp(PIECE.spread[0], PIECE.spread[1], r()) * (value > 1 ? 1.2 : 1);
       const to = new THREE.Vector3(at.x + Math.sin(a) * d, at.y, at.z + Math.cos(a) * d);
-      const g = this.groundAt?.(to.x, at.y, to.z);
-      if (Number.isFinite(g) && Math.abs(g - at.y) < 4) to.y = g;   // (no ledge far below or above: it stays at the foe's height)
+      const g = this.groundAt?.(to.x, at.y, to.z), up = new THREE.Vector3(0, 1, 0);
+      if (Number.isFinite(g) && Math.abs(g - at.y) < 4) {
+        to.y = g;   // (no ledge far below or above: it stays at the foe's height)
+        // the ground's slope there (two more probes, once: its patch of shade lies on it)
+        const gx = this.groundAt(to.x + 0.25, g, to.z), gz = this.groundAt(to.x, g, to.z + 0.25);
+        if (Number.isFinite(gx) && Number.isFinite(gz) && Math.abs(gx - g) < 0.25 && Math.abs(gz - g) < 0.25) up.set(g - gx, 0.25, g - gz).normalize();
+      }
       const p = {
         value, training: !!training, phase: 'fly', age: 0, t: 0,
-        from: new THREE.Vector3(at.x, at.y + 0.6, at.z), to, rest: to.clone(),
+        from: new THREE.Vector3(at.x, at.y + 0.6, at.z), to, rest: to.clone(), up, lift: restHeight(value),
         flight: lerp(PIECE.flight[0], PIECE.flight[1], r()), rise: lerp(PIECE.rise[0], PIECE.rise[1], r()),
         pos: new THREE.Vector3(at.x, at.y + 0.6, at.z), speed: 0, spin: r() * Math.PI * 2, glintIn: lerp(PIECE.glint[0], PIECE.glint[1], r()), glint: 0,
       };
@@ -125,14 +146,14 @@ export class ChimeField {
       p.spin += dt * (p.phase === 'pull' ? 14 : PIECE.turn);
       if (p.phase === 'fly') {
         const u = Math.min(1, p.t / p.flight);
-        p.pos.set(lerp(p.from.x, p.to.x, u), lerp(p.from.y, p.to.y + PIECE.hover, u) + 4 * p.rise * u * (1 - u), lerp(p.from.z, p.to.z, u));
+        p.pos.set(lerp(p.from.x, p.to.x, u), lerp(p.from.y, p.to.y + p.lift, u) + 4 * p.rise * u * (1 - u), lerp(p.from.z, p.to.z, u));
         if (u >= 1) { p.phase = 'bounce'; p.t = 0; }
       } else if (p.phase === 'bounce') {
         const u = Math.min(1, p.t / PIECE.bounceT);
-        p.pos.set(p.to.x, p.to.y + PIECE.hover + 4 * PIECE.bounce * u * (1 - u), p.to.z);
+        p.pos.set(p.to.x, p.to.y + p.lift + 4 * PIECE.bounce * u * (1 - u), p.to.z);
         if (u >= 1) { p.phase = 'rest'; p.t = 0; }
       } else if (p.phase === 'rest') {
-        p.pos.set(p.to.x, p.to.y + PIECE.hover + Math.sin(p.age * PIECE.bob[1] + p.spin * 0.1) * PIECE.bob[0], p.to.z);
+        p.pos.set(p.to.x, p.to.y + p.lift + Math.sin(p.age * PIECE.bob[1] + p.spin * 0.1) * PIECE.bob[0], p.to.z);
         p.glintIn -= dt;
         if (p.glintIn <= 0) { p.glint = 0.3; p.glintIn = lerp(PIECE.glint[0], PIECE.glint[1], this.rng()); }
       }
@@ -280,6 +301,87 @@ export function glintGeometry(r = CRYSTAL.glint) {
   return new THREE.ShapeGeometry(s);
 }
 
+/**
+ * The patch of shade under each piece (since the crystals cast no shadow, nothing else shows the air under them: a
+ * floating thing with no shadow reads as lying on the ground). r: its radius under a one (m; a five's as much
+ * larger as the crystal); dark: the ground's colour at its middle, multiplied; span: m above its rest at which it is
+ * gone (it shrinks and fades as the piece bobs, bounces or flies up); lift: m off the ground along its slope; far:
+ * m from the camera at which it has faded out (a few pixels across, it would only be a smudge).
+ */
+export const BLOB = { r: 0.18, dark: 0.5, span: 1.2, lift: 0.015, far: 45 };
+
+/**
+ * Where a piece's patch of shade lies (pure): out.pos (on the ground under it), out.up (the ground's slope), out.r
+ * (m) and out.k (its strength, 0 none … 1). None for a piece being drawn in; in flight, under its path, fading as it
+ * rises; at rest, a little smaller and fainter at the top of the bob.
+ */
+export function blobOf(p, out = { pos: new THREE.Vector3(), up: new THREE.Vector3(), r: 0, k: 0 }) {
+  out.k = 0; out.r = 0;
+  if (p.phase === 'pull') return out;
+  if (p.phase === 'fly') {
+    const u = Math.min(1, p.t / p.flight);
+    out.pos.set(p.pos.x, lerp(p.from.y - 0.6, p.to.y, u), p.pos.z);
+    out.up.set(0, 1, 0).lerp(p.up ?? _Y, u).normalize();
+  } else { out.pos.copy(p.to); out.up.copy(p.up ?? _Y); }
+  const above = p.pos.y - out.pos.y - (p.lift ?? restHeight(p.value));   // (over its rest: -bob … +bob at rest)
+  const k = THREE.MathUtils.clamp(1 - (above + PIECE.bob[0]) / BLOB.span, 0, 1);
+  const grow = p.phase === 'fly' ? Math.min(1, 0.4 + p.t * 3) : 1;
+  out.k = k * grow;
+  out.r = BLOB.r * (p.value > 1 ? CRYSTAL.five / CRYSTAL.one : 1) * (0.7 + 0.3 * k);
+  return out;
+}
+
+/**
+ * The patches' material: drawn into the G-buffer as the jump's shadow is (src/jump-shadow.js), multiplied into it,
+ * but only the colour, softly (the light term, normals, depth and flags times one): no cast shadow's hard edge for
+ * the ink pass to outline, just the ground a little darker under the crystal, fading out at its rim. Per instance:
+ * the strength in instanceColor.r; it fades out from BLOB.far * 0.6 to BLOB.far from the camera.
+ */
+export function blobMaterial() {
+  return new THREE.ShaderMaterial({
+    name: 'chime-blob',
+    glslVersion: THREE.GLSL3,
+    uniforms: { uDark: { value: BLOB.dark }, uFar: { value: BLOB.far } },
+    vertexShader: /* glsl */ `uniform float uFar;
+      out vec2 vSpot;
+      out float vK;
+      void main() {
+        vSpot = position.xz;
+        vec4 p = vec4(position, 1.0);
+        vK = 1.0;
+        #ifdef USE_INSTANCING
+        p = instanceMatrix * p;
+        #endif
+        #ifdef USE_INSTANCING_COLOR
+        vK = instanceColor.r;
+        #endif
+        vec4 mv = modelViewMatrix * p;
+        vK *= 1.0 - smoothstep(uFar * 0.6, uFar, -mv.z);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: /* glsl */ `precision highp float;
+      uniform float uDark;
+      in vec2 vSpot;
+      in float vK;
+      layout(location = 0) out highp vec4 gAlbedoLight;
+      layout(location = 1) out highp vec4 gNormalDepth;
+      layout(location = 2) out highp vec4 gHatch;
+      void main() {
+        float r2 = dot(vSpot, vSpot);
+        if (r2 >= 1.0 || vK <= 0.0) discard;
+        float s = (1.0 - r2) * (1.0 - r2) * vK;   // (soft all the way out: dark in the middle, nothing at the rim)
+        gAlbedoLight = vec4(vec3(1.0 - (1.0 - uDark) * s), 1.0);
+        gNormalDepth = vec4(1.0);
+        gHatch = vec4(1.0);
+      }`,
+    transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide,
+    blending: THREE.CustomBlending, blendEquation: THREE.AddEquation,
+    blendSrc: THREE.DstColorFactor, blendDst: THREE.ZeroFactor,
+    blendSrcAlpha: THREE.DstAlphaFactor, blendDstAlpha: THREE.ZeroFactor,
+    polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3,
+  });
+}
+
 /** The crystals' material: the vertex colours under the crystal shader (src/crystal-shader.js), never black in shade. */
 export const crystalLook = () => makeMaterial({ color: '#ffffff', vertexColors: true, crystal: true, spot: 0, key: 'chime-crystal' });
 
@@ -295,14 +397,22 @@ export class ChimeView {
     this.crystals = mesh(crystalGeometry(), max);
     this.clusters = mesh(clusterGeometry(), Math.ceil(max / 2));
     this.glints = new THREE.InstancedMesh(glintGeometry(), makeMaterial({ color: '#f4fdff', flat: true, glow: 1, side: THREE.DoubleSide, key: 'chime-glint' }), max);
+    // the patch of shade on the ground under each (one more draw for the whole field: BLOB, blobOf)
+    const disc = new THREE.CircleGeometry(1, 20).rotateX(-Math.PI / 2);
+    this.blobs = new THREE.InstancedMesh(disc, blobMaterial(), max);
+    this.blobs.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3);
+    this.blobs.renderOrder = 6;
+    this._blob = { pos: new THREE.Vector3(), up: new THREE.Vector3(), r: 0, k: 0 };
     // (no shadow: a crystal gives light rather than blocking it, and unculled as they are they would be drawn again in
     // every shadow pass, ~90 draws a frame in the desert for a field of them: shadows.js selfLitSkips)
-    for (const m of [this.crystals, this.clusters, this.glints]) { m.frustumCulled = false; m.count = 0; m.userData.noCollide = true; m.userData.castShadow = false; m.name = 'Chimes'; parent?.add(m); }
+    for (const m of this.meshes) { m.frustumCulled = false; m.count = 0; m.userData.noCollide = true; m.userData.castShadow = false; m.name = 'Chimes'; parent?.add(m); }
+    this.blobs.name = 'Chimes shade';
     this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._t = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._c = new THREE.Color();
   }
+  get meshes() { return [this.crystals, this.clusters, this.glints, this.blobs]; }
   /** camera: the glints face it. */
   update(field, camera = null) {
-    let i = 0, f = 0, j = 0;
+    let i = 0, f = 0, j = 0, b = 0;
     for (const p of field.list) {
       if (!pieceVisible(p)) continue;
       const five = p.value > 1, s = five ? CRYSTAL.five / CRYSTAL.one : 1;
@@ -313,6 +423,12 @@ export class ChimeView {
       const into = five ? this.clusters : this.crystals, k = five ? f++ : i++;
       into.setMatrixAt(k, this._m);
       into.setColorAt(k, this._c.set(CHIME_TONES[p.value] ?? CHIME_TONES[1]));
+      const sh = blobOf(p, this._blob);
+      if (sh.k > 0.01) {
+        this._m.compose(sh.pos.addScaledVector(sh.up, BLOB.lift), this._t.setFromUnitVectors(_Y, sh.up), this._s.set(sh.r, 1, sh.r));
+        this.blobs.setMatrixAt(b, this._m);
+        this.blobs.setColorAt(b++, this._c.setRGB(sh.k, sh.k, sh.k));
+      }
       if (p.phase !== 'pull') {
         // the spark: CRYSTAL.twinkle of the glint at rest (breathing a little), the whole glint as the light catches it
         const g = Math.max(CRYSTAL.twinkle * (0.8 + 0.2 * Math.sin(p.age * 3 + p.spin)), p.glint > 0 ? Math.sin((1 - p.glint / 0.3) * Math.PI) : 0) * grow;
@@ -323,12 +439,13 @@ export class ChimeView {
         this.glints.setMatrixAt(j++, this._m);
       }
     }
-    this.crystals.count = i; this.clusters.count = f; this.glints.count = j;
-    for (const m of [this.crystals, this.clusters, this.glints]) m.instanceMatrix.needsUpdate = true;
-    for (const m of [this.crystals, this.clusters]) if (m.instanceColor) m.instanceColor.needsUpdate = true;
+    this.crystals.count = i; this.clusters.count = f; this.glints.count = j; this.blobs.count = b;
+    for (const m of this.meshes) m.instanceMatrix.needsUpdate = true;
+    for (const m of [this.crystals, this.clusters, this.blobs]) if (m.instanceColor) m.instanceColor.needsUpdate = true;
   }
   dispose() {
-    for (const m of [this.crystals, this.clusters, this.glints]) { m.removeFromParent(); m.geometry.dispose(); m.dispose?.(); }
+    for (const m of this.meshes) { m.removeFromParent(); m.geometry.dispose(); m.dispose?.(); }
+    this.blobs.material.dispose();
   }
 }
 const _gp = new THREE.Vector3(), _off = new THREE.Vector3(), _Y = new THREE.Vector3(0, 1, 0), _Z = new THREE.Vector3(0, 0, 1);

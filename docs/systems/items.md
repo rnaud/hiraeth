@@ -142,8 +142,12 @@ API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migra
   there: they go into the wallet but are not counted in `res.chimes.earned`.
 - **The pieces** (`ChimeField`, `PIECE`): a drop scatters ones (a drop of 10 or more: fives, then ones; a purse
   is eight fives). Each pops out of the foe's middle in a little arc (0.45–0.7 s, up 1.1–1.9 m, landing
-  0.5–1.7 m out, on the ground under it unless that is a ledge more than 4 m off), bounces, then hovers 0.34 m up,
-  bobbing 4.5 cm (`PIECE.bob`), tilted (`CRYSTAL.tilt`, 0.42 rad) and turning round the vertical at 1.7 rad/s
+  0.5–1.7 m out, on the ground under it unless that is a ledge more than 4 m off), bounces, then hovers with
+  `PIECE.hover` (0.4 m) of air under its lowest point, bobbing 4.5 cm (`PIECE.bob`): its centre is that much higher
+  than its lowest point as it hovers tilted (`pieceBelow`, from the geometry once: 12 cm for a one, 19 cm for a five,
+  whose small shards reach further down), so a one's centre rests 0.52 m up and a five's 0.59 m (`restHeight`; until
+  October 2026 both centres were 0.34 m up, a one's lowest point 22 cm off the ground and a five's 15 cm, and with no
+  shadow they read as lying on it), tilted (`CRYSTAL.tilt`, 0.42 rad) and turning round the vertical at 1.7 rad/s
   (`PIECE.turn`; 3 for the coin), and glints every 1.6–3.6 s (a four-point star 18 cm across at its upper end, facing
   the camera); between glints a faint spark (`CRYSTAL.twinkle`, a tenth of the glint): the crystal reads by itself.
   After 0.45 s it can be taken: walked over (`take` 0.65 m round the feet) or drawn in from `magnet` 2.4 m of
@@ -156,6 +160,18 @@ API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migra
   a crystal gives light; unculled, they would be drawn again in every shadow pass). The shop's strings of chimes,
   the sign on its back wall and the hanging sign outside (`interior-kit.js chimeEmblem`) use the same shard at
   their own sizes, in the plain material.
+- **The patch of shade under each** (`BLOB`, `blobOf`, `blobMaterial`): with no cast shadow, nothing showed the air
+  under a crystal, and a floating thing with no shadow reads as resting on the ground. So `ChimeView` lays a soft
+  dark disc on the ground under each piece (`ChimeView.blobs`: one more instanced draw for the whole field, a
+  20-sided disc each), 18 cm in radius under a one (a five's 1.38 × that), on the ground's slope (two more ground
+  probes when a piece is dropped: `p.up`), 1.5 cm off it. It is drawn as the jump's shadow is (src/jump-shadow.js),
+  multiplied into the G-buffer, but only the colour, softly ((1 − r²)² from the middle, the ground × 0.5 at most):
+  the light term, normals, depth and flags are left as they are, so the post pass draws no cast-shadow edge and no
+  ink line round it, and it reads on sunlit sand, in shade, on grass, on the shop's floor and at night alike. It
+  shrinks a little and fades as the piece bobs up (to nothing `BLOB.span`, 1.2 m, over its rest: gone at the top of
+  the pop-out arc), lies under the piece's path in flight, is not drawn for a piece being drawn in, and fades out
+  between 27 and 45 m from the camera (a smudge a few pixels across). Depth-tested, not writing depth, and out of
+  the shadow passes like the crystals.
 - **The size** (`COIN`, `CRYSTAL`): the brass coin was a disc 0.12 m in radius (25.4 cm across with its bevel), a
   five 1.45 × as wide. A one is as long as makes it, tilted as it hovers, as tall as the coin was wide (25.3 cm);
   a five's cluster as much taller again (36.8 cm, 1.45 ×). So the pickup reach (`take` 0.65 m) and the magnet

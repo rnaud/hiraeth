@@ -83,9 +83,10 @@ test('instanced: the ones, the fives and the glints are a draw each, whatever li
   for (let t = 0; t < 1; t += 1 / 60) F.update(1 / 60, null);
   view.update(F, null);
   const meshes = scene.children.filter((o) => o.isMesh);
-  assert.equal(meshes.length, 3, 'three meshes');
+  assert.equal(meshes.length, 4, 'four meshes (the ones, the fives, the glints, the patches of shade under them)');
   assert.ok(meshes.every((m) => m.isInstancedMesh));
   assert.equal(view.crystals.count + view.clusters.count, 30, 'thirty crystals in two of them');
+  assert.equal(view.blobs.count, 30, 'a patch of shade under each, in one draw');
   assert.equal(view.crystals.material, view.clusters.material, 'one material (one program)');
   assert.ok(view.crystals.material.defines.CHIME_CRYSTAL);
   assert.ok(view.crystals.instanceMatrix.count >= PIECE.max && view.clusters.instanceMatrix.count >= PIECE.max / 2, 'room for a full field');
