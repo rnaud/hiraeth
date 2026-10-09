@@ -24,7 +24,8 @@ import { makeMaterial } from './materials.js';
 // A kind may say: takes { shoot, fire, push, bloom } (what each glob does: damage, or 'hold'), weak { source: × },
 // heavy (sturdy: light cuts don't stop it, it shoves less), metal (the magnet glove lifts it), light (a gust ends
 // it), shell (the blade glances off its front), burrow (swims under the ground), phase (a shadow while it runs),
-// trail (burning slag where it walks), splits (what it breaks into), group (how many come together), noWild.
+// trail (burning slag where it walks), splits (what it breaks into), group (how many come together), noWild,
+// clamber (it leaps up ledges to 2.4 m: src/foe-height.js), perch (it climbs to the high ground to shoot down).
 
 const S = (o) => ({ recover: 1.2, cool: [1.3, 2.3], hit: 0.4, sight: 17, giveUp: 40, ...o });
 
@@ -79,7 +80,7 @@ export const KINDS = {
   }),
   // the White Mangrove, Lorn: a walking knot of white roots; its roots run along the ground and drag you in
   stalker: S({
-    name: 'root stalker', hp: 4, radius: 0.65, height: 1.3, speed: 2.7, sight: 16, giveUp: 35, reach: 6.5, breaks: true,
+    name: 'root stalker', hp: 4, radius: 0.65, height: 1.3, speed: 2.7, sight: 16, giveUp: 35, reach: 6.5, breaks: true, clamber: true,
     tone: '#7fcfc0', takes: { shoot: 1, fire: 2, bloom: 'hold' },
     attacks: [
       { id: 'grab', shape: 'lane', width: 1.2, range: 6.5, tele: true, damage: 0.08, wind: 1.0, strike: 0.35, contact: 0.7, grab: { time: 1.1, pull: 6 }, then: 'lash', min: 2.6, max: 6.5, weight: 1.5, onParry: 'cut' },
@@ -110,7 +111,7 @@ export const KINDS = {
   }),
   // the City During the Eclipse: a long dog of shadow; running, it is only a shadow on the ground
   hound: S({
-    name: 'shadow hound', hp: 3, radius: 0.5, height: 0.55, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2,
+    name: 'shadow hound', hp: 3, radius: 0.5, height: 0.55, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
     tone: '#6c4fa0', takes: { shoot: 0, fire: 2 },
     attacks: [
       { id: 'pounce', shape: 'ring', radius: 1.6, ahead: 1.6, damage: 0.14, wind: 0.6, strike: 0.28, contact: 0.55, lunge: 3.2, max: 3.4, weight: 1.5 },

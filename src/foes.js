@@ -12,6 +12,7 @@ import { KINDS, NOTES, kindModel } from './foe-kinds.js';
 import { packOf, guardKinds, templeKind } from './foe-worlds.js';
 import { hitStop, kick, slowMo } from './feel.js';
 import { LockReticle } from './lock-reticle.js';
+import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff } from './foe-height.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -34,7 +35,7 @@ import { LockReticle } from './lock-reticle.js';
  *  (src/foe-kinds.js says what an attack may hold: a combo's `then`, a shockwave, a volley…). */
 export const FOES = {
   blot: {
-    name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1, flinchy: true,
+    name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1, flinchy: true, clamber: true,
     attacks: [
       { id: 'lunge', shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.15, wind: 0.65, strike: 0.24, contact: 0.55, lunge: 1.8, weight: 2 },
       // the lunge-combo: a longer coil, a lunge, and a second quick one straight after (unless the first was blocked)
@@ -55,7 +56,7 @@ export const FOES = {
   },
   // keeps its distance (inside `keep` it backs off) and lobs a glob of ink: the ring is drawn where you stand
   spitter: {
-    name: 'spitting blot', hp: 2, radius: 0.55, height: 0.6, speed: 2.6, sight: 20, giveUp: 40, reach: 11, keep: 6.5, tone: '#7f9a2e',
+    name: 'spitting blot', hp: 2, radius: 0.55, height: 0.6, speed: 2.6, sight: 20, giveUp: 40, reach: 11, keep: 6.5, perch: true, tone: '#7f9a2e',
     attacks: [
       { id: 'lob', shape: 'ring', at: 'target', instant: true, radius: 1.6, damage: 0.14, wind: 1.25, weight: 2 },
       // the arc volley: three globs, three rings across your way (step between them, or out of the row)
@@ -77,7 +78,7 @@ export const FOES = {
   },
   // a person made of living shadow (src/shade.js): it walks up and cuts with a sword's swing, dripping as it goes
   shade: {
-    name: 'shade', hp: 5, radius: 0.45, height: 1.15, speed: 3.0, sight: 18, giveUp: 40, reach: 2.3, tone: '#3b2a5c',
+    name: 'shade', hp: 5, radius: 0.45, height: 1.15, speed: 3.0, sight: 18, giveUp: 40, reach: 2.3, clamber: true, tone: '#3b2a5c',
     attack: { shape: 'cone', range: 2.9, angle: 0.9, damage: 0.2, wind: 0.95, strike: 0.24, contact: 0.55 },
     recover: 1.1, cool: [1.2, 2.2], hit: 0.4,
   },
@@ -190,6 +191,8 @@ const _hz = new THREE.Vector3(), _pb = new THREE.Vector3(), _fb = new THREE.Vect
 
 /** A strike reaches the traveller only this close in height (m, its feet to the foe's): the hitbox overlay draws it (src/hitboxes.js). */
 export const STRIKE_RISE = 1.6;
+/** An attack that reaches you up or down a ledge: a lob lands at your feet, a step through the shadow comes out behind you. */
+export const reachesUp = (a) => a.at === 'target' || a.at === 'behind';
 /** A foe's target sphere (shots, the cone, the lock): its body's radius and a margin. The blade adds its own (fluid-blade.js BLADE_TOUCH). */
 export const hurtRadius = (def) => def.radius + 0.15;
 /** How near a charge (attack.sweep) must run to you to hit: half its lane's width, so the lane drawn is the ground it covers. */
@@ -225,6 +228,10 @@ export class Foe {
     this.cover = null; this.hid = false;
     this.air = null; this.tumble = 0; this.tumbleTop = 0;
     this.hazCool = 0; this.workCool = { updraft: 0, swing: 0 };
+    // over height (v1.4, src/foe-height.js): a hop up or down a ledge, the way it is following, how long it has
+    // been stuck walking straight at you, the next plan; perched on the high ground; knocked by you (s), dazed (s)
+    this.hop = null; this.route = null; this.stuck = 0; this.replan = 0; this.perchFor = 0; this.perched = null;   // (perched: the height it holds)
+    this.waiting = false; this.holding = null; this.knockedBy = 0; this.dazed = 0;
   }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt); }
@@ -238,10 +245,10 @@ export class Foe {
   get phased() { return !!this.def.phase && this.lit <= 0 && this.stunned <= 0 && this.dist > PHASE.near && (this.state === 'idle' || this.state === 'chase' || this.state === 'home'); }
 
   /** The attacks it may begin at d metres: not a combo's follow-up, d within each one's [min, max]. */
-  attacksAt(d) { const D = this.def; return D.attacks.filter((a) => !a.chain && d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6); }
-  /** One of them, by weight (the one it just used less likely). */
-  chooseAttack(d) {
-    const can = this.attacksAt(d);
+  attacksAt(d, dy = 0) { const D = this.def; return D.attacks.filter((a) => !a.chain && d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6 && (dy < STRIKE_RISE || reachesUp(a))); }
+  /** One of them, by weight (the one it just used less likely). dy: your height off its level (m): out of a blow's reach, only a lob. */
+  chooseAttack(d, dy = 0) {
+    const can = this.attacksAt(d, dy);
     if (can.length < 2) return can[0] ?? null;
     const w = can.map((a) => (a.weight ?? 1) * (a.id === this.lastAtk ? 0.4 : 1));
     let x = this.rng() * w.reduce((s, v) => s + v, 0);
@@ -252,7 +259,7 @@ export class Foe {
   beginWind(a, P) {
     if (a.chain) this.heading = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);   // (a follow-up turns to where you are now)
     this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false;
-    this.cover = null; this.hid = false;   // (it may hide again after this strike)
+    this.cover = null; this.hid = false; this.waiting = false; this.holding = null;   // (it may hide again after this strike)
     this.attackH = this.heading;
     if (this.buried && !a.surface) this.surfaced();   // (a ray comes up out of the sand to glide)
     if (this.def.keep) this.retreat = PRESSURE.retreat;   // (it struck: it may back off again after)
@@ -326,9 +333,11 @@ export class Foe {
     this.recoil = Math.max(0, this.recoil - dt * (this.heavyRecoil ? 2.5 : 5));
     this.cool = Math.max(0, this.cool - dt);
     if (!this.buried && this.upFor > 0) this.upFor = Math.max(0, this.upFor - dt);
-    for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
+    for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low', 'knockedBy', 'dazed']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
     // the world's hazards and workings it is in (v0.98: knocked into spines, a gust, an updraft, a pendulum)
     this.feelWorld(dt, env, ev);
+    // up or down a ledge: crouched, then in the air (src/foe-height.js HOP); its mind waits until it lands
+    if (this.hop) { this.leap(dt, ev); return ev; }
     // a shove's slide eases out (a shove may carry it off a ledge, or into a hazard: step's `shoved`)
     if (this.vel.lengthSq() > 1e-4) {
       this.step(this.vel.x * dt, this.vel.z * dt, env, this.vel.lengthSq() > 1);
@@ -365,19 +374,27 @@ export class Foe {
         this.face(dx, dz, dt, 8);
         if (down) { this.circle(P, D.reach + PRESSURE.hold, dt, env); break; }   // (you are down: it waits round you, facing you, for you to rise)
         if (D.hover && this.hide(dt, P, d, env)) break;   // (between strikes, a hovering foe hides behind the world: COVER)
+        // over height (v1.4): a walker finds its way up and down to you; out of a blow's reach it doesn't swing at air
+        const walker = !D.hover, dy = Math.abs(P.pos.y - this.level), high = dy >= STRIKE_RISE;
+        if (walker && D.perch) this.perchUp(P, d, dt, env);   // (a spitter climbs to the high ground, and holds it)
+        if (this.route?.perch && !(this.cool === 0 && d <= D.reach && this.attacksAt(d, dy).length)) { this.followRoute(dt, env); break; }
         if (D.keep && d < D.keep && this.retreat > 0) {
           // too close: it backs off a little, then stands its ground (PRESSURE.retreat), no endless chase
           this.retreat = Math.max(0, this.retreat - dt);
           this.step(-dx / d * D.speed * 0.7 * dt, -dz / d * D.speed * 0.7 * dt, env); this.face(dx, dz, dt, 8);
         }
-        else if (d > D.reach) this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, D.reach * 0.8);
+        else if (d > D.reach || (high && !this.attacksAt(d, dy).length)) {
+          if (walker) this.approach(P, dt, env, high ? D.radius + 0.6 : D.reach * 0.8);
+          else this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, D.reach * 0.8);
+        }
         else if (this.cool === 0 && !(env.mayStrike?.(this) ?? true)) {
           // another is striking: circle round at a step's distance, waiting a turn
           this.circle(P, D.reach + 1.4, dt, env);
         } else if (this.cool === 0) {
           // one of its attacks that fits the distance (none: it closes in)
-          const a = this.chooseAttack(d);
-          if (a) { this.beginWind(a, P); ev.push('warn'); }
+          const a = this.chooseAttack(d, dy);
+          if (a) { this.beginWind(a, P); ev.push('warn'); this.route = null; }
+          else if (walker) this.approach(P, dt, env, D.radius + 0.6);
           else this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, D.radius + 0.6);
         }
         break;
@@ -427,6 +444,7 @@ export class Foe {
         break;
       }
       case 'home': {
+        this.perched = null; this.route = null;
         this.walkTo(this.home.x, this.home.z, D.speed * 0.8, dt, env, 0.5);
         this.hp = Math.min(D.hp, this.hp + dt * 0.5);
         if (away < 1) this.state = 'idle';
@@ -442,6 +460,110 @@ export class Foe {
     const a = Math.atan2(this.pos.x - P.pos.x, this.pos.z - P.pos.z) + dt * 0.6 * (this.side ??= this.rng() < 0.5 ? -1 : 1);
     this.walkTo(P.pos.x + Math.sin(a) * r, P.pos.z + Math.cos(a) * r, this.def.speed * 0.5, dt, env);
     this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 8);
+  }
+
+  /**
+   * A walker on its way to you over the world's height (src/foe-height.js): straight at you on your level, else
+   * (you up a ledge or down off one, or stuck against something) along a route it plans over a small grid,
+   * walking steps, clambering ledges and hopping down drops it can take; no way, it holds off (holdOff).
+   */
+  approach(P, dt, env, stopAt) {
+    const D = this.def, R = this.route;
+    this.replan = Math.max(0, this.replan - dt);
+    if (R && !R.perch && Math.hypot(P.pos.x - R.goal.x, P.pos.z - R.goal.z) < ROUTE.drift && Math.abs(P.pos.y - R.goal.y) < 1) { this.followRoute(dt, env); return; }
+    this.route = null;
+    if (Math.abs(P.pos.y - this.pos.y) <= ROUTE.flat && this.stuck < ROUTE.stuck) {
+      // on your level: straight at you, as ever; getting nowhere for a while (a wall, a gap), it looks for a way
+      const was = _cs.copy(this.pos), want = Math.min(D.speed * dt, Math.max(0, Math.hypot(P.pos.x - was.x, P.pos.z - was.z) - stopAt));
+      const wx = was.x, wz = was.z;
+      this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, stopAt);
+      const got = Math.hypot(this.pos.x - wx, this.pos.z - wz);
+      this.stuck = want > 1e-4 && got < want * 0.3 ? this.stuck + dt : Math.max(0, this.stuck - dt * 2);
+      this.waiting = false; this.holding = null;
+      return;
+    }
+    if (this.replan === 0 && env.ground) {
+      this.replan = ROUTE.every;
+      const pts = findRoute(this.pos, P.pos, env, reachOf(D), { stopAt, rise: STRIKE_RISE - 0.4, canStep: env.canStep, blocked: (x, y, z) => this.offRoute(x, z) || this.refuses(x, y, z, env) });
+      if (pts?.length) { this.route = { pts, i: 0, goal: P.pos.clone(), t: 0 }; this.stuck = 0; this.waiting = false; this.holding = null; this.followRoute(dt, env); return; }
+      this.stuck = 0;
+      this.waiting = Math.abs(P.pos.y - this.pos.y) > ROUTE.flat;   // (no way to you: it waits it out)
+    }
+    if (this.waiting) this.holdOff(P, dt, env);
+    else this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, stopAt);
+  }
+
+  /** On along its route: a walk to the next cell, or a hop (a clamber up, a drop down) when that is the way. */
+  followRoute(dt, env) {
+    const R = this.route, w = R?.pts[R.i];
+    if (!w) { this.route = null; return; }
+    if (w.how === 'clamber' || w.how === 'drop') {
+      this.hop = { from: this.pos.clone(), to: new THREE.Vector3(w.x, w.y, w.z), t: 0, how: w.how, air: hopTime(w.y - this.pos.y) };
+      R.i++; R.t = 0;
+      if (R.i >= R.pts.length) this.route = null;
+      return;
+    }
+    const bx = this.pos.x, bz = this.pos.z;
+    this.walkTo(w.x, w.z, this.def.speed, dt, env);
+    R.t = Math.hypot(this.pos.x - bx, this.pos.z - bz) < this.def.speed * dt * 0.3 ? R.t + dt : 0;
+    // there (or as near as its body lets it, held off by the wall at a ledge's foot: the hop goes from here)
+    const near = Math.hypot(this.pos.x - w.x, this.pos.z - w.z), next = R.pts[R.i + 1];
+    if (near < 0.15 || (R.t > 0.15 && near < this.def.radius + 0.35 && (next?.how === 'clamber' || next?.how === 'drop'))) {
+      // there, but not at the height the plan had (a cell on an edge): a cell to keep off, and a new plan
+      if (Math.abs(this.pos.y - w.y) > 0.5) { this.markBad(w); this.route = null; this.replan = 0; this.perchFor = 0; return; }
+      R.i++; R.t = 0;
+    }
+    if (R.t > ROUTE.stuck) { this.markBad(w); this.route = null; this.replan = Math.min(this.replan, 0.3); return; }   // (blocked on the way: keep off that cell, plan again)
+    if (R.i >= R.pts.length) this.route = null;
+  }
+
+  /** A cell a route led it to that wasn't as planned (followRoute): kept out of its next plans. */
+  offRoute(x, z) { return !!this.badCells?.includes(`${Math.round(x * 4)},${Math.round(z * 4)}`); }
+  markBad(w) { (this.badCells ??= []).push(`${Math.round(w.x * 4)},${Math.round(w.z * 4)}`); if (this.badCells.length > 12) this.badCells.shift(); }
+
+  /** Up or down a ledge (HOP): crouched first (the tell), then the arc; a soft landing ('hop'). */
+  leap(dt, ev) {
+    const H = this.hop;
+    H.t += dt;
+    this.face(H.to.x - H.from.x, H.to.z - H.from.z, dt, 10);
+    if (H.t < HOP.crouch) return;
+    const u = Math.min(1, (H.t - HOP.crouch) / H.air);
+    hopAt(H.from, H.to, u, this.pos);
+    if (u >= 1) { this.pos.copy(H.to); this.hop = null; ev.push({ type: 'hop', how: H.how, h: H.to.y - H.from.y }); }
+  }
+
+  /** Struck in the middle of a hop: crouched, it stays where it is; in the air, it falls from there. */
+  knockOutOfHop() {
+    const H = this.hop;
+    this.hop = null; this.route = null;
+    if (H.t <= HOP.crouch) { this.pos.copy(H.from); return; }
+    this.air = { vy: 0, top: this.pos.y, base: Math.min(H.from.y, H.to.y), hard: false, knocked: this.knockedBy > 0 };
+  }
+
+  /** It can't get to you: it holds off below, ROUTE.hold m out, pacing slowly and watching you, never against the wall. */
+  holdOff(P, dt, env) {
+    // (on the side it came from, swaying a little either way: pacing, not walking round to the ledge's far side)
+    const H = (this.holding ??= { a: Math.atan2(this.pos.x - P.pos.x, this.pos.z - P.pos.z), t: 0 });
+    H.t += dt;
+    const a = H.a + Math.sin(H.t * 0.6) * 0.3;
+    this.walkTo(P.pos.x + Math.sin(a) * ROUTE.hold, P.pos.z + Math.cos(a) * ROUTE.hold, this.def.speed * 0.45, dt, env);
+    this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 8);
+  }
+
+  /**
+   * A perching kind (the spitting blot, `perch`): over you by PERCH.rise it is perched (it won't step down off
+   * it: step); else every PERCH.every s it looks for the high ground near it (findPerch) and walks up there.
+   */
+  perchUp(P, d, dt, env) {
+    const D = this.def;
+    this.perched = this.pos.y - P.pos.y >= PERCH.rise - 0.3 && d <= D.reach ? this.pos.y : null;   // (you out of its reach: it comes down after you)
+    if (this.route?.perch) { if (Math.hypot(P.pos.x - this.route.goal.x, P.pos.z - this.route.goal.z) > PERCH.far * 0.4) this.route = null; return; }
+    if (this.perched != null) return;
+    this.perchFor = Math.max(0, this.perchFor - dt);
+    if (this.perchFor > 0 || !env.ground || d > D.sight) return;
+    this.perchFor = PERCH.every;
+    const pts = findPerch(this.pos, P.pos, env, { keep: D.keep ?? 4, reach: D.reach, height: D.height, canStep: env.canStep, blocked: (x, y, z) => this.offRoute(x, z) || this.refuses(x, y, z, env) });
+    if (pts?.length) { this.route = { pts, i: 0, goal: P.pos.clone(), t: 0, perch: true }; }
   }
 
   /** Its strike was blocked: it reels back, open a moment longer than after a strike. */
@@ -476,7 +598,7 @@ export class Foe {
   step(mx, mz, env, shoved = false) {
     const D = this.def, nx = this.pos.x + mx, nz = this.pos.z + mz;
     const from = D.hover || this.air ? this.bodyAt(_fb).setY(_fb.y - 0.5) : this.pos;   // (a flyer's way is clear at its own height)
-    if (env.canStep && !env.canStep(from, nx, nz, D.radius)) return false;
+    if (env.canStep && !env.canStep(from, nx, nz, D.radius, D.hover || this.air ? 0.5 : CLIMB.step + 0.1)) return false;
     if (this.air) { this.pos.x = nx; this.pos.z = nz; return true; }   // (in the air: only walls stop it)
     if (D.hover) {
       const top = this.level;
@@ -489,13 +611,15 @@ export class Foe {
     }
     const y = env.ground ? env.ground(nx, this.pos.y + 1.2, nz) : this.pos.y;
     if (shoved && (y == null || this.pos.y - y > FALL.edge)) {
-      // knocked off the edge: over it goes, and falls (fall())
+      // knocked off the edge: over it goes, and falls (fall()); your blow or push did it: it lands dazed (KNOCK)
       this.pos.x = nx; this.pos.z = nz;
-      this.air = { vy: 0, top: this.pos.y, base: y ?? this.pos.y, hard: false };
-      this.calm();
+      this.air = { vy: 0, top: this.pos.y, base: y ?? this.pos.y, hard: false, knocked: this.knockedBy > 0 };
+      this.calm(); this.route = null;
       return true;
     }
-    if (y == null || y - this.pos.y > 1.1 || this.pos.y - y > 3) return false;
+    // (a step up or down: a ledge higher or deeper it crosses only with a hop it chose: followRoute)
+    if (y == null || y - this.pos.y > CLIMB.step || this.pos.y - y > CLIMB.step) return false;
+    if (!shoved && this.perched != null && y < this.perched - 0.5) return false;   // (perched over you: it keeps the high ground)
     if (!shoved && this.refuses(nx, y, nz, env)) return false;
     this.pos.set(nx, y, nz);
     return true;
@@ -576,7 +700,13 @@ export class Foe {
       if (g != null && ny <= g + 1e-6 && g <= this.pos.y + 0.6) {
         this.pos.y = g; this.air = null;
         this.vel.multiplyScalar(0.3);
-        const h = A.top - g;
+        const h = A.top - g, off = A.knocked ? knockedOff(h) : null;
+        if (off) {
+          // knocked off a ledge by you: dazed a long while, stars over it (KNOCK); from high enough, it is over
+          this.stunned = Math.max(this.stunned, KNOCK.stun); this.dazed = KNOCK.stun; this.flash = 1;
+          ev.push({ type: 'landed', h, hard: true, knocked: off });
+          return;
+        }
         if (A.hard || h > FALL.hard) { this.stunned = Math.max(this.stunned, FALL.stun); this.flash = 1; ev.push({ type: 'landed', h, hard: true }); }
         else ev.push({ type: 'landed', h, hard: false });
         return;
@@ -700,7 +830,7 @@ export class Foe {
       }
       // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js; a doused slag walker's crust)
       dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 || this.crust > 0 ? 2 : 1) * (D.weak?.[src] ?? 1);
-      this.stunned = 0; this.sleep = 0;
+      this.stunned = 0; this.sleep = 0; this.dazed = 0;
     } else if (mode === 'shoot' || mode === 'fire') {
       dmg = D.takes[mode] ?? 0;
       if (mode === 'shoot' && D.douse) this.crust = D.douse;   // (water on slag: a cold crust)
@@ -717,7 +847,10 @@ export class Foe {
       dmg = D.takes.shoot ?? 0;
     }
     if (mode === 'push' && dir) { this.vel.set(dir.x, 0, dir.z).multiplyScalar((info.shove ?? 2.4) * (D.heavy ? 1.2 : 3)); }
-    if (dir && mode !== 'push' && mode !== 'world') this.vel.set(dir.x, 0, dir.z).multiplyScalar((D.heavy ? 1.5 : 4) * (info.combo === 2 ? 2.2 : 1));   // (the heavy third swing throws them)
+    // (the heavy third swing throws them, the charged cut further: off a ledge, KNOCK)
+    if (dir && mode !== 'push' && mode !== 'world') this.vel.set(dir.x, 0, dir.z).multiplyScalar((D.heavy ? 1.5 : 4) * (info.breaks && !info.riposte ? KNOCK.charged : info.combo === 2 ? 2.2 : 1));
+    if (dir && (mode === 'blade' || mode === 'push')) this.knockedBy = KNOCK.recent;   // (yours: carried off a ledge now, it lands dazed)
+    if (dir && this.hop && mode !== 'world') this.knockOutOfHop();
     this.flash = 1;
     this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2;
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
@@ -856,11 +989,13 @@ export class Foes {
       workings: (p, kind = null) => workingsAt(p, kind, this._ws ??= []),
       killY: () => this.level?.killY ?? -Infinity,
       pit: (p) => { const rt = this.level?.temple; return !!rt && (!!rt.pits?.some((x) => x.contains(p)) || (!!rt.below?.(p) && !rt.inside?.(p))); },
-      canStep: (from, x, z, radius) => {
+      // (lift: how high over `from` the way is tested; a walker's is over a step it may climb, CLIMB.step, so the
+      // riser of a stair isn't taken for a wall: before v1.4 it was 0.5 m, and no foe climbed a step higher)
+      canStep: (from, x, z, radius, lift = 0.5) => {
         if (!physics?.rayDistance) return true;
         _w.set(x - from.x, 0, z - from.z);
         const d = _w.length(); if (d < 1e-6) return true;
-        _w.divideScalar(d); _v.copy(from).y += 0.5;
+        _w.divideScalar(d); _v.copy(from).y += lift;
         return physics.rayDistance(_v, _w, d + radius) >= d + radius;
       },
       // the turns (TURNS.strikers at once); one off the screen waits while any other is striking, so a blow
@@ -1036,6 +1171,7 @@ export class Foes {
     f.target?.(); f.tele?.dispose(); f.model.group.removeFromParent(); f.model.glob?.removeFromParent(); f.model.shade?.dispose();
     for (const t of f.teles ?? []) t.dispose();
     for (const g of f.globs ?? []) g.removeFromParent();
+    f.stars?.removeFromParent();
     if (this.hold?.f === f) this.hold = null;
     if (this.lock === f) this.lock = null;
     // (each foe's shapes and its warning's glow are its own: let go with it, or every wave of a fight leaves
@@ -1179,6 +1315,8 @@ export class Foes {
     const s = this.sound;
     if (e.type === 'fell') { this.burst(f); return; }
     if (e.type === 'thrown' || e.type === 'tumbled') { s?.whoosh?.(); return; }
+    if (e.type === 'hop') { worldSnd.thud(s, e.how === 'drop' ? 0.35 : 0.2); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 6, 0.5); return; }   // (up or down a ledge: a soft landing)
+    if (e.knocked) { this.knockedOff(f, e); return; }
     let info = null;
     if (e.type === 'hazard') { info = { damage: WORLD_HARM[e.kind] ?? WORLD_HARM.other, source: 'hazard', kind: e.kind }; worldSnd[e.kind === 'fire' ? 'hiss' : 'spines'](s); }
     else if (e.type === 'landed' && e.hard) { info = { damage: e.h > FALL.harder ? 2 : 1, stun: FALL.stun, source: 'fall' }; worldSnd.thud(s, Math.min(1, e.h / 6)); kick(0.2); }
@@ -1188,6 +1326,21 @@ export class Foes {
     if (!this.game.flag('foes.world')) {
       this.game.set('foes.world', true);
       this.notice?.('The world hurts them too: knock a foe into spines or fire, off a ledge, into the wind or a swinging weight.');
+    }
+  }
+
+  /**
+   * Knocked off a ledge by you (KNOCK, src/foe-height.js): a heavy landing, dazed a long while with stars over it
+   * (a cut lands double: it is stunned), or from KNOCK.defeat up, the fall is the end of it. The first time, a note.
+   */
+  knockedOff(f, e) {
+    const over = e.knocked === 'over';
+    worldSnd.thud(this.sound, 1); hitStop(over ? 0.1 : 0.07); kick(over ? 0.5 : 0.4);
+    this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 14, 0.9);
+    this.hurt(f, 'world', null, { damage: over ? f.hp : 0, stun: KNOCK.stun, source: 'fall' });   // (dazed: no harm, the stun is the opening)
+    if (!this.game.flag('foes.knocked')) {
+      this.game.set('foes.knocked', true);
+      this.notice?.(over ? 'Off the edge and down: a long fall ends a foe outright.' : 'Knocked off a ledge, a foe lies dazed a long while: cut it while the stars turn, the cut lands double.');
     }
   }
 
@@ -1685,6 +1838,12 @@ export class Foes {
     g.rotation.x += r * strength * (f.recoilDir.x * Math.sin(f.heading) + f.recoilDir.z * Math.cos(f.heading));
     g.rotation.z = -r * strength * (f.recoilDir.x * Math.cos(f.heading) - f.recoilDir.z * Math.sin(f.heading));
     g.position.y -= f.heavyRecoil ? r * 0.14 : 0;
+    // up or down a ledge (HOP): it crouches first, then stretches through the leap; dazed, stars turn over it
+    if (f.hop && !M.shade) {
+      const c = f.hop.t < HOP.crouch ? Math.sin(Math.PI * 0.5 * Math.min(1, f.hop.t / (HOP.crouch * 0.6))) : 0, up = c ? 0 : 0.1;
+      g.scale.x *= 1 + 0.12 * c - up * 0.5; g.scale.z *= 1 + 0.12 * c - up * 0.5; g.scale.y *= 1 - 0.15 * c + up;
+    }
+    this.daze(f, dt);
     // Melee reads from the body; ranged impacts and areas (a lob, a lane, a shockwave's slam) are drawn on the floor.
     const a = f.atk ?? f.def.attack, pts = f.attackPts ?? [f.attackAt];
     const drawn = f.state === 'wind' && (a.tele || a.at === 'target' || a.at === 'behind');
@@ -1693,6 +1852,21 @@ export class Foes {
       if (drawn && i < pts.length) { T.show(a, pts[i], f.attackH, a.at === 'behind' || a.at === 'target' ? pts[i].y : f.level); T.set(f.k, t); }
       else T.hide();
     }
+  }
+
+  /** The stars of a foe dazed (Foe.dazed: knocked off a ledge by you), turning over its head. */
+  daze(f, dt) {
+    if (!(f.dazed > 0) && !f.stars) return;
+    if (!f.stars) {
+      f.stars = new THREE.Group(); f.stars.name = 'dazed';
+      const mat = makeMaterial({ color: '#fff1a8', flat: true, glow: 0.8, key: 'foe-daze' }), geo = new THREE.OctahedronGeometry(0.13, 0);
+      for (let i = 0; i < 4; i++) { const m = new THREE.Mesh(geo, mat); const a = (i / 4) * Math.PI * 2; m.position.set(Math.sin(a) * 0.5, (i % 2) * 0.08, Math.cos(a) * 0.5); f.stars.add(m); }
+      this.group.add(f.stars);
+    }
+    f.stars.visible = f.dazed > 0 && f.alive && f.dead === undefined;
+    if (!f.stars.visible) return;
+    f.stars.position.copy(f.chest); f.stars.position.y += 0.8;
+    f.stars.rotation.y += dt * 4.5;
   }
 
   /** What a kind's own animation may use (src/foe-kinds.js anim(f, c)): the pose's phases and a few effects. */

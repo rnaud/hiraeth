@@ -1513,3 +1513,18 @@ tests/sound-mix.test.js holds them.
   it, damage 2; no i-frames of its own; one every 1.5 s. `moves.glb` +24 KB (621 644 → 645 908 bytes; `until`
   ships 1.8 s and 1.05 s of the two). The kick was not taken: it never moves the blade, and slash 4's chop is a
   heavier counter.
+
+## Foes over the world's height (done 9 October, v1.4)
+
+- [x] **Foes that use the world's height** (TODO "The gameplay loop", src/foe-height.js, docs/systems/foes.md
+  "Foes over height"). A walker that can't walk straight to you plans a way over a small grid (A*, 1 m cells,
+  13 m out, at most 520 cells, at most once a second): steps it walks (1.1 m), ledges a climber (blot, shade,
+  stalker, hound) clambers (2.4 m) and drops it hops down (4.5 m, a heavy one 2.6 m); each clamber and drop is a
+  hop with a 0.32 s crouch first. No way: it holds off 5 m out on its side, watching, and no blow is wound up at
+  you out of its height reach (`STRIKE_RISE`): only a lob or a step behind you. The spitting blot (`perch`) climbs
+  steps and ramps to a spot 1.7 m over you, in its reach and sight, lobs from there and won't step down off it
+  while you are below and in reach. Knocked off a ledge by your cut or push (a blow counts as yours 0.9 s): from
+  1.4 m it lands dazed 3.5 s with stars over it (a cut lands double), from 4.5 m it is over; the charged cut
+  throws 2.2× (as the heavy third). The walkers' wall test now looks over a climbable step (it was at 0.5 m, so no
+  foe climbed a step taller than that: a temple's dais stopped a machine at its foot). Not done: crystals, water.
+

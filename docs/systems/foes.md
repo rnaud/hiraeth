@@ -441,7 +441,10 @@ new attacks, Gentle, the rosters and placed foes, the Arena's list.
 - Cover is sampled once per strike cycle (16 rays); a foe does not path round obstacles to its hiding place (it
   only takes spots it can fly to straight).
 - Not yet: foes using the open world's own workings beyond the temples' (the trials' updrafts register through
-  `src/workings.js` once they do), nor a foe knocked into water.
+  `src/workings.js` once they do), nor a foe knocked into water, nor stilled or blocked by the Hush's crystals.
+- Over height: the route grid is one level (the highest footing under each cell): under a bridge or an arch a
+  foe plans over the top only; a route is replanned at most once a second, so a fast traveller up and down
+  stairs is followed a step behind.
 
 ## Foes in the world's workings (v0.98)
 
@@ -483,6 +486,43 @@ range)`, `seen`, `canStep`, `hazard(p)` (src/hazards.js `hazardAt`), `workings(p
   `'hazard'`, `'fall'`, `'swing'`; its sound (`foeHurt`, and spines, a hiss or a thud), a burst and ink as any blow.
   The first time, the game says the world hurts them too (flag `foes.world`).
 - `tests/foes-world.test.js` checks each of these.
+
+## Foes over height (v1.4, `src/foe-height.js`)
+
+Walkers follow you up and down the world's height, and the world's height is a weapon against them
+(`CLIMB`, `HOP`, `ROUTE`, `PERCH`, `KNOCK`; pure logic, the world asked through `env.ground` and `env.canStep`).
+- **The way** (`findRoute`, `gridSearch`, `Foe.approach`, `followRoute`): on your level (within `ROUTE.flat`,
+  1.15 m) a walker walks straight at you as ever. You up a ledge or down off one, or it getting nowhere for
+  `ROUTE.stuck` (a wall, a gap), it plans a way (A* over 1 m cells round it, `ROUTE.radius` 13 m, at most
+  `ROUTE.budget` 520 cells, at most every `ROUTE.every` 1.1 s): a step it walks (`CLIMB.step` 1.1 m), a ledge a
+  `clamber` kind (blot, shade, stalker, hound) leaps up (`CLIMB.clamber` 2.4 m), a drop it hops down
+  (`CLIMB.drop` 4.5 m, a heavy one `heavyDrop` 2.6 m; a burrowing ray only walks). A route holds while you stay
+  within `ROUTE.drift` of where it led; a cell it can't get into, or finds at another height (an edge), is kept
+  out of its next plans (`badCells`). Steps of more than `CLIMB.step` it never walks down on its own: only hops.
+- **The hop** (`Foe.hop`, `leap`, `hopAt`): crouched `HOP.crouch` 0.32 s (the body squashes: the tell), then an
+  arc over the higher end (`HOP.time` + `perM` a metre), a soft thud and dust as it lands ('hop'). Struck
+  crouched, it stays; struck in the air, it falls from there (`knockOutOfHop`).
+- **Out of reach** (`reachesUp`, `attacksAt(d, dy)`, `Foe.holdOff`): you `STRIKE_RISE` (1.6 m) or more above or
+  below it, it winds up only an attack that reaches (a lob at your feet, a step through the shadow), else it
+  comes for you; with no way, it holds off `ROUTE.hold` 5 m out on the side it came from, swaying, facing you
+  (`Foe.waiting`), and comes on again as soon as you come down or a way opens.
+- **The high ground** (`perch`, `findPerch`, `Foe.perchUp`): the spitting blot looks every `PERCH.every` s for a
+  spot it can walk to (steps and ramps, `PERCH.far` 16 m of way) `PERCH.rise` 1.7 m over you (past a blow's reach),
+  `keep`–`reach` m from you and in sight, and goes up there; perched (you below and in its reach) it won't step
+  down off it (`Foe.perched`: `step` refuses), so it lobs down at you. Go up, or walk out of its reach, and it
+  comes down.
+- **Knocked off** (`KNOCK`, `knockedOff`, `Foes.knockedOff`): a cut or a push marks a foe as knocked by you for
+  `KNOCK.recent` 0.9 s; carried off an edge then, it lands from `KNOCK.min` 1.4 m dazed `KNOCK.stun` 3.5 s
+  (`Foe.dazed`, four pale stars turning over its head: `Foes.daze`; no harm, but stunned, so a cut lands double
+  and wakes it), from `KNOCK.defeat` 4.5 m it is over (a burst, a machine broken). A heavy thud, a hit-stop, a
+  kick, dust, and a note the first time (flag `foes.knocked`). A gust or a pendulum carrying it off is the old
+  fall (`FALL`). The charged cut throws `KNOCK.charged` 2.2× (the heavy third's).
+- **Steps** (`env.canStep(from, x, z, radius, lift)`): a walker's way is tested `CLIMB.step` + 0.1 m over its feet,
+  over a stair's riser (before v1.4 it was 0.5 m, so no foe climbed a step taller than that: a temple's dais
+  stopped a machine at its foot); a flyer's at 0.5 m over its body as before.
+- Tests: `tests/foe-height.test.js` (what each kind crosses, routes round by a ramp or straight up, holding off and
+  no blows at air, the spitter's perch, knocked off: dazed, over, a gust not, the charged cut's throw, a hop
+  broken off).
 
 ## Combat checks (v0.89)
 

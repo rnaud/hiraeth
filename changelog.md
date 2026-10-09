@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.4 — 2026-10-09
 
+- Knock a foe off a ledge with a cut or the push and it lands dazed for a few seconds, stars turning over its head: your next cut lands double. From high enough, the fall ends it. The charged cut also throws foes farther.
+- A spitting blot now climbs steps and ramps to the high ground over you and lobs down from there, and keeps its perch while you are below. Go up after it, or walk out of its reach and it comes down.
+- Foes now follow you up and down. Ink blots, shades, root stalkers and shadow hounds crouch, then leap up a ledge as tall as you, and hop down after you; machines and the other heavy foes climb steps and stairs and come round by a ramp. One that can’t reach you hangs back where it can see you instead of pressing against the wall, and no foe swings at you when you stand out of its reach above it.
 - Press the blade button during an evade (B / ○), or just as it ends, for a dash cut: he springs forward past the foe’s side, sweeping the blade across it as he goes. The evade’s own dodge window is the only protection it gives, and it needs a moment to come back before the next one.
 - A perfect parry now opens a moment for a riposte: press the blade button (RB / R1) within about half a second, even with the guard still up, and the traveller turns into a fast overhead chop that hits as hard as a full charge without the wait, doubled on the stunned foe, and leaves it reeling longer, with a gold flash and a ring of steel. Miss the moment and the blade is as before.
 
