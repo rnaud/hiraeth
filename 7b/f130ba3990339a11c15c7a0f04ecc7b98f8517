@@ -1,0 +1,29 @@
+src/crowd.js
+  s_9ca76055a220ed::t_db56995423aa9a 87-98,878,881-889,891,895,899-901,910-912
+src/npc.js
+  s_9ca76055a220ed::t_b8bc6eecfbc7a4 2,21-24,583-605,684-686,716-718,979-980,1006-1007
+src/wave.js
+  s_9ca76055a220ed::t_28e6e0175c7c41 1-69
+tests/cape-arms.test.js
+  s_9ca76055a220ed::t_be18b90fafb36a 61-62
+tests/close-contact.test.js
+  s_9ca76055a220ed::t_90635df2a3c45f 10,110-145
+tests/wave.test.js
+  s_9ca76055a220ed::t_528ea0b525e9c8 1-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7bf130ba3990339a11c15c7a0f04ecc7b98f8517",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
