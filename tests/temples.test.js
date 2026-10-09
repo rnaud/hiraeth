@@ -1413,7 +1413,7 @@ test('the Hangar’s own portals still work round the temple’s: its list kept,
   assert.ok(player.pos.distanceTo(po.to) < 0.01, 'through the portal to the upside-down');
 });
 
-test('the First Garage on foot: the escapement’s disc, the climb and the counterweight, the quick coil, the banks of six eyes that want two tanks in a breath, the Foreman’s six numerals, the clock keeps time', () => {
+test('the First Garage on foot: the escapement’s three eyes in turn from its hand, the climb and the counterweight, the quick coil, the banks of six eyes that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the Foreman’s six numerals, the clock keeps time', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('garage');
@@ -1433,37 +1433,52 @@ test('the First Garage on foot: the escapement’s disc, the climb and the count
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
   wait(0.5);
   assert.ok(P.onGround && rt.inside(P.pos), `standing in the Threshold (${where()})`);
-  // ---- the Escapement: the disc is still until the eye over the far door is splashed; then ride it over the pit
+  assert.ok(Math.abs(rt.outside.hourH.rotation.z + Math.PI * 2 / 3) < 0.05, 'the clock over the door stopped at four');
+  // ---- the Escapement: the disc is still until the three eyes round the dial wake in turn, from where its hand
+  // points (eight), round the way a clock goes: eight, twelve, four
   assert.equal(walk(L(0, 0, 16.6)), true, `to the pit's edge (${where()})`);
   const disc = rt.pieces.find((p) => p.path);
   wait(2);
   assert.equal(disc.s, 0, 'the disc is still');
-  rt.piece('s1').hit('shoot');
+  rt.piece('s2').hit('shoot');
+  assert.equal(rt.logic.isLit('s2'), false, 'twelve first: it only ticks');
+  assert.ok(notes.some((s) => /counts round from where its hand points/.test(s)), 'and says how the clock counts');
+  rt.piece('s1').hit('shoot'); rt.piece('s3').hit('shoot');
+  assert.deepEqual(['s1', 's2', 's3'].map((id) => rt.logic.isLit(id)), [true, false, false], 'eight, then four: four is out of turn');
+  rt.piece('s2').hit('shoot'); rt.piece('s3').hit('shoot');
   wait(0.1);
-  assert.equal(rt.logic.isOpen('discs'), true);
+  assert.equal(rt.logic.isOpen('discs'), true, 'eight, twelve, four');
   for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.5); i++) frame();
   assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
   assert.equal(walk(L(0, 0, 43), { tol: 0.8 }), true, `off onto the far landing (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > -1, 'over the pit, not in it');
-  // ---- the Winding Well: up the wall, the ball onto its plate (only the ball's weight opens it)
-  assert.equal(walk(L(0, 0, 58)), true, `into the well (${where()})`);
+  // ---- the Winding Well: up the wall to a shut door; its counterweight is the ball left on the escapement's landing
+  assert.equal(walk(L(-3, 0, 58)), true, `into the well (${where()})`);
   let up = false;
-  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(-3, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
   assert.ok(up, `up the wall (${where()})`);
-  const plate = rt.piece('p1');
-  assert.equal(walk(plate.pos, { tol: 0.5 }), true, 'onto the plate');
+  wait(0.5);
+  assert.equal(rt.logic.isOpen('d2'), false, 'the door at the top is shut');
+  const ball = rt.piece('ball1'), plate = rt.piece('p1'), C2W = 61.2;
+  const seenFrom = (from, to) => { const d = to.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
+  assert.ok(!seenFrom(L(0, 10.7, C2W + 6.3), plate.pos.clone().add(V(0, 0.8, 0))), 'its socket is out of sight from up here, under the wall’s lip');
+  assert.ok(rt.kit.local(ball.center).z < 48, 'the counterweight is still out on the escapement’s landing');
+  P.teleport(L(-3, 0.05, 58), V(0, 1, 0), V(0, 0, 1)); wait(0.3);   // (down again)
+  assert.equal(walk(plate.pos, { tol: 0.5 }), true, 'onto the socket');
   wait(0.5);
   assert.equal(rt.logic.isOpen('d2'), false, 'your own weight is not the counterweight');
-  const ball = rt.piece('ball1');
-  for (let k = 0; k < 8 && !rt.logic.drumOn('ball1', 'p1'); k++) {
+  for (let k = 0; k < 12 && !rt.logic.drumOn('ball1', 'p1'); k++) {
     walk(ball.center.clone().addScaledVector(ball.dir, -2.2).setY(P.pos.y), { tol: 0.6 });
-    ball.hit('push', ball.dir.clone(), { strength: 0.8 });
-    wait(2.6);
+    ball.hit('push', ball.dir.clone(), { strength: 1 });
+    for (let i = 0; i < 6 / DT && !ball.rest; i++) frame();
   }
-  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the ball on its plate (${ball.t.toFixed(2)})`);
+  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the counterweight home, through the doorway into the well (${ball.t.toFixed(2)})`);
   wait(2.2);
   assert.equal(rt.logic.isOpen('d2'), true);
+  up = false;
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(-3, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
+  assert.ok(up, `up the wall again (${where()})`);
   // ---- the Coil Chamber: six eyes in one breath. The starting bar (or four units) and its refill can't
   assert.equal(walk(L(0, 9, 79)), true, `into the chamber (${where()})`);
   const bank = rt.piece('k1');
@@ -1483,11 +1498,21 @@ test('the First Garage on foot: the escapement’s disc, the climb and the count
   assert.equal(rt.logic.isLit('k1'), true, 'six in a breath');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
-  // ---- the Clock Gallery: the six round the stopped clock raise the bridge
+  // ---- the Clock Gallery: the six round the handless clock, in one breath and in turn from the hour it stopped
   assert.equal(walk(L(0, 9, 97.5)), true, `to the gallery (${where()})`);
+  const k2 = rt.piece('k2'), ORDER = [4, 3, 2, 1, 0, 5];   // (four, six, eight, ten, twelve, two)
+  assert.deepEqual(k2.o.order, ORDER);
   wait(5.5);
-  tankShots(frame, 6, (i) => rt.piece('k2').hit(i));
-  assert.equal(rt.logic.isLit('k2'), true);
+  tankShots(frame, 6, (i) => k2.hit(i));   // round from twelve, the way the eyes were made: out of turn
+  assert.equal(rt.logic.isLit('k2'), false, 'from twelve, not four: out of turn');
+  assert.ok(notes.some((s) => /lost its hands/.test(s)), 'they all go dark, and say why');
+  wait(5.5);
+  const late = tankShots(frame, 5, (i) => k2.hit(ORDER[i]));
+  assert.equal(k2.seq, 5, `five in turn (${late.toFixed(2)} s)`);
+  wait(VOLLEY + 0.5);
+  assert.equal(k2.seq, 0, 'the first faded before the sixth: start again');
+  tankShots(frame, 6, (i) => k2.hit(ORDER[i]));
+  assert.equal(rt.logic.isLit('k2'), true, 'four, six, eight, ten, twelve, two, inside one breath');
   wait(3.5);
   assert.equal(walk(L(0, 9, 124)), true, `over the bridge (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > 8, 'over it, not in the chasm');

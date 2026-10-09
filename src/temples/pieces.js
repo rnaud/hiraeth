@@ -521,7 +521,8 @@ export class Switch {
  * window shorter than the tank's refill: it wants the fourth chamber (src/items.js 'cell'). Six eyes and a
  * window a little longer than one refill: it wants the quick coil ('coil': two tanks in one breath).
  * o.full: said when every eye woke but the element's item is missing; o.fade: said once when some woke and
- * all went dark again before the rest.
+ * all went dark again before the rest. o.order: the eyes' indices in the order they must wake (the First
+ * Garage's clock, counted round from the hour it stopped): an eye out of turn puts them all out (o.wrong).
  */
 export class Bank {
   constructor(rt, o) {
@@ -546,6 +547,19 @@ export class Bank {
   hit(i) {
     if (this.done) return true;
     const e = this.eyes[i];
+    if (this.o.order) {
+      // in turn (o.order: the eyes' indices in the order they must wake): out of turn, every eye goes dark
+      if (this.time - e.at <= this.window) return true;   // (awake already: a second splash changes nothing)
+      if (i !== this.o.order[this.seq ?? 0]) {
+        for (const x of this.eyes) x.at = -1e9;
+        this.seq = 0;
+        this.rt.sound?.critter?.('clack', 0.8);
+        this.rt.notice?.(this.o.wrong ?? 'The eyes ring out of step, and all go dark.', `bank.wrong.${this.id}`);
+        return true;
+      }
+      if (!this.seq) this.first = this.time;
+      this.seq = (this.seq ?? 0) + 1;
+    }
     e.at = this.time;
     this.rt.sound?.critter?.('blip', 0.8);
     if (this.eyes.every((x) => this.time - x.at <= this.window)) {
@@ -561,6 +575,7 @@ export class Bank {
     this.done ||= this.rt.logic.isLit(this.id);
     // some woke, and all went dark again before the rest: say why, once
     const n = this.done ? 0 : this.awake();
+    if (this.seq && this.time - this.first > this.window) { this.seq = 0; for (const x of this.eyes) x.at = -1e9; }   // (in turn: the first faded, start again)
     if (this.o.fade && this.was >= 2 && n === 0) this.rt.notice?.(this.o.fade, `bank.fade.${this.id}`);
     this.was = n;
     for (const e of this.eyes) {

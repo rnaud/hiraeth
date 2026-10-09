@@ -17,16 +17,25 @@ import { foremanModel } from './guardians.js';
 // stopped, and it has been wound wrong ever since. It is a machine: you may
 // stop it, or set it right.
 //
-// Inside (built far overhead, through its door):
+// Inside (built far overhead, through its door). The temple's one idea (reworked from the temple design audit,
+// docs/audits/temple-design-v1.12.md): the makers' clock counts round from where its hand points, and every
+// clock in the house stopped at the same hour the night the light passed (four, as the clock over the door).
 //   the Threshold        the Major's old bench, the first mark, the way out
-//   the Escapement       a pit crossed by a disc that swings over it like a clock's escapement, still until
-//                        you splash the eye over the far door
-//   the Winding Well     a wall to climb; on top a stone ball in a groove onto its plate: the door
+//   the Escapement       a pit crossed by a disc that swings over it like a clock's escapement, still until the
+//                        three eyes round the dial over the far door wake in turn: from the one its hand points
+//                        at, round the way a clock goes (out of turn an eye only ticks)
+//   the Winding Well     a wall to climb, the door at its top; the door wants the winding's counterweight home in
+//                        its socket at the wall's foot, and the counterweight is a stone ball still waiting on the
+//                        Escapement's far landing, its groove running through into the well (a room away, out of
+//                        sight from the door)
 //   the Coil Chamber     the makers' chest: the QUICK COIL (src/items.js 'coil'). The door on is ringed by six
 //                        eyes that wake only together, inside one breath (4.6 s): three shots, a refill, three
 //                        more; the tank refills too slowly without the coil
-//   the Clock Gallery    a chasm under a bridge that a second bank of six raises, the eyes round a stopped
-//                        clock face on the far wall
+//   the Clock Gallery    the key hall, after its reference: a chasm with the makers' cogs turning in the dark,
+//                        a great clock face on the far wall that has lost its hands, six eyes round it. The bridge
+//                        wants all six inside one breath (the coil) and in turn, counted round from the hour the
+//                        clock stopped at, which it no longer shows: the little clock over the way in does (and
+//                        the Winding Well's, and the one over the door outside). Out of turn they all go dark
 //   the Foreman's Workshop the guardian (a robot: its meter is damage). When its face opens, hit all six
 //                        numerals inside a breath
 // After: the clock over the First Garage's door keeps the true time, and the makers' cogs in the cliff
@@ -60,15 +69,18 @@ export const LOGIC = {
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
+    // the escapement's three eyes, in turn from where its hand points (eight), round the way a clock goes
     s1: { type: 'switch', room: 'esc' },
-    discs: { type: 'bridge', opens: { lit: 's1' }, latch: true },
-    ball1: { type: 'drum', room: 'well', plate: 'p1', plateAt: 1, start: 0 },
+    s2: { type: 'switch', room: 'esc', after: 's1' },
+    s3: { type: 'switch', room: 'esc', after: 's2' },
+    discs: { type: 'bridge', opens: { all: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] }, latch: true },
+    ball1: { type: 'drum', room: 'escFar', plate: 'p1', plateAt: 1, start: 0 },   // the counterweight, on the escapement's landing
     p1: { type: 'plate', room: 'well' },
     d2: { type: 'door', opens: { drumOn: ['ball1', 'p1'] }, latch: true },   // (the ball's weight: the winding's counterweight)
     chest: { type: 'gadget', room: 'coil', item: 'coil' },
     k1: { type: 'switch', room: 'coil', needs: ['coil'] },        // six eyes in one breath: two tanks
     d3: { type: 'door', opens: { lit: 'k1' }, latch: true },
-    k2: { type: 'switch', room: 'gallery', needs: ['coil'] },
+    k2: { type: 'switch', room: 'gallery', needs: ['coil'], order: true },   // six in one breath, in turn from four
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', opens: null },                            // the arena's door: shut while the Foreman fights
     foreman: { type: 'boss', room: 'hall', needs: ['backpack', 'coil'] },
@@ -108,6 +120,59 @@ function foremanHit(g, part, mode) {
 /** Six eyes round a centre (an hour each, two hours apart): [{ at, yaw }]. */
 const ring6 = (cx, cy, z, r, yaw) => Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * TAU; return { at: [cx + Math.sin(a) * r, cy + Math.cos(a) * r, z], yaw }; });
 
+/** Moving clockwork that answers to nothing (the Clock Gallery's cogs and pendulums): each part a function of time. */
+class Clockwork {
+  constructor(rt, o) { this.parts = o.parts; }
+  update(dt, t) { for (const f of this.parts) f(t); }
+}
+
+/** A cog of brass: a rim, teeth and spokes, merged (radius r, facing local +z). */
+function cogGeometry(r, depth = 1.0) {
+  const parts = [new THREE.TorusGeometry(r, 0.45, 6, 40).toNonIndexed()];
+  const n = Math.round(r * 3);
+  for (let k = 0; k < n; k++) parts.push(new THREE.BoxGeometry(0.9, 0.9, depth).translate(0, r + 0.55, 0).rotateZ((k / n) * TAU).toNonIndexed());
+  for (let k = 0; k < 3; k++) parts.push(new THREE.BoxGeometry(0.5, r * 2, 0.4).rotateZ((k / 3) * Math.PI).toNonIndexed());
+  parts.push(new THREE.CylinderGeometry(r * 0.2, r * 0.2, depth * 1.4, 14).rotateX(Math.PI / 2).toNonIndexed());
+  for (const q of parts) q.deleteAttribute('uv');
+  return mergeAll(parts);
+}
+
+/**
+ * The Clock Gallery after its reference: the makers' cogs turning slowly in the dark of the chasm, arched niches
+ * with brass pendulums on the walls of both landings, and high round windows of warm light.
+ */
+function galleryClockwork(rt, K, F0, brass) {
+  const cogM = makeMaterial({ color: '#c99a4a', flat: true, metal: 'brass', key: 'temple.garage.gallerycogs' });
+  const windowM = makeMaterial({ color: '#ffe9b8', glow: 0.8, flat: true, key: 'temple.garage.windows' });
+  const parts = [];
+  const place = (obj, x, y, z, ry = 0) => { obj.position.copy(K.world(x, y, z)); obj.rotation.y = K.heading(ry); obj.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; }); rt.root.add(obj); return obj; };
+  // cogs in the chasm: two great wheels along the walls, an escapement wheel lying under the bridge
+  for (const [x, y, z, r, ry, rate] of [[-8.6, -1.5, F0 + 12, 5.2, Math.PI / 2, 0.12], [8.6, -2.5, F0 + 21, 6, Math.PI / 2, -0.09], [-1.5, -3.6, F0 + 17, 4.2, 0, 0.16]]) {
+    const g = new THREE.Group(), m = new THREE.Mesh(cogGeometry(r), cogM);
+    if (ry === 0) m.rotation.x = -Math.PI / 2;   // (lying flat)
+    g.add(m);
+    place(g, x, y, z, ry);
+    parts.push(ry === 0 ? (t) => { m.rotation.z = t * rate; } : (t) => { m.rotation.z = t * rate; });
+  }
+  // arched niches on the side walls of both landings, each with a pendulum swinging in it
+  for (const [x, z, s] of [[-10.95, F0 + 2.6, 1], [10.95, F0 + 2.6, -1], [-10.95, F0 + 31, 1], [10.95, F0 + 31, -1]]) {
+    K.add(rt.M.dark, box(0.12, 5.6, 2.4, x + s * 0.06, 12.0, z));
+    K.add(rt.M.dark, T(new THREE.CylinderGeometry(1.2, 1.2, 0.12, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2), [x + s * 0.06, 14.8, z], [0, 0, 0]));
+    K.add(brass, box(0.2, 0.25, 2.8, x + s * 0.12, 9.15, z));
+    const bob = new THREE.Group();
+    bob.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.6, 6).translate(0, -1.8, 0), cogM), new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 8).scale(1, 1.3, 0.6).translate(0, -3.9, 0), cogM));
+    const pv = place(bob, x + s * 0.4, 15.2, z, 0);
+    const ph = z * 0.7;
+    parts.push((t) => { pv.rotation.x = Math.sin(t * 1.9 + ph) * 0.28; });
+  }
+  // round windows high on the walls, warm light coming in
+  for (const [x, z] of [[-10.9, F0 + 9], [-10.9, F0 + 24], [10.9, F0 + 9], [10.9, F0 + 24]]) {
+    K.add(windowM, T(new THREE.CylinderGeometry(1.5, 1.5, 0.1, 24).rotateZ(Math.PI / 2), [x, 21.5, z]));
+    K.add(brass, T(new THREE.TorusGeometry(1.55, 0.14, 5, 28).rotateY(Math.PI / 2), [x - Math.sign(x) * 0.05, 21.5, z]));
+  }
+  rt.add(Clockwork, { parts });
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -119,7 +184,7 @@ function layout(rt) {
     K.both(cream, T(new THREE.CylinderGeometry(r, r, 0.2, 40).rotateX(Math.PI / 2), [x, y, z], [0, yaw, 0]));
     K.both(brass, T(new THREE.TorusGeometry(r + 0.1, 0.25, 6, 40), [x, y, z], [0, yaw, 0]));
     for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.22, r * 0.18, 0.12).translate(Math.sin(a) * r * 0.82, Math.cos(a) * r * 0.82, 0.12).rotateZ(0), [x, y, z], [0, yaw, -a])); }
-    for (const [a, L, w] of [[hands[0], r * 0.55, 0.32], [hands[1], r * 0.8, 0.2]]) K.both(M.dark, T(new THREE.BoxGeometry(w, L, 0.1).translate(0, L / 2, 0.2).rotateZ(-a), [x, y, z], [0, yaw, 0]));
+    if (hands) for (const [a, L, w] of [[hands[0], r * 0.55, 0.32], [hands[1], r * 0.8, 0.2]]) K.both(M.dark, T(new THREE.BoxGeometry(w, L, 0.1).translate(0, L / 2, 0.2).rotateZ(-a), [x, y, z], [0, yaw, 0]));
   };
 
   // ---- the Threshold (z 0..12): the Major's old bench, where his first garage was
@@ -141,16 +206,21 @@ function layout(rt) {
   K.slab(-11, 40, 11, 48, 0, 8);
   K.both(M.dark, box(22, 1, 22, 0, -8.5, 29));
   add(Pit, { room: 'esc', min: [-12, -10, 18], max: [12, -2, 40] });
-  add(Platform, { path: [[0, 0, 20.4], [0, 0, 37.6]], r: 2.2, speed: 2.0, pause: 1.6, when: { lit: 's1' } });
+  add(Platform, { path: [[0, 0, 20.4], [0, 0, 37.6]], r: 2.2, speed: 2.0, pause: 1.6, when: { open: 'discs' } });
   // the escapement's anchor overhead, and a great stopped wheel on each wall
   K.both(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [-10.4, 6, 29], [0, Math.PI / 2, 0]));
   K.both(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [10.4, 6, 29], [0, Math.PI / 2, 0]));
   for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; for (const s of [-1, 1]) K.both(brass, T(new THREE.BoxGeometry(0.4, 1.2, 1.2), [s * 10.4, 6 + Math.cos(a) * 6.6, 29 + Math.sin(a) * 6.6], [a, 0, 0])); }
   K.both(brass, T(new THREE.BoxGeometry(14, 0.6, 0.6), [0, 12.4, 29]));
-  add(Switch, { id: 's1', at: [0, 8.6, 47.4], yaw: Math.PI, size: 1.0 });
+  // the dial over the far door, its one hand at eight, and three eyes round it at twelve, four and eight (as you
+  // face it, a clock's way round goes right to left over the top: x = -sin)
+  dial(0, 9.6, 47.7, 2.3, Math.PI, [TAU * 8 / 12, TAU * 8 / 12]);
+  const tick = 'It ticks once, and goes still: the makers’ clock counts round from where its hand points, the way a clock goes.';
+  for (const [id, hr] of [['s1', 8], ['s2', 12], ['s3', 4]]) { const a = TAU * hr / 12; add(Switch, { id, at: [-Math.sin(a) * 3.6, 9.6 + Math.cos(a) * 3.6, 47.4], yaw: Math.PI, size: 0.8, wrong: tick }); }
   add(Mark, { room: 'esc', at: [-6.5, 0, 15.4], yaw: Math.PI / 2 });
 
-  // ---- the Winding Well (a rotunda): a wall to climb (its top at 9), a ball onto its plate on top, the door
+  // ---- the Winding Well (a rotunda): a wall to climb (its top at 9), the door at its top; the counterweight's
+  // groove comes in from the Escapement's far landing to its socket at the wall's foot
   K.slab(-3.2, 48, 3.2, 50.6, 0, 0.8);
   K.wall(-3.2, 48.6, -3.2, 50.6, 0, 6.4, { t: 0.8 }); K.wall(3.2, 50.6, 3.2, 48.6, 0, 6.4, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.8, 49.6));
@@ -158,11 +228,13 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 22, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4, y0: 9 }], oculus: 0.3 });
   K.both(M.wallGlyph, box(20, 9, 7.2, 0, 4.5, C2 + 6.4));
   K.both(M.trim, box(20.2, 0.3, 7.4, 0, 9.05, C2 + 6.4));
-  K.add(M.dark, box(10.6, 0.04, 1.0, 0, 9.02, C2 + 6));
-  add(Ball, { id: 'ball1', a: [-5, 9.04, C2 + 6], b: [5, 9.04, C2 + 6], r: 1.1 });
-  add(Plate, { id: 'p1', at: [5, 9, C2 + 6], r: 1.3 });
+  K.add(M.dark, box(1.0, 0.04, 21.6, 1.2, 0.02, 51.7));
+  for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, 21.6, 1.2 + sd * 0.8, 0.06, 51.7));
+  add(Ball, { id: 'ball1', a: [1.2, 0.04, 41.4], b: [1.2, 0.04, C2 + 1.2], r: 1.1, friction: 1.0 });
+  add(Plate, { id: 'p1', at: [1.2, 0, C2 + 1.2], r: 1.3 });
+  K.both(brass, box(3.2, 0.5, 0.6, 1.2, 0.25, C2 + 2.6));   // (the socket's brass stop at the wall's foot)
   add(Door, { id: 'd2', at: [0, 9, C2 + 10.3], w: 5, h: 6.4, lamps: [{ drumOn: ['ball1', 'p1'] }] });
-  dial(-9.4, 14, C2, 2.6, Math.PI / 2);
+  dial(-9.4, 14, C2, 2.6, Math.PI / 2, [TAU * 4 / 12, 0.4]);   // (stopped at four, as every clock in the house)
   add(Mark, { room: 'well', at: [-6, 0, C2 - 6], yaw: Math.PI * 0.75 });
 
   // ---- the corridor and the Coil Chamber (floor 9): the chest; six eyes round the far door
@@ -190,10 +262,17 @@ function layout(rt) {
   K.both(M.dark, box(22, 1, 20, 0, -6.4, F0 + 16));
   add(Pit, { room: 'gallery', min: [-12, -8, F0 + 6], max: [12, 4, F0 + 26] });
   add(Bridge, { id: 'br1', a: [0, 9, F0 + 5.9], b: [0, 9, F0 + 26.1], w: 4, n: 8 });
-  dial(0, 20.4, F0 + 34.1, 5.2, Math.PI, [1.9, -2.6]);
-  add(Bank, { id: 'k2', eyes: ring6(0, 20.4, F0 + 33.6, 4.3, Math.PI), window: VOLLEY,
+  // the great clock face, its hands gone; six eyes round it (ring6 goes round toward +x: as you face it, that is
+  // twelve, ten, eight, six, four, two), to wake in turn from four: four, six, eight, ten, twelve, two
+  dial(0, 20.6, F0 + 34.1, 3.8, Math.PI, null);
+  K.both(brass, T(new THREE.TorusGeometry(6.3, 0.22, 6, 48), [0, 20.6, F0 + 34.0], [0, Math.PI, 0]));
+  K.add(M.glyph, T(glyphGeometry(2.6, 0.12), [0, 27.2, F0 + 34.2], [0, Math.PI, 0]));
+  add(Bank, { id: 'k2', eyes: ring6(0, 20.6, F0 + 33.6, 4.9, Math.PI), size: 1.0, window: VOLLEY, order: [4, 3, 2, 1, 0, 5],
     full: 'All six woke round the clock, and went dark again: the bank wants two tanks inside one breath, and this one fills too slowly.',
-    fade: 'They woke round the clock, and went dark again before the rest.' });
+    fade: 'They woke round the clock, and went dark again before the rest.',
+    wrong: 'The eyes ring out of step and all go dark. The great clock has lost its hands: count round from the hour every clock in this house stopped at.' });
+  dial(0, 18.9, F0 + 0.3, 1.3, 0, [TAU * 4 / 12, 0.4]);   // the little clock over the way in, behind you: stopped at four
+  galleryClockwork(rt, K, F0, brass);
   add(Door, { id: 'd4', at: [0, 9, F0 + 35], w: 5, h: 6.4 });
   add(Mark, { room: 'gallery', at: [-7, 9, F0 + 3], yaw: 0 });
 
@@ -273,6 +352,12 @@ function exterior(scene, level, rt) {
   for (const s of [-1, 1]) K.both(M.wall, box(2.4, 8, z1 - z0, s * 3.6, sill + 4, (z0 + z1) / 2));
   K.both(M.wall, box(9.6, 1.6, z1 - z0, 0, sill + 7.6, (z0 + z1) / 2));
   K.add(M.glyph, T(glyphGeometry(2.0, 0.14), [0, sill + 7.6, z1 + 0.06]));
+  // the arched doorway of its reference: a round arch of pale stone ringed in brass over the dark
+  K.both(M.wall, T(new THREE.TorusGeometry(2.75, 0.35, 6, 24, Math.PI), [0, sill + 4.2, z1 - 0.2]));
+  K.add(brass, T(new THREE.TorusGeometry(2.4, 0.12, 5, 24, Math.PI), [0, sill + 4.2, z1 + 0.18]));
+  // and round the great clock, a second ring of brass and four bosses (the clock's frame, as drawn)
+  K.add(brass, T(new THREE.TorusGeometry(cr + 0.7, 0.12, 5, 40), [0, cy, cz + 0.05]));
+  for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + Math.PI / 4; K.add(brass, T(new THREE.SphereGeometry(0.28, 8, 6), [Math.sin(a) * (cr + 0.7), cy + Math.cos(a) * (cr + 0.7), cz + 0.15])); }
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 6.8).translate(0, 3.4, 0), [0, sill, R + 0.25]));
   K.solid(box(4.8, 6.8, 0.1, 0, sill + 3.4, R + 0.25));
   // the Major's lean-to against the drum: a tin roof on posts, a bench, a painted board (his first garage)

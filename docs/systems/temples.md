@@ -88,9 +88,14 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   `level.portals`, as everywhere.
 - **The last three**: the **First Garage** (`garage.js`) on the plateau's rim
   west of the keep, a stair-house of the makers with a stopped clock over its
-  door and the makers' cogs in the cliff below: the escapement's disc, the
-  winding well's counterweight (only the ball's weight: `drumOn`), the **quick
-  coil**, banks of six eyes, the **Clockwork Foreman** (`foremanModel`: hit its
+  door and the makers' cogs in the cliff below (reworked from the temple design
+  audit, v1.12: the makers' clock counts round from where its hand points, and
+  every clock in the house stopped at four): the escapement's three eyes woken
+  in turn from its hand (`after`), the winding well's counterweight rolled in
+  from the escapement's landing (only the ball's weight: `drumOn`), the **quick
+  coil**, banks of six eyes, the last in turn round the handless clock from four
+  (`Bank` `order`: out of turn they all go dark; the clue is the little clock over
+  the gallery's way in, the well's, and the one over the door), the **Clockwork Foreman** (`foremanModel`: hit its
   six numerals inside one breath when its face opens); after, the clock keeps
   the true time and the cogs turn. The **Builders' Greenhouse** (`edena.js`) in
   the meadow hollow north of the white ruins, far from the tea terraces: the

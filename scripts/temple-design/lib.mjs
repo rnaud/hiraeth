@@ -81,7 +81,7 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   if (piece?.cls === 'Bank' || item === 'magic:4' || item === 'coil') tags.push('volley');
   if (el.type === 'drum') tags.push('push');
   else if (el.type === 'plate') tags.push(Object.values(elements).some((e) => e.type === 'drum' && e.plate === id) ? 'push' : 'weight');
-  else if (el.type === 'switch' && (el.after || Object.values(elements).some((e) => e.after === id))) tags.push('sequence');   // (in turn: with a gadget too, the gadget and the order)
+  else if (el.type === 'switch' && (el.after || el.order || Object.values(elements).some((e) => e.after === id))) tags.push('sequence');   // (in turn: with a gadget too, the gadget and the order; `order`: a bank's eyes in turn)
   else if (el.type === 'switch' && !item) tags.push('shot');
   else if (el.type === 'brazier' || el.type === 'bramble') { if (!item) tags.push('ember'); }
   else if (el.type === 'bell' && !item) tags.push('bell');
@@ -178,7 +178,7 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     locks.push({
       id, a: l.a, b: l.b, door: l.door ?? null, type: lockEl?.type ?? (l.needs ? 'traverse' : 'open'), pos: lockPos, stand,
       keys: ks, mechanics: mech, arena, bossDoor: isBossDoor, latch: !!lockEl?.latch, reversible: isGate && !lockEl.latch ? reversible(lockEl.opens, E) : false,
-      sequence: ks.some((k) => E[k.id]?.after || Object.values(E).some((e) => e.after === k.id)),
+      sequence: ks.some((k) => E[k.id]?.after || E[k.id]?.order || Object.values(E).some((e) => e.after === k.id)),
       traversalHere: traversal[l.a] ?? [],
       index: roomOrder.indexOf(l.b),
     });
