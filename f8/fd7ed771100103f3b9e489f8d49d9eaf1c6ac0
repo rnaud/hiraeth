@@ -1,0 +1,65 @@
+.claude/skills/cinematics-qc/SKILL.md
+  s_9ca76055a220ed::t_6847247cf9b92e 24-34,61-74
+TODO.md
+  s_9ca76055a220ed::t_e035743013b096 17-34
+package-lock.json
+  s_9ca76055a220ed::t_a3cf233ed7b348 770-772,790-792,810-812,830-832,850-852,870-872,890-892,910-912,930-932,956-958,982-984,1008-1010,1034-1036,1060-1062,1086-1088,1112-1114,1565-1567,1585-1587,1605-1607,1625-1627,1645-1647,1665-1667,2433-2435,2457-2459,2481-2483,2505-2507,3191
+scripts/cinematics-qc.mjs
+  s_9ca76055a220ed::t_16435de4b49dc4 16,43-45,102,136,149,176,186,268,272,303,305,311-312,315,340-350,362,372-375,381,385
+src/boxes/effects.js
+  s_9ca76055a220ed::t_5d98e0d4382496 39-40,75-89,230
+src/boxes/scene.js
+  s_9ca76055a220ed::t_410a214469ed2d 41-42,283-291
+src/gadgets/hud.js
+  s_9ca76055a220ed::t_580e0432df6193 31
+src/main.js
+  s_9ca76055a220ed::t_943f886182b806 593
+src/ship/cinema.js
+  s_9ca76055a220ed::t_2f4d51634bcaba 264,318,341,383
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_1ccb15c3c5a63d 543-553,573
+src/story/arzach-moments.js
+  s_9ca76055a220ed::t_0627d164c2690d 54-58
+src/story/desert-moments.js
+  s_9ca76055a220ed::t_b1fccd384c89be 171-173,177
+src/story/home.js
+  s_9ca76055a220ed::t_ca6777c88b100d 5,83-85,101-104,137-138,307-309,311-314,332-334
+src/story/lantern.js
+  s_9ca76055a220ed::t_17e84ade23d437 4,19-20,64-71,73,75-81,83,86-87,89-90
+src/story/moment.js
+  s_9ca76055a220ed::t_2e83e1011940d9 100
+tests/cutscenes.test.js
+  s_9ca76055a220ed::t_c0fbce2f92d59e 13,220-228
+tests/home-family.test.js
+  s_9ca76055a220ed::t_edc67b2042a6ba 118-119,132
+tests/item-star.test.js
+  s_9ca76055a220ed::t_d29d1223c42d44 1-33
+tests/moment.test.js
+  s_9ca76055a220ed::t_a084b5f74a7e35 76-94
+tests/boxes.test.js
+  s_ba3661c50ea890::t_9de9c433ac9abc 239-242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f8fd7ed771100103f3b9e489f8d49d9eaf1c6ac0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_ba3661c50ea890": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-adc05082f9e8f8c4a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
