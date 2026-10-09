@@ -3,6 +3,7 @@
 The web game in a UWP app with WebView2 (x64), sideloaded on an Xbox in Developer Mode. Why the web game and not
 the Unity build: TODO.md, "An Xbox Dev Mode package" (Puerts has no V8 for UWP/Xbox; the gain was ~0.9 ms).
 Not for players: there is no Store listing; it is for measuring the game on the console.
+**Setting up the console, step by step (sign-up, Developer Mode, installing): [../xbox-setup.md](../xbox-setup.md).**
 
 ## The app (`xbox/Hiraeth/`)
 
