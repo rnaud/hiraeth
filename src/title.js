@@ -16,6 +16,7 @@ import { Settings, SettingsMenu, isNativeApp, isDeckApp, isTouch, reducedMotion 
 import { t, onLanguage } from './i18n.js';
 import { Sound } from './audio.js';
 import { Controller, menuNavigate } from './controller.js';
+import { InputMode } from './input-mode.js';
 import { setFaces, padFaces } from './native-pad.js';
 import { markBooted } from './native-app.js';
 import { startThemeDownload } from './music-store.js';
@@ -273,12 +274,16 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       } else if ((e.code === 'Enter' || e.code === 'Space') && !navRoot().contains(doc.activeElement)) { e.preventDefault(); navigate(0, 1); }
     };
     win.addEventListener('keydown', onKey);
+    // what is in hand, for the world this opens (src/input-mode.js: no touch buttons there while a pad is used)
+    const inputMode = new InputMode({ touchDevice: isTouch });
+    const onInput = (e) => inputMode.event(e);
+    for (const ev of ['keydown', 'pointerdown', 'touchstart']) win.addEventListener(ev, onInput, { capture: true, passive: true });
 
     // a controller: d-pad / stick move, A confirm, B back (controller.js, as in the game's menus)
     const controller = new Controller({
       context: () => 'menu',
       look: () => {}, faces: () => padFaces(),
-      activity: () => { sound.start(); root.classList.add('pad'); root.classList.remove('typed'); doc.body.classList.add('controller'); },
+      activity: () => { inputMode.pad(); sound.start(); root.classList.add('pad'); root.classList.remove('typed'); doc.body.classList.add('controller'); },
       navigate,
       scroll: (amount) => { const r = navRoot(); (r.querySelector('.panel, .slots') ?? r).scrollTop += amount; },
       action: (name) => {
@@ -302,6 +307,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     function cleanup() {
       cancelAnimationFrame(raf);
       win.removeEventListener('keydown', onKey);
+      for (const ev of ['keydown', 'pointerdown', 'touchstart']) win.removeEventListener(ev, onInput, { capture: true });
       doc.removeEventListener('fullscreenchange', onFullscreen);
     }
 

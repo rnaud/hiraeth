@@ -1138,3 +1138,21 @@ tests/sound-mix.test.js holds them.
   turns it into the surface (`footSurface`: built → stone), and steps and landings play it. Sampled over
   a 240 m square round each spawn, the grassy worlds read 0.4–26 % stone, the desert all sand.)
 
+## Playtest notes (2026-10-08): HUD and prompts
+
+- On-screen hints are too obvious and hide the health bar. (2026-10-08: the notices, the cue and the
+  scenes' hint are quieter: translucent paper, a thin line, no shadow, narrower. The health bar is
+  always one of the layout's obstacles (src/ship/cinema.js OBSTACLES), and a notice slides sideways
+  along its row before it moves down, so on a phone held sideways it wraps left of the touch buttons
+  instead of being pushed off the bottom of the screen. tests/hints.test.js.)
+- Starting a new quest should show a hint that looks different from the others. (2026-10-08: a quest's
+  or an errand's start is its own card, ink with a gold rule, "◆ New quest" over the title and the first
+  step (Quests.startToast, questToastHtml); the other notices stay plain.)
+- Don't show button hints when getting into a vehicle. (2026-10-08: the cue says nothing while riding;
+  the ride lines (hud.ride.*, hud.pad.*) are gone; the settings' Controls page still lists them, and the
+  cab's dash asks where to by itself.)
+- Loading a new level shows the touch controls again. (2026-10-08: each world is a new page, which
+  started from nothing, and a browser lists a pad only after it is pressed there. What is in hand is now
+  remembered for the tab (src/input-mode.js, sessionStorage), and a keyboard hides the touch buttons as
+  a controller does. tests/input-mode.test.js.)
+

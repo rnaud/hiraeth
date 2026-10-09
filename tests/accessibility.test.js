@@ -269,8 +269,8 @@ test('the Controls page and the HUD speak the language', async () => {
     const L = controlsList('A / ×', 'B / ○');
     assert.ok(L.pad.some(([what, how]) => what.startsWith('Utiliser, parler') && how === 'X / □'));
     assert.ok(L.keyboard.some(([what, how]) => what.startsWith('Se déplacer') && how === 'WASD · MAJ'), 'the keys in French words');
-    assert.equal(cueText({ ride: 'taxi', rideFor: 0, controller: true }), 'X / □ où aller · B / ○ descendre');
-    assert.match(cueText({ ride: 'bike', rideFor: 0, controller: true }), /stick gauche diriger/);
+    assert.equal(cueText({ prompt: 'tourner la lentille', controller: true }), 'X / □ tourner la lentille');
+    assert.equal(cueText({ ride: 'bike', rideFor: 0, controller: true }), '', 'no button hints getting on a vehicle');
   } finally { i18n.setLanguage('en'); }
 });
 

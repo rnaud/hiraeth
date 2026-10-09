@@ -8,6 +8,7 @@ import { ORDER } from './levels/names.js';
 import { GAMES, gameHref } from './minigames/index.js';
 import { bestScore, formatScore } from './minigames/kit/scores.js';
 import { scoreDef } from './minigames/kit/flow.js';
+import { rememberInput } from './input-mode.js';
 
 /** The game's other pages, at the top of the list (they leave the game). */
 export const PAGES = [
@@ -106,7 +107,7 @@ export async function showWorldsOnly(doc = document, win = window) {
   const controller = new Controller({
     context: () => 'menu',
     look: () => {}, faces: () => padFaces(),
-    activity: () => doc.body.classList.add('controller'),
+    activity: () => { doc.body.classList.add('controller'); rememberInput('pad'); },   // (and the world it opens starts with no touch buttons: src/input-mode.js)
     navigate: (x, y) => menuNavigate(picker, x, y),
     scroll: (amount) => { picker.scrollTop += amount; },
     action: (name) => {

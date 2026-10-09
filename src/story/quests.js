@@ -137,7 +137,7 @@ export class Quests {
     else {
       if (stage === DONE) { this.toast(`${d.main ? 'Completed' : 'Done'}: ${d.title}`); d.onDone?.(this); }
       else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`What happened: ${d.title}`); d.onFail?.(this); }
-      else if (prev === undefined || opening) this.toast(`${d.main || d.major ? 'Quest' : 'New errand'}: ${d.title} · ${st.text}`);
+      else if (prev === undefined || opening) this.startToast(d, st);
       else this.toast(`${d.title}: ${st.text}`);
       if (stage === FAILED) this.sound?.fail?.(); else this.sound?.chime?.();
     }
@@ -148,6 +148,11 @@ export class Quests {
     return true;
   }
   onChange(f) { this.listeners.add(f); return () => this.listeners.delete(f); }
+  /** A quest begins: its toast in its own look (kind 'quest': src/ship/cinema.js questToastHtml), not as the other notices. */
+  startToast(d, st) {
+    const big = d.main || d.major, step = st?.text ?? '';
+    this.toast(`${big ? 'Quest' : 'New errand'}: ${d.title} · ${step}`, { kind: 'quest', head: big ? 'New quest' : 'New errand', title: d.title, step });
+  }
 
   // (only a quest of this world: one tracked in another, still under way there, has no marker here and
   // would hide this world's own objective, the opening conversation too)
@@ -218,7 +223,7 @@ export class Quests {
     this._quiet = null;
     if (!id || !this.isActive(id)) return false;
     const d = this.def(id), st = this.current(id);
-    this.toast(`${d.main || d.major ? 'Quest' : 'New errand'}: ${d.title} · ${st?.text ?? ''}`);
+    this.startToast(d, st);
     this.sound?.chime?.();
     return true;
   }

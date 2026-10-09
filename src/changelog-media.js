@@ -171,6 +171,17 @@ const WAY = { bowl: [646.27, 141.38], camp: [1028.02, -97.03], bell: [1442.76, -
 
 export const CHANGELOG_MEDIA = {
   '1.0': [
+    { match: 'Notices are quieter', shots: [
+      { name: 'hud-notices', caption: 'A long notice while hurt, 1280 × 720', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+      { name: 'hud-notices-phone', caption: 'The same notice on a phone held sideways (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+    ] },
+    { match: 'Starting a quest or an errand shows its ', shots: [
+      { name: 'quest-card', caption: 'A quest begins, 1280 × 720', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+      { name: 'quest-card-phone', caption: 'A quest begins on a phone held sideways (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+    ] },
+    { match: 'The touch buttons stay as you left them ', shots: [
+      { name: 'touch-new-world', caption: 'A new world loads on a phone after playing with a controller (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, the pad remembered from the world before, Low (8 October)' },
+    ] },
     { match: 'The Sketchbook has a Sightings page', shots: [
       { name: 'sightings', caption: 'The game menu’s Sketchbook after the desert’s first talks: the Sightings first, a ? for each still to find', commit: '9ba725ea',
         view: { level: 'desert', hud: true, save: { flags: { ...SAVE_ON.flags, 'world.desert.done': true, 'sight.desert.oum': true, 'sight.desert.dalia': true, 'sight.desert.nour': true, 'sight.desert.hull': true, 'sight.desert.givers': true }, keepsakes: [] },

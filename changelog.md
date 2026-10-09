@@ -27,6 +27,10 @@ The same release notes shown in the game (press **N** or open settings).
 - After the Signal Market, the ship’s map charts one more place, off every chart.
 - Coming home after six worlds is now a first homecoming: something passes over the hill while you are at the stone, and the story isn’t over.
 - A Cinematics review page gathers the films, recordings, journeys and makers’ boxes, with replay controls and notes for quality control.
+- The touch buttons stay as you left them when a new world loads: hidden while you play with a controller or the keyboard, back as soon as you touch the screen.
+- Getting into a vehicle no longer lists its buttons along the bottom of the screen; the Controls page in the settings still has them.
+- Starting a quest or an errand shows its own card, unlike the other notices: “New quest” in gold over the quest’s name and its first step.
+- Notices are quieter: soft paper and a thin line instead of a heavy inked box, and they always keep clear of the health bar. On a phone held sideways they wrap beside the touch buttons instead of sliding off the bottom of the screen.
 - The Debug button is back on the title screen and in the Start menu for everyone, for now, so testers can jump to any world.
 - The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.
 - The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.
