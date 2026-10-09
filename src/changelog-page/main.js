@@ -97,7 +97,20 @@ document.addEventListener('pointercancel', () => { drag = null; });
 // (hovering with a mouse moves the split too, without a click)
 document.addEventListener('mousemove', (e) => { if (drag || e.buttons) return; const cmp = e.target.closest('.compare:not(.single)'); if (cmp && cmp.dataset.mode === 'split' && matchMedia('(hover: hover)').matches) { const r = cmp.getBoundingClientRect(); setSplit(cmp, ((e.clientX - r.left) / r.width) * 100); } });
 
+// the design sheet beside a pair, full size over the page (a click, B / ○, Escape or Enter closes it)
+let lightbox = null;
+function openSheet(url) {
+  closeSheet();
+  lightbox = document.createElement('div'); lightbox.className = 'lightbox'; lightbox.setAttribute('role', 'dialog'); lightbox.setAttribute('aria-label', 'Reference, full size');
+  lightbox.innerHTML = `<img alt="Reference, full size" src="${url}">`;
+  lightbox.addEventListener('click', closeSheet);
+  document.body.append(lightbox);
+}
+function closeSheet() { if (!lightbox) return false; lightbox.remove(); lightbox = null; return true; }
+
 document.addEventListener('click', (e) => {
+  const r = e.target.closest('.ref-open');
+  if (r) { openSheet(r.dataset.full); return; }
   const m = e.target.closest('.modes [data-mode]');
   if (m) { setMode(m.closest('.shots'), m.dataset.mode); return; }
   const t = e.target.closest('.shot-tabs [data-shot]');
@@ -185,6 +198,7 @@ $('#close').addEventListener('click', close);
 
 /** What a controller press does here: the game's own Controller (embedded, the game passes them on). */
 const pad = (name, ...a) => {
+  if (lightbox && ['back', 'confirm', 'start', 'select'].includes(name)) { closeSheet(); return true; }
   if (name === 'navigate') { const [x, y] = a; if (y) step(y); else if (x) slide(x); }
   else if (name === 'scroll') scrollBy(0, a[0]);
   else if (name === 'confirm') confirm();
@@ -196,6 +210,7 @@ window.changelogPad = pad;
 
 addEventListener('keydown', (e) => {
   const typing = e.target.tagName === 'INPUT';
+  if (lightbox && ['Escape', 'Enter', ' ', 'Backspace'].includes(e.key)) { e.preventDefault(); closeSheet(); return; }
   if (e.key === 'Escape' || (!typing && (e.code === 'KeyN' || e.key === 'Backspace'))) { if (typing && e.key === 'Escape' && e.target.value) return; e.preventDefault(); close(); return; }
   if (typing) { if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); step(1); } return; }
   const k = { ArrowDown: ['navigate', 0, 1], ArrowUp: ['navigate', 0, -1], ArrowLeft: ['navigate', -1, 0], ArrowRight: ['navigate', 1, 0], PageDown: ['tabNext'], PageUp: ['tabPrev'] }[e.key];

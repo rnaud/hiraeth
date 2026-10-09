@@ -87,6 +87,24 @@ view); `level` with `eye`, `target`, `fov` and `player` (the bench viewpoints in
 `only: 'after'` picture: the page loses its slider and each half is a third of the width. Shoot the pair,
 and add a stitched picture (with a reference, say) as a second shot after it if it helps.
 
+### Enemies: the body alone, the sheet beside it
+
+An enemy line shows the game's creature **alone, large, 3D only**: a pair from the creatures gallery
+(`view: { foe: { id: 'crab@arzach2', yaw, pitch, zoom, pose, at, phase } }`, enemies.html through `Foes.look`,
+the camera framed on the body and the same for the before and the after; `pose` an attack's id holds its wind-up
+at `at`). One pair per skin worth showing, from the most telling side (three-quarter for a crab, the side for a
+lizard or a hound, from above for the ray), as tabs (`title`). Where the before is another kind (a stand-in),
+`view.before: { foe: { id: 'ray' } }`.
+
+The **design sheet** the change was drawn to is its own picture: `reference: { sheet:
+'references/enemy-archetypes/crab/sheet-1.jpg', caption }` on the shot. The script makes
+`changelog-media/<version>/<name>-ref.webp` from it (1280 px, quality 70, 30–110 KB; it counts as a picture
+of its own, not part of the pair), and the page shows it beside the pair (under it on a narrow screen), labelled
+REFERENCE, opening full size over the page on a click (B, Escape or Enter close it). **Never stitch a sheet into
+the game's picture**: the stitched contact sheets of `scripts/enemy-roster/compare.mjs` are a working tool only;
+its `--separate` mode writes each view alone for a before / after made by hand. The enemy-rework skill
+(`.claude/skills/enemy-rework/`) has the whole routine.
+
 Look at every pair before committing it: the two must differ in the way the line says, and nowhere else
 that matters (people move between the two loads; a view that shows nothing of the change is worse than a
 note).

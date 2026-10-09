@@ -81,6 +81,16 @@
   .modes button { padding: 1px 8px; background: transparent; border: 1px solid var(--ink); cursor: pointer; }
   .modes button[aria-pressed="true"] { background: var(--gold); }
   .caption { color: var(--soft); flex: 1 1 200px; }
+  /* the design sheet a change was drawn to: its own picture beside the pair (under it on a narrow screen), opened full size */
+  .with-ref { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: 12px; align-items: start; }
+  .with-ref .pair { min-width: 0; }
+  .reference { margin: 0; }
+  .reference .ref-open { display: block; width: 100%; padding: 0; border: 1.5px solid var(--ink); background: #fbf6ea; cursor: zoom-in; }
+  .reference img { display: block; width: 100%; height: auto; }
+  .reference figcaption { margin-top: 4px; font-size: 12px; color: var(--soft); }
+  .reference figcaption b { letter-spacing: 0.1em; font-size: 11px; color: var(--ink); }
+  .lightbox { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 18px; background: rgba(30, 24, 18, 0.82); cursor: zoom-out; }
+  .lightbox img { max-width: 100%; max-height: 100%; border: 2px solid var(--ink); background: #fbf6ea; box-shadow: 6px 6px 0 var(--ink); }
 
   /* the numbers: before against after, a bar each */
   .numbers { margin-top: 10px; }
@@ -113,6 +123,8 @@
     html { scroll-padding-top: 190px; }
     article.line { padding: 10px; box-shadow: 3px 3px 0 var(--ink); }
     .side { grid-template-columns: 1fr; }
+    .with-ref { grid-template-columns: 1fr; }
+    .ref-hint { display: none; }
     td.bars, th.bars { display: none; }
     .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
     .chips .chip { flex: none; }

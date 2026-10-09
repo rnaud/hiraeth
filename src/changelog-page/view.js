@@ -31,7 +31,7 @@ export function matches(line, { kind = 'all', worlds = [], words = '' } = {}) {
   if (kind === 'numbers' && !line.numbers.length) return false;
   if (!['all', 'shots', 'numbers'].includes(kind) && !line.tags.includes(kind)) return false;
   if (worlds.length && !worlds.some((w) => line.tags.includes(w))) return false;
-  const hay = `${line.text} ${line.see ?? ''} ${line.shots.map((s) => s.caption).join(' ')} ${line.numbers.map((n) => `${n.title} ${n.device ?? ''} ${n.rows.map((r) => r.where).join(' ')}`).join(' ')} v${line.v}`.toLowerCase();
+  const hay = `${line.text} ${line.see ?? ''} ${line.shots.map((s) => `${s.caption} ${s.reference?.caption ?? ''}`).join(' ')} ${line.numbers.map((n) => `${n.title} ${n.device ?? ''} ${n.rows.map((r) => r.where).join(' ')}`).join(' ')} v${line.v}`.toLowerCase();
   return words.toLowerCase().split(/\s+/).filter(Boolean).every((w) => hay.includes(w));
 }
 
@@ -83,7 +83,16 @@ ${img(s.after, 'after', `After: ${s.caption}`)}${img(s.before, 'before', `Before
 <div class="offline">The pictures are on the game’s site: they show when you are online.</div></div>
 <div class="side" style="--aspect:${aspect};--ar:${ar}"><figure>${img(s.before, 'sb', `Before: ${s.caption}`)}<figcaption>BEFORE</figcaption></figure><figure>${img(s.after, 'sa', `After: ${s.caption}`)}<figcaption>AFTER</figcaption></figure></div>`;
   const modes = single ? '' : `<button type="button" data-mode="split" aria-pressed="true">Slider</button><button type="button" data-mode="before" aria-pressed="false">Before</button><button type="button" data-mode="after" aria-pressed="false">After</button><button type="button" data-mode="sbs" aria-pressed="false">Side by side</button>`;
-  return `${compare}<div class="modes">${modes}<span class="caption">${esc(s.caption)}</span></div>`;
+  const pair = `${compare}<div class="modes">${modes}<span class="caption">${esc(s.caption)}</span></div>`;
+  return s.sheet ? `<div class="with-ref"><div class="pair">${pair}</div>${referenceHtml(s, src)}</div>` : pair;
+}
+
+/** The design sheet a change was drawn to: its own picture beside the pair, labelled, opened full size on a click. */
+export function referenceHtml(s, src = mediaSrc) {
+  const cap = s.reference?.caption ?? 'The design sheet';
+  return `<figure class="reference"><button type="button" class="ref-open" data-full="${esc(src(s.sheet))}" aria-label="${esc(`Open the reference full size: ${cap}`)}">`
+    + `<img class="ref" loading="lazy" decoding="async" alt="${esc(`Reference: ${cap}`)}" src="${esc(src(s.sheet))}" data-path="${esc(s.sheet)}"></button>`
+    + `<figcaption><b>REFERENCE</b> ${esc(cap)} <span class="ref-hint">(click to enlarge)</span></figcaption></figure>`;
 }
 
 /** A line's card. */
@@ -93,7 +102,7 @@ export function lineHtml(line) {
   const tagNames = Object.fromEntries([...KINDS, ...WORLDS].map(([k, label]) => [k, label]));
   const tags = line.tags.filter((t) => tagNames[t]).map((t) => `<span class="tag">${esc(tagNames[t])}</span>`).join('');
   const tabs = line.shots.length > 1 ? `<div class="shot-tabs">${line.shots.map((s, k) => `<button type="button" data-shot="${k}" aria-pressed="${k === 0}">${esc(s.title ?? `${k + 1}`)}</button>`).join('')}</div>` : '';
-  const shots = line.shots.length ? `<div class="shots" data-shots='${esc(JSON.stringify(line.shots.map((s) => ({ before: s.before, after: s.after, caption: s.caption, size: s.size ?? s.view?.size }))))}'>${tabs}<div class="shot">${shotHtml(line.shots[0])}</div></div>` : '';
+  const shots = line.shots.length ? `<div class="shots" data-shots='${esc(JSON.stringify(line.shots.map((s) => ({ before: s.before, after: s.after, caption: s.caption, size: s.size ?? s.view?.size, sheet: s.sheet ?? undefined, reference: s.reference ? { caption: s.reference.caption } : undefined }))))}'>${tabs}<div class="shot">${shotHtml(line.shots[0])}</div></div>` : '';
   const see = line.see ? `<div class="see"><b>HOW TO SEE IT</b> ${esc(line.see)}</div>` : '';
   return `<article class="line${rich ? '' : ' plain'}" id="${id}" tabindex="0" data-v="${esc(line.v)}" data-i="${line.i}">
 <p class="text">${esc(line.text)}</p>${shots}${line.numbers.map(numbersHtml).join('')}${see}${tags ? `<div class="tags">${tags}</div>` : ''}</article>`;

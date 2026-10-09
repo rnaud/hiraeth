@@ -39,18 +39,31 @@ test('every picture exists, as WebP, and stays small', () => {
     assert.ok(s.caption, `${v}/${s.name}: a caption`);
     assert.ok(s.view || s.from, `${v}/${s.name}: a view to take it from, or where a picture made by hand came from`);
     let pair = 0;
-    for (const f of Object.values(shotFiles(v, s)).filter(Boolean)) {
+    const { sheet, ...sides } = shotFiles(v, s);
+    for (const f of [...Object.values(sides), sheet].filter(Boolean)) {
       const path = join(ROOT, f);
       assert.ok(existsSync(path), `${f} is missing: node scripts/changelog-shots.mjs --only ${v}/${s.name}`);
       const b = readFileSync(path);
       assert.equal(b.subarray(8, 12).toString(), 'WEBP', `${f} is a WebP`);
       assert.ok(b.length <= MAX_FILE, `${f} is ${(b.length / 1024).toFixed(0)} KB (at most ${MAX_FILE / 1024})`);
-      pair += b.length;
+      if (f !== sheet) pair += b.length; else total += b.length;   // (the design sheet: a picture of its own, not part of the pair)
     }
     assert.ok(pair <= MAX_PAIR, `${v}/${s.name}: the pair is ${(pair / 1024).toFixed(0)} KB`);
     total += pair;
   }
   assert.ok(total <= MAX_TOTAL, `the pictures are ${(total / 2 ** 20).toFixed(1)} MB in all`);
+});
+
+test('a design sheet is its own picture: from the repository’s references, captioned, never stitched into the pair', () => {
+  for (const [v, list] of Object.entries(CHANGELOG_MEDIA)) for (const m of list) for (const s of m.shots ?? []) {
+    if (!s.reference) continue;
+    assert.ok(s.reference.sheet && existsSync(join(ROOT, s.reference.sheet)), `${v}/${s.name}: its sheet ${s.reference.sheet} is in the repository`);
+    assert.ok(s.reference.caption, `${v}/${s.name}: its sheet has a caption`);
+  }
+  // (the enemy roster's pictures: the game's body alone, the sheet beside it; docs/systems/changelog.md)
+  for (const s of Object.values(CHANGELOG_MEDIA).flat().flatMap((m) => m.shots ?? []).filter((s) => s.view?.foe)) {
+    assert.ok(s.reference, `${s.name}: an enemy pair shows its design sheet as its own picture`);
+  }
 });
 
 test('no picture in changelog-media/ that no line shows', () => {

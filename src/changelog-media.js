@@ -9,7 +9,11 @@
 //          pictures in changelog-media/<version>/<name>-before.webp and -after.webp, taken by
 //          scripts/changelog-shots.mjs at `before` (default: the commit's parent) and `commit`, from
 //          `view` (see the script: a References view `ref`, or `level` + camera `eye`/`target`/`fov`,
-//          the hour, weather, preset, size, a `setup` script); only: 'after' for a picture with no before
+//          the hour, weather, preset, size, a `setup` script; `foe` for a creature of the gallery, enemies.html);
+//          only: 'after' for a picture with no before
+//          reference: { sheet, caption } the design sheet the change was drawn to (a path in the repository,
+//          references/…), shown as its own picture beside the pair (changelog-media/<version>/<name>-ref.webp,
+//          made from the sheet by the script): never stitched into the game's pictures
 //   numbers: [{ title, unit, better: 'lower' | 'higher', device, rows: [{ where, before, after }], source, note? }]
 //          measurements before and after (frame times, fps, draws, the contact audit's counts…); a value
 //          is a number or a range written as text ('17–25'), drawn as bars by its middle
@@ -23,10 +27,11 @@ import { lineText } from './changelog.js';
 export const MEDIA_DIR = 'changelog-media';
 export { lineText };
 
-/** The files of a shot (paths from the site's root): before is null for an after-only picture. */
+/** The files of a shot (paths from the site's root): before is null for an after-only picture; sheet, the design
+ *  sheet shown beside the pair (null without a `reference`). */
 export function shotFiles(v, s) {
   const at = (side) => `${MEDIA_DIR}/${v}/${s.name}-${side}.webp`;
-  return { before: s.only === 'after' ? null : at('before'), after: s.only === 'before' ? null : at('after') };
+  return { before: s.only === 'after' ? null : at('before'), after: s.only === 'before' ? null : at('after'), sheet: s.reference ? at('ref') : null };
 }
 
 /** The worlds by the words lines use for them (the most specific first). */
@@ -301,7 +306,10 @@ const BEHIND_RIGHT = `${HIDE('#toast, #cue, #prompt, #objective')}
   camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 45) { this.fov = 45; this.updateProjectionMatrix(); } return base.call(this, force); };`;
 /** Twelve chimes (two fives, two ones) dropped in the Arena's middle, scattered the same way before and after (a seeded rng), the foes away. */
 const FROM_CHIME_SHADER = 'headless Chrome against a dev server, High, 1280 × 720, hour 10: the chimes dropped from a seeded rng and laid out in a ring, the camera pinned (the same scatter before and after); before at main before the change, after with it';
-const FROM_ART = 'node scripts/enemy-roster/compare.mjs: the reference sheet (references/enemy-archetypes/) over the creatures gallery’s own body (enemies.html, headless Chrome against this branch’s dev server) in the sheet’s skin and views, before the art pass and after it (9 October)';
+/** An enemy's design sheet, shown beside its pair (n 1: the main skin's sheet, 2: the alternate's). */
+const REF = (id, n, skin) => ({ sheet: `references/enemy-archetypes/${id}/sheet-${n}.jpg`, caption: `${n === 1 ? 'The main' : 'The alternate'} design sheet: ${skin}` });
+/** Batch 1's art pass: from before compare.mjs (7dd178f7) to its last commit. */
+const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
 const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
   let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646;
@@ -472,50 +480,55 @@ export const CHANGELOG_MEDIA = {
   ],
   '1.10': [
     // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")
-    { match: 'Five more foes of the new roster', shots: [
-      { name: 'roster2-ray', caption: 'Before: the winged blot, the air foe. After: the sky ray (Vael’s storm ray), its broad red wings rimmed in pale blue, its jointed whip tail', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
-    ], see: 'In Vael II, walk past a lantern jelly drifting over the cliffs without fighting anything: it lets you be. Start a fight with a cliff crab nearby and the jelly comes over to ward it. In the Buried Machine, a ring centipede lies coiled on its rock until you come within a few metres.' },
+    // the enemy roster (docs/systems/changelog.md, "Enemies"): the game's body alone, large, before and after from the
+    // same camera (scripts/changelog-shots.mjs view.foe: the creatures gallery), its design sheet beside the pair
+    { match: 'Five more foes of the new roster', see: 'In Vael II, walk past a lantern jelly drifting over the cliffs without fighting anything: it lets you be. Start a fight with a cliff crab nearby and the jelly comes over to ward it. In the Buried Machine, a ring centipede lies coiled on its rock until you come within a few metres.' },
     { match: 'The mound worm swims under the sand', shots: [
-      { name: 'roster2-worm', caption: 'Before: the dune ray, standing in for it. After: the mound worm up out of its hole, a stack of banded rings with a tall ivory fin down its back, rearing to spit', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), before walking, after winding up its spit' },
+      { name: 'roster2-worm', caption: 'Before: the dune ray, standing in for it. After: the mound worm up out of its hole, a stack of banded rings with a tall ivory fin down its back, rearing to spit', commit: '5e506359', before: '1c129458^',
+        view: { foe: { id: 'worm@desert', pose: 'spit', at: 0.35, yaw: 0.6, pitch: 0.1 }, before: { foe: { id: 'ray', yaw: 0.6, pitch: 0.25, pose: 'walk' } } }, reference: REF('worm', 1, 'the dune worm (the Desert)') },
       { name: 'roster2-skins-worm', only: 'after', caption: 'The mound worm under the sand in its three worlds: the dune worm, the drill grub, the glass worm; the mound and the humps of its wake follow the fin’s own path', from: 'headless Chrome, the creatures gallery, each skin walking (node scripts/enemy-roster/skins.mjs)' },
     ] },
     { match: 'The sky ray glides overhead', shots: [
+      { name: 'roster2-ray', caption: 'Before: the winged blot, the air foe. After: the sky ray (Vael’s storm ray), its broad red wings rimmed in pale blue, its jointed whip tail', commit: '5e506359', before: '1c129458^',
+        view: { foe: { id: 'ray@arzach', pose: 'walk', yaw: 0.5, pitch: 0.45 }, before: { foe: { id: 'flyer', pose: 'walk', yaw: 0.5, pitch: 0.45 } } }, reference: REF('ray', 1, 'the storm ray (Vael)') },
       { name: 'roster2-skins-ray', only: 'after', caption: 'The sky ray in its worlds: the storm ray, the cloud ray trailing mist, the scrap ray, the glass manta, the porcelain ray with ribbon fins, the abyss ray', from: 'headless Chrome, the creatures gallery, each skin flying' },
     ] },
     { match: 'The signal moth flies in threes', shots: [
-      { name: 'roster2-moth', caption: 'Before: the sign moth of neon tube. After: the signal moth (the Deep Wood’s lamp moth), a ribbed paper lantern with a hooded face, kite wings on rods with red eye-spots, six hooked legs', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
+      { name: 'roster2-moth', caption: 'Before: the sign moth of neon tube. After: the signal moth (the Deep Wood’s lamp moth), a ribbed paper lantern with a hooded face, kite wings on rods with red eye-spots, six hooked legs', commit: '5e506359', before: '1c129458^',
+        view: { foe: { id: 'moth@perdide2', pose: 'walk', yaw: 0.55, pitch: 0.1 }, before: { foe: { id: 'moth', pose: 'walk', yaw: 0.55, pitch: 0.1 } } }, reference: REF('moth', 1, 'the lamp moth (the Deep Wood)') },
       { name: 'roster2-moth-flash', only: 'after', caption: 'The signal moth winding up its flash: both wings snapped open toward you, the eye-spots burning white', from: 'headless Chrome, the creatures gallery, its flash at 90 % of the wind-up, seen from in front' },
       { name: 'roster2-skins-moth', only: 'after', caption: 'The signal moth in its worlds: the lamp moth, the glass wasp, the neon sign moth, the Antennas’ moth with dish antennae, the space moth', from: 'headless Chrome, the creatures gallery, each skin flying' },
     ] },
     { match: 'The ring centipede: a long tube', shots: [
-      { name: 'roster2-centipede', only: 'after', caption: 'The ring centipede (the Buried Machine’s drill-head): grey plates with orange bands, crab-claw jaws round a drill, its legs stepping in a ripple down the body', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), walking' },
+      { name: 'roster2-centipede', only: 'after', caption: 'The ring centipede (the Buried Machine’s drill-head): grey plates with orange bands, crab-claw jaws round a drill, its legs stepping in a ripple down the body', commit: '5e506359',
+        view: { foe: { id: 'centipede@buried', pose: 'walk', yaw: 0.9, pitch: 0.3 } }, reference: REF('centipede', 1, 'the drill-head centipede (the Buried Machine)') },
       { name: 'roster2-skins-centipede', only: 'after', caption: 'The ring centipede in its worlds: drill-head, pearl, orbital, crescent, drain, wire-wound', from: 'headless Chrome, the creatures gallery, each skin walking' },
     ] },
     { match: 'The lantern jelly drifts high', shots: [
-      { name: 'roster2-jelly', only: 'after', caption: 'The lantern jelly (Vael II’s cloud jelly): a broad puffy bell, three paper lanterns, long pale threads', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), drifting' },
+      { name: 'roster2-jelly', only: 'after', caption: 'The lantern jelly (Vael II’s cloud jelly): a broad puffy bell, three paper lanterns, long pale threads', commit: '5e506359',
+        view: { foe: { id: 'jelly@arzach2', pose: 'walk', yaw: 0.5, pitch: 0.05 } }, reference: REF('jelly', 1, 'the cloud jelly (Vael II)') },
       { name: 'roster2-skins-jelly', only: 'after', caption: 'The lantern jelly in its worlds: the cloud jelly, the lamp jelly, the halo jelly, the porcelain jelly, the sun jelly', from: 'headless Chrome, the creatures gallery, each skin drifting' },
     ] },
-    // the first five redrawn to their sheets: each its main sheet and its alternate, the sheet on top, the game's body
-    // under it in the sheet's skin and views (front, side, three-quarter, the sheet's wind-up)
+    // the first five redrawn to their sheets: each its main skin and its alternate, before the art pass and after it
     { match: 'The shellback crab is redrawn', shots: [
-      { name: 'art-crab', caption: 'Vael II’s cliff crab: its sheet above, the game’s crab below (front, side, three-quarter, the shell-spin wind-up), before and after', from: FROM_ART },
-      { name: 'art-crab-alt', caption: 'The Salt Harbour’s anchor crab against its sheet, before and after', from: FROM_ART },
+      { name: 'art-crab', title: 'Vael II', caption: 'Vael II’s cliff crab, three-quarter, before and after the art pass', ...ART, view: { foe: { id: 'crab@arzach2', yaw: 0.75, pitch: 0.16 } }, reference: REF('crab', 1, 'the cliff crab (Vael II)') },
+      { name: 'art-crab-alt', title: 'Salt Harbour', caption: 'The Salt Harbour’s anchor crab, three-quarter, before and after', ...ART, view: { foe: { id: 'crab@saltharbour', yaw: 0.75, pitch: 0.16 } }, reference: REF('crab', 2, 'the anchor crab (the Salt Harbour)') },
     ] },
     { match: 'The horn lizard now hugs the ground', shots: [
-      { name: 'art-lizard', caption: 'The City-Shaft’s pipe lizard: its sheet above, the game’s lizard below (front, side, three-quarter, the blare wind-up), before and after', from: FROM_ART },
-      { name: 'art-lizard-alt', caption: 'The Signal Market’s coin lizard against its sheet, before and after', from: FROM_ART },
+      { name: 'art-lizard', title: 'City-Shaft', caption: 'The City-Shaft’s pipe lizard from its side, before and after the art pass', ...ART, view: { foe: { id: 'lizard@incal', yaw: 1.05, pitch: 0.22 } }, reference: REF('lizard', 1, 'the pipe lizard (the City-Shaft)') },
+      { name: 'art-lizard-alt', title: 'Signal Market', caption: 'The Signal Market’s coin lizard, before and after', ...ART, view: { foe: { id: 'lizard@bazaar', yaw: 1.05, pitch: 0.22 } }, reference: REF('lizard', 2, 'the coin lizard (the Signal Market)') },
     ] },
     { match: 'The antler hound stands taller', shots: [
-      { name: 'art-hound', caption: 'The Garden of Spheres’ halo hound: its sheet above, the game’s hound below (front, side, three-quarter, the pounce wind-up), before and after', from: FROM_ART },
-      { name: 'art-hound-alt', caption: 'The White Mangrove’s driftwood hound against its sheet, before and after', from: FROM_ART },
+      { name: 'art-hound', title: 'Garden of Spheres', caption: 'The Garden of Spheres’ halo hound from its side, before and after the art pass', ...ART, view: { foe: { id: 'hound@spheres', yaw: 1.15, pitch: 0.1 } }, reference: REF('hound', 1, 'the halo hound (the Garden of Spheres)') },
+      { name: 'art-hound-alt', title: 'White Mangrove', caption: 'The White Mangrove’s driftwood hound, before and after', ...ART, view: { foe: { id: 'hound@mangrove', yaw: 1.15, pitch: 0.1 } }, reference: REF('hound', 2, 'the driftwood hound (the White Mangrove)') },
     ] },
     { match: 'The lamp tripod stands on three long', shots: [
-      { name: 'art-tripod', caption: 'The City-Shaft’s inspection tripod: its sheet above, the game’s tripod below (front, side, three-quarter, the beam wind-up), before and after', from: FROM_ART },
-      { name: 'art-tripod-alt', caption: 'The Underwater City’s diving bell against its sheet, before and after', from: FROM_ART },
+      { name: 'art-tripod', title: 'City-Shaft', caption: 'The City-Shaft’s inspection tripod, three-quarter, before and after the art pass', ...ART, view: { foe: { id: 'tripod@incal', yaw: 0.7, pitch: 0.08 } }, reference: REF('tripod', 1, 'the inspection tripod (the City-Shaft)') },
+      { name: 'art-tripod-alt', title: 'Underwater City', caption: 'The Underwater City’s diving bell, before and after', ...ART, view: { foe: { id: 'tripod@underwater', yaw: 0.7, pitch: 0.08 } }, reference: REF('tripod', 2, 'the diving bell (the Underwater City)') },
     ] },
     { match: 'The ink blot is a glossy drop now', shots: [
-      { name: 'art-blot', caption: 'The Desert’s sand-edged blot: its sheet above, the game’s blot below (front, side, three-quarter, the lunge and the spit wind-ups), before and after', from: FROM_ART },
-      { name: 'art-blot-alt', caption: 'The Sealed Hangar’s rust-edged blot against its sheet, before and after', from: FROM_ART },
+      { name: 'art-blot', title: 'Desert', caption: 'The Desert’s sand-edged blot, three-quarter, before and after the art pass', ...ART, view: { foe: { id: 'blot@desert', yaw: 0.6, pitch: 0.15 } }, reference: REF('blot', 1, 'the sand-edged blot (the Desert)') },
+      { name: 'art-blot-alt', title: 'Sealed Hangar', caption: 'The Sealed Hangar’s oil-edged blot, gunmetal and rust, before and after', ...ART, view: { foe: { id: 'blot@garage', yaw: 0.6, pitch: 0.15 } }, reference: REF('blot', 2, 'the oil-edged blot (the Sealed Hangar)') },
     ] },
     // the worlds, reworked from the level design audit (docs/audits/level-design-v1.9.md): the desert
 

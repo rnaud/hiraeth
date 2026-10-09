@@ -143,13 +143,13 @@ async function shoot(c, base, v, file) {
   await c.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false });
   await c.send('Page.navigate', { url: `${base}manifest.webmanifest` }); await sleep(300);
   await c.ev(`${storage(v)}; true`);
-  const page = v.page ?? '';
+  const page = v.page ?? (v.foe ? 'enemies.html' : '');
   // (a References view: opened by its id, so the level builds its world; a commit from before the worlds were split builds them all)
   const query = v.ref ? `?level=references&view=${encodeURIComponent(v.ref)}${v.query ? `&${v.query}` : ''}` : v.level ? `?level=${v.level}${v.query ? `&${v.query}` : ''}` : (v.query ? `?${v.query}` : '');
   if (page.startsWith('studio')) await c.send('Emulation.setDeviceMetricsOverride', { width: w + 340, height: h, deviceScaleFactor: 1, mobile: false });   // (the studio's panel beside the view)
   c.errors.length = 0;
   await c.send('Page.navigate', { url: `${base}${page}${query}` });
-  const ready = v.ready ?? (page.startsWith('studio') ? '!!window.studio && !!window.studio.people?.()' : page ? 'document.readyState === "complete"' : '!!window.__moebiusBooted && !!window.player && !!window.renderer');
+  const ready = v.ready ?? (v.foe ? '!!window.enemyViewer' : page.startsWith('studio') ? '!!window.studio && !!window.studio.people?.()' : page ? 'document.readyState === "complete"' : '!!window.__moebiusBooted && !!window.player && !!window.renderer');
   let up = false;
   for (let t = 0; t < 4 * 300 && !up; t++) { try { up = !!(await c.ev(`!!(${ready})`)); } catch { /* loading */ } if (!up) await sleep(250); }
   if (!up) throw new Error(`the page never came up (${c.errors.slice(-1)[0] ?? 'no error'})`);
@@ -164,6 +164,7 @@ async function shoot(c, base, v, file) {
   await sleep(v.wait);
   mkdirSync(dirname(file), { recursive: true });
   if (v.people) { writeFileSync(file, Buffer.from((await c.ev(PEOPLE(v))).split(',')[1], 'base64')); return; }
+  if (v.foe) { writeFileSync(file, Buffer.from((await c.ev(FOE(v))).split(',')[1], 'base64')); return; }
   let clip = v.clip;
   if (v.clipTo) { const b = await c.ev(`(() => { const r = document.querySelector(${JSON.stringify(v.clipTo)}).getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })()`); clip = b; }
   const r = await c.send('Page.captureScreenshot', { format: 'png', ...(clip ? { clip: { x: clip[0], y: clip[1], width: clip[2], height: clip[3], scale: 1 } } : {}) });
@@ -202,6 +203,47 @@ const PEOPLE = (v) => `(async () => {
   return cv.toDataURL('image/png');
 })()`;
 
+/**
+ * A creature of the roster alone, large, from the creatures gallery (enemies.html: the game's own body through
+ * Foes.look, inked by the post pass), for the enemy lines' pairs (docs/systems/changelog.md, "Enemies"):
+ * view.foe { id: 'crab@arzach2', yaw (0 from the front, π/2 its left side; 0.75 three-quarter), pitch, zoom,
+ * pose: 'idle' | 'walk' | an attack's id (held at `at` of its wind-up, 0.8: the telegraph; phase: 'strike' | 'recover'
+ * holds that phase at `at` instead), time (s of idle) }.
+ * The camera frames the body alone (a move's ground area left out), the same for the before and the after.
+ */
+export const FOE_VIEW = { yaw: 0.75, pitch: 0.12, zoom: 0.66, pose: 'idle', at: 0.8, time: 1.5 };
+const FOE = (v) => `(async () => {
+  const J = ${JSON.stringify({ ...FOE_VIEW, ...v.foe })}, [W, H] = ${JSON.stringify(v.size)};
+  const E = window.enemyViewer, V = E.viewer;
+  window.requestAnimationFrame = () => 0;   // (the gallery's own loop stopped: the frames are drawn here)
+  E.choose(J.id);
+  const T = window.THREE ?? await import('/node_modules/three/build/three.module.js');
+  if (!V._bodyOnly) { const model = V.model; V._bodyOnly = true; V.model = function (id) {
+    const m = model.call(this, id); if (!this.mode.startsWith('attack')) return m;
+    m.owner.group.position.set(0, 0, 0); m.holder.updateMatrixWorld(true);
+    const b = new T.Box3().setFromObject(m.f.model.group); m.owner.group.position.copy(b.getCenter(new T.Vector3())).negate();
+    m.r = b.getBoundingSphere(new T.Sphere()).radius; m.height = b.max.y - b.min.y; return m; }; }
+  const f = () => V.models.get(J.id)?.f ?? V.model(J.id).f;
+  const moves = f().def.attacks.filter((x) => !x.chain);
+  const i = moves.findIndex((m) => m.id === J.pose);
+  if (!['idle', 'walk'].includes(J.pose) && i < 0) throw new Error('no move ' + J.pose + ' on ' + J.id);
+  const m = f(); m.provoked = true; m.watcher = true;   // (standing: a hound not lying as its shadow, a blot not pooled)
+  V.mode = i >= 0 ? 'attack' + i : J.pose; V.fixed = null; V.orbit.yaw = J.yaw; V.orbit.pitch = J.pitch; V.orbit.zoom = J.zoom; V.setSize(W, H);
+  V.time = 0;
+  if (i < 0) for (let k = 0; k < Math.round(J.time * 60); k++) { V.time += 1 / 60; V.render(J.id); }
+  else if (J.phase) { V.fixed = { state: J.phase, k: J.at }; V.time = 1; for (let k = 0; k < 30; k++) V.render(J.id); }   // (a move's strike or recovery, held)
+  else { const t = moves[i].wind * J.at; for (let k = 0; k < 48; k++) { V.time = t * k / 47; V.render(J.id); } }
+  const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').drawImage(V.renderer.domElement, 0, 0, W, H);
+  return c.toDataURL('image/png');
+})()`;
+
+/** A design sheet (references/…, JPEG) as the WebP the page shows beside a pair: 1280 px wide at most. */
+export function sheetWebp(sheet, webp, { width = WEBP.width, quality = 70 } = {}) {
+  mkdirSync(dirname(webp), { recursive: true });
+  execFileSync('cwebp', ['-quiet', '-q', String(quality), '-m', '6', '-resize', String(width), '0', join(ROOT, sheet), '-o', webp]);
+  return statSync(webp).size;
+}
+
 export function toWebp(png, webp, { width = WEBP.width, quality = WEBP.quality } = {}) {
   mkdirSync(dirname(webp), { recursive: true });
   execFileSync('cwebp', ['-quiet', '-q', String(quality), '-m', '6', '-resize', String(width), '0', png, '-o', webp]);
@@ -211,8 +253,16 @@ export function toWebp(png, webp, { width = WEBP.width, quality = WEBP.quality }
 async function main() {
   const only = arg('only')?.split(',');
   const versions = arg('version')?.split(',');
-  let shots = allShots().filter((s) => (!versions || versions.includes(s.v)) && (!only || only.includes(s.key) || only.includes(s.name)));
-  if (!flag('force')) shots = shots.filter((s) => Object.values(s.files).some((f) => f && !existsSync(join(ROOT, f))));
+  const picked = (s) => (!versions || versions.includes(s.v)) && (!only || only.includes(s.key) || only.includes(s.name));
+  // the design sheets beside the pairs (a shot's `reference`, with or without a view): made from the repository's sheet
+  for (const [v, lines] of Object.entries(CHANGELOG_MEDIA)) for (const line of lines) for (const s of line.shots ?? []) {
+    const file = shotFiles(v, s).sheet;
+    if (!file || !picked({ v, key: `${v}/${s.name}`, name: s.name }) || (existsSync(join(ROOT, file)) && !flag('force'))) continue;
+    if (flag('dry')) { console.log(`${v}/${s.name} sheet: ${s.reference.sheet}`); continue; }
+    console.log(`  ${v}/${s.name} sheet: ${(sheetWebp(s.reference.sheet, join(ROOT, file)) / 1024).toFixed(0)} KB`);
+  }
+  let shots = allShots().filter(picked);
+  if (!flag('force')) shots = shots.filter((s) => [s.files.before, s.files.after].some((f) => f && !existsSync(join(ROOT, f))));
   // each picture and the commit it is taken at (the before: the commit's first parent, unless given)
   const jobs = new Map();
   for (const s of shots) {
