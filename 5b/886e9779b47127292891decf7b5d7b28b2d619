@@ -1,0 +1,21 @@
+src/animator.js
+  s_9ca76055a220ed::t_6e76aacb2c7012 34-65,788
+tests/head-turn.test.js
+  s_9ca76055a220ed::t_f03be70080f6d9 1-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b886e9779b47127292891decf7b5d7b28b2d619",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
