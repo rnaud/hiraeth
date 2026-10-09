@@ -16,7 +16,7 @@ left for the next batch (below). The other eight worlds are unchanged and re-run
 - `node scripts/level-design/audit.mjs` on the eleven route worlds. `node scripts/design-qc/capture.mjs` and
   `scripts/changelog-shots.mjs` for the pictures, one muted headless Chrome at a time.
 - **The audit changed** (measurement, not content), so the "before" column is the *same new audit run on the old
-  worlds* (commit `fbb9be25`: the new audit, nothing in the worlds changed yet). Against v1.5's published numbers
+  worlds* (commit `60cccd46`: the new audit, nothing in the worlds changed yet). Against v1.5's published numbers
   only Vael (3.00 → 2.89 before any edit) and the Buried Machine (4.11 → 4.22) move from the measurement alone.
   What changed in the audit:
   - **Draped legs.** A leg over 200 m between two stops on the ground is laid on the ground under it (up to 70 m
@@ -82,7 +82,7 @@ green optional places, purple triangles landmarks and beacons, the ring the land
 to the Hearth, lower right) now passes Yara and the wreck; the way home runs along the marked stones past the bowl,
 the cold camp and the bell.*
 
-**What changed** (commit `a3b3abc6`):
+**What changed** (commit `b5786bb4`):
 1. **The stragglers' smoke.** While the tree is cold, the camps keep a column of smoke going over the dune that
    hides Qanat from the landing. The first leg (391 m) was blind; it now has a beacon by its goal.
 2. **The straight ride out has two stops.** Most riders go straight from Marrow's hollow toward the Hearth's chimney,
@@ -122,7 +122,7 @@ the cold camp and the bell.*
 
 ![Vael from above, after](level-design-v1.9/arzach-map.webp)
 
-**What changed** (commit `02d87f59`):
+**What changed** (commit `c573fa1b`):
 1. **The plain has a middle.** Senn now listens at the foot of the capped needle spire at (170, −282), right on the
    line from the landing to the lone tower (12 m off it). The hush-cloth's makers' box moved from a spire 240 m
    north (the world's remote dead end) to that spire's cap, beside the shed feather already there: one long climb,
