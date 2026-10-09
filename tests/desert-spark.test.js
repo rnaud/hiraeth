@@ -316,6 +316,50 @@ test('the first hour shorter: Ama’s jar on the way in, so after the chest only
   game.reset();
 });
 
+test('Ama calls you to her fire about the jar while she still has it for you, twice at most, and not once it is yours', async () => {
+  const { PEOPLE, CALLS } = await import('../src/story/desert-data.js');
+  const { amaCallsYou, amaCampShout } = await import('../src/story/desert.js');
+  const { DialogueRunner } = await import('../src/story/dialogue.js');
+  const flags = { 'prologue.done': true, 'desert.quest.v': 4, 'quest.desert.power': 'city', 'met.marrow': true };
+  const D = desert(flags);
+  const ama = D.rt.world.people.ama, call = D.rt.world.calls.ama;
+  assert.equal(amaCallsYou(game), true);
+  assert.equal(amaCampShout(game), CALLS.ama[0], 'coming up to the camps, she calls you over instead of waving you on');
+  assert.match(amaCampShout(game), /jar/);
+  // standing a few steps from her fire for a minute: two words, then she leaves it to you
+  D.player.pos.copy(ama.pos).add(V(6, 0, 0));
+  const heard = new Set();
+  for (let i = 0; i < 60 * 10; i++) { D.step(1, 1 / 10); D.player.pos.copy(ama.pos).add(V(6, 0, 0)); if (ama.shout) heard.add(ama.shout.text); }
+  assert.equal(call.calls, 2, 'twice, not nagging');
+  assert.ok([...heard].every((t) => CALLS.ama.includes(t)) && heard.size === 2, `her words: ${[...heard].join(' | ')}`);
+  assert.equal(game.flag('desert.ama.called'), true);
+  // and her talk has the jar straight away once she has called
+  const r = new DialogueRunner(PEOPLE.ama, { game, quests: D.quests });
+  assert.equal(r.nodeId, 'hello');
+  while (!r.choices().length) r.advance();
+  const c = r.choices().find((x) => x.text.startsWith('You called me over'));
+  assert.ok(c, 'a choice for the jar she called about');
+  r.choose(c.index);
+  while (!r.choices().length && !r.ended) r.advance();
+  assert.equal(D.quests.has('jar'), true);
+  assert.equal(game.flag('desert.jar.given'), true);
+  // once the jar is yours: no call, and the old wave on to the city
+  assert.equal(amaCallsYou(game), false);
+  assert.match(amaCampShout(game), /To the city/);
+  const D2 = desert({ ...flags, 'desert.jar.given': true, 'item.jar': 1 });
+  const ama2 = D2.rt.world.people.ama;
+  for (let i = 0; i < 30 * 10; i++) { D2.step(1, 1 / 10); D2.player.pos.copy(ama2.pos).add(V(6, 0, 0)); }
+  assert.equal(D2.rt.world.calls.ama.calls ?? 0, 0, 'no call with the jar on your hip');
+  // and a cold save that never had it called about: no jar choice in hello
+  game.set('desert.ama.called', undefined);
+  game.set('desert.jar.given', undefined);
+  assert.equal(PEOPLE.ama.talk.nodes.hello.choices.find((x) => x.goto === 'jarCalled').if.all[0].flag, 'desert.ama.called');
+  // the tree lit (whatever the jar): she has nothing to call about
+  game.set('desert.tree.lit', true);
+  assert.equal(amaCallsYou(game), false);
+  game.reset();
+});
+
 test('the ride to the Hearth: each thing on the way is named once as it comes up ahead, and the butte on the way out', async () => {
   const { STORY } = await import('../src/desert-sites.js');
   const { CALLS, CALL } = await import('../src/story/desert-way.js');

@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.2 — 2026-10-09
 
+- Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.
+- Once you know who Ilen was, a few people along the way have a word about her: Madame Sel at the Signal Market, Hollin in the deep wood and Nour in Qanat. Sel also hears how the message ended once you have found her, and Hollin can hear where Odile and Talo went even if you never promised to come back.
+- Ama no longer waves you straight on to the city while she still has her jar for you: as you come up to the camps she calls you over to her fire, once more at most if you pass near, and then asks about it as soon as you sit down. Once the jar is yours she waves you on as before.
 - On the ride to the Givers’ Hearth, the bronze bowl, the keepers’ old camp, the glinting bell and the Hearth itself are pointed out under the view as they come up ahead, while there is still time to stop.
 - Stop at Ama’s fire on your way into Qanat and she gives you her jar there, so after the chest you go straight from Nour to the giant’s mouth.
 - The desert gets you moving sooner: after the chest opens, Nour gives you the Speaker’s old verse herself, so Ama’s jar is the only errand before the way down under the giant. Walking with the Speaker is up to you; he still tells the old story whole.

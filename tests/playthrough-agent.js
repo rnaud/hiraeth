@@ -77,7 +77,7 @@ export function loadSave(data) {
   game.data = JSON.parse(JSON.stringify(data));
   game.data.flags ??= {};
   game.data.keepsakes ??= [];
-  migrateFlags(game.data.flags);
+  migrateFlags(game.data.flags, game.data.keepsakes);
   migrateSave(game);
   game.save();
   return game;

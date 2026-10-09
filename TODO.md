@@ -62,8 +62,6 @@ Ranked; each says why in the review. Playtest with two or three new players befo
 - [x] **Two or three real choices** with consequences at the stone (Viridel's loss stays, as one of them):
   Dov's lift token (keep it, or give it back so he goes home), Hollin's promise (it costs the coming back),
   Esk's hill. The stone and Ilen both remember them (src/story/ending.js choicesMade).
-  - [ ] Later: more of the route's people could hear about Ilen (Sel at the market, Hollin's other lines);
-    old saves that kept Dov's token before the choice existed show no line for it.
 - [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
 - [x] **Each world's climax staged as a moment** (every route world: `src/story/<world>-moments.js`,
   docs/systems/cinematics.md).

@@ -176,6 +176,8 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ My ship has no power. I need to find some.', goto: 'early' },
             { text: '~curious~ What is that great dark tree?', goto: 'tree' },
+            // (she called you over about it: CALLS.ama)
+            { text: '~curious~ You called me over. A jar?', if: { all: [{ flag: 'desert.ama.called' }, { not: { flag: 'desert.jar.given' } }] }, goto: 'jarCalled' },
           ],
         },
         early: {
@@ -188,6 +190,12 @@ export const PEOPLE = {
           say: ["~happy~ Then take *the drinking jar* with you. One jar, plenty of thirsty people, and not a drop in it. If you find water, fill it. We need some for the Drinking."],
           do: [{ give: 'jar' }, { set: { 'desert.jar.given': true } }],
           choices: [{ text: '~happy~ I’ll bring it back full.', end: true }],
+        },
+        // (the same jar, when she called you over for it)
+        jarCalled: {
+          say: ["~happy~ I did. *The drinking jar*. One jar, plenty of thirsty people, and not a drop in it.", "~neutral~ Take it up with you. If you find water, fill it. We need some for the Drinking."],
+          do: [{ give: 'jar' }, { set: { 'desert.jar.given': true } }],
+          choices: [{ text: '~happy~ I’ll bring it back full.', end: true }, { text: '~neutral~ I need power for my ship.', goto: 'early' }],
         },
         sent: {
           say: ["~surprised~ Nour sent you? She hasn’t dispatched anyone since my wedding. We still discuss that.", "~playful~ And the chest gave you… a glass tank. Empty. A very ancient sort of generosity."],
@@ -606,7 +614,20 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ (go to the well)', end: true }],
         },
         drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough. *Take your jar to the ship*, child. Let an old woman have a moment."], choices: [{ text: '~happy~ Goodbye, Nour.', end: true }] },
-        after: { say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."], choices: [{ text: '~happy~ I will, Nour.', end: true }] },
+        after: {
+          say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."],
+          choices: [
+            // he knows who Ilen was (the mother's recording, calls.ilen.told), not yet where the light came from
+            { text: '~sad~ My parents heard a singing light once. The night my sister’s ship went quiet.', if: { all: [{ flag: 'calls.ilen.told' }, { not: { flag: 'finale.met' } }, { not: { flag: 'desert.nour.ilen' } }] }, goto: 'sister' },
+            { text: '~happy~ I will, Nour.', end: true },
+          ],
+        },
+        sister: {
+          say: ["~solemn~ Then it sang over your house long before it sang over ours.",
+            "~whisper~ I said whatever struck you knew the Givers’ sign. Perhaps it knew your house as well. Follow it, child, when it comes again."],
+          do: { set: { 'desert.nour.ilen': true } },
+          choices: [{ text: '~happy~ I will, Nour.', end: true }],
+        },
       },
     },
   },
@@ -906,6 +927,9 @@ export const MURMURS = {
 export const CALLS = {
   marrow: ['~shout~ Sky-person! Over here!', '~playful~ Over here, by your hull! I don’t bite. I barely even haggle.', '~whisper~ Psst. Sky-person. A word?'],
   nour: ['~whisper~ Psst. Child.', '~whisper~ Psst! Over here, child.', '~solemn~ Come here, child. A word with an old woman.'],
+  // Ama, while her jar is still to give (src/story/desert.js amaCallsYou): the first is her shout as you come up
+  // to the camps, then one more word at most when you pass near her fire
+  ama: ['~shout~ Sky-stranger! Come by my fire before you go up. I’ve a jar that wants carrying.', '~playful~ You, from the ball! One empty jar, and you look like someone who finds water. Come and take it.'],
 };
 // (the desert's two first times, filmed, give the traveller no lines: they show it, src/story/desert-moments.js)
 

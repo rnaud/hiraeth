@@ -120,6 +120,16 @@ themes 5 and 6). One rule set in `src/story/ending.js` (pure; `tests/finale.test
   finishing another world, `perdide2.promise.kept`; with Ilen's news he hears where Odile and Talo went,
   `src/story/perdide2-data.js promiseDue`); Esk's hill in Viridel (the quest that fails). Each has a line of
   his at the first homecoming, a reply of Ilen's at the Lantern, and a line of hers at the stone.
+  A save from before the token was a choice (the keepsake given outright, no `incal.token`) reads as kept
+  (`src/save-migrate.js` step 3, which reads the keepsakes too): the Lantern's `tokenKept`, and Dov's `lit`
+  has a line for a kept token.
+- **The route's people hear about Ilen** (October 2026). Once he knows who she was (`calls.ilen.told`), one
+  answer each, once: Madame Sel's `after` (the Signal Market: "Ilen was my sister", `sister`, she hears it
+  was the first of her two readings; `bazaar.sel.ilen`), Hollin's `after` (Lorn II: "I had a sister",
+  `perdide2.hollin.ilen`, only before the Lantern) and Nour's `after` (the desert: the singing light her
+  parents heard, `desert.nour.ilen`, only before the Lantern). Once he has found her (`finale.met`), Sel hears
+  she heard it (`found`, `bazaar.sel.found`), and Hollin's `after` offers Odile and Talo's news too (it was
+  only in `came`, the kept promise; `perdide2.hollin.found` stops it twice). Tests: `tests/route-ilen.test.js`.
 - **Old saves** (`src/save-migrate.js` step 2): a save that ended under the old rules has had its first
   homecoming (`ending.first: 'old'`); the reel the old ending left on the slab is his again until the true
   ending; the ship's log waits on the voicemail; the Lantern opens once the market has been heard.
@@ -447,6 +457,12 @@ catches**), the ship.
     jar (only offered while `desert.jar.given` is unset); then Nour's `quest`, `rim` and `again` say the jar
     is on your hip already (`{ if: { has: 'jar' } }` lines) and `ask` passes the moment it comes. The camps
     lie on the way from the ship to the gate; the back gate is beside the tree.
+  - **Ama calls you over for it.** While `amaCallsYou` (`src/story/desert.js`: no `desert.jar.given`, the tree
+    cold), her shout as you come up to the camps before the chest is `CALLS.ama[0]` (come by my fire, a jar
+    that wants carrying) instead of "To the city!" (`amaCampShout`), and she is a caller ("calling you over")
+    with `max: 2`: the shout counts, so one more word at most as you pass within 14 m. Callers take an
+    optional `max` and `flag`; hers sets `desert.ama.called`, which gives her `hello` the answer "You called
+    me over. A jar?" (`jarCalled`, the same jar). With the jar given she waves you on as before.
   - **The ride, called out.** `setupWay` names each place once as it comes up ahead on the errand (stages
     `hearth`, `stone`, `light`): moving toward it (from where you were 2 m back) and within `CALL.range`
     (130 m; the Hearth's door 320 m, on the way out only), not nearer than `CALL.near` (18 m), and not once
@@ -459,8 +475,8 @@ catches**), the ship.
     an average place on his loop): talks before the way down 4 → 3 (after the chest 3 → 2; 1 with the jar
     on the way in), pages 24 → 15, answers 10 → 6, walk 1040 → 865 m (625 m), stepping out to the giant's
     mouth ~275 → ~210 s (~174 s). The ride stays 1.6 km (~48 s each way at top speed).
-  - Tests: `tests/desert-spark.test.js` (the merged stage on the jar alone, the jar on the way in, the
-    call-outs out and home and not off the errand), `tests/desert-story.test.js` (the chain: Ama, then the
+  - Tests: `tests/desert-spark.test.js` (the merged stage on the jar alone, the jar on the way in, Ama's
+    call twice at most and only without the jar, the call-outs out and home and not off the errand), `tests/desert-story.test.js` (the chain: Ama, then the
     way down; the Speaker optional).
 - **Tests**: `tests/desert-story.test.js` plays the chain end to end (the empty tank, the lever,
   the fill, the rise, Nour, Marrow, the bike, the Hearth, the grille, the stone, the lighting,

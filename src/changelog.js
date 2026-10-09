@@ -26,6 +26,13 @@ export const CHANGELOG = [
     'The desert gets you moving sooner: after the chest opens, Nour gives you the Speaker’s old verse herself, so Ama’s jar is the only errand before the way down under the giant. Walking with the Speaker is up to you; he still tells the old story whole.',
     'Stop at Ama’s fire on your way into Qanat and she gives you her jar there, so after the chest you go straight from Nour to the giant’s mouth.',
     'On the ride to the Givers’ Hearth, the bronze bowl, the keepers’ old camp, the glinting bell and the Hearth itself are pointed out under the view as they come up ahead, while there is still time to stop.',
+    { text: 'Ama no longer waves you straight on to the city while she still has her jar for you: as you come up to the camps she calls you over to her fire, once more at most if you pass near, and then asks about it as soon as you sit down. Once the jar is yours she waves you on as before.',
+      see: 'Start a new game and walk from the ship to the camp fires outside Qanat without talking to anyone: Ama shouts for you to come by her fire. Talk to her and pick “You called me over. A jar?”.' },
+    // the route's people and Ilen
+    { text: 'Once you know who Ilen was, a few people along the way have a word about her: Madame Sel at the Signal Market, Hollin in the deep wood and Nour in Qanat. Sel also hears how the message ended once you have found her, and Hollin can hear where Odile and Talo went even if you never promised to come back.',
+      see: 'After the mother’s recording about Ilen has played at the console, go back to Madame Sel under the tower, to Hollin on his island or to Nour under the tree, and talk to them: a new answer about your sister. After the Lantern, Sel and Hollin have one more.' },
+    { text: 'Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.',
+      see: 'Load a save that got the lift token from Dov in the City-Shaft before version 0.97 and talk to him at the palace gate after the Lodestar is lit.' },
   ] },
   { v: '1.1', date: '2026-10-09', items: [
     // shadows and visuals, from the playtest
