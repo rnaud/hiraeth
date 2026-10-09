@@ -1,0 +1,43 @@
+src/changelog-media.js
+  s_9ca76055a220ed::t_2c6162439379e4 293-322,325-341
+src/changelog.js
+  s_9ca76055a220ed::t_bf073066398cce 20-26
+.claude/skills/combat-review/SKILL.md
+  s_9ca76055a220ed::t_b080b39944a7c7 38-39,56,68-73
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_39ce68277721a8 133,199-200,221-222
+DONE.md
+  s_9ca76055a220ed::t_f5f87a3c801935 1593-1610
+TODO.md
+  s_9ca76055a220ed::t_3e803f1b24e7e3 55-56,62-71,140,166-168
+changelog.md
+  s_9ca76055a220ed::t_cfda7dd592f0cc 7-12
+docs/README.md
+  s_9ca76055a220ed::t_415b5b28b2ffeb 26
+docs/audits/combat-v1.6.md
+  s_9ca76055a220ed::t_03116ddc0f8603 1-127
+docs/systems/foes.md
+  s_9ca76055a220ed::t_58a47ec0a0d2ab 159,162-163,199-201,239-370,589-590
+docs/systems/temples.md
+  s_9ca76055a220ed::t_0263dd7841d72f 51-56
+src/foes.js
+  s_9ca76055a220ed::t_40aa37fd5a4d4e 208
+src/temples/boss.js
+  s_9ca76055a220ed::t_755883e353132c 424
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9126f21a2feaa5ddc5c2035f490efaf49813ee72",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
