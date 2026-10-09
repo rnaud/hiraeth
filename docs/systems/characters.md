@@ -794,7 +794,7 @@ Review record (2026-10-08, `codex/quest-character-rebuild`):
 
 Repairs found through inspection: floating lanterns and lamp stems; separated balanced stones; a misplaced wizard-hat orb; pack cones transformed about the wrong origin; padded seams outside the torso; missing procedural beards; Nima's short hem; Wendel's obscuring headwear and Hollin/Robin's mismatched mushroom additions; detached wing roots and machine/guardian joints; shared mutable enemy warning materials; and shade inversion when recoil overwrote Euler angles after a quaternion turn. The shade regression exercises a complete turn including recoil.
 
-The reviewed snapshots show these repairs working. They are not a guarantee of zero clipping across all frames, collision situations, cloth wind conditions, crowd seeds, fallback body shapes, or guardian attacks. Fine face details and garment volumes remain stylized approximations. The subsequent world-enemy implementation adds 100 procedural interpretations of those references; see foes.md for its attack system and separate review coverage. Legacy enemy families and guardians remain available.
+The reviewed snapshots show these repairs working. They are not a guarantee of zero clipping across all frames, collision situations, cloth wind conditions, crowd seeds, fallback body shapes, or guardian attacks. Fine face details and garment volumes remain stylized approximations. The 100 world enemies built from those references afterwards are retired: the enemy roster's 21 archetypes replace them, each in its worlds' skins (docs/design/enemy-roster.md; foes.md, "The enemy roster"). The guardians are unchanged.
 
 ## Generated father (October 2026)
 

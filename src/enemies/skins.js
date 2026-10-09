@@ -92,7 +92,7 @@ export const SKINS = {
     underside: { name: 'abyss ray', palette: { top: '#2f3348', top2: '#3e4460', under: '#7f8fc8', edge: '#9fb0e8', spots: '#9fb0e8', eye: '#bfe9ff', tail: '#1a1d2c' }, props: ['long', 'dark'] },
   },
   worm: {
-    desert: { name: 'dune worm', palette: { body: '#e3b866', body2: '#efcf8a', ring: '#c98a3a', sand: '#c99a62', mouth: '#4fa89a', teeth: '#f7f0dc', eye: '#1a1410', fin: '#f2ead2' }, props: ['fin'] },
+    desert: { name: 'dune worm', palette: { body: '#e3b866', body2: '#efcf8a', ring: '#c98a3a', sand: '#c99a62', mouth: '#4fa89a', teeth: '#f7f0dc', eye: '#1a1410', fin: '#e8d6aa' }, props: ['fin'] },
     buried: { name: 'drill grub', palette: { body: '#6a6080', body2: '#857aa0', ring: '#463e58', sand: '#6a625a', mouth: '#5a8a98', teeth: '#a8b0b4', eye: '#ff9a5a', fin: '#c8c4d8' }, props: ['drill'] },
     glassdunes: { name: 'glass worm', palette: { body: '#8fd9c0', body2: '#c9f2e2', ring: '#5fbf9f', sand: '#a8d8c8', mouth: '#3f8f8a', teeth: '#ffffff', eye: '#fff4b0', fin: '#e8fff6' }, props: ['crest'] },
   },

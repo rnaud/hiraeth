@@ -21,7 +21,7 @@ import { materials, add, rod, pivot, pair, lerp, ease, eyeColor, finish, V } fro
 // Parried in a skim, it ploughs into the ground and lies there, wings flat, open (onParry 'ground').
 // Skins (src/enemies/skins.js): a rust-red storm ray with dark spots, a pale cloud ray trailing mist, a scrap ray of
 // patched canvas and wire, a faceted glass manta, a porcelain ray with ribbon fins, a dark abyss ray with a long tail.
-// Art match pending its sheet (docs/design/enemy-roster-prompts.md, `ray`).
+// Drawn to its picked sheet: references/enemy-archetypes/ray/sheet-1.jpg (the storm ray).
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3(), _m = new THREE.Matrix4();
 const UP = new THREE.Vector3(0, 1, 0);
@@ -50,7 +50,7 @@ export function rayModel(skin) {
   const body = pivot(g, 0, 0, 0, 'body');
   const frame = pivot(body, 0, 0, 0, 'frame');   // (banked and pitched)
   // the body: a low ridge along the middle, pale under
-  const ridge = add(frame, new THREE.SphereGeometry(1, 16, 8).scale(0.42, 0.13, 0.82), topM, 0, 0.02, 0);
+  const ridge = add(frame, new THREE.SphereGeometry(1, 16, 8).scale(0.36, 0.07, 0.78), topM, 0, 0.01, -0.02);
   add(frame, new THREE.SphereGeometry(1, 14, 6).scale(0.4, 0.07, 0.78), underM, 0, -0.04, 0);
   // the head: a rounded lobe at the front edge with two bulging eyes on top (the sheet's)
   const lobe = add(frame, new THREE.SphereGeometry(1, 12, 8).scale(0.3, 0.13, 0.22), topM, 0, 0.03, NOSE * 0.62);

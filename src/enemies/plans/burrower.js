@@ -20,7 +20,7 @@ import { materials, add, tube, pivot, pair, lerp, ease, eyeColor, finish } from 
 //   spit    up: it rears back and swells, its rings bunching, then coughs a spray of grit
 //   dive    up: it leans over toward you and the teeth round its mouth spin, then down it goes
 // Skins (src/enemies/skins.js): a sand-gold dune worm with a tall fin, a slate-violet drill grub with a steel drill on
-// its crown, a glass worm with a crystal crest. Art match pending its sheet (docs/design/enemy-roster-prompts.md, `worm`).
+// its crown, a glass worm with a crystal crest. Drawn to its picked sheet: references/enemy-archetypes/worm/sheet-1.jpg.
 
 const _a = new THREE.Vector3(), _d = new THREE.Vector3(), _inv = new THREE.Matrix4();
 
@@ -37,8 +37,9 @@ export function wormModel(skin) {
   for (let i = 0; i < R; i++) {
     const u = i / (R - 1), r = lerp(0.46, 0.56, Math.pow(u, 2.2));   // (about a metre thick, a little bulbous at the head)
     const p = pivot(column, 0, 0, 0, `ring ${i}`);
-    add(p, new THREE.SphereGeometry(1, 14, 8).scale(r, 0.24, r), bodyM);
-    add(p, new THREE.TorusGeometry(r * 0.98, 0.035, 5, 18).rotateX(Math.PI / 2), ringM, 0, -0.1, 0);
+    // a fat ring (a donut lying flat: a sausage in silhouette), the bands every other one in ochre (the sheet's)
+    add(p, new THREE.TorusGeometry(r * 0.58, r * 0.42, 8, 20).rotateX(Math.PI / 2), i % 2 ? ringM : bodyM);
+    add(p, new THREE.CylinderGeometry(r * 0.6, r * 0.6, r * 0.5, 14), bodyM);
     rings.push({ p, r });
   }
   // the head: the top ring's bulb, a round mouth on its face ringed with teeth, small eyes over it
@@ -53,16 +54,17 @@ export function wormModel(skin) {
   const eyes = pair((s) => add(headP, new THREE.SphereGeometry(0.045, 8, 6), eyeM, s * 0.42, 0.3, 0.3));   // (tiny, beside the mouth)
   // the tall thin fin along its back (the sheet's ivory sail), from mid-back up past the head
   const sailShape = new THREE.Shape();
-  sailShape.moveTo(0, -1.7); sailShape.quadraticCurveTo(-0.25, -0.6, -0.15, 0.25); sailShape.quadraticCurveTo(-0.3, 0.75, -0.55, 1.15);
-  sailShape.quadraticCurveTo(-0.95, 0.3, -0.9, -0.4); sailShape.quadraticCurveTo(-0.7, -1.2, -0.45, -1.8); sailShape.lineTo(0, -1.7);
-  const sail = add(headP, new THREE.ShapeGeometry(sailShape, 8).rotateY(-Math.PI / 2), M.mat('sail', P.fin, { side: THREE.DoubleSide }), 0, 0.2, -0.05);
+  sailShape.moveTo(-0.3, -1.9); sailShape.quadraticCurveTo(-0.5, -0.6, -0.4, 0.25); sailShape.quadraticCurveTo(-0.5, 0.9, -0.75, 1.35);
+  sailShape.quadraticCurveTo(-1.3, 0.4, -1.25, -0.4); sailShape.quadraticCurveTo(-1.05, -1.3, -0.75, -2.0); sailShape.lineTo(-0.3, -1.9);
+  const sail = add(headP, new THREE.ShapeGeometry(sailShape, 8).rotateY(-Math.PI / 2), M.mat('sail', P.fin, { side: THREE.DoubleSide, color2: P.ring }), 0, 0.2, -0.05);
   if (props.has('drill')) { const d = add(headP, new THREE.ConeGeometry(0.22, 0.6, 8), M.mat('drill', P.teeth, { metal: 'iron' }), 0, 0.72, 0); d.userData.spin = true; }
   if (props.has('crest')) for (let k = 0; k < 5; k++) add(headP, new THREE.OctahedronGeometry(0.11, 0).scale(0.7, 2.2, 0.7), teethM, 0, 0.55 + Math.sin(k) * 0.03, -0.3 + k * 0.15).rotation.x = -0.3 + k * 0.12;
   const hole = add(g, new THREE.TorusGeometry(0.62, 0.14, 6, 20).rotateX(Math.PI / 2), sandM, 0, 0.04, 0);
   // ---- under: the mounds on the head's path, a fin on the first, a ripple round it
   const holder = pivot(g, 0, 0, 0, 'mounds (path space)');
   holder.matrixAutoUpdate = false;
-  const mounds = Array.from({ length: PL.spine.mounds }, (_, i) => { const s = lerp(1, 0.45, i / (PL.spine.mounds - 1)); return add(holder, new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.75 * s, 0.32 * s, 0.95 * s), sandM); });
+  // (humps of turned sand, apart: a wake of separate mounds, not one streak)
+  const mounds = Array.from({ length: PL.spine.mounds }, (_, i) => { const s = lerp(1, 0.4, i / (PL.spine.mounds - 1)); return add(holder, new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.6 * s, 0.42 * s, 0.42 * s), sandM); });
   const finH = props.has('fin') ? 1.2 : 0.95;
   const fin = add(g, new THREE.ConeGeometry(0.4, finH, 4).scale(0.35, 1, 1), finM, 0, finH * 0.45, 0);
   const ripple = add(g, new THREE.RingGeometry(0.84, 1, 28).rotateX(-Math.PI / 2), M.mat('ripple', P.fin, { flat: true, side: THREE.DoubleSide }), 0, 0.05, 0);
@@ -80,7 +82,8 @@ export function wormModel(skin) {
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
       // up or under: it rises on a spring that dips first (the sand heaves, then it stands up); it slumps back slowly
-      const want = f.buried ? 0 : f.state === 'recover' && f.atk?.dives ? 0 : 1;
+      const upMove = f.atk?.up && (wind || strike);   // (its moves from up out of the sand: it is up for them)
+      const want = upMove ? 1 : f.buried ? 0 : f.state === 'recover' && f.atk?.dives ? 0 : 1;
       up = Math.max(0, Math.min(1.25, rise.update(dt, want)));
       const shown = Math.min(1, up);
       // the column: each ring stacked on the last, bent forward by the lean (toward you) and back by a rear, a slow

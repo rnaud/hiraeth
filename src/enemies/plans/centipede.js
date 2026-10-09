@@ -24,7 +24,7 @@ import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V
 // Cut from behind under two thirds of its health, its last two segments break off and run (the segment shed).
 // Skins (src/enemies/skins.js): rust bands and a drill-bit head, pearl plates, teal plates with a gold head, a
 // violet crescent with glowing seams, slick dark plates, copper wire wound round each segment.
-// Art match pending its sheet (docs/design/enemy-roster-prompts.md, `centipede`).
+// Drawn to its picked sheet: references/enemy-archetypes/centipede/sheet-1.jpg (the drill-head skin).
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3(), _knee = new THREE.Vector3(), _end = new THREE.Vector3();
 const _m = new THREE.Matrix4(), _inv = new THREE.Matrix4(), _q = new THREE.Quaternion(), _qi = new THREE.Quaternion(), _e = new THREE.Euler(), _pole = new THREE.Vector3();
@@ -36,7 +36,7 @@ export function centipedeModel(skin) {
   const g = new THREE.Group(); g.name = skin.name;
   const plateM = M.mat('plate', P.plate, { color2: P.plate2 }), underM = M.mat('under', P.under), legM = M.mat('leg', P.leg), darkM = M.mat('dark', P.dark, { flat: true, lineWhite: P.dark && props.has('glow') });
   const headM = M.mat('head', P.head, { color2: P.plate2, metal: props.has('gold') ? 'brass' : undefined }), accentM = M.own('accent', P.accent, { glow: props.has('glow') ? 0.7 : 0.1 });
-  const eyeM = M.own('eye', P.eye, { glow: 0.85 });
+  const eyeM = M.own('eye', P.eye, { glow: 0.85 }), rimM = M.mat('rim', P.plate2);
   // the body lives in the foes' space (its segments on the path), so its parts hang from a holder the anim keeps at
   // the group's inverse: the group itself is placed at the head by Foes.look
   const holder = pivot(g, 0, 0, 0, 'body (path space)');
@@ -68,7 +68,7 @@ export function centipedeModel(skin) {
     const plate = add(seg, new THREE.SphereGeometry(1, 16, 10).scale(0.46 * w, 0.44 * w, 0.22), plateM, 0, 0, 0);
     add(seg, new THREE.CylinderGeometry(0.43 * w, 0.43 * w, 0.26, 16).rotateX(Math.PI / 2), plateM, 0, 0, 0);
     add(seg, new THREE.SphereGeometry(1, 10, 6).scale(0.36 * w, 0.18 * w, 0.18), underM, 0, -0.3 * w, 0);
-    const band = add(seg, new THREE.CylinderGeometry(0.455 * w, 0.455 * w, 0.12, 16).rotateX(Math.PI / 2), (i % 2 === 0) && (props.has('bands') || props.has('glow') || props.has('gold')) ? accentM : darkM, 0, 0, 0.04);
+    const band = add(seg, new THREE.CylinderGeometry(0.455 * w, 0.455 * w, 0.12, 16).rotateX(Math.PI / 2), (i % 2 === 0) && (props.has('bands') || props.has('glow') || props.has('gold')) ? accentM : rimM, 0, 0, 0.04);
     if (props.has('wire')) for (let k = 0; k < 3; k++) add(seg, new THREE.TorusGeometry(0.3 * w, 0.014, 4, 16), accentM, 0, 0.02, -0.12 + k * 0.08).scale.set(1, 0.72, 1);
     if (props.has('pearl')) add(seg, new THREE.SphereGeometry(0.06 * w, 8, 6), accentM, 0, 0.21 * w, 0);
     if (props.has('slick') && i % 2 === 0) add(seg, new THREE.SphereGeometry(0.04, 6, 4).scale(1, 1.6, 1), accentM, 0.2 * w, 0.1, 0.05);

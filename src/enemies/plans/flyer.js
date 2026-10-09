@@ -27,7 +27,7 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 /** A wing strip from span x0 to x1 (side s): its chord shrinks from the root's (broad) to the tip's. */
 function strip(s, x0, x1, wasp) {
-  const ch = (x) => (wasp ? lerp(0.22, 0.1, x / 0.7) : lerp(0.5, 0.18, x / 0.75)), lz = (x) => (wasp ? 0.06 : lerp(0.08, 0.22, x / 0.75));
+  const ch = (x) => (wasp ? lerp(0.22, 0.1, x / 0.7) : lerp(0.62, 0.26, x / 1)), lz = (x) => (wasp ? 0.06 : lerp(0.1, 0.3, x / 1));
   const gq = new THREE.BufferGeometry();
   const v = [0, 0, lz(x0), s * (x1 - x0), 0, lz(x1), s * (x1 - x0), 0, lz(x1) - ch(x1), 0, 0, lz(x0) - ch(x0)];
   gq.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
@@ -55,7 +55,7 @@ export function mothModel(skin) {
   const head = add(frame, new THREE.SphereGeometry(0.09, 10, 8), bodyM, 0, 0.03, 0.18);
   const eyes = pair((s) => add(head, new THREE.SphereGeometry(0.045, 8, 6), eyeM, s * 0.06, 0.02, 0.05));
   // the wings: strips root to tip, each a pivot on the last, a big eye-spot on the outer one
-  const S = PL.wing.strips, span = wasp ? 0.7 : 0.75;
+  const S = PL.wing.strips, span = wasp ? 0.75 : 1.0;
   const wings = pair((s) => {
     const root = pivot(frame, s * 0.1, 0.06, 0.02, 'wing');
     let parent = root, at = 0;
@@ -65,7 +65,7 @@ export function mothModel(skin) {
       const pv = pivot(parent, k === 0 ? 0 : s * (span / S), 0, 0, `strip ${k}`);
       pv.add(new THREE.Mesh(strip(s, at, x1, wasp), wingM));
       if (k === S - 1 && !wasp) {
-        const spot = add(pv, new THREE.CircleGeometry(0.09, 14).rotateX(-Math.PI / 2), spotM, s * (x1 - at) * 0.35, 0.008, -0.02);
+        const spot = add(pv, new THREE.CircleGeometry(0.1, 14).rotateX(-Math.PI / 2), spotM, s * (x1 - at) * 0.35, 0.008, 0.09);
         add(spot, new THREE.CircleGeometry(0.045, 10).rotateX(-Math.PI / 2), bodyM, 0, 0.004, 0);
       }
       if (props.has('lit') || props.has('sail')) rod(pv, [0, 0.006, 0], [s * (x1 - at), 0.006, -0.08 - k * 0.04], 0.008, props.has('lit') ? glowM : antM);
@@ -73,12 +73,12 @@ export function mothModel(skin) {
       strips.push(pv); parent = pv; at = x1;
     }
     // the neon sign moth: its wing's outline in a glowing tube
-    if (neon) { const pts = [[0, 0.01, 0.08], [s * span * 0.5, 0.01, 0.16], [s * span, 0.01, 0.22], [s * span, 0.01, 0.04], [s * span * 0.5, 0.01, -0.22], [0, 0.01, -0.42]]; for (let j = 0; j < pts.length - 1; j++) rod(root, pts[j], pts[j + 1], 0.012, s > 0 ? glowM : spotM); }
+    if (neon) { const pts = [[0, 0.01, 0.1], [s * span * 0.5, 0.01, 0.2], [s * span, 0.01, 0.3], [s * span, 0.01, 0.04], [s * span * 0.5, 0.01, -0.24], [0, 0.01, -0.52]]; for (let j = 0; j < pts.length - 1; j++) rod(root, pts[j], pts[j + 1], 0.012, s > 0 ? glowM : spotM); }
     return { root, strips };
   });
   // the legs, tucked and dangling under the thorax
   const legs = [];
-  for (let k = 0; k < 3; k++) for (const s of [-1, 1]) legs.push(rod(frame, [s * 0.06, -0.08, 0.08 - k * 0.08], [s * 0.14, -0.26, 0.02 - k * 0.12], 0.012, antM));
+  for (let k = 0; k < 3; k++) for (const s of [-1, 1]) legs.push(rod(frame, [s * 0.05, -0.08, 0.06 - k * 0.06], [s * 0.1, -0.2, 0.02 - k * 0.1], 0.007, antM));
   // the antennae: follow-the-leader chains from the brow (feathered; dishes on the Antennas' moth)
   const antRoots = pair((s) => pivot(head, s * 0.04, 0.07, 0.05, 'antenna root'));
   const ants = pair(() => new FollowChain({ n: 4, length: wasp ? 0.08 : 0.1, maxBend: 0.45, straighten: 4 }));

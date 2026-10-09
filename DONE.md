@@ -1889,3 +1889,18 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - Ilen's house in the Lantern stays "the top half of her own round ship" (`src/levels/lantern.js`): the author's call,
   after the family's ship became angular. Hers is her own ship, not a piece of the family's, so nothing changes;
   her line "I know that hull… paint the stripe" still reads.
+
+## Enemy roster: batch 2 and the kit's chains (2026-10-09, v1.9)
+
+- [x] The locomotion kit's phase 4 (src/motion-kit/chain.js `PathTrail`, `FollowChain`, `Wave`; wave-legs.js
+  `WaveLegs`): bodies on their heads' own paths, follow-the-leader with angle limits, travelling waves on a phase
+  accumulator, metachronal legs on distance (docs/systems/procedural-animation.md, "Phase 4, the chains").
+- [x] Batch 2 (src/enemies/plans/): the mound worm (burrower.js), the sky ray (glider.js), the signal moth (flyer.js),
+  the ring centipede (centipede.js: 24 legs, 0.00 m/m of slide), the lantern jelly (floater.js), in every skin; the
+  worm, the ray, the centipede and the jelly drawn to their picked sheets. Their minds: the worm's burst from under and
+  its stones and dive when up, the air cut's double; the ray's skim a parry grounds and its downdraft; the moth's dust
+  that slips the lock; the centipede's ring that walls you in (`Foes.corral`), plated but for its head, its shed tail;
+  the jelly's wards, mends and popped lanterns, never starting a fight (docs/systems/foes.md, "The enemy roster").
+- [x] Retired: the dune ray, the sign moth's old body, the winged blot (the Arena's old waves and Ink tide field the
+  sky ray). Scored in docs/audits/combat-v1.9.md (4.3–4.7). docs/systems/characters.md no longer speaks of the world
+  enemies as live.

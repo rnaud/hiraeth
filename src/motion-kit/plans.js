@@ -96,7 +96,7 @@ export const PLANS = {
   // plan 14: the glider: a slow travelling wave across the span (the tips lag the root), bank = turn rate × speed,
   // pitch with acceleration, a follow-the-leader tail
   glider: {
-    wing: { strips: 4, rate: [0.45, 1.3], amp: 0.2, lag: 0.7 },        // (rate: cycles a second idle → at full speed)
+    wing: { strips: 4, rate: [0.45, 1.3], amp: 0.13, lag: 0.7 },        // (rate: cycles a second idle → at full speed)
     body: { bank: 0.16, bankMax: 0.75, pitch: 0.05, spring: { f: 1.6, z: 0.7, r: 0 } },
     tail: { n: 9, length: 0.24, maxBend: 0.35 },
     poses: {

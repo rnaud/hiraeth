@@ -20,7 +20,7 @@ import { materials, add, pivot, lerp, ease, eyeColor, finish } from './kit.js';
 // A shot or the boomerang pops a lantern (the ward it held ends): Foe.pop.
 // Skins (src/enemies/skins.js): a pink puffy cloud jelly with paper lanterns, a red lamp jelly with brass lanterns, a
 // halo jelly with prism lanterns and a halo, a porcelain jelly with glass floats, a teal sun jelly with an orange core.
-// Art match pending its sheet (docs/design/enemy-roster-prompts.md, `jelly`).
+// Drawn to its picked sheet: references/enemy-archetypes/jelly/sheet-1.jpg (the cloud jelly).
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3(), _m = new THREE.Matrix4();
 const UP = new THREE.Vector3(0, 1, 0), DOWN = new THREE.Vector3(0, -1, 0);
@@ -29,7 +29,7 @@ export function jellyModel(skin) {
   const PL = PLANS.floater, P = skin.palette, props = new Set(skin.props), M = materials('jelly', skin.id);
   const g = new THREE.Group(); g.name = skin.name;
   const bellM = M.mat('bell', P.bell, { color2: P.bell2, side: THREE.DoubleSide }), darkM = M.mat('dark', P.dark, { flat: true });
-  const threadM = M.mat('thread', P.thread, { flat: true }), lanternM = M.mat('lantern', P.lantern), eyeM = M.own('eye', P.eye, { glow: 0.6 });
+  const threadM = M.mat('thread', P.thread, { flat: true, line: 0.3, lineTint: 0.75 }), lanternM = M.mat('lantern', P.lantern), eyeM = M.own('eye', P.eye, { glow: 0.6 });
   const body = pivot(g, 0, 0, 0, 'body');
   const bell = pivot(body, 0, 0.6, 0, 'bell');
   // (the sheet's: a broad puffy dome, flat-bottomed, wider than the traveller is tall, pale underneath)
@@ -45,7 +45,7 @@ export function jellyModel(skin) {
   const threads = Array.from({ length: TH.n }, (_, i) => {
     const a = (i / TH.n) * Math.PI * 2 + 0.3;
     const ch = new VerletChain({ n: TH.links, length: TH.length, stiffness: 0.06, damping: 0.9, gravity: 4 });
-    const rods = Array.from({ length: TH.links }, (_, j) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.02 - j * 0.0015, 1, 4).translate(0, 0.5, 0), threadM); holder.add(m); return m; });
+    const rods = Array.from({ length: TH.links }, (_, j) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.028 - j * 0.002, 1, 5).translate(0, 0.5, 0), threadM); holder.add(m); return m; });
     return { a, ch, rods, root: pivot(bell, Math.sin(a) * (0.35 + (i % 2) * 0.45), -0.06, Math.cos(a) * (0.35 + (i % 2) * 0.45)) };
   });
   // the lanterns: two or three, each on a short chain from under the bell; their light is their own (it swells)
@@ -53,7 +53,7 @@ export function jellyModel(skin) {
   const lanterns = Array.from({ length: NL }, (_, i) => {
     const a = (i / NL) * Math.PI * 2;
     const light = M.own(`light${i}`, P.light, { glow: 0.75 });
-    const ch = new VerletChain({ n: 3, length: 0.3, stiffness: 0.12, damping: 0.88, gravity: 5 });
+    const ch = new VerletChain({ n: 3, length: [0.3, 0.42, 0.34][i], stiffness: 0.12, damping: 0.88, gravity: 5 });
     const cord = Array.from({ length: 3 }, () => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1, 4).translate(0, 0.5, 0), darkM); holder.add(m); return m; });
     const lamp = new THREE.Group(); holder.add(lamp);
     if (props.has('prism')) lamp.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0).scale(1, 1.4, 1), light));
@@ -62,7 +62,7 @@ export function jellyModel(skin) {
       lamp.add(new THREE.Mesh(new THREE.SphereGeometry(0.19, 12, 10).scale(1, 1.25, 1), light));
       for (const y of [-0.23, 0.23]) { const cp = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.06, 10), lanternM); cp.position.y = y; lamp.add(cp); }
     }
-    return { light, ch, cord, lamp, root: pivot(bell, Math.sin(a - 1) * 0.5 * (i === 1 ? 0.2 : 1), -0.08, 0.35 + Math.cos(a - 1) * 0.15) };   // (hung toward its front)
+    return { light, ch, cord, lamp, root: pivot(bell, [-0.5, 0, 0.5][i], -0.06, [0.25, 0.55, 0.25][i]) };   // (spread under its front half)
   });
   // the ward's thread of light: a glowing rod from a lantern to the foe it guards (in the foes' space)
   const wardM = M.own('ward', P.light, { glow: 1 });

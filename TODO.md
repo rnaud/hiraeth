@@ -49,24 +49,29 @@ rather than mixing the earlier inconsistent exploration sheets.
 - [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
   tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
 
-# Enemy roster (approved 2026-10-09: 21 archetypes; framework and batch 1 built, v1.8)
+# Enemy roster (approved 2026-10-09: 21 archetypes; framework, batch 1 (v1.8) and batch 2 (v1.9) built)
 
 docs/design/enemy-roster.md ("Status": each archetype's), docs/systems/foes.md "The enemy roster". Done: the
-framework (src/enemies/archetypes.js, skins.js, plans/; src/foe-worlds.js WORLDS wired into packs, guards, the
-Arena and the gallery; the 100 world enemies and the glass splinter retired) and batch 1 (the shellback crab, the horn
-lizard, the antler hound, the lamp tripod, the ink blot), scored in docs/audits/combat-v1.8.md.
+framework, batch 1 (the shellback crab, the horn lizard, the antler hound, the lamp tripod, the ink blot; scored in
+docs/audits/combat-v1.8.md) and batch 2 (the mound worm, the sky ray, the signal moth, the ring centipede, the lantern
+jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md). Vael II runs wholly on the new roster.
 
-- [ ] **Fresh reference sheets**: run the 21 Midjourney prompts in docs/design/enemy-roster-prompts.md (one
-  main sheet per archetype in its first world's skin, plus one alternate skin), save each to
-  `references/enemy-archetypes/<id>/sheet-N.jpg` with a `manifest.json`, pick by silhouette first, then rebuild the
-  contact sheet.
-- [ ] **Art match pending its sheet** (batch 1, once each sheet is picked): the shellback crab, the horn lizard, the
-  antler hound, the lamp tripod, the ink blot were built from the doc's descriptions and the old references; match
-  each body and its skins to its own sheet, then set `art` in src/enemies/archetypes.js.
-- [ ] **Batch 2** (kit phase 4, chains): the mound worm, the sky ray, the signal moth, the ring centipede, the lantern
-  jelly; the Desert, Vael and Vael II then run fully on the new roster.
+- [ ] **The lizard's and the moth's sheets** (being redrawn: docs/design/enemy-roster-prompts.md); the other 19 are
+  picked (`references/enemy-archetypes/<id>/sheet-1.jpg`). Rebuild the contact sheet once they are in.
+- [ ] **Art match pending its sheet** (batch 1): the shellback crab, the horn lizard (once its sheet is in), the antler
+  hound, the lamp tripod, the ink blot were built from the doc's descriptions and the old references; match each body
+  and its skins to its own sheet, then set `art: 'sheet-1'` in src/enemies/archetypes.js. The signal moth too, once
+  its redrawn sheet is picked (its wings still read as paddles: combat-v1.9 rec. 4). Batch 2's worm, ray, centipede
+  and jelly are drawn to theirs.
 - [ ] **Batch 3**: the bellows toad, the stilt heron (`StiltMotor` generalised), the skitter swarm (mid tier), the root
-  knot (FABRIK arms); Lorn, Lorn II and Viridel follow.
+  knot (FABRIK arms); Lorn, Lorn II and Viridel follow, and the Desert and Vael then run fully on the new roster (they
+  wait only on the heron and the swarm).
+- [ ] Play the ring centipede's ring with a pad in the Buried Machine (combat-v1.9 rec. 1): is the gap readable before
+  it closes, does a plain jump clear its back (`RING.over` 0.9 m in src/foes.js), is the 2.3 s wind-up right?
+- [ ] A cut on a lantern jelly's thread of light breaks its ward (the doc's counter; combat-v1.9 rec. 2): now only a
+  shot, the boomerang or killing the jelly break it. A blade swing crossing the segment from the lantern to the foe.
+- [ ] The combat-review script: call a support in with its escort (`aloneWave`) for the watch, and read `encircle` as
+  a body attack, not a lob (combat-v1.9 rec. 3).
 - [ ] **Batch 4** (the doc's step 6): the ring drone, the crucible cart (tracks), the furnace brute, the bell walker,
   each with its possession effect.
 - [ ] **Batch 5** (the doc's step 7): the shade rework (feint, shadow step), the pearl roller, the marionette (strings,
@@ -162,9 +167,9 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
   ≥ 6 %, right groups, cadence following speed; before/after motion strips for the changelog. Done
   (procedural-animation.md §6): the salt crab and the six-legged world enemies, the shadow hound and the newts,
   the makers' machine and the possessed machines; every target met (tests/motion-plans.test.js).
-- [ ] **4. Chains** (1 session): `chain.js` (follow-the-leader with angle limits, short verlet with a pinned
-  root, travelling waves on a phase accumulator) for serpents, centipedes, jellies, flyers, gliders, and
-  tails / cloaks / cables on the plans above.
+- [x] **4. Chains** (1 session): `chain.js` (`PathTrail`, `FollowChain`, `Wave`; `wave-legs.js` for metachronal
+  legs) with the roster's batch 2 on them (procedural-animation.md, "Phase 4, the chains"). Left for later: the
+  serpent (the Mother Snapper, phase 6) and cloaks / cables on the older plans.
 - [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md, awaiting approval): each body plan a table entry and
   its poses, scored with the rubric (≥ 2 on every row).
 - [ ] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,

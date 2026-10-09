@@ -1,7 +1,7 @@
 // Contact sheets of the enemy roster's built archetypes (docs/design/enemy-roster.md; src/enemies/archetypes.js), from
 // the creatures gallery (enemies.html: the game's own models through Foes.look):
 //
-//   node scripts/enemy-roster/skins.mjs --out <dir> [crab lizard …]
+//   node scripts/enemy-roster/skins.mjs --out <dir> [--yaw 1.02] [--pitch 0.3] [crab lizard …]
 //     <dir>/skins-<archetype>.png   the archetype in each of its skins, standing, three-quarters from above
 //     <dir>/tells-<archetype>.png   its own skin winding up each of its attacks (80 % of the wind-up: the held pose)
 //
@@ -58,7 +58,7 @@ try {
           const moves = f.def.attacks.filter((x) => !x.chain);
           const poses = ${JSON.stringify(what)} === 'skins' ? [{ mode: 'walk', label: id }] : moves.map((m, i) => ({ mode: 'attack' + i, label: (m.name ?? m.id) + ' (wind-up)' }));
           for (const p of poses) {
-            V.mode = p.mode; V.fixed = null; V.orbit.yaw = 1.02; V.orbit.pitch = 0.3; V.orbit.zoom = 1.0; V.setSize(w, h);
+            V.mode = p.mode; V.fixed = null; V.orbit.yaw = ${Number(arg('yaw', 1.02))}; V.orbit.pitch = ${Number(arg('pitch', 0.3))}; V.orbit.zoom = 1.0; V.setSize(w, h);
             V.time = 0; V.render(id);
             if (p.mode === 'walk') for (let i = 0; i < 70; i++) { V.time += 1 / 60; V.render(id); }
             else { const m = moves[Number(p.mode.slice(6))]; const t = m.wind * 0.8; for (let i = 0; i < 40; i++) { V.time = t * i / 39; V.render(id); } }

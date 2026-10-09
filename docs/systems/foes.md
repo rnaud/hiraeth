@@ -574,24 +574,25 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
-## The enemy roster (v1.8, `src/enemies/`)
+## The enemy roster (v1.8–v1.9, `src/enemies/`)
 
 The 100 world enemies are retired: 21 archetypes take their place (docs/design/enemy-roster.md, approved 2026-10-09),
 each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
 
 - **The archetypes** (`src/enemies/archetypes.js` `ARCHETYPES`): family, body plan (the kit's), role, tier, ranged,
   the moves by name, the answers that beat it, how it lives when nobody fights it, its sound family, its chimes
-  (`drop`, read by src/chimes.js), what it replaces (`was`), and `art: 'pending'` (its fresh Midjourney sheet is not
-  drawn yet: docs/design/enemy-roster-prompts.md). `status` says how far it is:
+  (`drop`, read by src/chimes.js), what it replaces (`was`), and `art`: `'pending'` (not matched to its picked
+  reference sheet yet) or `'sheet-1'` (drawn to `references/enemy-archetypes/<id>/sheet-1.jpg`). `status` says how
+  far it is:
   - `built`: on its own body, its tuning (`def`, a foe kind's, added to `FOES`) here. Batch 1: the **shellback crab**
     (`crab`), the **horn lizard** (`lizard`), the **antler hound** (`hound`), the **lamp tripod** (`tripod`), the
-    **ink blot** (`blot`);
+    **ink blot** (`blot`). Batch 2 (v1.9): the **mound worm** (`worm`), the **sky ray** (`ray`), the **signal moth**
+    (`moth`), the **ring centipede** (`centipede`), the **lantern jelly** (`jelly`);
   - `stand-in`: not built yet, an old kind runs as its body meanwhile (the skitter swarm on the blot swarm, the
-    bellows toad on the spitting blot, the root knot on the root stalker, the signal moth on the sign moth, the sky
-    ray on the winged blot, the mound worm on the dune ray, the crucible cart on the slag walker, the ring drone on
-    the rust drone, the furnace brute on the glass golem, the shade on the shade);
-  - `planned`: nothing stands in (the ring centipede, the stilt heron, the pearl roller, the lantern jelly, the bell
-    walker, the marionette): the world tables list them, spawning passes them over until they land.
+    bellows toad on the spitting blot, the root knot on the root stalker, the crucible cart on the slag walker, the
+    ring drone on the rust drone, the furnace brute on the glass golem, the shade on the shade);
+  - `planned`: nothing stands in (the stilt heron, the pearl roller, the bell walker, the marionette): the world
+    tables list them, spawning passes them over until they land.
 - **Skins** (`src/enemies/skins.js` `SKINS[archetype][world]`): a name, a palette, props (lichen, a beetle's
   antennae, a hermit's awning, barnacles and rope, glass facets, coral, patina; a pipe-elbow horn, coins, soot;
   crescent, driftwood, halo or wire antlers; a drill lamp, a diving bell, gyroscope rings, a cistern pump), and
@@ -610,7 +611,13 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   crab), `quadruped.js` (plan 6: the lizard and the hound, one rig), `piston.js` (plan 18: the tripod), `blob.js`
   (plan 20: the blot). Each rides the locomotion kit (src/motion-kit/: the rig, the gait, the poses), its loose parts
   on a verlet chain (`src/motion-kit/chain.js`: the lizard's tail, the hound's smoke); a leg may lift on its own
-  (`leg.lift`: the lizard rearing, the tripod's stamp and its possessed twitch).
+  (`leg.lift`: the lizard rearing, the tripod's stamp and its possessed twitch). Batch 2 rides the kit's chains
+  (phase 4, procedural-animation.md): `centipede.js` (plan 3: segments on the head's own path, `PathTrail`; 24 legs
+  stepping in a metachronal wave on distance, `src/motion-kit/wave-legs.js`), `burrower.js` (plan 15: the worm's
+  mounds on its path, its ring stack rising on a spring that dips first), `glider.js` (plan 14: the ray's wings as
+  strips turned by a travelling `Wave`, the tail on a `FollowChain`), `flyer.js` (plan 13: the moth's flap by speed,
+  its antennae on chains), `floater.js` (plan 11: the jelly's bell pulsing on a `Wave` that quickens as it winds up,
+  threads and lanterns on verlet chains).
 - **Calm until provoked** (`def.calm`): out in the wilds (a pack: `Foes.add(kind, at, { calm: true })`) a kind with
   a calm keeps to it. Wildlife (`wild`) grazes, basks or lies about and fights only when provoked: you come within
   `provoke` m in sight, you hurt it, or one of its own near it is roused (`Foes.alarm`, `alarm` m); a shy one (the
@@ -626,6 +633,20 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   `flanks` (a pair: the second circles behind you). Every move carries its `tell` and its `counter` (the gallery
   says them). The attack-pattern library (`src/enemies/attacks.js` `ATTACKS`, the world enemies' fifteen) stays:
   `fromPattern(id, o)` makes one an archetype's attack (the lizard's whip from `tail`, the tripod's stamp from `stomp`).
+- **Batch 2's fields** (v1.9): `up` (a burrower's move only while it is up: the worm's stones and dive; a burrower's
+  `surface` move only from under) and `dives` (back under after it); `onParry: 'ground'` (a perfect parry ploughs
+  the sky ray into the ground, `GROUNDED` 2.5 s, open); `draft` (the downdraft: thrown down, the glide and the jets
+  broken); `slip` (the moth's dust: the lock slips and won't take for that long, `Foes.lockSlip`); `encircle`
+  (`{ r0, r1, speed }`: the centipede spirals round where you stood from r0 to r1 m, and `Foes.corral` makes its body
+  a wall you can only cross from `RING.over` m above it; the push breaks the ring); `segmented` (plated: a cut from
+  behind or the side does half and never staggers it, its head turned in for the ring takes a cut double) and `shed`
+  (cut from behind under two thirds, two skitterers break off its tail, once: `Foes.shedTail`); `support`,
+  `lanterns`, `ward` / `mend` (the jelly: it keeps over its neighbours, `Foe.allies`, and works on them; a ward halves
+  the harm to its foe and takes its staggers, `Foe.ward`; a shot or the boomerang pops the lit lantern and its ward,
+  `Foe.pop`; it mends only in its tier-2 skins, coming down within reach); `escort` (what comes with it alone in the
+  Arena: `aloneWave`); `calm.joins` (it joins any fight near it; the jelly never starts one: `provoke: 0`); the calm
+  modes `circle` (the ray in its thermals, the moth round its lamp), `drift` (the jelly) and `coil` (the centipede,
+  still on its rock, laid out as a crescent). The air cut (`info.air`) onto a buried worm flushes it, the blow double.
 - **Batch 1:**
 
   | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
@@ -636,14 +657,27 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   | lamp tripod (`tripod`) | a lighthouse on stilts, 3.5 m: a boiler, a searchlight, three piston legs; a face at the porthole | beam and bolt (1.4 s; the light follows, then locks), stamp (1.35 s), steam vent (1.0 s) | cover breaks the beam, dash under it, the magnet glove, a perfect parry sends the bolt back | patrols sweeping its lamp; always hostile |
   | ink blot (`blot`) | a squat ink drop with two white eyes, a rim of the ground's colour | lunge (0.7 s), lunge combo, spit (1.2 s; a lob with its landing mark, once you keep away) | everything: it teaches the combo, the guard and the shot | lies pooled, stands up as you come near |
 
+- **Batch 2** (v1.9):
+
+  | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
+  |---|---|---|---|---|
+  | mound worm (`worm`) | under: a travelling mound with an ivory fin and a wake of humps; up: a 2.5 m stack of rings, a toothed mouth, a tall fin down its back | erupt (1.3 s; from under, the mound stops and trembles, the fin sinks), spit stones (1.0 s; up), dive (0.95 s; up, back under) | move off the spot, then cut it while it is up (6 s); flush it with a cut at the fin, a bomb, a stomp, a gust; the air cut onto the mound (double) | its mound wanders; it comes up only if you stand on it (2.6 m) |
+  | sky ray (`ray`) | a broad red diamond against the sky, a pale rim, bulging eyes, a long segmented whip tail | skim (1.2 s; banks round, wings swept back, then the run in low), tail lash (0.75 s; at its back), downdraft (1.1 s; Vael and Vael II) | a perfect parry grounds it, open; evade; the air cut as it passes low | circles in the thermals; fights within 7 m |
+  | signal moth (`moth`) | upright, broad wings that fold to a tent, feathered antennae; threes | flash (1.0 s; blinds if you face it), dart (0.6 s), dust (1.0 s; the lamp moth and the Antennas' moth: your lock slips 3 s) | one light blow, a shot, the push or a gust each; turn away or guard the flash | circles its lamp; fights within 5 m |
+  | ring centipede (`centipede`) | a 5 m tube of grey plates with coloured bands, great crab claws round a drill for jaws, 24 short legs; coiled, a crescent | ring (2.3 s; spirals round you, its body a wall, then closes), pincer lunge (0.95 s) | out over its back with the wings or jets; the push breaks the ring; its head turned in takes a cut double; parry the lunge; its back takes half | coiled on its rock; takes offence at 6 m |
+  | lantern jelly (`jelly`) | a broad puffy bell, three glowing lanterns under it, long pale threads | ward (1.0 s; a lantern's thread of light to a neighbour: half the harm, no staggers), mend (1.5 s; tier-2 skins: down within reach over a hurt one), sting curtain (0.9 s; threads to the ground under it) | a shot or the boomerang pops each lantern and its ward; the air cut or the push when it comes down; kill it first | drifts; never starts a fight, joins one |
+
 - **Retired:** the 100 world enemies (src/enemies/roster.js, models.js, their tests and capture scripts: gone from
-  spawning, the Arena, the FOES list and the gallery) and the glass splinter. The spitting blot's spit is the blot's.
+  spawning, the Arena, the FOES list and the gallery) and the glass splinter (v1.8); the dune ray, the sign moth's old
+  body and the winged blot (v1.9: the mound worm, the signal moth and the sky ray took their places; the Arena's old
+  waves and Ink tide field the sky ray where the winged blot came). The spitting blot's spit is the blot's.
   Old saves are unaffected: no foe is ever saved, only flags (`foes.met.crab`, a temple room's machine broken), and
   the kept kinds kept their ids.
-- **Tests:** `tests/archetypes.test.js` (the tables, every world's roster valid and diverse, the curve, each batch-1
-  archetype's attacks, telegraphs, counterplay, calm and drops, spawning by world, the retirement, old saves, the
-  chain), `tests/foe-presence.test.js` (every built archetype in every skin, calm or fighting, shows itself),
-  `tests/motion-plans.test.js` (their legs on the kit), `tests/hitboxes.test.js`, `tests/arena.test.js`.
+- **Tests:** `tests/archetypes.test.js` (the tables, every world's roster valid and diverse, the curve, each built
+  archetype's attacks, telegraphs, counterplay, calm and drops, batch 2's mechanics one by one, spawning by world, the
+  retirement, old saves, the chain), `tests/foe-presence.test.js` (every built archetype in every skin, calm or
+  fighting, shows itself), `tests/motion-plans.test.js` (their legs on the kit), `tests/motion-chains.test.js` (the
+  chains, and the chain archetypes measured), `tests/hitboxes.test.js`, `tests/arena.test.js`.
 - **Pictures:** `node scripts/enemy-roster/skins.mjs --out <dir>` draws each built archetype in each of its skins
   and its own skin winding up each attack, from the gallery (`enemies.html`: World, then the archetype in that
   world's skin; its moves with their tells and answers; Fight it in the Arena).

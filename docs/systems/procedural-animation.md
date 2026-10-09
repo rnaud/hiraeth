@@ -404,7 +404,8 @@ Costs are rough working sessions for one agent, including tests and docs.
    - Targets: slide/m < 0.05, reach span > 15 % of leg length, lift ≥ 6 % of leg length, the right groups.
    - Capture before/after motion strips for the changelog.
 4. **Chains** (1 session). Build `chain.js` (follow-the-leader, verlet, wave) for plans 3, 4, 11, 13 and 14,
-   plus tails, cloaks and cables on the plans from step 3.
+   plus tails, cloaks and cables on the plans from step 3. Done (2026-10-09, "Phase 4, the chains" above): plans 3,
+   11, 13, 14 and 15 on them with the roster's batch 2; plan 4 (the serpent) waits for the Mother Snapper (phase 6).
 5. **The rest of the roster** (2–3 sessions, alongside the new archetypes). Each new body plan is a table entry
    and its poses, checked with the rubric.
 6. **Guardians** (1–2 sessions). Move the keeper, gardener, foreman, sentinel and sign onto the kit (legs with
@@ -514,6 +515,38 @@ and a stiffness: the lizard's tail, the hound's smoke; the start of phase 4), an
 and its possessed twitch). Measured (`node scripts/motion-audit/run.mjs --pack`, `--skins` for every skin): slide
 0.00–0.01 m/m, reach span 21–36 %, lift 17–22 %, cadence halving at half speed, the right groups, packs out of step
 (docs/audits/combat-v1.8.md, "Motion"); `tests/motion-plans.test.js` holds each archetype in two skins.
+
+### Phase 4, the chains, and the roster's batch 2 (2026-10-09)
+
+`src/motion-kit/chain.js` gains the three chains of §1 ("Secondary motion"), each pure maths over THREE.Vector3:
+
+- `PathTrail`: the leader's path as a polyline (a point every `spacing` m, `length` m long); `at(s)` is the point s m
+  back along it and its heading there, `travelled` the distance walked. A body whose parts sit at fixed arc lengths
+  on it follows its head exactly: nothing slides sideways, by construction. `seed()` lays a rest shape out behind the
+  head (the centipede's coil).
+- `FollowChain`: follow-the-leader with an angle limit per joint (and an optional straightening): tails and whips.
+- `Wave`: a travelling wave on a phase accumulator (`angle(i, amp, lag)`); the rate may change any frame without a jump.
+
+and `src/motion-kit/wave-legs.js` `WaveLegs`: legs in a metachronal wave, each leg's phase its own segment's arc
+length over the stride, minus a lag down the body, a half cycle between a pair's left and right; planted in stance,
+an arc in the swing to half a stance past its rest, one ground ray at touchdown. Standing still, the phase stands.
+
+The plans on them (`src/motion-kit/plans.js`; `src/enemies/plans/`):
+
+| plan | archetype | how it moves |
+|---|---|---|
+| 3 centipede | ring centipede | 12 segments on the head's `PathTrail`, 24 two-bone legs (knees out and up) on `WaveLegs`; the plates rock with the wave; antennae on `FollowChain`s; the ring's wind-up quickens the wave (the legs' clock runs 1.6× the distance: shorter steps, never a slide) |
+| 15 burrower | mound worm | under: six mounds on the head's path and a fin; up: seven rings stacked as a spine bent by the pose, a slow `Wave` up it, rising on a spring with `r < 0` (it dips first) and slumping back through its recovery |
+| 14 glider | sky ray | each wing four nested strips turned by one `Wave` (0.45–1.3 beats/s by speed, the tip 2.1 rad behind the root); bank = turn rate × speed on a spring, pitch from acceleration; the skim sweeps the wings back and stills the beat; the tail a 9-link `FollowChain` |
+| 13 flyer | signal moth | each wing three nested strips on a `Wave` (5.5–8.5 beats/s by speed, the tip 1.1 rad behind); nose up as it hovers, upright and still to flash, folded into a tent to dart; antennae on `FollowChain`s |
+| 11 floater | lantern jelly | the bell's pulse on a `Wave` (0.55/s drifting, 2.4/s through a wind-up: the telegraph), a bob, a tilt into its drift; 12 threads and 3 lanterns on `VerletChain`s; the curtain drops the threads to the ground |
+
+Measured (`node scripts/motion-audit/run.mjs centipede --pack`, `--pace=0.5`; `node scripts/motion-audit/chains.mjs`):
+the centipede's legs slide 0.00 m/m (worst 0.00 m), reach span 36 % of the leg, lift 42 %, 8.75 → 4.38 steps/s at half
+speed, a pair's legs never in one group, two side by side out of step; the centipede's segments and the worm's mounds
+keep to their heads' weaving path (0.000 m off); the ray beats 1.17/s at full speed and 0.80/s at half, the moth 8.45
+and 7.17; the jelly pulses 0.55/s drifting and 2.38/s winding up. `tests/motion-chains.test.js` holds the chains and
+these measures; `tests/motion-plans.test.js` the centipede's legs in two skins.
 
 ## Measuring
 

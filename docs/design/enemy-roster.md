@@ -1,4 +1,4 @@
-# Enemy roster: 21 archetypes (approved 2026-10-09; framework and batch 1 built)
+# Enemy roster: 21 archetypes (approved 2026-10-09; framework, batches 1 and 2 built)
 
 2026-10-09. Approved (see "Decisions"); the framework and batch 1 are built (see "Status"). It replaces the 100 world enemies (src/enemies/roster.js) and
 the 15 old kinds (src/foes.js, src/foe-kinds.js) with **21 archetypes**. Each one has its own silhouette, body plan,
@@ -873,25 +873,28 @@ wild packs, the relics' guards, the Arena's waves and FOES list, and the gallery
 plan in `src/enemies/plans/`. The 100 world enemies are retired (their attack patterns kept: `fromPattern`), and the
 glass splinter with them. docs/systems/foes.md, "The enemy roster", says how it all works.
 
-**Art match pending its sheet:** none of the fresh Midjourney sheets (docs/design/enemy-roster-prompts.md;
-`references/enemy-archetypes/<id>/`) is drawn yet. Every built body follows this doc's description and the best
-existing references listed under it; each wants a pass against its own sheet once it is picked (`art: 'pending'` in
-src/enemies/archetypes.js until then).
+**Art:** the picked sheets are in `references/enemy-archetypes/<id>/sheet-1.jpg` (with `manifest.json`), for every
+archetype but the horn lizard and the signal moth (being redrawn). Batch 2's worm, ray, centipede and jelly are drawn
+to theirs (`art: 'sheet-1'` in src/enemies/archetypes.js): the worm's ivory fin and turquoise toothed mouth on a stack
+of ochre-banded rings, the ray's red diamond with its pale rim, bulging eyes and segmented tail, the centipede's grey
+tube of plates with orange bands and crab-claw jaws round a drill, the jelly's broad pink puffy bell with three paper
+lanterns. Batch 1 and the moth follow the doc's description and the older references until their pass
+(`art: 'pending'`).
 
 | # | Archetype | Status | Body now | Notes |
 |---|---|---|---|---|
 | 1 | Shellback crab | **built** (batch 1) | `plans/walker.js`, plan 1, 7 skins | snap, shell spin, burrow (Salt Harbour, Underwater); scuttles sideways in bursts; calm, shy. Art match pending its sheet |
 | 2 | Skitter swarm | stand-in | the blot swarm | batch 4 |
-| 3 | Ring centipede | planned | none: not spawned yet | batch 2 |
+| 3 | Ring centipede | **built** (batch 2) | `plans/centipede.js`, plan 3, 6 skins | ring (spirals round you, its body a wall: out over its back, or push it apart), pincer lunge; plated, its head turned in takes double; sheds two skitterers off its tail; coiled at rest. Drawn to its sheet |
 | 4 | Bellows toad | stand-in | the spitting blot | batch 4 |
 | 5 | Horn lizard | **built** (batch 1) | `plans/quadruped.js`, plan 6, 5 skins + the Atelier's (Arena) | blare (shoves you to its partner), flank bite (from behind you), tail whip (at its back, the `tail` pattern); pairs. Art match pending its sheet |
 | 6 | Stilt heron | planned | none | batch 4 |
 | 7 | Pearl roller | planned | none | batch 6 |
 | 8 | Root knot | stand-in | the root stalker | batch 4 |
-| 9 | Lantern jelly | planned | none | batch 2 |
-| 10 | Signal moth | stand-in | the sign moth | batch 2 |
-| 11 | Sky ray | stand-in | the winged blot | batch 2 |
-| 12 | Mound worm | stand-in | the dune ray | batch 2 |
+| 9 | Lantern jelly | **built** (batch 2) | `plans/floater.js`, plan 11, 5 skins | ward (a lantern's thread: half the harm, no staggers), mend (tier-2 skins, comes down within reach), sting curtain; a shot or the boomerang pops a lantern; never starts a fight, joins one; alone in the Arena with a blot. Drawn to its sheet |
+| 10 | Signal moth | **built** (batch 2) | `plans/flyer.js`, plan 13, 5 skins | flash, dart, dust (the lamp moth and the Antennas' moth: the lock slips); in threes. Art pending its redrawn sheet |
+| 11 | Sky ray | **built** (batch 2) | `plans/glider.js`, plan 14, 6 skins | skim (a perfect parry grounds it), tail lash (at its back), downdraft (Vael, Vael II: breaks the glide); circles in its thermals. Drawn to its sheet |
+| 12 | Mound worm | **built** (batch 2) | `plans/burrower.js`, plan 15, 3 skins | erupt (from under), spit stones and dive (up); the dune ray's mind; the air cut onto the mound double; ignores you off its mound. Drawn to its sheet |
 | 13 | Lamp tripod | **built** (batch 1) | `plans/piston.js`, plan 18, 5 skins | beam and bolt (the searchlight follows then locks; a parry sends it back), stamp (the `stomp` pattern), steam vent; the porthole face, black steam, a leg's possessed twitch. The Desert's cistern pump is not placed yet. Art match pending its sheet |
 | 14 | Crucible cart | stand-in | the slag walker | batch 5 |
 | 15 | Bell walker | planned | none | batch 5 (the Signal Market, the Salt Harbour, the Underside; none in Vael II) |
@@ -902,7 +905,10 @@ src/enemies/archetypes.js until then).
 | 20 | Antler hound | **built** (batch 1) | `plans/quadruped.js` (the lizard's rig), 4 skins | pounce (0.8 s), step behind, antler rake (under two thirds); a shadow while it runs; not every one hunts. Art match pending its sheet |
 | 21 | Marionette | planned | none | batch 6 (the Garden's glass puppet not placed yet) |
 
-Measured: docs/audits/combat-v1.8.md (scores 3.7–4.5, motion on the kit: no foot slide, the right gait groups).
+Measured: docs/audits/combat-v1.8.md (batch 1: scores 3.7–4.5, motion on the kit: no foot slide, the right gait
+groups) and docs/audits/combat-v1.9.md (batch 2: 4.3–4.7 by eye; the centipede's 24 legs slide 0.00 m/m, the chains
+keep to their heads' paths). Vael II now runs wholly on the new roster; the Desert and Vael wait on the stilt heron and
+the skitter swarm (batch 3).
 
 ## Open questions for the author
 
