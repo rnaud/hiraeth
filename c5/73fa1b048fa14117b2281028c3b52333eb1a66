@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_4ee8481e3c8f5c 7
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_e450cccf8f6de0 352-361
+src/boxes/placements.js
+  s_9ca76055a220ed::t_fb7a6eac337468 63-65,68-70
+src/levels/arzach.js
+  s_9ca76055a220ed::t_abdd53192d2e0d 321-333,350-352
+src/levels/content.js
+  s_9ca76055a220ed::t_39b9be5b9ea612 315-316
+src/story/arzach-data.js
+  s_9ca76055a220ed::t_f537880ca673f0 151,162,175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c573fa1b048fa14117b2281028c3b52333eb1a66",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
