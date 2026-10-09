@@ -190,11 +190,14 @@ const HAND_VIEW = `const H = level.arzach.hand, n = new THREE.Vector3(H.normal.x
   const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
   camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 50) { this.fov = 50; this.updateProjectionMatrix(); } return base.call(this, force); };`;
 
-/** A makers' run played through in the page (docs/systems/challenges.md): its card, Start, its gates, (its bank), the results at a plausible time. */
-const RUN_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+/**
+ * A makers' run played through in the page (docs/systems/challenges.md): its card, Start, its gates, (its bank), the results at a
+ * plausible time. (A run with no bank ends at its last gate: the clock is set before it, `last` seconds short of the time.)
+ */
+const RUN_THROUGH = (id, time, last = 0) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
-  for (const g of w.gates) { window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
-  window.minigame.clock = ${time};
+  for (const [i, g] of w.gates.entries()) { if (${last} && i === w.gates.length - 1) window.minigame.clock = ${time - last}; window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  if (!${last}) window.minigame.clock = ${time};
   const b = w.course.bank; if (b) { b.hit(0); b.hit(1); b.hit(2); }
   await wait(2600);`;
 
@@ -214,6 +217,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'box-beat-play', caption: 'The bell-note whistle in the Sky Stones’ temple: after, at his lips, its note playing and notes of light rising', from: 'frames from scripts/cinematics-qc.mjs (the review page’s staging, headless Chrome, 960 × 540) before and after on this branch (9 October)' },
     ], see: 'Open any makers’ box (Debug → Cinematics lists them all) and press A / × on the card: the hook or a gadget is tried, the star worn, a charm pocketed, the coil fitted to the pack, the lens or the shell points the way, the whistle plays.' },
     { match: 'A box also takes its time from what it holds', see: 'Open a gadget’s box (the grappling hook in Arzach) and a charm’s (the soft-fall soles in the City-Shaft): the first rocks three times, the last the hardest; the second twice, and comes apart sooner.' },
+    { match: 'Two more of them. In Vael, the Feather leap', shots: [
+      { name: 'feather-leap', caption: 'The Feather leap in Vael, north-west of the landing, by the stone hand: the lower ledge across the gulf (left), the tower with its terrace’s screens, and the column of wind rising at its foot beyond', commit: 'f51e0acc',
+        view: { level: 'arzach', player: [-97, 24, -208], heading: 0, eye: [-34, 44, -150], target: [-104, 29, -160], fov: 55, wait: 3000 } },
+      { name: 'furnace-steps', caption: 'The Furnace steps in the Buried Machine, east of the landing: eight iron pillars over the glowing grate, and the door of four eyes at the far end', commit: 'f51e0acc',
+        view: { level: 'buried', player: [45, 6, 59], heading: 0, eye: [60, 18, 72], target: [40, 6, 94], fov: 55, wait: 3000 } },
+      { name: 'feather-leap-results', only: 'after', caption: 'The Feather leap finished: the time, the makers’ mark, and a word from Kesh, who keeps the stone hand nearby', commit: 'f51e0acc',
+        view: { level: 'arzach', hud: true, hour: 10, save: { flags: { 'prologue.done': true, 'item.backpack': true, 'item.glider': true, 'items.v': 2 }, keepsakes: [] }, player: [-97, 24, -208], setup: RUN_THROUGH('kit-arzach', 41.2, 0.1), wait: 600 } },
+    ] },
   ],
   '1.2': [
     { match: 'The dark masses in shaded corners', shots: [

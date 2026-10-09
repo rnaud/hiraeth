@@ -7,7 +7,7 @@
 // Pure data (src/trials/kit-courses.js builds them; tests/trials-kit.test.js checks them in their worlds).
 //
 //   id       'kit-<world>' (its best: minigame.kit-<world>.best; its first finish: trial.kit-<world>.done)
-//   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk'
+//   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk', 'featherleap', 'furnacesteps'
 //   origin   [x, y, z] the course's frame (its entrance, at floor level) and yaw (radians: its +z runs
 //            into it); everything else is in that frame, metres
 //   marker   [x, z] the sign, in the course's frame (on the ground there)
@@ -15,6 +15,11 @@
 //   par      the makers' mark (s): a steady first run beats it
 //   needs    items it wants (the fluid gun for a bank of eyes); lacks: the words when they are missing
 //   wet      the run ends in the water (a causeway)
+//   fall     the run ends down on the ground under it: { after: gates passed, below: height in the frame (m),
+//            from: only this far along the frame (m, its z) or further, words } (the feather leap: the plain
+//            under its tower and its gulf; the furnace steps: the grate under the pillars)
+//   onFoot   walked: up on the jets for more than a moment ends it (offFeet: the words on the card)
+//   controls the start card's controls (src/trials/index.js CONTROLS; default 'kit': walk, jump, splash)
 //   voice    who speaks when it ends well ({ who: the person's id, name, from: where they stand, and the
 //            lines: first, beaten (the makers' mark, the first time), again }): every line carries its tone
 
@@ -46,6 +51,39 @@ export const KIT_TRIALS = {
       first: '~whisper~ Out and back, and dry. The crystals swing for the Hush, not for us. You made them look slow.',
       beaten: '~surprised~ That was quicker than the makers meant it. Don’t tell Wendel. He’ll want to try.',
       again: '~neutral~ Dry again. The reeds noticed.',
+    },
+  },
+  'kit-arzach': {
+    id: 'kit-arzach', world: 'arzach', mode: 'kit', course: 'featherleap', name: 'Feather leap', color: '#7cc1c4',
+    blurb: 'The Aerie’s winds stood out on the plain north-west of the landing, by the stone hand: a rising column, a gusty terrace, a gulf.',
+    rules: 'Open your wings in the column of wind at the tower’s foot and ride it up to the terrace. Cross the terrace through the gusts, screen to screen, then glide the gulf to the ledge. Down on the plain, and the run is over.',
+    origin: [-104, 25, -202], yaw: 0,
+    marker: [5.4, -8.2], start: [0, 1.5], heading: 0, par: 45,
+    needs: ['backpack', 'glider'], lacks: 'It is flown as much as walked: it wants the fluid wings.',
+    onFoot: true, offFeet: 'Wings and feet only: no jets.',
+    fall: { after: 1, below: 3, words: 'Down on the plain' },
+    controls: 'kitwings',
+    voice: {
+      who: 'hollin', name: 'Kesh', from: 'by the stone hand',
+      first: '~solemn~ (Kesh points up the wind, along the terrace, over the gap, and nods.) Low to high. Then over. Good.',
+      beaten: '~surprised~ Quicker than the makers. (He shows you three teeth.) Quicker.',
+      again: '~tired~ Hm. (He taps one knuckle.) Again. Good.',
+    },
+  },
+  'kit-buried': {
+    id: 'kit-buried', world: 'buried', mode: 'kit', course: 'furnacesteps', name: 'Furnace steps', color: '#e07a4f',
+    blurb: 'Iron pillars of the makers over a glowing grate on the sand east of the landing, and a door of four eyes beyond.',
+    rules: 'Jump from pillar to pillar across the furnace to the landing at its end; down on the grate, and the run is over. Then wake the door’s four eyes in one breath.',
+    origin: [40, 11, 66], yaw: 0,
+    marker: [4.8, -6], start: [0, 1.5], heading: 0, par: 34,
+    needs: ['backpack', 'cell'], lacks: 'The door at its end has four eyes to wake in one breath: it wants the fourth chamber.',
+    onFoot: true, offFeet: 'This one is jumped: no jets.',
+    fall: { after: 0, below: -2.5, from: 6, words: 'Down on the grate' },
+    voice: {
+      who: 'pim', name: 'Jot', from: 'nine teeth old, by the landing',
+      first: '~surprised~ You jumped ALL the pillars! I only jump the first one. Then I climb down. Wen says that counts.',
+      beaten: '~playful~ Faster than the makers! I counted on my teeth. I ran out of teeth.',
+      again: '~playful~ Again! Do it nine more times. Then ten.',
     },
   },
 };

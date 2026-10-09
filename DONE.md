@@ -1468,3 +1468,9 @@ tests/sound-mix.test.js holds them.
   reveal longer. The QC script presses A on the card (so the beat plays) and takes `--query boxPlan=<plan>`;
   every beat × plan was run. tests/box-beats.test.js, tests/boxes.test.js. The "shorter opening after the
   first few boxes" idea was not taken: the gentler two-wobble boxes pay for their beat instead.)
+- [x] **Two more makers' runs.** Vael's **Feather leap** (north-west of the landing by the stone hand: a
+  column of rising wind lifts open wings onto a tower's terrace, gusts down it with three screens, then a gulf
+  to glide to a lower ledge; down on the plain ends it; Kesh has a word) and the Buried Machine's **Furnace
+  steps** (east of the landing: eight iron pillars to jump across a glowing grate, then a door of four eyes in
+  one breath, which wants the fourth chamber; Jot has a word). A run can now end on the ground under it
+  (`fall`), name its own controls (`controls: 'kitwings'`) and have a bank of any size.
