@@ -1,0 +1,28 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Interior of the traveller's small angular spaceship for a science fiction exploration game: a cosy walkable living space opening onto the cockpit, a curved console with a holo table and a voicemail screen, a narrow galley, a sleeping bunk in an alcove, storage lockers and hanging kit, round and angular windows looking out on a pale planet, warm lamp light and cool starlight, lived-in details. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, no lettering",
+      "from": null,
+      "refs": [
+        "references/The Travellers Ship/Main Interior/reference-1.jpeg",
+        "references/The Travellers Ship/Cockpit and Message/reference-1.jpeg",
+        "references/The Travellers Ship/Living Quarters/reference-1.jpeg",
+        "references/The Travellers Ship/Angular Exterior - Selected/reference-4.jpeg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-11-29-82c7",
+      "candidate": "gemini/1",
+      "sha256": "3d8c425a0c5c8850789c15a974ddf88c175f629b61f3637b318683984501630e",
+      "bytes": 925871,
+      "costUSD": 0.0336,
+      "why": "I love the ship layout but the art style is not Moebius enough"
+    }
+  ]
+}
