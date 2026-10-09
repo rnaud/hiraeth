@@ -144,6 +144,14 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Steam Deck (waiting on the device: it was asleep, 2026-10-07)
 
+- [ ] **Performance pass on the Steam Deck** (2026-10-09, once the Deck is plugged in so it doesn't sleep):
+  every world in Gaming Mode on the installed build, the FPS and frame times against the targets, the worst
+  views profiled (GPU vs JS), fixes for the biggest costs, before/after numbers in the changelog. First confirm
+  the "mixing the inks…" hang (below) is gone.
+- [ ] Every level hangs on "mixing the inks…" on the Deck (2026-10-08, runtime 1294001, its packaged game,
+  gamescope GL): no error in the console, the first shader warm-up never logs. Suspect: the load's GPU pacer
+  (src/load-steps.js gpuPacer) waiting its full 250 ms on fences the driver never signals, every piece.
+  Check on the device with `PORT=5312 scripts/bench/deck-run.sh start headless` and the console over CDP.
 - [ ] Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
   fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
   then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the
