@@ -16,6 +16,7 @@ const { PEOPLE, THINGS, LINES, ITEMS } = await import('../src/story/desert-data.
 const { COOL_FIRE } = await import('../src/story/flames.js');
 const { STORY } = await import('../src/desert-sites.js');
 const INTERACT = await import('../src/interact.js');
+const { MeshBVH, acceleratedRaycast } = await import('three-mesh-bvh');
 const { clearInteractables, bestInteractable } = INTERACT;
 const { allTargets } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
@@ -58,6 +59,9 @@ const talk = (person, choices) => {
   }
   return r;
 };
+// WAIT: the story times some things in real time (a toast after Nour's words, the bike's errand 2.5 s after the
+// spark-stone's, the story page closed 1.2 s after the quest: setTimeout in src/story/desert*.js). The tests that
+// wait for them run setTimeout on node:test's mock clock and tick it, rather than sleep 8 s in all.
 const stand = (p, label) => {
   const g = physics.groundAt(p.x, p.y + 3, p.z, 8);
   assert.ok(Number.isFinite(g) && Math.abs(g - p.y) < 1.2, `${label} has solid ground (${g?.toFixed?.(2)} vs ${p.y.toFixed(2)})`);
@@ -122,21 +126,28 @@ test('the roofs are solid where they are drawn: domes, bulbs and flat roofs hold
   // from above the city: wherever a roof is drawn (well over the street), the feet land on it, not inside it
   const C = Q.city, meshes = [];
   Q.root.traverse((o) => { if (o.isMesh && o.visible && !/collision/.test(o.name) && o.geometry?.attributes.position && !o.isInstancedMesh) meshes.push(o); });
+  // (each mesh raycast through a BVH of its own, made here and dropped after: the same hits as three's raycast over
+  // every triangle, which took 4 of this test's 4.5 s; indirect, so the geometries are left as they were)
+  const plain = new Map();
+  for (const m of meshes) { plain.set(m, m.geometry.boundsTree); m.geometry.boundsTree ??= new MeshBVH(m.geometry, { indirect: true }); m.raycast = acceleratedRaycast; }
   const rc = new THREE.Raycaster(), bad = [];
   let roofs = 0;
-  for (let x = -60; x <= 60; x += 1.3) for (let z = -60; z <= 60; z += 1.3) {
-    if (Math.hypot(x, z) < 28 || Math.hypot(x, z) > 58) continue;              // (the tree and its terraces: own tests)
-    const w = C.local(x, 60, z);
-    rc.set(w, V(0, -1, 0)); rc.far = 90;
-    const hit = rc.intersectObjects(meshes, false)[0];
-    if (!hit) continue;
-    const street = physics.groundAt(w.x, C.center.y + 0.6, w.z, 3);
-    if (!Number.isFinite(street) || hit.point.y - street < 2.5) continue;   // not a roof
-    if (hit.face && hit.face.normal.clone().transformDirection(hit.object.matrixWorld).y < 0.35) continue;   // a wall's edge, a needle
-    roofs++;
-    const g = physics.groundAt(w.x, hit.point.y + 0.5, w.z, 1.5);
-    if (!Number.isFinite(g) || hit.point.y - g > 0.25) bad.push(`${x.toFixed(1)},${z.toFixed(1)} (${hit.object.name}): ${Number.isFinite(g) ? (hit.point.y - g).toFixed(2) + ' m into it' : 'hollow'}`);
-  }
+  try {
+    for (let x = -60; x <= 60; x += 1.3) for (let z = -60; z <= 60; z += 1.3) {
+      if (Math.hypot(x, z) < 28 || Math.hypot(x, z) > 58) continue;              // (the tree and its terraces: own tests)
+      const w = C.local(x, 60, z);
+      rc.set(w, V(0, -1, 0)); rc.far = 90;
+      const hit = rc.intersectObjects(meshes, false)[0];
+      if (!hit) continue;
+      const street = physics.groundAt(w.x, C.center.y + 0.6, w.z, 3);
+      if (!Number.isFinite(street) || hit.point.y - street < 2.5) continue;   // not a roof
+      if (hit.face && hit.face.normal.clone().transformDirection(hit.object.matrixWorld).y < 0.35) continue;   // a wall's edge, a needle
+      roofs++;
+      const g = physics.groundAt(w.x, hit.point.y + 0.5, w.z, 1.5);
+      if (!Number.isFinite(g) || hit.point.y - g > 0.25) bad.push(`${x.toFixed(1)},${z.toFixed(1)} (${hit.object.name}): ${Number.isFinite(g) ? (hit.point.y - g).toFixed(2) + ' m into it' : 'hollow'}`);
+    }
+  } finally { for (const [m, had] of plain) { delete m.raycast; m.geometry.boundsTree = had; } }
+  process.stderr.write(`ROOFS ${roofs} ${bad.length} ${bad.join('|').length}\n`);
   assert.ok(roofs > 200, `roofs sampled (${roofs})`);
   assert.ok(bad.length < roofs * 0.03, `you sink into ${bad.length} of ${roofs} roof spots: ${bad.slice(0, 6).join('; ')}`);
 });
@@ -356,7 +367,8 @@ test('a new game steps out with a bare back to a cold tree: no flame, no smoke, 
   assert.equal(quests.current('desert.power').label, 'The ledge on the tree');
 });
 
-test('the makers’ chest is on its ledge up the tree; opening it (its tank empty) gathers Qanat at the foot and brings Nour', async () => {
+test('the makers’ chest is on its ledge up the tree; opening it (its tank empty) gathers Qanat at the foot and brings Nour', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   const { items } = await import('../src/items.js');
   const { createBoxes } = await import('../src/boxes/index.js');
   const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player, quests });
@@ -426,7 +438,7 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   assert.equal(r.ended, false, 'a last word before you go');
   step(2);
   assert.equal(quests.stage('desert.power'), 'ask');
-  await new Promise((res) => setTimeout(res, 3400));
+  t.mock.timers.tick(3400);
   assert.ok(toasts.some((t) => /nearly empty: one last swallow/.test(t) && /One shot/.test(t)), 'it says the tank is nearly empty: one shot');
   assert.ok(!toasts.some((t) => /Try shooting/.test(t)), 'no nudge to try an empty tool');
   boxes.dispose();
@@ -441,7 +453,8 @@ const use = (id) => {
 };
 const promptOf = (e) => (typeof e.entry.prompt === 'function' ? e.entry.prompt() : e.entry.prompt);
 
-test('the main quest, end to end: an empty tank, the rib levered off, the tank filled, the well, the bike, the Hearth, the stone, the tree lit, the ship', async () => {
+test('the main quest, end to end: an empty tank, the rib levered off, the tank filled, the well, the bike, the Hearth, the stone, the tree lit, the ship', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   const { items } = await import('../src/items.js');
   const W = rt.world, H = level.hearth;
   assert.equal(quests.stage('desert.power'), 'ask');
@@ -496,7 +509,7 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
     step(30);
     if (i < L.HEAVES - 1) assert.equal(game.flag('desert.channel.open'), undefined, `heave ${i + 1}: it lifts, and settles back`);
   }
-  await new Promise((r) => setTimeout(r, 500));
+  t.mock.timers.tick(500);
   assert.equal(game.flag('desert.channel.open'), true, 'the third heave tips it off the channel');
   assert.ok(!quests.has('pole'), 'the pole stays by the post');
   bone.onHit('push');   // (nothing left to push)
@@ -546,7 +559,7 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   step(2);
   assert.equal(quests.stage('desert.power'), 'bike');
   // the bike's errand starts a moment after her words; the marker goes to Marrow, then the hollow
-  await new Promise((r) => setTimeout(r, 2600));
+  t.mock.timers.tick(2600);
   assert.equal(quests.stage('desert.bike'), 'ask');
   quests.track('desert.power');
   assert.ok(quests.objective().position.distanceTo(W.people.marrow.pos) < 0.01, 'the marker is on Marrow');
@@ -641,6 +654,7 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.equal(game.flag('world.desert.done'), true);
   assert.ok(game.keepsakes().some((k) => k.id === 'desert.knowing'), 'the keepsake: what the giants left');
   assert.equal(talk(PEOPLE.nour, []).nodeId, 'after');
+  t.mock.timers.tick(5000);   // (what the quest's end set going runs out, as it did in real time: the story page closes, checked below)
 });
 
 test('old saves: stages that moved go to Nour, the ones done advance on their flags, the cave stays where it was', async () => {
@@ -688,7 +702,8 @@ test('old saves: stages that moved go to Nour, the ones done advance on their fl
   assert.equal(fresh.flag('quest.desert.power'), undefined);
 });
 
-test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the mask in the sand', async () => {
+test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the mask in the sand', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   // the drum, picked up under the old ribcage (with E), returned to Teo
   talk(PEOPLE.teo, ['I’ll look']);
   assert.equal(quests.stage('desert.drum'), 'find');
@@ -738,7 +753,7 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
   for (const t of allTargets().filter((x) => x.kind === 'maskEye')) t.onHit('shoot');
   step(2);
   assert.equal(quests.isDone('desert.mask'), true);
-  await new Promise((r) => setTimeout(r, 1300));
+  t.mock.timers.tick(1300);
   assert.ok(storyDone, 'the main quest closed the desert’s story page');
   // afterwards: Oum doesn't hand over her cord twice; Pell hears how the mask went
   const cords = game.flag('item.cord');
