@@ -386,6 +386,28 @@ export const CHANGELOG_MEDIA = {
       { name: 'gallery-shadow', caption: 'The dune skitter in the gallery, standing (shown at 2×): before, its shadow’s edge torn and speckled, pale streaks between the legs; after, one smooth shadow, each leg’s outline clear', from: 'headless Chrome against this branch’s own dev server and main before it, enemies.html, the creature held at one moment, cropped round it' },
       { name: 'gallery-shadow-motion', caption: 'Eight frames over two seconds of its idle: before, the edges crawl from frame to frame; after, they hold still', from: 'headless Chrome against this branch’s own dev server and main before it, enemies.html, the page’s own animation stepped a quarter of a second between frames' },
     ], see: 'Open the creatures and spirits gallery (enemies.html), pick the Desert’s dune skitter, and watch its shadow while it stands, moves and attacks, dragging to turn it.' },
+    // the traveller's hands
+    { match: 'The traveller’s hands stay joined to his arms', shots: [
+      { name: 'traveller-hands', caption: 'Standing, 10 s into the idle, from the front and close (the Motion page): before, his left hand across the front of the coat at the hip, the wrist bent in, his right hand turned on a thin wrist under the sleeve; after, both hands hang at the ends of his forearms, by his thighs', from: 'headless Chrome against this branch’s own dev server, motion.html?mode=solo&yaw=1.9&pitch=0.05&zoom=0.3, stepped 600 frames at 60 Hz; the before with the old forearm swing, wrist and belt hook switched back on in the page; cropped to the view, 930 × 720 (9 October)' },
+    ], see: 'Open Debug → Motion, One toggled, and turn the view round to his front (drag), close in: stand for ten seconds, then walk and run (W A S D, Shift). The hands stay at the ends of the arms; the wrists keep their thickness.' },
+    // the debug pages
+    { match: 'Every page reached from Debug', shots: [
+      { name: 'debug-back', only: 'after', caption: 'The Items page with its ◀ Debug button at the top left, the Esc key’s glyph in it (B with a controller in hand); the title moved beside it', from: 'headless Chrome against this branch’s own dev server, items.html, 1280 × 720 (9 October)' },
+    ], see: 'Title → Debug (the beetle), open any page at the top (Motion, Items, Creatures & spirits…): press Esc or B, or click ◀ Debug, and you are back at the list. With an item open on the Items page, Esc first closes the item.' },
+    { match: 'On the Motion page, motion matching', shots: [
+      { name: 'motion-page', only: 'after', caption: 'The Motion page: what motion matching is, and why the game keeps its own animation, at the top of the panel', from: 'headless Chrome against this branch’s own dev server, motion.html?mode=solo, 1280 × 720 (9 October)' },
+    ], numbers: [
+      { title: 'Motion matching on the traveller: how far a foot slides while down (mean), on each test run', unit: 'm', better: 'lower', device: 'any (the gait harness, Node, 60 Hz)', rows: [
+        { where: 'walk → run → 180° turn → stop', before: 0.083, after: 0.074 },
+        { where: 'walk, 90° turn, stop', before: 0.094, after: 0.065 },
+        { where: 'turn round on the spot', before: 0.065, after: 0.035 },
+        { where: 'up the ramp, stand', before: 0.060, after: 0.032 },
+        { where: 'stairs up, stand, down', before: 0.093, after: 0.054 },
+        { where: 'slow walk (half stick), stop', before: 0.054, after: 0.041 },
+        { where: 'jog, 45° and back, stop', before: 0.097, after: 0.093 },
+        { where: 'stand still 6 s', before: 0.024, after: 0.003 },
+      ], source: 'BODY=v1 WAYS=mm node scripts/mocap/compare.mjs before and after (the game’s default, the loops with the captured moves: 0.000–0.051)', note: 'the worst slide on the first run rose (0.25 → 0.38 m), and a held foot on the 90° turn drifts 6 cm (was 0.6): matching stays off in the game' },
+    ], see: 'Debug → Motion: the two travellers side by side, or One toggled with Motion matching, and a run from the list (walk → run → 180° turn); the matcher’s panel says which clip it plays.' },
   ],
   '1.5': [
     // the first shop

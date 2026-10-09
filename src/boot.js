@@ -22,6 +22,7 @@ import { audioGuard } from './audio-guard.js';
 import { installKeyRemap } from './remap.js';
 import { translatePage } from './i18n.js';
 import { installXbox } from './xbox.js';
+import { cameFromDebug, installDebugBack } from './debug-back.js';
 
 installXbox();        // (the Xbox app only: the TV's safe area, the Back button; a no-op elsewhere: src/xbox.js)
 audioGuard();         // (before any sound: silent while the app is away, from the title screen on)
@@ -35,6 +36,10 @@ installGlyphs();   // (the button glyphs in the menus, for the pad in hand: src/
 try { const [{ quietFirstRun }, { VERSION }] = await Promise.all([import('./first-run.js'), import('./changelog.js')]); quietFirstRun(globalThis.localStorage, VERSION); } catch (e) { console.warn(e); }
 // a route world picked in the worlds list (Debug): its own save, as if every world before it were played
 // through (src/debug-save.js), written into the debug slot before the game reads a save; a reload goes on with it
+// a world opened from the Debug menu (its list, or a debug page's link, as the Arena from Creatures & spirits):
+// the small "◀ Debug" button back to it (src/debug-back.js; click or tap only: B and Esc are the game's)
+const fromDebugMenu = new URLSearchParams(location.search).has('level')
+  && (new URLSearchParams(location.search).has('debugsave') || cameFromDebug(document.referrer, location.search));
 if (new URLSearchParams(location.search).has('debugsave')) {
   const q = new URLSearchParams(location.search);
   const [{ seedDebugSave, DEBUG_PARAM }, { game }] = await Promise.all([import('./debug-save.js'), import('./game-state.js')]);
@@ -54,6 +59,7 @@ if (worldsOnly) {
   await showTitle();
 } else if (new URLSearchParams(location.search).has('start')) history.replaceState(null, '', location.pathname);   // (a reload goes back to the title)
 if (!worldsOnly) await import('./main.js');
+if (fromDebugMenu) installDebugBack({ keys: false, pad: false, fade: true });
 
 if (new URLSearchParams(location.search).has('cinematicReview')) {
   const { startReview } = await import('./cinematics-page/runtime.js');

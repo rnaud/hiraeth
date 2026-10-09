@@ -15,6 +15,8 @@
   #panel h1 a { color: inherit; text-decoration: none; }
   #panel .sub { margin: 0 0 8px; opacity: 0.7; font-size: 12px; }
   #panel .sub a { color: inherit; }
+  #panel .state { margin: 0 0 8px; padding: 5px 7px; font-size: 11.5px; line-height: 1.4; background: #f7e3dc; border-left: 3px solid var(--mm); border-radius: 0 4px 4px 0; }
+  #panel .state a { color: inherit; } #panel .state code { font-size: 11px; }
   details { border-top: 1px solid var(--line); padding: 4px 0; }
   summary { cursor: pointer; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 11.5px; padding: 4px 0; user-select: none; }
   .row { display: grid; grid-template-columns: 96px 1fr auto; align-items: center; gap: 6px; margin: 3px 0; min-height: 24px; }
@@ -63,10 +65,11 @@
   }
 </style>
 </head>
-<body>
+<body data-debug-back>
 <aside id="panel">
-  <h1><a href="./index.html" title="Back to the game">Hiraeth</a> · Motion</h1>
+  <h1 class="debug-room"><a href="./index.html" title="Back to the game">Hiraeth</a> · Motion</h1>
   <p class="sub">The traveller's two ways of moving, side by side: the blended loops (the game's default) and motion matching over the captured takes; and the people's walks. Drawn by the game's own ink pass. <a href="./studio.html">Character studio</a></p>
+  <p class="state"><b>Motion matching is not what the game plays.</b> It works here (the matcher searches the 108 captured clips and plays the closest), but measured against the loops its feet slide two to four times as far, and at a start it has nothing as quick as the game's: no captured walk sets off at 3.8 m/s. So the game keeps the loops with the captured starts, stops and turns over them; <code>?mm=1</code> (or the dev menu) turns matching on there. <a href="https://github.com/rnaud/hiraeth/blob/main/docs/systems/animation.md">Why, with the numbers</a></p>
   <div id="controls"></div>
 </aside>
 <main id="view">
@@ -75,5 +78,6 @@
   <output id="status">Loading the travellers…</output>
 </main>
 <script type="module" src="/src/motion/main.js"></script>
+<script type="module" src="/src/debug-back-page.js"></script>
 </body>
 </html>

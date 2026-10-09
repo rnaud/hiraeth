@@ -46,9 +46,9 @@
   }
 </style>
 </head>
-<body>
+<body data-debug-back>
 <aside id="panel">
-  <h1><a href="./index.html" title="Back to the game">Hiraeth</a> · Character studio</h1>
+  <h1 class="debug-room"><a href="./index.html" title="Back to the game">Hiraeth</a> · Character studio</h1>
   <p class="sub">The people, drawn by the game's own ink pass. Drag to orbit, wheel or pinch to zoom. <a href="./motion.html" style="color: inherit">Motion: the loops against motion matching</a></p>
   <div id="controls"></div>
 </aside>
@@ -57,5 +57,6 @@
   <output id="status">Loading the people…</output>
 </main>
 <script type="module" src="/src/studio/main.js"></script>
+<script type="module" src="/src/debug-back-page.js"></script>
 </body>
 </html>

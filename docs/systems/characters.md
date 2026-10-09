@@ -45,6 +45,19 @@ no cloth self/hand/environment collision, and no independently simulated sleeves
 seated hems and tight hand grips remain iteration areas. The body file is 4.8 MB and the head's
 2.0 MB (see "What the traveller costs" below), plus 0.9 MB of repair colour data.
 
+### His hands at the ends of his sleeves (October 2026, v1.6)
+
+On the Motion page, from the front: one hand floated across the coat at the hip, twisted in, the other
+hung under its sleeve on a thin, turned wrist. Not the overshirt (it is skinned to the same 53 bones as
+the body, the sleeves are the body's own mesh, rolled to mid-forearm), not the levels of detail (never
+within 3 m of him, and the page builds none), not a separate hand mesh. Two things in the pose:
+`Humanoid.update` swung his forearms from the T-pose on their own, so each rolled up to 90° off its
+upper arm and the forearm, the rolled sleeve and the wrist wrung round (now `hingeElbows`: the forearm
+bends on the elbow as the upper arm carries it, and takes half the clip's wrist roll,
+`shareWristRoll`); and the standing layer's belt hook drew a hand across to a belt hidden under his
+open overshirt (now `beltHook: false` for him). Details and the measures: [animation.md](animation.md),
+*Hands*; `tests/hands-sleeves.test.js`.
+
 ### What the traveller costs (October 2026, v1.0)
 
 Measured in Chrome on the M3 Pro (`scripts/bench/traveller.mjs`, the desert, hour 10; the machine was

@@ -74,10 +74,10 @@
   .where b { font-weight: 600; }
 </style>
 </head>
-<body>
+<body data-debug-back="pad-off" data-debug-busy="#full.open">
 <header>
   <div class="top">
-    <h1>THE ITEMS <span id="count"></span></h1>
+    <h1 class="debug-room">THE ITEMS <span id="count"></span></h1>
     <input id="search" type="search" placeholder="Search the items" aria-label="Search the items" autocomplete="off">
     <a class="btn" href="./">Play</a>
   </div>
@@ -98,5 +98,6 @@
   <div class="about"><p class="short"></p><button class="btn more" data-more><span class="glyph" data-glyph="ok" data-key="I" aria-hidden="true"></span><span class="lbl">more</span></button><div class="long"></div></div>
 </div>
 <script type="module" src="/src/items-page/main.js"></script>
+<script type="module" src="/src/debug-back-page.js"></script>
 </body>
 </html>

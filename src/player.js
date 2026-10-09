@@ -2403,10 +2403,12 @@ export class Player {
     }
     // soft arms, a slow sway, one hand hooks the belt while the weight is on that side
     // (the right one, in the tank's glove, hangs a little out from the hip: its cuff sank into it)
-    const cuffed = this.has('backpack');
+    // (not the coral-shirt traveller: his belt is under the open overshirt, and the hook drew the hand
+    // across in front of its panel at the hip, the wrist bent in, off the end of the sleeve: character.beltHook)
+    const cuffed = this.has('backpack'), hooks = this.character?.beltHook !== false;
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1, cuff = cuffed && i === 0;
-      const hook = THREE.MathUtils.smoothstep(w * side, 0.4, 0.95) * (cuff ? 0.3 : 0.6);
+      const hook = hooks ? THREE.MathUtils.smoothstep(w * side, 0.4, 0.95) * (cuff ? 0.3 : 0.6) : 0;
       rot(c.arms[i], 0.06 + breath * 0.01 - hook * 0.25, 0, side * ((cuff ? -0.06 : 0.1) + hook * 0.35));
       rot(c.elbows[i], -0.28 - hook * 0.9, 0, 0);
     }

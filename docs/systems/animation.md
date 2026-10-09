@@ -107,6 +107,24 @@ carry no finger tracks, so every hand used to hang in the T-pose's flat, straigh
   wings. The hand bone used to keep its local turn from the last frame, and the arms' IK (which keeps
   a hand's world turn) fed the forearm's change back into it: gliding, the hands spun about 10° a
   frame.
+- **The forearms bend at the elbow** (`Humanoid.update`, `hingeElbows`; the coral-shirt traveller,
+  October 2026, v1.6): each limb bone was swung from its T-pose direction on its own, so a forearm took a
+  roll of its own, unrelated to the upper arm's: with the arm hanging and the forearm raised (the idle's
+  gestures, a walk's swing) up to 75–90° off it, and the elbow, the forearm (his rolled sleeve) and the
+  wrist wrung round like a sweet wrapper while the clip's wrist (`poseHands`) sat 60–90° off it, the hand
+  turned on a pinched wrist. With `hingeElbows` the forearm swings from where the upper arm has carried
+  it (the hinge's own axis), and `shareWristRoll` gives the forearm half of the clip's wrist roll (the
+  radius rolls along the forearm; the hand's turn in the world is kept). Only for a body whose hands take
+  the clip's turn (the traveller): the people's hands follow their forearms, and what they hold
+  (`PROP_GRIPS`, Sefa's oud) was set on the old roll. `tests/hands-sleeves.test.js` measures it on the
+  shipped body through the idle and its gestures, a walk, a run, a conversation and the title's stance:
+  the hand to the sleeve's cuff (within 2.5 cm of rest: the rolled sleeve slides up to 2 cm as the elbow
+  bends), the cuff on the forearm, the wrist's thickness (over 0.85 of rest; it was 0.77), the forearm's
+  roll on the upper arm (under 40°; it was 83–93°), the wrist's (under 45°) and the wrist by the thigh
+  (over 17 cm out from the hips' middle; the belt hook drew it to 13, below).
+- **No belt hook for the traveller** (`Player.idleLayer`, `character.beltHook`): standing, the weight on
+  one leg, a hand used to hook the belt; his belt is under the open overshirt, and the hook drew the hand
+  across the front of the coat at the hip, the wrist bent in. The people and the old suited traveller keep it.
 - `tests/hands.test.js`: the bones and the relaxed arc on a real body, the fist and the thumb, every
   pose / tone / prop covered, the pose per context, the blend, the easing, the drift and the lag, the
   game's contexts and who is driven, and the glide's hands holding still, palms down, through a turn.
@@ -533,6 +551,38 @@ transition gating were measured and discarded because they caused other regressi
 Smooth animation blending is already part of the default animator. Motion matching is
 a separate frame-selection algorithm, with inertialized transitions, and is not needed
 to enable ordinary smooth blends or the new combat transitions.
+
+### Where motion matching stands (9 October 2026)
+
+"It seems like motion matching still doesn't work?" It runs: on the Motion page (and with `?mm=1` or
+the dev menu in the game) the database loads (108 clips, 15 998 frames with the mirrors), the matcher
+searches every 0.1 s, jumps and leads the pose (55–100 % of each test run), and the page draws its
+trajectories and its clip. It is **not the game's**: the loops, with the captured starts, stops and
+turns over them, measure better on every run (the table above), and the game sets off at 3.8 m/s,
+quicker than any captured start, so a start finds nothing like it. The page now says so at the top.
+
+What looked broken on the page, and what was:
+
+- **Setting off from standing it played a stop**: a jog's or a run's stop, leaning back, the face 35°
+  up off the chest. A fresh match (the first frame, or coming back from the loops) has no clip's pose to
+  build its query from and took the database's average for all of it, velocities too (1.1 m/s ahead):
+  a body standing still was matched as one on the move, and every search after went on from that stop.
+  Now the feet's and the hips' velocities are the body's own (`MotionMatcher.update`); standing it picks
+  a standing frame. Mean slide, `BODY=v1 WAYS=mm node scripts/mocap/compare.mjs` before → after:
+  0.083 → 0.074 (walk → run → 180°), 0.094 → 0.065 (90° turn), 0.065 → 0.035 (on the spot), 0.060 →
+  0.032 (ramp), 0.093 → 0.054 (stairs; the sole's sink 0.18 → 0.078), 0.054 → 0.041 (slow), 0.097 →
+  0.093 (jog 45°), 0.024 → 0.003 (standing). Worse: the first run's worst slide 0.25 → 0.38 m and the 90°
+  turn's held foot 0.006 → 0.060 m, and in `tests/mocap.test.js`'s walk → run → 180° the worst contact
+  0.40 → 0.55 m (mean 0.107 → 0.096): a foot down through the hand-over to the loops as the run outpaces
+  the clips. Still two to four times the loops' (0.000–0.051): matching stays off.
+  `tests/motion-matching.test.js` checks a fresh match standing and walking.
+- **A script's input was dropped**: `motionPage.input()` was read for one frame and the next frame's keys
+  replaced it; now it is held (over the keys and the pad) until set again.
+- **The moves opened paused showed an empty floor** (`?mode=moves&paused=true`): nothing posed them
+  until a step; now the paused moves are posed where the scrub is.
+- Tried and left out: holding the head and the shoulders at rest under a match (the database leaves
+  them out). The face's tilt under a matched stop is the take's own (its neck leans back); holding the
+  head at rest raised it a few degrees more.
 
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 

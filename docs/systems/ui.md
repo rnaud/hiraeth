@@ -496,6 +496,30 @@ tall narrow screens). The journal's (src/game-menu.css) smallest words have a 9-
 "Continue" world name at least 11 px. Still open (TODO.md): the touch controls' size on a phone held sideways.
 
 
+## Back to the Debug menu from its pages (v1.6, `src/debug-back.js`)
+
+Every page the Debug menu opens (the title's Debug: the worlds list alone, `?worlds=1`) has a small
+**◀ Debug** button at the top left inside the safe area, in the pages' paper and ink with the cards'
+offset shadow and the back button's glyph (`src/pad-glyphs.js`: B / ○ for the pad in hand, the Esc key
+for the keys, an arrow alone on a touch screen); it goes to `./?worlds=1`. On the page, B and Esc do the
+same while nothing else there is open. One module for all: each page's `<body data-debug-back="…">` and
+`<script type="module" src="/src/debug-back-page.js">`, its title marked `class="debug-room"` so it sits
+beside the button.
+
+| Page | Options | Why |
+|---|---|---|
+| Motion, Character studio, Creatures & spirits, Cinematics | (none) | B and Esc mean nothing else there |
+| Items | `pad-off`, `data-debug-busy="#full.open"` | its own B already goes back; Esc closes an open item first |
+| What's new | `from-debug keys-off pad-off` | players open it too (the title's star): only when opened from Debug; its own B / Esc go back |
+| Trailer | `fade` | the button fades while the pointer is still: nothing over the film |
+
+A world opened from the Debug list (`?level=…&debugsave=1`, or from a debug page: the Arena from Creatures
+& spirits) shows the button too, click or tap only and fading (`src/boot.js`): B and Esc are the game's
+there. Cinematics' own "← Worlds" link gave way to it. Esc is caught before the page's own handlers (the
+capture phase), so a viewer the page closes on Esc counts as open; a B held from the page before doesn't
+count until let go. `tests/debug-back.test.js` checks every page of the worlds list and of the build
+carries it.
+
 ## The menus on a controller: grids, glyphs in the buttons, the pad's own names (October 2026, v1.2)
 
 - **Glyphs in the buttons** (`src/pad-glyphs.js`): a menu's buttons carry their own prompt instead of a hint

@@ -46,6 +46,9 @@ export function createTravellerV1(char, { gltf, data, report, colors, head: head
   try {
     const humanoid = new Humanoid(template, char, 'm');
     humanoid.ownOutfit = true;
+    // his forearms bend on their elbows, rolled as the upper arm is (Humanoid.update): swung from the T-pose
+    // on their own they rolled up to 90° off it, and the elbow, the rolled sleeve and the wrist wrung round
+    humanoid.hingeElbows = true; humanoid._plan = null;
     root.traverse(o => { if (o.isMesh) o.visible = false; });
     const mesh = new T.SkinnedMesh(source.geometry.clone(), source.material.clone());
     mesh.name = 'TravellerV1'; mesh.frustumCulled = false;
@@ -79,6 +82,8 @@ export function createTravellerV1(char, { gltf, data, report, colors, head: head
     humanoid.tankAt = TRAVELLER_V1_TANK_AT;
     return {
       humanoid, mesh, head, cloth,
+      // standing, no thumb hooked in the belt (Player.idleLayer): the belt is under the open overshirt
+      beltHook: false,
       shadowCasters: cloth.shadow ? [cloth.shadow] : [],
       // Before Humanoid.update, while the fresh clip is still on the control rig.
       poseArms(player) {

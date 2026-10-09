@@ -383,6 +383,9 @@ const _i6 = new THREE.Vector3(), _i7 = new THREE.Vector3(), _i8 = new THREE.Vect
 const _iq = new THREE.Quaternion(), _iq2 = new THREE.Quaternion(), _iq3 = new THREE.Quaternion(), _im = new THREE.Matrix4();
 const _q = new THREE.Quaternion(), _qr = new THREE.Quaternion(), _qp = new THREE.Quaternion();
 const _m4 = new THREE.Matrix4(), _m4i = new THREE.Matrix4();
+const _qh = new THREE.Quaternion(), _hd = new THREE.Vector3();
+/** The share of the clip's wrist roll the forearm takes (Humanoid.shareWristRoll). */
+export const WRIST_SHARE = 0.5;
 const IDENTITY_Q = new THREE.Quaternion();   // (read only)
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _w1 = new THREE.Vector3(), _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3();
@@ -1262,6 +1265,11 @@ export class Humanoid {
     const plan = this.order.map((bone) => ({ bone, rest: this.rest.get(bone), ch: this.chainOf.get(bone) ?? null, f: this.followOf.get(bone) ?? null, wrist: this.wristOf.get(bone) ?? null, p: null, q: new THREE.Quaternion() }));
     const by = new Map(plan.map((r) => [r.bone, r]));
     for (const r of plan) r.p = r.bone.parent?.isBone ? by.get(r.bone.parent) ?? null : null;
+    // a forearm (a chain under a chain: lowerarm under upperarm) bends on its elbow: its parent's rest
+    // turn, inverted, to carry its rest by how far the parent has turned (update). For a body whose
+    // hands take the clip's own turn (poseHands: the coral-shirt traveller, hingeElbows); the people's
+    // hands follow their forearms, and what they hold was set on the forearm's old roll
+    for (const r of plan) r.hinge = this.hingeElbows && r.ch?.hand !== undefined && r.p?.ch ? r.p.rest.q.clone().invert() : null;
     return plan;
   }
 
@@ -1300,7 +1308,13 @@ export class Humanoid {
         const from = charPosOf(ch.from(), _a);
         const to = ch.hand !== undefined ? (POSE.exact ? c.elbows[ch.hand].localToWorld(_b.set(0, -0.31, 0)) : _b.set(0, -0.31, 0).applyMatrix4(c.elbows[ch.hand].matrixWorld)).applyMatrix4(rootInv) : charPosOf(ch.to(), _b);
         const want = to.sub(from).normalize();
-        R.q.setFromUnitVectors(ch.dir, want).multiply(rest.q);
+        if (R.hinge) {
+          // the forearm: swung from where the upper arm carries it, not from the T-pose. Swung from the
+          // T-pose on its own, it took a roll of its own (an arm hanging with the forearm forward: 75° off
+          // the upper arm's), and the elbow, wrist and sleeve twisted round it like a sweet wrapper
+          const carry = _qh.copy(parentQ).multiply(R.hinge);
+          R.q.setFromUnitVectors(_hd.copy(ch.dir).applyQuaternion(carry), want).multiply(carry).multiply(rest.q);
+        } else R.q.setFromUnitVectors(ch.dir, want).multiply(rest.q);
       } else if (f) {
         // rig joint's rotation (its rest is identity in character space)
         charQOf(f.j(), R.q).multiply(rest.q);
@@ -1328,7 +1342,30 @@ export class Humanoid {
         .multiply(animator.restHands[s].clone().invert()).multiply(this.rest.get(hand).q).premultiply(rootQ);
       hand.quaternion.copy(hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));
       hand.updateMatrixWorld(true);
+      this.shareWristRoll(s);
     }
+  }
+
+  /**
+   * The clip's wrist roll (the forearm's pronation) shared with the forearm: a hand turned 60° on its
+   * forearm wrung the wrist's skin thin at one ring of vertices; half of it turns the forearm about its
+   * own bone instead (the radius rolling, as it does), the hand's turn in the world kept as it was.
+   */
+  shareWristRoll(s, share = WRIST_SHARE) {
+    const lower = this.b[`lowerarm_${s}`], hand = this.b[`hand_${s}`];
+    if (!lower || !hand || share <= 0) return;
+    const restRel = this._wristRest?.[s] ?? ((this._wristRest ??= {})[s] = this.rest.get(lower).q.clone().invert().multiply(this.rest.get(hand).q));
+    // the hand's turn on the forearm, off its rest; its roll about the forearm's bone (the hand's rest offset, in the forearm's frame)
+    const d = _wq1.copy(restRel).invert().multiply(hand.quaternion);
+    const axis = _w1.copy(hand.position).normalize().applyQuaternion(restRel.clone().invert());   // (the forearm's bone in the hand's rest frame)
+    // (the shorter way round: q and -q are the same turn, and the long way spun the forearm a half turn in a frame)
+    const sg = d.w < 0 ? -1 : 1, k = (d.x * axis.x + d.y * axis.y + d.z * axis.z) * sg, angle = 2 * Math.atan2(k, d.w * sg);
+    if (Math.abs(angle) < 1e-4) return;
+    const handWorld = hand.getWorldQuaternion(_wq2);
+    lower.quaternion.multiply(_wq3.setFromAxisAngle(_w2.copy(hand.position).normalize(), angle * share));
+    lower.updateMatrixWorld(true);
+    hand.quaternion.copy(lower.getWorldQuaternion(_wq4).invert().multiply(handWorld));
+    hand.updateMatrixWorld(true);
   }
 
   // ------------------------------------------------------------------ IK

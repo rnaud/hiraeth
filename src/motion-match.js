@@ -468,7 +468,16 @@ export class MotionMatcher {
       // Rounding that tail must not borrow the next take’s pose features.
       const q = this.query, j = fresh ? -1 : Math.min(Math.round(this.cur), db.segments[db.segOf[Math.floor(this.cur)]].end - 1);
       if (j >= 0 && j < db.n) for (let d = 0; d < 15; d++) q[d] = db.rawFeat[j * db.F + d];
-      else for (let d = 0; d < 15; d++) q[d] = db.mean[d];
+      else {
+        // a fresh match (from the loops, or standing at the start): no clip's pose to go on, so the feet's
+        // places are the database's average but the feet and the hips move as the body does. With the
+        // average's velocities too (1.5 m/s ahead) a body standing still was a body on the move: setting
+        // off, it matched a jog's stop, leaned back with its face 35° up, and every search after went on
+        // from that stop (the Motion page, 2026-10-09)
+        for (let d = 0; d < 15; d++) q[d] = db.mean[d];
+        const vx = (s.vel?.x ?? 0) / size, vz = (s.vel?.z ?? 0) / size;
+        for (const o of [6, 9, 12]) { q[o] = vx; q[o + 1] = 0; q[o + 2] = vz; }
+      }
       const t = this.predict(s, size);
       for (let d = 0; d < 12; d++) q[15 + d] = t[d];
       db.normalise(q);

@@ -372,9 +372,10 @@ addEventListener('keydown', (e) => {
 });
 addEventListener('keyup', (e) => { if (GAME_KEYS.has(e.code)) keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
-let liveInput = {}, controlYaw = CAM_PLUS_Z, padMenu = false;
+let liveInput = {}, scriptInput = {}, controlYaw = CAM_PLUS_Z, padMenu = false;
 function readInput(dt) {
-  const input = { ...keys };
+  // (a script's input, motionPage.input, held until it sets another: it was read once and the next frame's keys replaced it)
+  const input = { ...keys, ...scriptInput };
   const pad = Array.from(navigator.getGamepads?.() ?? []).find((g) => g?.connected && g.axes?.length >= 2);
   if (pad) {
     const l = deadzone(pad.axes[0], pad.axes[1]), r = deadzone(pad.axes[2] ?? 0, pad.axes[3] ?? 0);
@@ -623,6 +624,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   try { tick(now); } catch (e) { if (!failed) console.error('motion frame:', e); failed = true; }
 }
+let posedMove = '';
 function tick(now) {
   const dt = Math.min((now - last) / 1000, 0.1);
   last = now;
@@ -632,6 +634,12 @@ function tick(now) {
   while (acc >= DT && n < 6) { simStep(); acc -= DT; n++; }
   if (n === 6) acc = 0;
   for (; stepOnce > 0; stepOnce--) simStep();
+  // the moves, paused (as a link opens them, or scrubbed): posed where the scrub is (simStep doesn't run paused;
+  // opened paused, the page showed an empty floor)
+  if (state.mode === 'moves' && state.paused && n === 0) {
+    const key = `${state.move}@${state.moveT}`;
+    if (key !== posedMove) { posedMove = key; moveClock = state.moveT * (moveClip()?.duration ?? 1); poseMoves(moveClock); }
+  } else posedMove = '';
   SU.uTime.value = U.uTime.value = simT;
   const vs = views(dt);
   renderer.setRenderTarget(null);
@@ -1025,8 +1033,8 @@ function sheet({ frames = 8, times = null, cols = null, w = 300, h = 420, label 
 
 window.motionPage = {
   state: () => state, sheet, poseMoves, moveBodies, motion,
-  // (your control's input, set by a script: held until the next frame reads the keys and the pad)
-  input: (i) => { liveInput = i ?? {}; }, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); buildWalkers(); renderWalkers(); applyMode(); updatePanel(); },
+  // (your control's input, set by a script: held, over the keys and the pad, until it sets another; {} lets go)
+  input: (i) => { scriptInput = i ?? {}; }, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); buildWalkers(); renderWalkers(); applyMode(); updatePanel(); },
   travellers, walkers: () => walkers, lib, db, scene, cameras, renderer, physics, step: (n = 1) => { for (let i = 0; i < n; i++) simStep(); liveNumbers(); }, restart, liveNumbers,
 };
 requestAnimationFrame((t) => { last = t; frame(t); });

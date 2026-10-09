@@ -125,10 +125,10 @@
   }
 </style>
 </head>
-<body>
+<body data-debug-back="from-debug keys-off pad-off">
 <header>
   <div class="top">
-    <h1>WHAT CHANGED <span id="version"></span></h1>
+    <h1 class="debug-room">WHAT CHANGED <span id="version"></span></h1>
     <input id="search" type="search" placeholder="Search the changes" aria-label="Search the changes" autocomplete="off">
     <a class="btn standalone" href="./">Play</a>
     <button class="btn embedded" id="close" type="button">Close</button>
@@ -140,5 +140,6 @@
 </header>
 <main id="list"></main>
 <script type="module" src="/src/changelog-page/main.js"></script>
+<script type="module" src="/src/debug-back-page.js"></script>
 </body>
 </html>

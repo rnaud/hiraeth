@@ -4,7 +4,8 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#111b20;color:#f4ead7;font:14px system-ui,sans-serif;min-height:100vh;display:grid;place-content:center;gap:20px}main{width:min(100vw,1280px)}canvas{width:100%;display:block;aspect-ratio:16/9;background:#111b20}header,footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px}h1{font-size:15px;font-weight:500;letter-spacing:.3em}small{color:#b8b9af}nav{display:flex;gap:10px;flex-wrap:wrap}button,a{color:inherit;font:inherit;border:1px solid #697676;border-radius:3px;background:transparent;padding:10px 16px;text-decoration:none}button{cursor:pointer}button:disabled{opacity:.4;cursor:wait}button:hover:not(:disabled),a:hover{background:#2c393c}button:focus-visible,a:focus-visible{outline:2px solid #f4ead7;outline-offset:3px}#status{min-height:20px;margin:12px 24px;color:#b8b9af}footer{flex-wrap:wrap}@media(max-width:600px){header small{display:none}footer{padding:0 16px}button,a{padding:9px}}
 </style></head>
-<body><header><h1>HIRAETH</h1><small>A journey through six worlds · 48 seconds</small></header>
+<body data-debug-back="fade"><header><h1 class="debug-room">HIRAETH</h1><small>A journey through six worlds · 48 seconds</small></header>
 <main><canvas id="film" width="2560" height="1440" aria-label="Hiraeth cinematic trailer"></canvas><p id="status" role="status">Preparing the worlds…</p></main>
 <footer><nav><button id="play" disabled>Play trailer</button><button id="record" disabled>Export video</button><button id="sound" aria-pressed="true">Sound on</button></nav><a href="./index.html">Play Hiraeth ↗</a></footer>
-<script type="module" src="/src/trailer/main.js"></script></body></html>
+<script type="module" src="/src/trailer/main.js"></script><script type="module" src="/src/debug-back-page.js"></script>
+</body></html>
