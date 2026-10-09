@@ -217,6 +217,15 @@ const BLADE_VIEW = (go, { side = 3.6, h = 2.0, ty = 1.5 } = {}) => `for (let i =
   ${go}
   window.cinematicReview = { paused: true };`;
 const ARENA_BLADE = { level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 400 };
+/** The Arena's ledge from its side: the field cleared, the traveller up on the ledge facing out; `go` adds the foe (V: THREE.Vector3). */
+const LEDGE_VIEW = (go) => `for (let i = 0; i < 60 && !foes.list.length; i++) ${sleepJs(250)}
+  const V = THREE.Vector3;
+  foes.setPractice('');
+  player.teleport(new V(4, 2.1, -43.5), new V(0, 1, 0), new V(0, 0, 1)); player.heading = 0;
+  ${HIDE('#toast, #inputs, #foe-spawner')}
+  ${sleepJs(600)}
+  ${go}`;
+const ARENA_LEDGE = { level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, eye: [16, 4.5, -35], target: [3, 1.2, -40], fov: 55 };
 
 
 /** A makers' run with balls played through for its results card: the gates walked, the balls set on their plates. */
@@ -242,6 +251,20 @@ export const CHANGELOG_MEDIA = {
       { name: 'blade-dash-cut', caption: 'An evade back from a blot with the blade button pressed during it: before, a light swing on the spot where the evade ended; after, the dash cut carrying him past the blot’s side, the sweep crossing it', commit: 'dc9642b2',
         view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.AltLeft = true; ${sleepJs(60)} input.AltLeft = false; ${sleepJs(80)} input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(310)}`, { side: 6, h: 2.4, ty: 1.2 }) } },
     ], see: 'In the Arena, evade (B / ○) away from a blot and press RB / R1 while you slide: he springs back in past it with a sweep.' },
+    { match: 'Foes now follow you up and down', shots: [
+      { name: 'foe-climb', caption: 'Up on the Arena’s ledge with an ink blot coming from below: before, it is stuck against the foot of the ledge, pressing at the wall; after, it has leapt up and stands beside him', commit: 'bcdd52a1',
+        view: { ...ARENA_LEDGE, setup: LEDGE_VIEW(`const f = foes.add('blot', new V(4, 0, -35)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50);`), wait: 2600 } },
+      { name: 'foe-dais', caption: 'Standing on the makers’ box on the dais of the desert temple’s third room, its machine woken: before, it stands at the foot of the dais, stopped by its first step; after, it has climbed the dais to him', commit: 'bcdd52a1',
+        view: { level: 'desert', quality: 'high', save: SAVE_ON, eye: [158, 2411.5, -139], target: [150.5, 2408, -146], fov: 55, wait: 3200,
+          setup: `const V = THREE.Vector3, top = foes.env.ground(150, 2412, -144, 12);
+            player.teleport(new V(150, top + 0.1, -144), new V(0, 1, 0), new V(0, 0, 1)); ${sleepJs(800)}
+            const m = foes.list.find((f) => Math.abs(f.pos.z + 150) < 3); m.state = 'chase'; setInterval(() => { m.cool = 99; }, 50);` } },
+    ], see: 'In the Arena, stand on the ledge at the far side (the ramp goes up to it) and pick an ink blot from the FOES list: it crouches at the foot of the ledge and leaps up. A machine from the list comes round by the ramp instead.' },
+    { match: 'A spitting blot now climbs steps and ramps', see: 'In the Arena, pick a spitting blot from the FOES list and lead it near the ledge at the far side, staying on the sand below: it walks up the ramp and lobs down at you from up there. Walk up the ramp after it.' },
+    { match: 'Knock a foe off a ledge', shots: [
+      { name: 'foe-knock-off', caption: 'An ink blot cut off the edge of the Arena’s ledge, a second later: before, it has landed and is already coming on along the foot of the ledge; after, it lies dazed where it fell, pale stars turning over it', commit: 'bcdd52a1',
+        view: { ...ARENA_LEDGE, eye: [10.5, 3.2, -32.5], target: [5, 0.9, -38.6], setup: LEDGE_VIEW(`const f = foes.add('blot', new V(5, 2, -40.4)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50); ${sleepJs(300)} foes.hurt(f, 'blade', new V(0, 0, 1), { damage: 1, combo: 2 });`), wait: 1300 } },
+    ], see: 'In the Arena, get a blot up on the ledge at the far side and cut it toward the edge (the third swing, the charged cut or the push): it lands dazed below, stars over it.' },
   ],
   '1.3': [
     { match: 'Two new optional challenges built from the temples’ own pieces', shots: [

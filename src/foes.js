@@ -1859,13 +1859,13 @@ export class Foes {
     if (!(f.dazed > 0) && !f.stars) return;
     if (!f.stars) {
       f.stars = new THREE.Group(); f.stars.name = 'dazed';
-      const mat = makeMaterial({ color: '#fff1a8', flat: true, glow: 0.8, key: 'foe-daze' }), geo = new THREE.OctahedronGeometry(0.13, 0);
-      for (let i = 0; i < 4; i++) { const m = new THREE.Mesh(geo, mat); const a = (i / 4) * Math.PI * 2; m.position.set(Math.sin(a) * 0.5, (i % 2) * 0.08, Math.cos(a) * 0.5); f.stars.add(m); }
+      const mat = makeMaterial({ color: '#fff6c2', flat: true, glow: 1, key: 'foe-daze' }), geo = new THREE.OctahedronGeometry(0.19, 0).scale(1, 1.3, 0.45);
+      for (let i = 0; i < 5; i++) { const m = new THREE.Mesh(geo, mat); const a = (i / 5) * Math.PI * 2; m.position.set(Math.sin(a) * 0.62, (i % 2) * 0.12, Math.cos(a) * 0.62); m.rotation.y = a; f.stars.add(m); }
       this.group.add(f.stars);
     }
     f.stars.visible = f.dazed > 0 && f.alive && f.dead === undefined;
     if (!f.stars.visible) return;
-    f.stars.position.copy(f.chest); f.stars.position.y += 0.8;
+    f.stars.position.copy(f.chest); f.stars.position.y += 0.85 + Math.sin(performance.now() / 180) * 0.06;
     f.stars.rotation.y += dt * 4.5;
   }
 
