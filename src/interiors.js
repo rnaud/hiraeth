@@ -131,14 +131,26 @@ export function doorwayPortals(scene, { at, heading, room, frame = '#e9dcc0', vo
   grp.position.copy(at);
   grp.rotation.y = heading;
   const m = makeMaterial({ color: frame, color2: '#d8c7a6', color3: '#c9b8a0', mode: MODE_STRATA, strataSize: 0.8, flat: true, grid: 0.6, glyphs: true });
+  // (a short passage behind the frame, the dark at its far end and a little warm light on its floor: a flat dark panel in
+  // the frame read as a shut door, "the entrance looks stuck", TODO 2026-10-08)
+  const D = 1.9;
   grp.add(new THREE.Mesh(mergeGeometries([
     new THREE.BoxGeometry(0.6, h, 0.8).translate(-w / 2 - 0.3, h / 2, 0),
     new THREE.BoxGeometry(0.6, h, 0.8).translate(w / 2 + 0.3, h / 2, 0),
     new THREE.BoxGeometry(w + 1.6, 0.6, 1).translate(0, h + 0.3, 0),
+    new THREE.BoxGeometry(0.3, h, D).translate(-w / 2 - 0.15, h / 2, -D / 2 - 0.3),
+    new THREE.BoxGeometry(0.3, h, D).translate(w / 2 + 0.15, h / 2, -D / 2 - 0.3),
+    new THREE.BoxGeometry(w + 0.6, 0.3, D).translate(0, h + 0.15, -D / 2 - 0.3),
   ]), m));
-  const veil = new THREE.Mesh(new THREE.PlaneGeometry(w, h).translate(0, h / 2, 0), makeMaterial({ color: voidC, side: THREE.DoubleSide }));
-  veil.userData.noCollide = true;
-  grp.add(veil);
+  const shade = makeMaterial({ color: '#5a4436', flat: true, side: THREE.DoubleSide });
+  const inner = new THREE.Mesh(mergeGeometries([
+    new THREE.PlaneGeometry(w, D).rotateX(-Math.PI / 2).translate(0, 0.03, -D / 2 - 0.3),   // the passage's floor, in shade
+    new THREE.PlaneGeometry(D, h).rotateY(Math.PI / 2).translate(-w / 2 + 0.01, h / 2, -D / 2 - 0.3),
+    new THREE.PlaneGeometry(D, h).rotateY(-Math.PI / 2).translate(w / 2 - 0.01, h / 2, -D / 2 - 0.3),
+  ]), shade);
+  const veil = new THREE.Mesh(new THREE.PlaneGeometry(w, h).translate(0, h / 2, -D - 0.3), makeMaterial({ color: voidC, side: THREE.DoubleSide }));
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.8, 0.5).translate(0, 0.3, -D - 0.28), makeMaterial({ color: '#c98f5f', flat: true, glow: 0.35 }));
+  for (const o of [inner, veil, glow]) { o.userData.noCollide = true; grp.add(o); }
   scene.add(grp);
   return portalPair({ at, heading, room });
 }

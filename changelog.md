@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.10 — 2026-10-09
 
+- The doorway in the sand before the desert’s masked head is a short passage into the dark now, with a little warm light on its floor, so it no longer looks like a shut door.
 - In Vael, Senn now listens at the foot of the capped needle spire out on the plain, halfway from the landing to the lone tower, and the makers’ box with the hush-cloth waits on that spire’s cap beside one of the shed feathers: one long climb, two finds. A line of standing stones leads up the slope from the landing toward the Aerie.
 - The long ride out to the Givers’ Hearth has company: Yara the salt-carrier rests under her sunshade a third of the way, and a sand-skiff’s wreck lies on its side two thirds of the way, its mast still up. Coming home, the marked stones lead you back to Qanat past the keepers’ bowl and their cold camp.
 - While Qanat’s tree stands cold, the pilgrims’ camps keep a column of smoke going for whoever fell behind, so from the moment you land you can see where the city lies beyond the dune. Old Oum now waits on a dune in sight of the way in, and a dry, stone-lined channel runs from Qanat’s east side to the Givers’ House.

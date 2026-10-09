@@ -30,6 +30,7 @@ export const CHANGELOG = [
     'The long ride out to the Givers’ Hearth has company: Yara the salt-carrier rests under her sunshade a third of the way, and a sand-skiff’s wreck lies on its side two thirds of the way, its mast still up. Coming home, the marked stones lead you back to Qanat past the keepers’ bowl and their cold camp.',
     // Vael
     'In Vael, Senn now listens at the foot of the capped needle spire out on the plain, halfway from the landing to the lone tower, and the makers’ box with the hush-cloth waits on that spire’s cap beside one of the shed feathers: one long climb, two finds. A line of standing stones leads up the slope from the landing toward the Aerie.',
+    'The doorway in the sand before the desert’s masked head is a short passage into the dark now, with a little warm light on its floor, so it no longer looks like a shut door.',
   ] },
   { v: '1.9', date: '2026-10-09', items: [
     // the temples, reworked from the temple design audit: the Founders' Belfry
