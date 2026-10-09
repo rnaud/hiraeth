@@ -67,8 +67,13 @@ export function promptDocs(root) {
   return out.sort();
 }
 
-/** The suggested target folder for an entry of a document (the enemy archetypes have theirs). */
-export function targetFor(doc, id) {
+/**
+ * The suggested target folder for an entry of a document: the document's own `Target folder: \`references/…/<id>/\``
+ * line when it has one, else the enemy archetypes' folder, else references/<id>/.
+ */
+export function targetFor(doc, id, text = '') {
+  const own = String(text).match(/^Target folder: `(references\/[^`]*<id>[^`]*)`/m)?.[1];
+  if (own) return own.replace('<id>', id);
   return /enemy-roster/.test(doc) ? `references/enemy-archetypes/${id}/` : `references/${id}/`;
 }
 
@@ -102,7 +107,7 @@ export function manifestPrompts(root, dir = 'references') {
 /** Everything the page offers: { docs: [{ doc, entries }], manifests: [...] }. */
 export function listPrompts(root) {
   return {
-    docs: promptDocs(root).map((doc) => ({ doc, entries: parsePromptDoc(readFileSync(join(root, doc), 'utf8')).map((e) => ({ ...e, target: targetFor(doc, e.id) })) })),
+    docs: promptDocs(root).map((doc) => { const text = readFileSync(join(root, doc), 'utf8'); return { doc, entries: parsePromptDoc(text).map((e) => ({ ...e, target: targetFor(doc, e.id, text) })) }; }),
     manifests: manifestPrompts(root),
   };
 }
@@ -116,10 +121,11 @@ export function resolveFrom(root, from) {
   const { abs, rel } = insideRoot(root, file);
   if (!existsSync(abs)) throw new Error(`no prompt document ${rel}`);
   const [id, key = 'main'] = frag.split('/');
-  const entries = parsePromptDoc(readFileSync(abs, 'utf8'));
+  const text = readFileSync(abs, 'utf8');
+  const entries = parsePromptDoc(text);
   const e = entries.find((x) => x.id === id);
   if (!e) throw new Error(`no "${id}" in ${rel} (there: ${entries.map((x) => x.id).join(', ')})`);
   const v = e.variants.find((x) => x.key === key) ?? (key === 'alt' ? e.variants.find((x) => x.key.startsWith('alt')) : null);
   if (!v) throw new Error(`no variant "${key}" for ${id} (there: ${e.variants.map((x) => x.key).join(', ')})`);
-  return { prompt: v.prompt, ar: v.ar, title: e.title, id, variant: v.key, target: targetFor(rel, id), from: `${rel}#${id}${v.key === 'main' ? '' : `/${v.key}`}`, needsImage: v.needsImage };
+  return { prompt: v.prompt, ar: v.ar, title: e.title, id, variant: v.key, target: targetFor(rel, id, text), from: `${rel}#${id}${v.key === 'main' ? '' : `/${v.key}`}`, needsImage: v.needsImage };
 }

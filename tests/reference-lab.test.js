@@ -96,6 +96,13 @@ test('prompt documents: entries, variants, the Midjourney flags turned into an a
   rmSync(root, { recursive: true, force: true });
 });
 
+test('a prompt document can name its own target folder', async () => {
+  const { targetFor } = await import('../scripts/reference-lab/prompts.mjs');
+  assert.equal(targetFor('docs/design/desert-places-prompts.md', 'skull', 'x\nTarget folder: `references/The Desert/places/<id>/`\n'), 'references/The Desert/places/skull/');
+  assert.equal(targetFor('docs/design/enemy-roster-prompts.md', 'crab'), 'references/enemy-archetypes/crab/');
+  assert.equal(targetFor('docs/x-prompts.md', 'a'), 'references/a/');
+});
+
 test('the real enemy roster prompts parse: 21 archetypes, each with a main sheet', () => {
   const md = readFileSync(new URL('../docs/design/enemy-roster-prompts.md', import.meta.url), 'utf8');
   const e = parsePromptDoc(md);
