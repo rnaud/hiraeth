@@ -1,0 +1,153 @@
+changelog.md
+  s_9ca76055a220ed::t_8be0d31ae2491c 7-10
+docs/README.md
+  s_9ca76055a220ed::t_657ccbf25adb83 35,60
+docs/game-brief.md
+  s_9ca76055a220ed::t_69b1604bcf0f3f 123
+docs/systems/controls.md
+  s_9ca76055a220ed::t_c75da4bba97fdd 21-22,257-258
+docs/systems/foes.md
+  s_9ca76055a220ed::t_7c798ae1238e3a 172-214
+docs/systems/items.md
+  s_9ca76055a220ed::t_41eac580afc055 34,53-96
+docs/systems/movement.md
+  s_9ca76055a220ed::t_b1a1d836b76a1b 277-281,287-289,294-295,302-304
+docs/systems/temples.md
+  s_9ca76055a220ed::t_dd753b6729d8fd 54-55,147-150
+docs/systems/traveller-kit.md
+  s_9ca76055a220ed::t_787a8c0c56210e 29,59
+docs/systems/ui.md
+  s_9ca76055a220ed::t_f275a213735d88 234-238,374-400,406,410
+index.html
+  s_9ca76055a220ed::t_90868f14cdddf0 46-50,53-79,191-192,474,507
+src/audio.js
+  s_9ca76055a220ed::t_4498e1cf93b7c0 1513-1514,1516,1523-1540
+src/bindings.js
+  s_9ca76055a220ed::t_bb957be4e192af 33,44,71,119-120
+src/boxes/effects.js
+  s_9ca76055a220ed::t_bd33bf8fcfcb43 4,13-14,48-50
+src/changelog.js
+  s_9ca76055a220ed::t_02ed562c8ac951 19-23
+src/desert-city.js
+  s_9ca76055a220ed::t_a6fe9b0f7d4dfa 11,439
+src/enemies/attacks.js
+  s_9ca76055a220ed::t_5234a361cb26a8 4-5,8-22
+src/flora.js
+  s_9ca76055a220ed::t_0b56918c7b3a2d 1,395
+src/fluid-blade.js
+  s_9ca76055a220ed::t_8dd5013a027b12 8,310
+src/fluid-tool.js
+  s_9ca76055a220ed::t_d97d40bf8587bd 12,17-18,32-33,38-41,45,49-50,53,56,61,76-77,82,124-127,130-131,133,136-138,150-151,153-156,158-159,1274,1315,1354,1487,1489,1491
+src/foe-kinds.js
+  s_9ca76055a220ed::t_1c132ed0de333e 38-39,48-50,58,66-67,76-77,86-87,96-97,107-108,117,119
+src/foes.js
+  s_9ca76055a220ed::t_c9d0c0a22cc658 7-8,27,32-33,46,48-49,57,59,67,69,76,82,88,1529,1724-1727,1851
+src/gadgets/boomerang.js
+  s_9ca76055a220ed::t_85e03c626742f0 6,292
+src/gadgets/fan.js
+  s_9ca76055a220ed::t_6fc52a46709242 5,522
+src/game-state.js
+  s_9ca76055a220ed::t_4f2522596dd322 41,43-46,56,67,110
+src/hazards.js
+  s_9ca76055a220ed::t_aa020371c72fcf 4-6,9-10,13-17,44,59,67,74-76,81-86,100
+src/hud.js
+  s_9ca76055a220ed::t_464a4cd4259ac5 7-9,72-76,78-80,82-120
+src/i18n/en.js
+  s_9ca76055a220ed::t_9a94b66bc196dd 119,158-159,197-198,240-241,261-265
+src/i18n/fr.js
+  s_9ca76055a220ed::t_8a77a4a953236e 119,157-158,196-197,239-240,259-263
+src/items.js
+  s_9ca76055a220ed::t_943710be436257 30,61,66
+src/main.js
+  s_9ca76055a220ed::t_347b7a0b2c7e6a 16-17,19,300-302,308-347,409-413,417-424
+src/minigames/kit/onfoot.js
+  s_9ca76055a220ed::t_43611ffd3ef536 4-5,12-13,16,25-29,38,43-44
+src/minigames/waves.js
+  s_9ca76055a220ed::t_e5b1775ebb2ca9 20,35-36,99-100,102,122,127-128,216,221,234,310
+src/player.js
+  s_9ca76055a220ed::t_3cf14978e32fe6 18,156,159-164,166,178-179,547-549,587-631,766,774-776,778-779,819-820,829,833-834,1577-1578,1586,1590
+src/prompt-keys.js
+  s_9ca76055a220ed::t_2488fac49e4e3f 64,69,72
+src/resources.js
+  s_9ca76055a220ed::t_95f69921ca505c 1-152
+src/save-migrate.js
+  s_9ca76055a220ed::t_5e923e29c2517e 17-22,25-27,78-81
+src/swim.js
+  s_9ca76055a220ed::t_820522dbc7cc61 4,58,106,118
+src/temples/arzach.js
+  s_9ca76055a220ed::t_21844362cd7dd4 80-82
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_0d08a085840587 84-86
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_45a8d9f0a54e90 84-86
+src/temples/boss.js
+  s_9ca76055a220ed::t_5d60277435089a 5,33,56-57,352
+src/temples/buried.js
+  s_9ca76055a220ed::t_cffe3e3e91f6a2 21-24,62,64,67,82-84,318
+src/temples/desert.js
+  s_9ca76055a220ed::t_dae0eee2823664 98-100
+src/temples/edena.js
+  s_9ca76055a220ed::t_1f986b9a6f68d9 93-95
+src/temples/garage.js
+  s_9ca76055a220ed::t_27516d37af2d4d 89-91
+src/temples/incal.js
+  s_9ca76055a220ed::t_28b87af51b232c 87-89
+src/temples/logic.js
+  s_9ca76055a220ed::t_2bffcc313fa8db 1,217-218,234
+src/temples/perdide.js
+  s_9ca76055a220ed::t_cd49fe2e63defd 86-88
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_25cb2fe0a469fc 79-81
+src/temples/pieces.js
+  s_9ca76055a220ed::t_384727ef3b1d57 5,11,351,577,693
+src/temples/runtime.js
+  s_9ca76055a220ed::t_3f0336e446948a 4,41-42,141,194,196
+src/temples/spheres.js
+  s_9ca76055a220ed::t_345e2fca1dad24 83-85
+src/trials/index.js
+  s_9ca76055a220ed::t_0f093abb33d480 10,176
+src/trials/kit-data.js
+  s_9ca76055a220ed::t_5cabbb81ee4ebd 82
+src/ui.js
+  s_9ca76055a220ed::t_89ea270b164dc6 120-122,130
+tests/abilities.test.js
+  s_9ca76055a220ed::t_667e436fdaa53b 125-129
+tests/fluid-tool.test.js
+  s_9ca76055a220ed::t_4cee9670e5948d 5,56,59-61,63-64,68-75,77-91,137,140-141
+tests/foes.test.js
+  s_9ca76055a220ed::t_2e312648e037ea 2,22,24-25,105-115
+tests/gadgets-qa.test.js
+  s_9ca76055a220ed::t_e896df55cc8fcd 2,86,93,97-98
+tests/hazards.test.js
+  s_9ca76055a220ed::t_6bf69e1fd32a78 4,7,11,15,18-20,27,30-36
+tests/health.test.js
+  s_9ca76055a220ed::t_f12ad0fb275d25 5,15,17-19,33,71-72,85,87,89-126
+tests/hud.test.js
+  s_9ca76055a220ed::t_0d60c401f9cede 79-80,83-85,87-91
+tests/ragdoll.test.js
+  s_9ca76055a220ed::t_33a3d847a155c8 205
+tests/resources.test.js
+  s_9ca76055a220ed::t_678ecbe1fa6c42 1-179
+tests/swim.test.js
+  s_9ca76055a220ed::t_eb52c86e736816 129,136-137
+tests/temples.test.js
+  s_9ca76055a220ed::t_e0621a775d7cac 27,146-152,1226,1228-1230,1233,1236-1237,1316
+tests/world-enemies.test.js
+  s_9ca76055a220ed::t_f680bd0a7fbb9b 9,55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6de0426de169a90bc789e575a701e5bdbec840e5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
