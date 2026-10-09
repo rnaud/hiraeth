@@ -1,0 +1,21 @@
+"references/Title Screen/index.html"
+  s_05e8f0b297231a::t_dde4c0d9a1ef03 1-46
+"references/Title Screen/selections.json"
+  s_05e8f0b297231a::t_6211a2e6be2888 1-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e69749d0a83e0e451baa722aa7698057b1545097",
+  "prompts": {},
+  "sessions": {
+    "s_05e8f0b297231a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1206d-f2fb-7580-8e26-273276a8bab9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
