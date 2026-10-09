@@ -327,6 +327,8 @@ const REF = (id, n, skin) => ({ sheet: `references/enemy-archetypes/${id}/sheet-
 const SURF = { from: 'node scripts/changelog-shots.mjs (view.foe, the creatures gallery) at the commit before the surfaces (“Changelog media for enemies…”) and at the surfaces’ own (“Procedural surfaces for the enemy roster…”), before the branch was rebased' };
 /** Batch 1's art pass: from before compare.mjs (7dd178f7) to its last commit. */
 const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
+/** The roster's batch 3 (v1.13): its bodies at their commit, the stand-ins before them at batch 3's parent. */
+const B3 = { commit: '5a1659cd', before: '890913ce' };
 const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
   let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646;
@@ -431,6 +433,46 @@ const PAD_VIEW = (setup) => ({ level: 'arena', hud: true, save: PAD_SAVE, wait: 
 const PADS = { commit: 'cc087bd4' };
 
 export const CHANGELOG_MEDIA = {
+  '1.13': [
+    // the enemy roster, part three: each new foe alone, its main skin and its alternate, the stand-in before it; the sheets beside them
+    { match: 'Four more foes of the new roster', see: 'In the Arena (the worlds list, or ?level=arena) open the FOES list (K, or D-pad ↓) and pick Lorn: its four foes in their skins (the spore toad, the reed knot, the marsh snapper, the spore mites), each alone, then two of its packs. Out in Lorn or the Desert, walk past them: toads sit, herons wade off, skitters graze and scatter if you run at them, root knots stand still with their caps turning after you.' },
+    { match: 'The bellows toad sits upright', shots: [
+      { name: 'roster3-toad', title: 'Lorn', caption: 'Before: the spitting blot that stood in for it. After: Lorn’s spore toad, three-quarter: the pear of mottled green with lilac spots, the cream belly, the lilac throat sac hanging in folds, heavy-lidded eyes, webbed feet', ...B3,
+        view: { foe: { id: 'toad@perdide', yaw: 0.75, pitch: 0.12 }, before: { foe: { id: 'spitter', yaw: 0.75, pitch: 0.12 } } }, reference: REF('toad', 1, 'the spore toad (Lorn)') },
+      { name: 'roster3-toad-alt', title: 'City-Shaft', caption: 'The City-Shaft’s pressure toad, before (the spitting blot) and after: slate blue, pink lids and toes, a brass valve on its head and a gauge on its back', ...B3,
+        view: { foe: { id: 'toad@incal', yaw: 0.75, pitch: 0.12 }, before: { foe: { id: 'spitter', yaw: 0.75, pitch: 0.12 } } }, reference: REF('toad', 2, 'the pressure toad (the City-Shaft)') },
+      { name: 'roster3-toad-lob', only: 'after', title: 'The lob', caption: 'The pressure toad winding up its lob: its throat swollen into a ball before its chest, the hot glob pressed to the front of it, the toad reared back', commit: B3.commit,
+        view: { foe: { id: 'toad@incal', yaw: 0.6, pitch: 0.12, pose: 'lob', at: 0.6 } }, reference: REF('toad', 2, 'the pressure toad (the City-Shaft), its lob wound up on the right') },
+    ] },
+    { match: 'The stilt heron is the tallest thing', shots: [
+      { name: 'roster3-heron', only: 'after', title: 'Desert', caption: 'The Desert’s cistern heron from its side: a cream clay jug with ochre bands on two sand-gold stilts, the bird’s joint two thirds up bending back, an S-neck and a long bill (nothing stood in for it before)', commit: B3.commit,
+        view: { foe: { id: 'heron@desert', yaw: 1.45, pitch: 0.06, zoom: 1.1 } }, reference: REF('heron', 1, 'the cistern heron (the Desert)') },
+      { name: 'roster3-heron-alt', only: 'after', title: 'Vael', caption: 'Vael’s ridge runner, three-quarter: a pale blue feathered body with folded wings, a rust-red crest, a hooked bill, ivory stilts', commit: B3.commit,
+        view: { foe: { id: 'heron@arzach', yaw: 0.9, pitch: 0.06, zoom: 1.1 } }, reference: REF('heron', 2, 'the ridge runner (Vael)') },
+      { name: 'roster3-heron-spear', only: 'after', title: 'The spear', caption: 'The ridge runner winding up its spear: the neck drawn back into a tight S over its back, the bill pointed ahead, the body leaning back', commit: B3.commit,
+        view: { foe: { id: 'heron@arzach', yaw: 1.4, pitch: 0.06, zoom: 1.1, pose: 'spear' } }, reference: REF('heron', 2, 'the ridge runner (Vael), its spear wound up on the right') },
+    ] },
+    { match: 'The skitter swarm: eight knee-high round domes', shots: [
+      { name: 'roster3-skitter', title: 'Desert', caption: 'Before: a blot of the blot swarm. After: the Desert’s dune skitter, three-quarter: a gold dome with its ochre band, high-kneed ivory legs, two tiny eyes with turquoise glints, feelers', ...B3,
+        view: { foe: { id: 'skitter@desert', yaw: 0.75, pitch: 0.2 }, before: { foe: { id: 'swarm', yaw: 0.75, pitch: 0.2 } } }, reference: REF('skitter', 1, 'the dune skitters (the Desert)') },
+      { name: 'roster3-skitter-alt', title: 'Moon Foundry', caption: 'The Moon Foundry’s furnace beetle, before (the blot swarm) and after: pitted iron with a glowing ember seam down its back, cream legs', ...B3,
+        view: { foe: { id: 'skitter@moonfoundry', yaw: 0.75, pitch: 0.2 }, before: { foe: { id: 'swarm', yaw: 0.75, pitch: 0.2 } } }, reference: REF('skitter', 2, 'the furnace beetles (the Moon Foundry)') },
+    ] },
+    { match: 'The root knot looks like a tall mushroom', shots: [
+      { name: 'roster3-rootknot', title: 'Lorn', caption: 'Before: the root stalker that stood in for it. After: Lorn’s reed knot, three-quarter: a lilac cap freckled with warts over a ribbed green bulb, two pale eyes, five jointed ochre root-arms with rootlet fans, a skirt of tendrils', ...B3,
+        view: { foe: { id: 'rootknot@perdide', yaw: 0.75, pitch: 0.1 }, before: { foe: { id: 'stalker', yaw: 0.75, pitch: 0.1 } } }, reference: REF('rootknot', 1, 'the reed knot (Lorn)') },
+      { name: 'roster3-rootknot-alt', title: 'Deep Wood', caption: 'The Deep Wood’s root crawler, before (the root stalker) and after: a deep teal cap, glowing turquoise eyes, a red-brown bulb, bark-brown roots', ...B3,
+        view: { foe: { id: 'rootknot@perdide2', yaw: 0.75, pitch: 0.1 }, before: { foe: { id: 'stalker', yaw: 0.75, pitch: 0.1 } } }, reference: REF('rootknot', 2, 'the root crawler (the Deep Wood)') },
+    ] },
+    { match: 'The roster’s foes take less to draw', numbers: [
+      { title: 'Meshes in one foe’s body', unit: 'meshes', better: 'lower', device: 'any (counted in node)', rows: [
+        { where: 'shellback crab', before: 145, after: 65 }, { where: 'horn lizard', before: 185, after: 90 }, { where: 'antler hound', before: 123, after: 48 }, { where: 'ring centipede', before: 212, after: 190 },
+      ], source: 'archetypeModel(kind) in its own skin, its meshes counted (each is a draw, twice with its shadow)' },
+      { title: 'Draw calls, a pack of twelve of batches 1–2 in view', unit: 'calls', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU, 1280 × 720', rows: [
+        { where: 'High', before: 3791, after: 3289 }, { where: 'Steam Deck preset', before: 3507, after: '2698–3250' },
+      ], source: 'node scripts/enemy-roster/bench.mjs (the default pack: both crabs and lizards, a hound, a tripod, two blots, a centipede, a jelly, a moth, a ray), two alternating runs each', note: 'The new foes’ own first build drew 4879 calls for a pack of ten (two toads, six skitters, two root knots); merged, 1524 (the stand-ins they replace drew 528, being plain blots and a box of roots).' },
+    ] },
+  ],
   '1.12': [
     // the temples, reworked from the temple design audit (docs/audits/temple-design-v1.12.md)
     { match: 'The Undertower is rebuilt round one idea', shots: [
