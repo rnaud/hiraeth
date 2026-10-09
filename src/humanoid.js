@@ -1213,7 +1213,7 @@ export class Humanoid {
    * The eyes: look at `target` (a world point: the player's face, someone talking) when it is in
    * reach of the eyes, else glance around; blink. Call after update(), only near the camera.
    */
-  updateEyes(dt, target = null) {
+  updateEyes(dt, target = null, { calm = false } = {}) {
     const m = this.eyeMesh, head = this.b.Head;
     if (!m || !head || !m.material.uniforms?.uEyeLook) return;
     let dir = null;
@@ -1225,9 +1225,10 @@ export class Humanoid {
       const at = _a.set(0, c.y, c.z).applyMatrix4(_m4);
       dir = _b.subVectors(target, at).transformDirection(_m4.invert());
     }
-    this.eyeLook.update(dt, dir);
+    this.eyeLook.update(dt, dir, { calm });
     // an expression's gaze (setExpression) holds the eyes there; a squint narrows the lids
-    const look = this.gaze ? EyeLook.fromAngles(this.gaze[0], this.gaze[1], _c) : _c.copy(this.eyeLook.look);
+    // (calm, the speaker in reach: the eyes stay on them, whatever the tone's own gaze: EYE_CALM)
+    const look = this.gaze && !(calm && this.eyeLook.held) ? EyeLook.fromAngles(this.gaze[0], this.gaze[1], _c) : _c.copy(this.eyeLook.look);
     this.drawnFace?.eyes(this.eyeLook.blink, this.squint ?? 0, look);   // (before the tilt: a drawn face's lids aren't the model's)
     const L = look.applyAxisAngle(_xAxis, EYE_TILT);
     const lid = Math.max(this.eyeLook.blink, (this.squint ?? 0) * 0.45);

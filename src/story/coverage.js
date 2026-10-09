@@ -6,8 +6,8 @@
 //   cover.update({ t, page, speaker, tone, answering, done, doneFor, letters, can })  → 'two' | 'traveller'
 //   cover.who / cover.reaction / cover.cuts
 //
-// The traveller is framed while he says something (one of his own pages, or the answer just chosen:
-// Dialogue's answer beat) and, now and then, when the other says a line with a strong tone: once the
+// The traveller is framed while he says something (one of his own pages; `answering` is for a caller
+// that voices his chosen answer, which Dialogue no longer does) and, now and then, when the other says a line with a strong tone: once the
 // line is out, the camera cuts to his face taking it in (a reaction, `reaction`: the look he wears,
 // REACTS). The rest of the time the two-shot. Calm cuts:
 //   - a shot changes on its own (a reaction) only after it has been held COVER.hold s;

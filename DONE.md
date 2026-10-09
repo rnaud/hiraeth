@@ -1173,3 +1173,27 @@ tests/sound-mix.test.js holds them.
   one of those on they stay through a change of language, title and Start menu (tested in a player's
   build), and they were never keyed on English words. They are shown to everyone for now (ALWAYS_DEV).)
 
+## Playtest notes (2026-10-08): Dialogue
+
+- During dialogue, when the camera points at the player's character, the character moves around.
+  (2026-10-08: `player.talking` while a conversation is open; src/player.js `TALK_CALM`/`idleMotion`
+  keep a fifth of the weight shift and drop the head's glances and nods, and `Animator.calm` plays no
+  captured looking-about or breathing idle. On the real rig: the head's turn range 133° to 0.4°, the
+  hips' sway 4.3 to 0.9 cm over 30 s, tests/talk-still.test.js.)
+- The character looks around too much during dialogue. (2026-10-08: `EYE_CALM` in src/eyes.js: the
+  eyes hold on the speaker whenever in reach, a tone's own gaze no longer pulling them off; with nobody
+  in reach, a glance every 3–6 s, less than half as far. With the head held, above.)
+- Choosing a dialogue option just plays the chosen line back. (2026-10-08: the answer beat is gone from
+  `Dialogue.choose`: no echo in the panel, no mumble, no camera on him; the reply starts at once. The
+  speaker's reply that opened by repeating the question (the swamp of lights) was reworded.)
+- When Nour says to stand in the water, the answers offered don't match the context. (2026-10-08: her
+  `pack` node now answers "Where is there any water, out here?" (a new `water` node: it stopped rising
+  the night the light sang; then the crash or the ship) and "Could living water wake my ship?" (power).)
+- Talking to Ama, the flame is in the way. (2026-10-08: every `Flames` registers itself; `flameVeils`
+  gives its tongues as columns and `sightOf(physics, { veils })` scores a line through one as blocked,
+  so the two-shot goes round any fire. Look shots ignore them.)
+- Not every character should have a bubble over their head. (2026-10-08: src/story/balloons.js: a
+  greeting balloon only for the one the objective points at, the opener of a waiting quest, someone with
+  a conversation you have never had, or a bystander or crowd person with unheard news; shouts always.
+  docs/systems/conversations.md.)
+

@@ -13,6 +13,12 @@ export const CHANGELOG = [
     { text: 'The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.', see: 'Wear the backpack and launch the scout; the same reservoir appears in the item viewer.' },
     { text: 'The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.', see: 'Approach the giant beyond Qanat’s back gate, then explore the ship’s galley and central room.' },
     { text: 'The Debug button is back on the title screen and in the Start menu for everyone, for now, so testers can jump to any world.', see: 'Open the game: Debug is on the title screen.' },
+    // conversations, from the playtest
+    'Fewer speech balloons: walking past people, only those with something for you greet you with a balloon over their head (the one your quest points to, someone with a quest to give, someone you have never spoken to, or a bystander with news you have not heard yet). Everyone else still turns, waves and talks to you when you press X / □; calls and shouts still show.',
+    'Talking to Ama by the camp fire, the camera no longer looks at her through the flames: it finds a view round the fire, as it does for every fire in the game.',
+    'When Nour tells you to stand in water to fill the backpack, your answers now follow on from it: ask where there is any water out here (she tells you how it stopped rising the night the light sang), or whether living water could wake your ship.',
+    'Picking an answer in a conversation no longer plays your own words back to you: the person you are talking to replies straight away.',
+    'In conversations the traveller holds still: he no longer shifts his weight about, turns his head or breaks into his looking-around idle while someone talks to him, and his eyes stay on whoever is speaking instead of darting about.',
     // the HUD, from the playtest
     'Notices are quieter: soft paper and a thin line instead of a heavy inked box, and they always keep clear of the health bar. On a phone held sideways they wrap beside the touch buttons instead of sliding off the bottom of the screen.',
     'Starting a quest or an errand shows its own card, unlike the other notices: “New quest” in gold over the quest’s name and its first step.',

@@ -68,6 +68,13 @@ export const EYE_GLSL = /* glsl */ `
 export const EYE_TILT = 0.2;
 /** How far the eyes turn from straight ahead (rad): sideways, up, down. */
 export const EYE_REACH = { yaw: 0.42, up: 0.12, down: 0.26 };   // (not far up: the iris would go under the upper lid, a heavy-lidded look)
+/**
+ * Calm eyes (a conversation: Player.talking): with nothing in reach they glance less often (every
+ * `every`..`every + spread` s instead of 0.8..2.8), less far (`reach` of the usual), and more often
+ * straight ahead (`ahead`). With the speaker in reach they hold on them (Humanoid.updateEyes: a tone's
+ * own gaze does not pull them away).
+ */
+export const EYE_CALM = { every: 3.2, spread: 3, reach: 0.4, ahead: 0.6 };
 /** Seconds between blinks, and a blink's close / open time. */
 export const BLINK = { min: 2.2, max: 6, close: 0.06, open: 0.1 };
 
@@ -100,16 +107,19 @@ export class EyeLook {
     return out.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
   }
 
-  update(dt, dir = null) {
+  update(dt, dir = null, { calm = false } = {}) {
     dt = Math.max(0, Math.min(dt, 0.25));
     this.t += dt;
-    if (!EyeLook.aim(dir, this.want)) {
-      // nothing to look at: small glances around, held a second or two
+    this.held = !!EyeLook.aim(dir, this.want);
+    if (!this.held) {
+      // nothing to look at: small glances around, held a second or two (calm: fewer, smaller, slower: EYE_CALM)
+      if (calm && this.nextGlance > this.t + EYE_CALM.every + EYE_CALM.spread) this.nextGlance = this.t + EYE_CALM.every;
       if (this.t >= this.nextGlance) {
-        const r = this.rng;
-        this.glance.set((r() - 0.5) * 0.5, (r() - 0.5) * 0.22);
-        if (r() < 0.35) this.glance.set(0, 0);
-        this.nextGlance = this.t + 0.8 + r() * 2;
+        const r = this.rng, C = calm ? EYE_CALM : null;
+        const k = C ? C.reach : 1;
+        this.glance.set((r() - 0.5) * 0.5 * k, (r() - 0.5) * 0.22 * k);
+        if (r() < (C ? C.ahead : 0.35)) this.glance.set(0, 0);
+        this.nextGlance = this.t + (C ? C.every + r() * C.spread : 0.8 + r() * 2);
       }
       EyeLook.fromAngles(this.glance.x, this.glance.y, this.want);
     }
