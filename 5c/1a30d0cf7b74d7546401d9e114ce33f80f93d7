@@ -1,0 +1,21 @@
+TODO.md
+  s_7bd935f6a98297::t_2d44fd36700d06 31
+docs/design/enemy-roster.md
+  s_7bd935f6a98297::t_8eac83dbf44f2a 859-867
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5c1a30d0cf7b74d7546401d9e114ce33f80f93d7",
+  "prompts": {},
+  "sessions": {
+    "s_7bd935f6a98297": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac4c211c72f994e95",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
