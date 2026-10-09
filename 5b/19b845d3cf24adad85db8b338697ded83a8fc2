@@ -1,0 +1,403 @@
+.claude/skills/cinematics-qc/SKILL.md
+  s_88886f12bf338d::t_0025d7647ea467 1-150
+.githooks/pre-commit
+  s_88886f12bf338d::t_6733f75c763baa 2-4,7,9-10,13-29
+.github/workflows/android.yml
+  s_88886f12bf338d::t_88741d5bf52804 32-34,36
+.github/workflows/cloudflare.yml
+  s_88886f12bf338d::t_5482f26b5a23e7 6-7,24-26,29
+.github/workflows/deploy.yml
+  s_88886f12bf338d::t_f41a835a0e07fa 22-24,26
+.github/workflows/steam-deck.yml
+  s_88886f12bf338d::t_ef9db176e227ce 16-18,20
+.github/workflows/tests.yml
+  s_88886f12bf338d::t_6249765a110c23 1-27
+.gitignore
+  s_88886f12bf338d::t_14cd1289c153c9 42-44
+CLAUDE.md
+  s_88886f12bf338d::t_a7c60dbd0d3afe 39-44
+DONE.md
+  s_88886f12bf338d::t_ceb2495e1472c5 1141-1568
+LORE.md
+  s_88886f12bf338d::t_0d62194d2beda8 168-169
+README.md
+  s_88886f12bf338d::t_e66f24f7b69520 54
+TODO.md
+  s_88886f12bf338d::t_656ac118c92c0f 11,13-14,16,20-23,41-49,55-60,134-147
+changelog.md
+  s_88886f12bf338d::t_16f7ae6ace802b 5-81,84-91,115-124,127-131
+cinematics.html
+  s_88886f12bf338d::t_1a6c685c63d41d 5
+docs/README.md
+  s_88886f12bf338d::t_f965c647c52672 55,57,72
+docs/story-bible.md
+  s_88886f12bf338d::t_ad57a6fb38fe7f 180-188,190,194
+docs/systems/animation.md
+  s_88886f12bf338d::t_b8d566b5a7fc2e 322-337,375-381,394,586-605
+docs/systems/audio.md
+  s_88886f12bf338d::t_533befade2dce0 16-34
+docs/systems/boxes.md
+  s_88886f12bf338d::t_f824253919f218 28,35-63
+docs/systems/challenges.md
+  s_88886f12bf338d::t_beec01a615f8fc 1-166
+docs/systems/cinematics-qc-notes.json
+  s_88886f12bf338d::t_d51be62f11c632 1-460
+docs/systems/cinematics-qc.md
+  s_88886f12bf338d::t_c53771ffe8031d 1-236
+docs/systems/cinematics.md
+  s_88886f12bf338d::t_2c3be4e272ea46 47-62,80-81,133-135,173-178,255-270
+docs/systems/controls.md
+  s_88886f12bf338d::t_a694a20ca3182e 71-74
+docs/systems/conversations.md
+  s_88886f12bf338d::t_ae41ec6b59f311 32,59-95,113-114
+docs/systems/dialogue.md
+  s_88886f12bf338d::t_7a759d1a4b761e 145-148
+docs/systems/foes.md
+  s_88886f12bf338d::t_6c2f17209c13d9 1,19-69,102,231,444-447,481-482,491-540,586,599-618
+docs/systems/localisation.md
+  s_88886f12bf338d::t_278c2e348f24bd 5
+docs/systems/minigames.md
+  s_88886f12bf338d::t_0fb88aa7d46250 414-415
+docs/systems/performance.md
+  s_88886f12bf338d::t_aef7c61cd1010a 607-615
+docs/systems/rendering.md
+  s_88886f12bf338d::t_6074a8a7c61f02 496-507,529-571
+docs/systems/story.md
+  s_88886f12bf338d::t_633b3425a0a385 123-132,278-283,363-367,376-378,439-440,452-486,705-718
+docs/systems/testing.md
+  s_88886f12bf338d::t_f5300ed50f4cea 4-11
+docs/systems/ui.md
+  s_88886f12bf338d::t_0c37b3e1da3830 54-63,99-100,108-116,157-169,231,303-306,337-412
+index.html
+  s_88886f12bf338d::t_5ff7439547c12e 31-32,75,86-87,89-90,92-108,142,159,165-166,174,182-185,320,323,325-327,329-334,338,340-341,396,442,461,489
+items.html
+  s_88886f12bf338d::t_9949fba6bc2d99 33-36,38-65,87-98
+scripts/affected-tests.mjs
+  s_88886f12bf338d::t_927bbd68563b7e 1-79
+scripts/changelog-shots.mjs
+  s_88886f12bf338d::t_e69766f38c9e00 13,23
+scripts/cinematics-qc.mjs
+  s_88886f12bf338d::t_e0bc68c4ceabea 1-400
+scripts/mocap/build-library.mjs
+  s_88886f12bf338d::t_0fc9c2a95e819a 86,124-125
+scripts/mocap/mixamo-clips.json
+  s_88886f12bf338d::t_69112cff3ec986 2,91,94,110-112
+src/animator.js
+  s_88886f12bf338d::t_9cab9bb183ca4a 34-65,357-359,365-366,370,375,502-503,790
+src/audio.js
+  s_88886f12bf338d::t_133a0055a6bdc5 20,1009-1014,1017,1019-1022,1040-1126,1590-1615
+src/boot.js
+  s_88886f12bf338d::t_294d1839f0b429 17,29
+src/boxes/beats.js
+  s_88886f12bf338d::t_0d15a756a19a6e 1-109
+src/boxes/effects.js
+  s_88886f12bf338d::t_c0f607c386b322 17,39-40,68,75-89,230
+src/boxes/index.js
+  s_88886f12bf338d::t_5e1cfd7c0f4a93 10,309-311,343,360,386
+src/boxes/scene.js
+  s_88886f12bf338d::t_4af6cae53bf0d4 3,19-22,25,32,45-46,50-71,124-131,135-149,168,182-191,193,195-199,202,206,210,221,225,229-247,261,277,296,302-303,309,327,329,332-335,351,359-377,380,382,384,387,389-397,416,425,429-529
+src/changelog-media.js
+  s_88886f12bf338d::t_da51fa62a4b534 172-262,264-509,511-576,586-600,677
+src/changelog.js
+  s_88886f12bf338d::t_f26c9354b4bc5e 8,11,15-120,123-134,160-173,1366-1368
+src/cinematics-page/main.js
+  s_88886f12bf338d::t_e2a84bfaf62f52 3,41-47
+src/cinematics-page/runtime.js
+  s_88886f12bf338d::t_142e75a3551240 90-96
+src/cinematics-page/storage.js
+  s_88886f12bf338d::t_a5abb11e7d7502 7-20
+src/controller.js
+  s_88886f12bf338d::t_1305d7a3858fd9 27,114-115,121,237-242,247-254
+src/crowd.js
+  s_88886f12bf338d::t_dd5eb47f85c3e9 87-98,878,881-889,891,895,899-901,910-912,1115
+src/desert-city.js
+  s_88886f12bf338d::t_ae8f7ddc194281 110,116-119
+src/desert-hearth.js
+  s_88886f12bf338d::t_b457cfb23692bf 77,86-89
+src/dev-gate.js
+  s_88886f12bf338d::t_d3ae1b85330e5e 12-15,30,32
+src/eyes.js
+  s_88886f12bf338d::t_2017b650f0eca4 71-77,110,113-116,118-122
+src/fluid-blade.js
+  s_88886f12bf338d::t_cbea4b9bd48e87 82,93-99,115-165,224,267-268,291-293,311,352-356,358-361,365-366,378,401-406,411-417,419-432,437-440,451,458-467,505,510-511,516-518,545-546,549,554-558,569,572-597,603-616,622,627-628,634-642,662,697-714,716
+src/fluid-tool.js
+  s_88886f12bf338d::t_a7ff858dd6a97a 996
+src/foe-height.js
+  s_88886f12bf338d::t_e8809e5455fabf 1-152
+src/foe-kinds.js
+  s_88886f12bf338d::t_962d393eaaea79 27-28,83,114,119,156,163-166,168,178-180,191,249,468-470,480-482,484-486,494-496
+src/foe-presence.js
+  s_88886f12bf338d::t_124e949b502e68 1-66
+src/foes.js
+  s_88886f12bf338d::t_332759d8f1c0a4 18,41,62,84,146-161,182-184,193,199-200,244-247,269-272,283,301-313,357,360-361,367-368,400-403,409-412,418-420,430,476,494-597,630,643,645-646,649-651,718-724,740-747,756-766,882,899-902,907-908,913-914,976,1031-1032,1047-1048,1050-1052,1056,1238,1274-1304,1315,1332-1333,1348,1388-1390,1403-1427,1615-1621,1629-1637,1839-1841,1931-1936,1957-1971
+src/gadgets/hud.js
+  s_88886f12bf338d::t_1b1dd7ecef5f7c 31,60
+src/game-menu.css
+  s_88886f12bf338d::t_a9c594d60dd2c4 25,42-43,54,56-57,70,100,117-118,149,192,195,207,210
+src/game-menu.js
+  s_88886f12bf338d::t_bbfe361456a071 23-24,263-266,268-270,292,294,296
+src/game-state.js
+  s_88886f12bf338d::t_ea06fdc0c8b823 78
+src/hitboxes.js
+  s_88886f12bf338d::t_894177e1891c20 4,67,70-74
+src/hud.js
+  s_88886f12bf338d::t_242440ac6b258a 5-6,21,33,39
+src/humanoid.js
+  s_88886f12bf338d::t_f74710036ac24c 1221,1233,1235-1236
+src/input-mode.js
+  s_88886f12bf338d::t_b18740781ce139 1-95
+src/items-page/main.js
+  s_88886f12bf338d::t_de22af9784693e 11-24,76-77,81-86,94-96,98,101,106-107,109-145,158-164,169-170
+src/items-page/view.js
+  s_88886f12bf338d::t_f6b48cac8cdc3e 23-25,32-43
+src/items-page/viewer.js
+  s_88886f12bf338d::t_47147ea6108bc0 137-138
+src/items.js
+  s_88886f12bf338d::t_384367e2ccd37b 198
+src/levels/arzach.js
+  s_88886f12bf338d::t_956c7358fec20e 228-230
+src/levels/names.js
+  s_88886f12bf338d::t_77fc4141dcdee2 40-48
+src/load-steps.js
+  s_88886f12bf338d::t_33134b1a9974a9 87-91,93,98-104,106,109-114,116-118,122,125-152
+src/main.js
+  s_88886f12bf338d::t_8ed7eb92767a59 7,18,66,84,102,110-111,121-123,129,131-132,521,539-545,552,672,959-962,978,1037-1038,1044,1081,1129-1130,1150,1178-1179,1466-1468,1571,1581-1583,1586-1587,1593,1784,1788,1791,1797,1807,1848,1861
+src/menu-pad.js
+  s_88886f12bf338d::t_8e13c084537c1d 1-141
+src/menus.css
+  s_88886f12bf338d::t_2440d302d87082 130,158-161,174-177,182-198,210,295-305
+src/native-pad.js
+  s_88886f12bf338d::t_075b801a873400 52,75-105,126,160-173,175,177-181,184-189,203,211,214-219,225,243-244,246
+src/npc.js
+  s_88886f12bf338d::t_378f1ec37b4440 3,22-25,589-590,594-616,695-697,727-729,740-741,990-991,1017-1018
+src/pad-glyphs.js
+  s_88886f12bf338d::t_ad761c1af309b7 1-129
+src/player.js
+  s_88886f12bf338d::t_64a940157932ea 333-351,1292,1303-1309,1639,1667,2259-2262,2277-2278,2335-2336,2359-2360
+src/post.js
+  s_88886f12bf338d::t_17a35103503382 60-106,477-479,492,504-510,512,516-538,542-562,565-569,571,574-578,580
+src/quest.js
+  s_88886f12bf338d::t_1f0aad83c85952 307-308,328-329,341
+src/save-migrate.js
+  s_88886f12bf338d::t_cf6762c1e0543b 13-16,64-68,74-75,81
+src/ship/cinema.js
+  s_88886f12bf338d::t_59d2bb4bec7e7e 44-46,67-76,106-121,157-165,167,224-227,265,294,319,342,371,373,384,391-393,395-398,415,454,463-485,495,507-518,522,526
+src/ship/cinematics.js
+  s_88886f12bf338d::t_d6d4ae999e2cb7 8,67-139,194,251,292-295,364,366-369,371,374,503,576,587-588,618-628,648
+src/ship/homecoming.js
+  s_88886f12bf338d::t_2c3fe3f7e1e542 9,71,119-155,172,416,624-628
+src/ship/landing.js
+  s_88886f12bf338d::t_882ca1b96fd919 1-60
+src/ship/ship.js
+  s_88886f12bf338d::t_42e1a8589bd436 1,25,73,334,478,566,666-667
+src/ship/starmap.js
+  s_88886f12bf338d::t_3241818af78337 33-34,198,297,302,364,382
+src/story/arzach-data.js
+  s_88886f12bf338d::t_9a4c6100f5c740 209,242,247,258-268
+src/story/arzach-moments.js
+  s_88886f12bf338d::t_c54a777786c535 1,10,30,54-58,77-79
+src/story/arzach.js
+  s_88886f12bf338d::t_d2038e16517063 7-9,337-340,342,344,348-355,368-374,389,392-395,397-398,400-411,543-544,546-550
+src/story/balloons.js
+  s_88886f12bf338d::t_1273a2fdd730cd 1-41
+src/story/bazaar-data.js
+  s_88886f12bf338d::t_6d67ddb122872a 155-176
+src/story/calls.js
+  s_88886f12bf338d::t_ef571d2270681f 72-75
+src/story/coverage.js
+  s_88886f12bf338d::t_454fffb7d75789 9-10
+src/story/desert-data.js
+  s_88886f12bf338d::t_ed700f3b185d03 16,65-66,86-89,179-180,185-198,223,414,547-552,561-562,564-570,573-574,579,581,583,585-586,588-589,617-630,930-932
+src/story/desert-moments.js
+  s_88886f12bf338d::t_108661f0084321 171-173,177
+src/story/desert-way.js
+  s_88886f12bf338d::t_2dad93682823b2 20-24,29-39,41-44,48-75,96-97,99
+src/story/desert.js
+  s_88886f12bf338d::t_f770bf031d78fa 18,83-85,97-98,116-136,181-183,206-210,327-329,825,827,833,836,840,847,858-860,990-993,1090
+src/story/dialogue.js
+  s_88886f12bf338d::t_d1387a14bae87b 344-345,367-368,370-371,409-410,448-450,479,481,485,493,500,502,504,543,546,551
+src/story/ending.js
+  s_88886f12bf338d::t_ccd1d7d7f2926e 184
+src/story/film.js
+  s_88886f12bf338d::t_08c5e500751aab 86-103
+src/story/flames.js
+  s_88886f12bf338d::t_d25158b84a0213 25-56,89
+src/story/home.js
+  s_88886f12bf338d::t_475f3fb2913aba 5,83-101,117-120,153-154,323-325,327-330,348-358
+src/story/hum.js
+  s_88886f12bf338d::t_23d4ed72cca3a6 1-63
+src/story/incal-data.js
+  s_88886f12bf338d::t_c2a223e4db5679 458-459
+src/story/incal-moments.js
+  s_88886f12bf338d::t_867f181f6b2870 78-80,83-84
+src/story/index.js
+  s_88886f12bf338d::t_b8399267e0fe9e 8-9,231,248-259,323,325-326,337-338
+src/story/knuckle-riddle.js
+  s_88886f12bf338d::t_ec610e3dbae037 1-50
+src/story/lantern.js
+  s_88886f12bf338d::t_b202938822c047 4,19-39,78-90,95,97-106,108,111-112,114-120
+src/story/moment.js
+  s_88886f12bf338d::t_74111331d46fd2 67-68,95,101,177-181,193-195,214-221,255
+src/story/perdide2-data.js
+  s_88886f12bf338d::t_b183d145f1e313 162,169-181
+src/story/quests.js
+  s_88886f12bf338d::t_d2115647558985 140,151-155,226
+src/story/shot.js
+  s_88886f12bf338d::t_2852c8bb5af2b4 18-19,25-38,40-42,44-80,151,160-164,179-181,334-336,393
+src/story/sightings.js
+  s_88886f12bf338d::t_4ae33ce0f30e4b 19,114-115,117,119-120
+src/temples/perdide.js
+  s_88886f12bf338d::t_c32168d1820ad6 175-178
+src/temples/perdide2.js
+  s_88886f12bf338d::t_80eabf1570f691 141-144
+src/temples/pieces.js
+  s_88886f12bf338d::t_329204b3621f03 486-487,493
+src/temples/spheres.js
+  s_88886f12bf338d::t_ce427b0f76c54f 185-188
+src/title.js
+  s_88886f12bf338d::t_60675d659c1a31 19,21,27,102,109-110,137,144,160-161,163-169,264,281-286,292,297-301,304,311-312,323
+src/touch-layout.js
+  s_88886f12bf338d::t_94138b005afece 1-67
+src/trials/course.js
+  s_88886f12bf338d::t_683389805ba5b9 51
+src/trials/index.js
+  s_88886f12bf338d::t_74cefebe0934f5 6,15-18,44-49,52-53,100,113-140,143-151,154-155,157-158,160-165,172,177,184-193,196,200,203,205,227,252,286-372
+src/trials/kit-courses.js
+  s_88886f12bf338d::t_cda6413b67894b 1-712
+src/trials/kit-data.js
+  s_88886f12bf338d::t_17aa74161f66ff 1-175
+src/trials/kit-run.js
+  s_88886f12bf338d::t_2d7b6cf4b29f48 1-78
+src/ui.js
+  s_88886f12bf338d::t_5495a7ae084853 11-13,258-260,269-270,273-276,284,314,359,364,380,412,430-449,465
+src/wave.js
+  s_88886f12bf338d::t_ac9d3aa322cb09 1-69
+src/world-picker.js
+  s_88886f12bf338d::t_861e87cb1e8823 11-12,57-70,92-105,110-111,113-117,120,123,126,134-135,139,145-146
+tests/accessibility.test.js
+  s_88886f12bf338d::t_a959572bfd4c80 272-273
+tests/blade-attacks.test.js
+  s_88886f12bf338d::t_7d816641971dd2 1-259
+tests/box-beats.test.js
+  s_88886f12bf338d::t_1e9f70236ec1a5 1-142
+tests/boxes.test.js
+  s_88886f12bf338d::t_4726637986c5a6 239-242,245-247,432,465-502
+tests/cab-ride.test.js
+  s_88886f12bf338d::t_54bbb5b4a5aef3 175-177
+tests/cape-arms.test.js
+  s_88886f12bf338d::t_9998da8d319d88 61-62
+tests/cave-seams.test.js
+  s_88886f12bf338d::t_cb470b3ec3c47f 1-32
+tests/cinema.test.js
+  s_88886f12bf338d::t_db4249b8d1fc8d 3-4,121-147
+tests/cinematics-page.test.js
+  s_88886f12bf338d::t_c4553c44024637 4-5,24-33
+tests/cinematics-qc.test.js
+  s_88886f12bf338d::t_80204129980306 1-86
+tests/close-contact.test.js
+  s_88886f12bf338d::t_8bd60b00c4caf5 10,110-145
+tests/combat.test.js
+  s_88886f12bf338d::t_c7d4441491d914 67,71
+tests/convo-closeup.test.js
+  s_88886f12bf338d::t_d5b299b3cb8e8e 9,13,169-171,184-185,187-192,194,199,203,211
+tests/cutscenes.test.js
+  s_88886f12bf338d::t_1e22a8537220f5 13,220-228
+tests/desert-spark.test.js
+  s_88886f12bf338d::t_f663727b22568c 194,208,211-212,281-402
+tests/desert-story.test.js
+  s_88886f12bf338d::t_b227242e6e9d96 45,292-294,448-451,453,455,457-458,461,670,757-774
+tests/dialogue-playtest.test.js
+  s_88886f12bf338d::t_d3e2fd01a8c55c 1-161
+tests/ending.test.js
+  s_88886f12bf338d::t_654949157fea6a 394-422
+tests/finale.test.js
+  s_88886f12bf338d::t_0bb8c3656db3a4 198-220
+tests/first-run.test.js
+  s_88886f12bf338d::t_1b47e2538c5769 5,42-46,48-50,53,55
+tests/foe-height.test.js
+  s_88886f12bf338d::t_257a62c2bb9dd3 1-296
+tests/foe-presence.test.js
+  s_88886f12bf338d::t_4c011577a66677 1-121
+tests/game-menu.test.js
+  s_88886f12bf338d::t_c18eeb3e61652f 137-146
+tests/gpu-pacer.test.js
+  s_88886f12bf338d::t_685563c6154068 43-100
+tests/head-turn.test.js
+  s_88886f12bf338d::t_097a73dba3b1b6 1-82
+tests/hints.test.js
+  s_88886f12bf338d::t_ebe8e2b19c4d16 1-91
+tests/home-family.test.js
+  s_88886f12bf338d::t_b0411542cf6d93 118-119,132
+tests/home.test.js
+  s_88886f12bf338d::t_8bafc91b0e8389 133-149
+tests/hud.test.js
+  s_88886f12bf338d::t_c71b9536625bbf 4,49-53,216
+tests/hum.test.js
+  s_88886f12bf338d::t_20887eddcb87ab 1-104
+tests/input-mode.test.js
+  s_88886f12bf338d::t_fe71fb132c56be 1-89
+tests/item-star.test.js
+  s_88886f12bf338d::t_1c64d6a793552f 1-42
+tests/knuckle-riddle.test.js
+  s_88886f12bf338d::t_3b308bdc3aeb15 1-67
+tests/landing.test.js
+  s_88886f12bf338d::t_5dcc25d6fe2377 1-77
+tests/menus-settings.test.js
+  s_88886f12bf338d::t_37f8db23c0433f 1-178
+tests/menus.test.js
+  s_88886f12bf338d::t_e5eb085de3c9f9 67,82-85
+tests/moment.test.js
+  s_88886f12bf338d::t_fc299b74283e06 76-121
+tests/occlusion-taps.test.js
+  s_88886f12bf338d::t_84caf83858d87e 7-8,36,41-45,48-50,66-96,133-276
+tests/pad-glyphs.test.js
+  s_88886f12bf338d::t_efc6eb2ea25523 1-165
+tests/platform.test.js
+  s_88886f12bf338d::t_3e6baa3707c635 73,75
+tests/playthrough-agent.js
+  s_88886f12bf338d::t_97007b7319c978 80
+tests/pre-commit.test.js
+  s_88886f12bf338d::t_9171128cc543ca 1-2,6,10,12-14,20-24,26-27,30-69
+tests/prologue-call.test.js
+  s_88886f12bf338d::t_932e4627715999 1-32
+tests/route-ilen.test.js
+  s_88886f12bf338d::t_35d37bdc2a37b3 1-124
+tests/ship.test.js
+  s_88886f12bf338d::t_75d7c53d6329ba 503-546
+tests/sound-mix.test.js
+  s_88886f12bf338d::t_14eb2586184d4c 28-37
+tests/story-arzach.test.js
+  s_88886f12bf338d::t_dde90926dedffc 247-253,256-257
+tests/talk-face.test.js
+  s_88886f12bf338d::t_07239468bc9b41 110,112,117
+tests/talk-still.test.js
+  s_88886f12bf338d::t_3de07dc33816a5 1-76
+tests/temples.test.js
+  s_88886f12bf338d::t_6dd266c203c1ab 312-317
+tests/touch-layout.test.js
+  s_88886f12bf338d::t_0952c0bf6befc9 1-66
+tests/trials-kit.test.js
+  s_88886f12bf338d::t_750f86c1a35eb9 1-795
+tests/wave.test.js
+  s_88886f12bf338d::t_354e394135585e 1-64
+tests/world-moments.test.js
+  s_88886f12bf338d::t_433614a1470808 56-72
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_88886f12bf338d::t_800865a60bd2fc 193,199,203-205,207,210-213,216-233,235-241,243-244,246-247,249
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b19b845d3cf24adad85db8b338697ded83a8fc2",
+  "prompts": {},
+  "sessions": {
+    "s_88886f12bf338d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11909-5544-7d52-9144-71c79c4a433c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
