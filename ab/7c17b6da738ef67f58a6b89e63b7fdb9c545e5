@@ -1,0 +1,45 @@
+.claude/skills/visual-audit/SKILL.md
+  s_9ca76055a220ed::t_e53385f69eb081 25,33-39
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_165fbdbe5211de 529-557
+src/enemies/page.js
+  s_9ca76055a220ed::t_6e213e249a3cb1 7-8,16-23,32-33,35
+src/items-page/viewer.js
+  s_9ca76055a220ed::t_edd953b78d5497 40-42,44,103-105
+src/main.js
+  s_9ca76055a220ed::t_2be6f0c1f4bbd3 44,169-171
+src/motion/main.js
+  s_9ca76055a220ed::t_6cc7a6bc0f8d02 61-63
+src/shadows.js
+  s_9ca76055a220ed::t_413107b4f3d6ac 62-67,106,159-176
+src/studio/main.js
+  s_9ca76055a220ed::t_3dade4db0a7929 61-63
+src/title-world.js
+  s_9ca76055a220ed::t_a96b25cc6c3582 148-150
+src/trailer/main.js
+  s_9ca76055a220ed::t_a333918753c2da 46-47
+tests/shadow-setup.test.js
+  s_9ca76055a220ed::t_b3a55d742f8a7e 1-100
+changelog.md
+  s_9ca76055a220ed::t_daea815a508b43 7
+src/changelog-media.js
+  s_9ca76055a220ed::t_258a1bf5c77e32 337-341
+src/changelog.js
+  s_9ca76055a220ed::t_53a07efa36c0a2 28-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ab7c17b6da738ef67f58a6b89e63b7fdb9c545e5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
