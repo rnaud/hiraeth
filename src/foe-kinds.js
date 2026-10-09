@@ -115,7 +115,7 @@ export const KINDS = {
     attacks: [
       { id: 'pounce', shape: 'ring', radius: 1.6, ahead: 1.6, damage: 0.14, wind: 0.6, strike: 0.28, contact: 0.55, lunge: 3.2, max: 3.4, weight: 1.5 },
       { id: 'step', shape: 'ring', at: 'behind', instant: true, tele: true, radius: 1.3, track: 0.5, damage: 0, blink: true, wind: 0.9, then: 'bite', min: 2.5, max: 7 },
-      { id: 'bite', chain: true, shape: 'cone', range: 2.3, angle: 0.8, damage: 0.12, wind: 0.32, strike: 0.2, contact: 0.5 },
+      { id: 'bite', chain: true, shape: 'cone', range: 2.3, angle: 0.8, damage: 0.12, wind: 0.45, strike: 0.2, contact: 0.5 },
     ],
     recover: 1.2, cool: [1.1, 2.0],
   }),
@@ -152,18 +152,19 @@ const MODELS = {
     // a flat diamond of sand-coloured hide, dark ink spots, a whip tail; buried, only the fin and a mound of sand
     const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
     const hide = M_('ray-hide', { color: '#c98d4f', color2: '#e1b077' }), ink = M_('ray-ink', { color: '#2b211f' });
-    const sand = M_('ray-sand', { color: '#e8c58f' }), eye = M_('ray-eye', { color: '#f6e7b0', glow: 0.6 });
+    const sand = M_('ray-sand', { color: '#b98a55' }), eye = M_('ray-eye', { color: '#f6e7b0', glow: 0.6 });
     const disc = add(body, new THREE.SphereGeometry(1, 16, 8).scale(1.15, 0.16, 0.85), hide, 0, 0.2, 0);
     const wings = pair((s) => { const w = add(body, new THREE.ConeGeometry(0.42, 0.9, 4).rotateZ(-s * Math.PI / 2).scale(1, 0.25, 1), hide, s * 1.25, 0.2, -0.1); return w; });
     const tail = add(body, new THREE.ConeGeometry(0.07, 1.8, 5).rotateX(-Math.PI / 2).translate(0, 0, -0.9), ink, 0, 0.22, -0.7);
     const barb = add(tail, new THREE.ConeGeometry(0.1, 0.3, 4).rotateX(-Math.PI / 2), ink, 0, 0, -1.8);
     for (let i = 0; i < 6; i++) add(body, new THREE.CircleGeometry(0.09 + (i % 3) * 0.04, 8).rotateX(-Math.PI / 2), ink, Math.sin(i * 2.1) * 0.6, 0.37, Math.cos(i * 1.7) * 0.4);
     const eyes = pair((s) => add(body, new THREE.SphereGeometry(0.07, 8, 6), eye, s * 0.22, 0.34, 0.5));
-    // buried it still reads: a tall dark fin (cut it and the ray is flushed out), a mound, and an ink ripple
-    // ring round it on the sand that pulses as it swims
-    const fin = add(g, new THREE.ConeGeometry(0.3, 0.95, 4).scale(0.35, 1, 1), ink, 0, 0.4, 0);
+    // buried it still reads (playtest 2026-10-08, no invisible foes: src/foe-presence.js): a tall dark fin with a
+    // white contour (it reads on noon sand and on night sand; cut it and the ray is flushed out), a mound of
+    // darker, turned sand, and a thick ink ripple ring round it that pulses as it swims
+    const fin = add(g, new THREE.ConeGeometry(0.42, 1.3, 4).scale(0.4, 1, 1), M_('ray-fin', { color: '#2b211f', lineWhite: true }), 0, 0.55, 0);
     const mound = add(g, new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.9, 0.22, 1.1), sand, 0, 0, 0);
-    const ripple = add(g, new THREE.RingGeometry(0.92, 1, 28).rotateX(-Math.PI / 2), M_('ray-ripple', { color: '#5a3a26', side: THREE.DoubleSide }), 0, 0.05, 0);
+    const ripple = add(g, new THREE.RingGeometry(0.84, 1, 28).rotateX(-Math.PI / 2), M_('ray-ripple', { color: '#5a3a26', side: THREE.DoubleSide }), 0, 0.05, 0);
     return {
       group: g, parts: [disc, ...wings, tail, ...eyes], eyeMat: eye, base: '#f6e7b0', size: 1,
       anim(f, c) {
@@ -173,7 +174,9 @@ const MODELS = {
         const r = f._rise;
         body.position.y = lerp(-0.6, 0, r); body.visible = r > 0.05;
         fin.visible = mound.visible = ripple.visible = r < 0.95;
-        fin.position.y = 0.4 * (1 - r) - (f.state === 'wind' && f.atk?.surface ? 0.45 * c.wind : 0);
+        // (winding up its burst it swims at you, src/foes.js: the fin stands up taller and throws a wake; it never
+        // sinks out of sight before it comes up)
+        fin.position.y = 0.55 * (1 - r) + (f.state === 'wind' && f.atk?.surface ? 0.12 * c.wind : 0);
         fin.rotation.z = Math.sin(c.now / 160) * 0.15;
         ripple.scale.setScalar((1.1 + 0.18 * Math.sin(c.now / 180)) * (1 - r));
         mound.scale.setScalar(1 - r); mound.position.y = -0.02;
@@ -184,7 +187,7 @@ const MODELS = {
         g.position.y += (f.state === 'strike' && !under ? 0.4 * Math.sin(Math.PI * f.k) : 0) + (f.state === 'wind' && f.atk?.id === 'glide' ? 0.25 * c.wind : 0);
         eye.uniforms.uColor.value.set(eyeColor(f, '#f6e7b0'));
         // sand sprays where it swims, and where it is about to come up
-        if (under && c.moving && Math.random() < 0.4) c.dust(f.pos, '#e8c58f', 1);
+        if (under && (c.moving || (f.state === 'wind' && f.atk?.surface)) && Math.random() < 0.6) c.dust(f.pos, '#e8c58f', 2, 0.9);
         if (f.state === 'wind' && f.atk?.surface && Math.random() < 0.3 + c.wind) c.dust(f.attackAt, '#e1b077', 1 + c.wind * 2, (f.atk.radius ?? 1.5) * (1 - c.wind * 0.6));
       },
     };
@@ -242,7 +245,7 @@ const MODELS = {
     const body = add(g, new THREE.OctahedronGeometry(0.3, 0).scale(0.6, 1.3, 0.6), glass, 0, 0.35, 0);
     const eye = add(g, new THREE.OctahedronGeometry(0.06, 0), core, 0, 0.42, 0.15);
     return {
-      group: g, parts: [body, eye], eyeMat: core, base: '#d8ff9a', size: 1,
+      group: g, parts: [body, eye], eyeMat: core, base: '#d8ff9a', size: 1.3,   // (drawn a little bigger than it was: a shard you can see coming)
       anim(f, c) {
         body.rotation.y += c.dt * (f.state === 'wind' ? 14 : 4);
         body.rotation.z = f.state === 'strike' ? -1.3 : f.state === 'wind' ? -0.5 * c.wind : 0;
@@ -461,7 +464,9 @@ const MODELS = {
   hound() {
     // a long low dog of living shadow, ears up, a whip of a tail; running, it melts into a shadow on the ground
     const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-    const ink = M_('hound-ink', { color: '#15121c' }), rim = M_('hound-rim', { color: '#3b2a5c' }), eye = M_('hound-eye', { color: '#d6c2ff', glow: 0.95 });
+    // (its ink is drawn with a white contour, as the shade's: black on the Eclipse's dark streets it would be
+    // only a hole; playtest 2026-10-08, no invisible foes: src/foe-presence.js)
+    const ink = M_('hound-ink', { color: '#15121c', lineWhite: true }), rim = M_('hound-rim', { color: '#3b2a5c', lineWhite: true }), eye = M_('hound-eye', { color: '#d6c2ff', glow: 0.95 });
     const torso = add(body, new THREE.SphereGeometry(0.4, 12, 8).scale(0.7, 0.75, 1.6), ink, 0, 0.62, 0);
     const neck = add(body, new THREE.CylinderGeometry(0.12, 0.18, 0.45, 6).rotateX(-0.9), ink, 0, 0.82, 0.55);
     const head = add(body, new THREE.SphereGeometry(0.17, 10, 8).scale(0.9, 0.85, 1.1), ink, 0, 0.95, 0.78);
@@ -471,9 +476,13 @@ const MODELS = {
     const legs = [];
     for (const z of [0.42, -0.42]) for (const s of [-1, 1]) { const l = new THREE.Group(); l.position.set(s * 0.17, 0.5, z); body.add(l); add(l, new THREE.CylinderGeometry(0.05, 0.03, 0.55, 4).translate(0, -0.27, 0), ink); legs.push(l); }
     const tail = add(body, new THREE.ConeGeometry(0.05, 0.8, 4).rotateX(-Math.PI / 2 - 0.4).translate(0, 0.1, -0.35), ink, 0, 0.7, -0.6);
-    // its shadow form: a flat dark pool with the two eyes, sliding along the ground
+    // its shadow form: a dark pool sliding along the ground, a low hump of shadow rising out of it with a
+    // lavender glow round its edge, and the two eyes lit over it (before: a flat pool and two 4 cm eyes, all
+    // but invisible on a dark street)
     const pool = add(g, new THREE.CircleGeometry(0.55, 14).scale(0.8, 1.5, 1).rotateX(-Math.PI / 2), ink, 0, 0.03, 0);
-    const poolEyes = pair((s) => add(g, new THREE.SphereGeometry(0.04, 6, 4).scale(1, 0.5, 1), eye, s * 0.1, 0.05, 0.45));
+    const hump = add(g, new THREE.SphereGeometry(0.4, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.75, 1.15, 1.5), ink, 0, 0, 0);
+    const glowRim = add(g, new THREE.RingGeometry(0.62, 0.74, 24).scale(0.8, 1.5, 1).rotateX(-Math.PI / 2), M_('hound-glow', { color: '#d6c2ff', glow: 0.8, side: THREE.DoubleSide }), 0, 0.04, 0);
+    const poolEyes = pair((s) => add(g, new THREE.SphereGeometry(0.07, 8, 6).scale(1, 0.6, 1), eye, s * 0.12, 0.4, 0.42));
     return {
       group: g, parts: [], eyeMat: eye, base: '#d6c2ff', size: 1, shadowy: true,
       anim(f, c) {
@@ -481,6 +490,9 @@ const MODELS = {
         const s = f._solid;
         body.visible = s > 0.08; body.scale.set(1, Math.max(0.05, s), 1); body.position.y = -(1 - s) * 0.3;
         pool.visible = s < 0.9; pool.scale.setScalar(1.2 - s * 0.5); poolEyes.forEach((e) => { e.visible = s < 0.6; });
+        hump.visible = glowRim.visible = s < 0.6;
+        hump.scale.set(1, 1 - s * 0.6 + Math.sin(c.now / 140) * 0.06, 1);
+        glowRim.scale.setScalar(1 + Math.sin(c.now / 200) * 0.06);
         const run = c.moving || f.state === 'strike';
         legs.forEach((l, k) => { l.rotation.x = run ? Math.sin(c.t * 16 + (k % 2) * Math.PI + (k > 1 ? 0.6 : 0)) * 0.7 : 0; });
         // the pounce: it crouches back on its haunches, then stretches out flat through the leap

@@ -244,9 +244,17 @@ test('side quests: the stone hand rings small to tall, and the three feathers go
   assert.equal(knuckles.length, 4);
   const byPos = (i) => knuckles.find((t) => t.position().distanceTo(A.hand.knuckles[i].pos) < 0.01);
   at(W.knuckles[0].pos.clone().add(V(0, -18, 15)));
-  // the wrong order does nothing
+  // the fingers are clearly graded, smallest to tallest, as the order goes (playtest 2026-10-08)
+  const len = KNUCKLE_ORDER.map((i) => A.hand.knuckles[i].length);
+  for (let k = 1; k < len.length; k++) assert.ok(len[k] - len[k - 1] >= 4, `each finger clearly taller (${len})`);
+  // the knuckle targets are as big as the graded stones drawn
+  const radii = KNUCKLE_ORDER.map((i) => byPos(i).radius);
+  assert.ok(radii.every((r, k) => k === 0 || r > radii[k - 1]), `stones graded (${radii})`);
+  // the wrong order does nothing; the second miss has Kesh call the order out and the journal spell it
   byPos(1).onHit('shoot'); byPos(0).onHit('shoot');
   assert.equal(game.flag('arzach.hand.rung'), undefined);
+  assert.equal(game.flag('arzach.hand.hint'), true, 'two misses: the hint');
+  assert.match(quests.current('arzach.hand').text, /one dot/);
   for (const i of KNUCKLE_ORDER) byPos(i).onHit('shoot');
   assert.equal(game.flag('arzach.hand.rung'), true, 'smallest to tallest rings it');
   step(2);

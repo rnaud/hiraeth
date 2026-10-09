@@ -139,6 +139,22 @@ export const PRESSURE = { retreat: 1.1, leave: 8, hold: 1.6 };
  * The shadow hound (`phase`) is only a shadow while running more than `near` m from you: closer, it is solid.
  */
 export const BURROW = { up: 6, flush: 0.9 };
+/**
+ * Where a winding-up foe's warning marker goes, in the screen's -1..1 (x right, y up), or null for none: none
+ * while it is on the screen and in sight (its body and its ring are the tell); on the screen but hidden behind
+ * the world, over where it is; off the screen or behind the camera, at the edge on its side (straight behind:
+ * at the bottom). px, py: its chest projected; ahead: in front of the camera.
+ */
+export function warnSpot(px, py, ahead, hidden = false) {
+  const onScreen = ahead && Math.abs(px) < 0.9 && Math.abs(py) < 0.85;
+  if (onScreen) return hidden ? { x: px, y: py, edge: false } : null;
+  let x = ahead ? px : -px, y = ahead ? py : -py;
+  if (!ahead && Math.hypot(x, y) < 0.2) y = -1;
+  const k = 1 / Math.max(Math.abs(x) / 0.9, Math.abs(y) / 0.82, 1e-3);
+  return { x: x * k, y: y * k, edge: true };
+}
+/** A buried ray winding up its burst swims to its ring: there by `arrive` of the wind-up, at most `max` m/s, within `stop` m. */
+export const SWIM = { arrive: 0.85, max: 12, stop: 0.4 };
 export const PHASE = { near: 3.2 };
 /** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
 export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
@@ -254,6 +270,19 @@ export class Foe {
     // a volley: its rings in a row across the line to you
     this.attackPts = a.spread ? a.spread.map((o) => new THREE.Vector3(this.attackAt.x + fz * o, this.attackAt.y, this.attackAt.z - fx * o)) : null;
   }
+  /**
+   * A buried ray winding up its burst swims under the sand to where its ring is, arriving by SWIM.arrive of the
+   * wind-up, so the fin is seen racing at you before it comes up (before, it sat still and sank its fin, and
+   * burst up out of nowhere: playtest 2026-10-08). Walls and drops stop it as any step; it still comes up there.
+   */
+  swimTo(at, wind, dt, env) {
+    const dx = at.x - this.pos.x, dz = at.z - this.pos.z, d = Math.hypot(dx, dz);
+    if (d < SWIM.stop) return;
+    const left = Math.max(dt, SWIM.arrive * wind - this.timer);
+    const m = Math.min(d - SWIM.stop * 0.5, Math.min(SWIM.max, d / left) * dt);
+    if (m > 0) this.step(dx / d * m, dz / d * m, env);
+    this.heading = Math.atan2(dx, dz);
+  }
   /** Up out of the sand (a dune ray): it stays up a while, to be fought. */
   surfaced() { this.buried = false; this.upFor = BURROW.up; }
   /** Done with attack a: its follow-up straight away (a combo), else recover. */
@@ -358,6 +387,7 @@ export class Foe {
         const wind = a.wind * (env.slow?.() ?? 1);
         this.timer += dt; this.k = Math.min(1, this.timer / wind);
         if (a.track && this.k < a.track && playerOk) this.placeArea(a, P);   // (the drawn area follows you, then holds)
+        if (a.surface && this.buried) this.swimTo(this.attackAt, wind, dt, env);   // (its fin is seen coming at you)
         if (this.timer >= wind) {
           if (a.instant || a.at === 'target') this.resolve(a, P, playerOk, ev, env);
           else { this.state = 'strike'; this.timer = 0; this.k = 0; this.contacted = false; }
@@ -753,7 +783,7 @@ function blotModel(kind = 'blot') {
     // wings of ink, flapping
     M.wings = [-1, 1].map((s) => { const w = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.1, 4).rotateZ(s * Math.PI / 2).scale(1, 1, 0.25), ink); w.position.set(s * 0.75, 0.6, -0.05); g.add(w); return w; });
   }
-  if (kind === 'swarm') M.size = 0.45;
+  if (kind === 'swarm') { M.size = 0.45; for (const e of eyes) e.scale.setScalar(1.7); }   // (tiny, so its eyes are big: they are what you see of it)
   g.scale.setScalar(M.size);
   return M;
 }
@@ -1034,7 +1064,37 @@ export class Foes {
     });
   }
 
-  /** A pack of ink blots comes in, out of sight round you, where there is footing and nothing between. */
+  /**
+   * Room for a foe of `kind` to stand at `at`: its body's column is clear of the world (no foe comes in inside a
+   * rock, a wall or a closed building, where it could not be seen: playtest 2026-10-08). The column starts a
+   * little over its feet, so a slope it stands on is not counted. No physics (tests): yes.
+   */
+  roomAt(kind, at) {
+    const phys = this.physics, D = FOES[kind] ?? FOES.blot;
+    if (!phys?.pushCapsule) return true;
+    const r = Math.max(0.2, Math.min(D.radius ?? 0.5, 0.9)), top = Math.max(1, (D.height ?? 0.6) * 2) + (D.hover ?? 0);
+    const push = phys.pushCapsule(_pb.copy(at), r, 0.3, top, _hz);
+    return !push || push.lengthSq() < 0.05 * 0.05;
+  }
+
+  /**
+   * Where a foe placed round `c` (at bearing a, r m out; the ground found from `up` m over c, `down` m deep)
+   * stands: the first of that spot and a few others turned round it and nearer in that has ground and room
+   * (roomAt). None: next to c, on c's own ground, never inside the world at a guessed height.
+   */
+  openSpot(kind, c, a, r, up, down) {
+    const phys = this.physics;
+    for (const [da, kr] of [[0, 1], [0.6, 1], [-0.6, 1], [0, 0.6], [1.4, 0.8], [-1.4, 0.8], [Math.PI, 0.7], [0, 0.3]]) {
+      const x = c.x + Math.sin(a + da) * r * kr, z = c.z + Math.cos(a + da) * r * kr;
+      const y = phys ? phys.groundAt(x, c.y + up, z, down) : c.y;
+      if (!Number.isFinite(y)) continue;
+      const at = new THREE.Vector3(x, y, z);
+      if (this.roomAt(kind, at)) return at;
+    }
+    return c.clone();
+  }
+
+  /** A pack of ink blots comes in, out of sight round you, where there is footing and room to stand. */
   spawnPack() {
     const P = this.player, phys = this.physics, kinds = packKinds(this.packs, this.levelId, this.rng).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
     const base = this.rng() * Math.PI * 2;
@@ -1045,7 +1105,7 @@ export class Foes {
       const y = phys ? phys.groundAt(x, P.pos.y + 25, z, 60) : P.pos.y;
       if (!Number.isFinite(y) || Math.abs(y - P.pos.y) > 5) continue;
       const at = new THREE.Vector3(x, y, z);
-      if (!this.wild(at)) continue;
+      if (!this.wild(at) || !this.roomAt(kinds[made], at)) continue;
       this.add(kinds[made], at);
       made++;
     }
@@ -1062,9 +1122,8 @@ export class Foes {
       if (!this.wild(g.pos)) { g.tame = true; continue; }
       const kinds = guardKinds(this.levelId, GUARDS.size);   // (the world's own: src/foe-worlds.js)
       for (let k = 0; k < GUARDS.size; k++) {
-        const a = (k / GUARDS.size) * Math.PI * 2 + 0.7, x = g.pos.x + Math.sin(a) * GUARDS.ring, z = g.pos.z + Math.cos(a) * GUARDS.ring;
-        const y = this.physics ? this.physics.groundAt(x, g.pos.y + 4, z, 12) : g.pos.y;
-        const f = this.add(kinds[k], new THREE.Vector3(x, Number.isFinite(y) ? y : g.pos.y, z));
+        const at = this.openSpot(kinds[k], g.pos, (k / GUARDS.size) * Math.PI * 2 + 0.7, GUARDS.ring, 4, 12);
+        const f = this.add(kinds[k], at);
         f.guard = g;
       }
     }
@@ -1078,9 +1137,7 @@ export class Foes {
     const P = this.player, kinds = WAVES[this.wave % WAVES.length], base = this.rng() * Math.PI * 2;
     kinds.forEach((kind, i) => {
       const a = base + (i / kinds.length) * Math.PI * 2, r = WAVE.near + this.rng() * (WAVE.far - WAVE.near);
-      const x = P.pos.x + Math.sin(a) * r, z = P.pos.z + Math.cos(a) * r;
-      const y = this.physics ? this.physics.groundAt(x, P.pos.y + 20, z, 40) : P.pos.y;
-      this.add(kind, new THREE.Vector3(x, Number.isFinite(y) ? y : P.pos.y, z));
+      this.add(kind, this.openSpot(kind, P.pos, a, r, 20, 40));
     });
     this.wave++;
     this.waveRest = WAVE.rest;
@@ -1313,16 +1370,27 @@ export class Foes {
     for (const f of out) {
       const c = f.chest, ahead = _v.subVectors(c, cam.position).dot(fwd) > 0;
       const p = c.clone().project(cam);
-      if (ahead && Math.abs(p.x) < 0.9 && Math.abs(p.y) < 0.85) continue;   // on the screen: its ring says it all
-      let x = ahead ? p.x : -p.x, y = ahead ? p.y : -p.y;
-      if (!ahead && Math.hypot(x, y) < 0.2) y = -1;   // straight behind: at the bottom
-      const k = 1 / Math.max(Math.abs(x) / 0.9, Math.abs(y) / 0.82, 1e-3);
-      x *= k; y *= k;
+      // on the screen and in sight, its body says it all; on the screen but behind a wall, a rock or a roof
+      // (a physics ray from the camera), it gets a marker too, over where it is (playtest 2026-10-08)
+      const onScreen = ahead && Math.abs(p.x) < 0.9 && Math.abs(p.y) < 0.85;
+      const hidden = onScreen && this.hiddenFromCamera(f);
+      const spot = warnSpot(p.x, p.y, ahead, hidden);
+      if (!spot) continue;
+      const { x, y } = spot;
       const chip = this.chips[n] ?? (this.chips[n] = this.warnEl.appendChild(Object.assign(document.createElement('div'), { className: 'foe-chip' })));
       chip.style.cssText = `position:absolute;left:${(x * 0.5 + 0.5) * 100}%;top:${(0.5 - y * 0.5) * 100}%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #2b211f;background:radial-gradient(circle, ${f.def.tone ?? '#8e64d6'} ${Math.round(f.k * 70)}%, rgba(247,236,210,0.85) ${Math.round(f.k * 70) + 1}%);box-shadow:2px 2px 0 #2b211f`;
       n++;
     }
     for (let i = n; i < (this.chips?.length ?? 0); i++) this.chips[i].style.display = 'none';
+  }
+
+  /** Is f's body hidden from the camera by the world (a physics ray from the camera to its chest)? */
+  hiddenFromCamera(f) {
+    const phys = this.physics, cam = this.camera;
+    if (!phys?.rayDistance || !cam) return false;
+    const to = _fb.subVectors(f.chest, cam.position), d = to.length();
+    if (d < 1e-3) return false;
+    return phys.rayDistance(cam.position, to.divideScalar(d), d) < d - (f.def.radius ?? 0.5) - 0.3;
   }
 
   /** A strike that caught the traveller: a bite of the bar (never all of a healthy one), a shove, a machine knocks you down. */
@@ -1526,10 +1594,9 @@ export class Foes {
     if (!FOES[kind] || !P) return [];
     const h = P.heading ?? 0, out = [];
     for (let i = 0; i < n; i++) {
-      const a = h + (i - (n - 1) / 2) * 0.35, x = P.pos.x + Math.sin(a) * dist, z = P.pos.z + Math.cos(a) * dist;
-      const y = this.physics ? this.physics.groundAt(x, P.pos.y + 20, z, 40) : P.pos.y;
-      const f = this.add(kind, new THREE.Vector3(x, Number.isFinite(y) ? y : P.pos.y, z));
-      f.heading = Math.atan2(P.pos.x - x, P.pos.z - z);
+      const at = this.openSpot(kind, P.pos, h + (i - (n - 1) / 2) * 0.35, dist, 20, 40);
+      const f = this.add(kind, at);
+      f.heading = Math.atan2(P.pos.x - at.x, P.pos.z - at.z);
       out.push(f);
     }
     return out;

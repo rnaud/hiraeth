@@ -4,7 +4,9 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { featherGeometry } from '../avian.js';
-import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, RIDER_CALL, RIDER_CALL_BEAT, KEEPSAKE } from './arzach-data.js';
+import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, KNUCKLE_LINES, KNUCKLE_HINT_STEP, RIDER_CALL, RIDER_CALL_BEAT, KEEPSAKE } from './arzach-data.js';
+import { riddleState, strikeKnuckle, nextKnuckle, glinting, dots, knuckleRadius } from './knuckle-riddle.js';
+import { stripTone } from './tone.js';
 import { setupArzachMoments } from './arzach-moments.js';
 
 // Vael's story, alive (arzach-data.js has the words): "The Waiting Bird".
@@ -332,13 +334,25 @@ export function setupArzach(ctx) {
     } });
 
   // ---------------------------------------------------------------- the stone hand
+  // (the riddle, made readable by looking: src/story/knuckle-riddle.js. Each knuckle stone is sized by its place
+  // in the order, smallest to tallest, and carries that place in dots cut on its outer face)
+  const side = V(-H.normal.z, 0, H.normal.x).normalize();
+  const dotMat = ownMaterial({ color: '#5a4636', glow: 0, flat: true, _id: 'arzach.knuckle.dots' });
   const knuckles = H.knuckles.map((k, i) => {
+    const r = knuckleRadius(i, KNUCKLE_ORDER);
     const mat = ownMaterial({ color: '#efe6d2', glow: 0, flat: true, _id: `arzach.knuckle.${i}` });
-    const m = new THREE.Mesh(new THREE.SphereGeometry(3.4, 12, 8), mat);
+    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), mat);
     m.position.copy(k.pos);
     m.userData.noCollide = true;
     scene.add(m);
-    return { ...k, i, m, mat, lit: 0 };
+    const n = dots(i, KNUCKLE_ORDER);
+    for (let d = 0; d < n; d++) {
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6), dotMat);
+      dot.position.copy(k.pos).addScaledVector(H.normal, r * 0.93).addScaledVector(side, (d - (n - 1) / 2) * 1.05);
+      dot.userData.noCollide = true;
+      scene.add(dot);
+    }
+    return { ...k, i, m, mat, r, lit: 0 };
   });
   const palmGlyph = (() => {
     const mat = ownMaterial({ color: '#8a6e52', glow: 0, flat: true, _id: 'arzach.palm' });
@@ -351,7 +365,13 @@ export function setupArzach(ctx) {
     scene.add(m);
     return { m, mat };
   })();
-  const hand = { seq: [], t: 0, open: game.flag('arzach.hand.rung') ? 1 : 0, opening: false, fail: 0 };
+  const riddle = riddleState();
+  riddle.rung = !!game.flag('arzach.hand.rung');
+  const hand = { riddle, t: 0, open: riddle.rung ? 1 : 0, opening: false, fail: 0, get seq() { return riddle.seq; } };
+  // once Kesh has called the order out, the journal spells it too
+  const ringStep = quests.def('arzach.hand')?.stages.find((x) => x.id === 'ring');
+  const spellStep = () => { if (ringStep) ringStep.text = KNUCKLE_HINT_STEP; };
+  if (game.flag('arzach.hand.hint')) spellStep();
   const knuckleNote = (k) => {
     if (!sound.ctx) return;
     const rank = KNUCKLE_ORDER.indexOf(k.i);
@@ -366,20 +386,29 @@ export function setupArzach(ctx) {
     sound.chime();
   };
   for (const k of knuckles) {
-    registerTarget({ kind: 'knuckle', radius: 3.4, position: () => k.pos, enabled: () => player.pos.distanceTo(k.pos) < 120,
+    registerTarget({ kind: 'knuckle', radius: k.r, position: () => k.pos, enabled: () => player.pos.distanceTo(k.pos) < 120,
       onHit: (mode) => {
         if (mode !== 'shoot') { k.lit = Math.max(k.lit, 0.3); return true; }
+        const { result, hint } = strikeKnuckle(riddle, k.i, KNUCKLE_ORDER);
+        if (result === 'wrong') {
+          // a dull knock, every knuckle flashes rust and goes dark, the chain starts again (no bell: the notes are
+          // only for the right ones, so the rising scale is the sign you are on the way)
+          hand.fail = 1;
+          for (const o of knuckles) o.lit = 0;
+          if (riddle.seq[0] === k.i) k.lit = 1;
+          if (sound.ctx) sound.critter?.('clank', 0.8);
+          if (hint === 'call') {
+            game.set('arzach.hand.hint', true);
+            spellStep();
+            if (!quests.isStarted('arzach.hand')) quests.start('arzach.hand');
+            toast(`Kesh: ${stripTone(KNUCKLE_LINES.call)}`);
+          } else if (hint === 'glint') toast(stripTone(KNUCKLE_LINES.glint));
+          else toast(stripTone(KNUCKLE_LINES.miss));
+          return true;
+        }
         k.lit = 1;
         knuckleNote(k);
-        if (game.flag('arzach.hand.rung')) return true;
-        hand.seq.push(k.i);
-        const n = hand.seq.length;
-        if (KNUCKLE_ORDER[n - 1] !== k.i) {
-          hand.seq = KNUCKLE_ORDER[0] === k.i ? [k.i] : [];
-          hand.fail = 1;
-          if (sound.ctx) sound.critter?.('clank', 0.8);
-          if (!hand.hinted && quests.isActive('arzach.hand')) { hand.hinted = true; toast('A dull knock. The knuckles go quiet. Small to tall, Kesh said.'); }
-        } else if (n === KNUCKLE_ORDER.length) ringHand();
+        if (result === 'rung') ringHand();
         return true;
       } });
   }
@@ -511,10 +540,14 @@ export function setupArzach(ctx) {
       }
     }
     // the hand: knuckles glow when struck, dim after; the palm opens when it rings
+    // (the chain so far stays lit; a miss flashes them all rust; after enough misses the next right one glints)
+    const next = nextKnuckle(riddle, KNUCKLE_ORDER), glint = glinting(riddle);
     for (const k of knuckles) {
-      k.lit = Math.max(game.flag('arzach.hand.rung') ? 0.25 : 0, k.lit - dt * (hand.fail > 0 ? 2.5 : 0.35));
-      k.mat.uniforms.uGlow.value = k.lit * 0.8;
-      k.mat.uniforms.uColor.value.set(k.lit > 0.05 ? '#f6cf8a' : '#efe6d2');
+      const held = riddle.seq.includes(k.i) ? 0.75 : 0;
+      k.lit = Math.max(game.flag('arzach.hand.rung') ? 0.25 : held, k.lit - dt * 0.35);
+      const pulse = glint && k.i === next ? 0.35 + 0.35 * Math.sin(t * 5) : 0;
+      k.mat.uniforms.uGlow.value = Math.max(k.lit * 0.8, pulse, hand.fail * 0.6);
+      k.mat.uniforms.uColor.value.set(hand.fail > 0.05 ? '#c0623e' : k.lit > 0.05 ? '#f6cf8a' : pulse > 0.05 ? '#fff4d6' : '#efe6d2');
     }
     hand.fail = Math.max(0, hand.fail - dt * 2);
     if (hand.opening && hand.open < 1) hand.open = Math.min(1, hand.open + dt / 3);
