@@ -8,7 +8,7 @@ import { curtain, houseStack, herbs, figure, stick, rope } from './salt-harbour-
 
 // ---------------------------------------------------------------------------
 // The Underside's shapes, shared by the world (underside.js) and its reference views (reference-underside.js),
-// after the pictures (references/The Underside/reference-1 … 4): an immense shelf of pale limestone jutting from a
+// after the pictures (references/levels/The Underside/environment/reference-1 … 4): an immense shelf of pale limestone jutting from a
 // mountain far out over a sea of cloud, and a town hung from its underside: round white houses like swallows'
 // nests stuck to the rock and hanging from it, timber decks, balconies and scaffolds slung under it on rods, lit
 // windows, long rust-red banners falling from the decks toward the clouds, baskets let down on ropes. Grass and

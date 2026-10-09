@@ -8,7 +8,7 @@ import {
 } from './antennas-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Forest of Antennas' reference sheets (references/The Forest of Antennas/reference-1 … 4): thousands of
+// The Forest of Antennas' reference sheets (references/levels/The Forest of Antennas/environment/reference-1 … 4): thousands of
 // abandoned radio masts on a rolling plain of violet grass, great parabolic dishes tilted like flowers, thin
 // lattice towers joined by vine-grown cables and maintenance bridges, birds nesting in the dishes, a small
 // settlement of rounded repair workshops under one immense receiver, a path winding to them, a pale yellow
@@ -16,7 +16,7 @@ import {
 // (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Forest of Antennas / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Forest of Antennas/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Forest of Antennas / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Forest of Antennas/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const ANTENNAS_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`antennas-${n}`, sheet(n)]));
 
 /** The sheets' ink: the world's own look (antennas-kit.js) and a clean sky. */

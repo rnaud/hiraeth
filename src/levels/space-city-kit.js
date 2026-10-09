@@ -8,7 +8,7 @@ import { house, antennaPole, roofClutter, awning, laundry, poleCloth, resident, 
 
 // ---------------------------------------------------------------------------
 // The City Floating in Space: its shapes and its look, shared by the world (space-city.js) and its reference
-// views (reference-spacecity.js), after the pictures (references/The City Floating in Space/reference-1 … 4):
+// views (reference-spacecity.js), after the pictures (references/levels/The City Floating in Space/environment/reference-1 … 4):
 // a city of rounded adobe houses in cream, salmon and coral, heaped storey on storey on islands that float in the
 // black of space, the islands joined by pale arched bridges, their undersides hung with dark machinery, tanks and
 // pipes and long cables dangling into the void. Stars are printed all round, teal and white; a great pale planet

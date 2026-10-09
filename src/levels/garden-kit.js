@@ -5,7 +5,7 @@ import { createNoise2D, mulberry32 } from '../noise.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres' shapes, shared by the world (spheres.js) and its reference views
-// (reference-spheres.js), after the sheets (references/The Garden of Spheres/IMG_3793 … 3796):
+// (reference-spheres.js), after the sheets (references/levels/The Garden of Spheres/environment/IMG_3793 … 3796):
 //   leafCrown     foliage as a cluster of small leaf masses (each its own outline), not one smooth lump
 //   crescentSphere a sphere printed in two flat tones, its crescent of pale blue fixed whatever the sun
 //   pillowRock    the white hill's sculpted rock: rounded pillows of stone, a flattened top to stand on

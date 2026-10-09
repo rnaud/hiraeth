@@ -9,7 +9,7 @@ import {
 } from './fallen-ring-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Fallen Ring's reference pictures (references/The Fallen Ring/reference-1 … 4): a broken orbital ring resting
+// The Fallen Ring's reference pictures (references/levels/The Fallen Ring/environment/reference-1 … 4): a broken orbital ring resting
 // across a vast sage-green plain, its colossal curved segments rising into the sky as arches, lying in the grass as
 // tubes, tilted on their broken ends; the cut sections showing the streets and parks inside; the lowest segment a
 // village with awnings and warm windows; grazing beasts wandering through; trees growing from the hull's seams;
@@ -17,7 +17,7 @@ import {
 // does them all (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Fallen Ring / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Fallen Ring/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Fallen Ring / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Fallen Ring/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const RING_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`fallenring-${n}`, sheet(n)]));
 
 /** The pictures' ink: the world's own look (fallen-ring-kit.js); its cumulus are geometry. */

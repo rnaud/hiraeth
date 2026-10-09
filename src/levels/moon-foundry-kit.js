@@ -8,7 +8,7 @@ import { bar, lathe, latticeTower, trussStair, moveParts, gather } from './anten
 
 // ---------------------------------------------------------------------------
 // The Moon Foundry's shapes, shared by the world (moon-foundry.js) and its reference views
-// (reference-moonfoundry.js), after the sheets (references/The Moon Foundry/reference-1 … 4): an abandoned
+// (reference-moonfoundry.js), after the sheets (references/levels/The Moon Foundry/environment/reference-1 … 4): an abandoned
 // monumental workshop where miniature moons were made, under a vast open hangar roof.
 //
 //   moon         an ivory sphere, its craters drawn as shallow rimmed dents laid on it (their inner wall

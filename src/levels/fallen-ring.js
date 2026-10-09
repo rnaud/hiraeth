@@ -14,7 +14,7 @@ import { PEOPLE as SPHERES_PEOPLE } from '../story/spheres-data.js';
 import { ringThrough, tree, village, serviceStair, grazer, puff, cloudBank, moveParts, merged, RING_LOOK, RING_DAY, RING_TONES } from './fallen-ring-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Fallen Ring: a broken orbital ring resting across a vast sage-green plain (references/The Fallen Ring/; its
+// The Fallen Ring: a broken orbital ring resting across a vast sage-green plain (references/levels/The Fallen Ring/; its
 // views in the References, reference-fallenring.js; the shapes in fallen-ring-kit.js). Off the route: no story to
 // follow, a few people to meet, the grazing beasts, the scale of the thing.
 //

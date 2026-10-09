@@ -15,7 +15,7 @@ import { RUN, runAt, stationOffset, bandShift } from './overnight-train-run.js';
 
 // ---------------------------------------------------------------------------
 // The Overnight Train (?level=overnighttrain): a long streamlined train crossing a flat lavender plain by night under
-// two moons, after its reference pictures (references/The Overnight Train/; its views in the References,
+// two moons, after its reference pictures (references/levels/The Overnight Train/; its views in the References,
 // reference-overnighttrain.js; the shapes and the look in overnight-train-kit.js). Off the route: no story to follow,
 // a few people to meet.
 //

@@ -11,7 +11,7 @@ import {
 
 // ---------------------------------------------------------------------------
 // The Underwater City (?level=underwater): a city on the sea floor, after its reference sheets
-// (references/The Underwater City, docs/systems/worlds.md "The Underwater City").
+// (references/levels/The Underwater City, docs/systems/worlds.md "The Underwater City").
 //
 //   the landing     a sandy hollow south of the city, rocks and kelp: the ship stands on the bed
 //   the avenue      the paved street north through the city (x -7 … 7), globe lamps both sides, the

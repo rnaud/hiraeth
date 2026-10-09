@@ -12,7 +12,7 @@ import { registerHazard, flameHazard, HAZARD_DPS } from './hazards.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 import { hiddenWriting, ghostPath } from './gadgets/hidden.js';
 
-// The desert's story places (references/IMG_3772-3775: pale rose domes,
+// The desert's story places (references/levels/The Desert/environment/IMG_3772-3775: pale rose domes,
 // cream walls, bone, flat sky):
 //   the old city of Qanat   a walled ring of domes and tower-houses on
 //                           stepped terraces round the burning tree; the
@@ -646,7 +646,7 @@ export function buildDesertCity(scene, terrain) {
         camp.add(M.cloth[(i + 2) % M.cloth.length], new THREE.CylinderGeometry(3.24, 3.24, 0.5, 14, 1, true).translate(x, 0.9, z));
         camp.add(M.dark, T(new THREE.BoxGeometry(1.1, 1.5, 0.3), [x + Math.sin(face) * 3.0, 0.75, z + Math.cos(face) * 3.0], [0, face, 0]));
       } else {
-        // a bat-wing awning on two poles (references/IMG_3775)
+        // a bat-wing awning on two poles (references/levels/The Desert/environment/IMG_3775)
         for (const s of [-1, 1]) camp.add(M.wood, new THREE.CylinderGeometry(0.08, 0.1, 4.2, 5).translate(x + Math.cos(face) * s * 3, 2.1, z - Math.sin(face) * s * 3));
         const w = new THREE.PlaneGeometry(7.5, 4.5, 6, 3);
         const p = w.attributes.position;

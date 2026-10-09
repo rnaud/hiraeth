@@ -297,7 +297,7 @@ round its colliders (below). What was off was not the fit but the people:
   makes him. The young stand as tall as MakeHuman makes their age beside the grown-ups of their kind:
   Lou (7.5) 1.13 m, Ilo (8) 1.16 m, Kito (9) 1.30 m, against a man of 1.80 m and a woman of 1.68 m (Lou
   was 1.48 m; with `?mh=1` at home she is now a child's height).
-- **The named people against their character sheets** (`references/The Desert/characters/`): Bako was
+- **The named people against their character sheets** (`references/levels/The Desert/characters/`): Bako was
   a broad grown-up in a sun hat and veil, Nour a slim grown-up in blue, Marrow an elder in a sun hat
   (his face drew the elder type). Now Bako is an old man (70) with a head-wrap, a grey beard and a long
   teal coat over a brown robe; Nour is old (80) and slim, under a wide straw cone with a veil, ochre

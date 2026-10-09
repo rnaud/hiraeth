@@ -3,7 +3,7 @@
   "selection": "User favourites from the revised single-view Midjourney batches, plus the explicitly requested sword download.",
   "assets": [
     {
-      "folder": "Home/characters/Father",
+      "folder": "levels/Home/characters/Father",
       "file": "reference-1.jpeg",
       "job": "d8275abf-1f5b-4b34-9e7a-852287e6df14",
       "image_index": 0,
@@ -13,7 +13,7 @@
       "bytes": 177257
     },
     {
-      "folder": "Home/characters/Mother",
+      "folder": "levels/Home/characters/Mother",
       "file": "reference-4.jpeg",
       "job": "748263e9-c70f-4b16-ba66-1913ace10010",
       "image_index": 3,
@@ -23,7 +23,7 @@
       "bytes": 289817
     },
     {
-      "folder": "Home/characters/Lou",
+      "folder": "levels/Home/characters/Lou",
       "file": "reference-3.jpeg",
       "job": "263aa21f-614e-4240-8613-15e16e74db0e",
       "image_index": 2,
@@ -33,7 +33,7 @@
       "bytes": 325358
     },
     {
-      "folder": "Home/characters/Ilen",
+      "folder": "levels/Home/characters/Ilen",
       "file": "reference-1.jpeg",
       "job": "ff7d453e-7810-459e-8e9c-6d007a6427c3",
       "image_index": 0,
@@ -43,7 +43,7 @@
       "bytes": 211244
     },
     {
-      "folder": "Home/characters/Aunt Tove",
+      "folder": "levels/Home/characters/Aunt Tove",
       "file": "reference-3.jpeg",
       "job": "12f086a9-db93-45d2-94cf-8debc7b9ec5c",
       "image_index": 2,
@@ -53,7 +53,7 @@
       "bytes": 197684
     },
     {
-      "folder": "Home/characters/Moustache",
+      "folder": "levels/Home/characters/Moustache",
       "file": "reference-4.jpeg",
       "job": "7bd44b87-0c45-4b9e-8e36-f82f4fca996b",
       "image_index": 3,

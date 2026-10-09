@@ -63,7 +63,7 @@ const MORE = [
 export const PEOPLE = {
   ilen: {
     // her body and look (the mother's teal and coral, grey coming into her hair): the selected design
-    // (src/characters/family.js, references/Home/characters/Ilen)
+    // (src/characters/family.js, references/levels/Home/characters/Ilen)
     ...FAMILY.ilen, voice: 0.92, lang: 'home',
     lines: ['~whisper~ It’s singing again. It does when someone comes.', '~happy~ Mind the third stone. It rocks.', '~solemn~ Thirty years. You get used to the quiet. You never like it.'],
     talk: {

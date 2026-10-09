@@ -5,7 +5,7 @@ import { leafCrown } from './garden-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Salt Harbour's shapes, shared by the world (salt-harbour.js) and its reference views
-// (reference-saltharbour.js), after the pictures (references/The Salt Harbour/reference-1 … 4):
+// (reference-saltharbour.js), after the pictures (references/levels/The Salt Harbour/environment/reference-1 … 4):
 // huge weathered ships standing on their keels in a dry white salt basin, made into apartment
 // buildings; the streets between their hulls, sailcloth shading them, gangways joining the decks
 // overhead, shops cut into the hulls' feet, herbs on the porthole ledges, mooring ropes staked

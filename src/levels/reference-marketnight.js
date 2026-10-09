@@ -7,7 +7,7 @@ import { MARKET_LOOK } from './bazaar.js';
 import { SCREEN, FILL_COLOURS, MN_TONES, PICTURES, crt, panel, roundScreen, placeParts, tarp, vendor, groundCables, TAU } from './market-night-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Signal Market at night (references/The Signal Market - Night/reference-1 … 4: four 16:9 variations of one
+// The Signal Market at night (references/levels/The Signal Market - Night/environment/reference-1 … 4: four 16:9 variations of one
 // picture, the market's screen lane after midnight). Each is one composition, one view each, built by one scene
 // builder (laneScene): the lane between two walls stacked with second-hand screens (market-night-kit.js), the
 // sheet's own screens placed off its pixels (sheetAt: what is drawn at pixel (px, py), d m down the line of sight),
@@ -17,7 +17,7 @@ import { SCREEN, FILL_COLOURS, MN_TONES, PICTURES, crt, panel, roundScreen, plac
 // the view's sun picks (the sun stands behind the camera, out of the frame).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Signal Market at night / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Signal Market - Night/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Signal Market at night / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Signal Market - Night/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const MARKETNIGHT_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`marketnight-${n}`, sheet(n)]));
 
 /** The sheets' ink: the market's look (bazaar.js), a clean sky, little hatching (the night's walls are flat dark masses). */

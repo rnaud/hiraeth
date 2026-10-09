@@ -197,7 +197,7 @@ test('Vael II\'s sheets after the City-Shaft\'s, panel by panel, framed and labe
     assert.equal(views.length, n, `${s}: ${n} panels`);
     assert.deepEqual(views.map((v) => v.panel), Array.from({ length: n }, (_, i) => i + 1), `${s}: its panels in order`);
     assert.ok(REFERENCE_SHEETS[s].name.startsWith('Vael II, the Sky Stones / '), 'the label names the world and the sheet');
-    assert.match(REFERENCE_SHEETS[s].url, new RegExp(`Vael%20II-%20The%20Sky%20Stones/${s}\\.JPG$`));
+    assert.match(REFERENCE_SHEETS[s].url, new RegExp(`levels/Vael%20II-%20The%20Sky%20Stones/environment/${s}\\.JPG$`));
     for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
       const [ax, ay, aw, ah] = views[i].crop, [bx, by, bw, bh] = views[j].crop;
       assert.ok(ax + aw <= bx || bx + bw <= ax || ay + ah <= by || by + bh <= ay, `${s}: panels ${i + 1} and ${j + 1} apart`);

@@ -457,7 +457,7 @@ export function holoLayout(who) {
 
 /**
  * Who they were, when they made the recordings: the father and the mother as the selected designs draw them
- * (src/characters/family.js, references/Home/characters/Father and Mother: the grey-haired pilot in his slate
+ * (src/characters/family.js, references/levels/Home/characters/Father and Mother: the grey-haired pilot in his slate
  * coat and rust vest, the silver-haired mother in her cream tunic and long teal scarf lined in coral); the
  * child (the traveller, small) in yellow.
  */

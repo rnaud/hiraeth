@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 // ---------------------------------------------------------------------------
-// A falling sheet of water drawn the way the sheets draw it (references/The City Behind
-// the Waterfall): not a simulation but a print. Compiled into the G-buffer surface shader
+// A falling sheet of water drawn the way the sheets draw it (references/levels/The City Behind the Waterfall/
+// environment): not a simulation but a print. Compiled into the G-buffer surface shader
 // (materials.js) for a material made with `fall: {...}` (the FALL define); like the rest it
 // writes a flat albedo, how lit it is and ink for post.js to print.
 //

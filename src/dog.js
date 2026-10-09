@@ -7,7 +7,7 @@ import { SecondOrder } from './motion-kit/spring.js';
 import { DOG_LOOK } from './characters/family.js';
 
 // Moustache, the dog at home (src/story/home.js), as his selected design draws him
-// (references/Home/characters/Moustache/reference-4.jpeg): an old, lean, long-legged wire terrier, sandy all
+// (references/levels/Home/characters/Moustache/reference-4.jpeg): an old, lean, long-legged wire terrier, sandy all
 // over, a long white moustache and beard hanging from his muzzle, white scruffy brows, one ear folded over,
 // a thin low tail. He follows you.
 //

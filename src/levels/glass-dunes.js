@@ -15,7 +15,7 @@ import { glassRidge, glassArch, glassPassage, awningCamp, boulders, glassOptions
 // wave breaking over its own hollow; sandy paths wind between them; the glassworkers keep two camps
 // of fabric awnings at the walls' feet; archways glow in the walls' feet; low glass flows run over
 // the sand. No quest: people, light, wind. Built from the References' kit (glass-dunes-kit.js), the
-// plates in references/The Glass Dunes/.
+// plates in references/levels/The Glass Dunes/environment/.
 //
 // Layout (m; +z south): the ship lands on a flat in the south (0, 250), its hatch to the north. The
 // valley runs north between the cliffs of the giants (west) and the billows (east), round a frozen

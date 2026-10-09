@@ -10,7 +10,7 @@ import {
 
 // ---------------------------------------------------------------------------
 // The City Behind the Waterfall (?level=waterfall): a long cavern city hidden behind a curtain of falling
-// water, after its reference sheets (references/The City Behind the Waterfall, docs/systems/worlds.md).
+// water, after its reference sheets (references/levels/The City Behind the Waterfall, docs/systems/worlds.md).
 //
 //   the landing      a broad shelf of stone outside the cavern's east mouth, open to the sky: the ship
 //                    stands there, the valley far below to the south, the mountain to the north

@@ -6,7 +6,7 @@ import {
 } from './underwater-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Underwater City's reference sheets (references/The Underwater City/reference-1 … 4: four 16:9
+// The Underwater City's reference sheets (references/levels/The Underwater City/environment/reference-1 … 4: four 16:9
 // plates). A city on the sea floor: tall salmon towers ringed with balcony pods of lit amber glass,
 // glass columns of luminous water with bubbles rising, cafés under glass domes on the streets, curved
 // walkways on piers with globe lamps, a manta gliding overhead, light falling in shafts from the
@@ -14,7 +14,7 @@ import {
 // builder (seaScene) does the four plates; each is a view (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Underwater City / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Underwater City/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Underwater City / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Underwater City/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const UNDERWATER_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`underwater-${n}`, sheet(n)]));
 
 /** sky top (toward the surface), horizon (the far water), shadow (the water's teal), light, sun */

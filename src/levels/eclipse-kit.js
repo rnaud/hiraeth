@@ -8,8 +8,8 @@ import { greebles } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
 // The City During the Eclipse: its shapes and its look, shared by the world (eclipse.js) and its
-// reference views (reference-eclipse.js), after the pictures (references/The City During the
-// Eclipse/reference-1 … 4): a city of limewashed houses, domes and round towers on terraces
+// reference views (reference-eclipse.js), after the pictures (references/levels/The City During the Eclipse/
+// environment/reference-1 … 4): a city of limewashed houses, domes and round towers on terraces
 // climbing round great stairs, at midday under a total eclipse. The moon's black disc and its
 // corona hang over the roofs, the sky is a deep blue with a band of rose light all round the
 // horizon, and the city has lit its lamps: lanterns on the tables where people eat outside, lit

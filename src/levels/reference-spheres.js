@@ -9,7 +9,7 @@ import { leafCrown, layeredCrown, crescentSphere, paintTris, pillowRock, arcade,
 import { formAxis } from '../form.js';
 
 // ---------------------------------------------------------------------------
-// The Garden of Spheres' reference sheets (references/The Garden of Spheres/IMG_3793 … 3796): a lime
+// The Garden of Spheres' reference sheets (references/levels/The Garden of Spheres/environment/IMG_3793 … 3796): a lime
 // meadow under colossal umbrella trees (their undersides near-black green, fanned with branches),
 // white pyramids, a white hill of sculpted rock, giant pale spheres half sunk in the grass, a still
 // lake, olive and cypress avenues to a round stone plaza. One scene builder (gardenScene) does them
@@ -19,7 +19,7 @@ import { formAxis } from '../form.js';
 // undersides and the thickets with deep green masses: the spot-black tier in the world's green.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The Garden of Spheres / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/The Garden of Spheres/${name}.JPG`, import.meta.url).href });
+const sheet = (name) => ({ name: `The Garden of Spheres / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The Garden of Spheres/environment/${name}.JPG`, import.meta.url).href });
 export const GARDEN_SHEETS = Object.fromEntries(['IMG_3793', 'IMG_3794', 'IMG_3795', 'IMG_3796'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: the world's own touches (spheres.js SPHERES_LOOK) and a clean sky. */

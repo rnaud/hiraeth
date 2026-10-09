@@ -4,7 +4,7 @@ import { V, CLEAN_SKY, n1, n2, gauss } from './reference-kit.js';
 import { hull, portholes, houseStack, superstructure, cloth, curtain, gangway, rope, stake, stall, archDoor, herbs, figure, SALT_LOOK, SALT_TONES } from './salt-harbour-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Salt Harbour's reference pictures (references/The Salt Harbour/reference-1 … 4): huge weathered
+// The Salt Harbour's reference pictures (references/levels/The Salt Harbour/environment/reference-1 … 4): huge weathered
 // ships standing on their keels in a dry white salt basin, made into apartment buildings; a street
 // between their immense curved hulls, white over terracotta, gangways joining the decks overhead,
 // pale sailcloth shading the street, shops cut into the hulls' feet, herbs on the ledges, long
@@ -13,7 +13,7 @@ import { hull, portholes, houseStack, superstructure, cloth, curtain, gangway, r
 // builder (harbourScene) does them all (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Salt Harbour / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Salt Harbour/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Salt Harbour / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Salt Harbour/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const SALT_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`saltharbour-${n}`, sheet(n)]));
 
 /** The pictures' ink: the world's own look (salt-harbour-kit.js) and a clean sky. */

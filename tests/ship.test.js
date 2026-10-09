@@ -355,7 +355,7 @@ test('the hologram: coloured busts of who they were, the father and the mother a
   }
   for (const who of ['father', 'both', 'three']) for (const L of holoLayout(who)) assert.ok(L.y >= BUST.lift && L.y < 0.2, 'each bust sits just over the lens');
   // their own colours, not one tint: each mesh's ink material is read as it is
-  // (references/Home/characters: the father clean-shaven, short grey hair; the mother's silver bun)
+  // (references/levels/Home/characters: the father clean-shaven, short grey hair; the mother's silver bun)
   assert.equal(PEOPLE.father.look.mask, 'none', 'the father is clean-shaven');
   assert.ok(!PEOPLE.father.moustache, 'no moustache');
   assert.ok(PEOPLE.father.family && PEOPLE.mother.family, 'both wear the family’s looks (src/characters/family.js)');

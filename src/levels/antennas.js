@@ -18,7 +18,7 @@ import {
 // ---------------------------------------------------------------------------
 // The Forest of Antennas: abandoned radio masts by the thousand on a rolling plain of violet grass, great
 // dishes tilted like flowers, lattice towers joined by vine-grown cables, birds nesting in the dishes, and a
-// small settlement of rounded repair workshops under one immense receiver (references/The Forest of Antennas/;
+// small settlement of rounded repair workshops under one immense receiver (references/levels/The Forest of Antennas/;
 // its views in the References, reference-antennas.js; the shapes in antennas-kit.js). Off the route: no story
 // to follow, a few people to meet.
 //

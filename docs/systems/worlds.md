@@ -490,7 +490,7 @@ shimmered, the reactor column filled the middle, the deck felt too big for one p
 
 ## The White Mangrove (`mangrove`, off the route, October 2026)
 
-A world to look at, after its four reference pictures (`references/The White Mangrove/`; the views:
+A world to look at, after its four reference pictures (`references/levels/The White Mangrove/`; the views:
 references.md): a settlement in a mangrove of enormous bone-white trees standing on arching roots in a
 black lake, houses on decks round the trunks, plank walks with lanterns, the lake's creatures glowing blue
 and pink. No story to follow and no errands: three people from other worlds came to see it (Oyo, the
@@ -535,7 +535,7 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
 ## The Glass Dunes: a detour off the route (October 2026)
 
 `?level=glassdunes` (`src/levels/glass-dunes.js`), built from the References' plates
-(`references/The Glass Dunes/`, docs/systems/references.md "The Glass Dunes' plates") and the same kit
+(`references/levels/The Glass Dunes/`, docs/systems/references.md "The Glass Dunes' plates") and the same kit
 (`src/levels/glass-dunes-kit.js`). No quest: people, light and wind, to see whether the world is worth more.
 
 - **Off the route** (`SIDE` in `src/levels/names.js`, the level's `side: true`): the galactic map charts the
@@ -596,7 +596,7 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
 ## The City Behind the Waterfall (`waterfall`, off the route, October 2026)
 
 `src/levels/waterfall.js` (`?level=waterfall`; a SIDE world in `src/levels/names.js`, charted on the ship's map from the
-start, no quest, no relics: `manual: true`), after its four pictures (`references/The City Behind the Waterfall`,
+start, no quest, no relics: `manual: true`), after its four pictures (`references/levels/The City Behind the Waterfall`,
 references.md). Its pieces are in `src/levels/waterfall-kit.js`, shared with the views.
 
 - **The layout**: a cavern running along x (−310 … 44), its back wall at z −100, its roof's lip at y 150 over the
@@ -644,7 +644,7 @@ references.md). Its pieces are in `src/levels/waterfall-kit.js`, shared with the
 
 ## The Salt Harbour (`saltharbour`, off the route, October 2026)
 
-A world to look at, after its four reference pictures (`references/The Salt Harbour/`; the views:
+A world to look at, after its four reference pictures (`references/levels/The Salt Harbour/`; the views:
 references.md): huge weathered ships standing on their keels in a vast dry white salt basin, made into
 apartment buildings, a street between their hulls. No story to follow and no errands: three people from other
 worlds came to see it (Marrow, the desert's salvager, by the ship; Corvin Sale of the City-Shaft's rim on the
@@ -702,7 +702,7 @@ street, talks at the shops and leans on the decks' rails (`crowdSpots`, crowd.js
 
 ## The Forest of Antennas (`antennas`, off the route, October 2026)
 
-A world to look at, after its four reference pictures (`references/The Forest of Antennas/`; the views:
+A world to look at, after its four reference pictures (`references/levels/The Forest of Antennas/`; the views:
 references.md): abandoned radio masts by the thousand on a rolling plain of violet grass, great dishes tilted every
 way, lattice towers joined by vine-grown cables, birds nesting on the rims, and a small settlement of rounded repair
 workshops under one immense receiver. No story to follow and no errands: three people from other worlds came to hear
@@ -757,7 +757,7 @@ speak the Sealed Hangar's tongue (`lang: 'garage'`: a world off the route borrow
 ## The Underwater City (`underwater`, off the route, October 2026)
 
 `src/levels/underwater.js` (`?level=underwater`; a SIDE world in `src/levels/names.js`, charted on the ship's map from
-the start, no quest, no relics: `manual: true`), after its four pictures (`references/The Underwater City`,
+the start, no quest, no relics: `manual: true`), after its four pictures (`references/levels/The Underwater City`,
 references.md). Its pieces are in `src/levels/underwater-kit.js`, shared with the views.
 
 - **Under the sea, the game's own movement** (the choice): the whole city is under a sea whose surface is 48 m up
@@ -816,7 +816,7 @@ references.md). Its pieces are in `src/levels/underwater-kit.js`, shared with th
 
 ## The City During the Eclipse (`eclipse`, off the route, October 2026)
 
-A world to look at, after its four reference pictures (`references/The City During the Eclipse/`; the views:
+A world to look at, after its four reference pictures (`references/levels/The City During the Eclipse/`; the views:
 references.md): a city of limewashed houses, domes and round towers on terraces round great stairs, at midday
 under a total eclipse. The city has lit its lamps at noon and gone out to eat in its squares. No story to follow
 and no errands: three people from other worlds came for the eclipse (Mira of Viridel with her water clock, by
@@ -868,7 +868,7 @@ lamps at the overlook), five of the city's folk with a few toned lines, a crowd 
 
 ## The Fallen Ring (`fallenring`, off the route, October 2026)
 
-A world to look at, after its four reference pictures (`references/The Fallen Ring/`; the views: references.md): a
+A world to look at, after its four reference pictures (`references/levels/The Fallen Ring/`; the views: references.md): a
 broken orbital ring lying across a vast sage-green plain, its colossal curved segments standing as arches into the sky,
 lying in the grass as tubes, leaning on their crushed ends; their cut sections showing the streets and gardens inside;
 the low pieces made into villages; herds of woolly beasts grazing through. No story to follow and no errands: two people
@@ -920,7 +920,7 @@ each. They speak Viridel's tongue (`lang: 'edena'`).
 ## The Moon Foundry (`moonfoundry`, off the route, October 2026)
 
 `src/levels/moon-foundry.js` (`?level=moonfoundry`; a SIDE world in `src/levels/names.js`, charted on the ship's map from
-the start, no quest, no relics: `manual: true`), after its four pictures (`references/The Moon Foundry`, references.md).
+the start, no quest, no relics: `manual: true`), after its four pictures (`references/levels/The Moon Foundry`, references.md).
 Its pieces are in `src/levels/moon-foundry-kit.js`, shared with the views. An abandoned workshop for making miniature
 moons: the moons were never finished and nobody came for them; the workers live in the old machinery.
 
@@ -985,7 +985,7 @@ moons: the moons were never finished and nobody came for them; the workers live 
 ## The Underside (`underside`, off the route, October 2026)
 
 An immense shelf of pale limestone jutting east from a mountain far out over a sea of cloud, and a town hung from its
-underside (`src/levels/underside.js`, after `references/The Underside/`; its views in the References,
+underside (`src/levels/underside.js`, after `references/levels/The Underside/`; its views in the References,
 `reference-underside.js`; the shapes and the look in `underside-kit.js`, shared with them: references.md "The
 Underside's pictures"). On the galactic map from the start (names.js `SIDE`), no story to follow (`story.manual`: the
 page names the place and closes on the tip deck). `?level=underside`.
@@ -1042,7 +1042,7 @@ page names the place and closes on the tip deck). `?level=underside`.
   the far shelf's town is a sketch. No interiors.
 ## The City Floating in Space (`spacecity`, off the route, October 2026)
 
-`src/levels/space-city.js`, after the pictures in `references/The City Floating in Space/` (their views:
+`src/levels/space-city.js`, after the pictures in `references/levels/The City Floating in Space/` (their views:
 references.md; the shapes and the look: `src/levels/space-city-kit.js`, shared with the views). A city of rounded adobe
 houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges,
 their undersides hung with dark machinery and cables dangling into the void; stars all round, below as well as above
@@ -1102,7 +1102,7 @@ their undersides hung with dark machinery and cables dangling into the void; sta
 
 ## The Signal Market at night (`bazaar` after dark, October 2026)
 
-The night sheets (`references/The Signal Market - Night`, the views: references.md "The Signal Market at night") are
+The night sheets (`references/levels/The Signal Market - Night`, the views: references.md "The Signal Market at night") are
 the Signal Market itself: the author's prompt is "the Signal Market at night", an alien screen market at midnight.
 So they are the bazaar's own night, not a world of their own: its street, story, quests, cabs and people are as they
 were, and by day nothing changes (a day screenshot before and after is the same but for the walkers). After dark:
@@ -1139,7 +1139,7 @@ were, and by day nothing changes (a day screenshot before and after is the same 
 ## The Overnight Train (`overnighttrain`, off the route, October 2026)
 
 A long streamlined train crossing a flat lavender plain by night under two moons (`src/levels/overnight-train.js`,
-after references/The Overnight Train/; its kit `overnight-train-kit.js` shared with its References views, its run
+after references/levels/The Overnight Train/; its kit `overnight-train-kit.js` shared with its References views, its run
 `overnight-train-run.js`). On the galactic map from the start (names.js SIDE), no story, no beacon.
 
 - **The train stands still; the land runs past.** The world's frame is the train's: its carriages, floors, walls,

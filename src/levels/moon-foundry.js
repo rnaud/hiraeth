@@ -15,7 +15,7 @@ import { trussStair, lathe } from './antennas-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Moon Foundry (?level=moonfoundry): an abandoned monumental workshop where miniature moons were made, after its
-// reference sheets (references/The Moon Foundry/; its views in the References, reference-moonfoundry.js; the shapes in
+// reference sheets (references/levels/The Moon Foundry/; its views in the References, reference-moonfoundry.js; the shapes in
 // moon-foundry-kit.js; docs/systems/worlds.md "The Moon Foundry"). Off the route: no story to follow, a few people.
 //
 //   the apron      the ship lands on the open ground south of the hangar's mouth

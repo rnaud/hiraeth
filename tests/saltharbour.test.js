@@ -19,7 +19,7 @@ test('the Salt Harbour\'s pictures: four views, one per picture, in the Referenc
     assert.ok(S.name.startsWith('The Salt Harbour / '), 'the quick menu groups it under the world');
     assert.deepEqual(S.size, [1456, 816]);
     assert.deepEqual(v.crop, [0, 0, 1456, 816], 'the whole picture');
-    assert.match(S.url, /The%20Salt%20Harbour\/reference-\d\.jpeg$|The Salt Harbour\/reference-\d\.jpeg$/);
+    assert.match(S.url, /The%20Salt%20Harbour\/environment\/reference-\d\.jpeg$|The Salt Harbour\/environment\/reference-\d\.jpeg$/);
   }
   assert.equal(SALT_DAY.length, 5);
   assert.equal(SALT_LOOK.uClouds, 0);

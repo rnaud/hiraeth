@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 // ---------------------------------------------------------------------------
-// The Glass Dunes' glass drawn the way the plates draw it (references/The Glass Dunes/,
+// The Glass Dunes' glass drawn the way the plates draw it (references/levels/The Glass Dunes/,
 // docs/systems/materials.md "Dune glass"): not refraction but a print. Compiled into the G-buffer
 // surface shader (materials.js) for a material made with `duneGlass` (the DUNE_GLASS define) or, for
 // the sand, `dunePool` (DUNE_POOL); like the rest it writes a flat albedo, how lit it is and its glow

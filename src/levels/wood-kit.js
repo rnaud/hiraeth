@@ -5,7 +5,7 @@ import { leafCrown } from './garden-kit.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II's shapes, shared by the world (perdide2.js) and its reference views (reference-lorn.js), after
-// the sheets (references/Lorn II The Deep Wood/IMG_3797 … 3800):
+// the sheets (references/levels/Lorn II The Deep Wood/environment/IMG_3797 … 3800):
 //   braid      a root as a tangle: strands twisting round its course, splitting off and rejoining it
 //   caveFrame  a cave mouth framed in roots: arches of tangled roots over a dark hollow, roots hanging in it
 //   bankBush   a bush on the bank: a mass of small leaf clumps (drawn in dense hatching: its material's)

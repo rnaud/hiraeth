@@ -10,7 +10,7 @@ import { formAxis } from '../form.js';
 const wrapped = (g) => formAxis(g, 'wrap');   // a cylinder made about y: its strokes wrap round it
 
 // ---------------------------------------------------------------------------
-// The Buried Machine's reference sheets (references/The Buried Machine/IMG_3789 … 3792): pale cream
+// The Buried Machine's reference sheets (references/levels/The Buried Machine/environment/IMG_3789 … 3792): pale cream
 // dunes under a sage sky with domed huts and pipe elbows breaking the surface, a trench lined with
 // pipes, a rust canyon of tanks and walls pierced by great ovals, a teal drum open to the sky, a city
 // hanging upside down overhead and a colossal ring of arches carrying a town. One scene builder
@@ -20,7 +20,7 @@ const wrapped = (g) => formAxis(g, 'wrap');   // a cylinder made about y: its st
 // (the dunes' shade a sage grey, the rust a deep rust, the teal a deep teal): no flat print here.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The Buried Machine / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/The Buried Machine/${name}.JPG`, import.meta.url).href });
+const sheet = (name) => ({ name: `The Buried Machine / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The Buried Machine/environment/${name}.JPG`, import.meta.url).href });
 export const BURIED_SHEETS = Object.fromEntries(['IMG_3789', 'IMG_3790', 'IMG_3791', 'IMG_3792'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: shade the surface's own colour darkened (no warm grey, no flat print), a clean sky. */

@@ -383,7 +383,7 @@ docs/makehuman.md has the checks, the numbers and the pictures.
   +60 MB of JS heap (docs/makehuman.md has the table).
 - **The traveller** stays on his own Quaternius body: his suit, gear and helmet are fitted to it, he
   is the stranger from the sky, and at a conversation's distance the helmet and visor frame his face.
-- The named people follow their character sheets (`references/The Desert/characters/`).
+- The named people follow their character sheets (`references/levels/The Desert/characters/`).
   `tests/makehuman-desert.test.js`.
 
 ### MakeHuman bodies, stage 3: every world, one face-key texture, more headwear
@@ -725,7 +725,7 @@ and Wren's trim. Review full-body cast sheets and walking/seated poses in
 ## The family (October 2026, v1.7)
 
 The traveller's family wears one canonical look each, from the user's selected single-view designs in
-`references/Home/characters/` (provenance: `references/batches/2026-10-09-selected-family-currency-ship-sword.json`;
+`references/levels/Home/characters/` (provenance: `references/batches/2026-10-09-selected-family-currency-ship-sword.json`;
 the earlier exploration sheets are not used). `src/characters/family.js` holds them: `FAMILY_LOOKS` (colours
 sampled from the images, hair, robe, boots, face and mood, and the pieces' `kit`), `FAMILY` (the story's body
 fields: kind, age and years, scale, Lou's child morph and face) and `DOG_LOOK` (Moustache's colours).

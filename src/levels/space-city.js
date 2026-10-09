@@ -12,7 +12,7 @@ import {
 } from './space-city-kit.js';
 
 // ---------------------------------------------------------------------------
-// The City Floating in Space (references/The City Floating in Space/; its views in the References,
+// The City Floating in Space (references/levels/The City Floating in Space/; its views in the References,
 // reference-spacecity.js; the shapes and the look in space-city-kit.js): a city of rounded adobe houses in cream,
 // salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges, their
 // undersides hung with dark machinery and cables dangling into the void. Stars all round, below as well as above

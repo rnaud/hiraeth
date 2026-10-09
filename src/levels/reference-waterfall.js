@@ -7,7 +7,7 @@ import {
 } from './waterfall-kit.js';
 
 // ---------------------------------------------------------------------------
-// The City Behind the Waterfall's reference sheets (references/The City Behind the Waterfall/
+// The City Behind the Waterfall's reference sheets (references/levels/The City Behind the Waterfall/
 // reference-1 … 4: four 16:9 plates). A long cavern city behind a towering curtain of water:
 // terraces of rounded houses in warm pale stone, lit amber in the deep, copper pipes on the walls,
 // short bridges out to openings in the water with the sunlit valley beyond; the cavern's rock in a
@@ -15,7 +15,7 @@ import {
 // plates; each is a view (reference-views.js describes the fields) framed on it.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The City Behind the Waterfall / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The City Behind the Waterfall/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The City Behind the Waterfall / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The City Behind the Waterfall/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const WATERFALL_SHEETS = { 'waterfall-1': sheet(1), 'waterfall-2': sheet(2), 'waterfall-3': sheet(3), 'waterfall-4': sheet(4) };
 
 /**

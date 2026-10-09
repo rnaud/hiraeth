@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 
-// The rest of what the desert's character sheets draw (references/The Desert/characters, docs/makehuman.md):
+// The rest of what the desert's character sheets draw (references/levels/The Desert/characters, docs/makehuman.md):
 // Nour's gourds, keys and pierced disc staff, Marrow's salvage bag and pack, the bells on Sefa's hem and her
 // oud's tassels, the Speaker's streamers; and the oud kept out of her cloak as she walks.
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });

@@ -9,7 +9,7 @@ import { formAxis } from '../form.js';
 import { braid, caveFrame, bankBush, nest as nestParts, taper } from './wood-kit.js';
 
 // ---------------------------------------------------------------------------
-// Lorn II's reference sheets (references/Lorn II The Deep Wood/IMG_3797 … 3800): a dusk forest of giant
+// Lorn II's reference sheets (references/levels/Lorn II The Deep Wood/environment/IMG_3797 … 3800): a dusk forest of giant
 // pale violet mushrooms among dark cathedral trunks, a coral sky glimpsed between them, a teal stream
 // and shallows, glowing egg heaps and coral pools, moss domes, enormous root arches, a crashed saucer,
 // a cave glowing coral and the teal skiff. One scene builder (woodScene) does them all; each panel is a
@@ -19,7 +19,7 @@ import { braid, caveFrame, bankBush, nest as nestParts, taper } from './wood-kit
 // faces the camera in shade (violet, teal), and the spot blacks fill the hollows of roots and trunks.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `Lorn II / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/Lorn II The Deep Wood/${name}.JPG`, import.meta.url).href });
+const sheet = (name) => ({ name: `Lorn II / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/Lorn II The Deep Wood/environment/${name}.JPG`, import.meta.url).href });
 export const LORN_SHEETS = Object.fromEntries(['IMG_3797', 'IMG_3798', 'IMG_3799', 'IMG_3800'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: the world's own look (perdide2.js DEEP_WOOD_LOOK) and a clean sky. */

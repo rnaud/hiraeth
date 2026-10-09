@@ -1,4 +1,4 @@
-// The traveller's family, as the selected single-view designs draw them (references/Home/characters/<Name>/:
+// The traveller's family, as the selected single-view designs draw them (references/levels/Home/characters/<Name>/:
 // provenance in references/batches/2026-10-09-selected-family-currency-ship-sword.json). One canonical look
 // each, used wherever they appear: home (src/story/home-data.js: Lou, Aunt Tove), the Lantern and home again
 // (src/story/lantern-data.js: Ilen), the recordings' hologram (src/ship/hologram.js: the father and the mother,
@@ -16,12 +16,12 @@
 
 /** The selected reference image of each of them (repository paths). */
 export const FAMILY_REFERENCES = {
-  father: 'references/Home/characters/Father/reference-1.jpeg',
-  mother: 'references/Home/characters/Mother/reference-4.jpeg',
-  lou: 'references/Home/characters/Lou/reference-3.jpeg',
-  ilen: 'references/Home/characters/Ilen/reference-1.jpeg',
-  tove: 'references/Home/characters/Aunt Tove/reference-3.jpeg',
-  moustache: 'references/Home/characters/Moustache/reference-4.jpeg',
+  father: 'references/levels/Home/characters/Father/reference-1.jpeg',
+  mother: 'references/levels/Home/characters/Mother/reference-4.jpeg',
+  lou: 'references/levels/Home/characters/Lou/reference-3.jpeg',
+  ilen: 'references/levels/Home/characters/Ilen/reference-1.jpeg',
+  tove: 'references/levels/Home/characters/Aunt Tove/reference-3.jpeg',
+  moustache: 'references/levels/Home/characters/Moustache/reference-4.jpeg',
 };
 
 /** The worlds the family is dressed in (their looks are the same in each). */

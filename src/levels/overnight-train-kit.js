@@ -6,7 +6,7 @@ import { figure, stick } from './salt-harbour-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Overnight Train's shapes, shared by the world (overnight-train.js) and its reference views
-// (reference-overnighttrain.js), after the pictures (references/The Overnight Train/reference-1 … 4): a long
+// (reference-overnighttrain.js), after the pictures (references/levels/The Overnight Train/environment/reference-1 … 4): a long
 // streamlined train crossing a flat lavender plain at dusk under two moons, its rounded carriages in plum and
 // silver-lavender, rows of lit orange windows, a great round nose with a railed balcony full of people, gardens
 // growing on the roofs, pink pennants streaming back, and a salmon cloud of dust kicked up along its wheels.

@@ -6,7 +6,7 @@ import {
 } from './space-city-kit.js';
 
 // ---------------------------------------------------------------------------
-// The City Floating in Space's reference pictures (references/The City Floating in Space/reference-1 … 4): a city of
+// The City Floating in Space's reference pictures (references/levels/The City Floating in Space/environment/reference-1 … 4): a city of
 // rounded adobe houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale
 // arched bridges, their undersides hung with dark machinery and cables dangling into the void; stars printed all
 // round, teal and white; a great pale planet over the roofs (full, or a crescent); the traveller on a dark teal
@@ -19,7 +19,7 @@ import {
 // into the world's directions for the view's sun (references.js sunTurn).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The City Floating in Space / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The City Floating in Space/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The City Floating in Space / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The City Floating in Space/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const SPACE_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`spacecity-${n}`, sheet(n)]));
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);

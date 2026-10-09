@@ -9,7 +9,7 @@ import {
 } from './moon-foundry-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Moon Foundry's reference sheets (references/The Moon Foundry/reference-1 … 4: four 16:9 pictures). An
+// The Moon Foundry's reference sheets (references/levels/The Moon Foundry/environment/reference-1 … 4: four 16:9 pictures). An
 // abandoned monumental workshop where miniature moons were made: enormous unfinished ivory moons hanging from
 // cranes or resting in orange mechanical cradles, cutaway shells with gardens, houses and stairs inside, one
 // broken open like an eggshell round a little courtyard, faded orange cranes and pillars, mint-green trees, broad
@@ -18,7 +18,7 @@ import {
 // (sheetAt: what is drawn at pixel (px, py), d m down the line of sight). reference-views.js describes the fields.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Moon Foundry / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Moon Foundry/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Moon Foundry / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Moon Foundry/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const MOONFOUNDRY_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`moonfoundry-${n}`, sheet(n)]));
 
 /** The sheets' ink: the world's look (moon-foundry-kit.js), a clean sky. */

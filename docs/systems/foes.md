@@ -982,8 +982,8 @@ Flyer wings pivot at their embedded roots; machine arms have overlapping shoulde
 
 ### World enemy reference atlas (retired)
 
-`references/enemy-atlas.html` presents the Midjourney concepts of the 100 world enemies (two creatures, a possessed
-machine and a spirit for each of 25 worlds; `references/enemy-roster.json`, each world's `enemies/sources.json`).
+`references/archive/world-enemies/enemy-atlas.html` presents the Midjourney concepts of the 100 world enemies (two creatures, a possessed
+machine and a spirit for each of 25 worlds; `references/archive/world-enemies/enemy-roster.json`, each world's `<World>/sources.json` beside it).
 Their game models and kinds are retired (v1.8: "The enemy roster" above); their best pictures stay as the
 archetypes' skin references (docs/design/enemy-roster.md) until each archetype's fresh sheet is drawn.
 

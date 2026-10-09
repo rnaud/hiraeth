@@ -8,7 +8,7 @@ import {
 } from './eclipse-kit.js';
 
 // ---------------------------------------------------------------------------
-// The City During the Eclipse's reference pictures (references/The City During the Eclipse/reference-1 … 4):
+// The City During the Eclipse's reference pictures (references/levels/The City During the Eclipse/environment/reference-1 … 4):
 // a city of limewashed houses, domes and round towers on terraces round great stairs, at midday under a total
 // eclipse: the moon's black disc ringed with light over the roofs, its corona in fine rays or a stipple, the sky a
 // deep blue banded rose at the horizon; the walls a cold lavender, the lamps lit, people eating at tables outside
@@ -20,7 +20,7 @@ import {
 // line of sight), apart from the view's sun, which lights the city from high up (the whole sky's glow).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The City During the Eclipse / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The City During the Eclipse/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The City During the Eclipse / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The City During the Eclipse/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const ECLIPSE_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`eclipse-${n}`, sheet(n)]));
 
 /** sky top, horizon, shadow (the deep violet of the shade), light (the cold lavender of the lit limewash), sun */

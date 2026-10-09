@@ -642,7 +642,7 @@ All of this is for the web game; the Unity port follows later if we move to Unit
   - Shader-level, done: flat printed shadows (`uShadowFlat`, the views use it), the façades' window
     share (`windows`), views at a pitch and roll. On the world: fewer windows, less hatching, no
     cumulus.
-- Vael: `references/Vael/` is empty (no sheets); its tower plain and bird are drawn on Vael II's.
+- Vael: `references/levels/Vael/` is empty (no sheets); its tower plain and bird are drawn on Vael II's.
 - Vael II, the Sky Stones (IMG_3783–3788: 5 + 5 + 5 + 6 + 6 + 4 panels) are views 51–81
   (`reference-vael2.js`; docs/systems/references.md, "Vael II's sheets").
   - Shader-level, done: a material's own flat print (`shadeFlat`: the world's rock, plain and
@@ -1821,7 +1821,7 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## The family, as their selected designs (v1.7, 2026-10-09)
 
-- [x] **Generate and integrate the family characters** from `references/Home/characters/` (the author's selected
+- [x] **Generate and integrate the family characters** from `references/levels/Home/characters/` (the author's selected
   single-view designs: Father, Mother, Lou, Ilen, Aunt Tove and Moustache; the earlier exploration sheets not used).
   One canonical look each in `src/characters/family.js` (colours sampled from the images, hair, age, build, robe,
   boots, face and mood), worn wherever they appear: home (`home-data.js` spreads `FAMILY.lou` / `.tove`), the

@@ -866,7 +866,7 @@ The City During the Eclipse's sky: the sun covered by the moon at midday, drawn 
 ## Space (post.js `drawSpace`, `uSpace`; October 2026)
 
 The City Floating in Space's sky: the black of space all round, below the city as well as above it, the way the
-pictures print it (references/The City Floating in Space/).
+pictures print it (references/levels/The City Floating in Space/).
 
 - **The sky**: the world's colour script keeps the sky top and horizon a near-black with a trace of teal at every
   hour, and its look prints it flat (`uSkyFlat` 1, no bands, no dots, no clouds, no cumulus, no sun rays: `uRays`

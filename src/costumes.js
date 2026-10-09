@@ -1470,7 +1470,7 @@ export const BODIES = {
     P('accent', box(0.06, 0.24, 0.016).rotateZ(0.08).rotateX(-0.2).translate(0.045, 0.6, 0.115)),
     P('accent', box(0.055, 0.17, 0.016).rotateZ(-0.12).rotateX(-0.25).translate(-0.02, 0.63, 0.122)),
   ],
-  // ---- the desert's own, from its character sheets (references/The Desert/characters)
+  // ---- the desert's own, from its character sheets (references/levels/The Desert/characters)
   // Bako's bag (his sheet): a big soft canvas shoulder bag, slouching at his left hip over his coat, its flap
   // folded over the top and down the front, on a wide strap across his chest and over his right shoulder
   // (canvas: FIXED.canvas)
@@ -1616,7 +1616,7 @@ export const PROPS = {
   ],
   bell: (q) => [P('wood', cyl(0.008, 0.008, 0.09, q, 4).translate(0, -0.11, 0.02)), P('metal', cyl(0.03, 0.058, 0.075, q, 10, true).translate(0, -0.19, 0.02))],
   flower: (q) => [P('wood', cyl(0.005, 0.005, 0.45, q, 3).rotateX(0.3).translate(0, 0.1, 0.08)), ...blossoms(5, 0.03, 0.31, 0, 0.026, q, ['accent', 'hat']).map((p) => (p.geo.translate(0, 0, 0.15), p))],
-  // ---- the desert's own, from its character sheets (references/The Desert/characters)
+  // ---- the desert's own, from its character sheets (references/levels/The Desert/characters)
   // Bako's ney: a long reed flute, knotted along its length, carried slanting up across the chest and
   // a little in front of it, so it reads clear of a long coat (its top rises past the collar)
   ney: (q) => {

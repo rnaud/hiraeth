@@ -1,6 +1,35 @@
 # The References: the reference sheets rebuilt
 
-The `?level=references` level: each sheet's views rebuilt in the game.
+The `references/` folder and how it is laid out, then the `?level=references` level: each sheet's views
+rebuilt in the game.
+
+## The references folder (October 2026)
+
+```
+references/
+  levels/<World>/          one folder per world, named as the world is ("The Desert", "Vael II- The Sky Stones"…)
+    environment/           the world's own pictures: the sheets (IMG_*.JPG), reference-N.jpeg, and their
+                           source.txt / prompt.txt / review.txt; a few worlds keep sub-areas here
+                           (`levels/The Giants Mouth/environment/Entrance/`)
+    characters/<Name>/     its people (sources.json beside them)
+    places/<id>/           the reference lab's picks for one place (sheet-N.jpg + manifest.json)
+  The Travellers Ship/  main character/  Core Objects/  enemy-archetypes/  Title Screen/
+                           the references that belong to no world (paths unchanged)
+  batches/                 the Midjourney batches' records (folder paths relative to references/)
+  _candidates/             the reference lab's store, git-ignored (docs/systems/reference-lab.md)
+  archive/world-enemies/   the 100 retired world enemies (v1.8): <World>/lineup-0N + sources.json, and their
+                           guide, atlas and roster (ENEMIES.md, enemy-atlas.html, enemy-roster.json)
+  REFERENCE-SELECTION.txt, *-preview.jpg
+```
+
+- A world's loose pictures go in `environment/`, never beside `characters/`. The world enemies of each world were retired with v1.8 (the
+  archetypes, `references/enemy-archetypes/`, replaced them): their sheets are archived, not under `levels/`.
+- **Paths are guarded**: `tests/reference-paths.test.js` reads every text file of the repository and fails
+  on a path into `references/` whose folders are not there (the top level, and under `levels/` and `archive/` two
+  more), on a world path written without `levels/` (the batches write them relative to `references/`), and on anything loose in a world folder. Moving a folder means updating its paths in
+  the same commit.
+- The sheets the References level draws are bundled by Vite (`new URL('../../references/levels/…')`), so a
+  wrong path also fails `npx vite build`.
 
 ## The References: the reference pages rebuilt (v0.57)
 
@@ -8,7 +37,7 @@ The `?level=references` level: each sheet's views rebuilt in the game.
 never on the route or the star map) rebuilds the scenes of the reference pages in `references/`
 with the game's own materials, sky, light and ink, each seen from a fixed camera framed like its
 panel, so the shaders can be checked against the look they are after. It starts with the six
-panels of `references/The Desert/environement/IMG_3775.JPG` (`REFERENCE_VIEWS` in
+panels of `references/levels/The Desert/environment/IMG_3775.JPG` (`REFERENCE_VIEWS` in
 `src/levels/reference-views.js`): the bones in the dunes, the fluted tower and its dishes, the
 rope bridges over the gorge, the sail tents, the turquoise lake under the violet cliffs, the
 buried hull. Then the desert's three other environment sheets, panel by panel
@@ -198,7 +227,7 @@ bands busier than the plates' flat lavender tables; (5) the sky, the haze and th
 
 ### Vael II's sheets (the Sky Stones)
 
-`references/Vael/` is empty; Vael II's six sheets are the Sky Stones' (and draw Vael's lone tower
+`references/levels/Vael/` is empty; Vael II's six sheets are the Sky Stones' (and draw Vael's lone tower
 and bird too).
 
 - **The views** (`src/levels/reference-vael2.js`, `VAEL2_VIEWS`): IMG_3783 to 3788 (5, 5, 5, 6, 6
@@ -532,7 +561,7 @@ the narrowest creases.
   the creatures #5c90ff, #f07ad8, #7adcff; view 2's creatures smaller. Still off: the pictures' warm lantern light on the
   roots (our lights have no colour), their bloom, and the trees' shade side shows only where the views' sun allows.
 
-## The Glass Dunes' plates (references/The Glass Dunes/reference-1 … 4)
+## The Glass Dunes' plates (references/levels/The Glass Dunes/environment/reference-1 … 4)
 
 - **The views** (`src/levels/reference-glassdunes.js`, world `glassdunes`, `?level=references&world=glassdunes&view=n`):
   the four plates, one view each, after the Signal Market's. One scene builder (`dunesScene`) with the Glass Dunes'
@@ -1120,7 +1149,7 @@ Ranked by how much they would close the gap to the sheets, across every world re
 
 ## The Sealed Hangar's colours (October 2026, v0.95)
 
-`references/The Sealed Hangar/` holds only its people's sheets (`characters/preview.jpg`: Ottla, Ambroise, Lune,
+`references/levels/The Sealed Hangar/` holds only its people's sheets (`characters/preview.jpg`: Ottla, Ambroise, Lune,
 Clemence, Major Brask), drawn in dusty tones on cream paper: a faded blue, mustard, lilac, coral, olive. Compared at
 the start and turned: (1) the world's paint a toy-box's pure hues (`PALETTE`: `#62c3c9`, `#f2c54b`, `#e6875f`…);
 (2) the plateau a lime (`#cfe0a8`); (3) the sky a saturated cerulean (`#6aaed0`); (4) the shade a grey-blue. Changed
@@ -1132,7 +1161,7 @@ and the story's props keep the old tones (src/temples, src/story); no environmen
 
 ## Lorn's colours (October 2026, v0.95)
 
-`references/Lorn/` holds only its people's sheets (`characters/preview.jpg`: Wendel, Sedge, Saba, Corm, Ysse): muted
+`references/levels/Lorn/` holds only its people's sheets (`characters/preview.jpg`: Wendel, Sedge, Saba, Corm, Ysse): muted
 olive, straw, violet and navy on cream. Compared at the start at 18:24 (its opening hour), turned, and at 11:00:
 (1) the long evening cast shadows near-black stripes over the moss (the olive times the violet tint is a grey, deepened
 by the spot tier); (2) the moss an acid green under the teal evening light (`#c8f2e4`); (3) the sky a saturated
@@ -1143,7 +1172,7 @@ off: the ship and the tulip trees take the flat violet shade too; no environment
 (the triptych before / after / reference: `changelog-media/0.95/lorn-colours-after.webp`; `tests/colour-pass.test.js`)
 ## Vael and Viridel: their people's sheets (v0.95)
 
-`references/Vael/` and `references/Viridel/` hold only character sheets (flat pastel colour on a cream paper);
+`references/levels/Vael/` and `references/levels/Viridel/` hold only character sheets (flat pastel colour on a cream paper);
 Vael's tower and bird are drawn on Vael II's sheets. Compared with those and with Vael II's tower panels:
 
 - **Vael** (`arzach.js`): its dunes carried heavy rose-brown cast shadows; the sheets' shade (the watchers' white

@@ -91,7 +91,7 @@ buttons carry their glyphs, B closes the zoom and then goes back to the Debug me
 ```sh
 node scripts/gen-reference.mjs --list
 node scripts/gen-reference.mjs --from docs/design/enemy-roster-prompts.md#crab \
-  --refs "references/The Desert/environement/IMG_3773.JPG" --providers openai,gemini,fal-flux --n 2
+  --refs "references/levels/The Desert/environment/IMG_3773.JPG" --providers openai,gemini,fal-flux --n 2
 node scripts/gen-reference.mjs --from docs/design/enemy-roster-prompts.md#crab/alt \
   --refs references/enemy-archetypes/crab/sheet-1.jpg          # the alternate skin, from the chosen sheet
 node scripts/gen-reference.mjs --prompt "…" --refs a.jpg,b.jpg --ar 3:2 --target references/enemy-archetypes/heron/
@@ -142,7 +142,7 @@ Midjourney manifest, as in the prompts document, keeps its fields and gets a new
   "model": "gemini-nano-banana-2.1",
   "prompt": "<the prompt as sent>",
   "from": "docs/design/enemy-roster-prompts.md#crab",
-  "refs": ["references/The Desert/environement/IMG_3773.JPG"],
+  "refs": ["references/levels/The Desert/environment/IMG_3773.JPG"],
   "ar": "16:9",
   "date": "2026-10-10",
   "batch": "2026-10-10-09-12-03-ab12",

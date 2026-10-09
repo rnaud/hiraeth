@@ -9,11 +9,11 @@ instead of tracks, and the ink blot has no concept of its own. Each archetype ge
 ## What every prompt keeps
 
 - **The house style**, reused word for word from the existing prompts: the enemy briefs
-  (`references/*/enemies/sources.json`: "Moebius science-fiction ligne claire, fine ink contours, warm ivory paper,
+  (`references/archive/world-enemies/*/sources.json`: "Moebius science-fiction ligne claire, fine ink contours, warm ivory paper,
   fully visible bodies, no text"), the gadget sheets (`references/batches/*.json`: "Moebius fine ink drawing, flat
   gouache, cream background") and the title covers (`references/Title Screen/selections.json`: "exquisite fine pen
   contours, sparse delicate hatching, luminous FLAT gouache colour fields, restrained cream paper grain"). The
-  enemy roster's own style line (`references/enemy-roster.json`) adds "ancient ivory/brass machinery, ink-black/violet
+  enemy roster's own style line (`references/archive/world-enemies/enemy-roster.json`) adds "ancient ivory/brass machinery, ink-black/violet
   spirits".
 - **The layout:** the same body drawn four times at one scale (front, side, three-quarter, and the wind-up pose of
   its signature attack, the pose the game uses as its telegraph), a solid black silhouette under the side view (the
@@ -24,7 +24,7 @@ instead of tracks, and the ink blot has no concept of its own. Each archetype ge
   hinges on the machines, and for the spirits how the dark shows itself (each one differently, as the roster
   requires).
 - **The flags.** The earlier enemy sheets and title covers carried no `--v` flag: they ran on Midjourney's default
-  model at the time, V8.2 (`references/enemy-roster.json`, `"model": "8.2"`). These prompts do the same; if the
+  model at the time, V8.2 (`references/archive/world-enemies/enemy-roster.json`, `"model": "8.2"`). These prompts do the same; if the
   default has moved on by the time they are run, add `--v 8.2` so the new sheets match the old ones. The aspect is
   `--ar 16:9` for long or low bodies and `--ar 3:2` for tall ones. The `--no` list follows the title covers'
   hyphenated form. No `--sref`: the title covers' style references are landscapes and would pull scenery in.

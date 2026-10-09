@@ -5,7 +5,7 @@ import { V, tube, sagPts, put, smoothstep, PERSON, CLEAN_SKY } from './reference
 import { cabModel } from '../taxi.js';
 
 // ---------------------------------------------------------------------------
-// The City-Shaft's reference sheets (references/The City-Shaft/IMG_3778 … 3782): a city of
+// The City-Shaft's reference sheets (references/levels/The City-Shaft/environment/IMG_3778 … 3782): a city of
 // stacked blocks down the walls of a shaft, pink and cream in the sun, flat blue in shade, bridges
 // and cables across, flying cabs, turquoise water far below. One scene builder (shaftScene) does
 // them all, from a few walls of houses, free-standing stacks, bridges, cables and cabs; each panel
@@ -13,7 +13,7 @@ import { cabModel } from '../taxi.js';
 // down (camera.pitch, roll).
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The City-Shaft / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/The City-Shaft/${name}.JPG`, import.meta.url).href });
+const sheet = (name) => ({ name: `The City-Shaft / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The City-Shaft/environment/${name}.JPG`, import.meta.url).href });
 export const SHAFT_SHEETS = { IMG_3778: sheet('IMG_3778'), IMG_3779: sheet('IMG_3779'), IMG_3780: sheet('IMG_3780'), IMG_3781: sheet('IMG_3781'), IMG_3782: sheet('IMG_3782') };
 
 /**

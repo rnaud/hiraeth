@@ -30,7 +30,7 @@ test('the Forest of Antennas\' pictures: four views, one per sheet, in the Refer
     assert.ok(S.name.startsWith('The Forest of Antennas / '), 'the quick menu groups it under the world');
     assert.deepEqual(S.size, [1456, 816]);
     assert.deepEqual(v.crop, [0, 0, 1456, 816], 'the whole picture');
-    assert.match(S.url, /The%20Forest%20of%20Antennas\/reference-\d\.jpeg$|The Forest of Antennas\/reference-\d\.jpeg$/);
+    assert.match(S.url, /The%20Forest%20of%20Antennas\/environment\/reference-\d\.jpeg$|The Forest of Antennas\/environment\/reference-\d\.jpeg$/);
   }
   assert.equal(ANTENNAS_DAY.length, 5);
   assert.equal(ANTENNAS_LOOK.uClouds, 0);

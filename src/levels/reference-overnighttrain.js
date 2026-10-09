@@ -7,7 +7,7 @@ import {
 } from './overnight-train-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Overnight Train's reference pictures (references/The Overnight Train/reference-1 … 4): a long streamlined train
+// The Overnight Train's reference pictures (references/levels/The Overnight Train/environment/reference-1 … 4): a long streamlined train
 // crossing a flat lavender plain at dusk under two moons, its round nose and railed balcony full of people, lit
 // orange windows down its length, gardens on its roofs, pink pennants streaming back, a salmon cloud of dust along
 // its wheels; the plain streaked with long dark lines toward the horizon. Each picture is one composition: one view
@@ -15,7 +15,7 @@ import {
 // balcony's tip meets the floor's level, and the vanishing point its length runs to on the horizon.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Overnight Train / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Overnight Train/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Overnight Train / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Overnight Train/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const TRAIN_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`overnighttrain-${n}`, sheet(n)]));
 
 /** The pictures' ink: the world's own look and a clean sky. */

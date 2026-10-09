@@ -19,7 +19,7 @@ in the final report. Look at the newest world of the same kind as a model:
   - a **detour** (on `SIDE`: people, a trace of the light, a viewpoint page);
   - a **special place** (reached by the story, like Home or the Lantern).
 - **Where it sits** on the route and the galactic map, and what opens it.
-- **Its reference:** a Moebius plate or sheet to build from (`references/`, `docs/systems/references.md`).
+- **Its reference:** a Moebius plate or sheet to build from (`references/levels/<World>/environment/`, its people in `characters/` beside it; its enemies are skins of `references/enemy-archetypes/`; `docs/systems/references.md`).
 - **Its people and their tongue,** and the one thing the world is about (`docs/story-bible.md`, `LORE.md`).
 
 ## 1. The level

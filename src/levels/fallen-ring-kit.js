@@ -11,7 +11,7 @@ import { lumpy } from './sky-stones-kit.js';
 
 // ---------------------------------------------------------------------------
 // The Fallen Ring's shapes, shared by the world (fallen-ring.js) and its reference views (reference-fallenring.js),
-// after the pictures (references/The Fallen Ring/reference-1 … 4): a broken orbital ring lying across a sage-green
+// after the pictures (references/levels/The Fallen Ring/environment/reference-1 … 4): a broken orbital ring lying across a sage-green
 // plain, its colossal curved segments standing as arches into the sky, lying in the grass as tubes, tilted on their
 // broken ends; their cut sections showing the streets and parks inside; the lowest segment a village with awnings
 // and warm windows; grazing animals; trees growing from the hull's seams; weathered ivory and faded vermilion.

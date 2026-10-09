@@ -1,5 +1,5 @@
 // The traveller's family as their selected designs draw them (src/characters/family.js, family-pieces.js;
-// references/Home/characters): each one's look (colours, hair, the outfit's parts), the same look in every
+// references/levels/Home/characters): each one's look (colours, hair, the outfit's parts), the same look in every
 // scene they appear in (home, the Lantern, home again, the recordings, the studio), their costumes on both
 // body families, and Moustache's legs on the locomotion kit (src/dog.js; scripts/motion-audit).
 import test from 'node:test';
@@ -32,8 +32,8 @@ test('each of them has a selected reference image, and nothing else of theirs is
   for (const id of [...IDS, 'moustache']) assert.ok(existsSync(new URL(`../${FAMILY_REFERENCES[id]}`, import.meta.url)), `${id}: ${FAMILY_REFERENCES[id]}`);
   const batch = JSON.parse(readFileSync(new URL('../references/batches/2026-10-09-selected-family-currency-ship-sword.json', import.meta.url), 'utf8'));
   for (const id of [...IDS, 'moustache']) {
-    const [, , , folder, file] = FAMILY_REFERENCES[id].split('/');
-    assert.ok(batch.assets.some((a) => a.folder === `Home/characters/${folder}` && a.file === file), `${id}: the user's selection`);
+    const [, , , , folder, file] = FAMILY_REFERENCES[id].split('/');
+    assert.ok(batch.assets.some((a) => a.folder === `levels/Home/characters/${folder}` && a.file === file), `${id}: the user's selection`);
   }
 });
 
@@ -239,6 +239,6 @@ test('Moustache sits (the hind feet step in, the rump goes down), lies down, sni
   run(1.5, () => { sniffer.state = 'sniff'; sniffer.pose(dt, false, false); });
   sniffer.object.updateMatrixWorld(true);
   assert.ok(sniffer.head.getWorldPosition(V()).y < up - 0.05, 'his nose goes down to sniff');
-  // his colours: sandy, the white moustache and brows (references/Home/characters/Moustache)
+  // his colours: sandy, the white moustache and brows (references/levels/Home/characters/Moustache)
   assert.ok(hsl(DOG_LOOK.fur).h > 0.07 && hsl(DOG_LOOK.fur).h < 0.11 && hsl(DOG_LOOK.white).l > 0.9);
 });

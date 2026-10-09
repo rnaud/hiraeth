@@ -10,7 +10,7 @@ import { smoothstep, PERSON, CLEAN_SKY } from './reference-kit.js';
 import { rockKnobs } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
-// Vael II's reference sheets (references/Vael II- The Sky Stones/IMG_3783 … 3788): bone-white needle
+// Vael II's reference sheets (references/levels/Vael II- The Sky Stones/environment/IMG_3783 … 3788): bone-white needle
 // spires against a peach or aqua sky, mushroom tables and balanced eggs over a sea of cloud, cliff-top
 // monasteries and aqueducts, and the peach plain running to a lone tower. One scene builder
 // (vaelScene) does them all; each panel is a view (reference-views.js describes the fields).
@@ -20,7 +20,7 @@ import { rockKnobs } from './greeble-kit.js';
 // hatch densely only under the caps, the overhangs and the cliffs' faces.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `Vael II, the Sky Stones / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/Vael II- The Sky Stones/${name}.JPG`, import.meta.url).href });
+const sheet = (name) => ({ name: `Vael II, the Sky Stones / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/Vael II- The Sky Stones/environment/${name}.JPG`, import.meta.url).href });
 export const VAEL2_SHEETS = Object.fromEntries(['IMG_3783', 'IMG_3784', 'IMG_3785', 'IMG_3786', 'IMG_3787', 'IMG_3788'].map((n) => [n, sheet(n)]));
 
 /**

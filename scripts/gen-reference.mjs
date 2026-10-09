@@ -5,7 +5,7 @@
 //
 //   node scripts/gen-reference.mjs --list
 //   node scripts/gen-reference.mjs --from docs/design/enemy-roster-prompts.md#crab \
-//        --refs "references/Vael II- The Sky Stones/enemies/lineup-01.jpeg" --providers openai,gemini,fal-flux --n 2
+//        --refs "references/archive/world-enemies/Vael II- The Sky Stones/lineup-01.jpeg" --providers openai,gemini,fal-flux --n 2
 //   node scripts/gen-reference.mjs --prompt "…" --refs a.jpg,b.jpg --ar 16:9 --target references/enemy-archetypes/crab/
 //   node scripts/gen-reference.mjs --batches
 //   node scripts/gen-reference.mjs --pick <batch>/<provider>/<n> [--target …] [--why "the clearest silhouette"]

@@ -6,7 +6,7 @@ import { DUNE_HAZE } from '../desert-sites.js';
 import { glassRidge, glassArch, awningCamp, boulders, glassOptions, painted, glassBatch, glassPools, SAND } from './glass-dunes-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Glass Dunes' reference sheets (references/The Glass Dunes/reference-1 … 4.jpeg, one plate each):
+// The Glass Dunes' reference sheets (references/levels/The Glass Dunes/environment/reference-1 … 4.jpeg, one plate each):
 // translucent green dunes of fused sand, high frozen waves and walls of glass holding great dark
 // silhouettes, a camp of fabric awnings at a ridge's foot, the low evening sun through the glass on
 // the amber sand, archways at the walls' feet, the traveller small in the foreground. One scene
@@ -18,7 +18,7 @@ import { glassRidge, glassArch, awningCamp, boulders, glassOptions, painted, gla
 // through the glass), its light a warm amber.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Glass Dunes / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Glass Dunes/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Glass Dunes / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Glass Dunes/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const GLASS_SHEETS = { 'glassdunes-1': sheet(1), 'glassdunes-2': sheet(2), 'glassdunes-3': sheet(3), 'glassdunes-4': sheet(4) };
 
 /** The plates' ink: a clean sky, the far sand in the desert's stepped warm bands, few strokes. */

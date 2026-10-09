@@ -15,7 +15,7 @@ import {
 
 // ---------------------------------------------------------------------------
 // The City During the Eclipse: a city of limewashed houses, domes and round towers on terraces round great
-// stairs, at midday under a total eclipse (references/The City During the Eclipse/; its views in the
+// stairs, at midday under a total eclipse (references/levels/The City During the Eclipse/; its views in the
 // References, reference-eclipse.js; the shapes and the look in eclipse-kit.js; the sky by the hour in
 // src/eclipse.js). The moon's black disc and its corona hang over the roofs, a band of rose light runs all
 // round the horizon, and the city has lit its lamps at noon: people eat outside at tables by lantern light,

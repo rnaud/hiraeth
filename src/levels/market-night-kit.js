@@ -6,7 +6,7 @@ import { cloth } from './salt-harbour-kit.js';
 // ---------------------------------------------------------------------------
 // The Signal Market at night: its screens and their colours, shared by the market's night (bazaar.js: its
 // billboards and shop signs turn into the sheets' screens after dark) and the References views of the night
-// sheets (reference-marketnight.js), after references/The Signal Market - Night/reference-1 … 4: a narrow lane
+// sheets (reference-marketnight.js), after references/levels/The Signal Market - Night/environment/reference-1 … 4: a narrow lane
 // of the market after midnight, its walls stacked with second-hand screens of every age and size (bulky CRTs,
 // flat panels, a round monitor, small terminals), each lit in its own flat saturated colour and showing its own
 // picture (a pale alien face on violet, a scarlet portrait, an acid-green terminal, a lemon fruit advert, a

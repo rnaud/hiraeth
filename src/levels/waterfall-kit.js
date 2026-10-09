@@ -7,7 +7,7 @@ import { lumpy } from './sky-stones-kit.js';
 import { leafCrown } from './garden-kit.js';
 
 // ---------------------------------------------------------------------------
-// The City Behind the Waterfall's pieces (references/The City Behind the Waterfall), shared by its
+// The City Behind the Waterfall's pieces (references/levels/The City Behind the Waterfall), shared by its
 // reference views (reference-waterfall.js) and the world (waterfall.js). Everything goes through a
 // kit with RoomKit's face (lab-kit.js: mat, add, mesh, light, mover, group): geometry in the kit's
 // frame, fronts looking toward +z before their yaw.

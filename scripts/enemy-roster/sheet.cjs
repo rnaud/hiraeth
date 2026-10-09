@@ -6,7 +6,7 @@ const path = require('path');
 const sharp = require('sharp');
 const fs = require('fs');
 const R = path.resolve(__dirname, '../..') + '/';
-const roster = require(R + 'references/enemy-roster.json');
+const roster = require(R + 'references/archive/world-enemies/enemy-roster.json');
 const DIR = Object.fromEntries(roster.worlds.map((w) => [w.world, w]));
 const OUT = process.argv[2] || R + 'docs/design/enemy-roster-sheet.jpg';
 const ONLY = process.argv[3];
@@ -100,7 +100,7 @@ async function silhouette(buf, h) {
   const layers = [];
   const svgParts = [];
   svgParts.push(`<text x="24" y="54" font-family="Helvetica, Arial, sans-serif" font-size="38" font-weight="bold" fill="#2a2420">Hiraeth: enemy roster proposal (21 archetypes)</text>`);
-  svgParts.push(`<text x="24" y="92" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#5a524a">Reference crops from references/*/enemies (Midjourney), the black shape below each as it would read far off. Colour band: <tspan fill="${CAT.creature}" font-weight="bold">creature</tspan>, <tspan fill="${CAT.machine}" font-weight="bold">possessed machine</tspan>, <tspan fill="${CAT.spirit}" font-weight="bold">spirit</tspan>. Details: docs/design/enemy-roster.md</text>`);
+  svgParts.push(`<text x="24" y="92" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#5a524a">Reference crops from references/archive/world-enemies/* (Midjourney), the black shape below each as it would read far off. Colour band: <tspan fill="${CAT.creature}" font-weight="bold">creature</tspan>, <tspan fill="${CAT.machine}" font-weight="bold">possessed machine</tspan>, <tspan fill="${CAT.spirit}" font-weight="bold">spirit</tspan>. Details: docs/design/enemy-roster.md</text>`);
   for (let i = 0; i < list.length; i++) {
     const a = list[i];
     const cx = (i % COLS) * CW, cy = HEAD + Math.floor(i / COLS) * CH;

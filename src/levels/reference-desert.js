@@ -8,14 +8,14 @@ import {
 } from './reference-kit.js';
 
 // ---------------------------------------------------------------------------
-// The other desert environment sheets (references/The Desert/environement/IMG_3772, 3773, 3774):
+// The other desert environment sheets (references/levels/The Desert/environment/IMG_3772, 3773, 3774):
 // the same places drawn again (the ribcage in the dunes, the dish city, the gorge and its bridges,
 // the petal station, the turquoise lake under violet cliffs, the buried machines), each panel a view
 // as in reference-views.js (its fields are described there). Crops are inside each panel's inked
 // border, found on the sheet; colours read off the panel.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The Desert / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/The Desert/environement/${name}.JPG`, import.meta.url).href });
+const sheet = (name) => ({ name: `The Desert / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The Desert/environment/${name}.JPG`, import.meta.url).href });
 export const DESERT_SHEETS = { IMG_3772: sheet('IMG_3772'), IMG_3773: sheet('IMG_3773'), IMG_3774: sheet('IMG_3774') };
 
 const n4 = createNoise2D(37754);

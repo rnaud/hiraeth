@@ -87,7 +87,7 @@ test('the White Mangrove\'s pictures: four views, one per sheet, in the Referenc
     assert.ok(S.name.startsWith('The White Mangrove / '), 'the quick menu groups it under the world');
     assert.deepEqual(S.size, [1456, 816]);
     assert.deepEqual(v.crop, [0, 0, 1456, 816], 'the whole picture');
-    assert.match(S.url, /The%20White%20Mangrove\/reference-\d\.jpeg$|The White Mangrove\/reference-\d\.jpeg$/);
+    assert.match(S.url, /The%20White%20Mangrove\/environment\/reference-\d\.jpeg$|The White Mangrove\/environment\/reference-\d\.jpeg$/);
   }
   assert.equal(MANGROVE_DAY.length, 5);
   assert.equal(MANGROVE_LOOK.uClouds, 0);

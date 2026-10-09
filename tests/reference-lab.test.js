@@ -30,10 +30,10 @@ const B64 = JPEG.toString('base64');
 /** A small repository: two references, a prompt document, a manifest with a prompt. */
 function fakeRepo() {
   const root = mkdtempSync(join(tmpdir(), 'reflab-'));
-  mkdirSync(join(root, 'references/The Desert'), { recursive: true });
-  writeFileSync(join(root, 'references/The Desert/rock.jpg'), JPEG);
-  writeFileSync(join(root, 'references/The Desert/dune.png'), Buffer.from('89504e47', 'hex'));
-  writeFileSync(join(root, 'references/The Desert/notes.json'), JSON.stringify({ images: [{ label: 'A1', prompt: 'A wide desert cover with a tiny traveller and a ringed planet, Moebius ligne claire --ar 16:9 --no photorealism 3d-render' }] }));
+  mkdirSync(join(root, 'references/levels/The Desert/environment'), { recursive: true });
+  writeFileSync(join(root, 'references/levels/The Desert/environment/rock.jpg'), JPEG);
+  writeFileSync(join(root, 'references/levels/The Desert/environment/dune.png'), Buffer.from('89504e47', 'hex'));
+  writeFileSync(join(root, 'references/levels/The Desert/environment/notes.json'), JSON.stringify({ images: [{ label: 'A1', prompt: 'A wide desert cover with a tiny traveller and a ringed planet, Moebius ligne claire --ar 16:9 --no photorealism 3d-render' }] }));
   mkdirSync(join(root, 'docs/design'), { recursive: true });
   writeFileSync(join(root, 'docs/design/enemy-roster-prompts.md'), DOC);
   return root;
@@ -98,7 +98,7 @@ test('prompt documents: entries, variants, the Midjourney flags turned into an a
 
 test('a prompt document can name its own target folder', async () => {
   const { targetFor } = await import('../scripts/reference-lab/prompts.mjs');
-  assert.equal(targetFor('docs/design/desert-places-prompts.md', 'skull', 'x\nTarget folder: `references/The Desert/places/<id>/`\n'), 'references/The Desert/places/skull/');
+  assert.equal(targetFor('docs/design/desert-places-prompts.md', 'skull', 'x\nTarget folder: `references/levels/The Desert/places/<id>/`\n'), 'references/levels/The Desert/places/skull/');
   assert.equal(targetFor('docs/design/enemy-roster-prompts.md', 'crab'), 'references/enemy-archetypes/crab/');
   assert.equal(targetFor('docs/x-prompts.md', 'a'), 'references/a/');
 });
@@ -155,7 +155,7 @@ test('aspect ratios map to each provider\'s sizes', () => {
 });
 
 // ------------------------------------------------------------------ requests
-const REF = { name: 'rock.jpg', mime: 'image/jpeg', base64: B64, path: 'references/The Desert/rock.jpg' };
+const REF = { name: 'rock.jpg', mime: 'image/jpeg', base64: B64, path: 'references/levels/The Desert/environment/rock.jpg' };
 
 test('OpenAI: references as image[] parts of /images/edits, the key in the Authorization header only', async () => {
   const p = providerById('openai');
@@ -303,7 +303,7 @@ function labFetch() {
 test('a batch: every provider at once, one failing without stopping the others, candidates.json written; then pick and discard', async () => {
   const root = fakeRepo();
   const keys = { OPENAI_API_KEY: KEY, GEMINI_API_KEY: 'gm-SECRET-abcdef' };
-  const m = await runBatch({ root, prompt: 'a rock', refs: ['references/The Desert/rock.jpg'], providers: ['openai', 'gemini', 'bfl'], n: 2, ar: '16:9', target: 'references/enemy-archetypes/crab', keys, fetch: labFetch(), ...fast, batch: 'b1' });
+  const m = await runBatch({ root, prompt: 'a rock', refs: ['references/levels/The Desert/environment/rock.jpg'], providers: ['openai', 'gemini', 'bfl'], n: 2, ar: '16:9', target: 'references/enemy-archetypes/crab', keys, fetch: labFetch(), ...fast, batch: 'b1' });
   assert.equal(m.status, 'done');
   assert.equal(m.providers.openai.status, 'done');
   assert.equal(m.providers.gemini.status, 'error');
@@ -312,7 +312,7 @@ test('a batch: every provider at once, one failing without stopping the others, 
   assert.match(m.providers.bfl.error, /add BFL_API_KEY to \.env\.local/);
   assert.deepEqual(m.candidates.map((c) => c.id), ['openai/1', 'openai/2']);
   assert.equal(m.target, 'references/enemy-archetypes/crab/');
-  assert.equal(m.comparison, 'references/The Desert/rock.jpg');
+  assert.equal(m.comparison, 'references/levels/The Desert/environment/rock.jpg');
   const dir = join(root, CANDIDATES_DIR, 'b1');
   assert.deepEqual(readFileSync(join(dir, 'openai/1.jpg')), JPEG);
   const file = readFileSync(join(dir, 'candidates.json'), 'utf8');
@@ -330,7 +330,7 @@ test('a batch: every provider at once, one failing without stopping the others, 
   assert.equal(mf.sheets.length, 2);
   assert.deepEqual(Object.keys(mf.sheets[0]).slice(0, 5), ['file', 'service', 'provider', 'providerLabel', 'model']);
   assert.equal(mf.sheets[0].prompt, 'a rock');
-  assert.deepEqual(mf.sheets[0].refs, ['references/The Desert/rock.jpg']);
+  assert.deepEqual(mf.sheets[0].refs, ['references/levels/The Desert/environment/rock.jpg']);
   assert.equal(mf.sheets[0].batch, 'b1');
   assert.equal(mf.sheets[0].date, '2026-10-10');
   assert.equal(mf.sheets[0].why, 'the clearest silhouette');
@@ -355,7 +355,7 @@ test('a batch: every provider at once, one failing without stopping the others, 
 test('one batch for one pick: a provider run again into the same batch, batches run apart merged', async () => {
   const root = fakeRepo();
   const keys = { OPENAI_API_KEY: KEY, GEMINI_API_KEY: 'gm-SECRET-abcdef' };
-  const o = { root, refs: ['references/The Desert/rock.jpg'], n: 2, ar: '16:9', target: 'references/x/', keys, fetch: labFetch(), ...fast };
+  const o = { root, refs: ['references/levels/The Desert/environment/rock.jpg'], n: 2, ar: '16:9', target: 'references/x/', keys, fetch: labFetch(), ...fast };
   await runBatch({ ...o, prompt: 'a rock', providers: ['openai'], batch: 'm1' });
   await runBatch({ ...o, prompt: 'a rock', providers: ['gemini'], batch: 'm2' });
   await runBatch({ ...o, prompt: 'a tree', providers: ['openai'], batch: 'm3' });
@@ -395,7 +395,7 @@ test('the CLI: arguments, --list without values, a batch from a prompt document,
   assert.ok(!lines.join('\n').includes(KEY));
   lines.length = 0;
   const f = labFetch();
-  const code = await main(['--from', 'docs/design/enemy-roster-prompts.md#crab', '--refs', 'references/The Desert/rock.jpg', '--n', '2'], { root, keys: { OPENAI_API_KEY: KEY }, fetch: f, log });
+  const code = await main(['--from', 'docs/design/enemy-roster-prompts.md#crab', '--refs', 'references/levels/The Desert/environment/rock.jpg', '--n', '2'], { root, keys: { OPENAI_API_KEY: KEY }, fetch: f, log });
   assert.equal(code, 0, lines.join('\n'));
   assert.ok(!lines.join('\n').includes(KEY));
   const b = listBatches(root)[0];
@@ -429,7 +429,7 @@ test('the dev server: availability with no values, refs without the candidates, 
   const prov = await call(mw, 'GET', '/__reference-lab/providers');
   assert.ok(!JSON.stringify(prov.body).includes(KEY));
   assert.equal(prov.body.providers.find((p) => p.id === 'openai').available, true);
-  const g = await call(mw, 'POST', '/__reference-lab/generate', { prompt: 'a rock', refs: ['references/The Desert/rock.jpg'], providers: ['openai'], n: 1, ar: '1:1', target: 'references/x/' });
+  const g = await call(mw, 'POST', '/__reference-lab/generate', { prompt: 'a rock', refs: ['references/levels/The Desert/environment/rock.jpg'], providers: ['openai'], n: 1, ar: '1:1', target: 'references/x/' });
   assert.equal(g.status, 202);
   let b;
   for (let i = 0; i < 50; i++) { b = (await call(mw, 'GET', `/__reference-lab/batches/${g.body.batch}`)).body; if (b.status === 'done') break; await new Promise((r) => setTimeout(r, 10)); }
@@ -458,7 +458,7 @@ test('the store: elsewhere than the checkout when told (the main checkout from a
   const root = fakeRepo(), store = mkdtempSync(join(tmpdir(), 'reflab-store-'));
   process.env.REFERENCE_LAB_STORE = store;
   try {
-    const m = await runBatch({ root, prompt: 'p', refs: ['references/The Desert/rock.jpg'], providers: ['openai'], n: 1, ar: '1:1', keys: { OPENAI_API_KEY: KEY }, fetch: labFetch(), ...fast, batch: 'w1' });
+    const m = await runBatch({ root, prompt: 'p', refs: ['references/levels/The Desert/environment/rock.jpg'], providers: ['openai'], n: 1, ar: '1:1', keys: { OPENAI_API_KEY: KEY }, fetch: labFetch(), ...fast, batch: 'w1' });
     assert.equal(m.candidates.length, 2, 'the mock answers two');
     assert.ok(existsSync(join(store, CANDIDATES_DIR, 'w1/openai/1.jpg')), 'in the store');
     assert.ok(!existsSync(join(root, CANDIDATES_DIR, 'w1')), 'not in the checkout');
@@ -495,11 +495,11 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
   const on = providerRow({ id: 'gemini', label: 'G', keyName: 'GEMINI_API_KEY', available: true, model: 'b', models: ['a', 'b'], maxRefs: 14, costPerImage: 0.0336 }, { checked: true });
   assert.match(on, /<option selected>b<\/option>/);
   assert.match(on, /checked/);
-  const m = { batch: 'b1', status: 'done', ar: '16:9', n: 1, refs: ['references/The Desert/rock.jpg'], comparison: 'references/The Desert/rock.jpg', prompt: 'p', target: 'references/x/',
+  const m = { batch: 'b1', status: 'done', ar: '16:9', n: 1, refs: ['references/levels/The Desert/environment/rock.jpg'], comparison: 'references/levels/The Desert/environment/rock.jpg', prompt: 'p', target: 'references/x/',
     providers: { openai: { status: 'done', label: 'OpenAI', model: 'gpt-image-2', count: 1, ms: 12000, costUSD: 0.041 }, gemini: { status: 'error', kind: 'auth', error: 'refused' } },
     candidates: [{ id: 'openai/1', provider: 'openai', file: 'openai/1.jpg', ms: 12000, costUSD: 0.041, status: 'new' }] };
   const h = batchHtml(m);
-  assert.match(h, /src="\/references\/The%20Desert\/rock\.jpg"/, 'the reference');
+  assert.match(h, /src="\/references\/levels\/The%20Desert\/environment\/rock\.jpg"/, 'the reference');
   assert.ok(h.indexOf('class="refrow"') < h.indexOf('class="bhead"') && !/class="wall">[^]*rock\.jpg/.test(h), 'the reference on its own above everything, not in the grid');
   assert.match(h, /src="\/__reference-lab\/file\/b1\/openai\/1\.jpg"/, 'through the dev server: the store is the main checkout');
   assert.match(h, /data-pick="openai\/1"/);
@@ -529,7 +529,7 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
   assert.equal(defaultChecked({ id: 'openai', available: false }), false);
   assert.match(filterHtml(list), /class="btn small on" data-show="open" aria-pressed="true">To pick <small>1<\/small>/);
   assert.equal(fileSrc('references/a b/c.jpg'), '/references/a%20b/c.jpg');
-  assert.equal(filterRefs([{ path: 'references/The Desert/x.jpg', folder: 'The Desert' }, { path: 'references/Lorn/y.jpg', folder: 'Lorn' }], { query: 'desert' }).length, 1);
+  assert.equal(filterRefs([{ path: 'references/levels/The Desert/environment/x.jpg', folder: 'The Desert' }, { path: 'references/levels/Lorn/environment/y.jpg', folder: 'Lorn' }], { query: 'desert' }).length, 1);
   const prompts = { docs: [{ doc: 'd.md', entries: [{ id: 'crab', title: 'Crab', target: 'references/enemy-archetypes/crab/', variants: [{ key: 'main', prompt: 'P', ar: '16:9' }] }] }], manifests: [] };
   assert.deepEqual(promptFor(prompts, 'doc:d.md#crab/main'), { prompt: 'P', ar: '16:9', target: 'references/enemy-archetypes/crab/', from: 'd.md#crab', needsImage: undefined });
 });

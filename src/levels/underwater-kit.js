@@ -7,7 +7,7 @@ import { leafCrown } from './garden-kit.js';
 import { lumpy } from './sky-stones-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Underwater City's pieces (references/The Underwater City), shared by its reference views
+// The Underwater City's pieces (references/levels/The Underwater City), shared by its reference views
 // (reference-underwater.js) and the world (underwater.js). Everything goes through a kit with RoomKit's
 // face (lab-kit.js: mat, add, mesh, light, mover, group), geometry in the kit's frame.
 //

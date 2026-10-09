@@ -14,7 +14,7 @@ import {
 
 // ---------------------------------------------------------------------------
 // The White Mangrove: a settlement in a mangrove of enormous smooth bone-white trees standing on
-// arching roots in a shallow black lake (references/The White Mangrove/; its views in the References,
+// arching roots in a shallow black lake (references/levels/The White Mangrove/; its views in the References,
 // reference-mangrove.js; the shapes in mangrove-kit.js). Small rounded houses sit on decks round the
 // trunks and in the forks; plank walks on stilts, lit by lanterns, run between the trees, stairs climb
 // to the decks and rope bridges cross between them; flat boats pass; the lake's creatures glow blue

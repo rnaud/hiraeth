@@ -7,7 +7,7 @@ import { thinBar, thinTube, thinRing, thinPole } from '../thin.js';
 
 // ---------------------------------------------------------------------------
 // The Forest of Antennas' shapes, shared by the world (antennas.js) and its reference views
-// (reference-antennas.js), after the sheets (references/The Forest of Antennas/reference-1 … 4):
+// (reference-antennas.js), after the sheets (references/levels/The Forest of Antennas/environment/reference-1 … 4):
 //   latticeTower  a tall tapering lattice mast: three or four legs, X-braced bays, vines climbing
 //                 it, leaf clumps on them and strands hanging from the struts
 //   dish          a parabolic dish (its axis +y, its vertex at the origin): the bowl, the rim, the feed

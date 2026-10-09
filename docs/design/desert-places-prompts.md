@@ -6,7 +6,7 @@ gate, the cave in the giant's chest under it, the burning tree of Qanat, and the
 prompts for the reference lab (`reference-lab.html`, `scripts/gen-reference.mjs --from
 docs/design/desert-places-prompts.md#<id>`); a pick goes to the folder below.
 
-Target folder: `references/The Desert/places/<id>/`
+Target folder: `references/levels/The Desert/places/<id>/`
 
 Every prompt keeps the house style of the other reference prompts and the Desert's palette (golden dunes, rose
 canyon rock, turquoise water, lavender shadows), shows the small cloaked traveller with the round jade backpack for

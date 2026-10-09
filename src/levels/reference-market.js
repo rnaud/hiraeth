@@ -5,7 +5,7 @@ import { MARKET_LOOK, MARKET_FLAT } from './bazaar.js';
 import { cabModel } from '../taxi.js';
 
 // ---------------------------------------------------------------------------
-// The Signal Market's reference sheets (references/The Signal Market/IMG_3801 … 3808): a canyon of a
+// The Signal Market's reference sheets (references/levels/The Signal Market/environment/IMG_3801 … 3808): a canyon of a
 // street between towers of pink, teal and cream, painted billboards, skybridges and their trusses,
 // flying cabs, cables, a crowd and market stalls at the foot of the walls. One scene builder
 // (marketScene) does them all; each panel is a view (reference-views.js describes the fields).
@@ -15,7 +15,7 @@ import { cabModel } from '../taxi.js';
 // the teal walls with near-black pockets.
 // ---------------------------------------------------------------------------
 
-const sheet = (name) => ({ name: `The Signal Market / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/The Signal Market/${name}.JPG`, import.meta.url).href });
+const sheet = (name) => ({ name: `The Signal Market / ${name}.JPG`, size: [1024, 1024], url: new URL(`../../references/levels/The Signal Market/environment/${name}.JPG`, import.meta.url).href });
 export const MARKET_SHEETS = Object.fromEntries(['IMG_3801', 'IMG_3802', 'IMG_3803', 'IMG_3804', 'IMG_3805', 'IMG_3806', 'IMG_3807', 'IMG_3808'].map((n) => [n, sheet(n)]));
 
 /** The sheets' ink: the world's own look (bazaar.js MARKET_LOOK, the flat teal shade) and a clean sky. */

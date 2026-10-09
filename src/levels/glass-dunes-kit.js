@@ -5,7 +5,7 @@ import { SandDrifts } from '../sand-drifts.js';
 import { GLASS_ATTR } from '../dune-glass-shader.js';
 
 // ---------------------------------------------------------------------------
-// The Glass Dunes' kit (references/The Glass Dunes/, docs/systems/worlds.md "The Glass Dunes"): the
+// The Glass Dunes' kit (references/levels/The Glass Dunes/, docs/systems/worlds.md "The Glass Dunes"): the
 // shapes the sheets draw, shared by the References views (reference-glassdunes.js) and the world
 // (glass-dunes.js). Plain geometry; the look is the game's flat print, not refraction:
 //

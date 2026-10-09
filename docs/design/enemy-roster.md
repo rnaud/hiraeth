@@ -15,7 +15,7 @@ against its paper, shrunk to roughly how it reads from 30 m away.*
 The author: "the generated enemies are way too similar, most of the possessed machines look the same and so do the
 shades … I'd rather have 20 enemies with a ton of diversity than 100 with bad diversity."
 
-Looking at all 100 Midjourney sheets (`references/*/enemies/lineup-0*.{jpeg,webp}`) confirms it:
+Looking at all 100 Midjourney sheets (`references/archive/world-enemies/*/lineup-0*.{jpeg,webp}`) confirms it:
 
 - **The machines:** 22 of the 25 possessed machines are one shape, an ivory boiler or cabinet on two to four
   stick legs with a black blob of smoke on one shoulder.
@@ -116,8 +116,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   glances off the front like any blow.
 - **Idle:** it picks along the tide line, pinching at weed, and backs into a crevice when you come near. It fights
   only if you corner it or touch its den.
-- **References:** `The Salt Harbour/enemies/lineup-01.jpeg` (the blue crab); `The Glass Dunes/enemies/lineup-01.webp`
-  (the faceted crab); `The Signal Market/enemies/lineup-01.jpeg` (the hermit crab under a canopy shell).
+- **References:** `archive/world-enemies/The Salt Harbour/lineup-01.jpeg` (the blue crab); `archive/world-enemies/The Glass Dunes/lineup-01.webp`
+  (the faceted crab); `archive/world-enemies/The Signal Market/lineup-01.jpeg` (the hermit crab under a canopy shell).
 - **Worlds and skins:**
   - Vael II: a cliff crab, a slate-blue shell flecked with lichen;
   - the Hangar: an oil beetle, a black-teal shell and long antennae;
@@ -143,8 +143,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
 - **Best answers:** the push, ember (they flee from it and regroup), the combo's sweeping third swing, the whirl.
 - **Idle:** they graze in a loose flock like little sheep, scatter in a ripple when you run at them, and come back.
   They fight only if you stay in the middle of the flock.
-- **References:** `The Desert/enemies/lineup-02.jpeg` and `lineup-01.jpeg` (the dune skitter);
-  `The Moon Foundry/enemies/lineup-02.webp` (the furnace beetle).
+- **References:** `archive/world-enemies/The Desert/lineup-02.jpeg` and `lineup-01.jpeg` (the dune skitter);
+  `archive/world-enemies/The Moon Foundry/lineup-02.webp` (the furnace beetle).
 - **Worlds and skins:**
   - the Desert: sand-gold dune skitters;
   - Lorn: spore mites, pale lilac, puffing dust when cut;
@@ -171,8 +171,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
 - **Best answers:** the wings or jets out of the ring, the air cut onto the head, the parry. The charged cut on the
   body does little: the segments are armoured; only the head counts.
 - **Idle:** it suns coiled on warm rocks and unrolls slowly when you pass. Wildlife, but quick to take offence.
-- **References:** `The Fallen Ring/enemies/lineup-03.webp` (the orbital crab: a centipede with a crab's head);
-  `The City During the Eclipse/enemies/lineup-01.webp` (the crescent crawler, coiled).
+- **References:** `archive/world-enemies/The Fallen Ring/lineup-03.webp` (the orbital crab: a centipede with a crab's head);
+  `archive/world-enemies/The City During the Eclipse/lineup-01.webp` (the crescent crawler, coiled).
 - **Worlds and skins:**
   - the Buried Machine: rust-banded, with a drill-bit head;
   - the Garden of Spheres: pearl segments;
@@ -200,8 +200,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   works).
 - **Idle:** it sits by water with its throat pulsing, croaks in chorus with the others, and snaps at flies. It
   fights only if you come within 4 m or hurt one nearby.
-- **References:** `The City-Shaft/enemies/lineup-01.webp` (the pressure toad, blue);
-  `The City Behind the Waterfall/enemies/lineup-02.jpeg` (the pressure-jet toad); `Lorn/enemies/lineup-03.jpeg`
+- **References:** `archive/world-enemies/The City-Shaft/lineup-01.webp` (the pressure toad, blue);
+  `archive/world-enemies/The City Behind the Waterfall/lineup-02.jpeg` (the pressure-jet toad); `archive/world-enemies/Lorn/lineup-03.jpeg`
   (the spore toad).
 - **Worlds and skins:**
   - Lorn: a spore toad, mottled moss-green, lobbing spores;
@@ -229,7 +229,7 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   pulls one away). It wants you to keep turning.
 - **Idle:** it basks on warm stones and blares at the others in turn: a morning chorus of horns. It is territorial
   near its stones, and harmless away from them.
-- **References:** `The Signal Market/enemies/lineup-02.jpeg` and `lineup-03.webp` (the coin lizard with the trumpet).
+- **References:** `archive/world-enemies/The Signal Market/lineup-02.jpeg` and `lineup-03.webp` (the coin lizard with the trumpet).
 - **Worlds and skins:**
   - the City-Shaft: a pipe lizard, pink, with a pipe-elbow horn;
   - the Buried Machine: an ash lizard, grey, with a soot horn;
@@ -255,8 +255,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
 - **Best answers:** the dash cut inside its reach, then cuts at the legs. The charged cut at a leg topples it.
 - **Idle:** it wades and fishes, stabbing at the water. It walks off if you come near and flies off if you run.
   It fights only if it is cornered, or you go near its nest.
-- **References:** `Vael/enemies/lineup-04.jpeg` (the ridge runner, blue); `The Desert/enemies/lineup-02.jpeg` (the
-  cistern beast: a jug on stilts with a long neck); `Lorn/enemies/lineup-01.jpeg` (the marsh snapper: a mushroom
+- **References:** `archive/world-enemies/Vael/lineup-04.jpeg` (the ridge runner, blue); `archive/world-enemies/The Desert/lineup-02.jpeg` (the
+  cistern beast: a jug on stilts with a long neck); `archive/world-enemies/Lorn/lineup-01.jpeg` (the marsh snapper: a mushroom
   cap on stilts).
 - **Worlds and skins:**
   - the Desert: a cistern heron, its body a cream clay jug, wading in the cisterns;
@@ -283,7 +283,7 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   helpless).
 - **Idle:** it grazes moss in slow trails that glisten, and pulls in if you touch it. It fights only if you hit it
   or step on its trail.
-- **References:** `The Garden of Spheres/enemies/lineup-02.jpeg` and `lineup-04.jpeg` (the pearl rolling hunter).
+- **References:** `archive/world-enemies/The Garden of Spheres/lineup-02.jpeg` and `lineup-04.jpeg` (the pearl rolling hunter).
 - **Worlds and skins:**
   - the Garden of Spheres: a pearl shell;
   - the Hangar: a ball-bearing snail, steel and oily;
@@ -308,8 +308,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
 - **Best answers:** the bloom glob (it falls asleep for 3 s and takes cuts double), ember ×2, a parry on the lash.
 - **Idle:** it stands rooted, indistinguishable from the other mushrooms or stumps until you pass close. Its cap
   turns to follow you: the lens shows it.
-- **References:** `Lorn II The Deep Wood/enemies/lineup-01.jpeg` (the root crawler: a teal mushroom on roots);
-  `Lorn II The Deep Wood/enemies/lineup-04.jpeg` (a cap with a jelly body and tendrils).
+- **References:** `archive/world-enemies/Lorn II The Deep Wood/lineup-01.jpeg` (the root crawler: a teal mushroom on roots);
+  `archive/world-enemies/Lorn II The Deep Wood/lineup-04.jpeg` (a cap with a jelly body and tendrils).
 - **Worlds and skins:**
   - Lorn: a reed knot with a lilac cap;
   - Lorn II: a root crawler, teal, with glowing gills;
@@ -338,8 +338,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   reach it.
 - **Idle:** it drifts with the wind in slow herds and gathers over water at dusk, a field of lamps. It fights only
   as part of a fight that is already going (it never starts one).
-- **References:** `The Fallen Ring/enemies/lineup-02.webp` (the solar ray: a jellyfish disc);
-  `Lorn II The Deep Wood/enemies/lineup-04.jpeg` (the red jelly with a lantern).
+- **References:** `archive/world-enemies/The Fallen Ring/lineup-02.webp` (the solar ray: a jellyfish disc);
+  `archive/world-enemies/Lorn II The Deep Wood/lineup-04.jpeg` (the red jelly with a lantern).
 - **Worlds and skins:**
   - Vael II: a cloud jelly, pink and puffy, with a paper lantern;
   - Lorn II: a lamp jelly, red, with brass lanterns;
@@ -365,8 +365,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   here, and the charged cut is too slow.
 - **Idle:** it circles lamps and signs, sitting on them in rows with its wings shut. It fights only near a lit
   sign it lives on, or with another fight.
-- **References:** `The Forest of Antennas/enemies/lineup-01.webp` (the signal moth);
-  `The Overnight Train/enemies/lineup-03.webp` (the lantern moth); `Viridel/enemies/lineup-01.jpeg` (the glass wasp).
+- **References:** `archive/world-enemies/The Forest of Antennas/lineup-01.webp` (the signal moth);
+  `archive/world-enemies/The Overnight Train/lineup-03.webp` (the lantern moth); `archive/world-enemies/Viridel/lineup-01.jpeg` (the glass wasp).
 - **Worlds and skins:**
   - Lorn II: a lamp moth, dusty grey, its wings lit from behind;
   - Viridel: a glass wasp, petal-pink wings and a long body;
@@ -394,8 +394,8 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   wings or jets to follow it.
 - **Idle:** it circles in the thermals over cliffs, and lands on warm rock with its wings spread flat. It fights
   only if you fly near its rock (or a pack is hunting).
-- **References:** `Vael/enemies/lineup-02.jpeg` (the storm ray); `The Underwater City/enemies/lineup-02.webp` (the
-  porcelain ray with ribbon fins); `The Glass Dunes/enemies/lineup-02.webp` (the crystal manta).
+- **References:** `archive/world-enemies/Vael/lineup-02.jpeg` (the storm ray); `archive/world-enemies/The Underwater City/lineup-02.webp` (the
+  porcelain ray with ribbon fins); `archive/world-enemies/The Glass Dunes/lineup-02.webp` (the crystal manta).
 - **Worlds and skins:**
   - Vael: a storm ray, rust-red;
   - Vael II: a cloud ray, pale, its fins trailing mist;
@@ -425,7 +425,7 @@ area roles: 8 of the 21 (toad, jelly, moth, tripod, cart, bell, drone, marionett
   up. The air cut onto the mound does ×2.
 - **Idle:** mounds wander the dunes slowly, surfacing to eat dry thorn bushes and sinking again. Wildlife: it
   ignores you unless you stand on its mound.
-- **References:** `The Buried Machine/enemies/lineup-01.jpeg` (the drill grub); `The Buried Machine/enemies/lineup-04.jpeg`.
+- **References:** `archive/world-enemies/The Buried Machine/lineup-01.jpeg` (the drill grub); `archive/world-enemies/The Buried Machine/lineup-04.jpeg`.
 - **Worlds and skins:**
   - the Desert: a dune worm, sand-gold, with a fin like the old ray's;
   - the Buried Machine: a drill grub, slate-violet with a steel drill;
@@ -459,8 +459,8 @@ Each machine shows its spirit in its own way. None has "a black blob on the shou
   the riposte on the bolt; the hook.
 - **Idle:** it patrols its old round, sweeping the lamp across the walls the way it was built to. It stops and
   peers at anything moving.
-- **References:** `The City-Shaft/enemies/lineup-01.webp` (the inspection tripod);
-  `The Buried Machine/enemies/lineup-04.jpeg` (the porthole with eyes).
+- **References:** `archive/world-enemies/The City-Shaft/lineup-01.webp` (the inspection tripod);
+  `archive/world-enemies/The Buried Machine/lineup-04.jpeg` (the porthole with eyes).
 - **Worlds and skins:**
   - the City-Shaft: an inspection tripod, brass and enamel;
   - the Buried Machine: a mining tripod with a drill lamp;
@@ -488,7 +488,7 @@ Each machine shows its spirit in its own way. None has "a black blob on the shou
 - **Best answers:** **the fluid shot cools its crust** (cuts ×2 for 4 s), then the combo from behind; bombs on the
   tracks (it can't turn for 5 s).
 - **Idle:** it trundles its old route between the furnaces, pouring into moulds that are no longer there.
-- **References:** `The Moon Foundry/enemies/lineup-02.webp` and `lineup-04.webp` (the crucible automaton). The
+- **References:** `archive/world-enemies/The Moon Foundry/lineup-02.webp` and `lineup-04.webp` (the crucible automaton). The
   sheet's references stand on legs; the archetype puts the pot on tracks.
 - **Worlds and skins:**
   - the Hangar: a welding cart with torch arms;
@@ -518,7 +518,7 @@ Each machine shows its spirit in its own way. None has "a black blob on the shou
   the bell sits open); strike the clapper (it is the only part that takes harm; the riposte on it doubles); jump the
   rings.
 - **Idle:** it stands in a square or on a tower and tolls the hours, softly, no ring. Its old job.
-- **References:** `Vael II- The Sky Stones/enemies/lineup-02.jpeg` and `lineup-04.jpeg` (the monastery bell).
+- **References:** `archive/world-enemies/Vael II- The Sky Stones/lineup-02.jpeg` and `lineup-04.jpeg` (the monastery bell).
 - **Worlds and skins:**
   - Vael II: one, placed, the old belfry's bell, met before or after the temple;
   - the Signal Market: a sign automaton, a hanging signboard in a frame on legs with the clapper behind the
@@ -544,7 +544,7 @@ Each machine shows its spirit in its own way. None has "a black blob on the shou
   down), a guard on the harpoon.
 - **Idle:** it circles its old post, slowly polishing a dome that isn't there. It drifts after anything that
   shines.
-- **References:** `The Garden of Spheres/enemies/lineup-01.jpeg` and `lineup-04.jpeg` (the ring machine).
+- **References:** `archive/world-enemies/The Garden of Spheres/lineup-01.jpeg` and `lineup-04.jpeg` (the ring machine).
 - **Worlds and skins:**
   - the City-Shaft: a rust drone, brass plates;
   - the Hangar: a scrap drone, mismatched plates;
@@ -574,8 +574,8 @@ Each machine shows its spirit in its own way. None has "a black blob on the shou
   crack. **Heavy:** uncharged swings don't stagger it (combat-v1.4 rec. 1).
 - **Idle:** it stands where it stopped working, rusted mid-task with a tool in its hand. It wakes when you are
   close: it lifts its arms with a groan.
-- **References:** `The Glass Dunes/enemies/lineup-01.webp` (the furnace walker);
-  `The City Behind the Waterfall/enemies/lineup-04.jpeg` (the turbine guardian with hanging arms).
+- **References:** `archive/world-enemies/The Glass Dunes/lineup-01.webp` (the furnace walker);
+  `archive/world-enemies/The City Behind the Waterfall/lineup-04.jpeg` (the turbine guardian with hanging arms).
 - **Worlds and skins:**
   - Lorn II: a wood cutter, grown through with roots (one, placed);
   - Viridel: a pruning machine with shears for hands;
@@ -605,8 +605,8 @@ Each spirit shows itself differently. None of them is the tall clawed biped with
     spitter's move, kept on the blot.
 - **Best answers:** everything; it is there to teach the combo, the guard and the shot.
 - **Idle:** it pools in shade and under arches, a stain until you come near; then the stain stands up.
-- **References:** it keeps its in-game look. The nearest concepts are `The Atelier/enemies/lineup-02.webp` and
-  `The Garden of Spheres/enemies/lineup-02.jpeg` (round black spirits).
+- **References:** it keeps its in-game look. The nearest concepts are `archive/world-enemies/The Atelier/lineup-02.webp` and
+  `archive/world-enemies/The Garden of Spheres/lineup-02.jpeg` (round black spirits).
 - **Worlds and skins:** every world, few in number and early in it. It takes the ground's colour at its edge
   (sand in the Desert, moss in Lorn, rust in the Hangar).
 - **Tier 1.** The **ink blot** is kept (3.5); the **spitting blot** (4.0) is folded into it.
@@ -633,7 +633,7 @@ Each spirit shows itself differently. None of them is the tall clawed biped with
   "one sword cut, no answer but the blade").
 - **Idle:** it walks a path it walked in life and stops at doorways, as if waiting to be let in. It turns to you
   only when you cross its path.
-- **References:** `Vael/enemies/lineup-04.jpeg` (the feather-cowled shade); `The Sealed Hangar/enemies/lineup-04.jpeg`
+- **References:** `archive/world-enemies/Vael/lineup-04.jpeg` (the feather-cowled shade); `archive/world-enemies/The Sealed Hangar/lineup-04.jpeg`
   (the hooded mechanic, pointed hood).
 - **Worlds and skins:**
   - Lorn II: a hollow woodsman with a bark hood;
@@ -664,7 +664,7 @@ Each spirit shows itself differently. None of them is the tall clawed biped with
   parry. While it runs as a shadow, the blade passes through it (`phased`).
 - **Idle:** shadows lie under trees and arches where there shouldn't be any. Walk past and one stands up and
   watches you go. Not every one hunts.
-- **References:** `The White Mangrove/enemies/lineup-01.webp` and `lineup-04.webp` (the antlered driftwood shade;
+- **References:** `archive/world-enemies/The White Mangrove/lineup-01.webp` and `lineup-04.webp` (the antlered driftwood shade;
   the archetype puts its antlers and its dripping body on four legs).
 - **Worlds and skins:**
   - the Eclipse: a night hound, its antlers a crescent;
@@ -695,7 +695,7 @@ Each spirit shows itself differently. None of them is the tall clawed biped with
   creatures it frees are not the enemy.
 - **Idle:** it hangs still from the underside of bridges, cranes and arches, swaying slightly, like a coat on a
   hook.
-- **References:** `The Underside/enemies/lineup-01.webp` and `lineup-04.webp` (the suspended humanoid shade).
+- **References:** `archive/world-enemies/The Underside/lineup-01.webp` and `lineup-04.webp` (the suspended humanoid shade).
 - **Worlds and skins:**
   - the Signal Market: a parcel puppet, with paper parcels for limbs;
   - the Underside: a crane puppet, hanging under the girders;

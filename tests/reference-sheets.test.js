@@ -23,7 +23,7 @@ test('a sheet is read from where the game runs, or from the site inside the app 
   assert.equal(sheetSrc('moebius://game/assets/IMG_3808-DAtVrONv.JPG', at('moebius://game/index.html')), `${SITE}assets/IMG_3808-DAtVrONv.JPG`, 'the Deck');
   const site = `${SITE}assets/IMG_3808-DAtVrONv.JPG`;
   assert.equal(sheetSrc(site, at(`${SITE}?level=references`)), site, 'the site itself');
-  const dev = 'http://localhost:6300/references/The%20Desert/environement/IMG_3775.JPG';
+  const dev = 'http://localhost:6300/references/levels/The%20Desert/environment/IMG_3775.JPG';
   assert.equal(sheetSrc(dev, at('http://localhost:6300/?level=references')), dev, 'a dev server');
   assert.equal(sheetSrc(url, undefined), url, 'no page (tests)');
 });

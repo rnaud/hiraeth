@@ -8,7 +8,7 @@ import { leafCrown } from './garden-kit.js';
 
 // ---------------------------------------------------------------------------
 // The White Mangrove's shapes, shared by the world (mangrove.js) and its reference views
-// (reference-mangrove.js), after the sheets (references/The White Mangrove/reference-1 … 4):
+// (reference-mangrove.js), after the sheets (references/levels/The White Mangrove/environment/reference-1 … 4):
 //   whiteTree   a great bone-white tree: a trunk on a crown of smooth arching prop roots that stand in
 //               the water, its limbs sweeping out and up; the forks where a house can sit
 //   rootArch    a smooth root arching from one foot to another over the water (the trees' interlocking)

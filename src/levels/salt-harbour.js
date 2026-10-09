@@ -14,7 +14,7 @@ import {
 
 // ---------------------------------------------------------------------------
 // The Salt Harbour: huge weathered ships standing on their keels in a vast dry white salt basin, made
-// into apartment buildings (references/The Salt Harbour/; its views in the References,
+// into apartment buildings (references/levels/The Salt Harbour/; its views in the References,
 // reference-saltharbour.js; the shapes in salt-harbour-kit.js). A street runs north between their
 // curved hulls, white over terracotta: shops cut into their feet, wooden houses built out from the
 // plating, herbs on the ledges, sailcloth stretched across overhead, gangways joining the decks, long

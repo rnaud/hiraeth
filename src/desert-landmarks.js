@@ -8,7 +8,7 @@ import { heightFn } from './world.js';
 import { basinHeight } from './desert-vistas.js';
 import { SITES, POLE_LINE, STORY } from './desert-sites.js';
 
-// The structures of the desert reference pages (references/IMG_3772-3775),
+// The structures of the desert reference pages (references/levels/The Desert/environment/IMG_3772-3775),
 // built as destinations across the three regions:
 //   golden dunes : a half-buried leviathan carcass, a crashed hull with a
 //                  salvage camp, the traveller's camp, bat-wing sail tents

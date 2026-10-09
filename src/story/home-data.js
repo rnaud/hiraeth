@@ -52,7 +52,7 @@ export const DRAWING_LINES = {
 
 export const PEOPLE = {
   lou: {
-    // her body, face and look: the selected design (src/characters/family.js, references/Home/characters/Lou)
+    // her body, face and look: the selected design (src/characters/family.js, references/levels/Home/characters/Lou)
     ...FAMILY.lou,
     voice: 1.6,
     // short quick steps, a run that starts early, and never quite still
@@ -128,7 +128,7 @@ export const PEOPLE = {
     },
   },
   tove: {
-    // her body and look: the selected design (src/characters/family.js, references/Home/characters/Aunt Tove)
+    // her body and look: the selected design (src/characters/family.js, references/levels/Home/characters/Aunt Tove)
     ...FAMILY.tove, voice: 1.08,
     lines: ["~neutral~ Mind the beans. They’ve taken over the path again.", "~happy~ Soup’s ready. So are the bowls. Sit down.", "~tired~ That dog has very selective hearing."],
     talk: {

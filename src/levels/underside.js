@@ -15,7 +15,7 @@ import {
 
 // ---------------------------------------------------------------------------
 // The Underside: an immense shelf of pale limestone jutting east from a mountain far out over a sea of cloud, and a
-// town hung from its underside (references/The Underside/; its views in the References, reference-underside.js; the
+// town hung from its underside (references/levels/The Underside/; its views in the References, reference-underside.js; the
 // shapes and the look in underside-kit.js). Round white houses like swallows' nests cling to the rock and hang
 // from it, timber decks and galleries are slung under it on rods, long rust-red banners fall from their edges
 // toward the cloud, baskets go up and down on ropes. Off the route: no story to follow, a few people to meet.

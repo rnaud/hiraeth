@@ -44,7 +44,7 @@ export const batchDir = (root, batch) => {
 };
 const writeJson = (file, data) => { const tmp = `${file}.tmp`; writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`); renameSync(tmp, file); };
 
-/** A target folder, checked to be inside references/ (and not the candidates): 'references/x/y/' form. */
+/** A target folder, checked to be inside references/ (and not the candidates): 'references/<folder>/' form. */
 export function checkTarget(root, target) {
   if (!target) return null;
   const { rel } = insideRoot(root, target);

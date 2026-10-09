@@ -6,7 +6,7 @@ import { bankBush } from './wood-kit.js';
 import { whiteTree, rootArch, podHouse, walkway, stairs, punt, glowSpots, farTree, lantern, stick, limb, MANGROVE_LOOK, MANGROVE_TONES } from './mangrove-kit.js';
 
 // ---------------------------------------------------------------------------
-// The White Mangrove's reference sheets (references/The White Mangrove/reference-1 … 4): a settlement
+// The White Mangrove's reference sheets (references/levels/The White Mangrove/environment/reference-1 … 4): a settlement
 // in a mangrove of enormous smooth bone-white trees standing on arching roots in a black lake, small
 // rounded houses in the forks and on decks, plank walks on stilts with lanterns, flat boats, the
 // lake's blue and pink creatures glowing like a second sky, a violet twilight, the traveller on a
@@ -14,7 +14,7 @@ import { whiteTree, rootArch, podHouse, walkway, stairs, punt, glowSpots, farTre
 // (mangroveScene) does them all (reference-views.js describes the fields).
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The White Mangrove / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The White Mangrove/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The White Mangrove / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The White Mangrove/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const MANGROVE_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`mangrove-${n}`, sheet(n)]));
 
 /** The sheets' ink: the world's own look (mangrove-kit.js) and a clean sky. */

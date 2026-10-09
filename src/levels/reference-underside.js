@@ -7,7 +7,7 @@ import {
 } from './underside-kit.js';
 
 // ---------------------------------------------------------------------------
-// The Underside's reference pictures (references/The Underside/reference-1 … 4): an immense shelf of pale
+// The Underside's reference pictures (references/levels/The Underside/environment/reference-1 … 4): an immense shelf of pale
 // limestone jutting from a mountain far out over a sea of cloud, a town hung from its underside (round white
 // houses like swallows' nests, timber decks and scaffolds slung on rods, lit windows), long rust-red banners
 // falling from the decks toward the cloud, baskets let down on ropes; grass and shrubs along the shelf's top; the
@@ -17,7 +17,7 @@ import {
 // that stands at a depth, or on a level, is put where the view's camera sees it there.
 // ---------------------------------------------------------------------------
 
-const sheet = (n) => ({ name: `The Underside / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/The Underside/reference-${n}.jpeg`, import.meta.url).href });
+const sheet = (n) => ({ name: `The Underside / reference-${n}.jpeg`, size: [1456, 816], url: new URL(`../../references/levels/The Underside/environment/reference-${n}.jpeg`, import.meta.url).href });
 export const UNDER_SHEETS = Object.fromEntries([1, 2, 3, 4].map((n) => [`underside-${n}`, sheet(n)]));
 
 /** The pictures' ink: the world's own look (underside-kit.js) and a clean sky. */
