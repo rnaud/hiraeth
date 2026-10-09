@@ -1,0 +1,81 @@
+DONE.md
+  s_9ca76055a220ed::t_ea985799f523fa 1569-1592
+android/app/src/main/AndroidManifest.xml
+  s_9ca76055a220ed::t_1f1088ac17c9d0 64
+android/app/src/main/java/com/rnaud/moebius/AppShell.java
+  s_9ca76055a220ed::t_94b18b55b2ba96 20-22,31,43-47,50-59,61
+android/app/src/main/java/com/rnaud/moebius/AppShellPlugin.java
+  s_9ca76055a220ed::t_c7cbb45e5eda2e 14,45-53
+android/app/src/main/java/com/rnaud/moebius/GamepadBridge.java
+  s_9ca76055a220ed::t_90408a22abfad4 33-34,90,104
+android/app/src/main/java/com/rnaud/moebius/MainActivity.java
+  s_9ca76055a220ed::t_fb77e07f3b1977 337
+android/app/src/main/java/com/rnaud/moebius/WebBundles.java
+  s_9ca76055a220ed::t_05b70324d61362 87
+changelog.md
+  s_9ca76055a220ed::t_95df990835d07f 5-10
+docs/systems/controls.md
+  s_9ca76055a220ed::t_aa4c9cb6dd46bf 133-153
+docs/systems/story.md
+  s_9ca76055a220ed::t_20a530d3b3b5e5 265-274
+docs/systems/ui.md
+  s_9ca76055a220ed::t_a7d97aefc8c4e6 404-423
+src/changelog-media.js
+  s_9ca76055a220ed::t_3a4b70bf05fdb3 294-306
+src/changelog.js
+  s_9ca76055a220ed::t_b9997118c38a39 11-17
+src/fluid-blade.js
+  s_9ca76055a220ed::t_ad945a4537683b 9,609
+src/foes.js
+  s_9ca76055a220ed::t_526807128e9180 18,1792
+src/i18n/en.js
+  s_9ca76055a220ed::t_90253e148c6fc3 51-56
+src/i18n/fr.js
+  s_9ca76055a220ed::t_3939534fa82518 51-56
+src/main.js
+  s_9ca76055a220ed::t_d67e0c13fa4d1e 74,117,189,307-309,591-594,596-598,782
+src/player.js
+  s_9ca76055a220ed::t_5c8411b6162aa5 1583
+src/save-migrate.js
+  s_9ca76055a220ed::t_08c9da198b3940 28-31,34-36,104-108
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_ec550edb22499d 15,836
+src/ship/ship.js
+  s_9ca76055a220ed::t_3f071b4434f3d0 20,337-339,546-549
+src/ship/starmap.js
+  s_9ca76055a220ed::t_38dd75f6f2401b 27-33,42-43,67-69,241-269,274-281,290-292,309,315-316,343-344,348-350,358-361,373-408,436-450,522-523,538-605,607-612,615-616,620,625
+src/story/signature-search.js
+  s_9ca76055a220ed::t_f3353ab7369c94 1-157
+src/ui.js
+  s_9ca76055a220ed::t_c9074462dbb11a 15,37-38,204-208,215-216,309-310
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_c03022bd597a46 21,655-658
+tests/route.test.js
+  s_9ca76055a220ed::t_0d5a0a54f2c4be 70-71,74,78,104
+tests/waterfall.test.js
+  s_9ca76055a220ed::t_aac14d211725fe 34
+android/app/src/main/java/com/rnaud/moebius/Rumbler.java
+  s_9ca76055a220ed::t_765edb9dd333f1 1-89
+src/rumble.js
+  s_9ca76055a220ed::t_9292b7ba9ea13e 1-176
+tests/rumble.test.js
+  s_9ca76055a220ed::t_999da615352c7d 1-94
+tests/signature-search.test.js
+  s_9ca76055a220ed::t_136c8273a5ca71 1-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0b50db4c846f012414ac976050312c1faf0909cb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
