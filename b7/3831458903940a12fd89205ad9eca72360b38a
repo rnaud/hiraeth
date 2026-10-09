@@ -1,0 +1,19 @@
+TODO.md
+  s_dea9cd5a610a8f::t_3d491caff8f672 11-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b73831458903940a12fd89205ad9eca72360b38a",
+  "prompts": {},
+  "sessions": {
+    "s_dea9cd5a610a8f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a120b8-776c-71e1-b9e3-6142fe20bbd0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
