@@ -1,0 +1,61 @@
+DONE.md
+  s_9ca76055a220ed::t_17b3fda95dd4b7 1886,1893-1906
+TODO.md
+  s_9ca76055a220ed::t_7ac94e8beaea3f 52,55-65,67-74,170-172
+changelog.md
+  s_9ca76055a220ed::t_fb93a895780cf5 5-6,7-11,21
+docs/audits/combat-v1.9.md
+  s_9ca76055a220ed::t_18f494b1f43f3e 1-111
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_bc03ade7dcc474 1,876-882,888,894-897,908-911
+docs/systems/characters.md
+  s_9ca76055a220ed::t_94ca3fc6632db6 797
+docs/systems/foes.md
+  s_9ca76055a220ed::t_3378ee5a578eb1 577,584-586,589-590,592-595,614-620,636-649,660-669,671-673,676-680
+docs/systems/procedural-animation.md
+  s_9ca76055a220ed::t_a1a0c4e6cf83b3 407-408,519-550
+scripts/enemy-roster/skins.mjs
+  s_9ca76055a220ed::t_31c8eecca0e73d 4,61
+src/changelog.js
+  s_9ca76055a220ed::t_b4c05a370f9946 11,25,27-31,32
+src/enemies/plans/burrower.js
+  s_9ca76055a220ed::t_1c12ed85fb4b92 23,40-42,57-59,66-67,85-86
+src/enemies/plans/centipede.js
+  s_9ca76055a220ed::t_496cad3b10fed6 27,39,71
+src/enemies/plans/floater.js
+  s_9ca76055a220ed::t_82ff84dc566646 23,32,48,56,65
+src/enemies/plans/flyer.js
+  s_9ca76055a220ed::t_a34ee6c60cc458 30,58,68,76,81
+src/enemies/plans/glider.js
+  s_9ca76055a220ed::t_05ffd5e1d8aaeb 24,53
+src/enemies/skins.js
+  s_9ca76055a220ed::t_b025179598c828 95
+src/motion-kit/plans.js
+  s_9ca76055a220ed::t_47893f61dbccf4 99
+src/changelog-media.js
+  s_a76c8ac9d52e9e::t_895de8ccd00ae1 349,391-392,394-412,413
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e9e31e740104b80a3402166cb4fb7de468694b76",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a76c8ac9d52e9e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2d22e32e03516607",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
