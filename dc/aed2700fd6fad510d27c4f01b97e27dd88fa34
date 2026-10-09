@@ -1,0 +1,51 @@
+docs/systems/foes.md
+  s_9ca76055a220ed::t_8a51065dc732b8 687-728
+scripts/enemy-roster/compare.mjs
+  s_9ca76055a220ed::t_4e27a58042a749 6-12,28-32,38-44,47-52,65-69,80-82,97,99,102,104-105,109,117-118
+src/enemies/plans/blob.js
+  s_9ca76055a220ed::t_f05fe3f09b4873 29
+src/enemies/plans/burrower.js
+  s_9ca76055a220ed::t_e2d46a56538c64 28
+src/enemies/plans/centipede.js
+  s_9ca76055a220ed::t_5b4dc6520ee7f8 34
+src/enemies/plans/floater.js
+  s_9ca76055a220ed::t_a25523457a0013 29
+src/enemies/plans/flyer.js
+  s_9ca76055a220ed::t_72a73ae3e25c34 45
+src/enemies/plans/glider.js
+  s_9ca76055a220ed::t_2b8848de76d080 44
+src/enemies/plans/kit.js
+  s_9ca76055a220ed::t_9c0076395484f5 3,19,22-32
+src/enemies/plans/piston.js
+  s_9ca76055a220ed::t_ca0e73912b2336 39
+src/enemies/plans/quadruped.js
+  s_9ca76055a220ed::t_d2f0f84afb2966 66,215
+src/enemies/plans/walker.js
+  s_9ca76055a220ed::t_f1289eea41ec21 32,62,67-68
+src/enemies/skins.js
+  s_9ca76055a220ed::t_f4983efc5999a1 80-81,88-89
+src/enemies/surfaces.js
+  s_9ca76055a220ed::t_47f838dad2fc9a 1-173
+src/foe-surface.js
+  s_9ca76055a220ed::t_b25c1838c56870 1-368
+src/materials.js
+  s_9ca76055a220ed::t_a20f0be5fe7cc2 17,1703-1704,2244-2246,2346-2348,2741-2742,2859
+tests/foe-surface.test.js
+  s_9ca76055a220ed::t_4b5b5a015a3f3b 1-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dcaed2700fd6fad510d27c4f01b97e27dd88fa34",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
