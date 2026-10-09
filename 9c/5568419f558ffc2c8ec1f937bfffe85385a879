@@ -1,0 +1,61 @@
+references/shops/buried-machine/manifest.json
+  s_9ca76055a220ed::t_3b90d36e520e13 1-39
+references/shops/city-shaft/manifest.json
+  s_9ca76055a220ed::t_a562518537c00e 1-39
+references/shops/desert/manifest.json
+  s_9ca76055a220ed::t_aa340c65d783dc 1-39
+references/shops/hangar/manifest.json
+  s_9ca76055a220ed::t_d67a1d8bd3b680 1-39
+references/shops/lorn-ii/manifest.json
+  s_9ca76055a220ed::t_50da76ad2ee756 1-39
+references/shops/lorn/manifest.json
+  s_9ca76055a220ed::t_0f23775c21ce4c 1-22
+references/shops/signal-market/manifest.json
+  s_9ca76055a220ed::t_87734cbafb8896 1-39
+references/shops/spheres/manifest.json
+  s_9ca76055a220ed::t_c5af5a7b31fb01 1-39
+references/shops/vael-ii/manifest.json
+  s_9ca76055a220ed::t_78d7d4965feeca 1-39
+references/shops/vael/manifest.json
+  s_9ca76055a220ed::t_fc4563d8d61ee9 1-39
+references/shops/viridel/manifest.json
+  s_9ca76055a220ed::t_7e18cbeb8f6d98 1-39
+references/temples/aerie/manifest.json
+  s_9ca76055a220ed::t_e77e2101fc3e1c 1-39
+references/temples/builders-greenhouse/manifest.json
+  s_9ca76055a220ed::t_66b6a501d2b1c8 1-39
+references/temples/engine-house/manifest.json
+  s_9ca76055a220ed::t_0d908be9929ac9 1-39
+references/temples/first-garage/manifest.json
+  s_9ca76055a220ed::t_38445ecab62862 1-39
+references/temples/footprint/manifest.json
+  s_9ca76055a220ed::t_b9c2edebdfd651 1-39
+references/temples/founders-belfry/manifest.json
+  s_9ca76055a220ed::t_da5158b3c5cd56 1-39
+references/temples/givers-house/manifest.json
+  s_9ca76055a220ed::t_1b2748a51c9d32 1-39
+references/temples/hush-house/manifest.json
+  s_9ca76055a220ed::t_93141c0e9be928 1-39
+references/temples/lamp-house/manifest.json
+  s_9ca76055a220ed::t_6e5c22034948f8 1-39
+references/temples/undertower/manifest.json
+  s_9ca76055a220ed::t_2fd5cbd7f8b1d7 1-39
+references/temples/wardens-well/manifest.json
+  s_9ca76055a220ed::t_2817fe56756bbe 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9c5568419f558ffc2c8ec1f937bfffe85385a879",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
