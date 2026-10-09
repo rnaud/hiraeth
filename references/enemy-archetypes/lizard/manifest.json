@@ -18,6 +18,25 @@
       "sha256": "9e85a77d25eae050462d5167167b4e78c002e8d8ba4c8a551b1ffa27e174c6f3",
       "bytes": 144723,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "The same horn lizard, same long low four-legged body with jointed legs, same curled tail and trumpet snout, redrawn as the Signal Market's coin lizard: teal scales, a polished brass horn hung with little pierced coins on strings, cream belly, warm amber accents. Front, side and three-quarter views and the reared blare wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#lizard/alt",
+      "refs": [
+        "references/enemy-archetypes/lizard/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-58-46-0d3e",
+      "candidate": "openai/1",
+      "sha256": "c3f85f1fba6ee3a20b8c1ebd89daf93a29274c3b5e9005755280381a8e655d55",
+      "bytes": 135787,
+      "costUSD": 0.041
     }
   ],
   "rejected": [

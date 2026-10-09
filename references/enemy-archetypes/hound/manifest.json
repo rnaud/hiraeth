@@ -18,6 +18,25 @@
       "sha256": "504f7d07351bfd4b0b52c515b8949a222c73034642bf35e1a5e906edbf6599e4",
       "bytes": 191163,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "The same antler hound, same lean four-legged body with back-angled hocks, same wide antler crown and smoke mane, rising from a flat shadow, redrawn as the White Mangrove's driftwood hound: bleached bone-white driftwood antlers, the black body dripping like wet ink, sage and lilac smoke, small turquoise eye glow. Front, side and three-quarter views, the crouched pounce wind-up and the shadow on the ground on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage, biped.",
+      "from": "docs/design/enemy-roster-prompts.md#hound/alt",
+      "refs": [
+        "references/enemy-archetypes/hound/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-59-11-60a9",
+      "candidate": "openai/2",
+      "sha256": "cbf42f5259a6e47bc5f5cd76f0d5ee7636975b06208e6e6563013e80371fb69b",
+      "bytes": 217929,
+      "costUSD": 0.041
     }
   ]
 }

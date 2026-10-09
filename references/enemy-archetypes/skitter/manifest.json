@@ -18,6 +18,25 @@
       "sha256": "1efb8d1f2160204457c047e78608cfde7a267693b12eb33c25754cf24ad2e0b3",
       "bytes": 166803,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "The same skitter swarm, same fist-sized domes on six hooked jointed legs, redrawn as the Moon Foundry's furnace beetles: dark iron-grey domes with a glowing ember-orange seam down the back, cream enamel legs, soot-black shadows. One skitter large in front, side, three-quarter and reared-up views, then a rippling line of ten and a small heap, on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#skitter/alt",
+      "refs": [
+        "references/enemy-archetypes/skitter/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-00-34-abc1",
+      "candidate": "openai/2",
+      "sha256": "8f0b03423c5361e77cbbad7aa13b02702d0ba494a1fd4f284b9566ccb3fc0d82",
+      "bytes": 180710,
+      "costUSD": 0.041
     }
   ]
 }

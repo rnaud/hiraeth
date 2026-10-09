@@ -18,6 +18,25 @@
       "sha256": "8a9a4bca84170bb7d4dbfad10abf29ee10bc100eeb81f05054428d87eb8d9b30",
       "bytes": 237360,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "The same ring centipede, same fourteen segments with a jointed leg pair each, same crab-like head and pincers, redrawn as the Fallen Ring's orbital centipede: teal enamel plates edged in cream, a polished gold head, small bolts along each segment, deep blue shadows. Straight side view, coiled ring from above, head in three-quarter and the reared lunge wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#centipede/alt",
+      "refs": [
+        "references/enemy-archetypes/centipede/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-01-01-6fb6",
+      "candidate": "openai/2",
+      "sha256": "3d02c7345044360cabb5e17325718b0bd7f905f35189b3a35152686c256cc7e1",
+      "bytes": 245607,
+      "costUSD": 0.041
     }
   ]
 }

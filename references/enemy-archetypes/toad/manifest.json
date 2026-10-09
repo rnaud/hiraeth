@@ -18,6 +18,25 @@
       "sha256": "fc396080bc2f65f0506c13a01e82fa19caa850f39936ceaf48f9047aae0384ec",
       "bytes": 169144,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "The same bellows toad, same squat pear body, same jointed folded hind legs and webbed feet, same throat sac, redrawn as the City-Shaft's pressure toad: slate-blue skin, a small brass valve and pressure gauge growing from its back, the swollen sac holding hot water with a wisp of steam, ivory belly, pink accents. Front, side and three-quarter views and the swollen-throat wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#toad/alt",
+      "refs": [
+        "references/enemy-archetypes/toad/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-01-27-e021",
+      "candidate": "openai/2",
+      "sha256": "73d80c52468467f5212e0ca70ecc2805c7a769f0ce30116ea093405dd0acdf8e",
+      "bytes": 183632,
+      "costUSD": 0.041
     }
   ]
 }

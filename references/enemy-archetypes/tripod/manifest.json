@@ -18,6 +18,25 @@
       "sha256": "6d97aaa1f4beef44ee545f794338d0a6ad1f18c83addd5736ac71b0d2360f866",
       "bytes": 246480,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "The same lamp tripod, same three thin jointed piston legs and searchlight, redrawn as the Underwater City's diving bell on legs: the boiler a riveted copper diving bell with several small portholes, the dark eyes and smeared fingers at the glass of each, coral-pink and turquoise paint, buttery yellow lamp, black bubbles rising. Front, side and three-quarter views and the narrowed-beam wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#tripod/alt",
+      "refs": [
+        "references/enemy-archetypes/tripod/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-59-37-b09d",
+      "candidate": "openai/2",
+      "sha256": "07b213c0e334c2b870591d9d400962689fac598c61c5cb8dd0bdc070932a389e",
+      "bytes": 263311,
+      "costUSD": 0.041
     }
   ]
 }

@@ -18,6 +18,25 @@
       "sha256": "4b233849a2f0dc055b3b2bc4b14474e8aa101b9e769af3043fd7d00d5de0ef3f",
       "bytes": 155860,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "The same stilt heron, same 2.5 metre stilt legs with backward-bending ankles and three-toed feet, same S-neck, redrawn as Vael's ridge runner: a slim feathered pale blue body instead of the jug, folded wings that can flare, a hooked bill, rust-red crest feathers, ivory legs. Front, side and three-quarter views and the S-neck spear wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#heron/alt",
+      "refs": [
+        "references/enemy-archetypes/heron/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-01-53-3477",
+      "candidate": "openai/2",
+      "sha256": "1a548f92aadf693f040df3d19906a49577bef183392b82dff8bba38a31e72ffe",
+      "bytes": 197824,
+      "costUSD": 0.041
     }
   ]
 }

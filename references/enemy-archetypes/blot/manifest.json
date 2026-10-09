@@ -18,6 +18,25 @@
       "sha256": "05d7e96700325510b2d822ca47d4390196c0b533ba5d3c53a177039364856e6b",
       "bytes": 129268,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "The same ink blot, same limbless squashing ink drop with two white eyes, redrawn for the Sealed Hangar: its edge stained rust-orange and oily teal where it touches the floor, a few metal shavings stuck to it, gunmetal reflections. The puddle, standing front, side and three-quarter views, the coiled lunge and the tall spit pose on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#blot/alt",
+      "refs": [
+        "references/enemy-archetypes/blot/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-00-09-88c6",
+      "candidate": "openai/1",
+      "sha256": "e7558c45003a9e6c524d2dc366e1d2240a2238bfb150bf442ec0ae19f2180de5",
+      "bytes": 139979,
+      "costUSD": 0.041
     }
   ]
 }
