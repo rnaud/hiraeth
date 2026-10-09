@@ -16,7 +16,7 @@ test('Android prompts use the handheld button names', () => {
   assert.equal(padText('View gear and sketchbook · RB / R1 push · LB / L1 zoom'), 'Select gear and sketchbook · R1 push · L1 zoom');
   assert.equal(padText('Left stick fly · LB/RB down/up · LT tool'), 'Left stick fly · L1/R1 down/up · L2 tool');
   assert.equal(padText('(*Shoot*: click, G, or RT.)'), '(*Shoot*: click, G, or R2.)');
-  assert.equal(padText('A / × jump', 'standard', 'xbox'), 'A / × jump');
+  assert.equal(padText('A / × jump', 'standard', 'xbox'), 'A jump', 'no pad known on a computer: one half (Xbox\'s), never the pair');
   assert.equal(padText('Menu of the day, View from the rim'), 'Menu of the day, View from the rim', 'ordinary words stay');
 });
 
@@ -25,7 +25,7 @@ test('a Retroid prints its letters Nintendo-style: prompts written by position n
   const hint = 'A / × jump · B / ○ talk · X / □ call your mount · Y / △ ping · A/× again';
   assert.equal(padText(hint, 'android', 'nintendo'), 'B jump · A talk · Y call your mount · X ping · B again');
   assert.equal(padText(hint, 'standard', 'nintendo'), 'B jump · A talk · Y call your mount · X ping · B again', 'a Nintendo pad on a computer too');
-  assert.equal(padText(hint, 'standard', 'xbox'), hint, 'Xbox / PlayStation: as written');
+  assert.equal(padText(hint, 'standard', 'xbox'), 'A jump · B talk · X call your mount · Y ping · A again', 'no pad known: Xbox letters, never the pair');
   assert.equal(padText('A small box. B-side.', 'android', 'nintendo'), 'A small box. B-side.', 'ordinary words stay');
 });
 
@@ -64,14 +64,15 @@ test('the page relabels when the setting changes, and back', () => {
   const saved = globalThis.window; globalThis.window = win;
   try {
     watchLabels(win);
-    assert.equal(observed, 0, 'standard layout, Xbox letters: nothing to watch');
+    assert.equal(observed, 1, 'always watched: no pad listed still shows one half');
+    assert.equal(nodes[0].nodeValue, 'A jump · B talk', 'no pad listed: Xbox letters, never the pair');
     setFaces('nintendo', win);
     assert.equal(nodes[0].nodeValue, 'B jump · A talk');
     assert.equal(observed, 1);
     watchLabels(win);   // (as when the observer sees its own change) must not swap it back
     assert.equal(nodes[0].nodeValue, 'B jump · A talk');
     setFaces('auto', win);
-    assert.equal(nodes[0].nodeValue, 'A / × jump · B / ○ talk', 'the prompt as the game wrote it');
+    assert.equal(nodes[0].nodeValue, 'A jump · B talk', 'back to the Xbox half (from the prompt as the game wrote it)');
     assert.equal(nodes[1].nodeValue, 'Menu of the day');
   } finally { globalThis.window = saved; }
 });

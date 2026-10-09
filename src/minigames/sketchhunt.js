@@ -14,7 +14,7 @@ import { bestTarget, pickList, huntScore, verdict, stars, FRAMING, crowdInWay } 
 import { CROWD_POSES } from '../crowd-shader.js';
 import { BRIDGES } from '../levels/bazaar.js';
 import { inputKind, escapeHtml } from '../prompt-keys.js';
-import { padText } from '../native-pad.js';
+import { promptText } from '../native-pad.js';
 
 export const HUNT = { seconds: 180, n: 6, fov: { min: 18, max: 62, start: 46 } };
 const INK = '#2b211f', PAPER = '#f7ecd2';
@@ -209,8 +209,8 @@ function start(ctx) {
   const hint = () => {
     const k = inputKind();
     const text = view.raised
-      ? k === 'pad' ? `${padText('RT / R2')} sketch · ${padText('LB / RB')} zoom · let go of ${padText('LT / L2')} to lower it` : k === 'touch' ? 'Tap to sketch' : 'Click or G sketch · wheel or Z / C zoom · let go to lower it'
-      : k === 'pad' ? `Hold ${padText('LT / L2')} to raise the sketchbook` : k === 'touch' ? '' : 'Hold the right mouse button or R to raise the sketchbook';
+      ? k === 'pad' ? `${promptText('RT / R2', { remap: false })} sketch · ${promptText('LB / RB', { remap: false })} zoom · let go of ${promptText('LT / L2', { remap: false })} to lower it` : k === 'touch' ? 'Tap to sketch' : 'Click or G sketch · wheel or Z / C zoom · let go to lower it'
+      : k === 'pad' ? `Hold ${promptText('LT / L2', { remap: false })} to raise the sketchbook` : k === 'touch' ? '' : 'Hold the right mouse button or R to raise the sketchbook';
     if (hintEl.textContent !== text) hintEl.textContent = text;
     hintEl.style.display = text ? '' : 'none';
   };

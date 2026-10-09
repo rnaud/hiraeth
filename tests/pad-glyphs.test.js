@@ -27,7 +27,7 @@ test('the controller\'s family, from the Gamepad id', () => {
   assert.equal(familyOf(''), '');
   // on the page: the first pad listed; the Android layout is always the handheld's
   assert.equal(padFamily(fakeWin(['DualSense Wireless Controller (Vendor: 054c)'])), 'playstation');
-  assert.equal(padFamily(fakeWin([])), '', 'no pad: the prompts stay as written');
+  assert.equal(padFamily(fakeWin([])), '', 'no pad listed (pageFamily then picks the half: tests/prompt-pairs.test.js)');
   assert.equal(padFamily(fakeWin(['Xbox Wireless Controller'], '?pad=android')), 'handheld');
   assert.equal(padFamily(fakeWin(['Retroid Pocket Controller'])), 'handheld');
 });
@@ -48,7 +48,7 @@ test('prompts in the family\'s own names: the half of "A / ×" that matches, and
   assert.equal(padText(line, 'standard', 'xbox', 'playstation'), '× jump · ○ evade · □ use · △ gadget · L1 guard · R2 jets · L3 run · Create sketchbook · Options settings');
   assert.equal(padText(line, 'standard', 'nintendo', 'nintendo'), 'B jump · A evade · Y use · X gadget · L guard · ZR jets · LS run · − sketchbook · + settings', 'a Switch pad: B at the bottom');
   assert.equal(padText(line, 'android', 'nintendo', 'playstation'), padText(line, 'android', 'nintendo'), 'the Android layout: the handheld\'s names, as before');
-  assert.equal(padText(line, 'standard', 'xbox'), line, 'no pad listed: as written');
+  assert.equal(padText(line, 'standard', 'xbox'), padText(line, 'standard', 'xbox', 'xbox'), 'no pad listed: Xbox\'s half, never the pair');
   assert.equal(padText('LB/RB down/up · LT tool', 'standard', 'xbox', 'playstation'), 'L1/R1 down/up · L2 tool');
   assert.equal(padText('A Menu of the day, View from the rim', 'standard', 'xbox', 'playstation'), 'A Menu of the day, View from the rim', 'ordinary words stay');
 });

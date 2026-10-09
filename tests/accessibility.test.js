@@ -169,8 +169,8 @@ test('the key listener sends keys on as the verb\'s default key, toggles run, an
 test('the prompts name the buttons and keys now bound, the menus\' own ones stay', () => {
   setControlPrefs({ pad: { jump: 'B', evade: 'A' } });
   assert.equal(padRename('A / × jump · B / ○ evade'), 'B / ○ jump · A / × evade', 'a swap renames both, once');
-  assert.equal(promptText('A / × jump', { layout: 'standard', faces: 'xbox' }), 'B / ○ jump');
-  assert.equal(promptText('A / × confirm', { layout: 'standard', faces: 'xbox', remap: false }), 'A / × confirm', '.pad-raw: as written');
+  assert.equal(promptText('A / × jump', { layout: 'standard', faces: 'xbox' }), 'B jump');
+  assert.equal(promptText('A / × confirm', { layout: 'standard', faces: 'xbox', remap: false }), 'A confirm', '.pad-raw: not renamed (one half all the same)');
   assert.equal(promptText('A / × jump', { layout: 'android', faces: 'nintendo' }), 'A jump', 'then the handheld\'s letters (B / ○ is printed A on a Retroid)');
   setControlPrefs({ pad: { modePrev: 'LB', guard: '←' } });
   assert.equal(padRename('D-pad ← / → gun mode'), 'LB / L1 / D-pad → gun mode');
