@@ -200,6 +200,24 @@ const RUN_THROUGH = (id, time, last = 0) => `const w = window.trials.byId('${id}
   if (!${last}) window.minigame.clock = ${time};
   const b = w.course.bank; if (b) { b.hit(0); b.hit(1); b.hit(2); }
   await wait(2600);`;
+// ------------------------------------------------------------------ v1.3's blade views
+// (the Arena's first blot held still 2.4 m ahead of the traveller, the camera pinned at his side `side` m off and
+// `h` m up; then `go` plays the buttons in the page and the game is frozen on that frame: window.cinematicReview.paused)
+const BLADE_VIEW = (go, { side = 3.6, h = 2.0, ty = 1.5 } = {}) => `for (let i = 0; i < 60 && !foes.list.length; i++) ${sleepJs(250)}
+  const V = THREE.Vector3, f = foes.list[0], P = player.pos, d = new V(); camera.getWorldDirection(d); d.y = 0; d.normalize();
+  player.heading = Math.atan2(d.x, d.z);
+  for (const g of foes.list.slice(1)) g.pos.set(P.x + 40, g.pos.y, P.z + 40);
+  f.pos.set(P.x + d.x * 2.4, f.pos.y, P.z + d.z * 2.4); f.heading = Math.atan2(-d.x, -d.z); f.hp = 999; f.update = () => { f.state = 'idle'; return []; };
+  const eye = P.clone().addScaledVector(d, 1.0).add(new V(-d.z * ${side}, ${h}, d.x * ${side})), at = P.clone().addScaledVector(d, 1.2).add(new V(0, ${ty}, 0));
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };
+  ${HIDE('#toast, #inputs, #foe-spawner')}
+  ${sleepJs(1500)}
+  ${go}
+  window.cinematicReview = { paused: true };`;
+const ARENA_BLADE = { level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 400 };
+
 
 export const CHANGELOG_MEDIA = {
   '1.3': [
@@ -225,6 +243,23 @@ export const CHANGELOG_MEDIA = {
       { name: 'feather-leap-results', only: 'after', caption: 'The Feather leap finished: the time, the makers’ mark, and a word from Kesh, who keeps the stone hand nearby', commit: 'f51e0acc',
         view: { level: 'arzach', hud: true, hour: 10, save: { flags: { 'prologue.done': true, 'item.backpack': true, 'item.glider': true, 'items.v': 2 }, keepsakes: [] }, player: [-97, 24, -208], setup: RUN_THROUGH('kit-arzach', 41.2, 0.1), wait: 600 } },
     ] },
+    { match: 'Hold the blade button (RB / R1)', shots: [
+      { name: 'blade-charge', caption: 'The blade button held for a second in the Arena: before, one light cut and he is back on guard; after, the sword drawn back over his shoulder and held, the charge full', commit: 'bf70463a',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.KeyF = true; ${sleepJs(1000)}`) } },
+      { name: 'blade-charged-cut', caption: 'A moment after letting go: before, nothing more (the light cut was over); after, the great-sword sweep cutting through the blot, its trail over the arc', commit: 'bf70463a',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.KeyF = true; ${sleepJs(1000)} input.KeyF = false; ${sleepJs(170)}`) } },
+    ], numbers: [
+      { title: 'The traveller’s captured moves (moves.glb), with the Great Sword pack’s slash and jump attack added', unit: 'KB', better: 'lower', device: 'any (downloaded once, after the game starts)', rows: [
+        { where: 'the file', before: 583.4, after: 607.1 },
+        { where: 'gzipped, as the site serves it', before: 391.3, after: 404.8 },
+      ], source: 'public/anim/moves.glb before and after (597 424 → 621 644 bytes; gzip -c: 400 686 → 414 522); the jump attack trimmed to the 1.5 s the game plays' },
+    ], see: 'In the Arena (?level=arena), hold RB / R1 (F) near a blot: he draws the sword back and holds it; wait for the ring and let go. A tap still swings the light cut.' },
+    { match: 'A swing in the air is now a leaping overhead cleave', shots: [
+      { name: 'blade-air-cut', caption: 'A swing a moment after jumping, beside a blot: before, the first light cut with the arms alone; after, the overhead cleave coming down onto it', commit: 'bf70463a',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.Space = true; ${sleepJs(80)} input.Space = false; ${sleepJs(230)} input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(230)}`, { side: 5, h: 2.4, ty: 1.9 }) } },
+    ], see: 'In the Arena, jump (A / ×) toward a blot and press RB / R1 (F) at the top: he hangs, lifts the sword and drops onto it.' },
+    { match: 'Going from one sword swing into the next', see: 'In the Arena, press RB / R1 three times quickly, then raise the guard (LB / L1) and walk off: each change of pose flows into the next instead of jumping.' },
+    { match: 'The blade’s spark trail sweeps through the cut itself', see: 'Swing the blade slowly in the Arena (one press at a time): the sparks only fill the arc where the edge actually cuts.' },
   ],
   '1.2': [
     { match: 'The dark masses in shaded corners', shots: [
