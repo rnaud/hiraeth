@@ -35,9 +35,9 @@ to do one.
 
 Data in `src/trials/kit-data.js` (`KIT_TRIALS`, id `kit-<world>`, mode `kit`), built by
 `src/trials/kit-courses.js` (`COURSES`): the temple kit (`TempleKit`: hall, slab, stairs, column, glyph) in the
-world's temple palette, and the temple pieces (`Gust`, `Swing`, `Bank`, `Updraft`) given a small stand-in for their
-temple's runtime (`openRuntime`: the frame, the materials, the traveller, a logic that only says yes while a
-run listens). They stand there for good, run or no run: the hall gusts and the crystals swing for anyone
+world's temple palette, and the temple pieces (`Gust`, `Swing`, `Bank`, `Updraft`, `Ball` and `Plate`) given a
+small stand-in for their temple's runtime (`openRuntime`: the frame, the materials, the traveller, and a
+temple's own logic kept in memory, which lights a bank only while a run listens). They stand there for good, run or no run: the hall gusts and the crystals swing for anyone
 passing, and as workings (src/workings.js) they throw foes about too. The collision is the kit's proxy, added
 with `physics.addCollider`. The rules are pure (`src/trials/kit-run.js`): `KitRun` (the gates in order, then
 the bank if there is one: it only listens once every gate is behind you, so nobody wakes it from the door or
@@ -46,18 +46,36 @@ up in the air, once its first gates are behind you and past a point along it; `o
 more than 1.5 s ends it, `offFeet` the words), `voiceLine`. `controls` names the start card's controls
 (`kitwings`: walk, jump, the wings; the default `kit`: walk, jump, aim, splash).
 
+**The ball onto its plate** (`rt.roller({ id, a, b, r, plateR })`, `addRoller`): the temples' own `Ball` and
+`Plate` (src/temples/pieces.js) with their logic (src/temples/logic.js, a `drum` and its `plate`, in the stand-in's
+TempleLogic): a ball in a straight groove from `a` to `b`, rolled along by the fluid's push (a few metres a push,
+stronger close up; a splash only nudges it, a push across the groove only rocks it), that settles into the
+plate's dip at `b` and holds it down there (`home()`: at rest on its plate); a stop past the plate throws an
+overshoot back. A new run rolls it back to `a` (`reset`). The balls and plates are floors and walls for the
+traveller as in a temple: the run adds `course.solids()` to the player's moving solids (`player.opts.dynamic`)
+and gives them back when it goes. What a run asks once its gates are behind you is `course.task`: a bank's eyes
+(`kind: 'eyes'`) or the balls home (`kind: 'roll'`, its goal "roll the spheres home 1 / 2"); a ball rolled home
+early waits there, and the last gate finishes the run.
+
 | run | where | goal | the sign | mark | wants | who speaks |
 |---|---|---|---|---|---|---|
 | **Wind hall** (`kit-desert`) | a roofless makers' hall on the dune crest west of the landing, door to the south, steps down to the sand (origin −135, 21.4, −64) | walk its 46 m through the gusts (every 5 s: streaks, then a shove back down the hall; calm behind each of the four screens and under the porch), then wake the three eyes over the porch inside 4 s | east of the steps | 42 s | the fluid gun | Pell, the counter of bones, at the foot of the dune |
 | **Hush walk** (`kit-perdide`) | a causeway 42 m out over the deep lake south of Lorn's landing, three arches each with a crystal of the Hush swinging across it (2.6, 3.0, 2.8 s) | out to the round stone and back to the shore; a crystal knocks you into the lake, which ends the run; a stilling burst stops one for 6 s | on the shore, west of the causeway | 48 s | nothing | Sedge, the reed-cutter, in the reeds by the shore |
 | **Feather leap** (`kit-arzach`) | a plinth, a makers' tower and a lower ledge on the plain north-west of Vael's landing, east of the stone hand, running north to south (origin −104, 25, −202) | up the column of rising wind at the tower's foot on open wings (it tops out under the screens: no gliding over them) onto the terrace 12 m up; across it through the gusts (every 5 s, three screens turn and turn about, the parapet behind you); glide the 27.5 m gulf to the ledge 6 m lower. Down on the plain once past the first gate ends it | east of the steps up to the plinth | 45 s | the wings | Kesh, who keeps the stone hand (a story local: `src/story/arzach-data.js` LOCALS) |
+| **Sphere court** (`kit-spheres`) | a white plinth 12 m by 46 on the meadow south of the mirror lake, running east (origin 140, 0.4, −22) | weave the slalom past four stone spheres to the arch at the far end, then roll the two white spheres onto their plates at the dais with the push: the west one up the court (8 m), the east one back down it from the far end (12 m) | by the step at its west end | 42 s | the fluid gun | Nell, who looks into the lake, on the shore to the south-east |
+| **Long look** (`kit-incal`) | a balcony from the rim out over the City-Shaft, in the parapet's gap round from the spawn (origin 266, 200.3, 61.4, facing the shaft's middle) | roll the stone ball from the rim along the balcony's three stones (the gaps between them a jump; the ball crosses on an iron rail) onto its plate at the far end, 31 m; no parapet: down the shaft ends it | on the rim behind the plinth | 40 s | the fluid gun | Tobin, the seller of views, along the rim |
 | **Furnace steps** (`kit-buried`) | a platform, eight iron pillars over a glowing grate 4 m down, and a landing before a sealed door, on the sand east of the Buried Machine's landing, running south (origin 40, 11, 66) | jump pillar to pillar (gaps 1.8–2.4 m, steps up under a metre, zigzag) to the landing; down on the grate ends it; then wake the door's four eyes in 2.6 s | on the sand by the stair | 34 s | the fourth chamber | Jot, nine teeth old, by the landing |
 
 Fair on a controller and on touch: walking, jumping, aiming and the splash are all the run asks; the gust's
 rhythm is shown before it blows (0.8 s of streaks), the crystals swing in plain sight, every screen leaves a way
 past it about 2.9 m wide, and the eyes' 4 s is three shots with a tank to spare. The feather leap's gulf wants
 a plain glide (27.5 m at the wings' 15 m/s sinks about 4.4 m of its 6), and its gate on the ledge is wide; a
-walking jump carries about 3 m, so the furnace's pillars are each well inside one.
+walking jump carries about 3 m, so the furnace's pillars are each well inside one, and the long look's gaps
+(1.8 m) too. The balls want only the push (the gun's mode: D-pad / X, or the touch mode button); each is pushed
+from straight behind, and there is always room beside it to walk round. The marks of the sphere court and the
+long look are a scripted run (walked at 5 m/s, each ball pushed as soon as it lies still, the tank's three
+charges and its refill counted, pushed from a step behind) plus about 30 %: 32 and 31 s; played in the game with the real push, 31 and
+36 s (the gates walked first, then the ball rolled out from the rim).
 
 **Adding one:** an entry in `KIT_TRIALS` (its world, `course`, `origin` and `yaw`, the sign and the start in
 the course's frame, the mark, `needs`, `wet`, `voice` with a tone on every line) and, for a new kind of
@@ -78,7 +96,12 @@ over the speaker's head, the best in the save), a slower second run keeping the 
 (shoved in the open, calm in a lee, a way past every screen, the walls holding) and the Hush walk's crystal
 (it knocks you off sideways; stilled, it hangs harmless; a Retry sets it swinging); the feather leap's column
 (it lifts open wings over the parapet, not a walker), its screens and gusts and a gulf the wings can cross; the
-furnace steps' pillars (each a floor, each a jump from the last), the grate under them, the door's four eyes.
+furnace steps' pillars (each a floor, each a jump from the last), the grate under them, the door's four eyes;
+the ball onto its plate (the logic's drum and plate, the push rolls it, a splash nudges it, sideways it rocks,
+home it holds the plate, a reset rolls it back, the traveller's solids given and taken back); the sphere
+court's grooves (opposite ways to one dais, the middle clear, the slalom's spheres solid, balls home early wait
+for the last gate) and the long look's stones (floors out over the drop, open air under the gaps beside the
+rail, nothing in the way, down the shaft ends it); for both, the mark against a scripted run.
 Each run is clear of its world's ship. The trials:
 `tests/trials.test.js`, `tests/trials-worlds.test.js`.
 
@@ -86,6 +109,6 @@ Each run is clear of its world's ship. The trials:
 
 A makers' run in the other route worlds, each from its own temple's kit. Every one left wants a new piece in
 the stand-in runtime (`openRuntime`): Lorn's deep wood (the lantern charm's lamps, `LightEar`), the Hangar
-(eye banks with riding discs: `level.dynamic`), the Garden of Spheres and the City-Shaft (a stone ball rolled
-onto its plate: the logic's drums and plates), the Signal Market (echo stones and ears), Viridel (seeds that
-grow vine bridges: the logic's bridges), the sky stones (bell ears).
+(eye banks with riding discs: moving solids, which `course.solids()` now hands the traveller), the Signal
+Market (echo stones and ears), Viridel (seeds that grow vine bridges: the logic's bridges, which the stand-in's
+TempleLogic could now keep), the sky stones (bell ears).

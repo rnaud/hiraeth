@@ -1474,3 +1474,14 @@ tests/sound-mix.test.js holds them.
   steps** (east of the landing: eight iron pillars to jump across a glowing grate, then a door of four eyes in
   one breath, which wants the fourth chamber; Jot has a word). A run can now end on the ground under it
   (`fall`), name its own controls (`controls: 'kitwings'`) and have a bank of any size.
+- [x] **The ball onto its plate, and two more makers' runs.** The stand-in runtime (src/trials/kit-courses.js
+  `openRuntime`) now keeps a temple's own logic in memory (TempleLogic: a drum and its plate), and `rt.roller`
+  stands the temples' Ball and Plate in the open: a ball in a straight groove that the fluid's push rolls
+  along, at rest on its plate it holds it down; a new run rolls it back. The balls and plates are floors and
+  walls for the traveller (the run adds them to `player.opts.dynamic`). A run's task after its gates is now
+  eyes or balls (`course.task`, KitRun's `words`). The Garden of Spheres' **Sphere court** (on the meadow
+  south of the mirror lake: a slalom past four stone spheres, then two white spheres rolled opposite ways
+  onto their plates at a dais; Nell has a word) and the City-Shaft's **Long look** (a balcony of three stones
+  out over the shaft from the rim, the ball rolled from the rim to its plate at the far end, a jump at each
+  gap, no parapet: down the shaft ends it; Tobin, who sells views, has a word). Both played through in the
+  game with the real push. tests/trials-kit.test.js.

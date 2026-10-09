@@ -2,19 +2,21 @@ import { CourseRun } from './course.js';
 
 // The makers' runs' rules (docs/systems/challenges.md): pure, over plain { x, y, z } points, tested in node
 // (tests/trials-kit.test.js). A makers' run is a short chain of the temples' own pieces stood in the open
-// (src/trials/kit-courses.js builds them): gates on foot, taken in order, and at the end, for some, a bank of
-// eyes to wake in one breath. The bank only listens once every gate is behind you, so nobody wakes it from
-// the door or climbs round the outside to it.
+// (src/trials/kit-courses.js builds them): gates on foot, taken in order, and at the end, for some, a task:
+// a bank of eyes to wake in one breath, or balls to roll onto their plates. The task only counts once every
+// gate is behind you, so nobody wakes the bank from the door or climbs round the outside to it (a ball rolled
+// home early waits there, and the last gate finishes the run).
 //
-//   const run = new KitRun({ gates, bank: 3 })   (bank: how many eyes, 0 for none)
-//   run.step(from, to, t)  → 'gate' | 'ready' (the last gate: the bank is listening) | 'finish' | null
-//   run.wake(n, t)         the eyes awake now (n): 'finish' once all of them are, inside the run
-//   run.goal()             the line under the clock: 'gate 2 / 5', 'wake the eyes 1 / 3'
+//   const run = new KitRun({ gates, bank: 3, words })   (bank: how many, 0 for none; words: the task's goal)
+//   run.step(from, to, t)  → 'gate' | 'ready' (the last gate: the task counts now) | 'finish' | null
+//   run.wake(n, t)         how many are done now (eyes awake, balls home): 'finish' once all of them are
+//   run.goal()             the line under the clock: 'gate 2 / 5', 'wake the eyes 1 / 3', 'roll the spheres home 1 / 2'
 
 export class KitRun {
-  constructor({ gates = [], bank = 0 } = {}) {
+  constructor({ gates = [], bank = 0, words = 'wake the eyes' } = {}) {
     this.course = new CourseRun(gates);
     this.bank = bank;
+    this.words = words;
     this.awake = 0;
     this.done = false;
     this.finishedAt = null;
@@ -44,7 +46,7 @@ export class KitRun {
   goal() {
     if (this.done) return '';
     if (!this.ready) return `gate ${Math.min(this.next + 1, this.gates.length)} / ${this.gates.length}`;
-    return `wake the eyes ${this.awake} / ${this.bank}`;
+    return `${this.words} ${this.awake} / ${this.bank}`;
   }
 }
 

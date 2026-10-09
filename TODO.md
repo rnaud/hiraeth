@@ -39,12 +39,13 @@ Ranked; each says why in the review. Playtest with two or three new players befo
   Esk's hill. The stone and Ilen both remember them (src/story/ending.js choicesMade).
 - [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
   The vehicles' side is done (a trial in every route world, v0.98) and so is the system for the temple kit's
-  side with four runs: the desert's Wind hall, Lorn's Hush walk, Vael's Feather leap and the Buried Machine's
-  Furnace steps (v1.3, docs/systems/challenges.md). Next: a makers' run in the other seven route worlds, each
-  from its own temple's pieces; the ones left all want a new piece in the stand-in runtime: Lorn's deep wood
-  (LightEar: the lantern charm's lamps), the Hangar (eye banks with riding discs: `level.dynamic`), the Garden
-  of Spheres and the City-Shaft (a stone ball onto its plate: the logic's drums and plates), the Signal Market
-  (echo stones and ears), Viridel (seeds and vine bridges: the logic's bridges), the sky stones (bell ears).
+  side with six runs: the desert's Wind hall, Lorn's Hush walk, Vael's Feather leap, the Buried Machine's
+  Furnace steps, the Garden of Spheres' Sphere court and the City-Shaft's Long look (v1.3,
+  docs/systems/challenges.md; the stand-in runtime now has the ball rolled onto its plate). Next: a makers'
+  run in the other five route worlds, each from its own temple's pieces; the ones left all want a new piece in
+  the stand-in runtime: Lorn's deep wood (LightEar: the lantern charm's lamps), the Hangar (eye banks with
+  riding discs: `level.dynamic`, which the runs now feed), the Signal Market (echo stones and ears), Viridel
+  (seeds and vine bridges: the logic's bridges), the sky stones (bell ears).
 - [x] **Each world's climax staged as a moment** (every route world: `src/story/<world>-moments.js`,
   docs/systems/cinematics.md).
 - [x] **One trace of the singing light or of Ilen in each detour world** (and the Sightings page that
