@@ -1,0 +1,87 @@
+docs/systems/controls.md
+  s_9ca76055a220ed::t_c9e10554f970a1 21,26-27,33,122-123,259,271,273-276,279,291-292,296-306,317,323-328
+docs/systems/foes.md
+  s_9ca76055a220ed::t_039740b39057a4 92,708
+docs/systems/gadgets.md
+  s_9ca76055a220ed::t_5c0eb54baff585 59-62
+docs/systems/items.md
+  s_9ca76055a220ed::t_6bf5b4e14a04ce 63-64
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_f2cc11405a658b 88-89
+docs/systems/references.md
+  s_9ca76055a220ed::t_d24c67c3ec9f10 60
+src/bindings.js
+  s_9ca76055a220ed::t_aaa187c323aebe 23-24,28,34,63,65-68,120-121,124,126
+src/controller.js
+  s_9ca76055a220ed::t_7c2df182314c51 10-12,54-56,131,149,153-154,156-159,162,173-174,176,178-181,233
+src/fluid-tool.js
+  s_9ca76055a220ed::t_bf1275d32c3ba4 43,107,888
+src/foe-spawner.js
+  s_9ca76055a220ed::t_06ac5f464004fb 15
+src/gadgets/hud.js
+  s_9ca76055a220ed::t_3c1425c14a83d1 5,10,157-158,160,168-171
+src/gadgets/index.js
+  s_9ca76055a220ed::t_d163665ec7a1ac 75,133,135-136,139,143,149,151
+src/i18n/en.js
+  s_9ca76055a220ed::t_6a40e69c487f01 115-116,202,208,212
+src/i18n/fr.js
+  s_9ca76055a220ed::t_509677c6853283 115-116,201,207,211
+src/levels/arcade-board.js
+  s_9ca76055a220ed::t_900c7dcbddc40b 7
+src/levels/arcade.js
+  s_9ca76055a220ed::t_1ca204e788ae2d 209
+src/levels/arena.js
+  s_9ca76055a220ed::t_ff9d824e2dfc85 79
+src/levels/reference-picker.js
+  s_9ca76055a220ed::t_6e827d0c5dfc3e 8
+src/main.js
+  s_9ca76055a220ed::t_e9877efe6beca7 327,718,1289-1291
+src/prompt-keys.js
+  s_9ca76055a220ed::t_3941c57d266e0a 65,67
+src/remap.js
+  s_9ca76055a220ed::t_3e8109ab10240d 20,32,35-42,45-55
+src/resources.js
+  s_9ca76055a220ed::t_9639af2d0f8823 18
+src/story/desert.js
+  s_9ca76055a220ed::t_f6ab039595a5aa 541
+src/trials/index.js
+  s_9ca76055a220ed::t_ac19ad59ebdd2f 47
+src/ui.js
+  s_9ca76055a220ed::t_18997a9dd27b34 4,59,112-113,138
+tests/abilities.test.js
+  s_9ca76055a220ed::t_6131de4e1592ba 197-198,200-202,206
+tests/accessibility.test.js
+  s_9ca76055a220ed::t_3016bbcb834889 82,96-97,144,146-156,158-161,195-196
+tests/bindings.test.js
+  s_9ca76055a220ed::t_18d5d6957ee2e5 8,34,47-53,59,70,72-75,114-120,141,144-146,148-149
+tests/controller.test.js
+  s_9ca76055a220ed::t_02a1183c2ffce7 22,33,36-38,49-50,114-117
+tests/first-run.test.js
+  s_9ca76055a220ed::t_90476d8ec0b84b 61,77
+tests/fluid-tool.test.js
+  s_9ca76055a220ed::t_498d0489bef265 107
+tests/gadgets.test.js
+  s_9ca76055a220ed::t_f56ae8a38e3d21 101,104,113,119,124-134
+tests/hoverbike-quest.test.js
+  s_9ca76055a220ed::t_60ce4968df336c 134
+tests/key-placeholder.test.js
+  s_9ca76055a220ed::t_c19fff191977bd 27,30-31,34,36,39-40,141
+tests/pad-maps.test.js
+  s_9ca76055a220ed::t_a59654ede90291 165,177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cc087bd47a0059fb70bd18253eb36097b5034954",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
