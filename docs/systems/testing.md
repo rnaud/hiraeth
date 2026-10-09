@@ -18,8 +18,9 @@ signalled). It serves the built game (`dist/`, or `--build`) and loads worlds in
 SwiftShader with a page script that breaks the driver: `fences` (WebGL2 fences never signal) or `noraf`
 (`requestAnimationFrame` never fires). Each load must log `load: total` (its first frame) within `--limit`
 seconds (default 120), and with the fences broken the GPU pacer must have given up having waited at most 4 s.
-No Chrome found (`$CHROME`, the usual paths) is a failure, not a pass. GitHub runs it before every deploy
-(`tests.yml`, job `load-smoke`: desert ×2, garage, Lantern, about 3 minutes of loads plus the build).
+No Chrome found (`$CHROME`, the usual paths) is a failure, not a pass. Run it by hand after touching the load
+(`main.js`'s stages, `src/load-steps.js`): it is not on GitHub, where it held every release back ~5 minutes
+(removed 2026-10-09); `tests/load-awaits.test.js` is the guard that runs there.
 
     node scripts/load-smoke.mjs [--build] [--port 6201] [--limit 120] [--runs desert:fences,garage:noraf] [--verbose]
 

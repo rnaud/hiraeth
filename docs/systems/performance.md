@@ -620,8 +620,8 @@ fast and too shared to settle it. Done, at no measured cost in load time:
   `tests/load-awaits.test.js` (every `await` between the first stage and `'ready'` in `main.js` must be one
   of a known list of waits that end: a slice, the pacer, a stage's frame-or-250 ms, a race with a timer, the
   `pending()` poll with its 2 s cap, the asset loads with their failure caught…; a new one fails until it is
-  bounded and listed), and `scripts/load-smoke.mjs`, run on GitHub before every deploy (`tests.yml`
-  `load-smoke`): the built game in headless Chrome on SwiftShader, the desert, the garage and the Lantern
+  bounded and listed), and `scripts/load-smoke.mjs`, run by hand (not on GitHub: it held each release back ~5 minutes):
+  the built game in headless Chrome on SwiftShader, the desert, the garage and the Lantern
   loaded with fences that never signal and with no animation frames at all, each to its first frame within
   180 s, and the pacer giving up after at most 4 s of waiting. On a Mac (SwiftShader, the low preset) the
   desert took 55–60 s with the fences broken (the pacer gave up after ~0.75 s of waiting) and 48 s without
