@@ -948,6 +948,11 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   for (const id of ['s1', 's2']) rt.piece(id).hit('shoot');
   wait(1);
   assert.equal(rt.logic.isOpen('d1'), false, 'two lamps of three');
+  // the small pool-orb's groove runs through the shut door: it stops at the door
+  { const o5 = rt.piece('orb5'); walk(o5.center.clone().addScaledVector(o5.dir, -2.2).setY(L(0, 0, 0).y), { tol: 0.5 });
+    for (let k = 0; k < 3; k++) { o5.hit('push', o5.dir.clone(), { strength: 1 }); wait(2.5); }
+    assert.ok(o5.t <= 0.48 && !o5.drop, `stopped at the shut door (${o5.t.toFixed(2)})`);
+    for (let k = 0; k < 6 && o5.t > 0.05; k++) { walk(o5.center.clone().addScaledVector(o5.dir, o5.r + 1.3).setY(L(0, 0, 0).y), { tol: 0.5, max: 6 }); o5.hit('push', o5.dir.clone().negate(), { strength: 1 }); wait(2.2); } }
   // up the west roots to the loft
   assert.equal(walk(L(0, 0, 16)) && walk(L(-4.6, 0, 20)), true, `to the loft's foot (${where()})`);
   let loft = false;
@@ -959,9 +964,33 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   assert.equal(rt.logic.isOpen('d1'), true);
   P.teleport(L(0, 0.05, 40), V(0, 1, 0), V(0, 0, 1));
   wait(0.5);
-  // ---- the Root Stair: the disc over the dark pool, then up the root-wall
-  assert.equal(walk(L(0, 0, 49)), true, `to the stair (${where()})`);
+  // ---- the Root Stair: the disc over the dark pool waits for the lamp in its socket, and only light wakes it
+  assert.equal(walk(L(-1, 0, 48.5)), true, `to the stair (${where()})`);
   const disc = rt.pieces.find((p) => p.path);
+  wait(3);
+  assert.equal(disc.s, 0, 'the disc is dark and still');
+  // the pool-orb by the small pool, back in the hall: rolled through dark, it wakes nothing, and is tipped back
+  const orb5 = rt.piece('orb5');
+  const behind5 = () => orb5.center.clone().addScaledVector(orb5.dir, -(orb5.r + 1.3)).setY(L(0, 0, 0).y);
+  const roll5 = () => { for (let k = 0; k < 8 && !rt.logic.drumOn('orb5', 'p5'); k++) { walk(behind5(), { tol: 0.5, max: 6 }); orb5.hit('push', orb5.dir.clone(), { strength: 1 }); for (let i = 0; i < 5 / DT && !orb5.rest; i++) frame(); } };
+  roll5();
+  assert.equal(rt.logic.drumOn('orb5', 'p5'), true, `the dark orb in the socket (${orb5.t.toFixed(2)} ${rt.logic.drumT('orb5')} ${orb5.rest} ${orb5.v} ${where()})`);
+  wait(1);
+  assert.equal(rt.logic.isLit('l5'), false, 'dark, it wakes nothing');
+  assert.ok(notes.some((s) => /disc’s lamp wants light/.test(s)), 'it says the lamp wants light');
+  wait(5);
+  assert.ok(orb5.t < 0.5, `tipped back out (${orb5.t.toFixed(2)})`);
+  for (let k = 0; k < 6 && orb5.t > 0.05; k++) { walk(orb5.center.clone().addScaledVector(orb5.dir, orb5.r + 1.3).setY(L(0, 0, 0).y), { tol: 0.5, max: 6 }); orb5.hit('push', orb5.dir.clone().negate(), { strength: 1 }); wait(2.2); }
+  assert.ok(orb5.t < 0.1, `back by the small pool (${orb5.t.toFixed(2)})`);
+  // light the small pool: at rest beside it, the orb drinks its light; then roll it through before it fades
+  rt.piece('s5').hit('shoot');
+  wait(2.6);
+  assert.ok(orb5.charge > 0, 'it caught the pool’s light');
+  roll5();
+  wait(0.5);
+  assert.equal(rt.logic.isLit('l5'), true, 'the glowing orb wakes the disc’s lamp');
+  assert.equal(rt.logic.isOpen('disc'), true, 'the disc wakes');
+  assert.equal(walk(L(-1, 0, 48.5)), true, `to the stair again (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
   assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
@@ -1160,6 +1189,11 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   wait(1.5);
   P.teleport(L(0, 9.05, 94.5), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
+  // the keeper's ledge along the east wall: its gate is shut from this side
+  assert.equal(walk(L(10, 9, 94.5)), true, `to the ledge's gate (${where()})`);
+  assert.equal(walk(L(10, 9, 110), { max: 3 }), false, 'the gate holds');
+  assert.ok(rt.kit.local(P.pos).z < 90.7 + 6.4 && rt.kit.local(P.pos).x > 7.5 && rt.kit.local(P.pos).y > 8.5, `still this side of it, at the gate (${where()})`);
+  assert.equal(walk(L(0, 9, 94.5)), true, `back to the bridge (${where()})`);
   // stilled near to far to cross: the walk stills them out of turn, and only the smallest's note takes
   for (const s of swings) s.hit('stun');
   assert.equal(walk(L(0, 9, 120), { max: 6 }), true, `over the bridge between the stilled pendulums (${where()})`);
@@ -1172,6 +1206,16 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   for (const id of ['w2', 'w3']) rt.piece(id).hit('stun');
   wait(2.6);
   assert.equal(rt.logic.isOpen('d3'), true);
+  // the shortcut: along the ledge from this side, onto the gate's footstone, and the way back is a walk
+  assert.equal(walk(L(9.9, 9, 116)) && walk(L(9.9, 9, 98.6), { tol: 0.4 }), true, `along the ledge to the footstone (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isOpen('ds'), true, 'the gate opens from behind');
+  wait(2.2);
+  assert.equal(walk(L(9.9, 9, 94)), true, `through it to the near landing (${where()})`);
+  wait(0.5);
+  assert.equal(rt.logic.isOpen('ds'), true, 'and stays open');
+  assert.equal(walk(L(9.9, 9, 98)) && walk(L(9.9, 9, 116)) && walk(L(0, 9, 120)), true, `back along it (${where()})`);
+  assert.ok(rt.kit.local(P.pos).y > 8, 'on the far landing');
   // ---- the Mother's Hall: still her when she lies spent; later, mid-strike
   assert.equal(walk(L(0, 9, 132)), true, `into the hall (${where()})`);
   const G = rt.guardian;

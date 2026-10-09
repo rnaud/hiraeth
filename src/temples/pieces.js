@@ -204,7 +204,7 @@ export class Ball {
    * o: { id, a, b: [x, y, z] the groove's ends (where the ball touches the floor), r, friction (1/s: 1.6, less
    * rolls farther), gap: { bridge, from, to } (the groove crosses a bridge between those t: the ball only
    * passes while it stands, and drops if it goes from under it), lock (at rest on its plate it stays there),
-   * lamp: { id, reach, hold, lasts, caught, dark, woke } (a pool-orb: stand by it at rest with the lantern `hold` s
+   * lamp: { id, reach, pool, hold, lasts, caught, dark, woke } (a pool-orb: stand by it at rest with the lantern `hold` s, or let it rest by a lit pool (pool: { id, at, reach }) as long,
    * and it glows for `lasts` s; at rest on its plate while it glows it wakes element `id`, a 'switch' that
    * needs the lantern; dark, it wakes nothing), sings: 'low' | 'mid' | 'high' (a singing ball: a splash makes it
    * sing that note, game event 'note', as a singing stone does) }
@@ -310,7 +310,9 @@ export class Ball {
   /** A pool-orb: it catches the lantern's light, glows a while, and on its plate, glowing, wakes its lamp. */
   lamp(dt) {
     const o = this.o.lamp, L = this.rt.logic, P = this.rt.player;
-    const by = !!P && this.rest && L.has('lantern') && P.pos.distanceTo(this.center) < (o.reach ?? 2.8);   // (at rest: a quick push doesn't light it)
+    // (at rest: a quick push doesn't light it) by your lantern, or at rest by a lit pool (o.pool: { id, at, reach })
+    const pool = o.pool && this.rest && L.isLit(o.pool.id) && this.center.distanceTo(this.poolAt ??= this.rt.kit.world(...o.pool.at)) < (o.pool.reach ?? 4);
+    const by = pool || (!!P && this.rest && L.has('lantern') && P.pos.distanceTo(this.center) < (o.reach ?? 2.8));
     this.near = by ? this.near + dt : 0;
     if (this.near > (o.hold ?? 2) && this.charge < (o.lasts ?? 25) - 0.5) {
       if (this.charge <= 0) { this.rt.sound?.chime?.(); this.rt.notice?.(o.caught ?? 'The orb drinks your lantern’s light and glows, for a while.', `${this.id}.caught`); }

@@ -150,7 +150,13 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   pool water. Stood by at rest with the lantern for `hold` s it glows for `lasts` s; at rest on its plate
   while it glows it lights element `id` (a lantern `switch`, shown by a `LightEar` with `reach: 0`, which
   only glows once something else has lit it). Rolled in dark it lights nothing and is tipped back out (no
-  dead state), and it only locks in its socket once its lamp is lit.
+  dead state), and it only locks in its socket once its lamp is lit. With `lamp.pool: { id, at, reach }` it also
+  drinks a lit pool's light, resting beside it: the Root Stair's disc (v1.12) waits for such an orb, rolled from
+  the Hall of Dark Pools through the doorway (`gap` on the door `d1`: it stops at the shut door), so light is
+  carried before the chest, and the gallery's niche twists it with the lantern where no pool is.
+- **Shortcuts back** (v1.12): the Hush-House's Pendulum Gallery has a keeper's ledge along its east wall from the
+  far landing to a gate by the near one, its footstone (`ps`) behind the gate: a second link between the two
+  landings (`ds`) that only the far side can open, so the walk back never means the pendulums again.
 - **Notes that travel** (the Undertower, from the same audit; its idea: a note travels, the dishes carry
   it across a hall, the shell in your pocket, one note at a time). A `Dish` is a pair of the makers'
   receiving dishes: a `'note'` sung or an `'echo'` played within `reach` (4.5 m) of the near dish's mouth

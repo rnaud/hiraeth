@@ -17,11 +17,16 @@ import { mothModel } from './guardians.js';
 //   the Threshold           the first mark, the way out
 //   the Hall of Dark Pools  three pool-lamps for the door's three lamps: two on the floor, the third up on a
 //                           loft at the top of the west roots, out of sight from the floor (climb to find it)
-//   the Root Stair          a riding disc over a dark pool, a root-wall to climb
+//   the Root Stair          a riding disc over a dark pool, still and dark until the lamp in its socket wakes,
+//                           and only light wakes it. A pool-orb waits in the Hall of Dark Pools beside a small
+//                           pool by the door; its groove runs through the doorway to the socket. Light the pool,
+//                           let the orb drink its light, then roll it through to the socket before it fades
+//                           (push + shot, before the chest: light can be carried); then a root-wall to climb
 //   the Lantern Chamber     the makers' chest: the LANTERN CHARM (src/items.js 'lantern'). The door on is a
 //                           lamp that wakes when you stand by it with the lantern
 //   the Dark Gallery        a chasm crossed by moss-stones that only the lantern's light shows; an eye only it
-//                           shows; and the far door's lamp, in a niche low in the west wall, wakes only to the
+//                           shows, high over the way in (behind you as you cross, in sight from the far door);
+//                           and the far door's lamp, in a niche low in the west wall, wakes only to the
 //                           light of a pool-orb: stand by the orb with the lantern till it glows, then roll it
 //                           (the push) down its groove into the niche before its glow fades. Rolled in dark,
 //                           it wakes nothing (the lantern with the push: light carried where you cannot go)
@@ -48,7 +53,7 @@ export const LOGIC = {
     { a: 'threshold', b: 'pools' },
     { a: 'pools', b: 'loft' },                                        // up the west roots
     { a: 'pools', b: 'roots', door: 'd1' },
-    { a: 'roots', b: 'lantern' },
+    { a: 'roots', b: 'lantern', door: 'disc' },                      // the disc over the dark pool, once its lamp is lit
     { a: 'lantern', b: 'gallery', door: 'd2' },
     { a: 'gallery', b: 'galleryFar', door: 'br1' },
     { a: 'galleryFar', b: 'lamp', door: 'd4' },
@@ -57,11 +62,16 @@ export const LOGIC = {
   elements: {
     s1: { type: 'switch', room: 'pools' }, s2: { type: 'switch', room: 'pools' }, s3: { type: 'switch', room: 'loft' },
     d1: { type: 'door', opens: { all: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] }, latch: true },
+    s5: { type: 'switch', room: 'pools' },                            // the small pool by the door: its light for the orb
+    orb5: { type: 'drum', room: 'pools', plate: 'p5', plateAt: 1, start: 0 },   // a pool-orb, rolled through the doorway
+    p5: { type: 'plate', room: 'roots' },                             // the disc's socket
+    l5: { type: 'switch', room: 'roots' },                            // the socket's lamp: it wakes to a glowing orb
+    disc: { type: 'bridge', opens: { all: [{ lit: 's5' }, { drumOn: ['orb5', 'p5'] }, { lit: 'l5' }] }, latch: true },
     chest: { type: 'gadget', room: 'lantern', item: 'lantern' },
     l1: { type: 'switch', room: 'lantern', needs: ['lantern'] },     // a lamp that wakes to the lantern
     d2: { type: 'door', opens: { lit: 'l1' }, latch: true },
     br1: { type: 'bridge', opens: { item: 'lantern' } },             // moss-stones only its light shows
-    s4: { type: 'switch', room: 'galleryFar', needs: ['lantern'] },  // an eye only its light shows
+    s4: { type: 'switch', room: 'gallery', needs: ['lantern'] },     // an eye only its light shows, high on the near wall: seen from the far door, looking back
     orb: { type: 'drum', room: 'galleryFar', plate: 'p4', plateAt: 1, start: 0 },   // a pool-orb, rolled into the niche
     p4: { type: 'plate', room: 'galleryFar' },
     l2: { type: 'switch', room: 'galleryFar', needs: ['lantern'] },  // the niche's lamp: it wakes to the glowing orb
@@ -125,6 +135,16 @@ function layout(rt) {
     add(Switch, { id, at: [x, y + 0.9, z], yaw: 0, size: 0.9 });
   };
   pool('s1', 5, 0, 26); pool('s2', -4, 0, 34);
+  // a smaller pool by the door (not one of its three), and a pool-orb beside it in a groove that runs through the
+  // doorway to the Root Stair's socket: lit, the pool's light is what the orb carries to the disc's lamp
+  pool('s5', 4.8, 0, 39.6, 1.3);
+  K.add(M.dark, box(1.0, 0.04, 12.4, 1.4, 0.02, 43.4));
+  for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, 12.4, 1.4 + sd * 0.75, 0.06, 43.4));
+  add(Ball, { id: 'orb5', a: [1.4, 0.04, 37.4], b: [1.4, 0.04, 49.4], r: 0.9, lock: true, gap: { bridge: 'd1', from: 0.47, to: 0.73 },
+    lamp: { id: 'l5', reach: 0, pool: { id: 's5', at: [4.8, 0.9, 39.6], reach: 4.6 }, hold: 2, lasts: 25,
+      caught: 'The orb drinks the pool’s light and glows, for a while.',
+      dark: 'The orb settles in the socket, dark, and the socket tips it back out. The disc’s lamp wants light.',
+      woke: 'The glowing orb settles in the socket, and the disc’s lamp catches. The disc wakes.' } });
   // the third pool, up on a loft of roots against the west wall (climb its face): its edge hides it from the floor
   K.both(M.wallGlyph, box(5, 8, 13.2, -8.5, 4, 19.4));
   K.both(M.trim, box(5.2, 0.3, 13.4, -8.5, 8.05, 19.4));
@@ -149,7 +169,9 @@ function layout(rt) {
   const pool2 = makeMaterial({ color: '#2a2f58', glow: 0.18, flat: true, key: 'temple.p2.deep' });
   K.add(pool2, T(new THREE.CylinderGeometry(9.8, 9.8, 0.2, 32), [0, -2.4, C2]));
   add(Pit, { room: 'roots', min: [-11, -8, C2 - 7], max: [11, -1.5, C2 + 3] });
-  add(Platform, { path: [[0, 0, C2 - 4.8], [0, 0, C2 + 0.6]], r: 2.2, speed: 1.6, pause: 1.6 });
+  add(Platform, { id: 'disc', path: [[0, 0, C2 - 4.8], [0, 0, C2 + 0.6]], r: 2.2, speed: 1.6, pause: 1.6, when: { open: 'disc' } });
+  add(Plate, { id: 'p5', at: [1.4, 0, 49.4], r: 1.0 });
+  add(LightEar, { id: 'l5', at: [2.9, 0, 49.4], reach: 0 });   // (the disc's lamp: only the glowing orb wakes it)
   root([[-6, 9, C2 + 3.2], [-5, 5, C2 + 3.1], [-6.2, 1, C2 + 3.15], [-6, -3, C2 + 3.1]], 0.45);
   root([[5, 9, C2 + 3.2], [6, 4, C2 + 3.1], [4.8, 0, C2 + 3.15], [5.4, -3, C2 + 3.1]], 0.45);
   K.slab(-6, C2 + 9, 6, C2 + 10.4, 9, 0.6);
@@ -178,7 +200,7 @@ function layout(rt) {
   K.both(M.dark, box(22, 1, 20, 0, -3.5, G0 + 16));
   add(Pit, { room: 'gallery', min: [-12, -6, G0 + 6], max: [12, 4, G0 + 26] });
   add(Bridge, { id: 'br1', a: [0, 9, G0 + 5.9], b: [0, 9, G0 + 26.1], w: 3.4, n: 9, hidden: 'lantern' });
-  add(Switch, { id: 's4', at: [10.8, 12, G0 + 30], yaw: -Math.PI / 2, size: 1.0, hidden: 'lantern' });
+  add(Switch, { id: 's4', at: [7.2, 15, G0 + 0.15], yaw: 0, size: 1.0, hidden: 'lantern' });   // (over the way in, behind you at the edge; in sight from the far door)
   // the far door's lamp, in a niche low in the west wall: only a pool-orb's light wakes it. The orb waits at
   // the near end of its groove; held by your lantern it glows a while; rolled into the niche glowing, it wakes it
   const NZ = G0 + 30;

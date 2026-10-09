@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Switch, Jaw, Swing, Platform, Mark, Pit } from './pieces.js';
+import { Door, Switch, Jaw, Swing, Platform, Plate, Mark, Pit } from './pieces.js';
 import { snapperModel } from './guardians.js';
 
 // Lorn's temple: the Hush-House, a great low dome of violet stone on the cave
@@ -29,7 +29,10 @@ import { snapperModel } from './guardians.js';
 //                          them, one by one, to cross); the far door wants their notes, and a pendulum's note
 //                          only takes stilled in turn, low to high, smallest crystal first, as the Choir taught.
 //                          They hang out of that order, so the walk across stills them wrong: still them again,
-//                          in turn, from the far side (the gadget with the temple's first verb, the order)
+//                          in turn, from the far side (the gadget with the temple's first verb, the order).
+//                          Along the east wall a keeper's ledge runs back over the chasm to a shut gate by the
+//                          near landing: its footstone is behind the gate, so it opens only from the far side,
+//                          and then the way back over is a walk, not the pendulums again (a shortcut)
 //   the Mother's Hall      the guardian (organic: you calm her): the Mother Snapper, rooted in the middle of a
 //                          round hall. Her head lunges, sweeps, spits seed; spent after a lunge it lies on the
 //                          floor, agape: a stilling glob in her mouth calms her. Later, still her mid-strike
@@ -57,6 +60,7 @@ export const LOGIC = {
     { a: 'stilling', b: 'gallery', door: 'd2' },
     { a: 'gallery', b: 'galleryFar', needs: ['stun'] },   // the pendulums: still them to cross
     { a: 'galleryFar', b: 'hall', door: 'd3' },
+    { a: 'galleryFar', b: 'gallery', door: 'ds' },        // the keeper's ledge back along the east wall: its gate opens from the far side
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
@@ -76,6 +80,8 @@ export const LOGIC = {
     w2: { type: 'switch', room: 'gallery', needs: ['stun'], after: 'w1' },
     w3: { type: 'switch', room: 'gallery', needs: ['stun'], after: 'w2' },
     d3: { type: 'door', opens: { all: [{ lit: 'w1' }, { lit: 'w2' }, { lit: 'w3' }] }, latch: true },
+    ps: { type: 'plate', room: 'galleryFar' },                     // the footstone behind the ledge's gate
+    ds: { type: 'door', opens: { pressed: 'ps' }, latch: true },
     mother: { type: 'boss', room: 'hall', needs: ['backpack', 'stun'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
@@ -224,6 +230,14 @@ function layout(rt) {
     K.add(M.trim, box(22, 0.8, 1.2, 0, 21.6, z));            // the beam it hangs from
     add(Swing, { id, at: [0, 21, z], len: 10, amp: 0.95, period: 2.6 + i * 0.3, phase: i * 0.31, size, wrong: flat, heard: 'The stilled crystal’s note rings true, and a lamp wakes over the far door.' });
   }
+  // the keeper's ledge along the east wall, back from the far landing to a gate by the near one; the gate's
+  // footstone is behind it, on the ledge: it opens from the far side only, then stays open (a shortcut back)
+  K.slab(8.8, G0 + 6, 11, G0 + 26, 9, 0.8);
+  K.add(M.trim, box(0.25, 0.3, 20, 8.9, 9.05, G0 + 16));
+  for (let i = 0; i < 4; i++) K.both(M.trim, box(0.5, 1.8, 0.5, 9.1, 7.3, G0 + 9 + i * 5.2));   // (corbels under it)
+  K.both(M.wall, box(0.6, 5.2, 0.9, 8.5, 11.6, G0 + 6.6));       // the gate's post on the chasm side
+  add(Door, { id: 'ds', at: [10, 9, G0 + 6.6], w: 2.2, h: 4.4, lamps: [{ pressed: 'ps' }] });
+  add(Plate, { id: 'ps', at: [9.9, 9, G0 + 8.6], r: 0.9 });
   add(Mark, { room: 'gallery', at: [-7, 9, G0 + 3], yaw: 0 });
   add(Mark, { room: 'galleryFar', at: [7, 9, G0 + 31], yaw: Math.PI });
   add(Door, { id: 'd3', at: [0, 9, G0 + 34.9], w: 5.2, h: 6.4, lamps: [{ lit: 'w1' }, { lit: 'w2' }, { lit: 'w3' }] });
