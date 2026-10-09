@@ -12,6 +12,7 @@ import { touchScale, touchLayout, stickLayout } from './touch-layout.js';
 import { padCancel } from './menu-pad.js';
 import { glyph } from './pad-glyphs.js';
 import { onXbox, qualityChoices } from './xbox.js';
+import { rumbleSupported, rumblePlay } from './rumble.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -33,6 +34,8 @@ const DEFAULTS = {
   invertY: false,
   invertFlight: false,  // the jets (player.js JET): off, the stick forward tips the nose down as a plane's; on, forward climbs
   padFaces: 'auto',   // controller: where the printed A B X Y are (native-pad.js setFaces): auto | xbox | nintendo | nintendo-xbox
+  rumble: true,         // the controller's rumble (src/rumble.js): on unless turned off; nothing without a pad that can shake
+  rumbleLevel: 'medium',  // its strength: low | medium | high (rumble.js LEVELS)
   music: 0.8,
   musicMode: 'moments', // the recorded theme for arrivals, interiors and moments, ambience between (src/music-moments.js) | always
   effects: 1,
@@ -198,13 +201,19 @@ export class SettingsMenu {
         const v = k === 'mute' ? sound?.muted : k === 'reduceMotion' ? reducedMotion(this.s) : this.s[k];
         if (c.type === 'checkbox') c.checked = !!v; else c.value = v;
       }
+      // rumble: greyed out (and said so) without a pad that can shake, and its strength while it is off (src/rumble.js)
+      const canShake = rumbleSupported();
+      for (const k of ['rumble', 'rumbleLevel']) { const c = el.querySelector(`[data-k="${k}"]`); if (c) c.disabled = !canShake || (k === 'rumbleLevel' && !this.s.rumble); }
+      const none = el.querySelector('.rumble-none');
+      if (none) none.hidden = canShake;
     };
     el.addEventListener('input', (e) => {
       const c = e.target, k = c.dataset.k;
       if (!k) return;
       if (k === 'mute') { if (sound && c.checked !== sound.muted) sound.toggleMute(); return; }
       this.s.set(k, c.type === 'checkbox' ? c.checked : c.type === 'range' ? +c.value : c.value);
-      if (k === 'devPanel') sync();   // (the Developer panel shows the debug entries too)
+      if (k === 'devPanel' || k === 'rumble') sync();   // (the Developer panel shows the debug entries too; rumble off greys its strength)
+      if (k === 'rumble' || k === 'rumbleLevel') rumblePlay('hurt', { h: 0.75 });   // (a taste of the new strength)
     });
     this.askReset = (on) => {
       const ask = el.querySelector('.ask'), resetBtn = el.querySelector('[data-a="reset"]');
@@ -297,6 +306,8 @@ export class SettingsMenu {
           ${row(t('set.shake'), `<input data-k="shake" type="range" min="0" max="1" step="0.05">`)}
           <h2>${t('set.group.controls')}</h2>
           ${row(t('set.padFaces'), opts('padFaces', ['auto', 'xbox', 'nintendo', 'nintendo-xbox']))}
+          ${row(`${t('set.rumble')}<small class="rumble-none" hidden> · ${t('set.rumbleNone')}</small>`, `<input data-k="rumble" type="checkbox">`)}
+          ${row(t('set.rumbleLevel'), opts('rumbleLevel', ['low', 'medium', 'high']))}
           ${row(t('set.run'), opts('run', ['auto', 'hold', 'toggle']))}
           ${row(t('set.guard'), opts('guard', ['hold', 'toggle']))}
           <div class="row"><span>${t('set.rebind')}</span><button type="button" data-a="page" data-page="controls">${t('set.rebindOpen')}</button></div>

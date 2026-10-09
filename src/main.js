@@ -71,7 +71,7 @@ import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
 import { knownWorlds, newlyKnown } from './story/route.js';
-import { revealNote } from './story/signature.js';
+import { routeChart, findableNote } from './story/signature-search.js';
 import { registerInteractable, PRIORITY, interactHooks } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
@@ -114,6 +114,7 @@ import { arcadeLinks } from './minigames/kit/arcade.js';
 import { talkAllowed } from './ship/landing.js';
 import { HumCue } from './story/hum.js';
 import { ShopPanel } from './shop-panel.js';
+import { rumblePlay, setRumbleSettings } from './rumble.js';
 import { interiorAt } from './interior-kit.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
@@ -185,6 +186,7 @@ const blades = { grass: null, key: null, grow: null };   // the grass blades (bu
 // Render at the selected resolution, then smooth the final colour with FXAA.
 // The G-buffer stays nearest-filtered so depth and surface boundaries stay exact.
 const settings = new Settings();
+setRumbleSettings(settings);   // (src/rumble.js: Settings > Rumble and its intensity)
 // the graphics preset (perf.js QUALITY_PRESETS); Auto runs the handheld recipe on the Android app and mobile GPUs
 const gpuName = (() => {
   const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info');
@@ -302,9 +304,9 @@ const player = new Player(physics, {
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
   // (k: hearts, in quarters: a quarter is a tap, a heart and a half and more the heaviest)
-  onHurt: (h, why) => { const k = Math.min(1, h / 1.5); shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); sound.hurt(h, why); hpShown = 3; if (why === 'foe') kick(0.45 + k * 0.5); potionHint(); },
-  onDrink: (got) => { sound.potion('heal'); hpShown = 3; potionGlow(got); },
-  onKnockdown: (dead) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; },
+  onHurt: (h, why) => { const k = Math.min(1, h / 1.5); shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); sound.hurt(h, why); hpShown = 3; if (why === 'foe') kick(0.45 + k * 0.5); potionHint(); if (why !== 'fall') rumblePlay('hurt', { h }); },   // (a fall rumbles as its landing: onKnockdown)
+  onDrink: (got) => { sound.potion('heal'); hpShown = 3; potionGlow(got); rumblePlay('potion'); },
+  onKnockdown: (dead, why) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
   onKnockout: (why) => { knockedOut = why; },
   onWhistle: (kind) => (kind === 'mount' && level.mountName === 'bird' ? sound.tune(RIDER_CALL, RIDER_CALL_BEAT) : sound.whistle(kind)),   // calling the bike, the bird (the rider's call, on the flute) or a taxi
   onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
@@ -586,12 +588,14 @@ const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots
 await slice();
 // the route: the worlds you know of (src/story/route.js); finishing this one names the next on the ship's map
 const worldDone = (id) => !!(game.flag(`world.${id}.done`) || journal.storyDone(id));
-const known = () => knownWorlds({ order: ORDER, done: worldDone, visited: (id) => journal.seen(id), current: levelId });
-let knownBefore = known();
+// (a world the route opens is found on the ship's map by the signature search before it is named anywhere: src/story/signature-search.js)
+const chart = () => routeChart({ order: ORDER, done: worldDone, visited: (id) => journal.seen(id), current: levelId, flag: (k) => game.flag(k) });
+const known = () => chart().charted;
+let knownBefore = knownWorlds({ order: ORDER, done: worldDone, visited: (id) => journal.seen(id), current: levelId });
 const revealed = () => {
-  const now = known(), fresh = newlyKnown(knownBefore, now);
-  knownBefore = now;
-  return revealNote(fresh.map((id) => levelById(id).title));   // "New on the ship's map: …", and the signature reads there too
+  const c = chart(), fresh = newlyKnown(knownBefore, c.known).filter((id) => c.findable.includes(id));
+  knownBefore = c.known;
+  return findableNote(fresh.length);   // "The ship reads the singing light's signature somewhere new. Search for it on the galactic map."
 };
 journal.known = (id) => !ORDER.includes(id) || known().includes(id);   // the sketchbook leaves out worlds you don't know yet
 const story = new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture, player, physics, ground: level.ground.heightAt ? level.ground : null, say: (t) => showToast(t) });
@@ -775,7 +779,7 @@ const foes = new Foes({ scene, level, levelId, content, physics, player, tool, s
 const chimePolicy = dropPolicy(level);
 const chimes = new ChimeField({
   groundAt: (x, y, z) => physics.groundAt(x, y + 2, z, 8),
-  onTake: (p) => { resources.addChimes(p.value, { source: 'pickup', training: p.training }); sound.chimePickup?.(p.value); },
+  onTake: (p) => { resources.addChimes(p.value, { source: 'pickup', training: p.training }); sound.chimePickup?.(p.value); rumblePlay('chime'); },
 });
 const chimeView = new ChimeView(scene);
 /** A guardian's purse: scattered on the floor between it and you (a floating guardian's body is out of reach). */

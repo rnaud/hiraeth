@@ -25,7 +25,14 @@
 // (the cap) rather than the start, so nobody loses out, and the format becomes 2. A save the dev menu had made
 // infinite on purpose (the flag true) stays so.
 //
+// The signature search (v1.6, src/story/signature-search.js) charts a newly opened world only once it is found
+// on the ship's map (`map.found.<id>`). A save from before keeps every world it had charted: step 6 marks the
+// worlds the route had opened for it (src/story/route.js knownWorlds, from its flags) as found.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
+
+import { knownWorlds } from './story/route.js';
+import { ORDER } from './levels/names.js';
 
 /** The resources' format (src/resources.js RES_VERSION; kept here so the migration needs no game modules). */
 export const RES_VERSION = 2;
@@ -93,6 +100,11 @@ const STEPS = [
       flags['res.potions.infinite'] = false;
     }
     flags['res.v'] = RES_VERSION;
+  },
+  // 6: the signature search: the worlds an older save had on its map stay charted
+  (flags) => {
+    const done = (id) => !!flags[`world.${id}.done`];
+    for (const id of knownWorlds({ order: ORDER, done, visited: (id) => visited(flags, id) })) flags[`map.found.${id}`] ??= true;
   },
 ];
 

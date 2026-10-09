@@ -31,7 +31,7 @@ test('the world is registered off the route: in the worlds list, on the galactic
   const entries = mapEntries({ order: ORDER, levels: LEVELS, flag: () => false, journal: null, current: 'desert', home: false, side: SIDE });
   const e = entries.find((x) => x.id === 'waterfall');
   assert.ok(e && e.known && e.side, 'charted from the first world on');
-  assert.equal(entries.filter((x) => !x.side && x.known).length, 3, 'the route itself is as before: the desert and the two ahead');
+  assert.equal(entries.filter((x) => !x.side && (x.known || x.findable)).length, 3, 'the route itself is as before: the desert and the two ahead');
 });
 
 test('the promenade, the bridges and the balconies are solid where they are drawn; the pool is under the curtain', () => {

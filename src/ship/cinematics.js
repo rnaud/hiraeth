@@ -12,6 +12,7 @@ import { exhaust, footPuffs } from './exhaust.js';
 import { CRASH_LINE, arrivalLine } from '../story/signature.js';
 import { showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD, CHARGE_CARD_MS } from '../story/charge.js';
 import { BUST } from './hologram.js';
+import { rumblePlay } from '../rumble.js';
 import { FACE } from '../humanoid.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
@@ -832,6 +833,7 @@ export class TakeoffDirector extends Sequence {
         enter: () => {
           C.say(null); ship.showPlayer(false); m.mats.thrust.uniforms.uGlow.value = 1; sfx.engines(ship.sound, 1);
           footPuffs(ship, m, { palette: ship.dustColors(), speed: 6 });   // off its feet
+          rumblePlay('takeoff');   // (src/rumble.js)
         },
         frame: (t, dt) => {
           const k = t / 3.8;

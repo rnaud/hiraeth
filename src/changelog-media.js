@@ -291,6 +291,19 @@ const SHOP_OPEN = (then = '') => SHOP_IN(`game.emit('shop:open', { shop: 'qanat'
 const SHOP_DOOR = [203.67, 319.94, -1.62];   // Haddu's door (x, z) and its heading: src/levels/desert.js
 
 export const CHANGELOG_MEDIA = {
+  '1.6': [
+    // the galactic map's signature search
+    { match: 'The galactic map has a signature search', shots: [
+      { name: 'map-search', caption: 'The map on a new journey (1280 × 720): before, Vael and Lorn named outright; after, two uncharted regions and the scanner warming near Vael (four bars, “strong”)', from: 'headless Chrome against this branch’s own dev server and main before it, a new save in the desert with the ship powered, Medium' },
+      { name: 'map-search-found', only: 'after', caption: 'Held over it: the lock ring fills, Vael resolves where it was, and the ship says “Signature locked. Vael is on the chart.”', from: 'headless Chrome against this branch’s own dev server and main before it, a new save in the desert with the ship powered, Medium' },
+      { name: 'map-search-phone', caption: 'On a phone held upright (390 × 844): the scanner near Vael, the signal meter at the foot of the chart', from: 'headless Chrome against this branch’s own dev server and main before it, a new save in the desert with the ship powered, Medium' },
+    ], see: 'Start a new journey (or reach a world you have not charted yet) and open the map at the holo table with power: move the mouse, push the left stick, hold W A S D or drag a finger over the uncharted regions. The meter in the corner and the scanner’s colour say how near you are, the light’s three notes play faintly and the controller rumbles; stay on the spot half a second.' },
+    { match: 'The worlds still open in the same order as before', see: 'Load a save from before this version: every world it had on the map is still there; only the next world the route opens is searched for.' },
+    // rumble
+    { match: 'Controllers rumble:', shots: [
+      { name: 'rumble-settings', caption: 'Settings with a controller that can rumble: Controller rumble and Rumble strength under Controls', from: 'headless Chrome against this branch’s own dev server and main before it, a simulated Xbox pad (its dual-rumble actuator), Medium' },
+    ], see: 'With a controller (Xbox, PlayStation, a Steam Deck, the Android app on a handheld): take a hit, drink a potion (View + D-pad ↓), let go of a charged cut, pick up chimes, lift off in the ship, or search the galactic map. Settings > Controls has Controller rumble and Rumble strength.' },
+  ],
   '1.5': [
     // the first shop
     { match: 'The first shop has opened in the desert', shots: [

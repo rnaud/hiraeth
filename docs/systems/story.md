@@ -262,6 +262,16 @@ walkthroughs and local names; each data file's header lists its flags.
   map: …"). Worlds you have visited, or stand in, stay known. Home opens on its own
   (`src/story/ending.js`). The level picker (L) and the sketchbook (J) apply the same rule; `?level=<id>` and the
   dev menu bypass it.
+- **The signature search** (v1.6, `src/story/signature-search.js`): a world the route opens is not named
+  at once. It is *findable* (`routeChart`: known to the route, not visited, done or found) until the player
+  finds it on the map (flag `map.found.<id>`; the map's search: docs/systems/ui.md, "The galactic map's
+  signature search"). The crash site, worlds visited, done or stood in, the detours, the Lantern and home are
+  charted outright. The closing page's toast no longer names the new world (`findableNote`: "The ship reads the
+  singing light's signature somewhere new. Search for it on the galactic map."); the level picker (L) and the
+  sketchbook (J) name only charted worlds (`chartedWorlds`). The ship explains it the first time the map opens
+  with a world to find (`SEARCH_LINE`, flag `signature.search.told`, after `MAP_LINE` when both are new) and
+  says each find (`foundLine`). Old saves: `src/save-migrate.js` step 6 marks every world the route had opened
+  for them as found. `tests/signature-search.test.js`.
 - **The map** (`src/ship/starmap.js`): unknown worlds are faint unnamed dots along the
   route. Known worlds are drawn planets in flat colours (`src/ship/planets.js`, no
   screenshots): a shadow crescent, an ink outline and one mark each (dunes, bands,

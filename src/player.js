@@ -1580,6 +1580,7 @@ export class Player {
   landHard(speed) {
     if (this.opts.health === false || this._landing) return;
     this._landing = { vel: this.vel.clone(), speed };
+    this.lastLanding = speed;   // (the rumble's hard landing: src/rumble.js 'land')
     this.fallHurt(speed);
   }
 

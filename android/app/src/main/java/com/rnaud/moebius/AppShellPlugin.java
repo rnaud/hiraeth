@@ -11,7 +11,7 @@ import org.json.JSONObject;
 // AppShell (see AppShell.java: info, check, download, restart, openApk) for the page in
 // the WebView fallback (WebViewActivity), through Capacitor.nativePromise('AppShell', …).
 // In GeckoView the same calls come through the extension port (MainActivity).
-// (check, download and openApk: NATIVE_API 4; engine: NATIVE_API 6.)
+// (check, download and openApk: NATIVE_API 4; engine: NATIVE_API 6; rumble: NATIVE_API 8.)
 @CapacitorPlugin(name = "AppShell")
 public class AppShellPlugin extends Plugin {
 
@@ -42,4 +42,13 @@ public class AppShellPlugin extends Plugin {
 
     @PluginMethod
     public void openApk(PluginCall call) { run("openApk", call); }
+
+    /** One rumble pulse, { ms, strong, weak } (NATIVE_API 8). */
+    @PluginMethod
+    public void rumble(PluginCall call) {
+        AppShell.call(getActivity(), bundles(), "webview", "rumble", call.getData(), new AppShell.Reply() {
+            @Override public void ok(JSONObject value) { call.resolve(); }
+            @Override public void fail(String message) { call.reject(message); }
+        });
+    }
 }

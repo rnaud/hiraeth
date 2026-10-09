@@ -1566,3 +1566,27 @@ tests/sound-mix.test.js holds them.
   decks out over the sea of cloud from the starting plateau's south rim, three 10 m gaps, a bell-tuned door on
   the last deck; the cloud or the wings end it; Sister Aube has a word). Mark 28 s over a scripted 17.2 s;
   played through in the game with the real whistle (V) in 24.8 s. tests/trials-kit.test.js.
+
+## The galactic map's signature search and rumble (done 9 October, v1.6)
+
+- [x] **Turn the galactic minimap into a signature-search minigame.** A world the route opens
+  (src/story/route.js, same order as before) is "findable" until the player finds it on the map
+  (src/story/signature-search.js `routeChart`, flag `map.found.<id>`): the map draws an uncharted region
+  round it (never centred on it) and no name; a scanner (the cursor, a finger dragged over the chart, the left
+  stick, W A S D) warms from violet to gold, pulses the signature's three rings faster, plays the light's notes
+  louder (`signatureNotes`: `sound.lightTheme` once the opening has one, else three flute notes) and rumbles in
+  threes nearer it; a signal meter (bars and a word) says the same. Half a second over the lock spot (at least
+  30 px, or the planet's disc) resolves the planet; the ship says "Signature locked" and charts it. The ship
+  explains it the first time (`SEARCH_LINE`, flag `signature.search.told`), the map's legend becomes SIGNATURE
+  SEARCH, and the closing page's toast says a signature waits to be found (no names). Old saves keep their
+  charted worlds (src/save-migrate.js step 6); the level picker and the sketchbook name only charted worlds;
+  WIP worlds stay off the map. Checked in headless Chrome at 1280 × 720 and 390 × 844, with a simulated pad
+  (found in about 2 s with the stick). tests/signature-search.test.js.
+- [x] **Add rumble support to the game.** src/rumble.js: named patterns (hurt by hearts, a heavy foe's
+  slam by distance, a hard landing, a knockdown, the potion, the charged cut, chimes, the ship's take-off, the
+  search's beat, a planet found), played on the Gamepad API's `vibrationActuator.playEffect('dual-rumble')`
+  (`hapticActuators` fallback: Chrome, the Deck, the Xbox app's WebView2) or the Android app's new bridge
+  (AppShell `rumble`, `Rumbler.java`: the pad's own motors, or the handheld's under built-in controls;
+  NATIVE_API 8, the VIBRATE permission). Settings > Controls: Controller rumble (on) and Rumble strength
+  (medium), greyed out without a pad that can shake. Every rumbling cue has its picture and sound too.
+  tests/rumble.test.js.
