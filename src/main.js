@@ -549,6 +549,7 @@ const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crow
   traces: content.traces ?? [],   // (a detour world's trace of the light: src/story/sightings-detours.js)
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
   ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
+  cue: (text, secs) => scoutSays(text, secs),   // (a line under the view at once, not a toast in the queue: the desert's way calls out what is ahead)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
 for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end

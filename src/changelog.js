@@ -22,6 +22,10 @@ export const CHANGELOG = [
     'Debug: the worlds list is a grid of small cards that the D-pad and stick move through in every direction; the card you are on is lifted in a red frame with A on it, always scrolled into view, and its description shows at the foot of the screen.',
     'Debug: the Items page works with a controller: move through the cards, A opens one full screen, LB and RB (or left and right) go to the other items, up and down zoom, the right stick tilts it, Y turns it, X resets the view and B closes it.',
     'Debug: an item full screen shows one short line under it; “more” (A, or I) opens the rest in a column beside it and the item moves over, so on a handheld’s small screen the words never cover the item.',
+    // the desert's first hour
+    'The desert gets you moving sooner: after the chest opens, Nour gives you the Speaker’s old verse herself, so Ama’s jar is the only errand before the way down under the giant. Walking with the Speaker is up to you; he still tells the old story whole.',
+    'Stop at Ama’s fire on your way into Qanat and she gives you her jar there, so after the chest you go straight from Nour to the giant’s mouth.',
+    'On the ride to the Givers’ Hearth, the bronze bowl, the keepers’ old camp, the glinting bell and the Hearth itself are pointed out under the view as they come up ahead, while there is still time to stop.',
   ] },
   { v: '1.1', date: '2026-10-09', items: [
     // shadows and visuals, from the playtest

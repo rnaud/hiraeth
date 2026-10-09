@@ -64,7 +64,6 @@ Ranked; each says why in the review. Playtest with two or three new players befo
   Esk's hill. The stone and Ilen both remember them (src/story/ending.js choicesMade).
   - [ ] Later: more of the route's people could hear about Ilen (Sel at the market, Hollin's other lines);
     old saves that kept Dov's token before the choice existed show no line for it.
-- [ ] **The desert's first hour shorter:** the three talk stages in a row, the empty Hearth ride.
 - [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
 - [x] **Each world's climax staged as a moment** (every route world: `src/story/<world>-moments.js`,
   docs/systems/cinematics.md).

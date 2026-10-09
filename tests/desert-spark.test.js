@@ -191,7 +191,7 @@ test('the hoverbike won’t wake on an empty tank', () => {
   game.reset();
 });
 
-test('saves from before the four talks were folded into two (desert.quest.v 3): the well, Ama and the Speaker go to the merged stage, keeping what was done', async () => {
+test('saves from before the four talks were folded into two (desert.quest.v 3): the well, Ama and the Speaker go to the merged stage (Ama’s jar), keeping what was done', async () => {
   const { STAGE_MERGE, DESERT_QUEST_V } = await import('../src/story/desert-data.js');
   assert.equal(DESERT_QUEST_V, 4);
   const ids = QUESTS.find((q) => q.id === 'desert.power').stages.map((s) => s.id);
@@ -205,18 +205,12 @@ test('saves from before the four talks were folded into two (desert.quest.v 3): 
   assert.equal(D.quests.stage('desert.power'), 'ask');
   assert.equal(game.flag('desert.quest.v'), 4);
   assert.ok(D.quests.objective().position.distanceTo(D.rt.world.people.ama.pos) < 0.01, 'the marker on Ama');
+  // (since the first hour was shortened, October 2026, the jar alone finishes it: Nour says the Speaker's verse herself)
   game.set('desert.jar.given', true);
   D.step(3);
-  assert.equal(D.quests.stage('desert.power'), 'ask', 'the Speaker still to ask');
-  assert.ok(D.quests.objective().position.distanceTo(D.rt.world.people.speaker.pos) < 0.01, 'the marker on the Speaker');
-  game.set('desert.speaker.heard', true);
-  D.step(3);
-  assert.equal(D.quests.stage('desert.power'), 'down', 'both done: the way down');
-  // at the Speaker, the jar already given: one talk left
+  assert.equal(D.quests.stage('desert.power'), 'down', 'the jar: the way down, the Speaker optional');
+  // at the Speaker, the jar already given: straight on to the way down
   D = desert({ ...base, 'quest.desert.power': 'speaker', 'desert.well.seen': true, 'desert.jar.given': true, 'item.jar': 1 });
-  D.step(3);
-  assert.equal(D.quests.stage('desert.power'), 'ask');
-  game.set('desert.speaker.heard', true);
   D.step(3);
   assert.equal(D.quests.stage('desert.power'), 'down');
   assert.ok(D.quests.has('jar'), 'the jar is kept');
@@ -282,5 +276,83 @@ test('the fire-bearers’ way: a bowl that wakes its stone, a cold camp and a gl
   assert.equal(sp.nodeId, 'carried');
   while (!sp.lastPage && sp.advance());
   assert.ok(sp.choices().some((c) => /bell like yours/.test(c.text)), 'the Speaker can be told');
+  game.reset();
+});
+
+test('the first hour shorter: Ama’s jar on the way in, so after the chest only Nour stands between you and the way down', async () => {
+  const { PEOPLE } = await import('../src/story/desert-data.js');
+  const { DialogueRunner } = await import('../src/story/dialogue.js');
+  const D = desert({ 'prologue.done': true, 'desert.quest.v': 4, 'quest.desert.power': 'city', 'met.marrow': true });
+  const say = (person, picks) => {
+    const r = new DialogueRunner(person, { game, quests: D.quests });
+    const pages = [];
+    for (const p of picks) {
+      while (!r.ended && (!r.lastPage || !r.choices().length)) { pages.push(r.text); r.advance(); }
+      pages.push(r.text);
+      const c = r.choices().find((x) => x.text.startsWith(p));
+      assert.ok(c, `${person.name}: no "${p}" in ${r.choices().map((x) => x.text).join(' | ')}`);
+      r.choose(c.index);
+    }
+    while (!r.ended) { pages.push(r.text); if (!r.advance()) break; }
+    return pages.join(' ');
+  };
+  // passing her fire on the way to the city: she gives the jar there
+  say(PEOPLE.ama, ['My ship has no power', 'I’ll go to the city', 'I’ll bring it back full']);
+  assert.ok(D.quests.has('jar'), 'the jar, before Nour has sent you');
+  // the chest opens; Nour sends you straight to the giant's mouth, the jar already on your hip
+  game.set('item.backpack', true); game.set('box.desert.backpack', true); game.set('desert.city.entered', true);
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'elder');
+  const words = say(PEOPLE.nour, ['My ship has no power', 'Then I’ll find out', 'The giant’s mouth']);
+  assert.match(words, /jar on your hip already/);
+  assert.match(words, /mouth is a door/);
+  assert.doesNotMatch(words, /Get \*the drinking jar/);
+  D.step(3);
+  assert.equal(D.quests.stage('desert.power'), 'down', 'Ama’s stage passes at once');
+  // once given, she has no second jar to give
+  assert.equal(new DialogueRunner(PEOPLE.ama, { game, quests: D.quests }).nodeId, 'again');
+  assert.equal(game.flag('item.jar'), 1, 'one jar');
+  assert.equal(PEOPLE.ama.talk.nodes.early.choices.filter((c) => c.goto === 'jarEarly').every((c) => c.if?.not?.flag === 'desert.jar.given'), true, 'only offered without it');
+  game.reset();
+});
+
+test('the ride to the Hearth: each thing on the way is named once as it comes up ahead, and the butte on the way out', async () => {
+  const { STORY } = await import('../src/desert-sites.js');
+  const { CALLS, CALL } = await import('../src/story/desert-way.js');
+  const errand = { 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 4, 'desert.bike.v': 1, 'desert.channel.open': true, 'desert.spark.heard': true };
+  const city = V(STORY.city.x, 0, STORY.city.z), hearth = V(STORY.hearth.x, 0, STORY.hearth.z);
+  const dir = hearth.clone().sub(city).normalize();
+  // a ride in a straight line at the bike's top speed (34 m/s, a frame at 30 fps): what was named, and where
+  const ride = (D, from, to) => {
+    const said = [];
+    const n = Math.ceil(Math.hypot(to.x - from.x, to.z - from.z) / (34 / 30));
+    for (let i = 0; i <= n; i++) {
+      const p = from.clone().lerp(to, i / n);
+      D.player.pos.set(p.x, D.level.ground.heightAt(p.x, p.z), p.z);
+      const before = D.toasts.length;
+      D.step(1);
+      if (D.toasts.length > before && Object.values(CALLS).includes(D.toasts.at(-1))) said.push({ text: D.toasts.at(-1), at: p.clone() });   // (not the quest's own toasts)
+    }
+    return said;
+  };
+  let D = desert({ ...errand, 'quest.desert.power': 'hearth' });
+  const W = D.H.way;
+  const out = ride(D, city.clone().addScaledVector(dir, 200), D.H.doorFront.clone().addScaledVector(dir, -30));
+  const named = (t) => out.find((s) => s.text === t);
+  for (const id of ['bowl', 'camp', 'bell', 'hearth']) assert.ok(named(CALLS[id]), `${id} is named on the way out`);
+  assert.equal(out.length, 4, 'each once');
+  // ahead of you, with time to stop: between the near and the far reach
+  for (const [id, at] of [['bowl', W.bowl.at], ['camp', W.camp.at], ['bell', W.bell.at]]) {
+    const d = Math.hypot(named(CALLS[id]).at.x - at.x, named(CALLS[id]).at.z - at.z);
+    assert.ok(d > CALL.near && d <= CALL.range + 2, `${id} named ${d.toFixed(0)} m ahead`);
+  }
+  assert.deepEqual(out.map((s) => s.text), ['bowl', 'camp', 'bell', 'hearth'].map((id) => CALLS[id]), 'in order along the ride');
+  // what is done is not named again (the bowl filled, the camp seen), nor the butte on the way home
+  D = desert({ ...errand, 'quest.desert.power': 'light', 'item.stone': 1, 'desert.way.bowl': true, 'desert.way.camp': true });
+  const home = ride(D, D.H.doorFront.clone().addScaledVector(dir, -30), city.clone().addScaledVector(dir, 200));
+  assert.deepEqual(home.map((s) => s.text), [CALLS.bell], 'on the way home only the bell, not rung yet');
+  // and nothing is named off the errand (before Nour sends you for the stone)
+  D = desert({ ...errand, 'desert.channel.open': undefined, 'desert.spark.heard': undefined, 'quest.desert.power': 'down' });
+  assert.deepEqual(ride(D, city.clone().addScaledVector(dir, 200), D.H.doorFront.clone().addScaledVector(dir, -30)), []);
   game.reset();
 });

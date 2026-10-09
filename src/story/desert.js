@@ -94,7 +94,8 @@ export function wellInside(city) { return city.well.clone().add(V(0, 0.45, 0)); 
  * short of that finds the tree cold and does the new errand; its tank is full
  * already (it was never empty: tool.empty is only set for a chest opened now).
  * v < 4: the four talks in a row (elder, well, ama, speaker) are two now: a save at the
- * well, Ama or the Speaker goes to the merged stage (STAGE_MERGE), keeping what it did.
+ * well, Ama or the Speaker goes to the merged stage (STAGE_MERGE), keeping what it did
+ * (it needs only Ama's jar now: askedDone).
  * Returns the new stage, or null if the stage did not change.
  */
 export function migrateDesertQuest(game) {
@@ -112,9 +113,13 @@ export function migrateDesertQuest(game) {
   return to;
 }
 
-/** Ama's jar and the Speaker's old words, in either order: the merged stage ('ask') is done once both are. */
-export function askedBoth(game) {
-  if (game.flag('desert.asked') || !game.flag('desert.jar.given') || !game.flag('desert.speaker.heard')) return false;
+/**
+ * The stage after Nour ('ask') is done once Ama has given you her jar. Nour says the Speaker's verse herself
+ * now (her `quest` node), so walking with the Speaker is for whoever wants the old words whole (October 2026:
+ * the desert's first hour shorter, three talks in a row became two).
+ */
+export function askedDone(game) {
+  if (game.flag('desert.asked') || !game.flag('desert.jar.given')) return false;
   game.set('desert.asked', true);
   return true;
 }
@@ -159,9 +164,9 @@ export function setupDesert(ctx) {
   caughtUp();
   quests.onChange(({ id }) => { if (id === 'desert.power') { skipSpark(); caughtUp(); } });
   game.on('flag:desert.channel.open', (v) => { if (v) caughtUp(); });
-  // the jar and the Speaker, in either order (the stage 'ask'): its flag once both are done
-  askedBoth(game);
-  for (const f of ['desert.jar.given', 'desert.speaker.heard']) game.on(`flag:${f}`, () => askedBoth(game));
+  // Ama's jar (the stage 'ask'): its flag once she has given it
+  askedDone(game);
+  game.on('flag:desert.jar.given', () => askedDone(game));
 
   const ground = (p, from = 4) => { const g = physics.groundAt(p.x, p.y + from, p.z); return Number.isFinite(g) ? g : p.y; };
   const onGround = (p) => V(p.x, ground(V(p.x, p.y, p.z), 3), p.z);
@@ -607,8 +612,6 @@ export function setupDesert(ctx) {
   quests.locate('ship', shipPos);
   quests.locate('mask', () => V(-20, level.ground.heightAt(-20, -372), -372));
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
-  // the merged stage: Ama until the jar is yours, then the Speaker
-  quests.locate('askWho', () => (!game.flag('desert.jar.given') ? people.ama.pos : people.speaker.pos));
 
   // ---------------------------------------------------------------- the procession's banners, lanterns and drum
   const props = [];

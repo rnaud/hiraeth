@@ -223,6 +223,30 @@ export const CHANGELOG_MEDIA = {
     { match: 'Debug: an item full screen shows one short line', shots: [
       { name: 'item-viewer', caption: 'An item full screen at 730 × 410 CSS px (a Retroid Pocket’s 1920 × 1080 screen): before, its words covered the item; after, one line under it', from: 'headless Chrome against this branch’s own dev server and the commit before, 730 × 410 (9 October)' },
     ], see: 'Title → Debug → Items, open any item full screen on a handheld or a small window, then press A (or I) for the rest.' },
+    { match: 'The desert gets you moving sooner', numbers: [
+      { title: 'From stepping out of the ship to the giant’s mouth: talks on the way', unit: 'talks', better: 'lower', device: 'any (the story played in Node, the shortest answers that move it on)', rows: [
+        { where: 'talks before the way down (Marrow, Nour, Ama, the Speaker)', before: 4, after: 3 },
+        { where: 'talks in a row after the chest opens', before: 3, after: 2 },
+        { where: 'pages said', before: 24, after: 15 },
+        { where: 'pages said after the chest opens', before: 20, after: 11 },
+        { where: 'answers to choose', before: 10, after: 6 },
+      ], source: 'the desert story played in Node on the game’s own modules (tests/playthrough-agent.js loadWorld), choosing the answers a player in a hurry would' },
+      { title: 'From stepping out of the ship to the giant’s mouth: time', unit: 's', better: 'lower', device: 'any (estimate: words at the dialogue’s 48 letters a second, 1.2 s a page, 1.5 s an answer; walking 6 m/s in straight lines; the climb and the chest’s scene left out)', rows: [
+        { where: 'talking', before: 102, after: 66 },
+        { where: 'walking (1040 m before, the Speaker at an average place round the walls; 865 m after)', before: 173, after: 144 },
+        { where: 'in all', before: 275, after: 210 },
+      ], source: 'the same play-through; the walk from the map’s positions (ship, gate, ledge, Nour, Ama, the procession’s loop, the skull)' },
+    ], see: 'Start a new game: open the chest on the tree’s ledge and talk to Nour. She says the verse about the giant’s mouth; after Ama’s jar the quest goes straight to the skull beyond the back gate.' },
+    { match: 'Stop at Ama’s fire on your way into Qanat', numbers: [
+      { title: 'Talks after the chest opens, with the jar taken on the way in', unit: 'talks', better: 'lower', device: 'any (the story played in Node)', rows: [
+        { where: 'after the chest: Nour (and before, Ama and the Speaker)', before: 3, after: 1 },
+      ], source: 'the desert story played in Node: Marrow, Ama on the way in, the chest, Nour' },
+      { title: 'From stepping out of the ship to the giant’s mouth, with the jar taken on the way in', unit: 's', better: 'lower', device: 'any (the same estimate as the line above)', rows: [
+        { where: 'walking (1040 m before; 625 m after: the camps lie on the way in, the back gate beside the tree)', before: 173, after: 104 },
+        { where: 'in all', before: 275, after: 174 },
+      ], source: 'the desert story played in Node: Marrow, Ama on the way in, the chest, Nour' },
+    ], see: 'Start a new game and talk to Ama at the camp fires on the way to the city: tell her your ship has no power, then that you’ll go to the city. She gives you the jar, and Nour later sends you straight to the giant’s mouth.' },
+    { match: 'On the ride to the Givers’ Hearth', see: 'Once Nour has sent you for the spark-stone, ride Marrow’s hoverbike along the marked stones: about 130 m before the bronze bowl, the keepers’ camp and the bell (320 m before the Hearth) a line under the view says what is ahead. Each is said once, and not once it is done (the bowl filled, the camp looked at, the bell rung). The ride is 1.6 km, about 48 s each way at the bike’s top speed.' },
   ],
   '1.1': [
     { match: 'Notices no longer pop up over a scene', shots: [

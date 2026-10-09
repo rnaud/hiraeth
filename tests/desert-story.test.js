@@ -445,18 +445,20 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   const { items } = await import('../src/items.js');
   const W = rt.world, H = level.hearth;
   assert.equal(quests.stage('desert.power'), 'ask');
-  assert.equal(quests.objective().label, 'Ama’s jar, the Speaker’s words');
-  assert.ok(quests.objective().position.distanceTo(W.people.ama.pos) < 0.01, 'the marker is on Ama first');
+  assert.equal(quests.objective().label, 'Ama’s jar, at the camp fires');
+  assert.ok(quests.objective().position.distanceTo(W.people.ama.pos) < 0.01, 'the marker is on Ama');
+  // Nour said the Speaker's verse herself (the first hour shorter: the Speaker is no stage of his own now)
+  assert.match(PEOPLE.nour.talk.nodes.quest.say.map((s) => s.text ?? s).join(' '), /mouth is a door/);
   talk(THINGS.well, [0]);   // (the well can still be looked at: it isn't a stage any more)
-  talk(PEOPLE.ama, ['I’ll bring it back full']);
+  const ama = talk(PEOPLE.ama, ['I’ll bring it back full']);
   assert.ok(quests.has('jar'), 'Ama gives the jar, now that Nour sent you');
+  assert.match(ama.pages.join(' '), /skull is beyond the back gate/, 'and points the way');
   step(2);
-  assert.equal(quests.stage('desert.power'), 'ask', 'the Speaker still to ask');
-  // the marker follows the Speaker round the circuit
-  const sp = W.people.speaker;
-  assert.ok(quests.objective().position.distanceTo(sp.pos) < 0.01);
+  assert.equal(quests.stage('desert.power'), 'down', 'the jar is the one errand before the way down');
+  // the Speaker still has the old words whole, for whoever walks with him
   const said = talk(PEOPLE.speaker, ['Nour says', 'Is there a way down']);
   assert.match(said.pages.join(' '), /mouth is a door/);
+  assert.equal(game.flag('desert.speaker.heard'), true, 'his old words (the giants, the swamp of lights)');
   step(2);
   assert.equal(quests.stage('desert.power'), 'down');
   // the objective is in the cave, so the guide routes through the skull's mouth
@@ -665,7 +667,7 @@ test('old saves: stages that moved go to Nour, the ones done advance on their fl
   assert.equal(migrateDesertQuest(s.g), 'elder');
   assert.equal(s.run(), 'elder', 'Nour first');
   s.g.set('desert.elder.heard', true);
-  s.g.set('desert.asked', true);   // (setupDesert's askedBoth: the jar and the Speaker were done)
+  s.g.set('desert.asked', true);   // (setupDesert's askedDone: the jar was given)
   assert.equal(s.run(), 'down', 'the jar and the Speaker were done already');
   // in the cave already: untouched
   s = save('channel', { 'item.backpack': true });

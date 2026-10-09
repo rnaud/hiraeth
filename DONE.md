@@ -1361,3 +1361,24 @@ tests/sound-mix.test.js holds them.
   works with a pad too (a grid of cards, A opens, LB / RB or ← → the other items, ↑ ↓ zoom, the right
   stick tilts, Y turn, X reset, B close). Checked at 730 × 410 (a Retroid's CSS size), 1280 × 720 and
   1920 × 1080.)
+
+## Fun and story: the desert's first hour shorter (done 9 October, v1.2)
+
+- [x] **The desert's first hour shorter:** the three talk stages in a row, the empty Hearth ride.
+  Already done before (c1d0dc13, the first ten minutes as World 1-1): the well heard with Nour, Ama and
+  the Speaker one stage (`ask`), the dregs shot, and the bowl, camp and bell on the ride; that still left
+  three talks in a row after the chest (Nour, Ama, the Speaker) and the ride's three things blinking past
+  at 34 m/s. Now:
+  - Nour says the Speaker's verse herself (her `quest` node; "Where the giant's eyes are marked, its mouth
+    is a door"), so the `ask` stage is Ama's jar alone (`askedDone`; marker on Ama). The Speaker keeps his
+    whole talk (the giants, the swamp of lights, the clue) for whoever walks with him; Nour and Ama say so.
+  - Ama gives the jar on your way in if you sit at her fire before the chest (`jarEarly`); Nour then says
+    "Ama's jar on your hip already" and the stage passes at once.
+  - The ride: heading toward the bowl, the camp or the bell on the errand (130 m out), or the Hearth (320 m),
+    a line under the view names it once (src/story/desert-way.js `CALLS`, main.js `cue`, the drone's line);
+    not once it is done.
+  - Measured on the game's own modules (a direct player, shortest answers): talks before the way down 4 → 3
+    (after the chest 3 → 2, or 1 with the jar on the way in), pages 24 → 15, answers 10 → 6, from stepping
+    out to the giant's mouth ~275 s → ~210 s (~174 s with the jar on the way in). The ride is unchanged in
+    length (1.6 km, ~48 s each way at top speed) with four things named on the way out.
+  Tests: tests/desert-spark.test.js (the jar alone, the jar on the way in, the call-outs), tests/desert-story.test.js.

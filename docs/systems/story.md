@@ -420,9 +420,8 @@ catches**), the ship.
     (`dregsText`, `verbKey`), and so does the pool's first fill (`filledText`).
   - **Four talks became two**: Nour has you listen at the dry well with her in her own talk (her
     `rim` node, `desert.well.seen`; the well can still be looked at), and Ama's jar and the
-    Speaker's old words are one stage, `ask` (flag `desert.asked`, set by `askedBoth` once both
-    `desert.jar.given` and `desert.speaker.heard` are; the marker, `askWho`, is on Ama until the jar
-    is yours, then the Speaker). Stages now: city, box, elder, ask, down, channel, fill, …
+    Speaker's old words were one stage, `ask` (since the first hour was shortened, below, it is Ama's
+    jar alone). Stages now: city, box, elder, ask, down, channel, fill, …
   - **Old saves** (`desert.quest.v` 4, `STAGE_MERGE` in `desert-data.js`): a save at the old `well`,
     `ama` or `speaker` stage goes to `ask` and keeps what it did (it advances at once if both were
     done). A v1 save first goes through `STAGE_MIGRATION` (to Nour), as before.
@@ -434,6 +433,35 @@ catches**), the ship.
     **bell** glinting in the sand near the end, a flash every few seconds (the sun on it) big
     enough to see from the saddle; ring it; the Speaker hears of it (`desert.way.bell`,
     `desert.way.told`). `tests/desert-spark.test.js` covers them and the v4 migration.
+- **The first hour shorter (October 2026, `docs/fun-and-story-review.md` item 5)**: the review's "three talk
+  stages in a row" were still three talks after the chest (Nour, Ama, the Speaker), and the ride's three
+  things blinked past at 34 m/s.
+  - **Nour says the verse.** Her `quest` node gives the Speaker's line herself ("Where the giant's eyes are
+    marked, its mouth is a door", the marked skull beyond the back gate), so `ask` is **Ama's jar alone**:
+    `askedDone` (`src/story/desert.js`) sets `desert.asked` once `desert.jar.given` is; the stage's marker is
+    on Ama (`at: 'ama'`; `askWho` is gone). Ama's `power` points at the skull. The Speaker is a stage no
+    more but keeps his whole talk (the giants carried the water from the swamp of lights, the clue
+    `clue.desert.perdide`, `desert.speaker.heard`) for whoever walks with him; Nour's `down` and Ama's
+    `power` say he keeps the old words whole. Old saves at `ask` with the jar pass on at once.
+  - **The jar on the way in.** Ama's `early` (before Nour has sent you) leads to `jarEarly`, which gives the
+    jar (only offered while `desert.jar.given` is unset); then Nour's `quest`, `rim` and `again` say the jar
+    is on your hip already (`{ if: { has: 'jar' } }` lines) and `ask` passes the moment it comes. The camps
+    lie on the way from the ship to the gate; the back gate is beside the tree.
+  - **The ride, called out.** `setupWay` names each place once as it comes up ahead on the errand (stages
+    `hearth`, `stone`, `light`): moving toward it (from where you were 2 m back) and within `CALL.range`
+    (130 m; the Hearth's door 320 m, on the way out only), not nearer than `CALL.near` (18 m), and not once
+    it is done (the bowl filled, `desert.way.camp`, `desert.way.bell`). The line (`CALLS`: what you would see
+    from the saddle, no lore) goes to `ctx.cue`, which main.js points at the drone's line under the view
+    (`scoutSays`, 6 s): a toast waits its turn in the queue, and "ahead" said late is behind you. Without a
+    cue (the tests) it is a toast.
+  - **Measured** (the story on the game's own modules, a direct player's shortest answers; words at 48
+    letters a second plus 1.2 s a page and 1.5 s an answer, walking 6 m/s in straight lines, the Speaker at
+    an average place on his loop): talks before the way down 4 → 3 (after the chest 3 → 2; 1 with the jar
+    on the way in), pages 24 → 15, answers 10 → 6, walk 1040 → 865 m (625 m), stepping out to the giant's
+    mouth ~275 → ~210 s (~174 s). The ride stays 1.6 km (~48 s each way at top speed).
+  - Tests: `tests/desert-spark.test.js` (the merged stage on the jar alone, the jar on the way in, the
+    call-outs out and home and not off the errand), `tests/desert-story.test.js` (the chain: Ama, then the
+    way down; the Speaker optional).
 - **Tests**: `tests/desert-story.test.js` plays the chain end to end (the empty tank, the lever,
   the fill, the rise, Nour, Marrow, the bike, the Hearth, the grille, the stone, the lighting,
   the ship); `tests/desert-spark.test.js` covers the migrations, the cold tree (no burn, the

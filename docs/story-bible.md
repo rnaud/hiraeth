@@ -177,17 +177,21 @@ written in).
      for you to climb down ("Come down, child!"), comes to you and calls you
      over ("Psst. Child."), but leaves the talk to you: the old words, the singing light the chest hummed back to, the
      Givers, the star, the tank ("the same water the giants carried"), and the
-     one power in the desert, the water that has not risen. She sends you on.
-  4. `well`: listen at the dry well (Hessa). 5. `ama`: ask Ama at the fires for
-     the drinking jar. 6. `speaker`: walk with the Speaker; the old words know
-     the way down: "Where the giant's eyes are marked, its mouth is a door."
-  7. `down`: out of the back gate to the fallen giant's skull (318, 530),
+     one power in the desert, the water that has not risen. She sends you on
+     with the Speaker's old verse, the way down: "Where the giant's eyes are
+     marked, its mouth is a door." If you like, she has you listen at the dry
+     well with her first (the water moving far below).
+  4. `ask`: Ama at the fires gives the drinking jar (or already did, if you sat
+     at her fire on the way in). The Speaker, at the procession's head, tells
+     the old words whole for whoever walks with him: the giants, the swamp of
+     lights, the verse.
+  5. `down`: out of the back gate to the fallen giant's skull (318, 530),
      whose open mouth is a doorway → the cave of shifting water in the giant's
-     chest, where the tree's roots hang into the pool. 8. `channel`: the pool is
+     chest, where the tree's roots hang into the pool. 6. `channel`: the pool is
      dry (damp stains, a pale tide line, no water at all) because a giant's bone
      has fallen across the channel. Pushing it clear (fluid push; without the
      tool, a heave) lets the water run: the stream comes out of the crack, down
-     the channel, and fills the pool; the tree drinks. 9. `fill`, 10. `ship`: the jar filled at the pool powers the ship
+     the channel, and fills the pool; the tree drinks. 7. `fill`, 8. `ship`: the jar filled at the pool powers the ship
      (`ship.powered`, `world.desert.done`, the keepsake).
   Saves from before (stages `pack`, `camps`, then ama, speaker, well) move to
   `city` or to Nour and skip what they already did (src/story/desert.js
