@@ -222,6 +222,20 @@ const BLADE_VIEW = (go, { side = 3.6, h = 2.0, ty = 1.5 } = {}) => `for (let i =
   ${go}
   window.cinematicReview = { paused: true };`;
 const ARENA_BLADE = { level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 400 };
+/**
+ * v1.11's living blade: BLADE_VIEW's frozen frame, then the camera brought in on the sword (`dist` m off its flat, `at`
+ * the share of the blade's length from the cup it looks at, `lift` m higher), the frame drawn again.
+ */
+const BLADE_CLOSE = (go, { dist = 0.9, at = 0.5, lift = 0.15 } = {}) => `${BLADE_VIEW(go)}
+  { const B = window.tool.blade, V = THREE.Vector3, m = B.group.matrixWorld, up = new V(0, 1, 0).transformDirection(m), flat = new V(0, 0, 1).transformDirection(m);
+    const mid = new V(0, 0, 0).applyMatrix4(m).addScaledVector(up, 0.1 + 0.85 * ${at}), eye = mid.clone().addScaledVector(flat, ${dist}).add(new V(0, ${lift}, 0));
+    const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, mid, new V(0, 1, 0)));
+    const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+    camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };
+    ${sleepJs(100)} window.renderFrame(); }`;
+const SWING_AT = (ms) => `input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(ms)}`;
+// (the pictures were taken at the commit before the rebase onto the roster's surfaces: before, its parent 356218ff)
+const ALIVE = { commit: 'beb3398e', before: '356218ff' };
 /** The Arena's ledge from its side: the field cleared, the traveller up on the ledge facing out; `go` adds the foe (V: THREE.Vector3). */
 const LEDGE_VIEW = (go) => `for (let i = 0; i < 60 && !foes.list.length; i++) ${sleepJs(250)}
   const V = THREE.Vector3;
@@ -516,6 +530,27 @@ export const CHANGELOG_MEDIA = {
       { name: 'debug-menu-filter', only: 'after', caption: 'Typing filters it: “arena” leaves the Arena and what mentions it', ...DEBUG_MENU,
         view: DEBUG_VIEW([1280, 800], false, "for (const k of 'arena') window.dispatchEvent(new KeyboardEvent('keydown', { key: k, code: 'Key' + k.toUpperCase(), bubbles: true })); await new Promise((r) => setTimeout(r, 400));") },
     ], see: 'On the title, choose Debug (or press L in a world). Type a few letters to filter; on a controller LB / RB jump between sections and Y opens the filter. Open a page and come back with ◀ Debug: the page you opened has the focus.' },
+    // the fluid sword, alive
+    { match: 'The fluid sword feels alive', shots: [
+      { name: 'blade-alive-idle', caption: 'In the fist between cuts, close up: before, the bare cup (the blade only shows through a swing); after, a short tongue of the fluid standing out of it, breathing, bubbles and ripples in it', ...ALIVE,
+        view: { ...ARENA_BLADE, setup: BLADE_CLOSE(SWING_AT(1500), { dist: 0.5, at: 0.05 }) } },
+      { name: 'blade-alive-swing', caption: 'The first swing on its cut, close up: before, flat currents inked in black; after, the fluid bowed back by the swing, fine pale ripples and bubbles drifting up it, a bright line along the cutting edge and its skin wobbling', ...ALIVE,
+        view: { ...ARENA_BLADE, setup: BLADE_CLOSE(SWING_AT(250), { dist: 0.85 }) } },
+      { name: 'blade-alive-trail', caption: 'The same cut at play distance: the trail of fluid off the edge, more drops flung off the point', ...ALIVE,
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(SWING_AT(250), { side: 2.6, h: 1.8, ty: 1.4 }) } },
+      { name: 'blade-alive-hit', caption: 'Just after the cut lands on a blot: after, a ring of light running along the blade from where it struck, the whole blade a shade brighter', ...ALIVE,
+        view: { ...ARENA_BLADE, setup: BLADE_CLOSE(SWING_AT(400), { dist: 1.0 }) } },
+      { name: 'blade-alive-night', caption: 'At night, the sword raised for the first swing: before, a dark blade; after, lit from within, a soft printed halo round it', ...ALIVE,
+        view: { ...ARENA_BLADE, hour: 22, setup: BLADE_CLOSE(SWING_AT(110), { dist: 0.9 }) } },
+    ], numbers: [
+      { title: 'The sword mid-swing: what it draws (every pass), High', unit: 'draws', better: 'lower', device: 'M4 Pro, Chrome (ANGLE Metal), 1280 × 720 at render scale 1.5',
+        rows: [{ where: 'The Arena, the first swing on its cut', before: 11, after: 11 }],
+        source: 'renderer.info over renderFrame() with the sword shown and hidden in turns on the frozen frame, medians of 8 (docs/systems/foes.md, "Alive")' },
+      { title: 'The sword’s share of the render (GPU-synced)', unit: 'ms', better: 'lower', device: 'M4 Pro, Chrome (ANGLE Metal), 1280 × 720',
+        rows: [{ where: 'High, play distance', before: '0–0.1', after: '0–0.1' }, { where: 'High, close up (the blade filling the screen)', before: 0.1, after: 0.2 },
+          { where: 'Steam Deck preset, close up', before: '0–0.1', after: '0–0.1' }, { where: 'Placing it a frame (CPU)', before: 0.017, after: 0.02 }],
+        source: 'renders timed with a readPixels sync, the sword shown and hidden in turns on the frozen cut (8 × 25 renders each, medians); the whole render 4–6 ms, its noise about ±0.2 ms. Not measured on a Deck itself' },
+    ], see: 'Swing the blade (F, RB / R1) and watch it close: ripples and bubbles run up it, its edges wobble, a fast cut bends it back and throws drops that splash at your feet. Land a cut, block or parry: a ring runs along it. Stand still with it drawn: a small tongue of fluid breathes in the cup. At night it glows. On the handheld and Low the ripples, bubbles and splashes are left out.' },
   ],
   '1.10': [
     // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")
