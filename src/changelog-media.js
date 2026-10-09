@@ -262,8 +262,8 @@ export const CHANGELOG_MEDIA = {
     ], see: 'In the Arena, stand on the ledge at the far side (the ramp goes up to it) and pick an ink blot from the FOES list: it crouches at the foot of the ledge and leaps up. A machine from the list comes round by the ramp instead.' },
     { match: 'A spitting blot now climbs steps and ramps', see: 'In the Arena, pick a spitting blot from the FOES list and lead it near the ledge at the far side, staying on the sand below: it walks up the ramp and lobs down at you from up there. Walk up the ramp after it.' },
     { match: 'Knock a foe off a ledge', shots: [
-      { name: 'foe-knock-off', caption: 'An ink blot cut off the edge of the Arena’s ledge, a second later: before, it has landed and is already coming on along the foot of the ledge; after, it lies dazed where it fell, pale stars turning over it', commit: 'bcdd52a1',
-        view: { ...ARENA_LEDGE, eye: [10.5, 3.2, -32.5], target: [5, 0.9, -38.6], setup: LEDGE_VIEW(`const f = foes.add('blot', new V(5, 2, -40.4)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50); ${sleepJs(300)} foes.hurt(f, 'blade', new V(0, 0, 1), { damage: 1, combo: 2 });`), wait: 1300 } },
+      { name: 'foe-knock-off', caption: 'An ink blot cut off the edge of the Arena’s ledge, a second later: before, it has landed and is already coming on along the foot of the ledge; after, it lies dazed where it fell, pale stars turning over it', commit: 'f544f600', before: '6ecedb75',
+        view: { ...ARENA_LEDGE, eye: [10.5, 3.2, -32.5], target: [5, 0.9, -38.6], setup: LEDGE_VIEW(`const f = foes.add('blot', new V(5, 2, -40.4)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50); ${sleepJs(300)} f.pos.set(5, 2, -40.3); foes.hurt(f, 'blade', new V(0, 0, 1), { damage: 1, combo: 2 });`), wait: 1300 } },
     ], see: 'In the Arena, get a blot up on the ledge at the far side and cut it toward the edge (the third swing, the charged cut or the push): it lands dazed below, stars over it.' },
   ],
   '1.3': [
