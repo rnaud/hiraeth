@@ -8,6 +8,27 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] Redo the character's face to match the references more closely and feel less cartoony / anime.
   Pay particular attention to the eyes as a possible cause of the style mismatch.
 
+# Story clarity, singing light and rumble (queued 2026-10-09)
+
+- [ ] **Make the years away clear in the first voicemail.** Rewrite the father's opening message so
+  players understand the traveller left home many years ago: for example, "We haven't heard from you
+  for so long." Convey both "we miss you" and "I'm still disappointed in you," and tell him not to
+  come back until he brings **"something of value"**. Highlight that phrase in the game's dialogue.
+- [ ] **Give the singing light a distinctive few-note theme, made with Suno, and restage the opening.**
+  Hear the theme over the father's voicemail; the traveller pauses the recording to listen more closely.
+  The light passes the ship and drains its energy, forcing a landing nearby rather than a crash.
+  Make it clear that the traveller subsequently follows the singing light of his own accord.
+  Reconcile later references to the collision and the Lantern's explanation with this revised encounter.
+- [ ] **Have Qanat repay the traveller's help by repowering his ship.** Make the connection between
+  restoring the village's light and getting airborne explicit: because he helped them, the villagers
+  choose to help him in return and pool the village's resources to restore the ship's power.
+  Replace the current direct sacred-light-to-ship-power explanation with that act of reciprocity.
+- [ ] **Turn the galactic minimap into a signature-search minigame.** Explain that the ship can detect
+  the singing light's signature on other planets. Let the player hover over regions of the map and
+  follow rumble and visual cues to discover nearby planets carrying the same signature.
+- [ ] **Add rumble support to the game**, including feedback for the galactic minimap's signature search.
+  Keep the visual search cues usable when rumble is unavailable or disabled.
+
 # Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
 
 - [ ] A dark copy of the traveller on the wall behind him in room corners (Handheld): post.js `enclosure`'s look past
