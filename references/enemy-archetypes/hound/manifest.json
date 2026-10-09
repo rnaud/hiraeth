@@ -25,17 +25,17 @@
       "provider": "openai",
       "providerLabel": "OpenAI GPT Image",
       "model": "gpt-image-2",
-      "prompt": "The same antler hound, same lean four-legged body with back-angled hocks, same wide antler crown and smoke mane, rising from a flat shadow, redrawn as the White Mangrove's driftwood hound: bleached bone-white driftwood antlers, the black body dripping like wet ink, sage and lilac smoke, small turquoise eye glow. Front, side and three-quarter views, the crouched pounce wind-up and the shadow on the ground on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage, biped.",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (the shadow ink-black and violet, a thin pearl-and-gold halo ring caught in its antlers, faint gold glints) may remain. The same antler hound, same lean four-legged body with back-angled hocks, same wide antler crown and smoke mane, rising from a flat shadow, redrawn as the White Mangrove's driftwood hound: bleached bone-white driftwood antlers, the black body dripping like wet ink, sage and lilac smoke, small turquoise eye glow. Front, side and three-quarter views, the crouched pounce wind-up and the shadow on the ground on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage, biped.",
       "from": "docs/design/enemy-roster-prompts.md#hound/alt",
       "refs": [
         "references/enemy-archetypes/hound/sheet-1.jpg"
       ],
       "ar": "16:9",
       "date": "2026-10-09",
-      "batch": "2026-10-09-18-59-11-60a9",
+      "batch": "2026-10-09-19-04-36-df21",
       "candidate": "openai/2",
-      "sha256": "cbf42f5259a6e47bc5f5cd76f0d5ee7636975b06208e6e6563013e80371fb69b",
-      "bytes": 217929,
+      "sha256": "41b33b5cd2eda211e9c1044275a7bd2d72143e402bf05432c77945c4a7040378",
+      "bytes": 210415,
       "costUSD": 0.041
     }
   ]

@@ -18,6 +18,25 @@
       "sha256": "0f669eee59414eb5fa5b250ed65c8c34768b0eb0cfc2dc07287a079c16020ade",
       "bytes": 191750,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (a pale lilac cap with cream gills, a reed-green bulb, ochre roots, violet shadows) may remain. The same root knot, same broad cap, bulb body and five jointed root-arms with planted rootlet tips, redrawn as Lorn II's root crawler: a deep teal cap with softly glowing turquoise gills, dark bark-brown roots, a red-brown bulb, small brass-coloured spores drifting. Front, side and three-quarter views and the arms-plunged grip wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#rootknot/alt",
+      "refs": [
+        "references/enemy-archetypes/rootknot/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-03-45-8633",
+      "candidate": "openai/1",
+      "sha256": "0aab77872ca435ce29ecf51f433bc90e6d78e65642db210c6f1c6f83afc6eb26",
+      "bytes": 186998,
+      "costUSD": 0.041
     }
   ]
 }

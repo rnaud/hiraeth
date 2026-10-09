@@ -18,6 +18,25 @@
       "sha256": "38601ad802ff2fcf4330168c27c7d82a74f7d264facfb9a74b2122bd7ae16e3c",
       "bytes": 162575,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (sand-gold rings with ochre bands, an ivory fin, a turquoise-tinted mouth, warm cream shadows) may remain. The same mound worm, same thick stacked rings, toothed mouth and dorsal fin, redrawn as the Buried Machine's drill grub: slate-violet rings with ash-grey bands, its tail a spiralled steel drill bit, rust flecks, soot shadows. The sand mound with fin, upright front, side and three-quarter views and the eruption pose on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#worm/alt",
+      "refs": [
+        "references/enemy-archetypes/worm/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-05-36-8a27",
+      "candidate": "openai/1",
+      "sha256": "260f0112d3d7cadd558038e4f55cae03eeb4817a16ef02bf78b17ef32850a287",
+      "bytes": 170600,
+      "costUSD": 0.041
     }
   ]
 }

@@ -18,6 +18,25 @@
       "sha256": "031d6d3dfbdb58d3f1efc2242efd3ca53c5ca52899e7b14ece461e1d75d3fb01",
       "bytes": 165867,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (dusty grey-lilac membrane wings lit from behind so their rods glow amber, two round red eye-spots, the lantern body warm honey-gold, deep teal shadows) may remain. The same signal moth, same upright body, two pairs of hinged wings, jointed folded legs, redrawn for the Forest of Antennas: cream wings with fine copper circuit-like veins, its antennae two small dish shapes instead of feathers, pale green eye-spots, copper and verdigris accents. Folded front view, side, three-quarter and the wings-open flash wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#moth/alt",
+      "refs": [
+        "references/enemy-archetypes/moth/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-04-45-6dcd",
+      "candidate": "openai/1",
+      "sha256": "19e452210c743b3a7f47c74f2863150e313b270680cde6df479e4919c3dc3cc5",
+      "bytes": 177191,
+      "costUSD": 0.041
     }
   ],
   "rejected": [

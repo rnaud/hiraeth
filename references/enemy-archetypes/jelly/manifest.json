@@ -18,6 +18,25 @@
       "sha256": "dba8a04662f05af2d38a80ca66fd70e8b0050aa117a4bc6c900e0a9ee39ed3e3",
       "bytes": 154723,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (pale pink puffy bell like a cloud, ivory threads, apricot paper lanterns glowing warm, pale aqua and cool blue-grey shadow) may remain. The same lantern jelly, same bell cap, long threads and three hanging lanterns, redrawn as the Underwater City's porcelain jelly: a glazed porcelain-white bell with fine blue painted rings, the lanterns small round glass fishing floats glowing buttery yellow, coral-pink threads, ultramarine shadows. Front, side and three-quarter views and the ward pose on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#jelly/alt",
+      "refs": [
+        "references/enemy-archetypes/jelly/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-04-15-308a",
+      "candidate": "openai/1",
+      "sha256": "963c03fd67eea0ae34f8cb55efb99534a69c088761a5b1732499cfa7c755820a",
+      "bytes": 187914,
+      "costUSD": 0.041
     }
   ]
 }

@@ -18,6 +18,25 @@
       "sha256": "0ac0d684affb3692ada7dda71a5b155f6eb942e153d9719d127d3c774785d798",
       "bytes": 118109,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (rust-red back with ivory belly, pale blue wing edges, a cream tail, cool blue-grey shadows) may remain. The same sky ray, same flat diamond wing-body and segmented whip tail, redrawn as the Glass Dunes' glass manta: faceted and see-through like cut glass, pale aqua and lilac reflections, bright white glints on the facets, a sand-gold underside. Top view, front, side and the banking skim wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#ray/alt",
+      "refs": [
+        "references/enemy-archetypes/ray/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-05-10-70c9",
+      "candidate": "openai/1",
+      "sha256": "4cc6e070a9867dafe89fec808c254a50531bdb311923617795c1895acd4995d5",
+      "bytes": 116972,
+      "costUSD": 0.041
     }
   ]
 }

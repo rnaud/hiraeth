@@ -25,17 +25,17 @@
       "provider": "openai",
       "providerLabel": "OpenAI GPT Image",
       "model": "gpt-image-2",
-      "prompt": "The same shellback crab, same six jointed legs, same domed shell and pincers, redrawn as the Salt Harbour's anchor crab: barnacles crusting the shell, a tangle of old rope and a small iron anchor caught on its back, cream, turquoise and rusty coral with flat lavender-blue shadows. Front, side and three-quarter views and the shell-spin wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (slate-blue shell flecked with pale lichen, ivory underside and joints, apricot pincer tips, cool blue-grey shadow) may remain. The same shellback crab, same six jointed legs, same domed shell and pincers, redrawn as the Salt Harbour's anchor crab: barnacles crusting the shell, a tangle of old rope and a small iron anchor caught on its back, cream, turquoise and rusty coral with flat lavender-blue shadows. Front, side and three-quarter views and the shell-spin wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
       "from": "docs/design/enemy-roster-prompts.md#crab/alt",
       "refs": [
         "references/enemy-archetypes/crab/sheet-1.jpg"
       ],
       "ar": "16:9",
       "date": "2026-10-09",
-      "batch": "2026-10-09-18-58-18-08c1",
-      "candidate": "openai/2",
-      "sha256": "6e87167a6c239c8b26655834e517897fd3c55c2d7c9ed17e6d268391694ef530",
-      "bytes": 167557,
+      "batch": "2026-10-09-19-04-11-05c5",
+      "candidate": "openai/1",
+      "sha256": "c2c343379730c7235c0c66521dc0e61fa463be81687f551b07e298657432e14c",
+      "bytes": 157375,
       "costUSD": 0.041
     }
   ]
