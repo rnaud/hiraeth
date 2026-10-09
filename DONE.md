@@ -907,7 +907,7 @@ and what is still left, is in docs/systems/movement.md, "Contact".
   RB), every world's open air and every room off the map (the desert's four, one each in the other
   temple worlds, Viridel's two) drew the push's three rings and its spray, and nothing hid them at draw
   time; the only misses were a push made while a conversation opened (Lou at home), which is input
-  being paused, as it should be. `tests/push-fx.test.js` fires it in every world and room, both ways.
+  being paused, as it should be. `tests/contact-audit.test.js` (once `tests/push-fx.test.js`) fires it in every world and room, both ways.
 
 # Contact, the third pass: what the second left (2026-10-07)
 
