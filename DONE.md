@@ -1526,5 +1526,16 @@ tests/sound-mix.test.js holds them.
   while you are below and in reach. Knocked off a ledge by your cut or push (a blow counts as yours 0.9 s): from
   1.4 m it lands dazed 3.5 s with stars over it (a cut lands double), from 4.5 m it is over; the charged cut
   throws 2.2× (as the heavy third). The walkers' wall test now looks over a climbable step (it was at 0.5 m, so no
-  foe climbed a step taller than that: a temple's dais stopped a machine at its foot). Not done: crystals, water.
+  foe climbed a step taller than that: a temple's dais stopped a machine at its foot). Not done: crystals, water
+  (done next, below).
+- [x] **Temple crystals and water on foes** (src/foes.js, src/foe-height.js `KNOCK.deep`, `knockedInto`). A temple's
+  crystal pendulum stilled by a stilling glob (frosted, hanging there humming) is no longer air to a foe: its
+  frost takes one that touches it, held `WORKS.swing.frost` 3 s, no harm, its eyes pale and a puff of frost (a
+  cut lands double), and not again for 4.5 s, so it walks out of it; swinging, it knocks a foe away as before.
+  A foe your cut or push carries into water 1.3 m deep or more (as deep as lifts you off your feet), off a bank
+  or off a ledge from any height, is swept away: a great splash (`Waters.splash`), and it is over; the first
+  time a note. Shallow water it wades; a gust's shove is not yours; a sea whose bed is walked (the Underwater
+  City) is not water to knock into. The hitbox overlay's foe label now says dazed (and how long), perched,
+  waiting (no way to you) and crouched / hopping. Checked in Lorn (a blot pushed off the swamp's bank, a blot
+  walking into the Hush-House's stilled pendulum), headless Chrome. tests/foe-height.test.js.
 

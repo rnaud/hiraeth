@@ -669,7 +669,7 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 // the desert's first steps: the camera and the jump, each said once if you haven't used it yet (src/first-steps.js)
 const firstSteps = levelId === 'desert' && !minigameDef && !game.flag('item.backpack') ? new FirstSteps(game) : null;
 const firstStepsAt = new THREE.Vector3(NaN, 0, 0); let firstStepsT = 0;
-const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
+const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, waters, notice: (t) => showToast(t) });
 let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
 const chemistry = new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });   // fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js)
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)

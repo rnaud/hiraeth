@@ -55,8 +55,8 @@ Ranked; each says why in the review. Playtest with two or three new players befo
   v1.3 the charged cut and the air cut from the Great Sword pack, in v1.4 the riposte after a perfect parry and
   the dash cut out of an evade from the Sword and Shield pack, on their clips' own swing frames: DONE.md).
   In v1.4 foes use the world's height (they climb, hop down and hold off; the spitter takes the high ground;
-  knocked off a ledge they lie dazed: DONE.md). Next: a better machine; the temple kit beyond what foes already
-  feel (crystals: a foe stilled or blocked by one), and a foe knocked into water.
+  knocked off a ledge they lie dazed; a stilled temple crystal's frost holds them, and knocked into deep water
+  they are swept away: DONE.md). Next: a better machine.
 
 # Carried over
 

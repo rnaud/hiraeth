@@ -12,7 +12,7 @@ import { KINDS, NOTES, kindModel } from './foe-kinds.js';
 import { packOf, guardKinds, templeKind } from './foe-worlds.js';
 import { hitStop, kick, slowMo } from './feel.js';
 import { LockReticle } from './lock-reticle.js';
-import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff } from './foe-height.js';
+import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -176,7 +176,9 @@ export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
  * - WORKS: the workings (src/workings.js): an updraft throws a walker up (`throw` m/s) to land hard, and tumbles
  *   a hovering one up out of control `tumble` s then stuns it `stun` s; a blowing gust shoves any foe (× by
  *   kind, a stilled one slides like a crate); a swinging pendulum knocks one away (`knock` m/s, `up`), cut and
- *   stunned. `cool`: s before the same working takes it again.
+ *   stunned. `cool`: s before the same working takes it again. A pendulum stilled (frosted over by a stilling
+ *   glob, hanging there humming) is no blow: its frost takes a foe that touches it, held `frost` s (no harm, its
+ *   eyes pale: stunned, so a cut lands double), and not again for `frost` + `cool` s (it walks out of it).
  */
 export const HOVER = { max: 12, climb: 3, sink: 3 };
 export const COVER = { near: 6, far: 10, dirs: 8, minCool: 0.8, hold: 2.6, gentle: 1.2, stay: 1.4, climb: 2.2, close: 3, out: 0.3 };
@@ -185,7 +187,7 @@ export const WORLD_HARM = { every: 0.6, spikes: 1, fire: 1, other: 1, shove: 5 }
 export const WORKS = {
   updraft: { throw: 10, out: 3, tumble: 0.9, stun: 1.4, cool: 2 },
   gust: { heavy: 0.7, still: 1.1, hover: 1.2, light: 1.25 },
-  swing: { knock: 9, up: 4, heavy: 0.75, stun: 1.2, cool: 1.5 },
+  swing: { knock: 9, up: 4, heavy: 0.75, stun: 1.2, cool: 1.5, frost: 3 },
 };
 const _hz = new THREE.Vector3(), _pb = new THREE.Vector3(), _fb = new THREE.Vector3(), _cs = new THREE.Vector3(), _cf = new THREE.Vector3();
 
@@ -343,6 +345,8 @@ export class Foe {
       this.step(this.vel.x * dt, this.vel.z * dt, env, this.vel.lengthSq() > 1);
       this.vel.multiplyScalar(Math.exp(-(this.air ? 1 : 6) * dt));
     }
+    // your blow or push carried it into deep water: swept away (KNOCK.deep)
+    if (!this.air && !D.hover && this.knockedBy > 0 && this.sweptBy(env, ev)) return ev;
     // knocked off a ledge, thrown up: it falls, and its mind waits until it lands
     if (this.air) { this.fall(dt, env, ev); return ev; }
     // a flyer keeps to its height, low only while it recovers from a dive (and falls when stilled)
@@ -686,6 +690,13 @@ export class Foe {
         if (!D.hover) this.air = { vy: S.up, top: this.pos.y, base: this.pos.y, hard: false };
         this.stunned = Math.max(this.stunned, S.stun);
         ev.push({ type: 'swung', dir: dir.clone() });
+      } else if (w.kind === 'swing' && this.workCool.swing === 0) {
+        // stilled, frosted over: the frost takes a foe that touches it, held a few seconds (no harm)
+        const S = WORKS.swing;
+        this.workCool.swing = S.frost + S.cool;
+        this.calm(); this.vel.set(0, 0, 0); this.route = null;
+        this.stunned = Math.max(this.stunned, S.frost); this.flash = 0.6;
+        ev.push({ type: 'frosted' });
       }
     }
   }
@@ -700,7 +711,9 @@ export class Foe {
       if (g != null && ny <= g + 1e-6 && g <= this.pos.y + 0.6) {
         this.pos.y = g; this.air = null;
         this.vel.multiplyScalar(0.3);
-        const h = A.top - g, off = A.knocked ? knockedOff(h) : null;
+        const h = A.top - g;
+        if (A.knocked && this.sweptBy(env, ev, h)) return;   // (into deep water, from any height: swept away)
+        const off = A.knocked ? knockedOff(h) : null;
         if (off) {
           // knocked off a ledge by you: dazed a long while, stars over it (KNOCK); from high enough, it is over
           this.stunned = Math.max(this.stunned, KNOCK.stun); this.dazed = KNOCK.stun; this.flash = 1;
@@ -714,6 +727,17 @@ export class Foe {
     }
     this.pos.y = ny; A.top = Math.max(A.top, ny);
     if (A.top - ny > FALL.lost || ny < (env.killY?.() ?? -Infinity) || env.pit?.(this.pos)) this.gone(ev);
+  }
+  /**
+   * Knocked by you into water (env.water: its surface over its feet) deep enough to sweep it away (KNOCK.deep):
+   * a 'landed' event knocked 'swept' (Foes.knockedOff: a great splash, and it is over). True when it was.
+   */
+  sweptBy(env, ev, h = 0) {
+    const w = env.water?.(this.pos.x, this.pos.y, this.pos.z);
+    if (!w || !knockedInto(w.surface - this.pos.y)) return false;
+    this.knockedBy = 0; this.calm(); this.route = null;
+    ev.push({ type: 'landed', h, hard: true, knocked: 'swept', surface: w.surface });
+    return true;
   }
   /** Fallen out of the world (a pit, below its floor): gone. */
   gone(ev) { this.air = null; this.hp = 0; this.state = 'dead'; this.k = 0; ev.push({ type: 'fell' }); }
@@ -972,8 +996,8 @@ const BURST_TONES = {
 
 /** Every foe in a world: the packs of ink blots in the wilds, the machines in the temple, their looks and their targets. */
 export class Foes {
-  constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, game = sharedGame, rng = Math.random }) {
-    Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, game, rng });   // (lib, humans: a shade's body, src/shade.js)
+  constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, waters = null, game = sharedGame, rng = Math.random }) {
+    Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, waters, game, rng });   // (waters: src/water.js, a foe knocked in is swept away)   // (lib, humans: a shade's body, src/shade.js)
     this.list = []; this.group = new THREE.Group(); this.group.name = 'Foes';
     this.group.userData.noCollide = true;
     scene?.add(this.group);
@@ -988,6 +1012,8 @@ export class Foes {
       hazard: (p) => hazardAt(p),
       workings: (p, kind = null) => workingsAt(p, kind, this._ws ??= []),
       killY: () => this.level?.killY ?? -Infinity,
+      // the water over (x, y, z) (src/water.js Waters): { surface } or null; a sea whose bed is walked is not water here
+      water: (x, y, z) => { const w = this.waters?.surfaceAt?.(x, z, y, 0.5); return w && !w.body?.sea && w.y > y ? { surface: w.y } : null; },
       pit: (p) => { const rt = this.level?.temple; return !!rt && (!!rt.pits?.some((x) => x.contains(p)) || (!!rt.below?.(p) && !rt.inside?.(p))); },
       // (lift: how high over `from` the way is tested; a walker's is over a step it may climb, CLIMB.step, so the
       // riser of a stair isn't taken for a wall: before v1.4 it was 0.5 m, and no foe climbed a step higher)
@@ -1315,6 +1341,7 @@ export class Foes {
     const s = this.sound;
     if (e.type === 'fell') { this.burst(f); return; }
     if (e.type === 'thrown' || e.type === 'tumbled') { s?.whoosh?.(); return; }
+    if (e.type === 'frosted') { s?.chime?.(); this.animKit(f, 0, {}).dust(f.chest, '#dff4ff', 10, 0.6); return; }   // (a stilled crystal's frost: held, eyes pale)
     if (e.type === 'hop') { worldSnd.thud(s, e.how === 'drop' ? 0.35 : 0.2); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 6, 0.5); return; }   // (up or down a ledge: a soft landing)
     if (e.knocked) { this.knockedOff(f, e); return; }
     let info = null;
@@ -1334,11 +1361,21 @@ export class Foes {
    * (a cut lands double: it is stunned), or from KNOCK.defeat up, the fall is the end of it. The first time, a note.
    */
   knockedOff(f, e) {
-    const over = e.knocked === 'over';
-    worldSnd.thud(this.sound, 1); hitStop(over ? 0.1 : 0.07); kick(over ? 0.5 : 0.4);
-    this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 14, 0.9);
+    const swept = e.knocked === 'swept', over = e.knocked === 'over' || swept;
+    if (swept) {
+      // into deep water: a great splash (src/water.js), and the water takes it
+      if (this.waters?.splash) this.waters.splash(f.pos, e.surface, 2);
+      else this.sound?.splash?.(2);
+      hitStop(0.08); kick(0.4);
+    } else {
+      worldSnd.thud(this.sound, 1); hitStop(over ? 0.1 : 0.07); kick(over ? 0.5 : 0.4);
+      this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 14, 0.9);
+    }
     this.hurt(f, 'world', null, { damage: over ? f.hp : 0, stun: KNOCK.stun, source: 'fall' });   // (dazed: no harm, the stun is the opening)
-    if (!this.game.flag('foes.knocked')) {
+    if (swept && !this.game.flag('foes.swept')) {
+      this.game.set('foes.swept', true);
+      this.notice?.('Knocked into deep water, a foe is swept away.');
+    } else if (!swept && !this.game.flag('foes.knocked')) {
       this.game.set('foes.knocked', true);
       this.notice?.(over ? 'Off the edge and down: a long fall ends a foe outright.' : 'Knocked off a ledge, a foe lies dazed a long while: cut it while the stars turn, the cut lands double.');
     }

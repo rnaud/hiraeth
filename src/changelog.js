@@ -16,6 +16,8 @@ export const CHANGELOG = [
     'Foes now follow you up and down. Ink blots, shades, root stalkers and shadow hounds crouch, then leap up a ledge as tall as you, and hop down after you; machines and the other heavy foes climb steps and stairs and come round by a ramp. One that can’t reach you hangs back where it can see you instead of pressing against the wall, and no foe swings at you when you stand out of its reach above it.',
     'A spitting blot now climbs steps and ramps to the high ground over you and lobs down from there, and keeps its perch while you are below. Go up after it, or walk out of its reach and it comes down.',
     'Knock a foe off a ledge with a cut or the push and it lands dazed for a few seconds, stars turning over its head: your next cut lands double. From high enough, the fall ends it. The charged cut also throws foes farther.',
+    'Knock a foe into deep water with a cut or the push, off a bank or a ledge, and it is swept away in a great splash. In the shallows it only wades.',
+    'A temple’s crystal pendulum that you have stilled now holds a foe that walks into it: the frost takes it for a few seconds, harmless, its eyes pale, and your next cut lands double. Swinging, the crystal still knocks foes away.',
   ] },
   { v: '1.3', date: '2026-10-09', items: [
     // the desert's first hour

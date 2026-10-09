@@ -265,6 +265,8 @@ export const CHANGELOG_MEDIA = {
       { name: 'foe-knock-off', caption: 'An ink blot cut off the edge of the Arena’s ledge, a second later: before, it has landed and is already coming on along the foot of the ledge; after, it lies dazed where it fell, pale stars turning over it', commit: 'f544f600', before: '6ecedb75',
         view: { ...ARENA_LEDGE, eye: [10.5, 3.2, -32.5], target: [5, 0.9, -38.6], setup: LEDGE_VIEW(`const f = foes.add('blot', new V(5, 2, -40.4)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50); ${sleepJs(300)} f.pos.set(5, 2, -40.3); foes.hurt(f, 'blade', new V(0, 0, 1), { damage: 1, combo: 2 });`), wait: 1300 } },
     ], see: 'In the Arena, get a blot up on the ledge at the far side and cut it toward the edge (the third swing, the charged cut or the push): it lands dazed below, stars over it.' },
+    { match: 'Knock a foe into deep water', see: 'In Lorn, get a stalker or a blot onto the bank of the swamp where it drops into deep water and push it in (or cut it toward the water): it goes under in a big splash and is gone. Push one into the shallows and it only wades.' },
+    { match: 'A temple’s crystal pendulum that you have stilled', see: 'In Lorn’s Hush-House, still a pendulum over the bridge with a stilling glob and let a foe come at you along the bridge through it: it stops dead against the frosted crystal, its eyes pale, for a few seconds.' },
   ],
   '1.3': [
     { match: 'Two new optional challenges built from the temples’ own pieces', shots: [

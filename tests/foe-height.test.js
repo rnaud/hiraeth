@@ -2,11 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foe, Foes, FOES, STRIKE_RISE } from '../src/foes.js';
-import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, linkOf, findRoute, findPerch, hopAt, knockedOff } from '../src/foe-height.js';
+import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, linkOf, findRoute, findPerch, hopAt, knockedOff, knockedInto } from '../src/foe-height.js';
+import { WORKS } from '../src/foes.js';
+import { foeStatus } from '../src/hitboxes.js';
 import { presenceOf, presenceProblems } from '../src/foe-presence.js';
 import { clearTargets } from '../src/targets.js';
 import { clearHazards } from '../src/hazards.js';
-import { clearWorkings } from '../src/workings.js';
+import { clearWorkings, workingsAt, registerWorking } from '../src/workings.js';
 import { GameState } from '../src/game-state.js';
 
 // Foes over the world's height (v1.4, docs/systems/foes.md "Foes over height"): the way up and down, the high
@@ -201,4 +203,94 @@ test('struck in the middle of a hop: crouched it stays, in the air it falls from
   const c = new Foe('blot', v(5, 0, -37), { rng: () => 0.5 }); c.state = 'chase'; c.cool = 99;
   run(c, P, env, 2.5, (f) => { if (f.hop && f.hop.t < HOP.crouch * 0.5 && !crouched) { crouched = f.hop.from.clone(); f.hit('blade', v(0, 0, 1), { damage: 1 }); } });
   assert.ok(crouched && c.alive && !c.air, 'struck crouched: no fall');
+});
+
+test('knocked into deep water: swept away with a splash, off a bank or a ledge; shallow water, or a gust, not', () => {
+  fresh();
+  assert.equal(knockedInto(0.5), null); assert.equal(knockedInto(KNOCK.deep), 'swept');
+  const P = player(v(0, 2, -30));
+  const splashes = [], notes = [];
+  const physics = (h) => ({ groundAt: (x, y, z, r = 600) => groundOf(h)(x, y, z, r) ?? -Infinity, rayDistance: () => Infinity, rayHit: () => null });
+  // a pond for z > -40 (its surface `top`); the ground `h`
+  const make = (h, top) => {
+    const waters = { surfaceAt: (x, z, y) => (z > -40 && top >= y - 0.6 ? { y: top, body: {} } : null), splash: (p, s, k) => splashes.push({ s, k }) };
+    const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: physics(h), player: P, waters,
+      sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice: (t) => notes.push(t) });
+    foes.waveRest = 1e9;
+    return foes;
+  };
+  const tick = (F, s) => { for (let i = 0; i < s / DT; i++) F.update(DT); };
+  // off a low bank (0.9 m, a step: no fall) into water 1.4 m deep: swept
+  const bank = make((x, z) => (z > -40 ? -0.9 : 0), 0.5);
+  const b = bank.add('blot', v(0, 0, -40.3)); b.state = 'chase'; b.cool = 5;
+  bank.hurt(b, 'push', v(0, 0, 1), { shove: 3 });
+  tick(bank, 1);
+  assert.ok(!b.alive, 'swept away');
+  assert.ok(splashes.some((x) => x.k >= 2 && x.s === 0.5), 'a great splash on its surface');
+  assert.ok(notes.some((n) => /swept/.test(n)), 'said once');
+  // off the 2 m ledge into a pond 1.5 m deep: swept, not dazed; even a machine
+  const ledge = make((x, z) => (z > -40 ? -2 : 0), -0.5);
+  const m = ledge.add('machine', v(0, 0, -40.4)); m.state = 'chase';
+  ledge.hurt(m, 'push', v(0, 0, 1), { shove: 3 });
+  tick(ledge, 2);
+  assert.ok(!m.alive, 'a machine knocked off into deep water is swept away');
+  // shallow (0.5 m): it wades, alive
+  const shallow = make((x, z) => (z > -40 ? -0.5 : 0), 0);
+  const c = shallow.add('blot', v(0, 0, -40.3)); c.state = 'chase'; c.cool = 5;
+  shallow.hurt(c, 'push', v(0, 0, 1), { shove: 3 });
+  tick(shallow, 1);
+  assert.ok(c.alive && c.pos.z > -40, 'wading in the shallows');
+  // a gust carries one into deep water: not your knock, it lives
+  const g = make((x, z) => (z > -40 ? -0.9 : 0), 0.5);
+  const d = g.add('blot', v(0, 0, -40.3)); d.state = 'chase'; d.cool = 5;
+  d.vel.set(0, 0, 7);
+  tick(g, 1);
+  assert.ok(d.alive, 'only your blows sweep a foe away');
+  // a sea whose bed is walked (the Underwater City) is not water to knock into
+  const sea = make((x, z) => (z > -40 ? -0.9 : 0), 0.5);
+  sea.waters.surfaceAt = (x, z, y) => ({ y: 40, body: { sea: {} } });
+  const e = sea.add('blot', v(0, 0, -40.3)); e.state = 'chase'; e.cool = 5;
+  sea.hurt(e, 'push', v(0, 0, 1), { shove: 3 });
+  tick(sea, 1);
+  assert.ok(e.alive, 'on a sea bed: alive');
+  for (const F of [bank, ledge, shallow, g, sea]) F.dispose();
+  fresh();
+});
+
+test('a stilled temple crystal: its frost holds a foe that touches it a few seconds, no harm; it walks out after', () => {
+  fresh();
+  const S = { moving: false };
+  const off = registerWorking({ kind: 'swing', center: v(0, 1, 0), radius: 1.9, contains: (p) => Math.hypot(p.x, p.z) < 1.9 && Math.abs(p.y + 0.9 - 1) < 2.6, moving: () => S.moving, push: (p, out) => out.set(1, 0, 0) });
+  const env = { ground: groundOf(() => 0), workings: (p, kind) => workingsAt(p, kind) };
+  const P = player(v(0, 0, 12));
+  const f = new Foe('blot', v(0.4, 0, 0), { rng: () => 0.5 }); f.state = 'chase';
+  const ev = f.update(DT, P, env);
+  assert.ok(ev.some((e) => e.type === 'frosted'), 'frosted');
+  assert.ok(Math.abs(f.stunned - WORKS.swing.frost) < 0.05 && f.hp === FOES.blot.hp, 'held, unharmed');
+  assert.ok(f.vel.lengthSq() === 0, 'not knocked: held where it touched it');
+  const was = f.pos.clone();
+  run(f, P, env, WORKS.swing.frost - 0.2);
+  assert.ok(f.pos.distanceTo(was) < 0.01 && f.stunned > 0, 'still held');
+  const more = run(f, P, env, 2);
+  assert.ok(!more.some((e) => e.type === 'frosted') && f.pos.distanceTo(was) > 0.5, 'then free, walking out, not taken again at once');
+  // moving again, it knocks as ever
+  S.moving = true;
+  const g = new Foe('blot', v(0.4, 0, 0), { rng: () => 0.5 }); g.state = 'chase';
+  assert.ok(g.update(DT, P, env).some((e) => e.type === 'swung'), 'a swinging crystal knocks');
+  off(); fresh();
+});
+
+test('the debug overlay names a foe waiting, perched, dazed or hopping', () => {
+  const f = new Foe('blot', v());
+  f.dazed = 2; f.stunned = 2;
+  assert.match(foeStatus(f), /dazed 2\.0s/);
+  assert.doesNotMatch(foeStatus(f), /stunned/, 'dazed says so, not stunned');
+  f.dazed = 0; f.stunned = 0; f.perched = 3;
+  assert.match(foeStatus(f), /perched/);
+  f.perched = null; f.waiting = true;
+  assert.match(foeStatus(f), /waiting/);
+  f.waiting = false; f.hop = { t: 0.1 };
+  assert.match(foeStatus(f), /crouched/);
+  f.hop.t = HOP.crouch + 0.1;
+  assert.match(foeStatus(f), /hopping/);
 });

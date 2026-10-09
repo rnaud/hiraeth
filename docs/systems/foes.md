@@ -478,7 +478,8 @@ range)`, `seen`, `canStep`, `hazard(p)` (src/hazards.js `hazardAt`), `workings(p
   to land hard, and tumbles a hovering foe up out of control (`tumble`), stunned (`stun`) as it drops; a blowing gust
   shoves any foe in the open down its hall (× `WORKS.gust`: heavy 0.7, a stilled one 1.1, sliding like a crate,
   hovering 1.2, light 1.25), not behind a screen or a shelter; a swinging pendulum knocks a foe away the way it
-  swings (`WORKS.swing.knock`), a cut and a stun; off a bridge, into the pit, a machine is broken.
+  swings (`WORKS.swing.knock`), a cut and a stun; off a bridge, into the pit, a machine is broken. Stilled, its
+  frost holds a foe that touches it (v1.4: *Foes over height*, "Temple crystals").
 - **Plates** (`Foes.templeKit`): any foe that weighs presses a plate it stands on (not a swarm blot, a flyer in the
   air or one thrown up; stilled it still weighs). A gust piece that is not a registered working still shoves foes
   there (the old path).
@@ -517,12 +518,25 @@ Walkers follow you up and down the world's height, and the world's height is a w
   and wakes it), from `KNOCK.defeat` 4.5 m it is over (a burst, a machine broken). A heavy thud, a hit-stop, a
   kick, dust, and a note the first time (flag `foes.knocked`). A gust or a pendulum carrying it off is the old
   fall (`FALL`). The charged cut throws `KNOCK.charged` 2.2× (the heavy third's).
+- **Knocked into water** (`KNOCK.deep`, `knockedInto`, `Foe.sweptBy`, `env.water`): knocked by you into water
+  `KNOCK.deep` 1.3 m deep or more (as deep as lifts you off your feet, `SWIM.float`), off a bank or off a ledge from
+  any height, a foe is swept away ('landed', `knocked: 'swept'`): a great splash on the surface (`Waters.splash`,
+  the Foes' `waters`), a hit-stop, and it is over; a note the first time (flag `foes.swept`). Shallower, it wades;
+  a gust or a pendulum carrying it in is not yours; a sea whose bed is walked (`body.sea`) is not water here.
+- **Temple crystals** (`WORKS.swing.frost`, `Foe.feelWorld`): a crystal pendulum swinging knocks a foe away (the
+  workings, below); stilled by a stilling glob (frosted, hanging there humming: it no longer moves) its frost takes
+  a foe that touches it: held `frost` 3 s ('frosted': a chime, a puff of frost, its eyes pale; stunned, so a cut
+  lands double), then not again for `frost` + `cool` s, so it walks on through. The player passes a stilled
+  crystal; a foe is held by it rather than blocked, so it reads as the same frost the glob put there.
+- **In the hitbox overlay** (`foeStatus`, src/hitboxes.js): a foe's label says `dazed <s>` (instead of stunned),
+  `perched`, `waiting: no way to you`, `crouched to hop` / `hopping`.
 - **Steps** (`env.canStep(from, x, z, radius, lift)`): a walker's way is tested `CLIMB.step` + 0.1 m over its feet,
   over a stair's riser (before v1.4 it was 0.5 m, so no foe climbed a step taller than that: a temple's dais
   stopped a machine at its foot); a flyer's at 0.5 m over its body as before.
 - Tests: `tests/foe-height.test.js` (what each kind crosses, routes round by a ramp or straight up, holding off and
   no blows at air, the spitter's perch, knocked off: dazed, over, a gust not, the charged cut's throw, a hop
-  broken off).
+  broken off; knocked into water: swept off a bank or a ledge, not in the shallows, by a gust or on a sea bed; a
+  stilled crystal's frost; the overlay's labels).
 
 ## Combat checks (v0.89)
 
