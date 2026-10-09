@@ -1,0 +1,19 @@
+src/world-picker.js
+  s_921108196999a6::t_eaadd5e0bc9e28 263-274,288,307
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "97efeddebba4db49ad948d791831c0880efce134",
+  "prompts": {},
+  "sessions": {
+    "s_921108196999a6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2cc25811948aba78",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

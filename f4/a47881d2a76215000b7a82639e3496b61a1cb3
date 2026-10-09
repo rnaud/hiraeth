@@ -1,0 +1,55 @@
+changelog.md
+  s_9ca76055a220ed::t_4ccd4ed0664459 7
+docs/README.md
+  s_9ca76055a220ed::t_9d7ec10f56a7f6 81
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_b58e9fd9c605fd 1,3-37,46-47
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_849ac16300bf4f 14,16
+docs/systems/ui.md
+  s_9ca76055a220ed::t_e8573c39d97eec 609
+index.html
+  s_9ca76055a220ed::t_0ef2c2a79b5178 468,470-471
+src/boot.js
+  s_9ca76055a220ed::t_e9a4f15fe51d62 17
+src/debug-back.js
+  s_9ca76055a220ed::t_aed8d7c3d84f44 35
+src/main.js
+  s_9ca76055a220ed::t_bf594bf6f2e2c7 1099,1103-1104,1109-1117,1119-1123,1252,1283-1284
+src/world-picker.css
+  s_9ca76055a220ed::t_58f060cb5c4567 1-122
+src/world-picker.js
+  s_9ca76055a220ed::t_8fbb076a44141e 1-5,8-18,20,26,28,30-32,37,42,45-52,56-63,72-89,92,94-96,104,114-131,139,141,145-197,199-233,236,242-243,246-248,251-337,340,342-343,348,351-354,359-362,364-365,367,375,377-379,393
+tests/pad-glyphs.test.js
+  s_9ca76055a220ed::t_42fcd67a7ff8ac 144
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_096443bc7bf51b 1-126
+vite.config.js
+  s_9ca76055a220ed::t_a36a7635ba8bcb 3,39-49,52
+src/changelog.js
+  s_5377db91f7a60c::t_2c06a07530c08d 28-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f4a47881d2a76215000b7a82639e3496b61a1cb3",
+  "prompts": {},
+  "sessions": {
+    "s_5377db91f7a60c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1b285356f465e540",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
