@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { circumcentre, gripLine, fistGrip, bracerMount } from '../src/blade-grip.js';
 import { ShieldState, SHIELD, shieldArc, blobRadius, centreTarget } from '../src/shield.js';
 import { SWINGS, WHIRL, GUARD, STANCE, attackSample, bladeDrawn, inGuard } from '../src/fluid-blade.js';
+import { DRAW, SHEATHE } from '../src/sword-sheath.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { GameState } from '../src/game-state.js';
 import { items } from '../src/items.js';
@@ -115,7 +116,8 @@ for (const body of ['v1', 'plain']) {
   test(`${body} traveller: the hilt sits in the fist and the bracer on the left hand on every frame of every combat clip`, async () => {
     const { p, tool, tick } = await armed(body);
     const H = p.humanoid, B = H.b, blade = tool.blade, grip = fistGrip(H), mount = bracerMount(H);
-    tick({ KeyZ: true });   // (the guard draws the blade)
+    // (the guard draws the blade off his back: src/sword-sheath.js, in the fist after DRAW.time)
+    for (let i = 0; i < Math.ceil(DRAW.time / dt) + 2; i++) tick({ KeyZ: true });
     for (let i = 0; i < 6; i++) tick({});
     assert.equal(blade.group.parent, B.hand_r, 'carried by the right hand bone');
     assert.equal(blade.device.root.parent, B.hand_l, 'the bracer by the left');
@@ -187,15 +189,15 @@ test('put away climbing, swimming, in a scene and knocked down; the bracer stays
   assert.ok(p.shieldGrip === 1 && p.swordGrip > 0.5, 'both hands close (src/hands.js)');
   for (const [k, val] of [['swim', true], ['climbing', true], ['down', true]]) {
     for (let i = 0; i < 30; i++) { p[k] = val; tool.update(dt, { KeyZ: true }); }
-    assert.equal(blade.group.visible, false, `${k}: the blade put away`);
+    assert.ok(blade.sheath.held === 0 && blade.group.parent === p.humanoid.chestAnchor && blade.group.visible, `${k}: the blade back on his back`);
     assert.ok(blade.device.root.visible && blade.device.s.k === 0, `${k}: the bracer folded on the hand`);
     p[k] = k === 'swim' ? null : false;
   }
   for (let i = 0; i < 30; i++) tool.update(dt, { KeyZ: true }, true);   // (a scene: the tool paused)
-  assert.equal(blade.group.visible, false, 'in a scene: away');
+  assert.ok(blade.sheath.held === 0 && blade.group.parent === p.humanoid.chestAnchor, 'in a scene: on his back');
   // out of a fight it is put away after a while
   for (let i = 0; i < 4; i++) tick({ KeyZ: true });
-  for (let i = 0; i < (STANCE.linger + 1.5) / dt; i++) tick({});
-  assert.equal(blade.group.visible, false, 'the fight over: away');
+  for (let i = 0; i < (STANCE.linger + SHEATHE.time + 1) / dt; i++) tick({});
+  assert.ok(blade.sheath.held === 0 && blade.group.parent === p.humanoid.chestAnchor && blade.frog.visible, 'the fight over: back in its frog');
   tool.dispose();
 });

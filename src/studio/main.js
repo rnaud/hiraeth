@@ -482,7 +482,13 @@ function inspectArms(p, dt) {
   const b = p.tool.blade;
   p.tool.player.frame.dir ??= (h, out = new THREE.Vector3()) => out.set(Math.sin(h), 0, Math.cos(h));
   p.tool.player.heading = p.heading;
-  if (b.inspect) { b.inspect({ sword: state.sword, lit: state.lit, shield: state.shield, guard: state.guard }, dt); return; }
+  if (b.inspect) {
+    b.inspect({ sword: state.sword, lit: state.lit, shield: state.shield, guard: state.guard, draw: state.draw }, dt);
+    // (the draw scrubbed: the right hand back over the shoulder, as the game's Player does; src/sword-sheath.js)
+    const R = p.tool.player.sheathReach, H = p.h;
+    if (R?.k > 0.01 && H?.chestAnchor && H.reachBack) { H.reachBack(H.chestAnchor.localToWorld(new THREE.Vector3().copy(R.at)), R.k, UP, R.grip); b.place(0); }
+    return;
+  }
   // (the blade before src/blade-grip.js: placed by its old code, for the before pictures)
   b.move = state.sword ? {} : null; b.lit = state.sword ? state.lit : 0; b.place(0);
   b.dir.set(Math.sin(p.heading), 0, Math.cos(p.heading));
@@ -973,6 +979,7 @@ check(sAnim, 'Walk over the floor', 'move');
 check(sAnim, 'Plant the feet (traveller)', 'plant');
 check(sAnim, 'Blade in hand (backpack)', 'sword');
 slider(sAnim, 'Blade lit', 'lit', 0, 1, 0.01, 1);
+slider(sAnim, 'Draw from the back', 'draw', 0, 1, 0.01, 0);
 slider(sAnim, 'Shield open (backpack)', 'shield', 0, 1, 0.01, 0);
 select(sAnim, 'Shield takes', 'guard', [['', 'nothing (held)'], ['block', 'a block'], ['parry', 'a perfect parry'], ['broken', 'a blow that breaks it']]);
 select(sAnim, 'Hands', 'hands', [['auto', 'by what they do (the motion, a prop, the tone talking)'], ...POSE_IDS.map((k) => [k, `pose: ${k}`])]);

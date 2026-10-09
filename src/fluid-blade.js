@@ -4,6 +4,7 @@ import { hitStop, kick } from './feel.js';
 import { hasUpgrade, UPGRADES } from './ink.js';
 import { fistGrip, carry, fitScale } from './blade-grip.js';
 import { buildSword, BladeWake, wakeStyle, WAKE_TONES, HILT } from './fluid-sword.js';
+import { SheathState, sheathFrame, buildFrog } from './sword-sheath.js';
 import { ShieldDevice, SHIELD, shieldArc } from './shield.js';
 import { MAGIC_COST } from './resources.js';
 import { rumblePlay } from './rumble.js';
@@ -213,8 +214,8 @@ export const bladeGrowth = (lit, state, B = BLADE) => {
  */
 export const GUARD = { idle: 'mixamo_ss_block_idle', parry: 'mixamo_ss_block_1', parryFor: 0.55, reach: 0.45, radius: SHIELD.radius, perfect: 0.18, rearm: 0.35 };
 GUARD.angle = shieldArc(new THREE.Vector3(), new THREE.Vector3(0, 0, GUARD.reach), new THREE.Vector3(0, 0, 1), SHIELD.radius).half;
-/** How long the blade stays in the fist after the last swing, guard, evade or blow (s); locked on it stays out. */
-export const STANCE = { linger: 2.5, draw: 12, sheathe: 8 };
+/** How long the blade stays in the fist after the last swing, guard, evade or blow (s); locked on it stays out. (The draw and the sheathe: src/sword-sheath.js.) */
+export const STANCE = { linger: 2.5 };
 /** Is a strike from `from` in front of someone at `pos` facing `dir` (flat), within GUARD.angle? */
 export function inGuard(pos, dir, from, angle = GUARD.angle) {
   const dx = from.x - pos.x, dz = from.z - pos.z, d = Math.hypot(dx, dz);
@@ -253,6 +254,7 @@ export function lockTarget(from, range = BLADE.lock, targets = allTargets(), loc
 
 const _o = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion();
 const _Y = new THREE.Vector3(0, 1, 0);
+const _m1 = new THREE.Matrix4(), _m2 = new THREE.Matrix4(), _p1 = new THREE.Vector3(), _p2 = new THREE.Vector3(), _s1 = new THREE.Vector3(), _s2 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
 const RIPOSTE_GOLD = '#ffd46b';
 
 export class FluidBlade {
@@ -272,7 +274,13 @@ export class FluidBlade {
     this.group.visible = false;
     this.group.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; o.frustumCulled = false; });
     tool.fx.add(this.group);
-    this.drawn = 0; this.since = Infinity; this.grip = null;
+    this.since = Infinity; this.grip = null;
+    // out of a fight the sword sits on his back, in a leather frog behind the right shoulder (src/sword-sheath.js):
+    // drawn over the shoulder when a fight starts, put back when it is over
+    this.sheath = new SheathState();
+    this.sheathAt = sheathFrame();
+    this.frog = buildFrog();
+    this.frog.visible = false;
     // the guard's shield: the makers' disc on the back of the left hand, opening into a shield of the tank's fluid (src/shield.js)
     this.guardK = 0; this.guardT = 0; this.parry = 0;
     this.guardHeld = false; this.guardAge = Infinity; this.guardRearm = 0; this.perfectReady = false;
@@ -411,7 +419,7 @@ export class FluidBlade {
     if (!ok || !p) {
       // (climbing, swimming, gliding, on the jets, aiming, riding, knocked down, a scene: the blade put away at once, the shield folds)
       this.stop(); this.evadeT = 0; this.guardK = 0; this.guardWant = false; this.since = Infinity;
-      this.drawn = Math.max(0, this.drawn - dt * 10);
+      this.sheath.update(dt, false, { ok: false });   // (flown back to the frog, no reach: the arms are busy)
       this.placeShield(dt); return this.fade(dt);
     }
     // the riposte: a press in the window a perfect parry opened (the guard may still be held)
@@ -537,9 +545,8 @@ export class FluidBlade {
     this.since += dt;
     if (this.swinging || this.evadeT || this.guardK > 0.05 || p._flinch) this.since = 0;
     const drawWant = bladeDrawn({ ok, swinging: this.swinging, guarding: this.guardK > 0.05, evading: this.evadeT > 0, locked: !!p.lockOn, since: this.since });
-    this.drawn += ((drawWant ? 1 : 0) - this.drawn) * (1 - Math.exp(-(drawWant ? STANCE.draw : STANCE.sheathe) * dt));
-    if (this.drawn < 0.01 && !drawWant) this.drawn = 0;
-    if (this.swinging) this.drawn = Math.max(this.drawn, 0.6);   // (a swing never starts with an empty hand)
+    // (drawn over the shoulder; a swing pressed with it on the back starts at once and the hilt is in the fist before its cut)
+    this.sheath.update(dt, drawWant, { quick: this.swinging });
     this.place(dt);
     this.placeShield(dt);
   }
@@ -664,52 +671,114 @@ export class FluidBlade {
     return hits;
   }
 
-  /** The blade as drawn (or as it would be, lit by `lit`): from the guard to the tip, in the world. Null with no fist to hold it. */
+  /** The blade as drawn (or as it would be, lit by `lit`): from the guard to the tip, in the world, the hilt in the fist. Null with no fist to hold it. */
   bladeSegment(lit = this.lit) {
     const p = this.tool.player;
     if (!p?.humanoid?.b?.hand_r || !this.move) return null;
-    if (!this.mountGrip()) return null;
-    const g = this.group;
-    g.updateWorldMatrix(true, false);
+    const m = this.gripMatrix(_m1);
+    if (!m) return null;
     const base = BLADE.guard + 0.012, len = bladeLength(this.tool.state) * Math.max(0.05, lit);
     // (in the hilt's own frame, as the blade is drawn in it: carried at world size, the bone's scale undone)
-    return { a: new THREE.Vector3(0, base, 0).applyMatrix4(g.matrixWorld), b: new THREE.Vector3(0, base + len, 0).applyMatrix4(g.matrixWorld) };
+    return { a: new THREE.Vector3(0, base, 0).applyMatrix4(m), b: new THREE.Vector3(0, base + len, 0).applyMatrix4(m) };
   }
 
   stop() { this.charging = null; if (this.tool.player) this.tool.player.combatMotion = null; this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
 
   fade(dt) { this.lit += (0 - this.lit) * (1 - Math.exp(-12 * dt)); this.place(dt); }
 
-  /** The hilt in the right fist (src/blade-grip.js): carried by the hand's bone, where the body's own fingers close. */
-  mountGrip() {
+  /** Where the hilt sits in the right fist (src/blade-grip.js fistGrip, worked out once per body): this.grip, or null with no fist. */
+  fist() {
     const H = this.tool.player?.humanoid;
-    if (H && this.grip?.humanoid === H && this.group.parent === this.grip.bone) return true;
+    if (H && this.grip?.humanoid === H) return this.grip;
     const g = H?.b?.hand_r ? fistGrip(H) : null;
-    if (!g) { this.grip = null; if (this.group.parent !== this.tool.fx) this.tool.fx.add(this.group); return false; }
-    this.grip = { ...g, humanoid: H };
-    return carry(this.group, this.grip);
+    this.grip = g ? { ...g, humanoid: H } : null;
+    return this.grip;
   }
 
-  /** The blade in the fist while it is drawn, lit (grown out of the guard) while it swings; a trail of fluid off its edge. */
+  /** The hilt's world matrix in the fist (at world size), into `out`; null with no fist. */
+  gripMatrix(out) {
+    const g = this.fist();
+    if (!g) return null;
+    g.bone.updateWorldMatrix(true, false);
+    g.bone.matrixWorld.decompose(_p1, _q1, _s1);
+    _p1.copy(g.position).applyMatrix4(g.bone.matrixWorld); _q1.multiply(g.quaternion);
+    return out.compose(_p1, _q1, _s1.set(1, 1, 1));
+  }
+
+  /** The hilt's world matrix in its frog on the back (src/sword-sheath.js), into `out`; null with no chest to wear it on. */
+  backMatrix(out) {
+    const C = this.tool.player?.humanoid?.chestAnchor;
+    if (!C) return null;
+    C.updateWorldMatrix(true, false);
+    C.matrixWorld.decompose(_p1, _q1, _s1);
+    _p1.copy(this.sheathAt.position).applyMatrix4(C.matrixWorld); _q1.multiply(this.sheathAt.quaternion);
+    return out.compose(_p1, _q1, _s1.set(1, 1, 1));
+  }
+
+  /** The hilt in the right fist (src/blade-grip.js): carried by the hand's bone, where the body's own fingers close. */
+  mountGrip() {
+    const g = this.fist();
+    if (!g) { if (this.group.parent !== this.tool.fx) this.tool.fx.add(this.group); return false; }
+    if (this.group.parent === g.bone) { fitScale(this.group); return true; }
+    return carry(this.group, g);
+  }
+
+  /** The frog (and the hilt, when it is in it) on the chest anchor, behind the right shoulder. */
+  mountBack(object) {
+    const C = this.tool.player?.humanoid?.chestAnchor;
+    if (!C) return false;
+    return carry(object, { bone: C, position: this.sheathAt.position, quaternion: this.sheathAt.quaternion });
+  }
+
+  /**
+   * The sword where the sheath says (src/sword-sheath.js): in its frog on his back, in the fist, or on its way
+   * between them (the world's blend of the two, the hand at the frog by then); lit (grown out of the guard)
+   * while it swings, a trail of fluid off its edge. The right arm reaches back for it (player.sheathReach).
+   */
   place(dt) {
     this.previousBlade = this.bladeSegment();
-    const T = this.tool, p = T.player;
-    const on = (this.drawn > 0.02 || this.lit > 0.03) && p?.object?.visible !== false;
+    const T = this.tool, p = T.player, S = this.sheath;
+    // (worn with the backpack: the hands and the back bare without it)
+    const on = p?.object?.visible !== false && T.owned !== false;
+    const held = S.held;
     this.group.visible = on;
-    if (p) p.swordGrip = on ? Math.max(this.drawn, this.lit) : 0;
+    const frogOn = on && !!this.mountBack(this.frog);
+    this.frog.visible = frogOn;
+    if (p) {
+      p.swordGrip = on ? held : 0;
+      const R = (p.sheathReach ??= { k: 0, at: this.sheathAt.position });
+      R.k = on ? S.reach : 0; R.grip = this.fist()?.position ?? null;
+    }
     if (!on) { this.wake.update(dt, null, false); return; }
-    const held = this.mountGrip();
-    if (held) fitScale(this.group, THREE.MathUtils.lerp(0.35, 1, smooth01(Math.max(this.drawn, this.lit))));   // (drawn: out of the glove's cuff into the fist)
+    let placed = false;
+    if (held >= 1) placed = this.mountGrip();
+    else if (held <= 0) placed = this.mountBack(this.group);
     else {
-      // no fist (a body without hands): at the glove's mouth, along the arm, as before there were fists
+      // on its way: the world's blend of the frog's place and the fist's (the hand is at the frog as it changes hands)
+      const a = this.backMatrix(_m1), b = a && this.gripMatrix(_m2);
+      if (a && b) {
+        a.decompose(_p2, _q2, _s2); b.decompose(_p1, _q1, _s1);
+        _p2.lerp(_p1, held); _q2.slerp(_q1, held);
+        if (this.group.parent !== T.fx) T.fx.add(this.group);
+        T.fx.updateWorldMatrix(true, false);
+        _m2.compose(_p2, _q2, _s2.set(1, 1, 1)).premultiply(_m1.copy(T.fx.matrixWorld).invert());
+        _m2.decompose(this.group.position, this.group.quaternion, this.group.scale);
+        placed = true;
+      } else placed = held > 0.5 ? this.mountGrip() : this.mountBack(this.group);
+    }
+    if (!placed) {
+      // no fist and no back (a body without hands): at the glove's mouth, along the arm, as before there were fists
       const hand = T.muzzle(_a), B = p?.humanoid?.b;
       const along = B?.upperarm_r ? _f.subVectors(hand, B.upperarm_r.getWorldPosition(_b)).normalize() : _f.copy(this.point).sub(hand).normalize();
       if (along.lengthSq() < 1e-8) along.set(0, 1, 0);
+      if (this.group.parent !== T.fx) T.fx.add(this.group);
       this.group.position.copy(hand);
       this.group.quaternion.setFromUnitVectors(_Y, along);
       this.group.scale.setScalar(1);
+      this.group.visible = held > 0.02 || this.lit > 0.03;
     }
-    this.bladeGroup.visible = this.lit > 0.03;
+    // (the blade only once the hilt is in the fist: a swing begun with it on the back lights as it arrives)
+    this.bladeGroup.visible = this.lit > 0.03 && (held > 0.97 || !placed);
     // (the blade grows out of the cup as it lights: its length tuned and upgraded, its width filling out, broader with ink)
     const grown = bladeGrowth(this.lit, T.state);
     this.bladeGroup.scale.set(grown.width / this.builtWidth, grown.length / this.builtLength, 1);
@@ -751,9 +820,12 @@ export class FluidBlade {
    * The studio's look at the blade and the shield (studio.html ?backpack=true&sword=true&shield=1&view=arms):
    * the hilt in the fist (lit: the blade out), the shield open by `shield` and struck as `guard` says.
    */
-  inspect({ sword = false, lit = 1, shield = 0, guard = '' } = {}, dt = 1 / 60) {
+  inspect({ sword = false, lit = 1, shield = 0, guard = '', draw = 0 } = {}, dt = 1 / 60) {
     const p = this.tool.player;
-    this.drawn = sword ? 1 : 0; this.lit = sword ? lit : 0; this.move = sword ? (this.move ?? SWINGS[0]) : null;
+    // (draw: a share of the draw shown, the hand on its way to the back; else the sword in the fist or on the back)
+    if (draw > 0 && draw < 1) this.sheath.scrub(draw); else this.sheath.set(sword || draw >= 1);
+    const inHand = this.sheath.held >= 1;
+    this.lit = inHand && sword ? lit : 0; this.move = inHand ? (this.move ?? SWINGS[0]) : null;
     if (p?.frame?.dir) p.frame.dir(p.heading ?? 0, this.dir);
     const S = this.device.s;
     if (this._guard !== guard) { this._guard = guard; S.flare = S.flash = S.crack = 0; if (S.state === 'broken') S.state = 'open'; }
@@ -766,5 +838,5 @@ export class FluidBlade {
     S.k = shield;   // (held where the panel says)
   }
 
-  dispose() { this.group.removeFromParent(); this.wake.dispose(); this.device.dispose(); if (this.tool.player?.guard) this.tool.player.guard = null; }
+  dispose() { this.group.removeFromParent(); this.frog.removeFromParent(); this.wake.dispose(); this.device.dispose(); if (this.tool.player?.guard) this.tool.player.guard = null; }
 }

@@ -1686,6 +1686,9 @@ export class Player {
         H.plantFeet(dt, this._feetGround, U, this.object.position, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n), o);
       } else H.resetFeet();
       if (this.aim && !this.aim.noArm && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);   // (noArm: a captured blade swing moves the arm itself)
+      // the fluid sword drawn from (or put back on) his back: the right hand reaches back over the shoulder (src/sword-sheath.js)
+      const SR = this.sheathReach;
+      if (SR?.k > 0.01 && H.chestAnchor && !this.climbing && !this.mantle && !this.gliding && !this.swim && !this.ride) H.reachBack?.(H.chestAnchor.localToWorld(_g1.copy(SR.at)), SR.k, U, SR.grip);
       if (this.wingK > 0.03) this.spreadArms();
       // the hand-off: both hands on the tank while it swings between the back and the socket
       const hk = this.handoffGrip();

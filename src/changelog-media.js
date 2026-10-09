@@ -339,6 +339,12 @@ const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 export const CHANGELOG_MEDIA = {
   '1.7': [
     { match: 'Your father’s recordings now use', see: 'Open Debug → Cinematics → Recording 1 · Home to see the new father in the ship’s projector.' },
+    { match: 'Out of a fight the fluid sword now rides on your back', shots: [
+      { name: 'sword-back', caption: 'At rest, from behind: before, nothing on his back (the hilt was shrunk into the glove); after, the hilt in its leather holder behind the right shoulder, beside the tank, the pommel over the shoulder', from: 'the character studio (studio.html?backpack=true&bg=flat&view=bust&pitch=0.1&yaw=3.0&paused=true), headless Chrome against this branch’s own dev server, 900 × 700 (9 October)' },
+      { name: 'sword-front', caption: 'From the front: after, the brass pommel just over his right shoulder', from: 'the character studio (the same, yaw=0.45, pitch=0.08), headless Chrome against this branch’s own dev server, 900 × 700 (9 October)' },
+      { name: 'sword-draw', only: 'after', caption: 'The draw, about half-way: the right hand back over the shoulder, taking the hilt from its holder', from: 'the character studio (view=arms&yaw=-0.6&draw=0.45: the new Draw from the back slider), headless Chrome against this branch’s own dev server, 900 × 700 (9 October)' },
+      { name: 'sword-title', only: 'after', caption: 'The title screen: the hilt on his back as he stands on the bridge', from: 'the title screen, headless Chrome against this branch’s own dev server, 900 × 700 (9 October)' },
+    ], see: 'In the Arena (?level=arena) stand still: the hilt is on your back. Press RB / R1 or hold LB / L1 and watch the right hand reach back for it; leave the fight a few seconds and it goes back. In the studio (studio.html?backpack=true) slide “Draw from the back”.' },
     { match: 'The fluid blade is the chosen sword now', shots: [
       { name: 'sword-hand', caption: 'In hand (the studio, Blade and shield): the slim glowing blade and plain hilt before; after, the broad turquoise blade out of a brass cup, cream currents up it', from: 'headless Chrome against a dev server (studio.html?backpack=true&sword=true&view=arms), the same pose before and after' },
       { name: 'sword-hilt', caption: 'The hilt close up: before a bar guard and a ball pommel; after the brass collar opening into an oval cup, the wrapped grip and the pommel with its curled tail', from: 'headless Chrome against a dev server (studio.html, view Hands), the same pose before and after' },

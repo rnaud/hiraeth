@@ -145,6 +145,12 @@ The first things in the game that fight back, and the tool's answer to them.
   within `STANCE.linger` (2.5 s) of any of those or of a blow taken; put away at once when the tool may not act
   (climbing, swimming, gliding, the jets, riding, aiming the gun, knocked down, a scene or a conversation). The
   hands close round them (`player.swordGrip`, `player.shieldGrip` → `handTargets` `sword` / `shield`).
+  Put away, the hilt sits in a leather frog on his back, behind the right shoulder (`src/sword-sheath.js`;
+  `docs/systems/traveller-kit.md`, "On his back"): drawn, the right hand reaches back over the shoulder for it
+  (0.34 s), put back the same way (0.36 s), and with the arms busy it flies back at once (0.15 s). A press with
+  it on the back swings on that frame, every attack's timing and cut unchanged: the hilt comes to the fist in
+  0.12 s, before any cut opens, and the blade lights only in the fist (`FluidBlade.place`: `sheath.held`).
+  The hits always read the fist's own frame (`gripMatrix`), never where the hilt is drawn on its way.
 - **The blade's segment** (hits) is read from the hilt's own frame, so it is the drawn blade exactly.
 - **The shield** (`ShieldDevice`): the brass disc always on the hand with the backpack. Open, it is 0.35 m in mean
   radius (`SHIELD.radius`): a collar of six brass petals (`SHIELD.petal`) and a brass ring round the hub, the

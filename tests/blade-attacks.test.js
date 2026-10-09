@@ -58,7 +58,7 @@ test('each attack cuts on its clip\'s own swing: the blade\'s tip is fastest ins
     for (let t = S.from; t <= S.to + 1e-9; t += step) {
       // (settled on the first pose a while: the blend from the last clip runs out)
       for (let k = 0; k < (prev ? 3 : 15); k++) { tick({ KeyZ: true }, { clip: S.clip, t, w: 1, full: true, id: 'probe' }); blade.since = 0; }
-      blade.move = S; blade.lit = 1; blade.drawn = 1; blade.place(0);
+      blade.move = S; blade.lit = 1; blade.sheath.set(true); blade.place(0);
       const tip = blade.bladeSegment(1).b.clone().sub(p.pos);
       if (prev && ++seen > 1) {   // (the first step left out: the hilt settling on the first pose)
         const sp = tip.distanceTo(prev) / step, mid = t - step / 2;

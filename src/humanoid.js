@@ -1539,6 +1539,30 @@ export class Humanoid {
   }
 
   /**
+   * The right hand to `point` (world) behind the right shoulder by k (0..1): drawing the fluid sword from its
+   * frog on the back or putting it back (src/sword-sheath.js). The elbow goes up and out, the hand back over
+   * the shoulder; `grip` (the fist's grip point in the hand bone's frame, src/blade-grip.js) is what lands on
+   * the point. Call after the frame's pose; update() re-drives every bone next frame.
+   */
+  reachBack(point, k, up, grip = null) {
+    const B = this.b;
+    if (k <= 0.001 || !B.upperarm_r || !B.lowerarm_r || !B.hand_r) return;
+    const fwd = _w1.set(0, 0, 1).applyQuaternion(this.char.root.getWorldQuaternion(_wq1)).normalize();
+    const right = _w2.crossVectors(fwd, up).normalize();   // the character's right
+    const sh = B.upperarm_r.getWorldPosition(new THREE.Vector3());
+    const target = point.clone();
+    // (the hand bone where its grip point lands on the hilt, the hand turned as the clip had it)
+    if (grip) { const g = grip.clone().applyMatrix4(B.hand_r.matrixWorld); target.add(B.hand_r.getWorldPosition(_w3).sub(g)); }
+    const pole = sh.clone().addScaledVector(up, 0.6).addScaledVector(right, 0.4).addScaledVector(fwd, 0.1);
+    // (solved all the way, then blended by k from the clip's arm: a part-weight solve still swings the elbow to the pole)
+    const U = B.upperarm_r, L = B.lowerarm_r, u0 = U.quaternion.clone(), l0 = L.quaternion.clone();
+    this.solveTwoBone(U, L, B.hand_r, target, pole, 1);
+    // (the solve turned the hand with the forearm: once more, from where its grip point now lands)
+    if (grip) { target.add(point).sub(grip.clone().applyMatrix4(B.hand_r.matrixWorld)); this.solveTwoBone(U, L, B.hand_r, target, pole, 1); }
+    if (k < 1) { U.quaternion.copy(u0.slerp(U.quaternion, k)); L.quaternion.copy(l0.slerp(L.quaternion, k)); U.updateMatrixWorld(true); }
+  }
+
+  /**
    * Kneeling at something low in front (an item box), blended over the
    * current pose by k (0..1); call after the frame's pose (update, plantFeet).
    * The pelvis drops, the left knee goes down to the ground with the shin

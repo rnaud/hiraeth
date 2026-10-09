@@ -79,10 +79,37 @@ the rucksack's outer face. The look and its reasons:
   a spiral of raised bands, grooves between), a brass collar over the index that swells into a bulb with two
   studs and opens into an oval cup with a bead of fluid always in it, and a brass pommel with a curled tail.
   Out of the cup, only while it is lit for a cut, the broad turquoise blade (`bladeEdges`, `bladeGeometry`).
-  Drawn, unlit, the fist holds the hilt alone; put away, it shrinks into the glove's cuff. Three draw calls
-  held, four lit, five through a cut (the wake). How it looks and trails: `docs/systems/foes.md`, "The look".
+  Drawn, unlit, the fist holds the hilt alone. Three draw calls held, four lit, five through a cut (the
+  wake). How it looks and trails: `docs/systems/foes.md`, "The look".
 
-Tests: `tests/glove.test.js` (worn with the tank only, the skin under it, the mouth at the knuckles
+- **On his back** (October 2026, the author: "hide the sword at rest, like move it back to your back?";
+  `src/sword-sheath.js`): out of a fight the hilt, its blade withdrawn, sits in a leather **frog** behind his
+  right shoulder, beside the flask's right upright: `SHEATH.at` (-0.205, 0.72, -0.215) in the chest anchor's
+  frame (the tank's), leaning `SHEATH.tilt` (0.2 rad) with the pommel out over the shoulder (its top 8–9 cm
+  over the collar, seen from the front) and the cup down on the shoulder blade, its flat to his back. The
+  frog (`buildFrog`: a dark strip between the grip and his back, two loops round the grip, brass rivets, three
+  draw calls) is carried by the chest anchor and stays there when the sword is drawn, empty. The hands are
+  free at rest (`player.swordGrip` 0). The place was measured against the flask (2 cm clear) and his body
+  (3.3 cm clear of the skin at the least, the overshirt about 1.5 cm of that) in every pose he takes:
+  standing, walking, jogging, running, talking, the title's stance, climbing, the ledge, riding, in the air,
+  swimming and gliding (`tests/sword-sheath.test.js`); lower, the jog's arm and the flask's upright bracket
+  reached it, higher it stood off the shoulder like a stick. The title screen and the studio show it there too
+  (studio: "Draw from the back" scrubs the draw).
+- **The draw and the sheathe** (`SheathState`, `DRAW`, `SHEATHE`; the moment is the blade's own: `bladeDrawn`
+  in `docs/systems/foes.md`): drawn, the right hand reaches back over the shoulder (`Humanoid.reachBack`:
+  the arm solved to the hilt, the elbow up and out, the fist's grip point onto the grip, blended over the
+  frame's pose by `reach`), takes the hilt and brings it round: 0.34 s, the arm out over the first 38 %, the
+  hilt changing hands over 38–56 % (the world's blend of the frog's place and the fist's), the arm its own
+  again by the end. Put back the same way in 0.36 s. With the arms busy (climbing, swimming, gliding, riding,
+  aiming the gun, knocked down, a scene) it flies back to the frog in 0.15 s with no reach. A swing pressed
+  with it on the back is never held up: the swing starts on the press, with its own timing and cut, and the
+  hilt is in the fist within `DRAW.quick` (0.12 s, the arm only starting back toward it), before any attack's
+  cut opens (the riposte's wind-up 0.12 s, a first swing's 0.22); the blade lights only once the hilt is
+  in the fist. Before, the hilt grew out of the glove's cuff into the fist.
+
+Tests: `tests/sword-sheath.test.js` (where it sits on the back, clear of the flask and of him in every pose, the
+draw and the sheathe and their timing, a swing pressed with it on the back cutting on the same frame as one
+already drawn), `tests/glove.test.js` (worn with the tank only, the skin under it, the mouth at the knuckles
 in every aim, the lights, the vial lit by the fluid, no hose anywhere), `tests/traveller.test.js` (fit, rucksack, flask size and visibility, hair,
 face), `tests/drone.test.js` (docks and clearance in every clip),
 `tests/abilities.test.js` (the pocket while the flask comes and goes).

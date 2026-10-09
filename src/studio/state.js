@@ -28,6 +28,7 @@ export const DEFAULTS = Object.freeze({
   // the blade and the shield (with the backpack; src/blade-grip.js): the hilt in the fist, the blade lit,
   // the shield open by `shield` (0 folded on the wrist .. 1 open) and how it is hit (block | parry | broken)
   sword: false, lit: 1, shield: 0, guard: '',
+  draw: 0,               // the draw from the back (0 the sword on his back, or in the fist with `sword`; between: that share of the draw, src/sword-sheath.js)
   // the view
   view: 'full',          // full | bust | face | close | far | hands
   turntable: false, yaw: 0.35, pitch: 0.05,
