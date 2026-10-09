@@ -83,3 +83,21 @@ export function from(at, dir, { dist = 8, h = 3, side = 0, lookUp = 0, fov = 46 
   const d = V(dir.x, 0, dir.z).normalize(), r = rightOf(d);
   return { pos: at.clone().addScaledVector(d, dist).addScaledVector(r, side).addScaledVector(UP, h), look: at.clone().addScaledVector(UP, lookUp), fov };
 }
+
+/**
+ * A long lens up at something in the sky that keeps the horizon at the frame's foot: the look is
+ * pitched down from `target` until the horizon (level with `eye`, far off) sits `foot` of the way down
+ * the lower half of the frame, but never so far that `target` leaves the upper `top` of it (both inside
+ * the letterbox, which covers about a fifth of each half). `fov` is widened (to `max` at most) when both can't fit. Returns { look, fov } (degrees). (Vael's panel B:
+ * looking straight at her it was two seconds of plain sky with a speck: the QC pass.)
+ */
+export function riseLook(eye, target, fov, { top = 0.5, foot = 0.62, max = 48 } = {}) {
+  const dx = target.x - eye.x, dz = target.z - eye.z, flat = Math.hypot(dx, dz) || 1e-6;
+  const dist = Math.hypot(flat, target.y - eye.y);
+  const up = Math.atan2(target.y - eye.y, flat), D = Math.PI / 180;
+  if (up > 0) fov = Math.min(max, Math.max(fov, (2 * up) / (top + foot) / D));
+  const h = (fov / 2) * D;
+  const el = Math.max(Math.min(up, foot * h), up - top * h);
+  const c = Math.cos(el) * dist;
+  return { look: V(eye.x + (dx / flat) * c, eye.y + Math.sin(el) * dist, eye.z + (dz / flat) * c), fov };
+}

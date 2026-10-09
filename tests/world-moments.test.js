@@ -53,3 +53,20 @@ test('a moment is skippable after its grace, and its end always runs', () => {
   m.update(1 / 30);
   assert.deepEqual(log, [true]);
 });
+
+test('riseLook: a long lens up at the sky keeps the horizon at the foot and the target inside the top (Vael’s panel B, the QC pass)', async () => {
+  const { riseLook, V } = await import('../src/story/film.js');
+  const D = Math.PI / 180, eye = V(0, 0, 0);
+  const elev = (p) => Math.atan2(p.y, Math.hypot(p.x, p.z)) / D;
+  for (const up of [5, 15, 25, 35]) {
+    const target = V(0, Math.tan(up * D) * 200, -200);
+    const { look, fov } = riseLook(eye, target, 30);
+    const el = elev(look), h = fov / 2;
+    assert.ok(up - el <= 0.5 * h + 1e-6, `${up}°: the target inside the frame's top (${(up - el).toFixed(1)}° of ${h})`);
+    if (fov < 48) assert.ok(el <= 0.62 * h + 1e-6, `${up}°: the horizon in frame (${el.toFixed(1)}°)`);
+    assert.ok(fov >= 30 && fov <= 48, `fov ${fov}`);
+  }
+  const low = riseLook(eye, V(0, 2, -100), 30);
+  assert.equal(low.fov, 30, 'low over the horizon: the lens stays long');
+  assert.ok(Math.abs(elev(low.look) - elev(V(0, 2, -100))) < 1e-6, 'and looks straight at it');
+});

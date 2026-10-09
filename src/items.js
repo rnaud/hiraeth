@@ -195,7 +195,7 @@ export const ITEMS = {
   star: {
     name: 'Pale star', kind: 'cosmetic',
     text: "A pale enamel star, like the ones on the makers’ chests. The makers’ sign for a traveller: a small light, a long way from home.",
-    use: 'Worn on the hood, over the brow. It does nothing at all, and it looks very good.',
+    use: 'Pinned to your overshirt, or over the brow when a hood is up. It does nothing at all, and it looks very good.',
   },
 };
 

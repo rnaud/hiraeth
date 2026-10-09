@@ -87,7 +87,13 @@ export async function startReview(w) {
       else if (e.world === 'spheres') { place(W.pole, V(3, 0, 4)); await settle(); W.chord(); }
       else if (e.world === 'garage') { place(W.people.lune.pos, V(3, 0, 3)); await settle(); ok = W.film.signal(); }
       else if (e.world === 'bazaar') { place(V(-4, w.level.ground.heightAt(-4, -205), -205)); game.set('item.recording', 1); game.set('bazaar.antenna.tuned', true); await settle(); W.play(); }
-      else { if (e.world === 'incal') place(w.level.shaft.places.palace.crown); await settle(); ok = W.film[key](); }
+      else if (e.world === 'incal') {
+        // as in play: on the crown, the camera looking up at the light, the splinter let go (giveBack: it climbs,
+        // lands at 3.6 s and the billboards say LOOK UP; calling the film alone left them blank)
+        place(w.level.shaft.places.palace.crown, V(3.2, 0, 1.2)); await settle();   // (on the terrace round the needle, not in it)
+        if (w.rig) w.rig.pitch = w.rig.pitchUpLimit?.() ?? -0.6;
+        W.giveBack(w.camera); ok = w.storyRt.moments.current?.id === e.id;
+      } else { await settle(); ok = W.film[key](); }
     }
     if (ok === false) throw new Error('The cinematic refused to start');
     state.status = 'Playing · replay to reset the scene';

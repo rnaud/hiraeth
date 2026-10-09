@@ -116,6 +116,43 @@ export function tombTimeline(lines) {
   return tl;
 }
 
+/**
+ * The stone's angles while the tokens go down (tomb-local: the slab at the origin, its headstone behind,
+ * the traveller standing 1.45 m in front facing it, Lou at his left, a little back):
+ *   shoulder  over his right shoulder onto the slab (the first)
+ *   hands     low from the slab's left end, along it: the tokens landing, his hands
+ *   face      from the headstone's left corner, back up at his face (Ilen, at the right-hand end, clear)
+ *   lou       from beside the slab, on Lou's face, as she speaks
+ */
+export const TOMB_ANGLES = {
+  shoulder: { pos: [2.0, 2.2, 3.5], look: [-0.15, 0.5, 0], fov: 42 },
+  hands: { pos: [-2.15, 1.45, 1.2], look: [0.2, 0.42, 0.05], fov: 42 },   // (higher and further: low, the bare slab filled the frame)
+  face: { pos: [-0.85, 1.2, -0.35], look: [0, 1.45, 1.45], fov: 38 },
+  lou: { pos: [0.55, 1.05, 0.2], look: [-0.95, 0.95, 1.75], fov: 36 },
+};
+/** Shortest the stone holds an angle (s), and their order. */
+export const TOMB_CUTS = { min: 4, order: ['hands', 'face', 'shoulder'] };
+/**
+ * Where the stone's long setting-down cuts (the QC pass: one held angle for over a minute): [{ t, angle }],
+ * from 'shoulder', at the start of a line at least `min` s after the last cut; Lou's lines on her face (when
+ * she is there), the rest in `order`, never the same twice running. The light over the hill, the reel and
+ * the closing line keep their own shots (the caller's).
+ */
+export function tombCuts(timeline, { lou = false, min = TOMB_CUTS.min, order = TOMB_CUTS.order } = {}) {
+  const cuts = [{ t: 0, angle: 'shoulder' }];
+  let last = 0, k = 0;
+  for (const l of timeline.lines) {
+    if (l.t0 - last < min) continue;
+    const prev = cuts.at(-1).angle;
+    let angle = lou && l.line.who === 'lou' ? 'lou' : order[k++ % order.length];
+    if (angle === prev) angle = order[k++ % order.length];
+    if (angle === prev) continue;
+    cuts.push({ t: l.t0, angle });
+    last = l.t0;
+  }
+  return cuts;
+}
+
 const hasDOM = () => typeof document !== 'undefined' && !!document.body;
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -376,6 +413,7 @@ export class HomecomingDirector {
         this.placeLou();
         this.placeIlen();
         this.tl = tombTimeline(this.lines);
+        this.cuts = tombCuts(this.tl, { lou: !!this.family?.lou });
         s.auto = null;
         const st = this.standAt();
         if (s.player.pos.distanceTo(st) > 1.2) s.placePlayer(st, this.faceTomb(), true);
@@ -583,8 +621,11 @@ export class HomecomingDirector {
           const push = Math.min(this.shotT * 0.03, 0.25);
           shot = { pos: L(0.72, 1.2, 2.55 - push), look: L(-0.12, REEL_AT.y + REEL_HOLO * 0.55, REEL_AT.z - 0.05), fov: 36 };
         } else {
-          // setting them down: over his right shoulder, onto the slab
-          shot = { pos: L(2.0, 2.2, 3.5), look: L(-0.15, 0.5, 0), fov: 42 };
+          // setting them down: over his right shoulder onto the slab, cut with his hands, his face and Lou's (tombCuts)
+          let c = this.cuts?.[0];
+          for (const x of this.cuts ?? []) if (x.t <= t) c = x;
+          const A = TOMB_ANGLES[c?.angle] ?? TOMB_ANGLES.shoulder, push = Math.min((t - (c?.t ?? 0)) * 0.03, 0.2);
+          shot = { pos: L(...A.pos).lerp(L(...A.look), push * 0.5), look: L(...A.look), fov: A.fov - 4 * push };
         }
         s.shot(shot);
         break;

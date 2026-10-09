@@ -77,7 +77,8 @@ tone, a swell of the world's score, then back to you.
   him and his eyes; `m.look` holds a look on his face **quietly** (src/talk-face.js `look`: the
   expression only, the mouth shut, the hands still; `'smirk'` is a look of its own,
   `TONE_EXPRESSIONS.smirk`, not a dialogue tone); `faceOf(humanoid)` gives where his face
-  is and looks as posed, for close-ups that never catch an ear. While one plays the idle's
+  is and looks as posed, for close-ups that never catch an ear. `behind: true` puts the follow camera
+  back behind him at its usual pitch as it ends (`behindHim`), for a moment started by looking up. While one plays the idle's
   look-around waits, the game's toasts wait (`cinema.held`), input is cut (`storyRt.busy()`).
 - **Once, skippable, never in the way.** Its flag is set as it starts. B / ○, the Menu button,
   Esc or a tap on the corner tag skips it, after a 0.6 s grace (the press that started it,
@@ -129,7 +130,9 @@ skip landing the same, no ship: as before) and `tests/world-moments.test.js` (th
 
 - **Vael** (`arzach.moment.bird`, 10.2 s), the rider's flute played: A, low behind him and off his
   side, the haze where the call goes, a speck far out answering with a cry; B, a long lens from
-  beside him panning up as she comes down out of the haze, wings wide (the world's motif); C, his
+  beside him panning up as she comes down out of the haze, wings wide (the world's motif), the horizon
+  and the haze's towers kept at the frame's foot (`riseLook` in film.js: the look pitched down from her,
+  the lens widened up to 48° when both can't fit); C, his
   face turned to where she lands; D, the two of them as she lowers her neck and opens her wings (from
   out past her and high when he is on the sill; side-on, the clearer side, on the plain). Her first
   bow is longer (5.6 s, `bow.len`), so control comes back with her still bowed in front of you. She
@@ -167,9 +170,12 @@ skip landing the same, no ship: as before) and `tests/world-moments.test.js` (th
 - **The City-Shaft** (`incal.moment.lodestar`, 9 s), the splinter given back from the palace's crown:
   A, low at his shoulder as it climbs past the needle; B, wide and low from beside the dome as it
   reaches the Lodestar and the light flares (the world's motif); C, across the shaft, a billboard that
-  has stopped selling and says LOOK UP (picked in play, its line of sight clear); D, his face from a
-  little below, the sky behind. The light is still rising, the city still looking up, as control comes
-  back; a skip mid-climb lands the splinter at once. Without the ship, the old slow look up
+  has stopped selling and says LOOK UP (picked in play, its line of sight clear; framed from about 45 m
+  at 22° so the words read); D, his face from a little below, the sky behind. The light is still rising,
+  the city still looking up, as control comes back, the camera behind him (`behind`: it starts pitched
+  steeply up at the light); a skip mid-climb lands the splinter at once. The review page stages it as
+  play does (`giveBack`, on the crown's terrace beside the needle, the camera looking up): calling the
+  film alone never lit the light, so the billboards stayed blank. Without the ship, the old slow look up
   (`st.cine`).
 - **The Sealed Hangar** (`garage.moment.signal`, 10 s), as Lune's talk closes with the stamped signal:
   A, low along the ring's floor, the two of them small in the great drum; B, from by Lune's feet up the

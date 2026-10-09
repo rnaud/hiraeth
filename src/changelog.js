@@ -26,6 +26,16 @@ export const CHANGELOG = [
     'The desert gets you moving sooner: after the chest opens, Nour gives you the Speaker’s old verse herself, so Ama’s jar is the only errand before the way down under the giant. Walking with the Speaker is up to you; he still tells the old story whole.',
     'Stop at Ama’s fire on your way into Qanat and she gives you her jar there, so after the chest you go straight from Nour to the giant’s mouth.',
     'On the ride to the Givers’ Hearth, the bronze bowl, the keepers’ old camp, the glinting bell and the Hearth itself are pointed out under the view as they come up ahead, while there is still time to stop.',
+    // the cinematics, a second pass
+    'The makers’ boxes in the temples of the Garden of Spheres and of Lorn stand on their dais instead of sunk into it, so opening them no longer cuts your head off the picture.',
+    'The City-Shaft: when the Lodestar lights again, the billboards’ LOOK UP now reads, close and square, and afterwards the camera comes back behind you instead of pressed against your head.',
+    'In Vael, the bird’s arrival keeps the horizon and the stone towers under her as she comes down, instead of two seconds of empty sky.',
+    'The Lantern: the light coming down out of the dusk glows from the first shot, beside the crown, instead of being out of the picture until it is nearly there.',
+    'Lou’s window seat at home has a second shot: from beside you, your profile against the round window and the land beyond it.',
+    'The recordings at the ship’s console cut between angles as they play: your parents’ faces close, your own face lit by them as you listen, and wide past you to the window; the words and their timing are as before.',
+    'Opening a makers’ box comes in four ways now, one per box: over either shoulder, from above, or from the box’s side with the item revealed in front of your face.',
+    'At the stone at home, laying everything down cuts between your hands on the slab, your face, Lou as she speaks and over your shoulder, instead of one angle for over a minute.',
+    { text: 'The pale star’s description and the line as you lay it on the stone say it is pinned to your overshirt, not a hood.', see: 'Open the journal’s gear page with the pale star found, or lay it on the stone at home.' },
   ] },
   { v: '1.1', date: '2026-10-09', items: [
     // shadows and visuals, from the playtest

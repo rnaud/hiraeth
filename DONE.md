@@ -1382,3 +1382,45 @@ tests/sound-mix.test.js holds them.
     out to the giant's mouth ~275 s → ~210 s (~174 s with the jar on the way in). The ride is unchanged in
     length (1.6 km, ~48 s each way at top speed) with four things named on the way out.
   Tests: tests/desert-spark.test.js (the jar alone, the jar on the way in, the call-outs), tests/desert-story.test.js.
+## Cinematics, the QC pass's fixes (2026-10-09)
+- [x] The Garden of Spheres' temple box sat sunk into its dais and the opening cut his head off. (The dais
+  was solid only as its lathe, whose top a ray from above never lands on, so the chest stood on the floor
+  under it, 0.62 m down. src/temples/spheres.js, and perdide.js / perdide2.js, sunk the same way: the dais
+  solid as two cylinders, its two steps. tests/temples.test.js: every temple's chest stands on its dais top.)
+- [x] The pale star's text still said it is worn on the hood. (src/items.js: "Pinned to your overshirt, or
+  over the brow when a hood is up"; src/story/ending.js: "The pale star from your overshirt".
+  tests/item-star.test.js.)
+- [x] The City-Shaft's third panel framed a blank billboard. (The review page called the film alone, so the
+  splinter never landed and LOOK UP was never shown: src/cinematics-page/runtime.js stages it as play does,
+  `giveBack` on the crown's terrace with the camera looking up. Then src/story/incal-moments.js frames the
+  billboard from about 45 m at 22°, so the words read.)
+- [x] After the City-Shaft's moment the camera was jammed against his head. (It starts with the camera
+  pitched steeply up; the moment now ends with `behind: true` (src/story/moment.js `behindHim`): the follow
+  camera behind him at its usual pitch before the blend. tests/moment.test.js.)
+- [x] Vael's second panel was two seconds of plain sky. (src/story/film.js `riseLook`: the long lens pitched
+  down from her until the horizon sits at the frame's foot, never so far she leaves its top, widened up to 48°
+  when both can't fit; she starts 90 m up instead of 120. tests/world-moments.test.js.)
+- [x] Home's window seat had one angle. (src/story/home.js `seatSide`: for the second line, from the room
+  beside the seat, his profile against the round window and the land through it; back to the first as he
+  stands. tests/home.test.js: the lens in the room, clear of walls, him and the window in frame.)
+- [x] The Lantern's light read as a dark disc far off. (The dark disc was the dusk's moon: the light itself
+  was above the frame until 3 s. src/story/lantern.js: it comes from out past the crown as he sees it (a
+  fixed offset could put it behind the lens), panel A frames the crown low and the light high (`frameBoth`),
+  and the light never spans less than 3.2° (`orbScale`). tests/finale.test.js.)
+- scripts/cinematics-qc.mjs `--probe "<js>"`: evaluates an expression in the page at every screenshot
+  (`<out>/<id>/probe.json`): it found both the blank billboard (the text mesh never shown) and the Lantern's
+  light (off screen).
+- [x] The recordings were one slow push-in for 25-77 s. (src/ship/cinematics.js `callCuts` / `callAngle`: while
+  the busts are up a recording cuts at the start of a line, at least 4.5 s apart, between the push-in behind
+  his right shoulder, the two faces close from his left, his face from over the dash in the hologram's light
+  (his own lines always there) and wide from the side with the window; back to the push-in as they fold, and
+  after it his own lines on his face again. Words and timing untouched; 3 shots in the shortest recording,
+  9 in the longest. The prologue's call keeps its single angle. tests/ship.test.js.)
+- [x] The homecomings laid the tokens on one held angle for over a minute. (src/ship/homecoming.js `tombCuts`
+  / `TOMB_ANGLES`: over his shoulder, his hands along the slab, his face from the headstone, Lou's face on her
+  lines, at a line's start, 4 s at least each; the light, the reel and the closing line keep their shots.
+  tests/ending.test.js.)
+- [x] (Part of) the box opening being one camera for all 32 boxes. (src/boxes/scene.js `BOX_PLANS` /
+  `boxPlan`: over the right shoulder (the first box, and the fallback), the left, from the box's side with the
+  reveal from where it stood onto the item and his face, or from above; `clearPlan` falls back where a wall
+  would come between. tests/boxes.test.js. A closing beat per kind of item stays in TODO.md.)

@@ -309,7 +309,12 @@ test('each built temple: a door in its world, solid rooms with marks, a chest si
     }
     // the chest's spot resolves (tests/boxes.test.js checks it is reachable like every box)
     const box = Object.values(PLACEMENTS).flat().find((p) => p.temple === id);
-    assert.ok(resolvePlacement(box, { physics, level }), `${id}: the chest stands`);
+    const stood = resolvePlacement(box, { physics, level });
+    assert.ok(stood, `${id}: the chest stands`);
+    // on its dais, not sunk into it (the Spheres' chest stood on the floor under the dais: the QC pass)
+    const site = rt.gadgetSite.at;
+    assert.ok(Math.abs(stood.pos.y - site[1]) < 0.05, `${id}: the chest on top of its dais (${stood.pos.y.toFixed(2)} vs ${site[1]})`);
+    assert.ok(Math.abs(physics.groundAt(site[0], site[1] + 1, site[2], 3) - site[1]) < 0.05, `${id}: the dais's top is solid`);
     assert.ok(level.lights.length >= 6, `${id}: lights inside`);
     // the scout points at the next thing to do
     assert.ok(nextSpot(rt).isVector3);
