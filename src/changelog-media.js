@@ -361,7 +361,7 @@ const GUARD_WIND = (id, atk, { meter = 0, k = 0.85, side = 15, back = 9, h = 6, 
 const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 2500, setup, ...(player ? { player, heading: Math.PI * 0.75 } : {}) });
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
-// (v1.10, the controller's quick buttons: a pad in hand, held as the setup says; the camera stays put)
+// (v1.11, the controller's quick buttons, one job each: a pad in hand, held as the setup says; the camera stays put)
 const FAKE_PAD = `const pad = { index: 0, id: 'Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)', connected: true, mapping: 'standard', timestamp: 1, axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0, touched: false })) };
   navigator.getGamepads = () => [pad];
   const set = (i, on) => { pad.buttons[i] = { pressed: on, value: on ? 1 : 0, touched: on }; pad.timestamp++; };
@@ -370,7 +370,7 @@ const FAKE_PAD = `const pad = { index: 0, id: 'Xbox Wireless Controller (STANDAR
   set(9, true); await wait(150); set(9, false); await wait(300); window.menu.toggle(false); await wait(300);`;
 const PAD_SAVE = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.hook': true, 'item.bomb': true, 'item.fan': true, 'item.lens': true, 'item.magnet': true, 'item.fire': true, 'item.stun': true, 'gadget.equipped': 'hook' }, keepsakes: [] };
 const PAD_VIEW = (setup) => ({ level: 'arena', hud: true, save: PAD_SAVE, wait: 1200, setup: `${FAKE_PAD}\n${setup}` });
-const PADS = { commit: 'ac6ecdf8' };
+const PADS = { commit: 'cc087bd4' };
 
 export const CHANGELOG_MEDIA = {
   '1.11': [
@@ -397,18 +397,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'desert-mask-doorway', caption: 'The doorway before the masked head: before, a flat dark panel in its frame; after, a short passage into the dark', commit: 'ced314df',
         view: { level: 'desert', player: [9, 9, -360], eye: [10, 11.5, -357], target: [7, 10.5, -371], fov: 50 } },
     ] },
-    { match: 'On a controller, D-pad ↓ drinks a healing potion', shots: [
-      { name: 'controls-pad-list', caption: 'The Controls page with a controller in hand, at the controller’s list: before, the potion on View + D-pad ↓, the mount on D-pad ↓ and the gun mode on D-pad ← / →; after, the potion on D-pad ↓, the mount on L3 standing still, the gun mode on D-pad ↑ while aiming', ...PADS,
+    { match: 'On a controller every button now has one job', shots: [
+      { name: 'controls-pad-list', caption: 'The Controls page with a controller in hand, at the controller’s list, v1.10 against now: before, the potion on View + D-pad ↓ and the gun mode on D-pad ← / →; after, the potion on D-pad ←, the gun mode on D-pad →, the mount still on D-pad ↓', ...PADS, before: 'bbc5a982',
         view: PAD_VIEW(`window.menu.toggle(true, 'controls'); await wait(400); const li = [...document.querySelectorAll('#settings li')].find((e) => /^Gun mode \\(/.test(e.textContent.trim())); li?.scrollIntoView({ block: 'center' }); await wait(300);`) },
-    ], see: 'With a controller, take a hit so a heart is missing and press D-pad ↓: the traveller drinks, the flask by the hearts tips and the hearts come back. In the Arena (?level=arena) D-pad ↓ opens the FOES list instead.' },
-    { match: 'Calling your mount or hailing a taxi is a click of the left stick', shots: [
-      { name: 'controls-pad', caption: 'The Controls page’s “Your buttons (controller)”: before, Call your mount on D-pad ↓ and two gun-mode buttons on D-pad ← and →; after, Run (standing still: call your mount) on L3, the gun mode with Choose a gadget, and Drink a potion on D-pad ↓', ...PADS,
+    ], see: 'With a controller, take a hit so a heart is missing and press D-pad ←: the traveller drinks, the flask by the hearts tips and the hearts come back. With the backpack and a gun mode found, press D-pad → a few times: the tank changes colour and comes round to the fluid. In the Arena (?level=arena) D-pad ↓ opens the FOES list.' },
+    { match: 'If you played v1.11’s first build', shots: [
+      { name: 'controls-pad', caption: 'The Controls page’s “Your buttons (controller)”, v1.11’s first build against now: before, Run (standing still: call your mount) on L3, the gun mode folded into Choose a gadget, Drink a potion on D-pad ↓; after, one row each: Drink a potion on D-pad ←, Call your mount on D-pad ↓, Next gun mode on D-pad →', ...PADS,
         view: PAD_VIEW(`window.menu.toggle(true, 'controls'); await wait(500);`) },
-    ], see: 'In the Desert with the hoverbike found, stand still and click the left stick: the bike comes. Push the stick and click it: you run, and the bike stays where it is.' },
-    { match: 'The gun’s modes moved onto D-pad ↑ with the gadgets', shots: [
-      { name: 'gun-wheel', caption: 'D-pad ↑ held in the Arena, the left stick on the grappling hook and the right stick down to the left: before, the gadgets alone (the right stick turned the camera); after, the gun modes on an inner ring in their colours, the one in the tool ringed, and the right stick on Ember', ...PADS,
-        view: PAD_VIEW(`set(12, true); await wait(700); pad.axes = [0.95, 0.3, -0.95, 0.3]; pad.timestamp++; await wait(400);`) },
-    ], see: 'With the backpack and a gadget, hold D-pad ↑: the wheel opens with the gun modes on an inner ring. Point the left stick at a gadget and the right stick at a mode, then let go. Hold LT / L2 and tap D-pad ↑: the next gun mode.' },
+    ], see: 'With a controller, stand still and click the left stick: nothing but a run (the mount comes with D-pad ↓). Hold LT / L2 and tap D-pad ↑: the next gadget, not a gun mode. Hold D-pad ↑: the wheel has the gadgets only.' },
     { match: 'Inside the ship the main room is laid out anew', shots: [
       { name: 'ship-layout-aft', caption: 'From the back of the main room toward the cockpit, the view of the picked sheet: before, the holo table at the front, the galley on the right, the entry lockers on the left; after, the galley along the left wall, the holo table in the middle in the crook of the curved console with the voicemail on its near end, the bunk’s arched alcove and the lockers on the right, two seats in the cockpit', commit: 'f64c722a', before: '70309935',
         view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([0.3, 1.75, 2.3], [0, 1.1, -8], 78) }, from: SHIP_FROM },
