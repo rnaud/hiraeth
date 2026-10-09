@@ -102,7 +102,7 @@ export const SURFACES = {
   ray: {
     '*': {
       // (a fine net of veins over the wings, a darker bloom here and there)
-      top: { mottle: { color: 'spots', scale: 0.35, amount: 0.3, soft: 0.2, strength: 0.4 }, scales: { color: 'spots', size: 0.26, ink: 0.22, tone: 0.025, amount: 0, mode: 1 } },
+      top: { mottle: { color: 'spots', scale: 0.35, amount: 0.3, soft: 0.2, strength: 0.4 }, scales: { color: 'spots', size: 0.24, ink: 0.5, tone: 0.04, amount: 0.15, mode: 1 } },
       tail: { bands: { color: 'tail*0.75', axis: 1, period: 0.12, width: 0.15, ink: 0.6 } },
     },
     glassdunes: { top: { glow: { color: 'top2', amount: 0.4, rim: 0.7, core: 1.2, emit: 0.2 }, gloss: { size: 0.05, sky: 0.8 }, mottle: { color: '#c8b8f0', scale: 0.5, amount: 0.35, soft: 0.08, strength: 0.6 }, scales: { color: 'edge', size: 0.3, ink: 0.15, tone: 0.06, amount: 0.35, mode: 1 } } },
