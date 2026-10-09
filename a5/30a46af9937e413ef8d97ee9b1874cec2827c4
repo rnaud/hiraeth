@@ -1,0 +1,93 @@
+.claude/skills/combat-review/SKILL.md
+  s_9ca76055a220ed::t_c4f56b4a985ea1 38-39,56,68-73
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_85794d2eddc420 11-12,133,199-200,210-244,253-255,263-264,266-267,277
+DONE.md
+  s_9ca76055a220ed::t_ebf379f83493b7 1750-1767
+TODO.md
+  s_9ca76055a220ed::t_968afd1b35c762 96-97,103-112,213,239-241
+changelog.md
+  s_9ca76055a220ed::t_f1253bf23d6030 7-12
+docs/README.md
+  s_9ca76055a220ed::t_d666741fb6ec56 26
+docs/audits/combat-v1.6.md
+  s_9ca76055a220ed::t_9938d976844c87 1-127
+docs/systems/foes.md
+  s_9ca76055a220ed::t_49153befcd2b0d 159,162-163,199-201,239-370,589-590
+docs/systems/temples.md
+  s_9ca76055a220ed::t_28b79de6b485c4 51-56
+scripts/combat-review/lib.mjs
+  s_9ca76055a220ed::t_8d104fdba3fbd7 116-119,122-124,127-128,130-138,141-146,148-152,155
+src/arena-guardians.js
+  s_9ca76055a220ed::t_6c26ecd37fb75b 21-22
+src/audio.js
+  s_9ca76055a220ed::t_f90cffa468c151 1811-1815,1817-1832
+src/changelog-media.js
+  s_9ca76055a220ed::t_7d6a069ed6cdda 293-322,325-341
+src/changelog.js
+  s_9ca76055a220ed::t_e77624c5b99b56 30-36
+src/enemies/attacks.js
+  s_9ca76055a220ed::t_17461544d25348 4-6,16-17,48-50,53
+src/enemies/models.js
+  s_9ca76055a220ed::t_1331859acef5f2 4,19-21,30,39,178,195-203,205-206,208-213
+src/foe-kinds.js
+  s_9ca76055a220ed::t_88fab3e9eba331 10,14-15,18,34,40,50-51,59,67,77-78,87,97-98,108-109,118-120,128,132,135,172,182-183,195-196,225,237-238,255,259,285,292-295,323,331-333,362,370,378-379,404,421,429,458,461,466,468-469,506,508-510
+src/foes.js
+  s_9ca76055a220ed::t_da041b5a26f6fa 8,48,51,60-61,65,69,71,81,208,997,1045-1046,1049,1271,1568,1571,1593,1604,1943-1944,1965-1966,1968-1969,1996-1999,2002,2004,2007,2011-2023
+src/telegraph.js
+  s_9ca76055a220ed::t_88ba6a5b88435c 1-94
+src/temples/arzach.js
+  s_9ca76055a220ed::t_04c9f6b4b32332 74,76-78,82-90
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_6af7e9bbbe6347 79-81,85-92
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_7c40236ec3e323 80-82,85-92
+src/temples/boss.js
+  s_9ca76055a220ed::t_e58bddae17994b 6,19-30,35,37-48,51-52,56,89-92,146-199,211,213-232,260-262,280,285,287-288,290,294-300,303-305,321,330,356,367-372,389,396,400-403,409-413,415,417-431,435-444,446-448,455-463,469-488,490-492,494,496-498,500-511,515-516,518-527,529,534-634
+src/temples/buried.js
+  s_9ca76055a220ed::t_8f19a70bd263ae 77,79-81,84-92
+src/temples/desert.js
+  s_9ca76055a220ed::t_81b6e0dba402c8 92,95-96,99-100,102-108,125,130
+src/temples/edena.js
+  s_9ca76055a220ed::t_10dbe6b51b6338 87,89-91,95-101
+src/temples/garage.js
+  s_9ca76055a220ed::t_3110910c3ff6aa 84,86-88,91-98
+src/temples/guardians.js
+  s_9ca76055a220ed::t_79449596b5393d 110-116,119,123,125,141,210-216,224-225,227,282,290-292,352-356,428-434,447,509,520-527,529-531,625-631,651-652,660,735-740,840-844,858-860,866,928,947-948
+src/temples/incal.js
+  s_9ca76055a220ed::t_ff7bb49420fc89 81,83-84,86-87,90-97
+src/temples/perdide.js
+  s_9ca76055a220ed::t_96c247b263970d 82-83,87-95,112
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_28ca811e1a346e 74-76,80-88
+src/temples/spheres.js
+  s_9ca76055a220ed::t_b5cc458361f5e8 77,79-81,85-93
+tests/arena.test.js
+  s_9ca76055a220ed::t_da465cdbc834ac 120,124
+tests/combat-review.test.js
+  s_9ca76055a220ed::t_8c8bad83b6445b 55-56
+tests/foe-kinds.test.js
+  s_9ca76055a220ed::t_09e8a11ec29eee 1,47-48,51-52,182,313,317,320-324,326
+tests/resources.test.js
+  s_9ca76055a220ed::t_592741859ea0b7 42,46,48
+tests/telegraphs.test.js
+  s_9ca76055a220ed::t_af02c524672884 1-197
+tests/world-enemies.test.js
+  s_9ca76055a220ed::t_7413d966764850 56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a530a46af9937e413ef8d97ee9b1874cec2827c4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
