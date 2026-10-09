@@ -397,6 +397,11 @@ const GUARD_WIND = (id, atk, { meter = 0, k = 0.85, side = 15, back = 9, h = 6, 
   const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
   const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
   camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 55) { this.fov = 55; this.updateProjectionMatrix(); } return base.call(this, force); };`;
+// the Debug menu alone (?worlds=1), as a player's build shows it; `pad`: a controller in hand, the first card focused
+const DEBUG_MENU = { commit: '97efedde', before: '356218ff' };
+const DEBUG_VIEW = (size, pad = false, setup = '') => ({ query: 'worlds=1', size, prod: true, hud: true, hour: null, wait: 600, settle: 1500,
+  ready: "!!document.querySelector('#picker.open')", storage: pad ? "sessionStorage.setItem('moebius.input.v1', 'pad');" : '',
+  setup: `${pad ? "document.body.classList.add('controller'); document.querySelector('#picker .card')?.focus();" : ''} ${setup}` });
 const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 2500, setup, ...(player ? { player, heading: Math.PI * 0.75 } : {}) });
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
@@ -503,6 +508,14 @@ export const CHANGELOG_MEDIA = {
         { where: 'CPU ms a frame, High', before: 8.4, after: 8.1 },
       ], source: 'scripts/enemy-roster/bench.mjs, the commit before the surfaces and the surfaces’ own; GPU times vary ±2 ms run to run on a shared machine: no cost measurable', note: '148 draws fewer: the cliff crab’s 26 lichen stars and 48 of the anchor crab’s barnacles, each drawn in the view and the shadow' },
     ] },
+    { match: 'The Debug menu is laid out anew', shots: [
+      { name: 'debug-menu-desktop', caption: 'The Debug menu on a desktop screen: before, a row of page buttons, a row of games, a note and one long grid of every world; after, a header with the filter and a chip a section, then Play with the route in story order, Story places, Test rooms…', ...DEBUG_MENU, view: DEBUG_VIEW([1440, 900]) },
+      { name: 'debug-menu-handheld', caption: 'On a handheld (1280 × 800) with a controller: after, LB / RB either side of the section chips, Y on the filter, B on close and A on the focused card', ...DEBUG_MENU, view: DEBUG_VIEW([1280, 800], true) },
+      { name: 'debug-menu-pages', only: 'after', caption: 'Further down: Games and Pages as rows with a name and one line, then This build (the version, and a release build’s build number and commit)', ...DEBUG_MENU,
+        view: DEBUG_VIEW([1280, 800], false, "document.querySelector('[data-jump=pages]').click(); await new Promise((r) => setTimeout(r, 900));") },
+      { name: 'debug-menu-filter', only: 'after', caption: 'Typing filters it: “arena” leaves the Arena and what mentions it', ...DEBUG_MENU,
+        view: DEBUG_VIEW([1280, 800], false, "for (const k of 'arena') window.dispatchEvent(new KeyboardEvent('keydown', { key: k, code: 'Key' + k.toUpperCase(), bubbles: true })); await new Promise((r) => setTimeout(r, 400));") },
+    ], see: 'On the title, choose Debug (or press L in a world). Type a few letters to filter; on a controller LB / RB jump between sections and Y opens the filter. Open a page and come back with ◀ Debug: the page you opened has the focus.' },
   ],
   '1.10': [
     // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")
