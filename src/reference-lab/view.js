@@ -106,6 +106,18 @@ export function batchHtml(m) {
     <div class="wall">${cards}</div></article>`;
 }
 
+/** The batch filter: to pick (the default: nothing picked, not turned down), picked, none of them, all. */
+export const FILTERS = [['open', 'To pick'], ['picked', 'Picked'], ['rejected', 'None of them'], ['all', 'All']];
+export function filterBatches(list, show = 'open') {
+  if (show === 'all') return list;
+  if (show === 'picked') return list.filter((b) => b.picked > 0);
+  if (show === 'rejected') return list.filter((b) => b.rejected);
+  return list.filter((b) => !b.picked && !b.rejected);
+}
+export function filterHtml(list, show = 'open') {
+  return `<nav class="filters">${FILTERS.map(([k, label]) => `<button type="button" class="btn small${k === show ? ' on' : ''}" data-show="${k}"${k === show ? ' aria-pressed="true"' : ''}>${esc(label)} <small>${filterBatches(list, k).length}</small></button>`).join('')}</nav>`;
+}
+
 /** Every batch, newest first, a page at a time: the page's numbers, and where it is. */
 export const PER_PAGE = 5;
 export const pageCount = (n, per = PER_PAGE) => Math.max(1, Math.ceil(n / per));

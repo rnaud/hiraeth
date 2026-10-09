@@ -12,7 +12,7 @@ import { installNativePad, watchLabels, padFaces } from '../native-pad.js';
 import { installGlyphs } from '../pad-glyphs.js';
 import { InputMode } from '../input-mode.js';
 import { DEBUG_MENU_HREF } from '../debug-back.js';
-import { ASPECTS, PER_PAGE, batchHtml, defaultChecked, esc, fileSrc, filterRefs, pageCount, pagerHtml, promptFor, promptOptions, providerRow, refFolders, refThumb } from './view.js';
+import { ASPECTS, PER_PAGE, batchHtml, defaultChecked, esc, fileSrc, filterBatches, filterHtml, filterRefs, pageCount, pagerHtml, promptFor, promptOptions, providerRow, refFolders, refThumb } from './view.js';
 
 const API = '/__reference-lab/';
 const $ = (s) => document.querySelector(s);
@@ -24,7 +24,7 @@ inputMode.apply(document.body.classList);
 for (const ev of ['keydown', 'pointerdown']) addEventListener(ev, (e) => { inputMode.event(e); inputMode.apply(document.body.classList); }, { capture: true, passive: true });
 document.body.dataset.gridNav = '';
 
-const state = { prompts: { docs: [], manifests: [] }, refs: [], providers: [], picked: [], shown: PAGE, page: 1, open: [], batches: [], poll: 0 };
+const state = { prompts: { docs: [], manifests: [] }, refs: [], providers: [], picked: [], shown: PAGE, page: 1, show: 'open', open: [], batches: [], poll: 0 };
 
 async function api(path, body) {
   const res = await fetch(API + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' });
@@ -90,22 +90,27 @@ async function generate() {
     await loadPage(1);
   } catch (e) { say(e.message, true); } finally { $('#go').disabled = false; }
 }
-// Every batch on one page, newest first, PER_PAGE at a time (#page=N); polled while one of them runs.
+// Every batch on one page, newest first, PER_PAGE at a time, filtered (to pick by default: #show=…&page=N);
+// polled while one of them runs.
 async function loadPage(page = state.page) {
   clearTimeout(state.poll);
   try { state.batches = (await api('batches')).batches; } catch (e) { say(e.message, true); return; }
-  state.page = Math.min(Math.max(1, page), pageCount(state.batches.length));
-  const ids = state.batches.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE).map((b) => b.batch);
+  const list = filterBatches(state.batches, state.show);
+  state.page = Math.min(Math.max(1, page), pageCount(list.length));
+  const ids = list.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE).map((b) => b.batch);
   state.open = (await Promise.all(ids.map((id) => api(`batches/${encodeURIComponent(id)}`).catch(() => null)))).filter(Boolean);
-  history.replaceState(null, '', state.page > 1 ? `#page=${state.page}` : location.pathname);
+  const hash = new URLSearchParams({ ...(state.show !== 'open' ? { show: state.show } : {}), ...(state.page > 1 ? { page: state.page } : {}) }).toString();
+  history.replaceState(null, '', hash ? `#${hash}` : location.pathname);
   drawBatches();
   if (state.open.some((m) => m.status === 'running')) state.poll = setTimeout(() => loadPage(), 2000);
 }
 function drawBatches() {
   const f = document.activeElement?.closest?.('[data-cand]');
   const keep = f && { batch: f.closest('[data-batch-id]')?.dataset.batchId, cand: f.dataset.cand };
-  const pager = pagerHtml(state.batches.length, state.page);
-  $('#batches').innerHTML = state.open.length ? `${pager}${state.open.map(batchHtml).join('')}${state.batches.length > PER_PAGE ? pager : ''}` : batchHtml(null);
+  const n = filterBatches(state.batches, state.show).length;
+  const pager = pagerHtml(n, state.page);
+  const empty = state.batches.length ? `<p class="empty">${state.show === 'open' ? 'Nothing left to pick.' : 'No batch here.'}</p>` : batchHtml(null);
+  $('#batches').innerHTML = `${filterHtml(state.batches, state.show)}${state.open.length ? `${pager}${state.open.map(batchHtml).join('')}${n > PER_PAGE ? pager : ''}` : empty}`;
   if (keep) document.querySelector(`[data-batch-id="${CSS.escape(keep.batch)}"] [data-cand="${CSS.escape(keep.cand)}"]`)?.focus({ preventScroll: true });
 }
 const batchOf = (el) => state.open.find((m) => m.batch === el?.closest?.('[data-batch-id]')?.dataset.batchId);
@@ -181,6 +186,7 @@ document.addEventListener('click', (e) => {
   if (t.closest('[data-discard-batch]')) return discardBatch(batchOf(t));
   if (t.closest('[data-reject]')) return rejectBatch(batchOf(t));
   if (t.closest('[data-unreject]')) return unreject(batchOf(t));
+  const sh = t.closest('[data-show]'); if (sh) { state.show = sh.dataset.show; loadPage(1); return; }
   const pg = t.closest('[data-page]'); if (pg && !pg.disabled) { loadPage(+pg.dataset.page).then(() => $('#batches').scrollIntoView({ block: 'start' })); return; }
   if (t.closest('#go')) return generate();
   const fig = t.closest('#batches figure'); if (fig && t.tagName === 'IMG') return openZoom(fig);
@@ -253,7 +259,9 @@ try {
   const n = state.providers.filter((p) => p.available).length;
   say(`${n} of ${state.providers.length} providers have a key · ${state.refs.length} reference pictures · ${state.batches.length} batches`);
   // (everything is on disk: a reload shows the page it showed)
-  await loadPage(+new URLSearchParams(location.hash.slice(1)).get('page') || 1);
+  const h = new URLSearchParams(location.hash.slice(1));
+  state.show = ['open', 'picked', 'rejected', 'all'].includes(h.get('show')) ? h.get('show') : 'open';
+  await loadPage(+h.get('page') || 1);
 } catch (e) {
   say(`The reference lab needs the dev server (npx vite): ${e.message}`, true);
 }

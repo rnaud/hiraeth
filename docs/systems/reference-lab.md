@@ -74,7 +74,8 @@ other four are a click away).
    deletes a candidate; *Discard the batch* deletes the whole folder. **None of them…** turns the whole batch
    down and asks why (required): the reason is kept in the batch and in the target's `manifest.json` under
    `rejected` (with the prompt), so the next prompt can learn from it; *Take back* undoes it.
-6. Every batch is on the one page, newest first, five to a page with a pager (`#page=N` survives a reload).
+6. Every batch is on the one page, newest first, five to a page with a pager, filtered: **To pick** (the
+   default: nothing picked, not turned down), Picked, None of them, All (`#show=…&page=N` survives a reload).
    Every provider with a key is checked by default, all of fal's models included.
 
 Mouse, keys and a controller all work: the D-pad and the stick move across the page (`data-grid-nav`), the
