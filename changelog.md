@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.3 — 2026-10-09
+
+- Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.
+- Once you know who Ilen was, a few people along the way have a word about her: Madame Sel at the Signal Market, Hollin in the deep wood and Nour in Qanat. Sel also hears how the message ended once you have found her, and Hollin can hear where Odile and Talo went even if you never promised to come back.
+- Ama no longer waves you straight on to the city while she still has her jar for you: as you come up to the camps she calls you over to her fire, once more at most if you pass near, and then asks about it as soon as you sit down. Once the jar is yours she waves you on as before.
+
 ## v1.2 — 2026-10-09
 
 - The pale star’s description and the line as you lay it on the stone say it is pinned to your overshirt, not a hood.

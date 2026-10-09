@@ -1424,3 +1424,19 @@ tests/sound-mix.test.js holds them.
   `boxPlan`: over the right shoulder (the first box, and the fallback), the left, from the box's side with the
   reveal from where it stood onto the item and his face, or from above; `clearPlan` falls back where a wall
   would come between. tests/boxes.test.js. A closing beat per kind of item stays in TODO.md.)
+
+## Story: Ama calls you over for the jar; the route's people hear about Ilen (done 9 October, v1.2)
+
+- [x] **Ama and the jar on the way in** (follow-up to 4c745687): she still waved "To the city!" as you
+  passed, so few stopped for the jar. While she has it for you (`amaCallsYou`: no `desert.jar.given`, the
+  tree cold), her camp shout invites you to her fire about the jar, and she calls once more at most as you
+  pass near (a caller with `max: 2`, src/story/desert.js); her `hello` then asks about it ("You called me
+  over. A jar?", `jarCalled`). With the jar, the old wave on.
+- [x] **More of the route's people hear about Ilen** (TODO "Two or three real choices", later): once
+  `calls.ilen.told`, Madame Sel, Hollin and Nour have one answer each about her; once `finale.met`, Sel hears
+  that she heard it and Hollin's `after` can hear where Odile and Talo went without the promise.
+- [x] **Old saves that kept Dov's token before the choice existed**: src/save-migrate.js step 3 sets
+  `incal.token` 'kept' when the keepsake is there and no choice is recorded (the loader passes the
+  keepsakes), so choicesMade, the Lantern's `tokenKept` and Dov's new line for a kept token see it.
+  Tests: tests/desert-spark.test.js (Ama), tests/route-ilen.test.js (the Ilen lines and the old save).
+

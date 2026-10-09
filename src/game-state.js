@@ -75,7 +75,7 @@ class GameState {
     try { this.data = JSON.parse(this.storage?.getItem(KEY)) ?? {}; } catch { this.data = {}; }
     this.data.flags ??= {};
     this.data.keepsakes ??= [];
-    if (migrateFlags(this.data.flags)) this.save();   // older saves (src/save-migrate.js)
+    if (migrateFlags(this.data.flags, this.data.keepsakes)) this.save();   // older saves (src/save-migrate.js)
   }
   save() { try { this.storage?.setItem(KEY, JSON.stringify(this.data)); } catch { /* private mode */ } }
   flag(name) { return this.data.flags[name]; }

@@ -10,6 +10,10 @@
 // Since the true ending came in (October 2026), a save that ended under the old rules has had its first
 // homecoming (step 2).
 //
+// Dov's lift token used to be given outright; since it became a choice (keep it, or give it back), a save
+// that has the token among its keepsakes but no `incal.token` kept it (step 3): the Lantern, Dov and the
+// stone then read it as kept (src/story/ending.js choicesMade).
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 export const RENAMED_PEOPLE = [
@@ -57,19 +61,24 @@ const STEPS = [
   (flags) => {
     if (flags['ending.done'] && !flags['ending.first'] && !flags['ending.final']) flags['ending.first'] = 'old';
   },
+  // 3: Dov's lift token, given before it was a choice: kept (the keepsake is the proof; `incal.dov.fed`
+  // alone isn't: a newer save may have stopped between feeding him and choosing)
+  (flags, keepsakes) => {
+    if (flags['incal.token'] === undefined && keepsakes?.some((k) => k.id === 'incal.token')) flags['incal.token'] = 'kept';
+  },
 ];
 
 /** The step a fresh save starts at (src/game-state.js reset): nothing to migrate. */
 export const MIGRATED = () => STEPS.length;
 
-/** Bring a save's flags up to date (in place). Returns true if anything ran. */
-export function migrateFlags(flags) {
+/** Bring a save's flags up to date (in place; `keepsakes` is read, never changed). Returns true if anything ran. */
+export function migrateFlags(flags, keepsakes = []) {
   if (!flags) return false;
   const done = flags['save.migrated'] ?? 0;
   if (done >= STEPS.length) return false;
   // a brand-new game has nothing to migrate
   if (!Object.keys(flags).length) { flags['save.migrated'] = STEPS.length; return false; }
-  for (let i = done; i < STEPS.length; i++) STEPS[i](flags);
+  for (let i = done; i < STEPS.length; i++) STEPS[i](flags, keepsakes);
   flags['save.migrated'] = STEPS.length;
   return true;
 }

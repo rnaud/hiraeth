@@ -8,6 +8,16 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.3', date: '2026-10-09', items: [
+    // the desert's first hour
+    { text: 'Ama no longer waves you straight on to the city while she still has her jar for you: as you come up to the camps she calls you over to her fire, once more at most if you pass near, and then asks about it as soon as you sit down. Once the jar is yours she waves you on as before.',
+      see: 'Start a new game and walk from the ship to the camp fires outside Qanat without talking to anyone: Ama shouts for you to come by her fire. Talk to her and pick “You called me over. A jar?”.' },
+    // the route's people and Ilen
+    { text: 'Once you know who Ilen was, a few people along the way have a word about her: Madame Sel at the Signal Market, Hollin in the deep wood and Nour in Qanat. Sel also hears how the message ended once you have found her, and Hollin can hear where Odile and Talo went even if you never promised to come back.',
+      see: 'After the mother’s recording about Ilen has played at the console, go back to Madame Sel under the tower, to Hollin on his island or to Nour under the tree, and talk to them: a new answer about your sister. After the Lantern, Sel and Hollin have one more.' },
+    { text: 'Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.',
+      see: 'Load a save that got the lift token from Dov in the City-Shaft before version 0.97 and talk to him at the palace gate after the Lodestar is lit.' },
+  ] },
   { v: '1.2', date: '2026-10-09', items: [
     // shadows in caves and rooms
     'The dark masses in shaded corners, on stairs and round furniture stay put as the camera moves instead of shifting about in blocks, and come out as brushed shapes rather than stacked rectangles, most of all on Handheld.',

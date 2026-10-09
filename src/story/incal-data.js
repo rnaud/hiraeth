@@ -455,7 +455,8 @@ export const PEOPLE = {
         },
         lit: {
           say: ["~playful~ I looked up on duty. In public. There will be paperwork. I might frame it.", '~happy~ Worth it.',
-            { text: '~whisper~ (He pats his pocket.) Rest day’s the fourth. I’ve told the lift.', if: { flag: 'incal.token', is: 'returned' } }],
+            { text: '~whisper~ (He pats his pocket.) Rest day’s the fourth. I’ve told the lift.', if: { flag: 'incal.token', is: 'returned' } },
+            { text: '~neutral~ (He nods at your pocket.) Keep that token somewhere dry. Eleven years in mine, and it never once got used.', if: { flag: 'incal.token', is: 'kept' } }],
           choices: [{ text: '~curious~ Was it?', goto: 'worth' }, { text: '~neutral~ Goodbye, Dov.', end: true }],
         },
         worth: { say: ["~solemn~ For a moment, everyone saw the same light. Top and bottom. Yes. Worth it."], choices: [{ text: '~happy~ Goodbye, Dov.', end: true }] },
