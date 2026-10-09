@@ -1300,6 +1300,13 @@ export class Player {
         this._jumped = true;
       }
       this.riseKick = null;
+      // the blade's air cut (src/fluid-blade.js AIR): held a moment at the top, then driven down into the cut
+      // (and carried in to its foe: speed along dir, as the cut's pull does on the ground)
+      if (this.airKick) {
+        const K = this.airKick;
+        if (!this.onGround) { if (K.up != null) vu = K.up; if (K.dir) tv.copy(K.dir).multiplyScalar(K.speed); }
+        this.airKick = null;
+      }
 
       // jump / glide
       let jumped = false;
@@ -2267,7 +2274,8 @@ export class Player {
       this.moves.update(dt, { speed: hs, steering, wantSpeed: this._wantSpeed ?? 0, heading: this.heading, want: steering ? this.frame.headingOf(this._moveDir) : null, ground: free, size: A.legRatio });
       this.moves.play(A);
     }
-    if (Sw && !R && !this.down) A.playCombat(Sw.clip, Sw.t, Sw.w, { full: Sw.full && this.onGround, id: Sw.id });
+    // (the air cut, src/fluid-blade.js AIR: the whole body in the air too, its own rise off the floor left out: the controller flies it)
+    if (Sw && !R && !this.down) A.playCombat(Sw.clip, Sw.t, Sw.w, { full: (Sw.full && this.onGround) || (!!Sw.air && !this.onGround), ground: !!Sw.air && !this.onGround, id: Sw.id, blend: Sw.blend ?? 0.09 });
     // our walk / run speeds land on the walk and sprint clips; jog in between
     A.update(dt, {
       speed: hs, onGround: this.onGround, mode: 'ground', vy, jump: this.onGround ? null : J.phase,

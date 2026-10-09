@@ -27,6 +27,11 @@ export const CHANGELOG = [
     // the makers' boxes
     'Opening a makers’ box now ends with a moment that suits what was inside: a gadget is tried once, the pale star is pinned on and shown worn, a charm is turned over in his hand and pocketed, a part for the tank clicks onto the pack, the glyph lens and the listening shell turn him toward the nearest box still shut, and the whistle and the echo shell play a few notes. It lasts under two seconds, and B / ○ or Esc skips it.',
     'A box also takes its time from what it holds: a gadget’s box rocks three quick times, a charm’s only twice and opens sooner.',
+    // the fluid blade
+    'Hold the blade button (RB / R1) and the first swing turns into a charge: the traveller draws the sword back over his shoulder and holds it there, the blade pulsing and gathering sparks, a ring when it is full. Let go for a wide sweep taken from a great-sword swing: it hits harder (harder still when full) and staggers even an armoured foe or one already swinging at you. A quick tap still swings as before.',
+    'A swing in the air is now a leaping overhead cleave: at the top of the jump he lifts the sword over his head, hangs a moment, then drops onto the foe below with it, carried in a little if it is just out of reach. One a jump.',
+    'Going from one sword swing into the next, into the guard, or back to walking now blends smoothly instead of snapping straight to the new pose.',
+    'The blade’s spark trail sweeps through the cut itself, a full arc along the path the edge travelled, and only glints at the tip while the sword winds up and follows through.',
   ] },
   { v: '1.2', date: '2026-10-09', items: [
     // shadows in caves and rooms

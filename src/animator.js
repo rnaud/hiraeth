@@ -354,23 +354,25 @@ export class Animator {
   }
 
   /** Deliberate attacks use phase timing; transitions crossfade from the actual displayed pose. */
-  playCombat(name, t, w, { full = true, id = name } = {}) {
-    this.combatKey = `${id}:${name}`;
-    return this.play(name, t, w, { full, legs: full, head: true });
+  playCombat(name, t, w, { full = true, id = name, ground = false, blend = 0.09 } = {}) {
+    this.combatKey = `${id}:${name}`; this.combatBlendLen = blend;
+    return this.play(name, t, w, { full, legs: full, head: true, ground });
   }
 
   blendCombat(dt) {
     if (!this.combatKey && !this.lastCombatKey && !this.combatFrom) return;
     // Retain the displayed pose, including motion matching, for a continuous handover.
-    this.combatBones ??= (() => { const b = []; this.src.traverse((o) => { if (o.isBone) b.push(o); }); return b; })();
+    // (every joint: the library's skeleton is plain nodes, not Bones, so `isBone` alone found none and nothing blended)
+    this.combatBones ??= (() => { const b = []; this.src.traverse((o) => { if (o !== this.src && (o.isBone || (!o.isMesh && !o.isLight && !o.isCamera))) b.push(o); }); return b; })();
     const key = this.combatKey ?? null;
     if (key !== this.lastCombatKey && this.lastCombatPose) {
       this.combatFrom = this.lastCombatPose.map((v) => ({ q: v.q.clone(), p: v.p.clone() })); this.combatBlendT = 0;
+      this.combatFromLen = key ? this.combatBlendLen ?? 0.09 : 0.09;   // (into a move: its own blend, e.g. the charge's longer draw; out of one: 90 ms)
     }
     this.lastCombatKey = key; this.combatKey = null;
     if (this.combatFrom) {
       this.combatBlendT += dt;
-      const k = THREE.MathUtils.smoothstep(this.combatBlendT, 0, 0.09);
+      const k = THREE.MathUtils.smoothstep(this.combatBlendT, 0, this.combatFromLen ?? 0.09);
       this.combatBones.forEach((b, i) => {
         b.quaternion.slerp(this.combatFrom[i].q, 1 - k);
         b.position.lerp(this.combatFrom[i].p, 1 - k);

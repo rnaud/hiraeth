@@ -722,8 +722,8 @@ export class Foe {
     this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2;
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
     if (mode === 'blade' || mode === 'fire' || mode === 'world') this.letGo = true;   // (a hold, a line, is broken)
-    // Light cuts interrupt a blot (the flinchy ones), or the first two thirds of anyone's wind-up.
-    const reels = (mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike');
+    // Light cuts interrupt a blot (the flinchy ones), or the first two thirds of anyone's wind-up; the charged cut (info.breaks) anyone.
+    const reels = (mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (mode === 'blade' && !!info.breaks) || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike');
     // a cut that doesn't stop it: a heavy foe, or one committed to its blow (late in its wind-up, striking); Foes.hurt answers with its armour's thunk
     this.shrugged = mode === 'blade' && !reels && (!!D.heavy || this.state === 'wind' || this.state === 'strike');
     if (mode === 'blade' && D.hover) this.low = KNOCKED_LOW;   // (cut, a hovering foe drops within reach)

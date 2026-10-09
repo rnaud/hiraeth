@@ -319,7 +319,16 @@ node scripts/mocap/compare-people.mjs      # a person on each captured walk
   clip less its last frame (`wholeLoop`). A clip of its own (`use: clip`) holds its root still
   (`root: 'fixed'`, or `'end'` for a get-up: where it stands up), so the hips' sway and a get-up's
   rise stay in the pose instead of sliding the feet, and it keeps the head's own turn (`Head`), which
-  the database leaves out. Two uses at once: `mm+clip`.
+  the database leaves out. Two uses at once: `mm+clip`. A row's `until` ships only its first so many seconds
+  (the blade's jump attack: 1.5 of its 2.2 s; the rest is never played).
+- **The blade's attacks** (v1.3, docs/systems/foes.md): the Great Sword pack's slash (`gs_slash_1`, the charged
+  cut, 1.1 s) and jump attack (`gs_jump_attack`, the air cut) joined the Sword and Shield pack's cuts in
+  `moves.glb` (`node scripts/mocap/unpack-packs.mjs && node scripts/mocap/build-library.mjs --add
+  gs_slash_1,gs_jump_attack`): 597 424 → 621 644 bytes (+24 KB, 4 %; gzip 400 686 → 414 522). Their times
+  were read off the traveller in the game (the blade tip's speed through each clip), not off the studio.
+  `Animator.playCombat` takes a `blend` (s, default 0.09) for a move's way in (the charge's draw: 0.2) and
+  `ground` (the air cut); `blendCombat` now holds every joint of the library's skeleton (plain nodes, not
+  Bones: it had held none, so nothing blended).
 
 **The traveller's moves** (`Animator.play(name, t, w, { full, ground, head })`, `moves.glb`): a
 clip laid over the whole blend for a frame, by its weight; `full` (lying, kneeling, getting up) has
@@ -376,7 +385,7 @@ layers as they were). Strips of each are made on the Motion page (`motionPage.sh
 walking, stopping, turning and jumping for 15 s; `?moves=1` against `?moves=0`, two runs each) the
 player's whole update was 1.43 / 1.71 ms a frame with the moves against 1.64 / 1.76 without, the
 Animator 0.21–0.25 against 0.22–0.26 ms; in Node (the gait harness, the coral-shirt traveller, three
-runs each) 2.26–2.34 against 2.27–2.35 ms. `moves.glb` is 446 KB, loaded after the game starts.
+runs each) 2.26–2.34 against 2.27–2.35 ms. `moves.glb` is 446 KB, loaded after the game starts (607 KB with the blade's attacks, v1.3).
 
 **The people's walks** (`Animator.useWalk`, `locomotion.js walkFor`): a nearby person may walk one
 of twelve captured walks instead of the library's: picked (seeded, like the rest of their gait) among

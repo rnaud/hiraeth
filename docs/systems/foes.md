@@ -1,4 +1,4 @@
-# The fluid blade and the foes (v0.89)
+# The fluid blade and the foes (v0.89; captured attacks v1.3)
 
 The first things in the game that fight back, and the tool's answer to them.
 
@@ -16,9 +16,38 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
   `attackSample` maps separate wind/active/recover durations (0.22/0.16/0.24 s for the first,
   0.25/0.17/0.26 for the second, 0.36/0.20/0.34 for the heavy third) onto source time.
-  Grounded swings use the legs and hips; airborne cuts use the upper body. `Animator.playCombat`
-  blends clip changes over 90 ms from the displayed pose, including motion matching when enabled.
-  Grounded cuts step forward through Player's normal collision movement and limit steering until recovery.
+  Grounded swings use the legs and hips. `Animator.playCombat` blends clip changes (and the way back to
+  locomotion) over 90 ms from the displayed pose, including motion matching when enabled (v1.3: it had
+  blended nothing, `isBone` finding none of the library's plain-node joints; a swing into the next jumped up to
+  2.3 rad in a frame). Grounded cuts step forward through Player's normal collision movement and limit
+  steering until recovery. Every attack played from a clip is in `ATTACKS` (the three, the whirl, the lunge,
+  the charge, the air cut).
+- **On the clip's own swing frames** (v1.3): each attack's cut (`activeRange`: `activeFrom`–`activeTo`, else
+  `hit` −0.08/+0.1) is where its clip's blade moves fastest, measured on the traveller (the tip's speed through
+  `from`–`to`): the three 47/36/30 m/s at 0.60/0.81/1.13 s, the whirl 27 at 1.06, the charge 22 at 0.66, the air
+  cut 18 at 1.16, each well over its speed round the cut. `tests/blade-attacks.test.js` checks it, so a clip's
+  times can't drift off its swing. The trail follows the same window (`trailCut`): through the cut a sweep of
+  sparks over the ground the edge crossed since the last frame (up to 8 steps, 3 along the blade), else one glint
+  at the tip; while charging, sparks drawn in to the blade. (The studio's paused `time` is not the clip's: its
+  0.4 s is about 0.85 s of the clip. Measure in the game, as the test does.)
+- **The charged cut** (`CHARGE`, v1.3, the Great Sword pack's slash `gs_slash_1`): the blade button still held
+  `CHARGE.after` (0.2 s) into the first swing's wind-up (not chained, on the ground) turns it into a charge
+  (`FluidBlade.charging`): the clip drawn from 0.3 s to its cocked pose (`hold` 0.45 s, the sword back over
+  the right shoulder) over 0.18 s, blended in from the swing over 0.2 s (`playCombat`'s `blend`), and held
+  there with a slow breath (`chargePose`) as long as the button is; a slow step at most (`combatMotion.scale`
+  0.3), turned to the nearest foe; the blade pulses; full after `CHARGE.full` (0.6 s): a white ring and a ping
+  (`sound.fluidCharge`). Let go (or leave the ground): `release()` plays the clip's swing from 0.45 s (cut
+  0.54–0.76 s, 0.07/0.17/0.36 s), cone half-angle 1.5 rad, reach 3.3 m, the cut's pull as a swing's;
+  `CHARGE.damage` [2, 3] (not full / full), heavy (combo 2: the knockback, the hit-stop 0.11, full 0.15), and
+  `breaks`: Foe.hit reels any foe it touches, armoured or committed to its blow. Then the cooldown, as after a
+  third swing (`ENDS`). An evade cancels a charge. A tap is the light swing as before.
+- **The air cut** (`AIR`, v1.3, the Great Sword pack's jump attack `gs_jump_attack`): a swing begun in the air
+  (not the rising cut) plays the clip from 0.72 s (the sword going up) over the whole body, its own rise left
+  out (`swingMove.air`: `playCombat` `full` and `ground` in the air): `player.airKick` holds the body up at
+  the top (`lift` 2 m/s) through the wind-up and carries it in to a foe up to `pull` (3.5 m) out of reach, to
+  stand `ideal` (0.7 m) off its body; as the cut starts (0.98 s) the body is driven down at `plunge` (12 m/s)
+  and the overhead cleave (to 1.24 s) lands with it, its cone tipped `down` 0.6 rad. Damage 2, heavy. One an
+  airtime (`airUsed`, reset on the ground): a press in the air after it waits for the ground (the buffer).
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
@@ -51,7 +80,7 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The look:** a sword. A flat two-edged blade (`BLADE.length` 0.85 m, `width` 5 cm, extruded from an
   outline tapering to a point) of the glob's lava material in the tank's tones, its edges bright glowing lines,
   on a hilt: a brass guard, a wrapped grip in the fist and a brass pommel. The blade grows out of the guard as
-  it lights for a swing and fades after, and a fine trail of small sparks follows the edge. (The game's materials
+  it lights for a swing and fades after, and a trail of small sparks sweeps after the edge through the cut. (The game's materials
   draw into the G-buffer: no transparency, so the glow is the bloom's.)
 
 ## In the hands: the grip and the shield (`src/blade-grip.js`, `src/shield.js`, v0.93)
@@ -180,7 +209,7 @@ The count is said every 5 ink.
 
 ## Controls and the lock-on
 
-- **RB / R1** (a left click, F, ⚔) swings; **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
+- **RB / R1** (a left click, F, ⚔) swings (held, the charged cut; in the air, the air cut); **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
 - The push is a gun mode (`MODES.push`, always owned with the backpack): fired as a shot, it throws the cone.
 - In a fight (`foes.near(20)`) LB doesn't zoom (`Controller.combat`).
 - **The lock-on:** `Foes.cycleLock()` locks a foe in `LOCK.reach`: those ahead of the camera first, by distance

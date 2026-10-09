@@ -1474,3 +1474,18 @@ tests/sound-mix.test.js holds them.
   steps** (east of the landing: eight iron pillars to jump across a glowing grate, then a door of four eyes in
   one breath, which wants the fourth chamber; Jot has a word). A run can now end on the ground under it
   (`fall`), name its own controls (`controls: 'kitwings'`) and have a bank of any size.
+
+## The blade's captured attacks (done 9 October, v1.3)
+
+- [x] Captured sword swings for the blade (TODO "The gameplay loop"). The three combo cuts, the guard, the flinch,
+  the strafes, the whirl and the lunge were already the Sword and Shield and Great Sword packs' (v0.88–0.93);
+  this adds the rest of a set: **the charged cut** (the Great Sword pack's slash, `CHARGE`: the button held
+  through the first wind-up draws the sword back over the shoulder and holds it, full after 0.6 s; let go, a
+  wide sweep, damage 2 / 3, staggering any foe) and **the air cut** (its jump attack, `AIR`: held at the top,
+  carried in, driven down into an overhead cleave, one a jump, the whole body). Each attack's cut sits on its
+  clip's fastest blade frames, measured on the traveller (tests/blade-attacks.test.js); the spark trail sweeps
+  through the same window. `Animator.blendCombat` had blended nothing (the library's joints are plain nodes,
+  not Bones): every swing change, the guard and the way back to locomotion now blend from the pose on screen.
+  `moves.glb` +24 KB (597 → 622 KB; `until` trims the jump attack to the 1.5 s played). Not taken: the Sword
+  and Shield pack's jump (no cut in it: the sword stays out to the side), the power-ups (a held pose of the
+  slash itself reads better as the charge), a parry riposte (the guard's parry already opens a foe).

@@ -1587,6 +1587,15 @@ export class Sound {
     this.sweep(t, n === 2 ? 220 : 420 + n * 90, n === 2 ? 90 : 900 + n * 160, 0.18, air ? 0.045 : 0.07, 'sawtooth');
   }
 
+  /** The blade's charge (src/fluid-blade.js CHARGE): a low hum rising as it gathers; full, a bright two-note ping. */
+  fluidCharge(full = false) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (!full) { this.sweep(t, 140, 420, 0.55, 0.05, 'sawtooth'); this.sweep(t, 280, 840, 0.55, 0.03, 'triangle'); return; }
+    this.sweep(t, 1500, 2200, 0.16, 0.07, 'sine');
+    [7, 12].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.02 + i * 0.07, 0.06, 'sine', this.fx));
+  }
+
   /** The blade lands on something (a foe), or cuts the air. */
   fluidSlashHit(hit = false, heavy = false) {
     if (!this.ctx || !hit) return;
